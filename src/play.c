@@ -1,4 +1,4 @@
-// play - command-line music player wrapped around mpv.
+// play - command-line music player
 // Copyright (C) 2022 Ravachol
 //
 // http://github.com/ravachol/play
@@ -41,6 +41,7 @@ const char VERSION[] = "0.9.4";
 const char SETTINGS_FILENAME[] = ".play-settings";
 const char ALLOWED_EXTENSIONS[] = "\\.(m4a|mp3|ogg|flac|wav|aac|wma|raw|mp4a|mp4|m3u|pls)$";
 char durationFile[FILENAME_MAX];
+char tagsFilePath[FILENAME_MAX]; 
 bool isResizing = false;
 bool escapePressed = false;
 int originalLine = -1;
@@ -127,6 +128,13 @@ struct Event processInput()
   return event;
 }
 
+void cleanup() {
+  cleanupPlaybackDevice();
+  deleteFile(tagsFilePath);
+  deleteFile(durationFile);
+}
+
+
 double getSongLength(const char* songPath)
 {
   generateTempFilePath(durationFile, "duration", ".txt");
@@ -150,7 +158,6 @@ int play(const char *filepath)
   originalLine = row;    
   strcpy(musicFilepath, filepath);
   displayAlbumArt(getDirectoryFromPath(filepath));    
-  char tagsFilePath[FILENAME_MAX]; 
   generateTempFilePath(tagsFilePath, "metatags", ".txt");    
   extract_tags(strdup(filepath), tagsFilePath);
   clock_gettime(CLOCK_MONOTONIC, &start_time);  
@@ -160,9 +167,7 @@ int play(const char *filepath)
 
   if (res != 0) {
     printf("\033[%dB", originalLine);
-    cleanupPlaybackDevice();
-    deleteFile(tagsFilePath);
-    deleteFile(durationFile);
+    cleanup();
     currentSong = getListNext(&playlist, currentSong);
     if (currentSong != NULL)
       return play(currentSong->song.filePath);
@@ -202,9 +207,7 @@ int play(const char *filepath)
         break;
       case EVENT_NEXT:
         printf("\033[%dB", originalLine);
-        cleanupPlaybackDevice();
-        deleteFile(tagsFilePath);
-        deleteFile(durationFile);
+      cleanup();
         currentSong = getListNext(&playlist, currentSong);
         if (currentSong != NULL)
           return play(currentSong->song.filePath);
@@ -213,9 +216,7 @@ int play(const char *filepath)
         break;
       case EVENT_PREV:
         printf("\033[%dB", originalLine);
-        cleanupPlaybackDevice();
-        deleteFile(tagsFilePath);
-        deleteFile(durationFile);
+        cleanup();
         currentSong = getListPrev(&playlist, currentSong);
         if (currentSong != NULL)
           return play(currentSong->song.filePath); 
@@ -242,9 +243,7 @@ int play(const char *filepath)
     // Add a small delay to avoid excessive updates
     usleep(100000);
   }
-  cleanupPlaybackDevice();
-  deleteFile(tagsFilePath);
-  deleteFile(durationFile);
+  cleanup();
   return 0;
 }
 

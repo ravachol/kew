@@ -3,7 +3,7 @@
 
 void printHelp()
 {
-  printf("play - a command-line app for playing music files from the terminal..\n");
+  printf("play - a command-line music player.\n");
   printf("\n");
   printf("Usage:    play path \"path to music library\"\n");
   printf("          (Saves the music library path. Use this the first time. Ie: play path \"/home/joe/Music/\")\n");
