@@ -29,9 +29,9 @@
 #include "settings.h"
 #include "printfunc.h"
 #include "volume.h"
-#include "file.h"
 #include "playlist.h"
 #include "events.h"
+#include "file.h"
 
 #define CLOCK_MONOTONIC 1
 #define MAX_VOL_UP_EVENTS 3
@@ -41,7 +41,6 @@ const char VERSION[] = "0.9.4";
 const char SETTINGS_FILENAME[] = ".play-settings";
 const char ALLOWED_EXTENSIONS[] = "\\.(m4a|mp3|ogg|flac|wav|aac|wma|raw|mp4a|mp4|m3u|pls)$";
 char durationFile[FILENAME_MAX];
-char tagsFilePath[FILENAME_MAX];
 bool isResizing = false;
 bool escapePressed = false;
 int originalLine = -1;
@@ -134,20 +133,6 @@ double getSongLength(const char* songPath)
   return getDuration(songPath, durationFile);
 }
 
-void cleanup()
-{
-  cleanupPlaybackDevice();
-  deleteFile(tagsFilePath);
-  deleteFile(durationFile);
-}
-
-void printMetaData(const char *filepath)
-{
-  generateTempFilePath(tagsFilePath, "metatags", ".txt");
-  extract_tags(filepath, tagsFilePath);
-  printBasicMetadata(tagsFilePath);  
-}
-
 int play(const char *filepath)
 {
   char musicFilepath[MAX_FILENAME_LENGTH];
@@ -158,21 +143,26 @@ int play(const char *filepath)
   bool skip = false;
   int row = 1;
   int col = 1;   
-  double songLength;
-  
-  songLength = getSongLength(filepath);
+
+  generateTempFilePath(durationFile, "duration", ".txt");  
+  double songLength = getDuration(filepath, durationFile); 
   get_cursor_position(&row, &col);
   originalLine = row;    
   strcpy(musicFilepath, filepath);
-  displayAlbumArt(getDirectoryFromPath(filepath));  
-  setTextColorRGB(200,200,200); // white text
-  printMetaData(filepath);  
+  displayAlbumArt(getDirectoryFromPath(filepath));    
+  char tagsFilePath[FILENAME_MAX]; 
+  generateTempFilePath(tagsFilePath, "metatags", ".txt");    
+  extract_tags(strdup(filepath), tagsFilePath);
   clock_gettime(CLOCK_MONOTONIC, &start_time);  
   int res = playSoundFile(musicFilepath);  
-  
+  setTextColorRGB(200,200,200); // white text  
+  printBasicMetadata(tagsFilePath);
+
   if (res != 0) {
     printf("\033[%dB", originalLine);
-    cleanup();
+    cleanupPlaybackDevice();
+    deleteFile(tagsFilePath);
+    deleteFile(durationFile);
     currentSong = getListNext(&playlist, currentSong);
     if (currentSong != NULL)
       return play(currentSong->song.filePath);
@@ -212,7 +202,9 @@ int play(const char *filepath)
         break;
       case EVENT_NEXT:
         printf("\033[%dB", originalLine);
-        cleanup();
+        cleanupPlaybackDevice();
+        deleteFile(tagsFilePath);
+        deleteFile(durationFile);
         currentSong = getListNext(&playlist, currentSong);
         if (currentSong != NULL)
           return play(currentSong->song.filePath);
@@ -221,7 +213,9 @@ int play(const char *filepath)
         break;
       case EVENT_PREV:
         printf("\033[%dB", originalLine);
-        cleanup();
+        cleanupPlaybackDevice();
+        deleteFile(tagsFilePath);
+        deleteFile(durationFile);
         currentSong = getListPrev(&playlist, currentSong);
         if (currentSong != NULL)
           return play(currentSong->song.filePath); 
@@ -248,7 +242,9 @@ int play(const char *filepath)
     // Add a small delay to avoid excessive updates
     usleep(100000);
   }
-  cleanup();
+  cleanupPlaybackDevice();
+  deleteFile(tagsFilePath);
+  deleteFile(durationFile);
   return 0;
 }
 

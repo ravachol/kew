@@ -281,6 +281,5 @@ float get_audio_duration(const char* filepath) {
 
 float getDuration(const char* filepath, const char* tempFile) {
     extract_audio_duration(filepath, tempFile);
-    float duration_seconds = get_audio_duration(tempFile);
-    return duration_seconds;
+    return get_audio_duration(tempFile);
 }

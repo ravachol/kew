@@ -1,3 +1,8 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <errno.h>
 #include "file.h"
 
 int deleteFile(const char* filePath) {
@@ -21,3 +26,4 @@ void generateTempFilePath(char* filePath, const char* prefix, const char* suffix
     snprintf(filePath, FILENAME_MAX, "%s/%sXXXXXX%s", tempDir, prefix, suffix);
     mkstemp(filePath);
 }
+
