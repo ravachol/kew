@@ -9,6 +9,7 @@ Listen to music in the terminal.
 <div align="center">
     <img src="play-screenshot.png" />
 </div>
+
 ## Features
  
  * Search a music library with partial words from a directory, song or playlist.
@@ -36,7 +37,6 @@ Then run:
 % sudo port install ffmpeg
 
 % sudo port install konsole
-
 ```
 
 ## Installing play
