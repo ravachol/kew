@@ -71,7 +71,7 @@ void buildPlaylistRecursive(char* directoryPath, const char* allowedExtensions, 
 {
     if (!isDirectory(directoryPath) && directoryPath != NULL) {
         SongInfo song;
-        song.filePath = directoryPath;
+        song.filePath = strdup(directoryPath);
         addToList(playlist, song);
         return;
     }
