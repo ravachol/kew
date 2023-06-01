@@ -37,7 +37,7 @@
 #define MAX_VOL_UP_EVENTS 3
 #define MAX_EVENTS_IN_QUEUE 1
 
-const char VERSION[] = "0.9.3";
+const char VERSION[] = "0.9.4";
 const char SETTINGS_FILENAME[] = ".play-settings";
 const char ALLOWED_EXTENSIONS[] = "\\.(m4a|mp3|ogg|flac|wav|aac|wma|raw|mp4a|mp4|m3u|pls)$";
 char durationFile[FILENAME_MAX];
@@ -158,7 +158,7 @@ int play(const char *filepath)
   bool skip = false;
   int row = 1;
   int col = 1;   
-  double songLength;
+  volatile double songLength;
   
   songLength = getSongLength(filepath);
   get_cursor_position(&row, &col);
