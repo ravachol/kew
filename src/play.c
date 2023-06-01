@@ -131,7 +131,7 @@ struct Event processInput()
 double getSongLength(const char* songPath)
 {
   generateTempFilePath(durationFile, "duration", ".txt");
-  double total_seconds = getDuration(songPath, durationFile);
+  return getDuration(songPath, durationFile);
 }
 
 void cleanup()
@@ -158,7 +158,7 @@ int play(const char *filepath)
   bool skip = false;
   int row = 1;
   int col = 1;   
-  volatile double songLength;
+  double songLength;
   
   songLength = getSongLength(filepath);
   get_cursor_position(&row, &col);
