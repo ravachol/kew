@@ -15,11 +15,11 @@ Listen to music in the terminal.
  * Search a music library with partial words from a directory, song or playlist.
  * Display album covers as ASCII art.
  * Display meta tags from the music being played.
- * Control the player with prev, next and pause.
+ * Control the player with previous, next and pause.
 
 ## Installing Prerequisites
 
-play requires ffmpeg and a TrueColor capable terminal to display colors properly, like Konsole or st.
+play requires ffmpeg and a TrueColor capable terminal, like Konsole or st, to display colors properly.
 
 For a complete list of capable terminals, see this page: [Colors in Terminal](https://gist.github.com/CMCDragonkai/146100155ecd79c7dac19a9e23e6a362) (github.com).
 
@@ -94,7 +94,3 @@ This command plays all songs from "The Cure Greatest Hits" directory, provided i
 ## License
 
 Licensed under GPL. [See LICENSE for more information](https://github.com/ravachol/play/blob/main/LICENSE).
-
-
-
-[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/W7W7LHNCZ)
