@@ -37,8 +37,9 @@
 #define CLOCK_MONOTONIC 1
 #endif
 
-#define MAX_VOL_UP_EVENTS 3
-#define MAX_EVENTS_IN_QUEUE 1
+#ifndef MAX_EVENTS_IN_QUEUE
+#define MAX_EVENTS_IN_QUEUE 5
+#endif
 
 const char VERSION[] = "0.9.4";
 const char SETTINGS_FILENAME[] = ".play-settings";
@@ -86,6 +87,13 @@ struct Event processInput()
     }
   }
 
+  if (!isInputAvailable())
+  {
+    if (!isEventQueueEmpty())
+      event = dequeueEvent();
+    return event;
+  }
+
   char input = readInput();
 
   if (input == 27)
@@ -119,11 +127,17 @@ struct Event processInput()
     default:
       break;
     }
+    enqueueEvent(&event);    
   }
+
+  if (!isEventQueueEmpty())
+    return dequeueEvent();  
+
   return event;
 }
 
 void cleanup() {
+  escapePressed = false;
   cleanupPlaybackDevice();
   deleteFile(tagsFilePath);
   deleteFile(durationFilePath);
@@ -201,12 +215,15 @@ int play(const char *filepath)
         break;
       case EVENT_NEXT:
         printf("\033[%dB", originalLine);
-      cleanup();
+        cleanup();
         currentSong = getListNext(&playlist, currentSong);
         if (currentSong != NULL)
+        {
           return play(currentSong->song.filePath);
-        else
+        }
+        else {
           return -1;
+        }
         break;
       case EVENT_PREV:
         printf("\033[%dB", originalLine);
@@ -214,8 +231,9 @@ int play(const char *filepath)
         currentSong = getListPrev(&playlist, currentSong);
         if (currentSong != NULL)
           return play(currentSong->song.filePath); 
-        else
+        else {
           return -1;
+        }
         break;
       default:
         break;
