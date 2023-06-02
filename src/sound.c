@@ -241,7 +241,6 @@ void extract_audio_duration(const char* input_filepath, const char* output_filep
     system(command);
 }
 
-
 float get_audio_duration(const char* filepath) {
     FILE* fp;
     char duration[50];

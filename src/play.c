@@ -33,7 +33,6 @@
 #include "events.h"
 #include "file.h"
 
-#define CLOCK_MONOTONIC 1
 #define MAX_VOL_UP_EVENTS 3
 #define MAX_EVENTS_IN_QUEUE 1
 
@@ -255,12 +254,13 @@ int getMusicLibraryPath(char* path)
       struct passwd *pw = getpwuid(getuid());
       strcat(path, pw->pw_dir);
       strcat(path, "/Music/");
-    }  
+    } 
+    return 0;
 }
 
 int start()
 {
-  if (&playlist == NULL || playlist.head == NULL)
+  if (playlist.head == NULL)
     return -1;  
   if (currentSong == NULL)
     currentSong = playlist.head;
@@ -315,6 +315,8 @@ int makePlaylist(int argc, char *argv[])
     {
       puts("Music not found");
     }
+
+    return 0;
 }
 
 int main(int argc, char *argv[])
