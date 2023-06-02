@@ -38,7 +38,7 @@
 #endif
 
 #ifndef MAX_EVENTS_IN_QUEUE
-#define MAX_EVENTS_IN_QUEUE 5
+#define MAX_EVENTS_IN_QUEUE 1
 #endif
 
 const char VERSION[] = "0.9.4";
@@ -55,12 +55,11 @@ Node *currentSong;
 
 void handleResize(int signal)
 {
-  //struct winsize ws;
-  //ioctl(0, TIOCGWINSZ, &ws);
-  //int rows = ws.ws_row;
-
-  //printf("\033[1;%dr", rows); // Set scrolling region from row 1 to the last row
-  //printf("\033[%d;1H", rows); // Move cursor to the last row
+  struct winsize ws;
+  ioctl(0, TIOCGWINSZ, &ws);
+  int rows = ws.ws_row;
+  printf("\033[1;%dr", rows); // Set scrolling region from row 1 to the last row
+  printf("\033[%d;1H", rows); // Move cursor to the last row
   moveCursorToLastLine();  
   fflush(stdout);             // Flush the output buffer
 
@@ -101,6 +100,7 @@ struct Event processInput()
     escapePressed = true;
     clock_gettime(CLOCK_MONOTONIC, &escapeTime);
     save_cursor_position();
+    return event;
   }
   else
   {
@@ -111,27 +111,34 @@ struct Event processInput()
     {
     case 'A': // Up arrow
       event.type = EVENT_VOLUME_UP;
+      escapePressed = false;
       break;
     case 'B': // Down arrow
       event.type = EVENT_VOLUME_DOWN;
+      escapePressed = false;
       break;
     case 'C': // Right arrow
       event.type = EVENT_NEXT;
+      escapePressed = false;
       break;
     case 'D': // Left arrow
       event.type = EVENT_PREV;
+      escapePressed = false;
       break;
     case ' ': // Space
       event.type = EVENT_PLAY_PAUSE;
+      escapePressed = false;
       break;    
     default:
       break;
     }
-    enqueueEvent(&event);    
+    enqueueEvent(&event);
   }
 
   if (!isEventQueueEmpty())
-    return dequeueEvent();  
+  {
+    event = dequeueEvent();
+  } 
 
   return event;
 }
@@ -193,7 +200,7 @@ int play(const char *filepath)
       isResizing = false;
     }
     else if ((elapsed_seconds < songLength) && !isPaused()) {
-      //moveCursorToLastLine();
+      moveCursorToLastLine();
       printProgress(elapsed_seconds, songLength, 999);
     }
 
@@ -218,12 +225,10 @@ int play(const char *filepath)
         cleanup();
         currentSong = getListNext(&playlist, currentSong);
         if (currentSong != NULL)
-        {
           return play(currentSong->song.filePath);
-        }
-        else {
+        else
           return -1;
-        }
+
         break;
       case EVENT_PREV:
         printf("\033[%dB", originalLine);
@@ -231,9 +236,8 @@ int play(const char *filepath)
         currentSong = getListPrev(&playlist, currentSong);
         if (currentSong != NULL)
           return play(currentSong->song.filePath); 
-        else {
+        else 
           return -1;
-        }
         break;
       default:
         break;
@@ -246,6 +250,7 @@ int play(const char *filepath)
 
     if (isPlaybackDone()) {
       printf("\033[%dB", originalLine); 
+      escapePressed = false;
       currentSong = getListNext(&playlist, currentSong);
       if (currentSong != NULL)
         play(currentSong->song.filePath); 
