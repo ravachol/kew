@@ -111,28 +111,29 @@ struct Event processInput()
     {
     case 'A': // Up arrow
       event.type = EVENT_VOLUME_UP;
-      escapePressed = false;
       break;
     case 'B': // Down arrow
       event.type = EVENT_VOLUME_DOWN;
-      escapePressed = false;
       break;
     case 'C': // Right arrow
       event.type = EVENT_NEXT;
-      escapePressed = false;
       break;
     case 'D': // Left arrow
       event.type = EVENT_PREV;
-      escapePressed = false;
       break;
     case ' ': // Space
       event.type = EVENT_PLAY_PAUSE;
-      escapePressed = false;
       break;    
     default:
       break;
     }
     enqueueEvent(&event);
+  }
+
+  if (event.key == 'A' || event.key == 'B' || event.key == 'C' || event.key == 'D' || event.key == ' ')
+  {
+    clock_gettime(CLOCK_MONOTONIC, &escapeTime);
+    escapePressed = false;
   }
 
   if (!isEventQueueEmpty())
