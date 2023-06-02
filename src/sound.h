@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include "../include/miniaudio/miniaudio.h"
 
 void data_callback(ma_device* pDevice, void* pOutput, const void* pInput, ma_uint32 frameCount);
@@ -19,6 +20,8 @@ int playPlaylist(char* filePath);
 void resumePlayback();
 
 void pausePlayback();
+
+bool isPaused();
 
 void cleanupPlaybackDevice();
 
