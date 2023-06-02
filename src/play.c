@@ -33,7 +33,10 @@
 #include "events.h"
 #include "file.h"
 
+#ifndef CLOCK_MONOTONIC
 #define CLOCK_MONOTONIC 1
+#endif
+
 #define MAX_VOL_UP_EVENTS 3
 #define MAX_EVENTS_IN_QUEUE 1
 
@@ -51,14 +54,15 @@ Node *currentSong;
 
 void handleResize(int signal)
 {
-  struct winsize ws;
-  ioctl(0, TIOCGWINSZ, &ws);
-  int rows = ws.ws_row;
+  //struct winsize ws;
+  //ioctl(0, TIOCGWINSZ, &ws);
+  //int rows = ws.ws_row;
 
-  printf("\033[1;%dr", rows); // Set scrolling region from row 1 to the last row
-  printf("\033[%d;1H", rows); // Move cursor to the last row
+  //printf("\033[1;%dr", rows); // Set scrolling region from row 1 to the last row
+  //printf("\033[%d;1H", rows); // Move cursor to the last row
+  moveCursorToLastLine();  
   fflush(stdout);             // Flush the output buffer
-  moveCursorToLastLine();
+
   isResizing = true;
 }
 
@@ -164,7 +168,6 @@ int play(const char *filepath)
   }
   while (true)
   {
-    moveCursorToLastLine();
     struct timespec current_time;
     clock_gettime(CLOCK_MONOTONIC, &current_time);
 
@@ -172,10 +175,11 @@ int play(const char *filepath)
                       (double)(current_time.tv_nsec - start_time.tv_nsec) / 1e9;
 
     if (isResizing) {
+      usleep(100000);
       isResizing = false;
     }
     else if ((elapsed_seconds < songLength) && !isPaused()) {
-      moveCursorToLastLine();
+      //moveCursorToLastLine();
       printProgress(elapsed_seconds, songLength, 999);
     }
 
