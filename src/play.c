@@ -81,13 +81,6 @@ struct Event processInput()
     }
   }
 
-  if (!isInputAvailable())
-  {
-    if (!isEventQueueEmpty())
-      event = dequeueEvent();
-    return event;
-  }
-
   char input = readInput();
 
   if (input == 27)
@@ -122,7 +115,6 @@ struct Event processInput()
     default:
       break;
     }
-    enqueueEvent(&event);
   }
   return event;
 }
@@ -182,7 +174,7 @@ int play(const char *filepath)
     if (isResizing) {
       isResizing = false;
     }
-    else if (elapsed_seconds < songLength) {
+    else if ((elapsed_seconds < songLength) && !isPaused()) {
       moveCursorToLastLine();
       printProgress(elapsed_seconds, songLength, 999);
     }
@@ -192,16 +184,16 @@ int play(const char *filepath)
 
     switch (event.type) {
       case EVENT_PLAY_PAUSE:
-        pausePlayback();
+         pausePlayback();
         break;      
       case EVENT_QUIT:
         shouldQuit = true;
         break;
       case EVENT_VOLUME_UP:
-        adjustVolumePercent(2);
+        adjustVolumePercent(5);
         break;
       case EVENT_VOLUME_DOWN:
-        adjustVolumePercent(-2);
+        adjustVolumePercent(-5);
         break;
       case EVENT_NEXT:
         printf("\033[%dB", originalLine);

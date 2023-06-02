@@ -203,7 +203,8 @@ int getCurrentLinePosition() {
 }
 
 void moveCursorToLastLine() {
-    printf("\033[999B");  // Move the cursor 999 lines down
+    //printf("\033[999B");  // Move the cursor 999 lines down
+    printf("\033[999;1H");
 }
 
 void enableScrolling() {

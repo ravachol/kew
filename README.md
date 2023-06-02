@@ -29,6 +29,21 @@ ffmpeg might be installed already, if not install it using your distro's package
 
 ### macOS
 
+Install homebrew: 
+
+ ```
+% /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+ ```
+
+Then run:
+
+```
+% sudo brew install ffmpeg
+
+% sudo brew link ffmpeg
+```
+#### OR, If you prefer MacPorts
+
 Install MacPorts: https://ports.macports.org/
 
 Then run:
@@ -38,8 +53,7 @@ Then run:
 
 % sudo port install konsole
 ```
-
-Now you have a terminal (Konsole) installed which can run play properly.
+The last line installs Konsole, a terminal which can run play properly.
 
 ## Installing play
 

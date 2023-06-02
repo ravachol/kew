@@ -4,6 +4,7 @@
 #include <string.h>
 #include <math.h>
 #include <dirent.h>
+#include <stdbool.h>
 #include "sound.h"
 #include "file.h"
 #include "stringextensions.h"
@@ -198,7 +199,7 @@ int playPlaylist(char* filePath)
 return 0;
 }
 
-int paused = 0;
+bool paused = false;
 
 void resumePlayback()
 {
@@ -212,12 +213,16 @@ void pausePlayback()
 
     if (ma_device_is_started(&device)) {
         ma_device_stop(&device);
-        paused = 1;
-    } else if (paused == 1)
+        paused = true;
+    } else if (paused)
     {
         resumePlayback();
-        paused = 0;
+        paused = false;
     }
+}
+
+bool isPaused() {
+    return paused;
 }
 
 int isPlaybackDone() {
