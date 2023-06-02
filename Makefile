@@ -1,4 +1,4 @@
-CC = gcc -g
+CC = gcc
 CFLAGS = -Iinclude/imgtotxt -Iinclude/miniaudio -O3
 LIBS = -lm -lpthread -lavformat -lavutil
 
