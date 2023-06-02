@@ -39,6 +39,8 @@ Then run:
 % sudo port install konsole
 ```
 
+Now you have a terminal (Konsole) installed which can run play properly.
+
 ## Installing play
 
  ```
@@ -86,7 +88,7 @@ This command plays all songs from "The Cure Greatest Hits" directory, provided i
 
 #### Other Functions:
 
-* Use <kbd>↑</kbd>, <kbd>↓</kbd> keys to raise or lower volume (leads to some graphical issues currently). 
+* Use <kbd>↑</kbd>, <kbd>↓</kbd> keys to raise or lower volume. 
 * Use <kbd>→</kbd>, <kbd>←</kbd> keys to play the next or previous track in the playlist. 
 * Press <kbd>Space</kbd> to pause.
 * Press <kbd>Esc</kbd> to quit.

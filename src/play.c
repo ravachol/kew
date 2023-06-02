@@ -40,7 +40,7 @@
 const char VERSION[] = "0.9.4";
 const char SETTINGS_FILENAME[] = ".play-settings";
 const char ALLOWED_EXTENSIONS[] = "\\.(m4a|mp3|ogg|flac|wav|aac|wma|raw|mp4a|mp4|m3u|pls)$";
-char durationFile[FILENAME_MAX];
+char durationFilePath[FILENAME_MAX];
 char tagsFilePath[FILENAME_MAX]; 
 bool isResizing = false;
 bool escapePressed = false;
@@ -131,14 +131,13 @@ struct Event processInput()
 void cleanup() {
   cleanupPlaybackDevice();
   deleteFile(tagsFilePath);
-  deleteFile(durationFile);
+  deleteFile(durationFilePath);
 }
-
 
 double getSongLength(const char* songPath)
 {
-  generateTempFilePath(durationFile, "duration", ".txt");
-  return getDuration(songPath, durationFile);
+  generateTempFilePath(durationFilePath, "duration", ".txt");
+  return getDuration(songPath, durationFilePath);
 }
 
 int play(const char *filepath)
@@ -152,8 +151,8 @@ int play(const char *filepath)
   int row = 1;
   int col = 1;   
 
-  generateTempFilePath(durationFile, "duration", ".txt");  
-  double songLength = getDuration(filepath, durationFile); 
+  generateTempFilePath(durationFilePath, "duration", ".txt");  
+  double songLength = getDuration(filepath, durationFilePath); 
   get_cursor_position(&row, &col);
   originalLine = row;    
   strcpy(musicFilepath, filepath);
