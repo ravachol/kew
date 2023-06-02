@@ -33,6 +33,7 @@
 #include "events.h"
 #include "file.h"
 
+#define CLOCK_MONOTONIC 1
 #define MAX_VOL_UP_EVENTS 3
 #define MAX_EVENTS_IN_QUEUE 1
 
@@ -91,7 +92,6 @@ struct Event processInput()
   }
   else
   {
-    escapePressed = false;
     event.type = EVENT_KEY_PRESS;
     event.key = input;
 
