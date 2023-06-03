@@ -10,6 +10,8 @@ Listen to music in the terminal.
     <img src="play-screenshot.png" />
 </div>
 
+Play is a command-line music player for Linux.
+
 ## Features
  
  * Search a music library with partial words from a directory, song or playlist.
@@ -19,43 +21,13 @@ Listen to music in the terminal.
 
 ## Installing Prerequisites
 
-play requires ffmpeg and a TrueColor capable terminal, like Konsole or st, to display colors properly.
+play requires FFmpeg and a TrueColor capable terminal, like Konsole, kitty or st, to display colors properly.
 
 For a complete list of capable terminals, see this page: [Colors in Terminal](https://gist.github.com/CMCDragonkai/146100155ecd79c7dac19a9e23e6a362) (github.com).
 
-### Linux
+FFmpeg might be installed already, if not install it using your distro's package manager.
 
-ffmpeg might be installed already, if not install it using your distro's package manager.
-
-### macOS
-
-Install homebrew: 
-
- ```
-% /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
- ```
-
-Then run:
-
-```
-% sudo brew install ffmpeg
-
-% sudo brew link ffmpeg
-```
-#### OR, If you prefer MacPorts
-
-Install MacPorts: https://ports.macports.org/
-
-Then run:
-
-```
-% sudo port install ffmpeg
-
-% sudo port install konsole
-```
-The last line installs Konsole, a terminal which can run play properly.
-
-## Installing play
+## How to install
 
  ```
 % git clone https://github.com/ravachol/play.git
@@ -69,7 +41,7 @@ The last line installs Konsole, a terminal which can run play properly.
 
 ## Running play
 
-Tell play the path to your music library (you only need to do this once):
+IMPORTANT! Tell play the path to your music library (you only need to do this once):
 
 ```
 % play path "/home/joe/Music/"
