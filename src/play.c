@@ -167,7 +167,6 @@ int play(const char *filepath)
   bool skip = false;
   int row = 1;
   int col = 1;   
-
   generateTempFilePath(durationFilePath, "duration", ".txt");  
   double songLength = getDuration(filepath, durationFilePath); 
   get_cursor_position(&row, &col);
@@ -180,6 +179,9 @@ int play(const char *filepath)
   int res = playSoundFile(musicFilepath);  
   setTextColorRGB(200,200,200); // white text  
   printBasicMetadata(tagsFilePath);
+  escapePressed = false;
+  shouldQuit = false;  
+  clock_gettime(CLOCK_MONOTONIC, &escapeTime);
 
   if (res != 0) {
     printf("\033[%dB", originalLine);
@@ -249,9 +251,9 @@ int play(const char *filepath)
       break;
     }
 
-    if (isPlaybackDone()) {
+    if (isPlaybackDone()) {      
       printf("\033[%dB", originalLine); 
-      escapePressed = false;
+      cleanup();      
       currentSong = getListNext(&playlist, currentSong);
       if (currentSong != NULL)
         play(currentSong->song.filePath); 
