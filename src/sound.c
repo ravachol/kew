@@ -18,7 +18,7 @@ typedef struct {
     ma_decoder* decoder;
 } UserData;
 
-int eofReached = 0;
+static int eofReached = 0;
 ma_device device = {0};
 UserData* userData = NULL;
 
@@ -226,7 +226,15 @@ bool isPaused() {
 }
 
 int isPlaybackDone() {
-    return eofReached;
+    if (eofReached == 1)
+    {
+        eofReached = 0;
+        return 1;
+    }
+    else 
+    {
+        return 0;
+    }
 }
 
 void cleanupPlaybackDevice()
