@@ -48,7 +48,6 @@ char durationFilePath[FILENAME_MAX];
 char tagsFilePath[FILENAME_MAX]; 
 bool isResizing = false;
 bool escapePressed = false;
-int originalRow = -1;
 struct timespec escapeTime;
 PlayList playlist = {NULL, NULL};
 Node *currentSong;
@@ -156,8 +155,7 @@ int play(const char *filepath)
   double elapsed_seconds = 0.0;  
   bool shouldQuit = false;
   bool skip = false;
-  int col = 1;   
-  get_cursor_position(&originalRow, &col);    
+  int col = 1;
   generateTempFilePath(durationFilePath, "duration", ".txt");  
   double songLength = getDuration(filepath, durationFilePath);  
   strcpy(musicFilepath, filepath);
@@ -176,7 +174,6 @@ int play(const char *filepath)
   clock_gettime(CLOCK_MONOTONIC, &escapeTime);
 
   if (res != 0) {
-    printf("\033[%dB", originalRow);
     cleanup();
     currentSong = getListNext(&playlist, currentSong);
     if (currentSong != NULL)
@@ -216,17 +213,14 @@ int play(const char *filepath)
         adjustVolumePercent(-5);
         break;
       case EVENT_NEXT:
-        printf("\033[%dB", originalRow);
         cleanup();
         currentSong = getListNext(&playlist, currentSong);
         if (currentSong != NULL)
           return play(currentSong->song.filePath);
         else
           return -1;
-
         break;
       case EVENT_PREV:
-        printf("\033[%dB", originalRow);
         cleanup();
         currentSong = getListPrev(&playlist, currentSong);
         if (currentSong != NULL)
@@ -244,7 +238,6 @@ int play(const char *filepath)
     }
 
     if (isPlaybackDone()) {      
-      printf("\033[%dB", originalRow); 
       cleanup();      
       currentSong = getListNext(&playlist, currentSong);
       if (currentSong != NULL)
