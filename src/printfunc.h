@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
 #include "metadata.h"
 
 void printHelp()
@@ -37,6 +39,16 @@ void printVersion(const char* version)
   printf("Play version %s.\n", version);  
 }
 
+int getYear(const char* dateString) {
+    int year;
+
+    if (sscanf(dateString, "%d", &year) != 1) {
+        return -1;
+    }
+
+    return year;
+}
+
 void printBasicMetadata(const char *file_path)
 {
   int pair_count;
@@ -48,19 +60,25 @@ void printBasicMetadata(const char *file_path)
   }
 
   TagSettings settings = construct_tag_settings(pairs, pair_count);
-
+   
   if (strlen(settings.title) > 0)
-    printf("Title: %s\n", settings.title);
+    printf("%s\n", settings.title);
   if (strlen(settings.artist) > 0)
-    printf("Artist: %s\n", settings.artist);
+    printf("%s\n", settings.artist);
   if (strlen(settings.album) > 0)
-    printf("Album: %s\n", settings.album);
+    printf("%s\n", settings.album);
   if (strlen(settings.date) > 0)
-    printf("Date: %s\n", settings.date);
+  {
+    int year = getYear(settings.date);
+    if (year == -1)
+      printf("%s\n", settings.date);
+    else
+      printf("%d\n", year);
+  }
   free_key_value_pairs(pairs, pair_count);
 }
 
-void printProgress(double elapsed_seconds, double total_seconds, int min_cursor_line)
+void printProgress(double elapsed_seconds, double total_seconds)
 {
   // Save the current cursor position
   printf("\033[s");
@@ -76,7 +94,7 @@ void printProgress(double elapsed_seconds, double total_seconds, int min_cursor_
   int progress_percentage = (int)((elapsed_seconds / total_seconds) * 100);
 
   // Move the cursor to the target row
-  printf("\033[%d;1H", min_cursor_line);
+  //printf("\033[%d;1H", min_cursor_line);
 
   // Clear the current line
   printf("\033[K");
