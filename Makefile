@@ -1,5 +1,5 @@
-CC = gcc -g
-CFLAGS = -Iinclude/imgtotxt -Iinclude/miniaudio -O1
+CC = gcc
+CFLAGS = -Iinclude/imgtotxt -Iinclude/miniaudio -O3
 LIBS = -lm -lpthread -lavformat -lavutil
 
 OBJDIR = src/obj
