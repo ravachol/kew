@@ -1,8 +1,10 @@
 #include <string.h>
 #include <dirent.h>
 #include "../include/getcover/getcover.h"
+#include "../include/imgtotxt/options.h"
 #include "../include/imgtotxt/write_ascii.h"
 #include "term.h"
+#include "stringextensions.h"
 
 int default_ascii_height = 25;
 int default_ascii_width = 50;
@@ -155,10 +157,16 @@ void displayAlbumArt(const char* directory)
       int term_w, term_h;
       get_term_size(&term_w, &term_h);
 
+      const char* variableName = "COLORTERM";
+      char* value = getVariableValue(variableName);
+      enum OutputModes outputMode = ANSI;
+      if (strcmp(stringToLower(value), "truecolor") != 0)
+        outputMode = ASCII;
+
       if (term_h <= 28)
-        output_ascii(largestImageFile, small_ascii_height, small_ascii_width);
+        output_ascii(largestImageFile, small_ascii_height, small_ascii_width, outputMode);
       else
-        output_ascii(largestImageFile, default_ascii_height, default_ascii_width);
+        output_ascii(largestImageFile, default_ascii_height, default_ascii_width, outputMode);
 
       free(largestImageFile);
     }

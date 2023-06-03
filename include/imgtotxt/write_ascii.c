@@ -134,7 +134,7 @@ int read_and_convert(char * filepath, ImageOptions * options) {
     return 0;
 }
 
-int output_ascii(char* pathToImgFile, int height, int width)
+int output_ascii(char* pathToImgFile, int height, int width, enum OutputModes outputMode)
 {
     ImageOptions opts = {
         .output_mode = ANSI,
@@ -143,6 +143,8 @@ int output_ascii(char* pathToImgFile, int height, int width)
         .squashing_enabled = true,
         .suppress_header = true,
     };
+
+    opts.output_mode = outputMode;
 
     if (width > MAX_IMG_SIZE) {
        fprintf(stderr, "[ERR] Width exceeds maximum image size!\n");

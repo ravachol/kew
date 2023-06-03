@@ -8,6 +8,15 @@
 #define ANSI_GET_CURSOR_POS "\033[6n"
 #define ANSI_SET_CURSOR_POS "\033[%d;%dH"
 
+char* getVariableValue(const char* variableName) {
+    char* value = getenv(variableName);
+    if (value == NULL) {       
+        return "";
+    }
+
+    return value;
+}
+
 void get_cursor_position_nonblocking(int *row, int *col) {
     printf(ANSI_GET_CURSOR_POS);
     fflush(stdout);
