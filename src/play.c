@@ -48,21 +48,13 @@ char durationFilePath[FILENAME_MAX];
 char tagsFilePath[FILENAME_MAX]; 
 bool isResizing = false;
 bool escapePressed = false;
-int originalLine = -1;
+int originalRow = -1;
 struct timespec escapeTime;
 PlayList playlist = {NULL, NULL};
 Node *currentSong;
 
 void handleResize(int signal)
 {
-  struct winsize ws;
-  ioctl(0, TIOCGWINSZ, &ws);
-  int rows = ws.ws_row;
-  printf("\033[1;%dr", rows); // Set scrolling region from row 1 to the last row
-  printf("\033[%d;1H", rows); // Move cursor to the last row
-  moveCursorToLastLine();  
-  fflush(stdout);             // Flush the output buffer
-
   isResizing = true;
 }
 
@@ -160,17 +152,14 @@ double getSongLength(const char* songPath)
 int play(const char *filepath)
 {
   char musicFilepath[MAX_FILENAME_LENGTH];
-  int min_cursor_line = 0;
   struct timespec start_time;
   double elapsed_seconds = 0.0;  
   bool shouldQuit = false;
   bool skip = false;
-  int row = 1;
   int col = 1;   
+  get_cursor_position(&originalRow, &col);    
   generateTempFilePath(durationFilePath, "duration", ".txt");  
-  double songLength = getDuration(filepath, durationFilePath); 
-  get_cursor_position(&row, &col);
-  originalLine = row;    
+  double songLength = getDuration(filepath, durationFilePath);  
   strcpy(musicFilepath, filepath);
   displayAlbumArt(getDirectoryFromPath(filepath));    
   generateTempFilePath(tagsFilePath, "metatags", ".txt");    
@@ -179,12 +168,15 @@ int play(const char *filepath)
   int res = playSoundFile(musicFilepath);  
   setTextColorRGB(200,200,200); // white text  
   printBasicMetadata(tagsFilePath);
+  fflush(stdout);  
+  usleep(100000);
+
   escapePressed = false;
   shouldQuit = false;  
   clock_gettime(CLOCK_MONOTONIC, &escapeTime);
 
   if (res != 0) {
-    printf("\033[%dB", originalLine);
+    printf("\033[%dB", originalRow);
     cleanup();
     currentSong = getListNext(&playlist, currentSong);
     if (currentSong != NULL)
@@ -203,8 +195,8 @@ int play(const char *filepath)
       isResizing = false;
     }
     else if ((elapsed_seconds < songLength) && !isPaused()) {
-      moveCursorToLastLine();
-      printProgress(elapsed_seconds, songLength, 999);
+      //set_cursor_position(originalRow, 1);
+      printProgress(elapsed_seconds, songLength);
     }
 
     // Process events
@@ -224,7 +216,7 @@ int play(const char *filepath)
         adjustVolumePercent(-5);
         break;
       case EVENT_NEXT:
-        printf("\033[%dB", originalLine);
+        printf("\033[%dB", originalRow);
         cleanup();
         currentSong = getListNext(&playlist, currentSong);
         if (currentSong != NULL)
@@ -234,7 +226,7 @@ int play(const char *filepath)
 
         break;
       case EVENT_PREV:
-        printf("\033[%dB", originalLine);
+        printf("\033[%dB", originalRow);
         cleanup();
         currentSong = getListPrev(&playlist, currentSong);
         if (currentSong != NULL)
@@ -252,7 +244,7 @@ int play(const char *filepath)
     }
 
     if (isPlaybackDone()) {      
-      printf("\033[%dB", originalLine); 
+      printf("\033[%dB", originalRow); 
       cleanup();      
       currentSong = getListNext(&playlist, currentSong);
       if (currentSong != NULL)
