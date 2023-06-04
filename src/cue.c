@@ -242,9 +242,7 @@ int play(const char *filepath)
     }       
 
     if (shouldQuit)
-    {
       break;
-    }
 
     if (isPlaybackDone())
     {
