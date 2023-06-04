@@ -45,9 +45,10 @@ const char VERSION[] = "0.9.4";
 const char SETTINGS_FILENAME[] = ".play-settings";
 const char ALLOWED_EXTENSIONS[] = "\\.(m4a|mp3|ogg|flac|wav|aac|wma|raw|mp4a|mp4|m3u|pls)$";
 char durationFilePath[FILENAME_MAX];
-char tagsFilePath[FILENAME_MAX]; 
+char tagsFilePath[FILENAME_MAX];
 bool isResizing = false;
 bool escapePressed = false;
+int progressLine = 1;
 struct timespec escapeTime;
 PlayList playlist = {NULL, NULL};
 Node *currentSong;
@@ -72,7 +73,7 @@ struct Event processInput()
     if (elapsedSeconds > 1.0)
     {
       event.type = EVENT_QUIT;
-      escapePressed = false;
+      escapePressed = false;   
       return event;
     }
   }
@@ -82,6 +83,11 @@ struct Event processInput()
     if (!isEventQueueEmpty())
       event = dequeueEvent();
     return event;
+    save_cursor_position();
+  }
+  else
+  {
+    restore_cursor_position();
   }
 
   char input = readInput();
@@ -90,7 +96,7 @@ struct Event processInput()
   { // ASCII value of escape key
     escapePressed = true;
     clock_gettime(CLOCK_MONOTONIC, &escapeTime);
-    save_cursor_position();
+    restore_cursor_position();
     return event;
   }
   else
@@ -114,7 +120,7 @@ struct Event processInput()
       break;
     case ' ': // Space
       event.type = EVENT_PLAY_PAUSE;
-      break;    
+      break;
     default:
       break;
     }
@@ -130,19 +136,20 @@ struct Event processInput()
   if (!isEventQueueEmpty())
   {
     event = dequeueEvent();
-  } 
+  }
 
   return event;
 }
 
-void cleanup() {
+void cleanup()
+{
   escapePressed = false;
   cleanupPlaybackDevice();
   deleteFile(tagsFilePath);
   deleteFile(durationFilePath);
 }
 
-double getSongLength(const char* songPath)
+double getSongLength(const char *songPath)
 {
   generateTempFilePath(durationFilePath, "duration", ".txt");
   return getDuration(songPath, durationFilePath);
@@ -152,28 +159,30 @@ int play(const char *filepath)
 {
   char musicFilepath[MAX_FILENAME_LENGTH];
   struct timespec start_time;
-  double elapsed_seconds = 0.0;  
+  double elapsed_seconds = 0.0;
   bool shouldQuit = false;
   bool skip = false;
   int col = 1;
-  generateTempFilePath(durationFilePath, "duration", ".txt");  
-  double songLength = getDuration(filepath, durationFilePath);  
+  generateTempFilePath(durationFilePath, "duration", ".txt");
+  double songLength = getDuration(filepath, durationFilePath);
   strcpy(musicFilepath, filepath);
-  displayAlbumArt(getDirectoryFromPath(filepath));    
-  generateTempFilePath(tagsFilePath, "metatags", ".txt");    
+  displayAlbumArt(getDirectoryFromPath(filepath));
+  generateTempFilePath(tagsFilePath, "metatags", ".txt");
   extract_tags(strdup(filepath), tagsFilePath);
-  clock_gettime(CLOCK_MONOTONIC, &start_time);  
-  int res = playSoundFile(musicFilepath);  
-  setTextColorRGB(200,200,200); // white text  
+  clock_gettime(CLOCK_MONOTONIC, &start_time);
+  int res = playSoundFile(musicFilepath);
+  setTextColorRGB(200, 200, 200); // white text
   printBasicMetadata(tagsFilePath);
-  fflush(stdout);  
+  get_cursor_position(&progressLine, &col);
+  fflush(stdout);
   usleep(100000);
 
   escapePressed = false;
-  shouldQuit = false;  
+  shouldQuit = false;
   clock_gettime(CLOCK_MONOTONIC, &escapeTime);
 
-  if (res != 0) {
+  if (res != 0)
+  {
     cleanup();
     currentSong = getListNext(&playlist, currentSong);
     if (currentSong != NULL)
@@ -187,62 +196,65 @@ int play(const char *filepath)
     elapsed_seconds = (double)(current_time.tv_sec - start_time.tv_sec) +
                       (double)(current_time.tv_nsec - start_time.tv_nsec) / 1e9;
 
-    if (isResizing) {
-      usleep(100000);
-      isResizing = false;
-    }
-    else if ((elapsed_seconds < songLength) && !isPaused()) {
-      //set_cursor_position(originalRow, 1);
-      printProgress(elapsed_seconds, songLength);
-    }
-
     // Process events
-    struct Event event = processInput();
+    struct Event event = processInput(); 
 
-    switch (event.type) {
-      case EVENT_PLAY_PAUSE:
-         pausePlayback();
-        break;      
-      case EVENT_QUIT:
-        shouldQuit = true;
-        break;
-      case EVENT_VOLUME_UP:
-        adjustVolumePercent(5);
-        break;
-      case EVENT_VOLUME_DOWN:
-        adjustVolumePercent(-5);
-        break;
-      case EVENT_NEXT:
-        cleanup();
-        currentSong = getListNext(&playlist, currentSong);
-        if (currentSong != NULL)
-          return play(currentSong->song.filePath);
-        else
-          return -1;
-        break;
-      case EVENT_PREV:
-        cleanup();
-        currentSong = getListPrev(&playlist, currentSong);
-        if (currentSong != NULL)
-          return play(currentSong->song.filePath); 
-        else 
-          return -1;
-        break;
-      default:
-        break;
-    }
-
-    if (shouldQuit) {
-      moveCursorToLastLine();
+    switch (event.type)
+    {
+    case EVENT_PLAY_PAUSE:
+      pausePlayback();
+      break;
+    case EVENT_QUIT:
+      shouldQuit = true;
+      break;
+    case EVENT_VOLUME_UP:
+      adjustVolumePercent(5);
+      break;
+    case EVENT_VOLUME_DOWN:
+      adjustVolumePercent(-5);
+      break;
+    case EVENT_NEXT:
+      cleanup();
+      currentSong = getListNext(&playlist, currentSong);
+      if (currentSong != NULL)
+        return play(currentSong->song.filePath);
+      else
+        return -1;
+      break;
+    case EVENT_PREV:
+      cleanup();
+      currentSong = getListPrev(&playlist, currentSong);
+      if (currentSong != NULL)
+        return play(currentSong->song.filePath);
+      else
+        return -1;
+      break;
+    default:
       break;
     }
 
-    if (isPlaybackDone()) {      
-      cleanup();      
+    if (isResizing)
+    {
+      usleep(100000);
+      isResizing = false;
+    }
+    else if ((elapsed_seconds < songLength) && !isPaused() )
+    {
+      printProgress(elapsed_seconds, songLength);
+    }       
+
+    if (shouldQuit)
+    {
+      break;
+    }
+
+    if (isPlaybackDone())
+    {
+      cleanup();
       currentSong = getListNext(&playlist, currentSong);
       if (currentSong != NULL)
-        play(currentSong->song.filePath); 
-      break;      
+        play(currentSong->song.filePath);
+      break;
     }
 
     // Add a small delay to avoid excessive updates
@@ -252,26 +264,26 @@ int play(const char *filepath)
   return 0;
 }
 
-int getMusicLibraryPath(char* path)
+int getMusicLibraryPath(char *path)
 {
-    getsettings(path, MAXPATHLEN, SETTINGS_FILENAME);
+  getsettings(path, MAXPATHLEN, SETTINGS_FILENAME);
 
-    if (path[0] == '\0') // if NULL, ie no path setting was found
-    {
-      struct passwd *pw = getpwuid(getuid());
-      strcat(path, pw->pw_dir);
-      strcat(path, "/Music/");
-    } 
-    return 0;
+  if (path[0] == '\0') // if NULL, ie no path setting was found
+  {
+    struct passwd *pw = getpwuid(getuid());
+    strcat(path, pw->pw_dir);
+    strcat(path, "/Music/");
+  }
+  return 0;
 }
 
 int start()
 {
   if (playlist.head == NULL)
-    return -1;  
+    return -1;
   if (currentSong == NULL)
     currentSong = playlist.head;
-  SongInfo song  = currentSong->song;
+  SongInfo song = currentSong->song;
   char *path = song.filePath;
   play(path);
   restoreTerminalMode();
@@ -280,54 +292,54 @@ int start()
 
 void init()
 {
-  freopen("/dev/null", "w", stderr);  
+  freopen("/dev/null", "w", stderr);
   signal(SIGWINCH, handleResize);
   initEventQueue();
   enableScrolling();
-  setNonblockingMode();     
+  setNonblockingMode();
 }
 
-int makePlaylist(int argc, char *argv[]) 
+int makePlaylist(int argc, char *argv[])
 {
-    enum SearchType searchType = Any;  
+  enum SearchType searchType = Any;
 
-    if (strcmp(argv[1], "dir") == 0)
-      searchType = DirOnly;
-    else if (strcmp(argv[1], "song") == 0)
-      searchType = FileOnly;
+  if (strcmp(argv[1], "dir") == 0)
+    searchType = DirOnly;
+  else if (strcmp(argv[1], "song") == 0)
+    searchType = FileOnly;
 
-    int start = 2;
+  int start = 2;
 
-    if (searchType == FileOnly || searchType == DirOnly)
-      start = 3;    
+  if (searchType == FileOnly || searchType == DirOnly)
+    start = 3;
 
-    // create search string
-    int size = 256;
-    char search[size];
-    strncpy(search, argv[start - 1], size - 1);
-    for (int i = start; i < argc; i++)
-    {
-      strcat(search, " ");
-      strcat(search, argv[i]);
-    }
+  // create search string
+  int size = 256;
+  char search[size];
+  strncpy(search, argv[start - 1], size - 1);
+  for (int i = start; i < argc; i++)
+  {
+    strcat(search, " ");
+    strcat(search, argv[i]);
+  }
 
-    char buf[MAXPATHLEN] = {0};
-    char path[MAXPATHLEN] = {0};
-    getMusicLibraryPath(path);
-    if (walker(path, search, buf, ALLOWED_EXTENSIONS, searchType) == 0)
-    {      
-      buildPlaylistRecursive(buf, ALLOWED_EXTENSIONS, &playlist);
-    }
-    else
-    {
-      puts("Music not found");
-    }
+  char buf[MAXPATHLEN] = {0};
+  char path[MAXPATHLEN] = {0};
+  getMusicLibraryPath(path);
+  if (walker(path, search, buf, ALLOWED_EXTENSIONS, searchType) == 0)
+  {
+    buildPlaylistRecursive(buf, ALLOWED_EXTENSIONS, &playlist);
+  }
+  else
+  {
+    puts("Music not found");
+  }
 
-    return 0;
+  return 0;
 }
 
 int main(int argc, char *argv[])
-{  
+{
   if (argc == 1 || (argc == 2 && ((strcmp(argv[1], "--help") == 0) || (strcmp(argv[1], "-h") == 0) || (strcmp(argv[1], "-?") == 0))))
   {
     printHelp();
@@ -341,9 +353,9 @@ int main(int argc, char *argv[])
     saveSettings(argv[2], SETTINGS_FILENAME);
   }
   else if (argc >= 2)
-  {    
+  {
     init();
-    makePlaylist(argc, argv);    
+    makePlaylist(argc, argv);
     start();
   }
   return 0;
