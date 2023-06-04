@@ -12,7 +12,6 @@ int adjustVolumePercent(int volumeChange)
     // Open the command for reading. 
     FILE *fp = popen(command_str, "r");
     if (fp == NULL) {
-        //printf("Error executing command.\n");
         return -1;
     }
 
