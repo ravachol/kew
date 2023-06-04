@@ -1,4 +1,4 @@
-// play - command-line music player
+// cue - command-line music player
 // Copyright (C) 2022 Ravachol
 //
 // http://github.com/ravachol/play
@@ -41,8 +41,8 @@
 #define MAX_EVENTS_IN_QUEUE 1
 #endif
 
-const char VERSION[] = "0.9.4";
-const char SETTINGS_FILENAME[] = ".play-settings";
+const char VERSION[] = "0.9.5";
+const char SETTINGS_FILENAME[] = ".cue-settings";
 const char ALLOWED_EXTENSIONS[] = "\\.(m4a|mp3|ogg|flac|wav|aac|wma|raw|mp4a|mp4|m3u|pls)$";
 char durationFilePath[FILENAME_MAX];
 char tagsFilePath[FILENAME_MAX];
