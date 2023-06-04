@@ -7,7 +7,7 @@ Listen to music in the terminal.
     <img src="cue-screenshot.png" />
 </div>
 
-Cue is a command-line music player for Linux.
+cue is a command-line music player for Linux.
 
 ## Features
  
