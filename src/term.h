@@ -211,6 +211,11 @@ int getCurrentLinePosition() {
     return line;
 }
 
+void moveCursorToLine(int row) {
+    printf("\033[%d;1H", row);
+    fflush(stdout);    
+}
+
 void moveCursorToLastLine() {
     //printf("\033[999B");  // Move the cursor 999 lines down
     printf("\033[999;1H");

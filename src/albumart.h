@@ -160,8 +160,8 @@ void displayAlbumArt(const char* directory)
       const char* variableName = "COLORTERM";
       char* value = getVariableValue(variableName);
       enum OutputModes outputMode = ANSI;
-      if (strcmp(stringToLower(value), "truecolor") != 0)
-        outputMode = ASCII;
+      //if (strcmp(stringToLower(value), "truecolor") != 0)
+      //  outputMode = ASCII;
 
       if (term_h <= 28)
         output_ascii(largestImageFile, small_ascii_height, small_ascii_width, outputMode);
