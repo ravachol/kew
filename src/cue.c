@@ -134,9 +134,7 @@ struct Event processInput()
   }
 
   if (!isEventQueueEmpty())
-  {
     event = dequeueEvent();
-  }
 
   return event;
 }
