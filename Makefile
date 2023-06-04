@@ -4,10 +4,10 @@ LIBS = -lm -lpthread -lavformat -lavutil
 
 OBJDIR = src/obj
 
-SRCS = src/events.c src/stringextensions.c src/file.c src/sound.c src/play.c include/imgtotxt/write_ascii.c
+SRCS = src/events.c src/stringextensions.c src/file.c src/sound.c src/cue.c include/imgtotxt/write_ascii.c
 OBJS = $(SRCS:src/%.c=$(OBJDIR)/%.o)
 
-all: play
+all: cue
 
 $(OBJDIR)/%.o: src/%.c | $(OBJDIR)
 	$(CC) $(CFLAGS) -c -o $@ $<
@@ -15,13 +15,13 @@ $(OBJDIR)/%.o: src/%.c | $(OBJDIR)
 $(OBJDIR):
 	mkdir -p $(OBJDIR)
 
-play: $(OBJS)
-	$(CC) -o play $(OBJS) $(LIBS)
+cue: $(OBJS)
+	$(CC) -o cue $(OBJS) $(LIBS)
 
 .PHONY: install
 install: all
-	cp play /usr/local/bin/
+	cp cue /usr/local/bin/
 
 .PHONY: clean
 clean:
-	rm -rf $(OBJDIR) play
+	rm -rf $(OBJDIR) cue

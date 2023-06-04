@@ -5,17 +5,17 @@
 
 void printHelp()
 {
-  printf("play - a command-line music player.\n");
+  printf("cue - a command-line music player.\n");
   printf("\n");
-  printf("Usage:    play path \"path to music library\"\n");
-  printf("          (Saves the music library path. Use this the first time. Ie: play path \"/home/joe/Music/\")\n");
-  printf("          play <song name,directory or playlist words>\n");
-  printf("          play --help, -? or -h\n");
-  printf("          play --version or -v\n");
-  printf("          play dir <album name> (Sometimes it's neccessary to specify it's a directory you want)\n");
-  printf("          play song <song name> \n");  
+  printf("Usage:    cue path \"path to music library\"\n");
+  printf("          (Saves the music library path. Use this the first time. Ie: cue path \"/home/joe/Music/\")\n");
+  printf("          cue <song name,directory or playlist words>\n");
+  printf("          cue --help, -? or -h\n");
+  printf("          cue --version or -v\n");
+  printf("          cue dir <album name> (Sometimes it's neccessary to specify it's a directory you want)\n");
+  printf("          cue song <song name> \n");  
   printf("\n");
-  printf("Examples: play moon (Plays the first song or directory it finds that has the word moon, ie moonlight sonata)\n");
+  printf("Examples: cue moon (Plays the first song or directory it finds that has the word moon, ie moonlight sonata)\n");
   printf("          play path \"/home/user/Music\"\n");
   printf("\n");
   printf("Use quotation marks when providing a path with blank spaces in it or a music file with single quotes (').\n");
@@ -30,13 +30,13 @@ void printHelp()
 
 void printVersion(const char* version)
 {
-  printf("::::::::::. :::      :::.  .-:.     ::-.\n");
-  printf(" `;;;```.;;;;;;      ;;`;;  ';;.   ;;;;'\n");
-  printf("  `]]nnn]]' [[[     ,[[ '[[,  '[[,[[['  \n");
-  printf("   $$$\"\"    $$'    c$$$cc$$$c   c$$\" \n");
-  printf("   888o    o88oo,.__888   888,,8P\"`    \n");
-  printf("   YMMMb   \"\"\"\"YUMMMYMM   \"\"`mM\" \n");  
-  printf("Play version %s.\n", version);  
+  printf(" $$$$$$$\\ $$\\   $$\\  $$$$$$\\\n");
+  printf("$$  _____|$$ |  $$ |$$  __$$\\\n");
+  printf("$$ /      $$ |  $$ |$$$$$$$$ |\n");
+  printf("$$ |      $$ |  $$ |$$   ____|\n");
+  printf("\\$$$$$$$\\ \\$$$$$$  |\\$$$$$$$\\\n");
+  printf(" \\_______| \\______/  \\_______|\n");
+  printf("cue version %s.\n", version);  
 }
 
 int getYear(const char* dateString) {
