@@ -93,9 +93,6 @@ void printProgress(double elapsed_seconds, double total_seconds)
 
   int progress_percentage = (int)((elapsed_seconds / total_seconds) * 100);
 
-  // Move the cursor to the target row
-  //printf("\033[%d;1H", min_cursor_line);
-
   // Clear the current line
   printf("\033[K");
 
