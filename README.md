@@ -24,7 +24,7 @@ For a complete list of capable terminals, see this page: [Colors in Terminal](ht
 
 FFmpeg might be installed already, if not install it using your distro's package manager.
 
-## How to install
+## Installation
 
  ```
 % git clone https://github.com/ravachol/cue.git
@@ -36,7 +36,7 @@ FFmpeg might be installed already, if not install it using your distro's package
 % sudo make install
  ```
 
-## Running cue
+## Usage
 
 IMPORTANT! Tell cue the path to your music library (you only need to do this once):
 
