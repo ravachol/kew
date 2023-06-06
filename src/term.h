@@ -17,50 +17,6 @@ char* getVariableValue(const char* variableName) {
     return value;
 }
 
-void get_cursor_position_nonblocking(int *row, int *col) {
-    printf(ANSI_GET_CURSOR_POS);
-    fflush(stdout);
-
-    struct termios term, term_orig;
-    tcgetattr(STDIN_FILENO, &term);
-    term_orig = term;
-    term.c_lflag &= ~(ICANON | ECHO);
-    tcsetattr(STDIN_FILENO, TCSANOW, &term);
-
-    fd_set fds;
-    FD_ZERO(&fds);
-    FD_SET(STDIN_FILENO, &fds);
-
-    struct timeval tv;
-    tv.tv_sec = 0;
-    tv.tv_usec = 10000; // 10ms
-
-    char input;
-    int count = 0;
-    while (select(STDIN_FILENO + 1, &fds, NULL, NULL, &tv) > 0) {
-        if (read(STDIN_FILENO, &input, 1) == 1) {
-            if (input == '\033') {  // Escape character
-                count++;
-                if (count >= 2) {
-                    break;  // Escape sequence received
-                }
-            } else if (count > 0) {
-                if (input == '[' || input == ';') {
-                    count = 0;
-                } else if (isdigit(input)) {
-                    // Parse row and column values from the input
-                    *row = (*row * 10) + (input - '0');
-                } else if (input == 'R') {
-                    break;  // Cursor position received
-                }
-            }
-        }
-    }
-
-    tcsetattr(STDIN_FILENO, TCSANOW, &term_orig);
-}
-
-
 // get cursor position (blocks input)
 void get_cursor_position(int *row, int *col) {
     printf(ANSI_GET_CURSOR_POS);
@@ -182,43 +138,6 @@ int getCurrentLine() {
     sscanf(response, "\033[%d", &line);
 
     return line;
-}
-
-int get_cursor_line() {
-    struct winsize size;
-    if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &size) == -1) {        
-        return 0;
-    }
-    return size.ws_row;
-}
-
-int getCurrentLinePosition() {
-    printf("\033[6n"); // Send the cursor position query
-
-    // Read the response from the terminal
-    char buffer[32];
-    ssize_t bytesRead = read(STDIN_FILENO, buffer, sizeof(buffer) - 1);
-    if (bytesRead <= 0) {
-        perror("Failed to read cursor position");
-        return -1;
-    }
-    buffer[bytesRead] = '\0';
-
-    // Parse the response to extract the line number
-    int line = 0;
-    sscanf(buffer, "\033[%dR", &line);
-
-    return line;
-}
-
-void moveCursorToLine(int row) {
-    printf("\033[%d;1H", row);
-    fflush(stdout);    
-}
-
-void moveCursorToLastLine() {
-    //printf("\033[999B");  // Move the cursor 999 lines down
-    printf("\033[999;1H");
 }
 
 void enableScrolling() {
