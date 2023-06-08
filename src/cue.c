@@ -98,14 +98,18 @@ void drawSpectrum(int height, int width) {
 
     for (int i = 0; i < BUFFER_SIZE / 2; i++) {
         int barIndex = (i * width) / (BUFFER_SIZE / 2 - 1);
+
         float magnitude1 = sqrtf(fftOutput[i][0] * fftOutput[i][0] + fftOutput[i][1] * fftOutput[i][1]); // Magnitude of channel 1
         float magnitude2 = sqrtf(fftOutput[i][2] * fftOutput[i][2] + fftOutput[i][3] * fftOutput[i][3]); // Magnitude of channel 2
-        float magnitudeAvg = (magnitude1 + magnitude2) / 2.0f; // Average magnitude of the two channels
-        magnitudes[barIndex] += magnitudeAvg;
+
+        // Calculate the combined magnitude
+        float combinedMagnitude = sqrtf(magnitude1 * magnitude1 + magnitude2 * magnitude2);
+
+        magnitudes[barIndex] += combinedMagnitude;
     }
 
     // Find the maximum magnitude within a threshold
-    float threshold = 75.0f; // Adjust the threshold as needed
+    float threshold = 150.0f; // Adjust the threshold as needed
     float maxMagnitude = 0.0f;
     for (int i = 0; i < width; i++) {
         if (magnitudes[i] < threshold && magnitudes[i] > maxMagnitude) {
