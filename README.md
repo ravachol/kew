@@ -18,11 +18,11 @@ cue is a command-line music player for Linux.
 
 ## Installing Prerequisites
 
-cue requires FFmpeg and a TrueColor capable terminal, like Konsole, kitty or st, to display colors properly.
+cue requires FFmpeg, FFTW and a TrueColor capable terminal, like Konsole, kitty or st, to display colors properly.
 
 For a complete list of capable terminals, see this page: [Colors in Terminal](https://gist.github.com/CMCDragonkai/146100155ecd79c7dac19a9e23e6a362) (github.com).
 
-FFmpeg might be installed already, if not install it using your distro's package manager.
+Install FFmpeg and FFTW using your distro's package manager.
 
 ## Installation
 

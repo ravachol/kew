@@ -22,6 +22,8 @@
 #include <poll.h>
 #include <dirent.h>
 #include <signal.h>
+#include <math.h>
+#include <fftw3.h>
 #include "sound.h"
 #include "stringextensions.h"
 #include "dir.h"
@@ -48,6 +50,7 @@ char durationFilePath[FILENAME_MAX];
 char tagsFilePath[FILENAME_MAX];
 bool isResizing = false;
 bool escapePressed = false;
+bool visualizerEnabled = false;
 int progressLine = 1;
 struct timespec escapeTime;
 PlayList playlist = {NULL, NULL};
@@ -56,6 +59,83 @@ Node *currentSong;
 void handleResize(int signal)
 {
   isResizing = true;
+}
+
+#define SAMPLE_RATE 44100
+#define BUFFER_SIZE 1024
+#define TRESHOLD_TERMINAL_SIZE 33
+//#define NUM_BARS 36
+int barHeightMax = 5;
+float* magnitudes = NULL;
+
+// Global array to store audio samples
+float audioBuffer[BUFFER_SIZE];
+
+void drawSpectrum(int height, int width) {
+    fftwf_complex* fftInput = (fftwf_complex*) fftwf_malloc(sizeof(fftwf_complex) * BUFFER_SIZE);
+    fftwf_complex* fftOutput = (fftwf_complex*) fftwf_malloc(sizeof(fftwf_complex) * BUFFER_SIZE);
+
+    fftwf_plan plan = fftwf_plan_dft_1d(BUFFER_SIZE, fftInput, fftOutput, FFTW_FORWARD, FFTW_ESTIMATE);
+
+    for (int i = 0; i < BUFFER_SIZE; i++) {
+        ma_int16 sample = *((ma_int16*)g_audioBuffer + i);
+        float normalizedSample = (float)sample / 32767.0f;
+        fftInput[i][0] = normalizedSample;
+        fftInput[i][1] = 0;
+        magnitudes[i] = 0;
+    }
+
+    // Perform FFT
+    fftwf_execute(plan);
+
+    int term_w, term_h;
+    get_term_size(&term_w, &term_h);
+
+    if (term_w < width)
+      width = term_w;
+
+    int binSize = BUFFER_SIZE / width;
+
+    for (int i = 0; i < BUFFER_SIZE / 2; i++) {
+        int barIndex = (i * width) / (BUFFER_SIZE / 2 - 1);
+        float magnitude1 = sqrtf(fftOutput[i][0] * fftOutput[i][0] + fftOutput[i][1] * fftOutput[i][1]); // Magnitude of channel 1
+        float magnitude2 = sqrtf(fftOutput[i][2] * fftOutput[i][2] + fftOutput[i][3] * fftOutput[i][3]); // Magnitude of channel 2
+        float magnitudeAvg = (magnitude1 + magnitude2) / 2.0f; // Average magnitude of the two channels
+        magnitudes[barIndex] += magnitudeAvg;
+    }
+
+    // Find the maximum magnitude within a threshold
+    float threshold = 75.0f; // Adjust the threshold as needed
+    float maxMagnitude = 0.0f;
+    for (int i = 0; i < width; i++) {
+        if (magnitudes[i] < threshold && magnitudes[i] > maxMagnitude) {
+            maxMagnitude = magnitudes[i];
+        }
+    }       
+
+    printf("\n"); // Start on a new line 
+    fflush(stdout);
+
+    for (int j = height; j > 0; j--) {
+        printf("\r"); // Move cursor to the beginning of the line
+
+        for (int i = 0; i < width; i++) {
+            int barHeight = (int)(magnitudes[i] / maxMagnitude * height);
+            if (barHeight >= j) {
+                printf("|");
+            } else {
+                printf(" ");
+            }
+        }
+        printf("\n");
+    }
+    // Restore the cursor position
+    printf("\033[%dA", height+1);
+    fflush(stdout);
+
+    fftwf_destroy_plan(plan);
+    fftwf_free(fftInput);
+    fftwf_free(fftOutput);
 }
 
 struct Event processInput()
@@ -73,7 +153,7 @@ struct Event processInput()
     if (elapsedSeconds > 1.0)
     {
       event.type = EVENT_QUIT;
-      escapePressed = false;   
+      escapePressed = false;
       return event;
     }
   }
@@ -91,6 +171,12 @@ struct Event processInput()
   }
 
   char input = readInput();
+
+  if (input == 'v')
+  {
+    visualizerEnabled = !visualizerEnabled;
+    clear_screen();
+  }
 
   if (input == 27)
   { // ASCII value of escape key
@@ -145,6 +231,7 @@ void cleanup()
   cleanupPlaybackDevice();
   deleteFile(tagsFilePath);
   deleteFile(durationFilePath);
+
 }
 
 double getSongLength(const char *songPath)
@@ -164,12 +251,34 @@ int play(const char *filepath)
   generateTempFilePath(durationFilePath, "duration", ".txt");
   double songLength = getDuration(filepath, durationFilePath);
   strcpy(musicFilepath, filepath);
-  displayAlbumArt(getDirectoryFromPath(filepath));
+  int term_w, term_h;
+  int asciiHeight, asciiWidth;
+  get_term_size(&term_w, &term_h);
+  if (term_h <= TRESHOLD_TERMINAL_SIZE)  
+  {
+    asciiHeight = small_ascii_height;
+    asciiWidth = small_ascii_width;
+  } 
+  else {
+    asciiHeight = default_ascii_height;
+    asciiWidth = default_ascii_width;
+
+  }
+  int foundArt = displayAlbumArt(getDirectoryFromPath(filepath), asciiHeight, asciiWidth);
+  if (foundArt < 0)
+    visualizerEnabled = true;
+
+  if (magnitudes == NULL)
+    magnitudes = calloc(BUFFER_SIZE, sizeof(float));
+  if (magnitudes == NULL) {
+      printf("Memory allocation failed\n");
+      exit(1);
+  }
   generateTempFilePath(tagsFilePath, "metatags", ".txt");
   extract_tags(strdup(filepath), tagsFilePath);
   clock_gettime(CLOCK_MONOTONIC, &start_time);
   int res = playSoundFile(musicFilepath);
-  setTextColorRGB(200, 200, 200); // white text
+  setDefaultTextColor();
   printBasicMetadata(tagsFilePath);
   get_cursor_position(&progressLine, &col);
   fflush(stdout);
@@ -236,14 +345,20 @@ int play(const char *filepath)
       usleep(100000);
       isResizing = false;
     }
-    else if ((elapsed_seconds < songLength) && !isPaused() )
-    {
-      printProgress(elapsed_seconds, songLength);
-    }       
+    else {
+      if ((elapsed_seconds < songLength) && !isPaused() )
+      {                 
+        printProgress(elapsed_seconds, songLength);
+        if (visualizerEnabled) 
+          drawSpectrum(barHeightMax, asciiWidth);
+      }
+    }
 
     if (shouldQuit)
+    {
+      clear_screen();
       break;
-
+    }
     if (isPlaybackDone())
     {
       cleanup();
@@ -283,6 +398,8 @@ int start()
   char *path = song.filePath;
   play(path);
   restoreTerminalMode();
+  free(g_audioBuffer);
+  free(magnitudes);
   return 0;
 }
 

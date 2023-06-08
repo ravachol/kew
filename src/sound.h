@@ -1,5 +1,8 @@
 #include <stdbool.h>
 #include "../include/miniaudio/miniaudio.h"
+#define BUFFER_SIZE 1024
+
+extern ma_int16 *g_audioBuffer;
 
 void data_callback(ma_device* pDevice, void* pOutput, const void* pInput, ma_uint32 frameCount);
 

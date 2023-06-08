@@ -76,6 +76,7 @@ void printBasicMetadata(const char *file_path)
       printf("%d\n", year);
   }
   free_key_value_pairs(pairs, pair_count);
+  fflush(stdout);
 }
 
 void printProgress(double elapsed_seconds, double total_seconds)

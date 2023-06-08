@@ -129,7 +129,7 @@ char* findLargestImageFile(const char* directoryPath) {
 }
 
 
-void displayAlbumArt(const char* directory)
+int displayAlbumArt(const char* directory, int asciiHeight, int asciiWidth)
 {
     // Display Albumart ascii if available
   if (directory != NULL) {
@@ -153,22 +153,13 @@ void displayAlbumArt(const char* directory)
     }
 
     if (largestImageFile != NULL) {
-
-      int term_w, term_h;
-      get_term_size(&term_w, &term_h);
-
-      const char* variableName = "COLORTERM";
-      char* value = getVariableValue(variableName);
-      enum OutputModes outputMode = ANSI;
-      //if (strcmp(stringToLower(value), "truecolor") != 0)
-      //  outputMode = ASCII;
-
-      if (term_h <= 28)
-        output_ascii(largestImageFile, small_ascii_height, small_ascii_width, outputMode);
-      else
-        output_ascii(largestImageFile, default_ascii_height, default_ascii_width, outputMode);
-
-      free(largestImageFile);
+        output_ascii(largestImageFile, asciiHeight, asciiWidth, ANSI);
+        free(largestImageFile);
+        return 0;
+    }   
+    else {
+        return -1;
     }
   }
+  return -1;
 }

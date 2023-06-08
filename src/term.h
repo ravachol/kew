@@ -71,6 +71,11 @@ void get_term_size(int *width, int *height) {
     *width = (int)w.ws_col;
 }
 
+void setDefaultTextColor() {
+    printf("\033[0m");
+    fflush(stdout);
+}
+
 // Function to set terminal to non-blocking mode
 void setNonblockingMode() {
   struct termios ttystate;

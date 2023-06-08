@@ -1,6 +1,6 @@
 CC = gcc
 CFLAGS = -Iinclude/imgtotxt -Iinclude/miniaudio -O3
-LIBS = -lm -lpthread -lavformat -lavutil
+LIBS = -lpthread -lavformat -lavutil -L/usr/lib  -lfftw3_omp -lfftw3 -lfftw3f_omp -lfftw3f -lm 
 
 OBJDIR = src/obj
 
