@@ -63,15 +63,16 @@ void handleResize(int signal)
 
 #define SAMPLE_RATE 44100
 #define BUFFER_SIZE 1024
-#define TRESHOLD_TERMINAL_SIZE 33
+#define TRESHOLD_TERMINAL_SIZE 28
 //#define NUM_BARS 36
-int barHeightMax = 5;
+int barHeightMax = 8;
 float* magnitudes = NULL;
 
 // Global array to store audio samples
 float audioBuffer[BUFFER_SIZE];
 
 void drawSpectrum(int height, int width) {
+
     fftwf_complex* fftInput = (fftwf_complex*) fftwf_malloc(sizeof(fftwf_complex) * BUFFER_SIZE);
     fftwf_complex* fftOutput = (fftwf_complex*) fftwf_malloc(sizeof(fftwf_complex) * BUFFER_SIZE);
 
@@ -91,29 +92,37 @@ void drawSpectrum(int height, int width) {
     int term_w, term_h;
     get_term_size(&term_w, &term_h);
 
+    width *= 2; // We double width because we are only printing half the values
     if (term_w < width)
       width = term_w;
+    
+    int binSize = BUFFER_SIZE / width;    
+    int numBins = BUFFER_SIZE / 2;
+    float frequencyResolution = SAMPLE_RATE / BUFFER_SIZE;
 
-    int binSize = BUFFER_SIZE / width;
-
-    for (int i = 0; i < BUFFER_SIZE / 2; i++) {
-        int barIndex = (i * width) / (BUFFER_SIZE / 2 - 1);
+    for (int i = numBins - 1; i >= 0; i--) {
+        float frequency = (numBins - i - 1) * frequencyResolution;
+        int barIndex = ((frequency / (SAMPLE_RATE / 2)) * (width));
 
         float magnitude1 = sqrtf(fftOutput[i][0] * fftOutput[i][0] + fftOutput[i][1] * fftOutput[i][1]); // Magnitude of channel 1
-        float magnitude2 = sqrtf(fftOutput[i][2] * fftOutput[i][2] + fftOutput[i][3] * fftOutput[i][3]); // Magnitude of channel 2
 
         // Calculate the combined magnitude
-        float combinedMagnitude = sqrtf(magnitude1 * magnitude1 + magnitude2 * magnitude2);
+        float combinedMagnitude = magnitude1;
 
         magnitudes[barIndex] += combinedMagnitude;
     }
 
     // Find the maximum magnitude within a threshold
-    float threshold = 150.0f; // Adjust the threshold as needed
+    float threshold = 50.0f; // Adjust the threshold as needed
     float maxMagnitude = 0.0f;
     for (int i = 0; i < width; i++) {
         if (magnitudes[i] < threshold && magnitudes[i] > maxMagnitude) {
             maxMagnitude = magnitudes[i];
+        }
+        else if (magnitudes[i] >= threshold)
+        {
+          maxMagnitude = threshold;
+          break;
         }
     }       
 
@@ -123,12 +132,14 @@ void drawSpectrum(int height, int width) {
     for (int j = height; j > 0; j--) {
         printf("\r"); // Move cursor to the beginning of the line
 
-        for (int i = 0; i < width; i++) {
-            int barHeight = (int)(magnitudes[i] / maxMagnitude * height);
+        for (int i = 0; i < ceil(width / 2); i++) {
+            float heightVal = (magnitudes[i] / maxMagnitude * height); 
+            if (heightVal > 0.5f && heightVal < 1.0f) heightVal = 1.0f; // Exaggerate low values
+            int barHeight = (int)heightVal;
             if (barHeight >= j) {
-                printf("|");
+                printf("║");
             } else {
-                printf(" ");
+                printf(".");
             }
         }
         printf("\n");
@@ -235,7 +246,6 @@ void cleanup()
   cleanupPlaybackDevice();
   deleteFile(tagsFilePath);
   deleteFile(durationFilePath);
-
 }
 
 double getSongLength(const char *songPath)
@@ -354,7 +364,9 @@ int play(const char *filepath)
       {                 
         printProgress(elapsed_seconds, songLength);
         if (visualizerEnabled) 
+        {
           drawSpectrum(barHeightMax, asciiWidth);
+        }
       }
     }
 

@@ -51,6 +51,8 @@ Now run cue and provide a partial name of a track, playlist or directory:
 
 This command plays all songs from "The Cure Greatest Hits" directory, provided it's in your music library, and prints out the album cover in colorful ASCII on the screen!
 
+cue returns the first directory or file whose name matches the string you provide.
+
 #### Some Examples:
 
  ```
