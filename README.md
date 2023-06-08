@@ -74,8 +74,8 @@ This command plays all songs from "The Cure Greatest Hits" directory, provided i
 * Use <kbd>↑</kbd>, <kbd>↓</kbd> keys to raise or lower volume. 
 * Use <kbd>→</kbd>, <kbd>←</kbd> keys to play the next or previous track in the playlist. 
 * Press <kbd>Space</kbd> to pause.
-* Press <kbd>Esc</kbd> to quit.
 * Press <kbd>v</kbd> to toggle visualization.
+* Press <kbd>Esc</kbd> to quit.
 
 ## License
 
