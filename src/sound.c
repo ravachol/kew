@@ -18,6 +18,7 @@ typedef struct {
     ma_decoder* decoder;
 } UserData;
 
+ma_int16 *g_audioBuffer = NULL;
 static int eofReached = 0;
 ma_device device = {0};
 UserData* userData = NULL;
@@ -38,6 +39,45 @@ void data_callback(ma_device* pDevice, void* pOutput, const void* pInput, ma_uin
     if (framesRead < frameCount) {
         eofReached = 1;
     }  
+
+    ma_format outputFormat = pDevice->playback.format;
+    size_t bytesPerFrame = ma_get_bytes_per_frame(outputFormat, pDevice->playback.channels);
+    size_t bufferSizeInBytes = frameCount * bytesPerFrame;
+
+    g_audioBuffer = (ma_int16*)malloc(bufferSizeInBytes);
+    if (g_audioBuffer == NULL) {
+        return;
+    }
+
+    // Conversion from output format to ma_int16
+    switch (outputFormat) {
+        case ma_format_f32:
+        {
+            const float* outputF32 = (const float*)pOutput;
+            for (size_t i = 0; i < frameCount; ++i) {
+                float sampleFloat = outputF32[i];
+                ma_int16 sampleInt16 = (ma_int16)(sampleFloat * 32767.0f);
+                g_audioBuffer[i] = sampleInt16;
+            }
+            break;
+        }
+        case ma_format_s24:
+        {
+            const ma_uint8* outputS24 = (const ma_uint8*)pOutput;
+            for (size_t i = 0; i < frameCount; ++i) {
+                ma_int32 sampleInt24 = (outputS24[i * 3] << 8) | (outputS24[i * 3 + 1] << 16) | (outputS24[i * 3 + 2] << 24);
+                sampleInt24 >>= 8;  // Shift right to get 24-bit sample to 16 bits
+                ma_int16 sampleInt16 = (ma_int16)sampleInt24;
+                g_audioBuffer[i] = sampleInt16;
+            }
+            break;
+        }        
+        case ma_format_s16:
+            memcpy(g_audioBuffer, pOutput, bufferSizeInBytes);
+            break;
+        default:
+            break;
+    }
 
     (void)pInput;
 }
@@ -118,11 +158,22 @@ void pcm_callback(ma_device* pDevice, void* pOutput, const void* pInput, ma_uint
     }
 
     size_t framesRead = fread(pOutput, ma_get_bytes_per_frame(pDevice->playback.format, pDevice->playback.channels), frameCount, pUserData->file);
-    if (framesRead < frameCount) {
-        // If we reached the end of the file, rewind to the beginning
+    if (framesRead < frameCount) {        
         eofReached = 1;
-        //fseek(pUserData->file, 0, SEEK_SET);
     }
+
+    // Allocate memory for g_audioBuffer (if not already allocated)
+    if (g_audioBuffer == NULL) {
+        g_audioBuffer = malloc(sizeof(ma_int16) * frameCount);
+        if (g_audioBuffer == NULL) {
+            // Memory allocation failed
+            return;
+        }
+    }
+
+     // Copy the audio samples from pOutput to audioBuffer
+    memcpy(g_audioBuffer, pOutput, sizeof(ma_int16) * frameCount);      
+    //memcpy(g_audioBuffer, pOutput, bufferSize);
 
     (void)pInput;
 }
@@ -245,7 +296,7 @@ void cleanupPlaybackDevice()
             ma_decoder_uninit((ma_decoder*)userData->decoder);
     }
     ma_device_uninit(&device);
-    deleteFile(tempFilePath);    
+    deleteFile(tempFilePath);
 }
 
 void extract_audio_duration(const char* input_filepath, const char* output_filepath) {
