@@ -22,10 +22,11 @@ Download the install.sh file onto a suitable folder on your computer.
 
 Make sure your system is updated. Then run the following commands:
 
+ ```
 % chmod +x install.sh
 
 % sudo ./install.sh
-
+ ```
 
 ## Manual Installation
 
