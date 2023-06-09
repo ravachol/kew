@@ -45,7 +45,7 @@
 
 int barHeightMax = 4;
 
-const char VERSION[] = "0.9.5";
+const char VERSION[] = "1.0.0";
 const char SETTINGS_FILENAME[] = ".cue-settings";
 const char ALLOWED_EXTENSIONS[] = "\\.(m4a|mp3|ogg|flac|wav|aac|wma|raw|mp4a|mp4|m3u|pls)$";
 char durationFilePath[FILENAME_MAX];
