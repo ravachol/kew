@@ -22,8 +22,6 @@
 #include <poll.h>
 #include <dirent.h>
 #include <signal.h>
-#include <math.h>
-#include <fftw3.h>
 #include "sound.h"
 #include "stringextensions.h"
 #include "dir.h"
@@ -34,6 +32,7 @@
 #include "playlist.h"
 #include "events.h"
 #include "file.h"
+#include "visuals.h"
 
 #ifndef CLOCK_MONOTONIC
 #define CLOCK_MONOTONIC 1
@@ -42,6 +41,9 @@
 #ifndef MAX_EVENTS_IN_QUEUE
 #define MAX_EVENTS_IN_QUEUE 1
 #endif
+#define TRESHOLD_TERMINAL_SIZE 28
+
+int barHeightMax = 4;
 
 const char VERSION[] = "0.9.5";
 const char SETTINGS_FILENAME[] = ".cue-settings";
@@ -55,103 +57,6 @@ int progressLine = 1;
 struct timespec escapeTime;
 PlayList playlist = {NULL, NULL};
 Node *currentSong;
-
-void handleResize(int signal)
-{
-  isResizing = true;
-}
-
-#define SAMPLE_RATE 44100
-#define BUFFER_SIZE 1024
-#define TRESHOLD_TERMINAL_SIZE 28
-//#define NUM_BARS 36
-int barHeightMax = 8;
-float* magnitudes = NULL;
-
-// Global array to store audio samples
-float audioBuffer[BUFFER_SIZE];
-
-void drawSpectrum(int height, int width) {
-
-    fftwf_complex* fftInput = (fftwf_complex*) fftwf_malloc(sizeof(fftwf_complex) * BUFFER_SIZE);
-    fftwf_complex* fftOutput = (fftwf_complex*) fftwf_malloc(sizeof(fftwf_complex) * BUFFER_SIZE);
-
-    fftwf_plan plan = fftwf_plan_dft_1d(BUFFER_SIZE, fftInput, fftOutput, FFTW_FORWARD, FFTW_ESTIMATE);
-
-    for (int i = 0; i < BUFFER_SIZE; i++) {
-        ma_int16 sample = *((ma_int16*)g_audioBuffer + i);
-        float normalizedSample = (float)sample / 32767.0f;
-        fftInput[i][0] = normalizedSample;
-        fftInput[i][1] = 0;
-        magnitudes[i] = 0;
-    }
-
-    // Perform FFT
-    fftwf_execute(plan);
-
-    int term_w, term_h;
-    get_term_size(&term_w, &term_h);
-
-    width *= 2; // We double width because we are only printing half the values
-    if (term_w < width)
-      width = term_w;
-    
-    int binSize = BUFFER_SIZE / width;    
-    int numBins = BUFFER_SIZE / 2;
-    float frequencyResolution = SAMPLE_RATE / BUFFER_SIZE;
-
-    for (int i = numBins - 1; i >= 0; i--) {
-        float frequency = (numBins - i - 1) * frequencyResolution;
-        int barIndex = ((frequency / (SAMPLE_RATE / 2)) * (width));
-
-        float magnitude1 = sqrtf(fftOutput[i][0] * fftOutput[i][0] + fftOutput[i][1] * fftOutput[i][1]); // Magnitude of channel 1
-
-        // Calculate the combined magnitude
-        float combinedMagnitude = magnitude1;
-
-        magnitudes[barIndex] += combinedMagnitude;
-    }
-
-    // Find the maximum magnitude within a threshold
-    float threshold = 50.0f; // Adjust the threshold as needed
-    float maxMagnitude = 0.0f;
-    for (int i = 0; i < width; i++) {
-        if (magnitudes[i] < threshold && magnitudes[i] > maxMagnitude) {
-            maxMagnitude = magnitudes[i];
-        }
-        else if (magnitudes[i] >= threshold)
-        {
-          maxMagnitude = threshold;
-          break;
-        }
-    }       
-
-    printf("\n"); // Start on a new line 
-    fflush(stdout);
-
-    for (int j = height; j > 0; j--) {
-        printf("\r"); // Move cursor to the beginning of the line
-
-        for (int i = 0; i < ceil(width / 2); i++) {
-            float heightVal = (magnitudes[i] / maxMagnitude * height); 
-            if (heightVal > 0.5f && heightVal < 1.0f) heightVal = 1.0f; // Exaggerate low values
-            int barHeight = (int)heightVal;
-            if (barHeight >= j) {
-                printf("║");
-            } else {
-                printf(".");
-            }
-        }
-        printf("\n");
-    }
-    // Restore the cursor position
-    printf("\033[%dA", height+1);
-    fflush(stdout);
-
-    fftwf_destroy_plan(plan);
-    fftwf_free(fftInput);
-    fftwf_free(fftOutput);
-}
 
 struct Event processInput()
 {
@@ -242,16 +147,16 @@ struct Event processInput()
 
 void cleanup()
 {
+  clear_screen();
   escapePressed = false;
   cleanupPlaybackDevice();
   deleteFile(tagsFilePath);
   deleteFile(durationFilePath);
 }
 
-double getSongLength(const char *songPath)
+void handleResize(int signal)
 {
-  generateTempFilePath(durationFilePath, "duration", ".txt");
-  return getDuration(songPath, durationFilePath);
+  isResizing = true;
 }
 
 int play(const char *filepath)
@@ -281,13 +186,6 @@ int play(const char *filepath)
   int foundArt = displayAlbumArt(getDirectoryFromPath(filepath), asciiHeight, asciiWidth);
   if (foundArt < 0)
     visualizerEnabled = true;
-
-  if (magnitudes == NULL)
-    magnitudes = calloc(BUFFER_SIZE, sizeof(float));
-  if (magnitudes == NULL) {
-      printf("Memory allocation failed\n");
-      exit(1);
-  }
   generateTempFilePath(tagsFilePath, "metatags", ".txt");
   extract_tags(strdup(filepath), tagsFilePath);
   clock_gettime(CLOCK_MONOTONIC, &start_time);
@@ -297,7 +195,7 @@ int play(const char *filepath)
   get_cursor_position(&progressLine, &col);
   fflush(stdout);
   usleep(100000);
-
+  float dynamicRange = 1.0f;
   escapePressed = false;
   shouldQuit = false;
   clock_gettime(CLOCK_MONOTONIC, &escapeTime);
@@ -372,11 +270,10 @@ int play(const char *filepath)
 
     if (shouldQuit)
     {
-      clear_screen();
       break;
     }
     if (isPlaybackDone())
-    {
+    {   
       cleanup();
       currentSong = getListNext(&playlist, currentSong);
       if (currentSong != NULL)
@@ -415,7 +312,6 @@ int start()
   play(path);
   restoreTerminalMode();
   free(g_audioBuffer);
-  free(magnitudes);
   return 0;
 }
 
