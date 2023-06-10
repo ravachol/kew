@@ -6,7 +6,14 @@ if [[ $EUID -ne 0 ]]; then
    exit 1
 fi
 
+# Removing old files if exist
+if [ -d "cue" ]; then
+    echo "Removing old files"
+    rm -rf cue &>/dev/null
+fi
+
 # Install dependencies based on the package manager available
+echo "Installing missing dependencies"
 if command -v apt &>/dev/null; then
     apt install ffmpeg libfftw3-dev git
 elif command -v yum &>/dev/null; then
@@ -26,16 +33,30 @@ else
     exit 1
 fi
 
-git clone https://github.com/ravachol/cue.git
-if [ -d "cue" ]; then
-    cd cue
-    make
-    if sudo make install; then
-        echo "Installation completed successfully."
-    else
-        echo "Installation encountered an error."
-    fi
+# Clone the repository
+repo_url="https://github.com/ravachol/cue.git"
+echo "Cloning the repository..."
+if git clone "$repository_url"; then
+    echo "Repository cloned successfully."
 else
     echo "Failed to clone the repository. Please check your network connection and try again."
+    exit 1
+fi
+
+# Building
+echo "Building the project..."
+if make &> build.log; then
+    echo "Build completed successfully."
+else
+    echo "Build encountered an error. Please check the build.log file for more information."
+    exit 1
+fi
+
+# Installing
+echo "Installing the project..."
+if sudo make install; then
+    echo "Installation completed successfully."
+else
+    echo "Installation encountered an error."
     exit 1
 fi
