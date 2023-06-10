@@ -22,17 +22,16 @@
 #include <poll.h>
 #include <dirent.h>
 #include <signal.h>
-#include "metadata.h"
 #include "sound.h"
 #include "stringextensions.h"
 #include "dir.h"
-#include "albumart.h"
 #include "settings.h"
 #include "printfunc.h"
 #include "playlist.h"
 #include "events.h"
 #include "file.h"
 #include "visuals.h"
+#include "albumart.h"
 
 #ifndef CLOCK_MONOTONIC
 #define CLOCK_MONOTONIC 1

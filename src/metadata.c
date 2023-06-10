@@ -1,9 +1,3 @@
-#include <libavformat/avformat.h>
-#include <libavutil/avutil.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include "stringextensions.h"
 #include "metadata.h"
 
 KeyValuePair* read_key_value_pairs(const char* file_path, int* count) 

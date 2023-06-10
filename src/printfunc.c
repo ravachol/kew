@@ -1,5 +1,4 @@
 #include "printfunc.h"
-#include "metadata.h"
 
 void printHelp()
 {
