@@ -43,6 +43,9 @@ else
     exit 1
 fi
 
+# Changing directory
+cd cue
+
 # Building
 echo "Building the project..."
 if make &> build.log; then
