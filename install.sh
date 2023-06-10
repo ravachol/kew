@@ -8,19 +8,19 @@ fi
 
 # Install dependencies based on the package manager available
 if command -v apt &>/dev/null; then
-    apt install -y ffmpeg libfftw3-dev git
+    apt install ffmpeg libfftw3-dev git
 elif command -v yum &>/dev/null; then
-    yum install -y ffmpeg fftw-devel git
+    yum install ffmpeg fftw-devel git
 elif command -v pacman &>/dev/null; then
-    pacman -Syu --noconfirm ffmpeg fftw git
+    pacman -Syu ffmpeg fftw git
 elif command -v dnf &>/dev/null; then
-    dnf install -y ffmpeg fftw-devel git
+    dnf install ffmpeg fftw-devel git
 elif command -v zypper &>/dev/null; then
-    zypper install -y ffmpeg fftw-devel git
+    zypper install ffmpeg fftw-devel git
 elif command -v eopkg &>/dev/null; then
-    eopkg install -y ffmpeg fftw-devel git
+    eopkg install ffmpeg fftw-devel git
 elif command -v guix &>/dev/null; then
-    guix install -y ffmpeg fftw git
+    guix install ffmpeg fftw git
 else
     echo "Unsupported package manager. Please install the required dependencies manually."
     exit 1

@@ -95,7 +95,7 @@ struct Event processInput()
   if (input == 'v')
   {
     visualizerEnabled = !visualizerEnabled;
-    clear_screen();
+    clearRestOfScreen();
   }
 
   if (input == 27)
@@ -147,7 +147,7 @@ struct Event processInput()
 
 void cleanup()
 {
-  clear_screen();
+  clearRestOfScreen();
   escapePressed = false;
   cleanupPlaybackDevice();
   deleteFile(tagsFilePath);
@@ -195,9 +195,7 @@ int play(const char *filepath)
   get_cursor_position(&progressLine, &col);
   fflush(stdout);
   usleep(100000);
-  float dynamicRange = 1.0f;
   escapePressed = false;
-  shouldQuit = false;
   clock_gettime(CLOCK_MONOTONIC, &escapeTime);
 
   if (res != 0)
