@@ -82,7 +82,8 @@ void data_callback(ma_device* pDevice, void* pOutput, const void* pInput, ma_uin
     (void)pInput;
 }
 
-int playSoundFileDefault(const char* filePath) {
+int playSoundFileDefault(const char* filePath) 
+{
     if (filePath == NULL)
         return -1;
 
@@ -272,11 +273,13 @@ void pausePlayback()
     }
 }
 
-bool isPaused() {
+bool isPaused() 
+{
     return paused;
 }
 
-int isPlaybackDone() {
+int isPlaybackDone() 
+{
     if (eofReached == 1)
     {
         eofReached = 0;
@@ -299,13 +302,15 @@ void cleanupPlaybackDevice()
     deleteFile(tempFilePath);
 }
 
-void extract_audio_duration(const char* input_filepath, const char* output_filepath) {
+void extract_audio_duration(const char* input_filepath, const char* output_filepath) 
+{
     char command[256];
     sprintf(command, "ffmpeg -i \"%s\" -hide_banner 2>&1 | grep Duration > \"%s\"", input_filepath, output_filepath);
     system(command);
 }
 
-float get_audio_duration(const char* filepath) {
+float get_audio_duration(const char* filepath) 
+{
     FILE* fp;
     char duration[50];
 
@@ -342,7 +347,8 @@ float get_audio_duration(const char* filepath) {
     return totalSeconds;
 }
 
-float getDuration(const char* filepath, const char* tempFile) {
+float getDuration(const char* filepath, const char* tempFile) 
+{
     extract_audio_duration(filepath, tempFile);
     return get_audio_duration(tempFile);
 }

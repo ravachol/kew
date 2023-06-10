@@ -19,38 +19,33 @@
 
 char* getVariableValue(const char* variableName);
 
-// get cursor position (blocks input)
-void get_cursor_position(int *row, int *col);
+void getCursorPosition(int *row, int *col);
 
-// Function to enable non-blocking keyboard input
 void enableRawMode();
 
 void setTextColorRGB(int r, int g, int b);
 
 void disableRawMode();
 
-void get_term_size(int *width, int *height);
+void getTermSize(int *width, int *height);
+
 void setDefaultTextColor();
 
-// Function to set terminal to non-blocking mode
 void setNonblockingMode();
 
-// Function to restore terminal to normal mode
 void restoreTerminalMode();
 
-// Function to check if stdin has any available input
 bool isInputAvailable();
 
-// Function to read a single character from stdin
 char readInput();
 
-void save_cursor_position();
+void saveCursorPosition();
 
-void restore_cursor_position();
+void restoreCursorPosition();
 
-void set_cursor_position(int row, int col);
+void setCursorPosition(int row, int col);
 
-void clear_screen();
+void clearRestOfScreen();
 
 int getCurrentLine();
 

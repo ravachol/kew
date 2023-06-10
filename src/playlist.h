@@ -3,11 +3,13 @@
 
 const int MAX_FILES = 256;
 
-typedef struct {
+typedef struct 
+{
     char* filePath;    
 } SongInfo;
 
-typedef struct Node {
+typedef struct Node 
+{
     SongInfo song;
     struct Node* next;
     struct Node* prev;
@@ -19,21 +21,24 @@ typedef struct {
     int count;
 } PlayList;
 
-Node* getListNext(PlayList* list, Node* node) {
+Node* getListNext(PlayList* list, Node* node) 
+{
     if (node == NULL) {
         return NULL;
     }
     return node->next;
 }
 
-Node* getListPrev(PlayList* list, Node* node) {
+Node* getListPrev(PlayList* list, Node* node) 
+{
     if (node == NULL) {
         return NULL;
     }
     return node->prev;
 }
 
-void addToList(PlayList* list, SongInfo song) {  
+void addToList(PlayList* list, SongInfo song) 
+{  
     if (list->count >= MAX_FILES)
       return;
     Node* newNode = (Node*)malloc(sizeof(Node));
@@ -54,7 +59,8 @@ void addToList(PlayList* list, SongInfo song) {
     }
 }
 
-int compare(const struct dirent **a, const struct dirent **b) {
+int compare(const struct dirent **a, const struct dirent **b) 
+{
     const char *nameA = (*a)->d_name;
     const char *nameB = (*b)->d_name;
 
@@ -128,7 +134,8 @@ void buildPlaylistRecursive(char* directoryPath, const char* allowedExtensions, 
     regfree(&regex);
 }
 
-int playDirectory(const char* directoryPath, const char* allowedExtensions, PlayList* playlist) {
+int playDirectory(const char* directoryPath, const char* allowedExtensions, PlayList* playlist) 
+{
     DIR* dir = opendir(directoryPath);
     if (dir == NULL) {
         printf("Failed to open directory: %s\n", directoryPath);

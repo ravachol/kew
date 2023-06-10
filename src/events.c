@@ -2,21 +2,25 @@
 
 struct EventQueue eventQueue;
 
-void initEventQueue() {
+void initEventQueue() 
+{
     eventQueue.front = 0;
     eventQueue.rear = -1;
     eventQueue.full = false;
 }
 
-bool isEventQueueEmpty() {
+bool isEventQueueEmpty() 
+{
     return (eventQueue.rear == -1);
 }
 
-bool isEventQueueFull() {
+bool isEventQueueFull() 
+{
     return eventQueue.full;
 }
 
-void enqueueEvent(const struct Event* event) {
+void enqueueEvent(const struct Event* event) 
+{
     if (isEventQueueFull()) {
         return;  // Event queue is full, ignore the event
     }
@@ -29,7 +33,8 @@ void enqueueEvent(const struct Event* event) {
     }
 }
 
-struct Event dequeueEvent() {
+struct Event dequeueEvent() 
+{
     struct Event event;
 
     if (isEventQueueEmpty()) {

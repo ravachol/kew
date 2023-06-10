@@ -5,7 +5,8 @@
 #include <errno.h>
 #include "file.h"
 
-int deleteFile(const char* filePath) {
+int deleteFile(const char* filePath) 
+{
     if (unlink(filePath) == 0) {
         return 0;
     } else {    
@@ -13,7 +14,8 @@ int deleteFile(const char* filePath) {
     }
 }
 
-void generateTempFilePath(char* filePath, const char* prefix, const char* suffix) {
+void generateTempFilePath(char* filePath, const char* prefix, const char* suffix) 
+{
     const char* tempDir = getenv("TMPDIR");
     if (tempDir == NULL) {
 #ifdef __APPLE__

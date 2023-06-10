@@ -6,13 +6,10 @@
 #define SAMPLE_RATE 44100
 #define BUFFER_SIZE 1024
 
-//#define NUM_BARS 36
-
 int extendRange = 8;
-// Global array to store audio samples
-float audioBuffer[BUFFER_SIZE];
 
-void drawSpectrum(int height, int width) {
+void drawSpectrum(int height, int width) 
+{
     width = width * extendRange;
     fftwf_complex* fftInput = (fftwf_complex*) fftwf_malloc(sizeof(fftwf_complex) * BUFFER_SIZE);
     fftwf_complex* fftOutput = (fftwf_complex*) fftwf_malloc(sizeof(fftwf_complex) * BUFFER_SIZE);
@@ -32,7 +29,7 @@ void drawSpectrum(int height, int width) {
     fftwf_execute(plan);
 
     int term_w, term_h;
-    get_term_size(&term_w, &term_h);  
+    getTermSize(&term_w, &term_h);  
     
     int binSize = BUFFER_SIZE / width;    
     int numBins = BUFFER_SIZE / 2;

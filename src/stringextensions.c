@@ -5,14 +5,16 @@
 #include <stdio.h>
 #include "stringextensions.h"
 
-char* stringToLower(char* str) {
+char* stringToLower(char* str) 
+{
     for (int i = 0; str[i] != '\0'; i++) {
         str[i] = tolower(str[i]);
     }
     return str;
 }
 
-char* strcasestr(const char* haystack, const char* needle) {
+char* strcasestr(const char* haystack, const char* needle) 
+{
   if (!haystack || !needle)
     return NULL;
 
@@ -35,7 +37,8 @@ char* strcasestr(const char* haystack, const char* needle) {
   return NULL;
 }
 
-int match_regex(regex_t* regex, const char* ext) {
+int match_regex(regex_t* regex, const char* ext) 
+{
     if (regex == NULL || ext == NULL) {
         fprintf(stderr, "Invalid arguments\n");
         return 1;
@@ -54,7 +57,8 @@ int match_regex(regex_t* regex, const char* ext) {
     }
 }
 
-void extractExtension(const char* filename, size_t numChars, char* ext) {
+void extractExtension(const char* filename, size_t numChars, char* ext) 
+{
     size_t length = strlen(filename);
     size_t copyChars = length < numChars ? length : numChars;
 
@@ -63,7 +67,8 @@ void extractExtension(const char* filename, size_t numChars, char* ext) {
     ext[copyChars] = '\0';
 }
 
-char* getDirectoryFromPath(const char* filepath) {
+char* getDirectoryFromPath(const char* filepath) 
+{
     size_t filepathLen = strlen(filepath);
     size_t lastSlash = 0;
 
@@ -88,7 +93,8 @@ char* getDirectoryFromPath(const char* filepath) {
     return directory;
 }
 
-int endsWith(const char* str, const char* suffix) {
+int endsWith(const char* str, const char* suffix) 
+{
     size_t strLength = strlen(str);
     size_t suffixLength = strlen(suffix);
 

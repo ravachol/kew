@@ -18,7 +18,8 @@ typedef struct {
     char* value;
 } KeyValuePair;
 
-KeyValuePair* read_key_value_pairs(const char* file_path, int* count) {
+KeyValuePair* read_key_value_pairs(const char* file_path, int* count) 
+{
     FILE* file = fopen(file_path, "r");
     if (file == NULL) {
         fprintf(stderr, "Error opening the settings file.\n");
@@ -53,7 +54,8 @@ KeyValuePair* read_key_value_pairs(const char* file_path, int* count) {
     return pairs;
 }
 
-TagSettings construct_tag_settings(KeyValuePair* pairs, int count) {
+TagSettings construct_tag_settings(KeyValuePair* pairs, int count) 
+{
     TagSettings settings;
     memset(&settings, 0, sizeof(settings));
 
@@ -74,7 +76,8 @@ TagSettings construct_tag_settings(KeyValuePair* pairs, int count) {
     return settings;
 }
 
-void free_key_value_pairs(KeyValuePair* pairs, int count) {
+void free_key_value_pairs(KeyValuePair* pairs, int count) 
+{
     for (int i = 0; i < count; i++) {
         free(pairs[i].key);
         free(pairs[i].value);
@@ -83,7 +86,8 @@ void free_key_value_pairs(KeyValuePair* pairs, int count) {
     free(pairs);
 }
 
-int extract_tags(const char* input_file, const char* output_file) {
+int extract_tags(const char* input_file, const char* output_file) 
+{
     // Open the input file
     AVFormatContext* format_ctx = NULL;
     if (avformat_open_input(&format_ctx, input_file, NULL, NULL) != 0) {
@@ -119,7 +123,8 @@ int extract_tags(const char* input_file, const char* output_file) {
     return 0;
 }
 
-void print_metadata(const char* file_path) {
+void print_metadata(const char* file_path) 
+{
     FILE* file = fopen(file_path, "r");
     if (file == NULL) {
         fprintf(stderr, "Error opening the file.\n");
