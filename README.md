@@ -20,7 +20,7 @@ cue is a command-line music player for Linux.
 
 Download the install.sh file onto a suitable folder on your computer.
 
-Make sure your system is updated. Then run the following commands:
+Then run the following commands:
 
  ```
 % chmod +x install.sh
@@ -30,7 +30,12 @@ Make sure your system is updated. Then run the following commands:
 
 ## Manual Installation
 
-cue requires FFmpeg, FFTW and a TrueColor capable terminal, like Konsole, kitty or st, to display colors properly.
+cue dependencies are:
+
+* FFmpeg
+* FFTW 
+
+A TrueColor capable terminal is recommended, like Konsole, kitty or st, to display colors properly.
 
 For a complete list of capable terminals, see this page: [Colors in Terminal](https://gist.github.com/CMCDragonkai/146100155ecd79c7dac19a9e23e6a362) (github.com).
 
