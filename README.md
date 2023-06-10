@@ -35,20 +35,20 @@ cue returns the first directory or file whose name matches the string you provid
 
 #### Some Examples:
 
- ```
-% cue moonlight son (finds and plays moonlight sonata)
+ ```bash
+cue moonlight son (finds and plays moonlight sonata)
 
-% cue moon (finds and plays moonlight sonata)
+cue moon (finds and plays moonlight sonata)
 
-% cue beet (finds and plays all music files under "beethoven" directory)
+cue beet (finds and plays all music files under "beethoven" directory)
 
-% cue dir <album name> (sometimes it's neccessary to specify it's a directory you want)
+cue dir <album name> (sometimes it's neccessary to specify it's a directory you want)
 
-% cue song <song name> (or a song)
+cue song <song name> (or a song)
 
-% cue --help, -? or -h
+cue --help, -? or -h
 
-% cue --version or -v
+cue --version or -v
  ```
 
 #### Other Functions:
