@@ -83,11 +83,11 @@ struct Event processInput()
     if (!isEventQueueEmpty())
       event = dequeueEvent();
     return event;
-    save_cursor_position();
+    saveCursorPosition();
   }
   else
   {
-    restore_cursor_position();
+    restoreCursorPosition();
   }
 
   char input = readInput();
@@ -102,7 +102,7 @@ struct Event processInput()
   { // ASCII value of escape key
     escapePressed = true;
     clock_gettime(CLOCK_MONOTONIC, &escapeTime);
-    restore_cursor_position();
+    restoreCursorPosition();
     return event;
   }
   else
@@ -172,7 +172,7 @@ int play(const char *filepath)
   strcpy(musicFilepath, filepath);
   int term_w, term_h;
   int asciiHeight, asciiWidth;
-  get_term_size(&term_w, &term_h);
+  getTermSize(&term_w, &term_h);
   if (term_h <= TRESHOLD_TERMINAL_SIZE)  
   {
     asciiHeight = small_ascii_height;
@@ -192,7 +192,7 @@ int play(const char *filepath)
   int res = playSoundFile(musicFilepath);
   setDefaultTextColor();
   printBasicMetadata(tagsFilePath);
-  get_cursor_position(&progressLine, &col);
+  getCursorPosition(&progressLine, &col);
   fflush(stdout);
   usleep(100000);
   escapePressed = false;

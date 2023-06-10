@@ -12,7 +12,8 @@ int default_ascii_width = 50;
 int small_ascii_height = 18;
 int small_ascii_width = 36;
 
-int isAudioFile(const char* filename) {
+int isAudioFile(const char* filename) 
+{
     const char* extensions[] = {".mp3", ".wav", ".m4a", ".flac", ".ogg"};
     
     for (long unsigned int i = 0; i < sizeof(extensions) / sizeof(extensions[0]); i++) {
@@ -24,7 +25,8 @@ int isAudioFile(const char* filename) {
     return 0;
 }
 
-void addSlashIfNeeded(char* str) {
+void addSlashIfNeeded(char* str) 
+{
     size_t len = strlen(str);
     
     if (len > 0 && str[len-1] != '/') {
@@ -32,7 +34,8 @@ void addSlashIfNeeded(char* str) {
     }
 }
 
-int compareEntries(const struct dirent **a, const struct dirent **b) {
+int compareEntries(const struct dirent **a, const struct dirent **b) 
+{
     const char *nameA = (*a)->d_name;
     const char *nameB = (*b)->d_name;
 
@@ -45,7 +48,8 @@ int compareEntries(const struct dirent **a, const struct dirent **b) {
     return strcmp(nameA, nameB);  // Lexicographic comparison for other cases
 }
 
-char* findFirstPathWithAudioFile(const char* path) {
+char* findFirstPathWithAudioFile(const char* path) 
+{
     DIR *dir = opendir(path);
     if (dir == NULL) {
         return NULL;
@@ -89,7 +93,8 @@ char* findFirstPathWithAudioFile(const char* path) {
     return audioDirectory;
 }
 
-char* findLargestImageFile(const char* directoryPath) {
+char* findLargestImageFile(const char* directoryPath) 
+{
     DIR* directory = opendir(directoryPath);
     struct dirent* entry;
     struct stat fileStats;

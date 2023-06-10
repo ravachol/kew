@@ -7,7 +7,8 @@
 
 enum SearchType {Any = 0, DirOnly = 1, FileOnly = 2}; 
 
-int tryOpen(const char* path) {
+int tryOpen(const char* path) 
+{
     DIR* dir = opendir(path);
     if (dir != NULL) {
         closedir(dir);
@@ -16,7 +17,8 @@ int tryOpen(const char* path) {
     return 0;
 }
 
-int isDirectory(const char* path) {
+int isDirectory(const char* path) 
+{
     struct stat path_stat;
     if (stat(path, &path_stat) != 0) {
         return 0;  // Unable to get file information, assume not a directory
@@ -27,7 +29,8 @@ int isDirectory(const char* path) {
 
 // Function to traverse a directory tree and search for a given file or directory
 int walker(const char *startPath, const char *searching, char *result,
-           const char *allowedExtensions, enum SearchType searchType) {
+           const char *allowedExtensions, enum SearchType searchType) 
+{
     DIR *d;
     struct dirent *dir;
     struct stat file_stat;

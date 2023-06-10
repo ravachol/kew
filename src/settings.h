@@ -5,7 +5,8 @@
 #include <stdio.h>
 
 // saves the path to your music folder
-int saveSettings(char *path, const char* settingsFile) {
+int saveSettings(char *path, const char* settingsFile) 
+{
     FILE *file;
     struct passwd *pw = getpwuid(getuid());
     const char *homedir = pw->pw_dir;
@@ -25,7 +26,8 @@ int saveSettings(char *path, const char* settingsFile) {
 }
 
 // reads the settings file, which contains the path to your music folder
-int getsettings(char *path, int len, const char* settingsFile) {
+int getsettings(char *path, int len, const char* settingsFile) 
+{
     FILE *file;
     struct passwd *pw = getpwuid(getuid());
     const char *homedir = pw->pw_dir;

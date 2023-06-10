@@ -3,7 +3,8 @@
 #define MAX_EVENTS_IN_QUEUE 1
 
 // Define event types
-enum EventType {
+enum EventType 
+{
   EVENT_NONE,
   EVENT_PLAY_PAUSE,
   EVENT_VOLUME_UP,
@@ -15,12 +16,14 @@ enum EventType {
 };
 
 // Structure to store events
-struct Event {
+struct Event 
+{
   enum EventType type;
   char key;
 };
 
-struct EventQueue {
+struct EventQueue 
+{
     struct Event events[MAX_EVENTS_IN_QUEUE];
     int front;
     int rear;
