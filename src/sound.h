@@ -33,3 +33,5 @@ int adjustVolumePercent(int volumeChange);
 int isPlaybackDone();
 
 float getDuration(const char* filepath, const char* tempFile);
+
+int adjustVolumePercent(int volumeChange);
