@@ -373,6 +373,25 @@ int main(int argc, char *argv[])
   }
   else if (argc == 3 && (strcmp(argv[1], "path") == 0))
   {
+    char expandedPath[MAXPATHLEN];
+    if (strcmp(argv[2], "~") == 0) // Handle "~/"
+    {
+        const char *homeDir = getenv("HOME");
+        if (homeDir == NULL)
+        {
+            fprintf(stderr, "Error: Unable to expand tilde character.\n");
+            return 1;
+        }
+        strcpy(expandedPath, homeDir);
+    }
+    else // Handle if path exist
+    {
+        if (realpath(argv[2], expandedPath) == NULL)
+        {
+            fprintf(stderr, "Error: Invalid path.\n");
+            return 1;
+        }
+    }
     saveSettings(argv[2], SETTINGS_FILENAME);
   }
   else if (argc >= 2)
