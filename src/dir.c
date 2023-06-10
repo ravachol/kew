@@ -1,13 +1,4 @@
-#include <stdio.h>
-#include <string.h>
-#include <dirent.h>
-#include <unistd.h>
-#include <stdbool.h>
-#include <sys/stat.h>
-#include <regex.h>
-#include <sys/param.h>
 #include "dir.h"
-#include "stringextensions.h"
 
 int tryOpen(const char* path) 
 {

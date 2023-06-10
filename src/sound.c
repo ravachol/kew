@@ -1,13 +1,6 @@
 #define MINIAUDIO_IMPLEMENTATION
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <math.h>
-#include <dirent.h>
-#include <stdbool.h>
 #include "sound.h"
-#include "file.h"
-#include "stringextensions.h"
+
 #define CHANNELS 2
 #define SAMPLE_RATE 44100
 #define SAMPLE_WIDTH 2

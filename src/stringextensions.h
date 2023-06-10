@@ -1,7 +1,8 @@
 #include <stdlib.h>
 #include <string.h>
-#include <regex.h>
 #include <ctype.h>
+#include <regex.h>
+#include <stdio.h>
 
 char* stringToLower(char* str);
 

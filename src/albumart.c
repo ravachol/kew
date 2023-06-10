@@ -1,12 +1,14 @@
 #include <string.h>
 #include <dirent.h>
 #include "dir.h"
-#include "albumart.h"
 #include "../include/getcover/getcover.h"
 #include "../include/imgtotxt/options.h"
 #include "../include/imgtotxt/write_ascii.h"
 #include "term.h"
+#include "metadata.h"
 #include "stringextensions.h"
+
+#include "albumart.h"
 
 int default_ascii_height = 25;
 int default_ascii_width = 50;
