@@ -39,7 +39,6 @@
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include "getcover.h"
 
 /*============================================================================
  Global variables, type definitions and prototypes
@@ -51,15 +50,16 @@
 int verbose = 0;
 int override = 0;
 int nbasename = 0;
-char jpegFile[MAXPATHLENGTH] = "cover.jpg";
-char pngFile[MAXPATHLENGTH] = "cover.png";
+static char jpegFile[MAXPATHLENGTH] = "cover.jpg";
+static char pngFile[MAXPATHLENGTH] = "cover.png";
 
 static void extract_cover(const char *arg);
 static int get_FLAC_cover(FILE *fp, const char *dirpath);
 static int get_m4a_cover(FILE *fp, const char *dirpath);
 static int get_mp3_cover(const char *filepath, const char *outputfilepath);
-int extractID3v2_cover(const char* filePath, const char* outputFilePath);
-int extractMP3Cover(const char* inputFilePath, const char* outputFilePath);
+static int extractID3v2_cover(const char* filePath, const char* outputFilePath);
+static int extractMP3Cover(const char* inputFilePath, const char* outputFilePath);
+extern long getFileSize(FILE* file);
 
 /*============================================================================
  Function for extracting the album cover to the designated directory
@@ -183,7 +183,7 @@ int checkIfV2(const char* filePath)
     fclose(file);
     return result;
 }
-
+/*
 // Check if the file contains ID3v2.2 tag
 int checkIfV22(const char* filePath)
 {
@@ -211,7 +211,7 @@ int checkIfV22(const char* filePath)
 
     fclose(file);
     return result;
-}
+}*/
 
 long getFileSize(FILE* file) {
     if (file == NULL) {

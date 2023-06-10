@@ -1,4 +1,11 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <math.h>
+#include <dirent.h>
 #include <stdbool.h>
+#include "file.h"
+#include "stringextensions.h"
 #include "../include/miniaudio/miniaudio.h"
 #define BUFFER_SIZE 1024
 

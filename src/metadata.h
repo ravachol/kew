@@ -1,3 +1,5 @@
+#ifndef METADATA_H
+#define METADATA_H
 #include <libavformat/avformat.h>
 #include <libavutil/avutil.h>
 #include <stdio.h>
@@ -18,7 +20,7 @@ typedef struct {
     char* value;
 } KeyValuePair;
 
-extern KeyValuePair* read_key_value_pairs(const char* file_path, int* count);
+KeyValuePair* read_key_value_pairs(const char* file_path, int* count);
 
 extern TagSettings construct_tag_settings(KeyValuePair* pairs, int count);
 
@@ -27,3 +29,5 @@ extern void free_key_value_pairs(KeyValuePair* pairs, int count);
 extern int extract_tags(const char* input_file, const char* output_file);
 
 extern void print_metadata(const char* file_path);
+
+#endif
