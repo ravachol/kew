@@ -4,7 +4,7 @@ LIBS = -lpthread -lavformat -lavutil -L/usr/lib  -lfftw3_omp -lfftw3 -lfftw3f_om
 
 OBJDIR = src/obj
 
-SRCS =  src/sound.c src/events.c src/stringextensions.c src/file.c src/term.c src/cue.c include/imgtotxt/write_ascii.c
+SRCS =  src/sound.c src/dir.c src/albumart.c src/metadata.c src/printfunc.c src/settings.c src/visuals.c src/events.c src/stringextensions.c src/file.c src/term.c include/imgtotxt/write_ascii.c src/cue.c
 OBJS = $(SRCS:src/%.c=$(OBJDIR)/%.o)
 
 all: cue
