@@ -16,41 +16,6 @@ cue is a command-line music player for Linux.
  * Creates a playlist automatically based on matched directory name
  * Control the player with previous, next and pause.
 
-## Installation
-
-Download the install.sh file onto a suitable folder on your computer.
-
-Then run the following commands:
-
- ```
-% chmod +x install.sh
-
-% sudo ./install.sh
- ```
-
-## Manual Installation
-
-cue dependencies are:
-
-* FFmpeg
-* FFTW 
-
-A TrueColor capable terminal is recommended, like Konsole, kitty or st, to display colors properly.
-
-For a complete list of capable terminals, see this page: [Colors in Terminal](https://gist.github.com/CMCDragonkai/146100155ecd79c7dac19a9e23e6a362) (github.com).
-
-Install FFmpeg and FFTW using your distro's package manager. Then run:
-
- ```
-% git clone https://github.com/ravachol/cue.git
-
-% cd cue
-
-% make
-
-% sudo make install
- ```
-
 ## Usage
 
 IMPORTANT! Tell cue the path to your music library (you only need to do this once):
@@ -58,7 +23,7 @@ IMPORTANT! Tell cue the path to your music library (you only need to do this onc
 ```
 % cue path "/home/joe/Music/"
 ```
-Now run cue and provide a partial name of a track, playlist or directory:
+Now run cue and provide a partial name of a track or directory:
 
 ```
 % cue cure great
@@ -93,6 +58,41 @@ cue returns the first directory or file whose name matches the string you provid
 * Press <kbd>Space</kbd> to pause.
 * Press <kbd>v</kbd> to toggle visualization.
 * Press <kbd>Esc</kbd> to quit.
+
+## Installation
+
+Download the install.sh file onto a suitable folder on your computer.
+
+Then run the following commands:
+
+ ```
+% chmod +x install.sh
+
+% sudo ./install.sh
+ ```
+
+## Manual Installation
+
+cue dependencies are:
+
+* FFmpeg
+* FFTW 
+
+A TrueColor capable terminal is recommended, like Konsole, kitty or st, to display colors properly.
+
+For a complete list of capable terminals, see this page: [Colors in Terminal](https://gist.github.com/CMCDragonkai/146100155ecd79c7dac19a9e23e6a362) (github.com).
+
+Install FFmpeg and FFTW using your distro's package manager. Then run:
+
+ ```
+% git clone https://github.com/ravachol/cue.git
+
+% cd cue
+
+% make
+
+% sudo make install
+ ```
 
 ## License
 
