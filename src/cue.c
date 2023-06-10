@@ -22,13 +22,13 @@
 #include <poll.h>
 #include <dirent.h>
 #include <signal.h>
+#include "metadata.h"
 #include "sound.h"
 #include "stringextensions.h"
 #include "dir.h"
 #include "albumart.h"
 #include "settings.h"
 #include "printfunc.h"
-#include "volume.h"
 #include "playlist.h"
 #include "events.h"
 #include "file.h"
