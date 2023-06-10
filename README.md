@@ -20,13 +20,13 @@ cue is a command-line music player for Linux.
 
 IMPORTANT! Tell cue the path to your music library (you only need to do this once):
 
-```
-% cue path "/home/joe/Music/"
+```bash
+cue path "/home/joe/Music/"
 ```
 Now run cue and provide a partial name of a track or directory:
 
-```
-% cue cure great
+```bash
+cue cure great
 ```
 
 This command plays all songs from "The Cure Greatest Hits" directory, provided it's in your music library, and prints out the album cover in colorful ASCII on the screen!
@@ -65,11 +65,12 @@ Download the install.sh file onto a suitable folder on your computer.
 
 Then run the following commands:
 
- ```
-% chmod +x install.sh
-
-% sudo ./install.sh
- ```
+```bash
+chmod +x install.sh
+```
+```bash
+sudo ./install.sh
+```
 
 ## Manual Installation
 
@@ -84,15 +85,18 @@ For a complete list of capable terminals, see this page: [Colors in Terminal](ht
 
 Install FFmpeg and FFTW using your distro's package manager. Then run:
 
- ```
-% git clone https://github.com/ravachol/cue.git
-
-% cd cue
-
-% make
-
-% sudo make install
- ```
+```bash
+git clone https://github.com/ravachol/cue.git
+```
+```bash
+cd cue
+```
+```bash
+make
+```
+```bash
+sudo make install
+```
 
 ## License
 
