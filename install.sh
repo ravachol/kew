@@ -36,7 +36,7 @@ fi
 # Clone the repository
 repo_url="https://github.com/ravachol/cue.git"
 echo "Cloning the repository..."
-if git clone "$repository_url"; then
+if git clone "$repo_url"; then
     echo "Repository cloned successfully."
 else
     echo "Failed to clone the repository. Please check your network connection and try again."
