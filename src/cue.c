@@ -1,7 +1,7 @@
 // cue - command-line music player
 // Copyright (C) 2022 Ravachol
 //
-// http://github.com/ravachol/play
+// http://github.com/ravachol/cue
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
