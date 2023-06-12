@@ -16,6 +16,40 @@ cue is a command-line music player for Linux.
  * Creates a playlist automatically based on matched directory name
  * Control the player with previous, next and pause.
 
+## Quick Installation
+
+To quickly install cue, just copy and paste it to your terminal:
+
+```bash
+sudo bash -c "curl https://raw.githubusercontent.com/ravachol/cue/main/install.sh | bash"
+```
+
+## Manual Installation
+
+cue dependencies are:
+
+* FFmpeg
+* FFTW 
+
+A TrueColor capable terminal is recommended, like Konsole, kitty or st, to display colors properly.
+
+For a complete list of capable terminals, see this page: [Colors in Terminal](https://gist.github.com/CMCDragonkai/146100155ecd79c7dac19a9e23e6a362) (github.com).
+
+Install FFmpeg and FFTW using your distro's package manager. Then run:
+
+```bash
+git clone https://github.com/ravachol/cue.git
+```
+```bash
+cd cue
+```
+```bash
+make
+```
+```bash
+sudo make install
+```
+
 ## Usage
 
 IMPORTANT! Tell cue the path to your music library (you only need to do this once):
@@ -58,45 +92,6 @@ cue --version or -v
 * Press <kbd>Space</kbd> to pause.
 * Press <kbd>v</kbd> to toggle visualization.
 * Press <kbd>Esc</kbd> to quit.
-
-## Installation
-
-Download the install.sh file onto a suitable folder on your computer.
-
-Then run the following commands:
-
-```bash
-chmod +x install.sh
-```
-```bash
-sudo ./install.sh
-```
-
-## Manual Installation
-
-cue dependencies are:
-
-* FFmpeg
-* FFTW 
-
-A TrueColor capable terminal is recommended, like Konsole, kitty or st, to display colors properly.
-
-For a complete list of capable terminals, see this page: [Colors in Terminal](https://gist.github.com/CMCDragonkai/146100155ecd79c7dac19a9e23e6a362) (github.com).
-
-Install FFmpeg and FFTW using your distro's package manager. Then run:
-
-```bash
-git clone https://github.com/ravachol/cue.git
-```
-```bash
-cd cue
-```
-```bash
-make
-```
-```bash
-sudo make install
-```
 
 ## License
 
