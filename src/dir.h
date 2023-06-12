@@ -13,6 +13,8 @@
 
 enum SearchType {Any = 0, DirOnly = 1, FileOnly = 2}; 
 
+void getDirectoryFromPath(const char* path, char* directory);
+
 int tryOpen(const char* path);
 
 int isDirectory(const char* path);

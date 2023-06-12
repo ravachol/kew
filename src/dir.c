@@ -1,5 +1,34 @@
 #include "dir.h"
 
+void getDirectoryFromPath(const char* path, char* directory) 
+{
+  size_t pathLength = strlen(path);
+  
+  // Find the last occurrence of the directory separator character ('/' or '\')
+  const char* lastSeparator = strrchr(path, '/');
+  const char* lastBackslash = strrchr(path, '\\');
+  
+  // Determine the last occurrence of the directory separator
+  const char* lastDirectorySeparator = lastSeparator > lastBackslash ? lastSeparator : lastBackslash;
+  
+  if (lastDirectorySeparator != NULL) {
+    // Calculate the length of the directory path
+    size_t directoryLength = lastDirectorySeparator - path + 1;
+    
+    if (directoryLength < pathLength) {
+      // Copy the directory path into the 'directory' buffer
+      strncpy(directory, path, directoryLength);
+      directory[directoryLength] = '\0';
+    } else {
+      // The provided path is already a directory
+      strcpy(directory, path);
+    }
+  } else {
+    // No directory separator found, return an empty string
+    directory[0] = '\0';
+  }
+}
+
 int tryOpen(const char* path) 
 {
     DIR* dir = opendir(path);

@@ -1,6 +1,7 @@
 #include <string.h>
 #include <dirent.h>
 #include "dir.h"
+#include "file.h"
 #include "../include/getcover/getcover.h"
 #include "../include/imgtotxt/options.h"
 #include "../include/imgtotxt/write_ascii.h"
@@ -137,38 +138,84 @@ char* findLargestImageFile(const char* directoryPath)
     return largestImageFile;
 }
 
-
-int displayAlbumArt(const char* directory, int asciiHeight, int asciiWidth)
+int extractCover(const char *audioFilepath, char *outputFilepath)
 {
-    // Display Albumart ascii if available
-  if (directory != NULL) {
-    char* largestImageFile = findLargestImageFile(directory);
-
-    if (largestImageFile == NULL) {
+    size_t size;  
+    char str[10] = "";
+    FILE *fp;
+    char path[MAXPATHLEN];
     
-        char* audioDir = findFirstPathWithAudioFile(directory);
+    if (audioFilepath == NULL) return -1;
 
-        if (audioDir != NULL)
+    getDirectoryFromPath(audioFilepath, path); 
+    generateTempFilePath(outputFilepath, "cover", ".jpg");   
+
+    if ((fp = fopen(audioFilepath, "r")) != NULL) 
+    {
+        size = fread(str, 1, 4, fp);
+        if (memcmp(str, "fLaC", 4) == 0) 
+        { 
+            if (get_FLAC_cover(fp, audioFilepath) == 1)
+            {
+                fclose(fp);
+                return 1;
+            }
+        }
+        else if (memcmp(str, "RIFF", 4) == 0) // Wav file
+        {                            
+        }
+        else if (memcmp(str, "ID3\3", 4) == 0) // Mp3
+        {                
+            size_t pathLength = strlen(path);
+            size_t coverLength = strlen("cover.jpg");
+            
+            if (extractMP3Cover(audioFilepath, outputFilepath) >= 0)
+            {
+                fclose(fp);
+                return 1;
+            }
+        }
+        else
         {
-          addSlashIfNeeded(audioDir);
-          largestImageFile = findLargestImageFile(audioDir);
-          if (largestImageFile == NULL)
-          {
-            extract_cover(audioDir);
-            largestImageFile = findLargestImageFile(audioDir);
-          }
-        }   
-        free(audioDir);        
+            int offset = ((str[0] << 24) | (str[1] << 16) | (str[2] << 8) | str[3]);
+            size = fread(str, 1, 4, fp);                            
+            if (memcmp(str, "ftyp", 4) == 0) // MP4
+            { 
+                if (get_m4a_cover(fp, outputFilepath) == 1)
+                {
+                    fclose(fp);
+                    return 1;
+                }
+            }
+        }
+        fclose(fp);
     }
+    return -1;
+}
 
-    if (largestImageFile != NULL) {
-        output_ascii(largestImageFile, asciiHeight, asciiWidth, ANSI);
-        free(largestImageFile);
-        return 0;
-    }   
-    else {
-        return -1;
+int displayAlbumArt(const char* filepath, int asciiHeight, int asciiWidth)
+{
+    char path[MAXPATHLEN];
+    char fileOutputPath[MAXPATHLEN];
+    
+    if (filepath == NULL) return -1;
+
+    int res = extractCover(filepath, fileOutputPath);
+
+    if (res >= 0)
+        output_ascii(fileOutputPath, asciiHeight, asciiWidth, ANSI);
+    else 
+    {   
+        getDirectoryFromPath(filepath, path);    
+        char* largestImageFile = findLargestImageFile(path);
+        if (largestImageFile != NULL)
+        {
+            return output_ascii(largestImageFile, asciiHeight, asciiWidth, ANSI);
+        }
+        else
+        {
+            return -1;
+        } 
     }
-  }
-  return -1;
+    return 0;
 }

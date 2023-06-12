@@ -53,7 +53,7 @@ int nbasename = 0;
 static char jpegFile[MAXPATHLENGTH] = "cover.jpg";
 static char pngFile[MAXPATHLENGTH] = "cover.png";
 
-static void extract_cover(const char *arg);
+static void extract_cover(const char *arg, char *outputFilePath);
 static int get_FLAC_cover(FILE *fp, const char *dirpath);
 static int get_m4a_cover(FILE *fp, const char *dirpath);
 static int get_mp3_cover(const char *filepath, const char *outputfilepath);
@@ -65,7 +65,7 @@ extern long getFileSize(FILE* file);
  Function for extracting the album cover to the designated directory
  ============================================================================*/
 
-static void extract_cover(const char *arg)
+static void extract_cover(const char *arg, char *outputFilePath)
 {
     DIR *dirp;
     struct dirent *dp;
@@ -103,10 +103,11 @@ static void extract_cover(const char *arg)
                         }
                         else if(memcmp(str,"ID3\3", 4)==0) {
                             if(verbose) (void) printf("mp3 FILE: %s\n", dp->d_name);
-                            char fileoutputpath[MAXPATHLENGTH];
-                            strcpy(fileoutputpath, arg);
-                            strcat(fileoutputpath, "cover.jpg");
-                            if(extractMP3Cover(filepath,fileoutputpath) == DONE)
+                          
+                            strcpy(outputFilePath, arg);
+                            strcat(outputFilePath, "cover.jpg");
+
+                            if(extractMP3Cover(filepath,outputFilePath) == DONE)
                             {
                                 return;
                             }
@@ -279,16 +280,16 @@ long getFileSize(FILE* file) {
 #include <stdlib.h> // For size_t
 #include <stdio.h>  // For FILE, fopen, fread, fwrite, fseek, ftell, fclose
 
-int extractMP3Cover(const char* inputFilePath, const char* outputFilePath) {
+int extractMP3Cover(const char* inputFilePath, const char* outputFilePath) 
+{
     char command[256];
-    snprintf(command, sizeof(command), "ffmpeg -i \"%s\" -an -vcodec copy \"%s\"", inputFilePath, outputFilePath);
+    snprintf(command, sizeof(command), "ffmpeg -y -i \"%s\" -an -vcodec copy \"%s\"", inputFilePath, outputFilePath);
 
     FILE* pipe = popen(command, "r");
     if (pipe == NULL) {
         printf("Failed to run FFmpeg command.\n");
         return -1;
     }
-
     pclose(pipe);
 
     return 0;
@@ -446,7 +447,7 @@ int get_mp3_cover(const char* filePath, const char *outputfilepath)
  Function for extracting JPEG/PNG data from a FLAC file
  ============================================================================*/
 
-static int get_FLAC_cover(FILE *fp, const char *dirpath)
+static int get_FLAC_cover(FILE *fp, const char *outputFilepath)
 {
     unsigned char block_header;
     unsigned char length[3];
@@ -539,18 +540,9 @@ static int get_FLAC_cover(FILE *fp, const char *dirpath)
                 picture_length = ((buf[0]<<24)|(buf[1]<<16)|(buf[2]<<8)|buf[3]);
                 if(verbose) printf("  Length of picture data = %d\n", picture_length);
                 
-                strcpy(picture_path, dirpath);
+                strcpy(picture_path, outputFilepath);
                 //strcat(picture_path, "/");
-                if(strcmp(mime_type, "image/png") == 0) {
-                    strcat(picture_path, pngFile);
-                    fprintf(stderr, "  Warning: Image type is PNG not JPEG, generating Folder.png\n");
-                }
-                else if(strcmp(mime_type, "image/jpeg") == 0)
-                    strcat(picture_path, jpegFile);
-                else {
-                    strcat(picture_path, jpegFile);
-                    fprintf(stderr, "  Warning: unknown MIME type:%s, generating %s\n", mime_type, jpegFile);
-                }
+
                 /* check if cover-art file already exists */
                 if((picture_fp = fopen(picture_path, "r")) != NULL) {
                     
@@ -594,7 +586,7 @@ static int get_FLAC_cover(FILE *fp, const char *dirpath)
 /*============================================================================
  Function for extracting JPEG/PNG data from a m4a file
  ============================================================================*/
-static int get_m4a_cover(FILE *fp, const char *dirpath)
+static int get_m4a_cover(FILE *fp, const char *outputFilepath)
 {
     unsigned char coffset[5], boxtype[5];
     unsigned int offset1, offset2, offset3, offset4, offset5, covrdata_len;
@@ -662,27 +654,28 @@ static int get_m4a_cover(FILE *fp, const char *dirpath)
                                             boxtype[4] = 0;
                                             if(verbose) printf(" box type = moov:udta:meta:ilst:covr:%s\n", boxtype);
                                             
-                                            strcpy(picture_path, dirpath);
-                                            strcat(picture_path, "/");
+                                            strcpy(picture_path, outputFilepath);
+                                            //strcat(picture_path, "/");
                                             size = fread(flag_data, 1, 8, fp);
                                             flag = flag_data[3];
                                             if(flag == 14) {
-                                                strcat(picture_path, pngFile);
+                                               // strcat(picture_path, pngFile);
                                                 fprintf(stderr, "  Warning: Image type is PNG not JPEG, generating Folder.png\n");
                                             }
                                             else if(flag == 13)
-                                                strcat(picture_path, jpegFile);
-                                            else {
-                                                strcat(picture_path, jpegFile);
+                                            {
+                                              //  strcat(picture_path, jpegFile);
+                                            } else {
+                                              //  strcat(picture_path, jpegFile);
                                                 fprintf(stderr, "  Warning: unknown image format:%d, generating %s\n", flag, jpegFile);
                                             }
                                             /* check if cover-ar file already exists */
                                             if((picture_fp = fopen(picture_path, "r")) != NULL) {
                                                 if(verbose) printf("  File %s exists, did not override.\n", picture_path);
-                                                if(!override) {
+                                                /*if(!override) {
                                                     fclose(picture_fp);
                                                     return DONE;
-                                                }
+                                                }*/
                                             }
                                             /* some ripper software create blank PICTURE frame :-( */
                                             if(covrdata_len == 0) {
