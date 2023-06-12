@@ -12,6 +12,4 @@ int match_regex(regex_t* regex, const char* ext);
 
 void extractExtension(const char* filename, size_t numChars, char* ext);
 
-char* getDirectoryFromPath(const char* filepath);
-
 int endsWith(const char* str, const char* suffix);
