@@ -62,32 +62,6 @@ void extractExtension(const char* filename, size_t numChars, char* ext)
     ext[copyChars] = '\0';
 }
 
-char* getDirectoryFromPath(const char* filepath) 
-{
-    size_t filepathLen = strlen(filepath);
-    size_t lastSlash = 0;
-
-    for (size_t i = 0; i < filepathLen; i++) {
-        if (filepath[i] == '/')
-            lastSlash = i;
-    }
-
-    char* directory = NULL;
-
-    if (lastSlash > 0) {
-        size_t len = lastSlash + 1;
-        directory = (char*)malloc(len + 1);
-        strncpy(directory, filepath, len);
-        directory[len] = '\0';
-    } else {
-        // No slash found, return an empty string or a copy of the input path
-        directory = (char*)malloc(1);
-        directory[0] = '\0';
-    }
-
-    return directory;
-}
-
 int endsWith(const char* str, const char* suffix) 
 {
     size_t strLength = strlen(str);

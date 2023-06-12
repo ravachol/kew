@@ -186,7 +186,7 @@ int play(const char *filepath)
     asciiWidth = default_ascii_width;
 
   }
-  int foundArt = displayAlbumArt(getDirectoryFromPath(filepath), asciiHeight, asciiWidth);
+  int foundArt = displayAlbumArt(filepath, asciiHeight, asciiWidth);
   if (foundArt < 0)
     visualizerEnabled = true;
   generateTempFilePath(tagsFilePath, "metatags", ".txt");
