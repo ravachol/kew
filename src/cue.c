@@ -94,10 +94,13 @@ struct Event processInput()
   if (input == 'v')
   {
     visualizerEnabled = !visualizerEnabled;
+    restoreCursorPosition(); 
     clearRestOfScreen();
+    event.type = EVENT_TOGGLEVISUALS;
+    event.key = input;
+    enqueueEvent(&event);    
   }
-
-  if (input == 27)
+  else if (input == 27)
   { // ASCII value of escape key
     escapePressed = true;
     clock_gettime(CLOCK_MONOTONIC, &escapeTime);
@@ -132,7 +135,7 @@ struct Event processInput()
     enqueueEvent(&event);
   }
 
-  if (event.key == 'A' || event.key == 'B' || event.key == 'C' || event.key == 'D' || event.key == ' ')
+  if (event.key == 'v' || event.key == 'A' || event.key == 'B' || event.key == 'C' || event.key == 'D' || event.key == ' ')
   {
     clock_gettime(CLOCK_MONOTONIC, &escapeTime);
     escapePressed = false;
@@ -160,6 +163,7 @@ void handleResize(int signal)
 
 int play(const char *filepath)
 {
+  escapePressed = false;
   char musicFilepath[MAX_FILENAME_LENGTH];
   struct timespec start_time;
   double elapsed_seconds = 0.0;
@@ -194,7 +198,6 @@ int play(const char *filepath)
   getCursorPosition(&progressLine, &col);
   fflush(stdout);
   usleep(100000);
-  escapePressed = false;
   clock_gettime(CLOCK_MONOTONIC, &escapeTime);
 
   if (res != 0)
@@ -221,7 +224,9 @@ int play(const char *filepath)
       pausePlayback();
       break;
     case EVENT_QUIT:
-      shouldQuit = true;
+      if (elapsed_seconds > 3.0) {
+        shouldQuit = true;
+      }
       break;
     case EVENT_VOLUME_UP:
       adjustVolumePercent(5);
