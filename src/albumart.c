@@ -193,7 +193,7 @@ int extractCover(const char *audioFilepath, char *outputFilepath)
     return -1;
 }
 
-int displayAlbumArt(const char* filepath, int asciiHeight, int asciiWidth)
+int displayAlbumArt(const char* filepath, int asciiHeight, int asciiWidth, bool coverBlocks)
 {
     char path[MAXPATHLEN];
     char fileOutputPath[MAXPATHLEN];
@@ -203,14 +203,14 @@ int displayAlbumArt(const char* filepath, int asciiHeight, int asciiWidth)
     int res = extractCover(filepath, fileOutputPath);
 
     if (res >= 0)
-        output_ascii(fileOutputPath, asciiHeight, asciiWidth, ANSI);
+        output_ascii(fileOutputPath, asciiHeight, asciiWidth, coverBlocks);
     else 
     {   
         getDirectoryFromPath(filepath, path);    
         char* largestImageFile = findLargestImageFile(path);
         if (largestImageFile != NULL)
         {
-            return output_ascii(largestImageFile, asciiHeight, asciiWidth, ANSI);
+            return output_ascii(largestImageFile, asciiHeight, asciiWidth, coverBlocks);
         }
         else
         {

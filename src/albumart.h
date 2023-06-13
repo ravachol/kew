@@ -1,6 +1,6 @@
 #ifndef ALBUMART_H
 #define ALBUMART_H
-
+#include <stdbool.h>
 
 extern int default_ascii_height;
 extern int default_ascii_width;
@@ -18,7 +18,6 @@ extern char* findFirstPathWithAudioFile(const char* path);
 
 extern char* findLargestImageFile(const char* directoryPath);
 
-
-extern int displayAlbumArt(const char* directory, int asciiHeight, int asciiWidth);
+int displayAlbumArt(const char* filepath, int asciiHeight, int asciiWidth, bool coverBlocks);
 
 #endif

@@ -118,6 +118,9 @@ struct Event processInput()
     case 'v':
       event.type = EVENT_TOGGLEVISUALS;
       break;
+    case 'b':
+      event.type = EVENT_TOGGLEBLOCKS;
+      break;      
     case 'r':
       event.type = EVENT_TOGGLEREPEAT;
       break;
@@ -195,7 +198,7 @@ int play(const char *filepath)
   }
   if (coverEnabled)
   {
-    int foundArt = displayAlbumArt(filepath, asciiHeight, asciiWidth);
+    int foundArt = displayAlbumArt(filepath, asciiHeight, asciiWidth, coverBlocks);
     if (foundArt < 0)
       visualizationEnabled = true;
   }
@@ -235,6 +238,7 @@ int play(const char *filepath)
       break;
     case EVENT_TOGGLEVISUALS:
       visualizationEnabled = !visualizationEnabled;
+      strcpy(settings.visualizationEnabled, visualizationEnabled ? "1" : "0");
       restoreCursorPosition(); 
       clearRestOfScreen();    
       break;
@@ -243,7 +247,12 @@ int play(const char *filepath)
       break;
     case EVENT_TOGGLECOVERS:
       coverEnabled = !coverEnabled;
+      strcpy(settings.coverEnabled, coverEnabled ? "1" : "0");
       break;
+    case EVENT_TOGGLEBLOCKS:
+      coverBlocks = !coverBlocks;
+      strcpy(settings.coverBlocks, coverBlocks ? "1" : "0");
+      break;      
     case EVENT_SHUFFLE:
       shufflePlaylist(&playlist);  
       break;
