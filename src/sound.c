@@ -315,7 +315,7 @@ float get_audio_duration(const char* filepath)
 
     // Check if the duration line is read successfully
     if (fgets(duration, sizeof(duration), fp) == NULL) {
-        printf("Error reading duration information.\n");
+        //printf("Error reading duration information.\n");
         fclose(fp);
         return -1.0;
     }
@@ -328,7 +328,7 @@ float get_audio_duration(const char* filepath)
     // Check if the scanning of duration components is successful
     if (scanned != 3) {
         //printf("Error parsing duration components.\n");
-        return 0.0;
+        return -1.0;
     }
 
     // Calculate milliseconds separately
