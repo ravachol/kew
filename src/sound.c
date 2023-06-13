@@ -327,8 +327,8 @@ float get_audio_duration(const char* filepath)
 
     // Check if the scanning of duration components is successful
     if (scanned != 3) {
-        printf("Error parsing duration components.\n");
-        return -1.0;
+        //printf("Error parsing duration components.\n");
+        return 0.0;
     }
 
     // Calculate milliseconds separately
