@@ -69,7 +69,7 @@ cue returns the first directory or file whose name matches the string you provid
 
 #### Some Examples:
 
- ```bash
+ ```
 cue moonlight son (finds and plays moonlight sonata)
 
 cue moon (finds and plays moonlight sonata)
@@ -84,6 +84,8 @@ cue random <dir name> (shuffle and rand works too)
 
 cue cure:depeche (plays the cure and depeche mode shuffled)
 
+cue --nocover <words> (doesn't display a cover)
+
 cue --help, -? or -h
 
 cue --version or -v
@@ -95,6 +97,9 @@ cue --version or -v
 * Use <kbd>→</kbd>, <kbd>←</kbd> keys to play the next or previous track in the playlist. 
 * Press <kbd>Space</kbd> to pause.
 * Press <kbd>v</kbd> to toggle visualization.
+* Press <kbd>c</kbd> to toggle album art. (starting from next track)
+* Press <kbd>r</kbd> to repeat current song.
+* Press <kbd>s</kbd> to shuffle playlist.
 * Press <kbd>Esc</kbd> to quit.
 
 ## License
