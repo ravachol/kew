@@ -85,3 +85,23 @@ bool containsCharacter(const char* str, const char character) {
     }
     return false; // Character not found
 }
+
+void trim(char* str) {
+    // Remove leading whitespace characters
+    char* start = str;
+    while (*start && isspace(*start)) {
+        start++;
+    }
+
+    // Remove trailing whitespace characters
+    char* end = str + strlen(str) - 1;
+    while (end > start && isspace(*end)) {
+        end--;
+    }
+    *(end + 1) = '\0';
+
+    // Shift trimmed string to the beginning
+    if (str != start) {
+        memmove(str, start, end - start + 2);
+    }
+}
