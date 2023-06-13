@@ -52,6 +52,7 @@ char tagsFilePath[FILENAME_MAX];
 bool isResizing = false;
 bool escapePressed = false;
 bool visualizerEnabled = false;
+bool coversEnabled = true;
 int progressLine = 1;
 struct timespec escapeTime;
 PlayList playlist = {NULL, NULL};
@@ -186,9 +187,12 @@ int play(const char *filepath)
     asciiWidth = default_ascii_width;
 
   }
-  int foundArt = displayAlbumArt(filepath, asciiHeight, asciiWidth);
-  if (foundArt < 0)
-    visualizerEnabled = true;
+  if (coversEnabled)
+  {
+    int foundArt = displayAlbumArt(filepath, asciiHeight, asciiWidth);
+    if (foundArt < 0)
+      visualizerEnabled = true;
+  }
   generateTempFilePath(tagsFilePath, "metatags", ".txt");
   extract_tags(strdup(filepath), tagsFilePath);
   clock_gettime(CLOCK_MONOTONIC, &start_time);
@@ -327,6 +331,21 @@ void init()
   srand(time(NULL));
 }
 
+void removeElement(char* argv[], int index, int* argc) {
+    if (index < 0 || index >= *argc) {
+        // Invalid index
+        return;
+    }
+    
+    // Shift elements after the index
+    for (int i = index; i < *argc - 1; i++) {
+        argv[i] = argv[i + 1];
+    }
+    
+    // Update the argument count
+    (*argc)--;
+}
+
 int makePlaylist(int argc, char *argv[])
 {
   enum SearchType searchType = SearchAny;
@@ -408,6 +427,21 @@ int makePlaylist(int argc, char *argv[])
   return 0;
 }
 
+void handleSwitches(int *argc, char *argv[])
+{
+  const char* nocoverSwitch = "-nocover";
+  int idx = -1;
+  for (int i = 0; i < *argc; i++) {
+    if (strcasestr(argv[i], nocoverSwitch))
+    {
+      coversEnabled = false;
+      idx = i;
+    }
+  }
+  if (idx >= 0)
+    removeElement(argv, idx, argc);
+}
+
 int main(int argc, char *argv[])
 {
   if (argc == 1 || (argc == 2 && ((strcmp(argv[1], "--help") == 0) || (strcmp(argv[1], "-h") == 0) || (strcmp(argv[1], "-?") == 0))))
@@ -425,6 +459,7 @@ int main(int argc, char *argv[])
   else if (argc >= 2)
   {
     init();
+    handleSwitches(&argc, argv);
     makePlaylist(argc, argv);
     start();
   }
