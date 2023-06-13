@@ -424,7 +424,6 @@ int makePlaylist(int argc, char *argv[])
         memmove(token, token + 4, strlen(token + 4) + 1);
         searchType = FileOnly;
       }
-
       getMusicLibraryPath(path);
       trim(token);
       if (walker(path, token, buf, ALLOWED_EXTENSIONS, searchType) == 0)
