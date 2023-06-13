@@ -326,9 +326,14 @@ int play(const char *filepath)
 
 int getMusicLibraryPath(char *path)
 {
-  if (path[0] != '\0' && path[0] != '\r')
-    return 0;
+  char expandedPath[MAXPATHLEN];
 
+  if (path[0] != '\0' && path[0] != '\r')
+  {
+    if (expandPath(path, expandedPath) >= 0)
+      strcpy(path, expandedPath);
+    return 0;
+  }
   getSettingsDeprecated(path, MAXPATHLEN, PATH_SETTING_FILENAME);
 
   if (path[0] == '\0') // if NULL, ie no path setting was found
@@ -337,6 +342,10 @@ int getMusicLibraryPath(char *path)
     strcat(path, pw->pw_dir);
     strcat(path, "/Music/");
   }
+
+  if (expandPath(path, expandedPath))
+    strcpy(path, expandedPath);
+
   return 0;
 }
 
@@ -557,7 +566,7 @@ int main(int argc, char *argv[])
   {
     saveSettingsDeprecated(argv[2], PATH_SETTING_FILENAME);
     strcpy(settings.path, argv[2]);
-    setConfig(&settings, SETTINGS_FILENAME);    
+    setConfig(&settings, SETTINGS_FILENAME);
   }
   else if (argc >= 2)
   {

@@ -138,3 +138,66 @@ int walker(const char *startPath, const char *searching, char *result,
     closedir(d);
     return copyresult ? 0 : 1;
 }
+
+int expandPath(const char *inputPath, char *expandedPath)
+{
+    if (inputPath[0] == '~') // Check if inputPath starts with '~'
+    {
+        const char *homeDir;
+        if (inputPath[1] == '/' || inputPath[1] == '\0') // Handle "~/"
+        {
+            homeDir = getenv("HOME");
+            if (homeDir == NULL)
+            {
+                return -1; // Unable to retrieve home directory
+            }
+            inputPath++; // Skip '~' character
+        }
+        else // Handle "~username/"
+        {
+            const char *username = inputPath + 1;
+            const char *slash = strchr(username, '/');
+            if (slash == NULL)
+            {
+                struct passwd *pw = getpwnam(username);
+                if (pw == NULL)
+                {
+                    return -1; // Unable to retrieve user directory
+                }
+                homeDir = pw->pw_dir;
+                inputPath = ""; // Empty path component after '~username'
+            }
+            else
+            {
+                size_t usernameLen = slash - username;
+                struct passwd *pw = getpwuid(getuid());
+
+                if (pw == NULL)
+                {
+                    return -1; // Unable to retrieve user directory
+                }
+                homeDir = pw->pw_dir;
+                inputPath += usernameLen + 1; // Skip '~username/' component
+            }
+        }
+
+        size_t homeDirLen = strlen(homeDir);
+        size_t inputPathLen = strlen(inputPath);
+
+        if (homeDirLen + inputPathLen >= PATH_MAX)
+        {
+            return -1; // Expanded path exceeds maximum length
+        }
+
+        strcpy(expandedPath, homeDir);
+        strcat(expandedPath, inputPath);
+    }
+    else // Handle if path is not prefixed with '~'
+    {
+        if (realpath(inputPath, expandedPath) == NULL)
+        {
+            return -1; // Unable to expand the path
+        }
+    }
+    return 0; // Path expansion successful
+}
