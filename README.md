@@ -97,7 +97,8 @@ cue --version or -v
 * Use <kbd>→</kbd>, <kbd>←</kbd> keys to play the next or previous track in the playlist. 
 * Press <kbd>Space</kbd> to pause.
 * Press <kbd>v</kbd> to toggle visualization.
-* Press <kbd>c</kbd> to toggle album art. (starting from next track)
+* Press <kbd>c</kbd> to toggle album covers. (starting from next track)
+* Press <kbd>b</kbd> to toggle album covers drawn with solid blocks. (starting from next track)
 * Press <kbd>r</kbd> to repeat current song.
 * Press <kbd>s</kbd> to shuffle playlist.
 * Press <kbd>Esc</kbd> to quit.
