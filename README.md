@@ -80,6 +80,8 @@ cue dir <album name> (sometimes it's neccessary to specify it's a directory you 
 
 cue song <song name> (or a song)
 
+cue random <dir name> (shuffle and rand works too)
+
 cue --help, -? or -h
 
 cue --version or -v
