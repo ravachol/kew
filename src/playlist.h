@@ -33,3 +33,5 @@ void buildPlaylistRecursive(char* directoryPath, const char* allowedExtensions, 
 int playDirectory(const char* directoryPath, const char* allowedExtensions, PlayList* playlist);
 
 void shufflePlaylist(PlayList* playlist); 
+
+int joinPlaylist(PlayList* dest, PlayList* src);

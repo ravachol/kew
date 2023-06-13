@@ -8,7 +8,7 @@
 #include "dir.h"
 #include "stringextensions.h"
 
-const int MAX_FILES = 1024;
+const int MAX_FILES = 4096;
 
 Node* getListNext(PlayList* list, Node* node) 
 {
@@ -190,4 +190,31 @@ int playDirectory(const char* directoryPath, const char* allowedExtensions, Play
     closedir(dir);
 
     return 0;
+}
+
+int joinPlaylist(PlayList* dest, PlayList* src) {
+    if (src->count == 0) {
+        return 0; // Nothing to join if playlistB is empty
+    }
+
+    if (dest->count == 0) {
+        // If playlistA is empty, simply update its head and tail
+        dest->head = src->head;
+        dest->tail = src->tail;
+    } else {
+        // Update tail of playlistA and head of playlistB
+        dest->tail->next = src->head;
+        src->head->prev = dest->tail;
+        dest->tail = src->tail;
+    }
+
+    // Update the count of playlistA
+    dest->count += src->count;
+
+    // Reset playlistB
+    src->head = NULL;
+    src->tail = NULL;
+    src->count = 0;
+
+    return 1; // Successful join
 }
