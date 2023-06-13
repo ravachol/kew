@@ -9,6 +9,8 @@
 #include <regex.h>
 #include <sys/param.h>
 #include "stringextensions.h"
+#include <sys/types.h>
+#include <pwd.h>
 #define MAX_FILENAME_LENGTH 256
 
 enum SearchType {SearchAny = 0, DirOnly = 1, FileOnly = 2}; 
@@ -23,4 +25,5 @@ int isDirectory(const char* path);
 extern int walker(const char *startPath, const char *searching, char *result,
            const char *allowedExtensions, enum SearchType searchType);
 
+int expandPath(const char *inputPath, char *expandedPath);
 #endif           
