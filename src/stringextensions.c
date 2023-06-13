@@ -105,3 +105,12 @@ void trim(char* str) {
         memmove(str, start, end - start + 2);
     }
 }
+
+void removeSubstring(char* str, const char* substr) {
+    int len = strlen(substr);
+    char* p = strstr(str, substr);
+    
+    if (p != NULL) {
+        memmove(p, p + len, strlen(p + len) + 1);
+    }
+}
