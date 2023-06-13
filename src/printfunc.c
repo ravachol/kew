@@ -11,6 +11,7 @@ void printHelp()
   printf("          cue --version or -v\n");
   printf("          cue dir <album name> (Sometimes it's neccessary to specify it's a directory you want)\n");
   printf("          cue song <song name> \n");  
+  printf("          cue random <dir name> (Shuffle and rand works too)\n");
   printf("\n");
   printf("Examples: cue moon (Plays the first song or directory it finds that has the word moon, ie moonlight sonata)\n");
   printf("          play path \"/home/user/Music\"\n");

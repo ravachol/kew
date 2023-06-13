@@ -3,6 +3,7 @@
 #include <dirent.h>
 #include <regex.h>
 #include <string.h>
+#include <time.h>
 #include "playlist.h"
 #include "dir.h"
 #include "stringextensions.h"
@@ -47,6 +48,26 @@ void addToList(PlayList* list, SongInfo song)
     }
 }
 
+int compareShuffle(const struct dirent **a, const struct dirent **b) {
+    const char *nameA = (*a)->d_name;
+    const char *nameB = (*b)->d_name;
+
+    int randNumA = rand();
+    int randNumB = rand();
+
+    if (nameA[0] == '_' && nameB[0] != '_') {
+        return -1;  // Directory A starts with underscore, so it should come first
+    } else if (nameA[0] != '_' && nameB[0] == '_') {
+        return 1;   // Directory B starts with underscore, so it should come first
+    } else if (randNumA < randNumB) {
+        return -1;  // Random comparison: A comes before B
+    } else if (randNumA > randNumB) {
+        return 1;   // Random comparison: B comes before A
+    }
+
+    return strcmp(nameA, nameB);  // Lexicographic comparison for other cases
+}
+
 int compare(const struct dirent **a, const struct dirent **b) 
 {
     const char *nameA = (*a)->d_name;
@@ -61,7 +82,7 @@ int compare(const struct dirent **a, const struct dirent **b)
     return strcmp(nameA, nameB);  // Lexicographic comparison for other cases
 }
 
-void buildPlaylistRecursive(char* directoryPath, const char* allowedExtensions, PlayList* playlist) 
+void buildPlaylistRecursive(char* directoryPath, const char* allowedExtensions, PlayList* playlist, bool shuffle) 
 {
     if (!isDirectory(directoryPath) && directoryPath != NULL) {
         SongInfo song;
@@ -85,9 +106,13 @@ void buildPlaylistRecursive(char* directoryPath, const char* allowedExtensions, 
     }
 
     char exto[6]; // +1 for null-terminator
-
     struct dirent **entries;
-    int numEntries = scandir(directoryPath, &entries, NULL, compare);
+    int numEntries = -1;
+    if (shuffle)
+        numEntries = scandir(directoryPath, &entries, NULL, compareShuffle);
+    else
+        numEntries = scandir(directoryPath, &entries, NULL, compare);
+
     if (numEntries < 0) {
         printf("Failed to scan directory: %s\n", directoryPath);
         return;
@@ -105,7 +130,7 @@ void buildPlaylistRecursive(char* directoryPath, const char* allowedExtensions, 
 
         if (isDirectory(filePath)) {
             // Entry is a directory, recursively process it
-            buildPlaylistRecursive(filePath, allowedExtensions, playlist);
+            buildPlaylistRecursive(filePath, allowedExtensions, playlist, shuffle);
         } else {
             // Entry is a regular file, check if it matches the desired file format
             extractExtension(entry->d_name, sizeof(exto) - 1, exto);

@@ -324,21 +324,30 @@ void init()
   initEventQueue();
   enableScrolling();
   setNonblockingMode();
+  srand(time(NULL));
 }
 
 int makePlaylist(int argc, char *argv[])
 {
   enum SearchType searchType = Any;
+  int searchTypeIndex = 1;
+  bool shuffle = false;
 
-  if (strcmp(argv[1], "dir") == 0)
+  if (strcmp(argv[1], "random") == 0 || strcmp(argv[1], "rand") == 0 || strcmp(argv[1], "shuffle") == 0)
+  {
+    searchTypeIndex = 2;
+    shuffle = true;
+  }
+
+  if (strcmp(argv[searchTypeIndex], "dir") == 0)
     searchType = DirOnly;
-  else if (strcmp(argv[1], "song") == 0)
+  else if (strcmp(argv[searchTypeIndex], "song") == 0)
     searchType = FileOnly;
 
-  int start = 2;
+  int start = searchTypeIndex + 1;
 
   if (searchType == FileOnly || searchType == DirOnly)
-    start = 3;
+    start = searchTypeIndex + 2;
 
   // create search string
   int size = 256;
@@ -355,7 +364,7 @@ int makePlaylist(int argc, char *argv[])
   getMusicLibraryPath(path);
   if (walker(path, search, buf, ALLOWED_EXTENSIONS, searchType) == 0)
   {
-    buildPlaylistRecursive(buf, ALLOWED_EXTENSIONS, &playlist);
+    buildPlaylistRecursive(buf, ALLOWED_EXTENSIONS, &playlist, shuffle);
   }
   else
   {
