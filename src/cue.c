@@ -376,6 +376,28 @@ int makePlaylist(int argc, char *argv[])
   return 0;
 }
 
+void expandPath(const char *inputPath, char *expandedPath)
+{
+    if (strcmp(inputPath, "~") == 0) // Handle "~/"
+    {
+        const char *homeDir = getenv("HOME");
+        if (homeDir == NULL)
+        {
+            fprintf(stderr, "Error: Unable to expand tilde character.\n");
+            exit(1);
+        }
+        strcpy(expandedPath, homeDir);
+    }
+    else // Handle if path exists
+    {
+        if (realpath(inputPath, expandedPath) == NULL)
+        {
+            fprintf(stderr, "Error: Invalid path.\n");
+            exit(1);
+        }
+    }
+}
+
 int main(int argc, char *argv[])
 {
   if (argc == 1 || (argc == 2 && ((strcmp(argv[1], "--help") == 0) || (strcmp(argv[1], "-h") == 0) || (strcmp(argv[1], "-?") == 0))))
@@ -388,7 +410,9 @@ int main(int argc, char *argv[])
   }
   else if (argc == 3 && (strcmp(argv[1], "path") == 0))
   {
-    saveSettings(argv[2], SETTINGS_FILENAME);
+    char expandedPath[PATH_MAX];
+    expandPath(argv[2], expandedPath);
+    saveSettings(expandedPath, SETTINGS_FILENAME);
   }
   else if (argc >= 2)
   {
