@@ -52,6 +52,7 @@ void drawSpectrum(int height, int width)
     float maxMagnitude = 0.0f;
     float threshold = 28.0f;
     float ceiling = 80.0f;
+    float magic = 2; // crank it up a bit
     // Find the maximum magnitude in the current frame
     for (int i = 0; i < width; i++) {
         if (magnitudes[i] > maxMagnitude) {
@@ -70,12 +71,12 @@ void drawSpectrum(int height, int width)
         for (int i = 0; i < width / extendRange; i++) {
               float normalizedMagnitude = magnitudes[i] / maxMagnitude;
 
-            float scaledMagnitude = normalizedMagnitude * 2;
+            float scaledMagnitude = normalizedMagnitude * magic;
 
             float heightVal = scaledMagnitude * height;
-            if (heightVal > 0.5f && heightVal < 1.0f) {
+            /*if (heightVal > 0.5f && heightVal < 1.0f) {
                 heightVal = 1.0f; // Exaggerate low values
-            }
+            }*/
             int barHeight = (int)round(heightVal);
             if (barHeight >= j) {
                 printf("║");
