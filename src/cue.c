@@ -332,6 +332,8 @@ int makePlaylist(int argc, char *argv[])
   enum SearchType searchType = Any;
   int searchTypeIndex = 1;
   bool shuffle = false;
+  const char* delimiter = ":";
+  PlayList partialPlaylist = {NULL, NULL};
 
   if (strcmp(argv[1], "random") == 0 || strcmp(argv[1], "rand") == 0 || strcmp(argv[1], "shuffle") == 0)
   {
@@ -366,19 +368,38 @@ int makePlaylist(int argc, char *argv[])
     strcat(search, argv[i]);
   }
 
-  char buf[MAXPATHLEN] = {0};
-  char path[MAXPATHLEN] = {0};
-  getMusicLibraryPath(path);
-  if (walker(path, search, buf, ALLOWED_EXTENSIONS, searchType) == 0)
-  {
-    buildPlaylistRecursive(buf, ALLOWED_EXTENSIONS, &playlist);
-    if (shuffle)
-      shufflePlaylist(&playlist); 
-  }
-  else
-  {
+  char* token = strtok(search, delimiter);
+  int playlistCount = 0;
+
+  // Subsequent calls to strtok with NULL to continue splitting
+  while (token != NULL) {
+      playlistCount++;
+      if (playlistCount > 1)
+        searchType = DirOnly;
+      printf("Playlist: %s\n", token);
+      char buf[MAXPATHLEN] = {0};
+      char path[MAXPATHLEN] = {0};
+      if (strncmp(token, "song", 4) == 0) {
+        // Remove "dir" from token by shifting characters
+        memmove(token, token + 4, strlen(token + 4) + 1);
+        searchType = FileOnly;
+      }
+
+      getMusicLibraryPath(path);
+      if (walker(path, token, buf, ALLOWED_EXTENSIONS, searchType) == 0)
+      {
+        buildPlaylistRecursive(buf, ALLOWED_EXTENSIONS, &partialPlaylist);
+        joinPlaylist(&playlist, &partialPlaylist);
+      }
+      
+      token = strtok(NULL, delimiter);
+  }  
+
+  if (shuffle || playlistCount > 1)
+      shufflePlaylist(&playlist);  
+
+  if (playlist.head == NULL)
     puts("Music not found");
-  }
 
   return 0;
 }
