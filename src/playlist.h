@@ -28,6 +28,8 @@ void addToList(PlayList* list, SongInfo song);
 
 int compare(const struct dirent **a, const struct dirent **b);
 
-void buildPlaylistRecursive(char* directoryPath, const char* allowedExtensions, PlayList* playlist, bool shuffle);
+void buildPlaylistRecursive(char* directoryPath, const char* allowedExtensions, PlayList* playlist);
 
 int playDirectory(const char* directoryPath, const char* allowedExtensions, PlayList* playlist);
+
+void shufflePlaylist(PlayList* playlist); 
