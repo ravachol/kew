@@ -376,7 +376,6 @@ int makePlaylist(int argc, char *argv[])
       playlistCount++;
       if (playlistCount > 1)
         searchType = DirOnly;
-      printf("Playlist: %s\n", token);
       char buf[MAXPATHLEN] = {0};
       char path[MAXPATHLEN] = {0};
       if (strncmp(token, "song", 4) == 0) {

@@ -82,6 +82,8 @@ cue song <song name> (or a song)
 
 cue random <dir name> (shuffle and rand works too)
 
+cue cure:depeche (plays the cure and depeche mode shuffled)
+
 cue --help, -? or -h
 
 cue --version or -v
