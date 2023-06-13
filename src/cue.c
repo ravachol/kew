@@ -42,22 +42,24 @@
 #endif
 #define TRESHOLD_TERMINAL_SIZE 28
 
-int barHeightMax = 4;
-
 const char VERSION[] = "1.0.0";
-const char SETTINGS_FILENAME[] = ".cue-settings";
+const char PATH_SETTING_FILENAME[] = ".cue-settings";
+const char SETTINGS_FILENAME[] = "cue.conf";
 const char ALLOWED_EXTENSIONS[] = "\\.(m4a|mp3|ogg|flac|wav|aac|wma|raw|mp4a|mp4|m3u|pls)$";
 char durationFilePath[FILENAME_MAX];
 char tagsFilePath[FILENAME_MAX];
 bool isResizing = false;
 bool escapePressed = false;
-bool visualizerEnabled = false;
-bool coversEnabled = true;
+bool visualizationEnabled = false;
+bool coverEnabled = true;
+bool coverBlocks = false;
 bool repeatEnabled = false;
+int visualizationHeight = 4;
 int progressLine = 1;
 struct timespec escapeTime;
 PlayList playlist = {NULL, NULL};
 Node *currentSong;
+AppSettings settings;
 
 struct Event processInput()
 {
@@ -191,11 +193,11 @@ int play(const char *filepath)
     asciiWidth = default_ascii_width;
 
   }
-  if (coversEnabled)
+  if (coverEnabled)
   {
     int foundArt = displayAlbumArt(filepath, asciiHeight, asciiWidth);
     if (foundArt < 0)
-      visualizerEnabled = true;
+      visualizationEnabled = true;
   }
   generateTempFilePath(tagsFilePath, "metatags", ".txt");
   extract_tags(strdup(filepath), tagsFilePath);
@@ -232,7 +234,7 @@ int play(const char *filepath)
       pausePlayback();
       break;
     case EVENT_TOGGLEVISUALS:
-      visualizerEnabled = !visualizerEnabled;
+      visualizationEnabled = !visualizationEnabled;
       restoreCursorPosition(); 
       clearRestOfScreen();    
       break;
@@ -240,13 +242,13 @@ int play(const char *filepath)
       repeatEnabled = !repeatEnabled;
       break;
     case EVENT_TOGGLECOVERS:
-      coversEnabled = !coversEnabled;
+      coverEnabled = !coverEnabled;
       break;
     case EVENT_SHUFFLE:
       shufflePlaylist(&playlist);  
       break;
     case EVENT_QUIT:
-      if (elapsed_seconds > 3.0) {
+      if (elapsed_seconds > 2.0) {
         shouldQuit = true;
       }
       break;
@@ -285,9 +287,9 @@ int play(const char *filepath)
       if ((elapsed_seconds < songLength) && !isPaused() )
       {                 
         printProgress(elapsed_seconds, songLength);
-        if (visualizerEnabled) 
+        if (visualizationEnabled) 
         {
-          drawSpectrum(barHeightMax, asciiWidth);
+          drawSpectrum(visualizationHeight, asciiWidth);
         }
       }
     }
@@ -315,7 +317,10 @@ int play(const char *filepath)
 
 int getMusicLibraryPath(char *path)
 {
-  getsettings(path, MAXPATHLEN, SETTINGS_FILENAME);
+  if (path[0] != '\0' && path[0] != '\r')
+    return 0;
+
+  getSettingsDeprecated(path, MAXPATHLEN, PATH_SETTING_FILENAME);
 
   if (path[0] == '\0') // if NULL, ie no path setting was found
   {
@@ -324,6 +329,73 @@ int getMusicLibraryPath(char *path)
     strcat(path, "/Music/");
   }
   return 0;
+}
+
+
+void getConfig(const char *filename)
+{
+  int pair_count;
+  struct passwd *pw = getpwuid(getuid());
+  const char *homedir = pw->pw_dir;
+  const char *filepath = strcat(strcat(strcpy((char*)malloc(strlen(homedir) + strlen("/") + strlen(filename) + 1), homedir), "/"),filename);
+  KeyValuePair *pairs = readKeyValuePairs(filepath, &pair_count);
+  settings = constructAppSettings(pairs, pair_count);
+
+  coverEnabled = (settings.coverEnabled[0] == '1');
+  coverBlocks = (settings.coverBlocks[0] == '1');
+  visualizationEnabled = (settings.visualizationEnabled[0] == '1');
+  visualizationHeight = atoi(settings.visualizationHeight);
+  getMusicLibraryPath(settings.path);
+} 
+
+void setConfig(AppSettings *settings, const char *filename)
+{
+    int pair_count = 4;  // Number of key-value pairs in AppSettings
+
+    // Create the file path
+    struct passwd *pw = getpwuid(getuid());
+    const char *homedir = pw->pw_dir;
+
+    char *filepath = (char *)malloc(strlen(homedir) + strlen("/") + strlen(filename) + 1);
+    strcpy(filepath, homedir);
+    strcat(filepath, "/");
+    strcat(filepath, filename);
+
+    // Open the file for writing
+    FILE *file = fopen(filepath, "w");
+    if (file == NULL) {
+        fprintf(stderr, "Error opening file: %s\n", filepath);
+        free(filepath);
+        return;
+    }
+
+    if (settings->coverEnabled[0] == '\0')
+      strcpy(settings->coverEnabled, "1");
+    if (settings->coverBlocks[0] == '\0')
+      strcpy(settings->coverBlocks, "0");
+    if (settings->visualizationEnabled[0] == '\0')
+      strcpy(settings->visualizationEnabled, "0");
+    if (settings->visualizationHeight[0] == '\0') {
+      sprintf(settings->visualizationHeight, "%d", visualizationHeight);
+    }
+
+    // Null-terminate the character arrays
+    settings->path[MAXPATHLEN-1] = '\0';
+    settings->coverEnabled[1] = '\0';
+    settings->coverBlocks[1] = '\0';
+    settings->visualizationEnabled[1] = '\0';
+    settings->visualizationHeight[5] = '\0';    
+
+    // Write the settings to the file
+    fprintf(file, "path=%s\n", settings->path);
+    fprintf(file, "coverEnabled=%s\n", settings->coverEnabled);
+    fprintf(file, "coverBlocks=%s\n", settings->coverBlocks);
+    fprintf(file, "visualizationEnabled=%s\n", settings->visualizationEnabled);
+    fprintf(file, "visualizationHeight=%s\n", settings->visualizationHeight);
+
+    // Close the file and free the allocated memory
+    fclose(file);
+    free(filepath);
 }
 
 int start()
@@ -337,6 +409,7 @@ int start()
   play(path);
   restoreTerminalMode();
   free(g_audioBuffer);
+  setConfig(&settings, SETTINGS_FILENAME); 
   return 0;
 }
 
@@ -424,9 +497,8 @@ int makePlaylist(int argc, char *argv[])
         memmove(token, token + 4, strlen(token + 4) + 1);
         searchType = FileOnly;
       }
-      getMusicLibraryPath(path);
       trim(token);
-      if (walker(path, token, buf, ALLOWED_EXTENSIONS, searchType) == 0)
+      if (walker(settings.path, token, buf, ALLOWED_EXTENSIONS, searchType) == 0)
       {
         buildPlaylistRecursive(buf, ALLOWED_EXTENSIONS, &partialPlaylist);
         joinPlaylist(&playlist, &partialPlaylist);
@@ -452,7 +524,7 @@ void handleSwitches(int *argc, char *argv[])
   for (int i = 0; i < *argc; i++) {
     if (strcasestr(argv[i], nocoverSwitch))
     {
-      coversEnabled = false;
+      coverEnabled = false;
       idx = i;
     }
   }
@@ -462,6 +534,8 @@ void handleSwitches(int *argc, char *argv[])
 
 int main(int argc, char *argv[])
 {
+  getConfig(SETTINGS_FILENAME);
+
   if (argc == 1 || (argc == 2 && ((strcmp(argv[1], "--help") == 0) || (strcmp(argv[1], "-h") == 0) || (strcmp(argv[1], "-?") == 0))))
   {
     printHelp();
@@ -472,7 +546,9 @@ int main(int argc, char *argv[])
   }
   else if (argc == 3 && (strcmp(argv[1], "path") == 0))
   {
-    saveSettings(argv[2], SETTINGS_FILENAME);
+    saveSettingsDeprecated(argv[2], PATH_SETTING_FILENAME);
+    strcpy(settings.path, argv[2]);
+    setConfig(&settings, SETTINGS_FILENAME);    
   }
   else if (argc >= 2)
   {
