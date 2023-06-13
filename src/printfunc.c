@@ -60,7 +60,7 @@ void printBasicMetadata(const char *file_path)
   TagSettings settings = construct_tag_settings(pairs, pair_count);
    
   if (strlen(settings.title) > 0)
-    printf("%s\n", settings.title);
+    printf("\033[1m%s\033[0m\n", settings.title);
   if (strlen(settings.artist) > 0)
     printf("%s\n", settings.artist);
   if (strlen(settings.album) > 0)
