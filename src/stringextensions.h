@@ -16,3 +16,5 @@ void extractExtension(const char* filename, size_t numChars, char* ext);
 int endsWith(const char* str, const char* suffix);
 
 bool containsCharacter(const char* str, const char character);
+
+void trim(char* str);
