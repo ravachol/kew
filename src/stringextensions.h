@@ -18,3 +18,5 @@ int endsWith(const char* str, const char* suffix);
 bool containsCharacter(const char* str, const char character);
 
 void trim(char* str);
+
+void removeSubstring(char* str, const char* substr);
