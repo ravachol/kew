@@ -309,7 +309,7 @@ float get_audio_duration(const char* filepath)
 
     fp = fopen(filepath, "r");
     if (fp == NULL) {
-        printf("Error opening the file.\n");
+        //printf("Error opening the file.\n");
         return -1.0;
     }
 
