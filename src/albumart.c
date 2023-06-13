@@ -155,7 +155,7 @@ int extractCover(const char *audioFilepath, char *outputFilepath)
         size = fread(str, 1, 4, fp);
         if (memcmp(str, "fLaC", 4) == 0) 
         { 
-            if (get_FLAC_cover(fp, audioFilepath) == 1)
+            if (get_FLAC_cover(fp, outputFilepath) == 1)
             {
                 fclose(fp);
                 return 1;
