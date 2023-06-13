@@ -329,7 +329,7 @@ void init()
 
 int makePlaylist(int argc, char *argv[])
 {
-  enum SearchType searchType = Any;
+  enum SearchType searchType = SearchAny;
   int searchTypeIndex = 1;
   bool shuffle = false;
   const char* delimiter = ":";
@@ -368,14 +368,17 @@ int makePlaylist(int argc, char *argv[])
     strcat(search, argv[i]);
   }
 
+  if (strstr(search, delimiter))
+  {
+    if (searchType == SearchAny)
+      searchType = DirOnly;
+    shuffle = true;
+  }
+
   char* token = strtok(search, delimiter);
-  int playlistCount = 0;
 
   // Subsequent calls to strtok with NULL to continue splitting
-  while (token != NULL) {
-      playlistCount++;
-      if (playlistCount > 1)
-        searchType = DirOnly;
+  while (token != NULL) {      
       char buf[MAXPATHLEN] = {0};
       char path[MAXPATHLEN] = {0};
       if (strncmp(token, "song", 4) == 0) {
@@ -392,9 +395,10 @@ int makePlaylist(int argc, char *argv[])
       }
       
       token = strtok(NULL, delimiter);
+      searchType = DirOnly;      
   }  
 
-  if (shuffle || playlistCount > 1)
+  if (shuffle)
       shufflePlaylist(&playlist);  
 
   if (playlist.head == NULL)

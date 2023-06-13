@@ -11,7 +11,7 @@
 #include "stringextensions.h"
 #define MAX_FILENAME_LENGTH 256
 
-enum SearchType {Any = 0, DirOnly = 1, FileOnly = 2}; 
+enum SearchType {SearchAny = 0, DirOnly = 1, FileOnly = 2}; 
 
 void getDirectoryFromPath(const char* path, char* directory);
 

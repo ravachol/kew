@@ -1,4 +1,5 @@
 #include "stringextensions.h"
+#include <stdbool.h>
 
 char* stringToLower(char* str) 
 {
@@ -73,4 +74,14 @@ int endsWith(const char* str, const char* suffix)
 
     const char* strSuffix = str + (strLength - suffixLength);
     return strcmp(strSuffix, suffix) == 0;
+}
+
+bool containsCharacter(const char* str, const char character) {
+    while (*str != '\0') {
+        if (*str == character) {
+            return true; // Character found
+        }
+        str++;
+    }
+    return false; // Character not found
 }
