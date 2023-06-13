@@ -364,7 +364,9 @@ int makePlaylist(int argc, char *argv[])
   getMusicLibraryPath(path);
   if (walker(path, search, buf, ALLOWED_EXTENSIONS, searchType) == 0)
   {
-    buildPlaylistRecursive(buf, ALLOWED_EXTENSIONS, &playlist, shuffle);
+    buildPlaylistRecursive(buf, ALLOWED_EXTENSIONS, &playlist);
+    if (shuffle)
+      shufflePlaylist(&playlist); 
   }
   else
   {
