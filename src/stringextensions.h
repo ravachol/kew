@@ -3,6 +3,7 @@
 #include <ctype.h>
 #include <regex.h>
 #include <stdio.h>
+#include <stdbool.h>
 
 char* stringToLower(char* str);
 
@@ -13,3 +14,5 @@ int match_regex(regex_t* regex, const char* ext);
 void extractExtension(const char* filename, size_t numChars, char* ext);
 
 int endsWith(const char* str, const char* suffix);
+
+bool containsCharacter(const char* str, const char character);
