@@ -53,6 +53,7 @@ bool isResizing = false;
 bool escapePressed = false;
 bool visualizerEnabled = false;
 bool coversEnabled = true;
+bool repeatEnabled = false;
 int progressLine = 1;
 struct timespec escapeTime;
 PlayList playlist = {NULL, NULL};
@@ -92,16 +93,7 @@ struct Event processInput()
 
   char input = readInput();
 
-  if (input == 'v')
-  {
-    visualizerEnabled = !visualizerEnabled;
-    restoreCursorPosition(); 
-    clearRestOfScreen();
-    event.type = EVENT_TOGGLEVISUALS;
-    event.key = input;
-    enqueueEvent(&event);    
-  }
-  else if (input == 27)
+  if (input == 27)
   { // ASCII value of escape key
     escapePressed = true;
     clock_gettime(CLOCK_MONOTONIC, &escapeTime);
@@ -115,6 +107,18 @@ struct Event processInput()
 
     switch (event.key)
     {
+    case 's':
+      event.type = EVENT_SHUFFLE;
+      break;
+    case 'c':
+      event.type = EVENT_TOGGLECOVERS;
+      break;
+    case 'v':
+      event.type = EVENT_TOGGLEVISUALS;
+      break;
+    case 'r':
+      event.type = EVENT_TOGGLEREPEAT;
+      break;
     case 'A': // Up arrow
       event.type = EVENT_VOLUME_UP;
       break;
@@ -136,7 +140,7 @@ struct Event processInput()
     enqueueEvent(&event);
   }
 
-  if (event.key == 'v' || event.key == 'A' || event.key == 'B' || event.key == 'C' || event.key == 'D' || event.key == ' ')
+  if (event.key == 'A' || event.key == 'B' || event.key == 'C' || event.key == 'D' || event.key == ' ')
   {
     clock_gettime(CLOCK_MONOTONIC, &escapeTime);
     escapePressed = false;
@@ -227,6 +231,20 @@ int play(const char *filepath)
     case EVENT_PLAY_PAUSE:
       pausePlayback();
       break;
+    case EVENT_TOGGLEVISUALS:
+      visualizerEnabled = !visualizerEnabled;
+      restoreCursorPosition(); 
+      clearRestOfScreen();    
+      break;
+    case EVENT_TOGGLEREPEAT:
+      repeatEnabled = !repeatEnabled;
+      break;
+    case EVENT_TOGGLECOVERS:
+      coversEnabled = !coversEnabled;
+      break;
+    case EVENT_SHUFFLE:
+      shufflePlaylist(&playlist);  
+      break;
     case EVENT_QUIT:
       if (elapsed_seconds > 3.0) {
         shouldQuit = true;
@@ -281,7 +299,8 @@ int play(const char *filepath)
     if (isPlaybackDone())
     {   
       cleanup();
-      currentSong = getListNext(&playlist, currentSong);
+      if (!repeatEnabled)
+        currentSong = getListNext(&playlist, currentSong);
       if (currentSong != NULL)
         play(currentSong->song.filePath);
       break;
@@ -429,7 +448,7 @@ int makePlaylist(int argc, char *argv[])
 
 void handleSwitches(int *argc, char *argv[])
 {
-  const char* nocoverSwitch = "-nocover";
+  const char* nocoverSwitch = "--nocover";
   int idx = -1;
   for (int i = 0; i < *argc; i++) {
     if (strcasestr(argv[i], nocoverSwitch))
