@@ -48,6 +48,45 @@ void addToList(PlayList* list, SongInfo song)
     }
 }
 
+void shufflePlaylist(PlayList* playlist) {
+    if (playlist == NULL || playlist->count <= 1) {
+        return;  // No need to shuffle
+    }
+
+    // Convert the linked list to an array
+    Node** nodes = (Node**)malloc(playlist->count * sizeof(Node*));
+    if (nodes == NULL) {
+        printf("Memory allocation error.\n");
+        return;
+    }
+
+    Node* current = playlist->head;
+    int i = 0;
+    while (current != NULL) {
+        nodes[i++] = current;
+        current = current->next;
+    }
+
+    // Shuffle the array using Fisher-Yates algorithm
+    srand(time(NULL));
+    for (int j = playlist->count - 1; j > 0; --j) {
+        int k = rand() % (j + 1);
+        Node* temp = nodes[j];
+        nodes[j] = nodes[k];
+        nodes[k] = temp;
+    }
+
+    // Update the playlist with the shuffled order
+    playlist->head = nodes[0];
+    playlist->tail = nodes[playlist->count - 1];
+    for (int j = 0; j < playlist->count; ++j) {
+        nodes[j]->next = (j < playlist->count - 1) ? nodes[j + 1] : NULL;
+        nodes[j]->prev = (j > 0) ? nodes[j - 1] : NULL;
+    }
+
+    free(nodes);
+}
+
 int compareShuffle(const struct dirent **a, const struct dirent **b) {
     const char *nameA = (*a)->d_name;
     const char *nameB = (*b)->d_name;
@@ -82,7 +121,7 @@ int compare(const struct dirent **a, const struct dirent **b)
     return strcmp(nameA, nameB);  // Lexicographic comparison for other cases
 }
 
-void buildPlaylistRecursive(char* directoryPath, const char* allowedExtensions, PlayList* playlist, bool shuffle) 
+void buildPlaylistRecursive(char* directoryPath, const char* allowedExtensions, PlayList* playlist) 
 {
     if (!isDirectory(directoryPath) && directoryPath != NULL) {
         SongInfo song;
@@ -107,11 +146,7 @@ void buildPlaylistRecursive(char* directoryPath, const char* allowedExtensions, 
 
     char exto[6]; // +1 for null-terminator
     struct dirent **entries;
-    int numEntries = -1;
-    if (shuffle)
-        numEntries = scandir(directoryPath, &entries, NULL, compareShuffle);
-    else
-        numEntries = scandir(directoryPath, &entries, NULL, compare);
+    int numEntries = scandir(directoryPath, &entries, NULL, compare);
 
     if (numEntries < 0) {
         printf("Failed to scan directory: %s\n", directoryPath);
@@ -130,7 +165,7 @@ void buildPlaylistRecursive(char* directoryPath, const char* allowedExtensions, 
 
         if (isDirectory(filePath)) {
             // Entry is a directory, recursively process it
-            buildPlaylistRecursive(filePath, allowedExtensions, playlist, shuffle);
+            buildPlaylistRecursive(filePath, allowedExtensions, playlist);
         } else {
             // Entry is a regular file, check if it matches the desired file format
             extractExtension(entry->d_name, sizeof(exto) - 1, exto);
