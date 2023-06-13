@@ -335,8 +335,15 @@ int makePlaylist(int argc, char *argv[])
 
   if (strcmp(argv[1], "random") == 0 || strcmp(argv[1], "rand") == 0 || strcmp(argv[1], "shuffle") == 0)
   {
-    searchTypeIndex = 2;
-    shuffle = true;
+    int count = 0;
+    while (argv[count] != NULL) {
+        count++;
+    }
+    if (count > 2)
+    {
+      searchTypeIndex = 2;
+      shuffle = true;
+    }
   }
 
   if (strcmp(argv[searchTypeIndex], "dir") == 0)
