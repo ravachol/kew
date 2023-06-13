@@ -1,41 +1,5 @@
 #include "metadata.h"
 
-KeyValuePair* read_key_value_pairs(const char* file_path, int* count) 
-{
-    FILE* file = fopen(file_path, "r");
-    if (file == NULL) {
-        fprintf(stderr, "Error opening the settings file.\n");
-        return NULL;
-    }
-
-    KeyValuePair* pairs = NULL;
-    int pair_count = 0;
-
-    char line[256];
-    while (fgets(line, sizeof(line), file)) {
-        // Remove trailing newline character if present
-        line[strcspn(line, "\n")] = '\0';
-
-        char* delimiter = strchr(line, '=');
-        if (delimiter != NULL) {
-            *delimiter = '\0';
-            char* value = delimiter + 1;
-
-            pair_count++;
-            pairs = realloc(pairs, pair_count * sizeof(KeyValuePair));
-            KeyValuePair* current_pair = &pairs[pair_count - 1];
-
-            current_pair->key = strdup(line);
-            current_pair->value = strdup(value);
-        }
-    }
-
-    fclose(file);
-
-    *count = pair_count;
-    return pairs;
-}
-
 TagSettings construct_tag_settings(KeyValuePair* pairs, int count) 
 {
     TagSettings settings;
@@ -56,16 +20,6 @@ TagSettings construct_tag_settings(KeyValuePair* pairs, int count)
     }
 
     return settings;
-}
-
-void free_key_value_pairs(KeyValuePair* pairs, int count) 
-{
-    for (int i = 0; i < count; i++) {
-        free(pairs[i].key);
-        free(pairs[i].value);
-    }
-
-    free(pairs);
 }
 
 int extract_tags(const char* input_file, const char* output_file) 
