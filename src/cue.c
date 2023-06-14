@@ -46,7 +46,6 @@ const char VERSION[] = "1.0.0";
 const char PATH_SETTING_FILENAME[] = ".cue-settings";
 const char SETTINGS_FILENAME[] = "cue.conf";
 const char ALLOWED_EXTENSIONS[] = "\\.(m4a|mp3|ogg|flac|wav|aac|wma|raw|mp4a|mp4|m3u|pls)$";
-char durationFilePath[FILENAME_MAX];
 char tagsFilePath[FILENAME_MAX];
 bool isResizing = false;
 bool escapePressed = false;
@@ -163,7 +162,6 @@ void cleanup()
   escapePressed = false;
   cleanupPlaybackDevice();
   deleteFile(tagsFilePath);
-  deleteFile(durationFilePath);
 }
 
 void handleResize(int signal)
@@ -180,8 +178,7 @@ int play(const char *filepath)
   bool shouldQuit = false;
   bool skip = false;
   int col = 1;
-  generateTempFilePath(durationFilePath, "duration", ".txt");
-  double songLength = getDuration(filepath, durationFilePath);
+  double songLength = getDuration(filepath);
   strcpy(musicFilepath, filepath);
   int term_w, term_h;
   int asciiHeight, asciiWidth;
