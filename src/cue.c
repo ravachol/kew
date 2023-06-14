@@ -362,7 +362,9 @@ void getConfig(const char *filename)
   coverEnabled = (settings.coverEnabled[0] == '1');
   coverBlocks = (settings.coverBlocks[0] == '1');
   visualizationEnabled = (settings.visualizationEnabled[0] == '1');
-  visualizationHeight = atoi(settings.visualizationHeight);
+  int temp = atoi(settings.visualizationHeight);
+  if (temp > 0)
+    visualizationHeight = temp;
   getMusicLibraryPath(settings.path);
 } 
 
