@@ -20,9 +20,7 @@ void printHelp()
   printf("Use arrow keys to play the next or previous track in the playlist. Press space to pause.\n");
   printf("Exit with Esc.\n");
   printf("\n");
-  printf("To run it with colors displaying correctly, you need a terminal that can handle TrueColor. For instance Konsole:\n");
-  printf("macOS: Konsole, https://ports.macports.org/port/konsole/\n");
-  printf("Linux: st (suckless), https://github.com/Shourai/st, or KDE Konsole\n");
+  printf("To run it with colors displaying correctly, you need a terminal that can handle TrueColor.\n");
   printf("\n");
 }
 
