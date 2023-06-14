@@ -108,6 +108,9 @@ struct Event processInput()
 
     switch (event.key)
     {
+    case 'q':
+      event.type = EVENT_QUIT;
+      break;
     case 's':
       event.type = EVENT_SHUFFLE;
       break;
@@ -254,7 +257,7 @@ int play(const char *filepath)
       shufflePlaylist(&playlist);  
       break;
     case EVENT_QUIT:
-      if (elapsed_seconds > 2.0) {
+      if (event.key == 'q' || elapsed_seconds > 2.0) {
         shouldQuit = true;
       }
       break;

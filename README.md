@@ -101,7 +101,7 @@ cue --version or -v
 * Press <kbd>b</kbd> to toggle album covers drawn with solid blocks. (starting from next track)
 * Press <kbd>r</kbd> to repeat current song.
 * Press <kbd>s</kbd> to shuffle playlist.
-* Press <kbd>Esc</kbd> to quit.
+* Press <kbd>q</kbd> to quit.
 
 ## License
 
