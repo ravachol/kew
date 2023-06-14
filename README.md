@@ -95,13 +95,13 @@ cue --version or -v
 
 * Use <kbd>↑</kbd>, <kbd>↓</kbd> keys to raise or lower volume. 
 * Use <kbd>→</kbd>, <kbd>←</kbd> keys to play the next or previous track in the playlist. 
-* Press <kbd>Space</kbd> to pause.
-* Press <kbd>v</kbd> to toggle visualization.
-* Press <kbd>c</kbd> to toggle album covers. (starting from next track)
-* Press <kbd>b</kbd> to toggle album covers drawn with solid blocks. (starting from next track)
-* Press <kbd>r</kbd> to repeat current song.
-* Press <kbd>s</kbd> to shuffle playlist.
-* Press <kbd>q</kbd> to quit.
+* <kbd>Space</kbd> to toggle pause.
+* <kbd>v</kbd> to toggle visualization.
+* <kbd>c</kbd> to toggle album covers. (starting from next track)
+* <kbd>b</kbd> to toggle album covers drawn with solid blocks. (starting from next track)
+* <kbd>r</kbd> to repeat current song.
+* <kbd>s</kbd> to shuffle playlist.
+* <kbd>q</kbd> to quit.
 
 ## License
 
