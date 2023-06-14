@@ -295,55 +295,55 @@ void cleanupPlaybackDevice()
     deleteFile(tempFilePath);
 }
 
-void extract_audio_duration(const char* input_filepath, const char* output_filepath) 
+int getSongDuration(const char *filePath, double *duration)
 {
-    char command[256];
-    sprintf(command, "ffmpeg -i \"%s\" -hide_banner 2>&1 | grep Duration > \"%s\"", input_filepath, output_filepath);
-    system(command);
+    char command[1024];
+    FILE *pipe;
+    char output[1024];
+    char* durationStr;
+    double durationValue;
+
+    // Construct the FFprobe command
+    snprintf(command, sizeof(command), "ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 \"%s\"", filePath);
+
+    // Open a pipe to execute the command
+    pipe = popen(command, "r");
+    if (pipe == NULL) {
+        fprintf(stderr, "Failed to run FFprobe command.\n");
+        return -1;
+    }
+
+    // Read the output of the command
+    if (fgets(output, sizeof(output), pipe) == NULL) {
+        fprintf(stderr, "Failed to read FFprobe output.\n");
+        pclose(pipe);
+        return -1;
+    }
+
+    // Close the pipe
+    pclose(pipe);
+
+    // Extract the duration value from the output
+    durationStr = strtok(output, "\n");
+    if (durationStr == NULL) {
+        fprintf(stderr, "Failed to parse FFprobe output.\n");
+        return -1;
+    }
+
+    // Convert the duration string to a double value
+    durationValue = atof(durationStr);
+
+    // Assign the duration value to the output parameter
+    *duration = durationValue;
+
+    return 0;
 }
 
-float get_audio_duration(const char* filepath) 
+double getDuration(const char* filepath) 
 {
-    FILE* fp;
-    char duration[50];
-
-    fp = fopen(filepath, "r");
-    if (fp == NULL) {
-        //printf("Error opening the file.\n");
-        return -1.0;
-    }
-
-    // Check if the duration line is read successfully
-    if (fgets(duration, sizeof(duration), fp) == NULL) {
-        //printf("Error reading duration information.\n");
-        fclose(fp);
-        return -1.0;
-    }
-
-    fclose(fp);
-
-    float hours, minutes, seconds;
-    int scanned = sscanf(duration, "  Duration: %f:%f:%f,", &hours, &minutes, &seconds);
-
-    // Check if the scanning of duration components is successful
-    if (scanned != 3) {
-        //printf("Error parsing duration components.\n");
-        return -1.0;
-    }
-
-    // Calculate milliseconds separately
-    int milliseconds = 0;
-    sscanf(duration, "  Duration: %*d:%*d:%*d.%d,", &milliseconds);
-
-    float totalSeconds = (hours * 3600) + (minutes * 60) + seconds + (milliseconds / 1000.0);
-
-    return totalSeconds;
-}
-
-float getDuration(const char* filepath, const char* tempFile) 
-{
-    extract_audio_duration(filepath, tempFile);
-    return get_audio_duration(tempFile);
+    double duration = 0.0;
+    getSongDuration(filepath, &duration);
+    return duration;
 }
 
 int adjustVolumePercent(int volumeChange)
