@@ -49,6 +49,9 @@ void drawSpectrum(int height, int width)
     if (term_w < width / extendRange)
       width = term_w * extendRange;
 
+    if (term_h < height)
+      height = term_h;
+
     float maxMagnitude = 0.0f;
     float threshold = 28.0f;
     float ceiling = 80.0f;
