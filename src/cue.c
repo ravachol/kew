@@ -54,6 +54,7 @@ bool visualizationEnabled = false;
 bool coverEnabled = true;
 bool coverBlocks = false;
 bool repeatEnabled = false;
+bool firstSong = true;
 int visualizationHeight = 4;
 int progressLine = 1;
 struct timespec escapeTime;
@@ -180,18 +181,12 @@ int play(const char *filepath)
     asciiWidth = default_ascii_width;
 
   }
-  /*if (coverEnabled)
-  {
-    drewCover = true;
-    int foundArt = displayAlbumArt(filepath, asciiHeight, asciiWidth, coverBlocks);
-  }*/
   refresh = true;
   generateTempFilePath(tagsFilePath, "metatags", ".txt");
   extract_tags(strdup(filepath), tagsFilePath);
   clock_gettime(CLOCK_MONOTONIC, &start_time);
   int res = playSoundFile(musicFilepath);
   setDefaultTextColor();
-  //printBasicMetadata(tagsFilePath);
   getCursorPosition(&progressLine, &col);
   fflush(stdout);
   usleep(100000);
@@ -301,15 +296,13 @@ int play(const char *filepath)
           int row, col;
           int metadataHeight = 4;
           int coverRow = getFirstLineRow() - metadataHeight - (drewCover ? asciiHeight : 0) - (drewVisualization ? visualizationHeight : 0);
-          if (coverRow < 0) coverRow = 0;
-          
+          printf("\033[%d;1H", coverRow);
           if (coverEnabled) 
           {
-            printf("\033[%d;1H", coverRow);
-            calcIdealImgSize(&asciiWidth, &asciiHeight,(visualizationEnabled ? visualizationHeight : 0), metadataHeight);
-            clearRestOfScreen();
+            calcIdealImgSize(&asciiWidth, &asciiHeight,(visualizationEnabled ? visualizationHeight : 0), metadataHeight, firstSong);
             displayAlbumArt(filepath, asciiHeight, asciiWidth, coverBlocks);
             drewCover = true;
+            firstSong = false;
           }
           else {
             clearRestOfScreen();
