@@ -124,8 +124,6 @@ void buildPlaylistRecursive(char *directoryPath, const char *allowedExtensions, 
     {
         SongInfo song;
         song.filePath = strdup(directoryPath);
-        if (song.filePath != NULL)
-            song.duration = getDuration(song.filePath);
         addToList(playlist, song);
         return;
     }

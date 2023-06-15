@@ -6,7 +6,6 @@
 typedef struct
 {
     char *filePath;
-    double duration;
 } SongInfo;
 
 typedef struct Node
