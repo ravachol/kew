@@ -78,13 +78,13 @@ cue beet (finds and plays all music files under "beethoven" directory)
 
 cue dir <album name> (sometimes it's neccessary to specify it's a directory you want)
 
-cue song <song name> (or a song)
+cue song <song> (or a song)
 
-cue shuffle <dir name> (random and rand works too)
+cue shuffle wu-tang (shuffles everything under wu-tang directory, random and rand works too)
 
 cue cure:depeche (plays the cure and depeche mode shuffled)
 
-cue --nocover <words> (doesn't display a cover)
+cue --nocover fear of the dark (doesn't display a cover)
 
 cue --help, -? or -h
 
