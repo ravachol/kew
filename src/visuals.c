@@ -1,6 +1,5 @@
 #include "visuals.h"
-
-int extendRange = 8;
+#include "albumart.h"
 
 void drawSpectrum(int height, int width) 
 {
@@ -42,10 +41,14 @@ void drawSpectrum(int height, int width)
         magnitudes[barIndex] += combinedMagnitude;             
     }
   
-    if (term_w < width || term_h < height)
+    /*if (term_w < 2|| term_h < 2)
     {
       clearRestOfScreen();
       return;
+    }*/
+    if (term_w < width)
+    {
+      width = term_w;
     }
     printf("\n"); // Start on a new line 
     fflush(stdout);

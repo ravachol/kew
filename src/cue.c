@@ -162,8 +162,8 @@ int play(const char *filepath)
   bool shouldQuit = false;
   bool skip = false;
   bool refresh = false;
-  bool drewCover = false;
-  bool drewVisualization = false;
+  bool drewCover = coverEnabled;
+  bool drewVisualization = visualizationEnabled;
   int col = 1;
   double songLength = getDuration(filepath);
   strcpy(musicFilepath, filepath);
@@ -180,17 +180,18 @@ int play(const char *filepath)
     asciiWidth = default_ascii_width;
 
   }
-  if (coverEnabled)
+  /*if (coverEnabled)
   {
     drewCover = true;
     int foundArt = displayAlbumArt(filepath, asciiHeight, asciiWidth, coverBlocks);
-  }
+  }*/
+  refresh = true;
   generateTempFilePath(tagsFilePath, "metatags", ".txt");
   extract_tags(strdup(filepath), tagsFilePath);
   clock_gettime(CLOCK_MONOTONIC, &start_time);
   int res = playSoundFile(musicFilepath);
   setDefaultTextColor();
-  printBasicMetadata(tagsFilePath);
+  //printBasicMetadata(tagsFilePath);
   getCursorPosition(&progressLine, &col);
   fflush(stdout);
   usleep(100000);
@@ -293,16 +294,20 @@ int play(const char *filepath)
     else {
       if ((elapsed_seconds < songLength) && !isPaused() )
       {  
-        int minHeight = 1 + (visualizationEnabled ? visualizationHeight : 0);        
-        int minWidth = asciiWidth;
+        int minHeight = 2 + (visualizationEnabled ? visualizationHeight : 0);        
+        int minWidth = small_ascii_width;
         if (refresh)
         {          
           int row, col;
-          int coverRow = getFirstLineRow() - 4 - (drewCover ? asciiHeight : 0) + visualizationHeight;
+          int metadataHeight = 4;
+          int coverRow = getFirstLineRow() - metadataHeight - (drewCover ? asciiHeight : 0) - (drewVisualization ? visualizationHeight : 0);
           if (coverRow < 0) coverRow = 0;
-          printf("\033[%d;1H", coverRow);
+          
           if (coverEnabled) 
           {
+            printf("\033[%d;1H", coverRow);
+            calcIdealImgSize(&asciiWidth, &asciiHeight,(visualizationEnabled ? visualizationHeight : 0), metadataHeight);
+            clearRestOfScreen();
             displayAlbumArt(filepath, asciiHeight, asciiWidth, coverBlocks);
             drewCover = true;
           }
@@ -326,15 +331,7 @@ int play(const char *filepath)
           drawSpectrum(visualizationHeight, asciiWidth);          
           fflush(stdout);
           drewVisualization = true;          
-        }  
-        else
-        {
-          for (int i = 0; i < visualizationHeight; i++)
-          {
-            printf("\n");
-          }
-          printf("\033[%dA", visualizationHeight);
-        }      
+        }    
         saveCursorPosition();
       }
     }
