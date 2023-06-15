@@ -8,22 +8,27 @@
 #include <stdio.h>
 #include <regex.h>
 #include <sys/param.h>
-#include "stringextensions.h"
+#include "stringfunc.h"
 #include <sys/types.h>
 #include <pwd.h>
 #define MAX_FILENAME_LENGTH 256
 
-enum SearchType {SearchAny = 0, DirOnly = 1, FileOnly = 2}; 
+enum SearchType
+{
+    SearchAny = 0,
+    DirOnly = 1,
+    FileOnly = 2
+};
 
-void getDirectoryFromPath(const char* path, char* directory);
+void getDirectoryFromPath(const char *path, char *directory);
 
-int tryOpen(const char* path);
+int tryOpen(const char *path);
 
-int isDirectory(const char* path);
+int isDirectory(const char *path);
 
 // Function to traverse a directory tree and search for a given file or directory
 extern int walker(const char *startPath, const char *searching, char *result,
-           const char *allowedExtensions, enum SearchType searchType);
+                  const char *allowedExtensions, enum SearchType searchType);
 
 int expandPath(const char *inputPath, char *expandedPath);
-#endif           
+#endif

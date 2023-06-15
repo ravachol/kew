@@ -12,8 +12,9 @@
 #include <sys/param.h>
 #include <fcntl.h>
 #include <poll.h>
-#include <term.h>
 #include <unistd.h>
+#include <signal.h>
+#include <bits/sigaction.h>
 
 #define ANSI_COLOR_CLEARLINE "\x1b[2K\r"
 #define ANSI_COLOR_WHITE "\x1b[37m"
@@ -21,7 +22,9 @@
 #define ANSI_GET_CURSOR_POS "\033[6n"
 #define ANSI_SET_CURSOR_POS "\033[%d;%dH"
 
-char* getVariableValue(const char* variableName);
+extern volatile sig_atomic_t resizeFlag;
+
+char *getVariableValue(const char *variableName);
 
 void getCursorPosition(int *row, int *col);
 
@@ -66,5 +69,9 @@ void disableScrolling();
 int getFirstLineRow();
 
 int getVisibleFirstLineRow();
+
+void handleResize(int sig);
+
+void resetResizeFlag(int sig);
 
 #endif

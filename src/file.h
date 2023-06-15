@@ -4,6 +4,6 @@
 #include <unistd.h>
 #include <errno.h>
 
-int deleteFile(const char* filePath);
+int deleteFile(const char *filePath);
 
-void generateTempFilePath(char* filePath, const char* prefix, const char* suffix);
+void generateTempFilePath(char *filePath, const char *prefix, const char *suffix);

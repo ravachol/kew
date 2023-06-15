@@ -1,46 +1,49 @@
 #include "visuals.h"
 #include "albumart.h"
 
-void drawSpectrum(int height, int width) 
+void drawSpectrum(int height, int width)
 {
-    fftwf_complex* fftInput = (fftwf_complex*) fftwf_malloc(sizeof(fftwf_complex) * BUFFER_SIZE);
-    fftwf_complex* fftOutput = (fftwf_complex*) fftwf_malloc(sizeof(fftwf_complex) * BUFFER_SIZE);
+    fftwf_complex *fftInput = (fftwf_complex *)fftwf_malloc(sizeof(fftwf_complex) * BUFFER_SIZE);
+    fftwf_complex *fftOutput = (fftwf_complex *)fftwf_malloc(sizeof(fftwf_complex) * BUFFER_SIZE);
 
     fftwf_plan plan = fftwf_plan_dft_1d(BUFFER_SIZE, fftInput, fftOutput, FFTW_FORWARD, FFTW_ESTIMATE);
 
-    float magnitudes[width]; 
+    float magnitudes[width];
 
-    for (int i = 0; i < BUFFER_SIZE; i++) {
-        ma_int16 sample = *((ma_int16*)g_audioBuffer + i);
+    for (int i = 0; i < BUFFER_SIZE; i++)
+    {
+        ma_int16 sample = *((ma_int16 *)g_audioBuffer + i);
         float normalizedSample = (float)sample / 32767.0f;
         fftInput[i][0] = normalizedSample;
-        fftInput[i][1] = 0;     
+        fftInput[i][1] = 0;
     }
 
     // Perform FFT
     fftwf_execute(plan);
 
     int term_w, term_h;
-    getTermSize(&term_w, &term_h);  
-    
-    int binSize = BUFFER_SIZE / width;    
+    getTermSize(&term_w, &term_h);
+
+    int binSize = BUFFER_SIZE / width;
     int numBins = BUFFER_SIZE / 2;
     float frequencyResolution = SAMPLE_RATE / BUFFER_SIZE;
 
-    for (int i = 0; i < width; i++) {
+    for (int i = 0; i < width; i++)
+    {
         magnitudes[i] = 0.0f;
     }
 
-    for (int i = numBins - 1; i >= 0; i--) {
+    for (int i = numBins - 1; i >= 0; i--)
+    {
         float frequency = (numBins - i - 1) * frequencyResolution;
         int barIndex = ((frequency / (SAMPLE_RATE / 2)) * (width));
 
         float magnitude1 = sqrtf(fftOutput[i][0] * fftOutput[i][0] + fftOutput[i][1] * fftOutput[i][1]); // Magnitude of channel 1
         // Calculate the combined magnitude
         float combinedMagnitude = magnitude1;
-        magnitudes[barIndex] += combinedMagnitude;             
+        magnitudes[barIndex] += combinedMagnitude;
     }
-  
+
     /*if (term_w < 2|| term_h < 2)
     {
       clearRestOfScreen();
@@ -48,9 +51,9 @@ void drawSpectrum(int height, int width)
     }*/
     if (term_w < width)
     {
-      width = term_w;
+        width = term_w;
     }
-    printf("\n"); // Start on a new line 
+    printf("\n"); // Start on a new line
     fflush(stdout);
 
     float maxMagnitude = 0.0f;
@@ -58,22 +61,26 @@ void drawSpectrum(int height, int width)
     float ceiling = 80.0f;
     float magic = 1; // crank it up a bit
     // Find the maximum magnitude in the current frame
-    for (int i = 0; i < width; i++) {
-        if (magnitudes[i] > maxMagnitude) {
+    for (int i = 0; i < width; i++)
+    {
+        if (magnitudes[i] > maxMagnitude)
+        {
             maxMagnitude = magnitudes[i];
         }
-    }    
+    }
 
     if (maxMagnitude < threshold)
-      maxMagnitude = threshold;
+        maxMagnitude = threshold;
     if (maxMagnitude > ceiling)
-      maxMagnitude = ceiling;
+        maxMagnitude = ceiling;
 
-    for (int j = height; j > 0; j--) {
+    for (int j = height; j > 0; j--)
+    {
         printf("\r"); // Move cursor to the beginning of the line
 
-        for (int i = 0; i < width; i++) {
-              float normalizedMagnitude = magnitudes[i] / maxMagnitude;
+        for (int i = 0; i < width; i++)
+        {
+            float normalizedMagnitude = magnitudes[i] / maxMagnitude;
 
             float scaledMagnitude = normalizedMagnitude * magic;
 
@@ -82,17 +89,20 @@ void drawSpectrum(int height, int width)
                 heightVal = 1.0f; // Exaggerate low values
             }*/
             int barHeight = (int)round(heightVal);
-            if (barHeight >= j) {
+            if (barHeight >= j)
+            {
                 printf("║");
-            } else {
+            }
+            else
+            {
                 printf(" ");
             }
         }
         printf("\n");
-    }  
-    
+    }
+
     // Restore the cursor position
-    printf("\033[%dA", height+1);
+    printf("\033[%dA", height + 1);
     fflush(stdout);
 
     fftwf_destroy_plan(plan);

@@ -6,13 +6,22 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include "player.h"
+#include "dir.h"
 
-typedef struct {
-    char* key;
-    char* value;
+#ifndef KEYVALUEPAIR_H
+#define KEYVALUEPAIR_H
+
+typedef struct
+{
+    char *key;
+    char *value;
 } KeyValuePair;
 
-typedef struct {
+#endif
+
+typedef struct
+{
     char path[MAXPATHLEN];
     char coverEnabled[2];
     char coverBlocks[2];
@@ -20,18 +29,29 @@ typedef struct {
     char visualizationHeight[6];
 } AppSettings;
 
-extern AppSettings constructAppSettings(KeyValuePair* pairs, int count);
+extern AppSettings settings;
 
-KeyValuePair* readKeyValuePairs(const char* file_path, int* count);
+extern const char PATH_SETTING_FILENAME[];
+extern const char SETTINGS_FILENAME[];
 
-extern void freeKeyValuePairs(KeyValuePair* pairs, int count);
+extern AppSettings constructAppSettings(KeyValuePair *pairs, int count);
 
-extern AppSettings constructAppSettings(KeyValuePair* pairs, int count);
+KeyValuePair *readKeyValuePairs(const char *file_path, int *count);
+
+extern void freeKeyValuePairs(KeyValuePair *pairs, int count);
+
+extern AppSettings constructAppSettings(KeyValuePair *pairs, int count);
 
 // saves the path to your music folder
-int saveSettingsDeprecated(char *path, const char* settingsFile);
+int saveSettingsDeprecated(char *path, const char *settingsFile);
 
 // reads the settings file, which contains the path to your music folder
-int getSettingsDeprecated(char *path, int len, const char* settingsFile);
+int getSettingsDeprecated(char *path, int len, const char *settingsFile);
 
-#endif 
+void getConfig(const char *filename);
+
+void setConfig(AppSettings *settings, const char *filename);
+
+int getMusicLibraryPath(char *path);
+
+#endif
