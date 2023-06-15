@@ -22,6 +22,7 @@
 #include <poll.h>
 #include <dirent.h>
 #include <signal.h>
+#include <unistd.h>
 #include "sound.h"
 #include "stringextensions.h"
 #include "dir.h"
@@ -66,20 +67,6 @@ struct Event processInput()
   event.type = EVENT_NONE;
   event.key = '\0';
 
-  if (escapePressed)
-  {
-    struct timespec currentTime;
-    clock_gettime(CLOCK_MONOTONIC, &currentTime);
-    double elapsedSeconds = difftime(currentTime.tv_sec, escapeTime.tv_sec);
-
-    if (elapsedSeconds > 1.0)
-    {
-      event.type = EVENT_QUIT;
-      escapePressed = false;
-      return event;
-    }
-  }
-
   if (!isInputAvailable())
   {
     if (!isEventQueueEmpty())
@@ -94,58 +81,48 @@ struct Event processInput()
 
   char input = readInput();
 
-  if (input == 27)
-  { // ASCII value of escape key
-    escapePressed = true;
-    clock_gettime(CLOCK_MONOTONIC, &escapeTime);
-    restoreCursorPosition();
-    return event;
-  }
-  else
-  {
-    event.type = EVENT_KEY_PRESS;
-    event.key = input;
+  event.type = EVENT_KEY_PRESS;
+  event.key = input;
 
-    switch (event.key)
-    {
-    case 'q':
-      event.type = EVENT_QUIT;
-      break;
-    case 's':
-      event.type = EVENT_SHUFFLE;
-      break;
-    case 'c':
-      event.type = EVENT_TOGGLECOVERS;
-      break;
-    case 'v':
-      event.type = EVENT_TOGGLEVISUALS;
-      break;
-    case 'b':
-      event.type = EVENT_TOGGLEBLOCKS;
-      break;      
-    case 'r':
-      event.type = EVENT_TOGGLEREPEAT;
-      break;
-    case 'A': // Up arrow
-      event.type = EVENT_VOLUME_UP;
-      break;
-    case 'B': // Down arrow
-      event.type = EVENT_VOLUME_DOWN;
-      break;
-    case 'C': // Right arrow
-      event.type = EVENT_NEXT;
-      break;
-    case 'D': // Left arrow
-      event.type = EVENT_PREV;
-      break;
-    case ' ': // Space
-      event.type = EVENT_PLAY_PAUSE;
-      break;
-    default:
-      break;
-    }
-    enqueueEvent(&event);
+  switch (event.key)
+  {
+  case 'q':
+    event.type = EVENT_QUIT;
+    break;
+  case 's':
+    event.type = EVENT_SHUFFLE;
+    break;
+  case 'c':
+    event.type = EVENT_TOGGLECOVERS;
+    break;
+  case 'v':
+    event.type = EVENT_TOGGLEVISUALS;
+    break;
+  case 'b':
+    event.type = EVENT_TOGGLEBLOCKS;
+    break;      
+  case 'r':
+    event.type = EVENT_TOGGLEREPEAT;
+    break;
+  case 'A': // Up arrow
+    event.type = EVENT_VOLUME_UP;
+    break;
+  case 'B': // Down arrow
+    event.type = EVENT_VOLUME_DOWN;
+    break;
+  case 'C': // Right arrow
+    event.type = EVENT_NEXT;
+    break;
+  case 'D': // Left arrow
+    event.type = EVENT_PREV;
+    break;
+  case ' ': // Space
+    event.type = EVENT_PLAY_PAUSE;
+    break;
+  default:
+    break;
   }
+  enqueueEvent(&event);
 
   if (event.key == 'A' || event.key == 'B' || event.key == 'C' || event.key == 'D' || event.key == ' ')
   {
@@ -167,11 +144,15 @@ void cleanup()
   deleteFile(tagsFilePath);
 }
 
-void handleResize(int signal)
-{
-  isResizing = true;
+volatile sig_atomic_t resizeFlag = 0;
+
+void handleResize(int sig) {
+    resizeFlag = 1;
 }
 
+void resetResizeFlag(int sig) {
+    resizeFlag = 0;
+}
 int play(const char *filepath)
 {
   escapePressed = false;
@@ -180,6 +161,9 @@ int play(const char *filepath)
   double elapsed_seconds = 0.0;
   bool shouldQuit = false;
   bool skip = false;
+  bool refresh = false;
+  bool drewCover = false;
+  bool drewVisualization = false;
   int col = 1;
   double songLength = getDuration(filepath);
   strcpy(musicFilepath, filepath);
@@ -198,9 +182,8 @@ int play(const char *filepath)
   }
   if (coverEnabled)
   {
+    drewCover = true;
     int foundArt = displayAlbumArt(filepath, asciiHeight, asciiWidth, coverBlocks);
-    if (foundArt < 0)
-      visualizationEnabled = true;
   }
   generateTempFilePath(tagsFilePath, "metatags", ".txt");
   extract_tags(strdup(filepath), tagsFilePath);
@@ -248,10 +231,12 @@ int play(const char *filepath)
     case EVENT_TOGGLECOVERS:
       coverEnabled = !coverEnabled;
       strcpy(settings.coverEnabled, coverEnabled ? "1" : "0");
+      refresh = true;      
       break;
     case EVENT_TOGGLEBLOCKS:
       coverBlocks = !coverBlocks;
       strcpy(settings.coverBlocks, coverBlocks ? "1" : "0");
+      refresh = true;
       break;      
     case EVENT_SHUFFLE:
       shufflePlaylist(&playlist);  
@@ -287,19 +272,70 @@ int play(const char *filepath)
       break;
     }
 
-    if (isResizing)
-    {
-      usleep(100000);
-      isResizing = false;
+    signal(SIGWINCH, handleResize);
+
+    struct sigaction sa;
+    sa.sa_handler = resetResizeFlag;
+    sigemptyset(&sa.sa_mask);
+    sa.sa_flags = 0;
+    sigaction(SIGALRM, &sa, NULL);
+
+    if (resizeFlag) {            
+            alarm(1);  // Set a 1-second timer
+            while (resizeFlag) {
+                usleep(10000);
+            }           
+            alarm(0);  // Cancel the timer
+            refresh = true;
+            printf("\033[1;1H");
+            clearRestOfScreen();
     }
     else {
       if ((elapsed_seconds < songLength) && !isPaused() )
-      {                 
+      {  
+        int minHeight = 1 + (visualizationEnabled ? visualizationHeight : 0);        
+        int minWidth = asciiWidth;
+        if (refresh)
+        {          
+          int row, col;
+          int coverRow = getFirstLineRow() - 4 - (drewCover ? asciiHeight : 0) + visualizationHeight;
+          if (coverRow < 0) coverRow = 0;
+          printf("\033[%d;1H", coverRow);
+          if (coverEnabled) 
+          {
+            displayAlbumArt(filepath, asciiHeight, asciiWidth, coverBlocks);
+            drewCover = true;
+          }
+          else {
+            clearRestOfScreen();
+            drewCover = false;
+          }            
+            
+          setDefaultTextColor();
+          printBasicMetadata(tagsFilePath);
+          refresh = false;
+        }      
+        int term_w, term_h;
+        getTermSize(&term_w, &term_h);  
+        if (term_h > minHeight && term_w > minWidth)
+        {
         printProgress(elapsed_seconds, songLength);
+        }
         if (visualizationEnabled) 
         {
-          drawSpectrum(visualizationHeight, asciiWidth);
-        }
+          drawSpectrum(visualizationHeight, asciiWidth);          
+          fflush(stdout);
+          drewVisualization = true;          
+        }  
+        else
+        {
+          for (int i = 0; i < visualizationHeight; i++)
+          {
+            printf("\n");
+          }
+          printf("\033[%dA", visualizationHeight);
+        }      
+        saveCursorPosition();
       }
     }
 
@@ -389,10 +425,11 @@ void setConfig(AppSettings *settings, const char *filename)
         return;
     }
 
+    // Set defaults if null
     if (settings->coverEnabled[0] == '\0')
       strcpy(settings->coverEnabled, "1");
     if (settings->coverBlocks[0] == '\0')
-      strcpy(settings->coverBlocks, "0");
+      strcpy(settings->coverBlocks, "1");
     if (settings->visualizationEnabled[0] == '\0')
       strcpy(settings->visualizationEnabled, "0");
     if (settings->visualizationHeight[0] == '\0') {

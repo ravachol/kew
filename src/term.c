@@ -37,6 +37,12 @@ void getCursorPosition(int *row, int *col)
     tcsetattr(STDIN_FILENO, TCSANOW, &term_orig);
 }
 
+void getCursorPosition2(int *row, int *col) {
+    printf("\033[6n");  // Request cursor position report
+    fflush(stdout);
+    scanf("\033[%d;%dR", row, col);
+}
+
 void enableRawMode() 
 {
     struct termios raw;
@@ -126,6 +132,17 @@ void setCursorPosition(int row, int col)
     fflush(stdout);
 }
 
+void hideCursor() {
+    printf("\033[?25l");  // Hide the cursor
+    fflush(stdout);
+}
+
+void showCursor() {
+    printf("\033[?25h");  // Show the cursor
+    fflush(stdout);
+}
+
+
 void clearRestOfScreen() 
 {
     printf("\033[J");
@@ -155,4 +172,31 @@ void enableScrolling()
 void disableScrolling() 
 {
     printf("\033[?7l");
+}
+
+int getFirstLineRow() {
+    struct winsize ws;
+    if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws) == -1) {
+        perror("Failed to get terminal window size");
+        return -1;
+    }
+    return ws.ws_row;
+}
+
+int getVisibleFirstLineRow() {
+    struct winsize ws;
+    if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws) == -1) {
+        perror("Failed to get terminal window size");
+        return -1;
+    }
+
+    // Get the current cursor position
+    printf("\033[6n"); // Send escape sequence to query cursor position
+    fflush(stdout);
+
+    int row, col;
+    scanf("\033[%d;%dR", &row, &col); // Read the cursor position response
+
+    int visibleFirstLineRow = row - (ws.ws_row - 1);
+    return visibleFirstLineRow;
 }
