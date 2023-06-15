@@ -6,16 +6,9 @@
 #include "../include/imgtotxt/options.h"
 #include "../include/imgtotxt/write_ascii.h"
 #include "metadata.h"
-#include "stringextensions.h"
+#include "stringfunc.h"
 #include "term.h"
 #include "albumart.h"
-
-int default_ascii_height = 250;
-int default_ascii_width = 500;
-
-int small_ascii_height = 18;
-int small_ascii_width = 36;
-
 
 int isAudioFile(const char* filename) 
 {

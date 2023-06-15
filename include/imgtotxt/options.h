@@ -3,17 +3,21 @@
 
 // Some preprocessor magic to generate an enum and string array with the same items.
 #define OUTPUT_MODES(MODE) \
-        MODE(ANSI)         \
-        MODE(SOLID_ANSI)   \
-        MODE(ASCII)        \
+    MODE(ANSI)             \
+    MODE(SOLID_ANSI)       \
+    MODE(ASCII)
 
 #define GENERATE_ENUM(ENUM) ENUM,
 #define GENERATE_STRING(STRING) #STRING,
 
-enum OutputModes {OUTPUT_MODES(GENERATE_ENUM)};
-static const char * OutputModeStr[] = {OUTPUT_MODES(GENERATE_STRING)}; // Strings used for output.
+enum OutputModes
+{
+    OUTPUT_MODES(GENERATE_ENUM)
+};
+static const char *OutputModeStr[] = {OUTPUT_MODES(GENERATE_STRING)}; // Strings used for output.
 
-typedef struct {
+typedef struct
+{
     unsigned int width;
     unsigned int height;
 
@@ -25,4 +29,4 @@ typedef struct {
     bool suppress_header;
 } ImageOptions;
 
-#endif  /* OPTIONS_H */
+#endif /* OPTIONS_H */

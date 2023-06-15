@@ -1,12 +1,7 @@
 #ifndef ALBUMART_H
 #define ALBUMART_H
 #include <stdbool.h>
-
-extern int default_ascii_height;
-extern int default_ascii_width;
-
-extern int small_ascii_height;
-extern int small_ascii_width;
+#include <dirent.h>
 
 extern int isAudioFile(const char* filename);
 

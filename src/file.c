@@ -1,18 +1,22 @@
 #include "file.h"
 
-int deleteFile(const char* filePath) 
+int deleteFile(const char *filePath)
 {
-    if (unlink(filePath) == 0) {
+    if (unlink(filePath) == 0)
+    {
         return 0;
-    } else {    
+    }
+    else
+    {
         return -1;
     }
 }
 
-void generateTempFilePath(char* filePath, const char* prefix, const char* suffix) 
+void generateTempFilePath(char *filePath, const char *prefix, const char *suffix)
 {
-    const char* tempDir = getenv("TMPDIR");
-    if (tempDir == NULL) {
+    const char *tempDir = getenv("TMPDIR");
+    if (tempDir == NULL)
+    {
 #ifdef __APPLE__
         tempDir = "/tmp";
 #else
@@ -23,4 +27,3 @@ void generateTempFilePath(char* filePath, const char* prefix, const char* suffix
     snprintf(filePath, FILENAME_MAX, "%s/%sXXXXXX%s", tempDir, prefix, suffix);
     mkstemp(filePath);
 }
-

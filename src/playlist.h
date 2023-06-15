@@ -1,37 +1,44 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include "sound.h"
 
-typedef struct 
+typedef struct
 {
-    char* filePath;    
+    char *filePath;
+    double duration;
 } SongInfo;
 
-typedef struct Node 
+typedef struct Node
 {
     SongInfo song;
-    struct Node* next;
-    struct Node* prev;
+    struct Node *next;
+    struct Node *prev;
 } Node;
 
-typedef struct {
-    Node* head;
-    Node* tail;
+typedef struct
+{
+    Node *head;
+    Node *tail;
     int count;
 } PlayList;
 
-Node* getListNext(PlayList* list, Node* node);
+extern PlayList playlist;
 
-Node* getListPrev(PlayList* list, Node* node);
+Node *getListNext(PlayList *list, Node *node);
 
-void addToList(PlayList* list, SongInfo song);
+Node *getListPrev(PlayList *list, Node *node);
+
+void addToList(PlayList *list, SongInfo song);
 
 int compare(const struct dirent **a, const struct dirent **b);
 
-void buildPlaylistRecursive(char* directoryPath, const char* allowedExtensions, PlayList* playlist);
+void buildPlaylistRecursive(char *directoryPath, const char *allowedExtensions, PlayList *playlist);
 
-int playDirectory(const char* directoryPath, const char* allowedExtensions, PlayList* playlist);
+int playDirectory(const char *directoryPath, const char *allowedExtensions, PlayList *playlist);
 
-void shufflePlaylist(PlayList* playlist); 
+void shufflePlaylist(PlayList *playlist);
 
-int joinPlaylist(PlayList* dest, PlayList* src);
+int joinPlaylist(PlayList *dest, PlayList *src);
+
+int makePlaylist(int argc, char *argv[]);
