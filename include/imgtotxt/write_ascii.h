@@ -5,9 +5,10 @@
 
 /* This ifdef allows the header to be used from both C and C++. */
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
-int output_ascii(char* pathToImgFile, int height, int width, bool coverBlocks);
+    int output_ascii(char *pathToImgFile, int height, int width, bool coverBlocks);
 #ifdef __cplusplus
 }
 #endif
