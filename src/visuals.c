@@ -4,7 +4,6 @@ int extendRange = 8;
 
 void drawSpectrum(int height, int width) 
 {
-    width = width * extendRange;
     fftwf_complex* fftInput = (fftwf_complex*) fftwf_malloc(sizeof(fftwf_complex) * BUFFER_SIZE);
     fftwf_complex* fftOutput = (fftwf_complex*) fftwf_malloc(sizeof(fftwf_complex) * BUFFER_SIZE);
 
@@ -42,20 +41,19 @@ void drawSpectrum(int height, int width)
         float combinedMagnitude = magnitude1;
         magnitudes[barIndex] += combinedMagnitude;             
     }
-
+  
+    if (term_w < width || term_h < height)
+    {
+      clearRestOfScreen();
+      return;
+    }
     printf("\n"); // Start on a new line 
     fflush(stdout);
-    
-    if (term_w < width / extendRange)
-      width = term_w * extendRange;
-
-    if (term_h < height)
-      height = term_h;
 
     float maxMagnitude = 0.0f;
     float threshold = 28.0f;
     float ceiling = 80.0f;
-    float magic = 2; // crank it up a bit
+    float magic = 1; // crank it up a bit
     // Find the maximum magnitude in the current frame
     for (int i = 0; i < width; i++) {
         if (magnitudes[i] > maxMagnitude) {
@@ -71,7 +69,7 @@ void drawSpectrum(int height, int width)
     for (int j = height; j > 0; j--) {
         printf("\r"); // Move cursor to the beginning of the line
 
-        for (int i = 0; i < width / extendRange; i++) {
+        for (int i = 0; i < width; i++) {
               float normalizedMagnitude = magnitudes[i] / maxMagnitude;
 
             float scaledMagnitude = normalizedMagnitude * magic;

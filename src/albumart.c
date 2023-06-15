@@ -5,10 +5,9 @@
 #include "../include/getcover/getcover.h"
 #include "../include/imgtotxt/options.h"
 #include "../include/imgtotxt/write_ascii.h"
-#include "term.h"
 #include "metadata.h"
 #include "stringextensions.h"
-
+#include "term.h"
 #include "albumart.h"
 
 int default_ascii_height = 25;
@@ -201,7 +200,6 @@ int displayAlbumArt(const char* filepath, int asciiHeight, int asciiWidth, bool 
     if (filepath == NULL) return -1;
 
     int res = extractCover(filepath, fileOutputPath);
-
     if (res >= 0)
         output_ascii(fileOutputPath, asciiHeight, asciiWidth, coverBlocks);
     else 
@@ -210,6 +208,12 @@ int displayAlbumArt(const char* filepath, int asciiHeight, int asciiWidth, bool 
         char* largestImageFile = findLargestImageFile(path);
         if (largestImageFile != NULL)
         {
+            int term_w, term_h;
+            getTermSize(&term_w, &term_h);  
+            if (term_w < asciiWidth)
+                asciiWidth = term_w - 1;
+            if (term_h < asciiHeight)
+                asciiHeight = term_h - 1;
             return output_ascii(largestImageFile, asciiHeight, asciiWidth, coverBlocks);
         }
         else
