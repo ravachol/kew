@@ -137,11 +137,13 @@ int play(SongInfo song)
     bool shouldQuit = false;
     int asciiHeight, asciiWidth;
     char musicFilepath[MAX_FILENAME_LENGTH];
+    strcpy(musicFilepath, song.filePath);    
+    double duration = getDuration(song.filePath);
     refresh = true;
     generateTempFilePath(tagsFilePath, "metatags", ".txt");
-    extract_tags(strdup(song.filePath), tagsFilePath);
+    extract_tags(strdup(musicFilepath), tagsFilePath);
     clock_gettime(CLOCK_MONOTONIC, &start_time);
-    strcpy(musicFilepath, song.filePath);    
+
     int res = playSoundFile(musicFilepath);
 
     if (res != 0)
@@ -243,9 +245,9 @@ int play(SongInfo song)
         }
         else
         {
-            if ((elapsedSeconds < song.duration) && !isPaused())
+            if ((elapsedSeconds < duration) && !isPaused())
             {
-                printPlayer(song.filePath, tagsFilePath, elapsedSeconds, song.duration);
+                printPlayer(musicFilepath, tagsFilePath, elapsedSeconds, duration);
             }
         }
 
