@@ -199,6 +199,16 @@ int displayAlbumArt(const char* filepath, int asciiHeight, int asciiWidth, bool 
     
     if (filepath == NULL) return -1;
 
+    int progressWidth = 26;
+    int term_w, term_h;
+    getTermSize(&term_w, &term_h);  
+
+    if (term_w < asciiWidth)
+    {
+        asciiWidth = term_w;
+        asciiHeight = (int)(term_w / 2);
+    }
+
     int res = extractCover(filepath, fileOutputPath);
     if (res >= 0)
         output_ascii(fileOutputPath, asciiHeight, asciiWidth, coverBlocks);
