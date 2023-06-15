@@ -193,12 +193,14 @@ int extractCover(const char *audioFilepath, char *outputFilepath)
     return -1;
 }
 
-int calcIdealImgSize(int* width, int* height, const int visualizationHeight, const int metatagHeight)
+int calcIdealImgSize(int* width, int* height, const int visualizationHeight, const int metatagHeight, bool firstSong)
 {
   int term_w, term_h;
   getTermSize(&term_w, &term_h);
   int timeDisplayHeight = 1;
-  int commandHeight = 1;
+  int commandHeight = 0;
+  if (firstSong) 
+    commandHeight = 1;
   int minHeight = visualizationHeight + metatagHeight + timeDisplayHeight + commandHeight;
   *height = term_h - minHeight;
   *width = *height * 2;

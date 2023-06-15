@@ -20,6 +20,6 @@ extern char* findLargestImageFile(const char* directoryPath);
 
 int displayAlbumArt(const char* filepath, int asciiHeight, int asciiWidth, bool coverBlocks);
 
-int calcIdealImgSize(int* width, int* height, const int visualizationHeight, const int metatagHeight);
+int calcIdealImgSize(int* width, int* height, const int visualizationHeight, const int metatagHeight, bool firstSong);
 
 #endif
