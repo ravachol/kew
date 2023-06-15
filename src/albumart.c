@@ -16,6 +16,7 @@ int default_ascii_width = 500;
 int small_ascii_height = 18;
 int small_ascii_width = 36;
 
+
 int isAudioFile(const char* filename) 
 {
     const char* extensions[] = {".mp3", ".wav", ".m4a", ".flac", ".ogg"};
@@ -192,6 +193,18 @@ int extractCover(const char *audioFilepath, char *outputFilepath)
     return -1;
 }
 
+int calcIdealImgSize(int* width, int* height, const int visualizationHeight, const int metatagHeight)
+{
+  int term_w, term_h;
+  getTermSize(&term_w, &term_h);
+  int timeDisplayHeight = 1;
+  int commandHeight = 1;
+  int minHeight = visualizationHeight + metatagHeight + timeDisplayHeight + commandHeight;
+  *height = term_h - minHeight;
+  *width = *height * 2;
+  return 0;
+}
+
 int displayAlbumArt(const char* filepath, int asciiHeight, int asciiWidth, bool coverBlocks)
 {
     char path[MAXPATHLEN];
@@ -200,15 +213,6 @@ int displayAlbumArt(const char* filepath, int asciiHeight, int asciiWidth, bool 
     if (filepath == NULL) return -1;
 
     int progressWidth = 26;
-    int term_w, term_h;
-    getTermSize(&term_w, &term_h);  
-
-    if (term_w < asciiWidth)
-    {
-        asciiWidth = term_w;
-        asciiHeight = (int)(term_w / 2);
-    }
-
     int res = extractCover(filepath, fileOutputPath);
     if (res >= 0)
         output_ascii(fileOutputPath, asciiHeight, asciiWidth, coverBlocks);
@@ -218,12 +222,6 @@ int displayAlbumArt(const char* filepath, int asciiHeight, int asciiWidth, bool 
         char* largestImageFile = findLargestImageFile(path);
         if (largestImageFile != NULL)
         {
-            int term_w, term_h;
-            getTermSize(&term_w, &term_h);  
-            if (term_w < asciiWidth)
-                asciiWidth = term_w - 1;
-            if (term_h < asciiHeight)
-                asciiHeight = term_h - 1;
             return output_ascii(largestImageFile, asciiHeight, asciiWidth, coverBlocks);
         }
         else
