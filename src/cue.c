@@ -252,21 +252,21 @@ int play(const char *filepath)
     case EVENT_VOLUME_DOWN:
       adjustVolumePercent(-5);
       break;
-    case EVENT_NEXT:
-      cleanup();
-      currentSong = getListNext(&playlist, currentSong);
-      if (currentSong != NULL)
-        return play(currentSong->song.filePath);
-      else
-        return -1;
+    case EVENT_NEXT:      
+      if (currentSong->next != NULL)
+      {
+        cleanup();
+        currentSong = getListNext(&playlist, currentSong);
+        return play(currentSong->song.filePath);            
+      }
       break;
     case EVENT_PREV:
-      cleanup();
-      currentSong = getListPrev(&playlist, currentSong);
-      if (currentSong != NULL)
-        return play(currentSong->song.filePath);
-      else
-        return -1;
+      if (currentSong->prev != NULL)
+      {
+        cleanup();
+        currentSong = getListPrev(&playlist, currentSong);
+        return play(currentSong->song.filePath);            
+      }
       break;
     default:
       break;
@@ -384,7 +384,6 @@ int getMusicLibraryPath(char *path)
 
   return 0;
 }
-
 
 void getConfig(const char *filename)
 {
