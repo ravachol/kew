@@ -1,5 +1,5 @@
 #include "printfunc.h"
-
+#include "term.h"
 void printHelp()
 {
   printf("cue - a command-line music player.\n");
@@ -79,6 +79,13 @@ void printBasicMetadata(const char *file_path)
 
 void printProgress(double elapsed_seconds, double total_seconds)
 {
+  int progressWidth = 26;
+  int term_w, term_h;
+  getTermSize(&term_w, &term_h);  
+
+  if (term_w < progressWidth)
+    return;
+
   // Save the current cursor position
   printf("\033[s");
 
