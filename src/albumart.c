@@ -220,12 +220,15 @@ int calcIdealImgSize(int *width, int *height, const int visualizationHeight, con
         commandHeight = 1;
     int minHeight = visualizationHeight + metatagHeight + timeDisplayHeight + commandHeight;
     *height = term_h - minHeight;
-    *width = floor(*height * 2);
+    *width = ceil(*height * 2);
     if (*width > term_w)
     {
         *width = term_w;
         *height = floor(*width / 2);
     }
+
+    int remainder = *width % 2;
+    if (remainder == 1) *width -= 1;
     return 0;
 }
 
