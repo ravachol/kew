@@ -8,4 +8,4 @@
 
 extern int extendRange;
 
-void drawSpectrum(int height, int width);
+void drawEqualizer(int height, int width);

@@ -1,11 +1,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <pthread.h>
 #include "sound.h"
+
+#ifndef PLAYLIST_STRUCT
+#define PLAYLIST_STRUCT
 
 typedef struct
 {
     char *filePath;
+    double duration;
 } SongInfo;
 
 typedef struct Node
@@ -20,13 +25,18 @@ typedef struct
     Node *head;
     Node *tail;
     int count;
+    volatile double totalDuration;
 } PlayList;
+
+#endif
+
+extern volatile int stopThread;
 
 extern PlayList playlist;
 
-Node *getListNext(PlayList *list, Node *node);
+Node *getListNext(Node *node);
 
-Node *getListPrev(PlayList *list, Node *node);
+Node *getListPrev(Node *node);
 
 void addToList(PlayList *list, SongInfo song);
 
@@ -41,3 +51,5 @@ void shufflePlaylist(PlayList *playlist);
 int joinPlaylist(PlayList *dest, PlayList *src);
 
 int makePlaylist(int argc, char *argv[]);
+
+int setPlayListDurations(PlayList *playlist);
