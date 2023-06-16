@@ -6,7 +6,7 @@ void drawEqualizer(int height, int width)
     if (height <= 0 || width <= 0)
         return;
 
-    width =  width / 2;    
+    width =  floor(width / 2);
     height = height - 2;
 
     int remainder = width % 2;
