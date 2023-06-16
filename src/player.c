@@ -12,7 +12,7 @@ bool drewVisualization = false;
 int visualizationHeight = 6;
 int asciiHeight = 250;
 int asciiWidth = 500;
-int minWidth = 36;
+int minWidth = 31;
 const char githubLatestVersionUrl[] = "https://api.github.com/repos/ravachol/cue/releases/latest";
 
 int printPlayer(const char *songFilepath, const char *tagsFilePath, double elapsedSeconds, double songDurationSeconds, PlayList *playlist)
@@ -48,14 +48,14 @@ int printPlayer(const char *songFilepath, const char *tagsFilePath, double elaps
     if (term_h > minHeight && term_w > minWidth)
     {
         double totalDurationSeconds = playlist->totalDuration;
-        printProgress(elapsedSeconds, songDurationSeconds, totalDurationSeconds);
-        if (visualizationEnabled)
-        {
-            drawEqualizer(visualizationHeight, asciiWidth);
-            fflush(stdout);
-            drewVisualization = true;
-        }        
+        printProgress(elapsedSeconds, songDurationSeconds, totalDurationSeconds);      
     }
+    if (visualizationEnabled)
+    {
+        drawEqualizer(visualizationHeight, asciiWidth);
+        fflush(stdout);
+        drewVisualization = true;
+    }      
     saveCursorPosition();
 
     return 0;
