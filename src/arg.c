@@ -5,17 +5,12 @@ void removeElement(char *argv[], int index, int *argc)
 {
     if (index < 0 || index >= *argc)
     {
-        // Invalid index
         return;
     }
-
-    // Shift elements after the index
     for (int i = index; i < *argc - 1; i++)
     {
         argv[i] = argv[i + 1];
     }
-
-    // Update the argument count
     (*argc)--;
 }
 

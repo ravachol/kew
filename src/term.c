@@ -1,7 +1,6 @@
 
 #include "term.h"
 
-
 volatile sig_atomic_t resizeFlag = 0;
 
 char *getVariableValue(const char *variableName)
@@ -146,7 +145,7 @@ void hideCursor()
 
 void showCursor()
 {
-    printf("\033[?25h"); // Show the cursor
+    printf("\033[?25h");
     fflush(stdout);
 }
 
@@ -200,13 +199,11 @@ int getVisibleFirstLineRow()
         perror("Failed to get terminal window size");
         return -1;
     }
-
-    // Get the current cursor position
-    printf("\033[6n"); // Send escape sequence to query cursor position
+    printf("\033[6n");
     fflush(stdout);
 
     int row, col;
-    scanf("\033[%d;%dR", &row, &col); // Read the cursor position response
+    scanf("\033[%d;%dR", &row, &col);
 
     int visibleFirstLineRow = row - (ws.ws_row - 1);
     return visibleFirstLineRow;

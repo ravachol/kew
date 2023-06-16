@@ -129,12 +129,13 @@ void cleanup()
 
 int play(SongInfo song)
 {
+    char musicFilepath[MAX_FILENAME_LENGTH];
+    strcpy(musicFilepath, song.filePath);
+    int res = playSoundFile(musicFilepath);
     struct timespec start_time;
     double elapsedSeconds = 0.0;
     bool shouldQuit = false;
     int asciiHeight, asciiWidth;
-    char musicFilepath[MAX_FILENAME_LENGTH];
-    strcpy(musicFilepath, song.filePath);
     double duration = 0.0;
     if (song.duration > 0.0)
         duration = song.duration;
@@ -144,8 +145,6 @@ int play(SongInfo song)
     generateTempFilePath(tagsFilePath, "metatags", ".txt");
     extract_tags(strdup(musicFilepath), tagsFilePath);
     clock_gettime(CLOCK_MONOTONIC, &start_time);
-
-    int res = playSoundFile(musicFilepath);
 
     setPlayListDurations(&playlist);
 
@@ -306,7 +305,7 @@ void init()
 
 int main(int argc, char *argv[])
 {
-    getConfig(SETTINGS_FILENAME);
+    getConfig();
 
     if (argc == 1 || (argc == 2 && ((strcmp(argv[1], "--help") == 0) || (strcmp(argv[1], "-h") == 0) || (strcmp(argv[1], "-?") == 0))))
     {
@@ -319,7 +318,7 @@ int main(int argc, char *argv[])
     else if (argc == 3 && (strcmp(argv[1], "path") == 0))
     {
         strcpy(settings.path, argv[2]);
-        setConfig(&settings, SETTINGS_FILENAME);
+        setConfig();
     }
     else if (argc >= 2)
     {

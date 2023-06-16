@@ -6,6 +6,4 @@
 #define SAMPLE_RATE 44100
 #define BUFFER_SIZE 1024
 
-extern int extendRange;
-
 void drawEqualizer(int height, int width);
