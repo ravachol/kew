@@ -12,8 +12,9 @@
 const int MAX_FILES = 4096;
 const char ALLOWED_EXTENSIONS[] = "\\.(m4a|mp3|ogg|flac|wav|aac|wma|raw|mp4a|mp4)$";
 PlayList playlist = {NULL, NULL};
+volatile int stopThread = 0;
 
-Node *getListNext(PlayList *list, Node *node)
+Node *getListNext(Node *node)
 {
     if (node == NULL)
     {
@@ -22,7 +23,7 @@ Node *getListNext(PlayList *list, Node *node)
     return node->next;
 }
 
-Node *getListPrev(PlayList *list, Node *node)
+Node *getListPrev(Node *node)
 {
     if (node == NULL)
     {
@@ -97,7 +98,6 @@ void shufflePlaylist(PlayList *playlist)
         nodes[j]->next = (j < playlist->count - 1) ? nodes[j + 1] : NULL;
         nodes[j]->prev = (j > 0) ? nodes[j - 1] : NULL;
     }
-
     free(nodes);
 }
 
@@ -124,6 +124,7 @@ void buildPlaylistRecursive(char *directoryPath, const char *allowedExtensions, 
     {
         SongInfo song;
         song.filePath = strdup(directoryPath);
+        song.duration = 0.0;
         addToList(playlist, song);
         return;
     }
@@ -180,6 +181,7 @@ void buildPlaylistRecursive(char *directoryPath, const char *allowedExtensions, 
                 SongInfo song;
                 snprintf(filePath, sizeof(filePath), "%s/%s", directoryPath, entry->d_name);
                 song.filePath = strdup(filePath); // Allocate memory and copy the file path
+                song.duration = 0.0;
                 addToList(playlist, song);
             }
         }
@@ -333,6 +335,78 @@ int makePlaylist(int argc, char *argv[])
 
     if (playlist.head == NULL)
         puts("Music not found");
+
+    return 0;
+}
+
+void *getDurationsThread(void *arg)
+{
+    // Thread code goes here
+    PlayList *playList = (PlayList *)arg;
+
+    if (playList == NULL)
+        return NULL;
+
+    Node *currentNode = playList->head;
+    double totalDuration = 0.0;
+
+    for (int i = 0; i < playList->count; i++)
+    {
+        if (stopThread)
+            return NULL;
+
+        if (currentNode == NULL)
+            return NULL;
+
+        if (currentNode->song.duration > 0.0)
+        {
+            currentNode = getListNext(currentNode);
+            continue;
+        }
+        if (currentNode->song.filePath == NULL)
+        {
+            currentNode = getListNext(currentNode);
+            continue;
+        }
+        char musicFilepath[MAX_FILENAME_LENGTH];
+        strcpy(musicFilepath, currentNode->song.filePath);
+        double duration = ((currentNode->song.duration > 0.0) ? currentNode->song.duration : getDuration(musicFilepath));
+        if (duration > 0.0)
+        {
+            currentNode->song.duration = duration;
+            totalDuration += duration;
+            playList->totalDuration += duration;
+        }
+        currentNode = getListNext(currentNode);
+        usleep(10000);
+    }
+
+    // Recount them all
+    currentNode = playList->head;
+    playList->totalDuration = 0.0;
+    for (int i = 0; i < playList->count; i++)
+    {
+        if (currentNode != NULL && currentNode->song.duration > 0.0)
+            playList->totalDuration += currentNode->song.duration;
+        currentNode = getListNext(currentNode);
+    }
+    return NULL;
+}
+
+int setPlayListDurations(PlayList *playlist)
+{
+    if (playlist->totalDuration > 0.0)
+        return 0;
+
+    pthread_t thread;
+    int threadCreationResult;
+
+    // Create a new thread
+    threadCreationResult = pthread_create(&thread, NULL, getDurationsThread, (void *)playlist);
+    if (threadCreationResult != 0)
+    {
+        return 1;
+    }
 
     return 0;
 }

@@ -137,8 +137,12 @@ int play(SongInfo song)
     bool shouldQuit = false;
     int asciiHeight, asciiWidth;
     char musicFilepath[MAX_FILENAME_LENGTH];
-    strcpy(musicFilepath, song.filePath);    
-    double duration = getDuration(song.filePath);
+    strcpy(musicFilepath, song.filePath);
+    double duration = 0.0;
+    if (song.duration > 0.0)
+        duration = song.duration;
+    else
+        duration = getDuration(song.filePath);
     refresh = true;
     generateTempFilePath(tagsFilePath, "metatags", ".txt");
     extract_tags(strdup(musicFilepath), tagsFilePath);
@@ -146,10 +150,12 @@ int play(SongInfo song)
 
     int res = playSoundFile(musicFilepath);
 
+    setPlayListDurations(&playlist);
+
     if (res != 0)
     {
         cleanup();
-        currentSong = getListNext(&playlist, currentSong);
+        currentSong = getListNext(currentSong);
         if (currentSong != NULL)
             return play(currentSong->song);
     }
@@ -189,7 +195,14 @@ int play(SongInfo song)
             refresh = true;
             break;
         case EVENT_SHUFFLE:
+            // Interrupt total playlist duration counting thread
+            stopThread = 1;
+            usleep(100000);
+            stopThread = 0;
+            playlist.totalDuration = 0.0;
             shufflePlaylist(&playlist);
+            // And restart it
+            setPlayListDurations(&playlist);
             break;
         case EVENT_QUIT:
             if (event.key == 'q' || elapsedSeconds > 2.0)
@@ -207,7 +220,7 @@ int play(SongInfo song)
             if (currentSong->next != NULL)
             {
                 cleanup();
-                currentSong = getListNext(&playlist, currentSong);
+                currentSong = getListNext(currentSong);
                 return play(currentSong->song);
             }
             break;
@@ -215,7 +228,7 @@ int play(SongInfo song)
             if (currentSong->prev != NULL)
             {
                 cleanup();
-                currentSong = getListPrev(&playlist, currentSong);
+                currentSong = getListPrev(currentSong);
                 return play(currentSong->song);
             }
             break;
@@ -247,7 +260,7 @@ int play(SongInfo song)
         {
             if ((elapsedSeconds < duration) && !isPaused())
             {
-                printPlayer(musicFilepath, tagsFilePath, elapsedSeconds, duration);
+                printPlayer(musicFilepath, tagsFilePath, elapsedSeconds, duration, &playlist);
             }
         }
 
@@ -259,12 +272,11 @@ int play(SongInfo song)
         {
             cleanup();
             if (!repeatEnabled)
-                currentSong = getListNext(&playlist, currentSong);
+                currentSong = getListNext(currentSong);
             if (currentSong != NULL)
                 play(currentSong->song);
             break;
         }
-
         // Add a small delay to avoid excessive updates
         usleep(100000);
     }

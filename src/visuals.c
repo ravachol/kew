@@ -1,7 +1,7 @@
 #include "visuals.h"
 #include "albumart.h"
 
-void drawSpectrum(int height, int width)
+void drawEqualizer(int height, int width)
 {
     fftwf_complex *fftInput = (fftwf_complex *)fftwf_malloc(sizeof(fftwf_complex) * BUFFER_SIZE);
     fftwf_complex *fftOutput = (fftwf_complex *)fftwf_malloc(sizeof(fftwf_complex) * BUFFER_SIZE);
@@ -33,33 +33,58 @@ void drawSpectrum(int height, int width)
         magnitudes[i] = 0.0f;
     }
 
+    // Define the frequency ranges for different sections
+    float lowEnd = 100.0f;
+    float middleEnd = 1000.0f;
+    float highEnd = 10000.0f;
+
+    float scaleFactorLow = 1.0f;    // Scaling factor for low-end frequencies
+    float scaleFactorMiddle = 1.5f; // Scaling factor for middle-end frequencies
+    float scaleFactorHigh = 2.0f;   // Scaling factor for high-end frequencies
+    float scaleFactor = 1.0;
+
     for (int i = numBins - 1; i >= 0; i--)
     {
         float frequency = (numBins - i - 1) * frequencyResolution;
-        int barIndex = ((frequency / (SAMPLE_RATE / 2)) * (width));
+        int barIndex = -1;
 
-        float magnitude1 = sqrtf(fftOutput[i][0] * fftOutput[i][0] + fftOutput[i][1] * fftOutput[i][1]); // Magnitude of channel 1
-        // Calculate the combined magnitude
+        if (frequency < lowEnd)
+        {
+            // Low-end frequency range
+            barIndex = (int)((frequency / lowEnd) * (width - 1));
+            // Apply scaling factor for low-end frequencies
+            scaleFactor = scaleFactorLow;
+        }
+        else if (frequency < middleEnd)
+        {
+            // Middle-end frequency range
+            barIndex = (int)(((frequency - lowEnd) / (middleEnd - lowEnd)) * (width - 1));
+            // Apply scaling factor for middle-end frequencies
+            scaleFactor = scaleFactorMiddle;
+        }
+        else if (frequency < highEnd)
+        {
+            // High-end frequency range
+            barIndex = (int)(((frequency - middleEnd) / (highEnd - middleEnd)) * (width - 1));
+            // Apply scaling factor for high-end frequencies
+            scaleFactor = scaleFactorHigh;
+        }
+
+        if (barIndex < 0)
+            barIndex = 0;
+        if (barIndex >= width)
+            barIndex = width - 1;
+
+        float magnitude1 = sqrtf(fftOutput[i][0] * fftOutput[i][0] + fftOutput[i][1] * fftOutput[i][1]);
         float combinedMagnitude = magnitude1;
-        magnitudes[barIndex] += combinedMagnitude;
-    }
-
-    /*if (term_w < 2|| term_h < 2)
-    {
-      clearRestOfScreen();
-      return;
-    }*/
-    if (term_w < width)
-    {
-        width = term_w;
+        magnitudes[barIndex] += combinedMagnitude * scaleFactor;
     }
     printf("\n"); // Start on a new line
     fflush(stdout);
-
+    float percentage = 0.3;
     float maxMagnitude = 0.0f;
-    float threshold = 28.0f;
-    float ceiling = 80.0f;
-    float magic = 1; // crank it up a bit
+
+    float ceiling = 100.0f;
     // Find the maximum magnitude in the current frame
     for (int i = 0; i < width; i++)
     {
@@ -68,12 +93,14 @@ void drawSpectrum(int height, int width)
             maxMagnitude = magnitudes[i];
         }
     }
-
+    float threshold = percentage * maxMagnitude;
     if (maxMagnitude < threshold)
         maxMagnitude = threshold;
     if (maxMagnitude > ceiling)
         maxMagnitude = ceiling;
 
+    clearRestOfScreen();
+    float exponent = 0.8;
     for (int j = height; j > 0; j--)
     {
         printf("\r"); // Move cursor to the beginning of the line
@@ -81,24 +108,22 @@ void drawSpectrum(int height, int width)
         for (int i = 0; i < width; i++)
         {
             float normalizedMagnitude = magnitudes[i] / maxMagnitude;
-
-            float scaledMagnitude = normalizedMagnitude * magic;
-
+            // float scaledMagnitude = normalizedMagnitude * scaleFactor;
+            float scaledMagnitude = pow(normalizedMagnitude, exponent);
             float heightVal = scaledMagnitude * height;
-            /*if (heightVal > 0.5f && heightVal < 1.0f) {
-                heightVal = 1.0f; // Exaggerate low values
-            }*/
+
             int barHeight = (int)round(heightVal);
-            if (barHeight >= j)
-            {
-                printf("║");
-            }
-            else
-            {
-                printf(" ");
-            }
+            if (j > 0)
+                if (barHeight >= j && i > 0) // FIXME: Bug where first bar is always maxed. i > 0 hides it.
+                {
+                    printf("║"); // Use a full block character to represent the bar
+                }
+                else if (i != 0)
+                {
+                    printf(" ");
+                }
         }
-        printf("\n");
+        printf("\033[0m\n"); // Reset the color and move to the next line
     }
 
     // Restore the cursor position

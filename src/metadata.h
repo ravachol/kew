@@ -8,8 +8,8 @@
 #include "stringfunc.h"
 #include "settings.h"
 
-#ifndef KEYVALUEPAIR_H
-#define KEYVALUEPAIR_H
+#ifndef KEYVALUEPAIR_STRUCT
+#define KEYVALUEPAIR_STRUCT
 
 typedef struct
 {
