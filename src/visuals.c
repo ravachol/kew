@@ -3,9 +3,9 @@
 
 void drawEqualizer(int height, int width)
 {
-    width =  floor(width / 2);
+    width =  width / 2;
     height = height - 2;
-
+    width++;
     if (height <= 0 || width <= 0)
         return;    
 
