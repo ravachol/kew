@@ -17,7 +17,7 @@ void printHelp()
     printf("Examples: cue moon (Plays the first song or directory it finds that has the word moon, ie moonlight sonata)\n");
     printf("          play path \"/home/user/Music\"\n");
     printf("\n");
-    printf("cue returns the first directory or file whose name matches the string you provide.");
+    printf("cue returns the first directory or file whose name matches the string you provide. ");
     printf("Use quotation marks when providing a path with blank spaces in it or if it's a music file that contains single quotes (').\n");
     printf("Use arrow keys to play the next or previous track in the playlist. Press space to pause.\n");
     printf("Press q to quit.\n");
@@ -81,7 +81,6 @@ int getYear(const char *dateString)
     {
         return -1;
     }
-
     return year;
 }
 
