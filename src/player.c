@@ -4,7 +4,7 @@ const char VERSION[] = "1.0.0";
 
 bool firstSong = true;
 bool refresh = true;
-bool visualizationEnabled = false;
+bool visualizationEnabled = true;
 bool coverEnabled = true;
 bool coverBlocks = true;
 bool drewCover = true;

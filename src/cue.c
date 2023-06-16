@@ -137,7 +137,10 @@ int play(SongInfo song)
     strcpy(musicFilepath, song.filePath);
     int res = playSoundFile(musicFilepath);
     struct timespec start_time;
+    struct timespec pause_time;
     double elapsedSeconds = 0.0;
+    double pauseSeconds = 0.0;
+    double totalPauseSeconds = 0.0;
     bool shouldQuit = false;
     int asciiHeight, asciiWidth;
     double duration = 0.0;
@@ -164,9 +167,17 @@ int play(SongInfo song)
         struct timespec current_time;
         clock_gettime(CLOCK_MONOTONIC, &current_time);
 
-        elapsedSeconds = (double)(current_time.tv_sec - start_time.tv_sec) +
-                         (double)(current_time.tv_nsec - start_time.tv_nsec) / 1e9;
-
+        if (!isPaused())
+        {
+            elapsedSeconds = (double)(current_time.tv_sec - start_time.tv_sec) +
+                             (double)(current_time.tv_nsec - start_time.tv_nsec) / 1e9;
+            elapsedSeconds -= totalPauseSeconds;
+        }
+        else
+        {
+            pauseSeconds = (double)(current_time.tv_sec - pause_time.tv_sec) +
+                           (double)(current_time.tv_nsec - pause_time.tv_nsec) / 1e9;
+        }
         // Process events
         struct Event event = processInput();
 
@@ -174,6 +185,10 @@ int play(SongInfo song)
         {
         case EVENT_PLAY_PAUSE:
             pausePlayback();
+            if (isPaused())
+               clock_gettime(CLOCK_MONOTONIC, &pause_time);
+            else
+                totalPauseSeconds += pauseSeconds;
             break;
         case EVENT_TOGGLEVISUALS:
             visualizationEnabled = !visualizationEnabled;
