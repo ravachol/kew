@@ -41,12 +41,14 @@ void data_callback(ma_device *pDevice, void *pOutput, const void *pInput, ma_uin
     size_t bytesPerFrame = ma_get_bytes_per_frame(outputFormat, pDevice->playback.channels);
     size_t bufferSizeInBytes = frameCount * bytesPerFrame;
 
-    g_audioBuffer = (ma_int16 *)malloc(bufferSizeInBytes);
     if (g_audioBuffer == NULL)
     {
-        return;
+        g_audioBuffer = (ma_int16 *)malloc(bufferSizeInBytes);
+        if (g_audioBuffer == NULL)
+        {
+            return;
+        }
     }
-
     // Conversion from output format to ma_int16
     switch (outputFormat)
     {
