@@ -4,7 +4,7 @@
 void drawEqualizer(int height, int width)
 {
     width =  width / 2;
-    height = height - 2;
+    height = height - 1;
     width++;
     if (height <= 0 || width <= 0)
         return;    
