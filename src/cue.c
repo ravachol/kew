@@ -128,6 +128,11 @@ void cleanup()
 
 int play(SongInfo song)
 {
+    if (g_audioBuffer != NULL) 
+    {
+        free(g_audioBuffer);
+        g_audioBuffer = NULL;
+    }
     char musicFilepath[MAX_FILENAME_LENGTH];
     strcpy(musicFilepath, song.filePath);
     int res = playSoundFile(musicFilepath);
@@ -285,9 +290,13 @@ int start()
     if (currentSong == NULL)
         currentSong = playlist.head;
     play(currentSong->song);
-    restoreTerminalMode();
-    free(g_audioBuffer);
-    setConfig(&settings, SETTINGS_FILENAME);
+    restoreTerminalMode();    
+    if (g_audioBuffer != NULL) 
+    {
+        free(g_audioBuffer);
+        g_audioBuffer = NULL;
+    }
+    setConfig();
     return 0;
 }
 
