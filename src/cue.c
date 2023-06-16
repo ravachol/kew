@@ -207,7 +207,7 @@ int play(SongInfo song)
         case EVENT_TOGGLEBLOCKS:
             coverBlocks = !coverBlocks;
             strcpy(settings.coverBlocks, coverBlocks ? "1" : "0");
-            refresh = true;
+            if (coverEnabled) refresh = true;
             break;
         case EVENT_SHUFFLE:
             // Interrupt total playlist duration counting thread
