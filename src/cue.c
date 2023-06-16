@@ -242,12 +242,12 @@ int play(SongInfo song)
 
         if (resizeFlag)
         {
-            alarm(1); // Set a 1-second timer
+            alarm(1); // Timer
             while (resizeFlag)
             {
                 usleep(100000);
             }
-            alarm(0); // Cancel the timer
+            alarm(0); // Cancel timer
             refresh = true;
             printf("\033[1;1H");
             clearRestOfScreen();
@@ -273,7 +273,6 @@ int play(SongInfo song)
                 play(currentSong->song);
             break;
         }
-        // Add a small delay to avoid excessive updates
         usleep(100000);
     }
     cleanup();
