@@ -3,18 +3,18 @@
 #include <stdbool.h>
 #include <dirent.h>
 
-extern int isAudioFile(const char* filename);
+extern int isAudioFile(const char *filename);
 
-extern void addSlashIfNeeded(char* str);
+extern void addSlashIfNeeded(char *str);
 
-extern int compareEntries(const struct dirent **a, const struct dirent **b) ;
+extern int compareEntries(const struct dirent **a, const struct dirent **b);
 
-extern char* findFirstPathWithAudioFile(const char* path);
+extern char *findFirstPathWithAudioFile(const char *path);
 
-extern char* findLargestImageFile(const char* directoryPath);
+extern char *findLargestImageFile(const char *directoryPath);
 
-int displayAlbumArt(const char* filepath, int asciiHeight, int asciiWidth, bool coverBlocks);
+int displayAlbumArt(const char *filepath, int asciiHeight, int asciiWidth, bool coverBlocks);
 
-int calcIdealImgSize(int* width, int* height, const int visualizationHeight, const int metatagHeight, bool firstSong);
+int calcIdealImgSize(int *width, int *height, const int visualizationHeight, const int metatagHeight, bool firstSong);
 
 #endif
