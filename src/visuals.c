@@ -3,6 +3,9 @@
 
 void drawEqualizer(int height, int width)
 {
+    if (height <= 0 || width <= 0)
+        return;
+        
     width++; // FIXME: For some reason the first bar is always maxed, so we don't show it and instead increase width
              //        this should be solved in a better way
     fftwf_complex *fftInput = (fftwf_complex *)fftwf_malloc(sizeof(fftwf_complex) * BUFFER_SIZE);

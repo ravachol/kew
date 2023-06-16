@@ -20,6 +20,8 @@ int printPlayer(const char *songFilepath, const char *tagsFilePath, double elaps
     int minHeight = 2 + (visualizationEnabled ? visualizationHeight : 0);
     int metadataHeight = 4;
     calcIdealImgSize(&asciiWidth, &asciiHeight, (visualizationEnabled ? visualizationHeight : 0), metadataHeight, firstSong);
+    if (asciiWidth <= 0 || asciiHeight <= 0)
+        return -1;
 
     if (refresh)
     {
@@ -47,14 +49,16 @@ int printPlayer(const char *songFilepath, const char *tagsFilePath, double elaps
     {
         double totalDurationSeconds = playlist->totalDuration;
         printProgress(elapsedSeconds, songDurationSeconds, totalDurationSeconds);
-    }
-    if (visualizationEnabled)
-    {
-        drawEqualizer(visualizationHeight, asciiWidth);
-        fflush(stdout);
-        drewVisualization = true;
+        if (visualizationEnabled)
+        {
+            drawEqualizer(visualizationHeight, asciiWidth);
+            fflush(stdout);
+            drewVisualization = true;
+        }        
     }
     saveCursorPosition();
+
+    return 0;
 }
 
 // Struct to hold response data
