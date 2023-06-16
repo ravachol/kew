@@ -5,7 +5,6 @@ void drawEqualizer(int height, int width)
 {
     width =  width / 2;
     height = height - 1;
-    width++;
     if (height <= 0 || width <= 0)
         return;    
 
@@ -126,14 +125,9 @@ void drawEqualizer(int height, int width)
 
             int barHeight = (int)round(heightVal);
             if (j >= 0)
-                if (barHeight >= j && i > 0) 
+                if (barHeight >= j) 
                 {
-                    if (j == 0&& hasDrawn[i] == 0)
-                    {
-                        printf("╔╗");
-                        hasDrawn[i] = 1;
-                    }
-                    else if (hasDrawn[i] == 0)
+                    if (hasDrawn[i] == 0)
                     {
                         printf("╔╗");
                         hasDrawn[i] = 1;
@@ -144,7 +138,7 @@ void drawEqualizer(int height, int width)
                         hasDrawn[i] = 1;
                     }
                 }
-                else if (i != 0)
+                else
                 {
                     printf("  ");
                 }
@@ -152,7 +146,7 @@ void drawEqualizer(int height, int width)
         printf("\033[0m\n"); // Reset the color and move to the next line
     }
     printf("\r");    
-    for (int i = 1; i < width; i++)
+    for (int i = 0; i < width; i++)
     {
         if (hasDrawn[i] == 0)
             printf("╔╗");
@@ -161,7 +155,7 @@ void drawEqualizer(int height, int width)
     }
     printf("\033[0m\n"); // Reset the color and move to the next line
     printf("\r");
-    for (int i = 1; i < width; i++)
+    for (int i = 0; i < width; i++)
     {
             printf("╚╝"); 
     }
