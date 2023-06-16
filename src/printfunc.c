@@ -26,7 +26,39 @@ void printHelp()
     printf("\n");
 }
 
-void printVersion(const char *version)
+bool isVersionGreater(const char* versionA, const char* versionB) {
+    // Split versionA into major, minor, and patch components
+    int majorA, minorA, patchA;
+    sscanf(versionA, "%d.%d.%d", &majorA, &minorA, &patchA);
+
+    // Split versionB into major, minor, and patch components
+    int majorB, minorB, patchB;
+    sscanf(versionB, "%d.%d.%d", &majorB, &minorB, &patchB);
+
+    // Compare the components
+    if (majorA > majorB) {
+        return true;
+    } else if (majorA < majorB) {
+        return false;
+    }
+
+    if (minorA > minorB) {
+        return true;
+    } else if (minorA < minorB) {
+        return false;
+    }
+
+    if (patchA > patchB) {
+        return true;
+    } else if (patchA < patchB) {
+        return false;
+    }
+
+    // If all components are equal, versions are not greater
+    return false;
+}
+
+void printVersion(const char *version, const char *latestVersion)
 {
     printf(" $$$$$$$\\ $$\\   $$\\  $$$$$$\\\n");
     printf("$$  _____|$$ |  $$ |$$  __$$\\\n");
@@ -35,6 +67,10 @@ void printVersion(const char *version)
     printf("\\$$$$$$$\\ \\$$$$$$  |\\$$$$$$$\\\n");
     printf(" \\_______| \\______/  \\_______|\n");
     printf("cue version %s.\n", version);
+    if (isVersionGreater("latestVersion", version))
+        printf("There is a newer version (%s) available.\n", latestVersion);
+    printf("Github Homepage: https://github.com/ravachol/cue\n");
+    printf("Copyright ® Ravachol 2023.\n");
 }
 
 int getYear(const char *dateString)

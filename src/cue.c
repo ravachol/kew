@@ -49,7 +49,6 @@
 #endif
 #define TRESHOLD_TERMINAL_SIZE 28
 
-const char VERSION[] = "1.0.0";
 char tagsFilePath[FILENAME_MAX];
 bool repeatEnabled = false;
 Node *currentSong;
@@ -308,11 +307,11 @@ int main(int argc, char *argv[])
 
     if (argc == 1 || (argc == 2 && ((strcmp(argv[1], "--help") == 0) || (strcmp(argv[1], "-h") == 0) || (strcmp(argv[1], "-?") == 0))))
     {
-        printHelp();
+        showHelp();
     }
     else if (argc == 2 && (strcmp(argv[1], "--version") == 0 || strcmp(argv[1], "-v") == 0))
     {
-        printVersion(VERSION);
+        showVersion();
     }
     else if (argc == 3 && (strcmp(argv[1], "path") == 0))
     {

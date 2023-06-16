@@ -5,7 +5,7 @@
 
 void printHelp();
 
-void printVersion(const char *version);
+void printVersion(const char *version, const char *latestVersion);
 
 int getYear(const char *dateString);
 
