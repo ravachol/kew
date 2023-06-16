@@ -43,9 +43,9 @@ void drawEqualizer(int height, int width)
     float middleEnd = 1000.0f;
     float highEnd = 10000.0f;
 
-    float scaleFactorLow = 1.4f;    // Scaling factor for low-end frequencies
-    float scaleFactorMiddle = 1.7f; // Scaling factor for middle-end frequencies
-    float scaleFactorHigh = 1.7f;   // Scaling factor for high-end frequencies
+    float scaleFactorLow = 1.2f;    // Scaling factor for low-end frequencies
+    float scaleFactorMiddle = 1.4f; // Scaling factor for middle-end frequencies
+    float scaleFactorHigh = 1.4f;   // Scaling factor for high-end frequencies
     float scaleFactor = 1.0;
 
     for (int i = numBins; i >= 0; i--)
