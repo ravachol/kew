@@ -3,18 +3,11 @@
 
 void drawEqualizer(int height, int width)
 {
-    if (height <= 0 || width <= 0)
-        return;
-
     width =  floor(width / 2);
     height = height - 2;
 
-    int remainder = width % 2;
-
-    if (remainder == 1)
-    {
-        width -= 1;
-    }
+    if (height <= 0 || width <= 0)
+        return;    
 
     fftwf_complex *fftInput = (fftwf_complex *)fftwf_malloc(sizeof(fftwf_complex) * BUFFER_SIZE);
     fftwf_complex *fftOutput = (fftwf_complex *)fftwf_malloc(sizeof(fftwf_complex) * BUFFER_SIZE);
