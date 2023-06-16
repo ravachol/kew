@@ -51,10 +51,7 @@
 
 const char VERSION[] = "1.0.0";
 char tagsFilePath[FILENAME_MAX];
-bool test;
-bool isResizing = false;
 bool repeatEnabled = false;
-struct timespec escapeTime;
 Node *currentSong;
 
 struct Event processInput()
