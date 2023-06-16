@@ -5,9 +5,17 @@ void drawEqualizer(int height, int width)
 {
     if (height <= 0 || width <= 0)
         return;
-        
-    width++; // FIXME: For some reason the first bar is always maxed, so we don't show it and instead increase width
-             //        this should be solved in a better way
+
+    width =  width / 2;    
+    height = height - 2;
+
+    int remainder = width % 2;
+
+    if (remainder == 1)
+    {
+        width -= 1;
+    }
+
     fftwf_complex *fftInput = (fftwf_complex *)fftwf_malloc(sizeof(fftwf_complex) * BUFFER_SIZE);
     fftwf_complex *fftOutput = (fftwf_complex *)fftwf_malloc(sizeof(fftwf_complex) * BUFFER_SIZE);
 
@@ -30,7 +38,7 @@ void drawEqualizer(int height, int width)
     getTermSize(&term_w, &term_h);
 
     int binSize = BUFFER_SIZE / width;
-    int numBins = BUFFER_SIZE / 2;
+    int numBins = width;
     float frequencyResolution = SAMPLE_RATE / BUFFER_SIZE;
 
     for (int i = 0; i < width; i++)
@@ -44,33 +52,33 @@ void drawEqualizer(int height, int width)
     float highEnd = 10000.0f;
 
     float scaleFactorLow = 1.4f;    // Scaling factor for low-end frequencies
-    float scaleFactorMiddle = 1.8f; // Scaling factor for middle-end frequencies
-    float scaleFactorHigh = 1.8f;   // Scaling factor for high-end frequencies
+    float scaleFactorMiddle = 1.7f; // Scaling factor for middle-end frequencies
+    float scaleFactorHigh = 1.7f;   // Scaling factor for high-end frequencies
     float scaleFactor = 1.0;
 
-    for (int i = numBins - 1; i >= 0; i--)
+    for (int i = numBins; i >= 0; i--)
     {
         float frequency = (numBins - i - 1) * frequencyResolution;
-        int barIndex = -1;
+        int barIndex = 0;
 
         if (frequency < lowEnd)
         {
             // Low-end frequency range
-            barIndex = (int)((frequency / lowEnd) * (width - 1));
+            barIndex = floor(((frequency / lowEnd) * (width)));
             // Apply scaling factor for low-end frequencies
             scaleFactor = scaleFactorLow;
         }
         else if (frequency < middleEnd)
         {
             // Middle-end frequency range
-            barIndex = (int)(((frequency - lowEnd) / (middleEnd - lowEnd)) * (width - 1));
+            barIndex = (int)(((frequency - lowEnd) / (middleEnd - lowEnd)) * (width));
             // Apply scaling factor for middle-end frequencies
             scaleFactor = scaleFactorMiddle;
         }
         else if (frequency < highEnd)
         {
             // High-end frequency range
-            barIndex = (int)(((frequency - middleEnd) / (highEnd - middleEnd)) * (width - 1));
+            barIndex = (int)(((frequency - middleEnd) / (highEnd - middleEnd)) * (width));
             // Apply scaling factor for high-end frequencies
             scaleFactor = scaleFactorHigh;
         }
@@ -78,11 +86,11 @@ void drawEqualizer(int height, int width)
         if (barIndex < 0)
             barIndex = 0;
         if (barIndex >= width)
-            barIndex = width - 1;
+            barIndex = width;
 
         float magnitude1 = sqrtf(fftOutput[i][0] * fftOutput[i][0] + fftOutput[i][1] * fftOutput[i][1]);
         float combinedMagnitude = magnitude1;
-        magnitudes[barIndex] += combinedMagnitude * scaleFactor;
+        magnitudes[i] += combinedMagnitude * scaleFactor;
     }
     printf("\n"); // Start on a new line
     fflush(stdout);
@@ -106,6 +114,12 @@ void drawEqualizer(int height, int width)
 
     clearRestOfScreen();
     float exponent = 0.8;
+    int hasDrawn[width];
+
+    for (int i = 0; i < width; i++)
+    {
+        hasDrawn[i] = 0;
+    }
     for (int j = height; j > 0; j--)
     {
         printf("\r"); // Move cursor to the beginning of the line
@@ -118,21 +132,51 @@ void drawEqualizer(int height, int width)
             float heightVal = scaledMagnitude * height;
 
             int barHeight = (int)round(heightVal);
-            if (j > 0)
-                if (barHeight >= j && i > 0) // FIXME: Bug where first bar is always maxed. i > 0 hides it.
+            if (j >= 0)
+                if (barHeight >= j && i > 0) 
                 {
-                    printf("║"); // Use a full block character to represent the bar
+                    if (j == 0&& hasDrawn[i] == 0)
+                    {
+                        printf("╔╗");
+                        hasDrawn[i] = 1;
+                    }
+                    else if (hasDrawn[i] == 0)
+                    {
+                        printf("╔╗");
+                        hasDrawn[i] = 1;
+                    }
+                    else
+                    {
+                        printf("║║");
+                        hasDrawn[i] = 1;
+                    }
                 }
                 else if (i != 0)
                 {
-                    printf(" ");
+                    printf("  ");
                 }
         }
         printf("\033[0m\n"); // Reset the color and move to the next line
     }
+    printf("\r");    
+    for (int i = 1; i < width; i++)
+    {
+        if (hasDrawn[i] == 0)
+            printf("╔╗");
+        else
+            printf("║║");
+    }
+    printf("\033[0m\n"); // Reset the color and move to the next line
+    printf("\r");
+    for (int i = 1; i < width; i++)
+    {
+            printf("╚╝"); 
+    }
+    // printf("  ");
+    //  Restore the cursor position
+    printf("\033[%dA", height + 2);
+    printf("\r");
 
-    // Restore the cursor position
-    printf("\033[%dA", height + 1);
     fflush(stdout);
 
     fftwf_destroy_plan(plan);
