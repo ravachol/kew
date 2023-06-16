@@ -48,9 +48,9 @@ int saveSettingsDeprecated(char *path, const char *settingsFile);
 // reads the settings file, which contains the path to your music folder
 int getSettingsDeprecated(char *path, int len, const char *settingsFile);
 
-void getConfig(const char *filename);
+void getConfig();
 
-void setConfig(AppSettings *settings, const char *filename);
+void setConfig();
 
 int getMusicLibraryPath(char *path);
 

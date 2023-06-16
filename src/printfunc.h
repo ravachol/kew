@@ -3,12 +3,12 @@
 #include <time.h>
 #include "metadata.h"
 
-extern void printHelp();
+void printHelp();
 
-extern void printVersion(const char *version);
+void printVersion(const char *version);
 
-extern int getYear(const char *dateString);
+int getYear(const char *dateString);
 
-extern void printBasicMetadata(const char *file_path);
+void printBasicMetadata(const char *file_path);
 
-extern void printProgress(double elapsed_seconds, double total_seconds, double total_duration_seconds);
+void printProgress(double elapsed_seconds, double total_seconds, double total_duration_seconds);

@@ -79,7 +79,7 @@ int endsWith(const char *str, const char *suffix)
 
     if (suffixLength > strLength)
     {
-        return 0; // The suffix is longer than the string, it cannot be a suffix
+        return 0;
     }
 
     const char *strSuffix = str + (strLength - suffixLength);
@@ -92,23 +92,20 @@ bool containsCharacter(const char *str, const char character)
     {
         if (*str == character)
         {
-            return true; // Character found
+            return true;
         }
         str++;
     }
-    return false; // Character not found
+    return false;
 }
 
 void trim(char *str)
 {
-    // Remove leading whitespace characters
     char *start = str;
     while (*start && isspace(*start))
     {
         start++;
     }
-
-    // Remove trailing whitespace characters
     char *end = str + strlen(str) - 1;
     while (end > start && isspace(*end))
     {
@@ -116,7 +113,6 @@ void trim(char *str)
     }
     *(end + 1) = '\0';
 
-    // Shift trimmed string to the beginning
     if (str != start)
     {
         memmove(str, start, end - start + 2);

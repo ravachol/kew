@@ -186,7 +186,6 @@ void pcm_callback(ma_device *pDevice, void *pOutput, const void *pInput, ma_uint
 
     // Copy the audio samples from pOutput to audioBuffer
     memcpy(g_audioBuffer, pOutput, sizeof(ma_int16) * frameCount);
-    // memcpy(g_audioBuffer, pOutput, bufferSize);
 
     (void)pInput;
 }
@@ -224,7 +223,6 @@ int playPcmFile(const char *filePath)
         fclose(file);
         return -4;
     }
-
     return 0;
 }
 
@@ -235,20 +233,13 @@ int playAacFile(const char *filePath)
     generateTempFilePath(tempFilePath, "temp", ".pcm");
     if (convertAacToPcmFile(filePath, tempFilePath) != 0)
     {
-        // printf("Failed to run FFmpeg command:\n");
         return -1;
     }
-
     int ret = playPcmFile(tempFilePath);
-
     if (ret != 0)
     {
-        // printf("Failed to play file: %d\n", ret);
         return -1;
     }
-
-    // delete pcm file
-
     return 0;
 }
 
@@ -329,42 +320,30 @@ int getSongDuration(const char *filePath, double *duration)
     char *durationStr;
     double durationValue;
 
-    // Construct the FFprobe command
     snprintf(command, sizeof(command), "ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 \"%s\"", filePath);
 
-    // Open a pipe to execute the command
     pipe = popen(command, "r");
     if (pipe == NULL)
     {
         fprintf(stderr, "Failed to run FFprobe command.\n");
         return -1;
     }
-
-    // Read the output of the command
     if (fgets(output, sizeof(output), pipe) == NULL)
     {
         fprintf(stderr, "Failed to read FFprobe output.\n");
         pclose(pipe);
         return -1;
     }
-
-    // Close the pipe
     pclose(pipe);
 
-    // Extract the duration value from the output
     durationStr = strtok(output, "\n");
     if (durationStr == NULL)
     {
         fprintf(stderr, "Failed to parse FFprobe output.\n");
         return -1;
     }
-
-    // Convert the duration string to a double value
     durationValue = atof(durationStr);
-
-    // Assign the duration value to the output parameter
     *duration = durationValue;
-
     return 0;
 }
 
@@ -378,20 +357,15 @@ double getDuration(const char *filepath)
 int adjustVolumePercent(int volumeChange)
 {
     char command_str[1000];
-
     if (volumeChange > 0)
         snprintf(command_str, 1000, "amixer -D pulse sset Master %d%%+", volumeChange);
     else
         snprintf(command_str, 1000, "amixer -D pulse sset Master %d%%-", -volumeChange);
-
-    // Open the command for reading.
     FILE *fp = popen(command_str, "r");
     if (fp == NULL)
     {
         return -1;
     }
-
-    // Close the command stream.
     pclose(fp);
     return 0;
 }
