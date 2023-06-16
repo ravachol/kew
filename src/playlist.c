@@ -16,20 +16,12 @@ volatile int stopThread = 0;
 
 Node *getListNext(Node *node)
 {
-    if (node == NULL)
-    {
-        return NULL;
-    }
-    return node->next;
+    return (node == NULL) ? NULL : node->next;
 }
 
 Node *getListPrev(Node *node)
 {
-    if (node == NULL)
-    {
-        return NULL;
-    }
-    return node->prev;
+    return (node == NULL) ? NULL : node->prev;
 }
 
 void addToList(PlayList *list, SongInfo song)
