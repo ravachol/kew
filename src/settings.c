@@ -176,12 +176,12 @@ int getMusicLibraryPath(char *path)
     return 0;
 }
 
-void getConfig(const char *filename)
+void getConfig()
 {
     int pair_count;
     struct passwd *pw = getpwuid(getuid());
     const char *homedir = pw->pw_dir;
-    const char *filepath = strcat(strcat(strcpy((char *)malloc(strlen(homedir) + strlen("/") + strlen(filename) + 1), homedir), "/"), filename);
+    const char *filepath = strcat(strcat(strcpy((char *)malloc(strlen(homedir) + strlen("/") + strlen(SETTINGS_FILENAME) + 1), homedir), "/"), SETTINGS_FILENAME);
     KeyValuePair *pairs = readKeyValuePairs(filepath, &pair_count);
     settings = constructAppSettings(pairs, pair_count);
 
@@ -194,7 +194,7 @@ void getConfig(const char *filename)
     getMusicLibraryPath(settings.path);
 }
 
-void setConfig(AppSettings *settings, const char *filename)
+void setConfig()
 {
     int pair_count = 4; // Number of key-value pairs in AppSettings
 
@@ -202,10 +202,10 @@ void setConfig(AppSettings *settings, const char *filename)
     struct passwd *pw = getpwuid(getuid());
     const char *homedir = pw->pw_dir;
 
-    char *filepath = (char *)malloc(strlen(homedir) + strlen("/") + strlen(filename) + 1);
+    char *filepath = (char *)malloc(strlen(homedir) + strlen("/") + strlen(SETTINGS_FILENAME) + 1);
     strcpy(filepath, homedir);
     strcat(filepath, "/");
-    strcat(filepath, filename);
+    strcat(filepath, SETTINGS_FILENAME);
 
     // Open the file for writing
     FILE *file = fopen(filepath, "w");
@@ -217,30 +217,30 @@ void setConfig(AppSettings *settings, const char *filename)
     }
 
     // Set defaults if null
-    if (settings->coverEnabled[0] == '\0')
-        strcpy(settings->coverEnabled, "1");
-    if (settings->coverBlocks[0] == '\0')
-        strcpy(settings->coverBlocks, "1");
-    if (settings->visualizationEnabled[0] == '\0')
-        strcpy(settings->visualizationEnabled, "0");
-    if (settings->visualizationHeight[0] == '\0')
+    if (settings.coverEnabled[0] == '\0')
+        strcpy(settings.coverEnabled, "1");
+    if (settings.coverBlocks[0] == '\0')
+        strcpy(settings.coverBlocks, "1");
+    if (settings.visualizationEnabled[0] == '\0')
+        strcpy(settings.visualizationEnabled, "0");
+    if (settings.visualizationHeight[0] == '\0')
     {
-        sprintf(settings->visualizationHeight, "%d", visualizationHeight);
+        sprintf(settings.visualizationHeight, "%d", visualizationHeight);
     }
 
     // Null-terminate the character arrays
-    settings->path[MAXPATHLEN - 1] = '\0';
-    settings->coverEnabled[1] = '\0';
-    settings->coverBlocks[1] = '\0';
-    settings->visualizationEnabled[1] = '\0';
-    settings->visualizationHeight[5] = '\0';
+    settings.path[MAXPATHLEN - 1] = '\0';
+    settings.coverEnabled[1] = '\0';
+    settings.coverBlocks[1] = '\0';
+    settings.visualizationEnabled[1] = '\0';
+    settings.visualizationHeight[5] = '\0';
 
     // Write the settings to the file
-    fprintf(file, "path=%s\n", settings->path);
-    fprintf(file, "coverEnabled=%s\n", settings->coverEnabled);
-    fprintf(file, "coverBlocks=%s\n", settings->coverBlocks);
-    fprintf(file, "visualizationEnabled=%s\n", settings->visualizationEnabled);
-    fprintf(file, "visualizationHeight=%s\n", settings->visualizationHeight);
+    fprintf(file, "path=%s\n", settings.path);
+    fprintf(file, "coverEnabled=%s\n", settings.coverEnabled);
+    fprintf(file, "coverBlocks=%s\n", settings.coverBlocks);
+    fprintf(file, "visualizationEnabled=%s\n", settings.visualizationEnabled);
+    fprintf(file, "visualizationHeight=%s\n", settings.visualizationHeight);
 
     // Close the file and free the allocated memory
     fclose(file);
