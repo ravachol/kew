@@ -288,7 +288,7 @@ int makePlaylist(int argc, char *argv[])
 
     const char *allowedExtensions = ALLOWED_EXTENSIONS;
 
-    if (strcmp(argv[1], "list") == 0)
+    if (strcmp(argv[1], "list") == 0 && argc > 2)
     {
         allowedExtensions = PLAYLIST_EXTENSIONS;
         searchType = SearchPlayList;
@@ -536,14 +536,17 @@ void loadMainPlaylist(const char *directory)
     readM3UFile(playlistPath, mainPlaylist);
 }
 
-void saveMainPlaylist(const char *directory)
+void saveMainPlaylist(const char *directory, bool isPlayingMain)
 {
     char playlistPath[MAXPATHLEN];
     strcpy(playlistPath, directory);
     if (playlistPath[strlen(playlistPath) - 1] != '/')
         strcat(playlistPath, "/");
-    strcat(playlistPath, mainPlaylistName);    
-    writeM3UFile(playlistPath, mainPlaylist);
+    strcat(playlistPath, mainPlaylistName);
+    if (isPlayingMain)
+        writeM3UFile(playlistPath, &playlist);
+    else
+        writeM3UFile(playlistPath, mainPlaylist);
 }
 
 Node* deepCopyNode(Node* originalNode) {

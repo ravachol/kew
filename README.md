@@ -93,7 +93,7 @@ cue --help, -? or -h
 
 cue --version or -v
 
-cue (starting cue with no arguments loads the main cue playlist. if there is none found, it instead shows help.)
+cue (starting cue with no arguments loads the main cue playlist, see 'Other Functions')
  ```
 
 #### Other Functions:

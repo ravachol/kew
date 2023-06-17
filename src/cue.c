@@ -335,7 +335,7 @@ int run()
         g_audioBuffer = NULL;
     }
     setConfig();
-    saveMainPlaylist(settings.path);
+    saveMainPlaylist(settings.path, playingMainPlaylist);
     free(mainPlaylist);
     return 0;
 }
