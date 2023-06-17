@@ -35,13 +35,17 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         {
             strncpy(settings.coverBlocks, pair->value, sizeof(settings.coverBlocks));
         }
-        else if (strcmp(stringToLower(pair->key), "visualizationenabled") == 0)
+        else if (strcmp(stringToLower(pair->key), "equalizerblocks") == 0)
         {
-            strncpy(settings.visualizationEnabled, pair->value, sizeof(settings.visualizationEnabled));
+            strncpy(settings.equalizerBlocks, pair->value, sizeof(settings.equalizerBlocks));
+        }        
+        else if (strcmp(stringToLower(pair->key), "equalizerenabled") == 0)
+        {
+            strncpy(settings.equalizerEnabled, pair->value, sizeof(settings.equalizerEnabled));
         }
-        else if (strcmp(stringToLower(pair->key), "visualizationheight") == 0)
+        else if (strcmp(stringToLower(pair->key), "equalizerheight") == 0)
         {
-            strncpy(settings.visualizationHeight, pair->value, sizeof(settings.visualizationHeight));
+            strncpy(settings.equalizerHeight, pair->value, sizeof(settings.equalizerHeight));
         }
     }
 
@@ -187,10 +191,11 @@ void getConfig()
 
     coverEnabled = (settings.coverEnabled[0] == '1');
     coverBlocks = (settings.coverBlocks[0] == '1');
-    visualizationEnabled = (settings.visualizationEnabled[0] == '1');
-    int temp = atoi(settings.visualizationHeight);
+    equalizerEnabled = (settings.equalizerEnabled[0] == '1');
+    equalizerBlocks = (settings.equalizerBlocks[0] == '1');
+    int temp = atoi(settings.equalizerHeight);
     if (temp > 0)
-        visualizationHeight = temp;
+        equalizerHeight = temp;
     getMusicLibraryPath(settings.path);
 }
 
@@ -221,26 +226,30 @@ void setConfig()
         strcpy(settings.coverEnabled, "1");
     if (settings.coverBlocks[0] == '\0')
         strcpy(settings.coverBlocks, "1");
-    if (settings.visualizationEnabled[0] == '\0')
-        strcpy(settings.visualizationEnabled, "0");
-    if (settings.visualizationHeight[0] == '\0')
+    if (settings.equalizerEnabled[0] == '\0')
+        strcpy(settings.equalizerEnabled, "0");
+    if (settings.equalizerBlocks[0] == '\0')
+        strcpy(settings.equalizerBlocks, "0");        
+    if (settings.equalizerHeight[0] == '\0')
     {
-        sprintf(settings.visualizationHeight, "%d", visualizationHeight);
+        sprintf(settings.equalizerHeight, "%d", equalizerHeight);
     }
 
     // Null-terminate the character arrays
     settings.path[MAXPATHLEN - 1] = '\0';
     settings.coverEnabled[1] = '\0';
     settings.coverBlocks[1] = '\0';
-    settings.visualizationEnabled[1] = '\0';
-    settings.visualizationHeight[5] = '\0';
+    settings.equalizerEnabled[1] = '\0';
+    settings.equalizerBlocks[1] = '\0';    
+    settings.equalizerHeight[5] = '\0';
 
     // Write the settings to the file
     fprintf(file, "path=%s\n", settings.path);
     fprintf(file, "coverEnabled=%s\n", settings.coverEnabled);
     fprintf(file, "coverBlocks=%s\n", settings.coverBlocks);
-    fprintf(file, "visualizationEnabled=%s\n", settings.visualizationEnabled);
-    fprintf(file, "visualizationHeight=%s\n", settings.visualizationHeight);
+    fprintf(file, "equalizerEnabled=%s\n", settings.equalizerEnabled);
+    fprintf(file, "equalizerBlocks=%s\n", settings.equalizerBlocks);
+    fprintf(file, "equalizerHeight=%s\n", settings.equalizerHeight);
 
     // Close the file and free the allocated memory
     fclose(file);

@@ -4,12 +4,13 @@ const char VERSION[] = "1.0.0";
 
 bool firstSong = true;
 bool refresh = true;
-bool visualizationEnabled = true;
+bool equalizerEnabled = true;
+bool equalizerBlocks = false;
 bool coverEnabled = true;
 bool coverBlocks = true;
 bool drewCover = true;
 bool drewVisualization = false;
-int visualizationHeight = 8;
+int equalizerHeight = 8;
 int asciiHeight = 250;
 int asciiWidth = 500;
 int minWidth = 31;
@@ -17,16 +18,16 @@ const char githubLatestVersionUrl[] = "https://api.github.com/repos/ravachol/cue
 
 int printPlayer(const char *songFilepath, const char *tagsFilePath, double elapsedSeconds, double songDurationSeconds, PlayList *playlist)
 {
-    int minHeight = 2 + (visualizationEnabled ? visualizationHeight : 0);
+    int minHeight = 2 + (equalizerEnabled ? equalizerHeight : 0);
     int metadataHeight = 4;
-    calcIdealImgSize(&asciiWidth, &asciiHeight, (visualizationEnabled ? visualizationHeight : 0), metadataHeight, firstSong);
+    calcIdealImgSize(&asciiWidth, &asciiHeight, (equalizerEnabled ? equalizerHeight : 0), metadataHeight, firstSong);
     if (asciiWidth <= 0 || asciiHeight <= 0)
         return -1;
 
     if (refresh)
     {
         int row, col;
-        int coverRow = getFirstLineRow() - metadataHeight - (drewCover ? asciiHeight : 0) - (drewVisualization ? visualizationHeight : 0);
+        int coverRow = getFirstLineRow() - metadataHeight - (drewCover ? asciiHeight : 0) - (drewVisualization ? equalizerHeight : 0);
         clearRestOfScreen();
         if (coverEnabled)
         {
@@ -50,9 +51,9 @@ int printPlayer(const char *songFilepath, const char *tagsFilePath, double elaps
         double totalDurationSeconds = playlist->totalDuration;
         printProgress(elapsedSeconds, songDurationSeconds, totalDurationSeconds);      
     }
-    if (visualizationEnabled)
+    if (equalizerEnabled)
     {
-        drawEqualizer(visualizationHeight, asciiWidth);
+        drawEqualizer(equalizerHeight, asciiWidth, equalizerBlocks);
         fflush(stdout);
         drewVisualization = true;
     }      
