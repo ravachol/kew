@@ -64,7 +64,7 @@ void writeM3UFile(const char* filename, PlayList* playlist);
 
 void loadMainPlaylist(const char *directory);
 
-void saveMainPlaylist(const char *directory);
+void saveMainPlaylist(const char *directory, bool isPlayingMain);
 
 Node* deepCopyNode(Node* originalNode);
 
