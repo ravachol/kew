@@ -4,7 +4,7 @@
 // http://github.com/ravachol/cue
 //
 // This program is free software; you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
+// it under the terms of the GNU General Public License as published by 
 // the Free Software Foundation; either version 2 of the License, or
 // (at your option) any later version, provided that the above
 // copyright notice and this permission notice appear in all copies.
@@ -51,6 +51,7 @@
 
 char tagsFilePath[FILENAME_MAX];
 bool repeatEnabled = false;
+bool playingMainPlaylist = false;
 Node *currentSong;
 
 struct Event processInput()
@@ -84,11 +85,17 @@ struct Event processInput()
     case 'c':
         event.type = EVENT_TOGGLECOVERS;
         break;
-    case 'v':
-        event.type = EVENT_TOGGLEVISUALS;
+    case 'e':
+        event.type = EVENT_TOGGLEEQUALIZER;
         break;
     case 'b':
         event.type = EVENT_TOGGLEBLOCKS;
+        break;
+    case 'a':
+        event.type = EVENT_ADDTOMAINPLAYLIST;
+        break;
+    case 'd':
+        event.type = EVENT_DELETEFROMMAINPLAYLIST;
         break;
     case 'r':
         event.type = EVENT_TOGGLEREPEAT;
@@ -153,7 +160,7 @@ int play(SongInfo song)
     extract_tags(strdup(musicFilepath), tagsFilePath);
     clock_gettime(CLOCK_MONOTONIC, &start_time);
 
-    setPlayListDurations(&playlist);
+    calculatePlayListDuration(&playlist);
 
     if (res != 0)
     {
@@ -190,9 +197,9 @@ int play(SongInfo song)
             else
                 totalPauseSeconds += pauseSeconds;
             break;
-        case EVENT_TOGGLEVISUALS:
-            visualizationEnabled = !visualizationEnabled;
-            strcpy(settings.visualizationEnabled, visualizationEnabled ? "1" : "0");
+        case EVENT_TOGGLEEQUALIZER:
+            equalizerEnabled = !equalizerEnabled;
+            strcpy(settings.equalizerEnabled, equalizerEnabled ? "1" : "0");
             restoreCursorPosition();
             clearRestOfScreen();
             break;
@@ -213,11 +220,10 @@ int play(SongInfo song)
             // Interrupt total playlist duration counting thread
             stopThread = 1;
             usleep(100000);
-            stopThread = 0;
             playlist.totalDuration = 0.0;
             shufflePlaylist(&playlist);
-            // And restart it
-            setPlayListDurations(&playlist);
+            stopThread = 0;            
+            calculatePlayListDuration(&playlist);            
             break;
         case EVENT_QUIT:
             if (event.key == 'q' || elapsedSeconds > 2.0)
@@ -245,6 +251,23 @@ int play(SongInfo song)
                 cleanup();
                 currentSong = getListPrev(currentSong);
                 return play(currentSong->song);
+            }
+            break;
+        case EVENT_ADDTOMAINPLAYLIST:
+            if (!playingMainPlaylist)
+            {
+                addToList(mainPlaylist, currentSong->song);
+            }
+            break;
+        case EVENT_DELETEFROMMAINPLAYLIST:
+            if (playingMainPlaylist)
+            {
+                currentSong = deleteFromList(&playlist, currentSong);
+                cleanup();     
+                if (currentSong != NULL)           
+                    return play(currentSong->song);
+                else
+                    return 0;
             }
             break;
         default:
@@ -298,7 +321,7 @@ int play(SongInfo song)
     return 0;
 }
 
-int start()
+int run()
 {
     if (playlist.head == NULL)
         return -1;
@@ -312,6 +335,8 @@ int start()
         g_audioBuffer = NULL;
     }
     setConfig();
+    saveMainPlaylist(settings.path);
+    free(mainPlaylist);
     return 0;
 }
 
@@ -328,8 +353,21 @@ void init()
 int main(int argc, char *argv[])
 {
     getConfig();
+    loadMainPlaylist(settings.path);
 
-    if (argc == 1 || (argc == 2 && ((strcmp(argv[1], "--help") == 0) || (strcmp(argv[1], "-h") == 0) || (strcmp(argv[1], "-?") == 0))))
+    if (argc == 1)
+    {
+        if (mainPlaylist->count == 0)
+        {
+            showHelp();
+        }
+        playingMainPlaylist = true;
+        playlist = deepCopyPlayList(mainPlaylist);
+        init();
+        handleSwitches(&argc, argv);
+        run();
+    }
+    else if ((argc == 2 && ((strcmp(argv[1], "--help") == 0) || (strcmp(argv[1], "-h") == 0) || (strcmp(argv[1], "-?") == 0))))
     {
         showHelp();
     }
@@ -347,7 +385,7 @@ int main(int argc, char *argv[])
         init();
         handleSwitches(&argc, argv);
         makePlaylist(argc, argv);
-        start();
+        run();
     }
     return 0;
 }

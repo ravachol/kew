@@ -15,6 +15,7 @@ cue is a command-line music player for Linux.
  * Display album covers as ASCII art or as a normal (blocky) image.
  * Creates a playlist automatically based on matched directory name
  * Control the player with previous, next and pause.
+ * A main playlist that you can add to by pressing 'a' when listening to any song. Load the playlist by running cue with no arguments.
 
 ## Quick Installation
 
@@ -82,6 +83,8 @@ cue song <song> (or a song)
 
 cue shuffle wu-tang (shuffles everything under wu-tang directory, random and rand works too)
 
+cue list de la (searches for and starts playing a a .m3u playlist that contains "de la")
+
 cue cure:depeche (plays the cure and depeche mode shuffled)
 
 cue --nocover fear of the dark (doesn't display a cover)
@@ -89,6 +92,8 @@ cue --nocover fear of the dark (doesn't display a cover)
 cue --help, -? or -h
 
 cue --version or -v
+
+cue (starting cue with no arguments loads the main cue playlist. if there is none found, it instead shows help.)
  ```
 
 #### Other Functions:
@@ -96,11 +101,13 @@ cue --version or -v
 * Use <kbd>↑</kbd>, <kbd>↓</kbd> keys to raise or lower volume. 
 * Use <kbd>→</kbd>, <kbd>←</kbd> keys to play the next or previous track in the playlist. 
 * <kbd>Space</kbd> to toggle pause.
-* <kbd>v</kbd> to toggle visualization.
+* <kbd>e</kbd> to toggle equalizer.
 * <kbd>c</kbd> to toggle album covers.
 * <kbd>b</kbd> to toggle album covers drawn with solid blocks.
 * <kbd>r</kbd> to repeat current song.
 * <kbd>s</kbd> to shuffle playlist.
+* <kbd>a</kbd> add current song to main cue playlist.
+* <kbd>d</kbd> delete current song from main cue playlist. This only works if you started cue with no arguments, which loads the main cue playlist.
 * <kbd>q</kbd> to quit.
 
 ## License

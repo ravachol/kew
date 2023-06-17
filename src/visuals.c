@@ -1,12 +1,12 @@
 #include "visuals.h"
 #include "albumart.h"
 
-void drawEqualizer(int height, int width)
+void drawEqualizer(int height, int width, bool drawBlocks)
 {
-    width =  width / 2;
+    width = width / 2;
     height = height - 1;
     if (height <= 0 || width <= 0)
-        return;    
+        return;
 
     fftwf_complex *fftInput = (fftwf_complex *)fftwf_malloc(sizeof(fftwf_complex) * BUFFER_SIZE);
     fftwf_complex *fftOutput = (fftwf_complex *)fftwf_malloc(sizeof(fftwf_complex) * BUFFER_SIZE);
@@ -125,16 +125,18 @@ void drawEqualizer(int height, int width)
 
             int barHeight = (int)round(heightVal);
             if (j >= 0)
-                if (barHeight >= j) 
+                if (barHeight >= j)
                 {
                     if (hasDrawn[i] == 0)
                     {
-                        printf("╔╗");
+                        if (drawBlocks)
+                            printf("██"); else printf("╔╗");
                         hasDrawn[i] = 1;
                     }
                     else
                     {
-                        printf("║║");
+                        if (drawBlocks)
+                            printf("██"); else printf("║║");
                         hasDrawn[i] = 1;
                     }
                 }
@@ -145,19 +147,21 @@ void drawEqualizer(int height, int width)
         }
         printf("\033[0m\n"); // Reset the color and move to the next line
     }
-    printf("\r");    
+    printf("\r");
     for (int i = 0; i < width; i++)
     {
         if (hasDrawn[i] == 0)
-            printf("╔╗");
-        else
-            printf("║║");
+            if (drawBlocks)
+                printf("██"); else printf("╔╗");
+            else if (drawBlocks)
+                printf("██"); else printf("║║");
     }
     printf("\033[0m\n"); // Reset the color and move to the next line
     printf("\r");
     for (int i = 0; i < width; i++)
     {
-            printf("╚╝"); 
+        if (drawBlocks)
+            printf("██"); else printf("╚╝");
     }
     // printf("  ");
     //  Restore the cursor position

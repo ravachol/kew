@@ -34,11 +34,15 @@ extern volatile int stopThread;
 
 extern PlayList playlist;
 
+extern PlayList* mainPlaylist;
+
 Node *getListNext(Node *node);
 
 Node *getListPrev(Node *node);
 
 void addToList(PlayList *list, SongInfo song);
+
+Node *deleteFromList(PlayList *list, Node *node);
 
 int compare(const struct dirent **a, const struct dirent **b);
 
@@ -52,4 +56,16 @@ int joinPlaylist(PlayList *dest, PlayList *src);
 
 int makePlaylist(int argc, char *argv[]);
 
-int setPlayListDurations(PlayList *playlist);
+int calculatePlayListDuration(PlayList *playlist);
+
+void readM3UFile(const char* filename, PlayList* playlist);
+
+void writeM3UFile(const char* filename, PlayList* playlist);
+
+void loadMainPlaylist(const char *directory);
+
+void saveMainPlaylist(const char *directory);
+
+Node* deepCopyNode(Node* originalNode);
+
+PlayList deepCopyPlayList(PlayList* originalList);
