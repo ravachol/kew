@@ -112,7 +112,7 @@ int walker(const char *startPath, const char *searching, char *result,
 
         if (S_ISDIR(file_stat.st_mode))
         {
-            if ((strcasestr(dir->d_name, searching) != NULL) && (searchType != FileOnly))
+            if ((strcasestr(dir->d_name, searching) != NULL) && (searchType != FileOnly) && (searchType != SearchPlayList))
             {
                 snprintf(result, MAXPATHLEN, "%s/%s", getcwd(NULL, 0), dir->d_name);
                 copyresult = true;

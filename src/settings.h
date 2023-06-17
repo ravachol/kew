@@ -25,8 +25,9 @@ typedef struct
     char path[MAXPATHLEN];
     char coverEnabled[2];
     char coverBlocks[2];
-    char visualizationEnabled[2];
-    char visualizationHeight[6];
+    char equalizerEnabled[2];
+    char equalizerHeight[6];
+    char equalizerBlocks[6];    
 } AppSettings;
 
 extern AppSettings settings;
