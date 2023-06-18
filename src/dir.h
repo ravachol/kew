@@ -18,7 +18,8 @@ enum SearchType
     SearchAny = 0,
     DirOnly = 1,
     FileOnly = 2,
-    SearchPlayList = 3
+    SearchPlayList = 3,
+    ReturnAllSongs = 4
 };
 
 void getDirectoryFromPath(const char *path, char *directory);
