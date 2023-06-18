@@ -66,6 +66,9 @@ void loadMainPlaylist(const char *directory);
 
 void saveMainPlaylist(const char *directory, bool isPlayingMain);
 
+void savePlaylist();
+
 Node* deepCopyNode(Node* originalNode);
 
 PlayList deepCopyPlayList(PlayList* originalList);
+

@@ -100,6 +100,9 @@ struct Event processInput()
     case 'r':
         event.type = EVENT_TOGGLEREPEAT;
         break;
+    case 'p':
+        event.type = EVENT_EXPORTPLAYLIST;
+        break;        
     case 'A': // Up arrow
         event.type = EVENT_VOLUME_UP;
         break;
@@ -270,6 +273,9 @@ int play(SongInfo song)
                     return 0;
             }
             break;
+        case EVENT_EXPORTPLAYLIST:
+            savePlaylist();
+            break;            
         default:
             break;
         }

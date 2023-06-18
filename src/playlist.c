@@ -10,12 +10,18 @@
 #include "stringfunc.h"
 #include "settings.h"
 
-const int MAX_FILES = 4096;
+#define MAX_SEARCH_SIZE 256
+#define MAX_FILES 4096
+
 const char ALLOWED_EXTENSIONS[] = "\\.(m4a|mp3|ogg|flac|wav|aac|wma|raw|mp4a|mp4)$";
 const char PLAYLIST_EXTENSIONS[] = "\\.(m3u)$";
 const char mainPlaylistName[] = "cue.m3u";
 PlayList playlist = {NULL, NULL};
 PlayList *mainPlaylist = NULL;
+
+char search[MAX_SEARCH_SIZE];
+char playlistName[MAX_SEARCH_SIZE];
+
 volatile int stopThread = 0;
 
 Node *getListNext(Node *node)
@@ -278,6 +284,21 @@ int joinPlaylist(PlayList *dest, PlayList *src)
     return 1; // Successful join
 }
 
+void makePlaylistName(const char *search)
+{
+    strcat(playlistName, strdup(search));
+    strcat(playlistName, ".m3u");   
+    int i = 0;
+    while(playlistName[i]!='\0')
+    {
+        if(playlistName[i]==':')
+        {
+            playlistName[i]='-';
+        }
+        i++;
+    }
+}
+
 int makePlaylist(int argc, char *argv[])
 {
     enum SearchType searchType = SearchAny;
@@ -319,9 +340,8 @@ int makePlaylist(int argc, char *argv[])
         start = searchTypeIndex + 2;
 
     // create search string
-    int size = 256;
-    char search[size];
-    strncpy(search, argv[start - 1], size - 1);
+    strncpy(search, argv[start - 1], MAX_SEARCH_SIZE - 1);
+    makePlaylistName(search);
     for (int i = start; i < argc; i++)
     {
         strcat(search, " ");
@@ -547,6 +567,16 @@ void saveMainPlaylist(const char *directory, bool isPlayingMain)
         writeM3UFile(playlistPath, &playlist);
     else
         writeM3UFile(playlistPath, mainPlaylist);
+}
+
+void savePlaylist()
+{
+    char playlistPath[MAXPATHLEN];
+    strcpy(playlistPath, settings.path);
+    if (playlistPath[strlen(playlistPath) - 1] != '/')
+        strcat(playlistPath, "/");
+    strcat(playlistPath, playlistName);
+    writeM3UFile(playlistPath, &playlist);
 }
 
 Node* deepCopyNode(Node* originalNode) {
