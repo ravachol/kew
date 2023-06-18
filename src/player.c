@@ -14,12 +14,16 @@ int equalizerHeight = 8;
 int asciiHeight = 250;
 int asciiWidth = 500;
 int minWidth = 31;
+PixelData color = { 255, 255, 255 };
+
+
 const char githubLatestVersionUrl[] = "https://api.github.com/repos/ravachol/cue/releases/latest";
 
 int printPlayer(const char *songFilepath, const char *tagsFilePath, double elapsedSeconds, double songDurationSeconds, PlayList *playlist)
 {
     int minHeight = 2 + (equalizerEnabled ? equalizerHeight : 0);
     int metadataHeight = 4;
+
     calcIdealImgSize(&asciiWidth, &asciiHeight, (equalizerEnabled ? equalizerHeight : 0), metadataHeight, firstSong);
     if (asciiWidth <= 0 || asciiHeight <= 0)
         return -1;
@@ -31,7 +35,10 @@ int printPlayer(const char *songFilepath, const char *tagsFilePath, double elaps
         clearRestOfScreen();
         if (coverEnabled)
         {
-            displayAlbumArt(songFilepath, asciiHeight, asciiWidth, coverBlocks);
+            color.r = 255;
+            color.g = 255;
+            color.b = 255;
+            displayAlbumArt(songFilepath, asciiHeight, asciiWidth, coverBlocks, &color);
             drewCover = true;
             firstSong = false;
         }
@@ -53,7 +60,7 @@ int printPlayer(const char *songFilepath, const char *tagsFilePath, double elaps
     }
     if (equalizerEnabled)
     {
-        drawEqualizer(equalizerHeight, asciiWidth, equalizerBlocks);
+        drawEqualizer(equalizerHeight, asciiWidth, equalizerBlocks, color);
         fflush(stdout);
         drewVisualization = true;
     }      
