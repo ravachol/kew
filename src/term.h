@@ -36,6 +36,8 @@ void setTextColorRGB(int r, int g, int b);
 
 void setTextColorRGB2(int r, int g, int b);
 
+void setWindowTitle(const char *title);
+
 void disableRawMode();
 
 void getTermSize(int *width, int *height);

@@ -5,7 +5,7 @@ const char VERSION[] = "1.0.0";
 bool firstSong = true;
 bool refresh = true;
 bool equalizerEnabled = true;
-bool equalizerBlocks = false;
+bool equalizerBlocks = true;
 bool coverEnabled = true;
 bool coverBlocks = true;
 bool drewCover = true;
@@ -62,7 +62,8 @@ void setColor()
 void printMetadata()
 {
     setColor();  
-    printBasicMetadata(tagsPath);
+    TagSettings settings = printBasicMetadata(tagsPath);
+    if (settings.title) setWindowTitle(settings.title);
 }
 
 void printTime()

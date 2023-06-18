@@ -10,6 +10,7 @@
 #include "printfunc.h"
 #include "visuals.h"
 #include "playlist.h"
+#include "metadata.h"
 
 extern const char VERSION[];
 

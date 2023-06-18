@@ -19,6 +19,10 @@ typedef struct
 
 #endif
 
+
+#ifndef TAGSETTINGS_STRUCT
+#define TAGSETTINGS_STRUCT
+
 typedef struct
 {
     char title[256];
@@ -27,6 +31,8 @@ typedef struct
     char album[256];
     char date[256];
 } TagSettings;
+
+#endif
 
 extern TagSettings construct_tag_settings(KeyValuePair *pairs, int count);
 
