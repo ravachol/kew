@@ -1,4 +1,5 @@
 #include "metadata.h"
+#include "common.h"
 
 TagSettings construct_tag_settings(KeyValuePair *pairs, int count)
 {
