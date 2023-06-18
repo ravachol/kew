@@ -58,7 +58,12 @@ void enableRawMode()
 
 void setTextColorRGB(int r, int g, int b)
 {
-    printf("\033[1;38;2;%03u;%03u;%03um", r, g, b);
+    printf("\033[38;2;%03u;%03u;%03um", r, g, b);
+}
+
+void setTextColorRGB2(int r, int g, int b)
+{
+    printf("\033[0;38;2;%03u;%03u;%03um", r, g, b);
 }
 
 void disableRawMode()
