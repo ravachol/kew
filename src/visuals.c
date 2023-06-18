@@ -166,7 +166,7 @@ void drawEqualizer(int height, int width, bool drawBlocks, PixelData color)
             if (j >= 0)
                 if (barHeight >= j)
                 {
-                    printf("▒ "); 
+                    printf("█ "); 
                 }
                 else
                 {
