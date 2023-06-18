@@ -115,7 +115,7 @@ void drawEqualizer(int height, int width, bool drawBlocks, PixelData color)
     for (int j = height; j > 0; j--)
     {
         printf("\r"); // Move cursor to the beginning of the line
-        if (color.r != 255 || color.g != 255 || color.b != 255)
+        if (color.r != -1 || color.g != -1 || color.b != -1)
             printf("\033[38;2;%d;%d;%dm", color.r, color.g, color.b);
         else
             setDefaultTextColor();

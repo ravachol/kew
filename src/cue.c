@@ -362,7 +362,7 @@ void playMainPlaylist()
     {
         showHelp();
     }
-    playingMainPlaylist = true;
+    playingMainPlaylist = true;  
     playlist = deepCopyPlayList(mainPlaylist);
     init();    
     run();
