@@ -27,7 +27,7 @@ typedef struct
     char coverBlocks[2];
     char equalizerEnabled[2];
     char equalizerHeight[6];
-    char equalizerBlocks[6];    
+    char equalizerBlocks[2];    
 } AppSettings;
 
 extern AppSettings settings;
