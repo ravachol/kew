@@ -93,6 +93,8 @@ cue --help, -? or -h
 
 cue --version or -v
 
+cue . (plays all songs in your library, shuffled)
+
 cue (starting cue with no arguments loads the main cue playlist, see 'Other Functions')
  ```
 

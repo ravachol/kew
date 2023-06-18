@@ -309,6 +309,12 @@ int makePlaylist(int argc, char *argv[])
 
     const char *allowedExtensions = ALLOWED_EXTENSIONS;
 
+    if (strcmp(argv[1], ".") == 0 && argc == 2)
+    {
+        searchType = ReturnAllSongs;
+        shuffle = true;
+    }    
+
     if (strcmp(argv[1], "list") == 0 && argc > 2)
     {
         allowedExtensions = PLAYLIST_EXTENSIONS;
@@ -352,36 +358,41 @@ int makePlaylist(int argc, char *argv[])
     {
         shuffle = true;
     }
-
-    char *token = strtok(search, delimiter);
-
-    // Subsequent calls to strtok with NULL to continue splitting
-    while (token != NULL)
+    else if (searchType == ReturnAllSongs)
     {
-        char buf[MAXPATHLEN] = {0};
-        char path[MAXPATHLEN] = {0};
-        if (strncmp(token, "song", 4) == 0)
-        {
-            // Remove "dir" from token by shifting characters
-            memmove(token, token + 4, strlen(token + 4) + 1);
-            searchType = FileOnly;
-        }
-        trim(token);
-        if (walker(settings.path, token, buf, allowedExtensions, searchType) == 0)
-        {
-            if (strcmp(argv[1], "list") == 0)
-            {
-                readM3UFile(buf, &playlist);
-            }
-            else {
-                buildPlaylistRecursive(buf, allowedExtensions, &partialPlaylist);
-                joinPlaylist(&playlist, &partialPlaylist);
-            }
-        }
-
-        token = strtok(NULL, delimiter);
+        buildPlaylistRecursive(settings.path, allowedExtensions, &playlist);
     }
+    else
+    {
+        char *token = strtok(search, delimiter);
 
+        // Subsequent calls to strtok with NULL to continue splitting
+        while (token != NULL)
+        {
+            char buf[MAXPATHLEN] = {0};
+            char path[MAXPATHLEN] = {0};
+            if (strncmp(token, "song", 4) == 0)
+            {
+                // Remove "dir" from token by shifting characters
+                memmove(token, token + 4, strlen(token + 4) + 1);
+                searchType = FileOnly;
+            }
+            trim(token);
+            if (walker(settings.path, token, buf, allowedExtensions, searchType) == 0)
+            {
+                if (strcmp(argv[1], "list") == 0)
+                {
+                    readM3UFile(buf, &playlist);
+                }
+                else {
+                    buildPlaylistRecursive(buf, allowedExtensions, &partialPlaylist);
+                    joinPlaylist(&playlist, &partialPlaylist);
+                }
+            }
+
+            token = strtok(NULL, delimiter);
+        }
+    }
     if (shuffle)
         shufflePlaylist(&playlist);
 

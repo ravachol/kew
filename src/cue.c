@@ -356,6 +356,25 @@ void init()
     srand(time(NULL));
 }
 
+void playMainPlaylist()
+{
+    if (mainPlaylist->count == 0)
+    {
+        showHelp();
+    }
+    playingMainPlaylist = true;
+    playlist = deepCopyPlayList(mainPlaylist);
+    init();    
+    run();
+}
+
+void playAll(int argc, char **argv)
+{
+    init();
+    makePlaylist(argc, argv);
+    run();
+}
+
 int main(int argc, char *argv[])
 {
     getConfig();
@@ -363,15 +382,11 @@ int main(int argc, char *argv[])
 
     if (argc == 1)
     {
-        if (mainPlaylist->count == 0)
-        {
-            showHelp();
-        }
-        playingMainPlaylist = true;
-        playlist = deepCopyPlayList(mainPlaylist);
-        init();
         handleSwitches(&argc, argv);
-        run();
+        if (argv[1] == ".")
+            playAll(argc, argv);
+        else
+            playMainPlaylist();
     }
     else if ((argc == 2 && ((strcmp(argv[1], "--help") == 0) || (strcmp(argv[1], "-h") == 0) || (strcmp(argv[1], "-?") == 0))))
     {

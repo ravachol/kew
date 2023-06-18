@@ -156,7 +156,7 @@ int walker(const char *startPath, const char *searching, char *result,
                 continue;
             }
 
-            if (strcasestr(dir->d_name, searching) != NULL)
+            if ((strcasestr(dir->d_name, searching) != NULL))
             {
                 snprintf(result, MAXPATHLEN, "%s/%s", getcwd(NULL, 0), dir->d_name);
                 copyresult = true;
