@@ -8,7 +8,14 @@
 extern "C"
 {
 #endif
-    int output_ascii(char *pathToImgFile, int height, int width, bool coverBlocks);
+typedef struct
+{
+    unsigned char r;
+    unsigned char g;
+    unsigned char b;
+} PixelData;
+
+    int output_ascii(char *pathToImgFile, int height, int width, bool coverBlocks, PixelData *brightPixel);
 #ifdef __cplusplus
 }
 #endif

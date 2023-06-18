@@ -1,7 +1,7 @@
 #include "visuals.h"
 #include "albumart.h"
 
-void drawEqualizer(int height, int width, bool drawBlocks)
+void drawEqualizer(int height, int width, bool drawBlocks, PixelData color)
 {
     width = width / 2;
     height = height - 1;
@@ -115,7 +115,10 @@ void drawEqualizer(int height, int width, bool drawBlocks)
     for (int j = height; j > 0; j--)
     {
         printf("\r"); // Move cursor to the beginning of the line
-
+        if (color.r != 255 || color.g != 255 || color.b != 255)
+            printf("\033[38;2;%d;%d;%dm", color.r, color.g, color.b);
+        else
+            setDefaultTextColor();
         for (int i = 0; i < width; i++)
         {
             float normalizedMagnitude = magnitudes[i] / maxMagnitude;
@@ -145,7 +148,7 @@ void drawEqualizer(int height, int width, bool drawBlocks)
                     printf("  ");
                 }
         }
-        printf("\033[0m\n"); // Reset the color and move to the next line
+        printf("\n"); // Reset the color and move to the next line
     }
     printf("\r");
     for (int i = 0; i < width; i++)
@@ -156,7 +159,7 @@ void drawEqualizer(int height, int width, bool drawBlocks)
             else if (drawBlocks)
                 printf("██"); else printf("║║");
     }
-    printf("\033[0m\n"); // Reset the color and move to the next line
+    printf("\n"); // Reset the color and move to the next line
     printf("\r");
     for (int i = 0; i < width; i++)
     {
@@ -166,6 +169,7 @@ void drawEqualizer(int height, int width, bool drawBlocks)
     // printf("  ");
     //  Restore the cursor position
     printf("\033[%dA", height + 2);
+    printf("\033[0m");
     printf("\r");
 
     fflush(stdout);
