@@ -11,69 +11,101 @@ bool coverBlocks = true;
 bool drewCover = true;
 bool drewVisualization = false;
 int equalizerHeight = 8;
-int asciiHeight = 250;
-int asciiWidth = 500;
+int metadataHeight = 4;
 int minWidth = 31;
-PixelData color = { 255, 255, 255 };
-
+int minHeight = 2;
+int coverRow = 0;
+int preferredWidth = 0;
+int preferredHeight = 0;
+int elapsed = 0;
+int duration = 0;
+char *path;
+char *tagsPath;
+double totalDurationSeconds = 0.0;
+PixelData color = { 0, 0, 0 };
 
 const char githubLatestVersionUrl[] = "https://api.github.com/repos/ravachol/cue/releases/latest";
 
-int printPlayer(const char *songFilepath, const char *tagsFilePath, double elapsedSeconds, double songDurationSeconds, PlayList *playlist)
+void calcPreferredSize()
 {
-    int minHeight = 2 + (equalizerEnabled ? equalizerHeight : 0);
-    int metadataHeight = 4;
+    minHeight = 2 + (equalizerEnabled ? equalizerHeight : 0);    
+    calcIdealImgSize(&preferredWidth, &preferredHeight, (equalizerEnabled ? equalizerHeight : 0), metadataHeight, firstSong);
+}
 
-    calcIdealImgSize(&asciiWidth, &asciiHeight, (equalizerEnabled ? equalizerHeight : 0), metadataHeight, firstSong);
-    if (asciiWidth <= 0 || asciiHeight <= 0)
-        return -1;
-
-    if (refresh)
+void printCover()
+{
+    clearRestOfScreen();
+    if (coverEnabled)
     {
-        int row, col;
-        int coverRow = getFirstLineRow() - metadataHeight - (drewCover ? asciiHeight : 0) - (drewVisualization ? equalizerHeight : 0);
-        clearRestOfScreen();
-        if (coverEnabled)
-        {
-            color.r = -1;
-            color.g = -1;
-            color.b = -1;
-            displayAlbumArt(songFilepath, asciiHeight, asciiWidth, coverBlocks, &color);
-            drewCover = true;
-            firstSong = false;
-        }
-        else
-        {
-            clearRestOfScreen();
-            drewCover = false;
-        }
-        if (color.r != -1 || color.g != -1 || color.b != -1)
-            printf("\033[38;2;%d;%d;%dm", color.r, color.g, color.b);
-        else
-            setDefaultTextColor();
-        printBasicMetadata(tagsFilePath);
-        refresh = false;
+        color.r = 0;
+        color.g = 0;
+        color.b = 0;        
+        displayAlbumArt(path, preferredHeight, preferredWidth, coverBlocks, &color);
+        drewCover = true;
+        firstSong = false;
     }
+    else
+    {
+        clearRestOfScreen();
+        drewCover = false;
+    }
+}
+
+void setColor()
+{
+    if (color.r == 0 && color.g == 0 && color.b == 0)
+        setDefaultTextColor();
+    else
+        setTextColorRGB2(color.r, color.g, color.b);
+}
+
+void printMetadata()
+{
+    setColor();  
+    printBasicMetadata(tagsPath);
+}
+
+void printTime()
+{
+    setColor();    
     int term_w, term_h;
     getTermSize(&term_w, &term_h);
     if (term_h > minHeight && term_w > minWidth)
-    {
-        double totalDurationSeconds = playlist->totalDuration;
-        if (color.r != -1 || color.g != -1 || color.b != -1)
-            printf("\033[38;2;%d;%d;%dm", color.r, color.g, color.b);
-        else
-            setDefaultTextColor();        
-        printProgress(elapsedSeconds, songDurationSeconds, totalDurationSeconds);      
-    }
+        printProgress(elapsed, duration, totalDurationSeconds);
+}
+
+void printEqualizer()
+{
     if (equalizerEnabled)
     {
-        drawEqualizer(equalizerHeight, asciiWidth, equalizerBlocks, color);
-        fflush(stdout);
+        drawEqualizer(equalizerHeight, preferredWidth, equalizerBlocks, color);
         drewVisualization = true;
-    }      
+    }  
+}
+
+int printPlayer(const char *songFilepath, const char *tagsFilePath, double elapsedSeconds, double songDurationSeconds, PlayList *playlist)
+{    
+    path = strdup(songFilepath);
+    tagsPath = strdup(tagsFilePath);
+    totalDurationSeconds = playlist->totalDuration;
+    elapsed = elapsedSeconds;
+    duration = songDurationSeconds;
+
+    calcPreferredSize();
+
+    if (preferredWidth <= 0 || preferredHeight <= 0) return -1;
+
+    if (refresh)
+    {
+        printCover();        
+        printMetadata();
+        refresh = false;
+    }  
+    printTime();
+    printEqualizer();
     saveCursorPosition();
 
-    return 0;
+    return 0; 
 }
 
 // Struct to hold response data
@@ -138,28 +170,6 @@ int fetchLatestVersion(int *major, int *minor, int *patch)
 
     if (response_code == 200)
     {
-        // Parse the response data to extract the version information
-        // Assuming the response is in JSON format
-        // You may need to use a JSON library to parse the response, like Jansson or cJSON
-
-        // Example parsing using Jansson
-        // #include <jansson.h>
-        // json_error_t error;
-        // json_t* json = json_loads(responseData.content, 0, &error);
-        // json_t* version = json_object_get(json, "tag_name");
-        // const char* versionStr = json_string_value(version);
-
-        // Example parsing using cJSON
-        // #include <cjson/cJSON.h>
-        // cJSON* json = cJSON_Parse(responseData.content);
-        // cJSON* version = cJSON_GetObjectItemCaseSensitive(json, "tag_name");
-        // const char* versionStr = version->valuestring;
-
-        // After extracting the version string, you can split it into major, minor, and patch components
-        // Here's an example of splitting a version string "v1.2.3" using sscanf:
-        // sscanf(versionStr, "v%d.%d.%d", major, minor, patch);
-
-        // Free the allocated memory
         free(responseData.content);
 
         return 0;

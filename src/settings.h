@@ -39,9 +39,9 @@ extern AppSettings constructAppSettings(KeyValuePair *pairs, int count);
 
 KeyValuePair *readKeyValuePairs(const char *file_path, int *count);
 
-extern void freeKeyValuePairs(KeyValuePair *pairs, int count);
+void freeKeyValuePairs(KeyValuePair *pairs, int count);
 
-extern AppSettings constructAppSettings(KeyValuePair *pairs, int count);
+AppSettings constructAppSettings(KeyValuePair *pairs, int count);
 
 // saves the path to your music folder
 int saveSettingsDeprecated(char *path, const char *settingsFile);

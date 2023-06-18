@@ -23,8 +23,6 @@ extern bool refresh;
 
 int printPlayer(const char *songFilepath, const char *tagsFilePath, double elapsedSeconds, double songDurationSeconds, PlayList *playlist);
 
-int fetchLatestVersion(int* major, int* minor, int* patch);
-
 void showVersion();
 
 void showHelp();
