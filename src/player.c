@@ -47,7 +47,10 @@ int printPlayer(const char *songFilepath, const char *tagsFilePath, double elaps
             clearRestOfScreen();
             drewCover = false;
         }
-        setDefaultTextColor();
+        if (color.r != -1 || color.g != -1 || color.b != -1)
+            printf("\033[38;2;%d;%d;%dm", color.r, color.g, color.b);
+        else
+            setDefaultTextColor();
         printBasicMetadata(tagsFilePath);
         refresh = false;
     }
@@ -56,6 +59,10 @@ int printPlayer(const char *songFilepath, const char *tagsFilePath, double elaps
     if (term_h > minHeight && term_w > minWidth)
     {
         double totalDurationSeconds = playlist->totalDuration;
+        if (color.r != -1 || color.g != -1 || color.b != -1)
+            printf("\033[38;2;%d;%d;%dm", color.r, color.g, color.b);
+        else
+            setDefaultTextColor();        
         printProgress(elapsedSeconds, songDurationSeconds, totalDurationSeconds);      
     }
     if (equalizerEnabled)
