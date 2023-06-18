@@ -4,7 +4,6 @@
 #include "file.h"
 #include "../include/getcover/getcover.h"
 #include "../include/imgtotxt/options.h"
-#include "../include/imgtotxt/write_ascii.h"
 #include "metadata.h"
 #include "stringfunc.h"
 #include "term.h"
@@ -232,7 +231,7 @@ int calcIdealImgSize(int *width, int *height, const int equalizerHeight, const i
     return 0;
 }
 
-int displayAlbumArt(const char *filepath, int asciiHeight, int asciiWidth, bool coverBlocks)
+int displayAlbumArt(const char *filepath, int asciiHeight, int asciiWidth, bool coverBlocks, PixelData *brightPixel)
 {
     char path[MAXPATHLEN];
     char fileOutputPath[MAXPATHLEN];
@@ -243,14 +242,14 @@ int displayAlbumArt(const char *filepath, int asciiHeight, int asciiWidth, bool 
     int progressWidth = 26;
     int res = extractCover(filepath, fileOutputPath);
     if (res >= 0)
-        output_ascii(fileOutputPath, asciiHeight, asciiWidth, coverBlocks);
+        output_ascii(fileOutputPath, asciiHeight, asciiWidth, coverBlocks, brightPixel);
     else
     {
         getDirectoryFromPath(filepath, path);
         char *largestImageFile = findLargestImageFile(path);
         if (largestImageFile != NULL)
         {
-            return output_ascii(largestImageFile, asciiHeight, asciiWidth, coverBlocks);
+            return output_ascii(largestImageFile, asciiHeight, asciiWidth, coverBlocks, brightPixel);
         }
         else
         {

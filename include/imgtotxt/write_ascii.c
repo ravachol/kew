@@ -30,16 +30,11 @@ TODO:
 #include "options.h"
 #include "write_ascii.h"
 
-typedef struct
-{
-    unsigned char r;
-    unsigned char g;
-    unsigned char b;
-} PixelData;
-
 #define MAX_IMG_SIZE 25000
 
 #define MACRO_STRLEN(s) (sizeof(s) / sizeof(s[0]))
+
+bool brightPixelFound;
 
 char scale[] = "$@&B%8WM#ZO0QoahkbdpqwmLCJUYXIjft/\\|()1{}[]l?zcvunxr!<>i;:*-+~_,\"^`'. ";
 unsigned int brightness_levels = MACRO_STRLEN(scale) - 2;
@@ -49,15 +44,22 @@ unsigned char luminanceFromRGB(unsigned char r, unsigned char g, unsigned char b
     return (unsigned char)(0.2126 * r + 0.7152 * g + 0.0722 * b);
 }
 
-unsigned char calc_ascii_char(PixelData *p)
+unsigned char calc_ascii_char(PixelData *p, PixelData *brightPixel)
 {
     // Calc luminace and use to find Ascii char.
     unsigned char ch = luminanceFromRGB(p->r, p->g, p->b);
     int rescaled = ch * brightness_levels / 256;
+    if (ch > 100 && !brightPixelFound)
+    {
+        brightPixel->r = p->r;
+        brightPixel->g = p->g;
+        brightPixel->b = p->b;
+        brightPixelFound = true;
+    }
     return scale[brightness_levels - rescaled];
 }
 
-int read_and_convert(char *filepath, ImageOptions *options)
+int read_and_convert(char *filepath, ImageOptions *options, PixelData *brightPixel)
 {
     int rwidth, rheight, rchannels;
     unsigned char *read_data = stbi_load(filepath, &rwidth, &rheight, &rchannels, 3);
@@ -125,10 +127,10 @@ int read_and_convert(char *filepath, ImageOptions *options)
         switch (options->output_mode)
         {
         case ASCII:
-            printf("%c", calc_ascii_char(c));
+            printf("%c", calc_ascii_char(c, brightPixel));
             break;
         case ANSI:
-            printf("\033[1;38;2;%03u;%03u;%03um%c", c->r, c->g, c->b, calc_ascii_char(c));
+            printf("\033[1;38;2;%03u;%03u;%03um%c", c->r, c->g, c->b, calc_ascii_char(c, brightPixel));
             break;
         case SOLID_ANSI:
             printf("\033[48;2;%03u;%03u;%03um ", c->r, c->g, c->b);
@@ -145,7 +147,7 @@ int read_and_convert(char *filepath, ImageOptions *options)
     return 0;
 }
 
-int output_ascii(char *pathToImgFile, int height, int width, bool coverBlocks)
+int output_ascii(char *pathToImgFile, int height, int width, bool coverBlocks, PixelData *brightPixel)
 {
     ImageOptions opts = {
         .output_mode = ANSI,
@@ -171,8 +173,8 @@ int output_ascii(char *pathToImgFile, int height, int width, bool coverBlocks)
         return -1;
     }
     opts.height = height;
-
-    int ret = read_and_convert(pathToImgFile, &opts);
+    brightPixelFound = false;
+    int ret = read_and_convert(pathToImgFile, &opts, brightPixel);
     if (ret == -1)
         //  fprintf(stderr, "Failed to convert image: %s\n", pathToImgFile);
         printf("\033[0m\n");
