@@ -228,6 +228,7 @@ int calcIdealImgSize(int *width, int *height, const int equalizerHeight, const i
 
     int remainder = *width % 2;
     if (remainder == 1) *width -= 1;
+    *width--; //compensate for first character on each line being a blank space
     return 0;
 }
 

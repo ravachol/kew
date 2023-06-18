@@ -112,14 +112,14 @@ int read_and_convert(char *filepath, ImageOptions *options, PixelData *brightPix
 
     if (!options->suppress_header)
         printf("\n");
-
+    printf(" ");
     for (unsigned int d = 0; d < desired_width * desired_height; d++)
     {
         if (d % desired_width == 0 && d != 0)
         {
             if (options->output_mode == SOLID_ANSI)
                 printf("\033[0m");
-            printf("\n");
+            printf("\n ");
         }
 
         PixelData *c = data + d;
@@ -166,7 +166,7 @@ int output_ascii(char *pathToImgFile, int height, int width, bool coverBlocks, P
         fprintf(stderr, "[ERR] Width exceeds maximum image size!\n");
         return -1;
     }
-    opts.width = width;
+    opts.width = width--; // compensate, first character on each line is going to be blank
 
     if (height > MAX_IMG_SIZE)
     {
