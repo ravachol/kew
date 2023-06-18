@@ -35,9 +35,9 @@ int printPlayer(const char *songFilepath, const char *tagsFilePath, double elaps
         clearRestOfScreen();
         if (coverEnabled)
         {
-            color.r = 255;
-            color.g = 255;
-            color.b = 255;
+            color.r = -1;
+            color.g = -1;
+            color.b = -1;
             displayAlbumArt(songFilepath, asciiHeight, asciiWidth, coverBlocks, &color);
             drewCover = true;
             firstSong = false;

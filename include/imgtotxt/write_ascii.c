@@ -134,6 +134,7 @@ int read_and_convert(char *filepath, ImageOptions *options, PixelData *brightPix
             break;
         case SOLID_ANSI:
             printf("\033[48;2;%03u;%03u;%03um ", c->r, c->g, c->b);
+            calc_ascii_char(c, brightPixel);
             break;
         default:
             break;
