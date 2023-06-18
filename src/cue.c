@@ -172,6 +172,7 @@ int play(SongInfo song)
         if (currentSong != NULL)
             return play(currentSong->song);
     }
+
     while (true)
     {
         struct timespec current_time;

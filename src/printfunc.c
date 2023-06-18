@@ -84,20 +84,24 @@ int getYear(const char *dateString)
     return year;
 }
 
-void printBasicMetadata(const char *file_path)
+TagSettings printBasicMetadata(const char *file_path)
 {
     int pair_count;
     KeyValuePair *pairs = readKeyValuePairs(file_path, &pair_count);
+    TagSettings settings = {};
+
     if (pairs == NULL)
     {
         fprintf(stderr, "Error reading key-value pairs.\n");
-        return;
+        return settings;
     }
 
-    TagSettings settings = construct_tag_settings(pairs, pair_count);
+    settings = construct_tag_settings(pairs, pair_count);
 
     if (strlen(settings.title) > 0)
+    {
         printf("%s\n", settings.title);
+    }
     if (strlen(settings.artist) > 0)
         printf("%s\n", settings.artist);
     if (strlen(settings.album) > 0)
@@ -112,6 +116,7 @@ void printBasicMetadata(const char *file_path)
     }
     freeKeyValuePairs(pairs, pair_count);
     fflush(stdout);
+    return settings;
 }
 
 void printProgress(double elapsed_seconds, double total_seconds, double total_duration_seconds)

@@ -1,6 +1,24 @@
 #include "visuals.h"
 #include "albumart.h"
 
+PixelData increaseLuminosity(PixelData pixel, int amount) {
+    // Increase each color component
+    pixel.r = pixel.r + amount <= 255 ? pixel.r + amount : 255;
+    pixel.g = pixel.g + amount <= 255 ? pixel.g + amount : 255;
+    pixel.b = pixel.b + amount <= 255 ? pixel.b + amount : 255;
+
+    return pixel;
+}
+
+PixelData decreaseLuminosity(PixelData pixel, int amount) {
+    // Increase each color component
+    pixel.r = pixel.r - amount >= amount ? pixel.r - amount : amount;
+    pixel.g = pixel.g - amount >= amount ? pixel.g - amount : amount;
+    pixel.b = pixel.b - amount >= amount ? pixel.b - amount : amount;
+
+    return pixel;
+}
+
 void drawEqualizer(int height, int width, bool drawBlocks, PixelData color)
 {
     width = width / 2;
@@ -112,11 +130,29 @@ void drawEqualizer(int height, int width, bool drawBlocks, PixelData color)
     {
         hasDrawn[i] = 0;
     }
+
+    color = increaseLuminosity(color, 60);
     for (int j = height; j > 0; j--)
     {
         printf("\r"); // Move cursor to the beginning of the line
-        if (color.r != -1 || color.g != -1 || color.b != -1)
-            printf("\033[38;2;%d;%d;%dm", color.r, color.g, color.b);
+
+        if (color.r != 0 || color.g != 0 || color.b != 0)
+        {
+            if (j == height)
+            {            
+                printf("\033[38;2;%d;%d;%dm", 255, 255, 255);
+            }
+            else if (j == height - 1)
+            {
+                PixelData tempcolor = increaseLuminosity(color, 60);
+                printf("\033[38;2;%d;%d;%dm", tempcolor.r, tempcolor.g, tempcolor.b);              
+            }
+            else
+            {
+                color = decreaseLuminosity(color, 25);
+                printf("\033[38;2;%d;%d;%dm", color.r, color.g, color.b);
+            }
+        }
         else
             setDefaultTextColor();
         for (int i = 0; i < width; i++)
@@ -130,18 +166,7 @@ void drawEqualizer(int height, int width, bool drawBlocks, PixelData color)
             if (j >= 0)
                 if (barHeight >= j)
                 {
-                    if (hasDrawn[i] == 0)
-                    {
-                        if (drawBlocks)
-                            printf("██"); else printf("╔╗");
-                        hasDrawn[i] = 1;
-                    }
-                    else
-                    {
-                        if (drawBlocks)
-                            printf("██"); else printf("║║");
-                        hasDrawn[i] = 1;
-                    }
+                    printf("▒ "); 
                 }
                 else
                 {
@@ -153,19 +178,11 @@ void drawEqualizer(int height, int width, bool drawBlocks, PixelData color)
     printf("\r");
     for (int i = 0; i < width; i++)
     {
-        if (hasDrawn[i] == 0)
-            if (drawBlocks)
-                printf("██"); else printf("╔╗");
-            else if (drawBlocks)
-                printf("██"); else printf("║║");
+        printf("▒ ");
     }
     printf("\n"); // Reset the color and move to the next line
     printf("\r");
-    for (int i = 0; i < width; i++)
-    {
-        if (drawBlocks)
-            printf("██"); else printf("╚╝");
-    }
+
     // printf("  ");
     //  Restore the cursor position
     printf("\033[%dA", height + 2);
