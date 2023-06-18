@@ -13,6 +13,7 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
     AppSettings settings;
     memset(&settings, 0, sizeof(settings));
     strncpy(settings.coverEnabled, "1", sizeof(settings.coverEnabled));
+    strncpy(settings.equalizerEnabled, "1", sizeof(settings.equalizerEnabled));
 
     if (pairs == NULL)
     {
@@ -223,13 +224,13 @@ void setConfig()
 
     // Set defaults if null
     if (settings.coverEnabled[0] == '\0')
-        strcpy(settings.coverEnabled, "1");
+        coverEnabled ? strcpy(settings.coverEnabled, "1") : strcpy(settings.coverEnabled, "0");
     if (settings.coverBlocks[0] == '\0')
-        strcpy(settings.coverBlocks, "1");
+        coverBlocks ? strcpy(settings.coverBlocks, "1") : strcpy(settings.coverBlocks, "0");
     if (settings.equalizerEnabled[0] == '\0')
-        strcpy(settings.equalizerEnabled, "0");
+        equalizerEnabled ? strcpy(settings.equalizerEnabled, "1") : strcpy(settings.equalizerEnabled, "0");
     if (settings.equalizerBlocks[0] == '\0')
-        strcpy(settings.equalizerBlocks, "0");        
+        equalizerBlocks ? strcpy(settings.equalizerBlocks, "1") : strcpy(settings.equalizerBlocks, "0");
     if (settings.equalizerHeight[0] == '\0')
     {
         sprintf(settings.equalizerHeight, "%d", equalizerHeight);
