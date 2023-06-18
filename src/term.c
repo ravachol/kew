@@ -160,6 +160,12 @@ void clearRestOfScreen()
     fflush(stdout);
 }
 
+void setWindowTitle(const char *title)
+{
+    printf("\033]0;%s\007", title);
+    fflush(stdout);    
+}
+
 int getCurrentLine()
 {
     printf("\033[6n");
