@@ -83,7 +83,7 @@ cue song <song> (or a song)
 
 cue list <playlist> (or a playlist)
 
-cue shuffle (shuffles the playlist)
+cue shuffle <album name> (shuffles the playlist)
 
 cue artistA:artistB (plays both artists, shuffled)
 
@@ -103,11 +103,11 @@ cue (starting cue with no arguments loads the main cue playlist, see 'Other Func
 * Use <kbd>↑</kbd>, <kbd>↓</kbd> keys to raise or lower volume. 
 * Use <kbd>→</kbd>, <kbd>←</kbd> keys to play the next or previous track in the playlist. 
 * <kbd>Space</kbd> to toggle pause.
-* <kbd>e</kbd> to toggle equalizer.
+* <kbd>e</kbd> to toggle the equalizer.
 * <kbd>c</kbd> to toggle album covers.
 * <kbd>b</kbd> to toggle album covers drawn with solid blocks.
-* <kbd>r</kbd> to repeat current song.
-* <kbd>s</kbd> to shuffle playlist.
+* <kbd>r</kbd> to repeat the current song.
+* <kbd>s</kbd> to shuffle the playlist.
 * <kbd>a</kbd> add current song to main cue playlist.
 * <kbd>d</kbd> delete current song from main cue playlist. This only works if you started cue with no arguments, which loads the main cue playlist.
 * <kbd>p</kbd> to save the currently loaded playlist to a m3u file in your music folder.
