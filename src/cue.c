@@ -382,11 +382,11 @@ int main(int argc, char *argv[])
 
     if (argc == 1)
     {
-        handleSwitches(&argc, argv);
-        if (argv[1] == ".")
-            playAll(argc, argv);
-        else
-            playMainPlaylist();
+        playMainPlaylist();
+    }
+    else if (argv[2] == ".")
+    {
+        playAll(argc, argv);
     }
     else if ((argc == 2 && ((strcmp(argv[1], "--help") == 0) || (strcmp(argv[1], "-h") == 0) || (strcmp(argv[1], "-?") == 0))))
     {
