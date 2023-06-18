@@ -1,5 +1,6 @@
 #include "visuals.h"
 #include "albumart.h"
+#include "common.h"
 
 PixelData increaseLuminosity(PixelData pixel, int amount) {
     // Increase each color component
@@ -21,7 +22,7 @@ PixelData decreaseLuminosity(PixelData pixel, int amount) {
 
 void drawEqualizer(int height, int width, bool drawBlocks, PixelData color)
 {
-    width = width / 2;
+    width = (width / 2);
     height = height - 1;
     if (height <= 0 || width <= 0)
         return;
@@ -166,19 +167,19 @@ void drawEqualizer(int height, int width, bool drawBlocks, PixelData color)
             if (j >= 0)
                 if (barHeight >= j)
                 {
-                    printf("█ "); 
+                    printf(" █"); 
                 }
                 else
                 {
                     printf("  ");
                 }
         }
-        printf("\n"); // Reset the color and move to the next line
+        printf("\n "); // Reset the color and move to the next line
     }
     printf("\r");
     for (int i = 0; i < width; i++)
     {
-        printf("▒ ");
+        printf(" █");
     }
     printf("\n"); // Reset the color and move to the next line
     printf("\r");

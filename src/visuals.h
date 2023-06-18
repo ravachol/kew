@@ -8,3 +8,7 @@
 #define BUFFER_SIZE 1024
 
 void drawEqualizer(int height, int width, bool drawBLocks, PixelData color);
+
+PixelData increaseLuminosity(PixelData pixel, int amount);
+
+PixelData decreaseLuminosity(PixelData pixel, int amount);
