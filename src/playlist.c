@@ -345,20 +345,21 @@ int makePlaylist(int argc, char *argv[])
     if (searchType == FileOnly || searchType == DirOnly || searchType == SearchPlayList)
         start = searchTypeIndex + 2;
 
-    // create search string
-    strncpy(search, argv[start - 1], MAX_SEARCH_SIZE - 1);
-    makePlaylistName(search);
-    for (int i = start; i < argc; i++)
+    search[0] = '\0'; // Initialize the search string with a null terminator
+
+    for (int i = start -1; i < argc; i++)
     {
         strcat(search, " ");
         strcat(search, argv[i]);
     }
+    makePlaylistName(search);
 
     if (strstr(search, delimiter))
     {
         shuffle = true;
     }
-    else if (searchType == ReturnAllSongs)
+
+    if (searchType == ReturnAllSongs)
     {
         buildPlaylistRecursive(settings.path, allowedExtensions, &playlist);
     }
