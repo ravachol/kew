@@ -81,13 +81,13 @@ cue dir <album name> (sometimes it's neccessary to specify it's a directory you 
 
 cue song <song> (or a song)
 
-cue shuffle wu-tang (shuffles everything under wu-tang directory, random and rand works too)
+cue list <playlist> (or a playlist)
 
-cue list de la (searches for and starts playing a a .m3u playlist that contains "de la")
+cue shuffle (shuffles the playlist)
 
-cue cure:depeche (plays the cure and depeche mode shuffled)
+cue artistA:artistB (plays both artists, shuffled)
 
-cue --nocover fear of the dark (doesn't display a cover)
+cue --nocover <words> (doesn't display a cover)
 
 cue --help, -? or -h
 
@@ -108,6 +108,7 @@ cue (starting cue with no arguments loads the main cue playlist, see 'Other Func
 * <kbd>s</kbd> to shuffle playlist.
 * <kbd>a</kbd> add current song to main cue playlist.
 * <kbd>d</kbd> delete current song from main cue playlist. This only works if you started cue with no arguments, which loads the main cue playlist.
+* <kbd>p</kbd> to save the currently loaded playlist to a m3u file in your music folder.
 * <kbd>q</kbd> to quit.
 
 ## License
