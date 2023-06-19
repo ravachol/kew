@@ -9,8 +9,11 @@ bool equalizerEnabled = true;
 bool equalizerBlocks = true;
 bool coverEnabled = true;
 bool coverBlocks = true;
+bool metaDataEnabled = true;
+bool timeEnabled = true;
 bool drewCover = true;
 bool drewVisualization = false;
+bool printInfo = false;
 int equalizerHeight = 8;
 int minWidth = 31;
 int minHeight = 2;
@@ -23,7 +26,13 @@ char *path;
 char *tagsPath;
 double totalDurationSeconds = 0.0;
 PixelData color = { 0, 0, 0 };
+PixelData bgColor = { 34, 34, 34 };
 TagSettings metadata = {};
+struct ResponseData
+{
+    char *content;
+    size_t size;
+};
 
 const char githubLatestVersionUrl[] = "https://api.github.com/repos/ravachol/cue/releases/latest";
 
@@ -143,7 +152,7 @@ void printProgress(double elapsed_seconds, double total_seconds, double total_du
 
     // Clear the current line
     printf("\033[K");
-
+    printf("\r");
     printf(" %02d:%02d:%02d / %02d:%02d:%02d (%d%%) T:%dh%02dm",
            elapsed_hours, elapsed_minutes, elapsed_seconds_remainder,
            total_hours, total_minutes, total_seconds_remainder,
@@ -157,12 +166,14 @@ void printProgress(double elapsed_seconds, double total_seconds, double total_du
 
 void printMetadata()
 {
+    if (!metaDataEnabled || printInfo) return;
     setColor();  
     printBasicMetadata(&metadata);
 }
 
 void printTime()
 {
+    if (!timeEnabled || printInfo) return;
     setColor();    
     int term_w, term_h;
     getTermSize(&term_w, &term_h);
@@ -177,56 +188,11 @@ void cursorJump(int numRows)
     fflush(stdout);   
 }
 
-void printEqualizer()
+void printLastRow()
 {
-    if (equalizerEnabled)
-    {
-        drawEqualizer(equalizerHeight, preferredWidth, equalizerBlocks, color);
-        drewVisualization = true;
-        cursorJump(equalizerHeight + 1);
-    }  
+    setTextColorRGB2(bgColor.r, bgColor.g, bgColor.b);
+    printf(" [F1 - Info]");   
 }
-
-void printOptions()
-{
-    printf("[F1]");
-}
-
-int printPlayer(const char *songFilepath, const char *tagsFilePath, double elapsedSeconds, double songDurationSeconds, PlayList *playlist)
-{    
-    path = strdup(songFilepath);
-    tagsPath = strdup(tagsFilePath);
-    totalDurationSeconds = playlist->totalDuration;
-    elapsed = elapsedSeconds;
-    duration = songDurationSeconds;
-    if (refresh)
-    {    
-        metadata = getMetadata(tagsPath);
-    }
-    calcPreferredSize();
-
-    if (preferredWidth <= 0 || preferredHeight <= 0) return -1;
-
-    if (refresh)
-    {
-        printCover();        
-        printMetadata();
-        refresh = false;
-    }  
-    printTime();
-    printEqualizer();
-    saveCursorPosition();
-    hideCursor();
-
-    return 0; 
-}
-
-// Struct to hold response data
-struct ResponseData
-{
-    char *content;
-    size_t size;
-};
 
 // Callback function to write response data
 size_t WriteCallback(char *content, size_t size, size_t nmemb, void *userdata)
@@ -307,6 +273,70 @@ void showVersion()
         sprintf(latestVersion, VERSION);
     }
     printVersion(VERSION, latestVersion);
+}
+
+void printSupportLink()
+{
+    if (refresh && printInfo)
+    {
+        PixelData textColor = increaseLuminosity(color, 100);
+        setTextColorRGB2(textColor.r, textColor.g, textColor.b);
+        printAsciiLogo();
+        setTextColorRGB2(color.r, color.g, color.b);
+        showVersion();
+        int versionHeight = 13;
+        int emptyRows = (equalizerEnabled ? equalizerHeight : 0) + 
+                        (metaDataEnabled ? calcMetadataHeight() : 0) + 
+                        (timeEnabled ? 1 : 0) - 
+                        versionHeight;
+        for (int i = 0; i < emptyRows; i++)
+        {
+            printf("\n");
+        }
+        printLastRow();
+    }
+}
+
+void printEqualizer()
+{
+    if (equalizerEnabled && !printInfo)
+    {
+        drawEqualizer(equalizerHeight, preferredWidth, equalizerBlocks, color);
+        drewVisualization = true;
+        printLastRow();
+        cursorJump(equalizerHeight + 1);
+    }  
+}
+
+int printPlayer(const char *songFilepath, const char *tagsFilePath, double elapsedSeconds, double songDurationSeconds, PlayList *playlist)
+{    
+    path = strdup(songFilepath);
+    tagsPath = strdup(tagsFilePath);
+    totalDurationSeconds = playlist->totalDuration;
+    elapsed = elapsedSeconds;
+    duration = songDurationSeconds;
+    if (refresh)
+    {    
+        metadata = getMetadata(tagsPath);
+        printf("\n");
+    }
+    calcPreferredSize();
+
+    if (preferredWidth <= 0 || preferredHeight <= 0) return -1;
+
+    if (refresh)
+    {
+        printCover();   
+        printSupportLink();
+        printMetadata();
+    }  
+    printTime();
+    printEqualizer();
+    saveCursorPosition();
+    hideCursor();
+    refresh = false;
+
+    return 0; 
 }
 
 void showHelp()

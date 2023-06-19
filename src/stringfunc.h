@@ -7,6 +7,8 @@
 
 char *stringToLower(char *str);
 
+void replaceChr(char* str, char toReplace, char replacement);
+
 char *strcasestr(const char *haystack, const char *needle);
 
 int match_regex(regex_t *regex, const char *ext);
