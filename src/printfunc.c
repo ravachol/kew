@@ -58,19 +58,26 @@ bool isVersionGreater(const char* versionA, const char* versionB) {
     return false;
 }
 
+void printAsciiLogo()
+{
+    printf("  $$$$$$$\\ $$\\   $$\\  $$$$$$\\\n");
+    printf(" $$  _____|$$ |  $$ |$$  __$$\\\n");
+    printf(" $$ /      $$ |  $$ |$$$$$$$$ |\n");
+    printf(" $$ |      $$ |  $$ |$$   ____|\n");
+    printf(" \\$$$$$$$\\ \\$$$$$$  |\\$$$$$$$\\\n");
+    printf("  \\_______| \\______/  \\_______|\n");    
+}
+
 void printVersion(const char *version, const char *latestVersion)
 {
-    printf(" $$$$$$$\\ $$\\   $$\\  $$$$$$\\\n");
-    printf("$$  _____|$$ |  $$ |$$  __$$\\\n");
-    printf("$$ /      $$ |  $$ |$$$$$$$$ |\n");
-    printf("$$ |      $$ |  $$ |$$   ____|\n");
-    printf("\\$$$$$$$\\ \\$$$$$$  |\\$$$$$$$\\\n");
-    printf(" \\_______| \\______/  \\_______|\n");
-    printf("cue version %s.\n", version);
-    if (isVersionGreater("latestVersion", version))
-        printf("There is a newer version (%s) available.\n", latestVersion);
-    printf("Github Homepage: https://github.com/ravachol/cue\n");
-    printf("Copyright ® Ravachol 2023.\n");
+    printf(" cue version %s.\n", version);
+    if (isVersionGreater(latestVersion, version))
+       printf(" There is a newer version (%s) available.\n", latestVersion);
+    else
+        printf(" This is the latest version.\n");
+    printf(" Github Homepage:\n https://github.com/ravachol/cue\n");
+    printf(" Buy Me a Coffee:\n https://ko-fi.com/ravachol\n");
+    printf(" Copyright ® Ravachol 2023.\n");
 }
 
 int getYear(const char *dateString)

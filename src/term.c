@@ -3,6 +3,45 @@
 
 volatile sig_atomic_t resizeFlag = 0;
 
+char* queryTerminalProperty(int property) {
+    // Build the query string
+    char query[32];
+    snprintf(query, sizeof(query), "\033[%d;?\033\\", property);
+
+    // Save the terminal settings
+    struct termios oldTermios;
+    tcgetattr(STDIN_FILENO, &oldTermios);
+
+    // Set terminal to raw mode
+    struct termios newTermios = oldTermios;
+    newTermios.c_lflag &= ~(ICANON | ECHO);
+    newTermios.c_cc[VMIN] = 0;
+    newTermios.c_cc[VTIME] = 0;
+    tcsetattr(STDIN_FILENO, TCSANOW, &newTermios);
+
+    // Send the query
+    printf("%s", query);
+    fflush(stdout);
+
+    // Read the response
+    char answer[128];
+    ssize_t bytesRead = read(STDIN_FILENO, answer, sizeof(answer));
+
+    // Restore terminal settings
+    tcsetattr(STDIN_FILENO, TCSANOW, &oldTermios);
+
+    // Process the response
+    char* result = NULL;
+    if (bytesRead > 0) {
+        answer[bytesRead] = '\0';
+        char* start = strchr(answer, ';');
+        if (start != NULL)
+            result = strdup(start + 1);
+    }
+
+    return result;
+}
+
 char *getVariableValue(const char *variableName)
 {
     char *value = getenv(variableName);
