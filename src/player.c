@@ -1,3 +1,4 @@
+#include <string.h>
 #include "player.h"
 
 const char VERSION[] = "1.0.0";
@@ -11,7 +12,6 @@ bool coverBlocks = true;
 bool drewCover = true;
 bool drewVisualization = false;
 int equalizerHeight = 8;
-int metadataHeight = 4;
 int minWidth = 31;
 int minHeight = 2;
 int coverRow = 0;
@@ -23,18 +23,35 @@ char *path;
 char *tagsPath;
 double totalDurationSeconds = 0.0;
 PixelData color = { 0, 0, 0 };
+TagSettings metadata = {};
 
 const char githubLatestVersionUrl[] = "https://api.github.com/repos/ravachol/cue/releases/latest";
+
+int calcMetadataHeight()
+{
+    int term_w, term_h;
+    getTermSize(&term_w, &term_h);
+    size_t titleLength = strlen(metadata.title);
+    int titleHeight = (int)ceil((float)titleLength / term_w);
+    size_t artistLength = strlen(metadata.artist);
+    int artistHeight = (int)ceil((float)artistLength / term_w);
+    size_t albumLength = strlen(metadata.album);
+    int albumHeight = (int)ceil((float)albumLength / term_w);
+    int yearHeight = 1;
+
+    return titleHeight + artistHeight + albumHeight + yearHeight;
+}
 
 void calcPreferredSize()
 {
     minHeight = 2 + (equalizerEnabled ? equalizerHeight : 0);    
-    calcIdealImgSize(&preferredWidth, &preferredHeight, (equalizerEnabled ? equalizerHeight : 0), metadataHeight, firstSong);
+    calcIdealImgSize(&preferredWidth, &preferredHeight, (equalizerEnabled ? equalizerHeight : 0), calcMetadataHeight(), firstSong);
 }
 
 void printCover()
 {
     clearRestOfScreen();
+    printf("\n");
     if (coverEnabled)
     {
         color.r = 0;
@@ -59,42 +76,44 @@ void setColor()
         setTextColorRGB2(color.r, color.g, color.b);
 }
 
-TagSettings printBasicMetadata(const char *file_path)
+TagSettings getMetadata(const char *file_path)
 {
     int pair_count;
     KeyValuePair *pairs = readKeyValuePairs(file_path, &pair_count);
-    TagSettings settings = {};
+    TagSettings metadata = {};
 
     if (pairs == NULL)
     {
         fprintf(stderr, "Error reading key-value pairs.\n");
-        return settings;
+        return metadata;
     }
+    metadata = construct_tag_settings(pairs, pair_count);
+    freeKeyValuePairs(pairs, pair_count);
+    return metadata;
+}
 
-    settings = construct_tag_settings(pairs, pair_count);
-
-    if (strlen(settings.title) > 0)
+void printBasicMetadata(TagSettings *metadata)
+{
+    if (strlen(metadata->title) > 0)
     {
         PixelData pixel = increaseLuminosity(color, 100);
         setTextColorRGB2(pixel.r, pixel.g, pixel.b);        
-        printf(" %s\n", settings.title);
+        printf(" %s\n", metadata->title);
     }
     setColor();    
-    if (strlen(settings.artist) > 0)
-        printf(" %s\n", settings.artist);
-    if (strlen(settings.album) > 0)
-        printf(" %s\n", settings.album);
-    if (strlen(settings.date) > 0)
+    if (strlen(metadata->artist) > 0)
+        printf(" %s\n", metadata->artist);
+    if (strlen(metadata->album) > 0)
+        printf(" %s\n", metadata->album);
+    if (strlen(metadata->date) > 0)
     {
-        int year = getYear(settings.date);
+        int year = getYear(metadata->date);
         if (year == -1)
-            printf(" %s\n", settings.date);
+            printf(" %s\n", metadata->date);
         else
             printf(" %d\n", year);
     }
-    freeKeyValuePairs(pairs, pair_count);
     fflush(stdout);
-    return settings;
 }
 
 void printProgress(double elapsed_seconds, double total_seconds, double total_duration_seconds)
@@ -139,8 +158,7 @@ void printProgress(double elapsed_seconds, double total_seconds, double total_du
 void printMetadata()
 {
     setColor();  
-    TagSettings settings = printBasicMetadata(tagsPath);
-    if (settings.title) setWindowTitle(settings.title);
+    printBasicMetadata(&metadata);
 }
 
 void printTime()
@@ -161,6 +179,18 @@ void printEqualizer()
     }  
 }
 
+void printOptions()
+{
+    printf("[F1]");
+}
+
+void cursorJump(int numRows)
+{     
+    printf("\033[%dA", numRows);
+    printf("\033[0m");
+    fflush(stdout);   
+}
+
 int printPlayer(const char *songFilepath, const char *tagsFilePath, double elapsedSeconds, double songDurationSeconds, PlayList *playlist)
 {    
     path = strdup(songFilepath);
@@ -168,7 +198,10 @@ int printPlayer(const char *songFilepath, const char *tagsFilePath, double elaps
     totalDurationSeconds = playlist->totalDuration;
     elapsed = elapsedSeconds;
     duration = songDurationSeconds;
-
+    if (refresh)
+    {    
+        metadata = getMetadata(tagsPath);
+    }
     calcPreferredSize();
 
     if (preferredWidth <= 0 || preferredHeight <= 0) return -1;
@@ -181,6 +214,7 @@ int printPlayer(const char *songFilepath, const char *tagsFilePath, double elaps
     }  
     printTime();
     printEqualizer();
+    cursorJump(equalizerHeight + 1);
     saveCursorPosition();
     hideCursor();
 
