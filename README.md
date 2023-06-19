@@ -71,6 +71,8 @@ cue returns the first directory or file whose name matches the string you provid
 #### Some Examples:
 
  ```
+cue (starting cue with no arguments plays all songs (up to 10 000) in your library, shuffled)
+
 cue moonlight son (finds and plays moonlight sonata)
 
 cue moon (finds and plays moonlight sonata)
@@ -93,9 +95,8 @@ cue --help, -? or -h
 
 cue --version or -v
 
-cue . (plays all songs in your library, shuffled)
+cue . (loads the main cue playlist, see 'Other Functions')
 
-cue (starting cue with no arguments loads the main cue playlist, see 'Other Functions')
  ```
 
 #### Other Functions:

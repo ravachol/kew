@@ -14,8 +14,6 @@
 //  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 //  GNU General Public License for more details.
 
-//  \m/ keep on rocking in the free world \m/
-
 #include <stdio.h>
 #include <pwd.h>
 #include <sys/param.h>
@@ -344,6 +342,7 @@ int run()
     setConfig();
     saveMainPlaylist(settings.path, playingMainPlaylist);
     free(mainPlaylist);
+    showCursor();
     return 0;
 }
 
@@ -383,11 +382,11 @@ int main(int argc, char *argv[])
 
     if (argc == 1)
     {
-        playMainPlaylist();
+        playAll(argc, argv);
     }
     else if (argv[2] == ".")
     {
-        playAll(argc, argv);
+        playMainPlaylist();
     }
     else if ((argc == 2 && ((strcmp(argv[1], "--help") == 0) || (strcmp(argv[1], "-h") == 0) || (strcmp(argv[1], "-?") == 0))))
     {

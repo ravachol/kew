@@ -11,7 +11,7 @@
 #include "settings.h"
 
 #define MAX_SEARCH_SIZE 256
-#define MAX_FILES 4096
+#define MAX_FILES 10000
 
 const char ALLOWED_EXTENSIONS[] = "\\.(m4a|mp3|ogg|flac|wav|aac|wma|raw|mp4a|mp4)$";
 const char PLAYLIST_EXTENSIONS[] = "\\.(m3u)$";
@@ -309,37 +309,39 @@ int makePlaylist(int argc, char *argv[])
 
     const char *allowedExtensions = ALLOWED_EXTENSIONS;
 
-    if (strcmp(argv[1], ".") == 0 && argc == 2)
+    if (argc == 1)
     {
         searchType = ReturnAllSongs;
         shuffle = true;
     }    
 
-    if (strcmp(argv[1], "list") == 0 && argc > 2)
+    if (argc > 1)
     {
-        allowedExtensions = PLAYLIST_EXTENSIONS;
-        searchType = SearchPlayList;
-    }
-
-    if (strcmp(argv[1], "random") == 0 || strcmp(argv[1], "rand") == 0 || strcmp(argv[1], "shuffle") == 0)
-    {
-        int count = 0;
-        while (argv[count] != NULL)
+        if (strcmp(argv[1], "list") == 0 && argc > 2)
         {
-            count++;
+            allowedExtensions = PLAYLIST_EXTENSIONS;
+            searchType = SearchPlayList;
         }
-        if (count > 2)
+
+        if (strcmp(argv[1], "random") == 0 || strcmp(argv[1], "rand") == 0 || strcmp(argv[1], "shuffle") == 0)
         {
-            searchTypeIndex = 2;
-            shuffle = true;
+            int count = 0;
+            while (argv[count] != NULL)
+            {
+                count++;
+            }
+            if (count > 2)
+            {
+                searchTypeIndex = 2;
+                shuffle = true;
+            }
         }
+
+        if (strcmp(argv[searchTypeIndex], "dir") == 0)
+            searchType = DirOnly;
+        else if (strcmp(argv[searchTypeIndex], "song") == 0)
+            searchType = FileOnly;
     }
-
-    if (strcmp(argv[searchTypeIndex], "dir") == 0)
-        searchType = DirOnly;
-    else if (strcmp(argv[searchTypeIndex], "song") == 0)
-        searchType = FileOnly;
-
     int start = searchTypeIndex + 1;
 
     if (searchType == FileOnly || searchType == DirOnly || searchType == SearchPlayList)
