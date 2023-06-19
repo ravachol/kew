@@ -20,7 +20,6 @@ int isAudioFile(const char *filename)
             return 1;
         }
     }
-
     return 0;
 }
 
@@ -214,10 +213,9 @@ int calcIdealImgSize(int *width, int *height, const int equalizerHeight, const i
     int term_w, term_h;
     getTermSize(&term_w, &term_h);
     int timeDisplayHeight = 1;
-    int commandHeight = 0;
-    if (firstSong)
-        commandHeight = 1;
-    int minHeight = equalizerHeight + metatagHeight + timeDisplayHeight + commandHeight;
+    int heightMargin = 2;
+    int widthMargin = 2;
+    int minHeight = equalizerHeight + metatagHeight + timeDisplayHeight + heightMargin;
     *height = term_h - minHeight;
     *width = ceil(*height * 2);
     if (*width > term_w)
@@ -225,10 +223,9 @@ int calcIdealImgSize(int *width, int *height, const int equalizerHeight, const i
         *width = term_w;
         *height = floor(*width / 2);
     }
-
     int remainder = *width % 2;
     if (remainder == 1) *width -= 1;
-    *width--; //compensate for first character on each line being a blank space
+    *width - widthMargin; //compensate for first character on each line being a blank
     return 0;
 }
 

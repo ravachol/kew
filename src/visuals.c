@@ -183,13 +183,6 @@ void drawEqualizer(int height, int width, bool drawBlocks, PixelData color)
     }
     printf("\n"); // Reset the color and move to the next line
     printf("\r");
-
-    // printf("  ");
-    //  Restore the cursor position
-    printf("\033[%dA", height + 2);
-    printf("\033[0m");
-    printf("\r");
-
     fflush(stdout);
 
     fftwf_destroy_plan(plan);

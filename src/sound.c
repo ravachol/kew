@@ -248,9 +248,18 @@ int playAacFile(const char *filePath)
 int playSoundFile(const char *filePath)
 {
     eofReached = 0;
-    int ret = playSoundFileDefault(filePath);
-    if (ret != 0)
-        ret = playAacFile(filePath);
+    int ret = 0;
+    const char *extension = getFileExtension(filePath);
+    if(extension != NULL)
+    {
+        if (strcmp(extension, "m4a") == 0)
+        {
+            ret = playAacFile(filePath);
+        }
+        else {
+            ret = playSoundFileDefault(filePath);
+        }
+    }
     return ret;
 }
 
