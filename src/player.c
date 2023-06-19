@@ -170,25 +170,26 @@ void printTime()
         printProgress(elapsed, duration, totalDurationSeconds);
 }
 
+void cursorJump(int numRows)
+{     
+    printf("\033[%dA", numRows);
+    printf("\033[0m");
+    fflush(stdout);   
+}
+
 void printEqualizer()
 {
     if (equalizerEnabled)
     {
         drawEqualizer(equalizerHeight, preferredWidth, equalizerBlocks, color);
         drewVisualization = true;
+        cursorJump(equalizerHeight + 1);
     }  
 }
 
 void printOptions()
 {
     printf("[F1]");
-}
-
-void cursorJump(int numRows)
-{     
-    printf("\033[%dA", numRows);
-    printf("\033[0m");
-    fflush(stdout);   
 }
 
 int printPlayer(const char *songFilepath, const char *tagsFilePath, double elapsedSeconds, double songDurationSeconds, PlayList *playlist)
@@ -214,7 +215,6 @@ int printPlayer(const char *songFilepath, const char *tagsFilePath, double elaps
     }  
     printTime();
     printEqualizer();
-    cursorJump(equalizerHeight + 1);
     saveCursorPosition();
     hideCursor();
 
