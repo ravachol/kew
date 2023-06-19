@@ -16,10 +16,10 @@ extern const char VERSION[];
 
 extern bool coverEnabled;
 extern bool coverBlocks;
+extern bool printInfo;
 extern bool equalizerEnabled;
 extern bool equalizerBlocks;
 extern int equalizerHeight;
-
 extern bool refresh;
 
 int printPlayer(const char *songFilepath, const char *tagsFilePath, double elapsedSeconds, double songDurationSeconds, PlayList *playlist);

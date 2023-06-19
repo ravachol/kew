@@ -10,6 +10,19 @@ char *stringToLower(char *str)
     return str;
 }
 
+void replaceChr(char* str, char toReplace, char replacement) {
+    if (str == NULL) {
+        return; // Handle null pointer
+    }
+    size_t length = strlen(str);
+    
+    for (size_t i = 0; i < length; i++) {
+        if (str[i] == toReplace) {
+            str[i] = replacement;
+        }
+    }
+}
+
 char *strcasestr(const char *haystack, const char *needle)
 {
     if (!haystack || !needle)

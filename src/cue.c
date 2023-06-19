@@ -116,6 +116,10 @@ struct Event processInput()
     case ' ':
         event.type = EVENT_PLAY_PAUSE;
         break;
+    case 'P': // F1
+        refresh = true;
+        printInfo = !printInfo;
+        break;     
     default:
         break;
     }
@@ -343,6 +347,7 @@ int run()
     saveMainPlaylist(settings.path, playingMainPlaylist);
     free(mainPlaylist);
     showCursor();
+    printf("\n");
     return 0;
 }
 
@@ -384,7 +389,7 @@ int main(int argc, char *argv[])
     {
         playAll(argc, argv);
     }
-    else if (argv[2] == ".")
+    else if (strcmp(argv[1], ".") == 0)
     {
         playMainPlaylist();
     }
@@ -394,6 +399,7 @@ int main(int argc, char *argv[])
     }
     else if (argc == 2 && (strcmp(argv[1], "--version") == 0 || strcmp(argv[1], "-v") == 0))
     {
+        printAsciiLogo();
         showVersion();
     }
     else if (argc == 3 && (strcmp(argv[1], "path") == 0))

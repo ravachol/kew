@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
 #include <sys/select.h>
 #include <pwd.h>
@@ -23,6 +24,8 @@
 #define ANSI_SET_CURSOR_POS "\033[%d;%dH"
 
 extern volatile sig_atomic_t resizeFlag;
+
+char* queryTerminalProperty(int property);
 
 char *getVariableValue(const char *variableName);
 

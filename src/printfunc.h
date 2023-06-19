@@ -20,6 +20,8 @@ typedef struct
 
 void printHelp();
 
+void printAsciiLogo();
+
 void printVersion(const char *version, const char *latestVersion);
 
 int getYear(const char *dateString);
