@@ -252,12 +252,18 @@ int playSoundFile(const char *filePath)
     const char *extension = getFileExtension(filePath);
     if(extension != NULL)
     {
-        if (strcmp(extension, "m4a") == 0)
+        if (strcmp(extension, "m4a") == 0 || strcmp(extension, "ogg") == 0)
         {
             ret = playAacFile(filePath);
+
+            if (ret < 0)
+                playSoundFileDefault(filePath);
         }
         else {
             ret = playSoundFileDefault(filePath);
+
+            if (ret < 0)
+                playAacFile(filePath);
         }
     }
     return ret;
