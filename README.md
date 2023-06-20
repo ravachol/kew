@@ -12,7 +12,7 @@ cue is a command-line music player for Linux.
 ## Features
  
  * Search a music library with partial titles
- * Display album covers as ASCII art or as a normal (blocky) image.
+ * Display album covers as ASCII art or as a normal image.
  * Creates a playlist automatically based on matched directory name
  * Control the player with previous, next and pause.
  * A main playlist that you can add to by pressing 'a' when listening to any song. Load the playlist by running cue with no arguments.
@@ -106,7 +106,7 @@ cue . (loads the main cue playlist, see 'Other Functions')
 * <kbd>Space</kbd> to toggle pause.
 * <kbd>e</kbd> to toggle the equalizer.
 * <kbd>c</kbd> to toggle album covers.
-* <kbd>b</kbd> to toggle album covers drawn with solid blocks.
+* <kbd>b</kbd> to toggle album covers drawn in ascii or as a normal image.
 * <kbd>r</kbd> to repeat the current song.
 * <kbd>s</kbd> to shuffle the playlist.
 * <kbd>a</kbd> add current song to main cue playlist.
