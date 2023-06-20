@@ -30,7 +30,8 @@ sudo bash -c "curl https://raw.githubusercontent.com/ravachol/cue/main/install.s
 cue dependencies are:
 
 * FFmpeg
-* FFTW 
+* FFTW
+* Chafa
 
 A TrueColor capable terminal is recommended, like Konsole, kitty or st, to display colors properly.
 
