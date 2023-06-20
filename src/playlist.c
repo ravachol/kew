@@ -21,6 +21,7 @@ PlayList *mainPlaylist = NULL;
 
 char search[MAX_SEARCH_SIZE];
 char playlistName[MAX_SEARCH_SIZE];
+bool shuffle = false;
 
 volatile int stopThread = 0;
 
@@ -196,8 +197,10 @@ void buildPlaylistRecursive(char *directoryPath, const char *allowedExtensions, 
 
         if (isDirectory(filePath))
         {
-            // Entry is a directory, recursively process it
+            int songCount = playlist->count;
             buildPlaylistRecursive(filePath, allowedExtensions, playlist);
+            if (playlist->count > songCount)
+                shuffle = true;
         }
         else
         {
@@ -303,7 +306,7 @@ int makePlaylist(int argc, char *argv[])
 {
     enum SearchType searchType = SearchAny;
     int searchTypeIndex = 1;
-    bool shuffle = false;
+
     const char *delimiter = ":";
     PlayList partialPlaylist = {NULL, NULL};
 

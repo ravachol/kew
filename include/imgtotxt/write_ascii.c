@@ -59,6 +59,50 @@ unsigned char calc_ascii_char(PixelData *p, PixelData *brightPixel)
     return scale[brightness_levels - rescaled];
 }
 
+int getBrightPixel(char *filepath, int width, int height, PixelData *brightPixel)
+{
+    int rwidth, rheight, rchannels;
+    unsigned char *read_data = stbi_load(filepath, &rwidth, &rheight, &rchannels, 3);
+
+    if (read_data == NULL)
+    {
+        fprintf(stderr, "Error reading image data!\n\n");
+        return -1;
+    }
+    brightPixelFound = false;
+    // Check for and do any needed image resizing...
+    PixelData *data;
+    if (width != (unsigned)rwidth || height != (unsigned)rheight)
+    {
+        // 3 * uint8 for RGB!
+        unsigned char *new_data = malloc(3 * sizeof(unsigned char) * width * height);
+        int r = stbir_resize_uint8(
+            read_data, rwidth, rheight, 0,
+            new_data, width, height, 0, 3);
+
+        if (r == 0)
+        {
+            perror("Error resizing image:");
+            return -1;
+        }
+        stbi_image_free(read_data); // Free read_data.
+        data = (PixelData *)new_data;
+    }
+    else
+    {
+        data = (PixelData *)read_data;
+    }
+
+    for (unsigned int d = 0; d < width * height; d++)
+    {
+        PixelData *c = data + d;
+
+        calc_ascii_char(c, brightPixel);
+    }
+    stbi_image_free(data);
+    return 0;
+}
+
 int read_and_convert(char *filepath, ImageOptions *options, PixelData *brightPixel)
 {
     int rwidth, rheight, rchannels;
