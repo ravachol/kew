@@ -252,7 +252,7 @@ int playSoundFile(const char *filePath)
     const char *extension = getFileExtension(filePath);
     if(extension != NULL)
     {
-        if (strcmp(extension, "m4a") == 0 || strcmp(extension, "ogg") == 0 || strcmp(extension, "flac") == 0)
+        if (strcmp(extension, "m4a") == 0 || strcmp(extension, "ogg") == 0)
         {
             ret = playAacFile(filePath);
 
@@ -324,6 +324,10 @@ void cleanupPlaybackDevice()
     {
         if (userData->decoder)
             ma_decoder_uninit((ma_decoder *)userData->decoder);
+    }
+    ma_device_stop(&device);
+    while (ma_device_get_state(&device) == ma_device_state_started) {
+        usleep(100000);
     }
     ma_device_uninit(&device);
     deleteFile(tempFilePath);
