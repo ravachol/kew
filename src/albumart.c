@@ -1,5 +1,10 @@
 #include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
 #include <dirent.h>
+#include <chafa.h>
 #include "dir.h"
 #include "file.h"
 #include "../include/getcover/getcover.h"
@@ -7,7 +12,18 @@
 #include "metadata.h"
 #include "stringfunc.h"
 #include "term.h"
-#include "albumart.h"
+
+void runChafaCommand(const char* filepath) {
+    const int COMMAND_SIZE = 1000;
+    char command[COMMAND_SIZE];
+    int status;
+
+    // Construct the command string
+    snprintf(command, COMMAND_SIZE, "chafa --clear -C on %s", filepath);
+
+    // Execute the command
+    status = system(command);
+}
 
 int isAudioFile(const char *filename)
 {
@@ -224,12 +240,13 @@ int calcIdealImgSize(int *width, int *height, const int equalizerHeight, const i
         *height = floor(*width / 2);
     }
     int remainder = *width % 2;
-    if (remainder == 1) *width -= 1;
-    *width - widthMargin; //compensate for first character on each line being a blank
+    if (remainder == 1)
+        *width -= 1;
+    *width - widthMargin; // compensate for first character on each line being a blank
     return 0;
 }
 
-int displayAlbumArt(const char *filepath, int asciiHeight, int asciiWidth, bool coverBlocks, PixelData *brightPixel)
+int displayAlbumArt(const char *filepath, int width, int height, bool coverBlocks, PixelData *brightPixel)
 {
     char path[MAXPATHLEN];
     char fileOutputPath[MAXPATHLEN];
@@ -239,20 +256,20 @@ int displayAlbumArt(const char *filepath, int asciiHeight, int asciiWidth, bool 
 
     int progressWidth = 26;
     int res = extractCover(filepath, fileOutputPath);
-    if (res >= 0)
-        output_ascii(fileOutputPath, asciiHeight, asciiWidth, coverBlocks, brightPixel);
-    else
+    if (res < 0)
     {
-        getDirectoryFromPath(filepath, path);
-        char *largestImageFile = findLargestImageFile(path);
-        if (largestImageFile != NULL)
-        {
-            return output_ascii(largestImageFile, asciiHeight, asciiWidth, coverBlocks, brightPixel);
-        }
-        else
-        {
-            return -1;
-        }
+        *fileOutputPath = *findLargestImageFile(path);
+    }
+    if (fileOutputPath == NULL)
+        return -1;
+
+    if (coverBlocks)
+    {
+        getBrightPixel(fileOutputPath, width, height, brightPixel);
+        runChafaCommand(fileOutputPath);        
+    }
+    else {
+        return output_ascii(fileOutputPath, height, width, coverBlocks, brightPixel);
     }
     return 0;
 }

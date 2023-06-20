@@ -13,25 +13,25 @@ if [ -d "cue" ]; then
 fi
 
 # Check if dependencies not are already installed: 
-if command -v fftw-wisdom &>/dev/null && command -v git &>/dev/null && command -v ffmpeg &>/dev/null; then
+if command -v fftw-wisdom &>/dev/null && command -v git &>/dev/null && command -v ffmpeg &>/dev/null && pkg-config --exists chafa; then
   echo 'Dependencies already installed, continuing with installation..'
 else
   # Install dependencies based on the package manager available
   echo "Installing missing dependencies"
   if command -v apt &>/dev/null; then
-      apt install ffmpeg libfftw3-dev git
+      apt install ffmpeg libfftw3-dev git libchafa-dev
   elif command -v yum &>/dev/null; then
-      yum install ffmpeg fftw-devel git
+      yum install ffmpeg fftw-devel git chafa-devel
   elif command -v pacman &>/dev/null; then
-      pacman -Syu ffmpeg fftw git
+      pacman -Syu ffmpeg fftw git chafa
   elif command -v dnf &>/dev/null; then
-      dnf install ffmpeg fftw-devel git
+      dnf install ffmpeg fftw-devel git chafa-devel
   elif command -v zypper &>/dev/null; then
-      zypper install ffmpeg fftw-devel git
+      zypper install ffmpeg fftw-devel git chafa-devel
   elif command -v eopkg &>/dev/null; then
-      eopkg install ffmpeg fftw-devel git
+      eopkg install ffmpeg fftw-devel git chafa-devel
   elif command -v guix &>/dev/null; then
-      guix install ffmpeg fftw git
+      guix install ffmpeg fftw git chafa
   else
       echo "Unsupported package manager. Please install the required dependencies manually."
       exit 1
