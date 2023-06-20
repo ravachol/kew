@@ -13,6 +13,7 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
     AppSettings settings;
     memset(&settings, 0, sizeof(settings));
     strncpy(settings.coverEnabled, "1", sizeof(settings.coverEnabled));
+    strncpy(settings.coverBlocks, "1", sizeof(settings.coverEnabled));
     strncpy(settings.equalizerEnabled, "1", sizeof(settings.equalizerEnabled));
     strncpy(settings.equalizerBlocks, "1", sizeof(settings.equalizerBlocks));
 
