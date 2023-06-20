@@ -1,5 +1,4 @@
 #include <string.h>
-#include <chafa.h>
 #include "player.h"
 
 const char VERSION[] = "1.0.0";

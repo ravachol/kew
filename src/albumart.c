@@ -4,7 +4,6 @@
 #include <string.h>
 #include <unistd.h>
 #include <dirent.h>
-#include <chafa.h>
 #include "dir.h"
 #include "file.h"
 #include "../include/getcover/getcover.h"
