@@ -22,7 +22,7 @@ PlayList *mainPlaylist = NULL;
 char search[MAX_SEARCH_SIZE];
 char playlistName[MAX_SEARCH_SIZE];
 bool shuffle = false;
-
+int numDirs = 0;
 volatile int stopThread = 0;
 
 Node *getListNext(Node *node)
@@ -200,7 +200,7 @@ void buildPlaylistRecursive(char *directoryPath, const char *allowedExtensions, 
             int songCount = playlist->count;
             buildPlaylistRecursive(filePath, allowedExtensions, playlist);
             if (playlist->count > songCount)
-                shuffle = true;
+                numDirs++;
         }
         else
         {
@@ -399,6 +399,8 @@ int makePlaylist(int argc, char *argv[])
             token = strtok(NULL, delimiter);
         }
     }
+    if (numDirs > 1)
+        shuffle = true;
     if (shuffle)
         shufflePlaylist(&playlist);
 
