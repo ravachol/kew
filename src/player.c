@@ -166,6 +166,7 @@ void printProgress(double elapsed_seconds, double total_seconds, double total_du
 void printMetadata()
 {
     if (!metaDataEnabled || printInfo) return;
+    usleep(100000);
     setColor();  
     printBasicMetadata(&metadata);
 }
