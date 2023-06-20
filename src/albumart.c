@@ -3,6 +3,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <pthread.h>
 #include <dirent.h>
 #include "dir.h"
 #include "file.h"
@@ -12,7 +15,7 @@
 #include "stringfunc.h"
 #include "term.h"
 
-void runChafaCommand(const char* filepath) {
+void runChafaCommand(const char *filepath) {
     const int COMMAND_SIZE = 1000;
     char command[COMMAND_SIZE];
     int status;
@@ -21,7 +24,20 @@ void runChafaCommand(const char* filepath) {
     snprintf(command, COMMAND_SIZE, "chafa --clear -C on %s", filepath);
 
     // Execute the command
-    status = system(command);
+    pid_t pid = fork();
+
+    if (pid == -1) {
+        // Fork failed
+        perror("fork failed");
+        exit(EXIT_FAILURE);
+    } else if (pid == 0) {
+        // Child process
+        system(command);
+        exit(EXIT_SUCCESS);
+    } else {
+        // Parent process
+        wait(&status);  // Wait for the child process to finish
+    }
 }
 
 int isAudioFile(const char *filename)
@@ -257,7 +273,8 @@ int displayAlbumArt(const char *filepath, int width, int height, bool coverBlock
     int res = extractCover(filepath, fileOutputPath);
     if (res < 0)
     {
-        *fileOutputPath = *findLargestImageFile(path);
+        getDirectoryFromPath(filepath, path);
+        strcpy(fileOutputPath, findLargestImageFile(path));
     }
     if (fileOutputPath == NULL)
         return -1;
@@ -265,9 +282,10 @@ int displayAlbumArt(const char *filepath, int width, int height, bool coverBlock
     if (coverBlocks)
     {
         getBrightPixel(fileOutputPath, width, height, brightPixel);
-        runChafaCommand(fileOutputPath);        
+        runChafaCommand(fileOutputPath);
     }
-    else {
+    else
+    {
         return output_ascii(fileOutputPath, height, width, coverBlocks, brightPixel);
     }
     return 0;
