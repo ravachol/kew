@@ -346,6 +346,7 @@ int run()
     setConfig();
     saveMainPlaylist(settings.path, playingMainPlaylist);
     free(mainPlaylist);
+    //pthread_mutex_destroy(&chafaMutex);    
     showCursor();
     printf("\n");
     return 0;
@@ -369,6 +370,7 @@ void playMainPlaylist()
     }
     playingMainPlaylist = true;  
     playlist = deepCopyPlayList(mainPlaylist);
+    shufflePlaylist(&playlist);
     init();    
     run();
 }

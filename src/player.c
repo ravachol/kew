@@ -190,7 +190,7 @@ void cursorJump(int numRows)
 void printLastRow()
 {
     setTextColorRGB2(bgColor.r, bgColor.g, bgColor.b);
-    printf(" [F1 - About]");   
+    printf(" [F1 - About]");
 }
 
 // Callback function to write response data
@@ -274,7 +274,7 @@ void showVersion()
     printVersion(VERSION, latestVersion);
 }
 
-void printSupportLink()
+void printAbout()
 {
     if (refresh && printInfo)
     {
@@ -328,7 +328,7 @@ int printPlayer(const char *songFilepath, const char *tagsFilePath, double elaps
     if (refresh)
     {
         printCover();   
-        printSupportLink();
+        printAbout();
         printMetadata();
     }  
     printTime();
