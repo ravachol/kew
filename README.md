@@ -110,7 +110,7 @@ cue . (loads the main cue playlist, see 'Other Functions')
 * <kbd>r</kbd> to repeat the current song.
 * <kbd>s</kbd> to shuffle the playlist.
 * <kbd>a</kbd> add current song to main cue playlist.
-* <kbd>d</kbd> delete current song from main cue playlist. This only works if you started cue with no arguments, which loads the main cue playlist.
+* <kbd>d</kbd> delete current song from main cue playlist.
 * <kbd>p</kbd> to save the currently loaded playlist to a m3u file in your music folder.
 * <kbd>q</kbd> to quit.
 

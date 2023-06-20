@@ -1,4 +1,5 @@
 #include <string.h>
+#include <chafa.h>
 #include "player.h"
 
 const char VERSION[] = "1.0.0";
@@ -26,7 +27,7 @@ char *path;
 char *tagsPath;
 double totalDurationSeconds = 0.0;
 PixelData color = { 0, 0, 0 };
-PixelData bgColor = { 34, 34, 34 };
+PixelData bgColor = { 50, 50, 50 };
 TagSettings metadata = {};
 struct ResponseData
 {
@@ -65,8 +66,8 @@ void printCover()
     {
         color.r = 0;
         color.g = 0;
-        color.b = 0;        
-        displayAlbumArt(path, preferredHeight, preferredWidth, coverBlocks, &color);
+        color.b = 0;
+        displayAlbumArt(path, preferredWidth, preferredHeight, coverBlocks, &color);
         drewCover = true;
         firstSong = false;
     }
@@ -93,7 +94,6 @@ TagSettings getMetadata(const char *file_path)
 
     if (pairs == NULL)
     {
-        fprintf(stderr, "Error reading key-value pairs.\n");
         return metadata;
     }
     metadata = construct_tag_settings(pairs, pair_count);
@@ -191,7 +191,7 @@ void cursorJump(int numRows)
 void printLastRow()
 {
     setTextColorRGB2(bgColor.r, bgColor.g, bgColor.b);
-    printf(" [F1 - Info]");   
+    printf(" [F1 - About]");   
 }
 
 // Callback function to write response data
@@ -301,7 +301,9 @@ void printEqualizer()
 {
     if (equalizerEnabled && !printInfo)
     {
-        drawEqualizer(equalizerHeight, preferredWidth, equalizerBlocks, color);
+        int term_w, term_h;
+        getTermSize(&term_w, &term_h);
+        drawEqualizer(equalizerHeight, term_w, equalizerBlocks, color);
         drewVisualization = true;
         printLastRow();
         cursorJump(equalizerHeight + 1);
