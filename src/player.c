@@ -1,7 +1,7 @@
 #include <string.h>
 #include "player.h"
 
-const char VERSION[] = "1.0.0";
+const char VERSION[] = "0.9.0";
 
 bool firstSong = true;
 bool refresh = true;
