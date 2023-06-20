@@ -21,7 +21,7 @@ void runChafaCommand(const char *filepath) {
     int status;
 
     // Construct the command string
-    snprintf(command, COMMAND_SIZE, "chafa --clear -C on %s", filepath);
+    snprintf(command, COMMAND_SIZE, "chafa --clear -C on \"%s\"", filepath);
 
     // Execute the command
     pid_t pid = fork();
