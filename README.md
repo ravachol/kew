@@ -36,7 +36,7 @@ A TrueColor capable terminal is recommended, like Konsole, kitty or st, to displ
 
 For a complete list of capable terminals, see this page: [Colors in Terminal](https://gist.github.com/CMCDragonkai/146100155ecd79c7dac19a9e23e6a362) (github.com).
 
-Install FFmpeg and FFTW using your distro's package manager. Then run:
+Install FFmpeg, FFTW and Chafa using your distro's package manager. Then run:
 
 ```bash
 git clone https://github.com/ravachol/cue.git
