@@ -345,8 +345,7 @@ int run()
     }
     setConfig();
     saveMainPlaylist(settings.path, playingMainPlaylist);
-    free(mainPlaylist);
-    //pthread_mutex_destroy(&chafaMutex);    
+    free(mainPlaylist);  
     showCursor();
     printf("\n");
     return 0;
