@@ -17,6 +17,12 @@ int extractTags(const char *input_file, TagSettings *tag_settings)
     char command[1024];
     snprintf(command, sizeof(command), "ffprobe -show_entries format_tags -of default=noprint_wrappers=1:nokey=0 \"%s\"", input_file);
 
+    memset(tag_settings->title, 0, sizeof(tag_settings->title));
+    memset(tag_settings->artist, 0, sizeof(tag_settings->artist));
+    memset(tag_settings->album_artist, 0, sizeof(tag_settings->album_artist));
+    memset(tag_settings->album, 0, sizeof(tag_settings->album));
+    memset(tag_settings->date, 0, sizeof(tag_settings->date));   
+
     // Open the pipe to read the output of the ffprobe command
     FILE *pipe = popen(command, "r");
     if (!pipe)

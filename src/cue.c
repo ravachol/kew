@@ -148,7 +148,7 @@ int play(SongInfo song)
         g_audioBuffer = NULL;
     }
     char musicFilepath[MAX_FILENAME_LENGTH];    
-    strcpy(musicFilepath, song.filePath);  
+    strcpy(musicFilepath, song.filePath);
     extractTags(musicFilepath, &metadata);
     int res = playSoundFile(musicFilepath);
     struct timespec start_time;
