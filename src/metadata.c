@@ -1,119 +1,62 @@
 #include "metadata.h"
 #include "cache.h"
 
-TagSettings construct_tag_settings(KeyValuePair *pairs, int count)
+void removeTagPrefix(char *value)
 {
-    TagSettings settings;
-    memset(&settings, 0, sizeof(settings));
-
-    for (int i = 0; i < count; i++)
+    // Find the first occurrence of ':' in the value
+    char *colon_pos = strchr(value, ':');
+    if (colon_pos)
     {
-        KeyValuePair *pair = &pairs[i];
-
-        if (strcmp(stringToLower(pair->key), "title") == 0)
-        {
-            strncpy(settings.title, pair->value, sizeof(settings.title));
-        }
-        else if (strcmp(stringToLower(pair->key), "artist") == 0)
-        {
-            strncpy(settings.artist, pair->value, sizeof(settings.artist));
-        }
-        else if (strcmp(stringToLower(pair->key), "album") == 0)
-        {
-            strncpy(settings.album, pair->value, sizeof(settings.album));
-        }
-        else if (strcmp(stringToLower(pair->key), "date") == 0)
-        {
-            strncpy(settings.date, pair->value, sizeof(settings.date));
-        }
+        // Remove the tag prefix by shifting the characters
+        memmove(value, colon_pos + 1, strlen(colon_pos));
     }
-
-    return settings;
 }
 
-int extract_tags(const char *input_file, const char *output_file)
+int extractTags(const char *input_file, TagSettings *tag_settings)
 {
-    // Open the input file
-    AVFormatContext *format_ctx = NULL;
-    avformat_close_input(&format_ctx);    
-    if (avformat_open_input(&format_ctx, input_file, NULL, NULL) != 0)
+    char command[1024];
+    snprintf(command, sizeof(command), "ffprobe -show_entries format_tags -of default=noprint_wrappers=1:nokey=0 \"%s\"", input_file);
+
+    // Open the pipe to read the output of the ffprobe command
+    FILE *pipe = popen(command, "r");
+    if (!pipe)
     {
-        fprintf(stderr, "Error opening the input file.\n");
+        fprintf(stderr, "Error executing ffprobe command.\n");
         return 1;
     }
 
-    // Retrieve the stream information
-    if (avformat_find_stream_info(format_ctx, NULL) < 0)
+    char line[512];
+    while (fgets(line, sizeof(line), pipe))
     {
-        fprintf(stderr, "Error finding stream information.\n");
-        avformat_close_input(&format_ctx);
-        return 1;
+        // Extract the key and value from each line
+        char *key = strtok(line, "=");
+        char *value = strtok(NULL, "=");
+        if (key && value)
+        {
+            // Remove newline character from the end of the value
+            size_t value_len = strlen(value);
+            if (value[value_len - 1] == '\n')
+                value[value_len - 1] = '\0';
+
+            // Remove the tag prefix from the value if it exists
+            removeTagPrefix(key);
+
+            // Assign the value to the corresponding field in the TagSettings structure
+            if (strcasecmp(key, "title") == 0)
+                strncpy(tag_settings->title, value, sizeof(tag_settings->title));
+            else if (strcasecmp(key, "artist") == 0)
+                strncpy(tag_settings->artist, value, sizeof(tag_settings->artist));
+            else if (strcasecmp(key, "album_artist") == 0)
+                strncpy(tag_settings->album_artist, value, sizeof(tag_settings->album_artist));
+            else if (strcasecmp(key, "album") == 0)
+                strncpy(tag_settings->album, value, sizeof(tag_settings->album));
+            else if (strcasecmp(key, "date") == 0)
+                strncpy(tag_settings->date, value, sizeof(tag_settings->date));
+        }
     }
 
-    // Open the output file
-    FILE *output_file_ptr = fopen(output_file, "w");
-    if (!output_file_ptr)
-    {
-        fprintf(stderr, "Error opening the output file.\n");
-        avformat_close_input(&format_ctx);
-        return 1;
-    }
+    // Close the pipe
+    pclose(pipe);
 
-    // Extract the metadata tags
-    AVDictionaryEntry *tag = NULL;
-    while ((tag = av_dict_get(format_ctx->metadata, "", tag, AV_DICT_IGNORE_SUFFIX)))
-    {
-        fprintf(output_file_ptr, "%s=%s\n", tag->key, tag->value);
-    }
-
-    // Close the files and free resources
-    avformat_close_input(&format_ctx);
-    fclose(output_file_ptr);
-
-    addToCache(tempCache, output_file);
     return 0;
-}
-
-void print_metadata(const char *file_path)
-{
-    FILE *file = fopen(file_path, "r");
-    if (file == NULL)
-    {
-        fprintf(stderr, "Error opening the file.\n");
-        return;
-    }
-
-    char line[256];
-    while (fgets(line, sizeof(line), file))
-    {
-        // Remove trailing newline character if present
-        line[strcspn(line, "\n")] = '\0';
-
-        char *delimiter = strchr(line, '=');
-        if (delimiter != NULL)
-        {
-            *delimiter = '\0';
-            char *key = line;
-            char *value = delimiter + 1;
-
-            printf("%s: %s\n", key, value);
-        }
-    }
-
-    fclose(file);
-}
-
-TagSettings getMetadata(const char *file_path)
-{
-    int pair_count;
-    KeyValuePair *pairs = readKeyValuePairs(file_path, &pair_count);
-    TagSettings metadata = {};
-
-    if (pairs == NULL)
-    {
-        return metadata;
-    }
-    metadata = construct_tag_settings(pairs, pair_count);
-    freeKeyValuePairs(pairs, pair_count);
-    return metadata;
 }
