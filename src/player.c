@@ -177,7 +177,7 @@ void cursorJump(int numRows)
 void printLastRow()
 {
     setTextColorRGB2(bgColor.r, bgColor.g, bgColor.b);
-    printf(" [F1 About]");
+    printf(" [F1 About] [q Quit] v%s", VERSION);
 }
 
 // Callback function to write response data

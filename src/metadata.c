@@ -35,6 +35,7 @@ int extract_tags(const char *input_file, const char *output_file)
 {
     // Open the input file
     AVFormatContext *format_ctx = NULL;
+    avformat_close_input(&format_ctx);    
     if (avformat_open_input(&format_ctx, input_file, NULL, NULL) != 0)
     {
         fprintf(stderr, "Error opening the input file.\n");
