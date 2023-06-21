@@ -145,9 +145,9 @@ int play(SongInfo song)
     cleanup();
     if (g_audioBuffer != NULL) 
     {
-        stopPlayback();
-        free(g_audioBuffer);
-        g_audioBuffer = NULL;
+     //   stopPlayback();
+     //   free(g_audioBuffer);
+     //   g_audioBuffer = NULL;
     }
     char musicFilepath[MAX_FILENAME_LENGTH];
     strcpy(musicFilepath, song.filePath);

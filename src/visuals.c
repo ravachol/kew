@@ -22,6 +22,7 @@ PixelData decreaseLuminosity(PixelData pixel, int amount) {
 
 void drawEqualizer(int height, int width, bool drawBlocks, PixelData color)
 {
+    usleep(8000);
     width = (width / 2);
     height = height - 1;
     if (height <= 0 || width <= 0)
@@ -40,7 +41,9 @@ void drawEqualizer(int height, int width, bool drawBlocks, PixelData color)
 
             fftwf_destroy_plan(plan);
             fftwf_free(fftInput);
+            fftInput = NULL;
             fftwf_free(fftOutput);            
+            fftOutput = NULL;
             return;
         }
         ma_int16 sample = *((ma_int16 *)g_audioBuffer + i);
@@ -194,5 +197,7 @@ void drawEqualizer(int height, int width, bool drawBlocks, PixelData color)
 
     fftwf_destroy_plan(plan);
     fftwf_free(fftInput);
+    fftInput = NULL;
     fftwf_free(fftOutput);
+    fftOutput = NULL;
 }
