@@ -19,14 +19,14 @@
 
 char coverArtFilePath[MAXPATHLEN];
 
-void runChafaCommand(const char *filepath)
+void runChafaCommand(const char *filepath, int width, int height)
 {
     const int COMMAND_SIZE = 1000;
     char command[COMMAND_SIZE];
     int status;
 
     // Construct the command string
-    snprintf(command, COMMAND_SIZE, "chafa --clear -C on \"%s\"", filepath);
+    snprintf(command, COMMAND_SIZE, "chafa --clear -s %dx%d -C on \"%s\"", width, height, filepath);
 
     // Execute the command
     pid_t pid = fork();
@@ -362,7 +362,7 @@ int displayAlbumArt(const char *filepath, int width, int height, bool coverBlock
     if (coverBlocks)
     {
         getBrightPixel(coverArtFilePath, width, height, brightPixel);
-        runChafaCommand(coverArtFilePath);
+        runChafaCommand(coverArtFilePath, width, height);
     }
     else
     {
