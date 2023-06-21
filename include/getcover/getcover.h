@@ -510,12 +510,12 @@ static int get_FLAC_cover(FILE *fp, const char *outputFilepath)
             if ((picture_fp = fopen(picture_path, "r")) != NULL)
             {
 
-                /*if(verbose) printf("  File %s exists, did not override.\n", picture_path);
+                //if(verbose) printf("  File %s exists, did not override.\n", picture_path);
                 if(!override) {
                     fclose(picture_fp);
                     free(mime_type);
                     return DONE;
-                }*/
+                }
             }
             /* some ripper software create blank PICTURE frame :-( */
             if (picture_length == 0)
