@@ -1,6 +1,5 @@
 #include "visuals.h"
 #include "albumart.h"
-#include "common.h"
 
 PixelData increaseLuminosity(PixelData pixel, int amount) {
     // Increase each color component
