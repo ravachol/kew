@@ -149,9 +149,10 @@ int play(SongInfo song)
         free(g_audioBuffer);
         g_audioBuffer = NULL;
     }
-    char musicFilepath[MAX_FILENAME_LENGTH];
-    strcpy(musicFilepath, song.filePath);    
+    char musicFilepath[MAX_FILENAME_LENGTH];    
+    strcpy(musicFilepath, song.filePath);  
     generateTempFilePath(tagsFilePath, "metatags", ".txt");    
+    usleep(200000);
     extract_tags(strdup(musicFilepath), tagsFilePath);  
     metadata = getMetadata(tagsFilePath);     
     int res = playSoundFile(musicFilepath);
