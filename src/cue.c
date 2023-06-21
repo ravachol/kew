@@ -37,6 +37,7 @@
 #include "albumart.h"
 #include "player.h"
 #include "arg.h"
+#include "cache.h"
 
 #ifndef CLOCK_MONOTONIC
 #define CLOCK_MONOTONIC 1
@@ -133,13 +134,10 @@ struct Event processInput()
 
 void cleanup()
 {
-    clearRestOfScreen();
-    
-    deleteFile(tagsFilePath);
+    clearRestOfScreen();    
     tagsFilePath[0] = '\0';
-    
-    //deleteFile(coverArtFilePath);
     coverArtFilePath[0] = '\0';
+    deleteCachedFiles(tempCache);
 }
 
 int play(SongInfo song)
@@ -351,7 +349,9 @@ int run()
     setConfig();
     saveMainPlaylist(settings.path, playingMainPlaylist);
     free(mainPlaylist);
-    cleanupPlaybackDevice();  
+    cleanupPlaybackDevice();
+    deleteCachedFiles(tempCache);
+    deleteCache(tempCache);    
     showCursor();
     printf("\n");
     return 0;
@@ -365,6 +365,7 @@ void init()
     enableScrolling();
     setNonblockingMode();
     srand(time(NULL));
+    tempCache = createCache();
 }
 
 void playMainPlaylist()

@@ -14,6 +14,8 @@
 #include "metadata.h"
 #include "stringfunc.h"
 #include "term.h"
+#include "albumart.h"
+#include "cache.h"
 
 char coverArtFilePath[MAXPATHLEN];
 
@@ -350,6 +352,9 @@ int displayAlbumArt(const char *filepath, int width, int height, bool coverBlock
                 strcpy(coverArtFilePath, tmp);
             else
                 return -1;
+        }
+        else {
+            addToCache(tempCache, coverArtFilePath);
         }
         if (coverArtFilePath == '\0')
             return -1;
