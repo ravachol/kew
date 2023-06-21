@@ -210,35 +210,6 @@ int checkIfV2(const char *filePath)
     fclose(file);
     return result;
 }
-/*
-// Check if the file contains ID3v2.2 tag
-int checkIfV22(const char* filePath)
-{
-    FILE* file = fopen(filePath, "rb");
-    if (file == NULL) {
-        if (verbose) printf("Failed to open the file.\n");
-        return 0;  // Assuming 0 means false
-    }
-
-    char formatId[4];
-    if (fread(formatId, sizeof(char), 3, file) != 3) {
-        fclose(file);
-        return 0;  // Failed to read format ID
-    }
-    formatId[3] = '\0';
-
-    unsigned short version;
-    if (fread(&version, sizeof(unsigned short), 1, file) != 1) {
-        fclose(file);
-        return 0;  // Failed to read version
-    }
-
-    // Check format
-    int result = (strcmp(formatId, "ID3") == 0 && version == 0x0200U);
-
-    fclose(file);
-    return result;
-}*/
 
 long getFileSize(FILE *file)
 {
@@ -405,80 +376,9 @@ int extractID3v2_cover(const char *filePath, const char *outputFilePath)
     return -1;
 }
 
-/*
-int extractID3v2_cover(const char* filePath, const char* outputFilePath) {
-    const size_t bufferSize = 4096;
-    FILE* file = fopen(filePath, "rb");
-    if (file == NULL) {
-        if (verbose) printf("Failed to open the file.\n");
-        return -1;
-    }
 
-    // Search for JPEG or PNG header
-    unsigned char header[2];
-    while (fread(header, sizeof(unsigned char), 2, file) == 2) {
-        if (header[0] == 0xFF && (header[1] == 0xD8 || header[1] == 0xE0)) {
-            // Found JPEG header (0xFFD8) or APP0 marker (0xFFE0)
-            break;
-        } else if (header[0] == 0x89 && header[1] == 0x50) {
-            // Found PNG header (0x8950)
-            break;
-        }
-    }
-
-    // Check if header was found
-    if (feof(file)) {
-        if (verbose) printf("Cover image header not found.\n");
-        fclose(file);
-        return -1;
-    }
-
-    // Move file position back to the start of the header
-    fseek(file, -2, SEEK_CUR);
-
-    // Read and write the image data to the output file
-    FILE* outputFile = fopen(outputFilePath, "wb");
-    if (outputFile == NULL) {
-        if (verbose) printf("Failed to create output file.\n");
-        fclose(file);
-        return -1;
-    }
-
-    unsigned char buffer[bufferSize];
-    size_t bytesRead;
-
-    while ((bytesRead = fread(buffer, sizeof(unsigned char), sizeof(buffer), file)) > 0) {
-        fwrite(buffer, sizeof(unsigned char), bytesRead, outputFile);
-
-        // Search for JPEG markers
-        for (size_t i = 0; i < bytesRead - 1; i++) {
-            if (buffer[i] == 0xFF && buffer[i + 1] == 0xD9) {
-                if (verbose) printf("Found JPEG footer!\n");
-                fclose(file);
-                fclose(outputFile);
-                if (verbose) printf("Cover image saved to: %s\n", outputFilePath);
-                return 0;  // Reached the end of the JPEG image data
-            }
-        }
-    }
-
-   fclose(outputFile);
-    fclose(file);
-
-
-    return -1;
-}
-*/
 int get_mp3_cover(const char *filePath, const char *outputfilepath)
 {
-    /* if (checkIfV2(filePath))
-         printf("v2");
-     else if (checkIfV22(filePath))
-         printf("v22");
-     else
-         printf("id3 version not found");
- */
-
     int result = extractID3v2_cover(filePath, outputfilepath);
 
     if (result == 0)
@@ -637,7 +537,9 @@ static int get_FLAC_cover(FILE *fp, const char *outputFilepath)
                 printf("  Wrote picture to %s\n", picture_path);
             fclose(picture_fp);
             free(picture_data);
+            picture_data = NULL;
             free(mime_type);
+            mime_type = NULL;
             return DONE;
 
         default:

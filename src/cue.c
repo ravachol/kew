@@ -134,14 +134,20 @@ struct Event processInput()
 void cleanup()
 {
     clearRestOfScreen();
-    cleanupPlaybackDevice();
+    
     deleteFile(tagsFilePath);
+    tagsFilePath[0] = '\0';
+    
+    //deleteFile(coverArtFilePath);
+    coverArtFilePath[0] = '\0';
 }
 
 int play(SongInfo song)
 {
+    cleanup();
     if (g_audioBuffer != NULL) 
     {
+        stopPlayback();
         free(g_audioBuffer);
         g_audioBuffer = NULL;
     }
@@ -164,7 +170,6 @@ int play(SongInfo song)
     generateTempFilePath(tagsFilePath, "metatags", ".txt");
     extract_tags(strdup(musicFilepath), tagsFilePath);
     clock_gettime(CLOCK_MONOTONIC, &start_time);
-
     calculatePlayListDuration(&playlist);
 
     if (res != 0)
@@ -345,7 +350,8 @@ int run()
     }
     setConfig();
     saveMainPlaylist(settings.path, playingMainPlaylist);
-    free(mainPlaylist);  
+    free(mainPlaylist);
+    cleanupPlaybackDevice();  
     showCursor();
     printf("\n");
     return 0;

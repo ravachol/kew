@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/wait.h>
 #include <math.h>
 #include <dirent.h>
 #include <stdbool.h>
@@ -11,21 +12,7 @@
 
 extern ma_int16 *g_audioBuffer;
 
-void data_callback(ma_device *pDevice, void *pOutput, const void *pInput, ma_uint32 frameCount);
-
-int playSoundFileDefault(const char *filePath);
-
-int convertAacToPcmFile(const char *filePath, const char *outputFilePath);
-
-void pcm_callback(ma_device *pDevice, void *pOutput, const void *pInput, ma_uint32 frameCount);
-
-int playPcmFile(const char *filePath);
-
-int playAacFile(const char *filePath);
-
 int playSoundFile(const char *filePath);
-
-int playPlaylist(char *filePath);
 
 void resumePlayback();
 
@@ -42,3 +29,5 @@ int isPlaybackDone();
 double getDuration(const char *filepath);
 
 int adjustVolumePercent(int volumeChange);
+
+void stopPlayback();

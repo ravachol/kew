@@ -15,153 +15,40 @@ typedef struct
 ma_int16 *g_audioBuffer = NULL;
 static int eofReached = 0;
 ma_device device = {0};
+ma_decoder *decoder = NULL;
 UserData *userData = NULL;
 
-void data_callback(ma_device *pDevice, void *pOutput, const void *pInput, ma_uint32 frameCount)
+char audioTempFilePath[FILENAME_MAX];
+
+int convertToPcmFile(const char *filePath, const char *outputFilePath)
 {
-    if (userData == NULL)
-    {
-        return;
-    }
-    ma_decoder *pDecoder = (ma_decoder *)userData->decoder;
-    if (pDecoder == NULL)
-    {
-        return;
-    }
+    const int COMMAND_SIZE = 1000;
+    char command[COMMAND_SIZE];
+    int status;
 
-    ma_uint64 framesRead;
-    ma_decoder_read_pcm_frames(pDecoder, pOutput, frameCount, &framesRead);
-
-    if (framesRead < frameCount)
-    {
-        eofReached = 1;
-    }
-
-    ma_format outputFormat = pDevice->playback.format;
-    size_t bytesPerFrame = ma_get_bytes_per_frame(outputFormat, pDevice->playback.channels);
-    size_t bufferSizeInBytes = frameCount * bytesPerFrame;
-
-    if (g_audioBuffer == NULL)
-    {
-        g_audioBuffer = (ma_int16 *)malloc(bufferSizeInBytes);
-        if (g_audioBuffer == NULL)
-        {
-            return;
-        }
-    }
-    // Conversion from output format to ma_int16
-    switch (outputFormat)
-    {
-    case ma_format_f32:
-    {
-        const float *outputF32 = (const float *)pOutput;
-        for (size_t i = 0; i < frameCount; ++i)
-        {
-            float sampleFloat = outputF32[i];
-            ma_int16 sampleInt16 = (ma_int16)(sampleFloat * 32767.0f);
-            g_audioBuffer[i] = sampleInt16;
-        }
-        break;
-    }
-    case ma_format_s24:
-    {
-        const ma_uint8 *outputS24 = (const ma_uint8 *)pOutput;
-        for (size_t i = 0; i < frameCount; ++i)
-        {
-            ma_int32 sampleInt24 = (outputS24[i * 3] << 8) | (outputS24[i * 3 + 1] << 16) | (outputS24[i * 3 + 2] << 24);
-            sampleInt24 >>= 8; // Shift right to get 24-bit sample to 16 bits
-            ma_int16 sampleInt16 = (ma_int16)sampleInt24;
-            g_audioBuffer[i] = sampleInt16;
-        }
-        break;
-    }
-    case ma_format_s16:
-        memcpy(g_audioBuffer, pOutput, bufferSizeInBytes);
-        break;
-    default:
-        break;
-    }
-
-    (void)pInput;
-}
-
-int playSoundFileDefault(const char *filePath)
-{
-    if (filePath == NULL)
-        return -1;
-
-    ma_result result;
-    ma_decoder *decoder = (ma_decoder *)malloc(sizeof(ma_decoder));
-    if (decoder == NULL)
-    {
-        return -1; // Failed to allocate memory for decoder
-    }
-
-    result = ma_decoder_init_file(filePath, NULL, decoder);
-    if (result != MA_SUCCESS)
-    {
-        free(decoder);
-        return -2;
-    }
-
-    if (userData == NULL)
-    {
-        userData = (UserData *)malloc(sizeof(UserData));
-        if (userData == NULL)
-        {
-            ma_decoder_uninit(decoder);
-            free(decoder);
-            return -3; // Failed to allocate memory for user data
-        }
-    }
-
-    userData->decoder = decoder;
-
-    ma_device_config deviceConfig = ma_device_config_init(ma_device_type_playback);
-    deviceConfig.playback.format = decoder->outputFormat;
-    deviceConfig.playback.channels = decoder->outputChannels;
-    deviceConfig.sampleRate = decoder->outputSampleRate;
-    deviceConfig.dataCallback = data_callback;
-    deviceConfig.pUserData = userData;
-
-    if (ma_device_init(NULL, &deviceConfig, &device) != MA_SUCCESS)
-    {
-        printf("Failed to open playback device.\n");
-        ma_decoder_uninit(decoder);
-        free(decoder);
-        return -4;
-    }
-
-    if (ma_device_start(&device) != MA_SUCCESS)
-    {
-        printf("Failed to start playback device.\n");
-        ma_device_uninit(&device);
-        ma_decoder_uninit(decoder);
-        free(decoder);
-        return -5;
-    }
-
-    return 0;
-}
-
-int convertAacToPcmFile(const char *filePath, const char *outputFilePath)
-{
-    char ffmpegCommand[1024];
-    snprintf(ffmpegCommand, sizeof(ffmpegCommand),
+    // Construct the command string
+    snprintf(command, sizeof(command),
              "ffmpeg -v fatal -hide_banner -nostdin -y -i \"%s\" -f s16le -acodec pcm_s16le -ac %d -ar %d \"%s\"",
              filePath, CHANNELS, SAMPLE_RATE, outputFilePath);
+    // Execute the command
+    pid_t pid = fork();
 
-    int res = system(ffmpegCommand); // Execute FFmpeg command to create the output.pcm file
-
-    if (res != 0)
-    {
-        return -1;
+    if (pid == -1) {
+        // Fork failed
+        perror("fork failed");
+        exit(EXIT_FAILURE);
+    } else if (pid == 0) {
+        // Child process
+        system(command);
+        exit(EXIT_SUCCESS);
+    } else {
+        // Parent process
+        wait(&status);  // Wait for the child process to finish
     }
-
     return 0;
 }
 
-void pcm_callback(ma_device *pDevice, void *pOutput, const void *pInput, ma_uint32 frameCount)
+void pcmCallback(ma_device *pDevice, void *pOutput, const void *pInput, ma_uint32 frameCount)
 {
     UserData *pUserData = (UserData *)pDevice->pUserData;
     if (pUserData == NULL)
@@ -195,11 +82,8 @@ void pcm_callback(ma_device *pDevice, void *pOutput, const void *pInput, ma_uint
 int playPcmFile(const char *filePath)
 {
     FILE *file = fopen(filePath, "rb");
-    if (file == NULL)
-    {
-        printf("Could not open file: %s\n", filePath);
-        return -2;
-    }
+    if (openFileWithRetry(filePath, "rb", &file) > 0)
+        return -1;
 
     userData = (UserData *)malloc(sizeof(UserData));
     userData->file = file;
@@ -208,7 +92,7 @@ int playPcmFile(const char *filePath)
     deviceConfig.playback.format = ma_format_s16;
     deviceConfig.playback.channels = 2;
     deviceConfig.sampleRate = 44100;
-    deviceConfig.dataCallback = pcm_callback;
+    deviceConfig.dataCallback = pcmCallback;
     deviceConfig.pUserData = userData;
 
     if (ma_device_init(NULL, &deviceConfig, &device) != MA_SUCCESS)
@@ -228,16 +112,28 @@ int playPcmFile(const char *filePath)
     return 0;
 }
 
-char tempFilePath[FILENAME_MAX];
-
-int playAacFile(const char *filePath)
+int playAsPcm(const char *filePath)
 {
-    generateTempFilePath(tempFilePath, "temp", ".pcm");
-    if (convertAacToPcmFile(filePath, tempFilePath) != 0)
+    UserData *userData = (UserData *)device.pUserData;
+    ma_device_stop(&device);    
+    if (userData != NULL)
+    {
+        if (userData->decoder)
+            ma_decoder_uninit((ma_decoder *)userData->decoder);
+    }
+    while (ma_device_get_state(&device) == ma_device_state_started) {
+        usleep(100000);
+    }
+    ma_device_uninit(&device);
+    deleteFile(audioTempFilePath);
+    audioTempFilePath[0] = '\0';
+
+    generateTempFilePath(audioTempFilePath, "temp", ".pcm");
+    if (convertToPcmFile(filePath, audioTempFilePath) != 0)
     {
         return -1;
     }
-    int ret = playPcmFile(tempFilePath);
+    int ret = playPcmFile(audioTempFilePath);
     if (ret != 0)
     {
         return -1;
@@ -248,30 +144,7 @@ int playAacFile(const char *filePath)
 int playSoundFile(const char *filePath)
 {
     eofReached = 0;
-    int ret = 0;
-    const char *extension = getFileExtension(filePath);
-    if(extension != NULL)
-    {
-        if (strcmp(extension, "m4a") == 0 || strcmp(extension, "ogg") == 0)
-        {
-            ret = playAacFile(filePath);
-
-            if (ret < 0)
-                playSoundFileDefault(filePath);
-        }
-        else {
-            ret = playSoundFileDefault(filePath);
-
-            if (ret < 0)
-                playAacFile(filePath);
-        }
-    }
-    return ret;
-}
-
-int playPlaylist(char *filePath)
-{
-    return 0;
+    return playAsPcm(filePath);
 }
 
 bool paused = false;
@@ -317,6 +190,11 @@ int isPlaybackDone()
     }
 }
 
+void stopPlayback()
+{
+    ma_device_stop(&device);
+}
+
 void cleanupPlaybackDevice()
 {
     UserData *userData = (UserData *)device.pUserData;
@@ -330,7 +208,8 @@ void cleanupPlaybackDevice()
         usleep(100000);
     }
     ma_device_uninit(&device);
-    deleteFile(tempFilePath);
+    deleteFile(audioTempFilePath);
+    audioTempFilePath[0] = '\0';
 }
 
 int getSongDuration(const char *filePath, double *duration)

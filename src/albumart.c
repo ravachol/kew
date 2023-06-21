@@ -15,7 +15,10 @@
 #include "stringfunc.h"
 #include "term.h"
 
-void runChafaCommand(const char *filepath) {
+char coverArtFilePath[MAXPATHLEN];
+
+void runChafaCommand(const char *filepath)
+{
     const int COMMAND_SIZE = 1000;
     char command[COMMAND_SIZE];
     int status;
@@ -26,17 +29,22 @@ void runChafaCommand(const char *filepath) {
     // Execute the command
     pid_t pid = fork();
 
-    if (pid == -1) {
+    if (pid == -1)
+    {
         // Fork failed
         perror("fork failed");
         exit(EXIT_FAILURE);
-    } else if (pid == 0) {
+    }
+    else if (pid == 0)
+    {
         // Child process
         system(command);
         exit(EXIT_SUCCESS);
-    } else {
+    }
+    else
+    {
         // Parent process
-        wait(&status);  // Wait for the child process to finish
+        wait(&status); // Wait for the child process to finish
     }
 }
 
@@ -134,6 +142,64 @@ char *findFirstPathWithAudioFile(const char *path)
     free(entries);
     closedir(dir);
     return audioDirectory;
+}
+
+char *findLargestImageFileRecursive(const char *directoryPath, char *largestImageFile, off_t *largestFileSize)
+{
+    DIR *directory = opendir(directoryPath);
+    struct dirent *entry;
+    struct stat fileStats;
+
+    if (directory == NULL)
+    {
+        fprintf(stderr, "Failed to open directory: %s\n", directoryPath);
+        return largestImageFile;
+    }
+
+    while ((entry = readdir(directory)) != NULL)
+    {
+        char filePath[MAX_FILENAME_LENGTH];
+        snprintf(filePath, MAX_FILENAME_LENGTH, "%s/%s", directoryPath, entry->d_name);
+
+        if (stat(filePath, &fileStats) == -1)
+        {
+            // fprintf(stderr, "Failed to get file stats: %s\n", filePath);
+            continue;
+        }
+
+        if (S_ISDIR(fileStats.st_mode))
+        {
+            // Skip "." and ".." directories
+            if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
+            {
+                continue;
+            }
+
+            // Recursive call to process subdirectories
+            largestImageFile = findLargestImageFileRecursive(filePath, largestImageFile, largestFileSize);
+        }
+        else if (S_ISREG(fileStats.st_mode))
+        {
+            // Check if the entry is an image file and has a larger size than the current largest image file
+            char *extension = strrchr(entry->d_name, '.');
+            if (extension != NULL && (strcasecmp(extension, ".jpg") == 0 || strcasecmp(extension, ".jpeg") == 0 ||
+                                      strcasecmp(extension, ".png") == 0 || strcasecmp(extension, ".gif") == 0))
+            {
+                if (fileStats.st_size > *largestFileSize)
+                {
+                    *largestFileSize = fileStats.st_size;
+                    if (largestImageFile != NULL)
+                    {
+                        free(largestImageFile);
+                    }
+                    largestImageFile = strdup(filePath);
+                }
+            }
+        }
+    }
+
+    closedir(directory);
+    return largestImageFile;
 }
 
 char *findLargestImageFile(const char *directoryPath)
@@ -264,29 +330,38 @@ int calcIdealImgSize(int *width, int *height, const int equalizerHeight, const i
 int displayAlbumArt(const char *filepath, int width, int height, bool coverBlocks, PixelData *brightPixel)
 {
     char path[MAXPATHLEN];
-    char fileOutputPath[MAXPATHLEN];
 
     if (filepath == NULL)
         return -1;
 
-    int progressWidth = 26;
-    int res = extractCover(filepath, fileOutputPath);
-    if (res < 0)
+    if (coverArtFilePath[0] == '\0')
     {
-        getDirectoryFromPath(filepath, path);
-        strcpy(fileOutputPath, findLargestImageFile(path));
-    }
-    if (fileOutputPath == NULL)
-        return -1;
+        int res = extractCover(filepath, coverArtFilePath);
+        if (res < 0)
+        {
+            getDirectoryFromPath(filepath, path);  
+            coverArtFilePath[0] == '\0';
 
+            char *tmp = NULL;
+            off_t size;
+            tmp = findLargestImageFileRecursive(path, tmp, &size);
+
+            if (tmp != NULL)
+                strcpy(coverArtFilePath, tmp);
+            else
+                return -1;
+        }
+        if (coverArtFilePath == '\0')
+            return -1;
+    }
     if (coverBlocks)
     {
-        getBrightPixel(fileOutputPath, width, height, brightPixel);
-        runChafaCommand(fileOutputPath);
+        getBrightPixel(coverArtFilePath, width, height, brightPixel);
+        runChafaCommand(coverArtFilePath);
     }
     else
     {
-        return output_ascii(fileOutputPath, height, width, coverBlocks, brightPixel);
+        return output_ascii(coverArtFilePath, height, width, coverBlocks, brightPixel);
     }
     return 0;
 }

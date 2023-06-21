@@ -36,6 +36,13 @@ void drawEqualizer(int height, int width, bool drawBlocks, PixelData color)
 
     for (int i = 0; i < BUFFER_SIZE; i++)
     {
+        if (g_audioBuffer == NULL) {
+
+            fftwf_destroy_plan(plan);
+            fftwf_free(fftInput);
+            fftwf_free(fftOutput);            
+            return;
+        }
         ma_int16 sample = *((ma_int16 *)g_audioBuffer + i);
         float normalizedSample = (float)sample / 32767.0f;
         fftInput[i][0] = normalizedSample;
