@@ -21,8 +21,9 @@ extern bool equalizerEnabled;
 extern bool equalizerBlocks;
 extern int equalizerHeight;
 extern bool refresh;
+extern TagSettings metadata;
 
-int printPlayer(const char *songFilepath, const char *tagsFilePath, double elapsedSeconds, double songDurationSeconds, PlayList *playlist);
+int printPlayer(const char *songFilepath, TagSettings *metaData, double elapsedSeconds, double songDurationSeconds, PlayList *playlist);
 
 void showVersion();
 
