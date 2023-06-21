@@ -5,7 +5,6 @@
 #include <dirent.h>
 #include <sys/param.h>
 #include "../include/imgtotxt/write_ascii.h"
-#include "albumart.h"
 
 extern char coverArtFilePath[MAXPATHLEN];
 

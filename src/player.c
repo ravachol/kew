@@ -191,7 +191,7 @@ void cursorJump(int numRows)
 void printLastRow()
 {
     setTextColorRGB2(bgColor.r, bgColor.g, bgColor.b);
-    printf(" [F1 - About]");
+    printf(" [F1 About]");
 }
 
 // Callback function to write response data
@@ -277,6 +277,7 @@ void showVersion()
 
 void printAbout()
 {
+    usleep(200000);
     if (refresh && printInfo)
     {
         PixelData textColor = increaseLuminosity(color, 100);
@@ -312,6 +313,7 @@ void printEqualizer()
 
 int printPlayer(const char *songFilepath, const char *tagsFilePath, double elapsedSeconds, double songDurationSeconds, PlayList *playlist)
 {    
+    hideCursor();    
     path = strdup(songFilepath);
     tagsPath = strdup(tagsFilePath);
     totalDurationSeconds = playlist->totalDuration;
@@ -335,7 +337,6 @@ int printPlayer(const char *songFilepath, const char *tagsFilePath, double elaps
     printTime();
     printEqualizer();
     saveCursorPosition();
-    hideCursor();
     refresh = false;
 
     return 0; 

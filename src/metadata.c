@@ -1,5 +1,6 @@
 #include "metadata.h"
 #include "common.h"
+#include "cache.h"
 
 TagSettings construct_tag_settings(KeyValuePair *pairs, int count)
 {
@@ -69,6 +70,7 @@ int extract_tags(const char *input_file, const char *output_file)
     avformat_close_input(&format_ctx);
     fclose(output_file_ptr);
 
+    addToCache(tempCache, output_file);
     return 0;
 }
 
