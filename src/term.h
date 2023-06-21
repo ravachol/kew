@@ -25,6 +25,8 @@
 
 extern volatile sig_atomic_t resizeFlag;
 
+void getTermSizePixels(int *width, int *height);
+
 char* queryTerminalProperty(int property);
 
 char *getVariableValue(const char *variableName);

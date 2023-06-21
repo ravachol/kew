@@ -145,12 +145,15 @@ int play(SongInfo song)
     cleanup();
     if (g_audioBuffer != NULL) 
     {
-     //   stopPlayback();
-     //   free(g_audioBuffer);
-     //   g_audioBuffer = NULL;
+        stopPlayback();
+        free(g_audioBuffer);
+        g_audioBuffer = NULL;
     }
     char musicFilepath[MAX_FILENAME_LENGTH];
-    strcpy(musicFilepath, song.filePath);
+    strcpy(musicFilepath, song.filePath);    
+    generateTempFilePath(tagsFilePath, "metatags", ".txt");    
+    extract_tags(strdup(musicFilepath), tagsFilePath);  
+    metadata = getMetadata(tagsFilePath);     
     int res = playSoundFile(musicFilepath);
     struct timespec start_time;
     struct timespec pause_time;
@@ -165,8 +168,7 @@ int play(SongInfo song)
     else
         duration = getDuration(song.filePath);
     refresh = true;
-    generateTempFilePath(tagsFilePath, "metatags", ".txt");
-    extract_tags(strdup(musicFilepath), tagsFilePath);
+
     clock_gettime(CLOCK_MONOTONIC, &start_time);
     calculatePlayListDuration(&playlist);
 
@@ -310,7 +312,7 @@ int play(SongInfo song)
         {
             if ((elapsedSeconds < duration) && !isPaused())
             {
-                printPlayer(musicFilepath, tagsFilePath, elapsedSeconds, duration, &playlist);
+                printPlayer(musicFilepath, &metadata, elapsedSeconds, duration, &playlist);
             }
         }
 

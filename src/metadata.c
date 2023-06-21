@@ -101,3 +101,18 @@ void print_metadata(const char *file_path)
 
     fclose(file);
 }
+
+TagSettings getMetadata(const char *file_path)
+{
+    int pair_count;
+    KeyValuePair *pairs = readKeyValuePairs(file_path, &pair_count);
+    TagSettings metadata = {};
+
+    if (pairs == NULL)
+    {
+        return metadata;
+    }
+    metadata = construct_tag_settings(pairs, pair_count);
+    freeKeyValuePairs(pairs, pair_count);
+    return metadata;
+}
