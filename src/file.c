@@ -31,7 +31,7 @@ void generateTempFilePath(char *filePath, const char *prefix, const char *suffix
     }
     randomString[6] = '\0';
 
-    snprintf(filePath, FILENAME_MAX, "%s/%s%s%s", tempDir, prefix, randomString, suffix);
+    snprintf(filePath, FILENAME_MAX, "%s/cue%s%s%s", tempDir, prefix, randomString, suffix);
 }
 
 const char *getFileExtension(const char *filePath)
