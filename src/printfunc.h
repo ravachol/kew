@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <time.h>
 #include "metadata.h"
-#include "common.h"
 
 #ifndef TAGSETTINGS_STRUCT
 #define TAGSETTINGS_STRUCT

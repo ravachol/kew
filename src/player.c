@@ -28,6 +28,7 @@ double totalDurationSeconds = 0.0;
 PixelData color = { 0, 0, 0 };
 PixelData bgColor = { 50, 50, 50 };
 TagSettings metadata = {};
+char latestVersion[10] = "\0";
 struct ResponseData
 {
     char *content;
@@ -263,8 +264,8 @@ int fetchLatestVersion(int *major, int *minor, int *patch)
 void showVersion()
 {
     int major, minor, patch;
-    char latestVersion[10];
-    if (fetchLatestVersion(&major, &minor, &patch) >= 0)
+
+    if (latestVersion == '\0' && fetchLatestVersion(&major, &minor, &patch) >= 0)
     {
         sprintf(latestVersion, "%d.%d.%d", major, minor, patch);
     }
