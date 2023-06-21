@@ -48,7 +48,6 @@
 #endif
 #define TRESHOLD_TERMINAL_SIZE 28
 
-char tagsFilePath[FILENAME_MAX];
 bool repeatEnabled = false;
 bool playingMainPlaylist = false;
 Node *currentSong;
@@ -135,7 +134,6 @@ struct Event processInput()
 void cleanup()
 {
     clearRestOfScreen();    
-    tagsFilePath[0] = '\0';
     coverArtFilePath[0] = '\0';
     deleteCachedFiles(tempCache);
 }
@@ -151,10 +149,7 @@ int play(SongInfo song)
     }
     char musicFilepath[MAX_FILENAME_LENGTH];    
     strcpy(musicFilepath, song.filePath);  
-    generateTempFilePath(tagsFilePath, "metatags", ".txt");    
-    usleep(200000);
-    extract_tags(strdup(musicFilepath), tagsFilePath);  
-    metadata = getMetadata(tagsFilePath);     
+    extractTags(musicFilepath, &metadata);
     int res = playSoundFile(musicFilepath);
     struct timespec start_time;
     struct timespec pause_time;

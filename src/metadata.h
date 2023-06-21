@@ -34,12 +34,6 @@ typedef struct
 
 #endif
 
-TagSettings construct_tag_settings(KeyValuePair *pairs, int count);
-
-int extract_tags(const char *input_file, const char *output_file);
-
-void print_metadata(const char *file_path);
-
-TagSettings getMetadata(const char *file_path);
+int extractTags(const char *input_file, TagSettings *tag_settings);
 
 #endif
