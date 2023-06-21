@@ -3,6 +3,22 @@
 
 volatile sig_atomic_t resizeFlag = 0;
 
+void getTermSizePixels(int *rows, int *columns) {
+    FILE *fp = popen("stty size", "r");
+    if (fp == NULL) {
+        fprintf(stderr, "Failed to execute stty command\n");
+        return;
+    }
+
+    if (fscanf(fp, "%d %d", rows, columns) != 2) {
+        fprintf(stderr, "Failed to read terminal size\n");
+        pclose(fp);
+        return;
+    }
+
+    pclose(fp);
+}
+
 char* queryTerminalProperty(int property) {
     // Build the query string
     char query[32];

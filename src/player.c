@@ -86,21 +86,6 @@ void setColor()
         setTextColorRGB2(color.r, color.g, color.b);
 }
 
-TagSettings getMetadata(const char *file_path)
-{
-    int pair_count;
-    KeyValuePair *pairs = readKeyValuePairs(file_path, &pair_count);
-    TagSettings metadata = {};
-
-    if (pairs == NULL)
-    {
-        return metadata;
-    }
-    metadata = construct_tag_settings(pairs, pair_count);
-    freeKeyValuePairs(pairs, pair_count);
-    return metadata;
-}
-
 void printBasicMetadata(TagSettings *metadata)
 {
     if (strlen(metadata->title) > 0)
@@ -164,12 +149,12 @@ void printProgress(double elapsed_seconds, double total_seconds, double total_du
     fflush(stdout);
 }
 
-void printMetadata()
+void printMetadata(TagSettings *metadata)
 {
     if (!metaDataEnabled || printInfo) return;
     usleep(100000);
     setColor();  
-    printBasicMetadata(&metadata);
+    printBasicMetadata(metadata);
 }
 
 void printTime()
@@ -312,17 +297,15 @@ void printEqualizer()
     }  
 }
 
-int printPlayer(const char *songFilepath, const char *tagsFilePath, double elapsedSeconds, double songDurationSeconds, PlayList *playlist)
+int printPlayer(const char *songFilepath, TagSettings *metadata, double elapsedSeconds, double songDurationSeconds, PlayList *playlist)
 {    
     hideCursor();    
     path = strdup(songFilepath);
-    tagsPath = strdup(tagsFilePath);
     totalDurationSeconds = playlist->totalDuration;
     elapsed = elapsedSeconds;
     duration = songDurationSeconds;
     if (refresh)
     {    
-        metadata = getMetadata(tagsPath);
         printf("\n");
     }
     calcPreferredSize();
@@ -333,7 +316,7 @@ int printPlayer(const char *songFilepath, const char *tagsFilePath, double elaps
     {
         printCover();   
         printAbout();
-        printMetadata();
+        printMetadata(metadata);
     }  
     printTime();
     printEqualizer();
