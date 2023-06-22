@@ -250,6 +250,7 @@ void showVersion(PixelData color, PixelData secondaryColor)
     {
         sprintf(latestVersion, VERSION);
     }
+    printf("\n");
     printVersion(VERSION, latestVersion, color, secondaryColor);
 }
 
@@ -280,13 +281,15 @@ void printEqualizer()
 {
     if (equalizerEnabled && !printInfo)
     {
-        if (coverBlocks) 
         printf("\n");        
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
         drawEqualizer(equalizerHeight, term_w, equalizerBlocks, color);
         drewVisualization = true;
         printLastRow();       
+        int jumpAmount = equalizerHeight + 2;
+        cursorJump(jumpAmount);
+        saveCursorPosition();                   
     }  
 }
 
@@ -309,11 +312,7 @@ int printPlayer(const char *songFilepath, TagSettings *metadata, double elapsedS
         printMetadata(metadata);
     }  
     printTime();
-    printEqualizer();
-    int jumpAmount = equalizerHeight + 1;
-    if (coverBlocks) jumpAmount++;
-    cursorJump(jumpAmount);
-    saveCursorPosition();     
+    printEqualizer();  
     refresh = false;
 
     return 0; 
