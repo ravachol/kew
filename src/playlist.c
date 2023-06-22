@@ -23,7 +23,7 @@ char search[MAX_SEARCH_SIZE];
 char playlistName[MAX_SEARCH_SIZE];
 bool shuffle = false;
 int numDirs = 0;
-volatile int stopThread = 0;
+volatile int stopPlaylistDurationThread = 0;
 
 Node *getListNext(Node *node)
 {
@@ -423,7 +423,7 @@ void *getDurationsThread(void *arg)
 
     for (int i = 0; i < playList->count; i++)
     {
-        if (stopThread)
+        if (stopPlaylistDurationThread)
             return NULL;
 
         if (currentNode == NULL)
@@ -466,6 +466,8 @@ void *getDurationsThread(void *arg)
 
 int calculatePlayListDuration(PlayList *playlist)
 {
+    startPlayListDurationCount();
+
     if (playlist->totalDuration > 0.0)
         return 0;
 
@@ -479,6 +481,16 @@ int calculatePlayListDuration(PlayList *playlist)
         return 1;
     }
     return 0;
+}
+
+void stopPlayListDurationCount()
+{
+    stopPlaylistDurationThread = 1;
+}
+
+void startPlayListDurationCount()
+{
+    stopPlaylistDurationThread = 0;
 }
 
 void readM3UFile(const char* filename, PlayList* playlist) {

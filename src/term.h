@@ -89,4 +89,6 @@ void disableInputBuffering();
 // Enable input buffering
 void enableInputBuffering();
 
+void cursorJump(int numRows);
+
 #endif
