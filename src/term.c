@@ -164,6 +164,10 @@ void restoreTerminalMode()
 
 bool isInputAvailable()
 {
+    // Clear any buffered input
+    while (read(STDIN_FILENO, NULL, 0) > 0)
+        ;
+
     struct pollfd fds[1];
     fds[0].fd = STDIN_FILENO;
     fds[0].events = POLLIN;
@@ -283,4 +287,22 @@ void handleResize(int sig)
 void resetResizeFlag(int sig)
 {
     resizeFlag = 0;
+}
+
+// Disable input buffering
+void disableInputBuffering()
+{
+    struct termios term;
+    tcgetattr(STDIN_FILENO, &term);
+    term.c_lflag &= ~(ICANON | ECHO);
+    tcsetattr(STDIN_FILENO, TCSAFLUSH, &term);
+}
+
+// Enable input buffering
+void enableInputBuffering()
+{
+    struct termios term;
+    tcgetattr(STDIN_FILENO, &term);
+    term.c_lflag |= ICANON | ECHO;
+    tcsetattr(STDIN_FILENO, TCSAFLUSH, &term);
 }

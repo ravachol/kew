@@ -4,7 +4,7 @@
 // http://github.com/ravachol/cue
 //
 // This program is free software; you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by 
+// it under the terms of the GNU General Public License as published by
 // the Free Software Foundation; either version 2 of the License, or
 // (at your option) any later version, provided that the above
 // copyright notice and this permission notice appear in all copies.
@@ -51,6 +51,8 @@
 bool repeatEnabled = false;
 bool playingMainPlaylist = false;
 Node *currentSong;
+static int volumeUpCooldown = 0;
+static int volumeDownCooldown = 0;
 
 struct Event processInput()
 {
@@ -60,14 +62,13 @@ struct Event processInput()
 
     if (!isInputAvailable())
     {
-        if (!isEventQueueEmpty())
-            event = dequeueEvent();
-        return event;
+        saveCursorPosition();
     }
     else
     {
         restoreCursorPosition();
     }
+
     char input = readInput();
     event.type = EVENT_KEY_PRESS;
     event.key = input;
@@ -100,7 +101,7 @@ struct Event processInput()
         break;
     case 'p':
         event.type = EVENT_EXPORTPLAYLIST;
-        break;        
+        break;
     case 'A': // Up arrow
         event.type = EVENT_VOLUME_UP;
         break;
@@ -119,21 +120,53 @@ struct Event processInput()
     case 'P': // F1
         refresh = true;
         printInfo = !printInfo;
-        break;     
+        break;
     default:
         break;
     }
-    enqueueEvent(&event);
 
-    if (!isEventQueueEmpty())
-        event = dequeueEvent();
+    if (volumeUpCooldown > 0)
+    {
+        volumeUpCooldown = volumeUpCooldown - 50;
+    }
+    else if (volumeDownCooldown > 0)
+    {
+        volumeDownCooldown = volumeDownCooldown - 50;
+    }       
+
+    if (event.type == EVENT_VOLUME_UP)
+    {
+        if (volumeUpCooldown > 0)
+        {
+            volumeUpCooldown -= 50;
+            event.type = EVENT_NONE;
+            event.key = '\0';            
+        }
+        else {
+            volumeUpCooldown = 1000;
+        }
+
+    }
+    if (event.type == EVENT_VOLUME_DOWN)
+    {
+        if (volumeDownCooldown > 0)
+        {
+            volumeDownCooldown -= 50;
+            event.type = EVENT_NONE;
+            event.key = '\0';            
+        }
+        else {
+            volumeDownCooldown = 1000;
+        }
+    }
+
 
     return event;
 }
 
 void cleanup()
 {
-    clearRestOfScreen();    
+    clearRestOfScreen();
     coverArtFilePath[0] = '\0';
     deleteCachedFiles(tempCache);
 }
@@ -141,13 +174,13 @@ void cleanup()
 int play(SongInfo song)
 {
     cleanup();
-    if (g_audioBuffer != NULL) 
+    if (g_audioBuffer != NULL)
     {
         stopPlayback();
         free(g_audioBuffer);
         g_audioBuffer = NULL;
     }
-    char musicFilepath[MAX_FILENAME_LENGTH];    
+    char musicFilepath[MAX_FILENAME_LENGTH];
     strcpy(musicFilepath, song.filePath);
     extractTags(musicFilepath, &metadata);
     int res = playSoundFile(musicFilepath);
@@ -200,7 +233,7 @@ int play(SongInfo song)
         case EVENT_PLAY_PAUSE:
             pausePlayback();
             if (isPaused())
-               clock_gettime(CLOCK_MONOTONIC, &pause_time);
+                clock_gettime(CLOCK_MONOTONIC, &pause_time);
             else
                 totalPauseSeconds += pauseSeconds;
             break;
@@ -221,7 +254,8 @@ int play(SongInfo song)
         case EVENT_TOGGLEBLOCKS:
             coverBlocks = !coverBlocks;
             strcpy(settings.coverBlocks, coverBlocks ? "1" : "0");
-            if (coverEnabled) refresh = true;
+            if (coverEnabled)
+                refresh = true;
             break;
         case EVENT_SHUFFLE:
             // Interrupt total playlist duration counting thread
@@ -229,8 +263,8 @@ int play(SongInfo song)
             usleep(100000);
             playlist.totalDuration = 0.0;
             shufflePlaylist(&playlist);
-            stopThread = 0;            
-            calculatePlayListDuration(&playlist);            
+            stopThread = 0;
+            calculatePlayListDuration(&playlist);
             break;
         case EVENT_QUIT:
             if (event.key == 'q' || elapsedSeconds > 2.0)
@@ -270,8 +304,8 @@ int play(SongInfo song)
             if (playingMainPlaylist)
             {
                 currentSong = deleteFromList(&playlist, currentSong);
-                cleanup();     
-                if (currentSong != NULL)           
+                cleanup();
+                if (currentSong != NULL)
                     return play(currentSong->song);
                 else
                     return 0;
@@ -279,7 +313,7 @@ int play(SongInfo song)
             break;
         case EVENT_EXPORTPLAYLIST:
             savePlaylist();
-            break;            
+            break;
         default:
             break;
         }
@@ -338,8 +372,8 @@ int run()
     if (currentSong == NULL)
         currentSong = playlist.head;
     play(currentSong->song);
-    restoreTerminalMode();    
-    if (g_audioBuffer != NULL) 
+    restoreTerminalMode();
+    if (g_audioBuffer != NULL)
     {
         free(g_audioBuffer);
         g_audioBuffer = NULL;
@@ -349,17 +383,18 @@ int run()
     free(mainPlaylist);
     cleanupPlaybackDevice();
     deleteCachedFiles(tempCache);
-    deleteCache(tempCache);    
+    deleteCache(tempCache);
     showCursor();
     printf("\n");
+    enableInputBuffering();
     return 0;
 }
 
 void init()
 {
+    disableInputBuffering();
     freopen("/dev/null", "w", stderr);
     signal(SIGWINCH, handleResize);
-    initEventQueue();
     enableScrolling();
     setNonblockingMode();
     srand(time(NULL));
@@ -372,10 +407,10 @@ void playMainPlaylist()
     {
         showHelp();
     }
-    playingMainPlaylist = true;  
+    playingMainPlaylist = true;
     playlist = deepCopyPlayList(mainPlaylist);
     shufflePlaylist(&playlist);
-    init();    
+    init();
     run();
 }
 
