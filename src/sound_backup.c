@@ -45,6 +45,7 @@ int convertToPcmFile(const char *filePath, const char *outputFilePath)
         // Parent process
         wait(&status);  // Wait for the child process to finish
     }
+    addToCache(tempCache, outputFilePath);    
     return 0;
 }
 
@@ -72,7 +73,6 @@ void pcmCallback(ma_device *pDevice, void *pOutput, const void *pInput, ma_uint3
             return;
         }
     }
-
     // Copy the audio samples from pOutput to audioBuffer
     memcpy(g_audioBuffer, pOutput, sizeof(ma_int16) * frameCount);
 
@@ -85,8 +85,11 @@ int playPcmFile(const char *filePath)
     if (openFileWithRetry(filePath, "rb", &file) > 0)
         return -1;
 
+    ma_device_stop(&device);
+
     userData = (UserData *)malloc(sizeof(UserData));
     userData->file = file;
+
     ma_device_config deviceConfig = ma_device_config_init(ma_device_type_playback);
     deviceConfig.playback.format = ma_format_s16;
     deviceConfig.playback.channels = 2;
@@ -113,15 +116,6 @@ int playPcmFile(const char *filePath)
 
 int playAsPcm(const char *filePath)
 {
-    UserData *userData = (UserData *)device.pUserData;
- 
-    while (ma_device_get_state(&device) == ma_device_state_started) {
-        usleep(100000);
-    }
-    ma_device_uninit(&device);
-    deleteFile(audioTempFilePath);
-    audioTempFilePath[0] = '\0';
-
     generateTempFilePath(audioTempFilePath, "temp", ".pcm");
     if (convertToPcmFile(filePath, audioTempFilePath) != 0)
     {
@@ -191,18 +185,10 @@ void stopPlayback()
 
 void cleanupPlaybackDevice()
 {
-    UserData *userData = (UserData *)device.pUserData;
-    if (userData != NULL)
-    {
-        if (userData->decoder)
-            ma_decoder_uninit((ma_decoder *)userData->decoder);
-    }
     ma_device_stop(&device);
-    while (ma_device_get_state(&device) == ma_device_state_started) {
-        usleep(100000);
-    }
+    UserData *userData = (UserData *)device.pUserData;
     ma_device_uninit(&device);
-    deleteFile(audioTempFilePath);
+    free(userData);
     audioTempFilePath[0] = '\0';
 }
 
