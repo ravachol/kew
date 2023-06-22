@@ -17,10 +17,20 @@ typedef struct
 
 #endif
 
+#ifndef PIXELDATA_STRUCT
+#define PIXELDATA_STRUCT
+    typedef struct
+    {
+        unsigned char r;
+        unsigned char g;
+        unsigned char b;
+    } PixelData;
+#endif
+
 void printHelp();
 
 void printAsciiLogo();
 
-void printVersion(const char *version, const char *latestVersion);
+void printVersion(const char *version, const char *latestVersion, PixelData color, PixelData secondaryColor);
 
 int getYear(const char *dateString);

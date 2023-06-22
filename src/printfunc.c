@@ -1,5 +1,16 @@
 #include "printfunc.h"
 #include "term.h"
+
+#ifndef PIXELDATA_STRUCT
+#define PIXELDATA_STRUCT
+    typedef struct
+    {
+        unsigned char r;
+        unsigned char g;
+        unsigned char b;
+    } PixelData;
+#endif
+
 void printHelp()
 {
     printf("cue - a command-line music player.\n");
@@ -68,15 +79,24 @@ void printAsciiLogo()
     printf("  \\_______| \\______/  \\_______|\n");    
 }
 
-void printVersion(const char *version, const char *latestVersion)
+void printVersion(const char *version, const char *latestVersion, PixelData color, PixelData secondaryColor)
 {
+    setTextColorRGB2(secondaryColor.r, secondaryColor.g, secondaryColor.b);
     printf(" cue version %s.\n", version);
+    setTextColorRGB2(color.r, color.g, color.b);    
     if (isVersionGreater(latestVersion, version))
        printf(" There is a newer version (%s) available.\n", latestVersion);
     else
         printf(" This is the latest version.\n");
-    printf(" Github Homepage:\n https://github.com/ravachol/cue\n");
-    printf(" Buy Me a Coffee:\n https://ko-fi.com/ravachol\n");
+    setTextColorRGB2(secondaryColor.r, secondaryColor.g, secondaryColor.b);   
+    printf(" Github Homepage:\n");
+    setTextColorRGB2(color.r, color.g, color.b);
+    printf(" https://github.com/ravachol/cue\n");
+    setTextColorRGB2(secondaryColor.r, secondaryColor.g, secondaryColor.b);
+    printf(" Buy Me a Coffee:\n");
+    setTextColorRGB2(color.r, color.g, color.b);
+    printf(" https://ko-fi.com/ravachol\n");
+    setTextColorRGB2(secondaryColor.r, secondaryColor.g, secondaryColor.b);
     printf(" Copyright ® Ravachol 2023.\n");
 }
 
