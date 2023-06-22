@@ -87,7 +87,6 @@ int playPcmFile(const char *filePath)
 
     userData = (UserData *)malloc(sizeof(UserData));
     userData->file = file;
-    ma_device_uninit(&device);
     ma_device_config deviceConfig = ma_device_config_init(ma_device_type_playback);
     deviceConfig.playback.format = ma_format_s16;
     deviceConfig.playback.channels = 2;
@@ -115,12 +114,7 @@ int playPcmFile(const char *filePath)
 int playAsPcm(const char *filePath)
 {
     UserData *userData = (UserData *)device.pUserData;
-    ma_device_stop(&device);    
-    if (userData != NULL)
-    {
-        if (userData->decoder)
-            ma_decoder_uninit((ma_decoder *)userData->decoder);
-    }
+ 
     while (ma_device_get_state(&device) == ma_device_state_started) {
         usleep(100000);
     }
