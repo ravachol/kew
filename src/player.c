@@ -61,7 +61,6 @@ void calcPreferredSize()
 void printCover()
 {
     clearRestOfScreen();
-    printf("\n");
     if (coverEnabled)
     {
         color.r = 0;
@@ -165,13 +164,6 @@ void printTime()
     getTermSize(&term_w, &term_h);
     if (term_h > minHeight && term_w > minWidth)
         printProgress(elapsed, duration, totalDurationSeconds);
-}
-
-void cursorJump(int numRows)
-{     
-    printf("\033[%dA", numRows);
-    printf("\033[0m");
-    fflush(stdout);   
 }
 
 void printLastRow()
@@ -288,12 +280,13 @@ void printEqualizer()
 {
     if (equalizerEnabled && !printInfo)
     {
+        if (coverBlocks) 
+        printf("\n");        
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
         drawEqualizer(equalizerHeight, term_w, equalizerBlocks, color);
         drewVisualization = true;
-        printLastRow();
-        cursorJump(equalizerHeight + 1);
+        printLastRow();       
     }  
 }
 
@@ -304,10 +297,7 @@ int printPlayer(const char *songFilepath, TagSettings *metadata, double elapsedS
     totalDurationSeconds = playlist->totalDuration;
     elapsed = elapsedSeconds;
     duration = songDurationSeconds;
-    if (refresh)
-    {    
-        printf("\n");
-    }
+
     calcPreferredSize();
 
     if (preferredWidth <= 0 || preferredHeight <= 0) return -1;
@@ -320,7 +310,10 @@ int printPlayer(const char *songFilepath, TagSettings *metadata, double elapsedS
     }  
     printTime();
     printEqualizer();
-    saveCursorPosition();
+    int jumpAmount = equalizerHeight + 1;
+    if (coverBlocks) jumpAmount++;
+    cursorJump(jumpAmount);
+    saveCursorPosition();     
     refresh = false;
 
     return 0; 

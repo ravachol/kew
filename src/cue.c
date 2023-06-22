@@ -50,6 +50,7 @@
 
 bool repeatEnabled = false;
 bool playingMainPlaylist = false;
+bool shouldQuit = false;
 Node *currentSong;
 static int volumeUpCooldown = 0;
 static int volumeDownCooldown = 0;
@@ -130,7 +131,6 @@ struct Event processInput()
     default:
         break;
     }
-
     return event;
 }
 
@@ -139,6 +139,60 @@ void cleanup()
     clearRestOfScreen();
     coverArtFilePath[0] = '\0';
     deleteCachedFiles(tempCache);
+}
+
+void doShuffle()
+{
+    stopPlayListDurationCount();
+    usleep(100000);
+    playlist.totalDuration = 0.0;
+    shufflePlaylist(&playlist);
+    calculatePlayListDuration(&playlist);    
+}
+
+void addToPlaylist()
+{
+    if (!playingMainPlaylist)
+    {
+        addToList(mainPlaylist, currentSong->song);
+    }
+}
+
+void toggleBlocks()
+{
+    coverBlocks = !coverBlocks;
+    strcpy(settings.coverBlocks, coverBlocks ? "1" : "0");
+    if (coverEnabled)
+        refresh = true;
+}
+
+void toggleCovers()
+{
+    coverEnabled = !coverEnabled;
+    strcpy(settings.coverEnabled, coverEnabled ? "1" : "0");
+    refresh = true;    
+}
+
+void toggleEqualizer()
+{
+    equalizerEnabled = !equalizerEnabled;
+    strcpy(settings.equalizerEnabled, equalizerEnabled ? "1" : "0");
+    restoreCursorPosition();
+    clearRestOfScreen();    
+}
+
+void togglePause(double *totalPauseSeconds, double pauseSeconds, struct timespec *pause_time)
+{
+    pausePlayback();
+    if (isPaused())
+        clock_gettime(CLOCK_MONOTONIC, pause_time);
+    else
+        *totalPauseSeconds += pauseSeconds;    
+}
+
+void quit()
+{
+    shouldQuit = true;
 }
 
 int play(SongInfo song)
@@ -159,7 +213,6 @@ int play(SongInfo song)
     double elapsedSeconds = 0.0;
     double pauseSeconds = 0.0;
     double totalPauseSeconds = 0.0;
-    bool shouldQuit = false;
     int asciiHeight, asciiWidth;
     double duration = 0.0;
     if (song.duration > 0.0)
@@ -201,46 +254,25 @@ int play(SongInfo song)
         switch (event.type)
         {
         case EVENT_PLAY_PAUSE:
-            pausePlayback();
-            if (isPaused())
-                clock_gettime(CLOCK_MONOTONIC, &pause_time);
-            else
-                totalPauseSeconds += pauseSeconds;
+            togglePause(&totalPauseSeconds, pauseSeconds, &pause_time);
             break;
         case EVENT_TOGGLEEQUALIZER:
-            equalizerEnabled = !equalizerEnabled;
-            strcpy(settings.equalizerEnabled, equalizerEnabled ? "1" : "0");
-            restoreCursorPosition();
-            clearRestOfScreen();
+            toggleEqualizer();
             break;
         case EVENT_TOGGLEREPEAT:
             repeatEnabled = !repeatEnabled;
             break;
         case EVENT_TOGGLECOVERS:
-            coverEnabled = !coverEnabled;
-            strcpy(settings.coverEnabled, coverEnabled ? "1" : "0");
-            refresh = true;
+            toggleCovers();
             break;
         case EVENT_TOGGLEBLOCKS:
-            coverBlocks = !coverBlocks;
-            strcpy(settings.coverBlocks, coverBlocks ? "1" : "0");
-            if (coverEnabled)
-                refresh = true;
+            toggleBlocks();
             break;
         case EVENT_SHUFFLE:
-            // Interrupt total playlist duration counting thread
-            stopThread = 1;
-            usleep(100000);
-            playlist.totalDuration = 0.0;
-            shufflePlaylist(&playlist);
-            stopThread = 0;
-            calculatePlayListDuration(&playlist);
+            doShuffle();            
             break;
         case EVENT_QUIT:
-            if (event.key == 'q' || elapsedSeconds > 2.0)
-            {
-                shouldQuit = true;
-            }
+            quit();
             break;
         case EVENT_VOLUME_UP:
             adjustVolumePercent(2);
@@ -262,13 +294,10 @@ int play(SongInfo song)
                 cleanup();
                 currentSong = getListPrev(currentSong);
                 return play(currentSong->song);
-            }
+            }    
             break;
         case EVENT_ADDTOMAINPLAYLIST:
-            if (!playingMainPlaylist)
-            {
-                addToList(mainPlaylist, currentSong->song);
-            }
+            addToPlaylist();
             break;
         case EVENT_DELETEFROMMAINPLAYLIST:
             if (playingMainPlaylist)

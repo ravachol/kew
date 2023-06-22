@@ -306,3 +306,10 @@ void enableInputBuffering()
     term.c_lflag |= ICANON | ECHO;
     tcsetattr(STDIN_FILENO, TCSAFLUSH, &term);
 }
+
+void cursorJump(int numRows)
+{     
+    printf("\033[%dA", numRows);
+    printf("\033[0m");
+    fflush(stdout);   
+}
