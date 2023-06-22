@@ -17,7 +17,7 @@ static int eofReached = 0;
 ma_device device = {0};
 ma_decoder *decoder = NULL;
 UserData *userData = NULL;
-
+bool paused = false;
 char audioTempFilePath[FILENAME_MAX];
 
 int convertToPcmFile(const char *filePath, const char *outputFilePath)
@@ -140,8 +140,6 @@ int playSoundFile(const char *filePath)
     eofReached = 0;
     return playAsPcm(filePath);
 }
-
-bool paused = false;
 
 void resumePlayback()
 {

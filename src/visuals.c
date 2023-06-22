@@ -28,7 +28,17 @@ void drawEqualizer(int height, int width, bool drawBlocks, PixelData color)
         return;
 
     fftwf_complex *fftInput = (fftwf_complex *)fftwf_malloc(sizeof(fftwf_complex) * BUFFER_SIZE);
+    if (fftInput == NULL) {
+        fprintf(stderr, "Error: Failed to allocate memory for fftInput\n");
+        return 1; // or handle the error in an appropriate way
+    }
+
     fftwf_complex *fftOutput = (fftwf_complex *)fftwf_malloc(sizeof(fftwf_complex) * BUFFER_SIZE);
+    if (fftOutput == NULL) {
+        fprintf(stderr, "Error: Failed to allocate memory for fftOutput\n");
+        fftwf_free(fftInput); // Free previously allocated memory before exiting
+        return 1; // or handle the error in an appropriate way
+    }        
 
     fftwf_plan plan = fftwf_plan_dft_1d(BUFFER_SIZE, fftInput, fftOutput, FFTW_FORWARD, FFTW_ESTIMATE);
 
