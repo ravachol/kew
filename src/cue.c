@@ -53,6 +53,7 @@ bool playingMainPlaylist = false;
 Node *currentSong;
 static int volumeUpCooldown = 0;
 static int volumeDownCooldown = 0;
+struct Event lastEvent;
 
 struct Event processInput()
 {
@@ -68,8 +69,13 @@ struct Event processInput()
     {
         restoreCursorPosition();
     }
-
+    
     char input = readInput();
+
+    while (isInputAvailable())
+    {
+        input = readInput();
+    }
     event.type = EVENT_KEY_PRESS;
     event.key = input;
 
@@ -124,42 +130,6 @@ struct Event processInput()
     default:
         break;
     }
-
-    if (volumeUpCooldown > 0)
-    {
-        volumeUpCooldown = volumeUpCooldown - 50;
-    }
-    else if (volumeDownCooldown > 0)
-    {
-        volumeDownCooldown = volumeDownCooldown - 50;
-    }       
-
-    if (event.type == EVENT_VOLUME_UP)
-    {
-        if (volumeUpCooldown > 0)
-        {
-            volumeUpCooldown -= 50;
-            event.type = EVENT_NONE;
-            event.key = '\0';            
-        }
-        else {
-            volumeUpCooldown = 1000;
-        }
-
-    }
-    if (event.type == EVENT_VOLUME_DOWN)
-    {
-        if (volumeDownCooldown > 0)
-        {
-            volumeDownCooldown -= 50;
-            event.type = EVENT_NONE;
-            event.key = '\0';            
-        }
-        else {
-            volumeDownCooldown = 1000;
-        }
-    }
-
 
     return event;
 }
@@ -273,10 +243,10 @@ int play(SongInfo song)
             }
             break;
         case EVENT_VOLUME_UP:
-            adjustVolumePercent(5);
+            adjustVolumePercent(2);
             break;
         case EVENT_VOLUME_DOWN:
-            adjustVolumePercent(-5);
+            adjustVolumePercent(-2);
             break;
         case EVENT_NEXT:
             if (currentSong->next != NULL)
