@@ -155,7 +155,7 @@ int read_and_convert(char *filepath, ImageOptions *options, PixelData *brightPix
             desired_height);
 
     if (!options->suppress_header)
-        printf("\n");
+        printf("\n\r");
     printf(" ");
     for (unsigned int d = 0; d < desired_width * desired_height; d++)
     {
@@ -219,6 +219,7 @@ int output_ascii(char *pathToImgFile, int height, int width, bool coverBlocks, P
     }
     opts.height = height;
     brightPixelFound = false;
+    printf("\r");
     int ret = read_and_convert(pathToImgFile, &opts, brightPixel);
     if (ret == -1)
         //  fprintf(stderr, "Failed to convert image: %s\n", pathToImgFile);
