@@ -361,8 +361,10 @@ int displayAlbumArt(const char *filepath, int width, int height, bool coverBlock
     }
     if (coverBlocks)
     {
-        getBrightPixel(coverArtFilePath, width, height, brightPixel);
-        runChafaCommand(coverArtFilePath, width, height);
+        getBrightPixel(coverArtFilePath, width, height, brightPixel);      
+        // As little margins as possible when running chafa, since it cannot create a left margin
+        runChafaCommand(coverArtFilePath, width+2, height+2); 
+        printf("\n");        
     }
     else
     {
