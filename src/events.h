@@ -30,22 +30,3 @@ struct Event
     char key;
 };
 
-struct EventQueue
-{
-    struct Event events[MAX_EVENTS_IN_QUEUE];
-    int front;
-    int rear;
-    bool full;
-};
-
-extern struct EventQueue eventQueue;
-
-void initEventQueue();
-
-bool isEventQueueEmpty();
-
-bool isEventQueueFull();
-
-void enqueueEvent(const struct Event *event);
-
-struct Event dequeueEvent();
