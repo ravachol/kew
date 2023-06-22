@@ -238,7 +238,7 @@ int fetchLatestVersion(int *major, int *minor, int *patch)
     }
 }
 
-void showVersion()
+void showVersion(PixelData color, PixelData secondaryColor)
 {
     int major, minor, patch;
 
@@ -250,7 +250,7 @@ void showVersion()
     {
         sprintf(latestVersion, VERSION);
     }
-    printVersion(VERSION, latestVersion);
+    printVersion(VERSION, latestVersion, color, secondaryColor);
 }
 
 void printAbout()
@@ -262,7 +262,7 @@ void printAbout()
         setTextColorRGB2(textColor.r, textColor.g, textColor.b);
         printAsciiLogo();
         setTextColorRGB2(color.r, color.g, color.b);
-        showVersion();
+        showVersion(textColor,color);
         int versionHeight = 13;
         int emptyRows = (equalizerEnabled ? equalizerHeight : 0) + 
                         (metaDataEnabled ? calcMetadataHeight() : 0) + 
