@@ -30,8 +30,6 @@ typedef struct
 
 #endif
 
-extern volatile int stopThread;
-
 extern PlayList playlist;
 
 extern PlayList* mainPlaylist;
@@ -57,6 +55,10 @@ int joinPlaylist(PlayList *dest, PlayList *src);
 int makePlaylist(int argc, char *argv[]);
 
 int calculatePlayListDuration(PlayList *playlist);
+
+void stopPlayListDurationCount();
+
+void startPlayListDurationCount();
 
 void readM3UFile(const char* filename, PlayList* playlist);
 

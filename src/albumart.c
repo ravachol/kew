@@ -25,28 +25,23 @@ void runChafaCommand(const char *filepath, int width, int height)
     char command[COMMAND_SIZE];
     int status;
 
-    // Construct the command string
     snprintf(command, COMMAND_SIZE, "chafa --clear -s %dx%d -C on \"%s\"", width, height, filepath);
 
-    // Execute the command
     pid_t pid = fork();
 
     if (pid == -1)
     {
-        // Fork failed
         perror("fork failed");
         exit(EXIT_FAILURE);
     }
     else if (pid == 0)
     {
-        // Child process
         system(command);
         exit(EXIT_SUCCESS);
     }
     else
     {
-        // Parent process
-        wait(&status); // Wait for the child process to finish
+        wait(&status);
     }
 }
 
@@ -363,12 +358,13 @@ int displayAlbumArt(const char *filepath, int width, int height, bool coverBlock
     {
         getBrightPixel(coverArtFilePath, width, height, brightPixel);      
         // As little margins as possible when running chafa, since it cannot create a left margin
-        runChafaCommand(coverArtFilePath, width+2, height+2); 
-        printf("\n");        
+        runChafaCommand(coverArtFilePath, width+2, height+2);     
     }
     else
     {
-        return output_ascii(coverArtFilePath, height, width, coverBlocks, brightPixel);
+        cursorJump(1);
+        output_ascii(coverArtFilePath, height, width, coverBlocks, brightPixel);
     }
+    printf(" \n");        
     return 0;
 }
