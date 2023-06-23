@@ -328,6 +328,8 @@ int play(SongInfo song)
         if (resizeFlag)
         {
             alarm(1); // Timer
+            setCursorPosition(1, 1);
+             clearRestOfScreen();
             while (resizeFlag)
             {
                 usleep(100000);
