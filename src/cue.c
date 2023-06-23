@@ -369,11 +369,17 @@ int play(SongInfo song)
 int run()
 {
     if (playlist.head == NULL)
-        return -1;
+    {
+        showCursor();
+        restoreTerminalMode();
+        enableInputBuffering();
+        return -1;        
+    }   
     if (currentSong == NULL)
         currentSong = playlist.head;
     play(currentSong->song);
     restoreTerminalMode();
+    enableInputBuffering();    
     if (g_audioBuffer != NULL)
     {
         free(g_audioBuffer);
@@ -387,7 +393,7 @@ int run()
     deleteCache(tempCache);
     showCursor();
     printf("\n");
-    enableInputBuffering();
+   
     return 0;
 }
 

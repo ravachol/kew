@@ -39,14 +39,14 @@ int convertToPcmFile(const char *filePath, const char *outputFilePath)
         exit(EXIT_FAILURE);
     } else if (pid == 0) {
         // Child process
-        system(command);
+        execl("/bin/sh", "sh", "-c", command, (char *)NULL);
         exit(EXIT_SUCCESS);
     } else {
         // Parent process
-        wait(&status);  // Wait for the child process to finish
+        waitpid(pid, &status, 0);  // Wait for the chafa process to finish
     }
     return 0;
-}
+}    
 
 void pcmCallback(ma_device *pDevice, void *pOutput, const void *pInput, ma_uint32 frameCount)
 {

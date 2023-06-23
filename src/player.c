@@ -268,7 +268,7 @@ void printAbout()
         printAsciiLogo();
         setTextColorRGB2(color.r, color.g, color.b);
         showVersion(textColor,color);
-        int versionHeight = 13;
+        int versionHeight = 12;
         int emptyRows = (equalizerEnabled ? equalizerHeight : 0) + 
                         (metaDataEnabled ? calcMetadataHeight() : 0) + 
                         (timeEnabled ? 1 : 0) - 
