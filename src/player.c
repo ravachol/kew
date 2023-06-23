@@ -12,7 +12,6 @@ bool coverBlocks = true;
 bool metaDataEnabled = true;
 bool timeEnabled = true;
 bool drewCover = true;
-bool drewVisualization = false;
 bool printInfo = false;
 int equalizerHeight = 8;
 int minWidth = 31;
@@ -168,6 +167,11 @@ void printTime()
 
 void printLastRow()
 {
+    int minWidth = 30;
+    int term_w, term_h;
+    getTermSize(&term_w, &term_h);
+    if (term_w < minWidth)
+        return;
     setTextColorRGB2(bgColor.r, bgColor.g, bgColor.b);
     printf(" [F1 About] [q Quit] cue v%s", VERSION);
 }
@@ -260,7 +264,7 @@ void printAbout()
     if (refresh && printInfo)
     {
         PixelData textColor = increaseLuminosity(color, 100);
-        setTextColorRGB2(textColor.r, textColor.g, textColor.b);
+        setTextColorRGB2(textColor.r, textColor.g, textColor.b);      
         printAsciiLogo();
         setTextColorRGB2(color.r, color.g, color.b);
         showVersion(textColor,color);
@@ -284,8 +288,7 @@ void printEqualizer()
         printf("\n");        
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
-        drawEqualizer(equalizerHeight, term_w, equalizerBlocks, color);
-        drewVisualization = true;
+        drawEqualizer(equalizerHeight, term_w -1, equalizerBlocks, color);
         printLastRow();       
         int jumpAmount = equalizerHeight + 2;
         cursorJump(jumpAmount);
