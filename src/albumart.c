@@ -363,6 +363,7 @@ int displayAlbumArt(const char *filepath, int width, int height, bool coverBlock
     else
     {
         cursorJump(1);
+        width--;
         output_ascii(coverArtFilePath, height, width, coverBlocks, brightPixel);
     }
     printf(" \n");        

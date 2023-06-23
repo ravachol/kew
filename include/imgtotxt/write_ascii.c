@@ -223,6 +223,6 @@ int output_ascii(char *pathToImgFile, int height, int width, bool coverBlocks, P
     int ret = read_and_convert(pathToImgFile, &opts, brightPixel);
     if (ret == -1)
         //  fprintf(stderr, "Failed to convert image: %s\n", pathToImgFile);
-        printf("\033[0m\n");
+        printf("\033[0m");
     return 0;
 }

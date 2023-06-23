@@ -71,6 +71,12 @@ bool isVersionGreater(const char* versionA, const char* versionB) {
 
 void printAsciiLogo()
 {
+    int minWidth = 31;
+    int term_w, term_h;
+    getTermSize(&term_w, &term_h);
+    if (term_w < minWidth)
+        return;
+
     printf("  $$$$$$$\\ $$\\   $$\\  $$$$$$\\\n");
     printf(" $$  _____|$$ |  $$ |$$  __$$\\\n");
     printf(" $$ /      $$ |  $$ |$$$$$$$$ |\n");
