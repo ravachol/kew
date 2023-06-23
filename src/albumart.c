@@ -29,21 +29,20 @@ void runChafaCommand(const char *filepath, int width, int height)
 
     pid_t pid = fork();
 
-    if (pid == -1)
-    {
+    if (pid == -1) {
+        // Fork failed
         perror("fork failed");
         exit(EXIT_FAILURE);
-    }
-    else if (pid == 0)
-    {
-        system(command);
+    } else if (pid == 0) {
+        // Child process
+        execl("/bin/sh", "sh", "-c", command, (char *)NULL);
         exit(EXIT_SUCCESS);
-    }
-    else
-    {
-        wait(&status);
+    } else {
+        // Parent process
+        waitpid(pid, &status, 0);  // Wait for the chafa process to finish
     }
 }
+
 
 int isAudioFile(const char *filename)
 {
@@ -358,7 +357,7 @@ int displayAlbumArt(const char *filepath, int width, int height, bool coverBlock
     {
         getBrightPixel(coverArtFilePath, width, height, brightPixel);      
         // As little margins as possible when running chafa, since it cannot create a left margin
-        runChafaCommand(coverArtFilePath, width+2, height+2);     
+        runChafaCommand(coverArtFilePath, width+2, height+2);
     }
     else
     {

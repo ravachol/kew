@@ -102,8 +102,6 @@ void printVersion(const char *version, const char *latestVersion, PixelData colo
     printf(" Buy Me a Coffee:\n");
     setTextColorRGB2(color.r, color.g, color.b);
     printf(" https://ko-fi.com/ravachol\n");
-    setTextColorRGB2(secondaryColor.r, secondaryColor.g, secondaryColor.b);
-    printf(" Copyright ® Ravachol 2023.\n");
 }
 
 int getYear(const char *dateString)
