@@ -115,6 +115,10 @@ cue . (loads the main cue playlist, see 'Other Functions')
 * <kbd>p</kbd> to save the currently loaded playlist to a m3u file in your music folder.
 * <kbd>q</kbd> to quit.
 
+## Dream Features
+
+We'd love to hear what kind of features you'd like to see in an app like this. Or if you find bugs! Post it as an Issue!
+
 ## License
 
 Licensed under GPL. [See LICENSE for more information](https://github.com/ravachol/cue/blob/main/LICENSE).
