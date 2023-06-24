@@ -51,7 +51,7 @@
 bool repeatEnabled = false;
 bool playingMainPlaylist = false;
 bool shouldQuit = false;
-Node *currentSong;
+
 static int volumeUpCooldown = 0;
 static int volumeDownCooldown = 0;
 struct Event lastEvent;
@@ -178,7 +178,7 @@ void toggleEqualizer()
     equalizerEnabled = !equalizerEnabled;
     strcpy(settings.equalizerEnabled, equalizerEnabled ? "1" : "0");
     restoreCursorPosition();
-    clearRestOfScreen();    
+    refresh = true;
 }
 
 void togglePause(double *totalPauseSeconds, double pauseSeconds, struct timespec *pause_time)

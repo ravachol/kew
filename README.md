@@ -105,7 +105,7 @@ cue . (loads the main cue playlist, see 'Other Functions')
 * Use <kbd>↑</kbd>, <kbd>↓</kbd> keys to raise or lower volume. 
 * Use <kbd>→</kbd>, <kbd>←</kbd> keys to play the next or previous track in the playlist. 
 * <kbd>Space</kbd> to toggle pause.
-* <kbd>F1</kbd> see info about cue.
+* <kbd>F1</kbd> to see the playlist and information about cue.
 * <kbd>e</kbd> to toggle the equalizer.
 * <kbd>c</kbd> to toggle album covers.
 * <kbd>b</kbd> to toggle album covers drawn in ascii or as a normal image.
@@ -118,7 +118,7 @@ cue . (loads the main cue playlist, see 'Other Functions')
 
 ## Dream Features
 
-We'd love to hear what kind of features you'd like to see in an app like this. Or if you find bugs. Please post it as an Issue.
+We'd love to hear what kind of features you'd like to see in an app like this. Or if you find bugs. Please post it as an issue.
 
 ## License
 
