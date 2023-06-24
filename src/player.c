@@ -2,6 +2,7 @@
 #include "player.h"
 
 const char VERSION[] = "0.9.0";
+const char VERSION_DATE[] = "2023-06-25";
 
 bool firstSong = true;
 bool refresh = true;
@@ -229,6 +230,21 @@ int fetchLatestVersion(int *major, int *minor, int *patch)
     long response_code;
     curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
 
+    // Parse the version from the response
+    char* versionStart = strstr(responseData.content, "tag_name");
+    if (versionStart != NULL)
+    {
+        versionStart += strlen("tag_name\": \"");
+        char* versionEnd = strchr(versionStart, '\"');
+        if (versionEnd != NULL)
+        {
+            *versionEnd = '\0';  // Null-terminate the version string
+            char* version = versionStart;
+            // Assuming the version format is "vX.Y.Z", skip the 'v' character
+            sscanf(version + 1, "%d.%d.%d", major, minor, patch);
+        }
+    }    
+
     curl_easy_cleanup(curl);
 
     if (response_code == 200)
@@ -248,16 +264,9 @@ void showVersion(PixelData color, PixelData secondaryColor)
 {
     int major, minor, patch;
 
-    if (latestVersion == '\0' && fetchLatestVersion(&major, &minor, &patch) >= 0)
-    {
-        sprintf(latestVersion, "%d.%d.%d", major, minor, patch);
-    }
-    else
-    {
-        sprintf(latestVersion, VERSION);
-    }
+    sprintf(latestVersion, VERSION);
     printf("\n");
-    printVersion(VERSION, latestVersion, color, secondaryColor);
+    printVersion(VERSION, VERSION_DATE, color, secondaryColor);
 }
 
 void removeUnneededChars(char* str) {
@@ -353,6 +362,10 @@ int showPlaylist(int maxHeight)
         }
         node = node->next;        
     }
+    printf("\n");    
+    printLastRow();
+    printf("\n");
+    numPrintedRows++;
     if (numRows > 1)
     {        
         while (numPrintedRows < maxListSize)
@@ -417,9 +430,6 @@ int printPlayer(const char *songFilepath, TagSettings *metadata, double elapsedS
         {
             printAbout();  
             int height = showPlaylist(equalizerHeight + 4);
-            if (height == 0)
-                printCover();
-            printLastRow();        
             int jumpAmount = height;
             cursorJump(jumpAmount);
             saveCursorPosition();             
