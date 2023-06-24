@@ -29,6 +29,8 @@ typedef struct
     volatile double totalDuration;
 } PlayList;
 
+extern Node *currentSong;
+
 #endif
 
 extern PlayList playlist;

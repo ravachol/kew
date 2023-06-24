@@ -24,6 +24,7 @@ char playlistName[MAX_SEARCH_SIZE];
 bool shuffle = false;
 int numDirs = 0;
 volatile int stopPlaylistDurationThread = 0;
+Node *currentSong = NULL;
 
 Node *getListNext(Node *node)
 {
