@@ -15,7 +15,7 @@ bool timeEnabled = true;
 bool drewCover = true;
 bool printInfo = false;
 bool showList = true;
-int versionHeight = 12;
+int versionHeight = 11;
 int equalizerHeight = 8;
 int minWidth = 31;
 int minHeight = 2;
@@ -364,11 +364,10 @@ int showPlaylist(int maxHeight)
     }
     printf("\n");    
     printLastRow();
-    printf("\n");
     numPrintedRows++;
     if (numRows > 1)
     {        
-        while (numPrintedRows < maxListSize)
+        while (numPrintedRows <= maxListSize + 1)
         {
             printf("\n");
             numPrintedRows++;
