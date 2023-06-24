@@ -123,9 +123,9 @@ void printVersion(const char *version, const char *versionDate, PixelData color,
     printf(" cue version %s.\n", version);
     setTextColorRGB2(color.r, color.g, color.b); 
     int daysOld = getDayDifference(versionDate);
-    printf(" This version is %d days old.\n", daysOld);
+    printf(" This version of cue is %d days old.\n", daysOld);
     setTextColorRGB2(secondaryColor.r, secondaryColor.g, secondaryColor.b);   
-    printf(" Github Homepage:\n");
+    printf(" homepage:\n");
     setTextColorRGB2(color.r, color.g, color.b);
     printf(" https://github.com/ravachol/cue\n");
     setTextColorRGB2(secondaryColor.r, secondaryColor.g, secondaryColor.b);
