@@ -9,6 +9,7 @@
 
 typedef struct
 {
+    char *title;    
     char *filePath;
     double duration;
 } SongInfo;

@@ -13,6 +13,7 @@ bool metaDataEnabled = true;
 bool timeEnabled = true;
 bool drewCover = true;
 bool printInfo = false;
+bool showList = true;
 int equalizerHeight = 8;
 int minWidth = 31;
 int minHeight = 2;
@@ -21,6 +22,7 @@ int preferredWidth = 0;
 int preferredHeight = 0;
 int elapsed = 0;
 int duration = 0;
+int maxListSize = 30;
 char *path;
 char *tagsPath;
 double totalDurationSeconds = 0.0;
@@ -258,9 +260,41 @@ void showVersion(PixelData color, PixelData secondaryColor)
     printVersion(VERSION, latestVersion, color, secondaryColor);
 }
 
+int showPlaylist(int maxHeight)
+{
+    Node *node = playlist.head;
+    int numRows = 0;
+    if (node == NULL) return numRows;
+    printf("\n");
+    numRows++;    
+    for (int i = 0; i < maxListSize; i++)
+    {
+        if (node == NULL) break;
+        char filePath[MAXPATHLEN];
+        strcpy(filePath, node->song.filePath);
+        char *lastSlash = strrchr(filePath, '/');
+        char *lastDot = strrchr(filePath, '.');
+        printf("\r");
+        if (lastSlash != NULL && lastDot != NULL && lastDot > lastSlash) {
+            char copiedString[256];
+            strncpy(copiedString, lastSlash + 1, lastDot - lastSlash - 1);
+            copiedString[lastDot - lastSlash - 1] = '\0';
+            if (copiedString != NULL)
+                printf(" %s\n", copiedString);
+            numRows++;
+        }
+        node = node->next;        
+    }
+    printf("\n");
+    numRows++;
+    return numRows;
+}
+
 void printAbout()
 {
     usleep(200000);
+    printf("\n\r\n");
+    clearRestOfScreen();
     if (refresh && printInfo)
     {
         PixelData textColor = increaseLuminosity(color, 100);
@@ -273,22 +307,18 @@ void printAbout()
                         (metaDataEnabled ? calcMetadataHeight() : 0) + 
                         (timeEnabled ? 1 : 0) - 
                         versionHeight;
-        for (int i = 0; i < emptyRows; i++)
-        {
-            printf("\n");
-        }
-        printLastRow();
+        fflush(stdout);
     }
 }
 
 void printEqualizer()
-{
+{   
     if (equalizerEnabled && !printInfo)
     {
         printf("\n");        
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
-        drawEqualizer(equalizerHeight, term_w -1, equalizerBlocks, color);
+        drawEqualizer(equalizerHeight, term_w -1, equalizerBlocks, color);            
         printLastRow();       
         int jumpAmount = equalizerHeight + 2;
         cursorJump(jumpAmount);
@@ -308,14 +338,30 @@ int printPlayer(const char *songFilepath, TagSettings *metadata, double elapsedS
 
     if (preferredWidth <= 0 || preferredHeight <= 0) return -1;
 
-    if (refresh)
+    if (printInfo)
     {
-        printCover();   
-        printAbout();
-        printMetadata(metadata);
-    }  
-    printTime();
-    printEqualizer();  
+        if (refresh)
+        {
+            printAbout();  
+        }     
+        int height = showPlaylist(equalizerHeight + 4);
+        if (height == 0)
+            printCover();
+        printLastRow();        
+        int jumpAmount = height;
+        cursorJump(jumpAmount);
+        saveCursorPosition(); 
+    }
+    else
+    {
+        if (refresh)
+        {
+            printCover();               
+            printMetadata(metadata);
+        }  
+        printTime();
+        printEqualizer();
+    }
     refresh = false;
 
     return 0; 
