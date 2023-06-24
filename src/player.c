@@ -22,7 +22,7 @@ int preferredWidth = 0;
 int preferredHeight = 0;
 int elapsed = 0;
 int duration = 0;
-int maxListSize = 30;
+int maxListSize = 26;
 char *path;
 char *tagsPath;
 double totalDurationSeconds = 0.0;
@@ -260,13 +260,35 @@ void showVersion(PixelData color, PixelData secondaryColor)
     printVersion(VERSION, latestVersion, color, secondaryColor);
 }
 
+void removeUnneededChars(char* str) {
+    int i;
+    for (i = 0; i < 3 && str[i] != '\0'; i++) {
+        if (isdigit(str[i]) || str[i] == '-' || str[i] == ' ') {
+            int j;
+            for (j = i; str[j] != '\0'; j++) {
+                str[j] = str[j + 1];
+            }
+            str[j] = '\0';
+            i--;  // Decrement i to re-check the current index
+        }
+    }
+}
+
+void shortenString(char* str, int width) {
+    if (strlen(str) > width) {
+        str[width] = '\0';
+    }
+}
+
 int showPlaylist(int maxHeight)
 {
     Node *node = playlist.head;
     int numRows = 0;
     if (node == NULL) return numRows;
     printf("\n");
-    numRows++;    
+    numRows++; 
+    int term_w, term_h;
+    getTermSize(&term_w, &term_h);       
     for (int i = 0; i < maxListSize; i++)
     {
         if (node == NULL) break;
@@ -279,13 +301,18 @@ int showPlaylist(int maxHeight)
             char copiedString[256];
             strncpy(copiedString, lastSlash + 1, lastDot - lastSlash - 1);
             copiedString[lastDot - lastSlash - 1] = '\0';
+            removeUnneededChars(copiedString);
+            shortenString(copiedString, term_w - 5);
             if (copiedString != NULL)
-                printf(" %s\n", copiedString);
+            {
+                if (numRows < 10)
+                    printf(" ");
+                printf(" %d. %s\n", numRows, copiedString);
+            }
             numRows++;
         }
         node = node->next;        
     }
-    printf("\n");
     numRows++;
     return numRows;
 }
