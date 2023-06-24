@@ -1,5 +1,6 @@
 #include "printfunc.h"
 #include "term.h"
+#include <string.h>
 
 #ifndef PIXELDATA_STRUCT
 #define PIXELDATA_STRUCT
@@ -85,15 +86,44 @@ void printAsciiLogo()
     printf("  \\_______| \\______/  \\_______|\n");    
 }
 
-void printVersion(const char *version, const char *latestVersion, PixelData color, PixelData secondaryColor)
+int getDayDifference(const char* date)
+{
+    struct tm tm_date;
+    memset(&tm_date, 0, sizeof(struct tm)); // Initialize the structure with zeroes
+
+    time_t time_now, time_date;
+
+    time(&time_now);
+
+    if (sscanf(date, "%d-%d-%d", &tm_date.tm_year, &tm_date.tm_mon, &tm_date.tm_mday) != 3)
+    {
+        return -1;
+    }
+
+    tm_date.tm_year -= 1900;
+    tm_date.tm_mon -= 1;
+
+    tm_date.tm_hour = 0;
+    tm_date.tm_min = 0;
+    tm_date.tm_sec = 0;
+
+    time_date = mktime(&tm_date);
+
+    double diff_seconds = difftime(time_now, time_date);
+
+    int diff_days = diff_seconds / (24 * 60 * 60);
+
+    return diff_days;
+}
+
+
+void printVersion(const char *version, const char *versionDate, PixelData color, PixelData secondaryColor)
 {
     setTextColorRGB2(secondaryColor.r, secondaryColor.g, secondaryColor.b);
     printf(" cue version %s.\n", version);
-    setTextColorRGB2(color.r, color.g, color.b);    
-    if (isVersionGreater(latestVersion, version))
-       printf(" There is a newer version (%s) available.\n", latestVersion);
-    else
-        printf(" This is the latest version.\n");
+    setTextColorRGB2(color.r, color.g, color.b); 
+    int daysOld = getDayDifference(versionDate);
+    printf(" This version is %d days old.\n", daysOld);
     setTextColorRGB2(secondaryColor.r, secondaryColor.g, secondaryColor.b);   
     printf(" Github Homepage:\n");
     setTextColorRGB2(color.r, color.g, color.b);
