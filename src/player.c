@@ -343,14 +343,14 @@ int printPlayer(const char *songFilepath, TagSettings *metadata, double elapsedS
         if (refresh)
         {
             printAbout();  
-        }     
-        int height = showPlaylist(equalizerHeight + 4);
-        if (height == 0)
-            printCover();
-        printLastRow();        
-        int jumpAmount = height;
-        cursorJump(jumpAmount);
-        saveCursorPosition(); 
+            int height = showPlaylist(equalizerHeight + 4);
+            if (height == 0)
+                printCover();
+            printLastRow();        
+            int jumpAmount = height;
+            cursorJump(jumpAmount);
+            saveCursorPosition();             
+        }             
     }
     else
     {
