@@ -341,7 +341,7 @@ int play(SongInfo song)
         }
         else
         {
-            if ((elapsedSeconds < duration) && !isPaused())
+            if (elapsedSeconds < duration)
             {
                 printPlayer(musicFilepath, &metadata, elapsedSeconds, duration, &playlist);
             }
