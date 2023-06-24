@@ -1,7 +1,7 @@
 #include <string.h>
 #include "player.h"
 
-const char VERSION[] = "0.9.0";
+const char VERSION[] = "0.9.1";
 const char VERSION_DATE[] = "2023-06-25";
 
 bool firstSong = true;
