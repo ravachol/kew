@@ -14,6 +14,7 @@ bool timeEnabled = true;
 bool drewCover = true;
 bool printInfo = false;
 bool showList = true;
+int versionHeight = 10;
 int equalizerHeight = 8;
 int minWidth = 31;
 int minHeight = 2;
@@ -22,7 +23,6 @@ int preferredWidth = 0;
 int preferredHeight = 0;
 int elapsed = 0;
 int duration = 0;
-int maxListSize = 26;
 char *path;
 char *tagsPath;
 double totalDurationSeconds = 0.0;
@@ -283,38 +283,85 @@ void shortenString(char* str, int width) {
 int showPlaylist(int maxHeight)
 {
     Node *node = playlist.head;
+    bool foundCurrentSong = false;
+    bool startFromCurrent = false;
+    int term_w, term_h;
+    getTermSize(&term_w, &term_h);       
+    int otherRows = 4;    
+    int totalHeight = term_h;
+    int maxListSize = totalHeight - versionHeight - otherRows;
     int numRows = 0;
+    int numPrintedRows = 0;
+    int foundAt = 0;
     if (node == NULL) return numRows;
     printf("\n");
     numRows++; 
-    int term_w, term_h;
-    getTermSize(&term_w, &term_h);       
-    for (int i = 0; i < maxListSize; i++)
+    numPrintedRows++;
+
+    PixelData textColor = increaseLuminosity(color, 100);
+    setTextColorRGB2(textColor.r, textColor.g, textColor.b);      
+    setTextColorRGB2(color.r, color.g, color.b);
+
+    int numSongs = 0;
+    for (int i = 0; i < playlist.count; i++)
+    {
+        if (!strcmp(node->song.filePath, currentSong->song.filePath) == 0)
+        {
+            foundAt = numSongs;
+        }
+        node = node->next;
+        numSongs++;
+        if (numSongs > maxListSize)
+        {
+            startFromCurrent = true;
+            break;
+        }
+    }
+    node = playlist.head;
+
+    for (int i = 0; i < foundAt + maxListSize; i++)
     {
         if (node == NULL) break;
         char filePath[MAXPATHLEN];
-        strcpy(filePath, node->song.filePath);
+        strcpy(filePath, node->song.filePath);        
         char *lastSlash = strrchr(filePath, '/');
         char *lastDot = strrchr(filePath, '.');
         printf("\r");
+        setTextColorRGB2(color.r, color.g, color.b);
         if (lastSlash != NULL && lastDot != NULL && lastDot > lastSlash) {
             char copiedString[256];
             strncpy(copiedString, lastSlash + 1, lastDot - lastSlash - 1);
             copiedString[lastDot - lastSlash - 1] = '\0';
             removeUnneededChars(copiedString);
+            if (strcmp(filePath, currentSong->song.filePath) == 0)
+            {
+                setTextColorRGB2(textColor.r, textColor.g, textColor.b);
+                foundCurrentSong = true;
+            }
             shortenString(copiedString, term_w - 5);
-            if (copiedString != NULL)
+            if (copiedString != NULL && (!startFromCurrent || foundCurrentSong))
             {
                 if (numRows < 10)
                     printf(" ");
                 printf(" %d. %s\n", numRows, copiedString);
-            }
-            numRows++;
+                numPrintedRows++;
+                if (numPrintedRows > maxListSize)
+                    break;
+            }     
+            numRows++;       
+            setTextColorRGB2(color.r, color.g, color.b);
         }
         node = node->next;        
     }
-    numRows++;
-    return numRows;
+    if (numRows > 1)
+    {        
+        while (numPrintedRows < maxListSize)
+        {
+            printf("\n");
+            numPrintedRows++;
+        }
+    }
+    return numPrintedRows;
 }
 
 void printAbout()
@@ -328,8 +375,7 @@ void printAbout()
         setTextColorRGB2(textColor.r, textColor.g, textColor.b);      
         printAsciiLogo();
         setTextColorRGB2(color.r, color.g, color.b);
-        showVersion(textColor,color);
-        int versionHeight = 12;
+        showVersion(textColor,color);        
         int emptyRows = (equalizerEnabled ? equalizerHeight : 0) + 
                         (metaDataEnabled ? calcMetadataHeight() : 0) + 
                         (timeEnabled ? 1 : 0) - 

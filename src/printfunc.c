@@ -99,9 +99,6 @@ void printVersion(const char *version, const char *latestVersion, PixelData colo
     setTextColorRGB2(color.r, color.g, color.b);
     printf(" https://github.com/ravachol/cue\n");
     setTextColorRGB2(secondaryColor.r, secondaryColor.g, secondaryColor.b);
-    printf(" Support cue:\n");
-    setTextColorRGB2(color.r, color.g, color.b);
-    printf(" https://ko-fi.com/ravachol\n");
 }
 
 int getYear(const char *dateString)
