@@ -175,7 +175,7 @@ void printLastRow()
     if (term_w < minWidth)
         return;
     setTextColorRGB2(bgColor.r, bgColor.g, bgColor.b);
-    printf(" [F1 About] [q Quit] cue v%s", VERSION);
+    printf(" [F1 Info] [q Quit] cue v%s", VERSION);
 }
 
 // Callback function to write response data
