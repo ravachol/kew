@@ -7,7 +7,6 @@
 #include <sys/wait.h>
 #include <pthread.h>
 #include <dirent.h>
-#include "dir.h"
 #include "file.h"
 #include "../include/getcover/getcover.h"
 #include "../include/imgtotxt/options.h"
@@ -25,7 +24,7 @@ void runChafaCommand(const char *filepath, int width, int height)
     char command[COMMAND_SIZE];
     int status;
 
-    snprintf(command, COMMAND_SIZE, "chafa --clear -s %dx%d -C on \"%s\"", width, height, filepath);
+    snprintf(command, COMMAND_SIZE, "chafa --clear -s %dx%d --stretch -C on \"%s\"", width, height, filepath);
 
     pid_t pid = fork();
 
@@ -357,7 +356,7 @@ int displayAlbumArt(const char *filepath, int width, int height, bool coverBlock
     {
         getBrightPixel(coverArtFilePath, width, height, brightPixel);      
         // As little margins as possible when running chafa, since it cannot create a left margin
-        runChafaCommand(coverArtFilePath, width+2, height);
+        runChafaCommand(coverArtFilePath, width, height);
     }
     else
     {

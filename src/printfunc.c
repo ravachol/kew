@@ -38,38 +38,6 @@ void printHelp()
     printf("\n");
 }
 
-bool isVersionGreater(const char* versionA, const char* versionB) {
-    // Split versionA into major, minor, and patch components
-    int majorA, minorA, patchA;
-    sscanf(versionA, "%d.%d.%d", &majorA, &minorA, &patchA);
-
-    // Split versionB into major, minor, and patch components
-    int majorB, minorB, patchB;
-    sscanf(versionB, "%d.%d.%d", &majorB, &minorB, &patchB);
-
-    // Compare the components
-    if (majorA > majorB) {
-        return true;
-    } else if (majorA < majorB) {
-        return false;
-    }
-
-    if (minorA > minorB) {
-        return true;
-    } else if (minorA < minorB) {
-        return false;
-    }
-
-    if (patchA > patchB) {
-        return true;
-    } else if (patchA < patchB) {
-        return false;
-    }
-
-    // If all components are equal, versions are not greater
-    return false;
-}
-
 void printAsciiLogo()
 {
     int minWidth = 31;
@@ -115,7 +83,6 @@ int getDayDifference(const char* date)
 
     return diff_days;
 }
-
 
 void printVersion(const char *version, const char *versionDate, PixelData color, PixelData secondaryColor)
 {

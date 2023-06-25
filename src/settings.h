@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "player.h"
-#include "dir.h"
+#include "file.h"
 
 #ifndef KEYVALUEPAIR_STRUCT
 #define KEYVALUEPAIR_STRUCT
