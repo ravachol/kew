@@ -6,7 +6,7 @@
 #include <time.h>
 #include <ctype.h>
 #include "playlist.h"
-#include "dir.h"
+#include "file.h"
 #include "stringfunc.h"
 #include "settings.h"
 

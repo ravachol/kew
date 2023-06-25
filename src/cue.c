@@ -27,7 +27,6 @@
 #include <unistd.h>
 #include "sound.h"
 #include "stringfunc.h"
-#include "dir.h"
 #include "settings.h"
 #include "printfunc.h"
 #include "playlist.h"
@@ -391,6 +390,7 @@ int run()
     cleanupPlaybackDevice();
     deleteCachedFiles(tempCache);
     deleteCache(tempCache);
+    deleteTempDir();
     showCursor();
     printf("\n");
    
