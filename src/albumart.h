@@ -12,4 +12,6 @@ int displayAlbumArt(const char *filepath, int width, int height, bool coverBlock
 
 int calcIdealImgSize(int *width, int *height, const int equalizerHeight, const int metatagHeight, bool firstSong);
 
+void cleanupCover();
+
 #endif

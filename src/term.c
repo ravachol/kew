@@ -219,6 +219,12 @@ void clearRestOfScreen()
     fflush(stdout);
 }
 
+void clearScreen()
+{
+    printf("\033[2J");
+    printf("\033[H");
+}
+
 void setWindowTitle(const char *title)
 {
     printf("\033]0;%s\007", title);

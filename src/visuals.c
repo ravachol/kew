@@ -21,7 +21,6 @@ PixelData decreaseLuminosity(PixelData pixel, int amount) {
 
 void drawEqualizer(int height, int width, bool drawBlocks, PixelData color)
 {
-    usleep(4000);
     width = (width / 2);
     height = height - 1;
     

@@ -15,6 +15,9 @@
 #include "term.h"
 #include "albumart.h"
 #include "cache.h"
+#include "chafafunc.h"
+
+FIBITMAP *bitmap;
 
 char coverArtFilePath[MAXPATHLEN];
 
@@ -24,7 +27,7 @@ void runChafaCommand(const char *filepath, int width, int height)
     char command[COMMAND_SIZE];
     int status;
 
-    snprintf(command, COMMAND_SIZE, "chafa --clear -s %dx%d --stretch -C on \"%s\"", width, height, filepath);
+    snprintf(command, COMMAND_SIZE, "chafa --clear -s %dx%d --scale max --stretch --margin-right 0 -C on \"%s\"", width, height, filepath);
 
     pid_t pid = fork();
 
@@ -271,7 +274,7 @@ int extractCover(const char *audioFilepath, char *outputFilepath)
         else if (memcmp(str, "RIFF", 4) == 0) // Wav file
         {
         }
-        else if (memcmp(str, "ID3\3", 4) == 0) // Mp3
+        else if (memcmp(str, "ID3\004", 4) == 0 || memcmp(str, "ID3\003", 4) == 0) // Mp3
         {
             size_t pathLength = strlen(path);
             size_t coverLength = strlen("cover.jpg");
@@ -293,6 +296,9 @@ int extractCover(const char *audioFilepath, char *outputFilepath)
                     fclose(fp);
                     return 1;
                 }
+            }
+            else {
+                return -1;
             }
         }
         fclose(fp);
@@ -325,12 +331,16 @@ int calcIdealImgSize(int *width, int *height, const int equalizerHeight, const i
 int displayAlbumArt(const char *filepath, int width, int height, bool coverBlocks, PixelData *brightPixel)
 {
     char path[MAXPATHLEN];
+    bool newCover = false;
 
     if (filepath == NULL)
         return -1;
 
     if (coverArtFilePath[0] == '\0')
     {
+        newCover = true;     
+        FreeImage_Unload(bitmap);
+        bitmap = NULL;
         int res = extractCover(filepath, coverArtFilePath);
         if (res < 0)
         {
@@ -353,17 +363,31 @@ int displayAlbumArt(const char *filepath, int width, int height, bool coverBlock
             return -1;
     }
     if (coverBlocks)
-    {
-        getBrightPixel(coverArtFilePath, width, height, brightPixel);      
-        // As little margins as possible when running chafa, since it cannot create a left margin
-        runChafaCommand(coverArtFilePath, width, height);
+    {      
+        if (newCover)
+            bitmap = getBitmap(coverArtFilePath);
+        clearScreen();
+        printBitmapCentered(bitmap, width-1, height-2);
+
+        int r, g, b;
+        getCoverColor(bitmap, &r, &g, &b);
+        brightPixel->r = r;
+        brightPixel->g = g;
+        brightPixel->b = b;
     }
     else
     {
+        if (newCover)
+            bitmap = getBitmap(coverArtFilePath);
+
         cursorJump(1);
-        width--;
-        output_ascii(coverArtFilePath, height, width, coverBlocks, brightPixel);
+        output_ascii(coverArtFilePath, height-2, width-1, coverBlocks, brightPixel);
     }
-    printf(" \n");        
+    fputc('\n', stdout);          
     return 0;
+}
+
+void cleanupCover()
+{
+    FreeImage_Unload(bitmap);
 }
