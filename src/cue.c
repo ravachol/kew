@@ -282,7 +282,8 @@ int play(SongInfo song)
         case EVENT_NEXT:
             if (currentSong->next != NULL)
             {
-                cleanup();
+                usleep(200000);
+                cleanup();                
                 currentSong = getListNext(currentSong);
                 return play(currentSong->song);
             }

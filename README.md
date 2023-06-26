@@ -117,7 +117,7 @@ cue . (loads the main cue playlist, see 'Other Functions')
 * Use <kbd>→</kbd>, <kbd>←</kbd> keys to play the next or previous track in the playlist. 
 * <kbd>Space</kbd> to toggle pause.
 * <kbd>F1</kbd> to see the playlist and information about cue.
-* <kbd>e</kbd> to toggle the equalizer.
+* <kbd>e</kbd> to toggle the spectrum analyser.
 * <kbd>c</kbd> to toggle album covers.
 * <kbd>b</kbd> to toggle album covers drawn in ascii or as a normal image.
 * <kbd>r</kbd> to repeat the current song.
