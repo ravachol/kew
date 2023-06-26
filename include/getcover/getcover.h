@@ -56,7 +56,7 @@ static char pngFile[MAXPATHLENGTH] = "cover.png";
 static void extract_cover(const char *arg, char *outputFilePath);
 static int get_FLAC_cover(FILE *fp, const char *dirpath);
 static int get_m4a_cover(FILE *fp, const char *dirpath);
-static int get_mp3_cover(const char *filepath, const char *outputfilepath);
+static int get_mp3_cover(const char *filepath, const char *outputPath);
 static int extractID3v2_cover(const char *filePath, const char *outputFilePath);
 static int extractMP3Cover(const char *inputFilePath, const char *outputFilePath);
 extern long getFileSize(FILE *file);
@@ -281,18 +281,36 @@ long getFileSize(FILE *file)
 
 int extractMP3Cover(const char *inputFilePath, const char *outputFilePath)
 {
-    char command[256];
-    snprintf(command, sizeof(command), "ffmpeg -y -i \"%s\" -an -vcodec copy \"%s\"", inputFilePath, outputFilePath);
+    const int COMMAND_SIZE = 1000;
+    char command[COMMAND_SIZE];
+    int status;
 
-    FILE *pipe = popen(command, "r");
-    if (pipe == NULL)
-    {
-        printf("Failed to run FFmpeg command.\n");
-        return -1;
+    snprintf(command, COMMAND_SIZE, "ffmpeg -y -i \"%s\" -an -vcodec copy \"%s\"", inputFilePath, outputFilePath);
+
+    pid_t pid = fork();
+
+    if (pid == -1) {
+        // Fork failed
+        perror("fork failed");
+        exit(EXIT_FAILURE);
+    } else if (pid == 0) {
+        // Child process
+        execl("/bin/sh", "sh", "-c", command, (char *)NULL);
+        exit(EXIT_SUCCESS);
+    } else {
+        // Parent process
+        waitpid(pid, &status, 0);  // Wait for the chafa process to finish
     }
-    pclose(pipe);
 
-    return 0;
+    FILE *file = fopen(outputFilePath, "r");
+    
+    if (file != NULL) {
+        printf("File exists.\n");
+        fclose(file);
+        return 1;
+    } else {
+       return -1;
+    }    
 }
 
 int extractID3v2_cover(const char *filePath, const char *outputFilePath)
@@ -377,9 +395,11 @@ int extractID3v2_cover(const char *filePath, const char *outputFilePath)
 }
 
 
-int get_mp3_cover(const char *filePath, const char *outputfilepath)
+
+
+int get_mp3_cover(const char *filepath, const char *outputPath)
 {
-    int result = extractID3v2_cover(filePath, outputfilepath);
+    int result = extractID3v2_cover(filepath, outputPath);
 
     if (result == 0)
         return DONE; // FIXME: refactor this so done is not used anymore

@@ -16,6 +16,7 @@ TODO:
 #include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
+#include "../../src/term.h"
 
 // Disable some warnings for stb headers.
 #pragma GCC diagnostic push
@@ -153,16 +154,23 @@ int read_and_convert(char *filepath, ImageOptions *options, PixelData *brightPix
             desired_width,
             desired_height);
 
+    int term_w, term_h;
+    getTermSize(&term_w, &term_h);
+
+    int indent = ((term_w - desired_width) / 2)+1;
+
     if (!options->suppress_header)
         printf("\n\r");
-    printf(" ");
+    printf("\n");
+    printf("%*s", indent, "");
     for (unsigned int d = 0; d < desired_width * desired_height; d++)
     {
         if (d % desired_width == 0 && d != 0)
         {
             if (options->output_mode == SOLID_ANSI)
                 printf("\033[0m");
-            printf("\n ");
+            printf("\n");
+            printf("%*s", indent, "");
         }
 
         PixelData *c = data + d;
@@ -218,7 +226,7 @@ int output_ascii(char *pathToImgFile, int height, int width, bool coverBlocks, P
     }
     opts.height = height;
     brightPixelFound = false;
-    printf("\r");
+    printf("\n\r");
     int ret = read_and_convert(pathToImgFile, &opts, brightPixel);
     if (ret == -1)
         //  fprintf(stderr, "Failed to convert image: %s\n", pathToImgFile);

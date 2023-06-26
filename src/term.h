@@ -91,4 +91,6 @@ void enableInputBuffering();
 
 void cursorJump(int numRows);
 
+void clearScreen();
+
 #endif

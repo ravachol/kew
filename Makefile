@@ -1,10 +1,10 @@
 CC = gcc
-CFLAGS = -Iinclude/imgtotxt -Iinclude/miniaudio -O1
-LIBS = -lpthread -lavformat -lavutil -L/usr/lib  -lfftw3_omp -lfftw3 -lfftw3f_omp -lfftw3f -lrt -pthread -lcurl -lm
+CFLAGS = -Iinclude/imgtotxt -Iinclude/miniaudio -I/usr/include/chafa -I/usr/lib/chafa/include -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -I/usr/include/sysprof-4 -O1
+LIBS = -lpthread -lavformat -lavutil -L/usr/lib  -lfftw3_omp -lfftw3 -lfftw3f_omp -lfftw3f -lrt -pthread -lcurl -lm -lfreeimage -lchafa -lglib-2.0
 
 OBJDIR = src/obj
 
-SRCS = src/arg.c src/sound.c src/file.c src/cache.c src/metadata.c src/printfunc.c src/playlist.c src/stringfunc.c src/term.c  src/settings.c src/player.c src/albumart.c src/visuals.c src/cue.c
+SRCS = src/arg.c src/sound.c src/file.c src/chafafunc.c src/cache.c src/metadata.c src/printfunc.c src/playlist.c src/stringfunc.c src/term.c  src/settings.c src/player.c src/albumart.c src/visuals.c src/cue.c
 OBJS = $(SRCS:src/%.c=$(OBJDIR)/%.o)
 
 all: cue
