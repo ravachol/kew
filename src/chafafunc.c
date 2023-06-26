@@ -406,7 +406,7 @@ unsigned char checkIfBrightPixel(unsigned char r, unsigned char g, unsigned char
 {
     // Calc luminace and use to find Ascii char.
     unsigned char ch = luminance(r, g, b);
-    if (ch > 100)
+    if (ch > 120)
     {
         *found = true;
     }
