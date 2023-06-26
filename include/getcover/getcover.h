@@ -305,7 +305,6 @@ int extractMP3Cover(const char *inputFilePath, const char *outputFilePath)
     FILE *file = fopen(outputFilePath, "r");
     
     if (file != NULL) {
-        printf("File exists.\n");
         fclose(file);
         return 1;
     } else {
