@@ -388,6 +388,7 @@ int run()
     saveMainPlaylist(settings.path, playingMainPlaylist);
     free(mainPlaylist);
     cleanupPlaybackDevice();
+    cleanupCover();
     deleteCachedFiles(tempCache);
     deleteCache(tempCache);
     deleteTempDir();

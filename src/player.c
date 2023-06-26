@@ -71,9 +71,18 @@ void printCover()
         displayAlbumArt(path, preferredWidth, preferredHeight, coverBlocks, &color);
         drewCover = true;
         firstSong = false;
+        if (color.r == 0 && color.g == 0 && color.b == 0)
+        {
+            color.r = 210;
+            color.g = 210;
+            color.b = 210;            
+        }
     }
     else
     {
+        color.r = 210;
+        color.g = 210;
+        color.b = 210;
         clearRestOfScreen();
         drewCover = false;
     }
@@ -92,8 +101,21 @@ void printBasicMetadata(TagSettings *metadata)
     if (strlen(metadata->title) > 0)
     {
         PixelData pixel = increaseLuminosity(color, 100);
-        setTextColorRGB2(pixel.r, pixel.g, pixel.b);        
-        printf(" %s\n", metadata->title);
+        if (pixel.r == 255 && pixel.g == 255 && pixel.b == 255)
+        {
+            PixelData gray;
+            gray.r = 210;
+            gray.g = 210;
+            gray.b = 210;
+            setTextColorRGB2(gray.r, gray.g, gray.b);
+        }
+        else
+        {
+            setTextColorRGB2(pixel.r, pixel.g, pixel.b);
+            
+        }
+        printf(" %s\n", metadata->title); 
+        
     }
     setColor();    
     if (strlen(metadata->artist) > 0)
@@ -378,7 +400,6 @@ int showPlaylist(int maxHeight)
 
 void printAbout()
 {
-    usleep(200000);
     printf("\n\r\n");
     clearRestOfScreen();
     if (refresh && printInfo)
@@ -403,7 +424,7 @@ void printEqualizer()
         printf("\n");        
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
-        drawEqualizer(equalizerHeight, term_w -1, equalizerBlocks, color);            
+        drawEqualizer(equalizerHeight, term_w, equalizerBlocks, color);            
         printLastRow();       
         int jumpAmount = equalizerHeight + 2;
         cursorJump(jumpAmount);
@@ -438,6 +459,7 @@ int printPlayer(const char *songFilepath, TagSettings *metadata, double elapsedS
     {
         if (refresh)
         {
+            printf("\n");
             printCover();               
             printMetadata(metadata);
         }  

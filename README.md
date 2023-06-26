@@ -32,12 +32,23 @@ cue dependencies are:
 * FFmpeg
 * FFTW
 * Chafa
+* FreeImage
 
 A TrueColor capable terminal is recommended, like Konsole, kitty or st, to display colors properly.
 
 For a complete list of capable terminals, see this page: [Colors in Terminal](https://gist.github.com/CMCDragonkai/146100155ecd79c7dac19a9e23e6a362) (github.com).
 
-Install FFmpeg, FFTW and Chafa using your distro's package manager. Then run:
+Install FFmpeg, FFTW, Chafa and FreeImage using your distro's package manager. For instance:
+
+```bash
+apt install ffmpeg libfftw3-dev git libchafa-dev libfreeimage-dev
+```
+Or:
+
+```bash
+pacman -Syu ffmpeg fftw git chafa freeimage
+```
+Then run:
 
 ```bash
 git clone https://github.com/ravachol/cue.git

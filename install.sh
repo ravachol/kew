@@ -6,32 +6,32 @@ if [[ $EUID -ne 0 ]]; then
    exit 1
 fi
 
-# Removing old files if exist
+# Removing old files if they exist
 if [ -d "cue" ]; then
     echo "Removing old files"
     rm -rf cue &>/dev/null
 fi
 
-# Check if dependencies not are already installed: 
-if command -v fftw-wisdom &>/dev/null && command -v git &>/dev/null && command -v ffmpeg &>/dev/null && pkg-config --exists chafa; then
-  echo 'Dependencies already installed, continuing with installation..'
+# Check if dependencies are already installed
+if command -v fftw-wisdom &>/dev/null && command -v git &>/dev/null && command -v ffmpeg &>/dev/null && pkg-config --exists chafa && pkg-config --exists freeimage; then
+  echo 'Dependencies already installed, continuing with installation...'
 else
   # Install dependencies based on the package manager available
   echo "Installing missing dependencies"
   if command -v apt &>/dev/null; then
-      apt install ffmpeg libfftw3-dev git libchafa-dev
+      apt install ffmpeg libfftw3-dev git libchafa-dev libfreeimage-dev
   elif command -v yum &>/dev/null; then
-      yum install ffmpeg fftw-devel git chafa-devel
+      yum install ffmpeg fftw-devel git chafa-devel freeimage-devel
   elif command -v pacman &>/dev/null; then
-      pacman -Syu ffmpeg fftw git chafa
+      pacman -Syu ffmpeg fftw git chafa freeimage
   elif command -v dnf &>/dev/null; then
-      dnf install ffmpeg fftw-devel git chafa-devel
+      dnf install ffmpeg fftw-devel git chafa-devel freeimage-devel
   elif command -v zypper &>/dev/null; then
-      zypper install ffmpeg fftw-devel git chafa-devel
+      zypper install ffmpeg fftw-devel git chafa-devel freeimage-devel
   elif command -v eopkg &>/dev/null; then
-      eopkg install ffmpeg fftw-devel git chafa-devel
+      eopkg install ffmpeg fftw-devel git chafa-devel freeimage-devel
   elif command -v guix &>/dev/null; then
-      guix install ffmpeg fftw git chafa
+      guix install ffmpeg fftw git chafa freeimage
   else
       echo "Unsupported package manager. Please install the required dependencies manually."
       exit 1
