@@ -377,7 +377,6 @@ int makePlaylist(int argc, char *argv[])
         while (token != NULL)
         {
             char buf[MAXPATHLEN] = {0};
-            char path[MAXPATHLEN] = {0};
             if (strncmp(token, "song", 4) == 0)
             {
                 // Remove "dir" from token by shifting characters

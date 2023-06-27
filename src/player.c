@@ -199,7 +199,7 @@ void printLastRow()
     if (term_w < minWidth)
         return;
     setTextColorRGB2(bgColor.r, bgColor.g, bgColor.b);
-    printf(" [F1 Info] [Q Quit] cue v%s", VERSION);
+    printf(" [F1 Playlist] [Q Quit] cue v%s", VERSION);
 }
 
 // Callback function to write response data
@@ -285,8 +285,6 @@ int fetchLatestVersion(int *major, int *minor, int *patch)
 
 void showVersion(PixelData color, PixelData secondaryColor)
 {
-    int major, minor, patch;
-
     sprintf(latestVersion, VERSION);
     printf("\n");
     printVersion(VERSION, VERSION_DATE, color, secondaryColor);
@@ -371,7 +369,7 @@ int showPlaylist(int maxHeight)
                 foundCurrentSong = true;
             }
             shortenString(copiedString, term_w - 5);
-            if (copiedString != NULL && (!startFromCurrent || foundCurrentSong))
+            if (!startFromCurrent || foundCurrentSong)
             {
                 if (numRows < 10)
                     printf(" ");
@@ -410,11 +408,6 @@ void printAbout()
         printAsciiLogo();
         setTextColorRGB2(color.r, color.g, color.b);
         showVersion(textColor,color);        
-        int emptyRows = (equalizerEnabled ? equalizerHeight : 0) + 
-                        (metaDataEnabled ? calcMetadataHeight() : 0) + 
-                        (timeEnabled ? 1 : 0) - 
-                        versionHeight;
-        fflush(stdout);
     }
 }
 

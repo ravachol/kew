@@ -54,10 +54,6 @@ bool shouldQuit = false;
 
 SongData *songdata;
 
-static int volumeUpCooldown = 0;
-static int volumeDownCooldown = 0;
-struct Event lastEvent;
-
 struct Event processInput()
 {
     struct Event event;
