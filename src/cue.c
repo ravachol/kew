@@ -37,6 +37,7 @@
 #include "player.h"
 #include "arg.h"
 #include "cache.h"
+#include "songloader.h"
 
 #ifndef CLOCK_MONOTONIC
 #define CLOCK_MONOTONIC 1
@@ -50,6 +51,8 @@
 bool repeatEnabled = false;
 bool playingMainPlaylist = false;
 bool shouldQuit = false;
+
+SongData *songdata;
 
 static int volumeUpCooldown = 0;
 static int volumeDownCooldown = 0;
@@ -135,9 +138,12 @@ struct Event processInput()
 
 void cleanup()
 {
+    cleanupPlaybackDevice();    
+    unloadSongData(songdata);
     clearRestOfScreen();
     coverArtFilePath[0] = '\0';
     deleteCachedFiles(tempCache);
+    
 }
 
 void doShuffle()
@@ -196,28 +202,22 @@ void quit()
 
 int play(SongInfo song)
 {
-    cleanup();
     if (g_audioBuffer != NULL)
     {
         stopPlayback();
         free(g_audioBuffer);
         g_audioBuffer = NULL;
     }
-    char musicFilepath[MAX_FILENAME_LENGTH];
-    strcpy(musicFilepath, song.filePath);
-    extractTags(musicFilepath, &metadata);
-    int res = playSoundFile(musicFilepath);
+
+    songdata = loadSongData(song.filePath);
+    int res = playPcmFile(songdata->pcmFilePath);
+
     struct timespec start_time;
     struct timespec pause_time;
     double elapsedSeconds = 0.0;
     double pauseSeconds = 0.0;
     double totalPauseSeconds = 0.0;
-    int asciiHeight, asciiWidth;
-    double duration = 0.0;
-    if (song.duration > 0.0)
-        duration = song.duration;
-    else
-        duration = getDuration(song.filePath);
+
     refresh = true;
 
     clock_gettime(CLOCK_MONOTONIC, &start_time);
@@ -341,9 +341,9 @@ int play(SongInfo song)
         }
         else
         {
-            if (elapsedSeconds < duration)
+            if (elapsedSeconds < *songdata->duration)
             {
-                printPlayer(musicFilepath, &metadata, elapsedSeconds, duration, &playlist);
+                printPlayer(songdata, elapsedSeconds, &playlist);
             }
         }
 
@@ -388,9 +388,6 @@ int run()
     setConfig();
     saveMainPlaylist(settings.path, playingMainPlaylist);
     free(mainPlaylist);
-    cleanupPlaybackDevice();
-    cleanupCover();
-    deleteCachedFiles(tempCache);
     deleteCache(tempCache);
     deleteTempDir();
     showCursor();
