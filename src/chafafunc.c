@@ -21,7 +21,6 @@ static void detect_terminal(ChafaTermInfo **term_info_out, ChafaCanvasMode *mode
     ChafaCanvasMode mode;
     ChafaPixelMode pixel_mode;
     ChafaTermInfo *term_info;
-    ChafaTermInfo *fallback_info;
     gchar **envp;
 
     /* Examine the environment variables and guess what the terminal can do */
@@ -367,9 +366,7 @@ void printBitmapCentered(FIBITMAP *bitmap, int width, int height)
 
     TermSize term_size;
     GString *printable;
-    gfloat font_ratio = 0.5;
     gint cell_width = -1, cell_height = -1;
-    gint width_cells, height_cells;
 
     tty_init();
     get_tty_size(&term_size);
@@ -378,13 +375,7 @@ void printBitmapCentered(FIBITMAP *bitmap, int width, int height)
     {
         cell_width = term_size.width_pixels / term_size.width_cells;
         cell_height = term_size.height_pixels / term_size.height_cells;
-        font_ratio = (gdouble)cell_width / (gdouble)cell_height;
     }
-
-    width_cells = term_size.width_cells;
-    height_cells = term_size.height_cells;
-
-    //chafa_calc_canvas_geometry(pix_width, pix_height, &width_cells, &height_cells, font_ratio, TRUE, FALSE);
 
     printable = convert_image(pixels, pix_width, pix_height, pix_width * n_channels, CHAFA_PIXEL_BGRA8_UNASSOCIATED,
                               width, height, cell_width, cell_height);
@@ -392,7 +383,7 @@ void printBitmapCentered(FIBITMAP *bitmap, int width, int height)
     const gchar *delimiters = "\n";
     gchar **lines = g_strsplit(printable->str, delimiters, -1);
     
-    int indentation = ((width_cells - width) / 2) + 1;
+    int indentation = ((term_size.width_cells - width) / 2) + 1;
     for (int i = 0; lines[i] != NULL; i++)
     {
         printf("\n%*s%s", indentation, "", lines[i]);
@@ -405,7 +396,7 @@ unsigned char luminance(unsigned char r, unsigned char g, unsigned char b)
     return (unsigned char)(0.2126 * r + 0.7152 * g + 0.0722 * b);
 }
 
-unsigned char checkIfBrightPixel(unsigned char r, unsigned char g, unsigned char b, bool *found)
+void checkIfBrightPixel(unsigned char r, unsigned char g, unsigned char b, bool *found)
 {
     // Calc luminace and use to find Ascii char.
     unsigned char ch = luminance(r, g, b);

@@ -4,7 +4,7 @@ void loadCover(SongData *songdata)
 {
     char path[MAXPATHLEN];
 
-    if (songdata->filePath == NULL)
+    if (strlen(songdata->filePath) == 0)
         return;
 
     generateTempFilePath(songdata->coverArtPath, "cover", ".jpg");
@@ -64,7 +64,7 @@ SongData* loadSongData(char *filePath)
 	return songdata;
 }
 
-int unloadSongData(SongData *songdata)
+void unloadSongData(SongData *songdata)
 {
     FreeImage_Unload(songdata->cover); 
     free(songdata->red);

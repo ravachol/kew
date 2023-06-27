@@ -141,19 +141,6 @@ int read_and_convert(char *filepath, ImageOptions *options, PixelData *brightPix
         data = (PixelData *)read_data;
     }
 
-    // Print header if required...
-    if (options->suppress_header == false)
-        printf(
-            "Converting File: %s\n"
-            "Img Type: %s\n"
-            "True Color: %d\n"
-            "Size: %dx%d\n",
-            filepath,
-            OutputModeStr[options->output_mode],
-            options->true_color,
-            desired_width,
-            desired_height);
-
     int term_w, term_h;
     getTermSize(&term_w, &term_h);
 

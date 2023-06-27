@@ -52,4 +52,4 @@ typedef struct
 #endif
 
 SongData* loadSongData(char *filePath);
-int unloadSongData(SongData *songdata);
+void unloadSongData(SongData *songdata);
