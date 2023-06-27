@@ -12,13 +12,15 @@
 
 extern ma_int16 *g_audioBuffer;
 
-int playSoundFile(const char *filePath);
+int playPcmFile(const char *filePath);
 
 void resumePlayback();
 
 void pausePlayback();
 
 bool isPaused();
+
+int convertToPcmFile(const char *filePath, const char *outputFilePath);
 
 void cleanupPlaybackDevice();
 
