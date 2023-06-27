@@ -335,7 +335,7 @@ void generateTempFilePath(char *filePath, const char *prefix, const char *suffix
 #endif
     }
     char dirPath[MAXPATHLEN];
-    snprintf(dirPath, FILENAME_MAX, "%s/cue", tempDir);
+    snprintf(dirPath, MAXPATHLEN, "%s/cue", tempDir);
     createDirectory(dirPath);
 
     char randomString[7];
@@ -346,7 +346,7 @@ void generateTempFilePath(char *filePath, const char *prefix, const char *suffix
     }
     randomString[6] = '\0';
 
-    snprintf(filePath, FILENAME_MAX, "%s/cue%s%s%s", dirPath, prefix, randomString, suffix);
+    snprintf(filePath, MAXPATHLEN, "%.4070s/cue%s%.6s%s", dirPath, prefix, randomString, suffix);
 }
 
 const char *getFileExtension(const char *filePath)

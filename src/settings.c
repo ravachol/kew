@@ -204,8 +204,6 @@ void getConfig()
 
 void setConfig()
 {
-    int pair_count = 4; // Number of key-value pairs in AppSettings
-
     // Create the file path
     struct passwd *pw = getpwuid(getuid());
     const char *homedir = pw->pw_dir;

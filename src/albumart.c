@@ -187,8 +187,8 @@ char *findLargestImageFileRecursive(const char *directoryPath, char *largestImag
 
     while ((entry = readdir(directory)) != NULL)
     {
-        char filePath[MAX_FILENAME_LENGTH];
-        snprintf(filePath, MAX_FILENAME_LENGTH, "%s/%s", directoryPath, entry->d_name);
+        char filePath[MAXPATHLEN];
+        snprintf(filePath, MAXPATHLEN, "%s/%s", directoryPath, entry->d_name);
 
         if (stat(filePath, &fileStats) == -1)
         {
@@ -231,60 +231,12 @@ char *findLargestImageFileRecursive(const char *directoryPath, char *largestImag
     return largestImageFile;
 }
 
-char *findLargestImageFile(const char *directoryPath)
-{
-    DIR *directory = opendir(directoryPath);
-    struct dirent *entry;
-    struct stat fileStats;
-    char *largestImageFile = NULL;
-    off_t largestFileSize = 0;
-
-    if (directory == NULL)
-    {
-        fprintf(stderr, "Failed to open directory: %s\n", directoryPath);
-        return NULL;
-    }
-
-    while ((entry = readdir(directory)) != NULL)
-    {
-        char filePath[MAX_FILENAME_LENGTH];
-        snprintf(filePath, MAX_FILENAME_LENGTH, "%s%s", directoryPath, entry->d_name);
-
-        if (stat(filePath, &fileStats) == -1)
-        {
-            // fprintf(stderr, "Failed to get file stats: %s\n", filePath);
-            continue;
-        }
-
-        // Check if the entry is a regular file and has a larger size than the current largest image file
-        if (S_ISREG(fileStats.st_mode) && fileStats.st_size > largestFileSize)
-        {
-            char *extension = strrchr(entry->d_name, '.');
-            if (extension != NULL && (strcasecmp(extension, ".jpg") == 0 || strcasecmp(extension, ".jpeg") == 0 ||
-                                      strcasecmp(extension, ".png") == 0 || strcasecmp(extension, ".gif") == 0))
-            {
-                largestFileSize = fileStats.st_size;
-                if (largestImageFile != NULL)
-                {
-                    free(largestImageFile);
-                }
-                largestImageFile = strdup(filePath);
-            }
-        }
-    }
-
-    if (directory != NULL)
-        closedir(directory);
-    return largestImageFile;
-}
-
 int calcIdealImgSize(int *width, int *height, const int equalizerHeight, const int metatagHeight, bool firstSong)
 {
     int term_w, term_h;
     getTermSize(&term_w, &term_h);
     int timeDisplayHeight = 1;
     int heightMargin = 2;
-    int widthMargin = 2;
     int minHeight = equalizerHeight + metatagHeight + timeDisplayHeight + heightMargin;
     *height = term_h - minHeight;
     *width = ceil(*height * 2);
@@ -296,7 +248,6 @@ int calcIdealImgSize(int *width, int *height, const int equalizerHeight, const i
     int remainder = *width % 2;
     if (remainder == 1)
         *width -= 1;
-    *width - widthMargin; // compensate for first character on each line being a blank
     return 0;
 }
 
