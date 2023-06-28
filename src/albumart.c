@@ -8,7 +8,6 @@
 #include <pthread.h>
 #include <dirent.h>
 #include "file.h"
-#include "../include/getcover/getcover.h"
 #include "../include/imgtotxt/options.h"
 #include "metadata.h"
 #include "stringfunc.h"
@@ -45,6 +44,38 @@ void runChafaCommand(const char *filepath, int width, int height)
     }
 }
 
+int extractCoverCommand(const char *inputFilePath, const char *outputFilePath)
+{
+    const int COMMAND_SIZE = 1000;
+    char command[COMMAND_SIZE];
+    int status;
+
+    snprintf(command, COMMAND_SIZE, "ffmpeg -y -i \"%s\" -an -vcodec copy \"%s\"", inputFilePath, outputFilePath);
+
+    pid_t pid = fork();
+
+    if (pid == -1) {
+        // Fork failed
+        perror("fork failed");
+        exit(EXIT_FAILURE);
+    } else if (pid == 0) {
+        // Child process
+        execl("/bin/sh", "sh", "-c", command, (char *)NULL);
+        exit(EXIT_SUCCESS);
+    } else {
+        // Parent process
+        waitpid(pid, &status, 0);  // Wait for the chafa process to finish
+    }
+
+    FILE *file = fopen(outputFilePath, "r");
+    
+    if (file != NULL) {
+        fclose(file);
+        return 1;
+    } else {
+       return -1;
+    }    
+}
 
 int isAudioFile(const char *filename)
 {
@@ -156,8 +187,8 @@ char *findLargestImageFileRecursive(const char *directoryPath, char *largestImag
 
     while ((entry = readdir(directory)) != NULL)
     {
-        char filePath[MAX_FILENAME_LENGTH];
-        snprintf(filePath, MAX_FILENAME_LENGTH, "%s/%s", directoryPath, entry->d_name);
+        char filePath[MAXPATHLEN];
+        snprintf(filePath, MAXPATHLEN, "%s/%s", directoryPath, entry->d_name);
 
         if (stat(filePath, &fileStats) == -1)
         {
@@ -200,119 +231,12 @@ char *findLargestImageFileRecursive(const char *directoryPath, char *largestImag
     return largestImageFile;
 }
 
-char *findLargestImageFile(const char *directoryPath)
-{
-    DIR *directory = opendir(directoryPath);
-    struct dirent *entry;
-    struct stat fileStats;
-    char *largestImageFile = NULL;
-    off_t largestFileSize = 0;
-
-    if (directory == NULL)
-    {
-        fprintf(stderr, "Failed to open directory: %s\n", directoryPath);
-        return NULL;
-    }
-
-    while ((entry = readdir(directory)) != NULL)
-    {
-        char filePath[MAX_FILENAME_LENGTH];
-        snprintf(filePath, MAX_FILENAME_LENGTH, "%s%s", directoryPath, entry->d_name);
-
-        if (stat(filePath, &fileStats) == -1)
-        {
-            // fprintf(stderr, "Failed to get file stats: %s\n", filePath);
-            continue;
-        }
-
-        // Check if the entry is a regular file and has a larger size than the current largest image file
-        if (S_ISREG(fileStats.st_mode) && fileStats.st_size > largestFileSize)
-        {
-            char *extension = strrchr(entry->d_name, '.');
-            if (extension != NULL && (strcasecmp(extension, ".jpg") == 0 || strcasecmp(extension, ".jpeg") == 0 ||
-                                      strcasecmp(extension, ".png") == 0 || strcasecmp(extension, ".gif") == 0))
-            {
-                largestFileSize = fileStats.st_size;
-                if (largestImageFile != NULL)
-                {
-                    free(largestImageFile);
-                }
-                largestImageFile = strdup(filePath);
-            }
-        }
-    }
-
-    if (directory != NULL)
-        closedir(directory);
-    return largestImageFile;
-}
-
-int extractCover(const char *audioFilepath, char *outputFilepath)
-{
-    size_t size;
-    char str[10] = "";
-    FILE *fp;
-    char path[MAXPATHLEN];
-
-    if (audioFilepath == NULL)
-        return -1;
-
-    getDirectoryFromPath(audioFilepath, path);
-    generateTempFilePath(outputFilepath, "cover", ".jpg");
-
-    if ((fp = fopen(audioFilepath, "r")) != NULL)
-    {
-        size = fread(str, 1, 4, fp);
-        if (memcmp(str, "fLaC", 4) == 0)
-        {
-            if (get_FLAC_cover(fp, outputFilepath) == 1)
-            {
-                fclose(fp);
-                return 1;
-            }
-        }
-        else if (memcmp(str, "RIFF", 4) == 0) // Wav file
-        {
-        }
-        else if (memcmp(str, "ID3\004", 4) == 0 || memcmp(str, "ID3\003", 4) == 0) // Mp3
-        {
-            size_t pathLength = strlen(path);
-            size_t coverLength = strlen("cover.jpg");
-
-            if (extractMP3Cover(audioFilepath, outputFilepath) >= 0)
-            {
-                fclose(fp);
-                return 1;
-            }
-        }
-        else
-        {
-            int offset = ((str[0] << 24) | (str[1] << 16) | (str[2] << 8) | str[3]);
-            size = fread(str, 1, 4, fp);
-            if (memcmp(str, "ftyp", 4) == 0) // MP4
-            {
-                if (get_m4a_cover(fp, outputFilepath) == 1)
-                {
-                    fclose(fp);
-                    return 1;
-                }
-            }
-            else {
-                return -1;
-            }
-        }
-        fclose(fp);
-    }
-    return -1;
-}
-
 int calcIdealImgSize(int *width, int *height, const int equalizerHeight, const int metatagHeight, bool firstSong)
 {
     int term_w, term_h;
     getTermSize(&term_w, &term_h);
     int timeDisplayHeight = 1;
     int heightMargin = 2;
-    int widthMargin = 2;
     int minHeight = equalizerHeight + metatagHeight + timeDisplayHeight + heightMargin;
     *height = term_h - minHeight;
     *width = ceil(*height * 2);
@@ -324,70 +248,22 @@ int calcIdealImgSize(int *width, int *height, const int equalizerHeight, const i
     int remainder = *width % 2;
     if (remainder == 1)
         *width -= 1;
-    *width - widthMargin; // compensate for first character on each line being a blank
     return 0;
 }
 
-int displayAlbumArt(const char *filepath, int width, int height, bool coverBlocks, PixelData *brightPixel)
+int displayCover(SongData *songdata, int width, int height, bool ascii)
 {
-    char path[MAXPATHLEN];
-    bool newCover = false;
-
-    if (filepath == NULL)
-        return -1;
-
-    if (coverArtFilePath[0] == '\0')
-    {
-        newCover = true;     
-        FreeImage_Unload(bitmap);
-        bitmap = NULL;
-        int res = extractCover(filepath, coverArtFilePath);
-        if (res < 0)
-        {
-            getDirectoryFromPath(filepath, path);  
-            coverArtFilePath[0] == '\0';
-
-            char *tmp = NULL;
-            off_t size;
-            tmp = findLargestImageFileRecursive(path, tmp, &size);
-
-            if (tmp != NULL)
-                strcpy(coverArtFilePath, tmp);
-            else
-                return -1;
-        }
-        else {
-            addToCache(tempCache, coverArtFilePath);
-        }
-        if (coverArtFilePath == '\0')
-            return -1;
-    }
-    if (coverBlocks)
+    if (!ascii)
     {      
-        if (newCover)
-            bitmap = getBitmap(coverArtFilePath);
         clearScreen();
-        printBitmapCentered(bitmap, width-1, height-2);
-
-        int r, g, b;
-        getCoverColor(bitmap, &r, &g, &b);
-        brightPixel->r = r;
-        brightPixel->g = g;
-        brightPixel->b = b;
+        printBitmapCentered(songdata->cover, width-1, height-2);
     }
     else
     {
-        if (newCover)
-            bitmap = getBitmap(coverArtFilePath);
-
         cursorJump(1);
-        output_ascii(coverArtFilePath, height-2, width-1, coverBlocks, brightPixel);
+        PixelData pixel = { *songdata->red, *songdata->green, *songdata->blue };
+        output_ascii(songdata->coverArtPath, height-2, width-1, coverBlocks, &pixel);
     }
     fputc('\n', stdout);          
-    return 0;
-}
-
-void cleanupCover()
-{
-    FreeImage_Unload(bitmap);
+    return 0;    
 }

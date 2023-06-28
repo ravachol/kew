@@ -14,7 +14,6 @@ enum OutputModes
 {
     OUTPUT_MODES(GENERATE_ENUM)
 };
-static const char *OutputModeStr[] = {OUTPUT_MODES(GENERATE_STRING)}; // Strings used for output.
 
 typedef struct
 {

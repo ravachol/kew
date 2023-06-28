@@ -10,7 +10,7 @@
 #include "printfunc.h"
 #include "visuals.h"
 #include "playlist.h"
-#include "metadata.h"
+#include "songloader.h"
 
 extern const char VERSION[];
 
@@ -23,7 +23,7 @@ extern int equalizerHeight;
 extern bool refresh;
 extern TagSettings metadata;
 
-int printPlayer(const char *songFilepath, TagSettings *metaData, double elapsedSeconds, double songDurationSeconds, PlayList *playlist);
+int printPlayer(SongData *songdata, double elapsedSeconds, PlayList *playlist);
 
 void showVersion();
 
