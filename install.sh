@@ -13,25 +13,25 @@ if [ -d "cue" ]; then
 fi
 
 # Check if dependencies are already installed
-if command -v fftw-wisdom &>/dev/null && command -v git &>/dev/null && command -v ffmpeg &>/dev/null && pkg-config --exists chafa && pkg-config --exists freeimage; then
+if command -v fftw-wisdom &>/dev/null && command -v git &>/dev/null && command -v ffmpeg &>/dev/null && pkg-config --exists chafa && pkg-config --exists freeimage && pkg-config --exists avformat && pkg-config --exists glib-2.0; then
   echo 'Dependencies already installed, continuing with installation...'
 else
   # Install dependencies based on the package manager available
   echo "Installing missing dependencies"
   if command -v apt &>/dev/null; then
-      apt install ffmpeg libfftw3-dev git libchafa-dev libfreeimage-dev
+      apt install ffmpeg libfftw3-dev git libchafa-dev libfreeimage-dev libavformat-dev libglib2.0-dev
   elif command -v yum &>/dev/null; then
-      yum install ffmpeg fftw-devel git chafa-devel freeimage-devel
+      yum install ffmpeg fftw-devel git chafa-devel freeimage-devel libavformat-devel glib2-devel
   elif command -v pacman &>/dev/null; then
-      pacman -Syu ffmpeg fftw git chafa freeimage
+      pacman -Syu ffmpeg fftw git chafa freeimage glib2
   elif command -v dnf &>/dev/null; then
-      dnf install ffmpeg fftw-devel git chafa-devel freeimage-devel
+      dnf install ffmpeg fftw-devel git chafa-devel freeimage-devel ffmpeg-devel glib2-devel
   elif command -v zypper &>/dev/null; then
-      zypper install ffmpeg fftw-devel git chafa-devel freeimage-devel
+      zypper install ffmpeg fftw-devel git chafa-devel freeimage-devel libavcodec-devel glib2-devel
   elif command -v eopkg &>/dev/null; then
-      eopkg install ffmpeg fftw-devel git chafa-devel freeimage-devel
+      eopkg install ffmpeg fftw-devel git chafa-devel freeimage-devel libavformat-devel glib2-devel
   elif command -v guix &>/dev/null; then
-      guix install ffmpeg fftw git chafa freeimage
+      guix install ffmpeg fftw git chafa freeimage libavformat glib2
   else
       echo "Unsupported package manager. Please install the required dependencies manually."
       exit 1
