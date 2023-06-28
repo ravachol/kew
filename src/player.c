@@ -1,8 +1,8 @@
 #include <string.h>
 #include "player.h"
 
-const char VERSION[] = "0.9.3";
-const char VERSION_DATE[] = "2023-06-27";
+const char VERSION[] = "0.9.4";
+const char VERSION_DATE[] = "2023-06-28";
 
 bool firstSong = true;
 bool refresh = true;
@@ -60,15 +60,16 @@ void calcPreferredSize()
     calcIdealImgSize(&preferredWidth, &preferredHeight, (equalizerEnabled ? equalizerHeight : 0), calcMetadataHeight(), firstSong);
 }
 
-void printCover()
+void printCover(SongData *songdata)
 {
     clearRestOfScreen();
-    if (coverEnabled)
+    if (songdata->cover != NULL && coverEnabled)
     {
-        color.r = 0;
-        color.g = 0;
-        color.b = 0;
-        displayAlbumArt(path, preferredWidth, preferredHeight, coverBlocks, &color);
+        color.r = *songdata->red;
+        color.g = *songdata->green;
+        color.b = *songdata->blue;
+        displayCover(songdata, preferredWidth, preferredHeight, !coverBlocks);
+ 
         drewCover = true;
         firstSong = false;
         if (color.r == 0 && color.g == 0 && color.b == 0)
@@ -201,7 +202,7 @@ void printLastRow()
     if (term_w < minWidth)
         return;
     setTextColorRGB2(bgColor.r, bgColor.g, bgColor.b);
-    printf(" [F1 Info] [q Quit] cue v%s", VERSION);
+    printf(" [F1 Playlist] [Q Quit] cue v%s", VERSION);
 }
 
 // Callback function to write response data
@@ -287,8 +288,6 @@ int fetchLatestVersion(int *major, int *minor, int *patch)
 
 void showVersion(PixelData color, PixelData secondaryColor)
 {
-    int major, minor, patch;
-
     sprintf(latestVersion, VERSION);
     printf("\n");
     printVersion(VERSION, VERSION_DATE, color, secondaryColor);
@@ -373,7 +372,7 @@ int showPlaylist(int maxHeight)
                 foundCurrentSong = true;
             }
             shortenString(copiedString, term_w - 5);
-            if (copiedString != NULL && (!startFromCurrent || foundCurrentSong))
+            if (!startFromCurrent || foundCurrentSong)
             {
                 if (numRows < 10)
                     printf(" ");
@@ -412,11 +411,6 @@ void printAbout()
         printAsciiLogo();
         setTextColorRGB2(color.r, color.g, color.b);
         showVersion(textColor,color);        
-        int emptyRows = (equalizerEnabled ? equalizerHeight : 0) + 
-                        (metaDataEnabled ? calcMetadataHeight() : 0) + 
-                        (timeEnabled ? 1 : 0) - 
-                        versionHeight;
-        fflush(stdout);
     }
 }
 
@@ -435,13 +429,14 @@ void printEqualizer()
     }  
 }
 
-int printPlayer(const char *songFilepath, TagSettings *metadata, double elapsedSeconds, double songDurationSeconds, PlayList *playlist)
+int printPlayer(SongData *songdata, double elapsedSeconds, PlayList *playlist)
 {    
+    metadata = *songdata->metadata;
     hideCursor();    
-    path = strdup(songFilepath);
+    path = strdup(songdata->filePath);
     totalDurationSeconds = playlist->totalDuration;
     elapsed = elapsedSeconds;
-    duration = songDurationSeconds;
+    duration = *songdata->duration;
 
     calcPreferredSize();
 
@@ -463,8 +458,8 @@ int printPlayer(const char *songFilepath, TagSettings *metadata, double elapsedS
         if (refresh)
         {
             printf("\n");
-            printCover();               
-            printMetadata(metadata);
+            printCover(songdata);               
+            printMetadata(songdata->metadata);
         }  
         printTime();
         printEqualizer();
