@@ -67,7 +67,6 @@ void drawEqualizer(int height, int width, bool drawBlocks, PixelData color)
     int term_w, term_h;
     getTermSize(&term_w, &term_h);
 
-    int binSize = BUFFER_SIZE / width;
     int numBins = width;
     float frequencyResolution = SAMPLE_RATE / BUFFER_SIZE;
 
@@ -144,12 +143,6 @@ void drawEqualizer(int height, int width, bool drawBlocks, PixelData color)
 
     clearRestOfScreen();
     float exponent = 0.8;
-    int hasDrawn[width];
-
-    for (int i = 0; i < width; i++)
-    {
-        hasDrawn[i] = 0;
-    }
 
     color = increaseLuminosity(color, 60);
     for (int j = height; j > 0; j--)
@@ -174,7 +167,9 @@ void drawEqualizer(int height, int width, bool drawBlocks, PixelData color)
             }
         }
         else
+        {
             setDefaultTextColor();
+        }
         for (int i = 0; i < width; i++)
         {
             float normalizedMagnitude = magnitudes[i] / maxMagnitude;
@@ -184,6 +179,7 @@ void drawEqualizer(int height, int width, bool drawBlocks, PixelData color)
 
             int barHeight = (int)round(heightVal);
             if (j >= 0)
+            {
                 if (barHeight >= j)
                 {
                     printf(" █"); 
@@ -192,6 +188,7 @@ void drawEqualizer(int height, int width, bool drawBlocks, PixelData color)
                 {
                     printf("  ");
                 }
+            }
         }
         printf("\n "); // Reset the color and move to the next line
     }
