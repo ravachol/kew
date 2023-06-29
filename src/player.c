@@ -76,7 +76,7 @@ void printCover(SongData *songdata)
         {
             color.r = 210;
             color.g = 210;
-            color.b = 210;            
+            color.b = 210;
         }
     }
     else
@@ -93,8 +93,11 @@ void setColor()
 {
     if (color.r == 0 && color.g == 0 && color.b == 0)
         setDefaultTextColor();
-    else
-        setTextColorRGB2(color.r, color.g, color.b);
+    else if (color.r == 255 && color.g == 255 && color.b == 255)
+    {
+        color.r = 210; color.g = 210; color.b = 210;
+    }
+    setTextColorRGB2(color.r, color.g, color.b);
 }
 
 void printBasicMetadata(TagSettings *metadata)

@@ -33,6 +33,7 @@ cue dependencies are:
 * FFTW
 * Chafa
 * FreeImage
+* glib2.0 and AVFormat. These should be installed with the others, if not install them.
 
 A TrueColor capable terminal is recommended, like Konsole, kitty or st, to display colors properly.
 
@@ -41,7 +42,7 @@ For a complete list of capable terminals, see this page: [Colors in Terminal](ht
 Install FFmpeg, FFTW, Chafa and FreeImage using your distro's package manager. For instance:
 
 ```bash
-apt install ffmpeg libfftw3-dev git libchafa-dev libfreeimage-dev
+apt install ffmpeg libfftw3-dev git libchafa-dev libfreeimage-dev libglib2.0-dev libavformat-dev
 ```
 Or:
 
