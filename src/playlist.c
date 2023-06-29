@@ -98,7 +98,7 @@ void shufflePlaylist(PlayList *playlist)
     if (nodes == NULL)
     {
         printf("Memory allocation error.\n");
-        return;
+        exit(0);
     }
 
     Node *current = playlist->head;

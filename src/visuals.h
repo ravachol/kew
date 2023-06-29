@@ -1,7 +1,7 @@
 #include <math.h>
 #include <float.h>
 #include <fftw3.h>
-#include "sound.h"
+#include "soundgapless.h"
 #include "term.h"
 #include "write_ascii.h"
 #define SAMPLE_RATE 44100

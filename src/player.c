@@ -5,7 +5,7 @@ const char VERSION[] = "0.9.4";
 const char VERSION_DATE[] = "2023-06-28";
 
 bool firstSong = true;
-bool refresh = true;
+volatile bool refresh = true;
 bool equalizerEnabled = true;
 bool equalizerBlocks = true;
 bool coverEnabled = true;
@@ -313,6 +313,7 @@ void shortenString(char* str, int width) {
 int showPlaylist(int maxHeight)
 {
     Node *node = playlist.head;
+    Node *foundNode = playlist.head;
     bool foundCurrentSong = false;
     bool startFromCurrent = false;
     int term_w, term_h;
@@ -335,21 +336,26 @@ int showPlaylist(int maxHeight)
     int numSongs = 0;
     for (int i = 0; i < playlist.count; i++)
     {
-        if (!strcmp(node->song.filePath, currentSong->song.filePath) == 0)
+        if (strcmp(node->song.filePath, currentSong->song.filePath) == 0)
         {
             foundAt = numSongs;
+            foundNode = node;
         }
         node = node->next;
         numSongs++;
         if (numSongs > maxListSize)
         {
             startFromCurrent = true;
-            break;
+            if (foundAt)
+                break;
         }
     }
-    node = playlist.head;
+    if (startFromCurrent)
+        node = foundNode;
+    else
+        node = playlist.head;
 
-    for (int i = 0; i < foundAt + maxListSize; i++)
+    for (int i = 0; i < maxListSize; i++)
     {
         if (node == NULL) break;
         char filePath[MAXPATHLEN];
@@ -399,8 +405,8 @@ int showPlaylist(int maxHeight)
 
 void printAbout()
 {
-    printf("\n\r\n");
     clearRestOfScreen();
+    printf("\n\n\r");
     if (refresh && printInfo)
     {
         PixelData textColor = increaseLuminosity(color, 100);
@@ -426,6 +432,8 @@ void printEqualizer()
     }  
 }
 
+bool foundData = false;
+
 int printPlayer(SongData *songdata, double elapsedSeconds, PlayList *playlist)
 {    
     metadata = *songdata->metadata;
@@ -434,7 +442,7 @@ int printPlayer(SongData *songdata, double elapsedSeconds, PlayList *playlist)
     totalDurationSeconds = playlist->totalDuration;
     elapsed = elapsedSeconds;
     duration = *songdata->duration;
-
+    
     calcPreferredSize();
 
     if (preferredWidth <= 0 || preferredHeight <= 0) return -1;
