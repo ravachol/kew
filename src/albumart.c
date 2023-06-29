@@ -18,8 +18,6 @@
 
 FIBITMAP *bitmap;
 
-char coverArtFilePath[MAXPATHLEN];
-
 void runChafaCommand(const char *filepath, int width, int height)
 {
     const int COMMAND_SIZE = 1000;
