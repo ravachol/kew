@@ -20,7 +20,7 @@ extern bool printInfo;
 extern bool equalizerEnabled;
 extern bool equalizerBlocks;
 extern int equalizerHeight;
-extern bool refresh;
+extern volatile bool refresh;
 extern TagSettings metadata;
 
 int printPlayer(SongData *songdata, double elapsedSeconds, PlayList *playlist);

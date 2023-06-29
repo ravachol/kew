@@ -56,9 +56,13 @@ SongData* loadSongData(char *filePath)
 	SongData *songdata = malloc(sizeof(SongData));
 	strcpy(songdata->filePath, filePath);
 	loadCover(songdata);
+    usleep(10000);
 	loadColor(songdata);
+    usleep(10000);
 	loadMetaData(songdata);
+    usleep(10000);
 	loadDuration(songdata);
+    usleep(10000);
 	loadPcmAudio(songdata);
 
 	return songdata;
@@ -66,11 +70,21 @@ SongData* loadSongData(char *filePath)
 
 void unloadSongData(SongData *songdata)
 {
-    FreeImage_Unload(songdata->cover); 
+    if (songdata == NULL)
+        return;
+    if (songdata->cover != NULL)
+        FreeImage_Unload(songdata->cover); 
     free(songdata->red);
     free(songdata->green);
-    free(songdata->blue);
+    free(songdata->blue); 
 	free(songdata->metadata);
     free(songdata->duration);
-    free(songdata);
+
+    songdata->cover = NULL;
+    songdata->red = NULL;
+    songdata->green = NULL;
+    songdata->blue = NULL;    
+    songdata->metadata = NULL;
+    songdata->duration = NULL;
+    songdata = NULL;
 }

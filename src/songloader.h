@@ -5,7 +5,7 @@
 #include "cache.h"
 #include "chafafunc.h"
 #include "albumart.h"
-#include "sound.h"
+#include "soundgapless.h"
 
 #ifndef KEYVALUEPAIR_STRUCT
 #define KEYVALUEPAIR_STRUCT
@@ -47,6 +47,9 @@ typedef struct
 	TagSettings *metadata;
 	FIBITMAP *cover;
     double *duration;
+    char* pcmFile;
+    long pcmFileSize;
+
 } SongData;
 
 #endif

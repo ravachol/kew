@@ -7,8 +7,6 @@
 #include "../include/imgtotxt/write_ascii.h"
 #include "songloader.h"
 
-extern char coverArtFilePath[MAXPATHLEN];
-
 int extractCoverCommand(const char *inputFilePath, const char *outputFilePath);
 
 char *findLargestImageFileRecursive(const char *directoryPath, char *largestImageFile, off_t *largestFileSize);

@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <pthread.h>
-#include "sound.h"
+#include "soundgapless.h"
 
 #ifndef PLAYLIST_STRUCT
 #define PLAYLIST_STRUCT
