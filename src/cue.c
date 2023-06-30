@@ -488,7 +488,7 @@ void skipToPrevSong()
     if (skipping)
         return;
     skipping = true;
-    while (!loadedSong && !loadingFailed)
+    while ((!loadedSong && !loadingFailed) && currentSong->next != NULL)
     {
         usleep(1000);
     }
@@ -630,7 +630,7 @@ int play(SongInfo song)
     
     while(!loadedSong)
     {
-        usleep(10000);
+        usleep(1000);
     }
     userData.currentFileIndex = 0;
     userData.currentPCMFrame = 0;
