@@ -295,7 +295,7 @@ void showVersion(PixelData color, PixelData secondaryColor)
 
 void removeUnneededChars(char* str) {
     int i;
-    for (i = 0; i < 3 && str[i] != '\0'; i++) {
+    for (i = 0; i < 2 && str[i] != '\0' && str[i] != ' '; i++) {
         if (isdigit(str[i]) || str[i] == '-' || str[i] == ' ') {
             int j;
             for (j = i; str[j] != '\0'; j++) {
@@ -305,6 +305,16 @@ void removeUnneededChars(char* str) {
             i--;  // Decrement i to re-check the current index
         }
     }
+    i = 0;
+    while (str[i] != '\0') 
+    {
+        if (str[i] == '-' || str[i] == '_') 
+        {
+           str[i] = ' '; 
+        }
+        i++;
+    }
+    
 }
 
 void shortenString(char* str, int width) {
@@ -358,7 +368,7 @@ int showPlaylist(int maxHeight)
     else
         node = playlist.head;
 
-    for (int i = foundAt; i < foundAt + maxListSize; i++)
+    for (int i = (startFromCurrent? foundAt : 0); i < foundAt + maxListSize; i++)
     {
         if (node == NULL) break;
         char filePath[MAXPATHLEN];
@@ -380,10 +390,10 @@ int showPlaylist(int maxHeight)
             shortenString(copiedString, term_w - 5);
             if (!startFromCurrent || foundCurrentSong)
             {
-                if (i + 1 < 10)
+                if (i+1 < 10)
                     printf(" ");
                 if (startFromCurrent)
-                    printf(" %d. %s\n", i+1, copiedString);
+                    printf(" %d. %s\n", ++i, copiedString);
                 else
                     printf(" %d. %s\n", numRows, copiedString);
                 numPrintedRows++;
