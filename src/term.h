@@ -53,7 +53,7 @@ void setNonblockingMode();
 
 void restoreTerminalMode();
 
-bool isInputAvailable();
+int isInputAvailable();
 
 char readInput();
 

@@ -103,9 +103,9 @@ struct Event processInput()
     
     char input = readInput();
 
-    while (isInputAvailable())
+    while (isInputAvailable() == 1)
     {
-        input = readInput();
+       input = readInput();
     }
     event.type = EVENT_KEY_PRESS;
     event.key = input;
@@ -530,7 +530,7 @@ void calcElapsedTime()
 }
 
 void refreshPlayer()
-{
+{    
     if (usingSongDataA)
         printPlayer(loadingdata.songdataA, elapsedSeconds, &playlist);
     else
@@ -663,7 +663,7 @@ int play(SongInfo song)
             }
             if (!assignedToUserdata)
                 assignUserData();            
-            prepareNextSong();
+            prepareNextSong();   
         }
         if (currentSong == NULL || isPlaybackOfListDone())
             break;
