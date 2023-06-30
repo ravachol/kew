@@ -358,7 +358,7 @@ int showPlaylist(int maxHeight)
     else
         node = playlist.head;
 
-    for (int i = 0; i < maxListSize; i++)
+    for (int i = foundAt; i < foundAt + maxListSize; i++)
     {
         if (node == NULL) break;
         char filePath[MAXPATHLEN];
@@ -382,7 +382,10 @@ int showPlaylist(int maxHeight)
             {
                 if (numRows < 10)
                     printf(" ");
-                printf(" %d. %s\n", numRows, copiedString);
+                if (startFromCurrent)
+                    printf(" %d. %s\n", i+1, copiedString);
+                else
+                    printf(" %d. %s\n", numRows, copiedString);
                 numPrintedRows++;
                 if (numPrintedRows > maxListSize)
                     break;
