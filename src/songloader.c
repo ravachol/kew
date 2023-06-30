@@ -79,12 +79,12 @@ void unloadSongData(SongData *songdata)
     free(songdata->blue); 
 	free(songdata->metadata);
     free(songdata->duration);
-
     songdata->cover = NULL;
     songdata->red = NULL;
     songdata->green = NULL;
     songdata->blue = NULL;    
     songdata->metadata = NULL;
     songdata->duration = NULL;
+    songdata->pcmFile = NULL;
     songdata = NULL;
 }

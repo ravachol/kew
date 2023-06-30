@@ -434,11 +434,15 @@ void prepareNextSong()
     {
         if (usingSongDataA)
         {
-            userData.pcmFileA.filename = NULL;                
+            userData.pcmFileA.filename = NULL;
+            free(userData.pcmFileA.pcmData);
+            userData.pcmFileA.pcmData = NULL;
             unloadSongData(loadingdata.songdataA);
         }
         else {
             userData.pcmFileB.filename = NULL;
+            free(userData.pcmFileB.pcmData);
+            userData.pcmFileB.pcmData = NULL;
             unloadSongData(loadingdata.songdataB);
         }
 
@@ -451,19 +455,19 @@ void prepareNextSong()
 
 void skipToNextSong()
 {
+    if (currentSong->next == NULL)
+    {
+        return;
+    }    
     if (skipping)
-        return;    
-    skipping = true;
+        return;            
+    skipping = true;    
     while (!loadedSong && !loadingFailed)
     {
         usleep(10000);
     }
     if (!assignedToUserdata)
         assignUserData();
-    if (currentSong->next == NULL)
-    {
-        return;
-    }    
     skip();
 }
 
