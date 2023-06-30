@@ -448,7 +448,7 @@ void prepareNextSong()
             if (userData.pcmFileB.pcmData != NULL)
             {
                 free(userData.pcmFileB.pcmData);
-                userData.pcmFileA.pcmData = NULL;
+                userData.pcmFileB.pcmData = NULL;
             }
             userData.pcmFileB.pcmData = NULL;
             unloadSongData(loadingdata.songdataB);
