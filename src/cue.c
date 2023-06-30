@@ -101,13 +101,13 @@ struct Event processInput()
         restoreCursorPosition();
     }
     
-    char input = readInput();
+    char input = '\0';
 
     while (isInputAvailable() == 1)
     {
        input = readInput();
     }
-    event.type = EVENT_KEY_PRESS;
+    event.type = EVENT_NONE;
     event.key = input;
 
     switch (event.key)
@@ -264,7 +264,7 @@ void loadPcmFileIntoMemory(const char* inputFilePath, long seek, char** filePart
     FILE* file = fopen(inputFilePath, "rb");
     if (file == NULL)
     {
-        printf("Failed to open PCM file: %s\n", inputFilePath);
+        //printf("Failed to open PCM file: %s\n", inputFilePath);
         return;
     }
 

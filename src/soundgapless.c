@@ -429,7 +429,7 @@ void loadPcmFile(PCMFile* pcmFile, const char* filename)
     FILE* file = fopen(filename, "rb");
     if (file == NULL)
     {
-        printf("Failed to open PCM file: %s\n", filename);
+        //printf("Failed to open PCM file: %s\n", filename);
         return;
     }
 
