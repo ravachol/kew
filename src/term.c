@@ -183,13 +183,57 @@ int isInputAvailable()
     return ret > 0 && (fds[0].revents & POLLIN);
 }
 
+// char readInput()
+// {
+//     char c;
+//     int flags = fcntl(STDIN_FILENO, F_GETFL, 0);
+//     fcntl(STDIN_FILENO, F_SETFL, flags);
+
+//     ssize_t bytesRead = read(STDIN_FILENO, &c, 1);
+
+//     if (bytesRead == 0)
+//     {
+//         // No input available, handle accordingly
+//     }
+//     else if (bytesRead == -1)
+//     {
+//         // Error occurred during read(), handle accordingly
+//     }
+//     else
+//     {
+//         // Input successfully read, process it
+//         return c;
+//     }
+//     usleep(1000);
+//     // Return a default value or handle the error case
+//     return '\0';
+// }
+
 char readInput()
 {
     char c;
-    read(STDIN_FILENO, &c, 1);
-    return c;
+    ssize_t bytesRead = read(STDIN_FILENO, &c, 1);
+
+    if (bytesRead == 0)
+    {
+    }
+    else if (bytesRead == -1)
+    {
+    }
+    else
+    {
+        // Input successfully read, process it
+        return c;
+    }
+    return '\0';
 }
 
+// char readInput()
+// {
+//     char c;
+//     read(STDIN_FILENO, &c, 1);
+//     return c;
+// }
 
 void saveCursorPosition()
 {
