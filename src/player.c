@@ -380,7 +380,7 @@ int showPlaylist(int maxHeight)
             shortenString(copiedString, term_w - 5);
             if (!startFromCurrent || foundCurrentSong)
             {
-                if (numRows < 10)
+                if (i + 1 < 10)
                     printf(" ");
                 if (startFromCurrent)
                     printf(" %d. %s\n", i+1, copiedString);
