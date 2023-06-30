@@ -435,13 +435,21 @@ void prepareNextSong()
         if (usingSongDataA)
         {
             userData.pcmFileA.filename = NULL;
-            free(userData.pcmFileA.pcmData);
+            if (userData.pcmFileA.pcmData != NULL)
+            {
+                free(userData.pcmFileA.pcmData);
+                userData.pcmFileA.pcmData = NULL;
+            }
             userData.pcmFileA.pcmData = NULL;
             unloadSongData(loadingdata.songdataA);
         }
         else {
             userData.pcmFileB.filename = NULL;
-            free(userData.pcmFileB.pcmData);
+            if (userData.pcmFileB.pcmData != NULL)
+            {
+                free(userData.pcmFileB.pcmData);
+                userData.pcmFileA.pcmData = NULL;
+            }
             userData.pcmFileB.pcmData = NULL;
             unloadSongData(loadingdata.songdataB);
         }
