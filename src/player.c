@@ -473,7 +473,7 @@ int printPlayer(SongData *songdata, double elapsedSeconds, PlayList *playlist)
         printEqualizer();
     }
     refresh = false;
-
+    fflush(stdout);
     return 0; 
 }
 

@@ -162,7 +162,7 @@ void restoreTerminalMode()
     tcsetattr(STDIN_FILENO, TCSANOW, &ttystate);
 }
 
-bool isInputAvailable()
+int isInputAvailable()
 {
     // Clear any buffered input
     while (read(STDIN_FILENO, NULL, 0) > 0)
@@ -173,14 +173,40 @@ bool isInputAvailable()
     fds[0].events = POLLIN;
 
     int ret = poll(fds, 1, 0);
+    if (ret < 0)
+    {
+        // Error occurred during poll()
+        // Handle the error appropriately
+        return 0;
+    }
+
     return ret > 0 && (fds[0].revents & POLLIN);
 }
 
 char readInput()
 {
     char c;
-    read(STDIN_FILENO, &c, 1);
-    return c;
+    int flags = fcntl(STDIN_FILENO, F_GETFL, 0);
+    fcntl(STDIN_FILENO, F_SETFL, flags | O_NONBLOCK);
+
+    ssize_t bytesRead = read(STDIN_FILENO, &c, 1);
+
+    if (bytesRead == 0)
+    {
+        // No input available, handle accordingly
+    }
+    else if (bytesRead == -1)
+    {
+        // Error occurred during read(), handle accordingly
+    }
+    else
+    {
+        // Input successfully read, process it
+        return c;
+    }
+
+    // Return a default value or handle the error case
+    return '\0';
 }
 
 void saveCursorPosition()
