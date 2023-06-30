@@ -186,28 +186,10 @@ int isInputAvailable()
 char readInput()
 {
     char c;
-    int flags = fcntl(STDIN_FILENO, F_GETFL, 0);
-    fcntl(STDIN_FILENO, F_SETFL, flags | O_NONBLOCK);
-
-    ssize_t bytesRead = read(STDIN_FILENO, &c, 1);
-
-    if (bytesRead == 0)
-    {
-        // No input available, handle accordingly
-    }
-    else if (bytesRead == -1)
-    {
-        // Error occurred during read(), handle accordingly
-    }
-    else
-    {
-        // Input successfully read, process it
-        return c;
-    }
-
-    // Return a default value or handle the error case
-    return '\0';
+    read(STDIN_FILENO, &c, 1);
+    return c;
 }
+
 
 void saveCursorPosition()
 {
