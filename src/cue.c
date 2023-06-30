@@ -481,6 +481,10 @@ void skipToNextSong()
 
 void skipToPrevSong()
 {
+    if (currentSong->prev == NULL)
+    {
+        return;
+    }    
     if (skipping)
         return;
     skipping = true;
@@ -626,7 +630,7 @@ int play(SongInfo song)
     
     while(!loadedSong)
     {
-        usleep(1000);
+        usleep(10000);
     }
     userData.currentFileIndex = 0;
     userData.currentPCMFrame = 0;
@@ -656,14 +660,16 @@ int play(SongInfo song)
         else
             refreshPlayer();
 
-        if (!loadedSong)
+        if (currentSong->next != NULL)
         {
-            assignedToUserdata = false;
-            loadAudioData();           
+            if (!loadedSong)
+            {
+                assignedToUserdata = false;
+                loadAudioData();           
+            }
+            else if (!assignedToUserdata)
+                assignUserData();
         }
-        else if (!assignedToUserdata)
-            assignUserData();
-
         if (shouldQuit)
             break;
 
