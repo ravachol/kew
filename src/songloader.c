@@ -53,7 +53,18 @@ void loadPcmAudio(SongData *songdata)
 
 SongData* loadSongData(char *filePath)
 {
-	SongData *songdata = malloc(sizeof(SongData));
+    SongData* songdata = malloc(sizeof(SongData));
+    strcpy(songdata->filePath, "");
+    strcpy(songdata->coverArtPath, "");
+    strcpy(songdata->pcmFilePath, "");
+    songdata->red = NULL;
+    songdata->green = NULL;
+    songdata->blue = NULL;
+    songdata->metadata = NULL;
+    songdata->cover = NULL;
+    songdata->duration = NULL;
+    songdata->pcmFile = NULL;
+    songdata->pcmFileSize = 0;
 	strcpy(songdata->filePath, filePath);
 	loadCover(songdata);
     usleep(10000);

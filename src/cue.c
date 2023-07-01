@@ -314,7 +314,8 @@ void* songDataReaderThread(void* arg)
 
     char filepath[MAXPATHLEN];
     strcpy(filepath, loadingdata->filePath);
-    SongData* songdata = loadSongData(filepath);
+    SongData* songdata = NULL;
+    songdata = loadSongData(filepath);
 
     while (true)
     {
