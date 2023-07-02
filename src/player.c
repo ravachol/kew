@@ -4,7 +4,6 @@
 const char VERSION[] = "0.9.5";
 const char VERSION_DATE[] = "2023-06-30";
 
-bool firstSong = true;
 volatile bool refresh = true;
 bool equalizerEnabled = true;
 bool equalizerBlocks = true;
@@ -57,7 +56,7 @@ int calcMetadataHeight()
 void calcPreferredSize()
 {
     minHeight = 2 + (equalizerEnabled ? equalizerHeight : 0);    
-    calcIdealImgSize(&preferredWidth, &preferredHeight, (equalizerEnabled ? equalizerHeight : 0), calcMetadataHeight(), firstSong);
+    calcIdealImgSize(&preferredWidth, &preferredHeight, (equalizerEnabled ? equalizerHeight : 0), calcMetadataHeight());
 }
 
 void printCover(SongData *songdata)
@@ -71,7 +70,6 @@ void printCover(SongData *songdata)
         displayCover(songdata, preferredWidth, preferredHeight, !coverBlocks);
  
         drewCover = true;
-        firstSong = false;
         if (color.r == 0 && color.g == 0 && color.b == 0)
         {
             color.r = 210;
@@ -317,13 +315,13 @@ void removeUnneededChars(char* str) {
     
 }
 
-void shortenString(char* str, int width) {
+void shortenString(char* str, size_t width) {
     if (strlen(str) > width) {
         str[width] = '\0';
     }
 }
 
-int showPlaylist(int maxHeight)
+int showPlaylist()
 {
     Node *node = playlist.head;
     Node *foundNode = playlist.head;
@@ -440,7 +438,7 @@ void printEqualizer()
         printf("\n");        
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
-        drawEqualizer(equalizerHeight, term_w, equalizerBlocks, color);            
+        drawEqualizer(equalizerHeight, term_w, color);            
         printLastRow();       
         int jumpAmount = equalizerHeight + 2;
         cursorJump(jumpAmount);
@@ -468,7 +466,7 @@ int printPlayer(SongData *songdata, double elapsedSeconds, PlayList *playlist)
         if (refresh)
         {
             printAbout();  
-            int height = showPlaylist(equalizerHeight + 4);
+            int height = showPlaylist();
             int jumpAmount = height;
             cursorJump(jumpAmount);
             saveCursorPosition();             

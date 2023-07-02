@@ -13,7 +13,7 @@ void loadCover(SongData *songdata)
     {
         getDirectoryFromPath(songdata->filePath, path);  
         char *tmp = NULL;
-        off_t size;
+        off_t size = 0;
         tmp = findLargestImageFileRecursive(path, tmp, &size);
 
         if (tmp != NULL)
