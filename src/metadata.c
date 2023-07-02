@@ -49,15 +49,15 @@ int extractTags(const char *input_file, TagSettings *tag_settings)
 
             // Assign the value to the corresponding field in the TagSettings structure
             if (strcasecmp(key, "title") == 0)
-                strncpy(tag_settings->title, value, sizeof(tag_settings->title));
+                snprintf(tag_settings->title, sizeof(tag_settings->title), "%s", value);
             else if (strcasecmp(key, "artist") == 0)
-                strncpy(tag_settings->artist, value, sizeof(tag_settings->artist));
+                snprintf(tag_settings->artist, sizeof(tag_settings->artist), "%s", value);
             else if (strcasecmp(key, "album_artist") == 0)
-                strncpy(tag_settings->album_artist, value, sizeof(tag_settings->album_artist));
+                snprintf(tag_settings->album_artist, sizeof(tag_settings->album_artist), "%s", value);
             else if (strcasecmp(key, "album") == 0)
-                strncpy(tag_settings->album, value, sizeof(tag_settings->album));
+                snprintf(tag_settings->album, sizeof(tag_settings->album), "%s", value);
             else if (strcasecmp(key, "date") == 0)
-                strncpy(tag_settings->date, value, sizeof(tag_settings->date));
+                snprintf(tag_settings->date, sizeof(tag_settings->date), "%s", value);
         }
     }
 

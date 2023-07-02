@@ -16,7 +16,7 @@
 const char ALLOWED_EXTENSIONS[] = "\\.(m4a|mp3|ogg|flac|wav|aac|wma|raw|mp4a|mp4)$";
 const char PLAYLIST_EXTENSIONS[] = "\\.(m3u)$";
 const char mainPlaylistName[] = "cue.m3u";
-PlayList playlist = {NULL, NULL};
+PlayList playlist = {NULL, NULL, 0, 0.0 };
 PlayList *mainPlaylist = NULL;
 
 char search[MAX_SEARCH_SIZE];
@@ -47,14 +47,12 @@ void addToList(PlayList *list, SongInfo song)
 
     if (list->head == NULL)
     {
-        // The list is empty
         newNode->prev = NULL;
         list->head = newNode;
         list->tail = newNode;
     }
     else
     {
-        // Append the new node at the end of the list
         newNode->prev = list->tail;
         list->tail->next = newNode;
         list->tail = newNode;
@@ -66,19 +64,16 @@ Node* deleteFromList(PlayList *list, Node *node)
     if (list->head == NULL || node == NULL)
         return NULL;
 
-    // Update the head and tail pointers if the node to delete is at the ends
     if (node == list->head)
         list->head = node->next;
     if (node == list->tail)
         list->tail = node->prev;
 
-    // Adjust the next and prev pointers of neighboring nodes
     if (node->prev != NULL)
         node->prev->next = node->next;
     if (node->next != NULL)
         node->next->prev = node->prev;
 
-    // Free the memory allocated for the node
     Node* nextNode = node->next;
 
     free(node);
@@ -118,8 +113,6 @@ void shufflePlaylist(PlayList *playlist)
         nodes[j] = nodes[k];
         nodes[k] = temp;
     }
-
-    // Update the playlist with the shuffled order
     playlist->head = nodes[0];
     playlist->tail = nodes[playlist->count - 1];
     for (int j = 0; j < playlist->count; ++j)
@@ -137,14 +130,14 @@ int compare(const struct dirent **a, const struct dirent **b)
 
     if (nameA[0] == '_' && nameB[0] != '_')
     {
-        return -1; // Directory A starts with underscore, so it should come first
+        return -1;
     }
     else if (nameA[0] != '_' && nameB[0] == '_')
     {
-        return 1; // Directory B starts with underscore, so it should come first
+        return 1;
     }
 
-    return strcmp(nameA, nameB); // Lexicographic comparison for other cases
+    return strcmp(nameA, nameB);
 }
 
 void buildPlaylistRecursive(char *directoryPath, const char *allowedExtensions, PlayList *playlist)
@@ -152,6 +145,7 @@ void buildPlaylistRecursive(char *directoryPath, const char *allowedExtensions, 
     if (!isDirectory(directoryPath) && directoryPath != NULL)
     {
         SongInfo song;
+        song.title = strdup("");
         song.filePath = strdup(directoryPath);
         song.duration = 0.0;
         addToList(playlist, song);
@@ -174,7 +168,7 @@ void buildPlaylistRecursive(char *directoryPath, const char *allowedExtensions, 
         return;
     }
 
-    char exto[6]; // +1 for null-terminator
+    char exto[6];
     struct dirent **entries;
     int numEntries = scandir(directoryPath, &entries, NULL, compare);
 
@@ -190,7 +184,7 @@ void buildPlaylistRecursive(char *directoryPath, const char *allowedExtensions, 
 
         if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
         {
-            continue; // Skip current and parent directory entries
+            continue;
         }
 
         char filePath[FILENAME_MAX];
@@ -205,14 +199,14 @@ void buildPlaylistRecursive(char *directoryPath, const char *allowedExtensions, 
         }
         else
         {
-            // Entry is a regular file, check if it matches the desired file format
             extractExtension(entry->d_name, sizeof(exto) - 1, exto);
             if (match_regex(&regex, exto) == 0)
             {
                 SongInfo song;
                 snprintf(filePath, sizeof(filePath), "%s/%s", directoryPath, entry->d_name);
-                song.filePath = strdup(filePath); // Allocate memory and copy the file path
+                song.filePath = strdup(filePath);
                 song.duration = 0.0;
+                song.title = strdup("");                
                 addToList(playlist, song);
             }
         }
@@ -237,7 +231,7 @@ int playDirectory(const char *directoryPath, const char *allowedExtensions, Play
     {
         return -1;
     }
-    char ext[6]; // +1 for null-terminator, should be able to handle .flac
+    char ext[6];
     struct dirent *entry;
     while ((entry = readdir(dir)) != NULL)
     {
@@ -247,7 +241,9 @@ int playDirectory(const char *directoryPath, const char *allowedExtensions, Play
             char filePath[FILENAME_MAX];
             snprintf(filePath, sizeof(filePath), "%s/%s", directoryPath, entry->d_name);
             SongInfo song;
-            song.filePath = strdup(filePath); // Allocate memory and copy the file path
+            song.duration = 0.0;
+            song.title = strdup("");
+            song.filePath = strdup(filePath);
             addToList(playlist, song);
         }
     }
@@ -260,32 +256,27 @@ int joinPlaylist(PlayList *dest, PlayList *src)
 {
     if (src->count == 0)
     {
-        return 0; // Nothing to join if playlistB is empty
+        return 0;
     }
 
     if (dest->count == 0)
     {
-        // If playlistA is empty, simply update its head and tail
         dest->head = src->head;
         dest->tail = src->tail;
     }
     else
     {
-        // Update tail of playlistA and head of playlistB
         dest->tail->next = src->head;
         src->head->prev = dest->tail;
         dest->tail = src->tail;
     }
-
-    // Update the count of playlistA
     dest->count += src->count;
 
-    // Reset playlistB
     src->head = NULL;
     src->tail = NULL;
     src->count = 0;
 
-    return 1; // Successful join
+    return 1;
 }
 
 void makePlaylistName(const char *search)
@@ -309,7 +300,7 @@ int makePlaylist(int argc, char *argv[])
     int searchTypeIndex = 1;
 
     const char *delimiter = ":";
-    PlayList partialPlaylist = {NULL, NULL};
+    PlayList partialPlaylist = {NULL, NULL, 0, 0.0 };
 
     const char *allowedExtensions = ALLOWED_EXTENSIONS;
 
@@ -351,7 +342,7 @@ int makePlaylist(int argc, char *argv[])
     if (searchType == FileOnly || searchType == DirOnly || searchType == SearchPlayList)
         start = searchTypeIndex + 2;
 
-    search[0] = '\0'; // Initialize the search string with a null terminator
+    search[0] = '\0';
 
     for (int i = start -1; i < argc; i++)
     {
@@ -373,13 +364,11 @@ int makePlaylist(int argc, char *argv[])
     {
         char *token = strtok(search, delimiter);
 
-        // Subsequent calls to strtok with NULL to continue splitting
         while (token != NULL)
         {
             char buf[MAXPATHLEN] = {0};
             if (strncmp(token, "song", 4) == 0)
             {
-                // Remove "dir" from token by shifting characters
                 memmove(token, token + 4, strlen(token + 4) + 1);
                 searchType = FileOnly;
             }
@@ -412,7 +401,6 @@ int makePlaylist(int argc, char *argv[])
 
 void *getDurationsThread(void *arg)
 {
-    // Thread code goes here
     PlayList *playList = (PlayList *)arg;
 
     if (playList == NULL)
@@ -451,8 +439,6 @@ void *getDurationsThread(void *arg)
         currentNode = getListNext(currentNode);
         usleep(10000);
     }
-
-    // Recount them all
     currentNode = playList->head;
     playList->totalDuration = 0.0;
     for (int i = 0; i < playList->count; i++)
@@ -473,8 +459,6 @@ int calculatePlayListDuration(PlayList *playlist)
 
     pthread_t thread;
     int threadCreationResult;
-
-    // Create a new thread
     threadCreationResult = pthread_create(&thread, NULL, getDurationsThread, (void *)playlist);
     if (threadCreationResult != 0)
     {
@@ -498,18 +482,15 @@ void readM3UFile(const char* filename, PlayList* playlist) {
     char directory[MAXPATHLEN];
 
     if (file == NULL) {
-        //printf("Failed to open the M3U file.\n");
         return;
     }
 
     getDirectoryFromPath(filename, directory);
     char line[MAXPATHLEN];
     while (fgets(line, sizeof(line), file)) {
-        // Remove trailing newline character
         size_t len = strcspn(line, "\r\n");
         line[len] = '\0';
 
-        // Remove leading and trailing whitespace characters
         size_t start = 0;
         while (isspace(line[start])) {
             start++;
@@ -520,23 +501,21 @@ void readM3UFile(const char* filename, PlayList* playlist) {
         }
         line[end] = '\0';
 
-        // Check if the line is a valid file path
         if (line[0] != '#' && line[0] != '\0') {
             char songPath[MAXPATHLEN];
             memset(songPath, '\0', sizeof(songPath));
-            // Check if line is not a complete file path
+            
             if (strchr(line, '/') == NULL && strchr(line, '\\') == NULL)
                 strcat(songPath, directory);
            
             strcat(songPath, line);
-            // Create a new node for the playlist
+            
             Node* newNode = (Node*)malloc(sizeof(Node));
-            newNode->song.filePath = strdup(songPath);  // Duplicate the string for filePath
+            newNode->song.filePath = strdup(songPath);
             newNode->song.duration = 0.0;
             newNode->next = NULL;
             newNode->prev = NULL;
 
-            // Add the node to the playlist
             if (playlist->head == NULL) {
                 playlist->head = newNode;
                 playlist->tail = newNode;
@@ -576,8 +555,7 @@ void loadMainPlaylist(const char *directory)
     strcat(playlistPath, mainPlaylistName);
     mainPlaylist = malloc(sizeof(PlayList));
     if (mainPlaylist == NULL) {
-        printf("Failed to allocate memory for mainPlaylist.\n");
-        // Handle error condition
+        printf("Failed to allocate memory for mainPlaylist.\n");        
         exit(0);
     }    
     mainPlaylist->count = 0;
@@ -618,19 +596,18 @@ Node* deepCopyNode(Node* originalNode) {
     Node* newNode = malloc(sizeof(Node));
     newNode->song.filePath = strdup(originalNode->song.filePath);
     newNode->song.duration = originalNode->song.duration;
-    newNode->prev = NULL;  // Initialize the previous node pointer to NULL
-    newNode->next = deepCopyNode(originalNode->next);  // Recursively deep copy the next node
+    newNode->prev = NULL;  
+    newNode->next = deepCopyNode(originalNode->next); 
 
     if (newNode->next != NULL) {
-        newNode->next->prev = newNode;  // Update the previous pointer of the next node
+        newNode->next->prev = newNode;
     }
 
     return newNode;
 }
 
 PlayList deepCopyPlayList(PlayList* originalList) {
-    if (originalList == NULL) {
-        // Return an empty playlist if the original list is NULL
+    if (originalList == NULL) {        
         PlayList newList = { NULL, NULL, 0, 0.0 };
         return newList;
     }

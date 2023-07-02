@@ -72,7 +72,7 @@ int getBrightPixel(char *filepath, int width, int height, PixelData *brightPixel
     brightPixelFound = false;
     // Check for and do any needed image resizing...
     PixelData *data;
-    if (width != (unsigned)rwidth || height != (unsigned)rheight)
+    if (width != rwidth || height != rheight)
     {
         // 3 * uint8 for RGB!
         unsigned char *new_data = malloc(3 * sizeof(unsigned char) * width * height);
@@ -93,7 +93,7 @@ int getBrightPixel(char *filepath, int width, int height, PixelData *brightPixel
         data = (PixelData *)read_data;
     }
 
-    for (unsigned int d = 0; d < width * height; d++)
+    for (int d = 0; d < width * height; d++)
     {
         PixelData *c = data + d;
 

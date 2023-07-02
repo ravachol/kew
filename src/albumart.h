@@ -13,7 +13,7 @@ char *findLargestImageFileRecursive(const char *directoryPath, char *largestImag
 
 int displayAlbumArt(const char *filepath, int width, int height, bool coverBlocks, PixelData *brightPixel);
 
-int calcIdealImgSize(int *width, int *height, const int equalizerHeight, const int metatagHeight, bool firstSong);
+int calcIdealImgSize(int *width, int *height, const int equalizerHeight, const int metatagHeight);
 
 int displayCover(SongData *songdata, int width, int height, bool ascii);
 
