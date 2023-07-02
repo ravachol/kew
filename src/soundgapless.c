@@ -448,7 +448,7 @@ void loadPcmFile(PCMFile* pcmFile, const char* filename)
     }
 
     // Read PCM data from the file
-    if (fread(pcmData, 1, fileSize, file) != fileSize)
+    if (fread(pcmData, 1, fileSize, file) != (size_t)fileSize)
     {
         printf("Failed to read PCM data from file: %s\n", filename);
         fclose(file);
@@ -464,53 +464,14 @@ void loadPcmFile(PCMFile* pcmFile, const char* filename)
     pcmFile->pcmDataSize = fileSize;
 }
 
-void loadTwoPcmFilesIntoMemory(UserData* userData, const char* filenameA, const char* filenameB)
-{
-    loadPcmFile(&userData->pcmFileA, filenameA);
-    loadPcmFile(&userData->pcmFileB, filenameB);
-}
-
-char* change_suffix_to_pcm(const char* filename) {
-    // Find the last dot (.) in the filename
-    const char* dot = strrchr(filename, '.');
-    size_t filenameLength = strlen(filename);
-    size_t suffixLength = 4;  // Length of the new suffix ".pcm"
-
-    // Calculate the length of the output filename
-    size_t outputLength = filenameLength + suffixLength;
-    /*if (dot != NULL) {
-        outputLength -= strlen(dot);
-    }*/
-
-    // Allocate memory for the output filename
-    char* outputFilename = (char*)malloc((outputLength + 1) * sizeof(char));
-    if (outputFilename == NULL) {
-        return NULL;  // Failed to allocate memory
-    }
-
-    // Copy the original filename up to the last dot (if found)
-    strncpy(outputFilename, filename, filenameLength - suffixLength);
-    outputFilename[filenameLength - suffixLength] = '\0';
-
-    // Append the new suffix ".pcm" to the output filename
-    strcat(outputFilename, ".pcm");
-
-    return outputFilename;
-}
-
 void createAudioDevice(UserData *userData)
 {
     ma_result result = ma_context_init(NULL, 0, NULL, &context);
 
-    // Create a PCMFileDataSource instance
-    pcmDataSource;
-
-    // Initialize the first PCM file as the current file
     pFirstFile = &userData->pcmFileA;
     pcm_file_data_source_init(&pcmDataSource, pFirstFile->filename, pFirstFile->pcmData, pFirstFile->pcmDataSize, SAMPLE_FORMAT, CHANNELS, SAMPLE_RATE, userData);
     pcmDataSource.base.vtable = &pcm_file_data_source_vtable;
 
-    // Set up miniaudio device configuration
     ma_device_config deviceConfig = ma_device_config_init(ma_device_type_playback);
     deviceConfig.playback.format = SAMPLE_FORMAT;
     deviceConfig.playback.channels = CHANNELS;
@@ -518,60 +479,11 @@ void createAudioDevice(UserData *userData)
     deviceConfig.dataCallback = on_audio_frames;
     deviceConfig.pUserData = &pcmDataSource;
 
-    // Initialize and start the miniaudio device
-
     result = ma_device_init(&context, &deviceConfig, &device);
     if (result != MA_SUCCESS) {
-        // Handle error
     }
 
     result = ma_device_start(&device);
     if (result != MA_SUCCESS) {
-        // Handle error
     }  
-}
-
-int test(int argc, char** argv)
-{
-    ma_context context;
-    UserData userData;
-    userData.currentFileIndex = 0;
-    userData.currentPCMFrame = 0;
-
-    // Set up miniaudio context
-
-    ma_result result = ma_context_init(NULL, 0, NULL, &context);
-    if (result != MA_SUCCESS) {
-        // Handle error
-        return -1;
-    }
-
-    char* list[2];
-
-    for (int i = 1; i < argc; i++)
-    {
-        char* outputFilename = change_suffix_to_pcm(argv[i]);
-        convertToPcmFile(argv[i], outputFilename);
-        list[i - 1] = outputFilename;
-    }
-
-    loadTwoPcmFilesIntoMemory(&userData, list[0], list[1]);
-
-    createAudioDevice(&userData);
-
-    // Sleep indefinitely to allow the audio playback to continue
-    while (1) {
-
-        if (userData.endOfListReached == 1) {
-            // All files have finished playing
-            break;
-        }
-        usleep(100000);  // Sleep for 100 milliseconds
-    }
-
-    // Clean up
-    ma_device_uninit(&device);
-    ma_context_uninit(&context);
-
-    return 0;
 }

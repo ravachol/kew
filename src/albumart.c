@@ -229,7 +229,7 @@ char *findLargestImageFileRecursive(const char *directoryPath, char *largestImag
     return largestImageFile;
 }
 
-int calcIdealImgSize(int *width, int *height, const int equalizerHeight, const int metatagHeight, bool firstSong)
+int calcIdealImgSize(int *width, int *height, const int equalizerHeight, const int metatagHeight)
 {
     int term_w, term_h;
     getTermSize(&term_w, &term_h);

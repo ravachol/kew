@@ -19,7 +19,7 @@ PixelData decreaseLuminosity(PixelData pixel, int amount) {
     return pixel;
 }
 
-void drawEqualizer(int height, int width, bool drawBlocks, PixelData color)
+void drawEqualizer(int height, int width, PixelData color)
 {
     width = (width / 2);
     height = height - 1;

@@ -28,27 +28,27 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
 
         if (strcmp(stringToLower(pair->key), "path") == 0)
         {
-            strncpy(settings.path, pair->value, sizeof(settings.path));
+            snprintf(settings.path, sizeof(settings.path), "%s", pair->value);            
         }
         else if (strcmp(stringToLower(pair->key), "coverenabled") == 0)
         {
-            strncpy(settings.coverEnabled, pair->value, sizeof(settings.coverEnabled));
+            snprintf(settings.coverEnabled, sizeof(settings.coverEnabled), "%s", pair->value);
         }
         else if (strcmp(stringToLower(pair->key), "coverblocks") == 0)
         {
-            strncpy(settings.coverBlocks, pair->value, sizeof(settings.coverBlocks));
+            snprintf(settings.coverBlocks, sizeof(settings.coverBlocks), "%s", pair->value);            
         }
         else if (strcmp(stringToLower(pair->key), "equalizerblocks") == 0)
         {
-            strncpy(settings.equalizerBlocks, pair->value, sizeof(settings.equalizerBlocks));
+            snprintf(settings.equalizerBlocks, sizeof(settings.equalizerBlocks), "%s", pair->value);            
         }        
         else if (strcmp(stringToLower(pair->key), "equalizerenabled") == 0)
         {
-            strncpy(settings.equalizerEnabled, pair->value, sizeof(settings.equalizerEnabled));
+            snprintf(settings.equalizerEnabled, sizeof(settings.equalizerEnabled), "%s", pair->value);
         }
         else if (strcmp(stringToLower(pair->key), "equalizerheight") == 0)
-        {
-            strncpy(settings.equalizerHeight, pair->value, sizeof(settings.equalizerHeight));
+        {            
+            snprintf(settings.equalizerHeight, sizeof(settings.equalizerHeight), "%s", pair->value);
         }
     }
 
