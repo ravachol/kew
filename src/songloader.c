@@ -97,5 +97,10 @@ void unloadSongData(SongData *songdata)
     songdata->metadata = NULL;
     songdata->duration = NULL;
     songdata->pcmFile = NULL;
+    if (existsFile(songdata->pcmFilePath))
+        deleteFile(songdata->pcmFilePath);  
+    if (existsFile(songdata->coverArtPath))
+        deleteFile(songdata->coverArtPath);
+    
     songdata = NULL;
 }

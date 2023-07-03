@@ -171,6 +171,16 @@ void pcm_file_data_source_read_pcm_frames(ma_data_source* pDataSource, void* pFr
     
     // Copy PCM data to the output buffer
     ma_uint64 bytesToRead = framesToRead * ma_get_bytes_per_frame(pPCMDataSource->format, pPCMDataSource->channels);
+    
+    if (pPCMDataSource->pcmData == NULL)
+    {
+        pUserData->endOfListReached = 1;
+        if (pFramesRead != NULL) {
+            *pFramesRead = 0;
+        }
+        return;
+    }
+
     memcpy(pFramesOut, pPCMDataSource->pcmData + (pPCMDataSource->currentPCMFrame * ma_get_bytes_per_frame(pPCMDataSource->format, pPCMDataSource->channels)), (size_t)bytesToRead);
     
     // Allocate memory for g_audioBuffer (if not already allocated)

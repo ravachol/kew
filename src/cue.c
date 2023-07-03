@@ -435,21 +435,17 @@ void prepareNextSong()
     {
         if (usingSongDataA)
         {
-            userData.pcmFileA.filename = NULL;
             if (userData.pcmFileA.pcmData != NULL)
             {
                 free(userData.pcmFileA.pcmData);
-                userData.pcmFileA.pcmData = NULL;
             }
             userData.pcmFileA.pcmData = NULL;
             unloadSongData(loadingdata.songdataA);
         }
         else {
-            userData.pcmFileB.filename = NULL;
             if (userData.pcmFileB.pcmData != NULL)
             {
                 free(userData.pcmFileB.pcmData);
-                userData.pcmFileB.pcmData = NULL;
             }
             userData.pcmFileB.pcmData = NULL;
             unloadSongData(loadingdata.songdataB);
@@ -503,7 +499,7 @@ void skipToPrevSong()
     skipPrev = true;
 
     loadedSong = false;
-    bool loading = false;
+    bool loading = false;    
 
     while (!loadedSong && !loadingFailed)
     {       
@@ -514,10 +510,25 @@ void skipToPrevSong()
             {
                 loading = true;
                 if (usingSongDataA)
+                {
                     loadingdata.loadA = false;
+                    if (userData.pcmFileB.pcmData != NULL)
+                    {
+                        free(userData.pcmFileB.pcmData);
+                    }
+                    userData.pcmFileB.pcmData = NULL;
+                    unloadSongData(loadingdata.songdataB);                    
+                }
                 else
+                {
                     loadingdata.loadA = true;
-                
+                    if (userData.pcmFileA.pcmData != NULL)
+                    {
+                        free(userData.pcmFileA.pcmData);
+                    }
+                    userData.pcmFileA.pcmData = NULL;
+                    unloadSongData(loadingdata.songdataA);                    
+                }
                 loadSong(currentSong, &loadingdata);
             }               
         }
