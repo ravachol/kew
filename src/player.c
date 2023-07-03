@@ -64,9 +64,10 @@ void printCover(SongData *songdata)
     clearRestOfScreen();
     if (songdata->cover != NULL && coverEnabled)
     {
-        color.r = *songdata->red;
-        color.g = *songdata->green;
-        color.b = *songdata->blue;
+        color.r = *(songdata->red);
+        color.g = *(songdata->green);
+        color.b = *(songdata->blue);
+
         displayCover(songdata, preferredWidth, preferredHeight, !coverBlocks);
  
         drewCover = true;
@@ -366,7 +367,7 @@ int showPlaylist()
     else
         node = playlist.head;
 
-    for (int i = (startFromCurrent? foundAt : 0); i < foundAt + maxListSize; i++)
+    for (int i = (startFromCurrent? foundAt : 0); i < (startFromCurrent? foundAt : 0) + maxListSize; i++)
     {
         if (node == NULL) break;
         char filePath[MAXPATHLEN];
