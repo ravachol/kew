@@ -3,24 +3,31 @@
 
 PixelData increaseLuminosity(PixelData pixel, int amount) {
     // Increase each color component
-    pixel.r = pixel.r + amount <= 255 ? pixel.r + amount : 255;
-    pixel.g = pixel.g + amount <= 255 ? pixel.g + amount : 255;
-    pixel.b = pixel.b + amount <= 255 ? pixel.b + amount : 255;
+    PixelData pixel2;
+    pixel2.r = pixel.r + amount <= 255 ? pixel.r + amount : 255;
+    pixel2.g = pixel.g + amount <= 255 ? pixel.g + amount : 255;
+    pixel2.b = pixel.b + amount <= 255 ? pixel.b + amount : 255;
 
-    return pixel;
+    return pixel2;
 }
 
 PixelData decreaseLuminosity(PixelData pixel, int amount) {
     // Increase each color component
-    pixel.r = pixel.r - amount >= amount ? pixel.r - amount : amount;
-    pixel.g = pixel.g - amount >= amount ? pixel.g - amount : amount;
-    pixel.b = pixel.b - amount >= amount ? pixel.b - amount : amount;
+    PixelData pixel2;
+    pixel2.r = pixel.r - amount >= amount ? pixel.r - amount : amount;
+    pixel2.g = pixel.g - amount >= amount ? pixel.g - amount : amount;
+    pixel2.b = pixel.b - amount >= amount ? pixel.b - amount : amount;
 
     return pixel;
 }
 
-void drawEqualizer(int height, int width, PixelData color)
+void drawEqualizer(int height, int width, PixelData c)
 {
+    PixelData color;
+    color.r = c.r;
+    color.g = c.g;
+    color.b = c.b;
+
     width = (width / 2);
     height = height - 1;
     
@@ -144,12 +151,12 @@ void drawEqualizer(int height, int width, PixelData color)
     clearRestOfScreen();
     float exponent = 0.8;
 
-    color = increaseLuminosity(color, 60);
+    PixelData tmpColor = increaseLuminosity(color, 60);
     for (int j = height; j > 0; j--)
     {
         printf("\r"); // Move cursor to the beginning of the line
 
-        if (color.r != 0 || color.g != 0 || color.b != 0)
+        if (tmpColor.r != 0 || tmpColor.g != 0 || tmpColor.b != 0)
         {
             if (j == height)
             {            
@@ -157,13 +164,13 @@ void drawEqualizer(int height, int width, PixelData color)
             }
             else if (j == height - 1)
             {
-                PixelData tempcolor = increaseLuminosity(color, 60);
-                printf("\033[38;2;%d;%d;%dm", tempcolor.r, tempcolor.g, tempcolor.b);              
+                PixelData x = increaseLuminosity(tmpColor , 60);
+                printf("\033[38;2;%d;%d;%dm", x.r, x.g, x.b);              
             }
             else
             {
-                color = decreaseLuminosity(color, 25);
-                printf("\033[38;2;%d;%d;%dm", color.r, color.g, color.b);
+                PixelData y = decreaseLuminosity(tmpColor, 25);
+                printf("\033[38;2;%d;%d;%dm", y.r, y.g, y.b);
             }
         }
         else
