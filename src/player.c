@@ -1,7 +1,7 @@
 #include <string.h>
 #include "player.h"
 
-const char VERSION[] = "0.9.64";
+const char VERSION[] = "0.9.65";
 const char VERSION_DATE[] = "2023-07-03";
 
 volatile bool refresh = true;
