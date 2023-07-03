@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/param.h>
 #include <errno.h>
 #include <time.h>
 #include <dirent.h>
@@ -11,10 +12,10 @@
 #include <sys/stat.h>
 #include <stdio.h>
 #include <regex.h>
-#include <sys/param.h>
+#include <pwd.h>
 #include "stringfunc.h"
 #include <sys/types.h>
-#include <pwd.h>
+
 
 #define RETRY_DELAY_MICROSECONDS 100000
 #define MAX_RETRY_COUNT 20
@@ -28,6 +29,8 @@ enum SearchType
     SearchPlayList = 3,
     ReturnAllSongs = 4
 };
+
+int existsFile(const char *fname);
 
 void getDirectoryFromPath(const char *path, char *directory);
 
