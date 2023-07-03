@@ -1,7 +1,7 @@
 #include <string.h>
 #include "player.h"
 
-const char VERSION[] = "0.9.6";
+const char VERSION[] = "0.9.63";
 const char VERSION_DATE[] = "2023-07-03";
 
 volatile bool refresh = true;
@@ -387,19 +387,21 @@ int showPlaylist()
                 foundCurrentSong = true;
             }
             shortenString(copiedString, term_w - 5);
+            
             if (!startFromCurrent || foundCurrentSong)
             {
                 if (i+1 < 10)
                     printf(" ");
                 if (startFromCurrent)
-                    printf(" %d. %s\n", ++i, copiedString);
+                    printf(" %d. %s\n", i + 1, copiedString);
                 else
                     printf(" %d. %s\n", numRows, copiedString);
                 numPrintedRows++;
                 if (numPrintedRows > maxListSize)
                     break;
             }     
-            numRows++;       
+            numRows++;  
+    
             setTextColorRGB2(color.r, color.g, color.b);
         }
         node = node->next;        
