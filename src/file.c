@@ -1,5 +1,16 @@
 #include "file.h"
 
+int existsFile(const char *fname)
+{
+    FILE *file;
+    if ((file = fopen(fname, "r")))
+    {
+        fclose(file);
+        return 1;
+    }
+    return 0;
+}
+
 void getDirectoryFromPath(const char *path, char *directory)
 {
     size_t pathLength = strlen(path);
@@ -319,7 +330,9 @@ void deleteTempDir()
 
     }  
     char dirPath[MAXPATHLEN];
-    snprintf(dirPath, FILENAME_MAX, "%s/cue", tempDir);
+    struct passwd *pw = getpwuid(getuid());
+    const char *username = pw->pw_name;    
+    snprintf(dirPath, FILENAME_MAX, "%s/cue/%s", tempDir, username);
     removeDirectory(dirPath);
 }
 
@@ -351,9 +364,12 @@ void generateTempFilePath(char *filePath, const char *prefix, const char *suffix
 #endif
     }
     char dirPath[MAXPATHLEN];
+    struct passwd *pw = getpwuid(getuid());
+    const char *username = pw->pw_name;
     snprintf(dirPath, MAXPATHLEN, "%s/cue", tempDir);
     createDirectory(dirPath);
-
+    snprintf(dirPath, MAXPATHLEN, "%s/cue/%s", tempDir, username);
+    createDirectory(dirPath);
     char randomString[7];
     srand(time(NULL));
     for (int i = 0; i < 6; ++i)
@@ -362,7 +378,7 @@ void generateTempFilePath(char *filePath, const char *prefix, const char *suffix
     }
     randomString[6] = '\0';
 
-    snprintf(filePath, MAXPATHLEN, "%.4070s/cue%s%.6s%s", dirPath, prefix, randomString, suffix);
+    snprintf(filePath, MAXPATHLEN, "%s/%s%.6s%s", dirPath, prefix, randomString, suffix);
 }
 
 const char *getFileExtension(const char *filePath)
