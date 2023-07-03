@@ -7,6 +7,7 @@
 #include <stdbool.h>
 #include <unistd.h>
 #include <sys/wait.h>
+#include "file.h"
 #include "soundgapless.h"
 
 #define CHANNELS 2
@@ -284,10 +285,11 @@ int convertToPcmFile(const char *filePath, const char *outputFilePath)
     char command[COMMAND_SIZE];
     int status;
 
+    const char* escapedInputFilePath = escapeFilePath(filePath);
     // Construct the command string
     snprintf(command, sizeof(command),
              "ffmpeg -v fatal -hide_banner -nostdin -y -i \"%s\" -f s16le -acodec pcm_s16le -ac %d -ar %d \"%s\"",
-             filePath, CHANNELS, SAMPLE_RATE, outputFilePath);
+             escapedInputFilePath, CHANNELS, SAMPLE_RATE, outputFilePath);
     // Execute the command
     pid_t pid = fork();
 
@@ -369,7 +371,9 @@ int getSongDuration(const char *filePath, double *duration)
     char *durationStr;
     double durationValue;
 
-    snprintf(command, sizeof(command), "ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 \"%s\"", filePath);
+    const char* escapedInputFilePath = escapeFilePath(filePath);
+
+    snprintf(command, sizeof(command), "ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 \"%s\"", escapedInputFilePath);
 
     pipe = popen(command, "r");
     if (pipe == NULL)

@@ -24,7 +24,9 @@ void runChafaCommand(const char *filepath, int width, int height)
     char command[COMMAND_SIZE];
     int status;
 
-    snprintf(command, COMMAND_SIZE, "chafa --clear -s %dx%d --scale max --stretch --margin-right 0 -C on \"%s\"", width, height, filepath);
+     const char* escapedInputFilePath = escapeFilePath(filepath);
+
+    snprintf(command, COMMAND_SIZE, "chafa --clear -s %dx%d --scale max --stretch --margin-right 0 -C on \"%s\"", width, height, escapedInputFilePath);
 
     pid_t pid = fork();
 
@@ -48,7 +50,11 @@ int extractCoverCommand(const char *inputFilePath, const char *outputFilePath)
     char command[COMMAND_SIZE];
     int status;
 
-    snprintf(command, COMMAND_SIZE, "ffmpeg -y -i \"%s\" -an -vcodec copy \"%s\"", inputFilePath, outputFilePath);
+    // Replace $ with \$
+    const char* escapedInputFilePath = escapeFilePath(inputFilePath);
+    const char* escapedOutputFilePath = escapeFilePath(outputFilePath);
+
+    snprintf(command, COMMAND_SIZE, "ffmpeg -y -i \"%s\" -an -vcodec copy \"%s\"", escapedInputFilePath, escapedOutputFilePath);
 
     pid_t pid = fork();
 
@@ -66,7 +72,7 @@ int extractCoverCommand(const char *inputFilePath, const char *outputFilePath)
     }
 
     FILE *file = fopen(outputFilePath, "r");
-    
+
     if (file != NULL) {
         fclose(file);
         return 1;
