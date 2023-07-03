@@ -18,7 +18,7 @@ PixelData decreaseLuminosity(PixelData pixel, int amount) {
     pixel2.g = pixel.g - amount >= amount ? pixel.g - amount : amount;
     pixel2.b = pixel.b - amount >= amount ? pixel.b - amount : amount;
 
-    return pixel;
+    return pixel2;
 }
 
 void drawEqualizer(int height, int width, PixelData c)
@@ -151,12 +151,12 @@ void drawEqualizer(int height, int width, PixelData c)
     clearRestOfScreen();
     float exponent = 0.8;
 
-    PixelData tmpColor = increaseLuminosity(color, 60);
+    //color = increaseLuminosity(color, 60);
     for (int j = height; j > 0; j--)
     {
         printf("\r"); // Move cursor to the beginning of the line
 
-        if (tmpColor.r != 0 || tmpColor.g != 0 || tmpColor.b != 0)
+        if (color.r != 0 || color.g != 0 ||color.b != 0)
         {
             if (j == height)
             {            
@@ -164,13 +164,13 @@ void drawEqualizer(int height, int width, PixelData c)
             }
             else if (j == height - 1)
             {
-                PixelData x = increaseLuminosity(tmpColor , 60);
-                printf("\033[38;2;%d;%d;%dm", x.r, x.g, x.b);              
+                color = increaseLuminosity(color , 60);
+                printf("\033[38;2;%d;%d;%dm", color.r, color.g, color.b);              
             }
             else
             {
-                PixelData y = decreaseLuminosity(tmpColor, 25);
-                printf("\033[38;2;%d;%d;%dm", y.r, y.g, y.b);
+                color = decreaseLuminosity(color, 25);
+                printf("\033[38;2;%d;%d;%dm", color.r, color.g, color.b);
             }
         }
         else
