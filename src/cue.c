@@ -620,6 +620,11 @@ void handleInput()
     }    
 }
 
+bool isEndOfList()
+{
+    return (userData.endOfListReached == 1);
+}
+
 int play(SongInfo song)
 {
     freeAudioBuffer();
@@ -671,7 +676,7 @@ int play(SongInfo song)
             else if (!assignedToUserdata)
                 assignUserData();
         }
-        if (shouldQuit)
+        if (shouldQuit || isEndOfList())
             break;
 
         if (isPlaybackDone())

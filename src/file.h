@@ -47,6 +47,8 @@ int removeDirectory(const char *path);
 
 int deleteFile(const char *filePath);
 
+char* escapeFilePath(const char* filePath);
+
 void generateTempFilePath(char *filePath, const char *prefix, const char *suffix);
 
 const char *getFileExtension(const char *filePath);

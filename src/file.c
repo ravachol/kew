@@ -323,6 +323,22 @@ void deleteTempDir()
     removeDirectory(dirPath);
 }
 
+char* escapeFilePath(const char* filePath) {
+    const int MAX_FILE_PATH_SIZE = 1000;
+    char* escapedFilePath = malloc(MAX_FILE_PATH_SIZE * sizeof(char));
+    int j = 0;
+
+    for (int i = 0; filePath[i] != '\0'; i++) {
+        if (filePath[i] == '$') {
+            escapedFilePath[j++] = '\\';
+        }
+        escapedFilePath[j++] = filePath[i];
+    }
+
+    escapedFilePath[j] = '\0';
+    return escapedFilePath;
+}
+
 void generateTempFilePath(char *filePath, const char *prefix, const char *suffix)
 {
     const char *tempDir = getenv("TMPDIR");
