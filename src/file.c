@@ -59,13 +59,16 @@ int tryOpen(const char *path)
 
 int isDirectory(const char *path)
 {
-    struct stat path_stat;
-    if (stat(path, &path_stat) != 0)
+    DIR *dir = opendir(path);
+    if (dir)
     {
-        return 0; // Unable to get file information, assume not a directory
+        closedir(dir);
+        return 1;
     }
-
-    return S_ISDIR(path_stat.st_mode);
+    else
+    {
+        return 0;
+    }
 }
 
 // Function to traverse a directory tree and search for a given file or directory

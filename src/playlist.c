@@ -142,7 +142,7 @@ int compare(const struct dirent **a, const struct dirent **b)
 
 void buildPlaylistRecursive(char *directoryPath, const char *allowedExtensions, PlayList *playlist)
 {
-    if (!isDirectory(directoryPath) && directoryPath != NULL)
+    if (!isDirectory(directoryPath) == 1 && directoryPath != NULL)
     {
         SongInfo song;
         song.title = strdup("");
@@ -534,7 +534,6 @@ void readM3UFile(const char* filename, PlayList* playlist) {
 void writeM3UFile(const char* filename, PlayList* playlist) {
     FILE* file = fopen(filename, "w");
     if (file == NULL) {
-        printf("Failed to open the M3U file for writing.\n");
         return;
     }
 
