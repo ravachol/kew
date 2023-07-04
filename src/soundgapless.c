@@ -421,9 +421,9 @@ int adjustVolumePercent(int volumeChange)
 {
     char command_str[1000];
     if (volumeChange > 0)
-        snprintf(command_str, 1000, "amixer -D pulse sset Master %d%%+", volumeChange);
+        snprintf(command_str, 1000, "pactl set-sink-volume @DEFAULT_SINK@ +%d%%", volumeChange);
     else
-        snprintf(command_str, 1000, "amixer -D pulse sset Master %d%%-", -volumeChange);
+        snprintf(command_str, 1000, "pactl set-sink-volume @DEFAULT_SINK@ -%d%%", -volumeChange);
     FILE *fp = popen(command_str, "r");
     if (fp == NULL)
     {
