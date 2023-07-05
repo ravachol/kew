@@ -13,7 +13,7 @@
 #define CHANNELS 2
 #define SAMPLE_RATE 96000
 #define SAMPLE_WIDTH 2
-#define SAMPLE_FORMAT ma_format_s16
+#define SAMPLE_FORMAT ma_format_s24
 #define FRAMES_PER_BUFFER 1024
 #define MAX_DATA_SOURCES 10000
 #define FRAMES_PER_BUFFER 1024
@@ -298,7 +298,7 @@ int convertToPcmFile(const char *filePath, const char *outputFilePath)
     const char* escapedInputFilePath = escapeFilePath(filePath);
     // Construct the command string
     snprintf(command, sizeof(command),
-             "ffmpeg -v fatal -hide_banner -nostdin -y -i \"%s\" -f s16le -acodec pcm_s16le -ac %d -ar %d \"%s\"",
+             "ffmpeg -v fatal -hide_banner -nostdin -y -i \"%s\" -f s16le -acodec pcm_s24le -ac %d -ar %d -b:a 5800k \"%s\"",
              escapedInputFilePath, CHANNELS, SAMPLE_RATE, outputFilePath);
     // Execute the command
     pid_t pid = fork();
