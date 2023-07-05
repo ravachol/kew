@@ -23,7 +23,6 @@ int preferredWidth = 0;
 int preferredHeight = 0;
 int elapsed = 0;
 int duration = 0;
-char *path;
 char *tagsPath;
 double totalDurationSeconds = 0.0;
 PixelData color = { 0, 0, 0 };
@@ -455,7 +454,6 @@ int printPlayer(SongData *songdata, double elapsedSeconds, PlayList *playlist)
 {    
     metadata = *songdata->metadata;
     hideCursor();    
-    path = strdup(songdata->filePath);
     totalDurationSeconds = playlist->totalDuration;
     elapsed = elapsedSeconds;
     duration = *songdata->duration;
