@@ -79,7 +79,6 @@ int walker(const char *startPath, const char *searching, char *result,
     struct dirent *dir;
     struct stat file_stat;
     char ext[6]; // +1 for null-terminator
-
     regex_t regex;
     int ret = regcomp(&regex, allowedExtensions, REG_EXTENDED);
     if (ret != 0)
@@ -117,7 +116,9 @@ int walker(const char *startPath, const char *searching, char *result,
         }
 
         char entryPath[PATH_MAX];
-        snprintf(entryPath, sizeof(entryPath), "%s/%s", getcwd(NULL, 0), dir->d_name);
+        char* currentDir = getcwd(NULL, 0);
+        snprintf(entryPath, sizeof(entryPath), "%s/%s", currentDir, dir->d_name);
+        free(currentDir);
 
         if (stat(entryPath, &file_stat) != 0)
         {
@@ -178,8 +179,9 @@ int walker(const char *startPath, const char *searching, char *result,
             }
         }
     }
-
     closedir(d);
+    regfree(&regex);
+
     return copyresult ? 0 : 1;
 }
 
