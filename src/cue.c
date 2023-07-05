@@ -330,6 +330,8 @@ void* songDataReaderThread(void* arg)
                 free(songdata->pcmFile);
             songdata->pcmFile = filePart;
             songdata->pcmFileSize = fileSize;
+            if (existsFile(songdata->pcmFilePath))
+                deleteFile(songdata->pcmFilePath);  
             if (loadingdata->loadA)
             {
                 unloadSongData(loadingdata->songdataA);
