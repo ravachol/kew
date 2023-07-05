@@ -62,7 +62,8 @@ void drawEqualizer(int height, int width, PixelData c)
             fftOutput = NULL;
             return;
         }
-        ma_int16 sample = *((ma_int16 *)g_audioBuffer + i);
+        ma_int16 sample;
+        memcpy(&sample, (ma_int16 *)g_audioBuffer + i, sizeof(ma_int16));
         float normalizedSample = (float)sample / 32767.0f;
         fftInput[i][0] = normalizedSample;
         fftInput[i][1] = 0;
@@ -212,5 +213,5 @@ void drawEqualizer(int height, int width, PixelData c)
     fftwf_free(fftInput);
     fftInput = NULL;
     fftwf_free(fftOutput);
-    fftOutput = NULL;
+    fftOutput = NULL;    
 }

@@ -326,12 +326,20 @@ void* songDataReaderThread(void* arg)
         if (nextFile == fileSize)
         {
             // The entire file has been loaded into filePart
+            if (songdata->pcmFile != NULL)
+                free(songdata->pcmFile);
             songdata->pcmFile = filePart;
             songdata->pcmFileSize = fileSize;
             if (loadingdata->loadA)
+            {
+                unloadSongData(loadingdata->songdataA);
                 loadingdata->songdataA = songdata;
+            }
             else
+            {
+                unloadSongData(loadingdata->songdataB);
                 loadingdata->songdataB = songdata;
+            }
             // Reset for the next iteration
             loadedSong = true;
             break;
@@ -436,19 +444,10 @@ void prepareNextSong()
         if (usingSongDataA)
         {
             unloadSongData(loadingdata.songdataA);
-            if (userData.pcmFileA.pcmData != NULL)
-            {
-                free(userData.pcmFileA.pcmData);
-            }
             userData.pcmFileA.pcmData = NULL;
-
         }
         else {
             unloadSongData(loadingdata.songdataB);
-            if (userData.pcmFileB.pcmData != NULL)
-            {
-                free(userData.pcmFileB.pcmData);
-            }
             userData.pcmFileB.pcmData = NULL;            
         }
 
@@ -513,22 +512,14 @@ void skipToPrevSong()
                 if (usingSongDataA)
                 {
                     loadingdata.loadA = false;
-                    if (userData.pcmFileB.pcmData != NULL)
-                    {
-                        free(userData.pcmFileB.pcmData);
-                    }
-                    userData.pcmFileB.pcmData = NULL;
-                    unloadSongData(loadingdata.songdataB);                    
+                    unloadSongData(loadingdata.songdataB);
+                    userData.pcmFileB.pcmData = NULL;                    
                 }
                 else
                 {
                     loadingdata.loadA = true;
-                    if (userData.pcmFileA.pcmData != NULL)
-                    {
-                        free(userData.pcmFileA.pcmData);
-                    }
+                    unloadSongData(loadingdata.songdataA);
                     userData.pcmFileA.pcmData = NULL;
-                    unloadSongData(loadingdata.songdataA);                    
                 }
                 loadSong(currentSong, &loadingdata);
             }               

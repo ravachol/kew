@@ -145,7 +145,6 @@ void buildPlaylistRecursive(char *directoryPath, const char *allowedExtensions, 
     if (isDirectory(directoryPath) != 1 && directoryPath != NULL)
     {
         SongInfo song;
-        song.title = strdup("");
         song.filePath = strdup(directoryPath);
         song.duration = 0.0;
         addToList(playlist, song);
@@ -205,8 +204,7 @@ void buildPlaylistRecursive(char *directoryPath, const char *allowedExtensions, 
                 SongInfo song;
                 snprintf(filePath, sizeof(filePath), "%s/%s", directoryPath, entry->d_name);
                 song.filePath = strdup(filePath);
-                song.duration = 0.0;
-                song.title = strdup("");                
+                song.duration = 0.0;            
                 addToList(playlist, song);
             }
         }
@@ -242,7 +240,6 @@ int playDirectory(const char *directoryPath, const char *allowedExtensions, Play
             snprintf(filePath, sizeof(filePath), "%s/%s", directoryPath, entry->d_name);
             SongInfo song;
             song.duration = 0.0;
-            song.title = strdup("");
             song.filePath = strdup(filePath);
             addToList(playlist, song);
         }
