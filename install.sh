@@ -19,7 +19,7 @@ else
   # Install dependencies based on the package manager available
   echo "Installing missing dependencies"
   if command -v apt &>/dev/null; then
-      apt install ffmpeg libfftw3-dev git chafa libfreeimage-dev libavformat-dev libglib2.0-dev
+      apt install ffmpeg libfftw3-dev git chafa libchafa-dev libfreeimage-dev libavformat-dev libglib2.0-dev
   elif command -v pacman &>/dev/null; then
       pacman -Syu ffmpeg fftw git chafa freeimage glib2
   elif command -v dnf &>/dev/null; then
