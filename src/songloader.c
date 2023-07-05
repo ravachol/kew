@@ -101,6 +101,9 @@ void unloadSongData(SongData *songdata)
         deleteFile(songdata->pcmFilePath);  
     if (existsFile(songdata->coverArtPath))
         deleteFile(songdata->coverArtPath);
+    if (songdata->pcmFile != NULL)
+      free(songdata->pcmFile);
+    songdata->pcmFile = NULL;        
     
     songdata = NULL;
 }
