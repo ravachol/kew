@@ -11,7 +11,7 @@
 #include "soundgapless.h"
 
 #define CHANNELS 2
-#define SAMPLE_RATE 44100
+#define SAMPLE_RATE 96000
 #define SAMPLE_WIDTH 2
 #define SAMPLE_FORMAT ma_format_s16
 #define FRAMES_PER_BUFFER 1024
