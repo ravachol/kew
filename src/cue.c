@@ -287,9 +287,9 @@ void loadPcmFileIntoMemory(const char* inputFilePath, long seek, char** filePart
     *filePart = (char*)realloc(*filePart, *nextFile + bytesToRead);
     if (*filePart == NULL)
     {
-        printf("Failed to reallocate memory for the file part.\n");
+        printf("Failed to reallocate memory for the audio file.\n");
         fclose(file);
-        return;
+        exit(0);
     }
 
     // Read the file part and append it to the existing buffer
