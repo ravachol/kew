@@ -142,7 +142,7 @@ int compare(const struct dirent **a, const struct dirent **b)
 
 void buildPlaylistRecursive(char *directoryPath, const char *allowedExtensions, PlayList *playlist)
 {
-    if (!isDirectory(directoryPath) == 1 && directoryPath != NULL)
+    if (isDirectory(directoryPath) != 1 && directoryPath != NULL)
     {
         SongInfo song;
         song.title = strdup("");
