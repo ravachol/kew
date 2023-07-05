@@ -101,7 +101,7 @@ cue list <playlist> (or a playlist)
 
 cue shuffle <album name> (shuffles the playlist)
 
-cue artistA:artistB (plays both artists, shuffled)
+cue artistA:artistB:artistC (plays all three artists, shuffled)
 
 cue --nocover <words> (doesn't display a cover)
 
