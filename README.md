@@ -15,7 +15,7 @@ cue is a command-line music player for Linux.
  * Display album covers as ASCII art or as a normal image.
  * Creates a playlist automatically based on matched directory name
  * Control the player with previous, next and pause.
- * A main playlist that you can add to by pressing 'a' when listening to any song. Load the playlist by running cue with no arguments.
+ * A main playlist that you can add to by pressing 'a' when listening to any song. Load the playlist by running "cue .".
  * Gapless playback.
  * 24-bit/192khz audio.
 
