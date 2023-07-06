@@ -17,6 +17,7 @@ cue is a command-line music player for Linux.
  * Control the player with previous, next and pause.
  * A main playlist that you can add to by pressing 'a' when listening to any song. Load the playlist by running cue with no arguments.
  * Gapless playback.
+ * 24-bit/192khz audio.
 
 ## Quick Installation
 
