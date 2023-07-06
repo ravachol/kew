@@ -74,7 +74,7 @@ SongData* loadSongData(char *filePath)
     usleep(10000);
 	loadDuration(songdata);
     usleep(10000);
-	loadPcmAudio(songdata);
+    loadPcmAudio(songdata);
 
 	return songdata;
 }
