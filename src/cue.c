@@ -638,8 +638,6 @@ int play(SongInfo song)
     usingSongDataA = true;
     loadingdata.loadA = true;
     loadSong(currentSong, &loadingdata);
-    printf("Loading..");
-    fflush(stdout);
     int i = 0;   
     while(!loadedSong)
     {
