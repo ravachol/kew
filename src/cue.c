@@ -319,7 +319,7 @@ void* songDataReaderThread(void* arg)
 
     while (true)
     {
-        usleep(10000);
+        usleep(50);
         if (songdata->pcmFilePath[0] != '\0')
                 loadPcmFileIntoMemory(songdata->pcmFilePath, nextFile, &filePart, &fileSize, &nextFile);        
 
@@ -638,10 +638,16 @@ int play(SongInfo song)
     usingSongDataA = true;
     loadingdata.loadA = true;
     loadSong(currentSong, &loadingdata);
-    
+    printf("Loading..");
+    fflush(stdout);
+    int i = 0;   
     while(!loadedSong)
     {
-        usleep(1000);
+        usleep(10000);
+        if (i % 100 == 0)
+            printf(".");
+        i++;
+        fflush(stdout);
     }
     userData.currentFileIndex = 0;
     userData.currentPCMFrame = 0;
