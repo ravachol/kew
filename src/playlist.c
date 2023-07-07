@@ -123,6 +123,43 @@ void shufflePlaylist(PlayList *playlist)
     free(nodes);
 }
 
+void insertAsFirst(Node *currentSong, PlayList *playlist)
+{
+    if (currentSong == NULL || playlist == NULL)
+    {
+        return; // Invalid input
+    }
+
+    if (playlist->head == NULL)
+    {
+        // The playlist is empty, so the currentSong will be both the head and tail
+        currentSong->next = NULL;
+        currentSong->prev = NULL;
+        playlist->head = currentSong;
+        playlist->tail = currentSong;
+    }
+    else
+    {
+        if (currentSong->next != NULL)
+            currentSong->next->prev = currentSong->prev;
+        if (currentSong->prev != NULL)
+            currentSong->prev->next = currentSong->next;
+
+        // Add the currentSong as the new head
+        currentSong->next = playlist->head;
+        currentSong->prev = NULL;
+        playlist->head->prev = currentSong;
+        playlist->head = currentSong;
+    }
+}
+
+void shufflePlaylistStartingFromSong(PlayList *playlist, Node *song)
+{
+    shufflePlaylist(playlist);
+    insertAsFirst(song, playlist);
+}
+
+
 int compare(const struct dirent **a, const struct dirent **b)
 {
     const char *nameA = (*a)->d_name;
