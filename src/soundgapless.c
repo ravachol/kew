@@ -46,7 +46,6 @@ static ma_result pcm_file_data_source_read(ma_data_source* pDataSource, void* pF
 
 static ma_result pcm_file_data_source_seek(ma_data_source* pDataSource, ma_uint64 frameIndex)
 {
-    // Not implemented for this example.
     return MA_SUCCESS;
 }
 
@@ -56,15 +55,11 @@ static ma_result pcm_file_data_source_get_data_format(ma_data_source* pDataSourc
     *pFormat = pPCMDataSource->format;
     *pChannels = pPCMDataSource->channels;
     *pSampleRate = pPCMDataSource->sampleRate;
-
-    // If channelMap is not NULL and channelMapCap is large enough, you can set the channel map here.
-
     return MA_SUCCESS;
 }
 
 static ma_result pcm_file_data_source_get_cursor(ma_data_source* pDataSource, ma_uint64* pCursor)
 {
-    // Not implemented for this example.
     return MA_SUCCESS;
 }
 
@@ -268,16 +263,6 @@ ma_uint64 pcm_file_data_source_get_cursor_pcm_frame(ma_data_source* pDataSource)
     return currentFrame;
 }
 
-void cleanup_pcm_files(PCMFile* pcmFiles, ma_uint32 pcmFileCount)
-{
-    for (ma_uint32 i = 0; i < pcmFileCount; ++i) // FIXME NEEDS TO GET THE COUNT FROM THE ACTUAL ARRAY
-    {
-        free(pcmFiles[i].pcmData);
-    }
-
-    free(pcmFiles);
-}
-
 // Callback that will be called by miniaudio whenever new frames are available
 void on_audio_frames(ma_device* pDevice, void* pFramesOut, const void* pFramesIn, ma_uint32 frameCount)
 {
@@ -294,11 +279,9 @@ int convertToPcmFile(const char *filePath, const char *outputFilePath)
 
     const char* escapedInputFilePath = escapeFilePath(filePath);
 
-    // Construct the command string
     snprintf(command, sizeof(command),
              "ffmpeg -v fatal -hide_banner -nostdin -y -i \"%s\" -f s24le -acodec pcm_s24le -ac %d -ar %d -threads auto \"%s\"",
              escapedInputFilePath, CHANNELS, SAMPLE_RATE, outputFilePath);
-    // Execute the command
     pid_t pid = fork();
 
     if (pid == -1) {
@@ -311,7 +294,7 @@ int convertToPcmFile(const char *filePath, const char *outputFilePath)
         exit(EXIT_SUCCESS);
     } else {
         // Parent process
-        waitpid(pid, &status, 0);  // Wait for the chafa process to finish
+        waitpid(pid, &status, 0);
     }
     return 0;
 }
@@ -441,7 +424,6 @@ void loadPcmFile(PCMFile* pcmFile, const char* filename)
     FILE* file = fopen(filename, "rb");
     if (file == NULL)
     {
-        //printf("Failed to open PCM file: %s\n", filename);
         return;
     }
 
@@ -470,7 +452,6 @@ void loadPcmFile(PCMFile* pcmFile, const char* filename)
 
     fclose(file);
 
-    // Store PCM file information in the pcmFile struct
     pcmFile->filename = filename;
     pcmFile->pcmData = pcmData;
     pcmFile->pcmDataSize = fileSize;
