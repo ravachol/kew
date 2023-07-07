@@ -12,7 +12,7 @@
 
 #define CHANNELS 2
 #define SAMPLE_RATE 192000
-#define SAMPLE_WIDTH 2
+#define SAMPLE_WIDTH 3
 #define SAMPLE_FORMAT ma_format_s24
 #define FRAMES_PER_BUFFER 1024
 ma_int16 *g_audioBuffer = NULL;
