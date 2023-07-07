@@ -52,6 +52,8 @@ int playDirectory(const char *directoryPath, const char *allowedExtensions, Play
 
 void shufflePlaylist(PlayList *playlist);
 
+void shufflePlaylistStartingFromSong(PlayList *playlist, Node *song);
+
 int joinPlaylist(PlayList *dest, PlayList *src);
 
 int makePlaylist(int argc, char *argv[]);

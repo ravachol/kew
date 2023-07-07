@@ -1,7 +1,14 @@
-// cue - command-line music player
+// cue - a command-line music player
 // Copyright (C) 2022 Ravachol
 //
 // http://github.com/ravachol/cue
+//
+//  $$$$$$$\ $$\   $$\  $$$$$$\
+// $$  _____|$$ |  $$ |$$  __$$\
+// $$ /      $$ |  $$ |$$$$$$$$ |
+// $$ |      $$ |  $$ |$$   ____|
+// \$$$$$$$\ \$$$$$$  |\$$$$$$$\
+//  \_______| \______/  \_______|
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -9,10 +16,13 @@
 // (at your option) any later version, provided that the above
 // copyright notice and this permission notice appear in all copies.
 
-//  This program is distributed in the hope that it will be useful,
-//  but WITHOUT ANY WARRANTY; without even the implied warranty of
-//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//  GNU General Public License for more details.
+// THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+// WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+// MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+// ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+// WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+// ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+// OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 #include <stdio.h>
 #include <pwd.h>
@@ -177,7 +187,7 @@ void doShuffle()
     stopPlayListDurationCount();
     usleep(100000);
     playlist.totalDuration = 0.0;
-    shufflePlaylist(&playlist);
+    shufflePlaylistStartingFromSong(&playlist, currentSong);
     calculatePlayListDuration(&playlist);
     usleep(100000);    
     loadedSong = false;
@@ -264,11 +274,9 @@ void loadPcmFileIntoMemory(const char* inputFilePath, long seek, char** filePart
     FILE* file = fopen(inputFilePath, "rb");
     if (file == NULL)
     {
-        //printf("Failed to open PCM file: %s\n", inputFilePath);
         return;
     }
 
-    // Determine the file size if not already determined
     if (*fileSize == 0)
     {
         fseek(file, 0, SEEK_END);
@@ -279,7 +287,6 @@ void loadPcmFileIntoMemory(const char* inputFilePath, long seek, char** filePart
     // Set the file position to the seek position
     fseek(file, seek, SEEK_SET);
 
-    // Calculate the remaining bytes to read
     long remainingBytes = *fileSize - seek;
     long bytesToRead = (remainingBytes < SONG_BUFFER_SIZE) ? remainingBytes : SONG_BUFFER_SIZE;
 
@@ -295,7 +302,6 @@ void loadPcmFileIntoMemory(const char* inputFilePath, long seek, char** filePart
     // Read the file part and append it to the existing buffer
     size_t bytesRead = fread(*filePart + *nextFile, 1, bytesToRead, file);
 
-    // Update the nextFile position
     *nextFile += bytesRead;
 
     fclose(file);
@@ -330,8 +336,8 @@ void* songDataReaderThread(void* arg)
                 free(songdata->pcmFile);
             songdata->pcmFile = filePart;
             songdata->pcmFileSize = fileSize;
-            if (existsFile(songdata->pcmFilePath))
-                deleteFile(songdata->pcmFilePath);  
+            //if (existsFile(songdata->pcmFilePath))
+            //    deleteFile(songdata->pcmFilePath);  
             if (loadingdata->loadA)
             {
                 unloadSongData(loadingdata->songdataA);
