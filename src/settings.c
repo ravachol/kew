@@ -52,6 +52,8 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         }
     }
 
+    freeKeyValuePairs(pairs, count);
+
     return settings;
 }
 
@@ -188,8 +190,17 @@ void getConfig()
     int pair_count;
     struct passwd *pw = getpwuid(getuid());
     const char *homedir = pw->pw_dir;
-    const char *filepath = strcat(strcat(strcpy((char *)malloc(strlen(homedir) + strlen("/") + strlen(SETTINGS_FILENAME) + 1), homedir), "/"), SETTINGS_FILENAME);
+    
+    // Allocate memory for the filepath
+    size_t filepath_length = strlen(homedir) + strlen("/") + strlen(SETTINGS_FILENAME) + 1;
+    char* filepath = (char*)malloc(filepath_length);
+    strcpy(filepath, homedir);
+    strcat(filepath, "/");
+    strcat(filepath, SETTINGS_FILENAME);
+
     KeyValuePair *pairs = readKeyValuePairs(filepath, &pair_count);
+
+    free(filepath);
     settings = constructAppSettings(pairs, pair_count);
 
     coverEnabled = (settings.coverEnabled[0] == '1');

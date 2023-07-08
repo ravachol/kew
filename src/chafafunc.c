@@ -300,7 +300,6 @@ FIBITMAP *getBitmap(const char *image_path)
     FREE_IMAGE_FORMAT image_format = FreeImage_GetFileType(image_path, 0);
     if (image_format == FIF_UNKNOWN)
     {
-
         return NULL;
     }
     FIBITMAP *image = FreeImage_Load(image_format, image_path, 0);
@@ -311,6 +310,12 @@ FIBITMAP *getBitmap(const char *image_path)
     FIBITMAP *bitmap = FreeImage_ConvertTo32Bits(image);
     FreeImage_FlipVertical(bitmap);
     FreeImage_Unload(image);
+
+    if (!bitmap)
+    {
+        return NULL;
+    }
+
     return bitmap;
 }
 
@@ -445,9 +450,9 @@ int getCoverColor(FIBITMAP* bitmap, unsigned char** r, unsigned char** g, unsign
         checkIfBrightPixel(red, green, blue, &found);
 
         if (found) {
-            memcpy((*r), &red, sizeof(unsigned char));
-            memcpy((*g) , &green, sizeof(unsigned char));
-            memcpy((*b) , &blue, sizeof(unsigned char));
+            *(*r) = red;
+            *(*g) = green;
+            *(*b) = blue;
             break;
         }
     }

@@ -176,8 +176,8 @@ struct Event processInput()
 void cleanup()
 {   
     cleanupPlaybackDevice();    
-    unloadSongData(loadingdata.songdataA);
-    unloadSongData(loadingdata.songdataB);
+    unloadSongData(&loadingdata.songdataA);
+    unloadSongData(&loadingdata.songdataB);
     clearRestOfScreen();
 }
 
@@ -286,12 +286,12 @@ void* songDataReaderThread(void* arg)
     
     if (loadingdata->loadA)
     {
-        unloadSongData(loadingdata->songdataA);
+        unloadSongData(&loadingdata->songdataA);
         loadingdata->songdataA = songdata;
     }
     else
     {
-        unloadSongData(loadingdata->songdataB);
+        unloadSongData(&loadingdata->songdataB);
         loadingdata->songdataB = songdata;
     }
     // Reset for the next iteration
@@ -398,16 +398,16 @@ void prepareNextSong()
     {
         if (usingSongDataA)
         {
-            unloadSongData(loadingdata.songdataA);
+            unloadSongData(&loadingdata.songdataA);
             userData.pcmFileA.file = NULL;
             userData.pcmFileA.filename = NULL;
         }
-        else {
-            unloadSongData(loadingdata.songdataB);
+        else
+        {
+            unloadSongData(&loadingdata.songdataB);
             userData.pcmFileB.file = NULL;
             userData.pcmFileB.filename = NULL;
         }
-
         usingSongDataA = !usingSongDataA; 
     }
     skipping = false;
@@ -469,12 +469,12 @@ void skipToPrevSong()
                 if (usingSongDataA)
                 {
                     loadingdata.loadA = false;
-                    unloadSongData(loadingdata.songdataB);                    
+                    unloadSongData(&loadingdata.songdataB);                    
                 }
                 else
                 {
                     loadingdata.loadA = true;
-                    unloadSongData(loadingdata.songdataA);
+                    unloadSongData(&loadingdata.songdataA);
                 }
                 loadSong(currentSong, &loadingdata);
             }               
@@ -602,7 +602,7 @@ int play(Node *currentSong)
     }
     userData.currentFileIndex = 0;
     userData.currentPCMFrame = 0;  
-    userData.pcmFileA.filename = strdup(loadingdata.songdataA->pcmFilePath);
+    userData.pcmFileA.filename = loadingdata.songdataA->pcmFilePath;
 
     createAudioDevice(&userData);
 
@@ -673,10 +673,11 @@ int run()
     setConfig();
     saveMainPlaylist(settings.path, playingMainPlaylist);
     freeAudioBuffer();
-    free(nextSong);
-    free(mainPlaylist); 
     deleteCache(tempCache);
     deleteTempDir();
+    deletePlaylist(&playlist);
+    deletePlaylist(mainPlaylist);
+    free(mainPlaylist);
     showCursor();
     printf("\n");
    

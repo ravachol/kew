@@ -81,6 +81,27 @@ Node* deleteFromList(PlayList *list, Node *node)
     return nextNode;
 }
 
+void deletePlaylist(PlayList* list)
+{
+    if (list == NULL)
+        return;
+
+    Node* current = list->head;
+    while (current != NULL) {
+        Node* next = current->next;
+        if (current->song.filePath != NULL)
+            free(current->song.filePath);
+        free(current);
+        current = next;
+    }
+
+    // Reset the playlist
+    list->head = NULL;
+    list->tail = NULL;
+    list->count = 0;
+    list->totalDuration = 0.0;
+}
+
 void shufflePlaylist(PlayList *playlist)
 {
     if (playlist == NULL || playlist->count <= 1)
@@ -247,6 +268,11 @@ void buildPlaylistRecursive(char *directoryPath, const char *allowedExtensions, 
         }
     }
 
+    for (int i = 0; i < numEntries; i++) {
+        free(entries[i]);
+    }
+    free(entries);
+
     closedir(dir);
     regfree(&regex);
 }
@@ -315,7 +341,9 @@ int joinPlaylist(PlayList *dest, PlayList *src)
 
 void makePlaylistName(const char *search)
 {
-    strcat(playlistName, strdup(search));
+    char *duplicateSearch = strdup(search);
+    strcat(playlistName, duplicateSearch);
+    free(duplicateSearch);  // Free the allocated memory
     strcat(playlistName, ".m3u");   
     int i = 0;
     while(playlistName[i]!='\0')
@@ -467,7 +495,7 @@ void *getDurationsThread(void *arg)
         if (duration > 0.0)
         {
             currentNode->song.duration = duration;
-            totalDuration += duration;
+            totalDuration += duration;            
             playList->totalDuration += duration;
         }
         currentNode = getListNext(currentNode);

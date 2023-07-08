@@ -19,6 +19,8 @@ int extractTags(const char *input_file, TagSettings *tag_settings)
     const char* escapedInputFilePath = escapeFilePath(input_file);
     snprintf(command, sizeof(command), "ffprobe -show_entries format_tags -of default=noprint_wrappers=1:nokey=0 \"%s\"", escapedInputFilePath);
 
+    free(escapedInputFilePath);
+
     memset(tag_settings->title, 0, sizeof(tag_settings->title));
     memset(tag_settings->artist, 0, sizeof(tag_settings->artist));
     memset(tag_settings->album_artist, 0, sizeof(tag_settings->album_artist));

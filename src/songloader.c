@@ -48,6 +48,10 @@ void loadPcmAudio(SongData *songdata)
 {
     generateTempFilePath(songdata->pcmFilePath, "temp", ".pcm");
     convertToPcmFile(songdata->filePath, songdata->pcmFilePath);
+    while (!existsFile(songdata->pcmFilePath))
+    {
+        usleep(200000);
+    }
     addToCache(tempCache, songdata->pcmFilePath);
 }
 
@@ -75,34 +79,43 @@ SongData* loadSongData(char *filePath)
 	loadDuration(songdata);
     usleep(10000);
     loadPcmAudio(songdata);
-    usleep(300000);
 	return songdata;
 }
 
-void unloadSongData(SongData *songdata)
+void unloadSongData(SongData **songdata)
 {
-    if (songdata == NULL)
+    if (*songdata == NULL)
         return;
-    if (songdata->cover != NULL)
-        FreeImage_Unload(songdata->cover); 
-    free(songdata->red);
-    free(songdata->green);
-    free(songdata->blue); 
-	free(songdata->metadata);
-    free(songdata->duration);
-    songdata->cover = NULL;
-    songdata->red = NULL;
-    songdata->green = NULL;
-    songdata->blue = NULL;    
-    songdata->metadata = NULL;
-    songdata->duration = NULL;
-    if (existsFile(songdata->pcmFilePath))
-        deleteFile(songdata->pcmFilePath);  
-    if (existsFile(songdata->coverArtPath))
-        deleteFile(songdata->coverArtPath);
-    if (songdata->pcmFile != NULL)
-      free(songdata->pcmFile);
-    songdata->pcmFile = NULL;        
+
+    SongData *data = *songdata;
+
+    if (data->cover != NULL) {
+        FreeImage_Unload(data->cover);
+        data->cover = NULL;
+    }
     
-    songdata = NULL;
+    free(data->red);
+    free(data->green);
+    free(data->blue); 
+    free(data->metadata);
+    free(data->duration);
+
+    data->cover = NULL;
+    data->red = NULL;
+    data->green = NULL;
+    data->blue = NULL;    
+    data->metadata = NULL;
+    data->duration = NULL;
+
+    if (existsFile(data->pcmFilePath))
+        deleteFile(data->pcmFilePath);  
+
+    if (existsFile(data->coverArtPath))
+        deleteFile(data->coverArtPath);
+
+    if (data->pcmFile != NULL)
+        free(data->pcmFile);
+
+    free(*songdata);
+    *songdata = NULL;
 }
