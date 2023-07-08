@@ -330,12 +330,13 @@ int convertToPcmFile(const char *filePath, const char *outputFilePath)
     const int COMMAND_SIZE = 1000;
     char command[COMMAND_SIZE];
 
-    const char* escapedInputFilePath = escapeFilePath(filePath);
+    char* escapedInputFilePath = escapeFilePath(filePath);
 
     snprintf(command, sizeof(command),
              "ffmpeg -v fatal -hide_banner -nostdin -y -i \"%s\" -f s24le -acodec pcm_s24le -ac %d -ar %d -threads auto \"%s\"",
              escapedInputFilePath, CHANNELS, SAMPLE_RATE, outputFilePath);
 
+    free(escapedInputFilePath);
     // Create a new process
     pid_t pid = fork();
     if (pid == -1) {
@@ -427,9 +428,11 @@ int getSongDuration(const char *filePath, double *duration)
     char *durationStr;
     double durationValue;
 
-    const char* escapedInputFilePath = escapeFilePath(filePath);
+    char* escapedInputFilePath = escapeFilePath(filePath);
 
     snprintf(command, sizeof(command), "ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 \"%s\"", escapedInputFilePath);
+
+    free(escapedInputFilePath);
 
     pipe = popen(command, "r");
     if (pipe == NULL)
@@ -444,6 +447,8 @@ int getSongDuration(const char *filePath, double *duration)
         return -1;
     }
     pclose(pipe);
+    
+
 
     durationStr = strtok(output, "\n");
     if (durationStr == NULL)

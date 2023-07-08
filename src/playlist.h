@@ -44,6 +44,8 @@ void addToList(PlayList *list, SongInfo song);
 
 Node *deleteFromList(PlayList *list, Node *node);
 
+void deletePlaylist(PlayList* playlist);
+
 int compare(const struct dirent **a, const struct dirent **b);
 
 void buildPlaylistRecursive(char *directoryPath, const char *allowedExtensions, PlayList *playlist);

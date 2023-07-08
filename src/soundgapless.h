@@ -12,7 +12,7 @@ extern ma_int16 *g_audioBuffer;
 #ifndef PCMFILE_STRUCT
 #define PCMFILE_STRUCT
 typedef struct {
-    const char* filename;
+    char* filename;
     FILE* file;
 } PCMFile;
 #endif
