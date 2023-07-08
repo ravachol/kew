@@ -13,8 +13,7 @@ extern ma_int16 *g_audioBuffer;
 #define PCMFILE_STRUCT
 typedef struct {
     const char* filename;
-    char* pcmData;
-    ma_uint64 pcmDataSize;
+    FILE* file;
 } PCMFile;
 #endif
 
@@ -34,13 +33,16 @@ typedef struct {
 typedef struct {
     ma_data_source_base base;
     UserData* pUserData;
-    const char* filename;
-    char* pcmData;
-    ma_uint64 pcmDataSize;
+    const char* filenameA;
+    const char* filenameB;
     ma_format format;
     ma_uint32 channels;
     ma_uint32 sampleRate;
     ma_uint32 currentPCMFrame;
+    FILE* fileA;
+    FILE* fileB;
+    bool switchFiles;
+    int currentFileIndex;
 } PCMFileDataSource;
 #endif
 
@@ -60,15 +62,13 @@ void cleanupPlaybackDevice();
 
 int adjustVolumePercent(int volumeChange);
 
-int isPlaybackDone();
+bool isPlaybackDone();
 
 double getDuration(const char *filepath);
 
 int adjustVolumePercent(int volumeChange);
 
 void stopPlayback();
-
-void loadPcmFile(PCMFile* pcmFile, const char* filename);
 
 void skip();
 

@@ -90,7 +90,6 @@ double totalPauseSeconds = 0.0;
 volatile bool loadedSong = false;
 
 UserData userData;
-
 LoadingThreadData loadingdata;
 
 Node *nextSong = NULL;
@@ -269,44 +268,6 @@ void resize()
     clearRestOfScreen();    
 }
 
-void loadPcmFileIntoMemory(const char* inputFilePath, long seek, char** filePart, long* fileSize, long* nextFile)
-{
-    FILE* file = fopen(inputFilePath, "rb");
-    if (file == NULL)
-    {
-        return;
-    }
-
-    if (*fileSize == 0)
-    {
-        fseek(file, 0, SEEK_END);
-        *fileSize = ftell(file);
-        rewind(file);
-    }
-
-    // Set the file position to the seek position
-    fseek(file, seek, SEEK_SET);
-
-    long remainingBytes = *fileSize - seek;
-    long bytesToRead = (remainingBytes < SONG_BUFFER_SIZE) ? remainingBytes : SONG_BUFFER_SIZE;
-
-    // Reallocate memory for the combined file part
-    *filePart = (char*)realloc(*filePart, *nextFile + bytesToRead);
-    if (*filePart == NULL)
-    {
-        printf("Failed to reallocate memory for the audio file.\n");
-        fclose(file);
-        exit(0);
-    }
-
-    // Read the file part and append it to the existing buffer
-    size_t bytesRead = fread(*filePart + *nextFile, 1, bytesToRead, file);
-
-    *nextFile += bytesRead;
-
-    fclose(file);
-}
-
 void* songDataReaderThread(void* arg)
 {
     LoadingThreadData* loadingdata = (LoadingThreadData*)arg;
@@ -314,47 +275,27 @@ void* songDataReaderThread(void* arg)
     // Acquire the mutex lock
     pthread_mutex_lock(&(loadingdata->mutex));
 
-    char* filePart = NULL;
-    long fileSize = 0;
-    long nextFile = 0;  
-
     char filepath[MAXPATHLEN];
     strcpy(filepath, loadingdata->filePath);
     SongData* songdata = NULL;
-    songdata = loadSongData(filepath);
 
-    while (true)
+    if (filepath[0] != '\0')
+        songdata = loadSongData(filepath);
+    else
+        songdata = NULL;
+    
+    if (loadingdata->loadA)
     {
-        usleep(50);
-        if (songdata->pcmFilePath[0] != '\0')
-                loadPcmFileIntoMemory(songdata->pcmFilePath, nextFile, &filePart, &fileSize, &nextFile);        
-
-        if (nextFile == fileSize)
-        {
-            // The entire file has been loaded into filePart
-            if (songdata->pcmFile != NULL)
-                free(songdata->pcmFile);
-            songdata->pcmFile = filePart;
-            songdata->pcmFileSize = fileSize;
-            if (existsFile(songdata->pcmFilePath))
-                deleteFile(songdata->pcmFilePath);  
-            if (loadingdata->loadA)
-            {
-                unloadSongData(loadingdata->songdataA);
-                loadingdata->songdataA = songdata;
-            }
-            else
-            {
-                unloadSongData(loadingdata->songdataB);
-                loadingdata->songdataB = songdata;
-            }
-            // Reset for the next iteration
-            loadedSong = true;
-            break;
-        }                
-    }       
-    fileSize = 0;
-    nextFile = 0;
+        unloadSongData(loadingdata->songdataA);
+        loadingdata->songdataA = songdata;
+    }
+    else
+    {
+        unloadSongData(loadingdata->songdataB);
+        loadingdata->songdataB = songdata;
+    }
+    // Reset for the next iteration
+    loadedSong = true;     
 
     // Release the mutex lock
     pthread_mutex_unlock(&(loadingdata->mutex));
@@ -382,10 +323,12 @@ void loadNext(LoadingThreadData* loadingdata)
 
     if (nextSong == NULL) 
     {
-        loadedSong = true;
-        return;
+        strcpy(loadingdata->filePath, "");
     }
-    strcpy(loadingdata->filePath, nextSong->song.filePath);
+    else 
+    {
+        strcpy(loadingdata->filePath, nextSong->song.filePath);
+    }
 
     pthread_t loadingThread;
     pthread_create(&loadingThread, NULL, songDataReaderThread, (void*)loadingdata);
@@ -412,15 +355,19 @@ void assignUserData()
 {
     if (usingSongDataA)
     {
-        userData.pcmFileB.filename = loadingdata.songdataB->filePath;
-        userData.pcmFileB.pcmData = loadingdata.songdataB->pcmFile;
-        userData.pcmFileB.pcmDataSize = loadingdata.songdataB->pcmFileSize;                
+        if (loadingdata.songdataB != NULL)
+            userData.pcmFileB.filename = loadingdata.songdataB->pcmFilePath;
+        else
+            userData.pcmFileB.filename = NULL;
+        userData.pcmFileB.file = NULL;
     }
     else
     {
-        userData.pcmFileA.filename = loadingdata.songdataA->filePath;
-        userData.pcmFileA.pcmData = loadingdata.songdataA->pcmFile;
-        userData.pcmFileA.pcmDataSize = loadingdata.songdataA->pcmFileSize;                
+        if (loadingdata.songdataA != NULL)
+            userData.pcmFileA.filename = loadingdata.songdataA->pcmFilePath;
+        else
+            userData.pcmFileA.filename = NULL;
+        userData.pcmFileA.file = NULL;
     }   
     assignedToUserdata = true;    
 }
@@ -452,11 +399,13 @@ void prepareNextSong()
         if (usingSongDataA)
         {
             unloadSongData(loadingdata.songdataA);
-            userData.pcmFileA.pcmData = NULL;
+            userData.pcmFileA.file = NULL;
+            userData.pcmFileA.filename = NULL;
         }
         else {
             unloadSongData(loadingdata.songdataB);
-            userData.pcmFileB.pcmData = NULL;            
+            userData.pcmFileB.file = NULL;
+            userData.pcmFileB.filename = NULL;
         }
 
         usingSongDataA = !usingSongDataA; 
@@ -520,14 +469,12 @@ void skipToPrevSong()
                 if (usingSongDataA)
                 {
                     loadingdata.loadA = false;
-                    unloadSongData(loadingdata.songdataB);
-                    userData.pcmFileB.pcmData = NULL;                    
+                    unloadSongData(loadingdata.songdataB);                    
                 }
                 else
                 {
                     loadingdata.loadA = true;
                     unloadSongData(loadingdata.songdataA);
-                    userData.pcmFileA.pcmData = NULL;
                 }
                 loadSong(currentSong, &loadingdata);
             }               
@@ -636,7 +583,7 @@ bool isEndOfList()
     return (userData.endOfListReached == 1);
 }
 
-int play(SongInfo song)
+int play(Node *currentSong)
 {
     freeAudioBuffer();
     
@@ -654,13 +601,9 @@ int play(SongInfo song)
         fflush(stdout);
     }
     userData.currentFileIndex = 0;
-    userData.currentPCMFrame = 0;
-    loadedSong = false;
-    userData.currentFileIndex = 0;
-    userData.currentPCMFrame = 0;
-    userData.pcmFileA.pcmData = loadingdata.songdataA->pcmFile;
-    userData.pcmFileA.filename = strdup(song.filePath);
-    userData.pcmFileA.pcmDataSize = loadingdata.songdataA->pcmFileSize;                
+    userData.currentPCMFrame = 0;  
+    userData.pcmFileA.filename = strdup(loadingdata.songdataA->pcmFilePath);
+
     createAudioDevice(&userData);
 
     firstCall = false;
@@ -723,7 +666,7 @@ int run()
     }   
     if (currentSong == NULL)
         currentSong = playlist.head;
-    play(currentSong->song);
+    play(currentSong);
     cleanup();
     restoreTerminalMode();
     enableInputBuffering();    

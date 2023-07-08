@@ -24,33 +24,54 @@ PCMFile* pFirstFile = NULL;
 bool paused = false;
 bool skipToNext = false;
 bool repeatEnabled = false;
-static int eofReached = 0;
-
+static bool eofReached = false;
 
 static ma_result pcm_file_data_source_read(ma_data_source* pDataSource, void* pFramesOut, ma_uint64 frameCount, ma_uint64* pFramesRead)
 {
     PCMFileDataSource* pPCMDataSource = (PCMFileDataSource*)pDataSource;
-    ma_uint64 framesToRead = frameCount;
-    if (framesToRead > pPCMDataSource->pcmDataSize / ma_get_bytes_per_frame(pPCMDataSource->format, pPCMDataSource->channels)) {
-        framesToRead = pPCMDataSource->pcmDataSize / ma_get_bytes_per_frame(pPCMDataSource->format, pPCMDataSource->channels);
+    ma_uint32 framesToRead = (ma_uint32)frameCount;
+    ma_uint32 bytesPerFrame = ma_get_bytes_per_frame(pPCMDataSource->format, pPCMDataSource->channels);
+    ma_uint32 bytesToRead = framesToRead * bytesPerFrame;
+
+    FILE* currentFile;
+    if (pPCMDataSource->currentFileIndex == 0) {
+        currentFile = pPCMDataSource->fileA;
+    } else {
+        currentFile = pPCMDataSource->fileB;
     }
-    
-    memcpy(pFramesOut, pPCMDataSource->pcmData, framesToRead * ma_get_bytes_per_frame(pPCMDataSource->format, pPCMDataSource->channels));
-    *pFramesRead = framesToRead;
-    
-    pPCMDataSource->pcmData += framesToRead * ma_get_bytes_per_frame(pPCMDataSource->format, pPCMDataSource->channels);
-    pPCMDataSource->pcmDataSize -= framesToRead * ma_get_bytes_per_frame(pPCMDataSource->format, pPCMDataSource->channels);
+
+    ma_uint32 bytesRead = (ma_uint32)fread(pFramesOut, 1, bytesToRead, currentFile);
+    ma_uint32 framesRead = bytesRead / bytesPerFrame;
+
+    *pFramesRead = framesRead;
+
+    if (bytesRead == 0) {
+        // End of the current file reached. Check if the next file is null.
+        FILE* nextFile;
+        if (pPCMDataSource->currentFileIndex == 0) {
+            nextFile = pPCMDataSource->fileB;
+        } else {
+            nextFile = pPCMDataSource->fileA;
+        }
+
+        if (nextFile == NULL) {
+           pPCMDataSource->pUserData->endOfListReached = 1;
+        }
+    }    
 
     return MA_SUCCESS;
 }
-
 static ma_result pcm_file_data_source_seek(ma_data_source* pDataSource, ma_uint64 frameIndex)
 {
+    PCMFileDataSource* pPCMDataSource = (PCMFileDataSource*)pDataSource;
+    pPCMDataSource->currentPCMFrame = (ma_uint32)frameIndex;
     return MA_SUCCESS;
 }
 
 static ma_result pcm_file_data_source_get_data_format(ma_data_source* pDataSource, ma_format* pFormat, ma_uint32* pChannels, ma_uint32* pSampleRate, ma_channel* pChannelMap, size_t channelMapCap)
 {
+    (void)pChannelMap;
+    (void)channelMapCap;
     PCMFileDataSource* pPCMDataSource = (PCMFileDataSource*)pDataSource;
     *pFormat = pPCMDataSource->format;
     *pChannels = pPCMDataSource->channels;
@@ -60,13 +81,43 @@ static ma_result pcm_file_data_source_get_data_format(ma_data_source* pDataSourc
 
 static ma_result pcm_file_data_source_get_cursor(ma_data_source* pDataSource, ma_uint64* pCursor)
 {
+    PCMFileDataSource* pPCMDataSource = (PCMFileDataSource*)pDataSource;
+    *pCursor = pPCMDataSource->currentPCMFrame;
+
     return MA_SUCCESS;
 }
 
 static ma_result pcm_file_data_source_get_length(ma_data_source* pDataSource, ma_uint64* pLength)
 {
     PCMFileDataSource* pPCMDataSource = (PCMFileDataSource*)pDataSource;
-    *pLength = pPCMDataSource->pcmDataSize / ma_get_bytes_per_frame(pPCMDataSource->format, pPCMDataSource->channels);
+    
+    // Get the current file based on the current file index
+    FILE* currentFile;
+    if (pPCMDataSource->pUserData->currentFileIndex == 0) {
+        currentFile = pPCMDataSource->fileA;
+    } else {
+        currentFile = pPCMDataSource->fileB;
+    }
+
+    ma_uint64 fileSize;
+
+    // Seek to the end of the current file to get its size
+    fseek(currentFile, 0, SEEK_END);
+    fileSize = ftell(currentFile);
+    fseek(currentFile, 0, SEEK_SET);
+
+    // Calculate the total number of frames in the current file
+    ma_uint64 frameCount = fileSize / ma_get_bytes_per_frame(pPCMDataSource->format, pPCMDataSource->channels);
+    *pLength = frameCount;
+
+    return MA_SUCCESS;
+}
+
+static ma_result pcm_file_data_source_set_looping(ma_data_source* pDataSource, ma_bool32 isLooping)
+{
+    // Dummy implementation
+    (void)pDataSource;
+    (void)isLooping;
 
     return MA_SUCCESS;
 }
@@ -76,19 +127,23 @@ static ma_data_source_vtable pcm_file_data_source_vtable = {
     pcm_file_data_source_seek,
     pcm_file_data_source_get_data_format,
     pcm_file_data_source_get_cursor,
-    pcm_file_data_source_get_length
+    pcm_file_data_source_get_length,
+    pcm_file_data_source_set_looping,
+    0  // flags
 };
 
-ma_result pcm_file_data_source_init(PCMFileDataSource* pPCMDataSource, const char* filename, char* pcmData, ma_uint64 pcmDataSize, ma_format format, ma_uint32 channels, ma_uint32 sampleRate, UserData* pUserData)
+ma_result pcm_file_data_source_init(PCMFileDataSource* pPCMDataSource, const char* filenameA, UserData* pUserData)
 {
     pPCMDataSource->pUserData = pUserData;
-    pPCMDataSource->filename = filename;
-    pPCMDataSource->pcmData = pcmData;
-    pPCMDataSource->pcmDataSize = pcmDataSize;
-    pPCMDataSource->format = format;
-    pPCMDataSource->channels = channels;
-    pPCMDataSource->sampleRate = sampleRate;
+    pPCMDataSource->filenameA = filenameA;
+    pPCMDataSource->format = SAMPLE_FORMAT;
+    pPCMDataSource->channels = CHANNELS;
+    pPCMDataSource->sampleRate = SAMPLE_RATE;
     pPCMDataSource->currentPCMFrame = 0;
+    pPCMDataSource->currentFileIndex = 0;
+    pPCMDataSource->fileA = fopen(filenameA, "rb");
+
+    pUserData->pcmFileA.file = pPCMDataSource->fileA;
 
     return MA_SUCCESS;
 }
@@ -96,85 +151,69 @@ ma_result pcm_file_data_source_init(PCMFileDataSource* pPCMDataSource, const cha
 void pcm_file_data_source_read_pcm_frames(ma_data_source* pDataSource, void* pFramesOut, ma_uint64 frameCount, ma_uint64* pFramesRead)
 {
     PCMFileDataSource* pPCMDataSource = (PCMFileDataSource*)pDataSource;
-    UserData* pUserData = pPCMDataSource->pUserData;  // Access the UserData pointer
+    ma_uint32 framesToRead = (ma_uint32)frameCount;
 
-    // End of file
-    if (skipToNext || (pPCMDataSource->currentPCMFrame >= pPCMDataSource->pcmDataSize / ma_get_bytes_per_frame(pPCMDataSource->format, pPCMDataSource->channels)))
-    {
-        eofReached = 1;
-        skipToNext = false;
+    ma_uint32 bytesPerFrame = ma_get_bytes_per_frame(pPCMDataSource->format, pPCMDataSource->channels);
+    ma_uint32 bytesToRead = framesToRead * bytesPerFrame;
+    ma_uint32 framesRead = 0;
 
-        if (pUserData->pcmFileA.filename != NULL || pUserData->pcmFileB.filename != NULL)
-        {
-            if (!repeatEnabled)            
-                pUserData->currentFileIndex++;             
-
-            if (pUserData->currentFileIndex % 2 == 0)
-            {
-                // Even index, load pcmFileA
-                PCMFile* pNextFile = &pUserData->pcmFileA;
-                if (pNextFile->filename != NULL)
-                {
-                    pcm_file_data_source_init(pPCMDataSource, pNextFile->filename, pNextFile->pcmData, pNextFile->pcmDataSize, pPCMDataSource->format, pPCMDataSource->channels, pPCMDataSource->sampleRate, pUserData);
-                }
-                else
-                {
-                    // pcmFileA is null, reached the end
-                    pUserData->endOfListReached = 1;
-                    if (pFramesRead != NULL) {
-                        *pFramesRead = 0;
-                    }
-                    return;
-                }
+    while (framesToRead > 0) {
+        // Check if a file switch is required
+        if (pPCMDataSource->switchFiles) {
+            // Close the current file
+            FILE* currentFile;
+            if (pPCMDataSource->currentFileIndex == 0) {
+                currentFile = pPCMDataSource->fileB;
+                fclose(currentFile);
+            } else {
+                currentFile = pPCMDataSource->fileA;
+                fclose(currentFile);
             }
-            else
-            {
-                // Odd index, load pcmFileB
-                PCMFile* pNextFile = &pUserData->pcmFileB;
-                if (pNextFile->filename != NULL)
-                {
-                    pcm_file_data_source_init(pPCMDataSource, pNextFile->filename, pNextFile->pcmData, pNextFile->pcmDataSize, pPCMDataSource->format, pPCMDataSource->channels, pPCMDataSource->sampleRate, pUserData);
-                }
-                else
-                {
-                    // pcmFileB is null, reached the end
-                    pUserData->endOfListReached = 1;
-                    if (pFramesRead != NULL) {
-                        *pFramesRead = 0;
-                    }
-                    return;
-                }
+
+            // Open the new file
+            if (pPCMDataSource->currentFileIndex == 0) {
+                pPCMDataSource->fileA = (pPCMDataSource->pUserData->pcmFileA.filename != NULL) ? fopen(pPCMDataSource->pUserData->pcmFileA.filename, "rb") : NULL;
+                currentFile = pPCMDataSource->fileA;
+            } else {
+                pPCMDataSource->fileB = (pPCMDataSource->pUserData->pcmFileB.filename != NULL) ? fopen(pPCMDataSource->pUserData->pcmFileB.filename, "rb") : NULL;
+                currentFile = pPCMDataSource->fileB;
             }
+
+            // Set the new current file and reset any necessary variables
+            pPCMDataSource->currentPCMFrame = 0;
+            pPCMDataSource->switchFiles = false;
+
+            eofReached = true;
+            break;  // Exit the loop after the file switch
         }
-        else
+
+        // Read from the current file
+        FILE* currentFile;
+        if (pPCMDataSource->currentFileIndex == 0) {
+            currentFile = pPCMDataSource->fileA;
+        } else {
+            currentFile = pPCMDataSource->fileB;
+        }
+
+        if (currentFile == NULL)
         {
-            // Both pcmFileA and pcmFileB are null, reached the end
-            pUserData->endOfListReached = 1;
-            if (pFramesRead != NULL) {
-                *pFramesRead = 0;
-            }
+            pPCMDataSource->pUserData->endOfListReached = 1;
             return;
         }
-    }
-    
-    // Calculate the number of frames to read
-    ma_uint32 framesRemaining = (ma_uint32)(pPCMDataSource->pcmDataSize / ma_get_bytes_per_frame(pPCMDataSource->format, pPCMDataSource->channels)) - pPCMDataSource->currentPCMFrame;
-    ma_uint32 framesToRead = (ma_uint32)ma_min(frameCount, framesRemaining);
-    
-    // Copy PCM data to the output buffer
-    ma_uint64 bytesToRead = framesToRead * ma_get_bytes_per_frame(pPCMDataSource->format, pPCMDataSource->channels);
-    
-    if (pPCMDataSource->pcmData == NULL)
-    {
-        pUserData->endOfListReached = 1;
-        if (pFramesRead != NULL) {
-            *pFramesRead = 0;
+        ma_uint32 bytesRead = (ma_uint32)fread((char*)pFramesOut + (framesRead * bytesPerFrame), 1, bytesToRead, currentFile);
+        if (skipToNext || bytesRead == 0) {
+            skipToNext = false;
+            // Reached the end of the current file
+            pPCMDataSource->currentFileIndex = 1 - pPCMDataSource->currentFileIndex; // Toggle between 0 and 1
+            pPCMDataSource->switchFiles = true;
+            continue; // Continue to the next iteration to read from the new file
         }
-        return;
+
+        framesRead += bytesRead / bytesPerFrame;
+        framesToRead -= bytesRead / bytesPerFrame;
+        bytesToRead -= bytesRead;
     }
 
-    memcpy(pFramesOut, pPCMDataSource->pcmData + (pPCMDataSource->currentPCMFrame * ma_get_bytes_per_frame(pPCMDataSource->format, pPCMDataSource->channels)), (size_t)bytesToRead);
-    
     // Allocate memory for g_audioBuffer (if not already allocated)
     if (g_audioBuffer == NULL)
     {
@@ -189,65 +228,29 @@ void pcm_file_data_source_read_pcm_frames(ma_data_source* pDataSource, void* pFr
     // Copy the audio samples from pOutput to audioBuffer
     memcpy(g_audioBuffer, pFramesOut, sizeof(ma_int16) * frameCount);
 
-    // Update the current PCM frame position and set the number of frames read
-    pPCMDataSource->currentPCMFrame += framesToRead;
-    if (pFramesRead != NULL) {
-        *pFramesRead = framesToRead;
-    }
+    if (pFramesRead != NULL)
+        *pFramesRead = framesRead;
 }
 
-ma_result pcm_file_data_source_seek_pcm_frame(ma_data_source* pDataSource, ma_uint64 frameIndex)
-{
-    PCMFileDataSource* pPCMDataSource = (PCMFileDataSource*)pDataSource;
-    UserData* pUserData = pPCMDataSource->pUserData; 
-
-    // Calculate the maximum valid frame index in the current file
-    ma_uint64 maxFrameIndex = pPCMDataSource->pcmDataSize / ma_get_bytes_per_frame(pPCMDataSource->format, pPCMDataSource->channels);
-
-    if (frameIndex < maxFrameIndex)
-    {
-        // Seeking within the current file
-        pPCMDataSource->currentPCMFrame = (ma_uint32)frameIndex;
-    }
-    else
-    {
-        // Seeking to a different file
-        ma_uint32 fileIndex = (ma_uint32)(frameIndex / maxFrameIndex);
-
-        // Move to the specified file
-        if (fileIndex == 0)
-        {
-            pUserData->currentFileIndex = 0;
-            PCMFile* pNextFile = &pUserData->pcmFileA;
-            pcm_file_data_source_init(pPCMDataSource, pNextFile->filename, pNextFile->pcmData, pNextFile->pcmDataSize, SAMPLE_FORMAT, CHANNELS, SAMPLE_RATE, pUserData);
-        }
-        else if (fileIndex == 1)
-        {
-            pUserData->currentFileIndex = 1;
-            PCMFile* pNextFile = &pUserData->pcmFileB;
-            pcm_file_data_source_init(pPCMDataSource, pNextFile->filename, pNextFile->pcmData, pNextFile->pcmDataSize, SAMPLE_FORMAT, CHANNELS, SAMPLE_RATE, pUserData);
-        }
-        else
-        {
-            // Handle the case where end of list is reached
-            pUserData->endOfListReached = 1;
-            return MA_INVALID_OPERATION;
-        }
-
-        // Update the current PCM frame position within the new file
-        pPCMDataSource->currentPCMFrame = (ma_uint32)(frameIndex % maxFrameIndex);
-    }
-
-    return MA_SUCCESS;
-}
-
-// Callback function to retrieve the total number of PCM frames in the file
 ma_uint64 pcm_file_data_source_get_pcm_frame_count(ma_data_source* pDataSource)
 {
     PCMFileDataSource* pPCMDataSource = (PCMFileDataSource*)pDataSource;
     
-    // Calculate the total number of frames
-    ma_uint64 frameCount = pPCMDataSource->pcmDataSize / ma_get_bytes_per_frame(pPCMDataSource->format, pPCMDataSource->channels);
+    // Get the current file based on the current file index
+    FILE* currentFile;
+    if (pPCMDataSource->pUserData->currentFileIndex == 0) {
+        currentFile = pPCMDataSource->fileA;
+    } else {
+        currentFile = pPCMDataSource->fileB;
+    }
+
+    // Seek to the end of the current file to get its size
+    fseek(currentFile, 0, SEEK_END);
+    ma_uint64 fileSize = ftell(currentFile);
+    fseek(currentFile, 0, SEEK_SET);
+    
+    // Calculate the total number of frames in the current file
+    ma_uint64 frameCount = fileSize / ma_get_bytes_per_frame(pPCMDataSource->format, pPCMDataSource->channels);
     
     return frameCount;
 }
@@ -263,12 +266,60 @@ ma_uint64 pcm_file_data_source_get_cursor_pcm_frame(ma_data_source* pDataSource)
     return currentFrame;
 }
 
-// Callback that will be called by miniaudio whenever new frames are available
+void pcm_file_data_source_seek_pcm_frame(ma_data_source* pDataSource, ma_uint64 frameIndex)
+{
+    PCMFileDataSource* pPCMDataSource = (PCMFileDataSource*)pDataSource;
+    ma_uint64 targetFrame = frameIndex;
+
+    if (targetFrame > pPCMDataSource->currentPCMFrame)
+    {
+        // Seeking forward
+        ma_uint64 framesToSkip = targetFrame - pPCMDataSource->currentPCMFrame;
+        ma_uint32 bytesPerFrame = ma_get_bytes_per_frame(pPCMDataSource->format, pPCMDataSource->channels);
+        ma_uint32 bytesToSkip = (ma_uint32)(framesToSkip * bytesPerFrame);
+        FILE* currentFile;
+
+        if (pPCMDataSource->currentFileIndex == 0) {
+            currentFile = pPCMDataSource->fileA;
+        } else {
+            currentFile = pPCMDataSource->fileB;
+        }
+
+        fseek(currentFile, bytesToSkip, SEEK_CUR);
+        pPCMDataSource->currentPCMFrame = targetFrame;
+    }
+    else if (targetFrame < pPCMDataSource->currentPCMFrame)
+    {
+        // Seeking backward 
+    }
+}
+
 void on_audio_frames(ma_device* pDevice, void* pFramesOut, const void* pFramesIn, ma_uint32 frameCount)
 {
     PCMFileDataSource* pDataSource = (PCMFileDataSource*)pDevice->pUserData;
     ma_uint64 framesRead = 0;
-    pcm_file_data_source_read_pcm_frames(pDataSource, pFramesOut, frameCount, &framesRead);
+    pcm_file_data_source_read_pcm_frames(&pDataSource->base, pFramesOut, frameCount, &framesRead);
+    (void)pFramesIn;
+
+    if (framesRead < frameCount && pDataSource->switchFiles)
+    {
+        pDataSource->switchFiles = false;
+
+        if (pDataSource->currentFileIndex == 0)
+        {
+            // Switch to file A
+            pDataSource->currentFileIndex = 1;
+            ma_data_source_seek_to_pcm_frame(&pDataSource->base, 0);  // Seek to the beginning of file A
+            pcm_file_data_source_read_pcm_frames(&pDataSource->base, (ma_int16*)pFramesOut + framesRead * pDevice->playback.channels, frameCount - framesRead, &framesRead);
+        }
+        else if (pDataSource->currentFileIndex == 1)
+        {
+            // Switch to file B
+            pDataSource->currentFileIndex = 0;
+            ma_data_source_seek_to_pcm_frame(&pDataSource->base, 0);  // Seek to the beginning of file B
+            pcm_file_data_source_read_pcm_frames(&pDataSource->base, (ma_int16*)pFramesOut + framesRead * pDevice->playback.channels, frameCount - framesRead, &framesRead);
+        }      
+    }
 }
 
 int convertToPcmFile(const char *filePath, const char *outputFilePath)
@@ -327,16 +378,16 @@ bool isPaused()
     return paused;
 }
 
-int isPlaybackDone()
+bool isPlaybackDone()
 {
-    if (eofReached == 1)
+    if (eofReached)
     {
-        eofReached = 0;
-        return 1;
+        eofReached = false;
+        return true;
     }
     else
     {
-        return 0;
+        return false;
     }
 }
 
@@ -419,50 +470,16 @@ void skip()
     skipToNext = true;
 }
 
-void loadPcmFile(PCMFile* pcmFile, const char* filename)
-{
-    FILE* file = fopen(filename, "rb");
-    if (file == NULL)
-    {
-        return;
-    }
-
-    // Get the file size
-    fseek(file, 0, SEEK_END);
-    long fileSize = ftell(file);
-    rewind(file);
-
-    // Allocate memory for PCM data
-    char* pcmData = (char*)malloc(fileSize);
-    if (pcmData == NULL)
-    {
-        printf("Failed to allocate memory for PCM data.\n");
-        fclose(file);
-        return;
-    }
-
-    // Read PCM data from the file
-    if (fread(pcmData, 1, fileSize, file) != (size_t)fileSize)
-    {
-        printf("Failed to read PCM data from file: %s\n", filename);
-        fclose(file);
-        free(pcmData);
-        return;
-    }
-
-    fclose(file);
-
-    pcmFile->filename = filename;
-    pcmFile->pcmData = pcmData;
-    pcmFile->pcmDataSize = fileSize;
-}
-
 void createAudioDevice(UserData *userData)
 {
     ma_result result = ma_context_init(NULL, 0, NULL, &context);
+    if (result != MA_SUCCESS) {
+        printf("Failed to initialize miniaudio context.\n");
+        return;
+    }
 
-    pFirstFile = &userData->pcmFileA;
-    pcm_file_data_source_init(&pcmDataSource, pFirstFile->filename, pFirstFile->pcmData, pFirstFile->pcmDataSize, SAMPLE_FORMAT, CHANNELS, SAMPLE_RATE, userData);
+    pcm_file_data_source_init(&pcmDataSource, userData->pcmFileA.filename, userData);
+
     pcmDataSource.base.vtable = &pcm_file_data_source_vtable;
 
     ma_device_config deviceConfig = ma_device_config_init(ma_device_type_playback);
@@ -474,9 +491,13 @@ void createAudioDevice(UserData *userData)
 
     result = ma_device_init(&context, &deviceConfig, &device);
     if (result != MA_SUCCESS) {
+        printf("Failed to initialize miniaudio device.\n");
+        return;
     }
 
     result = ma_device_start(&device);
     if (result != MA_SUCCESS) {
-    }  
+        printf("Failed to start miniaudio device.\n");
+        return;
+    }
 }
