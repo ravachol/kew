@@ -5,8 +5,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <fcntl.h>
 #include <unistd.h>
 #include <sys/wait.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include "file.h"
 #include "soundgapless.h"
 
@@ -326,28 +329,39 @@ int convertToPcmFile(const char *filePath, const char *outputFilePath)
 {
     const int COMMAND_SIZE = 1000;
     char command[COMMAND_SIZE];
-    int status;
 
     const char* escapedInputFilePath = escapeFilePath(filePath);
 
     snprintf(command, sizeof(command),
              "ffmpeg -v fatal -hide_banner -nostdin -y -i \"%s\" -f s24le -acodec pcm_s24le -ac %d -ar %d -threads auto \"%s\"",
              escapedInputFilePath, CHANNELS, SAMPLE_RATE, outputFilePath);
-    pid_t pid = fork();
 
+    // Create a new process
+    pid_t pid = fork();
     if (pid == -1) {
         // Fork failed
         perror("fork failed");
         exit(EXIT_FAILURE);
     } else if (pid == 0) {
         // Child process
+        int devNull = open("/dev/null", O_WRONLY);
+        if (devNull == -1) {
+            perror("failed to open /dev/null");
+            exit(EXIT_FAILURE);
+        }
+
+        // Redirect standard output and error to /dev/null
+        dup2(devNull, STDOUT_FILENO);
+        dup2(devNull, STDERR_FILENO);
+        close(devNull);
+
+        // Execute the command
         execl("/bin/sh", "sh", "-c", command, (char *)NULL);
         exit(EXIT_SUCCESS);
     } else {
         // Parent process
-        waitpid(pid, &status, 0);
+        return 0;  // Return immediately
     }
-    return 0;
 }
 
 void resumePlayback()
