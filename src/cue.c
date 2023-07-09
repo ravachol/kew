@@ -698,6 +698,7 @@ void initResize()
 void init()
 {
     disableInputBuffering();
+    srand(time(NULL));
     freopen("/dev/null", "w", stderr);
     initResize();
     enableScrolling();
