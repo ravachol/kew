@@ -417,7 +417,7 @@ int showPlaylist()
                 foundCurrentSong = true;
             }
             shortenString(copiedString, term_w - 5);
-            
+            trim(copiedString);
             if (!startFromCurrent || foundCurrentSong)
             {
                 if (i+1 < 10)
