@@ -183,6 +183,17 @@ int isInputAvailable()
     return ret > 0 && (fds[0].revents & POLLIN);
 }
 
+void set_blocking_mode(int fd, int should_block) {
+    struct termios tty;
+    tcgetattr(fd, &tty);
+    if (should_block) {
+        tty.c_lflag |= ICANON;
+    } else {
+        tty.c_lflag &= ~ICANON;
+    }
+    tcsetattr(fd, TCSANOW, &tty);
+}
+
 // char readInput()
 // {
 //     char c;
@@ -370,4 +381,9 @@ void cursorJump(int numRows)
     printf("\033[%dA", numRows);
     printf("\033[0m");
     fflush(stdout);   
+}
+
+void cursorJumpDown(int numRows) {
+    printf("\033[%dB", numRows);
+    fflush(stdout);
 }

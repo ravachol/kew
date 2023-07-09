@@ -16,7 +16,7 @@ bool printInfo = false;
 bool showList = true;
 int versionHeight = 11;
 int equalizerHeight = 8;
-int minWidth = 31;
+int minWidth = 37;
 int minHeight = 2;
 int coverRow = 0;
 int preferredWidth = 0;
@@ -98,8 +98,52 @@ void setColor()
     setTextColorRGB2(color.r, color.g, color.b);
 }
 
+void printWithDelay(const char* text, unsigned int delay, int maxWidth) {
+    unsigned int length = strlen(text);
+    int max = (maxWidth > length) ? length : maxWidth;
+    for (unsigned int i = 0; i <= max; i++) {
+        printf("\r ");
+        for (unsigned int j = 0; j < i; j++) {
+            printf("%c", text[j]);
+        }
+        printf("█");
+        fflush(stdout);
+        usleep(delay * 1000); // Delay in milliseconds
+    }
+    usleep(delay * 50000);
+    printf("\033[1K\r %.*s", maxWidth, text);
+    printf("\n");
+    fflush(stdout);    
+}
+
 void printBasicMetadata(TagSettings *metadata)
 {
+    int term_w, term_h;
+    getTermSize(&term_w, &term_h);  
+    int maxWidth = term_w - 3;
+    printf("\n");
+    setColor();    
+    int rows = 1;
+    if (strlen(metadata->artist) > 0)
+    {
+        printf(" %.*s\n", maxWidth, metadata->artist);
+        rows++;
+    }
+    if (strlen(metadata->album) > 0)
+    {
+        printf(" %.*s\n", maxWidth, metadata->album);
+        rows++;
+    }
+    if (strlen(metadata->date) > 0)
+    {
+        int year = getYear(metadata->date);
+        if (year == -1)
+            printf(" %.s\n", maxWidth, metadata->date);
+        else
+            printf(" %d\n", year);
+        rows++;
+    }
+    cursorJump(rows);
     if (strlen(metadata->title) > 0)
     {
         PixelData pixel = increaseLuminosity(color, 100);
@@ -116,23 +160,11 @@ void printBasicMetadata(TagSettings *metadata)
             setTextColorRGB2(pixel.r, pixel.g, pixel.b);
             
         }
-        printf(" %s\n", metadata->title); 
-        
-    }
-    setColor();    
-    if (strlen(metadata->artist) > 0)
-        printf(" %s\n", metadata->artist);
-    if (strlen(metadata->album) > 0)
-        printf(" %s\n", metadata->album);
-    if (strlen(metadata->date) > 0)
-    {
-        int year = getYear(metadata->date);
-        if (year == -1)
-            printf(" %s\n", metadata->date);
-        else
-            printf(" %d\n", year);
-    }
+     
+        printWithDelay(metadata->title, 9, maxWidth);
+    }   
     fflush(stdout);
+    cursorJumpDown(rows-1);    
 }
 
 void printProgress(double elapsed_seconds, double total_seconds, double total_duration_seconds)
@@ -194,7 +226,6 @@ void printTime()
 
 void printLastRow()
 {
-    int minWidth = 30;
     int term_w, term_h;
     getTermSize(&term_w, &term_h);
     if (term_w < minWidth)

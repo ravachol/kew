@@ -37,6 +37,8 @@ void getCursorPosition2(int *row, int *col);
 
 void enableRawMode();
 
+void set_blocking_mode(int fd, int should_block);
+
 void setTextColorRGB(int r, int g, int b);
 
 void setTextColorRGB2(int r, int g, int b);
@@ -90,6 +92,8 @@ void disableInputBuffering();
 void enableInputBuffering();
 
 void cursorJump(int numRows);
+
+void cursorJumpDown(int numRows);
 
 void clearScreen();
 

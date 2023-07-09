@@ -102,13 +102,9 @@ struct Event processInput()
     event.key = '\0';
 
     if (!isInputAvailable())
-    {
         saveCursorPosition();
-    }
     else
-    {
         restoreCursorPosition();
-    }
     
     char input = '\0';
 
@@ -369,7 +365,10 @@ void assignUserData()
             userData.pcmFileA.filename = NULL;
         userData.pcmFileA.file = NULL;
     }   
-    assignedToUserdata = true;    
+    assignedToUserdata = true;
+    if (skipping)
+       usleep(100000);
+    skipping = false;
 }
 
 void prepareNextSong()
@@ -410,7 +409,6 @@ void prepareNextSong()
         }
         usingSongDataA = !usingSongDataA; 
     }
-    skipping = false;
 
     clock_gettime(CLOCK_MONOTONIC, &start_time);
 }
@@ -585,6 +583,8 @@ bool isEndOfList()
 
 int play(Node *currentSong)
 {
+    struct Event ev = processInput(); // Ignore any input that's already accumulated
+
     freeAudioBuffer();
     
     pthread_mutex_init(&(loadingdata.mutex), NULL);
