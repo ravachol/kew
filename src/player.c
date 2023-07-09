@@ -283,8 +283,8 @@ void printLastRow()
         strncpy(versionPtr, VERSION, strlen(VERSION));
         versionPtr[strlen(VERSION)] = '\0';
     }
-    int randomNumber = getRandomNumber(1, 400); 
-    if (randomNumber == 400)     
+    int randomNumber = getRandomNumber(1, 808);
+    if (randomNumber == 808)     
         printGlimmeringText(text, bgColor);
     else
         printf(text);
