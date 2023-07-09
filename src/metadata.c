@@ -16,7 +16,7 @@ int extractTags(const char *input_file, TagSettings *tag_settings)
 {
     char command[1024];
     
-    const char* escapedInputFilePath = escapeFilePath(input_file);
+    char* escapedInputFilePath = escapeFilePath(input_file);
     snprintf(command, sizeof(command), "ffprobe -show_entries format_tags -of default=noprint_wrappers=1:nokey=0 \"%s\"", escapedInputFilePath);
 
     free(escapedInputFilePath);
