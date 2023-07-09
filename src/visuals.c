@@ -201,9 +201,10 @@ void drawEqualizer(int height, int width, PixelData c)
         printf("\n "); // Reset the color and move to the next line
     }
     printf("\r");
+    color = decreaseLuminosity(color, 25);
     for (int i = 0; i < width; i++)
     {
-        printf(" █");
+         printf("\033[38;2;%d;%d;%dm", color.r, color.g, color.b);
     }
     printf("\n"); // Reset the color and move to the next line
     printf("\r");
