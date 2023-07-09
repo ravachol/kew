@@ -224,6 +224,50 @@ void printTime()
         printProgress(elapsed, duration, totalDurationSeconds);
 }
 
+int getRandomNumber(int min, int max) {
+    return min + rand() % (max - min + 1);
+}
+
+// Function to print the glimmering text
+void printGlimmeringText(char* text, PixelData color) {
+    int textLength = strlen(text);
+    int brightIndex = 0;
+
+    PixelData vbright = increaseLuminosity(color, 160);
+    PixelData bright = increaseLuminosity(color, 60);
+
+    while (brightIndex < textLength) 
+    {
+        for (int i = 0; i < textLength; i++) 
+        {
+            if (i == brightIndex) 
+            {
+                setTextColorRGB2(vbright.r, vbright.g, vbright.b);
+                printf("%c", text[i]);
+            }
+            else if (i == brightIndex - 1 || i == brightIndex + 1)
+            {
+                setTextColorRGB2(bright.r, bright.g, bright.b);
+                printf("%c", text[i]);
+            }
+            else 
+            {
+                setTextColorRGB2(color.r, color.g, color.b);
+                printf("%c", text[i]);
+            }
+            
+            fflush(stdout);
+            usleep(200);
+        }
+
+        // Move the bright spot by one position
+        brightIndex++;
+
+        // Clear the line
+        printf("\r");
+    }
+}
+
 void printLastRow()
 {
     int term_w, term_h;
@@ -231,7 +275,19 @@ void printLastRow()
     if (term_w < minWidth)
         return;
     setTextColorRGB2(bgColor.r, bgColor.g, bgColor.b);
-    printf(" [F1 Playlist] [Q Quit] cue v%s", VERSION);
+      
+    char text[100] = " [F1 Playlist] [Q Quit] cue v%s";
+    // Replace "%s" in the text with the actual version
+    char* versionPtr = strstr(text, "%s");
+    if (versionPtr != NULL) {
+        strncpy(versionPtr, VERSION, strlen(VERSION));
+        versionPtr[strlen(VERSION)] = '\0';
+    }
+    int randomNumber = getRandomNumber(1, 400); 
+    if (randomNumber == 400)     
+        printGlimmeringText(text, bgColor);
+    else
+        printf(text);
 }
 
 // Callback function to write response data
@@ -471,7 +527,7 @@ void printEqualizer()
         printf("\n");        
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
-        drawEqualizer(equalizerHeight, term_w, color);            
+        drawEqualizer(equalizerHeight, term_w, color); 
         printLastRow();       
         int jumpAmount = equalizerHeight + 2;
         cursorJump(jumpAmount);
