@@ -18,7 +18,7 @@
 #define SAMPLE_WIDTH 3
 #define SAMPLE_FORMAT ma_format_s24
 #define FRAMES_PER_BUFFER 1024
-ma_int16 *g_audioBuffer = NULL;
+ma_int32 *g_audioBuffer = NULL;
 ma_device device = {0};
 ma_context context;
 ma_device_config deviceConfig;
@@ -151,6 +151,8 @@ ma_result pcm_file_data_source_init(PCMFileDataSource* pPCMDataSource, const cha
     return MA_SUCCESS;
 }
 
+
+
 void pcm_file_data_source_read_pcm_frames(ma_data_source* pDataSource, void* pFramesOut, ma_uint64 frameCount, ma_uint64* pFramesRead)
 {
     PCMFileDataSource* pPCMDataSource = (PCMFileDataSource*)pDataSource;
@@ -220,7 +222,7 @@ void pcm_file_data_source_read_pcm_frames(ma_data_source* pDataSource, void* pFr
     // Allocate memory for g_audioBuffer (if not already allocated)
     if (g_audioBuffer == NULL)
     {
-        g_audioBuffer = malloc(sizeof(ma_int16) * frameCount);
+        g_audioBuffer = malloc(sizeof(ma_int32) * frameCount);
         if (g_audioBuffer == NULL)
         {
             // Memory allocation failed
@@ -228,8 +230,12 @@ void pcm_file_data_source_read_pcm_frames(ma_data_source* pDataSource, void* pFr
         }
     }
 
-    // Copy the audio samples from pOutput to audioBuffer
-    memcpy(g_audioBuffer, pFramesOut, sizeof(ma_int16) * frameCount);
+    // Copy the audio samples from pOutput to audioBuffer      
+    //ma_convert_pcm_frames_format(g_audioBuffer, ma_format_s32, pFramesOut, pPCMDataSource->format, frameCount, pPCMDataSource->channels, ma_dither_mode_none);
+
+    // No format conversion needed, just copy the audio samples
+    memcpy(g_audioBuffer, pFramesOut, sizeof(ma_int32) * framesRead);
+
 
     if (pFramesRead != NULL)
         *pFramesRead = framesRead;

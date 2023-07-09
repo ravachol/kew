@@ -51,23 +51,21 @@ void drawEqualizer(int height, int width, PixelData c)
 
     float magnitudes[width];
 
-    for (int i = 0; i < BUFFER_SIZE; i++)
-    {
-        if (g_audioBuffer == NULL) {
-
-            fftwf_destroy_plan(plan);
-            fftwf_free(fftInput);
-            fftInput = NULL;
-            fftwf_free(fftOutput);            
-            fftOutput = NULL;
-            return;
-        }
-        ma_int16 sample;
-        memcpy(&sample, (ma_int16 *)g_audioBuffer + i, sizeof(ma_int16));
-        float normalizedSample = (float)sample / 32767.0f;
-        fftInput[i][0] = normalizedSample;
-        fftInput[i][1] = 0;
+for (int i = 0; i < BUFFER_SIZE; i++)
+{
+    if (g_audioBuffer == NULL) {
+        fftwf_destroy_plan(plan);
+        fftwf_free(fftInput);
+        fftInput = NULL;
+        fftwf_free(fftOutput);
+        fftOutput = NULL;
+        return;
     }
+    ma_int32 sample = g_audioBuffer[i];
+    float normalizedSample = (float)(sample & 0xFFFFFF) / 8388607.0f;  // Normalize the lower 24 bits to the range [-1, 1]
+    fftInput[i][0] = normalizedSample;
+    fftInput[i][1] = 0;
+}
 
     // Perform FFT
     fftwf_execute(plan);
@@ -84,13 +82,13 @@ void drawEqualizer(int height, int width, PixelData c)
     }
 
     // Define the frequency ranges for different sections
-    float lowEnd = 100.0f;
-    float middleEnd = 1000.0f;
+    float lowEnd = 500.0f;
+    float middleEnd = 3000.0f;
     float highEnd = 10000.0f;
 
-    float scaleFactorLow = 1.2f;    // Scaling factor for low-end frequencies
-    float scaleFactorMiddle = 1.4f; // Scaling factor for middle-end frequencies
-    float scaleFactorHigh = 1.4f;   // Scaling factor for high-end frequencies
+    float scaleFactorLow = 1.0f;    // Scaling factor for low-end frequencies
+    float scaleFactorMiddle = 1.0f; // Scaling factor for middle-end frequencies
+    float scaleFactorHigh = 1.0f;   // Scaling factor for high-end frequencies
     float scaleFactor = 1.0;
 
     for (int i = numBins; i >= 0; i--)
@@ -134,9 +132,9 @@ void drawEqualizer(int height, int width, PixelData c)
     float percentage = 0.3;
     float maxMagnitude = 0.0f;
 
-    float ceiling = 100.0f;
+    float ceiling = 100000.0f;
     // Find the maximum magnitude in the current frame
-    for (int i = 0; i < width; i++)
+    for (int i = 1; i < width; i++)
     {
         if (magnitudes[i] > maxMagnitude)
         {
@@ -178,7 +176,7 @@ void drawEqualizer(int height, int width, PixelData c)
         {
             setDefaultTextColor();
         }
-        for (int i = 0; i < width; i++)
+        for (int i = 1; i < width; i++)
         {
             float normalizedMagnitude = magnitudes[i] / maxMagnitude;
             // float scaledMagnitude = normalizedMagnitude * scaleFactor;
@@ -203,9 +201,9 @@ void drawEqualizer(int height, int width, PixelData c)
     printf("\r");
     color = decreaseLuminosity(color, 25);
     printf("\033[38;2;%d;%d;%dm", color.r, color.g, color.b);
-    for (int i = 0; i < width; i++)
+    for (int i = 1; i < width; i++)
     {
-        printf(" █");          
+        printf(" █");
     }
     printf("\n"); // Reset the color and move to the next line
     printf("\r");
