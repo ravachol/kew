@@ -28,19 +28,17 @@ void drawEqualizer(int height, int width, PixelData c)
 
     width = (width / 2);
     height = height - 1;
-    
+
     if (height <= 0 || width <= 0)
         return;
 
     fftwf_complex *fftInput = (fftwf_complex *)fftwf_malloc(sizeof(fftwf_complex) * BUFFER_SIZE);
     if (fftInput == NULL) {
-        fprintf(stderr, "Error: Failed to allocate memory for fftInput\n");
         return; 
     }
 
     fftwf_complex *fftOutput = (fftwf_complex *)fftwf_malloc(sizeof(fftwf_complex) * BUFFER_SIZE);
     if (fftOutput == NULL) {
-        fprintf(stderr, "Error: Failed to allocate memory for fftOutput\n");
         fftwf_free(fftInput); 
         return; 
     }        
@@ -49,77 +47,35 @@ void drawEqualizer(int height, int width, PixelData c)
 
     float magnitudes[width];
 
-for (int i = 0; i < BUFFER_SIZE; i++)
-{
-    if (g_audioBuffer == NULL) {
-        fftwf_destroy_plan(plan);
-        fftwf_free(fftInput);
-        fftInput = NULL;
-        fftwf_free(fftOutput);
-        fftOutput = NULL;
-        return;
+    for (int i = 0; i < BUFFER_SIZE; i++)
+    {
+        if (g_audioBuffer == NULL) {
+            fftwf_destroy_plan(plan);
+            fftwf_free(fftInput);
+            fftInput = NULL;
+            fftwf_free(fftOutput);
+            fftOutput = NULL;
+            return;
+        }
+        ma_int32 sample = g_audioBuffer[i];
+        float normalizedSample = (float)(sample & 0xFFFFFF) / 8388607.0f;  // Normalize the lower 24 bits to the range [-1, 1]
+        fftInput[i][0] = normalizedSample;
+        fftInput[i][1] = 0;
     }
-    ma_int32 sample = g_audioBuffer[i];
-    float normalizedSample = (float)(sample & 0xFFFFFF) / 8388607.0f;  // Normalize the lower 24 bits to the range [-1, 1]
-    fftInput[i][0] = normalizedSample;
-    fftInput[i][1] = 0;
-}
 
-    // Perform FFT
     fftwf_execute(plan);
-
-    int term_w, term_h;
-    getTermSize(&term_w, &term_h);
-
-    int numBins = width;
-    float frequencyResolution = SAMPLE_RATE / BUFFER_SIZE;
 
     for (int i = 0; i < width; i++)
     {
         magnitudes[i] = 0.0f;
     }
 
-    // Define the frequency ranges for different sections
-    float lowEnd = 100.0f;
-    float middleEnd = 3000.0f;
-    float highEnd = 10000.0f;
-
-    float scaleFactorLow = 1.0f;    // Scaling factor for low-end frequencies
-    float scaleFactorMiddle = 1.0f; // Scaling factor for middle-end frequencies
-    float scaleFactorHigh = 1.0f;   // Scaling factor for high-end frequencies
-    float scaleFactor = 1.0;
-
-    for (int i = numBins; i >= 0; i--)
+    for (int i = 0; i < width; i++)
     {
-        float frequency = (numBins - i - 1) * frequencyResolution;
-        int barIndex = 0;
-
-        if (frequency < lowEnd)
-        {
-
-            barIndex = floor(((frequency / lowEnd) * (width)));
-            scaleFactor = scaleFactorLow;
-        }
-        else if (frequency < middleEnd)
-        {
-            barIndex = (int)(((frequency - lowEnd) / (middleEnd - lowEnd)) * (width));
-            scaleFactor = scaleFactorMiddle;
-        }
-        else if (frequency < highEnd)
-        {
-            barIndex = (int)(((frequency - middleEnd) / (highEnd - middleEnd)) * (width));
-            scaleFactor = scaleFactorHigh;
-        }
-
-        if (barIndex < 0)
-            barIndex = 0;
-        if (barIndex >= width)
-            barIndex = width;
-
-        float magnitude1 = sqrtf(fftOutput[i][0] * fftOutput[i][0] + fftOutput[i][1] * fftOutput[i][1]);
-        float combinedMagnitude = magnitude1;
-        magnitudes[i] += combinedMagnitude * scaleFactor;
+        float magnitude = sqrtf(fftOutput[i][0] * fftOutput[i][0] + fftOutput[i][1] * fftOutput[i][1]);
+        magnitudes[i] += magnitude;
     }
+
     printf("\n");
     fflush(stdout);
     float percentage = 0.3;
@@ -141,13 +97,13 @@ for (int i = 0; i < BUFFER_SIZE; i++)
         maxMagnitude = ceiling;
 
     clearRestOfScreen();
-    float exponent = 1.0;
+    float exponent = 1.6;
 
     for (int j = height; j > 0; j--)
     {
         printf("\r");
 
-        if (color.r != 0 || color.g != 0 ||color.b != 0)
+        if (color.r != 0 || color.g != 0 || color.b != 0)
         {
             if (j == height)
             {            
