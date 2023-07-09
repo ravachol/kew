@@ -1,0 +1,134 @@
+==251743== Memcheck, a memory error detector
+==251743== Copyright (C) 2002-2022, and GNU GPL'd, by Julian Seward et al.
+==251743== Using Valgrind-3.21.0 and LibVEX; rerun with -h for copyright info
+==251743== Command: ./cue
+==251743== Parent PID: 131737
+==251743== 
+==251743== 
+==251743== HEAP SUMMARY:
+==251743==     in use at exit: 488,414 bytes in 3,385 blocks
+==251743==   total heap usage: 246,677 allocs, 243,292 frees, 230,212,128 bytes allocated
+==251743== 
+==251743== 456 (72 direct, 384 indirect) bytes in 3 blocks are definitely lost in loss record 527 of 610
+==251743==    at 0x4841848: malloc (vg_replace_malloc.c:431)
+==251743==    by 0x54FCE19: g_malloc (in /usr/lib/libglib-2.0.so.0.7600.2)
+==251743==    by 0x551CC77: g_string_sized_new (in /usr/lib/libglib-2.0.so.0.7600.2)
+==251743==    by 0x1EA56C: printBitmapCentered (chafafunc.c:389)
+==251743==    by 0x1F18BC: displayCover (albumart.c:268)
+==251743==    by 0x1EF847: printCover (player.c:70)
+==251743==    by 0x1F0CB7: printPlayer (player.c:481)
+==251743==    by 0x1F3237: refreshPlayer (cue.c:510)
+==251743==    by 0x1F3515: play (cue.c:625)
+==251743==    by 0x1F365C: run (cue.c:669)
+==251743==    by 0x1F390E: playAll (cue.c:730)
+==251743==    by 0x1F3952: main (cue.c:740)
+==251743== 
+==251743== 456 (72 direct, 384 indirect) bytes in 3 blocks are definitely lost in loss record 528 of 610
+==251743==    at 0x4841848: malloc (vg_replace_malloc.c:431)
+==251743==    by 0x54FCE19: g_malloc (in /usr/lib/libglib-2.0.so.0.7600.2)
+==251743==    by 0x551CC77: g_string_sized_new (in /usr/lib/libglib-2.0.so.0.7600.2)
+==251743==    by 0x1E9F18: convert_image (chafafunc.c:202)
+==251743==    by 0x1EA5A8: printBitmapCentered (chafafunc.c:390)
+==251743==    by 0x1F18BC: displayCover (albumart.c:268)
+==251743==    by 0x1EF847: printCover (player.c:70)
+==251743==    by 0x1F0CB7: printPlayer (player.c:481)
+==251743==    by 0x1F3237: refreshPlayer (cue.c:510)
+==251743==    by 0x1F3515: play (cue.c:625)
+==251743==    by 0x1F365C: run (cue.c:669)
+==251743==    by 0x1F390E: playAll (cue.c:730)
+==251743== 
+==251743== 456 (72 direct, 384 indirect) bytes in 3 blocks are definitely lost in loss record 529 of 610
+==251743==    at 0x4841848: malloc (vg_replace_malloc.c:431)
+==251743==    by 0x54FCE19: g_malloc (in /usr/lib/libglib-2.0.so.0.7600.2)
+==251743==    by 0x551CC77: g_string_sized_new (in /usr/lib/libglib-2.0.so.0.7600.2)
+==251743==    by 0x1EA56C: printBitmapCentered (chafafunc.c:389)
+==251743==    by 0x1F18BC: displayCover (albumart.c:268)
+==251743==    by 0x1EF847: printCover (player.c:70)
+==251743==    by 0x1F0CB7: printPlayer (player.c:481)
+==251743==    by 0x1F325E: refreshPlayer (cue.c:512)
+==251743==    by 0x1F3515: play (cue.c:625)
+==251743==    by 0x1F365C: run (cue.c:669)
+==251743==    by 0x1F390E: playAll (cue.c:730)
+==251743==    by 0x1F3952: main (cue.c:740)
+==251743== 
+==251743== 456 (72 direct, 384 indirect) bytes in 3 blocks are definitely lost in loss record 530 of 610
+==251743==    at 0x4841848: malloc (vg_replace_malloc.c:431)
+==251743==    by 0x54FCE19: g_malloc (in /usr/lib/libglib-2.0.so.0.7600.2)
+==251743==    by 0x551CC77: g_string_sized_new (in /usr/lib/libglib-2.0.so.0.7600.2)
+==251743==    by 0x1E9F18: convert_image (chafafunc.c:202)
+==251743==    by 0x1EA5A8: printBitmapCentered (chafafunc.c:390)
+==251743==    by 0x1F18BC: displayCover (albumart.c:268)
+==251743==    by 0x1EF847: printCover (player.c:70)
+==251743==    by 0x1F0CB7: printPlayer (player.c:481)
+==251743==    by 0x1F325E: refreshPlayer (cue.c:512)
+==251743==    by 0x1F3515: play (cue.c:625)
+==251743==    by 0x1F365C: run (cue.c:669)
+==251743==    by 0x1F390E: playAll (cue.c:730)
+==251743== 
+==251743== 480 bytes in 1 blocks are possibly lost in loss record 532 of 610
+==251743==    at 0x48469B3: calloc (vg_replace_malloc.c:1554)
+==251743==    by 0x4011792: calloc (rtld-malloc.h:44)
+==251743==    by 0x4011792: allocate_dtv (dl-tls.c:375)
+==251743==    by 0x40121D1: _dl_allocate_tls (dl-tls.c:634)
+==251743==    by 0x5672F87: allocate_stack (allocatestack.c:423)
+==251743==    by 0x5672F87: pthread_create@@GLIBC_2.34 (pthread_create.c:652)
+==251743==    by 0x1F2C07: loadSong (cue.c:317)
+==251743==    by 0x1F3403: play (cue.c:593)
+==251743==    by 0x1F365C: run (cue.c:669)
+==251743==    by 0x1F390E: playAll (cue.c:730)
+==251743==    by 0x1F3952: main (cue.c:740)
+==251743== 
+==251743== 496 bytes in 1 blocks are possibly lost in loss record 533 of 610
+==251743==    at 0x48469B3: calloc (vg_replace_malloc.c:1554)
+==251743==    by 0x4011792: calloc (rtld-malloc.h:44)
+==251743==    by 0x4011792: allocate_dtv (dl-tls.c:375)
+==251743==    by 0x40121D1: _dl_allocate_tls (dl-tls.c:634)
+==251743==    by 0x5672F87: allocate_stack (allocatestack.c:423)
+==251743==    by 0x5672F87: pthread_create@@GLIBC_2.34 (pthread_create.c:652)
+==251743==    by 0x1ECB39: calculatePlayListDuration (playlist.c:524)
+==251743==    by 0x1F34E1: play (cue.c:615)
+==251743==    by 0x1F365C: run (cue.c:669)
+==251743==    by 0x1F390E: playAll (cue.c:730)
+==251743==    by 0x1F3952: main (cue.c:740)
+==251743== 
+==251743== 496 bytes in 1 blocks are possibly lost in loss record 534 of 610
+==251743==    at 0x48469B3: calloc (vg_replace_malloc.c:1554)
+==251743==    by 0x4011792: calloc (rtld-malloc.h:44)
+==251743==    by 0x4011792: allocate_dtv (dl-tls.c:375)
+==251743==    by 0x40121D1: _dl_allocate_tls (dl-tls.c:634)
+==251743==    by 0x5672F87: allocate_stack (allocatestack.c:423)
+==251743==    by 0x5672F87: pthread_create@@GLIBC_2.34 (pthread_create.c:652)
+==251743==    by 0x55295B3: ??? (in /usr/lib/libglib-2.0.so.0.7600.2)
+==251743==    by 0x55297BB: g_thread_new (in /usr/lib/libglib-2.0.so.0.7600.2)
+==251743==    by 0x552A3A7: g_thread_pool_new_full (in /usr/lib/libglib-2.0.so.0.7600.2)
+==251743==    by 0x5468831: chafa_process_batches (chafa-batch.c:52)
+==251743==    by 0x547482E: UnknownInlinedFun (chafa-indexed-image.c:372)
+==251743==    by 0x547482E: chafa_indexed_image_draw_pixels (chafa-indexed-image.c:466)
+==251743==    by 0x546904B: UnknownInlinedFun (chafa-sixel-canvas.c:99)
+==251743==    by 0x546904B: chafa_canvas_draw_all_pixels (chafa-canvas.c:1567)
+==251743==    by 0x1E9F0E: convert_image (chafafunc.c:194)
+==251743==    by 0x1EA5A8: printBitmapCentered (chafafunc.c:390)
+==251743== 
+==251743== 3,472 bytes in 7 blocks are possibly lost in loss record 584 of 610
+==251743==    at 0x48469B3: calloc (vg_replace_malloc.c:1554)
+==251743==    by 0x4011792: calloc (rtld-malloc.h:44)
+==251743==    by 0x4011792: allocate_dtv (dl-tls.c:375)
+==251743==    by 0x40121D1: _dl_allocate_tls (dl-tls.c:634)
+==251743==    by 0x5672F87: allocate_stack (allocatestack.c:423)
+==251743==    by 0x5672F87: pthread_create@@GLIBC_2.34 (pthread_create.c:652)
+==251743==    by 0x55295B3: ??? (in /usr/lib/libglib-2.0.so.0.7600.2)
+==251743==    by 0x5529FB2: ??? (in /usr/lib/libglib-2.0.so.0.7600.2)
+==251743==    by 0x5525314: ??? (in /usr/lib/libglib-2.0.so.0.7600.2)
+==251743==    by 0x567244A: start_thread (pthread_create.c:444)
+==251743==    by 0x56F5D63: clone (clone.S:100)
+==251743== 
+==251743== LEAK SUMMARY:
+==251743==    definitely lost: 288 bytes in 12 blocks
+==251743==    indirectly lost: 1,536 bytes in 12 blocks
+==251743==      possibly lost: 4,944 bytes in 10 blocks
+==251743==    still reachable: 479,630 bytes in 3,330 blocks
+==251743==         suppressed: 0 bytes in 0 blocks
+==251743== Reachable blocks (those to which a pointer was found) are not shown.
+==251743== To see them, rerun with: --leak-check=full --show-leak-kinds=all
+==251743== 
+==251743== ERROR SUMMARY: 8 errors from 8 contexts (suppressed: 0 from 0)
