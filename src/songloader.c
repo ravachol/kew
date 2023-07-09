@@ -110,9 +110,6 @@ void unloadSongData(SongData **songdata)
     if (existsFile(data->pcmFilePath))
         deleteFile(data->pcmFilePath);  
 
-//    if (existsFile(data->coverArtPath))
-//        deleteFile(data->coverArtPath);
-
     if (data->pcmFile != NULL)
         free(data->pcmFile);
 
