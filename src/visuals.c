@@ -2,7 +2,6 @@
 #include "albumart.h"
 
 PixelData increaseLuminosity(PixelData pixel, int amount) {
-    // Increase each color component
     PixelData pixel2;
     pixel2.r = pixel.r + amount <= 255 ? pixel.r + amount : 255;
     pixel2.g = pixel.g + amount <= 255 ? pixel.g + amount : 255;
@@ -12,7 +11,6 @@ PixelData increaseLuminosity(PixelData pixel, int amount) {
 }
 
 PixelData decreaseLuminosity(PixelData pixel, int amount) {
-    // Increase each color component
     PixelData pixel2;
     pixel2.r = pixel.r - amount >= amount ? pixel.r - amount : amount;
     pixel2.g = pixel.g - amount >= amount ? pixel.g - amount : amount;
@@ -37,14 +35,14 @@ void drawEqualizer(int height, int width, PixelData c)
     fftwf_complex *fftInput = (fftwf_complex *)fftwf_malloc(sizeof(fftwf_complex) * BUFFER_SIZE);
     if (fftInput == NULL) {
         fprintf(stderr, "Error: Failed to allocate memory for fftInput\n");
-        return; // or handle the error in an appropriate way
+        return; 
     }
 
     fftwf_complex *fftOutput = (fftwf_complex *)fftwf_malloc(sizeof(fftwf_complex) * BUFFER_SIZE);
     if (fftOutput == NULL) {
         fprintf(stderr, "Error: Failed to allocate memory for fftOutput\n");
-        fftwf_free(fftInput); // Free previously allocated memory before exiting
-        return; // or handle the error in an appropriate way
+        fftwf_free(fftInput); 
+        return; 
     }        
 
     fftwf_plan plan = fftwf_plan_dft_1d(BUFFER_SIZE, fftInput, fftOutput, FFTW_FORWARD, FFTW_ESTIMATE);
@@ -82,7 +80,7 @@ for (int i = 0; i < BUFFER_SIZE; i++)
     }
 
     // Define the frequency ranges for different sections
-    float lowEnd = 500.0f;
+    float lowEnd = 100.0f;
     float middleEnd = 3000.0f;
     float highEnd = 10000.0f;
 
@@ -98,23 +96,18 @@ for (int i = 0; i < BUFFER_SIZE; i++)
 
         if (frequency < lowEnd)
         {
-            // Low-end frequency range
+
             barIndex = floor(((frequency / lowEnd) * (width)));
-            // Apply scaling factor for low-end frequencies
             scaleFactor = scaleFactorLow;
         }
         else if (frequency < middleEnd)
         {
-            // Middle-end frequency range
             barIndex = (int)(((frequency - lowEnd) / (middleEnd - lowEnd)) * (width));
-            // Apply scaling factor for middle-end frequencies
             scaleFactor = scaleFactorMiddle;
         }
         else if (frequency < highEnd)
         {
-            // High-end frequency range
             barIndex = (int)(((frequency - middleEnd) / (highEnd - middleEnd)) * (width));
-            // Apply scaling factor for high-end frequencies
             scaleFactor = scaleFactorHigh;
         }
 
@@ -127,13 +120,13 @@ for (int i = 0; i < BUFFER_SIZE; i++)
         float combinedMagnitude = magnitude1;
         magnitudes[i] += combinedMagnitude * scaleFactor;
     }
-    printf("\n"); // Start on a new line
+    printf("\n");
     fflush(stdout);
     float percentage = 0.3;
-    float maxMagnitude = 0.0f;
+    float maxMagnitude = 100.0f;
 
-    float ceiling = 100000.0f;
-    // Find the maximum magnitude in the current frame
+    float ceiling = 1000.0f;
+
     for (int i = 1; i < width; i++)
     {
         if (magnitudes[i] > maxMagnitude)
@@ -148,12 +141,11 @@ for (int i = 0; i < BUFFER_SIZE; i++)
         maxMagnitude = ceiling;
 
     clearRestOfScreen();
-    float exponent = 0.8;
+    float exponent = 1.0;
 
-    //color = increaseLuminosity(color, 60);
     for (int j = height; j > 0; j--)
     {
-        printf("\r"); // Move cursor to the beginning of the line
+        printf("\r");
 
         if (color.r != 0 || color.g != 0 ||color.b != 0)
         {
@@ -179,7 +171,6 @@ for (int i = 0; i < BUFFER_SIZE; i++)
         for (int i = 1; i < width; i++)
         {
             float normalizedMagnitude = magnitudes[i] / maxMagnitude;
-            // float scaledMagnitude = normalizedMagnitude * scaleFactor;
             float scaledMagnitude = pow(normalizedMagnitude, exponent);
             float heightVal = scaledMagnitude * height;
 
@@ -196,7 +187,7 @@ for (int i = 0; i < BUFFER_SIZE; i++)
                 }
             }
         }
-        printf("\n "); // Reset the color and move to the next line
+        printf("\n ");
     }
     printf("\r");
     color = decreaseLuminosity(color, 25);
@@ -205,7 +196,7 @@ for (int i = 0; i < BUFFER_SIZE; i++)
     {
         printf(" █");
     }
-    printf("\n"); // Reset the color and move to the next line
+    printf("\n");
     printf("\r");
     fflush(stdout);
 
