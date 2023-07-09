@@ -97,7 +97,7 @@ void drawEqualizer(int height, int width, PixelData c)
         maxMagnitude = ceiling;
 
     clearRestOfScreen();
-    float exponent = 1.6;
+    float exponent = 1.0;
 
     for (int j = height; j > 0; j--)
     {
