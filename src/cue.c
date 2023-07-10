@@ -49,17 +49,9 @@
 #include "cache.h"
 #include "songloader.h"
 
-#ifndef SONG_BUFFER_SIZE
-#define SONG_BUFFER_SIZE 1024 * 1024
-#endif
 #ifndef CLOCK_MONOTONIC
 #define CLOCK_MONOTONIC 1
 #endif
-
-#ifndef MAX_EVENTS_IN_QUEUE
-#define MAX_EVENTS_IN_QUEUE 1
-#endif
-#define TRESHOLD_TERMINAL_SIZE 28
 
 typedef struct
 {
@@ -366,8 +358,6 @@ void assignUserData()
         userData.pcmFileA.file = NULL;
     }   
     assignedToUserdata = true;
-    if (skipping)
-       usleep(100000);
     skipping = false;
 }
 
@@ -514,11 +504,7 @@ void loadAudioData()
 {
     if (nextSong == NULL)
     {
-        if (usingSongDataA)
-            loadingdata.loadA = false;
-        else
-            loadingdata.loadA = true;
-            
+        loadingdata.loadA = !usingSongDataA;
         loadNext(&loadingdata);
     }         
 }
@@ -715,7 +701,8 @@ void playMainPlaylist()
 {
     if (mainPlaylist->count == 0)
     {
-        showHelp();
+        printf("Couldn't find any songs in the main playlist. Add a song by pressing 'a' while it's playing. \n");
+        exit(0);
     }
     playingMainPlaylist = true;
     playlist = deepCopyPlayList(mainPlaylist);
@@ -728,6 +715,11 @@ void playAll(int argc, char **argv)
 {
     init();
     makePlaylist(argc, argv);
+    if (playlist.count == 0)
+    {
+        printf("Please make sure the path is set correctly. \n");
+        printf("To set it type: cue path \"/path/to/Music\". \n");
+    }    
     run();
 }
 

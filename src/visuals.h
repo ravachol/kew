@@ -1,13 +1,14 @@
 #include <math.h>
 #include <float.h>
 #include <fftw3.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
 #include "soundgapless.h"
 #include "term.h"
 #include "write_ascii.h"
-#define SAMPLE_RATE 192000
-#define BUFFER_SIZE 1024
 
-void drawEqualizer(int height, int width, PixelData color);
+void drawSpectrumVisualizer(int height, int width, PixelData c, ma_int32 *audioData);
 
 PixelData increaseLuminosity(PixelData pixel, int amount);
 

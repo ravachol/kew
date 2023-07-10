@@ -67,6 +67,9 @@ int isDirectory(const char *path)
     }
     else
     {
+        if (errno == ENOENT) {
+            return -1;
+        }
         return 0;
     }
 }

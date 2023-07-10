@@ -257,7 +257,7 @@ void printGlimmeringText(char* text, PixelData color) {
             }
             
             fflush(stdout);
-            usleep(200);
+            usleep(30);
         }
 
         // Move the bright spot by one position
@@ -283,7 +283,7 @@ void printLastRow()
         strncpy(versionPtr, VERSION, strlen(VERSION));
         versionPtr[strlen(VERSION)] = '\0';
     }
-    int randomNumber = getRandomNumber(1, 808);
+    int randomNumber = getRandomNumber(1, 808); 
     if (randomNumber == 808)     
         printGlimmeringText(text, bgColor);
     else
@@ -527,7 +527,7 @@ void printEqualizer()
         printf("\n");        
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
-        drawEqualizer(equalizerHeight, term_w, color); 
+        drawSpectrumVisualizer(equalizerHeight, term_w, color, g_audioBuffer);
         printLastRow();       
         int jumpAmount = equalizerHeight + 2;
         cursorJump(jumpAmount);

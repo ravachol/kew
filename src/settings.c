@@ -5,8 +5,9 @@
 
 AppSettings settings;
 
-const char PATH_SETTING_FILENAME[] = ".cue-settings";
-const char SETTINGS_FILENAME[] = "cue.conf";
+const char PATH_SETTING_FILENAME_DEPRECATED[] = ".cue-settings";
+const char SETTINGS_FILENAME_DEPRECATED[] = "cue.conf";
+const char SETTINGS_FILE[] = ".cue.conf";
 
 AppSettings constructAppSettings(KeyValuePair *pairs, int count)
 {
@@ -170,7 +171,7 @@ int getMusicLibraryPath(char *path)
             strcpy(path, expandedPath);
         return 0;
     }
-    getSettingsDeprecated(path, MAXPATHLEN, PATH_SETTING_FILENAME);
+    getSettingsDeprecated(path, MAXPATHLEN, PATH_SETTING_FILENAME_DEPRECATED);
 
     if (path[0] == '\0') // if NULL, ie no path setting was found
     {
@@ -190,13 +191,25 @@ void getConfig()
     int pair_count;
     struct passwd *pw = getpwuid(getuid());
     const char *homedir = pw->pw_dir;
-    
-    // Allocate memory for the filepath
-    size_t filepath_length = strlen(homedir) + strlen("/") + strlen(SETTINGS_FILENAME) + 1;
-    char* filepath = (char*)malloc(filepath_length);
-    strcpy(filepath, homedir);
-    strcat(filepath, "/");
-    strcat(filepath, SETTINGS_FILENAME);
+    char* filepath = NULL;
+    if (!existsFile(SETTINGS_FILE))
+    {
+        // Allocate memory for the filepath
+        size_t filepath_length = strlen(homedir) + strlen("/") + strlen(SETTINGS_FILENAME_DEPRECATED) + 1;
+        filepath = (char*)malloc(filepath_length);
+        strcpy(filepath, homedir);
+        strcat(filepath, "/");
+        strcat(filepath, SETTINGS_FILENAME_DEPRECATED);
+    }
+    else
+    {
+        // Allocate memory for the filepath
+        size_t filepath_length = strlen(homedir) + strlen("/") + strlen(SETTINGS_FILE) + 1;
+        filepath = (char*)malloc(filepath_length);
+        strcpy(filepath, homedir);
+        strcat(filepath, "/");
+        strcat(filepath, SETTINGS_FILE);
+    }
 
     KeyValuePair *pairs = readKeyValuePairs(filepath, &pair_count);
 
@@ -219,10 +232,10 @@ void setConfig()
     struct passwd *pw = getpwuid(getuid());
     const char *homedir = pw->pw_dir;
 
-    char *filepath = (char *)malloc(strlen(homedir) + strlen("/") + strlen(SETTINGS_FILENAME) + 1);
+    char *filepath = (char *)malloc(strlen(homedir) + strlen("/") + strlen(SETTINGS_FILE) + 1);
     strcpy(filepath, homedir);
     strcat(filepath, "/");
-    strcat(filepath, SETTINGS_FILENAME);
+    strcat(filepath, SETTINGS_FILE);
 
     // Open the file for writing
     FILE *file = fopen(filepath, "w");
