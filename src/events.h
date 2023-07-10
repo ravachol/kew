@@ -1,7 +1,5 @@
 #include <stdbool.h>
 
-#define MAX_EVENTS_IN_QUEUE 1
-
 // Define event types
 enum EventType
 {
