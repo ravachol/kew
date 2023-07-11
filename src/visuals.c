@@ -3,12 +3,10 @@
 #define SAMPLE_RATE 192000
 #define BUFFER_SIZE 1024
 #define CHANNELS 2
-
-// Beat-detection related
-#define WINDOW_SIZE 512
-#define BEAT_THRESHOLD 0.3
+#define WINDOW_SIZE 1024
+#define BEAT_THRESHOLD 0.1
 #define MAGNITUDE_CEIL 300
-#define JUMP_AMOUNT 2.4
+#define JUMP_AMOUNT 3.0
 int bufferIndex = 0;
 
 float magnitudeBuffer[WINDOW_SIZE] = {0.0f};
@@ -16,7 +14,7 @@ float magnitudeBuffer[WINDOW_SIZE] = {0.0f};
 void updateMagnitudeBuffer(float magnitude)
 {
     magnitudeBuffer[bufferIndex] = magnitude;
-    bufferIndex = (bufferIndex + 1) % WINDOW_SIZE; // Update the buffer index in a circular manner
+    bufferIndex = (bufferIndex + 1) % WINDOW_SIZE;
 }
 
 float calculateMovingAverage()
@@ -51,7 +49,7 @@ float calculateThreshold()
     float mean = sum / numSamples;
 
     float variance = 0.0f;
-    for (int i = 1; i < WINDOW_SIZE; i++)
+    for (int i = 0; i < WINDOW_SIZE; i++)
     {
         float diff = magnitudeBuffer[i] - mean;
         variance += diff * diff;
@@ -67,21 +65,15 @@ float calculateThreshold()
 int detectBeats(float *magnitudes, int numBars)
 {
     float avgMagnitude = 0.0f;
-    int range = 3;
+    int range = 1;
     range = (range > numBars) ? numBars : range;
 
-    int numSamples = 0;
-    for (int i = 1; i < range; i++)
+    for (int i = 0; i < range; i++)
     {
         float magnitude = magnitudes[i];
         avgMagnitude += magnitude;
-        if (magnitude != 0.0f)
-        {
-            numSamples++;
-        }
     }
-    numSamples = (numSamples > 0) ? numSamples : 1;
-    avgMagnitude /= numSamples;
+    avgMagnitude /= range;
 
     updateMagnitudeBuffer(avgMagnitude);
 
@@ -89,24 +81,14 @@ int detectBeats(float *magnitudes, int numBars)
     float threshold = calculateThreshold(); 
 
     int peakDetected = 0;
-    for (int i = 1; i < range; i++)
+    for (int i = 0; i < range; i++)
     {
         if (magnitudes[i] > threshold)
         {
-            peakDetected = 1;
-            break;
+            return 1;
         }
     }
-
-    if (peakDetected)
-    {
-        // Beat detected
-        return 1;
-    }
-    else
-    {
-        return 0;
-    }
+    return 0;
 }
 
 void updateMagnitudes(int height, int width, float maxMagnitude, fftwf_complex *fftOutput, float *magnitudes)
@@ -135,7 +117,7 @@ float calcMaxMagnitude(int numBars, float *magnitudes)
     float maxMagnitude = 0.0f;
     float ceiling = MAGNITUDE_CEIL;
     float threshold = ceiling * percentage;
-    for (int i = 1; i < numBars; i++) // We start at 1 because 0 is always some wildly large number for some reason
+    for (int i = 0; i < numBars; i++)
     {
         if (magnitudes[i] > maxMagnitude)
         {
@@ -173,7 +155,17 @@ void calcSpectrum(int height, int width, fftwf_complex *fftInput, fftwf_complex 
     for (int i = 0; i < BUFFER_SIZE; i++)
     {
         ma_int32 sample = g_audioBuffer[i];
-        float normalizedSample = (float)(sample & 0xFFFFFF) / 8388607.0f; // Normalize the lower 24 bits to the range [-1, 1]
+        // Extract the lower 24 bits from the sample
+        int lower24Bits = sample & 0xFFFFFF;
+
+        // Check if the 24th bit is set (indicating a negative value)
+        if (lower24Bits & 0x800000) {
+        // Extend the sign to 32 bits
+        lower24Bits |= 0xFF000000;
+        }
+
+        // Normalize the 24-bit sample to the range [-1, 1]
+        float normalizedSample = (float)lower24Bits / 8388608.0f;
         fftInput[i][0] = normalizedSample;
         fftInput[i][1] = 0;
     }
@@ -242,7 +234,7 @@ void printSpectrum(int height, int width, PixelData c, float *magnitudes, PixelD
         {
             setDefaultTextColor();
         }
-        for (int i = 1; i < width; i++)
+        for (int i = 0; i < width; i++)
         {
             if (j >= 0)
             {
@@ -277,8 +269,7 @@ void drawSpectrumVisualizer(int height, int width, PixelData c, ma_int32 *audioD
     color.g = c.g;
     color.b = c.b;
 
-    width = (width / 2) + 1; // We only print a bar every other column and the first is always maxed so it is ignored.
-                             // Therefore we need to add 1.
+    int numBars = (width / 2);
     height = height - 1;
 
     if (height <= 0 || width <= 0)
@@ -301,10 +292,10 @@ void drawSpectrumVisualizer(int height, int width, PixelData c, ma_int32 *audioD
 
     fftwf_plan plan = fftwf_plan_dft_1d(BUFFER_SIZE, fftInput, fftOutput, FFTW_FORWARD, FFTW_ESTIMATE);
 
-    float magnitudes[width];
+    float magnitudes[numBars];
 
-    calcSpectrum(height, width, fftInput, fftOutput, magnitudes, plan);
-    printSpectrum(height, width, color, magnitudes, color);
+    calcSpectrum(height, numBars, fftInput, fftOutput, magnitudes, plan);
+    printSpectrum(height, numBars, color, magnitudes, color);
 
     fftwf_destroy_plan(plan);
     fftwf_free(fftInput);
