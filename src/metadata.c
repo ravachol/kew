@@ -3,7 +3,6 @@
 
 void removeTagPrefix(char *value)
 {
-    // Find the first occurrence of ':' in the value
     char *colon_pos = strchr(value, ':');
     if (colon_pos)
     {

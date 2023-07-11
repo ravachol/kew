@@ -18,34 +18,6 @@
 
 FIBITMAP *bitmap;
 
-void runChafaCommand(const char *filepath, int width, int height)
-{
-    const int COMMAND_SIZE = 1000;
-    char command[COMMAND_SIZE];
-    int status;
-
-    char* escapedInputFilePath = escapeFilePath(filepath);
-
-    snprintf(command, COMMAND_SIZE, "chafa --clear -s %dx%d --scale max --stretch --margin-right 0 -C on \"%s\"", width, height, escapedInputFilePath);
-
-    free(escapedInputFilePath);
-
-    pid_t pid = fork();
-
-    if (pid == -1) {
-        // Fork failed
-        perror("fork failed");
-        exit(EXIT_FAILURE);
-    } else if (pid == 0) {
-        // Child process
-        execl("/bin/sh", "sh", "-c", command, (char *)NULL);
-        exit(EXIT_SUCCESS);
-    } else {
-        // Parent process
-        waitpid(pid, &status, 0);  // Wait for the chafa process to finish
-    }
-}
-
 int extractCoverCommand(const char *inputFilePath, const char *outputFilePath)
 {
     const int COMMAND_SIZE = 1000;
@@ -64,7 +36,6 @@ int extractCoverCommand(const char *inputFilePath, const char *outputFilePath)
     pid_t pid = fork();
 
     if (pid == -1) {
-        // Fork failed
         perror("fork failed");
         exit(EXIT_FAILURE);
     } else if (pid == 0) {
@@ -73,7 +44,7 @@ int extractCoverCommand(const char *inputFilePath, const char *outputFilePath)
         exit(EXIT_SUCCESS);
     } else {
         // Parent process
-        waitpid(pid, &status, 0);  // Wait for the chafa process to finish
+        waitpid(pid, &status, 0);
     }
 
     FILE *file = fopen(outputFilePath, "r");

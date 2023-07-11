@@ -43,10 +43,8 @@ void freeKeyValuePairs(KeyValuePair *pairs, int count);
 
 AppSettings constructAppSettings(KeyValuePair *pairs, int count);
 
-// saves the path to your music folder
 int saveSettingsDeprecated(char *path, const char *settingsFile);
 
-// reads the settings file, which contains the path to your music folder
 int getSettingsDeprecated(char *path, int len, const char *settingsFile);
 
 void getConfig();

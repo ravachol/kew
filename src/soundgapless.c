@@ -230,9 +230,6 @@ void pcm_file_data_source_read_pcm_frames(ma_data_source* pDataSource, void* pFr
         }
     }
 
-    // Copy the audio samples from pOutput to audioBuffer      
-    //ma_convert_pcm_frames_format(g_audioBuffer, ma_format_s32, pFramesOut, pPCMDataSource->format, frameCount, pPCMDataSource->channels, ma_dither_mode_none);
-
     // No format conversion needed, just copy the audio samples
     memcpy(g_audioBuffer, pFramesOut, sizeof(ma_int32) * framesRead);
 
