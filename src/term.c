@@ -86,7 +86,7 @@ void getCursorPosition(int *row, int *col)
 
     struct timeval tv;
     tv.tv_sec = 0;
-    tv.tv_usec = 10000; // 10ms
+    tv.tv_usec = 10000;
 
     if (select(STDIN_FILENO + 1, &fds, NULL, NULL, &tv) > 0)
     {
@@ -98,7 +98,7 @@ void getCursorPosition(int *row, int *col)
 
 void getCursorPosition2(int *row, int *col)
 {
-    printf("\033[6n"); // Request cursor position report
+    printf("\033[6n");
     fflush(stdout);
     scanf("\033[%d;%dR", row, col);
 }
@@ -164,7 +164,6 @@ void restoreTerminalMode()
 
 int isInputAvailable()
 {
-    // Clear any buffered input
     while (read(STDIN_FILENO, NULL, 0) > 0)
         ;
 
@@ -175,8 +174,6 @@ int isInputAvailable()
     int ret = poll(fds, 1, 0);
     if (ret < 0)
     {
-        // Error occurred during poll()
-        // Handle the error appropriately
         return 0;
     }
 
@@ -194,32 +191,6 @@ void set_blocking_mode(int fd, int should_block) {
     tcsetattr(fd, TCSANOW, &tty);
 }
 
-// char readInput()
-// {
-//     char c;
-//     int flags = fcntl(STDIN_FILENO, F_GETFL, 0);
-//     fcntl(STDIN_FILENO, F_SETFL, flags);
-
-//     ssize_t bytesRead = read(STDIN_FILENO, &c, 1);
-
-//     if (bytesRead == 0)
-//     {
-//         // No input available, handle accordingly
-//     }
-//     else if (bytesRead == -1)
-//     {
-//         // Error occurred during read(), handle accordingly
-//     }
-//     else
-//     {
-//         // Input successfully read, process it
-//         return c;
-//     }
-//     usleep(1000);
-//     // Return a default value or handle the error case
-//     return '\0';
-// }
-
 char readInput()
 {
     char c;
@@ -233,18 +204,10 @@ char readInput()
     }
     else
     {
-        // Input successfully read, process it
         return c;
     }
     return '\0';
 }
-
-// char readInput()
-// {
-//     char c;
-//     read(STDIN_FILENO, &c, 1);
-//     return c;
-// }
 
 void saveCursorPosition()
 {
@@ -266,7 +229,7 @@ void setCursorPosition(int row, int col)
 
 void hideCursor()
 {
-    printf("\033[?25l"); // Hide the cursor
+    printf("\033[?25l");
     fflush(stdout);
 }
 
