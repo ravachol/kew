@@ -253,7 +253,7 @@ void printSpectrum(int height, int width, PixelData c, float *magnitudes, PixelD
     printf("\r");
     color = decreaseLuminosity(color, 25);
     printf("\033[38;2;%d;%d;%dm", color.r, color.g, color.b);
-    for (int i = 1; i < width; i++)
+    for (int i = 0; i < width; i++)
     {
         printf(" █");
     }
