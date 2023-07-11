@@ -85,10 +85,8 @@ void handleResize(int sig);
 
 void resetResizeFlag(int sig);
 
-// Disable input buffering
 void disableInputBuffering();
 
-// Enable input buffering
 void enableInputBuffering();
 
 void cursorJump(int numRows);

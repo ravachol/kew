@@ -1,6 +1,5 @@
 #include <stdbool.h>
 
-// Define event types
 enum EventType
 {
     EVENT_NONE,
@@ -21,7 +20,6 @@ enum EventType
     EVENT_KEY_PRESS
 };
 
-// Structure to store events
 struct Event
 {
     enum EventType type;

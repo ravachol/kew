@@ -16,7 +16,6 @@
 #include "stringfunc.h"
 #include <sys/types.h>
 
-
 #define RETRY_DELAY_MICROSECONDS 100000
 #define MAX_RETRY_COUNT 20
 #define MAX_FILENAME_LENGTH 256
@@ -38,9 +37,9 @@ int tryOpen(const char *path);
 
 int isDirectory(const char *path);
 
-// Function to traverse a directory tree and search for a given file or directory
+/* Traverse a directory tree and search for a given file or directory */
 int walker(const char *startPath, const char *searching, char *result,
-                  const char *allowedExtensions, enum SearchType searchType);
+           const char *allowedExtensions, enum SearchType searchType);
 
 int expandPath(const char *inputPath, char *expandedPath);
 
@@ -50,7 +49,7 @@ int removeDirectory(const char *path);
 
 int deleteFile(const char *filePath);
 
-char* escapeFilePath(const char* filePath);
+char *escapeFilePath(const char *filePath);
 
 void generateTempFilePath(char *filePath, const char *prefix, const char *suffix);
 

@@ -173,7 +173,7 @@ int getMusicLibraryPath(char *path)
     }
     getSettingsDeprecated(path, MAXPATHLEN, PATH_SETTING_FILENAME_DEPRECATED);
 
-    if (path[0] == '\0') // if NULL, ie no path setting was found
+    if (path[0] == '\0')
     {
         struct passwd *pw = getpwuid(getuid());
         strcat(path, pw->pw_dir);
@@ -194,7 +194,6 @@ void getConfig()
     char* filepath = NULL;
     if (!existsFile(SETTINGS_FILE))
     {
-        // Allocate memory for the filepath
         size_t filepath_length = strlen(homedir) + strlen("/") + strlen(SETTINGS_FILENAME_DEPRECATED) + 1;
         filepath = (char*)malloc(filepath_length);
         strcpy(filepath, homedir);
@@ -203,7 +202,6 @@ void getConfig()
     }
     else
     {
-        // Allocate memory for the filepath
         size_t filepath_length = strlen(homedir) + strlen("/") + strlen(SETTINGS_FILE) + 1;
         filepath = (char*)malloc(filepath_length);
         strcpy(filepath, homedir);
@@ -237,7 +235,6 @@ void setConfig()
     strcat(filepath, "/");
     strcat(filepath, SETTINGS_FILE);
 
-    // Open the file for writing
     FILE *file = fopen(filepath, "w");
     if (file == NULL)
     {
@@ -246,7 +243,6 @@ void setConfig()
         return;
     }
 
-    // Set defaults if null
     if (settings.coverEnabled[0] == '\0')
         coverEnabled ? strcpy(settings.coverEnabled, "1") : strcpy(settings.coverEnabled, "0");
     if (settings.coverBlocks[0] == '\0')
@@ -276,7 +272,6 @@ void setConfig()
     fprintf(file, "equalizerBlocks=%s\n", settings.equalizerBlocks);
     fprintf(file, "equalizerHeight=%s\n", settings.equalizerHeight);
 
-    // Close the file and free the allocated memory
     fclose(file);
     free(filepath);
 }

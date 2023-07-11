@@ -148,7 +148,7 @@ void insertAsFirst(Node *currentSong, PlayList *playlist)
 {
     if (currentSong == NULL || playlist == NULL)
     {
-        return; // Invalid input
+        return;
     }
 
     if (playlist->head == NULL)
@@ -344,7 +344,7 @@ void makePlaylistName(const char *search)
 {
     char *duplicateSearch = strdup(search);
     strcat(playlistName, duplicateSearch);
-    free(duplicateSearch);  // Free the allocated memory
+    free(duplicateSearch);
     strcat(playlistName, ".m3u");   
     int i = 0;
     while(playlistName[i]!='\0')

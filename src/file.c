@@ -74,7 +74,7 @@ int isDirectory(const char *path)
     }
 }
 
-// Function to traverse a directory tree and search for a given file or directory
+// Traverse a directory tree and search for a given file or directory
 int walker(const char *startPath, const char *searching, char *result,
            const char *allowedExtensions, enum SearchType searchType)
 {
