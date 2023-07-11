@@ -65,7 +65,7 @@ float calculateThreshold()
 int detectBeats(float *magnitudes, int numBars)
 {
     float avgMagnitude = 0.0f;
-    int range = 1;
+    int range = 2;
     range = (range > numBars) ? numBars : range;
 
     for (int i = 0; i < range; i++)

@@ -228,7 +228,6 @@ int getRandomNumber(int min, int max) {
     return min + rand() % (max - min + 1);
 }
 
-// Function to print the glimmering text
 void printGlimmeringText(char* text, PixelData color) {
     int textLength = strlen(text);
     int brightIndex = 0;
@@ -259,11 +258,7 @@ void printGlimmeringText(char* text, PixelData color) {
             fflush(stdout);
             usleep(30);
         }
-
-        // Move the bright spot by one position
         brightIndex++;
-
-        // Clear the line
         printf("\r");
     }
 }
