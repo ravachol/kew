@@ -45,7 +45,6 @@
 #include "visuals.h"
 #include "albumart.h"
 #include "player.h"
-#include "arg.h"
 #include "cache.h"
 #include "songloader.h"
 
@@ -753,7 +752,6 @@ int main(int argc, char *argv[])
     else if (argc >= 2)
     {
         init();
-        handleSwitches(&argc, argv);
         makePlaylist(argc, argv);
         run();
     }
