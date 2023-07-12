@@ -52,7 +52,7 @@ static ma_result pcm_file_data_source_read(ma_data_source *pDataSource, void *pF
 
     *pFramesRead = framesRead;
 
-    if (bytesRead == 0)
+    if (bytesRead == 0 && !skipping)
     {
         // End of the current file reached. Check if the next file is null.
         FILE *nextFile;
@@ -165,6 +165,9 @@ ma_result pcm_file_data_source_init(PCMFileDataSource *pPCMDataSource, const cha
 
 void pcm_file_data_source_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_uint64 frameCount, ma_uint64 *pFramesRead)
 {
+    if (skipping)
+        return;
+
     PCMFileDataSource *pPCMDataSource = (PCMFileDataSource *)pDataSource;
     ma_uint32 framesToRead = (ma_uint32)frameCount;
 
@@ -174,9 +177,6 @@ void pcm_file_data_source_read_pcm_frames(ma_data_source *pDataSource, void *pFr
 
     while (framesToRead > 0)
     {
-        if (skipping || pPCMDataSource->pUserData->endOfListReached == 1)
-            return;
-
         // Check if a file switch is required
         if (pPCMDataSource->switchFiles)
         {
