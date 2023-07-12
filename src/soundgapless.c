@@ -27,6 +27,7 @@ PCMFile *pFirstFile = NULL;
 bool paused = false;
 bool skipToNext = false;
 bool repeatEnabled = false;
+
 static bool eofReached = false;
 
 static ma_result pcm_file_data_source_read(ma_data_source *pDataSource, void *pFramesOut, ma_uint64 frameCount, ma_uint64 *pFramesRead)
@@ -65,7 +66,7 @@ static ma_result pcm_file_data_source_read(ma_data_source *pDataSource, void *pF
         }
 
         if (nextFile == NULL)
-        {
+        {            
             pPCMDataSource->pUserData->endOfListReached = 1;
         }
     }
@@ -173,6 +174,9 @@ void pcm_file_data_source_read_pcm_frames(ma_data_source *pDataSource, void *pFr
 
     while (framesToRead > 0)
     {
+        if (skipping || pPCMDataSource->pUserData->endOfListReached == 1)
+            return;
+
         // Check if a file switch is required
         if (pPCMDataSource->switchFiles)
         {
@@ -221,8 +225,7 @@ void pcm_file_data_source_read_pcm_frames(ma_data_source *pDataSource, void *pFr
         }
 
         if (currentFile == NULL)
-        {
-            pPCMDataSource->pUserData->endOfListReached = 1;
+        {            
             return;
         }
         ma_uint32 bytesRead = (ma_uint32)fread((char *)pFramesOut + (framesRead * bytesPerFrame), 1, bytesToRead, currentFile);

@@ -167,24 +167,6 @@ void restoreTerminalMode()
     tcsetattr(STDIN_FILENO, TCSANOW, &ttystate);
 }
 
-int isInputAvailable()
-{
-    while (read(STDIN_FILENO, NULL, 0) > 0)
-        ;
-
-    struct pollfd fds[1];
-    fds[0].fd = STDIN_FILENO;
-    fds[0].events = POLLIN;
-
-    int ret = poll(fds, 1, 0);
-    if (ret < 0)
-    {
-        return 0;
-    }
-
-    return ret > 0 && (fds[0].revents & POLLIN);
-}
-
 void set_blocking_mode(int fd, int should_block)
 {
     struct termios tty;
@@ -200,19 +182,30 @@ void set_blocking_mode(int fd, int should_block)
     tcsetattr(fd, TCSANOW, &tty);
 }
 
+int isInputAvailable()
+{
+    fd_set fds;
+    FD_ZERO(&fds);
+    FD_SET(STDIN_FILENO, &fds);    
+    struct timeval tv;
+    tv.tv_sec = 0;
+    tv.tv_usec = 0;
+
+    int ret = select(STDIN_FILENO + 1, &fds, NULL, NULL, &tv);
+    
+    if (ret < 0)
+    {
+        return 0;
+    }
+    int result = (ret > 0) && (FD_ISSET(STDIN_FILENO, &fds));
+    return result;
+}
+
 char readInput()
 {
     char c;
     ssize_t bytesRead = read(STDIN_FILENO, &c, 1);
-
-    if (bytesRead == 0)
-    {
-    }
-    else if (bytesRead == -1)
-    {
-    }
-    else
-    {
+    if (bytesRead == 1) {
         return c;
     }
     return '\0';
