@@ -208,7 +208,7 @@ convert_image(const void *pixels, gint pix_width, gint pix_height,
     chafa_canvas_config_unref(config);
     chafa_symbol_map_unref(symbol_map);
     chafa_term_info_unref(term_info);
-    canvas = NULL;    
+    canvas = NULL;
     config = NULL;
     symbol_map = NULL;
     term_info = NULL;
@@ -392,7 +392,7 @@ void printBitmapCentered(FIBITMAP *bitmap, int width, int height)
     g_string_append_c(printable, '\0');
     const gchar *delimiters = "\n";
     gchar **lines = g_strsplit(printable->str, delimiters, -1);
-    
+
     int indentation = ((term_size.width_cells - width) / 2) + 1;
     for (int i = 0; lines[i] != NULL; i++)
     {
@@ -417,39 +417,46 @@ void checkIfBrightPixel(unsigned char r, unsigned char g, unsigned char b, bool 
     }
 }
 
-int getCoverColor(FIBITMAP* bitmap, unsigned char** r, unsigned char** g, unsigned char** b) {
+int getCoverColor(FIBITMAP *bitmap, unsigned char **r, unsigned char **g, unsigned char **b)
+{
     int rwidth = FreeImage_GetWidth(bitmap);
     int rheight = FreeImage_GetHeight(bitmap);
     int rchannels = FreeImage_GetBPP(bitmap) / 8;
-    unsigned char* read_data = (unsigned char*)FreeImage_GetBits(bitmap);
+    unsigned char *read_data = (unsigned char *)FreeImage_GetBits(bitmap);
 
-    if (read_data == NULL) {
+    if (read_data == NULL)
+    {
         return -1;
     }
 
     bool found = false;
     int numPixels = rwidth * rheight;
-    *r = (unsigned char*)malloc(sizeof(unsigned char));    
-    *g = (unsigned char*)malloc(sizeof(unsigned char));
-    *b = (unsigned char*)malloc(sizeof(unsigned char));
+    *r = (unsigned char *)malloc(sizeof(unsigned char));
+    *g = (unsigned char *)malloc(sizeof(unsigned char));
+    *b = (unsigned char *)malloc(sizeof(unsigned char));
 
-    for (int i = 0; i < numPixels; i++) {
+    for (int i = 0; i < numPixels; i++)
+    {
         int index = i * rchannels;
         unsigned char blue = 0;
         unsigned char green = 0;
         unsigned char red = 0;
 
-        if (rchannels >= 3) {
+        if (rchannels >= 3)
+        {
             blue = read_data[index + 0];
             green = read_data[index + 1];
             red = read_data[index + 2];
-        } else if (rchannels >= 1) {
+        }
+        else if (rchannels >= 1)
+        {
             blue = green = red = read_data[index];
-        }        
+        }
 
         checkIfBrightPixel(red, green, blue, &found);
 
-        if (found) {
+        if (found)
+        {
             *(*r) = red;
             *(*g) = green;
             *(*b) = blue;
@@ -462,6 +469,6 @@ int getCoverColor(FIBITMAP* bitmap, unsigned char** r, unsigned char** g, unsign
         *(*r) = 210;
         *(*g) = 210;
         *(*b) = 210;
-    }    
+    }
     return 0;
 }

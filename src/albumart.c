@@ -25,8 +25,8 @@ int extractCoverCommand(const char *inputFilePath, const char *outputFilePath)
     int status;
 
     // Replace $ with \$
-    char* escapedInputFilePath = escapeFilePath(inputFilePath);
-    char* escapedOutputFilePath = escapeFilePath(outputFilePath);
+    char *escapedInputFilePath = escapeFilePath(inputFilePath);
+    char *escapedOutputFilePath = escapeFilePath(outputFilePath);
 
     snprintf(command, COMMAND_SIZE, "ffmpeg -y -i \"%s\" -an -vcodec copy \"%s\"", escapedInputFilePath, escapedOutputFilePath);
 
@@ -35,26 +35,34 @@ int extractCoverCommand(const char *inputFilePath, const char *outputFilePath)
 
     pid_t pid = fork();
 
-    if (pid == -1) {
+    if (pid == -1)
+    {
         perror("fork failed");
         exit(EXIT_FAILURE);
-    } else if (pid == 0) {
+    }
+    else if (pid == 0)
+    {
         // Child process
         execl("/bin/sh", "sh", "-c", command, (char *)NULL);
         exit(EXIT_SUCCESS);
-    } else {
+    }
+    else
+    {
         // Parent process
         waitpid(pid, &status, 0);
     }
 
     FILE *file = fopen(outputFilePath, "r");
 
-    if (file != NULL) {
+    if (file != NULL)
+    {
         fclose(file);
         return 1;
-    } else {
-       return -1;
-    }    
+    }
+    else
+    {
+        return -1;
+    }
 }
 
 int isAudioFile(const char *filename)
@@ -234,16 +242,16 @@ int calcIdealImgSize(int *width, int *height, const int equalizerHeight, const i
 int displayCover(SongData *songdata, int width, int height, bool ascii)
 {
     if (!ascii)
-    {      
+    {
         clearScreen();
-        printBitmapCentered(songdata->cover, width-1, height-2);
+        printBitmapCentered(songdata->cover, width - 1, height - 2);
     }
     else
     {
         cursorJump(1);
-        PixelData pixel = { *songdata->red, *songdata->green, *songdata->blue };
-        output_ascii(songdata->coverArtPath, height-2, width-1, coverBlocks, &pixel);
+        PixelData pixel = {*songdata->red, *songdata->green, *songdata->blue};
+        output_ascii(songdata->coverArtPath, height - 2, width - 1, coverBlocks, &pixel);
     }
-    fputc('\n', stdout);          
-    return 0;    
+    fputc('\n', stdout);
+    return 0;
 }

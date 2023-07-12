@@ -11,7 +11,7 @@ void loadCover(SongData *songdata)
     int res = extractCoverCommand(songdata->filePath, songdata->coverArtPath);
     if (res < 0)
     {
-        getDirectoryFromPath(songdata->filePath, path);  
+        getDirectoryFromPath(songdata->filePath, path);
         char *tmp = NULL;
         off_t size = 0;
         tmp = findLargestImageFileRecursive(path, tmp, &size);
@@ -21,14 +21,15 @@ void loadCover(SongData *songdata)
         else
             return;
     }
-    else {
+    else
+    {
         addToCache(tempCache, songdata->coverArtPath);
     }
     songdata->cover = getBitmap(songdata->coverArtPath);
 }
 
 void loadColor(SongData *songdata)
-{    
+{
     getCoverColor(songdata->cover, &(songdata->red), &(songdata->green), &(songdata->blue));
 }
 
@@ -40,7 +41,7 @@ void loadMetaData(SongData *songdata)
 
 void loadDuration(SongData *songdata)
 {
-    songdata->duration = (double*)malloc(sizeof(double)); 
+    songdata->duration = (double *)malloc(sizeof(double));
     *(songdata->duration) = getDuration(songdata->filePath);
 }
 
@@ -55,9 +56,9 @@ void loadPcmAudio(SongData *songdata)
     addToCache(tempCache, songdata->pcmFilePath);
 }
 
-SongData* loadSongData(char *filePath)
+SongData *loadSongData(char *filePath)
 {
-    SongData* songdata = malloc(sizeof(SongData));
+    SongData *songdata = malloc(sizeof(SongData));
     strcpy(songdata->filePath, "");
     strcpy(songdata->coverArtPath, "");
     strcpy(songdata->pcmFilePath, "");
@@ -69,17 +70,17 @@ SongData* loadSongData(char *filePath)
     songdata->duration = NULL;
     songdata->pcmFile = NULL;
     songdata->pcmFileSize = 0;
-	strcpy(songdata->filePath, filePath);
-	loadCover(songdata);
+    strcpy(songdata->filePath, filePath);
+    loadCover(songdata);
     usleep(10000);
-	loadColor(songdata);
+    loadColor(songdata);
     usleep(10000);
-	loadMetaData(songdata);
+    loadMetaData(songdata);
     usleep(10000);
-	loadDuration(songdata);
+    loadDuration(songdata);
     usleep(10000);
     loadPcmAudio(songdata);
-	return songdata;
+    return songdata;
 }
 
 void unloadSongData(SongData **songdata)
@@ -89,26 +90,27 @@ void unloadSongData(SongData **songdata)
 
     SongData *data = *songdata;
 
-    if (data->cover != NULL) {
+    if (data->cover != NULL)
+    {
         FreeImage_Unload(data->cover);
         data->cover = NULL;
     }
-    
+
     free(data->red);
     free(data->green);
-    free(data->blue); 
+    free(data->blue);
     free(data->metadata);
     free(data->duration);
 
     data->cover = NULL;
     data->red = NULL;
     data->green = NULL;
-    data->blue = NULL;    
+    data->blue = NULL;
     data->metadata = NULL;
     data->duration = NULL;
 
     if (existsFile(data->pcmFilePath))
-        deleteFile(data->pcmFilePath);  
+        deleteFile(data->pcmFilePath);
 
     if (data->pcmFile != NULL)
         free(data->pcmFile);

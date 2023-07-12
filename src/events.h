@@ -25,4 +25,3 @@ struct Event
     enum EventType type;
     char key;
 };
-

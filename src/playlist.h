@@ -34,7 +34,7 @@ extern Node *currentSong;
 
 extern PlayList playlist;
 
-extern PlayList* mainPlaylist;
+extern PlayList *mainPlaylist;
 
 Node *getListNext(Node *node);
 
@@ -44,7 +44,7 @@ void addToList(PlayList *list, SongInfo song);
 
 Node *deleteFromList(PlayList *list, Node *node);
 
-void deletePlaylist(PlayList* playlist);
+void deletePlaylist(PlayList *playlist);
 
 int compare(const struct dirent **a, const struct dirent **b);
 
@@ -66,9 +66,9 @@ void stopPlayListDurationCount();
 
 void startPlayListDurationCount();
 
-void readM3UFile(const char* filename, PlayList* playlist);
+void readM3UFile(const char *filename, PlayList *playlist);
 
-void writeM3UFile(const char* filename, PlayList* playlist);
+void writeM3UFile(const char *filename, PlayList *playlist);
 
 void loadMainPlaylist(const char *directory);
 
@@ -76,7 +76,6 @@ void saveMainPlaylist(const char *directory, bool isPlayingMain);
 
 void savePlaylist();
 
-Node* deepCopyNode(Node* originalNode);
+Node *deepCopyNode(Node *originalNode);
 
-PlayList deepCopyPlayList(PlayList* originalList);
-
+PlayList deepCopyPlayList(PlayList *originalList);

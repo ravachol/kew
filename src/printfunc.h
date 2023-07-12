@@ -19,12 +19,12 @@ typedef struct
 
 #ifndef PIXELDATA_STRUCT
 #define PIXELDATA_STRUCT
-    typedef struct
-    {
-        unsigned char r;
-        unsigned char g;
-        unsigned char b;
-    } PixelData;
+typedef struct
+{
+    unsigned char r;
+    unsigned char g;
+    unsigned char b;
+} PixelData;
 #endif
 
 void printHelp();

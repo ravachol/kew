@@ -20,14 +20,14 @@ void updateMagnitudeBuffer(float magnitude)
 float calculateMovingAverage()
 {
     float sum = 0.0f;
-    int numSamples = 0;    
-    for (int i = 0; i < WINDOW_SIZE; i++) 
+    int numSamples = 0;
+    for (int i = 0; i < WINDOW_SIZE; i++)
     {
         sum += magnitudeBuffer[i];
         if (magnitudeBuffer[i] > 0.0f)
         {
             numSamples++;
-        }        
+        }
     }
     numSamples = (numSamples > 0) ? numSamples : 1;
     return sum / numSamples;
@@ -37,7 +37,7 @@ float calculateThreshold()
 {
     float sum = 0.0f;
     int numSamples = 0;
-    for (int i = 0; i < WINDOW_SIZE; i++) 
+    for (int i = 0; i < WINDOW_SIZE; i++)
     {
         sum += magnitudeBuffer[i];
         if (magnitudeBuffer[i] > 0.0f)
@@ -78,7 +78,7 @@ int detectBeats(float *magnitudes, int numBars)
     updateMagnitudeBuffer(avgMagnitude);
 
     float movingAverage = calculateMovingAverage();
-    float threshold = calculateThreshold(); 
+    float threshold = calculateThreshold();
 
     int peakDetected = 0;
     for (int i = 0; i < range; i++)
@@ -159,9 +159,10 @@ void calcSpectrum(int height, int width, fftwf_complex *fftInput, fftwf_complex 
         int lower24Bits = sample & 0xFFFFFF;
 
         // Check if the 24th bit is set (indicating a negative value)
-        if (lower24Bits & 0x800000) {
-        // Extend the sign to 32 bits
-        lower24Bits |= 0xFF000000;
+        if (lower24Bits & 0x800000)
+        {
+            // Extend the sign to 32 bits
+            lower24Bits |= 0xFF000000;
         }
 
         // Normalize the 24-bit sample to the range [-1, 1]

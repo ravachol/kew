@@ -29,7 +29,7 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
 
         if (strcmp(stringToLower(pair->key), "path") == 0)
         {
-            snprintf(settings.path, sizeof(settings.path), "%s", pair->value);            
+            snprintf(settings.path, sizeof(settings.path), "%s", pair->value);
         }
         else if (strcmp(stringToLower(pair->key), "coverenabled") == 0)
         {
@@ -37,18 +37,18 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         }
         else if (strcmp(stringToLower(pair->key), "coverblocks") == 0)
         {
-            snprintf(settings.coverBlocks, sizeof(settings.coverBlocks), "%s", pair->value);            
+            snprintf(settings.coverBlocks, sizeof(settings.coverBlocks), "%s", pair->value);
         }
         else if (strcmp(stringToLower(pair->key), "equalizerblocks") == 0)
         {
-            snprintf(settings.equalizerBlocks, sizeof(settings.equalizerBlocks), "%s", pair->value);            
-        }        
+            snprintf(settings.equalizerBlocks, sizeof(settings.equalizerBlocks), "%s", pair->value);
+        }
         else if (strcmp(stringToLower(pair->key), "equalizerenabled") == 0)
         {
             snprintf(settings.equalizerEnabled, sizeof(settings.equalizerEnabled), "%s", pair->value);
         }
         else if (strcmp(stringToLower(pair->key), "equalizerheight") == 0)
-        {            
+        {
             snprintf(settings.equalizerHeight, sizeof(settings.equalizerHeight), "%s", pair->value);
         }
     }
@@ -191,11 +191,11 @@ void getConfig()
     int pair_count;
     struct passwd *pw = getpwuid(getuid());
     const char *homedir = pw->pw_dir;
-    char* filepath = NULL;
+    char *filepath = NULL;
     if (!existsFile(SETTINGS_FILE))
     {
         size_t filepath_length = strlen(homedir) + strlen("/") + strlen(SETTINGS_FILENAME_DEPRECATED) + 1;
-        filepath = (char*)malloc(filepath_length);
+        filepath = (char *)malloc(filepath_length);
         strcpy(filepath, homedir);
         strcat(filepath, "/");
         strcat(filepath, SETTINGS_FILENAME_DEPRECATED);
@@ -203,7 +203,7 @@ void getConfig()
     else
     {
         size_t filepath_length = strlen(homedir) + strlen("/") + strlen(SETTINGS_FILE) + 1;
-        filepath = (char*)malloc(filepath_length);
+        filepath = (char *)malloc(filepath_length);
         strcpy(filepath, homedir);
         strcat(filepath, "/");
         strcat(filepath, SETTINGS_FILE);
@@ -261,7 +261,7 @@ void setConfig()
     settings.coverEnabled[1] = '\0';
     settings.coverBlocks[1] = '\0';
     settings.equalizerEnabled[1] = '\0';
-    settings.equalizerBlocks[1] = '\0';    
+    settings.equalizerBlocks[1] = '\0';
     settings.equalizerHeight[5] = '\0';
 
     // Write the settings to the file
