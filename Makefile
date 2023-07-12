@@ -9,16 +9,16 @@ OBJS = $(SRCS:src/%.c=$(OBJDIR)/%.o)
 
 all: cue
 
-$(OBJDIR)/%.o: src/%.c | $(OBJDIR)
+$(OBJDIR)/%.o: src/%.c Makefile | $(OBJDIR)
 	$(CC) $(CFLAGS) -c -o $@ $<
 
-$(OBJDIR)/write_ascii.o: include/imgtotxt/write_ascii.c | $(OBJDIR)
+$(OBJDIR)/write_ascii.o: include/imgtotxt/write_ascii.c Makefile | $(OBJDIR)
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 $(OBJDIR):
 	mkdir -p $(OBJDIR)
 
-cue: $(OBJDIR)/write_ascii.o $(OBJS)
+cue: $(OBJDIR)/write_ascii.o $(OBJS) Makefile
 	$(CC) -o cue $(OBJDIR)/write_ascii.o $(OBJS) $(LIBS)
 
 .PHONY: install
