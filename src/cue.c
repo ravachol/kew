@@ -68,6 +68,7 @@ bool firstCall = true;
 bool assignedToUserdata = false;
 bool loadingFailed = false;
 bool skipPrev = false;
+bool skipping = false;
 
 struct timespec current_time;
 struct timespec start_time;
@@ -415,13 +416,7 @@ void skipToNextSong()
     }
     if (skipping)
         return;
-    skipping = true;
-    while (!loadedSong && !loadingFailed)
-    {
-        usleep(10000);
-    }
-    if (!assignedToUserdata)
-        assignUserData();
+    skipping = true;        
     skip();
 }
 
@@ -433,7 +428,6 @@ void skipToPrevSong()
     }
     if (skipping)
         return;
-    skipping = true;
     while ((!loadedSong && !loadingFailed) && currentSong->next != NULL)
     {
         usleep(1000);
@@ -444,7 +438,7 @@ void skipToPrevSong()
     {
         currentSong = currentSong->prev;
     }
-
+    skipping = true;
     skipPrev = true;
 
     loadedSong = false;
@@ -633,8 +627,7 @@ int play(Node *currentSong)
             if (!assignedToUserdata)
                 assignUserData();
               
-            prepareNextSong();
-           
+            prepareNextSong();           
         }
         if (userQuit || isPlaybackOfListDone())
         {
