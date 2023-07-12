@@ -5,22 +5,26 @@
 
 Cache *tempCache = NULL;
 
-Cache* createCache() {
+Cache *createCache()
+{
     Cache *cache = malloc(sizeof(Cache));
     cache->head = NULL;
     return cache;
 }
 
-void addToCache(Cache *cache, const char *filePath) {
+void addToCache(Cache *cache, const char *filePath)
+{
     CacheNode *newNode = malloc(sizeof(CacheNode));
     newNode->filePath = strdup(filePath);
     newNode->next = cache->head;
     cache->head = newNode;
 }
 
-void deleteCache(Cache *cache) {
+void deleteCache(Cache *cache)
+{
     CacheNode *current = cache->head;
-    while (current != NULL) {
+    while (current != NULL)
+    {
         CacheNode *temp = current;
         current = current->next;
         free(temp->filePath);
@@ -29,9 +33,11 @@ void deleteCache(Cache *cache) {
     free(cache);
 }
 
-void deleteCachedFiles(Cache *cache) {
+void deleteCachedFiles(Cache *cache)
+{
     CacheNode *current = cache->head;
-    while (current != NULL) {
+    while (current != NULL)
+    {
         remove(current->filePath);
         current = current->next;
     }

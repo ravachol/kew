@@ -4,18 +4,20 @@
 #include <stdlib.h>
 #include <string.h>
 
-typedef struct CacheNode {
+typedef struct CacheNode
+{
     char *filePath;
     struct CacheNode *next;
 } CacheNode;
 
-typedef struct Cache {
+typedef struct Cache
+{
     CacheNode *head;
 } Cache;
 
 extern Cache *tempCache;
 
-Cache* createCache();
+Cache *createCache();
 
 void addToCache(Cache *cache, const char *filePath);
 

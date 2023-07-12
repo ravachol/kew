@@ -67,7 +67,8 @@ int isDirectory(const char *path)
     }
     else
     {
-        if (errno == ENOENT) {
+        if (errno == ENOENT)
+        {
             return -1;
         }
         return 0;
@@ -119,7 +120,7 @@ int walker(const char *startPath, const char *searching, char *result,
         }
 
         char entryPath[PATH_MAX];
-        char* currentDir = getcwd(NULL, 0);
+        char *currentDir = getcwd(NULL, 0);
         snprintf(entryPath, sizeof(entryPath), "%s/%s", currentDir, dir->d_name);
         free(currentDir);
 
@@ -251,62 +252,66 @@ int expandPath(const char *inputPath, char *expandedPath)
     return 0; // Path expansion successful
 }
 
-int createDirectory(const char *path) {
+int createDirectory(const char *path)
+{
     struct stat st;
-    
+
     // Check if directory already exists
-    if (stat(path, &st) == 0) {
+    if (stat(path, &st) == 0)
+    {
         if (S_ISDIR(st.st_mode))
-            return 0;  // Directory already exists
+            return 0; // Directory already exists
         else
             return -1; // Path exists but is not a directory
     }
-    
+
     // Directory does not exist, so create it
     if (mkdir(path, 0700) == 0)
-        return 1;  // Directory created successfully
-    
+        return 1; // Directory created successfully
+
     return -1; // Failed to create directory
 }
 
-int removeDirectory(const char *path) {
+int removeDirectory(const char *path)
+{
     struct stat st;
-    
+
     // Check if path exists
     if (stat(path, &st) != 0)
         return -1; // Path does not exist
-    
+
     // Check if it is a directory
     if (!S_ISDIR(st.st_mode))
         return -1; // Path exists but is not a directory
-    
+
     DIR *dir = opendir(path);
-    
+
     if (dir == NULL)
         return -1; // Failed to open directory
-    
+
     struct dirent *entry;
     char filePath[PATH_MAX];
-    
+
     // Remove all entries in the directory
-    while ((entry = readdir(dir)) != NULL) {
+    while ((entry = readdir(dir)) != NULL)
+    {
         if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
             continue; // Skip current and parent directories
-        
+
         snprintf(filePath, sizeof(filePath), "%s/%s", path, entry->d_name);
-        
+
         if (entry->d_type == DT_DIR)
             removeDirectory(filePath); // Recursively remove subdirectories
         else
             remove(filePath); // Remove regular file
     }
-    
+
     closedir(dir);
-    
+
     // Remove the directory itself
     if (rmdir(path) == 0)
         return 0; // Directory removed successfully
-    
+
     return -1; // Failed to remove directory
 }
 
@@ -332,25 +337,27 @@ void deleteTempDir()
 #else
         tempDir = "/tmp";
 #endif
-    } 
+    }
     else
     {
-
-    }  
+    }
     char dirPath[MAXPATHLEN];
     struct passwd *pw = getpwuid(getuid());
-    const char *username = pw->pw_name;    
+    const char *username = pw->pw_name;
     snprintf(dirPath, FILENAME_MAX, "%s/cue/%s", tempDir, username);
     removeDirectory(dirPath);
 }
 
-char* escapeFilePath(const char* filePath) {
+char *escapeFilePath(const char *filePath)
+{
     const int MAX_FILE_PATH_SIZE = 1000;
-    char* escapedFilePath = malloc(MAX_FILE_PATH_SIZE * sizeof(char));
+    char *escapedFilePath = malloc(MAX_FILE_PATH_SIZE * sizeof(char));
     int j = 0;
 
-    for (int i = 0; filePath[i] != '\0'; i++) {
-        if (filePath[i] == '$') {
+    for (int i = 0; filePath[i] != '\0'; i++)
+    {
+        if (filePath[i] == '$')
+        {
             escapedFilePath[j++] = '\\';
         }
         escapedFilePath[j++] = filePath[i];
@@ -404,9 +411,11 @@ int openFileWithRetry(const char *filePath, const char *mode, FILE **file)
     int retryCount = 0;
     int result = -1;
 
-    do {
+    do
+    {
         *file = fopen(filePath, mode);
-        if (*file != NULL) {
+        if (*file != NULL)
+        {
             result = 0; // File opened successfully
             break;
         }
@@ -417,4 +426,3 @@ int openFileWithRetry(const char *filePath, const char *mode, FILE **file)
 
     return result;
 }
-

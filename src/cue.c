@@ -54,7 +54,7 @@
 
 typedef struct
 {
-	char filePath[MAXPATHLEN];
+    char filePath[MAXPATHLEN];
     SongData *songdataA;
     SongData *songdataB;
     bool loadA;
@@ -96,12 +96,12 @@ struct Event processInput()
         saveCursorPosition();
     else
         restoreCursorPosition();
-    
+
     char input = '\0';
 
     while (isInputAvailable() == 1)
     {
-       input = readInput();
+        input = readInput();
     }
     event.type = EVENT_NONE;
     event.key = input;
@@ -161,8 +161,8 @@ struct Event processInput()
 }
 
 void cleanup()
-{   
-    cleanupPlaybackDevice();    
+{
+    cleanupPlaybackDevice();
     unloadSongData(&loadingdata.songdataA);
     unloadSongData(&loadingdata.songdataB);
     clearRestOfScreen();
@@ -175,10 +175,10 @@ void doShuffle()
     playlist.totalDuration = 0.0;
     shufflePlaylistStartingFromSong(&playlist, currentSong);
     calculatePlayListDuration(&playlist);
-    usleep(100000);    
+    usleep(100000);
     loadedSong = false;
     refresh = true;
-    nextSong = NULL;       
+    nextSong = NULL;
 }
 
 void addToPlaylist()
@@ -201,12 +201,12 @@ void toggleCovers()
 {
     coverEnabled = !coverEnabled;
     strcpy(settings.coverEnabled, coverEnabled ? "1" : "0");
-    refresh = true;    
+    refresh = true;
 }
 
 void toggleRepeat()
 {
-    repeatEnabled = !repeatEnabled;    
+    repeatEnabled = !repeatEnabled;
 }
 
 void toggleEqualizer()
@@ -223,7 +223,7 @@ void togglePause(double *totalPauseSeconds, double pauseSeconds, struct timespec
     if (isPaused())
         clock_gettime(CLOCK_MONOTONIC, pause_time);
     else
-        *totalPauseSeconds += pauseSeconds;    
+        *totalPauseSeconds += pauseSeconds;
 }
 
 void quit()
@@ -237,14 +237,14 @@ void freeAudioBuffer()
     {
         free(g_audioBuffer);
         g_audioBuffer = NULL;
-    }    
+    }
 }
 
 void resize()
 {
     alarm(1); // Timer
     setCursorPosition(1, 1);
-        clearRestOfScreen();
+    clearRestOfScreen();
     while (resizeFlag)
     {
         usleep(100000);
@@ -252,25 +252,25 @@ void resize()
     alarm(0); // Cancel timer
     refresh = true;
     printf("\033[1;1H");
-    clearRestOfScreen();    
+    clearRestOfScreen();
 }
 
-void* songDataReaderThread(void* arg)
+void *songDataReaderThread(void *arg)
 {
-    LoadingThreadData* loadingdata = (LoadingThreadData*)arg;
+    LoadingThreadData *loadingdata = (LoadingThreadData *)arg;
 
     // Acquire the mutex lock
     pthread_mutex_lock(&(loadingdata->mutex));
 
     char filepath[MAXPATHLEN];
     strcpy(filepath, loadingdata->filePath);
-    SongData* songdata = NULL;
+    SongData *songdata = NULL;
 
     if (filepath[0] != '\0')
         songdata = loadSongData(filepath);
     else
         songdata = NULL;
-    
+
     if (loadingdata->loadA)
     {
         unloadSongData(&loadingdata->songdataA);
@@ -282,7 +282,7 @@ void* songDataReaderThread(void* arg)
         loadingdata->songdataB = songdata;
     }
     // Reset for the next iteration
-    loadedSong = true;     
+    loadedSong = true;
 
     // Release the mutex lock
     pthread_mutex_unlock(&(loadingdata->mutex));
@@ -290,9 +290,9 @@ void* songDataReaderThread(void* arg)
     return NULL;
 }
 
-void loadSong(Node *song, LoadingThreadData* loadingdata)
+void loadSong(Node *song, LoadingThreadData *loadingdata)
 {
-    if (song == NULL) 
+    if (song == NULL)
     {
         loadingFailed = true;
         return;
@@ -301,36 +301,37 @@ void loadSong(Node *song, LoadingThreadData* loadingdata)
     strcpy(loadingdata->filePath, song->song.filePath);
 
     pthread_t loadingThread;
-    pthread_create(&loadingThread, NULL, songDataReaderThread, (void*)loadingdata);
+    pthread_create(&loadingThread, NULL, songDataReaderThread, (void *)loadingdata);
 }
 
-void loadNext(LoadingThreadData* loadingdata)
+void loadNext(LoadingThreadData *loadingdata)
 {
     nextSong = getListNext(currentSong);
 
-    if (nextSong == NULL) 
+    if (nextSong == NULL)
     {
         strcpy(loadingdata->filePath, "");
     }
-    else 
+    else
     {
         strcpy(loadingdata->filePath, nextSong->song.filePath);
     }
 
     pthread_t loadingThread;
-    pthread_create(&loadingThread, NULL, songDataReaderThread, (void*)loadingdata);
+    pthread_create(&loadingThread, NULL, songDataReaderThread, (void *)loadingdata);
 }
 
-void loadPrev(LoadingThreadData* loadingdata)
+void loadPrev(LoadingThreadData *loadingdata)
 {
     prevSong = getListPrev(currentSong);
 
-    if (prevSong == NULL) return;
+    if (prevSong == NULL)
+        return;
 
     strcpy(loadingdata->filePath, prevSong->song.filePath);
 
     pthread_t loadingThread;
-    pthread_create(&loadingThread, NULL, songDataReaderThread, (void*)loadingdata);
+    pthread_create(&loadingThread, NULL, songDataReaderThread, (void *)loadingdata);
 }
 
 bool isPlaybackOfListDone()
@@ -355,7 +356,7 @@ void assignUserData()
         else
             userData.pcmFileA.filename = NULL;
         userData.pcmFileA.file = NULL;
-    }   
+    }
     assignedToUserdata = true;
     skipping = false;
 }
@@ -396,7 +397,7 @@ void prepareNextSong()
             userData.pcmFileB.file = NULL;
             userData.pcmFileB.filename = NULL;
         }
-        usingSongDataA = !usingSongDataA; 
+        usingSongDataA = !usingSongDataA;
     }
 
     clock_gettime(CLOCK_MONOTONIC, &start_time);
@@ -407,10 +408,10 @@ void skipToNextSong()
     if (currentSong->next == NULL)
     {
         return;
-    }    
+    }
     if (skipping)
-        return;            
-    skipping = true;    
+        return;
+    skipping = true;
     while (!loadedSong && !loadingFailed)
     {
         usleep(10000);
@@ -425,7 +426,7 @@ void skipToPrevSong()
     if (currentSong->prev == NULL)
     {
         return;
-    }    
+    }
     if (skipping)
         return;
     skipping = true;
@@ -434,7 +435,7 @@ void skipToPrevSong()
         usleep(1000);
     }
     if (!assignedToUserdata)
-        assignUserData();    
+        assignUserData();
     if (currentSong->prev != NULL)
     {
         currentSong = currentSong->prev;
@@ -443,10 +444,10 @@ void skipToPrevSong()
     skipPrev = true;
 
     loadedSong = false;
-    bool loading = false;    
+    bool loading = false;
 
     while (!loadedSong && !loadingFailed)
-    {       
+    {
         if (!loadedSong)
         {
             assignedToUserdata = false;
@@ -456,7 +457,7 @@ void skipToPrevSong()
                 if (usingSongDataA)
                 {
                     loadingdata.loadA = false;
-                    unloadSongData(&loadingdata.songdataB);                    
+                    unloadSongData(&loadingdata.songdataB);
                 }
                 else
                 {
@@ -464,7 +465,7 @@ void skipToPrevSong()
                     unloadSongData(&loadingdata.songdataA);
                 }
                 loadSong(currentSong, &loadingdata);
-            }               
+            }
         }
 
         usleep(10000);
@@ -481,22 +482,22 @@ void calcElapsedTime()
     if (!isPaused())
     {
         elapsedSeconds = (double)(current_time.tv_sec - start_time.tv_sec) +
-                            (double)(current_time.tv_nsec - start_time.tv_nsec) / 1e9;
+                         (double)(current_time.tv_nsec - start_time.tv_nsec) / 1e9;
         elapsedSeconds -= totalPauseSeconds;
     }
     else
     {
         pauseSeconds = (double)(current_time.tv_sec - pause_time.tv_sec) +
-                        (double)(current_time.tv_nsec - pause_time.tv_nsec) / 1e9;
-    }    
+                       (double)(current_time.tv_nsec - pause_time.tv_nsec) / 1e9;
+    }
 }
 
 void refreshPlayer()
-{    
+{
     if (usingSongDataA)
         printPlayer(loadingdata.songdataA, elapsedSeconds, &playlist);
     else
-        printPlayer(loadingdata.songdataB, elapsedSeconds, &playlist);    
+        printPlayer(loadingdata.songdataB, elapsedSeconds, &playlist);
 }
 
 void loadAudioData()
@@ -505,13 +506,13 @@ void loadAudioData()
     {
         loadingdata.loadA = !usingSongDataA;
         loadNext(&loadingdata);
-    }         
+    }
 }
 
 void handleInput()
 {
     struct Event event = processInput();
-    
+
     switch (event.type)
     {
     case EVENT_PLAY_PAUSE:
@@ -530,7 +531,7 @@ void handleInput()
         toggleBlocks();
         break;
     case EVENT_SHUFFLE:
-        doShuffle();            
+        doShuffle();
         break;
     case EVENT_QUIT:
         quit();
@@ -551,14 +552,14 @@ void handleInput()
         addToPlaylist();
         break;
     case EVENT_DELETEFROMMAINPLAYLIST:
-        //FIXME implement this
+        // FIXME implement this
         break;
     case EVENT_EXPORTPLAYLIST:
         savePlaylist();
         break;
     default:
         break;
-    }    
+    }
 }
 
 bool isEndOfList()
@@ -571,13 +572,13 @@ int play(Node *currentSong)
     struct Event ev = processInput(); // Ignore any input that's already accumulated
 
     freeAudioBuffer();
-    
+
     pthread_mutex_init(&(loadingdata.mutex), NULL);
     usingSongDataA = true;
     loadingdata.loadA = true;
     loadSong(currentSong, &loadingdata);
-    int i = 0;   
-    while(!loadedSong)
+    int i = 0;
+    while (!loadedSong)
     {
         usleep(10000);
         if (i % 100 == 0)
@@ -586,7 +587,7 @@ int play(Node *currentSong)
         fflush(stdout);
     }
     userData.currentFileIndex = 0;
-    userData.currentPCMFrame = 0;  
+    userData.currentPCMFrame = 0;
     userData.pcmFileA.filename = loadingdata.songdataA->pcmFilePath;
 
     createAudioDevice(&userData);
@@ -600,7 +601,7 @@ int play(Node *currentSong)
     calculatePlayListDuration(&playlist);
 
     while (true)
-    {        
+    {
         calcElapsedTime();
         handleInput();
 
@@ -614,7 +615,7 @@ int play(Node *currentSong)
             if (!loadedSong)
             {
                 assignedToUserdata = false;
-                loadAudioData();           
+                loadAudioData();
             }
             else if (!assignedToUserdata)
                 assignUserData();
@@ -624,13 +625,13 @@ int play(Node *currentSong)
 
         if (isPlaybackDone())
         {
-            while(!loadedSong && !loadingFailed)
+            while (!loadedSong && !loadingFailed)
             {
                 usleep(10000);
             }
             if (!assignedToUserdata)
-                assignUserData();            
-            prepareNextSong();   
+                assignUserData();
+            prepareNextSong();
         }
         if (currentSong == NULL || isPlaybackOfListDone())
             break;
@@ -647,14 +648,14 @@ int run()
         showCursor();
         restoreTerminalMode();
         enableInputBuffering();
-        return -1;        
-    }   
+        return -1;
+    }
     if (currentSong == NULL)
         currentSong = playlist.head;
     play(currentSong);
     cleanup();
     restoreTerminalMode();
-    enableInputBuffering();    
+    enableInputBuffering();
     setConfig();
     saveMainPlaylist(settings.path, playingMainPlaylist);
     freeAudioBuffer();
@@ -665,7 +666,7 @@ int run()
     free(mainPlaylist);
     showCursor();
     printf("\n");
-   
+
     return 0;
 }
 
@@ -677,7 +678,7 @@ void initResize()
     sa.sa_handler = resetResizeFlag;
     sigemptyset(&sa.sa_mask);
     sa.sa_flags = 0;
-    sigaction(SIGALRM, &sa, NULL);    
+    sigaction(SIGALRM, &sa, NULL);
 }
 
 void init()
@@ -718,7 +719,7 @@ void playAll(int argc, char **argv)
     {
         printf("Please make sure the path is set correctly. \n");
         printf("To set it type: cue path \"/path/to/Music\". \n");
-    }    
+    }
     run();
 }
 

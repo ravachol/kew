@@ -3,14 +3,17 @@
 
 volatile sig_atomic_t resizeFlag = 0;
 
-void getTermSizePixels(int *rows, int *columns) {
+void getTermSizePixels(int *rows, int *columns)
+{
     FILE *fp = popen("stty size", "r");
-    if (fp == NULL) {
+    if (fp == NULL)
+    {
         fprintf(stderr, "Failed to execute stty command\n");
         return;
     }
 
-    if (fscanf(fp, "%d %d", rows, columns) != 2) {
+    if (fscanf(fp, "%d %d", rows, columns) != 2)
+    {
         fprintf(stderr, "Failed to read terminal size\n");
         pclose(fp);
         return;
@@ -19,7 +22,8 @@ void getTermSizePixels(int *rows, int *columns) {
     pclose(fp);
 }
 
-char* queryTerminalProperty(int property) {
+char *queryTerminalProperty(int property)
+{
     // Build the query string
     char query[32];
     snprintf(query, sizeof(query), "\033[%d;?\033\\", property);
@@ -47,10 +51,11 @@ char* queryTerminalProperty(int property) {
     tcsetattr(STDIN_FILENO, TCSANOW, &oldTermios);
 
     // Process the response
-    char* result = NULL;
-    if (bytesRead > 0) {
+    char *result = NULL;
+    if (bytesRead > 0)
+    {
         answer[bytesRead] = '\0';
-        char* start = strchr(answer, ';');
+        char *start = strchr(answer, ';');
         if (start != NULL)
             result = strdup(start + 1);
     }
@@ -180,12 +185,16 @@ int isInputAvailable()
     return ret > 0 && (fds[0].revents & POLLIN);
 }
 
-void set_blocking_mode(int fd, int should_block) {
+void set_blocking_mode(int fd, int should_block)
+{
     struct termios tty;
     tcgetattr(fd, &tty);
-    if (should_block) {
+    if (should_block)
+    {
         tty.c_lflag |= ICANON;
-    } else {
+    }
+    else
+    {
         tty.c_lflag &= ~ICANON;
     }
     tcsetattr(fd, TCSANOW, &tty);
@@ -254,7 +263,7 @@ void clearScreen()
 void setWindowTitle(const char *title)
 {
     printf("\033]0;%s\007", title);
-    fflush(stdout);    
+    fflush(stdout);
 }
 
 int getCurrentLine()
@@ -340,13 +349,14 @@ void enableInputBuffering()
 }
 
 void cursorJump(int numRows)
-{     
+{
     printf("\033[%dA", numRows);
     printf("\033[0m");
-    fflush(stdout);   
+    fflush(stdout);
 }
 
-void cursorJumpDown(int numRows) {
+void cursorJumpDown(int numRows)
+{
     printf("\033[%dB", numRows);
     fflush(stdout);
 }

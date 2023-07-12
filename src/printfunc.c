@@ -4,12 +4,12 @@
 
 #ifndef PIXELDATA_STRUCT
 #define PIXELDATA_STRUCT
-    typedef struct
-    {
-        unsigned char r;
-        unsigned char g;
-        unsigned char b;
-    } PixelData;
+typedef struct
+{
+    unsigned char r;
+    unsigned char g;
+    unsigned char b;
+} PixelData;
 #endif
 
 void printHelp()
@@ -51,10 +51,10 @@ void printAsciiLogo()
     printf(" $$ /      $$ |  $$ |$$$$$$$$ |\n");
     printf(" $$ |      $$ |  $$ |$$   ____|\n");
     printf(" \\$$$$$$$\\ \\$$$$$$  |\\$$$$$$$\\\n");
-    printf("  \\_______| \\______/  \\_______|\n");    
+    printf("  \\_______| \\______/  \\_______|\n");
 }
 
-int getDayDifference(const char* date)
+int getDayDifference(const char *date)
 {
     struct tm tm_date;
     memset(&tm_date, 0, sizeof(struct tm)); // Initialize the structure with zeroes
@@ -88,10 +88,10 @@ void printVersion(const char *version, const char *versionDate, PixelData color,
 {
     setTextColorRGB2(secondaryColor.r, secondaryColor.g, secondaryColor.b);
     printf(" Version %s.\n", version);
-    setTextColorRGB2(color.r, color.g, color.b); 
+    setTextColorRGB2(color.r, color.g, color.b);
     int daysOld = getDayDifference(versionDate);
     printf(" This version of cue is %d day(s) old.\n", daysOld);
-    setTextColorRGB2(secondaryColor.r, secondaryColor.g, secondaryColor.b);   
+    setTextColorRGB2(secondaryColor.r, secondaryColor.g, secondaryColor.b);
     printf(" Homepage:\n");
     setTextColorRGB2(color.r, color.g, color.b);
     printf(" https://github.com/ravachol/cue\n");

@@ -11,15 +11,17 @@ extern ma_int32 *g_audioBuffer;
 
 #ifndef PCMFILE_STRUCT
 #define PCMFILE_STRUCT
-typedef struct {
-    char* filename;
-    FILE* file;
+typedef struct
+{
+    char *filename;
+    FILE *file;
 } PCMFile;
 #endif
 
 #ifndef USERDATA_STRUCT
 #define USERDATA_STRUCT
-typedef struct {
+typedef struct
+{
     PCMFile pcmFileA;
     PCMFile pcmFileB;
     ma_uint32 currentFileIndex;
@@ -30,17 +32,18 @@ typedef struct {
 
 #ifndef PCMFILEDATASOURCE_STRUCT
 #define PCMFILEDATASOURCE_STRUCT
-typedef struct {
+typedef struct
+{
     ma_data_source_base base;
-    UserData* pUserData;
-    const char* filenameA;
-    const char* filenameB;
+    UserData *pUserData;
+    const char *filenameA;
+    const char *filenameB;
     ma_format format;
     ma_uint32 channels;
     ma_uint32 sampleRate;
     ma_uint32 currentPCMFrame;
-    FILE* fileA;
-    FILE* fileB;
+    FILE *fileA;
+    FILE *fileB;
     bool switchFiles;
     int currentFileIndex;
 } PCMFileDataSource;

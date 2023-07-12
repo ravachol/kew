@@ -18,7 +18,6 @@ typedef struct
 
 #endif
 
-
 #ifndef TAGSETTINGS_STRUCT
 #define TAGSETTINGS_STRUCT
 
@@ -38,21 +37,21 @@ typedef struct
 
 typedef struct
 {
-	char filePath[MAXPATHLEN];
-	char coverArtPath[MAXPATHLEN];
-	char pcmFilePath[MAXPATHLEN];
-	unsigned char *red;
-	unsigned char *green;
-	unsigned char *blue;
-	TagSettings *metadata;
-	FIBITMAP *cover;
+    char filePath[MAXPATHLEN];
+    char coverArtPath[MAXPATHLEN];
+    char pcmFilePath[MAXPATHLEN];
+    unsigned char *red;
+    unsigned char *green;
+    unsigned char *blue;
+    TagSettings *metadata;
+    FIBITMAP *cover;
     double *duration;
-    char* pcmFile;
+    char *pcmFile;
     long pcmFileSize;
 
 } SongData;
 
 #endif
 
-SongData* loadSongData(char *filePath);
+SongData *loadSongData(char *filePath);
 void unloadSongData(SongData **songdata);

@@ -19,7 +19,6 @@ typedef struct
 
 #endif
 
-
 #ifndef TAGSETTINGS_STRUCT
 #define TAGSETTINGS_STRUCT
 

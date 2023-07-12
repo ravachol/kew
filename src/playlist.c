@@ -16,7 +16,7 @@
 const char ALLOWED_EXTENSIONS[] = "\\.(m4a|mp3|ogg|flac|wav|aac|wma|raw|mp4a|mp4)$";
 const char PLAYLIST_EXTENSIONS[] = "\\.(m3u)$";
 const char mainPlaylistName[] = "cue.m3u";
-PlayList playlist = {NULL, NULL, 0, 0.0 };
+PlayList playlist = {NULL, NULL, 0, 0.0};
 PlayList *mainPlaylist = NULL;
 
 char search[MAX_SEARCH_SIZE];
@@ -59,7 +59,7 @@ void addToList(PlayList *list, SongInfo song)
     }
 }
 
-Node* deleteFromList(PlayList *list, Node *node)
+Node *deleteFromList(PlayList *list, Node *node)
 {
     if (list->head == NULL || node == NULL)
         return NULL;
@@ -74,21 +74,22 @@ Node* deleteFromList(PlayList *list, Node *node)
     if (node->next != NULL)
         node->next->prev = node->prev;
 
-    Node* nextNode = node->next;
+    Node *nextNode = node->next;
 
     free(node);
     list->count--;
     return nextNode;
 }
 
-void deletePlaylist(PlayList* list)
+void deletePlaylist(PlayList *list)
 {
     if (list == NULL)
         return;
 
-    Node* current = list->head;
-    while (current != NULL) {
-        Node* next = current->next;
+    Node *current = list->head;
+    while (current != NULL)
+    {
+        Node *next = current->next;
         if (current->song.filePath != NULL)
             free(current->song.filePath);
         free(current);
@@ -180,7 +181,6 @@ void shufflePlaylistStartingFromSong(PlayList *playlist, Node *song)
     insertAsFirst(song, playlist);
 }
 
-
 int compare(const struct dirent **a, const struct dirent **b)
 {
     const char *nameA = (*a)->d_name;
@@ -263,13 +263,14 @@ void buildPlaylistRecursive(char *directoryPath, const char *allowedExtensions, 
                 SongInfo song;
                 snprintf(filePath, sizeof(filePath), "%s/%s", directoryPath, entry->d_name);
                 song.filePath = strdup(filePath);
-                song.duration = 0.0;            
+                song.duration = 0.0;
                 addToList(playlist, song);
             }
         }
     }
 
-    for (int i = 0; i < numEntries; i++) {
+    for (int i = 0; i < numEntries; i++)
+    {
         free(entries[i]);
     }
     free(entries);
@@ -345,13 +346,13 @@ void makePlaylistName(const char *search)
     char *duplicateSearch = strdup(search);
     strcat(playlistName, duplicateSearch);
     free(duplicateSearch);
-    strcat(playlistName, ".m3u");   
+    strcat(playlistName, ".m3u");
     int i = 0;
-    while(playlistName[i]!='\0')
+    while (playlistName[i] != '\0')
     {
-        if(playlistName[i]==':')
+        if (playlistName[i] == ':')
         {
-            playlistName[i]='-';
+            playlistName[i] = '-';
         }
         i++;
     }
@@ -363,7 +364,7 @@ int makePlaylist(int argc, char *argv[])
     int searchTypeIndex = 1;
 
     const char *delimiter = ":";
-    PlayList partialPlaylist = {NULL, NULL, 0, 0.0 };
+    PlayList partialPlaylist = {NULL, NULL, 0, 0.0};
 
     const char *allowedExtensions = ALLOWED_EXTENSIONS;
 
@@ -371,7 +372,7 @@ int makePlaylist(int argc, char *argv[])
     {
         searchType = ReturnAllSongs;
         shuffle = true;
-    }    
+    }
 
     if (argc > 1)
     {
@@ -407,7 +408,7 @@ int makePlaylist(int argc, char *argv[])
 
     search[0] = '\0';
 
-    for (int i = start -1; i < argc; i++)
+    for (int i = start - 1; i < argc; i++)
     {
         strcat(search, " ");
         strcat(search, argv[i]);
@@ -442,7 +443,8 @@ int makePlaylist(int argc, char *argv[])
                 {
                     readM3UFile(buf, &playlist);
                 }
-                else {
+                else
+                {
                     buildPlaylistRecursive(buf, allowedExtensions, &partialPlaylist);
                     joinPlaylist(&playlist, &partialPlaylist);
                 }
@@ -496,7 +498,7 @@ void *getDurationsThread(void *arg)
         if (duration > 0.0)
         {
             currentNode->song.duration = duration;
-            totalDuration += duration;            
+            totalDuration += duration;
             playList->totalDuration += duration;
         }
         currentNode = getListNext(currentNode);
@@ -540,49 +542,58 @@ void startPlayListDurationCount()
     stopPlaylistDurationThread = 0;
 }
 
-void readM3UFile(const char* filename, PlayList* playlist) {
-    FILE* file = fopen(filename, "r");
+void readM3UFile(const char *filename, PlayList *playlist)
+{
+    FILE *file = fopen(filename, "r");
     char directory[MAXPATHLEN];
 
-    if (file == NULL) {
+    if (file == NULL)
+    {
         return;
     }
 
     getDirectoryFromPath(filename, directory);
     char line[MAXPATHLEN];
-    while (fgets(line, sizeof(line), file)) {
+    while (fgets(line, sizeof(line), file))
+    {
         size_t len = strcspn(line, "\r\n");
         line[len] = '\0';
 
         size_t start = 0;
-        while (isspace(line[start])) {
+        while (isspace(line[start]))
+        {
             start++;
         }
         size_t end = strlen(line);
-        while (end > start && isspace(line[end - 1])) {
+        while (end > start && isspace(line[end - 1]))
+        {
             end--;
         }
         line[end] = '\0';
 
-        if (line[0] != '#' && line[0] != '\0') {
+        if (line[0] != '#' && line[0] != '\0')
+        {
             char songPath[MAXPATHLEN];
             memset(songPath, '\0', sizeof(songPath));
-            
+
             if (strchr(line, '/') == NULL && strchr(line, '\\') == NULL)
                 strcat(songPath, directory);
-           
+
             strcat(songPath, line);
-            
-            Node* newNode = (Node*)malloc(sizeof(Node));
+
+            Node *newNode = (Node *)malloc(sizeof(Node));
             newNode->song.filePath = strdup(songPath);
             newNode->song.duration = 0.0;
             newNode->next = NULL;
             newNode->prev = NULL;
 
-            if (playlist->head == NULL) {
+            if (playlist->head == NULL)
+            {
                 playlist->head = newNode;
                 playlist->tail = newNode;
-            } else {
+            }
+            else
+            {
                 playlist->tail->next = newNode;
                 newNode->prev = playlist->tail;
                 playlist->tail = newNode;
@@ -594,14 +605,17 @@ void readM3UFile(const char* filename, PlayList* playlist) {
     fclose(file);
 }
 
-void writeM3UFile(const char* filename, PlayList* playlist) {
-    FILE* file = fopen(filename, "w");
-    if (file == NULL) {
+void writeM3UFile(const char *filename, PlayList *playlist)
+{
+    FILE *file = fopen(filename, "w");
+    if (file == NULL)
+    {
         return;
     }
 
-    Node* currentNode = playlist->head;
-    while (currentNode != NULL) {
+    Node *currentNode = playlist->head;
+    while (currentNode != NULL)
+    {
         fprintf(file, "%s\n", currentNode->song.filePath);
         currentNode = currentNode->next;
     }
@@ -616,10 +630,11 @@ void loadMainPlaylist(const char *directory)
         strcat(playlistPath, "/");
     strcat(playlistPath, mainPlaylistName);
     mainPlaylist = malloc(sizeof(PlayList));
-    if (mainPlaylist == NULL) {
-        printf("Failed to allocate memory for mainPlaylist.\n");        
+    if (mainPlaylist == NULL)
+    {
+        printf("Failed to allocate memory for mainPlaylist.\n");
         exit(0);
-    }    
+    }
     mainPlaylist->count = 0;
     mainPlaylist->totalDuration = 0;
     mainPlaylist->head = NULL;
@@ -650,27 +665,32 @@ void savePlaylist()
     writeM3UFile(playlistPath, &playlist);
 }
 
-Node* deepCopyNode(Node* originalNode) {
-    if (originalNode == NULL) {
+Node *deepCopyNode(Node *originalNode)
+{
+    if (originalNode == NULL)
+    {
         return NULL;
     }
 
-    Node* newNode = malloc(sizeof(Node));
+    Node *newNode = malloc(sizeof(Node));
     newNode->song.filePath = strdup(originalNode->song.filePath);
     newNode->song.duration = originalNode->song.duration;
-    newNode->prev = NULL;  
-    newNode->next = deepCopyNode(originalNode->next); 
+    newNode->prev = NULL;
+    newNode->next = deepCopyNode(originalNode->next);
 
-    if (newNode->next != NULL) {
+    if (newNode->next != NULL)
+    {
         newNode->next->prev = newNode;
     }
 
     return newNode;
 }
 
-PlayList deepCopyPlayList(PlayList* originalList) {
-    if (originalList == NULL) {        
-        PlayList newList = { NULL, NULL, 0, 0.0 };
+PlayList deepCopyPlayList(PlayList *originalList)
+{
+    if (originalList == NULL)
+    {
+        PlayList newList = {NULL, NULL, 0, 0.0};
         return newList;
     }
 
