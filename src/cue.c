@@ -62,13 +62,12 @@ typedef struct
 } LoadingThreadData;
 
 bool playingMainPlaylist = false;
-bool shouldQuit = false;
+bool userQuit = false;
 bool usingSongDataA = true;
 bool firstCall = true;
 bool assignedToUserdata = false;
 bool loadingFailed = false;
 bool skipPrev = false;
-bool skipping = false;
 
 struct timespec current_time;
 struct timespec start_time;
@@ -97,14 +96,19 @@ struct Event processInput()
     else
         restoreCursorPosition();
 
-    char input = '\0';
+    char lastInput = '\0';
+    char currentInput;
 
     while (isInputAvailable() == 1)
     {
-        input = readInput();
+        currentInput = readInput();
+        if (currentInput != '\0') {
+            lastInput = currentInput;
+        }
     }
+
     event.type = EVENT_NONE;
-    event.key = input;
+    event.key = currentInput;
 
     switch (event.key)
     {
@@ -228,7 +232,7 @@ void togglePause(double *totalPauseSeconds, double pauseSeconds, struct timespec
 
 void quit()
 {
-    shouldQuit = true;
+    userQuit = true;
 }
 
 void freeAudioBuffer()
@@ -562,11 +566,6 @@ void handleInput()
     }
 }
 
-bool isEndOfList()
-{
-    return (userData.endOfListReached == 1);
-}
-
 int play(Node *currentSong)
 {
     struct Event ev = processInput(); // Ignore any input that's already accumulated
@@ -603,6 +602,7 @@ int play(Node *currentSong)
     while (true)
     {
         calcElapsedTime();
+      
         handleInput();
 
         if (resizeFlag)
@@ -614,28 +614,32 @@ int play(Node *currentSong)
         {
             if (!loadedSong)
             {
+               
                 assignedToUserdata = false;
                 loadAudioData();
+               
             }
             else if (!assignedToUserdata)
                 assignUserData();
         }
-        if (shouldQuit || isEndOfList())
-            break;
-
+      
         if (isPlaybackDone())
         {
+           
             while (!loadedSong && !loadingFailed)
             {
                 usleep(10000);
-            }
+            }            
             if (!assignedToUserdata)
                 assignUserData();
+              
             prepareNextSong();
+           
         }
-        if (currentSong == NULL || isPlaybackOfListDone())
-            break;
-
+        if (userQuit || isPlaybackOfListDone())
+        {
+                break;
+        }
         usleep(100000);
     }
     return 0;
