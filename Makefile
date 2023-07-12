@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Iinclude/imgtotxt -Iinclude/miniaudio -I/usr/include/chafa -I/usr/lib/chafa/include -I/usr/lib/x86_64-linux-gnu/glib-2.0/include/ -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -O1 -I/usr/include/sysprof-4 `pkg-config --cflags glib-2.0 chafa`
+CFLAGS = -Iinclude/imgtotxt -Iinclude/miniaudio -I/usr/include/chafa -I/usr/lib/chafa/include -I/usr/lib/x86_64-linux-gnu/glib-2.0/include/ -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -O1 `pkg-config --cflags glib-2.0 chafa`
 LIBS =  -lpthread -lavformat -lavutil -L/usr/lib -lfftw3_omp -lfftw3 -lfftw3f_omp -lfftw3f -lrt -pthread -lcurl -lm -lfreeimage -lchafa `pkg-config --libs glib-2.0 chafa`
 
 OBJDIR = src/obj
