@@ -37,7 +37,7 @@ For a complete list of capable terminals, see this page: [Colors in Terminal](ht
 Install FFmpeg, FFTW, Chafa and FreeImage using your distro's package manager. For instance:
 
 ```bash
-apt install ffmpeg libfftw3-dev git libchafa-dev chafa libfreeimage-dev libavformat-dev libglib2.0-dev
+apt install ffmpeg libfftw3-dev git libchafa-dev libfreeimage-dev libavformat-dev libglib2.0-dev
 ```
 Or:
 
@@ -61,7 +61,7 @@ sudo make install
 
 ## Usage
 
-IMPORTANT! Tell cue the path to your music library (you only need to do this once):
+First thing to do is to tell cue the path to your music library (you only need to do this once):
 
 ```bash
 cue path "/home/joe/Music/"
