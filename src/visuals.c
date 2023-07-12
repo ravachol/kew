@@ -4,7 +4,7 @@
 #define BUFFER_SIZE 1024
 #define CHANNELS 2
 #define WINDOW_SIZE 1024
-#define BEAT_THRESHOLD 0.1
+#define BEAT_THRESHOLD 0.2
 #define MAGNITUDE_CEIL 300
 #define JUMP_AMOUNT 3.0
 int bufferIndex = 0;
