@@ -219,13 +219,13 @@ char *findLargestImageFileRecursive(const char *directoryPath, char *largestImag
     return largestImageFile;
 }
 
-int calcIdealImgSize(int *width, int *height, const int equalizerHeight, const int metatagHeight)
+int calcIdealImgSize(int *width, int *height, const int visualizerHeight, const int metatagHeight)
 {
     int term_w, term_h;
     getTermSize(&term_w, &term_h);
     int timeDisplayHeight = 1;
     int heightMargin = 2;
-    int minHeight = equalizerHeight + metatagHeight + timeDisplayHeight + heightMargin;
+    int minHeight = visualizerHeight + metatagHeight + timeDisplayHeight + heightMargin;
     *height = term_h - minHeight;
     *width = ceil(*height * 2);
     if (*width > term_w)
@@ -239,18 +239,18 @@ int calcIdealImgSize(int *width, int *height, const int equalizerHeight, const i
     return 0;
 }
 
-int displayCover(SongData *songdata, int width, int height, bool ascii)
+int displayCover(SongData *songdata, int width, int height, bool ansii)
 {
-    if (!ascii)
+    if (!ansii)
     {
         clearScreen();
         printBitmapCentered(songdata->cover, width - 1, height - 2);
     }
     else
     {
-        cursorJump(1);
+         cursorJump(1);
         PixelData pixel = {*songdata->red, *songdata->green, *songdata->blue};
-        output_ascii(songdata->coverArtPath, height - 2, width - 1, coverBlocks, &pixel);
+        output_ascii(songdata->coverArtPath, height - 2, width - 1, &pixel);
     }
     fputc('\n', stdout);
     return 0;

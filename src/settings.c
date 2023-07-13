@@ -14,9 +14,8 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
     AppSettings settings;
     memset(&settings, 0, sizeof(settings));
     strncpy(settings.coverEnabled, "1", sizeof(settings.coverEnabled));
-    strncpy(settings.coverBlocks, "1", sizeof(settings.coverEnabled));
-    strncpy(settings.equalizerEnabled, "1", sizeof(settings.equalizerEnabled));
-    strncpy(settings.equalizerBlocks, "1", sizeof(settings.equalizerBlocks));
+    strncpy(settings.coverAnsi, "1", sizeof(settings.coverAnsi));
+    strncpy(settings.visualizerEnabled, "1", sizeof(settings.visualizerEnabled));
 
     if (pairs == NULL)
     {
@@ -35,22 +34,18 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         {
             snprintf(settings.coverEnabled, sizeof(settings.coverEnabled), "%s", pair->value);
         }
-        else if (strcmp(stringToLower(pair->key), "coverblocks") == 0)
+        else if (strcmp(stringToLower(pair->key), "coveransi") == 0)
         {
-            snprintf(settings.coverBlocks, sizeof(settings.coverBlocks), "%s", pair->value);
+            snprintf(settings.coverAnsi, sizeof(settings.coverAnsi), "%s", pair->value);
         }
-        else if (strcmp(stringToLower(pair->key), "equalizerblocks") == 0)
+        else if (strcmp(stringToLower(pair->key), "visualizerenabled") == 0)
         {
-            snprintf(settings.equalizerBlocks, sizeof(settings.equalizerBlocks), "%s", pair->value);
-        }
-        else if (strcmp(stringToLower(pair->key), "equalizerenabled") == 0)
+            snprintf(settings.visualizerEnabled, sizeof(settings.visualizerEnabled), "%s", pair->value);
+        }    
+        else if (strcmp(stringToLower(pair->key), "visualizerheight") == 0)
         {
-            snprintf(settings.equalizerEnabled, sizeof(settings.equalizerEnabled), "%s", pair->value);
-        }
-        else if (strcmp(stringToLower(pair->key), "equalizerheight") == 0)
-        {
-            snprintf(settings.equalizerHeight, sizeof(settings.equalizerHeight), "%s", pair->value);
-        }
+            snprintf(settings.visualizerHeight, sizeof(settings.visualizerHeight), "%s", pair->value);
+        }        
     }
 
     freeKeyValuePairs(pairs, count);
@@ -108,59 +103,6 @@ void freeKeyValuePairs(KeyValuePair *pairs, int count)
     free(pairs);
 }
 
-// saves the path to your music folder
-int saveSettingsDeprecated(char *path, const char *settingsFile)
-{
-    FILE *file;
-    struct passwd *pw = getpwuid(getuid());
-    const char *homedir = pw->pw_dir;
-    size_t len = 1024;
-
-    // Try to open file
-    file = fopen(strcat(strcat(strcpy((char *)malloc(strlen(homedir) + strlen("/") + strlen(settingsFile) + 1), homedir), "/"), settingsFile), "w");
-    if (file != NULL)
-    {
-        // Check length before writing
-        if (strlen(path) <= len)
-        {
-            fputs(path, file);
-            fclose(file);
-        }
-    }
-    // Return success
-    return 0;
-}
-
-// reads the settings file, which contains the path to your music folder
-int getSettingsDeprecated(char *path, int len, const char *settingsFile)
-{
-    FILE *file;
-    struct passwd *pw = getpwuid(getuid());
-    const char *homedir = pw->pw_dir;
-
-    // Try to open file
-    file = fopen(strcat(strcat(strcpy((char *)malloc(strlen(homedir) + strlen("/") + strlen(settingsFile) + 1), homedir), "/"), settingsFile), "r");
-    if (file != NULL)
-    {
-        // Read lines into the buffer
-        while (fgets(path, len, file) != NULL && len > 0)
-        {
-            // Remove trailing newline character if present
-            size_t path_len = strlen(path);
-            if (path_len > 0 && path[path_len - 1] == '\n')
-            {
-                path[path_len - 1] = '\0';
-            }
-        }
-        fclose(file);
-        return 0;
-    }
-    else
-    {
-        return -1;
-    }
-}
-
 int getMusicLibraryPath(char *path)
 {
     char expandedPath[MAXPATHLEN];
@@ -171,7 +113,6 @@ int getMusicLibraryPath(char *path)
             strcpy(path, expandedPath);
         return 0;
     }
-    getSettingsDeprecated(path, MAXPATHLEN, PATH_SETTING_FILENAME_DEPRECATED);
 
     if (path[0] == '\0')
     {
@@ -192,22 +133,12 @@ void getConfig()
     struct passwd *pw = getpwuid(getuid());
     const char *homedir = pw->pw_dir;
     char *filepath = NULL;
-    if (!existsFile(SETTINGS_FILE))
-    {
-        size_t filepath_length = strlen(homedir) + strlen("/") + strlen(SETTINGS_FILENAME_DEPRECATED) + 1;
-        filepath = (char *)malloc(filepath_length);
-        strcpy(filepath, homedir);
-        strcat(filepath, "/");
-        strcat(filepath, SETTINGS_FILENAME_DEPRECATED);
-    }
-    else
-    {
-        size_t filepath_length = strlen(homedir) + strlen("/") + strlen(SETTINGS_FILE) + 1;
-        filepath = (char *)malloc(filepath_length);
-        strcpy(filepath, homedir);
-        strcat(filepath, "/");
-        strcat(filepath, SETTINGS_FILE);
-    }
+
+    size_t filepath_length = strlen(homedir) + strlen("/") + strlen(SETTINGS_FILE) + 1;
+    filepath = (char *)malloc(filepath_length);
+    strcpy(filepath, homedir);
+    strcat(filepath, "/");
+    strcat(filepath, SETTINGS_FILE);
 
     KeyValuePair *pairs = readKeyValuePairs(filepath, &pair_count);
 
@@ -215,12 +146,11 @@ void getConfig()
     settings = constructAppSettings(pairs, pair_count);
 
     coverEnabled = (settings.coverEnabled[0] == '1');
-    coverBlocks = (settings.coverBlocks[0] == '1');
-    equalizerEnabled = (settings.equalizerEnabled[0] == '1');
-    equalizerBlocks = (settings.equalizerBlocks[0] == '1');
-    int temp = atoi(settings.equalizerHeight);
+    coverAnsi = (settings.coverAnsi[0] == '1');
+    visualizerEnabled = (settings.visualizerEnabled[0] == '1');
+    int temp = atoi(settings.visualizerHeight);
     if (temp > 0)
-        equalizerHeight = temp;
+        visualizerHeight = temp;
     getMusicLibraryPath(settings.path);
 }
 
@@ -245,32 +175,31 @@ void setConfig()
 
     if (settings.coverEnabled[0] == '\0')
         coverEnabled ? strcpy(settings.coverEnabled, "1") : strcpy(settings.coverEnabled, "0");
-    if (settings.coverBlocks[0] == '\0')
-        coverBlocks ? strcpy(settings.coverBlocks, "1") : strcpy(settings.coverBlocks, "0");
-    if (settings.equalizerEnabled[0] == '\0')
-        equalizerEnabled ? strcpy(settings.equalizerEnabled, "1") : strcpy(settings.equalizerEnabled, "0");
-    if (settings.equalizerBlocks[0] == '\0')
-        equalizerBlocks ? strcpy(settings.equalizerBlocks, "1") : strcpy(settings.equalizerBlocks, "0");
-    if (settings.equalizerHeight[0] == '\0')
+    if (settings.coverAnsi[0] == '\0')
+        coverAnsi ? strcpy(settings.coverAnsi, "1") : strcpy(settings.coverAnsi, "0");
+    if (settings.visualizerEnabled[0] == '\0')
+        visualizerEnabled ? strcpy(settings.visualizerEnabled, "1") : strcpy(settings.visualizerEnabled, "0");    
+    if (settings.visualizerHeight[0] == '\0')
     {
-        sprintf(settings.equalizerHeight, "%d", equalizerHeight);
+        sprintf(settings.visualizerHeight, "%d", visualizerHeight);
     }
+    // if (settings.useThemeColors[0] == '\0')
+    //         useThemeColors ? strcpy(settings.useThemeColors, "1") : strcpy(settings.useThemeColors, "0");       
 
     // Null-terminate the character arrays
     settings.path[MAXPATHLEN - 1] = '\0';
     settings.coverEnabled[1] = '\0';
-    settings.coverBlocks[1] = '\0';
-    settings.equalizerEnabled[1] = '\0';
-    settings.equalizerBlocks[1] = '\0';
-    settings.equalizerHeight[5] = '\0';
+    settings.coverAnsi[1] = '\0';
+    settings.visualizerEnabled[1] = '\0';
+    settings.visualizerHeight[5] = '\0';
 
     // Write the settings to the file
     fprintf(file, "path=%s\n", settings.path);
+    //fprintf(file, "useThemeColors=%s\n", settings.useThemeColors);    
     fprintf(file, "coverEnabled=%s\n", settings.coverEnabled);
-    fprintf(file, "coverBlocks=%s\n", settings.coverBlocks);
-    fprintf(file, "equalizerEnabled=%s\n", settings.equalizerEnabled);
-    fprintf(file, "equalizerBlocks=%s\n", settings.equalizerBlocks);
-    fprintf(file, "equalizerHeight=%s\n", settings.equalizerHeight);
+    fprintf(file, "coverAnsi=%s\n", settings.coverAnsi);
+    fprintf(file, "visualizerEnabled=%s\n", settings.visualizerEnabled);
+    fprintf(file, "visualizerHeight=%s\n", settings.visualizerHeight);    
 
     fclose(file);
     free(filepath);

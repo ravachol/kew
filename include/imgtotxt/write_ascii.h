@@ -18,7 +18,7 @@ extern "C"
     } PixelData;
 #endif
     int getBrightPixel(char *filepath, int width, int height, PixelData *brightPixel);
-    int output_ascii(char *pathToImgFile, int height, int width, bool coverBlocks, PixelData *brightPixel);
+    int output_ascii(char *pathToImgFile, int height, int width, PixelData *brightPixel);
 #ifdef __cplusplus
 }
 #endif

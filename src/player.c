@@ -5,17 +5,16 @@ const char VERSION[] = "0.9.10";
 const char VERSION_DATE[] = "2023-07-12";
 
 volatile bool refresh = true;
-bool equalizerEnabled = true;
-bool equalizerBlocks = true;
+bool visualizerEnabled = true;
 bool coverEnabled = true;
-bool coverBlocks = true;
+bool coverAnsi = false;
 bool metaDataEnabled = true;
 bool timeEnabled = true;
 bool drewCover = true;
 bool printInfo = false;
 bool showList = true;
 int versionHeight = 11;
-int equalizerHeight = 8;
+int visualizerHeight = 8;
 int minWidth = 37;
 int minHeight = 2;
 int coverRow = 0;
@@ -54,8 +53,8 @@ int calcMetadataHeight()
 
 void calcPreferredSize()
 {
-    minHeight = 2 + (equalizerEnabled ? equalizerHeight : 0);
-    calcIdealImgSize(&preferredWidth, &preferredHeight, (equalizerEnabled ? equalizerHeight : 0), calcMetadataHeight());
+    minHeight = 2 + (visualizerEnabled ? visualizerHeight : 0);
+    calcIdealImgSize(&preferredWidth, &preferredHeight, (visualizerEnabled ? visualizerHeight : 0), calcMetadataHeight());
 }
 
 void printCover(SongData *songdata)
@@ -67,7 +66,7 @@ void printCover(SongData *songdata)
         color.g = *(songdata->green);
         color.b = *(songdata->blue);
 
-        displayCover(songdata, preferredWidth, preferredHeight, !coverBlocks);
+        displayCover(songdata, preferredWidth, preferredHeight, coverAnsi);
 
         drewCover = true;
         if (color.r == 0 && color.g == 0 && color.b == 0)
@@ -534,14 +533,14 @@ void printAbout()
 
 void printEqualizer()
 {
-    if (equalizerEnabled && !printInfo)
+    if (visualizerEnabled && !printInfo)
     {
         printf("\n");
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
-        drawSpectrumVisualizer(equalizerHeight, term_w, color, g_audioBuffer);
+        drawSpectrumVisualizer(visualizerHeight, term_w, color, g_audioBuffer);
         printLastRow();
-        int jumpAmount = equalizerHeight + 2;
+        int jumpAmount = visualizerHeight + 2;
         cursorJump(jumpAmount);
         saveCursorPosition();
     }

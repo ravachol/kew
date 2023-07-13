@@ -186,7 +186,7 @@ int read_and_convert(char *filepath, ImageOptions *options, PixelData *brightPix
     return 0;
 }
 
-int output_ascii(char *pathToImgFile, int height, int width, bool coverBlocks, PixelData *brightPixel)
+int output_ascii(char *pathToImgFile, int height, int width, PixelData *brightPixel)
 {
     ImageOptions opts = {
         .output_mode = ANSI,
@@ -195,9 +195,6 @@ int output_ascii(char *pathToImgFile, int height, int width, bool coverBlocks, P
         .squashing_enabled = true,
         .suppress_header = true,
     };
-
-    if (coverBlocks)
-        opts.output_mode = SOLID_ANSI;
 
     if (width > MAX_IMG_SIZE)
     {

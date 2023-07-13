@@ -24,10 +24,9 @@ typedef struct
 {
     char path[MAXPATHLEN];
     char coverEnabled[2];
-    char coverBlocks[2];
-    char equalizerEnabled[2];
-    char equalizerHeight[6];
-    char equalizerBlocks[2];
+    char coverAnsi[2];
+    char visualizerEnabled[2];
+    char visualizerHeight[6];
 } AppSettings;
 
 extern AppSettings settings;
@@ -42,10 +41,6 @@ KeyValuePair *readKeyValuePairs(const char *file_path, int *count);
 void freeKeyValuePairs(KeyValuePair *pairs, int count);
 
 AppSettings constructAppSettings(KeyValuePair *pairs, int count);
-
-int saveSettingsDeprecated(char *path, const char *settingsFile);
-
-int getSettingsDeprecated(char *path, int len, const char *settingsFile);
 
 void getConfig();
 
