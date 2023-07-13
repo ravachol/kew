@@ -64,7 +64,6 @@ typedef struct
 bool playingMainPlaylist = false;
 bool doQuit = false;
 bool usingSongDataA = true;
-bool firstCall = true;
 bool assignedToUserdata = false;
 bool loadingFailed = false;
 bool skipPrev = false;
@@ -256,6 +255,28 @@ void resize()
     clearRestOfScreen();
 }
 
+void assignLoadedData()
+{
+    if (usingSongDataA)
+    {
+        if (loadingdata.songdataB != NULL)
+            userData.pcmFileB.filename = loadingdata.songdataB->pcmFilePath;
+        else
+            userData.pcmFileB.filename = NULL;
+        userData.pcmFileB.file = NULL;
+    }
+    else
+    {
+        if (loadingdata.songdataA != NULL)
+            userData.pcmFileA.filename = loadingdata.songdataA->pcmFilePath;
+        else
+            userData.pcmFileA.filename = NULL;
+        userData.pcmFileA.file = NULL;
+    }
+    assignedToUserdata = true;
+    skipping = false;
+}
+
 void *songDataReaderThread(void *arg)
 {
     LoadingThreadData *loadingdata = (LoadingThreadData *)arg;
@@ -282,9 +303,12 @@ void *songDataReaderThread(void *arg)
         unloadSongData(&loadingdata->songdataB);
         loadingdata->songdataB = songdata;
     }
+
+    assignLoadedData();    
+    
     // Reset for the next iteration
     loadedSong = true;
-
+    
     // Release the mutex lock
     pthread_mutex_unlock(&(loadingdata->mutex));
 
@@ -338,28 +362,6 @@ void loadPrev(LoadingThreadData *loadingdata)
 bool isPlaybackOfListDone()
 {
     return (userData.endOfListReached == 1);
-}
-
-void assignUserData()
-{
-    if (usingSongDataA)
-    {
-        if (loadingdata.songdataB != NULL)
-            userData.pcmFileB.filename = loadingdata.songdataB->pcmFilePath;
-        else
-            userData.pcmFileB.filename = NULL;
-        userData.pcmFileB.file = NULL;
-    }
-    else
-    {
-        if (loadingdata.songdataA != NULL)
-            userData.pcmFileA.filename = loadingdata.songdataA->pcmFilePath;
-        else
-            userData.pcmFileA.filename = NULL;
-        userData.pcmFileA.file = NULL;
-    }
-    assignedToUserdata = true;
-    skipping = false;
 }
 
 void prepareNextSong()
@@ -428,8 +430,6 @@ void skipToPrevSong()
     {
         usleep(1000);
     }
-    if (!assignedToUserdata)
-        assignUserData();
     if (currentSong->prev != NULL)
     {
         currentSong = currentSong->prev;
@@ -464,8 +464,6 @@ void skipToPrevSong()
 
         usleep(10000);
     }
-    if (!assignedToUserdata)
-        assignUserData();
     clock_gettime(CLOCK_MONOTONIC, &start_time);
     skip();
 }
@@ -559,7 +557,6 @@ void handleInput()
 int play(Node *currentSong)
 {
     processInput(); // Ignore any input that's already accumulated
-
     freeAudioBuffer();
 
     pthread_mutex_init(&(loadingdata.mutex), NULL);
@@ -581,7 +578,6 @@ int play(Node *currentSong)
 
     createAudioDevice(&userData);
 
-    firstCall = false;
     loadedSong = false;
     nextSong = NULL;
     refresh = true;
@@ -592,7 +588,6 @@ int play(Node *currentSong)
     while (true)
     {
         calcElapsedTime();
-
         handleInput();
 
         if (resizeFlag)
@@ -604,26 +599,19 @@ int play(Node *currentSong)
         {
             if (!loadedSong)
             {
-
                 assignedToUserdata = false;
                 loadAudioData();
             }
-            else if (!assignedToUserdata)
-                assignUserData();
             else if (loadedSong && assignedToUserdata)
                 skipping = false;
         }
 
         if (isPlaybackDone())
         {
-
             while (!loadedSong && !loadingFailed && !isPlaybackOfListDone())
             {
                 usleep(10000);
             }
-            if (!assignedToUserdata)
-                assignUserData();
-
             prepareNextSong();
         }
         if (doQuit || isPlaybackOfListDone())
@@ -736,8 +724,7 @@ int main(int argc, char *argv[])
     }
     else if (argc == 2 && (strcmp(argv[1], "--version") == 0 || strcmp(argv[1], "-v") == 0))
     {
-        printAsciiLogo();
-        showVersion();
+        printAboutDefaultColors();
     }
     else if (argc == 3 && (strcmp(argv[1], "path") == 0))
     {

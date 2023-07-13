@@ -28,6 +28,8 @@ int printPlayer(SongData *songdata, double elapsedSeconds, PlayList *playlist);
 
 void showVersion();
 
+void printAboutDefaultColors();
+
 void showHelp();
 
 #endif

@@ -5,8 +5,6 @@
 
 AppSettings settings;
 
-const char PATH_SETTING_FILENAME_DEPRECATED[] = ".cue-settings";
-const char SETTINGS_FILENAME_DEPRECATED[] = "cue.conf";
 const char SETTINGS_FILE[] = ".cue.conf";
 
 AppSettings constructAppSettings(KeyValuePair *pairs, int count)

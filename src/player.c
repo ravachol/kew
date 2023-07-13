@@ -2,7 +2,7 @@
 #include "player.h"
 
 const char VERSION[] = "0.9.10";
-const char VERSION_DATE[] = "2023-07-12";
+const char VERSION_DATE[] = "2023-07-13";
 
 volatile bool refresh = true;
 bool visualizerEnabled = true;
@@ -27,7 +27,7 @@ double totalDurationSeconds = 0.0;
 PixelData color = {0, 0, 0};
 PixelData bgColor = {50, 50, 50};
 TagSettings metadata = {};
-char latestVersion[10] = "\0";
+
 struct ResponseData
 {
     char *content;
@@ -364,7 +364,6 @@ int fetchLatestVersion(int *major, int *minor, int *patch)
     if (response_code == 200)
     {
         free(responseData.content);
-
         return 0;
     }
     else
@@ -376,9 +375,18 @@ int fetchLatestVersion(int *major, int *minor, int *patch)
 
 void showVersion(PixelData color, PixelData secondaryColor)
 {
-    sprintf(latestVersion, VERSION);
     printf("\n");
     printVersion(VERSION, VERSION_DATE, color, secondaryColor);
+}
+
+void printAboutDefaultColors()
+{
+    clearRestOfScreen();
+    printf("\n\r");
+    printAsciiLogo();
+    printf("\n");
+    printVersionDefaultColors(VERSION, VERSION_DATE);
+    printf("\n");
 }
 
 void removeUnneededChars(char *str)

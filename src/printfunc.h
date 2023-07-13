@@ -33,4 +33,6 @@ void printAsciiLogo();
 
 void printVersion(const char *version, const char *latestVersion, PixelData color, PixelData secondaryColor);
 
+void printVersionDefaultColors(const char *version, const char *versionDate);
+
 int getYear(const char *dateString);
