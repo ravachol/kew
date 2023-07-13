@@ -74,13 +74,9 @@ int detectBeats(float *magnitudes, int numBars)
         avgMagnitude += magnitude;
     }
     avgMagnitude /= range;
-
     updateMagnitudeBuffer(avgMagnitude);
-
-    float movingAverage = calculateMovingAverage();
     float threshold = calculateThreshold();
 
-    int peakDetected = 0;
     for (int i = 0; i < range; i++)
     {
         if (magnitudes[i] > threshold)
