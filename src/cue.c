@@ -62,7 +62,7 @@ typedef struct
 } LoadingThreadData;
 
 bool playingMainPlaylist = false;
-bool userQuit = false;
+bool doQuit = false;
 bool usingSongDataA = true;
 bool firstCall = true;
 bool assignedToUserdata = false;
@@ -233,7 +233,7 @@ void togglePause(double *totalPauseSeconds, double pauseSeconds, struct timespec
 
 void quit()
 {
-    userQuit = true;
+    doQuit = true;
 }
 
 void freeAudioBuffer()
@@ -622,7 +622,7 @@ int play(Node *currentSong)
         if (isPlaybackDone())
         {
            
-            while (!loadedSong && !loadingFailed)
+            while (!loadedSong && !loadingFailed && !isPlaybackOfListDone())
             {
                 usleep(10000);
             }            
@@ -631,9 +631,9 @@ int play(Node *currentSong)
               
             prepareNextSong();           
         }
-        if (userQuit || isPlaybackOfListDone())
+        if (currentSong == NULL || doQuit || isPlaybackOfListDone())
         {
-                break;
+            break;
         }
         usleep(100000);
     }

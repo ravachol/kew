@@ -226,6 +226,8 @@ void pcm_file_data_source_read_pcm_frames(ma_data_source *pDataSource, void *pFr
 
         if (currentFile == NULL)
         {            
+            pPCMDataSource->pUserData->endOfListReached = 1;
+            usleep(10000);
             return;
         }
         ma_uint32 bytesRead = (ma_uint32)fread((char *)pFramesOut + (framesRead * bytesPerFrame), 1, bytesToRead, currentFile);
