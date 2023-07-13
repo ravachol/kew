@@ -18,13 +18,15 @@ void printHelp()
     printf("\n");
     printf("Usage:    cue path \"path to music library\"\n");
     printf("          (Saves the music library path. Use this the first time. Ie: cue path \"/home/joe/Music/\")\n");
+    printf("          cue (no argument, loads all your songs up to 10 000)\n");
     printf("          cue <song name,directory or playlist words>\n");
     printf("          cue --help, -? or -h\n");
     printf("          cue --version or -v\n");
     printf("          cue dir <album name> (Sometimes it's neccessary to specify it's a directory you want)\n");
     printf("          cue song <song name> \n");
+    printf("          cue list <m3u list name> \n");
     printf("          cue shuffle <dir name> (random and rand works too)\n");
-    printf("          cue cure:depeche (plays the cure and depeche mode shuffled)");
+    printf("          cue artistA:artistB (plays artistA and artistB shuffled)");
     printf("\n");
     printf("Examples: cue moon (Plays the first song or directory it finds that has the word moon, ie moonlight sonata)\n");
     printf("          play path \"/home/user/Music\"\n");
@@ -70,7 +72,6 @@ int getDayDifference(const char *date)
 
     tm_date.tm_year -= 1900;
     tm_date.tm_mon -= 1;
-
     tm_date.tm_hour = 0;
     tm_date.tm_min = 0;
     tm_date.tm_sec = 0;
@@ -96,6 +97,15 @@ void printVersion(const char *version, const char *versionDate, PixelData color,
     setTextColorRGB2(color.r, color.g, color.b);
     printf(" https://github.com/ravachol/cue\n");
     setTextColorRGB2(secondaryColor.r, secondaryColor.g, secondaryColor.b);
+}
+
+void printVersionDefaultColors(const char *version, const char *versionDate)
+{
+    printf(" Version %s.\n", version);
+    int daysOld = getDayDifference(versionDate);
+    printf(" This version of cue is %d day(s) old.\n", daysOld);
+    printf(" Homepage:\n");
+    printf(" https://github.com/ravachol/cue\n");
 }
 
 int getYear(const char *dateString)
