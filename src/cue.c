@@ -615,6 +615,8 @@ int play(Node *currentSong)
             }
             else if (!assignedToUserdata)
                 assignUserData();
+            else if (loadedSong && assignedToUserdata)
+                skipping = false;                
         }
       
         if (isPlaybackDone())
