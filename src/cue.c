@@ -119,7 +119,7 @@ struct Event processInput()
         event.type = EVENT_TOGGLECOVERS;
         break;
     case 'e':
-        event.type = EVENT_TOGGLEEQUALIZER;
+        event.type = EVENT_TOGGLEVISUALIZER;
         break;
     case 'b':
         event.type = EVENT_TOGGLEBLOCKS;
@@ -192,8 +192,8 @@ void addToPlaylist()
 
 void toggleBlocks()
 {
-    coverBlocks = !coverBlocks;
-    strcpy(settings.coverBlocks, coverBlocks ? "1" : "0");
+    coverAnsi = !coverAnsi;
+    strcpy(settings.coverAnsi, coverAnsi ? "1" : "0");
     if (coverEnabled)
         refresh = true;
 }
@@ -210,10 +210,10 @@ void toggleRepeat()
     repeatEnabled = !repeatEnabled;
 }
 
-void toggleEqualizer()
+void toggleVisualizer()
 {
-    equalizerEnabled = !equalizerEnabled;
-    strcpy(settings.equalizerEnabled, equalizerEnabled ? "1" : "0");
+    visualizerEnabled = !visualizerEnabled;
+    strcpy(settings.visualizerEnabled, visualizerEnabled ? "1" : "0");
     restoreCursorPosition();
     refresh = true;
 }
@@ -412,7 +412,7 @@ void skipToNextSong()
     }
     if (skipping)
         return;
-    skipping = true;        
+    skipping = true;
     skip();
 }
 
@@ -512,8 +512,8 @@ void handleInput()
     case EVENT_PLAY_PAUSE:
         togglePause(&totalPauseSeconds, pauseSeconds, &pause_time);
         break;
-    case EVENT_TOGGLEEQUALIZER:
-        toggleEqualizer();
+    case EVENT_TOGGLEVISUALIZER:
+        toggleVisualizer();
         break;
     case EVENT_TOGGLEREPEAT:
         toggleRepeat();
@@ -592,7 +592,7 @@ int play(Node *currentSong)
     while (true)
     {
         calcElapsedTime();
-      
+
         handleInput();
 
         if (resizeFlag)
@@ -604,28 +604,27 @@ int play(Node *currentSong)
         {
             if (!loadedSong)
             {
-               
+
                 assignedToUserdata = false;
                 loadAudioData();
-               
             }
             else if (!assignedToUserdata)
                 assignUserData();
             else if (loadedSong && assignedToUserdata)
-                skipping = false;                
+                skipping = false;
         }
-      
+
         if (isPlaybackDone())
         {
-           
+
             while (!loadedSong && !loadingFailed && !isPlaybackOfListDone())
             {
                 usleep(10000);
-            }            
+            }
             if (!assignedToUserdata)
                 assignUserData();
-              
-            prepareNextSong();           
+
+            prepareNextSong();
         }
         if (doQuit || isPlaybackOfListDone())
         {
