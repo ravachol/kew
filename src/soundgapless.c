@@ -30,6 +30,13 @@ bool repeatEnabled = false;
 
 static bool eofReached = false;
 
+static const char* s[] =
+{
+    "get_into_car_open_door_high_driver",
+    "get_into_car_high_driver",
+    "get_into_car_close_door_driver"
+};
+
 static ma_result pcm_file_data_source_read(ma_data_source *pDataSource, void *pFramesOut, ma_uint64 frameCount, ma_uint64 *pFramesRead)
 {
     PCMFileDataSource *pPCMDataSource = (PCMFileDataSource *)pDataSource;
@@ -165,9 +172,6 @@ ma_result pcm_file_data_source_init(PCMFileDataSource *pPCMDataSource, const cha
 
 void pcm_file_data_source_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_uint64 frameCount, ma_uint64 *pFramesRead)
 {
-    if (skipping)
-        return;
-
     PCMFileDataSource *pPCMDataSource = (PCMFileDataSource *)pDataSource;
     ma_uint32 framesToRead = (ma_uint32)frameCount;
 
@@ -209,7 +213,7 @@ void pcm_file_data_source_read_pcm_frames(ma_data_source *pDataSource, void *pFr
             pPCMDataSource->currentPCMFrame = 0;
             pPCMDataSource->switchFiles = false;
 
-            eofReached = true;
+            eofReached = true;           
             break; // Exit the loop after the file switch
         }
 
@@ -225,18 +229,19 @@ void pcm_file_data_source_read_pcm_frames(ma_data_source *pDataSource, void *pFr
         }
 
         if (currentFile == NULL)
-        {            
-            pPCMDataSource->pUserData->endOfListReached = 1;
-            usleep(10000);
+        {           
+            if (skipping) 
+                return;
             return;
         }
         ma_uint32 bytesRead = (ma_uint32)fread((char *)pFramesOut + (framesRead * bytesPerFrame), 1, bytesToRead, currentFile);
         if (skipToNext || bytesRead == 0)
         {
-            skipToNext = false;
             // Reached the end of the current file
             pPCMDataSource->currentFileIndex = 1 - pPCMDataSource->currentFileIndex; // Toggle between 0 and 1
             pPCMDataSource->switchFiles = true;
+
+            skipToNext = false;      
             continue; // Continue to the next iteration to read from the new file
         }
 
