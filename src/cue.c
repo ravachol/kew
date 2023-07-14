@@ -64,7 +64,6 @@ typedef struct
 bool playingMainPlaylist = false;
 bool doQuit = false;
 bool usingSongDataA = true;
-bool assignedToUserdata = false;
 bool loadingFailed = false;
 bool skipPrev = false;
 bool skipping = false;
@@ -78,6 +77,7 @@ double pauseSeconds = 0.0;
 double totalPauseSeconds = 0.0;
 
 volatile bool loadedSong = false;
+volatile bool songLoading = false;
 
 UserData userData;
 LoadingThreadData loadingdata;
@@ -273,8 +273,6 @@ void assignLoadedData()
             userData.pcmFileA.filename = NULL;
         userData.pcmFileA.file = NULL;
     }
-    assignedToUserdata = true;
-    skipping = false;
 }
 
 void *songDataReaderThread(void *arg)
@@ -308,7 +306,9 @@ void *songDataReaderThread(void *arg)
     
     // Reset for the next iteration
     loadedSong = true;
-    
+    skipping = false;    
+    songLoading = false;
+
     // Release the mutex lock
     pthread_mutex_unlock(&(loadingdata->mutex));
 
@@ -320,6 +320,9 @@ void loadSong(Node *song, LoadingThreadData *loadingdata)
     if (song == NULL)
     {
         loadingFailed = true;
+        loadedSong = true;
+        skipping = false;    
+        songLoading = false;        
         return;
     }
 
@@ -351,8 +354,13 @@ void loadPrev(LoadingThreadData *loadingdata)
     prevSong = getListPrev(currentSong);
 
     if (prevSong == NULL)
+    {        
+        loadingFailed = true;
+        loadedSong = true;
+        skipping = false;    
+        songLoading = false;          
         return;
-
+    }
     strcpy(loadingdata->filePath, prevSong->song.filePath);
 
     pthread_t loadingThread;
@@ -364,6 +372,11 @@ bool isPlaybackOfListDone()
     return (userData.endOfListReached == 1);
 }
 
+void setPlaybackOfListDone()
+{
+  userData.endOfListReached = 1;
+}
+
 void prepareNextSong()
 {
     if (!skipPrev && !repeatEnabled)
@@ -373,6 +386,7 @@ void prepareNextSong()
 
     if (currentSong == NULL)
     {
+        setPlaybackOfListDone();     
         quit();
         return;
     }
@@ -402,7 +416,6 @@ void prepareNextSong()
         }
         usingSongDataA = !usingSongDataA;
     }
-
     clock_gettime(CLOCK_MONOTONIC, &start_time);
 }
 
@@ -412,7 +425,7 @@ void skipToNextSong()
     {
         return;
     }
-    if (skipping)
+    if (skipping || songLoading)
         return;
     skipping = true;
     skip();
@@ -444,7 +457,6 @@ void skipToPrevSong()
     {
         if (!loadedSong)
         {
-            assignedToUserdata = false;
             if (loading == false)
             {
                 loading = true;
@@ -496,6 +508,7 @@ void loadAudioData()
 {
     if (nextSong == NULL)
     {
+        songLoading = true;
         loadingdata.loadA = !usingSongDataA;
         loadNext(&loadingdata);
     }
@@ -554,6 +567,14 @@ void handleInput()
     }
 }
 
+void updatePlayer()
+{
+    if (resizeFlag)
+        resize();
+    else
+        refreshPlayer();    
+}
+
 int play(Node *currentSong)
 {
     processInput(); // Ignore any input that's already accumulated
@@ -589,32 +610,24 @@ int play(Node *currentSong)
     {
         calcElapsedTime();
         handleInput();
+        updatePlayer();
 
-        if (resizeFlag)
-            resize();
-        else
-            refreshPlayer();
-
-        if (currentSong->next != NULL)
-        {
-            if (!loadedSong)
-            {
-                assignedToUserdata = false;
-                loadAudioData();
-            }
-            else if (loadedSong && assignedToUserdata)
-                skipping = false;
-        }
+        if (!loadedSong)
+            loadAudioData();
 
         if (isPlaybackDone())
         {
-            while (!loadedSong && !loadingFailed && !isPlaybackOfListDone())
+            if (songLoading)
             {
-                usleep(10000);
+                while (!loadedSong)
+                {
+                    usleep(10000);
+                }
             }
             prepareNextSong();
         }
-        if (doQuit || isPlaybackOfListDone())
+
+        if (doQuit || isPlaybackOfListDone() || loadingFailed)
         {
             break;
         }
