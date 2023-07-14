@@ -85,6 +85,22 @@ LoadingThreadData loadingdata;
 Node *nextSong = NULL;
 Node *prevSong = NULL;
 
+#define COOLDOWN_DURATION 200
+
+static clock_t lastInputTime = 0;
+
+bool isCooldownElapsed()
+{
+    time_t currentTime = time(NULL);
+    double elapsedSeconds = difftime(currentTime, lastInputTime);
+    return elapsedSeconds >= COOLDOWN_DURATION / 1000.0;
+}
+
+void updateLastInputTime()
+{
+    lastInputTime = clock();
+}
+
 struct Event processInput()
 {
     struct Event event;
@@ -92,16 +108,25 @@ struct Event processInput()
     event.key = '\0';
 
     if (!isInputAvailable())
+    {
         saveCursorPosition();
+        return event;
+    }
     else
         restoreCursorPosition();
 
     char currentInput = '\0';
 
-    while (isInputAvailable() == 1)
+    while (isInputAvailable())
     {
         currentInput = readInput();
+        usleep(50000);
     }
+
+    if (!isCooldownElapsed())
+        return event;    
+
+    updateLastInputTime();
 
     event.type = EVENT_NONE;
     event.key = currentInput;
@@ -429,36 +454,32 @@ void skipToPrevSong()
         return;
     }
 
+    if (currentSong->prev == NULL)
+    {
+        return;
+    }
+
+    currentSong = currentSong->prev;
+
     skipping = true;
     skipPrev = true;
-
-    if (currentSong->prev != NULL)
-    {
-        currentSong = currentSong->prev;
-    }
     loadedNextSong = false;
-    bool loading = false;
+    songLoading = true;
+
+    if (usingSongDataA)
+    {
+        loadingdata.loadA = false;
+        unloadSongData(&loadingdata.songdataB);
+    }
+    else
+    {
+        loadingdata.loadA = true;
+        unloadSongData(&loadingdata.songdataA);
+    }
+    loadSong(currentSong, &loadingdata);    
 
     while (!loadedNextSong && !loadingFailed)
     {
-        if (!loadedNextSong)
-        {
-            if (loading == false)
-            {
-                loading = true;
-                if (usingSongDataA)
-                {
-                    loadingdata.loadA = false;
-                    unloadSongData(&loadingdata.songdataB);
-                }
-                else
-                {
-                    loadingdata.loadA = true;
-                    unloadSongData(&loadingdata.songdataA);
-                }
-                loadSong(currentSong, &loadingdata);
-            }
-        }
         usleep(10000);
     }
     clock_gettime(CLOCK_MONOTONIC, &start_time);
@@ -564,7 +585,6 @@ void play(Node *currentSong)
 {
     processInput(); // Ignore any input that's already accumulated
     freeAudioBuffer();
-
     pthread_mutex_init(&(loadingdata.mutex), NULL);
     usingSongDataA = true;
     loadingdata.loadA = true;
