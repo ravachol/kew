@@ -171,7 +171,8 @@ ma_result pcm_file_data_source_init(PCMFileDataSource *pPCMDataSource, const cha
 
 void activateSwitch(PCMFileDataSource *pPCMDataSource)
 {
-    pPCMDataSource->currentFileIndex = 1 - pPCMDataSource->currentFileIndex; // Toggle between 0 and 1
+    if (!repeatEnabled)
+        pPCMDataSource->currentFileIndex = 1 - pPCMDataSource->currentFileIndex; // Toggle between 0 and 1
     pPCMDataSource->switchFiles = true;
 
     skipToNext = false;
@@ -222,7 +223,7 @@ void pcm_file_data_source_read_pcm_frames(ma_data_source *pDataSource, void *pFr
 
             eofReached = true;
             break; // Exit the loop after the file switch
-        }
+        }        
 
         // Read from the current file
         FILE *currentFile;
@@ -539,6 +540,7 @@ int adjustVolumePercent(int volumeChange)
 void skip()
 {
     skipToNext = true;
+    repeatEnabled = false;
 }
 
 void createAudioDevice(UserData *userData)
