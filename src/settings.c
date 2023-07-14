@@ -12,7 +12,7 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
     AppSettings settings;
     memset(&settings, 0, sizeof(settings));
     strncpy(settings.coverEnabled, "1", sizeof(settings.coverEnabled));
-    strncpy(settings.coverAnsi, "1", sizeof(settings.coverAnsi));
+    strncpy(settings.coverAnsi, "0", sizeof(settings.coverAnsi));
     strncpy(settings.visualizerEnabled, "1", sizeof(settings.visualizerEnabled));
 
     if (pairs == NULL)
