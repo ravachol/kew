@@ -124,7 +124,7 @@ struct Event processInput()
     }
 
     if (!isCooldownElapsed())
-        return event;    
+        return event;
 
     updateLastInputTime();
 
@@ -329,7 +329,6 @@ void *songDataReaderThread(void *arg)
 
     assignLoadedData();
 
-    // Reset for the next iteration
     loadedNextSong = true;
     skipping = false;
     songLoading = false;
@@ -454,13 +453,7 @@ void skipToPrevSong()
         return;
     }
 
-    if (currentSong->prev == NULL)
-    {
-        return;
-    }
-
     currentSong = currentSong->prev;
-
     skipping = true;
     skipPrev = true;
     loadedNextSong = false;
@@ -476,7 +469,7 @@ void skipToPrevSong()
         loadingdata.loadA = true;
         unloadSongData(&loadingdata.songdataA);
     }
-    loadSong(currentSong, &loadingdata);    
+    loadSong(currentSong, &loadingdata);
 
     while (!loadedNextSong && !loadingFailed)
     {
