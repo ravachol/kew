@@ -302,11 +302,11 @@ void *songDataReaderThread(void *arg)
         loadingdata->songdataB = songdata;
     }
 
-    assignLoadedData();    
-    
+    assignLoadedData();
+
     // Reset for the next iteration
     loadedNextSong = true;
-    skipping = false;    
+    skipping = false;
     songLoading = false;
 
     // Release the mutex lock
@@ -321,8 +321,8 @@ void loadSong(Node *song, LoadingThreadData *loadingdata)
     {
         loadingFailed = true;
         loadedNextSong = true;
-        skipping = false;    
-        songLoading = false;        
+        skipping = false;
+        songLoading = false;
         return;
     }
 
@@ -349,24 +349,6 @@ void loadNext(LoadingThreadData *loadingdata)
     pthread_create(&loadingThread, NULL, songDataReaderThread, (void *)loadingdata);
 }
 
-void loadPrev(LoadingThreadData *loadingdata)
-{
-    prevSong = getListPrev(currentSong);
-
-    if (prevSong == NULL)
-    {        
-        loadingFailed = true;
-        loadedNextSong = true;
-        skipping = false;    
-        songLoading = false;          
-        return;
-    }
-    strcpy(loadingdata->filePath, prevSong->song.filePath);
-
-    pthread_t loadingThread;
-    pthread_create(&loadingThread, NULL, songDataReaderThread, (void *)loadingdata);
-}
-
 bool isPlaybackOfListDone()
 {
     return (userData.endOfListReached == 1);
@@ -374,11 +356,14 @@ bool isPlaybackOfListDone()
 
 void setPlaybackOfListDone()
 {
-  userData.endOfListReached = 1;
+    userData.endOfListReached = 1;
 }
 
 void prepareNextSong()
 {
+    if (songLoading)
+        return;
+
     if (!skipPrev && !repeatEnabled)
         currentSong = currentSong->next;
     else
@@ -386,7 +371,7 @@ void prepareNextSong()
 
     if (currentSong == NULL)
     {
-        setPlaybackOfListDone();     
+        setPlaybackOfListDone();
         quit();
         return;
     }
@@ -421,11 +406,14 @@ void prepareNextSong()
 
 void skipToNextSong()
 {
+    if (songLoading || !loadedNextSong)
+        return;
+
     if (currentSong->next == NULL)
     {
         return;
     }
-    if (skipping || songLoading)
+    if (skipping)
         return;
     skipping = true;
     skip();
@@ -433,22 +421,21 @@ void skipToNextSong()
 
 void skipToPrevSong()
 {
+    if (songLoading || !loadedNextSong || skipping)
+        return;
+
     if (currentSong->prev == NULL)
     {
         return;
     }
-    if (skipping || songLoading)
-        return;
-    
+
     skipping = true;
     skipPrev = true;
-        
+
     if (currentSong->prev != NULL)
     {
         currentSong = currentSong->prev;
     }
-
-
     loadedNextSong = false;
     bool loading = false;
 
@@ -472,7 +459,6 @@ void skipToPrevSong()
                 loadSong(currentSong, &loadingdata);
             }
         }
-
         usleep(10000);
     }
     clock_gettime(CLOCK_MONOTONIC, &start_time);
@@ -505,7 +491,7 @@ void refreshPlayer()
 
 void loadAudioData()
 {
-    if (nextSong == NULL)
+    if (nextSong == NULL && !songLoading)
     {
         songLoading = true;
         loadingdata.loadA = !usingSongDataA;
@@ -571,7 +557,7 @@ void updatePlayer()
     if (resizeFlag)
         resize();
     else
-        refreshPlayer();    
+        refreshPlayer();
 }
 
 void play(Node *currentSong)
