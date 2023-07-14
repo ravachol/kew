@@ -30,12 +30,11 @@ bool repeatEnabled = false;
 
 static bool eofReached = false;
 
-static const char* s[] =
-{
-    "get_into_car_open_door_high_driver",
-    "get_into_car_high_driver",
-    "get_into_car_close_door_driver"
-};
+static const char *s[] =
+    {
+        "get_into_car_open_door_high_driver",
+        "get_into_car_high_driver",
+        "get_into_car_close_door_driver"};
 
 static ma_result pcm_file_data_source_read(ma_data_source *pDataSource, void *pFramesOut, ma_uint64 frameCount, ma_uint64 *pFramesRead)
 {
@@ -73,7 +72,7 @@ static ma_result pcm_file_data_source_read(ma_data_source *pDataSource, void *pF
         }
 
         if (nextFile == NULL)
-        {            
+        {
             pPCMDataSource->pUserData->endOfListReached = 1;
         }
     }
@@ -170,6 +169,14 @@ ma_result pcm_file_data_source_init(PCMFileDataSource *pPCMDataSource, const cha
     return MA_SUCCESS;
 }
 
+void activateSwitch(PCMFileDataSource *pPCMDataSource)
+{
+    pPCMDataSource->currentFileIndex = 1 - pPCMDataSource->currentFileIndex; // Toggle between 0 and 1
+    pPCMDataSource->switchFiles = true;
+
+    skipToNext = false;
+}
+
 void pcm_file_data_source_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_uint64 frameCount, ma_uint64 *pFramesRead)
 {
     PCMFileDataSource *pPCMDataSource = (PCMFileDataSource *)pDataSource;
@@ -213,7 +220,7 @@ void pcm_file_data_source_read_pcm_frames(ma_data_source *pDataSource, void *pFr
             pPCMDataSource->currentPCMFrame = 0;
             pPCMDataSource->switchFiles = false;
 
-            eofReached = true;           
+            eofReached = true;
             break; // Exit the loop after the file switch
         }
 
@@ -228,20 +235,21 @@ void pcm_file_data_source_read_pcm_frames(ma_data_source *pDataSource, void *pFr
             currentFile = pPCMDataSource->fileB;
         }
 
+        if (skipToNext)
+        {
+            activateSwitch(pPCMDataSource);
+            continue;
+        }
+
         if (currentFile == NULL)
-        {           
-            if (skipping) 
-                return;
+        {
             return;
         }
-        ma_uint32 bytesRead = (ma_uint32)fread((char *)pFramesOut + (framesRead * bytesPerFrame), 1, bytesToRead, currentFile);
-        if (skipToNext || bytesRead == 0)
-        {
-            // Reached the end of the current file
-            pPCMDataSource->currentFileIndex = 1 - pPCMDataSource->currentFileIndex; // Toggle between 0 and 1
-            pPCMDataSource->switchFiles = true;
 
-            skipToNext = false;      
+        ma_uint32 bytesRead = (ma_uint32)fread((char *)pFramesOut + (framesRead * bytesPerFrame), 1, bytesToRead, currentFile);
+        if (bytesRead == 0)
+        {
+            activateSwitch(pPCMDataSource);
             continue; // Continue to the next iteration to read from the new file
         }
 

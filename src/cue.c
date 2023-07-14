@@ -76,7 +76,7 @@ double elapsedSeconds = 0.0;
 double pauseSeconds = 0.0;
 double totalPauseSeconds = 0.0;
 
-volatile bool loadedSong = false;
+volatile bool loadedNextSong = false;
 volatile bool songLoading = false;
 
 UserData userData;
@@ -176,7 +176,7 @@ void doShuffle()
     shufflePlaylistStartingFromSong(&playlist, currentSong);
     calculatePlayListDuration(&playlist);
     usleep(100000);
-    loadedSong = false;
+    loadedNextSong = false;
     refresh = true;
     nextSong = NULL;
 }
@@ -305,7 +305,7 @@ void *songDataReaderThread(void *arg)
     assignLoadedData();    
     
     // Reset for the next iteration
-    loadedSong = true;
+    loadedNextSong = true;
     skipping = false;    
     songLoading = false;
 
@@ -320,7 +320,7 @@ void loadSong(Node *song, LoadingThreadData *loadingdata)
     if (song == NULL)
     {
         loadingFailed = true;
-        loadedSong = true;
+        loadedNextSong = true;
         skipping = false;    
         songLoading = false;        
         return;
@@ -356,7 +356,7 @@ void loadPrev(LoadingThreadData *loadingdata)
     if (prevSong == NULL)
     {        
         loadingFailed = true;
-        loadedSong = true;
+        loadedNextSong = true;
         skipping = false;    
         songLoading = false;          
         return;
@@ -395,7 +395,7 @@ void prepareNextSong()
     pauseSeconds = 0.0;
     totalPauseSeconds = 0.0;
 
-    loadedSong = false;
+    loadedNextSong = false;
     nextSong = NULL;
 
     refresh = true;
@@ -437,25 +437,24 @@ void skipToPrevSong()
     {
         return;
     }
-    if (skipping)
+    if (skipping || songLoading)
         return;
-    while ((!loadedSong && !loadingFailed) && currentSong->next != NULL)
-    {
-        usleep(1000);
-    }
+    
+    skipping = true;
+    skipPrev = true;
+        
     if (currentSong->prev != NULL)
     {
         currentSong = currentSong->prev;
     }
-    skipping = true;
-    skipPrev = true;
 
-    loadedSong = false;
+
+    loadedNextSong = false;
     bool loading = false;
 
-    while (!loadedSong && !loadingFailed)
+    while (!loadedNextSong && !loadingFailed)
     {
-        if (!loadedSong)
+        if (!loadedNextSong)
         {
             if (loading == false)
             {
@@ -575,7 +574,7 @@ void updatePlayer()
         refreshPlayer();    
 }
 
-int play(Node *currentSong)
+void play(Node *currentSong)
 {
     processInput(); // Ignore any input that's already accumulated
     freeAudioBuffer();
@@ -585,7 +584,7 @@ int play(Node *currentSong)
     loadingdata.loadA = true;
     loadSong(currentSong, &loadingdata);
     int i = 0;
-    while (!loadedSong)
+    while (!loadedNextSong)
     {
         usleep(10000);
         if (i % 100 == 0)
@@ -599,7 +598,7 @@ int play(Node *currentSong)
 
     createAudioDevice(&userData);
 
-    loadedSong = false;
+    loadedNextSong = false;
     nextSong = NULL;
     refresh = true;
 
@@ -612,17 +611,14 @@ int play(Node *currentSong)
         handleInput();
         updatePlayer();
 
-        if (!loadedSong)
+        if (!loadedNextSong)
             loadAudioData();
 
         if (isPlaybackDone())
         {
-            if (songLoading)
+            while (!loadedNextSong)
             {
-                while (!loadedSong)
-                {
-                    usleep(10000);
-                }
+                usleep(10000);
             }
             prepareNextSong();
         }
@@ -633,7 +629,7 @@ int play(Node *currentSong)
         }
         usleep(100000);
     }
-    return 0;
+    return;
 }
 
 int run()
