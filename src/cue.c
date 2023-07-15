@@ -85,7 +85,7 @@ LoadingThreadData loadingdata;
 Node *nextSong = NULL;
 Node *prevSong = NULL;
 
-#define COOLDOWN_DURATION 200
+#define COOLDOWN_DURATION 1000
 
 static clock_t lastInputTime = 0;
 
@@ -93,12 +93,12 @@ bool isCooldownElapsed()
 {
     time_t currentTime = time(NULL);
     double elapsedSeconds = difftime(currentTime, lastInputTime);
-    return elapsedSeconds >= COOLDOWN_DURATION / 1000.0;
+    return elapsedSeconds >= (COOLDOWN_DURATION / 1000.0);
 }
 
 void updateLastInputTime()
 {
-    lastInputTime = clock();
+    lastInputTime = time(NULL);
 }
 
 struct Event processInput()
@@ -732,7 +732,7 @@ int main(int argc, char *argv[])
     }
     else if (argc == 2 && (strcmp(argv[1], "--version") == 0 || strcmp(argv[1], "-v") == 0))
     {
-        printAboutDefaultColors();
+        printAbout();
     }
     else if (argc == 3 && (strcmp(argv[1], "path") == 0))
     {

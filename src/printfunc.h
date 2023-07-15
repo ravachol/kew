@@ -31,7 +31,7 @@ void printHelp();
 
 void printAsciiLogo();
 
-void printVersion(const char *version, const char *latestVersion, PixelData color, PixelData secondaryColor);
+void printVersion(const char *version, const char *latestVersion);
 
 void printVersionDefaultColors(const char *version, const char *versionDate);
 
