@@ -239,19 +239,12 @@ void pcm_file_data_source_read_pcm_frames(ma_data_source *pDataSource, void *pFr
             currentFile = pPCMDataSource->fileB;
         }
 
-        if (skipToNext)
-        {
-            activateSwitch(pPCMDataSource);
-            continue;
-        }
+        ma_uint32 bytesRead = 0;
 
-        if (currentFile == NULL)
-        {
-            return;
-        }
-
-        ma_uint32 bytesRead = (ma_uint32)fread((char *)pFramesOut + (framesRead * bytesPerFrame), 1, bytesToRead, currentFile);
-        if (bytesRead == 0)
+        if (currentFile != NULL)
+            bytesRead = (ma_uint32)fread((char *)pFramesOut + (framesRead * bytesPerFrame), 1, bytesToRead, currentFile);
+            
+        if (bytesRead == 0 || skipToNext)
         {
             activateSwitch(pPCMDataSource);
             continue; // Continue to the next iteration to read from the new file

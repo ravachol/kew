@@ -85,27 +85,32 @@ LoadingThreadData loadingdata;
 Node *nextSong = NULL;
 Node *prevSong = NULL;
 
-#define COOLDOWN_DURATION 1000
+#define COOLDOWN_DURATION 100
 
-static clock_t lastInputTime = 0;
+static struct timespec lastInputTime;
+static bool eventProcessed = false;
 
 bool isCooldownElapsed()
 {
-    time_t currentTime = time(NULL);
-    double elapsedSeconds = difftime(currentTime, lastInputTime);
-    return elapsedSeconds >= (COOLDOWN_DURATION / 1000.0);
+    struct timespec currentTime;
+    clock_gettime(CLOCK_MONOTONIC, &currentTime);
+    double elapsedMilliseconds = (currentTime.tv_sec - lastInputTime.tv_sec) * 1000.0 +
+                                 (currentTime.tv_nsec - lastInputTime.tv_nsec) / 1000000.0;
+    return elapsedMilliseconds >= COOLDOWN_DURATION;
 }
 
 void updateLastInputTime()
 {
-    lastInputTime = time(NULL);
+    clock_gettime(CLOCK_MONOTONIC, &lastInputTime);
 }
+
 
 struct Event processInput()
 {
     struct Event event;
     event.type = EVENT_NONE;
     event.key = '\0';
+    bool press = false;
 
     if (!isInputAvailable())
     {
@@ -117,16 +122,20 @@ struct Event processInput()
 
     char currentInput = '\0';
 
+    if (isCooldownElapsed() && !eventProcessed)
+        press = true;
+
     while (isInputAvailable())
     {
         currentInput = readInput();
         usleep(50000);
     }
 
-    if (!isCooldownElapsed())
+    if (!press)
         return event;
 
     updateLastInputTime();
+    eventProcessed = true;
 
     event.type = EVENT_NONE;
     event.key = currentInput;
@@ -385,7 +394,12 @@ void setPlaybackOfListDone()
 
 void prepareNextSong()
 {
-    if (songLoading)
+    while (!loadedNextSong && !loadingFailed)
+    {
+        usleep(10000);
+    }
+
+    if (loadingFailed)
         return;
 
     if (!skipPrev && !repeatEnabled)
@@ -437,6 +451,7 @@ void skipToNextSong()
     {
         return;
     }
+
     if (skipping)
         return;
     skipping = true;
@@ -445,20 +460,20 @@ void skipToNextSong()
 
 void skipToPrevSong()
 {
-    if (songLoading || !loadedNextSong || skipping)
-        return;
-
     if (currentSong->prev == NULL)
     {
         return;
     }
 
-    currentSong = currentSong->prev;
+    if (songLoading || !loadedNextSong || skipping)
+    return;
+
     skipping = true;
     skipPrev = true;
     loadedNextSong = false;
     songLoading = true;
 
+    currentSong = currentSong->prev;
     if (usingSongDataA)
     {
         loadingdata.loadA = false;
@@ -469,13 +484,13 @@ void skipToPrevSong()
         loadingdata.loadA = true;
         unloadSongData(&loadingdata.songdataA);
     }
-    loadSong(currentSong, &loadingdata);
 
+    loadSong(currentSong, &loadingdata);
     while (!loadedNextSong && !loadingFailed)
     {
         usleep(10000);
     }
-    clock_gettime(CLOCK_MONOTONIC, &start_time);
+    clock_gettime(CLOCK_MONOTONIC, &start_time);    
     skip();
 }
 
@@ -564,6 +579,7 @@ void handleInput()
     default:
         break;
     }
+    eventProcessed = false;
 }
 
 void updatePlayer()
@@ -576,6 +592,7 @@ void updatePlayer()
 
 void play(Node *currentSong)
 {
+    updateLastInputTime();
     processInput(); // Ignore any input that's already accumulated
     freeAudioBuffer();
     pthread_mutex_init(&(loadingdata.mutex), NULL);
@@ -615,10 +632,6 @@ void play(Node *currentSong)
 
         if (isPlaybackDone())
         {
-            while (!loadedNextSong)
-            {
-                usleep(10000);
-            }
             prepareNextSong();
         }
 
