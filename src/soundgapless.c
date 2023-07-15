@@ -190,19 +190,23 @@ void pcm_file_data_source_read_pcm_frames(ma_data_source *pDataSource, void *pFr
     while (framesToRead > 0)
     {
         // Check if a file switch is required
-        if (pPCMDataSource->switchFiles)
+        if (pPCMDataSource->switchFiles && !repeatEnabled)
         {
+            pPCMDataSource->switchFiles = false;
+
             // Close the current file
             FILE *currentFile;
             if (pPCMDataSource->currentFileIndex == 0)
             {
                 currentFile = pPCMDataSource->fileB;
-                fclose(currentFile);
+                if (currentFile != NULL)
+                    fclose(currentFile);
             }
             else
             {
                 currentFile = pPCMDataSource->fileA;
-                fclose(currentFile);
+                if (currentFile != NULL)                
+                    fclose(currentFile);
             }
 
             // Open the new file
@@ -219,11 +223,10 @@ void pcm_file_data_source_read_pcm_frames(ma_data_source *pDataSource, void *pFr
 
             // Set the new current file and reset any necessary variables
             pPCMDataSource->currentPCMFrame = 0;
-            pPCMDataSource->switchFiles = false;
 
             eofReached = true;
             break; // Exit the loop after the file switch
-        }        
+        }  
 
         // Read from the current file
         FILE *currentFile;

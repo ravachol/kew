@@ -13,7 +13,7 @@ bool timeEnabled = true;
 bool drewCover = true;
 bool printInfo = false;
 bool showList = true;
-int versionHeight = 11;
+int aboutHeight = 7;
 int visualizerHeight = 8;
 int minWidth = 37;
 int minHeight = 2;
@@ -373,19 +373,16 @@ int fetchLatestVersion(int *major, int *minor, int *patch)
     }
 }
 
-void showVersion(PixelData color, PixelData secondaryColor)
+void showVersion()
 {
-    printf("\n");
-    printVersion(VERSION, VERSION_DATE, color, secondaryColor);
+    printVersion(VERSION, VERSION_DATE);
 }
 
-void printAboutDefaultColors()
+void printAbout()
 {
     clearRestOfScreen();
-    printf("\n\r");
+    printf("\n\n\r");
     printAsciiLogo();
-    printf("\n");
-    printVersionDefaultColors(VERSION, VERSION_DATE);
     printf("\n");
 }
 
@@ -434,7 +431,7 @@ int showPlaylist()
     getTermSize(&term_w, &term_h);
     int otherRows = 4;
     int totalHeight = term_h;
-    int maxListSize = totalHeight - versionHeight - otherRows;
+    int maxListSize = totalHeight - aboutHeight - otherRows;
     int numRows = 0;
     int numPrintedRows = 0;
     int foundAt = 0;
@@ -446,6 +443,8 @@ int showPlaylist()
 
     PixelData textColor = increaseLuminosity(color, 100);
     setTextColorRGB2(textColor.r, textColor.g, textColor.b);
+    printAbout();
+
     setTextColorRGB2(color.r, color.g, color.b);
 
     int numSongs = 0;
@@ -525,20 +524,6 @@ int showPlaylist()
     return numPrintedRows;
 }
 
-void printAbout()
-{
-    clearRestOfScreen();
-    printf("\n\n\r");
-    if (refresh && printInfo)
-    {
-        PixelData textColor = increaseLuminosity(color, 100);
-        setTextColorRGB2(textColor.r, textColor.g, textColor.b);
-        printAsciiLogo();
-        setTextColorRGB2(color.r, color.g, color.b);
-        showVersion(textColor, color);
-    }
-}
-
 void printEqualizer()
 {
     if (visualizerEnabled && !printInfo)
@@ -573,7 +558,6 @@ int printPlayer(SongData *songdata, double elapsedSeconds, PlayList *playlist)
     {
         if (refresh)
         {
-            printAbout();
             int height = showPlaylist();
             int jumpAmount = height;
             cursorJump(jumpAmount);

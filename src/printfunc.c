@@ -85,27 +85,9 @@ int getDayDifference(const char *date)
     return diff_days;
 }
 
-void printVersion(const char *version, const char *versionDate, PixelData color, PixelData secondaryColor)
-{
-    setTextColorRGB2(secondaryColor.r, secondaryColor.g, secondaryColor.b);
+void printVersion(const char *version, const char *versionDate)
+{  
     printf(" Version %s.\n", version);
-    setTextColorRGB2(color.r, color.g, color.b);
-    int daysOld = getDayDifference(versionDate);
-    printf(" This version of cue is %d day(s) old.\n", daysOld);
-    setTextColorRGB2(secondaryColor.r, secondaryColor.g, secondaryColor.b);
-    printf(" Homepage:\n");
-    setTextColorRGB2(color.r, color.g, color.b);
-    printf(" https://github.com/ravachol/cue\n");
-    setTextColorRGB2(secondaryColor.r, secondaryColor.g, secondaryColor.b);
-}
-
-void printVersionDefaultColors(const char *version, const char *versionDate)
-{
-    printf(" Version %s.\n", version);
-    int daysOld = getDayDifference(versionDate);
-    printf(" This version of cue is %d day(s) old.\n", daysOld);
-    printf(" Homepage:\n");
-    printf(" https://github.com/ravachol/cue\n");
 }
 
 int getYear(const char *dateString)
