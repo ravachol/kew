@@ -621,6 +621,8 @@ void play(Node *currentSong)
     nextSong = NULL;
     refresh = true;
 
+    loadAudioData();
+
     clock_gettime(CLOCK_MONOTONIC, &start_time);
     calculatePlayListDuration(&playlist);
 
