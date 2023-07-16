@@ -85,7 +85,7 @@ LoadingThreadData loadingdata;
 Node *nextSong = NULL;
 Node *prevSong = NULL;
 
-#define COOLDOWN_DURATION 100
+#define COOLDOWN_DURATION 1000
 
 static struct timespec lastInputTime;
 static bool eventProcessed = false;
@@ -112,6 +112,9 @@ struct Event processInput()
     event.key = '\0';
     bool press = false;
 
+    if (skipping)
+        return event;
+
     if (!isInputAvailable())
     {
         saveCursorPosition();
@@ -128,7 +131,7 @@ struct Event processInput()
     while (isInputAvailable())
     {
         currentInput = readInput();
-        usleep(50000);
+        usleep(10000);
     }
 
     if (!press)

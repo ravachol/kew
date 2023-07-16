@@ -30,53 +30,8 @@ bool repeatEnabled = false;
 
 static bool eofReached = false;
 
-static const char *s[] =
-    {
-        "get_into_car_open_door_high_driver",
-        "get_into_car_high_driver",
-        "get_into_car_close_door_driver"};
-
 static ma_result pcm_file_data_source_read(ma_data_source *pDataSource, void *pFramesOut, ma_uint64 frameCount, ma_uint64 *pFramesRead)
 {
-    PCMFileDataSource *pPCMDataSource = (PCMFileDataSource *)pDataSource;
-    ma_uint32 framesToRead = (ma_uint32)frameCount;
-    ma_uint32 bytesPerFrame = ma_get_bytes_per_frame(pPCMDataSource->format, pPCMDataSource->channels);
-    ma_uint32 bytesToRead = framesToRead * bytesPerFrame;
-
-    FILE *currentFile;
-    if (pPCMDataSource->currentFileIndex == 0)
-    {
-        currentFile = pPCMDataSource->fileA;
-    }
-    else
-    {
-        currentFile = pPCMDataSource->fileB;
-    }
-
-    ma_uint32 bytesRead = (ma_uint32)fread(pFramesOut, 1, bytesToRead, currentFile);
-    ma_uint32 framesRead = bytesRead / bytesPerFrame;
-
-    *pFramesRead = framesRead;
-
-    if (bytesRead == 0 && !skipping)
-    {
-        // End of the current file reached. Check if the next file is null.
-        FILE *nextFile;
-        if (pPCMDataSource->currentFileIndex == 0)
-        {
-            nextFile = pPCMDataSource->fileB;
-        }
-        else
-        {
-            nextFile = pPCMDataSource->fileA;
-        }
-
-        if (nextFile == NULL)
-        {
-            pPCMDataSource->pUserData->endOfListReached = 1;
-        }
-    }
-
     return MA_SUCCESS;
 }
 static ma_result pcm_file_data_source_seek(ma_data_source *pDataSource, ma_uint64 frameIndex)
@@ -171,11 +126,10 @@ ma_result pcm_file_data_source_init(PCMFileDataSource *pPCMDataSource, const cha
 
 void activateSwitch(PCMFileDataSource *pPCMDataSource)
 {
+    skipToNext = false;    
     if (!repeatEnabled)
         pPCMDataSource->currentFileIndex = 1 - pPCMDataSource->currentFileIndex; // Toggle between 0 and 1
     pPCMDataSource->switchFiles = true;
-
-    skipToNext = false;
 }
 
 void pcm_file_data_source_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_uint64 frameCount, ma_uint64 *pFramesRead)
