@@ -447,13 +447,13 @@ void prepareNextSong()
 
 void skipToNextSong()
 {
-    if (songLoading || !loadedNextSong)
-        return;
-
     if (currentSong->next == NULL)
     {
         return;
     }
+        
+    if (songLoading || !loadedNextSong || skipping)
+        return;
 
     if (skipping)
         return;
@@ -620,8 +620,6 @@ void play(Node *currentSong)
     loadedNextSong = false;
     nextSong = NULL;
     refresh = true;
-
-    loadAudioData();
 
     clock_gettime(CLOCK_MONOTONIC, &start_time);
     calculatePlayListDuration(&playlist);
