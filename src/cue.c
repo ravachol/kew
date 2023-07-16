@@ -85,7 +85,7 @@ LoadingThreadData loadingdata;
 Node *nextSong = NULL;
 Node *prevSong = NULL;
 
-#define COOLDOWN_DURATION 1200
+#define COOLDOWN_DURATION 1000
 
 static struct timespec lastInputTime;
 static bool eventProcessed = false;
