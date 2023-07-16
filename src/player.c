@@ -521,6 +521,7 @@ int showPlaylist()
             numPrintedRows++;
         }
     }
+    usleep(1000000);
     return numPrintedRows;
 }
 
