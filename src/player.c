@@ -440,7 +440,7 @@ int showPlaylist()
     printf("\n");
     numRows++;
     numPrintedRows++;
-    usleep(100000);
+    usleep(700000);
     PixelData textColor = increaseLuminosity(color, 100);
     setTextColorRGB2(textColor.r, textColor.g, textColor.b);
     printAbout();
@@ -521,7 +521,7 @@ int showPlaylist()
             numPrintedRows++;
         }
     }
-    usleep(1000000);
+
     return numPrintedRows;
 }
 
