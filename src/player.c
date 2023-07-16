@@ -440,7 +440,7 @@ int showPlaylist()
     printf("\n");
     numRows++;
     numPrintedRows++;
-
+    usleep(400000);
     PixelData textColor = increaseLuminosity(color, 100);
     setTextColorRGB2(textColor.r, textColor.g, textColor.b);
     printAbout();
