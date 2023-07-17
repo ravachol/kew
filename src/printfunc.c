@@ -34,6 +34,7 @@ void printHelp()
     printf("cue returns the first directory or file whose name matches the string you provide. ");
     printf("Use quotation marks when providing a path with blank spaces in it or if it's a music file that contains single quotes (').\n");
     printf("Use arrow keys to play the next or previous track in the playlist. Press space to pause.\n");
+    printf("Press F1 to display playlist.\n");    
     printf("Press q to quit.\n");
     printf("\n");
     printf("To run it with colors displaying correctly, you need a terminal that can handle TrueColor.\n");

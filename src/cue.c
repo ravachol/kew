@@ -104,6 +104,31 @@ void updateLastInputTime()
     clock_gettime(CLOCK_MONOTONIC, &lastInputTime);
 }
 
+int readInputSequence(char* seq, size_t seqSize)
+{
+    char c;
+    ssize_t bytesRead;
+
+    // Read the first character
+    bytesRead = read(STDIN_FILENO, &c, 1);
+    if (bytesRead <= 0)
+        return 0;
+
+    // If it's not an escape character, return it as a single-character sequence
+    if (c != '\x1b') {
+        seq[0] = c;
+        seq[1] = '\0';
+        return 1;
+    }
+
+    // Read additional characters
+    bytesRead = read(STDIN_FILENO, seq, seqSize - 1);
+    if (bytesRead <= 0)
+        return 0;
+
+    seq[bytesRead] = '\0';
+    return bytesRead;
+} 
 
 struct Event processInput()
 {
@@ -128,9 +153,11 @@ struct Event processInput()
     if (isCooldownElapsed() && !eventProcessed)
         press = true;
 
+    char seq[4];
+    int seqLength = 0;
     while (isInputAvailable())
     {
-        currentInput = readInput();
+        seqLength = readInputSequence(seq, sizeof(seq));
         usleep(10000);
     }
 
@@ -141,58 +168,65 @@ struct Event processInput()
     eventProcessed = true;
 
     event.type = EVENT_NONE;
-    event.key = currentInput;
+    event.key = seq[0];
 
-    switch (event.key)
+    if (seqLength > 1) {
+
+            if (strcmp(seq, "[A") == 0) {
+                // Arrow Up key pressed
+                event.type = EVENT_VOLUME_UP;
+            } else if (strcmp(seq, "[B") == 0) {
+                // Arrow Down key pressed
+                event.type = EVENT_VOLUME_DOWN;                
+            } else if (strcmp(seq, "[C") == 0) {
+                // Arrow Left key pressed
+                event.type = EVENT_NEXT;
+            } else if (strcmp(seq, "[D") == 0) {
+                // Arrow Right key pressed
+                event.type = EVENT_PREV;                             
+            } else if (strcmp(seq, "OP") == 0 || strcmp(seq, "[[A") == 0) {
+                // F1 key pressed
+                refresh = true;
+                printInfo = !printInfo;
+            }      
+    }
+    else
     {
-    case 'q':
-        event.type = EVENT_QUIT;
-        break;
-    case 's':
-        event.type = EVENT_SHUFFLE;
-        break;
-    case 'c':
-        event.type = EVENT_TOGGLECOVERS;
-        break;
-    case 'e':
-        event.type = EVENT_TOGGLEVISUALIZER;
-        break;
-    case 'b':
-        event.type = EVENT_TOGGLEBLOCKS;
-        break;
-    case 'a':
-        event.type = EVENT_ADDTOMAINPLAYLIST;
-        break;
-    case 'd':
-        event.type = EVENT_DELETEFROMMAINPLAYLIST;
-        break;
-    case 'r':
-        event.type = EVENT_TOGGLEREPEAT;
-        break;
-    case 'p':
-        event.type = EVENT_EXPORTPLAYLIST;
-        break;
-    case 'A': // Up arrow
-        event.type = EVENT_VOLUME_UP;
-        break;
-    case 'B': // Down arrow
-        event.type = EVENT_VOLUME_DOWN;
-        break;
-    case 'C': // Right arrow
-        event.type = EVENT_NEXT;
-        break;
-    case 'D': // Left arrow
-        event.type = EVENT_PREV;
-        break;
-    case ' ':
-        event.type = EVENT_PLAY_PAUSE;
-        break;
-    case 'P': // F1
-        refresh = true;
-        printInfo = !printInfo;
-        break;
-    default:
-        break;
+        switch (event.key)
+        {
+            case 'q':
+                event.type = EVENT_QUIT;
+                break;
+            case 's':
+                event.type = EVENT_SHUFFLE;
+                break;
+            case 'c':
+                event.type = EVENT_TOGGLECOVERS;
+                break;
+            case 'e':
+                event.type = EVENT_TOGGLEVISUALIZER;
+                break;
+            case 'b':
+                event.type = EVENT_TOGGLEBLOCKS;
+                break;
+            case 'a':
+                event.type = EVENT_ADDTOMAINPLAYLIST;
+                break;
+            case 'd':
+                event.type = EVENT_DELETEFROMMAINPLAYLIST;
+                break;
+            case 'r':
+                event.type = EVENT_TOGGLEREPEAT;
+                break;
+            case 'p':
+                event.type = EVENT_EXPORTPLAYLIST;
+                break;
+            case ' ':
+                event.type = EVENT_PLAY_PAUSE;
+                break;            
+            default:
+                break;
+        }
     }
     return event;
 }
