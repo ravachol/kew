@@ -112,7 +112,7 @@ struct Event processInput()
     event.key = '\0';
     bool press = false;
 
-    if (skipping)
+    if (songLoading || !loadedNextSong || skipping)
         return event;
 
     if (!isInputAvailable())
