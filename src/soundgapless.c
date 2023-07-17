@@ -144,7 +144,7 @@ void pcm_file_data_source_read_pcm_frames(ma_data_source *pDataSource, void *pFr
     while (framesToRead > 0)
     {
         // Check if a file switch is required
-        if (pPCMDataSource->switchFiles && !repeatEnabled)
+        if (pPCMDataSource->switchFiles)
         {
             pPCMDataSource->switchFiles = false;
 
