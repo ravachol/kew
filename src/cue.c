@@ -256,9 +256,9 @@ void addToPlaylist()
 {
     if (!playingMainPlaylist)
     {
-        SongInfo *song = (SongInfo *)malloc(sizeof(SongInfo));
-        song->filePath = strdup(currentSong->song.filePath);
-        addToList(mainPlaylist, *song);
+        SongInfo song;
+        song.filePath = strdup(currentSong->song.filePath);
+        addToList(mainPlaylist, song);
     }
 }
 
