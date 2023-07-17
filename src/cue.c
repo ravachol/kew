@@ -559,10 +559,10 @@ void handleInput()
         quit();
         break;
     case EVENT_VOLUME_UP:
-        adjustVolumePercent(2);
+        adjustVolumePercent(5);
         break;
     case EVENT_VOLUME_DOWN:
-        adjustVolumePercent(-2);
+        adjustVolumePercent(-5);
         break;
     case EVENT_NEXT:
         skipToNextSong();
