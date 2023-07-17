@@ -5,7 +5,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <curl/curl.h>
 #include "albumart.h"
 #include "term.h"
 #include "printfunc.h"
