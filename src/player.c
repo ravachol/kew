@@ -310,69 +310,6 @@ size_t WriteCallback(char *content, size_t size, size_t nmemb, void *userdata)
     return totalSize;
 }
 
-// Function to get the latest version from GitHub
-int fetchLatestVersion(int *major, int *minor, int *patch)
-{
-    CURL *curl = curl_easy_init();
-    if (!curl)
-    {
-        printf("Failed to initialize cURL.\n");
-        return -1;
-    }
-
-    // Set the request URL
-    curl_easy_setopt(curl, CURLOPT_URL, githubLatestVersionUrl);
-
-    // Set the write callback function
-    struct ResponseData responseData;
-    responseData.content = malloc(1); // Initial memory allocation
-    responseData.size = 0;
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &responseData);
-
-    // Perform the request
-    CURLcode res = curl_easy_perform(curl);
-
-    if (res != CURLE_OK)
-    {
-        printf("Failed to perform cURL request: %s\n", curl_easy_strerror(res));
-        curl_easy_cleanup(curl);
-        free(responseData.content);
-        return -1;
-    }
-
-    long response_code;
-    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
-
-    // Parse the version from the response
-    char *versionStart = strstr(responseData.content, "tag_name");
-    if (versionStart != NULL)
-    {
-        versionStart += strlen("tag_name\": \"");
-        char *versionEnd = strchr(versionStart, '\"');
-        if (versionEnd != NULL)
-        {
-            *versionEnd = '\0'; // Null-terminate the version string
-            char *version = versionStart;
-            // Assuming the version format is "vX.Y.Z", skip the 'v' character
-            sscanf(version + 1, "%d.%d.%d", major, minor, patch);
-        }
-    }
-
-    curl_easy_cleanup(curl);
-
-    if (response_code == 200)
-    {
-        free(responseData.content);
-        return 0;
-    }
-    else
-    {
-        free(responseData.content);
-        return -1;
-    }
-}
-
 void showVersion()
 {
     printVersion(VERSION, VERSION_DATE);
