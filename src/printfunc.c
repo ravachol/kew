@@ -86,7 +86,7 @@ int getDayDifference(const char *date)
     return diff_days;
 }
 
-void printVersion(const char *version, const char *versionDate)
+void printVersion(const char *version)
 {  
     printf(" Version %s.\n", version);
 }

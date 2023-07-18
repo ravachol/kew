@@ -31,7 +31,7 @@ void printHelp();
 
 void printAsciiLogo();
 
-void printVersion(const char *version, const char *latestVersion);
+void printVersion(const char *version);
 
 void printVersionDefaultColors(const char *version, const char *versionDate);
 

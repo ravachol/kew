@@ -97,10 +97,15 @@ int walker(const char *startPath, const char *searching, char *result,
         d = opendir(startPath);
         if (d == NULL)
         {
-            fprintf(stderr, "Failed to open directory: %s\n", startPath);
-            return 1;
+            fprintf(stderr, "Failed to open directory.\n");
+            return 0;
         }
-        chdir(startPath);
+        int chdirResult = chdir(startPath);
+
+        if (chdirResult != 0) {
+            fprintf(stderr, "Failed to change directory: %s\n", startPath);
+            return 0;
+        }
     }
     else
     {
@@ -108,7 +113,7 @@ int walker(const char *startPath, const char *searching, char *result,
         if (d == NULL)
         {
             fprintf(stderr, "Failed to open current directory.\n");
-            return 1;
+            return 0;
         }
     }
 
@@ -393,7 +398,7 @@ void generateTempFilePath(char *filePath, const char *prefix, const char *suffix
     }
     randomString[6] = '\0';
 
-    snprintf(filePath, MAXPATHLEN, "%s/%s%.6s%s", dirPath, prefix, randomString, suffix);
+    snprintf(filePath, MAXPATHLEN + 7, "%s/%s%.6s%s", dirPath, prefix, randomString, suffix);
 }
 
 const char *getFileExtension(const char *filePath)

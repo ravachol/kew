@@ -32,6 +32,11 @@ static bool eofReached = false;
 
 static ma_result pcm_file_data_source_read(ma_data_source *pDataSource, void *pFramesOut, ma_uint64 frameCount, ma_uint64 *pFramesRead)
 {
+    // Dummy implementation
+    (void)pDataSource;
+    (void)pFramesOut;
+    (void)frameCount;
+    (void)pFramesRead;
     return MA_SUCCESS;
 }
 static ma_result pcm_file_data_source_seek(ma_data_source *pDataSource, ma_uint64 frameIndex)

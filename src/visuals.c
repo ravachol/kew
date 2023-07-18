@@ -87,7 +87,7 @@ int detectBeats(float *magnitudes, int numBars)
     return 0;
 }
 
-void updateMagnitudes(int height, int width, float maxMagnitude, fftwf_complex *fftOutput, float *magnitudes)
+void updateMagnitudes(int height, int width, float maxMagnitude, float *magnitudes)
 {
     float exponent = 1.0;
     float jumpFactor = 1.0;
@@ -177,7 +177,7 @@ void calcSpectrum(int height, int width, fftwf_complex *fftInput, fftwf_complex 
     }
 
     float maxMagnitude = calcMaxMagnitude(width, magnitudes);
-    updateMagnitudes(height, width, maxMagnitude, fftOutput, magnitudes);
+    updateMagnitudes(height, width, maxMagnitude, magnitudes);
 }
 
 PixelData increaseLuminosity(PixelData pixel, int amount)
@@ -200,7 +200,7 @@ PixelData decreaseLuminosity(PixelData pixel, int amount)
     return pixel2;
 }
 
-void printSpectrum(int height, int width, PixelData c, float *magnitudes, PixelData color)
+void printSpectrum(int height, int width, float *magnitudes, PixelData color)
 {
     printf("\n");
     fflush(stdout);
@@ -259,7 +259,7 @@ void printSpectrum(int height, int width, PixelData c, float *magnitudes, PixelD
     fflush(stdout);
 }
 
-void drawSpectrumVisualizer(int height, int width, PixelData c, ma_int32 *audioData)
+void drawSpectrumVisualizer(int height, int width, PixelData c)
 {
     PixelData color;
     color.r = c.r;
@@ -292,7 +292,7 @@ void drawSpectrumVisualizer(int height, int width, PixelData c, ma_int32 *audioD
     float magnitudes[numBars];
 
     calcSpectrum(height, numBars, fftInput, fftOutput, magnitudes, plan);
-    printSpectrum(height, numBars, color, magnitudes, color);
+    printSpectrum(height, numBars, magnitudes, color);
 
     fftwf_destroy_plan(plan);
     fftwf_free(fftInput);

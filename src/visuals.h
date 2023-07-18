@@ -8,7 +8,7 @@
 #include "term.h"
 #include "write_ascii.h"
 
-void drawSpectrumVisualizer(int height, int width, PixelData c, ma_int32 *audioData);
+void drawSpectrumVisualizer(int height, int width, PixelData c);
 
 PixelData increaseLuminosity(PixelData pixel, int amount);
 

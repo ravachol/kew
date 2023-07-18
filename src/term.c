@@ -95,7 +95,8 @@ void getCursorPosition(int *row, int *col)
 
     if (select(STDIN_FILENO + 1, &fds, NULL, NULL, &tv) > 0)
     {
-        scanf("\033[%d;%dR", row, col);
+        int scanres = scanf("\033[%d;%dR", row, col);
+        (void)scanres;
     }
 
     tcsetattr(STDIN_FILENO, TCSANOW, &term_orig);
@@ -105,7 +106,8 @@ void getCursorPosition2(int *row, int *col)
 {
     printf("\033[6n");
     fflush(stdout);
-    scanf("\033[%d;%dR", row, col);
+    int scanres = scanf("\033[%d;%dR", row, col);
+    (void)scanres;
 }
 
 void enableRawMode()
@@ -307,7 +309,8 @@ int getVisibleFirstLineRow()
     fflush(stdout);
 
     int row, col;
-    scanf("\033[%d;%dR", &row, &col);
+    int scanres = scanf("\033[%d;%dR", &row, &col);
+    (void)scanres;
 
     int visibleFirstLineRow = row - (ws.ws_row - 1);
     return visibleFirstLineRow;
@@ -315,11 +318,13 @@ int getVisibleFirstLineRow()
 
 void handleResize(int sig)
 {
+    (void)sig;
     resizeFlag = 1;
 }
 
 void resetResizeFlag(int sig)
 {
+    (void)sig;    
     resizeFlag = 0;
 }
 
