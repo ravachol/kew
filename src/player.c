@@ -99,14 +99,14 @@ void setColor()
     setTextColorRGB2(color.r, color.g, color.b);
 }
 
-void printWithDelay(const char *text, unsigned int delay, int maxWidth)
+void printWithDelay(const char *text, int delay, int maxWidth)
 {
-    unsigned int length = strlen(text);
+    int length = strlen(text);
     int max = (maxWidth > length) ? length : maxWidth;
-    for (unsigned int i = 0; i <= max; i++)
+    for (int i = 0; i <= max; i++)
     {
         printf("\r ");
-        for (unsigned int j = 0; j < i; j++)
+        for (int j = 0; j < i; j++)
         {
             printf("%c", text[j]);
         }
@@ -142,7 +142,7 @@ void printBasicMetadata(TagSettings *metadata)
     {
         int year = getYear(metadata->date);
         if (year == -1)
-            printf(" %.s\n", maxWidth, metadata->date);
+            printf(" %s\n", metadata->date);
         else
             printf(" %d\n", year);
         rows++;
@@ -281,16 +281,15 @@ void printLastRow()
     char text[100] = " [F1 Playlist] [Q Quit] cue v%s";
     // Replace "%s" in the text with the actual version
     char *versionPtr = strstr(text, "%s");
-    if (versionPtr != NULL)
-    {
-        strncpy(versionPtr, VERSION, strlen(VERSION));
-        versionPtr[strlen(VERSION)] = '\0';
+    if (versionPtr != NULL) {
+        strcpy(versionPtr, VERSION);
     }
+
     int randomNumber = getRandomNumber(1, 808);
     if (randomNumber == 808)
         printGlimmeringText(text, bgColor);
     else
-        printf(text);
+        printf("%s", text);
 }
 
 // Callback function to write response data
@@ -312,7 +311,7 @@ size_t WriteCallback(char *content, size_t size, size_t nmemb, void *userdata)
 
 void showVersion()
 {
-    printVersion(VERSION, VERSION_DATE);
+    printVersion(VERSION);
 }
 
 void printAbout()
@@ -469,7 +468,7 @@ void printEqualizer()
         printf("\n");
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
-        drawSpectrumVisualizer(visualizerHeight, term_w, color, g_audioBuffer);
+        drawSpectrumVisualizer(visualizerHeight, term_w, color);
         printLastRow();
         int jumpAmount = visualizerHeight + 2;
         cursorJump(jumpAmount);

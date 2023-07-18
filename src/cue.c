@@ -148,8 +148,6 @@ struct Event processInput()
     else
         restoreCursorPosition();
 
-    char currentInput = '\0';
-
     if (isCooldownElapsed() && !eventProcessed)
         press = true;
 
@@ -727,7 +725,8 @@ void init()
 {
     disableInputBuffering();
     srand(time(NULL));
-    freopen("/dev/null", "w", stderr);
+    FILE* nullStream = freopen("/dev/null", "w", stderr);
+    (void)nullStream;
     initResize();
     enableScrolling();
     setNonblockingMode();
