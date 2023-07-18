@@ -1,8 +1,8 @@
 #include <string.h>
 #include "player.h"
 
-const char VERSION[] = "0.9.15";
-const char VERSION_DATE[] = "2023-07-17";
+const char VERSION[] = "0.9.16";
+const char VERSION_DATE[] = "2023-07-18";
 
 volatile bool refresh = true;
 bool visualizerEnabled = true;
@@ -320,6 +320,8 @@ void printAbout()
     printf("\n\n\r");
     printAsciiLogo();
     printf("\n");
+    showVersion();
+    printf("\n");    
 }
 
 void removeUnneededChars(char *str)
