@@ -13,7 +13,7 @@ cue is a command-line music player for Linux.
  
  * Search a music library with partial titles
  * Display album covers as ASCII art or as a normal image.
- * Creates a playlist automatically based on matched directory name
+ * Creates a playlist based on a matched directory.
  * Control the player with previous, next and pause.
  * A main playlist that you can add to by pressing 'a' when listening to any song. Load the playlist by running "cue .".
  * Gapless playback.
@@ -72,7 +72,7 @@ Now run cue and provide a partial name of a track or directory:
 cue cure great
 ```
 
-This command plays all songs from "The Cure Greatest Hits" directory, provided it's in your music library, and prints out the album cover in colorful ASCII on the screen!
+This command plays all songs from "The Cure Greatest Hits" directory, provided it's in your music library.
 
 cue returns the first directory or file whose name matches the string you provide.
 
