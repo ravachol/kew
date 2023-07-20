@@ -85,6 +85,8 @@ void handleResize(int sig);
 
 void resetResizeFlag(int sig);
 
+void initResize();
+
 void disableInputBuffering();
 
 void enableInputBuffering();
@@ -94,5 +96,7 @@ void cursorJump(int numRows);
 void cursorJumpDown(int numRows);
 
 void clearScreen();
+
+int readInputSequence(char* seq, size_t seqSize);
 
 #endif

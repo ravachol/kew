@@ -26,15 +26,7 @@ char *tagsPath;
 double totalDurationSeconds = 0.0;
 PixelData color = {0, 0, 0};
 PixelData bgColor = {50, 50, 50};
-TagSettings metadata = {};
-
-struct ResponseData
-{
-    char *content;
-    size_t size;
-};
-
-const char githubLatestVersionUrl[] = "https://api.github.com/repos/ravachol/cue/releases/latest";
+TagSettings metadata = {}; 
 
 int calcMetadataHeight()
 {
@@ -292,23 +284,6 @@ void printLastRow()
         printf("%s", text);
 }
 
-// Callback function to write response data
-size_t WriteCallback(char *content, size_t size, size_t nmemb, void *userdata)
-{
-    size_t totalSize = size * nmemb;
-    struct ResponseData *responseData = (struct ResponseData *)userdata;
-    responseData->content = realloc(responseData->content, responseData->size + totalSize + 1);
-    if (responseData->content == NULL)
-    {
-        printf("Failed to allocate memory for response data.\n");
-        return 0;
-    }
-    memcpy(&(responseData->content[responseData->size]), content, totalSize);
-    responseData->size += totalSize;
-    responseData->content[responseData->size] = '\0';
-    return totalSize;
-}
-
 void showVersion()
 {
     printVersion(VERSION);
@@ -478,8 +453,6 @@ void printEqualizer()
     }
 }
 
-bool foundData = false;
-
 int printPlayer(SongData *songdata, double elapsedSeconds, PlayList *playlist)
 {
     metadata = *songdata->metadata;
@@ -513,6 +486,17 @@ int printPlayer(SongData *songdata, double elapsedSeconds, PlayList *playlist)
         }
         printTime();
         printEqualizer();
+        if (!visualizerEnabled)
+        {
+            int term_w, term_h;
+            getTermSize(&term_w, &term_h);
+            if (term_w >= minWidth)
+            {
+                printf("\n\n");
+                printLastRow();
+                cursorJump(2);
+            }    
+        }
     }
     refresh = false;
     fflush(stdout);
