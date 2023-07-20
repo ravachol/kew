@@ -1,8 +1,8 @@
 #include <string.h>
 #include "player.h"
 
-const char VERSION[] = "0.9.16";
-const char VERSION_DATE[] = "2023-07-18";
+const char VERSION[] = "0.9.17";
+const char VERSION_DATE[] = "2023-07-20";
 
 volatile bool refresh = true;
 bool visualizerEnabled = true;
