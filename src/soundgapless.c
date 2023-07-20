@@ -27,6 +27,7 @@ PCMFile *pFirstFile = NULL;
 bool paused = false;
 bool skipToNext = false;
 bool repeatEnabled = false;
+pid_t pid = -1;
 
 static bool eofReached = false;
 
@@ -327,8 +328,6 @@ void on_audio_frames(ma_device *pDevice, void *pFramesOut, const void *pFramesIn
         }
     }
 }
-
-pid_t pid = -1;
 
 int convertToPcmFile(const char *filePath, const char *outputFilePath)
 {
