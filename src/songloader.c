@@ -51,7 +51,7 @@ void loadPcmAudio(SongData *songdata)
     convertToPcmFile(songdata->filePath, songdata->pcmFilePath);
     while (!existsFile(songdata->pcmFilePath))
     {
-        usleep(200000);
+        usleep(500000);
     }
     addToCache(tempCache, songdata->pcmFilePath);
 }

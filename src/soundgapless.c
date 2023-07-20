@@ -328,6 +328,8 @@ void on_audio_frames(ma_device *pDevice, void *pFramesOut, const void *pFramesIn
     }
 }
 
+pid_t pid = -1;
+
 int convertToPcmFile(const char *filePath, const char *outputFilePath)
 {
     const int COMMAND_SIZE = 1000;
@@ -340,19 +342,52 @@ int convertToPcmFile(const char *filePath, const char *outputFilePath)
              escapedInputFilePath, CHANNELS, SAMPLE_RATE, outputFilePath);
 
     free(escapedInputFilePath);
-
-    // Open a pipe to the command
-    FILE *pipe = popen(command, "r");
-    if (!pipe)
+    
+    if (pid != -1)
     {
-        perror("popen failed");
-        return -1;
+        kill(pid, SIGTERM);
+        int status;
+        waitpid(pid, &status, 0);
+        pid = -1;         
     }
 
-    // Close the pipe immediately, we don't need to read from it
-    pclose(pipe);
+    pid = fork();
+    if (pid == -1)
+    {
+        perror("fork failed");
+        return -1;
+    }
+    else if (pid == 0)
+    {
+        // Child process
 
-    return 0;
+        // Detach from the parent process and create a new session
+        if (setsid() == -1)
+        {
+            perror("setsid failed");
+            exit(EXIT_FAILURE);
+        }
+
+        // Close standard file descriptors
+        close(STDIN_FILENO);
+        close(STDOUT_FILENO);
+        close(STDERR_FILENO);
+
+        // Execute the command using execvp
+        char *args[] = {"sh", "-c", command, NULL};
+        execvp("sh", args);
+
+        // execvp only returns if an error occurs
+        perror("execvp failed");
+        exit(EXIT_FAILURE);
+    }
+    else
+    {
+        // Parent process
+        // Close the child process handle immediately to prevent lingering processes
+        close(pid);
+        return 0;
+    }
 }
 
 void resumePlayback()
