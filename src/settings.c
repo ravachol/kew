@@ -13,7 +13,7 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
     memset(&settings, 0, sizeof(settings));
     strncpy(settings.coverEnabled, "1", sizeof(settings.coverEnabled));
     strncpy(settings.coverAnsi, "0", sizeof(settings.coverAnsi));
-    strncpy(settings.visualizerEnabled, "1", sizeof(settings.visualizerEnabled));
+    strncpy(settings.visualizerEnabled, "0", sizeof(settings.visualizerEnabled));
 
     if (pairs == NULL)
     {
@@ -180,9 +180,7 @@ void setConfig()
     if (settings.visualizerHeight[0] == '\0')
     {
         sprintf(settings.visualizerHeight, "%d", visualizerHeight);
-    }
-    // if (settings.useThemeColors[0] == '\0')
-    //         useThemeColors ? strcpy(settings.useThemeColors, "1") : strcpy(settings.useThemeColors, "0");       
+    }     
 
     // Null-terminate the character arrays
     settings.path[MAXPATHLEN - 1] = '\0';

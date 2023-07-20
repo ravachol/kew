@@ -104,52 +104,21 @@ void updateLastInputTime()
     clock_gettime(CLOCK_MONOTONIC, &lastInputTime);
 }
 
-int readInputSequence(char* seq, size_t seqSize)
-{
-    char c;
-    ssize_t bytesRead;
-
-    // Read the first character
-    bytesRead = read(STDIN_FILENO, &c, 1);
-    if (bytesRead <= 0)
-        return 0;
-
-    // If it's not an escape character, return it as a single-character sequence
-    if (c != '\x1b') {
-        seq[0] = c;
-        seq[1] = '\0';
-        return 1;
-    }
-
-    // Read additional characters
-    bytesRead = read(STDIN_FILENO, seq, seqSize - 1);
-    if (bytesRead <= 0)
-        return 0;
-
-    seq[bytesRead] = '\0';
-    return bytesRead;
-} 
-
 struct Event processInput()
 {
     struct Event event;
     event.type = EVENT_NONE;
     event.key = '\0';
-    bool press = false;
+    bool cooldownElapsed = false;
 
     if (songLoading || !loadedNextSong || skipping)
         return event;
 
     if (!isInputAvailable())
-    {
-        saveCursorPosition();
         return event;
-    }
-    else
-        restoreCursorPosition();
 
     if (isCooldownElapsed() && !eventProcessed)
-        press = true;
+        cooldownElapsed = true;
 
     char seq[4];
     int seqLength = 0;
@@ -159,10 +128,6 @@ struct Event processInput()
         usleep(10000);
     }
 
-    if (!press)
-        return event;
-
-    updateLastInputTime();
     eventProcessed = true;
 
     event.type = EVENT_NONE;
@@ -171,19 +136,19 @@ struct Event processInput()
     if (seqLength > 1) {
 
             if (strcmp(seq, "[A") == 0) {
-                // Arrow Up key pressed
+                // Arrow Up
                 event.type = EVENT_VOLUME_UP;
             } else if (strcmp(seq, "[B") == 0) {
-                // Arrow Down key pressed
+                // Arrow Down
                 event.type = EVENT_VOLUME_DOWN;                
             } else if (strcmp(seq, "[C") == 0) {
-                // Arrow Left key pressed
+                // Arrow Left
                 event.type = EVENT_NEXT;
             } else if (strcmp(seq, "[D") == 0) {
-                // Arrow Right key pressed
+                // Arrow Right
                 event.type = EVENT_PREV;                             
             } else if (strcmp(seq, "OP") == 0 || strcmp(seq, "[[A") == 0) {
-                // F1 key pressed
+                // F1 key
                 refresh = true;
                 printInfo = !printInfo;
             }      
@@ -226,6 +191,13 @@ struct Event processInput()
                 break;
         }
     }
+
+    // cooldown is for next and previous only
+    if (!cooldownElapsed && (event.type == EVENT_NEXT || event.type == EVENT_PREV))
+        event.type = EVENT_NONE;
+    else
+        updateLastInputTime();
+
     return event;
 }
 
@@ -309,21 +281,6 @@ void freeAudioBuffer()
         free(g_audioBuffer);
         g_audioBuffer = NULL;
     }
-}
-
-void resize()
-{
-    alarm(1); // Timer
-    setCursorPosition(1, 1);
-    clearRestOfScreen();
-    while (resizeFlag)
-    {
-        usleep(100000);
-    }
-    alarm(0); // Cancel timer
-    refresh = true;
-    printf("\033[1;1H");
-    clearRestOfScreen();
 }
 
 void assignLoadedData()
@@ -424,11 +381,6 @@ bool isPlaybackOfListDone()
     return (userData.endOfListReached == 1);
 }
 
-void setPlaybackOfListDone()
-{
-    userData.endOfListReached = 1;
-}
-
 void prepareNextSong()
 {
     while (!loadedNextSong && !loadingFailed)
@@ -446,7 +398,6 @@ void prepareNextSong()
 
     if (currentSong == NULL)
     {
-        setPlaybackOfListDone();
         quit();
         return;
     }
@@ -489,8 +440,6 @@ void skipToNextSong()
     if (songLoading || !loadedNextSong || skipping)
         return;
 
-    if (skipping)
-        return;
     skipping = true;
     skip();
 }
@@ -619,6 +568,21 @@ void handleInput()
     eventProcessed = false;
 }
 
+void resize()
+{
+    alarm(1); // Timer
+    setCursorPosition(1, 1);
+    clearRestOfScreen();
+    while (resizeFlag)
+    {
+        usleep(100000);
+    }
+    alarm(0); // Cancel timer
+    refresh = true;
+    printf("\033[1;1H");
+    clearRestOfScreen();
+}
+
 void updatePlayer()
 {
     if (resizeFlag)
@@ -627,15 +591,11 @@ void updatePlayer()
         refreshPlayer();
 }
 
-void play(Node *currentSong)
+void play(Node *song)
 {
-    updateLastInputTime();
-    processInput(); // Ignore any input that's already accumulated
-    freeAudioBuffer();
+    updateLastInputTime();    
     pthread_mutex_init(&(loadingdata.mutex), NULL);
-    usingSongDataA = true;
-    loadingdata.loadA = true;
-    loadSong(currentSong, &loadingdata);
+    loadSong(song, &loadingdata);
     int i = 0;
     while (!loadedNextSong)
     {
@@ -692,6 +652,7 @@ int run()
     }
     if (currentSong == NULL)
         currentSong = playlist.head;
+    processInput(); // Ignore any input that's already accumulated
     play(currentSong);
     cleanup();
     restoreTerminalMode();
@@ -710,17 +671,6 @@ int run()
     return 0;
 }
 
-void initResize()
-{
-    signal(SIGWINCH, handleResize);
-
-    struct sigaction sa;
-    sa.sa_handler = resetResizeFlag;
-    sigemptyset(&sa.sa_mask);
-    sa.sa_flags = 0;
-    sigaction(SIGALRM, &sa, NULL);
-}
-
 void init()
 {
     disableInputBuffering();
@@ -735,7 +685,7 @@ void init()
     strcpy(loadingdata.filePath, "");
     loadingdata.songdataA = NULL;
     loadingdata.songdataB = NULL;
-    loadingdata.loadA = false;
+    loadingdata.loadA = true;
 }
 
 void playMainPlaylist()

@@ -328,7 +328,19 @@ void resetResizeFlag(int sig)
     resizeFlag = 0;
 }
 
-// Disable input buffering
+
+
+void initResize()
+{
+    signal(SIGWINCH, handleResize);
+
+    struct sigaction sa;
+    sa.sa_handler = resetResizeFlag;
+    sigemptyset(&sa.sa_mask);
+    sa.sa_flags = 0;
+    sigaction(SIGALRM, &sa, NULL);
+}
+
 void disableInputBuffering()
 {
     struct termios term;
@@ -337,7 +349,6 @@ void disableInputBuffering()
     tcsetattr(STDIN_FILENO, TCSAFLUSH, &term);
 }
 
-// Enable input buffering
 void enableInputBuffering()
 {
     struct termios term;
@@ -358,3 +369,29 @@ void cursorJumpDown(int numRows)
     printf("\033[%dB", numRows);
     fflush(stdout);
 }
+
+int readInputSequence(char* seq, size_t seqSize)
+{
+    char c;
+    ssize_t bytesRead;
+
+    // Read the first character
+    bytesRead = read(STDIN_FILENO, &c, 1);
+    if (bytesRead <= 0)
+        return 0;
+
+    // If it's not an escape character, return it as a single-character sequence
+    if (c != '\x1b') {
+        seq[0] = c;
+        seq[1] = '\0';
+        return 1;
+    }
+
+    // Read additional characters
+    bytesRead = read(STDIN_FILENO, seq, seqSize - 1);
+    if (bytesRead <= 0)
+        return 0;
+
+    seq[bytesRead] = '\0';
+    return bytesRead;
+} 
