@@ -340,38 +340,19 @@ int convertToPcmFile(const char *filePath, const char *outputFilePath)
              escapedInputFilePath, CHANNELS, SAMPLE_RATE, outputFilePath);
 
     free(escapedInputFilePath);
-    // Create a new process
-    pid_t pid = fork();
-    if (pid == -1)
-    {
-        // Fork failed
-        perror("fork failed");
-        exit(EXIT_FAILURE);
-    }
-    else if (pid == 0)
-    {
-        // Child process
-        int devNull = open("/dev/null", O_WRONLY);
-        if (devNull == -1)
-        {
-            perror("failed to open /dev/null");
-            exit(EXIT_FAILURE);
-        }
 
-        // Redirect standard output and error to /dev/null
-        dup2(devNull, STDOUT_FILENO);
-        dup2(devNull, STDERR_FILENO);
-        close(devNull);
-
-        // Execute the command
-        execl("/bin/sh", "sh", "-c", command, (char *)NULL);
-        exit(EXIT_SUCCESS);
-    }
-    else
+    // Open a pipe to the command
+    FILE *pipe = popen(command, "r");
+    if (!pipe)
     {
-        // Parent process
-        return 0; // Return immediately
+        perror("popen failed");
+        return -1;
     }
+
+    // Close the pipe immediately, we don't need to read from it
+    pclose(pipe);
+
+    return 0;
 }
 
 void resumePlayback()
