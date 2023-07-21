@@ -19,7 +19,7 @@ cue is a command-line music player for Linux.
  * Supports 24-bit/192khz audio.
 
 
-## Installation
+## Installing
 
 On Arch Linux, and Arch-based distributions, cue can be found in the AUR. Install with pamac or an AUR helper like yay:
 
