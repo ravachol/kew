@@ -27,6 +27,10 @@ On Arch Linux, and Arch-based distributions, cue can be found in the AUR. Instal
 yay cue-git
 ```
 
+That's it!
+
+### Installing everything manually
+
 cue dependencies are:
 
 * FFmpeg
