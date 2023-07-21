@@ -21,6 +21,12 @@ cue is a command-line music player for Linux.
 
 ## Installation
 
+On Arch Linux, and Arch-based distributions, cue can be found in the AUR. Install with pamac or an AUR helper like yay:
+
+```bash
+yay cue-git
+```
+
 cue dependencies are:
 
 * FFmpeg
@@ -28,10 +34,6 @@ cue dependencies are:
 * Chafa
 * FreeImage
 * glib2.0 and AVFormat. These should be installed with the others, if not install them.
-
-A TrueColor capable terminal is recommended, like Konsole, kitty or st, to display colors properly.
-
-For a complete list of capable terminals, see this page: [Colors in Terminal](https://gist.github.com/CMCDragonkai/146100155ecd79c7dac19a9e23e6a362) (github.com).
 
 Install FFmpeg, FFTW, Chafa and FreeImage using your distro's package manager. For instance:
 
@@ -57,6 +59,10 @@ make
 ```bash
 sudo make install
 ```
+
+A TrueColor capable terminal is recommended, like Konsole, kitty or st, to display colors properly.
+
+For a complete list of capable terminals, see this page: [Colors in Terminal](https://gist.github.com/CMCDragonkai/146100155ecd79c7dac19a9e23e6a362) (github.com).
 
 ## Usage
 
