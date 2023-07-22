@@ -650,9 +650,7 @@ int run()
         enableInputBuffering();
         return -1;
     }
-    if (currentSong == NULL)
-        currentSong = playlist.head;
-    processInput(); // Ignore any input that's already accumulated
+    currentSong = playlist.head;
     play(currentSong);
     cleanup();
     restoreTerminalMode();

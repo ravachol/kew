@@ -188,13 +188,13 @@ int isInputAvailable()
 {
     fd_set fds;
     FD_ZERO(&fds);
-    FD_SET(STDIN_FILENO, &fds);    
+    FD_SET(STDIN_FILENO, &fds);
     struct timeval tv;
     tv.tv_sec = 0;
     tv.tv_usec = 0;
 
     int ret = select(STDIN_FILENO + 1, &fds, NULL, NULL, &tv);
-    
+
     if (ret < 0)
     {
         return 0;
@@ -207,7 +207,8 @@ char readInput()
 {
     char c;
     ssize_t bytesRead = read(STDIN_FILENO, &c, 1);
-    if (bytesRead == 1) {
+    if (bytesRead == 1)
+    {
         return c;
     }
     return '\0';
@@ -324,11 +325,9 @@ void handleResize(int sig)
 
 void resetResizeFlag(int sig)
 {
-    (void)sig;    
+    (void)sig;
     resizeFlag = 0;
 }
-
-
 
 void initResize()
 {
@@ -370,7 +369,7 @@ void cursorJumpDown(int numRows)
     fflush(stdout);
 }
 
-int readInputSequence(char* seq, size_t seqSize)
+int readInputSequence(char *seq, size_t seqSize)
 {
     char c;
     ssize_t bytesRead;
@@ -381,7 +380,8 @@ int readInputSequence(char* seq, size_t seqSize)
         return 0;
 
     // If it's not an escape character, return it as a single-character sequence
-    if (c != '\x1b') {
+    if (c != '\x1b')
+    {
         seq[0] = c;
         seq[1] = '\0';
         return 1;
@@ -394,4 +394,4 @@ int readInputSequence(char* seq, size_t seqSize)
 
     seq[bytesRead] = '\0';
     return bytesRead;
-} 
+}
