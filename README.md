@@ -29,7 +29,7 @@ yay cue-git
 
 That's it!
 
-### Installing everything manually
+### Installing normally
 
 cue dependencies are:
 
