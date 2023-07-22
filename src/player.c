@@ -26,7 +26,7 @@ char *tagsPath;
 double totalDurationSeconds = 0.0;
 PixelData color = {0, 0, 0};
 PixelData bgColor = {50, 50, 50};
-TagSettings metadata = {}; 
+TagSettings metadata = {};
 
 int calcMetadataHeight()
 {
@@ -162,7 +162,7 @@ void printBasicMetadata(TagSettings *metadata)
     cursorJumpDown(rows - 1);
 }
 
-void printProgress(double elapsed_seconds, double total_seconds, double total_duration_seconds)
+void printProgress(double elapsed_seconds, double total_seconds, double total_duration_seconds, PlayList *playlist)
 {
     int progressWidth = 31;
     int term_w, term_h;
@@ -190,10 +190,22 @@ void printProgress(double elapsed_seconds, double total_seconds, double total_du
     // Clear the current line
     printf("\033[K");
     printf("\r");
-    printf(" %02d:%02d:%02d / %02d:%02d:%02d (%d%%) T:%dh%02dm",
-           elapsed_hours, elapsed_minutes, elapsed_seconds_remainder,
-           total_hours, total_minutes, total_seconds_remainder,
-           progress_percentage, total_playlist_hours, total_playlist_minutes);
+
+    if (playlist->count <= MAX_COUNT_PLAYLIST_SONGS)
+    {
+        printf(" %02d:%02d:%02d / %02d:%02d:%02d (%d%%) T:%dh%02dm",
+                elapsed_hours, elapsed_minutes, elapsed_seconds_remainder,
+                total_hours, total_minutes, total_seconds_remainder,
+                progress_percentage, total_playlist_hours, total_playlist_minutes);
+    }
+    else
+    {
+         printf(" %02d:%02d:%02d / %02d:%02d:%02d (%d%%)",
+                elapsed_hours, elapsed_minutes, elapsed_seconds_remainder,
+                total_hours, total_minutes, total_seconds_remainder,
+                progress_percentage);       
+    }
+
     fflush(stdout);
 
     // Restore the cursor position
@@ -210,7 +222,7 @@ void printMetadata(TagSettings *metadata)
     printBasicMetadata(metadata);
 }
 
-void printTime()
+void printTime(PlayList *playlist)
 {
     if (!timeEnabled || printInfo)
         return;
@@ -218,7 +230,7 @@ void printTime()
     int term_w, term_h;
     getTermSize(&term_w, &term_h);
     if (term_h > minHeight && term_w > minWidth)
-        printProgress(elapsed, duration, totalDurationSeconds);
+        printProgress(elapsed, duration, totalDurationSeconds, playlist);
 }
 
 int getRandomNumber(int min, int max)
@@ -273,7 +285,8 @@ void printLastRow()
     char text[100] = " [F1 Playlist] [Q Quit] cue v%s";
     // Replace "%s" in the text with the actual version
     char *versionPtr = strstr(text, "%s");
-    if (versionPtr != NULL) {
+    if (versionPtr != NULL)
+    {
         strcpy(versionPtr, VERSION);
     }
 
@@ -296,7 +309,7 @@ void printAbout()
     printAsciiLogo();
     printf("\n");
     showVersion();
-    printf("\n");    
+    printf("\n");
 }
 
 void removeUnneededChars(char *str)
@@ -451,6 +464,17 @@ void printEqualizer()
         cursorJump(jumpAmount);
         saveCursorPosition();
     }
+    else if (!visualizerEnabled)
+    {
+        int term_w, term_h;
+        getTermSize(&term_w, &term_h);
+        if (term_w >= minWidth)
+        {
+            printf("\n\n");
+            printLastRow();
+            cursorJump(2);
+        }
+    }
 }
 
 int printPlayer(SongData *songdata, double elapsedSeconds, PlayList *playlist)
@@ -484,19 +508,8 @@ int printPlayer(SongData *songdata, double elapsedSeconds, PlayList *playlist)
             printCover(songdata);
             printMetadata(songdata->metadata);
         }
-        printTime();
+        printTime(playlist);
         printEqualizer();
-        if (!visualizerEnabled)
-        {
-            int term_w, term_h;
-            getTermSize(&term_w, &term_h);
-            if (term_w >= minWidth)
-            {
-                printf("\n\n");
-                printLastRow();
-                cursorJump(2);
-            }    
-        }
     }
     refresh = false;
     fflush(stdout);
