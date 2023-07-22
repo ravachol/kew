@@ -7,6 +7,8 @@
 #ifndef PLAYLIST_STRUCT
 #define PLAYLIST_STRUCT
 
+#define MAX_COUNT_PLAYLIST_SONGS 100
+
 typedef struct
 {
     char *filePath;

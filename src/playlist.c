@@ -517,6 +517,9 @@ void *getDurationsThread(void *arg)
 
 int calculatePlayListDuration(PlayList *playlist)
 {
+    if (playlist->count > MAX_COUNT_PLAYLIST_SONGS)
+        return 0;
+
     startPlayListDurationCount();
 
     if (playlist->totalDuration > 0.0)
