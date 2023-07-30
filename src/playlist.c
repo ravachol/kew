@@ -668,21 +668,22 @@ void savePlaylist()
     writeM3UFile(playlistPath, &playlist);
 }
 
-Node *deepCopyNode(Node *originalNode)
-{
-    if (originalNode == NULL)
-    {
+Node* deepCopyNode(Node* originalNode) {
+    if (originalNode == NULL) {
         return NULL;
     }
 
-    Node *newNode = malloc(sizeof(Node));
+    Node* newNode = malloc(sizeof(Node));
+    if (newNode == NULL) {
+        return NULL;
+    }
+
     newNode->song.filePath = strdup(originalNode->song.filePath);
     newNode->song.duration = originalNode->song.duration;
     newNode->prev = NULL;
     newNode->next = deepCopyNode(originalNode->next);
 
-    if (newNode->next != NULL)
-    {
+    if (newNode->next != NULL) {
         newNode->next->prev = newNode;
     }
 
