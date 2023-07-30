@@ -693,10 +693,10 @@ void playMainPlaylist()
         printf("Couldn't find any songs in the main playlist. Add a song by pressing 'a' while it's playing. \n");
         exit(0);
     }
+    init();
     playingMainPlaylist = true;
     playlist = deepCopyPlayList(mainPlaylist);
     shufflePlaylist(&playlist);
-    init();
     run();
 }
 
