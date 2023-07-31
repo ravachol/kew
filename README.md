@@ -29,7 +29,16 @@ yay cue-git
 
 That's it!
 
-### Installing normally
+
+### Installing with quick install script
+
+To quickly install cue, just copy and paste this to your terminal (if you have curl installed):
+
+```bash
+sudo bash -c "curl https://raw.githubusercontent.com/ravachol/cue/main/install.sh | bash"
+```
+
+### Installing everything manually
 
 cue dependencies are:
 
