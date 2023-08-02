@@ -25,7 +25,7 @@ int duration = 0;
 char *tagsPath;
 double totalDurationSeconds = 0.0;
 PixelData color = {0, 0, 0};
-PixelData bgColor = {50, 50, 50};
+PixelData bgColor = {90, 90, 90};
 TagSettings metadata = {};
 
 int calcMetadataHeight()
