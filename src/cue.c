@@ -166,7 +166,7 @@ struct Event processInput()
             case 'c':
                 event.type = EVENT_TOGGLECOVERS;
                 break;
-            case 'e':
+            case 'v':
                 event.type = EVENT_TOGGLEVISUALIZER;
                 break;
             case 'b':
