@@ -14,9 +14,8 @@ project, please allow up to a week for those rare times we're away from the
 keyboard or general connectivity.
 
 When a fix is published, you will receive credit under your real name or bug
-tracker handle in the NEWS document and possibly elsewhere (GitHub, blog post,
-etc). If you prefer to remain anonymous or pseudonymous, you should mention
-this in your e-mail.
+tracker handle in GitHub. If you prefer to remain anonymous or pseudonymous, 
+you should mention this in your e-mail.
 
 ## Disclosure Policy
 
