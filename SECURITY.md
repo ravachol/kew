@@ -1,4 +1,4 @@
-ocument outlines security procedures and general policies for Chafa.
+This document outlines security procedures and general policies for cue.
 
 ## Reporting a Bug
 
