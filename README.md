@@ -140,7 +140,7 @@ cue . (loads the main cue playlist, see 'Other Functions')
 * <kbd>p</kbd> to save the currently loaded playlist to a m3u file in your music folder.
 * <kbd>q</kbd> to quit.
 
-cue will create a config file, .cue.conf, in your home dir. There you can change for instance starting directory and number of bars in the visualizer. 
+cue will create a config file, .cue.conf, in your home dir. There you can change for instance starting directory and number of bars in the visualizer. To edit this file please make sure you quit cue first.
 
 ## License
 
