@@ -38,6 +38,8 @@ To quickly install cue, just copy and paste this to your terminal (if you have c
 sudo bash -c "curl https://raw.githubusercontent.com/ravachol/cue/main/install.sh | bash"
 ```
 
+Please note that this script does a system update before installing cue.
+
 ### Installing everything manually
 
 cue dependencies are:
