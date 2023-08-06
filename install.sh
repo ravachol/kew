@@ -17,11 +17,11 @@ echo "Installing missing dependencies"
 if command -v apt &>/dev/null; then
     apt install -y ffmpeg libfftw3-dev git libchafa-dev libfreeimage-dev libavformat-dev
 elif command -v yum &>/dev/null; then
-    yum install -y ffmpeg fftw-devel git libchafa git libfreeimage-devel libavformat-devel
+    yum install -y ffmpeg fftw-devel git libchafa libfreeimage-devel libavformat-devel
 elif command -v pacman &>/dev/null; then
     pacman -Syu --noconfirm --needed ffmpeg fftw git chafa freeimage
 elif command -v dnf &>/dev/null; then
-    dnf install -y ffmpeg fftw-devel git libchafa git libfreeimage-devel libavformat-devel
+    dnf install -y ffmpeg fftw-devel git libchafa libfreeimage-devel libavformat-devel
 elif command -v zypper &>/dev/null; then
     zypper install -y ffmpeg fftw-devel git chafa libfreeimage-devel libavformat-devel
 elif command -v eopkg &>/dev/null; then
