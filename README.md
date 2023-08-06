@@ -140,6 +140,8 @@ cue . (loads the main cue playlist, see 'Other Functions')
 * <kbd>p</kbd> to save the currently loaded playlist to a m3u file in your music folder.
 * <kbd>q</kbd> to quit.
 
+cue will create a config file, .cue.conf, in your home dir. There you can change for instance starting directory and number of bars in the visualizer. 
+
 ## License
 
 Licensed under GPL. [See LICENSE for more information](https://github.com/ravachol/cue/blob/main/LICENSE).
