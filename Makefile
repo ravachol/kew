@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Iinclude/imgtotxt -I/usr/include/ffmpeg -Iinclude/miniaudio -O1 `pkg-config --cflags chafa libavformat fftw3f`
+CFLAGS = -Iinclude/imgtotxt -I/usr/include/ffmpeg -I/usr/include/libavformat -Iinclude/miniaudio -O1 `pkg-config --cflags chafa libavformat fftw3f`
 LIBS =  -lpthread -lrt -pthread -lm -lfreeimage `pkg-config --libs chafa libavformat fftw3f`
 
 OBJDIR = src/obj
