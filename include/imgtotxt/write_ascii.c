@@ -210,7 +210,7 @@ int output_ascii(char *pathToImgFile, int height, int width, PixelData *brightPi
     }
     opts.height = height;
     brightPixelFound = false;
-    printf("\n\r");
+    printf("\r");
     int ret = read_and_convert(pathToImgFile, &opts, brightPixel);
     if (ret == -1)
         //  fprintf(stderr, "Failed to convert image: %s\n", pathToImgFile);
