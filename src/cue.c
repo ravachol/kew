@@ -237,13 +237,17 @@ void toggleBlocks()
     coverAnsi = !coverAnsi;
     strcpy(settings.coverAnsi, coverAnsi ? "1" : "0");
     if (coverEnabled)
+    {
+        clearScreen();
         refresh = true;
+    }
 }
 
 void toggleCovers()
 {
     coverEnabled = !coverEnabled;
     strcpy(settings.coverEnabled, coverEnabled ? "1" : "0");
+    clearScreen();
     refresh = true;
 }
 
@@ -476,7 +480,7 @@ void skipToPrevSong()
     {
         usleep(10000);
     }
-    clock_gettime(CLOCK_MONOTONIC, &start_time);    
+    clock_gettime(CLOCK_MONOTONIC, &start_time);   
     skip();
 }
 

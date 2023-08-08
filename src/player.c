@@ -504,6 +504,7 @@ int printPlayer(SongData *songdata, double elapsedSeconds, PlayList *playlist)
     {
         if (refresh)
         {
+            clearScreen();
             printf("\n");
             printCover(songdata);
             printMetadata(songdata->metadata);
