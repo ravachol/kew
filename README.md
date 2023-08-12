@@ -99,7 +99,7 @@ cue returns the first directory or file whose name matches the string you provid
 #### Some Examples:
 
  ```
-cue (starting cue with no arguments plays all songs (up to 10 000) in your library, shuffled)
+cue (starting cue with no arguments plays all songs (up to 20 000) in your library, shuffled)
 
 cue moonlight son (finds and plays moonlight sonata)
 
