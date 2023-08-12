@@ -1,7 +1,6 @@
 #include <chafa.h>
 #include <chafa-canvas-config.h>
 #include <stdio.h>
-#include <math.h>
 #include <unistd.h>
 #include <stdbool.h>
 #include <stdlib.h>
