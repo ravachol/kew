@@ -27,7 +27,10 @@ PCMFile *pFirstFile = NULL;
 bool paused = false;
 bool skipToNext = false;
 bool repeatEnabled = false;
+
 pid_t pid = -1;
+pid_t pid2 = -1;
+bool usepid2 = false;
 
 static bool eofReached = false;
 
@@ -329,6 +332,16 @@ void on_audio_frames(ma_device *pDevice, void *pFramesOut, const void *pFramesIn
     }
 }
 
+void cleanupProcess(pid_t *pidToKill) 
+{
+    if (*pidToKill != -1) {
+        kill(*pidToKill, SIGTERM);
+        int status;
+        waitpid(*pidToKill, &status, 0);
+        *pidToKill = -1;
+    }
+}
+
 int convertToPcmFile(const char *filePath, const char *outputFilePath)
 {
     const int COMMAND_SIZE = 1000;
@@ -341,22 +354,28 @@ int convertToPcmFile(const char *filePath, const char *outputFilePath)
              escapedInputFilePath, CHANNELS, SAMPLE_RATE, outputFilePath);
 
     free(escapedInputFilePath);
-    
-    if (pid != -1)
+
+    pid_t currentPid = -1;
+    pid_t *pidToKill = NULL;
+
+    // alternate between killing two processes that linger, kill the least recent one
+    if (usepid2)
     {
-        kill(pid, SIGTERM);
-        int status;
-        waitpid(pid, &status, 0);
-        pid = -1;         
+        pidToKill = &pid2;
+    }
+    else {
+        pidToKill = &pid;
     }
 
-    pid = fork();
-    if (pid == -1)
+    cleanupProcess(pidToKill);
+
+    currentPid = fork();
+    if (currentPid == -1)
     {
         perror("fork failed");
         return -1;
     }
-    else if (pid == 0)
+    else if (currentPid == 0)
     {
         // Child process
 
@@ -383,8 +402,19 @@ int convertToPcmFile(const char *filePath, const char *outputFilePath)
     else
     {
         // Parent process
+        if (!usepid2)
+        {
+            pid = currentPid;
+            usepid2 = true;
+        }
+        else
+        {
+            pid2 = currentPid;
+            usepid2 = false;
+        }
+
         // Close the child process handle immediately to prevent lingering processes
-        close(pid);
+        //close(currentPid);
         return 0;
     }
 }

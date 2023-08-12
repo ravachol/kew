@@ -386,6 +386,14 @@ void printBitmapCentered(FIBITMAP *bitmap, int width, int height)
         cell_width = term_size.width_pixels / term_size.width_cells;
         cell_height = term_size.height_pixels / term_size.height_cells;
     }
+
+    /* don't print bitmap larger than it's pixel size
+    if (width * cell_width > pix_width || height * cell_height > pix_height)
+    {
+        width = round(pix_width / cell_width);
+        height = round(pix_height / cell_height);
+    }*/
+    
     printable = g_string_new(NULL);
     printable = convert_image(pixels, pix_width, pix_height, pix_width * n_channels, CHAFA_PIXEL_BGRA8_UNASSOCIATED,
                               width, height, cell_width, cell_height);
