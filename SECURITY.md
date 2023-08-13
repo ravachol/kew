@@ -6,8 +6,7 @@ We are grateful for the testing and analysis carried out by the community. All
 bug reports are taken seriously.
 
 Normally, bugs can be filed directly in the public GitHub issue tracker, but if
-you believe there is a security impact, please contact the lead maintainer at
-his e-mail address <rf@proton.me> instead.
+you believe there is a security impact, please instead leave an email address where we can contact you.
 
 We will most likely respond within 48 hours, but since cue is a volunteer
 project, please allow up to a week for those rare times we're away from the
