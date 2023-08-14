@@ -60,7 +60,8 @@ Or:
 ```bash
 pacman -Syu ffmpeg fftw git chafa freeimage
 ```
-Then run:
+
+Then run this (either git clone or unzip a release zip into a folder of your choice):
 
 ```bash
 git clone https://github.com/ravachol/cue.git
