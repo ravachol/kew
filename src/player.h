@@ -17,6 +17,7 @@ extern const char VERSION[];
 extern bool coverEnabled;
 extern bool coverAnsi;
 extern bool printInfo;
+extern bool printKeyBindings;
 extern bool visualizerEnabled;
 extern bool useThemeColors;
 extern int visualizerHeight;
@@ -27,7 +28,7 @@ int printPlayer(SongData *songdata, double elapsedSeconds, PlayList *playlist);
 
 void showVersion();
 
-void printAbout();
+int printAbout();
 
 void showHelp();
 

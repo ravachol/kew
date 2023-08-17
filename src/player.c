@@ -1,8 +1,8 @@
 #include <string.h>
 #include "player.h"
 
-const char VERSION[] = "1.0.0";
-const char VERSION_DATE[] = "2023-08-07";
+const char VERSION[] = "1.0.1";
+const char VERSION_DATE[] = "2023-08-17";
 
 volatile bool refresh = true;
 bool visualizerEnabled = true;
@@ -12,6 +12,7 @@ bool metaDataEnabled = true;
 bool timeEnabled = true;
 bool drewCover = true;
 bool printInfo = false;
+bool printKeyBindings = false;
 bool showList = true;
 int aboutHeight = 8;
 int visualizerHeight = 8;
@@ -282,7 +283,7 @@ void printLastRow()
         return;
     setTextColorRGB2(bgColor.r, bgColor.g, bgColor.b);
 
-    char text[100] = " [F1 Playlist] [Q Quit] cue v%s";
+    char text[100] = " [F1 Playlist] [Q Quit] [K Keys]";
     // Replace "%s" in the text with the actual version
     char *versionPtr = strstr(text, "%s");
     if (versionPtr != NULL)
@@ -302,14 +303,18 @@ void showVersion()
     printVersion(VERSION);
 }
 
-void printAbout()
+int printAbout()
 {
     clearRestOfScreen();
-    printf("\n\n\r");
-    printAsciiLogo();
+    printf("\n\r");
+    int numPrintedRows = 2;
+    numPrintedRows += printAsciiLogo();
     printf("\n");
     showVersion();
     printf("\n");
+    numPrintedRows += 3;
+
+    return numPrintedRows;
 }
 
 void removeUnneededChars(char *str)
@@ -345,6 +350,33 @@ void shortenString(char *str, size_t width)
     {
         str[width] = '\0';
     }
+}
+
+int showKeyBindings()
+{
+    PixelData textColor = increaseLuminosity(color, 100);
+    setTextColorRGB2(textColor.r, textColor.g, textColor.b);
+    int numPrintedRows = 1;
+    usleep(700000);    
+    numPrintedRows += printAbout();
+    setTextColorRGB2(color.r, color.g, color.b);        
+    printf(" Use ↑, ↓ keys to raise or lower volume.\n");
+    printf(" Use →, ← keys to play the next or previous track.\n");
+    printf(" Space to toggle pause.\n");
+    printf(" F1 to see the playlist.\n");
+    printf(" V to toggle the spectrum visualizer.\n");
+    printf(" C to toggle album covers.\n");
+    printf(" B to toggle album covers drawn in ascii.\n");
+    printf(" R to repeat the current song.\n");
+    printf(" S to shuffle the playlist.\n");
+    printf(" A add current song to main cue playlist.\n");
+    printf(" P to save the playlist to your music folder.\n");
+    printf(" K to show/hide key bindings.\n");
+    printf(" Q to quit.\n");
+    printf("\n");
+    printLastRow();
+    numPrintedRows += 15;
+    return numPrintedRows;
 }
 
 int showPlaylist()
@@ -490,13 +522,21 @@ int printPlayer(SongData *songdata, double elapsedSeconds, PlayList *playlist)
     if (preferredWidth <= 0 || preferredHeight <= 0)
         return -1;
 
-    if (printInfo)
+    if (printKeyBindings)
+    {
+        if (refresh)
+        {
+            clearScreen();            
+            showKeyBindings();
+            saveCursorPosition();
+        }
+    }
+    else if (printInfo)
     {
         if (refresh)
         {
             int height = showPlaylist();
-            int jumpAmount = height;
-            cursorJump(jumpAmount);
+            cursorJump(height);
             saveCursorPosition();
         }
     }
