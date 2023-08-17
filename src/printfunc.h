@@ -29,7 +29,7 @@ typedef struct
 
 void printHelp();
 
-void printAsciiLogo();
+int printAsciiLogo();
 
 void printVersion(const char *version);
 

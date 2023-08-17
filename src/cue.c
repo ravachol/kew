@@ -149,8 +149,7 @@ struct Event processInput()
                 event.type = EVENT_PREV;                             
             } else if (strcmp(seq, "OP") == 0 || strcmp(seq, "[[A") == 0) {
                 // F1 key
-                refresh = true;
-                printInfo = !printInfo;
+                event.type = EVENT_SHOWINFO;
             }      
     }
     else
@@ -184,6 +183,9 @@ struct Event processInput()
             case 'p':
                 event.type = EVENT_EXPORTPLAYLIST;
                 break;
+            case 'k':
+                event.type = EVENT_SHOWKEYBIDINGS;
+                break;                
             case ' ':
                 event.type = EVENT_PLAY_PAUSE;
                 break;            
@@ -565,6 +567,18 @@ void handleInput()
         break;
     case EVENT_EXPORTPLAYLIST:
         savePlaylist();
+        break;
+    case EVENT_SHOWKEYBIDINGS:
+        refresh = true;
+        printKeyBindings = !printKeyBindings;
+        if (printInfo)
+            printInfo = false;
+        break;
+    case EVENT_SHOWINFO:
+        refresh = true;
+        printInfo = !printInfo;
+        if (printKeyBindings)
+            printKeyBindings = false;
         break;
     default:
         break;
