@@ -11,6 +11,7 @@ bool coverAnsi = false;
 bool metaDataEnabled = true;
 bool timeEnabled = true;
 bool drewCover = true;
+bool uiEnabled = true;
 bool printInfo = false;
 bool printKeyBindings = false;
 bool showList = true;
@@ -511,6 +512,11 @@ void printEqualizer()
 
 int printPlayer(SongData *songdata, double elapsedSeconds, PlayList *playlist)
 {
+    if (!uiEnabled)
+    {
+        return 0;
+    }
+        
     metadata = *songdata->metadata;
     hideCursor();
     totalDurationSeconds = playlist->totalDuration;
