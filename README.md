@@ -136,14 +136,15 @@ cue . (loads the main cue playlist, see 'Other Functions')
 * Use <kbd>→</kbd>, <kbd>←</kbd> keys to play the next or previous track in the playlist. 
 * <kbd>Space</kbd> to toggle pause.
 * <kbd>F1</kbd> to see the playlist and information about cue.
-* <kbd>v</kbd> to toggle the spectrum visualizer.
-* <kbd>c</kbd> to toggle album covers.
-* <kbd>b</kbd> to toggle album covers drawn in ascii or as a normal image.
-* <kbd>r</kbd> to repeat the current song.
-* <kbd>s</kbd> to shuffle the playlist.
-* <kbd>a</kbd> add current song to main cue playlist.
-* <kbd>p</kbd> to save the currently loaded playlist to a m3u file in your music folder.
-* <kbd>q</kbd> to quit.
+* <kbd>K</kbd> to show/hide key bindings.
+* <kbd>V</kbd> to toggle the spectrum visualizer.
+* <kbd>C</kbd> to toggle album covers.
+* <kbd>B</kbd> to toggle album covers drawn in ascii or as a normal image.
+* <kbd>R</kbd> to repeat the current song.
+* <kbd>S</kbd> to shuffle the playlist.
+* <kbd>A</kbd> add current song to main cue playlist.
+* <kbd>P</kbd> to save the currently loaded playlist to a m3u file in your music folder.
+* <kbd>Q</kbd> to quit.
 
 cue will create a config file, .cue.conf, in your home dir. There you can change for instance starting directory and number of bars in the visualizer. To edit this file please make sure you quit cue first.
 
