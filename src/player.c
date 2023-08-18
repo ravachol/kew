@@ -284,7 +284,7 @@ void printLastRow()
         return;
     setTextColorRGB2(bgColor.r, bgColor.g, bgColor.b);
 
-    char text[100] = " [F1 Playlist] [K Keys] [Q Quit]";
+    char text[100] = " [F1 Playlist] [F2 Keys] [Q Quit]";
     // Replace "%s" in the text with the actual version
     char *versionPtr = strstr(text, "%s");
     if (versionPtr != NULL)
@@ -364,7 +364,8 @@ int showKeyBindings()
     printf(" Use ↑, ↓ keys to raise or lower volume.\n");
     printf(" Use →, ← keys to play the next or previous track.\n");
     printf(" Space to toggle pause.\n");
-    printf(" F1 to see the playlist.\n");
+    printf(" F1 to show/hide the playlist.\n");
+    printf(" F2 to show/hide key bindings.\n");    
     printf(" V to toggle the spectrum visualizer.\n");
     printf(" C to toggle album covers.\n");
     printf(" B to toggle album covers drawn in ascii.\n");
@@ -372,7 +373,6 @@ int showKeyBindings()
     printf(" S to shuffle the playlist.\n");
     printf(" A add current song to main cue playlist.\n");
     printf(" P to save the playlist to your music folder.\n");
-    printf(" K to show/hide key bindings.\n");
     printf(" Q to quit.\n");
     printf("\n");
     printLastRow();

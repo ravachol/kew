@@ -135,8 +135,8 @@ cue . (loads the main cue playlist, see 'Other Functions')
 * Use <kbd>↑</kbd>, <kbd>↓</kbd> keys to raise or lower volume. 
 * Use <kbd>→</kbd>, <kbd>←</kbd> keys to play the next or previous track in the playlist. 
 * <kbd>Space</kbd> to toggle pause.
-* <kbd>F1</kbd> to see the playlist and information about cue.
-* <kbd>K</kbd> to show/hide key bindings.
+* <kbd>F1</kbd> to show/hide the playlist and information about cue.
+* <kbd>F2</kbd> to show/hide key bindings.
 * <kbd>V</kbd> to toggle the spectrum visualizer.
 * <kbd>C</kbd> to toggle album covers.
 * <kbd>B</kbd> to toggle album covers drawn in ascii or as a normal image.
