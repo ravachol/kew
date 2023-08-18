@@ -15,6 +15,7 @@
 extern const char VERSION[];
 
 extern bool coverEnabled;
+extern bool uiEnabled;
 extern bool coverAnsi;
 extern bool printInfo;
 extern bool printKeyBindings;
