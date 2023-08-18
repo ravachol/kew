@@ -133,7 +133,7 @@ cue . (loads the main cue playlist, see 'Other Functions')
 #### Other Functions:
 
 * Use <kbd>↑</kbd>, <kbd>↓</kbd> keys to raise or lower volume. 
-* Use <kbd>→</kbd>, <kbd>←</kbd> keys to play the next or previous track in the playlist. 
+* Use <kbd>←</kbd>, <kbd>→</kbd> keys to play the previous or next track in the playlist. 
 * <kbd>Space</kbd> to toggle pause.
 * <kbd>F1</kbd> to show/hide the playlist and information about cue.
 * <kbd>F2</kbd> to show/hide key bindings.

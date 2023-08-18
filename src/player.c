@@ -362,7 +362,7 @@ int showKeyBindings()
     numPrintedRows += printAbout();
     setTextColorRGB2(color.r, color.g, color.b);        
     printf(" Use ↑, ↓ keys to raise or lower volume.\n");
-    printf(" Use →, ← keys to play the next or previous track.\n");
+    printf(" Use ←, → keys to play the previous or next track.\n");
     printf(" Space to toggle pause.\n");
     printf(" F1 to show/hide the playlist.\n");
     printf(" F2 to show/hide key bindings.\n");    
