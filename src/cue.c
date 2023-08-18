@@ -150,7 +150,10 @@ struct Event processInput()
             } else if (strcmp(seq, "OP") == 0 || strcmp(seq, "[[A") == 0) {
                 // F1 key
                 event.type = EVENT_SHOWINFO;
-            }      
+            } else if (strcmp(seq, "OQ") == 0 || strcmp(seq, "[[B") == 0) {
+                // F2 key
+                event.type = EVENT_SHOWKEYBIDINGS;    
+            }                 
     }
     else
     {
@@ -182,10 +185,7 @@ struct Event processInput()
                 break;
             case 'p':
                 event.type = EVENT_EXPORTPLAYLIST;
-                break;
-            case 'k':
-                event.type = EVENT_SHOWKEYBIDINGS;
-                break;                
+                break;              
             case ' ':
                 event.type = EVENT_PLAY_PAUSE;
                 break;            
