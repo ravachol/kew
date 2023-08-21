@@ -748,6 +748,7 @@ void removeArgElement(char* argv[], int index, int* argc) {
 void handleOptions(int *argc, char *argv[])
 {
   const char* noUiOption = "--noui";
+  const char* noCoverOption = "--nocover";
   int idx = -1;
   for (int i = 0; i < *argc; i++) {
     if (strcasestr(argv[i], noUiOption))
@@ -758,6 +759,16 @@ void handleOptions(int *argc, char *argv[])
   }
   if (idx >= 0)
     removeArgElement(argv, idx, argc);
+  idx = -1;    
+  for (int i = 0; i < *argc; i++) {
+    if (strcasestr(argv[i], noCoverOption))
+    {
+      coverEnabled = false;
+      idx = i;
+    }
+  }
+  if (idx >= 0)
+    removeArgElement(argv, idx, argc);    
 }
 
 int main(int argc, char *argv[])
