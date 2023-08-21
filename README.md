@@ -124,6 +124,8 @@ cue --help, -? or -h
 
 cue --version or -v
 
+cue --nocover
+
 cue --noui (completely hides the UI)
 
 cue . (loads the main cue playlist, see 'Other Functions')
