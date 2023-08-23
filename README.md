@@ -146,7 +146,7 @@ cue . (loads the main cue playlist, see 'Other Functions')
 * <kbd>R</kbd> to repeat the current song.
 * <kbd>S</kbd> to shuffle the playlist.
 * <kbd>A</kbd> add current song to main cue playlist.
-* <kbd>P</kbd> to save the currently loaded playlist to a m3u file in your music folder.
+* <kbd>X</kbd> to save the currently loaded playlist to a m3u file in your music folder.
 * <kbd>Q</kbd> to quit.
 
 cue will create a config file, .cue.conf, in your home dir. There you can change for instance starting directory and number of bars in the visualizer. To edit this file please make sure you quit cue first.
