@@ -408,31 +408,34 @@ void updatePlaybackStatus(const gchar* status) {
     g_variant_unref(status_variant);
 }
 
-// mpris, After updating the metadata
-void updateMetadata(const gchar* title, const gchar* artist, const gchar* album, const gchar* coverArtPath, const gchar* trackId) {
-    // Update your metadata here
 
+void emitMetadataChanged(const gchar* title, const gchar* artist, const gchar* album, const gchar* coverArtPath, const gchar* trackId) {
     // Convert the coverArtPath to a valid URL format
     gchar *coverArtUrl = g_strdup_printf("file://%s", coverArtPath);
 
-    // Create a GVariant dictionary for metadata
+    // Create a GVariantBuilder for the metadata dictionary
     GVariantBuilder metadata_builder;
     g_variant_builder_init(&metadata_builder, G_VARIANT_TYPE_DICTIONARY);
-    g_variant_builder_add(&metadata_builder, "{sv}", "xesam:playername", g_variant_new_string("cueMusic"));
     g_variant_builder_add(&metadata_builder, "{sv}", "xesam:title", g_variant_new_string(title));
     g_variant_builder_add(&metadata_builder, "{sv}", "xesam:artist", g_variant_new_string(artist));
     g_variant_builder_add(&metadata_builder, "{sv}", "xesam:album", g_variant_new_string(album));
-    g_variant_builder_add(&metadata_builder, "{sv}", "mpris:artUrl", g_variant_new_string(coverArtUrl));    
+    g_variant_builder_add(&metadata_builder, "{sv}", "mpris:artUrl", g_variant_new_string(coverArtUrl));
     g_variant_builder_add(&metadata_builder, "{sv}", "mpris:trackid", g_variant_new_object_path(trackId));
-    // Add other metadata fields to the builder
-    
-    GVariant *metadata_variant = g_variant_builder_end(&metadata_builder);
 
-    // Emit the Metadata signal
-    g_dbus_connection_emit_signal(connection, NULL, "/org/mpris/MediaPlayer2/cueMusic", "org.mpris.MediaPlayer2.Player", "Metadata", g_variant_new("(v)", metadata_variant), NULL);
+    // Create a GVariantBuilder for changed properties
+    GVariantBuilder changed_properties_builder;
+    g_variant_builder_init(&changed_properties_builder, G_VARIANT_TYPE("a{sv}"));
+    g_variant_builder_add(&changed_properties_builder, "{sv}", "Metadata", g_variant_builder_end(&metadata_builder));
+    g_variant_builder_add(&changed_properties_builder, "{sv}", "CanGoPrevious", g_variant_new_boolean(currentSong->prev != NULL));
+    g_variant_builder_add(&changed_properties_builder, "{sv}", "CanGoNext", g_variant_new_boolean(currentSong->next != NULL));
+
+    // Emit the PropertiesChanged signal
+    g_dbus_connection_emit_signal(connection, NULL, "/org/mpris/MediaPlayer2", "org.freedesktop.DBus.Properties", "PropertiesChanged",
+                                  g_variant_new("(sa{sv}as)", "org.mpris.MediaPlayer2.Player", &changed_properties_builder, NULL), NULL);
 
     // Clean up
-    g_variant_unref(metadata_variant);
+    g_variant_builder_clear(&metadata_builder);
+    g_variant_builder_clear(&changed_properties_builder);
 }
 
 void *songDataReaderThread(void *arg)
@@ -745,7 +748,7 @@ void updatePlayer()
                 currentSongData = loadingdata.songdataB;
                 
             // update mpris
-            updateMetadata(
+            emitMetadataChanged(
                 currentSongData->metadata->title ? currentSongData->metadata->title : "",
                 currentSongData->metadata->artist ? currentSongData->metadata->artist : "",
                 currentSongData->metadata->album ? currentSongData->metadata->album : "",
@@ -1477,7 +1480,7 @@ void play(Node *song)
     GVariant *parameters = g_variant_new("(s)", "Playing"); // Replace with actual value
     g_dbus_connection_emit_signal(connection,
                                NULL,                        // Destination object path (or NULL)
-                               "/org/mpris/MediaPlayer2",   // Object path of the media player
+                               "/org/mpris/MediaPlayer2/cueMusic",   // Object path of the media player
                                "org.mpris.MediaPlayer2.Player", // Interface name
                                "PlaybackStatusChanged",     // Signal name
                                parameters,
