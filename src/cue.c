@@ -433,9 +433,6 @@ void updateMetadata(const gchar* title, const gchar* artist, const gchar* album,
 
     // Clean up
     g_variant_unref(metadata_variant);
-
-    gchar *status = "Playing";
-    updatePlaybackStatus(status);
 }
 
 void *songDataReaderThread(void *arg)
