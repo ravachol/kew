@@ -55,3 +55,4 @@ typedef struct
 
 SongData *loadSongData(char *filePath);
 void unloadSongData(SongData **songdata);
+int getCurrentVolume();
