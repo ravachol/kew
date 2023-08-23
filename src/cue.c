@@ -168,6 +168,21 @@ struct Event processInput()
     {
         switch (event.key)
         {
+            case 'k':   // Next song
+                event.type = EVENT_NEXT;
+                break;
+            case 'j':   // Prev song
+                event.type = EVENT_PREV;
+                break;
+            case 'h':   // Volume UP
+                event.type = EVENT_VOLUME_UP;
+                break;
+            case 'l':   //Volume DOWN
+                event.type = EVENT_VOLUME_DOWN;
+                break;
+        /*  case 'p':   // Play/Pause
+                event.type = EVENT_PLAY_PAUSE;
+                break;      */
             case 'q':
                 event.type = EVENT_QUIT;
                 break;
