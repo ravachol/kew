@@ -37,6 +37,7 @@ typedef struct
 
 typedef struct
 {
+    gchar* trackId;
     char filePath[MAXPATHLEN];
     char coverArtPath[MAXPATHLEN];
     char pcmFilePath[MAXPATHLEN];

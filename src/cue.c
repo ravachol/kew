@@ -381,11 +381,25 @@ void assignLoadedData()
     }
 }
 
+// After updating the playback state (play, pause, stop)
+void updatePlaybackStatus(const gchar* status) {
+    // Update your playback status here
+    
+    // Emit the PlaybackStatus signal
+    GVariant* status_variant = g_variant_new_string(status);
+    g_dbus_connection_emit_signal(connection, NULL, "/org/mpris/MediaPlayer2/cueMusic", "org.mpris.MediaPlayer2.Player", "PlaybackStatus", g_variant_new("(s)", status_variant), NULL);
+
+    // Clean up
+    g_variant_unref(status_variant);
+}
 
 // mpris, After updating the metadata
-void updateMetadata(const gchar* title, const gchar* artist, const gchar* album) {
+void updateMetadata(const gchar* title, const gchar* artist, const gchar* album, const gchar* coverArtPath, const gchar* trackId) {
     // Update your metadata here
-    
+
+    // Convert the coverArtPath to a valid URL format
+    gchar *coverArtUrl = g_strdup_printf("file://%s", coverArtPath);
+
     // Create a GVariant dictionary for metadata
     GVariantBuilder metadata_builder;
     g_variant_builder_init(&metadata_builder, G_VARIANT_TYPE_DICTIONARY);
@@ -393,16 +407,20 @@ void updateMetadata(const gchar* title, const gchar* artist, const gchar* album)
     g_variant_builder_add(&metadata_builder, "{sv}", "xesam:title", g_variant_new_string(title));
     g_variant_builder_add(&metadata_builder, "{sv}", "xesam:artist", g_variant_new_string(artist));
     g_variant_builder_add(&metadata_builder, "{sv}", "xesam:album", g_variant_new_string(album));
-    
+    g_variant_builder_add(&metadata_builder, "{sv}", "mpris:artUrl", g_variant_new_string(coverArtUrl));    
+    g_variant_builder_add(&metadata_builder, "{sv}", "mpris:trackid", g_variant_new_object_path(trackId));
     // Add other metadata fields to the builder
     
     GVariant *metadata_variant = g_variant_builder_end(&metadata_builder);
 
     // Emit the Metadata signal
-    g_dbus_connection_emit_signal(connection, NULL, "/org/mpris/MediaPlayer2", "org.mpris.MediaPlayer2.Player", "Metadata", g_variant_new("(v)", metadata_variant), NULL);
+    g_dbus_connection_emit_signal(connection, NULL, "/org/mpris/MediaPlayer2/cueMusic", "org.mpris.MediaPlayer2.Player", "Metadata", g_variant_new("(v)", metadata_variant), NULL);
 
     // Clean up
     g_variant_unref(metadata_variant);
+
+    gchar *status = "Playing";
+    updatePlaybackStatus(status);
 }
 
 void *songDataReaderThread(void *arg)
@@ -419,13 +437,6 @@ void *songDataReaderThread(void *arg)
     if (filepath[0] != '\0')
     {
         songdata = loadSongData(filepath);
-
-        // update mpris
-        updateMetadata(
-            songdata->metadata->title ? songdata->metadata->title : "",
-            songdata->metadata->artist ? songdata->metadata->artist : "",
-            songdata->metadata->album ? songdata->metadata->album : ""
-        );
     }
     else
         songdata = NULL;
@@ -711,7 +722,27 @@ void updatePlayer()
     if (resizeFlag)
         resize();
     else
+    {
+        if (refresh)
+        {
+            SongData *currentSongData = NULL;
+
+            if (usingSongDataA)
+                currentSongData = loadingdata.songdataA;
+            else
+                currentSongData = loadingdata.songdataB;
+                
+            // update mpris
+            updateMetadata(
+                currentSongData->metadata->title ? currentSongData->metadata->title : "",
+                currentSongData->metadata->artist ? currentSongData->metadata->artist : "",
+                currentSongData->metadata->album ? currentSongData->metadata->album : "",
+                currentSongData->coverArtPath ? currentSongData->coverArtPath : "",
+                currentSongData->trackId ? currentSongData->trackId : ""
+            );           
+        }
         refreshPlayer();
+    }        
 }
 
 // MPRIS Functions:
@@ -728,6 +759,7 @@ const gchar* introspection_xml =
     "    <property name=\"HasTrackList\" type=\"b\" access=\"read\"/>\n"
     "    <property name=\"Identity\" type=\"s\" access=\"read\"/>\n"
     "    <property name=\"DesktopEntry\" type=\"s\" access=\"read\"/>\n"
+    "    <property name=\"DesktopIconName\" type=\"s\" access=\"read\"/>\n"
     "    <property name=\"SupportedUriSchemes\" type=\"as\" access=\"read\"/>\n"
     "    <property name=\"SupportedMimeTypes\" type=\"as\" access=\"read\"/>\n"
     "  </interface>\n"
@@ -775,6 +807,8 @@ static gboolean hasTrackList = FALSE;
 static const gchar *identity = "cueMusic";
 static const gchar *supportedUriSchemes[] = {"file", "http", NULL};
 static const gchar *supportedMimeTypes[] = {"audio/mpeg", "audio/ogg", NULL};
+static const gchar *desktopIconName = ""; // Without file extension
+static const gchar *desktopEntry = ""; // The name of your .desktop file
 
 // Implement Raise method
 static void handle_raise(GDBusConnection *connection, const gchar *sender,
@@ -824,6 +858,24 @@ static gboolean get_identity(GDBusConnection *connection, const gchar *sender,
                             const gchar *property_name, GVariant **value,
                             GError **error, gpointer user_data) {
     *value = g_variant_new_string(identity);
+    return TRUE;
+}
+
+// Property getter for DesktopEntry
+static gboolean get_desktop_entry(GDBusConnection *connection, const gchar *sender,
+                                  const gchar *object_path, const gchar *interface_name,
+                                  const gchar *property_name, GVariant **value,
+                                  GError **error, gpointer user_data) {
+    *value = g_variant_new_string(desktopEntry);
+    return TRUE;
+}
+
+// Property getter for DesktopIconName
+static gboolean get_desktop_icon_name(GDBusConnection *connection, const gchar *sender,
+                                      const gchar *object_path, const gchar *interface_name,
+                                      const gchar *property_name, GVariant **value,
+                                      GError **error, gpointer user_data) {
+    *value = g_variant_new_string(desktopIconName);
     return TRUE;
 }
 
@@ -965,17 +1017,6 @@ static void on_bus_name_lost(GDBusConnection *connection, const gchar *name, gpo
     //g_print("Lost bus name: %s\n", name);
 }
 
-// After updating the playback state (play, pause, stop)
-void updatePlaybackStatus(const gchar* status) {
-    // Update your playback status here
-    
-    // Emit the PlaybackStatus signal
-    GVariant* status_variant = g_variant_new_string(status);
-    g_dbus_connection_emit_signal(connection, NULL, "/org/mpris/MediaPlayer2", "org.mpris.MediaPlayer2.Player", "PlaybackStatus", g_variant_new("(s)", status_variant), NULL);
-
-    // Clean up
-    g_variant_unref(status_variant);
-}
 
 static const gchar *PlaybackStatus = "Playing"; 
 static const gchar *LoopStatus = "None";
@@ -1053,6 +1094,8 @@ static gboolean get_metadata(GDBusConnection *connection, const gchar *sender,
     g_variant_builder_add(&metadata_builder, "{sv}", "xesam:artist", g_variant_new_string(currentSongData->metadata->artist));
     g_variant_builder_add(&metadata_builder, "{sv}", "xesam:album", g_variant_new_string(currentSongData->metadata->album));
     g_variant_builder_add(&metadata_builder, "{sv}", "xesam:contentCreated", g_variant_new_string(currentSongData->metadata->date));
+    g_variant_builder_add(&metadata_builder, "{sv}", "mpris:artUrl", g_variant_new_string(currentSongData->coverArtPath));
+    g_variant_builder_add(&metadata_builder, "{sv}", "mpris:trackid", g_variant_new_object_path(currentSongData->trackId));
     // Add other metadata fields to the builder
     
     GVariant *metadata_variant = g_variant_builder_end(&metadata_builder);
@@ -1166,7 +1209,7 @@ static GVariant* get_property_callback(GDBusConnection *connection, const gchar 
 
     GVariant *value = NULL;
 
-    if (g_strcmp0(interface_name, "org.mpris.MediaPlayer2.Player") == 0) {
+    if (g_strcmp0(interface_name, "org.mpris.MediaPlayer2.Player") == 0 || g_strcmp0(interface_name, "org.mpris.MediaPlayer2") == 0) {
         if (g_strcmp0(property_name, "PlaybackStatus") == 0) {
             get_playback_status(connection, sender, object_path, interface_name, property_name, &value, error, user_data);
         } else if (g_strcmp0(property_name, "LoopStatus") == 0) {
@@ -1197,6 +1240,12 @@ static GVariant* get_property_callback(GDBusConnection *connection, const gchar 
             get_can_seek(connection, sender, object_path, interface_name, property_name, &value, error, user_data);
         } else if (g_strcmp0(property_name, "CanControl") == 0) {
             get_can_control(connection, sender, object_path, interface_name, property_name, &value, error, user_data);
+        } else if (g_strcmp0(property_name, "DesktopIconName") == 0) {
+            get_desktop_icon_name(connection, sender, object_path, interface_name, property_name, &value, error, user_data);
+        } else if (g_strcmp0(property_name, "DesktopEntry") == 0) {
+            get_desktop_entry(connection, sender, object_path, interface_name, property_name, &value, error, user_data);
+        } else if (g_strcmp0(property_name, "Identity") == 0) {
+            get_identity(connection, sender, object_path, interface_name, property_name, &value, error, user_data);
         } else {
             g_set_error(error, G_IO_ERROR, G_IO_ERROR_FAILED, "Unknown property");
         }
@@ -1251,10 +1300,10 @@ static const GDBusInterfaceVTable media_player_interface_vtable = {
     .method_call = handle_method_call, // We're using individual method handlers
     .get_property = get_property_callback, // Handle the property getters individually
     .set_property = set_property_callback,
-     .padding = {
+    .padding = {
         handle_raise,
         handle_quit
-     }
+    }
 };
 
 // MPRIS Player interface vtable
@@ -1273,6 +1322,20 @@ static const GDBusInterfaceVTable player_interface_vtable = {
         handle_set_position
     }    
 };
+
+// Emit a signal for playback status change
+void emit_playback_status_changed_signal(GDBusConnection *connection, const gchar *object_path, const gchar *new_status) {
+    GVariant *signal_params = g_variant_new("(s)", new_status);  // Create a GVariant containing the new status
+
+    // Emit the PlaybackStatusChanged signal
+    g_dbus_connection_emit_signal(connection,
+                                  NULL,  // Sender is usually NULL in this context
+                                  "/org/mpris/MediaPlayer2/cueMusic",
+                                  "org.mpris.MediaPlayer2.Player",
+                                  "PlaybackStatusChanged",
+                                  g_variant_new("(s)", new_status),
+                                  NULL); // GError, if any
+}
 
 // End MPRIS Functions
 
