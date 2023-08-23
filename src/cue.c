@@ -180,9 +180,9 @@ struct Event processInput()
             case 'l':   //Volume DOWN
                 event.type = EVENT_VOLUME_DOWN;
                 break;
-        /*  case 'p':   // Play/Pause
+            case 'p':   // Play/Pause
                 event.type = EVENT_PLAY_PAUSE;
-                break;      */
+                break;      
             case 'q':
                 event.type = EVENT_QUIT;
                 break;
@@ -207,7 +207,7 @@ struct Event processInput()
             case 'r':
                 event.type = EVENT_TOGGLEREPEAT;
                 break;
-            case 'p':
+            case 'x':
                 event.type = EVENT_EXPORTPLAYLIST;
                 break;              
             case ' ':
