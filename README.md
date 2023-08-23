@@ -19,6 +19,7 @@ cue is a command-line music player for Linux.
  * Control the player with previous, next and pause.
  * Gapless playback.
  * Supports 24-bit/192khz audio.
+ * Supports MPRIS, which is the protocol used on Linux systems for controlling media players. 
 
 
 ## Installing
@@ -55,12 +56,12 @@ cue dependencies are:
 Install FFmpeg, FFTW, Chafa and FreeImage using your distro's package manager. For instance:
 
 ```bash
-apt install ffmpeg libfftw3-dev git libchafa-dev libfreeimage-dev libavformat-dev
+apt install ffmpeg libfftw3-dev git libglib2.0-dev libchafa-dev libfreeimage-dev libavformat-dev
 ```
 Or:
 
 ```bash
-pacman -Syu ffmpeg fftw git chafa freeimage
+pacman -Syu ffmpeg fftw git glib2 chafa freeimage
 ```
 
 Then run this (either git clone or unzip a release zip into a folder of your choice):

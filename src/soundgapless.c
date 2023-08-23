@@ -425,9 +425,20 @@ void resumePlayback()
     {
         ma_device_start(&device);
     }
+    paused = false;    
 }
 
 void pausePlayback()
+{
+
+    if (ma_device_is_started(&device))
+    {
+        ma_device_stop(&device);
+        paused = true;
+    }
+}
+
+void togglePausePlayback()
 {
 
     if (ma_device_is_started(&device))
@@ -542,6 +553,31 @@ int getCurrentVolume()
     }
 
     return currentVolume;
+}
+
+void setVolume(int volume)
+{
+    char command_str[1000];
+    FILE *fp;
+
+    // Limit new volume to a maximum of 100%
+    if (volume > 100)
+    {
+        volume = 100;
+    }
+    else if (volume < 0)
+    {
+        volume = 0;
+    }
+
+    snprintf(command_str, 1000, "pactl set-sink-volume @DEFAULT_SINK@ %d%%", volume);
+
+    fp = popen(command_str, "r");
+    if (fp == NULL)
+    {
+        return;
+    }
+    pclose(fp);  
 }
 
 int adjustVolumePercent(int volumeChange)

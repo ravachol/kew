@@ -58,6 +58,8 @@ void resumePlayback();
 
 void pausePlayback();
 
+void togglePausePlayback();
+
 bool isPaused();
 
 int convertToPcmFile(const char *filePath, const char *outputFilePath);
@@ -71,6 +73,8 @@ bool isPlaybackDone();
 double getDuration(const char *filepath);
 
 int adjustVolumePercent(int volumeChange);
+
+void setVolume(int volume);
 
 void stopPlayback();
 
