@@ -1,5 +1,14 @@
 #include "songloader.h"
 
+static guint track_counter = 0;
+
+// Generate a new track ID
+gchar* generateTrackId() {
+    gchar* trackId = g_strdup_printf("/org/cueMusic/tracklist/track%d", track_counter);
+    track_counter++;
+    return trackId;
+}    
+
 void loadCover(SongData *songdata)
 {
     char path[MAXPATHLEN];
@@ -59,6 +68,7 @@ void loadPcmAudio(SongData *songdata)
 SongData *loadSongData(char *filePath)
 {
     SongData *songdata = malloc(sizeof(SongData));
+    songdata->trackId = generateTrackId();    
     strcpy(songdata->filePath, "");
     strcpy(songdata->coverArtPath, "");
     strcpy(songdata->pcmFilePath, "");
