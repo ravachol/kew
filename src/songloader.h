@@ -1,3 +1,5 @@
+#include <glib.h>
+#include <gio/gio.h>
 #include <sys/wait.h>
 #include <FreeImage.h>
 #include "metadata.h"

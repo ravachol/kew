@@ -68,7 +68,7 @@ void loadPcmAudio(SongData *songdata)
 SongData *loadSongData(char *filePath)
 {
     SongData *songdata = malloc(sizeof(SongData));
-    songdata->trackId = generateTrackId();    
+    songdata->trackId = generateTrackId();   
     strcpy(songdata->filePath, "");
     strcpy(songdata->coverArtPath, "");
     strcpy(songdata->pcmFilePath, "");
