@@ -133,10 +133,15 @@ cue . (loads the main cue playlist, see 'Other Functions')
 
  ```
 
-#### Other Functions:
-
+#### Keybinds:
+* cue has two modes, Normal and Vim. You can change between both with <kbd>M</kbd>.
+#### Normal Mode:
 * Use <kbd>↑</kbd>, <kbd>↓</kbd> keys to raise or lower volume. 
-* Use <kbd>←</kbd>, <kbd>→</kbd> keys to play the previous or next track in the playlist. 
+* Use <kbd>←</kbd>, <kbd>→</kbd> keys to play the previous or next track in the playlist.
+#### Vim Mode:
+* Use <kbd>l</kbd>, <kbd>h</kbd> keys to raise or lower volume.
+* Use <kbd>j</kbd>, <kbd>k</kbd> keys to play the previous or next track in the playlist. 
+#### Global Keys:
 * <kbd>Space</kbd> to toggle pause.
 * <kbd>F1</kbd> to show/hide the playlist and information about cue.
 * <kbd>F2</kbd> to show/hide key bindings.
