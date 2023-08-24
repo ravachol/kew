@@ -284,7 +284,7 @@ void printLastRow()
         return;
     setTextColorRGB2(bgColor.r, bgColor.g, bgColor.b);
 
-    char text[100] = " [F1 Playlist] [F2 Keys] [Q Quit]";
+    char text[100] = " [F1 Playlist] [F2 Keys] [M Switch mode] [Q Quit]";
     // Replace "%s" in the text with the actual version
     char *versionPtr = strstr(text, "%s");
     if (versionPtr != NULL)
