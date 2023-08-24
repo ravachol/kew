@@ -181,11 +181,11 @@ struct Event processInput()
                 if(selectedMode == vim)
                     event.type = EVENT_PREV;
                 break;
-            case 'h':   // Volume UP
+            case 'l':   // Volume UP
                 if(selectedMode == vim)
                     event.type = EVENT_VOLUME_UP;
                 break;
-            case 'l':   //Volume DOWN
+            case 'h':   //Volume DOWN
                 if(selectedMode == vim)
                     event.type = EVENT_VOLUME_DOWN;
                 break;

@@ -139,7 +139,7 @@ cue . (loads the main cue playlist, see 'Other Functions')
 * Use <kbd>↑</kbd>, <kbd>↓</kbd> keys to raise or lower volume. 
 * Use <kbd>←</kbd>, <kbd>→</kbd> keys to play the previous or next track in the playlist.
 #### Vim Mode:
-* Use <kbd>h</kbd>, <kbd>l</kbd> keys to raise or lower volume.
+* Use <kbd>l</kbd>, <kbd>h</kbd> keys to raise or lower volume.
 * Use <kbd>j</kbd>, <kbd>k</kbd> keys to play the previous or next track in the playlist. 
 #### Global Keys:
 * <kbd>Space</kbd> to toggle pause.
