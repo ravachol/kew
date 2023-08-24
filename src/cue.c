@@ -148,19 +148,15 @@ struct Event processInput()
 
             if (strcmp(seq, "[A") == 0) {
                 // Arrow Up
-                if(selectedMode == normal)    //Check if normal mode
                     event.type = EVENT_VOLUME_UP;
             } else if (strcmp(seq, "[B") == 0) {
                 // Arrow Down
-                if(selectedMode == normal)
                     event.type = EVENT_VOLUME_DOWN;
             } else if (strcmp(seq, "[C") == 0) {
                 // Arrow Left
-                if(selectedMode == normal)
                     event.type = EVENT_NEXT;
             } else if (strcmp(seq, "[D") == 0) {
                 // Arrow Right
-                if(selectedMode == normal)
                     event.type = EVENT_PREV;
             } else if (strcmp(seq, "OP") == 0 || strcmp(seq, "[[A") == 0) {
                 // F1 key
