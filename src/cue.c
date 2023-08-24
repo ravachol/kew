@@ -70,6 +70,8 @@ bool usingSongDataA = true;
 bool loadingFailed = false;
 bool skipPrev = false;
 bool skipping = false;
+enum modes {normal,vim};
+enum modes selectedMode = normal;
 
 struct timespec current_time;
 struct timespec start_time;
@@ -142,43 +144,54 @@ struct Event processInput()
     event.type = EVENT_NONE;
     event.key = seq[0];
 
-    if (seqLength > 1) {
+    if (seqLength > 1) { //0x1B +
 
             if (strcmp(seq, "[A") == 0) {
                 // Arrow Up
-                event.type = EVENT_VOLUME_UP;
+                if(selectedMode == normal)    //Check if normal mode
+                    event.type = EVENT_VOLUME_UP;
             } else if (strcmp(seq, "[B") == 0) {
                 // Arrow Down
-                event.type = EVENT_VOLUME_DOWN;                
+                if(selectedMode == normal)
+                    event.type = EVENT_VOLUME_DOWN;
             } else if (strcmp(seq, "[C") == 0) {
                 // Arrow Left
-                event.type = EVENT_NEXT;
+                if(selectedMode == normal)
+                    event.type = EVENT_NEXT;
             } else if (strcmp(seq, "[D") == 0) {
                 // Arrow Right
-                event.type = EVENT_PREV;                             
+                if(selectedMode == normal)
+                    event.type = EVENT_PREV;
             } else if (strcmp(seq, "OP") == 0 || strcmp(seq, "[[A") == 0) {
                 // F1 key
                 event.type = EVENT_SHOWINFO;
             } else if (strcmp(seq, "OQ") == 0 || strcmp(seq, "[[B") == 0) {
                 // F2 key
                 event.type = EVENT_SHOWKEYBIDINGS;    
-            }                 
+            }
     }
     else
     {
         switch (event.key)
         {
-            case 'k':   // Next song
-                event.type = EVENT_NEXT;
+            case 'M':
+                event.type = EVENT_CHANGE_MODE;
+                break;
+            case 'k' :   // Next song
+                if(selectedMode == vim)   //Check if vim mode
+                    event.type = EVENT_NEXT;
                 break;
             case 'j':   // Prev song
-                event.type = EVENT_PREV;
+                if(selectedMode == vim)
+                    event.type = EVENT_PREV;
                 break;
             case 'h':   // Volume UP
-                event.type = EVENT_VOLUME_UP;
+                if(selectedMode == vim)
+                    event.type = EVENT_VOLUME_UP;
                 break;
             case 'l':   //Volume DOWN
-                event.type = EVENT_VOLUME_DOWN;
+                if(selectedMode == vim)
+                    event.type = EVENT_VOLUME_DOWN;
                 break;
             case 'p':   // Play/Pause
                 event.type = EVENT_PLAY_PAUSE;
@@ -360,6 +373,14 @@ void togglePause(double *totalPauseSeconds, double pauseSeconds, struct timespec
                                NULL);        
     }
     
+}
+
+void toggleMode()
+{
+    if(selectedMode == normal)
+        selectedMode = vim;
+    else
+        selectedMode = normal;
 }
 
 void quit()
@@ -654,6 +675,9 @@ void handleInput()
 
     switch (event.type)
     {
+    case EVENT_CHANGE_MODE:
+        toggleMode();   // Expect adding new modes in the future
+        break;
     case EVENT_PLAY_PAUSE:
         togglePause(&totalPauseSeconds, pauseSeconds, &pause_time);
         break;
