@@ -101,6 +101,21 @@ GDBusConnection* connection = NULL;
 GMainContext* global_main_context = NULL;
 GMainLoop* main_loop;
 
+void emitStringPropertyChanged(const gchar *propertyName, const gchar *newValue) {  
+
+    // Create a GVariantBuilder for changed properties
+    GVariantBuilder changed_properties_builder;
+    g_variant_builder_init(&changed_properties_builder, G_VARIANT_TYPE("a{sv}"));
+    g_variant_builder_add(&changed_properties_builder, "{sv}", propertyName, g_variant_new_string(newValue));
+
+    // Emit the PropertiesChanged signal
+    g_dbus_connection_emit_signal(connection, NULL, "/org/mpris/MediaPlayer2", "org.freedesktop.DBus.Properties", "PropertiesChanged",
+                                  g_variant_new("(sa{sv}as)", "org.mpris.MediaPlayer2.Player", &changed_properties_builder, NULL), NULL);
+
+    // Clean up
+    g_variant_builder_clear(&changed_properties_builder);
+}
+
 bool isCooldownElapsed()
 {
     struct timespec currentTime;
@@ -289,6 +304,14 @@ void toggleCovers()
 void toggleRepeat()
 {
     repeatEnabled = !repeatEnabled;
+    if (repeatEnabled)
+    {
+        emitStringPropertyChanged("LoopStatus", "Track");
+    }
+    else
+    {
+        emitStringPropertyChanged("LoopStatus", "None");
+    }
 }
 
 void toggleVisualizer()
@@ -305,15 +328,8 @@ void playbackPlay(double *totalPauseSeconds, double pauseSeconds, struct timespe
     {
         *totalPauseSeconds += pauseSeconds;
 
-        // Emit PlaybackStatusChanged signal
-        GVariant *parameters = g_variant_new("(s)", "Playing"); // Replace with actual value
-        g_dbus_connection_emit_signal(connection,
-                               NULL,                        // Destination object path (or NULL)
-                               "/org/mpris/MediaPlayer2",   // Object path of the media player
-                               "org.mpris.MediaPlayer2.Player", // Interface name
-                               "PlaybackStatusChanged",     // Signal name
-                               parameters,
-                               NULL);        
+        // Emit PropertiesChanged signal
+        emitStringPropertyChanged("PlaybackStatus", "Playing");     
     }    
     resumePlayback();
 }
@@ -322,15 +338,8 @@ void playbackPause(double *totalPauseSeconds, double pauseSeconds, struct timesp
 {
     if (!isPaused())
     {
-        // Emit PlaybackStatusChanged signal
-        GVariant *parameters = g_variant_new("(s)", "Paused"); // Replace with actual value
-        g_dbus_connection_emit_signal(connection,
-                               NULL,                        // Destination object path (or NULL)
-                               "/org/mpris/MediaPlayer2",   // Object path of the media player
-                               "org.mpris.MediaPlayer2.Player", // Interface name
-                               "PlaybackStatusChanged",     // Signal name
-                               parameters,
-                               NULL);
+        // Emit PropertiesChanged signal
+        emitStringPropertyChanged("PlaybackStatus", "Paused");
                                         
         clock_gettime(CLOCK_MONOTONIC, pause_time);
     }    
@@ -343,14 +352,8 @@ void togglePause(double *totalPauseSeconds, double pauseSeconds, struct timespec
     if (isPaused())
     {
         // Emit PlaybackStatusChanged signal
-        GVariant *parameters = g_variant_new("(s)", "Paused"); // Replace with actual value
-        g_dbus_connection_emit_signal(connection,
-                               NULL,                        // Destination object path (or NULL)
-                               "/org/mpris/MediaPlayer2",   // Object path of the media player
-                               "org.mpris.MediaPlayer2.Player", // Interface name
-                               "PlaybackStatusChanged",     // Signal name
-                               parameters,
-                               NULL);
+        // Emit PropertiesChanged signal
+        emitStringPropertyChanged("PlaybackStatus", "Paused");
                                         
         clock_gettime(CLOCK_MONOTONIC, pause_time);
     }
@@ -358,15 +361,8 @@ void togglePause(double *totalPauseSeconds, double pauseSeconds, struct timespec
     {
         *totalPauseSeconds += pauseSeconds;
 
-        // Emit PlaybackStatusChanged signal
-        GVariant *parameters = g_variant_new("(s)", "Playing"); // Replace with actual value
-        g_dbus_connection_emit_signal(connection,
-                               NULL,                        // Destination object path (or NULL)
-                               "/org/mpris/MediaPlayer2",   // Object path of the media player
-                               "org.mpris.MediaPlayer2.Player", // Interface name
-                               "PlaybackStatusChanged",     // Signal name
-                               parameters,
-                               NULL);        
+        // Emit PropertiesChanged signal
+        emitStringPropertyChanged("PlaybackStatus", "Playing");      
     }
     
 }
@@ -424,7 +420,6 @@ void updatePlaybackStatus(const gchar* status) {
     // Clean up
     g_variant_unref(status_variant);
 }
-
 
 void emitMetadataChanged(const gchar* title, const gchar* artist, const gchar* album, const gchar* coverArtPath, const gchar* trackId) {
     // Convert the coverArtPath to a valid URL format
@@ -1304,6 +1299,9 @@ static gboolean set_property_callback(GDBusConnection *connection, const gchar *
             g_variant_get(value, "d", &new_volume);
             setVolume((int)new_volume);
             return TRUE;
+        } else if (g_strcmp0(property_name, "LoopStatus") == 0) {             
+             toggleRepeat();
+             return TRUE;
         } else if (g_strcmp0(property_name, "Position") == 0) {
             //gint64 new_position;
             //g_variant_get(value, "x", &new_position);
@@ -1319,15 +1317,6 @@ static gboolean set_property_callback(GDBusConnection *connection, const gchar *
         g_set_error(error, G_IO_ERROR, G_IO_ERROR_FAILED, "Unknown interface");
         return FALSE;
     }
-}
-
-static void playback_status_changed_signal(GDBusConnection *connection,
-                                           const gchar *sender,
-                                           const gchar *path,
-                                           const gchar *interface_name,
-                                           const gchar *signal_name,
-                                           GVariant *parameters,
-                                           gpointer user_data) {
 }
 
 // MPRIS MediaPlayer2 interface vtable
