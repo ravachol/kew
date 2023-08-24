@@ -19,8 +19,8 @@ enum EventType
     EVENT_SHUFFLE,
     EVENT_KEY_PRESS,
     EVENT_SHOWKEYBIDINGS,
-    EVENT_SHOWINFO
-};
+    EVENT_SHOWINFO,
+    EVENT_CHANGE_MODE};
 
 struct Event
 {
