@@ -170,7 +170,7 @@ struct Event processInput()
     {
         switch (event.key)
         {
-            case 'M':
+            case 'm':
                 event.type = EVENT_CHANGE_MODE;
                 break;
             case 'k' :   // Next song
