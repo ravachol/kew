@@ -185,24 +185,17 @@ struct Event processInput()
     {
         switch (event.key)
         {
-            case 'm':
-                event.type = EVENT_CHANGE_MODE;
-                break;
             case 'k' :   // Next song
-                if(selectedMode == vim)   //Check if vim mode
-                    event.type = EVENT_NEXT;
+                event.type = EVENT_NEXT;
                 break;
             case 'j':   // Prev song
-                if(selectedMode == vim)
-                    event.type = EVENT_PREV;
+                event.type = EVENT_PREV;
                 break;
             case 'l':   // Volume UP
-                if(selectedMode == vim)
-                    event.type = EVENT_VOLUME_UP;
+                event.type = EVENT_VOLUME_UP;
                 break;
             case 'h':   //Volume DOWN
-                if(selectedMode == vim)
-                    event.type = EVENT_VOLUME_DOWN;
+                event.type = EVENT_VOLUME_DOWN;
                 break;
             case 'p':   // Play/Pause
                 event.type = EVENT_PLAY_PAUSE;
@@ -278,6 +271,7 @@ void addToPlaylist()
     {
         SongInfo song;
         song.filePath = strdup(currentSong->song.filePath);
+        song.duration = 0.0;
         addToList(mainPlaylist, song);
     }
 }
@@ -365,14 +359,6 @@ void togglePause(double *totalPauseSeconds, double pauseSeconds, struct timespec
         emitStringPropertyChanged("PlaybackStatus", "Playing");      
     }
     
-}
-
-void toggleMode()
-{
-    if(selectedMode == normal)
-        selectedMode = vim;
-    else
-        selectedMode = normal;
 }
 
 void quit()
@@ -669,9 +655,6 @@ void handleInput()
 
     switch (event.type)
     {
-    case EVENT_CHANGE_MODE:
-        toggleMode();   // Expect adding new modes in the future
-        break;
     case EVENT_PLAY_PAUSE:
         togglePause(&totalPauseSeconds, pauseSeconds, &pause_time);
         break;
@@ -717,14 +700,12 @@ void handleInput()
     case EVENT_SHOWKEYBIDINGS:
         refresh = true;
         printKeyBindings = !printKeyBindings;
-        if (printInfo)
-            printInfo = false;
+        printInfo = false;
         break;
     case EVENT_SHOWINFO:
         refresh = true;
         printInfo = !printInfo;
-        if (printKeyBindings)
-            printKeyBindings = false;
+        printKeyBindings = false;
         break;
     default:
         break;
@@ -1477,7 +1458,7 @@ void play(Node *song)
         &error
     );
 
-    if (!registration_id) {
+    if (!player_registration_id) {
         g_printerr("Failed to register media player object: %s\n", error->message);
         g_error_free(error);
         return;

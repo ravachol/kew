@@ -114,7 +114,7 @@ void printWithDelay(const char *text, int delay, int maxWidth)
     fflush(stdout);
 }
 
-void printBasicMetadata(TagSettings *metadata)
+void printBasicMetadata(TagSettings const *metadata)
 {
     int term_w, term_h;
     getTermSize(&term_w, &term_h);
@@ -164,7 +164,7 @@ void printBasicMetadata(TagSettings *metadata)
     cursorJumpDown(rows - 1);
 }
 
-void printProgress(double elapsed_seconds, double total_seconds, double total_duration_seconds, PlayList *playlist)
+void printProgress(double elapsed_seconds, double total_seconds, double total_duration_seconds, PlayList const *playlist)
 {
     int progressWidth = 31;
     int term_w, term_h;
@@ -215,7 +215,7 @@ void printProgress(double elapsed_seconds, double total_seconds, double total_du
     fflush(stdout);
 }
 
-void printMetadata(TagSettings *metadata)
+void printMetadata(TagSettings const *metadata)
 {
     if (!metaDataEnabled || printInfo)
         return;
@@ -224,7 +224,7 @@ void printMetadata(TagSettings *metadata)
     printBasicMetadata(metadata);
 }
 
-void printTime(PlayList *playlist)
+void printTime(PlayList const *playlist)
 {
     if (!timeEnabled || printInfo)
         return;
@@ -361,8 +361,8 @@ int showKeyBindings()
     usleep(700000);    
     numPrintedRows += printAbout();
     setTextColorRGB2(color.r, color.g, color.b);        
-    printf(" Use ↑, ↓ or h, l keys to raise or lower volume.\n");
-    printf(" Use ←, → or j, k keys to play the previous or next track.\n");;
+    printf(" Use ↑, ↓ or h, l to adjust volume.\n");
+    printf(" Use ←, → or j, k keys to switch tracks.\n");;
     printf(" Space to toggle pause.\n");
     printf(" F1 to show/hide the playlist.\n");
     printf(" F2 to show/hide key bindings.\n");    
