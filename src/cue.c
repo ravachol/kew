@@ -185,6 +185,9 @@ struct Event processInput()
     {
         switch (event.key)
         {
+            case 'g':
+                event.type = EVENT_GOTOSONG;
+                break;
             case 'm':
                 event.type = EVENT_CHANGE_MODE;
                 break;
