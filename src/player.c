@@ -15,6 +15,7 @@ bool uiEnabled = true;
 bool printInfo = false;
 bool printKeyBindings = false;
 bool showList = true;
+bool gotosong = false;
 int aboutHeight = 8;
 int visualizerHeight = 8;
 int minWidth = 37;
@@ -510,6 +511,12 @@ void printEqualizer()
     }
 }
 
+void gotoSong()
+{
+    char key;
+    printf("Go to song number -> %b\n",gotosong);
+}
+
 int printPlayer(SongData *songdata, double elapsedSeconds, PlayList *playlist)
 {
     if (!uiEnabled)
@@ -528,13 +535,23 @@ int printPlayer(SongData *songdata, double elapsedSeconds, PlayList *playlist)
     if (preferredWidth <= 0 || preferredHeight <= 0)
         return -1;
 
-    if (printKeyBindings)
+    if(gotosong)
     {
         if (refresh)
         {
-            clearScreen();            
+            clearScreen();
+            int height = showPlaylist();
+            cursorJump(height);
+            gotoSong();
+
+        }
+    }
+    else if (printKeyBindings)
+    {
+        if (refresh)
+        {
+            clearScreen();
             showKeyBindings();
-            saveCursorPosition();
         }
     }
     else if (printInfo)

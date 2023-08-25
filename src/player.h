@@ -18,6 +18,7 @@ extern bool coverEnabled;
 extern bool uiEnabled;
 extern bool coverAnsi;
 extern bool printInfo;
+extern bool gotosong;
 extern bool printKeyBindings;
 extern bool visualizerEnabled;
 extern bool useThemeColors;

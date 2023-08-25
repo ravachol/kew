@@ -669,6 +669,12 @@ void handleInput()
 
     switch (event.type)
     {
+    case EVENT_GOTOSONG:
+        gotosong = !gotosong;
+        refresh = true;
+        if(!printInfo)
+            printInfo!=printInfo;
+        break;
     case EVENT_CHANGE_MODE:
         toggleMode();   // Expect adding new modes in the future
         break;
