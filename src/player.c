@@ -513,8 +513,28 @@ void printEqualizer()
 
 void gotoSong()
 {
-    char key;
-    printf("Go to song number -> %b\n",gotosong);
+    if(indexCounter >=2)
+    {
+        refresh = true;
+        indexCounter = 0;
+        memset(songIndex,0,sizeof(songIndex));
+        gotosong = true;
+        currentSong = deleteFromList(&playlist,currentSong);
+        skip();
+        currentSong = deleteFromList(&playlist,currentSong);
+        skip();
+        stillGotoSong = !stillGotoSong;
+    } else
+    {
+        gotosong = !gotoSong;
+    }
+}
+
+int getNumbers(char concatenate[4]){
+    char tempChar [4];
+    strcat(tempChar,concatenate);
+    return (atoi(tempChar));
+
 }
 
 int printPlayer(SongData *songdata, double elapsedSeconds, PlayList *playlist)
@@ -535,15 +555,19 @@ int printPlayer(SongData *songdata, double elapsedSeconds, PlayList *playlist)
     if (preferredWidth <= 0 || preferredHeight <= 0)
         return -1;
 
+    //printf("Index counter ->%d\n",indexCounter);
     if(gotosong)
     {
         if (refresh)
         {
-            clearScreen();
             int height = showPlaylist();
             cursorJump(height);
+            saveCursorPosition();
             gotoSong();
-
+        }
+        else
+        {
+            gotoSong();
         }
     }
     else if (printKeyBindings)

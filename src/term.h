@@ -25,6 +25,10 @@
 
 extern volatile sig_atomic_t resizeFlag;
 
+extern char songIndex [4];
+extern int indexCounter;
+extern bool stillGotoSong;
+
 void getTermSizePixels(int *width, int *height);
 
 char *queryTerminalProperty(int property);

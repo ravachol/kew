@@ -73,6 +73,10 @@ bool skipping = false;
 enum modes {normal,vim};
 enum modes selectedMode = normal;
 
+bool stillGotoSong = false;
+char songIndex [4];
+int indexCounter = 0;
+
 struct timespec current_time;
 struct timespec start_time;
 struct timespec pause_time;
@@ -187,6 +191,8 @@ struct Event processInput()
         {
             case 'g':
                 event.type = EVENT_GOTOSONG;
+                refresh = true;
+                stillGotoSong = !stillGotoSong;
                 break;
             case 'm':
                 event.type = EVENT_CHANGE_MODE;
@@ -241,6 +247,11 @@ struct Event processInput()
                 event.type = EVENT_PLAY_PAUSE;
                 break;            
             default:
+                if(isdigit(event.key) && stillGotoSong)
+                {
+                    event.type = EVENT_GOTOSONG;
+                    break;
+                }
                 break;
         }
     }
@@ -674,9 +685,6 @@ void handleInput()
     {
     case EVENT_GOTOSONG:
         gotosong = !gotosong;
-        refresh = true;
-        if(!printInfo)
-            printInfo!=printInfo;
         break;
     case EVENT_CHANGE_MODE:
         toggleMode();   // Expect adding new modes in the future

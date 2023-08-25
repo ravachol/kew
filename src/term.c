@@ -1,4 +1,6 @@
 
+#include <ctype.h>
+
 #include "term.h"
 
 volatile sig_atomic_t resizeFlag = 0;
@@ -384,7 +386,13 @@ int readInputSequence(char *seq, size_t seqSize)
     {
         seq[0] = c;
         seq[1] = '\0';
-        return 1;
+
+        if(isdigit(c) && stillGotoSong)
+        {
+            songIndex[indexCounter] = c;
+            indexCounter++;
+            return 1;
+        }
     }
 
     // Read additional characters
