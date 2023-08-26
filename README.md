@@ -21,6 +21,18 @@ cue is a command-line music player for Linux.
  * Supports 24-bit/192khz audio.
  * Supports MPRIS, which is the protocol used on Linux systems for controlling media players. 
 
+## Reviews
+
+cue was reviewed by Linuxlinks.com: 
+
+https://www.linuxlinks.com/cue-command-line-music-player-gapless-playback/ 
+
+And Tecmint.com: 
+
+https://www.tecmint.com/command-line-music-players-for-linux/
+
+Thank you!
+
 
 ## Installing
 
