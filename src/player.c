@@ -15,7 +15,8 @@ bool uiEnabled = true;
 bool printInfo = false;
 bool printKeyBindings = false;
 bool showList = true;
-bool gotosong = false;
+bool stillGotoSong = false;
+extern bool gotosong;
 int aboutHeight = 8;
 int visualizerHeight = 8;
 int minWidth = 37;
@@ -511,42 +512,6 @@ void printEqualizer()
     }
 }
 
-int getNumbers(char concatenate[4]){
-    char tempChar [4];
-    strcat(tempChar,concatenate);
-    return (atoi(tempChar));
-
-}
-
-
-void gotoSong()
-{
-    if(indexCounter >=2)
-    {
-        refresh = true;
-        gotosong = true;
-        for(int i = 0; i < getNumbers(songIndex)-2 ;i++)
-        {
-            currentSong = deleteFromList(&playlist,currentSong);
-            skip();
-
-        }
-        skip();
-        memset(songIndex,0,sizeof(songIndex));
-        indexCounter = 0;
-        stillGotoSong = !stillGotoSong;
-    } else
-    {
-        gotosong = !gotoSong;
-    }
-}
-
-int getNumbers(char concatenate[4]){
-    char tempChar [4];
-    strcat(tempChar,concatenate);
-    return (atoi(tempChar));
-
-}
 
 int printPlayer(SongData *songdata, double elapsedSeconds, PlayList *playlist)
 {
@@ -565,20 +530,13 @@ int printPlayer(SongData *songdata, double elapsedSeconds, PlayList *playlist)
 
     if (preferredWidth <= 0 || preferredHeight <= 0)
         return -1;
-
-    //printf("Index counter ->%d\n",indexCounter);
-    if(gotosong)
-    {
-        if (refresh)
-        {
+   // printf("playlist count %s\n",playlist->head->next->song.filePath);
+    if(gotosong) {
+     //   printf("In gotosong, boolGoToSong %b, boolStillGoToSong %b, IndexCOunter %d\n",gotosong,stillGotoSong,indexCounter);
+        if (refresh) {
             int height = showPlaylist();
             cursorJump(height);
             saveCursorPosition();
-            gotoSong();
-        }
-        else
-        {
-            gotoSong();
         }
     }
     else if (printKeyBindings)

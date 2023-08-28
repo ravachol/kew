@@ -70,6 +70,9 @@ bool usingSongDataA = true;
 bool loadingFailed = false;
 bool skipPrev = false;
 bool skipping = false;
+bool gotosong = false;
+char songIndex [4];
+int indexCounter = 0;
 enum modes {normal,vim};
 enum modes selectedMode = normal;
 
@@ -181,10 +184,15 @@ struct Event processInput()
             event.type = EVENT_SHOWKEYBIDINGS;
         }
     }
-    else
+    else if(isdigit(event.key) && indexCounter >1)
     {
+        event.type = EVENT_GOTOSONG;
+    }else{
         switch (event.key)
         {
+            case 'g' :
+                event.type = EVENT_GOTOSONG;
+                break;
             case 'k' :   // Next song
                 event.type = EVENT_NEXT;
                 break;
@@ -526,6 +534,13 @@ void prepareNextSong()
     if (loadingFailed)
         return;
 
+    if (!skipPrev && !gotosong && !repeatEnabled)
+        currentSong = currentSong->next;
+    else
+    {
+        skipPrev = false;
+        gotosong = false;
+    }
     if (!skipPrev && !repeatEnabled)
         currentSong = currentSong->next;
     else
@@ -615,6 +630,58 @@ void skipToPrevSong()
     skip();
 }
 
+int getNumbers(char concatenate[4]){
+    char tempChar [4];
+    strcat(tempChar,concatenate);
+    return (atoi(tempChar));
+}
+
+Node * getSongByNumber()
+{
+    int songNumber = getNumbers(songIndex);
+    Node * song = playlist.head;
+    if(songNumber <= 0) {
+        return song;
+    }
+    int count = 1;
+    while(song->next != NULL && count != songNumber)
+    {
+        song = song->next;
+        count++;
+    }
+    return song;
+}
+
+void skipToNumberedSong()
+{
+    if(songLoading || !loadedNextSong || skipping)
+        return;
+    skipping = true;
+    loadedNextSong = false;
+    songLoading = true;
+
+
+    currentSong = getSongByNumber();
+    if(usingSongDataA)
+    {
+        loadingdata.loadA = false;
+        unloadSongData(&loadingdata.songdataB);
+    } else
+    {
+        loadingdata.loadA = false;
+        unloadSongData(&loadingdata.songdataA);
+    }
+
+    loadSong(currentSong, &loadingdata);
+    while(!loadedNextSong && !loadingFailed)
+    {
+        usleep(10000);
+    }
+    clock_gettime(CLOCK_MONOTONIC,&start_time);
+        playlist.head = currentSong;
+    skip();
+}
+
 void calcElapsedTime()
 {
     clock_gettime(CLOCK_MONOTONIC, &current_time);
@@ -649,12 +716,21 @@ void loadAudioData()
     }
 }
 
+
 void handleInput()
 {
     struct Event event = processInput();
 
     switch (event.type)
     {
+        case EVENT_GOTOSONG:
+            gotosong = !gotosong;
+            refresh = true;
+            if(indexCounter>=2)
+            {
+                skipToNumberedSong();
+            }
+            break;
         case EVENT_PLAY_PAUSE:
             togglePause(&totalPauseSeconds, pauseSeconds, &pause_time);
             break;
