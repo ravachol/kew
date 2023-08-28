@@ -13,7 +13,7 @@ cue is a command-line music player for Linux.
 
 ## Features
  
- * Search a music library with partial titles
+ * Search a music library with partial titles.
  * Creates a playlist based on a matched directory. 
  * Display album covers as ASCII art or as a normal image.
  * Control the player with previous, next and pause.

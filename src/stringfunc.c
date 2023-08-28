@@ -1,6 +1,15 @@
 #include "stringfunc.h"
 #include <stdbool.h>
 
+/*
+
+stringfunc.c
+
+ This file should contain only simple utility functions related to strings. 
+ They should work independently and be as decoupled from the application as possible.
+
+*/
+
 char *stringToLower(char *str)
 {
     for (int i = 0; str[i] != '\0'; i++)

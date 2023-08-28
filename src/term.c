@@ -1,6 +1,15 @@
 
 #include "term.h"
 
+/*
+
+term.c
+
+ This file should contain only simple utility functions related to the terminal. 
+ They should work independently and be as decoupled from the application as possible.
+
+*/
+
 volatile sig_atomic_t resizeFlag = 0;
 
 void getTermSizePixels(int *rows, int *columns)

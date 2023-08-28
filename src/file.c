@@ -1,5 +1,14 @@
 #include "file.h"
 
+/*
+
+file.c
+
+ This file should contain only simple utility functions related to the files and directories. 
+ They should work independently and be as decoupled from the application as possible.
+
+*/
+
 int existsFile(const char *fname)
 {
     FILE *file;
