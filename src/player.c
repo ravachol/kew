@@ -1,6 +1,14 @@
 #include <string.h>
 #include "player.h"
 
+/*
+
+player.c
+
+This file should contain only functions related to printing the player to the screen. 
+
+*/
+
 const char VERSION[] = "1.0.2";
 const char VERSION_DATE[] = "2023-08-23";
 

@@ -137,7 +137,7 @@ struct Event processInput()
     event.key = '\0';
     bool cooldownElapsed = false;
 
-    if (songLoading || !loadedNextSong || skipping)
+    if (songLoading || !loadedNextSong)
         return event;
 
     if (!isInputAvailable())
@@ -197,7 +197,7 @@ struct Event processInput()
             case 'h':   //Volume DOWN
                 event.type = EVENT_VOLUME_DOWN;
                 break;
-            case 'p':   // Play/Pause
+            case 'p':   // Play/Pau se
                 event.type = EVENT_PLAY_PAUSE;
                 break;      
             case 'q':
@@ -1379,11 +1379,11 @@ void play(Node *song)
     loadSong(song, &loadingdata);
     int i = 0;
     while (!loadedNextSong)
-    {
-        usleep(10000);
-        if (i % 100 == 0 && uiEnabled)
+    {        
+        if (i != 0 && i % 1000 == 0 && uiEnabled)
             printf(".");
         i++;
+        usleep(10000);        
         fflush(stdout);
     }
     userData.currentFileIndex = 0;
