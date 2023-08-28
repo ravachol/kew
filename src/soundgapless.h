@@ -8,7 +8,6 @@
 #include <sys/wait.h>
 
 extern ma_int32 *g_audioBuffer;
-extern bool skipping;
 
 #ifndef PCMFILE_STRUCT
 #define PCMFILE_STRUCT

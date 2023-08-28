@@ -511,18 +511,29 @@ void printEqualizer()
     }
 }
 
+int getNumbers(char concatenate[4]){
+    char tempChar [4];
+    strcat(tempChar,concatenate);
+    return (atoi(tempChar));
+
+}
+
+
 void gotoSong()
 {
     if(indexCounter >=2)
     {
         refresh = true;
-        indexCounter = 0;
-        memset(songIndex,0,sizeof(songIndex));
         gotosong = true;
-        currentSong = deleteFromList(&playlist,currentSong);
+        for(int i = 0; i < getNumbers(songIndex)-2 ;i++)
+        {
+            currentSong = deleteFromList(&playlist,currentSong);
+            skip();
+
+        }
         skip();
-        currentSong = deleteFromList(&playlist,currentSong);
-        skip();
+        memset(songIndex,0,sizeof(songIndex));
+        indexCounter = 0;
         stillGotoSong = !stillGotoSong;
     } else
     {
