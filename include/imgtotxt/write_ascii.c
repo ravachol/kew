@@ -11,6 +11,10 @@ TODO:
     - Translating from rgb into 256 colors.
 
     - Windows support?
+
+
+    Modified, originally by Danny Burrows:
+    https://github.com/danny-burrows/img_to_txt
 */
 
 #include <stdio.h>
