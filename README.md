@@ -145,6 +145,8 @@ cue . (loads the main cue playlist, see 'Other Functions')
 
  ```
 
+Put single-quotes inside quotes "guns n' roses"
+
 #### Key Bindings
 * Use <kbd>↑</kbd>, <kbd>↓</kbd> or <kbd>l</kbd>, <kbd>h</kbd> keys to adjust the volume. 
 * Use <kbd>←</kbd>, <kbd>→</kbd> or <kbd>j</kbd>, <kbd>k</kbd> keys to switch tracks.
