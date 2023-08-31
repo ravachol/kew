@@ -14,7 +14,7 @@ We want to keep the codebase easy to manage and free of bloat, so might reject a
 
 Please report any bugs directly on github, with as much relevant detail as possible. 
 If there's a crash or stability issue, the audio file details are interesting, but also the details of the previous and next file on the playlist. You can extract these details by running:
-ffprobe -i <AUDIO FILE> -show_streams -select_streams a:0 -v quiet -print_format json
+ffprobe -i AUDIO FILE -show_streams -select_streams a:0 -v quiet -print_format json
 
 ### Pull Requests
 
