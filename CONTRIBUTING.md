@@ -23,9 +23,3 @@ ffprobe -i AUDIO FILE -show_streams -select_streams a:0 -v quiet -print_format j
 - Try to keep commits fairly small so that they are easy to review.
 
 - If you can, use https://editorconfig.org/. There is a file with settings for it: .editorconfig.
-
-### Refactoring
-
-Pure refactoring/improving the structure of the code is very welcome. We want to keep things simple and clean. But as stated before, please contact me before doing big changes.
-
-
