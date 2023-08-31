@@ -1399,6 +1399,39 @@ void play(Node *song)
     clock_gettime(CLOCK_MONOTONIC, &start_time);
     calculatePlayListDuration(&playlist);
 
+    main_loop = g_main_loop_new(NULL, FALSE);    
+
+    // Emit PlaybackStatusChanged signal
+    GVariant *parameters = g_variant_new("(s)", "Playing"); // Replace with actual value
+    g_dbus_connection_emit_signal(connection,
+                               NULL,                        // Destination object path (or NULL)
+                               "/org/mpris/MediaPlayer2/cueMusic",   // Object path of the media player
+                               "org.mpris.MediaPlayer2.Player", // Interface name
+                               "PlaybackStatusChanged",     // Signal name
+                               parameters,
+                               NULL);    
+      
+    g_timeout_add(100, mainloop_callback, NULL);
+
+    g_main_loop_run(main_loop);    
+
+    g_main_loop_unref(main_loop);
+
+    // end mpris stuff
+
+    return;
+}
+
+void run()
+{
+    if (playlist.head == NULL)
+    {
+        showCursor();
+        restoreTerminalMode();
+        enableInputBuffering();
+        return;
+    }
+
     // mpris stuff:
     
     // initialize global main context
@@ -1462,47 +1495,22 @@ void play(Node *song)
         g_printerr("Failed to register media player object: %s\n", error->message);
         g_error_free(error);
         return;
-    }        
+    }      
 
-    main_loop = g_main_loop_new(NULL, FALSE);    
+    // end mpris stuff
 
-    // Emit PlaybackStatusChanged signal
-    GVariant *parameters = g_variant_new("(s)", "Playing"); // Replace with actual value
-    g_dbus_connection_emit_signal(connection,
-                               NULL,                        // Destination object path (or NULL)
-                               "/org/mpris/MediaPlayer2/cueMusic",   // Object path of the media player
-                               "org.mpris.MediaPlayer2.Player", // Interface name
-                               "PlaybackStatusChanged",     // Signal name
-                               parameters,
-                               NULL);    
-      
-    g_timeout_add(100, mainloop_callback, NULL);
+    currentSong = playlist.head;
+    play(currentSong);
 
-    g_main_loop_run(main_loop);    
+    cleanup();
 
+    // mpris cleanup
     g_bus_unown_name(bus_name_id);
     g_dbus_connection_unregister_object(connection, registration_id);
     g_dbus_connection_unregister_object(connection, player_registration_id);
     g_object_unref(connection);
-    g_main_loop_unref(main_loop);
-
-    // end mpris stuff
-
-    return;
-}
-
-int run()
-{
-    if (playlist.head == NULL)
-    {
-        showCursor();
-        restoreTerminalMode();
-        enableInputBuffering();
-        return -1;
-    }
-    currentSong = playlist.head;
-    play(currentSong);
-    cleanup();
+    // end mpris cleanup
+    
     restoreTerminalMode();
     enableInputBuffering();
     setConfig();
@@ -1515,8 +1523,6 @@ int run()
     free(mainPlaylist);
     showCursor();
     printf("\n");
-
-    return 0;
 }
 
 void init()
