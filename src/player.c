@@ -530,9 +530,7 @@ int printPlayer(SongData *songdata, double elapsedSeconds, PlayList *playlist)
 
     if (preferredWidth <= 0 || preferredHeight <= 0)
         return -1;
-   // printf("playlist count %s\n",playlist->head->next->song.filePath);
-    if(gotosong) {
-     //   printf("In gotosong, boolGoToSong %b, boolStillGoToSong %b, IndexCOunter %d\n",gotosong,stillGotoSong,indexCounter);
+ if(gotosong) {
         if (refresh) {
             int height = showPlaylist();
             cursorJump(height);

@@ -389,8 +389,8 @@ int readInputSequence(char *seq, size_t seqSize)
 
         if(isdigit(c) && gotosong)
         {
-            songIndex[indexCounter] = c;
-            indexCounter++;
+            songIndex[digitsPressedCount] = c;
+            digitsPressedCount++;
             return 1;
         }
     }
