@@ -92,7 +92,7 @@ void setColor()
 {
     if (color.r == 0 && color.g == 0 && color.b == 0)
         setDefaultTextColor();
-    else if (color.r == 255 && color.g == 255 && color.b == 255)
+    else if (color.r >= 250 && color.g >= 250 && color.b >= 250)
     {
         color.r = 210;
         color.g = 210;
@@ -411,7 +411,7 @@ int showPlaylist()
     PixelData textColor = increaseLuminosity(color, 100);
     setTextColorRGB2(textColor.r, textColor.g, textColor.b);
     printAbout();
-
+    setColor();
     setTextColorRGB2(color.r, color.g, color.b);
 
     int numSongs = 0;
