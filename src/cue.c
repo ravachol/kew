@@ -68,8 +68,11 @@ bool playingMainPlaylist = false;
 bool doQuit = false;
 bool usingSongDataA = true;
 bool loadingFailed = false;
+volatile bool clearingErrors = false;
+bool songHasErrors = false;
 bool skipPrev = false;
 bool skipping = false;
+bool forceSkip = false;
 enum modes {normal,vim};
 enum modes selectedMode = normal;
 
@@ -88,6 +91,7 @@ UserData userData;
 LoadingThreadData loadingdata;
 
 Node *nextSong = NULL;
+Node *tryNextSong = NULL;
 Node *prevSong = NULL;
 
 #define COOLDOWN_DURATION 1000
@@ -467,12 +471,25 @@ void *songDataReaderThread(void *arg)
 
     assignLoadedData();
 
+    // Release the mutex lock
+    pthread_mutex_unlock(&(loadingdata->mutex));
+
+    if (songdata != NULL && songdata->hasErrors)
+    {
+        songHasErrors = true;
+        clearingErrors = true;
+        nextSong = NULL;
+    }
+    else
+    {
+        clearingErrors = false;
+        nextSong = tryNextSong;
+        tryNextSong = NULL;
+    }
+
     loadedNextSong = true;
     skipping = false;
     songLoading = false;
-
-    // Release the mutex lock
-    pthread_mutex_unlock(&(loadingdata->mutex));
 
     return NULL;
 }
@@ -527,9 +544,13 @@ void prepareNextSong()
         return;
 
     if (!skipPrev && !repeatEnabled)
-        currentSong = currentSong->next;
+    {
+        currentSong = nextSong;
+    }
     else
+    {
         skipPrev = false;
+    }
 
     if (currentSong == NULL)
     {
@@ -572,7 +593,7 @@ void skipToNextSong()
         return;
     }
         
-    if (songLoading || !loadedNextSong || skipping)
+    if (songLoading || !loadedNextSong || skipping || clearingErrors)
         return;
 
     skipping = true;
@@ -586,13 +607,15 @@ void skipToPrevSong()
         return;
     }
 
-    if (songLoading || !loadedNextSong || skipping)
-    return;
+    if (songLoading || !loadedNextSong || skipping || clearingErrors)
+        if (!forceSkip)
+          return;
 
     skipping = true;
     skipPrev = true;
     loadedNextSong = false;
     songLoading = true;
+    forceSkip = false;
 
     currentSong = currentSong->prev;
     if (usingSongDataA)
@@ -611,6 +634,14 @@ void skipToPrevSong()
     {
         usleep(10000);
     }
+
+    if (songHasErrors)
+    {
+        songHasErrors = false;
+        forceSkip = true;
+        skipToPrevSong();
+    }
+
     clock_gettime(CLOCK_MONOTONIC, &start_time);   
     skip();
 }
@@ -643,6 +674,7 @@ void loadAudioData()
 {
     if (nextSong == NULL && !songLoading)
     {
+        tryNextSong = currentSong->next;
         songLoading = true;
         loadingdata.loadA = !usingSongDataA;
         loadNext(&loadingdata);
@@ -1344,10 +1376,30 @@ void emit_playback_status_changed_signal(GDBusConnection *connection, const gcha
 
 // End MPRIS Functions
 
+void tryLoadNext()
+{
+    songHasErrors = false;
+    clearingErrors = true;
+    if (tryNextSong == NULL)
+        tryNextSong = currentSong->next;
+    else
+        tryNextSong = tryNextSong->next;
+
+    if (tryNextSong != NULL)
+    {
+        songLoading = true;
+        loadingdata.loadA = !usingSongDataA;
+        loadSong(tryNextSong, &loadingdata);
+    }
+    else {
+        clearingErrors = false;
+    }    
+}
+
 gboolean mainloop_callback(gpointer data) {
     calcElapsedTime();
     handleInput();
-    
+   
     // Process GDBus events in the global_main_context
     while (g_main_context_pending(global_main_context)) {
         g_main_context_iteration(global_main_context, FALSE);
@@ -1357,6 +1409,9 @@ gboolean mainloop_callback(gpointer data) {
 
     if (!loadedNextSong)
         loadAudioData();
+
+    if (songHasErrors)
+        tryLoadNext();
 
     if (isPlaybackDone())
     {
@@ -1372,10 +1427,8 @@ gboolean mainloop_callback(gpointer data) {
     return TRUE;
 }
 
-void play(Node *song)
+void loadFirstSong(Node *song)
 {
-    updateLastInputTime();    
-    pthread_mutex_init(&(loadingdata.mutex), NULL);
     loadSong(song, &loadingdata);
     int i = 0;
     while (!loadedNextSong)
@@ -1385,7 +1438,35 @@ void play(Node *song)
         i++;
         usleep(10000);        
         fflush(stdout);
+    }   
+}
+
+void loadFirst(Node *song)
+{
+    loadFirstSong(song);
+
+    while (songHasErrors && currentSong->next != NULL)    
+    {
+        songHasErrors = false;
+        loadedNextSong = false;   
+        currentSong = currentSong->next;
+        loadFirstSong(currentSong);
     }
+}
+
+void play(Node *song)
+{
+    updateLastInputTime();    
+    pthread_mutex_init(&(loadingdata.mutex), NULL);
+
+    loadFirst(song);
+
+    if (songHasErrors)
+    {
+        printf("Couldn't play any of the songs.\n");
+        return;
+    }    
+
     userData.currentFileIndex = 0;
     userData.currentPCMFrame = 0;
     userData.pcmFileA.filename = loadingdata.songdataA->pcmFilePath;
