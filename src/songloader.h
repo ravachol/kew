@@ -51,6 +51,7 @@ typedef struct
     double *duration;
     char *pcmFile;
     long pcmFileSize;
+    bool hasErrors;
 
 } SongData;
 

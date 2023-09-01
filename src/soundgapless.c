@@ -528,8 +528,12 @@ int getSongDuration(const char *filePath, double *duration)
 double getDuration(const char *filepath)
 {
     double duration = 0.0;
-    getSongDuration(filepath, &duration);
-    return duration;
+    int result = getSongDuration(filepath, &duration);
+
+    if (result == -1)
+        return -1;
+    else
+        return duration;
 }
 
 int getCurrentVolume()

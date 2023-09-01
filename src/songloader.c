@@ -51,24 +51,45 @@ void loadMetaData(SongData *songdata)
 void loadDuration(SongData *songdata)
 {
     songdata->duration = (double *)malloc(sizeof(double));
-    *(songdata->duration) = getDuration(songdata->filePath);
+    int result = getDuration(songdata->filePath);
+    *(songdata->duration) = result;
+
+    if (result == -1)
+        songdata->hasErrors = true;
 }
 
-void loadPcmAudio(SongData *songdata)
+int loadPcmAudio(SongData *songdata)
 {
+    // don't go through the trouble if this is already a failed file
+    if (songdata->hasErrors)
+        return -1;
+
     generateTempFilePath(songdata->pcmFilePath, "temp", ".pcm");
     convertToPcmFile(songdata->filePath, songdata->pcmFilePath);
-    while (!existsFile(songdata->pcmFilePath))
+    int count = 0;
+    while (!existsFile(songdata->pcmFilePath) && count < 3)
     {
-        usleep(500000);
+        usleep(300000);
+        count++;
     }
+
+    // file doesn't exist
+    if (!existsFile(songdata->pcmFilePath))
+    {
+        songdata->hasErrors = true;
+        return -1;
+    }
+
     addToCache(tempCache, songdata->pcmFilePath);
+
+    return 0;
 }
 
 SongData *loadSongData(char *filePath)
 {
     SongData *songdata = malloc(sizeof(SongData));
-    songdata->trackId = generateTrackId();   
+    songdata->trackId = generateTrackId();
+    songdata->hasErrors = false;   
     strcpy(songdata->filePath, "");
     strcpy(songdata->coverArtPath, "");
     strcpy(songdata->pcmFilePath, "");
