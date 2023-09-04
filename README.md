@@ -17,9 +17,8 @@ cue is a command-line music player for Linux.
  * Creates a playlist based on a matched directory. 
  * Display album covers as ASCII art or as a normal image.
  * Control the player with previous, next and pause.
- * Gapless playback.
- * Supports 24-bit/192khz audio.
- * Supports MPRIS, which is the protocol used on Linux systems for controlling media players. 
+ * Supports gapless playback and 24-bit audio.
+
 
 ## Reviews
 
@@ -91,9 +90,23 @@ make
 sudo make install
 ```
 
+(Optional) Update the man db:
+
+```bash
+sudo mandb  # Update the man page database (may not be required on all systems)
+sudo makewhatis /usr/local/share/man  # Update the man page index
+
+```
+
 A TrueColor capable terminal is recommended, like Konsole, kitty or st, to display colors properly.
 
 For a complete list of capable terminals, see this page: [Colors in Terminal](https://gist.github.com/CMCDragonkai/146100155ecd79c7dac19a9e23e6a362) (github.com).
+
+### Uninstalling
+
+```bash
+sudo make uninstall
+```
 
 ## Usage
 
