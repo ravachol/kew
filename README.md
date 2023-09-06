@@ -123,7 +123,7 @@ cue cure great
 
 This command plays all songs from "The Cure Greatest Hits" directory, provided it's in your music library.
 
-cue returns the first directory or file whose name matches the string you provide.
+cue returns the first directory or file whose name matches the string you provide. It works best when your music library is organized in this way: artist folder->album folder(s)->track(s).
 
 #### Some Examples:
 
