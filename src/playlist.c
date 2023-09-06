@@ -18,6 +18,8 @@ const char PLAYLIST_EXTENSIONS[] = "\\.(m3u)$";
 const char mainPlaylistName[] = "cue.m3u";
 PlayList playlist = {NULL, NULL, 0, 0.0};
 PlayList *mainPlaylist = NULL;
+PlayList *originalPlaylist = NULL;
+
 
 char search[MAX_SEARCH_SIZE];
 char playlistName[MAX_SEARCH_SIZE];
@@ -145,40 +147,39 @@ void shufflePlaylist(PlayList *playlist)
     free(nodes);
 }
 
-void insertAsFirst(Node *currentSong, PlayList *playlist)
-{
-    if (currentSong == NULL || playlist == NULL)
-    {
+void insertAsFirst(Node* currentSong, PlayList* playlist) {
+    if (currentSong == NULL || playlist == NULL) {
         return;
     }
 
-    if (playlist->head == NULL)
-    {
-        // The playlist is empty, so the currentSong will be both the head and tail
+    if (playlist->head == NULL) {
         currentSong->next = NULL;
         currentSong->prev = NULL;
         playlist->head = currentSong;
         playlist->tail = currentSong;
-    }
-    else
-    {
-        if (currentSong->next != NULL)
-            currentSong->next->prev = currentSong->prev;
-        if (currentSong->prev != NULL)
-            currentSong->prev->next = currentSong->next;
+    } else {
+        if (currentSong != playlist->head) {            
+            if (currentSong->next != NULL) {
+                currentSong->next->prev = currentSong->prev;
+            }
+            if (currentSong->prev != NULL) {
+                currentSong->prev->next = currentSong->next;
+            }
 
-        // Add the currentSong as the new head
-        currentSong->next = playlist->head;
-        currentSong->prev = NULL;
-        playlist->head->prev = currentSong;
-        playlist->head = currentSong;
+            // Add the currentSong as the new head
+            currentSong->next = playlist->head;
+            currentSong->prev = NULL;
+            playlist->head->prev = currentSong;
+            playlist->head = currentSong;
+        }
     }
 }
 
 void shufflePlaylistStartingFromSong(PlayList *playlist, Node *song)
 {
     shufflePlaylist(playlist);
-    insertAsFirst(song, playlist);
+    if( playlist->count > 1)
+        insertAsFirst(song, playlist);
 }
 
 int compare(const struct dirent **a, const struct dirent **b)
@@ -705,4 +706,17 @@ PlayList deepCopyPlayList(PlayList *originalList)
     newList.totalDuration = originalList->totalDuration;
 
     return newList;
+}
+
+Node* findSongInPlaylist(Node* currentSong, PlayList* playlist) {
+    Node* currentNode = playlist->head;
+
+    while (currentNode != NULL) {
+        if (strcmp(currentNode->song.filePath, currentSong->song.filePath) == 0) {
+            return currentNode;
+        }
+
+        currentNode = currentNode->next;
+    }
+    return NULL;
 }

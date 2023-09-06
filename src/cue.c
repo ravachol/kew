@@ -104,6 +104,9 @@ static bool eventProcessed = false;
 GDBusConnection* connection = NULL;
 GMainContext* global_main_context = NULL;
 GMainLoop* main_loop;
+guint registration_id;
+guint player_registration_id;
+guint bus_name_id;
 
 void emitStringPropertyChanged(const gchar *propertyName, const gchar *newValue) {  
 
@@ -111,6 +114,22 @@ void emitStringPropertyChanged(const gchar *propertyName, const gchar *newValue)
     GVariantBuilder changed_properties_builder;
     g_variant_builder_init(&changed_properties_builder, G_VARIANT_TYPE("a{sv}"));
     g_variant_builder_add(&changed_properties_builder, "{sv}", propertyName, g_variant_new_string(newValue));
+
+    // Emit the PropertiesChanged signal
+    g_dbus_connection_emit_signal(connection, NULL, "/org/mpris/MediaPlayer2", "org.freedesktop.DBus.Properties", "PropertiesChanged",
+                                  g_variant_new("(sa{sv}as)", "org.mpris.MediaPlayer2.Player", &changed_properties_builder, NULL), NULL);
+
+    // Clean up
+    g_variant_builder_clear(&changed_properties_builder);
+}
+
+void emitBooleanPropertyChanged(const gchar *propertyName, gboolean newValue) {
+    // Create a GVariantBuilder for changed properties
+    GVariantBuilder changed_properties_builder;
+    g_variant_builder_init(&changed_properties_builder, G_VARIANT_TYPE("a{sv}"));
+    
+    // Add a boolean property
+    g_variant_builder_add(&changed_properties_builder, "{sv}", propertyName, g_variant_new_boolean(newValue));
 
     // Emit the PropertiesChanged signal
     g_dbus_connection_emit_signal(connection, NULL, "/org/mpris/MediaPlayer2", "org.freedesktop.DBus.Properties", "PropertiesChanged",
@@ -256,17 +275,24 @@ void cleanup()
     clearRestOfScreen();
 }
 
-void doShuffle()
+void toggleShuffle()
 {
-    stopPlayListDurationCount();
-    usleep(100000);
-    playlist.totalDuration = 0.0;
-    shufflePlaylistStartingFromSong(&playlist, currentSong);
-    calculatePlayListDuration(&playlist);
-    usleep(100000);
+    shuffleEnabled = !shuffleEnabled;
+
+    if (shuffleEnabled)
+    {
+        shufflePlaylistStartingFromSong(&playlist, currentSong);
+        emitBooleanPropertyChanged("Shuffle", TRUE);
+    }
+    else
+    {
+        playlist = deepCopyPlayList(originalPlaylist);
+        currentSong = findSongInPlaylist(currentSong, &playlist);
+        emitBooleanPropertyChanged("Shuffle", FALSE);
+    }
     loadedNextSong = false;
-    refresh = true;
     nextSong = NULL;
+    refresh = true;
 }
 
 void addToPlaylist()
@@ -310,6 +336,8 @@ void toggleRepeat()
     {
         emitStringPropertyChanged("LoopStatus", "None");
     }
+    if (printInfo)
+        refresh = true;
 }
 
 void toggleVisualizer()
@@ -703,7 +731,7 @@ void handleInput()
         toggleBlocks();
         break;
     case EVENT_SHUFFLE:
-        doShuffle();
+        toggleShuffle();
         break;
     case EVENT_QUIT:
         quit();
@@ -1064,7 +1092,6 @@ static void on_bus_name_lost(GDBusConnection *connection, const gchar *name, gpo
 static const gchar *PlaybackStatus = "Playing"; 
 static const gchar *LoopStatus = "None";
 static gdouble Rate = 1.0;
-static gboolean Shuffle = FALSE;
 static gdouble Volume = 0.5;
 static gint64 Position = 0;
 static gdouble MinimumRate = 1.0;
@@ -1114,7 +1141,7 @@ static gboolean get_shuffle(GDBusConnection *connection, const gchar *sender,
                             const gchar *object_path, const gchar *interface_name,
                             const gchar *property_name, GVariant **value,
                             GError **error, gpointer user_data) {
-    *value = g_variant_new_boolean(Shuffle);
+    *value = g_variant_new_boolean(shuffleEnabled ? TRUE : FALSE);
     return TRUE;
 }
 
@@ -1315,6 +1342,9 @@ static gboolean set_property_callback(GDBusConnection *connection, const gchar *
         } else if (g_strcmp0(property_name, "LoopStatus") == 0) {             
              toggleRepeat();
              return TRUE;
+        } else if (g_strcmp0(property_name, "Shuffle") == 0) {             
+             toggleShuffle();
+             return TRUE;
         } else if (g_strcmp0(property_name, "Position") == 0) {
             //gint64 new_position;
             //g_variant_get(value, "x", &new_position);
@@ -1505,6 +1535,12 @@ void play(Node *song)
 
 void run()
 {
+    if (originalPlaylist == NULL)
+    {
+        originalPlaylist = malloc(sizeof(PlayList));
+        *originalPlaylist = deepCopyPlayList(&playlist);
+    } 
+
     if (playlist.head == NULL)
     {
         showCursor();
@@ -1531,7 +1567,7 @@ void run()
     }        
 
     GError *error = NULL;
-    guint bus_name_id = g_bus_own_name_on_connection(connection,
+    bus_name_id = g_bus_own_name_on_connection(connection,
                                                      "org.mpris.MediaPlayer2.cueMusic",
                                                      G_BUS_NAME_OWNER_FLAGS_NONE,
                                                      on_bus_name_acquired,
@@ -1546,7 +1582,7 @@ void run()
     }
 
     // Register D-Bus object with the global_main_context
-    guint registration_id = g_dbus_connection_register_object(
+    registration_id = g_dbus_connection_register_object(
         connection,
         "/org/mpris/MediaPlayer2",
         introspection_data->interfaces[0],
@@ -1562,7 +1598,7 @@ void run()
         return;
     }    
 
-    guint player_registration_id = g_dbus_connection_register_object(
+    player_registration_id = g_dbus_connection_register_object(
         connection,
         "/org/mpris/MediaPlayer2", 
         introspection_data->interfaces[1],
@@ -1584,13 +1620,6 @@ void run()
     play(currentSong);
 
     cleanup();
-
-    // mpris cleanup
-    g_bus_unown_name(bus_name_id);
-    g_dbus_connection_unregister_object(connection, registration_id);
-    g_dbus_connection_unregister_object(connection, player_registration_id);
-    g_object_unref(connection);
-    // end mpris cleanup
     
     restoreTerminalMode();
     enableInputBuffering();
@@ -1601,6 +1630,7 @@ void run()
     deleteTempDir();
     deletePlaylist(&playlist);
     deletePlaylist(mainPlaylist);
+    deletePlaylist(originalPlaylist);
     free(mainPlaylist);
     showCursor();
     printf("\n");
@@ -1620,7 +1650,7 @@ void init()
     strcpy(loadingdata.filePath, "");
     loadingdata.songdataA = NULL;
     loadingdata.songdataB = NULL;
-    loadingdata.loadA = true;
+    loadingdata.loadA = true;   
 }
 
 void playMainPlaylist()
@@ -1690,8 +1720,18 @@ void handleOptions(int *argc, char *argv[])
     removeArgElement(argv, idx, argc);    
 }
 
+void cleanupOnExit() {
+     // mpris cleanup
+    g_bus_unown_name(bus_name_id);
+    g_dbus_connection_unregister_object(connection, registration_id);
+    g_dbus_connection_unregister_object(connection, player_registration_id);
+    g_object_unref(connection);
+    // end mpris cleanup
+}
+
 int main(int argc, char *argv[])
 {
+    atexit(cleanupOnExit);
     getConfig();
     loadMainPlaylist(settings.path);
 

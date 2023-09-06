@@ -300,13 +300,19 @@ void printLastRow()
         strcat(text, repeatText);
     }
 
-    printf("\033[J"); // clear rest of screen
+    if (shuffleEnabled)
+    {
+        char shuffleText[] = " S";        
+        strcat(text, shuffleText);
+    }    
+
+    printf("\033[K"); // clear the line
 
     int randomNumber = getRandomNumber(1, 808);
     if (randomNumber == 808)
         printGlimmeringText(text, bgColor);
     else
-        printf("%s", text);        
+        printf("%s", text);      
 }
 
 void showVersion()
@@ -392,8 +398,8 @@ int showKeyBindings()
 
 int showPlaylist()
 {
-    Node *node = playlist.head;
-    Node *foundNode = playlist.head;
+    Node *node = originalPlaylist->head;
+    Node *foundNode = originalPlaylist->head;
     bool foundCurrentSong = false;
     bool startFromCurrent = false;
     int term_w, term_h;
@@ -417,7 +423,7 @@ int showPlaylist()
     setTextColorRGB2(color.r, color.g, color.b);
 
     int numSongs = 0;
-    for (int i = 0; i < playlist.count; i++)
+    for (int i = 0; i < originalPlaylist->count; i++)
     {
         if (strcmp(node->song.filePath, currentSong->song.filePath) == 0)
         {
@@ -436,7 +442,7 @@ int showPlaylist()
     if (startFromCurrent)
         node = foundNode;
     else
-        node = playlist.head;
+        node = originalPlaylist->head;
 
     for (int i = (startFromCurrent ? foundAt : 0); i < (startFromCurrent ? foundAt : 0) + maxListSize; i++)
     {
