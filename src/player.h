@@ -11,6 +11,7 @@
 #include "visuals.h"
 #include "playlist.h"
 #include "songloader.h"
+#include "soundgapless.h"
 
 extern const char VERSION[];
 
