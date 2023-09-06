@@ -293,18 +293,20 @@ void printLastRow()
     setTextColorRGB2(bgColor.r, bgColor.g, bgColor.b);
 
     char text[100] = " [F1 Playlist] [F2 Keys] [Q Quit]";
-    // Replace "%s" in the text with the actual version
-    char *versionPtr = strstr(text, "%s");
-    if (versionPtr != NULL)
+
+    if (repeatEnabled)
     {
-        strcpy(versionPtr, VERSION);
+        char repeatText[] = " R";        
+        strcat(text, repeatText);
     }
+
+    printf("\033[J"); // clear rest of screen
 
     int randomNumber = getRandomNumber(1, 808);
     if (randomNumber == 808)
         printGlimmeringText(text, bgColor);
     else
-        printf("%s", text);
+        printf("%s", text);        
 }
 
 void showVersion()
