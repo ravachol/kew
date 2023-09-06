@@ -51,6 +51,7 @@ typedef struct
 #endif
 
 extern bool repeatEnabled;
+extern bool shuffleEnabled;
 
 void createAudioDevice(UserData *userData);
 

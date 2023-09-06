@@ -27,6 +27,7 @@ PCMFile *pFirstFile = NULL;
 bool paused = false;
 bool skipToNext = false;
 bool repeatEnabled = false;
+bool shuffleEnabled = false;
 
 pid_t pid = -1;
 pid_t pid2 = -1;

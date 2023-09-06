@@ -37,6 +37,7 @@ extern Node *currentSong;
 extern PlayList playlist;
 
 extern PlayList *mainPlaylist;
+extern PlayList *originalPlaylist;
 
 Node *getListNext(Node *node);
 
@@ -81,3 +82,5 @@ void savePlaylist();
 Node *deepCopyNode(Node *originalNode);
 
 PlayList deepCopyPlayList(PlayList *originalList);
+
+Node* findSongInPlaylist(Node* currentSong, PlayList* playlist);
