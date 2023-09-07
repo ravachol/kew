@@ -4,7 +4,7 @@ Thanks for stopping by, here are some points about contributing to cue.
 
 ### Goal of the project
 
-The goal of cue is to provide a quick and easy way for people to listen to music with the absolute minimum fuss and bother. 
+The goal of cue is to provide a quick and easy way for people to listen to music with the absolute minimum of inconvenience. 
 It's a small app, limited in scope and it shouldn't be everything to all people. It should continue to be a very light weight app.
 For instance, it's not imagined as a software for dj'ing or as a busy music file manager with all the features. 
 
