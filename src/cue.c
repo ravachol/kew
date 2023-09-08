@@ -99,6 +99,12 @@ Node *prevSong = NULL;
 static struct timespec lastInputTime;
 static bool eventProcessed = false;
 
+bool gotoSong = false;
+char digitsPressed [10];
+int digitsPressedCount = 0;
+int maxDigitsPressedCount = 9;
+bool gPressed = false;
+
 // Mpris variables:
 
 GDBusConnection* connection = NULL;
@@ -204,10 +210,38 @@ struct Event processInput()
                 event.type = EVENT_SHOWKEYBIDINGS;    
             }
     }
+    else if(isdigit(event.key))
+    {
+        if (digitsPressedCount < maxDigitsPressedCount)
+        digitsPressed[digitsPressedCount++] = event.key;
+    }
     else
     {
         switch (event.key)
         {
+            case 'G':
+                event.type = EVENT_GOTOENDOFPLAYLIST;
+                break;
+            case 'g':
+                if (digitsPressedCount > 0)
+                {
+                    event.type = EVENT_GOTOSONG;
+                }
+                else if (gPressed)
+                {
+                    event.type = EVENT_GOTOBEGINNINGOFPLAYLIST;
+                    gPressed = false;               
+                }
+                else {
+                    gPressed = true;
+                }
+                break;
+            case '\n' :
+                if (digitsPressedCount > 0)
+                {
+                    event.type = EVENT_GOTOSONG;
+                }
+                break;           
             case 'k' :   // Next song
                 event.type = EVENT_NEXT;
                 break;
@@ -263,6 +297,17 @@ struct Event processInput()
         event.type = EVENT_NONE;
     else
         updateLastInputTime();
+
+    if (event.type != EVENT_GOTOSONG && event.type != EVENT_NONE)
+    {
+        digitsPressed[0] = '\0';
+        digitsPressedCount = 0;
+    }
+
+    if (event.key != 'g')
+    {
+        gPressed = false;
+    }
 
     return event;
 }
@@ -571,13 +616,14 @@ void prepareNextSong()
     if (loadingFailed)
         return;
 
-    if (!skipPrev && !repeatEnabled)
+    if (!skipPrev && !gotoSong && !repeatEnabled)
     {
         currentSong = nextSong;
     }
     else
     {
         skipPrev = false;
+        gotoSong = false;
     }
 
     if (currentSong == NULL)
@@ -612,6 +658,25 @@ void prepareNextSong()
         usingSongDataA = !usingSongDataA;
     }
     clock_gettime(CLOCK_MONOTONIC, &start_time);
+}
+
+Node * getSongByNumber(int songNumber)
+{
+    Node * song = playlist.head;
+    
+    if(!song)
+        return currentSong;
+
+    if(songNumber <= 0) {
+        return song;
+    }
+    int count = 1;
+    while(song->next != NULL && count != songNumber)
+    {
+        song = getListNext(song);
+        count++;
+    }    
+    return song;
 }
 
 void skipToNextSong()
@@ -674,6 +739,47 @@ void skipToPrevSong()
     skip();
 }
 
+void skipToNumberedSong(int songNumber)
+{
+    if (songLoading || !loadedNextSong || skipping || clearingErrors)
+        if (!forceSkip)
+          return;
+
+    skipping = true;
+    skipPrev = true;
+    loadedNextSong = false;
+    songLoading = true;
+    forceSkip = false;
+
+    currentSong = getSongByNumber(songNumber);
+    if (usingSongDataA)
+    {
+        loadingdata.loadA = false;
+        unloadSongData(&loadingdata.songdataB);
+    }
+    else
+    {
+        loadingdata.loadA = true;
+        unloadSongData(&loadingdata.songdataA);
+    }
+
+    loadSong(currentSong, &loadingdata);
+    while (!loadedNextSong && !loadingFailed)
+    {
+        usleep(10000);
+    }
+
+    if (songHasErrors)
+    {
+        songHasErrors = false;
+        forceSkip = true;
+        skipToNumberedSong(songNumber + 1);
+    }
+
+    clock_gettime(CLOCK_MONOTONIC, &start_time);   
+    skip();
+}
+
 void calcElapsedTime()
 {
     clock_gettime(CLOCK_MONOTONIC, &current_time);
@@ -709,66 +815,99 @@ void loadAudioData()
     }
 }
 
+void handleGotoSong()
+{
+    int songNumber = atoi(digitsPressed);
+    digitsPressed[0] = '\0';
+    digitsPressedCount = 0;    
+    skipToNumberedSong(songNumber);  
+}
+
+void skipToLastSong()
+{
+    Node * song = playlist.head;
+    
+    if(!song)
+        return;
+
+    int count = 1;
+    while(song->next != NULL)
+    {
+        song = getListNext(song);
+        count++;
+    }    
+    skipToNumberedSong(count);
+}
+
 void handleInput()
 {
     struct Event event = processInput();
 
     switch (event.type)
     {
-    case EVENT_PLAY_PAUSE:
-        togglePause(&totalPauseSeconds, pauseSeconds, &pause_time);
-        break;
-    case EVENT_TOGGLEVISUALIZER:
-        toggleVisualizer();
-        break;
-    case EVENT_TOGGLEREPEAT:
-        toggleRepeat();
-        break;
-    case EVENT_TOGGLECOVERS:
-        toggleCovers();
-        break;
-    case EVENT_TOGGLEBLOCKS:
-        toggleBlocks();
-        break;
-    case EVENT_SHUFFLE:
-        toggleShuffle();
-        break;
-    case EVENT_QUIT:
-        quit();
-        break;
-    case EVENT_VOLUME_UP:
-        adjustVolumePercent(5);
-        break;
-    case EVENT_VOLUME_DOWN:
-        adjustVolumePercent(-5);
-        break;
-    case EVENT_NEXT:
-        skipToNextSong();
-        break;
-    case EVENT_PREV:
-        skipToPrevSong();
-        break;
-    case EVENT_ADDTOMAINPLAYLIST:
-        addToPlaylist();
-        break;
-    case EVENT_DELETEFROMMAINPLAYLIST:
-        // FIXME implement this
-        break;
-    case EVENT_EXPORTPLAYLIST:
-        savePlaylist();
-        break;
-    case EVENT_SHOWKEYBIDINGS:
-        refresh = true;
-        printKeyBindings = !printKeyBindings;
-        printInfo = false;
-        break;
-    case EVENT_SHOWINFO:
-        refresh = true;
-        printInfo = !printInfo;
-        printKeyBindings = false;
-        break;
-    default:
-        break;
+        case EVENT_GOTOBEGINNINGOFPLAYLIST:
+            skipToNumberedSong(1);
+            break;
+        case EVENT_GOTOENDOFPLAYLIST:
+            skipToLastSong();
+            break;
+        case EVENT_GOTOSONG:
+            handleGotoSong();
+            break;
+        case EVENT_PLAY_PAUSE:
+            togglePause(&totalPauseSeconds, pauseSeconds, &pause_time);
+            break;
+        case EVENT_TOGGLEVISUALIZER:
+            toggleVisualizer();
+            break;
+        case EVENT_TOGGLEREPEAT:
+            toggleRepeat();
+            break;
+        case EVENT_TOGGLECOVERS:
+            toggleCovers();
+            break;
+        case EVENT_TOGGLEBLOCKS:
+            toggleBlocks();
+            break;
+        case EVENT_SHUFFLE:
+            toggleShuffle();
+            break;
+        case EVENT_QUIT:
+            quit();
+            break;
+        case EVENT_VOLUME_UP:
+            adjustVolumePercent(5);
+            break;
+        case EVENT_VOLUME_DOWN:
+            adjustVolumePercent(-5);
+            break;
+        case EVENT_NEXT:
+            skipToNextSong();
+            break;
+        case EVENT_PREV:
+            skipToPrevSong();
+            break;
+        case EVENT_ADDTOMAINPLAYLIST:
+            addToPlaylist();
+            break;
+        case EVENT_DELETEFROMMAINPLAYLIST:
+            // FIXME implement this
+            break;
+        case EVENT_EXPORTPLAYLIST:
+            savePlaylist();
+            break;
+        case EVENT_SHOWKEYBIDINGS:
+            refresh = true;
+            printKeyBindings = !printKeyBindings;
+            printInfo = false;
+            break;
+        case EVENT_SHOWINFO:
+            refresh = true;
+            printInfo = !printInfo;
+            printKeyBindings = false;
+            break;
+        default:
+            break;
     }
     eventProcessed = false;
 }
