@@ -174,6 +174,9 @@ Put single-quotes inside quotes "guns n' roses"
 * <kbd>S</kbd> to shuffle the playlist.
 * <kbd>A</kbd> add current song to main cue playlist.
 * <kbd>X</kbd> to save the currently loaded playlist to a m3u file in your music folder.
+* <kbd>gg</kbd> go to first song.
+* number +<kbd>G</kbd>, <kbd>g</kbd> or <kbd>Enter</kbd>, go to specific song number in the playlist.
+* <kbd>G</kbd> go to last song.
 * <kbd>Q</kbd> to quit.
 
 cue will create a config file, .cue.conf, in your home dir. There you can change for instance starting directory and number of bars in the visualizer. To edit this file please make sure you quit cue first.
