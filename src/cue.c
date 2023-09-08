@@ -220,7 +220,14 @@ struct Event processInput()
         switch (event.key)
         {
             case 'G':
-                event.type = EVENT_GOTOENDOFPLAYLIST;
+                if (digitsPressedCount > 0)
+                {
+                    event.type = EVENT_GOTOSONG;
+                }
+                else            
+                {
+                    event.type = EVENT_GOTOENDOFPLAYLIST;
+                }
                 break;
             case 'g':
                 if (digitsPressedCount > 0)
