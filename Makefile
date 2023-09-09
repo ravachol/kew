@@ -8,7 +8,7 @@ SRCS = src/soundgapless.c src/songloader.c src/file.c src/chafafunc.c src/cache.
 OBJS = $(SRCS:src/%.c=$(OBJDIR)/%.o)
 
 MAN_PAGE = cue.1 
-MAN_DIR ?= /usr/local/share/man/man1
+MAN_DIR ?= /usr/share/man/man1
 
 all: cue
 
@@ -27,7 +27,9 @@ cue: $(OBJDIR)/write_ascii.o $(OBJS) Makefile
 .PHONY: install
 install: all
 	cp cue /usr/local/bin/
+	mkdir -p $(MAN_DIR)
 	cp docs/$(MAN_PAGE) $(MAN_DIR)/$(MAN_PAGE)
+	@echo "Please consider running 'sudo mandb' or 'makewhatis /usr/share/man' to update the man page database (not needed on all systems)."
 
 .PHONY: uninstall
 uninstall:
