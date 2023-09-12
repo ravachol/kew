@@ -6,7 +6,7 @@
 #define CHANNELS 2
 #define BEAT_THRESHOLD 0.3
 #define MAGNITUDE_CEIL 150
-#define JUMP_AMOUNT 2.0
+#define JUMP_AMOUNT 1.0
 int bufferIndex = 0;
 
 float magnitudeBuffer[BUFFER_SIZE] = {0.0f};
@@ -91,7 +91,7 @@ int detectBeats(float *magnitudes, int numBars)
 void updateMagnitudes(int height, int width, float maxMagnitude, float *magnitudes)
 {
     float exponent = 1.0;
-    float jumpFactor = 1.0;
+    float jumpFactor = 0.0;
     float decreaseFactor = 0.7;
 
     int beat = detectBeats(magnitudes, width);
@@ -106,8 +106,9 @@ void updateMagnitudes(int height, int width, float maxMagnitude, float *magnitud
             exponent = 1.0;
         else
             exponent = 2.0;
+                    
         float normalizedMagnitude = magnitudes[i] / maxMagnitude;
-        float scaledMagnitude = pow(normalizedMagnitude, exponent) * height * jumpFactor;
+        float scaledMagnitude = pow(normalizedMagnitude, exponent) * height + jumpFactor;
 
         if (scaledMagnitude < lastMagnitudes[i])
         {
