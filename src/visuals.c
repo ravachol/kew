@@ -6,7 +6,7 @@
 #define CHANNELS 2
 #define BEAT_THRESHOLD 0.3
 #define MAGNITUDE_CEIL 150
-#define JUMP_AMOUNT 1.0
+
 int bufferIndex = 0;
 
 float magnitudeBuffer[BUFFER_SIZE] = {0.0f};
@@ -66,7 +66,7 @@ float calculateThreshold()
 int detectBeats(float *magnitudes, int numBars)
 {
     float avgMagnitude = 0.0f;
-    int range = 2;
+    int range = 3;
     range = (range > numBars) ? numBars : range;
 
     for (int i = 0; i < range; i++)
@@ -93,11 +93,12 @@ void updateMagnitudes(int height, int width, float maxMagnitude, float *magnitud
     float exponent = 1.0;
     float jumpFactor = 0.0;
     float decreaseFactor = 0.7;
+    int jumpAmount = ceil(height * 0.25);
 
     int beat = detectBeats(magnitudes, width);
     if (beat > 0)
     {
-        jumpFactor = JUMP_AMOUNT;
+        jumpFactor = jumpAmount;
     }
 
     for (int i = 0; i < width; i++)

@@ -1679,6 +1679,15 @@ void play(Node *song)
     return;
 }
 
+void cleanupOnExit() {
+     // mpris cleanup
+    g_bus_unown_name(bus_name_id);
+    g_dbus_connection_unregister_object(connection, registration_id);
+    g_dbus_connection_unregister_object(connection, player_registration_id);
+    g_object_unref(connection);
+    // end mpris cleanup
+}
+
 void run()
 {
     if (originalPlaylist == NULL)
@@ -1766,7 +1775,7 @@ void run()
     play(currentSong);
 
     cleanup();
-    
+    cleanupOnExit();
     restoreTerminalMode();
     enableInputBuffering();
     setConfig();
@@ -1864,15 +1873,6 @@ void handleOptions(int *argc, char *argv[])
   }
   if (idx >= 0)
     removeArgElement(argv, idx, argc);    
-}
-
-void cleanupOnExit() {
-     // mpris cleanup
-    g_bus_unown_name(bus_name_id);
-    g_dbus_connection_unregister_object(connection, registration_id);
-    g_dbus_connection_unregister_object(connection, player_registration_id);
-    g_object_unref(connection);
-    // end mpris cleanup
 }
 
 int main(int argc, char *argv[])
