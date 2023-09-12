@@ -2,28 +2,27 @@
 #include "albumart.h"
 #include "complex.h"
 #define SAMPLE_RATE 192000
-#define BUFFER_SIZE 6144
+#define BUFFER_SIZE 3600
 #define CHANNELS 2
-#define WINDOW_SIZE 6144
 #define BEAT_THRESHOLD 0.3
 #define MAGNITUDE_CEIL 150
 #define JUMP_AMOUNT 2.0
 int bufferIndex = 0;
 
-float magnitudeBuffer[WINDOW_SIZE] = {0.0f};
+float magnitudeBuffer[BUFFER_SIZE] = {0.0f};
 float lastMagnitudes[BUFFER_SIZE] = {0.0f};
 
 void updateMagnitudeBuffer(float magnitude)
 {
     magnitudeBuffer[bufferIndex] = magnitude;
-    bufferIndex = (bufferIndex + 1) % WINDOW_SIZE;
+    bufferIndex = (bufferIndex + 1) % BUFFER_SIZE;
 }
 
 float calculateMovingAverage()
 {
     float sum = 0.0f;
     int numSamples = 0;
-    for (int i = 0; i < WINDOW_SIZE; i++)
+    for (int i = 0; i < BUFFER_SIZE; i++)
     {
         sum += magnitudeBuffer[i];
         if (magnitudeBuffer[i] > 0.0f)
@@ -39,7 +38,7 @@ float calculateThreshold()
 {
     float sum = 0.0f;
     int numSamples = 0;
-    for (int i = 0; i < WINDOW_SIZE; i++)
+    for (int i = 0; i < BUFFER_SIZE; i++)
     {
         sum += magnitudeBuffer[i];
         if (magnitudeBuffer[i] > 0.0f)
@@ -51,7 +50,7 @@ float calculateThreshold()
     float mean = sum / numSamples;
 
     float variance = 0.0f;
-    for (int i = 0; i < WINDOW_SIZE; i++)
+    for (int i = 0; i < BUFFER_SIZE; i++)
     {
         float diff = magnitudeBuffer[i] - mean;
         variance += diff * diff;
