@@ -17,7 +17,7 @@
 #define SAMPLE_RATE 192000
 #define SAMPLE_WIDTH 3
 #define SAMPLE_FORMAT ma_format_s24
-#define FRAMES_PER_BUFFER 1024
+#define FRAMES_PER_BUFFER 6144;
 ma_int32 *g_audioBuffer = NULL;
 ma_device device = {0};
 ma_context context;

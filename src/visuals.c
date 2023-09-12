@@ -1,15 +1,17 @@
 #include "visuals.h"
 #include "albumart.h"
+#include "complex.h"
 #define SAMPLE_RATE 192000
-#define BUFFER_SIZE 1024
+#define BUFFER_SIZE 6144
 #define CHANNELS 2
-#define WINDOW_SIZE 1024
+#define WINDOW_SIZE 6144
 #define BEAT_THRESHOLD 0.3
-#define MAGNITUDE_CEIL 300
-#define JUMP_AMOUNT 3.0
+#define MAGNITUDE_CEIL 150
+#define JUMP_AMOUNT 2.0
 int bufferIndex = 0;
 
 float magnitudeBuffer[WINDOW_SIZE] = {0.0f};
+float lastMagnitudes[BUFFER_SIZE] = {0.0f};
 
 void updateMagnitudeBuffer(float magnitude)
 {
@@ -91,6 +93,7 @@ void updateMagnitudes(int height, int width, float maxMagnitude, float *magnitud
 {
     float exponent = 1.0;
     float jumpFactor = 1.0;
+    float decreaseFactor = 0.7;
 
     int beat = detectBeats(magnitudes, width);
     if (beat > 0)
@@ -100,16 +103,31 @@ void updateMagnitudes(int height, int width, float maxMagnitude, float *magnitud
 
     for (int i = 0; i < width; i++)
     {
+        if (i < 3)
+            exponent = 1.0;
+        else
+            exponent = 2.0;
         float normalizedMagnitude = magnitudes[i] / maxMagnitude;
-        float scaledMagnitude = pow(normalizedMagnitude, exponent);
-        magnitudes[i] = scaledMagnitude * height * jumpFactor;
+        float scaledMagnitude = pow(normalizedMagnitude, exponent) * height * jumpFactor;
+
+        if (scaledMagnitude < lastMagnitudes[i])
+        {
+            magnitudes[i] = lastMagnitudes[i] * decreaseFactor;
+        }
+        else
+        {
+            magnitudes[i] = scaledMagnitude;
+        }
+        lastMagnitudes[i] = magnitudes[i];
     }
 }
 
 float lastMax = MAGNITUDE_CEIL / 2;
+float alpha = 0.2;
+
 float calcMaxMagnitude(int numBars, float *magnitudes)
 {
-    float percentage = 0.3;
+    float percentage = 0.4;
     float maxMagnitude = 0.0f;
     float ceiling = MAGNITUDE_CEIL;
     float threshold = ceiling * percentage;
@@ -128,9 +146,8 @@ float calcMaxMagnitude(int numBars, float *magnitudes)
     {
         maxMagnitude = threshold;
     }
-    maxMagnitude = (maxMagnitude + lastMax) / 2;
-    lastMax = maxMagnitude;
-    return maxMagnitude;
+    lastMax = (1 - alpha) * lastMax + alpha * maxMagnitude; // Apply exponential smoothing
+    return lastMax;
 }
 
 void clearMagnitudes(int width, float *magnitudes)
@@ -141,7 +158,42 @@ void clearMagnitudes(int width, float *magnitudes)
     }
 }
 
-void calcSpectrum(int height, int width, fftwf_complex *fftInput, fftwf_complex *fftOutput, float *magnitudes, fftwf_plan plan)
+void compressSpectrum(int width, fftwf_complex *fftOutput, float *compressedMagnitudes, int numBars, float fractionToKeep)
+{
+    if (numBars <= 0)
+    {
+        return;
+    }
+
+    if (fractionToKeep < 0.0f || fractionToKeep > 1.0f)
+    {
+        return;
+    }
+
+    int compressionFactor = width / numBars;
+    int barSpan = ceil(compressionFactor * fractionToKeep);
+
+    for (int i = 0; i < numBars; i++)
+    {
+        int startIndex = (int)i * barSpan;
+
+        int barEndIndex = startIndex + barSpan;
+
+        if (barEndIndex > width)
+            barEndIndex = width;
+
+        float barMagnitude = 0.0f;
+        for (int j = startIndex; j < barEndIndex; j++)
+        {
+            float magnitude = cabsf(fftOutput[j][0] + fftOutput[j][1] * I);
+            barMagnitude += magnitude;
+        }
+        barMagnitude /= (barEndIndex - startIndex); // Normalize by the number of bins
+        compressedMagnitudes[i] = barMagnitude;
+    }
+}
+
+void calcSpectrum(int height, int numBars, fftwf_complex *fftInput, fftwf_complex *fftOutput, float *magnitudes, fftwf_plan plan)
 {
     if (g_audioBuffer == NULL)
     {
@@ -157,27 +209,38 @@ void calcSpectrum(int height, int width, fftwf_complex *fftInput, fftwf_complex 
         // Check if the 24th bit is set (indicating a negative value)
         if (lower24Bits & 0x800000)
         {
-            // Extend the sign to 32 bits
+            // Sign extension for two's complement
             lower24Bits |= 0xFF000000;
         }
-
+        else
+        {
+            // Ensure that the upper bits are cleared for positive values
+            lower24Bits &= 0x00FFFFFF;
+        }
         // Normalize the 24-bit sample to the range [-1, 1]
-        float normalizedSample = (float)lower24Bits / 8388608.0f;
+        float normalizedSample = (float)lower24Bits / 8388607.0f;
         fftInput[i][0] = normalizedSample;
         fftInput[i][1] = 0;
     }
 
-    fftwf_execute(plan);
-    clearMagnitudes(width, magnitudes);
+    // Apply Windowing (Hamming Window)
+    for (int i = 0; i < BUFFER_SIZE; i++)
+    {
+        float window = 0.54f - 0.46f * cos(2 * M_PI * i / (BUFFER_SIZE - 1));
+        fftInput[i][0] *= window;
+    }
 
-    for (int i = 0; i < width; i++)
+    fftwf_execute(plan);
+    clearMagnitudes(numBars, magnitudes);
+
+    for (int i = 0; i < numBars; i++)
     {
         float magnitude = sqrtf(fftOutput[i][0] * fftOutput[i][0] + fftOutput[i][1] * fftOutput[i][1]);
         magnitudes[i] += magnitude;
     }
 
-    float maxMagnitude = calcMaxMagnitude(width, magnitudes);
-    updateMagnitudes(height, width, maxMagnitude, magnitudes);
+    float maxMagnitude = calcMaxMagnitude(numBars, magnitudes);
+    updateMagnitudes(height, numBars, maxMagnitude, magnitudes);
 }
 
 PixelData increaseLuminosity(PixelData pixel, int amount)
