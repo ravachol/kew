@@ -1775,7 +1775,6 @@ void run()
     play(currentSong);
 
     cleanup();
-    cleanupOnExit();
     restoreTerminalMode();
     enableInputBuffering();
     setConfig();
