@@ -6,6 +6,7 @@
 #define CHANNELS 2
 #define BEAT_THRESHOLD 0.3
 #define MAGNITUDE_CEIL 150
+#define MAGNITUDE_FLOOR_FRACTION 0.4
 
 int bufferIndex = 0;
 
@@ -128,10 +129,8 @@ float alpha = 0.2;
 
 float calcMaxMagnitude(int numBars, float *magnitudes)
 {
-    float percentage = 0.4;
     float maxMagnitude = 0.0f;
-    float ceiling = MAGNITUDE_CEIL;
-    float threshold = ceiling * percentage;
+    float threshold = MAGNITUDE_CEIL * MAGNITUDE_FLOOR_FRACTION;
     for (int i = 0; i < numBars; i++)
     {
         if (magnitudes[i] > maxMagnitude)
@@ -139,9 +138,9 @@ float calcMaxMagnitude(int numBars, float *magnitudes)
             maxMagnitude = magnitudes[i];
         }
     }
-    if (maxMagnitude > ceiling)
+    if (maxMagnitude > MAGNITUDE_CEIL)
     {
-        maxMagnitude = ceiling;
+        maxMagnitude = MAGNITUDE_CEIL;
     }
     if (maxMagnitude < threshold)
     {

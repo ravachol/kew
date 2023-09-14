@@ -499,7 +499,18 @@ void emitMetadataChanged(const gchar* title, const gchar* artist, const gchar* a
     GVariantBuilder metadata_builder;
     g_variant_builder_init(&metadata_builder, G_VARIANT_TYPE_DICTIONARY);
     g_variant_builder_add(&metadata_builder, "{sv}", "xesam:title", g_variant_new_string(title));
-    g_variant_builder_add(&metadata_builder, "{sv}", "xesam:artist", g_variant_new_string(artist));
+
+    // Build list os strings for artist
+    const gchar *artistList[2];
+    if (artist) {
+    artistList[0] = artist;
+    artistList[1] = NULL;
+    } else {
+    artistList[0] = "";
+    artistList[1] = NULL;
+    }
+
+    g_variant_builder_add(&metadata_builder, "{sv}", "xesam:artist", g_variant_new_strv(artistList, -1));
     g_variant_builder_add(&metadata_builder, "{sv}", "xesam:album", g_variant_new_string(album));
     g_variant_builder_add(&metadata_builder, "{sv}", "mpris:artUrl", g_variant_new_string(coverArtUrl));
     g_variant_builder_add(&metadata_builder, "{sv}", "mpris:trackid", g_variant_new_object_path(trackId));
@@ -1307,12 +1318,21 @@ static gboolean get_metadata(GDBusConnection *connection, const gchar *sender,
     GVariantBuilder metadata_builder;
     g_variant_builder_init(&metadata_builder, G_VARIANT_TYPE_DICTIONARY);
     g_variant_builder_add(&metadata_builder, "{sv}", "xesam:title", g_variant_new_string(currentSongData->metadata->title));
-    g_variant_builder_add(&metadata_builder, "{sv}", "xesam:artist", g_variant_new_string(currentSongData->metadata->artist));
+    
+    // Build list os strings for artist
+    const gchar *artistList[2];
+    if (currentSongData->metadata->artist) {
+    artistList[0] = currentSongData->metadata->artist;
+    artistList[1] = NULL;
+    } else {
+    artistList[0] = "";
+    artistList[1] = NULL;
+    }
+    g_variant_builder_add(&metadata_builder, "{sv}", "xesam:artist", g_variant_new_strv(artistList, -1));
     g_variant_builder_add(&metadata_builder, "{sv}", "xesam:album", g_variant_new_string(currentSongData->metadata->album));
     g_variant_builder_add(&metadata_builder, "{sv}", "xesam:contentCreated", g_variant_new_string(currentSongData->metadata->date));
     g_variant_builder_add(&metadata_builder, "{sv}", "mpris:artUrl", g_variant_new_string(currentSongData->coverArtPath));
     g_variant_builder_add(&metadata_builder, "{sv}", "mpris:trackid", g_variant_new_object_path(currentSongData->trackId));
-    // Add other metadata fields to the builder
     
     GVariant *metadata_variant = g_variant_builder_end(&metadata_builder);
 
@@ -1658,7 +1678,6 @@ void play(Node *song)
 
     main_loop = g_main_loop_new(NULL, FALSE);    
 
-    // Emit PlaybackStatusChanged signal
     GVariant *parameters = g_variant_new("(s)", "Playing"); // Replace with actual value
     g_dbus_connection_emit_signal(connection,
                                NULL,                        // Destination object path (or NULL)
@@ -1669,14 +1688,8 @@ void play(Node *song)
                                NULL);    
       
     g_timeout_add(100, mainloop_callback, NULL);
-
     g_main_loop_run(main_loop);    
-
     g_main_loop_unref(main_loop);
-
-    // end mpris stuff
-
-    return;
 }
 
 void cleanupOnExit() {
