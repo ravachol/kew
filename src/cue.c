@@ -307,14 +307,6 @@ struct Event processInput()
     return event;
 }
 
-void cleanup()
-{
-    cleanupPlaybackDevice();
-    unloadSongData(&loadingdata.songdataA);
-    unloadSongData(&loadingdata.songdataB);
-    clearRestOfScreen();
-}
-
 void toggleShuffle()
 {
     shuffleEnabled = !shuffleEnabled;
@@ -1516,7 +1508,7 @@ void emit_playback_status_changed_signal(GDBusConnection *connection, const gcha
                                   NULL);
 }
 
-void emitPlaybackStopped()
+void emitPlaybackStoppedMpris()
 {
     GVariant *new_status = g_variant_new_string("Stopped");
 
@@ -1534,6 +1526,25 @@ void emitPlaybackStopped()
                           NULL);
     g_variant_unref(new_status);
 }
+
+void cleanupMpris()
+{
+    if (registration_id > 0) {
+        g_dbus_connection_unregister_object(connection, registration_id);
+    }
+    if (player_registration_id > 0) {
+        g_dbus_connection_unregister_object(connection, player_registration_id);
+    }
+
+    if (bus_name_id > 0) {
+        g_bus_unown_name(bus_name_id);
+    }
+
+    if (connection) {
+        g_object_unref(connection);
+    }       
+}
+
 
 void tryLoadNext()
 {
@@ -1579,7 +1590,6 @@ gboolean mainloop_callback(gpointer data) {
 
     if (doQuit || isPlaybackOfListDone() || loadingFailed)
     {
-        emitPlaybackStopped();
         g_main_loop_quit(main_loop);
         return FALSE;
     }
@@ -1652,21 +1662,31 @@ void play(Node *song)
                                NULL);    
       
     g_timeout_add(100, mainloop_callback, NULL);
-    g_main_loop_run(main_loop);    
+    g_main_loop_run(main_loop);
     g_main_loop_unref(main_loop);
 }
 
-void cleanupOnExit() {
-     // mpris cleanup
-     if (bus_name_id > 0) {
-    g_bus_unown_name(bus_name_id);
-}
-    g_dbus_connection_unregister_object(connection, registration_id);
-    g_dbus_connection_unregister_object(connection, player_registration_id);
-    if (connection) {
-        g_object_unref(connection);
-    }
-    usleep(100000);
+void cleanupOnExit() 
+{
+    cleanupPlaybackDevice();    
+    unloadSongData(&loadingdata.songdataA);
+    unloadSongData(&loadingdata.songdataB);
+    emitPlaybackStoppedMpris();
+    cleanupMpris();    
+    restoreTerminalMode();
+    enableInputBuffering();
+    setConfig();
+    saveMainPlaylist(settings.path, playingMainPlaylist);
+    freeAudioBuffer();
+    deleteCache(tempCache);
+    deleteTempDir();
+    deletePlaylist(&playlist);
+    deletePlaylist(mainPlaylist);
+    deletePlaylist(originalPlaylist);
+    free(mainPlaylist);
+    showCursor();
+    printf("\n\n");
+    clearRestOfScreen();
 }
 
 void run()
@@ -1753,22 +1773,7 @@ void run()
     // end mpris stuff
 
     currentSong = playlist.head;
-    play(currentSong);
-
-    cleanup();
-    restoreTerminalMode();
-    enableInputBuffering();
-    setConfig();
-    saveMainPlaylist(settings.path, playingMainPlaylist);
-    freeAudioBuffer();
-    deleteCache(tempCache);
-    deleteTempDir();
-    deletePlaylist(&playlist);
-    deletePlaylist(mainPlaylist);
-    deletePlaylist(originalPlaylist);
-    free(mainPlaylist);
-    showCursor();
-    printf("\n");
+    play(currentSong);    
 }
 
 void init()
