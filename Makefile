@@ -29,7 +29,6 @@ install: all
 	cp cue /usr/local/bin/
 	mkdir -p $(MAN_DIR)
 	cp docs/$(MAN_PAGE) $(MAN_DIR)/$(MAN_PAGE)
-	@echo "If this is your first time installing, please consider running 'sudo mandb' or 'makewhatis /usr/share/man' to update the man page database (not needed on all systems)."
 
 .PHONY: uninstall
 uninstall:
