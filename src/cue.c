@@ -1542,7 +1542,9 @@ void cleanupMpris()
 
     if (connection) {
         g_object_unref(connection);
-    }       
+    }     
+
+    g_main_context_unref(global_main_context);  
 }
 
 
@@ -1689,25 +1691,8 @@ void cleanupOnExit()
     clearRestOfScreen();
 }
 
-void run()
+void initMpris()
 {
-    if (originalPlaylist == NULL)
-    {
-        originalPlaylist = malloc(sizeof(PlayList));
-        *originalPlaylist = deepCopyPlayList(&playlist);
-    } 
-
-    if (playlist.head == NULL)
-    {
-        showCursor();
-        restoreTerminalMode();
-        enableInputBuffering();
-        return;
-    }
-
-    // mpris stuff:
-    
-    // initialize global main context
     if (global_main_context == NULL) {
         global_main_context = g_main_context_new();
     }    
@@ -1768,9 +1753,26 @@ void run()
         g_printerr("Failed to register media player object: %s\n", error->message);
         g_error_free(error);
         return;
-    }      
+    }         
+}
 
-    // end mpris stuff
+void run()
+{
+    if (originalPlaylist == NULL)
+    {
+        originalPlaylist = malloc(sizeof(PlayList));
+        *originalPlaylist = deepCopyPlayList(&playlist);
+    } 
+
+    if (playlist.head == NULL)
+    {
+        showCursor();
+        restoreTerminalMode();
+        enableInputBuffering();
+        return;
+    }
+
+    initMpris();
 
     currentSong = playlist.head;
     play(currentSong);    
