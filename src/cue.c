@@ -485,7 +485,7 @@ void updatePlaybackStatus(const gchar* status) {
     
     // Emit the PlaybackStatus signal
     GVariant* status_variant = g_variant_new_string(status);
-    g_dbus_connection_emit_signal(connection, NULL, "/org/mpris/MediaPlayer2/cueMusic", "org.mpris.MediaPlayer2.Player", "PlaybackStatus", g_variant_new("(s)", status_variant), NULL);
+    g_dbus_connection_emit_signal(connection, NULL, "/org/mpris/MediaPlayer2", "org.mpris.MediaPlayer2.Player", "PlaybackStatus", g_variant_new("(s)", status_variant), NULL);
 
     // Clean up
     g_variant_unref(status_variant);
@@ -1563,7 +1563,7 @@ void emit_playback_status_changed_signal(GDBusConnection *connection, const gcha
     // Emit the PlaybackStatusChanged signal
     g_dbus_connection_emit_signal(connection,
                                   NULL,  // Sender is usually NULL in this context
-                                  "/org/mpris/MediaPlayer2/cueMusic",
+                                  "/org/mpris/MediaPlayer2",
                                   "org.mpris.MediaPlayer2.Player",
                                   "PlaybackStatusChanged",
                                   g_variant_new("(s)", new_status),
@@ -1592,6 +1592,28 @@ void tryLoadNext()
     }    
 }
 
+
+void emitPlaybackStopped()
+{
+// Create a new GVariant for the new playback status
+    GVariant *new_status = g_variant_new_string("Stopped");
+
+    // Set the PlaybackStatus property
+    g_dbus_connection_call(connection,
+                          NULL,
+                          "/org/mpris/MediaPlayer2",
+                          "org.freedesktop.DBus.Properties",
+                          "Set",
+                          g_variant_new("(ssv)", "org.mpris.MediaPlayer2.Player", "PlaybackStatus", new_status),
+                          G_VARIANT_TYPE("(v)"),
+                          G_DBUS_CALL_FLAGS_NONE,
+                          -1,
+                          NULL,
+                          NULL,
+                          NULL);
+    g_variant_unref(new_status);
+}
+
 gboolean mainloop_callback(gpointer data) {
     calcElapsedTime();
     handleInput();
@@ -1616,6 +1638,7 @@ gboolean mainloop_callback(gpointer data) {
 
     if (doQuit || isPlaybackOfListDone() || loadingFailed)
     {
+        emitPlaybackStopped();
         g_main_loop_quit(main_loop);
         return FALSE;
     }
@@ -1681,7 +1704,7 @@ void play(Node *song)
     GVariant *parameters = g_variant_new("(s)", "Playing"); // Replace with actual value
     g_dbus_connection_emit_signal(connection,
                                NULL,                        // Destination object path (or NULL)
-                               "/org/mpris/MediaPlayer2/cueMusic",   // Object path of the media player
+                               "/org/mpris/MediaPlayer2",   // Object path of the media player
                                "org.mpris.MediaPlayer2.Player", // Interface name
                                "PlaybackStatusChanged",     // Signal name
                                parameters,
@@ -1698,7 +1721,8 @@ void cleanupOnExit() {
     g_dbus_connection_unregister_object(connection, registration_id);
     g_dbus_connection_unregister_object(connection, player_registration_id);
     g_object_unref(connection);
-    // end mpris cleanup
+
+    usleep(100000);
 }
 
 void run()
