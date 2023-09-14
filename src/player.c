@@ -9,8 +9,8 @@ This file should contain only functions related to printing the player to the sc
 
 */
 
-const char VERSION[] = "1.0.6";
-const char VERSION_DATE[] = "2023-09-12";
+const char VERSION[] = "1.0.7";
+const char VERSION_DATE[] = "2023-09-14";
 
 volatile bool refresh = true;
 bool visualizerEnabled = true;
