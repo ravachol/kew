@@ -55,6 +55,9 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #define CLOCK_MONOTONIC 1
 #endif
 
+//#define DEBUG 1
+FILE *logFile = NULL;
+
 typedef struct
 {
     char filePath[MAXPATHLEN];
@@ -1826,6 +1829,11 @@ void cleanupOnExit()
     showCursor();
     printf("\n\n");
     clearRestOfScreen();
+
+    #ifdef DEBUG
+        fclose(logFile);
+    #endif
+    stderr = fdopen(STDERR_FILENO, "w");    
 }
 
 void initMpris()
@@ -1922,8 +1930,6 @@ void init()
 {
     disableInputBuffering();
     srand(time(NULL));
-    FILE *nullStream = freopen("/dev/null", "w", stderr);
-    (void)nullStream;
     initResize();
     enableScrolling();
     setNonblockingMode();
@@ -1933,6 +1939,18 @@ void init()
     loadingdata.songdataA = NULL;
     loadingdata.songdataB = NULL;
     loadingdata.loadA = true;
+
+    #ifdef DEBUG
+        g_setenv("G_MESSAGES_DEBUG", "all", TRUE);
+        logFile = freopen("error.log", "w", stderr);
+        if (logFile == NULL)
+        {
+            fprintf(stdout, "Failed to redirect stderr to error.log\n");
+        } 
+    #else
+        FILE *nullStream = freopen("/dev/null", "w", stderr);
+        (void)nullStream;    
+    #endif
 }
 
 void playMainPlaylist()
@@ -2010,6 +2028,7 @@ void handleOptions(int *argc, char *argv[])
 int main(int argc, char *argv[])
 {
     atexit(cleanupOnExit);
+
     getConfig();
     loadMainPlaylist(settings.path);
 
@@ -2042,5 +2061,6 @@ int main(int argc, char *argv[])
         makePlaylist(argc, argv);
         run();
     }
+
     return 0;
 }
