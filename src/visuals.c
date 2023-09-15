@@ -318,6 +318,7 @@ void printSpectrum(int height, int width, float *magnitudes, PixelData color)
     }
     printf("\n");
     printf("\r");
+    fflush(stdout);
 }
 
 void drawSpectrumVisualizer(int height, int width, PixelData c)

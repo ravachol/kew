@@ -1639,21 +1639,18 @@ void emitPlaybackStoppedMpris()
 {
     if (connection)
     {
-        GVariant *new_status = g_variant_new_string("Stopped");
-
         g_dbus_connection_call(connection,
                             NULL,
                             "/org/mpris/MediaPlayer2",
                             "org.freedesktop.DBus.Properties",
                             "Set",
-                            g_variant_new("(ssv)", "org.mpris.MediaPlayer2.Player", "PlaybackStatus", new_status),
+                            g_variant_new("(ssv)", "org.mpris.MediaPlayer2.Player", "PlaybackStatus", g_variant_new_string("Stopped")),
                             G_VARIANT_TYPE("(v)"),
                             G_DBUS_CALL_FLAGS_NONE,
                             -1,
                             NULL,
                             NULL,
                             NULL);
-        g_variant_unref(new_status);
     }
 }
 
@@ -1662,26 +1659,31 @@ void cleanupMpris()
     if (registration_id > 0)
     {
         g_dbus_connection_unregister_object(connection, registration_id);
+        registration_id = -1;
     }
 
     if (player_registration_id > 0)
     {
         g_dbus_connection_unregister_object(connection, player_registration_id);
+        player_registration_id = -1;
     }
 
     if (bus_name_id > 0)
     {
         g_bus_unown_name(bus_name_id);
+        bus_name_id = -1;
     }
 
-    if (connection)
+    if (connection != NULL)
     {
         g_object_unref(connection);
+        connection = NULL;
     }
 
-    if (global_main_context)
+    if (global_main_context != NULL)
     {
         g_main_context_unref(global_main_context);
+        global_main_context = NULL;
     }
 }
 
