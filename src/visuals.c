@@ -266,7 +266,6 @@ PixelData decreaseLuminosity(PixelData pixel, int amount)
 void printSpectrum(int height, int width, float *magnitudes, PixelData color)
 {
     printf("\n");
-    fflush(stdout);
     clearRestOfScreen();
 
     for (int j = height; j > 0; j--)
@@ -319,7 +318,6 @@ void printSpectrum(int height, int width, float *magnitudes, PixelData color)
     }
     printf("\n");
     printf("\r");
-    fflush(stdout);
 }
 
 void drawSpectrumVisualizer(int height, int width, PixelData c)
