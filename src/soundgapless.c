@@ -478,12 +478,15 @@ void stopPlayback()
 
 void cleanupPlaybackDevice()
 {
-    ma_device_stop(&device);
-    while (ma_device_get_state(&device) == ma_device_state_started)
+    if (&device)
     {
-        usleep(100000);
+        ma_device_stop(&device);
+        while (ma_device_get_state(&device) == ma_device_state_started)
+        {
+            usleep(100000);
+        }
+        ma_device_uninit(&device);
     }
-    ma_device_uninit(&device);
 }
 
 int getSongDuration(const char *filePath, double *duration)

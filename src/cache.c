@@ -22,15 +22,18 @@ void addToCache(Cache *cache, const char *filePath)
 
 void deleteCache(Cache *cache)
 {
-    CacheNode *current = cache->head;
-    while (current != NULL)
+    if (cache)
     {
-        CacheNode *temp = current;
-        current = current->next;
-        free(temp->filePath);
-        free(temp);
+        CacheNode *current = cache->head;
+        while (current != NULL)
+        {
+            CacheNode *temp = current;
+            current = current->next;
+            free(temp->filePath);
+            free(temp);
+        }
+        free(cache);
     }
-    free(cache);
 }
 
 void deleteCachedFiles(Cache *cache)
