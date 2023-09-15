@@ -528,7 +528,7 @@ void printEqualizer()
 
 int printPlayer(SongData *songdata, double elapsedSeconds, PlayList *playlist)
 {
-    if (!uiEnabled)
+    if (!uiEnabled || isPaused())
     {
         return 0;
     }
