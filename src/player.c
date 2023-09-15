@@ -167,8 +167,11 @@ void printBasicMetadata(TagSettings const *metadata)
         }
 
         printWithDelay(metadata->title, 9, maxWidth);
+
+        // Alternative (no delay):
+        //printf("\033[1K\r %.*s", maxWidth, metadata->title);
+        //printf("\n");        
     }
-    fflush(stdout);
     cursorJumpDown(rows - 1);
 }
 
@@ -215,12 +218,8 @@ void printProgress(double elapsed_seconds, double total_seconds, double total_du
                 total_hours, total_minutes, total_seconds_remainder,
                 progress_percentage);       
     }
-
-    fflush(stdout);
-
     // Restore the cursor position
     printf("\033[u");
-    fflush(stdout);
 }
 
 void printMetadata(TagSettings const *metadata)
@@ -277,7 +276,7 @@ void printGlimmeringText(char *text, PixelData color)
             }
 
             fflush(stdout);
-            usleep(30);
+            usleep(50);
         }
         brightIndex++;
         printf("\r");
@@ -307,12 +306,12 @@ void printLastRow()
     }    
 
     printf("\033[K"); // clear the line
-
-    int randomNumber = getRandomNumber(1, 808);
-    if (randomNumber == 808)
-        printGlimmeringText(text, bgColor);
-    else
-        printf("%s", text);      
+   
+   int randomNumber = getRandomNumber(1, 808);
+   if (randomNumber == 808)
+       printGlimmeringText(text, bgColor);
+   else
+       printf("%s", text);      
 }
 
 void showVersion()

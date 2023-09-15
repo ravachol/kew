@@ -157,7 +157,6 @@ void getTermSize(int *width, int *height)
 void setDefaultTextColor()
 {
     printf("\033[0m");
-    fflush(stdout);
 }
 
 void setNonblockingMode()
@@ -226,19 +225,19 @@ char readInput()
 void saveCursorPosition()
 {
     printf("\033[s");
-    fflush(stdout);
+    //fflush(stdout);
 }
 
 void restoreCursorPosition()
 {
     printf("\033[u");
-    fflush(stdout);
+    //fflush(stdout);
 }
 
 void setCursorPosition(int row, int col)
 {
     printf("\033[%d;%dH", row, col);
-    fflush(stdout);
+    //fflush(stdout);
 }
 
 void hideCursor()
@@ -256,7 +255,7 @@ void showCursor()
 void clearRestOfScreen()
 {
     printf("\033[J");
-    fflush(stdout);
+    //fflush(stdout);
 }
 
 void clearScreen()
@@ -369,13 +368,13 @@ void cursorJump(int numRows)
 {
     printf("\033[%dA", numRows);
     printf("\033[0m");
-    fflush(stdout);
+    //fflush(stdout);
 }
 
 void cursorJumpDown(int numRows)
 {
     printf("\033[%dB", numRows);
-    fflush(stdout);
+    //fflush(stdout);
 }
 
 int readInputSequence(char *seq, size_t seqSize)
