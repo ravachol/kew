@@ -73,8 +73,6 @@ bool songHasErrors = false;
 bool skipPrev = false;
 bool skipping = false;
 bool forceSkip = false;
-enum modes {normal,vim};
-enum modes selectedMode = normal;
 
 struct timespec current_time;
 struct timespec start_time;
@@ -100,21 +98,22 @@ static struct timespec lastInputTime;
 static bool eventProcessed = false;
 
 bool gotoSong = false;
-char digitsPressed [10];
+char digitsPressed[10];
 int digitsPressedCount = 0;
 int maxDigitsPressedCount = 9;
 bool gPressed = false;
 
 // Mpris variables:
 
-GDBusConnection* connection = NULL;
-GMainContext* global_main_context = NULL;
-GMainLoop* main_loop;
+GDBusConnection *connection = NULL;
+GMainContext *global_main_context = NULL;
+GMainLoop *main_loop;
 guint registration_id;
 guint player_registration_id;
 guint bus_name_id;
 
-void emitStringPropertyChanged(const gchar *propertyName, const gchar *newValue) {  
+void emitStringPropertyChanged(const gchar *propertyName, const gchar *newValue)
+{
 
     GVariantBuilder changed_properties_builder;
     g_variant_builder_init(&changed_properties_builder, G_VARIANT_TYPE("a{sv}"));
@@ -124,7 +123,8 @@ void emitStringPropertyChanged(const gchar *propertyName, const gchar *newValue)
     g_variant_builder_clear(&changed_properties_builder);
 }
 
-void emitBooleanPropertyChanged(const gchar *propertyName, gboolean newValue) {
+void emitBooleanPropertyChanged(const gchar *propertyName, gboolean newValue)
+{
     GVariantBuilder changed_properties_builder;
     g_variant_builder_init(&changed_properties_builder, G_VARIANT_TYPE("a{sv}"));
     g_variant_builder_add(&changed_properties_builder, "{sv}", propertyName, g_variant_new_boolean(newValue));
@@ -176,114 +176,127 @@ struct Event processInput()
     event.type = EVENT_NONE;
     event.key = seq[0];
 
-    if (seqLength > 1) { //0x1B +
+    if (seqLength > 1)
+    { // 0x1B +
 
-            if (strcmp(seq, "[A") == 0) {
-                // Arrow Up
-                    event.type = EVENT_VOLUME_UP;
-            } else if (strcmp(seq, "[B") == 0) {
-                // Arrow Down
-                    event.type = EVENT_VOLUME_DOWN;
-            } else if (strcmp(seq, "[C") == 0) {
-                // Arrow Left
-                    event.type = EVENT_NEXT;
-            } else if (strcmp(seq, "[D") == 0) {
-                // Arrow Right
-                    event.type = EVENT_PREV;
-            } else if (strcmp(seq, "OP") == 0 || strcmp(seq, "[[A") == 0) {
-                // F1 key
-                event.type = EVENT_SHOWINFO;
-            } else if (strcmp(seq, "OQ") == 0 || strcmp(seq, "[[B") == 0) {
-                // F2 key
-                event.type = EVENT_SHOWKEYBIDINGS;    
-            }
+        if (strcmp(seq, "[A") == 0)
+        {
+            // Arrow Up
+            event.type = EVENT_VOLUME_UP;
+        }
+        else if (strcmp(seq, "[B") == 0)
+        {
+            // Arrow Down
+            event.type = EVENT_VOLUME_DOWN;
+        }
+        else if (strcmp(seq, "[C") == 0)
+        {
+            // Arrow Left
+            event.type = EVENT_NEXT;
+        }
+        else if (strcmp(seq, "[D") == 0)
+        {
+            // Arrow Right
+            event.type = EVENT_PREV;
+        }
+        else if (strcmp(seq, "OP") == 0 || strcmp(seq, "[[A") == 0)
+        {
+            // F1 key
+            event.type = EVENT_SHOWINFO;
+        }
+        else if (strcmp(seq, "OQ") == 0 || strcmp(seq, "[[B") == 0)
+        {
+            // F2 key
+            event.type = EVENT_SHOWKEYBIDINGS;
+        }
     }
-    else if(isdigit(event.key))
+    else if (isdigit(event.key))
     {
         if (digitsPressedCount < maxDigitsPressedCount)
-        digitsPressed[digitsPressedCount++] = event.key;
+            digitsPressed[digitsPressedCount++] = event.key;
     }
     else
     {
         switch (event.key)
         {
-            case 'G':
-                if (digitsPressedCount > 0)
-                {
-                    event.type = EVENT_GOTOSONG;
-                }
-                else            
-                {
-                    event.type = EVENT_GOTOENDOFPLAYLIST;
-                }
-                break;
-            case 'g':
-                if (digitsPressedCount > 0)
-                {
-                    event.type = EVENT_GOTOSONG;
-                }
-                else if (gPressed)
-                {
-                    event.type = EVENT_GOTOBEGINNINGOFPLAYLIST;
-                    gPressed = false;               
-                }
-                else {
-                    gPressed = true;
-                }
-                break;
-            case '\n' :
-                if (digitsPressedCount > 0)
-                {
-                    event.type = EVENT_GOTOSONG;
-                }
-                break;           
-            case 'k' :   // Next song
-                event.type = EVENT_NEXT;
-                break;
-            case 'j':   // Prev song
-                event.type = EVENT_PREV;
-                break;
-            case 'l':   // Volume UP
-                event.type = EVENT_VOLUME_UP;
-                break;
-            case 'h':   //Volume DOWN
-                event.type = EVENT_VOLUME_DOWN;
-                break;
-            case 'p':   // Play/Pau se
-                event.type = EVENT_PLAY_PAUSE;
-                break;      
-            case 'q':
-                event.type = EVENT_QUIT;
-                break;
-            case 's':
-                event.type = EVENT_SHUFFLE;
-                break;
-            case 'c':
-                event.type = EVENT_TOGGLECOVERS;
-                break;
-            case 'v':
-                event.type = EVENT_TOGGLEVISUALIZER;
-                break;
-            case 'b':
-                event.type = EVENT_TOGGLEBLOCKS;
-                break;
-            case 'a':
-                event.type = EVENT_ADDTOMAINPLAYLIST;
-                break;
-            case 'd':
-                event.type = EVENT_DELETEFROMMAINPLAYLIST;
-                break;
-            case 'r':
-                event.type = EVENT_TOGGLEREPEAT;
-                break;
-            case 'x':
-                event.type = EVENT_EXPORTPLAYLIST;
-                break;              
-            case ' ':
-                event.type = EVENT_PLAY_PAUSE;
-                break;            
-            default:
-                break;
+        case 'G':
+            if (digitsPressedCount > 0)
+            {
+                event.type = EVENT_GOTOSONG;
+            }
+            else
+            {
+                event.type = EVENT_GOTOENDOFPLAYLIST;
+            }
+            break;
+        case 'g':
+            if (digitsPressedCount > 0)
+            {
+                event.type = EVENT_GOTOSONG;
+            }
+            else if (gPressed)
+            {
+                event.type = EVENT_GOTOBEGINNINGOFPLAYLIST;
+                gPressed = false;
+            }
+            else
+            {
+                gPressed = true;
+            }
+            break;
+        case '\n':
+            if (digitsPressedCount > 0)
+            {
+                event.type = EVENT_GOTOSONG;
+            }
+            break;
+        case 'k': // Next song
+            event.type = EVENT_NEXT;
+            break;
+        case 'j': // Prev song
+            event.type = EVENT_PREV;
+            break;
+        case 'l': // Volume UP
+            event.type = EVENT_VOLUME_UP;
+            break;
+        case 'h': // Volume DOWN
+            event.type = EVENT_VOLUME_DOWN;
+            break;
+        case 'p': // Play/Pau se
+            event.type = EVENT_PLAY_PAUSE;
+            break;
+        case 'q':
+            event.type = EVENT_QUIT;
+            break;
+        case 's':
+            event.type = EVENT_SHUFFLE;
+            break;
+        case 'c':
+            event.type = EVENT_TOGGLECOVERS;
+            break;
+        case 'v':
+            event.type = EVENT_TOGGLEVISUALIZER;
+            break;
+        case 'b':
+            event.type = EVENT_TOGGLEBLOCKS;
+            break;
+        case 'a':
+            event.type = EVENT_ADDTOMAINPLAYLIST;
+            break;
+        case 'd':
+            event.type = EVENT_DELETEFROMMAINPLAYLIST;
+            break;
+        case 'r':
+            event.type = EVENT_TOGGLEREPEAT;
+            break;
+        case 'x':
+            event.type = EVENT_EXPORTPLAYLIST;
+            break;
+        case ' ':
+            event.type = EVENT_PLAY_PAUSE;
+            break;
+        default:
+            break;
         }
     }
 
@@ -386,8 +399,8 @@ void playbackPlay(double *totalPauseSeconds, double pauseSeconds, struct timespe
     {
         *totalPauseSeconds += pauseSeconds;
 
-        emitStringPropertyChanged("PlaybackStatus", "Playing");     
-    }    
+        emitStringPropertyChanged("PlaybackStatus", "Playing");
+    }
     resumePlayback();
 }
 
@@ -396,10 +409,10 @@ void playbackPause(double *totalPauseSeconds, double pauseSeconds, struct timesp
     if (!isPaused())
     {
         emitStringPropertyChanged("PlaybackStatus", "Paused");
-                                        
+
         clock_gettime(CLOCK_MONOTONIC, pause_time);
-    }    
-    pausePlayback();    
+    }
+    pausePlayback();
 }
 
 void togglePause(double *totalPauseSeconds, double pauseSeconds, struct timespec *pause_time)
@@ -408,16 +421,15 @@ void togglePause(double *totalPauseSeconds, double pauseSeconds, struct timespec
     if (isPaused())
     {
         emitStringPropertyChanged("PlaybackStatus", "Paused");
-                                        
+
         clock_gettime(CLOCK_MONOTONIC, pause_time);
     }
     else
     {
         *totalPauseSeconds += pauseSeconds;
 
-        emitStringPropertyChanged("PlaybackStatus", "Playing");      
+        emitStringPropertyChanged("PlaybackStatus", "Playing");
     }
-    
 }
 
 void quit()
@@ -454,13 +466,15 @@ void assignLoadedData()
     }
 }
 
-void updatePlaybackStatus(const gchar* status) {           
-    GVariant* status_variant = g_variant_new_string(status);
+void updatePlaybackStatus(const gchar *status)
+{
+    GVariant *status_variant = g_variant_new_string(status);
     g_dbus_connection_emit_signal(connection, NULL, "/org/mpris/MediaPlayer2", "org.mpris.MediaPlayer2.Player", "PlaybackStatus", g_variant_new("(s)", status_variant), NULL);
     g_variant_unref(status_variant);
 }
 
-void emitMetadataChanged(const gchar* title, const gchar* artist, const gchar* album, const gchar* coverArtPath, const gchar* trackId) {
+void emitMetadataChanged(const gchar *title, const gchar *artist, const gchar *album, const gchar *coverArtPath, const gchar *trackId)
+{
     // Convert the coverArtPath to a valid URL format
     gchar *coverArtUrl = g_strdup_printf("file://%s", coverArtPath);
 
@@ -471,12 +485,15 @@ void emitMetadataChanged(const gchar* title, const gchar* artist, const gchar* a
 
     // Build list os strings for artist
     const gchar *artistList[2];
-    if (artist) {
-    artistList[0] = artist;
-    artistList[1] = NULL;
-    } else {
-    artistList[0] = "";
-    artistList[1] = NULL;
+    if (artist)
+    {
+        artistList[0] = artist;
+        artistList[1] = NULL;
+    }
+    else
+    {
+        artistList[0] = "";
+        artistList[1] = NULL;
     }
 
     g_variant_builder_add(&metadata_builder, "{sv}", "xesam:artist", g_variant_new_strv(artistList, -1));
@@ -644,22 +661,23 @@ void prepareNextSong()
     clock_gettime(CLOCK_MONOTONIC, &start_time);
 }
 
-Node * getSongByNumber(int songNumber)
+Node *getSongByNumber(int songNumber)
 {
-    Node * song = playlist.head;
-    
-    if(!song)
+    Node *song = playlist.head;
+
+    if (!song)
         return currentSong;
 
-    if(songNumber <= 0) {
+    if (songNumber <= 0)
+    {
         return song;
     }
     int count = 1;
-    while(song->next != NULL && count != songNumber)
+    while (song->next != NULL && count != songNumber)
     {
         song = getListNext(song);
         count++;
-    }    
+    }
     return song;
 }
 
@@ -669,7 +687,7 @@ void skipToNextSong()
     {
         return;
     }
-        
+
     if (songLoading || !loadedNextSong || skipping || clearingErrors)
         return;
 
@@ -686,7 +704,7 @@ void skipToPrevSong()
 
     if (songLoading || !loadedNextSong || skipping || clearingErrors)
         if (!forceSkip)
-          return;
+            return;
 
     skipping = true;
     skipPrev = true;
@@ -719,7 +737,7 @@ void skipToPrevSong()
         skipToPrevSong();
     }
 
-    clock_gettime(CLOCK_MONOTONIC, &start_time);   
+    clock_gettime(CLOCK_MONOTONIC, &start_time);
     skip();
 }
 
@@ -727,7 +745,7 @@ void skipToNumberedSong(int songNumber)
 {
     if (songLoading || !loadedNextSong || skipping || clearingErrors)
         if (!forceSkip)
-          return;
+            return;
 
     skipping = true;
     skipPrev = true;
@@ -760,7 +778,7 @@ void skipToNumberedSong(int songNumber)
         skipToNumberedSong(songNumber + 1);
     }
 
-    clock_gettime(CLOCK_MONOTONIC, &start_time);   
+    clock_gettime(CLOCK_MONOTONIC, &start_time);
     skip();
 }
 
@@ -803,23 +821,23 @@ void handleGotoSong()
 {
     int songNumber = atoi(digitsPressed);
     digitsPressed[0] = '\0';
-    digitsPressedCount = 0;    
-    skipToNumberedSong(songNumber);  
+    digitsPressedCount = 0;
+    skipToNumberedSong(songNumber);
 }
 
 void skipToLastSong()
 {
-    Node * song = playlist.head;
-    
-    if(!song)
+    Node *song = playlist.head;
+
+    if (!song)
         return;
 
     int count = 1;
-    while(song->next != NULL)
+    while (song->next != NULL)
     {
         song = getListNext(song);
         count++;
-    }    
+    }
     skipToNumberedSong(count);
 }
 
@@ -829,69 +847,69 @@ void handleInput()
 
     switch (event.type)
     {
-        case EVENT_GOTOBEGINNINGOFPLAYLIST:
-            skipToNumberedSong(1);
-            break;
-        case EVENT_GOTOENDOFPLAYLIST:
-            skipToLastSong();
-            break;
-        case EVENT_GOTOSONG:
-            handleGotoSong();
-            break;
-        case EVENT_PLAY_PAUSE:
-            togglePause(&totalPauseSeconds, pauseSeconds, &pause_time);
-            break;
-        case EVENT_TOGGLEVISUALIZER:
-            toggleVisualizer();
-            break;
-        case EVENT_TOGGLEREPEAT:
-            toggleRepeat();
-            break;
-        case EVENT_TOGGLECOVERS:
-            toggleCovers();
-            break;
-        case EVENT_TOGGLEBLOCKS:
-            toggleBlocks();
-            break;
-        case EVENT_SHUFFLE:
-            toggleShuffle();
-            break;
-        case EVENT_QUIT:
-            quit();
-            break;
-        case EVENT_VOLUME_UP:
-            adjustVolumePercent(5);
-            break;
-        case EVENT_VOLUME_DOWN:
-            adjustVolumePercent(-5);
-            break;
-        case EVENT_NEXT:
-            skipToNextSong();
-            break;
-        case EVENT_PREV:
-            skipToPrevSong();
-            break;
-        case EVENT_ADDTOMAINPLAYLIST:
-            addToPlaylist();
-            break;
-        case EVENT_DELETEFROMMAINPLAYLIST:
-            // FIXME implement this
-            break;
-        case EVENT_EXPORTPLAYLIST:
-            savePlaylist();
-            break;
-        case EVENT_SHOWKEYBIDINGS:
-            refresh = true;
-            printKeyBindings = !printKeyBindings;
-            printInfo = false;
-            break;
-        case EVENT_SHOWINFO:
-            refresh = true;
-            printInfo = !printInfo;
-            printKeyBindings = false;
-            break;
-        default:
-            break;
+    case EVENT_GOTOBEGINNINGOFPLAYLIST:
+        skipToNumberedSong(1);
+        break;
+    case EVENT_GOTOENDOFPLAYLIST:
+        skipToLastSong();
+        break;
+    case EVENT_GOTOSONG:
+        handleGotoSong();
+        break;
+    case EVENT_PLAY_PAUSE:
+        togglePause(&totalPauseSeconds, pauseSeconds, &pause_time);
+        break;
+    case EVENT_TOGGLEVISUALIZER:
+        toggleVisualizer();
+        break;
+    case EVENT_TOGGLEREPEAT:
+        toggleRepeat();
+        break;
+    case EVENT_TOGGLECOVERS:
+        toggleCovers();
+        break;
+    case EVENT_TOGGLEBLOCKS:
+        toggleBlocks();
+        break;
+    case EVENT_SHUFFLE:
+        toggleShuffle();
+        break;
+    case EVENT_QUIT:
+        quit();
+        break;
+    case EVENT_VOLUME_UP:
+        adjustVolumePercent(5);
+        break;
+    case EVENT_VOLUME_DOWN:
+        adjustVolumePercent(-5);
+        break;
+    case EVENT_NEXT:
+        skipToNextSong();
+        break;
+    case EVENT_PREV:
+        skipToPrevSong();
+        break;
+    case EVENT_ADDTOMAINPLAYLIST:
+        addToPlaylist();
+        break;
+    case EVENT_DELETEFROMMAINPLAYLIST:
+        // FIXME implement this
+        break;
+    case EVENT_EXPORTPLAYLIST:
+        savePlaylist();
+        break;
+    case EVENT_SHOWKEYBIDINGS:
+        refresh = true;
+        printKeyBindings = !printKeyBindings;
+        printInfo = false;
+        break;
+    case EVENT_SHOWINFO:
+        refresh = true;
+        printInfo = !printInfo;
+        printKeyBindings = false;
+        break;
+    default:
+        break;
     }
     eventProcessed = false;
 }
@@ -925,22 +943,21 @@ void updatePlayer()
                 currentSongData = loadingdata.songdataA;
             else
                 currentSongData = loadingdata.songdataB;
-                
+
             // update mpris
             emitMetadataChanged(
                 currentSongData->metadata->title ? currentSongData->metadata->title : "",
                 currentSongData->metadata->artist ? currentSongData->metadata->artist : "",
                 currentSongData->metadata->album ? currentSongData->metadata->album : "",
                 currentSongData->coverArtPath ? currentSongData->coverArtPath : "",
-                currentSongData->trackId ? currentSongData->trackId : ""
-            );           
+                currentSongData->trackId ? currentSongData->trackId : "");
         }
         refreshPlayer();
-    }        
+    }
 }
 
 // MPRIS Functions:
-const gchar* introspection_xml =
+const gchar *introspection_xml =
     "<!DOCTYPE node PUBLIC \"-//freedesktop//DTD D-BUS Object Introspection 1.0//EN\" \"http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd\">\n"
     "<node>\n"
     "  <interface name=\"org.mpris.MediaPlayer2\">\n"
@@ -1002,18 +1019,20 @@ static const gchar *identity = "cueMusic";
 static const gchar *supportedUriSchemes[] = {"file", "http", NULL};
 static const gchar *supportedMimeTypes[] = {"audio/mpeg", "audio/ogg", NULL};
 static const gchar *desktopIconName = ""; // Without file extension
-static const gchar *desktopEntry = ""; // The name of your .desktop file
+static const gchar *desktopEntry = "";    // The name of your .desktop file
 
 static void handle_raise(GDBusConnection *connection, const gchar *sender,
                          const gchar *object_path, const gchar *interface_name,
                          const gchar *method_name, GVariant *parameters,
-                         GDBusMethodInvocation *invocation, gpointer user_data) {    
+                         GDBusMethodInvocation *invocation, gpointer user_data)
+{
 }
 
 static gboolean get_can_raise(GDBusConnection *connection, const gchar *sender,
-                             const gchar *object_path, const gchar *interface_name,
-                             const gchar *property_name, GVariant **value,
-                             GError **error, gpointer user_data) {
+                              const gchar *object_path, const gchar *interface_name,
+                              const gchar *property_name, GVariant **value,
+                              GError **error, gpointer user_data)
+{
     *value = g_variant_new_boolean(canRaise);
     return TRUE;
 }
@@ -1021,30 +1040,34 @@ static gboolean get_can_raise(GDBusConnection *connection, const gchar *sender,
 static void handle_quit(GDBusConnection *connection, const gchar *sender,
                         const gchar *object_path, const gchar *interface_name,
                         const gchar *method_name, GVariant *parameters,
-                        GDBusMethodInvocation *invocation, gpointer user_data) {
+                        GDBusMethodInvocation *invocation, gpointer user_data)
+{
     quit();
 }
 
 static gboolean get_can_quit(GDBusConnection *connection, const gchar *sender,
                              const gchar *object_path, const gchar *interface_name,
                              const gchar *property_name, GVariant **value,
-                             GError **error, gpointer user_data) {
+                             GError **error, gpointer user_data)
+{
     *value = g_variant_new_boolean(canQuit);
     return TRUE;
 }
 
 static gboolean get_has_track_list(GDBusConnection *connection, const gchar *sender,
-                                  const gchar *object_path, const gchar *interface_name,
-                                  const gchar *property_name, GVariant **value,
-                                  GError **error, gpointer user_data) {
+                                   const gchar *object_path, const gchar *interface_name,
+                                   const gchar *property_name, GVariant **value,
+                                   GError **error, gpointer user_data)
+{
     *value = g_variant_new_boolean(hasTrackList);
     return TRUE;
 }
 
 static gboolean get_identity(GDBusConnection *connection, const gchar *sender,
-                            const gchar *object_path, const gchar *interface_name,
-                            const gchar *property_name, GVariant **value,
-                            GError **error, gpointer user_data) {
+                             const gchar *object_path, const gchar *interface_name,
+                             const gchar *property_name, GVariant **value,
+                             GError **error, gpointer user_data)
+{
     *value = g_variant_new_string(identity);
     return TRUE;
 }
@@ -1052,7 +1075,8 @@ static gboolean get_identity(GDBusConnection *connection, const gchar *sender,
 static gboolean get_desktop_entry(GDBusConnection *connection, const gchar *sender,
                                   const gchar *object_path, const gchar *interface_name,
                                   const gchar *property_name, GVariant **value,
-                                  GError **error, gpointer user_data) {
+                                  GError **error, gpointer user_data)
+{
     *value = g_variant_new_string(desktopEntry);
     return TRUE;
 }
@@ -1060,23 +1084,26 @@ static gboolean get_desktop_entry(GDBusConnection *connection, const gchar *send
 static gboolean get_desktop_icon_name(GDBusConnection *connection, const gchar *sender,
                                       const gchar *object_path, const gchar *interface_name,
                                       const gchar *property_name, GVariant **value,
-                                      GError **error, gpointer user_data) {
+                                      GError **error, gpointer user_data)
+{
     *value = g_variant_new_string(desktopIconName);
     return TRUE;
 }
 
 static gboolean get_supported_uri_schemes(GDBusConnection *connection, const gchar *sender,
-                                         const gchar *object_path, const gchar *interface_name,
-                                         const gchar *property_name, GVariant **value,
-                                         GError **error, gpointer user_data) {
+                                          const gchar *object_path, const gchar *interface_name,
+                                          const gchar *property_name, GVariant **value,
+                                          GError **error, gpointer user_data)
+{
     *value = g_variant_new_strv(supportedUriSchemes, -1);
     return TRUE;
 }
 
 static gboolean get_supported_mime_types(GDBusConnection *connection, const gchar *sender,
-                                        const gchar *object_path, const gchar *interface_name,
-                                        const gchar *property_name, GVariant **value,
-                                        GError **error, gpointer user_data) {
+                                         const gchar *object_path, const gchar *interface_name,
+                                         const gchar *property_name, GVariant **value,
+                                         GError **error, gpointer user_data)
+{
     *value = g_variant_new_strv(supportedMimeTypes, -1);
     return TRUE;
 }
@@ -1084,40 +1111,43 @@ static gboolean get_supported_mime_types(GDBusConnection *connection, const gcha
 static void handle_next(GDBusConnection *connection, const gchar *sender,
                         const gchar *object_path, const gchar *interface_name,
                         const gchar *method_name, GVariant *parameters,
-                        GDBusMethodInvocation *invocation, gpointer user_data) {
+                        GDBusMethodInvocation *invocation, gpointer user_data)
+{
     skipToNextSong();
-    g_dbus_method_invocation_return_value(invocation, NULL);                            
-
+    g_dbus_method_invocation_return_value(invocation, NULL);
 }
 
 static void handle_previous(GDBusConnection *connection, const gchar *sender,
                             const gchar *object_path, const gchar *interface_name,
                             const gchar *method_name, GVariant *parameters,
-                            GDBusMethodInvocation *invocation, gpointer user_data) {
-    skipToPrevSong();    
-    g_dbus_method_invocation_return_value(invocation, NULL);                                
-
+                            GDBusMethodInvocation *invocation, gpointer user_data)
+{
+    skipToPrevSong();
+    g_dbus_method_invocation_return_value(invocation, NULL);
 }
 
 static void handle_pause(GDBusConnection *connection, const gchar *sender,
                          const gchar *object_path, const gchar *interface_name,
                          const gchar *method_name, GVariant *parameters,
-                         GDBusMethodInvocation *invocation, gpointer user_data) {
-    playbackPause(&totalPauseSeconds, pauseSeconds, &pause_time);                             
+                         GDBusMethodInvocation *invocation, gpointer user_data)
+{
+    playbackPause(&totalPauseSeconds, pauseSeconds, &pause_time);
 }
 
 static void handle_play_pause(GDBusConnection *connection, const gchar *sender,
                               const gchar *object_path, const gchar *interface_name,
                               const gchar *method_name, GVariant *parameters,
-                              GDBusMethodInvocation *invocation, gpointer user_data) {
+                              GDBusMethodInvocation *invocation, gpointer user_data)
+{
     togglePause(&totalPauseSeconds, pauseSeconds, &pause_time);
     g_dbus_method_invocation_return_value(invocation, NULL);
 }
 
 static void handle_stop(GDBusConnection *connection, const gchar *sender,
-                       const gchar *object_path, const gchar *interface_name,
-                       const gchar *method_name, GVariant *parameters,
-                       GDBusMethodInvocation *invocation, gpointer user_data) {
+                        const gchar *object_path, const gchar *interface_name,
+                        const gchar *method_name, GVariant *parameters,
+                        GDBusMethodInvocation *invocation, gpointer user_data)
+{
     quit();
     g_dbus_method_invocation_return_value(invocation, NULL);
 }
@@ -1125,83 +1155,106 @@ static void handle_stop(GDBusConnection *connection, const gchar *sender,
 static void handle_play(GDBusConnection *connection, const gchar *sender,
                         const gchar *object_path, const gchar *interface_name,
                         const gchar *method_name, GVariant *parameters,
-                        GDBusMethodInvocation *invocation, gpointer user_data) {
-    playbackPlay(&totalPauseSeconds, pauseSeconds, &pause_time);                        
-
+                        GDBusMethodInvocation *invocation, gpointer user_data)
+{
+    playbackPlay(&totalPauseSeconds, pauseSeconds, &pause_time);
 }
 
 static void handle_seek(GDBusConnection *connection, const gchar *sender,
                         const gchar *object_path, const gchar *interface_name,
                         const gchar *method_name, GVariant *parameters,
-                        GDBusMethodInvocation *invocation, gpointer user_data) {
-
+                        GDBusMethodInvocation *invocation, gpointer user_data)
+{
 }
 
 static void handle_set_position(GDBusConnection *connection, const gchar *sender,
                                 const gchar *object_path, const gchar *interface_name,
                                 const gchar *method_name, GVariant *parameters,
-                                GDBusMethodInvocation *invocation, gpointer user_data) {
-
+                                GDBusMethodInvocation *invocation, gpointer user_data)
+{
 }
 
 static void handle_open_uri(GDBusConnection *connection, const gchar *sender,
                             const gchar *object_path, const gchar *interface_name,
                             const gchar *method_name, GVariant *parameters,
-                            GDBusMethodInvocation *invocation, gpointer user_data) {
-
+                            GDBusMethodInvocation *invocation, gpointer user_data)
+{
 }
 
 static void handle_method_call(GDBusConnection *connection, const gchar *sender,
                                const gchar *object_path, const gchar *interface_name,
                                const gchar *method_name, GVariant *parameters,
-                               GDBusMethodInvocation *invocation, gpointer user_data) {
-    if (g_strcmp0(method_name, "PlayPause") == 0) {
+                               GDBusMethodInvocation *invocation, gpointer user_data)
+{
+    if (g_strcmp0(method_name, "PlayPause") == 0)
+    {
         handle_play_pause(connection, sender, object_path, interface_name,
                           method_name, parameters, invocation, user_data);
-    } else if (g_strcmp0(method_name, "Next") == 0) {
+    }
+    else if (g_strcmp0(method_name, "Next") == 0)
+    {
         handle_next(connection, sender, object_path, interface_name,
                     method_name, parameters, invocation, user_data);
-    } else if (g_strcmp0(method_name, "Previous") == 0) {
+    }
+    else if (g_strcmp0(method_name, "Previous") == 0)
+    {
         handle_previous(connection, sender, object_path, interface_name,
                         method_name, parameters, invocation, user_data);
-    } else if (g_strcmp0(method_name, "Pause") == 0) {
+    }
+    else if (g_strcmp0(method_name, "Pause") == 0)
+    {
         handle_pause(connection, sender, object_path, interface_name,
-                        method_name, parameters, invocation, user_data);
-    } else if (g_strcmp0(method_name, "Stop") == 0) {
+                     method_name, parameters, invocation, user_data);
+    }
+    else if (g_strcmp0(method_name, "Stop") == 0)
+    {
         handle_stop(connection, sender, object_path, interface_name,
-                        method_name, parameters, invocation, user_data);
-    } else if (g_strcmp0(method_name, "Play") == 0) {
+                    method_name, parameters, invocation, user_data);
+    }
+    else if (g_strcmp0(method_name, "Play") == 0)
+    {
         handle_play(connection, sender, object_path, interface_name,
-                        method_name, parameters, invocation, user_data);                                                                    
-    } else if (g_strcmp0(method_name, "Seek") == 0) {
+                    method_name, parameters, invocation, user_data);
+    }
+    else if (g_strcmp0(method_name, "Seek") == 0)
+    {
         handle_seek(connection, sender, object_path, interface_name,
-                        method_name, parameters, invocation, user_data);   
- } else if (g_strcmp0(method_name, "SetPosition") == 0) {
+                    method_name, parameters, invocation, user_data);
+    }
+    else if (g_strcmp0(method_name, "SetPosition") == 0)
+    {
         handle_set_position(connection, sender, object_path, interface_name,
-                        method_name, parameters, invocation, user_data); 
- } else if (g_strcmp0(method_name, "Raise") == 0) {
+                            method_name, parameters, invocation, user_data);
+    }
+    else if (g_strcmp0(method_name, "Raise") == 0)
+    {
         handle_raise(connection, sender, object_path, interface_name,
-                        method_name, parameters, invocation, user_data); 
- } else if (g_strcmp0(method_name, "Quit") == 0) {
+                     method_name, parameters, invocation, user_data);
+    }
+    else if (g_strcmp0(method_name, "Quit") == 0)
+    {
         handle_quit(connection, sender, object_path, interface_name,
-                        method_name, parameters, invocation, user_data);                                                                                                                                                                   
-    } else {
+                    method_name, parameters, invocation, user_data);
+    }
+    else
+    {
         g_dbus_method_invocation_return_dbus_error(invocation,
                                                    "org.freedesktop.DBus.Error.UnknownMethod",
                                                    "No such method");
     }
 }
 
-static void on_bus_name_acquired(GDBusConnection *connection, const gchar *name, gpointer user_data) {
-    //g_print("Acquired bus name: %s\n", name);
+static void on_bus_name_acquired(GDBusConnection *connection, const gchar *name, gpointer user_data)
+{
+    // g_print("Acquired bus name: %s\n", name);
 }
 
-static void on_bus_name_lost(GDBusConnection *connection, const gchar *name, gpointer user_data) {
-    //g_print("Lost bus name: %s\n", name);
+static void on_bus_name_lost(GDBusConnection *connection, const gchar *name, gpointer user_data)
+{
+    // g_print("Lost bus name: %s\n", name);
 }
 
-
-static const gchar *PlaybackStatus = "Playing"; 
+static const gchar *PlaybackStatus = "Playing";
 static const gchar *LoopStatus = "None";
 static gdouble Rate = 1.0;
 static gdouble Volume = 0.5;
@@ -1218,7 +1271,8 @@ static gboolean CanControl = TRUE;
 static gboolean get_playback_status(GDBusConnection *connection, const gchar *sender,
                                     const gchar *object_path, const gchar *interface_name,
                                     const gchar *property_name, GVariant **value,
-                                    GError **error, gpointer user_data) {
+                                    GError **error, gpointer user_data)
+{
 
     if (isPaused())
         PlaybackStatus = "Paused";
@@ -1232,7 +1286,8 @@ static gboolean get_playback_status(GDBusConnection *connection, const gchar *se
 static gboolean get_loop_status(GDBusConnection *connection, const gchar *sender,
                                 const gchar *object_path, const gchar *interface_name,
                                 const gchar *property_name, GVariant **value,
-                                GError **error, gpointer user_data) {
+                                GError **error, gpointer user_data)
+{
     *value = g_variant_new_string(LoopStatus);
     return TRUE;
 }
@@ -1240,7 +1295,8 @@ static gboolean get_loop_status(GDBusConnection *connection, const gchar *sender
 static gboolean get_rate(GDBusConnection *connection, const gchar *sender,
                          const gchar *object_path, const gchar *interface_name,
                          const gchar *property_name, GVariant **value,
-                         GError **error, gpointer user_data) {
+                         GError **error, gpointer user_data)
+{
     *value = g_variant_new_double(Rate);
     return TRUE;
 }
@@ -1248,7 +1304,8 @@ static gboolean get_rate(GDBusConnection *connection, const gchar *sender,
 static gboolean get_shuffle(GDBusConnection *connection, const gchar *sender,
                             const gchar *object_path, const gchar *interface_name,
                             const gchar *property_name, GVariant **value,
-                            GError **error, gpointer user_data) {
+                            GError **error, gpointer user_data)
+{
     *value = g_variant_new_boolean(shuffleEnabled ? TRUE : FALSE);
     return TRUE;
 }
@@ -1256,34 +1313,38 @@ static gboolean get_shuffle(GDBusConnection *connection, const gchar *sender,
 static gboolean get_metadata(GDBusConnection *connection, const gchar *sender,
                              const gchar *object_path, const gchar *interface_name,
                              const gchar *property_name, GVariant **value,
-                             GError **error, gpointer user_data) {
+                             GError **error, gpointer user_data)
+{
 
     SongData *currentSongData = NULL;
 
-   if (usingSongDataA)
+    if (usingSongDataA)
         currentSongData = loadingdata.songdataA;
     else
         currentSongData = loadingdata.songdataB;
-    
+
     GVariantBuilder metadata_builder;
     g_variant_builder_init(&metadata_builder, G_VARIANT_TYPE_DICTIONARY);
     g_variant_builder_add(&metadata_builder, "{sv}", "xesam:title", g_variant_new_string(currentSongData->metadata->title));
-    
+
     // Build list os strings for artist
     const gchar *artistList[2];
-    if (currentSongData->metadata->artist) {
-    artistList[0] = currentSongData->metadata->artist;
-    artistList[1] = NULL;
-    } else {
-    artistList[0] = "";
-    artistList[1] = NULL;
+    if (currentSongData->metadata->artist)
+    {
+        artistList[0] = currentSongData->metadata->artist;
+        artistList[1] = NULL;
+    }
+    else
+    {
+        artistList[0] = "";
+        artistList[1] = NULL;
     }
     g_variant_builder_add(&metadata_builder, "{sv}", "xesam:artist", g_variant_new_strv(artistList, -1));
     g_variant_builder_add(&metadata_builder, "{sv}", "xesam:album", g_variant_new_string(currentSongData->metadata->album));
     g_variant_builder_add(&metadata_builder, "{sv}", "xesam:contentCreated", g_variant_new_string(currentSongData->metadata->date));
     g_variant_builder_add(&metadata_builder, "{sv}", "mpris:artUrl", g_variant_new_string(currentSongData->coverArtPath));
     g_variant_builder_add(&metadata_builder, "{sv}", "mpris:trackid", g_variant_new_object_path(currentSongData->trackId));
-    
+
     GVariant *metadata_variant = g_variant_builder_end(&metadata_builder);
 
     *value = g_variant_ref_sink(metadata_variant);
@@ -1293,7 +1354,8 @@ static gboolean get_metadata(GDBusConnection *connection, const gchar *sender,
 static gboolean get_volume(GDBusConnection *connection, const gchar *sender,
                            const gchar *object_path, const gchar *interface_name,
                            const gchar *property_name, GVariant **value,
-                           GError **error, gpointer user_data) {
+                           GError **error, gpointer user_data)
+{
 
     Volume = getCurrentVolume();
 
@@ -1304,31 +1366,35 @@ static gboolean get_volume(GDBusConnection *connection, const gchar *sender,
 static gboolean get_position(GDBusConnection *connection, const gchar *sender,
                              const gchar *object_path, const gchar *interface_name,
                              const gchar *property_name, GVariant **value,
-                             GError **error, gpointer user_data) {
+                             GError **error, gpointer user_data)
+{
     *value = g_variant_new_int64(Position);
     return TRUE;
 }
 
 static gboolean get_minimum_rate(GDBusConnection *connection, const gchar *sender,
-                                const gchar *object_path, const gchar *interface_name,
-                                const gchar *property_name, GVariant **value,
-                                GError **error, gpointer user_data) {
+                                 const gchar *object_path, const gchar *interface_name,
+                                 const gchar *property_name, GVariant **value,
+                                 GError **error, gpointer user_data)
+{
     *value = g_variant_new_double(MinimumRate);
     return TRUE;
 }
 
 static gboolean get_maximum_rate(GDBusConnection *connection, const gchar *sender,
-                                const gchar *object_path, const gchar *interface_name,
-                                const gchar *property_name, GVariant **value,
-                                GError **error, gpointer user_data) {
+                                 const gchar *object_path, const gchar *interface_name,
+                                 const gchar *property_name, GVariant **value,
+                                 GError **error, gpointer user_data)
+{
     *value = g_variant_new_double(MaximumRate);
     return TRUE;
 }
 
 static gboolean get_can_go_next(GDBusConnection *connection, const gchar *sender,
-                               const gchar *object_path, const gchar *interface_name,
-                               const gchar *property_name, GVariant **value,
-                               GError **error, gpointer user_data) {
+                                const gchar *object_path, const gchar *interface_name,
+                                const gchar *property_name, GVariant **value,
+                                GError **error, gpointer user_data)
+{
 
     CanGoNext = (currentSong->next != NULL);
 
@@ -1337,9 +1403,10 @@ static gboolean get_can_go_next(GDBusConnection *connection, const gchar *sender
 }
 
 static gboolean get_can_go_previous(GDBusConnection *connection, const gchar *sender,
-                                   const gchar *object_path, const gchar *interface_name,
-                                   const gchar *property_name, GVariant **value,
-                                   GError **error, gpointer user_data) {
+                                    const gchar *object_path, const gchar *interface_name,
+                                    const gchar *property_name, GVariant **value,
+                                    GError **error, gpointer user_data)
+{
 
     CanGoPrevious = (currentSong->prev != NULL);
 
@@ -1348,84 +1415,129 @@ static gboolean get_can_go_previous(GDBusConnection *connection, const gchar *se
 }
 
 static gboolean get_can_play(GDBusConnection *connection, const gchar *sender,
-                            const gchar *object_path, const gchar *interface_name,
-                            const gchar *property_name, GVariant **value,
-                            GError **error, gpointer user_data) {
+                             const gchar *object_path, const gchar *interface_name,
+                             const gchar *property_name, GVariant **value,
+                             GError **error, gpointer user_data)
+{
     *value = g_variant_new_boolean(CanPlay);
     return TRUE;
 }
 
 static gboolean get_can_pause(GDBusConnection *connection, const gchar *sender,
-                             const gchar *object_path, const gchar *interface_name,
-                             const gchar *property_name, GVariant **value,
-                             GError **error, gpointer user_data) {
+                              const gchar *object_path, const gchar *interface_name,
+                              const gchar *property_name, GVariant **value,
+                              GError **error, gpointer user_data)
+{
     *value = g_variant_new_boolean(CanPause);
     return TRUE;
 }
 
 static gboolean get_can_seek(GDBusConnection *connection, const gchar *sender,
-                            const gchar *object_path, const gchar *interface_name,
-                            const gchar *property_name, GVariant **value,
-                            GError **error, gpointer user_data) {
+                             const gchar *object_path, const gchar *interface_name,
+                             const gchar *property_name, GVariant **value,
+                             GError **error, gpointer user_data)
+{
     *value = g_variant_new_boolean(CanSeek);
     return TRUE;
 }
 
 static gboolean get_can_control(GDBusConnection *connection, const gchar *sender,
-                               const gchar *object_path, const gchar *interface_name,
-                               const gchar *property_name, GVariant **value,
-                               GError **error, gpointer user_data) {
+                                const gchar *object_path, const gchar *interface_name,
+                                const gchar *property_name, GVariant **value,
+                                GError **error, gpointer user_data)
+{
     *value = g_variant_new_boolean(CanControl);
     return TRUE;
 }
 
-static GVariant* get_property_callback(GDBusConnection *connection, const gchar *sender,
-                                  const gchar *object_path, const gchar *interface_name,
-                                  const gchar *property_name, GError **error, gpointer user_data) {
+static GVariant *get_property_callback(GDBusConnection *connection, const gchar *sender,
+                                       const gchar *object_path, const gchar *interface_name,
+                                       const gchar *property_name, GError **error, gpointer user_data)
+{
 
     GVariant *value = NULL;
 
-    if (g_strcmp0(interface_name, "org.mpris.MediaPlayer2.Player") == 0 || g_strcmp0(interface_name, "org.mpris.MediaPlayer2") == 0) {
-        if (g_strcmp0(property_name, "PlaybackStatus") == 0) {
+    if (g_strcmp0(interface_name, "org.mpris.MediaPlayer2.Player") == 0 || g_strcmp0(interface_name, "org.mpris.MediaPlayer2") == 0)
+    {
+        if (g_strcmp0(property_name, "PlaybackStatus") == 0)
+        {
             get_playback_status(connection, sender, object_path, interface_name, property_name, &value, error, user_data);
-        } else if (g_strcmp0(property_name, "LoopStatus") == 0) {
+        }
+        else if (g_strcmp0(property_name, "LoopStatus") == 0)
+        {
             get_loop_status(connection, sender, object_path, interface_name, property_name, &value, error, user_data);
-        } else if (g_strcmp0(property_name, "Rate") == 0) {
+        }
+        else if (g_strcmp0(property_name, "Rate") == 0)
+        {
             get_rate(connection, sender, object_path, interface_name, property_name, &value, error, user_data);
-        } else if (g_strcmp0(property_name, "Shuffle") == 0) {
+        }
+        else if (g_strcmp0(property_name, "Shuffle") == 0)
+        {
             get_shuffle(connection, sender, object_path, interface_name, property_name, &value, error, user_data);
-        } else if (g_strcmp0(property_name, "Metadata") == 0) {
+        }
+        else if (g_strcmp0(property_name, "Metadata") == 0)
+        {
             get_metadata(connection, sender, object_path, interface_name, property_name, &value, error, user_data);
-        } else if (g_strcmp0(property_name, "Volume") == 0) {
+        }
+        else if (g_strcmp0(property_name, "Volume") == 0)
+        {
             get_volume(connection, sender, object_path, interface_name, property_name, &value, error, user_data);
-        } else if (g_strcmp0(property_name, "Position") == 0) {
+        }
+        else if (g_strcmp0(property_name, "Position") == 0)
+        {
             get_position(connection, sender, object_path, interface_name, property_name, &value, error, user_data);
-        } else if (g_strcmp0(property_name, "MinimumRate") == 0) {
+        }
+        else if (g_strcmp0(property_name, "MinimumRate") == 0)
+        {
             get_minimum_rate(connection, sender, object_path, interface_name, property_name, &value, error, user_data);
-        } else if (g_strcmp0(property_name, "MaximumRate") == 0) {
+        }
+        else if (g_strcmp0(property_name, "MaximumRate") == 0)
+        {
             get_maximum_rate(connection, sender, object_path, interface_name, property_name, &value, error, user_data);
-        } else if (g_strcmp0(property_name, "CanGoNext") == 0) {
+        }
+        else if (g_strcmp0(property_name, "CanGoNext") == 0)
+        {
             get_can_go_next(connection, sender, object_path, interface_name, property_name, &value, error, user_data);
-        } else if (g_strcmp0(property_name, "CanGoPrevious") == 0) {
+        }
+        else if (g_strcmp0(property_name, "CanGoPrevious") == 0)
+        {
             get_can_go_previous(connection, sender, object_path, interface_name, property_name, &value, error, user_data);
-        } else if (g_strcmp0(property_name, "CanPlay") == 0) {
+        }
+        else if (g_strcmp0(property_name, "CanPlay") == 0)
+        {
             get_can_play(connection, sender, object_path, interface_name, property_name, &value, error, user_data);
-        } else if (g_strcmp0(property_name, "CanPause") == 0) {
+        }
+        else if (g_strcmp0(property_name, "CanPause") == 0)
+        {
             get_can_pause(connection, sender, object_path, interface_name, property_name, &value, error, user_data);
-        } else if (g_strcmp0(property_name, "CanSeek") == 0) {
+        }
+        else if (g_strcmp0(property_name, "CanSeek") == 0)
+        {
             get_can_seek(connection, sender, object_path, interface_name, property_name, &value, error, user_data);
-        } else if (g_strcmp0(property_name, "CanControl") == 0) {
+        }
+        else if (g_strcmp0(property_name, "CanControl") == 0)
+        {
             get_can_control(connection, sender, object_path, interface_name, property_name, &value, error, user_data);
-        } else if (g_strcmp0(property_name, "DesktopIconName") == 0) {
+        }
+        else if (g_strcmp0(property_name, "DesktopIconName") == 0)
+        {
             get_desktop_icon_name(connection, sender, object_path, interface_name, property_name, &value, error, user_data);
-        } else if (g_strcmp0(property_name, "DesktopEntry") == 0) {
+        }
+        else if (g_strcmp0(property_name, "DesktopEntry") == 0)
+        {
             get_desktop_entry(connection, sender, object_path, interface_name, property_name, &value, error, user_data);
-        } else if (g_strcmp0(property_name, "Identity") == 0) {
+        }
+        else if (g_strcmp0(property_name, "Identity") == 0)
+        {
             get_identity(connection, sender, object_path, interface_name, property_name, &value, error, user_data);
-        } else {
+        }
+        else
+        {
             g_set_error(error, G_IO_ERROR, G_IO_ERROR_FAILED, "Unknown property");
         }
-    } else {
+    }
+    else
+    {
         g_set_error(error, G_IO_ERROR, G_IO_ERROR_FAILED, "Unknown interface");
     }
     return value;
@@ -1434,35 +1546,50 @@ static GVariant* get_property_callback(GDBusConnection *connection, const gchar 
 static gboolean set_property_callback(GDBusConnection *connection, const gchar *sender,
                                       const gchar *object_path, const gchar *interface_name,
                                       const gchar *property_name, GVariant *value,
-                                      GError **error, gpointer user_data) {
+                                      GError **error, gpointer user_data)
+{
 
-    if (g_strcmp0(interface_name, "org.mpris.MediaPlayer2.Player") == 0) {
-        if (g_strcmp0(property_name, "PlaybackStatus") == 0) {
+    if (g_strcmp0(interface_name, "org.mpris.MediaPlayer2.Player") == 0)
+    {
+        if (g_strcmp0(property_name, "PlaybackStatus") == 0)
+        {
             g_set_error(error, G_IO_ERROR, G_IO_ERROR_FAILED, "Setting PlaybackStatus property not supported");
             return FALSE;
-        } else if (g_strcmp0(property_name, "Volume") == 0) {
+        }
+        else if (g_strcmp0(property_name, "Volume") == 0)
+        {
             double new_volume;
             g_variant_get(value, "d", &new_volume);
             setVolume((int)new_volume);
             return TRUE;
-        } else if (g_strcmp0(property_name, "LoopStatus") == 0) {             
-             toggleRepeat();
-             return TRUE;
-        } else if (g_strcmp0(property_name, "Shuffle") == 0) {             
-             toggleShuffle();
-             return TRUE;
-        } else if (g_strcmp0(property_name, "Position") == 0) {
-            //gint64 new_position;
-            //g_variant_get(value, "x", &new_position);
-            //set_position(new_position); 
-            //return TRUE;
+        }
+        else if (g_strcmp0(property_name, "LoopStatus") == 0)
+        {
+            toggleRepeat();
+            return TRUE;
+        }
+        else if (g_strcmp0(property_name, "Shuffle") == 0)
+        {
+            toggleShuffle();
+            return TRUE;
+        }
+        else if (g_strcmp0(property_name, "Position") == 0)
+        {
+            // gint64 new_position;
+            // g_variant_get(value, "x", &new_position);
+            // set_position(new_position);
+            // return TRUE;
             g_set_error(error, G_IO_ERROR, G_IO_ERROR_FAILED, "Setting Position property not supported");
             return FALSE;
-        } else {
+        }
+        else
+        {
             g_set_error(error, G_IO_ERROR, G_IO_ERROR_FAILED, "Setting property not supported");
             return FALSE;
         }
-    } else {
+    }
+    else
+    {
         g_set_error(error, G_IO_ERROR, G_IO_ERROR_FAILED, "Unknown interface");
         return FALSE;
     }
@@ -1470,18 +1597,16 @@ static gboolean set_property_callback(GDBusConnection *connection, const gchar *
 
 // MPRIS MediaPlayer2 interface vtable
 static const GDBusInterfaceVTable media_player_interface_vtable = {
-    .method_call = handle_method_call, // We're using individual method handlers
+    .method_call = handle_method_call,     // We're using individual method handlers
     .get_property = get_property_callback, // Handle the property getters individually
     .set_property = set_property_callback,
     .padding = {
         handle_raise,
-        handle_quit
-    }
-};
+        handle_quit}};
 
 // MPRIS Player interface vtable
 static const GDBusInterfaceVTable player_interface_vtable = {
-    .method_call = handle_method_call, // We're using individual method handlers
+    .method_call = handle_method_call,     // We're using individual method handlers
     .get_property = get_property_callback, // Handle the property getters individually
     .set_property = set_property_callback,
     .padding = {
@@ -1492,15 +1617,14 @@ static const GDBusInterfaceVTable player_interface_vtable = {
         handle_stop,
         handle_play,
         handle_seek,
-        handle_set_position
-    }    
-};
+        handle_set_position}};
 
-void emit_playback_status_changed_signal(GDBusConnection *connection, const gchar *object_path, const gchar *new_status) {
-    GVariant *signal_params = g_variant_new("(s)", new_status);  
+void emit_playback_status_changed_signal(GDBusConnection *connection, const gchar *object_path, const gchar *new_status)
+{
+    GVariant *signal_params = g_variant_new("(s)", new_status);
 
     g_dbus_connection_emit_signal(connection,
-                                  NULL,  
+                                  NULL,
                                   "/org/mpris/MediaPlayer2",
                                   "org.mpris.MediaPlayer2.Player",
                                   "PlaybackStatusChanged",
@@ -1510,43 +1634,53 @@ void emit_playback_status_changed_signal(GDBusConnection *connection, const gcha
 
 void emitPlaybackStoppedMpris()
 {
-    GVariant *new_status = g_variant_new_string("Stopped");
+    if (connection)
+    {
+        GVariant *new_status = g_variant_new_string("Stopped");
 
-    g_dbus_connection_call(connection,
-                          NULL,
-                          "/org/mpris/MediaPlayer2",
-                          "org.freedesktop.DBus.Properties",
-                          "Set",
-                          g_variant_new("(ssv)", "org.mpris.MediaPlayer2.Player", "PlaybackStatus", new_status),
-                          G_VARIANT_TYPE("(v)"),
-                          G_DBUS_CALL_FLAGS_NONE,
-                          -1,
-                          NULL,
-                          NULL,
-                          NULL);
-    g_variant_unref(new_status);
+        g_dbus_connection_call(connection,
+                            NULL,
+                            "/org/mpris/MediaPlayer2",
+                            "org.freedesktop.DBus.Properties",
+                            "Set",
+                            g_variant_new("(ssv)", "org.mpris.MediaPlayer2.Player", "PlaybackStatus", new_status),
+                            G_VARIANT_TYPE("(v)"),
+                            G_DBUS_CALL_FLAGS_NONE,
+                            -1,
+                            NULL,
+                            NULL,
+                            NULL);
+        g_variant_unref(new_status);
+    }
 }
 
 void cleanupMpris()
 {
-    if (registration_id > 0) {
+    if (registration_id > 0)
+    {
         g_dbus_connection_unregister_object(connection, registration_id);
     }
-    if (player_registration_id > 0) {
+
+    if (player_registration_id > 0)
+    {
         g_dbus_connection_unregister_object(connection, player_registration_id);
     }
 
-    if (bus_name_id > 0) {
+    if (bus_name_id > 0)
+    {
         g_bus_unown_name(bus_name_id);
     }
 
-    if (connection) {
+    if (connection)
+    {
         g_object_unref(connection);
-    }     
+    }
 
-    g_main_context_unref(global_main_context);  
+    if (global_main_context)
+    {
+        g_main_context_unref(global_main_context);
+    }
 }
-
 
 void tryLoadNext()
 {
@@ -1563,17 +1697,20 @@ void tryLoadNext()
         loadingdata.loadA = !usingSongDataA;
         loadSong(tryNextSong, &loadingdata);
     }
-    else {
+    else
+    {
         clearingErrors = false;
-    }    
+    }
 }
 
-gboolean mainloop_callback(gpointer data) {
+gboolean mainloop_callback(gpointer data)
+{
     calcElapsedTime();
     handleInput();
-   
+
     // Process GDBus events in the global_main_context
-    while (g_main_context_pending(global_main_context)) {
+    while (g_main_context_pending(global_main_context))
+    {
         g_main_context_iteration(global_main_context, FALSE);
     }
 
@@ -1604,23 +1741,23 @@ void loadFirstSong(Node *song)
     loadSong(song, &loadingdata);
     int i = 0;
     while (!loadedNextSong)
-    {        
+    {
         if (i != 0 && i % 1000 == 0 && uiEnabled)
             printf(".");
         i++;
-        usleep(10000);        
+        usleep(10000);
         fflush(stdout);
-    }   
+    }
 }
 
 void loadFirst(Node *song)
 {
     loadFirstSong(song);
 
-    while (songHasErrors && currentSong->next != NULL)    
+    while (songHasErrors && currentSong->next != NULL)
     {
         songHasErrors = false;
-        loadedNextSong = false;   
+        loadedNextSong = false;
         currentSong = currentSong->next;
         loadFirstSong(currentSong);
     }
@@ -1628,7 +1765,7 @@ void loadFirst(Node *song)
 
 void play(Node *song)
 {
-    updateLastInputTime();    
+    updateLastInputTime();
     pthread_mutex_init(&(loadingdata.mutex), NULL);
 
     loadFirst(song);
@@ -1637,7 +1774,7 @@ void play(Node *song)
     {
         printf("Couldn't play any of the songs.\n");
         return;
-    }    
+    }
 
     userData.currentFileIndex = 0;
     userData.currentPCMFrame = 0;
@@ -1652,29 +1789,29 @@ void play(Node *song)
     clock_gettime(CLOCK_MONOTONIC, &start_time);
     calculatePlayListDuration(&playlist);
 
-    main_loop = g_main_loop_new(NULL, FALSE);    
+    main_loop = g_main_loop_new(NULL, FALSE);
 
     GVariant *parameters = g_variant_new("(s)", "Playing");
     g_dbus_connection_emit_signal(connection,
-                               NULL,  
-                               "/org/mpris/MediaPlayer2",
-                               "org.mpris.MediaPlayer2.Player",
-                               "PlaybackStatusChanged",
-                               parameters,
-                               NULL);    
-      
+                                  NULL,
+                                  "/org/mpris/MediaPlayer2",
+                                  "org.mpris.MediaPlayer2.Player",
+                                  "PlaybackStatusChanged",
+                                  parameters,
+                                  NULL);
+
     g_timeout_add(100, mainloop_callback, NULL);
     g_main_loop_run(main_loop);
     g_main_loop_unref(main_loop);
 }
 
-void cleanupOnExit() 
+void cleanupOnExit()
 {
-    cleanupPlaybackDevice();    
+    cleanupPlaybackDevice();
     unloadSongData(&loadingdata.songdataA);
     unloadSongData(&loadingdata.songdataB);
     emitPlaybackStoppedMpris();
-    cleanupMpris();    
+    cleanupMpris();
     restoreTerminalMode();
     enableInputBuffering();
     setConfig();
@@ -1693,17 +1830,19 @@ void cleanupOnExit()
 
 void initMpris()
 {
-    if (global_main_context == NULL) {
+    if (global_main_context == NULL)
+    {
         global_main_context = g_main_context_new();
-    }    
+    }
 
-    GDBusNodeInfo* introspection_data = g_dbus_node_info_new_for_xml(introspection_xml, NULL);
-    connection = g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, NULL);  
+    GDBusNodeInfo *introspection_data = g_dbus_node_info_new_for_xml(introspection_xml, NULL);
+    connection = g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, NULL);
 
-    if (!connection) {
+    if (!connection)
+    {
         g_printerr("Failed to connect to D-Bus\n");
         return;
-    }        
+    }
 
     const char *app_name = "org.mpris.MediaPlayer2.cueMusic";
     char unique_name[256];
@@ -1711,15 +1850,16 @@ void initMpris()
 
     GError *error = NULL;
     bus_name_id = g_bus_own_name_on_connection(connection,
-                                                     unique_name,
-                                                     G_BUS_NAME_OWNER_FLAGS_NONE,
-                                                     on_bus_name_acquired,
-                                                     on_bus_name_lost,
-                                                     NULL,
-                                                     NULL);
+                                               unique_name,
+                                               G_BUS_NAME_OWNER_FLAGS_NONE,
+                                               on_bus_name_acquired,
+                                               on_bus_name_lost,
+                                               NULL,
+                                               NULL);
 
-    if (bus_name_id == 0) {
-        printf("Failed to own D-Bus name: %s\n", unique_name);        
+    if (bus_name_id == 0)
+    {
+        printf("Failed to own D-Bus name: %s\n", unique_name);
         return;
     }
 
@@ -1730,30 +1870,30 @@ void initMpris()
         &media_player_interface_vtable,
         NULL,
         NULL,
-        &error        
-    );    
+        &error);
 
-    if (!registration_id) {
+    if (!registration_id)
+    {
         g_printerr("Failed to register media player object: %s\n", error->message);
         g_error_free(error);
         return;
-    }    
+    }
 
     player_registration_id = g_dbus_connection_register_object(
         connection,
-        "/org/mpris/MediaPlayer2", 
+        "/org/mpris/MediaPlayer2",
         introspection_data->interfaces[1],
         &player_interface_vtable,
         NULL,
         NULL,
-        &error
-    );
+        &error);
 
-    if (!player_registration_id) {
+    if (!player_registration_id)
+    {
         g_printerr("Failed to register media player object: %s\n", error->message);
         g_error_free(error);
         return;
-    }         
+    }
 }
 
 void run()
@@ -1762,7 +1902,7 @@ void run()
     {
         originalPlaylist = malloc(sizeof(PlayList));
         *originalPlaylist = deepCopyPlayList(&playlist);
-    } 
+    }
 
     if (playlist.head == NULL)
     {
@@ -1775,14 +1915,14 @@ void run()
     initMpris();
 
     currentSong = playlist.head;
-    play(currentSong);    
+    play(currentSong);
 }
 
 void init()
 {
     disableInputBuffering();
     srand(time(NULL));
-    FILE* nullStream = freopen("/dev/null", "w", stderr);
+    FILE *nullStream = freopen("/dev/null", "w", stderr);
     (void)nullStream;
     initResize();
     enableScrolling();
@@ -1792,7 +1932,7 @@ void init()
     strcpy(loadingdata.filePath, "");
     loadingdata.songdataA = NULL;
     loadingdata.songdataB = NULL;
-    loadingdata.loadA = true;   
+    loadingdata.loadA = true;
 }
 
 void playMainPlaylist()
@@ -1821,45 +1961,50 @@ void playAll(int argc, char **argv)
     run();
 }
 
-void removeArgElement(char* argv[], int index, int* argc) {
-    if (index < 0 || index >= *argc) {
+void removeArgElement(char *argv[], int index, int *argc)
+{
+    if (index < 0 || index >= *argc)
+    {
         // Invalid index
         return;
     }
-    
+
     // Shift elements after the index
-    for (int i = index; i < *argc - 1; i++) {
+    for (int i = index; i < *argc - 1; i++)
+    {
         argv[i] = argv[i + 1];
     }
-    
+
     // Update the argument count
     (*argc)--;
 }
 
 void handleOptions(int *argc, char *argv[])
 {
-  const char* noUiOption = "--noui";
-  const char* noCoverOption = "--nocover";
-  int idx = -1;
-  for (int i = 0; i < *argc; i++) {
-    if (strcasestr(argv[i], noUiOption))
+    const char *noUiOption = "--noui";
+    const char *noCoverOption = "--nocover";
+    int idx = -1;
+    for (int i = 0; i < *argc; i++)
     {
-      uiEnabled = false;
-      idx = i;
+        if (strcasestr(argv[i], noUiOption))
+        {
+            uiEnabled = false;
+            idx = i;
+        }
     }
-  }
-  if (idx >= 0)
-    removeArgElement(argv, idx, argc);
-  idx = -1;    
-  for (int i = 0; i < *argc; i++) {
-    if (strcasestr(argv[i], noCoverOption))
+    if (idx >= 0)
+        removeArgElement(argv, idx, argc);
+    idx = -1;
+    for (int i = 0; i < *argc; i++)
     {
-      coverEnabled = false;
-      idx = i;
+        if (strcasestr(argv[i], noCoverOption))
+        {
+            coverEnabled = false;
+            idx = i;
+        }
     }
-  }
-  if (idx >= 0)
-    removeArgElement(argv, idx, argc);    
+    if (idx >= 0)
+        removeArgElement(argv, idx, argc);
 }
 
 int main(int argc, char *argv[])
