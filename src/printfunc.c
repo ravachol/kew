@@ -41,24 +41,6 @@ void printHelp()
     printf("\n");
 }
 
-int printAsciiLogo()
-{
-    int minWidth = 31;
-    int term_w, term_h;
-    getTermSize(&term_w, &term_h);
-    if (term_w < minWidth)
-        return 0;
-
-    printf("  $$$$$$$\\ $$\\   $$\\  $$$$$$\\\n");
-    printf(" $$  _____|$$ |  $$ |$$  __$$\\\n");
-    printf(" $$ /      $$ |  $$ |$$$$$$$$ |\n");
-    printf(" $$ |      $$ |  $$ |$$   ____|\n");
-    printf(" \\$$$$$$$\\ \\$$$$$$  |\\$$$$$$$\\\n");
-    printf("  \\_______| \\______/  \\_______|\n");
-    int printedRows = 6;
-    return printedRows;
-}
-
 int getDayDifference(const char *date)
 {
     struct tm tm_date;

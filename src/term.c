@@ -10,6 +10,8 @@ term.c
 
 */
 
+bool useProfileColors = true;
+
 volatile sig_atomic_t resizeFlag = 0;
 
 void getTermSizePixels(int *rows, int *columns)
@@ -127,14 +129,30 @@ void enableRawMode()
     tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
 }
 
+void setTextColor(int color)
+{
+    /*
+    - 0: Black
+    - 1: Red
+    - 2: Green
+    - 3: Yellow
+    - 4: Blue
+    - 5: Magenta
+    - 6: Cyan
+    - 7: White 
+    */
+    printf("\033[0;3%dm", color);
+}
+
 void setTextColorRGB(int r, int g, int b)
 {
-    printf("\033[38;2;%03u;%03u;%03um", r, g, b);
+    printf("\033[0;38;2;%03u;%03u;%03um", r, g, b);
 }
 
 void setTextColorRGB2(int r, int g, int b)
 {
-    printf("\033[0;38;2;%03u;%03u;%03um", r, g, b);
+    if (!useProfileColors)
+        printf("\033[0;38;2;%03u;%03u;%03um", r, g, b);
 }
 
 void disableRawMode()
@@ -382,10 +400,12 @@ int readInputSequence(char *seq, size_t seqSize)
     char c;
     ssize_t bytesRead;
 
-    // Read the first character
     bytesRead = read(STDIN_FILENO, &c, 1);
     if (bytesRead <= 0)
+    {
+        seq[0] = '\0';
         return 0;
+    }
 
     // If it's not an escape character, return it as a single-character sequence
     if (c != '\x1b')
@@ -398,7 +418,10 @@ int readInputSequence(char *seq, size_t seqSize)
     // Read additional characters
     bytesRead = read(STDIN_FILENO, seq, seqSize - 1);
     if (bytesRead <= 0)
+    {
+        seq[0] = '\0';
         return 0;
+    }
 
     seq[bytesRead] = '\0';
     return bytesRead;

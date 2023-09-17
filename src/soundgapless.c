@@ -27,6 +27,7 @@ bool paused = false;
 bool skipToNext = false;
 bool repeatEnabled = false;
 bool shuffleEnabled = false;
+UserData userData;
 
 pid_t pid = -1;
 pid_t pid2 = -1;
@@ -201,7 +202,7 @@ void pcm_file_data_source_read_pcm_frames(ma_data_source *pDataSource, void *pFr
         {
             currentFile = pPCMDataSource->fileB;
         }
-
+        
         ma_uint32 bytesRead = 0;
 
         if (currentFile != NULL)

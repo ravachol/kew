@@ -9,9 +9,11 @@ This file should contain only functions related to printing the player to the sc
 
 */
 
-const char VERSION[] = "1.0.7";
-const char VERSION_DATE[] = "2023-09-14";
-
+const char VERSION[] = "1.0.8";
+const char VERSION_DATE[] = "2023-09-18";
+const int TITLE_COLOR = 2;
+const int LOGO_COLOR = 3;
+const int LAST_ROW_COLOR = 4;
 volatile bool refresh = true;
 bool visualizerEnabled = true;
 bool coverEnabled = true;
@@ -59,6 +61,26 @@ void calcPreferredSize()
     calcIdealImgSize(&preferredWidth, &preferredHeight, (visualizerEnabled ? visualizerHeight : 0), calcMetadataHeight());
 }
 
+int printAsciiLogo()
+{
+    int minWidth = 31;
+    int term_w, term_h;
+    getTermSize(&term_w, &term_h);
+    if (term_w < minWidth)
+        return 0;
+    if (useProfileColors)
+        setTextColor(LOGO_COLOR);
+    printf("  $$$$$$$\\ $$\\   $$\\  $$$$$$\\\n");
+    printf(" $$  _____|$$ |  $$ |$$  __$$\\\n");
+    printf(" $$ /      $$ |  $$ |$$$$$$$$ |\n");
+    printf(" $$ |      $$ |  $$ |$$   ____|\n");
+    printf(" \\$$$$$$$\\ \\$$$$$$  |\\$$$$$$$\\\n");
+    printf("  \\_______| \\______/  \\_______|\n");
+    setDefaultTextColor();
+    int printedRows = 6;
+    return printedRows;
+}
+
 void printCover(SongData *songdata)
 {
     clearRestOfScreen();
@@ -90,6 +112,11 @@ void printCover(SongData *songdata)
 
 void setColor()
 {
+    if (useProfileColors)
+    {
+        setDefaultTextColor();
+        return;
+    }
     if (color.r == 0 && color.g == 0 && color.b == 0)
         setDefaultTextColor();
     else if (color.r >= 250 && color.g >= 250 && color.b >= 250)
@@ -153,18 +180,22 @@ void printBasicMetadata(TagSettings const *metadata)
     if (strlen(metadata->title) > 0)
     {
         PixelData pixel = increaseLuminosity(color, 100);
+
         if (pixel.r == 255 && pixel.g == 255 && pixel.b == 255)
         {
             PixelData gray;
             gray.r = 210;
             gray.g = 210;
             gray.b = 210;
-            setTextColorRGB2(gray.r, gray.g, gray.b);
+            setTextColorRGB(gray.r, gray.g, gray.b);
         }
         else
         {
-            setTextColorRGB2(pixel.r, pixel.g, pixel.b);
+            setTextColorRGB(pixel.r, pixel.g, pixel.b);
         }
+
+        if (useProfileColors)
+            setTextColor(TITLE_COLOR);
 
         printWithDelay(metadata->title, 9, maxWidth);
 
@@ -261,17 +292,17 @@ void printGlimmeringText(char *text, PixelData color)
         {
             if (i == brightIndex)
             {
-                setTextColorRGB2(vbright.r, vbright.g, vbright.b);
+                setTextColorRGB(vbright.r, vbright.g, vbright.b);
                 printf("%c", text[i]);
             }
             else if (i == brightIndex - 1 || i == brightIndex + 1)
             {
-                setTextColorRGB2(bright.r, bright.g, bright.b);
+                setTextColorRGB(bright.r, bright.g, bright.b);
                 printf("%c", text[i]);
             }
             else
             {
-                setTextColorRGB2(color.r, color.g, color.b);
+                setTextColorRGB(color.r, color.g, color.b);
                 printf("%c", text[i]);
             }
 
@@ -290,6 +321,9 @@ void printLastRow()
     if (term_w < minWidth)
         return;
     setTextColorRGB2(bgColor.r, bgColor.g, bgColor.b);
+
+    if (useProfileColors)
+        setTextColor(LAST_ROW_COLOR);
 
     char text[100] = " [F1 Playlist] [F2 Keys] [Q Quit]";
 
@@ -372,8 +406,7 @@ int showKeyBindings()
 {
     PixelData textColor = increaseLuminosity(color, 100);
     setTextColorRGB2(textColor.r, textColor.g, textColor.b);
-    int numPrintedRows = 1;
-    usleep(700000);    
+    int numPrintedRows = 1; 
     numPrintedRows += printAbout();
     setTextColorRGB2(color.r, color.g, color.b);        
     printf(" Use ↑, ↓ or h, l to adjust volume.\n");
@@ -414,7 +447,6 @@ int showPlaylist()
     printf("\n");
     numRows++;
     numPrintedRows++;
-    usleep(700000);
     PixelData textColor = increaseLuminosity(color, 100);
     setTextColorRGB2(textColor.r, textColor.g, textColor.b);
     printAbout();
@@ -453,6 +485,8 @@ int showPlaylist()
         char *lastDot = strrchr(filePath, '.');
         printf("\r");
         setTextColorRGB2(color.r, color.g, color.b);
+        if (useProfileColors)
+           setDefaultTextColor();        
         if (lastSlash != NULL && lastDot != NULL && lastDot > lastSlash)
         {
             char copiedString[256];
@@ -462,6 +496,10 @@ int showPlaylist()
             if (strcmp(filePath, currentSong->song.filePath) == 0)
             {
                 setTextColorRGB2(textColor.r, textColor.g, textColor.b);
+                if (useProfileColors)
+                    setTextColor(TITLE_COLOR);
+                else 
+                    setTextColorRGB2(textColor.r, textColor.g, textColor.b);
                 foundCurrentSong = true;
             }
             shortenString(copiedString, term_w - 5);
@@ -481,6 +519,8 @@ int showPlaylist()
             numRows++;
 
             setTextColorRGB2(color.r, color.g, color.b);
+            if (useProfileColors)
+                setDefaultTextColor();
         }
         node = node->next;
     }

@@ -14,6 +14,7 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
     strncpy(settings.coverEnabled, "1", sizeof(settings.coverEnabled));
     strncpy(settings.coverAnsi, "0", sizeof(settings.coverAnsi));
     strncpy(settings.visualizerEnabled, "0", sizeof(settings.visualizerEnabled));
+    strncpy(settings.useProfileColors, "0", sizeof(settings.useProfileColors));
 
     if (pairs == NULL)
     {
@@ -39,7 +40,11 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         else if (strcmp(stringToLower(pair->key), "visualizerenabled") == 0)
         {
             snprintf(settings.visualizerEnabled, sizeof(settings.visualizerEnabled), "%s", pair->value);
-        }    
+        } 
+        else if (strcmp(stringToLower(pair->key), "useprofilecolors") == 0)
+        {
+            snprintf(settings.useProfileColors, sizeof(settings.useProfileColors), "%s", pair->value);
+        }               
         else if (strcmp(stringToLower(pair->key), "visualizerheight") == 0)
         {
             snprintf(settings.visualizerHeight, sizeof(settings.visualizerHeight), "%s", pair->value);
@@ -146,6 +151,7 @@ void getConfig()
     coverEnabled = (settings.coverEnabled[0] == '1');
     coverAnsi = (settings.coverAnsi[0] == '1');
     visualizerEnabled = (settings.visualizerEnabled[0] == '1');
+    useProfileColors = (settings.useProfileColors[0] == '1');
     int temp = atoi(settings.visualizerHeight);
     if (temp > 0)
         visualizerHeight = temp;
@@ -177,6 +183,8 @@ void setConfig()
         coverAnsi ? strcpy(settings.coverAnsi, "1") : strcpy(settings.coverAnsi, "0");
     if (settings.visualizerEnabled[0] == '\0')
         visualizerEnabled ? strcpy(settings.visualizerEnabled, "1") : strcpy(settings.visualizerEnabled, "0");    
+    if (settings.useProfileColors[0] == '\0')
+        useProfileColors ? strcpy(settings.useProfileColors, "1") : strcpy(settings.useProfileColors, "0");            
     if (settings.visualizerHeight[0] == '\0')
     {
         sprintf(settings.visualizerHeight, "%d", visualizerHeight);
@@ -188,6 +196,7 @@ void setConfig()
     settings.coverAnsi[1] = '\0';
     settings.visualizerEnabled[1] = '\0';
     settings.visualizerHeight[5] = '\0';
+    settings.useProfileColors[1] = '\0';
 
     // Write the settings to the file
     fprintf(file, "path=%s\n", settings.path);
@@ -196,6 +205,7 @@ void setConfig()
     fprintf(file, "coverAnsi=%s\n", settings.coverAnsi);
     fprintf(file, "visualizerEnabled=%s\n", settings.visualizerEnabled);
     fprintf(file, "visualizerHeight=%s\n", settings.visualizerHeight);    
+    fprintf(file, "useProfileColors=%s\n", settings.useProfileColors);
 
     fclose(file);
     free(filepath);
