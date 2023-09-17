@@ -88,7 +88,6 @@ double totalPauseSeconds = 0.0;
 volatile bool loadedNextSong = false;
 volatile bool songLoading = false;
 
-UserData userData;
 LoadingThreadData loadingdata;
 
 Node *nextSong = NULL;
@@ -145,7 +144,7 @@ bool isCooldownElapsed()
     return elapsedMilliseconds >= COOLDOWN_DURATION;
 }
 
-void updateLastInputTime()
+void updateLastSongSwitchTime()
 {
     clock_gettime(CLOCK_MONOTONIC, &lastInputTime);
 }
@@ -166,11 +165,27 @@ struct Event processInput()
     if (isCooldownElapsed() && !eventProcessed)
         cooldownElapsed = true;
 
-    char seq[4];
     int seqLength = 0;
+    #define MAX_SEQ_LEN 1024 // Maximum length of sequence buffer
+    #define MAX_TMP_SEQ_LEN 256 // Maximum length of temporary sequence buffer
+
+    char seq[MAX_SEQ_LEN]; 
+    seq[0] = '\0'; // Set initial value
+
     while (isInputAvailable())
     {
-        seqLength = readInputSequence(seq, sizeof(seq));
+        char tmpSeq[MAX_TMP_SEQ_LEN];
+
+        seqLength = seqLength + readInputSequence(tmpSeq, sizeof(tmpSeq));
+        
+        if(seqLength <= 0) // If no sequence read, continue
+            continue;
+                
+        if(strlen(seq) + strlen(tmpSeq) >= MAX_SEQ_LEN){
+            break;
+        } 
+
+        strcat(seq, tmpSeq);
         usleep(10000);
     }
 
@@ -181,7 +196,6 @@ struct Event processInput()
 
     if (seqLength > 1)
     { // 0x1B +
-
         if (strcmp(seq, "[A") == 0)
         {
             // Arrow Up
@@ -211,6 +225,32 @@ struct Event processInput()
         {
             // F2 key
             event.type = EVENT_SHOWKEYBIDINGS;
+        }
+        else {
+            for (int i = 0; i < MAX_SEQ_LEN; i++)
+            {         
+                if (isdigit(seq[i]))
+                {
+                    digitsPressed[digitsPressedCount++] = seq[i];
+                }
+                else
+                {
+                    if (seq[i] == '\0')
+                        break;
+                        
+                    if (seq[i] != 'G' && seq[i] != 'g' && seq[i] != '\n')
+                    {
+                        memset(digitsPressed, '\0', sizeof(digitsPressed));
+                        digitsPressedCount = 0;
+                        break;
+                    }
+                    else
+                    {
+                        event.type = EVENT_GOTOSONG;
+                        break;
+                    }
+                }
+            }
         }
     }
     else if (isdigit(event.key))
@@ -306,12 +346,10 @@ struct Event processInput()
     // cooldown is for next and previous only
     if (!cooldownElapsed && (event.type == EVENT_NEXT || event.type == EVENT_PREV))
         event.type = EVENT_NONE;
-    else
-        updateLastInputTime();
 
     if (event.type != EVENT_GOTOSONG && event.type != EVENT_NONE)
     {
-        digitsPressed[0] = '\0';
+        memset(digitsPressed, '\0', sizeof(digitsPressed));
         digitsPressedCount = 0;
     }
 
@@ -449,12 +487,23 @@ void freeAudioBuffer()
     }
 }
 
+SongData* getCurrentSongData()
+{
+    if (usingSongDataA)
+        return loadingdata.songdataA;
+    else
+        return loadingdata.songdataB;
+}
+
 void assignLoadedData()
 {
     if (usingSongDataA)
     {
         if (loadingdata.songdataB != NULL)
+        {
             userData.pcmFileB.filename = loadingdata.songdataB->pcmFilePath;
+            userData.songdataB = loadingdata.songdataB;
+        }
         else
             userData.pcmFileB.filename = NULL;
         userData.pcmFileB.file = NULL;
@@ -462,7 +511,10 @@ void assignLoadedData()
     else
     {
         if (loadingdata.songdataA != NULL)
+        {
             userData.pcmFileA.filename = loadingdata.songdataA->pcmFilePath;
+            userData.songdataA = loadingdata.songdataA;
+        }
         else
             userData.pcmFileA.filename = NULL;
         userData.pcmFileA.file = NULL;
@@ -695,6 +747,7 @@ void skipToNextSong()
         return;
 
     skipping = true;
+    updateLastSongSwitchTime();
     skip();
 }
 
@@ -716,16 +769,9 @@ void skipToPrevSong()
     forceSkip = false;
 
     currentSong = currentSong->prev;
-    if (usingSongDataA)
-    {
-        loadingdata.loadA = false;
-        unloadSongData(&loadingdata.songdataB);
-    }
-    else
-    {
-        loadingdata.loadA = true;
-        unloadSongData(&loadingdata.songdataA);
-    }
+
+    loadingdata.loadA = !usingSongDataA;
+    unloadSongData(usingSongDataA ? &loadingdata.songdataB : &loadingdata.songdataA);
 
     loadSong(currentSong, &loadingdata);
     while (!loadedNextSong && !loadingFailed)
@@ -741,6 +787,7 @@ void skipToPrevSong()
     }
 
     clock_gettime(CLOCK_MONOTONIC, &start_time);
+    updateLastSongSwitchTime();
     skip();
 }
 
@@ -757,16 +804,9 @@ void skipToNumberedSong(int songNumber)
     forceSkip = false;
 
     currentSong = getSongByNumber(songNumber);
-    if (usingSongDataA)
-    {
-        loadingdata.loadA = false;
-        unloadSongData(&loadingdata.songdataB);
-    }
-    else
-    {
-        loadingdata.loadA = true;
-        unloadSongData(&loadingdata.songdataA);
-    }
+    
+    loadingdata.loadA = !usingSongDataA;
+    unloadSongData(usingSongDataA ? &loadingdata.songdataB : &loadingdata.songdataA);
 
     loadSong(currentSong, &loadingdata);
     while (!loadedNextSong && !loadingFailed)
@@ -782,6 +822,7 @@ void skipToNumberedSong(int songNumber)
     }
 
     clock_gettime(CLOCK_MONOTONIC, &start_time);
+    updateLastSongSwitchTime();    
     skip();
 }
 
@@ -802,11 +843,8 @@ void calcElapsedTime()
 }
 
 void refreshPlayer()
-{
-    if (usingSongDataA)
-        printPlayer(loadingdata.songdataA, elapsedSeconds, &playlist);
-    else
-        printPlayer(loadingdata.songdataB, elapsedSeconds, &playlist);
+{   
+    printPlayer(usingSongDataA ? loadingdata.songdataA : loadingdata.songdataB, elapsedSeconds, &playlist);
 }
 
 void loadAudioData()
@@ -823,7 +861,7 @@ void loadAudioData()
 void handleGotoSong()
 {
     int songNumber = atoi(digitsPressed);
-    digitsPressed[0] = '\0';
+    memset(digitsPressed, '\0', sizeof(digitsPressed));
     digitsPressedCount = 0;
     skipToNumberedSong(songNumber);
 }
@@ -942,10 +980,7 @@ void updatePlayer()
         {
             SongData *currentSongData = NULL;
 
-            if (usingSongDataA)
-                currentSongData = loadingdata.songdataA;
-            else
-                currentSongData = loadingdata.songdataB;
+            currentSongData = getCurrentSongData();
 
             // update mpris
             emitMetadataChanged(
@@ -1321,10 +1356,7 @@ static gboolean get_metadata(GDBusConnection *connection, const gchar *sender,
 
     SongData *currentSongData = NULL;
 
-    if (usingSongDataA)
-        currentSongData = loadingdata.songdataA;
-    else
-        currentSongData = loadingdata.songdataB;
+    currentSongData = getCurrentSongData();
 
     GVariantBuilder metadata_builder;
     g_variant_builder_init(&metadata_builder, G_VARIANT_TYPE_DICTIONARY);
@@ -1622,19 +1654,6 @@ static const GDBusInterfaceVTable player_interface_vtable = {
         handle_seek,
         handle_set_position}};
 
-void emit_playback_status_changed_signal(GDBusConnection *connection, const gchar *object_path, const gchar *new_status)
-{
-    GVariant *signal_params = g_variant_new("(s)", new_status);
-
-    g_dbus_connection_emit_signal(connection,
-                                  NULL,
-                                  "/org/mpris/MediaPlayer2",
-                                  "org.mpris.MediaPlayer2.Player",
-                                  "PlaybackStatusChanged",
-                                  g_variant_new("(s)", new_status),
-                                  NULL);
-}
-
 void emitPlaybackStoppedMpris()
 {
     if (connection)
@@ -1729,6 +1748,7 @@ gboolean mainloop_callback(gpointer data)
 
     if (isPlaybackDone())
     {
+        updateLastSongSwitchTime();
         prepareNextSong();
     }
 
@@ -1770,7 +1790,7 @@ void loadFirst(Node *song)
 
 void play(Node *song)
 {
-    updateLastInputTime();
+    updateLastSongSwitchTime();
     pthread_mutex_init(&(loadingdata.mutex), NULL);
 
     loadFirst(song);
@@ -1784,6 +1804,7 @@ void play(Node *song)
     userData.currentFileIndex = 0;
     userData.currentPCMFrame = 0;
     userData.pcmFileA.filename = loadingdata.songdataA->pcmFilePath;
+    userData.songdataA = loadingdata.songdataA;
 
     createAudioDevice(&userData);
 
@@ -1813,9 +1834,9 @@ void play(Node *song)
 void cleanupOnExit()
 {
     cleanupPlaybackDevice();
+    emitPlaybackStoppedMpris();    
     unloadSongData(&loadingdata.songdataA);
     unloadSongData(&loadingdata.songdataB);
-    emitPlaybackStoppedMpris();
     cleanupMpris();
     restoreTerminalMode();
     enableInputBuffering();
@@ -1940,7 +1961,7 @@ void init()
     strcpy(loadingdata.filePath, "");
     loadingdata.songdataA = NULL;
     loadingdata.songdataB = NULL;
-    loadingdata.loadA = true;
+    loadingdata.loadA = true;    
 
     #ifdef DEBUG
         g_setenv("G_MESSAGES_DEBUG", "all", TRUE);
@@ -2030,7 +2051,6 @@ void handleOptions(int *argc, char *argv[])
 int main(int argc, char *argv[])
 {
     atexit(cleanupOnExit);
-
     getConfig();
     loadMainPlaylist(settings.path);
 

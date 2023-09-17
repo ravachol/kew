@@ -6,6 +6,7 @@
 #include <stdbool.h>
 #include <unistd.h>
 #include <sys/wait.h>
+#include "songloader.h"
 
 extern ma_int32 *g_audioBuffer;
 extern bool skipping;
@@ -25,6 +26,8 @@ typedef struct
 {
     PCMFile pcmFileA;
     PCMFile pcmFileB;
+    SongData* songdataA;
+    SongData* songdataB;
     ma_uint32 currentFileIndex;
     ma_uint32 currentPCMFrame;
     int endOfListReached;
@@ -50,6 +53,7 @@ typedef struct
 } PCMFileDataSource;
 #endif
 
+extern UserData userData;
 extern bool repeatEnabled;
 extern bool shuffleEnabled;
 

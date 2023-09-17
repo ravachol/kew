@@ -274,7 +274,9 @@ void printSpectrum(int height, int width, float *magnitudes, PixelData color)
 
         if (color.r != 0 || color.g != 0 || color.b != 0)
         {
-            if (j == height)
+            if (!useProfileColors)
+            {
+                if (j == height)
             {
                 printf("\033[38;2;%d;%d;%dm", 255, 255, 255);
             }
@@ -288,6 +290,8 @@ void printSpectrum(int height, int width, float *magnitudes, PixelData color)
                 color = decreaseLuminosity(color, 25);
                 printf("\033[38;2;%d;%d;%dm", color.r, color.g, color.b);
             }
+            }
+            
         }
         else
         {
@@ -311,7 +315,7 @@ void printSpectrum(int height, int width, float *magnitudes, PixelData color)
     }
     printf("\r");
     color = decreaseLuminosity(color, 25);
-    printf("\033[38;2;%d;%d;%dm", color.r, color.g, color.b);
+    if (!useProfileColors) printf("\033[38;2;%d;%d;%dm", color.r, color.g, color.b);
     for (int i = 0; i < width; i++)
     {
         printf(" █");

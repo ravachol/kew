@@ -7,7 +7,6 @@
 #include "cache.h"
 #include "chafafunc.h"
 #include "albumart.h"
-#include "soundgapless.h"
 
 #ifndef KEYVALUEPAIR_STRUCT
 #define KEYVALUEPAIR_STRUCT

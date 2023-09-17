@@ -16,6 +16,7 @@
 #include <unistd.h>
 #include <signal.h>
 #include <bits/sigaction.h>
+#include <stdbool.h>
 
 #define ANSI_COLOR_CLEARLINE "\x1b[2K\r"
 #define ANSI_COLOR_WHITE "\x1b[37m"
@@ -24,6 +25,7 @@
 #define ANSI_SET_CURSOR_POS "\033[%d;%dH"
 
 extern volatile sig_atomic_t resizeFlag;
+extern bool useProfileColors;
 
 void getTermSizePixels(int *width, int *height);
 
@@ -38,6 +40,8 @@ void getCursorPosition2(int *row, int *col);
 void enableRawMode();
 
 void set_blocking_mode(int fd, int should_block);
+
+void setTextColor(int color);
 
 void setTextColorRGB(int r, int g, int b);
 

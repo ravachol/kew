@@ -67,9 +67,9 @@ int loadPcmAudio(SongData *songdata)
     generateTempFilePath(songdata->pcmFilePath, "temp", ".pcm");
     convertToPcmFile(songdata->filePath, songdata->pcmFilePath);
     int count = 0;
-    while (!existsFile(songdata->pcmFilePath) && count < 3)
+    while (!existsFile(songdata->pcmFilePath) && count < 4)
     {
-        usleep(300000);
+        usleep(600000);
         count++;
     }
 
