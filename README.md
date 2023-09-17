@@ -179,7 +179,7 @@ Put single-quotes inside quotes "guns n' roses"
 * <kbd>G</kbd> go to last song.
 * <kbd>Q</kbd> to quit.
 
-cue will create a config file, .cue.conf, in your home dir. There you can change for instance starting directory, number of bars in the visualizer and whether to use the album cover for colors, or your terminal profile colors. To edit this file please make sure you quit cue first.
+cue will create a config file, .cue.conf, in your home dir. There you can change for instance starting directory, number of bars in the visualizer and whether to use the album cover for color (default), or your regular color scheme. To edit this file please make sure you quit cue first.
 
 ## License
 
