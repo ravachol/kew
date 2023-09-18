@@ -187,15 +187,15 @@ void printBasicMetadata(TagSettings const *metadata)
             gray.r = 210;
             gray.g = 210;
             gray.b = 210;
-            setTextColorRGB(gray.r, gray.g, gray.b);
+            printf("\033[1;38;2;%03u;%03u;%03um", gray.r, gray.g, gray.b);
         }
         else
         {
-            setTextColorRGB(pixel.r, pixel.g, pixel.b);
+            printf("\033[1;38;2;%03u;%03u;%03um", pixel.r, pixel.g, pixel.b);
         }
 
         if (useProfileColors)
-            setTextColor(TITLE_COLOR);
+            printf("\033[1;3%dm", TITLE_COLOR);
 
         printWithDelay(metadata->title, 9, maxWidth);
 
@@ -301,8 +301,11 @@ void printGlimmeringText(char *text, PixelData color)
                 printf("%c", text[i]);
             }
             else
-            {
-                setTextColorRGB(color.r, color.g, color.b);
+            {                
+                if (useProfileColors)
+                    setDefaultTextColor();
+                else
+                    setTextColorRGB(color.r, color.g, color.b);
                 printf("%c", text[i]);
             }
 
@@ -486,7 +489,8 @@ int showPlaylist()
         printf("\r");
         setTextColorRGB2(color.r, color.g, color.b);
         if (useProfileColors)
-           setDefaultTextColor();        
+           setDefaultTextColor();       
+
         if (lastSlash != NULL && lastDot != NULL && lastDot > lastSlash)
         {
             char copiedString[256];
@@ -494,12 +498,11 @@ int showPlaylist()
             copiedString[lastDot - lastSlash - 1] = '\0';
             removeUnneededChars(copiedString);
             if (strcmp(filePath, currentSong->song.filePath) == 0)
-            {
-                setTextColorRGB2(textColor.r, textColor.g, textColor.b);
+            {    
                 if (useProfileColors)
-                    setTextColor(TITLE_COLOR);
+                    printf("\033[1;3%dm", TITLE_COLOR);
                 else 
-                    setTextColorRGB2(textColor.r, textColor.g, textColor.b);
+                     printf("\033[1;38;2;%03u;%03u;%03um",textColor.r, textColor.g, textColor.b);
                 foundCurrentSong = true;
             }
             shortenString(copiedString, term_w - 5);
