@@ -4,7 +4,7 @@ LIBS = -lpthread -lrt -pthread -lm -lfreeimage -lglib-2.0 `pkg-config --libs gio
 
 OBJDIR = src/obj
 
-SRCS = src/soundgapless.c src/songloader.c src/file.c src/chafafunc.c src/cache.c src/metadata.c src/printfunc.c src/playlist.c src/stringfunc.c src/term.c  src/settings.c src/player.c src/albumart.c src/visuals.c src/cue.c
+SRCS = src/soundgapless.c src/songloader.c src/file.c src/chafafunc.c src/cache.c src/metadata.c src/playlist.c src/stringfunc.c src/term.c  src/settings.c src/player.c src/albumart.c src/visuals.c src/cue.c
 OBJS = $(SRCS:src/%.c=$(OBJDIR)/%.o)
 
 MAN_PAGE = cue.1 

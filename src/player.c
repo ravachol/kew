@@ -9,6 +9,16 @@ This file should contain only functions related to printing the player to the sc
 
 */
 
+#ifndef PIXELDATA_STRUCT
+#define PIXELDATA_STRUCT
+typedef struct
+{
+    unsigned char r;
+    unsigned char g;
+    unsigned char b;
+} PixelData;
+#endif
+
 const char VERSION[] = "1.0.8";
 const char VERSION_DATE[] = "2023-09-18";
 const int TITLE_COLOR = 2;
@@ -61,6 +71,35 @@ void calcPreferredSize()
     calcIdealImgSize(&preferredWidth, &preferredHeight, (visualizerEnabled ? visualizerHeight : 0), calcMetadataHeight());
 }
 
+void printHelp()
+{
+    printf("cue - a command-line music player.\n");
+    printf("\n");
+    printf("Usage:    cue path \"path to music library\"\n");
+    printf("          (Saves the music library path. Use this the first time. Ie: cue path \"/home/joe/Music/\")\n");
+    printf("          cue (no argument, loads all your songs up to 10 000)\n");
+    printf("          cue <song name,directory or playlist words>\n");
+    printf("          cue --help, -? or -h\n");
+    printf("          cue --version or -v\n");
+    printf("          cue dir <album name> (Sometimes it's neccessary to specify it's a directory you want)\n");
+    printf("          cue song <song name> \n");
+    printf("          cue list <m3u list name> \n");
+    printf("          cue shuffle <dir name> (random and rand works too)\n");
+    printf("          cue artistA:artistB (plays artistA and artistB shuffled)");
+    printf("\n");
+    printf("Examples: cue moon (Plays the first song or directory it finds that has the word moon, ie moonlight sonata)\n");
+    printf("          play path \"/home/user/Music\"\n");
+    printf("\n");
+    printf("cue returns the first directory or file whose name matches the string you provide. ");
+    printf("Use quotation marks when providing a path with blank spaces in it or if it's a music file that contains single quotes (').\n");
+    printf("Use arrow keys or j/k to play the next or previous track in the playlist. Press space or p to pause.\n");
+    printf("Press F1 to display playlist.\n");    
+    printf("Press q to quit.\n");
+    printf("\n");
+    printf("To run it with colors displaying correctly, you need a terminal that can handle TrueColor.\n");
+    printf("\n");
+}
+
 int printAsciiLogo()
 {
     int minWidth = 31;
@@ -79,6 +118,22 @@ int printAsciiLogo()
     setDefaultTextColor();
     int printedRows = 6;
     return printedRows;
+}
+
+void printVersion(const char *version)
+{  
+    printf(" Version %s.\n", version);
+}
+
+int getYear(const char *dateString)
+{
+    int year;
+
+    if (sscanf(dateString, "%d", &year) != 1)
+    {
+        return -1;
+    }
+    return year;
 }
 
 void printCover(SongData *songdata)

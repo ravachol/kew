@@ -41,7 +41,6 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include "soundgapless.h"
 #include "stringfunc.h"
 #include "settings.h"
-#include "printfunc.h"
 #include "playlist.h"
 #include "events.h"
 #include "file.h"

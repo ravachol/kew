@@ -7,7 +7,6 @@
 #include <unistd.h>
 #include "albumart.h"
 #include "term.h"
-#include "printfunc.h"
 #include "visuals.h"
 #include "playlist.h"
 #include "songloader.h"
