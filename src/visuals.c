@@ -277,21 +277,20 @@ void printSpectrum(int height, int width, float *magnitudes, PixelData color)
             if (!useProfileColors)
             {
                 if (j == height)
-            {
-                printf("\033[38;2;%d;%d;%dm", 255, 255, 255);
+                {
+                    printf("\033[38;2;%d;%d;%dm", 255, 255, 255);
+                }
+                else if (j == height - 1)
+                {
+                    color = increaseLuminosity(color, 60);
+                    printf("\033[38;2;%d;%d;%dm", color.r, color.g, color.b);
+                }
+                else
+                {
+                    color = decreaseLuminosity(color, 25);
+                    printf("\033[38;2;%d;%d;%dm", color.r, color.g, color.b);
+                }
             }
-            else if (j == height - 1)
-            {
-                color = increaseLuminosity(color, 60);
-                printf("\033[38;2;%d;%d;%dm", color.r, color.g, color.b);
-            }
-            else
-            {
-                color = decreaseLuminosity(color, 25);
-                printf("\033[38;2;%d;%d;%dm", color.r, color.g, color.b);
-            }
-            }
-            
         }
         else
         {
