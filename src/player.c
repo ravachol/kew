@@ -302,9 +302,9 @@ void printGlimmeringText(char *text, PixelData color)
             }
             else
             {                
-                if (useProfileColors)
-                    setDefaultTextColor();
-                else
+                //if (useProfileColors)
+                //    setDefaultTextColor();
+                //else
                     setTextColorRGB(color.r, color.g, color.b);
                 printf("%c", text[i]);
             }
@@ -323,10 +323,10 @@ void printLastRow()
     getTermSize(&term_w, &term_h);
     if (term_w < minWidth)
         return;
-    setTextColorRGB2(bgColor.r, bgColor.g, bgColor.b);
+    setTextColorRGB(bgColor.r, bgColor.g, bgColor.b);
 
-    if (useProfileColors)
-        setTextColor(LAST_ROW_COLOR);
+    //if (useProfileColors)
+    //    setTextColor(LAST_ROW_COLOR);
 
     char text[100] = " [F1 Playlist] [F2 Keys] [Q Quit]";
 
