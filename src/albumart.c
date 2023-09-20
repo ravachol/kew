@@ -161,7 +161,7 @@ char *findFirstPathWithAudioFile(const char *path)
     return audioDirectory;
 }
 
-char *findLargestImageFileRecursive(const char *directoryPath, char *largestImageFile, off_t *largestFileSize)
+char *findLargestImageFile(const char *directoryPath, char *largestImageFile, off_t *largestFileSize)
 {
     DIR *directory = opendir(directoryPath);
     struct dirent *entry;
@@ -184,18 +184,7 @@ char *findLargestImageFileRecursive(const char *directoryPath, char *largestImag
             continue;
         }
 
-        if (S_ISDIR(fileStats.st_mode))
-        {
-            // Skip "." and ".." directories
-            if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
-            {
-                continue;
-            }
-
-            // Recursive call to process subdirectories
-            largestImageFile = findLargestImageFileRecursive(filePath, largestImageFile, largestFileSize);
-        }
-        else if (S_ISREG(fileStats.st_mode))
+        if (S_ISREG(fileStats.st_mode))
         {
             // Check if the entry is an image file and has a larger size than the current largest image file
             char *extension = strrchr(entry->d_name, '.');

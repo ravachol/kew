@@ -24,6 +24,7 @@ const char VERSION_DATE[] = "2023-09-18";
 const int TITLE_COLOR = 2;
 const int LOGO_COLOR = 3;
 const int LAST_ROW_COLOR = 4;
+const int VERSION_COLOR = 6;
 volatile bool refresh = true;
 bool visualizerEnabled = true;
 bool coverEnabled = true;
@@ -115,13 +116,14 @@ int printAsciiLogo()
     printf(" $$ |      $$ |  $$ |$$   ____|\n");
     printf(" \\$$$$$$$\\ \\$$$$$$  |\\$$$$$$$\\\n");
     printf("  \\_______| \\______/  \\_______|\n");
-    setDefaultTextColor();
     int printedRows = 6;
     return printedRows;
 }
 
 void printVersion(const char *version)
 {  
+    if (useProfileColors)
+        setTextColor(VERSION_COLOR);
     printf(" Version %s.\n", version);
 }
 
@@ -463,10 +465,12 @@ void shortenString(char *str, size_t width)
 int showKeyBindings()
 {
     PixelData textColor = increaseLuminosity(color, 100);
-    setTextColorRGB2(textColor.r, textColor.g, textColor.b);
     int numPrintedRows = 1; 
     numPrintedRows += printAbout();
-    setTextColorRGB2(color.r, color.g, color.b);        
+        if (useProfileColors)
+        setDefaultTextColor();
+    else
+        setTextColorRGB2(textColor.r, textColor.g, textColor.b);       
     printf(" Use ↑, ↓ or h, l to adjust volume.\n");
     printf(" Use ←, → or j, k keys to switch tracks.\n");;
     printf(" Space to toggle pause.\n");

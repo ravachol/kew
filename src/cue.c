@@ -334,6 +334,9 @@ struct Event processInput()
         case 'x':
             event.type = EVENT_EXPORTPLAYLIST;
             break;
+        case 'i':
+            event.type = EVENT_TOGGLE_PROFILE_COLORS;
+            break;
         case ' ':
             event.type = EVENT_PLAY_PAUSE;
             break;
@@ -400,6 +403,14 @@ void toggleBlocks()
         clearScreen();
         refresh = true;
     }
+}
+
+void toggleColors()
+{
+    useProfileColors = !useProfileColors;
+    strcpy(settings.useProfileColors, useProfileColors ? "1" : "0");    
+    clearScreen();
+    refresh = true;
 }
 
 void toggleCovers()
@@ -752,11 +763,6 @@ void skipToNextSong()
 
 void skipToPrevSong()
 {
-    if (currentSong->prev == NULL)
-    {
-        return;
-    }
-
     if (songLoading || !loadedNextSong || skipping || clearingErrors)
         if (!forceSkip)
             return;
@@ -767,7 +773,12 @@ void skipToPrevSong()
     songLoading = true;
     forceSkip = false;
 
-    currentSong = currentSong->prev;
+    if (currentSong->prev == NULL)
+    {
+        currentSong;
+    }
+    else
+        currentSong = currentSong->prev;
 
     loadingdata.loadA = !usingSongDataA;
     unloadSongData(usingSongDataA ? &loadingdata.songdataB : &loadingdata.songdataA);
@@ -914,6 +925,9 @@ void handleInput()
     case EVENT_SHUFFLE:
         toggleShuffle();
         break;
+    case EVENT_TOGGLE_PROFILE_COLORS:
+        toggleColors();
+        break;        
     case EVENT_QUIT:
         quit();
         break;

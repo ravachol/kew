@@ -9,7 +9,7 @@
 
 int extractCoverCommand(const char *inputFilePath, const char *outputFilePath);
 
-char *findLargestImageFileRecursive(const char *directoryPath, char *largestImageFile, off_t *largestFileSize);
+char *findLargestImageFile(const char *directoryPath, char *largestImageFile, off_t *largestFileSize);
 
 int displayAlbumArt(const char *filepath, int width, int height, bool coverAnsi, PixelData *brightPixel);
 
