@@ -161,14 +161,15 @@ cue . (loads the main cue playlist, see 'Other Functions')
 Put single-quotes inside quotes "guns n' roses"
 
 #### Key Bindings
-* Use <kbd>↑</kbd>, <kbd>↓</kbd> or <kbd>l</kbd>, <kbd>h</kbd> keys to adjust the volume. 
-* Use <kbd>←</kbd>, <kbd>→</kbd> or <kbd>j</kbd>, <kbd>k</kbd> keys to switch tracks.
+* Use <kbd>↑</kbd>, <kbd>↓</kbd> or <kbd>L</kbd>, <kbd>H</kbd> keys to adjust the volume. 
+* Use <kbd>←</kbd>, <kbd>→</kbd> or <kbd>J</kbd>, <kbd>K</kbd> keys to switch tracks.
 
-* <kbd>Space</kbd> to toggle pause.
+* <kbd>Space</kbd>, <kbd>P</kbd> to toggle pause.
 * <kbd>F1</kbd> to show/hide the playlist and information about cue.
 * <kbd>F2</kbd> to show/hide key bindings.
 * <kbd>V</kbd> to toggle the spectrum visualizer.
 * <kbd>C</kbd> to toggle album covers.
+* <kbd>I</kbd> to switch between using your regular color scheme or colors derived from the track cover.
 * <kbd>B</kbd> to toggle album covers drawn in ascii or as a normal image.
 * <kbd>R</kbd> to repeat the current song.
 * <kbd>S</kbd> to shuffle the playlist.
@@ -179,7 +180,9 @@ Put single-quotes inside quotes "guns n' roses"
 * <kbd>G</kbd> go to last song.
 * <kbd>Q</kbd> to quit.
 
-cue will create a config file, .cue.conf, in your home dir. There you can change for instance starting directory, number of bars in the visualizer and whether to use the album cover for color (default), or your regular color scheme. To edit this file please make sure you quit cue first.
+## Configuration
+
+cue will create a config file, .cue.conf, in your home directory. There you can change for instance starting directory, number of bars in the visualizer and whether to use the album cover for color (default), or your regular color scheme. To edit this file please make sure you quit cue first.
 
 ## License
 
