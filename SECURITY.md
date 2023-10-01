@@ -1,5 +1,3 @@
-This document outlines security procedures and general policies for cue.
-
 ## Reporting a Bug
 
 If you find a security related issue, please contact us at cuemusicplayer@proton.me.
