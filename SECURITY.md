@@ -2,15 +2,7 @@ This document outlines security procedures and general policies for cue.
 
 ## Reporting a Bug
 
-We are grateful for the testing and analysis carried out by the community. All
-bug reports are taken seriously.
-
-Normally, bugs can be filed directly in the public GitHub issue tracker, but if
-you believe there is a security impact, please instead contact us at cuemusicplayer@proton.me.
-
-We will most likely respond within 48 hours, but since cue is a volunteer
-project, please allow up to a week for those rare times we're away from the
-keyboard or general connectivity.
+If you find a security related issue, please contact us at cuemusicplayer@proton.me.
 
 When a fix is published, you will receive credit under your real name or bug
 tracker handle in GitHub. If you prefer to remain anonymous or pseudonymous, 
@@ -27,8 +19,3 @@ following steps:
     released as fast as possible.
 
 You may be asked to provide further information in pursuit of a fix.
-
-## Comments on this Policy
-
-If you have suggestions on how this process could be improved, please submit an
-issue or pull request.
