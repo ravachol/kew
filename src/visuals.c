@@ -278,11 +278,7 @@ void printSpectrum(int height, int width, float *magnitudes, PixelData color)
             {
                 if (j == height)
                 {
-                    printf("\033[38;2;%d;%d;%dm", 255, 255, 255);
-                }
-                else if (j == height - 1)
-                {
-                    color = increaseLuminosity(color, 60);
+                    color = increaseLuminosity(color, 100);
                     printf("\033[38;2;%d;%d;%dm", color.r, color.g, color.b);
                 }
                 else

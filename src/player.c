@@ -19,8 +19,8 @@ typedef struct
 } PixelData;
 #endif
 
-const char VERSION[] = "1.0.8";
-const char VERSION_DATE[] = "2023-09-18";
+const char VERSION[] = "1.0.9";
+const char VERSION_DATE[] = "2023-10-05";
 const int TITLE_COLOR = 2;
 const int LOGO_COLOR = 3;
 const int LAST_ROW_COLOR = 4;
