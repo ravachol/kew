@@ -1,0 +1,25 @@
+name: Build Check
+
+'on':
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    name: Build Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Install build essentials
+        run: sudo apt-get update && sudo apt-get install -y build-essential
+
+      - name: Install dependencies
+        run: sudo apt install ffmpeg libfftw3-dev libchafa-dev libfreeimage-dev libavformat-dev
+
+      - name: Build code
+        run: make

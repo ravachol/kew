@@ -1,0 +1,155 @@
+.\" Automatically generated from an mdoc input file.  Do not edit.
+.\" DATE
+.TH "cue" "1" "9/3/23" "Linux" "General Commands Manual"
+.nh
+.if n .ad l
+.SH "NAME"
+\fBcue\fR
+,
+\fBcue music\fR
+\- A command-line music player.
+.SH "SYNOPSIS"
+.HP 4n
+\fBcue\fR
+[OPTIONS]
+[\fIPARTIAL\ FILE\ OR\ DIRECTORY\ NAME\fR]
+.SH "DESCRIPTION"
+\fBcue\fR
+plays audio from your music folder when given a partial (or whole) file or directory name.
+A playlist is created when finding more than one file.
+It supports gapless playback, 24-bit/192khz audio and MPRIS.
+.PP
+On first use, set a path for the music library (this is a once-only operation):
+.PP
+\fBcue\fR
+path "/home/joe/Music"
+.PP
+Typical use:
+.PP
+\fBcue\fR
+artist or song name
+.PP
+\fBcue\fR
+returns results from the location of the first match, it doesn't return every result possible.
+.SH "OPTIONS"
+.TP 9n
+\fB\-h,\fR \fB\--help\fR
+Displays help.
+.TP 9n
+\fB\-v,\fR \fB\--version\fR
+Displays version info.
+.TP 9n
+\fB\--nocover\fR
+Hides the cover.
+.TP 9n
+\fB\--noui\fR
+Completely hides the UI.
+.TP 9n
+.B shuffle
+Shuffles the playlist before starting to play it.
+.TP 9n
+.B dir
+Plays the directory not the song.
+.TP 9n
+.B song
+Plays the song not the directory.
+.TP 9n
+.B list
+Searches for a (.m3u) playlist. These are normally not included in searches.
+.SH "EXAMPLES"
+.TP 9n
+.B cue
+Start
+\fBcue\fR
+with all songs loaded into a playlist.
+.TP 9n
+.B cue moonlight son
+Play moonlight sonata.
+.TP 9n
+.B cue moon
+Play moonlight sonata.
+.TP 9n
+.B cue nirv
+Play all music under Nirvana folder shuffled.
+.TP 9n
+.B cue neverm
+Play Nevermind album in alphabetical order.
+.TP 9n
+.B cue shuffle neverm
+Play Nevermind album shuffled.
+.TP 9n
+.B cue list mix
+Play the mix.m3u playlist.
+.TP 9n
+.B cue <words A>:<words B>:<words C>
+Play everything found under A, B, and C, shuffled. Searches are seperated by a colon ':' character.
+.TP 9n
+.B cue .
+.br
+Play the special cue.m3u playlist that you can add to at any time by pressing 'a'.
+.SH "KEY BINDINGS"
+.TP 9n
+.B Up-down arrows/l,h
+Adjusts volume.
+.TP 9n
+.B Left-right arrows/j,k
+Change song.
+.TP 9n
+.B Space
+.br
+Pause.
+.TP 9n
+.B F2
+Toggle playlist and information visibility.
+.TP 9n
+.B F3
+Toggle key bindings visibility.
+.TP 9n
+.B c
+Toggle album cover.
+.TP 9n
+.B v
+Toggle spectrum visualizer.
+.TP 9n
+.B b
+Switch between ascii and image album cover.
+.TP 9n
+.B r
+Repeat current song.
+.TP 9n
+.B s
+Shuffles the playlist.
+.TP 9n
+.B a
+Add current song to the cue.m3u playlist.
+.TP 9n
+.B x
+Save currently loaded playlist to a .m3u file in the music folder.
+.TP 9n
+.B gg
+Go to first song.
+.TP 9n
+.B number + G, g or Enter
+Go to specific song number in the playlist.
+.TP 9n
+.B G
+Go to last song.
+.TP 9n
+.B q
+Quit
+\fBcue\fR.
+.SH "FILES"
+.TP 10n
+\fI~/.cue.conf\fR
+Config file.
+.TP 10n
+\fI/<musicfolder>/cue.m3u\fR
+The
+\fBcue\fR
+playlist. Add to it by pressing 'a' during playback of any song. This playlist is saved before q exits.
+.SH "COPYRIGHT"
+Copyright \[u00A9] 2023 Ravachol. License GPLv2+: GNU GPL version 2 or later <https://gnu.org/licenses/gpl.html>.
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+.SH "SEE ALSO"
+Project home page: <https://github.com/ravachol/cue>.
