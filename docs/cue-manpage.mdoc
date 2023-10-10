@@ -1,0 +1,137 @@
+.Dd 9/3/23               \" DATE
+.Dt cue 1      \" Program name and manual section number
+.Os Linux
+.Sh NAME                 \" Section Header - required - don't modify
+.Nm cue
+,
+.\" The following lines are read in generating the apropos(man -k) database. Use only key
+.\" words here as the database is built based on the words here and in the .ND line.
+.Nm cue music
+.\" Use .Nm macro to designate other names for the documented program.
+.Nd A command-line music player.
+.Sh SYNOPSIS             \" Section Header - required - don't modify
+.Nm 
+.Op OPTIONS              \" 
+.Op Ar PARTIAL FILE OR DIRECTORY NAME              \" [file]
+.Sh DESCRIPTION          \" Section Header - required - don't modify
+.Nm
+plays audio from your music folder when given a partial (or whole) file or directory name. 
+A playlist is created when finding more than one file. 
+It supports gapless playback, 24-bit/192khz audio and MPRIS.
+.Pp
+
+On first use, set a path for the music library (this is a once-only operation):
+.Bl 
+.It
+.Nm 
+path "/home/joe/Music"
+.El 
+.Pp
+Typical use:
+.Bl
+.It
+.Nm 
+artist or song name
+.El 
+.Pp
+.Nm 
+returns results from the location of the first match, it doesn't return every result possible.
+.Pp 
+.Sh OPTIONS
+.Pp
+.Bl -tag -width -indent 
+.It Fl h, -help
+Displays help.
+.It Fl v, -version
+Displays version info.
+.It Fl -nocover
+Hides the cover.
+.It Fl -noui
+Completely hides the UI.
+.It .B shuffle
+Shuffles the playlist before starting to play it.
+.It .B dir
+Plays the directory not the song.
+.It .B song
+Plays the song not the directory.
+.It .B list
+Searches for a (.m3u) playlist. These are normally not included in searches.
+.El                      
+.Sh EXAMPLES
+.Pp
+.Bl -tag -width -indent 
+.It .B cue
+Start
+.Nm
+with all songs loaded into a playlist.
+.It .B cue moonlight son
+Play moonlight sonata.
+.It .B cue moon
+Play moonlight sonata.
+.It .B cue nirv
+Play all music under Nirvana folder shuffled.
+.It .B cue neverm
+Play Nevermind album in alphabetical order.
+.It .B cue shuffle neverm
+Play Nevermind album shuffled.
+.It .B cue list mix
+Play the mix.m3u playlist.
+.It .B cue <words A>:<words B>:<words C>
+Play everything found under A, B, and C, shuffled. Searches are seperated by a colon ':' character.
+.It .B "cue ."
+Play the special cue.m3u playlist that you can add to at any time by pressing 'a'.
+.El                      \" Ends the list
+.Sh KEY BINDINGS
+.Pp
+.Bl -tag -width -indent  
+.It .B Up-down arrows/l,h
+Adjusts volume.
+.It .B Left-right arrows/j,k
+Change song.
+.It .B Space
+Pause.
+.It .B F2
+Toggle playlist and information visibility.
+.It .B F3
+Toggle key bindings visibility.
+.It .B c
+Toggle album cover.
+.It .B v
+Toggle spectrum visualizer.
+.It .B b
+Switch between ascii and image album cover.
+.It .B r
+Repeat current song.
+.It .B s
+Shuffles the playlist.
+.It .B a
+Add current song to the cue.m3u playlist. 
+.It .B x
+Save currently loaded playlist to a .m3u file in the music folder.
+.It .B gg 
+Go to first song.
+.It .B number + G, g or Enter
+Go to specific song number in the playlist.
+.It .B G
+Go to last song.
+.It .B q
+Quit 
+.Nm .
+.El                     
+.Sh FILES                
+.Bl -tag -width -compact
+.It Pa ~/.cue.conf
+Config file.
+.It Pa "/<musicfolder>/cue.m3u"
+The 
+.Nm
+playlist. Add to it by pressing 'a' during playback of any song. This playlist is saved before q exits.
+.El                      
+.Sh COPYRIGHT
+Copyright © 2023 Ravachol. License GPLv2+: GNU GPL version 2 or later <https://gnu.org/licenses/gpl.html>.  
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+.Sh SEE ALSO
+.Bl -tag -width -compact
+Project home page: <https://github.com/ravachol/cue>.
+.El                      \" Ends the list
