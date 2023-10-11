@@ -31,7 +31,7 @@ Typical use:
 .Bl
 .It
 .Nm 
-artist or song name
+artist, album or song name
 .El 
 .Pp
 .Nm 
@@ -48,73 +48,75 @@ Displays version info.
 Hides the cover.
 .It Fl -noui
 Completely hides the UI.
-.It .B shuffle
+.It shuffle
 Shuffles the playlist before starting to play it.
-.It .B dir
+.It dir
 Plays the directory not the song.
-.It .B song
+.It song
 Plays the song not the directory.
-.It .B list
+.It list
 Searches for a (.m3u) playlist. These are normally not included in searches.
 .El                      
 .Sh EXAMPLES
 .Pp
 .Bl -tag -width -indent 
-.It .B cue
+.It cue
 Start
 .Nm
 with all songs loaded into a playlist.
-.It .B cue moonlight son
+.It cue moonlight son
 Play moonlight sonata.
-.It .B cue moon
+.It cue moon
 Play moonlight sonata.
-.It .B cue nirv
+.It cue nirv
 Play all music under Nirvana folder shuffled.
-.It .B cue neverm
+.It cue neverm
 Play Nevermind album in alphabetical order.
-.It .B cue shuffle neverm
+.It cue shuffle neverm
 Play Nevermind album shuffled.
-.It .B cue list mix
+.It cue list mix
 Play the mix.m3u playlist.
-.It .B cue <words A>:<words B>:<words C>
+.It cue <words A>:<words B>:<words C>
 Play everything found under A, B, and C, shuffled. Searches are seperated by a colon ':' character.
-.It .B "cue ."
+.It "cue ."
 Play the special cue.m3u playlist that you can add to at any time by pressing 'a'.
 .El                      \" Ends the list
 .Sh KEY BINDINGS
 .Pp
 .Bl -tag -width -indent  
-.It .B Up-down arrows/l,h
+.It Up-down arrows/l,h
 Adjusts volume.
-.It .B Left-right arrows/j,k
+.It Left-right arrows/j,k
 Change song.
-.It .B Space
+.It Space
 Pause.
-.It .B F2
+.It F2
 Toggle playlist and information visibility.
-.It .B F3
+.It F3
 Toggle key bindings visibility.
-.It .B c
+.It i
+Toggle colors derived from album cover or from color theme.
+.It c
 Toggle album cover.
-.It .B v
+.It v
 Toggle spectrum visualizer.
-.It .B b
+.It b
 Switch between ascii and image album cover.
-.It .B r
+.It r
 Repeat current song.
-.It .B s
+.It s
 Shuffles the playlist.
-.It .B a
+.It a
 Add current song to the cue.m3u playlist. 
-.It .B x
+.It x
 Save currently loaded playlist to a .m3u file in the music folder.
-.It .B gg 
+.It gg 
 Go to first song.
-.It .B number + G, g or Enter
+.It number + G, g or Enter
 Go to specific song number in the playlist.
-.It .B G
+.It G
 Go to last song.
-.It .B q
+.It q
 Quit 
 .Nm .
 .El                     
