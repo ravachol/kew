@@ -27,7 +27,7 @@ path "/home/joe/Music"
 Typical use:
 .PP
 \fBcue\fR
-artist or song name
+artist, album or song name
 .PP
 \fBcue\fR
 returns results from the location of the first match, it doesn't return every result possible.
@@ -45,97 +45,100 @@ Hides the cover.
 \fB\--noui\fR
 Completely hides the UI.
 .TP 9n
-.B shuffle
+shuffle
 Shuffles the playlist before starting to play it.
 .TP 9n
-.B dir
+dir
 Plays the directory not the song.
 .TP 9n
-.B song
+song
 Plays the song not the directory.
 .TP 9n
-.B list
+list
 Searches for a (.m3u) playlist. These are normally not included in searches.
 .SH "EXAMPLES"
 .TP 9n
-.B cue
+cue
 Start
 \fBcue\fR
 with all songs loaded into a playlist.
 .TP 9n
-.B cue moonlight son
+cue moonlight son
 Play moonlight sonata.
 .TP 9n
-.B cue moon
+cue moon
+.br
 Play moonlight sonata.
 .TP 9n
-.B cue nirv
+cue nirv
+.br
 Play all music under Nirvana folder shuffled.
 .TP 9n
-.B cue neverm
+cue neverm
 Play Nevermind album in alphabetical order.
 .TP 9n
-.B cue shuffle neverm
+cue shuffle neverm
 Play Nevermind album shuffled.
 .TP 9n
-.B cue list mix
+cue list mix
 Play the mix.m3u playlist.
 .TP 9n
-.B cue <words A>:<words B>:<words C>
+cue <words A>:<words B>:<words C>
 Play everything found under A, B, and C, shuffled. Searches are seperated by a colon ':' character.
 .TP 9n
-.B cue .
-.br
+cue .
 Play the special cue.m3u playlist that you can add to at any time by pressing 'a'.
 .SH "KEY BINDINGS"
 .TP 9n
-.B Up-down arrows/l,h
+Up-down arrows/l,h
 Adjusts volume.
 .TP 9n
-.B Left-right arrows/j,k
+Left-right arrows/j,k
 Change song.
 .TP 9n
-.B Space
-.br
+Space
 Pause.
 .TP 9n
-.B F2
+F2
 Toggle playlist and information visibility.
 .TP 9n
-.B F3
+F3
 Toggle key bindings visibility.
 .TP 9n
-.B c
+i
+Toggle colors derived from album cover or from color theme.
+.TP 9n
+c
 Toggle album cover.
 .TP 9n
-.B v
+v
 Toggle spectrum visualizer.
 .TP 9n
-.B b
+b
 Switch between ascii and image album cover.
 .TP 9n
-.B r
+r
 Repeat current song.
 .TP 9n
-.B s
+s
 Shuffles the playlist.
 .TP 9n
-.B a
+a
 Add current song to the cue.m3u playlist.
 .TP 9n
-.B x
+x
 Save currently loaded playlist to a .m3u file in the music folder.
 .TP 9n
-.B gg
+gg
 Go to first song.
 .TP 9n
-.B number + G, g or Enter
+number + G, g or Enter
 Go to specific song number in the playlist.
 .TP 9n
-.B G
+G
 Go to last song.
 .TP 9n
-.B q
+q
 Quit
 \fBcue\fR.
 .SH "FILES"
