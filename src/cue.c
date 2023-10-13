@@ -180,6 +180,7 @@ struct Event processInput()
     int seqLength = 0;
     char seq[MAX_SEQ_LEN];
     seq[0] = '\0'; // Set initial value
+    int keyReleased = 0;
 
     while (isInputAvailable())
     {
@@ -187,8 +188,11 @@ struct Event processInput()
 
         seqLength = seqLength + readInputSequence(tmpSeq, sizeof(tmpSeq));
 
-        if (seqLength <= 0) // If no sequence read, continue
-            continue;
+        if (seqLength <= 0)
+        {
+            keyReleased = 1;
+            break;
+        }            
 
         if (strlen(seq) + strlen(tmpSeq) >= MAX_SEQ_LEN)
         {
@@ -196,11 +200,25 @@ struct Event processInput()
         }
 
         strcat(seq, tmpSeq);
+
         c_sleep(10);
+
+        if (strcmp(seq, "[A") == 0 || strcmp(seq, "[B") == 0 || strcmp(seq, "k") == 0 || strcmp(seq, "j") == 0)            
+        {
+            // Do dummy reads to prevent scrolling continuing after we release the key
+            readInputSequence(tmpSeq, 3);
+            readInputSequence(tmpSeq, 3);
+            keyReleased = 0;
+            break;
+        }
+
+        keyReleased = 0;
     }
 
-    eventProcessed = true;
+    if (keyReleased)
+        return event;
 
+    eventProcessed = true;
     event.type = EVENT_NONE;
     event.key = seq[0];
 
@@ -209,12 +227,14 @@ struct Event processInput()
         if (strcmp(seq, "[A") == 0)
         {
             // Arrow Up
-            event.type = EVENT_VOLUME_UP;
+            if (printInfo)
+                event.type = EVENT_SCROLLPREV;
         }
         else if (strcmp(seq, "[B") == 0)
         {
             // Arrow Down
-            event.type = EVENT_VOLUME_DOWN;
+            if (printInfo)
+                event.type = EVENT_SCROLLNEXT;
         }
         else if (strcmp(seq, "[C") == 0)
         {
@@ -234,7 +254,7 @@ struct Event processInput()
         else if (strcmp(seq, "OR") == 0 || strcmp(seq, "[[C") == 0)
         {
             // F3 key
-            event.type = EVENT_SHOWKEYBIDINGS;
+            event.type = EVENT_SHOWKEYBINDINGS;
         }
         else
         {
@@ -299,23 +319,31 @@ struct Event processInput()
             }
             break;
         case '\n':
-            if (digitsPressedCount > 0)
+            if (digitsPressedCount > 0 || printInfo)
             {
                 event.type = EVENT_GOTOSONG;
             }
             break;
         case 'k': // Next song
-            event.type = EVENT_NEXT;
+            if (printInfo)
+                event.type = EVENT_SCROLLPREV;
             break;
         case 'j': // Prev song
+            if (printInfo)
+                event.type = EVENT_SCROLLNEXT;
+            break;
+        case 'l': 
+            event.type = EVENT_NEXT;
+            break;
+        case 'h': 
             event.type = EVENT_PREV;
             break;
-        case 'l': // Volume UP
+        case '+': // Volume UP
             event.type = EVENT_VOLUME_UP;
             break;
-        case 'h': // Volume DOWN
+        case '-': // Volume DOWN
             event.type = EVENT_VOLUME_DOWN;
-            break;
+            break;            
         case 'p': // Play/Pau se
             event.type = EVENT_PLAY_PAUSE;
             break;
@@ -882,10 +910,16 @@ void loadAudioData()
 
 void handleGotoSong()
 {
-    int songNumber = atoi(digitsPressed);
-    memset(digitsPressed, '\0', sizeof(digitsPressed));
-    digitsPressedCount = 0;
-    skipToNumberedSong(songNumber);
+    if (digitsPressedCount == 0)
+    {
+        skipToNumberedSong(chosenSong + 1);
+    }
+    else {
+        int songNumber = atoi(digitsPressed);
+        memset(digitsPressed, '\0', sizeof(digitsPressed));
+        digitsPressedCount = 0;
+        skipToNumberedSong(songNumber);
+    }
 }
 
 void skipToLastSong()
@@ -943,6 +977,20 @@ void handleInput()
     case EVENT_QUIT:
         quit();
         break;
+    case EVENT_SCROLLNEXT:
+        if (printInfo)
+        {
+            chosenRow++;
+            refresh = true;
+        }
+        break;
+    case EVENT_SCROLLPREV:
+        if (printInfo)
+        {
+            chosenRow--;
+            refresh = true;
+        }
+        break;        
     case EVENT_VOLUME_UP:
         adjustVolumePercent(5);
         break;
@@ -964,7 +1012,7 @@ void handleInput()
     case EVENT_EXPORTPLAYLIST:
         savePlaylist();
         break;
-    case EVENT_SHOWKEYBIDINGS:
+    case EVENT_SHOWKEYBINDINGS:
         refresh = true;
         printKeyBindings = !printKeyBindings;
         printInfo = false;

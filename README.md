@@ -161,24 +161,23 @@ cue . (loads the main cue playlist, see 'Other Functions')
 Put single-quotes inside quotes "guns n' roses"
 
 #### Key Bindings
-* Use <kbd>↑</kbd>, <kbd>↓</kbd> or <kbd>L</kbd>, <kbd>H</kbd> keys to adjust the volume. 
-* Use <kbd>←</kbd>, <kbd>→</kbd> or <kbd>J</kbd>, <kbd>K</kbd> keys to switch tracks.
-
+* Use <kbd>+</kbd>, <kbd>-</kbd> keys to adjust the volume. 
+* Use <kbd>←</kbd>, <kbd>→</kbd> or <kbd>h</kbd>, <kbd>l</kbd> keys to switch tracks.
 * <kbd>Space</kbd>, <kbd>P</kbd> to toggle pause.
 * <kbd>F2</kbd> to show/hide the playlist and information about cue.
 * <kbd>F3</kbd> to show/hide key bindings.
-* <kbd>V</kbd> to toggle the spectrum visualizer.
-* <kbd>C</kbd> to toggle album covers.
-* <kbd>I</kbd> to switch between using your regular color scheme or colors derived from the track cover.
-* <kbd>B</kbd> to toggle album covers drawn in ascii or as a normal image.
-* <kbd>R</kbd> to repeat the current song.
-* <kbd>S</kbd> to shuffle the playlist.
-* <kbd>A</kbd> add current song to main cue playlist.
-* <kbd>X</kbd> to save the currently loaded playlist to a m3u file in your music folder.
+* <kbd>v</kbd> to toggle the spectrum visualizer.
+* <kbd>c</kbd> to toggle album covers.
+* <kbd>i</kbd> to switch between using your regular color scheme or colors derived from the track cover.
+* <kbd>b</kbd> to toggle album covers drawn in ascii or as a normal image.
+* <kbd>r</kbd> to repeat the current song.
+* <kbd>s</kbd> to shuffle the playlist.
+* <kbd>a</kbd> add current song to main cue playlist.
+* <kbd>x</kbd> to save the currently loaded playlist to a m3u file in your music folder.
 * <kbd>gg</kbd> go to first song.
 * number +<kbd>G</kbd>, <kbd>g</kbd> or <kbd>Enter</kbd>, go to specific song number in the playlist.
-* <kbd>G</kbd> go to last song.
-* <kbd>Q</kbd> to quit.
+* <kbd>g</kbd> go to last song.
+* <kbd>q</kbd> to quit.
 
 ## Configuration
 
