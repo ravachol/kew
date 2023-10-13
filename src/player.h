@@ -22,6 +22,8 @@ extern bool printInfo;
 extern bool printKeyBindings;
 extern bool visualizerEnabled;
 extern bool useThemeColors;
+extern int chosenRow;
+extern int chosenSong;
 extern int visualizerHeight;
 extern volatile bool refresh;
 extern TagSettings metadata;

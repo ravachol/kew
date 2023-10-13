@@ -313,11 +313,10 @@ int readInputSequence(char *seq, size_t seqSize)
 {
     char c;
     ssize_t bytesRead;
-
+    seq[0] = '\0';
     bytesRead = read(STDIN_FILENO, &c, 1);
     if (bytesRead <= 0)
-    {
-        seq[0] = '\0';
+    {        
         return 0;
     }
 
@@ -330,8 +329,11 @@ int readInputSequence(char *seq, size_t seqSize)
     }
 
     // Read additional characters
-    bytesRead = read(STDIN_FILENO, seq, seqSize - 1);
-    if (bytesRead <= 0)
+    if (seqSize < 3)
+        return 0;
+
+    bytesRead = read(STDIN_FILENO, seq, 2);
+    if (bytesRead <= 0 & seq[0] == '\0')
     {
         seq[0] = '\0';
         return 0;
