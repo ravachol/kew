@@ -68,20 +68,6 @@ int extractCoverCommand(const char *inputFilePath, const char *outputFilePath)
     }
 }
 
-int isAudioFile(const char *filename)
-{
-    const char *extensions[] = {".mp3", ".wav", ".m4a", ".flac", ".ogg"};
-
-    for (long unsigned int i = 0; i < sizeof(extensions) / sizeof(extensions[0]); i++)
-    {
-        if (strstr(filename, extensions[i]) != NULL)
-        {
-            return 1;
-        }
-    }
-    return 0;
-}
-
 int compareEntries(const struct dirent **a, const struct dirent **b)
 {
     const char *nameA = (*a)->d_name;
@@ -97,61 +83,6 @@ int compareEntries(const struct dirent **a, const struct dirent **b)
     }
 
     return strcmp(nameA, nameB); // Lexicographic comparison for other cases
-}
-
-char *findFirstPathWithAudioFile(const char *path)
-{
-    DIR *dir = opendir(path);
-    if (dir == NULL)
-    {
-        return NULL;
-    }
-
-    struct dirent **entries;
-    int numEntries = scandir(path, &entries, NULL, compareEntries);
-
-    if (numEntries < 0)
-    {
-        closedir(dir);
-        return NULL;
-    }
-
-    char *audioDirectory = NULL;
-    for (int i = 0; i < numEntries; i++)
-    {
-        struct dirent *entry = entries[i];
-        if (S_ISDIR(entry->d_type))
-        {
-            if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
-            {
-                continue;
-            }
-            char subDirectoryPath[MAXPATHLEN];
-            snprintf(subDirectoryPath, sizeof(subDirectoryPath), "%s/%s", path, entry->d_name);
-
-            audioDirectory = findFirstPathWithAudioFile(subDirectoryPath);
-            if (audioDirectory != NULL)
-            {
-                break;
-            }
-        }
-        else
-        {
-            if (isAudioFile(entry->d_name))
-            {
-                audioDirectory = strdup(path);
-                break;
-            }
-        }
-    }
-
-    for (int i = 0; i < numEntries; i++)
-    {
-        free(entries[i]);
-    }
-    free(entries);
-    closedir(dir);
-    return audioDirectory;
 }
 
 char *findLargestImageFile(const char *directoryPath, char *largestImageFile, off_t *largestFileSize)
