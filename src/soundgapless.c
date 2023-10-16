@@ -44,6 +44,7 @@ static ma_result pcm_file_data_source_read(ma_data_source *pDataSource, void *pF
     (void)pFramesRead;
     return MA_SUCCESS;
 }
+
 static ma_result pcm_file_data_source_seek(ma_data_source *pDataSource, ma_uint64 frameIndex)
 {
     PCMFileDataSource *pPCMDataSource = (PCMFileDataSource *)pDataSource;
@@ -136,7 +137,7 @@ ma_result pcm_file_data_source_init(PCMFileDataSource *pPCMDataSource, const cha
 
 void activateSwitch(PCMFileDataSource *pPCMDataSource)
 {
-    skipToNext = false;    
+    skipToNext = false;
     if (!repeatEnabled)
         pPCMDataSource->currentFileIndex = 1 - pPCMDataSource->currentFileIndex; // Toggle between 0 and 1
     pPCMDataSource->switchFiles = true;
@@ -169,7 +170,7 @@ void pcm_file_data_source_read_pcm_frames(ma_data_source *pDataSource, void *pFr
             else
             {
                 currentFile = pPCMDataSource->fileA;
-                if (currentFile != NULL)                
+                if (currentFile != NULL)
                     fclose(currentFile);
             }
 
@@ -190,7 +191,7 @@ void pcm_file_data_source_read_pcm_frames(ma_data_source *pDataSource, void *pFr
 
             eofReached = true;
             break; // Exit the loop after the file switch
-        }  
+        }
 
         // Read from the current file
         FILE *currentFile;
@@ -202,13 +203,15 @@ void pcm_file_data_source_read_pcm_frames(ma_data_source *pDataSource, void *pFr
         {
             currentFile = pPCMDataSource->fileB;
         }
-        
+
         ma_uint32 bytesRead = 0;
 
         if (currentFile != NULL)
             bytesRead = (ma_uint32)fread((char *)pFramesOut + (framesRead * bytesPerFrame), 1, bytesToRead, currentFile);
-            
-        if (bytesRead == 0 || skipToNext)
+
+        // If file is empty, skip
+        // Ensure we don't switch twice in an instant by checking eofReached
+        if ((bytesRead == 0 || skipToNext) && !eofReached)
         {
             activateSwitch(pPCMDataSource);
             continue; // Continue to the next iteration to read from the new file
@@ -237,105 +240,18 @@ void pcm_file_data_source_read_pcm_frames(ma_data_source *pDataSource, void *pFr
         *pFramesRead = framesRead;
 }
 
-ma_uint64 pcm_file_data_source_get_pcm_frame_count(ma_data_source *pDataSource)
-{
-    PCMFileDataSource *pPCMDataSource = (PCMFileDataSource *)pDataSource;
-
-    // Get the current file based on the current file index
-    FILE *currentFile;
-    if (pPCMDataSource->pUserData->currentFileIndex == 0)
-    {
-        currentFile = pPCMDataSource->fileA;
-    }
-    else
-    {
-        currentFile = pPCMDataSource->fileB;
-    }
-
-    // Seek to the end of the current file to get its size
-    fseek(currentFile, 0, SEEK_END);
-    ma_uint64 fileSize = ftell(currentFile);
-    fseek(currentFile, 0, SEEK_SET);
-
-    // Calculate the total number of frames in the current file
-    ma_uint64 frameCount = fileSize / ma_get_bytes_per_frame(pPCMDataSource->format, pPCMDataSource->channels);
-
-    return frameCount;
-}
-
-// Callback function to retrieve the current read position in PCM frames
-ma_uint64 pcm_file_data_source_get_cursor_pcm_frame(ma_data_source *pDataSource)
-{
-    PCMFileDataSource *pPCMDataSource = (PCMFileDataSource *)pDataSource;
-
-    // Get the current PCM frame position
-    ma_uint64 currentFrame = pPCMDataSource->currentPCMFrame;
-
-    return currentFrame;
-}
-
-void pcm_file_data_source_seek_pcm_frame(ma_data_source *pDataSource, ma_uint64 frameIndex)
-{
-    PCMFileDataSource *pPCMDataSource = (PCMFileDataSource *)pDataSource;
-    ma_uint64 targetFrame = frameIndex;
-
-    if (targetFrame > pPCMDataSource->currentPCMFrame)
-    {
-        // Seeking forward
-        ma_uint64 framesToSkip = targetFrame - pPCMDataSource->currentPCMFrame;
-        ma_uint32 bytesPerFrame = ma_get_bytes_per_frame(pPCMDataSource->format, pPCMDataSource->channels);
-        ma_uint32 bytesToSkip = (ma_uint32)(framesToSkip * bytesPerFrame);
-        FILE *currentFile;
-
-        if (pPCMDataSource->currentFileIndex == 0)
-        {
-            currentFile = pPCMDataSource->fileA;
-        }
-        else
-        {
-            currentFile = pPCMDataSource->fileB;
-        }
-
-        fseek(currentFile, bytesToSkip, SEEK_CUR);
-        pPCMDataSource->currentPCMFrame = targetFrame;
-    }
-    else if (targetFrame < pPCMDataSource->currentPCMFrame)
-    {
-        // Seeking backward
-    }
-}
-
 void on_audio_frames(ma_device *pDevice, void *pFramesOut, const void *pFramesIn, ma_uint32 frameCount)
 {
     PCMFileDataSource *pDataSource = (PCMFileDataSource *)pDevice->pUserData;
     ma_uint64 framesRead = 0;
     pcm_file_data_source_read_pcm_frames(&pDataSource->base, pFramesOut, frameCount, &framesRead);
     (void)pFramesIn;
-
-    if (framesRead < frameCount && pDataSource->switchFiles)
-    {
-        pDataSource->switchFiles = false;
-
-        if (pDataSource->currentFileIndex == 0)
-        {
-            // Switch to file A
-            pDataSource->currentFileIndex = 1;
-            ma_data_source_seek_to_pcm_frame(&pDataSource->base, 0); // Seek to the beginning of file A
-            pcm_file_data_source_read_pcm_frames(&pDataSource->base, (ma_int16 *)pFramesOut + framesRead * pDevice->playback.channels, frameCount - framesRead, &framesRead);
-        }
-        else if (pDataSource->currentFileIndex == 1)
-        {
-            // Switch to file B
-            pDataSource->currentFileIndex = 0;
-            ma_data_source_seek_to_pcm_frame(&pDataSource->base, 0); // Seek to the beginning of file B
-            pcm_file_data_source_read_pcm_frames(&pDataSource->base, (ma_int16 *)pFramesOut + framesRead * pDevice->playback.channels, frameCount - framesRead, &framesRead);
-        }
-    }
 }
 
-void cleanupProcess(pid_t *pidToKill) 
+void cleanupProcess(pid_t *pidToKill)
 {
-    if (*pidToKill != -1) {
+    if (*pidToKill != -1)
+    {
         kill(*pidToKill, SIGTERM);
         int status;
         waitpid(*pidToKill, &status, 0);
@@ -364,7 +280,8 @@ int convertToPcmFile(const char *filePath, const char *outputFilePath)
     {
         pidToKill = &pid2;
     }
-    else {
+    else
+    {
         pidToKill = &pid;
     }
 
@@ -415,7 +332,7 @@ int convertToPcmFile(const char *filePath, const char *outputFilePath)
         }
 
         // Close the child process handle immediately to prevent lingering processes
-        //close(currentPid);
+        // close(currentPid);
         return 0;
     }
 }
@@ -426,7 +343,7 @@ void resumePlayback()
     {
         ma_device_start(&device);
     }
-    paused = false;    
+    paused = false;
 }
 
 void pausePlayback()
@@ -553,8 +470,10 @@ int getCurrentVolume()
 
     // Execute the command and read the output
     fp = popen(command_str, "r");
-    if (fp != NULL) {
-        if (fgets(buf, sizeof(buf), fp) != NULL) {
+    if (fp != NULL)
+    {
+        if (fgets(buf, sizeof(buf), fp) != NULL)
+        {
             sscanf(buf, "%d", &currentVolume);
         }
         pclose(fp);
@@ -585,7 +504,7 @@ void setVolume(int volume)
     {
         return;
     }
-    pclose(fp);  
+    pclose(fp);
 }
 
 int adjustVolumePercent(int volumeChange)
