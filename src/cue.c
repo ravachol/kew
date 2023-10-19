@@ -192,7 +192,7 @@ struct Event processInput()
         {
             keyReleased = 1;
             break;
-        }            
+        }
 
         if (strlen(seq) + strlen(tmpSeq) >= MAX_SEQ_LEN)
         {
@@ -203,7 +203,7 @@ struct Event processInput()
 
         c_sleep(10);
 
-        if (strcmp(seq, "[A") == 0 || strcmp(seq, "[B") == 0 || strcmp(seq, "k") == 0 || strcmp(seq, "j") == 0)            
+        if (strcmp(seq, "[A") == 0 || strcmp(seq, "[B") == 0 || strcmp(seq, "k") == 0 || strcmp(seq, "j") == 0)
         {
             // Do dummy reads to prevent scrolling continuing after we release the key
             readInputSequence(tmpSeq, 3);
@@ -332,10 +332,10 @@ struct Event processInput()
             if (printInfo)
                 event.type = EVENT_SCROLLNEXT;
             break;
-        case 'l': 
+        case 'l':
             event.type = EVENT_NEXT;
             break;
-        case 'h': 
+        case 'h':
             event.type = EVENT_PREV;
             break;
         case '+': // Volume UP
@@ -343,7 +343,7 @@ struct Event processInput()
             break;
         case '-': // Volume DOWN
             event.type = EVENT_VOLUME_DOWN;
-            break;            
+            break;
         case 'p': // Play/Pau se
             event.type = EVENT_PLAY_PAUSE;
             break;
@@ -894,7 +894,40 @@ void calcElapsedTime()
 
 void refreshPlayer()
 {
-    printPlayer(usingSongDataA ? loadingdata.songdataA : loadingdata.songdataB, elapsedSeconds, &playlist);
+    SongData *songData = usingSongDataA ? loadingdata.songdataA : loadingdata.songdataB;
+
+    // Check if we have the correct one
+    if (strcmp(songData->trackId, currentTrackId) != 0)
+    {
+        if (usingSongDataA)
+        {
+            // Try the other one
+            if (loadingdata.songdataB != NULL && strcmp(loadingdata.songdataB->trackId, currentTrackId) == 0)
+            {
+                songData = loadingdata.songdataB;
+            }
+        }
+        else
+        {
+            if (loadingdata.songdataA != NULL && strcmp(loadingdata.songdataA->trackId, currentTrackId) == 0)
+            {
+                songData = loadingdata.songdataA;
+            }
+        }
+    }
+
+    if (refresh)
+    {
+        // update mpris
+        emitMetadataChanged(
+            songData->metadata->title ? songData->metadata->title : "",
+            songData->metadata->artist ? songData->metadata->artist : "",
+            songData->metadata->album ? songData->metadata->album : "",
+            songData->coverArtPath ? songData->coverArtPath : "",
+            songData->trackId ? songData->trackId : "");
+    }
+
+    printPlayer(songData, elapsedSeconds, &playlist);
 }
 
 void loadAudioData()
@@ -914,7 +947,8 @@ void handleGotoSong()
     {
         skipToNumberedSong(chosenSong + 1);
     }
-    else {
+    else
+    {
         int songNumber = atoi(digitsPressed);
         memset(digitsPressed, '\0', sizeof(digitsPressed));
         digitsPressedCount = 0;
@@ -990,7 +1024,7 @@ void handleInput()
             chosenRow--;
             refresh = true;
         }
-        break;        
+        break;
     case EVENT_VOLUME_UP:
         adjustVolumePercent(5);
         break;
@@ -1061,20 +1095,6 @@ void updatePlayer()
         resize();
     else
     {
-        if (refresh)
-        {
-            SongData *currentSongData = NULL;
-
-            currentSongData = getCurrentSongData();
-
-            // update mpris
-            emitMetadataChanged(
-                currentSongData->metadata->title ? currentSongData->metadata->title : "",
-                currentSongData->metadata->artist ? currentSongData->metadata->artist : "",
-                currentSongData->metadata->album ? currentSongData->metadata->album : "",
-                currentSongData->coverArtPath ? currentSongData->coverArtPath : "",
-                currentSongData->trackId ? currentSongData->trackId : "");
-        }
         refreshPlayer();
     }
 }

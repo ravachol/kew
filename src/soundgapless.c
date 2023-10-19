@@ -32,6 +32,7 @@ UserData userData;
 pid_t pid = -1;
 pid_t pid2 = -1;
 bool usepid2 = false;
+gchar *currentTrackId = NULL;
 
 static bool eofReached = false;
 
@@ -178,13 +179,15 @@ void pcm_file_data_source_read_pcm_frames(ma_data_source *pDataSource, void *pFr
             if (pPCMDataSource->currentFileIndex == 0)
             {
                 pPCMDataSource->fileA = (pPCMDataSource->pUserData->pcmFileA.filename != NULL) ? fopen(pPCMDataSource->pUserData->pcmFileA.filename, "rb") : NULL;
-                currentFile = pPCMDataSource->fileA;
+                currentFile = pPCMDataSource->fileA;                
             }
             else
             {
                 pPCMDataSource->fileB = (pPCMDataSource->pUserData->pcmFileB.filename != NULL) ? fopen(pPCMDataSource->pUserData->pcmFileB.filename, "rb") : NULL;
                 currentFile = pPCMDataSource->fileB;
             }
+
+            pPCMDataSource->pUserData->currentFileIndex = pPCMDataSource->currentFileIndex;
 
             // Set the new current file and reset any necessary variables
             pPCMDataSource->currentPCMFrame = 0;
@@ -198,10 +201,12 @@ void pcm_file_data_source_read_pcm_frames(ma_data_source *pDataSource, void *pFr
         if (pPCMDataSource->currentFileIndex == 0)
         {
             currentFile = pPCMDataSource->fileA;
+            currentTrackId = pPCMDataSource->pUserData->songdataA->trackId;
         }
         else
         {
             currentFile = pPCMDataSource->fileB;
+            currentTrackId = pPCMDataSource->pUserData->songdataB->trackId;
         }
 
         ma_uint32 bytesRead = 0;
