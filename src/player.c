@@ -20,7 +20,6 @@ typedef struct
 #endif
 
 const char VERSION[] = "1.1.1";
-const int TITLE_COLOR = 2;
 const int LOGO_COLOR = 3;
 const int VERSION_COLOR = 6;
 const int ABSOLUTE_MIN_WIDTH = 38;
@@ -279,7 +278,7 @@ void printBasicMetadata(TagSettings const *metadata)
         }
 
         if (useProfileColors)
-            printf("\033[1;3%dm", TITLE_COLOR);
+            printf("\e[1m\e[39m");
 
         printWithDelay(metadata->title, 9, maxWidth - 2);
 
@@ -671,8 +670,8 @@ int showPlaylist()
                         
             if (strcmp(filePath, currentSong->song.filePath) == 0)
             {
-                if (useProfileColors)
-                    printf("\033[1;3%dm", TITLE_COLOR);
+                if (useProfileColors)                    
+                    printf("\e[1m\e[39m");
                 else
                     printf("\033[1;38;2;%03u;%03u;%03um", textColor.r, textColor.g, textColor.b);
                 foundCurrentSong = true;
