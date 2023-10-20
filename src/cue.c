@@ -2104,6 +2104,7 @@ void playAll(int argc, char **argv)
     {
         printf("Please make sure the path is set correctly. \n");
         printf("To set it type: cue path \"/path/to/Music\". \n");
+        exit(0);
     }
     run();
 }
