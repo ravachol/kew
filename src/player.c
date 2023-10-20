@@ -576,7 +576,6 @@ int showPlaylist()
     if (term_w > 46)
     {
         maxListSize -= 2;
-        numPrintedRows += 2;
         printf(" Use ↑, ↓ or k, j to choose. Enter to accept.\n\n");
     }
 
@@ -691,9 +690,6 @@ int showPlaylist()
                 printf(" %d. %s\n", numRows, copiedString);
             }
             numPrintedRows++;
-            //if (numPrintedRows > maxListSize)
-            //    break;
-
             numRows++;
 
             setTextColorRGB2(color.r, color.g, color.b);
@@ -704,7 +700,7 @@ int showPlaylist()
     }
     printf("\n");
     printLastRow();
-    //numPrintedRows++;
+
     if (numRows > 1)
     {
         while (numPrintedRows < maxListSize)

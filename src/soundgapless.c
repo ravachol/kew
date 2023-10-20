@@ -185,6 +185,7 @@ void pcm_file_data_source_read_pcm_frames(ma_data_source *pDataSource, void *pFr
             {
                 pPCMDataSource->fileB = (pPCMDataSource->pUserData->pcmFileB.filename != NULL) ? fopen(pPCMDataSource->pUserData->pcmFileB.filename, "rb") : NULL;
                 currentFile = pPCMDataSource->fileB;
+                
             }
 
             pPCMDataSource->pUserData->currentFileIndex = pPCMDataSource->currentFileIndex;
@@ -201,12 +202,14 @@ void pcm_file_data_source_read_pcm_frames(ma_data_source *pDataSource, void *pFr
         if (pPCMDataSource->currentFileIndex == 0)
         {
             currentFile = pPCMDataSource->fileA;
-            currentTrackId = pPCMDataSource->pUserData->songdataA->trackId;
+            if (currentFile != NULL)
+                currentTrackId = pPCMDataSource->pUserData->songdataA->trackId;
         }
         else
         {
             currentFile = pPCMDataSource->fileB;
-            currentTrackId = pPCMDataSource->pUserData->songdataB->trackId;
+            if (currentFile != NULL)
+                currentTrackId = pPCMDataSource->pUserData->songdataB->trackId;
         }
 
         ma_uint32 bytesRead = 0;
@@ -250,7 +253,7 @@ void on_audio_frames(ma_device *pDevice, void *pFramesOut, const void *pFramesIn
     PCMFileDataSource *pDataSource = (PCMFileDataSource *)pDevice->pUserData;
     ma_uint64 framesRead = 0;
     pcm_file_data_source_read_pcm_frames(&pDataSource->base, pFramesOut, frameCount, &framesRead);
-    (void)pFramesIn;
+    (void)pFramesIn; 
 }
 
 void cleanupProcess(pid_t *pidToKill)
