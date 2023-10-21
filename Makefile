@@ -1,6 +1,6 @@
 CC = gcc
 CFLAGS = -Iinclude/imgtotxt -I/usr/include/ffmpeg -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -I/usr/include/libavformat -Iinclude/miniaudio -O1 `pkg-config --cflags gio-2.0 chafa libavformat fftw3f`
-LIBS = -ldl -lpthread -lrt -pthread -lm -lfreeimage -lglib-2.0 `pkg-config --libs gio-2.0 chafa libavformat fftw3f`
+LIBS = -lpthread -lrt -pthread -lm -lfreeimage -lglib-2.0 `pkg-config --libs gio-2.0 chafa libavformat fftw3f`
 
 OBJDIR = src/obj
 
