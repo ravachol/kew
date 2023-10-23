@@ -1,5 +1,5 @@
 
-# cue
+# cue music command
 [![cue-git](https://img.shields.io/aur/version/cue-git?color=1793d1&label=cue-git&logo=arch-linux&style=for-the-badge)](https://aur.archlinux.org/packages/cue-git/)
 [![GitHub license](https://img.shields.io/github/license/ravachol/cue?color=333333&style=for-the-badge)](https://github.com/ravachol/cue/blob/master/LICENSE)
 
@@ -34,6 +34,8 @@ Thank you!
 
 
 ## Installing
+
+### Installing via AUR
 
 On Arch Linux, and Arch-based distributions, cue can be found in the AUR. Install with pamac or an AUR helper like yay:
 

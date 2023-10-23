@@ -5,7 +5,7 @@
 
 player.c
 
-This file should contain only functions related to printing the player to the screen.
+This file should only contain functions related to printing the player to the screen.
 
 */
 
@@ -19,7 +19,7 @@ typedef struct
 } PixelData;
 #endif
 
-const char VERSION[] = "1.1.1";
+const char VERSION[] = "1.2.0";
 const int LOGO_COLOR = 3;
 const int VERSION_COLOR = 6;
 const int ABSOLUTE_MIN_WIDTH = 38;
@@ -564,12 +564,12 @@ int showPlaylist()
     printf("\n");
     maxListSize -= 1;
     numRows++;
-    //numPrintedRows++;
+
     PixelData textColor = increaseLuminosity(color, 20);
     setTextColorRGB2(textColor.r, textColor.g, textColor.b);
     int aboutRows = printAbout();
     maxListSize -= aboutRows;
-    //numPrintedRows += aboutRows;
+
     setColor();
     setTextColorRGB2(color.r, color.g, color.b);
     printBlankSpaces(indent);
@@ -700,7 +700,6 @@ int showPlaylist()
     }
     printf("\n");
     printLastRow();
-
     if (numRows > 1)
     {
         while (numPrintedRows < maxListSize)
@@ -709,6 +708,12 @@ int showPlaylist()
             numPrintedRows++;
         }
     }
+    numPrintedRows += 2;
+    numPrintedRows += aboutRows;
+    if (term_w > 46)
+    {
+        numPrintedRows += 2;
+    }    
     resetList = false;
     return numPrintedRows;
 }

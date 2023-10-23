@@ -36,6 +36,10 @@ gchar *currentTrackId = NULL;
 
 static bool eofReached = false;
 
+typedef struct thread_data {
+   pid_t pid;
+} thread_data;
+
 static ma_result pcm_file_data_source_read(ma_data_source *pDataSource, void *pFramesOut, ma_uint64 frameCount, ma_uint64 *pFramesRead)
 {
     // Dummy implementation
@@ -256,15 +260,12 @@ void on_audio_frames(ma_device *pDevice, void *pFramesOut, const void *pFramesIn
     (void)pFramesIn; 
 }
 
-void cleanupProcess(pid_t *pidToKill)
-{
-    if (*pidToKill != -1)
-    {
-        kill(*pidToKill, SIGTERM);
-        int status;
-        waitpid(*pidToKill, &status, 0);
-        *pidToKill = -1;
-    }
+void* child_cleanup(void *arg) {
+    thread_data* data = (thread_data*)arg;
+    int status;
+    waitpid(data->pid, &status, 0);
+    free(arg);
+    return NULL;
 }
 
 int convertToPcmFile(const char *filePath, const char *outputFilePath)
@@ -280,69 +281,57 @@ int convertToPcmFile(const char *filePath, const char *outputFilePath)
 
     free(escapedInputFilePath);
 
-    pid_t currentPid = -1;
-    pid_t *pidToKill = NULL;
-
-    // alternate between killing two processes that linger, kill the least recent one
-    if (usepid2)
+    pid_t currentPid = fork();
+    switch(currentPid)
     {
-        pidToKill = &pid2;
-    }
-    else
-    {
-        pidToKill = &pid;
-    }
-
-    cleanupProcess(pidToKill);
-
-    currentPid = fork();
-    if (currentPid == -1)
-    {
-        perror("fork failed");
-        return -1;
-    }
-    else if (currentPid == 0)
-    {
-        // Child process
-
-        // Detach from the parent process and create a new session
-        if (setsid() == -1)
+        case -1:
         {
-            perror("setsid failed");
+            perror("fork failed");
+            return -1;
+        }
+        case 0:
+        {    
+            // Child process
+            if (setsid() == -1)
+            {
+                perror("setsid failed");
+                exit(EXIT_FAILURE);
+            }
+
+            close(STDIN_FILENO);
+            close(STDOUT_FILENO);
+            close(STDERR_FILENO);
+
+            char *args[] = {"sh", "-c", command, NULL};
+            execvp("sh", args);
+
+            perror("execvp failed");
             exit(EXIT_FAILURE);
         }
-
-        // Close standard file descriptors
-        close(STDIN_FILENO);
-        close(STDOUT_FILENO);
-        close(STDERR_FILENO);
-
-        // Execute the command using execvp
-        char *args[] = {"sh", "-c", command, NULL};
-        execvp("sh", args);
-
-        // execvp only returns if an error occurs
-        perror("execvp failed");
-        exit(EXIT_FAILURE);
-    }
-    else
-    {
-        // Parent process
-        if (!usepid2)
+        default:
         {
-            pid = currentPid;
-            usepid2 = true;
+            // Parent process
+            pthread_t thread_id;
+            thread_data *data = malloc(sizeof(thread_data));
+            if (data == NULL) {
+                perror("malloc failed");
+                return -1;
+            }
+            data->pid = currentPid;
+            if (pthread_create(&thread_id, NULL, child_cleanup, data) != 0) {
+                perror("pthread_create failed");
+                free(data);
+                return -1;
+            }
+            if (pthread_detach(thread_id) != 0) {
+                perror("pthread_detach failed");
+                free(data);
+                return -1;
+            }
         }
-        else
-        {
-            pid2 = currentPid;
-            usepid2 = false;
-        }
-
-        // Close the child process handle immediately to prevent lingering processes
-        // close(currentPid);
-        return 0;
     }
+
+    return 0;
 }
 
 void resumePlayback()
