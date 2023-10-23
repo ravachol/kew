@@ -188,3 +188,5 @@ cue will create a config file, .cue.conf, in your home directory. There you can 
 ## License
 
 Licensed under GPL. [See LICENSE for more information](https://github.com/ravachol/cue/blob/main/LICENSE).
+
+Comments? Suggestions? Send mail to cuemusiccommand@proton.me.
