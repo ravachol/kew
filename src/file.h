@@ -52,12 +52,14 @@ int deleteFile(const char *filePath);
 
 char *escapeFilePath(const char *filePath);
 
-void generateTempFilePath(char *filePath, const char *prefix, const char *suffix);
+void generateTempFilePath(const char *srcFilePath, char *filePath, const char *prefix, const char *suffix);
 
 const char *getFileExtension(const char *filePath);
 
 int openFileWithRetry(const char *filePath, const char *mode, FILE **file);
 
 void deleteTempDir();
+
+void deleteTempShmDir();
 
 #endif

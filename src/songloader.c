@@ -17,7 +17,7 @@ void loadCover(SongData *songdata)
     if (strlen(songdata->filePath) == 0)
         return;
 
-    generateTempFilePath(songdata->coverArtPath, "cover", ".jpg");
+    generateTempFilePath(songdata->filePath, songdata->coverArtPath, "cover", ".jpg");
     int res = extractCoverCommand(songdata->filePath, songdata->coverArtPath);
     if (res < 0)
     {
@@ -35,6 +35,13 @@ void loadCover(SongData *songdata)
     {
         addToCache(tempCache, songdata->coverArtPath);
     }
+
+    // if (existsFile(songdata->coverArtPath))
+    // {
+    //     // Limit the permissions on this file to current user
+    //     mode_t mode = S_IRUSR | S_IWUSR;
+    //     chmod(songdata->coverArtPath, mode);
+    // }    
     songdata->cover = getBitmap(songdata->coverArtPath);
 }
 
@@ -61,25 +68,33 @@ void loadDuration(SongData *songdata)
 
 int loadPcmAudio(SongData *songdata)
 {
-    // don't go through the trouble if this is already a failed file
+    // Don't go through the trouble if this is already a failed file
     if (songdata->hasErrors)
-        return -1;
+        return -1;  
 
-    generateTempFilePath(songdata->pcmFilePath, "temp", ".pcm");
+    generateTempFilePath(songdata->filePath, songdata->pcmFilePath, "temp", ".pcm");    
     convertToPcmFile(songdata->filePath, songdata->pcmFilePath);
     int count = 0;
-    while (!existsFile(songdata->pcmFilePath) && count < 4)
+    int result = -1;
+    while (result < 1 && count < 4)
     {
+        result = existsFile(songdata->pcmFilePath);
         c_sleep(600);
         count++;
     }
 
-    // file doesn't exist
-    if (!existsFile(songdata->pcmFilePath))
+    // File doesn't exist
+    if (result < 1)
     {
         songdata->hasErrors = true;
         return -1;
     }
+    else
+    {
+        // Limit the permissions on this file to current user
+        mode_t mode = S_IRUSR | S_IWUSR;
+        chmod(songdata->pcmFilePath, mode);
+    }    
 
     addToCache(tempCache, songdata->pcmFilePath);
 

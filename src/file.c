@@ -12,6 +12,8 @@ file.c
 
 */
 
+const int MAX_IN_MEM_FILESIZE = 20000000; //~20MB
+
 int existsFile(const char *fname)
 {
     FILE *file;
@@ -20,7 +22,7 @@ int existsFile(const char *fname)
         fclose(file);
         return 1;
     }
-    return 0;
+    return -1;
 }
 
 void getDirectoryFromPath(const char *path, char *directory)
@@ -344,6 +346,7 @@ int deleteFile(const char *filePath)
     }
 }
 
+
 void deleteTempDir()
 {
     const char *tempDir = getenv("TMPDIR");
@@ -365,6 +368,59 @@ void deleteTempDir()
     removeDirectory(dirPath);
 }
 
+int removeShmDirectory(const char *path)
+{
+    struct stat st;
+
+    // Check if path exists
+    if (stat(path, &st) != 0)
+        return -1; 
+
+    // Check if it is a directory
+    if (!S_ISDIR(st.st_mode))
+        return -1; 
+
+    DIR *dir = opendir(path);
+
+    if (dir == NULL)
+        return -1; 
+
+    struct dirent *entry;
+    char filePath[PATH_MAX];
+
+    // Remove all entries in the directory
+    while ((entry = readdir(dir)) != NULL)
+    {
+        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
+            continue; 
+
+        snprintf(filePath, sizeof(filePath), "%s/%s", path, entry->d_name);
+
+        if (entry->d_type == DT_DIR)
+            removeShmDirectory(filePath);
+        else
+            unlink(filePath); 
+    }
+
+    closedir(dir);
+
+    // Remove the directory itself
+    if (rmdir(path) == 0)
+        return 0; // Directory removed successfully
+
+    return -1; // Failed to remove directory
+}
+
+void deleteTempShmDir()
+{
+    const char *tempDir = "/dev/shm";    
+    char dirPath[MAXPATHLEN];
+    struct passwd *pw = getpwuid(getuid());
+    const char *username = pw->pw_name;
+    snprintf(dirPath, FILENAME_MAX, "%s/cue/%s", tempDir, username);
+    removeShmDirectory(dirPath);
+}
+
 char *escapeFilePath(const char *filePath)
 {
     const int MAX_FILE_PATH_SIZE = 1000;
@@ -384,13 +440,33 @@ char *escapeFilePath(const char *filePath)
     return escapedFilePath;
 }
 
-void generateTempFilePath(char *filePath, const char *prefix, const char *suffix)
+bool checkFileBelowMaxSize(const char *filePath, int maxSize)
+{
+    struct stat st;
+
+    if (stat(filePath, &st) == 0)
+    {
+        return (st.st_size <= maxSize);
+    }
+
+    perror("stat failed");
+
+    return false;
+}
+
+void generateTempFilePath(const char *srcFilePath, char *filePath, const char *prefix, const char *suffix)
 {
     const char *tempDir = getenv("TMPDIR");
     if (tempDir == NULL)
     {
         tempDir = "/tmp";
     }
+
+    //if (checkFileBelowMaxSize(srcFilePath, MAX_IN_MEM_FILESIZE) && existsFile("/dev/shm"))
+    //{
+    //    tempDir = "/dev/shm";
+    //}
+
     char dirPath[MAXPATHLEN];
     struct passwd *pw = getpwuid(getuid());
     const char *username = pw->pw_name;
