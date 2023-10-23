@@ -1,6 +1,6 @@
 ## Reporting a Bug
 
-If you find a security related issue, please contact us at cuemusicplayer@proton.me.
+If you find a security related issue, please contact us at cuemusiccommand@proton.me.
 
 When a fix is published, you will receive credit under your real name or bug
 tracker handle in GitHub. If you prefer to remain anonymous or pseudonymous, 
