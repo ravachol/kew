@@ -870,7 +870,7 @@ void skipToNumberedSong(int songNumber)
         forceSkip = true;
         skipToNumberedSong(songNumber + 1);
     }
-
+    
     clock_gettime(CLOCK_MONOTONIC, &start_time);
     updateLastSongSwitchTime();
     skip();
@@ -944,11 +944,12 @@ void loadAudioData()
 void handleGotoSong()
 {
     if (digitsPressedCount == 0)
-    {
+    {        
         skipToNumberedSong(chosenSong + 1);
     }
     else
     {
+        resetPlaylistDisplay = true;
         int songNumber = atoi(digitsPressed);
         memset(digitsPressed, '\0', sizeof(digitsPressed));
         digitsPressedCount = 0;
@@ -1955,8 +1956,6 @@ void cleanupOnExit()
     deletePlaylist(originalPlaylist);
     free(mainPlaylist);
     showCursor();
-    printf("\n\n");
-    clearRestOfScreen();
 
 #ifdef DEBUG
     fclose(logFile);
@@ -2052,10 +2051,13 @@ void run()
 
     currentSong = playlist.head;
     play(currentSong);
+    clearScreen();
+    fflush(stdout);    
 }
 
 void init()
 {
+    clearScreen();
     disableInputBuffering();
     srand(time(NULL));
     initResize();

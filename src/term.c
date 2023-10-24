@@ -211,6 +211,7 @@ void clearScreen()
 {
     printf("\033[2J");
     printf("\033[H");
+    printf("\033[1;1H");
 }
 
 void setWindowTitle(const char *title)
