@@ -24,6 +24,7 @@ extern bool visualizerEnabled;
 extern bool useThemeColors;
 extern int chosenRow;
 extern int chosenSong;
+extern bool resetPlaylistDisplay;
 extern int visualizerHeight;
 extern volatile bool refresh;
 extern TagSettings metadata;

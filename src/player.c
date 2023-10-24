@@ -34,7 +34,7 @@ bool uiEnabled = true;
 bool printInfo = false;
 bool printKeyBindings = false;
 bool showList = true;
-bool resetList = true;
+bool resetPlaylistDisplay = true;
 int chosenRow = 0;
 int chosenSong = 0;
 int startIter = 0;
@@ -537,7 +537,7 @@ int showKeyBindings()
     printBlankSpaces(indentation);
     printf(" - A add current song to main cue playlist.\n");
     printBlankSpaces(indentation);
-    printf(" - P to save the playlist to your music folder.\n");
+    printf(" - X to save the playlist to your music folder.\n");
     printBlankSpaces(indentation);
     printf(" - Q to quit.\n");
     printf("\n");
@@ -561,7 +561,7 @@ int showPlaylist()
     int foundAt = 0;
     if (node == NULL)
         return numRows;
-    printf("\n");
+
     maxListSize -= 1;
     numRows++;
 
@@ -625,7 +625,7 @@ int showPlaylist()
         chosenRow = 0;
     }
 
-    if (resetList)
+    if (resetPlaylistDisplay)
     {
         startIter = chosenRow = chosenSong = foundAt;
     }
@@ -714,7 +714,7 @@ int showPlaylist()
     {
         numPrintedRows += 2;
     }    
-    resetList = false;
+    resetPlaylistDisplay = false;
     return numPrintedRows;
 }
 
@@ -786,7 +786,7 @@ int printPlayer(SongData *songdata, double elapsedSeconds, PlayList *playlist)
         return -1;
 
     if (!printInfo)
-        resetList = true;        
+        resetPlaylistDisplay = true;        
 
     if (printKeyBindings)
     {
@@ -801,6 +801,7 @@ int printPlayer(SongData *songdata, double elapsedSeconds, PlayList *playlist)
     {
         if (refresh)
         {
+            clearScreen();
             int height = showPlaylist();
             cursorJump(height);
             saveCursorPosition();
