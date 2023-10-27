@@ -32,7 +32,7 @@ UserData userData;
 pid_t pid = -1;
 pid_t pid2 = -1;
 bool usepid2 = false;
-gchar *currentTrackId = NULL;
+SongData *currentSongData;
 
 static bool eofReached = false;
 
@@ -171,25 +171,16 @@ void pcm_file_data_source_read_pcm_frames(ma_data_source *pDataSource, void *pFr
                 currentFile = pPCMDataSource->fileB;
                 if (currentFile != NULL)
                     fclose(currentFile);
+                pPCMDataSource->fileA = (pPCMDataSource->pUserData->pcmFileA.filename != NULL) ? fopen(pPCMDataSource->pUserData->pcmFileA.filename, "rb") : NULL;
+                currentSongData = pPCMDataSource->pUserData->songdataA;
             }
             else
             {
                 currentFile = pPCMDataSource->fileA;
                 if (currentFile != NULL)
                     fclose(currentFile);
-            }
-
-            // Open the new file
-            if (pPCMDataSource->currentFileIndex == 0)
-            {
-                pPCMDataSource->fileA = (pPCMDataSource->pUserData->pcmFileA.filename != NULL) ? fopen(pPCMDataSource->pUserData->pcmFileA.filename, "rb") : NULL;
-                currentFile = pPCMDataSource->fileA;                
-            }
-            else
-            {
-                pPCMDataSource->fileB = (pPCMDataSource->pUserData->pcmFileB.filename != NULL) ? fopen(pPCMDataSource->pUserData->pcmFileB.filename, "rb") : NULL;
-                currentFile = pPCMDataSource->fileB;
-                
+                pPCMDataSource->fileB = (pPCMDataSource->pUserData->pcmFileB.filename != NULL) ? fopen(pPCMDataSource->pUserData->pcmFileB.filename, "rb") : NULL;                    
+                currentSongData = pPCMDataSource->pUserData->songdataB;
             }
 
             pPCMDataSource->pUserData->currentFileIndex = pPCMDataSource->currentFileIndex;
@@ -203,19 +194,7 @@ void pcm_file_data_source_read_pcm_frames(ma_data_source *pDataSource, void *pFr
 
         // Read from the current file
         FILE *currentFile;
-        if (pPCMDataSource->currentFileIndex == 0)
-        {
-            currentFile = pPCMDataSource->fileA;
-            if (currentFile != NULL)
-                currentTrackId = pPCMDataSource->pUserData->songdataA->trackId;
-        }
-        else
-        {
-            currentFile = pPCMDataSource->fileB;
-            if (currentFile != NULL)
-                currentTrackId = pPCMDataSource->pUserData->songdataB->trackId;
-        }
-
+        currentFile = (pPCMDataSource->currentFileIndex == 0) ? pPCMDataSource->fileA : pPCMDataSource->fileB;
         ma_uint32 bytesRead = 0;
 
         if (currentFile != NULL)

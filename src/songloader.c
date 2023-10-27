@@ -76,7 +76,7 @@ int loadPcmAudio(SongData *songdata)
     convertToPcmFile(songdata->filePath, songdata->pcmFilePath);
     int count = 0;
     int result = -1;
-    while (result < 1 && count < 8)
+    while (result < 1 && count < 10)
     {
         result = existsFile(songdata->pcmFilePath);
         c_sleep(300);
