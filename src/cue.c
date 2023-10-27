@@ -722,9 +722,20 @@ void prepareNextSong()
     if (loadingFailed)
         return;
 
+
     if (!skipPrev && !gotoSong && !repeatEnabled)
     {
-        currentSong = nextSong;
+        if(nextSong != NULL)
+            currentSong = nextSong;            
+        else if (currentSong->next != NULL)
+        {
+            currentSong = currentSong->next;
+        }
+        else
+        {
+            quit();
+            return;
+        }
     }
     else
     {
@@ -742,27 +753,32 @@ void prepareNextSong()
     pauseSeconds = 0.0;
     totalPauseSeconds = 0.0;
 
-    loadedNextSong = false;
     nextSong = NULL;
 
     refresh = true;
 
     if (!repeatEnabled)
     {
-        if (usingSongDataA)
+        if (usingSongDataA && (skipping || (currentSongData == NULL || 
+            (currentSongData->trackId && loadingdata.songdataA && strcmp(loadingdata.songdataA->trackId, currentSongData->trackId) != 0))))
         {
             unloadSongData(&loadingdata.songdataA);
             userData.pcmFileA.file = NULL;
             userData.pcmFileA.filename = NULL;
+            usingSongDataA = false;
+            loadedNextSong = false;
         }
-        else
-        {
+        else if (!usingSongDataA && (skipping || (currentSongData == NULL || 
+                (currentSongData->trackId && loadingdata.songdataB && strcmp(loadingdata.songdataB->trackId, currentSongData->trackId) != 0))))
+        {            
             unloadSongData(&loadingdata.songdataB);
             userData.pcmFileB.file = NULL;
             userData.pcmFileB.filename = NULL;
-        }
-        usingSongDataA = !usingSongDataA;
+            usingSongDataA = true;
+            loadedNextSong = false;
+        }       
     }
+
     clock_gettime(CLOCK_MONOTONIC, &start_time);
 }
 
@@ -897,37 +913,40 @@ void refreshPlayer()
     SongData *songData = usingSongDataA ? loadingdata.songdataA : loadingdata.songdataB;
 
     // Check if we have the correct one
-    if (strcmp(songData->trackId, currentTrackId) != 0)
+    if (currentSongData != NULL && currentSongData->trackId != NULL && songData != NULL && strcmp(songData->trackId, currentSongData->trackId) != 0)
     {
         if (usingSongDataA)
         {
             // Try the other one
-            if (loadingdata.songdataB != NULL && strcmp(loadingdata.songdataB->trackId, currentTrackId) == 0)
-            {
+            if (loadingdata.songdataB != NULL && strcmp(loadingdata.songdataB->trackId, currentSongData->trackId) == 0)
+            { 
                 songData = loadingdata.songdataB;
             }
         }
         else
         {
-            if (loadingdata.songdataA != NULL && strcmp(loadingdata.songdataA->trackId, currentTrackId) == 0)
+            if (loadingdata.songdataA != NULL && strcmp(loadingdata.songdataA->trackId, currentSongData->trackId) == 0)
             {
                 songData = loadingdata.songdataA;
             }
         }
     }
 
-    if (refresh)
+    if (songData != NULL)
     {
-        // update mpris
-        emitMetadataChanged(
-            songData->metadata->title ? songData->metadata->title : "",
-            songData->metadata->artist ? songData->metadata->artist : "",
-            songData->metadata->album ? songData->metadata->album : "",
-            songData->coverArtPath ? songData->coverArtPath : "",
-            songData->trackId ? songData->trackId : "");
-    }
+        if (refresh)
+        {
+            // update mpris
+            emitMetadataChanged(
+                songData->metadata->title ? songData->metadata->title : "",
+                songData->metadata->artist ? songData->metadata->artist : "",
+                songData->metadata->album ? songData->metadata->album : "",
+                songData->coverArtPath ? songData->coverArtPath : "",
+                songData->trackId ? songData->trackId : "");
+        }
 
-    printPlayer(songData, elapsedSeconds, &playlist);
+        printPlayer(songData, elapsedSeconds, &playlist);
+    }
 }
 
 void loadAudioData()

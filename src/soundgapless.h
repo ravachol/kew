@@ -56,7 +56,7 @@ typedef struct
 extern UserData userData;
 extern bool repeatEnabled;
 extern bool shuffleEnabled;
-extern gchar *currentTrackId;
+extern SongData *currentSongData;
 
 void createAudioDevice(UserData *userData);
 
