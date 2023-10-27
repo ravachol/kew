@@ -183,7 +183,7 @@ Put single-quotes inside quotes "guns n' roses"
 
 ## Configuration
 
-cue will create a config file, .cue.conf, in your home directory. There you can change for instance starting directory, number of bars in the visualizer and whether to use the album cover for color (default), or your regular color scheme. To edit this file please make sure you quit cue first.
+cue will create a config file, .cue.conf, in your home directory. There you can change for instance starting directory, number of bars in the visualizer and whether to use the album cover for color, or your regular color scheme (default). To edit this file please make sure you quit cue first.
 
 ## License
 
