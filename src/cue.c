@@ -759,6 +759,7 @@ void prepareNextSong()
 
     if (!repeatEnabled)
     {
+        pthread_mutex_lock(&(loadingdata.mutex));
         if (usingSongDataA && (skipping || (currentSongData == NULL || 
             (currentSongData->trackId && loadingdata.songdataA && strcmp(loadingdata.songdataA->trackId, currentSongData->trackId) != 0))))
         {
@@ -777,6 +778,7 @@ void prepareNextSong()
             usingSongDataA = true;
             loadedNextSong = false;
         }       
+        pthread_mutex_unlock(&(loadingdata.mutex));
     }
 
     clock_gettime(CLOCK_MONOTONIC, &start_time);
