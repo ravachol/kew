@@ -18,23 +18,23 @@
 
 typedef struct
 {
-    char *filePath;
-    double duration;
+        char *filePath;
+        double duration;
 } SongInfo;
 
 typedef struct Node
 {
-    SongInfo song;
-    struct Node *next;
-    struct Node *prev;
+        SongInfo song;
+        struct Node *next;
+        struct Node *prev;
 } Node;
 
 typedef struct
 {
-    Node *head;
-    Node *tail;
-    int count;
-    volatile double totalDuration;
+        Node *head;
+        Node *tail;
+        int count;
+        volatile double totalDuration;
 } PlayList;
 
 extern Node *currentSong;
@@ -90,4 +90,4 @@ Node *deepCopyNode(Node *originalNode);
 
 PlayList deepCopyPlayList(PlayList *originalList);
 
-Node* findSongInPlaylist(Node* currentSong, PlayList* playlist);
+Node *findSongInPlaylist(Node *currentSong, PlayList *playlist);

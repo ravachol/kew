@@ -99,6 +99,6 @@ void cursorJumpDown(int numRows);
 
 void clearScreen();
 
-int readInputSequence(char* seq, size_t seqSize);
+int readInputSequence(char *seq, size_t seqSize);
 
 #endif

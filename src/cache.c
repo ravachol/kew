@@ -8,41 +8,41 @@ Cache *tempCache = NULL;
 
 Cache *createCache()
 {
-    Cache *cache = (Cache*)malloc(sizeof(Cache));
-    cache->head = NULL;
-    return cache;
+        Cache *cache = (Cache *)malloc(sizeof(Cache));
+        cache->head = NULL;
+        return cache;
 }
 
 void addToCache(Cache *cache, const char *filePath)
 {
-    CacheNode *newNode = (CacheNode*)malloc(sizeof(CacheNode));
-    newNode->filePath = strdup(filePath);
-    newNode->next = cache->head;
-    cache->head = newNode;
+        CacheNode *newNode = (CacheNode *)malloc(sizeof(CacheNode));
+        newNode->filePath = strdup(filePath);
+        newNode->next = cache->head;
+        cache->head = newNode;
 }
 
 void deleteCache(Cache *cache)
 {
-    if (cache)
-    {
-        CacheNode *current = cache->head;
-        while (current != NULL)
+        if (cache)
         {
-            CacheNode *temp = current;
-            current = current->next;
-            free(temp->filePath);
-            free(temp);
+                CacheNode *current = cache->head;
+                while (current != NULL)
+                {
+                        CacheNode *temp = current;
+                        current = current->next;
+                        free(temp->filePath);
+                        free(temp);
+                }
+                free(cache);
         }
-        free(cache);
-    }
 }
 
 void deleteCachedFiles(Cache *cache)
 {
-    CacheNode *current = cache->head;
-    while (current != NULL)
-    {
-        remove(current->filePath);
-        current = current->next;
-    }
+        CacheNode *current = cache->head;
+        while (current != NULL)
+        {
+                remove(current->filePath);
+                current = current->next;
+        }
 }

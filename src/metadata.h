@@ -13,8 +13,8 @@
 
 typedef struct
 {
-    char *key;
-    char *value;
+        char *key;
+        char *value;
 } KeyValuePair;
 
 #endif
@@ -24,11 +24,11 @@ typedef struct
 
 typedef struct
 {
-    char title[256];
-    char artist[256];
-    char album_artist[256];
-    char album[256];
-    char date[256];
+        char title[256];
+        char artist[256];
+        char album_artist[256];
+        char album[256];
+        char date[256];
 } TagSettings;
 
 #endif

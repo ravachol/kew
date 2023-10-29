@@ -22,7 +22,7 @@ extern bool printInfo;
 extern bool printKeyBindings;
 extern bool visualizerEnabled;
 extern bool useThemeColors;
-extern int chosenRow;
+
 extern int chosenSong;
 extern bool resetPlaylistDisplay;
 extern int visualizerHeight;
@@ -36,5 +36,13 @@ void showVersion();
 int printAbout();
 
 void showHelp();
+
+void scrollNext();
+
+void scrollPrev();
+
+void toggleShowKeyBindings();
+
+void toggleShowPlaylist();
 
 #endif

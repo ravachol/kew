@@ -34,522 +34,543 @@ pid_t pid2 = -1;
 bool usepid2 = false;
 SongData *currentSongData;
 
-static bool eofReached = false;
+_Atomic bool EOFReached = false;
 
-typedef struct thread_data {
-   pid_t pid;
+typedef struct thread_data
+{
+        pid_t pid;
 } thread_data;
+
+bool isEOFReached()
+{
+        return atomic_load(&EOFReached);
+}
+
+void setEOFReached()
+{
+        atomic_store(&EOFReached, true);
+}
+
+void setEOFNotReached()
+{
+        atomic_store(&EOFReached, false);
+}
 
 static ma_result pcm_file_data_source_read(ma_data_source *pDataSource, void *pFramesOut, ma_uint64 frameCount, ma_uint64 *pFramesRead)
 {
-    // Dummy implementation
-    (void)pDataSource;
-    (void)pFramesOut;
-    (void)frameCount;
-    (void)pFramesRead;
-    return MA_SUCCESS;
+        // Dummy implementation
+        (void)pDataSource;
+        (void)pFramesOut;
+        (void)frameCount;
+        (void)pFramesRead;
+        return MA_SUCCESS;
 }
 
 static ma_result pcm_file_data_source_seek(ma_data_source *pDataSource, ma_uint64 frameIndex)
 {
-    PCMFileDataSource *pPCMDataSource = (PCMFileDataSource *)pDataSource;
-    pPCMDataSource->currentPCMFrame = (ma_uint32)frameIndex;
-    return MA_SUCCESS;
+        PCMFileDataSource *pPCMDataSource = (PCMFileDataSource *)pDataSource;
+        pPCMDataSource->currentPCMFrame = (ma_uint32)frameIndex;
+        return MA_SUCCESS;
 }
 
 static ma_result pcm_file_data_source_get_data_format(ma_data_source *pDataSource, ma_format *pFormat, ma_uint32 *pChannels, ma_uint32 *pSampleRate, ma_channel *pChannelMap, size_t channelMapCap)
 {
-    (void)pChannelMap;
-    (void)channelMapCap;
-    PCMFileDataSource *pPCMDataSource = (PCMFileDataSource *)pDataSource;
-    *pFormat = pPCMDataSource->format;
-    *pChannels = pPCMDataSource->channels;
-    *pSampleRate = pPCMDataSource->sampleRate;
-    return MA_SUCCESS;
+        (void)pChannelMap;
+        (void)channelMapCap;
+        PCMFileDataSource *pPCMDataSource = (PCMFileDataSource *)pDataSource;
+        *pFormat = pPCMDataSource->format;
+        *pChannels = pPCMDataSource->channels;
+        *pSampleRate = pPCMDataSource->sampleRate;
+        return MA_SUCCESS;
 }
 
 static ma_result pcm_file_data_source_get_cursor(ma_data_source *pDataSource, ma_uint64 *pCursor)
 {
-    PCMFileDataSource *pPCMDataSource = (PCMFileDataSource *)pDataSource;
-    *pCursor = pPCMDataSource->currentPCMFrame;
+        PCMFileDataSource *pPCMDataSource = (PCMFileDataSource *)pDataSource;
+        *pCursor = pPCMDataSource->currentPCMFrame;
 
-    return MA_SUCCESS;
+        return MA_SUCCESS;
 }
 
 static ma_result pcm_file_data_source_get_length(ma_data_source *pDataSource, ma_uint64 *pLength)
 {
-    PCMFileDataSource *pPCMDataSource = (PCMFileDataSource *)pDataSource;
+        PCMFileDataSource *pPCMDataSource = (PCMFileDataSource *)pDataSource;
 
-    // Get the current file based on the current file index
-    FILE *currentFile;
-    if (pPCMDataSource->pUserData->currentFileIndex == 0)
-    {
-        currentFile = pPCMDataSource->fileA;
-    }
-    else
-    {
-        currentFile = pPCMDataSource->fileB;
-    }
+        // Get the current file based on the current file index
+        FILE *currentFile;
+        if (pPCMDataSource->pUserData->currentFileIndex == 0)
+        {
+                currentFile = pPCMDataSource->fileA;
+        }
+        else
+        {
+                currentFile = pPCMDataSource->fileB;
+        }
 
-    ma_uint64 fileSize;
+        ma_uint64 fileSize;
 
-    // Seek to the end of the current file to get its size
-    fseek(currentFile, 0, SEEK_END);
-    fileSize = ftell(currentFile);
-    fseek(currentFile, 0, SEEK_SET);
+        // Seek to the end of the current file to get its size
+        fseek(currentFile, 0, SEEK_END);
+        fileSize = ftell(currentFile);
+        fseek(currentFile, 0, SEEK_SET);
 
-    // Calculate the total number of frames in the current file
-    ma_uint64 frameCount = fileSize / ma_get_bytes_per_frame(pPCMDataSource->format, pPCMDataSource->channels);
-    *pLength = frameCount;
+        // Calculate the total number of frames in the current file
+        ma_uint64 frameCount = fileSize / ma_get_bytes_per_frame(pPCMDataSource->format, pPCMDataSource->channels);
+        *pLength = frameCount;
 
-    return MA_SUCCESS;
+        return MA_SUCCESS;
 }
 
 static ma_result pcm_file_data_source_set_looping(ma_data_source *pDataSource, ma_bool32 isLooping)
 {
-    // Dummy implementation
-    (void)pDataSource;
-    (void)isLooping;
+        // Dummy implementation
+        (void)pDataSource;
+        (void)isLooping;
 
-    return MA_SUCCESS;
+        return MA_SUCCESS;
 }
 
 static ma_data_source_vtable pcm_file_data_source_vtable = {
-    pcm_file_data_source_read,
-    pcm_file_data_source_seek,
-    pcm_file_data_source_get_data_format,
-    pcm_file_data_source_get_cursor,
-    pcm_file_data_source_get_length,
-    pcm_file_data_source_set_looping,
+        pcm_file_data_source_read,
+        pcm_file_data_source_seek,
+        pcm_file_data_source_get_data_format,
+        pcm_file_data_source_get_cursor,
+        pcm_file_data_source_get_length,
+        pcm_file_data_source_set_looping,
     0 // flags
 };
 
 ma_result pcm_file_data_source_init(PCMFileDataSource *pPCMDataSource, const char *filenameA, UserData *pUserData)
 {
-    pPCMDataSource->pUserData = pUserData;
-    pPCMDataSource->filenameA = filenameA;
-    pPCMDataSource->format = SAMPLE_FORMAT;
-    pPCMDataSource->channels = CHANNELS;
-    pPCMDataSource->sampleRate = SAMPLE_RATE;
-    pPCMDataSource->currentPCMFrame = 0;
-    pPCMDataSource->currentFileIndex = 0;
-    pPCMDataSource->fileA = fopen(filenameA, "rb");
+        pPCMDataSource->pUserData = pUserData;
+        pPCMDataSource->filenameA = filenameA;
+        pPCMDataSource->format = SAMPLE_FORMAT;
+        pPCMDataSource->channels = CHANNELS;
+        pPCMDataSource->sampleRate = SAMPLE_RATE;
+        pPCMDataSource->currentPCMFrame = 0;
+        pPCMDataSource->currentFileIndex = 0;
+        pPCMDataSource->fileA = fopen(filenameA, "rb");
 
-    pUserData->pcmFileA.file = pPCMDataSource->fileA;
+        pUserData->pcmFileA.file = pPCMDataSource->fileA;
 
-    return MA_SUCCESS;
+        return MA_SUCCESS;
 }
 
 void activateSwitch(PCMFileDataSource *pPCMDataSource)
 {
-    skipToNext = false;
-    if (!repeatEnabled)
-        pPCMDataSource->currentFileIndex = 1 - pPCMDataSource->currentFileIndex; // Toggle between 0 and 1
-    pPCMDataSource->switchFiles = true;
+        skipToNext = false;
+        if (!repeatEnabled)
+                pPCMDataSource->currentFileIndex = 1 - pPCMDataSource->currentFileIndex; // Toggle between 0 and 1
+        pPCMDataSource->switchFiles = true;
 }
 
 void pcm_file_data_source_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_uint64 frameCount, ma_uint64 *pFramesRead)
 {
-    PCMFileDataSource *pPCMDataSource = (PCMFileDataSource *)pDataSource;
-    ma_uint32 framesToRead = (ma_uint32)frameCount;
+        PCMFileDataSource *pPCMDataSource = (PCMFileDataSource *)pDataSource;
+        ma_uint32 framesToRead = (ma_uint32)frameCount;
 
-    ma_uint32 bytesPerFrame = ma_get_bytes_per_frame(pPCMDataSource->format, pPCMDataSource->channels);
-    ma_uint32 bytesToRead = framesToRead * bytesPerFrame;
-    ma_uint32 framesRead = 0;
+        ma_uint32 bytesPerFrame = ma_get_bytes_per_frame(pPCMDataSource->format, pPCMDataSource->channels);
+        ma_uint32 bytesToRead = framesToRead * bytesPerFrame;
+        ma_uint32 framesRead = 0;
 
-    while (framesToRead > 0)
-    {
-        // Check if a file switch is required
-        if (pPCMDataSource->switchFiles)
+        while (framesToRead > 0)
         {
-            pPCMDataSource->switchFiles = false;
+                // Check if a file switch is required
+                if (pPCMDataSource->switchFiles)
+                {
+                        pPCMDataSource->switchFiles = false;
 
-            // Close the current file
-            FILE *currentFile;
-            if (pPCMDataSource->currentFileIndex == 0)
-            {
-                currentFile = pPCMDataSource->fileB;
+                        // Close the current file
+                        FILE *currentFile;
+                        if (pPCMDataSource->currentFileIndex == 0)
+                        {
+                                currentFile = pPCMDataSource->fileB;
+                                if (currentFile != NULL)
+                                        fclose(currentFile);
+                                pPCMDataSource->fileA = (pPCMDataSource->pUserData->pcmFileA.filename != NULL) ? fopen(pPCMDataSource->pUserData->pcmFileA.filename, "rb") : NULL;
+                                currentSongData = pPCMDataSource->pUserData->songdataA;
+                        }
+                        else
+                        {
+                                currentFile = pPCMDataSource->fileA;
+                                if (currentFile != NULL)
+                                        fclose(currentFile);
+                                pPCMDataSource->fileB = (pPCMDataSource->pUserData->pcmFileB.filename != NULL) ? fopen(pPCMDataSource->pUserData->pcmFileB.filename, "rb") : NULL;
+                                currentSongData = pPCMDataSource->pUserData->songdataB;
+                        }
+
+                        pPCMDataSource->pUserData->currentFileIndex = pPCMDataSource->currentFileIndex;
+
+                        // Set the new current file and reset any necessary variables
+                        pPCMDataSource->currentPCMFrame = 0;
+
+                        setEOFReached();
+                        break; // Exit the loop after the file switch
+                }
+
+                // Read from the current file
+                FILE *currentFile;
+                currentFile = (pPCMDataSource->currentFileIndex == 0) ? pPCMDataSource->fileA : pPCMDataSource->fileB;
+                ma_uint32 bytesRead = 0;
+
                 if (currentFile != NULL)
-                    fclose(currentFile);
-                pPCMDataSource->fileA = (pPCMDataSource->pUserData->pcmFileA.filename != NULL) ? fopen(pPCMDataSource->pUserData->pcmFileA.filename, "rb") : NULL;
-                currentSongData = pPCMDataSource->pUserData->songdataA;
-            }
-            else
-            {
-                currentFile = pPCMDataSource->fileA;
-                if (currentFile != NULL)
-                    fclose(currentFile);
-                pPCMDataSource->fileB = (pPCMDataSource->pUserData->pcmFileB.filename != NULL) ? fopen(pPCMDataSource->pUserData->pcmFileB.filename, "rb") : NULL;                    
-                currentSongData = pPCMDataSource->pUserData->songdataB;
-            }
+                        bytesRead = (ma_uint32)fread((char *)pFramesOut + (framesRead * bytesPerFrame), 1, bytesToRead, currentFile);
 
-            pPCMDataSource->pUserData->currentFileIndex = pPCMDataSource->currentFileIndex;
+                // If file is empty, skip
+                if ((bytesRead == 0 || skipToNext) && !isEOFReached())
+                {
+                        activateSwitch(pPCMDataSource);
+                        continue; // Continue to the next iteration to read from the new file
+                }
 
-            // Set the new current file and reset any necessary variables
-            pPCMDataSource->currentPCMFrame = 0;
-
-            eofReached = true;
-            break; // Exit the loop after the file switch
+                framesRead += bytesRead / bytesPerFrame;
+                framesToRead -= bytesRead / bytesPerFrame;
+                bytesToRead -= bytesRead;
         }
 
-        // Read from the current file
-        FILE *currentFile;
-        currentFile = (pPCMDataSource->currentFileIndex == 0) ? pPCMDataSource->fileA : pPCMDataSource->fileB;
-        ma_uint32 bytesRead = 0;
-
-        if (currentFile != NULL)
-            bytesRead = (ma_uint32)fread((char *)pFramesOut + (framesRead * bytesPerFrame), 1, bytesToRead, currentFile);
-
-        // If file is empty, skip
-        // Ensure we don't switch twice in an instant by checking eofReached
-        if ((bytesRead == 0 || skipToNext) && !eofReached)
-        {
-            activateSwitch(pPCMDataSource);
-            continue; // Continue to the next iteration to read from the new file
-        }
-
-        framesRead += bytesRead / bytesPerFrame;
-        framesToRead -= bytesRead / bytesPerFrame;
-        bytesToRead -= bytesRead;
-    }
-
-    // Allocate memory for g_audioBuffer (if not already allocated)
-    if (g_audioBuffer == NULL)
-    {
-        g_audioBuffer = malloc(sizeof(ma_int32) * frameCount);
+        // Allocate memory for g_audioBuffer (if not already allocated)
         if (g_audioBuffer == NULL)
         {
-            // Memory allocation failed
-            return;
+                g_audioBuffer = malloc(sizeof(ma_int32) * frameCount);
+                if (g_audioBuffer == NULL)
+                {
+                        // Memory allocation failed
+                        return;
+                }
         }
-    }
 
-    // No format conversion needed, just copy the audio samples
-    memcpy(g_audioBuffer, pFramesOut, sizeof(ma_int32) * framesRead);
+        // No format conversion needed, just copy the audio samples
+        memcpy(g_audioBuffer, pFramesOut, sizeof(ma_int32) * framesRead);
 
-    if (pFramesRead != NULL)
-        *pFramesRead = framesRead;
+        if (pFramesRead != NULL)
+                *pFramesRead = framesRead;
 }
 
 void on_audio_frames(ma_device *pDevice, void *pFramesOut, const void *pFramesIn, ma_uint32 frameCount)
 {
-    PCMFileDataSource *pDataSource = (PCMFileDataSource *)pDevice->pUserData;
-    ma_uint64 framesRead = 0;
-    pcm_file_data_source_read_pcm_frames(&pDataSource->base, pFramesOut, frameCount, &framesRead);
-    (void)pFramesIn; 
+        PCMFileDataSource *pDataSource = (PCMFileDataSource *)pDevice->pUserData;
+        ma_uint64 framesRead = 0;
+        pcm_file_data_source_read_pcm_frames(&pDataSource->base, pFramesOut, frameCount, &framesRead);
+        (void)pFramesIn;
 }
 
-void* child_cleanup(void *arg) {
-    thread_data* data = (thread_data*)arg;
-    int status;
-    waitpid(data->pid, &status, 0);
-    free(arg);
-    return NULL;
+void *child_cleanup(void *arg)
+{
+        thread_data *data = (thread_data *)arg;
+        int status;
+        waitpid(data->pid, &status, 0);
+        free(arg);
+        return NULL;
 }
 
 int convertToPcmFile(const char *filePath, const char *outputFilePath)
 {
-    const int COMMAND_SIZE = 1000;
-    char command[COMMAND_SIZE];
+        const int COMMAND_SIZE = 1000;
+        char command[COMMAND_SIZE];
 
-    char *escapedInputFilePath = escapeFilePath(filePath);
+        char *escapedInputFilePath = escapeFilePath(filePath);
 
-    snprintf(command, sizeof(command),
-             "ffmpeg -v fatal -hide_banner -nostdin -y -i \"%s\" -f s24le -acodec pcm_s24le -ac %d -ar %d -threads auto \"%s\"",
-             escapedInputFilePath, CHANNELS, SAMPLE_RATE, outputFilePath);
+        snprintf(command, sizeof(command),
+                 "ffmpeg -v fatal -hide_banner -nostdin -y -i \"%s\" -f s24le -acodec pcm_s24le -ac %d -ar %d -threads auto \"%s\"",
+                 escapedInputFilePath, CHANNELS, SAMPLE_RATE, outputFilePath);
 
-    free(escapedInputFilePath);
+        free(escapedInputFilePath);
 
-    pid_t currentPid = fork();
-    switch(currentPid)
-    {
+        pid_t currentPid = fork();
+        switch (currentPid)
+        {
         case -1:
         {
-            perror("fork failed");
-            return -1;
+                perror("fork failed");
+                return -1;
         }
         case 0:
-        {    
-            // Child process
-            if (setsid() == -1)
-            {
-                perror("setsid failed");
+        {
+                // Child process
+                if (setsid() == -1)
+                {
+                        perror("setsid failed");
+                        exit(EXIT_FAILURE);
+                }
+
+                close(STDIN_FILENO);
+                close(STDOUT_FILENO);
+                close(STDERR_FILENO);
+
+                char *args[] = {"sh", "-c", command, NULL};
+                execvp("sh", args);
+
+                perror("execvp failed");
                 exit(EXIT_FAILURE);
-            }
-
-            close(STDIN_FILENO);
-            close(STDOUT_FILENO);
-            close(STDERR_FILENO);
-
-            char *args[] = {"sh", "-c", command, NULL};
-            execvp("sh", args);
-
-            perror("execvp failed");
-            exit(EXIT_FAILURE);
         }
         default:
         {
-            // Parent process
-            pthread_t thread_id;
-            thread_data *data = malloc(sizeof(thread_data));
-            if (data == NULL) {
-                perror("malloc failed");
-                return -1;
-            }
-            data->pid = currentPid;
-            if (pthread_create(&thread_id, NULL, child_cleanup, data) != 0) {
-                perror("pthread_create failed");
-                free(data);
-                return -1;
-            }
-            if (pthread_detach(thread_id) != 0) {
-                perror("pthread_detach failed");
-                free(data);
-                return -1;
-            }
+                // Parent process
+                pthread_t thread_id;
+                thread_data *data = malloc(sizeof(thread_data));
+                if (data == NULL)
+                {
+                        perror("malloc failed");
+                        return -1;
+                }
+                data->pid = currentPid;
+                if (pthread_create(&thread_id, NULL, child_cleanup, data) != 0)
+                {
+                        perror("pthread_create failed");
+                        free(data);
+                        return -1;
+                }
+                if (pthread_detach(thread_id) != 0)
+                {
+                        perror("pthread_detach failed");
+                        free(data);
+                        return -1;
+                }
         }
-    }
+        }
 
-    return 0;
+        return 0;
 }
 
 void resumePlayback()
 {
-    if (!ma_device_is_started(&device))
-    {
-        ma_device_start(&device);
-    }
-    paused = false;
+        if (!ma_device_is_started(&device))
+        {
+                ma_device_start(&device);
+        }
+        paused = false;
 }
 
 void pausePlayback()
 {
 
-    if (ma_device_is_started(&device))
-    {
-        ma_device_stop(&device);
-        paused = true;
-    }
+        if (ma_device_is_started(&device))
+        {
+                ma_device_stop(&device);
+                paused = true;
+        }
 }
 
 void togglePausePlayback()
 {
 
-    if (ma_device_is_started(&device))
-    {
-        ma_device_stop(&device);
-        paused = true;
-    }
-    else if (paused)
-    {
-        resumePlayback();
-        paused = false;
-    }
+        if (ma_device_is_started(&device))
+        {
+                ma_device_stop(&device);
+                paused = true;
+        }
+        else if (paused)
+        {
+                resumePlayback();
+                paused = false;
+        }
 }
 
 bool isPaused()
 {
-    return paused;
+        return paused;
 }
 
 bool isPlaybackDone()
 {
-    if (eofReached)
-    {
-        eofReached = false;
-        return true;
-    }
-    else
-    {
-        return false;
-    }
+        if (atomic_load(&EOFReached))
+        {
+                setEOFNotReached();
+                return true;
+        }
+        else
+        {
+                return false;
+        }
 }
 
 void stopPlayback()
 {
-    ma_device_stop(&device);
+        ma_device_stop(&device);
 }
 
 void cleanupPlaybackDevice()
 {
-    if (&device)
-    {
-        ma_device_stop(&device);
-        while (ma_device_get_state(&device) == ma_device_state_started)
+        if (&device)
         {
-            c_sleep(100);
+                ma_device_stop(&device);
+                while (ma_device_get_state(&device) == ma_device_state_started)
+                {
+                        c_sleep(100);
+                }
+                ma_device_uninit(&device);
         }
-        ma_device_uninit(&device);
-    }
 }
 
 int getSongDuration(const char *filePath, double *duration)
 {
-    char command[1024];
-    FILE *pipe;
-    char output[1024];
-    char *durationStr;
-    double durationValue;
+        char command[1024];
+        FILE *pipe;
+        char output[1024];
+        char *durationStr;
+        double durationValue;
 
-    char *escapedInputFilePath = escapeFilePath(filePath);
+        char *escapedInputFilePath = escapeFilePath(filePath);
 
-    snprintf(command, sizeof(command), "ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 \"%s\"", escapedInputFilePath);
+        snprintf(command, sizeof(command),
+                 "ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 \"%s\"", 
+                 escapedInputFilePath);
 
-    free(escapedInputFilePath);
+        free(escapedInputFilePath);
 
-    pipe = popen(command, "r");
-    if (pipe == NULL)
-    {
-        fprintf(stderr, "Failed to run FFprobe command.\n");
-        return -1;
-    }
-    if (fgets(output, sizeof(output), pipe) == NULL)
-    {
-        fprintf(stderr, "Failed to read FFprobe output.\n");
+        pipe = popen(command, "r");
+        if (pipe == NULL)
+        {
+                fprintf(stderr, "Failed to run FFprobe command.\n");
+                return -1;
+        }
+        if (fgets(output, sizeof(output), pipe) == NULL)
+        {
+                fprintf(stderr, "Failed to read FFprobe output.\n");
+                pclose(pipe);
+                return -1;
+        }
         pclose(pipe);
-        return -1;
-    }
-    pclose(pipe);
 
-    durationStr = strtok(output, "\n");
-    if (durationStr == NULL)
-    {
-        fprintf(stderr, "Failed to parse FFprobe output.\n");
-        return -1;
-    }
-    durationValue = atof(durationStr);
-    *duration = durationValue;
-    return 0;
+        durationStr = strtok(output, "\n");
+        if (durationStr == NULL)
+        {
+                fprintf(stderr, "Failed to parse FFprobe output.\n");
+                return -1;
+        }
+        durationValue = atof(durationStr);
+        *duration = durationValue;
+        return 0;
 }
 
 double getDuration(const char *filepath)
 {
-    double duration = 0.0;
-    int result = getSongDuration(filepath, &duration);
+        double duration = 0.0;
+        int result = getSongDuration(filepath, &duration);
 
-    if (result == -1)
-        return -1;
-    else
-        return duration;
+        if (result == -1)
+                return -1;
+        else
+                return duration;
 }
 
 int getCurrentVolume()
 {
-    FILE *fp;
-    char command_str[1000];
-    char buf[100];
-    int currentVolume = -1;
+        FILE *fp;
+        char command_str[1000];
+        char buf[100];
+        int currentVolume = -1;
 
-    // Build the command string
-    snprintf(command_str, sizeof(command_str),
-             "pactl get-sink-volume @DEFAULT_SINK@ | awk 'NR==1{print $5}'");
+        // Build the command string
+        snprintf(command_str, sizeof(command_str),
+                 "pactl get-sink-volume @DEFAULT_SINK@ | awk 'NR==1{print $5}'");
 
-    // Execute the command and read the output
-    fp = popen(command_str, "r");
-    if (fp != NULL)
-    {
-        if (fgets(buf, sizeof(buf), fp) != NULL)
+        // Execute the command and read the output
+        fp = popen(command_str, "r");
+        if (fp != NULL)
         {
-            sscanf(buf, "%d", &currentVolume);
+                if (fgets(buf, sizeof(buf), fp) != NULL)
+                {
+                        sscanf(buf, "%d", &currentVolume);
+                }
+                pclose(fp);
         }
-        pclose(fp);
-    }
 
-    return currentVolume;
+        return currentVolume;
 }
 
 void setVolume(int volume)
 {
-    char command_str[1000];
-    FILE *fp;
+        char command_str[1000];
+        FILE *fp;
 
-    // Limit new volume to a maximum of 100%
-    if (volume > 100)
-    {
-        volume = 100;
-    }
-    else if (volume < 0)
-    {
-        volume = 0;
-    }
+        // Limit new volume to a maximum of 100%
+        if (volume > 100)
+        {
+                volume = 100;
+        }
+        else if (volume < 0)
+        {
+                volume = 0;
+        }
 
-    snprintf(command_str, 1000, "pactl set-sink-volume @DEFAULT_SINK@ %d%%", volume);
+        snprintf(command_str, 1000, "pactl set-sink-volume @DEFAULT_SINK@ %d%%", volume);
 
-    fp = popen(command_str, "r");
-    if (fp == NULL)
-    {
-        return;
-    }
-    pclose(fp);
+        fp = popen(command_str, "r");
+        if (fp == NULL)
+        {
+                return;
+        }
+        pclose(fp);
 }
 
 int adjustVolumePercent(int volumeChange)
 {
-    char command_str[1000];
-    FILE *fp;
-    int currentVolume = getCurrentVolume();
+        char command_str[1000];
+        FILE *fp;
+        int currentVolume = getCurrentVolume();
 
-    int newVolume = currentVolume + volumeChange;
+        int newVolume = currentVolume + volumeChange;
 
-    // Limit new volume to a maximum of 100%
-    if (newVolume > 100)
-    {
-        newVolume = 100;
-    }
-    else if (newVolume < 0)
-    {
-        newVolume = 0;
-    }
+        // Limit new volume to a maximum of 100%
+        if (newVolume > 100)
+        {
+                newVolume = 100;
+        }
+        else if (newVolume < 0)
+        {
+                newVolume = 0;
+        }
 
-    snprintf(command_str, 1000, "pactl set-sink-volume @DEFAULT_SINK@ %d%%", newVolume);
+        snprintf(command_str, 1000, "pactl set-sink-volume @DEFAULT_SINK@ %d%%", newVolume);
 
-    fp = popen(command_str, "r");
-    if (fp == NULL)
-    {
-        return -1;
-    }
-    pclose(fp);
+        fp = popen(command_str, "r");
+        if (fp == NULL)
+        {
+                return -1;
+        }
+        pclose(fp);
 
-    return 0;
+        return 0;
 }
 
 void skip()
 {
-    skipToNext = true;
-    repeatEnabled = false;
+        skipToNext = true;
+        repeatEnabled = false;
 }
 
 void createAudioDevice(UserData *userData)
 {
-    ma_result result = ma_context_init(NULL, 0, NULL, &context);
-    if (result != MA_SUCCESS)
-    {
-        printf("Failed to initialize miniaudio context.\n");
-        return;
-    }
+        ma_result result = ma_context_init(NULL, 0, NULL, &context);
+        if (result != MA_SUCCESS)
+        {
+                printf("Failed to initialize miniaudio context.\n");
+                return;
+        }
 
-    pcm_file_data_source_init(&pcmDataSource, userData->pcmFileA.filename, userData);
+        pcm_file_data_source_init(&pcmDataSource, userData->pcmFileA.filename, userData);
 
-    pcmDataSource.base.vtable = &pcm_file_data_source_vtable;
+        pcmDataSource.base.vtable = &pcm_file_data_source_vtable;
 
-    ma_device_config deviceConfig = ma_device_config_init(ma_device_type_playback);
-    deviceConfig.playback.format = SAMPLE_FORMAT;
-    deviceConfig.playback.channels = CHANNELS;
-    deviceConfig.sampleRate = SAMPLE_RATE;
-    deviceConfig.dataCallback = on_audio_frames;
-    deviceConfig.pUserData = &pcmDataSource;
+        ma_device_config deviceConfig = ma_device_config_init(ma_device_type_playback);
+        deviceConfig.playback.format = SAMPLE_FORMAT;
+        deviceConfig.playback.channels = CHANNELS;
+        deviceConfig.sampleRate = SAMPLE_RATE;
+        deviceConfig.dataCallback = on_audio_frames;
+        deviceConfig.pUserData = &pcmDataSource;
 
-    result = ma_device_init(&context, &deviceConfig, &device);
-    if (result != MA_SUCCESS)
-    {
-        printf("Failed to initialize miniaudio device.\n");
-        return;
-    }
+        result = ma_device_init(&context, &deviceConfig, &device);
+        if (result != MA_SUCCESS)
+        {
+                printf("Failed to initialize miniaudio device.\n");
+                return;
+        }
 
-    result = ma_device_start(&device);
-    if (result != MA_SUCCESS)
-    {
-        printf("Failed to start miniaudio device.\n");
-        return;
-    }
+        result = ma_device_start(&device);
+        if (result != MA_SUCCESS)
+        {
+                printf("Failed to start miniaudio device.\n");
+                return;
+        }
 }

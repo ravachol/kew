@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <unistd.h>
+#include <stdatomic.h>
 #include <sys/wait.h>
 #include "songloader.h"
 
@@ -15,8 +16,8 @@ extern bool skipping;
 #define PCMFILE_STRUCT
 typedef struct
 {
-    char *filename;
-    FILE *file;
+        char *filename;
+        FILE *file;
 } PCMFile;
 #endif
 
@@ -24,13 +25,13 @@ typedef struct
 #define USERDATA_STRUCT
 typedef struct
 {
-    PCMFile pcmFileA;
-    PCMFile pcmFileB;
-    SongData* songdataA;
-    SongData* songdataB;
-    ma_uint32 currentFileIndex;
-    ma_uint32 currentPCMFrame;
-    int endOfListReached;
+        PCMFile pcmFileA;
+        PCMFile pcmFileB;
+        SongData *songdataA;
+        SongData *songdataB;
+        ma_uint32 currentFileIndex;
+        ma_uint32 currentPCMFrame;
+        int endOfListReached;
 } UserData;
 #endif
 
@@ -38,18 +39,18 @@ typedef struct
 #define PCMFILEDATASOURCE_STRUCT
 typedef struct
 {
-    ma_data_source_base base;
-    UserData *pUserData;
-    const char *filenameA;
-    const char *filenameB;
-    ma_format format;
-    ma_uint32 channels;
-    ma_uint32 sampleRate;
-    ma_uint32 currentPCMFrame;
-    FILE *fileA;
-    FILE *fileB;
-    bool switchFiles;
-    int currentFileIndex;
+        ma_data_source_base base;
+        UserData *pUserData;
+        const char *filenameA;
+        const char *filenameB;
+        ma_format format;
+        ma_uint32 channels;
+        ma_uint32 sampleRate;
+        ma_uint32 currentPCMFrame;
+        FILE *fileA;
+        FILE *fileB;
+        bool switchFiles;
+        int currentFileIndex;
 } PCMFileDataSource;
 #endif
 
