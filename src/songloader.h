@@ -15,8 +15,8 @@
 
 typedef struct
 {
-    char *key;
-    char *value;
+        char *key;
+        char *value;
 } KeyValuePair;
 
 #endif
@@ -26,11 +26,11 @@ typedef struct
 
 typedef struct
 {
-    char title[256];
-    char artist[256];
-    char album_artist[256];
-    char album[256];
-    char date[256];
+        char title[256];
+        char artist[256];
+        char album_artist[256];
+        char album[256];
+        char date[256];
 } TagSettings;
 
 #endif
@@ -40,19 +40,19 @@ typedef struct
 
 typedef struct
 {
-    gchar* trackId;
-    char filePath[MAXPATHLEN];
-    char coverArtPath[MAXPATHLEN];
-    char pcmFilePath[MAXPATHLEN];
-    unsigned char *red;
-    unsigned char *green;
-    unsigned char *blue;
-    TagSettings *metadata;
-    FIBITMAP *cover;
-    double *duration;
-    char *pcmFile;
-    long pcmFileSize;
-    bool hasErrors;
+        gchar *trackId;
+        char filePath[MAXPATHLEN];
+        char coverArtPath[MAXPATHLEN];
+        char pcmFilePath[MAXPATHLEN];
+        unsigned char *red;
+        unsigned char *green;
+        unsigned char *blue;
+        TagSettings *metadata;
+        FIBITMAP *cover;
+        double *duration;
+        char *pcmFile;
+        long pcmFileSize;
+        bool hasErrors;
 
 } SongData;
 

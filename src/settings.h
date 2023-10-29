@@ -14,20 +14,20 @@
 
 typedef struct
 {
-    char *key;
-    char *value;
+        char *key;
+        char *value;
 } KeyValuePair;
 
 #endif
 
 typedef struct
 {
-    char path[MAXPATHLEN];
-    char coverEnabled[2];
-    char coverAnsi[2];
-    char useProfileColors[2];
-    char visualizerEnabled[2];
-    char visualizerHeight[6];
+        char path[MAXPATHLEN];
+        char coverEnabled[2];
+        char coverAnsi[2];
+        char useProfileColors[2];
+        char visualizerEnabled[2];
+        char visualizerHeight[6];
 } AppSettings;
 
 extern AppSettings settings;

@@ -23,11 +23,11 @@
 
 enum SearchType
 {
-    SearchAny = 0,
-    DirOnly = 1,
-    FileOnly = 2,
-    SearchPlayList = 3,
-    ReturnAllSongs = 4
+        SearchAny = 0,
+        DirOnly = 1,
+        FileOnly = 2,
+        SearchPlayList = 3,
+        ReturnAllSongs = 4
 };
 
 int existsFile(const char *fname);
