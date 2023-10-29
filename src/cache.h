@@ -6,13 +6,13 @@
 
 typedef struct CacheNode
 {
-    char *filePath;
-    struct CacheNode *next;
+        char *filePath;
+        struct CacheNode *next;
 } CacheNode;
 
 typedef struct Cache
 {
-    CacheNode *head;
+        CacheNode *head;
 } Cache;
 
 extern Cache *tempCache;
