@@ -58,6 +58,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include "player.h"
 #include "cache.h"
 #include "songloader.h"
+#include "volume.h"
 
 #ifndef CLOCK_MONOTONIC
 #define CLOCK_MONOTONIC 1
@@ -125,6 +126,7 @@ GMainLoop *main_loop;
 guint registration_id;
 guint player_registration_id;
 guint bus_name_id;
+UserData userData;
 
 void emitStringPropertyChanged(const gchar *propertyName, const gchar *newValue)
 {
@@ -551,23 +553,21 @@ void assignLoadedData()
         {
                 if (loadingdata.songdataB != NULL)
                 {
-                        userData.pcmFileB.filename = loadingdata.songdataB->pcmFilePath;
+                        userData.filenameB = loadingdata.songdataB->pcmFilePath;
                         userData.songdataB = loadingdata.songdataB;
                 }
                 else
-                        userData.pcmFileB.filename = NULL;
-                userData.pcmFileB.file = NULL;
+                        userData.filenameB = NULL;
         }
         else
         {
                 if (loadingdata.songdataA != NULL)
                 {
-                        userData.pcmFileA.filename = loadingdata.songdataA->pcmFilePath;
+                        userData.filenameA = loadingdata.songdataA->pcmFilePath;
                         userData.songdataA = loadingdata.songdataA;
                 }
                 else
-                        userData.pcmFileA.filename = NULL;
-                userData.pcmFileA.file = NULL;
+                        userData.filenameA = NULL;
         }
 }
 
@@ -759,21 +759,23 @@ void prepareNextSong()
         if (!repeatEnabled)
         {
                 pthread_mutex_lock(&(loadingdata.mutex));
-                if (usingSongDataA && (skipping || (currentSongData == NULL ||
-                                                    (currentSongData->trackId && loadingdata.songdataA && strcmp(loadingdata.songdataA->trackId, currentSongData->trackId) != 0))))
+                if (usingSongDataA && 
+                        (skipping || (userData.currentSongData == NULL ||
+                        (userData.currentSongData->trackId && loadingdata.songdataA && 
+                        strcmp(loadingdata.songdataA->trackId, userData.currentSongData->trackId) != 0))))
                 {
                         unloadSongData(&loadingdata.songdataA);
-                        userData.pcmFileA.file = NULL;
-                        userData.pcmFileA.filename = NULL;
+                        userData.filenameA = NULL;
                         usingSongDataA = false;
                         loadedNextSong = false;
                 }
-                else if (!usingSongDataA && (skipping || (currentSongData == NULL ||
-                                                          (currentSongData->trackId && loadingdata.songdataB && strcmp(loadingdata.songdataB->trackId, currentSongData->trackId) != 0))))
+                else if (!usingSongDataA && 
+                        (skipping || (userData.currentSongData == NULL ||
+                        (userData.currentSongData->trackId && loadingdata.songdataB && 
+                        strcmp(loadingdata.songdataB->trackId, userData.currentSongData->trackId) != 0))))
                 {
                         unloadSongData(&loadingdata.songdataB);
-                        userData.pcmFileB.file = NULL;
-                        userData.pcmFileB.filename = NULL;
+                        userData.filenameB = NULL;
                         usingSongDataA = true;
                         loadedNextSong = false;
                 }
@@ -914,19 +916,21 @@ void refreshPlayer()
         SongData *songData = usingSongDataA ? loadingdata.songdataA : loadingdata.songdataB;
 
         // Check if we have the correct one
-        if (currentSongData != NULL && currentSongData->trackId != NULL && songData != NULL && strcmp(songData->trackId, currentSongData->trackId) != 0)
+        if (userData.currentSongData != NULL && 
+                userData.currentSongData->trackId != NULL && 
+                songData != NULL && strcmp(songData->trackId, userData.currentSongData->trackId) != 0)
         {                
                 if (usingSongDataA)
                 {
                         // Try the other one
-                        if (loadingdata.songdataB != NULL && strcmp(loadingdata.songdataB->trackId, currentSongData->trackId) == 0)
+                        if (loadingdata.songdataB != NULL && strcmp(loadingdata.songdataB->trackId, userData.currentSongData->trackId) == 0)
                         {
                                 songData = loadingdata.songdataB;
                         }
                 }
                 else
                 {
-                        if (loadingdata.songdataA != NULL && strcmp(loadingdata.songdataA->trackId, currentSongData->trackId) == 0)
+                        if (loadingdata.songdataA != NULL && strcmp(loadingdata.songdataA->trackId, userData.currentSongData->trackId) == 0)
                         {
                                 songData = loadingdata.songdataA;
                         }
@@ -1915,11 +1919,10 @@ void play(Node *song)
                 return;
         }
 
-        userData.currentFileIndex = 0;
         userData.currentPCMFrame = 0;
-        userData.pcmFileA.filename = loadingdata.songdataA->pcmFilePath;
+        userData.filenameA = loadingdata.songdataA->pcmFilePath;
         userData.songdataA = loadingdata.songdataA;
-        currentSongData = userData.songdataA;
+        userData.currentSongData = userData.songdataA;
 
         createAudioDevice(&userData);
 

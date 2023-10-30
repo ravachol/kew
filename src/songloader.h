@@ -9,6 +9,7 @@
 #include "cache.h"
 #include "chafafunc.h"
 #include "albumart.h"
+#include "soundgapless.h"
 
 #ifndef KEYVALUEPAIR_STRUCT
 #define KEYVALUEPAIR_STRUCT
@@ -60,4 +61,4 @@ typedef struct
 
 SongData *loadSongData(char *filePath);
 void unloadSongData(SongData **songdata);
-int getCurrentVolume();
+double getDuration(const char *filepath);

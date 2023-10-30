@@ -9,7 +9,7 @@
 #include <stdbool.h>
 #include <pthread.h>
 #include <unistd.h>
-#include "soundgapless.h"
+#include "songloader.h"
 
 #ifndef PLAYLIST_STRUCT
 #define PLAYLIST_STRUCT
