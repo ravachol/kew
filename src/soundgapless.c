@@ -13,33 +13,17 @@
 #include "file.h"
 #include "soundgapless.h"
 
-#define CHANNELS 2
-#define SAMPLE_RATE 192000
-#define SAMPLE_WIDTH 3
-#define SAMPLE_FORMAT ma_format_s24
 ma_int32 *g_audioBuffer = NULL;
 ma_device device = {0};
 ma_context context;
 ma_device_config deviceConfig;
 PCMFileDataSource pcmDataSource;
-PCMFile *pFirstFile = NULL;
 bool paused = false;
 bool skipToNext = false;
 bool repeatEnabled = false;
 bool shuffleEnabled = false;
-UserData userData;
-
-pid_t pid = -1;
-pid_t pid2 = -1;
-bool usepid2 = false;
-SongData *currentSongData;
 
 _Atomic bool EOFReached = false;
-
-typedef struct thread_data
-{
-        pid_t pid;
-} thread_data;
 
 bool isEOFReached()
 {
@@ -98,7 +82,7 @@ static ma_result pcm_file_data_source_get_length(ma_data_source *pDataSource, ma
 
         // Get the current file based on the current file index
         FILE *currentFile;
-        if (pPCMDataSource->pUserData->currentFileIndex == 0)
+        if (pPCMDataSource->currentFileIndex == 0)
         {
                 currentFile = pPCMDataSource->fileA;
         }
@@ -149,9 +133,7 @@ ma_result pcm_file_data_source_init(PCMFileDataSource *pPCMDataSource, const cha
         pPCMDataSource->sampleRate = SAMPLE_RATE;
         pPCMDataSource->currentPCMFrame = 0;
         pPCMDataSource->currentFileIndex = 0;
-        pPCMDataSource->fileA = fopen(filenameA, "rb");
-
-        pUserData->pcmFileA.file = pPCMDataSource->fileA;
+        pPCMDataSource->fileA = fopen(filenameA, "rb");        
 
         return MA_SUCCESS;
 }
@@ -162,6 +144,36 @@ void activateSwitch(PCMFileDataSource *pPCMDataSource)
         if (!repeatEnabled)
                 pPCMDataSource->currentFileIndex = 1 - pPCMDataSource->currentFileIndex; // Toggle between 0 and 1
         pPCMDataSource->switchFiles = true;
+}
+
+void executeSwitch(PCMFileDataSource *pPCMDataSource)
+{
+        pPCMDataSource->switchFiles = false;
+        
+        // Close the current file, and open the new one
+        FILE *currentFile;
+        if (pPCMDataSource->currentFileIndex == 0)
+        {
+                currentFile = pPCMDataSource->fileB;
+                if (currentFile != NULL)
+                        fclose(currentFile);
+                pPCMDataSource->fileA = (pPCMDataSource->pUserData->filenameA != NULL) ? 
+                fopen(pPCMDataSource->pUserData->filenameA, "rb") : NULL;
+                pPCMDataSource->pUserData->currentSongData = pPCMDataSource->pUserData->songdataA;
+        }
+        else
+        {
+                currentFile = pPCMDataSource->fileA;
+                if (currentFile != NULL)
+                        fclose(currentFile);
+                pPCMDataSource->fileB = (pPCMDataSource->pUserData->filenameB != NULL) ? 
+                fopen(pPCMDataSource->pUserData->filenameB, "rb") : NULL;
+                pPCMDataSource->pUserData->currentSongData = pPCMDataSource->pUserData->songdataB;
+        }
+                                
+        pPCMDataSource->currentPCMFrame = 0;
+
+        setEOFReached();
 }
 
 void pcm_file_data_source_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_uint64 frameCount, ma_uint64 *pFramesRead)
@@ -178,33 +190,7 @@ void pcm_file_data_source_read_pcm_frames(ma_data_source *pDataSource, void *pFr
                 // Check if a file switch is required
                 if (pPCMDataSource->switchFiles)
                 {
-                        pPCMDataSource->switchFiles = false;
-
-                        // Close the current file
-                        FILE *currentFile;
-                        if (pPCMDataSource->currentFileIndex == 0)
-                        {
-                                currentFile = pPCMDataSource->fileB;
-                                if (currentFile != NULL)
-                                        fclose(currentFile);
-                                pPCMDataSource->fileA = (pPCMDataSource->pUserData->pcmFileA.filename != NULL) ? fopen(pPCMDataSource->pUserData->pcmFileA.filename, "rb") : NULL;
-                                currentSongData = pPCMDataSource->pUserData->songdataA;
-                        }
-                        else
-                        {
-                                currentFile = pPCMDataSource->fileA;
-                                if (currentFile != NULL)
-                                        fclose(currentFile);
-                                pPCMDataSource->fileB = (pPCMDataSource->pUserData->pcmFileB.filename != NULL) ? fopen(pPCMDataSource->pUserData->pcmFileB.filename, "rb") : NULL;
-                                currentSongData = pPCMDataSource->pUserData->songdataB;
-                        }
-
-                        pPCMDataSource->pUserData->currentFileIndex = pPCMDataSource->currentFileIndex;
-
-                        // Set the new current file and reset any necessary variables
-                        pPCMDataSource->currentPCMFrame = 0;
-
-                        setEOFReached();
+                        executeSwitch(pPCMDataSource);
                         break; // Exit the loop after the file switch
                 }
 
@@ -252,84 +238,6 @@ void on_audio_frames(ma_device *pDevice, void *pFramesOut, const void *pFramesIn
         ma_uint64 framesRead = 0;
         pcm_file_data_source_read_pcm_frames(&pDataSource->base, pFramesOut, frameCount, &framesRead);
         (void)pFramesIn;
-}
-
-void *child_cleanup(void *arg)
-{
-        thread_data *data = (thread_data *)arg;
-        int status;
-        waitpid(data->pid, &status, 0);
-        free(arg);
-        return NULL;
-}
-
-int convertToPcmFile(const char *filePath, const char *outputFilePath)
-{
-        const int COMMAND_SIZE = 1000;
-        char command[COMMAND_SIZE];
-
-        char *escapedInputFilePath = escapeFilePath(filePath);
-
-        snprintf(command, sizeof(command),
-                 "ffmpeg -v fatal -hide_banner -nostdin -y -i \"%s\" -f s24le -acodec pcm_s24le -ac %d -ar %d -threads auto \"%s\"",
-                 escapedInputFilePath, CHANNELS, SAMPLE_RATE, outputFilePath);
-
-        free(escapedInputFilePath);
-
-        pid_t currentPid = fork();
-        switch (currentPid)
-        {
-        case -1:
-        {
-                perror("fork failed");
-                return -1;
-        }
-        case 0:
-        {
-                // Child process
-                if (setsid() == -1)
-                {
-                        perror("setsid failed");
-                        exit(EXIT_FAILURE);
-                }
-
-                close(STDIN_FILENO);
-                close(STDOUT_FILENO);
-                close(STDERR_FILENO);
-
-                char *args[] = {"sh", "-c", command, NULL};
-                execvp("sh", args);
-
-                perror("execvp failed");
-                exit(EXIT_FAILURE);
-        }
-        default:
-        {
-                // Parent process
-                pthread_t thread_id;
-                thread_data *data = malloc(sizeof(thread_data));
-                if (data == NULL)
-                {
-                        perror("malloc failed");
-                        return -1;
-                }
-                data->pid = currentPid;
-                if (pthread_create(&thread_id, NULL, child_cleanup, data) != 0)
-                {
-                        perror("pthread_create failed");
-                        free(data);
-                        return -1;
-                }
-                if (pthread_detach(thread_id) != 0)
-                {
-                        perror("pthread_detach failed");
-                        free(data);
-                        return -1;
-                }
-        }
-        }
-
-        return 0;
 }
 
 void resumePlayback()
@@ -384,11 +292,6 @@ bool isPlaybackDone()
         }
 }
 
-void stopPlayback()
-{
-        ma_device_stop(&device);
-}
-
 void cleanupPlaybackDevice()
 {
         if (&device)
@@ -400,138 +303,6 @@ void cleanupPlaybackDevice()
                 }
                 ma_device_uninit(&device);
         }
-}
-
-int getSongDuration(const char *filePath, double *duration)
-{
-        char command[1024];
-        FILE *pipe;
-        char output[1024];
-        char *durationStr;
-        double durationValue;
-
-        char *escapedInputFilePath = escapeFilePath(filePath);
-
-        snprintf(command, sizeof(command),
-                 "ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 \"%s\"", 
-                 escapedInputFilePath);
-
-        free(escapedInputFilePath);
-
-        pipe = popen(command, "r");
-        if (pipe == NULL)
-        {
-                fprintf(stderr, "Failed to run FFprobe command.\n");
-                return -1;
-        }
-        if (fgets(output, sizeof(output), pipe) == NULL)
-        {
-                fprintf(stderr, "Failed to read FFprobe output.\n");
-                pclose(pipe);
-                return -1;
-        }
-        pclose(pipe);
-
-        durationStr = strtok(output, "\n");
-        if (durationStr == NULL)
-        {
-                fprintf(stderr, "Failed to parse FFprobe output.\n");
-                return -1;
-        }
-        durationValue = atof(durationStr);
-        *duration = durationValue;
-        return 0;
-}
-
-double getDuration(const char *filepath)
-{
-        double duration = 0.0;
-        int result = getSongDuration(filepath, &duration);
-
-        if (result == -1)
-                return -1;
-        else
-                return duration;
-}
-
-int getCurrentVolume()
-{
-        FILE *fp;
-        char command_str[1000];
-        char buf[100];
-        int currentVolume = -1;
-
-        // Build the command string
-        snprintf(command_str, sizeof(command_str),
-                 "pactl get-sink-volume @DEFAULT_SINK@ | awk 'NR==1{print $5}'");
-
-        // Execute the command and read the output
-        fp = popen(command_str, "r");
-        if (fp != NULL)
-        {
-                if (fgets(buf, sizeof(buf), fp) != NULL)
-                {
-                        sscanf(buf, "%d", &currentVolume);
-                }
-                pclose(fp);
-        }
-
-        return currentVolume;
-}
-
-void setVolume(int volume)
-{
-        char command_str[1000];
-        FILE *fp;
-
-        // Limit new volume to a maximum of 100%
-        if (volume > 100)
-        {
-                volume = 100;
-        }
-        else if (volume < 0)
-        {
-                volume = 0;
-        }
-
-        snprintf(command_str, 1000, "pactl set-sink-volume @DEFAULT_SINK@ %d%%", volume);
-
-        fp = popen(command_str, "r");
-        if (fp == NULL)
-        {
-                return;
-        }
-        pclose(fp);
-}
-
-int adjustVolumePercent(int volumeChange)
-{
-        char command_str[1000];
-        FILE *fp;
-        int currentVolume = getCurrentVolume();
-
-        int newVolume = currentVolume + volumeChange;
-
-        // Limit new volume to a maximum of 100%
-        if (newVolume > 100)
-        {
-                newVolume = 100;
-        }
-        else if (newVolume < 0)
-        {
-                newVolume = 0;
-        }
-
-        snprintf(command_str, 1000, "pactl set-sink-volume @DEFAULT_SINK@ %d%%", newVolume);
-
-        fp = popen(command_str, "r");
-        if (fp == NULL)
-        {
-                return -1;
-        }
-        pclose(fp);
-
-        return 0;
 }
 
 void skip()
@@ -549,7 +320,7 @@ void createAudioDevice(UserData *userData)
                 return;
         }
 
-        pcm_file_data_source_init(&pcmDataSource, userData->pcmFileA.filename, userData);
+        pcm_file_data_source_init(&pcmDataSource, userData->filenameA, userData);
 
         pcmDataSource.base.vtable = &pcm_file_data_source_vtable;
 

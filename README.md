@@ -18,6 +18,7 @@ cue is a command-line music player for Linux.
  * Display album covers as ASCII art or as a normal image.
  * Control the player with previous, next and pause.
  * Supports gapless playback and 24-bit audio.
+ * Offline - no internet access required.
 
 
 ## Reviews
