@@ -305,6 +305,15 @@ void cleanupPlaybackDevice()
         }
 }
 
+void freeAudioBuffer()
+{
+        if (g_audioBuffer != NULL)
+        {
+                free(g_audioBuffer);
+                g_audioBuffer = NULL;
+        }
+}
+
 void skip()
 {
         skipToNext = true;
