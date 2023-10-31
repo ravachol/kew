@@ -19,7 +19,6 @@ typedef struct
         SongData *songdataB;
         SongData *currentSongData;
         ma_uint32 currentPCMFrame;
-        int endOfListReached;
 } UserData;
 #endif
 
@@ -62,6 +61,8 @@ void togglePausePlayback();
 bool isPaused();
 
 void cleanupPlaybackDevice();
+
+void freeAudioBuffer();
 
 bool isPlaybackDone();
 
