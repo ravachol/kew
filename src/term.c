@@ -8,8 +8,6 @@ term.c
 
 */
 
-bool useProfileColors = true;
-
 volatile sig_atomic_t resizeFlag = 0;
 
 void getTermSizePixels(int *rows, int *columns)
@@ -93,12 +91,6 @@ void setTextColor(int color)
 void setTextColorRGB(int r, int g, int b)
 {
         printf("\033[0;38;2;%03u;%03u;%03um", r, g, b);
-}
-
-void setTextColorRGB2(int r, int g, int b)
-{
-        if (!useProfileColors)
-                printf("\033[0;38;2;%03u;%03u;%03um", r, g, b);
 }
 
 void disableRawMode()

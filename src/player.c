@@ -35,6 +35,7 @@ bool printInfo = false;
 bool printKeyBindings = false;
 bool showList = true;
 bool resetPlaylistDisplay = true;
+bool useProfileColors = true;
 int chosenRow = 0;
 int chosenSong = 0;
 int startIter = 0;
@@ -54,6 +55,12 @@ double totalDurationSeconds = 0.0;
 PixelData color = {0, 0, 0};
 PixelData bgColor = {90, 90, 90};
 TagSettings metadata = {};
+
+void setTextColorRGB2(int r, int g, int b)
+{
+        if (!useProfileColors)
+                setTextColorRGB(r, g, b);
+}
 
 int calcMetadataHeight()
 {
