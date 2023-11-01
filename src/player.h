@@ -45,4 +45,6 @@ void toggleShowKeyBindings();
 
 void toggleShowPlaylist();
 
+void setTextColorRGB2(int r, int g, int b);
+
 #endif
