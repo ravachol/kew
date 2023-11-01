@@ -240,6 +240,41 @@ void on_audio_frames(ma_device *pDevice, void *pFramesOut, const void *pFramesIn
         (void)pFramesIn;
 }
 
+void createAudioDevice(UserData *userData)
+{
+        ma_result result = ma_context_init(NULL, 0, NULL, &context);
+        if (result != MA_SUCCESS)
+        {
+                printf("Failed to initialize miniaudio context.\n");
+                return;
+        }
+
+        pcm_file_data_source_init(&pcmDataSource, userData->filenameA, userData);
+
+        pcmDataSource.base.vtable = &pcm_file_data_source_vtable;
+
+        ma_device_config deviceConfig = ma_device_config_init(ma_device_type_playback);
+        deviceConfig.playback.format = SAMPLE_FORMAT;
+        deviceConfig.playback.channels = CHANNELS;
+        deviceConfig.sampleRate = SAMPLE_RATE;
+        deviceConfig.dataCallback = on_audio_frames;
+        deviceConfig.pUserData = &pcmDataSource;
+
+        result = ma_device_init(&context, &deviceConfig, &device);
+        if (result != MA_SUCCESS)
+        {
+                printf("Failed to initialize miniaudio device.\n");
+                return;
+        }
+
+        result = ma_device_start(&device);
+        if (result != MA_SUCCESS)
+        {
+                printf("Failed to start miniaudio device.\n");
+                return;
+        }
+}
+
 void resumePlayback()
 {
         if (!ma_device_is_started(&device))
@@ -318,39 +353,4 @@ void skip()
 {
         skipToNext = true;
         repeatEnabled = false;
-}
-
-void createAudioDevice(UserData *userData)
-{
-        ma_result result = ma_context_init(NULL, 0, NULL, &context);
-        if (result != MA_SUCCESS)
-        {
-                printf("Failed to initialize miniaudio context.\n");
-                return;
-        }
-
-        pcm_file_data_source_init(&pcmDataSource, userData->filenameA, userData);
-
-        pcmDataSource.base.vtable = &pcm_file_data_source_vtable;
-
-        ma_device_config deviceConfig = ma_device_config_init(ma_device_type_playback);
-        deviceConfig.playback.format = SAMPLE_FORMAT;
-        deviceConfig.playback.channels = CHANNELS;
-        deviceConfig.sampleRate = SAMPLE_RATE;
-        deviceConfig.dataCallback = on_audio_frames;
-        deviceConfig.pUserData = &pcmDataSource;
-
-        result = ma_device_init(&context, &deviceConfig, &device);
-        if (result != MA_SUCCESS)
-        {
-                printf("Failed to initialize miniaudio device.\n");
-                return;
-        }
-
-        result = ma_device_start(&device);
-        if (result != MA_SUCCESS)
-        {
-                printf("Failed to start miniaudio device.\n");
-                return;
-        }
 }
