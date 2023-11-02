@@ -62,3 +62,4 @@ typedef struct
 SongData *loadSongData(char *filePath);
 void unloadSongData(SongData **songdata);
 double getDuration(const char *filepath);
+void stopFFmpeg();

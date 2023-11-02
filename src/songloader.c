@@ -1,6 +1,7 @@
 #include "songloader.h"
 
 static guint track_counter = 0;
+int ffmpegPid = -1;
 
 typedef struct thread_data
 {
@@ -21,8 +22,15 @@ void *child_cleanup(void *arg)
         thread_data *data = (thread_data *)arg;
         int status;
         waitpid(data->pid, &status, 0);
-        free(arg);
+        ffmpegPid = -1;
+        free(arg);       
         return NULL;
+}
+
+void stopFFmpeg()
+{
+        if (ffmpegPid != -1)
+                kill(ffmpegPid, SIGINT);
 }
 
 int convertToPcmFile(const char *filePath, const char *outputFilePath)
@@ -75,6 +83,7 @@ int convertToPcmFile(const char *filePath, const char *outputFilePath)
                         perror("malloc failed");
                         return -1;
                 }
+                ffmpegPid = currentPid;                
                 data->pid = currentPid;
                 if (pthread_create(&thread_id, NULL, child_cleanup, data) != 0)
                 {

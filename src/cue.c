@@ -684,6 +684,7 @@ void cleanupOnExit()
         emitPlaybackStoppedMpris();
         unloadSongData(&loadingdata.songdataA);
         unloadSongData(&loadingdata.songdataB);
+        stopFFmpeg();        
         cleanupMpris();
         restoreTerminalMode();
         enableInputBuffering();
