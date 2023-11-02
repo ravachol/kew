@@ -27,9 +27,9 @@ TODO:
 #pragma GCC diagnostic ignored "-Wcast-qual"
 #pragma GCC diagnostic ignored "-Wstrict-overflow"
 #define STB_IMAGE_IMPLEMENTATION
-#include "ext/stb_image.h"
+#include <stb_image.h>
 #define STB_IMAGE_RESIZE_IMPLEMENTATION
-#include "ext/stb_image_resize.h"
+#include <stb_image_resize.h>
 #pragma GCC diagnostic pop
 #include "options.h"
 #include "write_ascii.h"

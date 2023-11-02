@@ -14,7 +14,7 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         strncpy(settings.coverEnabled, "1", sizeof(settings.coverEnabled));
         strncpy(settings.coverAnsi, "0", sizeof(settings.coverAnsi));
         strncpy(settings.visualizerEnabled, "0", sizeof(settings.visualizerEnabled));
-        strncpy(settings.useProfileColors, "1", sizeof(settings.useProfileColors));
+        strncpy(settings.useProfileColors, "0", sizeof(settings.useProfileColors));
 
         if (pairs == NULL)
         {
