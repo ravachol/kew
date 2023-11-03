@@ -3,12 +3,12 @@ CFLAGS = -I/usr/include/stb -Iinclude/imgtotxt/ext -Iinclude/imgtotxt -I/usr/inc
 LIBS = -lpthread -lrt -pthread -lm -lfreeimage -lglib-2.0 `pkg-config --libs gio-2.0 chafa libavformat fftw3f`
 
 OBJDIR = src/obj
-
+PREFIX = /usr
 SRCS = src/mpris.c src/playerops.c src/volume.c src/cutils.c src/soundgapless.c src/songloader.c src/file.c src/chafafunc.c src/cache.c src/metadata.c src/playlist.c src/stringfunc.c src/term.c  src/settings.c src/player.c src/albumart.c src/visuals.c src/cue.c
 OBJS = $(SRCS:src/%.c=$(OBJDIR)/%.o)
 
 MAN_PAGE = cue.1 
-MAN_DIR ?= /usr/share/man/man1
+MAN_DIR ?= $(PREFIX)/share/man
 
 all: cue
 
@@ -26,14 +26,15 @@ cue: $(OBJDIR)/write_ascii.o $(OBJS) Makefile
 
 .PHONY: install
 install: all
-	cp cue /usr/local/bin/
-	mkdir -p $(MAN_DIR)
-	cp docs/$(MAN_PAGE) $(MAN_DIR)/$(MAN_PAGE)
+	mkdir -p $(DESTDIR)$(MAN_DIR)/man1
+	mkdir -p $(DESTDIR)$(PREFIX)/bin
+	install -m 0755 cue $(DESTDIR)$(PREFIX)/bin/cue
+	install -m 0644 docs/cue.1 $(DESTDIR)$(MAN_DIR)/man1/cue.1
 
 .PHONY: uninstall
 uninstall:
-	rm -f /usr/local/bin/cue
-	rm -f $(MAN_DIR)/$(MAN_PAGE)
+	rm -f $(DESTDIR)$(PREFIX)/bin/cue
+	rm -f $(DESTDIR)$(MAN_DIR)/man1/cue.1
 
 .PHONY: clean
 clean:
