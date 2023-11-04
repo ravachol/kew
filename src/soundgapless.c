@@ -22,12 +22,13 @@ bool paused = false;
 bool skipToNext = false;
 bool repeatEnabled = false;
 bool shuffleEnabled = false;
+double seekElapsed;
 
 _Atomic bool EOFReached = false;
 
 bool isEOFReached()
 {
-        return atomic_load(&EOFReached);
+        return atomic_load(&EOFReached) ? true : false;
 }
 
 void setEOFReached()
@@ -52,9 +53,45 @@ static ma_result pcm_file_data_source_read(ma_data_source *pDataSource, void *pF
 
 static ma_result pcm_file_data_source_seek(ma_data_source *pDataSource, ma_uint64 frameIndex)
 {
-        PCMFileDataSource *pPCMDataSource = (PCMFileDataSource *)pDataSource;
+    // Cast to the correct data source type
+    PCMFileDataSource *pPCMDataSource = (PCMFileDataSource *)pDataSource;
+    
+    // Calculate the byte index
+    ma_uint64 byteIndex = frameIndex * ma_get_bytes_per_frame(pPCMDataSource->format, pPCMDataSource->channels);
+
+    // Find the correct file
+    FILE *currentFile;
+    if (pPCMDataSource->currentFileIndex == 0) 
+    {
+        currentFile = pPCMDataSource->fileA;
+    } 
+    else 
+    {
+        currentFile = pPCMDataSource->fileB;
+    }
+
+    if (currentFile != NULL) 
+    {
+        // Seek to the byte index in the file
+        int result = fseek(currentFile, byteIndex, SEEK_SET);
+      
+        // Set the current frame to frameIndex
         pPCMDataSource->currentPCMFrame = (ma_uint32)frameIndex;
-        return MA_SUCCESS;
+
+        // Check for errors
+        if (result == 0) 
+        {
+            return MA_SUCCESS;
+        } 
+        else 
+        {
+            return MA_ERROR;
+        }
+    } 
+    else 
+    {
+        return MA_ERROR;
+    }
 }
 
 static ma_result pcm_file_data_source_get_data_format(ma_data_source *pDataSource, ma_format *pFormat, ma_uint32 *pChannels, ma_uint32 *pSampleRate, ma_channel *pChannelMap, size_t channelMapCap)
@@ -174,6 +211,8 @@ void executeSwitch(PCMFileDataSource *pPCMDataSource)
         pPCMDataSource->currentPCMFrame = 0;
 
         setEOFReached();
+
+        seekElapsed = 0;        
 }
 
 void pcm_file_data_source_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_uint64 frameCount, ma_uint64 *pFramesRead)
@@ -198,6 +237,28 @@ void pcm_file_data_source_read_pcm_frames(ma_data_source *pDataSource, void *pFr
                 FILE *currentFile;
                 currentFile = (pPCMDataSource->currentFileIndex == 0) ? pPCMDataSource->fileA : pPCMDataSource->fileB;
                 ma_uint32 bytesRead = 0;
+
+                if (pPCMDataSource->seekRequested == true)
+                {
+                        if (currentFile != NULL)
+                        {
+                                fseek(currentFile, 0, SEEK_END);
+                                ma_uint64 fileSize = ftell(currentFile);
+                                pPCMDataSource->totalFrames = fileSize / bytesPerFrame;
+                                pPCMDataSource->base.rangeEndInFrames = pPCMDataSource->totalFrames;
+                        }  
+
+                        ma_uint32 targetFrame = (pPCMDataSource->totalFrames * pPCMDataSource->seekPercentage) / 100;
+                        
+                        // Set the read pointer for the data source
+                        ma_data_source_seek_to_pcm_frame(pDataSource, targetFrame);
+
+                        pPCMDataSource->seekRequested = false; // Reset seek flag                         
+                        break;
+                        framesRead = 0;  // Reset framesRead
+                        framesToRead = (ma_uint32)frameCount;  // Reset framesToRead
+                        bytesToRead = framesToRead * bytesPerFrame;  // Reset bytesToRead
+                }           
 
                 if (currentFile != NULL)
                         bytesRead = (ma_uint32)fread((char *)pFramesOut + (framesRead * bytesPerFrame), 1, bytesToRead, currentFile);
@@ -273,6 +334,12 @@ void createAudioDevice(UserData *userData)
                 printf("Failed to start miniaudio device.\n");
                 return;
         }
+}
+
+void seekPercentage(float percent)
+{
+        pcmDataSource.seekPercentage = percent;
+        pcmDataSource.seekRequested = true;
 }
 
 void resumePlayback()

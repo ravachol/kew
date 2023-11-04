@@ -63,19 +63,17 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include "mpris.h"
 
 // #define DEBUG 1
-FILE *logFile = NULL;
-struct winsize windowSize;
-
 #define COOLDOWN_DURATION 1000
-
-static bool eventProcessed = false;
-
-bool gotoSong = false;
 #define MAX_SEQ_LEN 1024    // Maximum length of sequence buffer
 #define MAX_TMP_SEQ_LEN 256 // Maximum length of temporary sequence buffer
+
+FILE *logFile = NULL;
+struct winsize windowSize;
+static bool eventProcessed = false;
 char digitsPressed[MAX_SEQ_LEN];
 int digitsPressedCount = 0;
 int maxDigitsPressedCount = 9;
+bool gotoSong = false;
 bool gPressed = false;
 
 bool isCooldownElapsed()
@@ -289,11 +287,14 @@ struct Event processInput()
                         event.type = EVENT_TOGGLEBLOCKS;
                         break;
                 case 'a':
-                        event.type = EVENT_ADDTOMAINPLAYLIST;
+                        event.type = EVENT_SEEKBACK;
                         break;
                 case 'd':
-                        event.type = EVENT_DELETEFROMMAINPLAYLIST;
+                        event.type = EVENT_SEEKFORWARD;
                         break;
+                case '.':
+                        event.type = EVENT_ADDTOMAINPLAYLIST;
+                        break;                        
                 case 'r':
                         event.type = EVENT_TOGGLEREPEAT;
                         break;
@@ -518,9 +519,15 @@ void handleInput()
         case EVENT_PREV:
                 skipToPrevSong();
                 break;
+        case EVENT_SEEKBACK:
+                seekBack();
+                break;
+        case EVENT_SEEKFORWARD:
+                seekForward();
+                break;
         case EVENT_ADDTOMAINPLAYLIST:
                 addToPlaylist();
-                break;
+                break;              
         case EVENT_DELETEFROMMAINPLAYLIST:
                 // FIXME implement this
                 break;
