@@ -77,6 +77,10 @@ void skipToNextSong();
 
 void skipToPrevSong();
 
+void seekForward();
+
+void seekBack();
+
 void skipToNumberedSong(int songNumber);
 
 void skipToLastSong();

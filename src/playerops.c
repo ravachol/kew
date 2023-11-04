@@ -27,7 +27,6 @@ bool loadingFailed = false;
 bool forceSkip = false;
 volatile bool clearingErrors = false;
 volatile bool songLoading = false;
-
 GDBusConnection *connection = NULL;
 
 UserData userData;
@@ -238,13 +237,66 @@ void calcElapsedTime()
         if (!isPaused())
         {
                 elapsedSeconds = (double)(current_time.tv_sec - start_time.tv_sec) +
-                                 (double)(current_time.tv_nsec - start_time.tv_nsec) / 1e9;
+                                 (double)(current_time.tv_nsec - start_time.tv_nsec) / 1e9 + seekElapsed;
                 elapsedSeconds -= totalPauseSeconds;
         }
         else
         {
                 pauseSeconds = (double)(current_time.tv_sec - pause_time.tv_sec) +
                                (double)(current_time.tv_nsec - pause_time.tv_nsec) / 1e9;
+        }
+}
+
+void seekForward()
+{
+        float percentage = 0;
+
+        if (duration != 0)
+        {
+                float step = 100 / numProgressBars;
+                percentage = elapsed / (float)duration * 100.0;
+
+                float newElapsed = (percentage + step) * duration / 100.0;
+
+                if (newElapsed < 0)
+                {
+                        newElapsed = 0;
+                }
+                else if (newElapsed > duration)
+                {
+                        newElapsed = duration;
+                }
+
+                percentage = newElapsed / duration * 100.0;
+                seekElapsed += step * duration / 100.0;
+                seekPercentage(percentage);
+        }
+}
+
+void seekBack()
+{
+        float percentage = 0;
+
+        if (duration != 0)
+        {
+                float step = 100 / numProgressBars;
+                percentage = elapsed / (float)duration * 100.0;
+
+                float newElapsed = (percentage - step) * duration / 100.0;
+
+                if (newElapsed < 0)
+                {
+                        newElapsed = 0;
+                }
+                else if (newElapsed > duration)
+                {
+                        newElapsed = duration;
+                }
+
+                percentage = newElapsed / duration * 100.0;
+                seekElapsed -= step * duration / 100.0;
+                elapsed = newElapsed;
+                seekPercentage(percentage);
         }
 }
 

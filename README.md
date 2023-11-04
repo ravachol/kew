@@ -17,8 +17,7 @@ cue is a command-line music player for Linux.
  * Creates a playlist based on a matched directory. 
  * Display album covers as ASCII art or as a normal image.
  * Control the player with previous, next and pause.
- * Supports gapless playback and 24-bit audio.
- * Offline - no internet access required.
+ * Has gapless playback and supports 24-bit audio.
 
 
 ## Reviews
@@ -43,9 +42,6 @@ On Arch Linux, and Arch-based distributions, cue can be found in the AUR. Instal
 ```bash
 yay cue-git
 ```
-
-That's it!
-
 
 ### Installing with quick install script
 
@@ -157,7 +153,7 @@ cue --nocover
 
 cue --noui (completely hides the UI)
 
-cue . (loads the main cue playlist, see 'Other Functions')
+cue . loads cue.m3u
 
  ```
 
@@ -175,7 +171,8 @@ Put single-quotes inside quotes "guns n' roses"
 * <kbd>b</kbd> to toggle album covers drawn in ascii or as a normal image.
 * <kbd>r</kbd> to repeat the current song.
 * <kbd>s</kbd> to shuffle the playlist.
-* <kbd>a</kbd> add current song to main cue playlist.
+* <kbd>a</kbd> to seek back.
+* <kbd>d</kbd> to seek forward.
 * <kbd>x</kbd> to save the currently loaded playlist to a m3u file in your music folder.
 * <kbd>gg</kbd> go to first song.
 * number +<kbd>G</kbd>, <kbd>g</kbd> or <kbd>Enter</kbd>, go to specific song number in the playlist.

@@ -14,7 +14,6 @@
 #include "soundgapless.h"
 
 extern const char VERSION[];
-
 extern bool coverEnabled;
 extern bool uiEnabled;
 extern bool coverAnsi;
@@ -22,7 +21,9 @@ extern bool printInfo;
 extern bool printKeyBindings;
 extern bool visualizerEnabled;
 extern bool useThemeColors;
-
+extern int numProgressBars;
+extern int elapsed;
+extern int duration;
 extern int chosenSong;
 extern bool resetPlaylistDisplay;
 extern int visualizerHeight;
