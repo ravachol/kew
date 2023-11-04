@@ -324,15 +324,15 @@ void printSpectrum(int height, int width, float *magnitudes, PixelData color)
         }
         printf("\r");
         color = decreaseLuminosity(color, 25);
-        if (!useProfileColors)
-                printf("\033[38;2;%d;%d;%dm", color.r, color.g, color.b);
-        printBlankSpaces(indent);
-        for (int i = 0; i < width; i++)
-        {
-                printf(" █");
-        }
-        printf("\n");
-        printf("\r");
+        //if (!useProfileColors)
+        //        printf("\033[38;2;%d;%d;%dm", color.r, color.g, color.b);
+        // printBlankSpaces(indent);
+        // for (int i = 0; i < width; i++)
+        // {
+        //         printf(" █");
+        // }
+        //printf("\n");
+        //printf("\r");
         fflush(stdout);
 }
 

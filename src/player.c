@@ -36,6 +36,8 @@ bool printKeyBindings = false;
 bool showList = true;
 bool resetPlaylistDisplay = true;
 bool useProfileColors = true;
+int numProgressBars = 15;
+int elapsedBars = 0;
 int chosenRow = 0;
 int chosenSong = 0;
 int startIter = 0;
@@ -340,10 +342,13 @@ void printProgress(double elapsed_seconds, double total_seconds, double total_du
                        total_hours, total_minutes, total_seconds_remainder,
                        progress_percentage);
         }
+
+        // Print out progress bar with 10 segments
+        elapsedBars = (int)((elapsed_seconds / total_seconds) * numProgressBars);
+
         // Restore the cursor position
         printf("\033[u");
 }
-
 void printMetadata(TagSettings const *metadata)
 {
         if (!metaDataEnabled || printInfo)
@@ -542,7 +547,9 @@ int showKeyBindings()
         printBlankSpaces(indentation);
         printf(" - S to shuffle the playlist.\n");
         printBlankSpaces(indentation);
-        printf(" - A add current song to main cue playlist.\n");
+        printf(" - A to seek back.\n");
+        printBlankSpaces(indentation);
+        printf(" - D to seek forward.\n");
         printBlankSpaces(indentation);
         printf(" - X to save the playlist to your music folder.\n");
         printBlankSpaces(indentation);
@@ -756,6 +763,26 @@ int showPlaylist()
         return numPrintedRows;
 }
 
+void printElapsedBars()
+{
+        printBlankSpaces(indent);
+        printf(" ");
+        for (int i = 0; i < numProgressBars; i++)
+        {
+                if (i == 0)
+                {
+                        printf("■ ");
+                }
+                else if (i < elapsedBars)
+                        printf("■ ");
+                else
+                {
+                        printf("= ");
+                }
+        }
+        printf("\n");
+}
+
 void printVisualizer()
 {
         if (visualizerEnabled && !printInfo)
@@ -766,7 +793,9 @@ void printVisualizer()
                 int visualizerWidth = (ABSOLUTE_MIN_WIDTH > preferredWidth) ? ABSOLUTE_MIN_WIDTH : preferredWidth;
                 visualizerWidth = (visualizerWidth < textWidth && textWidth < term_w - 2) ? textWidth : visualizerWidth;
                 visualizerWidth = (visualizerWidth > term_w - 2) ? term_w - 2 : visualizerWidth;
+                numProgressBars = (int)visualizerWidth / 2;
                 drawSpectrumVisualizer(visualizerHeight, visualizerWidth, color);
+                printElapsedBars();
                 printLastRow();
                 int jumpAmount = visualizerHeight + 2;
                 cursorJump(jumpAmount);

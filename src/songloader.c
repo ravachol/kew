@@ -3,11 +3,12 @@
 static guint track_counter = 0;
 int ffmpegPid = -1;
 
+#define COMMAND_SIZE 1000
+
 typedef struct thread_data
 {
         pid_t pid;
 } thread_data;
-
 
 // Generate a new track ID
 gchar *generateTrackId()
@@ -35,7 +36,6 @@ void stopFFmpeg()
 
 int convertToPcmFile(const char *filePath, const char *outputFilePath)
 {
-        const int COMMAND_SIZE = 1000;
         char command[COMMAND_SIZE];
 
         char *escapedInputFilePath = escapeFilePath(filePath);

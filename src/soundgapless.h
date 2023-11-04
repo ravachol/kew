@@ -38,6 +38,9 @@ typedef struct
         FILE *fileB;
         bool switchFiles;
         int currentFileIndex;
+        bool seekRequested;
+        float seekPercentage;
+        ma_uint64 totalFrames;
 } PCMFileDataSource;
 #endif
 
@@ -49,6 +52,7 @@ typedef struct
 extern ma_int32 *g_audioBuffer;
 extern bool repeatEnabled;
 extern bool shuffleEnabled;
+extern double seekElapsed;
 
 void createAudioDevice(UserData *userData);
 
@@ -67,5 +71,7 @@ void freeAudioBuffer();
 bool isPlaybackDone();
 
 void skip();
+
+void seekPercentage(float percent);
 
 #endif
