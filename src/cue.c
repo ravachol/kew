@@ -63,10 +63,10 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include "mpris.h"
 
 // #define DEBUG 1
-#define COOLDOWN_DURATION 1000
 #define MAX_SEQ_LEN 1024    // Maximum length of sequence buffer
 #define MAX_TMP_SEQ_LEN 256 // Maximum length of temporary sequence buffer
-
+#define COOLDOWN_MS 500
+#define COOLDOWN2_MS 200
 FILE *logFile = NULL;
 struct winsize windowSize;
 static bool eventProcessed = false;
@@ -76,13 +76,14 @@ int maxDigitsPressedCount = 9;
 bool gotoSong = false;
 bool gPressed = false;
 
-bool isCooldownElapsed()
+bool isCooldownElapsed(int milliSeconds)
 {
         struct timespec currentTime;
         clock_gettime(CLOCK_MONOTONIC, &currentTime);
         double elapsedMilliseconds = (currentTime.tv_sec - lastInputTime.tv_sec) * 1000.0 +
-                                     (currentTime.tv_nsec - lastInputTime.tv_nsec) / 1000000.0;
-        return elapsedMilliseconds >= COOLDOWN_DURATION;
+                                        (currentTime.tv_nsec - lastInputTime.tv_nsec) / 1000000.0;
+
+        return elapsedMilliseconds >= milliSeconds;
 }
 
 struct Event processInput()
@@ -91,6 +92,7 @@ struct Event processInput()
         event.type = EVENT_NONE;
         event.key = '\0';
         bool cooldownElapsed = false;
+        bool cooldown2Elapsed = false;
 
         if (songLoading || !loadedNextSong)
                 return event;
@@ -98,8 +100,11 @@ struct Event processInput()
         if (!isInputAvailable())
                 return event;
 
-        if (isCooldownElapsed() && !eventProcessed)
+        if (isCooldownElapsed(COOLDOWN_MS) && !eventProcessed)
                 cooldownElapsed = true;
+
+        if (isCooldownElapsed(COOLDOWN2_MS) && !eventProcessed)
+                cooldown2Elapsed = true;    
 
         int seqLength = 0;
         char seq[MAX_SEQ_LEN];
@@ -312,9 +317,15 @@ struct Event processInput()
                 }
         }
 
-        // cooldown is for next and previous only
         if (!cooldownElapsed && (event.type == EVENT_NEXT || event.type == EVENT_PREV))
                 event.type = EVENT_NONE;
+        else if (event.type == EVENT_NEXT || event.type == EVENT_PREV)
+                updateLastInputTime();
+                
+        if (!cooldown2Elapsed && (event.type == EVENT_SEEKBACK || event.type == EVENT_SEEKFORWARD))
+                event.type = EVENT_NONE;                
+        else if (event.type == EVENT_SEEKBACK || event.type == EVENT_SEEKFORWARD)
+                updateLastInputTime();
 
         if (event.type != EVENT_GOTOSONG && event.type != EVENT_NONE)
         {

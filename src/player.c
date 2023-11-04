@@ -547,7 +547,7 @@ int showKeyBindings()
         printBlankSpaces(indentation);
         printf(" - S to shuffle the playlist.\n");
         printBlankSpaces(indentation);
-        printf(" - A to seek back.\n");
+        printf(" - A to seek backward.\n");
         printBlankSpaces(indentation);
         printf(" - D to seek forward.\n");
         printBlankSpaces(indentation);

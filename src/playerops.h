@@ -45,6 +45,8 @@ SongData *getCurrentSongData();
 
 void updateLastSongSwitchTime();
 
+void updateLastInputTime();
+
 void emitMetadataChanged(const gchar *title, const gchar *artist, const gchar *album, const gchar *coverArtPath, const gchar *trackId);
 
 void playbackPause(double *totalPauseSeconds, double pauseSeconds, struct timespec *pause_time);
