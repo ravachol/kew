@@ -32,6 +32,11 @@ GDBusConnection *connection = NULL;
 UserData userData;
 
 void updateLastSongSwitchTime()
+{        
+        clock_gettime(CLOCK_MONOTONIC, &start_time);
+}
+
+void updateLastInputTime()
 {
         clock_gettime(CLOCK_MONOTONIC, &lastInputTime);
 }
@@ -482,7 +487,6 @@ void skipToPrevSong()
                 skipToPrevSong();
         }
 
-        clock_gettime(CLOCK_MONOTONIC, &start_time);
         updateLastSongSwitchTime();
         skip();
 }
@@ -517,7 +521,6 @@ void skipToNumberedSong(int songNumber)
                 skipToNumberedSong(songNumber + 1);
         }
 
-        clock_gettime(CLOCK_MONOTONIC, &start_time);
         updateLastSongSwitchTime();
         skip();
 }
