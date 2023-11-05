@@ -109,10 +109,10 @@ sudo make uninstall
 
 ## Usage
 
-First thing to do is to tell cue the path to your music library (you only need to do this once):
+In case you don't have a "Music" folder in your home folder, the  First thing to do is to tell cue the path to your music library (you only need to do this once):
 
 ```bash
-cue path "/home/joe/Music/"
+cue path "/home/joe/Musik/"
 ```
 Now run cue and provide a partial name of a track or directory:
 
@@ -181,7 +181,7 @@ Put single-quotes inside quotes "guns n' roses"
 
 ## Configuration
 
-cue will create a config file, .cue.conf, in your home directory. There you can change for instance starting directory, number of bars in the visualizer and whether to use the album cover for color, or your regular color scheme (default). To edit this file please make sure you quit cue first.
+cue will create a config file, cuerc, in your default config directory for instance ~/.config/. There you can change starting directory, number of bars in the visualizer and whether to use the album cover for color, or your regular color scheme (default). To edit this file please make sure you quit cue first.
 
 ## License
 
