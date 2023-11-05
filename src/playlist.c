@@ -18,7 +18,7 @@
 #define MAX_SEARCH_SIZE 256
 #define MAX_FILES 20000
 
-const char ALLOWED_EXTENSIONS[] = "\\.(m4a|mp3|ogg|flac|wav|aac|wma|raw|mp4a|mp4|opus)$";
+const char ALLOWED_EXTENSIONS[] = "\\.(m4a|mp3|ogg|flac|wav|aac|wma|raw|mp4a|mp4|m4p|opus)$";
 const char PLAYLIST_EXTENSIONS[] = "\\.(m3u)$";
 const char mainPlaylistName[] = "cue.m3u";
 PlayList playlist = {NULL, NULL, 0, 0.0};
