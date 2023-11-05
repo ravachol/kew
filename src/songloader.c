@@ -295,7 +295,7 @@ void unloadSongData(SongData **songdata)
         data->metadata = NULL;
         data->duration = NULL;
 
-        if (existsFile(data->pcmFilePath))
+        if (existsFile(data->pcmFilePath) > -1)
                 deleteFile(data->pcmFilePath);
 
         if (data->pcmFile != NULL)
