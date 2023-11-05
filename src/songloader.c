@@ -4,6 +4,8 @@ static guint track_counter = 0;
 int ffmpegPid = -1;
 
 #define COMMAND_SIZE 1000
+int maxSleepTimes = 20;
+int sleepAmount = 300;
 
 typedef struct thread_data
 {
@@ -215,10 +217,10 @@ int loadPcmAudio(SongData *songdata)
         convertToPcmFile(songdata->filePath, songdata->pcmFilePath);
         int count = 0;
         int result = -1;
-        while (result < 1 && count < 10)
+        while (result < 1 && count < maxSleepTimes)
         {
                 result = existsFile(songdata->pcmFilePath);
-                c_sleep(300);
+                c_sleep(sleepAmount);
                 count++;
         }
 

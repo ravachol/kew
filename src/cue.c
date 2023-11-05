@@ -103,8 +103,8 @@ struct Event processInput()
         if (isCooldownElapsed(COOLDOWN_MS) && !eventProcessed)
                 cooldownElapsed = true;
 
-        if (isCooldownElapsed(COOLDOWN2_MS) && !eventProcessed)
-                cooldown2Elapsed = true;    
+         if (isCooldownElapsed(COOLDOWN2_MS) && !eventProcessed)
+                 cooldown2Elapsed = true;    
 
         int seqLength = 0;
         char seq[MAX_SEQ_LEN];
@@ -117,7 +117,7 @@ struct Event processInput()
 
                 seqLength = seqLength + readInputSequence(tmpSeq, sizeof(tmpSeq));
 
-                if (seqLength <= 0)
+                if (seqLength <= 0 && (strcmp(seq, "a") != 0 && strcmp(seq, "d") != 0))
                 {
                         keyReleased = 1;
                         break;
@@ -132,7 +132,8 @@ struct Event processInput()
 
                 c_sleep(10);
 
-                if (strcmp(seq, "[A") == 0 || strcmp(seq, "[B") == 0 || strcmp(seq, "k") == 0 || strcmp(seq, "j") == 0)
+                if (strcmp(seq, "[A") == 0 || strcmp(seq, "[B") == 0 || strcmp(seq, "k") == 0 || strcmp(seq, "j") == 0
+                || strcmp(seq, "a") == 0 || strcmp(seq, "d") == 0)
                 {
                         // Do dummy reads to prevent scrolling continuing after we release the key
                         readInputSequence(tmpSeq, 3);
