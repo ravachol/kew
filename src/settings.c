@@ -5,7 +5,8 @@
 
 AppSettings settings;
 
-const char SETTINGS_FILE[] = ".cue.conf";
+const char OLD_SETTINGS_FILE[] = ".cue.conf";
+const char NEW_SETTINGS_FILE[] = "cuerc";
 
 AppSettings constructAppSettings(KeyValuePair *pairs, int count)
 {
@@ -106,6 +107,77 @@ void freeKeyValuePairs(KeyValuePair *pairs, int count)
         free(pairs);
 }
 
+const char *getHomePath()
+{
+        const char *xdgHome = getenv("XDG_HOME");
+        if (xdgHome == NULL)
+        {
+                xdgHome = getenv("HOME");
+                if (xdgHome == NULL)
+                {
+                        struct passwd *pw = getpwuid(getuid());
+                        if (pw != NULL)
+                        {
+                                char *home = (char *)malloc(PATH_MAX);
+                                strcpy(home, pw->pw_dir);
+                                return home;
+                        }
+                }
+        }
+        return xdgHome;
+}
+
+const char *getConfigPath()
+{
+        const char *xdgConfig = getenv("XDG_CONFIG_HOME");
+        if (xdgConfig == NULL)
+        {
+                // If XDG_CONFIG_HOME is not set, fall back to the default location
+                const char *home = getHomePath();
+                if (home != NULL)
+                {
+                        // Construct the default configuration path
+                        char *configPath = (char *)malloc(PATH_MAX);
+                        if (configPath != NULL)
+                        {
+                                snprintf(configPath, PATH_MAX, "%s/.config", home);
+                                if (isDirectory(configPath))
+                                {
+                                        xdgConfig = configPath;
+                                }
+                                else
+                                {
+                                        free(configPath); // Free the allocated memory
+                                        return home;
+                                }
+                        }
+                }
+                else
+                {
+                        struct passwd *pw = getpwuid(getuid());
+                        if (pw != NULL)
+                        {
+                                return pw->pw_dir;
+                        }
+                }
+        }
+        return xdgConfig;
+}
+const char *getDefaultMusicFolder()
+{
+        const char *home = getHomePath();
+        if (home != NULL)
+        {
+                static char musicPath[PATH_MAX];
+                snprintf(musicPath, sizeof(musicPath), "%s/Music", home);
+                return musicPath;
+        }
+        else
+        {
+                return NULL; // Return NULL if XDG home is not found.
+        }
+}
+
 int getMusicLibraryPath(char *path)
 {
         char expandedPath[MAXPATHLEN];
@@ -119,9 +191,9 @@ int getMusicLibraryPath(char *path)
 
         if (path[0] == '\0')
         {
-                struct passwd *pw = getpwuid(getuid());
-                strcat(path, pw->pw_dir);
-                strcat(path, "/Music/");
+                const char *musicFolder = getDefaultMusicFolder();
+                if (musicFolder != NULL)
+                        strcpy(path, musicFolder);
         }
 
         if (expandPath(path, expandedPath))
@@ -130,18 +202,52 @@ int getMusicLibraryPath(char *path)
         return 0;
 }
 
-void getConfig()
+void getConfigOld()
 {
         int pair_count;
         struct passwd *pw = getpwuid(getuid());
         const char *homedir = pw->pw_dir;
         char *filepath = NULL;
 
-        size_t filepath_length = strlen(homedir) + strlen("/") + strlen(SETTINGS_FILE) + 1;
+        size_t filepath_length = strlen(homedir) + strlen("/") + strlen(OLD_SETTINGS_FILE) + 1;
         filepath = (char *)malloc(filepath_length);
         strcpy(filepath, homedir);
         strcat(filepath, "/");
-        strcat(filepath, SETTINGS_FILE);
+        strcat(filepath, OLD_SETTINGS_FILE);
+
+        KeyValuePair *pairs = readKeyValuePairs(filepath, &pair_count);
+
+        free(filepath);
+        settings = constructAppSettings(pairs, pair_count);
+
+        coverEnabled = (settings.coverEnabled[0] == '1');
+        coverAnsi = (settings.coverAnsi[0] == '1');
+        visualizerEnabled = (settings.visualizerEnabled[0] == '1');
+        useProfileColors = (settings.useProfileColors[0] == '1');
+        int temp = atoi(settings.visualizerHeight);
+        if (temp > 0)
+                visualizerHeight = temp;
+        getMusicLibraryPath(settings.path);
+}
+
+void getConfig()
+{
+        int pair_count;
+        const char *configdir = getConfigPath();
+        char *filepath = NULL;
+
+        size_t filepath_length = strlen(configdir) + strlen("/") + strlen(NEW_SETTINGS_FILE) + 1;
+        filepath = (char *)malloc(filepath_length);
+        strcpy(filepath, configdir);
+        strcat(filepath, "/");
+        strcat(filepath, NEW_SETTINGS_FILE);
+
+        if (existsFile(filepath) < 0)
+        {
+                free(filepath);                
+                getConfigOld(); // Get config from the old location
+                return;
+        }
 
         KeyValuePair *pairs = readKeyValuePairs(filepath, &pair_count);
 
@@ -162,12 +268,12 @@ void setConfig()
 {
         // Create the file path
         struct passwd *pw = getpwuid(getuid());
-        const char *homedir = pw->pw_dir;
+        const char *configdir = getConfigPath();
 
-        char *filepath = (char *)malloc(strlen(homedir) + strlen("/") + strlen(SETTINGS_FILE) + 1);
-        strcpy(filepath, homedir);
+        char *filepath = (char *)malloc(strlen(configdir) + strlen("/") + strlen(NEW_SETTINGS_FILE) + 1);
+        strcpy(filepath, configdir);
         strcat(filepath, "/");
-        strcat(filepath, SETTINGS_FILE);
+        strcat(filepath, NEW_SETTINGS_FILE);
 
         FILE *file = fopen(filepath, "w");
         if (file == NULL)
