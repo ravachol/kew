@@ -114,9 +114,10 @@ void updateMagnitudes(int height, int width, float maxMagnitude, float *magnitud
         {
                 if (i < 3)
                         exponent = 1.0;
-                else
-                        exponent = 2.0;
-
+                else if (magnitudes[i] > maxMagnitude * 0.25)
+                {
+                        exponent = 3.0;
+                }
                 float normalizedMagnitude = magnitudes[i] / maxMagnitude;
                 float scaledMagnitude = pow(normalizedMagnitude, exponent) * height + jumpFactor;
 

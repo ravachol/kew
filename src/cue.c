@@ -81,7 +81,7 @@ bool isCooldownElapsed(int milliSeconds)
         struct timespec currentTime;
         clock_gettime(CLOCK_MONOTONIC, &currentTime);
         double elapsedMilliseconds = (currentTime.tv_sec - lastInputTime.tv_sec) * 1000.0 +
-                                        (currentTime.tv_nsec - lastInputTime.tv_nsec) / 1000000.0;
+                                     (currentTime.tv_nsec - lastInputTime.tv_nsec) / 1000000.0;
 
         return elapsedMilliseconds >= milliSeconds;
 }
@@ -103,8 +103,8 @@ struct Event processInput()
         if (isCooldownElapsed(COOLDOWN_MS) && !eventProcessed)
                 cooldownElapsed = true;
 
-         if (isCooldownElapsed(COOLDOWN2_MS) && !eventProcessed)
-                 cooldown2Elapsed = true;    
+        if (isCooldownElapsed(COOLDOWN2_MS) && !eventProcessed)
+                cooldown2Elapsed = true;
 
         int seqLength = 0;
         char seq[MAX_SEQ_LEN];
@@ -132,8 +132,8 @@ struct Event processInput()
 
                 c_sleep(10);
 
-                if (strcmp(seq, "[A") == 0 || strcmp(seq, "[B") == 0 || strcmp(seq, "k") == 0 || strcmp(seq, "j") == 0
-                || strcmp(seq, "a") == 0 || strcmp(seq, "d") == 0)
+                if (strcmp(seq, "[A") == 0 || strcmp(seq, "[B") == 0 || strcmp(seq, "k") == 0 || 
+                    strcmp(seq, "j") == 0 || strcmp(seq, "a") == 0 || strcmp(seq, "d") == 0)
                 {
                         // Do dummy reads to prevent scrolling continuing after we release the key
                         readInputSequence(tmpSeq, 3);
@@ -152,169 +152,194 @@ struct Event processInput()
         event.type = EVENT_NONE;
         event.key = seq[0];
 
-        if (seqLength > 1)
-        { // 0x1B +
-                if (strcmp(seq, "[A") == 0)
-                {
-                        // Arrow Up
-                        if (printInfo)
-                                event.type = EVENT_SCROLLPREV;
-                }
-                else if (strcmp(seq, "[B") == 0)
-                {
-                        // Arrow Down
-                        if (printInfo)
-                                event.type = EVENT_SCROLLNEXT;
-                }
-                else if (strcmp(seq, "[C") == 0)
-                {
-                        // Arrow Left
-                        event.type = EVENT_NEXT;
-                }
-                else if (strcmp(seq, "[D") == 0)
-                {
-                        // Arrow Right
-                        event.type = EVENT_PREV;
-                }
-                else if (strcmp(seq, "OQ") == 0 || strcmp(seq, "[[B") == 0)
-                {
-                        // F2 key
-                        event.type = EVENT_SHOWINFO;
-                }
-                else if (strcmp(seq, "OR") == 0 || strcmp(seq, "[[C") == 0)
-                {
-                        // F3 key
-                        event.type = EVENT_SHOWKEYBINDINGS;
-                }
-                else
-                {
-                        for (int i = 0; i < MAX_SEQ_LEN; i++)
-                        {
-                                if (isdigit(seq[i]))
-                                {
-                                        digitsPressed[digitsPressedCount++] = seq[i];
-                                }
-                                else
-                                {
-                                        if (seq[i] == '\0')
-                                                break;
-
-                                        if (seq[i] != 'G' && seq[i] != 'g' && seq[i] != '\n')
-                                        {
-                                                memset(digitsPressed, '\0', sizeof(digitsPressed));
-                                                digitsPressedCount = 0;
-                                                break;
-                                        }
-                                        else
-                                        {
-                                                event.type = EVENT_GOTOSONG;
-                                                break;
-                                        }
-                                }
-                        }
-                }
+        if (strcmp(seq, "[A") == 0)
+        {
+                // Arrow Up
+                if (printInfo)
+                        event.type = EVENT_SCROLLPREV;
+        }
+        else if (strcmp(seq, "[B") == 0)
+        {
+                // Arrow Down
+                if (printInfo)
+                        event.type = EVENT_SCROLLNEXT;
+        }
+        else if (strcmp(seq, "[C") == 0)
+        {
+                // Arrow Left
+                event.type = EVENT_NEXT;
+        }
+        else if (strcmp(seq, "[D") == 0)
+        {
+                // Arrow Right
+                event.type = EVENT_PREV;
+        }
+        else if (strcmp(seq, "OQ") == 0 || strcmp(seq, "[[B") == 0)
+        {
+                // F2 key
+                event.type = EVENT_SHOWINFO;
+        }
+        else if (strcmp(seq, "OR") == 0 || strcmp(seq, "[[C") == 0)
+        {
+                // F3 key
+                event.type = EVENT_SHOWKEYBINDINGS;
         }
         else if (isdigit(event.key))
         {
                 if (digitsPressedCount < maxDigitsPressedCount)
                         digitsPressed[digitsPressedCount++] = event.key;
         }
+        else if (event.key == 'G')
+        {
+                if (digitsPressedCount > 0)
+                {
+                        event.type = EVENT_GOTOSONG;
+                }
+                else
+                {
+                        event.type = EVENT_GOTOENDOFPLAYLIST;
+                }
+        }
+        else if  (event.key == '\n')
+        {
+                if (digitsPressedCount > 0 || printInfo)
+                {
+                        event.type = EVENT_GOTOSONG;
+                }
+        }                
+        else if (strcmp(seq, settings.switchNumberedSongAlt) == 0)
+        {
+                if (digitsPressedCount > 0)
+                {
+                        event.type = EVENT_GOTOSONG;
+                }                         
+        }
+        else if  (strcmp(seq, settings.switchNumberedSongAlt2) == 0)
+        {
+                if (digitsPressedCount > 0)
+                {
+                        event.type = EVENT_GOTOSONG;
+                }
+        }
+        else if (strcmp(seq, settings.scrollUpAlt) == 0)
+        {
+                if (printInfo)
+                {
+                        event.type = EVENT_SCROLLPREV;
+                }
+        }
+        else if (strcmp(seq, settings.scrollDownAlt) == 0)
+        {
+                if (printInfo)
+                {
+                        event.type = EVENT_SCROLLNEXT;
+                }
+        }
+        else if (strcmp(seq, settings.nextTrackAlt) == 0)
+        {
+                event.type = EVENT_NEXT;
+        }
+        else if (strcmp(seq, settings.previousTrackAlt) == 0)
+        {
+                event.type = EVENT_PREV;
+        }
+        else if (strcmp(seq, settings.volumeUp) == 0)
+        {
+                event.type = EVENT_VOLUME_UP;
+        }
+        else if (strcmp(seq, settings.volumeDown) == 0)
+        {
+                event.type = EVENT_VOLUME_DOWN;
+        }
+        else if (strcmp(seq, settings.togglePause) == 0)
+        {
+                event.type = EVENT_PLAY_PAUSE;
+        }
+        else if (strcmp(seq, settings.quit) == 0)
+        {
+                event.type = EVENT_QUIT;
+        }
+        else if (strcmp(seq, settings.toggleShuffle) == 0)
+        {
+                event.type = EVENT_SHUFFLE;
+        }
+        else if (strcmp(seq, settings.toggleCovers) == 0)
+        {
+                event.type = EVENT_TOGGLECOVERS;
+        }
+        else if (strcmp(seq, settings.toggleVisualizer) == 0)
+        {
+                event.type = EVENT_TOGGLEVISUALIZER;
+        }
+        else if (strcmp(seq, settings.toggleAscii) == 0)
+        {
+                event.type = EVENT_TOGGLEBLOCKS;
+        }
+        else if (strcmp(seq, settings.seekBackward) == 0)
+        {
+                event.type = EVENT_SEEKBACK;
+        }
+        else if (strcmp(seq, settings.seekForward) == 0)
+        {
+                event.type = EVENT_SEEKFORWARD;
+        }
+        else if (event.key == '.')
+        {
+                event.type = EVENT_ADDTOMAINPLAYLIST;
+        }
+        else if (strcmp(seq, settings.toggleRepeat) == 0)
+        {
+                event.type = EVENT_TOGGLEREPEAT;
+        }
+        else if (strcmp(seq, settings.savePlaylist) == 0)
+        {
+                event.type = EVENT_EXPORTPLAYLIST;
+        }
+        else if (strcmp(seq, settings.toggleColorsDerivedFrom) == 0)
+        {
+                event.type = EVENT_TOGGLE_PROFILE_COLORS;
+        }
+        else if (event.key == ' ')
+        {
+                event.type = EVENT_PLAY_PAUSE;
+        }
+        else if (event.key == 'g')
+        {
+                if (gPressed)
+                {
+                        event.type = EVENT_GOTOBEGINNINGOFPLAYLIST;
+                        gPressed = false;
+                }
+                else
+                {
+                        gPressed = true;
+                }
+        }        
         else
         {
-                switch (event.key)
+                for (int i = 0; i < MAX_SEQ_LEN; i++)
                 {
-                case 'G':
-                        if (digitsPressedCount > 0)
+                        if (isdigit(seq[i]))
                         {
-                                event.type = EVENT_GOTOSONG;
+                                digitsPressed[digitsPressedCount++] = seq[i];
                         }
                         else
                         {
-                                event.type = EVENT_GOTOENDOFPLAYLIST;
+                                if (seq[i] == '\0')
+                                        break;
+
+                                if (seq[i] != 'G' && seq[i] != 'g' && seq[i] != '\n')
+                                {
+                                        memset(digitsPressed, '\0', sizeof(digitsPressed));
+                                        digitsPressedCount = 0;
+                                        break;
+                                }
+                                else
+                                {
+                                        event.type = EVENT_GOTOSONG;
+                                        break;
+                                }
                         }
-                        break;
-                case 'g':
-                        if (digitsPressedCount > 0)
-                        {
-                                event.type = EVENT_GOTOSONG;
-                        }
-                        else if (gPressed)
-                        {
-                                event.type = EVENT_GOTOBEGINNINGOFPLAYLIST;
-                                gPressed = false;
-                        }
-                        else
-                        {
-                                gPressed = true;
-                        }
-                        break;
-                case '\n':
-                        if (digitsPressedCount > 0 || printInfo)
-                        {
-                                event.type = EVENT_GOTOSONG;
-                        }
-                        break;
-                case 'k': // Next song
-                        if (printInfo)
-                                event.type = EVENT_SCROLLPREV;
-                        break;
-                case 'j': // Prev song
-                        if (printInfo)
-                                event.type = EVENT_SCROLLNEXT;
-                        break;
-                case 'l':
-                        event.type = EVENT_NEXT;
-                        break;
-                case 'h':
-                        event.type = EVENT_PREV;
-                        break;
-                case '+': // Volume UP
-                        event.type = EVENT_VOLUME_UP;
-                        break;
-                case '-': // Volume DOWN
-                        event.type = EVENT_VOLUME_DOWN;
-                        break;
-                case 'p': // Play/Pau se
-                        event.type = EVENT_PLAY_PAUSE;
-                        break;
-                case 'q':
-                        event.type = EVENT_QUIT;
-                        break;
-                case 's':
-                        event.type = EVENT_SHUFFLE;
-                        break;
-                case 'c':
-                        event.type = EVENT_TOGGLECOVERS;
-                        break;
-                case 'v':
-                        event.type = EVENT_TOGGLEVISUALIZER;
-                        break;
-                case 'b':
-                        event.type = EVENT_TOGGLEBLOCKS;
-                        break;
-                case 'a':
-                        event.type = EVENT_SEEKBACK;
-                        break;
-                case 'd':
-                        event.type = EVENT_SEEKFORWARD;
-                        break;
-                case '.':
-                        event.type = EVENT_ADDTOMAINPLAYLIST;
-                        break;                        
-                case 'r':
-                        event.type = EVENT_TOGGLEREPEAT;
-                        break;
-                case 'x':
-                        event.type = EVENT_EXPORTPLAYLIST;
-                        break;
-                case 'i':
-                        event.type = EVENT_TOGGLE_PROFILE_COLORS;
-                        break;
-                case ' ':
-                        event.type = EVENT_PLAY_PAUSE;
-                        break;
-                default:
-                        break;
                 }
         }
 
@@ -322,9 +347,9 @@ struct Event processInput()
                 event.type = EVENT_NONE;
         else if (event.type == EVENT_NEXT || event.type == EVENT_PREV)
                 updateLastInputTime();
-                
+
         if (!cooldown2Elapsed && (event.type == EVENT_SEEKBACK || event.type == EVENT_SEEKFORWARD))
-                event.type = EVENT_NONE;                
+                event.type = EVENT_NONE;
         else if (event.type == EVENT_SEEKBACK || event.type == EVENT_SEEKFORWARD)
                 updateLastInputTime();
 
@@ -389,20 +414,20 @@ void prepareNextSong()
         if (!repeatEnabled)
         {
                 pthread_mutex_lock(&(loadingdata.mutex));
-                if (usingSongDataA && 
-                        (skipping || (userData.currentSongData == NULL ||
-                        (userData.currentSongData->trackId && loadingdata.songdataA && 
-                        strcmp(loadingdata.songdataA->trackId, userData.currentSongData->trackId) != 0))))
+                if (usingSongDataA &&
+                    (skipping || (userData.currentSongData == NULL ||
+                                  (userData.currentSongData->trackId && loadingdata.songdataA &&
+                                   strcmp(loadingdata.songdataA->trackId, userData.currentSongData->trackId) != 0))))
                 {
                         unloadSongData(&loadingdata.songdataA);
                         userData.filenameA = NULL;
                         usingSongDataA = false;
                         loadedNextSong = false;
                 }
-                else if (!usingSongDataA && 
-                        (skipping || (userData.currentSongData == NULL ||
-                        (userData.currentSongData->trackId && loadingdata.songdataB && 
-                        strcmp(loadingdata.songdataB->trackId, userData.currentSongData->trackId) != 0))))
+                else if (!usingSongDataA &&
+                         (skipping || (userData.currentSongData == NULL ||
+                                       (userData.currentSongData->trackId && loadingdata.songdataB &&
+                                        strcmp(loadingdata.songdataB->trackId, userData.currentSongData->trackId) != 0))))
                 {
                         unloadSongData(&loadingdata.songdataB);
                         userData.filenameB = NULL;
@@ -420,10 +445,10 @@ void refreshPlayer()
         SongData *songData = usingSongDataA ? loadingdata.songdataA : loadingdata.songdataB;
 
         // Check if we have the correct one
-        if (userData.currentSongData != NULL && 
-                userData.currentSongData->trackId != NULL && 
-                songData != NULL && strcmp(songData->trackId, userData.currentSongData->trackId) != 0)
-        {                
+        if (userData.currentSongData != NULL &&
+            userData.currentSongData->trackId != NULL &&
+            songData != NULL && strcmp(songData->trackId, userData.currentSongData->trackId) != 0)
+        {
                 if (usingSongDataA)
                 {
                         // Try the other one
@@ -455,7 +480,7 @@ void refreshPlayer()
                 }
 
                 printPlayer(songData, elapsedSeconds, &playlist);
-        }        
+        }
 }
 
 void handleGotoSong()
@@ -539,7 +564,7 @@ void handleInput()
                 break;
         case EVENT_ADDTOMAINPLAYLIST:
                 addToPlaylist();
-                break;              
+                break;
         case EVENT_DELETEFROMMAINPLAYLIST:
                 // FIXME implement this
                 break;
@@ -703,7 +728,7 @@ void cleanupOnExit()
         emitPlaybackStoppedMpris();
         unloadSongData(&loadingdata.songdataA);
         unloadSongData(&loadingdata.songdataB);
-        stopFFmpeg();        
+        stopFFmpeg();
         cleanupMpris();
         restoreTerminalMode();
         enableInputBuffering();

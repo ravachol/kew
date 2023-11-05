@@ -185,7 +185,8 @@ void toggleShuffle()
         }
         loadedNextSong = false;
         nextSong = NULL;
-        refresh = true;
+        if (printInfo)
+                refresh = true;
 }
 
 void toggleBlocks()
