@@ -93,4 +93,6 @@ void loadNext(LoadingThreadData *loadingdata);
 
 void loadFirst(Node *song);
 
+void flushSeek();
+
 #endif
