@@ -9,6 +9,7 @@ playerops.c
 double elapsedSeconds = 0.0;
 double pauseSeconds = 0.0;
 double totalPauseSeconds = 0.0;
+double seekAccumulatedSeconds = 0.0;
 
 struct timespec current_time;
 struct timespec start_time;
@@ -249,7 +250,7 @@ void calcElapsedTime()
         if (!isPaused())
         {
                 elapsedSeconds = (double)(current_time.tv_sec - start_time.tv_sec) +
-                                 (double)(current_time.tv_nsec - start_time.tv_nsec) / 1e9 + seekElapsed;
+                                 (double)(current_time.tv_nsec - start_time.tv_nsec) / 1e9 + seekElapsed + seekAccumulatedSeconds;
                 elapsedSeconds -= totalPauseSeconds;
         }
         else
@@ -278,10 +279,27 @@ void seekForward()
                 {
                         newElapsed = duration;
                 }
+                if (newElapsed != duration)
+                {
+                        seekAccumulatedSeconds += step * duration / 100.0;
+                }                
+                elapsed = newElapsed;                
+        }
+}
 
-                percentage = newElapsed / duration * 100.0;
-                seekElapsed += step * duration / 100.0;
-                seekPercentage(percentage);
+void flushSeek()
+{
+        if (seekAccumulatedSeconds != 0.0)        
+        {
+                seekElapsed += seekAccumulatedSeconds;
+                seekAccumulatedSeconds = 0.0;                
+                float percentage = elapsed / (float)duration * 100.0;
+                if (percentage < 0.0)
+                {
+                        seekElapsed = 0.0;
+                        percentage = 0.0;
+                }
+                seekPercentage(percentage);                
         }
 }
 
@@ -298,17 +316,19 @@ void seekBack()
 
                 if (newElapsed < 0)
                 {
-                        newElapsed = 0;
+                        newElapsed = 0.0;
                 }
                 else if (newElapsed > duration)
                 {
                         newElapsed = duration;
                 }
 
-                percentage = newElapsed / duration * 100.0;
-                seekElapsed -= step * duration / 100.0;
-                elapsed = newElapsed;
-                seekPercentage(percentage);
+                seekAccumulatedSeconds -= step * duration / 100.0;                
+                if (newElapsed == 0.0)
+                {
+                        seekAccumulatedSeconds = 0.0;
+                }
+                elapsed = newElapsed;                
         }
 }
 

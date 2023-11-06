@@ -66,7 +66,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #define MAX_SEQ_LEN 1024    // Maximum length of sequence buffer
 #define MAX_TMP_SEQ_LEN 256 // Maximum length of temporary sequence buffer
 #define COOLDOWN_MS 500
-#define COOLDOWN2_MS 1000
+#define COOLDOWN2_MS 500
 FILE *logFile = NULL;
 struct winsize windowSize;
 static bool eventProcessed = false;
@@ -98,7 +98,10 @@ struct Event processInput()
                 return event;
 
         if (!isInputAvailable())
+        {
+                flushSeek();
                 return event;
+        }
 
         if (isCooldownElapsed(COOLDOWN_MS) && !eventProcessed)
                 cooldownElapsed = true;
@@ -117,7 +120,7 @@ struct Event processInput()
 
                 seqLength = seqLength + readInputSequence(tmpSeq, sizeof(tmpSeq));
 
-                if (seqLength <= 0)
+                if (seqLength <= 0 && strcmp(seq, "a") != 0 && strcmp(seq, "d") != 0)
                 {
                         keyReleased = 1;
                         break;
@@ -133,7 +136,7 @@ struct Event processInput()
                 c_sleep(10);
 
                 if (strcmp(seq, "[A") == 0 || strcmp(seq, "[B") == 0 || strcmp(seq, "k") == 0 ||
-                    strcmp(seq, "j") == 0)
+                    strcmp(seq, "j") == 0 || strcmp(seq, "a") == 0 || strcmp(seq, "d") == 0)
                 {
                         // Do dummy reads to prevent scrolling continuing after we release the key
                         readInputSequence(tmpSeq, 3);
