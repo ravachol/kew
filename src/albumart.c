@@ -17,7 +17,13 @@
 #include "albumart.h"
 #include "cache.h"
 #include "chafafunc.h"
+/*
 
+albumart.c
+
+ Functions related to extracting album art from audio files or directories.
+ 
+*/
 FIBITMAP *bitmap;
 int indent = 0;
 

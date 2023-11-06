@@ -3,7 +3,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include "cache.h"
+/*
 
+cache.c
+
+ Related to cache whcih contains paths to cached files.
+ 
+*/
 Cache *tempCache = NULL;
 
 Cache *createCache()
