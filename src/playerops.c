@@ -246,18 +246,24 @@ SongData *getCurrentSongData()
 
 void calcElapsedTime()
 {
-        clock_gettime(CLOCK_MONOTONIC, &current_time);
-        if (!isPaused())
-        {
-                elapsedSeconds = (double)(current_time.tv_sec - start_time.tv_sec) +
-                                 (double)(current_time.tv_nsec - start_time.tv_nsec) / 1e9 + seekElapsed + seekAccumulatedSeconds;
-                elapsedSeconds -= totalPauseSeconds;
-        }
-        else
-        {
-                pauseSeconds = (double)(current_time.tv_sec - pause_time.tv_sec) +
-                               (double)(current_time.tv_nsec - pause_time.tv_nsec) / 1e9 + seekElapsed + seekAccumulatedSeconds;
-        }
+    clock_gettime(CLOCK_MONOTONIC, &current_time);
+
+    if (!isPaused())
+    {
+        elapsedSeconds = (double)(current_time.tv_sec - start_time.tv_sec) +
+                         (double)(current_time.tv_nsec - start_time.tv_nsec) / 1e9 + seekElapsed + seekAccumulatedSeconds;
+        elapsedSeconds -= totalPauseSeconds;
+        pauseSeconds = 0;
+    }
+    else
+    {
+        pauseSeconds = (double)(current_time.tv_sec - pause_time.tv_sec) +
+                       (double)(current_time.tv_nsec - pause_time.tv_nsec) / 1e9;
+
+        elapsedSeconds = (double)(pause_time.tv_sec - start_time.tv_sec) +
+                         (double)(pause_time.tv_nsec - start_time.tv_nsec) / 1e9 + seekElapsed + seekAccumulatedSeconds;
+        elapsedSeconds -= totalPauseSeconds;
+    }
 }
 
 void seekForward()
