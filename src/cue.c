@@ -66,7 +66,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #define MAX_SEQ_LEN 1024    // Maximum length of sequence buffer
 #define MAX_TMP_SEQ_LEN 256 // Maximum length of temporary sequence buffer
 #define COOLDOWN_MS 500
-#define COOLDOWN2_MS 200
+#define COOLDOWN2_MS 1000
 FILE *logFile = NULL;
 struct winsize windowSize;
 static bool eventProcessed = false;
