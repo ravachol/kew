@@ -673,6 +673,7 @@ gboolean mainloop_callback(gpointer data)
 
 void play(Node *song)
 {
+        updateLastInputTime();
         updateLastSongSwitchTime();
         pthread_mutex_init(&(loadingdata.mutex), NULL);
 
