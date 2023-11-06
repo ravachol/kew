@@ -1,5 +1,11 @@
 #include "mpris.h"
+/*
 
+mpris.c
+
+Functions related to mpris implementation.
+ 
+*/
 GMainContext *global_main_context = NULL;
 GMainLoop *main_loop;
 guint registration_id;

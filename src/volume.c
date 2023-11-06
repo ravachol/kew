@@ -1,5 +1,11 @@
 #include "volume.h"
+/*
 
+volume.c
+
+ Functions related to volume control.
+ 
+*/
 int getCurrentVolume()
 {
         FILE *fp;

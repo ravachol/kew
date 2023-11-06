@@ -1,5 +1,11 @@
 #include "cutils.h"
+/*
 
+cutils.c
+
+ Utility functions for instance for replacing some standard functions with safer alterantives.
+ 
+*/
 void c_sleep(int milliseconds)
 {
         struct timespec ts;

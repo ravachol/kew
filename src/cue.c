@@ -117,7 +117,7 @@ struct Event processInput()
 
                 seqLength = seqLength + readInputSequence(tmpSeq, sizeof(tmpSeq));
 
-                if (seqLength <= 0 && (strcmp(seq, "a") != 0 && strcmp(seq, "d") != 0))
+                if (seqLength <= 0)
                 {
                         keyReleased = 1;
                         break;
@@ -132,8 +132,8 @@ struct Event processInput()
 
                 c_sleep(10);
 
-                if (strcmp(seq, "[A") == 0 || strcmp(seq, "[B") == 0 || strcmp(seq, "k") == 0 || 
-                    strcmp(seq, "j") == 0 || strcmp(seq, "a") == 0 || strcmp(seq, "d") == 0)
+                if (strcmp(seq, "[A") == 0 || strcmp(seq, "[B") == 0 || strcmp(seq, "k") == 0 ||
+                    strcmp(seq, "j") == 0)
                 {
                         // Do dummy reads to prevent scrolling continuing after we release the key
                         readInputSequence(tmpSeq, 3);
@@ -152,88 +152,34 @@ struct Event processInput()
         event.type = EVENT_NONE;
         event.key = seq[0];
 
-        if (strcmp(seq, "[A") == 0)
+        if (event.key == 'g')
         {
-                // Arrow Up
-                if (printInfo)
-                        event.type = EVENT_SCROLLPREV;
-        }
-        else if (strcmp(seq, "[B") == 0)
-        {
-                // Arrow Down
-                if (printInfo)
-                        event.type = EVENT_SCROLLNEXT;
-        }
-        else if (strcmp(seq, "[C") == 0)
-        {
-                // Arrow Left
-                event.type = EVENT_NEXT;
-        }
-        else if (strcmp(seq, "[D") == 0)
-        {
-                // Arrow Right
-                event.type = EVENT_PREV;
-        }
-        else if (strcmp(seq, "OQ") == 0 || strcmp(seq, "[[B") == 0)
-        {
-                // F2 key
-                event.type = EVENT_SHOWINFO;
-        }
-        else if (strcmp(seq, "OR") == 0 || strcmp(seq, "[[C") == 0)
-        {
-                // F3 key
-                event.type = EVENT_SHOWKEYBINDINGS;
-        }
-        else if (isdigit(event.key))
-        {
-                if (digitsPressedCount < maxDigitsPressedCount)
-                        digitsPressed[digitsPressedCount++] = event.key;
-        }
-        else if (event.key == 'G')
-        {
-                if (digitsPressedCount > 0)
+                if (gPressed)
                 {
-                        event.type = EVENT_GOTOSONG;
+                        event.type = EVENT_GOTOBEGINNINGOFPLAYLIST;
+                        gPressed = false;
                 }
                 else
                 {
-                        event.type = EVENT_GOTOENDOFPLAYLIST;
+                        gPressed = true;
                 }
         }
-        else if  (event.key == '\n')
+
+        if (strcmp(seq, settings.switchNumberedSongAlt) == 0)
         {
-                if (digitsPressedCount > 0 || printInfo)
-                {
-                        event.type = EVENT_GOTOSONG;
-                }
-        }                
-        else if (strcmp(seq, settings.switchNumberedSongAlt) == 0)
-        {
-                if (digitsPressedCount > 0)
-                {
-                        event.type = EVENT_GOTOSONG;
-                }                         
+                event.type = EVENT_GOTOSONG;
         }
-        else if  (strcmp(seq, settings.switchNumberedSongAlt2) == 0)
+        else if (strcmp(seq, settings.switchNumberedSongAlt2) == 0)
         {
-                if (digitsPressedCount > 0)
-                {
-                        event.type = EVENT_GOTOSONG;
-                }
+                event.type = EVENT_GOTOSONG;
         }
         else if (strcmp(seq, settings.scrollUpAlt) == 0)
         {
-                if (printInfo)
-                {
-                        event.type = EVENT_SCROLLPREV;
-                }
+                event.type = EVENT_SCROLLPREV;
         }
         else if (strcmp(seq, settings.scrollDownAlt) == 0)
         {
-                if (printInfo)
-                {
-                        event.type = EVENT_SCROLLNEXT;
-                }
+                event.type = EVENT_SCROLLNEXT;
         }
         else if (strcmp(seq, settings.nextTrackAlt) == 0)
         {
@@ -283,10 +229,6 @@ struct Event processInput()
         {
                 event.type = EVENT_SEEKFORWARD;
         }
-        else if (event.key == '.')
-        {
-                event.type = EVENT_ADDTOMAINPLAYLIST;
-        }
         else if (strcmp(seq, settings.toggleRepeat) == 0)
         {
                 event.type = EVENT_TOGGLEREPEAT;
@@ -299,22 +241,65 @@ struct Event processInput()
         {
                 event.type = EVENT_TOGGLE_PROFILE_COLORS;
         }
+        // Hardcoded settings
+        else if (event.key == 'G')
+        {
+                if (digitsPressedCount > 0)
+                {
+                        event.type = EVENT_GOTOSONG;
+                }
+                else
+                {
+                        event.type = EVENT_GOTOENDOFPLAYLIST;
+                }
+        }
+        else if (event.key == '\n')
+        {
+                event.type = EVENT_GOTOSONG;
+        }
+        else if (event.key == '.')
+        {
+                event.type = EVENT_ADDTOMAINPLAYLIST;
+        }
         else if (event.key == ' ')
         {
                 event.type = EVENT_PLAY_PAUSE;
         }
-        else if (event.key == 'g')
+        else if (strcmp(seq, "[A") == 0)
         {
-                if (gPressed)
-                {
-                        event.type = EVENT_GOTOBEGINNINGOFPLAYLIST;
-                        gPressed = false;
-                }
-                else
-                {
-                        gPressed = true;
-                }
-        }        
+                // Arrow Up
+                event.type = EVENT_SCROLLPREV;
+        }
+        else if (strcmp(seq, "[B") == 0)
+        {
+                // Arrow Down
+                event.type = EVENT_SCROLLNEXT;
+        }
+        else if (strcmp(seq, "[C") == 0)
+        {
+                // Arrow Left
+                event.type = EVENT_NEXT;
+        }
+        else if (strcmp(seq, "[D") == 0)
+        {
+                // Arrow Right
+                event.type = EVENT_PREV;
+        }
+        else if (strcmp(seq, "OQ") == 0 || strcmp(seq, "[[B") == 0)
+        {
+                // F2 key
+                event.type = EVENT_SHOWINFO;
+        }
+        else if (strcmp(seq, "OR") == 0 || strcmp(seq, "[[C") == 0)
+        {
+                // F3 key
+                event.type = EVENT_SHOWKEYBINDINGS;
+        }
+        else if (isdigit(event.key))
+        {
+                if (digitsPressedCount < maxDigitsPressedCount)
+                        digitsPressed[digitsPressedCount++] = event.key;
+        }
         else
         {
                 for (int i = 0; i < MAX_SEQ_LEN; i++)

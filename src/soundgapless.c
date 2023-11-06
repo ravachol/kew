@@ -12,7 +12,13 @@
 #include <sys/stat.h>
 #include "file.h"
 #include "soundgapless.h"
+/*
 
+soundgapless.c
+
+ Functions related to miniaudio implementation
+ 
+*/
 ma_int32 *g_audioBuffer = NULL;
 ma_device device = {0};
 ma_context context;

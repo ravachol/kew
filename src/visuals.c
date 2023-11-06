@@ -7,7 +7,13 @@
 #define BEAT_THRESHOLD 0.3
 #define MAGNITUDE_CEIL 150
 #define MAGNITUDE_FLOOR_FRACTION 0.4
+/*
 
+visuals.c
+
+ This file should contain only functions related to the spectrum visualizer.
+ 
+*/
 int bufferIndex = 0;
 
 float magnitudeBuffer[BUFFER_SIZE] = {0.0f};

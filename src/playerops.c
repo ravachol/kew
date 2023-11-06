@@ -1,5 +1,11 @@
 #include "playerops.h"
+/*
 
+playerops.c
+
+ Related to features/actions of the player.
+ 
+*/
 double elapsedSeconds = 0.0;
 double pauseSeconds = 0.0;
 double totalPauseSeconds = 0.0;
