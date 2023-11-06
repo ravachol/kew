@@ -5,7 +5,7 @@
 
 player.c
 
-This file should only contain functions related to printing the player to the screen.
+Functions related to printing the player to the screen.
 
 */
 

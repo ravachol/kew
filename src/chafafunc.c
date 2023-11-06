@@ -1,5 +1,11 @@
 #include "chafafunc.h"
+/*
 
+chafafunc.c
+
+ Functions related to printing images to the terminal with chafa.
+ 
+*/
 /* Include after chafa.h for G_OS_WIN32 */
 #ifdef G_OS_WIN32
 #ifdef HAVE_WINDOWS_H

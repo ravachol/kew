@@ -8,7 +8,7 @@
 file.c
 
  This file should contain only simple utility functions related to files and directories.
- They should work independently and be as decoupled from the application as possible.
+ They should work independently and be as decoupled from the rest of the application as possible.
 
 */
 

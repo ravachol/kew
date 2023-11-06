@@ -1,5 +1,11 @@
 #include "songloader.h"
+/*
 
+songloader.c
+
+ This file should contain only functions related to loading song data.
+ 
+*/
 static guint track_counter = 0;
 int ffmpegPid = -1;
 
@@ -32,8 +38,23 @@ void *child_cleanup(void *arg)
 
 void stopFFmpeg()
 {
-        if (ffmpegPid != -1)
-                kill(ffmpegPid, SIGINT);
+    if (ffmpegPid != -1)
+    {
+        if (kill(ffmpegPid, SIGINT) == 0)
+        {
+            // Signal sent successfully
+            ffmpegPid = -1;
+        }
+        else
+        {
+            // Try other signals if SIGINT didn't work
+            if (kill(ffmpegPid, SIGTERM) == 0)
+            {
+                // Signal sent successfully
+                ffmpegPid = -1;
+            }
+        }
+    }
 }
 
 int convertToPcmFile(const char *filePath, const char *outputFilePath)

@@ -14,7 +14,13 @@
 #include "file.h"
 #include "stringfunc.h"
 #include "settings.h"
+/*
 
+playlist.c
+
+ Playlist related functions.
+ 
+*/
 #define MAX_SEARCH_SIZE 256
 #define MAX_FILES 20000
 

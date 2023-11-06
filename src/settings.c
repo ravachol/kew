@@ -2,7 +2,13 @@
 #include <string.h>
 #include "settings.h"
 #include "stringfunc.h"
+/*
 
+settings.c
+
+ Functions related to the config file.
+ 
+*/
 AppSettings settings;
 
 const char OLD_SETTINGS_FILE[] = ".cue.conf";

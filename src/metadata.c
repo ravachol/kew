@@ -1,6 +1,12 @@
 #include "metadata.h"
 #include "cache.h"
+/*
 
+metadata.c
+
+ Functions for extracting tags from audio metadata.
+ 
+*/
 void removeTagPrefix(char *value)
 {
         char *colon_pos = strchr(value, ':');
