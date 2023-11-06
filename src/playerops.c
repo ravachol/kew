@@ -256,7 +256,7 @@ void calcElapsedTime()
         else
         {
                 pauseSeconds = (double)(current_time.tv_sec - pause_time.tv_sec) +
-                               (double)(current_time.tv_nsec - pause_time.tv_nsec) / 1e9;
+                               (double)(current_time.tv_nsec - pause_time.tv_nsec) / 1e9 + seekElapsed + seekAccumulatedSeconds;
         }
 }
 
