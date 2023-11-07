@@ -36,9 +36,9 @@ void *child_cleanup(void *arg)
 {
         thread_data *data = (thread_data *)arg;
         int status;
-        ffmpegPids[data->index] = -1;
-        numRunningProcesses--;
         waitpid(data->pid, &status, 0);
+        ffmpegPids[data->index] = -1;
+        numRunningProcesses--;        
         free(arg);
         return NULL;
 }
