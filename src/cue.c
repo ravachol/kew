@@ -120,7 +120,7 @@ struct Event processInput()
 
                 seqLength = seqLength + readInputSequence(tmpSeq, sizeof(tmpSeq));
 
-                if (seqLength <= 0 && strcmp(seq, "a") != 0 && strcmp(seq, "d") != 0)
+                if (seqLength <= 0 && strcmp(seq, settings.seekBackward) != 0 && strcmp(seq, settings.seekForward) != 0)
                 {
                         keyReleased = 1;
                         break;
@@ -135,8 +135,8 @@ struct Event processInput()
 
                 c_sleep(10);
 
-                if (strcmp(seq, "[A") == 0 || strcmp(seq, "[B") == 0 || strcmp(seq, "k") == 0 ||
-                    strcmp(seq, "j") == 0 || strcmp(seq, "a") == 0 || strcmp(seq, "d") == 0)
+                if (strcmp(seq, "[A") == 0 || strcmp(seq, "[B") == 0 || strcmp(seq, settings.scrollUpAlt) == 0 ||
+                    strcmp(seq, settings.scrollDownAlt) == 0 || strcmp(seq, settings.seekBackward) == 0 || strcmp(seq, settings.seekForward) == 0)
                 {
                         // Do dummy reads to prevent scrolling continuing after we release the key
                         readInputSequence(tmpSeq, 3);
