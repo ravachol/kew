@@ -19,7 +19,7 @@ typedef struct
 } PixelData;
 #endif
 
-const char VERSION[] = "1.3.2";
+const char VERSION[] = "1.3.3";
 const int LOGO_COLOR = 3;
 const int VERSION_COLOR = 6;
 const int ABSOLUTE_MIN_WIDTH = 38;
@@ -728,11 +728,11 @@ int showPlaylist()
 
                         if (startFromCurrent)
                         {
-                                printf(" %d. %s\n", i + 1, copiedString);
+                                printf(" %d. %s \n", i + 1, copiedString);
                         }
                         else
                         {
-                                printf(" %d. %s\n", numRows, copiedString);
+                                printf(" %d. %s \n", numRows, copiedString);
                         }
                         numPrintedRows++;
                         numRows++;
