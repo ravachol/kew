@@ -126,7 +126,6 @@ void playbackPlay(double *totalPauseSeconds, double *pauseSeconds, struct timesp
         if (isPaused())
         {
                 *totalPauseSeconds += *pauseSeconds;
-                *pauseSeconds = 0.0;
                 emitStringPropertyChanged("PlaybackStatus", "Playing");
         }
         resumePlayback();
@@ -144,7 +143,6 @@ void togglePause(double *totalPauseSeconds, double *pauseSeconds, struct timespe
         else
         {
                 *totalPauseSeconds += *pauseSeconds;
-                *pauseSeconds = 0.0;
                 emitStringPropertyChanged("PlaybackStatus", "Playing");
         }
 }
