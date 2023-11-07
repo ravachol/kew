@@ -434,7 +434,7 @@ void setConfig()
         fprintf(file, "seekForward=%s\n", settings.seekForward);
         fprintf(file, "savePlaylist=%s\n", settings.savePlaylist);
         fprintf(file, "quit=%s\n", settings.quit);
-        fprintf(file, "# For special characters use terminal codes OS, for F4 for instance. This can depend on the terminal.");
+        fprintf(file, "# For special keys use terminal codes OS, for F4 for instance. This can depend on the terminal.");
 
         fclose(file);
         free(filepath);
