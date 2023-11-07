@@ -4,18 +4,24 @@
 songloader.c
 
  This file should contain only functions related to loading song data.
- 
+
 */
 static guint track_counter = 0;
 int ffmpegPid = -1;
 
 #define COMMAND_SIZE 1000
+#define MAX_FFMPEG_PROCESSES 10
+
+pid_t ffmpegPids[MAX_FFMPEG_PROCESSES];
+int numRunningProcesses = 0;
+
 int maxSleepTimes = 20;
 int sleepAmount = 300;
 
 typedef struct thread_data
 {
         pid_t pid;
+        int index;
 } thread_data;
 
 // Generate a new track ID
@@ -30,31 +36,35 @@ void *child_cleanup(void *arg)
 {
         thread_data *data = (thread_data *)arg;
         int status;
+        ffmpegPids[data->index] = -1;
+        numRunningProcesses--;
         waitpid(data->pid, &status, 0);
-        ffmpegPid = -1;
-        free(arg);       
+        free(arg);
         return NULL;
 }
 
 void stopFFmpeg()
 {
-    if (ffmpegPid != -1)
-    {
-        if (kill(ffmpegPid, SIGINT) == 0)
+        for (int i = 0; i < numRunningProcesses; i++)
         {
-            // Signal sent successfully
-            ffmpegPid = -1;
+                pid_t pid = ffmpegPids[i];
+                if (pid != -1)
+                {
+                        if (kill(pid, SIGINT) == 0)
+                        {
+                                ffmpegPids[i] = -1;
+                                waitpid(pid, NULL, 0);
+                        }
+                        else
+                        {
+                                if (kill(ffmpegPid, SIGTERM) == 0)
+                                {
+                                        ffmpegPids[i] = -1;
+                                        waitpid(pid, NULL, 0);
+                                }
+                        }
+                }
         }
-        else
-        {
-            // Try other signals if SIGINT didn't work
-            if (kill(ffmpegPid, SIGTERM) == 0)
-            {
-                // Signal sent successfully
-                ffmpegPid = -1;
-            }
-        }
-    }
 }
 
 int convertToPcmFile(const char *filePath, const char *outputFilePath)
@@ -106,8 +116,11 @@ int convertToPcmFile(const char *filePath, const char *outputFilePath)
                         perror("malloc failed");
                         return -1;
                 }
-                ffmpegPid = currentPid;                
+                ffmpegPids[numRunningProcesses] = currentPid;
                 data->pid = currentPid;
+                data->index = numRunningProcesses;
+                numRunningProcesses++;
+
                 if (pthread_create(&thread_id, NULL, child_cleanup, data) != 0)
                 {
                         perror("pthread_create failed");
@@ -137,7 +150,7 @@ int getSongDuration(const char *filePath, double *duration)
         char *escapedInputFilePath = escapeFilePath(filePath);
 
         snprintf(command, sizeof(command),
-                 "ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 \"%s\"", 
+                 "ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 \"%s\"",
                  escapedInputFilePath);
 
         free(escapedInputFilePath);

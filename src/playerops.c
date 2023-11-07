@@ -4,7 +4,7 @@
 playerops.c
 
  Related to features/actions of the player.
- 
+
 */
 double elapsedSeconds = 0.0;
 double pauseSeconds = 0.0;
@@ -39,7 +39,7 @@ GDBusConnection *connection = NULL;
 UserData userData;
 
 void updateLastSongSwitchTime()
-{        
+{
         clock_gettime(CLOCK_MONOTONIC, &start_time);
 }
 
@@ -110,7 +110,7 @@ void emitMetadataChanged(const gchar *title, const gchar *artist, const gchar *a
         g_variant_builder_clear(&changed_properties_builder);
 }
 
-void playbackPause(double *totalPauseSeconds, double pauseSeconds, struct timespec *pause_time)
+void playbackPause(double *totalPauseSeconds, double *pauseSeconds, struct timespec *pause_time)
 {
         if (!isPaused())
         {
@@ -121,18 +121,18 @@ void playbackPause(double *totalPauseSeconds, double pauseSeconds, struct timesp
         pausePlayback();
 }
 
-void playbackPlay(double *totalPauseSeconds, double pauseSeconds, struct timespec *pause_time)
+void playbackPlay(double *totalPauseSeconds, double *pauseSeconds, struct timespec *pause_time)
 {
         if (isPaused())
         {
-                *totalPauseSeconds += pauseSeconds;
-
+                *totalPauseSeconds += *pauseSeconds;
+                *pauseSeconds = 0.0;
                 emitStringPropertyChanged("PlaybackStatus", "Playing");
         }
         resumePlayback();
 }
 
-void togglePause(double *totalPauseSeconds, double pauseSeconds, struct timespec *pause_time)
+void togglePause(double *totalPauseSeconds, double *pauseSeconds, struct timespec *pause_time)
 {
         togglePausePlayback();
         if (isPaused())
@@ -143,8 +143,8 @@ void togglePause(double *totalPauseSeconds, double pauseSeconds, struct timespec
         }
         else
         {
-                *totalPauseSeconds += pauseSeconds;
-
+                *totalPauseSeconds += *pauseSeconds;
+                *pauseSeconds = 0.0;
                 emitStringPropertyChanged("PlaybackStatus", "Playing");
         }
 }
@@ -263,73 +263,40 @@ void calcElapsedTime()
 
 void seekForward()
 {
-        float percentage = 0;
-
         if (duration != 0)
         {
                 float step = 100 / numProgressBars;
-                percentage = elapsed / (float)duration * 100.0;
-
-                float newElapsed = (percentage + step) * duration / 100.0;
-
-                if (newElapsed < 0)
-                {
-                        newElapsed = 0;
-                }
-                else if (newElapsed > duration)
-                {
-                        newElapsed = duration;
-                }
-                if (newElapsed != duration)
-                {
-                        seekAccumulatedSeconds += step * duration / 100.0;
-                }                
-                elapsed = newElapsed;                
+                seekAccumulatedSeconds += step * duration / 100.0;
         }
 }
 
 void flushSeek()
 {
-        if (seekAccumulatedSeconds != 0.0)        
+        if (seekAccumulatedSeconds != 0.0)
         {
                 seekElapsed += seekAccumulatedSeconds;
-                seekAccumulatedSeconds = 0.0;                
+                seekAccumulatedSeconds = 0.0;
                 float percentage = elapsed / (float)duration * 100.0;
                 if (percentage < 0.0)
                 {
                         seekElapsed = 0.0;
                         percentage = 0.0;
                 }
-                seekPercentage(percentage);                
+                seekPercentage(percentage);
         }
 }
 
 void seekBack()
 {
-        float percentage = 0;
-
         if (duration != 0)
         {
                 float step = 100 / numProgressBars;
-                percentage = elapsed / (float)duration * 100.0;
-
-                float newElapsed = (percentage - step) * duration / 100.0;
-
-                if (newElapsed < 0)
+                seekAccumulatedSeconds -= step * duration / 100.0;
+                float totalElapsed = elapsedSeconds + seekElapsed + seekAccumulatedSeconds;
+                if (totalElapsed < 0.0)
                 {
-                        newElapsed = 0.0;
+                        seekAccumulatedSeconds -= totalElapsed;
                 }
-                else if (newElapsed > duration)
-                {
-                        newElapsed = duration;
-                }
-
-                seekAccumulatedSeconds -= step * duration / 100.0;                
-                if (newElapsed == 0.0)
-                {
-                        seekAccumulatedSeconds = 0.0;
-                }
-                elapsed = newElapsed;                
         }
 }
 

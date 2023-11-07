@@ -49,11 +49,11 @@ void updateLastInputTime();
 
 void emitMetadataChanged(const gchar *title, const gchar *artist, const gchar *album, const gchar *coverArtPath, const gchar *trackId);
 
-void playbackPause(double *totalPauseSeconds, double pauseSeconds, struct timespec *pause_time);
+void playbackPause(double *totalPauseSeconds, double *pauseSeconds, struct timespec *pause_time);
 
-void playbackPlay(double *totalPauseSeconds, double pauseSeconds, struct timespec *pause_time);
+void playbackPlay(double *totalPauseSeconds, double *pauseSeconds, struct timespec *pause_time);
 
-void togglePause(double *totalPauseSeconds, double pauseSeconds, struct timespec *pause_time);
+void togglePause(double *totalPauseSeconds, double *pauseSeconds, struct timespec *pause_time);
 
 void toggleRepeat();
 
