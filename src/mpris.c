@@ -207,7 +207,7 @@ static void handle_pause(GDBusConnection *connection, const gchar *sender,
                          const gchar *method_name, GVariant *parameters,
                          GDBusMethodInvocation *invocation, gpointer user_data)
 {
-        playbackPause(&totalPauseSeconds, pauseSeconds, &pause_time);
+        playbackPause(&totalPauseSeconds, &pauseSeconds, &pause_time);
 }
 
 static void handle_play_pause(GDBusConnection *connection, const gchar *sender,
@@ -215,7 +215,7 @@ static void handle_play_pause(GDBusConnection *connection, const gchar *sender,
                               const gchar *method_name, GVariant *parameters,
                               GDBusMethodInvocation *invocation, gpointer user_data)
 {
-        togglePause(&totalPauseSeconds, pauseSeconds, &pause_time);
+        togglePause(&totalPauseSeconds, &pauseSeconds, &pause_time);
         g_dbus_method_invocation_return_value(invocation, NULL);
 }
 
@@ -233,7 +233,7 @@ static void handle_play(GDBusConnection *connection, const gchar *sender,
                         const gchar *method_name, GVariant *parameters,
                         GDBusMethodInvocation *invocation, gpointer user_data)
 {
-        playbackPlay(&totalPauseSeconds, pauseSeconds, &pause_time);
+        playbackPlay(&totalPauseSeconds, &pauseSeconds, &pause_time);
 }
 
 static void handle_seek(GDBusConnection *connection, const gchar *sender,

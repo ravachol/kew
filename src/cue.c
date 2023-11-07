@@ -503,7 +503,7 @@ void handleInput()
                 handleGotoSong();
                 break;
         case EVENT_PLAY_PAUSE:
-                togglePause(&totalPauseSeconds, pauseSeconds, &pause_time);
+                togglePause(&totalPauseSeconds, &pauseSeconds, &pause_time);
                 break;
         case EVENT_TOGGLEVISUALIZER:
                 toggleVisualizer();
