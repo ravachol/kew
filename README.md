@@ -40,7 +40,7 @@ Thank you!
 On Arch Linux, and Arch-based distributions, cue can be found in the AUR. Install with pamac or an AUR helper like yay:
 
 ```bash
-yay cue-git
+yay cue-music-command
 ```
 
 ### Installing with quick install script
