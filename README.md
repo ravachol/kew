@@ -1,7 +1,7 @@
 
 # cue music command
-[![cue-git](https://img.shields.io/aur/version/cue-git?color=1793d1&label=cue-git&logo=arch-linux&style=for-the-badge)](https://aur.archlinux.org/packages/cue-git/)
-[![GitHub license](https://img.shields.io/github/license/ravachol/cue?color=333333&style=for-the-badge)](https://github.com/ravachol/cue/blob/master/LICENSE)
+[![cue-git](https://img.shields.io/aur/version/cue-music-command?color=1793d1&label=cue-music-command&logo=arch-linux&style=for-the-badge)](https://aur.archlinux.org/packages/cue-music-command/)
+[![GitHub license](https://img.shields.io/github/license/ravachol/cue-music-command?color=333333&style=for-the-badge)](https://github.com/ravachol/cue-music-command/blob/master/LICENSE)
 
 Listen to music in the terminal.
 
