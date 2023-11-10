@@ -95,7 +95,7 @@ void printHelp()
         printf("          kew <song name,directory or playlist words>\n");
         printf("          kew --help, -? or -h\n");
         printf("          kew --version or -v\n");
-        printf("          kew dir <album name> (Sometimes it's neccessary to specify it's a directory you want)\n");
+        printf("          kew dir <album name> (Sometimes it's necessary to specify it's a directory you want)\n");
         printf("          kew song <song name> \n");
         printf("          kew list <m3u list name> \n");
         printf("          kew shuffle <dir name> (random and rand works too)\n");
