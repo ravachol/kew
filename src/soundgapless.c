@@ -1,7 +1,7 @@
 #define MA_EXPERIMENTAL__DATA_LOOPING_AND_CHAINING
 #define MA_NO_ENGINE
 #define MINIAUDIO_IMPLEMENTATION
-#include "../include/miniaudio/miniaudio.h"
+#include <miniaudio.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
