@@ -1,10 +1,10 @@
-# Welcome to cue music contributing guide
+# Welcome to kew music contributing guide
 
-Thanks for stopping by, here are some points about contributing to cue.
+Thanks for stopping by, here are some points about contributing to kew.
 
 ### Goal of the project
 
-The goal of cue is to provide a quick and easy way for people to listen to music with the absolute minimum of inconvenience. 
+The goal of kew is to provide a quick and easy way for people to listen to music with the absolute minimum of inconvenience. 
 It's a small app, limited in scope and it shouldn't be everything to all people. It should continue to be a very light weight app.
 For instance, it's not imagined as a software for dj'ing or as a busy music file manager with all the features. 
 
@@ -18,7 +18,7 @@ ffprobe -i AUDIO FILE -show_streams -select_streams a:0 -v quiet -print_format j
 
 ### Pull Requests
 
-- Please contact me (ravacholf@proton.me) before doing a big change, or risk the whole thing getting rejected. 
+- Please contact me (kew-music-player@proton.me) before doing a big change, or risk the whole thing getting rejected. 
 
 - Try to keep commits fairly small so that they are easy to review.
 

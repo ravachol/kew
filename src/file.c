@@ -364,7 +364,7 @@ void deleteTempDir()
         char dirPath[MAXPATHLEN];
         struct passwd *pw = getpwuid(getuid());
         const char *username = pw->pw_name;
-        snprintf(dirPath, FILENAME_MAX, "%s/cue/%s", tempDir, username);
+        snprintf(dirPath, FILENAME_MAX, "%s/kew/%s", tempDir, username);
         removeDirectory(dirPath);
 }
 
@@ -417,7 +417,7 @@ void deleteTempShmDir()
         char dirPath[MAXPATHLEN];
         struct passwd *pw = getpwuid(getuid());
         const char *username = pw->pw_name;
-        snprintf(dirPath, FILENAME_MAX, "%s/cue/%s", tempDir, username);
+        snprintf(dirPath, FILENAME_MAX, "%s/kew/%s", tempDir, username);
         removeShmDirectory(dirPath);
 }
 
@@ -465,9 +465,9 @@ void generateTempFilePath(const char *srcFilePath, char *filePath, const char *p
         char dirPath[MAXPATHLEN];
         struct passwd *pw = getpwuid(getuid());
         const char *username = pw->pw_name;
-        snprintf(dirPath, MAXPATHLEN, "%s/cue", tempDir);
+        snprintf(dirPath, MAXPATHLEN, "%s/kew", tempDir);
         createDirectory(dirPath);
-        snprintf(dirPath, MAXPATHLEN, "%s/cue/%s", tempDir, username);
+        snprintf(dirPath, MAXPATHLEN, "%s/kew/%s", tempDir, username);
         createDirectory(dirPath);
         char randomString[7];
         srand(time(NULL));

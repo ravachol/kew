@@ -1,12 +1,12 @@
 .Dd 9/3/23               \" DATE
-.Dt cue 1      \" Program name and manual section number
+.Dt kew 1      \" Program name and manual section number
 .Os Linux
 .Sh NAME                 \" Section Header - required - don't modify
-.Nm cue
+.Nm kew
 ,
 .\" The following lines are read in generating the apropos(man -k) database. Use only key
 .\" words here as the database is built based on the words here and in the .ND line.
-.Nm cue music command
+.Nm kew music command
 .\" Use .Nm macro to designate other names for the documented program.
 .Nd A command-line music player.
 .Sh SYNOPSIS             \" Section Header - required - don't modify
@@ -60,26 +60,26 @@ Searches for a (.m3u) playlist. These are normally not included in searches.
 .Sh EXAMPLES
 .Pp
 .Bl -tag -width -indent 
-.It cue
+.It kew
 Start
 .Nm
 with all songs loaded into a playlist.
-.It cue moonlight son
+.It kew moonlight son
 Play moonlight sonata.
-.It cue moon
+.It kew moon
 Play moonlight sonata.
-.It cue nirv
+.It kew nirv
 Play all music under Nirvana folder shuffled.
-.It cue neverm
+.It kew neverm
 Play Nevermind album in alphabetical order.
-.It cue shuffle neverm
+.It kew shuffle neverm
 Play Nevermind album shuffled.
-.It cue list mix
+.It kew list mix
 Play the mix.m3u playlist.
-.It cue <words A>:<words B>:<words C>
+.It kew <words A>:<words B>:<words C>
 Play everything found under A, B, and C, shuffled. Searches are seperated by a colon ':' character.
-.It "cue ."
-Play the cue.m3u playlist.
+.It "kew ."
+Play the kew.m3u playlist.
 .El                      \" Ends the list
 .Sh KEY BINDINGS
 .Pp
@@ -111,7 +111,7 @@ Seek Backward.
 .It d
 Seek Forward.
 .It "."
-Add to cue.m3u playlist.
+Add to kew.m3u playlist.
 .It x
 Save currently loaded playlist to a .m3u file in the music folder.
 .It gg 
@@ -126,9 +126,9 @@ Quit
 .El                     
 .Sh FILES                
 .Bl -tag -width -compact
-.It Pa "~/<configfolder>/cuerc"
+.It Pa "~/<configfolder>/kewrc"
 Config file.
-.It Pa "/<musicfolder>/cue.m3u"
+.It Pa "/<musicfolder>/kew.m3u"
 The 
 .Nm
 playlist. Add to it by pressing 'a' during playback of any song. This playlist is saved before q exits.
@@ -140,5 +140,5 @@ There is NO WARRANTY, to the extent permitted by law.
 .Sh SEE ALSO
 .Bl -tag -width -compact
 Project home page: 
-.It Pa <https://github.com/ravachol/cue-music-command>.
+.It Pa <https://github.com/ravachol/kew>.
 .El                      \" Ends the list

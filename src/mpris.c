@@ -91,7 +91,7 @@ const gchar *introspection_xml =
 static gboolean canRaise = FALSE;
 static gboolean canQuit = TRUE;
 static gboolean hasTrackList = FALSE;
-static const gchar *identity = "cueMusic";
+static const gchar *identity = "kew";
 static const gchar *supportedUriSchemes[] = {"file", "http", NULL};
 static const gchar *supportedMimeTypes[] = {"audio/mpeg", "audio/ogg", NULL};
 static const gchar *desktopIconName = ""; // Without file extension
@@ -746,7 +746,7 @@ void initMpris()
                 return;
         }
 
-        const char *app_name = "org.mpris.MediaPlayer2.cueMusic";
+        const char *app_name = "org.mpris.MediaPlayer2.kew";
         char unique_name[256];
         snprintf(unique_name, sizeof(unique_name), "%s%d", app_name, getpid());
 
