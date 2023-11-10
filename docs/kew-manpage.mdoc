@@ -1,0 +1,144 @@
+.Dd 9/3/23               \" DATE
+.Dt kew 1      \" Program name and manual section number
+.Os Linux
+.Sh NAME                 \" Section Header - required - don't modify
+.Nm kew
+,
+.\" The following lines are read in generating the apropos(man -k) database. Use only key
+.\" words here as the database is built based on the words here and in the .ND line.
+.Nm kew music command
+.\" Use .Nm macro to designate other names for the documented program.
+.Nd A command-line music player.
+.Sh SYNOPSIS             \" Section Header - required - don't modify
+.Nm 
+.Op OPTIONS              \" 
+.Op Ar PARTIAL FILE OR DIRECTORY NAME              \" [file]
+.Sh DESCRIPTION          \" Section Header - required - don't modify
+.Nm
+plays audio from your music folder when given a partial (or whole) file or directory name. 
+A playlist is created when finding more than one file. 
+It supports gapless playback, 24-bit/192khz audio and MPRIS.
+.Pp
+
+On first use, set a path for the music library (this is a once-only operation):
+.Bl 
+.It
+.Nm 
+path "/home/joe/Music"
+.El 
+.Pp
+Typical use:
+.Bl
+.It
+.Nm 
+artist, album or song name
+.El 
+.Pp
+.Nm 
+returns results from the location of the first match, it doesn't return every result possible.
+.Pp 
+.Sh OPTIONS
+.Pp
+.Bl -tag -width -indent 
+.It Fl h, -help
+Displays help.
+.It Fl v, -version
+Displays version info.
+.It Fl -nocover
+Hides the cover.
+.It Fl -noui
+Completely hides the UI.
+.It shuffle
+Shuffles the playlist before starting to play it.
+.It dir
+Plays the directory not the song.
+.It song
+Plays the song not the directory.
+.It list
+Searches for a (.m3u) playlist. These are normally not included in searches.
+.El                      
+.Sh EXAMPLES
+.Pp
+.Bl -tag -width -indent 
+.It kew
+Start
+.Nm
+with all songs loaded into a playlist.
+.It kew moonlight son
+Play moonlight sonata.
+.It kew moon
+Play moonlight sonata.
+.It kew nirv
+Play all music under Nirvana folder shuffled.
+.It kew neverm
+Play Nevermind album in alphabetical order.
+.It kew shuffle neverm
+Play Nevermind album shuffled.
+.It kew list mix
+Play the mix.m3u playlist.
+.It kew <words A>:<words B>:<words C>
+Play everything found under A, B, and C, shuffled. Searches are seperated by a colon ':' character.
+.It "kew ."
+Play the kew.m3u playlist.
+.El                      \" Ends the list
+.Sh KEY BINDINGS
+.Pp
+.Bl -tag -width -indent  
+.It +, -
+Adjusts volume.
+.It Left-right arrows/h,l
+Change song.
+.It Space
+Pause.
+.It F2
+Toggle playlist and information visibility.
+.It F3
+Toggle key bindings visibility.
+.It i
+Toggle colors derived from album cover or from color theme.
+.It c
+Toggle album cover.
+.It v
+Toggle spectrum visualizer.
+.It b
+Switch between ascii and image album cover.
+.It r
+Repeat current song.
+.It s
+Shuffles the playlist.
+.It a
+Seek Backward.
+.It d
+Seek Forward.
+.It "."
+Add to kew.m3u playlist.
+.It x
+Save currently loaded playlist to a .m3u file in the music folder.
+.It gg 
+Go to first song.
+.It number + G, g or Enter
+Go to specific song number in the playlist.
+.It G
+Go to last song.
+.It q
+Quit 
+.Nm .
+.El                     
+.Sh FILES                
+.Bl -tag -width -compact
+.It Pa "~/<configfolder>/kewrc"
+Config file.
+.It Pa "/<musicfolder>/kew.m3u"
+The 
+.Nm
+playlist. Add to it by pressing 'a' during playback of any song. This playlist is saved before q exits.
+.El                      
+.Sh COPYRIGHT
+Copyright © 2023 Ravachol. License GPLv2+: GNU GPL version 2 or later <https://gnu.org/licenses/gpl.html>.  
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+.Sh SEE ALSO
+.Bl -tag -width -compact
+Project home page: 
+.It Pa <https://github.com/ravachol/kew>.
+.El                      \" Ends the list

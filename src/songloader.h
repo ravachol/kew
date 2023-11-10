@@ -54,6 +54,7 @@ typedef struct
         char *pcmFile;
         long pcmFileSize;
         bool hasErrors;
+        bool deleted;
 
 } SongData;
 

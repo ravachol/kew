@@ -7,9 +7,9 @@ if [[ $EUID -ne 0 ]]; then
 fi
 
 # Removing old files if exist
-if [ -d "cue" ]; then
+if [ -d "kew" ]; then
     echo "Removing old files"
-    rm -rf cue &>/dev/null
+    rm -rf kew &>/dev/null
 fi
 
 # Install dependencies based on the package manager available
@@ -35,7 +35,7 @@ fi
 
 
 # Clone the repository
-repo_url="https://github.com/ravachol/cue.git"
+repo_url="https://github.com/ravachol/kew.git"
 echo "Cloning the repository..."
 if git clone "$repo_url" --depth=1 &>/dev/null; then
     echo "Repository cloned successfully."
@@ -45,7 +45,7 @@ else
 fi
 
 # Changing directory
-cd cue
+cd kew
 
 # Building
 echo "Building the project..."
@@ -68,4 +68,4 @@ fi
 #Cleaning up the directory
 echo "Cleaning directory..."
 cd ..
-rm cue -rf &>/dev/null
+rm kew -rf &>/dev/null

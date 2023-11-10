@@ -27,7 +27,7 @@ typedef struct thread_data
 // Generate a new track ID
 gchar *generateTrackId()
 {
-        gchar *trackId = g_strdup_printf("/org/cueMusic/tracklist/track%d", track_counter);
+        gchar *trackId = g_strdup_printf("/org/kew/tracklist/track%d", track_counter);
         track_counter++;
         return trackId;
 }
@@ -302,6 +302,7 @@ SongData *loadSongData(char *filePath)
         loadDuration(songdata);
         c_sleep(10);
         loadPcmAudio(songdata);
+        songdata->deleted = false;
         return songdata;
 }
 
@@ -311,6 +312,7 @@ void unloadSongData(SongData **songdata)
                 return;
 
         SongData *data = *songdata;
+        data->deleted = true;
 
         if (data->cover != NULL)
         {
@@ -330,6 +332,8 @@ void unloadSongData(SongData **songdata)
         data->blue = NULL;
         data->metadata = NULL;
         data->duration = NULL;
+
+        data->trackId = NULL;
 
         if (existsFile(data->pcmFilePath) > -1)
                 deleteFile(data->pcmFilePath);

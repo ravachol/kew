@@ -1,15 +1,17 @@
 
-# cue music command
-[![cue-git](https://img.shields.io/aur/version/cue-music-command?color=1793d1&label=cue-music-command&logo=arch-linux&style=for-the-badge)](https://aur.archlinux.org/packages/cue-music-command/)
+# kew
+[![cue-music-command](https://img.shields.io/aur/version/cue-music-command?color=1793d1&label=kew&logo=arch-linux&style=for-the-badge)](https://aur.archlinux.org/packages/cue-music-command/)
 [![GitHub license](https://img.shields.io/github/license/ravachol/cue-music-command?color=333333&style=for-the-badge)](https://github.com/ravachol/cue-music-command/blob/master/LICENSE)
 
 Listen to music in the terminal.
 
 <div align="center">
-    <img src="cue-screenshot.png" />
+    <img src="kew-screenshot.png" />
 </div>
 
-cue is a command-line music player for Linux.
+kew (/kjuː/) is a command-line music player for Linux.
+
+
 
 ## Features
  
@@ -19,10 +21,14 @@ cue is a command-line music player for Linux.
  * Control the player with previous, next and pause.
  * Has gapless playback and supports 24-bit audio.
 
+## Name Change
+
+Had to rename cue to kew to resolve a name conflict. The meaning and pronounciation hasn't changed. Hope most of you can accept the new name. I think it gives the app more of a distinct identity.
+
 
 ## Reviews
 
-cue was reviewed by Linuxlinks.com: 
+kew was reviewed by Linuxlinks.com: 
 
 https://www.linuxlinks.com/cue-command-line-music-player-gapless-playback/ 
 
@@ -37,7 +43,7 @@ Thank you!
 
 ### Installing via AUR
 
-On Arch Linux, and Arch-based distributions, cue can be found in the AUR. Install with pamac or an AUR helper like yay:
+On Arch Linux, and Arch-based distributions, kew can be found in the AUR. Install with pamac or an AUR helper like yay:
 
 ```bash
 yay cue-music-command
@@ -45,17 +51,17 @@ yay cue-music-command
 
 ### Installing with quick install script
 
-To quickly install cue, just copy and paste this to your terminal (if you have curl installed):
+To quickly install kew, just copy and paste this to your terminal (if you have curl installed):
 
 ```bash
-sudo bash -c "curl https://raw.githubusercontent.com/ravachol/cue/main/install.sh | bash"
+sudo bash -c "curl https://raw.githubusercontent.com/ravachol/kew/main/install.sh | bash"
 ```
 
-Please note that this script might do a system update before installing cue.
+Please note that this script might do a system update before installing kew.
 
 ### Installing everything manually
 
-cue dependencies are:
+kew dependencies are:
 
 * FFmpeg
 * FFTW
@@ -77,10 +83,10 @@ pacman -Syu ffmpeg fftw git glib2 chafa freeimage
 Then run this (either git clone or unzip a release zip into a folder of your choice):
 
 ```bash
-git clone https://github.com/ravachol/cue.git
+git clone https://github.com/ravachol/kew.git
 ```
 ```bash
-cd cue
+cd kew
 ```
 ```bash
 make
@@ -109,51 +115,51 @@ sudo make uninstall
 
 ## Usage
 
-In case you don't have a "Music" folder in your home folder, the  First thing to do is to tell cue the path to your music library (you only need to do this once):
+In case you don't have a "Music" folder in your home folder, the  First thing to do is to tell kew the path to your music library (you only need to do this once):
 
 ```bash
-cue path "/home/joe/Musik/"
+kew path "/home/joe/Musik/"
 ```
-Now run cue and provide a partial name of a track or directory:
+Now run kew and provide a partial name of a track or directory:
 
 ```bash
-cue cure great
+kew cure great
 ```
 
 This command plays all songs from "The Cure Greatest Hits" directory, provided it's in your music library.
 
-cue returns the first directory or file whose name matches the string you provide. It works best when your music library is organized in this way: artist folder->album folder(s)->track(s).
+kew returns the first directory or file whose name matches the string you provide. It works best when your music library is organized in this way: artist folder->album folder(s)->track(s).
 
 #### Some Examples:
 
  ```
-cue (starting cue with no arguments plays all songs (up to 20 000) in your library, shuffled)
+kew (starting kew with no arguments plays all songs (up to 20 000) in your library, shuffled)
 
-cue moonlight son (finds and plays moonlight sonata)
+kew moonlight son (finds and plays moonlight sonata)
 
-cue moon (finds and plays moonlight sonata)
+kew moon (finds and plays moonlight sonata)
 
-cue beet (finds and plays all music files under "beethoven" directory)
+kew beet (finds and plays all music files under "beethoven" directory)
 
-cue dir <album name> (sometimes it's neccessary to specify it's a directory you want)
+kew dir <album name> (sometimes it's neccessary to specify it's a directory you want)
 
-cue song <song> (or a song)
+kew song <song> (or a song)
 
-cue list <playlist> (or a playlist)
+kew list <playlist> (or a playlist)
 
-cue shuffle <album name> (shuffles the playlist)
+kew shuffle <album name> (shuffles the playlist)
 
-cue artistA:artistB:artistC (plays all three artists, shuffled)
+kew artistA:artistB:artistC (plays all three artists, shuffled)
 
-cue --help, -? or -h
+kew --help, -? or -h
 
-cue --version or -v
+kew --version or -v
 
-cue --nocover
+kew --nocover
 
-cue --noui (completely hides the UI)
+kew --noui (completely hides the UI)
 
-cue . loads cue.m3u
+kew . loads kew.m3u
 
  ```
 
@@ -163,7 +169,7 @@ Put single-quotes inside quotes "guns n' roses"
 * Use <kbd>+</kbd>, <kbd>-</kbd> keys to adjust the volume. 
 * Use <kbd>←</kbd>, <kbd>→</kbd> or <kbd>h</kbd>, <kbd>l</kbd> keys to switch tracks.
 * <kbd>Space</kbd>, <kbd>P</kbd> to toggle pause.
-* <kbd>F2</kbd> to show/hide the playlist and information about cue.
+* <kbd>F2</kbd> to show/hide the playlist and information about kew.
 * <kbd>F3</kbd> to show/hide key bindings.
 * <kbd>v</kbd> to toggle the spectrum visualizer.
 * <kbd>c</kbd> to toggle album covers.
@@ -181,10 +187,10 @@ Put single-quotes inside quotes "guns n' roses"
 
 ## Configuration
 
-cue will create a config file, cuerc, in your default config directory for instance ~/.config/. There you can change starting directory, number of bars in the visualizer and whether to use the album cover for color, or your regular color scheme (default). To edit this file please make sure you quit cue first.
+kew will create a config file, kewrc, in your default config directory for instance ~/.config/. There you can change key bindings, number of bars in the visualizer and whether to use the album cover for color, or your regular color scheme (default). To edit this file please make sure you quit kew first.
 
 ## License
 
-Licensed under GPL. [See LICENSE for more information](https://github.com/ravachol/cue/blob/main/LICENSE).
+Licensed under GPL. [See LICENSE for more information](https://github.com/ravachol/kew/blob/main/LICENSE).
 
-Comments? Suggestions? Send mail to cuemusiccommand@proton.me.
+Comments? Suggestions? Send mail to kew-music-player@proton.me.
