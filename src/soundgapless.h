@@ -1,6 +1,6 @@
 #ifndef SOUNDGAPLESS_H
 #define SOUNDGAPLESS_H
-#include "../include/miniaudio/miniaudio.h"
+#include <miniaudio.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
