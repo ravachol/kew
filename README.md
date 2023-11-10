@@ -115,7 +115,7 @@ sudo make uninstall
 
 ## Usage
 
-In case you don't have a "Music" folder in your home folder, the  First thing to do is to tell kew the path to your music library (you only need to do this once):
+In case you don't have a "Music" folder in your home folder, the first thing to do is to tell kew the path to your music library (you only need to do this once):
 
 ```bash
 kew path "/home/joe/Musik/"
