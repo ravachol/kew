@@ -1,35 +1,35 @@
 .\" Automatically generated from an mdoc input file.  Do not edit.
 .\" DATE
-.TH "cue" "1" "9/3/23" "Linux" "General Commands Manual"
+.TH "kew" "1" "9/3/23" "Linux" "General Commands Manual"
 .nh
 .if n .ad l
 .SH "NAME"
-\fBcue\fR
+\fBkew\fR
 ,
-\fBcue music command\fR
+\fBkew music command\fR
 \- A command-line music player.
 .SH "SYNOPSIS"
 .HP 4n
-\fBcue\fR
+\fBkew\fR
 [OPTIONS]
 [\fIPARTIAL\ FILE\ OR\ DIRECTORY\ NAME\fR]
 .SH "DESCRIPTION"
-\fBcue\fR
+\fBkew\fR
 plays audio from your music folder when given a partial (or whole) file or directory name.
 A playlist is created when finding more than one file.
 It supports gapless playback, 24-bit/192khz audio and MPRIS.
 .PP
 On first use, set a path for the music library (this is a once-only operation):
 .PP
-\fBcue\fR
+\fBkew\fR
 path "/home/joe/Music"
 .PP
 Typical use:
 .PP
-\fBcue\fR
+\fBkew\fR
 artist, album or song name
 .PP
-\fBcue\fR
+\fBkew\fR
 returns results from the location of the first match, it doesn't return every result possible.
 .SH "OPTIONS"
 .TP 9n
@@ -58,36 +58,36 @@ list
 Searches for a (.m3u) playlist. These are normally not included in searches.
 .SH "EXAMPLES"
 .TP 9n
-cue
+kew
 Start
-\fBcue\fR
+\fBkew\fR
 with all songs loaded into a playlist.
 .TP 9n
-cue moonlight son
+kew moonlight son
 Play moonlight sonata.
 .TP 9n
-cue moon
+kew moon
 .br
 Play moonlight sonata.
 .TP 9n
-cue nirv
+kew nirv
 .br
 Play all music under Nirvana folder shuffled.
 .TP 9n
-cue neverm
+kew neverm
 Play Nevermind album in alphabetical order.
 .TP 9n
-cue shuffle neverm
+kew shuffle neverm
 Play Nevermind album shuffled.
 .TP 9n
-cue list mix
+kew list mix
 Play the mix.m3u playlist.
 .TP 9n
-cue <words A>:<words B>:<words C>
+kew <words A>:<words B>:<words C>
 Play everything found under A, B, and C, shuffled. Searches are seperated by a colon ':' character.
 .TP 9n
-cue .
-Play the cue.m3u playlist.
+kew .
+Play the kew.m3u playlist.
 .SH "KEY BINDINGS"
 .TP 9n
 +,-
@@ -130,7 +130,7 @@ d
 Seek forward.
 .TP 9n
 "."
-Add to cue.m3u playlist.
+Add to kew.m3u playlist.
 .TP 9n
 x
 Save currently loaded playlist to a .m3u file in the music folder.
@@ -146,15 +146,15 @@ Go to last song.
 .TP 9n
 q
 Quit
-\fBcue\fR.
+\fBkew\fR.
 .SH "FILES"
 .TP 10n
-\fI/<configfolder>/cuerc\fR
+\fI/<configfolder>/kewrc\fR
 Config file.
 .TP 10n
-\fI/<musicfolder>/cue.m3u\fR
+\fI/<musicfolder>/kew.m3u\fR
 The
-\fBcue\fR
+\fBkew\fR
 playlist. Add to it by pressing 'a' during playback of any song. This playlist is saved before q exits.
 .SH "COPYRIGHT"
 Copyright \[u00A9] 2023 Ravachol. License GPLv2+: GNU GPL version 2 or later <https://gnu.org/licenses/gpl.html>.
@@ -162,4 +162,4 @@ This is free software: you are free to change and redistribute it.
 There is NO WARRANTY, to the extent permitted by law.
 .SH "SEE ALSO"
 Project home page: 
-\fI<https://github.com/ravachol/cue-music-command>.\fR
+\fI<https://github.com/ravachol/kew>.\fR

@@ -1,14 +1,16 @@
-/* cue - a command-line music player
+/* kew - a command-line music player
 Copyright (C) 2022 Ravachol
 
-http://github.com/ravachol/cue
+http://github.com/ravachol/kew
 
- $$$$$$$\ $$\   $$\  $$$$$$\
-$$  _____|$$ |  $$ |$$  __$$\
-$$ /      $$ |  $$ |$$$$$$$$ |
-$$ |      $$ |  $$ |$$   ____|
-\$$$$$$$\ \$$$$$$  |\$$$$$$$\
- \_______| \______/  \_______|
+$$\                               
+$$ |                              
+$$ |  $$\  $$$$$$\  $$\  $$\  $$\ 
+$$ | $$  |$$  __$$\ $$ | $$ | $$ |
+$$$$$$  / $$$$$$$$ |$$ | $$ | $$ |
+$$  _$$<  $$   ____|$$ | $$ | $$ |
+$$ | \$$\ \$$$$$$$\ \$$$$$\$$$$  |
+\__|  \__| \_______| \_____\____/ 
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -433,9 +435,9 @@ void refreshPlayer()
         SongData *songData = usingSongDataA ? loadingdata.songdataA : loadingdata.songdataB;
 
         // Check if we have the correct one
-        if (userData.currentSongData != NULL &&
+        if (userData.currentSongData->deleted == false && songData->deleted == false && userData.currentSongData != NULL &&
             userData.currentSongData->trackId != NULL &&
-            songData != NULL && strcmp(songData->trackId, userData.currentSongData->trackId) != 0)
+            songData != NULL && songData->trackId != NULL && strcmp(songData->trackId, userData.currentSongData->trackId) != 0)
         {
                 if (usingSongDataA)
                 {
@@ -812,7 +814,7 @@ void playAll(int argc, char **argv)
         if (playlist.count == 0)
         {
                 printf("Please make sure the path is set correctly. \n");
-                printf("To set it type: cue path \"/path/to/Music\". \n");
+                printf("To set it type: kew path \"/path/to/Music\". \n");
                 exit(0);
         }
         run();

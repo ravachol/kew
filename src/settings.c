@@ -12,7 +12,7 @@ settings.c
 AppSettings settings;
 
 const char OLD_SETTINGS_FILE[] = ".cue.conf";
-const char NEW_SETTINGS_FILE[] = "cuerc";
+const char NEW_SETTINGS_FILE[] = "kewrc";
 
 AppSettings constructAppSettings(KeyValuePair *pairs, int count)
 {

@@ -19,7 +19,7 @@ typedef struct
 } PixelData;
 #endif
 
-const char VERSION[] = "1.4.0";
+const char VERSION[] = "1.5.0";
 const int LOGO_COLOR = 3;
 const int VERSION_COLOR = 6;
 const int ABSOLUTE_MIN_WIDTH = 38;
@@ -87,24 +87,24 @@ void calcPreferredSize()
 
 void printHelp()
 {
-        printf("cue - a command-line music player.\n");
+        printf("kew - a command-line music player.\n");
         printf("\n");
-        printf("Usage:    cue path \"path to music library\"\n");
-        printf("          (Saves the music library path. Use this the first time. Ie: cue path \"/home/joe/Music/\")\n");
-        printf("          cue (no argument, loads all your songs up to 10 000)\n");
-        printf("          cue <song name,directory or playlist words>\n");
-        printf("          cue --help, -? or -h\n");
-        printf("          cue --version or -v\n");
-        printf("          cue dir <album name> (Sometimes it's neccessary to specify it's a directory you want)\n");
-        printf("          cue song <song name> \n");
-        printf("          cue list <m3u list name> \n");
-        printf("          cue shuffle <dir name> (random and rand works too)\n");
-        printf("          cue artistA:artistB (plays artistA and artistB shuffled)");
+        printf("Usage:    kew path \"path to music library\"\n");
+        printf("          (Saves the music library path. Use this the first time. Ie: kew path \"/home/joe/Music/\")\n");
+        printf("          kew (no argument, loads all your songs up to 10 000)\n");
+        printf("          kew <song name,directory or playlist words>\n");
+        printf("          kew --help, -? or -h\n");
+        printf("          kew --version or -v\n");
+        printf("          kew dir <album name> (Sometimes it's neccessary to specify it's a directory you want)\n");
+        printf("          kew song <song name> \n");
+        printf("          kew list <m3u list name> \n");
+        printf("          kew shuffle <dir name> (random and rand works too)\n");
+        printf("          kew artistA:artistB (plays artistA and artistB shuffled)");
         printf("\n");
-        printf("Examples: cue moon (Plays the first song or directory it finds that has the word moon, ie moonlight sonata)\n");
+        printf("Examples: kew moon (Plays the first song or directory it finds that has the word moon, ie moonlight sonata)\n");
         printf("          play path \"/home/user/Music\"\n");
         printf("\n");
-        printf("cue returns the first directory or file whose name matches the string you provide. ");
+        printf("kew returns the first directory or file whose name matches the string you provide. ");
         printf("Use quotation marks when providing a path with blank spaces in it or if it's a music file that contains single quotes (').\n");
         printf("Use ←, → or h, l to play the next or previous track in the playlist.\n");
         printf("Use +, - to adjust volume.\n");
@@ -127,18 +127,22 @@ int printAsciiLogo()
         if (useProfileColors)
                 setTextColor(LOGO_COLOR);
         printBlankSpaces(indent);
-        printf("  $$$$$$$\\ $$\\   $$\\  $$$$$$\\\n");
+        printf("$$\\\n");
         printBlankSpaces(indent);
-        printf(" $$  _____|$$ |  $$ |$$  __$$\\\n");
+        printf("$$ |\n");
         printBlankSpaces(indent);
-        printf(" $$ /      $$ |  $$ |$$$$$$$$ |\n");
+        printf("$$ |  $$\\  $$$$$$\\  $$\\  $$\\  $$\\\n");
         printBlankSpaces(indent);
-        printf(" $$ |      $$ |  $$ |$$   ____|\n");
+        printf("$$ | $$  |$$  __$$\\ $$ | $$ | $$ |\n");
         printBlankSpaces(indent);
-        printf(" \\$$$$$$$\\ \\$$$$$$  |\\$$$$$$$\\\n");
+        printf("$$$$$$  / $$$$$$$$ |$$ | $$ | $$ |\n");
         printBlankSpaces(indent);
-        printf("  \\_______| \\______/  \\_______|\n");
-        int printedRows = 6;
+        printf("$$  _$$<  $$   ____|$$ | $$ | $$ |\n");
+        printBlankSpaces(indent);
+        printf("$$ | \\$$\\ \\$$$$$$$\\ \\$$$$$\\$$$$  |\n");
+        printBlankSpaces(indent);
+        printf("\\__|  \\__| \\_______| \\_____\\____/\n");
+        int printedRows = 8;
         return printedRows;
 }
 

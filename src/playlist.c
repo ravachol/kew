@@ -26,7 +26,7 @@ playlist.c
 
 const char ALLOWED_EXTENSIONS[] = "\\.(m4a|mp3|ogg|flac|wav|aac|wma|raw|mp4a|mp4|m4p|opus)$";
 const char PLAYLIST_EXTENSIONS[] = "\\.(m3u)$";
-const char mainPlaylistName[] = "cue.m3u";
+const char mainPlaylistName[] = "kew.m3u";
 PlayList playlist = {NULL, NULL, 0, 0.0};
 PlayList *mainPlaylist = NULL;
 PlayList *originalPlaylist = NULL;

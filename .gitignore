@@ -31,6 +31,6 @@
 *.out
 *.app
 
-cue
+kew
 .vscode/
 error.log
