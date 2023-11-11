@@ -23,7 +23,7 @@ extern bool visualizerEnabled;
 extern bool useThemeColors;
 extern int numProgressBars;
 extern int elapsed;
-extern int duration;
+extern double duration;
 extern int chosenSong;
 extern bool resetPlaylistDisplay;
 extern int visualizerHeight;

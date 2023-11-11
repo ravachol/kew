@@ -19,7 +19,7 @@ typedef struct
 } PixelData;
 #endif
 
-const char VERSION[] = "1.5.0";
+const char VERSION[] = "1.5.1";
 const int LOGO_COLOR = 3;
 const int VERSION_COLOR = 6;
 const int ABSOLUTE_MIN_WIDTH = 38;
@@ -50,7 +50,7 @@ int coverRow = 0;
 int preferredWidth = 0;
 int preferredHeight = 0;
 int elapsed = 0;
-int duration = 0;
+double duration = 0.0;
 int textWidth = 0;
 char *tagsPath;
 double totalDurationSeconds = 0.0;
@@ -119,7 +119,7 @@ void printHelp()
 
 int printAsciiLogo()
 {
-        int minWidth = 31 + indent;
+        int minWidth = 34 + indent;
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
         if (term_w < minWidth)
