@@ -3,14 +3,14 @@ Copyright (C) 2022 Ravachol
 
 http://github.com/ravachol/kew
 
-$$\                               
-$$ |                              
-$$ |  $$\  $$$$$$\  $$\  $$\  $$\ 
+$$\
+$$ |
+$$ |  $$\  $$$$$$\  $$\  $$\  $$\
 $$ | $$  |$$  __$$\ $$ | $$ | $$ |
 $$$$$$  / $$$$$$$$ |$$ | $$ | $$ |
 $$  _$$<  $$   ____|$$ | $$ | $$ |
 $$ | \$$\ \$$$$$$$\ \$$$$$\$$$$  |
-\__|  \__| \_______| \_____\____/ 
+\__|  \__| \_______| \_____\____/
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -68,7 +68,8 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #define MAX_SEQ_LEN 1024    // Maximum length of sequence buffer
 #define MAX_TMP_SEQ_LEN 256 // Maximum length of temporary sequence buffer
 #define COOLDOWN_MS 500
-#define COOLDOWN2_MS 500
+#define COOLDOWN2_MS 100
+#define NUMKEYMAPPINGS = 30
 FILE *logFile = NULL;
 struct winsize windowSize;
 static bool eventProcessed = false;
@@ -116,12 +117,14 @@ struct Event processInput()
         seq[0] = '\0'; // Set initial value
         int keyReleased = 0;
 
+        // Find input
         while (isInputAvailable())
         {
                 char tmpSeq[MAX_TMP_SEQ_LEN];
 
                 seqLength = seqLength + readInputSequence(tmpSeq, sizeof(tmpSeq));
 
+                // Release most keys directly, seekbackward and seekforward can be read continuously
                 if (seqLength <= 0 && strcmp(seq, settings.seekBackward) != 0 && strcmp(seq, settings.seekForward) != 0)
                 {
                         keyReleased = 1;
@@ -137,7 +140,8 @@ struct Event processInput()
 
                 c_sleep(10);
 
-                if (strcmp(seq, "[A") == 0 || strcmp(seq, "[B") == 0 || strcmp(seq, settings.scrollUpAlt) == 0 ||
+                // This slows the continous reads down to not get a a too fast scrolling speed
+                if (strcmp(seq, settings.hardScrollUp) == 0 || strcmp(seq, settings.hardScrollDown) == 0 || strcmp(seq, settings.scrollUpAlt) == 0 ||
                     strcmp(seq, settings.scrollDownAlt) == 0 || strcmp(seq, settings.seekBackward) == 0 || strcmp(seq, settings.seekForward) == 0)
                 {
                         // Do dummy reads to prevent scrolling continuing after we release the key
@@ -157,7 +161,52 @@ struct Event processInput()
         event.type = EVENT_NONE;
         event.key = seq[0];
 
-        if (event.key == 'g')
+        // Map keys to events
+        EventMapping keyMappings[] = {{settings.scrollUpAlt, EVENT_SCROLLPREV},
+                                      {settings.scrollDownAlt, EVENT_SCROLLNEXT},
+                                      {settings.nextTrackAlt, EVENT_NEXT},
+                                      {settings.previousTrackAlt, EVENT_PREV},
+                                      {settings.volumeUp, EVENT_VOLUME_UP},
+                                      {settings.volumeDown, EVENT_VOLUME_DOWN},
+                                      {settings.togglePause, EVENT_PLAY_PAUSE},
+                                      {settings.quit, EVENT_QUIT},
+                                      {settings.toggleShuffle, EVENT_SHUFFLE},
+                                      {settings.toggleCovers, EVENT_TOGGLECOVERS},
+                                      {settings.toggleVisualizer, EVENT_TOGGLEVISUALIZER},
+                                      {settings.toggleAscii, EVENT_TOGGLEBLOCKS},
+                                      {settings.switchNumberedSong, EVENT_GOTOSONG},
+                                      {settings.seekBackward, EVENT_SEEKBACK},
+                                      {settings.seekForward, EVENT_SEEKFORWARD},
+                                      {settings.toggleRepeat, EVENT_TOGGLEREPEAT},
+                                      {settings.savePlaylist, EVENT_EXPORTPLAYLIST},
+                                      {settings.toggleColorsDerivedFrom, EVENT_TOGGLE_PROFILE_COLORS},
+                                      {settings.addToMainPlaylist, EVENT_ADDTOMAINPLAYLIST},
+                                      {settings.hardPlayPause, EVENT_PLAY_PAUSE},
+                                      {settings.hardPrev, EVENT_PREV},
+                                      {settings.hardNext, EVENT_NEXT},
+                                      {settings.hardSwitchNumberedSong, EVENT_GOTOSONG},
+                                      {settings.hardScrollUp, EVENT_SCROLLPREV},
+                                      {settings.hardScrollDown, EVENT_SCROLLNEXT},
+                                      {settings.hardShowInfo, EVENT_SHOWINFO},
+                                      {settings.hardShowInfoAlt, EVENT_SHOWINFO},
+                                      {settings.hardShowKeys, EVENT_SHOWKEYBINDINGS},
+                                      {settings.hardShowKeysAlt, EVENT_SHOWKEYBINDINGS},
+                                      {settings.hardEndOfPlaylist, EVENT_GOTOENDOFPLAYLIST}};
+
+        int numKeyMappings = sizeof(keyMappings) / sizeof(EventMapping);
+
+        // Set event for pressed key
+        for (int i = 0; i < numKeyMappings; i++)
+        {
+                if (strcmp(seq, keyMappings[i].seq) == 0)
+                {
+                        event.type = keyMappings[i].eventType;
+                        break;
+                }
+        }
+
+        // Handle gg
+        if (event.key == 'g' && event.type == EVENT_NONE)
         {
                 if (gPressed)
                 {
@@ -170,158 +219,36 @@ struct Event processInput()
                 }
         }
 
-        if (strcmp(seq, settings.switchNumberedSongAlt) == 0)
-        {
-                event.type = EVENT_GOTOSONG;
-        }
-        else if (strcmp(seq, settings.switchNumberedSongAlt2) == 0)
-        {
-                event.type = EVENT_GOTOSONG;
-        }
-        else if (strcmp(seq, settings.scrollUpAlt) == 0)
-        {
-                event.type = EVENT_SCROLLPREV;
-        }
-        else if (strcmp(seq, settings.scrollDownAlt) == 0)
-        {
-                event.type = EVENT_SCROLLNEXT;
-        }
-        else if (strcmp(seq, settings.nextTrackAlt) == 0)
-        {
-                event.type = EVENT_NEXT;
-        }
-        else if (strcmp(seq, settings.previousTrackAlt) == 0)
-        {
-                event.type = EVENT_PREV;
-        }
-        else if (strcmp(seq, settings.volumeUp) == 0)
-        {
-                event.type = EVENT_VOLUME_UP;
-        }
-        else if (strcmp(seq, settings.volumeDown) == 0)
-        {
-                event.type = EVENT_VOLUME_DOWN;
-        }
-        else if (strcmp(seq, settings.togglePause) == 0)
-        {
-                event.type = EVENT_PLAY_PAUSE;
-        }
-        else if (strcmp(seq, settings.quit) == 0)
-        {
-                event.type = EVENT_QUIT;
-        }
-        else if (strcmp(seq, settings.toggleShuffle) == 0)
-        {
-                event.type = EVENT_SHUFFLE;
-        }
-        else if (strcmp(seq, settings.toggleCovers) == 0)
-        {
-                event.type = EVENT_TOGGLECOVERS;
-        }
-        else if (strcmp(seq, settings.toggleVisualizer) == 0)
-        {
-                event.type = EVENT_TOGGLEVISUALIZER;
-        }
-        else if (strcmp(seq, settings.toggleAscii) == 0)
-        {
-                event.type = EVENT_TOGGLEBLOCKS;
-        }
-        else if (strcmp(seq, settings.seekBackward) == 0)
-        {
-                event.type = EVENT_SEEKBACK;
-        }
-        else if (strcmp(seq, settings.seekForward) == 0)
-        {
-                event.type = EVENT_SEEKFORWARD;
-        }
-        else if (strcmp(seq, settings.toggleRepeat) == 0)
-        {
-                event.type = EVENT_TOGGLEREPEAT;
-        }
-        else if (strcmp(seq, settings.savePlaylist) == 0)
-        {
-                event.type = EVENT_EXPORTPLAYLIST;
-        }
-        else if (strcmp(seq, settings.toggleColorsDerivedFrom) == 0)
-        {
-                event.type = EVENT_TOGGLE_PROFILE_COLORS;
-        }
-        // Hardcoded settings
-        else if (event.key == 'G')
-        {
-                if (digitsPressedCount > 0)
-                {
-                        event.type = EVENT_GOTOSONG;
-                }
-                else
-                {
-                        event.type = EVENT_GOTOENDOFPLAYLIST;
-                }
-        }
-        else if (event.key == '\n')
-        {
-                event.type = EVENT_GOTOSONG;
-        }
-        else if (event.key == '.')
-        {
-                event.type = EVENT_ADDTOMAINPLAYLIST;
-        }
-        else if (event.key == ' ')
-        {
-                event.type = EVENT_PLAY_PAUSE;
-        }
-        else if (strcmp(seq, "[A") == 0)
-        {
-                // Arrow Up
-                event.type = EVENT_SCROLLPREV;
-        }
-        else if (strcmp(seq, "[B") == 0)
-        {
-                // Arrow Down
-                event.type = EVENT_SCROLLNEXT;
-        }
-        else if (strcmp(seq, "[C") == 0)
-        {
-                // Arrow Left
-                event.type = EVENT_NEXT;
-        }
-        else if (strcmp(seq, "[D") == 0)
-        {
-                // Arrow Right
-                event.type = EVENT_PREV;
-        }
-        else if (strcmp(seq, "OQ") == 0 || strcmp(seq, "[[B") == 0)
-        {
-                // F2 key
-                event.type = EVENT_SHOWINFO;
-        }
-        else if (strcmp(seq, "OR") == 0 || strcmp(seq, "[[C") == 0)
-        {
-                // F3 key
-                event.type = EVENT_SHOWKEYBINDINGS;
-        }
-        else if (isdigit(event.key))
+        // Handle numbers
+        if (isdigit(event.key))
         {
                 if (digitsPressedCount < maxDigitsPressedCount)
                         digitsPressed[digitsPressedCount++] = event.key;
         }
         else
         {
+                // Handle multiple digits, sometimes mixed with other keys
                 for (int i = 0; i < MAX_SEQ_LEN; i++)
                 {
                         if (isdigit(seq[i]))
                         {
-                                digitsPressed[digitsPressedCount++] = seq[i];
+                                if (digitsPressedCount < maxDigitsPressedCount)
+                                        digitsPressed[digitsPressedCount++] = seq[i];
                         }
                         else
                         {
                                 if (seq[i] == '\0')
                                         break;
 
-                                if (seq[i] != 'G' && seq[i] != 'g' && seq[i] != '\n')
+                                if (seq[i] != settings.hardSwitchNumberedSong[0] && seq[i] != settings.hardEndOfPlaylist[0])
                                 {
                                         memset(digitsPressed, '\0', sizeof(digitsPressed));
                                         digitsPressedCount = 0;
+                                        break;
+                                }
+                                else if (seq[i] == settings.hardEndOfPlaylist[0])
+                                {
+                                        event.type = EVENT_GOTOENDOFPLAYLIST;
                                         break;
                                 }
                                 else
@@ -333,22 +260,26 @@ struct Event processInput()
                 }
         }
 
+        // Handle song prev/next cooldown
         if (!cooldownElapsed && (event.type == EVENT_NEXT || event.type == EVENT_PREV))
                 event.type = EVENT_NONE;
         else if (event.type == EVENT_NEXT || event.type == EVENT_PREV)
                 updateLastInputTime();
 
+        // Handle seek cooldown
         if (!cooldown2Elapsed && (event.type == EVENT_SEEKBACK || event.type == EVENT_SEEKFORWARD))
                 event.type = EVENT_NONE;
         else if (event.type == EVENT_SEEKBACK || event.type == EVENT_SEEKFORWARD)
                 updateLastInputTime();
 
-        if (event.type != EVENT_GOTOSONG && event.type != EVENT_NONE)
+        // Forget Numbers
+        if (event.type != EVENT_GOTOSONG && event.type != EVENT_GOTOENDOFPLAYLIST && event.type != EVENT_NONE)
         {
                 memset(digitsPressed, '\0', sizeof(digitsPressed));
                 digitsPressedCount = 0;
         }
 
+        // Forget g pressed
         if (event.key != 'g')
         {
                 gPressed = false;
@@ -435,9 +366,13 @@ void refreshPlayer()
         SongData *songData = usingSongDataA ? loadingdata.songdataA : loadingdata.songdataB;
 
         // Check if we have the correct one
-        if (userData.currentSongData->deleted == false && songData->deleted == false && userData.currentSongData != NULL &&
+        if (userData.currentSongData != NULL &&
+            userData.currentSongData->deleted == false &&
+            ((songData != NULL &&
+            songData->deleted == false &&
             userData.currentSongData->trackId != NULL &&
-            songData != NULL && songData->trackId != NULL && strcmp(songData->trackId, userData.currentSongData->trackId) != 0)
+            songData->trackId != NULL && 
+            strcmp(songData->trackId, userData.currentSongData->trackId) != 0) || songData == NULL))
         {
                 if (usingSongDataA)
                 {
@@ -473,7 +408,7 @@ void refreshPlayer()
         }
 }
 
-void handleGotoSong()
+void handleGoToSong()
 {
         if (digitsPressedCount == 0)
         {
@@ -489,6 +424,26 @@ void handleGotoSong()
         }
 }
 
+void gotoBeginningOfPlaylist()
+{
+        digitsPressed[0] = 1;
+        digitsPressed[1] = '\0';
+        digitsPressedCount = 1;
+        handleGoToSong();
+}
+
+void gotoEndOfPlaylist()
+{
+        if (digitsPressedCount > 0)
+        {
+                handleGoToSong();
+        }
+        else
+        {
+                skipToLastSong();
+        }
+}
+
 void handleInput()
 {
         struct Event event = processInput();
@@ -496,13 +451,13 @@ void handleInput()
         switch (event.type)
         {
         case EVENT_GOTOBEGINNINGOFPLAYLIST:
-                skipToNumberedSong(1);
+                gotoBeginningOfPlaylist();
                 break;
         case EVENT_GOTOENDOFPLAYLIST:
-                skipToLastSong();
+                gotoEndOfPlaylist();
                 break;
         case EVENT_GOTOSONG:
-                handleGotoSong();
+                handleGoToSong();
                 break;
         case EVENT_PLAY_PAUSE:
                 togglePause(&totalPauseSeconds, &pauseSeconds, &pause_time);

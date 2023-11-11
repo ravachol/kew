@@ -251,20 +251,15 @@ void calcElapsedTime()
                                  (double)(current_time.tv_nsec - start_time.tv_nsec) / 1e9;
                 elapsedSeconds += seekElapsed + seekAccumulatedSeconds;
                 elapsedSeconds -= totalPauseSeconds;
+                if (elapsedSeconds > duration)
+                        elapsedSeconds = duration;
+                if (elapsedSeconds < 0.0)
+                        elapsedSeconds = 0.0;
         }
         else
         {
                 pauseSeconds = (double)(current_time.tv_sec - pause_time.tv_sec) +
                                (double)(current_time.tv_nsec - pause_time.tv_nsec) / 1e9;
-        }
-}
-
-void seekForward()
-{
-        if (duration != 0)
-        {
-                float step = 100 / numProgressBars;
-                seekAccumulatedSeconds += step * duration / 100.0;
         }
 }
 
@@ -274,27 +269,34 @@ void flushSeek()
         {
                 seekElapsed += seekAccumulatedSeconds;
                 seekAccumulatedSeconds = 0.0;
-                float percentage = elapsed / (float)duration * 100.0;
+                calcElapsedTime();
+                float percentage = elapsedSeconds / (float)duration * 100.0;  
+
                 if (percentage < 0.0)
                 {
                         seekElapsed = 0.0;
                         percentage = 0.0;
                 }
+                             
                 seekPercentage(percentage);
+        }
+}
+
+void seekForward()
+{
+        if (duration != 0.0)
+        {
+                float step = 100 / numProgressBars;
+                seekAccumulatedSeconds += step * duration / 100.0;
         }
 }
 
 void seekBack()
 {
-        if (duration != 0)
+        if (duration != 0.0)
         {
                 float step = 100 / numProgressBars;
                 seekAccumulatedSeconds -= step * duration / 100.0;
-                float totalElapsed = elapsedSeconds + seekElapsed + seekAccumulatedSeconds;
-                if (totalElapsed < 0.0)
-                {
-                        seekAccumulatedSeconds -= totalElapsed;
-                }
         }
 }
 
