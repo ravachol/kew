@@ -243,6 +243,10 @@ void loadDuration(SongData *songdata)
 
 int loadPcmAudio(SongData *songdata)
 {
+        // Don't go through the trouble if this is already a failed file
+        if (songdata->hasErrors)
+                return -1;
+
         generateTempFilePath(songdata->filePath, songdata->pcmFilePath, "temp", ".pcm");
         convertToPcmFile(songdata->filePath, songdata->pcmFilePath);
         int count = 0;
