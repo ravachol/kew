@@ -15,7 +15,7 @@ int ffmpegPid = -1;
 pid_t ffmpegPids[MAX_FFMPEG_PROCESSES];
 int numRunningProcesses = 0;
 
-int maxSleepTimes = 20;
+int maxSleepTimes = 10;
 int sleepAmount = 300;
 
 typedef struct thread_data
@@ -243,10 +243,6 @@ void loadDuration(SongData *songdata)
 
 int loadPcmAudio(SongData *songdata)
 {
-        // Don't go through the trouble if this is already a failed file
-        if (songdata->hasErrors)
-                return -1;
-
         generateTempFilePath(songdata->filePath, songdata->pcmFilePath, "temp", ".pcm");
         convertToPcmFile(songdata->filePath, songdata->pcmFilePath);
         int count = 0;
