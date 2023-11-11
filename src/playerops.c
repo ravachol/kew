@@ -513,7 +513,9 @@ void skipToNumberedSong(int songNumber)
         {
                 songHasErrors = false;
                 forceSkip = true;
-                skipToNumberedSong(songNumber + 1);
+                if (songNumber < playlist.count)
+                        skipToNumberedSong(songNumber + 1);
+
         }
 
         updateLastSongSwitchTime();
