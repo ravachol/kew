@@ -240,7 +240,9 @@ struct Event processInput()
                                 if (seq[i] == '\0')
                                         break;
 
-                                if (seq[i] != settings.hardSwitchNumberedSong[0] && seq[i] != settings.hardEndOfPlaylist[0])
+                                if (seq[i] != settings.switchNumberedSong[0] &&
+                                    seq[i] != settings.hardSwitchNumberedSong[0] &&
+                                    seq[i] != settings.hardEndOfPlaylist[0])
                                 {
                                         memset(digitsPressed, '\0', sizeof(digitsPressed));
                                         digitsPressedCount = 0;
@@ -369,10 +371,11 @@ void refreshPlayer()
         if (userData.currentSongData != NULL &&
             userData.currentSongData->deleted == false &&
             ((songData != NULL &&
-            songData->deleted == false &&
-            userData.currentSongData->trackId != NULL &&
-            songData->trackId != NULL && 
-            strcmp(songData->trackId, userData.currentSongData->trackId) != 0) || songData == NULL))
+              songData->deleted == false &&
+              userData.currentSongData->trackId != NULL &&
+              songData->trackId != NULL &&
+              strcmp(songData->trackId, userData.currentSongData->trackId) != 0) ||
+             songData == NULL))
         {
                 if (usingSongDataA)
                 {
