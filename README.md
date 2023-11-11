@@ -1,6 +1,6 @@
 
 # kew
-[![kew](https://img.shields.io/aur/version/kew?color=1793d1&label=kew&logo=arch-linux&style=for-the-badge)](https://aur.archlinux.org/packages/kew-git/)
+[![kew](https://img.shields.io/aur/version/kew?color=1793d1&label=kew&logo=arch-linux&style=for-the-badge)](https://aur.archlinux.org/packages/kew-git)
 [![GitHub license](https://img.shields.io/github/license/ravachol/kew?color=333333&style=for-the-badge)](https://github.com/ravachol/kew/blob/master/LICENSE)
 
 Listen to music in the terminal.
