@@ -35,3 +35,9 @@ struct Event
         enum EventType type;
         char key;
 };
+
+typedef struct
+{
+        char *seq;
+        enum EventType eventType;
+} EventMapping;
