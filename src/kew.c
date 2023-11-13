@@ -43,7 +43,6 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include <poll.h>
 #include <dirent.h>
 #include <signal.h>
-#include <bits/sigaction.h>
 #include <unistd.h>
 #include <glib.h>
 #include <gio/gio.h>

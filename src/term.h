@@ -21,7 +21,6 @@
 #include <poll.h>
 #include <unistd.h>
 #include <signal.h>
-#include <bits/sigaction.h>
 #include <stdbool.h>
 
 #define ANSI_COLOR_CLEARLINE "\x1b[2K\r"
