@@ -181,7 +181,7 @@ int displayCover(SongData *songdata, int width, int height, bool ansii)
                 PixelData pixel = {*songdata->red, *songdata->green, *songdata->blue};
                 output_ascii(songdata->coverArtPath, height - 2, width - 1, &pixel);
         }
-        fputc('\n', stdout);
+        printf("\n");
 
         return 0;
 }
