@@ -77,9 +77,9 @@ void freeKeyValuePairs(KeyValuePair *pairs, int count);
 
 AppSettings constructAppSettings(KeyValuePair *pairs, int count);
 
-void getConfig();
+void getConfig(void);
 
-void setConfig();
+void setConfig(void);
 
 int getMusicLibraryPath(char *path);
 

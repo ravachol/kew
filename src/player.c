@@ -175,7 +175,7 @@ void printCover(SongData *songdata)
                 color.g = *(songdata->green);
                 color.b = *(songdata->blue);
 
-                displayCover(songdata, preferredWidth, preferredHeight, coverAnsi) - 1;
+                displayCover(songdata, preferredWidth, preferredHeight, coverAnsi);
 
                 if (color.r == 0 && color.g == 0 && color.b == 0)
                 {

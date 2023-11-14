@@ -402,7 +402,7 @@ bool isPlaybackDone()
 
 void cleanupPlaybackDevice()
 {
-        if (&device)
+        if (&device != NULL)
         {
                 ma_device_stop(&device);
                 while (ma_device_get_state(&device) == ma_device_state_started)

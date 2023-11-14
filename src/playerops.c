@@ -459,11 +459,7 @@ void skipToPrevSong()
         songLoading = true;
         forceSkip = false;
 
-        if (currentSong->prev == NULL)
-        {
-                currentSong;
-        }
-        else
+        if (currentSong->prev != NULL)
                 currentSong = currentSong->prev;
 
         loadingdata.loadA = !usingSongDataA;

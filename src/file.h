@@ -58,8 +58,8 @@ const char *getFileExtension(const char *filePath);
 
 int openFileWithRetry(const char *filePath, const char *mode, FILE **file);
 
-void deleteTempDir();
+void deleteTempDir(void);
 
-void deleteTempShmDir();
+void deleteTempShmDir(void);
 
 #endif

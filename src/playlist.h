@@ -72,9 +72,9 @@ int makePlaylist(int argc, char *argv[]);
 
 int calculatePlayListDuration(PlayList *playlist);
 
-void stopPlayListDurationCount();
+void stopPlayListDurationCount(void);
 
-void startPlayListDurationCount();
+void startPlayListDurationCount(void);
 
 void readM3UFile(const char *filename, PlayList *playlist);
 
@@ -84,7 +84,7 @@ void loadMainPlaylist(const char *directory);
 
 void saveMainPlaylist(const char *directory, bool isPlayingMain);
 
-void savePlaylist();
+void savePlaylist(void);
 
 Node *deepCopyNode(Node *originalNode);
 
