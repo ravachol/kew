@@ -12,6 +12,10 @@
 #ifndef KEYVALUEPAIR_STRUCT
 #define KEYVALUEPAIR_STRUCT
 
+#ifndef MAXPATHLEN
+#define MAXPATHLEN 4096
+#endif
+
 typedef struct
 {
         char *key;
