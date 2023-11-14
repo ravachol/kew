@@ -38,7 +38,7 @@ void getCursorPosition(int *row, int *col);
 
 void getCursorPosition2(int *row, int *col);
 
-void enableRawMode();
+void enableRawMode(void);
 
 void set_blocking_mode(int fd, int should_block);
 
@@ -48,53 +48,53 @@ void setTextColorRGB(int r, int g, int b);
 
 void setWindowTitle(const char *title);
 
-void disableRawMode();
+void disableRawMode(void);
 
 void getTermSize(int *width, int *height);
 
-void setDefaultTextColor();
+void setDefaultTextColor(void);
 
-void setNonblockingMode();
+void setNonblockingMode(void);
 
-void restoreTerminalMode();
+void restoreTerminalMode(void);
 
-int isInputAvailable();
+int isInputAvailable(void);
 
-void saveCursorPosition();
+void saveCursorPosition(void);
 
-void restoreCursorPosition();
+void restoreCursorPosition(void);
 
 void setCursorPosition(int row, int col);
 
-void hideCursor();
+void hideCursor(void);
 
-void showCursor();
+void showCursor(void);
 
-void clearRestOfScreen();
+void clearRestOfScreen(void);
 
-void enableScrolling();
+void enableScrolling(void);
 
-void disableScrolling();
+void disableScrolling(void);
 
-int getFirstLineRow();
+int getFirstLineRow(void);
 
-int getVisibleFirstLineRow();
+int getVisibleFirstLineRow(void);
 
 void handleResize(int sig);
 
 void resetResizeFlag(int sig);
 
-void initResize();
+void initResize(void);
 
-void disableInputBuffering();
+void disableInputBuffering(void);
 
-void enableInputBuffering();
+void enableInputBuffering(void);
 
 void cursorJump(int numRows);
 
 void cursorJumpDown(int numRows);
 
-void clearScreen();
+void clearScreen(void);
 
 int readInputSequence(char *seq, size_t seqSize);
 
