@@ -692,9 +692,12 @@ void cleanupOnExit()
         showCursor();
 
 #ifdef DEBUG
-        fclose(logFile);
+    fclose(logFile);
 #endif
-        stderr = fdopen(STDERR_FILENO, "w");
+if (freopen("error.log", "w", stderr) == NULL) {
+    perror("Error reopening stderr");
+    exit(EXIT_FAILURE);
+	}
 }
 
 void run()
