@@ -7,6 +7,10 @@ metadata.c
  Functions for extracting tags from audio metadata.
  
 */
+#ifndef MAXPATHLEN
+#define MAXPATHLEN 4096
+#endif
+
 void removeTagPrefix(char *value)
 {
         char *colon_pos = strchr(value, ':');

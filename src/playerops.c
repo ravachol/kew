@@ -6,6 +6,11 @@ playerops.c
  Related to features/actions of the player.
 
 */
+
+#ifndef MAXPATHLEN
+#define MAXPATHLEN 4096
+#endif
+
 double elapsedSeconds = 0.0;
 double pauseSeconds = 0.0;
 double totalPauseSeconds = 0.0;
