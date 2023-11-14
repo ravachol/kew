@@ -693,11 +693,8 @@ void cleanupOnExit()
 
 #ifdef DEBUG
     fclose(logFile);
+    freopen("/dev/stderr", "w", stderr);
 #endif
-if (freopen("error.log", "w", stderr) == NULL) {
-    perror("Error reopening stderr");
-    exit(EXIT_FAILURE);
-	}
 }
 
 void run()
