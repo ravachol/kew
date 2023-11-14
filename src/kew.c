@@ -692,9 +692,9 @@ void cleanupOnExit()
         showCursor();
 
 #ifdef DEBUG
-    fclose(logFile);
-    freopen("/dev/stderr", "w", stderr);
+        fclose(logFile);    
 #endif
+        freopen("/dev/stderr", "w", stderr);
 }
 
 void run()
