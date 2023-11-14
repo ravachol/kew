@@ -24,6 +24,10 @@ playlist.c
 #define MAX_SEARCH_SIZE 256
 #define MAX_FILES 20000
 
+#ifndef MAXPATHLEN
+#define MAXPATHLEN 4096
+#endif
+
 const char ALLOWED_EXTENSIONS[] = "\\.(m4a|mp3|ogg|flac|wav|aac|wma|raw|mp4a|mp4|m4p|opus)$";
 const char PLAYLIST_EXTENSIONS[] = "\\.(m3u)$";
 const char mainPlaylistName[] = "kew.m3u";

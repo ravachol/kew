@@ -9,6 +9,10 @@
 #define CLOCK_MONOTONIC 1
 #endif
 
+#ifndef MAXPATHLEN
+#define MAXPATHLEN 4096
+#endif
+
 typedef struct
 {
         char filePath[MAXPATHLEN];
