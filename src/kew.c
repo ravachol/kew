@@ -399,11 +399,11 @@ void refreshPlayer()
                 {
                         // update mpris
                         emitMetadataChanged(
-                            songData->metadata->title ? songData->metadata->title : "",
-                            songData->metadata->artist ? songData->metadata->artist : "",
-                            songData->metadata->album ? songData->metadata->album : "",
-                            songData->coverArtPath ? songData->coverArtPath : "",
-                            songData->trackId ? songData->trackId : "");
+                            songData->metadata->title,
+                            songData->metadata->artist,
+                            songData->metadata->album,
+                            songData->coverArtPath,
+                            songData->trackId != NULL ? songData->trackId : "");
                 }
 
                 printPlayer(songData, elapsedSeconds, &playlist);
