@@ -24,6 +24,10 @@ albumart.c
  Functions related to extracting album art from audio files or directories.
  
 */
+#ifndef MAXPATHLEN
+#define MAXPATHLEN 4096
+#endif
+
 FIBITMAP *bitmap;
 int indent = 0;
 
