@@ -1,7 +1,7 @@
 
 #include <stdio.h>
 
-int getCurrentVolume();
+int getCurrentVolume(void);
 
 void setVolume(int volume);
 

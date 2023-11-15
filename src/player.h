@@ -23,7 +23,7 @@ extern bool visualizerEnabled;
 extern bool useThemeColors;
 extern int numProgressBars;
 extern int elapsed;
-extern int duration;
+extern double duration;
 extern int chosenSong;
 extern bool resetPlaylistDisplay;
 extern int visualizerHeight;
@@ -32,19 +32,19 @@ extern TagSettings metadata;
 
 int printPlayer(SongData *songdata, double elapsedSeconds, PlayList *playlist);
 
-void showVersion();
+void showVersion(void);
 
-int printAbout();
+int printAbout(void);
 
-void showHelp();
+void showHelp(void);
 
-void scrollNext();
+void scrollNext(void);
 
-void scrollPrev();
+void scrollPrev(void);
 
-void toggleShowKeyBindings();
+void toggleShowKeyBindings(void);
 
-void toggleShowPlaylist();
+void toggleShowPlaylist(void);
 
 void setTextColorRGB2(int r, int g, int b);
 

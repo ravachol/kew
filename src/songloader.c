@@ -20,7 +20,7 @@ int ffmpegPid = -1;
 pid_t ffmpegPids[MAX_FFMPEG_PROCESSES];
 int numRunningProcesses = 0;
 
-int maxSleepTimes = 20;
+int maxSleepTimes = 10;
 int sleepAmount = 300;
 
 typedef struct thread_data

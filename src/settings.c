@@ -34,8 +34,6 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         strncpy(settings.nextTrackAlt, "l", sizeof(settings.nextTrackAlt));
         strncpy(settings.scrollUpAlt, "k", sizeof(settings.scrollUpAlt));
         strncpy(settings.scrollDownAlt, "j", sizeof(settings.scrollDownAlt));
-        strncpy(settings.switchNumberedSongAlt, "g", sizeof(settings.switchNumberedSongAlt));
-        strncpy(settings.switchNumberedSongAlt2, "G", sizeof(settings.switchNumberedSongAlt2));
         strncpy(settings.toggleColorsDerivedFrom, "i", sizeof(settings.toggleColorsDerivedFrom));
         strncpy(settings.toggleVisualizer, "v", sizeof(settings.toggleVisualizer));
         strncpy(settings.toggleCovers, "c", sizeof(settings.toggleCovers));
@@ -46,6 +44,18 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         strncpy(settings.seekBackward, "a", sizeof(settings.seekBackward));
         strncpy(settings.seekForward, "d", sizeof(settings.seekForward));
         strncpy(settings.savePlaylist, "x", sizeof(settings.savePlaylist));
+        strncpy(settings.addToMainPlaylist, ".", sizeof(settings.addToMainPlaylist));
+        strncpy(settings.hardPlayPause, " ", sizeof(settings.hardPlayPause));
+        strncpy(settings.hardSwitchNumberedSong, "\n", sizeof(settings.hardSwitchNumberedSong));
+        strncpy(settings.hardPrev, "[D", sizeof(settings.hardPrev));
+        strncpy(settings.hardNext, "[C", sizeof(settings.hardNext));
+        strncpy(settings.hardScrollUp, "[A", sizeof(settings.hardScrollUp));
+        strncpy(settings.hardScrollDown, "[B", sizeof(settings.hardScrollDown));
+        strncpy(settings.hardShowInfo, "OQ", sizeof(settings.hardShowInfo));
+        strncpy(settings.hardShowInfoAlt, "[[B", sizeof(settings.hardShowInfoAlt));
+        strncpy(settings.hardShowKeys, "OR", sizeof(settings.hardShowKeys));
+        strncpy(settings.hardShowKeysAlt, "[[C", sizeof(settings.hardShowKeysAlt));
+        strncpy(settings.hardEndOfPlaylist, "G", sizeof(settings.hardEndOfPlaylist));
         strncpy(settings.quit, "q", sizeof(settings.quit));
 
         if (pairs == NULL)
@@ -105,13 +115,9 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
                 {
                         snprintf(settings.scrollDownAlt, sizeof(settings.scrollDownAlt), "%s", pair->value);
                 }
-                else if (strcmp(stringToLower(pair->key), "switchnumberedsongalt") == 0)
+                else if (strcmp(stringToLower(pair->key), "switchnumberedsong") == 0)
                 {
-                        snprintf(settings.switchNumberedSongAlt, sizeof(settings.switchNumberedSongAlt), "%s", pair->value);
-                }
-                else if (strcmp(stringToLower(pair->key), "switchnumberedsongalt2") == 0)
-                {
-                        snprintf(settings.switchNumberedSongAlt2, sizeof(settings.switchNumberedSongAlt2), "%s", pair->value);
+                        snprintf(settings.switchNumberedSong, sizeof(settings.switchNumberedSong), "%s", pair->value);
                 }
                 else if (strcmp(stringToLower(pair->key), "togglepause") == 0)
                 {
@@ -153,6 +159,10 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
                 {
                         snprintf(settings.savePlaylist, sizeof(settings.savePlaylist), "%s", pair->value);
                 }
+                else if (strcmp(stringToLower(pair->key), "addtomainplaylist") == 0)
+                {
+                        snprintf(settings.quit, sizeof(settings.quit), "%s", pair->value);
+                }                
                 else if (strcmp(stringToLower(pair->key), "quit") == 0)
                 {
                         snprintf(settings.quit, sizeof(settings.quit), "%s", pair->value);
@@ -426,8 +436,6 @@ void setConfig()
         fprintf(file, "scrollUpAlt=%s\n", settings.scrollUpAlt);
         fprintf(file, "scrollDownAlt=%s\n", settings.scrollDownAlt);
         fprintf(file, "switchNumberedSong=%s\n", settings.switchNumberedSong);
-        fprintf(file, "switchNumberedSongAlt=%s\n", settings.switchNumberedSongAlt);
-        fprintf(file, "switchNumberedSongAlt2=%s\n", settings.switchNumberedSongAlt2);
         fprintf(file, "togglePause=%s\n", settings.togglePause);
         fprintf(file, "toggleColorsDerivedFrom=%s\n", settings.toggleColorsDerivedFrom);
         fprintf(file, "toggleVisualizer=%s\n", settings.toggleVisualizer);
@@ -438,6 +446,7 @@ void setConfig()
         fprintf(file, "seekBackward=%s\n", settings.seekBackward);
         fprintf(file, "seekForward=%s\n", settings.seekForward);
         fprintf(file, "savePlaylist=%s\n", settings.savePlaylist);
+        fprintf(file, "addToMainPlaylist=%s\n", settings.addToMainPlaylist);
         fprintf(file, "quit=%s\n", settings.quit);
         fprintf(file, "# For special keys use terminal codes OS, for F4 for instance. This can depend on the terminal.");
 

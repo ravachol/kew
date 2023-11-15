@@ -45,11 +45,11 @@ extern struct timespec lastInputTime;
 
 extern UserData userData;
 
-SongData *getCurrentSongData();
+SongData *getCurrentSongData(void);
 
-void updateLastSongSwitchTime();
+void updateLastSongSwitchTime(void);
 
-void updateLastInputTime();
+void updateLastInputTime(void);
 
 void emitMetadataChanged(const gchar *title, const gchar *artist, const gchar *album, const gchar *coverArtPath, const gchar *trackId);
 
@@ -59,37 +59,37 @@ void playbackPlay(double *totalPauseSeconds, double *pauseSeconds, struct timesp
 
 void togglePause(double *totalPauseSeconds, double *pauseSeconds, struct timespec *pause_time);
 
-void toggleRepeat();
+void toggleRepeat(void);
 
-void toggleShuffle();
+void toggleShuffle(void);
 
-void addToPlaylist();
+void addToPlaylist(void);
 
-void toggleBlocks();
+void toggleBlocks(void);
 
-void toggleColors();
+void toggleColors(void);
 
-void toggleCovers();
+void toggleCovers(void);
 
-void toggleVisualizer();
+void toggleVisualizer(void);
 
-void quit();
+void quit(void);
 
-void calcElapsedTime();
+void calcElapsedTime(void);
 
 Node *getSongByNumber(int songNumber);
 
-void skipToNextSong();
+void skipToNextSong(void);
 
-void skipToPrevSong();
+void skipToPrevSong(void);
 
-void seekForward();
+void seekForward(void);
 
-void seekBack();
+void seekBack(void);
 
 void skipToNumberedSong(int songNumber);
 
-void skipToLastSong();
+void skipToLastSong(void);
 
 void loadSong(Node *song, LoadingThreadData *loadingdata);
 
@@ -97,6 +97,6 @@ void loadNext(LoadingThreadData *loadingdata);
 
 void loadFirst(Node *song);
 
-void flushSeek();
+void flushSeek(void);
 
 #endif

@@ -1,7 +1,7 @@
 
 # kew
-[![cue-music-command](https://img.shields.io/aur/version/cue-music-command?color=1793d1&label=kew&logo=arch-linux&style=for-the-badge)](https://aur.archlinux.org/packages/cue-music-command/)
-[![GitHub license](https://img.shields.io/github/license/ravachol/cue-music-command?color=333333&style=for-the-badge)](https://github.com/ravachol/cue-music-command/blob/master/LICENSE)
+[![kew](https://img.shields.io/aur/version/kew-git?color=1793d1&label=kew&logo=arch-linux&style=for-the-badge)](https://aur.archlinux.org/packages/kew-git)
+[![GitHub license](https://img.shields.io/github/license/ravachol/kew?color=333333&style=for-the-badge)](https://github.com/ravachol/kew/blob/master/LICENSE)
 
 Listen to music in the terminal.
 
@@ -46,7 +46,7 @@ Thank you!
 On Arch Linux, and Arch-based distributions, kew can be found in the AUR. Install with pamac or an AUR helper like yay:
 
 ```bash
-yay cue-music-command
+yay kew-git
 ```
 
 ### Installing with quick install script
@@ -141,7 +141,7 @@ kew moon (finds and plays moonlight sonata)
 
 kew beet (finds and plays all music files under "beethoven" directory)
 
-kew dir <album name> (sometimes it's neccessary to specify it's a directory you want)
+kew dir <album name> (sometimes it's necessary to specify it's a directory you want)
 
 kew song <song> (or a song)
 

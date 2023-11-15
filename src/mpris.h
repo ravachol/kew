@@ -12,12 +12,12 @@
 extern GMainContext *global_main_context;
 extern GMainLoop *main_loop;
 
-void initMpris();
+void initMpris(void);
 
-void emitStartPlayingMpris();
+void emitStartPlayingMpris(void);
 
-void emitPlaybackStoppedMpris();
+void emitPlaybackStoppedMpris(void);
 
-void cleanupMpris();
+void cleanupMpris(void);
 
 #endif
