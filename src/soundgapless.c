@@ -1,7 +1,7 @@
 #define MA_EXPERIMENTAL__DATA_LOOPING_AND_CHAINING
 #define MA_NO_ENGINE
 #define MINIAUDIO_IMPLEMENTATION
-#include "../include/miniaudio/miniaudio.h"
+#include <miniaudio.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -17,7 +17,7 @@
 soundgapless.c
 
  Functions related to miniaudio implementation
- 
+
 */
 ma_int32 *g_audioBuffer = NULL;
 ma_device device = {0};
@@ -59,45 +59,45 @@ static ma_result pcm_file_data_source_read(ma_data_source *pDataSource, void *pF
 
 static ma_result pcm_file_data_source_seek(ma_data_source *pDataSource, ma_uint64 frameIndex)
 {
-    // Cast to the correct data source type
-    PCMFileDataSource *pPCMDataSource = (PCMFileDataSource *)pDataSource;
-    
-    // Calculate the byte index
-    ma_uint64 byteIndex = frameIndex * ma_get_bytes_per_frame(pPCMDataSource->format, pPCMDataSource->channels);
+        // Cast to the correct data source type
+        PCMFileDataSource *pPCMDataSource = (PCMFileDataSource *)pDataSource;
 
-    // Find the correct file
-    FILE *currentFile;
-    if (pPCMDataSource->currentFileIndex == 0) 
-    {
-        currentFile = pPCMDataSource->fileA;
-    } 
-    else 
-    {
-        currentFile = pPCMDataSource->fileB;
-    }
+        // Calculate the byte index
+        ma_uint64 byteIndex = frameIndex * ma_get_bytes_per_frame(pPCMDataSource->format, pPCMDataSource->channels);
 
-    if (currentFile != NULL) 
-    {
-        // Seek to the byte index in the file
-        int result = fseek(currentFile, byteIndex, SEEK_SET);
-      
-        // Set the current frame to frameIndex
-        pPCMDataSource->currentPCMFrame = (ma_uint32)frameIndex;
-
-        // Check for errors
-        if (result == 0) 
+        // Find the correct file
+        FILE *currentFile;
+        if (pPCMDataSource->currentFileIndex == 0)
         {
-            return MA_SUCCESS;
-        } 
-        else 
-        {
-            return MA_ERROR;
+                currentFile = pPCMDataSource->fileA;
         }
-    } 
-    else 
-    {
-        return MA_ERROR;
-    }
+        else
+        {
+                currentFile = pPCMDataSource->fileB;
+        }
+
+        if (currentFile != NULL)
+        {
+                // Seek to the byte index in the file
+                int result = fseek(currentFile, byteIndex, SEEK_SET);
+
+                // Set the current frame to frameIndex
+                pPCMDataSource->currentPCMFrame = (ma_uint32)frameIndex;
+
+                // Check for errors
+                if (result == 0)
+                {
+                        return MA_SUCCESS;
+                }
+                else
+                {
+                        return MA_ERROR;
+                }
+        }
+        else
+        {
+                return MA_ERROR;
+        }
 }
 
 static ma_result pcm_file_data_source_get_data_format(ma_data_source *pDataSource, ma_format *pFormat, ma_uint32 *pChannels, ma_uint32 *pSampleRate, ma_channel *pChannelMap, size_t channelMapCap)
@@ -158,12 +158,12 @@ static ma_result pcm_file_data_source_set_looping(ma_data_source *pDataSource, m
 }
 
 static ma_data_source_vtable pcm_file_data_source_vtable = {
-        pcm_file_data_source_read,
-        pcm_file_data_source_seek,
-        pcm_file_data_source_get_data_format,
-        pcm_file_data_source_get_cursor,
-        pcm_file_data_source_get_length,
-        pcm_file_data_source_set_looping,
+    pcm_file_data_source_read,
+    pcm_file_data_source_seek,
+    pcm_file_data_source_get_data_format,
+    pcm_file_data_source_get_cursor,
+    pcm_file_data_source_get_length,
+    pcm_file_data_source_set_looping,
     0 // flags
 };
 
@@ -176,7 +176,7 @@ ma_result pcm_file_data_source_init(PCMFileDataSource *pPCMDataSource, const cha
         pPCMDataSource->sampleRate = SAMPLE_RATE;
         pPCMDataSource->currentPCMFrame = 0;
         pPCMDataSource->currentFileIndex = 0;
-        pPCMDataSource->fileA = fopen(filenameA, "rb");        
+        pPCMDataSource->fileA = fopen(filenameA, "rb");
 
         return MA_SUCCESS;
 }
@@ -192,7 +192,7 @@ void activateSwitch(PCMFileDataSource *pPCMDataSource)
 void executeSwitch(PCMFileDataSource *pPCMDataSource)
 {
         pPCMDataSource->switchFiles = false;
-        
+
         // Close the current file, and open the new one
         FILE *currentFile;
         if (pPCMDataSource->currentFileIndex == 0)
@@ -200,8 +200,7 @@ void executeSwitch(PCMFileDataSource *pPCMDataSource)
                 currentFile = pPCMDataSource->fileB;
                 if (currentFile != NULL)
                         fclose(currentFile);
-                pPCMDataSource->fileA = (pPCMDataSource->pUserData->filenameA != NULL) ? 
-                fopen(pPCMDataSource->pUserData->filenameA, "rb") : NULL;
+                pPCMDataSource->fileA = (pPCMDataSource->pUserData->filenameA != NULL) ? fopen(pPCMDataSource->pUserData->filenameA, "rb") : NULL;
                 pPCMDataSource->pUserData->currentSongData = pPCMDataSource->pUserData->songdataA;
         }
         else
@@ -209,16 +208,15 @@ void executeSwitch(PCMFileDataSource *pPCMDataSource)
                 currentFile = pPCMDataSource->fileA;
                 if (currentFile != NULL)
                         fclose(currentFile);
-                pPCMDataSource->fileB = (pPCMDataSource->pUserData->filenameB != NULL) ? 
-                fopen(pPCMDataSource->pUserData->filenameB, "rb") : NULL;
+                pPCMDataSource->fileB = (pPCMDataSource->pUserData->filenameB != NULL) ? fopen(pPCMDataSource->pUserData->filenameB, "rb") : NULL;
                 pPCMDataSource->pUserData->currentSongData = pPCMDataSource->pUserData->songdataB;
         }
-                                
+
         pPCMDataSource->currentPCMFrame = 0;
 
         setEOFReached();
 
-        seekElapsed = 0;        
+        seekElapsed = 0;
 }
 
 void pcm_file_data_source_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_uint64 frameCount, ma_uint64 *pFramesRead)
@@ -252,19 +250,19 @@ void pcm_file_data_source_read_pcm_frames(ma_data_source *pDataSource, void *pFr
                                 ma_uint64 fileSize = ftell(currentFile);
                                 pPCMDataSource->totalFrames = fileSize / bytesPerFrame;
                                 pPCMDataSource->base.rangeEndInFrames = pPCMDataSource->totalFrames;
-                        }  
+                        }
 
                         ma_uint32 targetFrame = (pPCMDataSource->totalFrames * pPCMDataSource->seekPercentage) / 100;
-                        
+
                         // Set the read pointer for the data source
                         ma_data_source_seek_to_pcm_frame(pDataSource, targetFrame);
 
-                        pPCMDataSource->seekRequested = false; // Reset seek flag                         
+                        pPCMDataSource->seekRequested = false; // Reset seek flag
                         break;
-                        framesRead = 0;  // Reset framesRead
-                        framesToRead = (ma_uint32)frameCount;  // Reset framesToRead
-                        bytesToRead = framesToRead * bytesPerFrame;  // Reset bytesToRead
-                }           
+                        framesRead = 0;                             // Reset framesRead
+                        framesToRead = (ma_uint32)frameCount;       // Reset framesToRead
+                        bytesToRead = framesToRead * bytesPerFrame; // Reset bytesToRead
+                }
 
                 if (currentFile != NULL)
                         bytesRead = (ma_uint32)fread((char *)pFramesOut + (framesRead * bytesPerFrame), 1, bytesToRead, currentFile);
@@ -402,15 +400,12 @@ bool isPlaybackDone()
 
 void cleanupPlaybackDevice()
 {
-        if (&device)
+        ma_device_stop(&device);
+        while (ma_device_get_state(&device) == ma_device_state_started)
         {
-                ma_device_stop(&device);
-                while (ma_device_get_state(&device) == ma_device_state_started)
-                {
-                        c_sleep(100);
-                }
-                ma_device_uninit(&device);
+                c_sleep(100);
         }
+        ma_device_uninit(&device);
 }
 
 void freeAudioBuffer()

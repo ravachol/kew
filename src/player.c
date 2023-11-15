@@ -24,7 +24,7 @@ typedef struct
 } PixelData;
 #endif
 
-const char VERSION[] = "1.5.0";
+const char VERSION[] = "1.5.2";
 const int LOGO_COLOR = 3;
 const int VERSION_COLOR = 6;
 const int ABSOLUTE_MIN_WIDTH = 38;
@@ -55,7 +55,7 @@ int coverRow = 0;
 int preferredWidth = 0;
 int preferredHeight = 0;
 int elapsed = 0;
-int duration = 0;
+double duration = 0.0;
 int textWidth = 0;
 char *tagsPath;
 double totalDurationSeconds = 0.0;
@@ -100,7 +100,7 @@ void printHelp()
         printf("          kew <song name,directory or playlist words>\n");
         printf("          kew --help, -? or -h\n");
         printf("          kew --version or -v\n");
-        printf("          kew dir <album name> (Sometimes it's neccessary to specify it's a directory you want)\n");
+        printf("          kew dir <album name> (Sometimes it's necessary to specify it's a directory you want)\n");
         printf("          kew song <song name> \n");
         printf("          kew list <m3u list name> \n");
         printf("          kew shuffle <dir name> (random and rand works too)\n");
@@ -124,7 +124,7 @@ void printHelp()
 
 int printAsciiLogo()
 {
-        int minWidth = 31 + indent;
+        int minWidth = 34 + indent;
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
         if (term_w < minWidth)
@@ -180,7 +180,7 @@ void printCover(SongData *songdata)
                 color.g = *(songdata->green);
                 color.b = *(songdata->blue);
 
-                displayCover(songdata, preferredWidth, preferredHeight, coverAnsi) - 1;
+                displayCover(songdata, preferredWidth, preferredHeight, coverAnsi);
 
                 if (color.r == 0 && color.g == 0 && color.b == 0)
                 {
