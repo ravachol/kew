@@ -9,6 +9,11 @@ settings.c
  Functions related to the config file.
  
 */
+
+#ifndef MAXPATHLEN
+#define MAXPATHLEN 4096
+#endif
+
 AppSettings settings;
 
 const char OLD_SETTINGS_FILE[] = ".cue.conf";
