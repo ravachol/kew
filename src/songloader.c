@@ -6,6 +6,11 @@ songloader.c
  This file should contain only functions related to loading song data.
 
 */
+
+#ifndef MAXPATHLEN
+#define MAXPATHLEN 4096
+#endif
+
 static guint track_counter = 0;
 int ffmpegPid = -1;
 

@@ -11,6 +11,11 @@ Functions related to printing the player to the screen.
 
 #ifndef PIXELDATA_STRUCT
 #define PIXELDATA_STRUCT
+
+#ifndef MAXPATHLEN
+#define MAXPATHLEN 4096
+#endif
+
 typedef struct
 {
         unsigned char r;
