@@ -1,7 +1,10 @@
 
 # kew
-[![kew](https://img.shields.io/aur/version/kew-git?color=1793d1&label=kew&logo=arch-linux&style=for-the-badge)](https://aur.archlinux.org/packages/kew-git)
+[![Arch package](https://img.shields.io/aur/version/kew-git?color=1793d1&label=arch&logo=arch-linux&style=for-the-badge)](https://aur.archlinux.org/packages/kew-git)
+[![Debian package](https://img.shields.io/debian/v/kew/sid?color=red&label=debian&logo=debian&style=for-the-badge)](https://packages.debian.org/sid/kew)
 [![GitHub license](https://img.shields.io/github/license/ravachol/kew?color=333333&style=for-the-badge)](https://github.com/ravachol/kew/blob/master/LICENSE)
+
+
 
 Listen to music in the terminal.
 
@@ -40,6 +43,14 @@ Thank you!
 
 
 ## Installing
+
+### Installing on Debian
+
+Under Debian Sid/Unstable you can run:
+
+```bash
+sudo apt install kew
+```
 
 ### Installing via AUR
 
