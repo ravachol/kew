@@ -1,7 +1,7 @@
 CC = gcc
 PKG_CONFIG	?= pkg-config
-CFLAGS = -I/usr/include/stb -Iinclude/imgtotxt/ext -Iinclude/imgtotxt -I/usr/include/ffmpeg -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -I/usr/include/libavformat -Iinclude/miniaudio -O1 -g $(shell $(PKG_CONFIG) --cflags gio-2.0 chafa libavformat fftw3f)
-LIBS = -lpthread -lrt -pthread -lm -lfreeimage -lglib-2.0 $(shell $(PKG_CONFIG) --libs gio-2.0 chafa libavformat fftw3f)
+CFLAGS += -Wall -Wextra -Wshadow -Wpointer-arith -Wcast-qual -pedantic -g -Iinclude/imgtotxt $(shell $(PKG_CONFIG) --cflags gio-2.0 stb chafa libavformat fftw3f)
+LIBS = -latomic -lpthread -lrt -pthread -lm -lfreeimage -lglib-2.0 $(shell $(PKG_CONFIG) --libs gio-2.0 chafa libavformat fftw3f)
 
 OBJDIR = src/obj
 PREFIX = /usr
