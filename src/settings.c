@@ -13,6 +13,9 @@ settings.c
 #ifndef MAXPATHLEN
 #define MAXPATHLEN 4096
 #endif
+#ifndef PATH_MAX
+#define PATH_MAX 4096
+#endif
 
 AppSettings settings;
 
