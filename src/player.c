@@ -24,7 +24,7 @@ typedef struct
 } PixelData;
 #endif
 
-const char VERSION[] = "1.5.2";
+const char VERSION[] = "1.6.0";
 const int LOGO_COLOR = 3;
 const int VERSION_COLOR = 6;
 const int ABSOLUTE_MIN_WIDTH = 38;
@@ -299,10 +299,6 @@ void printBasicMetadata(TagSettings const *metadata)
                         printf("\e[1m\e[39m");
 
                 printWithDelay(metadata->title, 9, maxWidth - 2);
-
-                // Alternative (no delay):
-                // printf("\033[1K\r %.*s", maxWidth, metadata->title);
-                // printf("\n");
         }
         cursorJumpDown(rows - 1);
 }
@@ -433,13 +429,13 @@ void printLastRow()
 
         char text[100] = " [F2 Playlist] [F3 Keys] [Q Quit]";
 
-        if (repeatEnabled)
+        if (isRepeatEnabled())
         {
                 char repeatText[] = " R";
                 strcat(text, repeatText);
         }
 
-        if (shuffleEnabled)
+        if (isShuffleEnabled())
         {
                 char shuffleText[] = " S";
                 strcat(text, shuffleText);

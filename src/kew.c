@@ -62,6 +62,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include "volume.h"
 #include "playerops.h"
 #include "mpris.h"
+#include "soundcommon.h"
 
 // #define DEBUG 1
 #define MAX_SEQ_LEN 1024    // Maximum length of sequence buffer
@@ -299,7 +300,7 @@ void prepareNextSong()
         if (loadingFailed)
                 return;
 
-        if (!skipPrev && !gotoSong && !repeatEnabled)
+        if (!skipPrev && !gotoSong && !isRepeatEnabled())
         {
                 if (nextSong != NULL)
                         currentSong = nextSong;
@@ -333,7 +334,7 @@ void prepareNextSong()
 
         refresh = true;
 
-        if (!repeatEnabled)
+        if (!isRepeatEnabled())
         {
                 pthread_mutex_lock(&(loadingdata.mutex));
                 if (usingSongDataA &&
@@ -616,12 +617,14 @@ gboolean mainloop_callback(gpointer data)
                 loadAudioData();
 
         if (songHasErrors)
-                tryLoadNext();
+                tryLoadNext();        
 
         if (isPlaybackDone())
-        {
+        {                                
                 updateLastSongSwitchTime();
-                prepareNextSong();
+                prepareNextSong();             
+                if (!doQuit)
+                        switchAudioImplementation();
         }
 
         if (doQuit || loadingFailed)
@@ -673,6 +676,7 @@ void play(Node *song)
 void cleanupOnExit()
 {
         cleanupPlaybackDevice();
+        cleanupAudioContext();        
         emitPlaybackStoppedMpris();
         unloadSongData(&loadingdata.songdataA);
         unloadSongData(&loadingdata.songdataB);
@@ -692,7 +696,7 @@ void cleanupOnExit()
         showCursor();
 
 #ifdef DEBUG
-        fclose(logFile);    
+        fclose(logFile);
 #endif
         freopen("/dev/stderr", "w", stderr);
 }

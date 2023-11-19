@@ -5,7 +5,7 @@ LIBS = -lpthread -lrt -pthread -lm -lfreeimage -lglib-2.0 $(shell $(PKG_CONFIG) 
 
 OBJDIR = src/obj
 PREFIX = /usr
-SRCS = src/mpris.c src/playerops.c src/volume.c src/cutils.c src/soundgapless.c src/songloader.c src/file.c src/chafafunc.c src/cache.c src/metadata.c src/playlist.c src/stringfunc.c src/term.c  src/settings.c src/player.c src/albumart.c src/visuals.c src/kew.c
+SRCS = src/soundcommon.c src/soundbuiltin.c src/soundpcm.c src/mpris.c src/playerops.c src/volume.c src/cutils.c src/soundgapless.c src/songloader.c src/file.c src/chafafunc.c src/cache.c src/metadata.c src/playlist.c src/stringfunc.c src/term.c  src/settings.c src/player.c src/albumart.c src/visuals.c src/kew.c
 OBJS = $(SRCS:src/%.c=$(OBJDIR)/%.o)
 
 MAN_PAGE = kew.1 

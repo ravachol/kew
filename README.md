@@ -4,8 +4,6 @@
 [![Debian package](https://img.shields.io/debian/v/kew/sid?color=red&label=debian&logo=debian&style=for-the-badge)](https://packages.debian.org/sid/kew)
 [![GitHub license](https://img.shields.io/github/license/ravachol/kew?color=333333&style=for-the-badge)](https://github.com/ravachol/kew/blob/master/LICENSE)
 
-
-
 Listen to music in the terminal.
 
 <div align="center">
@@ -14,15 +12,14 @@ Listen to music in the terminal.
 
 kew (/kjuː/) is a command-line music player for Linux.
 
-
-
 ## Features
  
  * Search a music library with partial titles.
  * Creates a playlist based on a matched directory. 
  * Display album covers as ASCII art or as a normal image.
  * Control the player with previous, next and pause.
- * Has gapless playback and supports 24-bit audio.
+ * Has gapless playback (between files of the same format and type) and supports 24-bit audio.
+ * Does not yet work well with very long audio files that are not mp3, wav or flac.
 
 ## Name Change
 

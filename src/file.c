@@ -343,7 +343,7 @@ int removeDirectory(const char *path)
 
 int deleteFile(const char *filePath)
 {
-        if (unlink(filePath) == 0)
+        if (remove(filePath) == 0)
         {
                 return 0;
         }
