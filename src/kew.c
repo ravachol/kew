@@ -617,12 +617,12 @@ gboolean mainloop_callback(gpointer data)
                 loadAudioData();
 
         if (songHasErrors)
-                tryLoadNext();        
+                tryLoadNext();
 
         if (isPlaybackDone())
-        {                                
+        {
                 updateLastSongSwitchTime();
-                prepareNextSong();             
+                prepareNextSong();
                 if (!doQuit)
                         switchAudioImplementation();
         }
@@ -675,8 +675,11 @@ void play(Node *song)
 
 void cleanupOnExit()
 {
+        resetDecoders();
+        resetVorbisDecoders();
+        resetOpusDecoders();
         cleanupPlaybackDevice();
-        cleanupAudioContext();        
+        cleanupAudioContext();
         emitPlaybackStoppedMpris();
         unloadSongData(&loadingdata.songdataA);
         unloadSongData(&loadingdata.songdataB);

@@ -11,11 +11,6 @@ playerops.c
 #define MAXPATHLEN 4096
 #endif
 
-double elapsedSeconds = 0.0;
-double pauseSeconds = 0.0;
-double totalPauseSeconds = 0.0;
-double seekAccumulatedSeconds = 0.0;
-
 struct timespec current_time;
 struct timespec start_time;
 struct timespec pause_time;
@@ -23,7 +18,6 @@ struct timespec lastInputTime;
 
 bool playingMainPlaylist = false;
 bool usingSongDataA = true;
-bool doQuit = false;
 
 LoadingThreadData loadingdata;
 
@@ -336,8 +330,12 @@ void assignLoadedData()
                 {
                         userData.filenameB = loadingdata.songdataB->pcmFilePath;
                         userData.songdataB = loadingdata.songdataB;
-                        if (hasBuiltinDecoder(loadingdata.songdataB->filePath))                        
+                        if (hasBuiltinDecoder(loadingdata.songdataB->filePath))
                                 prepareNextDecoder(loadingdata.songdataB->filePath);
+                        else if (endsWith(loadingdata.songdataB->filePath, "opus"))
+                                prepareNextOpusDecoder(loadingdata.songdataB->filePath);
+                        else if (endsWith(loadingdata.songdataB->filePath, "ogg"))
+                                prepareNextVorbisDecoder(loadingdata.songdataB->filePath);
                 }
                 else
                         userData.filenameB = NULL;
@@ -350,6 +348,10 @@ void assignLoadedData()
                         userData.songdataA = loadingdata.songdataA;
                         if (hasBuiltinDecoder(loadingdata.songdataA->filePath))
                                 prepareNextDecoder(loadingdata.songdataA->filePath);
+                        else if (endsWith(loadingdata.songdataA->filePath, "opus"))
+                                prepareNextOpusDecoder(loadingdata.songdataA->filePath);
+                        else if (endsWith(loadingdata.songdataA->filePath, "ogg"))
+                                prepareNextVorbisDecoder(loadingdata.songdataA->filePath);
                 }
                 else
                         userData.filenameA = NULL;

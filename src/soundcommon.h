@@ -3,12 +3,15 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <miniaudio.h>
+#include <miniaudio_libopus.h>
+#include <miniaudio_libvorbis.h>
 #include <glib.h>
 #include <FreeImage.h>
 #include <stdatomic.h>
 #include "file.h"
 #include "cutils.h"
 #include "stringfunc.h"
+#include "player.h"
 
 #define CHANNELS 2
 #define SAMPLE_RATE 192000
@@ -98,11 +101,17 @@ enum AudioImplementation
 {
         PCM,
         BUILTIN,
-        OGG,
+        VORBIS,
         OPUS,
         M4A,
         NONE
 };
+
+extern bool doQuit;
+
+ma_libopus *getOpus();
+
+ma_libvorbis *getVorbis();
 
 enum AudioImplementation getCurrentImplementationType();
 
@@ -120,9 +129,37 @@ ma_decoder *getPreviousDecoder();
 
 void switchDecoder();
 
+void switchVorbisDecoder();
+
 void prepareNextDecoder(char *filepath);
 
 void resetDecoders();
+
+ma_libopus *getCurrentOpusDecoder();
+
+void switchOpusDecoder();
+
+void prepareNextOpusDecoder(char *filepath);
+
+void resetOpusDecoders();
+
+ma_libopus *getFirstOpusDecoder();
+
+ma_libvorbis *getFirstVorbisDecoder();
+
+void getVorbisFileInfo(const char *filename, ma_format *format);
+
+void getOpusFileInfo(const char *filename, ma_format *format);
+
+ma_libvorbis *getCurrentVorbisDecoder();
+
+void switchVorbisDecoder();
+
+void prepareNextVorbisDecoder(char *filepath);
+
+void resetVorbisDecoders();
+
+ma_libvorbis *getFirstVorbisDecoder();
 
 void getFileInfo(const char* filename, ma_uint32* sampleRate, ma_uint32* channels, ma_format* format);
 
@@ -159,6 +196,8 @@ void skip();
 bool isPlaybackDone();
 
 float getSeekPercentage();
+
+double getPercentageElapsed();
 
 bool isSeekRequested();
 
