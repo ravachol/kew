@@ -248,7 +248,7 @@ void switchAudioImplementation()
 
                 getFileInfo(filePath, &sampleRate, &channels, &format);
 
-                bool sameFormat = (decoder == NULL || (sampleRate == decoder->outputSampleRate &&
+                bool sameFormat = (decoder != NULL && (sampleRate == decoder->outputSampleRate &&
                                                        channels == decoder->outputChannels &&
                                                        format == decoder->outputFormat));
 
@@ -277,7 +277,7 @@ void switchAudioImplementation()
 
                 getOpusFileInfo(filePath, &format);
 
-                bool sameFormat = (decoder == NULL || (format == decoder->format));
+                bool sameFormat = (decoder != NULL && (format == decoder->format));
 
                 if (sameFormat && currentImplementation == OPUS)
                 {
@@ -302,7 +302,7 @@ void switchAudioImplementation()
 
                 getVorbisFileInfo(filePath, &format);
 
-                bool sameFormat = (decoder == NULL || (format == decoder->format));
+                bool sameFormat = (decoder != NULL && (format == decoder->format));
 
                 if (sameFormat && currentImplementation == VORBIS)
                 {

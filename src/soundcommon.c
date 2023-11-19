@@ -306,18 +306,34 @@ void prepareNextVorbisDecoder(char *filepath)
                 currentDecoder = vorbisDecoders[vorbisDecoderIndex];
         }
 
+        ma_uint32 sampleRate;
+        ma_uint32 channels;
+        ma_format format;
+        ma_channel channelMap[MA_MAX_CHANNELS];
+        ma_libvorbis_get_data_format(currentDecoder, &format, &channels, &sampleRate, channelMap, MA_MAX_CHANNELS);
+
         uninitPreviousVorbisDecoder();
 
         ma_libvorbis *decoder = (ma_libvorbis *)malloc(sizeof(ma_libvorbis));
         ma_libvorbis_init_file(filepath, NULL, NULL, decoder);
 
-        ma_format format;
-        ma_uint32 channels;
-        ma_uint32 sampleRate;
-        ma_channel channelMap[MA_MAX_CHANNELS];
+        ma_format nformat;
+        ma_uint32 nchannels;
+        ma_uint32 nsampleRate;
+        ma_channel nchannelMap[MA_MAX_CHANNELS];
 
-        ma_libvorbis_get_data_format(decoder, &format, &channels, &sampleRate, channelMap, MA_MAX_CHANNELS);
-        decoder->format = format;        
+        ma_libvorbis_get_data_format(decoder, &nformat, &nchannels, &nsampleRate, nchannelMap, MA_MAX_CHANNELS);
+        bool sameFormat = (currentDecoder == NULL || (format == nformat &&
+                                                          channels == nchannels &&
+                                                      sampleRate == nsampleRate));
+
+        if (!sameFormat)
+        {
+                ma_libvorbis_uninit(decoder, NULL);
+                free(decoder);
+                return;
+        }
+        decoder->format = nformat;
 
         decoder->onRead = ma_libvorbis_read_pcm_frames_wrapper;
         decoder->onSeek = ma_libvorbis_seek_to_pcm_frame_wrapper;
@@ -340,25 +356,58 @@ void prepareNextOpusDecoder(char *filepath)
                 currentDecoder = opusDecoders[decoderIndex];
         }
 
+        ma_uint32 sampleRate;
+        ma_uint32 channels;
+        ma_format format;
+        ma_channel channelMap[MA_MAX_CHANNELS];
+        ma_libopus_get_data_format(currentDecoder, &format, &channels, &sampleRate, channelMap, MA_MAX_CHANNELS);
+
         uninitPreviousOpusDecoder();
 
         ma_libopus *decoder = (ma_libopus *)malloc(sizeof(ma_libopus));
         ma_libopus_init_file(filepath, NULL, NULL, decoder);
 
-        ma_format format;
-        ma_uint32 channels;
-        ma_uint32 sampleRate;
-        ma_channel channelMap[MA_MAX_CHANNELS];
-        
-        ma_libopus_get_data_format(decoder, &format, &channels, &sampleRate, channelMap, MA_MAX_CHANNELS);
-        decoder->format = format;   
+        ma_format nformat;
+        ma_uint32 nchannels;
+        ma_uint32 nsampleRate;
+        ma_channel nchannelMap[MA_MAX_CHANNELS];
+
+        ma_libopus_get_data_format(decoder, &nformat, &nchannels, &nsampleRate, nchannelMap, MA_MAX_CHANNELS);
+        bool sameFormat = (currentDecoder == NULL || (format == nformat &&
+                                                          channels == nchannels &&
+                                                      sampleRate == nsampleRate));
+
+        if (!sameFormat)
+        {
+                ma_libopus_uninit(decoder, NULL);
+                free(decoder);
+                return;
+        }
+
+        decoder->format = nformat;
 
         decoder->onRead = ma_libopus_read_pcm_frames_wrapper;
         decoder->onSeek = ma_libopus_seek_to_pcm_frame_wrapper;
-        decoder->onTell = ma_libopus_get_cursor_in_pcm_frames_wrapper;        
+        decoder->onTell = ma_libopus_get_cursor_in_pcm_frames_wrapper;
         setNextOpusDecoder(decoder);
         if (currentDecoder != NULL)
                 ma_data_source_set_next(currentDecoder, decoder);
+}
+
+void getFileInfo(const char *filename, ma_uint32 *sampleRate, ma_uint32 *channels, ma_format *format)
+{
+        ma_decoder tmp;
+        if (ma_decoder_init_file(filename, NULL, &tmp) == MA_SUCCESS)
+        {
+                *sampleRate = tmp.outputSampleRate;
+                *channels = tmp.outputChannels;
+                *format = tmp.outputFormat;
+                ma_decoder_uninit(&tmp);
+        }
+        else
+        {
+                // Handle file open error.
+        }
 }
 
 void prepareNextDecoder(char *filepath)
@@ -374,30 +423,29 @@ void prepareNextDecoder(char *filepath)
                 currentDecoder = decoders[decoderIndex];
         }
 
+        ma_uint32 sampleRate;
+        ma_uint32 channels;
+        ma_format format;
+        getFileInfo(filepath, &sampleRate, &channels, &format);
+
+        bool sameFormat = (currentDecoder == NULL || (format ==currentDecoder->outputFormat &&
+                                                          channels == currentDecoder->outputChannels &&
+                                                      sampleRate == currentDecoder->outputSampleRate));
+
+        if (!sameFormat)
+        {
+                return;
+        }
+
         uninitPreviousDecoder();
 
         ma_decoder_config config = ma_decoder_config_init(ma_format_s24, 2, 192000);
         ma_decoder *decoder = (ma_decoder *)malloc(sizeof(ma_decoder));
         ma_decoder_init_file(filepath, NULL, decoder);
+
         setNextDecoder(decoder);
         if (currentDecoder != NULL)
                 ma_data_source_set_next(currentDecoder, decoder);
-}
-
-void getFileInfo(const char *filename, ma_uint32 *sampleRate, ma_uint32 *channels, ma_format *format)
-{
-        ma_decoder decoder;
-        if (ma_decoder_init_file(filename, NULL, &decoder) == MA_SUCCESS)
-        {
-                *sampleRate = decoder.outputSampleRate;
-                *channels = decoder.outputChannels;
-                *format = decoder.outputFormat;
-                ma_decoder_uninit(&decoder);
-        }
-        else
-        {
-                // Handle file open error.
-        }
 }
 
 void getVorbisFileInfo(const char *filename, ma_format *format)
