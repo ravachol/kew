@@ -708,14 +708,18 @@ void executeSwitch(PCMFileDataSource *pPCMDataSource)
 
         if (pPCMDataSource->currentFileIndex == 0)
         {
-                previousFile = pPCMDataSource->fileB;
+                if (pPCMDataSource->fileB != NULL)
+                        fclose(pPCMDataSource->fileB);
+                pPCMDataSource->fileB = NULL;
                 currentFilename = pPCMDataSource->pUserData->filenameA;
                 currentSongData = pPCMDataSource->pUserData->songdataA;
                 pPCMDataSource->fileA = (currentFilename != NULL && strcmp(currentFilename, "") != 0) ? fopen(currentFilename, "rb") : NULL;
         }
         else
-        {
-                previousFile = pPCMDataSource->fileA;
+        { 
+                if (pPCMDataSource->fileA != NULL)
+                        fclose(pPCMDataSource->fileA);
+                pPCMDataSource->fileA = NULL;
                 currentFilename = pPCMDataSource->pUserData->filenameB;
                 currentSongData = pPCMDataSource->pUserData->songdataB;
                 pPCMDataSource->fileB = (currentFilename != NULL && strcmp(currentFilename, "") != 0) ? fopen(currentFilename, "rb") : NULL;
@@ -723,9 +727,6 @@ void executeSwitch(PCMFileDataSource *pPCMDataSource)
 
         pPCMDataSource->pUserData->currentSongData = currentSongData;
         pPCMDataSource->currentPCMFrame = 0;
-
-        if (previousFile != NULL)
-                fclose(previousFile);
 
         setSeekElapsed(0.0);
 
