@@ -19,7 +19,10 @@ kew (/kjuː/) is a command-line music player for Linux.
  * Display album covers as ASCII art or as a normal image.
  * Control the player with previous, next and pause.
  * Has gapless playback (between files of the same format and type) and supports 24-bit audio.
- * Does not yet work well with very long audio files that are not mp3, wav or flac.
+
+## Caveats
+ * Does not yet work well with very long audio files that are not mp3, wav, flac, ogg or opus.
+ * Seeking is disabled for ogg vorbis files.
 
 ## Name Change
 
@@ -75,17 +78,20 @@ kew dependencies are:
 * FFTW
 * Chafa
 * FreeImage
+* libopus 
+* opusfile 
+* libvorbis
 * glib2.0 and AVFormat. These should be installed with the others, if not install them.
 
 Install FFmpeg, FFTW, Chafa and FreeImage using your distro's package manager. For instance:
 
 ```bash
-apt install ffmpeg libfftw3-dev git libglib2.0-dev libchafa-dev libfreeimage-dev libavformat-dev
+apt install ffmpeg libfftw3-dev libopus-dev libopusfile-dev libvorbis-dev git gcc make libchafa-dev libfreeimage-dev libavformat-dev libglib2.0-dev
 ```
 Or:
 
 ```bash
-pacman -Syu ffmpeg fftw git glib2 chafa freeimage
+pacman -Syu ffmpeg fftw git gcc make chafa freeimage glib2 opus opusfile libvorbis
 ```
 
 Then run this (either git clone or unzip a release zip into a folder of your choice):

@@ -1,6 +1,5 @@
 #include <string.h>
 #include "player.h"
-
 /*
 
 player.c
@@ -24,7 +23,7 @@ typedef struct
 } PixelData;
 #endif
 
-const char VERSION[] = "1.6.0";
+const char VERSION[] = "1.7.0";
 const int LOGO_COLOR = 3;
 const int VERSION_COLOR = 6;
 const int ABSOLUTE_MIN_WIDTH = 38;
@@ -55,13 +54,17 @@ int coverRow = 0;
 int preferredWidth = 0;
 int preferredHeight = 0;
 int elapsed = 0;
-double duration = 0.0;
 int textWidth = 0;
 char *tagsPath;
 double totalDurationSeconds = 0.0;
 PixelData color = {0, 0, 0};
 PixelData bgColor = {90, 90, 90};
 TagSettings metadata = {};
+double elapsedSeconds = 0.0;
+double pauseSeconds = 0.0;
+double totalPauseSeconds = 0.0;
+double seekAccumulatedSeconds = 0.0;
+double duration = 0.0;
 
 void setTextColorRGB2(int r, int g, int b)
 {

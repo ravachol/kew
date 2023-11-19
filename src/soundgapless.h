@@ -15,7 +15,22 @@
 #include "songloader.h"
 #include "soundcommon.h"
 #include "soundbuiltin.h"
+#include "soundopus.h"
+#include "soundvorbis.h"
 #include "soundpcm.h"
+
+#ifndef USERDATA_STRUCT
+#define USERDATA_STRUCT
+typedef struct
+{
+        char *filenameA;
+        char *filenameB;
+        SongData *songdataA;
+        SongData *songdataB;
+        SongData *currentSongData;
+        ma_uint32 currentPCMFrame;
+} UserData;
+#endif
 
 void setDecoders(bool usingA, char *filePath);
 

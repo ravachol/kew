@@ -306,7 +306,9 @@ SongData *loadSongData(char *filePath)
         c_sleep(10);
         loadDuration(songdata);
         c_sleep(10);
-        if (!hasBuiltinDecoder(songdata->filePath))
+        if (!hasBuiltinDecoder(songdata->filePath) && 
+        !endsWith(filePath, "opus") && 
+        !endsWith(filePath, "ogg"))
                 loadPcmAudio(songdata);
         songdata->deleted = false;
         return songdata;

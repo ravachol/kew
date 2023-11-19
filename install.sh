@@ -15,24 +15,23 @@ fi
 # Install dependencies based on the package manager available
 echo "Installing missing dependencies"
 if command -v apt &>/dev/null; then
-    apt install -y ffmpeg libfftw3-dev git gcc make libchafa-dev libfreeimage-dev libavformat-dev libglib2.0-dev
+    apt install -y ffmpeg libfftw3-dev libopus-dev libopusfile-dev libvorbis-dev git gcc make libchafa-dev libfreeimage-dev libavformat-dev libglib2.0-dev
 elif command -v yum &>/dev/null; then
-    yum install -y ffmpeg fftw-devel git gcc make chafa-devel libfreeimage-devel libavformat-devel glib2-devel
+    yum install -y ffmpeg fftw-devel opus-devel opusfile-devel libvorbis-devel git gcc make chafa-devel libfreeimage-devel libavformat-devel glib2-devel
 elif command -v pacman &>/dev/null; then
-    pacman -Syu --noconfirm --needed ffmpeg fftw git gcc make chafa freeimage glib2
+    pacman -Syu --noconfirm --needed ffmpeg fftw git gcc make chafa freeimage glib2 opus opusfile libvorbis
 elif command -v dnf &>/dev/null; then
-    dnf install -y ffmpeg fftw-devel git gcc make chafa-devel libfreeimage-devel libavformat-devel glib2-devel
+    dnf install -y ffmpeg fftw-devel opus-devel opusfile-devel libvorbis-devel git gcc make chafa-devel libfreeimage-devel libavformat-devel glib2-devel
 elif command -v zypper &>/dev/null; then
-    zypper install -y ffmpeg fftw-devel git chafa-devel gcc make libfreeimage-devel libavformat-devel glib2-devel
+    zypper install -y ffmpeg fftw-devel opus-devel opusfile-devel libvorbis-devel git chafa-devel gcc make libfreeimage-devel libavformat-devel glib2-devel
 elif command -v eopkg &>/dev/null; then
-    eopkg install -y ffmpeg fftw-devel git gcc make chafa-devel libfreeimage-devel libavformat-devel
+    eopkg install -y ffmpeg fftw-devel opus-devel opusfile-devel libvorbis-devel git gcc make chafa-devel libfreeimage-devel libavformat-devel
 elif command -v guix &>/dev/null; then
-    guix install ffmpeg fftw git gcc make chafa libfreeimage libavformat
+    guix install ffmpeg fftw git gcc make chafa libfreeimage libavformat opus opusfile libvorbis
 else
     echo "Unsupported package manager. Please install the required dependencies manually."
     exit 1
 fi
-
 
 # Clone the repository
 repo_url="https://github.com/ravachol/kew.git"
@@ -65,7 +64,7 @@ else
     exit 1
 fi
 
-#Cleaning up the directory
+# Cleaning up the directory
 echo "Cleaning directory..."
 cd ..
 rm kew -rf &>/dev/null
