@@ -43,7 +43,7 @@ void *child_cleanup(void *arg)
         int status;
         waitpid(data->pid, &status, 0);
         ffmpegPids[data->index] = -1;
-        numRunningProcesses--;        
+        numRunningProcesses--;
         free(arg);
         return NULL;
 }
@@ -72,7 +72,7 @@ void stopFFmpeg()
         }
 }
 
-int convertToPcmFile(const char *filePath, const char *outputFilePath)
+int convertToPcmFile(SongData* songData, const char *filePath, const char *outputFilePath)
 {
         char command[COMMAND_SIZE];
 
@@ -253,7 +253,7 @@ int loadPcmAudio(SongData *songdata)
                 return -1;
 
         generateTempFilePath(songdata->filePath, songdata->pcmFilePath, "temp", ".pcm");
-        convertToPcmFile(songdata->filePath, songdata->pcmFilePath);
+        convertToPcmFile(songdata, songdata->filePath, songdata->pcmFilePath);
         int count = 0;
         int result = -1;
         while (result < 1 && count < maxSleepTimes)
@@ -306,7 +306,8 @@ SongData *loadSongData(char *filePath)
         c_sleep(10);
         loadDuration(songdata);
         c_sleep(10);
-        loadPcmAudio(songdata);
+        if (!hasBuiltinDecoder(songdata->filePath))
+                loadPcmAudio(songdata);
         songdata->deleted = false;
         return songdata;
 }
@@ -341,8 +342,11 @@ void unloadSongData(SongData **songdata)
         data->trackId = NULL;
 
         if (existsFile(data->pcmFilePath) > -1)
+        {
+                while (numRunningProcesses > 0)
+                        c_sleep(100);
                 deleteFile(data->pcmFilePath);
-
+        }
         if (data->pcmFile != NULL)
                 free(data->pcmFile);
 

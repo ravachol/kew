@@ -10,6 +10,7 @@
 #include "chafafunc.h"
 #include "albumart.h"
 #include "soundgapless.h"
+#include "soundcommon.h"
 
 #ifndef KEYVALUEPAIR_STRUCT
 #define KEYVALUEPAIR_STRUCT
