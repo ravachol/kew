@@ -55,7 +55,6 @@ void updateLastInputTime()
 
 void emitStringPropertyChanged(const gchar *propertyName, const gchar *newValue)
 {
-
         GVariantBuilder changed_properties_builder;
         g_variant_builder_init(&changed_properties_builder, G_VARIANT_TYPE("a{sv}"));
         g_variant_builder_add(&changed_properties_builder, "{sv}", propertyName, g_variant_new_string(newValue));
@@ -154,7 +153,10 @@ void togglePause(double *totalPauseSeconds, double *pauseSeconds, struct timespe
 
 void toggleRepeat()
 {
-        repeatEnabled = !repeatEnabled;
+
+        bool repeatEnabled = !isRepeatEnabled();
+        setRepeatEnabled(repeatEnabled);
+
         if (repeatEnabled)
         {
                 emitStringPropertyChanged("LoopStatus", "Track");
@@ -180,7 +182,8 @@ void addToPlaylist()
 
 void toggleShuffle()
 {
-        shuffleEnabled = !shuffleEnabled;
+        bool shuffleEnabled = !isShuffleEnabled();
+        setShuffleEnabled(shuffleEnabled);
 
         if (shuffleEnabled)
         {
@@ -254,7 +257,7 @@ void calcElapsedTime()
         {
                 elapsedSeconds = (double)(current_time.tv_sec - start_time.tv_sec) +
                                  (double)(current_time.tv_nsec - start_time.tv_nsec) / 1e9;
-                elapsedSeconds += seekElapsed + seekAccumulatedSeconds;
+                elapsedSeconds += getSeekElapsed() + seekAccumulatedSeconds;
                 elapsedSeconds -= totalPauseSeconds;
                 if (elapsedSeconds > duration)
                         elapsedSeconds = duration;
@@ -272,17 +275,17 @@ void flushSeek()
 {
         if (seekAccumulatedSeconds != 0.0)
         {
-                seekElapsed += seekAccumulatedSeconds;
+                setSeekElapsed(getSeekElapsed() + seekAccumulatedSeconds);
                 seekAccumulatedSeconds = 0.0;
                 calcElapsedTime();
-                float percentage = elapsedSeconds / (float)duration * 100.0;  
+                float percentage = elapsedSeconds / (float)duration * 100.0;
 
                 if (percentage < 0.0)
                 {
-                        seekElapsed = 0.0;
+                        setSeekElapsed(0.0);
                         percentage = 0.0;
                 }
-                             
+
                 seekPercentage(percentage);
         }
 }
@@ -333,6 +336,8 @@ void assignLoadedData()
                 {
                         userData.filenameB = loadingdata.songdataB->pcmFilePath;
                         userData.songdataB = loadingdata.songdataB;
+                        if (hasBuiltinDecoder(loadingdata.songdataB->filePath))                        
+                                prepareNextDecoder(loadingdata.songdataB->filePath);
                 }
                 else
                         userData.filenameB = NULL;
@@ -343,6 +348,8 @@ void assignLoadedData()
                 {
                         userData.filenameA = loadingdata.songdataA->pcmFilePath;
                         userData.songdataA = loadingdata.songdataA;
+                        if (hasBuiltinDecoder(loadingdata.songdataA->filePath))
+                                prepareNextDecoder(loadingdata.songdataA->filePath);
                 }
                 else
                         userData.filenameA = NULL;
@@ -516,7 +523,6 @@ void skipToNumberedSong(int songNumber)
                 forceSkip = true;
                 if (songNumber < playlist.count)
                         skipToNumberedSong(songNumber + 1);
-
         }
 
         updateLastSongSwitchTime();

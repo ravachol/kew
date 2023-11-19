@@ -1,23 +1,29 @@
 #include "visuals.h"
 #include "albumart.h"
 #include "complex.h"
-#define SAMPLE_RATE 192000
-#define BUFFER_SIZE 3600
 #define CHANNELS 2
 #define BEAT_THRESHOLD 0.3
-#define MAGNITUDE_CEIL 120
+
 #define MAGNITUDE_FLOOR_FRACTION 0.4
+#ifndef MAX_BUFFER_SIZE
+#define MAX_BUFFER_SIZE 3600
+#endif
+
+int bufferSize = 3600;
+float magnitudeCeil = 120;
+float alpha = 0.2;
+
 /*
 
 visuals.c
 
  This file should contain only functions related to the spectrum visualizer.
- 
+
 */
 int bufferIndex = 0;
 
-float magnitudeBuffer[BUFFER_SIZE] = {0.0f};
-float lastMagnitudes[BUFFER_SIZE] = {0.0f};
+float magnitudeBuffer[MAX_BUFFER_SIZE] = {0.0f};
+float lastMagnitudes[MAX_BUFFER_SIZE] = {0.0f};
 
 void printBlankSpaces(int numSpaces)
 {
@@ -30,14 +36,14 @@ void printBlankSpaces(int numSpaces)
 void updateMagnitudeBuffer(float magnitude)
 {
         magnitudeBuffer[bufferIndex] = magnitude;
-        bufferIndex = (bufferIndex + 1) % BUFFER_SIZE;
+        bufferIndex = (bufferIndex + 1) % bufferSize;
 }
 
 float calculateMovingAverage()
 {
         float sum = 0.0f;
         int numSamples = 0;
-        for (int i = 0; i < BUFFER_SIZE; i++)
+        for (int i = 0; i < bufferSize; i++)
         {
                 sum += magnitudeBuffer[i];
                 if (magnitudeBuffer[i] > 0.0f)
@@ -53,7 +59,7 @@ float calculateThreshold()
 {
         float sum = 0.0f;
         int numSamples = 0;
-        for (int i = 0; i < BUFFER_SIZE; i++)
+        for (int i = 0; i < bufferSize; i++)
         {
                 sum += magnitudeBuffer[i];
                 if (magnitudeBuffer[i] > 0.0f)
@@ -65,7 +71,7 @@ float calculateThreshold()
         float mean = sum / numSamples;
 
         float variance = 0.0f;
-        for (int i = 0; i < BUFFER_SIZE; i++)
+        for (int i = 0; i < bufferSize; i++)
         {
                 float diff = magnitudeBuffer[i] - mean;
                 variance += diff * diff;
@@ -113,16 +119,19 @@ void updateMagnitudes(int height, int width, float maxMagnitude, float *magnitud
         int beat = detectBeats(magnitudes, width);
         if (beat > 0)
         {
-                jumpFactor = jumpAmount;
+               // jumpFactor = jumpAmount;
         }
 
         for (int i = 0; i < width; i++)
         {
                 if (i < 3)
                         exponent = 1.0;
-                else if (magnitudes[i] > maxMagnitude * 0.25)
+                else if (magnitudes[i] > maxMagnitude * 0.37)
                 {
-                        exponent = 3.0;
+                        exponent = 2.0;
+                }
+                else {
+                        exponent = 1.0;
                 }
                 float normalizedMagnitude = magnitudes[i] / maxMagnitude;
                 float scaledMagnitude = pow(normalizedMagnitude, exponent) * height + jumpFactor;
@@ -139,13 +148,11 @@ void updateMagnitudes(int height, int width, float maxMagnitude, float *magnitud
         }
 }
 
-float lastMax = MAGNITUDE_CEIL / 2;
-float alpha = 0.2;
-
 float calcMaxMagnitude(int numBars, float *magnitudes)
 {
+        float lastMax = magnitudeCeil / 2;
         float maxMagnitude = 0.0f;
-        float threshold = MAGNITUDE_CEIL * MAGNITUDE_FLOOR_FRACTION;
+        float threshold = magnitudeCeil * MAGNITUDE_FLOOR_FRACTION;
         for (int i = 0; i < numBars; i++)
         {
                 if (magnitudes[i] > maxMagnitude)
@@ -153,9 +160,9 @@ float calcMaxMagnitude(int numBars, float *magnitudes)
                         maxMagnitude = magnitudes[i];
                 }
         }
-        if (maxMagnitude > MAGNITUDE_CEIL)
+        if (maxMagnitude > magnitudeCeil)
         {
-                maxMagnitude = MAGNITUDE_CEIL;
+                maxMagnitude = magnitudeCeil;
         }
         if (maxMagnitude < threshold)
         {
@@ -173,75 +180,86 @@ void clearMagnitudes(int width, float *magnitudes)
         }
 }
 
-void compressSpectrum(int width, fftwf_complex *fftOutput, float *compressedMagnitudes, int numBars, float fractionToKeep)
+void calc(int height, int numBars, ma_int32 *audioBuffer, int bitDepth, fftwf_complex *fftInput, fftwf_complex *fftOutput, float *magnitudes, fftwf_plan plan)
 {
-        if (numBars <= 0)
+        int bufferSize = getBufferSize();
+
+        if (audioBuffer == NULL)
         {
                 return;
         }
 
-        if (fractionToKeep < 0.0f || fractionToKeep > 1.0f)
-        {
-                return;
-        }
+        int j = 0;
 
-        int compressionFactor = width / numBars;
-        int barSpan = ceil(compressionFactor * fractionToKeep);
+        for (int i = 0; i < bufferSize; i++)
+        {                
+                ma_int32 sample = audioBuffer[i];
 
-        for (int i = 0; i < numBars; i++)
-        {
-                int startIndex = (int)i * barSpan;
+                float normalizedSample;
 
-                int barEndIndex = startIndex + barSpan;
-
-                if (barEndIndex > width)
-                        barEndIndex = width;
-
-                float barMagnitude = 0.0f;
-                for (int j = startIndex; j < barEndIndex; j++)
+                // Adjust normalization based on bit depth
+                if (bitDepth == 8)
                 {
-                        float magnitude = cabsf(fftOutput[j][0] + fftOutput[j][1] * I);
-                        barMagnitude += magnitude;
+                        normalizedSample = ((float)sample - 128) / 127.0f;
                 }
-                barMagnitude /= (barEndIndex - startIndex); // Normalize by the number of bins
-                compressedMagnitudes[i] = barMagnitude;
-        }
-}
-
-void calcSpectrum(int height, int numBars, fftwf_complex *fftInput, fftwf_complex *fftOutput, float *magnitudes, fftwf_plan plan)
-{
-        if (g_audioBuffer == NULL)
-        {
-                return;
-        }
-
-        for (int i = 0; i < BUFFER_SIZE; i++)
-        {
-                ma_int32 sample = g_audioBuffer[i];
-                // Extract the lower 24 bits from the sample
-                int lower24Bits = sample & 0xFFFFFF;
-
-                // Check if the 24th bit is set (indicating a negative value)
-                if (lower24Bits & 0x800000)
+                else if (bitDepth == 16)
                 {
-                        // Sign extension for two's complement
-                        lower24Bits |= 0xFF000000;
+                        normalizedSample = (float)sample / 32768.0f;
+                }
+                else if (bitDepth == 24)
+                {
+                        // Extract the lower 24 bits from the sample
+                        int lower24Bits = sample & 0xFFFFFF;
+
+                        // Check if the 24th bit is set (indicating a negative value)
+                        if (lower24Bits & 0x800000)
+                        {
+                                // Sign extension for two's complement
+                                lower24Bits |= 0xFF000000;
+                        }
+                        else
+                        {
+                                // Ensure that the upper bits are cleared for positive values
+                                lower24Bits &= 0x00FFFFFF;
+                        }
+
+                        // Normalize the 24-bit sample to the range [-1, 1]
+                        normalizedSample = (float)lower24Bits / 8388607.0f;
+                }
+                else if (bitDepth == 32 || bitDepth == -32) // Assuming bitDepth == -32 for f32
+                {
+                        normalizedSample = (float)sample / 2147483647.0f;
                 }
                 else
                 {
-                        // Ensure that the upper bits are cleared for positive values
-                        lower24Bits &= 0x00FFFFFF;
+                        // Unsupported bit depth
+                        return;
+                }                
+
+                if (bitDepth == 32)
+                {
+                        if (i % 3 == 0)
+                        {                                
+                                continue;
+                        }
                 }
-                // Normalize the 24-bit sample to the range [-1, 1]
-                float normalizedSample = (float)lower24Bits / 8388607.0f;
-                fftInput[i][0] = normalizedSample;
-                fftInput[i][1] = 0;
+
+                fftInput[j][0] = normalizedSample;
+                fftInput[j][1] = 0;
+
+                j++;
+        }
+
+        for (int k = j; k < bufferSize; k++)
+        {
+                fftInput[k][0] = 0;
+                fftInput[k][1] = 0;
         }
 
         // Apply Windowing (Hamming Window)
-        for (int i = 0; i < BUFFER_SIZE; i++)
+        for (int i = 0; i < bufferSize; i++)
         {
-                float window = 0.54f - 0.46f * cos(2 * M_PI * i / (BUFFER_SIZE - 1));
+                float window = 0.54f - 0.46f * cos(2 * M_PI * i / (bufferSize - 1));
                 fftInput[i][0] *= window;
         }
 
@@ -256,6 +274,45 @@ void calcSpectrum(int height, int numBars, fftwf_complex *fftInput, fftwf_comple
 
         float maxMagnitude = calcMaxMagnitude(numBars, magnitudes);
         updateMagnitudes(height, numBars, maxMagnitude, magnitudes);
+}
+
+void calcSpectrum(int height, int numBars, fftwf_complex *fftInput, fftwf_complex *fftOutput, float *magnitudes, fftwf_plan plan)
+{
+
+        ma_int32 *g_audioBuffer = getAudioBuffer();
+        ma_decoder *decoder = getCurrentDecoder();
+        int bitDepth = 24;
+
+        ma_format format = SAMPLE_FORMAT;
+
+        if (getCurrentImplementationType() == BUILTIN && decoder != NULL)
+        {
+                format = decoder->outputFormat;
+
+                switch (format)
+                {
+                case ma_format_u8:
+                        bitDepth = 8;
+                        break;
+
+                case ma_format_s16:
+                        bitDepth = 16;
+                        break;
+
+                case ma_format_s24:
+                        bitDepth = 24;
+                        break;
+                
+                case ma_format_f32:
+                case ma_format_s32:
+                        bitDepth = 32;
+                        break;
+                default:
+                        break;
+                }
+        }
+
+        calc(height, numBars, g_audioBuffer, bitDepth, fftInput, fftOutput, magnitudes, plan);
 }
 
 PixelData increaseLuminosity(PixelData pixel, int amount)
@@ -283,8 +340,6 @@ void printSpectrum(int height, int width, float *magnitudes, PixelData color)
         printf("\n");
         clearRestOfScreen();
 
-        PixelData pixelLight = increaseLuminosity(color, 100);
-
         for (int j = height; j > 0; j--)
         {
                 printf("\r");
@@ -295,16 +350,12 @@ void printSpectrum(int height, int width, float *magnitudes, PixelData color)
                         {
                                 if (j == height)
                                 {
-                                        printf("\033[38;2;%d;%d;%dm", pixelLight.r, pixelLight.g, pixelLight.b);
-                                }
-                                else if (j == height - 1)
-                                {
-                                        color = increaseLuminosity(color, 60);
+                                        color = increaseLuminosity(color, 100);
                                         printf("\033[38;2;%d;%d;%dm", color.r, color.g, color.b);
                                 }
                                 else
                                 {
-                                        color = decreaseLuminosity(color, 20);
+                                        color = decreaseLuminosity(color, 100 / height);
                                         printf("\033[38;2;%d;%d;%dm", color.r, color.g, color.b);
                                 }
                         }
@@ -335,6 +386,7 @@ void printSpectrum(int height, int width, float *magnitudes, PixelData color)
 
 void drawSpectrumVisualizer(int height, int width, PixelData c)
 {
+        bufferSize = getBufferSize();
         PixelData color;
         color.r = c.r;
         color.g = c.g;
@@ -348,20 +400,23 @@ void drawSpectrumVisualizer(int height, int width, PixelData c)
                 return;
         }
 
-        fftwf_complex *fftInput = (fftwf_complex *)fftwf_malloc(sizeof(fftwf_complex) * BUFFER_SIZE);
+        if (bufferSize <= 0)
+                return;
+
+        fftwf_complex *fftInput = (fftwf_complex *)fftwf_malloc(sizeof(fftwf_complex) * bufferSize);
         if (fftInput == NULL)
         {
                 return;
         }
 
-        fftwf_complex *fftOutput = (fftwf_complex *)fftwf_malloc(sizeof(fftwf_complex) * BUFFER_SIZE);
+        fftwf_complex *fftOutput = (fftwf_complex *)fftwf_malloc(sizeof(fftwf_complex) * bufferSize);
         if (fftOutput == NULL)
         {
                 fftwf_free(fftInput);
                 return;
         }
 
-        fftwf_plan plan = fftwf_plan_dft_1d(BUFFER_SIZE, fftInput, fftOutput, FFTW_FORWARD, FFTW_ESTIMATE);
+        fftwf_plan plan = fftwf_plan_dft_1d(bufferSize, fftInput, fftOutput, FFTW_FORWARD, FFTW_ESTIMATE);
 
         float magnitudes[numBars];
         for (int i = 0; i < numBars; i++)
