@@ -23,12 +23,17 @@ extern bool visualizerEnabled;
 extern bool useThemeColors;
 extern int numProgressBars;
 extern int elapsed;
-extern double duration;
 extern int chosenSong;
 extern bool resetPlaylistDisplay;
 extern int visualizerHeight;
 extern volatile bool refresh;
 extern TagSettings metadata;
+
+extern double elapsedSeconds;
+extern double pauseSeconds;
+extern double totalPauseSeconds;
+extern double seekAccumulatedSeconds;
+extern double duration;
 
 int printPlayer(SongData *songdata, double elapsedSeconds, PlayList *playlist);
 

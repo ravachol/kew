@@ -20,8 +20,26 @@ int bufSize;
 ma_event switchAudioImpl;
 enum AudioImplementation currentImplementation = NONE;
 ma_decoder *decoders[MAX_DECODERS];
-
+ma_libopus *opusDecoders[MAX_DECODERS];
+ma_libopus opus;
+ma_libopus *firstOpusDecoder;
+ma_libvorbis *vorbisDecoders[MAX_DECODERS];
+ma_libvorbis vorbis;
+ma_libvorbis *firstVorbisDecoder;
 int decoderIndex = -1;
+int opusDecoderIndex = -1;
+int vorbisDecoderIndex = -1;
+bool doQuit = false;
+
+ma_libopus *getOpus()
+{
+        return &opus;
+}
+
+ma_libvorbis *getVorbis()
+{
+        return &vorbis;
+}
 
 enum AudioImplementation getCurrentImplementationType()
 {
@@ -111,6 +129,238 @@ void uninitPreviousDecoder()
         }
 }
 
+void uninitPreviousVorbisDecoder()
+{
+        if (vorbisDecoderIndex == -1)
+        {
+                return;
+        }
+        ma_libvorbis *toUninit = vorbisDecoders[1 - vorbisDecoderIndex];
+
+        if (toUninit != NULL)
+        {
+                ma_libvorbis_uninit(toUninit, NULL);
+                free(toUninit);
+                vorbisDecoders[1 - vorbisDecoderIndex] = NULL;
+        }
+}
+
+void uninitPreviousOpusDecoder()
+{
+        if (opusDecoderIndex == -1)
+        {
+                return;
+        }
+        ma_libopus *toUninit = opusDecoders[1 - opusDecoderIndex];
+
+        if (toUninit != NULL)
+        {
+                ma_libopus_uninit(toUninit, NULL);
+                free(toUninit);
+                opusDecoders[1 - opusDecoderIndex] = NULL;
+        }
+}
+
+ma_libvorbis *getFirstVorbisDecoder()
+{
+        return firstVorbisDecoder;
+}
+
+ma_libvorbis *getCurrentVorbisDecoder()
+{
+        if (vorbisDecoderIndex == -1)
+                return getFirstVorbisDecoder();
+        else
+                return vorbisDecoders[vorbisDecoderIndex];
+}
+
+void switchVorbisecoder()
+{
+        if (vorbisDecoderIndex == -1)
+                vorbisDecoderIndex = 0;
+        else
+                vorbisDecoderIndex = 1 - vorbisDecoderIndex;
+}
+
+ma_libopus *getFirstOpusDecoder()
+{
+        return firstOpusDecoder;
+}
+
+ma_libopus *getCurrentOpusDecoder()
+{
+        if (opusDecoderIndex == -1)
+                return getFirstOpusDecoder();
+        else
+                return opusDecoders[opusDecoderIndex];
+}
+
+void switchVorbisDecoder()
+{
+        if (vorbisDecoderIndex == -1)
+                vorbisDecoderIndex = 0;
+        else
+                vorbisDecoderIndex = 1 - vorbisDecoderIndex;
+}
+
+void switchOpusDecoder()
+{
+        if (opusDecoderIndex == -1)
+                opusDecoderIndex = 0;
+        else
+                opusDecoderIndex = 1 - opusDecoderIndex;
+}
+
+void setNextVorbisDecoder(ma_libvorbis *decoder)
+{
+        if (vorbisDecoderIndex == -1 && firstVorbisDecoder == NULL)
+        {
+                firstVorbisDecoder = decoder;
+        }
+        else if (vorbisDecoderIndex == -1)
+        {
+                vorbisDecoders[0] = decoder;
+        }
+        else
+        {
+                int nextIndex = 1 - vorbisDecoderIndex;
+                vorbisDecoders[nextIndex] = decoder;
+        }
+}
+
+void setNextOpusDecoder(ma_libopus *decoder)
+{
+        if (opusDecoderIndex == -1 && firstOpusDecoder == NULL)
+        {
+                firstOpusDecoder = decoder;
+        }
+        else if (opusDecoderIndex == -1)
+        {
+                opusDecoders[0] = decoder;
+        }
+        else
+        {
+                int nextIndex = 1 - opusDecoderIndex;
+                opusDecoders[nextIndex] = decoder;
+        }
+}
+
+void resetVorbisDecoders()
+{
+        vorbisDecoderIndex = -1;
+
+        if (firstVorbisDecoder != NULL)
+        {
+                ma_libvorbis_uninit(firstVorbisDecoder, NULL);
+                free(firstVorbisDecoder);
+                firstVorbisDecoder = NULL;
+        }
+        if (vorbisDecoders[0] != NULL)
+        {
+                ma_libvorbis_uninit(vorbisDecoders[0], NULL);
+                free(vorbisDecoders[0]);
+                vorbisDecoders[0] = NULL;
+        }
+        if (vorbisDecoders[1] != NULL)
+        {
+                ma_libvorbis_uninit(vorbisDecoders[1], NULL);
+                free(vorbisDecoders[1]);
+                vorbisDecoders[1] = NULL;
+        }
+}
+
+void resetOpusDecoders()
+{
+        opusDecoderIndex = -1;
+
+        if (firstOpusDecoder != NULL)
+        {
+                ma_libopus_uninit(firstOpusDecoder, NULL);
+                free(firstOpusDecoder);
+                firstOpusDecoder = NULL;
+        }
+        if (opusDecoders[0] != NULL)
+        {
+                ma_libopus_uninit(opusDecoders[0], NULL);
+                free(opusDecoders[0]);
+                opusDecoders[0] = NULL;
+        }
+        if (opusDecoders[1] != NULL)
+        {
+                ma_libopus_uninit(opusDecoders[1], NULL);
+                free(opusDecoders[1]);
+                opusDecoders[1] = NULL;
+        }
+}
+
+void prepareNextVorbisDecoder(char *filepath)
+{
+        ma_libvorbis *currentDecoder;
+
+        if (vorbisDecoderIndex == -1)
+        {
+                currentDecoder = getFirstVorbisDecoder();
+        }
+        else
+        {
+                currentDecoder = vorbisDecoders[vorbisDecoderIndex];
+        }
+
+        uninitPreviousVorbisDecoder();
+
+        ma_libvorbis *decoder = (ma_libvorbis *)malloc(sizeof(ma_libvorbis));
+        ma_libvorbis_init_file(filepath, NULL, NULL, decoder);
+
+        ma_format format;
+        ma_uint32 channels;
+        ma_uint32 sampleRate;
+        ma_channel channelMap[MA_MAX_CHANNELS];
+
+        ma_libvorbis_get_data_format(decoder, &format, &channels, &sampleRate, channelMap, MA_MAX_CHANNELS);
+        decoder->format = format;        
+
+        decoder->onRead = ma_libvorbis_read_pcm_frames_wrapper;
+        decoder->onSeek = ma_libvorbis_seek_to_pcm_frame_wrapper;
+        decoder->onTell = ma_libvorbis_get_cursor_in_pcm_frames_wrapper;
+        setNextVorbisDecoder(decoder);
+        if (currentDecoder != NULL)
+                ma_data_source_set_next(currentDecoder, decoder);
+}
+
+void prepareNextOpusDecoder(char *filepath)
+{
+        ma_libopus *currentDecoder;
+
+        if (opusDecoderIndex == -1)
+        {
+                currentDecoder = getFirstOpusDecoder();
+        }
+        else
+        {
+                currentDecoder = opusDecoders[decoderIndex];
+        }
+
+        uninitPreviousOpusDecoder();
+
+        ma_libopus *decoder = (ma_libopus *)malloc(sizeof(ma_libopus));
+        ma_libopus_init_file(filepath, NULL, NULL, decoder);
+
+        ma_format format;
+        ma_uint32 channels;
+        ma_uint32 sampleRate;
+        ma_channel channelMap[MA_MAX_CHANNELS];
+        
+        ma_libopus_get_data_format(decoder, &format, &channels, &sampleRate, channelMap, MA_MAX_CHANNELS);
+        decoder->format = format;   
+
+        decoder->onRead = ma_libopus_read_pcm_frames_wrapper;
+        decoder->onSeek = ma_libopus_seek_to_pcm_frame_wrapper;
+        decoder->onTell = ma_libopus_get_cursor_in_pcm_frames_wrapper;        
+        setNextOpusDecoder(decoder);
+        if (currentDecoder != NULL)
+                ma_data_source_set_next(currentDecoder, decoder);
+}
+
 void prepareNextDecoder(char *filepath)
 {
         ma_decoder *currentDecoder;
@@ -147,6 +397,26 @@ void getFileInfo(const char *filename, ma_uint32 *sampleRate, ma_uint32 *channel
         else
         {
                 // Handle file open error.
+        }
+}
+
+void getVorbisFileInfo(const char *filename, ma_format *format)
+{
+        ma_libvorbis decoder;
+        if (ma_libvorbis_init_file(filename, NULL, NULL, &decoder) == MA_SUCCESS)
+        {
+                *format = decoder.format;
+                ma_libvorbis_uninit(&decoder, NULL);
+        }
+}
+
+void getOpusFileInfo(const char *filename, ma_format *format)
+{
+        ma_libopus decoder;
+        if (ma_libopus_init_file(filename, NULL, NULL, &decoder) == MA_SUCCESS)
+        {
+                *format = decoder.format;
+                ma_libopus_uninit(&decoder, NULL);
         }
 }
 
@@ -212,6 +482,11 @@ void setSkipToNext(bool value)
 double getSeekElapsed()
 {
         return seekElapsed;
+}
+
+double getPercentageElapsed()
+{
+        return elapsedSeconds / duration;
 }
 
 void setSeekElapsed(double value)
@@ -372,10 +647,11 @@ void executeSwitch(PCMFileDataSource *pPCMDataSource)
 {
         pPCMDataSource->switchFiles = false;
         switchDecoder();
-        
+        switchOpusDecoder();
+        switchVorbisDecoder();
         ma_uint64 length = 0;
-        ma_data_source_get_length_in_pcm_frames(getCurrentDecoder(), &length);
-        pPCMDataSource->totalFrames = length;
+
+        pPCMDataSource->totalFrames = 0;
 
         // Close the current file, and open the new one
         FILE *previousFile;
@@ -393,7 +669,7 @@ void executeSwitch(PCMFileDataSource *pPCMDataSource)
         {
                 previousFile = pPCMDataSource->fileA;
                 currentFilename = pPCMDataSource->pUserData->filenameB;
-                currentSongData = pPCMDataSource->pUserData->songdataB;            
+                currentSongData = pPCMDataSource->pUserData->songdataB;
                 pPCMDataSource->fileB = (currentFilename != NULL && strcmp(currentFilename, "") != 0) ? fopen(currentFilename, "rb") : NULL;
         }
 
