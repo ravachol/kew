@@ -298,6 +298,8 @@ void seekBack()
         if (duration != 0.0)
         {
                 float step = 100 / numProgressBars;
+                if (elapsedSeconds + seekAccumulatedSeconds < 0.0)
+                        return;
                 seekAccumulatedSeconds -= step * duration / 100.0;
         }
 }
@@ -480,9 +482,12 @@ void skipToPrevSong()
         unloadSongData(usingSongDataA ? &loadingdata.songdataB : &loadingdata.songdataA);
 
         loadSong(currentSong, &loadingdata);
-        while (!loadedNextSong && !loadingFailed)
+        int maxNumTries = 50;
+        int numtries = 0;
+        while (!loadedNextSong && !loadingFailed && numtries < maxNumTries)
         {
-                c_sleep(10);
+                c_sleep(100);
+                numtries++;
         }
 
         if (songHasErrors)
@@ -514,9 +519,12 @@ void skipToNumberedSong(int songNumber)
         unloadSongData(usingSongDataA ? &loadingdata.songdataB : &loadingdata.songdataA);
 
         loadSong(currentSong, &loadingdata);
-        while (!loadedNextSong && !loadingFailed)
+        int maxNumTries = 50;
+        int numtries = 0;
+        while (!loadedNextSong && !loadingFailed && numtries < maxNumTries)
         {
-                c_sleep(10);
+                c_sleep(100);
+                numtries++;
         }
 
         if (songHasErrors)
