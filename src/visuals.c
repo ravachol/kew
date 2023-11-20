@@ -12,7 +12,7 @@
 int bufferSize = 3600;
 float magnitudeCeil = 120;
 float alpha = 0.2;
-
+float lastMax = 60;
 /*
 
 visuals.c
@@ -114,12 +114,12 @@ void updateMagnitudes(int height, int width, float maxMagnitude, float *magnitud
         float exponent = 1.0;
         float jumpFactor = 0.0;
         float decreaseFactor = 0.7;
-        int jumpAmount = ceil(height * 0.25);
+        int jumpAmount = ceil(height * 0.125);
 
         int beat = detectBeats(magnitudes, width);
         if (beat > 0)
         {
-               // jumpFactor = jumpAmount;
+               jumpFactor = jumpAmount;
         }
 
         for (int i = 0; i < width; i++)
@@ -150,23 +150,13 @@ void updateMagnitudes(int height, int width, float maxMagnitude, float *magnitud
 
 float calcMaxMagnitude(int numBars, float *magnitudes)
 {
-        float lastMax = magnitudeCeil / 2;
         float maxMagnitude = 0.0f;
-        float threshold = magnitudeCeil * MAGNITUDE_FLOOR_FRACTION;
         for (int i = 0; i < numBars; i++)
         {
                 if (magnitudes[i] > maxMagnitude)
                 {
                         maxMagnitude = magnitudes[i];
                 }
-        }
-        if (maxMagnitude > magnitudeCeil)
-        {
-                maxMagnitude = magnitudeCeil;
-        }
-        if (maxMagnitude < threshold)
-        {
-                maxMagnitude = threshold;
         }
         lastMax = (1 - alpha) * lastMax + alpha * maxMagnitude; // Apply exponential smoothing
         return lastMax;
@@ -238,7 +228,7 @@ void calc(int height, int numBars, ma_int32 *audioBuffer, int bitDepth, fftwf_co
 
                 if (bitDepth == 32)
                 {
-                        if (i % 3 == 0)
+                        if (i % 3 != 0)
                         {                                
                                 continue;
                         }
