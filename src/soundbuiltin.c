@@ -135,7 +135,7 @@ void builtin_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_u
                         ma_decoder_get_length_in_pcm_frames(decoder, &totalFrames);
                         ma_uint64 seekPercent = getSeekPercentage();
                         if (seekPercent >= 100.0)
-                                activateSwitch(pPCMDataSource);
+                                seekPercent = 100.0;                           
                         ma_uint64 targetFrame = (totalFrames * seekPercent) / 100;
                         ma_result seekResult = ma_decoder_seek_to_pcm_frame(decoder, targetFrame);
 

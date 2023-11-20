@@ -49,8 +49,10 @@ void pcm_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_uint6
                                 pPCMDataSource->totalFrames = fileSize / bytesPerFrame;
                                 pPCMDataSource->base.rangeEndInFrames = pPCMDataSource->totalFrames;
                         }
-
-                        ma_uint32 targetFrame = (pPCMDataSource->totalFrames * getSeekPercentage()) / 100;
+                        ma_uint64 seekPercent = getSeekPercentage();
+                        if (seekPercent >= 100.0)
+                                seekPercent = 100.0;
+                        ma_uint32 targetFrame = (pPCMDataSource->totalFrames * seekPercent) / 100;
 
                         ma_data_source_seek_to_pcm_frame(pDataSource, targetFrame);
 
