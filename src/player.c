@@ -23,7 +23,7 @@ typedef struct
 } PixelData;
 #endif
 
-const char VERSION[] = "1.7.1";
+const char VERSION[] = "1.7.2";
 const int LOGO_COLOR = 3;
 const int VERSION_COLOR = 6;
 const int ABSOLUTE_MIN_WIDTH = 38;
@@ -604,7 +604,6 @@ int showPlaylist()
 {
         Node *node = originalPlaylist->head;
         Node *foundNode = originalPlaylist->head;
-        bool foundCurrentSong = false;
         bool startFromCurrent = false;
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
@@ -726,7 +725,6 @@ int showPlaylist()
                                         printf("\e[1m\e[39m");
                                 else
                                         printf("\033[1;38;2;%03u;%03u;%03um", textColor.r, textColor.g, textColor.b);
-                                foundCurrentSong = true;
                         }
                         shortenString(copiedString, term_w - 6 - indent);
                         trim(copiedString);

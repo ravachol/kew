@@ -46,12 +46,10 @@ ma_result pcm_file_data_source_init(PCMFileDataSource *pPCMDataSource, UserData 
                 ma_libvorbis *first = getFirstVorbisDecoder();
                 ma_channel channelMap[MA_MAX_CHANNELS];
                 ma_libvorbis_ds_get_data_format(first, &pPCMDataSource->format, &pPCMDataSource->channels, &pPCMDataSource->sampleRate, channelMap, MA_MAX_CHANNELS);
-                ma_result res = ma_data_source_get_length_in_pcm_frames(first, &pPCMDataSource->totalFrames);
+                ma_data_source_get_length_in_pcm_frames(first, &pPCMDataSource->totalFrames);
         }
         else
         {
-                char *filePath = NULL;
-
                 if (pPCMDataSource->fileA == NULL)
                 {
                         pPCMDataSource->filenameA = pUserData->filenameA;
@@ -72,9 +70,6 @@ ma_result pcm_file_data_source_init(PCMFileDataSource *pPCMDataSource, UserData 
 void createDevice(UserData *userData, ma_device *device, ma_context *context, ma_data_source_vtable *vtable, ma_device_data_proc callback)
 {
         ma_result result;
-
-        if (result != MA_SUCCESS)
-                return;
 
         ma_data_source_uninit(&pcmDataSource);
         pcm_file_data_source_init(&pcmDataSource, userData);
@@ -157,12 +152,6 @@ ma_result vorbis_data_source_init(PCMFileDataSource *pPCMDataSource, ma_libvorbi
 void vorbis_createAudioDevice(UserData *userData, ma_device *device, ma_context *context, ma_data_source_vtable *vtable)
 {
         ma_result result;
-
-        if (result != MA_SUCCESS)
-        {
-                printf("Failed to initialize miniaudio context.\n");
-                return;
-        }
         ma_libvorbis *vorbis = getVorbis();
 
         pcm_file_data_source_init(&pcmDataSource, userData);
@@ -195,12 +184,6 @@ void vorbis_createAudioDevice(UserData *userData, ma_device *device, ma_context 
 void opus_createAudioDevice(UserData *userData, ma_device *device, ma_context *context, ma_data_source_vtable *vtable)
 {
         ma_result result;
-
-        if (result != MA_SUCCESS)
-        {
-                printf("Failed to initialize miniaudio context.\n");
-                return;
-        }
         ma_libopus *opus = getOpus();
 
         pcm_file_data_source_init(&pcmDataSource, userData);
@@ -260,7 +243,7 @@ void switchAudioImplementation()
                 }
                 else
                 {
-                        setCurrentImplementationType(BUILTIN);                        
+                        setCurrentImplementationType(BUILTIN);
                         resetDecoders();
                         resetVorbisDecoders();
                         resetOpusDecoders();
@@ -273,11 +256,22 @@ void switchAudioImplementation()
                 ma_uint32 sampleRate;
                 ma_uint32 channels;
                 ma_format format;
+                ma_channel channelMap[MA_MAX_CHANNELS];
+
+                ma_uint32 nSampleRate;
+                ma_uint32 nChannels;
+                ma_format nFormat;
+                ma_channel nChannelMap[MA_MAX_CHANNELS];
                 ma_libopus *decoder = getCurrentOpusDecoder();
 
-                getOpusFileInfo(filePath, &format);
+                getOpusFileInfo(filePath, &format, &channels, &sampleRate, channelMap);
 
-                bool sameFormat = (decoder != NULL && (format == decoder->format));
+                if (decoder != NULL)
+                        ma_libopus_ds_get_data_format(decoder, &nFormat, &nChannels, &nSampleRate, nChannelMap, MA_MAX_CHANNELS);
+
+                bool sameFormat = (decoder != NULL && (format == decoder->format &&
+                                                       channels == nChannels &&
+                                                       sampleRate == nSampleRate));
 
                 if (sameFormat && currentImplementation == OPUS)
                 {
@@ -286,7 +280,7 @@ void switchAudioImplementation()
                         setCurrentImplementationType(OPUS);
                         return;
                 }
-                setCurrentImplementationType(OPUS);                
+                setCurrentImplementationType(OPUS);
                 resetDecoders();
                 resetVorbisDecoders();
                 resetOpusDecoders();
@@ -298,11 +292,22 @@ void switchAudioImplementation()
                 ma_uint32 sampleRate;
                 ma_uint32 channels;
                 ma_format format;
+                ma_channel channelMap[MA_MAX_CHANNELS];
+
+                ma_uint32 nSampleRate;
+                ma_uint32 nChannels;
+                ma_format nFormat;
+                ma_channel nChannelMap[MA_MAX_CHANNELS];
                 ma_libvorbis *decoder = getCurrentVorbisDecoder();
 
-                getVorbisFileInfo(filePath, &format);
+                getVorbisFileInfo(filePath, &format, &channels, &sampleRate, channelMap);
 
-                bool sameFormat = (decoder != NULL && (format == decoder->format));
+                if (decoder != NULL)
+                        ma_libvorbis_ds_get_data_format(decoder, &nFormat, &nChannels, &nSampleRate, nChannelMap, MA_MAX_CHANNELS);
+
+                bool sameFormat = (decoder != NULL && (format == decoder->format &&
+                                                       channels == nChannels &&
+                                                       sampleRate == nSampleRate));
 
                 if (sameFormat && currentImplementation == VORBIS)
                 {
@@ -326,7 +331,7 @@ void switchAudioImplementation()
                         setCurrentImplementationType(PCM);
                         return;
                 }
-                setCurrentImplementationType(PCM);                
+                setCurrentImplementationType(PCM);
                 resetDecoders();
                 resetVorbisDecoders();
                 resetOpusDecoders();

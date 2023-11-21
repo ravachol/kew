@@ -147,9 +147,9 @@ ma_libopus *getFirstOpusDecoder();
 
 ma_libvorbis *getFirstVorbisDecoder();
 
-void getVorbisFileInfo(const char *filename, ma_format *format);
+void getVorbisFileInfo(const char *filename, ma_format *format, ma_uint32*channels, ma_uint32 *sampleRate, ma_channel *channelMap);
 
-void getOpusFileInfo(const char *filename, ma_format *format);
+void getOpusFileInfo(const char *filename, ma_format *format, ma_uint32*channels, ma_uint32 *sampleRate, ma_channel *channelMap);
 
 ma_libvorbis *getCurrentVorbisDecoder();
 

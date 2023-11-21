@@ -387,7 +387,6 @@ void getConfig()
 void setConfig()
 {
         // Create the file path
-        struct passwd *pw = getpwuid(getuid());
         const char *configdir = getConfigPath();
 
         char *filepath = (char *)malloc(strlen(configdir) + strlen("/") + strlen(NEW_SETTINGS_FILE) + 1);
