@@ -701,7 +701,9 @@ void cleanupOnExit()
 #ifdef DEBUG
         fclose(logFile);
 #endif
-        freopen("/dev/stderr", "w", stderr);
+        if (freopen("/dev/stderr", "w", stderr) == NULL) {
+                perror("freopen error");
+        }
 }
 
 void run()

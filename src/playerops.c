@@ -77,7 +77,7 @@ void emitMetadataChanged(const gchar *title, const gchar *artist, const gchar *a
         g_variant_builder_init(&metadata_builder, G_VARIANT_TYPE_DICTIONARY);
         g_variant_builder_add(&metadata_builder, "{sv}", "xesam:title", g_variant_new_string(title));
 
-        // Build list os strings for artist
+        // Build list of strings for artist
         const gchar *artistList[2];
         if (artist)
         {

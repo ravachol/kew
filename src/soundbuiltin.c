@@ -60,8 +60,6 @@ static ma_result builtin_file_data_source_get_cursor(ma_data_source *pDataSource
 
 static ma_result builtin_file_data_source_get_length(ma_data_source *pDataSource, ma_uint64 *pLength)
 {
-    PCMFileDataSource *pPCMDataSource = (PCMFileDataSource *)pDataSource;
-
     ma_uint64 totalFrames = 0;
 
     if (getCurrentDecoder() == NULL)
@@ -156,9 +154,7 @@ void builtin_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_u
 
                 ma_result result = ma_data_source_read_pcm_frames(firstDecoder, (ma_int32 *)pFramesOut + framesRead * decoder->outputChannels, remainingFrames, &framesToRead);
 
-                ma_uint64 length;
-                ma_uint64 cursor;
-                
+                ma_uint64 cursor;                
                 result = ma_data_source_get_cursor_in_pcm_frames(decoder, &cursor);
 
                 if (((cursor != 0 && cursor >= pPCMDataSource->totalFrames) || framesToRead == 0 || isSkipToNext() || result != MA_SUCCESS) && !isEOFReached())

@@ -5,7 +5,7 @@
 metadata.c
 
  Functions for extracting tags from audio metadata.
- 
+
 */
 #ifndef MAXPATHLEN
 #define MAXPATHLEN 4096
@@ -27,7 +27,8 @@ void turnFilePathIntoTitle(const char *filePath, char *title)
         char *lastDot = strrchr(filePath, '.');
         if (lastSlash != NULL && lastDot != NULL && lastDot > lastSlash)
         {
-                snprintf(title, sizeof(title), "%s", lastSlash + 1);
+                size_t maxSize = sizeof(title) - 1; // Reserve space for null terminator
+                snprintf(title, maxSize, "%s", lastSlash + 1);
                 memcpy(title, lastSlash + 1, lastDot - lastSlash - 1); // Copy up to dst_size - 1 bytes
                 title[lastDot - lastSlash - 1] = '\0';
                 trim(title);
@@ -91,7 +92,13 @@ int extractTags(const char *input_file, TagSettings *tag_settings)
         {
                 char title[MAXPATHLEN];
                 turnFilePathIntoTitle(input_file, title);
-                snprintf(tag_settings->title, sizeof(tag_settings->title), "%s", title);
+                title[sizeof(tag_settings->title) - 1] = '\0';
+
+                // Copy the truncated title to tag_settings->title
+                strncpy(tag_settings->title, title, sizeof(tag_settings->title) - 1);
+
+                // Ensure null-termination
+                tag_settings->title[sizeof(tag_settings->title) - 1] = '\0';
         }
         // Close the pipe
         pclose(pipe);
