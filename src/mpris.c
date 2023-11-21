@@ -88,12 +88,7 @@ const gchar *introspection_xml =
     "  </interface>\n"
     "</node>\n";
 
-static gboolean canRaise = FALSE;
-static gboolean canQuit = TRUE;
-static gboolean hasTrackList = FALSE;
 static const gchar *identity = "kew";
-static const gchar *supportedUriSchemes[] = {"file", "http", NULL};
-static const gchar *supportedMimeTypes[] = {"audio/mpeg", "audio/ogg", NULL};
 static const gchar *desktopIconName = ""; // Without file extension
 static const gchar *desktopEntry = "";    // The name of your .desktop file
 
@@ -104,39 +99,12 @@ static void handle_raise(GDBusConnection *connection, const gchar *sender,
 {
 }
 
-static gboolean get_can_raise(GDBusConnection *connection, const gchar *sender,
-                              const gchar *object_path, const gchar *interface_name,
-                              const gchar *property_name, GVariant **value,
-                              GError **error, gpointer user_data)
-{
-        *value = g_variant_new_boolean(canRaise);
-        return TRUE;
-}
-
 static void handle_quit(GDBusConnection *connection, const gchar *sender,
                         const gchar *object_path, const gchar *interface_name,
                         const gchar *method_name, GVariant *parameters,
                         GDBusMethodInvocation *invocation, gpointer user_data)
 {
         quit();
-}
-
-static gboolean get_can_quit(GDBusConnection *connection, const gchar *sender,
-                             const gchar *object_path, const gchar *interface_name,
-                             const gchar *property_name, GVariant **value,
-                             GError **error, gpointer user_data)
-{
-        *value = g_variant_new_boolean(canQuit);
-        return TRUE;
-}
-
-static gboolean get_has_track_list(GDBusConnection *connection, const gchar *sender,
-                                   const gchar *object_path, const gchar *interface_name,
-                                   const gchar *property_name, GVariant **value,
-                                   GError **error, gpointer user_data)
-{
-        *value = g_variant_new_boolean(hasTrackList);
-        return TRUE;
 }
 
 static gboolean get_identity(GDBusConnection *connection, const gchar *sender,
@@ -163,24 +131,6 @@ static gboolean get_desktop_icon_name(GDBusConnection *connection, const gchar *
                                       GError **error, gpointer user_data)
 {
         *value = g_variant_new_string(desktopIconName);
-        return TRUE;
-}
-
-static gboolean get_supported_uri_schemes(GDBusConnection *connection, const gchar *sender,
-                                          const gchar *object_path, const gchar *interface_name,
-                                          const gchar *property_name, GVariant **value,
-                                          GError **error, gpointer user_data)
-{
-        *value = g_variant_new_strv(supportedUriSchemes, -1);
-        return TRUE;
-}
-
-static gboolean get_supported_mime_types(GDBusConnection *connection, const gchar *sender,
-                                         const gchar *object_path, const gchar *interface_name,
-                                         const gchar *property_name, GVariant **value,
-                                         GError **error, gpointer user_data)
-{
-        *value = g_variant_new_strv(supportedMimeTypes, -1);
         return TRUE;
 }
 
@@ -247,13 +197,6 @@ static void handle_set_position(GDBusConnection *connection, const gchar *sender
                                 const gchar *object_path, const gchar *interface_name,
                                 const gchar *method_name, GVariant *parameters,
                                 GDBusMethodInvocation *invocation, gpointer user_data)
-{
-}
-
-static void handle_open_uri(GDBusConnection *connection, const gchar *sender,
-                            const gchar *object_path, const gchar *interface_name,
-                            const gchar *method_name, GVariant *parameters,
-                            GDBusMethodInvocation *invocation, gpointer user_data)
 {
 }
 

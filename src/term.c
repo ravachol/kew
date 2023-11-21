@@ -326,7 +326,7 @@ int readInputSequence(char *seq, size_t seqSize)
                 return 0;
 
         bytesRead = read(STDIN_FILENO, seq, 2);
-        if (bytesRead <= 0 & seq[0] == '\0')
+        if ((bytesRead <= 0) & (seq[0] == '\0'))
         {
                 seq[0] = '\0';
                 return 0;

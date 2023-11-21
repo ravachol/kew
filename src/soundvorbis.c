@@ -77,7 +77,6 @@ void vorbis_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_ui
                 // Read from the current decoder
                 ma_uint64 framesToRead = 0;
                 ma_result result;
-                ma_uint64 length;
                 ma_uint64 remainingFrames = frameCount - framesRead;
                 result = ma_data_source_read_pcm_frames(getFirstVorbisDecoder(), (ma_int32 *)pFramesOut + framesRead * pPCMDataSource->channels, remainingFrames, &framesToRead);
 

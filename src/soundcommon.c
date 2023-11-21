@@ -439,7 +439,6 @@ void prepareNextDecoder(char *filepath)
 
         uninitPreviousDecoder();
 
-        ma_decoder_config config = ma_decoder_config_init(ma_format_s24, 2, 192000);
         ma_decoder *decoder = (ma_decoder *)malloc(sizeof(ma_decoder));
         ma_decoder_init_file(filepath, NULL, decoder);
 
@@ -448,22 +447,25 @@ void prepareNextDecoder(char *filepath)
                 ma_data_source_set_next(currentDecoder, decoder);
 }
 
-void getVorbisFileInfo(const char *filename, ma_format *format)
+void getVorbisFileInfo(const char *filename, ma_format *format, ma_uint32 *channels, ma_uint32 *sampleRate, ma_channel *channelMap)
 {
         ma_libvorbis decoder;
         if (ma_libvorbis_init_file(filename, NULL, NULL, &decoder) == MA_SUCCESS)
         {
                 *format = decoder.format;
+                ma_libvorbis_get_data_format(&decoder, format, channels, sampleRate, channelMap, MA_MAX_CHANNELS);
                 ma_libvorbis_uninit(&decoder, NULL);
         }
 }
 
-void getOpusFileInfo(const char *filename, ma_format *format)
+void getOpusFileInfo(const char *filename, ma_format *format, ma_uint32 *channels, ma_uint32 *sampleRate, ma_channel *channelMap)
 {
         ma_libopus decoder;
+       
         if (ma_libopus_init_file(filename, NULL, NULL, &decoder) == MA_SUCCESS)
         {
                 *format = decoder.format;
+                ma_libopus_get_data_format(&decoder, format, channels, sampleRate, channelMap, MA_MAX_CHANNELS);
                 ma_libopus_uninit(&decoder, NULL);
         }
 }
@@ -697,12 +699,10 @@ void executeSwitch(PCMFileDataSource *pPCMDataSource)
         switchDecoder();
         switchOpusDecoder();
         switchVorbisDecoder();
-        ma_uint64 length = 0;
 
         pPCMDataSource->totalFrames = 0;
 
         // Close the current file, and open the new one
-        FILE *previousFile;
         char *currentFilename;
         SongData *currentSongData;
 

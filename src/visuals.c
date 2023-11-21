@@ -6,10 +6,10 @@
 
 #define MAGNITUDE_FLOOR_FRACTION 0.4
 #ifndef MAX_BUFFER_SIZE
-#define MAX_BUFFER_SIZE 3600
+#define MAX_BUFFER_SIZE 4800
 #endif
 
-int bufferSize = 3600;
+int bufferSize = 4800;
 float magnitudeCeil = 120;
 float alpha = 0.2;
 float lastMax = 60;
