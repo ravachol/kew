@@ -163,9 +163,13 @@ ma_libvorbis *getFirstVorbisDecoder();
 
 void getFileInfo(const char* filename, ma_uint32* sampleRate, ma_uint32* channels, ma_format* format);
 
+void initAudioBuffer();
+
 ma_int32 *getAudioBuffer();
 
 void setAudioBuffer(ma_int32 *buf);
+
+void resetAudioBuffer();
 
 void freeAudioBuffer();
 
