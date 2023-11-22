@@ -1,7 +1,5 @@
 
 # kew
-[![Arch package](https://img.shields.io/aur/version/kew-git?color=1793d1&label=arch&logo=arch-linux&style=for-the-badge)](https://aur.archlinux.org/packages/kew-git)
-[![Debian package](https://img.shields.io/debian/v/kew/sid?color=red&label=debian&logo=debian&style=for-the-badge)](https://packages.debian.org/sid/kew)
 [![GitHub license](https://img.shields.io/github/license/ravachol/kew?color=333333&style=for-the-badge)](https://github.com/ravachol/kew/blob/master/LICENSE)
 
 Listen to music in the terminal.
@@ -13,9 +11,9 @@ Listen to music in the terminal.
 kew (/kjuː/) is a command-line music player for Linux.
 
 ## Features
- 
+
  * Search a music library with partial titles.
- * Creates a playlist based on a matched directory. 
+ * Creates a playlist based on a matched directory.
  * Display album covers as ASCII art or as a normal image.
  * Control the player with previous, next and pause.
  * Has gapless playback (between files of the same format and type) and supports 24-bit audio.
@@ -31,11 +29,11 @@ Had to rename cue to kew to resolve a name conflict. The meaning and pronounciat
 
 ## Reviews
 
-kew was reviewed by Linuxlinks.com: 
+kew was reviewed by Linuxlinks.com:
 
-https://www.linuxlinks.com/cue-command-line-music-player-gapless-playback/ 
+https://www.linuxlinks.com/cue-command-line-music-player-gapless-playback/
 
-And Tecmint.com: 
+And Tecmint.com:
 
 https://www.tecmint.com/command-line-music-players-for-linux/
 
@@ -44,12 +42,14 @@ Thank you!
 
 ## Installing
 
+<a href="https://repology.org/project/kew/versions"><img src="https://repology.org/badge/vertical-allrepos/kew.svg" alt="Packaging status" align="right"></a>
+
 ### Installing on Debian
 
 Under Debian Sid/Unstable you can run:
 
 ```bash
-sudo apt install kew
+$ sudo apt install kew
 ```
 
 ### Installing via AUR
@@ -57,7 +57,15 @@ sudo apt install kew
 On Arch Linux, and Arch-based distributions, kew can be found in the AUR. Install with pamac or an AUR helper like yay:
 
 ```bash
-yay kew-git
+$ yay kew-git
+```
+
+### Installing via Brew
+
+For [Homebrew](https://brew.sh/) user, you can install [kew](https://formulae.brew.sh/formula/kew) with:
+
+```bash
+$ brew install kew
 ```
 
 ### Installing with quick install script
@@ -78,8 +86,8 @@ kew dependencies are:
 * FFTW
 * Chafa
 * FreeImage
-* libopus 
-* opusfile 
+* libopus
+* opusfile
 * libvorbis
 * glib2.0 and AVFormat. These should be installed with the others, if not install them.
 
@@ -180,7 +188,7 @@ kew . loads kew.m3u
 Put single-quotes inside quotes "guns n' roses"
 
 #### Key Bindings
-* Use <kbd>+</kbd>, <kbd>-</kbd> keys to adjust the volume. 
+* Use <kbd>+</kbd>, <kbd>-</kbd> keys to adjust the volume.
 * Use <kbd>←</kbd>, <kbd>→</kbd> or <kbd>h</kbd>, <kbd>l</kbd> keys to switch tracks.
 * <kbd>Space</kbd>, <kbd>P</kbd> to toggle pause.
 * <kbd>F2</kbd> to show/hide the playlist and information about kew.
