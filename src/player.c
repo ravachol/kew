@@ -40,6 +40,9 @@ bool printKeyBindings = false;
 bool showList = true;
 bool resetPlaylistDisplay = true;
 bool useProfileColors = true;
+bool hasPrintedPaused = false;
+bool fastForwarding = false;
+bool rewinding = false;
 int numProgressBars = 15;
 int elapsedBars = 0;
 int chosenRow = 0;
@@ -424,6 +427,8 @@ void printGlimmeringText(char *text, PixelData color)
 
 void printLastRow()
 {
+        bool nerdFonts = true;
+
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
         if (term_w < minWidth)
@@ -431,24 +436,71 @@ void printLastRow()
         setTextColorRGB(bgColor.r, bgColor.g, bgColor.b);
 
         char text[100] = " [F2 Playlist] [F3 Keys] [Q Quit]";
+        char text2[100] = " [F2 Playlist] [F3 Keys] [Q Quit]";
 
-        if (isRepeatEnabled())
+        if (printf(" \uf28b ") < 0)
+                nerdFonts = false;
+
+        printf("\r");
+
+        if (nerdFonts)
         {
-                char repeatText[] = " R";
-                strcat(text, repeatText);
+                if (isPaused())
+                {
+                        char pauseText[] = " \uf04c";
+                        strcat(text, pauseText);
+                }
+                else
+                {
+                        char playText[] = " \uf04b";
+                        strcat(text, playText);
+                }
+                
+
+                if (isRepeatEnabled())
+                {
+                        char repeatText[] = " \uf01e";
+                        strcat(text, repeatText);
+                }
+
+                if (isShuffleEnabled())
+                {
+                        char shuffleText[] = " \uf074";
+                        strcat(text, shuffleText);
+                }
+
+                if (fastForwarding)
+                {
+                        char forwardText[] = " \uf04e";
+                        strcat(text, forwardText);
+                }
+
+                if (rewinding)
+                {
+                        char rewindText[] = " \uf04a";
+                        strcat(text, rewindText);                        
+                }                
         }
-
-        if (isShuffleEnabled())
+        else
         {
-                char shuffleText[] = " S";
-                strcat(text, shuffleText);
+                if (isRepeatEnabled())
+                {
+                        char repeatText[] = " R";
+                        strcat(text, repeatText);
+                }
+
+                if (isShuffleEnabled())
+                {
+                        char shuffleText[] = " S";
+                        strcat(text, shuffleText);
+                }
         }
 
         printf("\033[K"); // clear the line
 
         int randomNumber = getRandomNumber(1, 808);
         if (randomNumber == 808)
-                printGlimmeringText(text, bgColor);
+                printGlimmeringText(text2, bgColor);
         else
         {
                 printBlankSpaces(indent);
@@ -841,7 +893,7 @@ void calcIndent(SongData *songdata)
 
 int printPlayer(SongData *songdata, double elapsedSeconds, PlayList *playlist)
 {
-        if (!uiEnabled || isPaused())
+        if (!uiEnabled || (hasPrintedPaused && isPaused()))
         {
                 return 0;
         }
@@ -894,6 +946,7 @@ int printPlayer(SongData *songdata, double elapsedSeconds, PlayList *playlist)
         }
         refresh = false;
         fflush(stdout);
+        hasPrintedPaused = true;
         return 0;
 }
 

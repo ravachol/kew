@@ -21,6 +21,7 @@ extern bool printInfo;
 extern bool printKeyBindings;
 extern bool visualizerEnabled;
 extern bool useThemeColors;
+extern bool hasPrintedPaused;
 extern int numProgressBars;
 extern int elapsed;
 extern int chosenSong;
@@ -28,7 +29,8 @@ extern bool resetPlaylistDisplay;
 extern int visualizerHeight;
 extern volatile bool refresh;
 extern TagSettings metadata;
-
+extern bool fastForwarding;
+extern bool rewinding;
 extern double elapsedSeconds;
 extern double pauseSeconds;
 extern double totalPauseSeconds;

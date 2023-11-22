@@ -291,6 +291,7 @@ void seekForward()
                 float step = 100 / numProgressBars;
                 seekAccumulatedSeconds += step * duration / 100.0;
         }
+        fastForwarding = true;
 }
 
 void seekBack()
@@ -298,10 +299,11 @@ void seekBack()
         if (duration != 0.0)
         {
                 float step = 100 / numProgressBars;
-                if (elapsedSeconds + seekAccumulatedSeconds < 0.0)
+                if (elapsedSeconds + getSeekElapsed() + seekAccumulatedSeconds < 0.0)
                         return;
                 seekAccumulatedSeconds -= step * duration / 100.0;
         }
+        rewinding = true;
 }
 
 Node *getSongByNumber(int songNumber)

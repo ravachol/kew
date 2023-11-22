@@ -157,7 +157,7 @@ void builtin_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_u
                 ma_uint64 cursor;                
                 result = ma_data_source_get_cursor_in_pcm_frames(decoder, &cursor);
 
-                if (((cursor != 0 && cursor >= pPCMDataSource->totalFrames) || framesToRead == 0 || isSkipToNext() || result != MA_SUCCESS) && !isEOFReached())
+                if (((pPCMDataSource->totalFrames != 0 && cursor != 0 && cursor >= pPCMDataSource->totalFrames) || framesToRead == 0 || isSkipToNext() || result != MA_SUCCESS) && !isEOFReached())
                 {
                         activateSwitch(pPCMDataSource);
                         continue;
