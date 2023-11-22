@@ -453,11 +453,6 @@ void printLastRow()
                         char pauseText[] = " \uf04c";
                         strcat(nerdFontText, pauseText);
                 }
-                else
-                {
-                        char playText[] = " \uf04b";
-                        strcat(nerdFontText, playText);
-                }
 
                 if (isRepeatEnabled())
                 {
