@@ -633,6 +633,7 @@ void pausePlayback()
                 ma_device_stop(&device);
                 paused = true;
         }
+        hasPrintedPaused = false;
 }
 
 void cleanupPlaybackDevice()
@@ -651,6 +652,7 @@ void togglePausePlayback()
         {
                 ma_device_stop(&device);
                 paused = true;
+                hasPrintedPaused = false;
         }
         else if (paused)
         {

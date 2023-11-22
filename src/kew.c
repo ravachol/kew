@@ -526,6 +526,8 @@ void handleInput()
                 toggleShowPlaylist();
                 break;
         default:
+                fastForwarding = false;
+                rewinding = false;
                 break;
         }
         eventProcessed = false;
