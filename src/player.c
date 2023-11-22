@@ -726,7 +726,7 @@ int showPlaylist()
                                 else
                                         printf("\033[1;38;2;%03u;%03u;%03um", textColor.r, textColor.g, textColor.b);
                         }
-                        shortenString(copiedString, term_w - 6 - indent);
+                        shortenString(copiedString, term_w - 7 - indent);
                         trim(copiedString);
 
                         if (i + 1 < 10)

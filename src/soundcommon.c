@@ -480,6 +480,19 @@ void setBufferSize(int value)
         bufSize = value;
 }
 
+void initAudioBuffer()
+{
+        if (audioBuffer == NULL)
+        {
+                audioBuffer = malloc(sizeof(ma_int32) * MAX_BUFFER_SIZE);
+                if (audioBuffer == NULL)
+                {
+                        // Memory allocation failed
+                        return;
+                }
+        }        
+}
+
 ma_int32 *getAudioBuffer()
 {
         return audioBuffer;
@@ -488,6 +501,11 @@ ma_int32 *getAudioBuffer()
 void setAudioBuffer(ma_int32 *buf)
 {
         audioBuffer = buf;
+}
+
+void resetAudioBuffer()
+{
+        memset(audioBuffer, 0, sizeof(float) * MAX_BUFFER_SIZE);        
 }
 
 void freeAudioBuffer()

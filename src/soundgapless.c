@@ -247,6 +247,7 @@ void switchAudioImplementation()
                         resetDecoders();
                         resetVorbisDecoders();
                         resetOpusDecoders();
+                        resetAudioBuffer();
                         cleanupPlaybackDevice();
                         builtin_createAudioDevice(g_userData, getDevice(), &context, &builtin_file_data_source_vtable);
                 }
@@ -284,6 +285,7 @@ void switchAudioImplementation()
                 resetDecoders();
                 resetVorbisDecoders();
                 resetOpusDecoders();
+                resetAudioBuffer();
                 cleanupPlaybackDevice();
                 opus_createAudioDevice(g_userData, getDevice(), &context, &pcm_file_data_source_vtable);
         }
@@ -320,6 +322,7 @@ void switchAudioImplementation()
                 resetDecoders();
                 resetVorbisDecoders();
                 resetOpusDecoders();
+                resetAudioBuffer();
                 cleanupPlaybackDevice();
                 vorbis_createAudioDevice(g_userData, getDevice(), &context, &pcm_file_data_source_vtable);
         }
@@ -335,6 +338,7 @@ void switchAudioImplementation()
                 resetDecoders();
                 resetVorbisDecoders();
                 resetOpusDecoders();
+                resetAudioBuffer();
                 cleanupPlaybackDevice();
                 pcm_createAudioDevice(g_userData, getDevice(), &context, &pcm_file_data_source_vtable);
         }
