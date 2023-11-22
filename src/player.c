@@ -386,12 +386,11 @@ int getRandomNumber(int min, int max)
         return min + rand() % (max - min + 1);
 }
 
-void printGlimmeringText(char *text, PixelData color)
+void printGlimmeringText(char *text, char *nerdFontText, PixelData color)
 {
         int textLength = strlen(text);
         int brightIndex = 0;
-
-        PixelData vbright = increaseLuminosity(color, 160);
+        PixelData vbright = increaseLuminosity(color, 120);
         PixelData bright = increaseLuminosity(color, 60);
 
         printBlankSpaces(indent);
@@ -419,6 +418,10 @@ void printGlimmeringText(char *text, PixelData color)
                         fflush(stdout);
                         c_usleep(50);
                 }
+                printf("%s", nerdFontText);
+                fflush(stdout);
+                c_usleep(50);
+
                 brightIndex++;
                 printf("\r");
                 printBlankSpaces(indent);
@@ -436,7 +439,7 @@ void printLastRow()
         setTextColorRGB(bgColor.r, bgColor.g, bgColor.b);
 
         char text[100] = " [F2 Playlist] [F3 Keys] [Q Quit]";
-        char text2[100] = " [F2 Playlist] [F3 Keys] [Q Quit]";
+        char nerdFontText[100] = "";
 
         if (printf(" \uf28b ") < 0)
                 nerdFonts = false;
@@ -448,38 +451,37 @@ void printLastRow()
                 if (isPaused())
                 {
                         char pauseText[] = " \uf04c";
-                        strcat(text, pauseText);
+                        strcat(nerdFontText, pauseText);
                 }
                 else
                 {
                         char playText[] = " \uf04b";
-                        strcat(text, playText);
+                        strcat(nerdFontText, playText);
                 }
-                
 
                 if (isRepeatEnabled())
                 {
                         char repeatText[] = " \uf01e";
-                        strcat(text, repeatText);
+                        strcat(nerdFontText, repeatText);
                 }
 
                 if (isShuffleEnabled())
                 {
                         char shuffleText[] = " \uf074";
-                        strcat(text, shuffleText);
+                        strcat(nerdFontText, shuffleText);
                 }
 
                 if (fastForwarding)
                 {
                         char forwardText[] = " \uf04e";
-                        strcat(text, forwardText);
+                        strcat(nerdFontText, forwardText);
                 }
 
                 if (rewinding)
                 {
                         char rewindText[] = " \uf04a";
-                        strcat(text, rewindText);                        
-                }                
+                        strcat(nerdFontText, rewindText);
+                }
         }
         else
         {
@@ -500,11 +502,12 @@ void printLastRow()
 
         int randomNumber = getRandomNumber(1, 808);
         if (randomNumber == 808)
-                printGlimmeringText(text2, bgColor);
+                printGlimmeringText(text, nerdFontText, bgColor);
         else
         {
                 printBlankSpaces(indent);
                 printf("%s", text);
+                printf("%s", nerdFontText);
         }
 }
 
