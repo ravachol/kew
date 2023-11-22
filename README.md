@@ -89,6 +89,7 @@ kew dependencies are:
 * libopus
 * opusfile
 * libvorbis
+* pkg-config
 * glib2.0 and AVFormat. These should be installed with the others, if not install them.
 
 Install FFmpeg, FFTW, Chafa and FreeImage using your distro's package manager. For instance:
