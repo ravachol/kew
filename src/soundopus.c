@@ -37,6 +37,9 @@ void opus_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_uint
                 if (doQuit)
                         return;
 
+                if (isImplSwitchReached())
+                        return;
+
                 // Check if a file switch is required
                 if (pPCMDataSource->switchFiles)
                 {
@@ -57,7 +60,7 @@ void opus_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_uint
                 {
                         ma_uint64 totalFrames = 0;
                         ma_libopus_get_length_in_pcm_frames(decoder, &totalFrames);
-                        ma_uint64 seekPercent = getSeekPercentage(); 
+                        ma_uint64 seekPercent = getSeekPercentage();
                         if (seekPercent >= 100.0)
                                 seekPercent = 100.0;
                         ma_uint64 targetFrame = (totalFrames * seekPercent) / 100;
@@ -78,7 +81,8 @@ void opus_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_uint
                 ma_uint64 framesToRead = 0;
                 ma_result result;
                 ma_uint64 remainingFrames = frameCount - framesRead;
-                result = ma_data_source_read_pcm_frames(getFirstOpusDecoder(), (ma_int32 *)pFramesOut + framesRead * pPCMDataSource->channels, remainingFrames, &framesToRead);
+                ma_decoder *firstDecoder = getFirstOpusDecoder();
+                result = ma_data_source_read_pcm_frames(firstDecoder, (ma_int32 *)pFramesOut + framesRead * pPCMDataSource->channels, remainingFrames, &framesToRead);
 
                 ma_uint64 cursor;
 

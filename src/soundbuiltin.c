@@ -105,7 +105,10 @@ void builtin_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_u
 
         while (framesRead < frameCount)
         {
-                ma_uint64 remainingFrames = frameCount - framesRead;                
+                ma_uint64 remainingFrames = frameCount - framesRead; 
+
+                if (isImplSwitchReached())
+                        return;                               
 
                 if (pPCMDataSource == NULL)
                         return;
@@ -129,8 +132,7 @@ void builtin_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_u
 
                 if (isSeekRequested())
                 {
-                        ma_uint64 totalFrames = 0;
-                        ma_decoder_get_length_in_pcm_frames(decoder, &totalFrames);
+                        ma_uint64 totalFrames = pPCMDataSource->totalFrames;
                         ma_uint64 seekPercent = getSeekPercentage();
                         if (seekPercent >= 100.0)
                                 seekPercent = 100.0;                           
