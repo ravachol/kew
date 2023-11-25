@@ -81,7 +81,7 @@ void opus_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_uint
                 ma_uint64 framesToRead = 0;
                 ma_result result;
                 ma_uint64 remainingFrames = frameCount - framesRead;
-                ma_decoder *firstDecoder = getFirstOpusDecoder();
+                ma_libopus *firstDecoder = getFirstOpusDecoder();
                 result = ma_data_source_read_pcm_frames(firstDecoder, (ma_int32 *)pFramesOut + framesRead * pPCMDataSource->channels, remainingFrames, &framesToRead);
 
                 ma_uint64 cursor;
