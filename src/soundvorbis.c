@@ -39,6 +39,9 @@ void vorbis_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_ui
                 if (doQuit)
                         return;
 
+                if (isImplSwitchReached())
+                        return;
+
                 // Check if a file switch is required
                 if (pPCMDataSource->switchFiles)
                 {
@@ -46,7 +49,7 @@ void vorbis_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_ui
                         break; // Exit the loop after the file switch
                 }
 
-                 if (getCurrentImplementationType() != VORBIS && !isSkipToNext())
+                if (getCurrentImplementationType() != VORBIS && !isSkipToNext())
                         return;
 
                 ma_libvorbis *decoder = getCurrentVorbisDecoder();

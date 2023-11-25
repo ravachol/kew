@@ -36,17 +36,19 @@ ma_result pcm_file_data_source_init(PCMFileDataSource *pPCMDataSource, UserData 
         {
                 prepareNextOpusDecoder(filePath);
                 ma_libopus *first = getFirstOpusDecoder();
-                ma_channel channelMap[MA_MAX_CHANNELS];
-                ma_libopus_ds_get_data_format(first, &pPCMDataSource->format, &pPCMDataSource->channels, &pPCMDataSource->sampleRate, channelMap, MA_MAX_CHANNELS);
+                ma_channel channelMap[MA_MAX_CHANNELS];                
+                ma_libopus_ds_get_data_format(first, &pPCMDataSource->format, &pPCMDataSource->channels, &pPCMDataSource->sampleRate, channelMap, MA_MAX_CHANNELS);                
                 ma_data_source_get_length_in_pcm_frames(first, &pPCMDataSource->totalFrames);
+                first->pReadSeekTellUserData = pPCMDataSource;                
         }
         else if (endsWith(filePath, "ogg"))
         {
                 prepareNextVorbisDecoder(filePath);
                 ma_libvorbis *first = getFirstVorbisDecoder();
-                ma_channel channelMap[MA_MAX_CHANNELS];
+                ma_channel channelMap[MA_MAX_CHANNELS];              
                 ma_libvorbis_ds_get_data_format(first, &pPCMDataSource->format, &pPCMDataSource->channels, &pPCMDataSource->sampleRate, channelMap, MA_MAX_CHANNELS);
                 ma_data_source_get_length_in_pcm_frames(first, &pPCMDataSource->totalFrames);
+                first->pReadSeekTellUserData = pPCMDataSource;                
         }
         else
         {
@@ -101,45 +103,19 @@ void pcm_createAudioDevice(UserData *userData, ma_device *device, ma_context *co
         createDevice(userData, device, context, vtable, pcm_on_audio_frames);
 }
 
-ma_result opus_data_source_init(PCMFileDataSource *pPCMDataSource, ma_libopus *opus, UserData *pUserData)
+ma_result vorbis_data_source_init(PCMFileDataSource *pPCMDataSource, ma_libvorbis *vorbis, char *filePath)
 {
         ma_format format;
         ma_uint32 channels;
         ma_uint32 sampleRate;
         ma_channel channelMap[MA_MAX_CHANNELS];
-        char *filePath = NULL;
-
-        filePath = (pPCMDataSource->currentFileIndex == 0) ? pUserData->songdataA->filePath : pUserData->songdataB->filePath;
-
-        ma_libopus_init_file(filePath, NULL, NULL, opus);
-        ma_libopus_ds_get_data_format(opus, &format, &channels, &sampleRate, channelMap, MA_MAX_CHANNELS);
-        pPCMDataSource->sampleRate = sampleRate;
-        pPCMDataSource->channels = channels;
-        pPCMDataSource->format = format;
-        opus->format = format;
-        opus->onRead = ma_libopus_read_pcm_frames_wrapper;
-        opus->onSeek = ma_libopus_seek_to_pcm_frame_wrapper;
-        opus->onTell = ma_libopus_get_cursor_in_pcm_frames_wrapper;
-        opus->pReadSeekTellUserData = pPCMDataSource;
-
-        return MA_SUCCESS;
-}
-
-ma_result vorbis_data_source_init(PCMFileDataSource *pPCMDataSource, ma_libvorbis *vorbis, UserData *pUserData)
-{
-        ma_format format;
-        ma_uint32 channels;
-        ma_uint32 sampleRate;
-        ma_channel channelMap[MA_MAX_CHANNELS];
-        char *filePath = NULL;
-
-        filePath = (pPCMDataSource->currentFileIndex == 0) ? pUserData->songdataA->filePath : pUserData->songdataB->filePath;
 
         ma_libvorbis_init_file(filePath, NULL, NULL, vorbis);
         ma_libvorbis_ds_get_data_format(vorbis, &format, &channels, &sampleRate, channelMap, MA_MAX_CHANNELS);
         pPCMDataSource->sampleRate = sampleRate;
         pPCMDataSource->channels = channels;
         pPCMDataSource->format = format;
+
         vorbis->format = format;
         vorbis->onRead = ma_libvorbis_read_pcm_frames_wrapper;
         vorbis->onSeek = ma_libvorbis_seek_to_pcm_frame_wrapper;
@@ -152,10 +128,11 @@ ma_result vorbis_data_source_init(PCMFileDataSource *pPCMDataSource, ma_libvorbi
 void vorbis_createAudioDevice(UserData *userData, ma_device *device, ma_context *context, ma_data_source_vtable *vtable)
 {
         ma_result result;
-        ma_libvorbis *vorbis = getVorbis();
 
         pcm_file_data_source_init(&pcmDataSource, userData);
-        vorbis_data_source_init(&pcmDataSource, vorbis, userData);
+        char *filePath = pcmDataSource.currentFileIndex == 0 ? userData->songdataA->filePath : userData->songdataB->filePath;
+        ma_libvorbis *vorbis = getFirstVorbisDecoder();
+        vorbis_data_source_init(&pcmDataSource, vorbis, filePath);
 
         ma_device_config deviceConfig = ma_device_config_init(ma_device_type_playback);
 
@@ -181,13 +158,36 @@ void vorbis_createAudioDevice(UserData *userData, ma_device *device, ma_context 
         }
 }
 
+ma_result opus_data_source_init(PCMFileDataSource *pPCMDataSource, ma_libopus *opus, char *filePath)
+{
+        ma_format format;
+        ma_uint32 channels;
+        ma_uint32 sampleRate;
+        ma_channel channelMap[MA_MAX_CHANNELS];
+
+        ma_libopus_init_file(filePath, NULL, NULL, opus);
+        ma_libopus_ds_get_data_format(opus, &format, &channels, &sampleRate, channelMap, MA_MAX_CHANNELS);
+        pPCMDataSource->sampleRate = sampleRate;
+        pPCMDataSource->channels = channels;
+        pPCMDataSource->format = format;
+
+        opus->format = format;
+        opus->onRead = ma_libopus_read_pcm_frames_wrapper;
+        opus->onSeek = ma_libopus_seek_to_pcm_frame_wrapper;
+        opus->onTell = ma_libopus_get_cursor_in_pcm_frames_wrapper;
+        opus->pReadSeekTellUserData = pPCMDataSource;
+
+        return MA_SUCCESS;
+}
+
 void opus_createAudioDevice(UserData *userData, ma_device *device, ma_context *context, ma_data_source_vtable *vtable)
 {
         ma_result result;
-        ma_libopus *opus = getOpus();
 
         pcm_file_data_source_init(&pcmDataSource, userData);
-        opus_data_source_init(&pcmDataSource, opus, userData);
+        char *filePath = pcmDataSource.currentFileIndex == 0 ? userData->songdataA->filePath : userData->songdataB->filePath;
+        ma_libopus *opus = getFirstOpusDecoder();
+        opus_data_source_init(&pcmDataSource, opus, filePath);        
 
         ma_device_config deviceConfig = ma_device_config_init(ma_device_type_playback);
 
@@ -195,7 +195,7 @@ void opus_createAudioDevice(UserData *userData, ma_device *device, ma_context *c
         deviceConfig.playback.channels = pcmDataSource.channels;
         deviceConfig.sampleRate = pcmDataSource.sampleRate;
         deviceConfig.dataCallback = opus_on_audio_frames;
-        deviceConfig.pUserData = opus;
+        deviceConfig.pUserData = opus;        
 
         result = ma_device_init(context, &deviceConfig, device);
         if (result != MA_SUCCESS)
@@ -220,7 +220,13 @@ void switchAudioImplementation()
         if (g_userData->currentSongData == NULL)
                 return;
 
-        char *filePath = g_userData->currentSongData->filePath;
+        char *filePath = strdup(g_userData->currentSongData->filePath);
+
+        if (filePath == NULL || filePath[0] == '\0' || filePath[0] == '\r')
+        {
+                free(filePath);
+                return;
+        }
 
         if (hasBuiltinDecoder(filePath))
         {
@@ -235,20 +241,16 @@ void switchAudioImplementation()
                                                        channels == decoder->outputChannels &&
                                                        format == decoder->outputFormat));
 
-                if (sameFormat && currentImplementation == BUILTIN)
+                if (isRepeatEnabled() || !(sameFormat && currentImplementation == BUILTIN))
                 {
-                        setEOFNotReached();
-                        setCurrentImplementationType(BUILTIN);
-                        return;
-                }
-                else
-                {
+                        setImplSwitchReached();
                         setCurrentImplementationType(BUILTIN);
                         resetDecoders();
                         resetVorbisDecoders();
                         resetOpusDecoders();
                         resetAudioBuffer();
                         cleanupPlaybackDevice();
+                        setImplSwitchNotReached();                        
                         builtin_createAudioDevice(g_userData, getDevice(), &context, &builtin_file_data_source_vtable);
                 }
         }
@@ -274,20 +276,22 @@ void switchAudioImplementation()
                                                        channels == nChannels &&
                                                        sampleRate == nSampleRate));
 
-                if (sameFormat && currentImplementation == OPUS)
+                if (!isRepeatEnabled() && (sameFormat && currentImplementation == OPUS))
                 {
                         ma_data_source_get_length_in_pcm_frames(getCurrentOpusDecoder(), &pcmDataSource.totalFrames);
-                        setEOFNotReached();
-                        setCurrentImplementationType(OPUS);
-                        return;
                 }
-                setCurrentImplementationType(OPUS);
-                resetDecoders();
-                resetVorbisDecoders();
-                resetOpusDecoders();
-                resetAudioBuffer();
-                cleanupPlaybackDevice();
-                opus_createAudioDevice(g_userData, getDevice(), &context, &pcm_file_data_source_vtable);
+                else
+                {
+                        setImplSwitchReached();
+                        setCurrentImplementationType(OPUS);                      
+                        resetDecoders();
+                        resetVorbisDecoders();
+                        resetOpusDecoders();
+                        resetAudioBuffer();
+                        cleanupPlaybackDevice();
+                        setImplSwitchNotReached();
+                        opus_createAudioDevice(g_userData, getDevice(), &context, &pcm_file_data_source_vtable);
+                }
         }
         else if (endsWith(filePath, "ogg"))
         {
@@ -311,38 +315,39 @@ void switchAudioImplementation()
                                                        channels == nChannels &&
                                                        sampleRate == nSampleRate));
 
-                if (sameFormat && currentImplementation == VORBIS)
+                if (!isRepeatEnabled() && (sameFormat && currentImplementation == VORBIS))
                 {
                         ma_data_source_get_length_in_pcm_frames(getCurrentVorbisDecoder(), &pcmDataSource.totalFrames);
-                        setEOFNotReached();
-                        setCurrentImplementationType(VORBIS);
-                        return;
                 }
-                setCurrentImplementationType(VORBIS);
-                resetDecoders();
-                resetVorbisDecoders();
-                resetOpusDecoders();
-                resetAudioBuffer();
-                cleanupPlaybackDevice();
-                vorbis_createAudioDevice(g_userData, getDevice(), &context, &pcm_file_data_source_vtable);
+                else
+                {
+                        setImplSwitchReached();                        
+                        setCurrentImplementationType(VORBIS);
+                        resetDecoders();
+                        resetVorbisDecoders();
+                        resetOpusDecoders();
+                        resetAudioBuffer();
+                        cleanupPlaybackDevice();
+                        setImplSwitchNotReached();                        
+                        vorbis_createAudioDevice(g_userData, getDevice(), &context, &pcm_file_data_source_vtable);
+                }
         }
         else
         {
-                if (currentImplementation == PCM)
+                if (isRepeatEnabled() || currentImplementation != PCM)
                 {
-                        setEOFNotReached();
+                        setImplSwitchReached();
                         setCurrentImplementationType(PCM);
-                        return;
+                        resetDecoders();
+                        resetVorbisDecoders();
+                        resetOpusDecoders();
+                        resetAudioBuffer();
+                        cleanupPlaybackDevice();
+                        setImplSwitchNotReached();                        
+                        pcm_createAudioDevice(g_userData, getDevice(), &context, &pcm_file_data_source_vtable);
                 }
-                setCurrentImplementationType(PCM);
-                resetDecoders();
-                resetVorbisDecoders();
-                resetOpusDecoders();
-                resetAudioBuffer();
-                cleanupPlaybackDevice();
-                pcm_createAudioDevice(g_userData, getDevice(), &context, &pcm_file_data_source_vtable);
         }
-
+        free(filePath);
         setEOFNotReached();
 }
 

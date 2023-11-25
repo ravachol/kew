@@ -12,6 +12,7 @@ bool paused = false;
 float seekPercent = 0.0;
 double seekElapsed;
 _Atomic bool EOFReached = false;
+_Atomic bool switchReached = false;
 ma_device device = {0};
 ma_int32 *audioBuffer = NULL;
 ma_decoder *firstDecoder;
@@ -96,19 +97,16 @@ void resetDecoders()
         if (firstDecoder != NULL)
         {
                 ma_decoder_uninit(firstDecoder);
-                free(firstDecoder);
                 firstDecoder = NULL;
         }
         if (decoders[0] != NULL)
         {
                 ma_decoder_uninit(decoders[0]);
-                free(decoders[0]);
                 decoders[0] = NULL;
         }
         if (decoders[1] != NULL)
         {
                 ma_decoder_uninit(decoders[1]);
-                free(decoders[1]);
                 decoders[1] = NULL;
         }
 }
@@ -324,7 +322,7 @@ void prepareNextVorbisDecoder(char *filepath)
 
         ma_libvorbis_get_data_format(decoder, &nformat, &nchannels, &nsampleRate, nchannelMap, MA_MAX_CHANNELS);
         bool sameFormat = (currentDecoder == NULL || (format == nformat &&
-                                                          channels == nchannels &&
+                                                      channels == nchannels &&
                                                       sampleRate == nsampleRate));
 
         if (!sameFormat)
@@ -333,11 +331,18 @@ void prepareNextVorbisDecoder(char *filepath)
                 free(decoder);
                 return;
         }
-        decoder->format = nformat;
 
+        ma_libvorbis *first = getFirstVorbisDecoder();
+        if (first != NULL)
+        {
+                decoder->pReadSeekTellUserData = (PCMFileDataSource *)first->pReadSeekTellUserData;
+        }
+
+        decoder->format = nformat;
         decoder->onRead = ma_libvorbis_read_pcm_frames_wrapper;
         decoder->onSeek = ma_libvorbis_seek_to_pcm_frame_wrapper;
         decoder->onTell = ma_libvorbis_get_cursor_in_pcm_frames_wrapper;
+
         setNextVorbisDecoder(decoder);
         if (currentDecoder != NULL)
                 ma_data_source_set_next(currentDecoder, decoder);
@@ -374,7 +379,7 @@ void prepareNextOpusDecoder(char *filepath)
 
         ma_libopus_get_data_format(decoder, &nformat, &nchannels, &nsampleRate, nchannelMap, MA_MAX_CHANNELS);
         bool sameFormat = (currentDecoder == NULL || (format == nformat &&
-                                                          channels == nchannels &&
+                                                      channels == nchannels &&
                                                       sampleRate == nsampleRate));
 
         if (!sameFormat)
@@ -384,11 +389,17 @@ void prepareNextOpusDecoder(char *filepath)
                 return;
         }
 
-        decoder->format = nformat;
+        ma_libopus *first = getFirstOpusDecoder();
+        if (first != NULL)
+        {
+                decoder->pReadSeekTellUserData = (PCMFileDataSource *)first->pReadSeekTellUserData;
+        }
 
+        decoder->format = nformat;
         decoder->onRead = ma_libopus_read_pcm_frames_wrapper;
         decoder->onSeek = ma_libopus_seek_to_pcm_frame_wrapper;
         decoder->onTell = ma_libopus_get_cursor_in_pcm_frames_wrapper;
+
         setNextOpusDecoder(decoder);
         if (currentDecoder != NULL)
                 ma_data_source_set_next(currentDecoder, decoder);
@@ -428,8 +439,8 @@ void prepareNextDecoder(char *filepath)
         ma_format format;
         getFileInfo(filepath, &sampleRate, &channels, &format);
 
-        bool sameFormat = (currentDecoder == NULL || (format ==currentDecoder->outputFormat &&
-                                                          channels == currentDecoder->outputChannels &&
+        bool sameFormat = (currentDecoder == NULL || (format == currentDecoder->outputFormat &&
+                                                      channels == currentDecoder->outputChannels &&
                                                       sampleRate == currentDecoder->outputSampleRate));
 
         if (!sameFormat)
@@ -461,7 +472,7 @@ void getVorbisFileInfo(const char *filename, ma_format *format, ma_uint32 *chann
 void getOpusFileInfo(const char *filename, ma_format *format, ma_uint32 *channels, ma_uint32 *sampleRate, ma_channel *channelMap)
 {
         ma_libopus decoder;
-       
+
         if (ma_libopus_init_file(filename, NULL, NULL, &decoder) == MA_SUCCESS)
         {
                 *format = decoder.format;
@@ -490,7 +501,7 @@ void initAudioBuffer()
                         // Memory allocation failed
                         return;
                 }
-        }        
+        }
 }
 
 ma_int32 *getAudioBuffer()
@@ -505,7 +516,7 @@ void setAudioBuffer(ma_int32 *buf)
 
 void resetAudioBuffer()
 {
-        memset(audioBuffer, 0, sizeof(float) * MAX_BUFFER_SIZE);        
+        memset(audioBuffer, 0, sizeof(float) * MAX_BUFFER_SIZE);
 }
 
 void freeAudioBuffer()
@@ -575,6 +586,21 @@ void setEOFReached()
 void setEOFNotReached()
 {
         atomic_store(&EOFReached, false);
+}
+
+bool isImplSwitchReached()
+{
+        return atomic_load(&switchReached) ? true : false;
+}
+
+void setImplSwitchReached()
+{
+        atomic_store(&switchReached, true);
+}
+
+void setImplSwitchNotReached()
+{
+        atomic_store(&switchReached, false);
 }
 
 void skip()
@@ -736,7 +762,7 @@ void executeSwitch(PCMFileDataSource *pPCMDataSource)
                 pPCMDataSource->fileA = (currentFilename != NULL && strcmp(currentFilename, "") != 0) ? fopen(currentFilename, "rb") : NULL;
         }
         else
-        { 
+        {
                 if (pPCMDataSource->fileA != NULL)
                         fclose(pPCMDataSource->fileA);
                 pPCMDataSource->fileA = NULL;

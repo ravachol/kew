@@ -90094,7 +90094,9 @@ static unsigned ma_dr_mp3_hdr_frame_samples(const ma_uint8 *h)
 }
 static int ma_dr_mp3_hdr_frame_bytes(const ma_uint8 *h, int free_format_size)
 {
-    int frame_bytes = ma_dr_mp3_hdr_frame_samples(h)*ma_dr_mp3_hdr_bitrate_kbps(h)*125/ma_dr_mp3_hdr_sample_rate_hz(h);
+    unsigned int sampleRate = ma_dr_mp3_hdr_sample_rate_hz(h);
+    if (sampleRate == 0) return 0;
+    int frame_bytes = ma_dr_mp3_hdr_frame_samples(h)*ma_dr_mp3_hdr_bitrate_kbps(h)*125/sampleRate;
     if (MA_DR_MP3_HDR_IS_LAYER_1(h))
     {
         frame_bytes &= ~3;
@@ -91650,6 +91652,8 @@ static ma_allocation_callbacks ma_dr_mp3_copy_allocation_callbacks_or_defaults(c
 }
 static size_t ma_dr_mp3__on_read(ma_dr_mp3* pMP3, void* pBufferOut, size_t bytesToRead)
 {
+        if (pMP3->pUserData == NULL)
+                return 0;
     size_t bytesRead = pMP3->onRead(pMP3->pUserData, pBufferOut, bytesToRead);
     pMP3->streamCursor += bytesRead;
     return bytesRead;

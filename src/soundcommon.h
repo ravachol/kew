@@ -195,6 +195,12 @@ void setEOFReached();
 
 void setEOFNotReached();
 
+bool isImplSwitchReached();
+
+void setImplSwitchReached();
+
+void setImplSwitchNotReached();
+
 void skip();
 
 bool isPlaybackDone();
