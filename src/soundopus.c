@@ -82,11 +82,21 @@ void opus_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_uint
                 ma_result result;
                 ma_uint64 remainingFrames = frameCount - framesRead;
                 ma_libopus *firstDecoder = getFirstOpusDecoder();
+                              
+                pthread_mutex_lock(&dataSourceMutex);
+
+                if (firstDecoder == NULL)
+                {
+                        return;
+                }
+
                 result = ma_data_source_read_pcm_frames(firstDecoder, (ma_int32 *)pFramesOut + framesRead * pPCMDataSource->channels, remainingFrames, &framesToRead);
 
                 ma_uint64 cursor;
 
                 ma_data_source_get_cursor_in_pcm_frames(decoder, &cursor);
+
+                pthread_mutex_unlock(&dataSourceMutex);
 
                 if (((cursor != 0 && cursor >= pPCMDataSource->totalFrames) || framesToRead == 0 || isSkipToNext() || result != MA_SUCCESS) && !isEOFReached())
                 {

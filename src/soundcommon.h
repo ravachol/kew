@@ -108,6 +108,7 @@ enum AudioImplementation
 };
 
 extern bool doQuit;
+extern pthread_mutex_t dataSourceMutex;
 
 ma_libopus *getOpus();
 

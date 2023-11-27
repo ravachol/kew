@@ -151,6 +151,8 @@ void builtin_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_u
                 ma_uint64 framesToRead = 0;
                 ma_decoder *firstDecoder = getFirstDecoder();
 
+                pthread_mutex_lock(&dataSourceMutex);                        
+
                 if (decoder == NULL || firstDecoder == NULL)
                         return;
 
@@ -158,6 +160,8 @@ void builtin_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_u
 
                 ma_uint64 cursor;                
                 result = ma_data_source_get_cursor_in_pcm_frames(decoder, &cursor);
+
+                pthread_mutex_unlock(&dataSourceMutex);
 
                 if (((pPCMDataSource->totalFrames != 0 && cursor != 0 && cursor >= pPCMDataSource->totalFrames) || framesToRead == 0 || isSkipToNext() || result != MA_SUCCESS) && !isEOFReached())
                 {
