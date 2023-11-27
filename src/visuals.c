@@ -119,7 +119,7 @@ void updateMagnitudes(int height, int width, float maxMagnitude, float *magnitud
         int beat = detectBeats(magnitudes, width);
         if (beat > 0)
         {
-               jumpFactor = jumpAmount;
+                jumpFactor = jumpAmount;
         }
 
         for (int i = 0; i < width; i++)
@@ -130,7 +130,8 @@ void updateMagnitudes(int height, int width, float maxMagnitude, float *magnitud
                 {
                         exponent = 2.0;
                 }
-                else {
+                else
+                {
                         exponent = 1.0;
                 }
                 float normalizedMagnitude = magnitudes[i] / maxMagnitude;
@@ -182,7 +183,7 @@ void calc(int height, int numBars, ma_int32 *audioBuffer, int bitDepth, fftwf_co
         int j = 0;
 
         for (int i = 0; i < bufferSize; i++)
-        {                
+        {
                 ma_int32 sample = audioBuffer[i];
 
                 float normalizedSample;
@@ -224,12 +225,12 @@ void calc(int height, int numBars, ma_int32 *audioBuffer, int bitDepth, fftwf_co
                 {
                         // Unsupported bit depth
                         return;
-                }                
+                }
 
                 if (bitDepth == 32)
                 {
                         if (i % 3 != 0)
-                        {                                
+                        {
                                 continue;
                         }
                 }
@@ -292,7 +293,7 @@ void calcSpectrum(int height, int numBars, fftwf_complex *fftInput, fftwf_comple
                 case ma_format_s24:
                         bitDepth = 24;
                         break;
-                
+
                 case ma_format_f32:
                 case ma_format_s32:
                         bitDepth = 32;
@@ -354,17 +355,27 @@ void printSpectrum(int height, int width, float *magnitudes, PixelData color)
                 {
                         setDefaultTextColor();
                 }
-                for (int i = 0; i < width; i++)
+                if (isPaused())
                 {
-                        if (j >= 0)
+                        for (int i = 0; i < width; i++)
                         {
-                                if ((int)round(magnitudes[i]) >= j)
+                                printf("  ");
+                        }                        
+                }
+                else
+                {
+                        for (int i = 0; i < width; i++)
+                        {
+                                if (j >= 0)
                                 {
-                                        printf(" █");
-                                }
-                                else
-                                {
-                                        printf("  ");
+                                        if ((int)round(magnitudes[i]) >= j)
+                                        {
+                                                printf(" █");
+                                        }
+                                        else
+                                        {
+                                                printf("  ");
+                                        }
                                 }
                         }
                 }
