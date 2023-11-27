@@ -40,7 +40,6 @@ bool printKeyBindings = false;
 bool showList = true;
 bool resetPlaylistDisplay = true;
 bool useProfileColors = true;
-bool hasPrintedPaused = false;
 bool fastForwarding = false;
 bool rewinding = false;
 int numProgressBars = 15;
@@ -891,7 +890,7 @@ void calcIndent(SongData *songdata)
 
 int printPlayer(SongData *songdata, double elapsedSeconds, PlayList *playlist)
 {
-        if (!uiEnabled || (hasPrintedPaused && isPaused()))
+        if (!uiEnabled)
         {
                 return 0;
         }
@@ -944,7 +943,7 @@ int printPlayer(SongData *songdata, double elapsedSeconds, PlayList *playlist)
         }
         refresh = false;
         fflush(stdout);
-        hasPrintedPaused = true;
+
         return 0;
 }
 
