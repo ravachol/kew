@@ -23,7 +23,7 @@ typedef struct
 } PixelData;
 #endif
 
-const char VERSION[] = "1.7.3";
+const char VERSION[] = "1.7.4";
 const int LOGO_COLOR = 3;
 const int VERSION_COLOR = 6;
 const int ABSOLUTE_MIN_WIDTH = 38;
