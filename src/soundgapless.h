@@ -6,6 +6,7 @@
 #include <stdbool.h>
 #include <unistd.h>
 #include <stdatomic.h>
+#include <pthread.h>
 #include <fcntl.h>
 #include <stdio.h>
 #include <sys/wait.h>

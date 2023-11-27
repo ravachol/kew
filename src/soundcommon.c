@@ -13,6 +13,8 @@ float seekPercent = 0.0;
 double seekElapsed;
 _Atomic bool EOFReached = false;
 _Atomic bool switchReached = false;
+_Atomic bool readingFrames = false;
+pthread_mutex_t dataSourceMutex = PTHREAD_MUTEX_INITIALIZER;
 ma_device device = {0};
 ma_int32 *audioBuffer = NULL;
 ma_decoder *firstDecoder;
@@ -273,6 +275,9 @@ void resetOpusDecoders()
 
         if (firstOpusDecoder != NULL)
         {
+                ma_data_source_base * base = (ma_data_source_base *)firstOpusDecoder;
+                base->pCurrent = NULL;
+                base->vtable = NULL;                   
                 ma_libopus_uninit(firstOpusDecoder, NULL);
                 free(firstOpusDecoder);
                 firstOpusDecoder = NULL;
@@ -659,7 +664,6 @@ void pausePlayback()
                 ma_device_stop(&device);
                 paused = true;
         }
-        hasPrintedPaused = false;
 }
 
 void cleanupPlaybackDevice()
@@ -678,7 +682,6 @@ void togglePausePlayback()
         {
                 ma_device_stop(&device);
                 paused = true;
-                hasPrintedPaused = false;
         }
         else if (paused)
         {
