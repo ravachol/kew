@@ -52,3 +52,17 @@ void deleteCachedFiles(Cache *cache)
                 current = current->next;
         }
 }
+
+bool existsInCache(Cache *cache, char *filePath)
+{
+        CacheNode *current = cache->head;
+        while (current != NULL)
+        {
+                if (strcmp(filePath, current->filePath) == 0)
+                {
+                        return true;
+                }
+                current = current->next;
+        } 
+        return false;       
+}
