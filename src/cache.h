@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 
 typedef struct CacheNode
 {
@@ -24,5 +25,7 @@ void addToCache(Cache *cache, const char *filePath);
 void deleteCache(Cache *cache);
 
 void deleteCachedFiles(Cache *cache);
+
+bool existsInCache(Cache *cache, char *filePath);
 
 #endif
