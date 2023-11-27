@@ -81,7 +81,18 @@ void vorbis_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_ui
                 ma_uint64 framesToRead = 0;
                 ma_result result;
                 ma_uint64 remainingFrames = frameCount - framesRead;
-                result = ma_data_source_read_pcm_frames(getFirstVorbisDecoder(), (ma_int32 *)pFramesOut + framesRead * pPCMDataSource->channels, remainingFrames, &framesToRead);
+                ma_libvorbis *firstDecoder = getFirstVorbisDecoder();
+
+                pthread_mutex_lock(&dataSourceMutex);
+
+                if (firstDecoder == NULL)
+                {
+                        return;
+                }
+
+                result = ma_data_source_read_pcm_frames(firstDecoder, (ma_int32 *)pFramesOut + framesRead * pPCMDataSource->channels, remainingFrames, &framesToRead);
+                
+                pthread_mutex_unlock(&dataSourceMutex);                
 
                 if ((getPercentageElapsed() >= 1.0 || isSkipToNext() || result != MA_SUCCESS) &&
                     !isEOFReached())
