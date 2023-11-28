@@ -35,8 +35,6 @@ volatile bool clearingErrors = false;
 volatile bool songLoading = false;
 GDBusConnection *connection = NULL;
 
-UserData userData;
-
 void updateLastSongSwitchTime()
 {
         clock_gettime(CLOCK_MONOTONIC, &start_time);
@@ -328,28 +326,13 @@ Node *getSongByNumber(int songNumber)
 
 void assignLoadedData()
 {
-        if (usingSongDataA)
-        {
-                if (loadingdata.songdataB != NULL)
-                {
-                        userData.filenameB = loadingdata.songdataB->pcmFilePath;
-                        userData.songdataB = loadingdata.songdataB;
-                        if (hasBuiltinDecoder(loadingdata.songdataB->filePath))
-                                prepareNextDecoder(loadingdata.songdataB->filePath);
-                        else if (endsWith(loadingdata.songdataB->filePath, "opus"))
-                                prepareNextOpusDecoder(loadingdata.songdataB->filePath);
-                        else if (endsWith(loadingdata.songdataB->filePath, "ogg"))
-                                prepareNextVorbisDecoder(loadingdata.songdataB->filePath);
-                }
-                else
-                        userData.filenameB = NULL;
-        }
-        else
+        if (loadingdata.loadA)
         {
                 if (loadingdata.songdataA != NULL)
                 {
                         userData.filenameA = loadingdata.songdataA->pcmFilePath;
                         userData.songdataA = loadingdata.songdataA;
+
                         if (hasBuiltinDecoder(loadingdata.songdataA->filePath))
                                 prepareNextDecoder(loadingdata.songdataA->filePath);
                         else if (endsWith(loadingdata.songdataA->filePath, "opus"))
@@ -360,6 +343,24 @@ void assignLoadedData()
                 else
                         userData.filenameA = NULL;
         }
+        else
+        {
+                if (loadingdata.songdataB != NULL)
+                {
+                        userData.filenameB = loadingdata.songdataB->pcmFilePath;
+                        userData.songdataB = loadingdata.songdataB;
+
+                        if (hasBuiltinDecoder(loadingdata.songdataB->filePath))
+                                prepareNextDecoder(loadingdata.songdataB->filePath);
+                        else if (endsWith(loadingdata.songdataB->filePath, "opus"))
+                                prepareNextOpusDecoder(loadingdata.songdataB->filePath);
+                        else if (endsWith(loadingdata.songdataB->filePath, "ogg"))
+                                prepareNextVorbisDecoder(loadingdata.songdataB->filePath);
+                }
+                else
+                        userData.filenameB = NULL;                        
+        }
+        
 }
 
 void *songDataReaderThread(void *arg)
