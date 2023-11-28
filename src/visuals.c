@@ -13,6 +13,8 @@ int bufferSize = 4800;
 float magnitudeCeil = 120;
 float alpha = 0.2;
 float lastMax = 60;
+bool unicodeSupport = false;
+
 /*
 
 visuals.c
@@ -24,6 +26,14 @@ int bufferIndex = 0;
 
 float magnitudeBuffer[MAX_BUFFER_SIZE] = {0.0f};
 float lastMagnitudes[MAX_BUFFER_SIZE] = {0.0f};
+
+void initVisuals()
+{
+        unicodeSupport = false;
+        char *locale = setlocale(LC_ALL, "");
+        if (locale != NULL)
+                unicodeSupport = true;        
+}
 
 void printBlankSpaces(int numSpaces)
 {
@@ -267,6 +277,29 @@ void calc(int height, int numBars, ma_int32 *audioBuffer, int bitDepth, fftwf_co
         updateMagnitudes(height, numBars, maxMagnitude, magnitudes);
 }
 
+wchar_t *getUpwardMotionChar(int level) {
+    switch (level) {
+        case 0:
+            return L" ";
+        case 1:
+            return L"▁";
+        case 2:
+            return L"▂";
+        case 3:
+            return L"▃";
+        case 4:
+            return L"▄";
+        case 5:
+            return L"▅";
+        case 6:
+            return L"▆";
+        case 7:
+            return L"▇";
+        default:
+            return L"█";
+    }
+}
+
 void calcSpectrum(int height, int numBars, fftwf_complex *fftInput, fftwf_complex *fftOutput, float *magnitudes, fftwf_plan plan)
 {
 
@@ -368,9 +401,23 @@ void printSpectrum(int height, int width, float *magnitudes, PixelData color)
                         {
                                 if (j >= 0)
                                 {
-                                        if ((int)round(magnitudes[i]) >= j)
+                                        if (magnitudes[i] >= j)
                                         {
-                                                printf(" █");
+                                                if (unicodeSupport)
+                                                {
+                                                        printf(" %S", getUpwardMotionChar(10));
+                                                }       
+                                                else {
+                                                        printf(" █");
+                                                }
+                                        }
+                                        else if (magnitudes[i] + 1 >= j)
+                                        {
+                                                if (unicodeSupport)
+                                                {
+                                                        int firstDecimalDigit = (int)(fmod(magnitudes[i] * 10, 10));
+                                                        printf(" %S", getUpwardMotionChar(firstDecimalDigit));
+                                                }                                       
                                         }
                                         else
                                         {

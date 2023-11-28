@@ -748,6 +748,7 @@ void init()
         loadingdata.songdataB = NULL;
         loadingdata.loadA = true;
         initAudioBuffer();
+        initVisuals();
 
 #ifdef DEBUG
         g_setenv("G_MESSAGES_DEBUG", "all", TRUE);
