@@ -22,6 +22,10 @@
 #define MAX_BUFFER_SIZE 3600
 #endif
 
+#ifndef MAXPATHLEN
+#define MAXPATHLEN 4096
+#endif
+
 #ifndef TAGSETTINGS_STRUCT
 #define TAGSETTINGS_STRUCT
 
