@@ -68,10 +68,7 @@ void pcm_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_uint6
 
                 if (currentFile != NULL)
                         bytesRead = (ma_uint32)fread((char *)pFramesOut + (framesRead * bytesPerFrame), 1, bytesToRead, currentFile);
-                else if (pPCMDataSource->pUserData->currentSongData == NULL ||
-                         hasBuiltinDecoder(pPCMDataSource->pUserData->currentSongData->filePath) ||
-                         (endsWith(pPCMDataSource->pUserData->currentSongData->filePath, "opus")) ||
-                         (endsWith(pPCMDataSource->pUserData->currentSongData->filePath, "ogg")))
+                else 
                         return;
 
                 // If file is empty, skip

@@ -13,7 +13,9 @@ soundgapless.c
 */
 
 ma_context context;
-UserData *g_userData;
+
+UserData userData;
+
 PCMFileDataSource pcmDataSource;
 
 ma_result initFirstDatasource(PCMFileDataSource *pPCMDataSource, UserData *pUserData)
@@ -58,10 +60,15 @@ ma_result initFirstDatasource(PCMFileDataSource *pPCMDataSource, UserData *pUser
         }
         else
         {
-                if (pPCMDataSource->fileA == NULL)
+                if ((pPCMDataSource->currentFileIndex == 0) && pPCMDataSource->fileA == NULL)
                 {
                         pPCMDataSource->filenameA = pUserData->filenameA;
                         pPCMDataSource->fileA = fopen(pUserData->filenameA, "rb");
+                }
+                else if ((pPCMDataSource->currentFileIndex == 1) && pPCMDataSource->fileB == NULL)
+                {
+                        pPCMDataSource->filenameB = pUserData->filenameB;
+                        pPCMDataSource->fileB = fopen(pUserData->filenameB, "rb");
                 }
 
                 pPCMDataSource->format = SAMPLE_FORMAT;
@@ -171,14 +178,27 @@ void switchAudioImplementation()
 {
         enum AudioImplementation currentImplementation = getCurrentImplementationType();
 
-        if (g_userData->currentSongData == NULL)
-                return;
+        if (pcmDataSource.currentFileIndex == 0)
+        {
+                userData.currentSongData = userData.songdataA;
+        }
+        else
+        {
+                userData.currentSongData = userData.songdataB;
+        }
 
-        char *filePath = strdup(g_userData->currentSongData->filePath);
+        if (userData.currentSongData == NULL)
+        {
+                setEOFNotReached();
+                return;
+        }
+
+        char *filePath = strdup(userData.currentSongData->filePath);
 
         if (filePath == NULL || filePath[0] == '\0' || filePath[0] == '\r')
         {
                 free(filePath);
+                setEOFNotReached();
                 return;
         }
 
@@ -210,7 +230,7 @@ void switchAudioImplementation()
 
                         cleanupPlaybackDevice();
 
-                        builtin_createAudioDevice(g_userData, getDevice(), &context, &builtin_file_data_source_vtable);
+                        builtin_createAudioDevice(&userData, getDevice(), &context, &builtin_file_data_source_vtable);
 
                         pthread_mutex_unlock(&dataSourceMutex);
 
@@ -258,7 +278,7 @@ void switchAudioImplementation()
 
                         cleanupPlaybackDevice();
 
-                        opus_createAudioDevice(g_userData, getDevice(), &context, &pcm_file_data_source_vtable);
+                        opus_createAudioDevice(&userData, getDevice(), &context, &pcm_file_data_source_vtable);
 
                         pthread_mutex_unlock(&dataSourceMutex);
 
@@ -306,7 +326,7 @@ void switchAudioImplementation()
 
                         cleanupPlaybackDevice(); 
                                            
-                        vorbis_createAudioDevice(g_userData, getDevice(), &context, &pcm_file_data_source_vtable);
+                        vorbis_createAudioDevice(&userData, getDevice(), &context, &pcm_file_data_source_vtable);
 
                         pthread_mutex_unlock(&dataSourceMutex);
 
@@ -327,7 +347,7 @@ void switchAudioImplementation()
                         resetOpusDecoders();
                         resetAudioBuffer();
                         cleanupPlaybackDevice();                       
-                        pcm_createAudioDevice(g_userData, getDevice(), &context, &pcm_file_data_source_vtable);
+                        pcm_createAudioDevice(&userData, getDevice(), &context, &pcm_file_data_source_vtable);
 
                         pthread_mutex_unlock(&dataSourceMutex);
 
@@ -345,7 +365,6 @@ void cleanupAudioContext()
 
 void createAudioDevice(UserData *userData)
 {
-        g_userData = userData;
         ma_context_init(NULL, 0, NULL, &context);
         switchAudioImplementation();
 }
