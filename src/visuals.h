@@ -4,9 +4,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <locale.h>
 #include "soundgapless.h"
 #include "term.h"
 #include "write_ascii.h"
+
+void initVisuals();
 
 void drawSpectrumVisualizer(int height, int width, PixelData c);
 
