@@ -33,6 +33,8 @@ typedef struct
 } UserData;
 #endif
 
+extern UserData userData;
+
 void setDecoders(bool usingA, char *filePath);
 
 void createAudioDevice(UserData *userData);
