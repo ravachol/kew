@@ -17,7 +17,7 @@ extern const char VERSION[];
 extern bool coverEnabled;
 extern bool uiEnabled;
 extern bool coverAnsi;
-extern bool printInfo;
+extern bool printPlaylist;
 extern bool printKeyBindings;
 extern bool visualizerEnabled;
 extern bool useThemeColors;

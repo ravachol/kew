@@ -413,6 +413,8 @@ void refreshPlayer()
 
 void handleGoToSong()
 {
+        resetPlaylistDisplay = true;
+        
         if (digitsPressedCount == 0)
         {
                 skipToNumberedSong(chosenSong + 1);
@@ -424,7 +426,7 @@ void handleGoToSong()
                 memset(digitsPressed, '\0', sizeof(digitsPressed));
                 digitsPressedCount = 0;
                 skipToNumberedSong(songNumber);
-        }
+        }        
 }
 
 void gotoBeginningOfPlaylist()
@@ -498,10 +500,12 @@ void handleInput()
         case EVENT_VOLUME_DOWN:
                 adjustVolumePercent(-5);
                 break;
-        case EVENT_NEXT:
+        case EVENT_NEXT:     
+                resetPlaylistDisplay = true;
                 skipToNextSong();
                 break;
         case EVENT_PREV:
+                resetPlaylistDisplay = true; 
                 skipToPrevSong();
                 break;
         case EVENT_SEEKBACK:
