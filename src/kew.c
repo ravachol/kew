@@ -413,8 +413,6 @@ void refreshPlayer()
 
 void handleGoToSong()
 {
-        resetPlaylistDisplay = true;
-        
         if (digitsPressedCount == 0)
         {
                 skipToNumberedSong(chosenSong + 1);
