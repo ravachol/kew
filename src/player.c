@@ -610,6 +610,8 @@ int showKeyBindings()
         printBlankSpaces(indentation);
         printf(" - %s to save the playlist to your music folder.\n", settings.savePlaylist);
         printBlankSpaces(indentation);
+        printf(" - %s to add current song to kew.m3u (run with \"kew .\").\n", settings.addToMainPlaylist);
+        printBlankSpaces(indentation);        
         printf(" - %s to quit.\n", settings.quit);
         printf("\n");
         printLastRow();
