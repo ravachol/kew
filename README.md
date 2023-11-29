@@ -17,6 +17,7 @@ kew (/kjuː/) is a command-line music player for Linux.
  * Display album covers as ASCII art or as a normal image.
  * Control the player with previous, next and pause.
  * Has gapless playback (between files of the same format and type) and supports 24-bit audio.
+ * Completely offline and private (for now - might add cover downloading later).
 
 ## Caveats
  * Does not yet work well with very long audio files that are not mp3, wav, flac, ogg or opus.
@@ -30,6 +31,8 @@ Had to rename cue to kew to resolve a name conflict. The meaning and pronounciat
 ## Reviews
 
 kew was reviewed by Linuxlinks.com:
+
+https://www.linuxlinks.com/kew-command-line-music-player/
 
 https://www.linuxlinks.com/cue-command-line-music-player-gapless-playback/
 
@@ -58,6 +61,12 @@ On Arch Linux, and Arch-based distributions, kew can be found in the AUR. Instal
 
 ```bash
 $ yay kew-git
+```
+
+Or
+
+```bash
+$ yay kew
 ```
 
 ### Installing via Brew
@@ -116,14 +125,6 @@ make
 ```
 ```bash
 sudo make install
-```
-
-(Optional) Update the man db:
-
-```bash
-sudo mandb  # Update the man page database (may not be required on all systems)
-sudo makewhatis /usr/local/share/man  # Update the man page index
-
 ```
 
 A TrueColor capable terminal is recommended, like Konsole, kitty or st, to display colors properly.
@@ -206,6 +207,7 @@ Put single-quotes inside quotes "guns n' roses"
 * <kbd>gg</kbd> go to first song.
 * number +<kbd>G</kbd>, <kbd>g</kbd> or <kbd>Enter</kbd>, go to specific song number in the playlist.
 * <kbd>g</kbd> go to last song.
+* . to add current song to kew.m3u (run with "kew .").
 * <kbd>q</kbd> to quit.
 
 ## Configuration
