@@ -157,7 +157,7 @@ void toggleRepeat()
         {
                 emitStringPropertyChanged("LoopStatus", "None");
         }
-        if (printInfo)
+        if (printPlaylist)
                 refresh = true;
 }
 
@@ -190,7 +190,7 @@ void toggleShuffle()
         }
         loadedNextSong = false;
         nextSong = NULL;
-        if (printInfo)
+        if (printPlaylist)
                 refresh = true;
 }
 
@@ -267,6 +267,14 @@ void flushSeek()
 {
         if (seekAccumulatedSeconds != 0.0)
         {
+                if (currentSong != NULL)
+                {
+                        if (endsWith(currentSong->song.filePath, "ogg"))
+                        {
+                                return;
+                        }
+                }
+
                 setSeekElapsed(getSeekElapsed() + seekAccumulatedSeconds);
                 seekAccumulatedSeconds = 0.0;
                 calcElapsedTime();
@@ -284,6 +292,14 @@ void flushSeek()
 
 void seekForward()
 {
+        if (currentSong != NULL)
+        {
+                if (endsWith(currentSong->song.filePath, "ogg"))
+                {
+                        return;
+                }
+        }
+
         if (duration != 0.0)
         {
                 float step = 100 / numProgressBars;
@@ -294,6 +310,14 @@ void seekForward()
 
 void seekBack()
 {
+        if (currentSong != NULL)
+        {
+                if (endsWith(currentSong->song.filePath, "ogg"))
+                {
+                        return;
+                }
+        }
+
         if (duration != 0.0)
         {
                 float step = 100 / numProgressBars;
@@ -358,9 +382,8 @@ void assignLoadedData()
                                 prepareNextVorbisDecoder(loadingdata.songdataB->filePath);
                 }
                 else
-                        userData.filenameB = NULL;                        
+                        userData.filenameB = NULL;
         }
-        
 }
 
 void *songDataReaderThread(void *arg)
@@ -501,6 +524,7 @@ void skipToPrevSong()
         }
 
         updateLastSongSwitchTime();
+
         skip();
 }
 

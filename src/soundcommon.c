@@ -2,6 +2,14 @@
 
 #define MAX_DECODERS 2
 
+/*
+
+soundcommon.c
+
+ Related to common functions for decoders / miniaudio implementations
+
+*/
+
 const char BUILTIN_EXTENSIONS[] = "\\.(mp3|flac|wav)$";
 
 bool repeatEnabled = false;
@@ -33,16 +41,6 @@ int decoderIndex = -1;
 int opusDecoderIndex = -1;
 int vorbisDecoderIndex = -1;
 bool doQuit = false;
-
-ma_libopus *getOpus()
-{
-        return &opus;
-}
-
-ma_libvorbis *getVorbis()
-{
-        return &vorbis;
-}
 
 enum AudioImplementation getCurrentImplementationType()
 {
