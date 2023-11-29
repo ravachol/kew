@@ -364,6 +364,8 @@ void printSpectrum(int height, int width, float *magnitudes, PixelData color)
         printf("\n");
         clearRestOfScreen();
 
+        PixelData tmp;
+
         for (int j = height; j > 0; j--)
         {
                 printf("\r");
@@ -372,16 +374,8 @@ void printSpectrum(int height, int width, float *magnitudes, PixelData color)
                 {
                         if (!useProfileColors)
                         {
-                                if (j == height)
-                                {
-                                        color = increaseLuminosity(color, 100);
-                                        printf("\033[38;2;%d;%d;%dm", color.r, color.g, color.b);
-                                }
-                                else
-                                {
-                                        color = decreaseLuminosity(color, 100 / height);
-                                        printf("\033[38;2;%d;%d;%dm", color.r, color.g, color.b);
-                                }
+                                tmp = increaseLuminosity(color, round(j * height * 2));
+                                printf("\033[38;2;%d;%d;%dm", tmp.r, tmp.g, tmp.b);
                         }
                 }
                 else
@@ -411,13 +405,10 @@ void printSpectrum(int height, int width, float *magnitudes, PixelData color)
                                                         printf(" █");
                                                 }
                                         }
-                                        else if (magnitudes[i] + 1 >= j)
+                                        else if (magnitudes[i] + 1 >= j && unicodeSupport)
                                         {
-                                                if (unicodeSupport)
-                                                {
-                                                        int firstDecimalDigit = (int)(fmod(magnitudes[i] * 10, 10));
-                                                        printf(" %S", getUpwardMotionChar(firstDecimalDigit));
-                                                }                                       
+                                                int firstDecimalDigit = (int)(fmod(magnitudes[i] * 10, 10));
+                                                printf(" %S", getUpwardMotionChar(firstDecimalDigit));                                   
                                         }
                                         else
                                         {
