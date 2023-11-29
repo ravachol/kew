@@ -63,7 +63,7 @@ void opus_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_uint
                         ma_uint64 seekPercent = getSeekPercentage();
                         if (seekPercent >= 100.0)
                                 seekPercent = 100.0;
-                        ma_uint64 targetFrame = (totalFrames * seekPercent) / 100;
+                        ma_uint64 targetFrame = (totalFrames * seekPercent) / 100 - 1; // Remove one frame or we get invalid args if we send in totalframes
 
                         // Set the read pointer for the decoder
                         ma_result seekResult = ma_libopus_seek_to_pcm_frame(decoder, targetFrame);
