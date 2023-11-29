@@ -35,7 +35,7 @@ bool metaDataEnabled = true;
 bool timeEnabled = true;
 bool drewCover = true;
 bool uiEnabled = true;
-bool printInfo = false;
+bool printPlaylist = false;
 bool printKeyBindings = false;
 bool showList = true;
 bool resetPlaylistDisplay = true;
@@ -361,7 +361,7 @@ void printProgress(double elapsed_seconds, double total_seconds, double total_du
 }
 void printMetadata(TagSettings const *metadata)
 {
-        if (!metaDataEnabled || printInfo)
+        if (!metaDataEnabled || printPlaylist)
                 return;
         c_sleep(100);
         setColor();
@@ -370,7 +370,7 @@ void printMetadata(TagSettings const *metadata)
 
 void printTime(PlayList const *playlist)
 {
-        if (!timeEnabled || printInfo)
+        if (!timeEnabled || printPlaylist)
                 return;
         setColor();
         int term_w, term_h;
@@ -620,7 +620,7 @@ int showKeyBindings()
 void toggleShowPlaylist()
 {
         refresh = true;
-        printInfo = !printInfo;
+        printPlaylist = !printPlaylist;
         printKeyBindings = false;
 }
 
@@ -628,12 +628,12 @@ void toggleShowKeyBindings()
 {
         refresh = true;
         printKeyBindings = !printKeyBindings;
-        printInfo = false;
+        printPlaylist = false;
 }
 
 void scrollNext()
 {
-        if (printInfo)
+        if (printPlaylist)
         {
                 chosenRow++;
                 refresh = true;
@@ -642,7 +642,7 @@ void scrollNext()
 
 void scrollPrev()
 {
-        if (printInfo)
+        if (printPlaylist)
         {
                 chosenRow--;
                 refresh = true;
@@ -713,7 +713,7 @@ int showPlaylist()
 
         if (chosenSong < startIter)
         {
-                startIter = chosenSong;
+                startIter = chosenSong;   
         }
 
         if (chosenRow >= maxListSize - 1 && chosenRow > startIter + maxListSize - 1)
@@ -730,6 +730,7 @@ int showPlaylist()
         {
                 startIter = chosenRow = chosenSong = foundAt;
         }
+        
         for (int i = foundAt; i > startIter; i--)
         {
                 if (i > 0 && node->prev != NULL)
@@ -840,7 +841,7 @@ void printElapsedBars()
 
 void printVisualizer()
 {
-        if (visualizerEnabled && !printInfo)
+        if (visualizerEnabled && !printPlaylist)
         {
                 printf("\n");
                 int term_w, term_h;
@@ -907,7 +908,7 @@ int printPlayer(SongData *songdata, double elapsedSeconds, PlayList *playlist)
         if (preferredWidth <= 0 || preferredHeight <= 0)
                 return -1;
 
-        if (!printInfo)
+        if (!printPlaylist)
                 resetPlaylistDisplay = true;
 
         if (printKeyBindings)
@@ -919,7 +920,7 @@ int printPlayer(SongData *songdata, double elapsedSeconds, PlayList *playlist)
                         saveCursorPosition();
                 }
         }
-        else if (printInfo)
+        else if (printPlaylist)
         {
                 if (refresh)
                 {
