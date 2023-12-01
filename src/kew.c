@@ -652,6 +652,7 @@ void play(Node *song)
 
 void cleanupOnExit()
 {
+        pthread_mutex_lock(&dataSourceMutex);
         resetDecoders();
         resetVorbisDecoders();
         resetOpusDecoders();
@@ -675,6 +676,7 @@ void cleanupOnExit()
         free(mainPlaylist);
         freeVisuals();
         showCursor();
+        pthread_mutex_unlock(&dataSourceMutex);
 
 #ifdef DEBUG
         fclose(logFile);
