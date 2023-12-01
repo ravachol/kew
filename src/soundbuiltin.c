@@ -19,31 +19,31 @@ static ma_result builtin_file_data_source_read(ma_data_source *pDataSource, void
 
 static ma_result builtin_file_data_source_seek(ma_data_source *pDataSource, ma_uint64 frameIndex)
 {
-    PCMFileDataSource* pPCMDataSource = (PCMFileDataSource*)pDataSource;
+        AudioData *pPCMDataSource = (AudioData *)pDataSource;
 
-    if (getCurrentDecoder() == NULL)
-    {
-        return MA_INVALID_ARGS;
-    }
+        if (getCurrentDecoder() == NULL)
+        {
+                return MA_INVALID_ARGS;
+        }
 
-    ma_result result = ma_decoder_seek_to_pcm_frame(getCurrentDecoder(), frameIndex);
-    
-    if (result == MA_SUCCESS)
-    {
-        pPCMDataSource->currentPCMFrame = (ma_uint32)frameIndex;
-        return MA_SUCCESS;
-    }
-    else
-    {
-        return result;
-    }
+        ma_result result = ma_decoder_seek_to_pcm_frame(getCurrentDecoder(), frameIndex);
+
+        if (result == MA_SUCCESS)
+        {
+                pPCMDataSource->currentPCMFrame = (ma_uint32)frameIndex;
+                return MA_SUCCESS;
+        }
+        else
+        {
+                return result;
+        }
 }
 
 static ma_result builtin_file_data_source_get_data_format(ma_data_source *pDataSource, ma_format *pFormat, ma_uint32 *pChannels, ma_uint32 *pSampleRate, ma_channel *pChannelMap, size_t channelMapCap)
 {
         (void)pChannelMap;
         (void)channelMapCap;
-        PCMFileDataSource *pPCMDataSource = (PCMFileDataSource *)pDataSource;
+        AudioData *pPCMDataSource = (AudioData *)pDataSource;
         *pFormat = pPCMDataSource->format;
         *pChannels = pPCMDataSource->channels;
         *pSampleRate = pPCMDataSource->sampleRate;
@@ -52,7 +52,7 @@ static ma_result builtin_file_data_source_get_data_format(ma_data_source *pDataS
 
 static ma_result builtin_file_data_source_get_cursor(ma_data_source *pDataSource, ma_uint64 *pCursor)
 {
-        PCMFileDataSource *pPCMDataSource = (PCMFileDataSource *)pDataSource;
+        AudioData *pPCMDataSource = (AudioData *)pDataSource;
         *pCursor = pPCMDataSource->currentPCMFrame;
 
         return MA_SUCCESS;
@@ -60,23 +60,23 @@ static ma_result builtin_file_data_source_get_cursor(ma_data_source *pDataSource
 
 static ma_result builtin_file_data_source_get_length(ma_data_source *pDataSource, ma_uint64 *pLength)
 {
-    ma_uint64 totalFrames = 0;
+        ma_uint64 totalFrames = 0;
 
-    if (getCurrentDecoder() == NULL)
-    {
-        return MA_INVALID_ARGS;
-    }
+        if (getCurrentDecoder() == NULL)
+        {
+                return MA_INVALID_ARGS;
+        }
 
-    ma_result result = ma_decoder_get_length_in_pcm_frames(getCurrentDecoder(), &totalFrames);
+        ma_result result = ma_decoder_get_length_in_pcm_frames(getCurrentDecoder(), &totalFrames);
 
-    if (result != MA_SUCCESS)
-    {
-        return result;
-    }
+        if (result != MA_SUCCESS)
+        {
+                return result;
+        }
 
-    *pLength = totalFrames;
+        *pLength = totalFrames;
 
-    return MA_SUCCESS;
+        return MA_SUCCESS;
 }
 
 static ma_result builtin_file_data_source_set_looping(ma_data_source *pDataSource, ma_bool32 isLooping)
@@ -100,32 +100,38 @@ ma_data_source_vtable builtin_file_data_source_vtable = {
 
 void builtin_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_uint64 frameCount, ma_uint64 *pFramesRead)
 {
-        PCMFileDataSource *pPCMDataSource = (PCMFileDataSource *)pDataSource;
+        AudioData *pPCMDataSource = (AudioData *)pDataSource;
         ma_uint64 framesRead = 0;
 
         while (framesRead < frameCount)
         {
-                ma_uint64 remainingFrames = frameCount - framesRead; 
+                ma_uint64 remainingFrames = frameCount - framesRead;
 
-                if (isImplSwitchReached())
-                        return;                               
-
-                if (pPCMDataSource == NULL)
+                if (pthread_mutex_trylock(&dataSourceMutex) != 0)
+                {
                         return;
+                }                
+
+                if (isImplSwitchReached() || pPCMDataSource == NULL)
+                {
+                        pthread_mutex_unlock(&dataSourceMutex);
+                        return;
+                }
 
                 if (pPCMDataSource->switchFiles)
                 {
                         executeSwitch(pPCMDataSource);
+                        pthread_mutex_unlock(&dataSourceMutex);
                         break;
                 }
 
-                if (getCurrentImplementationType() != BUILTIN && !isSkipToNext())
-                        return;
+                ma_decoder *decoder = getCurrentDecoder();                
 
-                ma_decoder *decoder = getCurrentDecoder();
-
-                if (decoder == NULL)
+                if ((getCurrentImplementationType() != BUILTIN && !isSkipToNext()) || decoder == NULL)
+                {
+                        pthread_mutex_unlock(&dataSourceMutex);
                         return;
+                }
 
                 if (pPCMDataSource->totalFrames == 0)
                         ma_data_source_get_length_in_pcm_frames(decoder, &pPCMDataSource->totalFrames);
@@ -135,13 +141,14 @@ void builtin_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_u
                         ma_uint64 totalFrames = pPCMDataSource->totalFrames;
                         ma_uint64 seekPercent = getSeekPercentage();
                         if (seekPercent >= 100.0)
-                                seekPercent = 100.0;                           
+                                seekPercent = 100.0;
                         ma_uint64 targetFrame = (totalFrames * seekPercent) / 100;
                         ma_result seekResult = ma_decoder_seek_to_pcm_frame(decoder, targetFrame);
 
                         if (seekResult != MA_SUCCESS)
-                        {
+                        {                                
                                 setSeekRequested(false);
+                                pthread_mutex_unlock(&dataSourceMutex);                                
                                 return;
                         }
 
@@ -150,27 +157,28 @@ void builtin_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_u
 
                 ma_uint64 framesToRead = 0;
                 ma_decoder *firstDecoder = getFirstDecoder();
-
-                pthread_mutex_lock(&dataSourceMutex);                        
+                ma_uint64 cursor = 0;
+                ma_result result;
 
                 if (decoder == NULL || firstDecoder == NULL)
+                {
+                        pthread_mutex_unlock(&dataSourceMutex);
                         return;
-
-                ma_result result = ma_data_source_read_pcm_frames(firstDecoder, (ma_int32 *)pFramesOut + framesRead * decoder->outputChannels, remainingFrames, &framesToRead);
-
-                ma_uint64 cursor;                
-                result = ma_data_source_get_cursor_in_pcm_frames(decoder, &cursor);
-
-                pthread_mutex_unlock(&dataSourceMutex);
+                }
+                result = ma_data_source_read_pcm_frames(firstDecoder, (ma_int32 *)pFramesOut + framesRead * decoder->outputChannels, remainingFrames, &framesToRead);
+                ma_data_source_get_cursor_in_pcm_frames(decoder, &cursor);
 
                 if (((pPCMDataSource->totalFrames != 0 && cursor != 0 && cursor >= pPCMDataSource->totalFrames) || framesToRead == 0 || isSkipToNext() || result != MA_SUCCESS) && !isEOFReached())
                 {
                         activateSwitch(pPCMDataSource);
+                        pthread_mutex_unlock(&dataSourceMutex);
                         continue;
                 }
 
                 framesRead += framesToRead;
                 setBufferSize(framesToRead);
+
+                pthread_mutex_unlock(&dataSourceMutex);
         }
 
         ma_int32 *audioBuffer = getAudioBuffer();
@@ -194,7 +202,7 @@ void builtin_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_u
 
 void builtin_on_audio_frames(ma_device *pDevice, void *pFramesOut, const void *pFramesIn, ma_uint32 frameCount)
 {
-        PCMFileDataSource *pDataSource = (PCMFileDataSource *)pDevice->pUserData;
+        AudioData *pDataSource = (AudioData *)pDevice->pUserData;
         ma_uint64 framesRead = 0;
         builtin_read_pcm_frames(&pDataSource->base, pFramesOut, frameCount, &framesRead);
         (void)pFramesIn;

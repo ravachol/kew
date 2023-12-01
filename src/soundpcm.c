@@ -15,10 +15,10 @@ soundpcm.c
 
 void pcm_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_uint64 frameCount, ma_uint64 *pFramesRead)
 {
-        PCMFileDataSource *pPCMDataSource = (PCMFileDataSource *)pDataSource;
+        AudioData *pAudioData = (AudioData *)pDataSource;
         ma_uint32 framesToRead = (ma_uint32)frameCount;
 
-        ma_uint32 bytesPerFrame = ma_get_bytes_per_frame(pPCMDataSource->format, pPCMDataSource->channels);
+        ma_uint32 bytesPerFrame = ma_get_bytes_per_frame(pAudioData->format, pAudioData->channels);
         ma_uint32 bytesToRead = framesToRead * bytesPerFrame;
         ma_uint32 framesRead = 0;
 
@@ -26,21 +26,31 @@ void pcm_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_uint6
         {
                 if (isImplSwitchReached())
                         return;
-                                        
-                if (pPCMDataSource == NULL)
+
+                if (pAudioData == NULL)
                         return;
 
-                if (pPCMDataSource->switchFiles)
+
+                if (pthread_mutex_trylock(&dataSourceMutex) != 0)
+                {                        
+                        return;
+                }                        
+
+                if (pAudioData->switchFiles)
                 {
-                        executeSwitch(pPCMDataSource);
+                        executeSwitch(pAudioData);
+                        pthread_mutex_unlock(&dataSourceMutex);                        
                         break;
                 }
 
                 if (getCurrentImplementationType() != PCM && !isSkipToNext())
+                {
+                        pthread_mutex_unlock(&dataSourceMutex);
                         return;
+                }
 
                 FILE *currentFile;
-                currentFile = (pPCMDataSource->currentFileIndex == 0) ? pPCMDataSource->fileA : pPCMDataSource->fileB;
+                currentFile = (pAudioData->currentFileIndex == 0) ? pAudioData->fileA : pAudioData->fileB;
                 ma_uint32 bytesRead = 0;
 
                 if (isSeekRequested())
@@ -49,17 +59,18 @@ void pcm_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_uint6
                         {
                                 fseek(currentFile, 0, SEEK_END);
                                 ma_uint64 fileSize = ftell(currentFile);
-                                pPCMDataSource->totalFrames = fileSize / bytesPerFrame;
-                                pPCMDataSource->base.rangeEndInFrames = pPCMDataSource->totalFrames;
+                                pAudioData->totalFrames = fileSize / bytesPerFrame;
+                                pAudioData->base.rangeEndInFrames = pAudioData->totalFrames;
                         }
                         ma_uint64 seekPercent = getSeekPercentage();
                         if (seekPercent >= 100.0)
                                 seekPercent = 100.0;
-                        ma_uint32 targetFrame = (pPCMDataSource->totalFrames * seekPercent) / 100;
+                        ma_uint32 targetFrame = (pAudioData->totalFrames * seekPercent) / 100;
 
                         ma_data_source_seek_to_pcm_frame(pDataSource, targetFrame);
 
                         setSeekRequested(false); // Reset seek flag
+                        pthread_mutex_unlock(&dataSourceMutex);
                         break;
                         framesRead = 0;
                         framesToRead = (ma_uint32)frameCount;
@@ -72,7 +83,8 @@ void pcm_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_uint6
                 // If file is empty, skip
                 if ((bytesRead == 0 || isSkipToNext()) && !isEOFReached())
                 {
-                        activateSwitch(pPCMDataSource);
+                        activateSwitch(pAudioData);
+                        pthread_mutex_unlock(&dataSourceMutex);
                         continue;
                 }
 
@@ -80,6 +92,8 @@ void pcm_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_uint6
                 framesToRead -= bytesRead / bytesPerFrame;
                 bytesToRead -= bytesRead;
                 setBufferSize(framesRead);
+
+                pthread_mutex_unlock(&dataSourceMutex);
         }
 
         ma_int32 *audioBuffer = getAudioBuffer();
@@ -101,7 +115,7 @@ void pcm_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_uint6
 
 void pcm_on_audio_frames(ma_device *pDevice, void *pFramesOut, const void *pFramesIn, ma_uint32 frameCount)
 {
-        PCMFileDataSource *pDataSource = (PCMFileDataSource *)pDevice->pUserData;
+        AudioData *pDataSource = (AudioData *)pDevice->pUserData;
         ma_uint64 framesRead = 0;
         pcm_read_pcm_frames(&pDataSource->base, pFramesOut, frameCount, &framesRead);
         (void)pFramesIn;
@@ -120,20 +134,20 @@ static ma_result pcm_file_data_source_read(ma_data_source *pDataSource, void *pF
 static ma_result pcm_file_data_source_seek(ma_data_source *pDataSource, ma_uint64 frameIndex)
 {
         // Cast to the correct data source type
-        PCMFileDataSource *pPCMDataSource = (PCMFileDataSource *)pDataSource;
+        AudioData *pAudioData = (AudioData *)pDataSource;
 
         // Calculate the byte index
-        ma_uint64 byteIndex = frameIndex * ma_get_bytes_per_frame(pPCMDataSource->format, pPCMDataSource->channels);
+        ma_uint64 byteIndex = frameIndex * ma_get_bytes_per_frame(pAudioData->format, pAudioData->channels);
 
         // Find the correct file
         FILE *currentFile;
-        if (pPCMDataSource->currentFileIndex == 0)
+        if (pAudioData->currentFileIndex == 0)
         {
-                currentFile = pPCMDataSource->fileA;
+                currentFile = pAudioData->fileA;
         }
         else
         {
-                currentFile = pPCMDataSource->fileB;
+                currentFile = pAudioData->fileB;
         }
 
         if (currentFile != NULL)
@@ -142,7 +156,7 @@ static ma_result pcm_file_data_source_seek(ma_data_source *pDataSource, ma_uint6
                 int result = fseek(currentFile, byteIndex, SEEK_SET);
 
                 // Set the current frame to frameIndex
-                pPCMDataSource->currentPCMFrame = (ma_uint32)frameIndex;
+                pAudioData->currentPCMFrame = (ma_uint32)frameIndex;
 
                 // Check for errors
                 if (result == 0)
@@ -164,34 +178,34 @@ static ma_result pcm_file_data_source_get_data_format(ma_data_source *pDataSourc
 {
         (void)pChannelMap;
         (void)channelMapCap;
-        PCMFileDataSource *pPCMDataSource = (PCMFileDataSource *)pDataSource;
-        *pFormat = pPCMDataSource->format;
-        *pChannels = pPCMDataSource->channels;
-        *pSampleRate = pPCMDataSource->sampleRate;
+        AudioData *pAudioData = (AudioData *)pDataSource;
+        *pFormat = pAudioData->format;
+        *pChannels = pAudioData->channels;
+        *pSampleRate = pAudioData->sampleRate;
         return MA_SUCCESS;
 }
 
 static ma_result pcm_file_data_source_get_cursor(ma_data_source *pDataSource, ma_uint64 *pCursor)
 {
-        PCMFileDataSource *pPCMDataSource = (PCMFileDataSource *)pDataSource;
-        *pCursor = pPCMDataSource->currentPCMFrame;
+        AudioData *pAudioData = (AudioData *)pDataSource;
+        *pCursor = pAudioData->currentPCMFrame;
 
         return MA_SUCCESS;
 }
 
 static ma_result pcm_file_data_source_get_length(ma_data_source *pDataSource, ma_uint64 *pLength)
 {
-        PCMFileDataSource *pPCMDataSource = (PCMFileDataSource *)pDataSource;
+        AudioData *pAudioData = (AudioData *)pDataSource;
 
         // Get the current file based on the current file index
         FILE *currentFile;
-        if (pPCMDataSource->currentFileIndex == 0)
+        if (pAudioData->currentFileIndex == 0)
         {
-                currentFile = pPCMDataSource->fileA;
+                currentFile = pAudioData->fileA;
         }
         else
         {
-                currentFile = pPCMDataSource->fileB;
+                currentFile = pAudioData->fileB;
         }
 
         ma_uint64 fileSize;
@@ -202,7 +216,7 @@ static ma_result pcm_file_data_source_get_length(ma_data_source *pDataSource, ma
         fseek(currentFile, 0, SEEK_SET);
 
         // Calculate the total number of frames in the current file
-        ma_uint64 frameCount = fileSize / ma_get_bytes_per_frame(pPCMDataSource->format, pPCMDataSource->channels);
+        ma_uint64 frameCount = fileSize / ma_get_bytes_per_frame(pAudioData->format, pAudioData->channels);
         *pLength = frameCount;
 
         return MA_SUCCESS;

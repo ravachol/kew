@@ -23,7 +23,7 @@ typedef struct
 } PixelData;
 #endif
 
-const char VERSION[] = "1.8.1";
+const char VERSION[] = "1.9";
 const int LOGO_COLOR = 3;
 const int VERSION_COLOR = 2;
 const int ABSOLUTE_MIN_WIDTH = 38;
@@ -651,7 +651,7 @@ void scrollPrev()
         }
 }
 
-int showPlaylist()
+int showPlaylist(SongData *songData)
 {
         Node *node = originalPlaylist->head;
         Node *foundNode = originalPlaylist->head;
@@ -686,7 +686,7 @@ int showPlaylist()
         int numSongs = 0;
         for (int i = 0; i < originalPlaylist->count; i++)
         {
-                if (strcmp(node->song.filePath, currentSong->song.filePath) == 0)
+                if (strcmp(node->song.filePath, songData->filePath) == 0)
                 {
                         foundAt = numSongs;
                         foundNode = node;
@@ -771,7 +771,7 @@ int showPlaylist()
                                 printf("\x1b[7m");
                         }
 
-                        if (strcmp(filePath, currentSong->song.filePath) == 0)
+                        if (strcmp(filePath, songData->filePath) == 0)
                         {
                                 if (useProfileColors)
                                         printf("\e[1m\e[39m");
@@ -927,7 +927,7 @@ int printPlayer(SongData *songdata, double elapsedSeconds, PlayList *playlist)
                 if (refresh)
                 {
                         clearScreen();
-                        int height = showPlaylist();
+                        int height = showPlaylist(songdata);
                         cursorJump(height);
                         saveCursorPosition();
                 }

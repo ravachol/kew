@@ -263,7 +263,7 @@ void buildPlaylistRecursive(char *directoryPath, const char *allowedExtensions, 
         {
                 struct dirent *entry = entries[i];
 
-                if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
+                if (entry->d_name[0] == '.' || strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
                 {
                         continue;
                 }

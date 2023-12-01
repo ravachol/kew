@@ -10,11 +10,13 @@
 #endif
 
 int bufferSize = 4800;
+int prevBufferSize = 0;
 float magnitudeCeil = 120;
 float alpha = 0.2;
 float lastMax = 60;
 bool unicodeSupport = false;
-
+fftwf_complex *fftInput = NULL;
+fftwf_complex *fftOutput = NULL;
 /*
 
 visuals.c
@@ -32,7 +34,7 @@ void initVisuals()
         unicodeSupport = false;
         char *locale = setlocale(LC_ALL, "");
         if (locale != NULL)
-                unicodeSupport = true;        
+                unicodeSupport = true;
 }
 
 void printBlankSpaces(int numSpaces)
@@ -277,27 +279,29 @@ void calc(int height, int numBars, ma_int32 *audioBuffer, int bitDepth, fftwf_co
         updateMagnitudes(height, numBars, maxMagnitude, magnitudes);
 }
 
-wchar_t *getUpwardMotionChar(int level) {
-    switch (level) {
+wchar_t *getUpwardMotionChar(int level)
+{
+        switch (level)
+        {
         case 0:
-            return L" ";
+                return L" ";
         case 1:
-            return L"▁";
+                return L"▁";
         case 2:
-            return L"▂";
+                return L"▂";
         case 3:
-            return L"▃";
+                return L"▃";
         case 4:
-            return L"▄";
+                return L"▄";
         case 5:
-            return L"▅";
+                return L"▅";
         case 6:
-            return L"▆";
+                return L"▆";
         case 7:
-            return L"▇";
+                return L"▇";
         default:
-            return L"█";
-    }
+                return L"█";
+        }
 }
 
 void calcSpectrum(int height, int numBars, fftwf_complex *fftInput, fftwf_complex *fftOutput, float *magnitudes, fftwf_plan plan)
@@ -387,7 +391,7 @@ void printSpectrum(int height, int width, float *magnitudes, PixelData color)
                         for (int i = 0; i < width; i++)
                         {
                                 printf("  ");
-                        }                        
+                        }
                 }
                 else
                 {
@@ -400,15 +404,16 @@ void printSpectrum(int height, int width, float *magnitudes, PixelData color)
                                                 if (unicodeSupport)
                                                 {
                                                         printf(" %S", getUpwardMotionChar(10));
-                                                }       
-                                                else {
+                                                }
+                                                else
+                                                {
                                                         printf(" █");
                                                 }
                                         }
                                         else if (magnitudes[i] + 1 >= j && unicodeSupport)
                                         {
                                                 int firstDecimalDigit = (int)(fmod(magnitudes[i] * 10, 10));
-                                                printf(" %S", getUpwardMotionChar(firstDecimalDigit));                                   
+                                                printf(" %S", getUpwardMotionChar(firstDecimalDigit));
                                         }
                                         else
                                         {
@@ -421,6 +426,20 @@ void printSpectrum(int height, int width, float *magnitudes, PixelData color)
         }
         printf("\r");
         fflush(stdout);
+}
+
+void freeVisuals()
+{
+        if (fftInput != NULL)
+        {
+                fftwf_free(fftInput);
+                fftInput = NULL;
+        }
+        if (fftOutput != NULL)
+        {
+                fftwf_free(fftOutput);
+                fftOutput = NULL;
+        }
 }
 
 void drawSpectrumVisualizer(int height, int width, PixelData c)
@@ -442,17 +461,32 @@ void drawSpectrumVisualizer(int height, int width, PixelData c)
         if (bufferSize <= 0)
                 return;
 
-        fftwf_complex *fftInput = (fftwf_complex *)fftwf_malloc(sizeof(fftwf_complex) * bufferSize);
-        if (fftInput == NULL)
+        if (bufferSize != prevBufferSize)
         {
-                return;
-        }
+                if (fftInput != NULL)
+                {
+                        fftwf_free(fftInput);
+                        fftInput = NULL;
+                }
+                if (fftOutput != NULL)
+                {
+                        fftwf_free(fftOutput);
+                        fftOutput = NULL;
+                }
 
-        fftwf_complex *fftOutput = (fftwf_complex *)fftwf_malloc(sizeof(fftwf_complex) * bufferSize);
-        if (fftOutput == NULL)
-        {
-                fftwf_free(fftInput);
-                return;
+                fftInput = (fftwf_complex *)fftwf_malloc(sizeof(fftwf_complex) * bufferSize);
+                if (fftInput == NULL)
+                {
+                        return;
+                }
+
+                fftOutput = (fftwf_complex *)fftwf_malloc(sizeof(fftwf_complex) * bufferSize);
+                if (fftOutput == NULL)
+                {
+                        fftwf_free(fftInput);
+                        return;
+                }
+                prevBufferSize = bufferSize;
         }
 
         fftwf_plan plan = fftwf_plan_dft_1d(bufferSize, fftInput, fftOutput, FFTW_FORWARD, FFTW_ESTIMATE);
@@ -466,8 +500,4 @@ void drawSpectrumVisualizer(int height, int width, PixelData c)
         printSpectrum(height, numBars, magnitudes, color);
 
         fftwf_destroy_plan(plan);
-        fftwf_free(fftInput);
-        fftInput = NULL;
-        fftwf_free(fftOutput);
-        fftOutput = NULL;
 }

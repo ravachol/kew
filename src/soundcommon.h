@@ -19,7 +19,7 @@
 #define SAMPLE_FORMAT ma_format_s24
 
 #ifndef MAX_BUFFER_SIZE
-#define MAX_BUFFER_SIZE 3600
+#define MAX_BUFFER_SIZE 4800
 #endif
 
 #ifndef TAGSETTINGS_STRUCT
@@ -74,8 +74,8 @@ typedef struct
 #endif
 
 
-#ifndef PCMFILEDATASOURCE_STRUCT
-#define PCMFILEDATASOURCE_STRUCT
+#ifndef AUDIODATA_STRUCT
+#define AUDIODATA_STRUCT
 typedef struct
 {
         ma_data_source_base base;
@@ -94,7 +94,7 @@ typedef struct
         bool switchFiles;
         int currentFileIndex;
         ma_uint64 totalFrames;
-} PCMFileDataSource;
+} AudioData;
 #endif
 
 enum AudioImplementation
@@ -232,8 +232,8 @@ ma_device *getDevice();
 
 bool hasBuiltinDecoder(char *filePath);
 
-void activateSwitch(PCMFileDataSource *pPCMDataSource);
+void activateSwitch(AudioData *pPCMDataSource);
 
-void executeSwitch(PCMFileDataSource *pPCMDataSource);
+void executeSwitch(AudioData *pPCMDataSource);
 
 #endif
