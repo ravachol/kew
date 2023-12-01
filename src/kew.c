@@ -338,7 +338,7 @@ void prepareNextSong()
         {
                 pthread_mutex_lock(&(loadingdata.mutex));
                 if (usingSongDataA &&
-                    (skipping || (userData.currentSongData == NULL ||
+                    (skipping || (userData.currentSongData == NULL || userData.currentSongData->deleted ||
                                   (userData.currentSongData->trackId && loadingdata.songdataA &&
                                    strcmp(loadingdata.songdataA->trackId, userData.currentSongData->trackId) != 0))))
                 {
@@ -348,7 +348,7 @@ void prepareNextSong()
                         loadedNextSong = false;
                 }
                 else if (!usingSongDataA &&
-                         (skipping || (userData.currentSongData == NULL ||
+                         (skipping || (userData.currentSongData == NULL || userData.currentSongData->deleted ||
                                        (userData.currentSongData->trackId && loadingdata.songdataB &&
                                         strcmp(loadingdata.songdataB->trackId, userData.currentSongData->trackId) != 0))))
                 {
@@ -365,36 +365,9 @@ void prepareNextSong()
 
 void refreshPlayer()
 {
-        SongData *songData = usingSongDataA ? loadingdata.songdataA : loadingdata.songdataB;
+        SongData *songData = (audioData.currentFileIndex == 0) ? userData.songdataA : userData.songdataB;
 
-        // Check if we have the correct one
-        if (userData.currentSongData != NULL &&
-            userData.currentSongData->deleted == false &&
-            ((songData != NULL &&
-              songData->deleted == false &&
-              userData.currentSongData->trackId != NULL &&
-              songData->trackId != NULL &&
-              strcmp(songData->trackId, userData.currentSongData->trackId) != 0) ||
-             songData == NULL))
-        {
-                if (usingSongDataA)
-                {
-                        // Try the other one
-                        if (loadingdata.songdataB != NULL && strcmp(loadingdata.songdataB->trackId, userData.currentSongData->trackId) == 0)
-                        {
-                                songData = loadingdata.songdataB;
-                        }
-                }
-                else
-                {
-                        if (loadingdata.songdataA != NULL && strcmp(loadingdata.songdataA->trackId, userData.currentSongData->trackId) == 0)
-                        {
-                                songData = loadingdata.songdataA;
-                        }
-                }
-        }
-
-        if (songData != NULL)
+        if (!isEOFReached() && !isImplSwitchReached() && songData != NULL && !songData->deleted)
         {
                 if (refresh)
                 {
@@ -700,6 +673,7 @@ void cleanupOnExit()
         deletePlaylist(mainPlaylist);
         deletePlaylist(originalPlaylist);
         free(mainPlaylist);
+        freeVisuals();
         showCursor();
 
 #ifdef DEBUG
@@ -751,6 +725,7 @@ void init()
         loadingdata.loadA = true;
         initAudioBuffer();
         initVisuals();
+        pthread_mutex_init(&dataSourceMutex, NULL);
 
 #ifdef DEBUG
         g_setenv("G_MESSAGES_DEBUG", "all", TRUE);

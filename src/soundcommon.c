@@ -338,7 +338,7 @@ void prepareNextVorbisDecoder(char *filepath)
         ma_libvorbis *first = getFirstVorbisDecoder();
         if (first != NULL)
         {
-                decoder->pReadSeekTellUserData = (PCMFileDataSource *)first->pReadSeekTellUserData;
+                decoder->pReadSeekTellUserData = (AudioData *)first->pReadSeekTellUserData;
         }
 
         decoder->format = nformat;
@@ -395,7 +395,7 @@ void prepareNextOpusDecoder(char *filepath)
         ma_libopus *first = getFirstOpusDecoder();
         if (first != NULL)
         {
-                decoder->pReadSeekTellUserData = (PCMFileDataSource *)first->pReadSeekTellUserData;
+                decoder->pReadSeekTellUserData = (AudioData *)first->pReadSeekTellUserData;
         }
 
         decoder->format = nformat;
@@ -732,48 +732,48 @@ bool hasBuiltinDecoder(char *filePath)
         return (match_regex(&regex, exto) == 0);
 }
 
-void activateSwitch(PCMFileDataSource *pPCMDataSource)
+void activateSwitch(AudioData *pAudioData)
 {
         setSkipToNext(false);
         if (!isRepeatEnabled())
-                pPCMDataSource->currentFileIndex = 1 - pPCMDataSource->currentFileIndex; // Toggle between 0 and 1
-        pPCMDataSource->switchFiles = true;
+                pAudioData->currentFileIndex = 1 - pAudioData->currentFileIndex; // Toggle between 0 and 1
+        pAudioData->switchFiles = true;
 }
 
-void executeSwitch(PCMFileDataSource *pPCMDataSource)
+void executeSwitch(AudioData *pAudioData)
 {
-        pPCMDataSource->switchFiles = false;
+        pAudioData->switchFiles = false;
         switchDecoder();
         switchOpusDecoder();
         switchVorbisDecoder();
 
-        pPCMDataSource->totalFrames = 0;
+        pAudioData->totalFrames = 0;
 
         // Close the current file, and open the new one
         char *currentFilename;
         SongData *currentSongData;
 
-        if (pPCMDataSource->currentFileIndex == 0)
+        if (pAudioData->currentFileIndex == 0)
         {
-                if (pPCMDataSource->fileB != NULL)
-                        fclose(pPCMDataSource->fileB);
-                pPCMDataSource->fileB = NULL;
-                currentFilename = pPCMDataSource->pUserData->filenameA;
-                currentSongData = pPCMDataSource->pUserData->songdataA;
-                pPCMDataSource->fileA = (currentFilename != NULL && strcmp(currentFilename, "") != 0) ? fopen(currentFilename, "rb") : NULL;
+                if (pAudioData->fileB != NULL)
+                        fclose(pAudioData->fileB);
+                pAudioData->fileB = NULL;
+                currentFilename = pAudioData->pUserData->filenameA;
+                currentSongData = pAudioData->pUserData->songdataA;
+                pAudioData->fileA = (currentFilename != NULL && strcmp(currentFilename, "") != 0) ? fopen(currentFilename, "rb") : NULL;
         }
         else
         {
-                if (pPCMDataSource->fileA != NULL)
-                        fclose(pPCMDataSource->fileA);
-                pPCMDataSource->fileA = NULL;
-                currentFilename = pPCMDataSource->pUserData->filenameB;
-                currentSongData = pPCMDataSource->pUserData->songdataB;
-                pPCMDataSource->fileB = (currentFilename != NULL && strcmp(currentFilename, "") != 0) ? fopen(currentFilename, "rb") : NULL;
+                if (pAudioData->fileA != NULL)
+                        fclose(pAudioData->fileA);
+                pAudioData->fileA = NULL;
+                currentFilename = pAudioData->pUserData->filenameB;
+                currentSongData = pAudioData->pUserData->songdataB;
+                pAudioData->fileB = (currentFilename != NULL && strcmp(currentFilename, "") != 0) ? fopen(currentFilename, "rb") : NULL;
         }
 
-        pPCMDataSource->pUserData->currentSongData = currentSongData;
-        pPCMDataSource->currentPCMFrame = 0;
+        pAudioData->pUserData->currentSongData = currentSongData;
+        pAudioData->currentPCMFrame = 0;
 
         setSeekElapsed(0.0);
 
