@@ -19,7 +19,7 @@ static ma_result builtin_file_data_source_read(ma_data_source *pDataSource, void
 
 static ma_result builtin_file_data_source_seek(ma_data_source *pDataSource, ma_uint64 frameIndex)
 {
-        AudioData *pPCMDataSource = (AudioData *)pDataSource;
+        AudioData *audioData = (AudioData *)pDataSource;
 
         if (getCurrentDecoder() == NULL)
         {
@@ -30,7 +30,7 @@ static ma_result builtin_file_data_source_seek(ma_data_source *pDataSource, ma_u
 
         if (result == MA_SUCCESS)
         {
-                pPCMDataSource->currentPCMFrame = (ma_uint32)frameIndex;
+                audioData->currentPCMFrame = (ma_uint32)frameIndex;
                 return MA_SUCCESS;
         }
         else
@@ -43,17 +43,17 @@ static ma_result builtin_file_data_source_get_data_format(ma_data_source *pDataS
 {
         (void)pChannelMap;
         (void)channelMapCap;
-        AudioData *pPCMDataSource = (AudioData *)pDataSource;
-        *pFormat = pPCMDataSource->format;
-        *pChannels = pPCMDataSource->channels;
-        *pSampleRate = pPCMDataSource->sampleRate;
+        AudioData *audioData = (AudioData *)pDataSource;
+        *pFormat = audioData->format;
+        *pChannels = audioData->channels;
+        *pSampleRate = audioData->sampleRate;
         return MA_SUCCESS;
 }
 
 static ma_result builtin_file_data_source_get_cursor(ma_data_source *pDataSource, ma_uint64 *pCursor)
 {
-        AudioData *pPCMDataSource = (AudioData *)pDataSource;
-        *pCursor = pPCMDataSource->currentPCMFrame;
+        AudioData *audioData = (AudioData *)pDataSource;
+        *pCursor = audioData->currentPCMFrame;
 
         return MA_SUCCESS;
 }
@@ -100,7 +100,7 @@ ma_data_source_vtable builtin_file_data_source_vtable = {
 
 void builtin_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_uint64 frameCount, ma_uint64 *pFramesRead)
 {
-        AudioData *pPCMDataSource = (AudioData *)pDataSource;
+        AudioData *audioData = (AudioData *)pDataSource;
         ma_uint64 framesRead = 0;
 
         while (framesRead < frameCount)
@@ -112,15 +112,15 @@ void builtin_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_u
                         return;
                 }                
 
-                if (isImplSwitchReached() || pPCMDataSource == NULL)
+                if (isImplSwitchReached() || audioData == NULL)
                 {
                         pthread_mutex_unlock(&dataSourceMutex);
                         return;
                 }
 
-                if (pPCMDataSource->switchFiles)
+                if (audioData->switchFiles)
                 {
-                        executeSwitch(pPCMDataSource);
+                        executeSwitch(audioData);
                         pthread_mutex_unlock(&dataSourceMutex);
                         break;
                 }
@@ -133,12 +133,12 @@ void builtin_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_u
                         return;
                 }
 
-                if (pPCMDataSource->totalFrames == 0)
-                        ma_data_source_get_length_in_pcm_frames(decoder, &pPCMDataSource->totalFrames);
+                if (audioData->totalFrames == 0)
+                        ma_data_source_get_length_in_pcm_frames(decoder, &audioData->totalFrames);
 
                 if (isSeekRequested())
                 {
-                        ma_uint64 totalFrames = pPCMDataSource->totalFrames;
+                        ma_uint64 totalFrames = audioData->totalFrames;
                         ma_uint64 seekPercent = getSeekPercentage();
                         if (seekPercent >= 100.0)
                                 seekPercent = 100.0;
@@ -168,9 +168,9 @@ void builtin_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_u
                 result = ma_data_source_read_pcm_frames(firstDecoder, (ma_int32 *)pFramesOut + framesRead * decoder->outputChannels, remainingFrames, &framesToRead);
                 ma_data_source_get_cursor_in_pcm_frames(decoder, &cursor);
 
-                if (((pPCMDataSource->totalFrames != 0 && cursor != 0 && cursor >= pPCMDataSource->totalFrames) || framesToRead == 0 || isSkipToNext() || result != MA_SUCCESS) && !isEOFReached())
+                if (((audioData->totalFrames != 0 && cursor != 0 && cursor >= audioData->totalFrames) || framesToRead == 0 || isSkipToNext() || result != MA_SUCCESS) && !isEOFReached())
                 {
-                        activateSwitch(pPCMDataSource);
+                        activateSwitch(audioData);
                         pthread_mutex_unlock(&dataSourceMutex);
                         continue;
                 }
