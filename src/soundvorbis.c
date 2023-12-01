@@ -30,7 +30,7 @@ MA_API ma_result ma_libvorbis_get_cursor_in_pcm_frames_wrapper(void *pDecoder, l
 void vorbis_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_uint64 frameCount, ma_uint64 *pFramesRead)
 {
         ma_libvorbis *vorbis = (ma_libvorbis *)pDataSource;
-        PCMFileDataSource *pPCMDataSource = (PCMFileDataSource *)vorbis->pReadSeekTellUserData;
+        AudioData *pAudioData = (AudioData *)vorbis->pReadSeekTellUserData;
 
         ma_uint64 framesRead = 0;
 
@@ -42,20 +42,28 @@ void vorbis_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_ui
                 if (isImplSwitchReached())
                         return;
 
-                // Check if a file switch is required
-                if (pPCMDataSource->switchFiles)
+
+                if (pthread_mutex_trylock(&dataSourceMutex) != 0)
                 {
-                        executeSwitch(pPCMDataSource);
+                        return;
+                }                        
+
+                // Check if a file switch is required
+                if (pAudioData->switchFiles)
+                {
+                        executeSwitch(pAudioData);
+                        pthread_mutex_unlock(&dataSourceMutex);
                         break; // Exit the loop after the file switch
                 }
 
-                if (getCurrentImplementationType() != VORBIS && !isSkipToNext())
-                        return;
+                ma_libvorbis *decoder = getCurrentVorbisDecoder();                
 
-                ma_libvorbis *decoder = getCurrentVorbisDecoder();
-
-                if (decoder == NULL)
+                if ((getCurrentImplementationType() != VORBIS && !isSkipToNext()) || (decoder == NULL))
+                {
+                        pthread_mutex_unlock(&dataSourceMutex);
                         return;
+                }
+
 
                 // Check if seeking is requested
                 if (isSeekRequested())
@@ -83,26 +91,26 @@ void vorbis_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_ui
                 ma_uint64 remainingFrames = frameCount - framesRead;
                 ma_libvorbis *firstDecoder = getFirstVorbisDecoder();
 
-                pthread_mutex_lock(&dataSourceMutex);
-
                 if (firstDecoder == NULL)
                 {
+                        pthread_mutex_unlock(&dataSourceMutex);
                         return;
                 }
 
-                result = ma_data_source_read_pcm_frames(firstDecoder, (ma_int32 *)pFramesOut + framesRead * pPCMDataSource->channels, remainingFrames, &framesToRead);
-                
-                pthread_mutex_unlock(&dataSourceMutex);                
+                result = ma_data_source_read_pcm_frames(firstDecoder, (ma_int32 *)pFramesOut + framesRead * pAudioData->channels, remainingFrames, &framesToRead);
 
                 if ((getPercentageElapsed() >= 1.0 || isSkipToNext() || result != MA_SUCCESS) &&
                     !isEOFReached())
                 {
-                        activateSwitch(pPCMDataSource);
+                        activateSwitch(pAudioData);
+                        pthread_mutex_unlock(&dataSourceMutex);
                         continue;
                 }
 
                 framesRead += framesToRead;
                 setBufferSize(framesToRead);
+
+                pthread_mutex_unlock(&dataSourceMutex);
         }
 
         ma_int32 *audioBuffer = getAudioBuffer();
@@ -128,7 +136,7 @@ void vorbis_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_ui
 
 void vorbis_on_audio_frames(ma_device *pDevice, void *pFramesOut, const void *pFramesIn, ma_uint32 frameCount)
 {
-        PCMFileDataSource *pDataSource = (PCMFileDataSource *)pDevice->pUserData;
+        AudioData *pDataSource = (AudioData *)pDevice->pUserData;
         ma_uint64 framesRead = 0;
         vorbis_read_pcm_frames(&pDataSource->base, pFramesOut, frameCount, &framesRead);
         (void)pFramesIn;

@@ -33,6 +33,31 @@ typedef struct
 } UserData;
 #endif
 
+#ifndef AUDIODATA_STRUCT
+#define AUDIODATA_STRUCT
+typedef struct
+{
+        ma_data_source_base base;
+        UserData *pUserData;
+        const char *filenameA;
+        const char *filenameB;
+        ma_format format;
+        ma_uint32 channels;
+        ma_uint32 sampleRate;
+        ma_uint32 currentPCMFrame;
+        ma_decoder decoderA;
+        ma_decoder decoderB;
+        ma_decoder currentDecoder;
+        FILE *fileA;
+        FILE *fileB;
+        bool switchFiles;
+        int currentFileIndex;
+        ma_uint64 totalFrames;
+} AudioData;
+#endif
+
+extern AudioData audioData;
+
 extern UserData userData;
 
 void setDecoders(bool usingA, char *filePath);
