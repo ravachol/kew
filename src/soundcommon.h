@@ -110,10 +110,6 @@ enum AudioImplementation
 extern bool doQuit;
 extern pthread_mutex_t dataSourceMutex;
 
-ma_libopus *getOpus();
-
-ma_libvorbis *getVorbis();
-
 enum AudioImplementation getCurrentImplementationType();
 
 void setCurrentImplementationType(enum AudioImplementation value);

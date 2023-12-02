@@ -32,10 +32,8 @@ ma_event switchAudioImpl;
 enum AudioImplementation currentImplementation = NONE;
 ma_decoder *decoders[MAX_DECODERS];
 ma_libopus *opusDecoders[MAX_DECODERS];
-ma_libopus opus;
 ma_libopus *firstOpusDecoder;
 ma_libvorbis *vorbisDecoders[MAX_DECODERS];
-ma_libvorbis vorbis;
 ma_libvorbis *firstVorbisDecoder;
 int decoderIndex = -1;
 int opusDecoderIndex = -1;
@@ -94,17 +92,19 @@ void resetDecoders()
 {
         decoderIndex = -1;
 
-        if (firstDecoder != NULL)
+        if (firstDecoder != NULL && firstDecoder->outputFormat != ma_format_unknown)
         {
                 ma_decoder_uninit(firstDecoder);
                 firstDecoder = NULL;
         }
-        if (decoders[0] != NULL)
+
+        if (decoders[0] != NULL && decoders[0]->outputFormat != ma_format_unknown)
         {
                 ma_decoder_uninit(decoders[0]);
                 decoders[0] = NULL;
         }
-        if (decoders[1] != NULL)
+
+        if (decoders[1] != NULL && decoders[1]->outputFormat != ma_format_unknown)
         {
                 ma_decoder_uninit(decoders[1]);
                 decoders[1] = NULL;
@@ -247,19 +247,21 @@ void resetVorbisDecoders()
 {
         vorbisDecoderIndex = -1;
 
-        if (firstVorbisDecoder != NULL)
+        if (firstVorbisDecoder != NULL && firstVorbisDecoder->format != ma_format_unknown)
         {
                 ma_libvorbis_uninit(firstVorbisDecoder, NULL);
                 free(firstVorbisDecoder);
                 firstVorbisDecoder = NULL;
         }
-        if (vorbisDecoders[0] != NULL)
+
+        if (vorbisDecoders[0] != NULL && vorbisDecoders[0]->format != ma_format_unknown)
         {
                 ma_libvorbis_uninit(vorbisDecoders[0], NULL);
                 free(vorbisDecoders[0]);
                 vorbisDecoders[0] = NULL;
         }
-        if (vorbisDecoders[1] != NULL)
+
+        if (vorbisDecoders[1] != NULL && vorbisDecoders[1]->format != ma_format_unknown)
         {
                 ma_libvorbis_uninit(vorbisDecoders[1], NULL);
                 free(vorbisDecoders[1]);
@@ -271,22 +273,24 @@ void resetOpusDecoders()
 {
         opusDecoderIndex = -1;
 
-        if (firstOpusDecoder != NULL)
+        if (firstOpusDecoder != NULL && firstOpusDecoder->format != ma_format_unknown)
         {
-                ma_data_source_base * base = (ma_data_source_base *)firstOpusDecoder;
+                ma_data_source_base *base = (ma_data_source_base *)firstOpusDecoder;
                 base->pCurrent = NULL;
-                base->vtable = NULL;                   
+                base->vtable = NULL;
                 ma_libopus_uninit(firstOpusDecoder, NULL);
                 free(firstOpusDecoder);
                 firstOpusDecoder = NULL;
         }
-        if (opusDecoders[0] != NULL)
+
+        if (opusDecoders[0] != NULL && opusDecoders[0]->format != ma_format_unknown)
         {
                 ma_libopus_uninit(opusDecoders[0], NULL);
                 free(opusDecoders[0]);
                 opusDecoders[0] = NULL;
         }
-        if (opusDecoders[1] != NULL)
+
+        if (opusDecoders[1] != NULL && opusDecoders[1]->format != ma_format_unknown)
         {
                 ma_libopus_uninit(opusDecoders[1], NULL);
                 free(opusDecoders[1]);

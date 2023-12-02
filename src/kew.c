@@ -719,7 +719,6 @@ void init()
         ioctl(STDOUT_FILENO, TIOCGWINSZ, &windowSize);
         enableScrolling();
         setNonblockingMode();
-        srand(time(NULL));
         tempCache = createCache();
         c_strcpy(loadingdata.filePath, sizeof(loadingdata.filePath), "");
         loadingdata.songdataA = NULL;
