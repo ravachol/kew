@@ -424,13 +424,16 @@ void setConfig()
         settings.useProfileColors[1] = '\0';
 
         // Write the settings to the file
+        fprintf(file, "# Make sure that Kew is closed before editing this file in order for changes to take effect.\n\n");
+
         fprintf(file, "path=%s\n", settings.path);
         // fprintf(file, "useThemeColors=%s\n", settings.useThemeColors);
         fprintf(file, "coverEnabled=%s\n", settings.coverEnabled);
         fprintf(file, "coverAnsi=%s\n", settings.coverAnsi);
         fprintf(file, "visualizerEnabled=%s\n", settings.visualizerEnabled);
         fprintf(file, "visualizerHeight=%s\n", settings.visualizerHeight);
-        fprintf(file, "useProfileColors=%s\n", settings.useProfileColors);
+        fprintf(file, "useProfileColors=%s\n\n", settings.useProfileColors);
+        fprintf(file, "# Key Bindings:\n\n");
         fprintf(file, "volumeUp=%s\n", settings.volumeUp);
         fprintf(file, "volumeDown=%s\n", settings.volumeDown);
         fprintf(file, "previousTrackAlt=%s\n", settings.previousTrackAlt);
@@ -449,8 +452,11 @@ void setConfig()
         fprintf(file, "seekForward=%s\n", settings.seekForward);
         fprintf(file, "savePlaylist=%s\n", settings.savePlaylist);
         fprintf(file, "addToMainPlaylist=%s\n", settings.addToMainPlaylist);
-        fprintf(file, "quit=%s\n", settings.quit);
-        fprintf(file, "# For special keys use terminal codes OS, for F4 for instance. This can depend on the terminal.");
+        fprintf(file, "quit=%s\n\n", settings.quit);
+        fprintf(file, "# For special keys use terminal codes: OS, for F4 for instance. This can depend on the terminal.\n");
+        fprintf(file, "# You can find out the codes for the keys by using tools like showkey.\n");
+        fprintf(file, "# For special keys, see the key value after the bracket \"[\" after typing \"showkey -a\" in the terminal and then pressing a key you want info about.\n");
+        fprintf(file, "\n\n");        
 
         fclose(file);
         free(filepath);
