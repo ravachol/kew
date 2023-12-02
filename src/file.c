@@ -18,8 +18,6 @@ file.c
 
 */
 
-const int MAX_IN_MEM_FILESIZE = 20000000; //~20MB
-
 int existsFile(const char *fname)
 {
         FILE *file;
