@@ -10,8 +10,6 @@ soundcommon.c
 
 */
 
-const char BUILTIN_EXTENSIONS[] = "\\.(mp3|flac|wav)$";
-
 bool repeatEnabled = false;
 bool shuffleEnabled = false;
 bool skipToNext = false;
@@ -724,16 +722,9 @@ ma_device *getDevice()
 
 bool hasBuiltinDecoder(char *filePath)
 {
-        char exto[6];
-        extractExtension(filePath, sizeof(exto) - 1, exto);
-        regex_t regex;
-        int ret = regcomp(&regex, BUILTIN_EXTENSIONS, REG_EXTENDED);
-        if (ret != 0)
-        {
-                printf("Failed to compile regular expression\n");
-                return false;
-        }
-        return (match_regex(&regex, exto) == 0);
+        char *extension = strrchr(filePath, '.');
+        return (strcasecmp(extension, ".wav") == 0 || strcasecmp(extension, ".flac") == 0 ||
+                                                  strcasecmp(extension, ".mp3") == 0);
 }
 
 void activateSwitch(AudioData *pAudioData)

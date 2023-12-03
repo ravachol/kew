@@ -484,6 +484,8 @@ void skipToNextSong()
         if (songLoading || !loadedNextSong || skipping || clearingErrors)
                 return;
 
+        playbackPlay(&totalPauseSeconds, &pauseSeconds, &pause_time);
+
         skipping = true;
         updateLastSongSwitchTime();
         skip();
@@ -495,14 +497,17 @@ void skipToPrevSong()
                 if (!forceSkip)
                         return;
 
+
+        if (currentSong->prev != NULL)
+                currentSong = currentSong->prev;   
+
+        playbackPlay(&totalPauseSeconds, &pauseSeconds, &pause_time);                                    
+
         skipping = true;
         skipPrev = true;
         loadedNextSong = false;
         songLoading = true;
         forceSkip = false;
-
-        if (currentSong->prev != NULL)
-                currentSong = currentSong->prev;
 
         loadingdata.loadA = !usingSongDataA;
         unloadSongData(usingSongDataA ? &loadingdata.songdataB : &loadingdata.songdataA);
@@ -510,6 +515,7 @@ void skipToPrevSong()
         loadSong(currentSong, &loadingdata);
         int maxNumTries = 50;
         int numtries = 0;
+
         while (!loadedNextSong && !loadingFailed && numtries < maxNumTries)
         {
                 c_sleep(100);
@@ -534,6 +540,8 @@ void skipToNumberedSong(int songNumber)
                 if (!forceSkip)
                         return;
 
+        playbackPlay(&totalPauseSeconds, &pauseSeconds, &pause_time);                         
+
         skipping = true;
         skipPrev = true;
         loadedNextSong = false;
@@ -548,6 +556,7 @@ void skipToNumberedSong(int songNumber)
         loadSong(currentSong, &loadingdata);
         int maxNumTries = 50;
         int numtries = 0;
+        
         while (!loadedNextSong && !loadingFailed && numtries < maxNumTries)
         {
                 c_sleep(100);
