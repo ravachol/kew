@@ -98,6 +98,9 @@ void createDevice(UserData *userData, ma_device *device, ma_context *context, ma
         result = ma_device_init(context, &deviceConfig, device);
         if (result != MA_SUCCESS)
                 return;
+        
+        setVolume(getCurrentVolume());
+
         result = ma_device_start(device);
         if (result != MA_SUCCESS)
                 return;
@@ -134,7 +137,8 @@ void vorbis_createAudioDevice(UserData *userData, ma_device *device, ma_context 
                 return;
         }
 
-        // Start the device again
+        setVolume(getCurrentVolume());
+
         result = ma_device_start(device);
         if (result != MA_SUCCESS)
         {
@@ -165,7 +169,8 @@ void opus_createAudioDevice(UserData *userData, ma_device *device, ma_context *c
                 return;
         }
 
-        // Start the device again
+        setVolume(getCurrentVolume());
+
         result = ma_device_start(device);
         if (result != MA_SUCCESS)
         {

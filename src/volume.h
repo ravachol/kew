@@ -1,5 +1,6 @@
 
 #include <stdio.h>
+#include "soundcommon.h"
 
 int getCurrentVolume(void);
 
