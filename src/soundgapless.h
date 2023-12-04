@@ -19,6 +19,7 @@
 #include "soundopus.h"
 #include "soundvorbis.h"
 #include "soundpcm.h"
+#include "volume.h"
 
 #ifndef USERDATA_STRUCT
 #define USERDATA_STRUCT
