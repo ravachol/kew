@@ -4,9 +4,17 @@
 volume.c
 
  Functions related to volume control.
- 
+
 */
+
+int soundVolume = 100;
+
 int getCurrentVolume()
+{
+        return soundVolume;
+}
+
+int getSystemVolume()
 {
         FILE *fp;
         char command_str[1000];
@@ -33,10 +41,6 @@ int getCurrentVolume()
 
 void setVolume(int volume)
 {
-        char command_str[1000];
-        FILE *fp;
-
-        // Limit new volume to a maximum of 100%
         if (volume > 100)
         {
                 volume = 100;
@@ -46,42 +50,25 @@ void setVolume(int volume)
                 volume = 0;
         }
 
-        snprintf(command_str, 1000, "pactl set-sink-volume @DEFAULT_SINK@ %d%%", volume);
+        soundVolume = volume;
 
-        fp = popen(command_str, "r");
-        if (fp == NULL)
-        {
-                return;
-        }
-        pclose(fp);
+        ma_device_set_master_volume(getDevice(), (float)volume / 100);
 }
 
 int adjustVolumePercent(int volumeChange)
 {
-        char command_str[1000];
-        FILE *fp;
-        int currentVolume = getCurrentVolume();
+        int sysVol = getSystemVolume();
 
-        int newVolume = currentVolume + volumeChange;
+        if (sysVol == 0) 
+                return 0;
 
-        // Limit new volume to a maximum of 100%
-        if (newVolume > 100)
-        {
-                newVolume = 100;
-        }
-        else if (newVolume < 0)
-        {
-                newVolume = 0;
-        }
+        int step = 100 / sysVol * 5;
 
-        snprintf(command_str, 1000, "pactl set-sink-volume @DEFAULT_SINK@ %d%%", newVolume);
+        int relativeVolChange = volumeChange / 5  * step;
 
-        fp = popen(command_str, "r");
-        if (fp == NULL)
-        {
-                return -1;
-        }
-        pclose(fp);
+        soundVolume += relativeVolChange;
+
+        setVolume(soundVolume);
 
         return 0;
 }
