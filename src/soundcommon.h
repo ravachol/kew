@@ -13,6 +13,10 @@
 #include "stringfunc.h"
 #include "player.h"
 
+#ifndef MAXPATHLEN
+#define MAXPATHLEN 4096
+#endif
+
 #define CHANNELS 2
 #define SAMPLE_RATE 192000
 #define SAMPLE_WIDTH 3
