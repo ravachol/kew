@@ -23,6 +23,10 @@
 #include <signal.h>
 #include <stdbool.h>
 
+#ifdef __GNU__
+# define _BSD_SOURCE
+#endif
+
 #define ANSI_COLOR_CLEARLINE "\x1b[2K\r"
 #define ANSI_COLOR_WHITE "\x1b[37m"
 #define ANSI_COLOR_RESET "\x1b[0m"
