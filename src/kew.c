@@ -63,6 +63,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include "playerops.h"
 #include "mpris.h"
 #include "soundcommon.h"
+#include "kew.h"
 
 // #define DEBUG 1
 #define MAX_SEQ_LEN 1024    // Maximum length of sequence buffer
@@ -78,6 +79,7 @@ int digitsPressedCount = 0;
 int maxDigitsPressedCount = 9;
 bool gotoSong = false;
 bool gPressed = false;
+bool waitingForPlaylist = false;
 
 bool isCooldownElapsed(int milliSeconds)
 {
@@ -97,7 +99,7 @@ struct Event processInput()
         bool cooldownElapsed = false;
         bool cooldown2Elapsed = false;
 
-        if (songLoading || !loadedNextSong)
+        if (songLoading)
                 return event;
 
         if (!isInputAvailable())
@@ -142,7 +144,8 @@ struct Event processInput()
 
                 // This slows the continous reads down to not get a a too fast scrolling speed
                 if (strcmp(seq, settings.hardScrollUp) == 0 || strcmp(seq, settings.hardScrollDown) == 0 || strcmp(seq, settings.scrollUpAlt) == 0 ||
-                    strcmp(seq, settings.scrollDownAlt) == 0 || strcmp(seq, settings.seekBackward) == 0 || strcmp(seq, settings.seekForward) == 0)
+                    strcmp(seq, settings.scrollDownAlt) == 0 || strcmp(seq, settings.seekBackward) == 0 || strcmp(seq, settings.seekForward) == 0 ||
+                    strcmp(seq, settings.hardNextPage) == 0 || strcmp(seq, settings.hardPrevPage) == 0)
                 {
                         // Do dummy reads to prevent scrolling continuing after we release the key
                         readInputSequence(tmpSeq, 3);
@@ -192,7 +195,12 @@ struct Event processInput()
                                       {settings.hardShowInfoAlt, EVENT_SHOWINFO},
                                       {settings.hardShowKeys, EVENT_SHOWKEYBINDINGS},
                                       {settings.hardShowKeysAlt, EVENT_SHOWKEYBINDINGS},
-                                      {settings.hardEndOfPlaylist, EVENT_GOTOENDOFPLAYLIST}};
+                                      {settings.hardEndOfPlaylist, EVENT_GOTOENDOFPLAYLIST},
+                                      {settings.hardShowLibrary, EVENT_SHOWLIBRARY},
+                                      {settings.hardShowLibraryAlt, EVENT_SHOWLIBRARY},
+                                      {settings.hardNextPage, EVENT_NEXTPAGE},
+                                      {settings.hardPrevPage, EVENT_PREVPAGE},
+                                      {settings.hardRemove, EVENT_REMOVE}};
 
         int numKeyMappings = sizeof(keyMappings) / sizeof(EventMapping);
 
@@ -291,29 +299,72 @@ struct Event processInput()
         return event;
 }
 
-void prepareNextSong()
+void unloadPreviousSong()
 {
-        while (!loadedNextSong && !loadingFailed)
+        pthread_mutex_lock(&(loadingdata.mutex));
+
+        if (usingSongDataA &&
+            (skipping || (userData.currentSongData == NULL || userData.currentSongData->deleted ||
+                          (userData.currentSongData->trackId && loadingdata.songdataA &&
+                           strcmp(loadingdata.songdataA->trackId, userData.currentSongData->trackId) != 0))))
         {
-                c_sleep(10);
+                unloadSongData(&loadingdata.songdataA);
+                userData.filenameA = NULL;
+                usingSongDataA = false;
+                if (!audioData.endOfListReached)
+                        loadedNextSong = false;
+        }
+        else if (!usingSongDataA &&
+                 (skipping || (userData.currentSongData == NULL || userData.currentSongData->deleted ||
+                               (userData.currentSongData->trackId && loadingdata.songdataB &&
+                                strcmp(loadingdata.songdataB->trackId, userData.currentSongData->trackId) != 0))))
+        {
+                unloadSongData(&loadingdata.songdataB);
+                userData.filenameB = NULL;
+                usingSongDataA = true;
+                if (!audioData.endOfListReached)
+                        loadedNextSong = false;
         }
 
-        if (loadingFailed)
-                return;
+        pthread_mutex_unlock(&(loadingdata.mutex));
+}
 
+void setEndOfListReached()
+{
+        appState.currentView = LIBRARY_VIEW;
+
+        loadedNextSong = true;
+
+        audioData.endOfListReached = true;
+        refresh = true;
+}
+
+void finishLoading()
+{
+        int maxNumTries = 20;
+        int numtries = 0;
+
+        while (!loadedNextSong && !loadingFailed && numtries < maxNumTries)
+        {
+                c_sleep(100);
+                numtries++;
+        }
+
+        loadedNextSong = true;
+}
+
+void resetTimeCount()
+{
+        elapsedSeconds = 0.0;
+        pauseSeconds = 0.0;
+        totalPauseSeconds = 0.0;
+}
+
+void prepareNextSong()
+{
         if (!skipPrev && !gotoSong && !isRepeatEnabled())
         {
-                if (nextSong != NULL)
-                        currentSong = nextSong;
-                else if (currentSong->next != NULL)
-                {
-                        currentSong = currentSong->next;
-                }
-                else
-                {
-                        quit();
-                        return;
-                }
+                currentSong = getNextSong();
         }
         else
         {
@@ -323,42 +374,21 @@ void prepareNextSong()
 
         if (currentSong == NULL)
         {
-                quit();
-                return;
+                setEndOfListReached();
         }
 
-        elapsedSeconds = 0.0;
-        pauseSeconds = 0.0;
-        totalPauseSeconds = 0.0;
+        finishLoading();
+        resetTimeCount();
+
+        if (loadingFailed)
+                return;
 
         nextSong = NULL;
-
         refresh = true;
 
         if (!isRepeatEnabled())
         {
-                pthread_mutex_lock(&(loadingdata.mutex));
-                if (usingSongDataA &&
-                    (skipping || (userData.currentSongData == NULL || userData.currentSongData->deleted ||
-                                  (userData.currentSongData->trackId && loadingdata.songdataA &&
-                                   strcmp(loadingdata.songdataA->trackId, userData.currentSongData->trackId) != 0))))
-                {
-                        unloadSongData(&loadingdata.songdataA);
-                        userData.filenameA = NULL;
-                        usingSongDataA = false;
-                        loadedNextSong = false;
-                }
-                else if (!usingSongDataA &&
-                         (skipping || (userData.currentSongData == NULL || userData.currentSongData->deleted ||
-                                       (userData.currentSongData->trackId && loadingdata.songdataB &&
-                                        strcmp(loadingdata.songdataB->trackId, userData.currentSongData->trackId) != 0))))
-                {
-                        unloadSongData(&loadingdata.songdataB);
-                        userData.filenameB = NULL;
-                        usingSongDataA = true;
-                        loadedNextSong = false;
-                }
-                pthread_mutex_unlock(&(loadingdata.mutex));
+                unloadPreviousSong();
         }
 
         clock_gettime(CLOCK_MONOTONIC, &start_time);
@@ -368,9 +398,9 @@ void refreshPlayer()
 {
         SongData *songData = (audioData.currentFileIndex == 0) ? userData.songdataA : userData.songdataB;
 
-        if (!isEOFReached() && !isImplSwitchReached() && songData != NULL && !songData->deleted)
+        if (!skipping && !isEOFReached() && !isImplSwitchReached())
         {
-                if (refresh)
+                if (refresh && songData != NULL && songData->deleted == false)
                 {
                         // update mpris
                         emitMetadataChanged(
@@ -385,20 +415,34 @@ void refreshPlayer()
         }
 }
 
+
 void handleGoToSong()
 {
-        if (digitsPressedCount == 0)
+        if (appState.currentView != LIBRARY_VIEW)
         {
-                skipToNumberedSong(chosenSong + 1);
+                if (digitsPressedCount == 0)
+                {
+                        loadedNextSong = true;
+                        skipToNumberedSong(chosenSong + 1);
+                        if (audioData.endOfListReached)
+                        {
+                                audioData.endOfListReached = 0;
+                        }
+                }
+                else
+                {
+                        resetPlaylistDisplay = true;
+                        int songNumber = atoi(digitsPressed);
+                        memset(digitsPressed, '\0', sizeof(digitsPressed));
+                        digitsPressedCount = 0;
+                        skipToNumberedSong(songNumber);
+                }
         }
         else
         {
-                resetPlaylistDisplay = true;
-                int songNumber = atoi(digitsPressed);
-                memset(digitsPressed, '\0', sizeof(digitsPressed));
-                digitsPressedCount = 0;
-                skipToNumberedSong(songNumber);
-        }        
+                enqueueSongs();
+                loadedNextSong = false;
+        }
 }
 
 void gotoBeginningOfPlaylist()
@@ -472,12 +516,12 @@ void handleInput()
         case EVENT_VOLUME_DOWN:
                 adjustVolumePercent(-5);
                 break;
-        case EVENT_NEXT:     
+        case EVENT_NEXT:
                 resetPlaylistDisplay = true;
                 skipToNextSong();
                 break;
         case EVENT_PREV:
-                resetPlaylistDisplay = true; 
+                resetPlaylistDisplay = true;
                 skipToPrevSong();
                 break;
         case EVENT_SEEKBACK:
@@ -500,6 +544,18 @@ void handleInput()
                 break;
         case EVENT_SHOWINFO:
                 toggleShowPlaylist();
+                break;
+        case EVENT_SHOWLIBRARY:
+                toggleShowLibrary();
+                break;
+        case EVENT_NEXTPAGE:
+                flipNextPage();
+                break;
+        case EVENT_PREVPAGE:
+                flipPrevPage();
+                break;
+        case EVENT_REMOVE:
+                handleRemove();
                 break;
         default:
                 fastForwarding = false;
@@ -548,7 +604,32 @@ void updatePlayer()
 
 void loadAudioData()
 {
-        if (nextSong == NULL && !songLoading)
+        if (currentSong == NULL)
+        {
+                if (playlist.head != NULL && waitingForPlaylist)
+                {
+                        waitingForPlaylist = false;
+                        songLoading = true;
+                        loadingdata.loadA = true;
+
+                        currentSong = playlist.head;
+                        loadFirst(playlist.head);
+
+                        createAudioDevice(&userData);
+
+                        if (currentSong->next != NULL)
+                        {
+                                loadedNextSong = false;
+                        }
+
+                        nextSong = NULL;
+                        refresh = true;
+
+                        clock_gettime(CLOCK_MONOTONIC, &start_time);
+                        calculatePlayListDuration(&playlist);
+                }
+        }
+        else if (nextSong == NULL && !songLoading)
         {
                 tryNextSong = currentSong->next;
                 songLoading = true;
@@ -561,6 +642,7 @@ void tryLoadNext()
 {
         songHasErrors = false;
         clearingErrors = true;
+
         if (tryNextSong == NULL)
                 tryNextSong = currentSong->next;
         else
@@ -591,18 +673,21 @@ gboolean mainloop_callback(gpointer data)
 
         updatePlayer();
 
-        if (!loadedNextSong)
-                loadAudioData();
-
-        if (songHasErrors)
-                tryLoadNext();
-
-        if (isPlaybackDone())
+        if (playlist.head != NULL)
         {
-                updateLastSongSwitchTime();
-                prepareNextSong();
-                if (!doQuit)
-                        switchAudioImplementation();
+                if (!loadedNextSong && !audioData.endOfListReached)
+                        loadAudioData();
+
+                if (songHasErrors)
+                        tryLoadNext();
+
+                if (isPlaybackDone())
+                {
+                        updateLastSongSwitchTime();
+                        prepareNextSong();
+                        if (!doQuit)
+                                switchAudioImplementation();
+                }
         }
 
         if (doQuit || loadingFailed)
@@ -620,20 +705,15 @@ void play(Node *song)
         updateLastSongSwitchTime();
         pthread_mutex_init(&(loadingdata.mutex), NULL);
 
-        loadFirst(song);
-
-        if (songHasErrors)
+        if (song != NULL)
         {
-                printf("Couldn't play any of the songs.\n");
-                return;
+                loadFirst(song);
+                createAudioDevice(&userData);
         }
-
-        userData.currentPCMFrame = 0;
-        userData.filenameA = loadingdata.songdataA->pcmFilePath;
-        userData.songdataA = loadingdata.songdataA;
-        userData.currentSongData = userData.songdataA;
-
-        createAudioDevice(&userData);
+        else
+        {
+                waitingForPlaylist = true;
+        }
 
         loadedNextSong = false;
         nextSong = NULL;
@@ -644,7 +724,8 @@ void play(Node *song)
 
         main_loop = g_main_loop_new(NULL, FALSE);
 
-        emitStartPlayingMpris();
+        if (song != NULL)
+                emitStartPlayingMpris();
 
         g_timeout_add(100, mainloop_callback, NULL);
         g_main_loop_run(main_loop);
@@ -671,10 +752,11 @@ void cleanupOnExit()
         freeAudioBuffer();
         deleteCache(tempCache);
         deleteTempDir();
+        freeMainDirectoryTree();
         deletePlaylist(&playlist);
         deletePlaylist(mainPlaylist);
-        deletePlaylist(originalPlaylist);
         free(mainPlaylist);
+        free(originalPlaylist);
         freeVisuals();
         showCursor();
         pthread_mutex_unlock(&dataSourceMutex);
@@ -682,7 +764,8 @@ void cleanupOnExit()
 #ifdef DEBUG
         fclose(logFile);
 #endif
-        if (freopen("/dev/stderr", "w", stderr) == NULL) {
+        if (freopen("/dev/stderr", "w", stderr) == NULL)
+        {
                 perror("freopen error");
         }
 }
@@ -697,10 +780,7 @@ void run()
 
         if (playlist.head == NULL)
         {
-                showCursor();
-                restoreTerminalMode();
-                enableInputBuffering();
-                return;
+                appState.currentView = LIBRARY_VIEW;
         }
 
         initMpris();
@@ -740,6 +820,12 @@ void init()
         FILE *nullStream = freopen("/dev/null", "w", stderr);
         (void)nullStream;
 #endif
+}
+void openLibrary()
+{
+        appState.currentView = LIBRARY_VIEW;
+        init();
+        run();
 }
 
 void playMainPlaylist()
@@ -825,9 +911,13 @@ int main(int argc, char *argv[])
 
         if (argc == 1)
         {
+                openLibrary();
+        }
+        else if (argc == 2 && strcmp(argv[1], "all") == 0)
+        {
                 playAll(argc, argv);
         }
-        else if (strcmp(argv[1], ".") == 0)
+        else if (argc == 2 && strcmp(argv[1], ".") == 0)
         {
                 playMainPlaylist();
         }

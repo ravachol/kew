@@ -47,6 +47,24 @@ extern UserData userData;
 
 SongData *getCurrentSongData(void);
 
+Node *getNextSong();
+
+void handleRemove();
+
+void enqueueSong(FileSystemEntry *child);
+
+void dequeueSong(FileSystemEntry *child);
+
+void dequeueChildren(FileSystemEntry *child);
+
+void enqueueChildren(FileSystemEntry *child);
+
+void enqueueSongs();
+
+void resetList();
+
+void rebuildNextSong();
+
 void updateLastSongSwitchTime(void);
 
 void updateLastInputTime(void);

@@ -17,7 +17,7 @@ kew (/kjuː/) is a command-line music player for Linux.
  * Display album covers as ASCII art or as a normal image.
  * Control the player with previous, next and pause.
  * Has gapless playback (between files of the same format and type) and supports 24-bit audio.
- * Completely offline and private (for now - might add cover downloading later).
+ * Private and offline, no data is collected by kew.
 
 ## Caveats
  * Does not yet work well with very long audio files that are not mp3, wav, flac, ogg or opus.
@@ -157,7 +157,9 @@ kew returns the first directory or file whose name matches the string you provid
 #### Some Examples:
 
  ```
-kew (starting kew with no arguments plays all songs (up to 20 000) in your library, shuffled)
+kew (starting kew with no arguments opens the library view where can choose what to play)
+
+kew all (plays all songs (up to 20 000) in your library, shuffled)
 
 kew moonlight son (finds and plays moonlight sonata)
 

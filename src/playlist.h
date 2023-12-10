@@ -24,6 +24,7 @@ typedef struct
 
 typedef struct Node
 {
+        int id;
         SongInfo song;
         struct Node *next;
         struct Node *prev;
@@ -33,7 +34,7 @@ typedef struct
 {
         Node *head;
         Node *tail;
-        int count;
+        int count;        
         volatile double totalDuration;
 } PlayList;
 
@@ -91,3 +92,7 @@ Node *deepCopyNode(Node *originalNode);
 PlayList deepCopyPlayList(PlayList *originalList);
 
 Node *findSongInPlaylist(Node *currentSong, PlayList *playlist);
+
+Node *findPathInPlaylist(char *path, PlayList *playlist);
+
+Node *findLastPathInPlaylist(char *path, PlayList *playlist);

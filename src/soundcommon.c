@@ -654,7 +654,13 @@ void resumePlayback()
         {
                 ma_device_start(&device);
         }
+
         paused = false;
+
+        if (appState.currentView != SONG_VIEW)
+        {
+                refresh = true;
+        }
 }
 
 void pausePlayback()
@@ -662,7 +668,13 @@ void pausePlayback()
         if (ma_device_is_started(&device))
         {
                 ma_device_stop(&device);
-                paused = true;
+        }
+
+        paused = true;
+
+        if (appState.currentView != SONG_VIEW)
+        {
+                refresh = true;
         }
 }
 
@@ -680,13 +692,11 @@ void togglePausePlayback()
 {
         if (ma_device_is_started(&device))
         {
-                ma_device_stop(&device);
-                paused = true;
+                pausePlayback();
         }
         else if (paused)
         {
                 resumePlayback();
-                paused = false;
         }
 }
 
@@ -723,8 +733,8 @@ ma_device *getDevice()
 bool hasBuiltinDecoder(char *filePath)
 {
         char *extension = strrchr(filePath, '.');
-        return (strcasecmp(extension, ".wav") == 0 || strcasecmp(extension, ".flac") == 0 ||
-                                                  strcasecmp(extension, ".mp3") == 0);
+        return (extension != NULL && (strcasecmp(extension, ".wav") == 0 || strcasecmp(extension, ".flac") == 0 ||
+                                      strcasecmp(extension, ".mp3") == 0));
 }
 
 void activateSwitch(AudioData *pAudioData)

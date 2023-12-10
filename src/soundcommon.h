@@ -98,6 +98,7 @@ typedef struct
         bool switchFiles;
         int currentFileIndex;
         ma_uint64 totalFrames;
+        bool endOfListReached;
 } AudioData;
 #endif
 

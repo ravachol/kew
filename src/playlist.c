@@ -18,7 +18,7 @@
 
 playlist.c
 
- Playlist related functions.
+Playlist related functions.
  
 */
 #define MAX_SEARCH_SIZE 256
@@ -28,7 +28,7 @@ playlist.c
 #define MAXPATHLEN 4096
 #endif
 
-const char ALLOWED_EXTENSIONS[] = "\\.(m4a|mp3|ogg|flac|wav|aac|wma|raw|mp4a|mp4|m4p|opus)$";
+
 const char PLAYLIST_EXTENSIONS[] = "\\.(m3u)$";
 const char mainPlaylistName[] = "kew.m3u";
 PlayList playlist = {NULL, NULL, 0, 0.0};
@@ -41,6 +41,7 @@ bool shuffle = false;
 int numDirs = 0;
 volatile int stopPlaylistDurationThread = 0;
 Node *currentSong = NULL;
+int nodeCounter = 0;
 
 Node *getListNext(Node *node)
 {
@@ -59,6 +60,7 @@ void addToList(PlayList *list, SongInfo song)
         Node *newNode = (Node *)malloc(sizeof(Node));
         newNode->song = song;
         newNode->next = NULL;
+        newNode->id = nodeCounter++;
         list->count++;
 
         if (list->head == NULL)
@@ -107,9 +109,16 @@ void deletePlaylist(PlayList *list)
         {
                 Node *next = current->next;
                 if (current->song.filePath != NULL)
+                {
                         free(current->song.filePath);
-                free(current);
+                        current->song.filePath = NULL;
+                }
+                if (current->prev != NULL)
+                        current->prev->next = NULL;
+                free(current);                        
                 current = next;
+                if (current != NULL && current->prev != NULL)
+                        current->prev = NULL;
         }
 
         // Reset the playlist
@@ -389,9 +398,9 @@ int makePlaylist(int argc, char *argv[])
         const char *delimiter = ":";
         PlayList partialPlaylist = {NULL, NULL, 0, 0.0};
 
-        const char *allowedExtensions = ALLOWED_EXTENSIONS;
+        const char *allowedExtensions = AUDIO_EXTENSIONS;
 
-        if (argc == 1)
+        if (strcmp(argv[1], "all") == 0)
         {
                 searchType = ReturnAllSongs;
                 shuffle = true;
@@ -482,7 +491,7 @@ int makePlaylist(int argc, char *argv[])
                 shufflePlaylist(&playlist);
 
         if (playlist.head == NULL)
-                puts("Music not found");
+                printf("Music not found\n");
 
         return 0;
 }
@@ -701,6 +710,7 @@ Node *deepCopyNode(Node *originalNode)
         }
 
         Node *newNode = malloc(sizeof(Node));
+
         if (newNode == NULL)
         {
                 return NULL;
@@ -709,6 +719,7 @@ Node *deepCopyNode(Node *originalNode)
         newNode->song.filePath = strdup(originalNode->song.filePath);
         newNode->song.duration = originalNode->song.duration;
         newNode->prev = NULL;
+        newNode->id = originalNode->id;
         newNode->next = deepCopyNode(originalNode->next);
 
         if (newNode->next != NULL)
@@ -717,6 +728,20 @@ Node *deepCopyNode(Node *originalNode)
         }
 
         return newNode;
+}
+
+Node* findTail(Node *head)
+{
+    if (head == NULL)
+        return NULL;
+
+    Node *current = head;
+    while (current->next != NULL)
+    {
+        current = current->next;
+    }
+
+    return current;
 }
 
 PlayList deepCopyPlayList(PlayList *originalList)
@@ -729,11 +754,43 @@ PlayList deepCopyPlayList(PlayList *originalList)
 
         PlayList newList;
         newList.head = deepCopyNode(originalList->head);
-        newList.tail = deepCopyNode(originalList->tail);
-        newList.count = originalList->count;
+        newList.tail = findTail(newList.head);
+        newList.count = originalList->count;        
         newList.totalDuration = originalList->totalDuration;
 
         return newList;
+}
+
+Node *findPathInPlaylist(char *path, PlayList *playlist)
+{
+        Node *currentNode = playlist->head;
+
+        while (currentNode != NULL)
+        {
+                if (strcmp(currentNode->song.filePath, path) == 0)
+                {
+                        return currentNode;
+                }
+
+                currentNode = currentNode->next;
+        }
+        return NULL;
+}
+
+Node *findLastPathInPlaylist(char *path, PlayList *playlist)
+{
+        Node *currentNode = playlist->tail;
+
+        while (currentNode != NULL)
+        {
+                if (strcmp(currentNode->song.filePath, path) == 0)
+                {
+                        return currentNode;
+                }
+
+                currentNode = currentNode->prev;
+        }
+        return NULL;
 }
 
 Node *findSongInPlaylist(Node *currentSong, PlayList *playlist)
