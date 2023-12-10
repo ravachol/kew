@@ -35,6 +35,7 @@ typedef struct
         char togglePlaylist[6];
         char toggleBindings[6];
         char volumeUp[6];
+        char volumeUpAlt[6];        
         char volumeDown[6];
         char previousTrackAlt[6];
         char nextTrackAlt[6];
