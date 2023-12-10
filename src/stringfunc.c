@@ -19,6 +19,15 @@ char *stringToLower(char *str)
         return str;
 }
 
+char *stringToUpper(char *str)
+{
+        for (int i = 0; str[i] != '\0'; i++)
+        {
+                str[i] = toupper(str[i]);
+        }
+        return str;
+}
+
 void replaceChr(char *str, char toReplace, char replacement)
 {
         if (str == NULL)

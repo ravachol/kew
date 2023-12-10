@@ -12,13 +12,12 @@
 #include "playlist.h"
 #include "songloader.h"
 #include "soundgapless.h"
+#include "directorytree.h"
 
 extern const char VERSION[];
 extern bool coverEnabled;
 extern bool uiEnabled;
 extern bool coverAnsi;
-extern bool printPlaylist;
-extern bool printKeyBindings;
 extern bool visualizerEnabled;
 extern bool useThemeColors;
 extern bool hasPrintedPaused;
@@ -36,8 +35,28 @@ extern double pauseSeconds;
 extern double totalPauseSeconds;
 extern double seekAccumulatedSeconds;
 extern double duration;
+extern bool allowChooseSongs;
+extern int chosenLibRow;
+extern int chosenRow;
+
+typedef enum {
+    SONG_VIEW,
+    KEYBINDINGS_VIEW,
+    PLAYLIST_VIEW,
+    LIBRARY_VIEW
+} ViewState;
+
+typedef struct {
+    ViewState currentView;
+} AppState;
+
+extern AppState appState;
 
 int printPlayer(SongData *songdata, double elapsedSeconds, PlayList *playlist);
+
+void flipNextPage();
+
+void flipPrevPage();
 
 void showVersion(void);
 
@@ -45,14 +64,24 @@ int printAbout(void);
 
 void showHelp(void);
 
+FileSystemEntry *getCurrentLibEntry();
+
+FileSystemEntry *getChosenDir();
+
 void scrollNext(void);
 
 void scrollPrev(void);
 
+void setCurrentAsChosenDir();
+
 void toggleShowKeyBindings(void);
+
+void toggleShowLibrary();
 
 void toggleShowPlaylist(void);
 
 void setTextColorRGB2(int r, int g, int b);
+
+void freeMainDirectoryTree();
 
 #endif

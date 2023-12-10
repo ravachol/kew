@@ -479,6 +479,7 @@ void drawSpectrumVisualizer(int height, int width, PixelData c)
                 if (fftOutput == NULL)
                 {
                         fftwf_free(fftInput);
+                        fftInput = NULL;
                         return;
                 }
                 prevBufferSize = bufferSize;
