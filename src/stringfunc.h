@@ -5,6 +5,8 @@
 #include <stdio.h>
 #include <stdbool.h>
 
+char *stringToUpper(char *str);
+
 char *stringToLower(char *str);
 
 void replaceChr(char *str, char toReplace, char replacement);

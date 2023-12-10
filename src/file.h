@@ -21,6 +21,14 @@
 #define MAX_RETRY_COUNT 20
 #define MAX_FILENAME_LENGTH 256
 
+#ifndef MAXPATHLEN
+#define MAXPATHLEN 4096
+#endif
+
+#ifndef AUDIO_EXTENSIONS
+#define AUDIO_EXTENSIONS "\\.(m4a|mp3|ogg|flac|wav|aac|wma|raw|mp4a|mp4|m4p|opus)$"
+#endif
+
 enum SearchType
 {
         SearchAny = 0,

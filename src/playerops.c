@@ -96,8 +96,8 @@ void emitMetadataChanged(const gchar *title, const gchar *artist, const gchar *a
         GVariantBuilder changed_properties_builder;
         g_variant_builder_init(&changed_properties_builder, G_VARIANT_TYPE("a{sv}"));
         g_variant_builder_add(&changed_properties_builder, "{sv}", "Metadata", g_variant_builder_end(&metadata_builder));
-        g_variant_builder_add(&changed_properties_builder, "{sv}", "CanGoPrevious", g_variant_new_boolean(currentSong->prev != NULL));
-        g_variant_builder_add(&changed_properties_builder, "{sv}", "CanGoNext", g_variant_new_boolean(currentSong->next != NULL));
+        g_variant_builder_add(&changed_properties_builder, "{sv}", "CanGoPrevious", g_variant_new_boolean((currentSong != NULL && currentSong->prev != NULL)));
+        g_variant_builder_add(&changed_properties_builder, "{sv}", "CanGoNext", g_variant_new_boolean((currentSong != NULL && currentSong->next != NULL)));
 
         g_dbus_connection_emit_signal(connection, NULL, "/org/mpris/MediaPlayer2", "org.freedesktop.DBus.Properties", "PropertiesChanged",
                                       g_variant_new("(sa{sv}as)", "org.mpris.MediaPlayer2.Player", &changed_properties_builder, NULL), NULL);
@@ -157,7 +157,7 @@ void toggleRepeat()
         {
                 emitStringPropertyChanged("LoopStatus", "None");
         }
-        if (printPlaylist)
+        if (appState.currentView == PLAYLIST_VIEW || appState.currentView == LIBRARY_VIEW)
                 refresh = true;
 }
 
@@ -188,9 +188,11 @@ void toggleShuffle()
                 currentSong = findSongInPlaylist(currentSong, &playlist);
                 emitBooleanPropertyChanged("Shuffle", FALSE);
         }
+
         loadedNextSong = false;
         nextSong = NULL;
-        if (printPlaylist)
+
+        if (appState.currentView == PLAYLIST_VIEW || appState.currentView == LIBRARY_VIEW)
                 refresh = true;
 }
 
@@ -326,6 +328,241 @@ void seekBack()
                 seekAccumulatedSeconds -= step * duration / 100.0;
         }
         rewinding = true;
+}
+
+Node *findSelectedEntry(PlayList *playlist)
+{
+        Node *node = playlist->head;
+
+        if (node == NULL)
+                return NULL;
+
+        bool found = false;
+
+        for (int i = 0; i < playlist->count; i++)
+        {
+                if (i == chosenRow)
+                {
+                        found = true;
+                        break;
+                }
+                node = node->next;
+        }
+
+        if (found)
+        {
+                return node;
+        }
+
+        return NULL;
+}
+
+void removeSelectedEntry(PlayList *playlist, Node *node)
+{
+        deleteFromList(playlist, node);
+        // FIXME: set to not enqueued in directoryTree
+}
+
+Node *getNextSong()
+{
+        if (nextSong != NULL)
+                return nextSong;
+        else if (currentSong != NULL && currentSong->next != NULL)
+        {
+                return currentSong->next;
+        }
+        else
+        {
+                return NULL;
+        }
+}
+
+void enqueueSong(FileSystemEntry *child)
+{
+        SongInfo song;
+        song.filePath = strdup(child->fullPath);
+        song.duration = 0.0;
+        addToList(originalPlaylist, song);
+        addToList(&playlist, song);
+
+        child->isEnqueued = 1;
+        child->parent->isEnqueued = 1;
+}
+
+void dequeueSong(FileSystemEntry *child)
+{
+        child->isEnqueued = 0;
+        Node *node1 = findLastPathInPlaylist(child->fullPath, originalPlaylist);
+
+        if (node1 == NULL)
+                return;
+
+        if (currentSong != NULL && currentSong->id == node1->id)
+              return;        
+
+        if (node1 != NULL)
+                deleteFromList(originalPlaylist, node1);
+        Node *node2 = findLastPathInPlaylist(child->fullPath, &playlist);
+        if (node2 != NULL)
+                deleteFromList(&playlist, node2);
+
+        child->isEnqueued = 0;
+        child->parent->isEnqueued = 0;
+}
+
+void dequeueChildren(FileSystemEntry *child)
+{
+        while (child != NULL)
+        {
+                if (child->isDirectory && child->children != NULL)
+                {
+                        child->isEnqueued = 0;
+                        dequeueChildren(child->children);
+                }
+                else
+                {
+                        dequeueSong(child);
+                }
+
+                child = child->next;
+        }
+}
+
+void enqueueChildren(FileSystemEntry *child)
+{
+        while (child != NULL)
+        {
+                if (child->isDirectory && child->children != NULL)
+                {
+                        child->isEnqueued = 1;
+                        enqueueChildren(child->children);
+                }
+                else
+                {
+                        enqueueSong(child);
+                }
+
+                child = child->next;
+        }
+}
+
+void enqueueSongs()
+{
+        bool rebuild = false;
+
+        FileSystemEntry *tmp = getCurrentLibEntry();
+        FileSystemEntry *chosenDir = getChosenDir();
+
+        if (tmp != NULL)
+        {
+                if (tmp->isDirectory)
+                {
+                        if (chosenDir != NULL && strcmp(tmp->fullPath, chosenDir->fullPath) == 0)
+                        {
+                                if (!tmp->isEnqueued)
+                                {
+                                        tmp->isEnqueued = 1;
+                                        tmp = tmp->children;
+
+                                        enqueueChildren(tmp);
+
+                                        Node *song = getNextSong();
+                                        rebuildNextSong(song);                                        
+                                }
+                                else
+                                {
+                                        tmp->isEnqueued = 0;
+                                        tmp = tmp->children;
+
+                                        dequeueChildren(tmp);
+
+                                        Node *song = getNextSong();
+                                        rebuildNextSong(song);
+                                }
+                        }
+
+                        setCurrentAsChosenDir();
+                        allowChooseSongs = true;
+                }
+                else
+                {
+                        if (!tmp->isEnqueued)
+                        {
+                                Node *song = getNextSong();
+                                if (song == NULL || strcmp(tmp->fullPath, song->song.filePath) == 0)
+                                        rebuild = true;
+
+                                enqueueSong(tmp);
+
+                                if (rebuild)
+                                {
+                                        nextSong = NULL;
+                                        Node *song = getNextSong();
+                                        rebuildNextSong(song);
+                                }
+                        }
+                        else
+                        {
+                                Node *song = getNextSong();
+                                if (song == NULL || strcmp(tmp->fullPath, song->song.filePath) == 0)
+                                        rebuild = true;
+
+                                dequeueSong(tmp);
+
+                                if (rebuild)
+                                {
+                                        nextSong = NULL;
+                                        Node *song = getNextSong();
+                                        rebuildNextSong(song);
+                                }
+                        }
+                }
+                refresh = true;
+        }
+}
+
+void resetList()
+{
+        audioData.currentFileIndex = 1 - audioData.currentFileIndex;
+        setCurrentImplementationType(NONE);
+}
+
+
+void handleRemove()
+{
+        bool rebuild = false;
+
+        if (appState.currentView != PLAYLIST_VIEW)
+                return;
+
+        Node *node = findSelectedEntry(&playlist);
+        Node *song = getNextSong();
+
+        if (currentSong != NULL && currentSong->id == node->id)
+                return;        
+
+        if (node != NULL && song != NULL)
+        {
+                if (strcmp(song->song.filePath, node->song.filePath) == 0)
+                        rebuild = true;
+        }
+
+        removeSelectedEntry(&playlist, node);
+
+        node = NULL;
+        node = findSelectedEntry(originalPlaylist);
+
+        removeSelectedEntry(originalPlaylist, node);
+
+        if (rebuild)
+        {
+                node = NULL;
+                nextSong = NULL;
+                node = getNextSong();
+                rebuildNextSong(node);
+        }
+
+        refresh = true;
 }
 
 Node *getSongByNumber(int songNumber)
@@ -491,28 +728,15 @@ void skipToNextSong()
         skip();
 }
 
-void skipToPrevSong()
+void rebuildNextSong(Node *song)
 {
-        if (songLoading || !loadedNextSong || skipping || clearingErrors)
-                if (!forceSkip)
-                        return;
-
-
-        if (currentSong->prev != NULL)
-                currentSong = currentSong->prev;   
-
-        playbackPlay(&totalPauseSeconds, &pauseSeconds, &pause_time);                                    
-
-        skipping = true;
-        skipPrev = true;
-        loadedNextSong = false;
-        songLoading = true;
-        forceSkip = false;
+        if (song == NULL)
+                return;
 
         loadingdata.loadA = !usingSongDataA;
         unloadSongData(usingSongDataA ? &loadingdata.songdataB : &loadingdata.songdataA);
 
-        loadSong(currentSong, &loadingdata);
+        loadSong(song, &loadingdata);
         int maxNumTries = 50;
         int numtries = 0;
 
@@ -521,6 +745,26 @@ void skipToPrevSong()
                 c_sleep(100);
                 numtries++;
         }
+}
+
+void skipToPrevSong()
+{
+        if (songLoading || !loadedNextSong || skipping || clearingErrors)
+                if (!forceSkip)
+                        return;
+
+        if (currentSong->prev != NULL)
+                currentSong = currentSong->prev;
+
+        playbackPlay(&totalPauseSeconds, &pauseSeconds, &pause_time);
+
+        skipping = true;
+        skipPrev = true;
+        loadedNextSong = false;
+        songLoading = true;
+        forceSkip = false;
+
+        rebuildNextSong(currentSong);
 
         if (songHasErrors)
         {
@@ -540,28 +784,17 @@ void skipToNumberedSong(int songNumber)
                 if (!forceSkip)
                         return;
 
-        playbackPlay(&totalPauseSeconds, &pauseSeconds, &pause_time);                         
+        playbackPlay(&totalPauseSeconds, &pauseSeconds, &pause_time);
 
         skipping = true;
         skipPrev = true;
-        loadedNextSong = false;
+
         songLoading = true;
         forceSkip = false;
 
         currentSong = getSongByNumber(songNumber);
 
-        loadingdata.loadA = !usingSongDataA;
-        unloadSongData(usingSongDataA ? &loadingdata.songdataB : &loadingdata.songdataA);
-
-        loadSong(currentSong, &loadingdata);
-        int maxNumTries = 50;
-        int numtries = 0;
-        
-        while (!loadedNextSong && !loadingFailed && numtries < maxNumTries)
-        {
-                c_sleep(100);
-                numtries++;
-        }
+        rebuildNextSong(currentSong);
 
         if (songHasErrors)
         {
@@ -616,4 +849,15 @@ void loadFirst(Node *song)
                 currentSong = currentSong->next;
                 loadFirstSong(currentSong);
         }
+
+        if (songHasErrors)
+        {
+                printf("Couldn't play any of the songs.\n");
+                return;
+        }
+
+        userData.currentPCMFrame = 0;
+        userData.filenameA = loadingdata.songdataA->pcmFilePath;
+        userData.songdataA = loadingdata.songdataA;
+        userData.currentSongData = userData.songdataA;
 }

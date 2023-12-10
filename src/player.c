@@ -1,4 +1,3 @@
-#include <string.h>
 #include "player.h"
 /*
 
@@ -23,10 +22,14 @@ typedef struct
 } PixelData;
 #endif
 
-const char VERSION[] = "1.11";
+AppState appState;
+
+const char VERSION[] = "2.0 BETA";
 const int LOGO_COLOR = 3;
 const int VERSION_COLOR = 2;
-const int ABSOLUTE_MIN_WIDTH = 41;
+const int ARTIST_COLOR = 6;
+const int ENQUEUED_COLOR = 3;
+const int ABSOLUTE_MIN_WIDTH = 53;
 volatile bool refresh = true;
 bool visualizerEnabled = true;
 bool coverEnabled = true;
@@ -35,8 +38,6 @@ bool metaDataEnabled = true;
 bool timeEnabled = true;
 bool drewCover = true;
 bool uiEnabled = true;
-bool printPlaylist = false;
-bool printKeyBindings = false;
 bool showList = true;
 bool resetPlaylistDisplay = true;
 bool useProfileColors = true;
@@ -67,6 +68,21 @@ double pauseSeconds = 0.0;
 double totalPauseSeconds = 0.0;
 double seekAccumulatedSeconds = 0.0;
 double duration = 0.0;
+int maxListSize = 0;
+
+int numDirectoryTreeEntries = 0;
+int numTopLevelSongs = 0;
+int startLibIter = 0;
+int maxLibListSize = 0;
+int chosenLibRow = 0;
+bool allowChooseSongs = false;
+FileSystemEntry *currentEntry = NULL;
+FileSystemEntry *chosenDir = NULL;
+int libIter = 0;
+int libSongIter = 0;
+int libTopLevelSongIter = 0;
+
+FileSystemEntry *library = NULL;
 
 void setTextColorRGB2(int r, int g, int b)
 {
@@ -78,15 +94,23 @@ int calcMetadataHeight()
 {
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
-        size_t titleLength = strlen(metadata.title);
-        int titleHeight = (int)ceil((float)titleLength / term_w);
-        size_t artistLength = strlen(metadata.artist);
-        int artistHeight = (int)ceil((float)artistLength / term_w);
-        size_t albumLength = strlen(metadata.album);
-        int albumHeight = (int)ceil((float)albumLength / term_w);
-        int yearHeight = 1;
 
-        return titleHeight + artistHeight + albumHeight + yearHeight;
+        if (metadata.title[0] != '\0')
+        {
+                size_t titleLength = strlen(metadata.title);
+                int titleHeight = (int)ceil((float)titleLength / term_w);
+                size_t artistLength = strlen(metadata.artist);
+                int artistHeight = (int)ceil((float)artistLength / term_w);
+                size_t albumLength = strlen(metadata.album);
+                int albumHeight = (int)ceil((float)albumLength / term_w);
+                int yearHeight = 1;
+
+                return titleHeight + artistHeight + albumHeight + yearHeight;
+        }
+        else
+        {
+                return 0;
+        }
 }
 
 void calcPreferredSize()
@@ -308,6 +332,14 @@ void printBasicMetadata(TagSettings const *metadata)
         cursorJumpDown(rows - 1);
 }
 
+int calcElapsedBars(double elapsedSeconds, double duration, int numProgressBars)
+{
+        if (elapsedSeconds == 0)
+                return 0;
+
+        return (int)((elapsedSeconds / duration) * numProgressBars);
+}
+
 void printProgress(double elapsed_seconds, double total_seconds, double total_duration_seconds, PlayList const *playlist)
 {
         int progressWidth = 39;
@@ -354,15 +386,12 @@ void printProgress(double elapsed_seconds, double total_seconds, double total_du
                        progress_percentage, vol);
         }
 
-        // Print out progress bar with 10 segments
-        elapsedBars = (int)((elapsed_seconds / total_seconds) * numProgressBars);
-
         // Restore the cursor position
         printf("\033[u");
 }
 void printMetadata(TagSettings const *metadata)
 {
-        if (!metaDataEnabled || printPlaylist)
+        if (!metaDataEnabled || appState.currentView == LIBRARY_VIEW || appState.currentView == PLAYLIST_VIEW)
                 return;
         c_sleep(100);
         setColor();
@@ -371,7 +400,7 @@ void printMetadata(TagSettings const *metadata)
 
 void printTime(PlayList const *playlist)
 {
-        if (!timeEnabled || printPlaylist)
+        if (!timeEnabled || appState.currentView == LIBRARY_VIEW || appState.currentView == PLAYLIST_VIEW)
                 return;
         setColor();
         int term_w, term_h;
@@ -438,7 +467,8 @@ void printLastRow()
                 return;
         setTextColorRGB(bgColor.r, bgColor.g, bgColor.b);
 
-        char text[100] = " [F2 Playlist] [F3 Keys] [Q Quit]";
+        char text[100] = " [F2 Playlist] [F3 Library] [F4 Keys] [Q Quit]";
+
         char nerdFontText[100] = "";
 
         if (printf(" \uf28b ") < 0)
@@ -527,8 +557,13 @@ int printAbout()
 
 void removeUnneededChars(char *str)
 {
+        if (strlen(str) < 6)
+        {
+                return;
+        }
+
         int i;
-        for (i = 0; i < 2 && str[i] != '\0' && str[i] != ' '; i++)
+        for (i = 0; i < 3 && str[i] != '\0' && str[i] != ' '; i++)
         {
                 if (isdigit(str[i]) || str[i] == '-' || str[i] == ' ')
                 {
@@ -589,7 +624,7 @@ int showKeyBindings()
         printBlankSpaces(indentation);
         printf(" - Use ↑, ↓  or %s, %s keys to scroll through playlist.\n", settings.scrollUpAlt, settings.scrollDownAlt);
         printBlankSpaces(indentation);
-        printf(" - Enter a Number then Enter, %s or %s to switch song.\n", settings.switchNumberedSongAlt, settings.switchNumberedSongAlt2);
+        printf(" - Enter a Number then Enter to switch song.\n");
         printBlankSpaces(indentation);
         printf(" - Space to toggle pause.\n");
         printBlankSpaces(indentation);
@@ -612,7 +647,7 @@ int showKeyBindings()
         printf(" - %s to save the playlist to your music folder.\n", settings.savePlaylist);
         printBlankSpaces(indentation);
         printf(" - %s to add current song to kew.m3u (run with \"kew .\").\n", settings.addToMainPlaylist);
-        printBlankSpaces(indentation);        
+        printBlankSpaces(indentation);
         printf(" - %s to quit.\n", settings.quit);
         printf("\n");
         printLastRow();
@@ -623,31 +658,97 @@ int showKeyBindings()
 void toggleShowPlaylist()
 {
         refresh = true;
-        printPlaylist = !printPlaylist;
-        printKeyBindings = false;
+
+        if (appState.currentView == PLAYLIST_VIEW)
+        {
+                appState.currentView = SONG_VIEW;
+        }
+        else
+        {
+                appState.currentView = PLAYLIST_VIEW;
+        }
+}
+
+void toggleShowLibrary()
+{
+        refresh = true;
+        if (appState.currentView == LIBRARY_VIEW)
+        {
+                appState.currentView = SONG_VIEW;
+        }
+        else
+        {
+                appState.currentView = LIBRARY_VIEW;
+        }        
 }
 
 void toggleShowKeyBindings()
 {
         refresh = true;
-        printKeyBindings = !printKeyBindings;
-        printPlaylist = false;
+        if (appState.currentView == KEYBINDINGS_VIEW)
+        {
+                appState.currentView = SONG_VIEW;
+        }
+        else
+        {
+                appState.currentView = KEYBINDINGS_VIEW;
+        }         
+}
+
+void flipNextPage()
+{
+        if (appState.currentView == LIBRARY_VIEW)
+        {
+                chosenLibRow += maxLibListSize - 1;
+                startLibIter += maxLibListSize - 1;
+                refresh = true;
+        }
+        else if (appState.currentView == PLAYLIST_VIEW)
+        {
+                chosenRow += maxListSize - 1;
+                refresh = true;
+        }
+}
+
+void flipPrevPage()
+{
+        if (appState.currentView == LIBRARY_VIEW)
+        {
+                chosenLibRow -= maxLibListSize;
+                startLibIter -= maxLibListSize;
+                refresh = true;
+        }
+        else if (appState.currentView == PLAYLIST_VIEW)
+        {
+                chosenRow -= maxListSize;
+                refresh = true;
+        }
 }
 
 void scrollNext()
 {
-        if (printPlaylist)
+        if (appState.currentView == PLAYLIST_VIEW)
         {
                 chosenRow++;
+                refresh = true;
+        }
+        else if (appState.currentView == LIBRARY_VIEW)
+        {
+                chosenLibRow++;
                 refresh = true;
         }
 }
 
 void scrollPrev()
 {
-        if (printPlaylist)
+        if (appState.currentView == PLAYLIST_VIEW)
         {
                 chosenRow--;
+                refresh = true;
+        }
+        else if (appState.currentView == LIBRARY_VIEW)
+        {
+                chosenLibRow--;
                 refresh = true;
         }
 }
@@ -660,12 +761,10 @@ int showPlaylist(SongData *songData)
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
         int totalHeight = term_h;
-        int maxListSize = totalHeight;
+        maxListSize = totalHeight;
         int numRows = 0;
         int numPrintedRows = 0;
         int foundAt = 0;
-        if (node == NULL)
-                return numRows;
 
         maxListSize -= 1;
         numRows++;
@@ -678,16 +777,18 @@ int showPlaylist(SongData *songData)
         setColor();
         setTextColorRGB2(color.r, color.g, color.b);
         printBlankSpaces(indent);
-        if (term_w > 46)
+        if (term_w > 52)
         {
-                maxListSize -= 2;
-                printf(" Use ↑, ↓ or k, j to choose. Enter to accept.\n\n");
+                maxListSize -= 3;
+                printf(" Use ↑, ↓ or k, j to choose. Enter to accept.\n");
+                printBlankSpaces(indent);
+                printf(" Pg Up and Pg Dn to flip pages. Del to remove entry.\n\n");
         }
 
         int numSongs = 0;
         for (int i = 0; i < originalPlaylist->count; i++)
         {
-                if (strcmp(node->song.filePath, songData->filePath) == 0)
+                if (songData != NULL && strcmp(node->song.filePath, songData->filePath) == 0)
                 {
                         foundAt = numSongs;
                         foundNode = node;
@@ -716,12 +817,12 @@ int showPlaylist(SongData *songData)
 
         if (chosenSong < startIter)
         {
-                startIter = chosenSong;   
+                startIter = chosenSong;
         }
 
         if (chosenRow >= maxListSize - 1 && chosenRow > startIter + maxListSize - 1)
         {
-                startIter = chosenSong - maxListSize + 1;
+                startIter = chosenSong - maxListSize + round(maxListSize / 2) + 1;
         }
 
         if (startIter == 0 && chosenRow < 0)
@@ -733,7 +834,7 @@ int showPlaylist(SongData *songData)
         {
                 startIter = chosenRow = chosenSong = foundAt;
         }
-        
+
         for (int i = foundAt; i > startIter; i--)
         {
                 if (i > 0 && node->prev != NULL)
@@ -772,14 +873,15 @@ int showPlaylist(SongData *songData)
                                 printf("\x1b[7m");
                         }
 
-                        if (strcmp(filePath, songData->filePath) == 0)
+                        if (songData != NULL && strcmp(filePath, songData->filePath) == 0)
                         {
                                 if (useProfileColors)
                                         printf("\e[1m\e[39m");
                                 else
                                         printf("\033[1;38;2;%03u;%03u;%03um", textColor.r, textColor.g, textColor.b);
                         }
-                        shortenString(copiedString, term_w - 7 - indent);
+
+                        shortenString(copiedString, term_w - 10 - indent);
                         trim(copiedString);
 
                         if (i + 1 < 10)
@@ -793,6 +895,7 @@ int showPlaylist(SongData *songData)
                         {
                                 printf(" %d. %s \n", numRows, copiedString);
                         }
+
                         numPrintedRows++;
                         numRows++;
 
@@ -852,7 +955,7 @@ int calcElapsedBars(double elapsedSeconds, double duration, int numProgressBars)
 
 void printVisualizer()
 {
-        if (visualizerEnabled && !printPlaylist)
+        if (visualizerEnabled && appState.currentView == SONG_VIEW)
         {
                 printf("\n");
                 int term_w, term_h;
@@ -861,7 +964,7 @@ void printVisualizer()
                 visualizerWidth = (visualizerWidth < textWidth && textWidth < term_w - 2) ? textWidth : visualizerWidth;
                 visualizerWidth = (visualizerWidth > term_w - 2) ? term_w - 2 : visualizerWidth;
                 numProgressBars = (int)visualizerWidth / 2;
-                drawSpectrumVisualizer(visualizerHeight, visualizerWidth, color);
+                drawSpectrumVisualizer(visualizerHeight, visualizerWidth, color);             
                 printElapsedBars(calcElapsedBars(elapsed, duration, numProgressBars));
                 printLastRow();
                 int jumpAmount = visualizerHeight + 2;
@@ -883,6 +986,13 @@ void printVisualizer()
 
 void calcIndent(SongData *songdata)
 {
+        if (songdata == NULL || songdata->deleted || appState.currentView != SONG_VIEW)
+        {
+                int textWidth = (ABSOLUTE_MIN_WIDTH > preferredWidth) ? ABSOLUTE_MIN_WIDTH : preferredWidth;
+                indent = getCoverIndent(textWidth - 1) - 1;
+                return;
+        }
+
         int titleLength = strlen(songdata->metadata->title);
         int albumLength = strlen(songdata->metadata->album);
         int maxTextLength = (albumLength > titleLength) ? albumLength : titleLength;
@@ -900,6 +1010,234 @@ void calcIndent(SongData *songdata)
         indent = getCoverIndent(textWidth - 1) - 1;
 }
 
+FileSystemEntry *getCurrentLibEntry()
+{
+        return currentEntry;
+}
+
+FileSystemEntry *getChosenDir()
+{
+        return chosenDir;
+}
+
+char *processName(const char *name, int maxWidth)
+{
+        char *lastDot = strrchr(name, '.');
+
+        if (lastDot != NULL)
+        {
+                char copiedString[256];
+                strncpy(copiedString, name, lastDot - name);
+                copiedString[lastDot - name] = '\0';
+                shortenString(copiedString, maxWidth);
+                removeUnneededChars(copiedString);
+
+                char *result = (char *)malloc(strlen(copiedString) + 1);
+                if (result != NULL)
+                {
+                        strcpy(result, copiedString);
+                        return result;
+                }
+        }
+        return NULL;
+}
+
+void setCurrentAsChosenDir()
+{
+        if (currentEntry->isDirectory)
+                chosenDir = currentEntry;
+}
+
+int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWidth)
+{
+        if (libIter >= startLibIter + maxListSize)
+        {
+                return 0;
+        }
+
+        FileSystemEntry *tmp = root->parent == NULL ? NULL : root->parent->children;
+        int numAudioChildren = 0;
+
+        while (tmp != NULL)
+        {
+                if (!tmp->isDirectory)
+                        numAudioChildren++;
+
+                tmp = tmp->next;
+        }
+
+        if (chosenLibRow > startLibIter + maxListSize - round(maxListSize / 2))
+        {
+                startLibIter = chosenLibRow - maxListSize + round(maxListSize / 2) + 1;
+        }
+
+        if (allowChooseSongs)
+        {
+                if (chosenLibRow >= libIter + libSongIter && libSongIter != 0)
+                {
+                        if (chosenLibRow >= numDirectoryTreeEntries + numTopLevelSongs + numAudioChildren)
+                        {
+                                startLibIter = numDirectoryTreeEntries + numTopLevelSongs + numAudioChildren - maxListSize;
+                                chosenLibRow = numDirectoryTreeEntries + numTopLevelSongs + numAudioChildren - 1;
+                        }
+                }
+        }
+        else
+        {
+                if (chosenLibRow >= numDirectoryTreeEntries + numTopLevelSongs)
+                {
+                        startLibIter = numDirectoryTreeEntries + numTopLevelSongs - maxListSize;
+                        chosenLibRow = numDirectoryTreeEntries + numTopLevelSongs - 1;
+                }
+        }
+
+        if (chosenLibRow < 0)
+                startLibIter = chosenLibRow = libIter = 0;
+
+        if (root->isDirectory ||
+            (!root->isDirectory && depth == 1) ||
+            (chosenDir != NULL && allowChooseSongs && root->parent != NULL && (strcmp(root->parent->fullPath, chosenDir->fullPath) == 0 || strcmp(root->fullPath, chosenDir->fullPath) == 0)))
+        {
+                if (depth > 0)
+                {
+                        if (libIter >= startLibIter)
+                        {
+
+                                if (depth == 1)
+                                {
+                                        setTextColor(ARTIST_COLOR);
+                                }
+                                else
+                                {
+                                        setColor();
+                                }
+
+                                if (depth >= 2)
+                                        printf("  ");
+
+                                printBlankSpaces(indent);
+
+                                if (chosenLibRow == libIter)
+                                {
+                                        if (root->isEnqueued)
+                                        {
+                                                setTextColor(ENQUEUED_COLOR);
+                                                printf("\x1b[7m * ");
+                                        }
+                                        else
+                                        {
+                                                printf("  \x1b[7m ");
+                                        }
+
+                                        currentEntry = root;
+
+                                        if (allowChooseSongs == true && (chosenDir == NULL ||
+                                                                         (strcmp(currentEntry->parent->fullPath, chosenDir->fullPath) != 0 &&
+                                                                          strcmp(root->fullPath, chosenDir->fullPath) != 0)))
+                                        {
+                                                chosenLibRow -= libSongIter;
+                                                allowChooseSongs = false;
+                                                chosenDir = NULL;
+                                                refresh = true;
+                                        }
+                                }
+                                else
+                                {
+                                        if (root->isEnqueued)
+                                        {
+                                                setTextColor(ENQUEUED_COLOR);
+                                                printf(" * ");
+                                        }
+                                        else
+                                                printf("   ");
+                                }
+
+                                if (root->isDirectory)
+                                {
+                                        shortenString(root->name, maxNameWidth);
+                                        if (depth == 1)
+                                                printf("%s \n", stringToUpper(root->name));
+                                        else
+                                                printf("%s \n", root->name);
+                                }
+                                else
+                                {
+                                        char *filename = processName(root->name, maxNameWidth);
+                                        printf(" └─%s \n", filename);
+                                        free(filename);
+                                        libSongIter++;
+                                }
+                        }
+
+                        libIter++;
+                }
+
+                FileSystemEntry *child = root->children;
+                while (child != NULL)
+                {
+                        if (displayTree(child, depth + 1, maxListSize, maxNameWidth) == -1)
+                                return -1;
+                        child = child->next;
+                }
+        }
+
+        return 0;
+}
+
+void showLibrary()
+{
+        libIter = 0;
+        libSongIter = 0;
+        startLibIter = 0;
+
+        refresh = false;
+
+        if (library == NULL)
+                library = createDirectoryTree(settings.path, &numDirectoryTreeEntries);
+
+        int term_w, term_h;
+        getTermSize(&term_w, &term_h);
+        int totalHeight = term_h;
+        maxLibListSize = totalHeight;
+        setColor();
+        int aboutSize = printAbout();
+        int maxNameWidth = term_w - 7 - indent;
+        maxLibListSize -= aboutSize + 1;
+        setColor();
+
+        if (term_w > 60)
+        {
+                maxLibListSize -= 3;
+                printBlankSpaces(indent);
+                printf(" Use ↑, ↓ or k, j to choose. Enter to enqueue/dequeue.\n");
+                printBlankSpaces(indent);
+                printf(" Pg Up and Pg Dn to flip pages.\n\n");
+        }
+
+        numTopLevelSongs = 0;
+        
+        FileSystemEntry *toplevel = library->children;
+        while (toplevel != NULL)
+        {
+                if (!toplevel->isDirectory)
+                        numTopLevelSongs++;
+
+                toplevel = toplevel->next;
+        }        
+
+        displayTree(library, 0, maxLibListSize, maxNameWidth);
+
+        printf("\n");
+        printLastRow();
+
+        if (refresh)
+        {
+                clearScreen();
+                printf("\n");
+                showLibrary();
+        }
+}
+
 int printPlayer(SongData *songdata, double elapsedSeconds, PlayList *playlist)
 {
         if (!uiEnabled)
@@ -907,11 +1245,21 @@ int printPlayer(SongData *songdata, double elapsedSeconds, PlayList *playlist)
                 return 0;
         }
 
-        metadata = *songdata->metadata;
-        hideCursor();
-        totalDurationSeconds = playlist->totalDuration;
-        elapsed = elapsedSeconds;
-        duration = *songdata->duration;
+        if (songdata != NULL && !songdata->deleted)
+        {
+                metadata = *songdata->metadata;
+                hideCursor();
+                totalDurationSeconds = playlist->totalDuration;
+                elapsed = elapsedSeconds;
+                duration = *songdata->duration;
+        }
+        else
+        {
+                if (appState.currentView != PLAYLIST_VIEW && appState.currentView != KEYBINDINGS_VIEW)
+                {
+                        appState.currentView = LIBRARY_VIEW;
+                }
+        }
 
         calcPreferredSize();
         calcIndent(songdata);
@@ -919,10 +1267,10 @@ int printPlayer(SongData *songdata, double elapsedSeconds, PlayList *playlist)
         if (preferredWidth <= 0 || preferredHeight <= 0)
                 return -1;
 
-        if (!printPlaylist)
+        if (appState.currentView != PLAYLIST_VIEW)
                 resetPlaylistDisplay = true;
 
-        if (printKeyBindings)
+        if (appState.currentView == KEYBINDINGS_VIEW)
         {
                 if (refresh)
                 {
@@ -931,7 +1279,7 @@ int printPlayer(SongData *songdata, double elapsedSeconds, PlayList *playlist)
                         saveCursorPosition();
                 }
         }
-        else if (printPlaylist)
+        else if (appState.currentView == PLAYLIST_VIEW)
         {
                 if (refresh)
                 {
@@ -941,7 +1289,15 @@ int printPlayer(SongData *songdata, double elapsedSeconds, PlayList *playlist)
                         saveCursorPosition();
                 }
         }
-        else
+        else if (appState.currentView == LIBRARY_VIEW)
+        {
+                if (refresh)
+                {
+                        clearScreen();
+                        showLibrary();
+                }
+        }
+        else if (appState.currentView == SONG_VIEW && songdata != NULL)
         {
                 if (refresh)
                 {
@@ -950,7 +1306,7 @@ int printPlayer(SongData *songdata, double elapsedSeconds, PlayList *playlist)
                         printCover(songdata);
                         printMetadata(songdata->metadata);
                 }
-                printTime(playlist);
+                printTime(playlist);        
                 printVisualizer();
         }
         refresh = false;
@@ -962,4 +1318,10 @@ int printPlayer(SongData *songdata, double elapsedSeconds, PlayList *playlist)
 void showHelp()
 {
         printHelp();
+}
+
+void freeMainDirectoryTree()
+{
+        if (library != NULL)
+                freeTree(library);
 }

@@ -67,6 +67,11 @@ typedef struct
         char hardShowKeys[6];
         char hardShowKeysAlt[6];
         char hardEndOfPlaylist[6];
+        char hardShowLibrary[6];
+        char hardShowLibraryAlt[6];
+        char hardNextPage[6];
+        char hardPrevPage[6];
+        char hardRemove[6];
 } AppSettings;
 
 extern AppSettings settings;

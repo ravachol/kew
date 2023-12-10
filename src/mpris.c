@@ -325,6 +325,9 @@ static gboolean get_metadata(GDBusConnection *connection, const gchar *sender,
 
         currentSongData = getCurrentSongData();
 
+        if (currentSongData == NULL)
+                return FALSE;
+
         GVariantBuilder metadata_builder;
         g_variant_builder_init(&metadata_builder, G_VARIANT_TYPE_DICTIONARY);
         g_variant_builder_add(&metadata_builder, "{sv}", "xesam:title", g_variant_new_string(currentSongData->metadata->title));
@@ -398,7 +401,7 @@ static gboolean get_can_go_next(GDBusConnection *connection, const gchar *sender
                                 GError **error, gpointer user_data)
 {
 
-        CanGoNext = (currentSong->next != NULL);
+        CanGoNext = (currentSong == NULL || currentSong->next != NULL);
 
         *value = g_variant_new_boolean(CanGoNext);
         return TRUE;
@@ -410,7 +413,7 @@ static gboolean get_can_go_previous(GDBusConnection *connection, const gchar *se
                                     GError **error, gpointer user_data)
 {
 
-        CanGoPrevious = (currentSong->prev != NULL);
+        CanGoPrevious = (currentSong == NULL || currentSong->prev != NULL);
 
         *value = g_variant_new_boolean(CanGoPrevious);
         return TRUE;

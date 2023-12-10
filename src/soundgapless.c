@@ -40,23 +40,23 @@ ma_result initFirstDatasource(AudioData *pAudioData, UserData *pUserData)
         {
                 prepareNextOpusDecoder(filePath);
                 ma_libopus *first = getFirstOpusDecoder();
-                ma_channel channelMap[MA_MAX_CHANNELS];                
-                ma_libopus_ds_get_data_format(first, &pAudioData->format, &pAudioData->channels, &pAudioData->sampleRate, channelMap, MA_MAX_CHANNELS);                
+                ma_channel channelMap[MA_MAX_CHANNELS];
+                ma_libopus_ds_get_data_format(first, &pAudioData->format, &pAudioData->channels, &pAudioData->sampleRate, channelMap, MA_MAX_CHANNELS);
                 ma_data_source_get_length_in_pcm_frames(first, &pAudioData->totalFrames);
-                ma_data_source_base *base = (ma_data_source_base*)first;
+                ma_data_source_base *base = (ma_data_source_base *)first;
                 base->pCurrent = first;
-                first->pReadSeekTellUserData = pAudioData;                
+                first->pReadSeekTellUserData = pAudioData;
         }
         else if (endsWith(filePath, "ogg"))
         {
                 prepareNextVorbisDecoder(filePath);
                 ma_libvorbis *first = getFirstVorbisDecoder();
-                ma_channel channelMap[MA_MAX_CHANNELS];              
+                ma_channel channelMap[MA_MAX_CHANNELS];
                 ma_libvorbis_ds_get_data_format(first, &pAudioData->format, &pAudioData->channels, &pAudioData->sampleRate, channelMap, MA_MAX_CHANNELS);
                 ma_data_source_get_length_in_pcm_frames(first, &pAudioData->totalFrames);
-                ma_data_source_base *base = (ma_data_source_base*)first;
-                base->pCurrent = first;                
-                first->pReadSeekTellUserData = pAudioData;                
+                ma_data_source_base *base = (ma_data_source_base *)first;
+                base->pCurrent = first;
+                first->pReadSeekTellUserData = pAudioData;
         }
         else
         {
@@ -98,7 +98,7 @@ void createDevice(UserData *userData, ma_device *device, ma_context *context, ma
         result = ma_device_init(context, &deviceConfig, device);
         if (result != MA_SUCCESS)
                 return;
-        
+
         setVolume(getCurrentVolume());
 
         result = ma_device_start(device);
@@ -152,7 +152,7 @@ void opus_createAudioDevice(UserData *userData, ma_device *device, ma_context *c
         ma_result result;
 
         initFirstDatasource(&audioData, userData);
-        ma_libopus *opus = getFirstOpusDecoder();  
+        ma_libopus *opus = getFirstOpusDecoder();
 
         ma_device_config deviceConfig = ma_device_config_init(ma_device_type_playback);
 
@@ -160,7 +160,7 @@ void opus_createAudioDevice(UserData *userData, ma_device *device, ma_context *c
         deviceConfig.playback.channels = audioData.channels;
         deviceConfig.sampleRate = audioData.sampleRate;
         deviceConfig.dataCallback = opus_on_audio_frames;
-        deviceConfig.pUserData = opus;        
+        deviceConfig.pUserData = opus;
 
         result = ma_device_init(context, &deviceConfig, device);
         if (result != MA_SUCCESS)
@@ -181,6 +181,14 @@ void opus_createAudioDevice(UserData *userData, ma_device *device, ma_context *c
 
 void switchAudioImplementation()
 {
+        if (audioData.endOfListReached)
+        {
+                audioData.endOfListReached = false;
+                setEOFNotReached();
+                setCurrentImplementationType(NONE);
+                return;
+        }
+
         enum AudioImplementation currentImplementation = getCurrentImplementationType();
 
         if (audioData.currentFileIndex == 0)
@@ -227,7 +235,7 @@ void switchAudioImplementation()
                         pthread_mutex_lock(&dataSourceMutex);
 
                         setCurrentImplementationType(BUILTIN);
-                        
+
                         cleanupPlaybackDevice();
 
                         resetDecoders();
@@ -239,7 +247,7 @@ void switchAudioImplementation()
 
                         pthread_mutex_unlock(&dataSourceMutex);
 
-                        setImplSwitchNotReached();                        
+                        setImplSwitchNotReached();
                 }
         }
         else if (endsWith(filePath, "opus"))
@@ -265,12 +273,12 @@ void switchAudioImplementation()
                                                        sampleRate == nSampleRate));
 
                 if (isRepeatEnabled() || !(sameFormat && currentImplementation == OPUS))
-                {                        
+                {
                         setImplSwitchReached();
 
                         pthread_mutex_lock(&dataSourceMutex);
 
-                        setCurrentImplementationType(OPUS); 
+                        setCurrentImplementationType(OPUS);
 
                         cleanupPlaybackDevice();
 
@@ -283,7 +291,7 @@ void switchAudioImplementation()
 
                         pthread_mutex_unlock(&dataSourceMutex);
 
-                        setImplSwitchNotReached();                        
+                        setImplSwitchNotReached();
                 }
         }
         else if (endsWith(filePath, "ogg"))
@@ -311,23 +319,23 @@ void switchAudioImplementation()
                 if (isRepeatEnabled() || !(sameFormat && currentImplementation == VORBIS))
                 {
                         setImplSwitchReached();
-                        
+
                         pthread_mutex_lock(&dataSourceMutex);
 
                         setCurrentImplementationType(VORBIS);
 
-                        cleanupPlaybackDevice(); 
+                        cleanupPlaybackDevice();
 
                         resetDecoders();
                         resetVorbisDecoders();
                         resetOpusDecoders();
                         resetAudioBuffer();
-                                           
+
                         vorbis_createAudioDevice(&userData, getDevice(), &context, &pcm_file_data_source_vtable);
 
                         pthread_mutex_unlock(&dataSourceMutex);
 
-                        setImplSwitchNotReached();                        
+                        setImplSwitchNotReached();
                 }
         }
         else
@@ -351,7 +359,7 @@ void switchAudioImplementation()
 
                         pthread_mutex_unlock(&dataSourceMutex);
 
-                        setImplSwitchNotReached();                        
+                        setImplSwitchNotReached();
                 }
         }
         free(filePath);
