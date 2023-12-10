@@ -23,10 +23,10 @@ typedef struct
 } PixelData;
 #endif
 
-const char VERSION[] = "1.10";
+const char VERSION[] = "1.11";
 const int LOGO_COLOR = 3;
 const int VERSION_COLOR = 2;
-const int ABSOLUTE_MIN_WIDTH = 38;
+const int ABSOLUTE_MIN_WIDTH = 41;
 volatile bool refresh = true;
 bool visualizerEnabled = true;
 bool coverEnabled = true;
@@ -821,7 +821,7 @@ int showPlaylist(SongData *songData)
         return numPrintedRows;
 }
 
-void printElapsedBars()
+void printElapsedBars(int elapsedBars)
 {
         printBlankSpaces(indent);
         printf(" ");
@@ -841,6 +841,14 @@ void printElapsedBars()
         printf("\n");
 }
 
+int calcElapsedBars(double elapsedSeconds, double duration, int numProgressBars)
+{
+        if (elapsedSeconds == 0)
+                return 0;
+
+        return (int)((elapsedSeconds / duration) * numProgressBars);
+}
+
 void printVisualizer()
 {
         if (visualizerEnabled && !printPlaylist)
@@ -853,7 +861,7 @@ void printVisualizer()
                 visualizerWidth = (visualizerWidth > term_w - 2) ? term_w - 2 : visualizerWidth;
                 numProgressBars = (int)visualizerWidth / 2;
                 drawSpectrumVisualizer(visualizerHeight, visualizerWidth, color);
-                printElapsedBars();
+                printElapsedBars(calcElapsedBars(elapsed, duration, numProgressBars));
                 printLastRow();
                 int jumpAmount = visualizerHeight + 2;
                 cursorJump(jumpAmount);
