@@ -582,7 +582,7 @@ int showKeyBindings()
         printBlankSpaces(indentation);
         printf(" - F3 to show/hide key bindings.\n");
         printBlankSpaces(indentation);
-        printf(" - Use %s, %s to adjust volume.\n", settings.volumeUp, settings.volumeDown);
+        printf(" - Use %s (or %s) and %s to adjust volume.\n", settings.volumeUp, settings.volumeUpAlt, settings.volumeDown);
         printBlankSpaces(indentation);
         printf(" - Use ←, → or %s, %s keys to switch tracks.\n", settings.previousTrackAlt, settings.nextTrackAlt);
         printBlankSpaces(indentation);

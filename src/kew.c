@@ -167,6 +167,7 @@ struct Event processInput()
                                       {settings.nextTrackAlt, EVENT_NEXT},
                                       {settings.previousTrackAlt, EVENT_PREV},
                                       {settings.volumeUp, EVENT_VOLUME_UP},
+                                      {settings.volumeUpAlt, EVENT_VOLUME_UP},
                                       {settings.volumeDown, EVENT_VOLUME_DOWN},
                                       {settings.togglePause, EVENT_PLAY_PAUSE},
                                       {settings.quit, EVENT_QUIT},

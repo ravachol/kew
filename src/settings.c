@@ -7,7 +7,7 @@
 settings.c
 
  Functions related to the config file.
- 
+
 */
 
 #ifndef MAXPATHLEN
@@ -32,6 +32,7 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         strncpy(settings.useProfileColors, "1", sizeof(settings.useProfileColors));
 
         strncpy(settings.volumeUp, "+", sizeof(settings.volumeUp));
+        strncpy(settings.volumeUpAlt, "=", sizeof(settings.volumeUpAlt));
         strncpy(settings.volumeDown, "-", sizeof(settings.volumeDown));
         strncpy(settings.previousTrackAlt, "h", sizeof(settings.previousTrackAlt));
         strncpy(settings.nextTrackAlt, "l", sizeof(settings.nextTrackAlt));
@@ -97,6 +98,10 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
                 else if (strcmp(stringToLower(pair->key), "volumeup") == 0)
                 {
                         snprintf(settings.volumeUp, sizeof(settings.volumeUp), "%s", pair->value);
+                }
+                else if (strcmp(stringToLower(pair->key), "volumeupalt") == 0)
+                {
+                        snprintf(settings.volumeUpAlt, sizeof(settings.volumeUpAlt), "%s", pair->value);
                 }
                 else if (strcmp(stringToLower(pair->key), "volumedown") == 0)
                 {
@@ -165,7 +170,7 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
                 else if (strcmp(stringToLower(pair->key), "addtomainplaylist") == 0)
                 {
                         snprintf(settings.quit, sizeof(settings.quit), "%s", pair->value);
-                }                
+                }
                 else if (strcmp(stringToLower(pair->key), "quit") == 0)
                 {
                         snprintf(settings.quit, sizeof(settings.quit), "%s", pair->value);
@@ -435,6 +440,7 @@ void setConfig()
         fprintf(file, "useProfileColors=%s\n\n", settings.useProfileColors);
         fprintf(file, "# Key Bindings:\n\n");
         fprintf(file, "volumeUp=%s\n", settings.volumeUp);
+        fprintf(file, "volumeUpAlt=%s\n", settings.volumeUpAlt);
         fprintf(file, "volumeDown=%s\n", settings.volumeDown);
         fprintf(file, "previousTrackAlt=%s\n", settings.previousTrackAlt);
         fprintf(file, "nextTrackAlt=%s\n", settings.nextTrackAlt);
@@ -456,7 +462,7 @@ void setConfig()
         fprintf(file, "# For special keys use terminal codes: OS, for F4 for instance. This can depend on the terminal.\n");
         fprintf(file, "# You can find out the codes for the keys by using tools like showkey.\n");
         fprintf(file, "# For special keys, see the key value after the bracket \"[\" after typing \"showkey -a\" in the terminal and then pressing a key you want info about.\n");
-        fprintf(file, "\n\n");        
+        fprintf(file, "\n\n");
 
         fclose(file);
         free(filepath);
