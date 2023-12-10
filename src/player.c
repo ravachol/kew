@@ -310,7 +310,7 @@ void printBasicMetadata(TagSettings const *metadata)
 
 void printProgress(double elapsed_seconds, double total_seconds, double total_duration_seconds, PlayList const *playlist)
 {
-        int progressWidth = 31;
+        int progressWidth = 39;
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
 
@@ -332,6 +332,7 @@ void printProgress(double elapsed_seconds, double total_seconds, double total_du
 
         int total_playlist_hours = (int)(total_duration_seconds / 3600);
         int total_playlist_minutes = (int)(((int)total_duration_seconds / 60) % 60);
+        int vol = getCurrentVolume();
 
         // Clear the current line
         printf("\033[K");
@@ -339,18 +340,18 @@ void printProgress(double elapsed_seconds, double total_seconds, double total_du
         printBlankSpaces(indent);
         if (playlist->count <= MAX_COUNT_PLAYLIST_SONGS)
         {
-                printf(" %02d:%02d:%02d / %02d:%02d:%02d (%d%%) T:%dh%02dm",
+                printf(" %02d:%02d:%02d / %02d:%02d:%02d (%d%%) T:%dh%02dm Vol:%d%%",
                        elapsed_hours, elapsed_minutes, elapsed_seconds_remainder,
                        total_hours, total_minutes, total_seconds_remainder,
-                       progress_percentage, total_playlist_hours, total_playlist_minutes);
+                       progress_percentage, total_playlist_hours, total_playlist_minutes, vol);
         }
         else
         {
 
-                printf(" %02d:%02d:%02d / %02d:%02d:%02d (%d%%)",
+                printf(" %02d:%02d:%02d / %02d:%02d:%02d (%d%%) Vol:%d%%",
                        elapsed_hours, elapsed_minutes, elapsed_seconds_remainder,
                        total_hours, total_minutes, total_seconds_remainder,
-                       progress_percentage);
+                       progress_percentage, vol);
         }
 
         // Print out progress bar with 10 segments
