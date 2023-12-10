@@ -364,7 +364,7 @@ void printProgress(double elapsed_seconds, double total_seconds, double total_du
 
         int total_playlist_hours = (int)(total_duration_seconds / 3600);
         int total_playlist_minutes = (int)(((int)total_duration_seconds / 60) % 60);
-        int vol = getCurrentVolume();
+        int vol = getCurrentVolume();        
 
         // Clear the current line
         printf("\033[K");
@@ -618,7 +618,7 @@ int showKeyBindings()
         printBlankSpaces(indentation);
         printf(" - F3 to show/hide key bindings.\n");
         printBlankSpaces(indentation);
-        printf(" - Use %s (or %s) and %s to adjust volume.\n", settings.volumeUp, settings.volumeUpAlt, settings.volumeDown);
+        printf(" - Use %s (or %s), %s to adjust volume.\n", settings.volumeUp, settings.volumeUpAlt, settings.volumeDown);
         printBlankSpaces(indentation);
         printf(" - Use ←, → or %s, %s keys to switch tracks.\n", settings.previousTrackAlt, settings.nextTrackAlt);
         printBlankSpaces(indentation);
