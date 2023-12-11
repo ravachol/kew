@@ -219,3 +219,21 @@ kew will create a config file, kewrc, in your default config directory for insta
 Licensed under GPL. [See LICENSE for more information](https://github.com/ravachol/kew/blob/main/LICENSE).
 
 Comments? Suggestions? Send mail to kew-music-player@proton.me.
+
+## Attributions
+
+Kew makes use of the following great open source projects:
+
+Chafa by  Petter Jansson - https://hpjansson.org/chafa/
+
+FFmpeg by FFmpeg team - https://ffmpeg.org/
+
+FFTW by Matteo Frigo and Steven G. Johnson - https://www.fftw.org/
+
+Libopus by Opus - https://opus-codec.org/
+
+Libvorbis by Xiph.org - https://xiph.org/
+
+Miniaudio by David Reid - https://github.com/mackron/miniaudio
+
+Write Ascii by Danny Burrows - https://github.com/danny-burrows/img_to_txt
