@@ -65,47 +65,6 @@ void emitBooleanPropertyChanged(const gchar *propertyName, gboolean newValue)
         g_variant_builder_clear(&changed_properties_builder);
 }
 
-void emitMetadataChanged(const gchar *title, const gchar *artist, const gchar *album, const gchar *coverArtPath, const gchar *trackId)
-{
-        // Convert the coverArtPath to a valid URL format
-        gchar *coverArtUrl = g_strdup_printf("file://%s", coverArtPath);
-
-        // Create a GVariantBuilder for the metadata dictionary
-        GVariantBuilder metadata_builder;
-        g_variant_builder_init(&metadata_builder, G_VARIANT_TYPE_DICTIONARY);
-        g_variant_builder_add(&metadata_builder, "{sv}", "xesam:title", g_variant_new_string(title));
-
-        // Build list of strings for artist
-        const gchar *artistList[2];
-        if (artist)
-        {
-                artistList[0] = artist;
-                artistList[1] = NULL;
-        }
-        else
-        {
-                artistList[0] = "";
-                artistList[1] = NULL;
-        }
-
-        g_variant_builder_add(&metadata_builder, "{sv}", "xesam:artist", g_variant_new_strv(artistList, -1));
-        g_variant_builder_add(&metadata_builder, "{sv}", "xesam:album", g_variant_new_string(album));
-        g_variant_builder_add(&metadata_builder, "{sv}", "mpris:artUrl", g_variant_new_string(coverArtUrl));
-        g_variant_builder_add(&metadata_builder, "{sv}", "mpris:trackid", g_variant_new_object_path(trackId));
-
-        GVariantBuilder changed_properties_builder;
-        g_variant_builder_init(&changed_properties_builder, G_VARIANT_TYPE("a{sv}"));
-        g_variant_builder_add(&changed_properties_builder, "{sv}", "Metadata", g_variant_builder_end(&metadata_builder));
-        g_variant_builder_add(&changed_properties_builder, "{sv}", "CanGoPrevious", g_variant_new_boolean((currentSong != NULL && currentSong->prev != NULL)));
-        g_variant_builder_add(&changed_properties_builder, "{sv}", "CanGoNext", g_variant_new_boolean((currentSong != NULL && currentSong->next != NULL)));
-
-        g_dbus_connection_emit_signal(connection, NULL, "/org/mpris/MediaPlayer2", "org.freedesktop.DBus.Properties", "PropertiesChanged",
-                                      g_variant_new("(sa{sv}as)", "org.mpris.MediaPlayer2.Player", &changed_properties_builder, NULL), NULL);
-
-        g_variant_builder_clear(&metadata_builder);
-        g_variant_builder_clear(&changed_properties_builder);
-}
-
 void playbackPause(double *totalPauseSeconds, double *pauseSeconds, struct timespec *pause_time)
 {
         if (!isPaused())
@@ -168,7 +127,7 @@ void addToPlaylist()
                 SongInfo song;
                 song.filePath = strdup(currentSong->song.filePath);
                 song.duration = 0.0;
-                addToList(mainPlaylist, song);
+                addToList(mainPlaylist, song, nodeIdCounter++);
         }
 }
 
@@ -382,8 +341,9 @@ void enqueueSong(FileSystemEntry *child)
         SongInfo song;
         song.filePath = strdup(child->fullPath);
         song.duration = 0.0;
-        addToList(originalPlaylist, song);
-        addToList(&playlist, song);
+        nodeIdCounter++;
+        addToList(originalPlaylist, song, nodeIdCounter);
+        addToList(&playlist, song, nodeIdCounter);
 
         child->isEnqueued = 1;
         child->parent->isEnqueued = 1;
@@ -457,7 +417,7 @@ void enqueueSongs()
         {
                 if (tmp->isDirectory)
                 {
-                        if (chosenDir != NULL && strcmp(tmp->fullPath, chosenDir->fullPath) == 0)
+                        if (getEntryTreeDepth(tmp) == 1 || (chosenDir != NULL && strcmp(tmp->fullPath, chosenDir->fullPath) == 0))
                         {
                                 if (!tmp->isEnqueued)
                                 {

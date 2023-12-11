@@ -41,7 +41,7 @@ bool shuffle = false;
 int numDirs = 0;
 volatile int stopPlaylistDurationThread = 0;
 Node *currentSong = NULL;
-int nodeCounter = 0;
+int nodeIdCounter = 0;
 
 Node *getListNext(Node *node)
 {
@@ -53,14 +53,14 @@ Node *getListPrev(Node *node)
         return (node == NULL) ? NULL : node->prev;
 }
 
-void addToList(PlayList *list, SongInfo song)
+void addToList(PlayList *list, SongInfo song, int id)
 {
         if (list->count >= MAX_FILES)
                 return;
         Node *newNode = (Node *)malloc(sizeof(Node));
         newNode->song = song;
         newNode->next = NULL;
-        newNode->id = nodeCounter++;
+        newNode->id = id;
         list->count++;
 
         if (list->head == NULL)
@@ -238,7 +238,7 @@ void buildPlaylistRecursive(char *directoryPath, const char *allowedExtensions, 
                 SongInfo song;
                 song.filePath = strdup(directoryPath);
                 song.duration = 0.0;
-                addToList(playlist, song);
+                addToList(playlist, song, nodeIdCounter++);
                 return;
         }
 
@@ -296,7 +296,7 @@ void buildPlaylistRecursive(char *directoryPath, const char *allowedExtensions, 
                                 snprintf(filePath, sizeof(filePath), "%s/%s", directoryPath, entry->d_name);
                                 song.filePath = strdup(filePath);
                                 song.duration = 0.0;
-                                addToList(playlist, song);
+                                addToList(playlist, song, nodeIdCounter++);
                         }
                 }
         }
@@ -338,7 +338,7 @@ int playDirectory(const char *directoryPath, const char *allowedExtensions, Play
                         SongInfo song;
                         song.duration = 0.0;
                         song.filePath = strdup(filePath);
-                        addToList(playlist, song);
+                        addToList(playlist, song, nodeIdCounter++);
                 }
         }
         closedir(dir);

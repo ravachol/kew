@@ -790,8 +790,11 @@ int showPlaylist(SongData *songData)
         {
                 if (songData != NULL && strcmp(node->song.filePath, songData->filePath) == 0)
                 {
-                        foundAt = numSongs;
-                        foundNode = node;
+                        if (currentSong == NULL || (currentSong != NULL && currentSong->id == node->id))
+                        {
+                                foundAt = numSongs;
+                                foundNode = node;
+                        }
                 }
                 node = node->next;
                 numSongs++;
@@ -873,7 +876,7 @@ int showPlaylist(SongData *songData)
                                 printf("\x1b[7m");
                         }
 
-                        if (songData != NULL && strcmp(filePath, songData->filePath) == 0)
+                        if (foundNode != NULL && foundNode->id == node->id)
                         {
                                 if (useProfileColors)
                                         printf("\e[1m\e[39m");
@@ -1018,6 +1021,22 @@ FileSystemEntry *getCurrentLibEntry()
 FileSystemEntry *getChosenDir()
 {
         return chosenDir;
+}
+
+int getEntryTreeDepth(FileSystemEntry *entry)
+{
+        int depth = -1;
+
+        if (entry == NULL)
+                return 0;
+
+        while (entry != NULL)
+        {
+                entry = entry->parent;
+                depth++;                
+        }
+
+        return depth;
 }
 
 char *processName(const char *name, int maxWidth)
@@ -1270,32 +1289,23 @@ int printPlayer(SongData *songdata, double elapsedSeconds, PlayList *playlist)
         if (appState.currentView != PLAYLIST_VIEW)
                 resetPlaylistDisplay = true;
 
-        if (appState.currentView == KEYBINDINGS_VIEW)
+        if (appState.currentView == KEYBINDINGS_VIEW && refresh)
         {
-                if (refresh)
-                {
                         clearScreen();
                         showKeyBindings();
                         saveCursorPosition();
-                }
         }
-        else if (appState.currentView == PLAYLIST_VIEW)
+        else if (appState.currentView == PLAYLIST_VIEW && refresh)
         {
-                if (refresh)
-                {
                         clearScreen();
                         int height = showPlaylist(songdata);
                         cursorJump(height);
                         saveCursorPosition();
-                }
         }
-        else if (appState.currentView == LIBRARY_VIEW)
+        else if (appState.currentView == LIBRARY_VIEW && refresh)
         {
-                if (refresh)
-                {
                         clearScreen();
                         showLibrary();
-                }
         }
         else if (appState.currentView == SONG_VIEW && songdata != NULL)
         {

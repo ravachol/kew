@@ -69,8 +69,6 @@ void updateLastSongSwitchTime(void);
 
 void updateLastInputTime(void);
 
-void emitMetadataChanged(const gchar *title, const gchar *artist, const gchar *album, const gchar *coverArtPath, const gchar *trackId);
-
 void playbackPause(double *totalPauseSeconds, double *pauseSeconds, struct timespec *pause_time);
 
 void playbackPlay(double *totalPauseSeconds, double *pauseSeconds, struct timespec *pause_time);
