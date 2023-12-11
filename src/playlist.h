@@ -46,12 +46,13 @@ extern PlayList playlist;
 
 extern PlayList *mainPlaylist;
 extern PlayList *originalPlaylist;
+extern int nodeIdCounter;
 
 Node *getListNext(Node *node);
 
 Node *getListPrev(Node *node);
 
-void addToList(PlayList *list, SongInfo song);
+void addToList(PlayList *list, SongInfo song, int id);
 
 Node *deleteFromList(PlayList *list, Node *node);
 
