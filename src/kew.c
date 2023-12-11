@@ -408,7 +408,7 @@ void refreshPlayer()
                             songData->metadata->artist,
                             songData->metadata->album,
                             songData->coverArtPath,
-                            songData->trackId != NULL ? songData->trackId : "");
+                            songData->trackId != NULL ? songData->trackId : "", currentSong);
                 }
 
                 printPlayer(songData, elapsedSeconds, &playlist);
@@ -690,7 +690,7 @@ gboolean mainloop_callback(gpointer data)
                 }
         }
 
-        if (doQuit || loadingFailed)
+        if (doQuit)
         {
                 g_main_loop_quit(main_loop);
                 return FALSE;

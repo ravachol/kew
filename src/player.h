@@ -62,6 +62,8 @@ void showVersion(void);
 
 int printAbout(void);
 
+int getEntryTreeDepth(FileSystemEntry *entry);
+
 void showHelp(void);
 
 FileSystemEntry *getCurrentLibEntry();
