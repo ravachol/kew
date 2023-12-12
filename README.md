@@ -234,7 +234,7 @@ Libvorbis by Xiph.org - https://xiph.org/
 
 Miniaudio by David Reid - https://github.com/mackron/miniaudio
 
-Write Ascii by Danny Burrows - https://github.com/danny-burrows/img_to_txt
+Img_To_Txt by Danny Burrows - https://github.com/danny-burrows/img_to_txt
 
 
 Comments? Suggestions? Send mail to kew-music-player@proton.me.
