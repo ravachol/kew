@@ -1,6 +1,6 @@
 CC = gcc
 PKG_CONFIG	?= pkg-config
-CFLAGS = -I/usr/include -I/usr/include/ogg/ -I/usr/include/stb -Iinclude/imgtotxt/ext -Iinclude/imgtotxt -I/usr/include/ffmpeg -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -I/usr/include/libavformat -Iinclude/miniaudio -O2 -g $(shell $(PKG_CONFIG) --cflags gio-2.0 chafa libavformat fftw3f opus opusfile vorbis)
+CFLAGS = -I/usr/include -I/usr/include/ogg/  -I/usr/include/opus -I/usr/include/stb -Iinclude/imgtotxt/ext -Iinclude/imgtotxt -I/usr/include/ffmpeg -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -I/usr/include/libavformat -Iinclude/miniaudio -O2 -g $(shell $(PKG_CONFIG) --cflags gio-2.0 chafa libavformat fftw3f opus opusfile vorbis)
 CFLAGS += -fstack-protector-strong -Wformat -Werror=format-security -fPIE -fstack-protector -fstack-protector-strong -D_FORTIFY_SOURCE=2
 CFLAGS += -Wall -Wpointer-arith
 LIBS = -L/usr/lib -lfreeimage -latomic -lpthread -lrt -pthread -lm -lglib-2.0  $(shell $(PKG_CONFIG) --libs gio-2.0 chafa libavformat fftw3f opus opusfile vorbis vorbisfile)
