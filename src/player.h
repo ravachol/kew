@@ -21,6 +21,7 @@ extern bool coverAnsi;
 extern bool visualizerEnabled;
 extern bool useThemeColors;
 extern bool hasPrintedPaused;
+extern bool quitAfterStopping;
 extern int numProgressBars;
 extern int elapsed;
 extern int chosenSong;

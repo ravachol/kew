@@ -79,7 +79,6 @@ int digitsPressedCount = 0;
 int maxDigitsPressedCount = 9;
 bool gotoSong = false;
 bool gPressed = false;
-bool waitingForPlaylist = false;
 
 bool isCooldownElapsed(int milliSeconds)
 {
@@ -336,6 +335,9 @@ void setEndOfListReached()
         loadedNextSong = true;
 
         audioData.endOfListReached = true;
+
+        setPlayingStatus(false);
+
         refresh = true;
 }
 
@@ -364,6 +366,8 @@ void prepareNextSong()
 {
         if (!skipPrev && !gotoSong && !isRepeatEnabled())
         {
+                if (currentSong != NULL)
+                        lastPlayedSong = currentSong;
                 currentSong = getNextSong();
         }
         else
@@ -374,7 +378,10 @@ void prepareNextSong()
 
         if (currentSong == NULL)
         {
-                setEndOfListReached();
+                if (quitAfterStopping)
+                        quit();
+                else
+                        setEndOfListReached();
         }
 
         finishLoading();
@@ -415,7 +422,6 @@ void refreshPlayer()
         }
 }
 
-
 void handleGoToSong()
 {
         if (appState.currentView != LIBRARY_VIEW)
@@ -424,9 +430,10 @@ void handleGoToSong()
                 {
                         loadedNextSong = true;
                         skipToNumberedSong(chosenSong + 1);
+
                         if (audioData.endOfListReached)
                         {
-                                audioData.endOfListReached = 0;
+                                audioData.endOfListReached = false;
                         }
                 }
                 else
@@ -441,7 +448,6 @@ void handleGoToSong()
         else
         {
                 enqueueSongs();
-                loadedNextSong = false;
         }
 }
 
@@ -606,18 +612,30 @@ void loadAudioData()
 {
         if (currentSong == NULL)
         {
-                if (playlist.head != NULL && waitingForPlaylist)
-                {
-                        waitingForPlaylist = false;
+                if (playlist.head != NULL && (waitingForPlaylist || waitingForNext))
+                {                     
                         songLoading = true;
                         loadingdata.loadA = true;
 
-                        currentSong = playlist.head;
-                        loadFirst(playlist.head);
+                        if (waitingForNext && !waitingForPlaylist)
+                        {
+                                if (lastPlayedSong != NULL)
+                                        currentSong = lastPlayedSong->next;
+
+                                if (currentSong == NULL)
+                                        currentSong = lastPlayedSong;
+                        }
+                        else
+                                currentSong = playlist.head;
+
+                        waitingForPlaylist = false;
+                        waitingForNext = false;
+
+                        loadFirst(currentSong);
 
                         createAudioDevice(&userData);
 
-                        if (currentSong->next != NULL)
+                        if (currentSong != NULL && currentSong->next != NULL)
                         {
                                 loadedNextSong = false;
                         }
@@ -877,6 +895,8 @@ void handleOptions(int *argc, char *argv[])
 {
         const char *noUiOption = "--noui";
         const char *noCoverOption = "--nocover";
+        const char *quitOnStop = "--quitonstop";
+
         int idx = -1;
         for (int i = 0; i < *argc; i++)
         {
@@ -888,6 +908,7 @@ void handleOptions(int *argc, char *argv[])
         }
         if (idx >= 0)
                 removeArgElement(argv, idx, argc);
+
         idx = -1;
         for (int i = 0; i < *argc; i++)
         {
@@ -899,6 +920,18 @@ void handleOptions(int *argc, char *argv[])
         }
         if (idx >= 0)
                 removeArgElement(argv, idx, argc);
+
+        idx = -1;
+        for (int i = 0; i < *argc; i++)
+        {
+                if (c_strcasestr(argv[i], quitOnStop))
+                {
+                        quitAfterStopping = true;
+                        idx = i;
+                }
+        }
+        if (idx >= 0)
+                removeArgElement(argv, idx, argc);                
 }
 
 int main(int argc, char *argv[])

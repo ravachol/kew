@@ -185,6 +185,8 @@ kew --nocover
 
 kew --noui (completely hides the UI)
 
+kew --quitonstop (exits after finishing playing the playlist)
+
 kew . loads kew.m3u
 
  ```
