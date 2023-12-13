@@ -107,6 +107,8 @@ void vorbis_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_ui
                         continue;
                 }
 
+                setPlayingStatus(true);
+
                 framesRead += framesToRead;
                 setBufferSize(framesToRead);
 

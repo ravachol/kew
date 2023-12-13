@@ -37,6 +37,17 @@ int decoderIndex = -1;
 int opusDecoderIndex = -1;
 int vorbisDecoderIndex = -1;
 bool doQuit = false;
+bool audioPlaying = false;
+
+void setPlayingStatus(bool playing)
+{
+        audioPlaying = playing;
+}
+
+bool isPlaying()
+{
+        return audioPlaying;
+}
 
 enum AudioImplementation getCurrentImplementationType()
 {
@@ -763,18 +774,36 @@ void executeSwitch(AudioData *pAudioData)
                 if (pAudioData->fileB != NULL)
                         fclose(pAudioData->fileB);
                 pAudioData->fileB = NULL;
-                currentFilename = pAudioData->pUserData->filenameA;
-                currentSongData = pAudioData->pUserData->songdataA;
-                pAudioData->fileA = (currentFilename != NULL && strcmp(currentFilename, "") != 0) ? fopen(currentFilename, "rb") : NULL;
+                if (pAudioData->pUserData->songdataA != NULL || !pAudioData->pUserData->songdataA->deleted)
+                {
+                        currentFilename = pAudioData->pUserData->filenameA;
+                        currentSongData = pAudioData->pUserData->songdataA;
+                        pAudioData->fileA = (currentFilename != NULL && strcmp(currentFilename, "") != 0) ? fopen(currentFilename, "rb") : NULL;
+                }
+                else
+                {
+                        currentFilename = NULL;
+                        currentSongData = NULL;
+                        pAudioData->fileA = NULL;
+                }
         }
         else
         {
                 if (pAudioData->fileA != NULL)
                         fclose(pAudioData->fileA);
                 pAudioData->fileA = NULL;
-                currentFilename = pAudioData->pUserData->filenameB;
-                currentSongData = pAudioData->pUserData->songdataB;
-                pAudioData->fileB = (currentFilename != NULL && strcmp(currentFilename, "") != 0) ? fopen(currentFilename, "rb") : NULL;
+                if (pAudioData->pUserData->songdataA != NULL || !pAudioData->pUserData->songdataA->deleted)
+                {
+                        currentFilename = pAudioData->pUserData->filenameB;
+                        currentSongData = pAudioData->pUserData->songdataB;
+                        pAudioData->fileB = (currentFilename != NULL && strcmp(currentFilename, "") != 0) ? fopen(currentFilename, "rb") : NULL;
+                }
+                else
+                {
+                        currentFilename = NULL;
+                        currentSongData = NULL;
+                        pAudioData->fileB = NULL;
+                }
         }
 
         pAudioData->pUserData->currentSongData = currentSongData;

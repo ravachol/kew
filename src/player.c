@@ -33,6 +33,7 @@ const int ABSOLUTE_MIN_WIDTH = 53;
 volatile bool refresh = true;
 bool visualizerEnabled = true;
 bool coverEnabled = true;
+bool quitAfterStopping = false;
 bool coverAnsi = false;
 bool metaDataEnabled = true;
 bool timeEnabled = true;
@@ -967,7 +968,9 @@ void printVisualizer()
                 visualizerWidth = (visualizerWidth < textWidth && textWidth < term_w - 2) ? textWidth : visualizerWidth;
                 visualizerWidth = (visualizerWidth > term_w - 2) ? term_w - 2 : visualizerWidth;
                 numProgressBars = (int)visualizerWidth / 2;
-                drawSpectrumVisualizer(visualizerHeight, visualizerWidth, color);             
+
+                drawSpectrumVisualizer(visualizerHeight, visualizerWidth, color);
+
                 printElapsedBars(calcElapsedBars(elapsed, duration, numProgressBars));
                 printLastRow();
                 int jumpAmount = visualizerHeight + 2;
