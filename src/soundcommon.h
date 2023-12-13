@@ -113,6 +113,7 @@ enum AudioImplementation
 };
 
 extern bool doQuit;
+
 extern pthread_mutex_t dataSourceMutex;
 
 enum AudioImplementation getCurrentImplementationType();
@@ -122,6 +123,10 @@ void setCurrentImplementationType(enum AudioImplementation value);
 int getBufferSize();
 
 void setBufferSize(int value);
+
+void setPlayingStatus(bool playing);
+
+bool isPlaying();
 
 ma_decoder *getFirstDecoder();
 

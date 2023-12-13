@@ -22,9 +22,12 @@ bool usingSongDataA = true;
 LoadingThreadData loadingdata;
 
 volatile bool loadedNextSong = false;
+bool waitingForPlaylist = false;
+bool waitingForNext = false;
 Node *nextSong = NULL;
 Node *tryNextSong = NULL;
 Node *prevSong = NULL;
+Node *lastPlayedSong = NULL;
 
 bool songHasErrors = false;
 bool skipPrev = false;
@@ -116,7 +119,7 @@ void toggleRepeat()
         {
                 emitStringPropertyChanged("LoopStatus", "None");
         }
-        if (appState.currentView == PLAYLIST_VIEW || appState.currentView == LIBRARY_VIEW)
+        if (appState.currentView != SONG_VIEW)
                 refresh = true;
 }
 
@@ -358,7 +361,7 @@ void dequeueSong(FileSystemEntry *child)
                 return;
 
         if (currentSong != NULL && currentSong->id == node1->id)
-              return;        
+                return;
 
         if (node1 != NULL)
                 deleteFromList(originalPlaylist, node1);
@@ -427,7 +430,10 @@ void enqueueSongs()
                                         enqueueChildren(tmp);
 
                                         Node *song = getNextSong();
-                                        rebuildNextSong(song);                                        
+                                        rebuildNextSong(song);
+
+                                        loadedNextSong = false;
+                                        waitingForNext = true;
                                 }
                                 else
                                 {
@@ -460,6 +466,9 @@ void enqueueSongs()
                                         Node *song = getNextSong();
                                         rebuildNextSong(song);
                                 }
+
+                                loadedNextSong = false;
+                                waitingForNext = true;
                         }
                         else
                         {
@@ -487,7 +496,6 @@ void resetList()
         setCurrentImplementationType(NONE);
 }
 
-
 void handleRemove()
 {
         bool rebuild = false;
@@ -499,7 +507,7 @@ void handleRemove()
         Node *song = getNextSong();
 
         if (currentSong != NULL && currentSong->id == node->id)
-                return;        
+                return;
 
         if (node != NULL && song != NULL)
         {
@@ -520,6 +528,9 @@ void handleRemove()
                 nextSong = NULL;
                 node = getNextSong();
                 rebuildNextSong(node);
+                
+                loadedNextSong = false;
+                waitingForNext = true;
         }
 
         refresh = true;
@@ -694,7 +705,12 @@ void rebuildNextSong(Node *song)
                 return;
 
         loadingdata.loadA = !usingSongDataA;
+
+        pthread_mutex_lock(&(loadingdata.mutex));
+
         unloadSongData(usingSongDataA ? &loadingdata.songdataB : &loadingdata.songdataA);
+
+        pthread_mutex_unlock(&(loadingdata.mutex));
 
         loadSong(song, &loadingdata);
         int maxNumTries = 50;
@@ -712,6 +728,9 @@ void skipToPrevSong()
         if (songLoading || !loadedNextSong || skipping || clearingErrors)
                 if (!forceSkip)
                         return;
+
+        if (currentSong == NULL)
+                return;
 
         if (currentSong->prev != NULL)
                 currentSong = currentSong->prev;
@@ -764,6 +783,9 @@ void skipToNumberedSong(int songNumber)
                         skipToNumberedSong(songNumber + 1);
         }
 
+        if (currentSong != NULL)
+                audioData.endOfListReached = false;
+
         updateLastSongSwitchTime();
         skip();
 }
@@ -786,6 +808,9 @@ void skipToLastSong()
 
 void loadFirstSong(Node *song)
 {
+        if (song == NULL)
+                return;
+
         loadSong(song, &loadingdata);
         int i = 0;
         while (!loadedNextSong)
@@ -820,4 +845,5 @@ void loadFirst(Node *song)
         userData.filenameA = loadingdata.songdataA->pcmFilePath;
         userData.songdataA = loadingdata.songdataA;
         userData.currentSongData = userData.songdataA;
+        audioData.currentFileIndex = 0;
 }

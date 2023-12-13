@@ -13,7 +13,6 @@ guint registration_id;
 guint player_registration_id;
 guint bus_name_id;
 
-static const gchar *PlaybackStatus = "Playing";
 static const gchar *LoopStatus = "None";
 static gdouble Rate = 1.0;
 static gdouble Volume = 0.5;
@@ -279,13 +278,14 @@ static gboolean get_playback_status(GDBusConnection *connection, const gchar *se
                                     const gchar *property_name, GVariant **value,
                                     GError **error, gpointer user_data)
 {
+        static const gchar *status = "Playing";
 
         if (isPaused())
-                PlaybackStatus = "Paused";
+                status = "Paused";
         else
-                PlaybackStatus = "Playing";
+                status = "Playing";
 
-        *value = g_variant_new_string(PlaybackStatus);
+        *value = g_variant_new_string(status);
         return TRUE;
 }
 
