@@ -177,6 +177,7 @@ int printAsciiLogo()
         printf("$$ | \\$$\\ \\$$$$$$$\\ \\$$$$$\\$$$$  |\n");
         printBlankSpaces(indent);
         printf("\\__|  \\__| \\_______| \\_____\\____/\n");
+
         int printedRows = 8;
         return printedRows;
 }
@@ -365,7 +366,8 @@ void printProgress(double elapsed_seconds, double total_seconds, double total_du
 
         int total_playlist_hours = (int)(total_duration_seconds / 3600);
         int total_playlist_minutes = (int)(((int)total_duration_seconds / 60) % 60);
-        int vol = getCurrentVolume();        
+
+        int vol = getCurrentVolume();
 
         // Clear the current line
         printf("\033[K");
@@ -680,7 +682,7 @@ void toggleShowLibrary()
         else
         {
                 appState.currentView = LIBRARY_VIEW;
-        }        
+        }
 }
 
 void toggleShowKeyBindings()
@@ -693,7 +695,7 @@ void toggleShowKeyBindings()
         else
         {
                 appState.currentView = KEYBINDINGS_VIEW;
-        }         
+        }
 }
 
 void flipNextPage()
@@ -1021,6 +1023,11 @@ FileSystemEntry *getCurrentLibEntry()
         return currentEntry;
 }
 
+FileSystemEntry *getLibrary()
+{
+        return library;
+}
+
 FileSystemEntry *getChosenDir()
 {
         return chosenDir;
@@ -1036,7 +1043,7 @@ int getEntryTreeDepth(FileSystemEntry *entry)
         while (entry != NULL)
         {
                 entry = entry->parent;
-                depth++;                
+                depth++;
         }
 
         return depth;
@@ -1237,7 +1244,7 @@ void showLibrary()
         }
 
         numTopLevelSongs = 0;
-        
+
         FileSystemEntry *toplevel = library->children;
         while (toplevel != NULL)
         {
@@ -1245,7 +1252,7 @@ void showLibrary()
                         numTopLevelSongs++;
 
                 toplevel = toplevel->next;
-        }        
+        }
 
         displayTree(library, 0, maxLibListSize, maxNameWidth);
 
@@ -1294,21 +1301,21 @@ int printPlayer(SongData *songdata, double elapsedSeconds, PlayList *playlist)
 
         if (appState.currentView == KEYBINDINGS_VIEW && refresh)
         {
-                        clearScreen();
-                        showKeyBindings();
-                        saveCursorPosition();
+                clearScreen();
+                showKeyBindings();
+                saveCursorPosition();
         }
         else if (appState.currentView == PLAYLIST_VIEW && refresh)
         {
-                        clearScreen();
-                        int height = showPlaylist(songdata);
-                        cursorJump(height);
-                        saveCursorPosition();
+                clearScreen();
+                int height = showPlaylist(songdata);
+                cursorJump(height);
+                saveCursorPosition();
         }
         else if (appState.currentView == LIBRARY_VIEW && refresh)
         {
-                        clearScreen();
-                        showLibrary();
+                clearScreen();
+                showLibrary();
         }
         else if (appState.currentView == SONG_VIEW && songdata != NULL)
         {
@@ -1319,7 +1326,7 @@ int printPlayer(SongData *songdata, double elapsedSeconds, PlayList *playlist)
                         printCover(songdata);
                         printMetadata(songdata->metadata);
                 }
-                printTime(playlist);        
+                printTime(playlist);
                 printVisualizer();
         }
         refresh = false;
