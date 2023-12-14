@@ -1,6 +1,7 @@
 #ifndef METADATA_H
 #define METADATA_H
-#include <avformat.h>
+#include <libavformat/avformat.h>
+#include <libavutil/avutil.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
