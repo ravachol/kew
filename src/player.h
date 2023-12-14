@@ -71,6 +71,8 @@ FileSystemEntry *getCurrentLibEntry();
 
 FileSystemEntry *getChosenDir();
 
+FileSystemEntry *getLibrary();
+
 void scrollNext(void);
 
 void scrollPrev(void);

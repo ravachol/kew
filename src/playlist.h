@@ -54,6 +54,8 @@ Node *getListPrev(Node *node);
 
 void addToList(PlayList *list, SongInfo song, int id);
 
+double calcTotalDuration(PlayList *playList);
+
 Node *deleteFromList(PlayList *list, Node *node);
 
 void deletePlaylist(PlayList *playlist);

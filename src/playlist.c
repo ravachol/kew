@@ -19,7 +19,7 @@
 playlist.c
 
 Playlist related functions.
- 
+
 */
 #define MAX_SEARCH_SIZE 256
 #define MAX_FILES 20000
@@ -27,7 +27,6 @@ Playlist related functions.
 #ifndef MAXPATHLEN
 #define MAXPATHLEN 4096
 #endif
-
 
 const char PLAYLIST_EXTENSIONS[] = "\\.(m3u)$";
 const char mainPlaylistName[] = "kew.m3u";
@@ -115,7 +114,7 @@ void deletePlaylist(PlayList *list)
                 }
                 if (current->prev != NULL)
                         current->prev->next = NULL;
-                free(current);                        
+                free(current);
                 current = next;
                 if (current != NULL && current->prev != NULL)
                         current->prev = NULL;
@@ -548,15 +547,41 @@ void *getDurationsThread(void *arg)
         return NULL;
 }
 
+double calcTotalDuration(PlayList *playList)
+{
+        double totalDuration = 0.0;
+
+        Node* tmp = playList->head;
+
+        while (tmp != NULL)
+        {
+                totalDuration += tmp->song.duration;
+                tmp = tmp->next;
+        }
+
+        return totalDuration;
+}
+
 int calculatePlayListDuration(PlayList *playlist)
 {
         if (playlist->count > MAX_COUNT_PLAYLIST_SONGS)
                 return 0;
 
-        startPlayListDurationCount();
+        Node *tmp = playlist->head;
+        int missingDuration = 0;
+        while (tmp != NULL)
+        {
+                if (tmp->song.duration <= 0.0)
+                {
+                        missingDuration++;
+                }
+                tmp = tmp->next;
+        }
 
-        if (playlist->totalDuration > 0.0)
+        if (missingDuration == 0)
                 return 0;
+
+        startPlayListDurationCount();
 
         pthread_t thread;
         int threadCreationResult;
@@ -730,18 +755,18 @@ Node *deepCopyNode(Node *originalNode)
         return newNode;
 }
 
-Node* findTail(Node *head)
+Node *findTail(Node *head)
 {
-    if (head == NULL)
-        return NULL;
+        if (head == NULL)
+                return NULL;
 
-    Node *current = head;
-    while (current->next != NULL)
-    {
-        current = current->next;
-    }
+        Node *current = head;
+        while (current->next != NULL)
+        {
+                current = current->next;
+        }
 
-    return current;
+        return current;
 }
 
 PlayList deepCopyPlayList(PlayList *originalList)
@@ -755,7 +780,7 @@ PlayList deepCopyPlayList(PlayList *originalList)
         PlayList newList;
         newList.head = deepCopyNode(originalList->head);
         newList.tail = findTail(newList.head);
-        newList.count = originalList->count;        
+        newList.count = originalList->count;
         newList.totalDuration = originalList->totalDuration;
 
         return newList;
