@@ -70,6 +70,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #define MAX_TMP_SEQ_LEN 256 // Maximum length of temporary sequence buffer
 #define COOLDOWN_MS 500
 #define COOLDOWN2_MS 100
+#define DELAYEDACTIONWAIT 2000
 #define NUMKEYMAPPINGS = 30
 FILE *logFile = NULL;
 struct winsize windowSize;
@@ -88,6 +89,31 @@ bool isCooldownElapsed(int milliSeconds)
                                      (currentTime.tv_nsec - lastInputTime.tv_nsec) / 1000000.0;
 
         return elapsedMilliseconds >= milliSeconds;
+}
+
+void updateDelayedActions()
+{
+        struct timespec currentTime;
+        clock_gettime(CLOCK_MONOTONIC, &currentTime);
+        double elapsedMilliseconds = (currentTime.tv_sec - lastPlaylistChangeTime.tv_sec) * 1000.0 +
+                                     (currentTime.tv_nsec - lastPlaylistChangeTime.tv_nsec) / 1000000.0;
+
+        if (elapsedMilliseconds >= DELAYEDACTIONWAIT)
+        {
+                if (playlistDurationNeedsUpdate)
+                {
+                        playlistDurationNeedsUpdate = false;
+                        calculatePlayListDuration(&playlist);
+                        playlist.totalDuration = calcTotalDuration(&playlist);                      
+                }
+                if (nextSongNeedsRebuilding)
+                {
+                        nextSongNeedsRebuilding = false;
+                        Node *song = getNextSong();
+                        rebuildNextSong(song);
+                        loadedNextSong = false;
+                }
+        }               
 }
 
 struct Event processInput()
@@ -339,6 +365,8 @@ void setEndOfListReached()
         setPlayingStatus(false);
 
         refresh = true;
+
+        chosenRow = playlist.count;
 }
 
 void finishLoading()
@@ -613,7 +641,7 @@ void loadAudioData()
         if (currentSong == NULL)
         {
                 if (playlist.head != NULL && (waitingForPlaylist || waitingForNext))
-                {                     
+                {
                         songLoading = true;
                         loadingdata.loadA = true;
 
@@ -635,6 +663,8 @@ void loadAudioData()
 
                         createAudioDevice(&userData);
 
+                        resumePlayback();
+
                         if (currentSong != NULL && currentSong->next != NULL)
                         {
                                 loadedNextSong = false;
@@ -645,6 +675,7 @@ void loadAudioData()
 
                         clock_gettime(CLOCK_MONOTONIC, &start_time);
                         calculatePlayListDuration(&playlist);
+                        playlistDurationNeedsUpdate = false;
                 }
         }
         else if (nextSong == NULL && !songLoading)
@@ -690,6 +721,7 @@ gboolean mainloop_callback(gpointer data)
         }
 
         updatePlayer();
+        updateDelayedActions();
 
         if (playlist.head != NULL)
         {
@@ -931,7 +963,7 @@ void handleOptions(int *argc, char *argv[])
                 }
         }
         if (idx >= 0)
-                removeArgElement(argv, idx, argc);                
+                removeArgElement(argv, idx, argc);
 }
 
 int main(int argc, char *argv[])

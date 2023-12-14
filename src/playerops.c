@@ -15,6 +15,11 @@ struct timespec current_time;
 struct timespec start_time;
 struct timespec pause_time;
 struct timespec lastInputTime;
+struct timespec lastPlaylistChangeTime;
+
+bool playlistDurationNeedsUpdate = false;
+bool nextSongNeedsRebuilding = false;
+bool enqueuedNeedsUpdate = false;
 
 bool playingMainPlaylist = false;
 bool usingSongDataA = true;
@@ -41,6 +46,11 @@ GDBusConnection *connection = NULL;
 void updateLastSongSwitchTime()
 {
         clock_gettime(CLOCK_MONOTONIC, &start_time);
+}
+
+void updateLastPlaylistChangeTime()
+{
+        clock_gettime(CLOCK_MONOTONIC, &lastPlaylistChangeTime);
 }
 
 void updateLastInputTime()
@@ -319,10 +329,60 @@ Node *findSelectedEntry(PlayList *playlist)
         return NULL;
 }
 
+
+bool markAsDequeued(FileSystemEntry *root, char *path)
+{
+        int numChildrenEnqueued = 0;
+
+        if (!root->isDirectory)
+        {
+                if (strcmp(root->fullPath, path) == 0)
+                {
+                        root->isEnqueued = false;
+                        return true;
+                }
+        }
+        else
+        {
+                FileSystemEntry *child = root->children;
+                bool found = false;
+                while (child != NULL)
+                {
+                        found = markAsDequeued(child, path);
+                        child = child->next;
+
+                        if (found)
+                                break;
+                }
+
+                if (found)
+                {
+                        child = root->children;
+
+                        while (child != NULL)
+                        {
+                                if (child->isEnqueued)
+                                        numChildrenEnqueued++;
+
+                                child = child->next;
+                        }
+
+                        if (numChildrenEnqueued == 0)
+                                root->isEnqueued = false;
+
+                        return true;
+                }
+        }
+
+        return false;
+}
+
 void removeSelectedEntry(PlayList *playlist, Node *node)
 {
+        if (node != NULL)
+                markAsDequeued(getLibrary(), node->song.filePath);
+
         deleteFromList(playlist, node);
-        // FIXME: set to not enqueued in directoryTree
 }
 
 Node *getNextSong()
@@ -411,8 +471,6 @@ void enqueueChildren(FileSystemEntry *child)
 
 void enqueueSongs()
 {
-        bool rebuild = false;
-
         FileSystemEntry *tmp = getCurrentLibEntry();
         FileSystemEntry *chosenDir = getChosenDir();
 
@@ -429,10 +487,8 @@ void enqueueSongs()
 
                                         enqueueChildren(tmp);
 
-                                        Node *song = getNextSong();
-                                        rebuildNextSong(song);
+                                        nextSongNeedsRebuilding = true;
 
-                                        loadedNextSong = false;
                                         waitingForNext = true;
                                 }
                                 else
@@ -442,8 +498,7 @@ void enqueueSongs()
 
                                         dequeueChildren(tmp);
 
-                                        Node *song = getNextSong();
-                                        rebuildNextSong(song);
+                                        nextSongNeedsRebuilding = true;
                                 }
                         }
 
@@ -456,38 +511,30 @@ void enqueueSongs()
                         {
                                 Node *song = getNextSong();
                                 if (song == NULL || strcmp(tmp->fullPath, song->song.filePath) == 0)
-                                        rebuild = true;
-
-                                enqueueSong(tmp);
-
-                                if (rebuild)
                                 {
                                         nextSong = NULL;
-                                        Node *song = getNextSong();
-                                        rebuildNextSong(song);
+                                        nextSongNeedsRebuilding = true;
                                 }
+                                enqueueSong(tmp);
 
-                                loadedNextSong = false;
                                 waitingForNext = true;
                         }
                         else
                         {
                                 Node *song = getNextSong();
                                 if (song == NULL || strcmp(tmp->fullPath, song->song.filePath) == 0)
-                                        rebuild = true;
-
-                                dequeueSong(tmp);
-
-                                if (rebuild)
                                 {
                                         nextSong = NULL;
-                                        Node *song = getNextSong();
-                                        rebuildNextSong(song);
+                                        nextSongNeedsRebuilding = true;
                                 }
+                                dequeueSong(tmp);
                         }
                 }
                 refresh = true;
         }
+
+        playlistDurationNeedsUpdate = true;
+        updateLastPlaylistChangeTime();        
 }
 
 void resetList()
@@ -522,15 +569,14 @@ void handleRemove()
 
         removeSelectedEntry(originalPlaylist, node);
 
+        playlistDurationNeedsUpdate = true;
+        updateLastPlaylistChangeTime();
+
         if (rebuild)
         {
                 node = NULL;
                 nextSong = NULL;
-                node = getNextSong();
-                rebuildNextSong(node);
-                
-                loadedNextSong = false;
-                waitingForNext = true;
+                nextSongNeedsRebuilding = true;
         }
 
         refresh = true;
@@ -710,9 +756,10 @@ void rebuildNextSong(Node *song)
 
         unloadSongData(usingSongDataA ? &loadingdata.songdataB : &loadingdata.songdataA);
 
-        pthread_mutex_unlock(&(loadingdata.mutex));
-
         loadSong(song, &loadingdata);
+
+        pthread_mutex_unlock(&(loadingdata.mutex));
+                
         int maxNumTries = 50;
         int numtries = 0;
 

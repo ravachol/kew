@@ -29,6 +29,9 @@ extern double pauseSeconds;
 extern double totalPauseSeconds;
 extern struct timespec pause_time;
 extern volatile bool loadedNextSong;
+extern bool playlistDurationNeedsUpdate;
+extern bool nextSongNeedsRebuilding;
+extern bool enqueuedNeedsUpdate;
 extern bool waitingForPlaylist;
 extern bool waitingForNext;
 extern bool usingSongDataA;
@@ -45,6 +48,7 @@ extern bool skipping;
 extern bool skipPrev;
 extern Node *tryNextSong;
 extern struct timespec lastInputTime;
+extern struct timespec lastPlaylistChangeTime;
 
 extern UserData userData;
 
@@ -62,6 +66,8 @@ void dequeueChildren(FileSystemEntry *child);
 
 void enqueueChildren(FileSystemEntry *child);
 
+bool markAsDequeued(FileSystemEntry *root, char *path);
+
 void enqueueSongs();
 
 void resetList();
@@ -69,6 +75,8 @@ void resetList();
 void rebuildNextSong();
 
 void updateLastSongSwitchTime(void);
+
+void updateLastPlaylistChangeTime();
 
 void updateLastInputTime(void);
 
