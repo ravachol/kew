@@ -179,11 +179,21 @@ void opus_createAudioDevice(UserData *userData, ma_device *device, ma_context *c
         }
 }
 
+void cleanupAudioData()
+{
+        if (audioData.fileA != NULL)
+                fclose(audioData.fileA);
+        audioData.fileA = NULL;
+
+        if (audioData.fileB != NULL)
+                fclose(audioData.fileB);
+        audioData.fileB = NULL;
+}
+
 void switchAudioImplementation()
 {
         if (audioData.endOfListReached)
         {
-                audioData.endOfListReached = false;
                 setEOFNotReached();
                 setCurrentImplementationType(NONE);
                 return;

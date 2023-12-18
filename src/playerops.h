@@ -29,7 +29,7 @@ extern double pauseSeconds;
 extern double totalPauseSeconds;
 extern struct timespec pause_time;
 extern volatile bool loadedNextSong;
-extern bool playlistDurationNeedsUpdate;
+extern bool playlistNeedsUpdate;
 extern bool nextSongNeedsRebuilding;
 extern bool enqueuedNeedsUpdate;
 extern bool waitingForPlaylist;

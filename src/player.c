@@ -24,7 +24,7 @@ typedef struct
 
 AppState appState;
 
-const char VERSION[] = "2.0 BETA";
+const char VERSION[] = "2.0";
 const int LOGO_COLOR = 3;
 const int VERSION_COLOR = 2;
 const int ARTIST_COLOR = 6;
@@ -61,7 +61,7 @@ int elapsed = 0;
 int textWidth = 0;
 char *tagsPath;
 double totalDurationSeconds = 0.0;
-PixelData color = {0, 0, 0};
+PixelData color = {125, 125, 125};
 PixelData bgColor = {90, 90, 90};
 TagSettings metadata = {};
 double elapsedSeconds = 0.0;
@@ -91,6 +91,26 @@ void setTextColorRGB2(int r, int g, int b)
                 setTextColorRGB(r, g, b);
 }
 
+void setColor()
+{
+        if (useProfileColors)
+        {
+                setDefaultTextColor();
+                return;
+        }
+        if (color.r == 125 && color.g == 125 && color.b == 125)
+                setDefaultTextColor();
+        else if (color.r >= 210 && color.g >= 210 && color.b >= 210)
+        {
+                color.r = 150;
+                color.g = 150;
+                color.b = 150;
+        }
+        else {
+                setTextColorRGB2(color.r, color.g, color.b);
+        }
+}
+
 int calcMetadataHeight()
 {
         int term_w, term_h;
@@ -110,7 +130,7 @@ int calcMetadataHeight()
         }
         else
         {
-                return 0;
+                return 4;
         }
 }
 
@@ -118,6 +138,14 @@ void calcPreferredSize()
 {
         minHeight = 2 + (visualizerEnabled ? visualizerHeight : 0);
         calcIdealImgSize(&preferredWidth, &preferredHeight, (visualizerEnabled ? visualizerHeight : 0), calcMetadataHeight());
+}
+
+void shortenString(char *str, size_t width)
+{
+        if (strlen(str) > width)
+        {
+                str[width] = '\0';
+        }
 }
 
 void printHelp()
@@ -152,42 +180,38 @@ void printHelp()
         printf("\n");
 }
 
-int printAsciiLogo()
+int printLogo(SongData *songData)
 {
-        int minWidth = 34 + indent;
-        int term_w, term_h;
-        getTermSize(&term_w, &term_h);
-        if (term_w < minWidth)
-                return 0;
         if (useProfileColors)
                 setTextColor(LOGO_COLOR);
+        printf("\n");
         printBlankSpaces(indent);
-        printf("$$\\\n");
+        printf("░█\n");
         printBlankSpaces(indent);
-        printf("$$ |\n");
+        printf("░█▄▀▒█▀█░█░░▒█\n");
         printBlankSpaces(indent);
-        printf("$$ |  $$\\  $$$$$$\\  $$\\  $$\\  $$\\\n");
-        printBlankSpaces(indent);
-        printf("$$ | $$  |$$  __$$\\ $$ | $$ | $$ |\n");
-        printBlankSpaces(indent);
-        printf("$$$$$$  / $$$$$$$$ |$$ | $$ | $$ |\n");
-        printBlankSpaces(indent);
-        printf("$$  _$$<  $$   ____|$$ | $$ | $$ |\n");
-        printBlankSpaces(indent);
-        printf("$$ | \\$$\\ \\$$$$$$$\\ \\$$$$$\\$$$$  |\n");
-        printBlankSpaces(indent);
-        printf("\\__|  \\__| \\_______| \\_____\\____/\n");
+        printf("░█▒█░█▄▄░▀▄▀▄▀");
+        if (songData != NULL &&  songData->metadata != NULL)
+        {
+                int term_w, term_h;
+                getTermSize(&term_w, &term_h);
+                char *title = (char *)malloc(MAXPATHLEN);
+                title[0] = '\0';
+              
+                strcat(title, songData->metadata->title);                
+                shortenString(title, term_w - indent - indent - 18);
 
-        int printedRows = 8;
-        return printedRows;
-}
+                if (isPaused())
+                        printf(" \uf04c %s", title);
+                else               
+                        printf(" \uf04b %s", title);
 
-void printVersion(const char *version)
-{
-        if (useProfileColors)
-                setTextColor(VERSION_COLOR);
-        printBlankSpaces(indent);
-        printf(" Version %s.\n", version);
+                free(title);
+        }
+        printf("\n\n");
+        
+        int height = 6;
+        return height;
 }
 
 int getYear(const char *dateString)
@@ -233,24 +257,6 @@ void printCover(SongData *songdata)
                 }
                 drewCover = false;
         }
-}
-
-void setColor()
-{
-        if (useProfileColors)
-        {
-                setDefaultTextColor();
-                return;
-        }
-        if (color.r == 0 && color.g == 0 && color.b == 0)
-                setDefaultTextColor();
-        else if (color.r >= 210 && color.g >= 210 && color.b >= 210)
-        {
-                color.r = 150;
-                color.g = 150;
-                color.b = 150;
-        }
-        setTextColorRGB2(color.r, color.g, color.b);
 }
 
 void printWithDelay(const char *text, int delay, int maxWidth)
@@ -373,7 +379,7 @@ void printProgress(double elapsed_seconds, double total_seconds, double total_du
         printf("\033[K");
         printf("\r");
         printBlankSpaces(indent);
-        if (playlist->count <= MAX_COUNT_PLAYLIST_SONGS)
+        if (playlist->count <= MAX_COUNT_PLAYLIST_SONGS && total_duration_seconds > -1)
         {
                 printf(" %02d:%02d:%02d / %02d:%02d:%02d (%d%%) T:%dh%02dm Vol:%d%%",
                        elapsed_hours, elapsed_minutes, elapsed_seconds_remainder,
@@ -539,20 +545,13 @@ void printLastRow()
         }
 }
 
-void showVersion()
-{
-        printVersion(VERSION);
-}
-
-int printAbout()
-{
+int printAbout(SongData *songdata)
+{        
         clearRestOfScreen();
-        printf("\n\r");
-        int numRows = 2;
-        numRows += printAsciiLogo();
-        printf("\n");
-        showVersion();
-        printf("\n");
+        printf("\r");
+        int numRows = printLogo(songdata);
+        printBlankSpaces(indent);
+        printf(" Version: %s\n\n", VERSION);
         numRows += 3;
 
         return numRows;
@@ -590,71 +589,59 @@ void removeUnneededChars(char *str)
         }
 }
 
-void shortenString(char *str, size_t width)
+int showKeyBindings(SongData *songdata)
 {
-        if (strlen(str) > width)
-        {
-                str[width] = '\0';
-        }
-}
-
-int showKeyBindings()
-{
-        PixelData textColor = increaseLuminosity(color, 20);
         int numPrintedRows = 1;
-        if (useProfileColors)
-                setDefaultTextColor();
-        else
-                setTextColorRGB2(textColor.r, textColor.g, textColor.b);
-        numPrintedRows += printAbout();
-        if (useProfileColors)
-                setDefaultTextColor();
-        else
-                setTextColorRGB2(color.r, color.g, color.b);
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
-        int indentation = indent;
-        if (term_w < indent + 60 + indent)
-                indentation = indent / 2;
-        printBlankSpaces(indentation);
+  
+        numPrintedRows += printAbout(songdata);
+
+        setColor();        
+       
+        printBlankSpaces(indent);
         printf(" - F2 to show/hide the playlist.\n");
-        printBlankSpaces(indentation);
-        printf(" - F3 to show/hide key bindings.\n");
-        printBlankSpaces(indentation);
-        printf(" - Use %s (or %s), %s to adjust volume.\n", settings.volumeUp, settings.volumeUpAlt, settings.volumeDown);
-        printBlankSpaces(indentation);
+        printBlankSpaces(indent);
+        printf(" - F3 to show/hide the music library.\n");
+        printBlankSpaces(indent);
+        printf(" - F4 to show/hide key bindings.\n");
+        printBlankSpaces(indent);
+        printf(" - Use %s (or %s) and %s to adjust volume.\n", settings.volumeUp, settings.volumeUpAlt, settings.volumeDown);
+        printBlankSpaces(indent);
         printf(" - Use ←, → or %s, %s keys to switch tracks.\n", settings.previousTrackAlt, settings.nextTrackAlt);
-        printBlankSpaces(indentation);
+        printBlankSpaces(indent);
         printf(" - Use ↑, ↓  or %s, %s keys to scroll through playlist.\n", settings.scrollUpAlt, settings.scrollDownAlt);
-        printBlankSpaces(indentation);
+        printBlankSpaces(indent);
         printf(" - Enter a Number then Enter to switch song.\n");
-        printBlankSpaces(indentation);
+        printBlankSpaces(indent);
         printf(" - Space to toggle pause.\n");
-        printBlankSpaces(indentation);
+        printBlankSpaces(indent);
         printf(" - %s toggle color derived from album or from profile.\n", settings.toggleColorsDerivedFrom);
-        printBlankSpaces(indentation);
+        printBlankSpaces(indent);
         printf(" - %s to show/hide the spectrum visualizer.\n", settings.toggleVisualizer);
-        printBlankSpaces(indentation);
+        printBlankSpaces(indent);
         printf(" - %s to show/hide album covers.\n", settings.toggleCovers);
-        printBlankSpaces(indentation);
+        printBlankSpaces(indent);
         printf(" - %s to toggle album covers drawn in ascii.\n", settings.toggleAscii);
-        printBlankSpaces(indentation);
+        printBlankSpaces(indent);
         printf(" - %s to repeat the current song.\n", settings.toggleRepeat);
-        printBlankSpaces(indentation);
+        printBlankSpaces(indent);
         printf(" - %s to shuffle the playlist.\n", settings.toggleShuffle);
-        printBlankSpaces(indentation);
+        printBlankSpaces(indent);
         printf(" - %s to seek backward.\n", settings.seekBackward);
-        printBlankSpaces(indentation);
+        printBlankSpaces(indent);
         printf(" - %s to seek forward.\n", settings.seekForward);
-        printBlankSpaces(indentation);
+        printBlankSpaces(indent);
         printf(" - %s to save the playlist to your music folder.\n", settings.savePlaylist);
-        printBlankSpaces(indentation);
+        printBlankSpaces(indent);
         printf(" - %s to add current song to kew.m3u (run with \"kew .\").\n", settings.addToMainPlaylist);
-        printBlankSpaces(indentation);
+        printBlankSpaces(indent);
         printf(" - %s to quit.\n", settings.quit);
         printf("\n");
         printLastRow();
-        numPrintedRows += 15;
+
+        numPrintedRows += 22;
+
         return numPrintedRows;
 }
 
@@ -773,12 +760,12 @@ int showPlaylist(SongData *songData)
         numRows++;
 
         PixelData textColor = increaseLuminosity(color, 20);
-        setTextColorRGB2(textColor.r, textColor.g, textColor.b);
-        int aboutRows = printAbout();
-        maxListSize -= aboutRows;
 
+        int aboutRows = printLogo(songData);
+        maxListSize -= aboutRows;
+        
         setColor();
-        setTextColorRGB2(color.r, color.g, color.b);
+
         printBlankSpaces(indent);
         if (term_w > 52)
         {
@@ -791,14 +778,17 @@ int showPlaylist(SongData *songData)
         int numSongs = 0;
         for (int i = 0; i < originalPlaylist->count; i++)
         {
-                if (songData != NULL && strcmp(node->song.filePath, songData->filePath) == 0)
-                {
+                if (node == NULL)
+                        break;
+
+                //if (songData != NULL && strcmp(node->song.filePath, songData->filePath) == 0)
+                //{
                         if (currentSong == NULL || (currentSong != NULL && currentSong->id == node->id))
                         {
                                 foundAt = numSongs;
                                 foundNode = node;
                         }
-                }
+                //}
                 node = node->next;
                 numSongs++;
                 if (numSongs > maxListSize)
@@ -836,7 +826,7 @@ int showPlaylist(SongData *songData)
                 chosenRow = 0;
         }
 
-        if (resetPlaylistDisplay)
+        if (resetPlaylistDisplay && !audioData.endOfListReached)
         {
                 startIter = chosenRow = chosenSong = foundAt;
         }
@@ -876,13 +866,17 @@ int showPlaylist(SongData *songData)
 
                         if (i == chosenSong)
                         {
+                                if (useProfileColors)
+                                        setTextColor(ENQUEUED_COLOR);
                                 printf("\x1b[7m");
                         }
 
                         if (foundNode != NULL && foundNode->id == node->id)
-                        {
+                        {                                                                           
                                 if (useProfileColors)
+                                {                                        
                                         printf("\e[1m\e[39m");
+                                }
                                 else
                                         printf("\033[1;38;2;%03u;%03u;%03um", textColor.r, textColor.g, textColor.b);
                         }
@@ -1134,7 +1128,8 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
 
                                 if (depth == 1)
                                 {
-                                        setTextColor(ARTIST_COLOR);
+                                        if (useProfileColors)
+                                                setTextColor(ARTIST_COLOR);                                        
                                 }
                                 else
                                 {
@@ -1147,10 +1142,11 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
                                 printBlankSpaces(indent);
 
                                 if (chosenLibRow == libIter)
-                                {
+                                {                                        
                                         if (root->isEnqueued)
                                         {
-                                                setTextColor(ENQUEUED_COLOR);
+                                                if (useProfileColors)
+                                                        setTextColor(ENQUEUED_COLOR);                                                
                                                 printf("\x1b[7m * ");
                                         }
                                         else
@@ -1174,7 +1170,8 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
                                 {
                                         if (root->isEnqueued)
                                         {
-                                                setTextColor(ENQUEUED_COLOR);
+                                                if (useProfileColors)                                                
+                                                        setTextColor(ENQUEUED_COLOR);
                                                 printf(" * ");
                                         }
                                         else
@@ -1196,6 +1193,8 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
                                         free(filename);
                                         libSongIter++;
                                 }
+
+                                 setColor();
                         }
 
                         libIter++;
@@ -1213,7 +1212,7 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
         return 0;
 }
 
-void showLibrary()
+void showLibrary(SongData *songData)
 {
         libIter = 0;
         libSongIter = 0;
@@ -1229,7 +1228,7 @@ void showLibrary()
         int totalHeight = term_h;
         maxLibListSize = totalHeight;
         setColor();
-        int aboutSize = printAbout();
+        int aboutSize = printLogo(songData);
         int maxNameWidth = term_w - 7 - indent;
         maxLibListSize -= aboutSize + 1;
         setColor();
@@ -1257,13 +1256,20 @@ void showLibrary()
         displayTree(library, 0, maxLibListSize, maxNameWidth);
 
         printf("\n");
+
+        if (numTopLevelSongs == 0)
+        {
+                printBlankSpaces(indent);
+                printf(" Music not found\n\n");
+        }
+
         printLastRow();
 
         if (refresh)
         {
                 clearScreen();
                 printf("\n");
-                showLibrary();
+                showLibrary(songData);
         }
 }
 
@@ -1274,10 +1280,12 @@ int printPlayer(SongData *songdata, double elapsedSeconds, PlayList *playlist)
                 return 0;
         }
 
-        if (songdata != NULL && !songdata->deleted)
+        hideCursor();
+        setColor();
+
+        if (songdata != NULL && songdata->metadata != NULL && !songdata->deleted && !songdata->hasErrors && songdata->hasErrors < 1)
         {
-                metadata = *songdata->metadata;
-                hideCursor();
+                metadata = *songdata->metadata;                
                 totalDurationSeconds = playlist->totalDuration;
                 elapsed = elapsedSeconds;
                 duration = *songdata->duration;
@@ -1302,7 +1310,7 @@ int printPlayer(SongData *songdata, double elapsedSeconds, PlayList *playlist)
         if (appState.currentView == KEYBINDINGS_VIEW && refresh)
         {
                 clearScreen();
-                showKeyBindings();
+                showKeyBindings(songdata);
                 saveCursorPosition();
         }
         else if (appState.currentView == PLAYLIST_VIEW && refresh)
@@ -1315,7 +1323,7 @@ int printPlayer(SongData *songdata, double elapsedSeconds, PlayList *playlist)
         else if (appState.currentView == LIBRARY_VIEW && refresh)
         {
                 clearScreen();
-                showLibrary();
+                showLibrary(songdata);
         }
         else if (appState.currentView == SONG_VIEW && songdata != NULL)
         {

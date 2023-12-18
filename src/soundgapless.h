@@ -70,4 +70,6 @@ void switchAudioImplementation();
 
 void cleanupAudioContext();
 
+void cleanupAudioData();
+
 #endif

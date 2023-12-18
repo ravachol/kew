@@ -37,17 +37,6 @@ int decoderIndex = -1;
 int opusDecoderIndex = -1;
 int vorbisDecoderIndex = -1;
 bool doQuit = false;
-bool audioPlaying = false;
-
-void setPlayingStatus(bool playing)
-{
-        audioPlaying = playing;
-}
-
-bool isPlaying()
-{
-        return audioPlaying;
-}
 
 enum AudioImplementation getCurrentImplementationType()
 {
@@ -591,7 +580,7 @@ void setSeekElapsed(double value)
 
 bool isEOFReached()
 {
-        return atomic_load(&EOFReached) ? true : false;
+        return atomic_load(&EOFReached);
 }
 
 void setEOFReached()
@@ -619,11 +608,9 @@ void setImplSwitchNotReached()
         atomic_store(&switchReached, false);
 }
 
-void skip()
+bool isPlaying()
 {
-        currentImplementation = NONE;
-        setSkipToNext(true);
-        setRepeatEnabled(false);
+        return ma_device_is_started(&device);
 }
 
 bool isPlaybackDone()

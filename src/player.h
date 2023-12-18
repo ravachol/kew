@@ -59,13 +59,11 @@ void flipNextPage();
 
 void flipPrevPage();
 
-void showVersion(void);
-
-int printAbout(void);
-
 int getEntryTreeDepth(FileSystemEntry *entry);
 
 void showHelp(void);
+
+int printAbout(SongData *songdata);
 
 FileSystemEntry *getCurrentLibEntry();
 
