@@ -48,6 +48,8 @@ Displays version info.
 Hides the cover.
 .It Fl -noui
 Completely hides the UI.
+.It Fl --quitonstop
+Exits after playing the whole playlist.
 .It shuffle
 Shuffles the playlist before starting to play it.
 .It dir
@@ -59,8 +61,12 @@ Searches for a (.m3u) playlist. These are normally not included in searches.
 .El                      
 .Sh EXAMPLES
 .Pp
-.Bl -tag -width -indent 
+.Bl -tag -width -indent
 .It kew
+Start
+.Nm
+in library view.
+.It kew all
 Start
 .Nm
 with all songs loaded into a playlist.
@@ -93,6 +99,8 @@ Pause.
 .It F2
 Toggle playlist and information visibility.
 .It F3
+Toggle library visibility.
+.It F4
 Toggle key bindings visibility.
 .It i
 Toggle colors derived from album cover or from color theme.

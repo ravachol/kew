@@ -45,6 +45,9 @@ Hides the cover.
 \fB\--noui\fR
 Completely hides the UI.
 .TP 9n
+\fB\--quitonstop\fR
+Exits after playing the whole playlist.
+.TP 9n
 shuffle
 Shuffles the playlist before starting to play it.
 .TP 9n
@@ -59,6 +62,11 @@ Searches for a (.m3u) playlist. These are normally not included in searches.
 .SH "EXAMPLES"
 .TP 9n
 kew
+Start
+\fBkew\fR
+in library view.
+.TP 9n
+kew all
 Start
 \fBkew\fR
 with all songs loaded into a playlist.
@@ -90,7 +98,7 @@ kew .
 Play the kew.m3u playlist.
 .SH "KEY BINDINGS"
 .TP 9n
-+,-
++, -
 Adjusts volume.
 .TP 9n
 Left-right arrows/h,l
@@ -103,6 +111,9 @@ F2
 Toggle playlist and information visibility.
 .TP 9n
 F3
+Toggle library visibility.
+.TP 9n
+F4
 Toggle key bindings visibility.
 .TP 9n
 i
@@ -124,12 +135,12 @@ s
 Shuffles the playlist.
 .TP 9n
 a
-Seek backward.
+Seek Backward.
 .TP 9n
 d
-Seek forward.
+Seek Forward.
 .TP 9n
-"."
+.
 Add to kew.m3u playlist. Run with "kew .".
 .TP 9n
 x
@@ -149,7 +160,7 @@ Quit
 \fBkew\fR.
 .SH "FILES"
 .TP 10n
-\fI/<configfolder>/kewrc\fR
+\fI~/<configfolder>/kewrc\fR
 Config file.
 .TP 10n
 \fI/<musicfolder>/kew.m3u\fR
@@ -161,5 +172,6 @@ Copyright \[u00A9] 2023 Ravachol. License GPLv2+: GNU GPL version 2 or later <ht
 This is free software: you are free to change and redistribute it.
 There is NO WARRANTY, to the extent permitted by law.
 .SH "SEE ALSO"
-Project home page: 
+Project home page:
+.TP 10n
 \fI<https://github.com/ravachol/kew>.\fR
