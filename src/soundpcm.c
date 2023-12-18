@@ -88,8 +88,6 @@ void pcm_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_uint6
                         continue;
                 }
 
-                setPlayingStatus(true);
-
                 framesRead += bytesRead / bytesPerFrame;
                 framesToRead -= bytesRead / bytesPerFrame;
                 bytesToRead -= bytesRead;
