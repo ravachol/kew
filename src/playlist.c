@@ -78,7 +78,7 @@ void addToList(PlayList *list, SongInfo song, int id)
 
 Node *deleteFromList(PlayList *list, Node *node)
 {
-        if (list->head == NULL || node == NULL)
+       if (list->head == NULL || node == NULL)
                 return NULL;
 
         if (node == list->head)
@@ -208,7 +208,7 @@ void insertAsFirst(Node *currentSong, PlayList *playlist)
 void shufflePlaylistStartingFromSong(PlayList *playlist, Node *song)
 {
         shufflePlaylist(playlist);
-        if (playlist->count > 1)
+        if (song != NULL && playlist->count > 1)
                 insertAsFirst(song, playlist);
 }
 
@@ -453,7 +453,11 @@ int makePlaylist(int argc, char *argv[])
 
         if (searchType == ReturnAllSongs)
         {
+                pthread_mutex_lock(&(playlist.mutex));
+
                 buildPlaylistRecursive(settings.path, allowedExtensions, &playlist);
+
+                pthread_mutex_unlock(&(playlist.mutex));
         }
         else
         {
@@ -476,8 +480,12 @@ int makePlaylist(int argc, char *argv[])
                                 }
                                 else
                                 {
+                                        pthread_mutex_lock(&(playlist.mutex));
+                                        
                                         buildPlaylistRecursive(buf, allowedExtensions, &partialPlaylist);
                                         joinPlaylist(&playlist, &partialPlaylist);
+
+                                        pthread_mutex_unlock(&(playlist.mutex));
                                 }
                         }
 
@@ -502,18 +510,24 @@ void *getDurationsThread(void *arg)
         if (playList == NULL)
                 return NULL;
 
+        pthread_mutex_lock(&(playlist.mutex));
+
         Node *currentNode = playList->head;
         double totalDuration = 0.0;
 
         for (int i = 0; i < playList->count; i++)
         {
                 if (stopPlaylistDurationThread)
+                {
+                        pthread_mutex_unlock(&(playlist.mutex));
                         return NULL;
-
+                }
                 if (currentNode == NULL)
+                {
+                        pthread_mutex_unlock(&(playlist.mutex));
                         return NULL;
-
-                if (currentNode->song.duration > 0.0)
+                }
+               if (currentNode->song.duration > 0.0)
                 {
                         currentNode = getListNext(currentNode);
                         continue;
@@ -544,6 +558,7 @@ void *getDurationsThread(void *arg)
                         playList->totalDuration += currentNode->song.duration;
                 currentNode = getListNext(currentNode);
         }
+        pthread_mutex_unlock(&(playlist.mutex));        
         return NULL;
 }
 

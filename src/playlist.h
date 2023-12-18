@@ -34,8 +34,9 @@ typedef struct
 {
         Node *head;
         Node *tail;
-        int count;        
+        int count;       
         volatile double totalDuration;
+        pthread_mutex_t mutex;        
 } PlayList;
 
 extern Node *currentSong;

@@ -458,16 +458,7 @@ void drawSpectrumVisualizer(int height, int width, PixelData c)
 
         if (bufferSize != prevBufferSize)
         {
-                if (fftInput != NULL)
-                {
-                        fftwf_free(fftInput);
-                        fftInput = NULL;
-                }
-                if (fftOutput != NULL)
-                {
-                        fftwf_free(fftOutput);
-                        fftOutput = NULL;
-                }
+                freeVisuals();
 
                 fftInput = (fftwf_complex *)fftwf_malloc(sizeof(fftwf_complex) * bufferSize);
                 if (fftInput == NULL)

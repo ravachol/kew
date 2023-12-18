@@ -70,7 +70,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #define MAX_TMP_SEQ_LEN 256 // Maximum length of temporary sequence buffer
 #define COOLDOWN_MS 500
 #define COOLDOWN2_MS 100
-#define DELAYEDACTIONWAIT 2000
+#define DELAYEDACTIONWAIT 3000
 #define NUMKEYMAPPINGS = 30
 FILE *logFile = NULL;
 struct winsize windowSize;
@@ -91,7 +91,7 @@ bool isCooldownElapsed(int milliSeconds)
         return elapsedMilliseconds >= milliSeconds;
 }
 
-void updateDelayedActions()
+void performDelayedActions()
 {
         struct timespec currentTime;
         clock_gettime(CLOCK_MONOTONIC, &currentTime);
@@ -100,20 +100,8 @@ void updateDelayedActions()
 
         if (elapsedMilliseconds >= DELAYEDACTIONWAIT)
         {
-                if (playlistDurationNeedsUpdate)
-                {
-                        playlistDurationNeedsUpdate = false;
-                        calculatePlayListDuration(&playlist);
-                        playlist.totalDuration = calcTotalDuration(&playlist);                      
-                }
-                if (nextSongNeedsRebuilding)
-                {
-                        nextSongNeedsRebuilding = false;
-                        Node *song = getNextSong();
-                        rebuildNextSong(song);
-                        loadedNextSong = false;
-                }
-        }               
+                rebuildAndUpdatePlaylist();
+        }
 }
 
 struct Event processInput()
@@ -302,10 +290,10 @@ struct Event processInput()
         else if (event.type == EVENT_NEXT || event.type == EVENT_PREV)
                 updateLastInputTime();
 
-        // Handle seek cooldown
-        if (!cooldown2Elapsed && (event.type == EVENT_SEEKBACK || event.type == EVENT_SEEKFORWARD))
+        // Handle seek/remove cooldown
+        if (!cooldown2Elapsed && (event.type == EVENT_REMOVE || event.type == EVENT_SEEKBACK || event.type == EVENT_SEEKFORWARD))
                 event.type = EVENT_NONE;
-        else if (event.type == EVENT_SEEKBACK || event.type == EVENT_SEEKFORWARD)
+        else if (event.type == EVENT_REMOVE || event.type == EVENT_SEEKBACK || event.type == EVENT_SEEKFORWARD)
                 updateLastInputTime();
 
         // Forget Numbers
@@ -358,15 +346,21 @@ void setEndOfListReached()
 {
         appState.currentView = LIBRARY_VIEW;
 
-        loadedNextSong = true;
+        loadedNextSong = false;
 
         audioData.endOfListReached = true;
 
-        setPlayingStatus(false);
+        currentSong = NULL;
+
+        pthread_mutex_lock(&dataSourceMutex);
+
+        cleanupPlaybackDevice();
+
+        pthread_mutex_unlock(&dataSourceMutex);
 
         refresh = true;
 
-        chosenRow = playlist.count;
+        chosenRow = playlist.count - 1;
 }
 
 void finishLoading()
@@ -435,7 +429,8 @@ void refreshPlayer()
 
         if (!skipping && !isEOFReached() && !isImplSwitchReached())
         {
-                if (refresh && songData != NULL && songData->deleted == false)
+                if (refresh && songData != NULL && songData->deleted == false &&
+                    songData->hasErrors == false && currentSong != NULL && songData->metadata != NULL)
                 {
                         // update mpris
                         emitMetadataChanged(
@@ -458,11 +453,7 @@ void handleGoToSong()
                 {
                         loadedNextSong = true;
                         skipToNumberedSong(chosenSong + 1);
-
-                        if (audioData.endOfListReached)
-                        {
-                                audioData.endOfListReached = false;
-                        }
+                        audioData.endOfListReached = false;
                 }
                 else
                 {
@@ -645,16 +636,27 @@ void loadAudioData()
                         songLoading = true;
                         loadingdata.loadA = true;
 
-                        if (waitingForNext && !waitingForPlaylist)
+                        if (waitingForPlaylist)
+                        {
+                                currentSong = playlist.head;
+                        }
+                        else if (waitingForNext)
                         {
                                 if (lastPlayedSong != NULL)
+                                {
                                         currentSong = lastPlayedSong->next;
+                                }
 
                                 if (currentSong == NULL)
+                                {
                                         currentSong = lastPlayedSong;
+                                }
+
+                                if (currentSong == NULL)
+                                {
+                                        currentSong = playlist.tail;
+                                }
                         }
-                        else
-                                currentSong = playlist.head;
 
                         waitingForPlaylist = false;
                         waitingForNext = false;
@@ -674,8 +676,9 @@ void loadAudioData()
                         refresh = true;
 
                         clock_gettime(CLOCK_MONOTONIC, &start_time);
-                        calculatePlayListDuration(&playlist);
-                        playlistDurationNeedsUpdate = false;
+                        // calculatePlayListDuration(&playlist);
+                        playlist.totalDuration = -1;
+                        playlistNeedsUpdate = false;
                 }
         }
         else if (nextSong == NULL && !songLoading)
@@ -683,7 +686,8 @@ void loadAudioData()
                 tryNextSong = currentSong->next;
                 songLoading = true;
                 loadingdata.loadA = !usingSongDataA;
-                loadNext(&loadingdata);
+                nextSong = getListNext(currentSong);
+                loadSong(nextSong, &loadingdata);
         }
 }
 
@@ -721,7 +725,7 @@ gboolean mainloop_callback(gpointer data)
         }
 
         updatePlayer();
-        updateDelayedActions();
+        performDelayedActions();
 
         if (playlist.head != NULL)
         {
@@ -754,6 +758,7 @@ void play(Node *song)
         updateLastInputTime();
         updateLastSongSwitchTime();
         pthread_mutex_init(&(loadingdata.mutex), NULL);
+        pthread_mutex_init(&(playlist.mutex), NULL);
 
         if (song != NULL)
         {
@@ -770,7 +775,8 @@ void play(Node *song)
         refresh = true;
 
         clock_gettime(CLOCK_MONOTONIC, &start_time);
-        calculatePlayListDuration(&playlist);
+        // calculatePlayListDuration(&playlist);
+        playlist.totalDuration = -1;
 
         main_loop = g_main_loop_new(NULL, FALSE);
 
@@ -807,7 +813,7 @@ void cleanupOnExit()
         deletePlaylist(mainPlaylist);
         free(mainPlaylist);
         free(originalPlaylist);
-        freeVisuals();
+        cleanupAudioData();
         showCursor();
         pthread_mutex_unlock(&dataSourceMutex);
 
@@ -992,7 +998,7 @@ int main(int argc, char *argv[])
         }
         else if (argc == 2 && (strcmp(argv[1], "--version") == 0 || strcmp(argv[1], "-v") == 0))
         {
-                printAbout();
+                printAbout(NULL);
         }
         else if (argc == 3 && (strcmp(argv[1], "path") == 0))
         {

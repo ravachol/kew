@@ -208,8 +208,6 @@ void setImplSwitchReached();
 
 void setImplSwitchNotReached();
 
-void skip();
-
 bool isPlaybackDone();
 
 float getSeekPercentage();

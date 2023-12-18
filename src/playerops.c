@@ -17,7 +17,7 @@ struct timespec pause_time;
 struct timespec lastInputTime;
 struct timespec lastPlaylistChangeTime;
 
-bool playlistDurationNeedsUpdate = false;
+bool playlistNeedsUpdate = false;
 bool nextSongNeedsRebuilding = false;
 bool enqueuedNeedsUpdate = false;
 
@@ -42,6 +42,62 @@ bool forceSkip = false;
 volatile bool clearingErrors = false;
 volatile bool songLoading = false;
 GDBusConnection *connection = NULL;
+
+void updatePlaylist()
+{
+        playlistNeedsUpdate = false;
+
+        if (isShuffleEnabled())
+        {
+                shufflePlaylistStartingFromSong(&playlist, currentSong);
+
+                nextSongNeedsRebuilding = true;
+        }
+}
+
+void updateNextSong()
+{
+        nextSongNeedsRebuilding = false;
+        nextSong = NULL;
+        Node *song = getNextSong();
+        rebuildNextSong(song);
+        loadedNextSong = false;
+}
+
+void rebuildAndUpdatePlaylist()
+{
+        if (!playlistNeedsUpdate && !nextSongNeedsRebuilding)
+                return;
+
+        pthread_mutex_lock(&(playlist.mutex));
+
+        if (playlistNeedsUpdate)
+        {
+                updatePlaylist();
+        }
+
+        if (nextSongNeedsRebuilding)
+        {
+                updateNextSong();
+        }
+
+        pthread_mutex_unlock(&(playlist.mutex));
+}
+
+void skip()
+{
+        setCurrentImplementationType(NONE);
+        setSkipToNext(true);
+        setRepeatEnabled(false);
+        audioData.endOfListReached = false;
+
+        rebuildAndUpdatePlaylist();
+
+        if (!isPlaying())
+        {
+                switchAudioImplementation();
+        }
+}
 
 void updateLastSongSwitchTime()
 {
@@ -302,7 +358,7 @@ void seekBack()
         rewinding = true;
 }
 
-Node *findSelectedEntry(PlayList *playlist)
+Node *findSelectedEntry(PlayList *playlist, int row)
 {
         Node *node = playlist->head;
 
@@ -313,7 +369,7 @@ Node *findSelectedEntry(PlayList *playlist)
 
         for (int i = 0; i < playlist->count; i++)
         {
-                if (i == chosenRow)
+                if (i == row)
                 {
                         found = true;
                         break;
@@ -328,7 +384,6 @@ Node *findSelectedEntry(PlayList *playlist)
 
         return NULL;
 }
-
 
 bool markAsDequeued(FileSystemEntry *root, char *path)
 {
@@ -382,6 +437,14 @@ void removeSelectedEntry(PlayList *playlist, Node *node)
         if (node != NULL)
                 markAsDequeued(getLibrary(), node->song.filePath);
 
+        deleteFromList(playlist, node);
+}
+
+void removeSelectedEntryByPath(PlayList *playlist, char *path)
+{
+        if (path != NULL)
+                markAsDequeued(getLibrary(), path);
+        Node *node = findLastPathInPlaylist(path, playlist);
         deleteFromList(playlist, node);
 }
 
@@ -473,6 +536,7 @@ void enqueueSongs()
 {
         FileSystemEntry *tmp = getCurrentLibEntry();
         FileSystemEntry *chosenDir = getChosenDir();
+        bool hasEnqueued = false;
 
         if (tmp != NULL)
         {
@@ -489,7 +553,7 @@ void enqueueSongs()
 
                                         nextSongNeedsRebuilding = true;
 
-                                        waitingForNext = true;
+                                        hasEnqueued = true;
                                 }
                                 else
                                 {
@@ -517,7 +581,7 @@ void enqueueSongs()
                                 }
                                 enqueueSong(tmp);
 
-                                waitingForNext = true;
+                                hasEnqueued = true;
                         }
                         else
                         {
@@ -533,7 +597,16 @@ void enqueueSongs()
                 refresh = true;
         }
 
-        playlistDurationNeedsUpdate = true;
+        if (hasEnqueued)
+        {
+                waitingForNext = true;
+
+                if (audioData.endOfListReached)
+                        loadedNextSong = false;
+                audioData.endOfListReached = false;
+        }        
+
+        playlistNeedsUpdate = true;
         updateLastPlaylistChangeTime();        
 }
 
@@ -545,16 +618,24 @@ void resetList()
 
 void handleRemove()
 {
+        pthread_mutex_lock(&(playlist.mutex));
+
         bool rebuild = false;
 
         if (appState.currentView != PLAYLIST_VIEW)
+        {
+                pthread_mutex_unlock(&(playlist.mutex));
                 return;
+        }
 
-        Node *node = findSelectedEntry(&playlist);
+        Node *node = findSelectedEntry(originalPlaylist, chosenRow);
         Node *song = getNextSong();
 
         if (currentSong != NULL && currentSong->id == node->id)
+        {
+                pthread_mutex_unlock(&(playlist.mutex));
                 return;
+        }
 
         if (node != NULL && song != NULL)
         {
@@ -562,15 +643,16 @@ void handleRemove()
                         rebuild = true;
         }
 
-        removeSelectedEntry(&playlist, node);
-
-        node = NULL;
-        node = findSelectedEntry(originalPlaylist);
+        char *path = strdup(node->song.filePath);
 
         removeSelectedEntry(originalPlaylist, node);
+        removeSelectedEntryByPath(&playlist, path);
 
-        playlistDurationNeedsUpdate = true;
+        playlistNeedsUpdate = true;
         updateLastPlaylistChangeTime();
+
+        if (isShuffleEnabled())
+                rebuild = true;
 
         if (rebuild)
         {
@@ -578,6 +660,10 @@ void handleRemove()
                 nextSong = NULL;
                 nextSongNeedsRebuilding = true;
         }
+
+        free(path);
+
+        pthread_mutex_unlock(&(playlist.mutex));
 
         refresh = true;
 }
@@ -728,6 +814,33 @@ void loadNext(LoadingThreadData *loadingdata)
         pthread_create(&loadingThread, NULL, songDataReaderThread, (void *)loadingdata);
 }
 
+void rebuildNextSong(Node *song)
+{
+        if (song == NULL)
+                return;
+
+        loadingdata.loadA = !usingSongDataA;
+
+        pthread_mutex_lock(&(loadingdata.mutex));
+
+        unloadSongData(usingSongDataA ? &loadingdata.songdataB : &loadingdata.songdataA);
+
+        songLoading = true;
+
+        loadSong(song, &loadingdata);
+
+        pthread_mutex_unlock(&(loadingdata.mutex));
+                
+        int maxNumTries = 50;
+        int numtries = 0;
+
+        while (songLoading && !loadedNextSong && !loadingFailed && numtries < maxNumTries)
+        {
+                c_sleep(100);
+                numtries++;
+        }
+}
+
 void skipToNextSong()
 {
         if (currentSong->next == NULL)
@@ -745,21 +858,28 @@ void skipToNextSong()
         skip();
 }
 
-void rebuildNextSong(Node *song)
+void skipToPrevSong()
 {
-        if (song == NULL)
-                return;
+        if (songLoading || !loadedNextSong || skipping || clearingErrors)
+                if (!forceSkip)
+                        return;
+
+
+        if (currentSong->prev != NULL)
+                currentSong = currentSong->prev;   
+
+        playbackPlay(&totalPauseSeconds, &pauseSeconds, &pause_time);                                    
+
+        skipping = true;
+        skipPrev = true;
+        loadedNextSong = false;
+        songLoading = true;
+        forceSkip = false;
 
         loadingdata.loadA = !usingSongDataA;
-
-        pthread_mutex_lock(&(loadingdata.mutex));
-
         unloadSongData(usingSongDataA ? &loadingdata.songdataB : &loadingdata.songdataA);
 
-        loadSong(song, &loadingdata);
-
-        pthread_mutex_unlock(&(loadingdata.mutex));
-                
+        loadSong(currentSong, &loadingdata);
         int maxNumTries = 50;
         int numtries = 0;
 
@@ -768,29 +888,6 @@ void rebuildNextSong(Node *song)
                 c_sleep(100);
                 numtries++;
         }
-}
-
-void skipToPrevSong()
-{
-        if (songLoading || !loadedNextSong || skipping || clearingErrors)
-                if (!forceSkip)
-                        return;
-
-        if (currentSong == NULL)
-                return;
-
-        if (currentSong->prev != NULL)
-                currentSong = currentSong->prev;
-
-        playbackPlay(&totalPauseSeconds, &pauseSeconds, &pause_time);
-
-        skipping = true;
-        skipPrev = true;
-        loadedNextSong = false;
-        songLoading = true;
-        forceSkip = false;
-
-        rebuildNextSong(currentSong);
 
         if (songHasErrors)
         {
@@ -810,17 +907,28 @@ void skipToNumberedSong(int songNumber)
                 if (!forceSkip)
                         return;
 
-        playbackPlay(&totalPauseSeconds, &pauseSeconds, &pause_time);
+        playbackPlay(&totalPauseSeconds, &pauseSeconds, &pause_time);                         
 
         skipping = true;
         skipPrev = true;
-
+        loadedNextSong = false;
         songLoading = true;
         forceSkip = false;
 
         currentSong = getSongByNumber(songNumber);
 
-        rebuildNextSong(currentSong);
+        loadingdata.loadA = !usingSongDataA;
+        unloadSongData(usingSongDataA ? &loadingdata.songdataB : &loadingdata.songdataA);
+
+        loadSong(currentSong, &loadingdata);
+        int maxNumTries = 50;
+        int numtries = 0;
+        
+        while (!loadedNextSong && !loadingFailed && numtries < maxNumTries)
+        {
+                c_sleep(100);
+                numtries++;
+        }
 
         if (songHasErrors)
         {
@@ -829,9 +937,6 @@ void skipToNumberedSong(int songNumber)
                 if (songNumber < playlist.count)
                         skipToNumberedSong(songNumber + 1);
         }
-
-        if (currentSong != NULL)
-                audioData.endOfListReached = false;
 
         updateLastSongSwitchTime();
         skip();
