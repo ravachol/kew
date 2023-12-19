@@ -44,6 +44,7 @@ bool resetPlaylistDisplay = true;
 bool useProfileColors = true;
 bool fastForwarding = false;
 bool rewinding = false;
+bool nerdFontsEnabled = true;
 int numProgressBars = 15;
 int elapsedBars = 0;
 int chosenRow = 0;
@@ -106,9 +107,21 @@ void setColor()
                 color.g = 150;
                 color.b = 150;
         }
-        else {
+        else
+        {
                 setTextColorRGB2(color.r, color.g, color.b);
         }
+}
+
+bool hasNerdFonts()
+{
+        bool nerdFonts = true;
+        if (printf(" \uf28b ") < 0)
+        {
+                nerdFonts = false;
+        }
+        printf("\r");
+        return nerdFonts;
 }
 
 int calcMetadataHeight()
@@ -191,25 +204,33 @@ int printLogo(SongData *songData)
         printf("░█▄▀▒█▀█░█░░▒█\n");
         printBlankSpaces(indent);
         printf("░█▒█░█▄▄░▀▄▀▄▀");
-        if (songData != NULL &&  songData->metadata != NULL)
+        if (songData != NULL && songData->metadata != NULL)
         {
                 int term_w, term_h;
                 getTermSize(&term_w, &term_h);
                 char *title = (char *)malloc(MAXPATHLEN);
                 title[0] = '\0';
-              
-                strcat(title, songData->metadata->title);                
+
+                strcat(title, songData->metadata->title);
                 shortenString(title, term_w - indent - indent - 18);
 
-                if (isPaused())
-                        printf(" \uf04c %s", title);
-                else               
-                        printf(" \uf04b %s", title);
+                if (nerdFontsEnabled)
+                {
 
+                        if (isPaused())
+                                printf(" \uf04c %s", title);
+                        else
+                                printf(" \uf04b %s", title);
+                }
+                else
+                {
+                        printf(" %s", title);
+                }
+                
                 free(title);
         }
         printf("\n\n");
-        
+
         int height = 6;
         return height;
 }
@@ -546,7 +567,7 @@ void printLastRow()
 }
 
 int printAbout(SongData *songdata)
-{        
+{
         clearRestOfScreen();
         printf("\r");
         int numRows = printLogo(songdata);
@@ -594,11 +615,11 @@ int showKeyBindings(SongData *songdata)
         int numPrintedRows = 1;
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
-  
+
         numPrintedRows += printAbout(songdata);
 
-        setColor();        
-       
+        setColor();
+
         printBlankSpaces(indent);
         printf(" - F2 to show/hide the playlist.\n");
         printBlankSpaces(indent);
@@ -763,7 +784,7 @@ int showPlaylist(SongData *songData)
 
         int aboutRows = printLogo(songData);
         maxListSize -= aboutRows;
-        
+
         setColor();
 
         printBlankSpaces(indent);
@@ -772,7 +793,7 @@ int showPlaylist(SongData *songData)
                 maxListSize -= 3;
                 printf(" Use ↑, ↓ or k, j to choose. Enter to accept.\n");
                 printBlankSpaces(indent);
-                printf(" Pg Up and Pg Dn to flip pages. Del to remove entry.\n\n");
+                printf(" Pg Up and Pg Dn to scroll. Del to remove entry.\n\n");
         }
 
         int numSongs = 0;
@@ -781,13 +802,13 @@ int showPlaylist(SongData *songData)
                 if (node == NULL)
                         break;
 
-                //if (songData != NULL && strcmp(node->song.filePath, songData->filePath) == 0)
+                // if (songData != NULL && strcmp(node->song.filePath, songData->filePath) == 0)
                 //{
-                        if (currentSong == NULL || (currentSong != NULL && currentSong->id == node->id))
-                        {
-                                foundAt = numSongs;
-                                foundNode = node;
-                        }
+                if (currentSong == NULL || (currentSong != NULL && currentSong->id == node->id))
+                {
+                        foundAt = numSongs;
+                        foundNode = node;
+                }
                 //}
                 node = node->next;
                 numSongs++;
@@ -853,9 +874,8 @@ int showPlaylist(SongData *songData)
                 char *lastDot = strrchr(filePath, '.');
                 printf("\r");
                 printBlankSpaces(indent);
-                setTextColorRGB2(color.r, color.g, color.b);
-                if (useProfileColors)
-                        setDefaultTextColor();
+
+                setColor();
 
                 if (lastSlash != NULL && lastDot != NULL && lastDot > lastSlash)
                 {
@@ -872,9 +892,9 @@ int showPlaylist(SongData *songData)
                         }
 
                         if (foundNode != NULL && foundNode->id == node->id)
-                        {                                                                           
+                        {
                                 if (useProfileColors)
-                                {                                        
+                                {
                                         printf("\e[1m\e[39m");
                                 }
                                 else
@@ -1129,7 +1149,7 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
                                 if (depth == 1)
                                 {
                                         if (useProfileColors)
-                                                setTextColor(ARTIST_COLOR);                                        
+                                                setTextColor(ARTIST_COLOR);
                                 }
                                 else
                                 {
@@ -1142,11 +1162,11 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
                                 printBlankSpaces(indent);
 
                                 if (chosenLibRow == libIter)
-                                {                                        
+                                {
                                         if (root->isEnqueued)
                                         {
                                                 if (useProfileColors)
-                                                        setTextColor(ENQUEUED_COLOR);                                                
+                                                        setTextColor(ENQUEUED_COLOR);
                                                 printf("\x1b[7m * ");
                                         }
                                         else
@@ -1170,7 +1190,7 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
                                 {
                                         if (root->isEnqueued)
                                         {
-                                                if (useProfileColors)                                                
+                                                if (useProfileColors)
                                                         setTextColor(ENQUEUED_COLOR);
                                                 printf(" * ");
                                         }
@@ -1194,7 +1214,7 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
                                         libSongIter++;
                                 }
 
-                                 setColor();
+                                setColor();
                         }
 
                         libIter++;
@@ -1239,7 +1259,7 @@ void showLibrary(SongData *songData)
                 printBlankSpaces(indent);
                 printf(" Use ↑, ↓ or k, j to choose. Enter to enqueue/dequeue.\n");
                 printBlankSpaces(indent);
-                printf(" Pg Up and Pg Dn to flip pages.\n\n");
+                printf(" Pg Up and Pg Dn to scroll.\n\n");
         }
 
         numTopLevelSongs = 0;
@@ -1285,7 +1305,7 @@ int printPlayer(SongData *songdata, double elapsedSeconds, PlayList *playlist)
 
         if (songdata != NULL && songdata->metadata != NULL && !songdata->deleted && !songdata->hasErrors && songdata->hasErrors < 1)
         {
-                metadata = *songdata->metadata;                
+                metadata = *songdata->metadata;
                 totalDurationSeconds = playlist->totalDuration;
                 elapsed = elapsedSeconds;
                 duration = *songdata->duration;
@@ -1312,6 +1332,7 @@ int printPlayer(SongData *songdata, double elapsedSeconds, PlayList *playlist)
                 clearScreen();
                 showKeyBindings(songdata);
                 saveCursorPosition();
+                refresh = false;
         }
         else if (appState.currentView == PLAYLIST_VIEW && refresh)
         {
@@ -1319,11 +1340,13 @@ int printPlayer(SongData *songdata, double elapsedSeconds, PlayList *playlist)
                 int height = showPlaylist(songdata);
                 cursorJump(height);
                 saveCursorPosition();
+                refresh = false;
         }
         else if (appState.currentView == LIBRARY_VIEW && refresh)
         {
                 clearScreen();
                 showLibrary(songdata);
+                refresh = false;
         }
         else if (appState.currentView == SONG_VIEW && songdata != NULL)
         {
@@ -1333,11 +1356,12 @@ int printPlayer(SongData *songdata, double elapsedSeconds, PlayList *playlist)
                         printf("\n");
                         printCover(songdata);
                         printMetadata(songdata->metadata);
+                        refresh = false;
                 }
                 printTime(playlist);
                 printVisualizer();
         }
-        refresh = false;
+        
         fflush(stdout);
 
         return 0;

@@ -350,6 +350,12 @@ void setEndOfListReached()
 
         audioData.endOfListReached = true;
 
+        usingSongDataA = false;
+
+        audioData.currentFileIndex = 0;
+
+        loadingdata.loadA = true;
+
         currentSong = NULL;
 
         pthread_mutex_lock(&dataSourceMutex);
@@ -408,9 +414,6 @@ void prepareNextSong()
 
         finishLoading();
         resetTimeCount();
-
-        if (loadingFailed)
-                return;
 
         nextSong = NULL;
         refresh = true;
@@ -633,8 +636,7 @@ void loadAudioData()
         {
                 if (playlist.head != NULL && (waitingForPlaylist || waitingForNext))
                 {
-                        songLoading = true;
-                        loadingdata.loadA = true;
+                        songLoading = true;                        
 
                         if (waitingForPlaylist)
                         {
@@ -762,6 +764,8 @@ void play(Node *song)
 
         if (song != NULL)
         {
+                audioData.currentFileIndex = 0;
+                loadingdata.loadA = true;
                 loadFirst(song);
                 createAudioDevice(&userData);
         }
@@ -864,6 +868,7 @@ void init()
         initAudioBuffer();
         initVisuals();
         pthread_mutex_init(&dataSourceMutex, NULL);
+        nerdFontsEnabled = hasNerdFonts();
 
 #ifdef DEBUG
         g_setenv("G_MESSAGES_DEBUG", "all", TRUE);
@@ -1009,6 +1014,8 @@ int main(int argc, char *argv[])
         {
                 init();
                 makePlaylist(argc, argv);
+                if (playlist.count == 0)
+                        exit(0);
                 run();
         }
 

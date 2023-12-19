@@ -22,6 +22,7 @@ extern bool visualizerEnabled;
 extern bool useThemeColors;
 extern bool hasPrintedPaused;
 extern bool quitAfterStopping;
+extern bool nerdFontsEnabled;
 extern int numProgressBars;
 extern int elapsed;
 extern int chosenSong;
@@ -52,6 +53,8 @@ typedef struct {
 } AppState;
 
 extern AppState appState;
+
+bool hasNerdFonts();
 
 int printPlayer(SongData *songdata, double elapsedSeconds, PlayList *playlist);
 

@@ -59,9 +59,9 @@ void updateNextSong()
 {
         nextSongNeedsRebuilding = false;
         nextSong = NULL;
-        Node *song = getNextSong();
-        rebuildNextSong(song);
-        loadedNextSong = false;
+        nextSong = getNextSong();
+        rebuildNextSong(nextSong);
+        loadedNextSong = true;
 }
 
 void rebuildAndUpdatePlaylist()
@@ -97,6 +97,7 @@ void skip()
         {
                 switchAudioImplementation();
         }
+        refresh = true;
 }
 
 void updateLastSongSwitchTime()
@@ -784,7 +785,6 @@ void loadSong(Node *song, LoadingThreadData *loadingdata)
 {
         if (song == NULL)
         {
-                loadingFailed = true;
                 loadedNextSong = true;
                 skipping = false;
                 songLoading = false;
@@ -996,6 +996,5 @@ void loadFirst(Node *song)
         userData.currentPCMFrame = 0;
         userData.filenameA = loadingdata.songdataA->pcmFilePath;
         userData.songdataA = loadingdata.songdataA;
-        userData.currentSongData = userData.songdataA;
-        audioData.currentFileIndex = 0;
+        userData.currentSongData = userData.songdataA;        
 }
