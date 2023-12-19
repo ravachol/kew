@@ -54,6 +54,8 @@ extern UserData userData;
 
 SongData *getCurrentSongData(void);
 
+void rebuildAndUpdatePlaylist();
+
 Node *getNextSong();
 
 void handleRemove();
