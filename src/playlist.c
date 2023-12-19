@@ -676,9 +676,10 @@ void saveMainPlaylist(const char *directory, bool isPlayingMain)
         if (playlistPath[strlen(playlistPath) - 1] != '/')
                 strcat(playlistPath, "/");
         strcat(playlistPath, mainPlaylistName);
-        if (isPlayingMain)
+
+        if (isPlayingMain && playlist.count > 0)
                 writeM3UFile(playlistPath, &playlist);
-        else
+        else if (mainPlaylist->count > 0)
                 writeM3UFile(playlistPath, mainPlaylist);
 }
 
