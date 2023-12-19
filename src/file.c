@@ -473,8 +473,9 @@ void generateTempFilePath(const char *srcFilePath, char *filePath, const char *p
         createDirectory(dirPath);
         snprintf(dirPath, MAXPATHLEN, "%s/kew/%s", tempDir, username);
         createDirectory(dirPath);
+        
         char randomString[7];
-        srand(time(NULL));
+        
         for (int i = 0; i < 6; ++i)
         {
                 randomString[i] = 'a' + rand() % 26;
