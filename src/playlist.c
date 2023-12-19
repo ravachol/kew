@@ -143,7 +143,7 @@ void shufflePlaylist(PlayList *playlist)
         }
 
         // Shuffle the array using Fisher-Yates algorithm
-        srand(time(NULL));
+
         for (int j = playlist->count - 1; j >= 1; --j)
         {
                 int k = rand() % (j + 1);
