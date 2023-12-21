@@ -316,7 +316,7 @@ SongData *loadSongData(char *filePath)
 
 void unloadSongData(SongData **songdata)
 {
-        if (*songdata == NULL)
+        if (*songdata == NULL || (*songdata)->deleted)
                 return;
 
         SongData *data = *songdata;
@@ -338,6 +338,7 @@ void unloadSongData(SongData **songdata)
         free(data->blue);
         free(data->metadata);
         free(data->duration);
+        free(data->trackId);
 
         data->cover = NULL;
         data->red = NULL;
