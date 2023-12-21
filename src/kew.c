@@ -358,6 +358,11 @@ void setEndOfListReached()
 
         currentSong = NULL;
 
+        SongData *songData = (audioData.currentFileIndex == 0) ? userData.songdataA : userData.songdataB;
+
+        if (songData != NULL && songData->deleted == false)
+                unloadSongData(&songData);
+
         pthread_mutex_lock(&dataSourceMutex);
 
         cleanupPlaybackDevice();
