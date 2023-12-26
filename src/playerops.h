@@ -106,11 +106,13 @@ void quit(void);
 
 void calcElapsedTime(void);
 
-Node *getSongByNumber(int songNumber);
+Node *getSongByNumber(PlayList *playlist, int songNumber);
 
 void skipToNextSong(void);
 
 void skipToPrevSong(void);
+
+void skipToSong(int id);
 
 void seekForward(void);
 
@@ -127,5 +129,7 @@ void loadNext(LoadingThreadData *loadingdata);
 void loadFirst(Node *song);
 
 void flushSeek(void);
+
+Node *findSelectedEntryById(PlayList *playlist, int id);
 
 #endif

@@ -40,6 +40,7 @@ extern double duration;
 extern bool allowChooseSongs;
 extern int chosenLibRow;
 extern int chosenRow;
+extern int chosenNodeId;
 
 typedef enum {
     SONG_VIEW,
@@ -55,6 +56,8 @@ typedef struct {
 extern AppState appState;
 
 bool hasNerdFonts();
+
+void createLibrary();
 
 int printPlayer(SongData *songdata, double elapsedSeconds, PlayList *playlist);
 
