@@ -848,3 +848,25 @@ Node *findSongInPlaylist(Node *currentSong, PlayList *playlist)
         }
         return NULL;
 }
+
+int findNodeInList(PlayList *list, int id, Node **foundNode)
+{
+    Node *node = list->head;
+    int row = 0;
+
+    while (node != NULL)
+    {
+        if (id == node->id)
+        {
+            *foundNode = node;
+            return row;
+        }
+
+        node = node->next;
+        row++;
+    }
+
+    *foundNode = NULL;
+
+    return -1;
+}

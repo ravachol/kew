@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <math.h>
 #include <locale.h>
+#include <complex.h>
+#include "albumart.h"
 #include "soundgapless.h"
 #include "term.h"
 #include "write_ascii.h"

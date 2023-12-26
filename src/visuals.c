@@ -1,17 +1,14 @@
 #include "visuals.h"
-#include "albumart.h"
-#include "complex.h"
+
 #define CHANNELS 2
 #define BEAT_THRESHOLD 0.3
 
-#define MAGNITUDE_FLOOR_FRACTION 0.4
 #ifndef MAX_BUFFER_SIZE
 #define MAX_BUFFER_SIZE 4800
 #endif
 
 int bufferSize = 4800;
 int prevBufferSize = 0;
-float magnitudeCeil = 120;
 float alpha = 0.1;
 float lastMax = 120;
 bool unicodeSupport = false;

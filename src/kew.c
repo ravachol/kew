@@ -460,7 +460,11 @@ void handleGoToSong()
                 if (digitsPressedCount == 0)
                 {
                         loadedNextSong = true;
-                        skipToNumberedSong(chosenSong + 1);
+                        
+                        playlistNeedsUpdate = false;
+                        nextSongNeedsRebuilding = false;
+
+                        skipToSong(chosenNodeId);
                         audioData.endOfListReached = false;
                 }
                 else
@@ -469,6 +473,10 @@ void handleGoToSong()
                         int songNumber = atoi(digitsPressed);
                         memset(digitsPressed, '\0', sizeof(digitsPressed));
                         digitsPressedCount = 0;
+
+                        playlistNeedsUpdate = false;
+                        nextSongNeedsRebuilding = false;
+                                                
                         skipToNumberedSong(songNumber);
                 }
         }
@@ -630,7 +638,7 @@ void updatePlayer()
         if (resizeFlag)
                 resize();
         else
-        {
+        {                
                 refreshPlayer();
         }
 }
@@ -641,7 +649,7 @@ void loadAudioData()
         {
                 if (playlist.head != NULL && (waitingForPlaylist || waitingForNext))
                 {
-                        songLoading = true;                        
+                        songLoading = true;
 
                         if (waitingForPlaylist)
                         {
@@ -874,6 +882,7 @@ void init()
         initVisuals();
         pthread_mutex_init(&dataSourceMutex, NULL);
         nerdFontsEnabled = hasNerdFonts();
+        createLibrary();
 
 #ifdef DEBUG
         g_setenv("G_MESSAGES_DEBUG", "all", TRUE);
