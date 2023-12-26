@@ -83,6 +83,7 @@ FileSystemEntry *chosenDir = NULL;
 int libIter = 0;
 int libSongIter = 0;
 int libTopLevelSongIter = 0;
+int chosenNodeId = 0;
 
 FileSystemEntry *library = NULL;
 
@@ -226,7 +227,7 @@ int printLogo(SongData *songData)
                 {
                         printf(" %s", title);
                 }
-                
+
                 free(title);
         }
         printf("\n\n");
@@ -764,6 +765,34 @@ void scrollPrev()
         }
 }
 
+int getRowWithinBounds(int row)
+{
+        if (row >= originalPlaylist->count)
+        {
+                row = originalPlaylist->count - 1;
+        }
+        
+        if (row < 0)
+                row = 0;
+
+        return row;                
+}
+
+int calcStartPlaylistRow(int chosenRow, int maxListSize, int startIter)
+{
+        if (chosenRow < startIter)
+        {
+                startIter = chosenRow;
+        }
+
+        if (chosenRow >= maxListSize - 1 && chosenRow > startIter + maxListSize - 1)
+        {
+                startIter = chosenRow - maxListSize + round(maxListSize / 2) + 1;
+        } 
+
+        return startIter;      
+}
+
 int showPlaylist(SongData *songData)
 {
         Node *node = originalPlaylist->head;
@@ -775,8 +804,7 @@ int showPlaylist(SongData *songData)
         maxListSize = totalHeight;
         int numRows = 0;
         int numPrintedRows = 0;
-        int foundAt = 0;
-
+        
         maxListSize -= 1;
         numRows++;
 
@@ -796,69 +824,29 @@ int showPlaylist(SongData *songData)
                 printf(" Pg Up and Pg Dn to scroll. Del to remove entry.\n\n");
         }
 
-        int numSongs = 0;
-        for (int i = 0; i < originalPlaylist->count; i++)
-        {
-                if (node == NULL)
-                        break;
+        int currentSongRow = findNodeInList(originalPlaylist, currentSong->id, &foundNode);
 
-                // if (songData != NULL && strcmp(node->song.filePath, songData->filePath) == 0)
-                //{
-                if (currentSong == NULL || (currentSong != NULL && currentSong->id == node->id))
-                {
-                        foundAt = numSongs;
-                        foundNode = node;
-                }
-                //}
-                node = node->next;
-                numSongs++;
-                if (numSongs > maxListSize)
-                {
-                        startFromCurrent = true;
-                        if (foundAt)
-                                break;
-                }
-        }
-        if (startFromCurrent)
-                node = foundNode;
-        else
-                node = originalPlaylist->head;
+        if (currentSongRow > maxListSize)
+                startFromCurrent = true;                
 
-        if (chosenRow >= originalPlaylist->count)
-        {
-                chosenRow = originalPlaylist->count - 1;
-        }
+        chosenRow = getRowWithinBounds(chosenRow);
 
         chosenSong = chosenRow;
-        chosenSong = (chosenSong < 0) ? 0 : chosenSong;
 
-        if (chosenSong < startIter)
-        {
-                startIter = chosenSong;
-        }
-
-        if (chosenRow >= maxListSize - 1 && chosenRow > startIter + maxListSize - 1)
-        {
-                startIter = chosenSong - maxListSize + round(maxListSize / 2) + 1;
-        }
-
-        if (startIter == 0 && chosenRow < 0)
-        {
-                chosenRow = 0;
-        }
+        startIter = calcStartPlaylistRow(chosenRow, maxListSize, startIter);
 
         if (resetPlaylistDisplay && !audioData.endOfListReached)
         {
-                startIter = chosenRow = chosenSong = foundAt;
+                startIter = chosenRow = chosenSong = currentSongRow;
         }
 
-        for (int i = foundAt; i > startIter; i--)
+        for (int i = currentSongRow; i > startIter; i--)
         {
                 if (i > 0 && node->prev != NULL)
                         node = node->prev;
         }
 
-        for (int i = foundAt; i < startIter; i++)
+        for (int i = currentSongRow; i < startIter; i++)
         {
                 if (node->next != NULL)
                         node = node->next;
@@ -886,6 +874,8 @@ int showPlaylist(SongData *songData)
 
                         if (i == chosenSong)
                         {
+                                chosenNodeId = node->id;
+
                                 if (useProfileColors)
                                         setTextColor(ENQUEUED_COLOR);
                                 printf("\x1b[7m");
@@ -1232,6 +1222,11 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
         return 0;
 }
 
+void createLibrary()
+{
+        library = createDirectoryTree(settings.path, &numDirectoryTreeEntries);
+}
+
 void showLibrary(SongData *songData)
 {
         libIter = 0;
@@ -1361,7 +1356,7 @@ int printPlayer(SongData *songdata, double elapsedSeconds, PlayList *playlist)
                 printTime(playlist);
                 printVisualizer();
         }
-        
+
         fflush(stdout);
 
         return 0;
