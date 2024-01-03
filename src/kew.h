@@ -1,2 +1,0 @@
-void prepareNextSong();
-#pragma once
