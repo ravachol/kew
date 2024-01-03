@@ -17,8 +17,11 @@ FileSystemEntry *createEntry(const char *name, int isDirectory, FileSystemEntry 
 
 void addChild(FileSystemEntry *parent, FileSystemEntry *child)
 {
-        child->next = parent->children;
-        parent->children = child;        
+        if (parent != NULL)
+        {
+                child->next = parent->children;
+                parent->children = child;
+        }
 }
 
 void setFullPath(FileSystemEntry *entry, const char *parentPath, const char *entryName)
@@ -140,8 +143,8 @@ char *stringToUpperWithoutSpaces(const char *str)
 
 int compareLibEntries(const struct dirent **a, const struct dirent **b)
 {
-        const char *nameA = stringToUpperWithoutSpaces((*a)->d_name);
-        const char *nameB = stringToUpperWithoutSpaces((*b)->d_name);
+        char *nameA = stringToUpperWithoutSpaces((*a)->d_name);
+        char *nameB = stringToUpperWithoutSpaces((*b)->d_name);
 
         if (nameA[0] == '_' && nameB[0] != '_')
         {
@@ -152,7 +155,11 @@ int compareLibEntries(const struct dirent **a, const struct dirent **b)
                 return -1;
         }
 
-        return strcmp(nameB, nameA);
+        int result = strcmp(nameB, nameA);
+        free(nameA);
+        free(nameB);
+        
+        return result;
 }
 
 int readDirectory(const char *path, FileSystemEntry *parent)
@@ -223,6 +230,7 @@ int readDirectory(const char *path, FileSystemEntry *parent)
         }
 
         free(entries);
+        regfree(&regex);
 
         closedir(directory);
 

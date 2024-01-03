@@ -200,12 +200,16 @@ int printLogo(SongData *songData)
         if (useProfileColors)
                 setTextColor(LOGO_COLOR);
         printf("\n");
+
         printBlankSpaces(indent);
-        printf("░█\n");
+        printf(" __\n");
+        printBlankSpaces(indent);        
+        printf("|  |--.-----.--.--.--.\n");
         printBlankSpaces(indent);
-        printf("░█▄▀▒█▀█░█░░▒█\n");
-        printBlankSpaces(indent);
-        printf("░█▒█░█▄▄░▀▄▀▄▀");
+        printf("|    <|  -__|  |  |  |\n");
+        printBlankSpaces(indent);        
+        printf("|__|__|_____|________|");
+
         if (songData != NULL && songData->metadata != NULL)
         {
                 int term_w, term_h;
@@ -214,7 +218,7 @@ int printLogo(SongData *songData)
                 title[0] = '\0';
 
                 strcat(title, songData->metadata->title);
-                shortenString(title, term_w - indent - indent - 18);
+                shortenString(title, term_w - indent - indent - 27);
 
                 if (nerdFontsEnabled)
                 {
@@ -233,7 +237,7 @@ int printLogo(SongData *songData)
         }
         printf("\n\n");
 
-        int height = 6;
+        int height = 7;
         return height;
 }
 
@@ -1260,9 +1264,6 @@ void showLibrary(SongData *songData)
 
         refresh = false;
 
-        if (library == NULL)
-                library = createDirectoryTree(settings.path, &numDirectoryTreeEntries);
-
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
         int totalHeight = term_h;
@@ -1307,8 +1308,8 @@ void showLibrary(SongData *songData)
 
         if (refresh)
         {
+                printf("\033[1;1H");
                 clearScreen();
-                printf("\n");
                 showLibrary(songData);
         }
 }
