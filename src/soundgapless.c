@@ -30,7 +30,9 @@ ma_result initFirstDatasource(AudioData *pAudioData, UserData *pUserData)
 
         if (hasBuiltinDecoder(filePath))
         {
-                prepareNextDecoder(filePath);
+                int result = prepareNextDecoder(filePath);
+                if (result < 0)
+                        return -1;
                 ma_decoder *first = getFirstDecoder();
                 pAudioData->format = first->outputFormat;
                 pAudioData->channels = first->outputChannels;
@@ -85,7 +87,9 @@ void createDevice(UserData *userData, ma_device *device, ma_context *context, ma
         ma_result result;
 
         ma_data_source_uninit(&audioData);
-        initFirstDatasource(&audioData, userData);
+        result = initFirstDatasource(&audioData, userData);
+        if (result != MA_SUCCESS)
+                return;
 
         audioData.base.vtable = vtable;
 

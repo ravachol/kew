@@ -727,8 +727,10 @@ Node *getSongByNumber(PlayList *playlist, int songNumber)
         return song;
 }
 
-void assignLoadedData()
+int assignLoadedData()
 {
+        int result = 0;
+
         if (loadingdata.loadA)
         {
                 if (loadingdata.songdataA != NULL)
@@ -737,13 +739,11 @@ void assignLoadedData()
                         userData.songdataA = loadingdata.songdataA;
 
                         if (hasBuiltinDecoder(loadingdata.songdataA->filePath))
-                                prepareNextDecoder(loadingdata.songdataA->filePath);
+                                result = prepareNextDecoder(loadingdata.songdataA->filePath);
                         else if (endsWith(loadingdata.songdataA->filePath, "opus"))
                                 prepareNextOpusDecoder(loadingdata.songdataA->filePath);
                         else if (endsWith(loadingdata.songdataA->filePath, "ogg"))
                                 prepareNextVorbisDecoder(loadingdata.songdataA->filePath);
-
-                        userData.ADeleted = false;
                 }
                 else
                         userData.filenameA = NULL;
@@ -756,17 +756,16 @@ void assignLoadedData()
                         userData.songdataB = loadingdata.songdataB;
 
                         if (hasBuiltinDecoder(loadingdata.songdataB->filePath))
-                                prepareNextDecoder(loadingdata.songdataB->filePath);
+                                result = prepareNextDecoder(loadingdata.songdataB->filePath);
                         else if (endsWith(loadingdata.songdataB->filePath, "opus"))
                                 prepareNextOpusDecoder(loadingdata.songdataB->filePath);
                         else if (endsWith(loadingdata.songdataB->filePath, "ogg"))
                                 prepareNextVorbisDecoder(loadingdata.songdataB->filePath);
-
-                        userData.BDeleted = false;                                
                 }
                 else
                         userData.filenameB = NULL;
         }
+        return result;
 }
 
 void *songDataReaderThread(void *arg)
@@ -806,7 +805,10 @@ void *songDataReaderThread(void *arg)
                 loadingdata->songdataB = songdata;
         }
 
-        assignLoadedData();
+        int result =  assignLoadedData();
+
+        if (result < 0)
+                songdata->hasErrors = true;
 
         // Release the mutex lock
         pthread_mutex_unlock(&(loadingdata->mutex));
@@ -873,7 +875,7 @@ void rebuildNextSong(Node *song)
 
         pthread_mutex_lock(&(loadingdata.mutex));
 
-        unloadSongData(usingSongDataA ? &loadingdata.songdataB : &loadingdata.songdataA);
+        //unloadSongData(usingSongDataA ? &loadingdata.songdataB : &loadingdata.songdataA);
 
         songLoading = true;
 
@@ -926,7 +928,7 @@ void skipToPrevSong()
         forceSkip = false;
 
         loadingdata.loadA = !usingSongDataA;
-        unloadSongData(usingSongDataA ? &loadingdata.songdataB : &loadingdata.songdataA);
+        //unloadSongData(usingSongDataA ? &loadingdata.songdataB : &loadingdata.songdataA);
 
         loadSong(currentSong, &loadingdata);
         int maxNumTries = 50;
@@ -973,7 +975,7 @@ void skipToSong(int id)
                 return;
 
         loadingdata.loadA = !usingSongDataA;
-        unloadSongData(usingSongDataA ? &loadingdata.songdataB : &loadingdata.songdataA);
+        //unloadSongData(usingSongDataA ? &loadingdata.songdataB : &loadingdata.songdataA);
 
         loadSong(currentSong, &loadingdata);
         int maxNumTries = 50;
@@ -1014,7 +1016,7 @@ void skipToNumberedSong(int songNumber)
         currentSong = getSongByNumber(originalPlaylist, songNumber);
 
         loadingdata.loadA = !usingSongDataA;
-        unloadSongData(usingSongDataA ? &loadingdata.songdataB : &loadingdata.songdataA);
+        //unloadSongData(usingSongDataA ? &loadingdata.songdataB : &loadingdata.songdataA);
 
         loadSong(currentSong, &loadingdata);
         int maxNumTries = 50;

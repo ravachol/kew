@@ -317,22 +317,20 @@ void unloadPreviousSong()
         pthread_mutex_lock(&(loadingdata.mutex));
 
         if (usingSongDataA &&
-            (skipping || (userData.currentSongData == NULL ||
-                          (userData.ADeleted == false && strcmp(loadingdata.songdataA->trackId, userData.currentSongData->trackId) != 0))))
+            (skipping || (userData.currentSongData == NULL || userData.currentSongData->deleted == true ||
+                          (loadingdata.songdataA->deleted == false && strcmp(loadingdata.songdataA->trackId, userData.currentSongData->trackId) != 0))))
         {
-                unloadSongData(&loadingdata.songdataA);
-                userData.ADeleted = true;
+                unloadSongData(&loadingdata.songdataA);                
                 userData.filenameA = NULL;
                 usingSongDataA = false;
                 if (!audioData.endOfListReached)
                         loadedNextSong = false;
         }
         else if (!usingSongDataA &&
-                 (skipping || (userData.currentSongData == NULL ||
-                          (userData.BDeleted == false && strcmp(loadingdata.songdataB->trackId, userData.currentSongData->trackId) != 0))))
-        {
+                 (skipping || (userData.currentSongData == NULL || userData.currentSongData->deleted == true ||
+                          (loadingdata.songdataB->deleted == false && strcmp(loadingdata.songdataB->trackId, userData.currentSongData->trackId) != 0))))
+        {             
                 unloadSongData(&loadingdata.songdataB);
-                userData.BDeleted = true;
                 userData.filenameB = NULL;
                 usingSongDataA = true;
                 if (!audioData.endOfListReached)
@@ -360,7 +358,7 @@ void setEndOfListReached()
 
         SongData *songData = (audioData.currentFileIndex == 0) ? userData.songdataA : userData.songdataB;
 
-        if (songData != NULL)
+        if (songData != NULL && songData->deleted == false)
                 unloadSongData(&songData);
 
         pthread_mutex_lock(&dataSourceMutex);
@@ -435,15 +433,9 @@ void refreshPlayer()
 {
         SongData *songData = (audioData.currentFileIndex == 0) ? userData.songdataA : userData.songdataB;
 
-        bool deleted = false;
-        if (audioData.currentFileIndex == 0 && userData.ADeleted == true) 
-                deleted = true;
-        if (audioData.currentFileIndex == 1 && userData.BDeleted == true) 
-                deleted = true;
-
         if (!skipping && !isEOFReached() && !isImplSwitchReached())
         {
-                if (refresh && songData != NULL && deleted == false &&
+                if (refresh && songData != NULL && songData->deleted == false &&
                     songData->hasErrors == false && currentSong != NULL && songData->metadata != NULL)
                 {
                         // update mpris
@@ -882,8 +874,6 @@ void init()
         loadingdata.songdataB = NULL;
         loadingdata.loadA = true;
         audioData.restart = true;
-        userData.ADeleted = false;
-        userData.BDeleted = false;
         initAudioBuffer();
         initVisuals();
         pthread_mutex_init(&dataSourceMutex, NULL);
