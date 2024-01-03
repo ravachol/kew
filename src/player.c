@@ -25,10 +25,10 @@ typedef struct
 AppState appState;
 
 const char VERSION[] = "2.0";
-const int LOGO_COLOR = 3;
+const int LOGO_COLOR = 6;
 const int VERSION_COLOR = 2;
 const int ARTIST_COLOR = 6;
-const int ENQUEUED_COLOR = 3;
+const int ENQUEUED_COLOR = 6;
 const int ABSOLUTE_MIN_WIDTH = 53;
 volatile bool refresh = true;
 bool visualizerEnabled = true;
@@ -121,7 +121,8 @@ bool hasNerdFonts()
         {
                 nerdFonts = false;
         }
-        printf("\r");
+        clearScreen();
+        fflush(stdout);
         return nerdFonts;
 }
 
@@ -778,21 +779,6 @@ int getRowWithinBounds(int row)
         return row;                
 }
 
-int calcStartPlaylistRow(int chosenRow, int maxListSize, int startIter)
-{
-        if (chosenRow < startIter)
-        {
-                startIter = chosenRow;
-        }
-
-        if (chosenRow >= maxListSize - 1 && chosenRow > startIter + maxListSize - 1)
-        {
-                startIter = chosenRow - maxListSize + round(maxListSize / 2) + 1;
-        } 
-
-        return startIter;      
-}
-
 int showPlaylist(SongData *songData)
 {
         Node *node = originalPlaylist->head;
@@ -804,7 +790,8 @@ int showPlaylist(SongData *songData)
         maxListSize = totalHeight;
         int numRows = 0;
         int numPrintedRows = 0;
-        
+        int foundAt = 0;
+
         maxListSize -= 1;
         numRows++;
 
@@ -824,29 +811,68 @@ int showPlaylist(SongData *songData)
                 printf(" Pg Up and Pg Dn to scroll. Del to remove entry.\n\n");
         }
 
-        int currentSongRow = findNodeInList(originalPlaylist, currentSong->id, &foundNode);
+        int numSongs = 0;
+        for (int i = 0; i < originalPlaylist->count; i++)
+        {
+                if (node == NULL)
+                        break;
 
-        if (currentSongRow > maxListSize)
-                startFromCurrent = true;                
+                if (currentSong != NULL && currentSong->id == node->id)
+                {
+                        foundAt = numSongs;
+                        foundNode = node;
+                }
 
-        chosenRow = getRowWithinBounds(chosenRow);
+                node = node->next;
+                numSongs++;
+                if (numSongs > maxListSize)
+                {
+                        startFromCurrent = true;
+                        if (foundAt)
+                                break;
+                }
+        }
+
+        if (startFromCurrent)
+                node = foundNode;
+        else
+                node = originalPlaylist->head;
+
+        if (chosenRow >= originalPlaylist->count)
+        {
+                chosenRow = originalPlaylist->count - 1;
+        }
 
         chosenSong = chosenRow;
+        chosenSong = (chosenSong < 0) ? 0 : chosenSong;
 
-        startIter = calcStartPlaylistRow(chosenRow, maxListSize, startIter);
+        if (chosenSong < startIter)
+        {
+                startIter = chosenSong;
+        }
+
+        if (chosenRow >= maxListSize - 1 && chosenRow > startIter + maxListSize - 1)
+        {
+                startIter = chosenSong - maxListSize + round(maxListSize / 2) + 1;
+        }
+
+        if (startIter == 0 && chosenRow < 0)
+        {
+                chosenRow = 0;
+        }
 
         if (resetPlaylistDisplay && !audioData.endOfListReached)
         {
-                startIter = chosenRow = chosenSong = currentSongRow;
+                startIter = chosenRow = chosenSong = foundAt;
         }
 
-        for (int i = currentSongRow; i > startIter; i--)
+        for (int i = foundAt; i > startIter; i--)
         {
                 if (i > 0 && node->prev != NULL)
                         node = node->prev;
         }
 
-        for (int i = currentSongRow; i < startIter; i++)
+        for (int i = foundAt; i < startIter; i++)
         {
                 if (node->next != NULL)
                         node = node->next;
@@ -998,7 +1024,7 @@ void printVisualizer()
 
 void calcIndent(SongData *songdata)
 {
-        if (songdata == NULL || songdata->deleted || appState.currentView != SONG_VIEW)
+        if (songdata == NULL || appState.currentView != SONG_VIEW)
         {
                 int textWidth = (ABSOLUTE_MIN_WIDTH > preferredWidth) ? ABSOLUTE_MIN_WIDTH : preferredWidth;
                 indent = getCoverIndent(textWidth - 1) - 1;
@@ -1298,7 +1324,7 @@ int printPlayer(SongData *songdata, double elapsedSeconds, PlayList *playlist)
         hideCursor();
         setColor();
 
-        if (songdata != NULL && songdata->metadata != NULL && !songdata->deleted && !songdata->hasErrors && songdata->hasErrors < 1)
+        if (songdata != NULL && songdata->metadata != NULL && !songdata->hasErrors && (songdata->hasErrors < 1))
         {
                 metadata = *songdata->metadata;
                 totalDurationSeconds = playlist->totalDuration;
