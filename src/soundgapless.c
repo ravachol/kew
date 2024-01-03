@@ -26,6 +26,7 @@ ma_result initFirstDatasource(AudioData *pAudioData, UserData *pUserData)
 
         pAudioData->pUserData = pUserData;
         pAudioData->currentPCMFrame = 0;
+        pAudioData->restart = false;
 
         if (hasBuiltinDecoder(filePath))
         {

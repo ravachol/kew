@@ -36,7 +36,7 @@ extern bool waitingForPlaylist;
 extern bool waitingForNext;
 extern bool usingSongDataA;
 extern Node *nextSong;
-extern Node *lastPlayedSong;
+extern int lastPlayedId;
 extern bool playingMainPlaylist;
 extern bool songHasErrors;
 extern bool doQuit;

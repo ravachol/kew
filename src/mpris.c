@@ -326,7 +326,7 @@ static gboolean get_metadata(GDBusConnection *connection, const gchar *sender,
 
         currentSongData = getCurrentSongData();
 
-        if (currentSongData == NULL)
+        if (currentSongData == NULL || currentSongData->metadata == NULL)
                 return FALSE;
 
         GVariantBuilder metadata_builder;

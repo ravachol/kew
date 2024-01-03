@@ -761,7 +761,7 @@ void executeSwitch(AudioData *pAudioData)
                 if (pAudioData->fileB != NULL)
                         fclose(pAudioData->fileB);
                 pAudioData->fileB = NULL;
-                if (pAudioData->pUserData->songdataA != NULL || !pAudioData->pUserData->songdataA->deleted)
+                if (pAudioData->pUserData->songdataA != NULL)
                 {
                         currentFilename = pAudioData->pUserData->filenameA;
                         currentSongData = pAudioData->pUserData->songdataA;
@@ -779,7 +779,7 @@ void executeSwitch(AudioData *pAudioData)
                 if (pAudioData->fileA != NULL)
                         fclose(pAudioData->fileA);
                 pAudioData->fileA = NULL;
-                if (pAudioData->pUserData->songdataA != NULL || !pAudioData->pUserData->songdataA->deleted)
+                if (pAudioData->pUserData->songdataA != NULL)
                 {
                         currentFilename = pAudioData->pUserData->filenameB;
                         currentSongData = pAudioData->pUserData->songdataB;

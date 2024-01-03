@@ -23,18 +23,11 @@ kew (/kjuː/) is a command-line music player for Linux.
  * Does not yet work well with very long audio files that are not mp3, wav, flac, ogg or opus.
  * Seeking is disabled for ogg vorbis files.
 
-## Name Change
-
-Had to rename cue to kew to resolve a name conflict. The meaning and pronounciation hasn't changed. Hope most of you can accept the new name. I think it gives the app more of a distinct identity.
-
-
 ## Reviews
 
 kew was reviewed by Linuxlinks.com:
 
 https://www.linuxlinks.com/kew-command-line-music-player/
-
-https://www.linuxlinks.com/cue-command-line-music-player-gapless-playback/
 
 And Tecmint.com:
 

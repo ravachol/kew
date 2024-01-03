@@ -7,7 +7,7 @@ volume.c
 
 */
 
-int soundVolume = 100;
+int soundVolume = 50;
 
 int getCurrentVolume()
 {

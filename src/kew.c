@@ -317,22 +317,22 @@ void unloadPreviousSong()
         pthread_mutex_lock(&(loadingdata.mutex));
 
         if (usingSongDataA &&
-            (skipping || (userData.currentSongData == NULL || userData.currentSongData->deleted ||
-                          (userData.currentSongData->trackId && loadingdata.songdataA &&
-                           strcmp(loadingdata.songdataA->trackId, userData.currentSongData->trackId) != 0))))
+            (skipping || (userData.currentSongData == NULL ||
+                          (userData.ADeleted == false && strcmp(loadingdata.songdataA->trackId, userData.currentSongData->trackId) != 0))))
         {
                 unloadSongData(&loadingdata.songdataA);
+                userData.ADeleted = true;
                 userData.filenameA = NULL;
                 usingSongDataA = false;
                 if (!audioData.endOfListReached)
                         loadedNextSong = false;
         }
         else if (!usingSongDataA &&
-                 (skipping || (userData.currentSongData == NULL || userData.currentSongData->deleted ||
-                               (userData.currentSongData->trackId && loadingdata.songdataB &&
-                                strcmp(loadingdata.songdataB->trackId, userData.currentSongData->trackId) != 0))))
+                 (skipping || (userData.currentSongData == NULL ||
+                          (userData.BDeleted == false && strcmp(loadingdata.songdataB->trackId, userData.currentSongData->trackId) != 0))))
         {
                 unloadSongData(&loadingdata.songdataB);
+                userData.BDeleted = true;
                 userData.filenameB = NULL;
                 usingSongDataA = true;
                 if (!audioData.endOfListReached)
@@ -354,13 +354,13 @@ void setEndOfListReached()
 
         audioData.currentFileIndex = 0;
 
-        loadingdata.loadA = true;
+        audioData.restart = true;
 
-        currentSong = NULL;
+        loadingdata.loadA = true;
 
         SongData *songData = (audioData.currentFileIndex == 0) ? userData.songdataA : userData.songdataB;
 
-        if (songData != NULL && songData->deleted == false)
+        if (songData != NULL)
                 unloadSongData(&songData);
 
         pthread_mutex_lock(&dataSourceMutex);
@@ -400,7 +400,7 @@ void prepareNextSong()
         if (!skipPrev && !gotoSong && !isRepeatEnabled())
         {
                 if (currentSong != NULL)
-                        lastPlayedSong = currentSong;
+                        lastPlayedId = currentSong->id;
                 currentSong = getNextSong();
         }
         else
@@ -435,9 +435,15 @@ void refreshPlayer()
 {
         SongData *songData = (audioData.currentFileIndex == 0) ? userData.songdataA : userData.songdataB;
 
+        bool deleted = false;
+        if (audioData.currentFileIndex == 0 && userData.ADeleted == true) 
+                deleted = true;
+        if (audioData.currentFileIndex == 1 && userData.BDeleted == true) 
+                deleted = true;
+
         if (!skipping && !isEOFReached() && !isImplSwitchReached())
         {
-                if (refresh && songData != NULL && songData->deleted == false &&
+                if (refresh && songData != NULL && deleted == false &&
                     songData->hasErrors == false && currentSong != NULL && songData->metadata != NULL)
                 {
                         // update mpris
@@ -460,7 +466,7 @@ void handleGoToSong()
                 if (digitsPressedCount == 0)
                 {
                         loadedNextSong = true;
-                        
+
                         playlistNeedsUpdate = false;
                         nextSongNeedsRebuilding = false;
 
@@ -476,7 +482,7 @@ void handleGoToSong()
 
                         playlistNeedsUpdate = false;
                         nextSongNeedsRebuilding = false;
-                                                
+
                         skipToNumberedSong(songNumber);
                 }
         }
@@ -638,14 +644,14 @@ void updatePlayer()
         if (resizeFlag)
                 resize();
         else
-        {                
+        {
                 refreshPlayer();
         }
 }
 
 void loadAudioData()
 {
-        if (currentSong == NULL)
+        if (audioData.restart == true)
         {
                 if (playlist.head != NULL && (waitingForPlaylist || waitingForNext))
                 {
@@ -657,14 +663,11 @@ void loadAudioData()
                         }
                         else if (waitingForNext)
                         {
-                                if (lastPlayedSong != NULL)
+                                if (lastPlayedId >= 0)
                                 {
-                                        currentSong = lastPlayedSong->next;
-                                }
-
-                                if (currentSong == NULL)
-                                {
-                                        currentSong = lastPlayedSong;
+                                        currentSong = findSelectedEntryById(&playlist, lastPlayedId);
+                                        if (currentSong != NULL && currentSong->next != NULL)
+                                                currentSong = currentSong->next;
                                 }
 
                                 if (currentSong == NULL)
@@ -672,7 +675,7 @@ void loadAudioData()
                                         currentSong = playlist.tail;
                                 }
                         }
-
+                        audioData.restart = false;
                         waitingForPlaylist = false;
                         waitingForNext = false;
 
@@ -688,10 +691,10 @@ void loadAudioData()
                         }
 
                         nextSong = NULL;
-                        refresh = true;
+                        refresh = true;                        
 
                         clock_gettime(CLOCK_MONOTONIC, &start_time);
-                        // calculatePlayListDuration(&playlist);
+
                         playlist.totalDuration = -1;
                         playlistNeedsUpdate = false;
                 }
@@ -878,6 +881,9 @@ void init()
         loadingdata.songdataA = NULL;
         loadingdata.songdataB = NULL;
         loadingdata.loadA = true;
+        audioData.restart = true;
+        userData.ADeleted = false;
+        userData.BDeleted = false;
         initAudioBuffer();
         initVisuals();
         pthread_mutex_init(&dataSourceMutex, NULL);

@@ -29,8 +29,11 @@ typedef struct
         char *filenameB;
         SongData *songdataA;
         SongData *songdataB;
+        bool Adeleted;
+        bool BDeleted;        
         SongData *currentSongData;
         ma_uint32 currentPCMFrame;
+
 } UserData;
 #endif
 
@@ -54,7 +57,8 @@ typedef struct
         bool switchFiles;
         int currentFileIndex;
         ma_uint64 totalFrames;
-        bool endOfListReached;        
+        bool endOfListReached;
+        bool restart;     
 } AudioData;
 #endif
 
