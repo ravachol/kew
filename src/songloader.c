@@ -310,17 +310,15 @@ SongData *loadSongData(char *filePath)
         !endsWith(filePath, "opus") && 
         !endsWith(filePath, "ogg"))
                 loadPcmAudio(songdata);
-        songdata->deleted = false;
         return songdata;
 }
 
 void unloadSongData(SongData **songdata)
 {
-        if (*songdata == NULL || (*songdata)->deleted)
+        if (*songdata == NULL)
                 return;
 
         SongData *data = *songdata;
-        data->deleted = true;
 
         if (data->cover != NULL)
         {

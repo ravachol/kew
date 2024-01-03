@@ -32,7 +32,7 @@ bool waitingForNext = false;
 Node *nextSong = NULL;
 Node *tryNextSong = NULL;
 Node *prevSong = NULL;
-Node *lastPlayedSong = NULL;
+int lastPlayedId = -1;
 
 bool songHasErrors = false;
 bool skipPrev = false;
@@ -633,9 +633,7 @@ void enqueueSongs()
         if (hasEnqueued)
         {
                 waitingForNext = true;
-
-                if (audioData.endOfListReached)
-                        loadedNextSong = false;
+                loadedNextSong = false;
                 audioData.endOfListReached = false;
         }
 
@@ -718,7 +716,7 @@ Node *getSongByNumber(PlayList *playlist, int songNumber)
                 return song;
         }
 
-        int count = 0;
+        int count = 1;
 
         while (song->next != NULL && count != songNumber)
         {
@@ -734,7 +732,7 @@ void assignLoadedData()
         if (loadingdata.loadA)
         {
                 if (loadingdata.songdataA != NULL)
-                {
+                {                        
                         userData.filenameA = loadingdata.songdataA->pcmFilePath;
                         userData.songdataA = loadingdata.songdataA;
 
@@ -744,6 +742,8 @@ void assignLoadedData()
                                 prepareNextOpusDecoder(loadingdata.songdataA->filePath);
                         else if (endsWith(loadingdata.songdataA->filePath, "ogg"))
                                 prepareNextVorbisDecoder(loadingdata.songdataA->filePath);
+
+                        userData.ADeleted = false;
                 }
                 else
                         userData.filenameA = NULL;
@@ -761,6 +761,8 @@ void assignLoadedData()
                                 prepareNextOpusDecoder(loadingdata.songdataB->filePath);
                         else if (endsWith(loadingdata.songdataB->filePath, "ogg"))
                                 prepareNextVorbisDecoder(loadingdata.songdataB->filePath);
+
+                        userData.BDeleted = false;                                
                 }
                 else
                         userData.filenameB = NULL;
@@ -776,7 +778,17 @@ void *songDataReaderThread(void *arg)
 
         char filepath[MAXPATHLEN];
         c_strcpy(filepath, sizeof(filepath), loadingdata->filePath);
+        
         SongData *songdata = NULL;
+
+        if (loadingdata->loadA)
+        {
+                unloadSongData(&loadingdata->songdataA);
+        }
+        else
+        {
+                unloadSongData(&loadingdata->songdataB);
+        }
 
         if (filepath[0] != '\0')
         {
@@ -787,12 +799,10 @@ void *songDataReaderThread(void *arg)
 
         if (loadingdata->loadA)
         {
-                unloadSongData(&loadingdata->songdataA);
-                loadingdata->songdataA = songdata;
+                loadingdata->songdataA = songdata;                
         }
         else
         {
-                unloadSongData(&loadingdata->songdataB);
                 loadingdata->songdataB = songdata;
         }
 
@@ -1050,6 +1060,7 @@ void loadFirstSong(Node *song)
                 return;
 
         loadSong(song, &loadingdata);
+
         int i = 0;
         while (!loadedNextSong)
         {
@@ -1080,7 +1091,7 @@ void loadFirst(Node *song)
         }
 
         userData.currentPCMFrame = 0;
-        userData.filenameA = loadingdata.songdataA->pcmFilePath;
-        userData.songdataA = loadingdata.songdataA;
+        //userData.filenameA = loadingdata.songdataA->pcmFilePath;
+        //userData.songdataA = loadingdata.songdataA;
         userData.currentSongData = userData.songdataA;
 }
