@@ -28,9 +28,7 @@ typedef struct
         char *filenameA;
         char *filenameB;
         SongData *songdataA;
-        SongData *songdataB;
-        bool Adeleted;
-        bool BDeleted;        
+        SongData *songdataB;     
         SongData *currentSongData;
         ma_uint32 currentPCMFrame;
 

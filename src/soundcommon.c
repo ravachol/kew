@@ -426,7 +426,7 @@ void getFileInfo(const char *filename, ma_uint32 *sampleRate, ma_uint32 *channel
         }
 }
 
-void prepareNextDecoder(char *filepath)
+int prepareNextDecoder(char *filepath)
 {
         ma_decoder *currentDecoder;
 
@@ -450,17 +450,22 @@ void prepareNextDecoder(char *filepath)
 
         if (!sameFormat)
         {
-                return;
+                return 0;
         }
 
         uninitPreviousDecoder();
 
         ma_decoder *decoder = (ma_decoder *)malloc(sizeof(ma_decoder));
-        ma_decoder_init_file(filepath, NULL, decoder);
+        ma_result result = ma_decoder_init_file(filepath, NULL, decoder);
+
+        if (result != MA_SUCCESS)
+                return -1;
 
         setNextDecoder(decoder);
         if (currentDecoder != NULL)
                 ma_data_source_set_next(currentDecoder, decoder);
+
+        return 0;
 }
 
 void getVorbisFileInfo(const char *filename, ma_format *format, ma_uint32 *channels, ma_uint32 *sampleRate, ma_channel *channelMap)
