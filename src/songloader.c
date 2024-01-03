@@ -284,6 +284,7 @@ int loadPcmAudio(SongData *songdata)
 SongData *loadSongData(char *filePath)
 {
         SongData *songdata = malloc(sizeof(SongData));
+        songdata->deleted = false;
         songdata->trackId = generateTrackId();
         songdata->hasErrors = false;
         c_strcpy(songdata->filePath, sizeof(songdata->filePath), "");
@@ -315,10 +316,12 @@ SongData *loadSongData(char *filePath)
 
 void unloadSongData(SongData **songdata)
 {
-        if (*songdata == NULL)
+        if (*songdata == NULL || (*songdata)->deleted == true)
                 return;
 
         SongData *data = *songdata;
+
+        data->deleted = true;
 
         if (data->cover != NULL)
         {

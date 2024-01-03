@@ -399,8 +399,7 @@ void printProgress(double elapsed_seconds, double total_seconds, double total_du
         int vol = getCurrentVolume();
 
         // Clear the current line
-        printf("\033[K");
-        printf("\r");
+        printf("\r\033[K");
         printBlankSpaces(indent);
         if (playlist->count <= MAX_COUNT_PLAYLIST_SONGS && total_duration_seconds > -1)
         {
