@@ -25,8 +25,7 @@ typedef struct
 AppState appState;
 
 const char VERSION[] = "2.0";
-const int LOGO_COLOR = 6;
-const int VERSION_COLOR = 2;
+const int LOGO_COLOR = 3;
 const int ARTIST_COLOR = 6;
 const int ENQUEUED_COLOR = 6;
 const int ABSOLUTE_MIN_WIDTH = 53;
@@ -199,7 +198,6 @@ int printLogo(SongData *songData)
 {
         if (useProfileColors)
                 setTextColor(LOGO_COLOR);
-        printf("\n");
 
         printBlankSpaces(indent);
         printf(" __\n");
@@ -237,7 +235,7 @@ int printLogo(SongData *songData)
         }
         printf("\n\n");
 
-        int height = 7;
+        int height = 6;
         return height;
 }
 
@@ -638,7 +636,7 @@ int showKeyBindings(SongData *songdata)
         printBlankSpaces(indent);
         printf(" - Use ↑, ↓  or %s, %s keys to scroll through playlist.\n", settings.scrollUpAlt, settings.scrollDownAlt);
         printBlankSpaces(indent);
-        printf(" - Enter a Number then Enter to switch song.\n");
+        printf(" - Enter a number then Enter to switch song.\n");
         printBlankSpaces(indent);
         printf(" - Space to toggle pause.\n");
         printBlankSpaces(indent);

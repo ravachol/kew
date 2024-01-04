@@ -741,9 +741,9 @@ int assignLoadedData()
                         if (hasBuiltinDecoder(loadingdata.songdataA->filePath))
                                 result = prepareNextDecoder(loadingdata.songdataA->filePath);
                         else if (endsWith(loadingdata.songdataA->filePath, "opus"))
-                                prepareNextOpusDecoder(loadingdata.songdataA->filePath);
+                                result = prepareNextOpusDecoder(loadingdata.songdataA->filePath);
                         else if (endsWith(loadingdata.songdataA->filePath, "ogg"))
-                                prepareNextVorbisDecoder(loadingdata.songdataA->filePath);
+                                result = prepareNextVorbisDecoder(loadingdata.songdataA->filePath);
                 }
                 else
                         userData.filenameA = NULL;
@@ -758,9 +758,9 @@ int assignLoadedData()
                         if (hasBuiltinDecoder(loadingdata.songdataB->filePath))
                                 result = prepareNextDecoder(loadingdata.songdataB->filePath);
                         else if (endsWith(loadingdata.songdataB->filePath, "opus"))
-                                prepareNextOpusDecoder(loadingdata.songdataB->filePath);
+                                result = prepareNextOpusDecoder(loadingdata.songdataB->filePath);
                         else if (endsWith(loadingdata.songdataB->filePath, "ogg"))
-                                prepareNextVorbisDecoder(loadingdata.songdataB->filePath);
+                                result = prepareNextVorbisDecoder(loadingdata.songdataB->filePath);
                 }
                 else
                         userData.filenameB = NULL;
@@ -805,7 +805,7 @@ void *songDataReaderThread(void *arg)
                 loadingdata->songdataB = songdata;
         }
 
-        int result =  assignLoadedData();
+        int result = assignLoadedData();
 
         if (result < 0)
                 songdata->hasErrors = true;

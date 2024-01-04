@@ -41,7 +41,9 @@ ma_result initFirstDatasource(AudioData *pAudioData, UserData *pUserData)
         }
         else if (endsWith(filePath, "opus"))
         {
-                prepareNextOpusDecoder(filePath);
+                int result = prepareNextOpusDecoder(filePath);
+                if (result < 0)
+                        return -1;                
                 ma_libopus *first = getFirstOpusDecoder();
                 ma_channel channelMap[MA_MAX_CHANNELS];
                 ma_libopus_ds_get_data_format(first, &pAudioData->format, &pAudioData->channels, &pAudioData->sampleRate, channelMap, MA_MAX_CHANNELS);
@@ -52,7 +54,9 @@ ma_result initFirstDatasource(AudioData *pAudioData, UserData *pUserData)
         }
         else if (endsWith(filePath, "ogg"))
         {
-                prepareNextVorbisDecoder(filePath);
+                int result = prepareNextVorbisDecoder(filePath);
+                if (result < 0)
+                        return -1;                
                 ma_libvorbis *first = getFirstVorbisDecoder();
                 ma_channel channelMap[MA_MAX_CHANNELS];
                 ma_libvorbis_ds_get_data_format(first, &pAudioData->format, &pAudioData->channels, &pAudioData->sampleRate, channelMap, MA_MAX_CHANNELS);

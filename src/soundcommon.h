@@ -146,7 +146,7 @@ ma_libopus *getCurrentOpusDecoder();
 
 void switchOpusDecoder();
 
-void prepareNextOpusDecoder(char *filepath);
+int prepareNextOpusDecoder(char *filepath);
 
 void resetOpusDecoders();
 
@@ -162,7 +162,7 @@ ma_libvorbis *getCurrentVorbisDecoder();
 
 void switchVorbisDecoder();
 
-void prepareNextVorbisDecoder(char *filepath);
+int prepareNextVorbisDecoder(char *filepath);
 
 void resetVorbisDecoders();
 
