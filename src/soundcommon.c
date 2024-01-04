@@ -296,7 +296,7 @@ void resetOpusDecoders()
         }
 }
 
-void prepareNextVorbisDecoder(char *filepath)
+int prepareNextVorbisDecoder(char *filepath)
 {
         ma_libvorbis *currentDecoder;
 
@@ -318,7 +318,10 @@ void prepareNextVorbisDecoder(char *filepath)
         uninitPreviousVorbisDecoder();
 
         ma_libvorbis *decoder = (ma_libvorbis *)malloc(sizeof(ma_libvorbis));
-        ma_libvorbis_init_file(filepath, NULL, NULL, decoder);
+        ma_result result = ma_libvorbis_init_file(filepath, NULL, NULL, decoder);
+
+        if (result != MA_SUCCESS)
+                return -1;        
 
         ma_format nformat;
         ma_uint32 nchannels;
@@ -334,7 +337,7 @@ void prepareNextVorbisDecoder(char *filepath)
         {
                 ma_libvorbis_uninit(decoder, NULL);
                 free(decoder);
-                return;
+                return -1;
         }
 
         ma_libvorbis *first = getFirstVorbisDecoder();
@@ -351,9 +354,11 @@ void prepareNextVorbisDecoder(char *filepath)
         setNextVorbisDecoder(decoder);
         if (currentDecoder != NULL)
                 ma_data_source_set_next(currentDecoder, decoder);
+
+        return 0;
 }
 
-void prepareNextOpusDecoder(char *filepath)
+int prepareNextOpusDecoder(char *filepath)
 {
         ma_libopus *currentDecoder;
 
@@ -375,7 +380,10 @@ void prepareNextOpusDecoder(char *filepath)
         uninitPreviousOpusDecoder();
 
         ma_libopus *decoder = (ma_libopus *)malloc(sizeof(ma_libopus));
-        ma_libopus_init_file(filepath, NULL, NULL, decoder);
+        ma_result result = ma_libopus_init_file(filepath, NULL, NULL, decoder);
+
+        if (result != MA_SUCCESS)
+                return -1;
 
         ma_format nformat;
         ma_uint32 nchannels;
@@ -391,10 +399,11 @@ void prepareNextOpusDecoder(char *filepath)
         {
                 ma_libopus_uninit(decoder, NULL);
                 free(decoder);
-                return;
+                return -1;
         }
 
         ma_libopus *first = getFirstOpusDecoder();
+
         if (first != NULL)
         {
                 decoder->pReadSeekTellUserData = (AudioData *)first->pReadSeekTellUserData;
@@ -406,8 +415,11 @@ void prepareNextOpusDecoder(char *filepath)
         decoder->onTell = ma_libopus_get_cursor_in_pcm_frames_wrapper;
 
         setNextOpusDecoder(decoder);
+
         if (currentDecoder != NULL)
                 ma_data_source_set_next(currentDecoder, decoder);
+
+        return 0;
 }
 
 void getFileInfo(const char *filename, ma_uint32 *sampleRate, ma_uint32 *channels, ma_format *format)
