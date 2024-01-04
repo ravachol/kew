@@ -63,7 +63,6 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include "playerops.h"
 #include "mpris.h"
 #include "soundcommon.h"
-#include "kew.h"
 
 // #define DEBUG 1
 #define MAX_SEQ_LEN 1024    // Maximum length of sequence buffer
@@ -607,17 +606,15 @@ void handleInput()
 void resize()
 {
         alarm(1); // Timer
-        setCursorPosition(1, 1);
-        clearRestOfScreen();
         while (resizeFlag)
         {
                 resizeFlag = 0;
                 c_sleep(100);
         }
         alarm(0); // Cancel timer
-        refresh = true;
         printf("\033[1;1H");
-        clearRestOfScreen();
+        clearScreen();
+        refresh = true;        
 }
 
 void updatePlayer()
@@ -677,11 +674,7 @@ void loadAudioData()
 
                         resumePlayback();
 
-                        if (currentSong != NULL && currentSong->next != NULL)
-                        {
-                                loadedNextSong = false;
-                        }
-
+                        loadedNextSong = false;
                         nextSong = NULL;
                         refresh = true;                        
 
