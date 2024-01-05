@@ -699,9 +699,9 @@ void tryLoadNext()
         songHasErrors = false;
         clearingErrors = true;
 
-        if (tryNextSong == NULL)
+        if (tryNextSong == NULL && currentSong != NULL)
                 tryNextSong = currentSong->next;
-        else
+        else if (tryNextSong != NULL)
                 tryNextSong = tryNextSong->next;
 
         if (tryNextSong != NULL)
