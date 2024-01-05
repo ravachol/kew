@@ -21,7 +21,7 @@ elif command -v yum &>/dev/null; then
 elif command -v pacman &>/dev/null; then
     pacman -Syu --noconfirm --needed pkg-config ffmpeg fftw git gcc make chafa freeimage glib2 opus opusfile libvorbis
 elif command -v dnf &>/dev/null; then
-    dnf install -y pkg-config ffmpeg fftw-devel opus-devel opusfile-devel libvorbis-devel git gcc make chafa-devel libfreeimage-devel libavformat-devel glib2-devel
+    dnf install -y pkg-config ffmpeg-free-devel fftw-devel opus-devel opusfile-devel libvorbis-devel git gcc make chafa-devel freeimage-devel libavformat-free-devel glib2-devel
 elif command -v zypper &>/dev/null; then
     zypper install -y pkg-config ffmpeg fftw-devel opus-devel opusfile-devel libvorbis-devel git chafa-devel gcc make libfreeimage-devel libavformat-devel glib2-devel
 elif command -v eopkg &>/dev/null; then
