@@ -190,7 +190,7 @@ double getDuration(const char *filepath)
         double duration = 0.0;
         int result = getSongDuration(filepath, &duration);
 
-        if (result == -1)
+        if (result == -1 || duration == 0)
                 return -1;
         else
                 return duration;
