@@ -895,7 +895,7 @@ void rebuildNextSong(Node *song)
 
 void skipToNextSong()
 {
-        if (currentSong->next == NULL)
+        if (currentSong == NULL || currentSong->next == NULL)
         {
                 return;
         }
@@ -912,12 +912,16 @@ void skipToNextSong()
 
 void skipToPrevSong()
 {
+        if (currentSong == NULL || currentSong->prev == NULL)
+        {
+                return;
+        }
+        
         if (songLoading || !loadedNextSong || skipping || clearingErrors)
                 if (!forceSkip)
                         return;
 
-        if (currentSong->prev != NULL)
-                currentSong = currentSong->prev;
+        currentSong = currentSong->prev;
 
         playbackPlay(&totalPauseSeconds, &pauseSeconds, &pause_time);
 
