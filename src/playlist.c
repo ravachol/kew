@@ -837,6 +837,9 @@ Node *findSongInPlaylist(Node *currentSong, PlayList *playlist)
 {
         Node *currentNode = playlist->head;
 
+        if (currentSong == NULL)
+                return NULL;
+
         while (currentNode != NULL)
         {
                 if (strcmp(currentNode->song.filePath, currentSong->song.filePath) == 0)
