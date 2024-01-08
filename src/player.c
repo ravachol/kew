@@ -201,11 +201,11 @@ int printLogo(SongData *songData)
 
         printBlankSpaces(indent);
         printf(" __\n");
-        printBlankSpaces(indent);        
+        printBlankSpaces(indent);
         printf("|  |--.-----.--.--.--.\n");
         printBlankSpaces(indent);
         printf("|    <|  -__|  |  |  |\n");
-        printBlankSpaces(indent);        
+        printBlankSpaces(indent);
         printf("|__|__|_____|________|");
 
         if (songData != NULL && songData->metadata != NULL)
@@ -773,17 +773,17 @@ int getRowWithinBounds(int row)
         {
                 row = originalPlaylist->count - 1;
         }
-        
+
         if (row < 0)
                 row = 0;
 
-        return row;                
+        return row;
 }
 
 int showPlaylist(SongData *songData)
 {
         Node *node = originalPlaylist->head;
-        Node *foundNode = originalPlaylist->head;
+        Node *foundNode = NULL;
         bool startFromCurrent = false;
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
@@ -791,7 +791,7 @@ int showPlaylist(SongData *songData)
         maxListSize = totalHeight;
         int numRows = 0;
         int numPrintedRows = 0;
-        int foundAt = 0;
+        int foundAt = -1;
 
         maxListSize -= 1;
         numRows++;
@@ -829,7 +829,7 @@ int showPlaylist(SongData *songData)
                 if (numSongs > maxListSize)
                 {
                         startFromCurrent = true;
-                        if (foundAt)
+                        if (foundAt > -1)
                                 break;
                 }
         }
@@ -852,9 +852,9 @@ int showPlaylist(SongData *songData)
                 startIter = chosenSong;
         }
 
-        if (chosenRow >= maxListSize - 1 && chosenRow > startIter + maxListSize - 1)
+        if (chosenRow > startIter + maxListSize - round(maxListSize / 2))
         {
-                startIter = chosenSong - maxListSize + round(maxListSize / 2) + 1;
+                startIter = chosenRow - maxListSize + round(maxListSize / 2);
         }
 
         if (startIter == 0 && chosenRow < 0)
@@ -873,10 +873,13 @@ int showPlaylist(SongData *songData)
                         node = node->prev;
         }
 
-        for (int i = foundAt; i < startIter; i++)
+        if (foundAt > -1)
         {
-                if (node->next != NULL)
-                        node = node->next;
+                for (int i = foundAt; i < startIter; i++)
+                {
+                        if (node->next != NULL)
+                                node = node->next;
+                }
         }
 
         for (int i = (startFromCurrent ? startIter : 0); i < (startFromCurrent ? startIter : 0) + maxListSize; i++)
