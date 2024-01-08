@@ -1271,7 +1271,7 @@ void showLibrary(SongData *songData)
         maxLibListSize = totalHeight;
         setColor();
         int aboutSize = printLogo(songData);
-        int maxNameWidth = term_w - 7 - indent;
+        int maxNameWidth = term_w - 8 - indent;
         maxLibListSize -= aboutSize + 1;
         setColor();
 
