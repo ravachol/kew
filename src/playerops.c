@@ -87,16 +87,21 @@ void rebuildAndUpdatePlaylist()
 void skip()
 {
         setCurrentImplementationType(NONE);
-        setSkipToNext(true);
+        
         setRepeatEnabled(false);
         audioData.endOfListReached = false;
 
         rebuildAndUpdatePlaylist();
 
         if (!isPlaying())
-        {
+        {                            
                 switchAudioImplementation();
         }
+        else
+        {
+                setSkipToNext(true);
+        }
+        
         refresh = true;
 }
 
@@ -213,7 +218,7 @@ void toggleShuffle()
         }
         else
         {
-                playlist = deepCopyPlayList(originalPlaylist);
+                playlist = deepCopyPlayList(originalPlaylist);                
                 currentSong = findSongInPlaylist(currentSong, &playlist);
                 emitBooleanPropertyChanged("Shuffle", FALSE);
         }
@@ -363,7 +368,7 @@ Node *findSelectedEntryById(PlayList *playlist, int id)
 {
         Node *node = playlist->head;
 
-        if (node == NULL)
+        if (node == NULL || id < 0)
                 return NULL;
 
         bool found = false;
@@ -665,9 +670,15 @@ void handleRemove()
         Node *node = findSelectedEntry(originalPlaylist, chosenRow);
         Node *song = getNextSong();
         int id = node->id;
-        int currentId = currentSong->id;
+        int currentId = (currentSong != NULL) ? currentSong->id : -1;
 
-        if (currentSong != NULL && currentSong->id == node->id)
+        if (node != NULL && playlist.head != NULL && playlist.head->id == node->id && playlist.count == 1)
+        {
+                pthread_mutex_unlock(&(playlist.mutex));
+                return;
+        }
+
+        if (currentId == node->id)
         {
                 pthread_mutex_unlock(&(playlist.mutex));
                 return;
@@ -875,8 +886,6 @@ void rebuildNextSong(Node *song)
 
         pthread_mutex_lock(&(loadingdata.mutex));
 
-        //unloadSongData(usingSongDataA ? &loadingdata.songdataB : &loadingdata.songdataA);
-
         songLoading = true;
 
         loadSong(song, &loadingdata);
@@ -916,7 +925,7 @@ void skipToPrevSong()
         {
                 return;
         }
-        
+
         if (songLoading || !loadedNextSong || skipping || clearingErrors)
                 if (!forceSkip)
                         return;
@@ -932,7 +941,6 @@ void skipToPrevSong()
         forceSkip = false;
 
         loadingdata.loadA = !usingSongDataA;
-        //unloadSongData(usingSongDataA ? &loadingdata.songdataB : &loadingdata.songdataA);
 
         loadSong(currentSong, &loadingdata);
         int maxNumTries = 50;
@@ -979,7 +987,6 @@ void skipToSong(int id)
                 return;
 
         loadingdata.loadA = !usingSongDataA;
-        //unloadSongData(usingSongDataA ? &loadingdata.songdataB : &loadingdata.songdataA);
 
         loadSong(currentSong, &loadingdata);
         int maxNumTries = 50;
@@ -1020,7 +1027,6 @@ void skipToNumberedSong(int songNumber)
         currentSong = getSongByNumber(originalPlaylist, songNumber);
 
         loadingdata.loadA = !usingSongDataA;
-        //unloadSongData(usingSongDataA ? &loadingdata.songdataB : &loadingdata.songdataA);
 
         loadSong(currentSong, &loadingdata);
         int maxNumTries = 50;
@@ -1081,6 +1087,8 @@ void loadFirstSong(Node *song)
 void loadFirst(Node *song)
 {
         loadFirstSong(song);
+
+        usingSongDataA = true;
 
         while (songHasErrors && currentSong->next != NULL)
         {

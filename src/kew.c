@@ -79,6 +79,7 @@ int digitsPressedCount = 0;
 int maxDigitsPressedCount = 9;
 bool gotoSong = false;
 bool gPressed = false;
+bool loadingAudioData = false;
 
 bool isCooldownElapsed(int milliSeconds)
 {
@@ -317,9 +318,9 @@ void unloadPreviousSong()
 
         if (usingSongDataA &&
             (skipping || (userData.currentSongData == NULL || userData.currentSongData->deleted == true ||
-                          (loadingdata.songdataA->deleted == false && strcmp(loadingdata.songdataA->trackId, userData.currentSongData->trackId) != 0))))
+                          (loadingdata.songdataA != NULL && loadingdata.songdataA->deleted == false && strcmp(loadingdata.songdataA->trackId, userData.currentSongData->trackId) != 0))))
         {
-                unloadSongData(&loadingdata.songdataA);                
+                unloadSongData(&loadingdata.songdataA);
                 userData.filenameA = NULL;
                 usingSongDataA = false;
                 if (!audioData.endOfListReached)
@@ -327,8 +328,8 @@ void unloadPreviousSong()
         }
         else if (!usingSongDataA &&
                  (skipping || (userData.currentSongData == NULL || userData.currentSongData->deleted == true ||
-                          (loadingdata.songdataB->deleted == false && strcmp(loadingdata.songdataB->trackId, userData.currentSongData->trackId) != 0))))
-        {             
+                               (loadingdata.songdataB != NULL && loadingdata.songdataB->deleted == false && strcmp(loadingdata.songdataB->trackId, userData.currentSongData->trackId) != 0))))
+        {
                 unloadSongData(&loadingdata.songdataB);
                 userData.filenameB = NULL;
                 usingSongDataA = true;
@@ -363,6 +364,16 @@ void setEndOfListReached()
         pthread_mutex_lock(&dataSourceMutex);
 
         cleanupPlaybackDevice();
+
+        if (audioData.fileA != NULL)
+                fclose(audioData.fileA);
+
+        audioData.fileA = NULL;
+
+        if (audioData.fileB != NULL)
+                fclose(audioData.fileB);
+
+        audioData.fileB = NULL;        
 
         pthread_mutex_unlock(&dataSourceMutex);
 
@@ -406,14 +417,6 @@ void prepareNextSong()
                 gotoSong = false;
         }
 
-        if (currentSong == NULL)
-        {
-                if (quitAfterStopping)
-                        quit();
-                else
-                        setEndOfListReached();
-        }
-
         finishLoading();
         resetTimeCount();
 
@@ -423,6 +426,14 @@ void prepareNextSong()
         if (!isRepeatEnabled())
         {
                 unloadPreviousSong();
+        }
+
+        if (currentSong == NULL)
+        {
+                if (quitAfterStopping)
+                        quit();
+                else
+                        setEndOfListReached();
         }
 
         clock_gettime(CLOCK_MONOTONIC, &start_time);
@@ -614,7 +625,7 @@ void resize()
         alarm(0); // Cancel timer
         printf("\033[1;1H");
         clearScreen();
-        refresh = true;        
+        refresh = true;
 }
 
 void updatePlayer()
@@ -640,6 +651,8 @@ void updatePlayer()
 
 void loadAudioData()
 {
+        loadingAudioData = true;
+
         if (audioData.restart == true)
         {
                 if (playlist.head != NULL && (waitingForPlaylist || waitingForNext))
@@ -676,7 +689,7 @@ void loadAudioData()
 
                         loadedNextSong = false;
                         nextSong = NULL;
-                        refresh = true;                        
+                        refresh = true;
 
                         clock_gettime(CLOCK_MONOTONIC, &start_time);
 
@@ -692,6 +705,8 @@ void loadAudioData()
                 nextSong = getListNext(currentSong);
                 loadSong(nextSong, &loadingdata);
         }
+        
+        loadingAudioData = false;
 }
 
 void tryLoadNext()
@@ -732,7 +747,7 @@ gboolean mainloop_callback(gpointer data)
 
         if (playlist.head != NULL)
         {
-                if (!loadedNextSong && !audioData.endOfListReached)
+                if (loadingAudioData == false && !loadedNextSong && !audioData.endOfListReached)
                         loadAudioData();
 
                 if (songHasErrors)
