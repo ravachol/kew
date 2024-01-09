@@ -80,6 +80,7 @@ int maxDigitsPressedCount = 9;
 bool gotoSong = false;
 bool gPressed = false;
 bool loadingAudioData = false;
+bool goingToSong = false;
 
 bool isCooldownElapsed(int milliSeconds)
 {
@@ -318,7 +319,7 @@ void unloadPreviousSong()
 
         if (usingSongDataA &&
             (skipping || (userData.currentSongData == NULL || userData.currentSongData->deleted == true ||
-                          (loadingdata.songdataA != NULL && loadingdata.songdataA->deleted == false && strcmp(loadingdata.songdataA->trackId, userData.currentSongData->trackId) != 0))))
+                          (loadingdata.songdataA != NULL && loadingdata.songdataA->deleted == false && userData.currentSongData->trackId != NULL && strcmp(loadingdata.songdataA->trackId, userData.currentSongData->trackId) != 0))))
         {
                 unloadSongData(&loadingdata.songdataA);
                 userData.filenameA = NULL;
@@ -328,7 +329,7 @@ void unloadPreviousSong()
         }
         else if (!usingSongDataA &&
                  (skipping || (userData.currentSongData == NULL || userData.currentSongData->deleted == true ||
-                               (loadingdata.songdataB != NULL && loadingdata.songdataB->deleted == false && strcmp(loadingdata.songdataB->trackId, userData.currentSongData->trackId) != 0))))
+                               (loadingdata.songdataB != NULL && loadingdata.songdataB->deleted == false && userData.currentSongData->trackId != NULL && strcmp(loadingdata.songdataB->trackId, userData.currentSongData->trackId) != 0))))
         {
                 unloadSongData(&loadingdata.songdataB);
                 userData.filenameB = NULL;
@@ -463,6 +464,11 @@ void refreshPlayer()
 
 void handleGoToSong()
 {
+        if (goingToSong)
+                return;
+
+        goingToSong = true;
+
         if (appState.currentView != LIBRARY_VIEW)
         {
                 if (digitsPressedCount == 0)
@@ -492,6 +498,8 @@ void handleGoToSong()
         {
                 enqueueSongs();
         }
+
+        goingToSong = false;
 }
 
 void gotoBeginningOfPlaylist()
