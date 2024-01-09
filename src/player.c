@@ -218,18 +218,7 @@ int printLogo(SongData *songData)
                 strcat(title, songData->metadata->title);
                 shortenString(title, term_w - indent - indent - 27);
 
-                if (nerdFontsEnabled)
-                {
-
-                        if (isPaused())
-                                printf(" \uf04c %s", title);
-                        else
-                                printf(" \uf04b %s", title);
-                }
-                else
-                {
-                        printf(" %s", title);
-                }
+                printf(" > %s", title);
 
                 free(title);
         }
@@ -983,14 +972,6 @@ void printElapsedBars(int elapsedBars)
                 }
         }
         printf("\n");
-}
-
-int calcElapsedBars(double elapsedSeconds, double duration, int numProgressBars)
-{
-        if (elapsedSeconds == 0)
-                return 0;
-
-        return (int)((elapsedSeconds / duration) * numProgressBars);
 }
 
 void printVisualizer()
