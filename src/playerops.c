@@ -285,12 +285,22 @@ void calcElapsedTime()
         {
                 elapsedSeconds = (double)(current_time.tv_sec - start_time.tv_sec) +
                                  (double)(current_time.tv_nsec - start_time.tv_nsec) / 1e9;
-                elapsedSeconds += getSeekElapsed() + seekAccumulatedSeconds;
-                elapsedSeconds -= totalPauseSeconds;
+                double seekElapsed = getSeekElapsed();
+                double diff = elapsedSeconds + (seekElapsed + seekAccumulatedSeconds - totalPauseSeconds);
+                
+                if (diff < 0)
+                        seekElapsed -= diff;
+
+                elapsedSeconds += seekElapsed + seekAccumulatedSeconds - totalPauseSeconds;
                 if (elapsedSeconds > duration)
                         elapsedSeconds = duration;
+
+                setSeekElapsed(seekElapsed);
+
                 if (elapsedSeconds < 0.0)
+                {
                         elapsedSeconds = 0.0;
+                }
         }
         else
         {
@@ -357,8 +367,6 @@ void seekBack()
         if (duration != 0.0)
         {
                 float step = 100 / numProgressBars;
-                if (elapsedSeconds + getSeekElapsed() + seekAccumulatedSeconds < 0.0)
-                        return;
                 seekAccumulatedSeconds -= step * duration / 100.0;
         }
         rewinding = true;
