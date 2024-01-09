@@ -62,8 +62,11 @@ void pcm_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_uint6
                                 pAudioData->base.rangeEndInFrames = pAudioData->totalFrames;
                         }
                         ma_uint64 seekPercent = getSeekPercentage();
-                        if (seekPercent >= 100.0)
+                        if (seekPercent > 100.0)
                                 seekPercent = 100.0;
+                        if (seekPercent < 0.0)
+                                seekPercent = 0.0;
+                                
                         ma_uint32 targetFrame = (pAudioData->totalFrames * seekPercent) / 100;
 
                         ma_data_source_seek_to_pcm_frame(pDataSource, targetFrame);
