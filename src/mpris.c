@@ -551,11 +551,11 @@ static GVariant *get_property_callback(GDBusConnection *connection, const gchar 
                         g_set_error(error, G_IO_ERROR, G_IO_ERROR_FAILED, "Unknown property");
                 }
 
-                if (error != NULL) 
+                if (error) 
                 {
-                        g_warning("Error getting property %s: %s", property_name, (*error)->message);
-                        g_error_free(*error);
-                        value = NULL;
+                        g_warning("Error getting property %s", property_name);
+                        g_clear_error(error);
+                        g_clear_pointer(&value, g_variant_unref);
                         return NULL;
                 }
         }
