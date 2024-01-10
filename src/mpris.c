@@ -328,6 +328,8 @@ static gboolean get_metadata(GDBusConnection *connection, const gchar *sender,
                              const gchar *property_name, GVariant **value,
                              GError **error, gpointer user_data)
 {
+        if (currentSong == NULL)
+                return FALSE;
 
         SongData *currentSongData = NULL;
 
