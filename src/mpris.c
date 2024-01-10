@@ -554,6 +554,13 @@ static GVariant *get_property_callback(GDBusConnection *connection, const gchar 
                 g_warning("Unknown interface");
                 return NULL;
         }
+
+        // Check if value is NULL and set an error if needed
+        if (value == NULL && error == NULL)
+        {
+                g_set_error(error, G_IO_ERROR, G_IO_ERROR_FAILED, "Property value is NULL");
+        }
+
         return value;
 }
 
