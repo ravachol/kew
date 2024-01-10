@@ -215,6 +215,9 @@ int walker(const char *startPath, const char *searching, char *result,
 
 int expandPath(const char *inputPath, char *expandedPath)
 {
+        if (inputPath[0] == '\0' || inputPath[0] == '\r')
+                return -1;
+
         if (inputPath[0] == '~') // Check if inputPath starts with '~'
         {
                 const char *homeDir;

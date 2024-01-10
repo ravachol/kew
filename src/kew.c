@@ -1010,6 +1010,20 @@ int main(int argc, char *argv[])
 {
         atexit(cleanupOnExit);
         getConfig();
+
+        if (argc == 3 && (strcmp(argv[1], "path") == 0))
+        {
+                c_strcpy(settings.path, sizeof(settings.path), argv[2]);
+                setConfig();
+                exit(0);
+        }        
+        else if (settings.path[0] == '\0') 
+        {
+                printf("Please make sure the path is set correctly. \n");
+                printf("To set it type: kew path \"/path/to/Music\". \n");
+                exit(0);
+        }
+
         loadMainPlaylist(settings.path);
 
         handleOptions(&argc, argv);
@@ -1033,11 +1047,6 @@ int main(int argc, char *argv[])
         else if (argc == 2 && (strcmp(argv[1], "--version") == 0 || strcmp(argv[1], "-v") == 0))
         {
                 printAbout(NULL);
-        }
-        else if (argc == 3 && (strcmp(argv[1], "path") == 0))
-        {
-                c_strcpy(settings.path, sizeof(settings.path), argv[2]);
-                setConfig();
         }
         else if (argc >= 2)
         {
