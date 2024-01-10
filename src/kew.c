@@ -803,13 +803,15 @@ void play(Node *song)
         refresh = true;
 
         clock_gettime(CLOCK_MONOTONIC, &start_time);
-        // calculatePlayListDuration(&playlist);
+        
         playlist.totalDuration = -1;
 
         main_loop = g_main_loop_new(NULL, FALSE);
 
         if (song != NULL)
                 emitStartPlayingMpris();
+        else
+                emitPlaybackStoppedMpris();
 
         g_timeout_add(100, mainloop_callback, NULL);
         g_main_loop_run(main_loop);
@@ -912,6 +914,7 @@ void openLibrary()
 {
         appState.currentView = LIBRARY_VIEW;
         init();
+        playlist.head = NULL;
         run();
 }
 

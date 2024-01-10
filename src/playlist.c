@@ -30,7 +30,7 @@ Playlist related functions.
 
 const char PLAYLIST_EXTENSIONS[] = "\\.(m3u)$";
 const char mainPlaylistName[] = "kew.m3u";
-PlayList playlist = {NULL, NULL, 0, 0.0};
+PlayList playlist = {NULL, NULL, 0, 0.0, NULL};
 PlayList *mainPlaylist = NULL;
 PlayList *originalPlaylist = NULL;
 
@@ -78,7 +78,7 @@ void addToList(PlayList *list, SongInfo song, int id)
 
 Node *deleteFromList(PlayList *list, Node *node)
 {
-       if (list->head == NULL || node == NULL)
+        if (list->head == NULL || node == NULL)
                 return NULL;
 
         if (node == list->head)
@@ -481,7 +481,7 @@ int makePlaylist(int argc, char *argv[])
                                 else
                                 {
                                         pthread_mutex_lock(&(playlist.mutex));
-                                        
+
                                         buildPlaylistRecursive(buf, allowedExtensions, &partialPlaylist);
                                         joinPlaylist(&playlist, &partialPlaylist);
 
@@ -527,7 +527,7 @@ void *getDurationsThread(void *arg)
                         pthread_mutex_unlock(&(playlist.mutex));
                         return NULL;
                 }
-               if (currentNode->song.duration > 0.0)
+                if (currentNode->song.duration > 0.0)
                 {
                         currentNode = getListNext(currentNode);
                         continue;
@@ -558,7 +558,7 @@ void *getDurationsThread(void *arg)
                         playList->totalDuration += currentNode->song.duration;
                 currentNode = getListNext(currentNode);
         }
-        pthread_mutex_unlock(&(playlist.mutex));        
+        pthread_mutex_unlock(&(playlist.mutex));
         return NULL;
 }
 
@@ -566,7 +566,7 @@ double calcTotalDuration(PlayList *playList)
 {
         double totalDuration = 0.0;
 
-        Node* tmp = playList->head;
+        Node *tmp = playList->head;
 
         while (tmp != NULL)
         {
@@ -854,22 +854,22 @@ Node *findSongInPlaylist(Node *currentSong, PlayList *playlist)
 
 int findNodeInList(PlayList *list, int id, Node **foundNode)
 {
-    Node *node = list->head;
-    int row = 0;
+        Node *node = list->head;
+        int row = 0;
 
-    while (node != NULL)
-    {
-        if (id == node->id)
+        while (node != NULL)
         {
-            *foundNode = node;
-            return row;
+                if (id == node->id)
+                {
+                        *foundNode = node;
+                        return row;
+                }
+
+                node = node->next;
+                row++;
         }
 
-        node = node->next;
-        row++;
-    }
+        *foundNode = NULL;
 
-    *foundNode = NULL;
-
-    return -1;
+        return -1;
 }
