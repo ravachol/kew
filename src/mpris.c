@@ -278,7 +278,7 @@ static gboolean get_playback_status(GDBusConnection *connection, const gchar *se
                                     const gchar *property_name, GVariant **value,
                                     GError **error, gpointer user_data)
 {
-        static const gchar *status = "Stopped";
+        const gchar *status = "Stopped";
 
         if (isPaused())
         {
@@ -328,42 +328,40 @@ static gboolean get_metadata(GDBusConnection *connection, const gchar *sender,
                              const gchar *property_name, GVariant **value,
                              GError **error, gpointer user_data)
 {
-        if (currentSong == NULL)
-                return FALSE;
+    SongData *currentSongData = getCurrentSongData();
 
-        SongData *currentSongData = NULL;
+    GVariantBuilder metadata_builder;
+    g_variant_builder_init(&metadata_builder, G_VARIANT_TYPE_DICTIONARY);
 
-        currentSongData = getCurrentSongData();
-
-        if (currentSongData == NULL || currentSongData->metadata == NULL)
-                return FALSE;
-
-        GVariantBuilder metadata_builder;
-        g_variant_builder_init(&metadata_builder, G_VARIANT_TYPE_DICTIONARY);
+    if (currentSong != NULL && currentSongData != NULL && currentSongData->metadata != NULL) {
         g_variant_builder_add(&metadata_builder, "{sv}", "xesam:title", g_variant_new_string(currentSongData->metadata->title));
 
-        // Build list os strings for artist
+        // Build list of strings for artist
         const gchar *artistList[2];
-        if (currentSongData->metadata->artist[0] != '\0')
-        {
-                artistList[0] = currentSongData->metadata->artist;
-                artistList[1] = NULL;
-        }
-        else
-        {
-                artistList[0] = "";
-                artistList[1] = NULL;
+        if (currentSongData->metadata->artist[0] != '\0') {
+            artistList[0] = currentSongData->metadata->artist;
+            artistList[1] = NULL;
+        } else {
+            artistList[0] = "";
+            artistList[1] = NULL;
         }
         g_variant_builder_add(&metadata_builder, "{sv}", "xesam:artist", g_variant_new_strv(artistList, -1));
         g_variant_builder_add(&metadata_builder, "{sv}", "xesam:album", g_variant_new_string(currentSongData->metadata->album));
         g_variant_builder_add(&metadata_builder, "{sv}", "xesam:contentCreated", g_variant_new_string(currentSongData->metadata->date));
         g_variant_builder_add(&metadata_builder, "{sv}", "mpris:artUrl", g_variant_new_string(currentSongData->coverArtPath));
         g_variant_builder_add(&metadata_builder, "{sv}", "mpris:trackid", g_variant_new_object_path(currentSongData->trackId));
+    } else {
+        g_variant_builder_add(&metadata_builder, "{sv}", "xesam:title", g_variant_new_string(""));
+        g_variant_builder_add(&metadata_builder, "{sv}", "xesam:artist", g_variant_new_strv((const gchar*[]){"", NULL}, -1));
+        g_variant_builder_add(&metadata_builder, "{sv}", "xesam:album", g_variant_new_string(""));
+        g_variant_builder_add(&metadata_builder, "{sv}", "xesam:contentCreated", g_variant_new_string(""));
+        g_variant_builder_add(&metadata_builder, "{sv}", "mpris:artUrl", g_variant_new_string(""));
+        g_variant_builder_add(&metadata_builder, "{sv}", "mpris:trackid", g_variant_new_object_path(""));
+    }
 
-        GVariant *metadata_variant = g_variant_builder_end(&metadata_builder);
-
-        *value = g_variant_ref_sink(metadata_variant);
-        return TRUE;
+    GVariant *metadata_variant = g_variant_builder_end(&metadata_builder);
+    *value = g_variant_ref_sink(metadata_variant);
+    return TRUE;
 }
 
 static gboolean get_volume(GDBusConnection *connection, const gchar *sender,
@@ -372,7 +370,7 @@ static gboolean get_volume(GDBusConnection *connection, const gchar *sender,
                            GError **error, gpointer user_data)
 {
 
-        Volume = getCurrentVolume();
+        Volume = (gdouble)getCurrentVolume();
 
         *value = g_variant_new_double(Volume);
         return TRUE;
@@ -411,7 +409,7 @@ static gboolean get_can_go_next(GDBusConnection *connection, const gchar *sender
                                 GError **error, gpointer user_data)
 {
 
-        CanGoNext = (currentSong == NULL || currentSong->next != NULL);
+        CanGoNext = (currentSong == NULL || currentSong->next != NULL) ? TRUE : FALSE;
 
         *value = g_variant_new_boolean(CanGoNext);
         return TRUE;
@@ -423,7 +421,7 @@ static gboolean get_can_go_previous(GDBusConnection *connection, const gchar *se
                                     GError **error, gpointer user_data)
 {
 
-        CanGoPrevious = (currentSong == NULL || currentSong->prev != NULL);
+        CanGoPrevious = (currentSong == NULL || currentSong->prev != NULL) ? TRUE : FALSE;
 
         *value = g_variant_new_boolean(CanGoPrevious);
         return TRUE;
@@ -549,14 +547,6 @@ static GVariant *get_property_callback(GDBusConnection *connection, const gchar 
                 else
                 {
                         g_set_error(error, G_IO_ERROR, G_IO_ERROR_FAILED, "Unknown property");
-                }
-
-                if (error) 
-                {
-                        g_warning("Error getting property %s", property_name);
-                        g_clear_error(error);
-                        g_clear_pointer(&value, g_variant_unref);
-                        return NULL;
                 }
         }
         else
