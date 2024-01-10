@@ -316,18 +316,7 @@ int getMusicLibraryPath(char *path)
         {
                 if (expandPath(path, expandedPath) >= 0)
                         strcpy(path, expandedPath);
-                return 0;
         }
-
-        if (path[0] == '\0')
-        {
-                const char *musicFolder = getDefaultMusicFolder();
-                if (musicFolder != NULL)
-                        strcpy(path, musicFolder);
-        }
-
-        if (expandPath(path, expandedPath))
-                strcpy(path, expandedPath);
 
         return 0;
 }
