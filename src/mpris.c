@@ -278,13 +278,20 @@ static gboolean get_playback_status(GDBusConnection *connection, const gchar *se
                                     const gchar *property_name, GVariant **value,
                                     GError **error, gpointer user_data)
 {
-        static const gchar *status = "Playing";
+        static const gchar *status = "Stopped";
 
         if (isPaused())
+        {
                 status = "Paused";
+        }
+        else if (currentSong == NULL)
+        {
+                status = "Stopped";
+        }
         else
+        {
                 status = "Playing";
-
+        }
         *value = g_variant_new_string(status);
         return TRUE;
 }
@@ -690,7 +697,7 @@ void initMpris()
         if (!connection)
         {
                 g_printerr("Failed to connect to D-Bus\n");
-                return;
+                exit(0);
         }
 
         const char *app_name = "org.mpris.MediaPlayer2.kew";
@@ -709,7 +716,7 @@ void initMpris()
         if (bus_name_id == 0)
         {
                 printf("Failed to own D-Bus name: %s\n", unique_name);
-                return;
+                exit(0);
         }
 
         registration_id = g_dbus_connection_register_object(
@@ -725,7 +732,7 @@ void initMpris()
         {
                 g_printerr("Failed to register media player object: %s\n", error->message);
                 g_error_free(error);
-                return;
+                exit(0);
         }
 
         player_registration_id = g_dbus_connection_register_object(
@@ -741,7 +748,7 @@ void initMpris()
         {
                 g_printerr("Failed to register media player object: %s\n", error->message);
                 g_error_free(error);
-                return;
+                exit(0);
         }
 }
 
