@@ -555,6 +555,7 @@ static GVariant *get_property_callback(GDBusConnection *connection, const gchar 
                 {
                         g_warning("Error getting property %s: %s", property_name, (*error)->message);
                         g_error_free(*error);
+                        value = NULL;
                         return NULL;
                 }
         }
