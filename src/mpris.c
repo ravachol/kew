@@ -548,10 +548,18 @@ static GVariant *get_property_callback(GDBusConnection *connection, const gchar 
                 {
                         g_set_error(error, G_IO_ERROR, G_IO_ERROR_FAILED, "Unknown property");
                 }
+
+                if (error != NULL) 
+                {
+                        g_warning("Error getting property %s: %s", property_name, (*error)->message);
+                        g_error_free(*error);
+                        return NULL;
+                }
         }
         else
         {
-                g_set_error(error, G_IO_ERROR, G_IO_ERROR_FAILED, "Unknown interface");
+                g_warning("Unknown interface");
+                return NULL;
         }
         return value;
 }
