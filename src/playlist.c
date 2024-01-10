@@ -30,7 +30,7 @@ Playlist related functions.
 
 const char PLAYLIST_EXTENSIONS[] = "\\.(m3u)$";
 const char mainPlaylistName[] = "kew.m3u";
-PlayList playlist = {NULL, NULL, 0, 0.0, NULL};
+PlayList playlist = {NULL, NULL, 0, 0.0, PTHREAD_MUTEX_INITIALIZER};
 PlayList *mainPlaylist = NULL;
 PlayList *originalPlaylist = NULL;
 
@@ -728,7 +728,7 @@ void saveMainPlaylist(const char *directory, bool isPlayingMain)
 
         if (isPlayingMain && playlist.count > 0)
                 writeM3UFile(playlistPath, &playlist);
-        else if (mainPlaylist->count > 0)
+        else if (mainPlaylist != NULL && mainPlaylist->count > 0)
                 writeM3UFile(playlistPath, mainPlaylist);
 }
 
