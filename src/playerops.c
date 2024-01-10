@@ -272,6 +272,9 @@ void quit()
 
 SongData *getCurrentSongData()
 {
+        if (currentSong == NULL)
+                return NULL;
+
         if (usingSongDataA)
                 return loadingdata.songdataA;
         else

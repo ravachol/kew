@@ -362,6 +362,10 @@ void setEndOfListReached()
         if (songData != NULL && songData->deleted == false)
                 unloadSongData(&songData);
 
+        emitMetadataChanged("", "", "", "", "", NULL);
+
+        emitPlaybackStoppedMpris();                
+
         pthread_mutex_lock(&dataSourceMutex);
 
         cleanupPlaybackDevice();
