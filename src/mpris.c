@@ -328,40 +328,46 @@ static gboolean get_metadata(GDBusConnection *connection, const gchar *sender,
                              const gchar *property_name, GVariant **value,
                              GError **error, gpointer user_data)
 {
-    SongData *currentSongData = getCurrentSongData();
+        SongData *currentSongData = getCurrentSongData();
 
-    GVariantBuilder metadata_builder;
-    g_variant_builder_init(&metadata_builder, G_VARIANT_TYPE_DICTIONARY);
+        GVariantBuilder metadata_builder;
+        g_variant_builder_init(&metadata_builder, G_VARIANT_TYPE_DICTIONARY);
 
-    if (currentSong != NULL && currentSongData != NULL && currentSongData->metadata != NULL) {
-        g_variant_builder_add(&metadata_builder, "{sv}", "xesam:title", g_variant_new_string(currentSongData->metadata->title));
+        if (currentSong != NULL && currentSongData != NULL && currentSongData->metadata != NULL)
+        {
+                g_variant_builder_add(&metadata_builder, "{sv}", "xesam:title", g_variant_new_string(currentSongData->metadata->title));
 
-        // Build list of strings for artist
-        const gchar *artistList[2];
-        if (currentSongData->metadata->artist[0] != '\0') {
-            artistList[0] = currentSongData->metadata->artist;
-            artistList[1] = NULL;
-        } else {
-            artistList[0] = "";
-            artistList[1] = NULL;
+                // Build list of strings for artist
+                const gchar *artistList[2];
+                if (currentSongData->metadata->artist[0] != '\0')
+                {
+                        artistList[0] = currentSongData->metadata->artist;
+                        artistList[1] = NULL;
+                }
+                else
+                {
+                        artistList[0] = "";
+                        artistList[1] = NULL;
+                }
+                g_variant_builder_add(&metadata_builder, "{sv}", "xesam:artist", g_variant_new_strv(artistList, -1));
+                g_variant_builder_add(&metadata_builder, "{sv}", "xesam:album", g_variant_new_string(currentSongData->metadata->album));
+                g_variant_builder_add(&metadata_builder, "{sv}", "xesam:contentCreated", g_variant_new_string(currentSongData->metadata->date));
+                g_variant_builder_add(&metadata_builder, "{sv}", "mpris:artUrl", g_variant_new_string(currentSongData->coverArtPath));
+                g_variant_builder_add(&metadata_builder, "{sv}", "mpris:trackid", g_variant_new_object_path(currentSongData->trackId));
         }
-        g_variant_builder_add(&metadata_builder, "{sv}", "xesam:artist", g_variant_new_strv(artistList, -1));
-        g_variant_builder_add(&metadata_builder, "{sv}", "xesam:album", g_variant_new_string(currentSongData->metadata->album));
-        g_variant_builder_add(&metadata_builder, "{sv}", "xesam:contentCreated", g_variant_new_string(currentSongData->metadata->date));
-        g_variant_builder_add(&metadata_builder, "{sv}", "mpris:artUrl", g_variant_new_string(currentSongData->coverArtPath));
-        g_variant_builder_add(&metadata_builder, "{sv}", "mpris:trackid", g_variant_new_object_path(currentSongData->trackId));
-    } else {
-        g_variant_builder_add(&metadata_builder, "{sv}", "xesam:title", g_variant_new_string(""));
-        g_variant_builder_add(&metadata_builder, "{sv}", "xesam:artist", g_variant_new_strv((const gchar*[]){"", NULL}, -1));
-        g_variant_builder_add(&metadata_builder, "{sv}", "xesam:album", g_variant_new_string(""));
-        g_variant_builder_add(&metadata_builder, "{sv}", "xesam:contentCreated", g_variant_new_string(""));
-        g_variant_builder_add(&metadata_builder, "{sv}", "mpris:artUrl", g_variant_new_string(""));
-        g_variant_builder_add(&metadata_builder, "{sv}", "mpris:trackid", g_variant_new_object_path(""));
-    }
+        else
+        {
+                g_variant_builder_add(&metadata_builder, "{sv}", "xesam:title", g_variant_new_string(""));
+                g_variant_builder_add(&metadata_builder, "{sv}", "xesam:artist", g_variant_new_strv((const gchar *[]){"", NULL}, -1));
+                g_variant_builder_add(&metadata_builder, "{sv}", "xesam:album", g_variant_new_string(""));
+                g_variant_builder_add(&metadata_builder, "{sv}", "xesam:contentCreated", g_variant_new_string(""));
+                g_variant_builder_add(&metadata_builder, "{sv}", "mpris:artUrl", g_variant_new_string(""));
+                g_variant_builder_add(&metadata_builder, "{sv}", "mpris:trackid", g_variant_new_object_path("/org/mpris/MediaPlayer2/TrackList/NoTrack"));
+        }
 
-    GVariant *metadata_variant = g_variant_builder_end(&metadata_builder);
-    *value = g_variant_ref_sink(metadata_variant);
-    return TRUE;
+        GVariant *metadata_variant = g_variant_builder_end(&metadata_builder);
+        *value = g_variant_ref_sink(metadata_variant);
+        return TRUE;
 }
 
 static gboolean get_volume(GDBusConnection *connection, const gchar *sender,
@@ -470,89 +476,81 @@ static GVariant *get_property_callback(GDBusConnection *connection, const gchar 
 
         GVariant *value = NULL;
 
-        if (g_strcmp0(interface_name, "org.mpris.MediaPlayer2.Player") == 0 || g_strcmp0(interface_name, "org.mpris.MediaPlayer2") == 0)
+        if (g_strcmp0(property_name, "PlaybackStatus") == 0)
         {
-                if (g_strcmp0(property_name, "PlaybackStatus") == 0)
-                {
-                        get_playback_status(connection, sender, object_path, interface_name, property_name, &value, error, user_data);
-                }
-                else if (g_strcmp0(property_name, "LoopStatus") == 0)
-                {
-                        get_loop_status(connection, sender, object_path, interface_name, property_name, &value, error, user_data);
-                }
-                else if (g_strcmp0(property_name, "Rate") == 0)
-                {
-                        get_rate(connection, sender, object_path, interface_name, property_name, &value, error, user_data);
-                }
-                else if (g_strcmp0(property_name, "Shuffle") == 0)
-                {
-                        get_shuffle(connection, sender, object_path, interface_name, property_name, &value, error, user_data);
-                }
-                else if (g_strcmp0(property_name, "Metadata") == 0)
-                {
-                        get_metadata(connection, sender, object_path, interface_name, property_name, &value, error, user_data);
-                }
-                else if (g_strcmp0(property_name, "Volume") == 0)
-                {
-                        get_volume(connection, sender, object_path, interface_name, property_name, &value, error, user_data);
-                }
-                else if (g_strcmp0(property_name, "Position") == 0)
-                {
-                        get_position(connection, sender, object_path, interface_name, property_name, &value, error, user_data);
-                }
-                else if (g_strcmp0(property_name, "MinimumRate") == 0)
-                {
-                        get_minimum_rate(connection, sender, object_path, interface_name, property_name, &value, error, user_data);
-                }
-                else if (g_strcmp0(property_name, "MaximumRate") == 0)
-                {
-                        get_maximum_rate(connection, sender, object_path, interface_name, property_name, &value, error, user_data);
-                }
-                else if (g_strcmp0(property_name, "CanGoNext") == 0)
-                {
-                        get_can_go_next(connection, sender, object_path, interface_name, property_name, &value, error, user_data);
-                }
-                else if (g_strcmp0(property_name, "CanGoPrevious") == 0)
-                {
-                        get_can_go_previous(connection, sender, object_path, interface_name, property_name, &value, error, user_data);
-                }
-                else if (g_strcmp0(property_name, "CanPlay") == 0)
-                {
-                        get_can_play(connection, sender, object_path, interface_name, property_name, &value, error, user_data);
-                }
-                else if (g_strcmp0(property_name, "CanPause") == 0)
-                {
-                        get_can_pause(connection, sender, object_path, interface_name, property_name, &value, error, user_data);
-                }
-                else if (g_strcmp0(property_name, "CanSeek") == 0)
-                {
-                        get_can_seek(connection, sender, object_path, interface_name, property_name, &value, error, user_data);
-                }
-                else if (g_strcmp0(property_name, "CanControl") == 0)
-                {
-                        get_can_control(connection, sender, object_path, interface_name, property_name, &value, error, user_data);
-                }
-                else if (g_strcmp0(property_name, "DesktopIconName") == 0)
-                {
-                        get_desktop_icon_name(connection, sender, object_path, interface_name, property_name, &value, error, user_data);
-                }
-                else if (g_strcmp0(property_name, "DesktopEntry") == 0)
-                {
-                        get_desktop_entry(connection, sender, object_path, interface_name, property_name, &value, error, user_data);
-                }
-                else if (g_strcmp0(property_name, "Identity") == 0)
-                {
-                        get_identity(connection, sender, object_path, interface_name, property_name, &value, error, user_data);
-                }
-                else
-                {
-                        g_set_error(error, G_IO_ERROR, G_IO_ERROR_FAILED, "Unknown property");
-                }
+                get_playback_status(connection, sender, object_path, interface_name, property_name, &value, error, user_data);
+        }
+        else if (g_strcmp0(property_name, "LoopStatus") == 0)
+        {
+                get_loop_status(connection, sender, object_path, interface_name, property_name, &value, error, user_data);
+        }
+        else if (g_strcmp0(property_name, "Rate") == 0)
+        {
+                get_rate(connection, sender, object_path, interface_name, property_name, &value, error, user_data);
+        }
+        else if (g_strcmp0(property_name, "Shuffle") == 0)
+        {
+                get_shuffle(connection, sender, object_path, interface_name, property_name, &value, error, user_data);
+        }
+        else if (g_strcmp0(property_name, "Metadata") == 0)
+        {
+                get_metadata(connection, sender, object_path, interface_name, property_name, &value, error, user_data);
+        }
+        else if (g_strcmp0(property_name, "Volume") == 0)
+        {
+                get_volume(connection, sender, object_path, interface_name, property_name, &value, error, user_data);
+        }
+        else if (g_strcmp0(property_name, "Position") == 0)
+        {
+                get_position(connection, sender, object_path, interface_name, property_name, &value, error, user_data);
+        }
+        else if (g_strcmp0(property_name, "MinimumRate") == 0)
+        {
+                get_minimum_rate(connection, sender, object_path, interface_name, property_name, &value, error, user_data);
+        }
+        else if (g_strcmp0(property_name, "MaximumRate") == 0)
+        {
+                get_maximum_rate(connection, sender, object_path, interface_name, property_name, &value, error, user_data);
+        }
+        else if (g_strcmp0(property_name, "CanGoNext") == 0)
+        {
+                get_can_go_next(connection, sender, object_path, interface_name, property_name, &value, error, user_data);
+        }
+        else if (g_strcmp0(property_name, "CanGoPrevious") == 0)
+        {
+                get_can_go_previous(connection, sender, object_path, interface_name, property_name, &value, error, user_data);
+        }
+        else if (g_strcmp0(property_name, "CanPlay") == 0)
+        {
+                get_can_play(connection, sender, object_path, interface_name, property_name, &value, error, user_data);
+        }
+        else if (g_strcmp0(property_name, "CanPause") == 0)
+        {
+                get_can_pause(connection, sender, object_path, interface_name, property_name, &value, error, user_data);
+        }
+        else if (g_strcmp0(property_name, "CanSeek") == 0)
+        {
+                get_can_seek(connection, sender, object_path, interface_name, property_name, &value, error, user_data);
+        }
+        else if (g_strcmp0(property_name, "CanControl") == 0)
+        {
+                get_can_control(connection, sender, object_path, interface_name, property_name, &value, error, user_data);
+        }
+        else if (g_strcmp0(property_name, "DesktopIconName") == 0)
+        {
+                get_desktop_icon_name(connection, sender, object_path, interface_name, property_name, &value, error, user_data);
+        }
+        else if (g_strcmp0(property_name, "DesktopEntry") == 0)
+        {
+                get_desktop_entry(connection, sender, object_path, interface_name, property_name, &value, error, user_data);
+        }
+        else if (g_strcmp0(property_name, "Identity") == 0)
+        {
+                get_identity(connection, sender, object_path, interface_name, property_name, &value, error, user_data);
         }
         else
         {
-                g_warning("Unknown interface");
-                return NULL;
+                g_set_error(error, G_IO_ERROR, G_IO_ERROR_FAILED, "Unknown property");
         }
 
         // Check if value is NULL and set an error if needed

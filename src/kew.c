@@ -362,7 +362,7 @@ void setEndOfListReached()
         if (songData != NULL && songData->deleted == false)
                 unloadSongData(&songData);
 
-        emitMetadataChanged("", "", "", "", "", NULL);
+        emitMetadataChanged("", "", "", "", "/org/mpris/MediaPlayer2/TrackList/NoTrack", NULL);
 
         emitPlaybackStoppedMpris();                
 
