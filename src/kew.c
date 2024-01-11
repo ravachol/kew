@@ -360,7 +360,11 @@ void setEndOfListReached()
         SongData *songData = (audioData.currentFileIndex == 0) ? userData.songdataA : userData.songdataB;
 
         if (songData != NULL && songData->deleted == false)
+        {
+                pthread_mutex_lock(&(loadingdata.mutex));
                 unloadSongData(&songData);
+                pthread_mutex_unlock(&(loadingdata.mutex));
+        }
 
         emitMetadataChanged("", "", "", "", "/org/mpris/MediaPlayer2/TrackList/NoTrack", NULL);
 
@@ -787,8 +791,6 @@ void play(Node *song)
 {
         updateLastInputTime();
         updateLastSongSwitchTime();
-        pthread_mutex_init(&(loadingdata.mutex), NULL);
-        pthread_mutex_init(&(playlist.mutex), NULL);
 
         if (song != NULL)
         {
@@ -849,7 +851,10 @@ void cleanupOnExit()
         free(originalPlaylist);
         cleanupAudioData();
         showCursor();
+        pthread_mutex_destroy(&(loadingdata.mutex));
+        pthread_mutex_destroy(&(playlist.mutex));
         pthread_mutex_unlock(&dataSourceMutex);
+        pthread_mutex_destroy(&(dataSourceMutex));
 
 #ifdef DEBUG
         fclose(logFile);
@@ -899,6 +904,8 @@ void init()
         initAudioBuffer();
         initVisuals();
         pthread_mutex_init(&dataSourceMutex, NULL);
+        pthread_mutex_init(&(loadingdata.mutex), NULL);
+        pthread_mutex_init(&(playlist.mutex), NULL);
         nerdFontsEnabled = hasNerdFonts();
         createLibrary();
 
