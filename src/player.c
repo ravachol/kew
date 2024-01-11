@@ -24,7 +24,7 @@ typedef struct
 
 AppState appState;
 
-const char VERSION[] = "2.0";
+const char VERSION[] = "2.0.1";
 const int LOGO_COLOR = 3;
 const int ARTIST_COLOR = 6;
 const int ENQUEUED_COLOR = 6;
@@ -116,7 +116,7 @@ void setColor()
 bool hasNerdFonts()
 {
         bool nerdFonts = true;
-        if (printf(" \uf28b ") < 0)
+        if (printf("\uf28b") < 0)
         {
                 nerdFonts = false;
         }
@@ -206,7 +206,7 @@ int printLogo(SongData *songData)
         printBlankSpaces(indent);
         printf("|    <|  -__|  |  |  |\n");
         printBlankSpaces(indent);
-        printf("|__|__|_____|________|");
+        printf("|__|__|_____|\\______/ ");
 
         if (songData != NULL && songData->metadata != NULL)
         {
@@ -481,8 +481,6 @@ void printGlimmeringText(char *text, char *nerdFontText, PixelData color)
 
 void printLastRow()
 {
-        bool nerdFonts = true;
-
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
         if (term_w < minWidth)
@@ -493,12 +491,9 @@ void printLastRow()
 
         char nerdFontText[100] = "";
 
-        if (printf(" \uf28b ") < 0)
-                nerdFonts = false;
-
         printf("\r");
 
-        if (nerdFonts)
+        if (nerdFontsEnabled)
         {
                 if (isPaused())
                 {
