@@ -65,8 +65,6 @@ void flipNextPage();
 
 void flipPrevPage();
 
-int getEntryTreeDepth(FileSystemEntry *entry);
-
 void showHelp(void);
 
 int printAbout(SongData *songdata);

@@ -1043,22 +1043,6 @@ FileSystemEntry *getChosenDir()
         return chosenDir;
 }
 
-int getEntryTreeDepth(FileSystemEntry *entry)
-{
-        int depth = -1;
-
-        if (entry == NULL)
-                return 0;
-
-        while (entry != NULL)
-        {
-                entry = entry->parent;
-                depth++;
-        }
-
-        return depth;
-}
-
 char *processName(const char *name, int maxWidth)
 {
         char *lastDot = strrchr(name, '.');
@@ -1197,6 +1181,7 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
                                 if (root->isDirectory)
                                 {
                                         shortenString(root->name, maxNameWidth);
+                                        //if (chosenDir != NULL && strcmp(root->fullPath, chosenDir->fullPath) == 0)
                                         if (depth == 1)
                                                 printf("%s \n", stringToUpper(root->name));
                                         else
@@ -1262,24 +1247,9 @@ void showLibrary(SongData *songData)
 
         numTopLevelSongs = 0;
 
-        FileSystemEntry *toplevel = library->children;
-        while (toplevel != NULL)
-        {
-                if (!toplevel->isDirectory)
-                        numTopLevelSongs++;
-
-                toplevel = toplevel->next;
-        }
-
         displayTree(library, 0, maxLibListSize, maxNameWidth);
 
         printf("\n");
-
-        if (numTopLevelSongs == 0)
-        {
-                printBlankSpaces(indent);
-                printf(" Music not found\n\n");
-        }
 
         printLastRow();
 
