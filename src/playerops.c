@@ -581,6 +581,27 @@ void enqueueChildren(FileSystemEntry *child)
         }
 }
 
+bool hasSongChildren(FileSystemEntry *entry)
+{
+        FileSystemEntry *child = entry->children;
+        int numSongs = 0;
+
+        while (child != NULL)
+        {
+                if (!child->isDirectory)
+                        numSongs++;
+
+                child = child->next;
+        }
+
+        if (numSongs == 0)
+        {
+                return false;
+        }
+
+        return true;
+}
+
 void enqueueSongs()
 {
         FileSystemEntry *tmp = getCurrentLibEntry();
@@ -591,7 +612,7 @@ void enqueueSongs()
         {
                 if (tmp->isDirectory)
                 {
-                        if (getEntryTreeDepth(tmp) == 1 || (chosenDir != NULL && strcmp(tmp->fullPath, chosenDir->fullPath) == 0))
+                        if (!hasSongChildren(tmp) || (chosenDir != NULL && strcmp(tmp->fullPath, chosenDir->fullPath) == 0))
                         {
                                 if (!tmp->isEnqueued)
                                 {
