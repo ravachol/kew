@@ -50,7 +50,7 @@ int chosenRow = 0;
 int chosenSong = 0;
 int startIter = 0;
 int aboutHeight = 8;
-int visualizerHeight = 8;
+int visualizerHeight = 5;
 int minWidth = ABSOLUTE_MIN_WIDTH;
 int minHeight = 2;
 int maxWidth = 0;
@@ -218,7 +218,7 @@ int printLogo(SongData *songData)
                 strcat(title, songData->metadata->title);
                 shortenString(title, term_w - indent - indent - 27);
 
-                printf(" > %s", title);
+                printf(" %s", title);
 
                 free(title);
         }
