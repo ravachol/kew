@@ -211,6 +211,8 @@ struct Event processInput()
                                       {settings.hardShowKeys, EVENT_SHOWKEYBINDINGS},
                                       {settings.hardShowKeysAlt, EVENT_SHOWKEYBINDINGS},
                                       {settings.hardEndOfPlaylist, EVENT_GOTOENDOFPLAYLIST},
+                                      {settings.hardShowTrack, EVENT_SHOWTRACK},
+                                      {settings.hardShowTrackAlt, EVENT_SHOWTRACK},
                                       {settings.hardShowLibrary, EVENT_SHOWLIBRARY},
                                       {settings.hardShowLibraryAlt, EVENT_SHOWLIBRARY},
                                       {settings.hardNextPage, EVENT_NEXTPAGE},
@@ -638,6 +640,8 @@ void handleInput()
                 break;
         case EVENT_REMOVE:
                 handleRemove();
+        case EVENT_SHOWTRACK:
+                showTrack();
                 break;
         default:
                 fastForwarding = false;

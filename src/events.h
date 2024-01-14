@@ -29,6 +29,7 @@ enum EventType
         EVENT_SEEKBACK,
         EVENT_SEEKFORWARD,
         EVENT_SHOWLIBRARY,
+        EVENT_SHOWTRACK,
         EVENT_NEXTPAGE,
         EVENT_PREVPAGE,
         EVENT_REMOVE

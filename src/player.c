@@ -28,7 +28,7 @@ const char VERSION[] = "2.0.2";
 const int LOGO_COLOR = 3;
 const int ARTIST_COLOR = 6;
 const int ENQUEUED_COLOR = 6;
-const int ABSOLUTE_MIN_WIDTH = 53;
+const int ABSOLUTE_MIN_WIDTH = 64;
 volatile bool refresh = true;
 bool visualizerEnabled = true;
 bool coverEnabled = true;
@@ -487,7 +487,7 @@ void printLastRow()
                 return;
         setTextColorRGB(bgColor.r, bgColor.g, bgColor.b);
 
-        char text[100] = " [F2 Playlist] [F3 Library] [F4 Keys] [Q Quit]";
+        char text[100] = " [F2 Playlist] [F3 Library] [F4 Track] [F5 Keys] [Q Quit]";
 
         char nerdFontText[100] = "";
 
@@ -608,12 +608,6 @@ int showKeyBindings(SongData *songdata)
         setColor();
 
         printBlankSpaces(indent);
-        printf(" - F2 to show/hide the playlist.\n");
-        printBlankSpaces(indent);
-        printf(" - F3 to show/hide the music library.\n");
-        printBlankSpaces(indent);
-        printf(" - F4 to show/hide key bindings.\n");
-        printBlankSpaces(indent);
         printf(" - Use %s (or %s) and %s to adjust volume.\n", settings.volumeUp, settings.volumeUpAlt, settings.volumeDown);
         printBlankSpaces(indent);
         printf(" - Use ←, → or %s, %s keys to switch tracks.\n", settings.previousTrackAlt, settings.nextTrackAlt);
@@ -648,7 +642,7 @@ int showKeyBindings(SongData *songdata)
         printf("\n");
         printLastRow();
 
-        numPrintedRows += 22;
+        numPrintedRows += 19;
 
         return numPrintedRows;
 }
@@ -678,6 +672,12 @@ void toggleShowLibrary()
         {
                 appState.currentView = LIBRARY_VIEW;
         }
+}
+
+void showTrack()
+{
+        refresh = true;
+        appState.currentView = SONG_VIEW;
 }
 
 void toggleShowKeyBindings()
