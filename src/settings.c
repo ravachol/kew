@@ -57,8 +57,10 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         strncpy(settings.hardScrollDown, "[B", sizeof(settings.hardScrollDown));
         strncpy(settings.hardShowInfo, "OQ", sizeof(settings.hardShowInfo));
         strncpy(settings.hardShowInfoAlt, "[[B", sizeof(settings.hardShowInfoAlt));
-        strncpy(settings.hardShowKeys, "OS", sizeof(settings.hardShowKeys));
-        strncpy(settings.hardShowKeysAlt, "[[D", sizeof(settings.hardShowKeysAlt));
+        strncpy(settings.hardShowKeys, "[15~", sizeof(settings.hardShowKeys));
+        strncpy(settings.hardShowKeysAlt, "[[E", sizeof(settings.hardShowKeysAlt));
+        strncpy(settings.hardShowTrack, "OS", sizeof(settings.hardShowTrack));
+        strncpy(settings.hardShowTrackAlt, "[[D", sizeof(settings.hardShowTrackAlt));
         strncpy(settings.hardEndOfPlaylist, "G", sizeof(settings.hardEndOfPlaylist));
         strncpy(settings.hardShowLibrary, "OR", sizeof(settings.hardShowLibrary));
         strncpy(settings.hardShowLibraryAlt, "[[C", sizeof(settings.hardShowLibraryAlt));
