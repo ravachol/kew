@@ -87,6 +87,8 @@ void toggleShowLibrary();
 
 void toggleShowPlaylist(void);
 
+void showTrack();
+
 void setTextColorRGB2(int r, int g, int b);
 
 void freeMainDirectoryTree();
