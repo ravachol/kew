@@ -81,6 +81,7 @@ bool gotoSong = false;
 bool gPressed = false;
 bool loadingAudioData = false;
 bool goingToSong = false;
+bool startFromTop = false;
 
 bool isCooldownElapsed(int milliSeconds)
 {
@@ -504,6 +505,22 @@ void handleGoToSong()
         }
         else
         {
+                if (audioData.restart)
+                {
+                        Node *lastSong = findSelectedEntryById(&playlist, lastPlayedId);
+                        startFromTop = false;
+                        
+                        if (lastSong == NULL)
+                        {
+                             if (playlist.tail != NULL)
+                                lastPlayedId = playlist.tail->id;
+                             else
+                             {
+                                lastPlayedId = -1;
+                                startFromTop = true;
+                             }
+                        }
+                }
                 enqueueSongs();
         }
 
@@ -690,7 +707,13 @@ void loadAudioData()
 
                                 if (currentSong == NULL)
                                 {
-                                        currentSong = playlist.tail;
+                                        if (startFromTop)
+                                        {
+                                                currentSong = playlist.head;
+                                                startFromTop = false;
+                                        }
+                                        else
+                                                currentSong = playlist.tail;
                                 }
                         }
                         audioData.restart = false;
