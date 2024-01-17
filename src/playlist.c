@@ -389,7 +389,7 @@ void makePlaylistName(const char *search)
         }
 }
 
-int makePlaylist(int argc, char *argv[])
+int makePlaylist(int argc, char *argv[], bool exactSearch)
 {
         enum SearchType searchType = SearchAny;
         int searchTypeIndex = 1;
@@ -472,7 +472,7 @@ int makePlaylist(int argc, char *argv[])
                                 searchType = FileOnly;
                         }
                         trim(token);
-                        if (walker(settings.path, token, buf, allowedExtensions, searchType) == 0)
+                        if (walker(settings.path, token, buf, allowedExtensions, searchType, exactSearch) == 0)
                         {
                                 if (strcmp(argv[1], "list") == 0)
                                 {
