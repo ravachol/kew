@@ -14,9 +14,9 @@ kew (/kjuː/) is a command-line music player for Linux.
 
  * Search a music library with partial titles.
  * Creates a playlist based on a matched directory.
- * Display album covers as ASCII art or as a normal image.
- * Control the player with previous, next and pause.
  * Has gapless playback (between files of the same format and type) and supports 24-bit audio.
+ * Control the player with previous, next and pause.
+ * Edit the playlist by enqueueing and removing songs.
  * Private and offline, no data is collected by kew.
 
 ## Caveats
