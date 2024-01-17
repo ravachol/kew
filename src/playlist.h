@@ -73,7 +73,7 @@ void shufflePlaylistStartingFromSong(PlayList *playlist, Node *song);
 
 int joinPlaylist(PlayList *dest, PlayList *src);
 
-int makePlaylist(int argc, char *argv[]);
+int makePlaylist(int argc, char *argv[], bool exactSearch);
 
 int calculatePlayListDuration(PlayList *playlist);
 
