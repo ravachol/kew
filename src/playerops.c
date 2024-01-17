@@ -1137,7 +1137,5 @@ void loadFirst(Node *song)
         }
 
         userData.currentPCMFrame = 0;
-        //userData.filenameA = loadingdata.songdataA->pcmFilePath;
-        //userData.songdataA = loadingdata.songdataA;
         userData.currentSongData = userData.songdataA;
 }
