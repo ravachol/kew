@@ -95,7 +95,7 @@ int isDirectory(const char *path)
 
 // Traverse a directory tree and search for a given file or directory
 int walker(const char *startPath, const char *searching, char *result,
-           const char *allowedExtensions, enum SearchType searchType)
+           const char *allowedExtensions, enum SearchType searchType, bool exactSearch)
 {
         DIR *d;
         struct dirent *dir;
@@ -155,7 +155,8 @@ int walker(const char *startPath, const char *searching, char *result,
 
                 if (S_ISDIR(file_stat.st_mode))
                 {
-                        if ((c_strcasestr(dir->d_name, searching) != NULL) && (searchType != FileOnly) && (searchType != SearchPlayList))
+                        if (((exactSearch && (strcasecmp(dir->d_name, searching) == 0)) || (!exactSearch && c_strcasestr(dir->d_name, searching) != NULL)) && 
+                                (searchType != FileOnly) && (searchType != SearchPlayList))
                         {
                                 snprintf(result, MAXPATHLEN, "%s/%s", getcwd(NULL, 0), dir->d_name);
                                 copyresult = true;
@@ -168,7 +169,7 @@ int walker(const char *startPath, const char *searching, char *result,
                                         fprintf(stderr, "Failed to change directory: %s\n", dir->d_name);
                                         continue;
                                 }
-                                if (walker(NULL, searching, result, allowedExtensions, searchType) == 0)
+                                if (walker(NULL, searching, result, allowedExtensions, searchType, exactSearch) == 0)
                                 {
                                         copyresult = true;
                                         break;
@@ -199,7 +200,7 @@ int walker(const char *startPath, const char *searching, char *result,
                                 continue;
                         }
 
-                        if ((c_strcasestr(dir->d_name, searching) != NULL))
+                        if ((exactSearch && (strcasecmp(dir->d_name, searching) == 0)) || (!exactSearch && c_strcasestr(dir->d_name, searching) != NULL))
                         {
                                 snprintf(result, MAXPATHLEN, "%s/%s", getcwd(NULL, 0), dir->d_name);
                                 copyresult = true;
@@ -476,9 +477,9 @@ void generateTempFilePath(const char *srcFilePath, char *filePath, const char *p
         createDirectory(dirPath);
         snprintf(dirPath, MAXPATHLEN, "%s/kew/%s", tempDir, username);
         createDirectory(dirPath);
-        
+
         char randomString[7];
-        
+
         for (int i = 0; i < 6; ++i)
         {
                 randomString[i] = 'a' + rand() % 26;

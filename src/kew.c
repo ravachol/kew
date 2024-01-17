@@ -82,6 +82,7 @@ bool gPressed = false;
 bool loadingAudioData = false;
 bool goingToSong = false;
 bool startFromTop = false;
+bool exactSearch = false;
 
 bool isCooldownElapsed(int milliSeconds)
 {
@@ -973,7 +974,7 @@ void playMainPlaylist()
 void playAll(int argc, char **argv)
 {
         init();
-        makePlaylist(argc, argv);
+        makePlaylist(argc, argv, false);
         if (playlist.count == 0)
         {
                 printf("Please make sure the path is set correctly. \n");
@@ -1006,6 +1007,8 @@ void handleOptions(int *argc, char *argv[])
         const char *noUiOption = "--noui";
         const char *noCoverOption = "--nocover";
         const char *quitOnStop = "--quitonstop";
+        const char *exactOption = "--exact";
+        const char *exactOption2 = "-e";
 
         int idx = -1;
         for (int i = 0; i < *argc; i++)
@@ -1042,6 +1045,18 @@ void handleOptions(int *argc, char *argv[])
         }
         if (idx >= 0)
                 removeArgElement(argv, idx, argc);
+
+        idx = -1;
+        for (int i = 0; i < *argc; i++)
+        {
+                if (c_strcasestr(argv[i], exactOption) || c_strcasestr(argv[i], exactOption2))
+                {
+                        exactSearch = true;
+                        idx = i;
+                }
+        }
+        if (idx >= 0)
+                removeArgElement(argv, idx, argc);                
 }
 
 int main(int argc, char *argv[])
@@ -1089,7 +1104,7 @@ int main(int argc, char *argv[])
         else if (argc >= 2)
         {
                 init();
-                makePlaylist(argc, argv);
+                makePlaylist(argc, argv, exactSearch);
                 if (playlist.count == 0)
                         exit(0);
                 run();
