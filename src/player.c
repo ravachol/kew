@@ -616,7 +616,7 @@ int showKeyBindings(SongData *songdata)
         printBlankSpaces(indent);
         printf(" - Enter a number then Enter to switch song.\n");
         printBlankSpaces(indent);
-        printf(" - Space to toggle pause.\n");
+        printf(" - Space (or %s) to toggle pause.\n", settings.togglePause);
         printBlankSpaces(indent);
         printf(" - %s toggle color derived from album or from profile.\n", settings.toggleColorsDerivedFrom);
         printBlankSpaces(indent);
