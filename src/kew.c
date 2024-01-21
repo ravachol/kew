@@ -641,6 +641,7 @@ void handleInput()
                 break;
         case EVENT_REMOVE:
                 handleRemove();
+                break;
         case EVENT_SHOWTRACK:
                 showTrack();
                 break;
