@@ -87,21 +87,21 @@ void rebuildAndUpdatePlaylist()
 void skip()
 {
         setCurrentImplementationType(NONE);
-        
+
         setRepeatEnabled(false);
         audioData.endOfListReached = false;
 
         rebuildAndUpdatePlaylist();
 
         if (!isPlaying())
-        {                            
+        {
                 switchAudioImplementation();
         }
         else
         {
                 setSkipToNext(true);
         }
-        
+
         refresh = true;
 }
 
@@ -118,6 +118,25 @@ void updateLastPlaylistChangeTime()
 void updateLastInputTime()
 {
         clock_gettime(CLOCK_MONOTONIC, &lastInputTime);
+}
+
+void updatePlaybackPosition(double elapsedSeconds)
+{
+    GVariantBuilder changedPropertiesBuilder;
+    g_variant_builder_init(&changedPropertiesBuilder, G_VARIANT_TYPE_DICTIONARY);
+    g_variant_builder_add(&changedPropertiesBuilder, "{sv}", "Position", g_variant_new_int64(llround(elapsedSeconds *  G_USEC_PER_SEC)));
+
+    GVariant *parameters = g_variant_new("(sa{sv}as)", "org.mpris.MediaPlayer2.Player", &changedPropertiesBuilder, NULL);
+
+    g_dbus_connection_emit_signal(connection,
+                                  NULL,
+                                  "/org/mpris/MediaPlayer2",
+                                  "org.freedesktop.DBus.Properties",
+                                  "PropertiesChanged",
+                                  parameters,
+                                  NULL);
+
+    g_variant_unref(parameters);
 }
 
 void emitStringPropertyChanged(const gchar *propertyName, const gchar *newValue)
@@ -218,7 +237,7 @@ void toggleShuffle()
         }
         else
         {
-                playlist = deepCopyPlayList(originalPlaylist);                
+                playlist = deepCopyPlayList(originalPlaylist);
                 currentSong = findSongInPlaylist(currentSong, &playlist);
                 emitBooleanPropertyChanged("Shuffle", FALSE);
         }
@@ -290,7 +309,7 @@ void calcElapsedTime()
                                  (double)(current_time.tv_nsec - start_time.tv_nsec) / 1e9;
                 double seekElapsed = getSeekElapsed();
                 double diff = elapsedSeconds + (seekElapsed + seekAccumulatedSeconds - totalPauseSeconds);
-                
+
                 if (diff < 0)
                         seekElapsed -= diff;
 
@@ -304,6 +323,8 @@ void calcElapsedTime()
                 {
                         elapsedSeconds = 0.0;
                 }
+
+                updatePlaybackPosition(elapsedSeconds);
         }
         else
         {
@@ -777,7 +798,7 @@ int assignLoadedData()
         if (loadingdata.loadA)
         {
                 if (loadingdata.songdataA != NULL)
-                {                        
+                {
                         userData.filenameA = loadingdata.songdataA->pcmFilePath;
                         userData.songdataA = loadingdata.songdataA;
 
@@ -820,7 +841,7 @@ void *songDataReaderThread(void *arg)
 
         char filepath[MAXPATHLEN];
         c_strcpy(filepath, sizeof(filepath), loadingdata->filePath);
-        
+
         SongData *songdata = NULL;
 
         if (loadingdata->loadA)
@@ -841,7 +862,7 @@ void *songDataReaderThread(void *arg)
 
         if (loadingdata->loadA)
         {
-                loadingdata->songdataA = songdata;                
+                loadingdata->songdataA = songdata;
         }
         else
         {
