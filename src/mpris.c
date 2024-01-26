@@ -720,15 +720,14 @@ void initMpris()
                 exit(1);
         }
 
-        // Use g_bus_own_name to claim the well-known name
         bus_name_id = g_bus_own_name(G_BUS_TYPE_SESSION,
                                      "org.mpris.MediaPlayer2.kew",
                                      G_BUS_NAME_OWNER_FLAGS_NONE,
                                      on_bus_acquired,
-                                     on_bus_name_acquired, // Callback when name is acquired
-                                     on_bus_name_lost,     // Callback when name is lost
-                                     NULL,                 // User data for callbacks
-                                     NULL);                // User data free func
+                                     on_bus_name_acquired, 
+                                     on_bus_name_lost,     
+                                     NULL,                 
+                                     NULL);                
 
         if (bus_name_id == 0)
         {
@@ -736,7 +735,6 @@ void initMpris()
                 exit(1);
         }
 
-        // Load introspection data
         GDBusNodeInfo *introspection_data = g_dbus_node_info_new_for_xml(introspection_xml, &error);
         if (!introspection_data)
         {
@@ -745,14 +743,13 @@ void initMpris()
                 exit(1);
         }
 
-        // Register MediaPlayer object
         registration_id = g_dbus_connection_register_object(connection,
                                                             "/org/mpris/MediaPlayer2",
                                                             introspection_data->interfaces[0],
                                                             &media_player_interface_vtable,
-                                                            NULL,    // User data for vtable callbacks
-                                                            NULL,    // Free function for user data
-                                                            &error); // Error reporting
+                                                            NULL,   
+                                                            NULL,    
+                                                            &error);
 
         if (registration_id == 0)
         {
@@ -761,14 +758,13 @@ void initMpris()
                 exit(1);
         }
 
-        // Register Player object (assuming it's a separate interface within your player)
         player_registration_id = g_dbus_connection_register_object(connection,
                                                                    "/org/mpris/MediaPlayer2",
                                                                    introspection_data->interfaces[1],
                                                                    &player_interface_vtable,
-                                                                   NULL,    // User data
-                                                                   NULL,    // User data free func
-                                                                   &error); // Error reporting
+                                                                   NULL,   
+                                                                   NULL,  
+                                                                   &error); 
 
         if (player_registration_id == 0)
         {
