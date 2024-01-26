@@ -329,7 +329,7 @@ void calcElapsedTime()
                         elapsedSeconds = 0.0;
                 }
 
-                if (timeSinceLastUpdate >= 1.0)
+                if (currentSong != NULL && timeSinceLastUpdate >= 1.0)
                 {
                         updatePlaybackPosition(elapsedSeconds);
                         // Update the last update time to the current time
