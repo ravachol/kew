@@ -370,7 +370,7 @@ void setEndOfListReached()
                 pthread_mutex_unlock(&(loadingdata.mutex));
         }
 
-        emitMetadataChanged("", "", "", "", "/org/mpris/MediaPlayer2/TrackList/NoTrack", NULL);
+        emitMetadataChanged("", "", "", "", "/org/mpris/MediaPlayer2/TrackList/NoTrack", NULL, 0);
 
         emitPlaybackStoppedMpris();                
 
@@ -461,13 +461,15 @@ void refreshPlayer()
                 if (refresh && songData != NULL && songData->deleted == false &&
                     songData->hasErrors == false && currentSong != NULL && songData->metadata != NULL)
                 {
+                        gint64 length = llround((*songData->duration) * G_USEC_PER_SEC);
                         // update mpris
                         emitMetadataChanged(
                             songData->metadata->title,
                             songData->metadata->artist,
                             songData->metadata->album,
                             songData->coverArtPath,
-                            songData->trackId != NULL ? songData->trackId : "", currentSong);
+                            songData->trackId != NULL ? songData->trackId : "", currentSong,
+                            length);
                 }
 
                 printPlayer(songData, elapsedSeconds, &playlist);
