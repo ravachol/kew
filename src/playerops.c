@@ -16,6 +16,7 @@ struct timespec start_time;
 struct timespec pause_time;
 struct timespec lastInputTime;
 struct timespec lastPlaylistChangeTime;
+struct timespec lastUpdateTime = {0, 0};
 
 bool playlistNeedsUpdate = false;
 bool nextSongNeedsRebuilding = false;
@@ -122,21 +123,21 @@ void updateLastInputTime()
 
 void updatePlaybackPosition(double elapsedSeconds)
 {
-    GVariantBuilder changedPropertiesBuilder;
-    g_variant_builder_init(&changedPropertiesBuilder, G_VARIANT_TYPE_DICTIONARY);
-    g_variant_builder_add(&changedPropertiesBuilder, "{sv}", "Position", g_variant_new_int64(llround(elapsedSeconds *  G_USEC_PER_SEC)));
+        GVariantBuilder changedPropertiesBuilder;
+        g_variant_builder_init(&changedPropertiesBuilder, G_VARIANT_TYPE_DICTIONARY);
+        g_variant_builder_add(&changedPropertiesBuilder, "{sv}", "Position", g_variant_new_int64(llround(elapsedSeconds * G_USEC_PER_SEC)));
 
-    GVariant *parameters = g_variant_new("(sa{sv}as)", "org.mpris.MediaPlayer2.Player", &changedPropertiesBuilder, NULL);
+        GVariant *parameters = g_variant_new("(sa{sv}as)", "org.mpris.MediaPlayer2.Player", &changedPropertiesBuilder, NULL);
 
-    g_dbus_connection_emit_signal(connection,
-                                  NULL,
-                                  "/org/mpris/MediaPlayer2",
-                                  "org.freedesktop.DBus.Properties",
-                                  "PropertiesChanged",
-                                  parameters,
-                                  NULL);
+        g_dbus_connection_emit_signal(connection,
+                                      NULL,
+                                      "/org/mpris/MediaPlayer2",
+                                      "org.freedesktop.DBus.Properties",
+                                      "PropertiesChanged",
+                                      parameters,
+                                      NULL);
 
-    g_variant_unref(parameters);
+        g_variant_unref(parameters);
 }
 
 void emitStringPropertyChanged(const gchar *propertyName, const gchar *newValue)
@@ -303,6 +304,10 @@ SongData *getCurrentSongData()
 void calcElapsedTime()
 {
         clock_gettime(CLOCK_MONOTONIC, &current_time);
+        
+        double timeSinceLastUpdate = (double)(current_time.tv_sec - lastUpdateTime.tv_sec) +
+                                     (double)(current_time.tv_nsec - lastUpdateTime.tv_nsec) / 1e9;
+
         if (!isPaused())
         {
                 elapsedSeconds = (double)(current_time.tv_sec - start_time.tv_sec) +
@@ -324,7 +329,12 @@ void calcElapsedTime()
                         elapsedSeconds = 0.0;
                 }
 
-                updatePlaybackPosition(elapsedSeconds);
+                if (timeSinceLastUpdate >= 1.0)
+                {
+                        updatePlaybackPosition(elapsedSeconds);
+                        // Update the last update time to the current time
+                        lastUpdateTime = current_time;
+                }
         }
         else
         {
