@@ -3,6 +3,7 @@
 #define MINIAUDIO_IMPLEMENTATION
 #include <miniaudio.h>
 #include "soundgapless.h"
+#include "mpris.h"
 
 /*
 
@@ -113,6 +114,7 @@ void createDevice(UserData *userData, ma_device *device, ma_context *context, ma
         result = ma_device_start(device);
         if (result != MA_SUCCESS)
                 return;
+        emitStringPropertyChanged("PlaybackStatus", "Playing");
 }
 
 void builtin_createAudioDevice(UserData *userData, ma_device *device, ma_context *context, ma_data_source_vtable *vtable)
@@ -154,6 +156,7 @@ void vorbis_createAudioDevice(UserData *userData, ma_device *device, ma_context 
                 printf("Failed to start miniaudio device.\n");
                 return;
         }
+        emitStringPropertyChanged("PlaybackStatus", "Playing");
 }
 
 void opus_createAudioDevice(UserData *userData, ma_device *device, ma_context *context, ma_data_source_vtable *vtable)
@@ -186,6 +189,7 @@ void opus_createAudioDevice(UserData *userData, ma_device *device, ma_context *c
                 printf("Failed to start miniaudio device.\n");
                 return;
         }
+        emitStringPropertyChanged("PlaybackStatus", "Playing");
 }
 
 void cleanupAudioData()
