@@ -132,4 +132,6 @@ void flushSeek(void);
 
 Node *findSelectedEntryById(PlayList *playlist, int id);
 
+void emitSeekedSignal(double newPositionSeconds);
+
 #endif
