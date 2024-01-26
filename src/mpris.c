@@ -16,7 +16,6 @@ guint bus_name_id;
 static const gchar *LoopStatus = "None";
 static gdouble Rate = 1.0;
 static gdouble Volume = 0.5;
-static gint64 Position = 0;
 static gdouble MinimumRate = 1.0;
 static gdouble MaximumRate = 1.0;
 static gboolean CanGoNext = TRUE;
@@ -349,11 +348,19 @@ static gboolean get_metadata(GDBusConnection *connection, const gchar *sender,
                         artistList[0] = "";
                         artistList[1] = NULL;
                 }
+                
+                gchar *coverArtUrl = g_strdup_printf("file://%s", currentSongData->coverArtPath);
+
                 g_variant_builder_add(&metadata_builder, "{sv}", "xesam:artist", g_variant_new_strv(artistList, -1));
                 g_variant_builder_add(&metadata_builder, "{sv}", "xesam:album", g_variant_new_string(currentSongData->metadata->album));
                 g_variant_builder_add(&metadata_builder, "{sv}", "xesam:contentCreated", g_variant_new_string(currentSongData->metadata->date));
-                g_variant_builder_add(&metadata_builder, "{sv}", "mpris:artUrl", g_variant_new_string(currentSongData->coverArtPath));
+                g_variant_builder_add(&metadata_builder, "{sv}", "mpris:artUrl", g_variant_new_string(coverArtUrl));
                 g_variant_builder_add(&metadata_builder, "{sv}", "mpris:trackid", g_variant_new_object_path(currentSongData->trackId));
+
+                gint64 length = llround((*currentSongData->duration) * G_USEC_PER_SEC);
+                g_variant_builder_add(&metadata_builder, "{sv}", "mpris:length", g_variant_new_int64(length));
+
+                g_free(coverArtUrl);
         }
         else
         {
@@ -363,6 +370,9 @@ static gboolean get_metadata(GDBusConnection *connection, const gchar *sender,
                 g_variant_builder_add(&metadata_builder, "{sv}", "xesam:contentCreated", g_variant_new_string(""));
                 g_variant_builder_add(&metadata_builder, "{sv}", "mpris:artUrl", g_variant_new_string(""));
                 g_variant_builder_add(&metadata_builder, "{sv}", "mpris:trackid", g_variant_new_object_path("/org/mpris/MediaPlayer2/TrackList/NoTrack"));
+
+                gint64 placeholderLength = 0;
+                g_variant_builder_add(&metadata_builder, "{sv}", "mpris:length", g_variant_new_int64(placeholderLength));
         }
 
         GVariant *metadata_variant = g_variant_builder_end(&metadata_builder);
@@ -387,7 +397,11 @@ static gboolean get_position(GDBusConnection *connection, const gchar *sender,
                              const gchar *property_name, GVariant **value,
                              GError **error, gpointer user_data)
 {
-        *value = g_variant_new_int64(Position);
+        // Convert elapsedSeconds from milliseconds to microseconds
+        gint64 positionMicroseconds = llround(elapsedSeconds * G_USEC_PER_SEC);
+
+        *value = g_variant_new_int64(positionMicroseconds);
+
         return TRUE;
 }
 
@@ -770,17 +784,14 @@ void emitStartPlayingMpris()
                                       NULL);
 }
 
-void emitMetadataChanged(const gchar *title, const gchar *artist, const gchar *album, const gchar *coverArtPath, const gchar *trackId, Node *currentSong)
+void emitMetadataChanged(const gchar *title, const gchar *artist, const gchar *album, const gchar *coverArtPath, const gchar *trackId, Node *currentSong, gint64 length)
 {
-        // Convert the coverArtPath to a valid URL format
         gchar *coverArtUrl = g_strdup_printf("file://%s", coverArtPath);
 
-        // Create a GVariantBuilder for the metadata dictionary
         GVariantBuilder metadata_builder;
         g_variant_builder_init(&metadata_builder, G_VARIANT_TYPE_DICTIONARY);
         g_variant_builder_add(&metadata_builder, "{sv}", "xesam:title", g_variant_new_string(title));
 
-        // Build list of strings for artist
         const gchar *artistList[2];
         if (artist)
         {
@@ -797,6 +808,7 @@ void emitMetadataChanged(const gchar *title, const gchar *artist, const gchar *a
         g_variant_builder_add(&metadata_builder, "{sv}", "xesam:album", g_variant_new_string(album));
         g_variant_builder_add(&metadata_builder, "{sv}", "mpris:artUrl", g_variant_new_string(coverArtUrl));
         g_variant_builder_add(&metadata_builder, "{sv}", "mpris:trackid", g_variant_new_object_path(trackId));
+        g_variant_builder_add(&metadata_builder, "{sv}", "mpris:length", g_variant_new_int64(length));
 
         GVariantBuilder changed_properties_builder;
         g_variant_builder_init(&changed_properties_builder, G_VARIANT_TYPE("a{sv}"));
@@ -809,4 +821,7 @@ void emitMetadataChanged(const gchar *title, const gchar *artist, const gchar *a
 
         g_variant_builder_clear(&metadata_builder);
         g_variant_builder_clear(&changed_properties_builder);
+
+        g_free(coverArtUrl);
+
 }
