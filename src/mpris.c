@@ -262,6 +262,11 @@ static void handle_method_call(GDBusConnection *connection, const gchar *sender,
         }
 }
 
+static void on_bus_acquired(GDBusConnection *connection, const gchar *name, gpointer user_data)
+{
+        // g_print("Acquired bus name: %s\n", name);
+}
+
 static void on_bus_name_acquired(GDBusConnection *connection, const gchar *name, gpointer user_data)
 {
         // g_print("Acquired bus name: %s\n", name);
@@ -348,7 +353,7 @@ static gboolean get_metadata(GDBusConnection *connection, const gchar *sender,
                         artistList[0] = "";
                         artistList[1] = NULL;
                 }
-                
+
                 gchar *coverArtUrl = g_strdup_printf("file://%s", currentSongData->coverArtPath);
 
                 g_variant_builder_add(&metadata_builder, "{sv}", "xesam:artist", g_variant_new_strv(artistList, -1));
@@ -706,69 +711,70 @@ void cleanupMpris()
 
 void initMpris()
 {
-        if (global_main_context == NULL)
-        {
-                global_main_context = g_main_context_new();
-        }
-
-        GDBusNodeInfo *introspection_data = g_dbus_node_info_new_for_xml(introspection_xml, NULL);
-        connection = g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, NULL);
-
+        GError *error = NULL;
+        connection = g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, &error);
         if (!connection)
         {
-                g_printerr("Failed to connect to D-Bus\n");
-                exit(0);
+                g_printerr("Failed to connect to D-Bus: %s\n", error->message);
+                g_error_free(error);
+                exit(1);
         }
 
-        const char *app_name = "org.mpris.MediaPlayer2.kew";
-        char unique_name[256];
-        snprintf(unique_name, sizeof(unique_name), "%s%d", app_name, getpid());
-
-        GError *error = NULL;
-        bus_name_id = g_bus_own_name_on_connection(connection,
-                                                   unique_name,
-                                                   G_BUS_NAME_OWNER_FLAGS_NONE,
-                                                   on_bus_name_acquired,
-                                                   on_bus_name_lost,
-                                                   NULL,
-                                                   NULL);
+        // Use g_bus_own_name to claim the well-known name
+        bus_name_id = g_bus_own_name(G_BUS_TYPE_SESSION,
+                                     "org.mpris.MediaPlayer2.kew",
+                                     G_BUS_NAME_OWNER_FLAGS_NONE,
+                                     on_bus_acquired,
+                                     on_bus_name_acquired, // Callback when name is acquired
+                                     on_bus_name_lost,     // Callback when name is lost
+                                     NULL,                 // User data for callbacks
+                                     NULL);                // User data free func
 
         if (bus_name_id == 0)
         {
-                printf("Failed to own D-Bus name: %s\n", unique_name);
-                exit(0);
+                printf("Failed to initiate owning D-Bus name.\n");
+                exit(1);
         }
 
-        registration_id = g_dbus_connection_register_object(
-            connection,
-            "/org/mpris/MediaPlayer2",
-            introspection_data->interfaces[0],
-            &media_player_interface_vtable,
-            NULL,
-            NULL,
-            &error);
+        // Load introspection data
+        GDBusNodeInfo *introspection_data = g_dbus_node_info_new_for_xml(introspection_xml, &error);
+        if (!introspection_data)
+        {
+                g_printerr("Failed to load introspection data: %s\n", error->message);
+                g_error_free(error);
+                exit(1);
+        }
 
-        if (!registration_id)
+        // Register MediaPlayer object
+        registration_id = g_dbus_connection_register_object(connection,
+                                                            "/org/mpris/MediaPlayer2",
+                                                            introspection_data->interfaces[0],
+                                                            &media_player_interface_vtable,
+                                                            NULL,    // User data for vtable callbacks
+                                                            NULL,    // Free function for user data
+                                                            &error); // Error reporting
+
+        if (registration_id == 0)
         {
                 g_printerr("Failed to register media player object: %s\n", error->message);
                 g_error_free(error);
-                exit(0);
+                exit(1);
         }
 
-        player_registration_id = g_dbus_connection_register_object(
-            connection,
-            "/org/mpris/MediaPlayer2",
-            introspection_data->interfaces[1],
-            &player_interface_vtable,
-            NULL,
-            NULL,
-            &error);
+        // Register Player object (assuming it's a separate interface within your player)
+        player_registration_id = g_dbus_connection_register_object(connection,
+                                                                   "/org/mpris/MediaPlayer2",
+                                                                   introspection_data->interfaces[1],
+                                                                   &player_interface_vtable,
+                                                                   NULL,    // User data
+                                                                   NULL,    // User data free func
+                                                                   &error); // Error reporting
 
-        if (!player_registration_id)
+        if (player_registration_id == 0)
         {
-                g_printerr("Failed to register media player object: %s\n", error->message);
+                g_printerr("Failed to register player object: %s\n", error->message);
                 g_error_free(error);
-                exit(0);
+                exit(1);
         }
 }
 
@@ -823,5 +829,4 @@ void emitMetadataChanged(const gchar *title, const gchar *artist, const gchar *a
         g_variant_builder_clear(&changed_properties_builder);
 
         g_free(coverArtUrl);
-
 }
