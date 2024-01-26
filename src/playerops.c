@@ -140,6 +140,23 @@ void updatePlaybackPosition(double elapsedSeconds)
         g_variant_unref(parameters);
 }
 
+void emitSeekedSignal(double newPositionSeconds)
+{
+    gint64 newPositionMicroseconds = llround(newPositionSeconds * G_USEC_PER_SEC);
+
+    GVariant *parameters = g_variant_new("(x)", newPositionMicroseconds);
+
+    g_dbus_connection_emit_signal(connection,
+                                  NULL,
+                                  "/org/mpris/MediaPlayer2",
+                                  "org.mpris.MediaPlayer2.Player",
+                                  "Seeked",
+                                  parameters,
+                                  NULL);
+
+    g_variant_unref(parameters);
+}
+
 void emitStringPropertyChanged(const gchar *propertyName, const gchar *newValue)
 {
         GVariantBuilder changed_properties_builder;
@@ -367,6 +384,9 @@ void flushSeek()
                 }
 
                 seekPercentage(percentage);
+
+
+                emitSeekedSignal(elapsedSeconds);
         }
 }
 
