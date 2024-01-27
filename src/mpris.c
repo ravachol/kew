@@ -711,66 +711,69 @@ void cleanupMpris()
 
 void initMpris()
 {
-        GError *error = NULL;
-        connection = g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, &error);
-        if (!connection)
+        if (global_main_context == NULL)
         {
-                g_printerr("Failed to connect to D-Bus: %s\n", error->message);
-                g_error_free(error);
-                exit(1);
+                global_main_context = g_main_context_new();
         }
 
-        bus_name_id = g_bus_own_name(G_BUS_TYPE_SESSION,
-                                     "org.mpris.MediaPlayer2.kew",
-                                     G_BUS_NAME_OWNER_FLAGS_NONE,
-                                     on_bus_acquired,
-                                     on_bus_name_acquired, 
-                                     on_bus_name_lost,     
-                                     NULL,                 
-                                     NULL);                
+        GDBusNodeInfo *introspection_data = g_dbus_node_info_new_for_xml(introspection_xml, NULL);
+        connection = g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, NULL);
+
+        if (!connection)
+        {
+                g_printerr("Failed to connect to D-Bus\n");
+                exit(0);
+        }
+
+        const char *app_name = "org.mpris.MediaPlayer2.kew";
+        char unique_name[256];
+        snprintf(unique_name, sizeof(unique_name), "%s%d", app_name, getpid());
+
+        GError *error = NULL;
+        bus_name_id = g_bus_own_name_on_connection(connection,
+                                                   unique_name,
+                                                   G_BUS_NAME_OWNER_FLAGS_NONE,
+                                                   on_bus_name_acquired,
+                                                   on_bus_name_lost,
+                                                   NULL,
+                                                   NULL);
 
         if (bus_name_id == 0)
         {
-                printf("Failed to initiate owning D-Bus name.\n");
-                exit(1);
+                printf("Failed to own D-Bus name: %s\n", unique_name);
+                exit(0);
         }
 
-        GDBusNodeInfo *introspection_data = g_dbus_node_info_new_for_xml(introspection_xml, &error);
-        if (!introspection_data)
-        {
-                g_printerr("Failed to load introspection data: %s\n", error->message);
-                g_error_free(error);
-                exit(1);
-        }
+        registration_id = g_dbus_connection_register_object(
+            connection,
+            "/org/mpris/MediaPlayer2",
+            introspection_data->interfaces[0],
+            &media_player_interface_vtable,
+            NULL,
+            NULL,
+            &error);
 
-        registration_id = g_dbus_connection_register_object(connection,
-                                                            "/org/mpris/MediaPlayer2",
-                                                            introspection_data->interfaces[0],
-                                                            &media_player_interface_vtable,
-                                                            NULL,   
-                                                            NULL,    
-                                                            &error);
-
-        if (registration_id == 0)
+        if (!registration_id)
         {
                 g_printerr("Failed to register media player object: %s\n", error->message);
                 g_error_free(error);
-                exit(1);
+                exit(0);
         }
 
-        player_registration_id = g_dbus_connection_register_object(connection,
-                                                                   "/org/mpris/MediaPlayer2",
-                                                                   introspection_data->interfaces[1],
-                                                                   &player_interface_vtable,
-                                                                   NULL,   
-                                                                   NULL,  
-                                                                   &error); 
+        player_registration_id = g_dbus_connection_register_object(
+            connection,
+            "/org/mpris/MediaPlayer2",
+            introspection_data->interfaces[1],
+            &player_interface_vtable,
+            NULL,
+            NULL,
+            &error);
 
-        if (player_registration_id == 0)
+        if (!player_registration_id)
         {
-                g_printerr("Failed to register player object: %s\n", error->message);
+                g_printerr("Failed to register media player object: %s\n", error->message);
                 g_error_free(error);
-                exit(1);
+                exit(0);
         }
 }
 
