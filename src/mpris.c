@@ -262,10 +262,10 @@ static void handle_method_call(GDBusConnection *connection, const gchar *sender,
         }
 }
 
-static void on_bus_acquired(GDBusConnection *connection, const gchar *name, gpointer user_data)
-{
-        // g_print("Acquired bus name: %s\n", name);
-}
+// static void on_bus_acquired(GDBusConnection *connection, const gchar *name, gpointer user_data)
+// {
+//         // g_print("Acquired bus name: %s\n", name);
+// }
 
 static void on_bus_name_acquired(GDBusConnection *connection, const gchar *name, gpointer user_data)
 {
@@ -726,6 +726,7 @@ void initMpris()
         }
 
         const char *app_name = "org.mpris.MediaPlayer2.kew";
+       
         char unique_name[256];
         snprintf(unique_name, sizeof(unique_name), "%s%d", app_name, getpid());
 
