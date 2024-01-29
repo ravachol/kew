@@ -33,7 +33,10 @@ ma_libopus *opusDecoders[MAX_DECODERS];
 ma_libopus *firstOpusDecoder;
 ma_libvorbis *vorbisDecoders[MAX_DECODERS];
 ma_libvorbis *firstVorbisDecoder;
+m4a_decoder *m4aDecoders[MAX_DECODERS];
+m4a_decoder *firstM4aDecoder;
 int decoderIndex = -1;
+int m4aDecoderIndex = -1;
 int opusDecoderIndex = -1;
 int vorbisDecoderIndex = -1;
 bool doQuit = false;
@@ -141,6 +144,22 @@ void uninitPreviousVorbisDecoder()
         }
 }
 
+void uninitPreviousM4aDecoder()
+{
+        if (m4aDecoderIndex == -1)
+        {
+                return;
+        }
+        m4a_decoder *toUninit = m4aDecoders[1 - m4aDecoderIndex];
+
+        if (toUninit != NULL)
+        {
+                m4a_decoder_uninit(toUninit, NULL);
+                free(toUninit);
+                m4aDecoders[1 - m4aDecoderIndex] = NULL;
+        }
+}
+
 void uninitPreviousOpusDecoder()
 {
         if (opusDecoderIndex == -1)
@@ -162,6 +181,16 @@ ma_libvorbis *getFirstVorbisDecoder()
         return firstVorbisDecoder;
 }
 
+m4a_decoder *getFirstM4aDecoder()
+{
+        return firstM4aDecoder;
+}
+
+ma_libopus *getFirstOpusDecoder()
+{
+        return firstOpusDecoder;
+}
+
 ma_libvorbis *getCurrentVorbisDecoder()
 {
         if (vorbisDecoderIndex == -1)
@@ -170,17 +199,12 @@ ma_libvorbis *getCurrentVorbisDecoder()
                 return vorbisDecoders[vorbisDecoderIndex];
 }
 
-void switchVorbisecoder()
+m4a_decoder *getCurrentM4aDecoder()
 {
-        if (vorbisDecoderIndex == -1)
-                vorbisDecoderIndex = 0;
+        if (m4aDecoderIndex == -1)
+                return getFirstM4aDecoder();
         else
-                vorbisDecoderIndex = 1 - vorbisDecoderIndex;
-}
-
-ma_libopus *getFirstOpusDecoder()
-{
-        return firstOpusDecoder;
+                return m4aDecoders[m4aDecoderIndex];
 }
 
 ma_libopus *getCurrentOpusDecoder()
@@ -197,6 +221,14 @@ void switchVorbisDecoder()
                 vorbisDecoderIndex = 0;
         else
                 vorbisDecoderIndex = 1 - vorbisDecoderIndex;
+}
+
+void switchM4aDecoder()
+{
+        if (m4aDecoderIndex == -1)
+                m4aDecoderIndex = 0;
+        else
+                m4aDecoderIndex = 1 - m4aDecoderIndex;
 }
 
 void switchOpusDecoder()
@@ -221,6 +253,23 @@ void setNextVorbisDecoder(ma_libvorbis *decoder)
         {
                 int nextIndex = 1 - vorbisDecoderIndex;
                 vorbisDecoders[nextIndex] = decoder;
+        }
+}
+
+void setNextM4aDecoder(m4a_decoder *decoder)
+{
+        if (m4aDecoderIndex == -1 && firstM4aDecoder == NULL)
+        {
+                firstM4aDecoder = decoder;
+        }
+        else if (m4aDecoderIndex == -1)
+        {
+                m4aDecoders[0] = decoder;
+        }
+        else
+        {
+                int nextIndex = 1 - m4aDecoderIndex;
+                m4aDecoders[nextIndex] = decoder;
         }
 }
 
@@ -266,6 +315,33 @@ void resetVorbisDecoders()
                 vorbisDecoders[1] = NULL;
         }
 }
+
+void resetM4aDecoders()
+{
+        m4aDecoderIndex = -1;
+
+        if (firstM4aDecoder != NULL && firstM4aDecoder->format != ma_format_unknown)
+        {
+                m4a_decoder_uninit(firstM4aDecoder, NULL);
+                free(firstM4aDecoder);
+                firstM4aDecoder = NULL;
+        }
+
+        if (m4aDecoders[0] != NULL && m4aDecoders[0]->format != ma_format_unknown)
+        {
+                m4a_decoder_uninit(m4aDecoders[0], NULL);
+                free(m4aDecoders[0]);
+                m4aDecoders[0] = NULL;
+        }
+
+        if (m4aDecoders[1] != NULL && m4aDecoders[1]->format != ma_format_unknown)
+        {
+                m4a_decoder_uninit(m4aDecoders[1], NULL);
+                free(m4aDecoders[1]);
+                m4aDecoders[1] = NULL;
+        }
+}
+
 
 void resetOpusDecoders()
 {
@@ -357,6 +433,70 @@ int prepareNextVorbisDecoder(char *filepath)
 
         return 0;
 }
+
+int prepareNextM4aDecoder(char *filepath)
+{
+        m4a_decoder *currentDecoder;
+
+        if (m4aDecoderIndex == -1)
+        {
+                currentDecoder = getFirstM4aDecoder();
+        }
+        else
+        {
+                currentDecoder = m4aDecoders[m4aDecoderIndex];
+        }
+
+        ma_uint32 sampleRate;
+        ma_uint32 channels;
+        ma_format format;
+        ma_channel channelMap[MA_MAX_CHANNELS];
+        m4a_decoder_get_data_format(currentDecoder, &format, &channels, &sampleRate, channelMap, MA_MAX_CHANNELS);
+
+        uninitPreviousM4aDecoder();
+
+        m4a_decoder *decoder = (m4a_decoder *)malloc(sizeof(m4a_decoder));
+        ma_result result = m4a_decoder_init_file(filepath, NULL, NULL, decoder);
+
+        if (result != MA_SUCCESS)
+                return -1;        
+
+        ma_format nformat;
+        ma_uint32 nchannels;
+        ma_uint32 nsampleRate;
+        ma_channel nchannelMap[MA_MAX_CHANNELS];
+
+        m4a_decoder_get_data_format(decoder, &nformat, &nchannels, &nsampleRate, nchannelMap, MA_MAX_CHANNELS);
+        bool sameFormat = (currentDecoder == NULL || (format == nformat &&
+                                                      channels == nchannels &&
+                                                      sampleRate == nsampleRate));
+
+        if (!sameFormat)
+        {
+                m4a_decoder_uninit(decoder, NULL);
+                free(decoder);
+                return -1;
+        }
+
+        m4a_decoder *first = getFirstM4aDecoder();
+        if (first != NULL)
+        {
+                decoder->pReadSeekTellUserData = (AudioData *)first->pReadSeekTellUserData;
+        }
+
+        decoder->format = nformat;
+        decoder->onRead = m4a_read_pcm_frames_wrapper;
+        decoder->onSeek = m4a_seek_to_pcm_frame_wrapper;
+        decoder->onTell = m4a_get_cursor_in_pcm_frames_wrapper;
+        decoder->cursor = 0;
+
+        setNextM4aDecoder(decoder);
+        if (currentDecoder != NULL)
+                ma_data_source_set_next(currentDecoder, decoder);
+
+        return 0;
+}
+
 
 int prepareNextOpusDecoder(char *filepath)
 {
@@ -488,6 +628,17 @@ void getVorbisFileInfo(const char *filename, ma_format *format, ma_uint32 *chann
                 *format = decoder.format;
                 ma_libvorbis_get_data_format(&decoder, format, channels, sampleRate, channelMap, MA_MAX_CHANNELS);
                 ma_libvorbis_uninit(&decoder, NULL);
+        }
+}
+
+void getM4aFileInfo(const char *filename, ma_format *format, ma_uint32 *channels, ma_uint32 *sampleRate, ma_channel *channelMap)
+{
+        m4a_decoder decoder;
+        if (m4a_decoder_init_file(filename, NULL, NULL, &decoder) == MA_SUCCESS)
+        {
+                *format = decoder.format;
+                m4a_decoder_get_data_format(&decoder, format, channels, sampleRate, channelMap, MA_MAX_CHANNELS);
+                m4a_decoder_uninit(&decoder, NULL);
         }
 }
 
@@ -765,46 +916,46 @@ void executeSwitch(AudioData *pAudioData)
         pAudioData->switchFiles = false;
         switchDecoder();
         switchOpusDecoder();
+        switchM4aDecoder();
         switchVorbisDecoder();
 
         pAudioData->totalFrames = 0;
 
         // Close the current file, and open the new one
-        char *currentFilename;
         SongData *currentSongData;
 
         if (pAudioData->currentFileIndex == 0)
         {
-                if (pAudioData->fileB != NULL)
-                        fclose(pAudioData->fileB);
-                pAudioData->fileB = NULL;
+                // DISABLED
+                // if (pAudioData->fileB != NULL)
+                //         fclose(pAudioData->fileB);
+                // pAudioData->fileB = NULL;
                 if (pAudioData->pUserData->songdataA != NULL)
                 {
-                        currentFilename = pAudioData->pUserData->filenameA;
                         currentSongData = pAudioData->pUserData->songdataA;
-                        pAudioData->fileA = (currentFilename != NULL && strcmp(currentFilename, "") != 0) ? fopen(currentFilename, "rb") : NULL;
+                        // DISABLED
+                        //pAudioData->fileA = (currentFilename != NULL && strcmp(currentFilename, "") != 0) ? fopen(currentFilename, "rb") : NULL;
                 }
                 else
                 {
-                        currentFilename = NULL;
                         currentSongData = NULL;
                         pAudioData->fileA = NULL;
                 }
         }
         else
         {
-                if (pAudioData->fileA != NULL)
-                        fclose(pAudioData->fileA);
-                pAudioData->fileA = NULL;
-                if (pAudioData->pUserData->songdataA != NULL)
+                // DISABLED
+                // if (pAudioData->fileA != NULL)
+                //         fclose(pAudioData->fileA);
+                // pAudioData->fileA = NULL;
+                if (pAudioData->pUserData->songdataB != NULL)
                 {
-                        currentFilename = pAudioData->pUserData->filenameB;
                         currentSongData = pAudioData->pUserData->songdataB;
-                        pAudioData->fileB = (currentFilename != NULL && strcmp(currentFilename, "") != 0) ? fopen(currentFilename, "rb") : NULL;
+                        // DISABLED
+                        //pAudioData->fileB = (currentFilename != NULL && strcmp(currentFilename, "") != 0) ? fopen(currentFilename, "rb") : NULL;
                 }
                 else
                 {
-                        currentFilename = NULL;
                         currentSongData = NULL;
                         pAudioData->fileB = NULL;
                 }

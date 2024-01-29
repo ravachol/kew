@@ -721,6 +721,7 @@ void initMpris()
 
         if (!connection)
         {
+                g_dbus_node_info_unref(introspection_data);
                 g_printerr("Failed to connect to D-Bus\n");
                 exit(0);
         }
@@ -756,6 +757,7 @@ void initMpris()
 
         if (!registration_id)
         {
+                g_dbus_node_info_unref(introspection_data);
                 g_printerr("Failed to register media player object: %s\n", error->message);
                 g_error_free(error);
                 exit(0);
@@ -772,10 +774,13 @@ void initMpris()
 
         if (!player_registration_id)
         {
+                g_dbus_node_info_unref(introspection_data);
                 g_printerr("Failed to register media player object: %s\n", error->message);
                 g_error_free(error);
                 exit(0);
         }
+
+        g_dbus_node_info_unref(introspection_data);
 }
 
 void emitStartPlayingMpris()

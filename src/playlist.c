@@ -107,17 +107,9 @@ void deletePlaylist(PlayList *list)
         while (current != NULL)
         {
                 Node *next = current->next;
-                if (current->song.filePath != NULL)
-                {
-                        free(current->song.filePath);
-                        current->song.filePath = NULL;
-                }
-                if (current->prev != NULL)
-                        current->prev->next = NULL;
+                free(current->song.filePath);
                 free(current);
                 current = next;
-                if (current != NULL && current->prev != NULL)
-                        current->prev = NULL;
         }
 
         // Reset the playlist

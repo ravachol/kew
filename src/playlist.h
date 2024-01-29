@@ -102,3 +102,4 @@ Node *findPathInPlaylist(char *path, PlayList *playlist);
 Node *findLastPathInPlaylist(char *path, PlayList *playlist);
 
 int findNodeInList(PlayList *list, int id, Node **foundNode);
+

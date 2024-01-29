@@ -148,10 +148,14 @@ int compareLibEntries(const struct dirent **a, const struct dirent **b)
 
         if (nameA[0] == '_' && nameB[0] != '_')
         {
+                free(nameA);
+                free(nameB);
                 return 1;
         }
         else if (nameA[0] != '_' && nameB[0] == '_')
         {
+                free(nameA);
+                free(nameB);
                 return -1;
         }
 

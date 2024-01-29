@@ -24,7 +24,7 @@ typedef struct
 
 AppState appState;
 
-const char VERSION[] = "2.1.1";
+const char VERSION[] = "2.2";
 const int LOGO_COLOR = 3;
 const int ARTIST_COLOR = 6;
 const int ENQUEUED_COLOR = 6;
@@ -212,7 +212,12 @@ int printLogo(SongData *songData)
         {
                 int term_w, term_h;
                 getTermSize(&term_w, &term_h);
-                char *title = (char *)malloc(MAXPATHLEN);
+
+                char *title = (char *)calloc(MAXPATHLEN, sizeof(char)); // Initialize to zero
+                if (title == NULL)
+                {
+                        return -1;
+                }
                 title[0] = '\0';
 
                 strcat(title, songData->metadata->title);
@@ -1181,7 +1186,7 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
                                 if (root->isDirectory)
                                 {
                                         shortenString(root->name, maxNameWidth);
-                                        //if (chosenDir != NULL && strcmp(root->fullPath, chosenDir->fullPath) == 0)
+                                        // if (chosenDir != NULL && strcmp(root->fullPath, chosenDir->fullPath) == 0)
                                         if (depth == 1)
                                                 printf("%s \n", stringToUpper(root->name));
                                         else

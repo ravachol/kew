@@ -20,7 +20,6 @@ kew (/kjuː/) is a command-line music player for Linux.
  * Private and offline, no data is collected by kew.
 
 ## Caveats
- * Does not yet work well with very long audio files that are not mp3, wav, flac, ogg or opus.
  * Seeking is disabled for ogg vorbis files.
 
 ## Reviews

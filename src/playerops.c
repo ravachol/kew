@@ -136,8 +136,6 @@ void updatePlaybackPosition(double elapsedSeconds)
                                       "PropertiesChanged",
                                       parameters,
                                       NULL);
-
-        g_variant_unref(parameters);
 }
 
 void emitSeekedSignal(double newPositionSeconds)
@@ -838,6 +836,8 @@ int assignLoadedData()
                                 result = prepareNextOpusDecoder(loadingdata.songdataA->filePath);
                         else if (endsWith(loadingdata.songdataA->filePath, "ogg"))
                                 result = prepareNextVorbisDecoder(loadingdata.songdataA->filePath);
+                        else if (endsWith(loadingdata.songdataA->filePath, "m4a"))
+                                result = prepareNextM4aDecoder(loadingdata.songdataA->filePath);
                 }
                 else
                         userData.filenameA = NULL;
@@ -855,6 +855,8 @@ int assignLoadedData()
                                 result = prepareNextOpusDecoder(loadingdata.songdataB->filePath);
                         else if (endsWith(loadingdata.songdataB->filePath, "ogg"))
                                 result = prepareNextVorbisDecoder(loadingdata.songdataB->filePath);
+                        else if (endsWith(loadingdata.songdataB->filePath, "m4a"))
+                                result = prepareNextM4aDecoder(loadingdata.songdataB->filePath);                                
                 }
                 else
                         userData.filenameB = NULL;

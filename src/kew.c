@@ -861,6 +861,7 @@ void cleanupOnExit()
         resetDecoders();
         resetVorbisDecoders();
         resetOpusDecoders();
+        resetM4aDecoders();
         cleanupPlaybackDevice();
         cleanupAudioContext();
         emitPlaybackStoppedMpris();
@@ -878,6 +879,7 @@ void cleanupOnExit()
         freeMainDirectoryTree();
         deletePlaylist(&playlist);
         deletePlaylist(mainPlaylist);
+        deletePlaylist(originalPlaylist);
         free(mainPlaylist);
         free(originalPlaylist);
         cleanupAudioData();
