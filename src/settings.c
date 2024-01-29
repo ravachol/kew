@@ -261,40 +261,40 @@ const char *getHomePath()
 
 const char *getConfigPath()
 {
+        char *configPath = malloc(PATH_MAX);
+        if (!configPath)
+                return NULL;
+
         const char *xdgConfig = getenv("XDG_CONFIG_HOME");
-        if (xdgConfig == NULL)
+        if (xdgConfig)
         {
-                // If XDG_CONFIG_HOME is not set, fall back to the default location
+                snprintf(configPath, PATH_MAX, "%s", xdgConfig);
+        }
+        else
+        {
                 const char *home = getHomePath();
-                if (home != NULL)
+                if (home)
                 {
-                        // Construct the default configuration path
-                        char *configPath = (char *)malloc(PATH_MAX);
-                        if (configPath != NULL)
-                        {
-                                snprintf(configPath, PATH_MAX, "%s/.config", home);
-                                if (isDirectory(configPath))
-                                {
-                                        xdgConfig = configPath;
-                                }
-                                else
-                                {
-                                        free(configPath); // Free the allocated memory
-                                        return home;
-                                }
-                        }
+                        snprintf(configPath, PATH_MAX, "%s/.config", home);
                 }
                 else
                 {
                         struct passwd *pw = getpwuid(getuid());
-                        if (pw != NULL)
+                        if (pw)
                         {
-                                return pw->pw_dir;
+                                snprintf(configPath, PATH_MAX, "%s", pw->pw_dir);
+                        }
+                        else
+                        {
+                                free(configPath);
+                                return NULL;
                         }
                 }
         }
-        return xdgConfig;
+
+        return configPath;
 }
+
 const char *getDefaultMusicFolder()
 {
         const char *home = getHomePath();
@@ -354,7 +354,7 @@ void getConfigOld()
 void getConfig()
 {
         int pair_count;
-        const char *configdir = getConfigPath();
+        char *configdir = getConfigPath();
         char *filepath = NULL;
 
         size_t filepath_length = strlen(configdir) + strlen("/") + strlen(NEW_SETTINGS_FILE) + 1;
@@ -366,6 +366,7 @@ void getConfig()
         if (existsFile(filepath) < 0)
         {
                 free(filepath);
+                free(configdir);
                 getConfigOld(); // Get config from the old location
                 return;
         }
@@ -383,12 +384,13 @@ void getConfig()
         if (temp > 0)
                 visualizerHeight = temp;
         getMusicLibraryPath(settings.path);
+        free(configdir);
 }
 
 void setConfig()
 {
         // Create the file path
-        const char *configdir = getConfigPath();
+        char *configdir = getConfigPath();
 
         char *filepath = (char *)malloc(strlen(configdir) + strlen("/") + strlen(NEW_SETTINGS_FILE) + 1);
         strcpy(filepath, configdir);
@@ -400,6 +402,7 @@ void setConfig()
         {
                 fprintf(stderr, "Error opening file: %s\n", filepath);
                 free(filepath);
+                free(configdir);
                 return;
         }
 
@@ -462,4 +465,5 @@ void setConfig()
 
         fclose(file);
         free(filepath);
+        free(configdir);
 }

@@ -5,6 +5,7 @@
 #include <miniaudio.h>
 #include <miniaudio_libopus.h>
 #include <miniaudio_libvorbis.h>
+#include "m4a_decoder.h"
 #include <glib.h>
 #include <FreeImage.h>
 #include <stdatomic.h>
@@ -150,11 +151,19 @@ int prepareNextOpusDecoder(char *filepath);
 
 void resetOpusDecoders();
 
+m4a_decoder *getCurrentM4aDecoder();
+
+void switchM4aDecoder();
+
+m4a_decoder *getFirstM4aDecoder();
+
 ma_libopus *getFirstOpusDecoder();
 
 ma_libvorbis *getFirstVorbisDecoder();
 
 void getVorbisFileInfo(const char *filename, ma_format *format, ma_uint32*channels, ma_uint32 *sampleRate, ma_channel *channelMap);
+
+void getM4aFileInfo(const char *filename, ma_format *format, ma_uint32*channels, ma_uint32 *sampleRate, ma_channel *channelMap);
 
 void getOpusFileInfo(const char *filename, ma_format *format, ma_uint32*channels, ma_uint32 *sampleRate, ma_channel *channelMap);
 
@@ -164,7 +173,11 @@ void switchVorbisDecoder();
 
 int prepareNextVorbisDecoder(char *filepath);
 
+int prepareNextM4aDecoder(char *filepath);
+
 void resetVorbisDecoders();
+
+void resetM4aDecoders();
 
 ma_libvorbis *getFirstVorbisDecoder();
 

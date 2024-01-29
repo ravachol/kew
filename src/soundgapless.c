@@ -19,6 +19,20 @@ UserData userData;
 
 AudioData audioData;
 
+int check_aac_codec_support()
+{
+        const AVCodec *codec = avcodec_find_decoder(AV_CODEC_ID_AAC);
+
+        if (codec == NULL)
+        {
+                fprintf(stderr, "AAC codec not supported in this build of FFmpeg.\n");
+
+                return -1;
+        }
+
+        return 0;
+}
+
 ma_result initFirstDatasource(AudioData *pAudioData, UserData *pUserData)
 {
         char *filePath = NULL;
@@ -28,6 +42,8 @@ ma_result initFirstDatasource(AudioData *pAudioData, UserData *pUserData)
         pAudioData->pUserData = pUserData;
         pAudioData->currentPCMFrame = 0;
         pAudioData->restart = false;
+        pAudioData->fileA = NULL;
+        pAudioData->fileB = NULL;        
 
         if (hasBuiltinDecoder(filePath))
         {
@@ -44,7 +60,7 @@ ma_result initFirstDatasource(AudioData *pAudioData, UserData *pUserData)
         {
                 int result = prepareNextOpusDecoder(filePath);
                 if (result < 0)
-                        return -1;                
+                        return -1;
                 ma_libopus *first = getFirstOpusDecoder();
                 ma_channel channelMap[MA_MAX_CHANNELS];
                 ma_libopus_ds_get_data_format(first, &pAudioData->format, &pAudioData->channels, &pAudioData->sampleRate, channelMap, MA_MAX_CHANNELS);
@@ -57,7 +73,7 @@ ma_result initFirstDatasource(AudioData *pAudioData, UserData *pUserData)
         {
                 int result = prepareNextVorbisDecoder(filePath);
                 if (result < 0)
-                        return -1;                
+                        return -1;
                 ma_libvorbis *first = getFirstVorbisDecoder();
                 ma_channel channelMap[MA_MAX_CHANNELS];
                 ma_libvorbis_ds_get_data_format(first, &pAudioData->format, &pAudioData->channels, &pAudioData->sampleRate, channelMap, MA_MAX_CHANNELS);
@@ -66,22 +82,37 @@ ma_result initFirstDatasource(AudioData *pAudioData, UserData *pUserData)
                 base->pCurrent = first;
                 first->pReadSeekTellUserData = pAudioData;
         }
+        else if (endsWith(filePath, "m4a"))
+        {
+                int result = prepareNextM4aDecoder(filePath);
+                if (result < 0)
+                        return -1;
+                m4a_decoder *first = getFirstM4aDecoder();
+                ma_channel channelMap[MA_MAX_CHANNELS];
+                m4a_decoder_ds_get_data_format(first, &pAudioData->format, &pAudioData->channels, &pAudioData->sampleRate, channelMap, MA_MAX_CHANNELS);
+                ma_data_source_get_length_in_pcm_frames(first, &pAudioData->totalFrames);
+                ma_data_source_base *base = (ma_data_source_base *)first;
+                base->pCurrent = first;
+                first->pReadSeekTellUserData = pAudioData;
+        }
         else
         {
-                if ((pAudioData->currentFileIndex == 0) && pAudioData->fileA == NULL)
-                {
-                        pAudioData->filenameA = pUserData->filenameA;
-                        pAudioData->fileA = fopen(pUserData->filenameA, "rb");
-                }
-                else if ((pAudioData->currentFileIndex == 1) && pAudioData->fileB == NULL)
-                {
-                        pAudioData->filenameB = pUserData->filenameB;
-                        pAudioData->fileB = fopen(pUserData->filenameB, "rb");
-                }
+                return MA_ERROR;
+                // DISABLED:
+                // if ((pAudioData->currentFileIndex == 0) && pAudioData->fileA == NULL)
+                // {
+                //         pAudioData->filenameA = pUserData->filenameA;
+                //         pAudioData->fileA = fopen(pUserData->filenameA, "rb");
+                // }
+                // else if ((pAudioData->currentFileIndex == 1) && pAudioData->fileB == NULL)
+                // {
+                //         pAudioData->filenameB = pUserData->filenameB;
+                //         pAudioData->fileB = fopen(pUserData->filenameB, "rb");
+                // }
 
-                pAudioData->format = SAMPLE_FORMAT;
-                pAudioData->channels = CHANNELS;
-                pAudioData->sampleRate = SAMPLE_RATE;
+                // pAudioData->format = SAMPLE_FORMAT;
+                // pAudioData->channels = CHANNELS;
+                // pAudioData->sampleRate = SAMPLE_RATE;
         }
 
         return MA_SUCCESS;
@@ -159,6 +190,39 @@ void vorbis_createAudioDevice(UserData *userData, ma_device *device, ma_context 
         emitStringPropertyChanged("PlaybackStatus", "Playing");
 }
 
+void m4a_createAudioDevice(UserData *userData, ma_device *device, ma_context *context, ma_data_source_vtable *vtable)
+{
+        ma_result result;
+
+        initFirstDatasource(&audioData, userData);
+        m4a_decoder *decoder = getFirstM4aDecoder();
+        ma_device_config deviceConfig = ma_device_config_init(ma_device_type_playback);
+
+        deviceConfig.playback.format = decoder->format;
+        deviceConfig.playback.channels = audioData.channels;
+        deviceConfig.sampleRate = audioData.sampleRate;
+        deviceConfig.dataCallback = m4a_on_audio_frames;
+        deviceConfig.pUserData = decoder;
+
+        result = ma_device_init(context, &deviceConfig, device);
+        if (result != MA_SUCCESS)
+        {
+                printf("Failed to initialize miniaudio device.\n");
+                return;
+        }
+
+        setVolume(getCurrentVolume());
+        
+        result = ma_device_start(device);
+
+        if (result != MA_SUCCESS)
+        {
+                printf("Failed to start miniaudio device.\n");
+                return;
+        }
+        emitStringPropertyChanged("PlaybackStatus", "Playing");
+}
+
 void opus_createAudioDevice(UserData *userData, ma_device *device, ma_context *context, ma_data_source_vtable *vtable)
 {
         ma_result result;
@@ -203,13 +267,13 @@ void cleanupAudioData()
         audioData.fileB = NULL;
 }
 
-void switchAudioImplementation()
+int switchAudioImplementation()
 {
         if (audioData.endOfListReached)
         {
                 setEOFNotReached();
                 setCurrentImplementationType(NONE);
-                return;
+                return 0;
         }
 
         enum AudioImplementation currentImplementation = getCurrentImplementationType();
@@ -226,7 +290,7 @@ void switchAudioImplementation()
         if (userData.currentSongData == NULL)
         {
                 setEOFNotReached();
-                return;
+                return 0;
         }
 
         char *filePath = strdup(userData.currentSongData->filePath);
@@ -235,7 +299,7 @@ void switchAudioImplementation()
         {
                 free(filePath);
                 setEOFNotReached();
-                return;
+                return 0;
         }
 
         if (hasBuiltinDecoder(filePath))
@@ -263,6 +327,7 @@ void switchAudioImplementation()
 
                         resetDecoders();
                         resetVorbisDecoders();
+                        resetM4aDecoders();
                         resetOpusDecoders();
                         resetAudioBuffer();
 
@@ -307,6 +372,7 @@ void switchAudioImplementation()
 
                         resetDecoders();
                         resetVorbisDecoders();
+                        resetM4aDecoders();
                         resetOpusDecoders();
                         resetAudioBuffer();
 
@@ -351,6 +417,7 @@ void switchAudioImplementation()
 
                         resetDecoders();
                         resetVorbisDecoders();
+                        resetM4aDecoders();
                         resetOpusDecoders();
                         resetAudioBuffer();
 
@@ -361,32 +428,92 @@ void switchAudioImplementation()
                         setImplSwitchNotReached();
                 }
         }
-        else
+        else if (endsWith(filePath, "m4a"))
         {
-                if (isRepeatEnabled() || currentImplementation != PCM)
+                if (check_aac_codec_support() < 0)
+                {
+                        free(filePath);
+                        printf("\n\nUnable to find AAC codec. If you have the free version of FFmpeg, there might be no AAC/M4A file support.\n");
+                        exit(0);
+                }
+
+                ma_uint32 sampleRate;
+                ma_uint32 channels;
+                ma_format format;
+                ma_channel channelMap[MA_MAX_CHANNELS];
+
+                ma_uint32 nSampleRate;
+                ma_uint32 nChannels;
+                ma_format nFormat;
+                ma_channel nChannelMap[MA_MAX_CHANNELS];
+                m4a_decoder *decoder = getCurrentM4aDecoder();
+
+                getM4aFileInfo(filePath, &format, &channels, &sampleRate, channelMap);
+
+                if (decoder != NULL)
+                        m4a_decoder_ds_get_data_format(decoder, &nFormat, &nChannels, &nSampleRate, nChannelMap, MA_MAX_CHANNELS);
+
+                bool sameFormat = (decoder != NULL && (format == decoder->format &&
+                                                       channels == nChannels &&
+                                                       sampleRate == nSampleRate));
+
+                if (isRepeatEnabled() || !(sameFormat && currentImplementation == M4A))
                 {
                         setImplSwitchReached();
 
                         pthread_mutex_lock(&dataSourceMutex);
 
-                        setCurrentImplementationType(PCM);
+                        setCurrentImplementationType(M4A);
 
                         cleanupPlaybackDevice();
 
                         resetDecoders();
                         resetVorbisDecoders();
+                        resetM4aDecoders();
                         resetOpusDecoders();
                         resetAudioBuffer();
 
-                        pcm_createAudioDevice(&userData, getDevice(), &context, &pcm_file_data_source_vtable);
+                        m4a_createAudioDevice(&userData, getDevice(), &context, &pcm_file_data_source_vtable);
 
                         pthread_mutex_unlock(&dataSourceMutex);
 
                         setImplSwitchNotReached();
                 }
         }
+        else
+        {
+                free(filePath);
+                return -1;
+        }
+        // DISABLED:
+        // else
+        // {
+        //         if (isRepeatEnabled() || currentImplementation != PCM)
+        //         {
+        //                 setImplSwitchReached();
+
+        //                 pthread_mutex_lock(&dataSourceMutex);
+
+        //                 setCurrentImplementationType(PCM);
+
+        //                 cleanupPlaybackDevice();
+
+        //                 resetDecoders();
+        //                 resetVorbisDecoders();
+        //                 resetOpusDecoders();
+        //                 resetAudioBuffer();
+
+        //                 pcm_createAudioDevice(&userData, getDevice(), &context, &pcm_file_data_source_vtable);
+
+        //                 pthread_mutex_unlock(&dataSourceMutex);
+
+        //                 setImplSwitchNotReached();
+        //         }
+        // }
         free(filePath);
         setEOFNotReached();
+        
+        return 0;
 }
 
 void cleanupAudioContext()

@@ -18,6 +18,7 @@
 #include "soundbuiltin.h"
 #include "soundopus.h"
 #include "soundvorbis.h"
+#include "soundm4a.h"
 #include "soundpcm.h"
 #include "volume.h"
 
@@ -68,7 +69,7 @@ void setDecoders(bool usingA, char *filePath);
 
 void createAudioDevice(UserData *userData);
 
-void switchAudioImplementation();
+int switchAudioImplementation();
 
 void cleanupAudioContext();
 
