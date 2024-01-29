@@ -307,10 +307,12 @@ SongData *loadSongData(char *filePath)
         c_sleep(10);
         loadDuration(songdata);
         c_sleep(10);
-        if (!hasBuiltinDecoder(songdata->filePath) && 
-        !endsWith(filePath, "opus") && 
-        !endsWith(filePath, "ogg"))
-                loadPcmAudio(songdata);
+        // DISABLED:
+        // if (!hasBuiltinDecoder(songdata->filePath) && 
+        // !endsWith(filePath, "opus") && 
+        // !endsWith(filePath, "ogg") && 
+        // !endsWith(filePath, "m4a"))
+        //         loadPcmAudio(songdata);
         return songdata;
 }
 

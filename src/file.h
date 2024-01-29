@@ -26,7 +26,7 @@
 #endif
 
 #ifndef AUDIO_EXTENSIONS
-#define AUDIO_EXTENSIONS "\\.(m4a|mp3|ogg|flac|wav|aac|wma|raw|mp4a|mp4|m4p|opus)$"
+#define AUDIO_EXTENSIONS "\\.(m4a|mp3|ogg|flac|wav|opus)$"
 #endif
 
 enum SearchType

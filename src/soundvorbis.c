@@ -7,8 +7,6 @@ soundvorbis.c
 
 */
 
-ma_libvorbis *prevDecoder;
-
 MA_API ma_result ma_libvorbis_read_pcm_frames_wrapper(void *pDecoder, void *pFramesOut, long unsigned int frameCount, long unsigned int *pFramesRead)
 {
         ma_decoder *dec = (ma_decoder *)pDecoder;
