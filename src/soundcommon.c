@@ -988,15 +988,9 @@ void executeSwitch(AudioData *pAudioData)
 
         if (pAudioData->currentFileIndex == 0)
         {
-                // DISABLED
-                // if (pAudioData->fileB != NULL)
-                //         fclose(pAudioData->fileB);
-                // pAudioData->fileB = NULL;
                 if (pAudioData->pUserData->songdataA != NULL)
                 {
                         currentSongData = pAudioData->pUserData->songdataA;
-                        // DISABLED
-                        // pAudioData->fileA = (currentFilename != NULL && strcmp(currentFilename, "") != 0) ? fopen(currentFilename, "rb") : NULL;
                 }
                 else
                 {
@@ -1006,15 +1000,9 @@ void executeSwitch(AudioData *pAudioData)
         }
         else
         {
-                // DISABLED
-                // if (pAudioData->fileA != NULL)
-                //         fclose(pAudioData->fileA);
-                // pAudioData->fileA = NULL;
                 if (pAudioData->pUserData->songdataB != NULL)
                 {
                         currentSongData = pAudioData->pUserData->songdataB;
-                        // DISABLED
-                        // pAudioData->fileB = (currentFilename != NULL && strcmp(currentFilename, "") != 0) ? fopen(currentFilename, "rb") : NULL;
                 }
                 else
                 {
