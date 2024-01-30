@@ -2,6 +2,7 @@
 #include <string.h>
 #include "settings.h"
 #include "stringfunc.h"
+#include "volume.h"
 /*
 
 settings.c
@@ -67,6 +68,7 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         strncpy(settings.hardNextPage, "[6~", sizeof(settings.hardNextPage));
         strncpy(settings.hardPrevPage, "[5~", sizeof(settings.hardPrevPage));
         strncpy(settings.hardRemove, "[3~", sizeof(settings.hardRemove));
+        strncpy(settings.lastVolume, "100", sizeof(settings.hardRemove));
         strncpy(settings.quit, "q", sizeof(settings.quit));
 
         if (pairs == NULL)
@@ -178,6 +180,10 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
                 {
                         snprintf(settings.quit, sizeof(settings.quit), "%s", pair->value);
                 }
+                else if (strcmp(stringToLower(pair->key), "lastvolume") == 0)
+                {
+                        snprintf(settings.lastVolume, sizeof(settings.lastVolume), "%s", pair->value);
+                }                
                 else if (strcmp(stringToLower(pair->key), "quit") == 0)
                 {
                         snprintf(settings.quit, sizeof(settings.quit), "%s", pair->value);
@@ -259,7 +265,7 @@ const char *getHomePath()
         return xdgHome;
 }
 
-const char *getConfigPath()
+char *getConfigPath()
 {
         char *configPath = malloc(PATH_MAX);
         if (!configPath)
@@ -383,6 +389,10 @@ void getConfig()
         int temp = atoi(settings.visualizerHeight);
         if (temp > 0)
                 visualizerHeight = temp;
+        int temp2 = atoi(settings.lastVolume);
+        if (temp2 > 0)
+                setVolume(temp2);
+
         getMusicLibraryPath(settings.path);
         free(configdir);
 }
@@ -418,13 +428,15 @@ void setConfig()
         {
                 sprintf(settings.visualizerHeight, "%d", visualizerHeight);
         }
-
+       sprintf(settings.lastVolume, "%d", getCurrentVolume());
+ 
         // Null-terminate the character arrays
         settings.path[MAXPATHLEN - 1] = '\0';
         settings.coverEnabled[1] = '\0';
         settings.coverAnsi[1] = '\0';
         settings.visualizerEnabled[1] = '\0';
         settings.visualizerHeight[5] = '\0';
+        settings.lastVolume[5] = '\0';
         settings.useProfileColors[1] = '\0';
 
         // Write the settings to the file
@@ -457,6 +469,7 @@ void setConfig()
         fprintf(file, "seekForward=%s\n", settings.seekForward);
         fprintf(file, "savePlaylist=%s\n", settings.savePlaylist);
         fprintf(file, "addToMainPlaylist=%s\n", settings.addToMainPlaylist);
+        fprintf(file, "lastVolume=%s\n", settings.lastVolume);
         fprintf(file, "quit=%s\n\n", settings.quit);
         fprintf(file, "# For special keys use terminal codes: OS, for F4 for instance. This can depend on the terminal.\n");
         fprintf(file, "# You can find out the codes for the keys by using tools like showkey.\n");

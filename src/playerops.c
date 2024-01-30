@@ -50,7 +50,10 @@ void updatePlaylist()
 
         if (isShuffleEnabled())
         {
-                shufflePlaylistStartingFromSong(&playlist, currentSong);
+                if (currentSong != NULL)
+                        shufflePlaylistStartingFromSong(&playlist, currentSong);
+                else
+                        shufflePlaylist(&playlist);
 
                 nextSongNeedsRebuilding = true;
         }
@@ -75,11 +78,6 @@ void rebuildAndUpdatePlaylist()
         if (playlistNeedsUpdate)
         {
                 updatePlaylist();
-        }
-
-        if (nextSongNeedsRebuilding)
-        {
-                updateNextSong();
         }
 
         pthread_mutex_unlock(&(playlist.mutex));
@@ -140,19 +138,19 @@ void updatePlaybackPosition(double elapsedSeconds)
 
 void emitSeekedSignal(double newPositionSeconds)
 {
-    gint64 newPositionMicroseconds = llround(newPositionSeconds * G_USEC_PER_SEC);
+        gint64 newPositionMicroseconds = llround(newPositionSeconds * G_USEC_PER_SEC);
 
-    GVariant *parameters = g_variant_new("(x)", newPositionMicroseconds);
+        GVariant *parameters = g_variant_new("(x)", newPositionMicroseconds);
 
-    g_dbus_connection_emit_signal(connection,
-                                  NULL,
-                                  "/org/mpris/MediaPlayer2",
-                                  "org.mpris.MediaPlayer2.Player",
-                                  "Seeked",
-                                  parameters,
-                                  NULL);
+        g_dbus_connection_emit_signal(connection,
+                                      NULL,
+                                      "/org/mpris/MediaPlayer2",
+                                      "org.mpris.MediaPlayer2.Player",
+                                      "Seeked",
+                                      parameters,
+                                      NULL);
 
-    g_variant_unref(parameters);
+        g_variant_unref(parameters);
 }
 
 void emitStringPropertyChanged(const gchar *propertyName, const gchar *newValue)
@@ -234,10 +232,9 @@ void addToPlaylist()
 {
         if (!playingMainPlaylist)
         {
-                SongInfo song;
-                song.filePath = strdup(currentSong->song.filePath);
-                song.duration = 0.0;
-                addToList(mainPlaylist, song, nodeIdCounter++);
+                Node *node = NULL;
+                createNode(&node, currentSong->song.filePath, nodeIdCounter++);
+                addToList(mainPlaylist, node);
         }
 }
 
@@ -253,6 +250,7 @@ void toggleShuffle()
         }
         else
         {
+                deletePlaylist(&playlist);
                 playlist = deepCopyPlayList(originalPlaylist);
                 currentSong = findSongInPlaylist(currentSong, &playlist);
                 emitBooleanPropertyChanged("Shuffle", FALSE);
@@ -319,7 +317,7 @@ SongData *getCurrentSongData()
 void calcElapsedTime()
 {
         clock_gettime(CLOCK_MONOTONIC, &current_time);
-        
+
         double timeSinceLastUpdate = (double)(current_time.tv_sec - lastUpdateTime.tv_sec) +
                                      (double)(current_time.tv_nsec - lastUpdateTime.tv_nsec) / 1e9;
 
@@ -382,7 +380,6 @@ void flushSeek()
                 }
 
                 seekPercentage(percentage);
-
 
                 emitSeekedSignal(elapsedSeconds);
         }
@@ -528,22 +525,6 @@ bool markAsDequeued(FileSystemEntry *root, char *path)
         return false;
 }
 
-void removeSelectedEntry(PlayList *playlist, Node *node)
-{
-        if (node != NULL)
-                markAsDequeued(getLibrary(), node->song.filePath);
-
-        deleteFromList(playlist, node);
-}
-
-void removeSelectedEntryByPath(PlayList *playlist, char *path)
-{
-        if (path != NULL)
-                markAsDequeued(getLibrary(), path);
-        Node *node = findLastPathInPlaylist(path, playlist);
-        deleteFromList(playlist, node);
-}
-
 Node *getNextSong()
 {
         if (nextSong != NULL)
@@ -560,12 +541,15 @@ Node *getNextSong()
 
 void enqueueSong(FileSystemEntry *child)
 {
-        SongInfo song;
-        song.filePath = strdup(child->fullPath);
-        song.duration = 0.0;
-        nodeIdCounter++;
-        addToList(originalPlaylist, song, nodeIdCounter);
-        addToList(&playlist, song, nodeIdCounter);
+        int id = nodeIdCounter++;
+
+        Node *node = NULL;
+        createNode(&node, child->fullPath, id);
+        addToList(originalPlaylist, node);
+
+        Node *node2 = NULL;
+        createNode(&node2, child->fullPath, id);
+        addToList(&playlist, node2);
 
         child->isEnqueued = 1;
         child->parent->isEnqueued = 1;
@@ -584,11 +568,13 @@ void dequeueSong(FileSystemEntry *child)
 
         int id = node1->id;
 
-        if (node1 != NULL)
-                deleteFromList(originalPlaylist, node1);
-
         Node *node2 = findSelectedEntryById(&playlist, id);
-        deleteFromList(&playlist, node2);
+
+        if (node2 != NULL)
+                deleteFromList(originalPlaylist, node2);
+
+        if (node1 != NULL)
+                deleteFromList(&playlist, node1);
 
         child->isEnqueued = 0;
         child->parent->isEnqueued = 0;
@@ -719,11 +705,13 @@ void enqueueSongs()
         if (hasEnqueued)
         {
                 waitingForNext = true;
-                loadedNextSong = false;
                 audioData.endOfListReached = false;
         }
 
-        playlistNeedsUpdate = true;
+        if (nextSongNeedsRebuilding)
+        {
+                updatePlaylist();
+        }
         updateLastPlaylistChangeTime();
 }
 
@@ -771,25 +759,31 @@ void handleRemove()
                         rebuild = true;
         }
 
-        removeSelectedEntry(originalPlaylist, node);
+        if (node != NULL)
+                markAsDequeued(getLibrary(), node->song.filePath);
 
         Node *node2 = findSelectedEntryById(&playlist, id);
-        deleteFromList(&playlist, node2);
 
-        playlistNeedsUpdate = true;
+        if (node2 != NULL)
+                deleteFromList(originalPlaylist, node2);
+
+        if (node != NULL)
+                deleteFromList(&playlist, node);
+
+
         updateLastPlaylistChangeTime();
 
         if (isShuffleEnabled())
                 rebuild = true;
 
+        currentSong = findSelectedEntryById(&playlist, currentId);
+
         if (rebuild)
         {
                 node = NULL;
                 nextSong = NULL;
-                nextSongNeedsRebuilding = true;
+                updatePlaylist();
         }
-
-        currentSong = findSelectedEntryById(&playlist, currentId);
 
         pthread_mutex_unlock(&(playlist.mutex));
 
@@ -829,6 +823,7 @@ int assignLoadedData()
                 {
                         userData.filenameA = loadingdata.songdataA->pcmFilePath;
                         userData.songdataA = loadingdata.songdataA;
+                        userData.songdataADeleted = false;
 
                         if (hasBuiltinDecoder(loadingdata.songdataA->filePath))
                                 result = prepareNextDecoder(loadingdata.songdataA->filePath);
@@ -848,6 +843,7 @@ int assignLoadedData()
                 {
                         userData.filenameB = loadingdata.songdataB->pcmFilePath;
                         userData.songdataB = loadingdata.songdataB;
+                        userData.songdataBDeleted = false;
 
                         if (hasBuiltinDecoder(loadingdata.songdataB->filePath))
                                 result = prepareNextDecoder(loadingdata.songdataB->filePath);
@@ -856,7 +852,7 @@ int assignLoadedData()
                         else if (endsWith(loadingdata.songdataB->filePath, "ogg"))
                                 result = prepareNextVorbisDecoder(loadingdata.songdataB->filePath);
                         else if (endsWith(loadingdata.songdataB->filePath, "m4a"))
-                                result = prepareNextM4aDecoder(loadingdata.songdataB->filePath);                                
+                                result = prepareNextM4aDecoder(loadingdata.songdataB->filePath);
                 }
                 else
                         userData.filenameB = NULL;
@@ -878,11 +874,19 @@ void *songDataReaderThread(void *arg)
 
         if (loadingdata->loadA)
         {
-                unloadSongData(&loadingdata->songdataA);
+                if (!userData.songdataADeleted)
+                {
+                        userData.songdataADeleted = true;
+                        unloadSongData(&loadingdata->songdataA);
+                }
         }
         else
         {
-                unloadSongData(&loadingdata->songdataB);
+                if (!userData.songdataBDeleted)
+                {
+                        userData.songdataBDeleted = true;
+                        unloadSongData(&loadingdata->songdataB);
+                }
         }
 
         if (filepath[0] != '\0')
@@ -994,12 +998,13 @@ void skipToNextSong()
                 return;
         }
 
-        if (songLoading || !loadedNextSong || skipping || clearingErrors)
+        if (songLoading || nextSongNeedsRebuilding || skipping || clearingErrors)
                 return;
 
         playbackPlay(&totalPauseSeconds, &pauseSeconds, &pause_time);
 
         skipping = true;
+
         updateLastSongSwitchTime();
         skip();
 }
@@ -1011,7 +1016,7 @@ void skipToPrevSong()
                 return;
         }
 
-        if (songLoading || !loadedNextSong || skipping || clearingErrors)
+        if (songLoading || skipping || clearingErrors)
                 if (!forceSkip)
                         return;
 

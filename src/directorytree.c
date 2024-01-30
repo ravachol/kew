@@ -5,6 +5,7 @@ FileSystemEntry *createEntry(const char *name, int isDirectory, FileSystemEntry 
         FileSystemEntry *newEntry = (FileSystemEntry *)malloc(sizeof(FileSystemEntry));
         if (newEntry != NULL)
         {
+                memset(newEntry->fullPath, 0, sizeof(newEntry->fullPath));
                 snprintf(newEntry->name, sizeof(newEntry->name), "%s", name);
                 newEntry->isDirectory = isDirectory;
                 newEntry->isEnqueued = 0;
