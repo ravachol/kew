@@ -97,22 +97,7 @@ ma_result initFirstDatasource(AudioData *pAudioData, UserData *pUserData)
         }
         else
         {
-                return MA_ERROR;
-                // DISABLED:
-                // if ((pAudioData->currentFileIndex == 0) && pAudioData->fileA == NULL)
-                // {
-                //         pAudioData->filenameA = pUserData->filenameA;
-                //         pAudioData->fileA = fopen(pUserData->filenameA, "rb");
-                // }
-                // else if ((pAudioData->currentFileIndex == 1) && pAudioData->fileB == NULL)
-                // {
-                //         pAudioData->filenameB = pUserData->filenameB;
-                //         pAudioData->fileB = fopen(pUserData->filenameB, "rb");
-                // }
-
-                // pAudioData->format = SAMPLE_FORMAT;
-                // pAudioData->channels = CHANNELS;
-                // pAudioData->sampleRate = SAMPLE_RATE;
+                return MA_ERROR;        
         }
 
         return MA_SUCCESS;
@@ -485,31 +470,7 @@ int switchAudioImplementation()
                 free(filePath);
                 return -1;
         }
-        // DISABLED:
-        // else
-        // {
-        //         if (isRepeatEnabled() || currentImplementation != PCM)
-        //         {
-        //                 setImplSwitchReached();
-
-        //                 pthread_mutex_lock(&dataSourceMutex);
-
-        //                 setCurrentImplementationType(PCM);
-
-        //                 cleanupPlaybackDevice();
-
-        //                 resetDecoders();
-        //                 resetVorbisDecoders();
-        //                 resetOpusDecoders();
-        //                 resetAudioBuffer();
-
-        //                 pcm_createAudioDevice(&userData, getDevice(), &context, &pcm_file_data_source_vtable);
-
-        //                 pthread_mutex_unlock(&dataSourceMutex);
-
-        //                 setImplSwitchNotReached();
-        //         }
-        // }
+      
         free(filePath);
         setEOFNotReached();
         

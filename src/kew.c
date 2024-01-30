@@ -881,7 +881,7 @@ void cleanupOnExit()
                 userData.songdataBDeleted = true;
                 unloadSongData(&loadingdata.songdataB);
         }
-        stopFFmpeg();
+
         cleanupMpris();
         restoreTerminalMode();
         enableInputBuffering();
