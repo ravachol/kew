@@ -1266,7 +1266,7 @@ void showLibrary(SongData *songData)
         }
 }
 
-int printPlayer(SongData *songdata, double elapsedSeconds, PlayList *playlist)
+int printPlayer(SongData *songdata, double elapsedSeconds, PlayList *playlist, bool isDeleted)
 {
         if (!uiEnabled)
         {
@@ -1276,7 +1276,7 @@ int printPlayer(SongData *songdata, double elapsedSeconds, PlayList *playlist)
         hideCursor();
         setColor();
 
-        if (songdata != NULL && songdata->metadata != NULL && !songdata->hasErrors && (songdata->hasErrors < 1))
+        if (songdata != NULL && !isDeleted && songdata->metadata != NULL && !songdata->hasErrors && (songdata->hasErrors < 1))
         {
                 metadata = *songdata->metadata;
                 totalDurationSeconds = playlist->totalDuration;
@@ -1285,7 +1285,7 @@ int printPlayer(SongData *songdata, double elapsedSeconds, PlayList *playlist)
         }
         else
         {
-                if (appState.currentView != PLAYLIST_VIEW && appState.currentView != KEYBINDINGS_VIEW)
+                if (appState.currentView != LIBRARY_VIEW && appState.currentView != PLAYLIST_VIEW && appState.currentView != KEYBINDINGS_VIEW)
                 {
                         appState.currentView = LIBRARY_VIEW;
                 }

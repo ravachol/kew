@@ -59,7 +59,6 @@ typedef struct
         char *pcmFile;
         long pcmFileSize;
         bool hasErrors;
-        bool deleted;
 } SongData;
 
 #endif
@@ -72,6 +71,8 @@ typedef struct
         char *filenameB;
         SongData *songdataA;
         SongData *songdataB;
+        bool songdataADeleted;
+        bool songdataBDeleted;
         SongData *currentSongData;
         ma_uint32 currentPCMFrame;
 } UserData;

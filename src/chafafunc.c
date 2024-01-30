@@ -205,7 +205,6 @@ convert_image(const void *pixels, gint pix_width, gint pix_height,
                                      pix_rowstride);
 
         /* Build printable string */
-        printable = g_string_new(NULL);
         printable = chafa_canvas_print(canvas, term_info);
 
         /* Clean up and return */
@@ -282,7 +281,6 @@ void printImage(const char *image_path, int width, int height)
         chafa_calc_canvas_geometry(pix_width, pix_height, &width_cells, &height_cells, font_ratio, TRUE, FALSE);
 
         /* Convert the image to a printable string */
-        printable = g_string_new(NULL);
         printable = convert_image(pixels, pix_width, pix_height, pix_width * n_channels, CHAFA_PIXEL_BGRA8_UNASSOCIATED,
                                   width, height, cell_width, cell_height);
 
@@ -359,7 +357,6 @@ void printBitmap(FIBITMAP *bitmap, int width, int height)
         chafa_calc_canvas_geometry(pix_width, pix_height, &width_cells, &height_cells, font_ratio, TRUE, FALSE);
 
         /* Convert the image to a printable string */
-        printable = g_string_new(NULL);
         printable = convert_image(pixels, pix_width, pix_height, pix_width * n_channels, CHAFA_PIXEL_BGRA8_UNASSOCIATED,
                                   width, height, cell_width, cell_height);
 
@@ -393,7 +390,6 @@ void printBitmapCentered(FIBITMAP *bitmap, int width, int height)
                 cell_height = term_size.height_pixels / term_size.height_cells;
         }
 
-        printable = g_string_new(NULL);
         printable = convert_image(pixels, pix_width, pix_height, pix_width * n_channels, CHAFA_PIXEL_BGRA8_UNASSOCIATED,
                                   width, height, cell_width, cell_height);
         g_string_append_c(printable, '\0');

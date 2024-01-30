@@ -52,14 +52,11 @@ Node *getListPrev(Node *node)
         return (node == NULL) ? NULL : node->prev;
 }
 
-void addToList(PlayList *list, SongInfo song, int id)
+void addToList(PlayList *list, Node *newNode)
 {
         if (list->count >= MAX_FILES)
                 return;
-        Node *newNode = (Node *)malloc(sizeof(Node));
-        newNode->song = song;
-        newNode->next = NULL;
-        newNode->id = id;
+
         list->count++;
 
         if (list->head == NULL)
@@ -81,8 +78,15 @@ Node *deleteFromList(PlayList *list, Node *node)
         if (list->head == NULL || node == NULL)
                 return NULL;
 
-        if (node == list->head)
+        if (list->head == node)
+        {
                 list->head = node->next;
+                if (list->head == NULL)
+                {
+                        list->tail = NULL;
+                }
+        }
+
         if (node == list->tail)
                 list->tail = node->prev;
 
@@ -90,6 +94,9 @@ Node *deleteFromList(PlayList *list, Node *node)
                 node->prev->next = node->next;
         if (node->next != NULL)
                 node->next->prev = node->prev;
+
+        if (node->song.filePath != NULL)
+                free(node->song.filePath);
 
         Node *nextNode = node->next;
 
@@ -143,7 +150,6 @@ void shufflePlaylist(PlayList *playlist)
         }
 
         // Shuffle the array using Fisher-Yates algorithm
-
         for (int j = playlist->count - 1; j >= 1; --j)
         {
                 int k = rand() % (j + 1);
@@ -183,6 +189,11 @@ void insertAsFirst(Node *currentSong, PlayList *playlist)
                         {
                                 currentSong->next->prev = currentSong->prev;
                         }
+                        else
+                        {
+                                playlist->tail = currentSong->prev;
+                        }
+
                         if (currentSong->prev != NULL)
                         {
                                 currentSong->prev->next = currentSong->next;
@@ -201,7 +212,9 @@ void shufflePlaylistStartingFromSong(PlayList *playlist, Node *song)
 {
         shufflePlaylist(playlist);
         if (song != NULL && playlist->count > 1)
+        {
                 insertAsFirst(song, playlist);
+        }
 }
 
 int compare(const struct dirent **a, const struct dirent **b)
@@ -221,15 +234,33 @@ int compare(const struct dirent **a, const struct dirent **b)
         return strcmp(nameA, nameB);
 }
 
+void createNode(Node **node, char *directoryPath, int id)
+{
+        SongInfo song;
+        song.filePath = strdup(directoryPath);
+        song.duration = 0.0;
+
+        *node = (Node *)malloc(sizeof(Node));
+        if (*node == NULL)
+        {
+                printf("Failed to allocate memory.");
+                exit(0);
+                return;
+        }
+
+        (*node)->song = song;
+        (*node)->next = NULL;
+        (*node)->id = id;
+}
+
 void buildPlaylistRecursive(char *directoryPath, const char *allowedExtensions, PlayList *playlist)
 {
         int res = isDirectory(directoryPath);
         if (res != 1 && res != -1 && directoryPath != NULL)
         {
-                SongInfo song;
-                song.filePath = strdup(directoryPath);
-                song.duration = 0.0;
-                addToList(playlist, song, nodeIdCounter++);
+                Node *node = NULL;
+                createNode(&node, directoryPath, nodeIdCounter++);
+                addToList(playlist, node);
                 return;
         }
 
@@ -283,11 +314,11 @@ void buildPlaylistRecursive(char *directoryPath, const char *allowedExtensions, 
                         extractExtension(entry->d_name, sizeof(exto) - 1, exto);
                         if (match_regex(&regex, exto) == 0)
                         {
-                                SongInfo song;
                                 snprintf(filePath, sizeof(filePath), "%s/%s", directoryPath, entry->d_name);
-                                song.filePath = strdup(filePath);
-                                song.duration = 0.0;
-                                addToList(playlist, song, nodeIdCounter++);
+
+                                Node *node = NULL;
+                                createNode(&node, filePath, nodeIdCounter++);
+                                addToList(playlist, node);
                         }
                 }
         }
@@ -326,10 +357,10 @@ int playDirectory(const char *directoryPath, const char *allowedExtensions, Play
                 {
                         char filePath[FILENAME_MAX];
                         snprintf(filePath, sizeof(filePath), "%s/%s", directoryPath, entry->d_name);
-                        SongInfo song;
-                        song.duration = 0.0;
-                        song.filePath = strdup(filePath);
-                        addToList(playlist, song, nodeIdCounter++);
+
+                        Node *node = NULL;
+                        createNode(&node, filePath, nodeIdCounter++);
+                        addToList(playlist, node);
                 }
         }
         closedir(dir);
@@ -834,7 +865,7 @@ Node *findSongInPlaylist(Node *currentSong, PlayList *playlist)
 
         while (currentNode != NULL)
         {
-                if (strcmp(currentNode->song.filePath, currentSong->song.filePath) == 0)
+                if ((currentSong->song.filePath != NULL) && (strcmp(currentNode->song.filePath, currentSong->song.filePath) == 0))
                 {
                         return currentNode;
                 }

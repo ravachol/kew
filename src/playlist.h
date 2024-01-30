@@ -53,11 +53,15 @@ Node *getListNext(Node *node);
 
 Node *getListPrev(Node *node);
 
-void addToList(PlayList *list, SongInfo song, int id);
+void createNode(Node **node, char *directoryPath, int id);
+
+void addToList(PlayList *list, Node *newNode);
 
 double calcTotalDuration(PlayList *playList);
 
 Node *deleteFromList(PlayList *list, Node *node);
+
+void byPassNode(PlayList *list, Node *node);
 
 void deletePlaylist(PlayList *playlist);
 
@@ -102,4 +106,3 @@ Node *findPathInPlaylist(char *path, PlayList *playlist);
 Node *findLastPathInPlaylist(char *path, PlayList *playlist);
 
 int findNodeInList(PlayList *list, int id, Node **foundNode);
-

@@ -59,7 +59,7 @@ bool hasNerdFonts();
 
 void createLibrary();
 
-int printPlayer(SongData *songdata, double elapsedSeconds, PlayList *playlist);
+int printPlayer(SongData *songdata, double elapsedSeconds, PlayList *playlist, bool isDeleted);
 
 void flipNextPage();
 

@@ -74,6 +74,7 @@ typedef struct
         char hardNextPage[6];
         char hardPrevPage[6];
         char hardRemove[6];
+        char lastVolume[6];
 } AppSettings;
 
 extern AppSettings settings;
