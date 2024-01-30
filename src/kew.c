@@ -94,19 +94,6 @@ bool isCooldownElapsed(int milliSeconds)
         return elapsedMilliseconds >= milliSeconds;
 }
 
-void performDelayedActions()
-{
-        struct timespec currentTime;
-        clock_gettime(CLOCK_MONOTONIC, &currentTime);
-        double elapsedMilliseconds = (currentTime.tv_sec - lastPlaylistChangeTime.tv_sec) * 1000.0 +
-                                     (currentTime.tv_nsec - lastPlaylistChangeTime.tv_nsec) / 1000000.0;
-
-        if (elapsedMilliseconds >= DELAYEDACTIONWAIT)
-        {
-                rebuildAndUpdatePlaylist();
-        }
-}
-
 struct Event processInput()
 {
         struct Event event;
@@ -186,7 +173,7 @@ struct Event processInput()
                                       {settings.nextTrackAlt, EVENT_NEXT},
                                       {settings.previousTrackAlt, EVENT_PREV},
                                       {settings.volumeUp, EVENT_VOLUME_UP},
-                                      {settings.volumeUpAlt, EVENT_VOLUME_UP},                                      
+                                      {settings.volumeUpAlt, EVENT_VOLUME_UP},
                                       {settings.volumeDown, EVENT_VOLUME_DOWN},
                                       {settings.togglePause, EVENT_PLAY_PAUSE},
                                       {settings.quit, EVENT_QUIT},
@@ -322,9 +309,10 @@ void unloadPreviousSong()
         pthread_mutex_lock(&(loadingdata.mutex));
 
         if (usingSongDataA &&
-            (skipping || (userData.currentSongData == NULL || userData.currentSongData->deleted == true ||
-                          (loadingdata.songdataA != NULL && loadingdata.songdataA->deleted == false && userData.currentSongData->trackId != NULL && strcmp(loadingdata.songdataA->trackId, userData.currentSongData->trackId) != 0))))
+            (skipping || (userData.currentSongData == NULL || userData.songdataADeleted == false ||
+                          (loadingdata.songdataA != NULL && userData.songdataADeleted == false && userData.currentSongData->trackId != NULL && strcmp(loadingdata.songdataA->trackId, userData.currentSongData->trackId) != 0))))
         {
+                userData.songdataADeleted = true;
                 unloadSongData(&loadingdata.songdataA);
                 userData.filenameA = NULL;
                 usingSongDataA = false;
@@ -332,9 +320,10 @@ void unloadPreviousSong()
                         loadedNextSong = false;
         }
         else if (!usingSongDataA &&
-                 (skipping || (userData.currentSongData == NULL || userData.currentSongData->deleted == true ||
-                               (loadingdata.songdataB != NULL && loadingdata.songdataB->deleted == false && userData.currentSongData->trackId != NULL && strcmp(loadingdata.songdataB->trackId, userData.currentSongData->trackId) != 0))))
+                 (skipping || (userData.currentSongData == NULL || userData.songdataADeleted == false ||
+                               (loadingdata.songdataB != NULL && userData.songdataBDeleted == false && userData.currentSongData->trackId != NULL && strcmp(loadingdata.songdataB->trackId, userData.currentSongData->trackId) != 0))))
         {
+                userData.songdataBDeleted = true;
                 unloadSongData(&loadingdata.songdataB);
                 userData.filenameB = NULL;
                 usingSongDataA = true;
@@ -362,17 +351,25 @@ void setEndOfListReached()
         loadingdata.loadA = true;
 
         SongData *songData = (audioData.currentFileIndex == 0) ? userData.songdataA : userData.songdataB;
+        bool deleted = (audioData.currentFileIndex == 0) ? userData.songdataADeleted == true : userData.songdataBDeleted == true;
 
-        if (songData != NULL && songData->deleted == false)
+        if (songData != NULL && deleted == false)
         {
                 pthread_mutex_lock(&(loadingdata.mutex));
+
+                if (audioData.currentFileIndex == 0)
+                        userData.songdataADeleted = true;
+                else
+                        userData.songdataBDeleted = true;
+
                 unloadSongData(&songData);
+
                 pthread_mutex_unlock(&(loadingdata.mutex));
         }
 
         emitMetadataChanged("", "", "", "", "/org/mpris/MediaPlayer2/TrackList/NoTrack", NULL, 0);
 
-        emitPlaybackStoppedMpris();                
+        emitPlaybackStoppedMpris();
 
         pthread_mutex_lock(&dataSourceMutex);
 
@@ -386,7 +383,7 @@ void setEndOfListReached()
         if (audioData.fileB != NULL)
                 fclose(audioData.fileB);
 
-        audioData.fileB = NULL;        
+        audioData.fileB = NULL;
 
         pthread_mutex_unlock(&dataSourceMutex);
 
@@ -455,10 +452,11 @@ void prepareNextSong()
 void refreshPlayer()
 {
         SongData *songData = (audioData.currentFileIndex == 0) ? userData.songdataA : userData.songdataB;
+        bool isDeleted = (audioData.currentFileIndex == 0) ? userData.songdataADeleted == true : userData.songdataBDeleted == true;
 
         if (!skipping && !isEOFReached() && !isImplSwitchReached())
         {
-                if (refresh && songData != NULL && songData->deleted == false &&
+                if (refresh && songData != NULL && isDeleted == false &&
                     songData->hasErrors == false && currentSong != NULL && songData->metadata != NULL)
                 {
                         gint64 length = llround((*songData->duration) * G_USEC_PER_SEC);
@@ -472,7 +470,7 @@ void refreshPlayer()
                             length);
                 }
 
-                printPlayer(songData, elapsedSeconds, &playlist);
+                printPlayer(songData, elapsedSeconds, &playlist, isDeleted);
         }
 }
 
@@ -514,19 +512,25 @@ void handleGoToSong()
                 {
                         Node *lastSong = findSelectedEntryById(&playlist, lastPlayedId);
                         startFromTop = false;
-                        
+
                         if (lastSong == NULL)
                         {
-                             if (playlist.tail != NULL)
-                                lastPlayedId = playlist.tail->id;
-                             else
-                             {
-                                lastPlayedId = -1;
-                                startFromTop = true;
-                             }
+                                if (playlist.tail != NULL)
+                                        lastPlayedId = playlist.tail->id;
+                                else
+                                {
+                                        lastPlayedId = -1;
+                                        startFromTop = true;
+                                }
                         }
                 }
+
+                pthread_mutex_lock(&(playlist.mutex));
+
                 enqueueSongs();
+
+                pthread_mutex_unlock(&(playlist.mutex));
+
         }
 
         goingToSong = false;
@@ -744,15 +748,16 @@ void loadAudioData()
                         playlistNeedsUpdate = false;
                 }
         }
-        else if (nextSong == NULL && !songLoading)
+        else if (currentSong != NULL && (nextSongNeedsRebuilding || nextSong == NULL) && !songLoading)
         {
-                tryNextSong = currentSong->next;
                 songLoading = true;
+                nextSongNeedsRebuilding = false;
+                tryNextSong = currentSong->next;
                 loadingdata.loadA = !usingSongDataA;
                 nextSong = getListNext(currentSong);
                 loadSong(nextSong, &loadingdata);
         }
-        
+
         loadingAudioData = false;
 }
 
@@ -790,12 +795,13 @@ gboolean mainloop_callback(gpointer data)
         }
 
         updatePlayer();
-        performDelayedActions();
 
         if (playlist.head != NULL)
         {
-                if (loadingAudioData == false && !loadedNextSong && !audioData.endOfListReached)
+                if (loadingAudioData == false && (!loadedNextSong || nextSongNeedsRebuilding) && !audioData.endOfListReached)
+                {
                         loadAudioData();
+                }
 
                 if (songHasErrors)
                         tryLoadNext();
@@ -840,7 +846,7 @@ void play(Node *song)
         refresh = true;
 
         clock_gettime(CLOCK_MONOTONIC, &start_time);
-        
+
         playlist.totalDuration = -1;
 
         main_loop = g_main_loop_new(NULL, FALSE);
@@ -865,8 +871,16 @@ void cleanupOnExit()
         cleanupPlaybackDevice();
         cleanupAudioContext();
         emitPlaybackStoppedMpris();
-        unloadSongData(&loadingdata.songdataA);
-        unloadSongData(&loadingdata.songdataB);
+        if (!userData.songdataADeleted)
+        {
+                userData.songdataADeleted = true;
+                unloadSongData(&loadingdata.songdataA);
+        }
+        if (!userData.songdataBDeleted)
+        {
+                userData.songdataBDeleted = true;
+                unloadSongData(&loadingdata.songdataB);
+        }
         stopFFmpeg();
         cleanupMpris();
         restoreTerminalMode();
@@ -878,8 +892,8 @@ void cleanupOnExit()
         deleteTempDir();
         freeMainDirectoryTree();
         deletePlaylist(&playlist);
-        deletePlaylist(mainPlaylist);
         deletePlaylist(originalPlaylist);
+        deletePlaylist(mainPlaylist);
         free(mainPlaylist);
         free(originalPlaylist);
         cleanupAudioData();
@@ -934,6 +948,8 @@ void init()
         loadingdata.songdataB = NULL;
         loadingdata.loadA = true;
         audioData.restart = true;
+        userData.songdataADeleted = true;
+        userData.songdataBDeleted = true;
         initAudioBuffer();
         initVisuals();
         pthread_mutex_init(&dataSourceMutex, NULL);
@@ -1061,7 +1077,7 @@ void handleOptions(int *argc, char *argv[])
                 }
         }
         if (idx >= 0)
-                removeArgElement(argv, idx, argc);                
+                removeArgElement(argv, idx, argc);
 }
 
 int main(int argc, char *argv[])
@@ -1074,8 +1090,8 @@ int main(int argc, char *argv[])
                 c_strcpy(settings.path, sizeof(settings.path), argv[2]);
                 setConfig();
                 exit(0);
-        }        
-        else if (settings.path[0] == '\0') 
+        }
+        else if (settings.path[0] == '\0')
         {
                 printf("Please make sure the path is set correctly. \n");
                 printf("To set it type: kew path \"/path/to/Music\". \n");
