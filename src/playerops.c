@@ -432,10 +432,13 @@ Node *findSelectedEntryById(PlayList *playlist, int id)
 
         for (int i = 0; i < playlist->count; i++)
         {
-                if (node->id == id)
+                if (node != NULL && node->id == id)
                 {
                         found = true;
                         break;
+                }
+                else if (node == NULL) {
+                        return NULL;
                 }
                 node = node->next;
         }
@@ -570,11 +573,11 @@ void dequeueSong(FileSystemEntry *child)
 
         Node *node2 = findSelectedEntryById(&playlist, id);
 
-        if (node2 != NULL)
-                deleteFromList(originalPlaylist, node2);
-
         if (node1 != NULL)
-                deleteFromList(&playlist, node1);
+                deleteFromList(originalPlaylist, node1);
+
+        if (node2 != NULL)
+                deleteFromList(&playlist, node2);
 
         child->isEnqueued = 0;
         child->parent->isEnqueued = 0;
@@ -764,11 +767,11 @@ void handleRemove()
 
         Node *node2 = findSelectedEntryById(&playlist, id);
 
-        if (node2 != NULL)
-                deleteFromList(originalPlaylist, node2);
-
         if (node != NULL)
-                deleteFromList(&playlist, node);
+                deleteFromList(originalPlaylist, node);
+
+        if (node2 != NULL)
+                deleteFromList(&playlist, node2);
 
 
         updateLastPlaylistChangeTime();
@@ -782,6 +785,7 @@ void handleRemove()
         {
                 node = NULL;
                 nextSong = NULL;
+                nextSongNeedsRebuilding = true;
                 updatePlaylist();
         }
 

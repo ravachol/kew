@@ -250,6 +250,7 @@ void createNode(Node **node, char *directoryPath, int id)
 
         (*node)->song = song;
         (*node)->next = NULL;
+        (*node)->prev = NULL;
         (*node)->id = id;
 }
 
