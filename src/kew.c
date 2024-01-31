@@ -350,23 +350,6 @@ void setEndOfListReached()
 
         loadingdata.loadA = true;
 
-        SongData *songData = (audioData.currentFileIndex == 0) ? userData.songdataA : userData.songdataB;
-        bool deleted = (audioData.currentFileIndex == 0) ? userData.songdataADeleted == true : userData.songdataBDeleted == true;
-
-        if (songData != NULL && deleted == false)
-        {
-                pthread_mutex_lock(&(loadingdata.mutex));
-
-                if (audioData.currentFileIndex == 0)
-                        userData.songdataADeleted = true;
-                else
-                        userData.songdataBDeleted = true;
-
-                unloadSongData(&songData);
-
-                pthread_mutex_unlock(&(loadingdata.mutex));
-        }
-
         emitMetadataChanged("", "", "", "", "/org/mpris/MediaPlayer2/TrackList/NoTrack", NULL, 0);
 
         emitPlaybackStoppedMpris();
@@ -375,15 +358,16 @@ void setEndOfListReached()
 
         cleanupPlaybackDevice();
 
-        if (audioData.fileA != NULL)
-                fclose(audioData.fileA);
+        // Disabled
+        // if (audioData.fileA != NULL)
+        //         fclose(audioData.fileA);
 
-        audioData.fileA = NULL;
+        // audioData.fileA = NULL;
 
-        if (audioData.fileB != NULL)
-                fclose(audioData.fileB);
+        // if (audioData.fileB != NULL)
+        //         fclose(audioData.fileB);
 
-        audioData.fileB = NULL;
+        // audioData.fileB = NULL;
 
         pthread_mutex_unlock(&dataSourceMutex);
 
@@ -433,7 +417,7 @@ void prepareNextSong()
         nextSong = NULL;
         refresh = true;
 
-        if (!isRepeatEnabled())
+        if (!isRepeatEnabled() || currentSong == NULL)
         {
                 unloadPreviousSong();
         }
