@@ -30,9 +30,15 @@ Playlist related functions.
 
 const char PLAYLIST_EXTENSIONS[] = "\\.(m3u)$";
 const char mainPlaylistName[] = "kew.m3u";
-PlayList playlist = {NULL, NULL, 0, 0.0, PTHREAD_MUTEX_INITIALIZER};
-PlayList *mainPlaylist = NULL;
+
+// The playlist unshuffled as it appears in playlist view
 PlayList *originalPlaylist = NULL;
+
+// The (sometimes shuffled) sequence of songs that will be played
+PlayList playlist = {NULL, NULL, 0, 0.0, PTHREAD_MUTEX_INITIALIZER};
+
+// The playlist from kew.m3u
+PlayList *mainPlaylist = NULL;
 
 char search[MAX_SEARCH_SIZE];
 char playlistName[MAX_SEARCH_SIZE];
