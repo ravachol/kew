@@ -143,15 +143,12 @@ SongData *loadSongData(char *filePath)
         songdata->hasErrors = false;
         c_strcpy(songdata->filePath, sizeof(songdata->filePath), "");
         c_strcpy(songdata->coverArtPath, sizeof(songdata->coverArtPath), "");
-        c_strcpy(songdata->pcmFilePath, sizeof(songdata->pcmFilePath), "");
         songdata->red = NULL;
         songdata->green = NULL;
         songdata->blue = NULL;
         songdata->metadata = NULL;
         songdata->cover = NULL;
         songdata->duration = NULL;
-        songdata->pcmFile = NULL;
-        songdata->pcmFileSize = 0;
         c_strcpy(songdata->filePath, sizeof(songdata->filePath), filePath);
         loadCover(songdata);
         c_sleep(10);

@@ -19,6 +19,7 @@ typedef struct
         SongData *songdataA;
         SongData *songdataB;
         bool loadA;
+        bool loadingFirstDecoder;
         pthread_mutex_t mutex;
 } LoadingThreadData;
 
@@ -71,8 +72,6 @@ void enqueueChildren(FileSystemEntry *child);
 bool markAsDequeued(FileSystemEntry *root, char *path);
 
 void enqueueSongs();
-
-void resetList();
 
 void rebuildNextSong();
 
