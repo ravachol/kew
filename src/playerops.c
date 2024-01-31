@@ -437,7 +437,8 @@ Node *findSelectedEntryById(PlayList *playlist, int id)
                         found = true;
                         break;
                 }
-                else if (node == NULL) {
+                else if (node == NULL)
+                {
                         return NULL;
                 }
                 node = node->next;
@@ -718,12 +719,6 @@ void enqueueSongs()
         updateLastPlaylistChangeTime();
 }
 
-void resetList()
-{
-        audioData.currentFileIndex = 1 - audioData.currentFileIndex;
-        setCurrentImplementationType(NONE);
-}
-
 void handleRemove()
 {
         if (refresh)
@@ -742,6 +737,7 @@ void handleRemove()
         Node *node = findSelectedEntry(originalPlaylist, chosenRow);
         Node *song = getNextSong();
         int id = node->id;
+
         int currentId = (currentSong != NULL) ? currentSong->id : -1;
 
         if (node != NULL && playlist.head != NULL && playlist.head->id == node->id && playlist.count == 1)
@@ -758,7 +754,7 @@ void handleRemove()
 
         if (node != NULL && song != NULL)
         {
-                if (strcmp(song->song.filePath, node->song.filePath) == 0)
+                if (strcmp(song->song.filePath, node->song.filePath) == 0 || (currentSong != NULL && currentSong->next != NULL && id == currentSong->next->id))
                         rebuild = true;
         }
 
@@ -773,7 +769,6 @@ void handleRemove()
         if (node2 != NULL)
                 deleteFromList(&playlist, node2);
 
-
         updateLastPlaylistChangeTime();
 
         if (isShuffleEnabled())
@@ -785,8 +780,16 @@ void handleRemove()
         {
                 node = NULL;
                 nextSong = NULL;
-                nextSongNeedsRebuilding = true;
                 updatePlaylist();
+
+                songLoading = true;
+
+                tryNextSong = currentSong->next;
+                nextSongNeedsRebuilding = false;
+                nextSong = NULL;
+                nextSong = getListNext(currentSong);
+                rebuildNextSong(nextSong);
+                loadedNextSong = true;
         }
 
         pthread_mutex_unlock(&(playlist.mutex));
@@ -817,51 +820,39 @@ Node *getSongByNumber(PlayList *playlist, int songNumber)
         return song;
 }
 
-int assignLoadedData()
-{
-        int result = 0;
+int loadDecoder(SongData* songData, char** filename, bool* songDataDeleted) {
+    int result = 0;
+    if (songData != NULL) {
 
-        if (loadingdata.loadA)
-        {
-                if (loadingdata.songdataA != NULL)
-                {
-                        userData.filenameA = loadingdata.songdataA->pcmFilePath;
-                        userData.songdataA = loadingdata.songdataA;
-                        userData.songdataADeleted = false;
+        *songDataDeleted = false;
 
-                        if (hasBuiltinDecoder(loadingdata.songdataA->filePath))
-                                result = prepareNextDecoder(loadingdata.songdataA->filePath);
-                        else if (endsWith(loadingdata.songdataA->filePath, "opus"))
-                                result = prepareNextOpusDecoder(loadingdata.songdataA->filePath);
-                        else if (endsWith(loadingdata.songdataA->filePath, "ogg"))
-                                result = prepareNextVorbisDecoder(loadingdata.songdataA->filePath);
-                        else if (endsWith(loadingdata.songdataA->filePath, "m4a"))
-                                result = prepareNextM4aDecoder(loadingdata.songdataA->filePath);
-                }
-                else
-                        userData.filenameA = NULL;
+        // this should only be done for the second song, as switchAudioImplementation() handles the first one
+        if (!loadingdata.loadingFirstDecoder) {
+            if (hasBuiltinDecoder(songData->filePath))
+                result = prepareNextDecoder(songData->filePath);
+            else if (endsWith(songData->filePath, "opus"))
+                result = prepareNextOpusDecoder(songData->filePath);
+            else if (endsWith(songData->filePath, "ogg"))
+                result = prepareNextVorbisDecoder(songData->filePath);
+            else if (endsWith(songData->filePath, "m4a"))
+                result = prepareNextM4aDecoder(songData->filePath);
         }
-        else
-        {
-                if (loadingdata.songdataB != NULL)
-                {
-                        userData.filenameB = loadingdata.songdataB->pcmFilePath;
-                        userData.songdataB = loadingdata.songdataB;
-                        userData.songdataBDeleted = false;
+    }
+    return result;
+}
 
-                        if (hasBuiltinDecoder(loadingdata.songdataB->filePath))
-                                result = prepareNextDecoder(loadingdata.songdataB->filePath);
-                        else if (endsWith(loadingdata.songdataB->filePath, "opus"))
-                                result = prepareNextOpusDecoder(loadingdata.songdataB->filePath);
-                        else if (endsWith(loadingdata.songdataB->filePath, "ogg"))
-                                result = prepareNextVorbisDecoder(loadingdata.songdataB->filePath);
-                        else if (endsWith(loadingdata.songdataB->filePath, "m4a"))
-                                result = prepareNextM4aDecoder(loadingdata.songdataB->filePath);
-                }
-                else
-                        userData.filenameB = NULL;
-        }
-        return result;
+int assignLoadedData() {
+    int result = 0;
+
+    if (loadingdata.loadA) {
+        userData.songdataA = loadingdata.songdataA;
+        result = loadDecoder(loadingdata.songdataA, &userData.filenameA, &userData.songdataADeleted);
+    } else {
+        userData.songdataB = loadingdata.songdataB;
+        result = loadDecoder(loadingdata.songdataB, &userData.filenameB, &userData.songdataBDeleted);
+    }
+
+    return result;
 }
 
 void *songDataReaderThread(void *arg)
@@ -976,6 +967,7 @@ void rebuildNextSong(Node *song)
                 return;
 
         loadingdata.loadA = !usingSongDataA;
+        loadingdata.loadingFirstDecoder = false;
 
         pthread_mutex_lock(&(loadingdata.mutex));
 
@@ -1010,6 +1002,7 @@ void skipToNextSong()
         skipping = true;
 
         updateLastSongSwitchTime();
+
         skip();
 }
 
@@ -1035,7 +1028,7 @@ void skipToPrevSong()
         forceSkip = false;
 
         loadingdata.loadA = !usingSongDataA;
-
+        loadingdata.loadingFirstDecoder = true;
         loadSong(currentSong, &loadingdata);
         int maxNumTries = 50;
         int numtries = 0;
@@ -1054,7 +1047,6 @@ void skipToPrevSong()
         }
 
         updateLastSongSwitchTime();
-
         skip();
 }
 
@@ -1081,7 +1073,7 @@ void skipToSong(int id)
                 return;
 
         loadingdata.loadA = !usingSongDataA;
-
+        loadingdata.loadingFirstDecoder = true;
         loadSong(currentSong, &loadingdata);
         int maxNumTries = 50;
         int numtries = 0;
@@ -1121,7 +1113,7 @@ void skipToNumberedSong(int songNumber)
         currentSong = getSongByNumber(originalPlaylist, songNumber);
 
         loadingdata.loadA = !usingSongDataA;
-
+        loadingdata.loadingFirstDecoder = true;
         loadSong(currentSong, &loadingdata);
         int maxNumTries = 50;
         int numtries = 0;
@@ -1164,7 +1156,7 @@ void loadFirstSong(Node *song)
 {
         if (song == NULL)
                 return;
-
+        loadingdata.loadingFirstDecoder = true;
         loadSong(song, &loadingdata);
 
         int i = 0;

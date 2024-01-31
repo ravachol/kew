@@ -755,6 +755,7 @@ void loadAudioData()
                 tryNextSong = currentSong->next;
                 loadingdata.loadA = !usingSongDataA;
                 nextSong = getListNext(currentSong);
+                loadingdata.loadingFirstDecoder = false;
                 loadSong(nextSong, &loadingdata);
         }
 
@@ -775,6 +776,7 @@ void tryLoadNext()
         {
                 songLoading = true;
                 loadingdata.loadA = !usingSongDataA;
+                loadingdata.loadingFirstDecoder = false;
                 loadSong(tryNextSong, &loadingdata);
         }
         else
@@ -832,7 +834,7 @@ void play(Node *song)
         if (song != NULL)
         {
                 audioData.currentFileIndex = 0;
-                loadingdata.loadA = true;
+                loadingdata.loadA = true;                
                 loadFirst(song);
                 createAudioDevice(&userData);
         }
@@ -947,6 +949,7 @@ void init()
         loadingdata.songdataA = NULL;
         loadingdata.songdataB = NULL;
         loadingdata.loadA = true;
+        loadingdata.loadingFirstDecoder = true;
         audioData.restart = true;
         userData.songdataADeleted = true;
         userData.songdataBDeleted = true;

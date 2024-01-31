@@ -49,15 +49,12 @@ typedef struct
         gchar *trackId;
         char filePath[MAXPATHLEN];
         char coverArtPath[MAXPATHLEN];
-        char pcmFilePath[MAXPATHLEN];
         unsigned char *red;
         unsigned char *green;
         unsigned char *blue;
         TagSettings *metadata;
         FIBITMAP *cover;
         double *duration;
-        char *pcmFile;
-        long pcmFileSize;
         bool hasErrors;
 } SongData;
 
