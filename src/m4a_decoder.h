@@ -648,6 +648,7 @@ MA_API ma_result m4a_decoder_get_cursor_in_pcm_frames(m4a_decoder *pM4a, ma_uint
         return MA_SUCCESS;
 }
 
+// Note: This returns an approximation
 MA_API ma_result m4a_decoder_get_length_in_pcm_frames(m4a_decoder *pM4a, ma_uint64 *pLength)
 {
         if (pLength == NULL)

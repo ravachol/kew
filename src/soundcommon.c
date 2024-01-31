@@ -498,7 +498,7 @@ int prepareNextM4aDecoder(char *filepath)
 {
         m4a_decoder *currentDecoder;
 
-        if (m4aDecoderIndex == -1)
+       if (m4aDecoderIndex == -1)
         {
                 currentDecoder = getFirstM4aDecoder();
         }
@@ -970,6 +970,7 @@ void activateSwitch(AudioData *pAudioData)
         setSkipToNext(false);
         if (!isRepeatEnabled())
                 pAudioData->currentFileIndex = 1 - pAudioData->currentFileIndex; // Toggle between 0 and 1
+
         pAudioData->switchFiles = true;
 }
 

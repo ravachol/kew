@@ -49,7 +49,6 @@ typedef struct
         gchar *trackId;
         char filePath[MAXPATHLEN];
         char coverArtPath[MAXPATHLEN];
-        char pcmFilePath[MAXPATHLEN];
         unsigned char *red;
         unsigned char *green;
         unsigned char *blue;
@@ -57,7 +56,6 @@ typedef struct
         FIBITMAP *cover;
         double *duration;
         bool hasErrors;
-        bool deleted;
 } SongData;
 
 #endif
