@@ -561,7 +561,6 @@ void enqueueSong(FileSystemEntry *child)
 
 void dequeueSong(FileSystemEntry *child)
 {
-        child->isEnqueued = 0;
         Node *node1 = findLastPathInPlaylist(child->fullPath, originalPlaylist);
 
         if (node1 == NULL)
@@ -581,17 +580,17 @@ void dequeueSong(FileSystemEntry *child)
                 deleteFromList(&playlist, node2);
 
         child->isEnqueued = 0;
-        child->parent->isEnqueued = 0;
 }
 
-void dequeueChildren(FileSystemEntry *child)
+void dequeueChildren(FileSystemEntry *parent)
 {
+        FileSystemEntry *child = parent->children; 
+
         while (child != NULL)
         {
                 if (child->isDirectory && child->children != NULL)
                 {
-                        child->isEnqueued = 0;
-                        dequeueChildren(child->children);
+                        dequeueChildren(child);
                 }
                 else
                 {
@@ -600,6 +599,22 @@ void dequeueChildren(FileSystemEntry *child)
 
                 child = child->next;
         }
+
+        bool isEnqueued = false;
+
+        child = parent->children; 
+
+        while (child != NULL)
+        {
+                if (child->isEnqueued)
+                {
+                        isEnqueued = true;
+                }
+                child = child->next;
+        }        
+
+        if (!isEnqueued)
+                parent->isEnqueued = 0;
 }
 
 void enqueueChildren(FileSystemEntry *child)
@@ -611,8 +626,9 @@ void enqueueChildren(FileSystemEntry *child)
                         child->isEnqueued = 1;
                         enqueueChildren(child->children);
                 }
-                else
+                else if (!child->isEnqueued)
                 {
+                        
                         enqueueSong(child);
                 }
 
@@ -641,6 +657,23 @@ bool hasSongChildren(FileSystemEntry *entry)
         return true;
 }
 
+bool hasDequeuedChildren(FileSystemEntry *parent)
+{
+        FileSystemEntry *child = parent->children; 
+
+        bool isDequeued = false;
+        while (child != NULL)
+        {
+                if (!child->isEnqueued)
+                {
+                        isDequeued = true;
+                }
+                child = child->next;
+        }        
+
+        return isDequeued;
+}
+
 void enqueueSongs()
 {
         FileSystemEntry *tmp = getCurrentLibEntry();
@@ -653,7 +686,7 @@ void enqueueSongs()
                 {
                         if (!hasSongChildren(tmp) || (chosenDir != NULL && strcmp(tmp->fullPath, chosenDir->fullPath) == 0))
                         {
-                                if (!tmp->isEnqueued)
+                                if (hasDequeuedChildren(tmp))
                                 {
                                         tmp->isEnqueued = 1;
                                         tmp = tmp->children;
@@ -666,9 +699,6 @@ void enqueueSongs()
                                 }
                                 else
                                 {
-                                        tmp->isEnqueued = 0;
-                                        tmp = tmp->children;
-
                                         dequeueChildren(tmp);
 
                                         nextSongNeedsRebuilding = true;
