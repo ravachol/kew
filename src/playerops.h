@@ -65,7 +65,7 @@ void enqueueSong(FileSystemEntry *child);
 
 void dequeueSong(FileSystemEntry *child);
 
-void dequeueChildren(FileSystemEntry *child);
+void dequeueChildren(FileSystemEntry *parent);
 
 void enqueueChildren(FileSystemEntry *child);
 
