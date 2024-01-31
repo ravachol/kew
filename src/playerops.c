@@ -580,6 +580,24 @@ void dequeueSong(FileSystemEntry *child)
                 deleteFromList(&playlist, node2);
 
         child->isEnqueued = 0;
+
+        // check if parent needs to be dequeued as well
+        bool isEnqueued = false;
+
+        FileSystemEntry *ch = child->parent->children; 
+
+        while (ch != NULL)
+        {
+                if (ch->isEnqueued)
+                {
+                        isEnqueued = true;
+                        break;
+                }
+                ch = ch->next;
+        }        
+
+        if (!isEnqueued)
+                child->parent->isEnqueued = 0;        
 }
 
 void dequeueChildren(FileSystemEntry *parent)
@@ -599,22 +617,6 @@ void dequeueChildren(FileSystemEntry *parent)
 
                 child = child->next;
         }
-
-        bool isEnqueued = false;
-
-        child = parent->children; 
-
-        while (child != NULL)
-        {
-                if (child->isEnqueued)
-                {
-                        isEnqueued = true;
-                }
-                child = child->next;
-        }        
-
-        if (!isEnqueued)
-                parent->isEnqueued = 0;
 }
 
 void enqueueChildren(FileSystemEntry *child)
