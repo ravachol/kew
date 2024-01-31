@@ -337,42 +337,18 @@ void unloadPreviousSong()
 void setEndOfListReached()
 {
         appState.currentView = LIBRARY_VIEW;
-
         loadedNextSong = false;
-
         audioData.endOfListReached = true;
-
         usingSongDataA = false;
-
         audioData.currentFileIndex = 0;
-
         audioData.restart = true;
-
         loadingdata.loadA = true;
-
         emitMetadataChanged("", "", "", "", "/org/mpris/MediaPlayer2/TrackList/NoTrack", NULL, 0);
-
         emitPlaybackStoppedMpris();
-
         pthread_mutex_lock(&dataSourceMutex);
-
         cleanupPlaybackDevice();
-
-        // Disabled
-        // if (audioData.fileA != NULL)
-        //         fclose(audioData.fileA);
-
-        // audioData.fileA = NULL;
-
-        // if (audioData.fileB != NULL)
-        //         fclose(audioData.fileB);
-
-        // audioData.fileB = NULL;
-
         pthread_mutex_unlock(&dataSourceMutex);
-
         refresh = true;
-
         chosenRow = playlist.count - 1;
 }
 
