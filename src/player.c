@@ -1126,7 +1126,7 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
 
         if (root->isDirectory ||
             (!root->isDirectory && depth == 1) ||
-            (chosenDir != NULL && allowChooseSongs && root->parent != NULL && (strcmp(root->parent->fullPath, chosenDir->fullPath) == 0 || strcmp(root->fullPath, chosenDir->fullPath) == 0)))
+            (chosenDir != NULL && allowChooseSongs && root->parent != NULL &&  (strcmp(root->parent->fullPath, chosenDir->fullPath) == 0 || strcmp(root->fullPath, chosenDir->fullPath) == 0)))
         {
                 if (depth > 0)
                 {
