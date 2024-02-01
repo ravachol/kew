@@ -860,6 +860,7 @@ void cleanupOnExit()
         free(originalPlaylist);
         cleanupAudioData();
         showCursor();
+        resetConsole();
         pthread_mutex_destroy(&(loadingdata.mutex));
         pthread_mutex_destroy(&(playlist.mutex));
         pthread_mutex_unlock(&dataSourceMutex);
