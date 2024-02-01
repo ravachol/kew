@@ -197,44 +197,49 @@ void printHelp()
 
 int printLogo(SongData *songData)
 {
-        setColor();
-
         if (useProfileColors)
                 setTextColor(LOGO_COLOR);
 
-        printf("\n");
         printBlankSpaces(indent);
-        printf("\x1b[7m");
-        printf(" k e w ");
+        printf(" __\n");
+        printBlankSpaces(indent);
+        printf("|  |--.-----.--.--.--.\n");
+        printBlankSpaces(indent);
+        printf("|    <|  -__|  |  |  |\n");
+        printBlankSpaces(indent);
+        printf("|__|__|_____|________|");
 
-        printf("\x1b[0m");
-
-        setColor();
-
-        if (songData != NULL && songData->metadata != NULL && songData->metadata->artist[0] != '\0' && songData->metadata->title[0] != '\0')
+        if (songData != NULL && songData->metadata != NULL)
         {
                 int term_w, term_h;
                 getTermSize(&term_w, &term_h);
                 char *title = (char *)malloc(MAXPATHLEN);
-                if (title == NULL)
-                {
-                        exit(0);
-                }
                 title[0] = '\0';
-                strcat(title, songData->metadata->artist);
-                strcat(title, " - ");
-                strcat(title, songData->metadata->title);
-                shortenString(title, term_w - indent - indent - 7);
 
-                printf(" %s", title);
+                strcat(title, songData->metadata->title);
+                shortenString(title, term_w - indent - indent - 27);
+
+                if (nerdFontsEnabled)
+                {
+
+                        if (isPaused())
+                                printf(" \uf04c %s", title);
+                        else
+                                printf(" \uf04b %s", title);
+                }
+                else
+                {
+                        printf(" %s", title);
+                }
 
                 free(title);
         }
         printf("\n\n");
 
-        int height = 4;
+        int height = 6;
         return height;
 }
+
 int getYear(const char *dateString)
 {
         int year;
@@ -1126,7 +1131,7 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
 
         if (root->isDirectory ||
             (!root->isDirectory && depth == 1) ||
-            (chosenDir != NULL && allowChooseSongs && root->parent != NULL &&  (strcmp(root->parent->fullPath, chosenDir->fullPath) == 0 || strcmp(root->fullPath, chosenDir->fullPath) == 0)))
+            (chosenDir != NULL && allowChooseSongs && root->parent != NULL && (strcmp(root->parent->fullPath, chosenDir->fullPath) == 0 || strcmp(root->fullPath, chosenDir->fullPath) == 0)))
         {
                 if (depth > 0)
                 {
