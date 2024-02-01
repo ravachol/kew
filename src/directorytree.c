@@ -1,19 +1,17 @@
 #include "directorytree.h"
 
-FileSystemEntry *createEntry(const char *name, int isDirectory, FileSystemEntry *parent)
-{
-        FileSystemEntry *newEntry = (FileSystemEntry *)malloc(sizeof(FileSystemEntry));
-        if (newEntry != NULL)
-        {
-                memset(newEntry->fullPath, 0, sizeof(newEntry->fullPath));
-                snprintf(newEntry->name, sizeof(newEntry->name), "%s", name);
-                newEntry->isDirectory = isDirectory;
-                newEntry->isEnqueued = 0;
-                newEntry->parent = parent;
-                newEntry->children = NULL;
-                newEntry->next = NULL;
-        }
-        return newEntry;
+FileSystemEntry *createEntry(const char *name, int isDirectory, FileSystemEntry *parent) {
+    FileSystemEntry *newEntry = (FileSystemEntry *)malloc(sizeof(FileSystemEntry));
+    if (newEntry != NULL) {
+        newEntry->name = strdup(name);
+
+        newEntry->isDirectory = isDirectory;
+        newEntry->isEnqueued = 0;
+        newEntry->parent = parent;
+        newEntry->children = NULL;
+        newEntry->next = NULL;
+    }
+    return newEntry;
 }
 
 void addChild(FileSystemEntry *parent, FileSystemEntry *child)
@@ -25,9 +23,21 @@ void addChild(FileSystemEntry *parent, FileSystemEntry *child)
         }
 }
 
-void setFullPath(FileSystemEntry *entry, const char *parentPath, const char *entryName)
+void setFullPath(FileSystemEntry *entry, const char *parentPath, const char *entryName) 
 {
-        snprintf(entry->fullPath, sizeof(entry->fullPath), "%s/%s", parentPath, entryName);
+    if (entry == NULL || parentPath == NULL || entryName == NULL) {
+
+        return;
+    }
+
+    size_t fullPathLength = strlen(parentPath) + strlen(entryName) + 2; // +2 for '/' and '\0'
+
+    entry->fullPath = (char *)malloc(fullPathLength);
+    if (entry->fullPath == NULL) 
+    {
+        return;
+    }
+    snprintf(entry->fullPath, fullPathLength, "%s/%s", parentPath, entryName);
 }
 
 void displayTreeSimple(FileSystemEntry *root, int depth)
@@ -52,6 +62,24 @@ void displayTreeSimple(FileSystemEntry *root, int depth)
         {
                 printf(" (File)\n");
         }
+}
+
+void freeTree(FileSystemEntry *root) {
+    if (root == NULL) {
+        return;
+    }
+
+    FileSystemEntry *child = root->children;
+    while (child != NULL) {
+        FileSystemEntry *next = child->next;
+        freeTree(child);
+        child = next;
+    }
+
+    free(root->name);
+    free(root->fullPath);
+
+    free(root);
 }
 
 int removeEmptyDirectories(FileSystemEntry *node)
@@ -85,6 +113,9 @@ int removeEmptyDirectories(FileSystemEntry *node)
 
                                 FileSystemEntry *toFree = currentChild;
                                 currentChild = currentChild->next;
+
+                                free(toFree->name);
+                                free(toFree->fullPath);
                                 free(toFree);
                                 numEntries++;
                                 continue;
@@ -95,22 +126,6 @@ int removeEmptyDirectories(FileSystemEntry *node)
                 currentChild = currentChild->next;
         }
         return numEntries;
-}
-
-void freeTree(FileSystemEntry *root)
-{
-        if (root == NULL)
-                return;
-
-        FileSystemEntry *child = root->children;
-        while (child != NULL)
-        {
-                FileSystemEntry *next = child->next;
-                freeTree(child);
-                child = next;
-        }
-
-        free(root);
 }
 
 char *stringToUpperWithoutSpaces(const char *str)
@@ -220,7 +235,12 @@ int readDirectory(const char *path, FileSystemEntry *parent)
                         if (isAudio == 0 || isDirectory)
                         {
                                 FileSystemEntry *child = createEntry(entry->d_name, isDirectory, parent);
-                                setFullPath(child, path, entry->d_name);                                
+
+                                if (entry != NULL) {
+                                        setFullPath(child, path, entry->d_name);
+
+                                }
+
                                 addChild(parent, child);
 
                                 if (isDirectory)
@@ -245,6 +265,8 @@ int readDirectory(const char *path, FileSystemEntry *parent)
 FileSystemEntry *createDirectoryTree(const char *startPath, int *numEntries)
 {
         FileSystemEntry *root = createEntry("root", 1, NULL);
+
+        setFullPath(root, "", "");
 
         *numEntries = readDirectory(startPath, root);
         *numEntries -= removeEmptyDirectories(root);
