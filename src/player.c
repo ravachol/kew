@@ -70,6 +70,7 @@ double totalPauseSeconds = 0.0;
 double seekAccumulatedSeconds = 0.0;
 double duration = 0.0;
 int maxListSize = 0;
+unsigned char defaultColor = 150;
 
 int numDirectoryTreeEntries = 0;
 int numTopLevelSongs = 0;
@@ -103,9 +104,9 @@ void setColor()
                 setDefaultTextColor();
         else if (color.r >= 210 && color.g >= 210 && color.b >= 210)
         {
-                color.r = 150;
-                color.g = 150;
-                color.b = 150;
+                color.r = defaultColor;
+                color.g = defaultColor;
+                color.b = defaultColor;
         }
         else
         {
@@ -199,13 +200,13 @@ int printLogo(SongData *songData)
         setColor();
 
         if (useProfileColors)
-                setTextColor(LOGO_COLOR);         
+                setTextColor(LOGO_COLOR);
 
         printf("\n");
         printBlankSpaces(indent);
         printf("\x1b[7m");
         printf(" k e w ");
-        
+
         printf("\x1b[0m");
 
         setColor();
@@ -218,12 +219,12 @@ int printLogo(SongData *songData)
                 if (title == NULL)
                 {
                         exit(0);
-                }                
+                }
                 title[0] = '\0';
                 strcat(title, songData->metadata->artist);
                 strcat(title, " - ");
                 strcat(title, songData->metadata->title);
-                shortenString(title, term_w - indent - indent -7);
+                shortenString(title, term_w - indent - indent - 7);
 
                 printf(" %s", title);
 
@@ -233,7 +234,7 @@ int printLogo(SongData *songData)
 
         int height = 4;
         return height;
-} 
+}
 int getYear(const char *dateString)
 {
         int year;
@@ -259,17 +260,17 @@ void printCover(SongData *songdata)
 
                 if (color.r == 0 && color.g == 0 && color.b == 0)
                 {
-                        color.r = 150;
-                        color.g = 150;
-                        color.b = 150;
+                        color.r = defaultColor;
+                        color.g = defaultColor;
+                        color.b = defaultColor;
                 }
                 drewCover = true;
         }
         else
         {
-                color.r = 150;
-                color.g = 150;
-                color.b = 150;
+                color.r = defaultColor;
+                color.g = defaultColor;
+                color.b = defaultColor;
                 clearRestOfScreen();
                 for (int i = 0; i < preferredHeight - 1; i++)
                 {
@@ -342,9 +343,9 @@ void printBasicMetadata(TagSettings const *metadata)
                 if (pixel.r == 255 && pixel.g == 255 && pixel.b == 255)
                 {
                         PixelData gray;
-                        gray.r = 150;
-                        gray.g = 150;
-                        gray.b = 150;
+                        gray.r = defaultColor;
+                        gray.g = defaultColor;
+                        gray.b = defaultColor;
                         printf("\033[1;38;2;%03u;%03u;%03um", gray.r, gray.g, gray.b);
                 }
                 else
@@ -1283,6 +1284,13 @@ int printPlayer(SongData *songdata, double elapsedSeconds, PlayList *playlist, b
                 totalDurationSeconds = playlist->totalDuration;
                 elapsed = elapsedSeconds;
                 duration = *songdata->duration;
+
+                if (songdata->cover != NULL && coverEnabled)
+                {
+                        color.r = *songdata->red;
+                        color.g = *songdata->green;
+                        color.b = *songdata->blue;
+                }
         }
         else
         {
@@ -1290,6 +1298,10 @@ int printPlayer(SongData *songdata, double elapsedSeconds, PlayList *playlist, b
                 {
                         appState.currentView = LIBRARY_VIEW;
                 }
+
+                color.r = defaultColor;
+                color.g = defaultColor;
+                color.b = defaultColor;
         }
 
         calcPreferredSize();
