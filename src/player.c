@@ -199,27 +199,26 @@ int printLogo(SongData *songData)
         if (useProfileColors)
                 setTextColor(LOGO_COLOR);
 
+        printf("\n");
         printBlankSpaces(indent);
-        printf(" __\n");
-        printBlankSpaces(indent);
-        printf("|  |--.-----.--.--.--.\n");
-        printBlankSpaces(indent);
-        printf("|    <|  -__|  |  |  |\n");
-        printBlankSpaces(indent);
-        printf("|__|__|_____|\\______/ ");
+        printf("\x1b[7m");
+        printf("\e[1m\e[39m");
+        printf(" k e w ");
+        printf("\x1b[0m");
+        printf("\e[1m\e[39m");
 
-        if (songData != NULL && songData->metadata != NULL)
+        if (songData != NULL && songData->metadata != NULL && songData->metadata->artist[0] != '\0' && songData->metadata->title[0] != '\0')
         {
                 int term_w, term_h;
                 getTermSize(&term_w, &term_h);
-
-                char *title = (char *)calloc(MAXPATHLEN, sizeof(char)); // Initialize to zero
+                char *title = (char *)malloc(MAXPATHLEN);
                 if (title == NULL)
                 {
-                        return -1;
-                }
+                        exit(0);
+                }                
                 title[0] = '\0';
-
+                strcat(title, songData->metadata->artist);
+                strcat(title, " - ");
                 strcat(title, songData->metadata->title);
                 shortenString(title, term_w - indent - indent - 27);
 
@@ -229,10 +228,9 @@ int printLogo(SongData *songData)
         }
         printf("\n\n");
 
-        int height = 6;
+        int height = 4;
         return height;
-}
-
+} 
 int getYear(const char *dateString)
 {
         int year;
