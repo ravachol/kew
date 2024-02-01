@@ -424,6 +424,12 @@ ma_result m4a_decoder_read_pcm_frames(m4a_decoder *pM4a, void *pFramesOut, ma_ui
 
         m4a_decoder_get_data_format(pM4a, &format, &channels, &sampleRate, NULL, 0);
 
+        // only two channels supported for now
+        if (channels > 2)
+        {
+                return MA_ERROR;
+        }
+
         int stream_index = av_find_best_stream(pM4a->format_context, AVMEDIA_TYPE_AUDIO, -1, -1, NULL, 0);
         if (stream_index < 0)
         {
