@@ -194,6 +194,12 @@ void showCursor()
         fflush(stdout);
 }
 
+void resetConsole()
+{
+        printf("\x1b[0m"); /// reset everything;
+        fflush(stdout);
+}
+
 void clearRestOfScreen()
 {
         printf("\033[J");

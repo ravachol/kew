@@ -25,7 +25,7 @@ typedef struct
 AppState appState;
 
 const char VERSION[] = "2.2";
-const int LOGO_COLOR = 3;
+const int LOGO_COLOR = 6;
 const int ARTIST_COLOR = 6;
 const int ENQUEUED_COLOR = 6;
 const int ABSOLUTE_MIN_WIDTH = 64;
@@ -196,16 +196,19 @@ void printHelp()
 
 int printLogo(SongData *songData)
 {
+        setColor();
+
         if (useProfileColors)
-                setTextColor(LOGO_COLOR);
+                setTextColor(LOGO_COLOR);         
 
         printf("\n");
         printBlankSpaces(indent);
         printf("\x1b[7m");
-        printf("\e[1m\e[39m");
         printf(" k e w ");
+        
         printf("\x1b[0m");
-        printf("\e[1m\e[39m");
+
+        setColor();
 
         if (songData != NULL && songData->metadata != NULL && songData->metadata->artist[0] != '\0' && songData->metadata->title[0] != '\0')
         {
