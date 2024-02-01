@@ -68,6 +68,8 @@ void saveCursorPosition(void);
 
 void restoreCursorPosition(void);
 
+void resetConsole(void);
+
 void setCursorPosition(int row, int col);
 
 void hideCursor(void);
