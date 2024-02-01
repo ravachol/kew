@@ -220,7 +220,7 @@ int printLogo(SongData *songData)
                 strcat(title, songData->metadata->artist);
                 strcat(title, " - ");
                 strcat(title, songData->metadata->title);
-                shortenString(title, term_w - indent - indent - 27);
+                shortenString(title, term_w - indent - indent -7);
 
                 printf(" %s", title);
 
