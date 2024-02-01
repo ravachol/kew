@@ -14,8 +14,8 @@
 #define FILE_SYSTEM_ENTRY
 typedef struct FileSystemEntry
 {
-        char name[256];
-        char fullPath[PATH_MAX]; 
+        char *name;
+        char *fullPath; 
         int isDirectory; // 1 for directory, 0 for file
         int isEnqueued;
         struct FileSystemEntry *parent;
