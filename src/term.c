@@ -1,4 +1,5 @@
 #include "term.h"
+
 /*
 
 term.c
@@ -196,8 +197,10 @@ void showCursor()
 
 void resetConsole()
 {
-        printf("\x1b[0m"); /// reset everything;
-        fflush(stdout);
+        int status = system("reset");
+        if (status == -1) {                
+                perror("system() failed");        
+        }
 }
 
 void clearRestOfScreen()
