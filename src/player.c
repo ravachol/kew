@@ -213,24 +213,18 @@ int printLogo(SongData *songData)
         {
                 int term_w, term_h;
                 getTermSize(&term_w, &term_h);
-                char *title = (char *)malloc(MAXPATHLEN);
+
+                char *title = (char *)calloc(MAXPATHLEN, sizeof(char)); // Initialize to zero
+                if (title == NULL)
+                {
+                        return -1;
+                }
                 title[0] = '\0';
 
                 strcat(title, songData->metadata->title);
                 shortenString(title, term_w - indent - indent - 27);
 
-                if (nerdFontsEnabled)
-                {
-
-                        if (isPaused())
-                                printf(" \uf04c %s", title);
-                        else
-                                printf(" \uf04b %s", title);
-                }
-                else
-                {
-                        printf(" %s", title);
-                }
+                printf(" %s", title);
 
                 free(title);
         }
