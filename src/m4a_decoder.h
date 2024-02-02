@@ -319,7 +319,7 @@ MA_API ma_result m4a_decoder_init_file(const char *pFilePath, const ma_decoding_
         }
 
         // Find the best audio stream.
-        const AVCodec *decoder = NULL;
+        AVCodec *decoder = NULL;
         int stream_index = av_find_best_stream(format_context, AVMEDIA_TYPE_AUDIO, -1, -1, &decoder, 0);
         if (stream_index < 0)
         {
