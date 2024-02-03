@@ -102,9 +102,6 @@ struct Event processInput()
         bool cooldownElapsed = false;
         bool cooldown2Elapsed = false;
 
-        if (songLoading)
-                return event;
-
         if (!isInputAvailable())
         {
                 flushSeek();

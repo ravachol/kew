@@ -714,24 +714,18 @@ void enqueueSongs()
                 {
                         if (!tmp->isEnqueued)
                         {
-                                Node *song = getNextSong();
-                                if (song == NULL || strcmp(tmp->fullPath, song->song.filePath) == 0)
-                                {
-                                        nextSong = NULL;
-                                        nextSongNeedsRebuilding = true;
-                                }
+                                nextSong = NULL;
+                                nextSongNeedsRebuilding = true;
+
                                 enqueueSong(tmp);
 
                                 hasEnqueued = true;
                         }
                         else
                         {
-                                Node *song = getNextSong();
-                                if (song == NULL || strcmp(tmp->fullPath, song->song.filePath) == 0)
-                                {
-                                        nextSong = NULL;
-                                        nextSongNeedsRebuilding = true;
-                                }
+                                nextSong = NULL;
+                                nextSongNeedsRebuilding = true;
+
                                 dequeueSong(tmp);
                         }
                 }
