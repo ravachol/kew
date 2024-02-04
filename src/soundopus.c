@@ -7,7 +7,7 @@ soundopus.c
 
 */
 
-MA_API ma_result ma_libopus_read_pcm_frames_wrapper(void *pDecoder, void *pFramesOut, long unsigned int frameCount, long unsigned int *pFramesRead)
+MA_API ma_result ma_libopus_read_pcm_frames_wrapper(void *pDecoder, void *pFramesOut, size_t frameCount, size_t *pFramesRead)
 {
         ma_decoder *dec = (ma_decoder *)pDecoder;
         return ma_libopus_read_pcm_frames((ma_libopus *)dec->pUserData, pFramesOut, frameCount, (ma_uint64 *)pFramesRead);
