@@ -59,15 +59,6 @@ void updatePlaylist()
         }
 }
 
-void updateNextSong()
-{
-        nextSongNeedsRebuilding = false;
-        nextSong = NULL;
-        nextSong = getNextSong();
-        rebuildNextSong(nextSong);
-        loadedNextSong = true;
-}
-
 void rebuildAndUpdatePlaylist()
 {
         if (!playlistNeedsUpdate && !nextSongNeedsRebuilding)
