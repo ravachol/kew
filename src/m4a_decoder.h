@@ -618,8 +618,8 @@ MA_API ma_result m4a_decoder_get_data_format(
         }
 
         if (pChannels != NULL)
-        {
-                *pChannels = pM4a->codec_context->channels;
+        {                 
+                *pChannels = pM4a->codec_context->ch_layout.nb_channels;
         }
 
         if (pSampleRate != NULL)

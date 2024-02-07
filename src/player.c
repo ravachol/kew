@@ -434,7 +434,7 @@ void printTime(PlayList const *playlist)
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
         printBlankSpaces(indent);
-        if (term_h > minHeight && term_w > minWidth)
+        if (term_h > minHeight)
                 printProgress(elapsed, duration, totalDurationSeconds, playlist);
 }
 

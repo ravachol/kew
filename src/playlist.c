@@ -533,65 +533,6 @@ int makePlaylist(int argc, char *argv[], bool exactSearch)
         return 0;
 }
 
-void *getDurationsThread(void *arg)
-{
-        PlayList *playList = (PlayList *)arg;
-
-        if (playList == NULL)
-                return NULL;
-
-        pthread_mutex_lock(&(playlist.mutex));
-
-        Node *currentNode = playList->head;
-        double totalDuration = 0.0;
-
-        for (int i = 0; i < playList->count; i++)
-        {
-                if (stopPlaylistDurationThread)
-                {
-                        pthread_mutex_unlock(&(playlist.mutex));
-                        return NULL;
-                }
-                if (currentNode == NULL)
-                {
-                        pthread_mutex_unlock(&(playlist.mutex));
-                        return NULL;
-                }
-                if (currentNode->song.duration > 0.0)
-                {
-                        currentNode = getListNext(currentNode);
-                        continue;
-                }
-                if (currentNode->song.filePath == NULL)
-                {
-                        currentNode = getListNext(currentNode);
-                        continue;
-                }
-                char musicFilepath[MAX_FILENAME_LENGTH];
-                c_strcpy(musicFilepath, sizeof(musicFilepath), currentNode->song.filePath);
-                double duration = ((currentNode->song.duration > 0.0) ? currentNode->song.duration : getDuration(musicFilepath));
-                if (duration > 0.0)
-                {
-                        currentNode->song.duration = duration;
-                        totalDuration += duration;
-                        playList->totalDuration += duration;
-                }
-                currentNode = getListNext(currentNode);
-
-                c_sleep(100);
-        }
-        currentNode = playList->head;
-        playList->totalDuration = 0.0;
-        for (int i = 0; i < playList->count; i++)
-        {
-                if (currentNode != NULL && currentNode->song.duration > 0.0)
-                        playList->totalDuration += currentNode->song.duration;
-                currentNode = getListNext(currentNode);
-        }
-        pthread_mutex_unlock(&(playlist.mutex));
-        return NULL;
-}
-
 double calcTotalDuration(PlayList *playList)
 {
         double totalDuration = 0.0;
@@ -605,47 +546,6 @@ double calcTotalDuration(PlayList *playList)
         }
 
         return totalDuration;
-}
-
-int calculatePlayListDuration(PlayList *playlist)
-{
-        if (playlist->count > MAX_COUNT_PLAYLIST_SONGS)
-                return 0;
-
-        Node *tmp = playlist->head;
-        int missingDuration = 0;
-        while (tmp != NULL)
-        {
-                if (tmp->song.duration <= 0.0)
-                {
-                        missingDuration++;
-                }
-                tmp = tmp->next;
-        }
-
-        if (missingDuration == 0)
-                return 0;
-
-        startPlayListDurationCount();
-
-        pthread_t thread;
-        int threadCreationResult;
-        threadCreationResult = pthread_create(&thread, NULL, getDurationsThread, (void *)playlist);
-        if (threadCreationResult != 0)
-        {
-                return 1;
-        }
-        return 0;
-}
-
-void stopPlayListDurationCount()
-{
-        stopPlaylistDurationThread = 1;
-}
-
-void startPlayListDurationCount()
-{
-        stopPlaylistDurationThread = 0;
 }
 
 void readM3UFile(const char *filename, PlayList *playlist)
