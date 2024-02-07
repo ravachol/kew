@@ -73,8 +73,6 @@ bool markAsDequeued(FileSystemEntry *root, char *path);
 
 void enqueueSongs();
 
-void rebuildNextSong();
-
 void updateLastSongSwitchTime(void);
 
 void updateLastPlaylistChangeTime();
@@ -132,5 +130,7 @@ void flushSeek(void);
 Node *findSelectedEntryById(PlayList *playlist, int id);
 
 void emitSeekedSignal(double newPositionSeconds);
+
+void rebuildNextSong(Node *song);
 
 #endif
