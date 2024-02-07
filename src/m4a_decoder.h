@@ -618,8 +618,8 @@ MA_API ma_result m4a_decoder_get_data_format(
         }
 
         if (pChannels != NULL)
-        {                 
-                *pChannels = pM4a->codec_context->ch_layout.nb_channels;
+        {
+                *pChannels = pM4a->codec_context->channels; // deprecated but ch_layout.nb_channels is only available in devel releases.                
         }
 
         if (pSampleRate != NULL)
