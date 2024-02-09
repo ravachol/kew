@@ -408,6 +408,11 @@ void prepareNextSong()
 
 void refreshPlayer()
 {
+        if (pthread_mutex_trylock(&switchMutex) != 0)
+        {
+                return;
+        }
+
         SongData *songData = (audioData.currentFileIndex == 0) ? userData.songdataA : userData.songdataB;
         bool isDeleted = (audioData.currentFileIndex == 0) ? userData.songdataADeleted == true : userData.songdataBDeleted == true;
 
@@ -429,6 +434,8 @@ void refreshPlayer()
 
                 printPlayer(songData, elapsedSeconds, &playlist, isDeleted);
         }
+
+        pthread_mutex_unlock(&switchMutex);
 }
 
 void handleGoToSong()
@@ -487,7 +494,6 @@ void handleGoToSong()
                 enqueueSongs();
 
                 pthread_mutex_unlock(&(playlist.mutex));
-
         }
 
         goingToSong = false;
@@ -791,7 +797,7 @@ void play(Node *song)
         if (song != NULL)
         {
                 audioData.currentFileIndex = 0;
-                loadingdata.loadA = true;                
+                loadingdata.loadA = true;
                 loadFirst(song);
                 createAudioDevice(&userData);
         }
@@ -860,6 +866,7 @@ void cleanupOnExit()
         resetConsole();
         pthread_mutex_destroy(&(loadingdata.mutex));
         pthread_mutex_destroy(&(playlist.mutex));
+        pthread_mutex_destroy(&(switchMutex));
         pthread_mutex_unlock(&dataSourceMutex);
         pthread_mutex_destroy(&(dataSourceMutex));
 
@@ -914,6 +921,7 @@ void init()
         initAudioBuffer();
         initVisuals();
         pthread_mutex_init(&dataSourceMutex, NULL);
+        pthread_mutex_init(&switchMutex, NULL);
         pthread_mutex_init(&(loadingdata.mutex), NULL);
         pthread_mutex_init(&(playlist.mutex), NULL);
         nerdFontsEnabled = hasNerdFonts();
