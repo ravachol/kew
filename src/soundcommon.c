@@ -21,6 +21,7 @@ _Atomic bool EOFReached = false;
 _Atomic bool switchReached = false;
 _Atomic bool readingFrames = false;
 pthread_mutex_t dataSourceMutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t switchMutex =  PTHREAD_MUTEX_INITIALIZER;
 ma_device device = {0};
 ma_int32 *audioBuffer = NULL;
 ma_decoder *firstDecoder;
@@ -968,8 +969,13 @@ bool hasBuiltinDecoder(char *filePath)
 void activateSwitch(AudioData *pAudioData)
 {
         setSkipToNext(false);
+
         if (!isRepeatEnabled())
+        {
+                pthread_mutex_lock(&switchMutex);
                 pAudioData->currentFileIndex = 1 - pAudioData->currentFileIndex; // Toggle between 0 and 1
+                pthread_mutex_unlock(&switchMutex);                
+        }
 
         pAudioData->switchFiles = true;
 }
@@ -984,7 +990,6 @@ void executeSwitch(AudioData *pAudioData)
 
         pAudioData->totalFrames = 0;
 
-        // Close the current file, and open the new one
         SongData *currentSongData;
 
         if (pAudioData->currentFileIndex == 0)
@@ -1013,6 +1018,7 @@ void executeSwitch(AudioData *pAudioData)
         }
 
         pAudioData->pUserData->currentSongData = currentSongData;
+
         pAudioData->currentPCMFrame = 0;
 
         setSeekElapsed(0.0);
