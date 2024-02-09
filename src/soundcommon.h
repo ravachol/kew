@@ -115,6 +115,8 @@ extern bool doQuit;
 
 extern pthread_mutex_t dataSourceMutex;
 
+extern pthread_mutex_t switchMutex;
+
 enum AudioImplementation getCurrentImplementationType();
 
 void setCurrentImplementationType(enum AudioImplementation value);
