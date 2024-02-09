@@ -4,7 +4,7 @@
 chafafunc.c
 
  Functions related to printing images to the terminal with chafa.
- 
+
 */
 /* Include after chafa.h for G_OS_WIN32 */
 #ifdef G_OS_WIN32
@@ -398,10 +398,32 @@ void printBitmapCentered(FIBITMAP *bitmap, int width, int height)
 
         int indentation = ((term_size.width_cells - width) / 2) + 1;
 
+        // special fix for wezterm
+        char *spaces = (char *)malloc(indentation + 1);
+        if (spaces == NULL)
+        {
+                perror("Failed to allocate memory for indentation");
+                exit(EXIT_FAILURE);
+        }
+
+        memset(spaces, ' ', indentation);
+        spaces[indentation] = '\0';
+
         for (int i = 0; lines[i] != NULL; i++)
         {
-                printf("\n%*s%s", indentation, "", lines[i]);
+                printf("\n%s%s", spaces, lines[i]);
         }
+        
+        // Free the allocated memory for the next iteration
+        free(spaces);
+        // end special wezterm fix
+
+        // not working in wezterm:
+        // for (int i = 0; lines[i] != NULL; i++)
+        // {
+        //         printf("\n%*s%s", indentation, "", lines[i]);
+        // }
+
         g_strfreev(lines);
         g_string_free(printable, TRUE);
 }
