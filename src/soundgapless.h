@@ -29,10 +29,11 @@ typedef struct
         char *filenameA;
         char *filenameB;
         SongData *songdataA;
-        SongData *songdataB;     
+        SongData *songdataB;
+        bool songdataADeleted;
+        bool songdataBDeleted;
         SongData *currentSongData;
         ma_uint32 currentPCMFrame;
-
 } UserData;
 #endif
 
