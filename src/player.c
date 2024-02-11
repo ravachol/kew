@@ -217,11 +217,18 @@ int printLogo(SongData *songData)
                 char *title = (char *)calloc(MAXPATHLEN, sizeof(char));
                 if (title == NULL)
                 {
-                        printf("Song title was null.");
+                        printf("Couldn't allocate memory.");
                         exit(0);
                 }
                 
                 strncpy(title, songData->metadata->title, MAXPATHLEN - 1);
+
+                if (title == NULL)
+                {
+                        printf("Song title was null.");
+                        exit(0);
+                }
+
                 title[MAXPATHLEN - 1] = '\0';
 
                 shortenString(title, term_w - indent - indent - 27);
