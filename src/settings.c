@@ -28,6 +28,7 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         AppSettings settings;
         memset(&settings, 0, sizeof(settings));
         strncpy(settings.coverEnabled, "1", sizeof(settings.coverEnabled));
+        strncpy(settings.allowNotifications, "1", sizeof(settings.allowNotifications));
         strncpy(settings.coverAnsi, "0", sizeof(settings.coverAnsi));
         strncpy(settings.visualizerEnabled, "1", sizeof(settings.visualizerEnabled));
         strncpy(settings.useProfileColors, "1", sizeof(settings.useProfileColors));
@@ -184,6 +185,10 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
                 {
                         snprintf(settings.lastVolume, sizeof(settings.lastVolume), "%s", pair->value);
                 }                
+                else if (strcmp(stringToLower(pair->key), "allownotifications") == 0)
+                {
+                        snprintf(settings.allowNotifications, sizeof(settings.allowNotifications), "%s", pair->value);
+                }                                
                 else if (strcmp(stringToLower(pair->key), "quit") == 0)
                 {
                         snprintf(settings.quit, sizeof(settings.quit), "%s", pair->value);
@@ -382,6 +387,7 @@ void getConfig()
         free(filepath);
         settings = constructAppSettings(pairs, pair_count);
 
+        allowNotifications = (settings.allowNotifications[0] == '1');
         coverEnabled = (settings.coverEnabled[0] == '1');
         coverAnsi = (settings.coverAnsi[0] == '1');
         visualizerEnabled = (settings.visualizerEnabled[0] == '1');
@@ -416,6 +422,8 @@ void setConfig()
                 return;
         }
 
+        if (settings.allowNotifications[0] == '\0')
+                allowNotifications ? c_strcpy(settings.allowNotifications, sizeof(settings.allowNotifications), "1") : c_strcpy(settings.allowNotifications, sizeof(settings.allowNotifications), "0");
         if (settings.coverEnabled[0] == '\0')
                 coverEnabled ? c_strcpy(settings.coverEnabled, sizeof(settings.coverEnabled), "1") : c_strcpy(settings.coverEnabled, sizeof(settings.coverEnabled), "0");
         if (settings.coverAnsi[0] == '\0')
@@ -438,7 +446,7 @@ void setConfig()
         settings.visualizerHeight[5] = '\0';
         settings.lastVolume[5] = '\0';
         settings.useProfileColors[1] = '\0';
-
+        settings.allowNotifications[1] = '\0';
         // Write the settings to the file
         fprintf(file, "# Make sure that Kew is closed before editing this file in order for changes to take effect.\n\n");
 
@@ -470,6 +478,7 @@ void setConfig()
         fprintf(file, "savePlaylist=%s\n", settings.savePlaylist);
         fprintf(file, "addToMainPlaylist=%s\n", settings.addToMainPlaylist);
         fprintf(file, "lastVolume=%s\n", settings.lastVolume);
+        fprintf(file, "allowNotifications=%s\n", settings.allowNotifications);
         fprintf(file, "quit=%s\n\n", settings.quit);
         fprintf(file, "# For special keys use terminal codes: OS, for F4 for instance. This can depend on the terminal.\n");
         fprintf(file, "# You can find out the codes for the keys by using tools like showkey.\n");

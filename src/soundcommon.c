@@ -10,6 +10,7 @@ soundcommon.c
 
 */
 
+bool allowNotifications = true;
 bool repeatEnabled = false;
 bool shuffleEnabled = false;
 bool skipToNext = false;
@@ -21,7 +22,7 @@ _Atomic bool EOFReached = false;
 _Atomic bool switchReached = false;
 _Atomic bool readingFrames = false;
 pthread_mutex_t dataSourceMutex = PTHREAD_MUTEX_INITIALIZER;
-pthread_mutex_t switchMutex =  PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t switchMutex = PTHREAD_MUTEX_INITIALIZER;
 ma_device device = {0};
 ma_int32 *audioBuffer = NULL;
 ma_decoder *firstDecoder;
@@ -276,7 +277,7 @@ void setNextVorbisDecoder(ma_libvorbis *decoder)
                 vorbisDecoders[0] = decoder;
         }
         else
-        {                
+        {
                 int nextIndex = 1 - vorbisDecoderIndex;
 
                 if (vorbisDecoders[nextIndex] != NULL)
@@ -499,7 +500,7 @@ int prepareNextM4aDecoder(char *filepath)
 {
         m4a_decoder *currentDecoder;
 
-       if (m4aDecoderIndex == -1)
+        if (m4aDecoderIndex == -1)
         {
                 currentDecoder = getFirstM4aDecoder();
         }
@@ -974,10 +975,81 @@ void activateSwitch(AudioData *pAudioData)
         {
                 pthread_mutex_lock(&switchMutex);
                 pAudioData->currentFileIndex = 1 - pAudioData->currentFileIndex; // Toggle between 0 and 1
-                pthread_mutex_unlock(&switchMutex);                
+                pthread_mutex_unlock(&switchMutex);
         }
 
         pAudioData->switchFiles = true;
+}
+
+void sanitize_filepath(const char *input, char *sanitized, size_t size)
+{
+        size_t i, j = 0;
+
+        if (input != NULL)
+        {
+                for (i = 0; i < strlen(input) && j < size - 1; ++i)
+                {
+                        if (isalnum((unsigned char)input[i]) || strchr(" :/.,?!-", input[i]))
+                        {
+                                sanitized[j++] = input[i];
+                        }
+                }
+        }
+
+        sanitized[j] = '\0';
+}
+
+char* remove_blacklisted_chars(const char* input, const char* blacklist) {
+    if (!input || !blacklist) return NULL;
+
+    char* output = malloc(strlen(input) + 1); 
+    if (!output) {
+        perror("Failed to allocate memory");
+        exit(EXIT_FAILURE);
+    }
+
+    const char* in_ptr = input;
+    char* out_ptr = output;
+    while (*in_ptr) {
+        // If the current character is not in the blacklist, copy it to the output
+        if (!strchr(blacklist, *in_ptr)) {
+            *out_ptr++ = *in_ptr;
+        }
+        in_ptr++;
+    }
+    *out_ptr = '\0';
+
+    return output;
+}
+
+void displaySongNotification(const char *artist, const char *title, const char *cover)
+{
+        if (!allowNotifications)
+                return;
+
+        char command[MAXPATHLEN + 1024];
+        char sanitized_cover[MAXPATHLEN];
+
+        const char* blacklist = "&;`|*?~<>^()[]{}$\\\"";
+        char* sanitizedArtist = remove_blacklisted_chars(artist, blacklist);
+        char* sanitizedTitle = remove_blacklisted_chars(title, blacklist);
+        
+        sanitize_filepath(cover, sanitized_cover, sizeof(sanitized_cover));
+
+        if (strlen(artist) <= 0)
+        {
+                snprintf(command, sizeof(command), "notify-send -t 3000 -a \"kew\" \"%s\" --icon %s", sanitizedTitle, sanitized_cover);
+        }
+        else
+        {
+                snprintf(command, sizeof(command), "notify-send -a \"kew\" \"%s - %s\" --icon %s", sanitizedArtist, sanitizedTitle, sanitized_cover);
+        }
+
+
+        free(sanitizedArtist);
+        free(sanitizedTitle);
+
+        system(command);
 }
 
 void executeSwitch(AudioData *pAudioData)
@@ -1016,6 +1088,10 @@ void executeSwitch(AudioData *pAudioData)
                         pAudioData->fileB = NULL;
                 }
         }
+
+        if (currentSongData != NULL && currentSongData->metadata 
+        && strlen(currentSongData->metadata->title) > 0)
+                displaySongNotification(currentSongData->metadata->artist, currentSongData->metadata->title, currentSongData->coverArtPath);
 
         pAudioData->pUserData->currentSongData = currentSongData;
 

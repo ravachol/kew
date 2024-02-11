@@ -24,7 +24,7 @@ typedef struct
 
 AppState appState;
 
-const char VERSION[] = "2.2.1";
+const char VERSION[] = "2.3";
 const int LOGO_COLOR = 6;
 const int ARTIST_COLOR = 6;
 const int ENQUEUED_COLOR = 6;
@@ -214,19 +214,21 @@ int printLogo(SongData *songData)
                 int term_w, term_h;
                 getTermSize(&term_w, &term_h);
 
-                char *title = (char *)calloc(MAXPATHLEN, sizeof(char)); // Initialize to zero
+                char *title = (char *)calloc(MAXPATHLEN, sizeof(char));
                 if (title == NULL)
                 {
-                        return -1;
+                        printf("Song title was null.");
+                        exit(0);
                 }
-                title[0] = '\0';
+                
+                strncpy(title, songData->metadata->title, MAXPATHLEN - 1);
+                title[MAXPATHLEN - 1] = '\0';
 
-                strcat(title, songData->metadata->title);
                 shortenString(title, term_w - indent - indent - 27);
 
                 printf(" %s", title);
 
-                free(title);
+                free(title); // Free allocated memory
         }
         printf("\n\n");
 

@@ -486,4 +486,11 @@ void createAudioDevice(UserData *userData)
 {
         ma_context_init(NULL, 0, NULL, &context);
         switchAudioImplementation();
+
+        SongData *currentSongData = userData->currentSongData;
+
+        if (currentSongData != NULL && currentSongData->metadata 
+        && strlen(currentSongData->metadata->title) > 0)
+                displaySongNotification(currentSongData->metadata->artist, currentSongData->metadata->title, currentSongData->coverArtPath);
+
 }
