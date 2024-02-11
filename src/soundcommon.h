@@ -111,6 +111,8 @@ enum AudioImplementation
         NONE
 };
 
+extern bool allowNotifications;
+
 extern bool doQuit;
 
 extern pthread_mutex_t dataSourceMutex;
@@ -252,5 +254,7 @@ bool hasBuiltinDecoder(char *filePath);
 void activateSwitch(AudioData *pPCMDataSource);
 
 void executeSwitch(AudioData *pPCMDataSource);
+
+void displaySongNotification(const char *artist, const char *title, const char *cover);
 
 #endif
