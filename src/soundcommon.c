@@ -368,7 +368,8 @@ void resetVorbisDecoders()
                 free(vorbisDecoders[0]);
                 vorbisDecoders[0] = NULL;
         }
-        else if (vorbisDecoders[1] != NULL && vorbisDecoders[1]->format != ma_format_unknown)
+        
+        if (vorbisDecoders[1] != NULL && vorbisDecoders[1]->format != ma_format_unknown)
         {
                 ma_libvorbis_uninit(vorbisDecoders[1], NULL);
                 free(vorbisDecoders[1]);
@@ -413,14 +414,14 @@ void resetOpusDecoders()
                 firstOpusDecoder = NULL;
         }
 
-        // these files are chained and uninitializing one uninitializes the other
         if (opusDecoders[0] != NULL && opusDecoders[0]->format != ma_format_unknown)
         {
                 ma_libopus_uninit(opusDecoders[0], NULL);
                 ma_free(opusDecoders[0], NULL);            
                 opusDecoders[0] = NULL;
         }
-        else if (opusDecoders[1] != NULL && opusDecoders[1]->format != ma_format_unknown)
+        
+        if (opusDecoders[1] != NULL && opusDecoders[1]->format != ma_format_unknown)
         {
                 ma_libopus_uninit(opusDecoders[1], NULL);
                 ma_free(opusDecoders[1], NULL);
