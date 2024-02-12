@@ -46,6 +46,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include <unistd.h>
 #include <glib.h>
 #include <gio/gio.h>
+#include <glib-unix.h>
 
 #include "soundgapless.h"
 #include "stringfunc.h"
@@ -789,6 +790,14 @@ gboolean mainloop_callback(gpointer data)
         return TRUE;
 }
 
+static gboolean on_sigint(gpointer user_data)
+{
+        doQuit = true;
+        GMainLoop *loop = (GMainLoop *)user_data;
+        g_main_loop_quit(loop);
+        return G_SOURCE_REMOVE; // Remove the signal source
+}
+
 void play(Node *song)
 {
         updateLastInputTime();
@@ -815,6 +824,8 @@ void play(Node *song)
         playlist.totalDuration = -1;
 
         main_loop = g_main_loop_new(NULL, FALSE);
+
+        g_unix_signal_add(SIGINT, on_sigint, main_loop);
 
         if (song != NULL)
                 emitStartPlayingMpris();
@@ -896,7 +907,7 @@ void run()
 
         currentSong = playlist.head;
         play(currentSong);
-        clearScreen();
+        clearScreen();      
         fflush(stdout);
 }
 
