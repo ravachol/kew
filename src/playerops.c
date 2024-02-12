@@ -140,8 +140,6 @@ void emitSeekedSignal(double newPositionSeconds)
                                       "Seeked",
                                       parameters,
                                       NULL);
-
-        g_variant_unref(parameters);
 }
 
 void emitStringPropertyChanged(const gchar *propertyName, const gchar *newValue)
@@ -575,7 +573,7 @@ void dequeueSong(FileSystemEntry *child)
         // check if parent needs to be dequeued as well
         bool isEnqueued = false;
 
-        FileSystemEntry *ch = child->parent->children; 
+        FileSystemEntry *ch = child->parent->children;
 
         while (ch != NULL)
         {
@@ -585,15 +583,15 @@ void dequeueSong(FileSystemEntry *child)
                         break;
                 }
                 ch = ch->next;
-        }        
+        }
 
         if (!isEnqueued)
-                child->parent->isEnqueued = 0;        
+                child->parent->isEnqueued = 0;
 }
 
 void dequeueChildren(FileSystemEntry *parent)
 {
-        FileSystemEntry *child = parent->children; 
+        FileSystemEntry *child = parent->children;
 
         while (child != NULL)
         {
@@ -621,7 +619,6 @@ void enqueueChildren(FileSystemEntry *child)
                 }
                 else if (!child->isEnqueued)
                 {
-                        
                         enqueueSong(child);
                 }
 
@@ -652,7 +649,7 @@ bool hasSongChildren(FileSystemEntry *entry)
 
 bool hasDequeuedChildren(FileSystemEntry *parent)
 {
-        FileSystemEntry *child = parent->children; 
+        FileSystemEntry *child = parent->children;
 
         bool isDequeued = false;
         while (child != NULL)
@@ -662,7 +659,7 @@ bool hasDequeuedChildren(FileSystemEntry *parent)
                         isDequeued = true;
                 }
                 child = child->next;
-        }        
+        }
 
         return isDequeued;
 }
@@ -837,39 +834,46 @@ Node *getSongByNumber(PlayList *playlist, int songNumber)
         return song;
 }
 
-int loadDecoder(SongData* songData, char** filename, bool* songDataDeleted) {
-    int result = 0;
-    if (songData != NULL) {
+int loadDecoder(SongData *songData, char **filename, bool *songDataDeleted)
+{
+        int result = 0;
+        if (songData != NULL)
+        {
 
-        *songDataDeleted = false;
+                *songDataDeleted = false;
 
-        // this should only be done for the second song, as switchAudioImplementation() handles the first one
-        if (!loadingdata.loadingFirstDecoder) {
-            if (hasBuiltinDecoder(songData->filePath))
-                result = prepareNextDecoder(songData->filePath);
-            else if (endsWith(songData->filePath, "opus"))
-                result = prepareNextOpusDecoder(songData->filePath);
-            else if (endsWith(songData->filePath, "ogg"))
-                result = prepareNextVorbisDecoder(songData->filePath);
-            else if (endsWith(songData->filePath, "m4a"))
-                result = prepareNextM4aDecoder(songData->filePath);
+                // this should only be done for the second song, as switchAudioImplementation() handles the first one
+                if (!loadingdata.loadingFirstDecoder)
+                {
+                        if (hasBuiltinDecoder(songData->filePath))
+                                result = prepareNextDecoder(songData->filePath);
+                        else if (endsWith(songData->filePath, "opus"))
+                                result = prepareNextOpusDecoder(songData->filePath);
+                        else if (endsWith(songData->filePath, "ogg"))
+                                result = prepareNextVorbisDecoder(songData->filePath);
+                        else if (endsWith(songData->filePath, "m4a"))
+                                result = prepareNextM4aDecoder(songData->filePath);
+                }
         }
-    }
-    return result;
+        return result;
 }
 
-int assignLoadedData() {
-    int result = 0;
+int assignLoadedData()
+{
+        int result = 0;
 
-    if (loadingdata.loadA) {
-        userData.songdataA = loadingdata.songdataA;
-        result = loadDecoder(loadingdata.songdataA, &userData.filenameA, &userData.songdataADeleted);
-    } else {
-        userData.songdataB = loadingdata.songdataB;
-        result = loadDecoder(loadingdata.songdataB, &userData.filenameB, &userData.songdataBDeleted);
-    }
+        if (loadingdata.loadA)
+        {
+                userData.songdataA = loadingdata.songdataA;
+                result = loadDecoder(loadingdata.songdataA, &userData.filenameA, &userData.songdataADeleted);
+        }
+        else
+        {
+                userData.songdataB = loadingdata.songdataB;
+                result = loadDecoder(loadingdata.songdataB, &userData.filenameB, &userData.songdataBDeleted);
+        }
 
-    return result;
+        return result;
 }
 
 void *songDataReaderThread(void *arg)
