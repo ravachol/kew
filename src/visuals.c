@@ -295,36 +295,51 @@ void calcSpectrum(int height, int numBars, fftwf_complex *fftInput, fftwf_comple
 {
 
         ma_int32 *g_audioBuffer = getAudioBuffer();
-        ma_decoder *decoder = getCurrentDecoder();
-        int bitDepth = 24;
-
         ma_format format = SAMPLE_FORMAT;
 
-        if (getCurrentImplementationType() == BUILTIN && decoder != NULL)
+        if (getCurrentImplementationType() == BUILTIN)
         {
+                ma_decoder *decoder = getCurrentDecoder();
                 format = decoder->outputFormat;
+        }
+        else if (getCurrentImplementationType() == OPUS)        
+        {
+                ma_libopus *decoder = getCurrentOpusDecoder();
+                format = decoder->format;
+        }
+        else if (getCurrentImplementationType() == VORBIS)        
+        {
+                ma_libvorbis *decoder = getCurrentVorbisDecoder();
+                format = decoder->format;
+        }    
+        else if (getCurrentImplementationType() == M4A)
+        {
+                m4a_decoder *decoder = getCurrentM4aDecoder();
+                format = decoder->format;
+        }  
 
-                switch (format)
-                {
-                case ma_format_u8:
-                        bitDepth = 8;
-                        break;
+        int bitDepth = 32;
 
-                case ma_format_s16:
-                        bitDepth = 16;
-                        break;
+        switch (format)
+        {
+        case ma_format_u8:
+                bitDepth = 8;
+                break;
 
-                case ma_format_s24:
-                        bitDepth = 24;
-                        break;
+        case ma_format_s16:
+                bitDepth = 16;
+                break;
 
-                case ma_format_f32:
-                case ma_format_s32:
-                        bitDepth = 32;
-                        break;
-                default:
-                        break;
-                }
+        case ma_format_s24:
+                bitDepth = 24;
+                break;
+
+        case ma_format_f32:
+        case ma_format_s32:
+                bitDepth = 32;
+                break;
+        default:
+                break;
         }
 
         calc(height, numBars, g_audioBuffer, bitDepth, fftInput, fftOutput, magnitudes, plan);
