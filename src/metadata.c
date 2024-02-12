@@ -50,7 +50,6 @@ int extractTags(const char *input_file, TagSettings *tag_settings)
         memset(tag_settings->album, 0, sizeof(tag_settings->album));
         memset(tag_settings->date, 0, sizeof(tag_settings->date));
 
-        // Open the pipe to read the output of the ffprobe command
         FILE *pipe = popen(command, "r");
         if (!pipe)
         {
@@ -61,20 +60,16 @@ int extractTags(const char *input_file, TagSettings *tag_settings)
         char line[512];
         while (fgets(line, sizeof(line), pipe))
         {
-                // Extract the key and value from each line
                 char *key = strtok(line, "=");
                 char *value = strtok(NULL, "=");
                 if (key && value)
                 {
-                        // Remove newline character from the end of the value
                         size_t value_len = strlen(value);
                         if (value[value_len - 1] == '\n')
                                 value[value_len - 1] = '\0';
 
-                        // Remove the tag prefix from the value if it exists
                         removeTagPrefix(key);
 
-                        // Assign the value to the corresponding field in the TagSettings structure
                         if (strcasecmp(key, "title") == 0)
                                 snprintf(tag_settings->title, sizeof(tag_settings->title), "%s", value);
                         else if (strcasecmp(key, "artist") == 0)
@@ -94,13 +89,11 @@ int extractTags(const char *input_file, TagSettings *tag_settings)
                 turnFilePathIntoTitle(input_file, title);
                 title[sizeof(tag_settings->title) - 1] = '\0';
 
-                // Copy the truncated title to tag_settings->title
                 strncpy(tag_settings->title, title, sizeof(tag_settings->title) - 1);
 
-                // Ensure null-termination
                 tag_settings->title[sizeof(tag_settings->title) - 1] = '\0';
         }
-        // Close the pipe
+
         pclose(pipe);
 
         return 0;

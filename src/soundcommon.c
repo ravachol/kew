@@ -347,8 +347,6 @@ void setNextOpusDecoder(ma_libopus *decoder)
                         free(opusDecoders[nextIndex]);
                         opusDecoders[nextIndex] = NULL;
                 }
-                opusDecoders[0] = decoder;
-
                 opusDecoders[nextIndex] = decoder;
         }
 }
@@ -370,8 +368,7 @@ void resetVorbisDecoders()
                 free(vorbisDecoders[0]);
                 vorbisDecoders[0] = NULL;
         }
-
-        if (vorbisDecoders[1] != NULL && vorbisDecoders[1]->format != ma_format_unknown)
+        else if (vorbisDecoders[1] != NULL && vorbisDecoders[1]->format != ma_format_unknown)
         {
                 ma_libvorbis_uninit(vorbisDecoders[1], NULL);
                 free(vorbisDecoders[1]);
@@ -411,25 +408,22 @@ void resetOpusDecoders()
 
         if (firstOpusDecoder != NULL && firstOpusDecoder->format != ma_format_unknown)
         {
-                ma_data_source_base *base = (ma_data_source_base *)firstOpusDecoder;
-                base->pCurrent = NULL;
-                base->vtable = NULL;
                 ma_libopus_uninit(firstOpusDecoder, NULL);
                 free(firstOpusDecoder);
                 firstOpusDecoder = NULL;
         }
 
+        // these files are chained and uninitializing one uninitializes the other
         if (opusDecoders[0] != NULL && opusDecoders[0]->format != ma_format_unknown)
         {
                 ma_libopus_uninit(opusDecoders[0], NULL);
-                free(opusDecoders[0]);
+                ma_free(opusDecoders[0], NULL);            
                 opusDecoders[0] = NULL;
         }
-
-        if (opusDecoders[1] != NULL && opusDecoders[1]->format != ma_format_unknown)
+        else if (opusDecoders[1] != NULL && opusDecoders[1]->format != ma_format_unknown)
         {
                 ma_libopus_uninit(opusDecoders[1], NULL);
-                free(opusDecoders[1]);
+                ma_free(opusDecoders[1], NULL);
                 opusDecoders[1] = NULL;
         }
 }
@@ -911,7 +905,7 @@ void pausePlayback()
 void cleanupPlaybackDevice()
 {
         ma_device_stop(&device);
-        while (ma_device_get_state(&device) == ma_device_state_started)
+        while (ma_device_get_state(&device) != ma_device_state_stopped && ma_device_get_state(&device) != ma_device_state_uninitialized)
         {
                 c_sleep(100);
         }
@@ -999,27 +993,32 @@ void sanitize_filepath(const char *input, char *sanitized, size_t size)
         sanitized[j] = '\0';
 }
 
-char* remove_blacklisted_chars(const char* input, const char* blacklist) {
-    if (!input || !blacklist) return NULL;
+char *remove_blacklisted_chars(const char *input, const char *blacklist)
+{
+        if (!input || !blacklist)
+                return NULL;
 
-    char* output = malloc(strlen(input) + 1); 
-    if (!output) {
-        perror("Failed to allocate memory");
-        exit(EXIT_FAILURE);
-    }
-
-    const char* in_ptr = input;
-    char* out_ptr = output;
-    while (*in_ptr) {
-        // If the current character is not in the blacklist, copy it to the output
-        if (!strchr(blacklist, *in_ptr)) {
-            *out_ptr++ = *in_ptr;
+        char *output = malloc(strlen(input) + 1);
+        if (!output)
+        {
+                perror("Failed to allocate memory");
+                exit(EXIT_FAILURE);
         }
-        in_ptr++;
-    }
-    *out_ptr = '\0';
 
-    return output;
+        const char *in_ptr = input;
+        char *out_ptr = output;
+        while (*in_ptr)
+        {
+                // If the current character is not in the blacklist, copy it to the output
+                if (!strchr(blacklist, *in_ptr))
+                {
+                        *out_ptr++ = *in_ptr;
+                }
+                in_ptr++;
+        }
+        *out_ptr = '\0';
+
+        return output;
 }
 
 void displaySongNotification(const char *artist, const char *title, const char *cover)
@@ -1030,10 +1029,10 @@ void displaySongNotification(const char *artist, const char *title, const char *
         char command[MAXPATHLEN + 1024];
         char sanitized_cover[MAXPATHLEN];
 
-        const char* blacklist = "&;`|*?~<>^()[]{}$\\\"";
-        char* sanitizedArtist = remove_blacklisted_chars(artist, blacklist);
-        char* sanitizedTitle = remove_blacklisted_chars(title, blacklist);
-        
+        const char *blacklist = "&;`|*?~<>^()[]{}$\\\"";
+        char *sanitizedArtist = remove_blacklisted_chars(artist, blacklist);
+        char *sanitizedTitle = remove_blacklisted_chars(title, blacklist);
+
         sanitize_filepath(cover, sanitized_cover, sizeof(sanitized_cover));
 
         if (strlen(artist) <= 0)
@@ -1044,7 +1043,6 @@ void displaySongNotification(const char *artist, const char *title, const char *
         {
                 snprintf(command, sizeof(command), "notify-send -a \"kew\" \"%s - %s\" --icon %s", sanitizedArtist, sanitizedTitle, sanitized_cover);
         }
-
 
         free(sanitizedArtist);
         free(sanitizedTitle);
@@ -1089,8 +1087,7 @@ void executeSwitch(AudioData *pAudioData)
                 }
         }
 
-        if (currentSongData != NULL && currentSongData->metadata 
-        && strlen(currentSongData->metadata->title) > 0)
+        if (currentSongData != NULL && currentSongData->metadata && strlen(currentSongData->metadata->title) > 0)
                 displaySongNotification(currentSongData->metadata->artist, currentSongData->metadata->title, currentSongData->coverArtPath);
 
         pAudioData->pUserData->currentSongData = currentSongData;
