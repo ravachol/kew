@@ -57325,7 +57325,7 @@ MA_API ma_result ma_data_source_read_pcm_frames(ma_data_source* pDataSource, voi
 
     /* Keep reading until we've read as many frames as possible. */
     while (totalFramesProcessed < frameCount) {
-        ma_uint64 framesProcessed;
+        ma_uint64 framesProcessed = 0;
         ma_uint64 framesRemaining = frameCount - totalFramesProcessed;
 
         /* We need to resolve the data source that we'll actually be reading from. */

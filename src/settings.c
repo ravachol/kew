@@ -28,7 +28,7 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         AppSettings settings;
         memset(&settings, 0, sizeof(settings));
         strncpy(settings.coverEnabled, "1", sizeof(settings.coverEnabled));
-        strncpy(settings.allowNotifications, "1", sizeof(settings.allowNotifications));
+        strncpy(settings.allowNotifications, "0", sizeof(settings.allowNotifications));
         strncpy(settings.coverAnsi, "0", sizeof(settings.coverAnsi));
         strncpy(settings.visualizerEnabled, "1", sizeof(settings.visualizerEnabled));
         strncpy(settings.useProfileColors, "1", sizeof(settings.useProfileColors));
