@@ -92,7 +92,8 @@ void skip()
                 setSkipToNext(true);
         }
 
-        refresh = true;
+        if (!skipPrev)
+                refresh = true;
 }
 
 void updateLastSongSwitchTime()
