@@ -21,7 +21,7 @@
 #define CHANNELS 2
 #define SAMPLE_RATE 192000
 #define SAMPLE_WIDTH 3
-#define SAMPLE_FORMAT ma_format_s24
+#define SAMPLE_FORMAT ma_format_s32
 
 #ifndef MAX_BUFFER_SIZE
 #define MAX_BUFFER_SIZE 4800
