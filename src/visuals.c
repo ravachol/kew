@@ -291,32 +291,15 @@ wchar_t *getUpwardMotionChar(int level)
         }
 }
 
-void calcSpectrum(int height, int numBars, fftwf_complex *fftInput, fftwf_complex *fftOutput, float *magnitudes, fftwf_plan plan)
+int calcSpectrum(int height, int numBars, fftwf_complex *fftInput, fftwf_complex *fftOutput, float *magnitudes, fftwf_plan plan)
 {
 
         ma_int32 *g_audioBuffer = getAudioBuffer();
-        ma_format format = SAMPLE_FORMAT;
 
-        if (getCurrentImplementationType() == BUILTIN)
-        {
-                ma_decoder *decoder = getCurrentDecoder();
-                format = decoder->outputFormat;
-        }
-        else if (getCurrentImplementationType() == OPUS)        
-        {
-                ma_libopus *decoder = getCurrentOpusDecoder();
-                format = decoder->format;
-        }
-        else if (getCurrentImplementationType() == VORBIS)        
-        {
-                ma_libvorbis *decoder = getCurrentVorbisDecoder();
-                format = decoder->format;
-        }    
-        else if (getCurrentImplementationType() == M4A)
-        {
-                m4a_decoder *decoder = getCurrentM4aDecoder();
-                format = decoder->format;
-        }  
+        ma_format format = getCurrentFormat();
+
+        if (format == ma_format_unknown)
+                return -1;
 
         int bitDepth = 32;
 
@@ -343,6 +326,8 @@ void calcSpectrum(int height, int numBars, fftwf_complex *fftInput, fftwf_comple
         }
 
         calc(height, numBars, g_audioBuffer, bitDepth, fftInput, fftOutput, magnitudes, plan);
+
+        return 0;
 }
 
 PixelData increaseLuminosity(PixelData pixel, int amount)
@@ -490,7 +475,9 @@ void drawSpectrumVisualizer(int height, int width, PixelData c)
         {
                 magnitudes[i] = 0.0f;
         }
+        
         calcSpectrum(height, numBars, fftInput, fftOutput, magnitudes, plan);
+
         printSpectrum(height, numBars, magnitudes, color);
 
         fftwf_destroy_plan(plan);

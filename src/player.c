@@ -25,9 +25,10 @@ typedef struct
 AppState appState;
 
 const char VERSION[] = "2.3.1";
-const int LOGO_COLOR = 6;
-const int ARTIST_COLOR = 6;
-const int ENQUEUED_COLOR = 6;
+int mainColor = 6;
+int titleColor = 6;
+int artistColor = 6;
+int enqueuedColor = 6;
 const int ABSOLUTE_MIN_WIDTH = 64;
 volatile bool refresh = true;
 bool visualizerEnabled = true;
@@ -198,7 +199,10 @@ void printHelp()
 int printLogo(SongData *songData)
 {
         if (useProfileColors)
-                setTextColor(LOGO_COLOR);
+                setTextColor(mainColor);
+        else
+                setColor();
+
 
         printBlankSpaces(indent);
         printf(" __\n");
@@ -212,7 +216,7 @@ int printLogo(SongData *songData)
         if (songData != NULL && songData->metadata != NULL)
         {
                 int term_w, term_h;
-                getTermSize(&term_w, &term_h);
+                getTermSize(&term_w, &term_h);                
 
                 char *title = (char *)calloc(MAXPATHLEN, sizeof(char));
                 if (title == NULL)
@@ -226,6 +230,9 @@ int printLogo(SongData *songData)
                 title[MAXPATHLEN - 1] = '\0';
 
                 shortenString(title, term_w - indent - indent - 27);
+
+                if (useProfileColors)
+                        setTextColor(titleColor);
 
                 printf(" %s", title);
 
@@ -600,7 +607,7 @@ int showKeyBindings(SongData *songdata)
 
         numPrintedRows += printAbout(songdata);
 
-        setColor();
+        setDefaultTextColor();
 
         printBlankSpaces(indent);
         printf(" - Use %s (or %s) and %s to adjust volume.\n", settings.volumeUp, settings.volumeUpAlt, settings.volumeDown);
@@ -775,12 +782,10 @@ int showPlaylist(SongData *songData)
         maxListSize -= 1;
         numRows++;
 
-        PixelData textColor = increaseLuminosity(color, 20);
-
         int aboutRows = printLogo(songData);
         maxListSize -= aboutRows;
 
-        setColor();
+        setDefaultTextColor();
 
         printBlankSpaces(indent);
         if (term_w > 52)
@@ -872,7 +877,7 @@ int showPlaylist(SongData *songData)
                 printf("\r");
                 printBlankSpaces(indent);
 
-                setColor();
+                setDefaultTextColor();
 
                 if (lastSlash != NULL && lastDot != NULL && lastDot > lastSlash)
                 {
@@ -886,18 +891,16 @@ int showPlaylist(SongData *songData)
                                 chosenNodeId = node->id;
 
                                 if (useProfileColors)
-                                        setTextColor(ENQUEUED_COLOR);
+                                        setTextColor(enqueuedColor);
+                                else
+                                        setColor();
+
                                 printf("\x1b[7m");
                         }
 
                         if (foundNode != NULL && foundNode->id == node->id)
                         {
-                                if (useProfileColors)
-                                {
-                                        printf("\e[1m\e[39m");
-                                }
-                                else
-                                        printf("\033[1;38;2;%03u;%03u;%03um", textColor.r, textColor.g, textColor.b);
+                                printf("\e[1m\e[39m");
                         }
 
                         shortenString(copiedString, term_w - 10 - indent);
@@ -1124,11 +1127,14 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
                                 if (depth == 1)
                                 {
                                         if (useProfileColors)
-                                                setTextColor(ARTIST_COLOR);
+                                                setTextColor(artistColor);
+                                        else
+                                                setColor();
+
                                 }
                                 else
                                 {
-                                        setColor();
+                                        setDefaultTextColor();
                                 }
 
                                 if (depth >= 2)
@@ -1141,7 +1147,10 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
                                         if (root->isEnqueued)
                                         {
                                                 if (useProfileColors)
-                                                        setTextColor(ENQUEUED_COLOR);
+                                                        setTextColor(enqueuedColor);
+                                                else
+                                                        setColor();
+
                                                 printf("\x1b[7m * ");
                                         }
                                         else
@@ -1166,11 +1175,16 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
                                         if (root->isEnqueued)
                                         {
                                                 if (useProfileColors)
-                                                        setTextColor(ENQUEUED_COLOR);
+                                                        setTextColor(enqueuedColor); 
+                                                else
+                                                        setColor();                                                                                                       
+                                                
                                                 printf(" * ");
                                         }
                                         else
+                                        {
                                                 printf("   ");
+                                        }
                                 }
 
                                 if (root->isDirectory)
@@ -1229,7 +1243,8 @@ void showLibrary(SongData *songData)
         int aboutSize = printLogo(songData);
         int maxNameWidth = term_w - 10 - indent;
         maxLibListSize -= aboutSize + 1;
-        setColor();
+
+        setDefaultTextColor();
 
         if (term_w > 60)
         {
@@ -1238,7 +1253,7 @@ void showLibrary(SongData *songData)
                 printf(" Use ↑, ↓ or k, j to choose. Enter to enqueue/dequeue.\n");
                 printBlankSpaces(indent);
                 printf(" Pg Up and Pg Dn to scroll.\n\n");
-        }
+        }      
 
         numTopLevelSongs = 0;
 
@@ -1264,6 +1279,7 @@ int printPlayer(SongData *songdata, double elapsedSeconds, PlayList *playlist, b
         }
 
         hideCursor();
+
         setColor();
 
         if (songdata != NULL && !isDeleted && songdata->metadata != NULL && !songdata->hasErrors && (songdata->hasErrors < 1))

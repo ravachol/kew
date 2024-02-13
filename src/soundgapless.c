@@ -292,7 +292,7 @@ int switchAudioImplementation()
                 ma_uint32 sampleRate;
                 ma_uint32 channels;
                 ma_format format;
-                ma_decoder *decoder = getCurrentDecoder();
+                ma_decoder *decoder = getCurrentBuiltinDecoder();
 
                 getFileInfo(filePath, &sampleRate, &channels, &format);
 
