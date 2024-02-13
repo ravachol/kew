@@ -76,6 +76,10 @@ typedef struct
         char hardRemove[6];
         char lastVolume[6];
         char allowNotifications[2];
+        char color[6];       
+        char artistColor[6];
+        char enqueuedColor[6];
+        char titleColor[6];
 } AppSettings;
 
 extern AppSettings settings;

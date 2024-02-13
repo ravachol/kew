@@ -58,7 +58,7 @@ ma_decoder *getFirstDecoder()
         return firstDecoder;
 }
 
-ma_decoder *getCurrentDecoder()
+ma_decoder *getCurrentBuiltinDecoder()
 {
         if (decoderIndex == -1)
                 return getFirstDecoder();
@@ -235,6 +235,42 @@ ma_libopus *getCurrentOpusDecoder()
                 return opusDecoders[opusDecoderIndex];
 }
 
+ma_format getCurrentFormat()
+{
+        ma_format format = ma_format_unknown;
+
+        if (getCurrentImplementationType() == BUILTIN)
+        {
+                ma_decoder *decoder = getCurrentBuiltinDecoder();
+
+                if (decoder != NULL)
+                        format = decoder->outputFormat;
+        }
+        else if (getCurrentImplementationType() == OPUS)
+        {
+                ma_libopus *decoder = getCurrentOpusDecoder();
+
+                if (decoder != NULL)
+                        format = decoder->format;
+        }
+        else if (getCurrentImplementationType() == VORBIS)
+        {
+                ma_libvorbis *decoder = getCurrentVorbisDecoder();
+
+                if (decoder != NULL)
+                        format = decoder->format;
+        }
+        else if (getCurrentImplementationType() == M4A)
+        {
+                m4a_decoder *decoder = getCurrentM4aDecoder();
+
+                if (decoder != NULL)
+                        format = decoder->format;
+        }
+
+        return format;
+}
+
 void switchVorbisDecoder()
 {
         if (vorbisDecoderIndex == -1)
@@ -368,7 +404,7 @@ void resetVorbisDecoders()
                 free(vorbisDecoders[0]);
                 vorbisDecoders[0] = NULL;
         }
-        
+
         if (vorbisDecoders[1] != NULL && vorbisDecoders[1]->format != ma_format_unknown)
         {
                 ma_libvorbis_uninit(vorbisDecoders[1], NULL);
@@ -417,10 +453,10 @@ void resetOpusDecoders()
         if (opusDecoders[0] != NULL && opusDecoders[0]->format != ma_format_unknown)
         {
                 ma_libopus_uninit(opusDecoders[0], NULL);
-                ma_free(opusDecoders[0], NULL);            
+                ma_free(opusDecoders[0], NULL);
                 opusDecoders[0] = NULL;
         }
-        
+
         if (opusDecoders[1] != NULL && opusDecoders[1]->format != ma_format_unknown)
         {
                 ma_libopus_uninit(opusDecoders[1], NULL);

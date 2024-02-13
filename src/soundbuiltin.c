@@ -21,12 +21,12 @@ static ma_result builtin_file_data_source_seek(ma_data_source *pDataSource, ma_u
 {
         AudioData *audioData = (AudioData *)pDataSource;
 
-        if (getCurrentDecoder() == NULL)
+        if (getCurrentBuiltinDecoder() == NULL)
         {
                 return MA_INVALID_ARGS;
         }
 
-        ma_result result = ma_decoder_seek_to_pcm_frame(getCurrentDecoder(), frameIndex);
+        ma_result result = ma_decoder_seek_to_pcm_frame(getCurrentBuiltinDecoder(), frameIndex);
 
         if (result == MA_SUCCESS)
         {
@@ -62,12 +62,12 @@ static ma_result builtin_file_data_source_get_length(ma_data_source *pDataSource
 {
         ma_uint64 totalFrames = 0;
 
-        if (getCurrentDecoder() == NULL)
+        if (getCurrentBuiltinDecoder() == NULL)
         {
                 return MA_INVALID_ARGS;
         }
 
-        ma_result result = ma_decoder_get_length_in_pcm_frames(getCurrentDecoder(), &totalFrames);
+        ma_result result = ma_decoder_get_length_in_pcm_frames(getCurrentBuiltinDecoder(), &totalFrames);
 
         if (result != MA_SUCCESS)
         {
@@ -125,7 +125,7 @@ void builtin_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_u
                         break;
                 }
 
-                ma_decoder *decoder = getCurrentDecoder();                
+                ma_decoder *decoder = getCurrentBuiltinDecoder();                
 
                 if ((getCurrentImplementationType() != BUILTIN && !isSkipToNext()) || decoder == NULL)
                 {

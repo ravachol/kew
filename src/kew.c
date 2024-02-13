@@ -873,6 +873,7 @@ void cleanupOnExit()
         free(mainPlaylist);
         free(originalPlaylist);
         cleanupAudioData();
+        setDefaultTextColor();
         showCursor();
         resetConsole();
         pthread_mutex_destroy(&(loadingdata.mutex));
