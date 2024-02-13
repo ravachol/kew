@@ -21,7 +21,6 @@
 #define CHANNELS 2
 #define SAMPLE_RATE 192000
 #define SAMPLE_WIDTH 3
-#define SAMPLE_FORMAT ma_format_s32
 
 #ifndef MAX_BUFFER_SIZE
 #define MAX_BUFFER_SIZE 4800
@@ -133,9 +132,11 @@ bool isPlaying();
 
 ma_decoder *getFirstDecoder();
 
-ma_decoder *getCurrentDecoder();
+ma_decoder *getCurrentBuiltinDecoder();
 
 ma_decoder *getPreviousDecoder();
+
+ma_format getCurrentFormat();
 
 void switchDecoder();
 

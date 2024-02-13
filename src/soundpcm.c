@@ -11,7 +11,6 @@ soundpcm.c
 #define CHANNELS 2
 #define SAMPLE_RATE 192000
 #define SAMPLE_WIDTH 3
-#define SAMPLE_FORMAT ma_format_s24
 
 void pcm_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_uint64 frameCount, ma_uint64 *pFramesRead)
 {

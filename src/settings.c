@@ -69,7 +69,11 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         strncpy(settings.hardNextPage, "[6~", sizeof(settings.hardNextPage));
         strncpy(settings.hardPrevPage, "[5~", sizeof(settings.hardPrevPage));
         strncpy(settings.hardRemove, "[3~", sizeof(settings.hardRemove));
-        strncpy(settings.lastVolume, "100", sizeof(settings.hardRemove));
+        strncpy(settings.lastVolume, "100", sizeof(settings.lastVolume));
+        strncpy(settings.color, "6", sizeof(settings.color));
+        strncpy(settings.artistColor, "6", sizeof(settings.artistColor));
+        strncpy(settings.enqueuedColor, "6", sizeof(settings.enqueuedColor));
+        strncpy(settings.titleColor, "6", sizeof(settings.titleColor));
         strncpy(settings.quit, "q", sizeof(settings.quit));
 
         if (pairs == NULL)
@@ -188,7 +192,23 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
                 else if (strcmp(stringToLower(pair->key), "allownotifications") == 0)
                 {
                         snprintf(settings.allowNotifications, sizeof(settings.allowNotifications), "%s", pair->value);
-                }                                
+                }
+                else if (strcmp(stringToLower(pair->key), "color") == 0)
+                {
+                        snprintf(settings.color, sizeof(settings.color), "%s", pair->value);
+                }
+                else if (strcmp(stringToLower(pair->key), "artistcolor") == 0)
+                {
+                        snprintf(settings.artistColor, sizeof(settings.artistColor), "%s", pair->value);
+                }                                  
+                else if (strcmp(stringToLower(pair->key), "enqueuedcolor") == 0)
+                {
+                        snprintf(settings.enqueuedColor, sizeof(settings.enqueuedColor), "%s", pair->value);
+                }                   
+                else if (strcmp(stringToLower(pair->key), "titlecolor") == 0)
+                {
+                        snprintf(settings.titleColor, sizeof(settings.titleColor), "%s", pair->value);
+                }                   
                 else if (strcmp(stringToLower(pair->key), "quit") == 0)
                 {
                         snprintf(settings.quit, sizeof(settings.quit), "%s", pair->value);
@@ -334,34 +354,6 @@ int getMusicLibraryPath(char *path)
         return 0;
 }
 
-void getConfigOld()
-{
-        int pair_count;
-        struct passwd *pw = getpwuid(getuid());
-        const char *homedir = pw->pw_dir;
-        char *filepath = NULL;
-
-        size_t filepath_length = strlen(homedir) + strlen("/") + strlen(OLD_SETTINGS_FILE) + 1;
-        filepath = (char *)malloc(filepath_length);
-        strcpy(filepath, homedir);
-        strcat(filepath, "/");
-        strcat(filepath, OLD_SETTINGS_FILE);
-
-        KeyValuePair *pairs = readKeyValuePairs(filepath, &pair_count);
-
-        free(filepath);
-        settings = constructAppSettings(pairs, pair_count);
-
-        coverEnabled = (settings.coverEnabled[0] == '1');
-        coverAnsi = (settings.coverAnsi[0] == '1');
-        visualizerEnabled = (settings.visualizerEnabled[0] == '1');
-        useProfileColors = (settings.useProfileColors[0] == '1');
-        int temp = atoi(settings.visualizerHeight);
-        if (temp > 0)
-                visualizerHeight = temp;
-        getMusicLibraryPath(settings.path);
-}
-
 void getConfig()
 {
         int pair_count;
@@ -374,14 +366,6 @@ void getConfig()
         strcat(filepath, "/");
         strcat(filepath, NEW_SETTINGS_FILE);
 
-        if (existsFile(filepath) < 0)
-        {
-                free(filepath);
-                free(configdir);
-                getConfigOld(); // Get config from the old location
-                return;
-        }
-
         KeyValuePair *pairs = readKeyValuePairs(filepath, &pair_count);
 
         free(filepath);
@@ -392,12 +376,29 @@ void getConfig()
         coverAnsi = (settings.coverAnsi[0] == '1');
         visualizerEnabled = (settings.visualizerEnabled[0] == '1');
         useProfileColors = (settings.useProfileColors[0] == '1');
-        int temp = atoi(settings.visualizerHeight);
-        if (temp > 0)
-                visualizerHeight = temp;
-        int temp2 = atoi(settings.lastVolume);
+
+        int temp = atoi(settings.color);
+        if (temp >= 0)
+                mainColor = temp;
+        temp = atoi(settings.artistColor); 
+        if (temp >= 0)              
+                artistColor = temp;
+        
+        temp = atoi(settings.enqueuedColor); 
+        if (temp >= 0)        
+                enqueuedColor = temp;
+
+        temp = atoi(settings.titleColor); 
+        if (temp >= 0)     
+                titleColor = temp;                
+
+        int temp2 = atoi(settings.visualizerHeight);
         if (temp2 > 0)
-                setVolume(temp2);
+                visualizerHeight = temp2;
+
+        int temp3 = atoi(settings.lastVolume);
+        if (temp3 > 0)
+                setVolume(temp3);
 
         getMusicLibraryPath(settings.path);
         free(configdir);
@@ -447,8 +448,9 @@ void setConfig()
         settings.lastVolume[5] = '\0';
         settings.useProfileColors[1] = '\0';
         settings.allowNotifications[1] = '\0';
+
         // Write the settings to the file
-        fprintf(file, "# Make sure that Kew is closed before editing this file in order for changes to take effect.\n\n");
+        fprintf(file, "# Make sure that kew is closed before editing this file in order for changes to take effect.\n\n");
 
         fprintf(file, "path=%s\n", settings.path);
         // fprintf(file, "useThemeColors=%s\n", settings.useThemeColors);
@@ -479,6 +481,16 @@ void setConfig()
         fprintf(file, "addToMainPlaylist=%s\n", settings.addToMainPlaylist);
         fprintf(file, "lastVolume=%s\n", settings.lastVolume);
         fprintf(file, "allowNotifications=%s\n", settings.allowNotifications);
+        fprintf(file, "# Color values are 0=Black, 1=Red, 2=Green, 3=Yellow, 4=Blue, 5=Magenta, 6=Cyan, 7=White\n");
+        fprintf(file, "# These mostly affect the library view.\n");
+        fprintf(file, "# Logo color: \n");
+        fprintf(file, "color=%s\n", settings.color);
+        fprintf(file, "# Header color in library view: \n");
+        fprintf(file, "artistColor=%s\n", settings.artistColor);
+        fprintf(file, "# Now playing song text in library view: \n");
+        fprintf(file, "titleColor=%s\n", settings.titleColor);
+        fprintf(file, "# Color of enqueued songs in library view: \n");
+        fprintf(file, "enqueuedColor=%s\n", settings.enqueuedColor);
         fprintf(file, "quit=%s\n\n", settings.quit);
         fprintf(file, "# For special keys use terminal codes: OS, for F4 for instance. This can depend on the terminal.\n");
         fprintf(file, "# You can find out the codes for the keys by using tools like showkey.\n");

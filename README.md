@@ -210,7 +210,7 @@ Put single-quotes inside quotes "guns n' roses"
 
 ## Configuration
 
-kew will create a config file, kewrc, in your default config directory for instance ~/.config/. There you can change key bindings, number of bars in the visualizer and whether to use the album cover for color, or your regular color scheme (default). To edit this file please make sure you quit kew first.
+kew will create a config file, kewrc, in your default config directory for instance ~/.config/. There you can change key bindings, number of bars in the visualizer and whether to use the album cover for color, or your regular color scheme (default). You can also change the default color of the app here. To edit this file please make sure you quit kew first.
 
 ## License
 
@@ -218,7 +218,7 @@ Licensed under GPL. [See LICENSE for more information](https://github.com/ravach
 
 ## Attributions
 
-Kew makes use of the following great open source projects:
+kew makes use of the following great open source projects:
 
 Chafa by  Petter Jansson - https://hpjansson.org/chafa/
 

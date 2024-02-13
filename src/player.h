@@ -14,6 +14,10 @@
 #include "soundgapless.h"
 #include "directorytree.h"
 
+extern int mainColor;
+extern int artistColor;
+extern int enqueuedColor;
+extern int titleColor;
 extern const char VERSION[];
 extern bool coverEnabled;
 extern bool uiEnabled;
