@@ -240,9 +240,19 @@ void toggleShuffle()
         }
         else
         {
+                char *path = NULL;
+                if (currentSong != NULL)
+                {
+                        path = strdup(currentSong->song.filePath);
+                }
                 deletePlaylist(&playlist);
                 playlist = deepCopyPlayList(originalPlaylist);
-                currentSong = findSongInPlaylist(currentSong, &playlist);
+
+                if (path != NULL)
+                {
+                        currentSong = findPathInPlaylist(path, &playlist);
+                        free(path);
+                }
                 emitBooleanPropertyChanged("Shuffle", FALSE);
         }
 
@@ -1030,7 +1040,7 @@ void skipToNextSong()
 
 void skipToPrevSong()
 {
-        if (currentSong == NULL || currentSong->prev == NULL)
+        if ((currentSong == NULL || currentSong->prev == NULL) && !isShuffleEnabled())
         {
                 return;
         }
@@ -1039,7 +1049,15 @@ void skipToPrevSong()
                 if (!forceSkip)
                         return;
 
-        currentSong = currentSong->prev;
+        if (isShuffleEnabled() && currentSong != NULL && currentSong->prev == NULL)
+        {
+                if (currentSong->prev == NULL && currentSong->next != NULL)
+                        currentSong = currentSong->next;
+                else
+                        return;
+        }
+        else
+                currentSong = currentSong->prev;
 
         playbackPlay(&totalPauseSeconds, &pauseSeconds, &pause_time);
 
