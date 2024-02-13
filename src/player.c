@@ -220,14 +220,8 @@ int printLogo(SongData *songData)
                         printf("Couldn't allocate memory.");
                         exit(0);
                 }
-                
-                strncpy(title, songData->metadata->title, MAXPATHLEN - 1);
 
-                if (title == NULL)
-                {
-                        printf("Song title was null.");
-                        exit(0);
-                }
+                strncpy(title, songData->metadata->title, MAXPATHLEN - 1);
 
                 title[MAXPATHLEN - 1] = '\0';
 
@@ -398,30 +392,16 @@ void printProgress(double elapsed_seconds, double total_seconds, double total_du
         int total_seconds_remainder = (int)total_seconds % 60;
 
         int progress_percentage = (int)((elapsed_seconds / total_seconds) * 100);
-
-        int total_playlist_hours = (int)(total_duration_seconds / 3600);
-        int total_playlist_minutes = (int)(((int)total_duration_seconds / 60) % 60);
-
         int vol = getCurrentVolume();
 
         // Clear the current line
         printf("\r\033[K");
         printBlankSpaces(indent);
-        if (playlist->count <= MAX_COUNT_PLAYLIST_SONGS && total_duration_seconds > -1)
-        {
-                printf(" %02d:%02d:%02d / %02d:%02d:%02d (%d%%) T:%dh%02dm Vol:%d%%",
-                       elapsed_hours, elapsed_minutes, elapsed_seconds_remainder,
-                       total_hours, total_minutes, total_seconds_remainder,
-                       progress_percentage, total_playlist_hours, total_playlist_minutes, vol);
-        }
-        else
-        {
 
-                printf(" %02d:%02d:%02d / %02d:%02d:%02d (%d%%) Vol:%d%%",
-                       elapsed_hours, elapsed_minutes, elapsed_seconds_remainder,
-                       total_hours, total_minutes, total_seconds_remainder,
-                       progress_percentage, vol);
-        }
+        printf(" %02d:%02d:%02d / %02d:%02d:%02d (%d%%) Vol:%d%%",
+               elapsed_hours, elapsed_minutes, elapsed_seconds_remainder,
+               total_hours, total_minutes, total_seconds_remainder,
+               progress_percentage, vol);
 
         // Restore the cursor position
         printf("\033[u");
@@ -1247,7 +1227,7 @@ void showLibrary(SongData *songData)
         maxLibListSize = totalHeight;
         setColor();
         int aboutSize = printLogo(songData);
-        int maxNameWidth = term_w - 8 - indent;
+        int maxNameWidth = term_w - 10 - indent;
         maxLibListSize -= aboutSize + 1;
         setColor();
 
