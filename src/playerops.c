@@ -850,7 +850,6 @@ int loadDecoder(SongData *songData, char **filename, bool *songDataDeleted)
         int result = 0;
         if (songData != NULL)
         {
-
                 *songDataDeleted = false;
 
                 // this should only be done for the second song, as switchAudioImplementation() handles the first one
