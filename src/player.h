@@ -27,6 +27,7 @@ extern bool useThemeColors;
 extern bool hasPrintedPaused;
 extern bool quitAfterStopping;
 extern bool nerdFontsEnabled;
+extern bool hideLogo;
 extern int numProgressBars;
 extern int elapsed;
 extern int chosenSong;
