@@ -204,9 +204,7 @@ int printLogo(SongData *songData)
         else
                 setColor();
 
-        int logoWidth = 0;
-
-        int height = 4;
+        int height = 0;
 
         if (!hideLogo)
         {
@@ -219,15 +217,15 @@ int printLogo(SongData *songData)
                 printBlankSpaces(indent);
                 printf("|__|__|_____|________|");
 
-                logoWidth = 22;
-                height = 6;
+                height += 3;
         }
         else
         {
                 printf("\n");
-                printBlankSpaces(indent);
-        }
+                height += 1;
 
+        }
+      
         if (songData != NULL && songData->metadata != NULL)
         {
                 int term_w, term_h;
@@ -240,20 +238,33 @@ int printLogo(SongData *songData)
                         exit(0);
                 }
 
-                strncpy(title, songData->metadata->title, MAXPATHLEN - 1);
-
+                if (hideLogo && songData->metadata->artist[0] != '\0')
+                {
+                        printBlankSpaces(indent);
+                        snprintf(title, MAXPATHLEN, "%s - %s",
+                                 songData->metadata->artist, songData->metadata->title);
+                }
+                else
+                {
+                        strncpy(title, songData->metadata->title, MAXPATHLEN - 1);
+                        
+                }
                 title[MAXPATHLEN - 1] = '\0';
 
-                shortenString(title, term_w - indent - indent - 5 - logoWidth);
+                shortenString(title, term_w - indent - indent);
 
                 if (useProfileColors)
                         setTextColor(titleColor);
 
-                printf(" %s", title);
-
+                printf(" %s\n\n", title);
+                height +=2;
                 free(title); // Free allocated memory
         }
-        printf("\n\n");
+        else
+        {
+                printf("\n\n");
+                height +=2;
+        }
 
         return height;
 }
@@ -571,12 +582,12 @@ void printLastRow()
 
 int printAbout(SongData *songdata)
 {
-        clearRestOfScreen();
-        printf("\r");
-        int numRows = printLogo(songdata);
+        clearScreen();
+        int numRows = printLogo(songdata);        
+        setDefaultTextColor();
         printBlankSpaces(indent);
-        printf(" Version: %s\n\n", VERSION);
-        numRows += 3;
+        printf(" kew version: %s\n\n", VERSION);
+        numRows += 2;
 
         return numRows;
 }
@@ -615,7 +626,7 @@ void removeUnneededChars(char *str)
 
 int showKeyBindings(SongData *songdata)
 {
-        int numPrintedRows = 1;
+        int numPrintedRows = 0;
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
 
@@ -658,7 +669,7 @@ int showKeyBindings(SongData *songdata)
         printf("\n");
         printLastRow();
 
-        numPrintedRows += 19;
+        numPrintedRows += 17;
 
         return numPrintedRows;
 }
@@ -788,16 +799,16 @@ int showPlaylist(SongData *songData)
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
         int totalHeight = term_h;
-        maxListSize = totalHeight;
-        int numRows = 0;
+        maxListSize = totalHeight - 2;
+        int numRows = 2;
         int numPrintedRows = 0;
         int foundAt = -1;
-
-        maxListSize -= 1;
-        numRows++;
+                
+        clearScreen();
 
         int aboutRows = printLogo(songData);
         maxListSize -= aboutRows;
+        numPrintedRows += aboutRows;
 
         setDefaultTextColor();
 
@@ -1255,7 +1266,7 @@ void showLibrary(SongData *songData)
         setColor();
         int aboutSize = printLogo(songData);
         int maxNameWidth = term_w - 10 - indent;
-        maxLibListSize -= aboutSize + 1;
+        maxLibListSize -= aboutSize + 2;
 
         setDefaultTextColor();
 
