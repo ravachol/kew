@@ -32,6 +32,7 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         strncpy(settings.coverAnsi, "0", sizeof(settings.coverAnsi));
         strncpy(settings.visualizerEnabled, "1", sizeof(settings.visualizerEnabled));
         strncpy(settings.useProfileColors, "1", sizeof(settings.useProfileColors));
+        strncpy(settings.hideLogo, "0", sizeof(settings.hideLogo));
 
         strncpy(settings.volumeUp, "+", sizeof(settings.volumeUp));
         strncpy(settings.volumeUpAlt, "=", sizeof(settings.volumeUpAlt));
@@ -209,6 +210,10 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
                 {
                         snprintf(settings.titleColor, sizeof(settings.titleColor), "%s", pair->value);
                 }                   
+                else if (strcmp(stringToLower(pair->key), "hidelogo") == 0)
+                {
+                        snprintf(settings.hideLogo, sizeof(settings.hideLogo), "%s", pair->value);
+                }
                 else if (strcmp(stringToLower(pair->key), "quit") == 0)
                 {
                         snprintf(settings.quit, sizeof(settings.quit), "%s", pair->value);
@@ -376,6 +381,7 @@ void getConfig()
         coverAnsi = (settings.coverAnsi[0] == '1');
         visualizerEnabled = (settings.visualizerEnabled[0] == '1');
         useProfileColors = (settings.useProfileColors[0] == '1');
+        hideLogo = (settings.hideLogo[0] == '1');
 
         int temp = atoi(settings.color);
         if (temp >= 0)
@@ -437,6 +443,9 @@ void setConfig()
         {
                 sprintf(settings.visualizerHeight, "%d", visualizerHeight);
         }
+        if (settings.hideLogo[0] == '\0')
+                hideLogo ? c_strcpy(settings.hideLogo, sizeof(settings.hideLogo), "1") : c_strcpy(settings.hideLogo, sizeof(settings.hideLogo), "0");
+
        sprintf(settings.lastVolume, "%d", getCurrentVolume());
  
         // Null-terminate the character arrays
@@ -448,6 +457,7 @@ void setConfig()
         settings.lastVolume[5] = '\0';
         settings.useProfileColors[1] = '\0';
         settings.allowNotifications[1] = '\0';
+        settings.hideLogo[1] = '\0';
 
         // Write the settings to the file
         fprintf(file, "# Make sure that kew is closed before editing this file in order for changes to take effect.\n\n");
@@ -491,6 +501,7 @@ void setConfig()
         fprintf(file, "titleColor=%s\n", settings.titleColor);
         fprintf(file, "# Color of enqueued songs in library view: \n");
         fprintf(file, "enqueuedColor=%s\n", settings.enqueuedColor);
+        fprintf(file, "hideLogo=%s\n", settings.hideLogo);
         fprintf(file, "quit=%s\n\n", settings.quit);
         fprintf(file, "# For special keys use terminal codes: OS, for F4 for instance. This can depend on the terminal.\n");
         fprintf(file, "# You can find out the codes for the keys by using tools like showkey.\n");
