@@ -397,7 +397,7 @@ void getConfig()
                 visualizerHeight = temp2;
 
         int temp3 = atoi(settings.lastVolume);
-        if (temp3 > 0)
+        if (temp3 >= 0)
                 setVolume(temp3);
 
         getMusicLibraryPath(settings.path);

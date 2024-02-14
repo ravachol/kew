@@ -308,7 +308,7 @@ void unloadPreviousSong()
 
         if (usingSongDataA &&
             (skipping || (userData.currentSongData == NULL || userData.songdataADeleted == false ||
-                          (loadingdata.songdataA != NULL && userData.songdataADeleted == false && userData.currentSongData->trackId != NULL && strcmp(loadingdata.songdataA->trackId, userData.currentSongData->trackId) != 0))))
+                          (loadingdata.songdataA != NULL && userData.songdataADeleted == false && userData.currentSongData->hasErrors == 0 && userData.currentSongData->trackId != NULL && strcmp(loadingdata.songdataA->trackId, userData.currentSongData->trackId) != 0))))
         {
                 userData.songdataADeleted = true;
                 unloadSongData(&loadingdata.songdataA);
@@ -318,8 +318,8 @@ void unloadPreviousSong()
                         loadedNextSong = false;
         }
         else if (!usingSongDataA &&
-                 (skipping || (userData.currentSongData == NULL || userData.songdataADeleted == false ||
-                               (loadingdata.songdataB != NULL && userData.songdataBDeleted == false && userData.currentSongData->trackId != NULL && strcmp(loadingdata.songdataB->trackId, userData.currentSongData->trackId) != 0))))
+                 (skipping || (userData.currentSongData == NULL || userData.songdataBDeleted == false ||
+                               (loadingdata.songdataB != NULL && userData.songdataBDeleted == false && userData.currentSongData->hasErrors == 0 && userData.currentSongData->trackId != NULL && strcmp(loadingdata.songdataB->trackId, userData.currentSongData->trackId) != 0))))
         {
                 userData.songdataBDeleted = true;
                 unloadSongData(&loadingdata.songdataB);
@@ -371,6 +371,15 @@ void resetTimeCount()
         totalPauseSeconds = 0.0;
 }
 
+void notifySongSwitch()
+{
+        SongData *currentSongData = (audioData.currentFileIndex == 0) ? userData.songdataA : userData.songdataB;
+        bool isDeleted = (audioData.currentFileIndex == 0) ? userData.songdataADeleted == true : userData.songdataBDeleted == true;
+
+        if (isDeleted == false && currentSongData != NULL && currentSongData->hasErrors == 0 && currentSongData->metadata && strlen(currentSongData->metadata->title) > 0)
+                displaySongNotification(currentSongData->metadata->artist, currentSongData->metadata->title, currentSongData->coverArtPath);
+}
+
 void prepareNextSong()
 {
         if (!skipPrev && !gotoSong && !isRepeatEnabled())
@@ -403,6 +412,10 @@ void prepareNextSong()
                 else
                         setEndOfListReached();
         }
+        else
+        {
+                notifySongSwitch();
+        }
 
         clock_gettime(CLOCK_MONOTONIC, &start_time);
 }
@@ -432,6 +445,9 @@ void refreshPlayer()
                             songData->trackId != NULL ? songData->trackId : "", currentSong,
                             length);
                 }
+
+                if (isDeleted)
+                        songData = NULL;
 
                 printPlayer(songData, elapsedSeconds, &playlist, isDeleted);
         }
@@ -908,7 +924,7 @@ void run()
 
         currentSong = playlist.head;
         play(currentSong);
-        clearScreen();      
+        clearScreen();
         fflush(stdout);
 }
 
@@ -951,6 +967,7 @@ void init()
         (void)nullStream;
 #endif
 }
+
 void openLibrary()
 {
         appState.currentView = LIBRARY_VIEW;

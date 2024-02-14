@@ -489,7 +489,7 @@ void createAudioDevice(UserData *userData)
 
         SongData *currentSongData = userData->currentSongData;
 
-        if (currentSongData != NULL && currentSongData->metadata 
+        if (currentSongData != NULL && currentSongData->hasErrors == 0 && currentSongData->metadata 
         && strlen(currentSongData->metadata->title) > 0)
                 displaySongNotification(currentSongData->metadata->artist, currentSongData->metadata->title, currentSongData->coverArtPath);
 
