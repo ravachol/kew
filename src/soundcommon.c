@@ -1066,7 +1066,7 @@ void displaySongNotification(const char *artist, const char *title, const char *
         char command[MAXPATHLEN + 1024];
         char sanitized_cover[MAXPATHLEN];
 
-        const char *blacklist = "&;`|*?~<>^()[]{}$\\\"";
+        const char *blacklist = "&;`|*~<>^()[]{}$\\\"";
         char *sanitizedArtist = remove_blacklisted_chars(artist, blacklist);
         char *sanitizedTitle = remove_blacklisted_chars(title, blacklist);
 
@@ -1097,7 +1097,7 @@ void executeSwitch(AudioData *pAudioData)
 
         pAudioData->totalFrames = 0;
 
-        SongData *currentSongData;
+        SongData *currentSongData = NULL;
 
         if (pAudioData->currentFileIndex == 0)
         {
@@ -1123,9 +1123,6 @@ void executeSwitch(AudioData *pAudioData)
                         pAudioData->fileB = NULL;
                 }
         }
-
-        if (currentSongData != NULL && currentSongData->metadata && strlen(currentSongData->metadata->title) > 0)
-                displaySongNotification(currentSongData->metadata->artist, currentSongData->metadata->title, currentSongData->coverArtPath);
 
         pAudioData->pUserData->currentSongData = currentSongData;
 
