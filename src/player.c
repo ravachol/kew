@@ -33,6 +33,7 @@ const int ABSOLUTE_MIN_WIDTH = 64;
 volatile bool refresh = true;
 bool visualizerEnabled = true;
 bool coverEnabled = true;
+bool hideLogo = false;
 bool quitAfterStopping = false;
 bool coverAnsi = false;
 bool metaDataEnabled = true;
@@ -203,20 +204,34 @@ int printLogo(SongData *songData)
         else
                 setColor();
 
+        int logoWidth = 0;
 
-        printBlankSpaces(indent);
-        printf(" __\n");
-        printBlankSpaces(indent);
-        printf("|  |--.-----.--.--.--.\n");
-        printBlankSpaces(indent);
-        printf("|    <|  -__|  |  |  |\n");
-        printBlankSpaces(indent);
-        printf("|__|__|_____|________|");
+        int height = 4;
+
+        if (!hideLogo)
+        {
+                printBlankSpaces(indent);
+                printf(" __\n");
+                printBlankSpaces(indent);
+                printf("|  |--.-----.--.--.--.\n");
+                printBlankSpaces(indent);
+                printf("|    <|  -__|  |  |  |\n");
+                printBlankSpaces(indent);
+                printf("|__|__|_____|________|");
+
+                logoWidth = 22;
+                height = 6;
+        }
+        else
+        {
+                printf("\n");
+                printBlankSpaces(indent);
+        }
 
         if (songData != NULL && songData->metadata != NULL)
         {
                 int term_w, term_h;
-                getTermSize(&term_w, &term_h);                
+                getTermSize(&term_w, &term_h);
 
                 char *title = (char *)calloc(MAXPATHLEN, sizeof(char));
                 if (title == NULL)
@@ -229,7 +244,7 @@ int printLogo(SongData *songData)
 
                 title[MAXPATHLEN - 1] = '\0';
 
-                shortenString(title, term_w - indent - indent - 27);
+                shortenString(title, term_w - indent - indent - 5 - logoWidth);
 
                 if (useProfileColors)
                         setTextColor(titleColor);
@@ -240,7 +255,6 @@ int printLogo(SongData *songData)
         }
         printf("\n\n");
 
-        int height = 6;
         return height;
 }
 
@@ -1130,7 +1144,6 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
                                                 setTextColor(artistColor);
                                         else
                                                 setColor();
-
                                 }
                                 else
                                 {
@@ -1175,10 +1188,10 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
                                         if (root->isEnqueued)
                                         {
                                                 if (useProfileColors)
-                                                        setTextColor(enqueuedColor); 
+                                                        setTextColor(enqueuedColor);
                                                 else
-                                                        setColor();                                                                                                       
-                                                
+                                                        setColor();
+
                                                 printf(" * ");
                                         }
                                         else
@@ -1253,7 +1266,7 @@ void showLibrary(SongData *songData)
                 printf(" Use ↑, ↓ or k, j to choose. Enter to enqueue/dequeue.\n");
                 printBlankSpaces(indent);
                 printf(" Pg Up and Pg Dn to scroll.\n\n");
-        }      
+        }
 
         numTopLevelSongs = 0;
 
