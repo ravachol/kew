@@ -235,13 +235,7 @@ int printLogo(SongData *songData)
                 int term_w, term_h;
                 getTermSize(&term_w, &term_h);
 
-                char *title = (char *)calloc(MAXPATHLEN, sizeof(char));
-                if (title == NULL)
-                {
-                        printf("Couldn't allocate memory.");
-                        exit(0);
-                }
-
+                char title[MAXPATHLEN] = {0};
                 if (hideLogo && songData->metadata->artist[0] != '\0')
                 {
                         printBlankSpaces(indent);
@@ -251,8 +245,8 @@ int printLogo(SongData *songData)
                 else
                 {
                         strncpy(title, songData->metadata->title, MAXPATHLEN - 1);
+                        title[MAXPATHLEN - 1] = '\0';
                 }
-                title[MAXPATHLEN - 1] = '\0';
 
                 shortenString(title, term_w - indent - indent - logoWidth - 4);
 
@@ -261,7 +255,6 @@ int printLogo(SongData *songData)
 
                 printf(" %s\n\n", title);
                 height += 2;
-                free(title); // Free allocated memory
         }
         else
         {
@@ -1073,23 +1066,26 @@ FileSystemEntry *getChosenDir()
         return chosenDir;
 }
 
-void processName(const char *name, char *output, int maxWidth) {
-    char *lastDot = strrchr(name, '.');
-    if (lastDot != NULL) {
-        int copyLength = lastDot - name;
-        if (copyLength > maxWidth) {
-            copyLength = maxWidth;
+void processName(const char *name, char *output, int maxWidth)
+{
+        char *lastDot = strrchr(name, '.');
+        if (lastDot != NULL)
+        {
+                int copyLength = lastDot - name;
+                if (copyLength > maxWidth)
+                {
+                        copyLength = maxWidth;
+                }
+                strncpy(output, name, copyLength);
+                output[copyLength] = '\0';
+                removeUnneededChars(output);
         }
-        strncpy(output, name, copyLength);
-        output[copyLength] = '\0';
-               
-        shortenString(output, maxWidth);
-        removeUnneededChars(output);
-    } else {
-        
-        strncpy(output, name, maxWidth);
-        output[maxWidth] = '\0';
-    }
+        else
+        {
+                strncpy(output, name, maxWidth);
+                output[maxWidth] = '\0';
+                removeUnneededChars(output);                
+        }
 }
 
 void setCurrentAsChosenDir()
@@ -1100,6 +1096,9 @@ void setCurrentAsChosenDir()
 
 int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWidth)
 {
+        char dirName[maxNameWidth + 1];
+        char filename[maxNameWidth + 1];
+
         if (libIter >= startLibIter + maxListSize)
         {
                 return 0;
@@ -1207,7 +1206,8 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
 
                                 if (root->isDirectory)
                                 {
-                                        char dirName[maxNameWidth + 1];
+                                        dirName[0] = '\0';
+
                                         snprintf(dirName, maxNameWidth + 1, "%s", root->name);
 
                                         if (depth == 1)
@@ -1217,10 +1217,10 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
                                 }
                                 else
                                 {
-                                        char filename[maxNameWidth + 1];                 
+                                        filename[0] = '\0';
                                         processName(root->name, filename, maxNameWidth);
                                         printf(" └─%s \n", filename);
-                                        // No need to free(filename)
+ 
                                         libSongIter++;
                                 }
 

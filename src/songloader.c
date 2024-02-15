@@ -89,11 +89,8 @@ SongData *loadSongData(char *filePath)
         songdata->duration = 0.0;
         c_strcpy(songdata->filePath, sizeof(songdata->filePath), filePath);
         loadCover(songdata);
-        c_sleep(10);
         loadColor(songdata);
-        c_sleep(10);
         loadMetaData(songdata);
-        c_sleep(10);
 
         return songdata;
 }
