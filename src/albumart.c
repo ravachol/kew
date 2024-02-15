@@ -9,6 +9,8 @@
 #include <sys/wait.h>
 #include <pthread.h>
 #include <dirent.h>
+#include <libavutil/imgutils.h>
+#include <libavutil/pixfmt.h>
 #include "file.h"
 #include "../include/imgtotxt/options.h"
 #include "metadata.h"
@@ -17,6 +19,7 @@
 #include "albumart.h"
 #include "cache.h"
 #include "chafafunc.h"
+
 /*
 
 albumart.c
@@ -31,51 +34,43 @@ albumart.c
 FIBITMAP *bitmap;
 int indent = 0;
 
-int extractCoverCommand(const char *inputFilePath, const char *outputFilePath)
-{
-        const int COMMAND_SIZE = 1000;
-        char command[COMMAND_SIZE];
-        int status;
+int extractCover(const char *inputFilePath, const char *outputFilePath) {
+    AVFormatContext *fmt_ctx = NULL;
+    int ret;
+    AVPacket pkt;
 
-        // Replace $ with \$
-        char *escapedInputFilePath = escapeFilePath(inputFilePath);
-        char *escapedOutputFilePath = escapeFilePath(outputFilePath);
+    if ((ret = avformat_open_input(&fmt_ctx, inputFilePath, NULL, NULL)) < 0) {
+        fprintf(stderr, "Could not open input file '%s'\n", inputFilePath);
+        return -1;
+    }
 
-        snprintf(command, COMMAND_SIZE, "ffmpeg -y -i \"%s\" -an -vcodec copy \"%s\"", escapedInputFilePath, escapedOutputFilePath);
+    int stream_index = av_find_best_stream(fmt_ctx, AVMEDIA_TYPE_VIDEO, -1, -1, NULL, 0);
+    if (stream_index < 0) {
+        fprintf(stderr, "Could not find a video stream in the input file\n");
+        avformat_close_input(&fmt_ctx);
+        return -1;
+    }
 
-        free(escapedInputFilePath);
-        free(escapedOutputFilePath);
+    AVStream *video_stream = fmt_ctx->streams[stream_index];
+    if (video_stream->disposition & AV_DISPOSITION_ATTACHED_PIC) {
 
-        pid_t pid = fork();
+        AVPacket *pkt = &video_stream->attached_pic;
 
-        if (pid == -1)
-        {
-                perror("fork failed");
-                exit(EXIT_FAILURE);
+        FILE *file = fopen(outputFilePath, "wb");
+        if (!file) {
+            fprintf(stderr, "Could not open output file '%s'\n", outputFilePath);
+            avformat_close_input(&fmt_ctx);
+            return -1;
         }
-        else if (pid == 0)
-        {
-                // Child process
-                execl("/bin/sh", "sh", "-c", command, (char *)NULL);
-                exit(EXIT_SUCCESS);
-        }
-        else
-        {
-                // Parent process
-                waitpid(pid, &status, 0);
-        }
+        fwrite(pkt->data, 1, pkt->size, file);
+        fclose(file);
 
-        FILE *file = fopen(outputFilePath, "r");
-
-        if (file != NULL)
-        {
-                fclose(file);
-                return 1;
-        }
-        else
-        {
-                return -1;
-        }
+        avformat_close_input(&fmt_ctx);
+        return 1;
+    } else {
+        avformat_close_input(&fmt_ctx);
+        return -1;
+    }
 }
 
 int compareEntries(const struct dirent **a, const struct dirent **b)

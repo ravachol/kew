@@ -435,7 +435,7 @@ void refreshPlayer()
                 if (refresh && songData != NULL && isDeleted == false &&
                     songData->hasErrors == false && currentSong != NULL && songData->metadata != NULL)
                 {
-                        gint64 length = llround((*songData->duration) * G_USEC_PER_SEC);
+                        gint64 length = llround(songData->duration * G_USEC_PER_SEC);
                         // update mpris
                         emitMetadataChanged(
                             songData->metadata->title,

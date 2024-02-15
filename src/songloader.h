@@ -54,7 +54,7 @@ typedef struct
         unsigned char *blue;
         TagSettings *metadata;
         FIBITMAP *cover;
-        double *duration;
+        double duration;
         bool hasErrors;
 } SongData;
 
