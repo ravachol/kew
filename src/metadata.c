@@ -1,5 +1,8 @@
 #include "metadata.h"
 #include "cache.h"
+#include <libavformat/avformat.h>
+#include <libavutil/dict.h>
+
 /*
 
 metadata.c
@@ -35,14 +38,23 @@ void turnFilePathIntoTitle(const char *filePath, char *title)
         }
 }
 
-int extractTags(const char *input_file, TagSettings *tag_settings)
+int extractTags(const char *input_file, TagSettings *tag_settings, double *duration)
 {
-        char command[1024];
+        AVFormatContext *fmt_ctx = NULL;
+        AVDictionaryEntry *tag = NULL;
+        int ret;
 
-        char *escapedInputFilePath = escapeFilePath(input_file);
-        snprintf(command, sizeof(command), "ffprobe -show_entries format_tags -of default=noprint_wrappers=1:nokey=0 \"%s\"", escapedInputFilePath);
-
-        free(escapedInputFilePath);
+        if ((ret = avformat_open_input(&fmt_ctx, input_file, NULL, NULL)) < 0)
+        {
+                fprintf(stderr, "Could not open input file '%s'\n", input_file);
+                return 1;
+        }
+        if ((ret = avformat_find_stream_info(fmt_ctx, NULL)) < 0)
+        {
+                fprintf(stderr, "Could not find stream information\n");
+                avformat_close_input(&fmt_ctx);
+                return 1;
+        }
 
         memset(tag_settings->title, 0, sizeof(tag_settings->title));
         memset(tag_settings->artist, 0, sizeof(tag_settings->artist));
@@ -50,36 +62,27 @@ int extractTags(const char *input_file, TagSettings *tag_settings)
         memset(tag_settings->album, 0, sizeof(tag_settings->album));
         memset(tag_settings->date, 0, sizeof(tag_settings->date));
 
-        FILE *pipe = popen(command, "r");
-        if (!pipe)
+        while ((tag = av_dict_get(fmt_ctx->metadata, "", tag, AV_DICT_IGNORE_SUFFIX)))
         {
-                fprintf(stderr, "Error executing ffprobe command.\n");
-                return 1;
-        }
-
-        char line[512];
-        while (fgets(line, sizeof(line), pipe))
-        {
-                char *key = strtok(line, "=");
-                char *value = strtok(NULL, "=");
-                if (key && value)
+                if (strcasecmp(tag->key, "title") == 0)
                 {
-                        size_t value_len = strlen(value);
-                        if (value[value_len - 1] == '\n')
-                                value[value_len - 1] = '\0';
-
-                        removeTagPrefix(key);
-
-                        if (strcasecmp(key, "title") == 0)
-                                snprintf(tag_settings->title, sizeof(tag_settings->title), "%s", value);
-                        else if (strcasecmp(key, "artist") == 0)
-                                snprintf(tag_settings->artist, sizeof(tag_settings->artist), "%s", value);
-                        else if (strcasecmp(key, "album_artist") == 0)
-                                snprintf(tag_settings->album_artist, sizeof(tag_settings->album_artist), "%s", value);
-                        else if (strcasecmp(key, "album") == 0)
-                                snprintf(tag_settings->album, sizeof(tag_settings->album), "%s", value);
-                        else if (strcasecmp(key, "date") == 0)
-                                snprintf(tag_settings->date, sizeof(tag_settings->date), "%s", value);
+                        snprintf(tag_settings->title, sizeof(tag_settings->title), "%s", tag->value);
+                }
+                else if (strcasecmp(tag->key, "artist") == 0)
+                {
+                        snprintf(tag_settings->artist, sizeof(tag_settings->artist), "%s", tag->value);
+                }
+                else if (strcasecmp(tag->key, "album_artist") == 0)
+                {
+                        snprintf(tag_settings->album_artist, sizeof(tag_settings->album_artist), "%s", tag->value);
+                }
+                else if (strcasecmp(tag->key, "album") == 0)
+                {
+                        snprintf(tag_settings->album, sizeof(tag_settings->album), "%s", tag->value);
+                }
+                else if (strcasecmp(tag->key, "date") == 0)
+                {
+                        snprintf(tag_settings->date, sizeof(tag_settings->date), "%s", tag->value);
                 }
         }
 
@@ -87,14 +90,20 @@ int extractTags(const char *input_file, TagSettings *tag_settings)
         {
                 char title[MAXPATHLEN];
                 turnFilePathIntoTitle(input_file, title);
-                title[sizeof(tag_settings->title) - 1] = '\0';
-
                 strncpy(tag_settings->title, title, sizeof(tag_settings->title) - 1);
-
                 tag_settings->title[sizeof(tag_settings->title) - 1] = '\0';
         }
 
-        pclose(pipe);
+        if (fmt_ctx->duration != AV_NOPTS_VALUE)
+        {
+                *duration = (double)(fmt_ctx->duration / AV_TIME_BASE);
+        }
+        else
+        {
+                *duration = 0.0;
+        }        
+
+        avformat_close_input(&fmt_ctx);
 
         return 0;
 }

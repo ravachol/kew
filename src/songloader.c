@@ -33,58 +33,6 @@ gchar *generateTrackId()
         return trackId;
 }
 
-int getSongDuration(const char *filePath, double *duration)
-{
-        char command[1024];
-        FILE *pipe;
-        char output[1024];
-        char *durationStr;
-        double durationValue;
-
-        char *escapedInputFilePath = escapeFilePath(filePath);
-
-        snprintf(command, sizeof(command),
-                 "ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 \"%s\"",
-                 escapedInputFilePath);
-
-        free(escapedInputFilePath);
-
-        pipe = popen(command, "r");
-        if (pipe == NULL)
-        {
-                fprintf(stderr, "Failed to run FFprobe command.\n");
-                return -1;
-        }
-        if (fgets(output, sizeof(output), pipe) == NULL)
-        {
-                fprintf(stderr, "Failed to read FFprobe output.\n");
-                pclose(pipe);
-                return -1;
-        }
-        pclose(pipe);
-
-        durationStr = strtok(output, "\n");
-        if (durationStr == NULL)
-        {
-                fprintf(stderr, "Failed to parse FFprobe output.\n");
-                return -1;
-        }
-        durationValue = atof(durationStr);
-        *duration = durationValue;
-        return 0;
-}
-
-double getDuration(const char *filepath)
-{
-        double duration = 0.0;
-        int result = getSongDuration(filepath, &duration);
-
-        if (result == -1 || duration == 0)
-                return -1;
-        else
-                return duration;
-}
-
 void loadCover(SongData *songdata)
 {
         char path[MAXPATHLEN];
@@ -93,7 +41,7 @@ void loadCover(SongData *songdata)
                 return;
 
         generateTempFilePath(songdata->filePath, songdata->coverArtPath, "cover", ".jpg");
-        int res = extractCoverCommand(songdata->filePath, songdata->coverArtPath);
+        int res = extractCover(songdata->filePath, songdata->coverArtPath);
         if (res < 0)
         {
                 getDirectoryFromPath(songdata->filePath, path);
@@ -122,17 +70,7 @@ void loadColor(SongData *songdata)
 void loadMetaData(SongData *songdata)
 {
         songdata->metadata = malloc(sizeof(TagSettings));
-        extractTags(songdata->filePath, songdata->metadata);
-}
-
-void loadDuration(SongData *songdata)
-{
-        songdata->duration = (double *)malloc(sizeof(double));
-        int result = getDuration(songdata->filePath);
-        *(songdata->duration) = result;
-
-        if (result == -1)
-                songdata->hasErrors = true;
+        extractTags(songdata->filePath, songdata->metadata, &songdata->duration);
 }
 
 SongData *loadSongData(char *filePath)
@@ -148,15 +86,13 @@ SongData *loadSongData(char *filePath)
         songdata->blue = NULL;
         songdata->metadata = NULL;
         songdata->cover = NULL;
-        songdata->duration = NULL;
+        songdata->duration = 0.0;
         c_strcpy(songdata->filePath, sizeof(songdata->filePath), filePath);
         loadCover(songdata);
         c_sleep(10);
         loadColor(songdata);
         c_sleep(10);
         loadMetaData(songdata);
-        c_sleep(10);
-        loadDuration(songdata);
         c_sleep(10);
 
         return songdata;
@@ -184,7 +120,6 @@ void unloadSongData(SongData **songdata)
         free(data->green);
         free(data->blue);
         free(data->metadata);
-        free(data->duration);
         free(data->trackId);
 
         data->cover = NULL;
@@ -192,7 +127,6 @@ void unloadSongData(SongData **songdata)
         data->green = NULL;
         data->blue = NULL;
         data->metadata = NULL;
-        data->duration = NULL;
 
         data->trackId = NULL;
 
