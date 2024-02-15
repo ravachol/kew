@@ -1073,26 +1073,28 @@ FileSystemEntry *getChosenDir()
         return chosenDir;
 }
 
-char *processName(const char *name, int maxWidth)
-{
-        char *lastDot = strrchr(name, '.');
-
-        if (lastDot != NULL)
-        {
-                char copiedString[maxWidth + 1];
-                strncpy(copiedString, name, lastDot - name);
-                copiedString[lastDot - name] = '\0';
-                shortenString(copiedString, maxWidth);
-                removeUnneededChars(copiedString);
-
-                char *result = (char *)malloc(strlen(copiedString) + 1);
-                if (result != NULL)
-                {
-                        strcpy(result, copiedString);
-                        return result;
-                }
+char *processName(const char *name, int maxWidth) {
+    char *lastDot = strrchr(name, '.');
+    if (lastDot != NULL) {
+        char copiedString[256];
+        size_t length = lastDot - name;
+        if (length >= sizeof(copiedString)) {
+            length = sizeof(copiedString) - 1;
         }
-        return NULL;
+
+        strncpy(copiedString, name, length);
+        copiedString[length] = '\0';
+
+        shortenString(copiedString, maxWidth);
+        removeUnneededChars(copiedString);
+
+        char *result = (char *)malloc(strlen(copiedString) + 1);
+        if (result != NULL) {
+            strcpy(result, copiedString);
+            return result;
+        }
+    }
+    return NULL;
 }
 
 void setCurrentAsChosenDir()
@@ -1160,12 +1162,10 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
                                 {
                                         if (useProfileColors)
                                                 setTextColor(artistColor);
-                                        else
-                                                setColor();
                                 }
                                 else
                                 {
-                                        setDefaultTextColor();
+                                        setColor();
                                 }
 
                                 if (depth >= 2)
@@ -1179,9 +1179,6 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
                                         {
                                                 if (useProfileColors)
                                                         setTextColor(enqueuedColor);
-                                                else
-                                                        setColor();
-
                                                 printf("\x1b[7m * ");
                                         }
                                         else
@@ -1207,15 +1204,10 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
                                         {
                                                 if (useProfileColors)
                                                         setTextColor(enqueuedColor);
-                                                else
-                                                        setColor();
-
                                                 printf(" * ");
                                         }
                                         else
-                                        {
                                                 printf("   ");
-                                        }
                                 }
 
                                 if (root->isDirectory)
@@ -1223,14 +1215,14 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
                                         char *dirName = (char *)calloc(maxNameWidth + 1, sizeof(char));
                                         snprintf(dirName, maxNameWidth, "%s", root->name);
 
-                                        shortenString(dirName, maxNameWidth);                                
-                                                                               
+                                        shortenString(dirName, maxNameWidth);
+
                                         if (depth == 1)
                                                 printf("%s \n", stringToUpper(dirName));
                                         else
-                                                printf("%s \n", dirName); 
+                                                printf("%s \n", dirName);
 
-                                        free(dirName);                                               
+                                        free(dirName);
                                 }
                                 else
                                 {
@@ -1292,6 +1284,18 @@ void showLibrary(SongData *songData)
         }
 
         numTopLevelSongs = 0;
+
+        FileSystemEntry *tmp = library->children;
+
+        while (tmp != NULL)
+        {
+                if (!tmp->isDirectory)
+                        numTopLevelSongs++;
+
+                tmp = tmp->next;
+        }
+
+        c_sleep(10);
 
         displayTree(library, 0, maxLibListSize, maxNameWidth);
 
