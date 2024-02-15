@@ -81,6 +81,7 @@ typedef struct
         char enqueuedColor[6];
         char titleColor[6];
         char hideLogo[2];
+        char hideHelp[2];
 } AppSettings;
 
 extern AppSettings settings;

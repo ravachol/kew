@@ -24,7 +24,7 @@ typedef struct
 
 AppState appState;
 
-const char VERSION[] = "2.3.1";
+const char VERSION[] = "2.3.2";
 int mainColor = 6;
 int titleColor = 6;
 int artistColor = 6;
@@ -34,6 +34,7 @@ volatile bool refresh = true;
 bool visualizerEnabled = true;
 bool coverEnabled = true;
 bool hideLogo = false;
+bool hideHelp = false;
 bool quitAfterStopping = false;
 bool coverAnsi = false;
 bool metaDataEnabled = true;
@@ -157,11 +158,13 @@ void calcPreferredSize()
         calcIdealImgSize(&preferredWidth, &preferredHeight, (visualizerEnabled ? visualizerHeight : 0), calcMetadataHeight());
 }
 
-void shortenString(char *str, size_t width)
+void shortenString(char *str, size_t maxLength)
 {
-        if (strlen(str) > width)
+        int length = strlen(str);
+
+        if (length > maxLength)
         {
-                str[width] = '\0';
+                str[maxLength] = '\0';
         }
 }
 
@@ -205,6 +208,7 @@ int printLogo(SongData *songData)
                 setColor();
 
         int height = 0;
+        int logoWidth = 0;
 
         if (!hideLogo)
         {
@@ -217,15 +221,15 @@ int printLogo(SongData *songData)
                 printBlankSpaces(indent);
                 printf("|__|__|_____|________|");
 
+                logoWidth = 22;
                 height += 3;
         }
         else
         {
                 printf("\n");
                 height += 1;
-
         }
-      
+
         if (songData != NULL && songData->metadata != NULL)
         {
                 int term_w, term_h;
@@ -247,23 +251,22 @@ int printLogo(SongData *songData)
                 else
                 {
                         strncpy(title, songData->metadata->title, MAXPATHLEN - 1);
-                        
                 }
                 title[MAXPATHLEN - 1] = '\0';
 
-                shortenString(title, term_w - indent - indent);
+                shortenString(title, term_w - indent - indent - logoWidth - 4);
 
                 if (useProfileColors)
                         setTextColor(titleColor);
 
                 printf(" %s\n\n", title);
-                height +=2;
+                height += 2;
                 free(title); // Free allocated memory
         }
         else
         {
                 printf("\n\n");
-                height +=2;
+                height += 2;
         }
 
         return height;
@@ -583,7 +586,7 @@ void printLastRow()
 int printAbout(SongData *songdata)
 {
         clearScreen();
-        int numRows = printLogo(songdata);        
+        int numRows = printLogo(songdata);
         setDefaultTextColor();
         printBlankSpaces(indent);
         printf(" kew version: %s\n\n", VERSION);
@@ -799,21 +802,22 @@ int showPlaylist(SongData *songData)
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
         int totalHeight = term_h;
-        maxListSize = totalHeight - 2;
-        int numRows = 2;
+        maxListSize = totalHeight - 3;
+        int numRows = 0;
         int numPrintedRows = 0;
         int foundAt = -1;
-                
-        clearScreen();
+
+        numRows++;
+
+        PixelData textColor = increaseLuminosity(color, 20);
 
         int aboutRows = printLogo(songData);
-        maxListSize -= aboutRows;
-        numPrintedRows += aboutRows;
+        maxListSize -= aboutRows - 1;
 
-        setDefaultTextColor();
+        setColor();
 
         printBlankSpaces(indent);
-        if (term_w > 52)
+        if (term_w > 52 && !hideHelp)
         {
                 maxListSize -= 3;
                 printf(" Use ↑, ↓ or k, j to choose. Enter to accept.\n");
@@ -902,7 +906,7 @@ int showPlaylist(SongData *songData)
                 printf("\r");
                 printBlankSpaces(indent);
 
-                setDefaultTextColor();
+                setColor();
 
                 if (lastSlash != NULL && lastDot != NULL && lastDot > lastSlash)
                 {
@@ -917,15 +921,17 @@ int showPlaylist(SongData *songData)
 
                                 if (useProfileColors)
                                         setTextColor(enqueuedColor);
-                                else
-                                        setColor();
-
                                 printf("\x1b[7m");
                         }
 
                         if (foundNode != NULL && foundNode->id == node->id)
                         {
-                                printf("\e[1m\e[39m");
+                                if (useProfileColors)
+                                {
+                                        printf("\e[1m\e[39m");
+                                }
+                                else
+                                        printf("\033[1;38;2;%03u;%03u;%03um", textColor.r, textColor.g, textColor.b);
                         }
 
                         shortenString(copiedString, term_w - 10 - indent);
@@ -953,6 +959,7 @@ int showPlaylist(SongData *songData)
                 node = node->next;
         }
         printf("\n");
+        numPrintedRows++;
         printLastRow();
         if (numRows > 1)
         {
@@ -1072,7 +1079,7 @@ char *processName(const char *name, int maxWidth)
 
         if (lastDot != NULL)
         {
-                char copiedString[256];
+                char copiedString[maxWidth + 1];
                 strncpy(copiedString, name, lastDot - name);
                 copiedString[lastDot - name] = '\0';
                 shortenString(copiedString, maxWidth);
@@ -1213,12 +1220,17 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
 
                                 if (root->isDirectory)
                                 {
-                                        shortenString(root->name, maxNameWidth);
-                                        // if (chosenDir != NULL && strcmp(root->fullPath, chosenDir->fullPath) == 0)
+                                        char *dirName = (char *)calloc(maxNameWidth + 1, sizeof(char));
+                                        snprintf(dirName, maxNameWidth, "%s", root->name);
+
+                                        shortenString(dirName, maxNameWidth);                                
+                                                                               
                                         if (depth == 1)
-                                                printf("%s \n", stringToUpper(root->name));
+                                                printf("%s \n", stringToUpper(dirName));
                                         else
-                                                printf("%s \n", root->name);
+                                                printf("%s \n", dirName); 
+
+                                        free(dirName);                                               
                                 }
                                 else
                                 {
@@ -1265,12 +1277,12 @@ void showLibrary(SongData *songData)
         maxLibListSize = totalHeight;
         setColor();
         int aboutSize = printLogo(songData);
-        int maxNameWidth = term_w - 10 - indent;
+        int maxNameWidth = term_w - 7 - indent;
         maxLibListSize -= aboutSize + 2;
 
         setDefaultTextColor();
 
-        if (term_w > 60)
+        if (term_w > 60 && !hideHelp)
         {
                 maxLibListSize -= 3;
                 printBlankSpaces(indent);
