@@ -10,7 +10,7 @@
 int bufferSize = 4800;
 int prevBufferSize = 0;
 float alpha = 0.1;
-float lastMax = 120;
+float lastMax = 90;
 bool unicodeSupport = false;
 fftwf_complex *fftInput = NULL;
 fftwf_complex *fftOutput = NULL;
@@ -121,20 +121,12 @@ int detectBeats(float *magnitudes, int numBars)
 void updateMagnitudes(int height, int width, float maxMagnitude, float *magnitudes)
 {
         float exponent = 1.0;
-        float jumpFactor = 0.0;
-        float decreaseFactor = 0.7;
-        int jumpAmount = ceil(height * 0.125);
-
-        int beat = detectBeats(magnitudes, width);
-        if (beat > 0)
-        {
-                jumpFactor = jumpAmount;
-        }
+        float decreaseFactor = 0.8;
 
         for (int i = 0; i < width; i++)
         {
                 float normalizedMagnitude = magnitudes[i] / maxMagnitude;
-                float scaledMagnitude = pow(normalizedMagnitude, exponent) * height + jumpFactor;
+                float scaledMagnitude = pow(normalizedMagnitude, exponent) * height;
 
                 if (scaledMagnitude < lastMagnitudes[i])
                 {
@@ -158,6 +150,7 @@ float calcMaxMagnitude(int numBars, float *magnitudes)
                         maxMagnitude = magnitudes[i];
                 }
         }
+
         lastMax = (1 - alpha) * lastMax + alpha * maxMagnitude; // Apply exponential smoothing
         return lastMax;
 }
@@ -176,6 +169,7 @@ void calc(int height, int numBars, ma_int32 *audioBuffer, int bitDepth, fftwf_co
 
         if (audioBuffer == NULL)
         {
+                printf("Audio buffer is NULL.\n");
                 return;
         }
 
@@ -183,60 +177,43 @@ void calc(int height, int numBars, ma_int32 *audioBuffer, int bitDepth, fftwf_co
 
         for (int i = 0; i < bufferSize; i++)
         {
+                if (j >= bufferSize)
+                {
+                        printf("Exceeded FFT input buffer size.\n");
+                        break;
+                }
+
                 ma_int32 sample = audioBuffer[i];
+                float normalizedSample = 0;
 
-                float normalizedSample;
-
-                // Adjust normalization based on bit depth
-                if (bitDepth == 8)
+                switch (bitDepth)
                 {
+                case 8:
                         normalizedSample = ((float)sample - 128) / 127.0f;
-                }
-                else if (bitDepth == 16)
-                {
+                        break;
+                case 16:
                         normalizedSample = (float)sample / 32768.0f;
-                }
-                else if (bitDepth == 24)
+                        break;
+                case 24:
                 {
-                        // Extract the lower 24 bits from the sample
                         int lower24Bits = sample & 0xFFFFFF;
-
-                        // Check if the 24th bit is set (indicating a negative value)
                         if (lower24Bits & 0x800000)
                         {
-                                // Sign extension for two's complement
-                                lower24Bits |= 0xFF000000;
+                                lower24Bits |= 0xFF000000; // Sign extension
                         }
-                        else
-                        {
-                                // Ensure that the upper bits are cleared for positive values
-                                lower24Bits &= 0x00FFFFFF;
-                        }
-
-                        // Normalize the 24-bit sample to the range [-1, 1]
                         normalizedSample = (float)lower24Bits / 8388607.0f;
+                        break;
                 }
-                else if (bitDepth == 32 || bitDepth == -32) // Assuming bitDepth == -32 for f32
-                {
+                case 32: // Assuming 32-bit integers
                         normalizedSample = (float)sample / 2147483647.0f;
-                }
-                else
-                {
-                        // Unsupported bit depth
+                        break;
+                default:
+                        printf("Unsupported bit depth: %d\n", bitDepth);
                         return;
-                }
-
-                if (bitDepth == 32)
-                {
-                        if (i % 3 != 0)
-                        {
-                                continue;
-                        }
                 }
 
                 fftInput[j][0] = normalizedSample;
                 fftInput[j][1] = 0;
-
                 j++;
         }
 
@@ -246,20 +223,38 @@ void calc(int height, int numBars, ma_int32 *audioBuffer, int bitDepth, fftwf_co
                 fftInput[k][1] = 0;
         }
 
-        // Apply Windowing (Hamming Window)
-        for (int i = 0; i < bufferSize; i++)
+        // Apply Windowing (Hamming Window) only to populated samples
+        for (int i = 0; i < j; i++)
         {
-                float window = 0.54f - 0.46f * cos(2 * M_PI * i / (bufferSize - 1));
+                float window = 0.54f - 0.46f * cos(2 * M_PI * i / (j - 1));
                 fftInput[i][0] *= window;
         }
 
-        fftwf_execute(plan);
+        fftwf_execute(plan); // Execute FFT
+
         clearMagnitudes(numBars, magnitudes);
 
-        for (int i = 0; i < numBars; i++)
+        for (int i = 0, k = 0; i < numBars && k < j / 2; i += 2, k++)
         {
-                float magnitude = sqrtf(fftOutput[i][0] * fftOutput[i][0] + fftOutput[i][1] * fftOutput[i][1]);
-                magnitudes[i] += magnitude;
+                // Compute magnitude for actual data points
+                float magnitude = sqrtf(fftOutput[k][0] * fftOutput[k][0] + fftOutput[k][1] * fftOutput[k][1]);
+                magnitudes[i] = magnitude; // Set actual magnitude
+
+                if (i + 1 < numBars)
+                {
+                        float nextMagnitude;
+                        if (k + 1 < j / 2)
+                        {
+                                // If not at the end, interpolate between this and the next actual magnitude
+                                nextMagnitude = sqrtf(fftOutput[k + 1][0] * fftOutput[k + 1][0] + fftOutput[k + 1][1] * fftOutput[k + 1][1]);
+                                magnitudes[i + 1] = (magnitude + nextMagnitude) / 2.0f; // Simple average for smoothing
+                        }
+                        else
+                        {
+                                // If at the end, could replicate the last magnitude or use a different logic for the filler
+                                magnitudes[i + 1] = magnitude; // Replicating the last magnitude
+                        }
+                }
         }
 
         float maxMagnitude = calcMaxMagnitude(numBars, magnitudes);
@@ -475,7 +470,7 @@ void drawSpectrumVisualizer(int height, int width, PixelData c)
         {
                 magnitudes[i] = 0.0f;
         }
-        
+
         calcSpectrum(height, numBars, fftInput, fftOutput, magnitudes, plan);
 
         printSpectrum(height, numBars, magnitudes, color);
