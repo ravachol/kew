@@ -31,6 +31,6 @@ typedef struct
 
 #endif
 
-int extractTags(const char *input_file, TagSettings *tag_settings);
+int extractTags(const char *input_file, TagSettings *tag_settings, double *duration);
 
 #endif

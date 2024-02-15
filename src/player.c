@@ -1323,7 +1323,7 @@ int printPlayer(SongData *songdata, double elapsedSeconds, PlayList *playlist, b
                 metadata = *songdata->metadata;
                 totalDurationSeconds = playlist->totalDuration;
                 elapsed = elapsedSeconds;
-                duration = *songdata->duration;
+                duration = songdata->duration;
 
                 if (songdata->cover != NULL && coverEnabled)
                 {

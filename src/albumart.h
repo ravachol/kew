@@ -9,7 +9,7 @@
 
 extern int indent;
 
-int extractCoverCommand(const char *inputFilePath, const char *outputFilePath);
+int extractCover(const char *inputFilePath, const char *outputFilePath);
 
 char *findLargestImageFile(const char *directoryPath, char *largestImageFile, off_t *largestFileSize);
 

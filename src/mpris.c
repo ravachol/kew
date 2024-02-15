@@ -362,7 +362,7 @@ static gboolean get_metadata(GDBusConnection *connection, const gchar *sender,
                 g_variant_builder_add(&metadata_builder, "{sv}", "mpris:artUrl", g_variant_new_string(coverArtUrl));
                 g_variant_builder_add(&metadata_builder, "{sv}", "mpris:trackid", g_variant_new_object_path(currentSongData->trackId));
 
-                gint64 length = llround((*currentSongData->duration) * G_USEC_PER_SEC);
+                gint64 length = llround(currentSongData->duration * G_USEC_PER_SEC);
                 g_variant_builder_add(&metadata_builder, "{sv}", "mpris:length", g_variant_new_int64(length));
 
                 g_free(coverArtUrl);
