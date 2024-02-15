@@ -1073,28 +1073,23 @@ FileSystemEntry *getChosenDir()
         return chosenDir;
 }
 
-char *processName(const char *name, int maxWidth) {
+void processName(const char *name, char *output, int maxWidth) {
     char *lastDot = strrchr(name, '.');
     if (lastDot != NULL) {
-        char copiedString[256];
-        size_t length = lastDot - name;
-        if (length >= sizeof(copiedString)) {
-            length = sizeof(copiedString) - 1;
+        int copyLength = lastDot - name;
+        if (copyLength > maxWidth) {
+            copyLength = maxWidth;
         }
-
-        strncpy(copiedString, name, length);
-        copiedString[length] = '\0';
-
-        shortenString(copiedString, maxWidth);
-        removeUnneededChars(copiedString);
-
-        char *result = (char *)malloc(strlen(copiedString) + 1);
-        if (result != NULL) {
-            strcpy(result, copiedString);
-            return result;
-        }
+        strncpy(output, name, copyLength);
+        output[copyLength] = '\0';
+               
+        shortenString(output, maxWidth);
+        removeUnneededChars(output);
+    } else {
+        
+        strncpy(output, name, maxWidth);
+        output[maxWidth] = '\0';
     }
-    return NULL;
 }
 
 void setCurrentAsChosenDir()
@@ -1212,23 +1207,20 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
 
                                 if (root->isDirectory)
                                 {
-                                        char *dirName = (char *)calloc(maxNameWidth + 1, sizeof(char));
-                                        snprintf(dirName, maxNameWidth, "%s", root->name);
-
-                                        shortenString(dirName, maxNameWidth);
+                                        char dirName[maxNameWidth + 1];
+                                        snprintf(dirName, maxNameWidth + 1, "%s", root->name);
 
                                         if (depth == 1)
                                                 printf("%s \n", stringToUpper(dirName));
                                         else
                                                 printf("%s \n", dirName);
-
-                                        free(dirName);
                                 }
                                 else
                                 {
-                                        char *filename = processName(root->name, maxNameWidth);
+                                        char filename[maxNameWidth + 1];                 
+                                        processName(root->name, filename, maxNameWidth);
                                         printf(" └─%s \n", filename);
-                                        free(filename);
+                                        // No need to free(filename)
                                         libSongIter++;
                                 }
 
@@ -1294,8 +1286,6 @@ void showLibrary(SongData *songData)
 
                 tmp = tmp->next;
         }
-
-        c_sleep(10);
 
         displayTree(library, 0, maxLibListSize, maxNameWidth);
 
