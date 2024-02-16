@@ -1020,7 +1020,7 @@ void sanitize_filepath(const char *input, char *sanitized, size_t size)
         {
                 for (i = 0; i < strlen(input) && j < size - 1; ++i)
                 {
-                        if (isalnum((unsigned char)input[i]) || strchr(" :/.,?!-", input[i]))
+                        if (isalnum((unsigned char)input[i]) || strchr(" :[]()/.,?!-", input[i]))
                         {
                                 sanitized[j++] = input[i];
                         }
@@ -1078,7 +1078,7 @@ void displaySongNotification(const char *artist, const char *title, const char *
         }
         else
         {
-                snprintf(command, sizeof(command), "notify-send -a \"kew\" \"%s - %s\" --icon %s", sanitizedArtist, sanitizedTitle, sanitized_cover);
+                snprintf(command, sizeof(command), "notify-send -a \"kew\" \"%s - %s\" --icon \"%s\"", sanitizedArtist, sanitizedTitle, sanitized_cover);
         }
 
         free(sanitizedArtist);
