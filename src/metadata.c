@@ -38,7 +38,8 @@ void turnFilePathIntoTitle(const char *filePath, char *title)
         }
 }
 
-int extractTags(const char *input_file, TagSettings *tag_settings, double *duration)
+// Extract metadata tags and cover. Returns -1 if no cover found.
+int extractTags(const char *input_file, TagSettings *tag_settings, double *duration, const char *coverFilePath)
 {
         AVFormatContext *fmt_ctx = NULL;
         AVDictionaryEntry *tag = NULL;
@@ -101,7 +102,40 @@ int extractTags(const char *input_file, TagSettings *tag_settings, double *durat
         else
         {
                 *duration = 0.0;
-        }        
+        }
+
+        int stream_index = av_find_best_stream(fmt_ctx, AVMEDIA_TYPE_VIDEO, -1, -1, NULL, 0);
+        if (stream_index < 0)
+        {
+                fprintf(stderr, "Could not find a video stream in the input file\n");
+                avformat_close_input(&fmt_ctx);
+                return -1;
+        }
+
+        AVStream *video_stream = fmt_ctx->streams[stream_index];
+        if (video_stream->disposition & AV_DISPOSITION_ATTACHED_PIC)
+        {
+
+                AVPacket *pkt = &video_stream->attached_pic;
+
+                FILE *file = fopen(coverFilePath, "wb");
+                if (!file)
+                {
+                        fprintf(stderr, "Could not open output file '%s'\n", coverFilePath);
+                        avformat_close_input(&fmt_ctx);
+                        return -1;
+                }
+                fwrite(pkt->data, 1, pkt->size, file);
+                fclose(file);
+
+                avformat_close_input(&fmt_ctx);
+                return 1;
+        }
+        else
+        {
+                avformat_close_input(&fmt_ctx);
+                return -1;
+        }
 
         avformat_close_input(&fmt_ctx);
 

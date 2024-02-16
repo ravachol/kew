@@ -12,18 +12,6 @@ songloader.c
 #endif
 
 static guint track_counter = 0;
-int ffmpegPid = -1;
-
-#define COMMAND_SIZE 1000
-
-int maxSleepTimes = 10;
-int sleepAmount = 300;
-
-typedef struct thread_data
-{
-        pid_t pid;
-        int index;
-} thread_data;
 
 // Generate a new track ID
 gchar *generateTrackId()
@@ -69,8 +57,30 @@ void loadColor(SongData *songdata)
 
 void loadMetaData(SongData *songdata)
 {
+        char path[MAXPATHLEN];
+
         songdata->metadata = malloc(sizeof(TagSettings));
-        extractTags(songdata->filePath, songdata->metadata, &songdata->duration);
+        generateTempFilePath(songdata->filePath, songdata->coverArtPath, "cover", ".jpg");
+        int res = extractTags(songdata->filePath, songdata->metadata, &songdata->duration, songdata->coverArtPath);
+
+        if (res < 0)
+        {
+                getDirectoryFromPath(songdata->filePath, path);
+                char *tmp = NULL;
+                off_t size = 0;
+                tmp = findLargestImageFile(path, tmp, &size);
+
+                if (tmp != NULL)
+                        c_strcpy(songdata->coverArtPath, sizeof(songdata->coverArtPath), tmp);
+                else
+                        return;
+        }
+        else
+        {
+                addToCache(tempCache, songdata->coverArtPath);
+        }
+
+        songdata->cover = getBitmap(songdata->coverArtPath);
 }
 
 SongData *loadSongData(char *filePath)
@@ -87,11 +97,9 @@ SongData *loadSongData(char *filePath)
         songdata->metadata = NULL;
         songdata->cover = NULL;
         songdata->duration = 0.0;
-        c_strcpy(songdata->filePath, sizeof(songdata->filePath), filePath);
-        loadCover(songdata);
-        loadColor(songdata);
+        c_strcpy(songdata->filePath, sizeof(songdata->filePath), filePath);       
         loadMetaData(songdata);
-
+        loadColor(songdata);
         return songdata;
 }
 
