@@ -31,6 +31,7 @@ typedef struct
 
 #endif
 
+// Extracts metadata, returns -1 if no album cover found
 int extractTags(const char *input_file, TagSettings *tag_settings, double *duration, const char *coverFilePath);
 
 #endif

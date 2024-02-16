@@ -21,35 +21,6 @@ gchar *generateTrackId()
         return trackId;
 }
 
-void loadCover(SongData *songdata)
-{
-        char path[MAXPATHLEN];
-
-        if (strlen(songdata->filePath) == 0)
-                return;
-
-        generateTempFilePath(songdata->filePath, songdata->coverArtPath, "cover", ".jpg");
-        int res = extractCover(songdata->filePath, songdata->coverArtPath);
-        if (res < 0)
-        {
-                getDirectoryFromPath(songdata->filePath, path);
-                char *tmp = NULL;
-                off_t size = 0;
-                tmp = findLargestImageFile(path, tmp, &size);
-
-                if (tmp != NULL)
-                        c_strcpy(songdata->coverArtPath, sizeof(songdata->coverArtPath), tmp);
-                else
-                        return;
-        }
-        else
-        {
-                addToCache(tempCache, songdata->coverArtPath);
-        }
-
-        songdata->cover = getBitmap(songdata->coverArtPath);
-}
-
 void loadColor(SongData *songdata)
 {
         getCoverColor(songdata->cover, &(songdata->red), &(songdata->green), &(songdata->blue));

@@ -34,45 +34,6 @@ albumart.c
 FIBITMAP *bitmap;
 int indent = 0;
 
-int extractCover(const char *inputFilePath, const char *outputFilePath) {
-    AVFormatContext *fmt_ctx = NULL;
-    int ret;
-    AVPacket pkt;
-
-    if ((ret = avformat_open_input(&fmt_ctx, inputFilePath, NULL, NULL)) < 0) {
-        fprintf(stderr, "Could not open input file '%s'\n", inputFilePath);
-        return -1;
-    }
-
-    int stream_index = av_find_best_stream(fmt_ctx, AVMEDIA_TYPE_VIDEO, -1, -1, NULL, 0);
-    if (stream_index < 0) {
-        fprintf(stderr, "Could not find a video stream in the input file\n");
-        avformat_close_input(&fmt_ctx);
-        return -1;
-    }
-
-    AVStream *video_stream = fmt_ctx->streams[stream_index];
-    if (video_stream->disposition & AV_DISPOSITION_ATTACHED_PIC) {
-
-        AVPacket *pkt = &video_stream->attached_pic;
-
-        FILE *file = fopen(outputFilePath, "wb");
-        if (!file) {
-            fprintf(stderr, "Could not open output file '%s'\n", outputFilePath);
-            avformat_close_input(&fmt_ctx);
-            return -1;
-        }
-        fwrite(pkt->data, 1, pkt->size, file);
-        fclose(file);
-
-        avformat_close_input(&fmt_ctx);
-        return 1;
-    } else {
-        avformat_close_input(&fmt_ctx);
-        return -1;
-    }
-}
-
 int compareEntries(const struct dirent **a, const struct dirent **b)
 {
         const char *nameA = (*a)->d_name;

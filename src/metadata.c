@@ -38,7 +38,7 @@ void turnFilePathIntoTitle(const char *filePath, char *title)
         }
 }
 
-// Extract metadata tags and cover. Returns -1 if no cover found.
+// Extracts metadata, returns -1 if no album cover found
 int extractTags(const char *input_file, TagSettings *tag_settings, double *duration, const char *coverFilePath)
 {
         AVFormatContext *fmt_ctx = NULL;
