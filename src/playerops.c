@@ -597,7 +597,11 @@ void dequeueSong(FileSystemEntry *child)
         }
 
         if (!isEnqueued)
+        {
                 child->parent->isEnqueued = 0;
+                if (child->parent->parent != NULL)
+                        child->parent->parent->isEnqueued = 0;
+        }
 }
 
 void dequeueChildren(FileSystemEntry *parent)
