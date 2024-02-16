@@ -82,7 +82,7 @@ ma_result initFirstDatasource(AudioData *pAudioData, UserData *pUserData)
                 base->pCurrent = first;
                 first->pReadSeekTellUserData = pAudioData;
         }
-        else if (endsWith(filePath, "m4a"))
+        else if (endsWith(filePath, "m4a") || endsWith(filePath, "aac"))
         {
                 int result = prepareNextM4aDecoder(filePath);
                 if (result < 0)
@@ -413,7 +413,7 @@ int switchAudioImplementation()
                         setImplSwitchNotReached();
                 }
         }
-        else if (endsWith(filePath, "m4a"))
+        else if (endsWith(filePath, "m4a") || endsWith(filePath, "aac"))
         {
                 if (check_aac_codec_support() < 0)
                 {
