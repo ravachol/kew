@@ -13,7 +13,7 @@
 #include <libavutil/pixfmt.h>
 #include "file.h"
 #include "../include/imgtotxt/options.h"
-#include "metadata.h"
+#include "songloader.h"
 #include "stringfunc.h"
 #include "term.h"
 #include "albumart.h"

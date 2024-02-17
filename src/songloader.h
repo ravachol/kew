@@ -3,7 +3,6 @@
 #include <sys/wait.h>
 #include <unistd.h>
 #include <FreeImage.h>
-#include "metadata.h"
 #include "cutils.h"
 #include "file.h"
 #include "cache.h"
@@ -12,12 +11,12 @@
 #include "soundgapless.h"
 #include "soundcommon.h"
 
-#ifndef KEYVALUEPAIR_STRUCT
-#define KEYVALUEPAIR_STRUCT
-
 #ifndef MAXPATHLEN
 #define MAXPATHLEN 4096
 #endif
+
+#ifndef KEYVALUEPAIR_STRUCT
+#define KEYVALUEPAIR_STRUCT
 
 typedef struct
 {

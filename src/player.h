@@ -10,6 +10,7 @@
 #include "term.h"
 #include "visuals.h"
 #include "playlist.h"
+#include "settings.h"
 #include "songloader.h"
 #include "soundgapless.h"
 #include "directorytree.h"
