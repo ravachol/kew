@@ -34,41 +34,25 @@
 extern volatile sig_atomic_t resizeFlag;
 extern bool useProfileColors;
 
-void getTermSizePixels(int *width, int *height);
-
-void getCursorPosition(int *row, int *col);
-
-void getCursorPosition2(int *row, int *col);
-
-void enableRawMode(void);
-
-void set_blocking_mode(int fd, int should_block);
-
 void setTextColor(int color);
 
 void setTextColorRGB(int r, int g, int b);
 
-void setWindowTitle(const char *title);
-
-void disableRawMode(void);
-
 void getTermSize(int *width, int *height);
-
-void setDefaultTextColor(void);
 
 void setNonblockingMode(void);
 
 void restoreTerminalMode(void);
 
+void setDefaultTextColor(void);
+
 int isInputAvailable(void);
+
+void resetConsole(void);
 
 void saveCursorPosition(void);
 
 void restoreCursorPosition(void);
-
-void resetConsole(void);
-
-void setCursorPosition(int row, int col);
 
 void hideCursor(void);
 
@@ -77,12 +61,6 @@ void showCursor(void);
 void clearRestOfScreen(void);
 
 void enableScrolling(void);
-
-void disableScrolling(void);
-
-int getFirstLineRow(void);
-
-int getVisibleFirstLineRow(void);
 
 void handleResize(int sig);
 

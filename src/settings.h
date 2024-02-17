@@ -86,9 +86,6 @@ typedef struct
 
 extern AppSettings settings;
 
-extern const char PATH_SETTING_FILENAME[];
-extern const char SETTINGS_FILENAME[];
-
 extern AppSettings constructAppSettings(KeyValuePair *pairs, int count);
 
 KeyValuePair *readKeyValuePairs(const char *file_path, int *count);

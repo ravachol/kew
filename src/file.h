@@ -38,11 +38,7 @@ enum SearchType
         ReturnAllSongs = 4
 };
 
-int existsFile(const char *fname);
-
 void getDirectoryFromPath(const char *path, char *directory);
-
-int tryOpen(const char *path);
 
 int isDirectory(const char *path);
 
@@ -58,16 +54,8 @@ int removeDirectory(const char *path);
 
 int deleteFile(const char *filePath);
 
-char *escapeFilePath(const char *filePath);
-
 void generateTempFilePath(const char *srcFilePath, char *filePath, const char *prefix, const char *suffix);
 
-const char *getFileExtension(const char *filePath);
-
-int openFileWithRetry(const char *filePath, const char *mode, FILE **file);
-
 void deleteTempDir(void);
-
-void deleteTempShmDir(void);
 
 #endif

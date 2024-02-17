@@ -5,9 +5,6 @@
 #ifndef MAXPATHLEN
 #define MAXPATHLEN 4096
 #endif
-#ifndef PATH_MAX
-#define PATH_MAX 4096
-#endif
 
 /*
 
@@ -17,17 +14,6 @@ file.c
  They should work independently and be as decoupled from the rest of the application as possible.
 
 */
-
-int existsFile(const char *fname)
-{
-        FILE *file;
-        if ((file = fopen(fname, "r")))
-        {
-                fclose(file);
-                return 1;
-        }
-        return -1;
-}
 
 void getDirectoryFromPath(const char *path, char *directory)
 {
@@ -62,17 +48,6 @@ void getDirectoryFromPath(const char *path, char *directory)
                 // No directory separator found, return an empty string
                 directory[0] = '\0';
         }
-}
-
-int tryOpen(const char *path)
-{
-        DIR *dir = opendir(path);
-        if (dir != NULL)
-        {
-                closedir(dir);
-                return 1;
-        }
-        return 0;
 }
 
 int isDirectory(const char *path)
@@ -143,7 +118,7 @@ int walker(const char *startPath, const char *searching, char *result,
                         continue;
                 }
 
-                char entryPath[PATH_MAX];
+                char entryPath[MAXPATHLEN];
                 char *currentDir = getcwd(NULL, 0);
                 snprintf(entryPath, sizeof(entryPath), "%s/%s", currentDir, dir->d_name);
                 free(currentDir);
@@ -266,7 +241,7 @@ int expandPath(const char *inputPath, char *expandedPath)
                 size_t homeDirLen = strlen(homeDir);
                 size_t inputPathLen = strlen(inputPath);
 
-                if (homeDirLen + inputPathLen >= PATH_MAX)
+                if (homeDirLen + inputPathLen >= MAXPATHLEN)
                 {
                         return -1; // Expanded path exceeds maximum length
                 }
@@ -322,7 +297,7 @@ int removeDirectory(const char *path)
                 return -1; // Failed to open directory
 
         struct dirent *entry;
-        char filePath[PATH_MAX];
+        char filePath[MAXPATHLEN];
 
         // Remove all entries in the directory
         while ((entry = readdir(dir)) != NULL)
@@ -376,80 +351,8 @@ void deleteTempDir()
         char dirPath[MAXPATHLEN];
         struct passwd *pw = getpwuid(getuid());
         const char *username = pw->pw_name;
-        snprintf(dirPath, FILENAME_MAX, "%s/kew/%s", tempDir, username);
+        snprintf(dirPath, MAXPATHLEN, "%s/kew/%s", tempDir, username);
         removeDirectory(dirPath);
-}
-
-int removeShmDirectory(const char *path)
-{
-        struct stat st;
-
-        // Check if path exists
-        if (stat(path, &st) != 0)
-                return -1;
-
-        // Check if it is a directory
-        if (!S_ISDIR(st.st_mode))
-                return -1;
-
-        DIR *dir = opendir(path);
-
-        if (dir == NULL)
-                return -1;
-
-        struct dirent *entry;
-        char filePath[PATH_MAX];
-
-        // Remove all entries in the directory
-        while ((entry = readdir(dir)) != NULL)
-        {
-                if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
-                        continue;
-
-                snprintf(filePath, sizeof(filePath), "%s/%s", path, entry->d_name);
-
-                if (entry->d_type == DT_DIR)
-                        removeShmDirectory(filePath);
-                else
-                        unlink(filePath);
-        }
-
-        closedir(dir);
-
-        // Remove the directory itself
-        if (rmdir(path) == 0)
-                return 0; // Directory removed successfully
-
-        return -1; // Failed to remove directory
-}
-
-void deleteTempShmDir()
-{
-        const char *tempDir = "/dev/shm";
-        char dirPath[MAXPATHLEN];
-        struct passwd *pw = getpwuid(getuid());
-        const char *username = pw->pw_name;
-        snprintf(dirPath, FILENAME_MAX, "%s/kew/%s", tempDir, username);
-        removeShmDirectory(dirPath);
-}
-
-char *escapeFilePath(const char *filePath)
-{
-        const int MAX_FILE_PATH_SIZE = 1000;
-        char *escapedFilePath = (char *)malloc(MAX_FILE_PATH_SIZE * sizeof(char));
-        int j = 0;
-
-        for (int i = 0; filePath[i] != '\0'; i++)
-        {
-                if (filePath[i] == '$')
-                {
-                        escapedFilePath[j++] = '\\';
-                }
-                escapedFilePath[j++] = filePath[i];
-        }
-
-        escapedFilePath[j] = '\0';
-        return escapedFilePath;
 }
 
 bool checkFileBelowMaxSize(const char *filePath, int maxSize)
@@ -491,35 +394,4 @@ void generateTempFilePath(const char *srcFilePath, char *filePath, const char *p
         randomString[6] = '\0';
 
         snprintf(filePath, MAXPATHLEN + 7, "%s/%s%.6s%s", dirPath, prefix, randomString, suffix);
-}
-
-const char *getFileExtension(const char *filePath)
-{
-        const char *extension = strrchr(filePath, '.');
-        if (extension != NULL)
-        {
-                return extension + 1; // Skip the dot character
-        }
-        return NULL; // No extension found
-}
-
-int openFileWithRetry(const char *filePath, const char *mode, FILE **file)
-{
-        int retryCount = 0;
-        int result = -1;
-
-        do
-        {
-                *file = fopen(filePath, mode);
-                if (*file != NULL)
-                {
-                        result = 0; // File opened successfully
-                        break;
-                }
-
-                retryCount++;
-                c_sleep(RETRY_DELAY_MILLISECONDS);
-        } while (retryCount < MAX_RETRY_COUNT);
-
-        return result;
 }
