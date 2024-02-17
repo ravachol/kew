@@ -8,8 +8,8 @@ decoding backend. See the custom_decoder example.
 You need to include this file after miniaudio.h.
 */
 
-#ifndef m4a_decoder_h
-#define m4a_decoder_h
+#ifndef m4a_h
+#define m4a_h
 
 #ifdef __cplusplus
 extern "C"

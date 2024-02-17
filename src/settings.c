@@ -14,14 +14,10 @@ settings.c
 #ifndef MAXPATHLEN
 #define MAXPATHLEN 4096
 #endif
-#ifndef PATH_MAX
-#define PATH_MAX 4096
-#endif
 
 AppSettings settings;
 
-const char OLD_SETTINGS_FILE[] = ".cue.conf";
-const char NEW_SETTINGS_FILE[] = "kewrc";
+const char SETTINGS_FILE[] = "kewrc";
 
 AppSettings constructAppSettings(KeyValuePair *pairs, int count)
 {
@@ -190,7 +186,7 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
                 else if (strcmp(stringToLower(pair->key), "lastvolume") == 0)
                 {
                         snprintf(settings.lastVolume, sizeof(settings.lastVolume), "%s", pair->value);
-                }                
+                }
                 else if (strcmp(stringToLower(pair->key), "allownotifications") == 0)
                 {
                         snprintf(settings.allowNotifications, sizeof(settings.allowNotifications), "%s", pair->value);
@@ -202,15 +198,15 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
                 else if (strcmp(stringToLower(pair->key), "artistcolor") == 0)
                 {
                         snprintf(settings.artistColor, sizeof(settings.artistColor), "%s", pair->value);
-                }                                  
+                }
                 else if (strcmp(stringToLower(pair->key), "enqueuedcolor") == 0)
                 {
                         snprintf(settings.enqueuedColor, sizeof(settings.enqueuedColor), "%s", pair->value);
-                }                   
+                }
                 else if (strcmp(stringToLower(pair->key), "titlecolor") == 0)
                 {
                         snprintf(settings.titleColor, sizeof(settings.titleColor), "%s", pair->value);
-                }                   
+                }
                 else if (strcmp(stringToLower(pair->key), "hidelogo") == 0)
                 {
                         snprintf(settings.hideLogo, sizeof(settings.hideLogo), "%s", pair->value);
@@ -218,7 +214,7 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
                 else if (strcmp(stringToLower(pair->key), "hidehelp") == 0)
                 {
                         snprintf(settings.hideHelp, sizeof(settings.hideHelp), "%s", pair->value);
-                }                
+                }
                 else if (strcmp(stringToLower(pair->key), "quit") == 0)
                 {
                         snprintf(settings.quit, sizeof(settings.quit), "%s", pair->value);
@@ -291,7 +287,7 @@ const char *getHomePath()
                         struct passwd *pw = getpwuid(getuid());
                         if (pw != NULL)
                         {
-                                char *home = (char *)malloc(PATH_MAX);
+                                char *home = (char *)malloc(MAXPATHLEN);
                                 strcpy(home, pw->pw_dir);
                                 return home;
                         }
@@ -302,28 +298,28 @@ const char *getHomePath()
 
 char *getConfigPath()
 {
-        char *configPath = malloc(PATH_MAX);
+        char *configPath = malloc(MAXPATHLEN);
         if (!configPath)
                 return NULL;
 
         const char *xdgConfig = getenv("XDG_CONFIG_HOME");
         if (xdgConfig)
         {
-                snprintf(configPath, PATH_MAX, "%s", xdgConfig);
+                snprintf(configPath, MAXPATHLEN, "%s", xdgConfig);
         }
         else
         {
                 const char *home = getHomePath();
                 if (home)
                 {
-                        snprintf(configPath, PATH_MAX, "%s/.config", home);
+                        snprintf(configPath, MAXPATHLEN, "%s/.config", home);
                 }
                 else
                 {
                         struct passwd *pw = getpwuid(getuid());
                         if (pw)
                         {
-                                snprintf(configPath, PATH_MAX, "%s", pw->pw_dir);
+                                snprintf(configPath, MAXPATHLEN, "%s", pw->pw_dir);
                         }
                         else
                         {
@@ -341,7 +337,7 @@ const char *getDefaultMusicFolder()
         const char *home = getHomePath();
         if (home != NULL)
         {
-                static char musicPath[PATH_MAX];
+                static char musicPath[MAXPATHLEN];
                 snprintf(musicPath, sizeof(musicPath), "%s/Music", home);
                 return musicPath;
         }
@@ -370,11 +366,11 @@ void getConfig()
         char *configdir = getConfigPath();
         char *filepath = NULL;
 
-        size_t filepath_length = strlen(configdir) + strlen("/") + strlen(NEW_SETTINGS_FILE) + 1;
+        size_t filepath_length = strlen(configdir) + strlen("/") + strlen(SETTINGS_FILE) + 1;
         filepath = (char *)malloc(filepath_length);
         strcpy(filepath, configdir);
         strcat(filepath, "/");
-        strcat(filepath, NEW_SETTINGS_FILE);
+        strcat(filepath, SETTINGS_FILE);
 
         KeyValuePair *pairs = readKeyValuePairs(filepath, &pair_count);
 
@@ -392,17 +388,17 @@ void getConfig()
         int temp = atoi(settings.color);
         if (temp >= 0)
                 mainColor = temp;
-        temp = atoi(settings.artistColor); 
-        if (temp >= 0)              
+        temp = atoi(settings.artistColor);
+        if (temp >= 0)
                 artistColor = temp;
-        
-        temp = atoi(settings.enqueuedColor); 
-        if (temp >= 0)        
+
+        temp = atoi(settings.enqueuedColor);
+        if (temp >= 0)
                 enqueuedColor = temp;
 
-        temp = atoi(settings.titleColor); 
-        if (temp >= 0)     
-                titleColor = temp;                
+        temp = atoi(settings.titleColor);
+        if (temp >= 0)
+                titleColor = temp;
 
         int temp2 = atoi(settings.visualizerHeight);
         if (temp2 > 0)
@@ -421,10 +417,10 @@ void setConfig()
         // Create the file path
         char *configdir = getConfigPath();
 
-        char *filepath = (char *)malloc(strlen(configdir) + strlen("/") + strlen(NEW_SETTINGS_FILE) + 1);
+        char *filepath = (char *)malloc(strlen(configdir) + strlen("/") + strlen(SETTINGS_FILE) + 1);
         strcpy(filepath, configdir);
         strcat(filepath, "/");
-        strcat(filepath, NEW_SETTINGS_FILE);
+        strcat(filepath, SETTINGS_FILE);
 
         FILE *file = fopen(filepath, "w");
         if (file == NULL)
@@ -452,10 +448,10 @@ void setConfig()
         if (settings.hideLogo[0] == '\0')
                 hideLogo ? c_strcpy(settings.hideLogo, sizeof(settings.hideLogo), "1") : c_strcpy(settings.hideLogo, sizeof(settings.hideLogo), "0");
         if (settings.hideHelp[0] == '\0')
-                hideHelp ? c_strcpy(settings.hideHelp, sizeof(settings.hideHelp), "1") : c_strcpy(settings.hideHelp, sizeof(settings.hideHelp), "0");                
+                hideHelp ? c_strcpy(settings.hideHelp, sizeof(settings.hideHelp), "1") : c_strcpy(settings.hideHelp, sizeof(settings.hideHelp), "0");
 
-       sprintf(settings.lastVolume, "%d", getCurrentVolume());
- 
+        sprintf(settings.lastVolume, "%d", getCurrentVolume());
+
         // Null-terminate the character arrays
         settings.path[MAXPATHLEN - 1] = '\0';
         settings.coverEnabled[1] = '\0';
@@ -514,7 +510,6 @@ void setConfig()
         fprintf(file, "seekForward=%s\n", settings.seekForward);
         fprintf(file, "savePlaylist=%s\n", settings.savePlaylist);
         fprintf(file, "addToMainPlaylist=%s\n", settings.addToMainPlaylist);
-
 
         fprintf(file, "quit=%s\n\n", settings.quit);
         fprintf(file, "# For special keys use terminal codes: OS, for F4 for instance. This can depend on the terminal.\n");

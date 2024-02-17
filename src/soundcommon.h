@@ -5,7 +5,7 @@
 #include <miniaudio.h>
 #include <miniaudio_libopus.h>
 #include <miniaudio_libvorbis.h>
-#include "m4a_decoder.h"
+#include "m4a.h"
 #include <glib.h>
 #include <FreeImage.h>
 #include <stdatomic.h>
