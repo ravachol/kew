@@ -138,7 +138,7 @@ int displayCover(SongData *songdata, int width, int height, bool ansii)
         else
         {
                 cursorJump(1);
-                PixelData pixel = {*songdata->red, *songdata->green, *songdata->blue};
+                PixelData pixel = {songdata->red, songdata->green, songdata->blue};
                 output_ascii(songdata->coverArtPath, height - 2, width - 1, &pixel);
         }
         printf("\n");

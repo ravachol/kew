@@ -103,7 +103,7 @@ void setColor()
                 setDefaultTextColor();
                 return;
         }
-        if (color.r == 125 && color.g == 125 && color.b == 125)
+        if (color.r == 150 && color.g == 150 && color.b == 150)
                 setDefaultTextColor();
         else if (color.r >= 210 && color.g >= 210 && color.b >= 210)
         {
@@ -285,9 +285,9 @@ void printCover(SongData *songdata)
         minWidth = ABSOLUTE_MIN_WIDTH + indent;
         if (songdata->cover != NULL && coverEnabled)
         {
-                color.r = *(songdata->red);
-                color.g = *(songdata->green);
-                color.b = *(songdata->blue);
+                color.r = songdata->red;
+                color.g = songdata->green;
+                color.b = songdata->blue;
 
                 displayCover(songdata, preferredWidth, preferredHeight, coverAnsi);
 
@@ -1159,10 +1159,12 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
                                 {
                                         if (useProfileColors)
                                                 setTextColor(artistColor);
+                                        else
+                                                setColor();
                                 }
                                 else
                                 {
-                                        setColor();
+                                       setDefaultTextColor();
                                 }
 
                                 if (depth >= 2)
@@ -1176,6 +1178,8 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
                                         {
                                                 if (useProfileColors)
                                                         setTextColor(enqueuedColor);
+                                                else
+                                                        setColor();
                                                 printf("\x1b[7m * ");
                                         }
                                         else
@@ -1201,6 +1205,8 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
                                         {
                                                 if (useProfileColors)
                                                         setTextColor(enqueuedColor);
+                                                else
+                                                        setColor();
                                                 printf(" * ");
                                         }
                                         else
@@ -1324,9 +1330,9 @@ int printPlayer(SongData *songdata, double elapsedSeconds, PlayList *playlist, b
 
                 if (songdata->cover != NULL && coverEnabled)
                 {
-                        color.r = *songdata->red;
-                        color.g = *songdata->green;
-                        color.b = *songdata->blue;
+                        color.r = songdata->red;
+                        color.g = songdata->green;
+                        color.b = songdata->blue;
                 }
         }
         else

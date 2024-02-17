@@ -11,4 +11,4 @@ void printImage(const char *image_path, int width, int height);
 FIBITMAP *getBitmap(const char *image_path);
 void printBitmap(FIBITMAP *bitmap, int width, int height);
 void printBitmapCentered(FIBITMAP *bitmap, int width, int height);
-int getCoverColor(FIBITMAP *bitmap, unsigned char **r, unsigned char **g, unsigned char **b);
+int getCoverColor(FIBITMAP *bitmap, unsigned char *r, unsigned char *g, unsigned char *b);

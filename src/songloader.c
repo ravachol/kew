@@ -190,9 +190,9 @@ SongData *loadSongData(char *filePath)
         songdata->hasErrors = false;
         c_strcpy(songdata->filePath, sizeof(songdata->filePath), "");
         c_strcpy(songdata->coverArtPath, sizeof(songdata->coverArtPath), "");
-        songdata->red = NULL;
-        songdata->green = NULL;
-        songdata->blue = NULL;
+        songdata->red = 150;
+        songdata->green = 150;
+        songdata->blue = 150;
         songdata->metadata = NULL;
         songdata->cover = NULL;
         songdata->duration = 0.0;
@@ -220,16 +220,10 @@ void unloadSongData(SongData **songdata)
                 deleteFile(data->coverArtPath);
         }
 
-        free(data->red);
-        free(data->green);
-        free(data->blue);
         free(data->metadata);
         free(data->trackId);
 
         data->cover = NULL;
-        data->red = NULL;
-        data->green = NULL;
-        data->blue = NULL;
         data->metadata = NULL;
 
         data->trackId = NULL;
