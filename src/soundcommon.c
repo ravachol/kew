@@ -1058,10 +1058,10 @@ char *remove_blacklisted_chars(const char *input, const char *blacklist)
         return output;
 }
 
-void displaySongNotification(const char *artist, const char *title, const char *cover)
+int displaySongNotification(const char *artist, const char *title, const char *cover)
 {
         if (!allowNotifications)
-                return;
+                return 0;
 
         char command[MAXPATHLEN + 1024];
         char sanitized_cover[MAXPATHLEN];
@@ -1084,7 +1084,7 @@ void displaySongNotification(const char *artist, const char *title, const char *
         free(sanitizedArtist);
         free(sanitizedTitle);
 
-        system(command);
+        return system(command);
 }
 
 void executeSwitch(AudioData *pAudioData)
