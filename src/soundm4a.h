@@ -5,7 +5,7 @@
 #include <stdbool.h>
 #include "songloader.h"
 #include "soundcommon.h"
-#include "m4a_decoder.h"
+#include "m4a.h"
 
 extern const ma_data_source_vtable m4a_file_data_source_vtable;
 
