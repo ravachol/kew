@@ -811,8 +811,6 @@ void handleRemove()
                 nextSong = NULL;
                 updatePlaylist();
 
-                songLoading = true;
-
                 tryNextSong = currentSong->next;
                 nextSongNeedsRebuilding = false;
                 nextSong = NULL;
@@ -1004,13 +1002,9 @@ void rebuildNextSong(Node *song)
         loadingdata.loadA = !usingSongDataA;
         loadingdata.loadingFirstDecoder = false;
 
-        pthread_mutex_lock(&(loadingdata.mutex));
-
         songLoading = true;
 
         loadSong(song, &loadingdata);
-
-        pthread_mutex_unlock(&(loadingdata.mutex));
 
         int maxNumTries = 50;
         int numtries = 0;
@@ -1020,6 +1014,7 @@ void rebuildNextSong(Node *song)
                 c_sleep(100);
                 numtries++;
         }
+        songLoading = false;
 }
 
 void skipToNextSong()
