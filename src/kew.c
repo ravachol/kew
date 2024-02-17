@@ -1080,7 +1080,17 @@ void handleOptions(int *argc, char *argv[])
 
 int main(int argc, char *argv[])
 {
-        atexit(cleanupOnExit);
+        if ((argc == 2 && ((strcmp(argv[1], "--help") == 0) || (strcmp(argv[1], "-h") == 0) || (strcmp(argv[1], "-?") == 0))))
+        {
+                showHelp();
+                exit(0);                
+        }
+        else if (argc == 2 && (strcmp(argv[1], "--version") == 0 || strcmp(argv[1], "-v") == 0))
+        {
+                printAbout(NULL);
+                exit(0);                
+        }
+        
         getConfig();
 
         if (argc == 3 && (strcmp(argv[1], "path") == 0))
@@ -1088,17 +1098,19 @@ int main(int argc, char *argv[])
                 c_strcpy(settings.path, sizeof(settings.path), argv[2]);
                 setConfig();
                 exit(0);
-        }
-        else if (settings.path[0] == '\0')
+        }  
+
+        if (settings.path[0] == '\0')
         {
                 printf("Please make sure the path is set correctly. \n");
                 printf("To set it type: kew path \"/path/to/Music\". \n");
                 exit(0);
-        }
+        }          
 
-        loadMainPlaylist(settings.path);
+        atexit(cleanupOnExit);
 
         handleOptions(&argc, argv);
+        loadMainPlaylist(settings.path);
 
         if (argc == 1)
         {
@@ -1111,14 +1123,6 @@ int main(int argc, char *argv[])
         else if (argc == 2 && strcmp(argv[1], ".") == 0)
         {
                 playMainPlaylist();
-        }
-        else if ((argc == 2 && ((strcmp(argv[1], "--help") == 0) || (strcmp(argv[1], "-h") == 0) || (strcmp(argv[1], "-?") == 0))))
-        {
-                showHelp();
-        }
-        else if (argc == 2 && (strcmp(argv[1], "--version") == 0 || strcmp(argv[1], "-v") == 0))
-        {
-                printAbout(NULL);
         }
         else if (argc >= 2)
         {
