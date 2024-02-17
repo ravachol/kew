@@ -193,7 +193,9 @@ void printHelp()
         printf("Use +, - to adjust volume.\n");
         printf("Press space or p to pause.\n");
         printf("Press F2 to display playlist.\n");
-        printf("Press F3 to display key bindings.\n");
+        printf("Press F3 to display music library.\n");
+        printf("Press F4 to display song info.\n");
+        printf("Press F5 to display key bindings.\n");
         printf("Press q to quit.\n");
         printf("\n");
         printf("To run it with colors displaying correctly, you need a terminal that can handle TrueColor.\n");
