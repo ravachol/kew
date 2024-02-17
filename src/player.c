@@ -160,7 +160,7 @@ void calcPreferredSize()
 
 void shortenString(char *str, size_t maxLength)
 {
-        int length = strlen(str);
+        size_t length = strlen(str);
 
         if (length > maxLength)
         {
@@ -402,7 +402,7 @@ int calcElapsedBars(double elapsedSeconds, double duration, int numProgressBars)
         return (int)((elapsedSeconds / duration) * numProgressBars);
 }
 
-void printProgress(double elapsed_seconds, double total_seconds, double total_duration_seconds, PlayList const *playlist)
+void printProgress(double elapsed_seconds, double total_seconds)
 {
         int progressWidth = 39;
         int term_w, term_h;
@@ -446,7 +446,7 @@ void printMetadata(TagSettings const *metadata)
         printBasicMetadata(metadata);
 }
 
-void printTime(PlayList const *playlist)
+void printTime()
 {
         if (!timeEnabled || appState.currentView == LIBRARY_VIEW || appState.currentView == PLAYLIST_VIEW)
                 return;
@@ -455,7 +455,7 @@ void printTime(PlayList const *playlist)
         getTermSize(&term_w, &term_h);
         printBlankSpaces(indent);
         if (term_h > minHeight)
-                printProgress(elapsed, duration, totalDurationSeconds, playlist);
+                printProgress(elapsed, duration);
 }
 
 int getRandomNumber(int min, int max)
@@ -1387,7 +1387,7 @@ int printPlayer(SongData *songdata, double elapsedSeconds, PlayList *playlist, b
                         printMetadata(songdata->metadata);
                         refresh = false;
                 }
-                printTime(playlist);
+                printTime();
                 printVisualizer();
         }
 
