@@ -1026,6 +1026,7 @@ void handleOptions(int *argc, char *argv[])
         const char *noUiOption = "--noui";
         const char *noCoverOption = "--nocover";
         const char *quitOnStop = "--quitonstop";
+        const char *quitOnStop2 = "-q";
         const char *exactOption = "--exact";
         const char *exactOption2 = "-e";
 
@@ -1056,7 +1057,7 @@ void handleOptions(int *argc, char *argv[])
         idx = -1;
         for (int i = 0; i < *argc; i++)
         {
-                if (c_strcasestr(argv[i], quitOnStop))
+                if (c_strcasestr(argv[i], quitOnStop) || c_strcasestr(argv[i], quitOnStop2))
                 {
                         quitAfterStopping = true;
                         idx = i;
