@@ -481,6 +481,7 @@ void setConfig()
         fprintf(file, "allowNotifications=%s\n", settings.allowNotifications);
         fprintf(file, "hideLogo=%s\n", settings.hideLogo);
         fprintf(file, "hideHelp=%s\n", settings.hideHelp);
+        fprintf(file, "lastVolume=%s\n", settings.lastVolume);
 
         fprintf(file, "\n# Color values are 0=Black, 1=Red, 2=Green, 3=Yellow, 4=Blue, 5=Magenta, 6=Cyan, 7=White\n");
         fprintf(file, "# These mostly affect the library view.\n\n");
@@ -513,7 +514,7 @@ void setConfig()
         fprintf(file, "seekForward=%s\n", settings.seekForward);
         fprintf(file, "savePlaylist=%s\n", settings.savePlaylist);
         fprintf(file, "addToMainPlaylist=%s\n", settings.addToMainPlaylist);
-        fprintf(file, "lastVolume=%s\n", settings.lastVolume);
+
 
         fprintf(file, "quit=%s\n\n", settings.quit);
         fprintf(file, "# For special keys use terminal codes: OS, for F4 for instance. This can depend on the terminal.\n");
