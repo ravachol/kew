@@ -28,23 +28,6 @@ char *stringToUpper(char *str)
         return str;
 }
 
-void replaceChr(char *str, char toReplace, char replacement)
-{
-        if (str == NULL)
-        {
-                return;
-        }
-        size_t length = strlen(str);
-
-        for (size_t i = 0; i < length; i++)
-        {
-                if (str[i] == toReplace)
-                {
-                        str[i] = replacement;
-                }
-        }
-}
-
 char *c_strcasestr(const char *haystack, const char *needle)
 {
         if (!haystack || !needle)
@@ -121,19 +104,6 @@ int endsWith(const char *str, const char *suffix)
         return strcmp(strSuffix, suffix) == 0;
 }
 
-bool containsCharacter(const char *str, const char character)
-{
-        while (*str != '\0')
-        {
-                if (*str == character)
-                {
-                        return true;
-                }
-                str++;
-        }
-        return false;
-}
-
 void trim(char *str)
 {
         char *start = str;
@@ -151,16 +121,5 @@ void trim(char *str)
         if (str != start)
         {
                 memmove(str, start, end - start + 2);
-        }
-}
-
-void removeSubstring(char *str, const char *substr)
-{
-        int len = strlen(substr);
-        char *p = strstr(str, substr);
-
-        if (p != NULL)
-        {
-                memmove(p, p + len, strlen(p + len) + 1);
         }
 }
