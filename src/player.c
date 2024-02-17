@@ -24,7 +24,7 @@ typedef struct
 
 AppState appState;
 
-const char VERSION[] = "2.3.2";
+const char VERSION[] = "2.4";
 int mainColor = 6;
 int titleColor = 6;
 int artistColor = 6;
