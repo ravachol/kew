@@ -174,7 +174,8 @@ void printHelp()
         printf("\n");
         printf("Usage:    kew path \"path to music library\"\n");
         printf("          (Saves the music library path. Use this the first time. Ie: kew path \"/home/joe/Music/\")\n");
-        printf("          kew (no argument, loads all your songs up to 10 000)\n");
+        printf("          kew (no argument, opens library)\n");
+        printf("          kew all (loads all your songs up to 10 000)\n");
         printf("          kew <song name,directory or playlist words>\n");
         printf("          kew --help, -? or -h\n");
         printf("          kew --version or -v\n");
@@ -183,6 +184,7 @@ void printHelp()
         printf("          kew list <m3u list name> \n");
         printf("          kew shuffle <dir name> (random and rand works too)\n");
         printf("          kew artistA:artistB (plays artistA and artistB shuffled)");
+        printf("          kew . (plays kew.m3u file)");
         printf("\n");
         printf("Examples: kew moon (Plays the first song or directory it finds that has the word moon, ie moonlight sonata)\n");
         printf("          play path \"/home/user/Music\"\n");
@@ -190,7 +192,8 @@ void printHelp()
         printf("kew returns the first directory or file whose name matches the string you provide. ");
         printf("Use quotation marks when providing a path with blank spaces in it or if it's a music file that contains single quotes (').\n");
         printf("Use ←, → or h, l to play the next or previous track in the playlist.\n");
-        printf("Use +, - to adjust volume.\n");
+        printf("Use + (or =), - to adjust volume.\n");
+        printf("Use a, d to seek in a song.\n");
         printf("Press space or p to pause.\n");
         printf("Press F2 to display playlist.\n");
         printf("Press F3 to display music library.\n");
