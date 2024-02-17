@@ -64,7 +64,7 @@ extern "C"
 static uint8_t leftoverBuffer[MAX_SAMPLES * MAX_CHANNELS * MAX_SAMPLE_SIZE];
 // static float leftoverBuffer[MAX_SAMPLES * MAX_CHANNELS];
 
-static int leftoverSampleCount = 0;
+static ma_uint64 leftoverSampleCount = 0;
 
 extern ma_result m4a_decoder_ds_get_data_format(ma_data_source *pDataSource, ma_format *pFormat, ma_uint32 *pChannels, ma_uint32 *pSampleRate, ma_channel *pChannelMap, size_t channelMapCap);
 
@@ -474,7 +474,7 @@ ma_result m4a_decoder_read_pcm_frames(m4a_decoder *pM4a, void *pFramesOut, ma_ui
                         {
                                 while (totalFramesProcessed < frameCount && avcodec_receive_frame(pM4a->codec_context, frame) == 0)
                                 {
-                                        int samplesToProcess = (frame->nb_samples < frameCount - totalFramesProcessed) ? frame->nb_samples : frameCount - totalFramesProcessed;
+                                        int samplesToProcess = (frame->nb_samples < (int)(frameCount - totalFramesProcessed)) ? frame->nb_samples : (int)(frameCount - totalFramesProcessed);
                                         int outputBufferLen = samplesToProcess * channels * pM4a->sampleSize;
 
                                         uint8_t *output_buffer = (uint8_t *)malloc(outputBufferLen);
@@ -486,7 +486,7 @@ ma_result m4a_decoder_read_pcm_frames(m4a_decoder *pM4a, void *pFramesOut, ma_ui
 
                                         for (int i = 0; i < samplesToProcess; i++)
                                         {
-                                                for (int c = 0; c < channels; c++)
+                                                for (ma_uint32 c = 0; c < channels; c++)
                                                 {
                                                         int byteOffset = (i * channels + c) * pM4a->sampleSize;
 
@@ -515,7 +515,7 @@ ma_result m4a_decoder_read_pcm_frames(m4a_decoder *pM4a, void *pFramesOut, ma_ui
 
                                                 for (int i = samplesToProcess; i < frame->nb_samples; i++)
                                                 {
-                                                        for (int c = 0; c < channels; c++)
+                                                        for (ma_uint32 c = 0; c < channels; c++)
                                                         {
                                                                 int byteOffset = ((i - samplesToProcess) * channels + c) * pM4a->sampleSize;
                                                                 memcpy(leftoverBuffer + byteOffset, (uint8_t *)frame->extended_data[c] + i * pM4a->sampleSize, pM4a->sampleSize);
@@ -552,7 +552,7 @@ MA_API ma_result m4a_decoder_seek_to_pcm_frame(m4a_decoder *pM4a, ma_uint64 fram
         }
 
         AVStream *stream = NULL;
-        for (int i = 0; i < pM4a->format_context->nb_streams; i++)
+        for (unsigned int i = 0; i < pM4a->format_context->nb_streams; i++)
         {
                 if (pM4a->format_context->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO)
                 {
@@ -670,7 +670,7 @@ MA_API ma_result m4a_decoder_get_length_in_pcm_frames(m4a_decoder *pM4a, ma_uint
         }
 
         AVStream *audio_stream = NULL;
-        for (int i = 0; i < pM4a->format_context->nb_streams; i++)
+        for (unsigned int i = 0; i < pM4a->format_context->nb_streams; i++)
         {
                 if (pM4a->format_context->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO)
                 {
