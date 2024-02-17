@@ -48,9 +48,9 @@ typedef struct
         gchar *trackId;
         char filePath[MAXPATHLEN];
         char coverArtPath[MAXPATHLEN];
-        unsigned char *red;
-        unsigned char *green;
-        unsigned char *blue;
+        unsigned char red;
+        unsigned char green;
+        unsigned char blue;
         TagSettings *metadata;
         FIBITMAP *cover;
         double duration;

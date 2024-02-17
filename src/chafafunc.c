@@ -422,7 +422,7 @@ void checkIfBrightPixel(unsigned char r, unsigned char g, unsigned char b, bool 
         }
 }
 
-int getCoverColor(FIBITMAP *bitmap, unsigned char **r, unsigned char **g, unsigned char **b)
+int getCoverColor(FIBITMAP *bitmap, unsigned char *r, unsigned char *g, unsigned char *b)
 {
         int rwidth = FreeImage_GetWidth(bitmap);
         int rheight = FreeImage_GetHeight(bitmap);
@@ -436,9 +436,6 @@ int getCoverColor(FIBITMAP *bitmap, unsigned char **r, unsigned char **g, unsign
 
         bool found = false;
         int numPixels = rwidth * rheight;
-        *r = (unsigned char *)malloc(sizeof(unsigned char));
-        *g = (unsigned char *)malloc(sizeof(unsigned char));
-        *b = (unsigned char *)malloc(sizeof(unsigned char));
 
         for (int i = 0; i < numPixels; i++)
         {
@@ -462,18 +459,12 @@ int getCoverColor(FIBITMAP *bitmap, unsigned char **r, unsigned char **g, unsign
 
                 if (found)
                 {
-                        *(*r) = red;
-                        *(*g) = green;
-                        *(*b) = blue;
+                        *(r) = red;
+                        *(g) = green;
+                        *(b) = blue;
                         break;
                 }
         }
 
-        if (!found)
-        {
-                *(*r) = 150;
-                *(*g) = 150;
-                *(*b) = 150;
-        }
         return 0;
 }
