@@ -177,9 +177,9 @@ kew --nocover
 
 kew --noui (completely hides the UI)
 
-kew --quitonstop (exits after finishing playing the playlist)
+kew -q <song>, --quitonstop (exits after finishing playing the playlist)
 
-kew -e, --exact (specifies you want an exact (but not case sensitive) match, of for instance an album)
+kew -e <song>, --exact (specifies you want an exact (but not case sensitive) match, of for instance an album)
 
 kew . loads kew.m3u
 
