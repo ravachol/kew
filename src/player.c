@@ -170,9 +170,9 @@ void shortenString(char *str, size_t maxLength)
 
 void printHelp()
 {
-        printf("kew - a command-line music player.\n");
+        printf(" kew - a command-line music player.\n");
         printf("\n");
-        printf("Usage:    kew path \"path to music library\"\n");
+        printf(" \033[1;4mUsage:\033[0m   kew path \"path to music library\"\n");
         printf("          (Saves the music library path. Use this the first time. Ie: kew path \"/home/joe/Music/\")\n");
         printf("          kew (no argument, opens library)\n");
         printf("          kew all (loads all your songs up to 10 000)\n");
@@ -183,25 +183,23 @@ void printHelp()
         printf("          kew song <song name> \n");
         printf("          kew list <m3u list name> \n");
         printf("          kew shuffle <dir name> (random and rand works too)\n");
-        printf("          kew artistA:artistB (plays artistA and artistB shuffled)");
-        printf("          kew . (plays kew.m3u file)");
+        printf("          kew artistA:artistB (plays artistA and artistB shuffled)\n");
+        printf("          kew . (plays kew.m3u file)\n");
         printf("\n");
-        printf("Examples: kew moon (Plays the first song or directory it finds that has the word moon, ie moonlight sonata)\n");
-        printf("          play path \"/home/user/Music\"\n");
+        printf(" \033[1;4mExample:\033[0m kew moon\n");
+        printf(" (Plays the first song or directory it finds that has the word moon, ie moonlight sonata)\n");
         printf("\n");
-        printf("kew returns the first directory or file whose name matches the string you provide. ");
-        printf("Use quotation marks when providing a path with blank spaces in it or if it's a music file that contains single quotes (').\n");
-        printf("Use ←, → or h, l to play the next or previous track in the playlist.\n");
-        printf("Use + (or =), - to adjust volume.\n");
-        printf("Use a, d to seek in a song.\n");
-        printf("Press space or p to pause.\n");
-        printf("Press F2 to display playlist.\n");
-        printf("Press F3 to display music library.\n");
-        printf("Press F4 to display song info.\n");
-        printf("Press F5 to display key bindings.\n");
-        printf("Press q to quit.\n");
-        printf("\n");
-        printf("To run it with colors displaying correctly, you need a terminal that can handle TrueColor.\n");
+        printf(" kew returns the first directory or file whose name partially matches the string you provide.\n\n");
+        printf(" Use quotes when providing strings with single quotes in them (') or vice versa.\n");
+        printf(" Use ←, → or h, l to play the next or previous track in the playlist.\n");
+        printf(" Use + (or =), - to adjust volume.\n");
+        printf(" Use a, d to seek in a song.\n");
+        printf(" Press space or p to pause.\n");
+        printf(" Press F2 to display playlist.\n");
+        printf(" Press F3 to display music library.\n");
+        printf(" Press F4 to display song info.\n");
+        printf(" Press F5 to display key bindings.\n");
+        printf(" Press q to quit.\n");        
         printf("\n");
 }
 
