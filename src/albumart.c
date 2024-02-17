@@ -66,7 +66,7 @@ char *findLargestImageFile(const char *directoryPath, char *largestImageFile, of
         while ((entry = readdir(directory)) != NULL)
         {
                 char filePath[MAXPATHLEN];
-                snprintf(filePath, sizeof(filePath), "%s/%s", directoryPath, entry->d_name);
+                snprintf(filePath, sizeof(filePath), "%s%s", directoryPath, entry->d_name);
 
                 if (stat(filePath, &fileStats) == -1)
                 {
