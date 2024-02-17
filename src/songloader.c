@@ -44,7 +44,7 @@ void loadMetaData(SongData *songdata)
                 if (tmp != NULL)
                         c_strcpy(songdata->coverArtPath, sizeof(songdata->coverArtPath), tmp);
                 else
-                        return;
+                        c_strcpy(songdata->coverArtPath, sizeof(songdata->coverArtPath), "q");
         }
         else
         {
