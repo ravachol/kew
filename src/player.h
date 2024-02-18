@@ -12,7 +12,7 @@
 #include "playlist.h"
 #include "settings.h"
 #include "songloader.h"
-#include "soundgapless.h"
+#include "sound.h"
 #include "directorytree.h"
 
 extern int mainColor;
