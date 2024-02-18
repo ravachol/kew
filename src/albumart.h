@@ -7,8 +7,6 @@
 #include "../include/imgtotxt/write_ascii.h"
 #include "songloader.h"
 
-extern int indent;
-
 int extractCover(const char *inputFilePath, const char *outputFilePath);
 
 char *findLargestImageFile(const char *directoryPath, char *largestImageFile, off_t *largestFileSize);
@@ -18,7 +16,5 @@ int displayAlbumArt(const char *filepath, int width, int height, bool coverAnsi,
 int calcIdealImgSize(int *width, int *height, const int visualizerHeight, const int metatagHeight);
 
 int displayCover(SongData *songdata, int width, int height, bool ascii);
-
-int getCoverIndent(int desired_width);
 
 #endif

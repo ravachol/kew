@@ -62,6 +62,7 @@ int preferredWidth = 0;
 int preferredHeight = 0;
 int elapsed = 0;
 int textWidth = 0;
+int indent = 0;
 char *tagsPath;
 double totalDurationSeconds = 0.0;
 PixelData color = {125, 125, 125};
@@ -805,12 +806,10 @@ int showPlaylist(SongData *songData)
 
         numRows++;
 
-        PixelData textColor = increaseLuminosity(color, 20);
-
         int aboutRows = printLogo(songData);
         maxListSize -= aboutRows - 1;
 
-        setColor();
+        setDefaultTextColor();
 
         printBlankSpaces(indent);
         if (term_w > 52 && !hideHelp)
@@ -893,6 +892,8 @@ int showPlaylist(SongData *songData)
 
         for (int i = (startFromCurrent ? startIter : 0); i < (startFromCurrent ? startIter : 0) + maxListSize; i++)
         {
+                setDefaultTextColor();
+                
                 if (node == NULL)
                         break;
                 char filePath[MAXPATHLEN];
@@ -901,8 +902,6 @@ int showPlaylist(SongData *songData)
                 char *lastDot = strrchr(filePath, '.');
                 printf("\r");
                 printBlankSpaces(indent);
-
-                setColor();
 
                 if (lastSlash != NULL && lastDot != NULL && lastDot > lastSlash)
                 {
@@ -914,20 +913,13 @@ int showPlaylist(SongData *songData)
                         if (i == chosenSong)
                         {
                                 chosenNodeId = node->id;
-
-                                if (useProfileColors)
-                                        setTextColor(enqueuedColor);
+                                   
                                 printf("\x1b[7m");
                         }
 
                         if (foundNode != NULL && foundNode->id == node->id)
                         {
-                                if (useProfileColors)
-                                {
-                                        printf("\e[1m\e[39m");
-                                }
-                                else
-                                        printf("\033[1;38;2;%03u;%03u;%03um", textColor.r, textColor.g, textColor.b);
+                                printf("\e[1m\e[39m");
                         }
 
                         shortenString(copiedString, term_w - 10 - indent);
@@ -949,8 +941,8 @@ int showPlaylist(SongData *songData)
                         numRows++;
 
                         setTextColorRGB2(color.r, color.g, color.b);
-                        if (useProfileColors)
-                                setDefaultTextColor();
+
+                        setDefaultTextColor();
                 }
                 node = node->next;
         }
@@ -1007,7 +999,7 @@ void printVisualizer()
                 visualizerWidth = (visualizerWidth > term_w - 2) ? term_w - 2 : visualizerWidth;
                 numProgressBars = (int)visualizerWidth / 2;
 
-                drawSpectrumVisualizer(visualizerHeight, visualizerWidth, color);
+                drawSpectrumVisualizer(visualizerHeight, visualizerWidth, color, indent);
 
                 printElapsedBars(calcElapsedBars(elapsed, duration, numProgressBars));
                 printLastRow();
@@ -1033,7 +1025,7 @@ void calcIndent(SongData *songdata)
         if (songdata == NULL || appState.currentView != SONG_VIEW)
         {
                 int textWidth = (ABSOLUTE_MIN_WIDTH > preferredWidth) ? ABSOLUTE_MIN_WIDTH : preferredWidth;
-                indent = getCoverIndent(textWidth - 1) - 1;
+                indent = getIndentation(textWidth - 1) - 1;
                 return;
         }
 
@@ -1051,7 +1043,7 @@ void calcIndent(SongData *songdata)
         if (textWidth > maxSize)
                 textWidth = maxSize;
 
-        indent = getCoverIndent(textWidth - 1) - 1;
+        indent = getIndentation(textWidth - 1) - 1;
 }
 
 FileSystemEntry *getCurrentLibEntry()
