@@ -59,7 +59,6 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include "player.h"
 #include "cache.h"
 #include "songloader.h"
-#include "volume.h"
 #include "playerops.h"
 #include "mpris.h"
 #include "soundcommon.h"
