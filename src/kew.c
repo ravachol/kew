@@ -51,7 +51,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include "soundcommon.h"
 #include "sound.h"
 #include "settings.h"
-#include "cutils.h"
+#include "utils.h"
 #include "playlist.h"
 #include "events.h"
 #include "file.h"

@@ -6,7 +6,7 @@
 #include <string.h>
 #include <unistd.h>
 #include "albumart.h"
-#include "cutils.h"
+#include "utils.h"
 #include "term.h"
 #include "visuals.h"
 #include "playlist.h"

@@ -3,7 +3,7 @@
 #include <sys/wait.h>
 #include <unistd.h>
 #include <FreeImage.h>
-#include "cutils.h"
+#include "utils.h"
 #include "file.h"
 #include "cache.h"
 #include "chafafunc.h"
