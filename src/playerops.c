@@ -36,7 +36,7 @@ Node *prevSong = NULL;
 int lastPlayedId = -1;
 
 bool songHasErrors = false;
-bool skipPrev = false;
+bool skipOutOfOrder = false;
 bool skipping = false;
 bool loadingFailed = false;
 bool forceSkip = false;
@@ -92,7 +92,7 @@ void skip()
                 setSkipToNext(true);
         }
 
-        if (!skipPrev)
+        if (!skipOutOfOrder)
                 refresh = true;
 }
 
@@ -1060,7 +1060,7 @@ void skipToPrevSong()
         playbackPlay(&totalPauseSeconds, &pauseSeconds, &pause_time);
 
         skipping = true;
-        skipPrev = true;
+        skipOutOfOrder = true;
         loadedNextSong = false;
         songLoading = true;
         forceSkip = false;
@@ -1097,7 +1097,7 @@ void skipToSong(int id)
         playbackPlay(&totalPauseSeconds, &pauseSeconds, &pause_time);
 
         skipping = true;
-        skipPrev = true;
+        skipOutOfOrder = true;
         loadedNextSong = false;
         songLoading = true;
         forceSkip = false;
@@ -1143,7 +1143,7 @@ void skipToNumberedSong(int songNumber)
         playbackPlay(&totalPauseSeconds, &pauseSeconds, &pause_time);
 
         skipping = true;
-        skipPrev = true;
+        skipOutOfOrder = true;
         loadedNextSong = false;
         songLoading = true;
         forceSkip = false;

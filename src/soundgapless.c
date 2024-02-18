@@ -138,12 +138,7 @@ void builtin_createAudioDevice(UserData *userData, ma_device *device, ma_context
         createDevice(userData, device, context, vtable, builtin_on_audio_frames);
 }
 
-void pcm_createAudioDevice(UserData *userData, ma_device *device, ma_context *context, ma_data_source_vtable *vtable)
-{
-        createDevice(userData, device, context, vtable, pcm_on_audio_frames);
-}
-
-void vorbis_createAudioDevice(UserData *userData, ma_device *device, ma_context *context, ma_data_source_vtable *vtable)
+void vorbis_createAudioDevice(UserData *userData, ma_device *device, ma_context *context)
 {
         ma_result result;
 
@@ -175,7 +170,7 @@ void vorbis_createAudioDevice(UserData *userData, ma_device *device, ma_context 
         emitStringPropertyChanged("PlaybackStatus", "Playing");
 }
 
-void m4a_createAudioDevice(UserData *userData, ma_device *device, ma_context *context, ma_data_source_vtable *vtable)
+void m4a_createAudioDevice(UserData *userData, ma_device *device, ma_context *context)
 {
         ma_result result;
 
@@ -208,7 +203,7 @@ void m4a_createAudioDevice(UserData *userData, ma_device *device, ma_context *co
         emitStringPropertyChanged("PlaybackStatus", "Playing");
 }
 
-void opus_createAudioDevice(UserData *userData, ma_device *device, ma_context *context, ma_data_source_vtable *vtable)
+void opus_createAudioDevice(UserData *userData, ma_device *device, ma_context *context)
 {
         ma_result result;
 
@@ -361,7 +356,7 @@ int switchAudioImplementation()
                         resetOpusDecoders();
                         resetAudioBuffer();
 
-                        opus_createAudioDevice(&userData, getDevice(), &context, &pcm_file_data_source_vtable);
+                        opus_createAudioDevice(&userData, getDevice(), &context);
 
                         pthread_mutex_unlock(&dataSourceMutex);
 
@@ -406,7 +401,7 @@ int switchAudioImplementation()
                         resetOpusDecoders();
                         resetAudioBuffer();
 
-                        vorbis_createAudioDevice(&userData, getDevice(), &context, &pcm_file_data_source_vtable);
+                        vorbis_createAudioDevice(&userData, getDevice(), &context);
 
                         pthread_mutex_unlock(&dataSourceMutex);
 
@@ -458,7 +453,7 @@ int switchAudioImplementation()
                         resetOpusDecoders();
                         resetAudioBuffer();
 
-                        m4a_createAudioDevice(&userData, getDevice(), &context, &pcm_file_data_source_vtable);
+                        m4a_createAudioDevice(&userData, getDevice(), &context);
 
                         pthread_mutex_unlock(&dataSourceMutex);
 

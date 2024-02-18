@@ -4,6 +4,7 @@
 
 #include <stdbool.h>
 #include "songloader.h"
+#include "player.h"
 
 #ifndef CLOCK_MONOTONIC
 #define CLOCK_MONOTONIC 1
@@ -46,7 +47,7 @@ extern volatile bool clearingErrors;
 extern volatile bool songLoading;
 extern struct timespec start_time;
 extern bool skipping;
-extern bool skipPrev;
+extern bool skipOutOfOrder;
 extern Node *tryNextSong;
 extern struct timespec lastInputTime;
 extern struct timespec lastPlaylistChangeTime;

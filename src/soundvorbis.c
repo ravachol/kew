@@ -62,24 +62,9 @@ void vorbis_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_ui
                         return;
                 }
 
-
-                // Check if seeking is requested
                 if (isSeekRequested())
                 {
-                        // ma_uint64 cursor;
-                        // ma_data_source_get_cursor_in_pcm_frames(decoder, &cursor);
-                        //  FIXME Implement this properly
-                        //  double percElapsed = getPercentageElapsed();
-                        //  ma_uint64 approxTotalFrames = cursor / percElapsed;
-                        //  ma_uint64 targetFrame = (approxTotalFrames * getSeekPercentage()) / 100;
-
-                        // // // Set the read pointer for the decoder
-                        // ma_result seekResult = ma_libvorbis_seek_to_pcm_frame(decoder, tagetFrame);
-                        // if (seekResult != MA_SUCCESS)
-                        // {
-
-                        //         break;
-                        // }
+                        // disabled for ogg vorbis
                         setSeekRequested(false);
                 }
 

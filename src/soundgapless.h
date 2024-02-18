@@ -19,7 +19,6 @@
 #include "soundopus.h"
 #include "soundvorbis.h"
 #include "soundm4a.h"
-#include "soundpcm.h"
 #include "volume.h"
 
 #ifndef USERDATA_STRUCT

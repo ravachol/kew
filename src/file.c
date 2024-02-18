@@ -2,9 +2,6 @@
 #define _DEFAULT_SOURCE
 #endif
 #include "file.h"
-#ifndef MAXPATHLEN
-#define MAXPATHLEN 4096
-#endif
 
 /*
 

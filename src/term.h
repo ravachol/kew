@@ -25,14 +25,7 @@
 # define _BSD_SOURCE
 #endif
 
-#define ANSI_COLOR_CLEARLINE "\x1b[2K\r"
-#define ANSI_COLOR_WHITE "\x1b[37m"
-#define ANSI_COLOR_RESET "\x1b[0m"
-#define ANSI_GET_CURSOR_POS "\033[6n"
-#define ANSI_SET_CURSOR_POS "\033[%d;%dH"
-
 extern volatile sig_atomic_t resizeFlag;
-extern bool useProfileColors;
 
 void setTextColor(int color);
 
