@@ -6,7 +6,7 @@
 #include <math.h>
 #include <locale.h>
 #include <complex.h>
-#include "soundgapless.h"
+#include "sound.h"
 #include "term.h"
 
 void initVisuals();

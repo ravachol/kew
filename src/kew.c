@@ -48,7 +48,8 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include <gio/gio.h>
 #include <glib-unix.h>
 
-#include "soundgapless.h"
+#include "soundcommon.h"
+#include "sound.h"
 #include "settings.h"
 #include "cutils.h"
 #include "playlist.h"
@@ -61,7 +62,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include "songloader.h"
 #include "playerops.h"
 #include "mpris.h"
-#include "soundcommon.h"
+
 
 // #define DEBUG 1
 #define MAX_SEQ_LEN 1024    // Maximum length of sequence buffer

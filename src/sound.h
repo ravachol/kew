@@ -1,5 +1,5 @@
-#ifndef SOUNDGAPLESS_H
-#define SOUNDGAPLESS_H
+#ifndef SOUND_H
+#define SOUND_H
 #include <miniaudio.h>
 #include <stdio.h>
 #include <stdlib.h>
