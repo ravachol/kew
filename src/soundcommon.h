@@ -253,4 +253,10 @@ void executeSwitch(AudioData *pPCMDataSource);
 
 int displaySongNotification(const char *artist, const char *title, const char *cover);
 
+int getCurrentVolume(void);
+
+void setVolume(int volume);
+
+int adjustVolumePercent(int volumeChange);
+
 #endif

@@ -2,7 +2,7 @@
 #include <string.h>
 #include "settings.h"
 #include "cutils.h"
-#include "volume.h"
+#include "soundcommon.h"
 /*
 
 settings.c

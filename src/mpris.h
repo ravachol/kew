@@ -4,8 +4,8 @@
 #include <glib.h>
 #include <gio/gio.h>
 #include "songloader.h"
+#include "soundcommon.h"
 #include "soundgapless.h"
-#include "volume.h"
 #include "playlist.h"
 #include "playerops.h"
 
