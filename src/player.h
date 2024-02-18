@@ -48,6 +48,7 @@ extern bool allowChooseSongs;
 extern int chosenLibRow;
 extern int chosenRow;
 extern int chosenNodeId;
+extern bool useProfileColors;
 
 typedef enum {
     SONG_VIEW,
