@@ -10,7 +10,7 @@
 #include <FreeImage.h>
 #include <stdatomic.h>
 #include "file.h"
-#include "cutils.h"
+#include "utils.h"
 #include "player.h"
 
 #ifndef MAXPATHLEN

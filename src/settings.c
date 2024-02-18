@@ -1,7 +1,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include "settings.h"
-#include "cutils.h"
+#include "utils.h"
 #include "soundcommon.h"
 /*
 
