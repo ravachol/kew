@@ -14,7 +14,6 @@
 #include <regex.h>
 #include <pwd.h>
 #include <sys/types.h>
-#include "stringfunc.h"
 #include "cutils.h"
 
 #ifndef MAXPATHLEN

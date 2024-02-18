@@ -76,10 +76,10 @@ typedef struct
         char hardRemove[6];
         char lastVolume[6];
         char allowNotifications[2];
-        char color[6];       
-        char artistColor[6];
-        char enqueuedColor[6];
-        char titleColor[6];
+        char color[2];       
+        char artistColor[2];
+        char enqueuedColor[2];
+        char titleColor[2];
         char hideLogo[2];
         char hideHelp[2];
 } AppSettings;

@@ -1,7 +1,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include "settings.h"
-#include "stringfunc.h"
+#include "cutils.h"
 #include "volume.h"
 /*
 
