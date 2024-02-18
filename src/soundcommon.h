@@ -11,7 +11,6 @@
 #include <stdatomic.h>
 #include "file.h"
 #include "cutils.h"
-#include "stringfunc.h"
 #include "player.h"
 
 #ifndef MAXPATHLEN

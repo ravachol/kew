@@ -6,8 +6,6 @@
 #include "songloader.h"
 #include "soundcommon.h"
 
-extern const ma_data_source_vtable vorbis_file_data_source_vtable;
-
 MA_API ma_result ma_libvorbis_read_pcm_frames_wrapper(void *pDecoder, void* pFramesOut, size_t frameCount, size_t *pFramesRead);
 
 MA_API ma_result ma_libvorbis_seek_to_pcm_frame_wrapper(void *pDecoder, long long int frameIndex, ma_seek_origin origin);

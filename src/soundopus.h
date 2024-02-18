@@ -6,8 +6,6 @@
 #include "songloader.h"
 #include "soundcommon.h"
 
-extern const ma_data_source_vtable opus_file_data_source_vtable;
-
 void opus_on_audio_frames(ma_device *pDevice, void *pFramesOut, const void *pFramesIn, ma_uint32 frameCount);
 
 MA_API ma_result ma_libopus_read_pcm_frames_wrapper(void *pDecoder, void* pFramesOut, size_t frameCount, size_t *pFramesRead);

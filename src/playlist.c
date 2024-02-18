@@ -12,7 +12,7 @@
 #include "cutils.h"
 #include "playlist.h"
 #include "file.h"
-#include "stringfunc.h"
+#include "cutils.h"
 #include "settings.h"
 /*
 
