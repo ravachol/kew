@@ -14,7 +14,7 @@
 #include "file.h"
 #include "../include/imgtotxt/options.h"
 #include "songloader.h"
-#include "stringfunc.h"
+#include "cutils.h"
 #include "term.h"
 #include "albumart.h"
 #include "cache.h"

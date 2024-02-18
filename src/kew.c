@@ -49,7 +49,6 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include <glib-unix.h>
 
 #include "soundgapless.h"
-#include "stringfunc.h"
 #include "settings.h"
 #include "cutils.h"
 #include "playlist.h"
