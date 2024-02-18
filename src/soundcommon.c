@@ -1074,7 +1074,7 @@ int displaySongNotification(const char *artist, const char *title, const char *c
 
         if (strlen(artist) <= 0)
         {
-                snprintf(command, sizeof(command), "notify-send -t 3000 -a \"kew\" \"%s\" --icon \"%s\"", sanitizedTitle, sanitized_cover);
+                snprintf(command, sizeof(command), "notify-send -a \"kew\" \"%s\" --icon \"%s\"", sanitizedTitle, sanitized_cover);
         }
         else
         {

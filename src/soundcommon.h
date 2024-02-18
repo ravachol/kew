@@ -18,10 +18,6 @@
 #define MAXPATHLEN 4096
 #endif
 
-#define CHANNELS 2
-#define SAMPLE_RATE 192000
-#define SAMPLE_WIDTH 3
-
 #ifndef MAX_BUFFER_SIZE
 #define MAX_BUFFER_SIZE 4800
 #endif

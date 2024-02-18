@@ -9,9 +9,11 @@
 
 #include <time.h>
 #include <string.h>
+
 void c_sleep(int milliseconds);
 
 void c_usleep(int microseconds);
 
 void c_strcpy(char *dest, size_t dest_size, const char *src);
+
 #endif

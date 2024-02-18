@@ -212,3 +212,11 @@ int readInputSequence(char *seq, size_t seqSize)
         seq[bytesRead] = '\0';
         return bytesRead;
 }
+
+int getIndentation(int terminalWidth)
+{
+        int term_w, term_h;
+        getTermSize(&term_w, &term_h);
+        int indent = ((term_w - terminalWidth) / 2) + 1;
+        return (indent > 0) ? indent : 0;
+}
