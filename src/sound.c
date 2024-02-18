@@ -2,12 +2,12 @@
 #define MA_NO_ENGINE
 #define MINIAUDIO_IMPLEMENTATION
 #include <miniaudio.h>
-#include "soundgapless.h"
+#include "sound.h"
 #include "mpris.h"
 
 /*
 
-soundgapless.c
+sound.c
 
  Functions related to miniaudio implementation
 

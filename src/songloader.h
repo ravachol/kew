@@ -8,7 +8,7 @@
 #include "cache.h"
 #include "chafafunc.h"
 #include "albumart.h"
-#include "soundgapless.h"
+#include "sound.h"
 #include "soundcommon.h"
 
 #ifndef MAXPATHLEN
