@@ -1,7 +1,12 @@
 #include "visuals.h"
 
-#define CHANNELS 2
-#define BEAT_THRESHOLD 0.3
+/*
+
+visuals.c
+
+ This file should contain only functions related to the spectrum visualizer.
+
+*/
 
 #ifndef MAX_BUFFER_SIZE
 #define MAX_BUFFER_SIZE 4800
@@ -14,13 +19,7 @@ float lastMax = 90;
 bool unicodeSupport = false;
 fftwf_complex *fftInput = NULL;
 fftwf_complex *fftOutput = NULL;
-/*
 
-visuals.c
-
- This file should contain only functions related to the spectrum visualizer.
-
-*/
 int bufferIndex = 0;
 
 float magnitudeBuffer[MAX_BUFFER_SIZE] = {0.0f};
@@ -259,17 +258,7 @@ PixelData increaseLuminosity(PixelData pixel, int amount)
         return pixel2;
 }
 
-PixelData decreaseLuminosity(PixelData pixel, int amount)
-{
-        PixelData pixel2;
-        pixel2.r = pixel.r - amount >= amount ? pixel.r - amount : amount;
-        pixel2.g = pixel.g - amount >= amount ? pixel.g - amount : amount;
-        pixel2.b = pixel.b - amount >= amount ? pixel.b - amount : amount;
-
-        return pixel2;
-}
-
-void printSpectrum(int height, int width, float *magnitudes, PixelData color)
+void printSpectrum(int height, int width, float *magnitudes, PixelData color, int indentation)
 {
         printf("\n");
         clearRestOfScreen();
@@ -279,12 +268,12 @@ void printSpectrum(int height, int width, float *magnitudes, PixelData color)
         for (int j = height; j > 0; j--)
         {
                 printf("\r");
-                printBlankSpaces(indent);
+                printBlankSpaces(indentation);
                 if (color.r != 0 || color.g != 0 || color.b != 0)
                 {
                         if (!useProfileColors)
                         {
-                                tmp = increaseLuminosity(color, round(j * height * 2));
+                                tmp = increaseLuminosity(color, round(j * height * 4));
                                 printf("\033[38;2;%d;%d;%dm", tmp.r, tmp.g, tmp.b);
                         }
                 }
@@ -348,7 +337,7 @@ void freeVisuals()
         }
 }
 
-void drawSpectrumVisualizer(int height, int width, PixelData c)
+void drawSpectrumVisualizer(int height, int width, PixelData c, int indentation)
 {
         bufferSize = getBufferSize();
         PixelData color;
@@ -397,7 +386,7 @@ void drawSpectrumVisualizer(int height, int width, PixelData c)
 
         calcSpectrum(height, numBars, fftInput, fftOutput, magnitudes, plan);
 
-        printSpectrum(height, numBars, magnitudes, color);
+        printSpectrum(height, numBars, magnitudes, color, indentation);
 
         fftwf_destroy_plan(plan);
 }

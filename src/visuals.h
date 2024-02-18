@@ -6,19 +6,15 @@
 #include <math.h>
 #include <locale.h>
 #include <complex.h>
-#include "albumart.h"
 #include "soundgapless.h"
 #include "term.h"
-#include "write_ascii.h"
 
 void initVisuals();
 
 void freeVisuals();
 
-void drawSpectrumVisualizer(int height, int width, PixelData c);
+void drawSpectrumVisualizer(int height, int width, PixelData c, int indentation);
 
 PixelData increaseLuminosity(PixelData pixel, int amount);
-
-PixelData decreaseLuminosity(PixelData pixel, int amount);
 
 void printBlankSpaces(int numSpaces);

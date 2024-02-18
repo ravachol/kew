@@ -31,8 +31,6 @@ albumart.c
 #define MAXPATHLEN 4096
 #endif
 
-FIBITMAP *bitmap;
-int indent = 0;
 
 int compareEntries(const struct dirent **a, const struct dirent **b)
 {
@@ -69,8 +67,7 @@ char *findLargestImageFile(const char *directoryPath, char *largestImageFile, of
                 snprintf(filePath, sizeof(filePath), "%s%s", directoryPath, entry->d_name);
 
                 if (stat(filePath, &fileStats) == -1)
-                {
-                        // fprintf(stderr, "Failed to get file stats: %s\n", filePath);
+                {                        
                         continue;
                 }
 
@@ -118,14 +115,6 @@ int calcIdealImgSize(int *width, int *height, const int visualizerHeight, const 
                 *width -= 1;
         }
         return 0;
-}
-
-int getCoverIndent(int desired_width)
-{
-        int term_w, term_h;
-        getTermSize(&term_w, &term_h);
-        int indent = ((term_w - desired_width) / 2) + 1;
-        return (indent > 0) ? indent : 0;
 }
 
 int displayCover(SongData *songdata, int width, int height, bool ansii)

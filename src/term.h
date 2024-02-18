@@ -33,6 +33,8 @@ void setTextColorRGB(int r, int g, int b);
 
 void getTermSize(int *width, int *height);
 
+int getIndentation(int terminalWidth);
+
 void setNonblockingMode(void);
 
 void restoreTerminalMode(void);
