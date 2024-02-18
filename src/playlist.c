@@ -9,10 +9,9 @@
 #include <string.h>
 #include <time.h>
 #include <ctype.h>
-#include "cutils.h"
+#include "utils.h"
 #include "playlist.h"
 #include "file.h"
-#include "cutils.h"
 #include "settings.h"
 /*
 

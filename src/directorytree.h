@@ -7,7 +7,7 @@
 #include <sys/types.h>
 #include <regex.h>
 #include "file.h"
-#include "cutils.h"
+#include "utils.h"
 #include "albumart.h"
 
 #ifndef FILE_SYSTEM_ENTRY
