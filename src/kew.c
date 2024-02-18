@@ -70,15 +70,13 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #define MAX_TMP_SEQ_LEN 256 // Maximum length of temporary sequence buffer
 #define COOLDOWN_MS 500
 #define COOLDOWN2_MS 100
-#define DELAYEDACTIONWAIT 3000
-#define NUMKEYMAPPINGS = 30
+
 FILE *logFile = NULL;
 struct winsize windowSize;
 static bool eventProcessed = false;
 char digitsPressed[MAX_SEQ_LEN];
 int digitsPressedCount = 0;
 int maxDigitsPressedCount = 9;
-bool gotoSong = false;
 bool gPressed = false;
 bool loadingAudioData = false;
 bool goingToSong = false;
@@ -382,7 +380,7 @@ void notifySongSwitch()
 
 void prepareNextSong()
 {
-        if (!skipPrev && !gotoSong && !isRepeatEnabled())
+        if (!skipOutOfOrder && !isRepeatEnabled())
         {
                 if (currentSong != NULL)
                         lastPlayedId = currentSong->id;
@@ -390,8 +388,7 @@ void prepareNextSong()
         }
         else
         {
-                skipPrev = false;
-                gotoSong = false;
+                skipOutOfOrder = false;
         }
 
         finishLoading();

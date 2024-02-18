@@ -17,10 +17,6 @@
 #include "stringfunc.h"
 #include "cutils.h"
 
-#define RETRY_DELAY_MILLISECONDS 100
-#define MAX_RETRY_COUNT 20
-#define MAX_FILENAME_LENGTH 256
-
 #ifndef MAXPATHLEN
 #define MAXPATHLEN 4096
 #endif

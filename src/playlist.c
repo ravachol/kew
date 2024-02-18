@@ -22,7 +22,7 @@ Playlist related functions.
 
 */
 #define MAX_SEARCH_SIZE 256
-#define MAX_FILES 20000
+#define MAX_FILES 10000
 
 #ifndef MAXPATHLEN
 #define MAXPATHLEN 4096
