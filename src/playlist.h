@@ -99,6 +99,8 @@ Node *deepCopyNode(Node *originalNode);
 
 PlayList deepCopyPlayList(PlayList *originalList);
 
+void deepCopyPlayListOntoList(PlayList *originalList, PlayList *newList);
+
 Node *findSongInPlaylist(Node *currentSong, PlayList *playlist);
 
 Node *findPathInPlaylist(char *path, PlayList *playlist);

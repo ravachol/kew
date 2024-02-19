@@ -241,7 +241,12 @@ void toggleShuffle()
 
         if (shuffleEnabled)
         {
+                pthread_mutex_lock(&(playlist.mutex));
+
                 shufflePlaylistStartingFromSong(&playlist, currentSong);
+                
+                pthread_mutex_unlock(&(playlist.mutex));
+
                 emitBooleanPropertyChanged("Shuffle", TRUE);
         }
         else
@@ -251,14 +256,20 @@ void toggleShuffle()
                 {
                         path = strdup(currentSong->song.filePath);
                 }
-                deletePlaylist(&playlist);
-                playlist = deepCopyPlayList(originalPlaylist);
 
+                pthread_mutex_lock(&(playlist.mutex));
+                
+                deletePlaylist(&playlist); // Doesn't destroy the mutex
+                deepCopyPlayListOntoList(originalPlaylist, &playlist);
+                
                 if (path != NULL)
                 {
                         currentSong = findPathInPlaylist(path, &playlist);
                         free(path);
                 }
+
+                pthread_mutex_unlock(&(playlist.mutex));
+
                 emitBooleanPropertyChanged("Shuffle", FALSE);
         }
 
