@@ -80,9 +80,9 @@ void updateLastPlaylistChangeTime();
 
 void updateLastInputTime(void);
 
-void playbackPause(double *totalPauseSeconds, double *pauseSeconds, struct timespec *pause_time);
+void playbackPause(struct timespec *pause_time);
 
-void playbackPlay(double *totalPauseSeconds, double *pauseSeconds, struct timespec *pause_time);
+void playbackPlay(double *totalPauseSeconds, double *pauseSeconds);
 
 void togglePause(double *totalPauseSeconds, double *pauseSeconds, struct timespec *pause_time);
 
@@ -90,7 +90,7 @@ void toggleRepeat(void);
 
 void toggleShuffle(void);
 
-void addToPlaylist(void);
+void addToSpecialPlaylist(void);
 
 void toggleBlocks(void);
 

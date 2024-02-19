@@ -366,7 +366,7 @@ bool checkFileBelowMaxSize(const char *filePath, int maxSize)
         return false;
 }
 
-void generateTempFilePath(const char *srcFilePath, char *filePath, const char *prefix, const char *suffix)
+void generateTempFilePath(char *filePath, const char *prefix, const char *suffix)
 {
         const char *tempDir = getenv("TMPDIR");
         if (tempDir == NULL)

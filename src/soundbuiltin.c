@@ -60,6 +60,7 @@ static ma_result builtin_file_data_source_get_cursor(ma_data_source *pDataSource
 
 static ma_result builtin_file_data_source_get_length(ma_data_source *pDataSource, ma_uint64 *pLength)
 {
+        (void)pDataSource;        
         ma_uint64 totalFrames = 0;
 
         if (getCurrentBuiltinDecoder() == NULL)

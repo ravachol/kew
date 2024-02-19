@@ -45,7 +45,7 @@ extern Node *currentSong;
 
 extern PlayList playlist;
 
-extern PlayList *mainPlaylist;
+extern PlayList *specialPlaylist;
 extern PlayList *originalPlaylist;
 extern int nodeIdCounter;
 
