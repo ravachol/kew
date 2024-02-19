@@ -82,7 +82,9 @@ static ma_data_source_vtable g_ma_libvorbis_ds_vtable =
     ma_libvorbis_ds_seek,
     ma_libvorbis_ds_get_data_format,
     ma_libvorbis_ds_get_cursor,
-    ma_libvorbis_ds_get_length
+    ma_libvorbis_ds_get_length,
+    NULL,
+    (ma_uint64) 0
 };
 
 
@@ -301,7 +303,7 @@ MA_API ma_result ma_libvorbis_read_pcm_frames(ma_libvorbis* pVorbis, void* pFram
         totalFramesRead = 0;
         while (totalFramesRead < frameCount) {
             long libvorbisResult;
-            int framesToRead;
+            ma_uint64 framesToRead;
             ma_uint64 framesRemaining;
 
             framesRemaining = (frameCount - totalFramesRead);
