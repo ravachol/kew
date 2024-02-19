@@ -99,7 +99,9 @@ ma_data_source_vtable g_m4a_decoder_ds_vtable =
         m4a_decoder_ds_seek,
         m4a_decoder_ds_get_data_format,
         m4a_decoder_ds_get_cursor,
-        m4a_decoder_ds_get_length};
+        m4a_decoder_ds_get_length,
+        NULL,
+        (ma_uint64)0};
 
 // Custom FFmpeg read function wrapper
 int m4a_ffmpeg_read(void *opaque, uint8_t *buf, int buf_size)
@@ -296,7 +298,7 @@ MA_API ma_result m4a_decoder_init(
 MA_API ma_result m4a_decoder_init_file(const char *pFilePath, const ma_decoding_backend_config *pConfig, const ma_allocation_callbacks *pAllocationCallbacks, m4a_decoder *pM4a)
 {
         (void)pAllocationCallbacks;
-        
+
         if (pFilePath == NULL || pM4a == NULL)
         {
                 return MA_INVALID_ARGS;
@@ -624,7 +626,19 @@ MA_API ma_result m4a_decoder_get_data_format(
 
         if (pChannels != NULL)
         {
-                *pChannels = pM4a->codec_context->channels; // deprecated but ch_layout.nb_channels is only available in devel releases.                
+
+                for (unsigned int i = 0; i < pM4a->format_context->nb_streams; i++)
+                {
+                        if (pM4a->format_context->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO)
+                        {
+
+#if (LIBAVCODEC_VERSION_MAJOR > 59) || ((LIBAVCODEC_VERSION_MAJOR == 59) && (LIBAVCODEC_VERSION_MINOR > 24))
+                                *pChannels = pM4a->format_context->streams[i]->codecpar->ch_layout.nb_channels;
+#else
+                                *pChannels = pM4a->format_context->streams[i]->codecpar->channels;
+#endif
+                        }
+                }
         }
 
         if (pSampleRate != NULL)

@@ -80,7 +80,9 @@ static ma_data_source_vtable g_ma_libopus_ds_vtable =
     ma_libopus_ds_seek,
     ma_libopus_ds_get_data_format,
     ma_libopus_ds_get_cursor,
-    ma_libopus_ds_get_length
+    ma_libopus_ds_get_length,
+    NULL,
+    (ma_uint64) 0
 };
 
 
@@ -296,7 +298,7 @@ MA_API ma_result ma_libopus_read_pcm_frames(ma_libopus* pOpus, void* pFramesOut,
         totalFramesRead = 0;
         while (totalFramesRead < frameCount) {
             long libopusResult;
-            int framesToRead;
+            ma_uint64 framesToRead;
             ma_uint64 framesRemaining;
 
             framesRemaining = (frameCount - totalFramesRead);

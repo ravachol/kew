@@ -759,6 +759,8 @@ void tryLoadNext()
 
 gboolean mainloop_callback(gpointer data)
 {
+        (void)data;
+        
         calcElapsedTime();
         handleInput();
 
