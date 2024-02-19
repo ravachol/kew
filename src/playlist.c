@@ -712,19 +712,23 @@ Node *findTail(Node *head)
 
 PlayList deepCopyPlayList(PlayList *originalList)
 {
-        PlayList newList = {NULL, NULL, 0, 0.0, PTHREAD_MUTEX_INITIALIZER};
+       PlayList newList = {NULL, NULL, 0, 0.0, PTHREAD_MUTEX_INITIALIZER};
 
+       deepCopyPlayListOntoList(originalList, &newList);
+       return newList;
+}
+
+void deepCopyPlayListOntoList(PlayList *originalList, PlayList *newList)
+{
         if (originalList == NULL)
         {               
-                return newList;
+                return;
         }
 
-        newList.head = deepCopyNode(originalList->head);
-        newList.tail = findTail(newList.head);
-        newList.count = originalList->count;
-        newList.totalDuration = originalList->totalDuration;
-
-        return newList;
+        newList->head = deepCopyNode(originalList->head);
+        newList->tail = findTail(newList->head);
+        newList->count = originalList->count;
+        newList->totalDuration = originalList->totalDuration;
 }
 
 Node *findPathInPlaylist(char *path, PlayList *playlist)

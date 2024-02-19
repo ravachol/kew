@@ -979,9 +979,9 @@ void playMainPlaylist()
         }
         
         playingMainPlaylist = true;
-        playlist = deepCopyPlayList(specialPlaylist);
 
         init();
+        deepCopyPlayListOntoList(specialPlaylist, &playlist);
         shufflePlaylist(&playlist);
         run();
 }
