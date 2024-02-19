@@ -37,7 +37,7 @@ PlayList *originalPlaylist = NULL;
 PlayList playlist = {NULL, NULL, 0, 0.0, PTHREAD_MUTEX_INITIALIZER};
 
 // The playlist from kew.m3u
-PlayList *mainPlaylist = NULL;
+PlayList *specialPlaylist = NULL;
 
 char search[MAX_SEARCH_SIZE];
 char playlistName[MAX_SEARCH_SIZE];
@@ -424,7 +424,7 @@ int makePlaylist(int argc, char *argv[], bool exactSearch)
         int searchTypeIndex = 1;
 
         const char *delimiter = ":";
-        PlayList partialPlaylist = {NULL, NULL, 0, 0.0};
+        PlayList partialPlaylist = {NULL, NULL, 0, 0.0, PTHREAD_MUTEX_INITIALIZER};
 
         const char *allowedExtensions = AUDIO_EXTENSIONS;
 
@@ -586,11 +586,8 @@ void readM3UFile(const char *filename, PlayList *playlist)
 
                         strcat(songPath, line);
 
-                        Node *newNode = (Node *)malloc(sizeof(Node));
-                        newNode->song.filePath = strdup(songPath);
-                        newNode->song.duration = 0.0;
-                        newNode->next = NULL;
-                        newNode->prev = NULL;
+                        Node *newNode = NULL;
+                        createNode(&newNode, songPath, nodeIdCounter++);
 
                         if (playlist->head == NULL)
                         {
@@ -634,17 +631,17 @@ void loadMainPlaylist(const char *directory)
         if (playlistPath[strlen(playlistPath) - 1] != '/')
                 strcat(playlistPath, "/");
         strcat(playlistPath, mainPlaylistName);
-        mainPlaylist = malloc(sizeof(PlayList));
-        if (mainPlaylist == NULL)
+        specialPlaylist = malloc(sizeof(PlayList));
+        if (specialPlaylist == NULL)
         {
                 printf("Failed to allocate memory for mainPlaylist.\n");
                 exit(0);
         }
-        mainPlaylist->count = 0;
-        mainPlaylist->totalDuration = 0;
-        mainPlaylist->head = NULL;
-        mainPlaylist->tail = NULL;
-        readM3UFile(playlistPath, mainPlaylist);
+        specialPlaylist->count = 0;
+        specialPlaylist->totalDuration = 0;
+        specialPlaylist->head = NULL;
+        specialPlaylist->tail = NULL;
+        readM3UFile(playlistPath, specialPlaylist);
 }
 
 void saveMainPlaylist(const char *directory, bool isPlayingMain)
@@ -657,8 +654,8 @@ void saveMainPlaylist(const char *directory, bool isPlayingMain)
 
         if (isPlayingMain && playlist.count > 0)
                 writeM3UFile(playlistPath, &playlist);
-        else if (mainPlaylist != NULL && mainPlaylist->count > 0)
-                writeM3UFile(playlistPath, mainPlaylist);
+        else if (specialPlaylist != NULL && specialPlaylist->count > 0)
+                writeM3UFile(playlistPath, specialPlaylist);
 }
 
 void savePlaylist()
@@ -715,13 +712,13 @@ Node *findTail(Node *head)
 
 PlayList deepCopyPlayList(PlayList *originalList)
 {
+        PlayList newList = {NULL, NULL, 0, 0.0, PTHREAD_MUTEX_INITIALIZER};
+
         if (originalList == NULL)
-        {
-                PlayList newList = {NULL, NULL, 0, 0.0};
+        {               
                 return newList;
         }
 
-        PlayList newList;
         newList.head = deepCopyNode(originalList->head);
         newList.tail = findTail(newList.head);
         newList.count = originalList->count;

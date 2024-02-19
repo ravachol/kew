@@ -242,6 +242,9 @@ MA_API ma_result m4a_decoder_init(
     const ma_allocation_callbacks *pAllocationCallbacks,
     m4a_decoder *pM4a)
 {
+        (void)onTell;
+        (void)pAllocationCallbacks;
+
         if (pM4a == NULL || onRead == NULL || onSeek == NULL)
         {
                 return MA_INVALID_ARGS;
@@ -292,6 +295,8 @@ MA_API ma_result m4a_decoder_init(
 
 MA_API ma_result m4a_decoder_init_file(const char *pFilePath, const ma_decoding_backend_config *pConfig, const ma_allocation_callbacks *pAllocationCallbacks, m4a_decoder *pM4a)
 {
+        (void)pAllocationCallbacks;
+        
         if (pFilePath == NULL || pM4a == NULL)
         {
                 return MA_INVALID_ARGS;

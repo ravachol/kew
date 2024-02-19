@@ -163,7 +163,7 @@ void emitBooleanPropertyChanged(const gchar *propertyName, gboolean newValue)
         g_variant_builder_clear(&changed_properties_builder);
 }
 
-void playbackPause(double *totalPauseSeconds, double *pauseSeconds, struct timespec *pause_time)
+void playbackPause(struct timespec *pause_time)
 {
         if (!isPaused())
         {
@@ -174,7 +174,7 @@ void playbackPause(double *totalPauseSeconds, double *pauseSeconds, struct times
         pausePlayback();
 }
 
-void playbackPlay(double *totalPauseSeconds, double *pauseSeconds, struct timespec *pause_time)
+void playbackPlay(double *totalPauseSeconds, double *pauseSeconds)
 {
         if (isPaused())
         {
@@ -218,14 +218,20 @@ void toggleRepeat()
                 refresh = true;
 }
 
-void addToPlaylist()
+void addToSpecialPlaylist()
 {
-        if (!playingMainPlaylist)
-        {
-                Node *node = NULL;
-                createNode(&node, currentSong->song.filePath, nodeIdCounter++);
-                addToList(mainPlaylist, node);
-        }
+        if (currentSong == NULL)
+                return;
+
+        int id =  currentSong->id;
+        
+        Node *node = NULL;
+
+        if (findSelectedEntryById(specialPlaylist, id) != NULL)  // song is already in list
+                return;
+
+        createNode(&node, currentSong->song.filePath, id);
+        addToList(specialPlaylist, node);
 }
 
 void toggleShuffle()
@@ -753,15 +759,12 @@ void handleRemove()
         if (refresh)
                 return;
 
-        pthread_mutex_lock(&(playlist.mutex));
+        if (appState.currentView != PLAYLIST_VIEW)
+        {         
+                return;
+        }                
 
         bool rebuild = false;
-
-        if (appState.currentView != PLAYLIST_VIEW)
-        {
-                pthread_mutex_unlock(&(playlist.mutex));
-                return;
-        }
 
         Node *node = findSelectedEntry(originalPlaylist, chosenRow);
         Node *song = getNextSong();
@@ -771,15 +774,15 @@ void handleRemove()
 
         if (node != NULL && playlist.head != NULL && playlist.head->id == node->id && playlist.count == 1)
         {
-                pthread_mutex_unlock(&(playlist.mutex));
                 return;
         }
 
         if (currentId == node->id)
         {
-                pthread_mutex_unlock(&(playlist.mutex));
                 return;
         }
+
+        pthread_mutex_lock(&(playlist.mutex));        
 
         if (node != NULL && song != NULL)
         {
@@ -847,7 +850,7 @@ Node *getSongByNumber(PlayList *playlist, int songNumber)
         return song;
 }
 
-int loadDecoder(SongData *songData, char **filename, bool *songDataDeleted)
+int loadDecoder(SongData *songData, bool *songDataDeleted)
 {
         int result = 0;
         if (songData != NULL)
@@ -877,12 +880,12 @@ int assignLoadedData()
         if (loadingdata.loadA)
         {
                 userData.songdataA = loadingdata.songdataA;
-                result = loadDecoder(loadingdata.songdataA, &userData.filenameA, &userData.songdataADeleted);
+                result = loadDecoder(loadingdata.songdataA, &userData.songdataADeleted);
         }
         else
         {
                 userData.songdataB = loadingdata.songdataB;
-                result = loadDecoder(loadingdata.songdataB, &userData.filenameB, &userData.songdataBDeleted);
+                result = loadDecoder(loadingdata.songdataB, &userData.songdataBDeleted);
         }
 
         return result;
@@ -1027,7 +1030,7 @@ void skipToNextSong()
         if (songLoading || nextSongNeedsRebuilding || skipping || clearingErrors)
                 return;
 
-        playbackPlay(&totalPauseSeconds, &pauseSeconds, &pause_time);
+        playbackPlay(&totalPauseSeconds, &pauseSeconds);
 
         skipping = true;
 
@@ -1057,7 +1060,7 @@ void skipToPrevSong()
         else
                 currentSong = currentSong->prev;
 
-        playbackPlay(&totalPauseSeconds, &pauseSeconds, &pause_time);
+        playbackPlay(&totalPauseSeconds, &pauseSeconds);
 
         skipping = true;
         skipOutOfOrder = true;
@@ -1094,7 +1097,7 @@ void skipToSong(int id)
                 if (!forceSkip)
                         return;
 
-        playbackPlay(&totalPauseSeconds, &pauseSeconds, &pause_time);
+        playbackPlay(&totalPauseSeconds, &pauseSeconds);
 
         skipping = true;
         skipOutOfOrder = true;
@@ -1140,7 +1143,7 @@ void skipToNumberedSong(int songNumber)
                 if (!forceSkip)
                         return;
 
-        playbackPlay(&totalPauseSeconds, &pauseSeconds, &pause_time);
+        playbackPlay(&totalPauseSeconds, &pauseSeconds);
 
         skipping = true;
         skipOutOfOrder = true;
