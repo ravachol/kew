@@ -15,6 +15,7 @@ MA_API ma_result m4a_read_pcm_frames_wrapper(void *pDecoder, void *pFramesOut, s
 
 MA_API ma_result m4a_seek_to_pcm_frame_wrapper(void *pDecoder, long long int frameIndex, ma_seek_origin origin)
 {
+        (void)origin;
         ma_decoder *dec = (ma_decoder *)pDecoder;
         return m4a_decoder_seek_to_pcm_frame((m4a_decoder *)dec->pUserData, frameIndex);
 }

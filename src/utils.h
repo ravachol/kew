@@ -35,7 +35,4 @@ int endsWith(const char *str, const char *suffix);
 
 void trim(char *str);
 
-void removeSubstring(char *str, const char *substr);
-
-
 #endif

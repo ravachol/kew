@@ -159,7 +159,7 @@ void loadMetaData(SongData *songdata)
         char path[MAXPATHLEN];
 
         songdata->metadata = malloc(sizeof(TagSettings));
-        generateTempFilePath(songdata->filePath, songdata->coverArtPath, "cover", ".jpg");
+        generateTempFilePath(songdata->coverArtPath, "cover", ".jpg");
         int res = extractTags(songdata->filePath, songdata->metadata, &songdata->duration, songdata->coverArtPath);
 
         if (res < 0)

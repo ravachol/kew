@@ -63,7 +63,6 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include "playerops.h"
 #include "mpris.h"
 
-
 // #define DEBUG 1
 #define MAX_SEQ_LEN 1024    // Maximum length of sequence buffer
 #define MAX_TMP_SEQ_LEN 256 // Maximum length of temporary sequence buffer
@@ -598,10 +597,7 @@ void handleInput()
                 seekForward();
                 break;
         case EVENT_ADDTOMAINPLAYLIST:
-                addToPlaylist();
-                break;
-        case EVENT_DELETEFROMMAINPLAYLIST:
-                // FIXME implement this
+                addToSpecialPlaylist();
                 break;
         case EVENT_EXPORTPLAYLIST:
                 savePlaylist();
@@ -881,8 +877,8 @@ void cleanupOnExit()
         freeMainDirectoryTree();
         deletePlaylist(&playlist);
         deletePlaylist(originalPlaylist);
-        deletePlaylist(mainPlaylist);
-        free(mainPlaylist);
+        deletePlaylist(specialPlaylist);
+        free(specialPlaylist);
         free(originalPlaylist);
         cleanupAudioData();
         setDefaultTextColor();
@@ -974,14 +970,16 @@ void openLibrary()
 
 void playMainPlaylist()
 {
-        if (mainPlaylist->count == 0)
+        if (specialPlaylist->count == 0)
         {
                 printf("Couldn't find any songs in the main playlist. Add a song by pressing '.' while it's playing. \n");
                 exit(0);
         }
-        init();
+        
         playingMainPlaylist = true;
-        playlist = deepCopyPlayList(mainPlaylist);
+        playlist = deepCopyPlayList(specialPlaylist);
+
+        init();
         shufflePlaylist(&playlist);
         run();
 }
@@ -1080,14 +1078,14 @@ int main(int argc, char *argv[])
         if ((argc == 2 && ((strcmp(argv[1], "--help") == 0) || (strcmp(argv[1], "-h") == 0) || (strcmp(argv[1], "-?") == 0))))
         {
                 showHelp();
-                exit(0);                
+                exit(0);
         }
         else if (argc == 2 && (strcmp(argv[1], "--version") == 0 || strcmp(argv[1], "-v") == 0))
         {
                 printAbout(NULL);
-                exit(0);                
+                exit(0);
         }
-        
+
         getConfig();
 
         if (argc == 3 && (strcmp(argv[1], "path") == 0))
@@ -1095,14 +1093,14 @@ int main(int argc, char *argv[])
                 c_strcpy(settings.path, sizeof(settings.path), argv[2]);
                 setConfig();
                 exit(0);
-        }  
+        }
 
         if (settings.path[0] == '\0')
         {
                 printf("Please make sure the path is set correctly. \n");
                 printf("To set it type: kew path \"/path/to/Music\". \n");
                 exit(0);
-        }          
+        }
 
         atexit(cleanupOnExit);
 

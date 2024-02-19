@@ -49,7 +49,7 @@ int removeDirectory(const char *path);
 
 int deleteFile(const char *filePath);
 
-void generateTempFilePath(const char *srcFilePath, char *filePath, const char *prefix, const char *suffix);
+void generateTempFilePath(char *filePath, const char *prefix, const char *suffix);
 
 void deleteTempDir(void);
 

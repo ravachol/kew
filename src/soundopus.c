@@ -15,6 +15,7 @@ MA_API ma_result ma_libopus_read_pcm_frames_wrapper(void *pDecoder, void *pFrame
 
 MA_API ma_result ma_libopus_seek_to_pcm_frame_wrapper(void *pDecoder, long long int frameIndex, ma_seek_origin origin)
 {
+        (void)origin;
         ma_decoder *dec = (ma_decoder *)pDecoder;
         return ma_libopus_seek_to_pcm_frame((ma_libopus *)dec->pUserData, frameIndex);
 }
