@@ -105,7 +105,6 @@ void updateLastPlaylistChangeTime()
 {
         clock_gettime(CLOCK_MONOTONIC, &lastPlaylistChangeTime);
 }
-
 void updateLastInputTime()
 {
         clock_gettime(CLOCK_MONOTONIC, &lastInputTime);

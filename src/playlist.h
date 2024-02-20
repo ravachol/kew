@@ -4,17 +4,16 @@
 #ifndef __USE_XOPEN_EXTENDED
 #define __USE_XOPEN_EXTENDED
 #endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <pthread.h>
-#include <unistd.h>
-#include "songloader.h"
+#include <string.h>
+#include "file.h"
 
 #ifndef PLAYLIST_STRUCT
 #define PLAYLIST_STRUCT
-
-#define MAX_COUNT_PLAYLIST_SONGS 200
 
 typedef struct
 {
@@ -34,9 +33,8 @@ typedef struct
 {
         Node *head;
         Node *tail;
-        int count;       
-        volatile double totalDuration;
-        pthread_mutex_t mutex;        
+        int count; 
+        pthread_mutex_t mutex;
 } PlayList;
 
 extern Node *currentSong;
@@ -53,39 +51,19 @@ Node *getListNext(Node *node);
 
 Node *getListPrev(Node *node);
 
-void createNode(Node **node, char *directoryPath, int id);
+void createNode(Node **node, const char *directoryPath, int id);
 
 void addToList(PlayList *list, Node *newNode);
 
-double calcTotalDuration(PlayList *playList);
-
 Node *deleteFromList(PlayList *list, Node *node);
 
-void byPassNode(PlayList *list, Node *node);
-
 void deletePlaylist(PlayList *playlist);
-
-int compare(const struct dirent **a, const struct dirent **b);
-
-void buildPlaylistRecursive(char *directoryPath, const char *allowedExtensions, PlayList *playlist);
-
-int playDirectory(const char *directoryPath, const char *allowedExtensions, PlayList *playlist);
 
 void shufflePlaylist(PlayList *playlist);
 
 void shufflePlaylistStartingFromSong(PlayList *playlist, Node *song);
 
-int joinPlaylist(PlayList *dest, PlayList *src);
-
-int makePlaylist(int argc, char *argv[], bool exactSearch);
-
-int calculatePlayListDuration(PlayList *playlist);
-
-void stopPlayListDurationCount(void);
-
-void startPlayListDurationCount(void);
-
-void readM3UFile(const char *filename, PlayList *playlist);
+int makePlaylist(int argc, char *argv[], bool exactSearch, const char *path);
 
 void writeM3UFile(const char *filename, PlayList *playlist);
 
@@ -93,15 +71,11 @@ void loadMainPlaylist(const char *directory);
 
 void saveMainPlaylist(const char *directory, bool isPlayingMain);
 
-void savePlaylist(void);
-
-Node *deepCopyNode(Node *originalNode);
+void savePlaylist(const char *path);
 
 PlayList deepCopyPlayList(PlayList *originalList);
 
 void deepCopyPlayListOntoList(PlayList *originalList, PlayList *newList);
-
-Node *findSongInPlaylist(Node *currentSong, PlayList *playlist);
 
 Node *findPathInPlaylist(char *path, PlayList *playlist);
 

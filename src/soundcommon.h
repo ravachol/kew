@@ -58,8 +58,6 @@ typedef struct
 #define USERDATA_STRUCT
 typedef struct
 {
-        char *filenameA;
-        char *filenameB;
         SongData *songdataA;
         SongData *songdataB;
         bool songdataADeleted;
@@ -76,17 +74,10 @@ typedef struct
 {
         ma_data_source_base base;
         UserData *pUserData;
-        const char *filenameA;
-        const char *filenameB;
         ma_format format;
         ma_uint32 channels;
         ma_uint32 sampleRate;
         ma_uint32 currentPCMFrame;
-        ma_decoder decoderA;
-        ma_decoder decoderB;
-        ma_decoder currentDecoder;
-        FILE *fileA;
-        FILE *fileB;
         bool switchFiles;
         int currentFileIndex;
         ma_uint64 totalFrames;

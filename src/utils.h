@@ -7,13 +7,13 @@
 #define __USE_POSIX
 #endif
 
-#include <time.h>
-#include <string.h>
-#include <stdlib.h>
 #include <ctype.h>
 #include <regex.h>
-#include <stdio.h>
 #include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
 
 void c_sleep(int milliseconds);
 
