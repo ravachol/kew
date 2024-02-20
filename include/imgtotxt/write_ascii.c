@@ -48,66 +48,16 @@ unsigned char luminanceFromRGB(unsigned char r, unsigned char g, unsigned char b
     return (unsigned char)(0.2126 * r + 0.7152 * g + 0.0722 * b);
 }
 
-unsigned char calc_ascii_char(PixelData *p, PixelData *brightPixel)
+unsigned char calc_ascii_char(PixelData *p)
 {
     // Calc luminace and use to find Ascii char.
     unsigned char ch = luminanceFromRGB(p->r, p->g, p->b);
     int rescaled = ch * brightness_levels / 256;
-    if (ch > 100 && !brightPixelFound)
-    {
-        brightPixel->r = p->r;
-        brightPixel->g = p->g;
-        brightPixel->b = p->b;
-        brightPixelFound = true;
-    }
+
     return scale[brightness_levels - rescaled];
 }
 
-int getBrightPixel(char *filepath, int width, int height, PixelData *brightPixel)
-{
-    int rwidth, rheight, rchannels;
-    unsigned char *read_data = stbi_load(filepath, &rwidth, &rheight, &rchannels, 3);
-
-    if (read_data == NULL)
-    {
-        fprintf(stderr, "Error reading image data!\n\n");
-        return -1;
-    }
-    brightPixelFound = false;
-    // Check for and do any needed image resizing...
-    PixelData *data;
-    if (width != rwidth || height != rheight)
-    {
-        // 3 * uint8 for RGB!
-        unsigned char *new_data = malloc(3 * sizeof(unsigned char) * width * height);
-        int r = stbir_resize_uint8(
-            read_data, rwidth, rheight, 0,
-            new_data, width, height, 0, 3);
-
-        if (r == 0)
-        {
-            perror("Error resizing image:");
-            return -1;
-        }
-        stbi_image_free(read_data); // Free read_data.
-        data = (PixelData *)new_data;
-    }
-    else
-    {
-        data = (PixelData *)read_data;
-    }
-
-    for (int d = 0; d < width * height; d++)
-    {
-        PixelData *c = data + d;
-
-        calc_ascii_char(c, brightPixel);
-    }
-    stbi_image_free(data);
-    return 0;
-}
-
-int read_and_convert(char *filepath, ImageOptions *options, PixelData *brightPixel)
+int read_and_convert(const char *filepath, ImageOptions *options)
 {
     int rwidth, rheight, rchannels;
     unsigned char *read_data = stbi_load(filepath, &rwidth, &rheight, &rchannels, 3);
@@ -169,14 +119,14 @@ int read_and_convert(char *filepath, ImageOptions *options, PixelData *brightPix
         switch (options->output_mode)
         {
         case ASCII:
-            printf("%c", calc_ascii_char(c, brightPixel));
+            printf("%c", calc_ascii_char(c));
             break;
         case ANSI:
-            printf("\033[1;38;2;%03u;%03u;%03um%c", c->r, c->g, c->b, calc_ascii_char(c, brightPixel));
+            printf("\033[1;38;2;%03u;%03u;%03um%c", c->r, c->g, c->b, calc_ascii_char(c));
             break;
         case SOLID_ANSI:
             printf("\033[48;2;%03u;%03u;%03um ", c->r, c->g, c->b);
-            calc_ascii_char(c, brightPixel);
+            calc_ascii_char(c);
             break;
         default:
             break;
@@ -190,7 +140,7 @@ int read_and_convert(char *filepath, ImageOptions *options, PixelData *brightPix
     return 0;
 }
 
-int output_ascii(char *pathToImgFile, int height, int width, PixelData *brightPixel)
+int output_ascii(const char *pathToImgFile, int height, int width)
 {
     ImageOptions opts = {
         .output_mode = ANSI,
@@ -213,9 +163,9 @@ int output_ascii(char *pathToImgFile, int height, int width, PixelData *brightPi
         return -1;
     }
     opts.height = height;
-    brightPixelFound = false;
+
     printf("\r");
-    int ret = read_and_convert(pathToImgFile, &opts, brightPixel);
+    int ret = read_and_convert(pathToImgFile, &opts);
     if (ret == -1)
         //  fprintf(stderr, "Failed to convert image: %s\n", pathToImgFile);
         printf("\033[0m");

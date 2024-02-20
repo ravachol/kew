@@ -15,9 +15,18 @@ settings.c
 #define MAXPATHLEN 4096
 #endif
 
-AppSettings settings;
-
 const char SETTINGS_FILE[] = "kewrc";
+
+void freeKeyValuePairs(KeyValuePair *pairs, int count)
+{
+        for (int i = 0; i < count; i++)
+        {
+                free(pairs[i].key);
+                free(pairs[i].value);
+        }
+
+        free(pairs);
+}
 
 AppSettings constructAppSettings(KeyValuePair *pairs, int count)
 {
@@ -265,17 +274,6 @@ KeyValuePair *readKeyValuePairs(const char *file_path, int *count)
         return pairs;
 }
 
-void freeKeyValuePairs(KeyValuePair *pairs, int count)
-{
-        for (int i = 0; i < count; i++)
-        {
-                free(pairs[i].key);
-                free(pairs[i].value);
-        }
-
-        free(pairs);
-}
-
 const char *getHomePath()
 {
         const char *xdgHome = getenv("XDG_HOME");
@@ -360,7 +358,7 @@ int getMusicLibraryPath(char *path)
         return 0;
 }
 
-void getConfig()
+void getConfig(AppSettings *settings)
 {
         int pair_count;
         char *configdir = getConfigPath();
@@ -375,44 +373,44 @@ void getConfig()
         KeyValuePair *pairs = readKeyValuePairs(filepath, &pair_count);
 
         free(filepath);
-        settings = constructAppSettings(pairs, pair_count);
+        *settings = constructAppSettings(pairs, pair_count);
 
-        allowNotifications = (settings.allowNotifications[0] == '1');
-        coverEnabled = (settings.coverEnabled[0] == '1');
-        coverAnsi = (settings.coverAnsi[0] == '1');
-        visualizerEnabled = (settings.visualizerEnabled[0] == '1');
-        useProfileColors = (settings.useProfileColors[0] == '1');
-        hideLogo = (settings.hideLogo[0] == '1');
-        hideHelp = (settings.hideHelp[0] == '1');
+        allowNotifications = (settings->allowNotifications[0] == '1');
+        coverEnabled = (settings->coverEnabled[0] == '1');
+        coverAnsi = (settings->coverAnsi[0] == '1');
+        visualizerEnabled = (settings->visualizerEnabled[0] == '1');
+        useProfileColors = (settings->useProfileColors[0] == '1');
+        hideLogo = (settings->hideLogo[0] == '1');
+        hideHelp = (settings->hideHelp[0] == '1');
 
-        int temp = atoi(settings.color);
+        int temp = atoi(settings->color);
         if (temp >= 0)
                 mainColor = temp;
-        temp = atoi(settings.artistColor);
+        temp = atoi(settings->artistColor);
         if (temp >= 0)
                 artistColor = temp;
 
-        temp = atoi(settings.enqueuedColor);
+        temp = atoi(settings->enqueuedColor);
         if (temp >= 0)
                 enqueuedColor = temp;
 
-        temp = atoi(settings.titleColor);
+        temp = atoi(settings->titleColor);
         if (temp >= 0)
                 titleColor = temp;
 
-        int temp2 = atoi(settings.visualizerHeight);
+        int temp2 = atoi(settings->visualizerHeight);
         if (temp2 > 0)
                 visualizerHeight = temp2;
 
-        int temp3 = atoi(settings.lastVolume);
+        int temp3 = atoi(settings->lastVolume);
         if (temp3 >= 0)
                 setVolume(temp3);
 
-        getMusicLibraryPath(settings.path);
+        getMusicLibraryPath(settings->path);
         free(configdir);
 }
 
-void setConfig()
+void setConfig(AppSettings *settings)
 {
         // Create the file path
         char *configdir = getConfigPath();
@@ -431,87 +429,87 @@ void setConfig()
                 return;
         }
 
-        if (settings.allowNotifications[0] == '\0')
-                allowNotifications ? c_strcpy(settings.allowNotifications, sizeof(settings.allowNotifications), "1") : c_strcpy(settings.allowNotifications, sizeof(settings.allowNotifications), "0");
-        if (settings.coverEnabled[0] == '\0')
-                coverEnabled ? c_strcpy(settings.coverEnabled, sizeof(settings.coverEnabled), "1") : c_strcpy(settings.coverEnabled, sizeof(settings.coverEnabled), "0");
-        if (settings.coverAnsi[0] == '\0')
-                coverAnsi ? c_strcpy(settings.coverAnsi, sizeof(settings.coverAnsi), "1") : c_strcpy(settings.coverAnsi, sizeof(settings.coverAnsi), "0");
-        if (settings.visualizerEnabled[0] == '\0')
-                visualizerEnabled ? c_strcpy(settings.visualizerEnabled, sizeof(settings.visualizerEnabled), "1") : c_strcpy(settings.visualizerEnabled, sizeof(settings.visualizerEnabled), "0");
-        if (settings.useProfileColors[0] == '\0')
-                useProfileColors ? c_strcpy(settings.useProfileColors, sizeof(settings.useProfileColors), "1") : c_strcpy(settings.useProfileColors, sizeof(settings.useProfileColors), "0");
-        if (settings.visualizerHeight[0] == '\0')
+        if (settings->allowNotifications[0] == '\0')
+                allowNotifications ? c_strcpy(settings->allowNotifications, sizeof(settings->allowNotifications), "1") : c_strcpy(settings->allowNotifications, sizeof(settings->allowNotifications), "0");
+        if (settings->coverEnabled[0] == '\0')
+                coverEnabled ? c_strcpy(settings->coverEnabled, sizeof(settings->coverEnabled), "1") : c_strcpy(settings->coverEnabled, sizeof(settings->coverEnabled), "0");
+        if (settings->coverAnsi[0] == '\0')
+                coverAnsi ? c_strcpy(settings->coverAnsi, sizeof(settings->coverAnsi), "1") : c_strcpy(settings->coverAnsi, sizeof(settings->coverAnsi), "0");
+        if (settings->visualizerEnabled[0] == '\0')
+                visualizerEnabled ? c_strcpy(settings->visualizerEnabled, sizeof(settings->visualizerEnabled), "1") : c_strcpy(settings->visualizerEnabled, sizeof(settings->visualizerEnabled), "0");
+        if (settings->useProfileColors[0] == '\0')
+                useProfileColors ? c_strcpy(settings->useProfileColors, sizeof(settings->useProfileColors), "1") : c_strcpy(settings->useProfileColors, sizeof(settings->useProfileColors), "0");
+        if (settings->visualizerHeight[0] == '\0')
         {
-                sprintf(settings.visualizerHeight, "%d", visualizerHeight);
+                sprintf(settings->visualizerHeight, "%d", visualizerHeight);
         }
-        if (settings.hideLogo[0] == '\0')
-                hideLogo ? c_strcpy(settings.hideLogo, sizeof(settings.hideLogo), "1") : c_strcpy(settings.hideLogo, sizeof(settings.hideLogo), "0");
-        if (settings.hideHelp[0] == '\0')
-                hideHelp ? c_strcpy(settings.hideHelp, sizeof(settings.hideHelp), "1") : c_strcpy(settings.hideHelp, sizeof(settings.hideHelp), "0");
+        if (settings->hideLogo[0] == '\0')
+                hideLogo ? c_strcpy(settings->hideLogo, sizeof(settings->hideLogo), "1") : c_strcpy(settings->hideLogo, sizeof(settings->hideLogo), "0");
+        if (settings->hideHelp[0] == '\0')
+                hideHelp ? c_strcpy(settings->hideHelp, sizeof(settings->hideHelp), "1") : c_strcpy(settings->hideHelp, sizeof(settings->hideHelp), "0");
 
-        sprintf(settings.lastVolume, "%d", getCurrentVolume());
+        sprintf(settings->lastVolume, "%d", getCurrentVolume());
 
         // Null-terminate the character arrays
-        settings.path[MAXPATHLEN - 1] = '\0';
-        settings.coverEnabled[1] = '\0';
-        settings.coverAnsi[1] = '\0';
-        settings.visualizerEnabled[1] = '\0';
-        settings.visualizerHeight[5] = '\0';
-        settings.lastVolume[5] = '\0';
-        settings.useProfileColors[1] = '\0';
-        settings.allowNotifications[1] = '\0';
-        settings.hideLogo[1] = '\0';
-        settings.hideHelp[1] = '\0';
+        settings->path[MAXPATHLEN - 1] = '\0';
+        settings->coverEnabled[1] = '\0';
+        settings->coverAnsi[1] = '\0';
+        settings->visualizerEnabled[1] = '\0';
+        settings->visualizerHeight[5] = '\0';
+        settings->lastVolume[5] = '\0';
+        settings->useProfileColors[1] = '\0';
+        settings->allowNotifications[1] = '\0';
+        settings->hideLogo[1] = '\0';
+        settings->hideHelp[1] = '\0';
 
         // Write the settings to the file
         fprintf(file, "# Make sure that kew is closed before editing this file in order for changes to take effect.\n\n");
 
-        fprintf(file, "path=%s\n", settings.path);
-        // fprintf(file, "useThemeColors=%s\n", settings.useThemeColors);
-        fprintf(file, "coverEnabled=%s\n", settings.coverEnabled);
-        fprintf(file, "coverAnsi=%s\n", settings.coverAnsi);
-        fprintf(file, "visualizerEnabled=%s\n", settings.visualizerEnabled);
-        fprintf(file, "visualizerHeight=%s\n", settings.visualizerHeight);
-        fprintf(file, "useProfileColors=%s\n", settings.useProfileColors);
-        fprintf(file, "allowNotifications=%s\n", settings.allowNotifications);
-        fprintf(file, "hideLogo=%s\n", settings.hideLogo);
-        fprintf(file, "hideHelp=%s\n", settings.hideHelp);
-        fprintf(file, "lastVolume=%s\n", settings.lastVolume);
+        fprintf(file, "path=%s\n", settings->path);
+        // fprintf(file, "useThemeColors=%s\n", settings->useThemeColors);
+        fprintf(file, "coverEnabled=%s\n", settings->coverEnabled);
+        fprintf(file, "coverAnsi=%s\n", settings->coverAnsi);
+        fprintf(file, "visualizerEnabled=%s\n", settings->visualizerEnabled);
+        fprintf(file, "visualizerHeight=%s\n", settings->visualizerHeight);
+        fprintf(file, "useProfileColors=%s\n", settings->useProfileColors);
+        fprintf(file, "allowNotifications=%s\n", settings->allowNotifications);
+        fprintf(file, "hideLogo=%s\n", settings->hideLogo);
+        fprintf(file, "hideHelp=%s\n", settings->hideHelp);
+        fprintf(file, "lastVolume=%s\n", settings->lastVolume);
 
         fprintf(file, "\n# Color values are 0=Black, 1=Red, 2=Green, 3=Yellow, 4=Blue, 5=Magenta, 6=Cyan, 7=White\n");
         fprintf(file, "# These mostly affect the library view.\n\n");
         fprintf(file, "# Logo color: \n");
-        fprintf(file, "color=%s\n", settings.color);
+        fprintf(file, "color=%s\n", settings->color);
         fprintf(file, "# Header color in library view: \n");
-        fprintf(file, "artistColor=%s\n", settings.artistColor);
+        fprintf(file, "artistColor=%s\n", settings->artistColor);
         fprintf(file, "# Now playing song text in library view: \n");
-        fprintf(file, "titleColor=%s\n", settings.titleColor);
+        fprintf(file, "titleColor=%s\n", settings->titleColor);
         fprintf(file, "# Color of enqueued songs in library view: \n");
-        fprintf(file, "enqueuedColor=%s\n", settings.enqueuedColor);
+        fprintf(file, "enqueuedColor=%s\n", settings->enqueuedColor);
 
         fprintf(file, "\n# Key Bindings:\n\n");
-        fprintf(file, "volumeUp=%s\n", settings.volumeUp);
-        fprintf(file, "volumeUpAlt=%s\n", settings.volumeUpAlt);
-        fprintf(file, "volumeDown=%s\n", settings.volumeDown);
-        fprintf(file, "previousTrackAlt=%s\n", settings.previousTrackAlt);
-        fprintf(file, "nextTrackAlt=%s\n", settings.nextTrackAlt);
-        fprintf(file, "scrollUpAlt=%s\n", settings.scrollUpAlt);
-        fprintf(file, "scrollDownAlt=%s\n", settings.scrollDownAlt);
-        fprintf(file, "switchNumberedSong=%s\n", settings.switchNumberedSong);
-        fprintf(file, "togglePause=%s\n", settings.togglePause);
-        fprintf(file, "toggleColorsDerivedFrom=%s\n", settings.toggleColorsDerivedFrom);
-        fprintf(file, "toggleVisualizer=%s\n", settings.toggleVisualizer);
-        fprintf(file, "toggleCovers=%s\n", settings.toggleCovers);
-        fprintf(file, "toggleAscii=%s\n", settings.toggleAscii);
-        fprintf(file, "toggleRepeat=%s\n", settings.toggleRepeat);
-        fprintf(file, "toggleShuffle=%s\n", settings.toggleShuffle);
-        fprintf(file, "seekBackward=%s\n", settings.seekBackward);
-        fprintf(file, "seekForward=%s\n", settings.seekForward);
-        fprintf(file, "savePlaylist=%s\n", settings.savePlaylist);
-        fprintf(file, "addToMainPlaylist=%s\n", settings.addToMainPlaylist);
+        fprintf(file, "volumeUp=%s\n", settings->volumeUp);
+        fprintf(file, "volumeUpAlt=%s\n", settings->volumeUpAlt);
+        fprintf(file, "volumeDown=%s\n", settings->volumeDown);
+        fprintf(file, "previousTrackAlt=%s\n", settings->previousTrackAlt);
+        fprintf(file, "nextTrackAlt=%s\n", settings->nextTrackAlt);
+        fprintf(file, "scrollUpAlt=%s\n", settings->scrollUpAlt);
+        fprintf(file, "scrollDownAlt=%s\n", settings->scrollDownAlt);
+        fprintf(file, "switchNumberedSong=%s\n", settings->switchNumberedSong);
+        fprintf(file, "togglePause=%s\n", settings->togglePause);
+        fprintf(file, "toggleColorsDerivedFrom=%s\n", settings->toggleColorsDerivedFrom);
+        fprintf(file, "toggleVisualizer=%s\n", settings->toggleVisualizer);
+        fprintf(file, "toggleCovers=%s\n", settings->toggleCovers);
+        fprintf(file, "toggleAscii=%s\n", settings->toggleAscii);
+        fprintf(file, "toggleRepeat=%s\n", settings->toggleRepeat);
+        fprintf(file, "toggleShuffle=%s\n", settings->toggleShuffle);
+        fprintf(file, "seekBackward=%s\n", settings->seekBackward);
+        fprintf(file, "seekForward=%s\n", settings->seekForward);
+        fprintf(file, "savePlaylist=%s\n", settings->savePlaylist);
+        fprintf(file, "addToMainPlaylist=%s\n", settings->addToMainPlaylist);
 
-        fprintf(file, "quit=%s\n\n", settings.quit);
+        fprintf(file, "quit=%s\n\n", settings->quit);
         fprintf(file, "# For special keys use terminal codes: OS, for F4 for instance. This can depend on the terminal.\n");
         fprintf(file, "# You can find out the codes for the keys by using tools like showkey.\n");
         fprintf(file, "# For special keys, see the key value after the bracket \"[\" after typing \"showkey -a\" in the terminal and then pressing a key you want info about.\n");

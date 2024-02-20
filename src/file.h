@@ -2,18 +2,17 @@
 #define FILE_H
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <string.h>
 #include <unistd.h>
 #include <sys/param.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 #include <errno.h>
 #include <time.h>
 #include <dirent.h>
-#include <stdbool.h>
-#include <sys/stat.h>
-#include <stdio.h>
 #include <regex.h>
 #include <pwd.h>
-#include <sys/types.h>
 #include "utils.h"
 
 #ifndef MAXPATHLEN

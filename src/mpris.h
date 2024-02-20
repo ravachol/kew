@@ -3,7 +3,6 @@
 
 #include <glib.h>
 #include <gio/gio.h>
-#include "songloader.h"
 #include "soundcommon.h"
 #include "sound.h"
 #include "playlist.h"

@@ -9,7 +9,6 @@
 #include <sys/ioctl.h>
 #include <stdio.h>
 #include <stdbool.h>
-#include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <sys/select.h>
@@ -17,9 +16,8 @@
 #include <sys/param.h>
 #include <fcntl.h>
 #include <poll.h>
-#include <unistd.h>
 #include <signal.h>
-#include <stdbool.h>
+
 
 #ifdef __GNU__
 # define _BSD_SOURCE

@@ -41,9 +41,7 @@ ma_result initFirstDatasource(AudioData *pAudioData, UserData *pUserData)
 
         pAudioData->pUserData = pUserData;
         pAudioData->currentPCMFrame = 0;
-        pAudioData->restart = false;
-        pAudioData->fileA = NULL;
-        pAudioData->fileB = NULL;        
+        pAudioData->restart = false; 
 
         if (hasBuiltinDecoder(filePath))
         {
@@ -234,17 +232,6 @@ void opus_createAudioDevice(UserData *userData, ma_device *device, ma_context *c
                 return;
         }
         emitStringPropertyChanged("PlaybackStatus", "Playing");
-}
-
-void cleanupAudioData()
-{
-        if (audioData.fileA != NULL)
-                fclose(audioData.fileA);
-        audioData.fileA = NULL;
-
-        if (audioData.fileB != NULL)
-                fclose(audioData.fileB);
-        audioData.fileB = NULL;
 }
 
 int switchAudioImplementation()

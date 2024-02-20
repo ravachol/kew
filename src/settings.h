@@ -6,7 +6,6 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include "player.h"
 #include "file.h"
 
 #ifndef KEYVALUEPAIR_STRUCT
@@ -84,20 +83,8 @@ typedef struct
         char hideHelp[2];
 } AppSettings;
 
-extern AppSettings settings;
+void getConfig(AppSettings *settings);
 
-extern AppSettings constructAppSettings(KeyValuePair *pairs, int count);
-
-KeyValuePair *readKeyValuePairs(const char *file_path, int *count);
-
-void freeKeyValuePairs(KeyValuePair *pairs, int count);
-
-AppSettings constructAppSettings(KeyValuePair *pairs, int count);
-
-void getConfig(void);
-
-void setConfig(void);
-
-int getMusicLibraryPath(char *path);
+void setConfig(AppSettings *settings);
 
 #endif

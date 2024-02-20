@@ -62,21 +62,9 @@ Node *getNextSong();
 
 void handleRemove();
 
-void enqueueSong(FileSystemEntry *child);
-
-void dequeueSong(FileSystemEntry *child);
-
-void dequeueChildren(FileSystemEntry *parent);
-
-void enqueueChildren(FileSystemEntry *child);
-
-bool markAsDequeued(FileSystemEntry *root, char *path);
-
 void enqueueSongs();
 
 void updateLastSongSwitchTime(void);
-
-void updateLastPlaylistChangeTime();
 
 void updateLastInputTime(void);
 
