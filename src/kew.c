@@ -308,7 +308,6 @@ void unloadPreviousSong()
         {
                 userData.songdataADeleted = true;
                 unloadSongData(&loadingdata.songdataA);
-                userData.filenameA = NULL;
                 usingSongDataA = false;
                 if (!audioData.endOfListReached)
                         loadedNextSong = false;
@@ -319,7 +318,6 @@ void unloadPreviousSong()
         {
                 userData.songdataBDeleted = true;
                 unloadSongData(&loadingdata.songdataB);
-                userData.filenameB = NULL;
                 usingSongDataA = true;
                 if (!audioData.endOfListReached)
                         loadedNextSong = false;
@@ -444,7 +442,7 @@ void refreshPlayer()
                 if (isDeleted)
                         songData = NULL;
 
-                printPlayer(songData, elapsedSeconds, &playlist, isDeleted);
+                printPlayer(songData, elapsedSeconds);
         }
 
         pthread_mutex_unlock(&switchMutex);
@@ -600,7 +598,7 @@ void handleInput()
                 addToSpecialPlaylist();
                 break;
         case EVENT_EXPORTPLAYLIST:
-                savePlaylist();
+                savePlaylist(settings.path);
                 break;
         case EVENT_SHOWKEYBINDINGS:
                 toggleShowKeyBindings();
@@ -716,7 +714,6 @@ void loadAudioData()
 
                         clock_gettime(CLOCK_MONOTONIC, &start_time);
 
-                        playlist.totalDuration = -1;
                         playlistNeedsUpdate = false;
                 }
         }
@@ -831,8 +828,6 @@ void play(Node *song)
 
         clock_gettime(CLOCK_MONOTONIC, &start_time);
 
-        playlist.totalDuration = -1;
-
         main_loop = g_main_loop_new(NULL, FALSE);
 
         g_unix_signal_add(SIGINT, on_sigint, main_loop);
@@ -871,7 +866,7 @@ void cleanupOnExit()
         cleanupMpris();
         restoreTerminalMode();
         enableInputBuffering();
-        setConfig();
+        setConfig(&settings);
         saveMainPlaylist(settings.path, playingMainPlaylist);
         freeAudioBuffer();
         deleteCache(tempCache);
@@ -882,7 +877,6 @@ void cleanupOnExit()
         deletePlaylist(specialPlaylist);
         free(specialPlaylist);
         free(originalPlaylist);
-        cleanupAudioData();
         setDefaultTextColor();
         showCursor();
         resetConsole();
@@ -989,7 +983,7 @@ void playMainPlaylist()
 void playAll(int argc, char **argv)
 {
         init();
-        makePlaylist(argc, argv, false);
+        makePlaylist(argc, argv, false, settings.path);
         if (playlist.count == 0)
         {
                 printf("Please make sure the path is set correctly. \n");
@@ -1088,12 +1082,12 @@ int main(int argc, char *argv[])
                 exit(0);
         }
 
-        getConfig();
+        getConfig(&settings);
 
         if (argc == 3 && (strcmp(argv[1], "path") == 0))
         {
                 c_strcpy(settings.path, sizeof(settings.path), argv[2]);
-                setConfig();
+                setConfig(&settings);
                 exit(0);
         }
 
@@ -1124,7 +1118,7 @@ int main(int argc, char *argv[])
         else if (argc >= 2)
         {
                 init();
-                makePlaylist(argc, argv, exactSearch);
+                makePlaylist(argc, argv, exactSearch, settings.path);
                 if (playlist.count == 0)
                         exit(0);
                 run();

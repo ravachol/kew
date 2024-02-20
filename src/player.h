@@ -13,6 +13,7 @@
 #include "settings.h"
 #include "songloader.h"
 #include "sound.h"
+#include "settings.h"
 #include "directorytree.h"
 
 extern int mainColor;
@@ -31,7 +32,6 @@ extern bool nerdFontsEnabled;
 extern bool hideLogo;
 extern bool hideHelp;
 extern int numProgressBars;
-extern int elapsed;
 extern int chosenSong;
 extern bool resetPlaylistDisplay;
 extern int visualizerHeight;
@@ -49,6 +49,7 @@ extern int chosenLibRow;
 extern int chosenRow;
 extern int chosenNodeId;
 extern bool useProfileColors;
+extern AppSettings settings;
 
 typedef enum {
     SONG_VIEW,
@@ -67,7 +68,7 @@ bool hasNerdFonts();
 
 void createLibrary();
 
-int printPlayer(SongData *songdata, double elapsedSeconds, PlayList *playlist, bool isDeleted);
+int printPlayer(SongData *songdata, double elapsedSeconds);
 
 void flipNextPage();
 

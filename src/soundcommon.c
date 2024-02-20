@@ -1110,7 +1110,6 @@ void executeSwitch(AudioData *pAudioData)
                 else
                 {
                         currentSongData = NULL;
-                        pAudioData->fileA = NULL;
                 }
         }
         else
@@ -1122,7 +1121,6 @@ void executeSwitch(AudioData *pAudioData)
                 else
                 {
                         currentSongData = NULL;
-                        pAudioData->fileB = NULL;
                 }
         }
 

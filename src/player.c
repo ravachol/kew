@@ -66,7 +66,7 @@ int indent = 0;
 char *tagsPath;
 double totalDurationSeconds = 0.0;
 PixelData color = {125, 125, 125};
-PixelData bgColor = {90, 90, 90};
+PixelData lastRowColor = {90, 90, 90};
 TagSettings metadata = {};
 double elapsedSeconds = 0.0;
 double pauseSeconds = 0.0;
@@ -89,6 +89,7 @@ int libSongIter = 0;
 int libTopLevelSongIter = 0;
 int chosenNodeId = 0;
 
+AppSettings settings;
 FileSystemEntry *library = NULL;
 
 void setTextColorRGB2(int r, int g, int b)
@@ -151,6 +152,32 @@ int calcMetadataHeight()
         {
                 return 4;
         }
+}
+
+int calcIdealImgSize(int *width, int *height, const int visualizerHeight, const int metatagHeight)
+{
+        int term_w, term_h;
+        getTermSize(&term_w, &term_h);
+        int timeDisplayHeight = 1;
+        int heightMargin = 2;
+        int minHeight = visualizerHeight + metatagHeight + timeDisplayHeight + heightMargin;
+        *height = term_h - minHeight;
+        *width = ceil(*height * 2);
+        if (*width > term_w)
+        {
+                *width = term_w;
+                *height = floor(*width / 2);
+        }
+        int remainder = *width % 2;
+        if (remainder == 1)
+        {
+                *width -= 1;
+        }
+
+        *width -= 3;
+        *height -= 2;
+
+        return 0;
 }
 
 void calcPreferredSize()
@@ -288,25 +315,13 @@ void printCover(SongData *songdata)
         minWidth = ABSOLUTE_MIN_WIDTH + indent;
         if (songdata->cover != NULL && coverEnabled)
         {
-                color.r = songdata->red;
-                color.g = songdata->green;
-                color.b = songdata->blue;
+                clearScreen();
+                displayCover(songdata->cover, songdata->coverArtPath, preferredHeight, coverAnsi);
 
-                displayCover(songdata, preferredWidth, preferredHeight, coverAnsi);
-
-                if (color.r == 0 && color.g == 0 && color.b == 0)
-                {
-                        color.r = defaultColor;
-                        color.g = defaultColor;
-                        color.b = defaultColor;
-                }
                 drewCover = true;
         }
         else
         {
-                color.r = defaultColor;
-                color.g = defaultColor;
-                color.b = defaultColor;
                 clearRestOfScreen();
                 for (int i = 0; i < preferredHeight - 1; i++)
                 {
@@ -449,7 +464,7 @@ void printMetadata(TagSettings const *metadata)
         printBasicMetadata(metadata);
 }
 
-void printTime()
+void printTime(double elapsedSeconds)
 {
         if (!timeEnabled || appState.currentView == LIBRARY_VIEW || appState.currentView == PLAYLIST_VIEW)
                 return;
@@ -458,7 +473,7 @@ void printTime()
         getTermSize(&term_w, &term_h);
         printBlankSpaces(indent);
         if (term_h > minHeight)
-                printProgress(elapsed, duration);
+                printProgress(elapsedSeconds, duration);
 }
 
 int getRandomNumber(int min, int max)
@@ -514,7 +529,7 @@ void printLastRow()
         getTermSize(&term_w, &term_h);
         if (term_w < minWidth)
                 return;
-        setTextColorRGB(bgColor.r, bgColor.g, bgColor.b);
+        setTextColorRGB(lastRowColor.r, lastRowColor.g, lastRowColor.b);
 
         char text[100] = " [F2 Playlist] [F3 Library] [F4 Track] [F5 Keys] [Q Quit]";
 
@@ -573,7 +588,7 @@ void printLastRow()
 
         int randomNumber = getRandomNumber(1, 808);
         if (randomNumber == 808)
-                printGlimmeringText(text, nerdFontText, bgColor);
+                printGlimmeringText(text, nerdFontText, lastRowColor);
         else
         {
                 printBlankSpaces(indent);
@@ -989,7 +1004,7 @@ void printElapsedBars(int elapsedBars)
         printf("\n");
 }
 
-void printVisualizer()
+void printVisualizer(double elapsedSeconds)
 {
         if (visualizerEnabled && appState.currentView == SONG_VIEW)
         {
@@ -1003,7 +1018,7 @@ void printVisualizer()
 
                 drawSpectrumVisualizer(visualizerHeight, visualizerWidth, color, indent);
 
-                printElapsedBars(calcElapsedBars(elapsed, duration, numProgressBars));
+                printElapsedBars(calcElapsedBars(elapsedSeconds, duration, numProgressBars));
                 printLastRow();
                 int jumpAmount = visualizerHeight + 2;
                 cursorJump(jumpAmount);
@@ -1304,7 +1319,7 @@ void showLibrary(SongData *songData)
         }
 }
 
-int printPlayer(SongData *songdata, double elapsedSeconds, PlayList *playlist, bool isDeleted)
+int printPlayer(SongData *songdata, double elapsedSeconds)
 {
         if (!uiEnabled)
         {
@@ -1315,11 +1330,9 @@ int printPlayer(SongData *songdata, double elapsedSeconds, PlayList *playlist, b
 
         setColor();
 
-        if (songdata != NULL && !isDeleted && songdata->metadata != NULL && !songdata->hasErrors && (songdata->hasErrors < 1))
+        if (songdata != NULL && songdata->metadata != NULL && !songdata->hasErrors && (songdata->hasErrors < 1))
         {
-                metadata = *songdata->metadata;
-                totalDurationSeconds = playlist->totalDuration;
-                elapsed = elapsedSeconds;
+                metadata = *songdata->metadata;                
                 duration = songdata->duration;
 
                 if (songdata->cover != NULL && coverEnabled)
@@ -1381,8 +1394,8 @@ int printPlayer(SongData *songdata, double elapsedSeconds, PlayList *playlist, b
                         printMetadata(songdata->metadata);
                         refresh = false;
                 }
-                printTime();
-                printVisualizer();
+                printTime(elapsedSeconds);
+                printVisualizer(elapsedSeconds);
         }
 
         fflush(stdout);

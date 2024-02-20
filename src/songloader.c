@@ -21,6 +21,52 @@ void removeTagPrefix(char *value)
         }
 }
 
+char *findLargestImageFile(const char *directoryPath, char *largestImageFile, off_t *largestFileSize)
+{
+        DIR *directory = opendir(directoryPath);
+        struct dirent *entry;
+        struct stat fileStats;
+
+        if (directory == NULL)
+        {
+                fprintf(stderr, "Failed to open directory: %s\n", directoryPath);
+                return largestImageFile;
+        }
+
+        while ((entry = readdir(directory)) != NULL)
+        {
+                char filePath[MAXPATHLEN];
+                snprintf(filePath, sizeof(filePath), "%s%s", directoryPath, entry->d_name);
+
+                if (stat(filePath, &fileStats) == -1)
+                {                        
+                        continue;
+                }
+
+                if (S_ISREG(fileStats.st_mode))
+                {
+                        // Check if the entry is an image file and has a larger size than the current largest image file
+                        char *extension = strrchr(entry->d_name, '.');
+                        if (extension != NULL && (strcasecmp(extension, ".jpg") == 0 || strcasecmp(extension, ".jpeg") == 0 ||
+                                                  strcasecmp(extension, ".png") == 0 || strcasecmp(extension, ".gif") == 0))
+                        {
+                                if (fileStats.st_size > *largestFileSize)
+                                {
+                                        *largestFileSize = fileStats.st_size;
+                                        if (largestImageFile != NULL)
+                                        {
+                                                free(largestImageFile);
+                                        }
+                                        largestImageFile = strdup(filePath);
+                                }
+                        }
+                }
+        }
+
+        closedir(directory);
+        return largestImageFile;
+}
+
 void turnFilePathIntoTitle(const char *filePath, char *title)
 {
         char *lastSlash = strrchr(filePath, '/');

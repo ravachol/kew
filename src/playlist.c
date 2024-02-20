@@ -1,18 +1,8 @@
 #define _XOPEN_SOURCE 700
 #define __USE_XOPEN_EXTENDED 1
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <strings.h>
-#include <dirent.h>
-#include <regex.h>
-#include <string.h>
-#include <time.h>
-#include <ctype.h>
-#include "utils.h"
+
 #include "playlist.h"
-#include "file.h"
-#include "settings.h"
+
 /*
 
 playlist.c
@@ -34,7 +24,7 @@ const char mainPlaylistName[] = "kew.m3u";
 PlayList *originalPlaylist = NULL;
 
 // The (sometimes shuffled) sequence of songs that will be played
-PlayList playlist = {NULL, NULL, 0, 0.0, PTHREAD_MUTEX_INITIALIZER};
+PlayList playlist = {NULL, NULL, 0, PTHREAD_MUTEX_INITIALIZER};
 
 // The playlist from kew.m3u
 PlayList *specialPlaylist = NULL;
@@ -128,7 +118,6 @@ void deletePlaylist(PlayList *list)
         list->head = NULL;
         list->tail = NULL;
         list->count = 0;
-        list->totalDuration = 0.0;
 }
 
 void shufflePlaylist(PlayList *playlist)
@@ -239,7 +228,7 @@ int compare(const struct dirent **a, const struct dirent **b)
         return strcmp(nameA, nameB);
 }
 
-void createNode(Node **node, char *directoryPath, int id)
+void createNode(Node **node, const char *directoryPath, int id)
 {
         SongInfo song;
         song.filePath = strdup(directoryPath);
@@ -259,7 +248,7 @@ void createNode(Node **node, char *directoryPath, int id)
         (*node)->id = id;
 }
 
-void buildPlaylistRecursive(char *directoryPath, const char *allowedExtensions, PlayList *playlist)
+void buildPlaylistRecursive(const char *directoryPath, const char *allowedExtensions, PlayList *playlist)
 {
         int res = isDirectory(directoryPath);
         if (res != 1 && res != -1 && directoryPath != NULL)
@@ -418,135 +407,6 @@ void makePlaylistName(const char *search)
         }
 }
 
-int makePlaylist(int argc, char *argv[], bool exactSearch)
-{
-        enum SearchType searchType = SearchAny;
-        int searchTypeIndex = 1;
-
-        const char *delimiter = ":";
-        PlayList partialPlaylist = {NULL, NULL, 0, 0.0, PTHREAD_MUTEX_INITIALIZER};
-
-        const char *allowedExtensions = AUDIO_EXTENSIONS;
-
-        if (strcmp(argv[1], "all") == 0)
-        {
-                searchType = ReturnAllSongs;
-                shuffle = true;
-        }
-
-        if (argc > 1)
-        {
-                if (strcmp(argv[1], "list") == 0 && argc > 2)
-                {
-                        allowedExtensions = PLAYLIST_EXTENSIONS;
-                        searchType = SearchPlayList;
-                }
-
-                if (strcmp(argv[1], "random") == 0 || strcmp(argv[1], "rand") == 0 || strcmp(argv[1], "shuffle") == 0)
-                {
-                        int count = 0;
-                        while (argv[count] != NULL)
-                        {
-                                count++;
-                        }
-                        if (count > 2)
-                        {
-                                searchTypeIndex = 2;
-                                shuffle = true;
-                        }
-                }
-
-                if (strcmp(argv[searchTypeIndex], "dir") == 0)
-                        searchType = DirOnly;
-                else if (strcmp(argv[searchTypeIndex], "song") == 0)
-                        searchType = FileOnly;
-        }
-        int start = searchTypeIndex + 1;
-
-        if (searchType == FileOnly || searchType == DirOnly || searchType == SearchPlayList)
-                start = searchTypeIndex + 2;
-
-        search[0] = '\0';
-
-        for (int i = start - 1; i < argc; i++)
-        {
-                strcat(search, " ");
-                strcat(search, argv[i]);
-        }
-        makePlaylistName(search);
-
-        if (strstr(search, delimiter))
-        {
-                shuffle = true;
-        }
-
-        if (searchType == ReturnAllSongs)
-        {
-                pthread_mutex_lock(&(playlist.mutex));
-
-                buildPlaylistRecursive(settings.path, allowedExtensions, &playlist);
-
-                pthread_mutex_unlock(&(playlist.mutex));
-        }
-        else
-        {
-                char *token = strtok(search, delimiter);
-
-                while (token != NULL)
-                {
-                        char buf[MAXPATHLEN] = {0};
-                        if (strncmp(token, "song", 4) == 0)
-                        {
-                                memmove(token, token + 4, strlen(token + 4) + 1);
-                                searchType = FileOnly;
-                        }
-                        trim(token);
-                        if (walker(settings.path, token, buf, allowedExtensions, searchType, exactSearch) == 0)
-                        {
-                                if (strcmp(argv[1], "list") == 0)
-                                {
-                                        readM3UFile(buf, &playlist);
-                                }
-                                else
-                                {
-                                        pthread_mutex_lock(&(playlist.mutex));
-
-                                        buildPlaylistRecursive(buf, allowedExtensions, &partialPlaylist);
-                                        joinPlaylist(&playlist, &partialPlaylist);
-
-                                        pthread_mutex_unlock(&(playlist.mutex));
-                                }
-                        }
-
-                        token = strtok(NULL, delimiter);
-                }
-        }
-        if (numDirs > 1)
-                shuffle = true;
-        if (shuffle)
-                shufflePlaylist(&playlist);
-
-        if (playlist.head == NULL)
-                printf("Music not found\n");
-
-        return 0;
-}
-
-double calcTotalDuration(PlayList *playList)
-{
-        double totalDuration = 0.0;
-
-        Node *tmp = playList->head;
-
-        while (tmp != NULL)
-        {
-                totalDuration += tmp->song.duration;
-                tmp = tmp->next;
-        }
-
-        return totalDuration;
-}
-
 void readM3UFile(const char *filename, PlayList *playlist)
 {
         FILE *file = fopen(filename, "r");
@@ -607,6 +467,120 @@ void readM3UFile(const char *filename, PlayList *playlist)
         fclose(file);
 }
 
+int makePlaylist(int argc, char *argv[], bool exactSearch, const char *path)
+{
+        enum SearchType searchType = SearchAny;
+        int searchTypeIndex = 1;
+
+        const char *delimiter = ":";
+        PlayList partialPlaylist = {NULL, NULL, 0, PTHREAD_MUTEX_INITIALIZER};
+
+        const char *allowedExtensions = AUDIO_EXTENSIONS;
+
+        if (strcmp(argv[1], "all") == 0)
+        {
+                searchType = ReturnAllSongs;
+                shuffle = true;
+        }
+
+        if (argc > 1)
+        {
+                if (strcmp(argv[1], "list") == 0 && argc > 2)
+                {
+                        allowedExtensions = PLAYLIST_EXTENSIONS;
+                        searchType = SearchPlayList;
+                }
+
+                if (strcmp(argv[1], "random") == 0 || strcmp(argv[1], "rand") == 0 || strcmp(argv[1], "shuffle") == 0)
+                {
+                        int count = 0;
+                        while (argv[count] != NULL)
+                        {
+                                count++;
+                        }
+                        if (count > 2)
+                        {
+                                searchTypeIndex = 2;
+                                shuffle = true;
+                        }
+                }
+
+                if (strcmp(argv[searchTypeIndex], "dir") == 0)
+                        searchType = DirOnly;
+                else if (strcmp(argv[searchTypeIndex], "song") == 0)
+                        searchType = FileOnly;
+        }
+        int start = searchTypeIndex + 1;
+
+        if (searchType == FileOnly || searchType == DirOnly || searchType == SearchPlayList)
+                start = searchTypeIndex + 2;
+
+        search[0] = '\0';
+
+        for (int i = start - 1; i < argc; i++)
+        {
+                strcat(search, " ");
+                strcat(search, argv[i]);
+        }
+        makePlaylistName(search);
+
+        if (strstr(search, delimiter))
+        {
+                shuffle = true;
+        }
+
+        if (searchType == ReturnAllSongs)
+        {
+                pthread_mutex_lock(&(playlist.mutex));
+
+                buildPlaylistRecursive(path, allowedExtensions, &playlist);
+
+                pthread_mutex_unlock(&(playlist.mutex));
+        }
+        else
+        {
+                char *token = strtok(search, delimiter);
+
+                while (token != NULL)
+                {
+                        char buf[MAXPATHLEN] = {0};
+                        if (strncmp(token, "song", 4) == 0)
+                        {
+                                memmove(token, token + 4, strlen(token + 4) + 1);
+                                searchType = FileOnly;
+                        }
+                        trim(token);
+                        if (walker(path, token, buf, allowedExtensions, searchType, exactSearch) == 0)
+                        {
+                                if (strcmp(argv[1], "list") == 0)
+                                {
+                                        readM3UFile(buf, &playlist);
+                                }
+                                else
+                                {
+                                        pthread_mutex_lock(&(playlist.mutex));
+
+                                        buildPlaylistRecursive(buf, allowedExtensions, &partialPlaylist);
+                                        joinPlaylist(&playlist, &partialPlaylist);
+
+                                        pthread_mutex_unlock(&(playlist.mutex));
+                                }
+                        }
+
+                        token = strtok(NULL, delimiter);
+                }
+        }
+        if (numDirs > 1)
+                shuffle = true;
+        if (shuffle)
+                shufflePlaylist(&playlist);
+
+        if (playlist.head == NULL)
+                printf("Music not found\n");
+
+        return 0;
+}
+
 void writeM3UFile(const char *filename, PlayList *playlist)
 {
         FILE *file = fopen(filename, "w");
@@ -638,7 +612,6 @@ void loadMainPlaylist(const char *directory)
                 exit(0);
         }
         specialPlaylist->count = 0;
-        specialPlaylist->totalDuration = 0;
         specialPlaylist->head = NULL;
         specialPlaylist->tail = NULL;
         readM3UFile(playlistPath, specialPlaylist);
@@ -658,10 +631,10 @@ void saveMainPlaylist(const char *directory, bool isPlayingMain)
                 writeM3UFile(playlistPath, specialPlaylist);
 }
 
-void savePlaylist()
+void savePlaylist(const char *path)
 {
         char playlistPath[MAXPATHLEN];
-        c_strcpy(playlistPath, sizeof(playlistPath), settings.path);
+        c_strcpy(playlistPath, sizeof(playlistPath), path);
         if (playlistPath[strlen(playlistPath) - 1] != '/')
                 strcat(playlistPath, "/");
         strcat(playlistPath, playlistName);
@@ -712,7 +685,7 @@ Node *findTail(Node *head)
 
 PlayList deepCopyPlayList(PlayList *originalList)
 {
-       PlayList newList = {NULL, NULL, 0, 0.0, PTHREAD_MUTEX_INITIALIZER};
+       PlayList newList = {NULL, NULL, 0, PTHREAD_MUTEX_INITIALIZER};
 
        deepCopyPlayListOntoList(originalList, &newList);
        return newList;
@@ -728,7 +701,6 @@ void deepCopyPlayListOntoList(PlayList *originalList, PlayList *newList)
         newList->head = deepCopyNode(originalList->head);
         newList->tail = findTail(newList->head);
         newList->count = originalList->count;
-        newList->totalDuration = originalList->totalDuration;
 }
 
 Node *findPathInPlaylist(char *path, PlayList *playlist)
@@ -759,25 +731,6 @@ Node *findLastPathInPlaylist(char *path, PlayList *playlist)
                 }
 
                 currentNode = currentNode->prev;
-        }
-        return NULL;
-}
-
-Node *findSongInPlaylist(Node *currentSong, PlayList *playlist)
-{
-        Node *currentNode = playlist->head;
-
-        if (currentSong == NULL)
-                return NULL;
-
-        while (currentNode != NULL)
-        {
-                if ((currentSong->song.filePath != NULL) && (strcmp(currentNode->song.filePath, currentSong->song.filePath) == 0))
-                {
-                        return currentNode;
-                }
-
-                currentNode = currentNode->next;
         }
         return NULL;
 }
