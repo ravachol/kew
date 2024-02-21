@@ -1,15 +1,15 @@
+#include <FreeImage.h>
 #include <glib.h>
 #include <gio/gio.h>
 #include <sys/wait.h>
 #include <unistd.h>
-#include <FreeImage.h>
-#include "utils.h"
-#include "file.h"
+#include "albumart.h"
 #include "cache.h"
 #include "chafafunc.h"
-#include "albumart.h"
+#include "file.h"
 #include "sound.h"
 #include "soundcommon.h"
+#include "utils.h"
 
 #ifndef MAXPATHLEN
 #define MAXPATHLEN 4096

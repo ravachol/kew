@@ -1,11 +1,11 @@
 #include <chafa.h>
 #include <chafa-canvas-config.h>
-#include <stdio.h>
-#include <unistd.h>
+#include <FreeImage.h>
 #include <stdbool.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <FreeImage.h>
+#include <unistd.h>
 
 void printImage(const char *image_path, int width, int height);
 FIBITMAP *getBitmap(const char *image_path);

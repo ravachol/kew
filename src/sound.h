@@ -1,5 +1,6 @@
 #ifndef SOUND_H
 #define SOUND_H
+
 #include <fcntl.h>
 #include <miniaudio.h>
 #include <pthread.h>
@@ -15,9 +16,6 @@
 #include "songloader.h"
 #include "soundbuiltin.h"
 #include "soundcommon.h"
-#include "soundm4a.h"
-#include "soundopus.h"
-#include "soundvorbis.h"
 
 #ifndef USERDATA_STRUCT
 #define USERDATA_STRUCT
@@ -53,6 +51,14 @@ typedef struct
 extern AudioData audioData;
 
 extern UserData userData;
+
+int prepareNextDecoder(char *filepath);
+
+int prepareNextOpusDecoder(char *filepath);
+
+int prepareNextVorbisDecoder(char *filepath);
+
+int prepareNextM4aDecoder(char *filepath);
 
 void setDecoders(bool usingA, char *filePath);
 

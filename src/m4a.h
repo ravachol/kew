@@ -15,15 +15,16 @@ You need to include this file after miniaudio.h.
 extern "C"
 {
 #endif
-#include <string.h>
-#include <miniaudio.h>
-#include <libswresample/swresample.h>
+
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
-#include <libavutil/opt.h>
 #include <libavutil/channel_layout.h>
+#include <libavutil/opt.h>
 #include <libavutil/samplefmt.h>
+#include <libswresample/swresample.h>
+#include <miniaudio.h>
 #include <stdint.h>
+#include <string.h>
 
         typedef struct
         {

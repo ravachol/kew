@@ -5,10 +5,10 @@
 #define __USE_XOPEN_EXTENDED
 #endif
 
+#include <pthread.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h>
-#include <pthread.h>
 #include <string.h>
 #include "file.h"
 

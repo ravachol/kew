@@ -1,5 +1,3 @@
-#include <stdbool.h>
-
 enum EventType
 {
         EVENT_NONE,

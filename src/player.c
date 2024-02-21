@@ -22,15 +22,12 @@ typedef struct
 } PixelData;
 #endif
 
-AppState appState;
-
 const char VERSION[] = "2.4";
 int mainColor = 6;
 int titleColor = 6;
 int artistColor = 6;
 int enqueuedColor = 6;
 const int ABSOLUTE_MIN_WIDTH = 64;
-volatile bool refresh = true;
 bool visualizerEnabled = true;
 bool coverEnabled = true;
 bool hideLogo = false;
@@ -60,7 +57,6 @@ int maxWidth = 0;
 int coverRow = 0;
 int preferredWidth = 0;
 int preferredHeight = 0;
-int elapsed = 0;
 int textWidth = 0;
 int indent = 0;
 char *tagsPath;
@@ -68,11 +64,10 @@ double totalDurationSeconds = 0.0;
 PixelData color = {125, 125, 125};
 PixelData lastRowColor = {90, 90, 90};
 TagSettings metadata = {};
-double elapsedSeconds = 0.0;
+
 double pauseSeconds = 0.0;
 double totalPauseSeconds = 0.0;
 double seekAccumulatedSeconds = 0.0;
-double duration = 0.0;
 int maxListSize = 0;
 unsigned char defaultColor = 150;
 
@@ -89,7 +84,6 @@ int libSongIter = 0;
 int libTopLevelSongIter = 0;
 int chosenNodeId = 0;
 
-AppSettings settings;
 FileSystemEntry *library = NULL;
 
 void setTextColorRGB2(int r, int g, int b)
@@ -641,7 +635,7 @@ void removeUnneededChars(char *str)
         }
 }
 
-int showKeyBindings(SongData *songdata)
+int showKeyBindings(SongData *songdata, AppSettings *settings)
 {
         int numPrintedRows = 0;
         int term_w, term_h;
@@ -652,37 +646,37 @@ int showKeyBindings(SongData *songdata)
         setDefaultTextColor();
 
         printBlankSpaces(indent);
-        printf(" - Use %s (or %s) and %s to adjust volume.\n", settings.volumeUp, settings.volumeUpAlt, settings.volumeDown);
+        printf(" - Use %s (or %s) and %s to adjust volume.\n", settings->volumeUp, settings->volumeUpAlt, settings->volumeDown);
         printBlankSpaces(indent);
-        printf(" - Use ←, → or %s, %s keys to switch tracks.\n", settings.previousTrackAlt, settings.nextTrackAlt);
+        printf(" - Use ←, → or %s, %s keys to switch tracks.\n", settings->previousTrackAlt, settings->nextTrackAlt);
         printBlankSpaces(indent);
-        printf(" - Use ↑, ↓  or %s, %s keys to scroll through playlist.\n", settings.scrollUpAlt, settings.scrollDownAlt);
+        printf(" - Use ↑, ↓  or %s, %s keys to scroll through playlist.\n", settings->scrollUpAlt, settings->scrollDownAlt);
         printBlankSpaces(indent);
         printf(" - Enter a number then Enter to switch song.\n");
         printBlankSpaces(indent);
-        printf(" - Space (or %s) to toggle pause.\n", settings.togglePause);
+        printf(" - Space (or %s) to toggle pause.\n", settings->togglePause);
         printBlankSpaces(indent);
-        printf(" - %s toggle color derived from album or from profile.\n", settings.toggleColorsDerivedFrom);
+        printf(" - %s toggle color derived from album or from profile.\n", settings->toggleColorsDerivedFrom);
         printBlankSpaces(indent);
-        printf(" - %s to show/hide the spectrum visualizer.\n", settings.toggleVisualizer);
+        printf(" - %s to show/hide the spectrum visualizer.\n", settings->toggleVisualizer);
         printBlankSpaces(indent);
-        printf(" - %s to show/hide album covers.\n", settings.toggleCovers);
+        printf(" - %s to show/hide album covers.\n", settings->toggleCovers);
         printBlankSpaces(indent);
-        printf(" - %s to toggle album covers drawn in ascii.\n", settings.toggleAscii);
+        printf(" - %s to toggle album covers drawn in ascii.\n", settings->toggleAscii);
         printBlankSpaces(indent);
-        printf(" - %s to repeat the current song.\n", settings.toggleRepeat);
+        printf(" - %s to repeat the current song.\n", settings->toggleRepeat);
         printBlankSpaces(indent);
-        printf(" - %s to shuffle the playlist.\n", settings.toggleShuffle);
+        printf(" - %s to shuffle the playlist.\n", settings->toggleShuffle);
         printBlankSpaces(indent);
-        printf(" - %s to seek backward.\n", settings.seekBackward);
+        printf(" - %s to seek backward.\n", settings->seekBackward);
         printBlankSpaces(indent);
-        printf(" - %s to seek forward.\n", settings.seekForward);
+        printf(" - %s to seek forward.\n", settings->seekForward);
         printBlankSpaces(indent);
-        printf(" - %s to save the playlist to your music folder.\n", settings.savePlaylist);
+        printf(" - %s to save the playlist to your music folder.\n", settings->savePlaylist);
         printBlankSpaces(indent);
-        printf(" - %s to add current song to kew.m3u (run with \"kew .\").\n", settings.addToMainPlaylist);
+        printf(" - %s to add current song to kew.m3u (run with \"kew .\").\n", settings->addToMainPlaylist);
         printBlankSpaces(indent);
-        printf(" - %s to quit.\n", settings.quit);
+        printf(" - %s to quit.\n", settings->quit);
         printf("\n");
         printLastRow();
 
@@ -1016,7 +1010,7 @@ void printVisualizer(double elapsedSeconds)
                 visualizerWidth = (visualizerWidth > term_w - 2) ? term_w - 2 : visualizerWidth;
                 numProgressBars = (int)visualizerWidth / 2;
 
-                drawSpectrumVisualizer(visualizerHeight, visualizerWidth, color, indent);
+                drawSpectrumVisualizer(visualizerHeight, visualizerWidth, color, indent, useProfileColors);
 
                 printElapsedBars(calcElapsedBars(elapsedSeconds, duration, numProgressBars));
                 printLastRow();
@@ -1260,9 +1254,9 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
         return 0;
 }
 
-void createLibrary()
+void createLibrary(AppSettings *settings)
 {
-        library = createDirectoryTree(settings.path, &numDirectoryTreeEntries);
+        library = createDirectoryTree(settings->path, &numDirectoryTreeEntries);
 }
 
 void showLibrary(SongData *songData)
@@ -1319,7 +1313,7 @@ void showLibrary(SongData *songData)
         }
 }
 
-int printPlayer(SongData *songdata, double elapsedSeconds)
+int printPlayer(SongData *songdata, double elapsedSeconds, AppSettings *settings)
 {
         if (!uiEnabled)
         {
@@ -1366,7 +1360,7 @@ int printPlayer(SongData *songdata, double elapsedSeconds)
         if (appState.currentView == KEYBINDINGS_VIEW && refresh)
         {
                 clearScreen();
-                showKeyBindings(songdata);
+                showKeyBindings(songdata, settings);
                 saveCursorPosition();
                 refresh = false;
         }
