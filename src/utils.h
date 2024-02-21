@@ -33,6 +33,8 @@ void extractExtension(const char *filename, size_t numChars, char *ext);
 
 int endsWith(const char *str, const char *suffix);
 
+int startsWith(const char *str, const char *prefix);
+
 void trim(char *str);
 
 #endif

@@ -1,20 +1,18 @@
 #ifndef PLAYER_H
 #define PLAYER_H
+
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 #include "albumart.h"
-#include "utils.h"
-#include "term.h"
-#include "visuals.h"
+#include "directorytree.h"
 #include "playlist.h"
-#include "settings.h"
 #include "songloader.h"
 #include "sound.h"
-#include "settings.h"
-#include "directorytree.h"
+#include "term.h"
+#include "utils.h"
+#include "visuals.h"
 
 extern int mainColor;
 extern int artistColor;
@@ -35,7 +33,6 @@ extern int numProgressBars;
 extern int chosenSong;
 extern bool resetPlaylistDisplay;
 extern int visualizerHeight;
-extern volatile bool refresh;
 extern TagSettings metadata;
 extern bool fastForwarding;
 extern bool rewinding;
@@ -43,32 +40,17 @@ extern double elapsedSeconds;
 extern double pauseSeconds;
 extern double totalPauseSeconds;
 extern double seekAccumulatedSeconds;
-extern double duration;
 extern bool allowChooseSongs;
 extern int chosenLibRow;
 extern int chosenRow;
 extern int chosenNodeId;
 extern bool useProfileColors;
-extern AppSettings settings;
-
-typedef enum {
-    SONG_VIEW,
-    KEYBINDINGS_VIEW,
-    PLAYLIST_VIEW,
-    LIBRARY_VIEW
-} ViewState;
-
-typedef struct {
-    ViewState currentView;
-} AppState;
-
-extern AppState appState;
 
 bool hasNerdFonts();
 
-void createLibrary();
+void createLibrary(AppSettings *settings);
 
-int printPlayer(SongData *songdata, double elapsedSeconds);
+int printPlayer(SongData *songdata, double elapsedSeconds, AppSettings *settings);
 
 void flipNextPage();
 

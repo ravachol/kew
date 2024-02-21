@@ -1,9 +1,10 @@
 #define MA_EXPERIMENTAL__DATA_LOOPING_AND_CHAINING
 #define MA_NO_ENGINE
 #define MINIAUDIO_IMPLEMENTATION
+
 #include <miniaudio.h>
-#include "sound.h"
 #include "mpris.h"
+#include "sound.h"
 
 /*
 
@@ -271,9 +272,9 @@ int switchAudioImplementation()
 
         if (hasBuiltinDecoder(filePath))
         {
-                ma_uint32 sampleRate;
-                ma_uint32 channels;
-                ma_format format;
+                ma_uint32 sampleRate = 0;
+                ma_uint32 channels = 0;
+                ma_format format = ma_format_unknown;
                 ma_decoder *decoder = getCurrentBuiltinDecoder();
 
                 getFileInfo(filePath, &sampleRate, &channels, &format);

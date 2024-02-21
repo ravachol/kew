@@ -1,17 +1,17 @@
 #ifndef SOUND_COMMON_H
 #define SOUND_COMMON_H
-#include <stdbool.h>
-#include <stdlib.h>
+
+#include <FreeImage.h>
+#include <glib.h>
 #include <miniaudio.h>
 #include <miniaudio_libopus.h>
 #include <miniaudio_libvorbis.h>
 #include "m4a.h"
-#include <glib.h>
-#include <FreeImage.h>
 #include <stdatomic.h>
+#include <stdbool.h>
+#include <stdlib.h>
 #include "file.h"
 #include "utils.h"
-#include "player.h"
 
 #ifndef MAXPATHLEN
 #define MAXPATHLEN 4096
@@ -86,6 +86,81 @@ typedef struct
 } AudioData;
 #endif
 
+#ifndef KEYVALUEPAIR_STRUCT
+#define KEYVALUEPAIR_STRUCT
+
+typedef struct
+{
+        char *key;
+        char *value;
+} KeyValuePair;
+
+#endif
+
+#ifndef APPSETTINGS_STRUCT
+
+typedef struct
+{
+        char path[MAXPATHLEN];
+        char coverEnabled[2];
+        char coverAnsi[2];
+        char useProfileColors[2];
+        char visualizerEnabled[2];
+        char visualizerHeight[6];
+        char togglePlaylist[6];
+        char toggleBindings[6];
+        char volumeUp[6];
+        char volumeUpAlt[6];        
+        char volumeDown[6];
+        char previousTrackAlt[6];
+        char nextTrackAlt[6];
+        char scrollUpAlt[6];
+        char scrollDownAlt[6];
+        char switchNumberedSong[6];
+        char switchNumberedSongAlt[6];
+        char switchNumberedSongAlt2[6];
+        char togglePause[6];
+        char toggleColorsDerivedFrom[6];
+        char toggleVisualizer[6];
+        char toggleCovers[6];
+        char toggleAscii[6];
+        char toggleRepeat[6];
+        char toggleShuffle[6];
+        char seekBackward[6];
+        char seekForward[6];
+        char savePlaylist[6];
+        char addToMainPlaylist[6];
+        char quit[6];
+        char hardSwitchNumberedSong[6];
+        char hardPlayPause[6];
+        char hardPrev[6];
+        char hardNext[6];
+        char hardScrollUp[6];
+        char hardScrollDown[6];
+        char hardShowInfo[6];
+        char hardShowInfoAlt[6];
+        char hardShowKeys[6];
+        char hardShowKeysAlt[6];
+        char hardEndOfPlaylist[6];
+        char hardShowLibrary[6];        
+        char hardShowLibraryAlt[6];
+        char hardShowTrack[6];
+        char hardShowTrackAlt[6];
+        char hardNextPage[6];
+        char hardPrevPage[6];
+        char hardRemove[6];
+        char lastVolume[6];
+        char allowNotifications[2];
+        char color[2];       
+        char artistColor[2];
+        char enqueuedColor[2];
+        char titleColor[2];
+        char hideLogo[2];
+        char hideHelp[2];
+} AppSettings;
+
+#endif
+
 enum AudioImplementation
 {
         PCM,
@@ -96,9 +171,28 @@ enum AudioImplementation
         NONE
 };
 
+typedef enum {
+    SONG_VIEW,
+    KEYBINDINGS_VIEW,
+    PLAYLIST_VIEW,
+    LIBRARY_VIEW
+} ViewState;
+
+typedef struct {
+    ViewState currentView;
+} AppState;
+
+extern AppState appState;
+
 extern bool allowNotifications;
 
+extern volatile bool refresh;
+
+extern double duration;
+
 extern bool doQuit;
+
+extern double elapsedSeconds;
 
 extern pthread_mutex_t dataSourceMutex;
 
@@ -124,25 +218,13 @@ ma_decoder *getPreviousDecoder();
 
 ma_format getCurrentFormat();
 
-void switchDecoder();
-
-void switchVorbisDecoder();
-
-int prepareNextDecoder(char *filepath);
-
 void resetDecoders();
 
 ma_libopus *getCurrentOpusDecoder();
 
-void switchOpusDecoder();
-
-int prepareNextOpusDecoder(char *filepath);
-
 void resetOpusDecoders();
 
 m4a_decoder *getCurrentM4aDecoder();
-
-void switchM4aDecoder();
 
 m4a_decoder *getFirstM4aDecoder();
 
@@ -159,6 +241,10 @@ void getOpusFileInfo(const char *filename, ma_format *format, ma_uint32*channels
 ma_libvorbis *getCurrentVorbisDecoder();
 
 void switchVorbisDecoder();
+
+int prepareNextOpusDecoder(char *filepath);
+
+int prepareNextOpusDecoder(char *filepath);
 
 int prepareNextVorbisDecoder(char *filepath);
 
@@ -249,5 +335,11 @@ int getCurrentVolume(void);
 void setVolume(int volume);
 
 int adjustVolumePercent(int volumeChange);
+
+void m4a_on_audio_frames(ma_device *pDevice, void *pFramesOut, const void *pFramesIn, ma_uint32 frameCount);
+
+void opus_on_audio_frames(ma_device *pDevice, void *pFramesOut, const void *pFramesIn, ma_uint32 frameCount);
+
+void vorbis_on_audio_frames(ma_device *pDevice, void *pFramesOut, const void *pFramesIn, ma_uint32 frameCount);
 
 #endif

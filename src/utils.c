@@ -133,6 +133,19 @@ int endsWith(const char *str, const char *suffix)
         return strcmp(strSuffix, suffix) == 0;
 }
 
+int startsWith(const char *str, const char *prefix)
+{
+    size_t strLength = strlen(str);
+    size_t prefixLength = strlen(prefix);
+
+    if (prefixLength > strLength)
+    {
+        return 0;
+    }
+
+    return strncmp(str, prefix, prefixLength) == 0;
+}
+
 void trim(char *str)
 {
         char *start = str;

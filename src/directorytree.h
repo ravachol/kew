@@ -1,14 +1,14 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include <string.h>
 #include <ctype.h>
 #include <dirent.h>
-#include <sys/types.h>
 #include <regex.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/types.h>
+#include "albumart.h"
 #include "file.h"
 #include "utils.h"
-#include "albumart.h"
 
 #ifndef FILE_SYSTEM_ENTRY
 #define FILE_SYSTEM_ENTRY

@@ -3,8 +3,9 @@
 #define PLAYEROPS_H
 
 #include <stdbool.h>
-#include "songloader.h"
 #include "player.h"
+#include "songloader.h"
+#include "soundcommon.h"
 
 #ifndef CLOCK_MONOTONIC
 #define CLOCK_MONOTONIC 1
@@ -80,13 +81,13 @@ void toggleShuffle(void);
 
 void addToSpecialPlaylist(void);
 
-void toggleBlocks(void);
+void toggleBlocks(AppSettings *settings);
 
-void toggleColors(void);
+void toggleColors(AppSettings *settings);
 
-void toggleCovers(void);
+void toggleCovers(AppSettings *settings);
 
-void toggleVisualizer(void);
+void toggleVisualizer(AppSettings *settings);
 
 void quit(void);
 

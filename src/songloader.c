@@ -261,7 +261,7 @@ void unloadSongData(SongData **songdata)
                 data->cover = NULL;
         }
 
-        if (existsInCache(tempCache, data->coverArtPath))
+        if (existsInCache(tempCache, data->coverArtPath) && isInTempDir(data->coverArtPath))
         {
                 deleteFile(data->coverArtPath);
         }

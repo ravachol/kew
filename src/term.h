@@ -4,20 +4,18 @@
 #define __USE_POSIX
 #endif
 
-#include <unistd.h>
-#include <termios.h>
-#include <sys/ioctl.h>
-#include <stdio.h>
-#include <stdbool.h>
-#include <string.h>
-#include <stdlib.h>
-#include <sys/select.h>
-#include <pwd.h>
-#include <sys/param.h>
 #include <fcntl.h>
 #include <poll.h>
+#include <pwd.h>
 #include <signal.h>
-
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/ioctl.h>
+#include <sys/param.h>
+#include <sys/select.h>
+#include <termios.h>
+#include <unistd.h>
 
 #ifdef __GNU__
 # define _BSD_SOURCE

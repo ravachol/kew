@@ -41,16 +41,6 @@ void deleteCache(Cache *cache)
         }
 }
 
-void deleteCachedFiles(Cache *cache)
-{
-        CacheNode *current = cache->head;
-        while (current != NULL)
-        {
-                remove(current->filePath);
-                current = current->next;
-        }
-}
-
 bool existsInCache(Cache *cache, char *filePath)
 {
         CacheNode *current = cache->head;
