@@ -1,12 +1,12 @@
 #ifndef MPRIS_H
 #define MPRIS_H
 
-#include <glib.h>
 #include <gio/gio.h>
-#include "soundcommon.h"
-#include "sound.h"
-#include "playlist.h"
+#include <glib.h>
 #include "playerops.h"
+#include "playlist.h"
+#include "sound.h"
+#include "soundcommon.h"
 
 extern GDBusConnection *connection;
 extern GMainContext *global_main_context;

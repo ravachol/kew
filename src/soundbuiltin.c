@@ -3,7 +3,7 @@
 
 soundbuiltin.c
 
- Functions related to miniaudio implementation for miniaudio builtin decoders (flac, wav and mp3)
+ Functions related to miniaudio implementation for miniaudio built-in decoders (flac, wav and mp3)
 
 */
 
@@ -60,7 +60,7 @@ static ma_result builtin_file_data_source_get_cursor(ma_data_source *pDataSource
 
 static ma_result builtin_file_data_source_get_length(ma_data_source *pDataSource, ma_uint64 *pLength)
 {
-        (void)pDataSource;        
+        (void)pDataSource;
         ma_uint64 totalFrames = 0;
 
         if (getCurrentBuiltinDecoder() == NULL)
@@ -111,7 +111,7 @@ void builtin_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_u
                 if (pthread_mutex_trylock(&dataSourceMutex) != 0)
                 {
                         return;
-                }                
+                }
 
                 if (isImplSwitchReached() || audioData == NULL)
                 {
@@ -126,7 +126,7 @@ void builtin_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_u
                         break;
                 }
 
-                ma_decoder *decoder = getCurrentBuiltinDecoder();                
+                ma_decoder *decoder = getCurrentBuiltinDecoder();
 
                 if ((getCurrentImplementationType() != BUILTIN && !isSkipToNext()) || decoder == NULL)
                 {
@@ -147,9 +147,9 @@ void builtin_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_u
                         ma_result seekResult = ma_decoder_seek_to_pcm_frame(decoder, targetFrame);
 
                         if (seekResult != MA_SUCCESS)
-                        {                                
+                        {
                                 setSeekRequested(false);
-                                pthread_mutex_unlock(&dataSourceMutex);                                
+                                pthread_mutex_unlock(&dataSourceMutex);
                                 return;
                         }
 

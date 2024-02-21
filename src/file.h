@@ -1,18 +1,19 @@
 #ifndef FILE_H
 #define FILE_H
+
+#include <dirent.h>
+#include <errno.h>
+#include <pwd.h>
+#include <regex.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h>
 #include <string.h>
-#include <unistd.h>
 #include <sys/param.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <errno.h>
 #include <time.h>
-#include <dirent.h>
-#include <regex.h>
-#include <pwd.h>
+#include <unistd.h>
 #include "utils.h"
 
 #ifndef MAXPATHLEN
@@ -51,5 +52,7 @@ int deleteFile(const char *filePath);
 void generateTempFilePath(char *filePath, const char *prefix, const char *suffix);
 
 void deleteTempDir(void);
+
+int isInTempDir(const char *path);
 
 #endif

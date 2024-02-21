@@ -127,8 +127,8 @@ int walker(const char *startPath, const char *searching, char *result,
 
                 if (S_ISDIR(file_stat.st_mode))
                 {
-                        if (((exactSearch && (strcasecmp(dir->d_name, searching) == 0)) || (!exactSearch && c_strcasestr(dir->d_name, searching) != NULL)) && 
-                                (searchType != FileOnly) && (searchType != SearchPlayList))
+                        if (((exactSearch && (strcasecmp(dir->d_name, searching) == 0)) || (!exactSearch && c_strcasestr(dir->d_name, searching) != NULL)) &&
+                            (searchType != FileOnly) && (searchType != SearchPlayList))
                         {
                                 char *curDir = getcwd(NULL, 0);
                                 snprintf(result, MAXPATHLEN, "%s/%s", curDir, dir->d_name);
@@ -329,6 +329,21 @@ int deleteFile(const char *filePath)
         {
                 return -1;
         }
+}
+
+int isInTempDir(const char *path)
+{
+        const char *tempDir = getenv("TMPDIR");
+        if (tempDir == NULL)
+        {
+#ifdef __APPLE__
+                tempDir = "/tmp";
+#else
+                tempDir = "/tmp";
+#endif
+        }
+
+        return (startsWith(path, tempDir));
 }
 
 void deleteTempDir()

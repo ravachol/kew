@@ -33,35 +33,33 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #define __USE_POSIX
 #endif
 
+#include <dirent.h>
+#include <fcntl.h>
+#include <gio/gio.h>
+#include <glib.h>
+#include <glib-unix.h>
+#include <poll.h>
+#include <pwd.h>
+#include <signal.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
-#include <pwd.h>
 #include <sys/param.h>
-#include <fcntl.h>
-#include <stdbool.h>
 #include <time.h>
-#include <poll.h>
-#include <dirent.h>
-#include <signal.h>
 #include <unistd.h>
-#include <glib.h>
-#include <gio/gio.h>
-#include <glib-unix.h>
-
-#include "soundcommon.h"
-#include "sound.h"
-#include "settings.h"
-#include "utils.h"
-#include "playlist.h"
+#include "albumart.h"
+#include "cache.h"
 #include "events.h"
 #include "file.h"
-#include "visuals.h"
-#include "albumart.h"
-#include "player.h"
-#include "cache.h"
-#include "songloader.h"
-#include "playerops.h"
 #include "mpris.h"
+#include "player.h"
+#include "playerops.h"
+#include "playlist.h"
+#include "settings.h"
+#include "sound.h"
+#include "soundcommon.h"
+#include "songloader.h"
+#include "utils.h"
 
 // #define DEBUG 1
 #define MAX_SEQ_LEN 1024    // Maximum length of sequence buffer
@@ -80,6 +78,7 @@ bool loadingAudioData = false;
 bool goingToSong = false;
 bool startFromTop = false;
 bool exactSearch = false;
+AppSettings settings;
 
 bool isCooldownElapsed(int milliSeconds)
 {
@@ -442,7 +441,7 @@ void refreshPlayer()
                 if (isDeleted)
                         songData = NULL;
 
-                printPlayer(songData, elapsedSeconds);
+                printPlayer(songData, elapsedSeconds, &settings);
         }
 
         pthread_mutex_unlock(&switchMutex);
@@ -548,22 +547,22 @@ void handleInput()
                 togglePause(&totalPauseSeconds, &pauseSeconds, &pause_time);
                 break;
         case EVENT_TOGGLEVISUALIZER:
-                toggleVisualizer();
+                toggleVisualizer(&settings);
                 break;
         case EVENT_TOGGLEREPEAT:
                 toggleRepeat();
                 break;
         case EVENT_TOGGLECOVERS:
-                toggleCovers();
+                toggleCovers(&settings);
                 break;
         case EVENT_TOGGLEBLOCKS:
-                toggleBlocks();
+                toggleBlocks(&settings);
                 break;
         case EVENT_SHUFFLE:
                 toggleShuffle();
                 break;
         case EVENT_TOGGLE_PROFILE_COLORS:
-                toggleColors();
+                toggleColors(&settings);
                 break;
         case EVENT_QUIT:
                 quit();
@@ -941,7 +940,7 @@ void init()
         pthread_mutex_init(&(loadingdata.mutex), NULL);
         pthread_mutex_init(&(playlist.mutex), NULL);
         nerdFontsEnabled = hasNerdFonts();
-        createLibrary();
+        createLibrary(&settings);
 
 #ifdef DEBUG
         g_setenv("G_MESSAGES_DEBUG", "all", TRUE);

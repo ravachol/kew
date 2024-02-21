@@ -279,10 +279,10 @@ void toggleShuffle()
                 refresh = true;
 }
 
-void toggleBlocks()
+void toggleBlocks(AppSettings *settings)
 {
         coverAnsi = !coverAnsi;
-        c_strcpy(settings.coverAnsi, sizeof(settings.coverAnsi), coverAnsi ? "1" : "0");
+        c_strcpy(settings->coverAnsi, sizeof(settings->coverAnsi), coverAnsi ? "1" : "0");
         if (coverEnabled)
         {
                 clearScreen();
@@ -290,26 +290,26 @@ void toggleBlocks()
         }
 }
 
-void toggleColors()
+void toggleColors(AppSettings *settings)
 {
         useProfileColors = !useProfileColors;
-        c_strcpy(settings.useProfileColors, sizeof(settings.useProfileColors), useProfileColors ? "1" : "0");
+        c_strcpy(settings->useProfileColors, sizeof(settings->useProfileColors), useProfileColors ? "1" : "0");
         clearScreen();
         refresh = true;
 }
 
-void toggleCovers()
+void toggleCovers(AppSettings *settings)
 {
         coverEnabled = !coverEnabled;
-        c_strcpy(settings.coverEnabled, sizeof(settings.coverEnabled), coverEnabled ? "1" : "0");
+        c_strcpy(settings->coverEnabled, sizeof(settings->coverEnabled), coverEnabled ? "1" : "0");
         clearScreen();
         refresh = true;
 }
 
-void toggleVisualizer()
+void toggleVisualizer(AppSettings *settings)
 {
         visualizerEnabled = !visualizerEnabled;
-        c_strcpy(settings.visualizerEnabled, sizeof(settings.visualizerEnabled), visualizerEnabled ? "1" : "0");
+        c_strcpy(settings->visualizerEnabled, sizeof(settings->visualizerEnabled), visualizerEnabled ? "1" : "0");
         restoreCursorPosition();
         refresh = true;
 }
