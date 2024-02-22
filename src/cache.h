@@ -17,8 +17,6 @@ typedef struct Cache
         CacheNode *head;
 } Cache;
 
-extern Cache *tempCache;
-
 Cache *createCache(void);
 
 void addToCache(Cache *cache, const char *filePath);

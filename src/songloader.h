@@ -3,7 +3,6 @@
 #include <gio/gio.h>
 #include <sys/wait.h>
 #include <unistd.h>
-#include "albumart.h"
 #include "cache.h"
 #include "chafafunc.h"
 #include "file.h"
@@ -58,6 +57,8 @@ typedef struct
 } SongData;
 
 #endif
+
+extern Cache *tempCache;
 
 SongData *loadSongData(char *filePath);
 void unloadSongData(SongData **songdata);

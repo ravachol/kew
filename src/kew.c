@@ -47,7 +47,6 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include <sys/param.h>
 #include <time.h>
 #include <unistd.h>
-#include "albumart.h"
 #include "cache.h"
 #include "events.h"
 #include "file.h"

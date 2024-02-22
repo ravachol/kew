@@ -303,6 +303,23 @@ int getYear(const char *dateString)
         return year;
 }
 
+int displayCover(FIBITMAP *cover, const char *coverArtPath, int height, bool ansii)
+{
+        int width = height * 2;
+
+        if (!ansii)
+        {
+                printBitmapCentered(cover, width, height);
+        }
+        else
+        {
+                output_ascii(coverArtPath, height, width);
+        }
+        printf("\n");
+
+        return 0;
+}
+
 void printCover(SongData *songdata)
 {
         clearRestOfScreen();
