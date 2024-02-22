@@ -5,10 +5,9 @@
 
 cache.c
 
- Related to cache whcih contains paths to cached files.
+ Related to cache which contains paths to cached files.
  
 */
-Cache *tempCache = NULL;
 
 Cache *createCache()
 {

@@ -11,6 +11,8 @@ songloader.c
 #define MAXPATHLEN 4096
 #endif
 
+Cache *tempCache = NULL;
+
 void removeTagPrefix(char *value)
 {
         char *colon_pos = strchr(value, ':');

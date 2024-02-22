@@ -6,7 +6,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
-#include "albumart.h"
 #include "file.h"
 #include "utils.h"
 
