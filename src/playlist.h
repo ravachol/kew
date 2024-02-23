@@ -10,7 +10,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "directorytree.h"
 #include "file.h"
+
+#define MAX_FILES 10000
 
 #ifndef PLAYLIST_STRUCT
 #define PLAYLIST_STRUCT
@@ -67,7 +70,7 @@ int makePlaylist(int argc, char *argv[], bool exactSearch, const char *path);
 
 void writeM3UFile(const char *filename, PlayList *playlist);
 
-void loadMainPlaylist(const char *directory);
+void loadSpecialPlaylist(const char *directory);
 
 void saveSpecialPlaylist(const char *directory, bool isPlayingMain);
 
@@ -82,3 +85,5 @@ Node *findPathInPlaylist(char *path, PlayList *playlist);
 Node *findLastPathInPlaylist(char *path, PlayList *playlist);
 
 int findNodeInList(PlayList *list, int id, Node **foundNode);
+
+void createPlayListFromFileSystemEntry(FileSystemEntry *root, PlayList *list, int playlistMax);
