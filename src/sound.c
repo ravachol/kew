@@ -42,7 +42,7 @@ ma_result initFirstDatasource(AudioData *pAudioData, UserData *pUserData)
 
         pAudioData->pUserData = pUserData;
         pAudioData->currentPCMFrame = 0;
-        pAudioData->restart = false; 
+        pAudioData->restart = false;
 
         if (hasBuiltinDecoder(filePath))
         {
@@ -96,7 +96,7 @@ ma_result initFirstDatasource(AudioData *pAudioData, UserData *pUserData)
         }
         else
         {
-                return MA_ERROR;        
+                return MA_ERROR;
         }
 
         return MA_SUCCESS;
@@ -191,7 +191,7 @@ void m4a_createAudioDevice(UserData *userData, ma_device *device, ma_context *co
         }
 
         setVolume(getCurrentVolume());
-        
+
         result = ma_device_start(device);
 
         if (result != MA_SUCCESS)
@@ -263,11 +263,11 @@ int switchAudioImplementation()
 
         char *filePath = strdup(userData.currentSongData->filePath);
 
-        if (filePath == NULL || filePath[0] == '\0' || filePath[0] == '\r')
+        if (filePath == NULL || filePath[0] == '\0' || filePath[0] == '\r' || existsFile(filePath) < 0)
         {
                 free(filePath);
-                setEOFNotReached();
-                return 0;
+                setEOFReached();
+                return -1;
         }
 
         if (hasBuiltinDecoder(filePath))
@@ -453,10 +453,10 @@ int switchAudioImplementation()
                 free(filePath);
                 return -1;
         }
-      
+
         free(filePath);
         setEOFNotReached();
-        
+
         return 0;
 }
 
@@ -465,15 +465,19 @@ void cleanupAudioContext()
         ma_context_uninit(&context);
 }
 
-void createAudioDevice(UserData *userData)
+int createAudioDevice(UserData *userData)
 {
         ma_context_init(NULL, 0, NULL, &context);
-        switchAudioImplementation();
+        if (switchAudioImplementation() >= 0)
+        {
+                SongData *currentSongData = userData->currentSongData;
 
-        SongData *currentSongData = userData->currentSongData;
+                if (currentSongData != NULL && currentSongData->hasErrors == 0 && currentSongData->metadata && strlen(currentSongData->metadata->title) > 0)
+                        displaySongNotification(currentSongData->metadata->artist, currentSongData->metadata->title, currentSongData->coverArtPath);
+        }
+        else {
+                return -1;                
+        }
 
-        if (currentSongData != NULL && currentSongData->hasErrors == 0 && currentSongData->metadata 
-        && strlen(currentSongData->metadata->title) > 0)
-                displaySongNotification(currentSongData->metadata->artist, currentSongData->metadata->title, currentSongData->coverArtPath);
-
+        return 0;
 }

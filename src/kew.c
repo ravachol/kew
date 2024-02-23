@@ -180,6 +180,7 @@ struct Event processInput()
                                       {settings.savePlaylist, EVENT_EXPORTPLAYLIST},
                                       {settings.toggleColorsDerivedFrom, EVENT_TOGGLE_PROFILE_COLORS},
                                       {settings.addToMainPlaylist, EVENT_ADDTOMAINPLAYLIST},
+                                      {settings.updateLibrary, EVENT_UPDATELIBRARY},
                                       {settings.hardPlayPause, EVENT_PLAY_PAUSE},
                                       {settings.hardPrev, EVENT_PREV},
                                       {settings.hardNext, EVENT_NEXT},
@@ -296,34 +297,6 @@ struct Event processInput()
         return event;
 }
 
-void unloadPreviousSong()
-{
-        pthread_mutex_lock(&(loadingdata.mutex));
-
-        if (usingSongDataA &&
-            (skipping || (userData.currentSongData == NULL || userData.songdataADeleted == false ||
-                          (loadingdata.songdataA != NULL && userData.songdataADeleted == false && userData.currentSongData->hasErrors == 0 && userData.currentSongData->trackId != NULL && strcmp(loadingdata.songdataA->trackId, userData.currentSongData->trackId) != 0))))
-        {
-                userData.songdataADeleted = true;
-                unloadSongData(&loadingdata.songdataA);
-                usingSongDataA = false;
-                if (!audioData.endOfListReached)
-                        loadedNextSong = false;
-        }
-        else if (!usingSongDataA &&
-                 (skipping || (userData.currentSongData == NULL || userData.songdataBDeleted == false ||
-                               (loadingdata.songdataB != NULL && userData.songdataBDeleted == false && userData.currentSongData->hasErrors == 0 && userData.currentSongData->trackId != NULL && strcmp(loadingdata.songdataB->trackId, userData.currentSongData->trackId) != 0))))
-        {
-                userData.songdataBDeleted = true;
-                unloadSongData(&loadingdata.songdataB);
-                usingSongDataA = true;
-                if (!audioData.endOfListReached)
-                        loadedNextSong = false;
-        }
-
-        pthread_mutex_unlock(&(loadingdata.mutex));
-}
-
 void setEndOfListReached()
 {
         appState.currentView = LIBRARY_VIEW;
@@ -437,7 +410,7 @@ void refreshPlayer()
                             length);
                 }
 
-                if (isDeleted)
+                if (isDeleted || songData->hasErrors)
                         songData = NULL;
 
                 printPlayer(songData, elapsedSeconds, &settings);
@@ -598,6 +571,9 @@ void handleInput()
         case EVENT_EXPORTPLAYLIST:
                 savePlaylist(settings.path);
                 break;
+        case EVENT_UPDATELIBRARY:
+                updateLibrary(settings.path);
+                break;
         case EVENT_SHOWKEYBINDINGS:
                 toggleShowKeyBindings();
                 break;
@@ -700,19 +676,28 @@ void loadAudioData()
                         waitingForPlaylist = false;
                         waitingForNext = false;
 
-                        loadFirst(currentSong);
+                        int res = loadFirst(currentSong);
 
-                        createAudioDevice(&userData);
+                        if (res >= 0)
+                        {
+                                res = createAudioDevice(&userData);
+                        }
 
-                        resumePlayback();
+                        if (res >= 0)
+                        {
+                                resumePlayback();                            
+                        }
+                        else
+                        {
+                                setEndOfListReached();
+                        }
 
+                        playlistNeedsUpdate = false;
                         loadedNextSong = false;
                         nextSong = NULL;
                         refresh = true;
 
-                        clock_gettime(CLOCK_MONOTONIC, &start_time);
-
-                        playlistNeedsUpdate = false;
+                        clock_gettime(CLOCK_MONOTONIC, &start_time);                        
                 }
         }
         else if (currentSong != NULL && (nextSongNeedsRebuilding || nextSong == NULL) && !songLoading)
@@ -808,15 +793,26 @@ void play(Node *song)
         updateLastInputTime();
         updateLastSongSwitchTime();
 
+        int res = 0;
+
         if (song != NULL)
         {
                 audioData.currentFileIndex = 0;
                 loadingdata.loadA = true;
-                loadFirst(song);
-                createAudioDevice(&userData);
+                res = loadFirst(song);
+
+                if (res >= 0)
+                {
+                        res = createAudioDevice(&userData);
+                }
+
+                if (res < 0)
+                        setEndOfListReached();
         }
-        else
+                
+        if (song == NULL || res < 0)
         {
+                song = NULL;
                 waitingForPlaylist = true;
         }
 
@@ -865,7 +861,7 @@ void cleanupOnExit()
         restoreTerminalMode();
         enableInputBuffering();
         setConfig(&settings);
-        saveMainPlaylist(settings.path, playingMainPlaylist);
+        saveSpecialPlaylist(settings.path, playingMainPlaylist);
         freeAudioBuffer();
         deleteCache(tempCache);
         deleteTempDir();
@@ -916,6 +912,7 @@ void run()
 
 void init()
 {
+        askIfCacheLibrary();
         clearScreen();
         disableInputBuffering();
         srand(time(NULL));

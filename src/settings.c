@@ -36,6 +36,7 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         strncpy(settings.useProfileColors, "1", sizeof(settings.useProfileColors));
         strncpy(settings.hideLogo, "0", sizeof(settings.hideLogo));
         strncpy(settings.hideHelp, "0", sizeof(settings.hideHelp));
+        strncpy(settings.cacheLibrary, "-1", sizeof(settings.cacheLibrary));
 
         strncpy(settings.volumeUp, "+", sizeof(settings.volumeUp));
         strncpy(settings.volumeUpAlt, "=", sizeof(settings.volumeUpAlt));
@@ -54,6 +55,7 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         strncpy(settings.seekBackward, "a", sizeof(settings.seekBackward));
         strncpy(settings.seekForward, "d", sizeof(settings.seekForward));
         strncpy(settings.savePlaylist, "x", sizeof(settings.savePlaylist));
+        strncpy(settings.updateLibrary, "u", sizeof(settings.updateLibrary));
         strncpy(settings.addToMainPlaylist, ".", sizeof(settings.addToMainPlaylist));
         strncpy(settings.hardPlayPause, " ", sizeof(settings.hardPlayPause));
         strncpy(settings.hardSwitchNumberedSong, "\n", sizeof(settings.hardSwitchNumberedSong));
@@ -221,9 +223,17 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
                 {
                         snprintf(settings.hideHelp, sizeof(settings.hideHelp), "%s", pair->value);
                 }
+                else if (strcmp(stringToLower(pair->key), "cachelibrary") == 0)
+                {
+                        snprintf(settings.cacheLibrary, sizeof(settings.cacheLibrary), "%s", pair->value);
+                }
                 else if (strcmp(stringToLower(pair->key), "quit") == 0)
                 {
                         snprintf(settings.quit, sizeof(settings.quit), "%s", pair->value);
+                }
+                else if (strcmp(stringToLower(pair->key), "updatelibrary") == 0)
+                {
+                        snprintf(settings.updateLibrary, sizeof(settings.updateLibrary), "%s", pair->value);
                 }
         }
 
@@ -269,62 +279,6 @@ KeyValuePair *readKeyValuePairs(const char *file_path, int *count)
 
         *count = pair_count;
         return pairs;
-}
-
-const char *getHomePath()
-{
-        const char *xdgHome = getenv("XDG_HOME");
-        if (xdgHome == NULL)
-        {
-                xdgHome = getenv("HOME");
-                if (xdgHome == NULL)
-                {
-                        struct passwd *pw = getpwuid(getuid());
-                        if (pw != NULL)
-                        {
-                                char *home = (char *)malloc(MAXPATHLEN);
-                                strcpy(home, pw->pw_dir);
-                                return home;
-                        }
-                }
-        }
-        return xdgHome;
-}
-
-char *getConfigPath()
-{
-        char *configPath = malloc(MAXPATHLEN);
-        if (!configPath)
-                return NULL;
-
-        const char *xdgConfig = getenv("XDG_CONFIG_HOME");
-        if (xdgConfig)
-        {
-                snprintf(configPath, MAXPATHLEN, "%s", xdgConfig);
-        }
-        else
-        {
-                const char *home = getHomePath();
-                if (home)
-                {
-                        snprintf(configPath, MAXPATHLEN, "%s/.config", home);
-                }
-                else
-                {
-                        struct passwd *pw = getpwuid(getuid());
-                        if (pw)
-                        {
-                                snprintf(configPath, MAXPATHLEN, "%s", pw->pw_dir);
-                        }
-                        else
-                        {
-                                free(configPath);
-                                return NULL;
-                        }
-                }
-        }
-
-        return configPath;
 }
 
 const char *getDefaultMusicFolder()
@@ -379,7 +333,7 @@ void getConfig(AppSettings *settings)
         useProfileColors = (settings->useProfileColors[0] == '1');
         hideLogo = (settings->hideLogo[0] == '1');
         hideHelp = (settings->hideHelp[0] == '1');
-
+        
         int temp = atoi(settings->color);
         if (temp >= 0)
                 mainColor = temp;
@@ -402,6 +356,10 @@ void getConfig(AppSettings *settings)
         int temp3 = atoi(settings->lastVolume);
         if (temp3 >= 0)
                 setVolume(temp3);
+
+        int temp4 = atoi(settings->cacheLibrary);
+        if (temp4 >= 0)
+                cacheLibrary = temp4;
 
         getMusicLibraryPath(settings->path);
         free(configdir);
@@ -445,6 +403,7 @@ void setConfig(AppSettings *settings)
         if (settings->hideHelp[0] == '\0')
                 hideHelp ? c_strcpy(settings->hideHelp, sizeof(settings->hideHelp), "1") : c_strcpy(settings->hideHelp, sizeof(settings->hideHelp), "0");
 
+        sprintf(settings->cacheLibrary, "%d", cacheLibrary);
         sprintf(settings->lastVolume, "%d", getCurrentVolume());
 
         // Null-terminate the character arrays
@@ -458,6 +417,7 @@ void setConfig(AppSettings *settings)
         settings->allowNotifications[1] = '\0';
         settings->hideLogo[1] = '\0';
         settings->hideHelp[1] = '\0';
+        settings->cacheLibrary[5] = '\0';
 
         // Write the settings to the file
         fprintf(file, "# Make sure that kew is closed before editing this file in order for changes to take effect.\n\n");
@@ -472,6 +432,7 @@ void setConfig(AppSettings *settings)
         fprintf(file, "allowNotifications=%s\n", settings->allowNotifications);
         fprintf(file, "hideLogo=%s\n", settings->hideLogo);
         fprintf(file, "hideHelp=%s\n", settings->hideHelp);
+        fprintf(file, "cacheLibrary=%s\n", settings->cacheLibrary);
         fprintf(file, "lastVolume=%s\n", settings->lastVolume);
 
         fprintf(file, "\n# Color values are 0=Black, 1=Red, 2=Green, 3=Yellow, 4=Blue, 5=Magenta, 6=Cyan, 7=White\n");
@@ -505,6 +466,7 @@ void setConfig(AppSettings *settings)
         fprintf(file, "seekForward=%s\n", settings->seekForward);
         fprintf(file, "savePlaylist=%s\n", settings->savePlaylist);
         fprintf(file, "addToMainPlaylist=%s\n", settings->addToMainPlaylist);
+        fprintf(file, "updateLibrary=%s\n", settings->updateLibrary);
 
         fprintf(file, "quit=%s\n\n", settings->quit);
         fprintf(file, "# For special keys use terminal codes: OS, for F4 for instance. This can depend on the terminal.\n");

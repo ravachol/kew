@@ -83,7 +83,7 @@ void turnFilePathIntoTitle(const char *filePath, char *title)
         }
 }
 
-// Extracts metadata, returns -1 if no album cover found
+// Extracts metadata, returns -1 if no album cover found and -2 if no file found
 int extractTags(const char *input_file, TagSettings *tag_settings, double *duration, const char *coverFilePath)
 {
         AVFormatContext *fmt_ctx = NULL;
@@ -93,13 +93,13 @@ int extractTags(const char *input_file, TagSettings *tag_settings, double *durat
         if ((ret = avformat_open_input(&fmt_ctx, input_file, NULL, NULL)) < 0)
         {
                 fprintf(stderr, "Could not open input file '%s'\n", input_file);
-                return 1;
+                return -2;
         }
         if ((ret = avformat_find_stream_info(fmt_ctx, NULL)) < 0)
         {
                 fprintf(stderr, "Could not find stream information\n");
                 avformat_close_input(&fmt_ctx);
-                return 1;
+                return -2;
         }
 
         memset(tag_settings->title, 0, sizeof(tag_settings->title));
@@ -174,7 +174,7 @@ int extractTags(const char *input_file, TagSettings *tag_settings, double *durat
                 fclose(file);
 
                 avformat_close_input(&fmt_ctx);
-                return 1;
+                return 0;
         }
         else
         {
@@ -210,7 +210,12 @@ void loadMetaData(SongData *songdata)
         generateTempFilePath(songdata->coverArtPath, "cover", ".jpg");
         int res = extractTags(songdata->filePath, songdata->metadata, &songdata->duration, songdata->coverArtPath);
 
-        if (res < 0)
+        if (res == -2)
+        {
+                songdata->hasErrors = true;
+                return;
+        }
+        else if (res == -1)
         {
                 getDirectoryFromPath(songdata->filePath, path);
                 char *tmp = NULL;
@@ -220,7 +225,7 @@ void loadMetaData(SongData *songdata)
                 if (tmp != NULL)
                         c_strcpy(songdata->coverArtPath, sizeof(songdata->coverArtPath), tmp);
                 else
-                        c_strcpy(songdata->coverArtPath, sizeof(songdata->coverArtPath), "q");
+                        c_strcpy(songdata->coverArtPath, sizeof(songdata->coverArtPath), "");
         }
         else
         {

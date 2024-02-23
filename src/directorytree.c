@@ -1,17 +1,32 @@
 #include "directorytree.h"
 
-FileSystemEntry *createEntry(const char *name, int isDirectory, FileSystemEntry *parent) {
-    FileSystemEntry *newEntry = (FileSystemEntry *)malloc(sizeof(FileSystemEntry));
-    if (newEntry != NULL) {
-        newEntry->name = strdup(name);
+static int lastUsedId = 0;
 
-        newEntry->isDirectory = isDirectory;
-        newEntry->isEnqueued = 0;
-        newEntry->parent = parent;
-        newEntry->children = NULL;
-        newEntry->next = NULL;
-    }
-    return newEntry;
+typedef void (*TimeoutCallback)(void);
+
+FileSystemEntry *createEntry(const char *name, int isDirectory, FileSystemEntry *parent)
+{
+        FileSystemEntry *newEntry = (FileSystemEntry *)malloc(sizeof(FileSystemEntry));
+        if (newEntry != NULL)
+        {
+                newEntry->name = strdup(name);
+
+                newEntry->isDirectory = isDirectory;
+                newEntry->isEnqueued = 0;
+                newEntry->parent = parent;
+                newEntry->children = NULL;
+                newEntry->next = NULL;
+                newEntry->id = ++lastUsedId;
+                if (parent != NULL)
+                {
+                        newEntry->parentId = parent->id;
+                }
+                else
+                {
+                        newEntry->parentId = -1;
+                }
+        }
+        return newEntry;
 }
 
 void addChild(FileSystemEntry *parent, FileSystemEntry *child)
@@ -23,28 +38,29 @@ void addChild(FileSystemEntry *parent, FileSystemEntry *child)
         }
 }
 
-void setFullPath(FileSystemEntry *entry, const char *parentPath, const char *entryName) 
+void setFullPath(FileSystemEntry *entry, const char *parentPath, const char *entryName)
 {
-    if (entry == NULL || parentPath == NULL || entryName == NULL) {
+        if (entry == NULL || parentPath == NULL || entryName == NULL)
+        {
 
-        return;
-    }
+                return;
+        }
 
-    size_t fullPathLength = strlen(parentPath) + strlen(entryName) + 2; // +2 for '/' and '\0'
+        size_t fullPathLength = strlen(parentPath) + strlen(entryName) + 2; // +2 for '/' and '\0'
 
-    entry->fullPath = (char *)malloc(fullPathLength);
-    if (entry->fullPath == NULL) 
-    {
-        return;
-    }
-    snprintf(entry->fullPath, fullPathLength, "%s/%s", parentPath, entryName);
+        entry->fullPath = (char *)malloc(fullPathLength);
+        if (entry->fullPath == NULL)
+        {
+                return;
+        }
+        snprintf(entry->fullPath, fullPathLength, "%s/%s", parentPath, entryName);
 }
 
 void displayTreeSimple(FileSystemEntry *root, int depth)
 {
         for (int i = 0; i < depth; ++i)
         {
-                printf("  "); // Add indentation for better visualization
+                printf("  ");
         }
 
         printf("%s", root->name);
@@ -64,22 +80,25 @@ void displayTreeSimple(FileSystemEntry *root, int depth)
         }
 }
 
-void freeTree(FileSystemEntry *root) {
-    if (root == NULL) {
-        return;
-    }
+void freeTree(FileSystemEntry *root)
+{
+        if (root == NULL)
+        {
+                return;
+        }
 
-    FileSystemEntry *child = root->children;
-    while (child != NULL) {
-        FileSystemEntry *next = child->next;
-        freeTree(child);
-        child = next;
-    }
+        FileSystemEntry *child = root->children;
+        while (child != NULL)
+        {
+                FileSystemEntry *next = child->next;
+                freeTree(child);
+                child = next;
+        }
 
-    free(root->name);
-    free(root->fullPath);
+        free(root->name);
+        free(root->fullPath);
 
-    free(root);
+        free(root);
 }
 
 int removeEmptyDirectories(FileSystemEntry *node)
@@ -99,7 +118,6 @@ int removeEmptyDirectories(FileSystemEntry *node)
                 {
                         numEntries += removeEmptyDirectories(currentChild);
 
-                        // Remove the empty directory from the list
                         if (currentChild->children == NULL)
                         {
                                 if (prevChild == NULL)
@@ -136,10 +154,9 @@ char *stringToUpperWithoutSpaces(const char *str)
         }
 
         size_t len = strlen(str);
-        char *result = (char *)malloc(len + 1); // +1 for the null terminator
+        char *result = (char *)malloc(len + 1);
         if (result == NULL)
         {
-                // Handle memory allocation failure
                 return NULL;
         }
 
@@ -152,7 +169,7 @@ char *stringToUpperWithoutSpaces(const char *str)
                 }
         }
 
-        result[resultIndex] = '\0'; // Null-terminate the string
+        result[resultIndex] = '\0';
 
         return result;
 }
@@ -178,12 +195,13 @@ int compareLibEntries(const struct dirent **a, const struct dirent **b)
         int result = strcmp(nameB, nameA);
         free(nameA);
         free(nameB);
-        
+
         return result;
 }
 
 int readDirectory(const char *path, FileSystemEntry *parent)
 {
+
         DIR *directory = opendir(path);
         if (directory == NULL)
         {
@@ -236,9 +254,9 @@ int readDirectory(const char *path, FileSystemEntry *parent)
                         {
                                 FileSystemEntry *child = createEntry(entry->d_name, isDirectory, parent);
 
-                                if (entry != NULL) {
+                                if (entry != NULL)
+                                {
                                         setFullPath(child, path, entry->d_name);
-
                                 }
 
                                 addChild(parent, child);
@@ -262,6 +280,40 @@ int readDirectory(const char *path, FileSystemEntry *parent)
         return numEntries;
 }
 
+void writeTreeToFile(FileSystemEntry *node, FILE *file, int parentId)
+{
+        if (node == NULL)
+        {
+                return;
+        }
+
+        fprintf(file, "%d\t%s\t%d\t%d\n", node->id, node->name, node->isDirectory, parentId);
+
+        FileSystemEntry *child = node->children;
+        while (child)
+        {
+                writeTreeToFile(child, file, node->id);
+                child = child->next;
+        }
+
+        free(node->name);
+        free(node->fullPath);
+        free(node);
+}
+
+void freeAndWriteTree(FileSystemEntry *root, const char *filename)
+{
+        FILE *file = fopen(filename, "w");
+        if (!file)
+        {
+                perror("Failed to open file");
+                return;
+        }
+
+        writeTreeToFile(root, file, -1);
+        fclose(file);
+}
+
 FileSystemEntry *createDirectoryTree(const char *startPath, int *numEntries)
 {
         FileSystemEntry *root = createEntry("root", 1, NULL);
@@ -270,6 +322,125 @@ FileSystemEntry *createDirectoryTree(const char *startPath, int *numEntries)
 
         *numEntries = readDirectory(startPath, root);
         *numEntries -= removeEmptyDirectories(root);
+
+        lastUsedId = 0;
+
+        return root;
+}
+
+FileSystemEntry **resizeNodesArray(FileSystemEntry **nodes, int oldSize, int newSize)
+{
+        FileSystemEntry **newNodes = realloc(nodes, newSize * sizeof(FileSystemEntry *));
+        if (newNodes)
+        {                
+                for (int i = oldSize; i < newSize; i++)
+                {
+                        newNodes[i] = NULL;
+                }
+        }
+        return newNodes;
+}
+
+FileSystemEntry *reconstructTreeFromFile(const char *filename, const char *startMusicPath, int *numDirectoryEntries)
+{
+        FILE *file = fopen(filename, "r");
+        if (!file)
+        {
+                perror("Failed to open file");
+                return NULL;
+        }
+
+        char line[1024];
+        int nodesCount = 0, nodesCapacity = 1000, oldCapacity = 0;
+        FileSystemEntry **nodes = calloc(nodesCapacity, sizeof(FileSystemEntry *));
+        if (!nodes)
+        {
+                perror("Failed to allocate nodes array");
+                fclose(file);
+                return NULL;
+        }
+
+        FileSystemEntry *root = NULL;
+
+        while (fgets(line, sizeof(line), file))
+        {
+                int id, parentId, isDirectory;
+                char name[256];
+
+                if (sscanf(line, "%d\t%255[^\t]\t%d\t%d", &id, name, &isDirectory, &parentId) == 4)
+                {
+                        if (id >= nodesCapacity)
+                        {
+                                oldCapacity = nodesCapacity;
+                                nodesCapacity = id + 100;
+                                FileSystemEntry **tempNodes = resizeNodesArray(nodes, oldCapacity, nodesCapacity);
+                                if (!tempNodes)
+                                {
+                                        perror("Failed to resize nodes array");
+
+                                        for (int i = 0; i < nodesCount; i++)
+                                        {
+                                                if (nodes[i])
+                                                {
+                                                        free(nodes[i]->name);
+                                                        free(nodes[i]->fullPath);
+                                                        free(nodes[i]);
+                                                }
+                                        }
+                                        free(nodes);
+                                        fclose(file);
+                                        exit(EXIT_FAILURE);
+                                }
+                                nodes = tempNodes;
+                        }
+
+                        FileSystemEntry *node = malloc(sizeof(FileSystemEntry));
+                        if (!node)
+                        {
+                                perror("Failed to allocate node");
+
+                                fclose(file);
+                                exit(EXIT_FAILURE);
+                        }
+                        node->id = id;
+                        node->name = strdup(name);
+                        node->isDirectory = isDirectory;
+                        node->isEnqueued = 0;
+                        node->children = node->next = node->parent = NULL;
+                        nodes[id] = node;
+                        nodesCount++;
+
+                        if (parentId >= 0 && nodes[parentId])
+                        {
+                                node->parent = nodes[parentId];
+                                if (nodes[parentId]->children)
+                                {
+                                        FileSystemEntry *child = nodes[parentId]->children;
+                                        while (child->next)
+                                        {
+                                                child = child->next;
+                                        }
+                                        child->next = node;
+                                }
+                                else
+                                {
+                                        nodes[parentId]->children = node;
+                                }
+
+                                setFullPath(node, nodes[parentId]->fullPath, node->name);
+
+                                if (isDirectory)
+                                        *numDirectoryEntries = *numDirectoryEntries + 1;
+                        }
+                        else
+                        {
+                                root = node;
+                                setFullPath(node, startMusicPath, "");
+                        }
+                }
+        }
+        fclose(file);
+        free(nodes);
 
         return root;
 }

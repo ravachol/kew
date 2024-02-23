@@ -130,6 +130,7 @@ typedef struct
         char seekForward[6];
         char savePlaylist[6];
         char addToMainPlaylist[6];
+        char updateLibrary[6];
         char quit[6];
         char hardSwitchNumberedSong[6];
         char hardPlayPause[6];
@@ -157,6 +158,7 @@ typedef struct
         char titleColor[2];
         char hideLogo[2];
         char hideHelp[2];
+        char cacheLibrary[6];
 } AppSettings;
 
 #endif

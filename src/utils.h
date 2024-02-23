@@ -8,12 +8,19 @@
 #endif
 
 #include <ctype.h>
+#include <pwd.h>
 #include <regex.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/param.h>
+#include <unistd.h>
 #include <string.h>
 #include <time.h>
+
+#ifndef MAXPATHLEN
+#define MAXPATHLEN 4096
+#endif
 
 void c_sleep(int milliseconds);
 
@@ -36,5 +43,9 @@ int endsWith(const char *str, const char *suffix);
 int startsWith(const char *str, const char *prefix);
 
 void trim(char *str);
+
+const char *getHomePath();
+
+char *getConfigPath();
 
 #endif

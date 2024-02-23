@@ -47,6 +47,10 @@ extern int chosenLibRow;
 extern int chosenRow;
 extern int chosenNodeId;
 extern bool useProfileColors;
+extern int cacheLibrary;
+extern int numDirectoryTreeEntries;
+
+extern FileSystemEntry *library;
 
 bool hasNerdFonts();
 

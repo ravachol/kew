@@ -5,6 +5,7 @@
 #include <stdbool.h>
 #include "player.h"
 #include "songloader.h"
+#include "settings.h"
 #include "soundcommon.h"
 
 #ifndef CLOCK_MONOTONIC
@@ -113,7 +114,7 @@ void loadSong(Node *song, LoadingThreadData *loadingdata);
 
 void loadNext(LoadingThreadData *loadingdata);
 
-void loadFirst(Node *song);
+int loadFirst(Node *song);
 
 void flushSeek(void);
 
@@ -122,5 +123,11 @@ Node *findSelectedEntryById(PlayList *playlist, int id);
 void emitSeekedSignal(double newPositionSeconds);
 
 void rebuildNextSong(Node *song);
+
+void updateLibrary(char *path);
+
+void askIfCacheLibrary();
+
+void unloadPreviousSong();
 
 #endif
