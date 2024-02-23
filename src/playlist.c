@@ -617,7 +617,7 @@ void loadMainPlaylist(const char *directory)
         readM3UFile(playlistPath, specialPlaylist);
 }
 
-void saveMainPlaylist(const char *directory, bool isPlayingMain)
+void saveSpecialPlaylist(const char *directory, bool isPlayingMain)
 {
         char playlistPath[MAXPATHLEN];
         c_strcpy(playlistPath, sizeof(playlistPath), directory);

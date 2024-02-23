@@ -47,6 +47,17 @@ void getDirectoryFromPath(const char *path, char *directory)
         }
 }
 
+int existsFile(const char *fname)
+{
+        FILE *file;
+        if ((file = fopen(fname, "r")))
+        {
+                fclose(file);
+                return 1;
+        }
+        return -1;
+}
+
 int isDirectory(const char *path)
 {
         DIR *dir = opendir(path);

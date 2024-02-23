@@ -83,6 +83,9 @@ int libIter = 0;
 int libSongIter = 0;
 int libTopLevelSongIter = 0;
 int chosenNodeId = 0;
+int cacheLibrary = -1;
+
+const char LIBRARY_FILE[] = "kewlibrary";
 
 FileSystemEntry *library = NULL;
 
@@ -216,6 +219,7 @@ void printHelp()
         printf(" Use ←, → or h, l to play the next or previous track in the playlist.\n");
         printf(" Use + (or =), - to adjust volume.\n");
         printf(" Use a, d to seek in a song.\n");
+        printf(" Use u to update the library.\n");
         printf(" Press space or p to pause.\n");
         printf(" Press F2 to display playlist.\n");
         printf(" Press F3 to display music library.\n");
@@ -674,6 +678,8 @@ int showKeyBindings(SongData *songdata, AppSettings *settings)
         printf(" - Space (or %s) to toggle pause.\n", settings->togglePause);
         printBlankSpaces(indent);
         printf(" - %s toggle color derived from album or from profile.\n", settings->toggleColorsDerivedFrom);
+        printBlankSpaces(indent);
+        printf(" - %s to update the library.\n", settings->updateLibrary);
         printBlankSpaces(indent);
         printf(" - %s to show/hide the spectrum visualizer.\n", settings->toggleVisualizer);
         printBlankSpaces(indent);
@@ -1271,9 +1277,33 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
         return 0;
 }
 
-void createLibrary(AppSettings *settings)
+char *getLibraryFilePath()
 {
-        library = createDirectoryTree(settings->path, &numDirectoryTreeEntries);
+        char *configdir = getConfigPath();
+        char *filepath = NULL;
+
+        size_t filepath_length = strlen(configdir) + strlen("/") + strlen(LIBRARY_FILE) + 1;
+        filepath = (char *)malloc(filepath_length);
+        strcpy(filepath, configdir);
+        strcat(filepath, "/");
+        strcat(filepath, LIBRARY_FILE);
+        free(configdir);
+        return filepath;      
+}
+
+void createLibrary(AppSettings *settings)
+{         
+        if (cacheLibrary > 0)
+        {
+                char *libFilepath = getLibraryFilePath();
+                library = reconstructTreeFromFile(libFilepath, settings->path, &numDirectoryTreeEntries);
+                free(libFilepath);
+        }
+
+        if (library == NULL)
+        {
+                library = createDirectoryTree(settings->path, &numDirectoryTreeEntries);
+        }
 }
 
 void showLibrary(SongData *songData)
@@ -1301,7 +1331,7 @@ void showLibrary(SongData *songData)
                 printBlankSpaces(indent);
                 printf(" Use ↑, ↓ or k, j to choose. Enter to enqueue/dequeue.\n");
                 printBlankSpaces(indent);
-                printf(" Pg Up and Pg Dn to scroll.\n\n");
+                printf(" Pg Up and Pg Dn to scroll. Press u to update the library.\n\n");
         }
 
         numTopLevelSongs = 0;
@@ -1421,6 +1451,15 @@ void showHelp()
 
 void freeMainDirectoryTree()
 {
-        if (library != NULL)
+        if (library == NULL)
+                return;
+
+        char *filepath = getLibraryFilePath();
+
+        if (cacheLibrary)
+                freeAndWriteTree(library, filepath);
+        else
                 freeTree(library);
+
+        free(filepath);                
 }

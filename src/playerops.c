@@ -222,11 +222,11 @@ void addToSpecialPlaylist()
         if (currentSong == NULL)
                 return;
 
-        int id =  currentSong->id;
-        
+        int id = currentSong->id;
+
         Node *node = NULL;
 
-        if (findSelectedEntryById(specialPlaylist, id) != NULL)  // song is already in list
+        if (findSelectedEntryById(specialPlaylist, id) != NULL) // song is already in list
                 return;
 
         createNode(&node, currentSong->song.filePath, id);
@@ -243,7 +243,7 @@ void toggleShuffle()
                 pthread_mutex_lock(&(playlist.mutex));
 
                 shufflePlaylistStartingFromSong(&playlist, currentSong);
-                
+
                 pthread_mutex_unlock(&(playlist.mutex));
 
                 emitBooleanPropertyChanged("Shuffle", TRUE);
@@ -257,10 +257,10 @@ void toggleShuffle()
                 }
 
                 pthread_mutex_lock(&(playlist.mutex));
-                
+
                 deletePlaylist(&playlist); // Doesn't destroy the mutex
                 deepCopyPlayListOntoList(originalPlaylist, &playlist);
-                
+
                 if (path != NULL)
                 {
                         currentSong = findPathInPlaylist(path, &playlist);
@@ -770,9 +770,9 @@ void handleRemove()
                 return;
 
         if (appState.currentView != PLAYLIST_VIEW)
-        {         
+        {
                 return;
-        }                
+        }
 
         bool rebuild = false;
 
@@ -792,7 +792,7 @@ void handleRemove()
                 return;
         }
 
-        pthread_mutex_lock(&(playlist.mutex));        
+        pthread_mutex_lock(&(playlist.mutex));
 
         if (node != NULL && song != NULL)
         {
@@ -962,6 +962,7 @@ void *songDataReaderThread(void *arg)
         }
         else
         {
+                songHasErrors = false;
                 clearingErrors = false;
                 nextSong = tryNextSong;
                 tryNextSong = NULL;
@@ -1221,7 +1222,35 @@ void loadFirstSong(Node *song)
         }
 }
 
-void loadFirst(Node *song)
+void unloadPreviousSong()
+{
+        pthread_mutex_lock(&(loadingdata.mutex));
+
+        if (usingSongDataA &&
+            (skipping || (userData.currentSongData == NULL || userData.songdataADeleted == false ||
+                          (loadingdata.songdataA != NULL && userData.songdataADeleted == false && userData.currentSongData->hasErrors == 0 && userData.currentSongData->trackId != NULL && strcmp(loadingdata.songdataA->trackId, userData.currentSongData->trackId) != 0))))
+        {
+                userData.songdataADeleted = true;
+                unloadSongData(&loadingdata.songdataA);
+                usingSongDataA = false;
+                if (!audioData.endOfListReached)
+                        loadedNextSong = false;
+        }
+        else if (!usingSongDataA &&
+                 (skipping || (userData.currentSongData == NULL || userData.songdataBDeleted == false ||
+                               (loadingdata.songdataB != NULL && userData.songdataBDeleted == false && userData.currentSongData->hasErrors == 0 && userData.currentSongData->trackId != NULL && strcmp(loadingdata.songdataB->trackId, userData.currentSongData->trackId) != 0))))
+        {
+                userData.songdataBDeleted = true;
+                unloadSongData(&loadingdata.songdataB);
+                usingSongDataA = true;
+                if (!audioData.endOfListReached)
+                        loadedNextSong = false;
+        }
+
+        pthread_mutex_unlock(&(loadingdata.mutex));
+}
+
+int loadFirst(Node *song)
 {
         loadFirstSong(song);
 
@@ -1237,10 +1266,78 @@ void loadFirst(Node *song)
 
         if (songHasErrors)
         {
-                printf("Couldn't play any of the songs.\n");
-                return;
+                // couldn't play any of the songs
+                unloadPreviousSong();
+                currentSong = NULL;
+                songHasErrors = false;
+                return -1;
         }
 
         userData.currentPCMFrame = 0;
         userData.currentSongData = userData.songdataA;
+
+        return 0;
+}
+
+// Thread function signature must match what pthreads expect
+void *updateLibraryThread(void *arg)
+{
+        char *path = (char *)arg;
+        int tmpDirectoryTreeEntries = 0;
+
+        FileSystemEntry *temp = createDirectoryTree(path, &tmpDirectoryTreeEntries);
+
+        pthread_mutex_lock(&(playlist.mutex));
+        
+        library = temp;
+        numDirectoryTreeEntries = tmpDirectoryTreeEntries;
+
+        pthread_mutex_unlock(&(playlist.mutex));
+
+        refresh = true;
+
+        return NULL;
+}
+
+void updateLibrary(char *path)
+{
+        pthread_t threadId;
+
+        if (pthread_create(&threadId, NULL, updateLibraryThread, path) != 0)
+        {
+                perror("Failed to create thread");
+                return;
+        }
+}
+
+void askIfCacheLibrary()
+{
+    if (cacheLibrary > -1) // Only use this function if cacheLibrary isn't set
+        return;
+
+    char input = '\0';
+
+    showCursor();
+
+    printf("Do you want to use a library cache for faster startup speeds (update the cache anytime by pressing 'u')? (Y/N): ");
+           
+    fflush(stdout);
+    
+    do {
+        int res = scanf(" %c", &input);
+
+        if (res < 0)
+                break;
+
+    } while(input != 'Y' && input != 'y' && input != 'N' && input != 'n');
+
+    if(input == 'Y' || input == 'y') {
+        printf("Y\n");
+        cacheLibrary = 1;
+    } else {
+        printf("N\n");
+        cacheLibrary = 0;
+    }        
+
+    hideCursor();
 }

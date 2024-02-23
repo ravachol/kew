@@ -55,4 +55,6 @@ void deleteTempDir(void);
 
 int isInTempDir(const char *path);
 
+int existsFile(const char *fname);
+
 #endif

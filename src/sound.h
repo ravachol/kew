@@ -62,7 +62,7 @@ int prepareNextM4aDecoder(char *filepath);
 
 void setDecoders(bool usingA, char *filePath);
 
-void createAudioDevice(UserData *userData);
+int createAudioDevice(UserData *userData);
 
 int switchAudioImplementation();
 
