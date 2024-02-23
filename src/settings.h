@@ -11,6 +11,7 @@
 #include "file.h"
 #include "soundcommon.h"
 #include "player.h"
+#include "utils.h"
 
 #ifndef MAXPATHLEN
 #define MAXPATHLEN 4096

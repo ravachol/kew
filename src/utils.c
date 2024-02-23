@@ -165,3 +165,59 @@ void trim(char *str)
                 memmove(str, start, end - start + 2);
         }
 }
+
+const char *getHomePath()
+{
+        const char *xdgHome = getenv("XDG_HOME");
+        if (xdgHome == NULL)
+        {
+                xdgHome = getenv("HOME");
+                if (xdgHome == NULL)
+                {
+                        struct passwd *pw = getpwuid(getuid());
+                        if (pw != NULL)
+                        {
+                                char *home = (char *)malloc(MAXPATHLEN);
+                                strcpy(home, pw->pw_dir);
+                                return home;
+                        }
+                }
+        }
+        return xdgHome;
+}
+
+char *getConfigPath()
+{
+        char *configPath = malloc(MAXPATHLEN);
+        if (!configPath)
+                return NULL;
+
+        const char *xdgConfig = getenv("XDG_CONFIG_HOME");
+        if (xdgConfig)
+        {
+                snprintf(configPath, MAXPATHLEN, "%s", xdgConfig);
+        }
+        else
+        {
+                const char *home = getHomePath();
+                if (home)
+                {
+                        snprintf(configPath, MAXPATHLEN, "%s/.config", home);
+                }
+                else
+                {
+                        struct passwd *pw = getpwuid(getuid());
+                        if (pw)
+                        {
+                                snprintf(configPath, MAXPATHLEN, "%s", pw->pw_dir);
+                        }
+                        else
+                        {
+                                free(configPath);
+                                return NULL;
+                        }
+                }
+        }
+
+        return configPath;
+}
