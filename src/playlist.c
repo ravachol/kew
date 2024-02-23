@@ -11,7 +11,6 @@ Playlist related functions.
 
 */
 #define MAX_SEARCH_SIZE 256
-#define MAX_FILES 10000
 
 #ifndef MAXPATHLEN
 #define MAXPATHLEN 4096
@@ -598,7 +597,7 @@ void writeM3UFile(const char *filename, PlayList *playlist)
         fclose(file);
 }
 
-void loadMainPlaylist(const char *directory)
+void loadSpecialPlaylist(const char *directory)
 {
         char playlistPath[MAXPATHLEN];
         c_strcpy(playlistPath, sizeof(playlistPath), directory);
@@ -608,7 +607,7 @@ void loadMainPlaylist(const char *directory)
         specialPlaylist = malloc(sizeof(PlayList));
         if (specialPlaylist == NULL)
         {
-                printf("Failed to allocate memory for mainPlaylist.\n");
+                printf("Failed to allocate memory for special playlist.\n");
                 exit(0);
         }
         specialPlaylist->count = 0;
@@ -755,4 +754,32 @@ int findNodeInList(PlayList *list, int id, Node **foundNode)
         *foundNode = NULL;
 
         return -1;
+}
+
+void addSongToPlayList(PlayList *list, const char *filePath, int playlistMax) {
+    if (list->count >= playlistMax) return;
+
+    Node *newNode = NULL;
+    createNode(&newNode, filePath, list->count);
+    addToList(list, newNode);
+}
+
+void traverseFileSystemEntry(FileSystemEntry *entry, PlayList *list, int playlistMax) {
+    if (entry == NULL || list->count >= playlistMax) return;
+
+    if (entry->isDirectory == 0) {
+        addSongToPlayList(list, entry->fullPath, playlistMax);
+    }
+
+    if (entry->isDirectory == 1 && entry->children != NULL) {
+        traverseFileSystemEntry(entry->children, list, playlistMax);
+    }
+
+    if (entry->next != NULL) {
+        traverseFileSystemEntry(entry->next, list, playlistMax);
+    }
+}
+
+void createPlayListFromFileSystemEntry(FileSystemEntry *root, PlayList *list, int playlistMax) {
+    traverseFileSystemEntry(root, list, playlistMax);
 }
