@@ -346,7 +346,6 @@ FileSystemEntry *reconstructTreeFromFile(const char *filename, const char *start
         FILE *file = fopen(filename, "r");
         if (!file)
         {
-                perror("Failed to open file");
                 return NULL;
         }
 
@@ -355,7 +354,6 @@ FileSystemEntry *reconstructTreeFromFile(const char *filename, const char *start
         FileSystemEntry **nodes = calloc(nodesCapacity, sizeof(FileSystemEntry *));
         if (!nodes)
         {
-                perror("Failed to allocate nodes array");
                 fclose(file);
                 return NULL;
         }

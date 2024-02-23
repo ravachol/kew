@@ -22,7 +22,7 @@ typedef struct
 } PixelData;
 #endif
 
-const char VERSION[] = "2.4";
+const char VERSION[] = "2.4.1";
 int mainColor = 6;
 int titleColor = 6;
 int artistColor = 6;
@@ -219,8 +219,8 @@ void printHelp()
         printf(" Use ←, → or h, l to play the next or previous track in the playlist.\n");
         printf(" Use + (or =), - to adjust volume.\n");
         printf(" Use a, d to seek in a song.\n");
-        printf(" Use u to update the library.\n");
         printf(" Press space or p to pause.\n");
+        printf(" Press u to update the library.\n");        
         printf(" Press F2 to display playlist.\n");
         printf(" Press F3 to display music library.\n");
         printf(" Press F4 to display song info.\n");
@@ -1300,9 +1300,14 @@ void createLibrary(AppSettings *settings)
                 free(libFilepath);
         }
 
-        if (library == NULL)
+        if (library == NULL || library->children == NULL)
         {
                 library = createDirectoryTree(settings->path, &numDirectoryTreeEntries);
+        }
+
+        if (library == NULL || library->children == NULL)
+        {
+                exit(0);                
         }
 }
 

@@ -846,6 +846,15 @@ void cleanupOnExit()
         cleanupPlaybackDevice();
         cleanupAudioContext();
         emitPlaybackStoppedMpris();
+        resetConsole();
+
+        if (library == NULL || library->children == NULL)
+        {
+                printf("No Music found.\n");
+                printf("Please make sure the path is set correctly. \n");
+                printf("To set it type: kew path \"/path/to/Music\". \n");                
+        }
+
         if (!userData.songdataADeleted)
         {
                 userData.songdataADeleted = true;
@@ -873,7 +882,6 @@ void cleanupOnExit()
         free(originalPlaylist);
         setDefaultTextColor();
         showCursor();
-        resetConsole();
         pthread_mutex_destroy(&(loadingdata.mutex));
         pthread_mutex_destroy(&(playlist.mutex));
         pthread_mutex_destroy(&(switchMutex));
@@ -912,8 +920,7 @@ void run()
 
 void init()
 {
-        askIfCacheLibrary();
-        clearScreen();
+        askIfCacheLibrary();        
         disableInputBuffering();
         srand(time(NULL));
         initResize();
@@ -936,6 +943,8 @@ void init()
         pthread_mutex_init(&(loadingdata.mutex), NULL);
         pthread_mutex_init(&(playlist.mutex), NULL);
         nerdFontsEnabled = hasNerdFonts();
+        printf("Scanning...");
+        fflush(stdout);
         createLibrary(&settings);
 
 #ifdef DEBUG
@@ -959,7 +968,7 @@ void openLibrary()
         run();
 }
 
-void playMainPlaylist()
+void playSpecialPlaylist()
 {
         if (specialPlaylist->count == 0)
         {
@@ -975,16 +984,15 @@ void playMainPlaylist()
         run();
 }
 
-void playAll(int argc, char **argv)
+void playAll()
 {
         init();
-        makePlaylist(argc, argv, false, settings.path);
+        createPlayListFromFileSystemEntry(library, &playlist, MAX_FILES);
         if (playlist.count == 0)
         {
-                printf("Please make sure the path is set correctly. \n");
-                printf("To set it type: kew path \"/path/to/Music\". \n");
                 exit(0);
         }
+        shufflePlaylist(&playlist);
         run();
 }
 
@@ -1096,7 +1104,7 @@ int main(int argc, char *argv[])
         atexit(cleanupOnExit);
 
         handleOptions(&argc, argv);
-        loadMainPlaylist(settings.path);
+        loadSpecialPlaylist(settings.path);
 
         if (argc == 1)
         {
@@ -1104,11 +1112,11 @@ int main(int argc, char *argv[])
         }
         else if (argc == 2 && strcmp(argv[1], "all") == 0)
         {
-                playAll(argc, argv);
+                playAll();
         }
         else if (argc == 2 && strcmp(argv[1], ".") == 0)
         {
-                playMainPlaylist();
+                playSpecialPlaylist();
         }
         else if (argc >= 2)
         {
