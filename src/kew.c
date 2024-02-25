@@ -919,8 +919,7 @@ void run()
 }
 
 void init()
-{
-        askIfCacheLibrary();        
+{       
         disableInputBuffering();
         srand(time(NULL));
         initResize();
@@ -943,7 +942,6 @@ void init()
         pthread_mutex_init(&(loadingdata.mutex), NULL);
         pthread_mutex_init(&(playlist.mutex), NULL);
         nerdFontsEnabled = hasNerdFonts();
-        printf("Scanning...");
         fflush(stdout);
         createLibrary(&settings);
 
@@ -972,7 +970,7 @@ void playSpecialPlaylist()
 {
         if (specialPlaylist->count == 0)
         {
-                printf("Couldn't find any songs in the main playlist. Add a song by pressing '.' while it's playing. \n");
+                printf("Couldn't find any songs in the special playlist. Add a song by pressing '.' while it's playing. \n");
                 exit(0);
         }
         

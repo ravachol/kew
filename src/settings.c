@@ -432,8 +432,10 @@ void setConfig(AppSettings *settings)
         fprintf(file, "allowNotifications=%s\n", settings->allowNotifications);
         fprintf(file, "hideLogo=%s\n", settings->hideLogo);
         fprintf(file, "hideHelp=%s\n", settings->hideHelp);
-        fprintf(file, "cacheLibrary=%s\n", settings->cacheLibrary);
         fprintf(file, "lastVolume=%s\n", settings->lastVolume);
+
+        fprintf(file, "\n# Cache: Set to 1 to use cache of the library for faster startup times.\n");
+        fprintf(file, "cacheLibrary=%s\n", settings->cacheLibrary);
 
         fprintf(file, "\n# Color values are 0=Black, 1=Red, 2=Green, 3=Yellow, 4=Blue, 5=Magenta, 6=Cyan, 7=White\n");
         fprintf(file, "# These mostly affect the library view.\n\n");
