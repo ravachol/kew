@@ -1108,17 +1108,11 @@ void skipToPrevSong()
 
 void skipToSong(int id)
 {
-        if (songLoading || !loadedNextSong || skipping || clearingErrors)
+        if (songLoading || !loadedNextSong || skipping || skipOutOfOrder || clearingErrors)
                 if (!forceSkip)
                         return;
 
         playbackPlay(&totalPauseSeconds, &pauseSeconds);
-
-        skipping = true;
-        skipOutOfOrder = true;
-        loadedNextSong = false;
-        songLoading = true;
-        forceSkip = false;
 
         Node *found = NULL;
         findNodeInList(&playlist, id, &found);
@@ -1126,7 +1120,15 @@ void skipToSong(int id)
         if (found != NULL)
                 currentSong = found;
         else
+        {
                 return;
+        }
+
+        skipping = true;
+        skipOutOfOrder = true;
+        loadedNextSong = false;
+        songLoading = true;
+        forceSkip = false;
 
         loadingdata.loadA = !usingSongDataA;
         loadingdata.loadingFirstDecoder = true;
