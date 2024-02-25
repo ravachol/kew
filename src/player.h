@@ -54,8 +54,6 @@ extern FileSystemEntry *library;
 
 bool hasNerdFonts();
 
-void createLibrary(AppSettings *settings);
-
 int printPlayer(SongData *songdata, double elapsedSeconds, AppSettings *settings);
 
 void flipNextPage();
@@ -89,5 +87,7 @@ void showTrack();
 void setTextColorRGB2(int r, int g, int b);
 
 void freeMainDirectoryTree();
+
+char *getLibraryFilePath();
 
 #endif

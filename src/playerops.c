@@ -11,6 +11,10 @@ playerops.c
 #define MAXPATHLEN 4096
 #endif
 
+#ifndef ASK_IF_USE_CACHE_LIMIT_SECONDS
+#define ASK_IF_USE_CACHE_LIMIT_SECONDS 1
+#endif
+
 struct timespec current_time;
 struct timespec start_time;
 struct timespec pause_time;
@@ -1288,7 +1292,7 @@ void *updateLibraryThread(void *arg)
         FileSystemEntry *temp = createDirectoryTree(path, &tmpDirectoryTreeEntries);
 
         pthread_mutex_lock(&(playlist.mutex));
-        
+
         library = temp;
         numDirectoryTreeEntries = tmpDirectoryTreeEntries;
 
@@ -1312,32 +1316,75 @@ void updateLibrary(char *path)
 
 void askIfCacheLibrary()
 {
-    if (cacheLibrary > -1) // Only use this function if cacheLibrary isn't set
-        return;
+        if (cacheLibrary > -1) // Only use this function if cacheLibrary isn't set
+                return;
 
-    char input = '\0';
+        char input = '\0';
 
-    showCursor();
+        restoreTerminalMode();
+        enableInputBuffering();
+        showCursor();
 
-    printf("Do you want to use a library cache for faster startup speeds (update the cache anytime by pressing 'u')? (Y/N): ");
-           
-    fflush(stdout);
-    
-    do {
-        int res = scanf(" %c", &input);
+        printf("Would you like to enable the library cache for quicker startup times?\nYou can update the cache at any time by pressing 'u'. (y/n): ");
 
-        if (res < 0)
-                break;
+        fflush(stdout);
 
-    } while(input != 'Y' && input != 'y' && input != 'N' && input != 'n');
+        do
+        {
+                int res = scanf(" %c", &input);
 
-    if(input == 'Y' || input == 'y') {
-        printf("Y\n");
-        cacheLibrary = 1;
-    } else {
-        printf("N\n");
-        cacheLibrary = 0;
-    }        
+                if (res < 0)
+                        break;
 
-    hideCursor();
+        } while (input != 'Y' && input != 'y' && input != 'N' && input != 'n');
+
+        if (input == 'Y' || input == 'y')
+        {
+                printf("Y\n");
+                cacheLibrary = 1;
+        }
+        else
+        {
+                printf("N\n");
+                cacheLibrary = 0;
+        }
+
+        setNonblockingMode();
+        disableInputBuffering();
+        hideCursor();
+}
+
+void createLibrary(AppSettings *settings)
+{
+        if (cacheLibrary > 0)
+        {
+                char *libFilepath = getLibraryFilePath();
+                library = reconstructTreeFromFile(libFilepath, settings->path, &numDirectoryTreeEntries);
+                free(libFilepath);
+        }
+
+        if (library == NULL || library->children == NULL)
+        {
+                struct timeval start, end;
+
+                gettimeofday(&start, NULL);
+
+                library = createDirectoryTree(settings->path, &numDirectoryTreeEntries);
+
+                gettimeofday(&end, NULL);
+                long seconds = end.tv_sec - start.tv_sec;
+                long microseconds = end.tv_usec - start.tv_usec;
+                double elapsed = seconds + microseconds * 1e-6;
+
+                // If time to load the library was significant, ask to use cache instead
+                if (elapsed > ASK_IF_USE_CACHE_LIMIT_SECONDS)
+                {
+                        askIfCacheLibrary();
+                }
+        }
+
+        if (library == NULL || library->children == NULL)
+        {
+                exit(0);
+        }
 }
