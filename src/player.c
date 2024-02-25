@@ -1291,26 +1291,6 @@ char *getLibraryFilePath()
         return filepath;      
 }
 
-void createLibrary(AppSettings *settings)
-{         
-        if (cacheLibrary > 0)
-        {
-                char *libFilepath = getLibraryFilePath();
-                library = reconstructTreeFromFile(libFilepath, settings->path, &numDirectoryTreeEntries);
-                free(libFilepath);
-        }
-
-        if (library == NULL || library->children == NULL)
-        {
-                library = createDirectoryTree(settings->path, &numDirectoryTreeEntries);
-        }
-
-        if (library == NULL || library->children == NULL)
-        {
-                exit(0);                
-        }
-}
-
 void showLibrary(SongData *songData)
 {
         libIter = 0;

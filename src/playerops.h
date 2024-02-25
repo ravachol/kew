@@ -3,6 +3,7 @@
 #define PLAYEROPS_H
 
 #include <stdbool.h>
+#include <sys/time.h>
 #include "player.h"
 #include "songloader.h"
 #include "settings.h"
@@ -129,5 +130,7 @@ void updateLibrary(char *path);
 void askIfCacheLibrary();
 
 void unloadPreviousSong();
+
+void createLibrary(AppSettings *settings);
 
 #endif
