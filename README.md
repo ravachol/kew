@@ -20,22 +20,6 @@ kew (/kjuː/) is a command-line music player for Linux.
  * Supports MP3, FLAC, MPEG-4 (AAC, M4A, MP4), OPUS, OGG and WAV audio.
  * Private, no data is collected by kew.
 
-## Caveats
- * Seeking is disabled for ogg vorbis files.
-
-## Reviews
-
-kew was reviewed by Linuxlinks.com:
-
-https://www.linuxlinks.com/kew-command-line-music-player/
-
-And Tecmint.com:
-
-https://www.tecmint.com/command-line-music-players-for-linux/
-
-Thank you!
-
-
 ## Installing
 
 <a href="https://repology.org/project/kew/versions"><img src="https://repology.org/badge/vertical-allrepos/kew.svg" alt="Packaging status" align="right"></a>
