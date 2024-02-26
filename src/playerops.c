@@ -1282,7 +1282,6 @@ int loadFirst(Node *song)
         return 0;
 }
 
-// Thread function signature must match what pthreads expect
 void *updateLibraryThread(void *arg)
 {
         char *path = (char *)arg;
@@ -1292,6 +1291,7 @@ void *updateLibraryThread(void *arg)
 
         pthread_mutex_lock(&(playlist.mutex));
 
+        freeTree(library);
         library = temp;
         numDirectoryTreeEntries = tmpDirectoryTreeEntries;
 
