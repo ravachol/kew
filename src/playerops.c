@@ -1112,8 +1112,6 @@ void skipToSong(int id)
                 if (!forceSkip)
                         return;
 
-        playbackPlay(&totalPauseSeconds, &pauseSeconds);
-
         Node *found = NULL;
         findNodeInList(&playlist, id, &found);
 
@@ -1129,6 +1127,8 @@ void skipToSong(int id)
         loadedNextSong = false;
         songLoading = true;
         forceSkip = false;
+
+        playbackPlay(&totalPauseSeconds, &pauseSeconds);        
 
         loadingdata.loadA = !usingSongDataA;
         loadingdata.loadingFirstDecoder = true;
