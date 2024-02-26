@@ -328,10 +328,7 @@ SongData *getCurrentSongData()
         if (currentSong == NULL)
                 return NULL;
 
-        if (usingSongDataA)
-                return loadingdata.songdataA;
-        else
-                return loadingdata.songdataB;
+        return (audioData.currentFileIndex == 0) ? userData.songdataA : userData.songdataB;                
 }
 
 void calcElapsedTime()

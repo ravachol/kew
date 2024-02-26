@@ -246,14 +246,7 @@ int switchAudioImplementation()
 
         enum AudioImplementation currentImplementation = getCurrentImplementationType();
 
-        if (audioData.currentFileIndex == 0)
-        {
-                userData.currentSongData = userData.songdataA;
-        }
-        else
-        {
-                userData.currentSongData = userData.songdataB;
-        }
+        userData.currentSongData = (audioData.currentFileIndex == 0) ? userData.songdataA : userData.songdataB;
 
         if (userData.currentSongData == NULL)
         {
