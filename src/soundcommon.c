@@ -1163,35 +1163,8 @@ void executeSwitch(AudioData *pAudioData)
         switchM4aDecoder();
         switchVorbisDecoder();
 
+        pAudioData->pUserData->currentSongData = (pAudioData->currentFileIndex == 0) ? pAudioData->pUserData->songdataA : pAudioData->pUserData->songdataB;
         pAudioData->totalFrames = 0;
-
-        SongData *currentSongData = NULL;
-
-        if (pAudioData->currentFileIndex == 0)
-        {
-                if (pAudioData->pUserData->songdataA != NULL)
-                {
-                        currentSongData = pAudioData->pUserData->songdataA;
-                }
-                else
-                {
-                        currentSongData = NULL;
-                }
-        }
-        else
-        {
-                if (pAudioData->pUserData->songdataB != NULL)
-                {
-                        currentSongData = pAudioData->pUserData->songdataB;
-                }
-                else
-                {
-                        currentSongData = NULL;
-                }
-        }
-
-        pAudioData->pUserData->currentSongData = currentSongData;
-
         pAudioData->currentPCMFrame = 0;
 
         setSeekElapsed(0.0);
