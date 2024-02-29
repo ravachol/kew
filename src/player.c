@@ -22,7 +22,7 @@ typedef struct
 } PixelData;
 #endif
 
-const char VERSION[] = "2.4.1";
+const char VERSION[] = "2.4.2";
 int mainColor = 6;
 int titleColor = 6;
 int artistColor = 6;
@@ -220,14 +220,14 @@ void printHelp()
         printf(" Use + (or =), - to adjust volume.\n");
         printf(" Use a, d to seek in a song.\n");
         printf(" Press space or p to pause.\n");
-        printf(" Press u to update the library.\n");        
+        printf(" Press u to update the library.\n");
         printf(" Press F2 to display playlist.\n");
         printf(" Press F3 to display music library.\n");
         printf(" Press F4 to display song info.\n");
         printf(" Press F5 to display key bindings.\n");
         printf(" Press F5 to display key bindings.\n");
-        printf(" Press . to add the currently playing song to kew.m3u.\n");        
-        printf(" Press q to quit.\n"); 
+        printf(" Press . to add the currently playing song to kew.m3u.\n");
+        printf(" Press q to quit.\n");
         printf("\n");
 }
 
@@ -927,7 +927,7 @@ int showPlaylist(SongData *songData)
         for (int i = (startFromCurrent ? startIter : 0); i < (startFromCurrent ? startIter : 0) + maxListSize; i++)
         {
                 setDefaultTextColor();
-                
+
                 if (node == NULL)
                         break;
                 char filePath[MAXPATHLEN];
@@ -947,7 +947,7 @@ int showPlaylist(SongData *songData)
                         if (i == chosenSong)
                         {
                                 chosenNodeId = node->id;
-                                   
+
                                 printf("\x1b[7m");
                         }
 
@@ -1113,7 +1113,7 @@ void processName(const char *name, char *output, int maxWidth)
         {
                 strncpy(output, name, maxWidth);
                 output[maxWidth] = '\0';
-                removeUnneededChars(output);                
+                removeUnneededChars(output);
         }
 }
 
@@ -1121,6 +1121,11 @@ void setCurrentAsChosenDir()
 {
         if (currentEntry->isDirectory)
                 chosenDir = currentEntry;
+}
+
+void resetChosenDir()
+{
+        chosenDir = NULL;
 }
 
 int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWidth)
@@ -1172,6 +1177,9 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
         if (chosenLibRow < 0)
                 startLibIter = chosenLibRow = libIter = 0;
 
+        if (root == NULL)
+                return 0;
+
         if (root->isDirectory ||
             (!root->isDirectory && depth == 1) ||
             (chosenDir != NULL && allowChooseSongs && root->parent != NULL && (strcmp(root->parent->fullPath, chosenDir->fullPath) == 0 || strcmp(root->fullPath, chosenDir->fullPath) == 0)))
@@ -1190,7 +1198,7 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
                                 }
                                 else
                                 {
-                                       setDefaultTextColor();
+                                        setDefaultTextColor();
                                 }
 
                                 if (depth >= 2)
@@ -1216,7 +1224,7 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
                                         currentEntry = root;
 
                                         if (allowChooseSongs == true && (chosenDir == NULL ||
-                                                                         (strcmp(currentEntry->parent->fullPath, chosenDir->fullPath) != 0 &&
+                                                                         (currentEntry != NULL && currentEntry->parent != NULL && chosenDir != NULL && (strcmp(currentEntry->parent->fullPath, chosenDir->fullPath) != 0) &&
                                                                           strcmp(root->fullPath, chosenDir->fullPath) != 0)))
                                         {
                                                 chosenLibRow -= libSongIter;
@@ -1255,7 +1263,7 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
                                         filename[0] = '\0';
                                         processName(root->name, filename, maxNameWidth);
                                         printf(" └─%s \n", filename);
- 
+
                                         libSongIter++;
                                 }
 
@@ -1288,7 +1296,7 @@ char *getLibraryFilePath()
         strcat(filepath, "/");
         strcat(filepath, LIBRARY_FILE);
         free(configdir);
-        return filepath;      
+        return filepath;
 }
 
 void showLibrary(SongData *songData)
@@ -1358,7 +1366,7 @@ int printPlayer(SongData *songdata, double elapsedSeconds, AppSettings *settings
 
         if (songdata != NULL && songdata->metadata != NULL && !songdata->hasErrors && (songdata->hasErrors < 1))
         {
-                metadata = *songdata->metadata;                
+                metadata = *songdata->metadata;
                 duration = songdata->duration;
 
                 if (songdata->cover != NULL && coverEnabled)
@@ -1446,5 +1454,5 @@ void freeMainDirectoryTree()
         else
                 freeTree(library);
 
-        free(filepath);                
+        free(filepath);
 }

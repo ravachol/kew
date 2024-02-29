@@ -90,4 +90,7 @@ void freeMainDirectoryTree();
 
 char *getLibraryFilePath();
 
+void resetChosenDir();
+
 #endif
+
