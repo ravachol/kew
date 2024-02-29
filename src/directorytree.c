@@ -290,10 +290,12 @@ void writeTreeToFile(FileSystemEntry *node, FILE *file, int parentId)
         fprintf(file, "%d\t%s\t%d\t%d\n", node->id, node->name, node->isDirectory, parentId);
 
         FileSystemEntry *child = node->children;
+        FileSystemEntry *tmp = NULL;
         while (child)
         {
+                tmp = child->next;
                 writeTreeToFile(child, file, node->id);
-                child = child->next;
+                child = tmp;
         }
 
         free(node->name);

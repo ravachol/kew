@@ -63,7 +63,6 @@ extern "C"
 #define MAX_SAMPLES 4800 // Maximum expected frame size
 #define MAX_SAMPLE_SIZE 4
 static uint8_t leftoverBuffer[MAX_SAMPLES * MAX_CHANNELS * MAX_SAMPLE_SIZE];
-// static float leftoverBuffer[MAX_SAMPLES * MAX_CHANNELS];
 
 static ma_uint64 leftoverSampleCount = 0;
 
@@ -118,7 +117,6 @@ int m4a_ffmpeg_read(void *opaque, uint8_t *buf, int buf_size)
         }
         else
         {
-                // Translate MiniAudio error result to FFmpeg error codes
                 switch (result)
                 {
                 case MA_IO_ERROR:
@@ -127,7 +125,7 @@ int m4a_ffmpeg_read(void *opaque, uint8_t *buf, int buf_size)
                         return AVERROR(EINVAL);
 
                 default:
-                        return AVERROR(EIO); // Default to a generic I/O error code
+                        return AVERROR(EIO);
                 }
         }
 }
@@ -259,9 +257,8 @@ MA_API ma_result m4a_decoder_init(
                 return result;
         }
 
-        // Setup Custom I/O
         unsigned char *avio_ctx_buffer = NULL;
-        size_t avio_ctx_buffer_size = 4096; // Use a buffer size that you find appropriate
+        size_t avio_ctx_buffer_size = 4096;
         AVIOContext *avio_ctx = avio_alloc_context(
             avio_ctx_buffer,
             avio_ctx_buffer_size,
@@ -315,18 +312,15 @@ MA_API ma_result m4a_decoder_init_file(const char *pFilePath, const ma_decoding_
         AVFormatContext *format_context = NULL;
         if (avformat_open_input(&format_context, pFilePath, NULL, NULL) != 0)
         {
-                // Cleanup if initialization failed.
                 return MA_INVALID_FILE;
         }
 
         if (avformat_find_stream_info(format_context, NULL) < 0)
         {
-                // Cannot find stream info, clean up.
                 avformat_close_input(&format_context);
                 return MA_ERROR;
         }
 
-        // Find the best audio stream.
         const AVCodec *decoder = NULL;
         int stream_index = av_find_best_stream(format_context, AVMEDIA_TYPE_AUDIO, -1, -1, &decoder, 0);
         if (stream_index < 0)
@@ -335,7 +329,6 @@ MA_API ma_result m4a_decoder_init_file(const char *pFilePath, const ma_decoding_
                 return MA_ERROR;
         }
 
-        // Initialize the codec context for the audio stream.
         AVStream *audio_stream = format_context->streams[stream_index];
 
         AVCodecContext *codec_context = avcodec_alloc_context3(decoder);
@@ -359,7 +352,6 @@ MA_API ma_result m4a_decoder_init_file(const char *pFilePath, const ma_decoding_
                 return MA_ERROR;
         }
 
-        // Assign the important objects to pM4a fields
         pM4a->codec_context = codec_context;
 
         switch (pM4a->codec_context->sample_fmt)
@@ -372,14 +364,13 @@ MA_API ma_result m4a_decoder_init_file(const char *pFilePath, const ma_decoding_
         case AV_SAMPLE_FMT_FLT:
                 pM4a->sampleSize = sizeof(float); // 32-bit float samples
                 break;
-        // ... handle other formats as needed ...
         default:
-                pM4a->sampleSize = 0; // Unknown or unsupported format
+                pM4a->sampleSize = 0;
                 break;
         }
 
         pM4a->format_context = format_context;
-        pM4a->mf = NULL; // This might be used for raw file operations which are not needed with FFmpeg.
+        pM4a->mf = NULL;
         pM4a->format = ffmpeg_to_mini_al_format(pM4a->codec_context->sample_fmt);
 
         return MA_SUCCESS;
@@ -498,8 +489,18 @@ ma_result m4a_decoder_read_pcm_frames(m4a_decoder *pM4a, void *pFramesOut, ma_ui
                                                 {
                                                         int byteOffset = (i * channels + c) * pM4a->sampleSize;
 
+                                                        if (frame->extended_data == NULL || frame->extended_data[c] == NULL)
+                                                        {
+                                                                continue;
+                                                        }
+
                                                         if (pM4a->format == ma_format_s16)
                                                         {
+                                                                if (pM4a->codec_context->sample_fmt != AV_SAMPLE_FMT_S16)
+                                                                {
+                                                                        continue;
+                                                                }
+
                                                                 int16_t sample = ((int16_t *)frame->extended_data[c])[i];
                                                                 memcpy(output_buffer + byteOffset, &sample, sizeof(int16_t));
                                                         }

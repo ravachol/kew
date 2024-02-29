@@ -1289,13 +1289,14 @@ void *updateLibraryThread(void *arg)
 
         FileSystemEntry *temp = createDirectoryTree(path, &tmpDirectoryTreeEntries);
 
-        pthread_mutex_lock(&(playlist.mutex));
+        pthread_mutex_lock(&switchMutex);
 
         freeTree(library);
         library = temp;
         numDirectoryTreeEntries = tmpDirectoryTreeEntries;
+        resetChosenDir();
 
-        pthread_mutex_unlock(&(playlist.mutex));
+        pthread_mutex_unlock(&switchMutex);
 
         refresh = true;
 
