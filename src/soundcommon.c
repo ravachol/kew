@@ -1126,33 +1126,49 @@ char *remove_blacklisted_chars(const char *input, const char *blacklist)
         return output;
 }
 
-int displaySongNotification(const char *artist, const char *title, const char *cover)
-{
-        if (!allowNotifications)
-                return 0;
+int displaySongNotification(const char *artist, const char *title, const char *cover) {
+    if (!allowNotifications)
+        return 0;
 
-        char command[MAXPATHLEN + 1024];
-        char sanitized_cover[MAXPATHLEN];
+    char sanitized_cover[MAXPATHLEN];
 
-        const char *blacklist = "&;`|*~<>^()[]{}$\\\"";
-        char *sanitizedArtist = remove_blacklisted_chars(artist, blacklist);
-        char *sanitizedTitle = remove_blacklisted_chars(title, blacklist);
+    const char *blacklist = "&;`|*~<>^()[]{}$\\\"";
+    char *sanitizedArtist = remove_blacklisted_chars(artist, blacklist);
+    char *sanitizedTitle = remove_blacklisted_chars(title, blacklist);
 
-        sanitize_filepath(cover, sanitized_cover, sizeof(sanitized_cover));
+    sanitize_filepath(cover, sanitized_cover, sizeof(sanitized_cover));
 
-        if (strlen(artist) <= 0)
-        {
-                snprintf(command, sizeof(command), "notify-send -a \"kew\" \"%s\" --icon \"%s\"", sanitizedTitle, sanitized_cover);
+    char message[MAXPATHLEN + 1024];
+    if (strlen(artist) > 0) {
+        snprintf(message, sizeof(message), "%s - %s", sanitizedArtist, sanitizedTitle);
+    } else {
+        snprintf(message, sizeof(message), "%s", sanitizedTitle);
+    }
+
+    char *args[] = {"notify-send", "-a", "kew", message, "--icon", sanitized_cover, NULL};
+
+    pid_t pid = fork();
+    if (pid == -1) {
+        // Handle error
+        perror("fork");
+    } else if (pid > 0) {
+        // Parent process
+        int status;
+        waitpid(pid, &status, 0);
+    } else {
+        // Child process
+        extern char **environ;
+        if (execve("/usr/bin/notify-send", args, environ) == -1) {
+            // Handle error
+            perror("execve");
+            _Exit(EXIT_FAILURE);
         }
-        else
-        {
-                snprintf(command, sizeof(command), "notify-send -a \"kew\" \"%s - %s\" --icon \"%s\"", sanitizedArtist, sanitizedTitle, sanitized_cover);
-        }
+    }
 
-        free(sanitizedArtist);
-        free(sanitizedTitle);
+    free(sanitizedArtist);
+    free(sanitizedTitle);
 
-        return system(command);
+    return 0;
 }
 
 void executeSwitch(AudioData *pAudioData)
@@ -1222,12 +1238,12 @@ int adjustVolumePercent(int volumeChange)
 {
         int sysVol = getSystemVolume();
 
-        if (sysVol == 0) 
+        if (sysVol == 0)
                 return 0;
 
         int step = 100 / sysVol * 5;
 
-        int relativeVolChange = volumeChange / 5  * step;
+        int relativeVolChange = volumeChange / 5 * step;
 
         soundVolume += relativeVolChange;
 
@@ -1239,15 +1255,15 @@ int adjustVolumePercent(int volumeChange)
 ma_uint64 lastCursor = 0;
 
 void m4a_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_uint64 frameCount, ma_uint64 *pFramesRead)
-{        
+{
         m4a_decoder *m4a = (m4a_decoder *)pDataSource;
-        AudioData *pAudioData = (AudioData *)m4a->pReadSeekTellUserData;        
+        AudioData *pAudioData = (AudioData *)m4a->pReadSeekTellUserData;
         ma_uint64 framesRead = 0;
 
         while (framesRead < frameCount)
         {
                 if (doQuit)
-                        return;                        
+                        return;
 
                 if (isImplSwitchReached())
                         return;
@@ -1255,7 +1271,7 @@ void m4a_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_uint6
                 if (pthread_mutex_trylock(&dataSourceMutex) != 0)
                 {
                         return;
-                }                        
+                }
 
                 // Check if a file switch is required
                 if (pAudioData->switchFiles)
@@ -1372,7 +1388,7 @@ void opus_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_uint
         while (framesRead < frameCount)
         {
                 if (doQuit)
-                        return;                        
+                        return;
 
                 if (isImplSwitchReached())
                         return;
@@ -1380,7 +1396,7 @@ void opus_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_uint
                 if (pthread_mutex_trylock(&dataSourceMutex) != 0)
                 {
                         return;
-                }                        
+                }
 
                 // Check if a file switch is required
                 if (pAudioData->switchFiles)
@@ -1498,11 +1514,10 @@ void vorbis_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_ui
                 if (isImplSwitchReached())
                         return;
 
-
                 if (pthread_mutex_trylock(&dataSourceMutex) != 0)
                 {
                         return;
-                }                        
+                }
 
                 // Check if a file switch is required
                 if (pAudioData->switchFiles)
@@ -1512,7 +1527,7 @@ void vorbis_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_ui
                         break; // Exit the loop after the file switch
                 }
 
-                ma_libvorbis *decoder = getCurrentVorbisDecoder();                
+                ma_libvorbis *decoder = getCurrentVorbisDecoder();
 
                 if ((getCurrentImplementationType() != VORBIS && !isSkipToNext()) || (decoder == NULL))
                 {
