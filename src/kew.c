@@ -942,8 +942,8 @@ void init()
         pthread_mutex_init(&(loadingdata.mutex), NULL);
         pthread_mutex_init(&(playlist.mutex), NULL);
         nerdFontsEnabled = hasNerdFonts();
-        fflush(stdout);
         createLibrary(&settings);
+        fflush(stdout);        
 
 #ifdef DEBUG
         g_setenv("G_MESSAGES_DEBUG", "all", TRUE);
