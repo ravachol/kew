@@ -177,10 +177,10 @@ Put single-quotes inside quotes "guns n' roses"
 * Use <kbd>←</kbd>, <kbd>→</kbd> or <kbd>h</kbd>, <kbd>l</kbd> keys to switch tracks.
 * <kbd>Space</kbd>, <kbd>P</kbd> to toggle pause.
 * <kbd>F2</kbd> to show/hide the playlist and information about kew.
-* <kbd>F3</kbd> to show/hide library.
-* <kbd>F4</kbd> to show/hide track view.
+* <kbd>F3</kbd> to show/hide the library.
+* <kbd>F4</kbd> to show/hide the track view.
 * <kbd>F5</kbd> to show/hide key bindings.
-* <kbd>u</kbd> to update library.
+* <kbd>u</kbd> to update the library.
 * <kbd>v</kbd> to toggle the spectrum visualizer.
 * <kbd>c</kbd> to toggle album covers.
 * <kbd>i</kbd> to switch between using your regular color scheme or colors derived from the track cover.
