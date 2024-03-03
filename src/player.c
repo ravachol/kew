@@ -313,7 +313,7 @@ int displayCover(FIBITMAP *cover, const char *coverArtPath, int height, bool ans
 
         if (!ansii)
         {
-                printBitmapCentered(cover, width, height);
+                printSquareBitmapCentered(cover, height);
         }
         else
         {
