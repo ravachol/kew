@@ -14,6 +14,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/param.h>
+#include <sys/stat.h>
 #include <unistd.h>
 #include <string.h>
 #include <time.h>
@@ -46,7 +47,11 @@ void trim(char *str);
 
 const char *getHomePath();
 
+char *getConfigPathOld();
+
 char *getConfigPath();
+
+int moveConfigFiles(void);
 
 void removeUnneededChars(char *str);
 
