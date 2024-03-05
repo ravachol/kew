@@ -48,4 +48,10 @@ const char *getHomePath();
 
 char *getConfigPath();
 
+void removeUnneededChars(char *str);
+
+void shortenString(char *str, size_t maxLength);
+
+void printBlankSpaces(int numSpaces);
+
 #endif

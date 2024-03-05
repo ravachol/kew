@@ -33,14 +33,6 @@ void initVisuals()
                 unicodeSupport = true;
 }
 
-void printBlankSpaces(int numSpaces)
-{
-        for (int i = 0; i < numSpaces; i++)
-        {
-                printf(" ");
-        }
-}
-
 void updateMagnitudes(int height, int width, float maxMagnitude, float *magnitudes)
 {
         float exponent = 1.0;

@@ -10,6 +10,7 @@
 #include "chafafunc.h"
 #include "directorytree.h"
 #include "playlist.h"
+#include "playlist_ui.h"
 #include "songloader.h"
 #include "sound.h"
 #include "term.h"
@@ -93,4 +94,3 @@ char *getLibraryFilePath();
 void resetChosenDir();
 
 #endif
-
