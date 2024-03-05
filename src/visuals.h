@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include "sound.h"
 #include "term.h"
+#include "utils.h"
 
 #ifndef PIXELDATA_STRUCT
 #define PIXELDATA_STRUCT
@@ -27,5 +28,3 @@ void freeVisuals();
 void drawSpectrumVisualizer(int height, int width, PixelData c, int indentation, bool useProfileColors);
 
 PixelData increaseLuminosity(PixelData pixel, int amount);
-
-void printBlankSpaces(int numSpaces);
