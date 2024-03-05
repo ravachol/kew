@@ -48,7 +48,6 @@ int numProgressBars = 15;
 int elapsedBars = 0;
 int chosenRow = 0;
 int chosenSong = 0;
-int startIter = 0;
 int aboutHeight = 8;
 int visualizerHeight = 5;
 int minWidth = ABSOLUTE_MIN_WIDTH;
@@ -181,16 +180,6 @@ void calcPreferredSize()
 {
         minHeight = 2 + (visualizerEnabled ? visualizerHeight : 0);
         calcIdealImgSize(&preferredWidth, &preferredHeight, (visualizerEnabled ? visualizerHeight : 0), calcMetadataHeight());
-}
-
-void shortenString(char *str, size_t maxLength)
-{
-        size_t length = strlen(str);
-
-        if (length > maxLength)
-        {
-                str[maxLength] = '\0';
-        }
 }
 
 void printHelp()
@@ -624,38 +613,6 @@ int printAbout(SongData *songdata)
         return numRows;
 }
 
-void removeUnneededChars(char *str)
-{
-        if (strlen(str) < 6)
-        {
-                return;
-        }
-
-        int i;
-        for (i = 0; i < 3 && str[i] != '\0' && str[i] != ' '; i++)
-        {
-                if (isdigit(str[i]) || str[i] == '-' || str[i] == ' ')
-                {
-                        int j;
-                        for (j = i; str[j] != '\0'; j++)
-                        {
-                                str[j] = str[j + 1];
-                        }
-                        str[j] = '\0';
-                        i--; // Decrement i to re-check the current index
-                }
-        }
-        i = 0;
-        while (str[i] != '\0')
-        {
-                if (str[i] == '-' || str[i] == '_')
-                {
-                        str[i] = ' ';
-                }
-                i++;
-        }
-}
-
 int showKeyBindings(SongData *songdata, AppSettings *settings)
 {
         int numPrintedRows = 0;
@@ -765,6 +722,7 @@ void flipNextPage()
         else if (appState.currentView == PLAYLIST_VIEW)
         {
                 chosenRow += maxListSize - 1;
+                chosenRow = (chosenRow >= originalPlaylist->count) ? originalPlaylist->count - 1 : chosenRow;
                 refresh = true;
         }
 }
@@ -780,6 +738,7 @@ void flipPrevPage()
         else if (appState.currentView == PLAYLIST_VIEW)
         {
                 chosenRow -= maxListSize;
+                chosenRow = (chosenRow > 0) ? chosenRow : 0;
                 refresh = true;
         }
 }
@@ -789,6 +748,7 @@ void scrollNext()
         if (appState.currentView == PLAYLIST_VIEW)
         {
                 chosenRow++;
+                chosenRow = (chosenRow >= originalPlaylist->count) ? originalPlaylist->count - 1 : chosenRow;
                 refresh = true;
         }
         else if (appState.currentView == LIBRARY_VIEW)
@@ -803,6 +763,7 @@ void scrollPrev()
         if (appState.currentView == PLAYLIST_VIEW)
         {
                 chosenRow--;
+                chosenRow = (chosenRow > 0) ? chosenRow : 0;
                 refresh = true;
         }
         else if (appState.currentView == LIBRARY_VIEW)
@@ -825,180 +786,34 @@ int getRowWithinBounds(int row)
         return row;
 }
 
-int showPlaylist(SongData *songData)
+int printLogoAndAdjustments(SongData *songData, int termWidth, bool hideHelp, int indentation)
 {
-        Node *node = originalPlaylist->head;
-        Node *foundNode = NULL;
-        bool startFromCurrent = false;
-        int term_w, term_h;
-        getTermSize(&term_w, &term_h);
-        int totalHeight = term_h;
-        maxListSize = totalHeight - 3;
-        int numRows = 0;
-        int numPrintedRows = 0;
-        int foundAt = -1;
-
-        numRows++;
-
         int aboutRows = printLogo(songData);
-        maxListSize -= aboutRows - 1;
-
-        setDefaultTextColor();
-
-        printBlankSpaces(indent);
-        if (term_w > 52 && !hideHelp)
-        {
-                maxListSize -= 3;
-                printf(" Use ↑, ↓ or k, j to choose. Enter to accept.\n");
-                printBlankSpaces(indent);
-                printf(" Pg Up and Pg Dn to scroll. Del to remove entry.\n\n");
-        }
-
-        int numSongs = 0;
-        for (int i = 0; i < originalPlaylist->count; i++)
-        {
-                if (node == NULL)
-                        break;
-
-                if (currentSong != NULL && currentSong->id == node->id)
-                {
-                        foundAt = numSongs;
-                        foundNode = node;
-                }
-
-                node = node->next;
-                numSongs++;
-                if (numSongs > maxListSize)
-                {
-                        startFromCurrent = true;
-                        if (foundAt > -1)
-                                break;
-                }
-        }
-
-        if (startFromCurrent)
-                node = foundNode;
-        else
-                node = originalPlaylist->head;
-
-        if (chosenRow >= originalPlaylist->count)
-        {
-                chosenRow = originalPlaylist->count - 1;
-        }
-
-        chosenSong = chosenRow;
-        chosenSong = (chosenSong < 0) ? 0 : chosenSong;
-
-        if (chosenSong < startIter)
-        {
-                startIter = chosenSong;
-        }
-
-        if (chosenRow > startIter + maxListSize - round(maxListSize / 2))
-        {
-                startIter = chosenRow - maxListSize + round(maxListSize / 2);
-        }
-
-        if (startIter == 0 && chosenRow < 0)
-        {
-                chosenRow = 0;
-        }
-
-        if (resetPlaylistDisplay && !audioData.endOfListReached)
-        {
-                startIter = chosenRow = chosenSong = foundAt;
-        }
-
-        for (int i = foundAt; i > startIter; i--)
-        {
-                if (i > 0 && node->prev != NULL)
-                        node = node->prev;
-        }
-
-        if (foundAt > -1)
-        {
-                for (int i = foundAt; i < startIter; i++)
-                {
-                        if (node->next != NULL)
-                                node = node->next;
-                }
-        }
-
-        for (int i = (startFromCurrent ? startIter : 0); i < (startFromCurrent ? startIter : 0) + maxListSize; i++)
+        if (termWidth > 52 && !hideHelp)
         {
                 setDefaultTextColor();
-
-                if (node == NULL)
-                        break;
-                char filePath[MAXPATHLEN];
-                c_strcpy(filePath, sizeof(filePath), node->song.filePath);
-                char *lastSlash = strrchr(filePath, '/');
-                char *lastDot = strrchr(filePath, '.');
-                printf("\r");
                 printBlankSpaces(indent);
-
-                if (lastSlash != NULL && lastDot != NULL && lastDot > lastSlash)
-                {
-                        char copiedString[256];
-                        strncpy(copiedString, lastSlash + 1, lastDot - lastSlash - 1);
-                        copiedString[lastDot - lastSlash - 1] = '\0';
-                        removeUnneededChars(copiedString);
-
-                        if (i == chosenSong)
-                        {
-                                chosenNodeId = node->id;
-
-                                printf("\x1b[7m");
-                        }
-
-                        if (foundNode != NULL && foundNode->id == node->id)
-                        {
-                                printf("\e[1m\e[39m");
-                        }
-
-                        shortenString(copiedString, term_w - 10 - indent);
-                        trim(copiedString);
-
-                        if (i + 1 < 10)
-                                printf(" ");
-
-                        if (startFromCurrent)
-                        {
-                                printf(" %d. %s \n", i + 1, copiedString);
-                        }
-                        else
-                        {
-                                printf(" %d. %s \n", numRows, copiedString);
-                        }
-
-                        numPrintedRows++;
-                        numRows++;
-
-                        setTextColorRGB2(color.r, color.g, color.b);
-
-                        setDefaultTextColor();
-                }
-                node = node->next;
+                printf(" Use ↑, ↓ or k, j to choose. Enter to accept.\n");
+                printBlankSpaces(indentation);
+                printf(" Pg Up and Pg Dn to scroll. Del to remove entry.\n\n");
+                return aboutRows + 3;
         }
+        return aboutRows;
+}
+
+void showPlaylist(SongData *songData, PlayList *list, int chosenSong, int *chosenNodeId)
+{
+        int term_w, term_h;
+        getTermSize(&term_w, &term_h);        
+        maxListSize = term_h - 2;
+
+        int aboutRows = printLogoAndAdjustments(songData, term_w, hideHelp, indent);
+        maxListSize -= aboutRows;        
+
+        displayPlaylist(list, maxListSize, indent, chosenSong, chosenNodeId, resetPlaylistDisplay);       
+
         printf("\n");
-        numPrintedRows++;
         printLastRow();
-        if (numRows > 1)
-        {
-                while (numPrintedRows < maxListSize)
-                {
-                        printf("\n");
-                        numPrintedRows++;
-                }
-        }
-        numPrintedRows += 2;
-        numPrintedRows += aboutRows;
-        if (term_w > 46)
-        {
-                numPrintedRows += 2;
-        }
-        resetPlaylistDisplay = false;
-        return numPrintedRows;
 }
 
 void printElapsedBars(int elapsedBars)
@@ -1407,9 +1222,8 @@ int printPlayer(SongData *songdata, double elapsedSeconds, AppSettings *settings
         else if (appState.currentView == PLAYLIST_VIEW && refresh)
         {
                 clearScreen();
-                int height = showPlaylist(songdata);
-                cursorJump(height);
-                saveCursorPosition();
+                showPlaylist(songdata, originalPlaylist, chosenRow, &chosenNodeId);
+                resetPlaylistDisplay = false;                
                 refresh = false;
         }
         else if (appState.currentView == LIBRARY_VIEW && refresh)

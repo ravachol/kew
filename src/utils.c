@@ -221,3 +221,53 @@ char *getConfigPath()
 
         return configPath;
 }
+
+void removeUnneededChars(char *str)
+{
+        if (strlen(str) < 6)
+        {
+                return;
+        }
+
+        int i;
+        for (i = 0; i < 3 && str[i] != '\0' && str[i] != ' '; i++)
+        {
+                if (isdigit(str[i]) || str[i] == '-' || str[i] == ' ')
+                {
+                        int j;
+                        for (j = i; str[j] != '\0'; j++)
+                        {
+                                str[j] = str[j + 1];
+                        }
+                        str[j] = '\0';
+                        i--; // Decrement i to re-check the current index
+                }
+        }
+        i = 0;
+        while (str[i] != '\0')
+        {
+                if (str[i] == '-' || str[i] == '_')
+                {
+                        str[i] = ' ';
+                }
+                i++;
+        }
+}
+
+void shortenString(char *str, size_t maxLength)
+{
+        size_t length = strlen(str);
+
+        if (length > maxLength)
+        {
+                str[maxLength] = '\0';
+        }
+}
+
+void printBlankSpaces(int numSpaces)
+{
+        for (int i = 0; i < numSpaces; i++)
+        {
+                printf(" ");
+        }
+}
