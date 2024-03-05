@@ -4,7 +4,7 @@
  utils.c
 
  Utility functions for instance for replacing some standard functions with safer alterantives.
- 
+
 */
 void c_sleep(int milliseconds)
 {
@@ -135,15 +135,15 @@ int endsWith(const char *str, const char *suffix)
 
 int startsWith(const char *str, const char *prefix)
 {
-    size_t strLength = strlen(str);
-    size_t prefixLength = strlen(prefix);
+        size_t strLength = strlen(str);
+        size_t prefixLength = strlen(prefix);
 
-    if (prefixLength > strLength)
-    {
-        return 0;
-    }
+        if (prefixLength > strLength)
+        {
+                return 0;
+        }
 
-    return strncmp(str, prefix, prefixLength) == 0;
+        return strncmp(str, prefix, prefixLength) == 0;
 }
 
 void trim(char *str)
@@ -186,7 +186,7 @@ const char *getHomePath()
         return xdgHome;
 }
 
-char *getConfigPath()
+char *getConfigPathOld()
 {
         char *configPath = malloc(MAXPATHLEN);
         if (!configPath)
@@ -220,6 +220,85 @@ char *getConfigPath()
         }
 
         return configPath;
+}
+
+char *getConfigPath()
+{
+        char *configPath = malloc(MAXPATHLEN);
+        if (!configPath)
+                return NULL;
+
+        const char *xdgConfig = getenv("XDG_CONFIG_HOME");
+        if (xdgConfig)
+        {
+                snprintf(configPath, MAXPATHLEN, "%s/kew", xdgConfig);
+        }
+        else
+        {
+                const char *home = getHomePath();
+                if (home)
+                {
+                        snprintf(configPath, MAXPATHLEN, "%s/.config/kew", home);
+                }
+                else
+                {
+                        struct passwd *pw = getpwuid(getuid());
+                        if (pw)
+                        {
+                                snprintf(configPath, MAXPATHLEN, "%s/.config/kew", pw->pw_dir);
+                        }
+                        else
+                        {
+                                free(configPath);
+                                return NULL;
+                        }
+                }
+        }
+
+        return configPath;
+}
+
+int moveConfigFiles()
+{
+        char *oldPath = getConfigPathOld();
+        char *newPath = getConfigPath();
+        if (!oldPath || !newPath)
+        {
+
+                free(oldPath);
+                free(newPath);
+                return -1;
+        }
+
+        struct stat st = {0};
+        if (stat(newPath, &st) == -1)
+        {
+                mkdir(newPath, 0700);
+        }
+
+        char oldFileLibrary[MAXPATHLEN];
+        char newFileLibrary[MAXPATHLEN];
+        char oldFileRc[MAXPATHLEN];
+        char newFileRc[MAXPATHLEN];
+
+        snprintf(oldFileLibrary, MAXPATHLEN, "%s/kewlibrary", oldPath);
+        snprintf(newFileLibrary, MAXPATHLEN, "%s/kewlibrary", newPath);
+        snprintf(oldFileRc, MAXPATHLEN, "%s/kewrc", oldPath);
+        snprintf(newFileRc, MAXPATHLEN, "%s/kewrc", newPath);
+
+        if (access(oldFileLibrary, F_OK) == 0)
+        {
+                rename(oldFileLibrary, newFileLibrary);
+        }
+        if (access(oldFileRc, F_OK) == 0)
+        {
+                rename(oldFileRc, newFileRc);
+        }
+
+        free(oldPath);
+        free(newPath);
+
+        return 0;
 }
 
 void removeUnneededChars(char *str)
