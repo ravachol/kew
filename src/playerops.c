@@ -12,7 +12,7 @@ playerops.c
 #endif
 
 #ifndef ASK_IF_USE_CACHE_LIMIT_SECONDS
-#define ASK_IF_USE_CACHE_LIMIT_SECONDS 1
+#define ASK_IF_USE_CACHE_LIMIT_SECONDS 4
 #endif
 
 struct timespec current_time;
@@ -328,7 +328,7 @@ SongData *getCurrentSongData()
         if (currentSong == NULL)
                 return NULL;
 
-        return (audioData.currentFileIndex == 0) ? userData.songdataA : userData.songdataB;                
+        return (audioData.currentFileIndex == 0) ? userData.songdataA : userData.songdataB;
 }
 
 void calcElapsedTime()
@@ -1125,7 +1125,7 @@ void skipToSong(int id)
         songLoading = true;
         forceSkip = false;
 
-        playbackPlay(&totalPauseSeconds, &pauseSeconds);        
+        playbackPlay(&totalPauseSeconds, &pauseSeconds);
 
         loadingdata.loadA = !usingSongDataA;
         loadingdata.loadingFirstDecoder = true;
