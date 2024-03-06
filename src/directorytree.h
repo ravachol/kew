@@ -1,3 +1,6 @@
+#ifndef DIRECTORYTREE_H
+#define DIRECTORYTREE_H
+
 #include <ctype.h>
 #include <dirent.h>
 #include <regex.h>
@@ -34,3 +37,5 @@ FileSystemEntry *createDirectoryTree(const char *startPath, int *numEntries);
 void freeTree(FileSystemEntry *root);
 void freeAndWriteTree(FileSystemEntry *root, const char *filename);
 FileSystemEntry *reconstructTreeFromFile(const char *filename, const char *startMusicPath, int *numDirectoryEntries);
+
+#endif
