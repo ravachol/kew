@@ -6,6 +6,6 @@
 #include "term.h"
 #include "utils.h"
 
-int displayPlaylist(PlayList *list, int maxListSize, int indent, int chosenSong, int *chosenNodeId, bool reset);
+int displayPlaylist(PlayList *list, int maxListSize, int indent, int *chosenSong, int *chosenNodeId, bool reset);
 
 #endif

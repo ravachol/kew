@@ -778,6 +778,12 @@ void handleRemove()
         bool rebuild = false;
 
         Node *node = findSelectedEntry(originalPlaylist, chosenRow);
+
+        if (node == NULL)
+        {
+                return;
+        }
+
         Node *song = getNextSong();
         int id = node->id;
 
