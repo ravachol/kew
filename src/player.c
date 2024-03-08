@@ -801,7 +801,7 @@ int printLogoAndAdjustments(SongData *songData, int termWidth, bool hideHelp, in
         return aboutRows;
 }
 
-void showPlaylist(SongData *songData, PlayList *list, int chosenSong, int *chosenNodeId)
+void showPlaylist(SongData *songData, PlayList *list, int *chosenSong, int *chosenNodeId)
 {
         int term_w, term_h;
         getTermSize(&term_w, &term_h);        
@@ -1222,7 +1222,7 @@ int printPlayer(SongData *songdata, double elapsedSeconds, AppSettings *settings
         else if (appState.currentView == PLAYLIST_VIEW && refresh)
         {
                 clearScreen();
-                showPlaylist(songdata, originalPlaylist, chosenRow, &chosenNodeId);
+                showPlaylist(songdata, originalPlaylist, &chosenRow, &chosenNodeId);
                 resetPlaylistDisplay = false;                
                 refresh = false;
         }
