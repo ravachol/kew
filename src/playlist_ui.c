@@ -114,7 +114,7 @@ int displayPlaylistItems(Node *startNode, int startIter, int maxListSize, int te
         return numPrintedRows;
 }
 
-int displayPlaylist(PlayList *list, int maxListSize, int indent, int chosenSong, int *chosenNodeId, bool reset)
+int displayPlaylist(PlayList *list, int maxListSize, int indent, int *chosenSong, int *chosenNodeId, bool reset)
 {
         int termWidth, termHeight;
         getTerminalSize(&termWidth, &termHeight);
@@ -124,44 +124,44 @@ int displayPlaylist(PlayList *list, int maxListSize, int indent, int chosenSong,
         Node *startNode = determineStartNode(list->head, &foundAt, &startFromCurrent, list->count);
 
         // Determine chosen song
-        if (chosenSong >= originalPlaylist->count)
+        if (*chosenSong >= list->count) // Assuming `list->count` is the correct object to use
         {
-                chosenSong = originalPlaylist->count - 1;
+                *chosenSong = list->count - 1;
         }
 
-        if (chosenSong < 0)
+        if (*chosenSong < 0)
         {
-                chosenSong = 0;
+                *chosenSong = 0;
         } 
+
+        int startIter = 0;
 
         // Determine where to start iterating
         startIter = (startFromCurrent && (foundAt < startIter || foundAt > startIter + maxListSize)) ? foundAt : startIter;
 
-        int startIter = 0;
-
-        if (chosenSong < startIter)
+        if (*chosenSong < startIter)
         {
-                startIter = chosenSong;
+                startIter = *chosenSong;
         }
     
-        if (chosenSong > startIter + maxListSize - round(maxListSize / 2))
+        if (*chosenSong > startIter + maxListSize - round(maxListSize / 2))
         {
-                startIter = chosenSong - maxListSize + round(maxListSize / 2);
+                startIter = *chosenSong - maxListSize + round(maxListSize / 2);
         }
 
-        if (reset && !audioData.endOfListReached)
+        if (reset && !audioData.endOfListReached) 
         {
-                startIter = chosenSong = foundAt;
+                startIter = *chosenSong = foundAt;
         }
         
-        // Go up
+        // Go up to find the starting node based on the new startIter
         for (int i = foundAt; i > startIter; i--)
         {
                 if (i > 0 && startNode->prev != NULL)
                         startNode = startNode->prev;
         }
         
-        // Go down
+        // Go down to adjust the startNode based on the new startIter
         if (foundAt > -1)
         {
                 for (int i = foundAt; i < startIter; i++)
@@ -171,7 +171,7 @@ int displayPlaylist(PlayList *list, int maxListSize, int indent, int chosenSong,
                 }
         }        
 
-        int printedRows = displayPlaylistItems(startNode, startIter, maxListSize, termWidth, indent, startFromCurrent, chosenSong, chosenNodeId);
+        int printedRows = displayPlaylistItems(startNode, startIter, maxListSize, termWidth, indent, startFromCurrent, *chosenSong, chosenNodeId);
 
         if (printedRows > 1)
         {
