@@ -95,14 +95,7 @@ int displayPlaylistItems(Node *startNode, int startIter, int maxListSize, int te
                         if (i + 1 < 10)
                                 printf(" ");
 
-                        if (startFromCurrent)
-                        {
-                                printf(" %d. %s \n", i + 1, buffer);
-                        }
-                        else
-                        {
-                                printf(" %d. %s \n", numPrintedRows + 1, buffer);
-                        }
+                        printf(" %d. %s \n", i + 1, buffer);
 
                         numPrintedRows++;
                 }
@@ -124,7 +117,7 @@ int displayPlaylist(PlayList *list, int maxListSize, int indent, int *chosenSong
         Node *startNode = determineStartNode(list->head, &foundAt, &startFromCurrent, list->count);
 
         // Determine chosen song
-        if (*chosenSong >= list->count) // Assuming `list->count` is the correct object to use
+        if (*chosenSong >= list->count)
         {
                 *chosenSong = list->count - 1;
         }
@@ -154,22 +147,19 @@ int displayPlaylist(PlayList *list, int maxListSize, int indent, int *chosenSong
                 startIter = *chosenSong = foundAt;
         }
         
-        // Go up to find the starting node based on the new startIter
+        // Go up to find the starting node
         for (int i = foundAt; i > startIter; i--)
         {
                 if (i > 0 && startNode->prev != NULL)
                         startNode = startNode->prev;
         }
         
-        // Go down to adjust the startNode based on the new startIter
-        if (foundAt > -1)
+        // Go down to adjust the startNode
+        for (int i = (foundAt == -1) ? 0 : foundAt; i < startIter; i++)
         {
-                for (int i = foundAt; i < startIter; i++)
-                {
-                        if (startNode->next != NULL)
-                               startNode = startNode->next;
-                }
-        }        
+                if (startNode->next != NULL)
+                        startNode = startNode->next;
+        }
 
         int printedRows = displayPlaylistItems(startNode, startIter, maxListSize, termWidth, indent, startFromCurrent, *chosenSong, chosenNodeId);
 
