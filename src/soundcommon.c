@@ -1145,7 +1145,7 @@ int displaySongNotification(const char *artist, const char *title, const char *c
         snprintf(message, sizeof(message), "%s", sanitizedTitle);
     }
 
-    char *args[] = {"notify-send", "-a", "kew", message, "--icon", sanitized_cover, NULL};
+    char *args[] = {"/usr/bin/notify-send", "-a", "kew", message, "--icon", sanitized_cover, NULL};
 
     pid_t pid = fork();
     if (pid == -1) {
@@ -1159,8 +1159,7 @@ int displaySongNotification(const char *artist, const char *title, const char *c
         // Child process
         extern char **environ;
         if (execve("/usr/bin/notify-send", args, environ) == -1) {
-            // Handle error
-            perror("execve");
+
             _Exit(EXIT_FAILURE);
         }
     }
