@@ -60,7 +60,7 @@ void preparePlaylistString(Node *node, char *buffer, int bufferSize, int shorten
         }
 }
 
-int displayPlaylistItems(Node *startNode, int startIter, int maxListSize, int termWidth, int indent, bool startFromCurrent, int chosenSong, int *chosenNodeId)
+int displayPlaylistItems(Node *startNode, int startIter, int maxListSize, int termWidth, int indent, int chosenSong, int *chosenNodeId)
 {
         int numPrintedRows = 0;
         Node *node = startNode;
@@ -161,7 +161,7 @@ int displayPlaylist(PlayList *list, int maxListSize, int indent, int *chosenSong
                         startNode = startNode->next;
         }
 
-        int printedRows = displayPlaylistItems(startNode, startIter, maxListSize, termWidth, indent, startFromCurrent, *chosenSong, chosenNodeId);
+        int printedRows = displayPlaylistItems(startNode, startIter, maxListSize, termWidth, indent, *chosenSong, chosenNodeId);
 
         if (printedRows > 1)
         {

@@ -128,9 +128,9 @@ void builtin_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_u
 
                 ma_decoder *decoder = getCurrentBuiltinDecoder();
 
-                if ((getCurrentImplementationType() != BUILTIN && !isSkipToNext()) || decoder == NULL)
+                if ((getCurrentImplementationType() != BUILTIN && !isSkipToNext()))
                 {
-                        pthread_mutex_unlock(&dataSourceMutex);
+                        pthread_mutex_unlock(&dataSourceMutex);                        
                         return;
                 }
 
@@ -161,11 +161,19 @@ void builtin_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_u
                 ma_uint64 cursor = 0;
                 ma_result result;
 
-                if (decoder == NULL || firstDecoder == NULL)
-                {
+                if (firstDecoder == NULL)
+                {                       
                         pthread_mutex_unlock(&dataSourceMutex);
                         return;
                 }
+
+                if (decoder == NULL)
+                {       
+                        activateSwitch(audioData);                
+                        pthread_mutex_unlock(&dataSourceMutex);
+                        continue;
+                }
+
                 result = ma_data_source_read_pcm_frames(firstDecoder, (ma_int32 *)pFramesOut + framesRead * decoder->outputChannels, remainingFrames, &framesToRead);
                 ma_data_source_get_cursor_in_pcm_frames(decoder, &cursor);
 
