@@ -83,7 +83,7 @@ void turnFilePathIntoTitle(const char *filePath, char *title)
         }
 }
 
-// Extracts metadata, returns -1 if no album cover found and -2 if no file found
+// Extracts metadata, returns -1 if no album cover found, -2 if no file found or if file has errors
 int extractTags(const char *input_file, TagSettings *tag_settings, double *duration, const char *coverFilePath)
 {
         AVFormatContext *fmt_ctx = NULL;
@@ -147,6 +147,7 @@ int extractTags(const char *input_file, TagSettings *tag_settings, double *durat
         else
         {
                 *duration = 0.0;
+                return -2;
         }
 
         int stream_index = av_find_best_stream(fmt_ctx, AVMEDIA_TYPE_VIDEO, -1, -1, NULL, 0);

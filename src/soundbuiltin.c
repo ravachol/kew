@@ -167,14 +167,7 @@ void builtin_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_u
                         return;
                 }
 
-                if (decoder == NULL)
-                {       
-                        activateSwitch(audioData);                
-                        pthread_mutex_unlock(&dataSourceMutex);
-                        continue;
-                }
-
-                result = ma_data_source_read_pcm_frames(firstDecoder, (ma_int32 *)pFramesOut + framesRead * decoder->outputChannels, remainingFrames, &framesToRead);
+                result = ma_data_source_read_pcm_frames(firstDecoder, (ma_int32 *)pFramesOut + framesRead * audioData->channels, remainingFrames, &framesToRead);
                 ma_data_source_get_cursor_in_pcm_frames(decoder, &cursor);
 
                 if (((audioData->totalFrames != 0 && cursor != 0 && cursor >= audioData->totalFrames) || framesToRead == 0 || isSkipToNext() || result != MA_SUCCESS) && !isEOFReached())
