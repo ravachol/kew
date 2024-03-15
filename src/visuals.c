@@ -25,11 +25,28 @@ int bufferIndex = 0;
 float magnitudeBuffer[MAX_BUFFER_SIZE] = {0.0f};
 float lastMagnitudes[MAX_BUFFER_SIZE] = {0.0f};
 
+int terminalSupportsUnicode()
+{
+        char *lang = getenv("LANG");
+        char *lc_all = getenv("LC_ALL");
+        char *lc_ctype = getenv("LC_CTYPE");
+
+        if ((lang && strstr(lang, "UTF-8")) ||
+            (lc_all && strstr(lc_all, "UTF-8")) ||
+            (lc_ctype && strstr(lc_ctype, "UTF-8")))
+        {
+                return 1;
+        }
+
+        return 0;
+}
+
 void initVisuals()
 {
         unicodeSupport = false;
-        char *locale = setlocale(LC_ALL, "");
-        if (locale != NULL)
+        setlocale(LC_ALL, "");
+
+        if (terminalSupportsUnicode() > 0)
                 unicodeSupport = true;
 }
 
