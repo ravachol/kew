@@ -22,7 +22,7 @@ typedef struct
 } PixelData;
 #endif
 
-const char VERSION[] = "2.4.3";
+const char VERSION[] = "2.4.4";
 int mainColor = 6;
 int titleColor = 6;
 int artistColor = 6;
