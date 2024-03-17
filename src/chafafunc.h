@@ -7,6 +7,7 @@
 #include <string.h>
 #include <unistd.h>
 
+float calcAspectRatio();
 void printImage(const char *image_path, int width, int height);
 FIBITMAP *getBitmap(const char *image_path);
 void printBitmap(FIBITMAP *bitmap, int width, int height);
