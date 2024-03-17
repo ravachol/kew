@@ -152,26 +152,21 @@ int calcMetadataHeight()
 
 int calcIdealImgSize(int *width, int *height, const int visualizerHeight, const int metatagHeight)
 {
+        float aspectRatio = calcAspectRatio();
+
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
         int timeDisplayHeight = 1;
-        int heightMargin = 2;
+        int heightMargin = 4;
         int minHeight = visualizerHeight + metatagHeight + timeDisplayHeight + heightMargin;
+        int minBorderWidth = 0;
         *height = term_h - minHeight;
-        *width = ceil(*height * 2);
+        *width = ceil(*height * aspectRatio);
         if (*width > term_w)
         {
-                *width = term_w;
-                *height = floor(*width / 2);
+                *width = term_w - minBorderWidth;
+                *height = floor(*width / aspectRatio);
         }
-        int remainder = *width % 2;
-        if (remainder == 1)
-        {
-                *width -= 1;
-        }
-
-        *width -= 3;
-        *height -= 2;
 
         return 0;
 }
@@ -296,16 +291,15 @@ int getYear(const char *dateString)
         return year;
 }
 
-int displayCover(FIBITMAP *cover, const char *coverArtPath, int height, bool ansii)
+int displayCover(FIBITMAP *cover, const char *coverArtPath, int width, int height, bool ansii)
 {
-        int width = height * 2;
-
         if (!ansii)
         {
-                printSquareBitmapCentered(cover, height);
+                printBitmapCentered(cover, width, height);
         }
         else
         {
+                int width = height * 2;
                 output_ascii(coverArtPath, height, width);
         }
         printf("\n");
@@ -320,7 +314,7 @@ void printCover(SongData *songdata)
         if (songdata->cover != NULL && coverEnabled)
         {
                 clearScreen();
-                displayCover(songdata->cover, songdata->coverArtPath, preferredHeight, coverAnsi);
+                displayCover(songdata->cover, songdata->coverArtPath, preferredWidth, preferredHeight, coverAnsi);
 
                 drewCover = true;
         }

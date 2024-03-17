@@ -366,56 +366,80 @@ void printBitmap(FIBITMAP *bitmap, int width, int height)
         g_string_free(printable, TRUE);
 }
 
+float calcAspectRatio()
+{
+        TermSize term_size;
+        gint cell_width = -1, cell_height = -1;
+
+        tty_init();
+        get_tty_size(&term_size);
+
+        if (term_size.width_cells > 0 && term_size.height_cells > 0 && term_size.width_pixels > 0 && term_size.height_pixels > 0)
+        {
+                cell_width = term_size.width_pixels / term_size.width_cells;
+                cell_height = term_size.height_pixels / term_size.height_cells;
+        }
+
+        // Set default for some terminals
+        if (cell_width == -1 && cell_height == -1)
+        {
+                cell_width = 8;
+                cell_height = 16;
+        }
+        
+        return (float)cell_height / (float)cell_width;        
+}
+
 void printSquareBitmapCentered(FIBITMAP *bitmap, int baseHeight)
 {
-    if (bitmap == NULL)
-    {
-        return;
-    }
-    int pix_width = FreeImage_GetWidth(bitmap);
-    int pix_height = FreeImage_GetHeight(bitmap);
-    int n_channels = FreeImage_GetBPP(bitmap) / 8;
-    unsigned char *pixels = (unsigned char *)FreeImage_GetBits(bitmap);
+        if (bitmap == NULL)
+        {
+                return;
+        }
+        int pix_width = FreeImage_GetWidth(bitmap);
+        int pix_height = FreeImage_GetHeight(bitmap);
+        int n_channels = FreeImage_GetBPP(bitmap) / 8;
+        unsigned char *pixels = (unsigned char *)FreeImage_GetBits(bitmap);
 
-    TermSize term_size;
-    GString *printable;
-    gint cell_width = -1, cell_height = -1;
+        TermSize term_size;
+        GString *printable;
+        gint cell_width = -1, cell_height = -1;
 
-    tty_init();
-    get_tty_size(&term_size);
+        tty_init();
+        get_tty_size(&term_size);
 
-    if (term_size.width_cells > 0 && term_size.height_cells > 0 && term_size.width_pixels > 0 && term_size.height_pixels > 0)
-    {
-        cell_width = term_size.width_pixels / term_size.width_cells;
-        cell_height = term_size.height_pixels / term_size.height_cells;
-    }
+        if (term_size.width_cells > 0 && term_size.height_cells > 0 && term_size.width_pixels > 0 && term_size.height_pixels > 0)
+        {
+                cell_width = term_size.width_pixels / term_size.width_cells;
+                cell_height = term_size.height_pixels / term_size.height_cells;
+        }
 
-    // Set default for some terminals
-    if (cell_width == -1 && cell_height == -1)
-    {
-        cell_width = 8;
-        cell_height = 16;
-    }
-    float aspect_ratio_correction = (float)cell_height / (float)cell_width;
+        // Set default for some terminals
+        if (cell_width == -1 && cell_height == -1)
+        {
+                cell_width = 8;
+                cell_height = 16;
+        }
+        float aspect_ratio_correction = (float)cell_height / (float)cell_width;
 
-    int correctedWidth = (int)(baseHeight * aspect_ratio_correction);
+        int correctedWidth = (int)(baseHeight * aspect_ratio_correction);
 
-    // Convert image to a printable string
-    printable = convert_image(pixels, pix_width, pix_height, pix_width * n_channels, CHAFA_PIXEL_BGRA8_UNASSOCIATED,
-                              correctedWidth, baseHeight, cell_width, cell_height);
-    g_string_append_c(printable, '\0');
-    const gchar *delimiters = "\n";
-    gchar **lines = g_strsplit(printable->str, delimiters, -1);
+        // Convert image to a printable string
+        printable = convert_image(pixels, pix_width, pix_height, pix_width * n_channels, CHAFA_PIXEL_BGRA8_UNASSOCIATED,
+                                  correctedWidth, baseHeight, cell_width, cell_height);
+        g_string_append_c(printable, '\0');
+        const gchar *delimiters = "\n";
+        gchar **lines = g_strsplit(printable->str, delimiters, -1);
 
-    int indentation = ((term_size.width_cells - correctedWidth) / 2) + 1;   
+        int indentation = ((term_size.width_cells - correctedWidth) / 2) + 1;
 
-    for (int i = 0; lines[i] != NULL; i++)
-    {
-        printf("\n%*s%s", indentation, "", lines[i]);
-    }
+        for (int i = 0; lines[i] != NULL; i++)
+        {
+                printf("\n%*s%s", indentation, "", lines[i]);
+        }
 
-    g_strfreev(lines);
-    g_string_free(printable, TRUE);
+        g_strfreev(lines);
+        g_string_free(printable, TRUE);
 }
 
 void printBitmapCentered(FIBITMAP *bitmap, int width, int height)
@@ -469,7 +493,7 @@ void checkIfBrightPixel(unsigned char r, unsigned char g, unsigned char b, bool 
 {
         // Calc luminace and use to find Ascii char.
         unsigned char ch = luminance(r, g, b);
-        
+
         if (ch > 80 && !(r < g + 20 && r > g - 20 && g < b + 20 && g > b - 20) && !(r > 150 && g > 150 && b > 150))
         {
                 *found = true;
