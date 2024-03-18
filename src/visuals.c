@@ -14,7 +14,7 @@ visuals.c
 
 int bufferSize = 4800;
 int prevBufferSize = 0;
-float alpha = 0.1;
+float alpha = 0.05;
 float lastMax = 90;
 bool unicodeSupport = false;
 fftwf_complex *fftInput = NULL;
