@@ -27,16 +27,9 @@ float lastMagnitudes[MAX_BUFFER_SIZE] = {0.0f};
 
 int terminalSupportsUnicode()
 {
-        char *lang = getenv("LANG");
-        char *lc_all = getenv("LC_ALL");
-        char *lc_ctype = getenv("LC_CTYPE");
-
-        if ((lang && strstr(lang, "UTF-8")) ||
-            (lc_all && strstr(lc_all, "UTF-8")) ||
-            (lc_ctype && strstr(lc_ctype, "UTF-8")))
-        {
+        char *locale = setlocale(LC_ALL, "");
+        if (locale != NULL)
                 return 1;
-        }
 
         return 0;
 }
@@ -44,8 +37,7 @@ int terminalSupportsUnicode()
 void initVisuals()
 {
         unicodeSupport = false;
-        setlocale(LC_ALL, "");
-
+  
         if (terminalSupportsUnicode() > 0)
                 unicodeSupport = true;
 }
