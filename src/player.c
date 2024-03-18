@@ -291,11 +291,11 @@ int getYear(const char *dateString)
         return year;
 }
 
-int displayCover(FIBITMAP *cover, const char *coverArtPath, int width, int height, bool ansii)
+int displayCover(FIBITMAP *cover, const char *coverArtPath, int height, bool ansii)
 {
         if (!ansii)
         {
-                printBitmapCentered(cover, width, height);
+                printSquareBitmapCentered(cover, height);
         }
         else
         {
@@ -314,7 +314,7 @@ void printCover(SongData *songdata)
         if (songdata->cover != NULL && coverEnabled)
         {
                 clearScreen();
-                displayCover(songdata->cover, songdata->coverArtPath, preferredWidth, preferredHeight, coverAnsi);
+                displayCover(songdata->cover, songdata->coverArtPath, preferredHeight, coverAnsi);
 
                 drewCover = true;
         }
