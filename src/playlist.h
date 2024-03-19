@@ -72,7 +72,7 @@ void writeM3UFile(const char *filename, PlayList *playlist);
 
 void loadSpecialPlaylist(const char *directory);
 
-void saveSpecialPlaylist(const char *directory, bool isPlayingMain);
+void saveSpecialPlaylist(const char *directory);
 
 void savePlaylist(const char *path);
 
