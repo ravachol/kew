@@ -870,7 +870,7 @@ void cleanupOnExit()
         restoreTerminalMode();
         enableInputBuffering();
         setConfig(&settings);
-        saveSpecialPlaylist(settings.path, playingMainPlaylist);
+        saveSpecialPlaylist(settings.path);
         freeAudioBuffer();
         deleteCache(tempCache);
         deleteTempDir();
