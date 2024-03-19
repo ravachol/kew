@@ -616,27 +616,53 @@ void loadSpecialPlaylist(const char *directory)
         readM3UFile(playlistPath, specialPlaylist);
 }
 
-void saveSpecialPlaylist(const char *directory, bool isPlayingMain)
+void saveSpecialPlaylist(const char *directory)
 {
+        if (directory == NULL)
+        {
+                return;
+        }
+
         char playlistPath[MAXPATHLEN];
+        playlistPath[0] = '\0';
+
         c_strcpy(playlistPath, sizeof(playlistPath), directory);
+
+        if (playlistPath[0] == '\0')
+        {
+                return;
+        }
+
         if (playlistPath[strlen(playlistPath) - 1] != '/')
                 strcat(playlistPath, "/");
+
         strcat(playlistPath, mainPlaylistName);
 
-        if (isPlayingMain && playlist.count > 0)
-                writeM3UFile(playlistPath, &playlist);
-        else if (specialPlaylist != NULL && specialPlaylist->count > 0)
+        if (specialPlaylist != NULL && specialPlaylist->count > 0)
                 writeM3UFile(playlistPath, specialPlaylist);
 }
 
 void savePlaylist(const char *path)
 {
+        if (path == NULL)
+        {
+                return;
+        }
+        
         char playlistPath[MAXPATHLEN];
+        playlistPath[0] = '\0';
         c_strcpy(playlistPath, sizeof(playlistPath), path);
+
+        if (playlistPath[0] == '\0')
+        {
+                return;
+        }
+
         if (playlistPath[strlen(playlistPath) - 1] != '/')
                 strcat(playlistPath, "/");
+
         strcat(playlistPath, playlistName);
+
         writeM3UFile(playlistPath, &playlist);
 }
 
@@ -684,16 +710,16 @@ Node *findTail(Node *head)
 
 PlayList deepCopyPlayList(PlayList *originalList)
 {
-       PlayList newList = {NULL, NULL, 0, PTHREAD_MUTEX_INITIALIZER};
+        PlayList newList = {NULL, NULL, 0, PTHREAD_MUTEX_INITIALIZER};
 
-       deepCopyPlayListOntoList(originalList, &newList);
-       return newList;
+        deepCopyPlayListOntoList(originalList, &newList);
+        return newList;
 }
 
 void deepCopyPlayListOntoList(PlayList *originalList, PlayList *newList)
 {
         if (originalList == NULL)
-        {               
+        {
                 return;
         }
 
@@ -756,30 +782,38 @@ int findNodeInList(PlayList *list, int id, Node **foundNode)
         return -1;
 }
 
-void addSongToPlayList(PlayList *list, const char *filePath, int playlistMax) {
-    if (list->count >= playlistMax) return;
+void addSongToPlayList(PlayList *list, const char *filePath, int playlistMax)
+{
+        if (list->count >= playlistMax)
+                return;
 
-    Node *newNode = NULL;
-    createNode(&newNode, filePath, list->count);
-    addToList(list, newNode);
+        Node *newNode = NULL;
+        createNode(&newNode, filePath, list->count);
+        addToList(list, newNode);
 }
 
-void traverseFileSystemEntry(FileSystemEntry *entry, PlayList *list, int playlistMax) {
-    if (entry == NULL || list->count >= playlistMax) return;
+void traverseFileSystemEntry(FileSystemEntry *entry, PlayList *list, int playlistMax)
+{
+        if (entry == NULL || list->count >= playlistMax)
+                return;
 
-    if (entry->isDirectory == 0) {
-        addSongToPlayList(list, entry->fullPath, playlistMax);
-    }
+        if (entry->isDirectory == 0)
+        {
+                addSongToPlayList(list, entry->fullPath, playlistMax);
+        }
 
-    if (entry->isDirectory == 1 && entry->children != NULL) {
-        traverseFileSystemEntry(entry->children, list, playlistMax);
-    }
+        if (entry->isDirectory == 1 && entry->children != NULL)
+        {
+                traverseFileSystemEntry(entry->children, list, playlistMax);
+        }
 
-    if (entry->next != NULL) {
-        traverseFileSystemEntry(entry->next, list, playlistMax);
-    }
+        if (entry->next != NULL)
+        {
+                traverseFileSystemEntry(entry->next, list, playlistMax);
+        }
 }
 
-void createPlayListFromFileSystemEntry(FileSystemEntry *root, PlayList *list, int playlistMax) {
-    traverseFileSystemEntry(root, list, playlistMax);
+void createPlayListFromFileSystemEntry(FileSystemEntry *root, PlayList *list, int playlistMax)
+{
+        traverseFileSystemEntry(root, list, playlistMax);
 }
