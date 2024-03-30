@@ -24,9 +24,9 @@ kew (/kjuː/) is a command-line music player for Linux.
 
 <a href="https://repology.org/project/kew/versions"><img src="https://repology.org/badge/vertical-allrepos/kew.svg" alt="Packaging status" align="right"></a>
 
-### Installing on Debian, Ubuntu
+### Installing in Debian, Ubuntu
 
-If you have apt on your system use:
+If you have apt in your system use:
 
 ```bash
 $ sudo apt install kew
