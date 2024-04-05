@@ -4,6 +4,7 @@ CFLAGS = -I/usr/include -I/usr/include/ogg -I/usr/include/opus -I/usr/include/st
 CFLAGS += -fstack-protector-strong -Wformat -Werror=format-security -fPIE -fstack-protector -fstack-protector-strong -D_FORTIFY_SOURCE=2
 CFLAGS += -Wall -Wextra -Wpointer-arith
 LIBS = -L/usr/lib -lfreeimage -lpthread -lrt -pthread -lm -lglib-2.0  $(shell $(PKG_CONFIG) --libs libavcodec libavutil libavformat libswresample gio-2.0 chafa fftw3f opus opusfile vorbis vorbisfile)
+LDFLAGS = -pie -Wl,-z,relro
 
 ifeq ($(CC),gcc)
     LIBS += -latomic
