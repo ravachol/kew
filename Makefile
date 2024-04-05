@@ -10,8 +10,6 @@ ifeq ($(CC),gcc)
     LIBS += -latomic
 endif
 
-LDFLAGS = -pie -Wl,-z,relro
-
 OBJDIR = src/obj
 PREFIX = /usr
 SRCS = src/sound.c src/directorytree.c src/soundcommon.c src/playlist_ui.c src/player.c src/soundbuiltin.c src/mpris.c src/playerops.c src/utils.c src/file.c src/chafafunc.c src/cache.c src/songloader.c src/playlist.c src/term.c  src/settings.c src/visuals.c src/kew.c
