@@ -104,9 +104,11 @@ make
 sudo make install
 ```
 
-A TrueColor capable terminal is recommended, like Konsole, kitty or st, to display colors properly.
+A sixel (or equivalent) capable terminal is recommended, like Konsole, Wezterm, or kitty, to display images properly.
 
-For a complete list of capable terminals, see this page: [Colors in Terminal](https://gist.github.com/CMCDragonkai/146100155ecd79c7dac19a9e23e6a362) (github.com).
+For a complete list of capable terminals, see this page: [Sixels in Terminal](https://www.arewesixelyet.com/) (github.com).
+
+And for 
 
 ### Uninstalling
 
