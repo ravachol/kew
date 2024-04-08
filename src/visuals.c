@@ -14,8 +14,8 @@ visuals.c
 
 int bufferSize = 4800;
 int prevBufferSize = 0;
-float alpha = 0.05;
-float lastMax = 90;
+float alpha = 0.2f;
+float lastMax = -1.0f;
 bool unicodeSupport = false;
 fftwf_complex *fftInput = NULL;
 fftwf_complex *fftOutput = NULL;
@@ -37,24 +37,66 @@ int terminalSupportsUnicode()
 void initVisuals()
 {
         unicodeSupport = false;
-  
+
         if (terminalSupportsUnicode() > 0)
                 unicodeSupport = true;
 }
 
+#define MOVING_AVERAGE_WINDOW_SIZE 2
+
 void updateMagnitudes(int height, int width, float maxMagnitude, float *magnitudes)
 {
+        // Temporary array to store smoothed magnitudes
+        float smoothedMagnitudes[width];
+
+        // Apply moving average smoothing to magnitudes
+        for (int i = 0; i < width; i++)
+        {
+                float sum = magnitudes[i];
+                int count = 1;
+
+                // Calculate moving average using a window centered at the current frequency bin
+                for (int j = 1; j <= MOVING_AVERAGE_WINDOW_SIZE / 2; j++)
+                {
+                        if (i - j >= 0)
+                        {
+                                sum += magnitudes[i - j];
+                                count++;
+                        }
+                        if (i + j < width)
+                        {
+                                sum += magnitudes[i + j];
+                                count++;
+                        }
+                }
+
+                // Compute the smoothed magnitude by averaging
+                smoothedMagnitudes[i] = sum / count;
+        }
+
+        // Update magnitudes array with smoothed values
+        for (int i = 0; i < width; i++)
+        {
+                magnitudes[i] = smoothedMagnitudes[i];
+        }
+
+        // Apply decay factor to the smoothed magnitudes
         float exponent = 1.0;
         float decreaseFactor = 0.8;
-
         for (int i = 0; i < width; i++)
         {
                 float normalizedMagnitude = magnitudes[i] / maxMagnitude;
+
+                if (normalizedMagnitude > 1.0f)
+                        normalizedMagnitude = 1.0f;
+
                 float scaledMagnitude = pow(normalizedMagnitude, exponent) * height;
 
-                if (scaledMagnitude < lastMagnitudes[i])
+                float decayedMagnitude = lastMagnitudes[i] * decreaseFactor;
+
+                if (scaledMagnitude < decayedMagnitude)
                 {
-                        magnitudes[i] = lastMagnitudes[i] * decreaseFactor;
+                        magnitudes[i] = decayedMagnitude;
                 }
                 else
                 {
@@ -63,6 +105,34 @@ void updateMagnitudes(int height, int width, float maxMagnitude, float *magnitud
                 lastMagnitudes[i] = magnitudes[i];
         }
 }
+
+// void updateMagnitudes(int height, int width, float maxMagnitude, float *magnitudes)
+// {
+//         float exponent = 1.0;
+//         float decreaseFactor = 0.8;
+
+//         for (int i = 0; i < width; i++)
+//         {
+//                 float normalizedMagnitude = magnitudes[i] / maxMagnitude;
+
+//                 if (normalizedMagnitude > 1.0f)
+//                         normalizedMagnitude = 1.0f;
+
+//                 float scaledMagnitude = pow(normalizedMagnitude, exponent) * height;
+
+//                 float decayedMagnitude = lastMagnitudes[i] * decreaseFactor;
+
+//                 if (scaledMagnitude < decayedMagnitude)
+//                 {
+//                         magnitudes[i] = decayedMagnitude;
+//                 }
+//                 else
+//                 {
+//                         magnitudes[i] = scaledMagnitude;
+//                 }
+//                 lastMagnitudes[i] = magnitudes[i];
+//         }
+// }
 
 float calcMaxMagnitude(int numBars, float *magnitudes)
 {
@@ -74,6 +144,9 @@ float calcMaxMagnitude(int numBars, float *magnitudes)
                         maxMagnitude = magnitudes[i];
                 }
         }
+
+        if (lastMax < 0.0f)
+                return maxMagnitude;
 
         lastMax = (1 - alpha) * lastMax + alpha * maxMagnitude; // Apply exponential smoothing
         return lastMax;
@@ -152,35 +225,20 @@ void calc(int height, int numBars, ma_int32 *audioBuffer, int bitDepth, fftwf_co
         {
                 float window = 0.54f - 0.46f * cos(2 * M_PI * i / (j - 1));
                 fftInput[i][0] *= window;
-        }
+        }        
 
         fftwf_execute(plan); // Execute FFT
 
         clearMagnitudes(numBars, magnitudes);
 
-        for (int i = 0, k = 0; i < numBars && k < j / 2; i += 2, k++)
+        for (int i = 0; i < numBars && i < j / 2; i++)
         {
-                // Compute magnitude for actual data points
-                float magnitude = sqrtf(fftOutput[k][0] * fftOutput[k][0] + fftOutput[k][1] * fftOutput[k][1]);
-                magnitudes[i] = magnitude; // Set actual magnitude
-
-                if (i + 1 < numBars)
-                {
-                        float nextMagnitude;
-                        if (k + 1 < j / 2)
-                        {
-                                // If not at the end, interpolate between this and the next actual magnitude
-                                nextMagnitude = sqrtf(fftOutput[k + 1][0] * fftOutput[k + 1][0] + fftOutput[k + 1][1] * fftOutput[k + 1][1]);
-                                magnitudes[i + 1] = (magnitude + nextMagnitude) / 2.0f; // Simple average for smoothing
-                        }
-                        else
-                        {
-                                // If at the end, could replicate the last magnitude or use a different logic for the filler
-                                magnitudes[i + 1] = magnitude; // Replicating the last magnitude
-                        }
-                }
+                // Directly set magnitude for each bar from FFT output
+                float magnitude = sqrtf(fftOutput[i][0] * fftOutput[i][0] + fftOutput[i][1] * fftOutput[i][1]);
+                magnitudes[i] = magnitude;
         }
 
+        // Normalize and update magnitudes for visualization
         float maxMagnitude = calcMaxMagnitude(numBars, magnitudes);
         updateMagnitudes(height, numBars, maxMagnitude, magnitudes);
 }
@@ -359,6 +417,8 @@ void drawSpectrumVisualizer(int height, int width, PixelData c, int indentation,
 
         if (bufferSize != prevBufferSize)
         {
+                lastMax = -1.0f;
+
                 freeVisuals();
 
                 fftInput = (fftwf_complex *)fftwf_malloc(sizeof(fftwf_complex) * bufferSize);
