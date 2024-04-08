@@ -1126,6 +1126,11 @@ char *remove_blacklisted_chars(const char *input, const char *blacklist)
         return output;
 }
 
+gint64 getLengthInSec(double duration)
+{
+        return floor(llround(duration * G_USEC_PER_SEC));
+}
+
 int displaySongNotification(const char *artist, const char *title, const char *cover) {
     if (!allowNotifications)
         return 0;
