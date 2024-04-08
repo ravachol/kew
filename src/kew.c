@@ -342,7 +342,19 @@ void notifySongSwitch()
         bool isDeleted = (audioData.currentFileIndex == 0) ? userData.songdataADeleted == true : userData.songdataBDeleted == true;
 
         if (isDeleted == false && currentSongData != NULL && currentSongData->hasErrors == 0 && currentSongData->metadata && strlen(currentSongData->metadata->title) > 0)
+        {
                 displaySongNotification(currentSongData->metadata->artist, currentSongData->metadata->title, currentSongData->coverArtPath);
+
+                gint64 length = getLengthInSec(currentSongData->duration);
+                // update mpris
+                emitMetadataChanged(
+                    currentSongData->metadata->title,
+                    currentSongData->metadata->artist,
+                    currentSongData->metadata->album,
+                    currentSongData->coverArtPath,
+                    currentSongData->trackId != NULL ? currentSongData->trackId : "", currentSong,
+                    length);
+        }
 }
 
 void prepareNextSong()
@@ -384,36 +396,26 @@ void prepareNextSong()
         clock_gettime(CLOCK_MONOTONIC, &start_time);
 }
 
+// Checks conditions for refreshing player
+bool shouldRefreshPlayer()
+{
+        return !skipping && !isEOFReached() && !isImplSwitchReached();
+}
+
+// Refreshes the player visually if conditions are met
 void refreshPlayer()
 {
-        if (pthread_mutex_trylock(&switchMutex) != 0)
+        int mutexResult = pthread_mutex_trylock(&switchMutex);
+
+        if (mutexResult != 0)
         {
+                fprintf(stderr, "Failed to lock switch mutex.\n");
                 return;
         }
 
-        SongData *songData = (audioData.currentFileIndex == 0) ? userData.songdataA : userData.songdataB;
-        bool isDeleted = (audioData.currentFileIndex == 0) ? userData.songdataADeleted == true : userData.songdataBDeleted == true;
-
-        if (!skipping && !isEOFReached() && !isImplSwitchReached())
+        if (shouldRefreshPlayer())
         {
-                if (refresh && songData != NULL && isDeleted == false &&
-                    songData->hasErrors == false && currentSong != NULL && songData->metadata != NULL)
-                {
-                        gint64 length = llround(songData->duration * G_USEC_PER_SEC);
-                        // update mpris
-                        emitMetadataChanged(
-                            songData->metadata->title,
-                            songData->metadata->artist,
-                            songData->metadata->album,
-                            songData->coverArtPath,
-                            songData->trackId != NULL ? songData->trackId : "", currentSong,
-                            length);
-                }
-
-                if (isDeleted || songData->hasErrors)
-                        songData = NULL;
-
-                printPlayer(songData, elapsedSeconds, &settings);
+                printPlayer(getCurrentSongData(), elapsedSeconds, &settings);
         }
 
         pthread_mutex_unlock(&switchMutex);
@@ -685,7 +687,7 @@ void loadAudioData()
 
                         if (res >= 0)
                         {
-                                resumePlayback();                            
+                                resumePlayback();
                         }
                         else
                         {
@@ -697,7 +699,7 @@ void loadAudioData()
                         nextSong = NULL;
                         refresh = true;
 
-                        clock_gettime(CLOCK_MONOTONIC, &start_time);                        
+                        clock_gettime(CLOCK_MONOTONIC, &start_time);
                 }
         }
         else if (currentSong != NULL && (nextSongNeedsRebuilding || nextSong == NULL) && !songLoading)
@@ -740,7 +742,7 @@ void tryLoadNext()
 gboolean mainloop_callback(gpointer data)
 {
         (void)data;
-        
+
         calcElapsedTime();
         handleInput();
 
@@ -809,7 +811,7 @@ void play(Node *song)
                 if (res < 0)
                         setEndOfListReached();
         }
-                
+
         if (song == NULL || res < 0)
         {
                 song = NULL;
@@ -852,7 +854,7 @@ void cleanupOnExit()
         {
                 printf("No Music found.\n");
                 printf("Please make sure the path is set correctly. \n");
-                printf("To set it type: kew path \"/path/to/Music\". \n");                
+                printf("To set it type: kew path \"/path/to/Music\". \n");
         }
 
         if (!userData.songdataADeleted)
@@ -919,7 +921,7 @@ void run()
 }
 
 void init()
-{       
+{
         disableInputBuffering();
         srand(time(NULL));
         initResize();
@@ -943,7 +945,7 @@ void init()
         pthread_mutex_init(&(playlist.mutex), NULL);
         nerdFontsEnabled = hasNerdFonts();
         createLibrary(&settings);
-        fflush(stdout);        
+        fflush(stdout);
 
 #ifdef DEBUG
         g_setenv("G_MESSAGES_DEBUG", "all", TRUE);
@@ -973,7 +975,7 @@ void playSpecialPlaylist()
                 printf("Couldn't find any songs in the special playlist. Add a song by pressing '.' while it's playing. \n");
                 exit(0);
         }
-        
+
         playingMainPlaylist = true;
 
         init();

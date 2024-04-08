@@ -466,10 +466,23 @@ int createAudioDevice(UserData *userData)
                 SongData *currentSongData = userData->currentSongData;
 
                 if (currentSongData != NULL && currentSongData->hasErrors == 0 && currentSongData->metadata && strlen(currentSongData->metadata->title) > 0)
+                {
                         displaySongNotification(currentSongData->metadata->artist, currentSongData->metadata->title, currentSongData->coverArtPath);
+
+                        gint64 length = getLengthInSec(currentSongData->duration);
+                        // update mpris
+                        emitMetadataChanged(
+                            currentSongData->metadata->title,
+                            currentSongData->metadata->artist,
+                            currentSongData->metadata->album,
+                            currentSongData->coverArtPath,
+                            currentSongData->trackId != NULL ? currentSongData->trackId : "", currentSong,
+                            length);
+                }
         }
-        else {
-                return -1;                
+        else
+        {
+                return -1;
         }
 
         return 0;
