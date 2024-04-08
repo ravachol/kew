@@ -323,12 +323,30 @@ void quit()
         doQuit = true;
 }
 
-SongData *getCurrentSongData()
+bool isCurrentSongDeleted()
+{
+        return (audioData.currentFileIndex == 0) ? userData.songdataADeleted == true : userData.songdataBDeleted == true;
+}
+
+bool isValidSong(SongData *songData)
+{
+        return songData != NULL && songData->hasErrors == false && songData->metadata != NULL;
+}
+
+SongData *getCurrentSongData(void)
 {
         if (currentSong == NULL)
                 return NULL;
 
-        return (audioData.currentFileIndex == 0) ? userData.songdataA : userData.songdataB;
+        if (isCurrentSongDeleted())
+                return NULL;
+
+        SongData *songData = (audioData.currentFileIndex == 0) ? userData.songdataA : userData.songdataB;
+
+        if (!isValidSong(songData))
+                return NULL;                
+
+        return songData;
 }
 
 void calcElapsedTime()

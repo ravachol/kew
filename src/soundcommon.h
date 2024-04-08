@@ -331,6 +331,8 @@ void activateSwitch(AudioData *pPCMDataSource);
 
 void executeSwitch(AudioData *pPCMDataSource);
 
+gint64 getLengthInSec(double duration);
+
 int displaySongNotification(const char *artist, const char *title, const char *cover);
 
 int getCurrentVolume(void);
