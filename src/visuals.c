@@ -106,34 +106,6 @@ void updateMagnitudes(int height, int width, float maxMagnitude, float *magnitud
         }
 }
 
-// void updateMagnitudes(int height, int width, float maxMagnitude, float *magnitudes)
-// {
-//         float exponent = 1.0;
-//         float decreaseFactor = 0.8;
-
-//         for (int i = 0; i < width; i++)
-//         {
-//                 float normalizedMagnitude = magnitudes[i] / maxMagnitude;
-
-//                 if (normalizedMagnitude > 1.0f)
-//                         normalizedMagnitude = 1.0f;
-
-//                 float scaledMagnitude = pow(normalizedMagnitude, exponent) * height;
-
-//                 float decayedMagnitude = lastMagnitudes[i] * decreaseFactor;
-
-//                 if (scaledMagnitude < decayedMagnitude)
-//                 {
-//                         magnitudes[i] = decayedMagnitude;
-//                 }
-//                 else
-//                 {
-//                         magnitudes[i] = scaledMagnitude;
-//                 }
-//                 lastMagnitudes[i] = magnitudes[i];
-//         }
-// }
-
 float calcMaxMagnitude(int numBars, float *magnitudes)
 {
         float maxMagnitude = 0.0f;
