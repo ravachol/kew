@@ -357,45 +357,6 @@ void notifySongSwitch()
         }
 }
 
-void prepareNextSong()
-{
-        if (!skipOutOfOrder && !isRepeatEnabled())
-        {
-                if (currentSong != NULL)
-                        lastPlayedId = currentSong->id;
-                currentSong = getNextSong();
-        }
-        else
-        {
-                skipOutOfOrder = false;
-        }
-
-        finishLoading();
-        resetTimeCount();
-
-        nextSong = NULL;
-        refresh = true;
-
-        if (!isRepeatEnabled() || currentSong == NULL)
-        {
-                unloadPreviousSong();
-        }
-
-        if (currentSong == NULL)
-        {
-                if (quitAfterStopping)
-                        quit();
-                else
-                        setEndOfListReached();
-        }
-        else
-        {
-                notifySongSwitch();
-        }
-
-        clock_gettime(CLOCK_MONOTONIC, &start_time);
-}
-
 // Checks conditions for refreshing player
 bool shouldRefreshPlayer()
 {
@@ -739,6 +700,61 @@ void tryLoadNext()
         }
 }
 
+void setCurrentSongToNext()
+{
+        if (currentSong != NULL)
+                lastPlayedId = currentSong->id;
+        currentSong = getNextSong();
+}
+
+void prepareNextSong()
+{
+        if (!skipOutOfOrder && !isRepeatEnabled())
+        {
+                setCurrentSongToNext();
+        }
+        else
+        {
+                skipOutOfOrder = false;
+        }
+
+        finishLoading();
+        resetTimeCount();
+
+        nextSong = NULL;
+        refresh = true;
+
+        if (!isRepeatEnabled() || currentSong == NULL)
+        {
+                unloadPreviousSong();
+        }
+
+        if (currentSong == NULL)
+        {
+                if (quitAfterStopping)
+                        quit();
+                else
+                        setEndOfListReached();
+        }
+        else
+        {
+                notifySongSwitch();
+        }
+
+        clock_gettime(CLOCK_MONOTONIC, &start_time);
+}
+
+void handleSkipFromStopped()
+{
+        // If we don't do this the song gets loaded in the wrong slot
+        if (skipFromStopped)
+        {
+                usingSongDataA = !usingSongDataA;
+                skipOutOfOrder = false;
+                skipFromStopped = false;
+        }
+}
+
 gboolean mainloop_callback(gpointer data)
 {
         (void)data;
@@ -756,8 +772,9 @@ gboolean mainloop_callback(gpointer data)
 
         if (playlist.head != NULL)
         {
-                if (loadingAudioData == false && (!loadedNextSong || nextSongNeedsRebuilding) && !audioData.endOfListReached)
+                if (loadingAudioData == false && (skipFromStopped || !loadedNextSong || nextSongNeedsRebuilding) && !audioData.endOfListReached)
                 {
+                        handleSkipFromStopped();                        
                         loadAudioData();
                 }
 
@@ -768,6 +785,7 @@ gboolean mainloop_callback(gpointer data)
                 {
                         updateLastSongSwitchTime();
                         prepareNextSong();
+
                         if (!doQuit)
                                 switchAudioImplementation();
                 }

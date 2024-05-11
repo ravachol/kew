@@ -54,6 +54,7 @@ extern bool skipOutOfOrder;
 extern Node *tryNextSong;
 extern struct timespec lastInputTime;
 extern struct timespec lastPlaylistChangeTime;
+extern bool skipFromStopped;
 
 extern UserData userData;
 
