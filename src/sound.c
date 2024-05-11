@@ -235,6 +235,14 @@ void opus_createAudioDevice(UserData *userData, ma_device *device, ma_context *c
         emitStringPropertyChanged("PlaybackStatus", "Playing");
 }
 
+bool validFilePath(char *filePath)
+{
+        if (filePath == NULL || filePath[0] == '\0' || filePath[0] == '\r' || existsFile(filePath) < 0)
+                return false;
+        else
+                return true;
+}
+
 int switchAudioImplementation()
 {
         if (audioData.endOfListReached)
@@ -256,7 +264,7 @@ int switchAudioImplementation()
 
         char *filePath = strdup(userData.currentSongData->filePath);
 
-        if (filePath == NULL || filePath[0] == '\0' || filePath[0] == '\r' || existsFile(filePath) < 0)
+        if (!validFilePath(filePath))
         {
                 free(filePath);
                 setEOFReached();

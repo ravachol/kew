@@ -25,7 +25,7 @@ struct timespec lastUpdateTime = {0, 0};
 bool playlistNeedsUpdate = false;
 bool nextSongNeedsRebuilding = false;
 bool enqueuedNeedsUpdate = false;
-
+bool skipFromStopped = false;
 bool playingMainPlaylist = false;
 bool usingSongDataA = true;
 
@@ -90,6 +90,7 @@ void skip()
         if (!isPlaying())
         {
                 switchAudioImplementation();
+                skipFromStopped = true;
         }
         else
         {
