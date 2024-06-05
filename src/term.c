@@ -243,7 +243,7 @@ int readInputSequence(char *seq, size_t seqSize) {
     }
 
     // Ensure there's enough space in the buffer
-    if (additionalBytes + 1 >= seqSize) {
+    if ((size_t)additionalBytes + 1 >= seqSize) {
         return 0;
     }
 
