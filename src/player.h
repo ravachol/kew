@@ -11,6 +11,7 @@
 #include "directorytree.h"
 #include "playlist.h"
 #include "playlist_ui.h"
+#include "search_ui.h"
 #include "songloader.h"
 #include "sound.h"
 #include "term.h"
@@ -82,6 +83,8 @@ void toggleShowKeyBindings(void);
 void toggleShowLibrary();
 
 void toggleShowPlaylist(void);
+
+void toggleShowSearch(void);
 
 void showTrack();
 

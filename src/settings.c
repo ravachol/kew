@@ -72,6 +72,8 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         strncpy(settings.hardEndOfPlaylist, "G", sizeof(settings.hardEndOfPlaylist));
         strncpy(settings.hardShowLibrary, "OR", sizeof(settings.hardShowLibrary));
         strncpy(settings.hardShowLibraryAlt, "[[C", sizeof(settings.hardShowLibraryAlt));
+        strncpy(settings.hardShowSearch, "/", sizeof(settings.hardShowSearch));
+        strncpy(settings.hardShowSearchAlt, "/", sizeof(settings.hardShowSearchAlt));
         strncpy(settings.hardNextPage, "[6~", sizeof(settings.hardNextPage));
         strncpy(settings.hardPrevPage, "[5~", sizeof(settings.hardPrevPage));
         strncpy(settings.hardRemove, "[3~", sizeof(settings.hardRemove));
