@@ -71,4 +71,7 @@ void clearScreen(void);
 
 int readInputSequence(char *seq, size_t seqSize);
 
+// Function to check if the key is a function key
+int isFunctionKey(const char *seq);
+
 #endif

@@ -179,7 +179,7 @@ void cursorJumpDown(int numRows)
         printf("\033[%dB", numRows);
 }
 
-int readInputSequence(char *seq, size_t seqSize)
+int readInputSequence_old(char *seq, size_t seqSize)
 {
         char c;
         ssize_t bytesRead;
@@ -213,10 +213,63 @@ int readInputSequence(char *seq, size_t seqSize)
         return bytesRead;
 }
 
+int readInputSequence(char *seq, size_t seqSize) {
+    char c;
+    ssize_t bytesRead;
+    seq[0] = '\0';
+    bytesRead = read(STDIN_FILENO, &c, 1);
+    if (bytesRead <= 0) {
+        return 0;
+    }
+
+    // If it's a single-byte ASCII character, return it
+    if ((c & 0x80) == 0) {
+        seq[0] = c;
+        seq[1] = '\0';
+        return 1;
+    }
+
+    // Determine the length of the UTF-8 sequence
+    int additionalBytes;
+    if ((c & 0xE0) == 0xC0) {
+        additionalBytes = 1; // 2-byte sequence
+    } else if ((c & 0xF0) == 0xE0) {
+        additionalBytes = 2; // 3-byte sequence
+    } else if ((c & 0xF8) == 0xF0) {
+        additionalBytes = 3; // 4-byte sequence
+    } else {
+        // Invalid UTF-8 start byte
+        return 0;
+    }
+
+    // Ensure there's enough space in the buffer
+    if (additionalBytes + 1 >= seqSize) {
+        return 0;
+    }
+
+    // Read the remaining bytes of the UTF-8 sequence
+    seq[0] = c;
+    bytesRead = read(STDIN_FILENO, &seq[1], additionalBytes);
+    if (bytesRead != additionalBytes) {
+        return 0;
+    }
+
+    seq[additionalBytes + 1] = '\0';
+    return additionalBytes + 1;
+}
+
 int getIndentation(int terminalWidth)
 {
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
         int indent = ((term_w - terminalWidth) / 2) + 1;
         return (indent > 0) ? indent : 0;
+}
+
+// Function to check if the key is a function key
+int isFunctionKey(const char *seq) {
+    if (seq[0] == '\033') { // ESC character
+        return 1;
+    }
+    return 0;
 }

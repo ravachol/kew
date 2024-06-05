@@ -54,6 +54,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include "player.h"
 #include "playerops.h"
 #include "playlist.h"
+#include "search_ui.h"
 #include "settings.h"
 #include "sound.h"
 #include "soundcommon.h"
@@ -61,7 +62,6 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include "utils.h"
 
 // #define DEBUG 1
-#define MAX_SEQ_LEN 1024    // Maximum length of sequence buffer
 #define MAX_TMP_SEQ_LEN 256 // Maximum length of temporary sequence buffer
 #define COOLDOWN_MS 500
 #define COOLDOWN2_MS 100
@@ -72,6 +72,7 @@ static bool eventProcessed = false;
 char digitsPressed[MAX_SEQ_LEN];
 int digitsPressedCount = 0;
 int maxDigitsPressedCount = 9;
+static unsigned int updateCounter = 0;
 bool gPressed = false;
 bool loadingAudioData = false;
 bool goingToSong = false;
@@ -93,7 +94,7 @@ struct Event processInput()
 {
         struct Event event;
         event.type = EVENT_NONE;
-        event.key = '\0';
+        event.key[0] = '\0';
         bool cooldownElapsed = false;
         bool cooldown2Elapsed = false;
 
@@ -122,7 +123,7 @@ struct Event processInput()
                 seqLength = seqLength + readInputSequence(tmpSeq, sizeof(tmpSeq));
 
                 // Release most keys directly, seekbackward and seekforward can be read continuously
-                if (seqLength <= 0 && strcmp(seq, settings.seekBackward) != 0 && strcmp(seq, settings.seekForward) != 0)
+                if (seqLength <= 0 && strcmp(seq + 1, settings.seekBackward) != 0 && strcmp(seq + 1, settings.seekForward) != 0)
                 {
                         keyReleased = 1;
                         break;
@@ -135,16 +136,11 @@ struct Event processInput()
 
                 strcat(seq, tmpSeq);
 
-                c_sleep(10);
-
                 // This slows the continous reads down to not get a a too fast scrolling speed
-                if (strcmp(seq, settings.hardScrollUp) == 0 || strcmp(seq, settings.hardScrollDown) == 0 || strcmp(seq, settings.scrollUpAlt) == 0 ||
-                    strcmp(seq, settings.scrollDownAlt) == 0 || strcmp(seq, settings.seekBackward) == 0 || strcmp(seq, settings.seekForward) == 0 ||
-                    strcmp(seq, settings.hardNextPage) == 0 || strcmp(seq, settings.hardPrevPage) == 0)
+                if (strcmp(seq + 1, settings.hardScrollUp) == 0 || strcmp(seq + 1, settings.hardScrollDown) == 0 || strcmp(seq + 1, settings.scrollUpAlt) == 0 ||
+                    strcmp(seq + 1, settings.scrollDownAlt) == 0 || strcmp(seq + 1, settings.seekBackward) == 0 || strcmp(seq + 1, settings.seekForward) == 0 ||
+                    strcmp(seq + 1, settings.hardNextPage) == 0 || strcmp(seq + 1, settings.hardPrevPage) == 0)
                 {
-                        // Do dummy reads to prevent scrolling continuing after we release the key
-                        readInputSequence(tmpSeq, 3);
-                        readInputSequence(tmpSeq, 3);
                         keyReleased = 0;
                         break;
                 }
@@ -157,7 +153,22 @@ struct Event processInput()
 
         eventProcessed = true;
         event.type = EVENT_NONE;
-        event.key = seq[0];
+
+        strncpy(event.key, seq, MAX_SEQ_LEN);
+
+        if (appState.currentView == SEARCH_VIEW)
+        {
+                if (strcmp(event.key, "\x7F") == 0 || strcmp(event.key, "\x08") == 0)
+                {
+                        removeFromSearchText();
+                        return event;
+                }
+                if (((strlen(event.key) == 1 && event.key[0] != '\033') || strcmp(event.key, " ") == 0 || (unsigned char)event.key[0] >= 0xC0))
+                {
+                        addToSearchText(event.key);
+                        return event;
+                }
+        }
 
         // Map keys to events
         EventMapping keyMappings[] = {{settings.scrollUpAlt, EVENT_SCROLLPREV},
@@ -189,6 +200,7 @@ struct Event processInput()
                                       {settings.hardScrollDown, EVENT_SCROLLNEXT},
                                       {settings.hardShowInfo, EVENT_SHOWINFO},
                                       {settings.hardShowInfoAlt, EVENT_SHOWINFO},
+                                      {settings.hardShowSearch, EVENT_SHOWSEARCH},
                                       {settings.hardShowKeys, EVENT_SHOWKEYBINDINGS},
                                       {settings.hardShowKeysAlt, EVENT_SHOWKEYBINDINGS},
                                       {settings.hardEndOfPlaylist, EVENT_GOTOENDOFPLAYLIST},
@@ -205,7 +217,9 @@ struct Event processInput()
         // Set event for pressed key
         for (int i = 0; i < numKeyMappings; i++)
         {
-                if (strcmp(seq, keyMappings[i].seq) == 0)
+                if (keyMappings[i].seq[0] != '\0' &&
+                    ((seq[0] == '\033' && strlen(seq) > 1 && strcmp(seq + 1, keyMappings[i].seq) == 0) ||
+                     strcmp(seq, keyMappings[i].seq) == 0))
                 {
                         event.type = keyMappings[i].eventType;
                         break;
@@ -213,7 +227,7 @@ struct Event processInput()
         }
 
         // Handle gg
-        if (event.key == 'g' && event.type == EVENT_NONE)
+        if (event.key[0] == 'g' && event.type == EVENT_NONE)
         {
                 if (gPressed)
                 {
@@ -227,10 +241,10 @@ struct Event processInput()
         }
 
         // Handle numbers
-        if (isdigit(event.key))
+        if (isdigit(event.key[0]))
         {
                 if (digitsPressedCount < maxDigitsPressedCount)
-                        digitsPressed[digitsPressedCount++] = event.key;
+                        digitsPressed[digitsPressedCount++] = event.key[0];
         }
         else
         {
@@ -289,7 +303,7 @@ struct Event processInput()
         }
 
         // Forget g pressed
-        if (event.key != 'g')
+        if (event.key[0] != 'g')
         {
                 gPressed = false;
         }
@@ -543,6 +557,9 @@ void handleInput()
         case EVENT_SHOWINFO:
                 toggleShowPlaylist();
                 break;
+        case EVENT_SHOWSEARCH:
+                toggleShowSearch();
+                break;
         case EVENT_SHOWLIBRARY:
                 toggleShowLibrary();
                 break;
@@ -768,13 +785,17 @@ gboolean mainloop_callback(gpointer data)
                 g_main_context_iteration(global_main_context, FALSE);
         }
 
-        updatePlayer();
+        updateCounter++;
+        if (updateCounter % 2 == 0 || appState.currentView != SONG_VIEW) // Update every other time or if searching
+        {
+                updatePlayer();
+        }
 
         if (playlist.head != NULL)
         {
                 if (loadingAudioData == false && (skipFromStopped || !loadedNextSong || nextSongNeedsRebuilding) && !audioData.endOfListReached)
                 {
-                        handleSkipFromStopped();                        
+                        handleSkipFromStopped();
                         loadAudioData();
                 }
 
@@ -851,7 +872,7 @@ void play(Node *song)
         else
                 emitPlaybackStoppedMpris();
 
-        g_timeout_add(100, mainloop_callback, NULL);
+        g_timeout_add(50, mainloop_callback, NULL);
         g_main_loop_run(main_loop);
         g_main_loop_unref(main_loop);
 }
@@ -963,6 +984,7 @@ void init()
         pthread_mutex_init(&(playlist.mutex), NULL);
         nerdFontsEnabled = hasNerdFonts();
         createLibrary(&settings);
+        setlocale(LC_ALL, "");
         fflush(stdout);
 
 #ifdef DEBUG

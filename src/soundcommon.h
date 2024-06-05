@@ -144,8 +144,10 @@ typedef struct
         char hardShowKeys[6];
         char hardShowKeysAlt[6];
         char hardEndOfPlaylist[6];
-        char hardShowLibrary[6];        
+        char hardShowLibrary[6];
         char hardShowLibraryAlt[6];
+        char hardShowSearch[6];
+        char hardShowSearchAlt[6];        
         char hardShowTrack[6];
         char hardShowTrackAlt[6];
         char hardNextPage[6];
@@ -178,7 +180,8 @@ typedef enum {
     SONG_VIEW,
     KEYBINDINGS_VIEW,
     PLAYLIST_VIEW,
-    LIBRARY_VIEW
+    LIBRARY_VIEW,
+    SEARCH_VIEW
 } ViewState;
 
 typedef struct {

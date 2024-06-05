@@ -22,12 +22,12 @@ typedef struct
 } PixelData;
 #endif
 
-const char VERSION[] = "2.4.4";
+const char VERSION[] = "2.5.0";
 int mainColor = 6;
 int titleColor = 6;
 int artistColor = 6;
 int enqueuedColor = 6;
-const int ABSOLUTE_MIN_WIDTH = 64;
+const int ABSOLUTE_MIN_WIDTH = 65;
 bool visualizerEnabled = true;
 bool coverEnabled = true;
 bool hideLogo = false;
@@ -455,7 +455,7 @@ void printProgress(double elapsed_seconds, double total_seconds)
 }
 void printMetadata(TagSettings const *metadata)
 {
-        if (!metaDataEnabled || appState.currentView == LIBRARY_VIEW || appState.currentView == PLAYLIST_VIEW)
+        if (!metaDataEnabled || appState.currentView == LIBRARY_VIEW || appState.currentView == PLAYLIST_VIEW || appState.currentView == SEARCH_VIEW)
                 return;
         c_sleep(100);
         setColor();
@@ -464,7 +464,7 @@ void printMetadata(TagSettings const *metadata)
 
 void printTime(double elapsedSeconds)
 {
-        if (!timeEnabled || appState.currentView == LIBRARY_VIEW || appState.currentView == PLAYLIST_VIEW)
+        if (!timeEnabled || appState.currentView == LIBRARY_VIEW || appState.currentView == PLAYLIST_VIEW || appState.currentView == SEARCH_VIEW)
                 return;
         setColor();
         int term_w, term_h;
@@ -529,7 +529,7 @@ void printLastRow()
                 return;
         setTextColorRGB(lastRowColor.r, lastRowColor.g, lastRowColor.b);
 
-        char text[100] = " [F2 Playlist] [F3 Library] [F4 Track] [F5 Keys] [Q Quit]";
+        char text[100] = " [F2 Playlist|F3 Library|F4 Track|F5 Keys|/ Search|Q Quit]";
 
         char nerdFontText[100] = "";
 
@@ -673,6 +673,20 @@ void toggleShowPlaylist()
         }
 }
 
+void toggleShowSearch()
+{
+        refresh = true;
+
+        if (appState.currentView == SEARCH_VIEW)
+        {
+                appState.currentView = SONG_VIEW;
+        }
+        else
+        {
+                appState.currentView = SEARCH_VIEW;
+        }
+}
+
 void toggleShowLibrary()
 {
         refresh = true;
@@ -719,6 +733,10 @@ void flipNextPage()
                 chosenRow = (chosenRow >= originalPlaylist->count) ? originalPlaylist->count - 1 : chosenRow;
                 refresh = true;
         }
+        else if (appState.currentView == SEARCH_VIEW)
+        {
+                // FIXME: IMPLEMENT THIS
+        }
 }
 
 void flipPrevPage()
@@ -735,6 +753,10 @@ void flipPrevPage()
                 chosenRow = (chosenRow > 0) ? chosenRow : 0;
                 refresh = true;
         }
+        else if (appState.currentView == SEARCH_VIEW)
+        {
+                // FIXME: IMPLEMENT THIS
+        }
 }
 
 void scrollNext()
@@ -750,6 +772,10 @@ void scrollNext()
                 chosenLibRow++;
                 refresh = true;
         }
+        else if (appState.currentView == SEARCH_VIEW)
+        {
+                // FIXME: IMPLEMENT THIS
+        }        
 }
 
 void scrollPrev()
@@ -765,6 +791,10 @@ void scrollPrev()
                 chosenLibRow--;
                 refresh = true;
         }
+        else if (appState.currentView == SEARCH_VIEW)
+        {
+                // FIXME: IMPLEMENT THIS
+        }        
 }
 
 int getRowWithinBounds(int row)
@@ -793,6 +823,21 @@ int printLogoAndAdjustments(SongData *songData, int termWidth, bool hideHelp, in
                 return aboutRows + 3;
         }
         return aboutRows;
+}
+
+void showSearch(SongData *songData)
+{
+        int term_w, term_h;
+        getTermSize(&term_w, &term_h);        
+        maxListSize = term_h - 2;
+
+        int aboutRows = printLogo(songData);
+        maxListSize -= aboutRows;        
+
+        displaySearch();       
+
+        printf("\n");
+        printLastRow();
 }
 
 void showPlaylist(SongData *songData, PlayList *list, int *chosenSong, int *chosenNodeId)
@@ -1187,7 +1232,10 @@ int printPlayer(SongData *songdata, double elapsedSeconds, AppSettings *settings
         }
         else
         {
-                if (appState.currentView != LIBRARY_VIEW && appState.currentView != PLAYLIST_VIEW && appState.currentView != KEYBINDINGS_VIEW)
+                if (appState.currentView != LIBRARY_VIEW 
+                        && appState.currentView != PLAYLIST_VIEW 
+                        && appState.currentView != SEARCH_VIEW
+                        && appState.currentView != KEYBINDINGS_VIEW)
                 {
                         appState.currentView = LIBRARY_VIEW;
                 }
@@ -1220,6 +1268,12 @@ int printPlayer(SongData *songdata, double elapsedSeconds, AppSettings *settings
                 resetPlaylistDisplay = false;                
                 refresh = false;
         }
+        else if (appState.currentView == SEARCH_VIEW && refresh)
+        {
+                clearScreen();
+                showSearch(songdata);            
+                refresh = false;
+        }        
         else if (appState.currentView == LIBRARY_VIEW && refresh)
         {
                 clearScreen();
