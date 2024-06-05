@@ -1,3 +1,5 @@
+#define MAX_SEQ_LEN 1024    // Maximum length of sequence buffer
+
 enum EventType
 {
         EVENT_NONE,
@@ -19,6 +21,7 @@ enum EventType
         EVENT_KEY_PRESS,
         EVENT_SHOWKEYBINDINGS,
         EVENT_SHOWINFO,
+        EVENT_SHOWSEARCH,
         EVENT_GOTOSONG,
         EVENT_GOTOBEGINNINGOFPLAYLIST,
         EVENT_GOTOENDOFPLAYLIST,
@@ -37,7 +40,7 @@ enum EventType
 struct Event
 {
         enum EventType type;
-        char key;
+        char key[MAX_SEQ_LEN]; // To store multi-byte characters
 };
 
 typedef struct
