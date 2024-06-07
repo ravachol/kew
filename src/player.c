@@ -23,10 +23,11 @@ typedef struct
 #endif
 
 const char VERSION[] = "2.5.0";
+//0=Black, 1=Red, 2=Green, 3=Yellow, 4=Blue, 5=Magenta, 6=Cyan, 7=White
 int mainColor = 6;
 int titleColor = 6;
 int artistColor = 6;
-int enqueuedColor = 6;
+int enqueuedColor = 7;
 const int ABSOLUTE_MIN_WIDTH = 65;
 bool visualizerEnabled = true;
 bool coverEnabled = true;
