@@ -80,8 +80,8 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         strncpy(settings.lastVolume, "100", sizeof(settings.lastVolume));
         strncpy(settings.color, "6", sizeof(settings.color));
         strncpy(settings.artistColor, "6", sizeof(settings.artistColor));
-        strncpy(settings.enqueuedColor, "6", sizeof(settings.enqueuedColor));
         strncpy(settings.titleColor, "6", sizeof(settings.titleColor));
+        strncpy(settings.enqueuedColor, "7", sizeof(settings.enqueuedColor));
         strncpy(settings.quit, "q", sizeof(settings.quit));
 
         if (pairs == NULL)
