@@ -8,9 +8,10 @@ Listen to music in the terminal.
     <img src="kew-screenshot.png" />
 	</br>
 	<i>Example screenshot: Jenova 7: Lost Sci-Fi Movie Themes.</i>
+        </br>
 </div>
 
-
+  
 kew (/kjuː/) is a command-line music player for Linux.
 
 ## Features
