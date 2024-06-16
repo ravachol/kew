@@ -23,12 +23,7 @@ typedef struct
 #endif
 
 const char VERSION[] = "2.5.0";
-//0=Black, 1=Red, 2=Green, 3=Yellow, 4=Blue, 5=Magenta, 6=Cyan, 7=White
-int mainColor = 6;
-int titleColor = 6;
-int artistColor = 6;
-int enqueuedColor = 7;
-const int ABSOLUTE_MIN_WIDTH = 65;
+const int ABSOLUTE_MIN_WIDTH = 66;
 bool visualizerEnabled = true;
 bool coverEnabled = true;
 bool hideLogo = false;
@@ -41,7 +36,6 @@ bool drewCover = true;
 bool uiEnabled = true;
 bool showList = true;
 bool resetPlaylistDisplay = true;
-bool useProfileColors = true;
 bool fastForwarding = false;
 bool rewinding = false;
 bool nerdFontsEnabled = true;
@@ -61,7 +55,7 @@ int textWidth = 0;
 int indent = 0;
 char *tagsPath;
 double totalDurationSeconds = 0.0;
-PixelData color = {125, 125, 125};
+
 PixelData lastRowColor = {90, 90, 90};
 TagSettings metadata = {};
 
@@ -69,13 +63,13 @@ double pauseSeconds = 0.0;
 double totalPauseSeconds = 0.0;
 double seekAccumulatedSeconds = 0.0;
 int maxListSize = 0;
-unsigned char defaultColor = 150;
 
 int numDirectoryTreeEntries = 0;
 int numTopLevelSongs = 0;
 int startLibIter = 0;
 int maxLibListSize = 0;
 int chosenLibRow = 0;
+int chosenSearchResultRow = 0;
 bool allowChooseSongs = false;
 FileSystemEntry *currentEntry = NULL;
 FileSystemEntry *chosenDir = NULL;
@@ -88,33 +82,6 @@ int cacheLibrary = -1;
 const char LIBRARY_FILE[] = "kewlibrary";
 
 FileSystemEntry *library = NULL;
-
-void setTextColorRGB2(int r, int g, int b)
-{
-        if (!useProfileColors)
-                setTextColorRGB(r, g, b);
-}
-
-void setColor()
-{
-        if (useProfileColors)
-        {
-                setDefaultTextColor();
-                return;
-        }
-        if (color.r == 150 && color.g == 150 && color.b == 150)
-                setDefaultTextColor();
-        else if (color.r >= 210 && color.g >= 210 && color.b >= 210)
-        {
-                color.r = defaultColor;
-                color.g = defaultColor;
-                color.b = defaultColor;
-        }
-        else
-        {
-                setTextColorRGB2(color.r, color.g, color.b);
-        }
-}
 
 bool hasNerdFonts()
 {
@@ -209,8 +176,8 @@ void printHelp()
         printf(" Press F2 to display playlist.\n");
         printf(" Press F3 to display music library.\n");
         printf(" Press F4 to display song info.\n");
-        printf(" Press F5 to display key bindings.\n");
-        printf(" Press F5 to display key bindings.\n");
+        printf(" Press F5 to search.\n");
+        printf(" Press F6 to display key bindings.\n");
         printf(" Press . to add the currently playing song to kew.m3u.\n");
         printf(" Press q to quit.\n");
         printf("\n");
@@ -530,7 +497,7 @@ void printLastRow()
                 return;
         setTextColorRGB(lastRowColor.r, lastRowColor.g, lastRowColor.b);
 
-        char text[100] = " [F2 Playlist|F3 Library|F4 Track|F5 Keys|/ Search|Q Quit]";
+        char text[100] = " [F2 Playlist|F3 Library|F4 Track|F5 Search|F6 Keys|Q Quit]";
 
         char nerdFontText[100] = "";
 
@@ -775,7 +742,8 @@ void scrollNext()
         }
         else if (appState.currentView == SEARCH_VIEW)
         {
-                // FIXME: IMPLEMENT THIS
+                chosenSearchResultRow++;
+                refresh = true;
         }        
 }
 
@@ -794,7 +762,9 @@ void scrollPrev()
         }
         else if (appState.currentView == SEARCH_VIEW)
         {
-                // FIXME: IMPLEMENT THIS
+                chosenSearchResultRow--;
+                chosenSearchResultRow = ( chosenSearchResultRow > 0) ?  chosenSearchResultRow : 0;
+                refresh = true;
         }        
 }
 
@@ -817,7 +787,7 @@ int printLogoAndAdjustments(SongData *songData, int termWidth, bool hideHelp, in
         if (termWidth > 52 && !hideHelp)
         {
                 setDefaultTextColor();
-                printBlankSpaces(indent);
+                printBlankSpaces(indentation);
                 printf(" Use ↑, ↓ or k, j to choose. Enter to accept.\n");
                 printBlankSpaces(indentation);
                 printf(" Pg Up and Pg Dn to scroll. Del to remove entry.\n\n");
@@ -826,16 +796,20 @@ int printLogoAndAdjustments(SongData *songData, int termWidth, bool hideHelp, in
         return aboutRows;
 }
 
-void showSearch(SongData *songData)
+void showSearch(SongData *songData, int *chosenRow)
 {
         int term_w, term_h;
         getTermSize(&term_w, &term_h);        
-        maxListSize = term_h - 2;
+        maxListSize = term_h - 5;
 
         int aboutRows = printLogo(songData);
-        maxListSize -= aboutRows;        
+        maxListSize -= aboutRows;
 
-        displaySearch();       
+        printBlankSpaces(indent);
+        printf(" Use ↑, ↓ or k, j to choose. Enter to accept.\n\n"); 
+        maxListSize -= 2;             
+        
+        displaySearch(maxListSize, indent, chosenRow);       
 
         printf("\n");
         printLastRow();
@@ -849,7 +823,7 @@ void showPlaylist(SongData *songData, PlayList *list, int *chosenSong, int *chos
 
         int aboutRows = printLogoAndAdjustments(songData, term_w, hideHelp, indent);
         maxListSize -= aboutRows;        
-
+        
         displayPlaylist(list, maxListSize, indent, chosenSong, chosenNodeId, resetPlaylistDisplay);       
 
         printf("\n");
@@ -970,6 +944,12 @@ void processName(const char *name, char *output, int maxWidth)
                 output[maxWidth] = '\0';
                 removeUnneededChars(output);
         }
+}
+
+void setChosenDir(FileSystemEntry *entry)
+{
+        if (currentEntry->isDirectory)
+                chosenDir = entry;        
 }
 
 void setCurrentAsChosenDir()
@@ -1269,11 +1249,12 @@ int printPlayer(SongData *songdata, double elapsedSeconds, AppSettings *settings
                 resetPlaylistDisplay = false;                
                 refresh = false;
         }
-        else if (appState.currentView == SEARCH_VIEW && refresh)
+        else if (appState.currentView == SEARCH_VIEW && (refresh || newUndisplayedSearch))
         {
                 clearScreen();
-                showSearch(songdata);            
+                showSearch(songdata, &chosenSearchResultRow);            
                 refresh = false;
+                newUndisplayedSearch = false;
         }        
         else if (appState.currentView == LIBRARY_VIEW && refresh)
         {

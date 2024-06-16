@@ -79,6 +79,7 @@ bool goingToSong = false;
 bool startFromTop = false;
 bool exactSearch = false;
 AppSettings settings;
+int fuzzySearchThreshold = 2;
 
 bool isCooldownElapsed(int milliSeconds)
 {
@@ -160,15 +161,19 @@ struct Event processInput()
         {
                 if (strcmp(event.key, "\x7F") == 0 || strcmp(event.key, "\x08") == 0)
                 {
-                        removeFromSearchText();
-                        return event;
+                        removeFromSearchText(getLibrary());
+                        chosenSearchResultRow = 0;
+                        fuzzySearch(getLibrary(), fuzzySearchThreshold);
+                        event.type = EVENT_SEARCH;
                 }
-                if (((strlen(event.key) == 1 && event.key[0] != '\033') || strcmp(event.key, " ") == 0 || (unsigned char)event.key[0] >= 0xC0))
+                else if (((strlen(event.key) == 1 && event.key[0] != '\033' && event.key[0] != '\n' && event.key[0] != '\r') || strcmp(event.key, " ") == 0 || (unsigned char)event.key[0] >= 0xC0))
                 {
                         addToSearchText(event.key);
-                        return event;
+                        chosenSearchResultRow = 0;
+                        fuzzySearch(getLibrary(), fuzzySearchThreshold);
+                        event.type = EVENT_SEARCH;
                 }
-        }
+        }         
 
         // Map keys to events
         EventMapping keyMappings[] = {{settings.scrollUpAlt, EVENT_SCROLLPREV},
@@ -212,7 +217,7 @@ struct Event processInput()
                                       {settings.hardPrevPage, EVENT_PREVPAGE},
                                       {settings.hardRemove, EVENT_REMOVE}};
 
-        int numKeyMappings = sizeof(keyMappings) / sizeof(EventMapping);
+        int numKeyMappings = sizeof(keyMappings) / sizeof(EventMapping);             
 
         // Set event for pressed key
         for (int i = 0; i < numKeyMappings; i++)
@@ -221,10 +226,15 @@ struct Event processInput()
                     ((seq[0] == '\033' && strlen(seq) > 1 && strcmp(seq + 1, keyMappings[i].seq) == 0) ||
                      strcmp(seq, keyMappings[i].seq) == 0))
                 {
+                        if (event.type == EVENT_SEARCH && keyMappings[i].eventType != EVENT_GOTOSONG)
+                        {
+                                break;
+                        }
+
                         event.type = keyMappings[i].eventType;
                         break;
                 }
-        }
+        }        
 
         // Handle gg
         if (event.key[0] == 'g' && event.type == EVENT_NONE)
@@ -403,7 +413,42 @@ void handleGoToSong()
 
         goingToSong = true;
 
-        if (appState.currentView != LIBRARY_VIEW)
+        if (appState.currentView == LIBRARY_VIEW)
+        {
+                if (audioData.restart)
+                {
+                        Node *lastSong = findSelectedEntryById(&playlist, lastPlayedId);
+                        startFromTop = false;
+
+                        if (lastSong == NULL)
+                        {
+                                if (playlist.tail != NULL)
+                                        lastPlayedId = playlist.tail->id;
+                                else
+                                {
+                                        lastPlayedId = -1;
+                                        startFromTop = true;
+                                }
+                        }
+                }
+
+                pthread_mutex_lock(&(playlist.mutex));
+
+                enqueueSongs(getCurrentLibEntry());
+
+                pthread_mutex_unlock(&(playlist.mutex));
+        }
+        else if (appState.currentView == SEARCH_VIEW)
+        {
+                pthread_mutex_lock(&(playlist.mutex));
+
+                setChosenDir(getCurrentSearchEntry());
+
+                enqueueSongs(getCurrentSearchEntry());
+
+                pthread_mutex_unlock(&(playlist.mutex));                
+        }
+        else
         {
                 if (digitsPressedCount == 0)
                 {
@@ -427,31 +472,6 @@ void handleGoToSong()
 
                         skipToNumberedSong(songNumber);
                 }
-        }
-        else
-        {
-                if (audioData.restart)
-                {
-                        Node *lastSong = findSelectedEntryById(&playlist, lastPlayedId);
-                        startFromTop = false;
-
-                        if (lastSong == NULL)
-                        {
-                                if (playlist.tail != NULL)
-                                        lastPlayedId = playlist.tail->id;
-                                else
-                                {
-                                        lastPlayedId = -1;
-                                        startFromTop = true;
-                                }
-                        }
-                }
-
-                pthread_mutex_lock(&(playlist.mutex));
-
-                enqueueSongs();
-
-                pthread_mutex_unlock(&(playlist.mutex));
         }
 
         goingToSong = false;
@@ -907,6 +927,7 @@ void cleanupOnExit()
                 unloadSongData(&loadingdata.songdataB);
         }
 
+        freeSearchResults();
         cleanupMpris();
         restoreTerminalMode();
         enableInputBuffering();

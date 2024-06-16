@@ -5,12 +5,95 @@
 int numSearchLetters = 0;
 int numSearchBytes = 0;
 
+typedef struct SearchResult
+{
+        char *term;
+        FileSystemEntry *entry;
+        int distance;
+} SearchResult;
+
+// Global variables to store results
+SearchResult *results = NULL;
+size_t resultsCount = 0;
+size_t resultsCapacity = 0;
+bool newUndisplayedSearch = false;
+int minSearchLetters = 1;
+FileSystemEntry *currentSearchEntry = NULL;
+
 char searchText[MAX_SEARCH_LEN * 4 + 1]; // unicode can be 4 characters
 
-int displaySearchBox()
+FileSystemEntry *getCurrentSearchEntry()
 {
-        printf("   [Search]: ");
+        return currentSearchEntry;
+}
+
+// Function to add a result to the global array
+void addResult(FileSystemEntry *entry, int distance)
+{
+        if (resultsCount >= resultsCapacity)
+        {
+                resultsCapacity = resultsCapacity == 0 ? 10 : resultsCapacity * 2;
+                results = realloc(results, resultsCapacity * sizeof(SearchResult));
+        }
+        results[resultsCount].term = strdup(entry->name);
+        results[resultsCount].distance = distance;
+        results[resultsCount].entry = entry;
+        resultsCount++;
+}
+
+// Callback function to collect results
+void collectResult(FileSystemEntry *entry, int distance)
+{
+        addResult(entry, distance);
+}
+
+// Free allocated memory from previous search
+void freeSearchResults()
+{
+        for (size_t i = 0; i < resultsCount; i++)
+        {
+                free(results[i].term);
+        }
+
+        if (resultsCount > 0)
+        {
+                free(results);
+                results = NULL;
+        }
+        resultsCapacity = 0;
+        resultsCount = 0;
+}
+
+void fuzzySearch(FileSystemEntry *root, int threshold)
+{
+        freeSearchResults();
+
+        if (numSearchLetters > minSearchLetters)
+        {
+                fuzzySearchRecursive(root, searchText, threshold, collectResult);
+        }
+        newUndisplayedSearch = true;
+}
+
+int compareResults(const void *a, const void *b)
+{
+        SearchResult *resultA = (SearchResult *)a;
+        SearchResult *resultB = (SearchResult *)b;
+        return resultA->distance - resultB->distance;
+}
+
+void sortResults()
+{
+        qsort(results, resultsCount, sizeof(SearchResult), compareResults);
+}
+
+int displaySearchBox(int indent)
+{
+        printBlankSpaces(indent);
+        printf(" [Search]: ");
+        setDefaultTextColor();   
         // Save cursor position
+        printf("%s", searchText);
         printf("\033[s");
         printf("█\n");
 
@@ -119,18 +202,95 @@ int removeFromSearchText()
         return 0;
 }
 
-int displaySearchResults()
+int displaySearchResults(int maxListSize, int indent, int *chosenRow)
 {
+        int term_w, term_h;
+        getTermSize(&term_w, &term_h);
+
+        int maxNameWidth = term_w - indent - 5;
+        char name[maxNameWidth + 1];
+
+        sortResults();
+
+        if (*chosenRow >= (int)resultsCount - 1 || *chosenRow >= maxListSize - 1)
+        {
+                *chosenRow = MIN(resultsCount, maxListSize) - 1;
+        }
+
+        if (*chosenRow < 0)
+        {
+                *chosenRow = 0;
+        }
+
+        printf("\n");
+
+        // Print the sorted results
+        for (size_t i = 0; i < resultsCount; i++)
+        {
+                if (numSearchLetters < minSearchLetters)
+                        break;
+
+                if ((int)i >= maxListSize)
+                        break;
+
+                setDefaultTextColor();
+
+                printBlankSpaces(indent);
+
+                if (*chosenRow == (int)i)
+                {
+                        currentSearchEntry = results[i].entry;
+
+                        if (results[i].entry->isEnqueued)
+                        {
+                                if (useProfileColors)
+                                        setTextColor(enqueuedColor);
+                                else
+                                        setColor();
+                                printf("\x1b[7m * ");
+                        }
+                        else
+                        {
+                                printf("  \x1b[7m ");
+                        }
+                }
+                else
+                {
+                        if (results[i].entry->isEnqueued)
+                        {
+                                if (useProfileColors)
+                                        setTextColor(enqueuedColor);
+                                else
+                                        setColor();
+                                printf(" * ");
+                        }
+                        else
+                                printf("   ");
+                }
+
+
+                name[0] = '\0';
+                if (results[i].entry->isDirectory)
+                {
+                        snprintf(name, maxNameWidth + 1, "[%s]", results[i].term);        
+                }       
+                else
+                {         
+                        snprintf(name, maxNameWidth + 1, "%s", results[i].term);
+                }
+                printf("%s\n", name);
+        }
         return 0;
 }
 
-int displaySearch()
-{
-        numSearchBytes = 0;
-        numSearchLetters = 0;
-
-        displaySearchBox();
-        displaySearchResults();
+int displaySearch(int maxListSize, int indent, int *chosenRow)
+{     
+        displaySearchBox(indent);
+        displaySearchResults(maxListSize, indent, chosenRow);
 
         return 0;
 }
+
+// FIXME: page up page down
+// FIXME: scroll into view
+// FIXME: quit in search view. esc to quit? esc to quit search?

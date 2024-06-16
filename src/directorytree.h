@@ -37,5 +37,6 @@ FileSystemEntry *createDirectoryTree(const char *startPath, int *numEntries);
 void freeTree(FileSystemEntry *root);
 void freeAndWriteTree(FileSystemEntry *root, const char *filename);
 FileSystemEntry *reconstructTreeFromFile(const char *filename, const char *startMusicPath, int *numDirectoryEntries);
+void fuzzySearchRecursive(FileSystemEntry *node, const char *searchTerm, int threshold, void (*callback)(FileSystemEntry *, int));
 
 #endif
