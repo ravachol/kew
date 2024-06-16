@@ -334,7 +334,7 @@ FileSystemEntry **resizeNodesArray(FileSystemEntry **nodes, int oldSize, int new
 {
         FileSystemEntry **newNodes = realloc(nodes, newSize * sizeof(FileSystemEntry *));
         if (newNodes)
-        {                
+        {
                 for (int i = oldSize; i < newSize; i++)
                 {
                         newNodes[i] = NULL;
@@ -443,4 +443,102 @@ FileSystemEntry *reconstructTreeFromFile(const char *filename, const char *start
         free(nodes);
 
         return root;
+}
+
+int min(int a, int b, int c)
+{
+        if (a <= b && a <= c)
+                return a;
+        if (b <= a && b <= c)
+                return b;
+        return c;
+}
+
+// Calculates the Levenshtein distance.
+// The Levenshtein distance between two strings is the minimum number of single-character edits
+// (insertions, deletions, or substitutions) required to change one string into the other.
+int levenshteinDistance(const char *s1, const char *s2)
+{
+        int len1 = strlen(s1);
+        int len2 = strlen(s2);
+        int **d = (int **)malloc((len1 + 1) * sizeof(int *));
+        for (int i = 0; i <= len1; i++)
+        {
+                d[i] = (int *)malloc((len2 + 1) * sizeof(int));
+                for (int j = 0; j <= len2; j++)
+                {
+                        d[i][j] = 0;
+                }
+        }
+
+        for (int i = 0; i <= len1; i++)
+        {
+                d[i][0] = i;
+        }
+        for (int j = 0; j <= len2; j++)
+        {
+                d[0][j] = j;
+        }
+
+        for (int i = 1; i <= len1; i++)
+        {
+                for (int j = 1; j <= len2; j++)
+                {
+                        int cost = (s1[i - 1] == s2[j - 1]) ? 0 : 1;
+                        d[i][j] = min(d[i - 1][j] + 1,         // deletion
+                                      d[i][j - 1] + 1,         // insertion
+                                      d[i - 1][j - 1] + cost); // substitution
+                }
+        }
+
+        int distance = d[len1][len2];
+        for (int i = 0; i <= len1; i++)
+        {
+                free(d[i]);
+        }
+        free(d);
+        return distance;
+}
+
+// Returns a new string that is lowercase of str
+char *strLower(char *str)
+{
+        char *lowerStr = strdup(str);
+        for (char *p = lowerStr; *p; ++p)
+        {
+                *p = tolower(*p);
+        }
+        return lowerStr;
+}
+
+// Traverses the tree and applies fuzzy search on each node
+void fuzzySearchRecursive(FileSystemEntry *node, const char *searchTerm, int threshold, void (*callback)(FileSystemEntry *, int))
+{
+        if (node == NULL)
+        {
+                return;
+        }
+
+        // Convert search term, name, and fullPath to lowercase
+        char *lowerSearchTerm = strLower((char *)searchTerm);
+        char *lowerName = strLower(node->name);
+
+        int nameDistance = levenshteinDistance(lowerName, lowerSearchTerm);
+
+        // Partial matching with lowercase strings
+        if (strstr(lowerName, lowerSearchTerm) != NULL)
+        {
+                callback(node, 0);
+        }
+        else if (nameDistance <= threshold)
+        {
+                callback(node, nameDistance);
+        }
+
+        // Free the allocated memory for lowercase strings
+        free(lowerSearchTerm);
+        free(lowerName);
+
+        fuzzySearchRecursive(node->children, searchTerm, threshold, callback);
+        fuzzySearchRecursive(node->next, searchTerm, threshold, callback);
 }

@@ -34,7 +34,8 @@ enum EventType
         EVENT_SHOWTRACK,
         EVENT_NEXTPAGE,
         EVENT_PREVPAGE,
-        EVENT_REMOVE
+        EVENT_REMOVE,
+        EVENT_SEARCH
 };
 
 struct Event
