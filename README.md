@@ -10,6 +10,7 @@ Listen to music in the terminal.
 	<i>Example screenshot: Jenova 7: Lost Sci-Fi Movie Themes.</i>
 </div>
 
+
 kew (/kjuː/) is a command-line music player for Linux.
 
 ## Features
@@ -183,7 +184,8 @@ Put single-quotes inside quotes "guns n' roses"
 * <kbd>F2</kbd> to show/hide the playlist and information about kew.
 * <kbd>F3</kbd> to show/hide the library.
 * <kbd>F4</kbd> to show/hide the track view.
-* <kbd>F5</kbd> to show/hide key bindings.
+* <kbd>F5</kbd> to search.
+* <kbd>F6</kbd> to show/hide key bindings.
 * <kbd>u</kbd> to update the library.
 * <kbd>v</kbd> to toggle the spectrum visualizer.
 * <kbd>c</kbd> to toggle album covers.
