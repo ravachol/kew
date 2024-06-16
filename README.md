@@ -12,6 +12,7 @@ Listen to music in the terminal.
 </div>
 
   
+  \
 kew (/kjuː/) is a command-line music player for Linux.
 
 ## Features
