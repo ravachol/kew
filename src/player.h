@@ -17,11 +17,8 @@
 #include "term.h"
 #include "utils.h"
 #include "visuals.h"
+#include "common_ui.h"
 
-extern int mainColor;
-extern int artistColor;
-extern int enqueuedColor;
-extern int titleColor;
 extern const char VERSION[];
 extern bool coverEnabled;
 extern bool uiEnabled;
@@ -46,6 +43,7 @@ extern double totalPauseSeconds;
 extern double seekAccumulatedSeconds;
 extern bool allowChooseSongs;
 extern int chosenLibRow;
+extern int chosenSearchResultRow;
 extern int chosenRow;
 extern int chosenNodeId;
 extern bool useProfileColors;
@@ -63,6 +61,8 @@ void flipNextPage();
 void flipPrevPage();
 
 void showHelp(void);
+
+void setChosenDir(FileSystemEntry *entry);
 
 int printAbout(SongData *songdata);
 

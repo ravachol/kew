@@ -714,24 +714,28 @@ bool hasDequeuedChildren(FileSystemEntry *parent)
         return isDequeued;
 }
 
-void enqueueSongs()
+void dequeueAll()
 {
-        FileSystemEntry *tmp = getCurrentLibEntry();
+        
+}
+
+void enqueueSongs(FileSystemEntry *entry)
+{
         FileSystemEntry *chosenDir = getChosenDir();
         bool hasEnqueued = false;
 
-        if (tmp != NULL)
+        if (entry != NULL)
         {
-                if (tmp->isDirectory)
+                if (entry->isDirectory)
                 {
-                        if (!hasSongChildren(tmp) || (chosenDir != NULL && strcmp(tmp->fullPath, chosenDir->fullPath) == 0))
+                        if (!hasSongChildren(entry) || (chosenDir != NULL && strcmp(entry->fullPath, chosenDir->fullPath) == 0))
                         {
-                                if (hasDequeuedChildren(tmp))
+                                if (hasDequeuedChildren(entry))
                                 {
-                                        tmp->isEnqueued = 1;
-                                        tmp = tmp->children;
+                                        entry->isEnqueued = 1;
+                                        entry = entry->children;
 
-                                        enqueueChildren(tmp);
+                                        enqueueChildren(entry);
 
                                         nextSongNeedsRebuilding = true;
 
@@ -739,7 +743,7 @@ void enqueueSongs()
                                 }
                                 else
                                 {
-                                        dequeueChildren(tmp);
+                                        dequeueChildren(entry);
 
                                         nextSongNeedsRebuilding = true;
                                 }
@@ -750,12 +754,12 @@ void enqueueSongs()
                 }
                 else
                 {
-                        if (!tmp->isEnqueued)
+                        if (!entry->isEnqueued)
                         {
                                 nextSong = NULL;
                                 nextSongNeedsRebuilding = true;
 
-                                enqueueSong(tmp);
+                                enqueueSong(entry);
 
                                 hasEnqueued = true;
                         }
@@ -764,7 +768,7 @@ void enqueueSongs()
                                 nextSong = NULL;
                                 nextSongNeedsRebuilding = true;
 
-                                dequeueSong(tmp);
+                                dequeueSong(entry);
                         }
                 }
                 refresh = true;
