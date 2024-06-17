@@ -23,7 +23,7 @@ typedef struct
 #endif
 
 const char VERSION[] = "2.5.0";
-const int ABSOLUTE_MIN_WIDTH = 66;
+const int ABSOLUTE_MIN_WIDTH = 68;
 bool visualizerEnabled = true;
 bool coverEnabled = true;
 bool hideLogo = false;
@@ -63,10 +63,12 @@ double pauseSeconds = 0.0;
 double totalPauseSeconds = 0.0;
 double seekAccumulatedSeconds = 0.0;
 int maxListSize = 0;
+int maxSearchListSize = 0;
 
 int numDirectoryTreeEntries = 0;
 int numTopLevelSongs = 0;
 int startLibIter = 0;
+int startSearchIter = 0;
 int maxLibListSize = 0;
 int chosenLibRow = 0;
 int chosenSearchResultRow = 0;
@@ -179,7 +181,7 @@ void printHelp()
         printf(" Press F5 to search.\n");
         printf(" Press F6 to display key bindings.\n");
         printf(" Press . to add the currently playing song to kew.m3u.\n");
-        printf(" Press q to quit.\n");
+        printf(" Press Esc to quit.\n");
         printf("\n");
 }
 
@@ -497,7 +499,7 @@ void printLastRow()
                 return;
         setTextColorRGB(lastRowColor.r, lastRowColor.g, lastRowColor.b);
 
-        char text[100] = " [F2 Playlist|F3 Library|F4 Track|F5 Search|F6 Keys|Q Quit]";
+        char text[100] = " [F2 Playlist|F3 Library|F4 Track|F5 Search|F6 Keys|Esc Quit]";
 
         char nerdFontText[100] = "";
 
@@ -618,7 +620,7 @@ int showKeyBindings(SongData *songdata, AppSettings *settings)
         printBlankSpaces(indent);
         printf(" - %s to add current song to kew.m3u (run with \"kew .\").\n", settings->addToMainPlaylist);
         printBlankSpaces(indent);
-        printf(" - %s to quit.\n", settings->quit);
+        printf(" - Esc or %s to quit.\n", settings->quit);
         printf("\n");
         printLastRow();
 
@@ -703,7 +705,10 @@ void flipNextPage()
         }
         else if (appState.currentView == SEARCH_VIEW)
         {
-                // FIXME: IMPLEMENT THIS
+                chosenSearchResultRow += maxSearchListSize -1;
+                chosenSearchResultRow = (chosenSearchResultRow >= getSearchResultsCount()) ? getSearchResultsCount() - 1 : chosenSearchResultRow;
+                startSearchIter += maxSearchListSize - 1;
+                refresh = true;                
         }
 }
 
@@ -723,7 +728,10 @@ void flipPrevPage()
         }
         else if (appState.currentView == SEARCH_VIEW)
         {
-                // FIXME: IMPLEMENT THIS
+                chosenSearchResultRow -= maxSearchListSize;
+                chosenSearchResultRow = (chosenSearchResultRow > 0) ? chosenSearchResultRow : 0;
+                startSearchIter -= maxSearchListSize;
+                refresh = true;
         }
 }
 
@@ -800,16 +808,16 @@ void showSearch(SongData *songData, int *chosenRow)
 {
         int term_w, term_h;
         getTermSize(&term_w, &term_h);        
-        maxListSize = term_h - 5;
+        maxSearchListSize = term_h - 5;
 
         int aboutRows = printLogo(songData);
-        maxListSize -= aboutRows;
+        maxSearchListSize -= aboutRows;
 
         printBlankSpaces(indent);
-        printf(" Use ↑, ↓ or k, j to choose. Enter to accept.\n\n"); 
-        maxListSize -= 2;             
+        printf(" Use ↑, ↓ to choose. Enter to accept.\n\n");
+        maxSearchListSize -= 2;             
         
-        displaySearch(maxListSize, indent, chosenRow);       
+        displaySearch(maxSearchListSize, indent, chosenRow, startSearchIter);       
 
         printf("\n");
         printLastRow();
@@ -948,8 +956,10 @@ void processName(const char *name, char *output, int maxWidth)
 
 void setChosenDir(FileSystemEntry *entry)
 {
-        if (currentEntry->isDirectory)
-                chosenDir = entry;        
+        if (entry->isDirectory)
+        {
+                currentEntry = chosenDir = entry;                
+        }
 }
 
 void setCurrentAsChosenDir()
