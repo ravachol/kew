@@ -202,7 +202,7 @@ Put single-quotes inside quotes "guns n' roses"
 * number +<kbd>G</kbd>, <kbd>g</kbd> or <kbd>Enter</kbd>, go to specific song number in the playlist.
 * <kbd>g</kbd> go to last song.
 * . to add current song to kew.m3u (run with "kew .").
-* <kbd>q</kbd> to quit.
+* <kbd>Esc</kbd> to quit.
 
 ## Configuration
 
