@@ -27,6 +27,11 @@ FileSystemEntry *getCurrentSearchEntry()
         return currentSearchEntry;
 }
 
+int getSearchResultsCount()
+{
+        return resultsCount;
+}
+
 // Function to add a result to the global array
 void addResult(FileSystemEntry *entry, int distance)
 {
@@ -202,7 +207,7 @@ int removeFromSearchText()
         return 0;
 }
 
-int displaySearchResults(int maxListSize, int indent, int *chosenRow)
+int displaySearchResults(int maxListSize, int indent, int *chosenRow, int startSearchIter)
 {
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
@@ -212,25 +217,34 @@ int displaySearchResults(int maxListSize, int indent, int *chosenRow)
 
         sortResults();
 
-        if (*chosenRow >= (int)resultsCount - 1 || *chosenRow >= maxListSize - 1)
+        if (*chosenRow >= (int)resultsCount - 1)
         {
-                *chosenRow = MIN(resultsCount, maxListSize) - 1;
+                *chosenRow = resultsCount - 1;
         }
 
-        if (*chosenRow < 0)
+        if (startSearchIter < 0)
+                startSearchIter = 0;
+
+        if (*chosenRow > startSearchIter + round(maxListSize / 2))
         {
-                *chosenRow = 0;
+                startSearchIter = *chosenRow - round(maxListSize / 2) + 1;
         }
+
+        if (*chosenRow < startSearchIter)
+                startSearchIter = *chosenRow;
+
+        if (*chosenRow < 0)
+                startSearchIter = *chosenRow = 0;
 
         printf("\n");
 
         // Print the sorted results
-        for (size_t i = 0; i < resultsCount; i++)
+        for (size_t i = startSearchIter; i < resultsCount; i++)
         {
                 if (numSearchLetters < minSearchLetters)
                         break;
 
-                if ((int)i >= maxListSize)
+                if ((int)i >= (maxListSize + startSearchIter))
                         break;
 
                 setDefaultTextColor();
@@ -283,14 +297,10 @@ int displaySearchResults(int maxListSize, int indent, int *chosenRow)
         return 0;
 }
 
-int displaySearch(int maxListSize, int indent, int *chosenRow)
+int displaySearch(int maxListSize, int indent, int *chosenRow, int startSearchIter)
 {     
         displaySearchBox(indent);
-        displaySearchResults(maxListSize, indent, chosenRow);
+        displaySearchResults(maxListSize, indent, chosenRow, startSearchIter);
 
         return 0;
 }
-
-// FIXME: page up page down
-// FIXME: scroll into view
-// FIXME: quit in search view. esc to quit? esc to quit search?

@@ -185,6 +185,7 @@ struct Event processInput()
                                       {settings.volumeDown, EVENT_VOLUME_DOWN},
                                       {settings.togglePause, EVENT_PLAY_PAUSE},
                                       {settings.quit, EVENT_QUIT},
+                                      {settings.hardQuit, EVENT_QUIT},
                                       {settings.toggleShuffle, EVENT_SHUFFLE},
                                       {settings.toggleCovers, EVENT_TOGGLECOVERS},
                                       {settings.toggleVisualizer, EVENT_TOGGLEVISUALIZER},
@@ -213,6 +214,7 @@ struct Event processInput()
                                       {settings.hardShowTrackAlt, EVENT_SHOWTRACK},
                                       {settings.hardShowLibrary, EVENT_SHOWLIBRARY},
                                       {settings.hardShowLibraryAlt, EVENT_SHOWLIBRARY},
+                                      {settings.hardShowSearchAlt,  EVENT_SHOWSEARCH},
                                       {settings.hardNextPage, EVENT_NEXTPAGE},
                                       {settings.hardPrevPage, EVENT_PREVPAGE},
                                       {settings.hardRemove, EVENT_REMOVE}};
