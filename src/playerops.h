@@ -66,7 +66,7 @@ Node *getNextSong();
 
 void handleRemove();
 
-void enqueueSongs();
+void enqueueSongs(FileSystemEntry *entry);
 
 void updateLastSongSwitchTime(void);
 

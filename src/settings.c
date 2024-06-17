@@ -83,6 +83,7 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         strncpy(settings.titleColor, "6", sizeof(settings.titleColor));
         strncpy(settings.enqueuedColor, "7", sizeof(settings.enqueuedColor));
         strncpy(settings.quit, "q", sizeof(settings.quit));
+        strncpy(settings.hardQuit, "\x1B", sizeof(settings.hardQuit));
 
         if (pairs == NULL)
         {
