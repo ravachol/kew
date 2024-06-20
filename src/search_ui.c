@@ -7,7 +7,6 @@ int numSearchBytes = 0;
 
 typedef struct SearchResult
 {
-        char *term;
         FileSystemEntry *entry;
         int distance;
 } SearchResult;
@@ -40,7 +39,6 @@ void addResult(FileSystemEntry *entry, int distance)
                 resultsCapacity = resultsCapacity == 0 ? 10 : resultsCapacity * 2;
                 results = realloc(results, resultsCapacity * sizeof(SearchResult));
         }
-        results[resultsCount].term = strdup(entry->name);
         results[resultsCount].distance = distance;
         results[resultsCount].entry = entry;
         resultsCount++;
@@ -55,11 +53,6 @@ void collectResult(FileSystemEntry *entry, int distance)
 // Free allocated memory from previous search
 void freeSearchResults()
 {
-        for (size_t i = 0; i < resultsCount; i++)
-        {
-                free(results[i].term);
-        }
-
         if (resultsCount > 0)
         {
                 free(results);
@@ -286,11 +279,11 @@ int displaySearchResults(int maxListSize, int indent, int *chosenRow, int startS
                 name[0] = '\0';
                 if (results[i].entry->isDirectory)
                 {
-                        snprintf(name, maxNameWidth + 1, "[%s]", results[i].term);        
+                        snprintf(name, maxNameWidth + 1, "[%s]", results[i].entry->name);        
                 }       
                 else
                 {         
-                        snprintf(name, maxNameWidth + 1, "%s", results[i].term);
+                        snprintf(name, maxNameWidth + 1, "%s", results[i].entry->name);
                 }
                 printf("%s\n", name);
         }
