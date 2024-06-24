@@ -13,6 +13,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <time.h>
+#define __USE_GNU
 #include <unistd.h>
 #include "utils.h"
 
