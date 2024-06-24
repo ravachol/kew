@@ -53,7 +53,7 @@ void collectResult(FileSystemEntry *entry, int distance)
 // Free allocated memory from previous search
 void freeSearchResults()
 {
-        if (resultsCount > 0)
+        if (results != NULL)
         {
                 free(results);
                 results = NULL;
