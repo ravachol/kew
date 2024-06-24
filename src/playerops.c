@@ -1335,6 +1335,8 @@ void updateLibrary(char *path)
 {
         pthread_t threadId;
 
+        freeSearchResults();
+
         if (pthread_create(&threadId, NULL, updateLibraryThread, path) != 0)
         {
                 perror("Failed to create thread");
