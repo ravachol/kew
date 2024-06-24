@@ -127,7 +127,7 @@ int walker(const char *startPath, const char *searching, char *result,
                 }
 
                 char entryPath[MAXPATHLEN];
-                char *currentDir = getcwd(NULL, 0);
+                char *currentDir = get_current_dir_name();
                 snprintf(entryPath, sizeof(entryPath), "%s/%s", currentDir, dir->d_name);
                 free(currentDir);
 
@@ -141,7 +141,7 @@ int walker(const char *startPath, const char *searching, char *result,
                         if (((exactSearch && (strcasecmp(dir->d_name, searching) == 0)) || (!exactSearch && c_strcasestr(dir->d_name, searching) != NULL)) &&
                             (searchType != FileOnly) && (searchType != SearchPlayList))
                         {
-                                char *curDir = getcwd(NULL, 0);
+                                char *curDir = get_current_dir_name();
                                 snprintf(result, MAXPATHLEN, "%s/%s", curDir, dir->d_name);
                                 free(curDir);
                                 copyresult = true;
@@ -187,7 +187,7 @@ int walker(const char *startPath, const char *searching, char *result,
 
                         if ((exactSearch && (strcasecmp(dir->d_name, searching) == 0)) || (!exactSearch && c_strcasestr(dir->d_name, searching) != NULL))
                         {
-                                char *curDir = getcwd(NULL, 0);
+                                char *curDir = get_current_dir_name();
                                 snprintf(result, MAXPATHLEN, "%s/%s", curDir, dir->d_name);
                                 copyresult = true;
                                 free(curDir);
