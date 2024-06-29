@@ -5,7 +5,7 @@
 Listen to music in the terminal.
 
 ![Example screenshot](kew-screenshot.png)  
-*Example screenshot: [Jenova 7: Lost Sci-Fi Movie Themes](https://jenova7.bandcamp.com/album/lost-sci-fi-movie-themes).*
+*Example screenshot running in Konsole: [Jenova 7: Lost Sci-Fi Movie Themes](https://jenova7.bandcamp.com/album/lost-sci-fi-movie-themes).*
 
 
   
