@@ -72,7 +72,7 @@ static bool eventProcessed = false;
 char digitsPressed[MAX_SEQ_LEN];
 int digitsPressedCount = 0;
 int maxDigitsPressedCount = 9;
-static unsigned int updateCounter = 0;
+static unsigned int updateCounter = -1;
 bool gPressed = false;
 bool loadingAudioData = false;
 bool goingToSong = false;
@@ -173,7 +173,7 @@ struct Event processInput()
                         fuzzySearch(getLibrary(), fuzzySearchThreshold);
                         event.type = EVENT_SEARCH;
                 }
-        }         
+        }
 
         // Map keys to events
         EventMapping keyMappings[] = {{settings.scrollUpAlt, EVENT_SCROLLPREV},
@@ -214,12 +214,12 @@ struct Event processInput()
                                       {settings.hardShowTrackAlt, EVENT_SHOWTRACK},
                                       {settings.hardShowLibrary, EVENT_SHOWLIBRARY},
                                       {settings.hardShowLibraryAlt, EVENT_SHOWLIBRARY},
-                                      {settings.hardShowSearchAlt,  EVENT_SHOWSEARCH},
+                                      {settings.hardShowSearchAlt, EVENT_SHOWSEARCH},
                                       {settings.hardNextPage, EVENT_NEXTPAGE},
                                       {settings.hardPrevPage, EVENT_PREVPAGE},
                                       {settings.hardRemove, EVENT_REMOVE}};
 
-        int numKeyMappings = sizeof(keyMappings) / sizeof(EventMapping);             
+        int numKeyMappings = sizeof(keyMappings) / sizeof(EventMapping);
 
         // Set event for pressed key
         for (int i = 0; i < numKeyMappings; i++)
@@ -236,7 +236,7 @@ struct Event processInput()
                         event.type = keyMappings[i].eventType;
                         break;
                 }
-        }        
+        }
 
         // Handle gg
         if (event.key[0] == 'g' && event.type == EVENT_NONE)
@@ -448,7 +448,7 @@ void handleGoToSong()
 
                 enqueueSongs(getCurrentSearchEntry());
 
-                pthread_mutex_unlock(&(playlist.mutex));                
+                pthread_mutex_unlock(&(playlist.mutex));
         }
         else
         {
@@ -799,47 +799,49 @@ gboolean mainloop_callback(gpointer data)
         (void)data;
 
         calcElapsedTime();
-        handleInput();
-
-        // Process GDBus events in the global_main_context
-        while (g_main_context_pending(global_main_context))
-        {
-                g_main_context_iteration(global_main_context, FALSE);
-        }
 
         updateCounter++;
-        if (updateCounter % 2 == 0 || appState.currentView != SONG_VIEW) // Update every other time or if searching
+        
+        // Update every other time or if searching (search needs to update often to detect keypresses)
+        if (updateCounter % 2 == 0 || appState.currentView == SEARCH_VIEW) 
         {
+                handleInput();
+
+                // Process GDBus events in the global_main_context
+                while (g_main_context_pending(global_main_context))
+                {
+                        g_main_context_iteration(global_main_context, FALSE);
+                }
+
                 updatePlayer();
-        }
 
-        if (playlist.head != NULL)
-        {
-                if (loadingAudioData == false && (skipFromStopped || !loadedNextSong || nextSongNeedsRebuilding) && !audioData.endOfListReached)
+                if (playlist.head != NULL)
                 {
-                        handleSkipFromStopped();
-                        loadAudioData();
+                        if (loadingAudioData == false && (skipFromStopped || !loadedNextSong || nextSongNeedsRebuilding) && !audioData.endOfListReached)
+                        {
+                                handleSkipFromStopped();
+                                loadAudioData();
+                        }
+
+                        if (songHasErrors)
+                                tryLoadNext();
+
+                        if (isPlaybackDone())
+                        {
+                                updateLastSongSwitchTime();
+                                prepareNextSong();
+
+                                if (!doQuit)
+                                        switchAudioImplementation();
+                        }
                 }
 
-                if (songHasErrors)
-                        tryLoadNext();
-
-                if (isPlaybackDone())
+                if (doQuit)
                 {
-                        updateLastSongSwitchTime();
-                        prepareNextSong();
-
-                        if (!doQuit)
-                                switchAudioImplementation();
+                        g_main_loop_quit(main_loop);
+                        return FALSE;
                 }
         }
-
-        if (doQuit)
-        {
-                g_main_loop_quit(main_loop);
-                return FALSE;
-        }
-
         return TRUE;
 }
 
