@@ -800,13 +800,13 @@ gboolean mainloop_callback(gpointer data)
 
         calcElapsedTime();
 
+        handleInput();        
+
         updateCounter++;
         
         // Update every other time or if searching (search needs to update often to detect keypresses)
         if (updateCounter % 2 == 0 || appState.currentView == SEARCH_VIEW) 
         {
-                handleInput();
-
                 // Process GDBus events in the global_main_context
                 while (g_main_context_pending(global_main_context))
                 {
