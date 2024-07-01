@@ -54,10 +54,12 @@ int m4aDecoderIndex = -1;
 int opusDecoderIndex = -1;
 int vorbisDecoderIndex = -1;
 
-void logTime(const char *message) {
-    struct timespec ts;
-    clock_gettime(CLOCK_REALTIME, &ts);
-    //printf("[%ld.%09ld] %s\n", ts.tv_sec, ts.tv_nsec, message);
+void logTime(const char *message)
+{
+        (void)message;
+        // struct timespec ts;
+        // clock_gettime(CLOCK_REALTIME, &ts);
+        // printf("[%ld.%09ld] %s\n", ts.tv_sec, ts.tv_nsec, message);
 }
 
 enum AudioImplementation getCurrentImplementationType()
@@ -1104,14 +1106,17 @@ void sanitize_filepath(const char *input, char *sanitized, size_t size)
         sanitized[j] = '\0';
 }
 
-void remove_blacklisted_chars(const char *input, char *output, size_t output_size, const char *blacklist) {
-    size_t j = 0;
-    for (size_t i = 0; input[i] != '\0' && j < output_size - 1; i++) {
-        if (!strchr(blacklist, input[i])) {
-            output[j++] = input[i];
+void remove_blacklisted_chars(const char *input, char *output, size_t output_size, const char *blacklist)
+{
+        size_t j = 0;
+        for (size_t i = 0; input[i] != '\0' && j < output_size - 1; i++)
+        {
+                if (!strchr(blacklist, input[i]))
+                {
+                        output[j++] = input[i];
+                }
         }
-    }
-    output[j] = '\0';
+        output[j] = '\0';
 }
 
 gint64 getLengthInSec(double duration)
@@ -1119,47 +1124,53 @@ gint64 getLengthInSec(double duration)
         return floor(llround(duration * G_USEC_PER_SEC));
 }
 
-int displaySongNotification(const char *artist, const char *title, const char *cover) {
-    if (!allowNotifications)
+int displaySongNotification(const char *artist, const char *title, const char *cover)
+{
+        if (!allowNotifications)
+                return 0;
+
+        char sanitized_cover[MAXPATHLEN];
+
+        const char *blacklist = "&;`|*~<>^()[]{}$\\\"";
+        char sanitizedArtist[256]; // Assuming artist name won't exceed 255 chars
+        char sanitizedTitle[256];  // Assuming title name won't exceed 255 chars
+
+        remove_blacklisted_chars(artist, sanitizedArtist, sizeof(sanitizedArtist), blacklist);
+        remove_blacklisted_chars(title, sanitizedTitle, sizeof(sanitizedTitle), blacklist);
+
+        sanitize_filepath(cover, sanitized_cover, sizeof(sanitized_cover));
+
+        char message[MAXPATHLEN + 512]; // Adjust size if needed
+        if (strlen(artist) > 0)
+        {
+                snprintf(message, sizeof(message), "%s - %s", sanitizedArtist, sanitizedTitle);
+        }
+        else
+        {
+                snprintf(message, sizeof(message), "%s", sanitizedTitle);
+        }
+
+        logTime("run notify send");
+
+        pid_t pid = fork();
+        if (pid == -1)
+        {
+                perror("fork");
+                return -1;
+        }
+        else if (pid == 0)
+        {
+                // Child process
+                // Replace the current process image with a new one
+                execl("/usr/bin/notify-send", "notify-send", "-a", "kew", message, "--icon", sanitized_cover, NULL);
+
+                // If execl fails
+                _Exit(EXIT_FAILURE);
+        }
+
+        // Parent process does not wait for the child
         return 0;
-
-    char sanitized_cover[MAXPATHLEN];
-
-    const char *blacklist = "&;`|*~<>^()[]{}$\\\"";
-    char sanitizedArtist[256];  // Assuming artist name won't exceed 255 chars
-    char sanitizedTitle[256];   // Assuming title name won't exceed 255 chars
-
-    remove_blacklisted_chars(artist, sanitizedArtist, sizeof(sanitizedArtist), blacklist);
-    remove_blacklisted_chars(title, sanitizedTitle, sizeof(sanitizedTitle), blacklist);
-
-    sanitize_filepath(cover, sanitized_cover, sizeof(sanitized_cover));
-
-    char message[MAXPATHLEN + 512];  // Adjust size if needed
-    if (strlen(artist) > 0) {
-        snprintf(message, sizeof(message), "%s - %s", sanitizedArtist, sanitizedTitle);
-    } else {
-        snprintf(message, sizeof(message), "%s", sanitizedTitle);
-    }
-
-    logTime("run notify send");
-
-    pid_t pid = fork();
-    if (pid == -1) {
-        perror("fork");
-        return -1;
-    } else if (pid == 0) {
-        // Child process
-        // Replace the current process image with a new one
-        execl("/usr/bin/notify-send", "notify-send", "-a", "kew", message, "--icon", sanitized_cover, NULL);
-        
-        // If execl fails
-        _Exit(EXIT_FAILURE);
-    }
-
-    // Parent process does not wait for the child
-    return 0;
 }
-
 
 void executeSwitch(AudioData *pAudioData)
 {
