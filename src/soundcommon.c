@@ -54,6 +54,12 @@ int m4aDecoderIndex = -1;
 int opusDecoderIndex = -1;
 int vorbisDecoderIndex = -1;
 
+void logTime(const char *message) {
+    struct timespec ts;
+    clock_gettime(CLOCK_REALTIME, &ts);
+    //printf("[%ld.%09ld] %s\n", ts.tv_sec, ts.tv_nsec, message);
+}
+
 enum AudioImplementation getCurrentImplementationType()
 {
         return currentImplementation;
@@ -1098,32 +1104,14 @@ void sanitize_filepath(const char *input, char *sanitized, size_t size)
         sanitized[j] = '\0';
 }
 
-char *remove_blacklisted_chars(const char *input, const char *blacklist)
-{
-        if (!input || !blacklist)
-                return NULL;
-
-        char *output = malloc(strlen(input) + 1);
-        if (!output)
-        {
-                perror("Failed to allocate memory");
-                exit(EXIT_FAILURE);
+void remove_blacklisted_chars(const char *input, char *output, size_t output_size, const char *blacklist) {
+    size_t j = 0;
+    for (size_t i = 0; input[i] != '\0' && j < output_size - 1; i++) {
+        if (!strchr(blacklist, input[i])) {
+            output[j++] = input[i];
         }
-
-        const char *in_ptr = input;
-        char *out_ptr = output;
-        while (*in_ptr)
-        {
-                // If the current character is not in the blacklist, copy it to the output
-                if (!strchr(blacklist, *in_ptr))
-                {
-                        *out_ptr++ = *in_ptr;
-                }
-                in_ptr++;
-        }
-        *out_ptr = '\0';
-
-        return output;
+    }
+    output[j] = '\0';
 }
 
 gint64 getLengthInSec(double duration)
@@ -1138,42 +1126,40 @@ int displaySongNotification(const char *artist, const char *title, const char *c
     char sanitized_cover[MAXPATHLEN];
 
     const char *blacklist = "&;`|*~<>^()[]{}$\\\"";
-    char *sanitizedArtist = remove_blacklisted_chars(artist, blacklist);
-    char *sanitizedTitle = remove_blacklisted_chars(title, blacklist);
+    char sanitizedArtist[256];  // Assuming artist name won't exceed 255 chars
+    char sanitizedTitle[256];   // Assuming title name won't exceed 255 chars
+
+    remove_blacklisted_chars(artist, sanitizedArtist, sizeof(sanitizedArtist), blacklist);
+    remove_blacklisted_chars(title, sanitizedTitle, sizeof(sanitizedTitle), blacklist);
 
     sanitize_filepath(cover, sanitized_cover, sizeof(sanitized_cover));
 
-    char message[MAXPATHLEN + 1024];
+    char message[MAXPATHLEN + 512];  // Adjust size if needed
     if (strlen(artist) > 0) {
         snprintf(message, sizeof(message), "%s - %s", sanitizedArtist, sanitizedTitle);
     } else {
         snprintf(message, sizeof(message), "%s", sanitizedTitle);
     }
 
-    char *args[] = {"/usr/bin/notify-send", "-a", "kew", message, "--icon", sanitized_cover, NULL};
+    logTime("run notify send");
 
     pid_t pid = fork();
     if (pid == -1) {
-        // Handle error
         perror("fork");
-    } else if (pid > 0) {
-        // Parent process
-        int status;
-        waitpid(pid, &status, 0);
-    } else {
+        return -1;
+    } else if (pid == 0) {
         // Child process
-        extern char **environ;
-        if (execve("/usr/bin/notify-send", args, environ) == -1) {
-
-            _Exit(EXIT_FAILURE);
-        }
+        // Replace the current process image with a new one
+        execl("/usr/bin/notify-send", "notify-send", "-a", "kew", message, "--icon", sanitized_cover, NULL);
+        
+        // If execl fails
+        _Exit(EXIT_FAILURE);
     }
 
-    free(sanitizedArtist);
-    free(sanitizedTitle);
-
+    // Parent process does not wait for the child
     return 0;
 }
+
 
 void executeSwitch(AudioData *pAudioData)
 {
