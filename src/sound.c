@@ -468,17 +468,22 @@ void cleanupAudioContext()
 
 int createAudioDevice(UserData *userData)
 {
+        logTime("ma_context_init");
         ma_context_init(NULL, 0, NULL, &context);
+
+        logTime("switchAudioImplementation");
         if (switchAudioImplementation() >= 0)
         {
                 SongData *currentSongData = userData->currentSongData;
 
                 if (currentSongData != NULL && currentSongData->hasErrors == 0 && currentSongData->metadata && strlen(currentSongData->metadata->title) > 0)
                 {
+                        logTime("displaySongNotification");
                         displaySongNotification(currentSongData->metadata->artist, currentSongData->metadata->title, currentSongData->coverArtPath);
 
                         gint64 length = getLengthInSec(currentSongData->duration);
                         // update mpris
+                        logTime("emitMetadataChanged");
                         emitMetadataChanged(
                             currentSongData->metadata->title,
                             currentSongData->metadata->artist,
