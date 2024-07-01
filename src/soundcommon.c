@@ -1152,6 +1152,13 @@ int displaySongNotification(const char *artist, const char *title, const char *c
         char *sanitizedArtist = removeBlacklistedChars(artist, blacklist);
         char *sanitizedTitle = removeBlacklistedChars(title, blacklist);
 
+        if (!sanitizedArtist || !sanitizedTitle)
+        {
+                free(sanitizedArtist);
+                free(sanitizedTitle);
+                return -1;
+        }
+
         sanitize_filepath(cover, sanitized_cover, sizeof(sanitized_cover));
 
         char message[MAXPATHLEN + 1024];
@@ -1177,9 +1184,9 @@ int displaySongNotification(const char *artist, const char *title, const char *c
         else if (pid == 0)
         {
                 // Child process
-                execvp(args[0], args);
-                // If execvp fails
-                perror("execvp");
+                execv(args[0], args);
+                // If execv fails
+                perror("execv");
                 _Exit(EXIT_FAILURE);
         }
 
