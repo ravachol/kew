@@ -72,7 +72,7 @@ static bool eventProcessed = false;
 char digitsPressed[MAX_SEQ_LEN];
 int digitsPressedCount = 0;
 int maxDigitsPressedCount = 9;
-static unsigned int updateCounter = -1;
+static unsigned int updateCounter = 0;
 bool gPressed = false;
 bool loadingAudioData = false;
 bool goingToSong = false;
@@ -799,20 +799,20 @@ gboolean mainloop_callback(gpointer data)
         (void)data;
 
         calcElapsedTime();
-
+        
         handleInput();        
 
         updateCounter++;
         
         // Update every other time or if searching (search needs to update often to detect keypresses)
-        // if (updateCounter % 2 == 0 || appState.currentView == SEARCH_VIEW) 
-        // {
+        if (updateCounter % 2 == 0 || appState.currentView == SEARCH_VIEW) 
+        {
                 // Process GDBus events in the global_main_context
                 while (g_main_context_pending(global_main_context))
                 {
                         g_main_context_iteration(global_main_context, FALSE);
                 }
-
+                
                 updatePlayer();
 
                 if (playlist.head != NULL)
@@ -841,7 +841,7 @@ gboolean mainloop_callback(gpointer data)
                         g_main_loop_quit(main_loop);
                         return FALSE;
                 }
-        // }
+        }
         return TRUE;
 }
 
@@ -868,6 +868,7 @@ void play(Node *song)
 
                 if (res >= 0)
                 {
+                        logTime("createAudioDevice()");
                         res = createAudioDevice(&userData);
                 }
 
@@ -891,12 +892,14 @@ void play(Node *song)
 
         g_unix_signal_add(SIGINT, on_sigint, main_loop);
 
+        logTime("emitStartPlayingMpris()");
         if (song != NULL)
                 emitStartPlayingMpris();
         else
                 emitPlaybackStoppedMpris();
 
-        g_timeout_add(100, mainloop_callback, NULL);
+        g_timeout_add(50, mainloop_callback, NULL);
+        logTime("g_main_loop_run()");
         g_main_loop_run(main_loop);
         g_main_loop_unref(main_loop);
 }
@@ -967,6 +970,7 @@ void run()
 {
         if (originalPlaylist == NULL)
         {
+                logTime("deepCopyPlayList()");
                 originalPlaylist = malloc(sizeof(PlayList));
                 *originalPlaylist = deepCopyPlayList(&playlist);
         }
@@ -1008,6 +1012,7 @@ void init()
         pthread_mutex_init(&(loadingdata.mutex), NULL);
         pthread_mutex_init(&(playlist.mutex), NULL);
         nerdFontsEnabled = hasNerdFonts();
+        logTime("createLibrary");
         createLibrary(&settings);
         setlocale(LC_ALL, "");
         fflush(stdout);
@@ -1051,12 +1056,15 @@ void playSpecialPlaylist()
 
 void playAll()
 {
+        logTime("init()");
         init();
+        logTime("createPlayListFromFileSystemEntry()");
         createPlayListFromFileSystemEntry(library, &playlist, MAX_FILES);
         if (playlist.count == 0)
         {
                 exit(0);
-        }
+        }      
+        logTime("shufflePlaylist()");  
         shufflePlaylist(&playlist);
         run();
 }
