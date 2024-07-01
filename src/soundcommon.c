@@ -1161,6 +1161,13 @@ int displaySongNotification(const char *artist, const char *title, const char *c
         else if (pid == 0)
         {
                 // Child process
+
+                // Close unnecessary file descriptors
+                for (int fd = 3; fd < sysconf(_SC_OPEN_MAX); fd++)
+                {
+                        close(fd);
+                }
+
                 // Replace the current process image with a new one
                 execl("/usr/bin/notify-send", "notify-send", "-a", "kew", message, "--icon", sanitized_cover, NULL);
 
