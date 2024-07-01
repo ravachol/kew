@@ -805,8 +805,8 @@ gboolean mainloop_callback(gpointer data)
         updateCounter++;
         
         // Update every other time or if searching (search needs to update often to detect keypresses)
-        if (updateCounter % 2 == 0 || appState.currentView == SEARCH_VIEW) 
-        {
+        // if (updateCounter % 2 == 0 || appState.currentView == SEARCH_VIEW) 
+        // {
                 // Process GDBus events in the global_main_context
                 while (g_main_context_pending(global_main_context))
                 {
@@ -841,7 +841,7 @@ gboolean mainloop_callback(gpointer data)
                         g_main_loop_quit(main_loop);
                         return FALSE;
                 }
-        }
+        // }
         return TRUE;
 }
 
@@ -896,7 +896,7 @@ void play(Node *song)
         else
                 emitPlaybackStoppedMpris();
 
-        g_timeout_add(50, mainloop_callback, NULL);
+        g_timeout_add(100, mainloop_callback, NULL);
         g_main_loop_run(main_loop);
         g_main_loop_unref(main_loop);
 }
