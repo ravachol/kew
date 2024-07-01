@@ -1106,17 +1106,33 @@ void sanitize_filepath(const char *input, char *sanitized, size_t size)
         sanitized[j] = '\0';
 }
 
-void remove_blacklisted_chars(const char *input, char *output, size_t output_size, const char *blacklist)
+char *removeBlacklistedChars(const char *input, const char *blacklist)
 {
-        size_t j = 0;
-        for (size_t i = 0; input[i] != '\0' && j < output_size - 1; i++)
+        if (!input || !blacklist)
         {
-                if (!strchr(blacklist, input[i]))
-                {
-                        output[j++] = input[i];
-                }
+                return NULL;
         }
-        output[j] = '\0';
+
+        char *output = calloc(strlen(input) + 1, sizeof(char));
+        if (!output)
+        {
+                perror("Failed to allocate memory");
+                exit(EXIT_FAILURE);
+        }
+
+        const char *in_ptr = input;
+        char *out_ptr = output;
+        while (*in_ptr)
+        {
+                // If the current character is not in the blacklist, copy it to the output
+                if (!strchr(blacklist, *in_ptr))
+                {
+                        *out_ptr++ = *in_ptr;
+                }
+                in_ptr++;
+        }
+
+        return output;
 }
 
 gint64 getLengthInSec(double duration)
@@ -1127,20 +1143,18 @@ gint64 getLengthInSec(double duration)
 int displaySongNotification(const char *artist, const char *title, const char *cover)
 {
         if (!allowNotifications)
+        {
                 return 0;
+        }
 
         char sanitized_cover[MAXPATHLEN];
-
         const char *blacklist = "&;`|*~<>^()[]{}$\\\"";
-        char sanitizedArtist[256]; // Assuming artist name won't exceed 255 chars
-        char sanitizedTitle[256];  // Assuming title name won't exceed 255 chars
-
-        remove_blacklisted_chars(artist, sanitizedArtist, sizeof(sanitizedArtist), blacklist);
-        remove_blacklisted_chars(title, sanitizedTitle, sizeof(sanitizedTitle), blacklist);
+        char *sanitizedArtist = removeBlacklistedChars(artist, blacklist);
+        char *sanitizedTitle = removeBlacklistedChars(title, blacklist);
 
         sanitize_filepath(cover, sanitized_cover, sizeof(sanitized_cover));
 
-        char message[MAXPATHLEN + 512]; // Adjust size if needed
+        char message[MAXPATHLEN + 1024];
         if (strlen(artist) > 0)
         {
                 snprintf(message, sizeof(message), "%s - %s", sanitizedArtist, sanitizedTitle);
@@ -1150,32 +1164,29 @@ int displaySongNotification(const char *artist, const char *title, const char *c
                 snprintf(message, sizeof(message), "%s", sanitizedTitle);
         }
 
-        logTime("run notify send");
+        char *args[] = {"/usr/bin/notify-send", "-a", "kew", message, "--icon", sanitized_cover, NULL};
 
-        pid_t pid = fork();
+        pid_t pid = vfork();
         if (pid == -1)
         {
-                perror("fork");
+                perror("vfork");
+                free(sanitizedArtist);
+                free(sanitizedTitle);
                 return -1;
         }
         else if (pid == 0)
         {
                 // Child process
-
-                // Close unnecessary file descriptors
-                for (int fd = 3; fd < sysconf(_SC_OPEN_MAX); fd++)
-                {
-                        close(fd);
-                }
-
-                // Replace the current process image with a new one
-                execl("/usr/bin/notify-send", "notify-send", "-a", "kew", message, "--icon", sanitized_cover, NULL);
-
-                // If execl fails
+                execvp(args[0], args);
+                // If execvp fails
+                perror("execvp");
                 _Exit(EXIT_FAILURE);
         }
 
-        // Parent process does not wait for the child
+        // Parent process
+        free(sanitizedArtist);
+        free(sanitizedTitle);
+
         return 0;
 }
 
