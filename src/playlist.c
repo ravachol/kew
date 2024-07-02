@@ -580,6 +580,28 @@ int makePlaylist(int argc, char *argv[], bool exactSearch, const char *path)
         return 0;
 }
 
+// Function to generate the filename with the .m3u extension
+void generateM3UFilename(const char *basePath, const char *filePath, char *m3uFilename, size_t size) {
+    // Find the last occurrence of '/' in the file path to get the base name
+    const char *baseName = strrchr(filePath, '/');
+    if (baseName == NULL) {
+        baseName = filePath; // No '/' found, use the entire filename
+    } else {
+        baseName++; // Skip the '/' character
+    }
+
+    // Find the last occurrence of '.' in the base name
+    const char *dot = strrchr(baseName, '.');
+    if (dot == NULL) {
+        // No '.' found, copy the base name and append ".m3u"
+        snprintf(m3uFilename, size, "%s/%s.m3u", basePath, baseName);
+    } else {
+        // Copy the base name up to the dot and append ".m3u"
+        size_t baseNameLen = dot - baseName;
+        snprintf(m3uFilename, size, "%s/%.*s.m3u", basePath, (int)baseNameLen, baseName);
+    }
+}
+
 void writeM3UFile(const char *filename, PlayList *playlist)
 {
         FILE *file = fopen(filename, "w");
@@ -648,22 +670,15 @@ void savePlaylist(const char *path)
         {
                 return;
         }
-        
-        char playlistPath[MAXPATHLEN];
-        playlistPath[0] = '\0';
-        c_strcpy(playlistPath, sizeof(playlistPath), path);
 
-        if (playlistPath[0] == '\0')
-        {
+        if (playlist.head == NULL || playlist.head->song.filePath == NULL)
                 return;
-        }
+        
+        char m3uFilename[MAXPATHLEN];
 
-        if (playlistPath[strlen(playlistPath) - 1] != '/')
-                strcat(playlistPath, "/");
+        generateM3UFilename(path, playlist.head->song.filePath, m3uFilename, sizeof(m3uFilename));
 
-        strcat(playlistPath, playlistName);
-
-        writeM3UFile(playlistPath, &playlist);
+        writeM3UFile(m3uFilename, &playlist);
 }
 
 Node *deepCopyNode(Node *originalNode)
