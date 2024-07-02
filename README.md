@@ -106,7 +106,7 @@ make
 sudo make install
 ```
 
-A sixel (or equivalent) capable terminal is recommended, like Konsole, Wezterm, or kitty, to display images properly.
+A sixel (or equivalent) capable terminal is recommended, like Konsole or kitty, to display images properly.
 
 For a complete list of capable terminals, see this page: [Sixels in Terminal](https://www.arewesixelyet.com/) (github.com).
 
