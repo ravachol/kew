@@ -68,6 +68,8 @@ void shufflePlaylistStartingFromSong(PlayList *playlist, Node *song);
 
 int makePlaylist(int argc, char *argv[], bool exactSearch, const char *path);
 
+void writeCurrentPlaylistToM3UFile(PlayList *playlist);
+
 void writeM3UFile(const char *filename, PlayList *playlist);
 
 void loadSpecialPlaylist(const char *directory);
