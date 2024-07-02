@@ -594,14 +594,21 @@ void generateM3UFilename(const char *basePath, const char *filePath, char *m3uFi
     const char *dot = strrchr(baseName, '.');
     if (dot == NULL) {
         // No '.' found, copy the base name and append ".m3u"
-        snprintf(m3uFilename, size, "%s/%s.m3u", basePath, baseName);
+        if (basePath[strlen(basePath) - 1] == '/') {
+            snprintf(m3uFilename, size, "%s%s.m3u", basePath, baseName);
+        } else {
+            snprintf(m3uFilename, size, "%s/%s.m3u", basePath, baseName);
+        }
     } else {
         // Copy the base name up to the dot and append ".m3u"
         size_t baseNameLen = dot - baseName;
-        snprintf(m3uFilename, size, "%s/%.*s.m3u", basePath, (int)baseNameLen, baseName);
+        if (basePath[strlen(basePath) - 1] == '/') {
+            snprintf(m3uFilename, size, "%s%.*s.m3u", basePath, (int)baseNameLen, baseName);
+        } else {
+            snprintf(m3uFilename, size, "%s/%.*s.m3u", basePath, (int)baseNameLen, baseName);
+        }
     }
 }
-
 void writeM3UFile(const char *filename, PlayList *playlist)
 {
         FILE *file = fopen(filename, "w");
