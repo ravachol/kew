@@ -868,7 +868,6 @@ void play(Node *song)
 
                 if (res >= 0)
                 {
-                        logTime("createAudioDevice()");
                         res = createAudioDevice(&userData);
                 }
 
@@ -892,14 +891,12 @@ void play(Node *song)
 
         g_unix_signal_add(SIGINT, on_sigint, main_loop);
 
-        logTime("emitStartPlayingMpris()");
         if (song != NULL)
                 emitStartPlayingMpris();
         else
                 emitPlaybackStoppedMpris();
 
         g_timeout_add(50, mainloop_callback, NULL);
-        logTime("g_main_loop_run()");
         g_main_loop_run(main_loop);
         g_main_loop_unref(main_loop);
 }
@@ -970,7 +967,7 @@ void run()
 {
         if (originalPlaylist == NULL)
         {
-                logTime("deepCopyPlayList()");
+
                 originalPlaylist = malloc(sizeof(PlayList));
                 *originalPlaylist = deepCopyPlayList(&playlist);
         }
@@ -1012,7 +1009,6 @@ void init()
         pthread_mutex_init(&(loadingdata.mutex), NULL);
         pthread_mutex_init(&(playlist.mutex), NULL);
         nerdFontsEnabled = hasNerdFonts();
-        logTime("createLibrary");
         createLibrary(&settings);
         setlocale(LC_ALL, "");
         fflush(stdout);
@@ -1056,18 +1052,27 @@ void playSpecialPlaylist()
 
 void playAll()
 {
-        logTime("init()");
         init();
-        logTime("createPlayListFromFileSystemEntry()");
         createPlayListFromFileSystemEntry(library, &playlist, MAX_FILES);
         if (playlist.count == 0)
         {
                 exit(0);
-        }      
-        logTime("shufflePlaylist()");  
+        }       
         shufflePlaylist(&playlist);
         run();
 }
+
+void playAllAlbums()
+{
+        init();
+        addShuffledAlbumsToPlayList(library, &playlist, MAX_FILES);
+        if (playlist.count == 0)
+        {
+                exit(0);
+        }      
+        run();    
+}
+
 
 void removeArgElement(char *argv[], int index, int *argc)
 {
@@ -1187,6 +1192,10 @@ int main(int argc, char *argv[])
         else if (argc == 2 && strcmp(argv[1], "all") == 0)
         {
                 playAll();
+        }
+        else if (argc == 2 && strcmp(argv[1], "albums") == 0)
+        {
+                playAllAlbums();
         }
         else if (argc == 2 && strcmp(argv[1], ".") == 0)
         {
