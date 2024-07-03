@@ -155,6 +155,7 @@ void printHelp()
         printf("          (Saves the music library path. Use this the first time. Ie: kew path \"/home/joe/Music/\")\n");
         printf("          kew (no argument, opens library)\n");
         printf("          kew all (loads all your songs up to 10 000)\n");
+        printf("          kew albums (plays all albums up to 2000 randomly one after the other)");
         printf("          kew <song name,directory or playlist words>\n");
         printf("          kew --help, -? or -h\n");
         printf("          kew --version or -v\n");
