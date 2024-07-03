@@ -839,3 +839,128 @@ void createPlayListFromFileSystemEntry(FileSystemEntry *root, PlayList *list, in
 {
         traverseFileSystemEntry(root, list, playlistMax);
 }
+
+int isMusicFile(const char *filename)
+{
+    const char *extensions[] = {".m4a", ".aac",".mp4", ".mp3", ".ogg", ".flac",".wav", ".opus"};
+
+    size_t numExtensions = sizeof(extensions) / sizeof(extensions[0]);
+
+    for (size_t i = 0; i < numExtensions; i++)
+    {
+        if (strstr(filename, extensions[i]) != NULL)
+        {
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
+int containsMusicFiles(FileSystemEntry *entry)
+{
+    if (entry == NULL)
+        return 0;
+
+    FileSystemEntry *child = entry->children;
+
+    while (child != NULL)
+    {
+        if (!child->isDirectory && isMusicFile(child->name))
+        {
+            return 1;
+        }
+        child = child->next;
+    }
+
+    return 0;
+}
+
+void addAlbumToPlayList(PlayList *list, FileSystemEntry *album, int playlistMax)
+{
+    FileSystemEntry *entry = album->children;
+
+    while (entry != NULL && list->count < playlistMax)
+    {
+        if (!entry->isDirectory && isMusicFile(entry->name))
+        {
+            addSongToPlayList(list, entry->fullPath, playlistMax);
+        }
+        entry = entry->next;
+    }
+}
+
+void addAlbumsToPlayList(FileSystemEntry *entry, PlayList *list, int playlistMax)
+{
+    if (entry == NULL || list->count >= playlistMax)
+        return;
+
+    if (entry->isDirectory && containsMusicFiles(entry))
+    {
+        addAlbumToPlayList(list, entry, playlistMax);
+    }
+
+    if (entry->isDirectory && entry->children != NULL)
+    {
+        addAlbumsToPlayList(entry->children, list, playlistMax);
+    }
+
+    if (entry->next != NULL)
+    {
+        addAlbumsToPlayList(entry->next, list, playlistMax);
+    }
+}
+
+void shuffleEntries(FileSystemEntry **array, size_t n)
+{
+    if (n > 1)
+    {
+        size_t i;
+        for (i = 0; i < n - 1; i++)
+        {
+            size_t j = i + rand() / (RAND_MAX / (n - i) + 1);
+            FileSystemEntry *temp = array[i];
+            array[i] = array[j];
+            array[j] = temp;
+        }
+    }
+}
+
+void collectAlbums(FileSystemEntry *entry, FileSystemEntry **albums, size_t *count)
+{
+    if (entry == NULL)
+        return;
+
+    if (entry->isDirectory && containsMusicFiles(entry))
+    {
+        albums[*count] = entry;
+        (*count)++;
+    }
+
+    if (entry->isDirectory && entry->children != NULL)
+    {
+        collectAlbums(entry->children, albums, count);
+    }
+
+    if (entry->next != NULL)
+    {
+        collectAlbums(entry->next, albums, count);
+    }
+}
+
+void addShuffledAlbumsToPlayList(FileSystemEntry *root, PlayList *list, int playlistMax)
+{
+    size_t maxAlbums = 2000; 
+    FileSystemEntry *albums[maxAlbums];
+    size_t albumCount = 0;
+
+    collectAlbums(root, albums, &albumCount);
+
+    srand(time(NULL));
+    shuffleEntries(albums, albumCount);
+
+    for (size_t i = 0; i < albumCount && list->count < playlistMax; i++)
+    {
+        addAlbumToPlayList(list, albums[i], playlistMax);
+    }
+}

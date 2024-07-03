@@ -89,3 +89,5 @@ Node *findLastPathInPlaylist(char *path, PlayList *playlist);
 int findNodeInList(PlayList *list, int id, Node **foundNode);
 
 void createPlayListFromFileSystemEntry(FileSystemEntry *root, PlayList *list, int playlistMax);
+
+void addShuffledAlbumsToPlayList(FileSystemEntry *root, PlayList *list, int playlistMax);

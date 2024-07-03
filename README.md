@@ -140,7 +140,9 @@ kew returns the first directory or file whose name matches the string you provid
  ```
 kew (starting kew with no arguments opens the library view where can choose what to play)
 
-kew all (plays all songs (up to 20 000) in your library, shuffled)
+kew all (plays all songs, up to 20 000, in your library, shuffled)
+
+kew albums (plays all albums, up to 2000, randomly one after the other)
 
 kew moonlight son (finds and plays moonlight sonata)
 
