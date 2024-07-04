@@ -22,7 +22,7 @@ typedef struct
 } PixelData;
 #endif
 
-const char VERSION[] = "2.5.1";
+const char VERSION[] = "2.6.0";
 const int ABSOLUTE_MIN_WIDTH = 68;
 bool visualizerEnabled = true;
 bool coverEnabled = true;
@@ -39,7 +39,7 @@ bool resetPlaylistDisplay = true;
 bool fastForwarding = false;
 bool rewinding = false;
 bool nerdFontsEnabled = true;
-int numProgressBars = 15;
+int numProgressBars = 35;
 int elapsedBars = 0;
 int chosenRow = 0;
 int chosenSong = 0;
