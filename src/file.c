@@ -127,7 +127,8 @@ int walker(const char *startPath, const char *searching, char *result,
                 }
 
                 char entryPath[MAXPATHLEN];
-                char *currentDir = getcwd(NULL, 0);                snprintf(entryPath, sizeof(entryPath), "%s/%s", currentDir, dir->d_name);
+                char *currentDir = getcwd(NULL, 0);                
+                snprintf(entryPath, sizeof(entryPath), "%s/%s", currentDir, dir->d_name);
                 free(currentDir);
 
                 if (stat(entryPath, &file_stat) != 0)
