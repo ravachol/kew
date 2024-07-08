@@ -343,10 +343,6 @@ void shortenString(char *str, size_t maxLength)
         }
 }
 
-void printBlankSpaces(int numSpaces)
-{
-        for (int i = 0; i < numSpaces; i++)
-        {
-                printf(" ");
-        }
+void printBlankSpaces(int numSpaces) {
+    printf("%*s", numSpaces, " ");
 }

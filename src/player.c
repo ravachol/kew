@@ -87,14 +87,7 @@ FileSystemEntry *library = NULL;
 
 bool hasNerdFonts()
 {
-        bool nerdFonts = true;
-        if (printf("\uf28b") < 0)
-        {
-                nerdFonts = false;
-        }
-        clearScreen();
-        fflush(stdout);
-        return nerdFonts;
+        return (printf("\uf28b") >= 0); // nerd fonts
 }
 
 int calcMetadataHeight()

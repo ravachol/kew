@@ -266,7 +266,6 @@ int getIndentation(int terminalWidth)
         return (indent > 0) ? indent : 0;
 }
 
-// Function to check if the key is a function key
 int isFunctionKey(const char *seq) {
     if (seq[0] == '\033') { // ESC character
         return 1;

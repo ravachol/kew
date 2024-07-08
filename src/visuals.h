@@ -10,6 +10,7 @@
 #include "sound.h"
 #include "term.h"
 #include "utils.h"
+#include <wchar.h>
 
 #ifndef PIXELDATA_STRUCT
 #define PIXELDATA_STRUCT
