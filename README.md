@@ -79,16 +79,17 @@ kew dependencies are:
 * libvorbis
 * pkg-config
 * glib2.0 and AVFormat. These should be installed with the others, if not install them.
+* libnotify
 
 Install FFmpeg, FFTW, Chafa and FreeImage using your distro's package manager. For instance:
 
 ```bash
-apt install ffmpeg libfftw3-dev libopus-dev libopusfile-dev libvorbis-dev git gcc make libchafa-dev libfreeimage-dev libavformat-dev libglib2.0-dev
+apt install ffmpeg libfftw3-dev libopus-dev libopusfile-dev libvorbis-dev git gcc make libchafa-dev libfreeimage-dev libavformat-dev libglib2.0-dev libnotify-dev
 ```
 Or:
 
 ```bash
-pacman -Syu ffmpeg fftw git gcc make chafa freeimage glib2 opus opusfile libvorbis
+pacman -Syu ffmpeg fftw git gcc make chafa freeimage glib2 opus opusfile libvorbis libnotify
 ```
 
 Then run this (either git clone or unzip a release zip into a folder of your choice):

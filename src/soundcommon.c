@@ -54,6 +54,8 @@ int m4aDecoderIndex = -1;
 int opusDecoderIndex = -1;
 int vorbisDecoderIndex = -1;
 
+NotifyNotification* previous_notification;
+
 void logTime(const char *message)
 {
         (void)message;
@@ -1161,33 +1163,21 @@ int displaySongNotification(const char *artist, const char *title, const char *c
 
         sanitize_filepath(cover, sanitized_cover, sizeof(sanitized_cover));
 
-        char message[MAXPATHLEN + 1024];
-        if (strlen(artist) > 0)
+
+        if (previous_notification == NULL) 
         {
-                snprintf(message, sizeof(message), "%s - %s", sanitizedArtist, sanitizedTitle);
-        }
-        else
+                previous_notification = notify_notification_new(sanitizedArtist, sanitizedTitle, sanitized_cover);
+        } 
+        else 
         {
-                snprintf(message, sizeof(message), "%s", sanitizedTitle);
+                notify_notification_update(previous_notification, sanitizedArtist, sanitizedTitle, sanitized_cover);
         }
 
-        char *args[] = {"/usr/bin/notify-send", "-a", "kew", message, "--icon", sanitized_cover, NULL};
-
-        pid_t pid = vfork();
-        if (pid == -1)
+        GError *error = NULL;
+        if (!notify_notification_show(previous_notification, NULL)) 
         {
-                perror("vfork");
-                free(sanitizedArtist);
-                free(sanitizedTitle);
-                return -1;
-        }
-        else if (pid == 0)
-        {
-                // Child process
-                execv(args[0], args);
-                // If execv fails
-                perror("execv");
-                _Exit(EXIT_FAILURE);
+                fprintf(stderr, "Failed to show notification: %s", error->message);
+                g_error_free(error);
         }
 
         // Parent process
