@@ -13,6 +13,7 @@
 #include <stdlib.h>
 #include "file.h"
 #include "utils.h"
+#include "libnotify/notify.h"
 
 #ifndef MAXPATHLEN
 #define MAXPATHLEN 4096
