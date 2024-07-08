@@ -215,29 +215,15 @@ void calc(int height, int numBars, ma_int32 *audioBuffer, int bitDepth, fftwf_co
         updateMagnitudes(height, numBars, maxMagnitude, magnitudes);
 }
 
-wchar_t *getUpwardMotionChar(int level)
-{
-        switch (level)
-        {
-        case 0:
-                return L" ";
-        case 1:
-                return L"▁";
-        case 2:
-                return L"▂";
-        case 3:
-                return L"▃";
-        case 4:
-                return L"▄";
-        case 5:
-                return L"▅";
-        case 6:
-                return L"▆";
-        case 7:
-                return L"▇";
-        default:
-                return L"█";
-        }
+wchar_t* upwardMotionChars[] = {
+    L" ", L"▁", L"▂", L"▃", L"▄", L"▅", L"▆", L"▇", L"█"
+};
+
+wchar_t* getUpwardMotionChar(int level) {
+    if (level < 0 || level > 8) {
+        level = 8;
+    }
+    return upwardMotionChars[level];
 }
 
 int calcSpectrum(int height, int numBars, fftwf_complex *fftInput, fftwf_complex *fftOutput, float *magnitudes, fftwf_plan plan)
