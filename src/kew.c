@@ -1165,7 +1165,6 @@ int main(int argc, char *argv[])
                 exit(0);
         }
 
-        moveConfigFiles(); // move from old location to new
         getConfig(&settings);
 
         if (argc == 3 && (strcmp(argv[1], "path") == 0))
