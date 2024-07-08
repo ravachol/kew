@@ -60,7 +60,9 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include "soundcommon.h"
 #include "songloader.h"
 #include "utils.h"
+#ifdef USE_LIBNOTIFY
 #include "libnotify/notify.h"
+#endif 
 
 // #define DEBUG 1
 #define MAX_TMP_SEQ_LEN 256 // Maximum length of temporary sequence buffer
@@ -1013,7 +1015,9 @@ void init()
         createLibrary(&settings);
         setlocale(LC_ALL, "");
         fflush(stdout);
+        #ifdef USE_LIBNOTIFY
         notify_init("kew");
+        #endif
 
 #ifdef DEBUG
         g_setenv("G_MESSAGES_DEBUG", "all", TRUE);

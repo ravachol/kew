@@ -54,7 +54,9 @@ int m4aDecoderIndex = -1;
 int opusDecoderIndex = -1;
 int vorbisDecoderIndex = -1;
 
-NotifyNotification* previous_notification;
+#ifdef USE_LIBNOTIFY
+NotifyNotification *previous_notification;
+#endif
 
 void logTime(const char *message)
 {
@@ -1144,6 +1146,8 @@ gint64 getLengthInSec(double duration)
 
 int displaySongNotification(const char *artist, const char *title, const char *cover)
 {
+#ifdef USE_LIBNOTIFY
+
         if (!allowNotifications)
         {
                 return 0;
@@ -1163,27 +1167,26 @@ int displaySongNotification(const char *artist, const char *title, const char *c
 
         sanitize_filepath(cover, sanitized_cover, sizeof(sanitized_cover));
 
-
-        if (previous_notification == NULL) 
+        if (previous_notification == NULL)
         {
                 previous_notification = notify_notification_new(sanitizedArtist, sanitizedTitle, sanitized_cover);
-        } 
-        else 
+        }
+        else
         {
                 notify_notification_update(previous_notification, sanitizedArtist, sanitizedTitle, sanitized_cover);
         }
 
         GError *error = NULL;
-        if (!notify_notification_show(previous_notification, NULL)) 
+        if (!notify_notification_show(previous_notification, NULL))
         {
                 fprintf(stderr, "Failed to show notification: %s", error->message);
                 g_error_free(error);
         }
 
-        // Parent process
         free(sanitizedArtist);
         free(sanitizedTitle);
 
+#endif
         return 0;
 }
 
