@@ -66,7 +66,7 @@ sudo bash -c "curl https://raw.githubusercontent.com/ravachol/kew/main/install.s
 
 Please note that this script might do a system update before installing kew.
 
-### Installing everything manually
+### Building the project
 
 kew dependencies are:
 
@@ -79,7 +79,7 @@ kew dependencies are:
 * libvorbis
 * pkg-config
 * glib2.0 and AVFormat. These should be installed with the others, if not install them.
-* libnotify
+* libnotify (optional)
 
 Install FFmpeg, FFTW, Chafa and FreeImage using your distro's package manager. For instance:
 
@@ -111,9 +111,22 @@ A sixel (or equivalent) capable terminal is recommended, like Konsole or kitty, 
 
 For a complete list of capable terminals, see this page: [Sixels in Terminal](https://www.arewesixelyet.com/).
 
-And for 
+#### LibNotify is (should be) optional
+By default, the build system will automatically detect if `libnotify` is available and include it if found. You can also manually control this behavior, by running:
+
+```bash
+make USE_LIBNOTIFY=0 
+```
+
+or 
+
+```bash
+make USE_LIBNOTIFY=1.
+```
 
 ### Uninstalling
+
+If you installed kew manually, simply run:
 
 ```bash
 sudo make uninstall
