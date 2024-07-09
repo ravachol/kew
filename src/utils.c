@@ -3,7 +3,7 @@
 
  utils.c
 
- Utility functions for instance for replacing some standard functions with safer alterantives.
+ Utility functions for instance for replacing some standard functions with safer alternatives.
 
 */
 void c_sleep(int milliseconds)

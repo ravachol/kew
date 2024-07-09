@@ -63,17 +63,22 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         strncpy(settings.hardNext, "[C", sizeof(settings.hardNext));
         strncpy(settings.hardScrollUp, "[A", sizeof(settings.hardScrollUp));
         strncpy(settings.hardScrollDown, "[B", sizeof(settings.hardScrollDown));
-        strncpy(settings.hardShowInfo, "OQ", sizeof(settings.hardShowInfo));
-        strncpy(settings.hardShowInfoAlt, "[[B", sizeof(settings.hardShowInfoAlt));
+        strncpy(settings.hardShowPlaylist, "OQ", sizeof(settings.hardShowPlaylist));
+        strncpy(settings.hardShowPlaylistAlt, "[[B", sizeof(settings.hardShowPlaylistAlt));
+        strncpy(settings.showPlaylistAlt, "", sizeof(settings.showPlaylistAlt));
         strncpy(settings.hardShowKeys, "[17~", sizeof(settings.hardShowKeys));
         strncpy(settings.hardShowKeysAlt, "[17~", sizeof(settings.hardShowKeysAlt));
+        strncpy(settings.showKeysAlt, "", sizeof(settings.showKeysAlt));
         strncpy(settings.hardShowTrack, "OS", sizeof(settings.hardShowTrack));
         strncpy(settings.hardShowTrackAlt, "[[D", sizeof(settings.hardShowTrackAlt));
+        strncpy(settings.showTrackAlt, "", sizeof(settings.showTrackAlt));
         strncpy(settings.hardEndOfPlaylist, "G", sizeof(settings.hardEndOfPlaylist));
         strncpy(settings.hardShowLibrary, "OR", sizeof(settings.hardShowLibrary));
         strncpy(settings.hardShowLibraryAlt, "[[C", sizeof(settings.hardShowLibraryAlt));
+        strncpy(settings.showLibraryAlt, "", sizeof(settings.showLibraryAlt));
         strncpy(settings.hardShowSearch, "[15~", sizeof(settings.hardShowSearch));
         strncpy(settings.hardShowSearchAlt, "[[E", sizeof(settings.hardShowSearchAlt));
+        strncpy(settings.showSearchAlt, "", sizeof(settings.showSearchAlt));
         strncpy(settings.hardNextPage, "[6~", sizeof(settings.hardNextPage));
         strncpy(settings.hardPrevPage, "[5~", sizeof(settings.hardPrevPage));
         strncpy(settings.hardRemove, "[3~", sizeof(settings.hardRemove));
@@ -93,6 +98,7 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         for (int i = 0; i < count; i++)
         {
                 KeyValuePair *pair = &pairs[i];
+                
 
                 if (strcmp(stringToLower(pair->key), "path") == 0)
                 {
@@ -238,6 +244,26 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
                 {
                         snprintf(settings.updateLibrary, sizeof(settings.updateLibrary), "%s", pair->value);
                 }
+                else if (strcmp(stringToLower(pair->key), "showplaylistalt") == 0)
+                {
+                        snprintf(settings.showPlaylistAlt, sizeof(settings.showPlaylistAlt), "%s", pair->value);
+                }
+                else if (strcmp(stringToLower(pair->key), "showlibraryalt") == 0)
+                {
+                        snprintf(settings.showLibraryAlt, sizeof(settings.showLibraryAlt), "%s", pair->value);
+                }
+                else if (strcmp(stringToLower(pair->key), "showtrackalt") == 0)
+                {
+                        snprintf(settings.showTrackAlt, sizeof(settings.showTrackAlt), "%s", pair->value);
+                }
+                else if (strcmp(stringToLower(pair->key), "showsearchalt") == 0)
+                {
+                        snprintf(settings.showSearchAlt, sizeof(settings.showSearchAlt), "%s", pair->value);
+                }
+                else if (strcmp(stringToLower(pair->key), "showkeysalt") == 0)
+                {
+                        snprintf(settings.showKeysAlt, sizeof(settings.showKeysAlt), "%s", pair->value);
+                }                                
         }
 
         freeKeyValuePairs(pairs, count);
@@ -472,6 +498,11 @@ void setConfig(AppSettings *settings)
         fprintf(file, "savePlaylist=%s\n", settings->savePlaylist);
         fprintf(file, "addToMainPlaylist=%s\n", settings->addToMainPlaylist);
         fprintf(file, "updateLibrary=%s\n", settings->updateLibrary);
+        fprintf(file, "showPlaylistAlt=%s\n", settings->showPlaylistAlt);
+        fprintf(file, "showLibraryAlt=%s\n", settings->showLibraryAlt);
+        fprintf(file, "showTrackAlt=%s\n", settings->showTrackAlt);
+        fprintf(file, "showSearchAlt=%s\n", settings->showSearchAlt);
+        fprintf(file, "showKeysAlt=%s\n", settings->showKeysAlt);
 
         fprintf(file, "quit=%s\n\n", settings->quit);
         fprintf(file, "# For special keys use terminal codes: OS, for F4 for instance. This can depend on the terminal.\n");

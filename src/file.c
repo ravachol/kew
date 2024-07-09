@@ -13,38 +13,13 @@ file.c
 */
 
 void getDirectoryFromPath(const char *path, char *directory)
-{
-        size_t pathLength = strlen(path);
+{  
+    char tempPath[strlen(path) + 1];  // tempPath is needed because the dirname function modifies the input string
+    strcpy(tempPath, path);
 
-        // Find the last occurrence of the directory separator character ('/' or '\')
-        const char *lastSeparator = strrchr(path, '/');
-        const char *lastBackslash = strrchr(path, '\\');
+    char *dir = dirname(tempPath);
 
-        // Determine the last occurrence of the directory separator
-        const char *lastDirectorySeparator = lastSeparator > lastBackslash ? lastSeparator : lastBackslash;
-
-        if (lastDirectorySeparator != NULL)
-        {
-                // Calculate the length of the directory path
-                size_t directoryLength = lastDirectorySeparator - path + 1;
-
-                if (directoryLength < pathLength)
-                {
-                        // Copy the directory path into the 'directory' buffer
-                        strncpy(directory, path, directoryLength);
-                        directory[directoryLength] = '\0';
-                }
-                else
-                {
-                        // The provided path is already a directory
-                        c_strcpy(directory, sizeof(directory), path);
-                }
-        }
-        else
-        {
-                // No directory separator found, return an empty string
-                directory[0] = '\0';
-        }
+    strcpy(directory, dir);
 }
 
 int existsFile(const char *fname)

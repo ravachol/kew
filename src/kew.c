@@ -207,17 +207,22 @@ struct Event processInput()
                                       {settings.hardSwitchNumberedSong, EVENT_GOTOSONG},
                                       {settings.hardScrollUp, EVENT_SCROLLPREV},
                                       {settings.hardScrollDown, EVENT_SCROLLNEXT},
-                                      {settings.hardShowInfo, EVENT_SHOWINFO},
-                                      {settings.hardShowInfoAlt, EVENT_SHOWINFO},
-                                      {settings.hardShowSearch, EVENT_SHOWSEARCH},
+                                      {settings.hardShowPlaylist, EVENT_SHOWPLAYLIST},
+                                      {settings.hardShowPlaylistAlt, EVENT_SHOWPLAYLIST},
+                                      {settings.showPlaylistAlt, EVENT_SHOWPLAYLIST},                                      
                                       {settings.hardShowKeys, EVENT_SHOWKEYBINDINGS},
                                       {settings.hardShowKeysAlt, EVENT_SHOWKEYBINDINGS},
+                                      {settings.showKeysAlt, EVENT_SHOWKEYBINDINGS},                                      
                                       {settings.hardEndOfPlaylist, EVENT_GOTOENDOFPLAYLIST},
                                       {settings.hardShowTrack, EVENT_SHOWTRACK},
                                       {settings.hardShowTrackAlt, EVENT_SHOWTRACK},
+                                      {settings.showTrackAlt, EVENT_SHOWTRACK},
                                       {settings.hardShowLibrary, EVENT_SHOWLIBRARY},
                                       {settings.hardShowLibraryAlt, EVENT_SHOWLIBRARY},
+                                      {settings.showLibraryAlt, EVENT_SHOWLIBRARY},
+                                      {settings.hardShowSearch, EVENT_SHOWSEARCH},                                      
                                       {settings.hardShowSearchAlt, EVENT_SHOWSEARCH},
+                                      {settings.showSearchAlt, EVENT_SHOWSEARCH},
                                       {settings.hardNextPage, EVENT_NEXTPAGE},
                                       {settings.hardPrevPage, EVENT_PREVPAGE},
                                       {settings.hardRemove, EVENT_REMOVE}};
@@ -579,7 +584,7 @@ void handleInput()
         case EVENT_SHOWKEYBINDINGS:
                 toggleShowKeyBindings();
                 break;
-        case EVENT_SHOWINFO:
+        case EVENT_SHOWPLAYLIST:
                 toggleShowPlaylist();
                 break;
         case EVENT_SHOWSEARCH:

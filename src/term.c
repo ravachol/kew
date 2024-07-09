@@ -107,8 +107,9 @@ void showCursor()
 void resetConsole()
 {
         int status = system("reset");
-        if (status == -1) {                
-                perror("system() failed");        
+        if (status == -1)
+        {
+                perror("system() failed");
         }
 }
 
@@ -213,49 +214,61 @@ int readInputSequence_old(char *seq, size_t seqSize)
         return bytesRead;
 }
 
-int readInputSequence(char *seq, size_t seqSize) {
-    char c;
-    ssize_t bytesRead;
-    seq[0] = '\0';
-    bytesRead = read(STDIN_FILENO, &c, 1);
-    if (bytesRead <= 0) {
-        return 0;
-    }
+int readInputSequence(char *seq, size_t seqSize)
+{
+        char c;
+        ssize_t bytesRead;
+        seq[0] = '\0';
+        bytesRead = read(STDIN_FILENO, &c, 1);
+        if (bytesRead <= 0)
+        {
+                return 0;
+        }
 
-    // If it's a single-byte ASCII character, return it
-    if ((c & 0x80) == 0) {
+        // If it's a single-byte ASCII character, return it
+        if ((c & 0x80) == 0)
+        {
+                seq[0] = c;
+                seq[1] = '\0';
+                return 1;
+        }
+
+        // Determine the length of the UTF-8 sequence
+        int additionalBytes;
+        if ((c & 0xE0) == 0xC0)
+        {
+                additionalBytes = 1; // 2-byte sequence
+        }
+        else if ((c & 0xF0) == 0xE0)
+        {
+                additionalBytes = 2; // 3-byte sequence
+        }
+        else if ((c & 0xF8) == 0xF0)
+        {
+                additionalBytes = 3; // 4-byte sequence
+        }
+        else
+        {
+                // Invalid UTF-8 start byte
+                return 0;
+        }
+
+        // Ensure there's enough space in the buffer
+        if ((size_t)additionalBytes + 1 >= seqSize)
+        {
+                return 0;
+        }
+
+        // Read the remaining bytes of the UTF-8 sequence
         seq[0] = c;
-        seq[1] = '\0';
-        return 1;
-    }
+        bytesRead = read(STDIN_FILENO, &seq[1], additionalBytes);
+        if (bytesRead != additionalBytes)
+        {
+                return 0;
+        }
 
-    // Determine the length of the UTF-8 sequence
-    int additionalBytes;
-    if ((c & 0xE0) == 0xC0) {
-        additionalBytes = 1; // 2-byte sequence
-    } else if ((c & 0xF0) == 0xE0) {
-        additionalBytes = 2; // 3-byte sequence
-    } else if ((c & 0xF8) == 0xF0) {
-        additionalBytes = 3; // 4-byte sequence
-    } else {
-        // Invalid UTF-8 start byte
-        return 0;
-    }
-
-    // Ensure there's enough space in the buffer
-    if ((size_t)additionalBytes + 1 >= seqSize) {
-        return 0;
-    }
-
-    // Read the remaining bytes of the UTF-8 sequence
-    seq[0] = c;
-    bytesRead = read(STDIN_FILENO, &seq[1], additionalBytes);
-    if (bytesRead != additionalBytes) {
-        return 0;
-    }
-
-    seq[additionalBytes + 1] = '\0';
-    return additionalBytes + 1;
+        seq[additionalBytes + 1] = '\0';
+        return additionalBytes + 1;
 }
 
 int getIndentation(int terminalWidth)
@@ -266,9 +279,59 @@ int getIndentation(int terminalWidth)
         return (indent > 0) ? indent : 0;
 }
 
-int isFunctionKey(const char *seq) {
-    if (seq[0] == '\033') { // ESC character
-        return 1;
-    }
-    return 0;
+int isFunctionKey(const char *seq)
+{
+        if (seq[0] == '\033')
+        { // ESC character
+                return 1;
+        }
+        return 0;
+}
+
+void convertControlNotationToAscii(char *input, char *output, size_t size)
+{
+        if (input[0] == '^' && input[1] >= 'A' && input[1] <= 'Z')
+        {
+                output[0] = input[1] - 'A' + 1; // Convert ^A to Ctrl+A (ASCII 1)
+                output[1] = '\0';
+        }
+        else if (input[0] == '^' && input[1] >= '2' && input[1] <= '8')
+        {
+                output[0] = input[1] - '1' + 1; // Convert ^2 to Ctrl+2 (ASCII 18), etc.
+                output[1] = '\0';
+        }
+        else
+        {
+                strncpy(output, input, size);
+        }
+}
+
+void convertAsciiToControlNotation(char input, char *output, size_t size)
+{
+        if (input >= 1 && input <= 26)
+        { // Control characters from Ctrl+A to Ctrl+Z
+                if (size >= 3)
+                { // Ensure there's enough space for "^A" and null terminator
+                        output[0] = '^';
+                        output[1] = input + 'A' - 1;
+                        output[2] = '\0';
+                }
+        }
+        else if (input >= 1 && input <= 8)
+        { // Control characters for digits and punctuation (Ctrl+2 to Ctrl+8)
+                if (size >= 3)
+                { // Ensure there's enough space for "^2" and null terminator
+                        output[0] = '^';
+                        output[1] = input + '1' - 1;
+                        output[2] = '\0';
+                }
+        }
+        else
+        {
+                if (size >= 2)
+                { // Ensure there's enough space for the character and null terminator
+                        output[0] = input;
+                        output[1] = '\0';
+                }
+        }
 }
