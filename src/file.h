@@ -3,6 +3,7 @@
 
 #include <dirent.h>
 #include <errno.h>
+#include <libgen.h>
 #include <pwd.h>
 #include <regex.h>
 #include <stdbool.h>
