@@ -580,9 +580,9 @@ int makePlaylist(int argc, char *argv[], bool exactSearch, const char *path)
         return 0;
 }
 
-// Function to generate the filename with the .m3u extension
+
 void generateM3UFilename(const char *basePath, const char *filePath, char *m3uFilename, size_t size) {
-    // Find the last occurrence of '/' in the file path to get the base name
+
     const char *baseName = strrchr(filePath, '/');
     if (baseName == NULL) {
         baseName = filePath; // No '/' found, use the entire filename
@@ -590,7 +590,6 @@ void generateM3UFilename(const char *basePath, const char *filePath, char *m3uFi
         baseName++; // Skip the '/' character
     }
 
-    // Find the last occurrence of '.' in the base name
     const char *dot = strrchr(baseName, '.');
     if (dot == NULL) {
         // No '.' found, copy the base name and append ".m3u"

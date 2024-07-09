@@ -73,4 +73,8 @@ int readInputSequence(char *seq, size_t seqSize);
 
 int isFunctionKey(const char *seq);
 
+void convertControlNotationToAscii(char *input, char *output, size_t size);
+
+void convertAsciiToControlNotation(char input, char *output, size_t size);
+
 #endif
