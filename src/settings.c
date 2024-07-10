@@ -498,11 +498,12 @@ void setConfig(AppSettings *settings)
         fprintf(file, "savePlaylist=%s\n", settings->savePlaylist);
         fprintf(file, "addToMainPlaylist=%s\n", settings->addToMainPlaylist);
         fprintf(file, "updateLibrary=%s\n", settings->updateLibrary);
+        fprintf(file, "\n# The different main views, normally F2-F6: \n");
         fprintf(file, "showPlaylistAlt=%s\n", settings->showPlaylistAlt);
         fprintf(file, "showLibraryAlt=%s\n", settings->showLibraryAlt);
         fprintf(file, "showTrackAlt=%s\n", settings->showTrackAlt);
         fprintf(file, "showSearchAlt=%s\n", settings->showSearchAlt);
-        fprintf(file, "showKeysAlt=%s\n", settings->showKeysAlt);
+        fprintf(file, "showKeysAlt=%s\n\n", settings->showKeysAlt);
 
         fprintf(file, "quit=%s\n\n", settings->quit);
         fprintf(file, "# For special keys use terminal codes: OS, for F4 for instance. This can depend on the terminal.\n");
