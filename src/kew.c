@@ -190,7 +190,6 @@ struct Event processInput()
                                       {settings.quit, EVENT_QUIT},
                                       {settings.hardQuit, EVENT_QUIT},
                                       {settings.toggleShuffle, EVENT_SHUFFLE},
-                                      {settings.toggleCovers, EVENT_TOGGLECOVERS},
                                       {settings.toggleVisualizer, EVENT_TOGGLEVISUALIZER},
                                       {settings.toggleAscii, EVENT_TOGGLEBLOCKS},
                                       {settings.switchNumberedSong, EVENT_GOTOSONG},
@@ -530,9 +529,6 @@ void handleInput()
                 break;
         case EVENT_TOGGLEREPEAT:
                 toggleRepeat();
-                break;
-        case EVENT_TOGGLECOVERS:
-                toggleCovers(&settings);
                 break;
         case EVENT_TOGGLEBLOCKS:
                 toggleBlocks(&settings);

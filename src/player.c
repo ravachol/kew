@@ -22,7 +22,7 @@ typedef struct
 } PixelData;
 #endif
 
-const char VERSION[] = "2.6.0";
+const char VERSION[] = "2.7.0";
 const int ABSOLUTE_MIN_WIDTH = 68;
 bool visualizerEnabled = true;
 bool coverEnabled = true;
@@ -597,8 +597,6 @@ int showKeyBindings(SongData *songdata, AppSettings *settings)
         printf(" - %s to update the library.\n", settings->updateLibrary);
         printBlankSpaces(indent);
         printf(" - %s to show/hide the spectrum visualizer.\n", settings->toggleVisualizer);
-        printBlankSpaces(indent);
-        printf(" - %s to show/hide album covers.\n", settings->toggleCovers);
         printBlankSpaces(indent);
         printf(" - %s to toggle album covers drawn in ascii.\n", settings->toggleAscii);
         printBlankSpaces(indent);

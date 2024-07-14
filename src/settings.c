@@ -46,8 +46,7 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         strncpy(settings.scrollUpAlt, "k", sizeof(settings.scrollUpAlt));
         strncpy(settings.scrollDownAlt, "j", sizeof(settings.scrollDownAlt));
         strncpy(settings.toggleColorsDerivedFrom, "i", sizeof(settings.toggleColorsDerivedFrom));
-        strncpy(settings.toggleVisualizer, "v", sizeof(settings.toggleVisualizer));
-        strncpy(settings.toggleCovers, "c", sizeof(settings.toggleCovers));
+        strncpy(settings.toggleVisualizer, "v", sizeof(settings.toggleVisualizer));        
         strncpy(settings.toggleAscii, "b", sizeof(settings.toggleAscii));
         strncpy(settings.toggleRepeat, "r", sizeof(settings.toggleRepeat));
         strncpy(settings.toggleShuffle, "s", sizeof(settings.toggleShuffle));
@@ -167,10 +166,6 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
                 else if (strcmp(stringToLower(pair->key), "togglevisualizer") == 0)
                 {
                         snprintf(settings.toggleVisualizer, sizeof(settings.toggleVisualizer), "%s", pair->value);
-                }
-                else if (strcmp(stringToLower(pair->key), "togglecovers") == 0)
-                {
-                        snprintf(settings.toggleCovers, sizeof(settings.toggleCovers), "%s", pair->value);
                 }
                 else if (strcmp(stringToLower(pair->key), "toggleascii") == 0)
                 {
@@ -489,7 +484,6 @@ void setConfig(AppSettings *settings)
         fprintf(file, "togglePause=%s\n", settings->togglePause);
         fprintf(file, "toggleColorsDerivedFrom=%s\n", settings->toggleColorsDerivedFrom);
         fprintf(file, "toggleVisualizer=%s\n", settings->toggleVisualizer);
-        fprintf(file, "toggleCovers=%s\n", settings->toggleCovers);
         fprintf(file, "toggleAscii=%s\n", settings->toggleAscii);
         fprintf(file, "toggleRepeat=%s\n", settings->toggleRepeat);
         fprintf(file, "toggleShuffle=%s\n", settings->toggleShuffle);
