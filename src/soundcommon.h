@@ -127,7 +127,6 @@ typedef struct
         char togglePause[6];
         char toggleColorsDerivedFrom[6];
         char toggleVisualizer[6];
-        char toggleCovers[6];
         char toggleAscii[6];
         char toggleRepeat[6];
         char toggleShuffle[6];
