@@ -112,17 +112,7 @@ A sixel (or equivalent) capable terminal is recommended, like Konsole or kitty, 
 For a complete list of capable terminals, see this page: [Sixels in Terminal](https://www.arewesixelyet.com/).
 
 #### LibNotify is (should be) optional
-By default, the build system will automatically detect if `libnotify` is available and include it if found. You can also manually control this behavior, by running:
-
-```bash
-make USE_LIBNOTIFY=0 
-```
-
-or 
-
-```bash
-make USE_LIBNOTIFY=1.
-```
+By default, the build system will automatically detect if `libnotify` is available and include it and enable notifications if found. 
 
 ### Uninstalling
 
@@ -152,7 +142,7 @@ kew returns the first directory or file whose name matches the string you provid
 #### Some Examples:
 
  ```
-kew (starting kew with no arguments opens the library view where can choose what to play)
+kew (starting kew with no arguments opens the library view where you can choose what to play)
 
 kew all (plays all songs, up to 20 000, in your library, shuffled)
 
@@ -193,9 +183,9 @@ kew . loads kew.m3u
 Put single-quotes inside quotes "guns n' roses"
 
 #### Key Bindings
-* Use <kbd>+</kbd>, <kbd>-</kbd> keys to adjust the volume.
+* Use <kbd>+</kbd> (or <kbd>=</kbd>), <kbd>-</kbd> keys to adjust the volume.
 * Use <kbd>←</kbd>, <kbd>→</kbd> or <kbd>h</kbd>, <kbd>l</kbd> keys to switch tracks.
-* <kbd>Space</kbd>, <kbd>P</kbd> to toggle pause.
+* <kbd>Space</kbd>, <kbd>p</kbd> to toggle pause.
 * <kbd>F2</kbd> to show/hide the playlist and information about kew.
 * <kbd>F3</kbd> to show/hide the library.
 * <kbd>F4</kbd> to show/hide the track view.
@@ -203,7 +193,6 @@ Put single-quotes inside quotes "guns n' roses"
 * <kbd>F6</kbd> to show/hide key bindings.
 * <kbd>u</kbd> to update the library.
 * <kbd>v</kbd> to toggle the spectrum visualizer.
-* <kbd>c</kbd> to toggle album covers.
 * <kbd>i</kbd> to switch between using your regular color scheme or colors derived from the track cover.
 * <kbd>b</kbd> to toggle album covers drawn in ascii or as a normal image.
 * <kbd>r</kbd> to repeat the current song.
