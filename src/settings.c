@@ -33,7 +33,7 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         strncpy(settings.allowNotifications, "1", sizeof(settings.allowNotifications));
         strncpy(settings.coverAnsi, "0", sizeof(settings.coverAnsi));
         strncpy(settings.visualizerEnabled, "1", sizeof(settings.visualizerEnabled));
-        strncpy(settings.useProfileColors, "1", sizeof(settings.useProfileColors));
+        strncpy(settings.useProfileColors, "0", sizeof(settings.useProfileColors));
         strncpy(settings.hideLogo, "0", sizeof(settings.hideLogo));
         strncpy(settings.hideHelp, "0", sizeof(settings.hideHelp));
         strncpy(settings.cacheLibrary, "-1", sizeof(settings.cacheLibrary));
@@ -338,6 +338,15 @@ void getConfig(AppSettings *settings)
         int pair_count;
         char *configdir = getConfigPath();
         char *filepath = NULL;
+
+        // Create the directory if it doesn't exist
+        struct stat st = {0};
+        if (stat(configdir, &st) == -1) {
+            if (mkdir(configdir, 0700) != 0) {
+                perror("mkdir");
+                exit(EXIT_FAILURE);
+            }
+        }        
 
         size_t filepath_length = strlen(configdir) + strlen("/") + strlen(SETTINGS_FILE) + 1;
         filepath = (char *)malloc(filepath_length);
