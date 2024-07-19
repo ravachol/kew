@@ -9,7 +9,7 @@ int enqueuedColor = 6;
 PixelData color = {125, 125, 125};
 unsigned char defaultColor = 150;
 
-bool useProfileColors = true;
+bool useProfileColors = false;
 
 void setTextColorRGB2(int r, int g, int b)
 {
