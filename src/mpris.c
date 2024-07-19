@@ -959,12 +959,9 @@ void initMpris()
 
         const char *app_name = "org.mpris.MediaPlayer2.kew";
        
-        char unique_name[256];
-        snprintf(unique_name, sizeof(unique_name), "%s%d", app_name, getpid());
-
         GError *error = NULL;
         bus_name_id = g_bus_own_name_on_connection(connection,
-                                                   unique_name,
+                                                   app_name,
                                                    G_BUS_NAME_OWNER_FLAGS_NONE,
                                                    on_bus_name_acquired,
                                                    on_bus_name_lost,
@@ -973,7 +970,7 @@ void initMpris()
 
         if (bus_name_id == 0)
         {
-                printf("Failed to own D-Bus name: %s\n", unique_name);
+                printf("Failed to own D-Bus name: %s\n", app_name);
                 exit(0);
         }
 
