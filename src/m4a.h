@@ -320,16 +320,17 @@ MA_API ma_result m4a_decoder_init_file(const char *pFilePath, const ma_decoding_
                 avformat_close_input(&format_context);
                 return MA_ERROR;
         }
-        
+
         int stream_index;
-        
-    #if LIBAVFORMAT_VERSION_MAJOR < 7
-        AVCodec *decoder = NULL;
-        stream_index = av_find_best_stream(format_context, AVMEDIA_TYPE_AUDIO, -1, -1, &decoder, 0);
-    #else
+
+#if LIBAVFORMAT_VERSION_MAJOR >= 58
         const AVCodec *decoder = NULL;
         stream_index = av_find_best_stream(format_context, AVMEDIA_TYPE_AUDIO, -1, -1, &decoder, 0);
-    #endif
+#else
+        AVCodec *decoder = NULL;
+        stream_index = av_find_best_stream(format_context, AVMEDIA_TYPE_AUDIO, -1, -1, &decoder, 0);
+
+#endif
 
         if (stream_index < 0)
         {
