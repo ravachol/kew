@@ -323,7 +323,7 @@ MA_API ma_result m4a_decoder_init_file(const char *pFilePath, const ma_decoding_
         
         int stream_index;
         
-    #if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(58, 0, 0)
+    #if LIBAVFORMAT_VERSION_MAJOR < 7
         AVCodec *decoder = NULL;
         stream_index = av_find_best_stream(format_context, AVMEDIA_TYPE_AUDIO, -1, -1, &decoder, 0);
     #else
