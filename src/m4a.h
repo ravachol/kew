@@ -322,7 +322,17 @@ MA_API ma_result m4a_decoder_init_file(const char *pFilePath, const ma_decoding_
         }
 
         const AVCodec *decoder = NULL;
+
+#if LIBAVFORMAT_VERSION_MAJOR < 58
+        // For older versions of FFmpeg that expect AVCodec **
+        AVCodec *decoder = NULL;
         int stream_index = av_find_best_stream(format_context, AVMEDIA_TYPE_AUDIO, -1, -1, &decoder, 0);
+#else
+        // For newer versions of FFmpeg that expect const AVCodec **
+        const AVCodec *decoder = NULL;
+        int stream_index = av_find_best_stream(format_context, AVMEDIA_TYPE_AUDIO, -1, -1, (AVCodec **)&decoder, 0);
+#endif
+
         if (stream_index < 0)
         {
                 avformat_close_input(&format_context);
