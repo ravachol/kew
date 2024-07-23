@@ -31,8 +31,15 @@ kew (/kjuː/) is a command-line music player for Linux.
 If you have apt in your system use:
 
 ```bash
-$ sudo apt install kew
+$ apt install kew
 ```
+
+On Ubuntu, you might need to do this first:
+
+```bash
+$ sudo add-apt-repository universe
+```
+
 
 ### Installing via AUR
 
@@ -56,17 +63,7 @@ For [Homebrew](https://brew.sh/) user, you can install [kew](https://formulae.br
 $ brew install kew
 ```
 
-### Installing with quick install script
-
-To quickly install kew, just copy and paste this to your terminal (if you have curl installed):
-
-```bash
-sudo bash -c "curl https://raw.githubusercontent.com/ravachol/kew/main/install.sh | bash"
-```
-
-Please note that this script might do a system update before installing kew.
-
-### Building the project
+### Building the project manually
 
 kew dependencies are:
 
