@@ -30,14 +30,10 @@ kew (/kjuː/) is a command-line music player for Linux.
 
 If you have apt in your system use:
 
+Note: it's available from Ubuntu 24.04.
+
 ```bash
 $ apt install kew
-```
-
-On Ubuntu, you might need to do this first:
-
-```bash
-$ sudo add-apt-repository universe
 ```
 
 
