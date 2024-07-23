@@ -28,9 +28,7 @@ kew (/kjuː/) is a command-line music player for Linux.
 
 ### Installing in Debian, Ubuntu
 
-If you have apt in your system use:
-
-Note: it's available from Ubuntu 24.04.
+It's available from Ubuntu 24.04, Debian 13.
 
 ```bash
 $ apt install kew
