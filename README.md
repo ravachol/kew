@@ -57,6 +57,16 @@ For [Homebrew](https://brew.sh/) user, you can install [kew](https://formulae.br
 $ brew install kew
 ```
 
+### Installing with quick install script
+
+To quickly install kew, just copy and paste this to your terminal (if you have curl installed):
+
+```bash
+sudo bash -c "curl https://raw.githubusercontent.com/ravachol/kew/main/install.sh | bash"
+```
+
+Please note that this script might do a system update before installing kew.
+
 ### Building the project manually
 
 kew dependencies are:

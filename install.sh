@@ -17,7 +17,7 @@ echo "Installing missing dependencies"
 if command -v apt &>/dev/null; then
     apt install -y pkg-config ffmpeg libfftw3-dev libopus-dev libopusfile-dev libvorbis-dev git gcc make libchafa-dev libfreeimage-dev libavformat-dev libglib2.0-dev libnotify-dev
 elif command -v dnf &>/dev/null; then
-    dnf install -y pkg-config ffmpeg-free-devel fftw-devel opus-devel opusfile-devel libvorbis-devel git gcc make chafa-devel freeimage-devel libavformat-free-devel glib2-devel libnotify-devel
+    dnf install -y pkg-config ffmpeg-free-devel fftw-devel opus-devel opusfile-devel libvorbis-devel git gcc make chafa-devel freeimage-devel libavformat-free-devel glib2-devel libnotify-devel libatomic
 elif command -v yum &>/dev/null; then
     yum install -y pkgconfig ffmpeg fftw-devel opus-devel opusfile-devel libvorbis-devel git gcc make chafa-devel libfreeimage-devel libavformat-devel glib2-devel libnotify-devel
 elif command -v pacman &>/dev/null; then
