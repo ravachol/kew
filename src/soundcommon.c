@@ -1212,26 +1212,82 @@ int getCurrentVolume()
         return soundVolume;
 }
 
+int extractPercentage(char *str)
+{
+        int volume = -1;
+        char *percentSign = strchr(str, '%');
+        if (percentSign != NULL)
+        {
+                // Find the start of the number before the '%'
+                while (percentSign > str && *(percentSign - 1) == ' ')
+                        percentSign--;
+                while (percentSign > str && *(percentSign - 1) >= '0' && *(percentSign - 1) <= '9')
+                        percentSign--;
+
+                volume = atoi(percentSign);
+        }
+        return volume;
+}
+
 int getSystemVolume()
 {
         FILE *fp;
         char command_str[1000];
-        char buf[100];
+        char buf[256];
         int currentVolume = -1;
 
-        // Build the command string
+        // Get the default sink's name
         snprintf(command_str, sizeof(command_str),
-                 "pactl get-sink-volume @DEFAULT_SINK@ | awk 'NR==1{print $5}'");
+                 "pactl info | grep 'Default Sink' | awk '{print $3}'");
 
-        // Execute the command and read the output
         fp = popen(command_str, "r");
         if (fp != NULL)
         {
                 if (fgets(buf, sizeof(buf), fp) != NULL)
                 {
-                        sscanf(buf, "%d", &currentVolume);
+                        buf[strcspn(buf, "\n")] = '\0';
+
+                        snprintf(command_str, sizeof(command_str),
+                                 "pactl get-sink-volume %s", buf);
+
+                        FILE *volume_fp = popen(command_str, "r");
+                        if (volume_fp != NULL)
+                        {
+                                while (fgets(buf, sizeof(buf), volume_fp) != NULL)
+                                {
+                                        int tempVolume = extractPercentage(buf);
+                                        if (tempVolume != -1)
+                                        {
+                                                currentVolume = tempVolume;
+                                                break;
+                                        }
+                                }
+                                pclose(volume_fp);
+                        }
                 }
                 pclose(fp);
+        }
+
+        // ALSA
+        if (currentVolume == -1)
+        {
+                snprintf(command_str, sizeof(command_str),
+                         "amixer get Master");
+
+                fp = popen(command_str, "r");
+                if (fp != NULL)
+                {
+                        while (fgets(buf, sizeof(buf), fp) != NULL)
+                        {
+                                int tempVolume = extractPercentage(buf);
+                                if (tempVolume != -1)
+                                {
+                                        currentVolume = tempVolume;
+                                        break;
+                                }
+                        }
+                        pclose(fp);
+                }
         }
 
         return currentVolume;
