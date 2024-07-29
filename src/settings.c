@@ -437,7 +437,11 @@ void setConfig(AppSettings *settings)
                 hideHelp ? c_strcpy(settings->hideHelp, sizeof(settings->hideHelp), "1") : c_strcpy(settings->hideHelp, sizeof(settings->hideHelp), "0");
 
         sprintf(settings->cacheLibrary, "%d", cacheLibrary);
-        sprintf(settings->lastVolume, "%d", getCurrentVolume());
+
+        int currentVolume = getCurrentVolume();
+        currentVolume = (currentVolume <= 0)  ? 10 : currentVolume;
+
+        sprintf(settings->lastVolume, "%d", currentVolume);
 
         // Null-terminate the character arrays
         settings->path[MAXPATHLEN - 1] = '\0';
