@@ -27,7 +27,7 @@ elif command -v zypper &>/dev/null; then
 elif command -v eopkg &>/dev/null; then
     eopkg install -y pkg-config ffmpeg fftw-devel opus-devel opusfile-devel libvorbis-devel git gcc make chafa-devel libfreeimage-devel libavformat-devel libnotify-devel
 elif command -v guix &>/dev/null; then
-    guix install pkg-config ffmpeg fftw git gcc make chafa libfreeimage libavformat opus opusfile libvorbis libnotify
+    guix install pkg-config ffmpeg fftw git gcc make chafa freeimage libavformat opus opusfile libvorbis libnotify
 elif command -v xbps-install &>/dev/null; then
     xbps-install -y pkg-config ffmpeg fftw git gcc make chafa libfreeimage libavformat opus opusfile libvorbis libnotify-devel
 else
