@@ -10,11 +10,11 @@ ifeq ($(origin USE_LIBNOTIFY), undefined)
   endif
 endif
 
-CFLAGS = -I/usr/include -I/usr/include/ogg -I/usr/include/opus -I/usr/include/stb -Iinclude/imgtotxt/ext -Iinclude/imgtotxt -I/usr/include/ffmpeg -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -Iinclude/miniaudio -I/usr/include/gdk-pixbuf-2.0 -O1 $(shell $(PKG_CONFIG) --cflags libavcodec libavutil libavformat libswresample gio-2.0 chafa fftw3f opus opusfile vorbis)
+CFLAGS = -I/usr/include -I/usr/include/ogg -I/usr/include/opus -I/usr/include/stb -Iinclude/imgtotxt/ext -Iinclude/imgtotxt -I/usr/include/ffmpeg -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -Iinclude/miniaudio -I/usr/include/gdk-pixbuf-2.0 -g $(shell $(PKG_CONFIG) --cflags libavcodec libavutil libavformat libswresample gio-2.0 chafa fftw3f opus opusfile vorbis glib-2.0)
 CFLAGS += -fstack-protector-strong -Wformat -Werror=format-security -fPIE -fstack-protector -fstack-protector-strong -D_FORTIFY_SOURCE=2
 CFLAGS += -Wall -Wextra -Wpointer-arith
 
-LIBS = -L/usr/lib -lfreeimage -lpthread -lrt -pthread -lm -lglib-2.0 $(shell $(PKG_CONFIG) --libs libavcodec libavutil libavformat libswresample gio-2.0 chafa fftw3f opus opusfile vorbis vorbisfile)
+LIBS = -L/usr/lib -lfreeimage -lpthread -lrt -pthread -lm -lglib-2.0 $(shell $(PKG_CONFIG) --libs libavcodec libavutil libavformat libswresample gio-2.0 chafa fftw3f opus opusfile vorbis vorbisfile glib-2.0)
 LDFLAGS = -pie -Wl,-z,relro
 
 # Conditionally add libnotify if USE_LIBNOTIFY is enabled
