@@ -849,7 +849,7 @@ gboolean mainloop_callback(gpointer data)
         return TRUE;
 }
 
-static gboolean on_sigint(gpointer user_data)
+static gboolean quitOnSignal(gpointer user_data)
 {
         doQuit = true;
         GMainLoop *loop = (GMainLoop *)user_data;
@@ -892,8 +892,9 @@ void play(Node *song)
         clock_gettime(CLOCK_MONOTONIC, &start_time);
 
         main_loop = g_main_loop_new(NULL, FALSE);
-
-        g_unix_signal_add(SIGINT, on_sigint, main_loop);
+        
+        g_unix_signal_add(SIGINT, quitOnSignal, main_loop);
+        g_unix_signal_add(SIGHUP, quitOnSignal, main_loop);        
 
         if (song != NULL)
                 emitStartPlayingMpris();
