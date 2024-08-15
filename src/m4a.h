@@ -536,6 +536,13 @@ ma_result m4a_decoder_read_pcm_frames(m4a_decoder *pM4a, void *pFramesOut, ma_ui
                                                         for (ma_uint32 c = 0; c < channels; c++)
                                                         {
                                                                 int byteOffset = ((i - samplesToProcess) * channels + c) * pM4a->sampleSize;
+
+                                                                if (frame->extended_data[c] == NULL)
+                                                                {
+                                                                        printf("Error: No data found in M4A streams. M4A format support might be incomplete.\n");
+                                                                        return MA_ERROR;
+                                                                }
+
                                                                 memcpy(leftoverBuffer + byteOffset, (uint8_t *)frame->extended_data[c] + i * pM4a->sampleSize, pM4a->sampleSize);
                                                         }
                                                 }
