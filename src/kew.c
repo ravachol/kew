@@ -69,8 +69,6 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #define COOLDOWN_MS 500
 #define COOLDOWN2_MS 100
 
-#define PIDFILE "/tmp/kew.pid"
-
 FILE *logFile = NULL;
 struct winsize windowSize;
 static bool eventProcessed = false;
@@ -1159,52 +1157,57 @@ void handleOptions(int *argc, char *argv[])
                 removeArgElement(argv, idx, argc);
 }
 
+#define PIDFILE_TEMPLATE "/tmp/kew_%d.pid" // Template for user-specific PID file
+
 int isProcessRunning(pid_t pid)
 {
-        char proc_path[64];
-        snprintf(proc_path, sizeof(proc_path), "/proc/%d", pid);
-        struct stat statbuf;
-        return (stat(proc_path, &statbuf) == 0);
+    char proc_path[64];
+    snprintf(proc_path, sizeof(proc_path), "/proc/%d", pid);
+    struct stat statbuf;
+    return (stat(proc_path, &statbuf) == 0);
 }
 
-// Ensures only a single instance of kew can run at a time.
+// Ensures only a single instance of kew can run at a time for the current user.
 void exitIfAlreadyRunning()
 {
-        FILE *pidfile;
-        pid_t pid;
+    char pidfile_path[256];
+    snprintf(pidfile_path, sizeof(pidfile_path), PIDFILE_TEMPLATE, getuid());
 
-        pidfile = fopen(PIDFILE, "r");
-        if (pidfile != NULL)
-        {
-                if (fscanf(pidfile, "%d", &pid) == 1)
-                {
-                        fclose(pidfile);
-                        if (isProcessRunning(pid))
-                        {
-                                fprintf(stderr, "An instance of kew is already running.\n");
-                                exit(EXIT_FAILURE);
-                        }
-                        else
-                        {
-                                unlink(PIDFILE);
-                        }
-                }
-                else
-                {
-                        fclose(pidfile);
-                        unlink(PIDFILE);
-                }
-        }
+    FILE *pidfile;
+    pid_t pid;
 
-        // Create a new PID file
-        pidfile = fopen(PIDFILE, "w");
-        if (pidfile == NULL)
+    pidfile = fopen(pidfile_path, "r");
+    if (pidfile != NULL)
+    {
+        if (fscanf(pidfile, "%d", &pid) == 1)
         {
-                perror("Unable to create PID file");
+            fclose(pidfile);
+            if (isProcessRunning(pid))
+            {
+                fprintf(stderr, "An instance of kew is already running.\n");
                 exit(EXIT_FAILURE);
+            }
+            else
+            {
+                unlink(pidfile_path);
+            }
         }
-        fprintf(pidfile, "%d\n", getpid());
-        fclose(pidfile);
+        else
+        {
+            fclose(pidfile);
+            unlink(pidfile_path);
+        }
+    }
+
+    // Create a new PID file
+    pidfile = fopen(pidfile_path, "w");
+    if (pidfile == NULL)
+    {
+        perror("Unable to create PID file");
+        exit(EXIT_FAILURE);
+    }
+    fprintf(pidfile, "%d\n", getpid());
+    fclose(pidfile);
 }
 
 int main(int argc, char *argv[])
