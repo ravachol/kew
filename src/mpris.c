@@ -546,6 +546,9 @@ static gboolean get_volume(GDBusConnection *connection, const gchar *sender,
 
         Volume = (gdouble)getCurrentVolume();
 
+        if (Volume >= 1)
+                Volume = Volume / 100;
+
         *value = g_variant_new_double(Volume);
         return TRUE;
 }
@@ -1021,7 +1024,7 @@ void emitStartPlayingMpris()
                                       NULL);
 }
 
-gchar *sanitize_title(const gchar *title)
+gchar *sanitizeTitle(const gchar *title)
 {
         GString *sanitized = g_string_new(NULL);
 
@@ -1075,12 +1078,12 @@ void emitMetadataChanged(const gchar *title, const gchar *artist, const gchar *a
 
         gchar *coverArtUrl = NULL;
 
-        title = sanitize_title(title);
+        gchar *sanitizedTitle = sanitizeTitle(title);
 
         g_debug("Starting to build metadata.");
         GVariantBuilder metadata_builder;
         g_variant_builder_init(&metadata_builder, G_VARIANT_TYPE_DICTIONARY);
-        g_variant_builder_add(&metadata_builder, "{sv}", "xesam:title", g_variant_new_string(title));
+        g_variant_builder_add(&metadata_builder, "{sv}", "xesam:title", g_variant_new_string(sanitizedTitle));
 
         const gchar *artistList[2];
         if (artist)
@@ -1108,6 +1111,7 @@ void emitMetadataChanged(const gchar *title, const gchar *artist, const gchar *a
         g_variant_builder_add(&metadata_builder, "{sv}", "mpris:length", g_variant_new_int64(length));
 
         GVariant *metadata_variant = g_variant_builder_end(&metadata_builder);
+        
         if (!metadata_variant)
         {
                 g_warning("Failed to end metadata GVariantBuilder.");
@@ -1125,19 +1129,12 @@ void emitMetadataChanged(const gchar *title, const gchar *artist, const gchar *a
         g_debug("PropertiesChanged signal is ready to be emitted.");
 
         GError *error = NULL;
-        gboolean result = g_dbus_connection_emit_signal(connection, NULL, "/org/mpris/MediaPlayer2", "org.freedesktop.DBus.Properties", "PropertiesChanged",
-                                                        g_variant_new("(sa{sv}as)", "org.mpris.MediaPlayer2.Player", &changed_properties_builder, NULL), &error);
+        g_dbus_connection_emit_signal(connection, NULL, "/org/mpris/MediaPlayer2", "org.freedesktop.DBus.Properties", "PropertiesChanged",
+                                      g_variant_new("(sa{sv}as)", "org.mpris.MediaPlayer2.Player", &changed_properties_builder, NULL), &error);
 
-        if (!result)
-        {
-                g_critical("Failed to emit PropertiesChanged signal: %s", error->message);
-                g_error_free(error);
-        }
-        else
-        {
-                g_debug("PropertiesChanged signal emitted successfully.");
-        }
-
+        g_variant_builder_clear(&metadata_builder);
         g_variant_builder_clear(&changed_properties_builder);
+
+        g_free(sanitizedTitle);
         g_variant_unref(metadata_variant);
 }
