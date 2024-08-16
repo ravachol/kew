@@ -62,12 +62,14 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include "utils.h"
 #ifdef USE_LIBNOTIFY
 #include "libnotify/notify.h"
-#endif 
+#endif
 
 // #define DEBUG 1
 #define MAX_TMP_SEQ_LEN 256 // Maximum length of temporary sequence buffer
 #define COOLDOWN_MS 500
 #define COOLDOWN2_MS 100
+
+#define PIDFILE "/tmp/kew.pid"
 
 FILE *logFile = NULL;
 struct winsize windowSize;
@@ -208,10 +210,10 @@ struct Event processInput()
                                       {settings.hardScrollDown, EVENT_SCROLLNEXT},
                                       {settings.hardShowPlaylist, EVENT_SHOWPLAYLIST},
                                       {settings.hardShowPlaylistAlt, EVENT_SHOWPLAYLIST},
-                                      {settings.showPlaylistAlt, EVENT_SHOWPLAYLIST},                                      
+                                      {settings.showPlaylistAlt, EVENT_SHOWPLAYLIST},
                                       {settings.hardShowKeys, EVENT_SHOWKEYBINDINGS},
                                       {settings.hardShowKeysAlt, EVENT_SHOWKEYBINDINGS},
-                                      {settings.showKeysAlt, EVENT_SHOWKEYBINDINGS},                                      
+                                      {settings.showKeysAlt, EVENT_SHOWKEYBINDINGS},
                                       {settings.hardEndOfPlaylist, EVENT_GOTOENDOFPLAYLIST},
                                       {settings.hardShowTrack, EVENT_SHOWTRACK},
                                       {settings.hardShowTrackAlt, EVENT_SHOWTRACK},
@@ -219,7 +221,7 @@ struct Event processInput()
                                       {settings.hardShowLibrary, EVENT_SHOWLIBRARY},
                                       {settings.hardShowLibraryAlt, EVENT_SHOWLIBRARY},
                                       {settings.showLibraryAlt, EVENT_SHOWLIBRARY},
-                                      {settings.hardShowSearch, EVENT_SHOWSEARCH},                                      
+                                      {settings.hardShowSearch, EVENT_SHOWSEARCH},
                                       {settings.hardShowSearchAlt, EVENT_SHOWSEARCH},
                                       {settings.showSearchAlt, EVENT_SHOWSEARCH},
                                       {settings.hardNextPage, EVENT_NEXTPAGE},
@@ -803,20 +805,20 @@ gboolean mainloop_callback(gpointer data)
         (void)data;
 
         calcElapsedTime();
-        
-        handleInput();        
+
+        handleInput();
 
         updateCounter++;
-        
+
         // Update every other time or if searching (search needs to update often to detect keypresses)
-        if (updateCounter % 2 == 0 || appState.currentView == SEARCH_VIEW) 
+        if (updateCounter % 2 == 0 || appState.currentView == SEARCH_VIEW)
         {
                 // Process GDBus events in the global_main_context
                 while (g_main_context_pending(global_main_context))
                 {
                         g_main_context_iteration(global_main_context, FALSE);
                 }
-                
+
                 updatePlayer();
 
                 if (playlist.head != NULL)
@@ -892,9 +894,9 @@ void play(Node *song)
         clock_gettime(CLOCK_MONOTONIC, &start_time);
 
         main_loop = g_main_loop_new(NULL, FALSE);
-        
+
         g_unix_signal_add(SIGINT, quitOnSignal, main_loop);
-        g_unix_signal_add(SIGHUP, quitOnSignal, main_loop);        
+        g_unix_signal_add(SIGHUP, quitOnSignal, main_loop);
 
         if (song != NULL)
                 emitStartPlayingMpris();
@@ -1017,9 +1019,9 @@ void init()
         createLibrary(&settings);
         setlocale(LC_ALL, "");
         fflush(stdout);
-        #ifdef USE_LIBNOTIFY
+#ifdef USE_LIBNOTIFY
         notify_init("kew");
-        #endif
+#endif
 
 #ifdef DEBUG
         g_setenv("G_MESSAGES_DEBUG", "all", TRUE);
@@ -1065,7 +1067,7 @@ void playAll()
         if (playlist.count == 0)
         {
                 exit(0);
-        }       
+        }
         shufflePlaylist(&playlist);
         run();
 }
@@ -1077,10 +1079,9 @@ void playAllAlbums()
         if (playlist.count == 0)
         {
                 exit(0);
-        }      
-        run();    
+        }
+        run();
 }
-
 
 void removeArgElement(char *argv[], int index, int *argc)
 {
@@ -1158,8 +1159,58 @@ void handleOptions(int *argc, char *argv[])
                 removeArgElement(argv, idx, argc);
 }
 
+int isProcessRunning(pid_t pid)
+{
+        char proc_path[64];
+        snprintf(proc_path, sizeof(proc_path), "/proc/%d", pid);
+        struct stat statbuf;
+        return (stat(proc_path, &statbuf) == 0);
+}
+
+// Ensures only a single instance of kew can run at a time.
+void exitIfAlreadyRunning()
+{
+        FILE *pidfile;
+        pid_t pid;
+
+        pidfile = fopen(PIDFILE, "r");
+        if (pidfile != NULL)
+        {
+                if (fscanf(pidfile, "%d", &pid) == 1)
+                {
+                        fclose(pidfile);
+                        if (isProcessRunning(pid))
+                        {
+                                fprintf(stderr, "An instance of kew is already running.\n");
+                                exit(EXIT_FAILURE);
+                        }
+                        else
+                        {
+                                unlink(PIDFILE);
+                        }
+                }
+                else
+                {
+                        fclose(pidfile);
+                        unlink(PIDFILE);
+                }
+        }
+
+        // Create a new PID file
+        pidfile = fopen(PIDFILE, "w");
+        if (pidfile == NULL)
+        {
+                perror("Unable to create PID file");
+                exit(EXIT_FAILURE);
+        }
+        fprintf(pidfile, "%d\n", getpid());
+        fclose(pidfile);
+}
+
 int main(int argc, char *argv[])
 {
+        exitIfAlreadyRunning();
+
         if ((argc == 2 && ((strcmp(argv[1], "--help") == 0) || (strcmp(argv[1], "-h") == 0) || (strcmp(argv[1], "-?") == 0))))
         {
                 showHelp();
