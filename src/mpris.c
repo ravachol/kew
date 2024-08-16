@@ -1111,7 +1111,7 @@ void emitMetadataChanged(const gchar *title, const gchar *artist, const gchar *a
         g_variant_builder_add(&metadata_builder, "{sv}", "mpris:length", g_variant_new_int64(length));
 
         GVariant *metadata_variant = g_variant_builder_end(&metadata_builder);
-        
+
         if (!metadata_variant)
         {
                 g_warning("Failed to end metadata GVariantBuilder.");
@@ -1129,8 +1129,18 @@ void emitMetadataChanged(const gchar *title, const gchar *artist, const gchar *a
         g_debug("PropertiesChanged signal is ready to be emitted.");
 
         GError *error = NULL;
-        g_dbus_connection_emit_signal(connection, NULL, "/org/mpris/MediaPlayer2", "org.freedesktop.DBus.Properties", "PropertiesChanged",
+        gboolean result = g_dbus_connection_emit_signal(connection, NULL, "/org/mpris/MediaPlayer2", "org.freedesktop.DBus.Properties", "PropertiesChanged",
                                       g_variant_new("(sa{sv}as)", "org.mpris.MediaPlayer2.Player", &changed_properties_builder, NULL), &error);
+
+        if (!result)
+        {
+                g_critical("Failed to emit PropertiesChanged signal: %s", error->message);
+                g_error_free(error);
+        }
+        else
+        {
+                g_debug("PropertiesChanged signal emitted successfully.");
+        }
 
         g_variant_builder_clear(&metadata_builder);
         g_variant_builder_clear(&changed_properties_builder);
