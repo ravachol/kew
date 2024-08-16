@@ -287,8 +287,8 @@ static void handle_seek(GDBusConnection *connection, const gchar *sender,
         (void)interface_name;
         (void)method_name;
         (void)parameters;
-        (void)invocation;        
-        (void)user_data;        
+        (void)invocation;
+        (void)user_data;
 }
 
 static void handle_set_position(GDBusConnection *connection, const gchar *sender,
@@ -303,7 +303,7 @@ static void handle_set_position(GDBusConnection *connection, const gchar *sender
         (void)method_name;
         (void)parameters;
         (void)invocation;
-        (void)user_data;   
+        (void)user_data;
 }
 
 static void handle_method_call(GDBusConnection *connection, const gchar *sender,
@@ -369,13 +369,11 @@ static void handle_method_call(GDBusConnection *connection, const gchar *sender,
         }
 }
 
-
 static void on_bus_name_acquired(GDBusConnection *connection, const gchar *name, gpointer user_data)
 {
         (void)connection;
         (void)name;
         (void)user_data;
-
 }
 
 static void on_bus_name_lost(GDBusConnection *connection, const gchar *name, gpointer user_data)
@@ -544,7 +542,7 @@ static gboolean get_volume(GDBusConnection *connection, const gchar *sender,
         (void)interface_name;
         (void)property_name;
         (void)error;
-        (void)user_data;        
+        (void)user_data;
 
         Volume = (gdouble)getCurrentVolume();
 
@@ -637,7 +635,7 @@ static gboolean get_can_go_previous(GDBusConnection *connection, const gchar *se
         (void)interface_name;
         (void)property_name;
         (void)error;
-        (void)user_data;        
+        (void)user_data;
 
         CanGoPrevious = (currentSong == NULL || currentSong->prev != NULL) ? TRUE : FALSE;
 
@@ -816,7 +814,7 @@ static gboolean set_property_callback(GDBusConnection *connection, const gchar *
         (void)object_path;
         (void)interface_name;
         (void)property_name;
-        (void)user_data;        
+        (void)user_data;
 
         if (g_strcmp0(interface_name, "org.mpris.MediaPlayer2.Player") == 0)
         {
@@ -958,7 +956,7 @@ void initMpris()
         }
 
         const char *app_name = "org.mpris.MediaPlayer2.kew";
-       
+
         GError *error = NULL;
         bus_name_id = g_bus_own_name_on_connection(connection,
                                                    app_name,
@@ -1023,43 +1021,86 @@ void emitStartPlayingMpris()
                                       NULL);
 }
 
+static guint64 last_emit_time = 0;
+
 void emitMetadataChanged(const gchar *title, const gchar *artist, const gchar *album, const gchar *coverArtPath, const gchar *trackId, Node *currentSong, gint64 length)
 {
-        gchar *coverArtUrl = g_strdup_printf("file://%s", coverArtPath);
+    guint64 current_time = g_get_monotonic_time();
+    if (current_time - last_emit_time < 500000) // 0.5 seconds
+    {
+        g_debug("Debounced signal emission.");
+        return;
+    }
 
-        GVariantBuilder metadata_builder;
-        g_variant_builder_init(&metadata_builder, G_VARIANT_TYPE_DICTIONARY);
-        g_variant_builder_add(&metadata_builder, "{sv}", "xesam:title", g_variant_new_string(title));
+    last_emit_time = current_time;
 
-        const gchar *artistList[2];
-        if (artist)
-        {
-                artistList[0] = artist;
-                artistList[1] = NULL;
-        }
-        else
-        {
-                artistList[0] = "";
-                artistList[1] = NULL;
-        }
+    if (!title || !album || !trackId)
+    {
+        g_warning("Invalid metadata: title, album, or trackId is NULL.");
+        return;
+    }
 
-        g_variant_builder_add(&metadata_builder, "{sv}", "xesam:artist", g_variant_new_strv(artistList, -1));
-        g_variant_builder_add(&metadata_builder, "{sv}", "xesam:album", g_variant_new_string(album));
+    gchar *coverArtUrl = NULL;
+
+    g_debug("Starting to build metadata.");
+    GVariantBuilder metadata_builder;
+    g_variant_builder_init(&metadata_builder, G_VARIANT_TYPE_DICTIONARY);
+    g_variant_builder_add(&metadata_builder, "{sv}", "xesam:title", g_variant_new_string(title));
+
+    const gchar *artistList[2];
+    if (artist)
+    {
+        artistList[0] = artist;
+        artistList[1] = NULL;
+    }
+    else
+    {
+        artistList[0] = "";
+        artistList[1] = NULL;
+    }
+    g_variant_builder_add(&metadata_builder, "{sv}", "xesam:artist", g_variant_new_strv(artistList, -1));
+    g_variant_builder_add(&metadata_builder, "{sv}", "xesam:album", g_variant_new_string(album));
+
+    if (coverArtPath && *coverArtPath != '\0')
+    {
+        coverArtUrl = g_strdup_printf("file://%s", coverArtPath);
         g_variant_builder_add(&metadata_builder, "{sv}", "mpris:artUrl", g_variant_new_string(coverArtUrl));
-        g_variant_builder_add(&metadata_builder, "{sv}", "mpris:trackid", g_variant_new_object_path(trackId));
-        g_variant_builder_add(&metadata_builder, "{sv}", "mpris:length", g_variant_new_int64(length));
-
-        GVariantBuilder changed_properties_builder;
-        g_variant_builder_init(&changed_properties_builder, G_VARIANT_TYPE("a{sv}"));
-        g_variant_builder_add(&changed_properties_builder, "{sv}", "Metadata", g_variant_builder_end(&metadata_builder));
-        g_variant_builder_add(&changed_properties_builder, "{sv}", "CanGoPrevious", g_variant_new_boolean((currentSong != NULL && currentSong->prev != NULL)));
-        g_variant_builder_add(&changed_properties_builder, "{sv}", "CanGoNext", g_variant_new_boolean((currentSong != NULL && currentSong->next != NULL)));
-
-        g_dbus_connection_emit_signal(connection, NULL, "/org/mpris/MediaPlayer2", "org.freedesktop.DBus.Properties", "PropertiesChanged",
-                                      g_variant_new("(sa{sv}as)", "org.mpris.MediaPlayer2.Player", &changed_properties_builder, NULL), NULL);
-
-        g_variant_builder_clear(&metadata_builder);
-        g_variant_builder_clear(&changed_properties_builder);
-
+        g_debug("Cover art URL added: %s", coverArtUrl);
         g_free(coverArtUrl);
+    }
+
+    g_variant_builder_add(&metadata_builder, "{sv}", "mpris:trackid", g_variant_new_object_path(trackId));
+    g_variant_builder_add(&metadata_builder, "{sv}", "mpris:length", g_variant_new_int64(length));
+
+    GVariant *metadata_variant = g_variant_builder_end(&metadata_builder);
+    if (!metadata_variant)
+    {
+        g_warning("Failed to end metadata GVariantBuilder.");
+        return;
+    }
+
+    g_debug("Metadata built successfully.");
+
+    GVariantBuilder changed_properties_builder;
+    g_variant_builder_init(&changed_properties_builder, G_VARIANT_TYPE("a{sv}"));
+    g_variant_builder_add(&changed_properties_builder, "{sv}", "Metadata", metadata_variant);
+    g_variant_builder_add(&changed_properties_builder, "{sv}", "CanGoPrevious", g_variant_new_boolean((currentSong != NULL && currentSong->prev != NULL)));
+    g_variant_builder_add(&changed_properties_builder, "{sv}", "CanGoNext", g_variant_new_boolean((currentSong != NULL && currentSong->next != NULL)));
+
+    g_debug("PropertiesChanged signal is ready to be emitted.");
+
+    gboolean result = g_dbus_connection_emit_signal(connection, NULL, "/org/mpris/MediaPlayer2", "org.freedesktop.DBus.Properties", "PropertiesChanged",
+                                                    g_variant_new("(sa{sv}as)", "org.mpris.MediaPlayer2.Player", &changed_properties_builder, NULL), NULL);
+
+            if (!result)
+    {
+       g_debug("Failed to emit PropertiesChanged signal");
+    }
+    else
+    {
+        g_debug("PropertiesChanged signal emitted successfully.");
+    }
+
+    g_variant_builder_clear(&changed_properties_builder);
+    g_variant_unref(metadata_variant);
 }
