@@ -1021,6 +1021,39 @@ void emitStartPlayingMpris()
                                       NULL);
 }
 
+gchar* sanitize_title(const gchar *title)
+{
+    GString *sanitized = g_string_new(NULL);
+
+    for (const gchar *p = title; *p != '\0'; p++)
+    {
+        switch (*p)
+        {
+            case '_':
+            case '/':
+            case '\\':
+            case ':':
+            case '*':
+            case '"':
+            case '<':
+            case '>':
+            case '|':
+            case '&':
+            case '`':
+            case '%':
+            case '!':
+            case '@':
+                g_string_append_c(sanitized, '-');
+                break;
+            default:
+                g_string_append_c(sanitized, *p);
+                break;
+        }
+    }
+
+    return g_string_free(sanitized, FALSE);
+}
+
 static guint64 last_emit_time = 0;
 
 void emitMetadataChanged(const gchar *title, const gchar *artist, const gchar *album, const gchar *coverArtPath, const gchar *trackId, Node *currentSong, gint64 length)
@@ -1041,6 +1074,8 @@ void emitMetadataChanged(const gchar *title, const gchar *artist, const gchar *a
     }
 
     gchar *coverArtUrl = NULL;
+
+    title = sanitize_title(title);
 
     g_debug("Starting to build metadata.");
     GVariantBuilder metadata_builder;
