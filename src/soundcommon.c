@@ -16,7 +16,7 @@ bool shuffleEnabled = false;
 bool skipToNext = false;
 bool seekRequested = false;
 bool paused = false;
-bool stopped = false;
+bool stopped = true;
 float seekPercent = 0.0;
 double seekElapsed;
 _Atomic bool EOFReached = false;
@@ -1179,7 +1179,6 @@ char *ensureNonEmpty(char *str)
 {
         if (str == NULL || str[0] == '\0')
         {
-
                 if (str)
                 {
                         free(str);
