@@ -298,7 +298,7 @@ void printSpectrum(int height, int width, float *magnitudes, PixelData color, in
                 {
                         setDefaultTextColor();
                 }
-                if (isPaused())
+                if (isPaused() || isStopped())
                 {
                         for (int i = 0; i < width; i++)
                         {
