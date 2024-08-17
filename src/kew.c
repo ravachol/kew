@@ -874,6 +874,10 @@ void play(Node *song)
                 {
                         res = createAudioDevice(&userData);
                 }
+                if (res >= 0)
+                {
+                        resumePlayback();
+                }
 
                 if (res < 0)
                         setEndOfListReached();
@@ -1161,53 +1165,53 @@ void handleOptions(int *argc, char *argv[])
 
 int isProcessRunning(pid_t pid)
 {
-    char proc_path[64];
-    snprintf(proc_path, sizeof(proc_path), "/proc/%d", pid);
-    struct stat statbuf;
-    return (stat(proc_path, &statbuf) == 0);
+        char proc_path[64];
+        snprintf(proc_path, sizeof(proc_path), "/proc/%d", pid);
+        struct stat statbuf;
+        return (stat(proc_path, &statbuf) == 0);
 }
 
 // Ensures only a single instance of kew can run at a time for the current user.
 void exitIfAlreadyRunning()
 {
-    char pidfile_path[256];
-    snprintf(pidfile_path, sizeof(pidfile_path), PIDFILE_TEMPLATE, getuid());
+        char pidfile_path[256];
+        snprintf(pidfile_path, sizeof(pidfile_path), PIDFILE_TEMPLATE, getuid());
 
-    FILE *pidfile;
-    pid_t pid;
+        FILE *pidfile;
+        pid_t pid;
 
-    pidfile = fopen(pidfile_path, "r");
-    if (pidfile != NULL)
-    {
-        if (fscanf(pidfile, "%d", &pid) == 1)
+        pidfile = fopen(pidfile_path, "r");
+        if (pidfile != NULL)
         {
-            fclose(pidfile);
-            if (isProcessRunning(pid))
-            {
-                fprintf(stderr, "An instance of kew is already running.\n");
+                if (fscanf(pidfile, "%d", &pid) == 1)
+                {
+                        fclose(pidfile);
+                        if (isProcessRunning(pid))
+                        {
+                                fprintf(stderr, "An instance of kew is already running.\n");
+                                exit(EXIT_FAILURE);
+                        }
+                        else
+                        {
+                                unlink(pidfile_path);
+                        }
+                }
+                else
+                {
+                        fclose(pidfile);
+                        unlink(pidfile_path);
+                }
+        }
+
+        // Create a new PID file
+        pidfile = fopen(pidfile_path, "w");
+        if (pidfile == NULL)
+        {
+                perror("Unable to create PID file");
                 exit(EXIT_FAILURE);
-            }
-            else
-            {
-                unlink(pidfile_path);
-            }
         }
-        else
-        {
-            fclose(pidfile);
-            unlink(pidfile_path);
-        }
-    }
-
-    // Create a new PID file
-    pidfile = fopen(pidfile_path, "w");
-    if (pidfile == NULL)
-    {
-        perror("Unable to create PID file");
-        exit(EXIT_FAILURE);
-    }
-    fprintf(pidfile, "%d\n", getpid());
-    fclose(pidfile);
+        fprintf(pidfile, "%d\n", getpid());
+        fclose(pidfile);
 }
 
 int main(int argc, char *argv[])
