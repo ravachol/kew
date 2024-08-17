@@ -255,7 +255,7 @@ static void handle_stop(GDBusConnection *connection, const gchar *sender,
         (void)parameters;
         (void)user_data;
 
-        quit();
+        stop();
         g_dbus_method_invocation_return_value(invocation, NULL);
 }
 
@@ -402,7 +402,7 @@ static gboolean get_playback_status(GDBusConnection *connection, const gchar *se
         {
                 status = "Paused";
         }
-        else if (currentSong == NULL)
+        else if (currentSong == NULL || isStopped())
         {
                 status = "Stopped";
         }
@@ -830,6 +830,12 @@ static gboolean set_property_callback(GDBusConnection *connection, const gchar *
                 {
                         double new_volume;
                         g_variant_get(value, "d", &new_volume);
+
+                        if (new_volume > 1.0)
+                                new_volume = 1.0;
+                                
+                        new_volume *= 100;
+
                         setVolume((int)new_volume);
                         return TRUE;
                 }
@@ -1084,7 +1090,8 @@ void emitMetadataChanged(const gchar *title, const gchar *artist, const gchar *a
         GVariantBuilder metadata_builder;
         g_variant_builder_init(&metadata_builder, G_VARIANT_TYPE_DICTIONARY);
         g_variant_builder_add(&metadata_builder, "{sv}", "xesam:title", g_variant_new_string(sanitizedTitle));
-
+        g_free(sanitizedTitle);
+        
         const gchar *artistList[2];
         if (artist)
         {
@@ -1142,9 +1149,6 @@ void emitMetadataChanged(const gchar *title, const gchar *artist, const gchar *a
                 g_debug("PropertiesChanged signal emitted successfully.");
         }
 
+        g_variant_builder_clear(&changed_properties_builder);    
         g_variant_builder_clear(&metadata_builder);
-        g_variant_builder_clear(&changed_properties_builder);
-
-        g_free(sanitizedTitle);
-        g_variant_unref(metadata_variant);
 }

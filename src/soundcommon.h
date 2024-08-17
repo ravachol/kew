@@ -325,6 +325,8 @@ void seekPercentage(float percent);
 
 void resumePlayback();
 
+void stopPlayback();
+
 void pausePlayback();
 
 void cleanupPlaybackDevice();
@@ -332,6 +334,8 @@ void cleanupPlaybackDevice();
 void togglePausePlayback();
 
 bool isPaused();
+
+bool isStopped();
 
 void resetDevice();
 

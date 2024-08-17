@@ -16,6 +16,7 @@ bool shuffleEnabled = false;
 bool skipToNext = false;
 bool seekRequested = false;
 bool paused = false;
+bool stopped = false;
 float seekPercent = 0.0;
 double seekElapsed;
 _Atomic bool EOFReached = false;
@@ -997,6 +998,22 @@ void resumePlayback()
         }
 
         paused = false;
+        stopped = false;
+
+        if (appState.currentView != SONG_VIEW)
+        {
+                refresh = true;
+        }
+}
+
+void stopPlayback()
+{
+        if (ma_device_is_started(&device))
+        {
+                ma_device_stop(&device);
+        }
+
+        stopped = true;
 
         if (appState.currentView != SONG_VIEW)
         {
@@ -1044,6 +1061,11 @@ void togglePausePlayback()
 bool isPaused()
 {
         return paused;
+}
+
+bool isStopped()
+{
+        return stopped;
 }
 
 pthread_mutex_t deviceMutex = PTHREAD_MUTEX_INITIALIZER;
@@ -1144,9 +1166,36 @@ gint64 getLengthInSec(double duration)
         return floor(llround(duration * G_USEC_PER_SEC));
 }
 
+#ifdef USE_LIBNOTIFY
+void onNotificationClosed(NotifyNotification *notification, gpointer user_data)
+{
+        (void)notification;
+        (void)user_data;
+
+        previous_notification = NULL;
+}
+
+char *ensureNonEmpty(char *str)
+{
+        if (str == NULL || str[0] == '\0')
+        {
+
+                if (str)
+                {
+                        free(str);
+                }
+
+                str = (char *)malloc(2);
+                if (str)
+                {
+                        strcpy(str, " ");
+                }
+        }
+        return str;
+}
+
 int displaySongNotification(const char *artist, const char *title, const char *cover)
 {
-#ifdef USE_LIBNOTIFY
 
         if (!allowNotifications)
         {
@@ -1160,16 +1209,23 @@ int displaySongNotification(const char *artist, const char *title, const char *c
 
         if (!sanitizedArtist || !sanitizedTitle)
         {
-                free(sanitizedArtist);
-                free(sanitizedTitle);
+                if (sanitizedArtist)
+                        free(sanitizedArtist);
+                if (sanitizedTitle)
+                        free(sanitizedTitle);
                 return -1;
         }
+
+        sanitizedArtist = ensureNonEmpty(sanitizedArtist);
+        sanitizedTitle = ensureNonEmpty(sanitizedTitle);
 
         sanitize_filepath(cover, sanitized_cover, sizeof(sanitized_cover));
 
         if (previous_notification == NULL)
         {
                 previous_notification = notify_notification_new(sanitizedArtist, sanitizedTitle, sanitized_cover);
+
+                g_signal_connect(previous_notification, "closed", G_CALLBACK(onNotificationClosed), NULL);
         }
         else
         {
@@ -1177,18 +1233,21 @@ int displaySongNotification(const char *artist, const char *title, const char *c
         }
 
         GError *error = NULL;
-        if (!notify_notification_show(previous_notification, NULL))
+        if (!notify_notification_show(previous_notification, &error))
         {
-                fprintf(stderr, "Failed to show notification: %s", error->message);
-                g_error_free(error);
+                if (error != NULL)
+                {
+                        fprintf(stderr, "Failed to show notification: %s\n", error->message);
+                        g_error_free(error);
+                }
         }
 
         free(sanitizedArtist);
         free(sanitizedTitle);
 
-#endif
         return 0;
 }
+#endif
 
 void executeSwitch(AudioData *pAudioData)
 {
