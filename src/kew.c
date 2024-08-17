@@ -466,7 +466,7 @@ void handleGoToSong()
                         playlistNeedsUpdate = false;
                         nextSongNeedsRebuilding = false;
 
-                        skipToSong(chosenNodeId);
+                        skipToSong(chosenNodeId, true);
                         audioData.endOfListReached = false;
                 }
                 else

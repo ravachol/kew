@@ -78,6 +78,8 @@ void playbackPlay(double *totalPauseSeconds, double *pauseSeconds);
 
 void togglePause(double *totalPauseSeconds, double *pauseSeconds, struct timespec *pause_time);
 
+void stop();
+
 void toggleRepeat(void);
 
 void toggleShuffle(void);
@@ -102,7 +104,7 @@ void skipToNextSong(void);
 
 void skipToPrevSong(void);
 
-void skipToSong(int id);
+void skipToSong(int id, bool startPlaying);
 
 void seekForward(void);
 

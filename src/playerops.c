@@ -185,6 +185,10 @@ void playbackPlay(double *totalPauseSeconds, double *pauseSeconds)
                 *totalPauseSeconds += *pauseSeconds;
                 emitStringPropertyChanged("PlaybackStatus", "Playing");
         }
+        else if (isStopped())
+        {
+             emitStringPropertyChanged("PlaybackStatus", "Playing");   
+        }
         resumePlayback();
 }
 
@@ -196,7 +200,7 @@ void togglePause(double *totalPauseSeconds, double *pauseSeconds, struct timespe
                 emitStringPropertyChanged("PlaybackStatus", "Paused");
 
                 clock_gettime(CLOCK_MONOTONIC, pause_time);
-        }
+        }      
         else
         {
                 *totalPauseSeconds += *pauseSeconds;
@@ -1131,7 +1135,27 @@ void skipToPrevSong()
         skip();
 }
 
-void skipToSong(int id)
+void skipToBegginningOfSong()
+{
+        if (currentSong != NULL)
+        {
+                bool playSong = false;
+                skipToSong(currentSong->id, playSong);
+        }
+}
+
+void stop()
+{
+        skipToBegginningOfSong();
+        stopPlayback();
+        
+        if (isStopped())
+        {
+                emitStringPropertyChanged("PlaybackStatus", "Stopped");
+        }          
+}
+
+void skipToSong(int id, bool startPlaying)
 {
         if (songLoading || !loadedNextSong || skipping || skipOutOfOrder || clearingErrors)
                 if (!forceSkip)
@@ -1153,7 +1177,8 @@ void skipToSong(int id)
         songLoading = true;
         forceSkip = false;
 
-        playbackPlay(&totalPauseSeconds, &pauseSeconds);
+        if (startPlaying)
+                playbackPlay(&totalPauseSeconds, &pauseSeconds);
 
         loadingdata.loadA = !usingSongDataA;
         loadingdata.loadingFirstDecoder = true;
@@ -1172,7 +1197,7 @@ void skipToSong(int id)
                 songHasErrors = false;
                 forceSkip = true;
                 if (currentSong->next != NULL)
-                        skipToSong(currentSong->next->id);
+                        skipToSong(currentSong->next->id, true);
         }
 
         updateLastSongSwitchTime();
