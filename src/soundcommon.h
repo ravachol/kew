@@ -203,11 +203,15 @@ extern bool allowNotifications;
 
 extern volatile bool refresh;
 
+extern AudioData audioData;
+
 extern double duration;
 
 extern bool doQuit;
 
 extern double elapsedSeconds;
+
+extern bool hasSwitchedWhileNotPlaying;
 
 extern pthread_mutex_t dataSourceMutex;
 
@@ -343,11 +347,13 @@ ma_device *getDevice();
 
 bool hasBuiltinDecoder(char *filePath);
 
+void setCurrentFileIndex(AudioData *pAudioData, int index);
+
 void activateSwitch(AudioData *pPCMDataSource);
 
 void executeSwitch(AudioData *pPCMDataSource);
 
-gint64 getLengthInSec(double duration);
+gint64 getLengthInMicroSec(double duration);
 
 int displaySongNotification(const char *artist, const char *title, const char *cover);
 

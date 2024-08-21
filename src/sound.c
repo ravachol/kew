@@ -18,8 +18,6 @@ ma_context context;
 
 UserData userData;
 
-AudioData audioData;
-
 int check_aac_codec_support()
 {
         const AVCodec *codec = avcodec_find_decoder(AV_CODEC_ID_AAC);
@@ -237,11 +235,16 @@ void opus_createAudioDevice(UserData *userData, ma_device *device, ma_context *c
 
 bool validFilePath(char *filePath)
 {
-        if (filePath == NULL || filePath[0] == '\0' || filePath[0] == '\r' || existsFile(filePath) < 0)
-                return false;
-        else
-                return true;
+    if (filePath == NULL || filePath[0] == '\0' || filePath[0] == '\r')
+        return false;
+
+    if (existsFile(filePath) < 0)
+        return false;
+
+    return true;
 }
+
+bool tryAgain = false;
 
 int switchAudioImplementation()
 {
@@ -256,20 +259,34 @@ int switchAudioImplementation()
 
         userData.currentSongData = (audioData.currentFileIndex == 0) ? userData.songdataA : userData.songdataB;
 
+        char *filePath = NULL;
+
         if (userData.currentSongData == NULL)
         {
                 setEOFNotReached();
                 return 0;
         }
-
-        char *filePath = strdup(userData.currentSongData->filePath);
-
-        if (!validFilePath(filePath))
+        else
         {
-                free(filePath);
-                setEOFReached();
-                return -1;
+                if (!validFilePath(userData.currentSongData->filePath))
+                {
+                        if (!tryAgain)
+                        {
+                                setCurrentFileIndex(&audioData, 1 - audioData.currentFileIndex);
+                                tryAgain = true;
+                                switchAudioImplementation();
+                                return 0;
+                        }
+                        else {
+                                setEOFReached();
+                                return -1;
+                        }
+                }
+
+                filePath = strdup(userData.currentSongData->filePath);
         }
+
+        tryAgain = false;        
 
         if (hasBuiltinDecoder(filePath))
         {
@@ -478,7 +495,7 @@ int createAudioDevice(UserData *userData)
                 {
                         displaySongNotification(currentSongData->metadata->artist, currentSongData->metadata->title, currentSongData->coverArtPath);
 
-                        gint64 length = getLengthInSec(currentSongData->duration);
+                        gint64 length = getLengthInMicroSec(currentSongData->duration);
                         // update mpris
                         emitMetadataChanged(
                             currentSongData->metadata->title,

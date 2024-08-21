@@ -18,6 +18,10 @@ void emitStringPropertyChanged(const gchar *propertyName, const gchar *newValue)
 
 void emitBooleanPropertyChanged(const gchar *propertyName, gboolean newValue);
 
+void emitVolumeChanged();
+
+void emitShuffleChanged();
+
 void emitMetadataChanged(const gchar *title, const gchar *artist, const gchar *album, const gchar *coverArtPath, const gchar *trackId, Node *currentSong, gint64 length);
 
 void emitStartPlayingMpris(void);

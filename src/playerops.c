@@ -178,6 +178,87 @@ void playbackPause(struct timespec *pause_time)
         pausePlayback();
 }
 
+void skipToSong(int id, bool startPlaying)
+{
+        if (songLoading || !loadedNextSong || skipping || clearingErrors)
+                if (!forceSkip)
+                        return;
+
+        Node *found = NULL;
+        findNodeInList(&playlist, id, &found);
+
+        if (found != NULL)
+                currentSong = found;
+        else
+        {
+                return;
+        }
+
+        skipping = true;
+        skipOutOfOrder = true;
+        loadedNextSong = false;
+        songLoading = true;
+        forceSkip = false;
+
+        if (startPlaying)
+        {
+                playbackPlay(&totalPauseSeconds, &pauseSeconds);
+        }
+        loadingdata.loadA = !usingSongDataA;
+        loadingdata.loadingFirstDecoder = true;
+        loadSong(currentSong, &loadingdata);
+        int maxNumTries = 50;
+        int numtries = 0;
+
+        while (!loadedNextSong && !loadingFailed && numtries < maxNumTries)
+        {
+                c_sleep(100);
+                numtries++;
+        }
+
+        if (songHasErrors)
+        {
+                songHasErrors = false;
+                forceSkip = true;
+                if (currentSong->next != NULL)
+                        skipToSong(currentSong->next->id, true);
+        }
+
+        updateLastSongSwitchTime();
+        skip();
+}
+
+void skipToBegginningOfSong()
+{
+        if (currentSong != NULL)
+        {
+                bool playSong = false;
+                skipToSong(currentSong->id, playSong);
+        }
+}
+
+void prepareIfSkippedSilent()
+{
+        if (hasSwitchedWhileNotPlaying)
+        {
+                skipping = true;
+                hasSwitchedWhileNotPlaying = false;
+
+                updateLastSongSwitchTime();
+                setCurrentImplementationType(NONE);
+                setRepeatEnabled(false);
+                audioData.endOfListReached = false;
+
+                rebuildAndUpdatePlaylist();
+
+                switchAudioImplementation();
+
+                usingSongDataA = !usingSongDataA;
+
+                skipping = false;
+        }
+}
+
 void playbackPlay(double *totalPauseSeconds, double *pauseSeconds)
 {
         if (isPaused())
@@ -187,9 +268,21 @@ void playbackPlay(double *totalPauseSeconds, double *pauseSeconds)
         }
         else if (isStopped())
         {
-             emitStringPropertyChanged("PlaybackStatus", "Playing");   
+                emitStringPropertyChanged("PlaybackStatus", "Playing");
         }
+
+        if (isStopped() && !hasSwitchedWhileNotPlaying)
+        {
+                skipToBegginningOfSong();
+        }
+
         resumePlayback();
+
+        if (hasSwitchedWhileNotPlaying)
+        {
+                *totalPauseSeconds = 0;
+                prepareIfSkippedSilent();
+        }
 }
 
 void togglePause(double *totalPauseSeconds, double *pauseSeconds, struct timespec *pause_time)
@@ -200,10 +293,18 @@ void togglePause(double *totalPauseSeconds, double *pauseSeconds, struct timespe
                 emitStringPropertyChanged("PlaybackStatus", "Paused");
 
                 clock_gettime(CLOCK_MONOTONIC, pause_time);
-        }      
+        }
         else
         {
-                *totalPauseSeconds += *pauseSeconds;
+                if (hasSwitchedWhileNotPlaying && !skipping)
+                {
+                        *totalPauseSeconds = 0;
+                        prepareIfSkippedSilent();
+                }
+                else
+                {
+                        *totalPauseSeconds += *pauseSeconds;
+                }
                 emitStringPropertyChanged("PlaybackStatus", "Playing");
         }
 }
@@ -349,13 +450,16 @@ SongData *getCurrentSongData(void)
         SongData *songData = (audioData.currentFileIndex == 0) ? userData.songdataA : userData.songdataB;
 
         if (!isValidSong(songData))
-                return NULL;                
+                return NULL;
 
         return songData;
 }
 
 void calcElapsedTime()
 {
+        if (isStopped())
+                return;
+
         clock_gettime(CLOCK_MONOTONIC, &current_time);
 
         double timeSinceLastUpdate = (double)(current_time.tv_sec - lastUpdateTime.tv_sec) +
@@ -384,7 +488,6 @@ void calcElapsedTime()
 
                 if (currentSong != NULL && timeSinceLastUpdate >= 1.0)
                 {
-                        updatePlaybackPosition(elapsedSeconds);
                         lastUpdateTime = current_time;
                 }
         }
@@ -421,6 +524,38 @@ void flushSeek()
                 seekPercentage(percentage);
 
                 emitSeekedSignal(elapsedSeconds);
+        }
+}
+
+bool setPosition(gint64 newPosition)
+{
+        gint64 currentPositionMicroseconds = llround(elapsedSeconds * G_USEC_PER_SEC);
+
+        if (duration != 0.0)
+        {
+                gint64 step = newPosition - currentPositionMicroseconds;
+                step = step / G_USEC_PER_SEC;
+                seekAccumulatedSeconds += step;
+                return true;
+        }
+        else
+        {
+                return false;
+        }
+}
+
+bool seekPosition(gint64 offset)
+{
+        if (duration != 0.0)
+        {
+                gint64 step = offset;
+                step = step / G_USEC_PER_SEC;
+                seekAccumulatedSeconds += step;
+                return true;
+        }
+        else
+        {
+                return false;
         }
 }
 
@@ -720,7 +855,6 @@ bool hasDequeuedChildren(FileSystemEntry *parent)
 
 void dequeueAll()
 {
-        
 }
 
 void enqueueSongs(FileSystemEntry *entry)
@@ -1064,15 +1198,99 @@ void rebuildNextSong(Node *song)
         songLoading = false;
 }
 
+void stop()
+{
+        stopPlayback();
+
+        if (isStopped())
+        {
+                emitStringPropertyChanged("PlaybackStatus", "Stopped");
+        }
+}
+
+void loadNextSong()
+{
+        songLoading = true;
+        nextSongNeedsRebuilding = false;
+        tryNextSong = currentSong->next;
+        loadingdata.loadA = !usingSongDataA;
+        nextSong = getListNext(currentSong);
+        loadingdata.loadingFirstDecoder = false;
+        loadSong(nextSong, &loadingdata);
+}
+
+void setCurrentSongToNext()
+{
+        if (currentSong != NULL)
+                lastPlayedId = currentSong->id;
+        currentSong = getNextSong();
+}
+
+void finishLoading()
+{
+        int maxNumTries = 20;
+        int numtries = 0;
+
+        while (!loadedNextSong && !loadingFailed && numtries < maxNumTries)
+        {
+                c_sleep(100);
+                numtries++;
+        }
+
+        loadedNextSong = true;
+}
+
+void resetTimeCount()
+{
+        elapsedSeconds = 0.0;
+        pauseSeconds = 0.0;
+        totalPauseSeconds = 0.0;
+}
+
+void goPlaylistNext()
+{
+        skipping = true;
+
+        setCurrentSongToNext();
+        activateSwitch(&audioData);
+
+        skipOutOfOrder = true;
+
+        usingSongDataA = (audioData.currentFileIndex == 0);
+
+        loadNextSong();
+        finishLoading();
+
+        resetTimeCount();
+        clock_gettime(CLOCK_MONOTONIC, &start_time);
+
+        refresh = true;
+
+        skipping = false;
+
+        hasSwitchedWhileNotPlaying = true;
+
+        loadedNextSong = true;
+}
+
 void skipToNextSong()
 {
+        // Stop if there is no song or no next song
         if (currentSong == NULL || currentSong->next == NULL)
         {
+                if (!isStopped() && !isPaused())
+                        stop();
                 return;
         }
 
         if (songLoading || nextSongNeedsRebuilding || skipping || clearingErrors)
                 return;
+
+        if (isStopped() || isPaused())
+        {
+                goPlaylistNext();
+                return;
+        }
 
         playbackPlay(&totalPauseSeconds, &pauseSeconds);
 
@@ -1083,17 +1301,8 @@ void skipToNextSong()
         skip();
 }
 
-void skipToPrevSong()
+void setCurrentSongToPrev()
 {
-        if ((currentSong == NULL || currentSong->prev == NULL) && !isShuffleEnabled())
-        {
-                return;
-        }
-
-        if (songLoading || skipping || clearingErrors)
-                if (!forceSkip)
-                        return;
-
         if (isShuffleEnabled() && currentSong != NULL && currentSong->prev == NULL)
         {
                 if (currentSong->prev == NULL && currentSong->next != NULL)
@@ -1103,6 +1312,57 @@ void skipToPrevSong()
         }
         else
                 currentSong = currentSong->prev;
+}
+
+void goPlaylistPrev()
+{
+        skipping = true;
+
+        setCurrentSongToPrev();
+        activateSwitch(&audioData);
+
+        loadedNextSong = false;
+        songLoading = true;
+        forceSkip = false;
+
+        usingSongDataA = !usingSongDataA;
+
+        loadingdata.loadA = usingSongDataA;
+        loadingdata.loadingFirstDecoder = true;
+        loadSong(currentSong, &loadingdata);
+        finishLoading();
+
+        resetTimeCount();
+        clock_gettime(CLOCK_MONOTONIC, &start_time);
+
+        refresh = true;
+        skipping = false;
+
+        skipOutOfOrder = true;
+        hasSwitchedWhileNotPlaying = true;
+}
+
+void skipToPrevSong()
+{
+        // Stop if there is no song or no previous song
+        if ((currentSong == NULL || currentSong->prev == NULL) && !isShuffleEnabled())
+        {
+                if (!isStopped() && !isPaused())
+                        stop();
+                return;
+        }
+
+        if (songLoading || skipping || clearingErrors)
+                if (!forceSkip)
+                        return;
+
+        if (isStopped() || isPaused())
+        {
+                goPlaylistPrev();
+                return;
+        }
+
+        setCurrentSongToPrev();
 
         playbackPlay(&totalPauseSeconds, &pauseSeconds);
 
@@ -1129,75 +1389,6 @@ void skipToPrevSong()
                 songHasErrors = false;
                 forceSkip = true;
                 skipToPrevSong();
-        }
-
-        updateLastSongSwitchTime();
-        skip();
-}
-
-void skipToBegginningOfSong()
-{
-        if (currentSong != NULL)
-        {
-                bool playSong = false;
-                skipToSong(currentSong->id, playSong);
-        }
-}
-
-void stop()
-{
-        skipToBegginningOfSong();
-        stopPlayback();
-        
-        if (isStopped())
-        {
-                emitStringPropertyChanged("PlaybackStatus", "Stopped");
-        }          
-}
-
-void skipToSong(int id, bool startPlaying)
-{
-        if (songLoading || !loadedNextSong || skipping || skipOutOfOrder || clearingErrors)
-                if (!forceSkip)
-                        return;
-
-        Node *found = NULL;
-        findNodeInList(&playlist, id, &found);
-
-        if (found != NULL)
-                currentSong = found;
-        else
-        {
-                return;
-        }
-
-        skipping = true;
-        skipOutOfOrder = true;
-        loadedNextSong = false;
-        songLoading = true;
-        forceSkip = false;
-
-        if (startPlaying)
-                playbackPlay(&totalPauseSeconds, &pauseSeconds);
-
-        loadingdata.loadA = !usingSongDataA;
-        loadingdata.loadingFirstDecoder = true;
-        loadSong(currentSong, &loadingdata);
-        int maxNumTries = 50;
-        int numtries = 0;
-
-        while (!loadedNextSong && !loadingFailed && numtries < maxNumTries)
-        {
-                c_sleep(100);
-                numtries++;
-        }
-
-        if (songHasErrors)
-        {
-                songHasErrors = false;
-                forceSkip = true;
-                if (currentSong->next != NULL)
-                        skipToSong(currentSong->next->id, true);
         }
 
         updateLastSongSwitchTime();

@@ -136,4 +136,16 @@ void unloadPreviousSong();
 
 void createLibrary(AppSettings *settings);
 
+void loadNextSong();
+
+void setCurrentSongToNext();
+
+void finishLoading();
+
+void resetTimeCount();
+
+bool setPosition(gint64 newPosition);
+
+bool seekPosition(gint64 offset);
+
 #endif
