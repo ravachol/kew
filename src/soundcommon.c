@@ -17,6 +17,9 @@ bool skipToNext = false;
 bool seekRequested = false;
 bool paused = false;
 bool stopped = true;
+
+bool hasSwitchedWhileNotPlaying;
+
 float seekPercent = 0.0;
 double seekElapsed;
 _Atomic bool EOFReached = false;
@@ -26,7 +29,7 @@ pthread_mutex_t dataSourceMutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t switchMutex = PTHREAD_MUTEX_INITIALIZER;
 ma_device device = {0};
 ma_int32 *audioBuffer = NULL;
-
+AudioData audioData;
 int bufSize;
 ma_event switchAudioImpl;
 enum AudioImplementation currentImplementation = NONE;
@@ -1052,7 +1055,7 @@ void togglePausePlayback()
         {
                 pausePlayback();
         }
-        else if (paused)
+        else if (isPaused() || isStopped())
         {
                 resumePlayback();
         }
@@ -1098,6 +1101,13 @@ bool hasBuiltinDecoder(char *filePath)
         char *extension = strrchr(filePath, '.');
         return (extension != NULL && (strcasecmp(extension, ".wav") == 0 || strcasecmp(extension, ".flac") == 0 ||
                                       strcasecmp(extension, ".mp3") == 0));
+}
+
+void setCurrentFileIndex(AudioData *pAudioData, int index)
+{
+        pthread_mutex_lock(&switchMutex);
+        pAudioData->currentFileIndex = index;
+        pthread_mutex_unlock(&switchMutex);
 }
 
 void activateSwitch(AudioData *pAudioData)
@@ -1161,7 +1171,7 @@ char *removeBlacklistedChars(const char *input, const char *blacklist)
         return output;
 }
 
-gint64 getLengthInSec(double duration)
+gint64 getLengthInMicroSec(double duration)
 {
         return floor(llround(duration * G_USEC_PER_SEC));
 }

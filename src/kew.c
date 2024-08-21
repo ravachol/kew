@@ -348,37 +348,14 @@ void setEndOfListReached()
         chosenRow = playlist.count - 1;
 }
 
-void finishLoading()
+void notifySongSwitch(SongData *currentSongData)
 {
-        int maxNumTries = 20;
-        int numtries = 0;
-
-        while (!loadedNextSong && !loadingFailed && numtries < maxNumTries)
-        {
-                c_sleep(100);
-                numtries++;
-        }
-
-        loadedNextSong = true;
-}
-
-void resetTimeCount()
-{
-        elapsedSeconds = 0.0;
-        pauseSeconds = 0.0;
-        totalPauseSeconds = 0.0;
-}
-
-void notifySongSwitch()
-{
-        SongData *currentSongData = (audioData.currentFileIndex == 0) ? userData.songdataA : userData.songdataB;
-        bool isDeleted = (audioData.currentFileIndex == 0) ? userData.songdataADeleted == true : userData.songdataBDeleted == true;
-
-        if (isDeleted == false && currentSongData != NULL && currentSongData->hasErrors == 0 && currentSongData->metadata && strlen(currentSongData->metadata->title) > 0)
+        if (currentSongData != NULL && currentSongData->hasErrors == 0 && currentSongData->metadata && strlen(currentSongData->metadata->title) > 0)
         {
                 displaySongNotification(currentSongData->metadata->artist, currentSongData->metadata->title, currentSongData->coverArtPath);
 
-                gint64 length = getLengthInSec(currentSongData->duration);
+                gint64 length = getLengthInMicroSec(currentSongData->duration);
+                
                 // update mpris
                 emitMetadataChanged(
                     currentSongData->metadata->title,
@@ -461,13 +438,28 @@ void handleGoToSong()
         {
                 if (digitsPressedCount == 0)
                 {
-                        loadedNextSong = true;
+                        bool wasPaused = isPaused();
 
-                        playlistNeedsUpdate = false;
-                        nextSongNeedsRebuilding = false;
+                        if (isPaused() && currentSong != NULL && chosenNodeId == currentSong->id)
+                        {
+                                togglePause(&totalPauseSeconds, &pauseSeconds, &pause_time);
+                        }
+                        else
+                        {
+                                loadedNextSong = true;
 
-                        skipToSong(chosenNodeId, true);
-                        audioData.endOfListReached = false;
+                                playlistNeedsUpdate = false;
+                                nextSongNeedsRebuilding = false;
+
+                                if (wasPaused && currentSong != NULL && chosenNodeId != currentSong->id)
+                                {
+                                        usingSongDataA = !usingSongDataA;
+                                }
+
+                                skipToSong(chosenNodeId, true);
+                                audioData.endOfListReached = false;
+                        }
+                        wasPaused = false;
                 }
                 else
                 {
@@ -535,6 +527,7 @@ void handleInput()
                 break;
         case EVENT_SHUFFLE:
                 toggleShuffle();
+                emitShuffleChanged();
                 break;
         case EVENT_TOGGLE_PROFILE_COLORS:
                 toggleColors(&settings);
@@ -550,9 +543,11 @@ void handleInput()
                 break;
         case EVENT_VOLUME_UP:
                 adjustVolumePercent(5);
+                emitVolumeChanged();
                 break;
         case EVENT_VOLUME_DOWN:
                 adjustVolumePercent(-5);
+                emitVolumeChanged();
                 break;
         case EVENT_NEXT:
                 resetPlaylistDisplay = true;
@@ -708,13 +703,7 @@ void loadAudioData()
         }
         else if (currentSong != NULL && (nextSongNeedsRebuilding || nextSong == NULL) && !songLoading)
         {
-                songLoading = true;
-                nextSongNeedsRebuilding = false;
-                tryNextSong = currentSong->next;
-                loadingdata.loadA = !usingSongDataA;
-                nextSong = getListNext(currentSong);
-                loadingdata.loadingFirstDecoder = false;
-                loadSong(nextSong, &loadingdata);
+                loadNextSong();
         }
 
         loadingAudioData = false;
@@ -743,11 +732,23 @@ void tryLoadNext()
         }
 }
 
-void setCurrentSongToNext()
+bool determineCurrentSongData(SongData *currentSongData)
 {
-        if (currentSong != NULL)
-                lastPlayedId = currentSong->id;
-        currentSong = getNextSong();
+                currentSongData = (audioData.currentFileIndex == 0) ? userData.songdataA : userData.songdataB;
+                bool isDeleted = (audioData.currentFileIndex == 0) ? userData.songdataADeleted == true : userData.songdataBDeleted == true;
+
+                if (isDeleted)
+                {
+                        currentSongData = (audioData.currentFileIndex != 0) ? userData.songdataA : userData.songdataB;
+                        isDeleted = (audioData.currentFileIndex != 0) ? userData.songdataADeleted == true : userData.songdataBDeleted == true;
+
+                        if (!isDeleted)
+                        {
+                                activateSwitch(&audioData);
+                                audioData.switchFiles = false;
+                        }
+                }
+                return isDeleted;
 }
 
 void prepareNextSong()
@@ -781,7 +782,12 @@ void prepareNextSong()
         }
         else
         {
-                notifySongSwitch();
+                SongData *currentSongData = NULL;
+
+                bool isDeleted = determineCurrentSongData(currentSongData);
+
+                if (!isDeleted)
+                        notifySongSwitch(currentSongData);
         }
 
         clock_gettime(CLOCK_MONOTONIC, &start_time);
