@@ -255,7 +255,8 @@ static void handle_stop(GDBusConnection *connection, const gchar *sender,
         (void)parameters;
         (void)user_data;
 
-        stop();
+        if (!isStopped())
+                stop();
         g_dbus_method_invocation_return_value(invocation, NULL);
 }
 
@@ -276,34 +277,78 @@ static void handle_play(GDBusConnection *connection, const gchar *sender,
         playbackPlay(&totalPauseSeconds, &pauseSeconds);
 }
 
-static void handle_seek(GDBusConnection *connection, const gchar *sender,
-                        const gchar *object_path, const gchar *interface_name,
-                        const gchar *method_name, GVariant *parameters,
-                        GDBusMethodInvocation *invocation, gpointer user_data)
+static void handle_seek(GDBusConnection *connection,
+                        const gchar *sender,
+                        const gchar *object_path,
+                        const gchar *interface_name,
+                        const gchar *method_name,
+                        GVariant *parameters,
+                        GDBusMethodInvocation *invocation,
+                        gpointer user_data)
 {
         (void)connection;
         (void)sender;
         (void)object_path;
         (void)interface_name;
         (void)method_name;
-        (void)parameters;
-        (void)invocation;
         (void)user_data;
+
+        gint64 offset;
+        g_variant_get(parameters, "(x)", &offset);
+
+        gboolean success = seekPosition(offset);
+
+        if (success)
+        {
+                g_dbus_method_invocation_return_value(invocation, NULL);
+        }
+        else
+        {
+                g_dbus_method_invocation_return_error(invocation,
+                                                      G_DBUS_ERROR,
+                                                      G_DBUS_ERROR_FAILED,
+                                                      "Failed to seek to position");
+        }
 }
 
-static void handle_set_position(GDBusConnection *connection, const gchar *sender,
-                                const gchar *object_path, const gchar *interface_name,
-                                const gchar *method_name, GVariant *parameters,
-                                GDBusMethodInvocation *invocation, gpointer user_data)
+static void handle_set_position(GDBusConnection *connection,
+                                const gchar *sender,
+                                const gchar *object_path,
+                                const gchar *interface_name,
+                                const gchar *method_name,
+                                GVariant *parameters,
+                                GDBusMethodInvocation *invocation,
+                                gpointer user_data)
 {
         (void)connection;
         (void)sender;
         (void)object_path;
         (void)interface_name;
         (void)method_name;
-        (void)parameters;
-        (void)invocation;
         (void)user_data;
+
+        const gchar *track_id;
+        gint64 new_position;
+
+        // - "o" is an object path (or track identifier)
+        // - "x" is a 64-bit integer representing the position
+        g_variant_get(parameters, "(&ox)", &track_id, &new_position);
+
+        gboolean success = setPosition(new_position);
+
+        if (success)
+        {
+                // If setting the position was successful, return success with no additional value
+                g_dbus_method_invocation_return_value(invocation, NULL);
+        }
+        else
+        {
+                // If setting the position failed, return an error
+                g_dbus_method_invocation_return_error(invocation,
+                                                      G_DBUS_ERROR,
+                                                      G_DBUS_ERROR_FAILED,
+                                                      "Failed to set position for track %s", track_id);
+        }
 }
 
 static void handle_method_call(GDBusConnection *connection, const gchar *sender,
@@ -659,6 +704,11 @@ static gboolean get_can_play(GDBusConnection *connection, const gchar *sender,
         (void)error;
         (void)user_data;
 
+        if (currentSong == NULL)
+                CanPlay = FALSE;
+        else
+                CanPlay = TRUE;
+
         *value = g_variant_new_boolean(CanPlay);
         return TRUE;
 }
@@ -675,6 +725,11 @@ static gboolean get_can_pause(GDBusConnection *connection, const gchar *sender,
         (void)property_name;
         (void)error;
         (void)user_data;
+
+        if (currentSong == NULL)
+                CanPause = FALSE;
+        else
+                CanPause = TRUE;
 
         *value = g_variant_new_boolean(CanPause);
         return TRUE;
@@ -833,7 +888,10 @@ static gboolean set_property_callback(GDBusConnection *connection, const gchar *
 
                         if (new_volume > 1.0)
                                 new_volume = 1.0;
-                                
+
+                        if (new_volume < 0.0)
+                                new_volume = 0.0;
+
                         new_volume *= 100;
 
                         setVolume((int)new_volume);
@@ -851,12 +909,10 @@ static gboolean set_property_callback(GDBusConnection *connection, const gchar *
                 }
                 else if (g_strcmp0(property_name, "Position") == 0)
                 {
-                        // gint64 new_position;
-                        // g_variant_get(value, "x", &new_position);
-                        // set_position(new_position);
-                        // return TRUE;
-                        g_set_error(error, G_IO_ERROR, G_IO_ERROR_FAILED, "Setting Position property not supported");
-                        return FALSE;
+                        gint64 new_position;
+                        g_variant_get(value, "x", &new_position);
+
+                        return setPosition(new_position);
                 }
                 else
                 {
@@ -1065,6 +1121,57 @@ gchar *sanitizeTitle(const gchar *title)
 
 static guint64 last_emit_time = 0;
 
+void emit_properties_changed(GDBusConnection *connection,
+                             const gchar *property_name,
+                             GVariant *new_value)
+{
+        GVariantBuilder changed_properties_builder;
+
+        if (connection == NULL || property_name == NULL || new_value == NULL)
+                return;
+
+        // Initialize the builder for changed properties
+        g_variant_builder_init(&changed_properties_builder, G_VARIANT_TYPE("a{sv}"));
+        g_variant_builder_add(&changed_properties_builder, "{sv}", property_name, new_value);
+
+        GError *error = NULL;
+        gboolean result = g_dbus_connection_emit_signal(connection, NULL, "/org/mpris/MediaPlayer2", "org.freedesktop.DBus.Properties", "PropertiesChanged",
+                                                        g_variant_new("(sa{sv}as)", "org.mpris.MediaPlayer2.Player", &changed_properties_builder, NULL), &error);
+
+        if (!result)
+        {
+                g_critical("Failed to emit PropertiesChanged signal: %s", error->message);
+                g_error_free(error);
+        }
+        else
+        {
+                g_debug("PropertiesChanged signal emitted successfully.");
+        }
+
+        g_variant_builder_clear(&changed_properties_builder);
+}
+
+void emitVolumeChanged()
+{
+        gdouble newVolume = (gdouble)getCurrentVolume() / 100;
+
+        if (newVolume > 1.0)
+                return;
+
+        // Emit the PropertiesChanged signal for the volume property
+        GVariant *volume_variant = g_variant_new_double(newVolume);
+        emit_properties_changed(connection, "Volume", volume_variant);
+}
+
+void emitShuffleChanged()
+{
+        gboolean shuffleEnabled = isShuffleEnabled();
+
+        // Emit the PropertiesChanged signal for the volume property
+        GVariant *volume_variant = g_variant_new_boolean(shuffleEnabled);
+        emit_properties_changed(connection, "Shuffle", volume_variant);
+}
+
 void emitMetadataChanged(const gchar *title, const gchar *artist, const gchar *album, const gchar *coverArtPath, const gchar *trackId, Node *currentSong, gint64 length)
 {
         guint64 current_time = g_get_monotonic_time();
@@ -1091,7 +1198,7 @@ void emitMetadataChanged(const gchar *title, const gchar *artist, const gchar *a
         g_variant_builder_init(&metadata_builder, G_VARIANT_TYPE_DICTIONARY);
         g_variant_builder_add(&metadata_builder, "{sv}", "xesam:title", g_variant_new_string(sanitizedTitle));
         g_free(sanitizedTitle);
-        
+
         const gchar *artistList[2];
         if (artist)
         {
@@ -1133,11 +1240,19 @@ void emitMetadataChanged(const gchar *title, const gchar *artist, const gchar *a
         g_variant_builder_add(&changed_properties_builder, "{sv}", "CanGoPrevious", g_variant_new_boolean((currentSong != NULL && currentSong->prev != NULL)));
         g_variant_builder_add(&changed_properties_builder, "{sv}", "CanGoNext", g_variant_new_boolean((currentSong != NULL && currentSong->next != NULL)));
 
+        CanSeek = true;
+        if (currentSong != NULL && endsWith(currentSong->song.filePath, "ogg"))
+        {
+                CanSeek = false;
+        }
+
+        g_variant_builder_add(&changed_properties_builder, "{sv}", "CanSeek", g_variant_new_boolean(CanSeek));
+
         g_debug("PropertiesChanged signal is ready to be emitted.");
 
         GError *error = NULL;
         gboolean result = g_dbus_connection_emit_signal(connection, NULL, "/org/mpris/MediaPlayer2", "org.freedesktop.DBus.Properties", "PropertiesChanged",
-                                      g_variant_new("(sa{sv}as)", "org.mpris.MediaPlayer2.Player", &changed_properties_builder, NULL), &error);
+                                                        g_variant_new("(sa{sv}as)", "org.mpris.MediaPlayer2.Player", &changed_properties_builder, NULL), &error);
 
         if (!result)
         {
@@ -1149,6 +1264,6 @@ void emitMetadataChanged(const gchar *title, const gchar *artist, const gchar *a
                 g_debug("PropertiesChanged signal emitted successfully.");
         }
 
-        g_variant_builder_clear(&changed_properties_builder);    
+        g_variant_builder_clear(&changed_properties_builder);
         g_variant_builder_clear(&metadata_builder);
 }
