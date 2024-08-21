@@ -732,14 +732,14 @@ void tryLoadNext()
         }
 }
 
-bool determineCurrentSongData(SongData *currentSongData)
+bool determineCurrentSongData(SongData **currentSongData)
 {
-                currentSongData = (audioData.currentFileIndex == 0) ? userData.songdataA : userData.songdataB;
+                *currentSongData = (audioData.currentFileIndex == 0) ? userData.songdataA : userData.songdataB;
                 bool isDeleted = (audioData.currentFileIndex == 0) ? userData.songdataADeleted == true : userData.songdataBDeleted == true;
 
                 if (isDeleted)
                 {
-                        currentSongData = (audioData.currentFileIndex != 0) ? userData.songdataA : userData.songdataB;
+                        *currentSongData = (audioData.currentFileIndex != 0) ? userData.songdataA : userData.songdataB;
                         isDeleted = (audioData.currentFileIndex != 0) ? userData.songdataADeleted == true : userData.songdataBDeleted == true;
 
                         if (!isDeleted)
@@ -784,7 +784,7 @@ void prepareNextSong()
         {
                 SongData *currentSongData = NULL;
 
-                bool isDeleted = determineCurrentSongData(currentSongData);
+                bool isDeleted = determineCurrentSongData(&currentSongData);
 
                 if (!isDeleted)
                         notifySongSwitch(currentSongData);
