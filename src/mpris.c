@@ -1100,16 +1100,10 @@ gchar *sanitizeTitle(const gchar *title)
                 case '/':
                 case '\\':
                 case ':':
-                case '*':
-                case '"':
                 case '<':
                 case '>':
                 case '|':
-                case '&':
                 case '`':
-                case '%':
-                case '!':
-                case '@':
                     g_string_append_c(sanitized, '-');
                     break;
                 default:
