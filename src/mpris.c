@@ -1088,34 +1088,11 @@ void emitStartPlayingMpris()
 
 gchar *sanitizeTitle(const gchar *title)
 {
-    GString *sanitized = g_string_new(NULL);
+    gchar *sanitized = g_strdup(title);
 
-    for (const gchar *p = title; *p != '\0'; p++)
-    {
-        if (g_ascii_isprint(*p) || g_ascii_isspace(*p))
-        {
-            switch (*p)
-            {
-                case '_':
-                case '/':
-                case '\\':
-                case ':':
-                case '<':
-                case '>':
-                case '|':
-                case '`':
-                    g_string_append_c(sanitized, '-');
-                    break;
-                default:
-                    g_string_append_c(sanitized, *p);
-                    break;
-            }
-        }
-    }
+    g_strdelimit(sanitized, "_", '-');
 
-    gchar *result = g_strdup(sanitized->str);
-    g_string_free(sanitized, TRUE);
-    return result;
+    return sanitized;
 }
 
 static guint64 last_emit_time = 0;
