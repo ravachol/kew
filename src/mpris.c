@@ -1090,9 +1090,15 @@ gchar *sanitizeTitle(const gchar *title)
 {
     gchar *sanitized = g_strdup(title);
 
+    // Replace underscores with hyphens, otherwise some widgets have a problem
     g_strdelimit(sanitized, "_", '-');
 
-    return sanitized;
+    // Add a trailing space, otherwise some widgets have a problem with certain strings for some reason
+    gchar *sanitized_with_space = g_strdup_printf("%s ", sanitized);
+
+    g_free(sanitized);
+
+    return sanitized_with_space;
 }
 
 static guint64 last_emit_time = 0;
@@ -1227,7 +1233,7 @@ void emitMetadataChanged(const gchar *title, const gchar *artist, const gchar *a
         g_debug("PropertiesChanged signal is ready to be emitted.");
 
         GError *error = NULL;
-        gboolean result = g_dbus_connection_emit_signal(connection, NULL, "/org/mpris/MediaPlayer2", "org.freedesktop.DBus.Properties", "PropertiesChanged",
+        gboolean result = g_dbus_connection_emit_signal                 (connection, NULL, "/org/mpris/MediaPlayer2", "org.freedesktop.DBus.Properties", "PropertiesChanged",
                                                         g_variant_new("(sa{sv}as)", "org.mpris.MediaPlayer2.Player", &changed_properties_builder, NULL), &error);
 
         if (!result)
