@@ -1233,7 +1233,7 @@ void emitMetadataChanged(const gchar *title, const gchar *artist, const gchar *a
         g_debug("PropertiesChanged signal is ready to be emitted.");
 
         GError *error = NULL;
-        gboolean result = g_dbus_connection_emit_signal                 (connection, NULL, "/org/mpris/MediaPlayer2", "org.freedesktop.DBus.Properties", "PropertiesChanged",
+        gboolean result = g_dbus_connection_emit_signal(connection, NULL, "/org/mpris/MediaPlayer2", "org.freedesktop.DBus.Properties", "PropertiesChanged",
                                                         g_variant_new("(sa{sv}as)", "org.mpris.MediaPlayer2.Player", &changed_properties_builder, NULL), &error);
 
         if (!result)
