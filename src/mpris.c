@@ -1093,12 +1093,12 @@ gchar *sanitizeTitle(const gchar *title)
     // Replace underscores with hyphens, otherwise some widgets have a problem
     g_strdelimit(sanitized, "_", '-');
 
-    // Add a trailing space, otherwise some widgets have a problem with certain strings for some reason
-    gchar *sanitized_with_space = g_strdup_printf("%s ", sanitized);
+    // duplicate string otherwise widgets have a problem with certain strings for some reason
+    gchar *sanitized_dup = g_strdup_printf("%s", sanitized);
 
     g_free(sanitized);
 
-    return sanitized_with_space;
+    return sanitized_dup;
 }
 
 static guint64 last_emit_time = 0;
