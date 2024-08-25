@@ -99,7 +99,7 @@ pacman -Syu ffmpeg fftw git gcc make chafa freeimage glib2 opus opusfile libvorb
 Or (for Fedora for instance):
 
 ```bash
-dnf install -y ffmpeg fftw-devel opus-devel opusfile-devel libvorbis-devel gcc make chafa-devel freeimage-devel ffmpeg-devel glib2-devel libnotify-devel libatomic
+dnf install -y pkg-config ffmpeg-free-devel fftw-devel opus-devel opusfile-devel libvorbis-devel git gcc make chafa-devel freeimage-devel libavformat-free-devel libnotify-devel libatomic
 ```
 
 Notice that for some packages not only the library needs to be installed, but also development packages, for instance libopus-dev or opus-devel.
