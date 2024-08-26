@@ -493,7 +493,9 @@ int createAudioDevice(UserData *userData)
 
                 if (currentSongData != NULL && currentSongData->hasErrors == 0 && currentSongData->metadata && strlen(currentSongData->metadata->title) > 0)
                 {
+                        #ifdef USE_LIBNOTIFY
                         displaySongNotification(currentSongData->metadata->artist, currentSongData->metadata->title, currentSongData->coverArtPath);
+                        #endif
 
                         gint64 length = getLengthInMicroSec(currentSongData->duration);
                         // update mpris
