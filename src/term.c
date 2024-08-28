@@ -106,11 +106,12 @@ void showCursor()
 
 void resetConsole()
 {
-        int status = system("reset");
-        if (status == -1)
-        {
-                perror("system() failed");
-        }
+        // Print ANSI escape codes to reset terminal, clear screen, and move cursor to top-left
+        printf("\033\143");     // Reset to Initial State (RIS)
+        printf("\033[3J");      // Clear scrollback buffer
+        printf("\033[H\033[J"); // Move cursor to top-left and clear screen
+        
+        fflush(stdout);
 }
 
 void clearRestOfScreen()
