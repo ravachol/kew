@@ -927,7 +927,6 @@ void cleanupOnExit()
         cleanupPlaybackDevice();
         cleanupAudioContext();
         emitPlaybackStoppedMpris();
-        resetConsole();
 
         if (library == NULL || library->children == NULL)
         {
@@ -969,6 +968,7 @@ void cleanupOnExit()
         pthread_mutex_destroy(&(switchMutex));
         pthread_mutex_unlock(&dataSourceMutex);
         pthread_mutex_destroy(&(dataSourceMutex));
+        resetConsole();
 
 #ifdef DEBUG
         fclose(logFile);
