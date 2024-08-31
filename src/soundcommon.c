@@ -18,10 +18,11 @@ bool seekRequested = false;
 bool paused = false;
 bool stopped = true;
 
-bool hasSwitchedWhileNotPlaying;
+bool hasSilentlySwitched;
 
 float seekPercent = 0.0;
 double seekElapsed;
+
 _Atomic bool EOFReached = false;
 _Atomic bool switchReached = false;
 _Atomic bool readingFrames = false;
@@ -995,12 +996,19 @@ void seekPercentage(float percent)
 
 void resumePlayback()
 {
+        // if this was unpaused with no song loaded
+        if (audioData.restart)
+        {
+                audioData.endOfListReached = false;
+        }
+
         if (!ma_device_is_started(&device))
         {
                 ma_device_start(&device);
         }
 
         paused = false;
+
         stopped = false;
 
         if (appState.currentView != SONG_VIEW)
@@ -1037,6 +1045,20 @@ void pausePlayback()
         {
                 refresh = true;
         }
+}
+
+void clearCurrentTrack()
+{
+        if (ma_device_is_started(&device))
+        {
+                // Stop the device (which stops playback)
+                ma_device_stop(&device);
+        }
+
+        resetDecoders();
+        resetVorbisDecoders();
+        resetOpusDecoders();
+        resetM4aDecoders();
 }
 
 void cleanupPlaybackDevice()
@@ -1539,7 +1561,7 @@ void opus_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_uint
                 if (pthread_mutex_trylock(&dataSourceMutex) != 0)
                 {
                         return;
-                }
+                }             
 
                 // Check if a file switch is required
                 if (pAudioData->switchFiles)
@@ -1660,7 +1682,7 @@ void vorbis_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_ui
                 if (pthread_mutex_trylock(&dataSourceMutex) != 0)
                 {
                         return;
-                }
+                }             
 
                 // Check if a file switch is required
                 if (pAudioData->switchFiles)
