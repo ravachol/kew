@@ -55,6 +55,7 @@ extern Node *tryNextSong;
 extern struct timespec lastInputTime;
 extern struct timespec lastPlaylistChangeTime;
 extern bool skipFromStopped;
+extern bool doNotifyMPRISSwitched;
 
 extern UserData userData;
 
@@ -89,8 +90,6 @@ void addToSpecialPlaylist(void);
 void toggleBlocks(AppSettings *settings);
 
 void toggleColors(AppSettings *settings);
-
-void toggleCovers(AppSettings *settings);
 
 void toggleVisualizer(AppSettings *settings);
 
@@ -132,6 +131,10 @@ void updateLibrary(char *path);
 
 void askIfCacheLibrary();
 
+void unloadSongA();
+
+void unloadSongB();
+
 void unloadPreviousSong();
 
 void createLibrary(AppSettings *settings);
@@ -147,5 +150,9 @@ void resetTimeCount();
 bool setPosition(gint64 newPosition);
 
 bool seekPosition(gint64 offset);
+
+void silentSwitchToNext(bool loadSong);
+
+void reshufflePlaylist();
 
 #endif
