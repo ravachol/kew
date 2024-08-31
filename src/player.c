@@ -22,7 +22,7 @@ typedef struct
 } PixelData;
 #endif
 
-const char VERSION[] = "2.7.1";
+const char VERSION[] = "2.7.2";
 const int ABSOLUTE_MIN_WIDTH = 68;
 bool visualizerEnabled = true;
 bool coverEnabled = true;
@@ -493,7 +493,7 @@ void printLastRow()
                 return;
         setTextColorRGB(lastRowColor.r, lastRowColor.g, lastRowColor.b);
 
-        char text[100] = " [F2 Playlist|F3 Library|F4 Track|F5 Search|F6 Keys|Esc Quit]";
+        char text[100] = " [F2 Playlist|F3 Library|F4 Track|F5 Search|F6 Help|Esc Quit]";
 
         char nerdFontText[100] = "";
 
@@ -582,11 +582,23 @@ int showKeyBindings(SongData *songdata, AppSettings *settings)
         setDefaultTextColor();
 
         printBlankSpaces(indent);
-        printf(" - Use %s (or %s) and %s to adjust volume.\n", settings->volumeUp, settings->volumeUpAlt, settings->volumeDown);
+        printf(" - Switch tracks with ←, → or %s, %s keys.\n", settings->previousTrackAlt, settings->nextTrackAlt);
         printBlankSpaces(indent);
-        printf(" - Use ←, → or %s, %s keys to switch tracks.\n", settings->previousTrackAlt, settings->nextTrackAlt);
+        printf(" - Volume is adjusted with %s (or %s) and %s.\n", settings->volumeUp, settings->volumeUpAlt, settings->volumeDown);
         printBlankSpaces(indent);
-        printf(" - Use ↑, ↓  or %s, %s keys to scroll through playlist.\n", settings->scrollUpAlt, settings->scrollDownAlt);
+        printf(" - Press F2 for Playlist View:\n");        
+        printBlankSpaces(indent);
+        printf("     Use ↑, ↓  or %s, %s keys to scroll through the playlist.\n", settings->scrollUpAlt, settings->scrollDownAlt);
+        printBlankSpaces(indent);
+        printf("     Press Enter to play.\n");
+        printBlankSpaces(indent);
+        printf(" - Press F3 for Library View:\n");
+        printBlankSpaces(indent);
+        printf("     Use ↑, ↓  or %s, %s keys to scroll through the library.\n", settings->scrollUpAlt, settings->scrollDownAlt);        
+        printBlankSpaces(indent);
+        printf("     Press Enter to add/remove songs to/from the playlist.\n");
+        printBlankSpaces(indent);
+        printf(" - Press F4 for Track View.\n");        
         printBlankSpaces(indent);
         printf(" - Enter a number then Enter to switch song.\n");
         printBlankSpaces(indent);
@@ -616,7 +628,7 @@ int showKeyBindings(SongData *songdata, AppSettings *settings)
         printf("\n");
         printLastRow();
 
-        numPrintedRows += 17;
+        numPrintedRows += 23;
 
         return numPrintedRows;
 }
@@ -1240,7 +1252,7 @@ int printPlayer(SongData *songdata, double elapsedSeconds, AppSettings *settings
         if (appState.currentView == KEYBINDINGS_VIEW && refresh)
         {
                 clearScreen();
-                showKeyBindings(songdata, settings);
+                showKeyBindings(songdata, settings); 
                 saveCursorPosition();
                 refresh = false;
         }

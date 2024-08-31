@@ -211,7 +211,7 @@ extern bool doQuit;
 
 extern double elapsedSeconds;
 
-extern bool hasSwitchedWhileNotPlaying;
+extern bool hasSilentlySwitched;
 
 extern pthread_mutex_t dataSourceMutex;
 
@@ -370,5 +370,7 @@ void opus_on_audio_frames(ma_device *pDevice, void *pFramesOut, const void *pFra
 void vorbis_on_audio_frames(ma_device *pDevice, void *pFramesOut, const void *pFramesIn, ma_uint32 frameCount);
 
 void logTime(const char *message);
+
+void clearCurrentTrack();
 
 #endif
