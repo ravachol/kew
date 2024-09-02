@@ -16,6 +16,8 @@ sound.c
 
 ma_context context;
 
+bool isContextInitialized = false;
+
 UserData userData;
 
 int check_aac_codec_support()
@@ -481,11 +483,18 @@ int switchAudioImplementation()
 void cleanupAudioContext()
 {
         ma_context_uninit(&context);
+        isContextInitialized = false;        
 }
 
 int createAudioDevice(UserData *userData)
 {
+        if (isContextInitialized) 
+        {
+                ma_context_uninit(&context);
+                isContextInitialized = false;
+        }
         ma_context_init(NULL, 0, NULL, &context);
+        isContextInitialized = true;        
 
         if (switchAudioImplementation() >= 0)
         {

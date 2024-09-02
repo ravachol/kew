@@ -41,6 +41,7 @@ extern bool waitingForPlaylist;
 extern bool waitingForNext;
 extern bool usingSongDataA;
 extern Node *nextSong;
+extern Node *songToStartFrom;
 extern int lastPlayedId;
 extern bool playingMainPlaylist;
 extern bool songHasErrors;
@@ -154,5 +155,7 @@ bool seekPosition(gint64 offset);
 void silentSwitchToNext(bool loadSong);
 
 void reshufflePlaylist();
+
+bool determineCurrentSongData(SongData **currentSongData);
 
 #endif

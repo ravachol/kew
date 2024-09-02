@@ -37,6 +37,7 @@ bool waitingForPlaylist = false;
 bool waitingForNext = false;
 Node *nextSong = NULL;
 Node *tryNextSong = NULL;
+Node *songToStartFrom = NULL;
 Node *prevSong = NULL;
 int lastPlayedId = -1;
 
@@ -211,17 +212,16 @@ void skipToSong(int id, bool startPlaying)
         {
                 waitingForPlaylist = false;
                 audioData.restart = false;
-                loadingdata.loadA = true;
 
                 if (isShuffleEnabled())
                         reshufflePlaylist();
         }
-        else // else play in the next slot
-        {
-                loadingdata.loadA = !usingSongDataA;
-        }
+
+        loadingdata.loadA = !usingSongDataA;
+
         loadingdata.loadingFirstDecoder = true;
         loadSong(currentSong, &loadingdata);
+
         int maxNumTries = 50;
         int numtries = 0;
 
@@ -257,7 +257,7 @@ void prepareIfSkippedSilent()
         if (hasSilentlySwitched)
         {
                 skipping = true;
-                hasSilentlySwitched = false;                
+                hasSilentlySwitched = false;
                 updateLastSongSwitchTime();
                 setCurrentImplementationType(NONE);
                 setRepeatEnabled(false);
@@ -772,13 +772,15 @@ void removeCurrentlyPlayingSong()
 {
         stopPlayback();
         emitStringPropertyChanged("PlaybackStatus", "Stopped");
+
         clearCurrentTrack();
 
         loadedNextSong = false;
         audioData.restart = true;
         audioData.endOfListReached = true;
         lastPlayedId = currentSong->id;
-        waitingForPlaylist = true;
+        songToStartFrom = getListNext(currentSong);
+        waitingForNext = true;
         currentSong = NULL;
 }
 
@@ -792,6 +794,13 @@ void dequeueSong(FileSystemEntry *child)
         if (currentSong != NULL && currentSong->id == node1->id)
         {
                 removeCurrentlyPlayingSong();
+        }
+        else
+        {
+                if (songToStartFrom != NULL)
+                {
+                        songToStartFrom = getListNext(node1);
+                }
         }
 
         int id = node1->id;
@@ -999,6 +1008,13 @@ void handleRemove()
         if (currentId == node->id)
         {
                 removeCurrentlyPlayingSong();
+        }
+        else
+        {
+                if (songToStartFrom != NULL)
+                {
+                        songToStartFrom = getListNext(node);
+                }
         }
 
         pthread_mutex_lock(&(playlist.mutex));
@@ -1254,10 +1270,30 @@ void loadNextSong()
 {
         songLoading = true;
         nextSongNeedsRebuilding = false;
+        skipFromStopped = false;
         loadingdata.loadA = !usingSongDataA;
         tryNextSong = nextSong = getListNext(currentSong);
         loadingdata.loadingFirstDecoder = false;
         loadSong(nextSong, &loadingdata);
+}
+
+bool determineCurrentSongData(SongData **currentSongData)
+{
+        *currentSongData = (audioData.currentFileIndex == 0) ? userData.songdataA : userData.songdataB;
+        bool isDeleted = (audioData.currentFileIndex == 0) ? userData.songdataADeleted == true : userData.songdataBDeleted == true;
+
+        if (isDeleted)
+        {
+                *currentSongData = (audioData.currentFileIndex != 0) ? userData.songdataA : userData.songdataB;
+                isDeleted = (audioData.currentFileIndex != 0) ? userData.songdataADeleted == true : userData.songdataBDeleted == true;
+
+                if (!isDeleted)
+                {
+                        activateSwitch(&audioData);
+                        audioData.switchFiles = false;
+                }
+        }
+        return isDeleted;
 }
 
 void setCurrentSongToNext()
@@ -1493,10 +1529,7 @@ void unloadSongA()
         {
                 userData.songdataADeleted = true;
                 unloadSongData(&loadingdata.songdataA);
-
                 userData.songdataA = NULL;
-                if (!audioData.endOfListReached)
-                        loadedNextSong = false;
         }
 }
 
@@ -1506,10 +1539,7 @@ void unloadSongB()
         {
                 userData.songdataBDeleted = true;
                 unloadSongData(&loadingdata.songdataB);
-
                 userData.songdataB = NULL;
-                if (!audioData.endOfListReached)
-                        loadedNextSong = false;
         }
 }
 
@@ -1522,6 +1552,10 @@ void unloadPreviousSong()
                           (loadingdata.songdataA != NULL && userData.songdataADeleted == false && userData.currentSongData->hasErrors == 0 && userData.currentSongData->trackId != NULL && strcmp(loadingdata.songdataA->trackId, userData.currentSongData->trackId) != 0))))
         {
                 unloadSongA();
+
+                if (!audioData.endOfListReached)
+                        loadedNextSong = false;
+
                 usingSongDataA = false;
         }
         else if (!usingSongDataA &&
@@ -1529,6 +1563,10 @@ void unloadPreviousSong()
                                (loadingdata.songdataB != NULL && userData.songdataBDeleted == false && userData.currentSongData->hasErrors == 0 && userData.currentSongData->trackId != NULL && strcmp(loadingdata.songdataB->trackId, userData.currentSongData->trackId) != 0))))
         {
                 unloadSongB();
+
+                if (!audioData.endOfListReached)
+                        loadedNextSong = false;
+
                 usingSongDataA = true;
         }
 
