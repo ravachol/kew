@@ -701,7 +701,7 @@ int prepareNextDecoder(char *filepath)
         }
         setNextDecoder(decoder);
 
-        if (currentDecoder != NULL)
+        if (currentDecoder != NULL && decoder != NULL)
                 ma_data_source_set_next(currentDecoder, decoder);
 
         return 0;
@@ -1047,6 +1047,16 @@ void pausePlayback()
         }
 }
 
+void cleanupPlaybackDevice()
+{
+        ma_device_stop(&device);
+        while (ma_device_get_state(&device) != ma_device_state_stopped && ma_device_get_state(&device) != ma_device_state_uninitialized)
+        {
+                c_sleep(100);
+        }
+        ma_device_uninit(&device);
+}
+
 void clearCurrentTrack()
 {
         if (ma_device_is_started(&device))
@@ -1059,16 +1069,8 @@ void clearCurrentTrack()
         resetVorbisDecoders();
         resetOpusDecoders();
         resetM4aDecoders();
-}
 
-void cleanupPlaybackDevice()
-{
-        ma_device_stop(&device);
-        while (ma_device_get_state(&device) != ma_device_state_stopped && ma_device_get_state(&device) != ma_device_state_uninitialized)
-        {
-                c_sleep(100);
-        }
-        ma_device_uninit(&device);
+        ma_data_source_set_next(currentDecoder, NULL);
 }
 
 void togglePausePlayback()

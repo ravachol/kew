@@ -1001,6 +1001,13 @@ void cleanupMpris()
                 g_main_context_unref(global_main_context);
                 global_main_context = NULL;
         }
+
+#ifdef USE_LIBNOTIFY
+        if (previous_notification != NULL) {
+                g_object_unref(previous_notification);
+                previous_notification = NULL;
+        }        
+#endif
 }
 
 void initMpris()

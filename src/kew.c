@@ -83,6 +83,8 @@ bool startFromTop = false;
 bool exactSearch = false;
 AppSettings settings;
 int fuzzySearchThreshold = 2;
+int lastNotifiedId = -1;
+bool songWasRemoved = false;
 
 bool isCooldownElapsed(int milliSeconds)
 {
@@ -374,6 +376,21 @@ void notifySongSwitch(SongData *currentSongData)
 #endif
 
                 notifyMPRISSwitch(currentSongData);
+
+                lastNotifiedId = currentSong->id;
+        }
+}
+
+void determineSongAndNotify()
+{
+        if (lastNotifiedId != currentSong->id)
+        {
+                SongData *currentSongData = NULL;
+
+                bool isDeleted = determineCurrentSongData(&currentSongData);
+
+                if (!isDeleted)
+                        notifySongSwitch(currentSongData);
         }
 }
 
@@ -426,6 +443,7 @@ void resetListAfterDequeuingPlayingSong()
 
                 emitMetadataChanged("", "", "", "", "/org/mpris/MediaPlayer2/TrackList/NoTrack", NULL, 0);
                 emitPlaybackStoppedMpris();
+
                 pthread_mutex_lock(&dataSourceMutex);
                 cleanupPlaybackDevice();
                 pthread_mutex_unlock(&dataSourceMutex);
@@ -436,16 +454,22 @@ void resetListAfterDequeuingPlayingSong()
 
                 unloadSongA();
                 unloadSongB();
+                songWasRemoved = true;
                 userData.currentSongData = NULL;
 
                 audioData.currentFileIndex = 0;
                 audioData.restart = true;
-                waitingForPlaylist = true;
+                waitingForNext = true;
+                startFromTop = true;
                 loadingdata.loadA = true;
+                usingSongDataA = false;
 
                 ma_data_source_uninit(&audioData);
 
                 audioData.switchFiles = false;
+
+                if (playlist.count == 0)
+                        songToStartFrom = NULL;
         }
 }
 
@@ -496,9 +520,7 @@ void handleGoToSong()
         else
         {
                 if (digitsPressedCount == 0)
-                {
-                        bool wasPaused = isPaused();
-
+                {                        
                         if (isPaused() && currentSong != NULL && chosenNodeId == currentSong->id)
                         {
                                 togglePause(&totalPauseSeconds, &pauseSeconds, &pause_time);
@@ -510,15 +532,23 @@ void handleGoToSong()
                                 playlistNeedsUpdate = false;
                                 nextSongNeedsRebuilding = false;
 
-                                if (wasPaused && currentSong != NULL && currentSong != NULL && chosenNodeId != currentSong->id)
-                                {
-                                        usingSongDataA = !usingSongDataA;
-                                }
+                                unloadSongA();
+                                unloadSongB();
+
+                                usingSongDataA = false;
+                                audioData.currentFileIndex = 0;
+                                loadingdata.loadA = true;
 
                                 skipToSong(chosenNodeId, true);
+
+                                if (songWasRemoved && currentSong != NULL)
+                                {
+                                    usingSongDataA = !usingSongDataA;
+                                    songWasRemoved = false;
+                                }
+
                                 audioData.endOfListReached = false;
                         }
-                        wasPaused = false;
                 }
                 else
                 {
@@ -715,7 +745,14 @@ void loadAudioData()
                         }
                         else if (waitingForNext)
                         {
-                                if (lastPlayedId >= 0)
+                                if (songToStartFrom != NULL)
+                                {
+                                        // Make sure it still exists in the playlist
+                                        findNodeInList(&playlist, songToStartFrom->id, &currentSong);
+
+                                        songToStartFrom = NULL;
+                                }
+                                else if (lastPlayedId >= 0)
                                 {
                                         currentSong = findSelectedEntryById(&playlist, lastPlayedId);
                                         if (currentSong != NULL && currentSong->next != NULL)
@@ -739,6 +776,9 @@ void loadAudioData()
 
                         if (isShuffleEnabled())
                                 reshufflePlaylist();
+
+                        unloadSongA();
+                        unloadSongB();
 
                         int res = loadFirst(currentSong);
 
@@ -768,7 +808,8 @@ void loadAudioData()
         }
         else if (currentSong != NULL && (nextSongNeedsRebuilding || nextSong == NULL) && !songLoading)
         {
-                loadNextSong();
+                loadNextSong();              
+                determineSongAndNotify();
         }
 
         loadingAudioData = false;
@@ -795,25 +836,6 @@ void tryLoadNext()
         {
                 clearingErrors = false;
         }
-}
-
-bool determineCurrentSongData(SongData **currentSongData)
-{
-        *currentSongData = (audioData.currentFileIndex == 0) ? userData.songdataA : userData.songdataB;
-        bool isDeleted = (audioData.currentFileIndex == 0) ? userData.songdataADeleted == true : userData.songdataBDeleted == true;
-
-        if (isDeleted)
-        {
-                *currentSongData = (audioData.currentFileIndex != 0) ? userData.songdataA : userData.songdataB;
-                isDeleted = (audioData.currentFileIndex != 0) ? userData.songdataADeleted == true : userData.songdataBDeleted == true;
-
-                if (!isDeleted)
-                {
-                        activateSwitch(&audioData);
-                        audioData.switchFiles = false;
-                }
-        }
-        return isDeleted;
 }
 
 void prepareNextSong()
@@ -847,12 +869,7 @@ void prepareNextSong()
         }
         else
         {
-                SongData *currentSongData = NULL;
-
-                bool isDeleted = determineCurrentSongData(&currentSongData);
-
-                if (!isDeleted)
-                        notifySongSwitch(currentSongData);
+                determineSongAndNotify();
         }
 
         clock_gettime(CLOCK_MONOTONIC, &start_time);
@@ -894,7 +911,7 @@ gboolean mainloop_callback(gpointer data)
                 {
                         if (loadingAudioData == false && (skipFromStopped || !loadedNextSong || nextSongNeedsRebuilding) && !audioData.endOfListReached)
                         {
-                                handleSkipFromStopped();
+                                // handleSkipFromStopped();
                                 loadAudioData();
                         }
 
@@ -932,10 +949,16 @@ static gboolean quitOnSignal(gpointer user_data)
         return G_SOURCE_REMOVE; // Remove the signal source
 }
 
-void play(Node *song)
+void initFirstPlay(Node *song)
 {
         updateLastInputTime();
         updateLastSongSwitchTime();
+
+        userData.currentSongData = NULL;
+        userData.songdataA = NULL;
+        userData.songdataB = NULL;
+        userData.songdataADeleted = true;
+        userData.songdataBDeleted = true;
 
         int res = 0;
 
@@ -992,8 +1015,11 @@ void cleanupOnExit()
         resetVorbisDecoders();
         resetOpusDecoders();
         resetM4aDecoders();
-        cleanupPlaybackDevice();
-        cleanupAudioContext();
+        if (isContextInitialized)
+        {
+                cleanupPlaybackDevice();
+                cleanupAudioContext();
+        }
         emitPlaybackStoppedMpris();
 
         if (library == NULL || library->children == NULL)
@@ -1064,7 +1090,7 @@ void run()
         initMpris();
 
         currentSong = playlist.head;
-        play(currentSong);
+        initFirstPlay(currentSong);
         clearScreen();
         fflush(stdout);
 }
