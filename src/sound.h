@@ -52,6 +52,8 @@ extern AudioData audioData;
 
 extern UserData userData;
 
+extern bool isContextInitialized;
+
 int prepareNextDecoder(char *filepath);
 
 int prepareNextOpusDecoder(char *filepath);

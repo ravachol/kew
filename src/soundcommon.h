@@ -197,6 +197,10 @@ typedef struct {
     ViewState currentView;
 } AppState;
 
+#ifdef USE_LIBNOTIFY
+extern NotifyNotification *previous_notification;
+#endif
+
 extern AppState appState;
 
 extern bool allowNotifications;
