@@ -162,6 +162,7 @@ typedef struct
         char hardNextPage[6];
         char hardPrevPage[6];
         char hardRemove[6];
+        char hardRemove2[6];
         char lastVolume[12];
         char allowNotifications[2];
         char color[2];       
