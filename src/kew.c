@@ -227,7 +227,8 @@ struct Event processInput()
                                       {settings.showSearchAlt, EVENT_SHOWSEARCH},
                                       {settings.hardNextPage, EVENT_NEXTPAGE},
                                       {settings.hardPrevPage, EVENT_PREVPAGE},
-                                      {settings.hardRemove, EVENT_REMOVE}};
+                                      {settings.hardRemove, EVENT_REMOVE},
+                                      {settings.hardRemove2, EVENT_REMOVE}};
 
         int numKeyMappings = sizeof(keyMappings) / sizeof(EventMapping);
 

@@ -81,6 +81,7 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         strncpy(settings.hardNextPage, "[6~", sizeof(settings.hardNextPage));
         strncpy(settings.hardPrevPage, "[5~", sizeof(settings.hardPrevPage));
         strncpy(settings.hardRemove, "[3~", sizeof(settings.hardRemove));
+        strncpy(settings.hardRemove2, "[P", sizeof(settings.hardRemove2));
         strncpy(settings.lastVolume, "100", sizeof(settings.lastVolume));
         strncpy(settings.color, "6", sizeof(settings.color));
         strncpy(settings.artistColor, "6", sizeof(settings.artistColor));
