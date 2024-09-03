@@ -981,10 +981,11 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
 {
         char dirName[maxNameWidth + 1];
         char filename[maxNameWidth + 1];
+        bool foundChosen = false;
 
         if (libIter >= startLibIter + maxListSize)
         {
-                return 0;
+                return false;
         }
 
         FileSystemEntry *tmp = root->parent == NULL ? NULL : root->parent->children;
@@ -1007,11 +1008,13 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
         {
                 if (chosenLibRow >= libIter + libSongIter && libSongIter != 0)
                 {
-                        if (chosenLibRow >= numDirectoryTreeEntries + numTopLevelSongs + numAudioChildren)
-                        {
-                                startLibIter = numDirectoryTreeEntries + numTopLevelSongs + numAudioChildren - maxListSize;
-                                chosenLibRow = numDirectoryTreeEntries + numTopLevelSongs + numAudioChildren - 1;
-                        }
+                        // if (chosenLibRow >= numDirectoryTreeEntries + numTopLevelSongs + numAudioChildren)
+                        // {
+                        //         startLibIter = numDirectoryTreeEntries + numTopLevelSongs + numAudioChildren - maxListSize;
+                        //         chosenLibRow = numDirectoryTreeEntries + numTopLevelSongs + numAudioChildren - 1;
+                        // }                                  
+
+                        startLibIter = chosenLibRow - round(maxListSize / 2);
                 }
         }
         else
@@ -1027,7 +1030,7 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
                 startLibIter = chosenLibRow = libIter = 0;
 
         if (root == NULL)
-                return 0;
+                return false;
 
         if (root->isDirectory ||
             (!root->isDirectory && depth == 1) ||
@@ -1081,6 +1084,8 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
                                                 chosenDir = NULL;
                                                 refresh = true;
                                         }
+
+                                        foundChosen = true;                               
                                 }
                                 else
                                 {
@@ -1125,13 +1130,14 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
                 FileSystemEntry *child = root->children;
                 while (child != NULL)
                 {
-                        if (displayTree(child, depth + 1, maxListSize, maxNameWidth) == -1)
-                                return -1;
+                        if (displayTree(child, depth + 1, maxListSize, maxNameWidth))
+                                foundChosen = true;
+
                         child = child->next;
                 }
         }
 
-        return 0;
+        return foundChosen;
 }
 
 char *getLibraryFilePath()
@@ -1188,7 +1194,13 @@ void showLibrary(SongData *songData)
                 tmp = tmp->next;
         }
 
-        displayTree(library, 0, maxLibListSize, maxNameWidth);
+        bool foundChosen = displayTree(library, 0, maxLibListSize, maxNameWidth);
+
+        if (!foundChosen)
+        {
+                chosenLibRow--;
+                refresh = true;
+        }
 
         printf("\n");
 
