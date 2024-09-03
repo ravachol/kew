@@ -1611,6 +1611,8 @@ void *updateLibraryThread(void *arg)
 
         pthread_mutex_lock(&switchMutex);
 
+        copyIsEnqueued(library, temp);
+
         freeTree(library);
         library = temp;
         numDirectoryTreeEntries = tmpDirectoryTreeEntries;
