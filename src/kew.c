@@ -385,15 +385,12 @@ void notifySongSwitch(SongData *currentSongData)
 
 void determineSongAndNotify()
 {
-        if (lastNotifiedId != currentSong->id)
-        {
-                SongData *currentSongData = NULL;
+        SongData *currentSongData = NULL;
 
-                bool isDeleted = determineCurrentSongData(&currentSongData);
+        bool isDeleted = determineCurrentSongData(&currentSongData);
 
-                if (!isDeleted)
-                        notifySongSwitch(currentSongData);
-        }
+        if (!isDeleted)
+                notifySongSwitch(currentSongData);
 }
 
 // Checks conditions for refreshing player
@@ -522,7 +519,7 @@ void handleGoToSong()
         else
         {
                 if (digitsPressedCount == 0)
-                {                        
+                {
                         if (isPaused() && currentSong != NULL && chosenNodeId == currentSong->id)
                         {
                                 togglePause(&totalPauseSeconds, &pauseSeconds, &pause_time);
@@ -545,8 +542,8 @@ void handleGoToSong()
 
                                 if (songWasRemoved && currentSong != NULL)
                                 {
-                                    usingSongDataA = !usingSongDataA;
-                                    songWasRemoved = false;
+                                        usingSongDataA = !usingSongDataA;
+                                        songWasRemoved = false;
                                 }
 
                                 audioData.endOfListReached = false;
@@ -811,7 +808,7 @@ void loadAudioData()
         }
         else if (currentSong != NULL && (nextSongNeedsRebuilding || nextSong == NULL) && !songLoading)
         {
-                loadNextSong();              
+                loadNextSong();
                 determineSongAndNotify();
         }
 
