@@ -542,3 +542,36 @@ void fuzzySearchRecursive(FileSystemEntry *node, const char *searchTerm, int thr
         fuzzySearchRecursive(node->children, searchTerm, threshold, callback);
         fuzzySearchRecursive(node->next, searchTerm, threshold, callback);
 }
+
+FileSystemEntry *findCorrespondingEntry(FileSystemEntry *temp, const char *fullPath)
+{
+    if (temp == NULL)
+        return NULL;
+    if (strcmp(temp->fullPath, fullPath) == 0)
+        return temp;
+
+    FileSystemEntry *found = findCorrespondingEntry(temp->children, fullPath);
+    if (found != NULL)
+        return found;
+
+    return findCorrespondingEntry(temp->next, fullPath);
+}
+
+void copyIsEnqueued(FileSystemEntry *library, FileSystemEntry *temp)
+{
+    if (library == NULL)
+        return;
+
+    if (library->isEnqueued)
+    {
+        FileSystemEntry *tempEntry = findCorrespondingEntry(temp, library->fullPath);
+        if (tempEntry != NULL)
+        {
+            tempEntry->isEnqueued = library->isEnqueued;
+        }
+    }
+
+    copyIsEnqueued(library->children, temp);
+
+    copyIsEnqueued(library->next, temp);
+}
