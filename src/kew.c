@@ -148,6 +148,7 @@ struct Event processInput()
                     strcmp(seq + 1, settings.hardNextPage) == 0 || strcmp(seq + 1, settings.hardPrevPage) == 0)
                 {
                         keyReleased = 0;
+                        readInputSequence(tmpSeq, sizeof(tmpSeq)); // dummy read to prevent scrolling after key released
                         break;
                 }
 
