@@ -121,9 +121,8 @@ void clearRestOfScreen()
 
 void clearScreen()
 {
-        printf("\033[2J");
-        printf("\033[H");
-        printf("\033[1;1H");
+        printf("\033[3J");      // Clear scrollback buffer
+        printf("\033[H\033[J"); // Move cursor to top-left and clear screen
 }
 
 void enableScrolling()
