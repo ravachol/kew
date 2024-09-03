@@ -773,6 +773,7 @@ void loadAudioData()
                         audioData.restart = false;
                         waitingForPlaylist = false;
                         waitingForNext = false;
+                        songWasRemoved = false;
 
                         if (isShuffleEnabled())
                                 reshufflePlaylist();
