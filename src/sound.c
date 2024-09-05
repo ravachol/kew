@@ -102,14 +102,14 @@ ma_result initFirstDatasource(AudioData *pAudioData, UserData *pUserData)
         return MA_SUCCESS;
 }
 
-void createDevice(UserData *userData, ma_device *device, ma_context *context, ma_data_source_vtable *vtable, ma_device_data_proc callback)
+int createDevice(UserData *userData, ma_device *device, ma_context *context, ma_data_source_vtable *vtable, ma_device_data_proc callback)
 {
         ma_result result;
 
         ma_data_source_uninit(&audioData);
         result = initFirstDatasource(&audioData, userData);
         if (result != MA_SUCCESS)
-                return;
+                return -1;
 
         audioData.base.vtable = vtable;
 
@@ -122,26 +122,33 @@ void createDevice(UserData *userData, ma_device *device, ma_context *context, ma
 
         result = ma_device_init(context, &deviceConfig, device);
         if (result != MA_SUCCESS)
-                return;
+                return -1;
 
         setVolume(getCurrentVolume());
 
         result = ma_device_start(device);
         if (result != MA_SUCCESS)
-                return;
+                return -1;
         emitStringPropertyChanged("PlaybackStatus", "Playing");
+
+        return 0;        
 }
 
-void builtin_createAudioDevice(UserData *userData, ma_device *device, ma_context *context, ma_data_source_vtable *vtable)
+int builtin_createAudioDevice(UserData *userData, ma_device *device, ma_context *context, ma_data_source_vtable *vtable)
 {
-        createDevice(userData, device, context, vtable, builtin_on_audio_frames);
+        return createDevice(userData, device, context, vtable, builtin_on_audio_frames);
 }
 
-void vorbis_createAudioDevice(UserData *userData, ma_device *device, ma_context *context)
+int vorbis_createAudioDevice(UserData *userData, ma_device *device, ma_context *context)
 {
         ma_result result;
 
-        initFirstDatasource(&audioData, userData);
+        result = initFirstDatasource(&audioData, userData);
+        if (result != MA_SUCCESS)
+        {
+                printf("\n\nFailed to initialize ogg vorbis file.\n");
+                return -1;
+        }
         ma_libvorbis *vorbis = getFirstVorbisDecoder();
         ma_device_config deviceConfig = ma_device_config_init(ma_device_type_playback);
 
@@ -154,8 +161,8 @@ void vorbis_createAudioDevice(UserData *userData, ma_device *device, ma_context 
         result = ma_device_init(context, &deviceConfig, device);
         if (result != MA_SUCCESS)
         {
-                printf("Failed to initialize miniaudio device.\n");
-                return;
+                printf("\n\nFailed to initialize miniaudio device.\n");
+                return -1;
         }
 
         setVolume(getCurrentVolume());
@@ -163,17 +170,24 @@ void vorbis_createAudioDevice(UserData *userData, ma_device *device, ma_context 
         result = ma_device_start(device);
         if (result != MA_SUCCESS)
         {
-                printf("Failed to start miniaudio device.\n");
-                return;
+                printf("\n\nFailed to start miniaudio device.\n");
+                return -1;
         }
         emitStringPropertyChanged("PlaybackStatus", "Playing");
+
+        return 0;        
 }
 
-void m4a_createAudioDevice(UserData *userData, ma_device *device, ma_context *context)
+int m4a_createAudioDevice(UserData *userData, ma_device *device, ma_context *context)
 {
         ma_result result;
 
-        initFirstDatasource(&audioData, userData);
+        result = initFirstDatasource(&audioData, userData);
+        if (result != MA_SUCCESS)
+        {
+                printf("\n\nFailed to initialize m4a file.\n");
+                return -1;
+        }        
         m4a_decoder *decoder = getFirstM4aDecoder();
         ma_device_config deviceConfig = ma_device_config_init(ma_device_type_playback);
 
@@ -186,8 +200,8 @@ void m4a_createAudioDevice(UserData *userData, ma_device *device, ma_context *co
         result = ma_device_init(context, &deviceConfig, device);
         if (result != MA_SUCCESS)
         {
-                printf("Failed to initialize miniaudio device.\n");
-                return;
+                printf("\n\nFailed to initialize miniaudio device.\n");
+                return -1;
         }
 
         setVolume(getCurrentVolume());
@@ -196,17 +210,24 @@ void m4a_createAudioDevice(UserData *userData, ma_device *device, ma_context *co
 
         if (result != MA_SUCCESS)
         {
-                printf("Failed to start miniaudio device.\n");
-                return;
+                printf("\n\nFailed to start miniaudio device.\n");
+                return -1;
         }
         emitStringPropertyChanged("PlaybackStatus", "Playing");
+
+        return 0;        
 }
 
-void opus_createAudioDevice(UserData *userData, ma_device *device, ma_context *context)
+int opus_createAudioDevice(UserData *userData, ma_device *device, ma_context *context)
 {
         ma_result result;
 
-        initFirstDatasource(&audioData, userData);
+        result = initFirstDatasource(&audioData, userData);
+        if (result != MA_SUCCESS)
+        {
+                printf("\n\nFailed to initialize opus file.\n");
+                return -1;
+        }        
         ma_libopus *opus = getFirstOpusDecoder();
 
         ma_device_config deviceConfig = ma_device_config_init(ma_device_type_playback);
@@ -220,8 +241,8 @@ void opus_createAudioDevice(UserData *userData, ma_device *device, ma_context *c
         result = ma_device_init(context, &deviceConfig, device);
         if (result != MA_SUCCESS)
         {
-                printf("Failed to initialize miniaudio device.\n");
-                return;
+                printf("\n\nFailed to initialize miniaudio device.\n");
+                return -1;
         }
 
         setVolume(getCurrentVolume());
@@ -229,21 +250,23 @@ void opus_createAudioDevice(UserData *userData, ma_device *device, ma_context *c
         result = ma_device_start(device);
         if (result != MA_SUCCESS)
         {
-                printf("Failed to start miniaudio device.\n");
-                return;
+                printf("\n\nFailed to start miniaudio device.\n");
+                return -1;
         }
         emitStringPropertyChanged("PlaybackStatus", "Playing");
+
+        return 0;
 }
 
 bool validFilePath(char *filePath)
 {
-    if (filePath == NULL || filePath[0] == '\0' || filePath[0] == '\r')
-        return false;
+        if (filePath == NULL || filePath[0] == '\0' || filePath[0] == '\r')
+                return false;
 
-    if (existsFile(filePath) < 0)
-        return false;
+        if (existsFile(filePath) < 0)
+                return false;
 
-    return true;
+        return true;
 }
 
 bool tryAgain = false;
@@ -270,6 +293,7 @@ int switchAudioImplementation()
         }
         else
         {
+                
                 if (!validFilePath(userData.currentSongData->filePath))
                 {
                         if (!tryAgain)
@@ -279,7 +303,8 @@ int switchAudioImplementation()
                                 switchAudioImplementation();
                                 return 0;
                         }
-                        else {
+                        else
+                        {
                                 setEOFReached();
                                 return -1;
                         }
@@ -288,7 +313,7 @@ int switchAudioImplementation()
                 filePath = strdup(userData.currentSongData->filePath);
         }
 
-        tryAgain = false;        
+        tryAgain = false;
 
         if (hasBuiltinDecoder(filePath))
         {
@@ -319,7 +344,16 @@ int switchAudioImplementation()
                         resetOpusDecoders();
                         resetAudioBuffer();
 
-                        builtin_createAudioDevice(&userData, getDevice(), &context, &builtin_file_data_source_vtable);
+                        int result = builtin_createAudioDevice(&userData, getDevice(), &context, &builtin_file_data_source_vtable);
+
+                        if (result < 0)
+                        {
+                                setCurrentImplementationType(NONE);
+                                setImplSwitchNotReached();
+                                setEOFReached();
+                                pthread_mutex_unlock(&dataSourceMutex);                                
+                                return -1;
+                        }
 
                         pthread_mutex_unlock(&dataSourceMutex);
 
@@ -364,7 +398,16 @@ int switchAudioImplementation()
                         resetOpusDecoders();
                         resetAudioBuffer();
 
-                        opus_createAudioDevice(&userData, getDevice(), &context);
+                        int result = opus_createAudioDevice(&userData, getDevice(), &context);
+
+                        if (result < 0)
+                        {
+                                setCurrentImplementationType(NONE);
+                                setImplSwitchNotReached();
+                                setEOFReached();
+                                pthread_mutex_unlock(&dataSourceMutex);                                
+                                return -1;
+                        }
 
                         pthread_mutex_unlock(&dataSourceMutex);
 
@@ -409,7 +452,16 @@ int switchAudioImplementation()
                         resetOpusDecoders();
                         resetAudioBuffer();
 
-                        vorbis_createAudioDevice(&userData, getDevice(), &context);
+                        int result = vorbis_createAudioDevice(&userData, getDevice(), &context);
+
+                        if (result < 0)
+                        {
+                                setCurrentImplementationType(NONE);
+                                setImplSwitchNotReached();
+                                setEOFReached();
+                                pthread_mutex_unlock(&dataSourceMutex);                                
+                                return -1;
+                        }
 
                         pthread_mutex_unlock(&dataSourceMutex);
 
@@ -461,7 +513,16 @@ int switchAudioImplementation()
                         resetOpusDecoders();
                         resetAudioBuffer();
 
-                        m4a_createAudioDevice(&userData, getDevice(), &context);
+                        int result = m4a_createAudioDevice(&userData, getDevice(), &context);
+
+                        if (result < 0)
+                        {
+                                setCurrentImplementationType(NONE);
+                                setImplSwitchNotReached();
+                                setEOFReached();
+                                pthread_mutex_unlock(&dataSourceMutex);                                
+                                return -1;
+                        }
 
                         pthread_mutex_unlock(&dataSourceMutex);
 
@@ -483,18 +544,18 @@ int switchAudioImplementation()
 void cleanupAudioContext()
 {
         ma_context_uninit(&context);
-        isContextInitialized = false;        
+        isContextInitialized = false;
 }
 
 int createAudioDevice(UserData *userData)
 {
-        if (isContextInitialized) 
+        if (isContextInitialized)
         {
                 ma_context_uninit(&context);
                 isContextInitialized = false;
         }
         ma_context_init(NULL, 0, NULL, &context);
-        isContextInitialized = true;        
+        isContextInitialized = true;
 
         if (switchAudioImplementation() >= 0)
         {
@@ -502,9 +563,9 @@ int createAudioDevice(UserData *userData)
 
                 if (currentSongData != NULL && currentSongData->hasErrors == 0 && currentSongData->metadata && strlen(currentSongData->metadata->title) > 0)
                 {
-                        #ifdef USE_LIBNOTIFY
+#ifdef USE_LIBNOTIFY
                         displaySongNotification(currentSongData->metadata->artist, currentSongData->metadata->title, currentSongData->coverArtPath);
-                        #endif
+#endif
 
                         gint64 length = getLengthInMicroSec(currentSongData->duration);
                         // update mpris
