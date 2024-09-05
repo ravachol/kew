@@ -388,9 +388,12 @@ void determineSongAndNotify()
         SongData *currentSongData = NULL;
 
         bool isDeleted = determineCurrentSongData(&currentSongData);
-
-        if (!isDeleted)
-                notifySongSwitch(currentSongData);
+        
+        if (lastNotifiedId != currentSong->id)
+        {
+                if (!isDeleted)
+                        notifySongSwitch(currentSongData);
+        }
 }
 
 // Checks conditions for refreshing player
