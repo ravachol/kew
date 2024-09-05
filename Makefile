@@ -15,7 +15,7 @@ CFLAGS += -fstack-protector-strong -Wformat -Werror=format-security -fPIE -fstac
 CFLAGS += -Wall -Wextra -Wpointer-arith
 
 LIBS = -L/usr/lib -lfreeimage -lpthread -lrt -pthread -lm -lglib-2.0 $(shell $(PKG_CONFIG) --libs libavcodec libavutil libavformat libswresample gio-2.0 chafa fftw3f opus opusfile vorbis vorbisfile glib-2.0)
-LDFLAGS = -pie -Wl,-z,relro
+LDFLAGS = -pie -Wl,-z,relro,-lz
 
 # Conditionally add libnotify if USE_LIBNOTIFY is enabled
 ifeq ($(USE_LIBNOTIFY), 1)
