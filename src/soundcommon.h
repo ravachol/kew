@@ -3,6 +3,7 @@
 
 #include <FreeImage.h>
 #include <glib.h>
+#include <math.h>
 #include <miniaudio.h>
 #include <miniaudio_libopus.h>
 #include <miniaudio_libvorbis.h>
