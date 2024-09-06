@@ -340,6 +340,7 @@ void setEndOfListReached()
         loadedNextSong = false;
         audioData.endOfListReached = true;
         usingSongDataA = false;
+        currentSong = NULL;
         audioData.currentFileIndex = 0;
         audioData.restart = true;
         loadingdata.loadA = true;

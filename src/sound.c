@@ -351,6 +351,7 @@ int switchAudioImplementation()
                                 setCurrentImplementationType(NONE);
                                 setImplSwitchNotReached();
                                 setEOFReached();
+                                free(filePath);
                                 pthread_mutex_unlock(&dataSourceMutex);                                
                                 return -1;
                         }
@@ -405,6 +406,7 @@ int switchAudioImplementation()
                                 setCurrentImplementationType(NONE);
                                 setImplSwitchNotReached();
                                 setEOFReached();
+                                free(filePath);
                                 pthread_mutex_unlock(&dataSourceMutex);                                
                                 return -1;
                         }
@@ -459,6 +461,7 @@ int switchAudioImplementation()
                                 setCurrentImplementationType(NONE);
                                 setImplSwitchNotReached();
                                 setEOFReached();
+                                free(filePath);
                                 pthread_mutex_unlock(&dataSourceMutex);                                
                                 return -1;
                         }
@@ -520,6 +523,7 @@ int switchAudioImplementation()
                                 setCurrentImplementationType(NONE);
                                 setImplSwitchNotReached();
                                 setEOFReached();
+                                free(filePath);
                                 pthread_mutex_unlock(&dataSourceMutex);                                
                                 return -1;
                         }
@@ -531,6 +535,11 @@ int switchAudioImplementation()
         }
         else
         {
+                setCurrentImplementationType(NONE);
+                setImplSwitchNotReached();  
+                userData.currentSongData = NULL;
+                printf("\n\nFile type not supported.\n");
+                setEOFReached();
                 free(filePath);
                 return -1;
         }
