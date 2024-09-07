@@ -1293,7 +1293,7 @@ void exitIfAlreadyRunning()
                         fclose(pidfile);
                         if (isProcessRunning(pid))
                         {
-                                fprintf(stderr, "An instance of kew is already running.\n");
+                                fprintf(stderr, "An instance of kew is already running. Pid: %d.\n", pid);
                                 exit(EXIT_FAILURE);
                         }
                         else

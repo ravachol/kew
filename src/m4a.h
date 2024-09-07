@@ -539,7 +539,6 @@ ma_result m4a_decoder_read_pcm_frames(m4a_decoder *pM4a, void *pFramesOut, ma_ui
 
                                                                 if (frame->extended_data[c] == NULL)
                                                                 {
-                                                                        printf("Error: No data found in M4A streams. M4A format support might be incomplete.\n");
                                                                         return MA_ERROR;
                                                                 }
 
