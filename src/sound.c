@@ -535,11 +535,6 @@ int switchAudioImplementation()
         }
         else
         {
-                setCurrentImplementationType(NONE);
-                setImplSwitchNotReached();  
-                userData.currentSongData = NULL;
-                printf("\n\nFile type not supported.\n");
-                setEOFReached();
                 free(filePath);
                 return -1;
         }
