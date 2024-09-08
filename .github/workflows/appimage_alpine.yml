@@ -41,7 +41,7 @@ jobs:
 
       - name: Download and prepare appimagetool
         run: |
-          wget -O appimagetool-x86_64.AppImage https://github.com/probonopd/go-appimage/releases/download/continuous/appimagetool-x86_64.AppImage
+          wget -O appimagetool-x86_64.AppImage -c https://github.com/$(wget -q https://github.com/probonopd/go-appimage/releases/expanded_assets/continuous -O - | grep "appimagetool-.*-x86_64.AppImage" | head -n 1 | cut -d '"' -f 2)
           chmod +x appimagetool-x86_64.AppImage
 
       - name: Extract appimagetool
