@@ -1685,6 +1685,7 @@ void createLibrary(AppSettings *settings)
                 char *libFilepath = getLibraryFilePath();
                 library = reconstructTreeFromFile(libFilepath, settings->path, &numDirectoryTreeEntries);
                 free(libFilepath);
+                updateLibraryIfChangedDetected();                
         }
 
         if (library == NULL || library->children == NULL)
@@ -1710,5 +1711,74 @@ void createLibrary(AppSettings *settings)
         if (library == NULL || library->children == NULL)
         {
                 exit(0);
+        }
+}
+
+time_t getModificationTime(struct stat *path_stat) {
+
+    if (path_stat->st_mtime != 0) {
+        return path_stat->st_mtime;
+    } else {
+        return path_stat->st_mtim.tv_sec;  // Fallback to st_mtim.tv_sec if st_mtime is zero or invalid
+    }
+}
+
+void *updateIfTopLevelFoldersMtimesChangedThread(void *arg)
+{
+    char *path = (char *)arg;
+    struct stat path_stat;
+
+    if (stat(path, &path_stat) == -1) {
+        perror("stat");
+        pthread_exit(NULL);
+    }
+
+    if (getModificationTime(&path_stat) > lastTimeAppRan && lastTimeAppRan > 0) {        
+        updateLibrary(path);
+        pthread_exit(NULL);
+    }
+
+    DIR *dir = opendir(path);
+    if (!dir) {
+        perror("opendir");
+        pthread_exit(NULL);
+    }
+
+    struct dirent *entry;
+    while ((entry = readdir(dir)) != NULL) {
+
+        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
+            continue;
+        }
+
+        char fullPath[1024];
+        snprintf(fullPath, sizeof(fullPath), "%s/%s", path, entry->d_name);
+
+        if (stat(fullPath, &path_stat) == -1) {
+            perror("stat");
+            continue;
+        }
+
+        if (S_ISDIR(path_stat.st_mode)) {
+
+            if (getModificationTime(&path_stat) > lastTimeAppRan && lastTimeAppRan > 0) {                
+                updateLibrary(path);
+                break;
+            }
+        }
+    }
+
+    closedir(dir);
+
+    pthread_exit(NULL);
+}
+
+// This only checks the library mtime and toplevel subfolders mtimes
+void updateLibraryIfChangedDetected()
+{
+        pthread_t tid;
+        if (pthread_create(&tid, NULL, updateIfTopLevelFoldersMtimesChangedThread, (void *)settings.path) != 0)
+        {
+                perror("pthread_create");
         }
 }
