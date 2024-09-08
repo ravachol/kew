@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  AppImage:
+  ubuntu-appimage:
     runs-on: ubuntu-latest
 
     steps:
@@ -35,7 +35,7 @@ jobs:
         rm appdir/usr/lib/libavutil*
         rm appdir/usr/lib/libswres*
 
-     - name: Create AppImage
+    - name: Create AppImage
       run: |
         ./appimagetool-*.AppImage ./appdir
 
@@ -46,6 +46,6 @@ jobs:
 
     - name: Upload AppImage artifact
       uses: actions/upload-artifact@v3
-        with:
+      with:
         name: kew-appimage-glibc
         path: glibc/kew
