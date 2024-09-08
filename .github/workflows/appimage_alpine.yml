@@ -31,7 +31,10 @@ jobs:
             glib-dev \
             wget git desktop-file-utils \
             squashfs-tools \
-            patchelf
+            patchelf \
+            musl \
+            musl-dev \
+            libc6-compat
 
       - name: Build code
         run: make
