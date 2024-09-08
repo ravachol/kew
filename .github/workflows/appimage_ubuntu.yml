@@ -13,15 +13,27 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Download built executable
-      uses: actions/download-artifact@v3
-      with:
-        name: ubuntu-executable-artifact
-        path: ./appdir/usr/bin
+    - name: Install build essentials
+      run: sudo apt-get update && sudo apt-get install -y build-essential
+
+    - name: Install dependencies
+      run: sudo apt install -y ffmpeg libfftw3-dev libopus-dev libopusfile-dev libvorbis-dev libchafa-dev libfreeimage-dev libavformat-dev libstb-dev libnotify-dev wget
+
+    - name: Build code
+      run: |
+        make
+
+    - name: Prepare AppDir
+      run: |
+        mkdir -p appdir/usr/bin
+        mv ./kew appdir/usr/bin/
 
     - name: Download and prepare appimagetool
       run: |
-        wget -c https://github.com/$(wget -q https://github.com/probonopd/go-appimage/releases/expanded_assets/continuous -O - | grep "appimagetool-.*-x86_64.AppImage" | head -n 1 | cut -d '"' -f 2)
+        wget -O appimagetool-x86_64.AppImage -c https://github.com/$(wget -q https://github.com/probonopd/go-appimage/releases/expanded_assets/continuous -O - | grep "appimagetool-.*-x86_64.AppImage" | head -n 1 | cut -d '"' -f 2)
+        if [ ! -f appimagetool-*.AppImage ]; then
+          echo "appimagetool download failed"; exit 1;
+        fi          
         chmod +x appimagetool-*.AppImage
 
     - name: Deploy desktop file
@@ -37,15 +49,21 @@ jobs:
 
     - name: Create AppImage
       run: |
-        ./appimagetool-*.AppImage ./appdir
+        mkdir -p output
+        VERSION=$(./appdir/usr/bin/kew --version | awk -F": " 'FNR==6 {printf $NF}') ./appimagetool-*.AppImage ./appdir -o output
 
-    - name: Rename AppImage and move to output dir
+    - name: Rename AppImage
       run: |
-        mkdir -p glibc
-        mv *.AppImage glibc/kew
+        mv output/*.AppImage kew
+        chmod +x kew        
 
-    - name: Upload AppImage artifact
-      uses: actions/upload-artifact@v3
+    - name: Release
+      uses: marvinpinto/action-automatic-releases@latest
       with:
-        name: kew-appimage-glibc
-        path: glibc/kew
+        title: kew appImage (glibc systems, most systems) 
+        automatic_release_tag: stable
+        prerelease: false
+        draft: true
+        files: |
+          kew
+        repo_token: ${{ secrets.GITHUB_TOKEN }}

@@ -23,9 +23,3 @@ jobs:
 
       - name: Build code
         run: make
-
-      - name: Upload executable artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: ubuntu-executable-artifact
-          path: ./kew
