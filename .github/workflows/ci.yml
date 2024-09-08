@@ -1,14 +1,14 @@
 name: Build Check
 
-'on':
+on:
   pull_request:
   push:
     branches:
       - main
 
 jobs:
-  build:
-    name: Build Check
+  ubuntu-build-check:
+    name: Ubuntu Build Check
     runs-on: ubuntu-latest
 
     steps:
@@ -19,7 +19,45 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y build-essential
 
       - name: Install dependencies
-        run: sudo apt install ffmpeg libfftw3-dev libopus-dev libopusfile-dev libvorbis-dev libchafa-dev libfreeimage-dev libavformat-dev libstb-dev libnotify-dev
+        run: sudo apt install -y ffmpeg libfftw3-dev libopus-dev libopusfile-dev libvorbis-dev libchafa-dev libfreeimage-dev libavformat-dev libstb-dev libnotify-dev
 
       - name: Build code
         run: make
+
+      - name: Upload executable artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ubuntu-executable-artifact
+          path: ./kew
+
+  alpine-build-check:
+    name: Alpine Build Check
+    runs-on: alpine-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Install build essentials and dependencies
+        run: |
+          apk update
+          apk add --no-cache \
+            build-base \
+            ffmpeg-dev \
+            fftw-dev \
+            freeimage-dev \
+            chafa-dev \
+            opus-dev \
+            opusfile-dev \
+            libvorbis-dev \
+            libnotify-dev \
+            glib-dev
+
+      - name: Build code
+        run: make
+
+      - name: Upload executable artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: alpine-executable-artifact
+          path: ./kew
