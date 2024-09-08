@@ -37,7 +37,8 @@ jobs:
             libc6-compat
 
       - name: Build code
-        run: make
+        run: |
+          CC=musl-gcc LDFLAGS=-static make
 
       - name: Prepare AppDir
         run: |
