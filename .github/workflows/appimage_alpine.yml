@@ -34,7 +34,7 @@ jobs:
             patchelf \
             musl \
             musl-dev \
-            libc6-compat
+            gcompat
 
       - name: Build code
         run: |
