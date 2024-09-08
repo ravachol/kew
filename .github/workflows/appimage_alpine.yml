@@ -39,7 +39,7 @@ jobs:
       - name: Build code with static linking
         run: |
           export CC=musl-gcc
-          export LDFLAGS="-static -Wl,-z,relro,-lz"
+         #export LDFLAGS="-static -Wl,-z,relro,-lz"
           make
 
       - name: Prepare AppDir
@@ -61,16 +61,14 @@ jobs:
       - name: Download and prepare appimagetool
         run: |
           wget -O appimagetool-x86_64.AppImage -c https://github.com/$(wget -q https://github.com/probonopd/go-appimage/releases/expanded_assets/continuous -O - | grep "appimagetool-.*-x86_64.AppImage" | head -n 1 | cut -d '"' -f 2)
+          if [ ! -f appimagetool-*.AppImage ]; then
+            echo "appimagetool download failed"; exit 1;
+          fi          
           chmod +x appimagetool-x86_64.AppImage
 
-      - name: Extract appimagetool
+      - name: Use appimagetool with --appimage-extract-and-run
         run: |
-          ./appimagetool-x86_64.AppImage --appimage-extract
-          mv squashfs-root/usr/bin/appimagetool ./appimagetool
-
-      - name: Deploy desktop file
-        run: |
-          ./appimagetool deploy appdir/usr/share/applications/kew.desktop
+          ./appimagetool-x86_64.AppImage --appimage-extract-and-run deploy appdir/usr/share/applications/kew.desktop
 
       - name: Remove unnecessary libraries
         run: |
@@ -81,15 +79,22 @@ jobs:
 
       - name: Create AppImage
         run: |
-          ./appimagetool ./appdir
+          mkdir -p output
+          VERSION=$(./appdir/usr/bin/kew --version | awk -F": " 'FNR==6 {printf $NF}') ./appimagetool-*.AppImage ./appdir -o output
 
-      - name: Rename AppImage and move to output dir
+      - name: Rename AppImage
         run: |
-          mkdir -p musl
-          mv *.AppImage musl/kew
+          mv output/*.AppImage kew
+          chmod +x kew      
 
-      - name: Upload AppImage artifact
-        uses: actions/upload-artifact@v3
+      - name: Release
+        uses: marvinpinto/action-automatic-releases@latest
         with:
-          name: kew-appimage-musl
-          path: musl/kew
+          title: kew appImage (musl systems) 
+          automatic_release_tag: stable
+          prerelease: false
+          draft: true
+          files: |
+            kew
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          
