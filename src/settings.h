@@ -17,6 +17,8 @@
 #define MAXPATHLEN 4096
 #endif
 
+extern time_t lastTimeAppRan;
+
 extern AppSettings settings;
 
 void getConfig(AppSettings *settings);
