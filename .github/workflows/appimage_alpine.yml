@@ -40,6 +40,12 @@ jobs:
           mkdir -p appdir/usr/bin
           mv ./kew appdir/usr/bin/
 
+      - name: Download uploadtool
+        run: |
+          wget -q https://github.com/probonopd/uploadtool/raw/master/upload.sh
+          chmod +x upload.sh
+          mv upload.sh /usr/local/bin/uploadtool
+
       - name: Download and prepare appimagetool
         run: |
           wget -O appimagetool-x86_64.AppImage -c https://github.com/$(wget -q https://github.com/probonopd/go-appimage/releases/expanded_assets/continuous -O - | grep "appimagetool-.*-x86_64.AppImage" | head -n 1 | cut -d '"' -f 2)
