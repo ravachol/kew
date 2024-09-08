@@ -29,7 +29,8 @@ jobs:
             libvorbis-dev \
             libnotify-dev \
             glib-dev \
-            wget git desktop-file-utils
+            wget git desktop-file-utils \
+            squashfs-tools
 
       - name: Build code
         run: make
