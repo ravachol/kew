@@ -1,0 +1,56 @@
+name: appimage-appimage
+
+on:
+  release:
+    types: [created]  # Triggers on release created
+  workflow_dispatch:
+
+jobs:
+  AppImage:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Download built executable
+      uses: actions/download-artifact@v3
+      with:
+        name: ubuntu-executable-artifact
+        path: ./appdir/usr/bin
+
+    - name: Download and prepare appimagetool
+      run: |
+        wget -c https://github.com/$(wget -q https://github.com/probonopd/go-appimage/releases/expanded_assets/continuous -O - | grep "appimagetool-.*-x86_64.AppImage" | head -n 1 | cut -d '"' -f 2)
+        chmod +x appimagetool-*.AppImage
+
+    - name: Deploy desktop file
+      run: |
+        ./appimagetool-*.AppImage deploy appdir/usr/share/applications/kew.desktop
+
+    - name: Remove unnecessary libraries
+      run: |
+        rm appdir/usr/lib/libavcodec*
+        rm appdir/usr/lib/libavformat*
+        rm appdir/usr/lib/libavutil*
+        rm appdir/usr/lib/libswres*
+
+     - name: Create AppImage
+      run: |
+        ./appimagetool-*.AppImage ./appdir
+
+    - name: Rename AppImage and move to output dir
+      run: |
+        mkdir -p glibc
+        mv *.AppImage glibc/kew
+
+   # - name: Release
+   #   uses: marvinpinto/action-automatic-releases@latest
+   #   with:
+   #     title: kew appImage (glibc systems, most systems) 
+   #     automatic_release_tag: stable
+   #     prerelease: false
+   #     draft: false
+   #     files: |
+   #       glibc/kew
+   #     repo_token: ${{ secrets.GITHUB_TOKEN }}
