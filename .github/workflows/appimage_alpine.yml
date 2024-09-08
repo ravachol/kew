@@ -36,9 +36,11 @@ jobs:
             musl-dev \
             gcompat
 
-      - name: Build code
+      - name: Build code with static linking
         run: |
-          CC=musl-gcc LDFLAGS=-static make
+          export CC=musl-gcc
+          export LDFLAGS="-static -Wl,-z,relro,-lz"
+          make
 
       - name: Prepare AppDir
         run: |
