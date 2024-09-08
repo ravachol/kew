@@ -1,3 +1,10 @@
+name: Ubuntu-appimage
+
+on:
+  release:
+    types: [created]  # Triggers on release created
+  workflow_dispatch:
+  
 jobs:
   build-and-create-appimage:
     runs-on: ubuntu-latest
