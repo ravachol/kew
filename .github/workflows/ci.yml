@@ -30,37 +30,3 @@ jobs:
         with:
           name: ubuntu-executable-artifact
           path: ./kew
-
-  alpine-build-check:
-    name: Alpine Build Check
-    runs-on: ubuntu-latest
-    container:
-      image: alpine:latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Install build essentials and dependencies
-        run: |
-          apk update
-          apk add --no-cache \
-            build-base \
-            ffmpeg-dev \
-            fftw-dev \
-            freeimage-dev \
-            chafa-dev \
-            opus-dev \
-            opusfile-dev \
-            libvorbis-dev \
-            libnotify-dev \
-            glib-dev
-
-      - name: Build code
-        run: make
-
-      - name: Upload executable artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: alpine-executable-artifact
-          path: ./kew
