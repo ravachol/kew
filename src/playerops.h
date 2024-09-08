@@ -2,8 +2,13 @@
 #ifndef PLAYEROPS_H
 #define PLAYEROPS_H
 
+#include <dirent.h>
+#include <pthread.h>
+#include <stdio.h>
 #include <stdbool.h>
+#include <stdlib.h>
 #include <sys/time.h>
+#include <unistd.h>
 #include "player.h"
 #include "songloader.h"
 #include "settings.h"
@@ -157,5 +162,7 @@ void silentSwitchToNext(bool loadSong);
 void reshufflePlaylist();
 
 bool determineCurrentSongData(SongData **currentSongData);
+
+void updateLibraryIfChangedDetected();
 
 #endif

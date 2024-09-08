@@ -14,6 +14,8 @@ settings.c
 
 const char SETTINGS_FILE[] = "kewrc";
 
+time_t lastTimeAppRan;
+
 void freeKeyValuePairs(KeyValuePair *pairs, int count)
 {
         for (int i = 0; i < count; i++)
@@ -46,7 +48,7 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         strncpy(settings.scrollUpAlt, "k", sizeof(settings.scrollUpAlt));
         strncpy(settings.scrollDownAlt, "j", sizeof(settings.scrollDownAlt));
         strncpy(settings.toggleColorsDerivedFrom, "i", sizeof(settings.toggleColorsDerivedFrom));
-        strncpy(settings.toggleVisualizer, "v", sizeof(settings.toggleVisualizer));        
+        strncpy(settings.toggleVisualizer, "v", sizeof(settings.toggleVisualizer));
         strncpy(settings.toggleAscii, "b", sizeof(settings.toggleAscii));
         strncpy(settings.toggleRepeat, "r", sizeof(settings.toggleRepeat));
         strncpy(settings.toggleShuffle, "s", sizeof(settings.toggleShuffle));
@@ -98,7 +100,6 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         for (int i = 0; i < count; i++)
         {
                 KeyValuePair *pair = &pairs[i];
-                
 
                 if (strcmp(stringToLower(pair->key), "path") == 0)
                 {
@@ -259,7 +260,7 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
                 else if (strcmp(stringToLower(pair->key), "showkeysalt") == 0)
                 {
                         snprintf(settings.showKeysAlt, sizeof(settings.showKeysAlt), "%s", pair->value);
-                }                                
+                }
         }
 
         freeKeyValuePairs(pairs, count);
@@ -267,14 +268,23 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         return settings;
 }
 
-KeyValuePair *readKeyValuePairs(const char *file_path, int *count)
+KeyValuePair *readKeyValuePairs(const char *file_path, int *count, time_t *lastTimeAppRan)
 {
         FILE *file = fopen(file_path, "r");
         if (file == NULL)
         {
-                // fprintf(stderr, "Error opening the settings file.\n");
                 return NULL;
         }
+
+        struct stat file_stat;
+        if (stat(file_path, &file_stat) == -1)
+        {
+                perror("stat");
+                return NULL;
+        }
+
+        // Save the modification time (mtime) of the file
+        *lastTimeAppRan = (file_stat.st_mtime > 0) ? file_stat.st_mtime : file_stat.st_mtim.tv_sec;
 
         KeyValuePair *pairs = NULL;
         int pair_count = 0;
@@ -342,12 +352,14 @@ void getConfig(AppSettings *settings)
 
         // Create the directory if it doesn't exist
         struct stat st = {0};
-        if (stat(configdir, &st) == -1) {
-            if (mkdir(configdir, 0700) != 0) {
-                perror("mkdir");
-                exit(EXIT_FAILURE);
-            }
-        }        
+        if (stat(configdir, &st) == -1)
+        {
+                if (mkdir(configdir, 0700) != 0)
+                {
+                        perror("mkdir");
+                        exit(EXIT_FAILURE);
+                }
+        }
 
         size_t filepath_length = strlen(configdir) + strlen("/") + strlen(SETTINGS_FILE) + 1;
         filepath = (char *)malloc(filepath_length);
@@ -355,7 +367,7 @@ void getConfig(AppSettings *settings)
         strcat(filepath, "/");
         strcat(filepath, SETTINGS_FILE);
 
-        KeyValuePair *pairs = readKeyValuePairs(filepath, &pair_count);
+        KeyValuePair *pairs = readKeyValuePairs(filepath, &pair_count, &lastTimeAppRan);
 
         free(filepath);
         *settings = constructAppSettings(pairs, pair_count);
@@ -367,7 +379,7 @@ void getConfig(AppSettings *settings)
         useProfileColors = (settings->useProfileColors[0] == '1');
         hideLogo = (settings->hideLogo[0] == '1');
         hideHelp = (settings->hideHelp[0] == '1');
-        
+
         int temp = atoi(settings->color);
         if (temp >= 0)
                 mainColor = temp;
@@ -440,7 +452,7 @@ void setConfig(AppSettings *settings)
         sprintf(settings->cacheLibrary, "%d", cacheLibrary);
 
         int currentVolume = getCurrentVolume();
-        currentVolume = (currentVolume <= 0)  ? 10 : currentVolume;
+        currentVolume = (currentVolume <= 0) ? 10 : currentVolume;
 
         sprintf(settings->lastVolume, "%d", currentVolume);
 
