@@ -1,13 +1,5 @@
-name: Alpine-appimage
-
-on:
-  release:
-    types: [created]  # Triggers on release created
-  workflow_dispatch:
-
 jobs:
   build-and-create-appimage:
-    name: Build and Create AppImage
     runs-on: ubuntu-latest
     container:
       image: alpine:latest
@@ -42,12 +34,17 @@ jobs:
 
       - name: Download and prepare appimagetool
         run: |
-          wget -c https://github.com/$(wget -q https://github.com/probonopd/go-appimage/releases/expanded_assets/continuous -O - | grep "appimagetool-.*-x86_64.AppImage" | head -n 1 | cut -d '"' -f 2)
-          chmod +x appimagetool-*.AppImage
+          wget -O appimagetool-x86_64.AppImage https://github.com/probonopd/go-appimage/releases/download/continuous/appimagetool-x86_64.AppImage
+          chmod +x appimagetool-x86_64.AppImage
+
+      - name: Extract appimagetool
+        run: |
+          ./appimagetool-x86_64.AppImage --appimage-extract
+          mv squashfs-root/usr/bin/appimagetool ./appimagetool
 
       - name: Deploy desktop file
         run: |
-          ./appimagetool-*.AppImage deploy appdir/usr/share/applications/kew.desktop
+          ./appimagetool deploy appdir/usr/share/applications/kew.desktop
 
       - name: Remove unnecessary libraries
         run: |
@@ -58,7 +55,7 @@ jobs:
 
       - name: Create AppImage
         run: |
-          ./appimagetool-*.AppImage ./appdir
+          ./appimagetool ./appdir
 
       - name: Rename AppImage and move to output dir
         run: |
@@ -69,4 +66,4 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: kew-appimage-musl
-          path: musl/kew          
+          path: musl/kew
