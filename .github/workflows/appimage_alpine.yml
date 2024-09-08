@@ -1,0 +1,66 @@
+name: alpine-appimage
+
+on:
+  release:
+    types: [created]  # Triggers on release created
+  workflow_dispatch:
+
+jobs:
+  build-and-create-appimage:
+    name: Build and Create AppImage
+    runs-on: ubuntu-latest
+    container:
+      image: alpine:latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Install build essentials and dependencies
+        run: |
+          apk update
+          apk add --no-cache \
+            build-base \
+            ffmpeg-dev \
+            fftw-dev \
+            freeimage-dev \
+            chafa-dev \
+            opus-dev \
+            opusfile-dev \
+            libvorbis-dev \
+            libnotify-dev \
+            glib-dev \
+            wget git desktop-file-utils
+
+      - name: Build code
+        run: make
+
+      - name: Prepare AppDir
+        run: |
+          mkdir -p appdir/usr/bin
+          mv ./kew appdir/usr/bin/
+
+      - name: Download and prepare appimagetool
+        run: |
+          wget -c https://github.com/$(wget -q https://github.com/probonopd/go-appimage/releases/expanded_assets/continuous -O - | grep "appimagetool-.*-x86_64.AppImage" | head -n 1 | cut -d '"' -f 2)
+          chmod +x appimagetool-*.AppImage
+
+      - name: Deploy desktop file
+        run: |
+          ./appimagetool-*.AppImage deploy appdir/usr/share/applications/kew.desktop
+
+      - name: Remove unnecessary libraries
+        run: |
+          rm appdir/usr/lib/libavcodec*
+          rm appdir/usr/lib/libavformat*
+          rm appdir/usr/lib/libavutil*
+          rm appdir/usr/lib/libswres*
+
+      - name: Create AppImage
+        run: |
+          ./appimagetool-*.AppImage ./appdir
+
+      - name: Rename AppImage and move to output dir
+        run: |
+          mkdir -p alpine
+          mv *.AppImage alpine/kew
