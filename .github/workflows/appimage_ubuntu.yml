@@ -1,4 +1,4 @@
-name: appimage-appimage
+name: Ubuntu-appimage
 
 on:
   release:
@@ -44,13 +44,8 @@ jobs:
         mkdir -p glibc
         mv *.AppImage glibc/kew
 
-   # - name: Release
-   #   uses: marvinpinto/action-automatic-releases@latest
-   #   with:
-   #     title: kew appImage (glibc systems, most systems) 
-   #     automatic_release_tag: stable
-   #     prerelease: false
-   #     draft: false
-   #     files: |
-   #       glibc/kew
-   #     repo_token: ${{ secrets.GITHUB_TOKEN }}
+    - name: Upload AppImage artifact
+      uses: actions/upload-artifact@v3
+        with:
+        name: kew-appimage-glibc
+        path: glibc/kew

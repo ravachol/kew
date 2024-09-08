@@ -1,4 +1,4 @@
-name: alpine-appimage
+name: Alpine-appimage
 
 on:
   release:
@@ -62,5 +62,11 @@ jobs:
 
       - name: Rename AppImage and move to output dir
         run: |
-          mkdir -p alpine
-          mv *.AppImage alpine/kew
+          mkdir -p musl
+          mv *.AppImage musl/kew
+
+      - name: Upload AppImage artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: kew-appimage-musl
+          path: musl/kew          
