@@ -33,7 +33,9 @@ jobs:
 
   alpine-build-check:
     name: Alpine Build Check
-    runs-on: alpine-latest
+    runs-on: ubuntu-latest
+    container:
+      image: alpine:latest
 
     steps:
       - name: Checkout code
