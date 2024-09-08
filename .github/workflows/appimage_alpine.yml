@@ -30,7 +30,8 @@ jobs:
             libnotify-dev \
             glib-dev \
             wget git desktop-file-utils \
-            squashfs-tools
+            squashfs-tools \
+            patchelf
 
       - name: Build code
         run: make
