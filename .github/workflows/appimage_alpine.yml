@@ -55,11 +55,6 @@ jobs:
           chmod +x upload.sh
           mv upload.sh /usr/local/bin/uploadtool
 
-      - name: Download runtime-x86_64
-        run: |
-          wget -O appdir/runtime https://github.com/AppImage/AppImageKit/releases/download/continuous/runtime-x86_64
-          chmod +x appdir/runtime
-
       - name: Download and prepare appimagetool
         run: |
           wget -O appimagetool-x86_64.AppImage -c https://github.com/$(wget -q https://github.com/probonopd/go-appimage/releases/expanded_assets/continuous -O - | grep "appimagetool-.*-x86_64.AppImage" | head -n 1 | cut -d '"' -f 2)
@@ -82,7 +77,10 @@ jobs:
       - name: Create AppImage
         run: |
           mkdir -p output
-          VERSION=$(./appdir/usr/bin/kew --version | awk -F": " 'FNR==6 {printf $NF}') ./appimagetool-*.AppImage ./appdir
+          APPIMAGE_EXTRACT_AND_RUN=1 \
+          ARCH=$(uname -m) \
+          VERSION=$(./appdir/usr/bin/kew --version | awk -F": " 'FNR==6 {printf $NF}') \
+          ./appimagetool-*.AppImage ./appdir
 
       - name: Move and Rename kew AppImage
         run: |
