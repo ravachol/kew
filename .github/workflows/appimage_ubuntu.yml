@@ -49,7 +49,7 @@ jobs:
 
     - name: Deploy desktop file
       run: |
-        ./appimagetool-*.AppImage --verbose deploy appdir/usr/share/applications/kew.desktop
+        ./appimagetool-*.AppImage deploy appdir/usr/share/applications/kew.desktop
 
     - name: Remove unnecessary libraries
       run: |
