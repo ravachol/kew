@@ -43,20 +43,16 @@ jobs:
         fi          
         chmod +x appimagetool-*.AppImage
 
-    - name: Set permissions for appdir
-      run: |
-        chmod -R 755 appdir        
-
     - name: Deploy desktop file
       run: |
         ./appimagetool-*.AppImage deploy appdir/usr/share/applications/kew.desktop
 
     - name: Remove unnecessary libraries
       run: |
-        rm appdir/usr/lib/libavcodec*
-        rm appdir/usr/lib/libavformat*
-        rm appdir/usr/lib/libavutil*
-        rm appdir/usr/lib/libswres*
+        rm appdir/lib/libavcodec*
+        rm appdir/lib/libavformat*
+        rm appdir/lib/libavutil*
+        rm appdir/lib/libswres*
 
     - name: Create AppImage
       run: |
