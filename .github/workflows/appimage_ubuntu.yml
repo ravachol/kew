@@ -57,7 +57,10 @@ jobs:
     - name: Create AppImage
       run: |
         mkdir -p output
-        VERSION=$(./appdir/usr/bin/kew --version | awk -F": " 'FNR==6 {printf $NF}') ./appimagetool-*.AppImage -s ./appdir
+        APPIMAGE_EXTRACT_AND_RUN=1 \
+        ARCH=$(uname -m) \
+        VERSION=$(./appdir/usr/bin/kew --version | awk -F": " 'FNR==6 {printf $NF}') \
+        ./appimagetool-*.AppImage ./appdir
 
     - name: Move and Rename kew AppImage
       run: |
