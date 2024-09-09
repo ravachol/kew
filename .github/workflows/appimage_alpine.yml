@@ -82,12 +82,12 @@ jobs:
       - name: Create AppImage
         run: |
           mkdir -p output
-          VERSION=$(./appdir/usr/bin/kew --version | awk -F": " 'FNR==6 {printf $NF}') ./appimagetool-*.AppImage ./appdir -o output
+          VERSION=$(./appdir/usr/bin/kew --version | awk -F": " 'FNR==6 {printf $NF}') ./appimagetool-*.AppImage ./appdir
 
-      - name: Rename AppImage
+      - name: Move and Rename kew AppImage
         run: |
-          mv output/*.AppImage kew
-          chmod +x kew
+          mv kew*.AppImage output/kew
+          chmod +x output/kew
 
       - name: Release
         uses: marvinpinto/action-automatic-releases@latest
@@ -97,5 +97,5 @@ jobs:
           prerelease: false
           draft: true
           files: |
-            kew
+            output/kew
           repo_token: ${{ secrets.GITHUB_TOKEN }}
