@@ -1,4 +1,4 @@
-CC = gcc
+CC ?= gcc
 PKG_CONFIG ?= pkg-config
 
 # Default USE_LIBNOTIFY to auto-detect if not set by user
