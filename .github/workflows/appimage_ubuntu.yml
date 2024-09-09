@@ -27,6 +27,7 @@ jobs:
       run: |
         mkdir -p appdir/usr/bin
         mv ./kew appdir/usr/bin/
+        mkdir -p appdir/usr/lib        
 
     - name: Download and prepare appimagetool
       run: |
