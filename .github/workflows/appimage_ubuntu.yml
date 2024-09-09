@@ -26,8 +26,14 @@ jobs:
     - name: Prepare AppDir
       run: |
         mkdir -p appdir/usr/bin
+        chmod +x ./kew
         mv ./kew appdir/usr/bin/
-        mkdir -p appdir/usr/lib        
+        mkdir -p appdir/usr/lib
+
+    - name: Verify AppDir Structure Before AppImage Creation
+      run: |
+        echo "Listing appdir structure before running appimagetool"
+        ls -R appdir
 
     - name: Download and prepare appimagetool
       run: |

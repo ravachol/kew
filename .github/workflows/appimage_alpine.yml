@@ -45,6 +45,7 @@ jobs:
       - name: Prepare AppDir
         run: |
           mkdir -p appdir/usr/bin
+          chmod +x ./kew
           mv ./kew appdir/usr/bin/
           mkdir -p appdir/usr/lib
 
