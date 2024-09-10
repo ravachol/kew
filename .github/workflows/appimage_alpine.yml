@@ -91,7 +91,7 @@ jobs:
         uses: marvinpinto/action-automatic-releases@latest
         with:
           title: kew appImage (musl systems)
-          automatic_release_tag: stable
+          automatic_release_tag: stable-musl
           prerelease: false
           draft: true
           files: |
