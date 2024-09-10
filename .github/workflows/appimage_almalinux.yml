@@ -59,16 +59,32 @@ jobs:
 
     - name: Add dynamic library loader script to AppImage
       run: |
-        echo '#!/bin/bash' > appdir/usr/bin/run.sh
-        echo 'export LD_LIBRARY_PATH=/usr/lib:$LD_LIBRARY_PATH' >> appdir/usr/bin/run.sh
-        echo 'LIBAVCODEC=$(find /usr/lib /usr/local/lib -name "libavcodec.so*" 2>/dev/null | head -n 1)' >> appdir/usr/bin/run.sh
-        echo 'LIBAVFORMAT=$(find /usr/lib /usr/local/lib -name "libavformat.so*" 2>/dev/null | head -n 1)' >> appdir/usr/bin/run.sh
-        echo 'LIBAVUTIL=$(find /usr/lib /usr/local/lib -name "libavutil.so*" 2>/dev/null | head -n 1)' >> appdir/usr/bin/run.sh
-        echo 'LIBSWRESAMPLE=$(find /usr/lib /usr/local/lib -name "libswresample.so*" 2>/dev/null | head -n 1)' >> appdir/usr/bin/run.sh
-        echo 'LIBSWSCALE=$(find /usr/lib /usr/local/lib -name "libswscale.so*" 2>/dev/null | head -n 1)' >> appdir/usr/bin/run.sh
-        echo 'if [ -z "$LIBAVCODEC" ] || [ -z "$LIBAVFORMAT" ] || [ -z "$LIBAVUTIL" ]; then echo "FFmpeg libraries not found."; exit 1; fi' >> appdir/usr/bin/run.sh
-        echo 'export LD_PRELOAD="$LIBAVCODEC:$LIBAVFORMAT:$LIBAVUTIL:$LIBSWRESAMPLE:$LIBSWSCALE"' >> appdir/usr/bin/run.sh
-        echo 'exec ./kew "$@"' >> appdir/usr/bin/run.sh
+        cat << 'EOF' > appdir/usr/bin/run.sh
+        #!/bin/bash
+
+        # Set LD_LIBRARY_PATH to include common system paths
+        export LD_LIBRARY_PATH=/usr/lib:/usr/local/lib:$LD_LIBRARY_PATH
+
+        # Dynamically find FFmpeg libraries on the system
+        LIBAVCODEC=$(find /usr/lib /usr/local/lib -name "libavcodec.so*" 2>/dev/null | head -n 1)
+        LIBAVFORMAT=$(find /usr/lib /usr/local/lib -name "libavformat.so*" 2>/dev/null | head -n 1)
+        LIBAVUTIL=$(find /usr/lib /usr/local/lib -name "libavutil.so*" 2>/dev/null | head -n 1)
+        LIBSWRESAMPLE=$(find /usr/lib /usr/local/lib -name "libswresample.so*" 2>/dev/null | head -n 1)
+        LIBSWSCALE=$(find /usr/lib /usr/local/lib -name "libswscale.so*" 2>/dev/null | head -n 1)
+
+        # If any of the required FFmpeg libraries are not found, exit with an error
+        if [ -z "$LIBAVCODEC" ] || [ -z "$LIBAVFORMAT" ] || [ -z "$LIBAVUTIL" ]; then
+          echo "Required FFmpeg libraries not found. Please install FFmpeg on your system."
+          exit 1
+        fi
+
+        # Preload the found libraries
+        export LD_PRELOAD="$LIBAVCODEC:$LIBAVFORMAT:$LIBAVUTIL:$LIBSWRESAMPLE:$LIBSWSCALE"
+
+        # Now run your application
+        exec ./usr/bin/kew "$@"
+        EOF
+
         chmod +x appdir/usr/bin/run.sh
 
     - name: Create the AppRun file
