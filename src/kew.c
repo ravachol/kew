@@ -1386,7 +1386,6 @@ void setMusicPath()
                         {
 
                                 strncpy(settings.path, path, sizeof(settings.path));
-                                printf("Music library set to: %s\n", settings.path);
                                 return;
                         }
                         else if (choice == 'n' || choice == 'N')
@@ -1409,7 +1408,6 @@ void setMusicPath()
                 if (directoryExists(path))
                 {
                         strncpy(settings.path, path, sizeof(settings.path));
-                        printf("Music library set to: %s\n", settings.path);
                 }
                 else
                 {
