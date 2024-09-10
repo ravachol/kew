@@ -389,7 +389,7 @@ void determineSongAndNotify()
         SongData *currentSongData = NULL;
 
         bool isDeleted = determineCurrentSongData(&currentSongData);
-        
+
         if (lastNotifiedId != currentSong->id)
         {
                 if (!isDeleted)
@@ -1319,6 +1319,109 @@ void exitIfAlreadyRunning()
         fclose(pidfile);
 }
 
+int directoryExists(const char *path)
+{
+        struct stat info;
+        if (stat(path, &info) != 0)
+        {
+                return 0;
+        }
+        else if (info.st_mode & S_IFDIR)
+        {
+                return 1;
+        }
+        return 0;
+}
+
+void setMusicPath()
+{
+        char *user = getenv("USER");
+
+        // Fallback if USER is not set
+        if (!user)
+        {
+                user = getlogin();
+
+                if (!user)
+                {
+                        struct passwd *pw = getpwuid(getuid());
+                        if (pw)
+                        {
+                                user = pw->pw_name;
+                        }
+                        else
+                        {
+                                printf("Error: Could not retrieve user information.\n");
+                                printf("Please set a path to your music library. \n");
+                                printf("To set it type: kew path \"/path/to/Music\". \n");
+                                exit(0);
+                        }
+                }
+        }
+
+        // Music folder names in different languages
+        const char *musicFolderNames[] = {
+            "Music", "Música", "Musique", "Musik", "Musica", "Muziek", "Музыка",
+            "音乐", "音楽", "음악", "موسيقى", "संगीत", "Müzik", "Musikk", "Μουσική",
+            "Muzyka", "Hudba", "Musiikki", "Zene", "Muzică", "Musikk", "Musik", "เพลง", "מוזיקה", "Musik"};
+
+        char path[MAXPATHLEN];
+        int found = 0;
+        char choice = ' ';
+        int result = -1;
+
+        for (size_t i = 0; i < sizeof(musicFolderNames) / sizeof(musicFolderNames[0]); i++)
+        {
+                snprintf(path, sizeof(path), "/home/%s/%s", user, musicFolderNames[i]);
+
+                if (directoryExists(path))
+                {
+                        found = 1;
+                        printf("Do you want to use %s as your music library folder?\n", path);
+                        printf("y = Yes\nn = Enter a path\n");
+
+                        result = scanf(" %c", &choice);
+
+                        if (choice == 'y' || choice == 'Y')
+                        {
+
+                                strncpy(settings.path, path, sizeof(settings.path));
+                                printf("Music library set to: %s\n", settings.path);
+                                return;
+                        }
+                        else if (choice == 'n' || choice == 'N')
+                        {
+                                break; // Enter a custom path
+                        }
+                        else
+                        {
+                                printf("Invalid choice. Please try again.\n");
+                                i--;
+                        }
+                }
+        }
+
+        if (!found || (found && (choice == 'n' || choice == 'N')))
+        {
+                printf("Please enter the path to your music library (/path/to/Music):\n");
+                result = scanf("%s", path);
+
+                if (directoryExists(path))
+                {
+                        strncpy(settings.path, path, sizeof(settings.path));
+                        printf("Music library set to: %s\n", settings.path);
+                }
+                else
+                {
+                        printf("The entered path does not exist.\n");
+                        exit(1);
+                }
+        }
+
+        if (result == -1)
+                exit(1);
+}
+
 int main(int argc, char *argv[])
 {
         exitIfAlreadyRunning();
@@ -1345,9 +1448,7 @@ int main(int argc, char *argv[])
 
         if (settings.path[0] == '\0')
         {
-                printf("Please make sure the path is set correctly. \n");
-                printf("To set it type: kew path \"/path/to/Music\". \n");
-                exit(0);
+                setMusicPath();
         }
 
         atexit(cleanupOnExit);
