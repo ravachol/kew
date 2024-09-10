@@ -59,7 +59,17 @@ jobs:
 
     - name: Add dynamic library loader script to AppImage
       run: |
-        chmod +x appdir/usr/bin/run.sh        
+        echo '#!/bin/bash' > appdir/usr/bin/run.sh
+        echo 'export LD_LIBRARY_PATH=/usr/lib:$LD_LIBRARY_PATH' >> appdir/usr/bin/run.sh
+        echo 'LIBAVCODEC=$(find /usr/lib /usr/local/lib -name "libavcodec.so*" 2>/dev/null | head -n 1)' >> appdir/usr/bin/run.sh
+        echo 'LIBAVFORMAT=$(find /usr/lib /usr/local/lib -name "libavformat.so*" 2>/dev/null | head -n 1)' >> appdir/usr/bin/run.sh
+        echo 'LIBAVUTIL=$(find /usr/lib /usr/local/lib -name "libavutil.so*" 2>/dev/null | head -n 1)' >> appdir/usr/bin/run.sh
+        echo 'LIBSWRESAMPLE=$(find /usr/lib /usr/local/lib -name "libswresample.so*" 2>/dev/null | head -n 1)' >> appdir/usr/bin/run.sh
+        echo 'LIBSWSCALE=$(find /usr/lib /usr/local/lib -name "libswscale.so*" 2>/dev/null | head -n 1)' >> appdir/usr/bin/run.sh
+        echo 'if [ -z "$LIBAVCODEC" ] || [ -z "$LIBAVFORMAT" ] || [ -z "$LIBAVUTIL" ]; then echo "FFmpeg libraries not found."; exit 1; fi' >> appdir/usr/bin/run.sh
+        echo 'export LD_PRELOAD="$LIBAVCODEC:$LIBAVFORMAT:$LIBAVUTIL:$LIBSWRESAMPLE:$LIBSWSCALE"' >> appdir/usr/bin/run.sh
+        echo 'exec ./kew "$@"' >> appdir/usr/bin/run.sh
+        chmod +x appdir/usr/bin/run.sh
 
     - name: Deploy desktop file
       run: |
