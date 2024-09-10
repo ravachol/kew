@@ -1,4 +1,4 @@
-name: CentOS-appimage
+name: AlmaLinux-appimage
 
 on:
   release:
@@ -6,10 +6,10 @@ on:
   workflow_dispatch:
 
 jobs:
-  centos-appimage:
+  almalinux-appimage:
     runs-on: ubuntu-latest
     container:
-      image: centos:7  # Use CentOS 7 for compatibility
+      image: almalinux:9  # Use almalinux for compatibility
 
     steps:
     - name: Checkout code
@@ -17,15 +17,15 @@ jobs:
 
     - name: Install Development Tools and EPEL repo
       run: |
-        yum -y update
-        yum -y groupinstall "Development Tools"
-        yum -y install epel-release
-        yum -y install wget
+        dnf -y update
+        dnf -y groupinstall "Development Tools"
+        dnf -y install epel-release
+        dnf -y install wget
 
     - name: Install dependencies
       run: |
-        yum -y install ffmpeg fftw-devel opus-devel opusfile-devel libvorbis-devel chafa-devel freeimage-devel \
-                       libnotify-devel avformat-devel glibc-devel
+        dnf -y install ffmpeg fftw-devel opus-devel opusfile-devel libvorbis-devel chafa-devel freeimage-devel \
+                       libnotify-devel glibc-devel
 
     - name: Build code
       run: |
@@ -65,19 +65,21 @@ jobs:
     - name: Create AppImage
       run: |
         mkdir -p output
-        VERSION=$(./appdir/usr/bin/kew --version | awk -F": " 'FNR==6 {printf $NF}')
-        ./appimagetool-*.AppImage -s ./appdir
+        APPIMAGE_EXTRACT_AND_RUN=1 \
+        ARCH=$(uname -m) \
+        VERSION=$(./appdir/usr/bin/kew --version | awk -F": " 'FNR==6 {printf $NF}') \
+        ./appimagetool-*.AppImage ./appdir
 
     - name: Move and Rename kew AppImage
       run: |
         mv kew*.AppImage output/kew
-        chmod +x output/kew      
+        chmod +x output/kew
 
     - name: Release
       uses: marvinpinto/action-automatic-releases@latest
       with:
         title: kew appImage (glibc systems, most systems) 
-        automatic_release_tag: stable
+        automatic_release_tag: stable-glibc
         prerelease: false
         draft: true
         files: |
