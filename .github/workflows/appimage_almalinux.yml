@@ -63,10 +63,10 @@ jobs:
 
     - name: Remove unnecessary libraries
       run: |
-        rm appdir/lib/x86_64-linux-gnu/libavcodec*
-        rm appdir/lib/x86_64-linux-gnu/libavformat*
-        rm appdir/lib/x86_64-linux-gnu/libavutil*
-        rm appdir/lib/x86_64-linux-gnu/libswres*
+        rm appdir/usr/lib64/libavcodec*
+        rm appdir/usr/lib64/libavformat*
+        rm appdir/usr/lib64/libavutil*
+        rm appdir/usr/lib64/libswres*
 
     - name: Create AppImage
       run: |
