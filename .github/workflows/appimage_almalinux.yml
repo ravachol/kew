@@ -71,6 +71,12 @@ jobs:
         echo 'exec ./kew "$@"' >> appdir/usr/bin/run.sh
         chmod +x appdir/usr/bin/run.sh
 
+    - name: Create the AppRun file
+      run: |
+        echo '#!/bin/bash' > appdir/AppRun
+        echo 'exec ./usr/bin/run.sh "$@"' >> appdir/AppRun
+        chmod +x appdir/AppRun
+
     - name: Deploy desktop file
       run: |
         ./appimagetool-x86_64.AppImage --appimage-extract-and-run deploy appdir/usr/share/applications/kew.desktop
@@ -88,7 +94,7 @@ jobs:
         APPIMAGE_EXTRACT_AND_RUN=1 \
         ARCH=$(uname -m) \
         VERSION=$(./appdir/usr/bin/kew --version | awk -F": " 'FNR==6 {printf $NF}') \
-        ./appimagetool-*.AppImage ./appdir --executable=appdir/usr/bin/run.sh
+        ./appimagetool-*.AppImage ./appdir
 
     - name: Move and Rename kew AppImage
       run: |
