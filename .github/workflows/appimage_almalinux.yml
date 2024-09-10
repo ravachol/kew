@@ -57,6 +57,10 @@ jobs:
         fi          
         chmod +x appimagetool-*.AppImage
 
+    - name: Add dynamic library loader script to AppImage
+      run: |
+        chmod +x appdir/usr/bin/run.sh        
+
     - name: Deploy desktop file
       run: |
         ./appimagetool-x86_64.AppImage --appimage-extract-and-run deploy appdir/usr/share/applications/kew.desktop
@@ -74,7 +78,7 @@ jobs:
         APPIMAGE_EXTRACT_AND_RUN=1 \
         ARCH=$(uname -m) \
         VERSION=$(./appdir/usr/bin/kew --version | awk -F": " 'FNR==6 {printf $NF}') \
-        ./appimagetool-*.AppImage ./appdir
+        ./appimagetool-*.AppImage ./appdir --executable=appdir/usr/bin/run.sh
 
     - name: Move and Rename kew AppImage
       run: |
