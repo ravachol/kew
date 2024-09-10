@@ -136,12 +136,9 @@ sudo make uninstall
 
 ## Usage
 
-In case you don't have a "Music" folder in your home folder, the first thing to do is to tell kew the path to your music library (you only need to do this once):
+Run kew. It will first help you set the path to your music folder, then show you that folders contents.
 
-```bash
-kew path "/home/joe/Musik/"
-```
-Now run kew and provide a partial name of a track or directory:
+kew can also be told to play a certain music from the command line. It automatically creates a playlist based on a partial name of a track or directory:
 
 ```bash
 kew cure great
@@ -189,6 +186,8 @@ kew -q <song>, --quitonstop (exits after finishing playing the playlist)
 kew -e <song>, --exact (specifies you want an exact (but not case sensitive) match, of for instance an album)
 
 kew . loads kew.m3u
+
+kew path "/home/joe/Musik/" (changes the path)
 
  ```
 
