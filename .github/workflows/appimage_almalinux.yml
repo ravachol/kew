@@ -22,9 +22,16 @@ jobs:
         dnf -y install epel-release
         dnf -y install wget
 
+    - name: 
+      run: |
+        sudo dnf install epel-release
+        sudo dnf config-manager --set-enabled crb
+        sudo dnf install --nogpgcheck https://mirrors.rpmfusion.org/free/el/rpmfusion-free-release-$(rpm -E %rhel).noarch.rpm -y
+        sudo dnf install --nogpgcheck https://mirrors.rpmfusion.org/nonfree/el/rpmfusion-nonfree-release-$(rpm -E %rhel).noarch.rpm -y        
+
     - name: Install dependencies
       run: |
-        dnf -y install ffmpeg fftw-devel opus-devel opusfile-devel libvorbis-devel chafa-devel freeimage-devel \
+        dnf -y install ffmpeg ffmpeg-devel fftw-devel opus-devel opusfile-devel libvorbis-devel chafa-devel freeimage-devel \
                        libnotify-devel glibc-devel
 
     - name: Build code
