@@ -78,14 +78,14 @@ jobs:
           exit 1
         fi
 
+        # Debug: Show which libraries are being preloaded
+        echo "Preloading libraries: $LIBAVCODEC, $LIBAVFORMAT, $LIBAVUTIL, $LIBSWRESAMPLE, $LIBSWSCALE"
+
         # Preload the found libraries
         export LD_PRELOAD="$LIBAVCODEC:$LIBAVFORMAT:$LIBAVUTIL:$LIBSWRESAMPLE:$LIBSWSCALE"
 
         # Now run your application
         exec ./usr/bin/kew "$@"
-        EOF
-
-        chmod +x appdir/usr/bin/run.sh
 
     - name: Create the AppRun file
       run: |
