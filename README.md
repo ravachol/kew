@@ -27,7 +27,7 @@ kew (/kjuː/) is a command-line music player for Linux.
 <a href="https://repology.org/project/kew/versions"><img src="https://repology.org/badge/vertical-allrepos/kew.svg" alt="Packaging status" align="right"></a>
 
 
- It's advised, if possible, to install from a package or from a release here on github and not from https://github.com/ravachol/kew.git or the install script, because the main branch can and will be unstable sometimes.
+It's advised, if possible, to install from a package or from a release here on github and not from https://github.com/ravachol/kew.git or the install script, because the main branch can and will be unstable sometimes.
 
 ### Installing in Debian, Ubuntu
 
@@ -69,6 +69,12 @@ sudo bash -c "curl https://raw.githubusercontent.com/ravachol/kew/main/install.s
 ```
 
 Please note that this script might do a system update before installing kew.
+
+### Standalone AppImage for musl systems
+
+If you are running a musl-based system, for instance Alpine Linux, you can download a standalone appImage of kew:
+
+https://github.com/ravachol/kew/releases/tag/stable-musl
 
 ### Building the project manually
 
@@ -136,7 +142,7 @@ sudo make uninstall
 
 ## Usage
 
-Run kew. It will first help you set the path to your music folder, then show you that folders contents.
+Run kew. It will first help you set the path to your music folder, then show you that folder's contents.
 
 kew can also be told to play a certain music from the command line. It automatically creates a playlist based on a partial name of a track or directory:
 
