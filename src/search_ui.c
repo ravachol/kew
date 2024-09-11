@@ -279,11 +279,18 @@ int displaySearchResults(int maxListSize, int indent, int *chosenRow, int startS
                 name[0] = '\0';
                 if (results[i].entry->isDirectory)
                 {
-                        snprintf(name, maxNameWidth + 1, "[%s]", results[i].entry->name);        
+                        if (results[i].entry->parent != NULL && strcmp(results[i].entry->parent->name, "root") != 0)
+                                snprintf(name, maxNameWidth + 1, "[%s] (%s)", results[i].entry->name, results[i].entry->parent->name);
+                        else
+                                snprintf(name, maxNameWidth + 1, "[%s]", results[i].entry->name);
+                        
                 }       
                 else
                 {         
-                        snprintf(name, maxNameWidth + 1, "%s", results[i].entry->name);
+                        if (results[i].entry->parent != NULL && strcmp(results[i].entry->parent->name, "root") != 0)
+                                snprintf(name, maxNameWidth + 1, "%s (%s)", results[i].entry->name, results[i].entry->parent->name);
+                        else
+                                snprintf(name, maxNameWidth + 1, "%s", results[i].entry->name);
                 }
                 printf("%s\n", name);
         }
