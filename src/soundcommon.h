@@ -173,6 +173,7 @@ typedef struct
         char hideLogo[2];
         char hideHelp[2];
         char cacheLibrary[6];
+        char tabNext[6];
 } AppSettings;
 
 #endif

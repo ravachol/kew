@@ -172,7 +172,7 @@ struct Event processInput()
                         fuzzySearch(getLibrary(), fuzzySearchThreshold);
                         event.type = EVENT_SEARCH;
                 }
-                else if (((strlen(event.key) == 1 && event.key[0] != '\033' && event.key[0] != '\n' && event.key[0] != '\r') || strcmp(event.key, " ") == 0 || (unsigned char)event.key[0] >= 0xC0))
+                else if (((strlen(event.key) == 1 && event.key[0] != '\033' && event.key[0] != '\n' && event.key[0] != '\t' && event.key[0] != '\r') || strcmp(event.key, " ") == 0 || (unsigned char)event.key[0] >= 0xC0))
                 {
                         addToSearchText(event.key);
                         chosenSearchResultRow = 0;
@@ -228,7 +228,8 @@ struct Event processInput()
                                       {settings.hardNextPage, EVENT_NEXTPAGE},
                                       {settings.hardPrevPage, EVENT_PREVPAGE},
                                       {settings.hardRemove, EVENT_REMOVE},
-                                      {settings.hardRemove2, EVENT_REMOVE}};
+                                      {settings.hardRemove2, EVENT_REMOVE},
+                                      {settings.tabNext, EVENT_TABNEXT}};
 
         int numKeyMappings = sizeof(keyMappings) / sizeof(EventMapping);
 
@@ -542,13 +543,20 @@ void handleGoToSong()
                                 audioData.currentFileIndex = 0;
                                 loadingdata.loadA = true;
 
+                                bool wasEndOfList = false;
+                                if (audioData.endOfListReached)
+                                        wasEndOfList = true;
+
                                 skipToSong(chosenNodeId, true);
 
-                                if (songWasRemoved && currentSong != NULL)
+                                if ((songWasRemoved && currentSong != NULL))
                                 {
                                         usingSongDataA = !usingSongDataA;
                                         songWasRemoved = false;
                                 }
+
+                                if (wasEndOfList)
+                                        usingSongDataA = true;
 
                                 audioData.endOfListReached = false;
                         }
@@ -689,6 +697,9 @@ void handleInput()
         case EVENT_SHOWTRACK:
                 showTrack();
                 break;
+        case EVENT_TABNEXT:
+                tabNext();
+                break;                
         default:
                 fastForwarding = false;
                 rewinding = false;
