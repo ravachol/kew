@@ -20,6 +20,11 @@ void getDirectoryFromPath(const char *path, char *directory)
     char *dir = dirname(tempPath);
 
     strcpy(directory, dir);
+
+    if (directory[strlen(directory) - 1] != '/')
+    {
+        strcat(directory, "/");
+    }
 }
 
 int existsFile(const char *fname)

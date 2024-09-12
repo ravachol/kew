@@ -38,10 +38,18 @@ char *findLargestImageFile(const char *directoryPath, char *largestImageFile, of
         while ((entry = readdir(directory)) != NULL)
         {
                 char filePath[MAXPATHLEN];
-                snprintf(filePath, sizeof(filePath), "%s%s", directoryPath, entry->d_name);
+
+                if (directoryPath[strlen(directoryPath) - 1] == '/')
+                {
+                        snprintf(filePath, sizeof(filePath), "%s%s", directoryPath, entry->d_name);
+                }
+                else
+                {
+                        snprintf(filePath, sizeof(filePath), "%s/%s", directoryPath, entry->d_name);
+                }
 
                 if (stat(filePath, &fileStats) == -1)
-                {                        
+                {
                         continue;
                 }
 
@@ -250,7 +258,7 @@ SongData *loadSongData(char *filePath)
         songdata->metadata = NULL;
         songdata->cover = NULL;
         songdata->duration = 0.0;
-        c_strcpy(songdata->filePath, sizeof(songdata->filePath), filePath);       
+        c_strcpy(songdata->filePath, sizeof(songdata->filePath), filePath);
         loadMetaData(songdata);
         loadColor(songdata);
         return songdata;
