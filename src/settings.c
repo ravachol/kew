@@ -40,6 +40,7 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         strncpy(settings.hideHelp, "0", sizeof(settings.hideHelp));
         strncpy(settings.cacheLibrary, "-1", sizeof(settings.cacheLibrary));
 
+        strncpy(settings.tabNext, "\t", sizeof(settings.tabNext));
         strncpy(settings.volumeUp, "+", sizeof(settings.volumeUp));
         strncpy(settings.volumeUpAlt, "=", sizeof(settings.volumeUpAlt));
         strncpy(settings.volumeDown, "-", sizeof(settings.volumeDown));

@@ -22,7 +22,7 @@ typedef struct
 } PixelData;
 #endif
 
-const char VERSION[] = "2.7.2";
+const char VERSION[] = "2.8";
 const int ABSOLUTE_MIN_WIDTH = 68;
 bool visualizerEnabled = true;
 bool coverEnabled = true;
@@ -674,6 +674,31 @@ void toggleShowLibrary()
         }
 }
 
+void tabNext()
+{
+        if (appState.currentView == PLAYLIST_VIEW)
+                appState.currentView = LIBRARY_VIEW;
+        else if (appState.currentView == LIBRARY_VIEW)
+        {
+                if (currentSong != NULL)
+                {
+                        appState.currentView = SONG_VIEW;
+                }
+                else
+                {
+                        appState.currentView = SEARCH_VIEW;
+                }
+        }
+        else if (appState.currentView == SONG_VIEW)
+                appState.currentView = SEARCH_VIEW;
+        else if (appState.currentView == SEARCH_VIEW)
+                appState.currentView = KEYBINDINGS_VIEW;
+        else if (appState.currentView == KEYBINDINGS_VIEW)
+                appState.currentView = PLAYLIST_VIEW;
+                
+        refresh = true;
+}
+
 void showTrack()
 {
         refresh = true;
@@ -1007,13 +1032,7 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
         if (allowChooseSongs)
         {
                 if (chosenLibRow >= libIter + libSongIter && libSongIter != 0)
-                {
-                        // if (chosenLibRow >= numDirectoryTreeEntries + numTopLevelSongs + numAudioChildren)
-                        // {
-                        //         startLibIter = numDirectoryTreeEntries + numTopLevelSongs + numAudioChildren - maxListSize;
-                        //         chosenLibRow = numDirectoryTreeEntries + numTopLevelSongs + numAudioChildren - 1;
-                        // }                                  
-
+                {                               
                         startLibIter = chosenLibRow - round(maxListSize / 2);
                 }
         }
