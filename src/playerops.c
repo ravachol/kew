@@ -453,7 +453,12 @@ SongData *getCurrentSongData(void)
         if (isCurrentSongDeleted())
                 return NULL;
 
-        SongData *songData = (audioData.currentFileIndex == 0) ? userData.songdataA : userData.songdataB;
+        SongData *songData = NULL;
+
+        bool isDeleted = determineCurrentSongData(&songData);
+
+        if (isDeleted)
+                return NULL;
 
         if (!isValidSong(songData))
                 return NULL;

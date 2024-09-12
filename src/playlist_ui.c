@@ -77,8 +77,16 @@ int displayPlaylistItems(Node *startNode, int startIter, int maxListSize, int te
                 preparePlaylistString(node, buffer, MAXPATHLEN, termWidth - indent - 10);
                 if (buffer[0] != '\0')
                 {
-                        setDefaultTextColor();
+                        if (useProfileColors)
+                                setTextColor(artistColor);
+                        else
+                                setColor();
+
                         printBlankSpaces(indent);
+
+                        printf(" %d. ", i + 1);
+
+                        setDefaultTextColor();
 
                         if (i == chosenSong)
                         {
@@ -95,7 +103,7 @@ int displayPlaylistItems(Node *startNode, int startIter, int maxListSize, int te
                         if (i + 1 < 10)
                                 printf(" ");
 
-                        printf(" %d. %s \n", i + 1, buffer);
+                        printf("%s \n", buffer);
 
                         numPrintedRows++;
                 }
@@ -125,7 +133,7 @@ int displayPlaylist(PlayList *list, int maxListSize, int indent, int *chosenSong
         if (*chosenSong < 0)
         {
                 *chosenSong = 0;
-        } 
+        }
 
         int startIter = 0;
 
@@ -136,24 +144,24 @@ int displayPlaylist(PlayList *list, int maxListSize, int indent, int *chosenSong
         {
                 startIter = *chosenSong;
         }
-    
+
         if (*chosenSong > startIter + maxListSize - round(maxListSize / 2))
         {
                 startIter = *chosenSong - maxListSize + round(maxListSize / 2);
         }
 
-        if (reset && !audioData.endOfListReached) 
+        if (reset && !audioData.endOfListReached)
         {
                 startIter = *chosenSong = foundAt;
         }
-        
+
         // Go up to find the starting node
         for (int i = foundAt; i > startIter; i--)
         {
                 if (i > 0 && startNode->prev != NULL)
                         startNode = startNode->prev;
         }
-        
+
         // Go down to adjust the startNode
         for (int i = (foundAt == -1) ? 0 : foundAt; i < startIter; i++)
         {
@@ -170,7 +178,7 @@ int displayPlaylist(PlayList *list, int maxListSize, int indent, int *chosenSong
                         printf("\n");
                         printedRows++;
                 }
-        }         
+        }
 
         return printedRows;
 }
