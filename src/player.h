@@ -46,7 +46,6 @@ extern int chosenLibRow;
 extern int chosenSearchResultRow;
 extern int chosenRow;
 extern int chosenNodeId;
-extern bool useProfileColors;
 extern int cacheLibrary;
 extern int numDirectoryTreeEntries;
 
@@ -95,5 +94,7 @@ void freeMainDirectoryTree();
 char *getLibraryFilePath();
 
 void resetChosenDir();
+
+void tabNext();
 
 #endif
