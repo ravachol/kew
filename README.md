@@ -4,7 +4,7 @@
 
 Listen to music in the terminal.
 
-![Example screenshot](kew-screenshot.png)  
+![Example screenshot](images/kew-screenshot.png)  
 *Example screenshot running in Konsole: [Jenova 7: Lost Sci-Fi Movie Themes](https://jenova7.bandcamp.com/album/lost-sci-fi-movie-themes).*
 
 
@@ -251,3 +251,5 @@ Img_To_Txt by Danny Burrows - https://github.com/danny-burrows/img_to_txt
 
 
 Comments? Suggestions? Send mail to kew-music-player@proton.me.
+
+![](images/alien_astronauts-kew.png)
