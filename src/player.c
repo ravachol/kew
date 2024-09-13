@@ -1007,11 +1007,11 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
         char dirName[maxNameWidth + 1];
         char filename[maxNameWidth + 1];
         bool foundChosen = false;
-        bool foundCurrent = false;
+        int foundCurrent = 0;
 
         if (currentSong != NULL && (strcmp(currentSong->song.filePath, root->fullPath) == 0))
         {
-                foundCurrent = true;
+                foundCurrent = 1;
         }
 
         if (startLibIter < 0)
@@ -1120,22 +1120,24 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
                                 {
                                         if (root->isEnqueued)
                                         {
-                                                if (useProfileColors)
-                                                        setTextColor(enqueuedColor);
-                                                else
-                                                        setColor();
 
-                                                if (foundCurrent)
-                                                {
-                                                        printf("\e[1m\e[39m * ");
-                                                }                                                                                                 
+                                                if (useProfileColors)
+                                                        printf("\033[%d;3%dm", foundCurrent, enqueuedColor);
                                                 else
-                                                {
-                                                        printf(" * ");
-                                                }
+                                                       printf("\033[%d;38;2;%03u;%03u;%03um", foundCurrent, color.r, color.g, color.b);
+ 
+
+                                                // if (useProfileColors)
+                                                //         setTextColor(enqueuedColor);                                                        
+                                                // else
+                                                //         setColor();
+
+                                                printf(" * ");
                                         }
                                         else
+                                        {
                                                 printf("   ");
+                                        }
                                 }
 
                                 if (root->isDirectory)
@@ -1151,11 +1153,6 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
                                 }
                                 else
                                 {
-                                        if (foundCurrent)
-                                        {
-                                                printf("\e[1m\e[39m");
-                                        }
-
                                         filename[0] = '\0';
                                         processName(root->name, filename, maxNameWidth);
                                         printf(" └─%s \n", filename);
