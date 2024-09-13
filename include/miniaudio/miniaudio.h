@@ -69705,6 +69705,11 @@ static void* ma_resource_manager_data_stream_get_page_data_pointer(ma_resource_m
     return ma_offset_ptr(pDataStream->pPageData, ((ma_resource_manager_data_stream_get_page_size_in_frames(pDataStream) * pageIndex) + relativeCursor) * ma_get_bytes_per_frame(pDataStream->decoder.outputFormat, pDataStream->decoder.outputChannels));
 }
 
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#endif
+
 static void ma_resource_manager_data_stream_fill_page(ma_resource_manager_data_stream* pDataStream, ma_uint32 pageIndex)
 {
     ma_result result = MA_SUCCESS;
@@ -69739,6 +69744,10 @@ static void ma_resource_manager_data_stream_fill_page(ma_resource_manager_data_s
     ma_atomic_exchange_32(&pDataStream->pageFrameCount[pageIndex], (ma_uint32)totalFramesReadForThisPage);
     ma_atomic_exchange_32(&pDataStream->isPageValid[pageIndex], MA_TRUE);
 }
+
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
 
 static void ma_resource_manager_data_stream_fill_pages(ma_resource_manager_data_stream* pDataStream)
 {

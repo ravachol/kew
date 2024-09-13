@@ -454,6 +454,10 @@ int min(int a, int b, int c)
         return c;
 }
 
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#endif
 // Calculates the Levenshtein distance.
 // The Levenshtein distance between two strings is the minimum number of single-character edits
 // (insertions, deletions, or substitutions) required to change one string into the other.
@@ -499,6 +503,9 @@ int levenshteinDistance(const char *s1, const char *s2)
         free(d);
         return distance;
 }
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
 
 // Returns a new string that is lowercase of str
 char *strLower(char *str)
@@ -545,33 +552,33 @@ void fuzzySearchRecursive(FileSystemEntry *node, const char *searchTerm, int thr
 
 FileSystemEntry *findCorrespondingEntry(FileSystemEntry *temp, const char *fullPath)
 {
-    if (temp == NULL)
-        return NULL;
-    if (strcmp(temp->fullPath, fullPath) == 0)
-        return temp;
+        if (temp == NULL)
+                return NULL;
+        if (strcmp(temp->fullPath, fullPath) == 0)
+                return temp;
 
-    FileSystemEntry *found = findCorrespondingEntry(temp->children, fullPath);
-    if (found != NULL)
-        return found;
+        FileSystemEntry *found = findCorrespondingEntry(temp->children, fullPath);
+        if (found != NULL)
+                return found;
 
-    return findCorrespondingEntry(temp->next, fullPath);
+        return findCorrespondingEntry(temp->next, fullPath);
 }
 
 void copyIsEnqueued(FileSystemEntry *library, FileSystemEntry *temp)
 {
-    if (library == NULL)
-        return;
+        if (library == NULL)
+                return;
 
-    if (library->isEnqueued)
-    {
-        FileSystemEntry *tempEntry = findCorrespondingEntry(temp, library->fullPath);
-        if (tempEntry != NULL)
+        if (library->isEnqueued)
         {
-            tempEntry->isEnqueued = library->isEnqueued;
+                FileSystemEntry *tempEntry = findCorrespondingEntry(temp, library->fullPath);
+                if (tempEntry != NULL)
+                {
+                        tempEntry->isEnqueued = library->isEnqueued;
+                }
         }
-    }
 
-    copyIsEnqueued(library->children, temp);
+        copyIsEnqueued(library->children, temp);
 
-    copyIsEnqueued(library->next, temp);
+        copyIsEnqueued(library->next, temp);
 }
