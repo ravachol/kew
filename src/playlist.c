@@ -841,7 +841,7 @@ void createPlayListFromFileSystemEntry(FileSystemEntry *root, PlayList *list, in
 
 int isMusicFile(const char *filename)
 {
-    const char *extensions[] = {".m4a", ".aac",".mp4", ".mp3", ".ogg", ".flac",".wav", ".opus"};
+    const char *extensions[] = {".m4a", ".aac", ".mp3", ".ogg", ".flac",".wav", ".opus"};
 
     size_t numExtensions = sizeof(extensions) / sizeof(extensions[0]);
 
