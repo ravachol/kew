@@ -699,7 +699,7 @@ void handleInput()
                 break;
         case EVENT_TABNEXT:
                 tabNext();
-                break;                
+                break;
         default:
                 fastForwarding = false;
                 rewinding = false;
@@ -1037,11 +1037,11 @@ void cleanupOnExit()
         }
         emitPlaybackStoppedMpris();
 
+        bool noMusicFound = false;
+
         if (library == NULL || library->children == NULL)
         {
-                printf("No Music found.\n");
-                printf("Please make sure the path is set correctly. \n");
-                printf("To set it type: kew path \"/path/to/Music\". \n");
+                noMusicFound = true;
         }
 
         if (!userData.songdataADeleted)
@@ -1071,13 +1071,21 @@ void cleanupOnExit()
         free(specialPlaylist);
         free(originalPlaylist);
         setDefaultTextColor();
-        showCursor();
         pthread_mutex_destroy(&(loadingdata.mutex));
         pthread_mutex_destroy(&(playlist.mutex));
         pthread_mutex_destroy(&(switchMutex));
         pthread_mutex_unlock(&dataSourceMutex);
         pthread_mutex_destroy(&(dataSourceMutex));
         resetConsole();
+        showCursor();
+        fflush(stdout);
+
+        if (noMusicFound)
+        {
+                printf("No Music found.\n");
+                printf("Please make sure the path is set correctly. \n");
+                printf("To set it type: kew path \"/path/to/Music\". \n");
+        }
 
 #ifdef DEBUG
         fclose(logFile);
