@@ -1007,6 +1007,15 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
         char dirName[maxNameWidth + 1];
         char filename[maxNameWidth + 1];
         bool foundChosen = false;
+        bool foundCurrent = false;
+
+        if (currentSong != NULL && (strcmp(currentSong->song.filePath, root->fullPath) == 0))
+        {
+                foundCurrent = true;
+        }
+
+        if (startLibIter < 0)
+                startLibIter = 0;
 
         if (libIter >= startLibIter + maxListSize)
         {
@@ -1085,6 +1094,7 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
                                                         setTextColor(enqueuedColor);
                                                 else
                                                         setColor();
+
                                                 printf("\x1b[7m * ");
                                         }
                                         else
@@ -1114,7 +1124,15 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
                                                         setTextColor(enqueuedColor);
                                                 else
                                                         setColor();
-                                                printf(" * ");
+
+                                                if (foundCurrent)
+                                                {
+                                                        printf("\e[1m\e[39m * ");
+                                                }                                                                                                 
+                                                else
+                                                {
+                                                        printf(" * ");
+                                                }
                                         }
                                         else
                                                 printf("   ");
@@ -1133,6 +1151,11 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
                                 }
                                 else
                                 {
+                                        if (foundCurrent)
+                                        {
+                                                printf("\e[1m\e[39m");
+                                        }
+
                                         filename[0] = '\0';
                                         processName(root->name, filename, maxNameWidth);
                                         printf(" └─%s \n", filename);
