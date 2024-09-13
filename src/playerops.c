@@ -1106,7 +1106,7 @@ int loadDecoder(SongData *songData, bool *songDataDeleted)
                                 result = prepareNextOpusDecoder(songData->filePath);
                         else if (endsWith(songData->filePath, "ogg"))
                                 result = prepareNextVorbisDecoder(songData->filePath);
-                        else if (endsWith(songData->filePath, "m4a") || endsWith(songData->filePath, "aac") || endsWith(songData->filePath, "mp4"))
+                        else if (endsWith(songData->filePath, "m4a") || endsWith(songData->filePath, "aac"))
                                 result = prepareNextM4aDecoder(songData->filePath);
                 }
         }
