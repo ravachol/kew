@@ -85,6 +85,7 @@ AppSettings settings;
 int fuzzySearchThreshold = 2;
 int lastNotifiedId = -1;
 bool songWasRemoved = false;
+bool noPlaylist = false;
 
 bool isCooldownElapsed(int milliSeconds)
 {
@@ -1086,6 +1087,10 @@ void cleanupOnExit()
                 printf("Please make sure the path is set correctly. \n");
                 printf("To set it type: kew path \"/path/to/Music\". \n");
         }
+        else if (noPlaylist)
+        {
+                printf("Music not found.\n");
+        }
 
 #ifdef DEBUG
         fclose(logFile);
@@ -1141,7 +1146,7 @@ void init()
         pthread_mutex_init(&switchMutex, NULL);
         pthread_mutex_init(&(loadingdata.mutex), NULL);
         pthread_mutex_init(&(playlist.mutex), NULL);
-        nerdFontsEnabled = hasNerdFonts();
+        nerdFontsEnabled = true;
         createLibrary(&settings);
         setlocale(LC_ALL, "");
         fflush(stdout);
@@ -1382,7 +1387,7 @@ void setMusicPath()
         const char *musicFolderNames[] = {
             "Music", "Música", "Musique", "Musik", "Musica", "Muziek", "Музыка",
             "音乐", "音楽", "음악", "موسيقى", "संगीत", "Müzik", "Musikk", "Μουσική",
-            "Muzyka", "Hudba", "Musiikki", "Zene", "Muzică", "Musikk", "Musik", "เพลง", "מוזיקה", "Musik"};
+            "Muzyka", "Hudba", "Musiikki", "Zene", "Muzică", "เพลง", "מוזיקה"};
 
         char path[MAXPATHLEN];
         int found = 0;
@@ -1494,7 +1499,10 @@ int main(int argc, char *argv[])
                 init();
                 makePlaylist(argc, argv, exactSearch, settings.path);
                 if (playlist.count == 0)
+                {
+                        noPlaylist = true;
                         exit(0);
+                }
                 run();
         }
 
