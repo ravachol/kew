@@ -225,7 +225,11 @@ Put single-quotes inside quotes "guns n' roses"
 
 ## Configuration
 
-kew will create a config file, kewrc, in a kew folder in your default config directory for instance ~/.config/kew. There you can change key bindings, number of bars in the visualizer and whether to use the album cover for color, or your regular color scheme (default). You can also change the default color of the app here. To edit this file please make sure you quit kew first.
+kew will create a config file, kewrc, in a kew folder in your default config directory for instance ~/.config/kew. There you can change key bindings, number of bars in the visualizer and whether to use the album cover for color, or your regular color scheme. You can also change the default color of the app here. To edit this file please make sure you quit kew first.
+
+## Nerd Fonts
+
+kew looks better with nerdfonts: https://www.nerdfonts.com/.
 
 ## License
 
