@@ -1124,7 +1124,7 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
                                                 if (useProfileColors)
                                                         printf("\033[%d;3%dm", foundCurrent, enqueuedColor);
                                                 else
-                                                       printf("\033[%d;38;2;%03u;%03u;%03um", foundCurrent, color.r, color.g, color.b);
+                                                        setColorAndWeight(foundCurrent);
 
                                                 printf(" * ");
                                         }
