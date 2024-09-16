@@ -229,7 +229,7 @@ kew will create a config file, kewrc, in a kew folder in your default config dir
 
 ## Nerd Fonts
 
-kew looks better with nerdfonts: https://www.nerdfonts.com/.
+kew looks better with Nerd Fonts: https://www.nerdfonts.com/.
 
 ## License
 
