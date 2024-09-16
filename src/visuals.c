@@ -24,6 +24,8 @@ int bufferIndex = 0;
 
 float magnitudeBuffer[MAX_BUFFER_SIZE] = {0.0f};
 float lastMagnitudes[MAX_BUFFER_SIZE] = {0.0f};
+float smoothedMagnitudes[MAX_BUFFER_SIZE];
+float maxPossibleMagnitude = 0;
 
 int terminalSupportsUnicode()
 {
@@ -46,9 +48,11 @@ void initVisuals()
 
 void updateMagnitudes(int height, int width, float maxMagnitude, float *magnitudes)
 {
-        // Temporary array to store smoothed magnitudes
-        float smoothedMagnitudes[width];
-
+        if (maxMagnitude == 0.0f)
+        {
+                maxMagnitude = 1.0f;
+        }
+        
         // Apply moving average smoothing to magnitudes
         for (int i = 0; i < width; i++)
         {
@@ -75,23 +79,19 @@ void updateMagnitudes(int height, int width, float maxMagnitude, float *magnitud
         }
 
         // Update magnitudes array with smoothed values
-        for (int i = 0; i < width; i++)
-        {
-                magnitudes[i] = smoothedMagnitudes[i];
-        }
+        memcpy(magnitudes, smoothedMagnitudes, width * sizeof(float));
+        // Apply adaptive decay factor to the smoothed magnitudes
+        float exponent = 1.0f;
 
-        // Apply decay factor to the smoothed magnitudes
-        float exponent = 1.0;
-        float decreaseFactor = 0.8;
         for (int i = 0; i < width; i++)
         {
                 float normalizedMagnitude = magnitudes[i] / maxMagnitude;
+                normalizedMagnitude = fminf(normalizedMagnitude, 1.0f);
 
-                if (normalizedMagnitude > 1.0f)
-                        normalizedMagnitude = 1.0f;
+                float scaledMagnitude = powf(normalizedMagnitude, exponent) * height;
 
-                float scaledMagnitude = pow(normalizedMagnitude, exponent) * height;
-
+                // Adaptive decay based on magnitude
+                float decreaseFactor = 0.8f + 0.2f * (normalizedMagnitude);
                 float decayedMagnitude = lastMagnitudes[i] * decreaseFactor;
 
                 if (scaledMagnitude < decayedMagnitude)
@@ -118,7 +118,10 @@ float calcMaxMagnitude(int numBars, float *magnitudes)
         }
 
         if (lastMax < 0.0f)
+        {
+                lastMax = maxMagnitude;
                 return maxMagnitude;
+        }
 
         lastMax = (1 - alpha) * lastMax + alpha * maxMagnitude; // Apply exponential smoothing
         return lastMax;
@@ -132,98 +135,108 @@ void clearMagnitudes(int width, float *magnitudes)
         }
 }
 
+void enhancePeaks(int numBars, float *magnitudes, int height)
+{
+        for (int i = 1; i < numBars - 1; i++)
+        {
+                if (magnitudes[i] > magnitudes[i - 1] && magnitudes[i] > magnitudes[i + 1])
+                {
+                        magnitudes[i] *= 1.3f; // Emphasize the peak
+
+                        magnitudes[i] = fminf(magnitudes[i], (float)height);
+                }
+        }
+}
+
 void calc(int height, int numBars, ma_int32 *audioBuffer, int bitDepth, fftwf_complex *fftInput, fftwf_complex *fftOutput, float *magnitudes, fftwf_plan plan)
 {
         int bufferSize = getBufferSize();
 
         if (audioBuffer == NULL)
         {
-                printf("Audio buffer is NULL.\n");
+                fprintf(stderr, "Audio buffer is NULL.\n");
                 return;
         }
 
-        int j = 0;
-
         for (int i = 0; i < bufferSize; i++)
         {
-                if (j >= bufferSize)
-                {
-                        printf("Exceeded FFT input buffer size.\n");
-                        break;
-                }
-
                 ma_int32 sample = audioBuffer[i];
-                float normalizedSample = 0;
+                float normalizedSample = 0.0f;
 
                 switch (bitDepth)
                 {
                 case 8:
-                        normalizedSample = ((float)sample - 128) / 127.0f;
+                        normalizedSample = ((float)sample - 128.0f) / 127.0f;
                         break;
                 case 16:
                         normalizedSample = (float)sample / 32768.0f;
                         break;
                 case 24:
                 {
-                        int lower24Bits = sample & 0xFFFFFF;
+                        int32_t lower24Bits = sample & 0xFFFFFF;
                         if (lower24Bits & 0x800000)
                         {
                                 lower24Bits |= 0xFF000000; // Sign extension
                         }
-                        normalizedSample = (float)lower24Bits / 8388607.0f;
+                        normalizedSample = (float)lower24Bits / 8388608.0f;
                         break;
                 }
                 case 32: // Assuming 32-bit integers
-                        normalizedSample = (float)sample / 2147483647.0f;
+                        normalizedSample = (float)sample / 2147483648.0f;
                         break;
                 default:
-                        printf("Unsupported bit depth: %d\n", bitDepth);
+                        fprintf(stderr, "Unsupported bit depth: %d\n", bitDepth);
                         return;
                 }
 
-                fftInput[j][0] = normalizedSample;
-                fftInput[j][1] = 0;
-                j++;
+                fftInput[i][0] = normalizedSample;
+                fftInput[i][1] = 0.0f;
         }
 
-        for (int k = j; k < bufferSize; k++)
+        // Apply Windowing (Hamming Window)
+        if (bufferSize > 1)
         {
-                fftInput[k][0] = 0;
-                fftInput[k][1] = 0;
+                for (int i = 0; i < bufferSize; i++)
+                {
+                        float window = 0.54f - 0.46f * cosf(2.0f * M_PI * i / (bufferSize - 1));
+                        fftInput[i][0] *= window;
+                }
         }
-
-        // Apply Windowing (Hamming Window) only to populated samples
-        for (int i = 0; i < j; i++)
-        {
-                float window = 0.54f - 0.46f * cos(2 * M_PI * i / (j - 1));
-                fftInput[i][0] *= window;
-        }        
 
         fftwf_execute(plan); // Execute FFT
 
         clearMagnitudes(numBars, magnitudes);
 
-        for (int i = 0; i < numBars && i < j / 2; i++)
+        int halfSize = bufferSize / 2;
+        int limit = (numBars < halfSize) ? numBars : halfSize;
+
+        for (int i = 0; i < limit; i++)
         {
-                // Directly set magnitude for each bar from FFT output
-                float magnitude = sqrtf(fftOutput[i][0] * fftOutput[i][0] + fftOutput[i][1] * fftOutput[i][1]);
+                // Compute magnitude for each frequency bin
+                float real = fftOutput[i][0];
+                float imag = fftOutput[i][1];
+                float magnitude = sqrtf(real * real + imag * imag);
                 magnitudes[i] = magnitude;
         }
 
         // Normalize and update magnitudes for visualization
-        float maxMagnitude = calcMaxMagnitude(numBars, magnitudes);
-        updateMagnitudes(height, numBars, maxMagnitude, magnitudes);
+        float maxMagnitude = calcMaxMagnitude(limit, magnitudes);
+
+        updateMagnitudes(height, limit, maxMagnitude, magnitudes);
+
+        enhancePeaks(numBars, magnitudes, height);
 }
 
-wchar_t* upwardMotionChars[] = {
-    L" ", L"▁", L"▂", L"▃", L"▄", L"▅", L"▆", L"▇", L"█"
-};
+wchar_t *upwardMotionChars[] = {
+    L" ", L"▁", L"▂", L"▃", L"▄", L"▅", L"▆", L"▇", L"█"};
 
-wchar_t* getUpwardMotionChar(int level) {
-    if (level < 0 || level > 8) {
-        level = 8;
-    }
-    return upwardMotionChars[level];
+wchar_t *getUpwardMotionChar(int level)
+{
+        if (level < 0 || level > 8)
+        {
+                level = 8;
+        }
+        return upwardMotionChars[level];
 }
 
 int calcSpectrum(int height, int numBars, fftwf_complex *fftInput, fftwf_complex *fftOutput, float *magnitudes, fftwf_plan plan)
