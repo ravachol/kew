@@ -1227,6 +1227,21 @@ char *ensureNonEmpty(char *str)
         return str;
 }
 
+gboolean notifyNotificationShowIdle(gpointer user_data)
+{
+        NotifyNotification *notification = (NotifyNotification *)user_data;
+        GError *error = NULL;
+        if (!notify_notification_show(notification, &error))
+        {
+                if (error != NULL)
+                {
+                        fprintf(stderr, "Failed to show notification: %s\n", error->message);
+                        g_error_free(error);
+                }
+        }
+        return FALSE; // Remove the idle function after execution
+}
+
 int displaySongNotification(const char *artist, const char *title, const char *cover)
 {
 
@@ -1236,7 +1251,7 @@ int displaySongNotification(const char *artist, const char *title, const char *c
         }
 
         char sanitized_cover[MAXPATHLEN];
-        const char *blacklist = "&;`|*~<>^()[]{}$\\\"";
+        const char *blacklist = "&;`|*~<>^()[]{}\\\"";
         char *sanitizedArtist = removeBlacklistedChars(artist, blacklist);
         char *sanitizedTitle = removeBlacklistedChars(title, blacklist);
 
@@ -1265,15 +1280,7 @@ int displaySongNotification(const char *artist, const char *title, const char *c
                 notify_notification_update(previous_notification, sanitizedArtist, sanitizedTitle, sanitized_cover);
         }
 
-        GError *error = NULL;
-        if (!notify_notification_show(previous_notification, &error))
-        {
-                if (error != NULL)
-                {
-                        fprintf(stderr, "Failed to show notification: %s\n", error->message);
-                        g_error_free(error);
-                }
-        }
+        g_idle_add((GSourceFunc)notifyNotificationShowIdle, previous_notification);
 
         free(sanitizedArtist);
         free(sanitizedTitle);
@@ -1563,7 +1570,7 @@ void opus_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_uint
                 if (pthread_mutex_trylock(&dataSourceMutex) != 0)
                 {
                         return;
-                }             
+                }
 
                 // Check if a file switch is required
                 if (pAudioData->switchFiles)
@@ -1684,7 +1691,7 @@ void vorbis_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_ui
                 if (pthread_mutex_trylock(&dataSourceMutex) != 0)
                 {
                         return;
-                }             
+                }
 
                 // Check if a file switch is required
                 if (pAudioData->switchFiles)
