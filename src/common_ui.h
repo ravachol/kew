@@ -15,3 +15,5 @@ extern bool useProfileColors;
 void setTextColorRGB2(int r, int g, int b);
 
 void setColor();
+
+void setColorAndWeight(int bold);
