@@ -1201,12 +1201,48 @@ gint64 getLengthInMicroSec(double duration)
 }
 
 #ifdef USE_LIBNOTIFY
+
+typedef struct {
+    char *artist;
+    char *title;
+    char *cover;
+} NotificationData;
+
 void onNotificationClosed(NotifyNotification *notification, gpointer user_data)
 {
         (void)notification;
         (void)user_data;
 
         previous_notification = NULL;
+}
+
+gboolean notifyNotificationShowIdle(gpointer user_data)
+{
+    NotificationData *data = (NotificationData *)user_data;
+    GError *error = NULL;
+
+    if (previous_notification == NULL) {
+        previous_notification = notify_notification_new(data->artist, data->title, data->cover);
+        g_signal_connect(previous_notification, "closed", G_CALLBACK(onNotificationClosed), NULL);
+    } else {
+        notify_notification_update(previous_notification, data->artist, data->title, data->cover);
+    }
+
+    if (!notify_notification_show(previous_notification, &error))
+    {
+        if (error != NULL)
+        {
+            fprintf(stderr, "Failed to show notification: %s\n", error->message);
+            g_error_free(error);
+        }
+    }
+
+    free(data->artist);
+    free(data->title);
+    free(data->cover);
+    free(data);
+
+    return FALSE;
 }
 
 char *ensureNonEmpty(char *str)
@@ -1227,65 +1263,47 @@ char *ensureNonEmpty(char *str)
         return str;
 }
 
-gboolean notifyNotificationShowIdle(gpointer user_data)
-{
-        NotifyNotification *notification = (NotifyNotification *)user_data;
-        GError *error = NULL;
-        if (!notify_notification_show(notification, &error))
-        {
-                if (error != NULL)
-                {
-                        fprintf(stderr, "Failed to show notification: %s\n", error->message);
-                        g_error_free(error);
-                }
-        }
-        return FALSE; // Remove the idle function after execution
-}
-
 int displaySongNotification(const char *artist, const char *title, const char *cover)
 {
+    if (!allowNotifications)
+    {
+        return 0;
+    }
 
-        if (!allowNotifications)
-        {
-                return 0;
-        }
+    char sanitized_cover[MAXPATHLEN];
+    const char *blacklist = "&;`|*~<>^()[]{}\\\"";
+    char *sanitizedArtist = removeBlacklistedChars(artist, blacklist);
+    char *sanitizedTitle = removeBlacklistedChars(title, blacklist);
 
-        char sanitized_cover[MAXPATHLEN];
-        const char *blacklist = "&;`|*~<>^()[]{}\\\"";
-        char *sanitizedArtist = removeBlacklistedChars(artist, blacklist);
-        char *sanitizedTitle = removeBlacklistedChars(title, blacklist);
+    if (!sanitizedArtist || !sanitizedTitle)
+    {
+        if (sanitizedArtist)
+            free(sanitizedArtist);
+        if (sanitizedTitle)
+            free(sanitizedTitle);
+        return -1;
+    }
 
-        if (!sanitizedArtist || !sanitizedTitle)
-        {
-                if (sanitizedArtist)
-                        free(sanitizedArtist);
-                if (sanitizedTitle)
-                        free(sanitizedTitle);
-                return -1;
-        }
+    sanitizedArtist = ensureNonEmpty(sanitizedArtist);
+    sanitizedTitle = ensureNonEmpty(sanitizedTitle);
 
-        sanitizedArtist = ensureNonEmpty(sanitizedArtist);
-        sanitizedTitle = ensureNonEmpty(sanitizedTitle);
+    sanitize_filepath(cover, sanitized_cover, sizeof(sanitized_cover));
 
-        sanitize_filepath(cover, sanitized_cover, sizeof(sanitized_cover));
-
-        if (previous_notification == NULL)
-        {
-                previous_notification = notify_notification_new(sanitizedArtist, sanitizedTitle, sanitized_cover);
-
-                g_signal_connect(previous_notification, "closed", G_CALLBACK(onNotificationClosed), NULL);
-        }
-        else
-        {
-                notify_notification_update(previous_notification, sanitizedArtist, sanitizedTitle, sanitized_cover);
-        }
-
-        g_idle_add((GSourceFunc)notifyNotificationShowIdle, previous_notification);
-
+    NotificationData *data = (NotificationData *)malloc(sizeof(NotificationData));
+    if (!data)
+    {
         free(sanitizedArtist);
         free(sanitizedTitle);
+        return -1;
+    }
 
-        return 0;
+    data->artist = sanitizedArtist;
+    data->title = sanitizedTitle;
+    data->cover = strdup(sanitized_cover);
+
+    g_idle_add(notifyNotificationShowIdle, data);
+
+    return 0;
 }
 #endif
 
