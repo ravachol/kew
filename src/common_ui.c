@@ -19,21 +19,27 @@ void setTextColorRGB2(int r, int g, int b)
 
 void setColor()
 {
+    setColorAndWeight(0);
+}
+
+void setColorAndWeight(int bold)
+{
         if (useProfileColors)
         {
-                setDefaultTextColor();
+                printf("\033[%dm", bold);
                 return;
         }
-        if (color.r == 150 && color.g == 150 && color.b == 150)
-                setDefaultTextColor();
+        if (color.r == defaultColor && color.g == defaultColor && color.b == defaultColor)
+                printf("\033[%dm", bold);
         else if (color.r >= 210 && color.g >= 210 && color.b >= 210)
         {
                 color.r = defaultColor;
                 color.g = defaultColor;
                 color.b = defaultColor;
+                printf("\033[%d;38;2;%03u;%03u;%03um", bold, color.r, color.g, color.b);
         }
         else
         {
-                setTextColorRGB2(color.r, color.g, color.b);
+                printf("\033[%d;38;2;%03u;%03u;%03um", bold, color.r, color.g, color.b);
         }
 }
