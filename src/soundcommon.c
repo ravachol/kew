@@ -1237,56 +1237,58 @@ void ensureNonEmpty(char *str)
 
 int displaySongNotification(const char *artist, const char *title, const char *cover)
 {
-        if (!allowNotifications || !canShowNotification() || !notify_is_initted())
-        {
-                return 0;
-        }
-
-        const char *blacklist = "&;`|*~<>^()[]{}$\\\"";
-        removeBlacklistedChars(artist, blacklist, sanitizedArtist, sizeof(sanitizedArtist));
-        removeBlacklistedChars(title, blacklist, sanitizedTitle, sizeof(sanitizedTitle));
-
-        ensureNonEmpty(sanitizedArtist);
-        ensureNonEmpty(sanitizedTitle);
-
-        int coverExists = isValidFilepath(cover);
-
-        if (previous_notification == NULL)
-        {
-                if (coverExists)
-                {
-                        previous_notification = notify_notification_new(sanitizedArtist, sanitizedTitle, cover);
-                }
-                else
-                {
-                        previous_notification = notify_notification_new(sanitizedArtist, sanitizedTitle, NULL);
-                }
-
-                g_signal_connect(previous_notification, "closed", G_CALLBACK(onNotificationClosed), NULL);
-        }
-        else
-        {
-                if (coverExists)
-                {
-                        notify_notification_update(previous_notification, sanitizedArtist, sanitizedTitle, cover);
-                }
-                else
-                {
-                        notify_notification_update(previous_notification, sanitizedArtist, sanitizedTitle, NULL);
-                }
-        }
-
-        GError *error = NULL;
-        if (!notify_notification_show(previous_notification, &error))
-        {
-                if (error != NULL)
-                {
-                        fprintf(stderr, "Failed to show notification: %s\n", error->message);
-                        g_error_free(error);
-                }
-        }
-
+    if (!allowNotifications || !canShowNotification() || !notify_is_initted())
+    {
         return 0;
+    }
+
+    const char *blacklist = "&;`|*~<>^()[]{}$\\\"";
+
+    removeBlacklistedChars(artist, blacklist, sanitizedArtist, sizeof(sanitizedArtist));
+    removeBlacklistedChars(title, blacklist, sanitizedTitle, sizeof(sanitizedTitle));
+
+    ensureNonEmpty(sanitizedArtist);
+    ensureNonEmpty(sanitizedTitle);
+
+    int coverExists = isValidFilepath(cover);
+
+    if (previous_notification == NULL)
+    {
+        printf("\nbefore notification new\n");
+        previous_notification = notify_notification_new(
+            sanitizedArtist,
+            sanitizedTitle,
+            coverExists ? cover : NULL
+        );
+
+        printf("before signal connect\n");
+        g_signal_connect(previous_notification, "closed", G_CALLBACK(onNotificationClosed), NULL);
+    }
+    else
+    {
+        printf("before notify_notification_update\n");
+        notify_notification_update(
+            previous_notification,
+            sanitizedArtist,
+            sanitizedTitle,
+            coverExists ? cover : NULL
+        );
+    }
+
+    GError *error = NULL;
+
+    printf("before notify_notification_show\n");
+    if (!notify_notification_show(previous_notification, &error))
+    {
+        if (error != NULL)
+        {
+            fprintf(stderr, "Failed to show notification: %s\n", error->message);
+            g_error_free(error);
+        }
+    }
+    printf("after notify_notification_show\n");
+
+    return 0;
 }
 #endif
 
