@@ -1172,9 +1172,9 @@ gint64 getLengthInMicroSec(double duration)
 #ifdef USE_LIBNOTIFY
 void onNotificationClosed(NotifyNotification *notification, gpointer user_data)
 {
-        (void)notification;
         (void)user_data;
 
+        g_object_unref(notification);
         previous_notification = NULL;
 }
 
@@ -1260,7 +1260,7 @@ int displaySongNotification(const char *artist, const char *title, const char *c
             coverExists ? cover : NULL
         );
 
-        g_signal_connect(previous_notification, "closed", G_CALLBACK(onNotificationClosed), NULL);
+        g_signal_connect(previous_notification, "closed", G_CALLBACK(onNotificationClosed), NULL);     
     }
     else
     {
