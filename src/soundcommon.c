@@ -1148,22 +1148,20 @@ void activateSwitch(AudioData *pAudioData)
         pAudioData->switchFiles = true;
 }
 
-void sanitize_filepath(const char *input, char *sanitized, size_t size)
+bool isValidFilepath(const char *path)
 {
-        size_t i, j = 0;
+    if (path == NULL || strlen(path) == 0 || strlen(path) >= PATH_MAX)
+    {
+        return false;
+    }
 
-        if (input != NULL)
-        {
-                for (i = 0; i < strlen(input) && j < size - 1; ++i)
-                {
-                        if (isalnum((unsigned char)input[i]) || strchr(" :[]()/.,?!-", input[i]))
-                        {
-                                sanitized[j++] = input[i];
-                        }
-                }
-        }
+    // Check if the path can be accessed (exists)
+    if (access(path, F_OK) != 0)
+    {
+        return false;  // Path doesn't exist or is inaccessible
+    }
 
-        sanitized[j] = '\0';
+    return true;  // Valid path that exists
 }
 
 gint64 getLengthInMicroSec(double duration)
@@ -1210,7 +1208,6 @@ void removeBlacklistedChars(const char *input, const char *blacklist, char *outp
 struct timeval lastNotificationTime = {0, 0};
 static char sanitizedArtist[512];
 static char sanitizedTitle[512];
-static char sanitized_cover[MAXPATHLEN];
 
 int canShowNotification()
 {
@@ -1252,16 +1249,13 @@ int displaySongNotification(const char *artist, const char *title, const char *c
         ensureNonEmpty(sanitizedArtist);
         ensureNonEmpty(sanitizedTitle);
 
-        sanitize_filepath(cover, sanitized_cover, sizeof(sanitized_cover));
-
-        struct stat buffer;
-        int coverExists = (stat(sanitized_cover, &buffer) == 0);
+        int coverExists = isValidFilepath(cover);
 
         if (previous_notification == NULL)
         {
                 if (coverExists)
                 {
-                        previous_notification = notify_notification_new(sanitizedArtist, sanitizedTitle, sanitized_cover);
+                        previous_notification = notify_notification_new(sanitizedArtist, sanitizedTitle, cover);
                 }
                 else
                 {
@@ -1274,7 +1268,7 @@ int displaySongNotification(const char *artist, const char *title, const char *c
         {
                 if (coverExists)
                 {
-                        notify_notification_update(previous_notification, sanitizedArtist, sanitizedTitle, sanitized_cover);
+                        notify_notification_update(previous_notification, sanitizedArtist, sanitizedTitle, cover);
                 }
                 else
                 {
