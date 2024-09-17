@@ -7,6 +7,7 @@
 #include <miniaudio.h>
 #include <miniaudio_libopus.h>
 #include <miniaudio_libvorbis.h>
+#include <sys/stat.h>
 #include <sys/time.h>
 #include <sys/wait.h>
 #include "m4a.h"
