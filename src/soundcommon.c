@@ -1244,11 +1244,15 @@ int displaySongNotification(const char *artist, const char *title, const char *c
 
     const char *blacklist = "&;`|*~<>^()[]{}$\\\"";
 
+    printf("\nbefore remove blacklisted chars\n");
     removeBlacklistedChars(artist, blacklist, sanitizedArtist, sizeof(sanitizedArtist));
     removeBlacklistedChars(title, blacklist, sanitizedTitle, sizeof(sanitizedTitle));
 
+    printf("\nbefore ensurenonempty\n");
     ensureNonEmpty(sanitizedArtist);
     ensureNonEmpty(sanitizedTitle);
+
+    printf("\nartist: %s title: %s", sanitizedArtist, sanitizedTitle);
 
     int coverExists = isValidFilepath(cover);
 
