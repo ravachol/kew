@@ -1244,33 +1244,26 @@ int displaySongNotification(const char *artist, const char *title, const char *c
 
     const char *blacklist = "&;`|*~<>^()[]{}$\\\"";
 
-    printf("\nbefore remove blacklisted chars\n");
     removeBlacklistedChars(artist, blacklist, sanitizedArtist, sizeof(sanitizedArtist));
     removeBlacklistedChars(title, blacklist, sanitizedTitle, sizeof(sanitizedTitle));
 
-    printf("\nbefore ensurenonempty\n");
     ensureNonEmpty(sanitizedArtist);
     ensureNonEmpty(sanitizedTitle);
-
-    printf("\nartist: %s title: %s", sanitizedArtist, sanitizedTitle);
 
     int coverExists = isValidFilepath(cover);
 
     if (previous_notification == NULL)
     {
-        printf("\nbefore notification new\n");
         previous_notification = notify_notification_new(
             sanitizedArtist,
             sanitizedTitle,
             coverExists ? cover : NULL
         );
 
-        printf("before signal connect\n");
         g_signal_connect(previous_notification, "closed", G_CALLBACK(onNotificationClosed), NULL);
     }
     else
     {
-        printf("before notify_notification_update\n");
         notify_notification_update(
             previous_notification,
             sanitizedArtist,
@@ -1281,7 +1274,6 @@ int displaySongNotification(const char *artist, const char *title, const char *c
 
     GError *error = NULL;
 
-    printf("before notify_notification_show\n");
     if (!notify_notification_show(previous_notification, &error))
     {
         if (error != NULL)
@@ -1290,7 +1282,6 @@ int displaySongNotification(const char *artist, const char *title, const char *c
             g_error_free(error);
         }
     }
-    printf("after notify_notification_show\n");
 
     return 0;
 }
