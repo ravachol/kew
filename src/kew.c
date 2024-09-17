@@ -1077,6 +1077,7 @@ void cleanupOnExit()
         pthread_mutex_destroy(&(switchMutex));
         pthread_mutex_unlock(&dataSourceMutex);
         pthread_mutex_destroy(&(dataSourceMutex));
+        notify_uninit();
         resetConsole();
         showCursor();
         fflush(stdout);
