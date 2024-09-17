@@ -1210,6 +1210,7 @@ void removeBlacklistedChars(const char *input, const char *blacklist, char *outp
 struct timeval lastNotificationTime = {0, 0};
 static char sanitizedArtist[512];
 static char sanitizedTitle[512];
+static char sanitized_cover[MAXPATHLEN];
 
 int canShowNotification()
 {
@@ -1244,7 +1245,6 @@ int displaySongNotification(const char *artist, const char *title, const char *c
                 return 0;
         }
 
-        char sanitized_cover[MAXPATHLEN];
         const char *blacklist = "&;`|*~<>^()[]{}$\\\"";
         removeBlacklistedChars(artist, blacklist, sanitizedArtist, sizeof(sanitizedArtist));
         removeBlacklistedChars(title, blacklist, sanitizedTitle, sizeof(sanitizedTitle));
@@ -1254,15 +1254,32 @@ int displaySongNotification(const char *artist, const char *title, const char *c
 
         sanitize_filepath(cover, sanitized_cover, sizeof(sanitized_cover));
 
+        struct stat buffer;
+        int coverExists = (stat(sanitized_cover, &buffer) == 0);
+
         if (previous_notification == NULL)
         {
-                previous_notification = notify_notification_new(sanitizedArtist, sanitizedTitle, sanitized_cover);
+                if (coverExists)
+                {
+                        previous_notification = notify_notification_new(sanitizedArtist, sanitizedTitle, sanitized_cover);
+                }
+                else
+                {
+                        previous_notification = notify_notification_new(sanitizedArtist, sanitizedTitle, NULL);
+                }
 
                 g_signal_connect(previous_notification, "closed", G_CALLBACK(onNotificationClosed), NULL);
         }
         else
         {
-                notify_notification_update(previous_notification, sanitizedArtist, sanitizedTitle, sanitized_cover);
+                if (coverExists)
+                {
+                        notify_notification_update(previous_notification, sanitizedArtist, sanitizedTitle, sanitized_cover);
+                }
+                else
+                {
+                        notify_notification_update(previous_notification, sanitizedArtist, sanitizedTitle, NULL);
+                }
         }
 
         GError *error = NULL;
