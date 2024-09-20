@@ -38,7 +38,7 @@ jobs:
 
       - name: Build code with static linking
         run: |
-          export CC=musl-gcc
+          # export CC=musl-gcc
           # export LDFLAGS="-static -Wl,-z,relro,-lz"
           make
 
