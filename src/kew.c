@@ -45,6 +45,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include <stdio.h>
 #include <string.h>
 #include <sys/param.h>
+#include <sys/stat.h>
 #include <time.h>
 #include <unistd.h>
 #include "cache.h"
@@ -168,7 +169,7 @@ struct Event processInput()
         {
                 if (strcmp(event.key, "\x7F") == 0 || strcmp(event.key, "\x08") == 0)
                 {
-                        removeFromSearchText(getLibrary());
+                        removeFromSearchText();
                         chosenSearchResultRow = 0;
                         fuzzySearch(getLibrary(), fuzzySearchThreshold);
                         event.type = EVENT_SEARCH;
