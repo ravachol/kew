@@ -1347,16 +1347,17 @@ void exitIfAlreadyRunning()
 
 int directoryExists(const char *path)
 {
-        struct stat info;
-        if (stat(path, &info) != 0)
-        {
-                return 0;
-        }
-        else if (info.st_mode & S_IFDIR)
-        {
-                return 1;
-        }
+    struct stat info;
+    if (stat(path, &info) != 0)
+    {
         return 0;
+    }
+    else if (S_ISDIR(info.st_mode))
+    {
+        return 1;
+    }
+
+    return 0;
 }
 
 void setMusicPath()
