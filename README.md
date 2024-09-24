@@ -10,7 +10,7 @@ Listen to music in the terminal.
 
   
   \
-kew (/kjuː/) is a command-line music player for Linux.
+kew (/kjuː/) is a terminal music player for Linux.
 
 ## Features
 
@@ -26,8 +26,6 @@ kew (/kjuː/) is a command-line music player for Linux.
 
 <a href="https://repology.org/project/kew/versions"><img src="https://repology.org/badge/vertical-allrepos/kew.svg" alt="Packaging status" align="right"></a>
 
-
-It's advised, if possible, to install from a package or from a release here on github and not from https://github.com/ravachol/kew.git or the install script, because the main branch can and will be unstable sometimes.
 
 ### Installing in Debian, Ubuntu
 
