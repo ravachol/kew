@@ -27,35 +27,17 @@ kew (/kjuː/) is a terminal music player for Linux.
 <a href="https://repology.org/project/kew/versions"><img src="https://repology.org/badge/vertical-allrepos/kew.svg" alt="Packaging status" align="right"></a>
 
 
-### Installing in Debian, Ubuntu
+### Installing with package managers
 
-It's available from Ubuntu 24.04, Debian 13.
-
-```bash
-$ apt install kew
-```
-
-
-### Installing via AUR
-
-On Arch Linux, and Arch-based distributions, kew can be found in the AUR. Install with pamac or an AUR helper like yay:
+kew is available from Ubuntu 24.04, Debian 13.
 
 ```bash
-$ yay kew-git
-```
-
-Or
-
-```bash
-$ yay kew
-```
-
-### Installing via Brew
-
-For [Homebrew](https://brew.sh/) user, you can install [kew](https://formulae.brew.sh/formula/kew) with:
-
-```bash
-$ brew install kew
+sudo apt install kew         (Debian, Ubuntu)
+sudo yay -S kew              (Arch Linux, Manjaro)
+sudo yay -S kew-git          (Arch Linux, Manjaro)
+sudo zypper install kew      (OpenSUSE)
+sudo pkg install kew         (FreeBSD)
+brew install kew             (Homebrew)
 ```
 
 ### Installing with quick install script
