@@ -72,21 +72,18 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
 FILE *logFile = NULL;
 struct winsize windowSize;
-static bool eventProcessed = false;
 char digitsPressed[MAX_SEQ_LEN];
 int digitsPressedCount = 0;
-int maxDigitsPressedCount = 9;
 static unsigned int updateCounter = 0;
 bool gPressed = false;
-bool loadingAudioData = false;
-bool goingToSong = false;
 bool startFromTop = false;
-bool exactSearch = false;
-AppSettings settings;
-int fuzzySearchThreshold = 2;
 int lastNotifiedId = -1;
 bool songWasRemoved = false;
 bool noPlaylist = false;
+
+bool exactSearch = false;
+int fuzzySearchThreshold = 2;
+int maxDigitsPressedCount = 9;
 
 bool isCooldownElapsed(int milliSeconds)
 {
@@ -112,10 +109,10 @@ struct Event processInput()
                 return event;
         }
 
-        if (isCooldownElapsed(COOLDOWN_MS) && !eventProcessed)
+        if (isCooldownElapsed(COOLDOWN_MS))
                 cooldownElapsed = true;
 
-        if (isCooldownElapsed(COOLDOWN2_MS) && !eventProcessed)
+        if (isCooldownElapsed(COOLDOWN2_MS))
                 cooldown2Elapsed = true;
 
         int seqLength = 0;
@@ -160,7 +157,6 @@ struct Event processInput()
         if (keyReleased)
                 return event;
 
-        eventProcessed = true;
         event.type = EVENT_NONE;
 
         strncpy(event.key, seq, MAX_SEQ_LEN);
@@ -183,60 +179,8 @@ struct Event processInput()
                 }
         }
 
-        // Map keys to events
-        EventMapping keyMappings[] = {{settings.scrollUpAlt, EVENT_SCROLLPREV},
-                                      {settings.scrollDownAlt, EVENT_SCROLLNEXT},
-                                      {settings.nextTrackAlt, EVENT_NEXT},
-                                      {settings.previousTrackAlt, EVENT_PREV},
-                                      {settings.volumeUp, EVENT_VOLUME_UP},
-                                      {settings.volumeUpAlt, EVENT_VOLUME_UP},
-                                      {settings.volumeDown, EVENT_VOLUME_DOWN},
-                                      {settings.togglePause, EVENT_PLAY_PAUSE},
-                                      {settings.quit, EVENT_QUIT},
-                                      {settings.hardQuit, EVENT_QUIT},
-                                      {settings.toggleShuffle, EVENT_SHUFFLE},
-                                      {settings.toggleVisualizer, EVENT_TOGGLEVISUALIZER},
-                                      {settings.toggleAscii, EVENT_TOGGLEBLOCKS},
-                                      {settings.switchNumberedSong, EVENT_GOTOSONG},
-                                      {settings.seekBackward, EVENT_SEEKBACK},
-                                      {settings.seekForward, EVENT_SEEKFORWARD},
-                                      {settings.toggleRepeat, EVENT_TOGGLEREPEAT},
-                                      {settings.savePlaylist, EVENT_EXPORTPLAYLIST},
-                                      {settings.toggleColorsDerivedFrom, EVENT_TOGGLE_PROFILE_COLORS},
-                                      {settings.addToMainPlaylist, EVENT_ADDTOMAINPLAYLIST},
-                                      {settings.updateLibrary, EVENT_UPDATELIBRARY},
-                                      {settings.hardPlayPause, EVENT_PLAY_PAUSE},
-                                      {settings.hardPrev, EVENT_PREV},
-                                      {settings.hardNext, EVENT_NEXT},
-                                      {settings.hardSwitchNumberedSong, EVENT_GOTOSONG},
-                                      {settings.hardScrollUp, EVENT_SCROLLPREV},
-                                      {settings.hardScrollDown, EVENT_SCROLLNEXT},
-                                      {settings.hardShowPlaylist, EVENT_SHOWPLAYLIST},
-                                      {settings.hardShowPlaylistAlt, EVENT_SHOWPLAYLIST},
-                                      {settings.showPlaylistAlt, EVENT_SHOWPLAYLIST},
-                                      {settings.hardShowKeys, EVENT_SHOWKEYBINDINGS},
-                                      {settings.hardShowKeysAlt, EVENT_SHOWKEYBINDINGS},
-                                      {settings.showKeysAlt, EVENT_SHOWKEYBINDINGS},
-                                      {settings.hardEndOfPlaylist, EVENT_GOTOENDOFPLAYLIST},
-                                      {settings.hardShowTrack, EVENT_SHOWTRACK},
-                                      {settings.hardShowTrackAlt, EVENT_SHOWTRACK},
-                                      {settings.showTrackAlt, EVENT_SHOWTRACK},
-                                      {settings.hardShowLibrary, EVENT_SHOWLIBRARY},
-                                      {settings.hardShowLibraryAlt, EVENT_SHOWLIBRARY},
-                                      {settings.showLibraryAlt, EVENT_SHOWLIBRARY},
-                                      {settings.hardShowSearch, EVENT_SHOWSEARCH},
-                                      {settings.hardShowSearchAlt, EVENT_SHOWSEARCH},
-                                      {settings.showSearchAlt, EVENT_SHOWSEARCH},
-                                      {settings.hardNextPage, EVENT_NEXTPAGE},
-                                      {settings.hardPrevPage, EVENT_PREVPAGE},
-                                      {settings.hardRemove, EVENT_REMOVE},
-                                      {settings.hardRemove2, EVENT_REMOVE},
-                                      {settings.tabNext, EVENT_TABNEXT}};
-
-        int numKeyMappings = sizeof(keyMappings) / sizeof(EventMapping);
-
         // Set event for pressed key
-        for (int i = 0; i < numKeyMappings; i++)
+        for (int i = 0; i < NUM_KEY_MAPPINGS; i++)
         {
                 if (keyMappings[i].seq[0] != '\0' &&
                     ((seq[0] == '\033' && strlen(seq) > 1 && strcmp(seq + 1, keyMappings[i].seq) == 0) ||
@@ -481,11 +425,6 @@ void resetListAfterDequeuingPlayingSong()
 
 void handleGoToSong()
 {
-        if (goingToSong)
-                return;
-
-        goingToSong = true;
-
         if (appState.currentView == LIBRARY_VIEW)
         {
                 if (audioData.restart)
@@ -576,8 +515,6 @@ void handleGoToSong()
                         skipToNumberedSong(songNumber);
                 }
         }
-
-        goingToSong = false;
 }
 
 void gotoBeginningOfPlaylist()
@@ -707,7 +644,6 @@ void handleInput()
                 rewinding = false;
                 break;
         }
-        eventProcessed = false;
 }
 
 void resize()
@@ -747,8 +683,6 @@ void updatePlayer()
 
 void loadAudioData()
 {
-        loadingAudioData = true;
-
         if (audioData.restart == true)
         {
                 if (playlist.head != NULL && (waitingForPlaylist || waitingForNext))
@@ -828,8 +762,6 @@ void loadAudioData()
                 loadNextSong();
                 determineSongAndNotify();
         }
-
-        loadingAudioData = false;
 }
 
 void tryLoadNext()
@@ -926,9 +858,8 @@ gboolean mainloop_callback(gpointer data)
 
                 if (playlist.head != NULL)
                 {
-                        if (loadingAudioData == false && (skipFromStopped || !loadedNextSong || nextSongNeedsRebuilding) && !audioData.endOfListReached)
+                        if ((skipFromStopped || !loadedNextSong || nextSongNeedsRebuilding) && !audioData.endOfListReached)
                         {
-                                // handleSkipFromStopped();
                                 loadAudioData();
                         }
 
@@ -1465,6 +1396,7 @@ int main(int argc, char *argv[])
         }
 
         getConfig(&settings);
+        mapSettingsToKeys(&settings, keyMappings);
 
         if (argc == 3 && (strcmp(argv[1], "path") == 0))
         {
