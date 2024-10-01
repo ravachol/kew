@@ -19,7 +19,6 @@
 #include "visuals.h"
 #include "common_ui.h"
 
-extern const char VERSION[];
 extern bool coverEnabled;
 extern bool uiEnabled;
 extern bool coverAnsi;

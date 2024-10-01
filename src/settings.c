@@ -14,7 +14,11 @@ settings.c
 
 const char SETTINGS_FILE[] = "kewrc";
 
+EventMapping keyMappings[NUM_KEY_MAPPINGS];
+
 time_t lastTimeAppRan;
+
+AppSettings settings;
 
 void freeKeyValuePairs(KeyValuePair *pairs, int count)
 {
@@ -343,6 +347,58 @@ int getMusicLibraryPath(char *path)
         }
 
         return 0;
+}
+
+void mapSettingsToKeys(AppSettings *settings, EventMapping *mappings)
+{
+    mappings[0] = (EventMapping){settings->scrollUpAlt, EVENT_SCROLLPREV};
+    mappings[1] = (EventMapping){settings->scrollDownAlt, EVENT_SCROLLNEXT};
+    mappings[2] = (EventMapping){settings->nextTrackAlt, EVENT_NEXT};
+    mappings[3] = (EventMapping){settings->previousTrackAlt, EVENT_PREV};
+    mappings[4] = (EventMapping){settings->volumeUp, EVENT_VOLUME_UP};
+    mappings[5] = (EventMapping){settings->volumeUpAlt, EVENT_VOLUME_UP};
+    mappings[6] = (EventMapping){settings->volumeDown, EVENT_VOLUME_DOWN};
+    mappings[7] = (EventMapping){settings->togglePause, EVENT_PLAY_PAUSE};
+    mappings[8] = (EventMapping){settings->quit, EVENT_QUIT};
+    mappings[9] = (EventMapping){settings->hardQuit, EVENT_QUIT};
+    mappings[10] = (EventMapping){settings->toggleShuffle, EVENT_SHUFFLE};
+    mappings[11] = (EventMapping){settings->toggleVisualizer, EVENT_TOGGLEVISUALIZER};
+    mappings[12] = (EventMapping){settings->toggleAscii, EVENT_TOGGLEBLOCKS};
+    mappings[13] = (EventMapping){settings->switchNumberedSong, EVENT_GOTOSONG};
+    mappings[14] = (EventMapping){settings->seekBackward, EVENT_SEEKBACK};
+    mappings[15] = (EventMapping){settings->seekForward, EVENT_SEEKFORWARD};
+    mappings[16] = (EventMapping){settings->toggleRepeat, EVENT_TOGGLEREPEAT};
+    mappings[17] = (EventMapping){settings->savePlaylist, EVENT_EXPORTPLAYLIST};
+    mappings[18] = (EventMapping){settings->toggleColorsDerivedFrom, EVENT_TOGGLE_PROFILE_COLORS};
+    mappings[19] = (EventMapping){settings->addToMainPlaylist, EVENT_ADDTOMAINPLAYLIST};
+    mappings[20] = (EventMapping){settings->updateLibrary, EVENT_UPDATELIBRARY};
+    mappings[21] = (EventMapping){settings->hardPlayPause, EVENT_PLAY_PAUSE};
+    mappings[22] = (EventMapping){settings->hardPrev, EVENT_PREV};
+    mappings[23] = (EventMapping){settings->hardNext, EVENT_NEXT};
+    mappings[24] = (EventMapping){settings->hardSwitchNumberedSong, EVENT_GOTOSONG};
+    mappings[25] = (EventMapping){settings->hardScrollUp, EVENT_SCROLLPREV};
+    mappings[26] = (EventMapping){settings->hardScrollDown, EVENT_SCROLLNEXT};
+    mappings[27] = (EventMapping){settings->hardShowPlaylist, EVENT_SHOWPLAYLIST};
+    mappings[28] = (EventMapping){settings->hardShowPlaylistAlt, EVENT_SHOWPLAYLIST};
+    mappings[29] = (EventMapping){settings->showPlaylistAlt, EVENT_SHOWPLAYLIST};
+    mappings[30] = (EventMapping){settings->hardShowKeys, EVENT_SHOWKEYBINDINGS};
+    mappings[31] = (EventMapping){settings->hardShowKeysAlt, EVENT_SHOWKEYBINDINGS};
+    mappings[32] = (EventMapping){settings->showKeysAlt, EVENT_SHOWKEYBINDINGS};
+    mappings[33] = (EventMapping){settings->hardEndOfPlaylist, EVENT_GOTOENDOFPLAYLIST};
+    mappings[34] = (EventMapping){settings->hardShowTrack, EVENT_SHOWTRACK};
+    mappings[35] = (EventMapping){settings->hardShowTrackAlt, EVENT_SHOWTRACK};
+    mappings[36] = (EventMapping){settings->showTrackAlt, EVENT_SHOWTRACK};
+    mappings[37] = (EventMapping){settings->hardShowLibrary, EVENT_SHOWLIBRARY};
+    mappings[38] = (EventMapping){settings->hardShowLibraryAlt, EVENT_SHOWLIBRARY};
+    mappings[39] = (EventMapping){settings->showLibraryAlt, EVENT_SHOWLIBRARY};
+    mappings[40] = (EventMapping){settings->hardShowSearch, EVENT_SHOWSEARCH};
+    mappings[41] = (EventMapping){settings->hardShowSearchAlt, EVENT_SHOWSEARCH};
+    mappings[42] = (EventMapping){settings->showSearchAlt, EVENT_SHOWSEARCH};
+    mappings[43] = (EventMapping){settings->hardNextPage, EVENT_NEXTPAGE};
+    mappings[44] = (EventMapping){settings->hardPrevPage, EVENT_PREVPAGE};
+    mappings[45] = (EventMapping){settings->hardRemove, EVENT_REMOVE};
+    mappings[46] = (EventMapping){settings->hardRemove2, EVENT_REMOVE};
+    mappings[47] = (EventMapping){settings->tabNext, EVENT_TABNEXT};
 }
 
 void getConfig(AppSettings *settings)
