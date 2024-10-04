@@ -374,27 +374,30 @@ bool checkFileBelowMaxSize(const char *filePath, int maxSize)
 
 void generateTempFilePath(char *filePath, const char *prefix, const char *suffix)
 {
-        const char *tempDir = getenv("TMPDIR");
-        if (tempDir == NULL)
-        {
-                tempDir = "/tmp";
-        }
+    const char *tempDir = getenv("TMPDIR");
+    if (tempDir == NULL)
+    {
+        tempDir = "/tmp";
+    }
 
-        char dirPath[MAXPATHLEN];
-        struct passwd *pw = getpwuid(getuid());
-        const char *username = pw->pw_name;
-        snprintf(dirPath, MAXPATHLEN, "%s/kew", tempDir);
-        createDirectory(dirPath);
-        snprintf(dirPath, MAXPATHLEN, "%s/kew/%s", tempDir, username);
-        createDirectory(dirPath);
+    char dirPath[MAXPATHLEN];
+    struct passwd *pw = getpwuid(getuid());
+    const char *username = pw->pw_name;
 
-        char randomString[7];
+    // Use safer length for snprintf
+    snprintf(dirPath, sizeof(dirPath), "%s/kew", tempDir);
+    createDirectory(dirPath);
+    snprintf(dirPath, sizeof(dirPath), "%s/kew/%s", tempDir, username);
+    createDirectory(dirPath);
 
-        for (int i = 0; i < 6; ++i)
-        {
-                randomString[i] = 'a' + rand() % 26;
-        }
-        randomString[6] = '\0';
+    char randomString[7];
+    for (int i = 0; i < 6; ++i)
+    {
+        randomString[i] = 'a' + rand() % 26;
+    }
+    randomString[6] = '\0';
 
-        snprintf(filePath, MAXPATHLEN + 7, "%s/%s%.6s%s", dirPath, prefix, randomString, suffix);
+    // Ensure the buffer size matches the actual size of filePath
+    size_t maxFilePathSize = MAXPATHLEN - 1;  // Null terminator accounted for
+    snprintf(filePath, maxFilePathSize, "%s/%s%.6s%s", dirPath, prefix, randomString, suffix);
 }
