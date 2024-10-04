@@ -29,7 +29,7 @@ kew (/kjuː/) is a terminal music player for Linux.
 
 ### Installing with package managers
 
-kew is available from Ubuntu 24.04, Debian 13.
+kew is available from Ubuntu 24.04.
 
 ```bash
 sudo apt install kew         (Debian, Ubuntu)
@@ -39,16 +39,6 @@ sudo zypper install kew      (OpenSUSE)
 sudo pkg install kew         (FreeBSD)
 brew install kew             (Linux Only, No MacOS)
 ```
-
-### Installing with quick install script
-
-To quickly install kew, just copy and paste this to your terminal (if you have curl installed):
-
-```bash
-sudo bash -c "curl https://raw.githubusercontent.com/ravachol/kew/main/install.sh | bash"
-```
-
-Please note that this script might do a system update before installing kew.
 
 ### Standalone AppImage for musl systems
 
@@ -73,19 +63,47 @@ kew dependencies are:
 
 Install FFmpeg, FFTW, Chafa and FreeImage using your distro's package manager. For instance:
 
-```bash
-apt install ffmpeg libfftw3-dev libopus-dev libopusfile-dev libvorbis-dev git gcc make libchafa-dev libfreeimage-dev libavformat-dev libglib2.0-dev libnotify-dev
-```
-Or:
+#### For Debian/Ubuntu:
 
 ```bash
-pacman -Syu ffmpeg fftw git gcc make chafa freeimage glib2 opus opusfile libvorbis libnotify
+sudo apt install -y pkg-config ffmpeg libfftw3-dev libopus-dev libopusfile-dev libvorbis-dev git gcc make libchafa-dev libfreeimage-dev libavformat-dev libnotify-dev
+
 ```
 
-Or (for Fedora for instance):
+#### For Arch Linux:
+
+```bash
+sudo pacman -Syu --noconfirm --needed pkg-config ffmpeg fftw git gcc make chafa freeimage glib2 opus opusfile libvorbis libnotify
+```
+
+#### For Fedora:
 
 ```bash
 dnf install -y pkg-config ffmpeg-free-devel fftw-devel opus-devel opusfile-devel libvorbis-devel git gcc make chafa-devel freeimage-devel libavformat-free-devel libnotify-devel libatomic
+```
+
+#### For CentOS/RHEL:
+
+```bash
+sudo yum install -y pkgconfig ffmpeg fftw-devel opus-devel opusfile-devel libvorbis-devel git gcc make chafa-devel libfreeimage-devel libavformat-devel libnotify-devel
+```
+
+#### For Solus
+
+```bash
+sudo eopkg install -y pkg-config ffmpeg fftw-devel opus-devel opusfile-devel libvorbis-devel git gcc make chafa-devel libfreeimage-devel libavformat-devel libnotify-devel
+```
+
+#### For Guix
+
+```bash
+guix install pkg-config ffmpeg fftw git gcc make chafa freeimage libavformat opus opusfile libvorbis libnotify
+```
+
+#### For Void Linux
+
+```bash
+sudo xbps-install -y pkg-config ffmpeg fftw git gcc make chafa libfreeimage libavformat opus opusfile libvorbis libnotify-devel
 ```
 
 Notice that for some packages not only the library needs to be installed, but also development packages, for instance libopus-dev or opus-devel.
