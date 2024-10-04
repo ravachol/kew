@@ -82,6 +82,12 @@ sudo pacman -Syu --noconfirm --needed pkg-config ffmpeg fftw git gcc make chafa 
 dnf install -y pkg-config ffmpeg-free-devel fftw-devel opus-devel opusfile-devel libvorbis-devel git gcc make chafa-devel freeimage-devel libavformat-free-devel libnotify-devel libatomic
 ```
 
+#### For OpenSUSE:
+
+```bash
+sudo zypper install -y pkg-config ffmpeg fftw-devel opus-devel opusfile-devel libvorbis-devel git chafa-devel gcc make libfreeimage-devel libavformat-devel libnotify-devel
+```
+
 #### For CentOS/RHEL:
 
 ```bash
