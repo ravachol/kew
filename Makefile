@@ -24,8 +24,11 @@ ifeq ($(USE_LIBNOTIFY), 1)
   DEFINES += -DUSE_LIBNOTIFY
 endif
 
-ifeq ($(CC), gcc)
-    LIBS += -latomic
+ifeq ($(origin CC),default) 
+        CC := gcc 
+endif
+ifneq ($(findstring gcc,$(CC)),) 
+        LIBS += -latomic
 endif
 
 OBJDIR = src/obj
