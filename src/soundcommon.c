@@ -10,6 +10,10 @@ soundcommon.c
 
 #define MAX_DECODERS 2
 
+#ifndef PATH_MAX
+#define PATH_MAX 4096
+#endif
+
 bool allowNotifications = true;
 bool repeatEnabled = false;
 bool shuffleEnabled = false;
