@@ -20,6 +20,7 @@ kew (/kjuː/) is a terminal music player for Linux.
  * Edit the playlist by adding and removing songs.
  * Supports gapless playback (between files of the same format and type).
  * Supports MP3, FLAC, MPEG-4 (AAC, M4A), OPUS, OGG and WAV audio.
+ * Supports desktop events through MPRIS.
  * Private, no data is collected by kew.
 
 ## Installing
