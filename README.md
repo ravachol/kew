@@ -123,7 +123,7 @@ git clone https://github.com/ravachol/kew.git
 cd kew
 ```
 ```bash
-make
+make -ij4
 ```
 ```bash
 sudo make install
