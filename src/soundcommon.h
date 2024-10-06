@@ -1,7 +1,6 @@
 #ifndef SOUND_COMMON_H
 #define SOUND_COMMON_H
 
-#include <FreeImage.h>
 #include <glib.h>
 #include <math.h>
 #include <miniaudio.h>
@@ -55,7 +54,9 @@ typedef struct
         unsigned char green;
         unsigned char blue;
         TagSettings *metadata;
-        FIBITMAP *cover;
+        unsigned char *cover;
+        int coverWidth;
+        int coverHeight;
         double duration;
         bool hasErrors;
 } SongData;

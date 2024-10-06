@@ -16,7 +16,7 @@ CFLAGS = -I/usr/include -I/usr/include/chafa -I/usr/lib/chafa/include -I/usr/inc
 CFLAGS += -fstack-protector-strong -Wformat -Werror=format-security -fPIE -fstack-protector -fstack-protector-strong -D_FORTIFY_SOURCE=2
 CFLAGS += -Wall -Wextra -Wpointer-arith -flto=$(LTO_JOBS)
 
-LIBS = -L/usr/lib -lfreeimage -lpthread -lrt -pthread -lm -lglib-2.0 $(shell $(PKG_CONFIG) --libs libavcodec libavutil libavformat libswresample gio-2.0 chafa fftw3f opus opusfile vorbis vorbisfile glib-2.0)
+LIBS = -L/usr/lib -lpthread -lrt -pthread -lm -lglib-2.0 $(shell $(PKG_CONFIG) --libs libavcodec libavutil libavformat libswresample gio-2.0 chafa fftw3f opus opusfile vorbis vorbisfile glib-2.0)
 LDFLAGS = -pie -Wl,-z,relro,-lz -flto=$(LTO_JOBS)
 
 # Conditionally add libnotify if USE_LIBNOTIFY is enabled

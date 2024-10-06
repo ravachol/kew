@@ -22,7 +22,6 @@ jobs:
             build-base \
             ffmpeg-dev \
             fftw-dev \
-            freeimage-dev \
             chafa-dev \
             opus-dev \
             opusfile-dev \
