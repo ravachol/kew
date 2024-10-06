@@ -29,7 +29,7 @@ TODO:
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 #define STB_IMAGE_RESIZE_IMPLEMENTATION
-#include <stb_image_resize.h>
+#include <stb_image_resize2.h>
 #pragma GCC diagnostic pop
 #include "options.h"
 #include "write_ascii.h"
@@ -78,15 +78,10 @@ int read_and_convert(const char *filepath, ImageOptions *options)
     {
         // 3 * uint8 for RGB!
         unsigned char *new_data = malloc(3 * sizeof(unsigned char) * desired_width * desired_height);
-        int r = stbir_resize_uint8(
+        stbir_resize_uint8_srgb(
             read_data, rwidth, rheight, 0,
             new_data, desired_width, desired_height, 0, 3);
 
-        if (r == 0)
-        {
-            perror("Error resizing image:");
-            return -1;
-        }
         stbi_image_free(read_data); // Free read_data.
         data = (PixelData *)new_data;
     }
