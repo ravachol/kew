@@ -15,21 +15,21 @@ fi
 # Install dependencies based on the package manager available
 echo "Installing missing dependencies"
 if command -v apt &>/dev/null; then
-    apt install -y pkg-config ffmpeg libfftw3-dev libopus-dev libopusfile-dev libvorbis-dev git gcc make libchafa-dev libfreeimage-dev libavformat-dev libnotify-dev
+    apt install -y pkg-config ffmpeg libfftw3-dev libopus-dev libopusfile-dev libvorbis-dev git gcc make libchafa-dev libavformat-dev libnotify-dev
 elif command -v dnf &>/dev/null; then
-    dnf install -y pkg-config ffmpeg-free-devel fftw-devel opus-devel opusfile-devel libvorbis-devel git gcc make chafa-devel freeimage-devel libavformat-free-devel libnotify-devel libatomic
+    dnf install -y pkg-config ffmpeg-free-devel fftw-devel opus-devel opusfile-devel libvorbis-devel git gcc make chafa-devel libavformat-free-devel libnotify-devel libatomic
 elif command -v yum &>/dev/null; then
-    yum install -y pkgconfig ffmpeg fftw-devel opus-devel opusfile-devel libvorbis-devel git gcc make chafa-devel libfreeimage-devel libavformat-devel libnotify-devel
+    yum install -y pkgconfig ffmpeg fftw-devel opus-devel opusfile-devel libvorbis-devel git gcc make chafa-devel libavformat-devel libnotify-devel
 elif command -v pacman &>/dev/null; then
-    pacman -Syu --noconfirm --needed pkg-config ffmpeg fftw git gcc make chafa freeimage opus opusfile libvorbis libnotify
+    pacman -Syu --noconfirm --needed pkg-config ffmpeg fftw git gcc make chafa opus opusfile libvorbis libnotify
 elif command -v zypper &>/dev/null; then
-    zypper install -y pkg-config ffmpeg fftw-devel opus-devel opusfile-devel libvorbis-devel git chafa-devel gcc make libfreeimage-devel libavformat-devel libnotify-devel
+    zypper install -y pkg-config ffmpeg fftw-devel opus-devel opusfile-devel libvorbis-devel git chafa-devel gcc make libavformat-devel libnotify-devel
 elif command -v eopkg &>/dev/null; then
-    eopkg install -y pkg-config ffmpeg fftw-devel opus-devel opusfile-devel libvorbis-devel git gcc make chafa-devel libfreeimage-devel libavformat-devel libnotify-devel
+    eopkg install -y pkg-config ffmpeg fftw-devel opus-devel opusfile-devel libvorbis-devel git gcc make chafa-devel libavformat-devel libnotify-devel
 elif command -v guix &>/dev/null; then
-    guix install pkg-config ffmpeg fftw git gcc make chafa freeimage libavformat opus opusfile libvorbis libnotify
+    guix install pkg-config ffmpeg fftw git gcc make chafa libavformat opus opusfile libvorbis libnotify
 elif command -v xbps-install &>/dev/null; then
-    xbps-install -y pkg-config ffmpeg fftw git gcc make chafa libfreeimage libavformat opus opusfile libvorbis libnotify-devel
+    xbps-install -y pkg-config ffmpeg fftw git gcc make chafa libavformat opus opusfile libvorbis libnotify-devel
 else
     echo "Unsupported package manager. Please install the required dependencies manually."
     exit 1

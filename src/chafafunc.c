@@ -1,5 +1,5 @@
 #include "chafafunc.h"
-
+#include "stb_image.h"
 /*
 
 chafafunc.c
@@ -224,42 +224,16 @@ convert_image(const void *pixels, gint pix_width, gint pix_height,
 
 void printImage(const char *image_path, int width, int height)
 {
-        FreeImage_Initialise(false);
+        int pix_width, pix_height, n_channels;
 
-        // Detect the image type
-        FREE_IMAGE_FORMAT image_format = FreeImage_GetFileType(image_path, 0);
-        if (image_format == FIF_UNKNOWN)
-        {
-                // Failed to detect the image type
-                printf("Unknown image format: %s\n", image_path);
-                return;
-        }
-
-        // Load the image
-        FIBITMAP *image = FreeImage_Load(image_format, image_path, 0);
-        if (!image)
+        // Load the image using stb_image
+        unsigned char *pixels = stbi_load(image_path, &pix_width, &pix_height, &n_channels, 4); // We force 4 channels (RGBA)
+        if (!pixels)
         {
                 // Failed to load the image
                 printf("Failed to load image: %s\n", image_path);
                 return;
         }
-
-        // Convert the image to a bitmap
-        FIBITMAP *bitmap = FreeImage_ConvertTo32Bits(image);
-        if (!bitmap)
-        {
-                // Failed to convert the image to a bitmap
-                printf("Failed to convert image to bitmap.\n");
-                FreeImage_Unload(image);
-                return;
-        }
-
-        int pix_width = FreeImage_GetWidth(bitmap);
-        int pix_height = FreeImage_GetHeight(bitmap);
-        int n_channels = FreeImage_GetBPP(bitmap) / 8;
-        unsigned char *pixels = (unsigned char *)FreeImage_GetBits(bitmap);
-
-        FreeImage_FlipVertical(bitmap);
 
         TermSize term_size;
         GString *printable;
@@ -283,87 +257,59 @@ void printImage(const char *image_path, int width, int height)
         chafa_calc_canvas_geometry(pix_width, pix_height, &width_cells, &height_cells, font_ratio, TRUE, FALSE);
 
         /* Convert the image to a printable string */
-        printable = convert_image(pixels, pix_width, pix_height, pix_width * n_channels, CHAFA_PIXEL_BGRA8_UNASSOCIATED,
+        printable = convert_image(pixels, pix_width, pix_height, pix_width * 4, CHAFA_PIXEL_BGRA8_UNASSOCIATED,
                                   width, height, cell_width, cell_height);
 
         /* Print the string */
-
         fwrite(printable->str, sizeof(char), printable->len, stdout);
         fputc('\n', stdout);
 
         // Free resources
-        FreeImage_Unload(bitmap);
-        FreeImage_Unload(image);
+        stbi_image_free(pixels);
         g_string_free(printable, TRUE);
 }
 
-FIBITMAP *getBitmap(const char *image_path)
+// Example function to flip the image vertically
+void flipVertical(unsigned char *image, int width, int height, int channels)
+{
+        int row_size = width * channels;
+        unsigned char *temp_row = (unsigned char *)malloc(row_size);
+
+        for (int y = 0; y < height / 2; ++y)
+        {
+                unsigned char *top_row = image + y * row_size;
+                unsigned char *bottom_row = image + (height - 1 - y) * row_size;
+
+                // Swap rows
+                memcpy(temp_row, top_row, row_size);
+                memcpy(top_row, bottom_row, row_size);
+                memcpy(bottom_row, temp_row, row_size);
+        }
+
+        free(temp_row);
+}
+
+// The function to load and return image data
+unsigned char *getBitmap(const char *image_path, int *width, int *height)
 {
         if (image_path == NULL)
                 return NULL;
 
-        FreeImage_Initialise(false);
-        FREE_IMAGE_FORMAT image_format = FreeImage_GetFileType(image_path, 0);
-        if (image_format == FIF_UNKNOWN)
-        {
-                return NULL;
-        }
-        FIBITMAP *image = FreeImage_Load(image_format, image_path, 0);
+        int channels;
+
+        // Load the image using stb_image
+        unsigned char *image = stbi_load(image_path, width, height, &channels, 4); // Force 4 channels (RGBA)
         if (!image)
         {
-                return NULL;
-        }
-        FIBITMAP *bitmap = FreeImage_ConvertTo32Bits(image);
-        FreeImage_FlipVertical(bitmap);
-        FreeImage_Unload(image);
-
-        if (!bitmap)
-        {
+                // Failed to load the image
+                fprintf(stderr, "Failed to load image: %s\n", image_path);
                 return NULL;
         }
 
-        return bitmap;
-}
+        // Flip the image vertically
+        // flipVertical(image, *width, *height, 4);  // Assuming 4 channels (RGBA) here
 
-void printBitmap(FIBITMAP *bitmap, int width, int height)
-{
-        if (bitmap == NULL)
-        {
-                return;
-        }
-
-        int pix_width = FreeImage_GetWidth(bitmap);
-        int pix_height = FreeImage_GetHeight(bitmap);
-        int n_channels = FreeImage_GetBPP(bitmap) / 8;
-        unsigned char *pixels = (unsigned char *)FreeImage_GetBits(bitmap);
-
-        TermSize term_size;
-        GString *printable;
-        gfloat font_ratio = 0.5;
-        gint cell_width = -1, cell_height = -1;
-        gint width_cells, height_cells;
-
-        tty_init();
-        get_tty_size(&term_size);
-
-        if (term_size.width_cells > 0 && term_size.height_cells > 0 && term_size.width_pixels > 0 && term_size.height_pixels > 0)
-        {
-                cell_width = term_size.width_pixels / term_size.width_cells;
-                cell_height = term_size.height_pixels / term_size.height_cells;
-                font_ratio = (gdouble)cell_width / (gdouble)cell_height;
-        }
-
-        width_cells = term_size.width_cells;
-        height_cells = term_size.height_cells;
-
-        chafa_calc_canvas_geometry(pix_width, pix_height, &width_cells, &height_cells, font_ratio, TRUE, FALSE);
-
-        // Convert image to a printable string
-        printable = convert_image(pixels, pix_width, pix_height, pix_width * n_channels, CHAFA_PIXEL_BGRA8_UNASSOCIATED,
-                                  width, height, cell_width, cell_height);
-
-        fwrite(printable->str, sizeof(char), printable->len, stdout);
-        g_string_free(printable, TRUE);
+        return image; // Return the loaded image data
 }
 
 float calcAspectRatio()
@@ -386,20 +332,29 @@ float calcAspectRatio()
                 cell_width = 8;
                 cell_height = 16;
         }
-        
-        return (float)cell_height / (float)cell_width;        
+
+        return (float)cell_height / (float)cell_width;
 }
 
-void printSquareBitmapCentered(FIBITMAP *bitmap, int baseHeight)
+void printSquareBitmapCentered(unsigned char *pixels, int width, int height, int baseHeight)
 {
-        if (bitmap == NULL)
+        if (pixels == NULL)
         {
+                printf("Error: Invalid pixel data.\n");
                 return;
         }
-        int pix_width = FreeImage_GetWidth(bitmap);
-        int pix_height = FreeImage_GetHeight(bitmap);
-        int n_channels = FreeImage_GetBPP(bitmap) / 8;
-        unsigned char *pixels = (unsigned char *)FreeImage_GetBits(bitmap);
+
+        // Use the provided width and height
+        int pix_width = width;
+        int pix_height = height;
+        int n_channels = 4; // Assuming RGBA format
+
+        // Validate the image dimensions
+        if (pix_width == 0 || pix_height == 0)
+        {
+                printf("Error: Invalid image dimensions.\n");
+                return;
+        }
 
         TermSize term_size;
         GString *printable;
@@ -408,78 +363,53 @@ void printSquareBitmapCentered(FIBITMAP *bitmap, int baseHeight)
         tty_init();
         get_tty_size(&term_size);
 
-        if (term_size.width_cells > 0 && term_size.height_cells > 0 && term_size.width_pixels > 0 && term_size.height_pixels > 0)
+        if (term_size.width_cells > 0 && term_size.height_cells > 0 &&
+            term_size.width_pixels > 0 && term_size.height_pixels > 0)
         {
                 cell_width = term_size.width_pixels / term_size.width_cells;
                 cell_height = term_size.height_pixels / term_size.height_cells;
         }
 
-        // Set default for some terminals
-        if (cell_width == -1 && cell_height == -1)
+        // Set default cell size for some terminals
+        if (cell_width == -1 || cell_height == -1)
         {
                 cell_width = 8;
                 cell_height = 16;
         }
-        float aspect_ratio_correction = (float)cell_height / (float)cell_width;
 
+        // Calculate corrected width based on aspect ratio correction
+        float aspect_ratio_correction = (float)cell_height / (float)cell_width;
         int correctedWidth = (int)(baseHeight * aspect_ratio_correction);
 
-        // Convert image to a printable string
-        printable = convert_image(pixels, pix_width, pix_height, pix_width * n_channels, CHAFA_PIXEL_BGRA8_UNASSOCIATED,
-                                  correctedWidth, baseHeight, cell_width, cell_height);
+        // Convert image to a printable string using Chafa
+        printable = convert_image(
+            pixels,
+            pix_width,
+            pix_height,
+            pix_width * n_channels,         // Row stride
+            CHAFA_PIXEL_RGBA8_UNASSOCIATED, // Correct pixel format
+            correctedWidth,
+            baseHeight,
+            cell_width,
+            cell_height);
+
+        // Ensure the string is null-terminated
         g_string_append_c(printable, '\0');
+
+        // Split the printable string into lines
         const gchar *delimiters = "\n";
         gchar **lines = g_strsplit(printable->str, delimiters, -1);
 
+        // Calculate indentation to center the image
         int indentation = ((term_size.width_cells - correctedWidth) / 2) + 1;
 
+        // Print each line with indentation
         for (int i = 0; lines[i] != NULL; i++)
         {
-                printf("\n%*s%s", indentation, "", lines[i]);
+                printf("%*s%s\n", indentation, "", lines[i]);
         }
 
-        g_strfreev(lines);
-        g_string_free(printable, TRUE);
-}
-
-void printBitmapCentered(FIBITMAP *bitmap, int width, int height)
-{
-        if (bitmap == NULL)
-        {
-                return;
-        }
-        int pix_width = FreeImage_GetWidth(bitmap);
-        int pix_height = FreeImage_GetHeight(bitmap);
-        int n_channels = FreeImage_GetBPP(bitmap) / 8;
-        unsigned char *pixels = (unsigned char *)FreeImage_GetBits(bitmap);
-
-        TermSize term_size;
-        GString *printable;
-        gint cell_width = -1, cell_height = -1;
-
-        tty_init();
-        get_tty_size(&term_size);
-
-        if (term_size.width_cells > 0 && term_size.height_cells > 0 && term_size.width_pixels > 0 && term_size.height_pixels > 0)
-        {
-                cell_width = term_size.width_pixels / term_size.width_cells;
-                cell_height = term_size.height_pixels / term_size.height_cells;
-        }
-
-        // Convert image to a printable string
-        printable = convert_image(pixels, pix_width, pix_height, pix_width * n_channels, CHAFA_PIXEL_BGRA8_UNASSOCIATED,
-                                  width, height, cell_width, cell_height);
-        g_string_append_c(printable, '\0');
-        const gchar *delimiters = "\n";
-        gchar **lines = g_strsplit(printable->str, delimiters, -1);
-
-        int indentation = ((term_size.width_cells - width) / 2) + 1;
-
-        for (int i = 0; lines[i] != NULL; i++)
-        {
-                printf("\n%*s%s", indentation, "", lines[i]);
-        }
-
+        // Free allocated memory
         g_strfreev(lines);
         g_string_free(printable, TRUE);
 }
@@ -500,49 +430,37 @@ void checkIfBrightPixel(unsigned char r, unsigned char g, unsigned char b, bool 
         }
 }
 
-int getCoverColor(FIBITMAP *bitmap, unsigned char *r, unsigned char *g, unsigned char *b)
+int getCoverColor(unsigned char *pixels, int width, int height, unsigned char *r, unsigned char *g, unsigned char *b)
 {
-        int rwidth = FreeImage_GetWidth(bitmap);
-        int rheight = FreeImage_GetHeight(bitmap);
-        int rchannels = FreeImage_GetBPP(bitmap) / 8;
-        unsigned char *read_data = (unsigned char *)FreeImage_GetBits(bitmap);
-
-        if (read_data == NULL)
+        if (pixels == NULL || width <= 0 || height <= 0)
         {
-                return -1;
+                return -1; // Invalid input
         }
 
+        int channels = 4; // RGBA format
+
         bool found = false;
-        int numPixels = rwidth * rheight;
+        int numPixels = width * height;
 
         for (int i = 0; i < numPixels; i++)
         {
-                int index = i * rchannels;
-                unsigned char blue = 0;
-                unsigned char green = 0;
-                unsigned char red = 0;
+                int index = i * channels;
+                unsigned char red = pixels[index + 0];
+                unsigned char green = pixels[index + 1];
+                unsigned char blue = pixels[index + 2];
+                // Alpha channel is at pixels[index + 3], if needed
 
-                if (rchannels >= 3)
-                {
-                        blue = read_data[index + 0];
-                        green = read_data[index + 1];
-                        red = read_data[index + 2];
-                }
-                else if (rchannels >= 1)
-                {
-                        blue = green = red = read_data[index];
-                }
-
+                // Check if the current pixel is bright
                 checkIfBrightPixel(red, green, blue, &found);
 
                 if (found)
                 {
-                        *(r) = red;
-                        *(g) = green;
-                        *(b) = blue;
-                        break;
+                        *r = red;
+                        *g = green;
+                        *b = blue;
+                        break; // Exit the loop once a bright pixel is found
                 }
         }
 
-        return 0;
+        return found ? 0 : -1; // Return 0 if a bright pixel was found, -1 otherwise
 }
