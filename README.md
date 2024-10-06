@@ -54,7 +54,6 @@ kew dependencies are:
 * FFmpeg
 * FFTW
 * Chafa
-* FreeImage
 * libopus
 * opusfile
 * libvorbis
@@ -62,55 +61,55 @@ kew dependencies are:
 * glib2.0 and AVFormat. These should be installed with the others, if not install them.
 * libnotify (optional)
 
-Install FFmpeg, FFTW, Chafa and FreeImage using your distro's package manager. For instance:
+Install FFmpeg, FFTW and Chafa using your distro's package manager. For instance:
 
 #### For Debian/Ubuntu:
 
 ```bash
-sudo apt install -y pkg-config ffmpeg libfftw3-dev libopus-dev libopusfile-dev libvorbis-dev git gcc make libchafa-dev libfreeimage-dev libavformat-dev libnotify-dev
+sudo apt install -y pkg-config ffmpeg libfftw3-dev libopus-dev libopusfile-dev libvorbis-dev git gcc make libchafa-dev libavformat-dev libnotify-dev
 
 ```
 
 #### For Arch Linux:
 
 ```bash
-sudo pacman -Syu --noconfirm --needed pkg-config ffmpeg fftw git gcc make chafa freeimage glib2 opus opusfile libvorbis libnotify
+sudo pacman -Syu --noconfirm --needed pkg-config ffmpeg fftw git gcc make chafa glib2 opus opusfile libvorbis libnotify
 ```
 
 #### For Fedora:
 
 ```bash
-dnf install -y pkg-config ffmpeg-free-devel fftw-devel opus-devel opusfile-devel libvorbis-devel git gcc make chafa-devel freeimage-devel libavformat-free-devel libnotify-devel libatomic
+dnf install -y pkg-config ffmpeg-free-devel fftw-devel opus-devel opusfile-devel libvorbis-devel git gcc make chafa-devel libavformat-free-devel libnotify-devel libatomic
 ```
 
 #### For OpenSUSE:
 
 ```bash
-sudo zypper install -y pkg-config ffmpeg fftw-devel opus-devel opusfile-devel libvorbis-devel git chafa-devel gcc make libfreeimage-devel libavformat-devel libnotify-devel
+sudo zypper install -y pkg-config ffmpeg fftw-devel opus-devel opusfile-devel libvorbis-devel git chafa-devel gcc make libavformat-devel libnotify-devel
 ```
 
 #### For CentOS/RHEL:
 
 ```bash
-sudo yum install -y pkgconfig ffmpeg fftw-devel opus-devel opusfile-devel libvorbis-devel git gcc make chafa-devel libfreeimage-devel libavformat-devel libnotify-devel
+sudo yum install -y pkgconfig ffmpeg fftw-devel opus-devel opusfile-devel libvorbis-devel git gcc make chafa-devel libavformat-devel libnotify-devel
 ```
 
 #### For Solus
 
 ```bash
-sudo eopkg install -y pkg-config ffmpeg fftw-devel opus-devel opusfile-devel libvorbis-devel git gcc make chafa-devel libfreeimage-devel libavformat-devel libnotify-devel
+sudo eopkg install -y pkg-config ffmpeg fftw-devel opus-devel opusfile-devel libvorbis-devel git gcc make chafa-devel libavformat-devel libnotify-devel
 ```
 
 #### For Guix
 
 ```bash
-guix install pkg-config ffmpeg fftw git gcc make chafa freeimage libavformat opus opusfile libvorbis libnotify
+guix install pkg-config ffmpeg fftw git gcc make chafa libavformat opus opusfile libvorbis libnotify
 ```
 
 #### For Void Linux
 
 ```bash
-sudo xbps-install -y pkg-config ffmpeg fftw git gcc make chafa libfreeimage libavformat opus opusfile libvorbis libnotify-devel
+sudo xbps-install -y pkg-config ffmpeg fftw git gcc make chafa libavformat opus opusfile libvorbis libnotify-devel
 ```
 
 Notice that for some packages not only the library needs to be installed, but also development packages, for instance libopus-dev or opus-devel.

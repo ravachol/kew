@@ -1,4 +1,3 @@
-#include <FreeImage.h>
 #include <glib.h>
 #include <gio/gio.h>
 #include <sys/wait.h>
@@ -52,7 +51,9 @@ typedef struct
         unsigned char green;
         unsigned char blue;
         TagSettings *metadata;
-        FIBITMAP *cover;
+        unsigned char *cover;
+        int coverWidth;
+        int coverHeight;
         double duration;
         bool hasErrors;
 } SongData;

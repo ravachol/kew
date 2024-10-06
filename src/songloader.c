@@ -1,4 +1,5 @@
 #include "songloader.h"
+#include "stb_image.h"
 /*
 
 songloader.c
@@ -208,7 +209,7 @@ gchar *generateTrackId()
 
 void loadColor(SongData *songdata)
 {
-        getCoverColor(songdata->cover, &(songdata->red), &(songdata->green), &(songdata->blue));
+        getCoverColor(songdata->cover, songdata->coverWidth, songdata->coverHeight, &(songdata->red), &(songdata->green), &(songdata->blue));
 }
 
 void loadMetaData(SongData *songdata)
@@ -241,7 +242,7 @@ void loadMetaData(SongData *songdata)
                 addToCache(tempCache, songdata->coverArtPath);
         }
 
-        songdata->cover = getBitmap(songdata->coverArtPath);
+        songdata->cover = getBitmap(songdata->coverArtPath, &songdata->coverWidth, &songdata->coverHeight);
 }
 
 SongData *loadSongData(char *filePath)
@@ -273,7 +274,7 @@ void unloadSongData(SongData **songdata)
 
         if (data->cover != NULL)
         {
-                FreeImage_Unload(data->cover);
+                stbi_image_free(data->cover);
                 data->cover = NULL;
         }
 
