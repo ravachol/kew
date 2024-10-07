@@ -269,26 +269,6 @@ void printImage(const char *image_path, int width, int height)
         g_string_free(printable, TRUE);
 }
 
-// Example function to flip the image vertically
-void flipVertical(unsigned char *image, int width, int height, int channels)
-{
-        int row_size = width * channels;
-        unsigned char *temp_row = (unsigned char *)malloc(row_size);
-
-        for (int y = 0; y < height / 2; ++y)
-        {
-                unsigned char *top_row = image + y * row_size;
-                unsigned char *bottom_row = image + (height - 1 - y) * row_size;
-
-                // Swap rows
-                memcpy(temp_row, top_row, row_size);
-                memcpy(top_row, bottom_row, row_size);
-                memcpy(bottom_row, temp_row, row_size);
-        }
-
-        free(temp_row);
-}
-
 // The function to load and return image data
 unsigned char *getBitmap(const char *image_path, int *width, int *height)
 {
@@ -297,19 +277,14 @@ unsigned char *getBitmap(const char *image_path, int *width, int *height)
 
         int channels;
 
-        // Load the image using stb_image
         unsigned char *image = stbi_load(image_path, width, height, &channels, 4); // Force 4 channels (RGBA)
         if (!image)
         {
-                // Failed to load the image
                 fprintf(stderr, "Failed to load image: %s\n", image_path);
                 return NULL;
         }
 
-        // Flip the image vertically
-        // flipVertical(image, *width, *height, 4);  // Assuming 4 channels (RGBA) here
-
-        return image; // Return the loaded image data
+        return image;
 }
 
 float calcAspectRatio()
@@ -406,7 +381,7 @@ void printSquareBitmapCentered(unsigned char *pixels, int width, int height, int
         // Print each line with indentation
         for (int i = 0; lines[i] != NULL; i++)
         {
-                printf("%*s%s\n", indentation, "", lines[i]);
+                printf("\n%*s%s", indentation, "", lines[i]);
         }
 
         // Free allocated memory
@@ -434,7 +409,7 @@ int getCoverColor(unsigned char *pixels, int width, int height, unsigned char *r
 {
         if (pixels == NULL || width <= 0 || height <= 0)
         {
-                return -1; // Invalid input
+                return -1;
         }
 
         int channels = 4; // RGBA format
@@ -448,9 +423,7 @@ int getCoverColor(unsigned char *pixels, int width, int height, unsigned char *r
                 unsigned char red = pixels[index + 0];
                 unsigned char green = pixels[index + 1];
                 unsigned char blue = pixels[index + 2];
-                // Alpha channel is at pixels[index + 3], if needed
 
-                // Check if the current pixel is bright
                 checkIfBrightPixel(red, green, blue, &found);
 
                 if (found)
@@ -458,9 +431,9 @@ int getCoverColor(unsigned char *pixels, int width, int height, unsigned char *r
                         *r = red;
                         *g = green;
                         *b = blue;
-                        break; // Exit the loop once a bright pixel is found
+                        break;
                 }
         }
 
-        return found ? 0 : -1; // Return 0 if a bright pixel was found, -1 otherwise
+        return found ? 0 : -1;
 }
