@@ -5,6 +5,7 @@
 #define __USE_XOPEN_EXTENDED
 #endif
 
+#include <glib.h>
 #include <pthread.h>
 #include <stdbool.h>
 #include <stdio.h>
