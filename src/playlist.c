@@ -16,7 +16,7 @@ Playlist related functions.
 #define MAXPATHLEN 4096
 #endif
 
-const char PLAYLIST_EXTENSIONS[] = "\\.(m3u)$";
+const char PLAYLIST_EXTENSIONS[] = "\\.(m3u8?)$";
 const char mainPlaylistName[] = "kew.m3u";
 
 // The playlist unshuffled as it appears in playlist view
@@ -408,63 +408,69 @@ void makePlaylistName(const char *search)
 
 void readM3UFile(const char *filename, PlayList *playlist)
 {
-        FILE *file = fopen(filename, "r");
-        char directory[MAXPATHLEN];
+    GError *error = NULL;
+    gchar *contents;
+    gchar **lines;
 
-        if (file == NULL)
+    if (!g_file_get_contents(filename, &contents, NULL, &error))
+    {
+        g_printerr("Error reading file: %s\n", error->message);
+        g_clear_error(&error);
+        return;
+    }
+
+    gchar *directory = g_path_get_dirname(filename);
+
+    lines = g_strsplit(contents, "\n", -1);
+
+    for (gint i = 0; lines[i] != NULL; i++)
+    {
+        gchar *line = lines[i];
+
+
+        line = g_strdelimit(line, "\r", '\0');
+        gchar *trimmed_line = g_strstrip(line);
+
+        if (trimmed_line[0] != '#' && trimmed_line[0] != '\0')
         {
-                return;
+            gchar *songPath;
+
+            if (g_path_is_absolute(trimmed_line))
+            {
+                songPath = g_strdup(trimmed_line);
+            }
+            else
+            {
+                songPath = g_build_filename(directory, trimmed_line, NULL);
+            }
+
+            Node *newNode = NULL;
+            createNode(&newNode, songPath, nodeIdCounter++);
+
+            if (playlist->head == NULL)
+            {
+                playlist->head = newNode;
+                playlist->tail = newNode;
+            }
+            else
+            {
+                playlist->tail->next = newNode;
+                newNode->prev = playlist->tail;
+                playlist->tail = newNode;
+            }
+
+            playlist->count++;
+
+            g_free(songPath);
         }
+    }
 
-        getDirectoryFromPath(filename, directory);
-        char line[MAXPATHLEN];
-        while (fgets(line, sizeof(line), file))
-        {
-                size_t len = strcspn(line, "\r\n");
-                line[len] = '\0';
-
-                size_t start = 0;
-                while (isspace(line[start]))
-                {
-                        start++;
-                }
-                size_t end = strlen(line);
-                while (end > start && isspace(line[end - 1]))
-                {
-                        end--;
-                }
-                line[end] = '\0';
-
-                if (line[0] != '#' && line[0] != '\0')
-                {
-                        char songPath[MAXPATHLEN];
-                        memset(songPath, '\0', sizeof(songPath));
-
-                        if (strchr(line, '/') == NULL && strchr(line, '\\') == NULL)
-                                strcat(songPath, directory);
-
-                        strcat(songPath, line);
-
-                        Node *newNode = NULL;
-                        createNode(&newNode, songPath, nodeIdCounter++);
-
-                        if (playlist->head == NULL)
-                        {
-                                playlist->head = newNode;
-                                playlist->tail = newNode;
-                        }
-                        else
-                        {
-                                playlist->tail->next = newNode;
-                                newNode->prev = playlist->tail;
-                                playlist->tail = newNode;
-                        }
-
-                        playlist->count++;
-                }
-        }
-        fclose(file);
+    // Free resources
+    g_free(directory);
+    g_strfreev(lines);
+    g_free(contents);
 }
+
 
 int makePlaylist(int argc, char *argv[], bool exactSearch, const char *path)
 {
