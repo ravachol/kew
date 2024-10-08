@@ -414,7 +414,6 @@ void readM3UFile(const char *filename, PlayList *playlist)
 
     if (!g_file_get_contents(filename, &contents, NULL, &error))
     {
-        g_printerr("Error reading file: %s\n", error->message);
         g_clear_error(&error);
         return;
     }
@@ -465,7 +464,6 @@ void readM3UFile(const char *filename, PlayList *playlist)
         }
     }
 
-    // Free resources
     g_free(directory);
     g_strfreev(lines);
     g_free(contents);
