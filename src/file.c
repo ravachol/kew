@@ -12,18 +12,21 @@ file.c
 
 */
 
+
 void getDirectoryFromPath(const char *path, char *directory)
-{  
-    char tempPath[strlen(path) + 1];  // tempPath is needed because the dirname function modifies the input string
-    strcpy(tempPath, path);
+{
+    size_t path_length = strlen(path);
+    char tempPath[path_length + 1];
+    c_strcpy(tempPath, sizeof(tempPath), path);
 
     char *dir = dirname(tempPath);
 
-    strcpy(directory, dir);
+    c_strcpy(directory, MAXPATHLEN, dir);
 
-    if (directory[strlen(directory) - 1] != '/')
+    size_t directory_length = strlen(directory);
+    if (directory[directory_length - 1] != '/' && directory_length + 1 < MAXPATHLEN)
     {
-        strcat(directory, "/");
+        strncat(directory, "/", MAXPATHLEN - directory_length - 1);
     }
 }
 
@@ -234,7 +237,7 @@ int expandPath(const char *inputPath, char *expandedPath)
                         return -1; // Expanded path exceeds maximum length
                 }
 
-                strcpy(expandedPath, homeDir);
+                c_strcpy(expandedPath, sizeof(expandedPath), homeDir);
                 strcat(expandedPath, inputPath);
         }
         else // Handle if path is not prefixed with '~'
@@ -380,11 +383,11 @@ void generateTempFilePath(char *filePath, const char *prefix, const char *suffix
         tempDir = "/tmp";
     }
 
-    char dirPath[MAXPATHLEN];
     struct passwd *pw = getpwuid(getuid());
-    const char *username = pw->pw_name;
+    const char *username = pw ? pw->pw_name : "unknown";
 
-    // Use safer length for snprintf
+
+    char dirPath[MAXPATHLEN];
     snprintf(dirPath, sizeof(dirPath), "%s/kew", tempDir);
     createDirectory(dirPath);
     snprintf(dirPath, sizeof(dirPath), "%s/kew/%s", tempDir, username);
@@ -397,7 +400,9 @@ void generateTempFilePath(char *filePath, const char *prefix, const char *suffix
     }
     randomString[6] = '\0';
 
-    // Ensure the buffer size matches the actual size of filePath
-    size_t maxFilePathSize = MAXPATHLEN - 1;  // Null terminator accounted for
-    snprintf(filePath, maxFilePathSize, "%s/%s%.6s%s", dirPath, prefix, randomString, suffix);
+    int written = snprintf(filePath, MAXPATHLEN, "%s/%s%.6s%s", dirPath, prefix, randomString, suffix);
+    if (written < 0 || written >= MAXPATHLEN)
+    {
+        filePath[0] = '\0';
+    }
 }

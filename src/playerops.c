@@ -136,6 +136,7 @@ void updatePlaybackPosition(double elapsedSeconds)
 
 void emitSeekedSignal(double newPositionSeconds)
 {
+#ifndef __APPLE__
         gint64 newPositionMicroseconds = llround(newPositionSeconds * G_USEC_PER_SEC);
 
         GVariant *parameters = g_variant_new("(x)", newPositionMicroseconds);
@@ -147,26 +148,31 @@ void emitSeekedSignal(double newPositionSeconds)
                                       "Seeked",
                                       parameters,
                                       NULL);
+#endif
 }
 
 void emitStringPropertyChanged(const gchar *propertyName, const gchar *newValue)
 {
+#ifndef __APPLE__
         GVariantBuilder changed_properties_builder;
         g_variant_builder_init(&changed_properties_builder, G_VARIANT_TYPE("a{sv}"));
         g_variant_builder_add(&changed_properties_builder, "{sv}", propertyName, g_variant_new_string(newValue));
         g_dbus_connection_emit_signal(connection, NULL, "/org/mpris/MediaPlayer2", "org.freedesktop.DBus.Properties", "PropertiesChanged",
                                       g_variant_new("(sa{sv}as)", "org.mpris.MediaPlayer2.Player", &changed_properties_builder, NULL), NULL);
         g_variant_builder_clear(&changed_properties_builder);
+#endif
 }
 
 void emitBooleanPropertyChanged(const gchar *propertyName, gboolean newValue)
 {
+#ifndef __APPLE__
         GVariantBuilder changed_properties_builder;
         g_variant_builder_init(&changed_properties_builder, G_VARIANT_TYPE("a{sv}"));
         g_variant_builder_add(&changed_properties_builder, "{sv}", propertyName, g_variant_new_boolean(newValue));
         g_dbus_connection_emit_signal(connection, NULL, "/org/mpris/MediaPlayer2", "org.freedesktop.DBus.Properties", "PropertiesChanged",
                                       g_variant_new("(sa{sv}as)", "org.mpris.MediaPlayer2.Player", &changed_properties_builder, NULL), NULL);
         g_variant_builder_clear(&changed_properties_builder);
+#endif
 }
 
 void playbackPause(struct timespec *pause_time)
@@ -174,7 +180,6 @@ void playbackPause(struct timespec *pause_time)
         if (!isPaused())
         {
                 emitStringPropertyChanged("PlaybackStatus", "Paused");
-
                 clock_gettime(CLOCK_MONOTONIC, pause_time);
         }
         pausePlayback();
@@ -1690,7 +1695,7 @@ void createLibrary(AppSettings *settings)
                 char *libFilepath = getLibraryFilePath();
                 library = reconstructTreeFromFile(libFilepath, settings->path, &numDirectoryTreeEntries);
                 free(libFilepath);
-                updateLibraryIfChangedDetected();                
+                updateLibraryIfChangedDetected();
         }
 
         if (library == NULL || library->children == NULL)
@@ -1719,63 +1724,75 @@ void createLibrary(AppSettings *settings)
         }
 }
 
-time_t getModificationTime(struct stat *path_stat) {
+time_t getModificationTime(struct stat *path_stat)
+{
 
-    if (path_stat->st_mtime != 0) {
-        return path_stat->st_mtime;
-    } else {
-        return path_stat->st_mtim.tv_sec;  // Fallback to st_mtim.tv_sec if st_mtime is zero or invalid
-    }
+        if (path_stat->st_mtime != 0)
+        {
+                return path_stat->st_mtime;
+        }
+        else
+        {
+                return path_stat->st_mtim.tv_sec; // Fallback to st_mtim.tv_sec if st_mtime is zero or invalid
+        }
 }
 
 void *updateIfTopLevelFoldersMtimesChangedThread(void *arg)
 {
-    char *path = (char *)arg;
-    struct stat path_stat;
+        char *path = (char *)arg;
+        struct stat path_stat;
 
-    if (stat(path, &path_stat) == -1) {
-        perror("stat");
-        pthread_exit(NULL);
-    }
-
-    if (getModificationTime(&path_stat) > lastTimeAppRan && lastTimeAppRan > 0) {        
-        updateLibrary(path);
-        pthread_exit(NULL);
-    }
-
-    DIR *dir = opendir(path);
-    if (!dir) {
-        perror("opendir");
-        pthread_exit(NULL);
-    }
-
-    struct dirent *entry;
-    while ((entry = readdir(dir)) != NULL) {
-
-        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
-            continue;
+        if (stat(path, &path_stat) == -1)
+        {
+                perror("stat");
+                pthread_exit(NULL);
         }
 
-        char fullPath[1024];
-        snprintf(fullPath, sizeof(fullPath), "%s/%s", path, entry->d_name);
-
-        if (stat(fullPath, &path_stat) == -1) {
-            perror("stat");
-            continue;
-        }
-
-        if (S_ISDIR(path_stat.st_mode)) {
-
-            if (getModificationTime(&path_stat) > lastTimeAppRan && lastTimeAppRan > 0) {                
+        if (getModificationTime(&path_stat) > lastTimeAppRan && lastTimeAppRan > 0)
+        {
                 updateLibrary(path);
-                break;
-            }
+                pthread_exit(NULL);
         }
-    }
 
-    closedir(dir);
+        DIR *dir = opendir(path);
+        if (!dir)
+        {
+                perror("opendir");
+                pthread_exit(NULL);
+        }
 
-    pthread_exit(NULL);
+        struct dirent *entry;
+        while ((entry = readdir(dir)) != NULL)
+        {
+
+                if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
+                {
+                        continue;
+                }
+
+                char fullPath[1024];
+                snprintf(fullPath, sizeof(fullPath), "%s/%s", path, entry->d_name);
+
+                if (stat(fullPath, &path_stat) == -1)
+                {
+                        perror("stat");
+                        continue;
+                }
+
+                if (S_ISDIR(path_stat.st_mode))
+                {
+
+                        if (getModificationTime(&path_stat) > lastTimeAppRan && lastTimeAppRan > 0)
+                        {
+                                updateLibrary(path);
+                                break;
+                        }
+                }
+        }
+
+        closedir(dir);
+
+        pthread_exit(NULL);
 }
 
 // This only checks the library mtime and toplevel subfolders mtimes

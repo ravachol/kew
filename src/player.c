@@ -22,7 +22,7 @@ typedef struct
 } PixelData;
 #endif
 
-const char VERSION[] = "2.8.2";
+const char VERSION[] = "2.9 BETA";
 const int ABSOLUTE_MIN_WIDTH = 68;
 bool visualizerEnabled = true;
 bool coverEnabled = true;
@@ -1180,7 +1180,7 @@ char *getLibraryFilePath()
 
         size_t filepath_length = strlen(configdir) + strlen("/") + strlen(LIBRARY_FILE) + 1;
         filepath = (char *)malloc(filepath_length);
-        strcpy(filepath, configdir);
+        c_strcpy(filepath, filepath_length, configdir);
         strcat(filepath, "/");
         strcat(filepath, LIBRARY_FILE);
         free(configdir);

@@ -953,6 +953,7 @@ static const GDBusInterfaceVTable player_interface_vtable = {
 
 void emitPlaybackStoppedMpris()
 {
+#ifndef __APPLE__        
         if (connection)
         {
                 g_dbus_connection_call(connection,
@@ -968,10 +969,12 @@ void emitPlaybackStoppedMpris()
                                        NULL,
                                        NULL);
         }
+#endif        
 }
 
 void cleanupMpris()
 {
+#ifndef __APPLE__        
         if (registration_id > 0)
         {
                 g_dbus_connection_unregister_object(connection, registration_id);
@@ -1008,10 +1011,12 @@ void cleanupMpris()
                 previous_notification = NULL;
         }        
 #endif
+#endif
 }
 
 void initMpris()
 {
+#ifndef __APPLE__
         if (global_main_context == NULL)
         {
                 global_main_context = g_main_context_new();
@@ -1079,10 +1084,12 @@ void initMpris()
         }
 
         g_dbus_node_info_unref(introspection_data);
+#endif        
 }
 
 void emitStartPlayingMpris()
 {
+#ifndef __APPLE__
         GVariant *parameters = g_variant_new("(s)", "Playing");
         g_dbus_connection_emit_signal(connection,
                                       NULL,
@@ -1091,6 +1098,7 @@ void emitStartPlayingMpris()
                                       "PlaybackStatusChanged",
                                       parameters,
                                       NULL);
+#endif
 }
 
 gchar *sanitizeTitle(const gchar *title)
@@ -1114,6 +1122,7 @@ void emit_properties_changed(GDBusConnection *connection,
                              const gchar *property_name,
                              GVariant *new_value)
 {
+#ifndef __APPLE__
         GVariantBuilder changed_properties_builder;
 
         if (connection == NULL || property_name == NULL || new_value == NULL)
@@ -1138,10 +1147,12 @@ void emit_properties_changed(GDBusConnection *connection,
         }
 
         g_variant_builder_clear(&changed_properties_builder);
+#endif        
 }
 
 void emitVolumeChanged()
 {
+#ifndef __APPLE__
         gdouble newVolume = (gdouble)getCurrentVolume() / 100;
 
         if (newVolume > 1.0)
@@ -1150,19 +1161,23 @@ void emitVolumeChanged()
         // Emit the PropertiesChanged signal for the volume property
         GVariant *volume_variant = g_variant_new_double(newVolume);
         emit_properties_changed(connection, "Volume", volume_variant);
+#endif        
 }
 
 void emitShuffleChanged()
 {
+#ifndef __APPLE__
         gboolean shuffleEnabled = isShuffleEnabled();
 
         // Emit the PropertiesChanged signal for the volume property
         GVariant *volume_variant = g_variant_new_boolean(shuffleEnabled);
         emit_properties_changed(connection, "Shuffle", volume_variant);
+#endif
 }
 
 void emitMetadataChanged(const gchar *title, const gchar *artist, const gchar *album, const gchar *coverArtPath, const gchar *trackId, Node *currentSong, gint64 length)
 {
+#ifndef __APPLE__
         guint64 current_time = g_get_monotonic_time();
         if (current_time - last_emit_time < 500000) // 0.5 seconds
         {
@@ -1255,4 +1270,5 @@ void emitMetadataChanged(const gchar *title, const gchar *artist, const gchar *a
 
         g_variant_builder_clear(&changed_properties_builder);
         g_variant_builder_clear(&metadata_builder);
+#endif        
 }

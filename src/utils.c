@@ -26,35 +26,19 @@ void c_strcpy(char *dest, size_t dest_size, const char *src)
 {
         if (dest && dest_size > 0 && src)
         {
-                size_t src_length = strlen(src);
-                if (src_length < dest_size)
-                {
-                        strncpy(dest, src, dest_size);
-                }
-                else
-                {
-                        strncpy(dest, src, dest_size - 1);
-                        dest[dest_size - 1] = '\0';
-                }
+                strncpy(dest, src, dest_size - 1);
+                dest[dest_size - 1] = '\0';
         }
 }
 
-char *stringToLower(char *str)
+char *stringToLower(const char *str)
 {
-        for (int i = 0; str[i] != '\0'; i++)
-        {
-                str[i] = tolower(str[i]);
-        }
-        return str;
+        return g_utf8_strdown(str, -1);
 }
 
-char *stringToUpper(char *str)
+char *stringToUpper(const char *str)
 {
-        for (int i = 0; str[i] != '\0'; i++)
-        {
-                str[i] = toupper(str[i]);
-        }
-        return str;
+        return g_utf8_strup(str, -1);
 }
 
 char *c_strcasestr(const char *haystack, const char *needle)
@@ -168,58 +152,18 @@ void trim(char *str)
 
 const char *getHomePath()
 {
-        const char *xdgHome = getenv("XDG_HOME");
-        if (xdgHome == NULL)
-        {
-                xdgHome = getenv("HOME");
-                if (xdgHome == NULL)
-                {
-                        struct passwd *pw = getpwuid(getuid());
-                        if (pw != NULL)
-                        {
-                                char *home = (char *)malloc(MAXPATHLEN);
-                                strcpy(home, pw->pw_dir);
-                                return home;
-                        }
-                }
-        }
-        return xdgHome;
-}
+        const char *home = getenv("HOME");
 
-char *getConfigPathOld()
-{
-        char *configPath = malloc(MAXPATHLEN);
-        if (!configPath)
-                return NULL;
-
-        const char *xdgConfig = getenv("XDG_CONFIG_HOME");
-        if (xdgConfig)
+        if (!home)
         {
-                snprintf(configPath, MAXPATHLEN, "%s", xdgConfig);
-        }
-        else
-        {
-                const char *home = getHomePath();
-                if (home)
+                struct passwd *pw = getpwuid(getuid());
+                if (pw && pw->pw_dir)
                 {
-                        snprintf(configPath, MAXPATHLEN, "%s/.config", home);
-                }
-                else
-                {
-                        struct passwd *pw = getpwuid(getuid());
-                        if (pw)
-                        {
-                                snprintf(configPath, MAXPATHLEN, "%s", pw->pw_dir);
-                        }
-                        else
-                        {
-                                free(configPath);
-                                return NULL;
-                        }
+                        return pw->pw_dir;
                 }
         }
 
-        return configPath;
+        return home;
 }
 
 char *getConfigPath()
@@ -229,6 +173,7 @@ char *getConfigPath()
                 return NULL;
 
         const char *xdgConfig = getenv("XDG_CONFIG_HOME");
+
         if (xdgConfig)
         {
                 snprintf(configPath, MAXPATHLEN, "%s/kew", xdgConfig);
@@ -238,14 +183,22 @@ char *getConfigPath()
                 const char *home = getHomePath();
                 if (home)
                 {
+#ifdef __APPLE__
+                        snprintf(configPath, MAXPATHLEN, "%s/Library/Preferences/kew", home);
+#else
                         snprintf(configPath, MAXPATHLEN, "%s/.config/kew", home);
+#endif
                 }
                 else
                 {
                         struct passwd *pw = getpwuid(getuid());
                         if (pw)
                         {
+#ifdef __APPLE__
+                                snprintf(configPath, MAXPATHLEN, "%s/Library/Preferences/kew", pw->pw_dir);
+#else
                                 snprintf(configPath, MAXPATHLEN, "%s/.config/kew", pw->pw_dir);
+#endif
                         }
                         else
                         {
@@ -256,49 +209,6 @@ char *getConfigPath()
         }
 
         return configPath;
-}
-
-int moveConfigFiles()
-{
-        char *oldPath = getConfigPathOld();
-        char *newPath = getConfigPath();
-        if (!oldPath || !newPath)
-        {
-
-                free(oldPath);
-                free(newPath);
-                return -1;
-        }
-
-        struct stat st = {0};
-        if (stat(newPath, &st) == -1)
-        {
-                mkdir(newPath, 0700);
-        }
-
-        char oldFileLibrary[MAXPATHLEN];
-        char newFileLibrary[MAXPATHLEN];
-        char oldFileRc[MAXPATHLEN];
-        char newFileRc[MAXPATHLEN];
-
-        snprintf(oldFileLibrary, MAXPATHLEN, "%s/kewlibrary", oldPath);
-        snprintf(newFileLibrary, MAXPATHLEN, "%s/kewlibrary", newPath);
-        snprintf(oldFileRc, MAXPATHLEN, "%s/kewrc", oldPath);
-        snprintf(newFileRc, MAXPATHLEN, "%s/kewrc", newPath);
-
-        if (access(oldFileLibrary, F_OK) == 0)
-        {
-                rename(oldFileLibrary, newFileLibrary);
-        }
-        if (access(oldFileRc, F_OK) == 0)
-        {
-                rename(oldFileRc, newFileRc);
-        }
-
-        free(oldPath);
-        free(newPath);
-
-        return 0;
 }
 
 void removeUnneededChars(char *str)
@@ -343,6 +253,7 @@ void shortenString(char *str, size_t maxLength)
         }
 }
 
-void printBlankSpaces(int numSpaces) {
-    printf("%*s", numSpaces, " ");
+void printBlankSpaces(int numSpaces)
+{
+        printf("%*s", numSpaces, " ");
 }
