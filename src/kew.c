@@ -1009,7 +1009,7 @@ void cleanupOnExit()
         pthread_mutex_destroy(&(switchMutex));
         pthread_mutex_unlock(&dataSourceMutex);
         pthread_mutex_destroy(&(dataSourceMutex));
-#ifdef USE_LIBNOTIFY      
+#ifdef USE_LIBNOTIFY
         notify_uninit();
 #endif
         resetConsole();
@@ -1280,17 +1280,17 @@ void exitIfAlreadyRunning()
 
 int directoryExists(const char *path)
 {
-    struct stat info;
-    if (stat(path, &info) != 0)
-    {
-        return 0;
-    }
-    else if (S_ISDIR(info.st_mode))
-    {
-        return 1;
-    }
+        struct stat info;
+        if (stat(path, &info) != 0)
+        {
+                return 0;
+        }
+        else if (S_ISDIR(info.st_mode))
+        {
+                return 1;
+        }
 
-    return 0;
+        return 0;
 }
 
 void setMusicPath()
@@ -1312,8 +1312,8 @@ void setMusicPath()
                         else
                         {
                                 printf("Error: Could not retrieve user information.\n");
-                                printf("Please set a path to your music library. \n");
-                                printf("To set it type: kew path \"/path/to/Music\". \n");
+                                printf("Please set a path to your music library.\n");
+                                printf("To set it, type: kew path \"/path/to/Music\".\n");
                                 exit(0);
                         }
                 }
@@ -1325,14 +1325,18 @@ void setMusicPath()
             "音乐", "音楽", "음악", "موسيقى", "संगीत", "Müzik", "Musikk", "Μουσική",
             "Muzyka", "Hudba", "Musiikki", "Zene", "Muzică", "เพลง", "מוזיקה"};
 
-        char path[MAXPATHLEN];
+        char path[PATH_MAX];
         int found = 0;
         char choice = ' ';
         int result = -1;
 
         for (size_t i = 0; i < sizeof(musicFolderNames) / sizeof(musicFolderNames[0]); i++)
         {
+#ifdef __APPLE__
+                snprintf(path, sizeof(path), "/Users/%s/%s", user, musicFolderNames[i]);
+#else
                 snprintf(path, sizeof(path), "/home/%s/%s", user, musicFolderNames[i]);
+#endif
 
                 if (directoryExists(path))
                 {
@@ -1344,13 +1348,12 @@ void setMusicPath()
 
                         if (choice == 'y' || choice == 'Y')
                         {
-
                                 strncpy(settings.path, path, sizeof(settings.path));
                                 return;
                         }
                         else if (choice == 'n' || choice == 'N')
                         {
-                                break; // Enter a custom path
+                                break;
                         }
                         else
                         {

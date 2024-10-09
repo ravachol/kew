@@ -1154,18 +1154,18 @@ void activateSwitch(AudioData *pAudioData)
 
 bool isValidFilepath(const char *path)
 {
-    if (path == NULL || strlen(path) == 0 || strlen(path) >= PATH_MAX)
-    {
-        return false;
-    }
+        if (path == NULL || strlen(path) == 0 || strlen(path) >= PATH_MAX)
+        {
+                return false;
+        }
 
-    // Check if the path can be accessed (exists)
-    if (access(path, F_OK) != 0)
-    {
-        return false;  // Path doesn't exist or is inaccessible
-    }
+        // Check if the path can be accessed (exists)
+        if (access(path, F_OK) != 0)
+        {
+                return false;
+        }
 
-    return true;  // Valid path that exists
+        return true;
 }
 
 gint64 getLengthInMicroSec(double duration)
@@ -1241,53 +1241,51 @@ void ensureNonEmpty(char *str)
 
 int displaySongNotification(const char *artist, const char *title, const char *cover)
 {
-    if (!allowNotifications || !canShowNotification() || !notify_is_initted())
-    {
-        return 0;
-    }
-
-    const char *blacklist = "&;`|*~<>^()[]{}$\\\"";
-
-    removeBlacklistedChars(artist, blacklist, sanitizedArtist, sizeof(sanitizedArtist));
-    removeBlacklistedChars(title, blacklist, sanitizedTitle, sizeof(sanitizedTitle));
-
-    ensureNonEmpty(sanitizedArtist);
-    ensureNonEmpty(sanitizedTitle);
-
-    int coverExists = isValidFilepath(cover);
-
-    if (previous_notification == NULL)
-    {
-        previous_notification = notify_notification_new(
-            sanitizedArtist,
-            sanitizedTitle,
-            coverExists ? cover : NULL
-        );
-
-        g_signal_connect(previous_notification, "closed", G_CALLBACK(onNotificationClosed), NULL);     
-    }
-    else
-    {
-        notify_notification_update(
-            previous_notification,
-            sanitizedArtist,
-            sanitizedTitle,
-            coverExists ? cover : NULL
-        );
-    }
-
-    GError *error = NULL;
-
-    if (!notify_notification_show(previous_notification, &error))
-    {
-        if (error != NULL)
+        if (!allowNotifications || !canShowNotification() || !notify_is_initted())
         {
-            fprintf(stderr, "Failed to show notification: %s\n", error->message);
-            g_error_free(error);
+                return 0;
         }
-    }
 
-    return 0;
+        const char *blacklist = "&;`|*~<>^()[]{}$\\\"";
+
+        removeBlacklistedChars(artist, blacklist, sanitizedArtist, sizeof(sanitizedArtist));
+        removeBlacklistedChars(title, blacklist, sanitizedTitle, sizeof(sanitizedTitle));
+
+        ensureNonEmpty(sanitizedArtist);
+        ensureNonEmpty(sanitizedTitle);
+
+        int coverExists = isValidFilepath(cover);
+
+        if (previous_notification == NULL)
+        {
+                previous_notification = notify_notification_new(
+                    sanitizedArtist,
+                    sanitizedTitle,
+                    coverExists ? cover : NULL);
+
+                g_signal_connect(previous_notification, "closed", G_CALLBACK(onNotificationClosed), NULL);
+        }
+        else
+        {
+                notify_notification_update(
+                    previous_notification,
+                    sanitizedArtist,
+                    sanitizedTitle,
+                    coverExists ? cover : NULL);
+        }
+
+        GError *error = NULL;
+
+        if (!notify_notification_show(previous_notification, &error))
+        {
+                if (error != NULL)
+                {
+                        fprintf(stderr, "Failed to show notification: %s\n", error->message);
+                        g_error_free(error);
+                }
+        }
+
+        return 0;
 }
 #endif
 
@@ -1330,8 +1328,50 @@ int extractPercentage(char *str)
         return volume;
 }
 
+int extractPercentageMac(const char *buf)
+{
+        int volume;
+        if (sscanf(buf, "%d", &volume) == 1)
+        {
+                return volume;
+        }
+        return -1;
+}
+
+int getSystemVolumeMac()
+{
+        FILE *fp;
+        char command_str[1000];
+        char buf[256];
+        int currentVolume = -1;
+
+        // macOS uses AppleScript to get the system volume
+        snprintf(command_str, sizeof(command_str),
+                 "osascript -e 'output volume of (get volume settings)'");
+
+        fp = popen(command_str, "r");
+        if (fp != NULL)
+        {
+                if (fgets(buf, sizeof(buf), fp) != NULL)
+                {
+                        buf[strcspn(buf, "\n")] = '\0';
+                        int tempVolume = extractPercentageMac(buf);
+                        if (tempVolume != -1)
+                        {
+                                currentVolume = tempVolume;
+                        }
+                }
+                pclose(fp);
+        }
+
+        return currentVolume;
+}
+
 int getSystemVolume()
 {
+#ifdef __APPLE__
+        return getSystemVolumeMac();
+#else
         FILE *fp;
         char command_str[1000];
         char buf[256];
@@ -1392,6 +1432,7 @@ int getSystemVolume()
         }
 
         return currentVolume;
+#endif;
 }
 
 void setVolume(int volume)

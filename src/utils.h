@@ -8,6 +8,7 @@
 #endif
 
 #include <ctype.h>
+#include <glib.h>
 #include <pwd.h>
 #include <regex.h>
 #include <stdbool.h>
@@ -29,9 +30,9 @@ void c_usleep(int microseconds);
 
 void c_strcpy(char *dest, size_t dest_size, const char *src);
 
-char *stringToUpper(char *str);
+char *stringToUpper(const char *str);
 
-char *stringToLower(char *str);
+char *stringToLower(const char *str);
 
 char *c_strcasestr(const char *haystack, const char *needle);
 
