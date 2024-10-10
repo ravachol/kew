@@ -351,6 +351,7 @@ static void handle_set_position(GDBusConnection *connection,
         }
 }
 
+#ifndef __APPLE__
 static void handle_method_call(GDBusConnection *connection, const gchar *sender,
                                const gchar *object_path, const gchar *interface_name,
                                const gchar *method_name, GVariant *parameters,
@@ -413,6 +414,7 @@ static void handle_method_call(GDBusConnection *connection, const gchar *sender,
                                                            "No such method");
         }
 }
+#endif
 
 #ifndef __APPLE__
 static void on_bus_name_acquired(GDBusConnection *connection, const gchar *name, gpointer user_data)
@@ -771,6 +773,7 @@ static gboolean get_can_control(GDBusConnection *connection, const gchar *sender
         return TRUE;
 }
 
+#ifndef __APPLE__
 static GVariant *get_property_callback(GDBusConnection *connection, const gchar *sender,
                                        const gchar *object_path, const gchar *interface_name,
                                        const gchar *property_name, GError **error, gpointer user_data)
@@ -928,6 +931,7 @@ static gboolean set_property_callback(GDBusConnection *connection, const gchar *
                 return FALSE;
         }
 }
+#endif
 
 #ifndef __APPLE__
 // MPRIS MediaPlayer2 interface vtable
