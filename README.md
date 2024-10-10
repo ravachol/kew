@@ -40,7 +40,7 @@ sudo zypper install kew      (OpenSUSE)
 sudo pkg install kew         (FreeBSD)
 brew install kew             (Linux Only, No macOS yet*)
 ```
-*macOs is supported if you build manually. See below.
+*macOS is supported if you build manually. See below.
 
 ### Standalone AppImage for musl systems
 
