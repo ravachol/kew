@@ -414,6 +414,7 @@ static void handle_method_call(GDBusConnection *connection, const gchar *sender,
         }
 }
 
+#ifndef __APPLE__
 static void on_bus_name_acquired(GDBusConnection *connection, const gchar *name, gpointer user_data)
 {
         (void)connection;
@@ -427,6 +428,7 @@ static void on_bus_name_lost(GDBusConnection *connection, const gchar *name, gpo
         (void)name;
         (void)user_data;
 }
+#endif
 
 static gboolean get_playback_status(GDBusConnection *connection, const gchar *sender,
                                     const gchar *object_path, const gchar *interface_name,
@@ -927,6 +929,7 @@ static gboolean set_property_callback(GDBusConnection *connection, const gchar *
         }
 }
 
+#ifndef __APPLE__
 // MPRIS MediaPlayer2 interface vtable
 static const GDBusInterfaceVTable media_player_interface_vtable = {
     .method_call = handle_method_call,     // We're using individual method handlers
@@ -950,10 +953,11 @@ static const GDBusInterfaceVTable player_interface_vtable = {
         handle_play,
         handle_seek,
         handle_set_position}};
+#endif
 
 void emitPlaybackStoppedMpris()
 {
-#ifndef __APPLE__        
+#ifndef __APPLE__
         if (connection)
         {
                 g_dbus_connection_call(connection,
@@ -969,12 +973,12 @@ void emitPlaybackStoppedMpris()
                                        NULL,
                                        NULL);
         }
-#endif        
+#endif
 }
 
 void cleanupMpris()
 {
-#ifndef __APPLE__        
+#ifndef __APPLE__
         if (registration_id > 0)
         {
                 g_dbus_connection_unregister_object(connection, registration_id);
@@ -1006,10 +1010,11 @@ void cleanupMpris()
         }
 
 #ifdef USE_LIBNOTIFY
-        if (previous_notification != NULL) {
+        if (previous_notification != NULL)
+        {
                 g_object_unref(previous_notification);
                 previous_notification = NULL;
-        }        
+        }
 #endif
 #endif
 }
@@ -1084,7 +1089,7 @@ void initMpris()
         }
 
         g_dbus_node_info_unref(introspection_data);
-#endif        
+#endif
 }
 
 void emitStartPlayingMpris()
@@ -1103,20 +1108,22 @@ void emitStartPlayingMpris()
 
 gchar *sanitizeTitle(const gchar *title)
 {
-    gchar *sanitized = g_strdup(title);
+        gchar *sanitized = g_strdup(title);
 
-    // Replace underscores with hyphens, otherwise some widgets have a problem
-    g_strdelimit(sanitized, "_", '-');
+        // Replace underscores with hyphens, otherwise some widgets have a problem
+        g_strdelimit(sanitized, "_", '-');
 
-    // duplicate string otherwise widgets have a problem with certain strings for some reason
-    gchar *sanitized_dup = g_strdup_printf("%s", sanitized);
+        // duplicate string otherwise widgets have a problem with certain strings for some reason
+        gchar *sanitized_dup = g_strdup_printf("%s", sanitized);
 
-    g_free(sanitized);
+        g_free(sanitized);
 
-    return sanitized_dup;
+        return sanitized_dup;
 }
 
+#ifndef __APPLE__
 static guint64 last_emit_time = 0;
+#endif
 
 void emit_properties_changed(GDBusConnection *connection,
                              const gchar *property_name,
@@ -1147,7 +1154,11 @@ void emit_properties_changed(GDBusConnection *connection,
         }
 
         g_variant_builder_clear(&changed_properties_builder);
-#endif        
+#else
+        (void)connection;
+        (void)property_name;
+        (void)new_value;
+#endif
 }
 
 void emitVolumeChanged()
@@ -1161,7 +1172,7 @@ void emitVolumeChanged()
         // Emit the PropertiesChanged signal for the volume property
         GVariant *volume_variant = g_variant_new_double(newVolume);
         emit_properties_changed(connection, "Volume", volume_variant);
-#endif        
+#endif
 }
 
 void emitShuffleChanged()
@@ -1270,5 +1281,13 @@ void emitMetadataChanged(const gchar *title, const gchar *artist, const gchar *a
 
         g_variant_builder_clear(&changed_properties_builder);
         g_variant_builder_clear(&metadata_builder);
-#endif        
+#else
+        (void)title;
+        (void)artist;
+        (void)album;
+        (void)coverArtPath;
+        (void)trackId;
+        (void)currentSong
+        (void) length;
+#endif
 }

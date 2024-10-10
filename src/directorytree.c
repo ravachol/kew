@@ -245,7 +245,7 @@ int readDirectory(const char *path, FileSystemEntry *parent)
                                 isDirectory = false;
                         }
 
-                        char exto[6];
+                        char exto[100];
                         extractExtension(entry->d_name, sizeof(exto) - 1, exto);
 
                         int isAudio = match_regex(&regex, exto);

@@ -1432,7 +1432,7 @@ int getSystemVolume()
         }
 
         return currentVolume;
-#endif;
+#endif
 }
 
 void setVolume(int volume)

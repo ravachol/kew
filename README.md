@@ -38,8 +38,9 @@ sudo yay -S kew              (Arch Linux, Manjaro)
 sudo yay -S kew-git          (Arch Linux, Manjaro)
 sudo zypper install kew      (OpenSUSE)
 sudo pkg install kew         (FreeBSD)
-brew install kew             (Linux Only, No MacOS)
+brew install kew             (Linux Only, No macOS yet*)
 ```
+*macOs is supported if you build manually. See below.
 
 ### Standalone AppImage for musl systems
 
@@ -61,7 +62,7 @@ kew dependencies are:
 * glib2.0 and AVFormat. These should be installed with the others, if not install them.
 * libnotify (optional)
 
-Install FFmpeg, FFTW and Chafa using your distro's package manager. For instance:
+Install these dependencies using your distro's package manager. For instance:
 
 #### For Debian/Ubuntu:
 
@@ -75,6 +76,15 @@ sudo apt install -y pkg-config ffmpeg libfftw3-dev libopus-dev libopusfile-dev l
 ```bash
 sudo pacman -Syu --noconfirm --needed pkg-config ffmpeg fftw git gcc make chafa glib2 opus opusfile libvorbis libnotify
 ```
+
+#### For macOS:
+
+```bash
+brew install gettext ffmpeg chafa fftw opus opusfile libvorbis glib pkg-config make git
+```
+Notes for mac users: 
+1) A sixel-capable terminal like kitty or WezTerm is recommended for macOS. 
+2) The visualizer and album colors are disabled by default on macOS, because the default terminal doesn't handle them too well. To enable press v and i respectively.
 
 #### For Fedora:
 
