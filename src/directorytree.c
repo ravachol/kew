@@ -506,7 +506,9 @@ int levenshteinDistance(const char *s1, const char *s2)
         return distance;
 }
 #ifdef __GNUC__
+#ifndef __APPLE__
 #pragma GCC diagnostic pop
+#endif
 #endif
 
 // Returns a new string that is lowercase of str
