@@ -10,15 +10,31 @@ ifeq ($(origin USE_LIBNOTIFY), undefined)
   endif
 endif
 
-CFLAGS = -I/usr/include -I/usr/include/chafa -I/usr/lib/chafa/include -I/usr/include/ogg -I/usr/include/opus -I/usr/include/stb -Iinclude/imgtotxt/ext -Iinclude/imgtotxt -I/usr/include/ffmpeg -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -Iinclude/miniaudio -I/usr/include/gdk-pixbuf-2.0 -O2 $(shell $(PKG_CONFIG) --cflags libavcodec libavutil libavformat libswresample gio-2.0 chafa fftw3f opus opusfile vorbis glib-2.0)
+# Detect system and architecture
+UNAME_S := $(shell uname -s)
+ARCH := $(shell uname -m)
+
+# Adjust the PREFIX for macOS and Linux
+ifeq ($(UNAME_S), Darwin)
+    ifeq ($(ARCH), arm64)
+        PREFIX ?= /opt/homebrew
+        PKG_CONFIG_PATH ?= /opt/homebrew/lib/pkgconfig:/opt/homebrew/share/pkgconfig
+    else
+        PREFIX ?= /usr/local
+        PKG_CONFIG_PATH ?= /usr/local/lib/pkgconfig:/usr/local/share/pkgconfig
+    endif
+else
+    PREFIX ?= /usr
+    PKG_CONFIG_PATH ?= /usr/lib/pkgconfig:/usr/share/pkgconfig
+endif
+
+CFLAGS = -I/usr/include -I/usr/include/chafa -I/usr/lib/chafa/include -I/usr/include/ogg -I/usr/include/opus -I/usr/include/stb -Iinclude/imgtotxt/ext -Iinclude/imgtotxt -I/usr/include/ffmpeg -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -Iinclude/miniaudio -I/usr/include/gdk-pixbuf-2.0 -O2 $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) $(PKG_CONFIG) --cflags libavcodec libavutil libavformat libswresample gio-2.0 chafa fftw3f opus opusfile vorbis glib-2.0)
 CFLAGS += -fstack-protector-strong -Wformat -Werror=format-security -fPIE -fstack-protector -fstack-protector-strong -D_FORTIFY_SOURCE=2
 CFLAGS += -Wall -Wextra -Wpointer-arith -flto
 
-LIBS = -L/usr/lib -lpthread -pthread -lm -lglib-2.0 $(shell $(PKG_CONFIG) --libs libavcodec libavutil libavformat libswresample gio-2.0 chafa fftw3f opus opusfile vorbis vorbisfile glib-2.0)
+LIBS = -L/usr/lib -lpthread -pthread -lm -lglib-2.0 $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) $(PKG_CONFIG) --libs libavcodec libavutil libavformat libswresample gio-2.0 chafa fftw3f opus opusfile vorbis vorbisfile glib-2.0)
 
 LDFLAGS = -lz -flto
-
-UNAME_S := $(shell uname -s)
 
 ifeq ($(UNAME_S), Linux)
     LDFLAGS += -pie -Wl,-z,relro 
@@ -41,11 +57,6 @@ ifneq ($(findstring gcc,$(CC)),)
 endif
 
 OBJDIR = src/obj
-ifeq ($(UNAME_S), Linux)
-    PREFIX ?= /usr
-else
-    PREFIX ?= /usr/local
-endif
 
 SRCS = src/common_ui.c src/sound.c src/directorytree.c src/soundcommon.c src/search_ui.c src/playlist_ui.c src/player.c src/soundbuiltin.c src/mpris.c src/playerops.c src/utils.c src/file.c src/chafafunc.c src/cache.c src/songloader.c src/playlist.c src/term.c src/settings.c src/visuals.c src/kew.c
 OBJS = $(SRCS:src/%.c=$(OBJDIR)/%.o)
