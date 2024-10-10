@@ -1287,7 +1287,7 @@ void emitMetadataChanged(const gchar *title, const gchar *artist, const gchar *a
         (void)album;
         (void)coverArtPath;
         (void)trackId;
-        (void)currentSong
+        (void)currentSong;
         (void)length;
 #endif
 }
