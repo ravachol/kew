@@ -148,6 +148,8 @@ void emitSeekedSignal(double newPositionSeconds)
                                       "Seeked",
                                       parameters,
                                       NULL);
+#else
+    (void)newPositionSeconds;
 #endif
 }
 
@@ -160,7 +162,10 @@ void emitStringPropertyChanged(const gchar *propertyName, const gchar *newValue)
         g_dbus_connection_emit_signal(connection, NULL, "/org/mpris/MediaPlayer2", "org.freedesktop.DBus.Properties", "PropertiesChanged",
                                       g_variant_new("(sa{sv}as)", "org.mpris.MediaPlayer2.Player", &changed_properties_builder, NULL), NULL);
         g_variant_builder_clear(&changed_properties_builder);
-#endif
+#else
+    (void)propertyName;
+    (void)newValue;
+#endif        
 }
 
 void emitBooleanPropertyChanged(const gchar *propertyName, gboolean newValue)
@@ -172,6 +177,9 @@ void emitBooleanPropertyChanged(const gchar *propertyName, gboolean newValue)
         g_dbus_connection_emit_signal(connection, NULL, "/org/mpris/MediaPlayer2", "org.freedesktop.DBus.Properties", "PropertiesChanged",
                                       g_variant_new("(sa{sv}as)", "org.mpris.MediaPlayer2.Player", &changed_properties_builder, NULL), NULL);
         g_variant_builder_clear(&changed_properties_builder);
+#else
+        (void)propertyName;
+        (void)newValue;
 #endif
 }
 
@@ -1733,7 +1741,11 @@ time_t getModificationTime(struct stat *path_stat)
         }
         else
         {
-                return path_stat->st_mtim.tv_sec; // Fallback to st_mtim.tv_sec if st_mtime is zero or invalid
+#ifdef __APPLE__
+                return path_stat->st_mtimespec.tv_sec; // macOS-specific member.
+#else
+                return path_stat->st_mtim.tv_sec; // Linux-specific member.
+#endif
         }
 }
 

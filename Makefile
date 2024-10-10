@@ -14,8 +14,15 @@ CFLAGS = -I/usr/include -I/usr/include/chafa -I/usr/lib/chafa/include -I/usr/inc
 CFLAGS += -fstack-protector-strong -Wformat -Werror=format-security -fPIE -fstack-protector -fstack-protector-strong -D_FORTIFY_SOURCE=2
 CFLAGS += -Wall -Wextra -Wpointer-arith -flto
 
-LIBS = -L/usr/lib -lpthread -lrt -pthread -lm -lglib-2.0 $(shell $(PKG_CONFIG) --libs libavcodec libavutil libavformat libswresample gio-2.0 chafa fftw3f opus opusfile vorbis vorbisfile glib-2.0)
-LDFLAGS = -pie -Wl,-z,relro,-lz -flto
+LIBS = -L/usr/lib -lpthread -pthread -lm -lglib-2.0 $(shell $(PKG_CONFIG) --libs libavcodec libavutil libavformat libswresample gio-2.0 chafa fftw3f opus opusfile vorbis vorbisfile glib-2.0)
+
+LDFLAGS = -lz -flto
+
+UNAME_S := $(shell uname -s)
+
+ifeq ($(UNAME_S), Linux)
+    LDFLAGS += -pie -Wl,-z,relro 
+endif
 
 # Conditionally add libnotify if USE_LIBNOTIFY is enabled
 ifeq ($(USE_LIBNOTIFY), 1)
@@ -28,11 +35,18 @@ ifeq ($(origin CC),default)
         CC := gcc 
 endif
 ifneq ($(findstring gcc,$(CC)),) 
+    ifeq ($(UNAME_S), Linux)
         LIBS += -latomic
+    endif
 endif
 
 OBJDIR = src/obj
-PREFIX = /usr
+ifeq ($(UNAME_S), Linux)
+    PREFIX ?= /usr
+else
+    PREFIX ?= /usr/local
+endif
+
 SRCS = src/common_ui.c src/sound.c src/directorytree.c src/soundcommon.c src/search_ui.c src/playlist_ui.c src/player.c src/soundbuiltin.c src/mpris.c src/playerops.c src/utils.c src/file.c src/chafafunc.c src/cache.c src/songloader.c src/playlist.c src/term.c src/settings.c src/visuals.c src/kew.c
 OBJS = $(SRCS:src/%.c=$(OBJDIR)/%.o)
 
