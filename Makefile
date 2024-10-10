@@ -1,18 +1,20 @@
 CC ?= gcc
 PKG_CONFIG ?= pkg-config
 
+# Detect system and architecture
+UNAME_S := $(shell uname -s)
+ARCH := $(shell uname -m)
+
 # Default USE_LIBNOTIFY to auto-detect if not set by user
 ifeq ($(origin USE_LIBNOTIFY), undefined)
-  ifneq ($(shell $(PKG_CONFIG) --exists libnotify && echo yes),yes)
+  ifeq ($(UNAME_S), Darwin)
+    USE_LIBNOTIFY = 0
+  else ifneq ($(shell $(PKG_CONFIG) --exists libnotify && echo yes), yes)
     USE_LIBNOTIFY = 0
   else
     USE_LIBNOTIFY = 1
   endif
 endif
-
-# Detect system and architecture
-UNAME_S := $(shell uname -s)
-ARCH := $(shell uname -m)
 
 # Adjust the PREFIX for macOS and Linux
 ifeq ($(UNAME_S), Darwin)
