@@ -13,6 +13,7 @@ guint registration_id;
 guint player_registration_id;
 guint bus_name_id;
 
+#ifndef __APPLE__
 static const gchar *LoopStatus = "None";
 static gdouble Rate = 1.0;
 static gdouble Volume = 0.5;
@@ -31,6 +32,8 @@ void updatePlaybackStatus(const gchar *status)
         g_dbus_connection_emit_signal(connection, NULL, "/org/mpris/MediaPlayer2", "org.mpris.MediaPlayer2.Player", "PlaybackStatus", g_variant_new("(s)", status_variant), NULL);
         g_variant_unref(status_variant);
 }
+
+
 
 const gchar *introspection_xml =
     "<!DOCTYPE node PUBLIC \"-//freedesktop//DTD D-BUS Object Introspection 1.0//EN\" \"http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd\">\n"
@@ -350,6 +353,7 @@ static void handle_set_position(GDBusConnection *connection,
                                                       "Failed to set position for track %s", track_id);
         }
 }
+#endif
 
 #ifndef __APPLE__
 static void handle_method_call(GDBusConnection *connection, const gchar *sender,
@@ -430,7 +434,6 @@ static void on_bus_name_lost(GDBusConnection *connection, const gchar *name, gpo
         (void)name;
         (void)user_data;
 }
-#endif
 
 static gboolean get_playback_status(GDBusConnection *connection, const gchar *sender,
                                     const gchar *object_path, const gchar *interface_name,
@@ -772,6 +775,7 @@ static gboolean get_can_control(GDBusConnection *connection, const gchar *sender
         *value = g_variant_new_boolean(CanControl);
         return TRUE;
 }
+#endif
 
 #ifndef __APPLE__
 static GVariant *get_property_callback(GDBusConnection *connection, const gchar *sender,
