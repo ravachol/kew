@@ -69706,8 +69706,10 @@ static void* ma_resource_manager_data_stream_get_page_data_pointer(ma_resource_m
 }
 
 #ifdef __GNUC__
+#ifndef __APPLE__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#endif
 #endif
 
 static void ma_resource_manager_data_stream_fill_page(ma_resource_manager_data_stream* pDataStream, ma_uint32 pageIndex)

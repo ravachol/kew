@@ -455,8 +455,10 @@ int min(int a, int b, int c)
 }
 
 #ifdef __GNUC__
+#ifndef __APPLE__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#endif
 #endif
 // Calculates the Levenshtein distance.
 // The Levenshtein distance between two strings is the minimum number of single-character edits
