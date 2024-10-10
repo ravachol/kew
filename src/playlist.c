@@ -274,7 +274,7 @@ void buildPlaylistRecursive(const char *directoryPath, const char *allowedExtens
                 return;
         }
 
-        char exto[6];
+        char exto[100];
         struct dirent **entries;
         int numEntries = scandir(directoryPath, &entries, NULL, compare);
 
@@ -342,7 +342,7 @@ int playDirectory(const char *directoryPath, const char *allowedExtensions, Play
         {
                 return -1;
         }
-        char ext[6];
+        char ext[100];
         struct dirent *entry;
         while ((entry = readdir(dir)) != NULL)
         {

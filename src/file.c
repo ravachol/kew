@@ -66,7 +66,7 @@ int walker(const char *startPath, const char *searching, char *result,
         DIR *d;
         struct dirent *dir;
         struct stat file_stat;
-        char ext[6]; // +1 for null-terminator
+        char ext[100]; // +1 for null-terminator
         regex_t regex;
         int ret = regcomp(&regex, allowedExtensions, REG_EXTENDED);
         if (ret != 0)

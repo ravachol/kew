@@ -38,8 +38,13 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         strncpy(settings.coverEnabled, "1", sizeof(settings.coverEnabled));
         strncpy(settings.allowNotifications, "1", sizeof(settings.allowNotifications));
         strncpy(settings.coverAnsi, "0", sizeof(settings.coverAnsi));
+#ifdef __APPLE__        
+        strncpy(settings.visualizerEnabled, "0", sizeof(settings.visualizerEnabled)); // visualizer looks wonky in default terminal 
+        strncpy(settings.useProfileColors, "1", sizeof(settings.useProfileColors));   // colors from album look wrong in default terminal
+#else
         strncpy(settings.visualizerEnabled, "1", sizeof(settings.visualizerEnabled));
         strncpy(settings.useProfileColors, "0", sizeof(settings.useProfileColors));
+#endif
         strncpy(settings.hideLogo, "0", sizeof(settings.hideLogo));
         strncpy(settings.hideHelp, "0", sizeof(settings.hideHelp));
         strncpy(settings.cacheLibrary, "-1", sizeof(settings.cacheLibrary));
@@ -289,8 +294,11 @@ KeyValuePair *readKeyValuePairs(const char *file_path, int *count, time_t *lastT
         }
 
         // Save the modification time (mtime) of the file
+#ifdef __APPLE__
+        *lastTimeAppRan = (file_stat.st_mtime > 0) ? file_stat.st_mtime : file_stat.st_mtimespec.tv_sec;
+#else
         *lastTimeAppRan = (file_stat.st_mtime > 0) ? file_stat.st_mtime : file_stat.st_mtim.tv_sec;
-
+#endif
         KeyValuePair *pairs = NULL;
         int pair_count = 0;
 
@@ -486,7 +494,7 @@ void setConfig(AppSettings *settings)
         {
                 perror("malloc");
                 exit(EXIT_FAILURE);
-        }        
+        }
         c_strcpy(filepath, filepath_length, configdir);
         strcat(filepath, "/");
         strcat(filepath, SETTINGS_FILE);
