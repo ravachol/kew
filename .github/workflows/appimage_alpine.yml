@@ -20,7 +20,9 @@ jobs:
           apk update
           apk add --no-cache \
             build-base \
-            ffmpeg-dev \
+            faad2 \
+            faad2-dev \
+            taglib-dev \
             fftw-dev \
             chafa-dev \
             opus-dev \
@@ -68,10 +70,7 @@ jobs:
 
       - name: Remove unnecessary libraries
         run: |
-          rm appdir/usr/lib/libavcodec*
-          rm appdir/usr/lib/libavformat*
-          rm appdir/usr/lib/libavutil*
-          rm appdir/usr/lib/libswres*
+          rm appdir/usr/lib/libfaad*
 
       - name: Create AppImage
         run: |

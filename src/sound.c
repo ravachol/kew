@@ -20,20 +20,6 @@ bool isContextInitialized = false;
 
 UserData userData;
 
-int check_aac_codec_support()
-{
-        const AVCodec *codec = avcodec_find_decoder(AV_CODEC_ID_AAC);
-
-        if (codec == NULL)
-        {
-                fprintf(stderr, "AAC codec not supported in this build of FFmpeg.\n");
-
-                return -1;
-        }
-
-        return 0;
-}
-
 ma_result initFirstDatasource(AudioData *pAudioData, UserData *pUserData)
 {
         char *filePath = NULL;
@@ -473,13 +459,6 @@ int switchAudioImplementation()
         }
         else if (endsWith(filePath, "m4a") || endsWith(filePath, "aac"))
         {
-                if (check_aac_codec_support() < 0)
-                {
-                        free(filePath);
-                        printf("\n\nUnable to find AAC codec. If you have the free version of FFmpeg, there might be no AAC/M4A file support.\n");
-                        exit(0);
-                }
-
                 ma_uint32 sampleRate;
                 ma_uint32 channels;
                 ma_format format;

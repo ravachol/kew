@@ -1,5 +1,9 @@
 CC ?= gcc
+CXX ?= g++
 PKG_CONFIG ?= pkg-config
+
+# To disable libnotify, run:
+# make USE_LIBNOTIFY=0
 
 # Detect system and architecture
 UNAME_S := $(shell uname -s)
@@ -30,11 +34,18 @@ else
     PKG_CONFIG_PATH ?= /usr/lib/pkgconfig:/usr/share/pkgconfig
 endif
 
-CFLAGS = -I/usr/include -I/usr/include/chafa -I/usr/lib/chafa/include -I/usr/include/ogg -I/usr/include/opus -I/usr/include/stb -Iinclude/imgtotxt/ext -Iinclude/imgtotxt -I/usr/include/ffmpeg -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -Iinclude/miniaudio -I/usr/include/gdk-pixbuf-2.0 -O2 $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) $(PKG_CONFIG) --cflags libavcodec libavutil libavformat libswresample gio-2.0 chafa fftw3f opus opusfile vorbis glib-2.0)
+PKG_CONFIG_PATH ?= $(PKG_CONFIG_PATH):/usr/local/lib/pkgconfig:/usr/lib/pkgconfig
+
+CFLAGS = -I/usr/include -I/usr/lib -Iinclude/minimp4 -I/usr/include/chafa -I/usr/lib/chafa/include -I/usr/include/ogg -I/usr/include/opus -I/usr/include/stb -Iinclude/imgtotxt/ext -Iinclude/imgtotxt -I/usr/include/ffmpeg -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -Iinclude/miniaudio -I/usr/include/gdk-pixbuf-2.0 -O2 $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) $(PKG_CONFIG) --cflags gio-2.0 chafa fftw3f opus opusfile vorbis glib-2.0)
+CFLAGS += $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) $(PKG_CONFIG) --cflags taglib)
 CFLAGS += -fstack-protector-strong -Wformat -Werror=format-security -fPIE -fstack-protector -fstack-protector-strong -D_FORTIFY_SOURCE=2
 CFLAGS += -Wall -Wextra -Wpointer-arith -flto
 
-LIBS = -L/usr/lib -lpthread -pthread -lm -lglib-2.0 $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) $(PKG_CONFIG) --libs libavcodec libavutil libavformat libswresample gio-2.0 chafa fftw3f opus opusfile vorbis vorbisfile glib-2.0)
+CXXFLAGS = -std=c++11 $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) $(PKG_CONFIG) --cflags taglib)
+
+LIBS = -lfaad -L/usr/lib -lpthread -pthread -lm -lglib-2.0 $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) $(PKG_CONFIG) --libs gio-2.0 chafa fftw3f opus opusfile vorbis vorbisfile glib-2.0)
+LIBS += $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) $(PKG_CONFIG) --libs taglib)
+LIBS += -lstdc++
 
 LDFLAGS = -lz -flto
 
@@ -60,8 +71,12 @@ endif
 
 OBJDIR = src/obj
 
-SRCS = src/common_ui.c src/sound.c src/directorytree.c src/soundcommon.c src/search_ui.c src/playlist_ui.c src/player.c src/soundbuiltin.c src/mpris.c src/playerops.c src/utils.c src/file.c src/chafafunc.c src/cache.c src/songloader.c src/playlist.c src/term.c src/settings.c src/visuals.c src/kew.c
+SRCS = src/common_ui.c src/sound.c src/directorytree.c src/soundcommon.c src/m4a.c src/search_ui.c src/playlist_ui.c src/player.c src/soundbuiltin.c src/mpris.c src/playerops.c src/utils.c src/file.c src/chafafunc.c src/cache.c src/songloader.c src/playlist.c src/term.c src/settings.c src/visuals.c src/kew.c
 OBJS = $(SRCS:src/%.c=$(OBJDIR)/%.o)
+
+# Add the C++ wrapper to the list of object files
+WRAPPER_SRC = src/tagLibWrapper.cpp
+WRAPPER_OBJ = $(OBJDIR)/tagLibWrapper.o
 
 MAN_PAGE = kew.1
 MAN_DIR ?= $(PREFIX)/share/man
@@ -71,14 +86,19 @@ all: kew
 $(OBJDIR)/%.o: src/%.c Makefile | $(OBJDIR)
 	$(CC) $(CFLAGS) $(DEFINES) -c -o $@ $<
 
+# Compile the C++ wrapper with g++
+$(WRAPPER_OBJ): $(WRAPPER_SRC) Makefile | $(OBJDIR)
+	$(CXX) $(CXXFLAGS) -c -o $@ $<
+
 $(OBJDIR)/write_ascii.o: include/imgtotxt/write_ascii.c Makefile | $(OBJDIR)
 	$(CC) $(CFLAGS) $(DEFINES) -c -o $@ $<
 
 $(OBJDIR):
 	mkdir -p $(OBJDIR)
 
-kew: $(OBJDIR)/write_ascii.o $(OBJS) Makefile
-	$(CC) -o kew $(OBJDIR)/write_ascii.o $(OBJS) $(LIBS) $(LDFLAGS)
+# Link all object files together, including the C++ wrapper
+kew: $(OBJDIR)/write_ascii.o $(OBJS) $(WRAPPER_OBJ) Makefile
+	$(CC) -o kew $(OBJDIR)/write_ascii.o $(OBJS) $(WRAPPER_OBJ) $(LIBS) $(LDFLAGS)
 
 .PHONY: install
 install: all
