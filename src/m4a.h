@@ -1,4 +1,3 @@
-
 /*
 This implements a data source that decodes m4a streams via FFmpeg
 
@@ -8,21 +7,15 @@ decoding backend. See the custom_decoder example.
 You need to include this file after miniaudio.h.
 */
 
-#ifndef m4a_h
-#define m4a_h
-
+#ifndef M4A_H
+#define M4A_H
 #ifdef __cplusplus
 extern "C"
 {
 #endif
-
-#include <libavcodec/avcodec.h>
-#include <libavformat/avformat.h>
-#include <libavutil/channel_layout.h>
-#include <libavutil/opt.h>
-#include <libavutil/samplefmt.h>
-#include <libswresample/swresample.h>
 #include <miniaudio.h>
+#include "neaacdec.h"
+#include "../include/minimp4/minimp4.h" // Adjust the path as necessary
 #include <stdint.h>
 #include <string.h>
 
@@ -35,13 +28,28 @@ extern "C"
                 void *pReadSeekTellUserData;
                 ma_format format;
                 FILE *mf;
-                // FFmpeg related fields...
-                AVCodecContext *codec_context;
-                SwrContext *swr_ctx;
-                AVFormatContext *format_context;
-                ma_uint64 cursor;
+
+                // faad2 related fields...
+                NeAACDecHandle hDecoder;
+                NeAACDecFrameInfo frameInfo;
+                unsigned char *buffer;
+                unsigned int buffer_size;
                 ma_uint32 sampleSize;
                 int bitDepth;
+                ma_uint32 sampleRate;
+                ma_uint32 channels;
+
+                // minimp4 fields...
+                MP4D_demux_t mp4;
+                MP4D_track_t *track;
+                int32_t audio_track_index;
+                uint32_t current_sample;
+                uint32_t total_samples;
+
+                // For m4a_decoder_init_file
+                FILE *file;
+
+                ma_uint64 cursor;
         } m4a_decoder;
 
         MA_API ma_result m4a_decoder_init(ma_read_proc onRead, ma_seek_proc onSeek, ma_tell_proc onTell, void *pReadSeekTellUserData, const ma_decoding_backend_config *pConfig, const ma_allocation_callbacks *pAllocationCallbacks, m4a_decoder *pM4a);
@@ -53,684 +61,750 @@ extern "C"
         MA_API ma_result m4a_decoder_get_cursor_in_pcm_frames(m4a_decoder *pM4a, ma_uint64 *pCursor);
         MA_API ma_result m4a_decoder_get_length_in_pcm_frames(m4a_decoder *pM4a, ma_uint64 *pLength);
 
-#ifdef __cplusplus
-}
-#endif
+        extern ma_result m4a_decoder_ds_get_data_format(ma_data_source *pDataSource, ma_format *pFormat, ma_uint32 *pChannels, ma_uint32 *pSampleRate, ma_channel *pChannelMap, size_t channelMapCap);
+
+        extern ma_result m4a_decoder_ds_read(ma_data_source *pDataSource, void *pFramesOut, ma_uint64 frameCount, ma_uint64 *pFramesRead);
+
+        extern ma_result m4a_decoder_ds_seek(ma_data_source *pDataSource, ma_uint64 frameIndex);
+
+        extern ma_result m4a_decoder_ds_get_data_format(ma_data_source *pDataSource, ma_format *pFormat, ma_uint32 *pChannels, ma_uint32 *pSampleRate, ma_channel *pChannelMap, size_t channelMapCap);
+
+        extern ma_result m4a_decoder_ds_get_cursor(ma_data_source *pDataSource, ma_uint64 *pCursor);
+
+        extern ma_result m4a_decoder_ds_get_length(ma_data_source *pDataSource, ma_uint64 *pLength);
 
 #if defined(MINIAUDIO_IMPLEMENTATION) || defined(MA_IMPLEMENTATION)
 
 #define MAX_CHANNELS 2
 #define MAX_SAMPLES 4800 // Maximum expected frame size
 #define MAX_SAMPLE_SIZE 4
-static uint8_t leftoverBuffer[MAX_SAMPLES * MAX_CHANNELS * MAX_SAMPLE_SIZE];
+        static uint8_t leftoverBuffer[MAX_SAMPLES * MAX_CHANNELS * MAX_SAMPLE_SIZE];
 
-static ma_uint64 leftoverSampleCount = 0;
+        static ma_uint64 leftoverSampleCount = 0;
 
-extern ma_result m4a_decoder_ds_get_data_format(ma_data_source *pDataSource, ma_format *pFormat, ma_uint32 *pChannels, ma_uint32 *pSampleRate, ma_channel *pChannelMap, size_t channelMapCap);
-
-ma_result m4a_decoder_ds_read(ma_data_source *pDataSource, void *pFramesOut, ma_uint64 frameCount, ma_uint64 *pFramesRead)
-{
-        return m4a_decoder_read_pcm_frames((m4a_decoder *)pDataSource, pFramesOut, frameCount, pFramesRead);
-}
-
-ma_result m4a_decoder_ds_seek(ma_data_source *pDataSource, ma_uint64 frameIndex)
-{
-        return m4a_decoder_seek_to_pcm_frame((m4a_decoder *)pDataSource, frameIndex);
-}
-
-ma_result m4a_decoder_ds_get_data_format(ma_data_source *pDataSource, ma_format *pFormat, ma_uint32 *pChannels, ma_uint32 *pSampleRate, ma_channel *pChannelMap, size_t channelMapCap)
-{
-        return m4a_decoder_get_data_format((m4a_decoder *)pDataSource, pFormat, pChannels, pSampleRate, pChannelMap, channelMapCap);
-}
-
-ma_result m4a_decoder_ds_get_cursor(ma_data_source *pDataSource, ma_uint64 *pCursor)
-{
-        return m4a_decoder_get_cursor_in_pcm_frames((m4a_decoder *)pDataSource, pCursor);
-}
-
-ma_result m4a_decoder_ds_get_length(ma_data_source *pDataSource, ma_uint64 *pLength)
-{
-        return m4a_decoder_get_length_in_pcm_frames((m4a_decoder *)pDataSource, pLength);
-}
-
-ma_data_source_vtable g_m4a_decoder_ds_vtable =
-    {
-        m4a_decoder_ds_read,
-        m4a_decoder_ds_seek,
-        m4a_decoder_ds_get_data_format,
-        m4a_decoder_ds_get_cursor,
-        m4a_decoder_ds_get_length,
-        NULL,
-        (ma_uint64)0};
-
-// Custom FFmpeg read function wrapper
-int m4a_ffmpeg_read(void *opaque, uint8_t *buf, int buf_size)
-{
-        m4a_decoder *pM4a = (m4a_decoder *)opaque;
-        size_t bytesRead = 0;
-
-        ma_result result = pM4a->onRead(pM4a->pReadSeekTellUserData, buf, buf_size, &bytesRead);
-
-        if (result == MA_SUCCESS)
+        ma_result m4a_decoder_ds_read(ma_data_source *pDataSource, void *pFramesOut, ma_uint64 frameCount, ma_uint64 *pFramesRead)
         {
-                return bytesRead;
+                return m4a_decoder_read_pcm_frames((m4a_decoder *)pDataSource, pFramesOut, frameCount, pFramesRead);
         }
-        else
+
+        ma_result m4a_decoder_ds_seek(ma_data_source *pDataSource, ma_uint64 frameIndex)
         {
-                switch (result)
+                return m4a_decoder_seek_to_pcm_frame((m4a_decoder *)pDataSource, frameIndex);
+        }
+
+        ma_result m4a_decoder_ds_get_data_format(ma_data_source *pDataSource, ma_format *pFormat, ma_uint32 *pChannels, ma_uint32 *pSampleRate, ma_channel *pChannelMap, size_t channelMapCap)
+        {
+                return m4a_decoder_get_data_format((m4a_decoder *)pDataSource, pFormat, pChannels, pSampleRate, pChannelMap, channelMapCap);
+        }
+
+        ma_result m4a_decoder_ds_get_cursor(ma_data_source *pDataSource, ma_uint64 *pCursor)
+        {
+                return m4a_decoder_get_cursor_in_pcm_frames((m4a_decoder *)pDataSource, pCursor);
+        }
+
+        ma_result m4a_decoder_ds_get_length(ma_data_source *pDataSource, ma_uint64 *pLength)
+        {
+                return m4a_decoder_get_length_in_pcm_frames((m4a_decoder *)pDataSource, pLength);
+        }
+
+        ma_data_source_vtable g_m4a_decoder_ds_vtable =
+            {
+                m4a_decoder_ds_read,
+                m4a_decoder_ds_seek,
+                m4a_decoder_ds_get_data_format,
+                m4a_decoder_ds_get_cursor,
+                m4a_decoder_ds_get_length,
+                NULL,
+                (ma_uint64)0};
+
+        static ma_result file_on_read(void *pUserData, void *pBufferOut, size_t bytesToRead, size_t *pBytesRead)
+        {
+                FILE *fp = (FILE *)pUserData;
+                size_t bytesRead = fread(pBufferOut, 1, bytesToRead, fp);
+                if (bytesRead < bytesToRead && ferror(fp))
                 {
-                case MA_IO_ERROR:
-                        return AVERROR(EIO);
-                case MA_INVALID_ARGS:
-                        return AVERROR(EINVAL);
-
-                default:
-                        return AVERROR(EIO);
+                        return MA_ERROR;
                 }
-        }
-}
-
-int64_t m4a_ffmpeg_seek(void *opaque, int64_t offset, int whence)
-{
-        m4a_decoder *pM4a = (m4a_decoder *)opaque;
-
-        if (whence == AVSEEK_SIZE)
-        {
-                if (pM4a->onTell)
+                if (pBytesRead)
                 {
-                        ma_int64 fileSize;
-                        ma_result result = pM4a->onTell(pM4a->pReadSeekTellUserData, &fileSize);
-                        return result != MA_SUCCESS ? AVERROR(result) : fileSize;
+                        *pBytesRead = bytesRead;
                 }
-                else
-                {
-                        return AVERROR(ENOSYS);
-                }
-        }
-
-        ma_seek_origin origin = ma_seek_origin_start;
-        switch (whence)
-        {
-        case SEEK_SET:
-                origin = ma_seek_origin_start;
-                break;
-        case SEEK_CUR:
-                origin = ma_seek_origin_current;
-                break;
-        case SEEK_END:
-                origin = ma_seek_origin_end;
-                break;
-        default:
-                return AVERROR(EINVAL);
-        }
-
-        if (pM4a->onSeek)
-        {
-                ma_result result = pM4a->onSeek(pM4a->pReadSeekTellUserData, offset, origin);
-                if (result != MA_SUCCESS)
-                {
-                        return AVERROR(result);
-                }
-                if (whence != SEEK_CUR || offset != 0)
-                { // If the position really changed
-                        ma_int64 newPosition;
-                        result = pM4a->onTell(pM4a->pReadSeekTellUserData, &newPosition);
-                        return result != MA_SUCCESS ? AVERROR(result) : newPosition;
-                }
-                else
-                {
-                        ma_int64 currentPosition;
-                        result = pM4a->onTell(pM4a->pReadSeekTellUserData, &currentPosition);
-                        return result != MA_SUCCESS ? AVERROR(result) : currentPosition;
-                }
-        }
-        else
-        {
-                return AVERROR(ENOSYS);
-        }
-}
-
-static ma_result m4a_decoder_init_internal(const ma_decoding_backend_config *pConfig, m4a_decoder *pM4a)
-{
-        if (pM4a == NULL)
-        {
-                return MA_INVALID_ARGS;
-        }
-
-        MA_ZERO_OBJECT(pM4a);
-        pM4a->format = ma_format_f32;
-
-        if (pConfig != NULL && (pConfig->preferredFormat == ma_format_f32 || pConfig->preferredFormat == ma_format_s16))
-        {
-                pM4a->format = pConfig->preferredFormat;
-        }
-
-        ma_data_source_config dataSourceConfig = ma_data_source_config_init();
-
-        dataSourceConfig.vtable = &g_m4a_decoder_ds_vtable;
-
-        ma_result result = ma_data_source_init(&dataSourceConfig, &pM4a->ds);
-        if (result != MA_SUCCESS)
-        {
-                return result;
-        }
-
-        return MA_SUCCESS;
-}
-
-ma_format ffmpeg_to_mini_al_format(enum AVSampleFormat ffmpeg_sample_fmt)
-{
-        switch (ffmpeg_sample_fmt)
-        {
-        case AV_SAMPLE_FMT_FLTP:
-        case AV_SAMPLE_FMT_FLT:
-                return ma_format_f32;
-        case AV_SAMPLE_FMT_S16:
-        case AV_SAMPLE_FMT_S16P:
-                return ma_format_s16;
-        default:
-                return ma_format_unknown;
-        }
-}
-
-// Note: This isn't used by kew and is untested
-MA_API ma_result m4a_decoder_init(
-    ma_read_proc onRead,
-    ma_seek_proc onSeek,
-    ma_tell_proc onTell,
-    void *pReadSeekTellUserData,
-    const ma_decoding_backend_config *pConfig,
-    const ma_allocation_callbacks *pAllocationCallbacks,
-    m4a_decoder *pM4a)
-{
-        (void)onTell;
-        (void)pAllocationCallbacks;
-
-        if (pM4a == NULL || onRead == NULL || onSeek == NULL)
-        {
-                return MA_INVALID_ARGS;
-        }
-
-        ma_result result = m4a_decoder_init_internal(pConfig, pM4a);
-        if (result != MA_SUCCESS)
-        {
-                return result;
-        }
-
-        unsigned char *avio_ctx_buffer = NULL;
-        size_t avio_ctx_buffer_size = 4096;
-        AVIOContext *avio_ctx = avio_alloc_context(
-            avio_ctx_buffer,
-            avio_ctx_buffer_size,
-            0,
-            pReadSeekTellUserData,
-            m4a_ffmpeg_read,
-            NULL,
-            m4a_ffmpeg_seek);
-
-        if (avio_ctx == NULL)
-        {
-                return MA_OUT_OF_MEMORY;
-        }
-
-        avio_ctx_buffer = (unsigned char *)av_malloc(avio_ctx_buffer_size);
-        if (avio_ctx_buffer == NULL)
-        {
-                avio_context_free(&avio_ctx);
-                return MA_OUT_OF_MEMORY;
-        }
-
-        // Initialize FFmpeg's AVFormatContext with the custom I/O context
-        pM4a->format_context = avformat_alloc_context();
-        if (pM4a->format_context == NULL)
-        {
-                av_free(avio_ctx_buffer);
-                avio_context_free(&avio_ctx);
-                return MA_OUT_OF_MEMORY;
-        }
-        pM4a->format_context->pb = avio_ctx;
-
-        return MA_SUCCESS;
-}
-
-MA_API ma_result m4a_decoder_init_file(const char *pFilePath, const ma_decoding_backend_config *pConfig, const ma_allocation_callbacks *pAllocationCallbacks, m4a_decoder *pM4a)
-{
-        (void)pAllocationCallbacks;
-
-        if (pFilePath == NULL || pM4a == NULL)
-        {
-                return MA_INVALID_ARGS;
-        }
-
-        ma_result result = m4a_decoder_init_internal(pConfig, pM4a);
-        if (result != MA_SUCCESS)
-        {
-                return result;
-        }
-
-        // Initialize libavformat and libavcodec
-        AVFormatContext *format_context = NULL;
-        if (avformat_open_input(&format_context, pFilePath, NULL, NULL) != 0)
-        {
-                return MA_INVALID_FILE;
-        }
-
-        if (avformat_find_stream_info(format_context, NULL) < 0)
-        {
-                avformat_close_input(&format_context);
-                return MA_ERROR;
-        }
-
-        int stream_index;
-
-#if (LIBAVFORMAT_VERSION_MAJOR > 58)
-        const AVCodec *decoder = NULL;
-        stream_index = av_find_best_stream(format_context, AVMEDIA_TYPE_AUDIO, -1, -1, &decoder, 0);
-#else
-        AVCodec *decoder = NULL;
-        stream_index = av_find_best_stream(format_context, AVMEDIA_TYPE_AUDIO, -1, -1, &decoder, 0);
-
-#endif
-
-        if (stream_index < 0)
-        {
-                avformat_close_input(&format_context);
-                return MA_ERROR;
-        }
-
-        AVStream *audio_stream = format_context->streams[stream_index];
-
-        AVCodecContext *codec_context = avcodec_alloc_context3(decoder);
-        if (!codec_context)
-        {
-                avformat_close_input(&format_context);
-                return MA_OUT_OF_MEMORY;
-        }
-
-        if (avcodec_parameters_to_context(codec_context, audio_stream->codecpar) < 0)
-        {
-                avcodec_free_context(&codec_context);
-                avformat_close_input(&format_context);
-                return MA_ERROR;
-        }
-
-        if (avcodec_open2(codec_context, decoder, NULL) < 0)
-        {
-                avcodec_free_context(&codec_context);
-                avformat_close_input(&format_context);
-                return MA_ERROR;
-        }
-
-        pM4a->codec_context = codec_context;
-
-        switch (pM4a->codec_context->sample_fmt)
-        {
-        case AV_SAMPLE_FMT_S16:
-        case AV_SAMPLE_FMT_S16P:
-                pM4a->sampleSize = sizeof(int16_t); // 16-bit samples
-                break;
-        case AV_SAMPLE_FMT_FLTP:
-        case AV_SAMPLE_FMT_FLT:
-                pM4a->sampleSize = sizeof(float); // 32-bit float samples
-                break;
-        default:
-                pM4a->sampleSize = 0;
-                break;
-        }
-
-        pM4a->format_context = format_context;
-        pM4a->mf = NULL;
-        pM4a->format = ffmpeg_to_mini_al_format(pM4a->codec_context->sample_fmt);
-
-        return MA_SUCCESS;
-}
-
-MA_API void m4a_decoder_uninit(m4a_decoder *pM4a, const ma_allocation_callbacks *pAllocationCallbacks)
-{
-        if (pM4a == NULL)
-        {
-                return;
-        }
-
-        (void)pAllocationCallbacks;
-
-        if (pM4a->swr_ctx != NULL)
-        {
-                swr_free(&pM4a->swr_ctx);
-        }
-
-        if (pM4a->codec_context != NULL)
-        {
-                avcodec_free_context(&pM4a->codec_context);
-        }
-
-        if (pM4a->format_context != NULL)
-        {
-                avformat_close_input(&pM4a->format_context);
-        }
-
-        if (pM4a->mf != NULL)
-        {
-                fclose(pM4a->mf);
-                pM4a->mf = NULL;
-        }
-
-        ma_data_source_uninit(&pM4a->ds);
-}
-
-ma_result m4a_decoder_read_pcm_frames(m4a_decoder *pM4a, void *pFramesOut, ma_uint64 frameCount, ma_uint64 *pFramesRead)
-{
-        if (pM4a == NULL || pM4a->onRead == NULL || pM4a->onSeek == NULL || pM4a->sampleSize == 0 || pFramesOut == NULL || frameCount == 0)
-        {
-                return MA_INVALID_ARGS;
-        }
-
-        ma_result result = MA_SUCCESS;
-        ma_format format;
-        ma_uint32 channels;
-        ma_uint32 sampleRate;
-
-        m4a_decoder_get_data_format(pM4a, &format, &channels, &sampleRate, NULL, 0);
-
-        // only two channels supported for now
-        if (channels > 2)
-        {
-                return MA_ERROR;
-        }
-
-        int stream_index = av_find_best_stream(pM4a->format_context, AVMEDIA_TYPE_AUDIO, -1, -1, NULL, 0);
-        if (stream_index < 0)
-        {
-                return MA_ERROR;
-        }
-
-        AVFrame *frame = av_frame_alloc();
-        if (!frame)
-        {
-                return MA_ERROR;
-        }
-
-        AVPacket packet;
-        ma_uint64 totalFramesProcessed = 0;
-
-        if (leftoverSampleCount > 0)
-        {
-                int leftoverToProcess = (leftoverSampleCount < frameCount) ? leftoverSampleCount : frameCount;
-
-                int leftoverBytes = leftoverToProcess * channels * pM4a->sampleSize;
-                memcpy(pFramesOut, leftoverBuffer, leftoverBytes);
-                totalFramesProcessed += leftoverToProcess;
-
-                int bytesToShift = (leftoverSampleCount - leftoverToProcess) * channels * pM4a->sampleSize;
-                uint8_t *shiftSource = leftoverBuffer + leftoverToProcess * channels * pM4a->sampleSize;
-                memmove(leftoverBuffer, shiftSource, bytesToShift);
-                leftoverSampleCount -= leftoverToProcess;
-        }
-
-        while (totalFramesProcessed < frameCount)
-        {
-                if (av_read_frame(pM4a->format_context, &packet) < 0)
-                {
-                        // Error in reading frame or EOF
-                        result = MA_AT_END;
-                        break;
-                }
-
-                if (packet.stream_index == stream_index)
-                {
-                        if (avcodec_send_packet(pM4a->codec_context, &packet) == 0)
-                        {
-                                while (totalFramesProcessed < frameCount && avcodec_receive_frame(pM4a->codec_context, frame) == 0)
-                                {
-                                        int samplesToProcess = (frame->nb_samples < (int)(frameCount - totalFramesProcessed)) ? frame->nb_samples : (int)(frameCount - totalFramesProcessed);
-                                        int outputBufferLen = samplesToProcess * channels * pM4a->sampleSize;
-
-                                        uint8_t *output_buffer = (uint8_t *)malloc(outputBufferLen);
-                                        if (!output_buffer)
-                                        {
-                                                av_frame_free(&frame);
-                                                return MA_ERROR;
-                                        }
-
-                                        for (int i = 0; i < samplesToProcess; i++)
-                                        {
-                                                for (ma_uint32 c = 0; c < channels; c++)
-                                                {
-                                                        int byteOffset = (i * channels + c) * pM4a->sampleSize;
-
-                                                        if (frame->extended_data == NULL || frame->extended_data[c] == NULL)
-                                                        {
-                                                                continue;
-                                                        }
-
-                                                        if (pM4a->format == ma_format_s16)
-                                                        {
-                                                                if (pM4a->codec_context->sample_fmt != AV_SAMPLE_FMT_S16)
-                                                                {
-                                                                        continue;
-                                                                }
-
-                                                                int16_t sample = ((int16_t *)frame->extended_data[c])[i];
-                                                                memcpy(output_buffer + byteOffset, &sample, sizeof(int16_t));
-                                                        }
-                                                        else
-                                                        {
-                                                                float sample = ((float *)frame->extended_data[c])[i];
-                                                                memcpy(output_buffer + byteOffset, &sample, sizeof(float));
-                                                        }
-                                                }
-                                        }
-
-                                        int current_frame_buffer_size = samplesToProcess * channels * pM4a->sampleSize;
-                                        memcpy((uint8_t *)pFramesOut + totalFramesProcessed * channels * pM4a->sampleSize, output_buffer, current_frame_buffer_size);
-
-                                        totalFramesProcessed += samplesToProcess;
-
-                                        // Check if there are leftovers
-                                        if (samplesToProcess < frame->nb_samples)
-                                        {
-                                                int remainingSamples = frame->nb_samples - samplesToProcess;
-
-                                                for (int i = samplesToProcess; i < frame->nb_samples; i++)
-                                                {
-                                                        for (ma_uint32 c = 0; c < channels; c++)
-                                                        {
-                                                                int byteOffset = ((i - samplesToProcess) * channels + c) * pM4a->sampleSize;
-
-                                                                if (frame->extended_data[c] == NULL)
-                                                                {
-                                                                        return MA_ERROR;
-                                                                }
-
-                                                                memcpy(leftoverBuffer + byteOffset, (uint8_t *)frame->extended_data[c] + i * pM4a->sampleSize, pM4a->sampleSize);
-                                                        }
-                                                }
-                                                leftoverSampleCount = remainingSamples;
-                                        }
-
-                                        free(output_buffer);
-                                }
-                        }
-                }
-
-                av_packet_unref(&packet);
-        }
-
-        av_frame_free(&frame);
-
-        pM4a->cursor += totalFramesProcessed;
-
-        if (pFramesRead != NULL)
-        {
-                *pFramesRead = totalFramesProcessed;
-        }
-
-        return result;
-}
-
-MA_API ma_result m4a_decoder_seek_to_pcm_frame(m4a_decoder *pM4a, ma_uint64 frameIndex)
-{
-        if (pM4a == NULL || pM4a->codec_context == NULL || pM4a->format_context == NULL)
-        {
-                return MA_INVALID_ARGS;
-        }
-
-        AVStream *stream = NULL;
-        for (unsigned int i = 0; i < pM4a->format_context->nb_streams; i++)
-        {
-                if (pM4a->format_context->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO)
-                {
-                        stream = pM4a->format_context->streams[i];
-                        break;
-                }
-        }
-
-        if (stream == NULL)
-        {
-                return MA_ERROR;
-        }
-
-        // Convert frame index to the stream's time base.
-        int64_t timestamp = av_rescale_q(frameIndex,
-                                         (AVRational){1, pM4a->codec_context->sample_rate},
-                                         stream->time_base);
-
-        if (av_seek_frame(pM4a->format_context, stream->index, timestamp, AVSEEK_FLAG_BACKWARD) < 0)
-        {
-                return MA_ERROR;
-        }
-
-        // After seeking, we must clear the codec's internal buffer.
-        avcodec_flush_buffers(pM4a->codec_context);
-
-        return MA_SUCCESS;
-}
-
-MA_API ma_result m4a_decoder_get_data_format(
-    m4a_decoder *pM4a,
-    ma_format *pFormat,
-    ma_uint32 *pChannels,
-    ma_uint32 *pSampleRate,
-    ma_channel *pChannelMap,
-    size_t channelMapCap)
-{
-        if (pFormat != NULL)
-        {
-                *pFormat = ma_format_unknown;
-        }
-        if (pChannels != NULL)
-        {
-                *pChannels = 0;
-        }
-        if (pSampleRate != NULL)
-        {
-                *pSampleRate = 0;
-        }
-        if (pChannelMap != NULL)
-        {
-                MA_ZERO_MEMORY(pChannelMap, sizeof(*pChannelMap) * channelMapCap);
-        }
-
-        if (pM4a == NULL || pM4a->codec_context == NULL)
-        {
-                return MA_INVALID_OPERATION;
-        }
-
-        if (pFormat != NULL)
-        {
-                *pFormat = ffmpeg_to_mini_al_format(pM4a->codec_context->sample_fmt);
-        }
-
-        if (pChannels != NULL)
-        {
-
-                for (unsigned int i = 0; i < pM4a->format_context->nb_streams; i++)
-                {
-                        if (pM4a->format_context->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO)
-                        {
-
-#if (LIBAVCODEC_VERSION_MAJOR > 59) || ((LIBAVCODEC_VERSION_MAJOR == 59) && (LIBAVCODEC_VERSION_MINOR > 24))
-                                *pChannels = pM4a->format_context->streams[i]->codecpar->ch_layout.nb_channels;
-#else
-                                *pChannels = pM4a->format_context->streams[i]->codecpar->channels;
-#endif
-                        }
-                }
-        }
-
-        if (pSampleRate != NULL)
-        {
-                *pSampleRate = pM4a->codec_context->sample_rate;
-        }
-
-        if (pChannelMap != NULL)
-        {
-                ma_channel_map_init_standard(ma_standard_channel_map_microsoft, pChannelMap, channelMapCap, *pChannels);
-        }
-
-        return MA_SUCCESS;
-}
-
-MA_API ma_result m4a_decoder_get_cursor_in_pcm_frames(m4a_decoder *pM4a, ma_uint64 *pCursor)
-{
-        if (pCursor == NULL)
-        {
-                return MA_INVALID_ARGS;
-        }
-
-        *pCursor = 0; /* Safety. */
-
-        if (pM4a == NULL || pM4a->format_context == NULL || pM4a->codec_context == NULL)
-        {
-                return MA_INVALID_ARGS;
-        }
-
-        *pCursor = pM4a->cursor;
-
-        return MA_SUCCESS;
-}
-
-// Note: This returns an approximation
-MA_API ma_result m4a_decoder_get_length_in_pcm_frames(m4a_decoder *pM4a, ma_uint64 *pLength)
-{
-        if (pLength == NULL)
-        {
-                return MA_INVALID_ARGS;
-        }
-
-        *pLength = 0; // Safety.
-
-        if (pM4a == NULL || pM4a->format_context == NULL || pM4a->codec_context == NULL)
-        {
-                return MA_INVALID_ARGS;
-        }
-
-        AVStream *audio_stream = NULL;
-        for (unsigned int i = 0; i < pM4a->format_context->nb_streams; i++)
-        {
-                if (pM4a->format_context->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO)
-                {
-                        audio_stream = pM4a->format_context->streams[i];
-                        break;
-                }
-        }
-
-        if (audio_stream == NULL)
-        {
-                return MA_ERROR;
-        }
-
-        // Use duration and time base to calculate total number of frames
-        if (audio_stream->duration != AV_NOPTS_VALUE)
-        {
-                int64_t duration_ts = audio_stream->duration;
-                AVRational time_base = audio_stream->time_base;
-                AVRational target_time_base = {1, pM4a->codec_context->sample_rate};
-                *pLength = av_rescale_q(duration_ts, time_base, target_time_base);
                 return MA_SUCCESS;
         }
 
-        return MA_ERROR;
+        static ma_result file_on_seek(void *pUserData, ma_int64 offset, ma_seek_origin origin)
+        {
+                FILE *fp = (FILE *)pUserData;
+                int whence = (origin == ma_seek_origin_start) ? SEEK_SET : SEEK_CUR;
+                if (fseeko(fp, offset, whence) != 0)
+                {
+                        return MA_ERROR;
+                }
+                return MA_SUCCESS;
+        }
+
+        // static ma_result file_on_tell(void *pUserData, ma_int64 *pCursor)
+        // {
+        //         FILE *fp = (FILE *)pUserData;
+        //         long pos = ftell(fp);
+        //         if (pos < 0)
+        //         {
+        //                 return MA_ERROR;
+        //         }
+        //         if (pCursor)
+        //         {
+        //                 *pCursor = (ma_int64)pos;
+        //         }
+        //         return MA_SUCCESS;
+        // }
+
+        static int minimp4_read_callback(int64_t offset, void *buffer, size_t size, void *token)
+        {
+                m4a_decoder *pM4a = (m4a_decoder *)token;
+
+                // Cast int64_t to ma_int64 for onSeek
+                ma_int64 ma_offset = (ma_int64)offset;
+                if (file_on_seek(pM4a->file, ma_offset, ma_seek_origin_start) != MA_SUCCESS)
+                {
+                        return 1; // Error
+                }
+
+                size_t bytesRead = 0;
+                if (file_on_read(pM4a->file, buffer, size, &bytesRead) != MA_SUCCESS || bytesRead != size)
+                {
+                        return 1; // Error
+                }
+
+                return 0; // Success
+        }
+
+        int64_t minimp4_seek_callback(void *user_data, int64_t offset)
+        {
+                m4a_decoder *pM4a = (m4a_decoder *)user_data;
+                ma_result result = file_on_seek(pM4a->file, offset, ma_seek_origin_start);
+                if (result != MA_SUCCESS)
+                {
+                        return -1; // Signal error
+                }
+                return offset; // Return the new position if possible
+        }
+
+        static ma_result m4a_decoder_init_internal(const ma_decoding_backend_config *pConfig, m4a_decoder *pM4a)
+        {
+                if (pM4a == NULL)
+                {
+                        return MA_INVALID_ARGS;
+                }
+
+                MA_ZERO_OBJECT(pM4a);
+                pM4a->format = ma_format_f32;
+
+                if (pConfig != NULL && (pConfig->preferredFormat == ma_format_f32 || pConfig->preferredFormat == ma_format_s16))
+                {
+                        pM4a->format = pConfig->preferredFormat;
+                }
+
+                ma_data_source_config dataSourceConfig = ma_data_source_config_init();
+
+                dataSourceConfig.vtable = &g_m4a_decoder_ds_vtable;
+
+                ma_result result = ma_data_source_init(&dataSourceConfig, &pM4a->ds);
+                if (result != MA_SUCCESS)
+                {
+                        return result;
+                }
+
+                return MA_SUCCESS;
+        }
+
+        // Note: This isn't used by kew and is untested
+        MA_API ma_result m4a_decoder_init(
+            ma_read_proc onRead,
+            ma_seek_proc onSeek,
+            ma_tell_proc onTell,
+            void *pReadSeekTellUserData,
+            const ma_decoding_backend_config *pConfig,
+            const ma_allocation_callbacks *pAllocationCallbacks,
+            m4a_decoder *pM4a)
+        {
+                (void)pAllocationCallbacks;
+
+                if (pM4a == NULL || onRead == NULL || onSeek == NULL || onTell == NULL)
+                {
+                        return MA_INVALID_ARGS;
+                }
+
+                ma_result result = m4a_decoder_init_internal(pConfig, pM4a);
+                if (result != MA_SUCCESS)
+                {
+                        return result;
+                }
+
+                // Store the custom read, seek, and tell functions
+                pM4a->pReadSeekTellUserData = pReadSeekTellUserData;
+
+                // Get the size of the data source
+                ma_int64 currentPos = 0;
+                if (pM4a->onTell(pM4a->pReadSeekTellUserData, &currentPos) != MA_SUCCESS)
+                {
+                        return MA_ERROR;
+                }
+
+                if (pM4a->onSeek(pM4a->pReadSeekTellUserData, 0, ma_seek_origin_end) != MA_SUCCESS)
+                {
+                        return MA_ERROR;
+                }
+
+                ma_int64 fileSize = 0;
+                if (pM4a->onTell(pM4a->pReadSeekTellUserData, &fileSize) != MA_SUCCESS)
+                {
+                        return MA_ERROR;
+                }
+
+                // Seek back to original position
+                if (pM4a->onSeek(pM4a->pReadSeekTellUserData, currentPos, ma_seek_origin_start) != MA_SUCCESS)
+                {
+                        return MA_ERROR;
+                }
+
+                // Initialize minimp4 with custom read_callback
+                if (MP4D_open(&pM4a->mp4, minimp4_read_callback, pM4a, fileSize) != 0)
+                {
+                        return MA_ERROR;
+                }
+
+                // Find the audio track
+                pM4a->audio_track_index = -1;
+                for (unsigned int i = 0; i < pM4a->mp4.track_count; i++)
+                {
+                        MP4D_track_t *track = &pM4a->mp4.track[i];
+                        if (track->handler_type == MP4D_HANDLER_TYPE_SOUN)
+                        {
+                                pM4a->audio_track_index = i;
+                                pM4a->track = track;
+                                break;
+                        }
+                }
+
+                if (pM4a->audio_track_index == -1)
+                {
+                        // No audio track found
+                        MP4D_close(&pM4a->mp4);
+                        return MA_ERROR;
+                }
+
+                pM4a->current_sample = 0;
+                pM4a->total_samples = pM4a->track->sample_count;
+
+                // Initialize faad2 decoder
+                pM4a->hDecoder = NeAACDecOpen();
+
+                // Extract the decoder configuration
+                const uint8_t *decoder_config = pM4a->track->dsi;
+                uint32_t decoder_config_len = pM4a->track->dsi_bytes;
+
+                unsigned long sampleRate;
+                unsigned char channels;
+
+                if (NeAACDecInit2(pM4a->hDecoder, (unsigned char *)decoder_config, decoder_config_len, &sampleRate, &channels) < 0)
+                {
+                        // Error initializing decoder
+                        NeAACDecClose(pM4a->hDecoder);
+                        MP4D_close(&pM4a->mp4);
+                        return MA_ERROR;
+                }
+
+                // Configure output format
+                NeAACDecConfigurationPtr config = NeAACDecGetCurrentConfiguration(pM4a->hDecoder);
+                if (pM4a->format == ma_format_s16)
+                {
+                        config->outputFormat = FAAD_FMT_16BIT;
+                        pM4a->sampleSize = sizeof(int16_t);
+                        pM4a->bitDepth = 16;
+                }
+                else if (pM4a->format == ma_format_f32)
+                {
+                        config->outputFormat = FAAD_FMT_FLOAT;
+                        pM4a->sampleSize = sizeof(float);
+                        pM4a->bitDepth = 32;
+                }
+                else
+                {
+                        // Unsupported format
+                        NeAACDecClose(pM4a->hDecoder);
+                        MP4D_close(&pM4a->mp4);
+                        return MA_ERROR;
+                }
+                NeAACDecSetConfiguration(pM4a->hDecoder, config);
+
+                // Initialize other fields
+                leftoverSampleCount = 0;
+                pM4a->cursor = 0;
+
+                return MA_SUCCESS;
+        }
+
+        MA_API ma_result m4a_decoder_init_file(
+            const char *pFilePath,
+            const ma_decoding_backend_config *pConfig,
+            const ma_allocation_callbacks *pAllocationCallbacks,
+            m4a_decoder *pM4a)
+        {
+                (void)pAllocationCallbacks;
+
+                if (pFilePath == NULL || pM4a == NULL)
+                {
+                        return MA_INVALID_ARGS;
+                }
+
+                ma_result result = m4a_decoder_init_internal(pConfig, pM4a);
+                if (result != MA_SUCCESS)
+                {
+                        return result;
+                }
+
+                FILE *fp = fopen(pFilePath, "rb");
+                if (fp == NULL)
+                {
+                        return MA_INVALID_FILE;
+                }
+
+                // Get the file size
+                if (fseeko(fp, 0, SEEK_END) != 0)
+                {
+                        fclose(fp);
+                        return MA_ERROR;
+                }
+
+                ma_int64 fileSize = ftello(fp);
+                if (fileSize < 0)
+                {
+                        fclose(fp);
+                        return MA_ERROR;
+                }
+
+                if (fseeko(fp, 0, SEEK_SET) != 0)
+                {
+                        fclose(fp);
+                        return MA_ERROR;
+                }
+
+                // Store the FILE pointer in the decoder struct
+                pM4a->file = fp;
+
+                // Initialize minimp4 with the custom read callback, using mp4 as a struct member
+                if (MP4D_open(&pM4a->mp4, minimp4_read_callback, pM4a, fileSize) != 1)
+                {
+                        fclose(fp);
+                        return MA_ERROR;
+                }
+
+                // Find the audio track
+                pM4a->audio_track_index = -1;
+                for (unsigned int i = 0; i < pM4a->mp4.track_count; i++)
+                {
+                        MP4D_track_t *track = &pM4a->mp4.track[i];
+                        if (track->handler_type == MP4D_HANDLER_TYPE_SOUN)
+                        {
+                                pM4a->audio_track_index = i;
+                                pM4a->track = track;
+                                break;
+                        }
+                }
+
+                if (pM4a->audio_track_index == -1)
+                {
+                        // No audio track found
+                        MP4D_close(&pM4a->mp4);
+                        fclose(fp);
+                        return MA_ERROR;
+                }
+
+                pM4a->current_sample = 0;
+                pM4a->total_samples = pM4a->track->sample_count;
+
+                // Initialize faad2 decoder
+                pM4a->hDecoder = NeAACDecOpen();
+
+                // Extract the decoder configuration
+                const uint8_t *decoder_config = pM4a->track->dsi;
+                uint32_t decoder_config_len = pM4a->track->dsi_bytes;
+
+                unsigned long sampleRate;
+                unsigned char channels;
+
+                if (NeAACDecInit2(pM4a->hDecoder, (unsigned char *)decoder_config, decoder_config_len, &sampleRate, &channels) < 0)
+                {
+                        // Error initializing decoder
+                        NeAACDecClose(pM4a->hDecoder);
+                        MP4D_close(&pM4a->mp4);
+                        fclose(fp);
+                        return MA_ERROR;
+                }
+
+                pM4a->sampleRate = (ma_uint32)sampleRate;
+                pM4a->channels = (ma_uint32)channels;
+
+                // Configure output format
+                NeAACDecConfigurationPtr config_ptr = NeAACDecGetCurrentConfiguration(pM4a->hDecoder);
+                if (pM4a->format == ma_format_s16)
+                {
+                        config_ptr->outputFormat = FAAD_FMT_16BIT;
+                        pM4a->sampleSize = sizeof(int16_t);
+                        pM4a->bitDepth = 16;
+                }
+                else if (pM4a->format == ma_format_f32)
+                {
+                        config_ptr->outputFormat = FAAD_FMT_FLOAT;
+                        pM4a->sampleSize = sizeof(float);
+                        pM4a->bitDepth = 32;
+                }
+                else
+                {
+                        // Unsupported format
+                        NeAACDecClose(pM4a->hDecoder);
+                        MP4D_close(&pM4a->mp4);
+                        fclose(fp);
+                        return MA_ERROR;
+                }
+                NeAACDecSetConfiguration(pM4a->hDecoder, config_ptr);
+
+                // Initialize other fields
+                leftoverSampleCount = 0;
+                pM4a->cursor = 0;
+
+                return MA_SUCCESS;
+        }
+
+        MA_API void m4a_decoder_uninit(m4a_decoder *pM4a, const ma_allocation_callbacks *pAllocationCallbacks)
+        {
+                (void)pAllocationCallbacks;
+
+                if (pM4a == NULL)
+                {
+                        return;
+                }
+
+                // Close faad2 decoder
+                if (pM4a->hDecoder)
+                {
+                        NeAACDecClose(pM4a->hDecoder);
+                        pM4a->hDecoder = NULL;
+                }
+
+                // Close the minimp4 demuxer (no need to free `mp4` since it's not dynamically allocated)
+                MP4D_close(&pM4a->mp4);
+
+                // Close the file
+                if (pM4a->file)
+                {
+                        fclose(pM4a->file);
+                        pM4a->file = NULL;
+                }
+        }
+
+        MA_API ma_result m4a_decoder_read_pcm_frames(
+            m4a_decoder *pM4a,
+            void *pFramesOut,
+            ma_uint64 frameCount,
+            ma_uint64 *pFramesRead)
+        {
+                if (pM4a == NULL || pFramesOut == NULL || frameCount == 0)
+                {
+                        return MA_INVALID_ARGS;
+                }
+
+                ma_result result = MA_SUCCESS;
+                ma_uint32 channels = pM4a->channels;
+                ma_uint32 sampleSize = pM4a->sampleSize;
+                ma_uint64 totalFramesProcessed = 0;
+
+                // Handle any leftover samples from previous call using the global/static leftover buffer
+                if (leftoverSampleCount > 0)
+                {
+                        ma_uint64 leftoverToProcess = (leftoverSampleCount < frameCount) ? leftoverSampleCount : frameCount;
+                        ma_uint64 leftoverBytes = leftoverToProcess * channels * sampleSize;
+
+                        memcpy(pFramesOut, leftoverBuffer, leftoverBytes);
+                        totalFramesProcessed += leftoverToProcess;
+
+                        // Shift the leftover buffer
+                        ma_uint64 samplesLeft = leftoverSampleCount - leftoverToProcess;
+                        if (samplesLeft > 0)
+                        {
+                                memmove(leftoverBuffer, leftoverBuffer + leftoverBytes, samplesLeft * channels * sampleSize);
+                        }
+                        leftoverSampleCount = samplesLeft;
+                }
+
+                while (totalFramesProcessed < frameCount)
+                {
+                        if (pM4a->current_sample >= pM4a->total_samples)
+                        {
+                                result = MA_AT_END;
+                                break; // No more samples
+                        }
+
+                        unsigned int frame_bytes = 0;
+                        unsigned int timestamp = 0;
+                        unsigned int duration = 0;
+
+                        // Get the sample offset and size using minimp4
+                        ma_int64 sample_offset = MP4D_frame_offset(
+                            &pM4a->mp4,
+                            pM4a->audio_track_index,
+                            pM4a->current_sample,
+                            &frame_bytes,
+                            &timestamp,
+                            &duration);
+
+                        if (sample_offset == (ma_int64)(MP4D_file_offset_t)-1 || frame_bytes == 0)
+                        {
+                                // Error getting sample info
+                                result = MA_ERROR;
+                                break;
+                        }
+
+                        // Allocate buffer for the sample data
+                        uint8_t *sample_data = (uint8_t *)malloc(frame_bytes);
+                        if (sample_data == NULL)
+                        {
+                                result = MA_OUT_OF_MEMORY;
+                                break;
+                        }
+
+                        // Read the sample data directly from the file
+                        size_t bytesRead = 0;
+                        if (file_on_read(pM4a->file, sample_data, frame_bytes, &bytesRead) != MA_SUCCESS || bytesRead != frame_bytes)
+                        {
+                                free(sample_data);
+                                result = MA_ERROR;
+                                break;
+                        }
+
+                        pM4a->current_sample++;
+
+                        // Decode the AAC frame using faad2
+                        void *decodedData = NeAACDecDecode(pM4a->hDecoder, &(pM4a->frameInfo), sample_data, frame_bytes);
+
+                        free(sample_data); // Free the sample data buffer
+
+                        if (pM4a->frameInfo.error > 0)
+                        {
+                                // Error in decoding, skip to the next frame.
+                                continue;
+                        }
+
+                        unsigned long samplesDecoded = pM4a->frameInfo.samples; // Total samples decoded (channels * frames)
+                        ma_uint64 framesDecoded = samplesDecoded / channels;
+
+                        // Calculate how many frames we can process in this call
+                        ma_uint64 framesNeeded = frameCount - totalFramesProcessed;
+                        ma_uint64 framesToCopy = (framesDecoded < framesNeeded) ? framesDecoded : framesNeeded;
+                        ma_uint64 bytesToCopy = framesToCopy * channels * sampleSize;
+
+                        memcpy((uint8_t *)pFramesOut + totalFramesProcessed * channels * sampleSize, decodedData, bytesToCopy);
+                        totalFramesProcessed += framesToCopy;
+
+                        // Handle leftover frames using the global/static leftover buffer
+                        if (framesToCopy < framesDecoded)
+                        {
+                                // There are leftover frames
+                                leftoverSampleCount = framesDecoded - framesToCopy;
+                                ma_uint64 leftoverBytes = leftoverSampleCount * channels * sampleSize;
+
+                                if (leftoverBytes > sizeof(leftoverBuffer))
+                                {
+                                        // Safety check to avoid overflow in the buffer.
+                                        leftoverSampleCount = sizeof(leftoverBuffer) / (channels * sampleSize);
+                                        leftoverBytes = leftoverSampleCount * channels * sampleSize;
+                                }
+
+                                memcpy(leftoverBuffer, (uint8_t *)decodedData + bytesToCopy, leftoverBytes);
+                        }
+                        else
+                        {
+                                leftoverSampleCount = 0;
+                        }
+                }
+
+                pM4a->cursor += totalFramesProcessed;
+
+                if (pFramesRead != NULL)
+                {
+                        *pFramesRead = totalFramesProcessed;
+                }
+
+                return (totalFramesProcessed > 0) ? MA_SUCCESS : result;
+        }
+
+        MA_API ma_result m4a_decoder_seek_to_pcm_frame(m4a_decoder *pM4a, ma_uint64 frameIndex)
+        {
+                if (pM4a == NULL || pM4a->track == NULL || pM4a->hDecoder == NULL)
+                {
+                        return MA_INVALID_ARGS;
+                }
+
+                // Ensure the frameIndex does not exceed the total number of samples.
+                if (frameIndex >= pM4a->total_samples)
+                {
+                        return MA_INVALID_ARGS;
+                }
+
+                // Find the sample in the track using minimp4.
+                // Convert the frame index to the sample index, as each frame corresponds to one sample in this context.
+                pM4a->current_sample = (uint32_t)frameIndex;
+
+                // Calculate the offset of the sample in the file using MP4D_frame_offset.
+                unsigned int frame_bytes = 0;
+                unsigned int timestamp = 0;
+                unsigned int duration = 0;
+
+                ma_int64 sample_offset = MP4D_frame_offset(
+                    &pM4a->mp4,
+                    pM4a->audio_track_index,
+                    pM4a->current_sample,
+                    &frame_bytes,
+                    &timestamp,
+                    &duration);
+
+                if (sample_offset == (ma_int64)(MP4D_file_offset_t)-1 || frame_bytes == 0)
+                {
+                        return MA_ERROR;
+                }
+
+                // Seek to the calculated sample offset in the file.
+                if (file_on_seek(pM4a->file, sample_offset, ma_seek_origin_start) != MA_SUCCESS)
+                {
+                        return MA_ERROR;
+                }
+
+                // After seeking, reset the faad2 decoder state to start decoding from the new frame.
+                NeAACDecPostSeekReset(pM4a->hDecoder, (long)pM4a->current_sample);
+
+                // Clear leftover samples since we've moved to a new position.
+                leftoverSampleCount = 0;
+
+                // Update the decoder's cursor to the new frame position.
+                pM4a->cursor = frameIndex;
+
+                return MA_SUCCESS;
+        }
+
+        MA_API ma_result m4a_decoder_get_data_format(
+            m4a_decoder *pM4a,
+            ma_format *pFormat,
+            ma_uint32 *pChannels,
+            ma_uint32 *pSampleRate,
+            ma_channel *pChannelMap,
+            size_t channelMapCap)
+        {
+                if (pFormat != NULL)
+                {
+                        *pFormat = ma_format_unknown;
+                }
+                if (pChannels != NULL)
+                {
+                        *pChannels = 0;
+                }
+                if (pSampleRate != NULL)
+                {
+                        *pSampleRate = 0;
+                }
+                if (pChannelMap != NULL)
+                {
+                        MA_ZERO_MEMORY(pChannelMap, sizeof(*pChannelMap) * channelMapCap);
+                }
+
+                if (pM4a == NULL || pM4a->track == NULL)
+                {
+                        return MA_INVALID_OPERATION;
+                }
+
+                // Set the format based on the faad2 output configuration
+                if (pFormat != NULL)
+                {
+                        if (pM4a->format == ma_format_s16)
+                        {
+                                *pFormat = ma_format_s16;
+                        }
+                        else if (pM4a->format == ma_format_f32)
+                        {
+                                *pFormat = ma_format_f32;
+                        }
+                        else
+                        {
+                                return MA_INVALID_OPERATION;
+                        }
+                }
+
+                // Set the channel count from faad2
+                if (pChannels != NULL)
+                {
+                        *pChannels = pM4a->channels;
+                }
+
+                // Set the sample rate from the faad2 decoder configuration
+                if (pSampleRate != NULL)
+                {
+                        *pSampleRate = pM4a->sampleRate;
+                }
+
+                // Set a standard channel map if requested
+                if (pChannelMap != NULL)
+                {
+                        ma_channel_map_init_standard(ma_standard_channel_map_microsoft, pChannelMap, channelMapCap, *pChannels);
+                }
+
+                return MA_SUCCESS;
+        }
+
+        MA_API ma_result m4a_decoder_get_cursor_in_pcm_frames(m4a_decoder *pM4a, ma_uint64 *pCursor)
+        {
+                if (pCursor == NULL)
+                {
+                        return MA_INVALID_ARGS;
+                }
+
+                *pCursor = 0; /* Safety. */
+
+                if (pM4a == NULL)
+                {
+                        return MA_INVALID_ARGS;
+                }
+
+                *pCursor = pM4a->cursor;
+
+                return MA_SUCCESS;
+        }
+
+        // Note: This returns an approximation
+        MA_API ma_result m4a_decoder_get_length_in_pcm_frames(m4a_decoder *pM4a, ma_uint64 *pLength)
+        {
+                if (pLength == NULL)
+                {
+                        return MA_INVALID_ARGS;
+                }
+
+                *pLength = 0; // Safety.
+
+                if (pM4a == NULL || pM4a->track == NULL)
+                {
+                        return MA_INVALID_ARGS;
+                }
+
+                // Calculate the length in PCM frames using the total number of samples and the sample rate.
+                if (pM4a->total_samples > 0 && pM4a->sampleRate > 0)
+                {
+                        *pLength = (ma_uint64)pM4a->total_samples;
+                        return MA_SUCCESS;
+                }
+
+                return MA_ERROR;
+        }
+#endif
+
+#ifdef __cplusplus
 }
 #endif
 #endif

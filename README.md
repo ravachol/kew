@@ -52,14 +52,15 @@ https://github.com/ravachol/kew/releases/tag/stable-musl
 
 kew dependencies are:
 
-* FFmpeg
 * FFTW
 * Chafa
 * libopus
 * opusfile
 * libvorbis
+* TagLib
+* faad2
 * pkg-config
-* glib2.0 and AVFormat. These should be installed with the others, if not install them.
+* glib2.0
 * libnotify (optional)
 
 Install these dependencies using your distro's package manager. For instance:
@@ -67,59 +68,67 @@ Install these dependencies using your distro's package manager. For instance:
 #### For Debian/Ubuntu:
 
 ```bash
-sudo apt install -y pkg-config ffmpeg libfftw3-dev libopus-dev libopusfile-dev libvorbis-dev git gcc make libchafa-dev libavformat-dev libnotify-dev
-
+sudo apt install -y pkg-config faad libfaad-dev libtag1-dev libfftw3-dev libopus-dev libopusfile-dev libvorbis-dev git gcc make libchafa-dev libnotify-dev
 ```
 
 #### For Arch Linux:
 
 ```bash
-sudo pacman -Syu --noconfirm --needed pkg-config ffmpeg fftw git gcc make chafa glib2 opus opusfile libvorbis libnotify
+sudo pacman -Syu --noconfirm --needed pkg-config faad2 taglib fftw git gcc make chafa glib2 opus opusfile libvorbis libnotify
 ```
 
 #### For macOS:
 
 ```bash
-brew install gettext ffmpeg chafa fftw opus opusfile libvorbis glib pkg-config make git
+brew install gettext faad2 taglib chafa fftw opus opusfile libvorbis glib pkg-config make git
 ```
 Notes for mac users: 
 1) A sixel-capable terminal like kitty or WezTerm is recommended for macOS. 
 2) The visualizer and album colors are disabled by default on macOS, because the default terminal doesn't handle them too well. To enable press v and i respectively.
 
 #### For Fedora:
+Requires RPM-fusion to be enabled.
 
 ```bash
-dnf install -y pkg-config ffmpeg-free-devel fftw-devel opus-devel opusfile-devel libvorbis-devel git gcc make chafa-devel libavformat-free-devel libnotify-devel libatomic
+dnf install -y pkg-config faad2-devel taglib-devel fftw-devel opus-devel opusfile-devel libvorbis-devel git gcc make chafa-devel libnotify-devel libatomic
 ```
 
 #### For OpenSUSE:
+Requires the Packman repository to be added.
 
 ```bash
-sudo zypper install -y pkg-config ffmpeg fftw-devel opus-devel opusfile-devel libvorbis-devel git chafa-devel gcc make libavformat-devel libnotify-devel
+sudo zypper install -y pkg-config faad2 taglib-devel fftw-devel opus-devel opusfile-devel libvorbis-devel git chafa-devel gcc make libnotify-devel
 ```
 
 #### For CentOS/RHEL:
+Requires RPM-fusion to be enabled.
 
 ```bash
-sudo yum install -y pkgconfig ffmpeg fftw-devel opus-devel opusfile-devel libvorbis-devel git gcc make chafa-devel libavformat-devel libnotify-devel
+sudo yum install -y pkgconfig faad2-devel taglib-devel fftw-devel opus-devel opusfile-devel libvorbis-devel git gcc make chafa-devel libnotify-devel
 ```
 
 #### For Solus
 
 ```bash
-sudo eopkg install -y pkg-config ffmpeg fftw-devel opus-devel opusfile-devel libvorbis-devel git gcc make chafa-devel libavformat-devel libnotify-devel
+sudo eopkg install -y pkg-config faad2-devel taglib-devel fftw-devel opus-devel opusfile-devel libvorbis-devel git gcc make chafa-devel libnotify-devel
 ```
 
 #### For Guix
 
 ```bash
-guix install pkg-config ffmpeg fftw git gcc make chafa libavformat opus opusfile libvorbis libnotify
+guix install pkg-config faad2 taglib fftw git gcc make chafa opus opusfile libvorbis libnotify
 ```
 
 #### For Void Linux
 
 ```bash
-sudo xbps-install -y pkg-config ffmpeg fftw git gcc make chafa libavformat opus opusfile libvorbis libnotify-devel
+sudo xbps-install -y pkg-config faad2 taglib fftw git gcc make chafa opus opusfile libvorbis libnotify-devel
+```
+
+#### For Alpine Linux
+
+```bash
+sudo apk add pkgconfig faad2 faad2-dev taglib-dev fftw-dev opus opusfile libvorbis-dev git gcc make chafa-dev libnotify-dev
 ```
 
 Notice that for some packages not only the library needs to be installed, but also development packages, for instance libopus-dev or opus-devel.
@@ -255,7 +264,9 @@ kew makes use of the following great open source projects:
 
 Chafa by  Petter Jansson - https://hpjansson.org/chafa/
 
-FFmpeg by FFmpeg team - https://ffmpeg.org/
+TagLib by TagLib Team - https://taglib.org/
+
+faad2 by fabian_deb, knik, menno - https://sourceforge.net/projects/faac/
 
 FFTW by Matteo Frigo and Steven G. Johnson - https://www.fftw.org/
 
