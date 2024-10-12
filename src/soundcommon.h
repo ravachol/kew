@@ -372,6 +372,8 @@ gint64 getLengthInMicroSec(double duration);
 
 int displaySongNotification(const char *artist, const char *title, const char *cover);
 
+int displaySongNotificationApple(const char *artist, const char *title, const char *cover);
+
 int getCurrentVolume(void);
 
 void setVolume(int volume);
