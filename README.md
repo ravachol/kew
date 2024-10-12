@@ -42,12 +42,6 @@ brew install kew             (Linux Only, No macOS yet*)
 ```
 *macOS is supported if you build manually. See below.
 
-### Standalone AppImage for musl systems
-
-If you are running a musl-based system, for instance Alpine Linux, you can download a standalone appImage of kew:
-
-https://github.com/ravachol/kew/releases/tag/stable-musl
-
 ### Building the project manually
 
 kew dependencies are:
@@ -147,14 +141,6 @@ make -ij4
 ```bash
 sudo make install
 ```
-
-A sixel (or equivalent) capable terminal is recommended, like Konsole or kitty, to display images properly.
-
-For a complete list of capable terminals, see this page: [Sixels in Terminal](https://www.arewesixelyet.com/).
-
-#### LibNotify is (should be) optional
-By default, the build system will automatically detect if `libnotify` is available and include it and enable notifications if found. 
-
 ### Uninstalling
 
 If you installed kew manually, simply run:
@@ -162,6 +148,39 @@ If you installed kew manually, simply run:
 ```bash
 sudo make uninstall
 ```
+
+#### LibNotify and Faad2 are optional
+
+By default, the build system will automatically detect if `libnotify` and `faad2` are available and include them if found.
+
+Libnotify provides desktop notifications. 
+
+Disable with:
+
+ ```bash
+ make -ij4 USE_LIBNOTIFY=0
+ ```
+
+Faad2 provides AAC decoding.
+
+Disable with:
+
+ ```bash
+make -ij4 USE_FAAD=0
+ ```
+
+### Standalone AppImage for musl systems
+
+If you are running a musl-based system, for instance Alpine Linux, you can download a standalone appImage of kew:
+
+https://github.com/ravachol/kew/releases/tag/stable-musl
+
+### Terminals
+
+A sixel (or equivalent) capable terminal is recommended, like Konsole or kitty, to display images properly.
+
+For a complete list of capable terminals, see this page: [Sixels in Terminal](https://www.arewesixelyet.com/).
+
 
 ## Usage
 

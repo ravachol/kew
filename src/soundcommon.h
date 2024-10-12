@@ -9,7 +9,10 @@
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <sys/wait.h>
+#ifdef USE_FAAD
 #include "m4a.h"
+#endif
+
 #include <stdatomic.h>
 #include <stdbool.h>
 #include <stdlib.h>
@@ -253,9 +256,11 @@ ma_libopus *getCurrentOpusDecoder();
 
 void resetOpusDecoders();
 
+#ifdef USE_FAAD
 m4a_decoder *getCurrentM4aDecoder();
 
 m4a_decoder *getFirstM4aDecoder();
+#endif
 
 ma_libopus *getFirstOpusDecoder();
 
