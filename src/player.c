@@ -56,7 +56,7 @@ int indent = 0;
 char *tagsPath;
 double totalDurationSeconds = 0.0;
 
-PixelData lastRowColor = {90, 90, 90};
+PixelData lastRowColor = {120, 120, 120};
 TagSettings metadata = {};
 
 double pauseSeconds = 0.0;
