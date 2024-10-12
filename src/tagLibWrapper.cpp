@@ -13,7 +13,6 @@
 #include <taglib/tbytevector.h>
 #include <taglib/tpropertymap.h>
 #include <taglib/tstringlist.h>
-#include <taglib/tvariant.h>
 #include <taglib/fileref.h>
 #include <taglib/tag.h>
 #include <cstring>
@@ -146,7 +145,7 @@ extern "C"
                         // Copy the year as date
                         snprintf(tag_settings->date, sizeof(tag_settings->date), "%d", tag->year());
                 }
-                
+
                 // Extract audio properties for duration.
                 if (f.audioProperties())
                 {
