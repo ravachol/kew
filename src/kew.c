@@ -323,6 +323,9 @@ void notifySongSwitch(SongData *currentSongData)
         {
 #ifdef USE_LIBNOTIFY
                 displaySongNotification(currentSongData->metadata->artist, currentSongData->metadata->title, currentSongData->coverArtPath);
+
+#elif __APPLE__
+                displaySongNotificationApple(currentSongData->metadata->artist, currentSongData->metadata->title, currentSongData->coverArtPath);
 #endif
 
                 notifyMPRISSwitch(currentSongData);
@@ -962,7 +965,9 @@ void cleanupOnExit()
         resetDecoders();
         resetVorbisDecoders();
         resetOpusDecoders();
+#ifdef USE_FAAD        
         resetM4aDecoders();
+#endif        
         if (isContextInitialized)
         {
                 cleanupPlaybackDevice();

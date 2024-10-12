@@ -69,6 +69,8 @@ ma_result initFirstDatasource(AudioData *pAudioData, UserData *pUserData)
         }
         else if (endsWith(filePath, "m4a") || endsWith(filePath, "aac"))
         {
+#ifdef USE_FAAD
+
                 int result = prepareNextM4aDecoder(filePath);
                 if (result < 0)
                         return -1;
@@ -79,6 +81,9 @@ ma_result initFirstDatasource(AudioData *pAudioData, UserData *pUserData)
                 ma_data_source_base *base = (ma_data_source_base *)first;
                 base->pCurrent = first;
                 first->pReadSeekTellUserData = pAudioData;
+#else
+                return MA_ERROR;
+#endif
         }
         else
         {
@@ -117,7 +122,7 @@ int createDevice(UserData *userData, ma_device *device, ma_context *context, ma_
                 return -1;
         emitStringPropertyChanged("PlaybackStatus", "Playing");
 
-        return 0;        
+        return 0;
 }
 
 int builtin_createAudioDevice(UserData *userData, ma_device *device, ma_context *context, ma_data_source_vtable *vtable)
@@ -161,9 +166,10 @@ int vorbis_createAudioDevice(UserData *userData, ma_device *device, ma_context *
         }
         emitStringPropertyChanged("PlaybackStatus", "Playing");
 
-        return 0;        
+        return 0;
 }
 
+#ifdef USE_FAAD
 int m4a_createAudioDevice(UserData *userData, ma_device *device, ma_context *context)
 {
         ma_result result;
@@ -173,7 +179,7 @@ int m4a_createAudioDevice(UserData *userData, ma_device *device, ma_context *con
         {
                 printf("\n\nFailed to initialize m4a file.\n");
                 return -1;
-        }        
+        }
         m4a_decoder *decoder = getFirstM4aDecoder();
         ma_device_config deviceConfig = ma_device_config_init(ma_device_type_playback);
 
@@ -201,8 +207,9 @@ int m4a_createAudioDevice(UserData *userData, ma_device *device, ma_context *con
         }
         emitStringPropertyChanged("PlaybackStatus", "Playing");
 
-        return 0;        
+        return 0;
 }
+#endif
 
 int opus_createAudioDevice(UserData *userData, ma_device *device, ma_context *context)
 {
@@ -213,7 +220,7 @@ int opus_createAudioDevice(UserData *userData, ma_device *device, ma_context *co
         {
                 printf("\n\nFailed to initialize opus file.\n");
                 return -1;
-        }        
+        }
         ma_libopus *opus = getFirstOpusDecoder();
 
         ma_device_config deviceConfig = ma_device_config_init(ma_device_type_playback);
@@ -279,7 +286,7 @@ int switchAudioImplementation()
         }
         else
         {
-                
+
                 if (!validFilePath(userData.currentSongData->filePath))
                 {
                         if (!tryAgain)
@@ -326,7 +333,9 @@ int switchAudioImplementation()
 
                         resetDecoders();
                         resetVorbisDecoders();
+#ifdef USE_FAAD                        
                         resetM4aDecoders();
+#endif                        
                         resetOpusDecoders();
                         resetAudioBuffer();
 
@@ -338,7 +347,7 @@ int switchAudioImplementation()
                                 setImplSwitchNotReached();
                                 setEOFReached();
                                 free(filePath);
-                                pthread_mutex_unlock(&dataSourceMutex);                                
+                                pthread_mutex_unlock(&dataSourceMutex);
                                 return -1;
                         }
 
@@ -381,7 +390,9 @@ int switchAudioImplementation()
 
                         resetDecoders();
                         resetVorbisDecoders();
+#ifdef USE_FAAD                        
                         resetM4aDecoders();
+#endif                        
                         resetOpusDecoders();
                         resetAudioBuffer();
 
@@ -393,7 +404,7 @@ int switchAudioImplementation()
                                 setImplSwitchNotReached();
                                 setEOFReached();
                                 free(filePath);
-                                pthread_mutex_unlock(&dataSourceMutex);                                
+                                pthread_mutex_unlock(&dataSourceMutex);
                                 return -1;
                         }
 
@@ -436,7 +447,9 @@ int switchAudioImplementation()
 
                         resetDecoders();
                         resetVorbisDecoders();
+#ifdef USE_FAD                        
                         resetM4aDecoders();
+#endif                        
                         resetOpusDecoders();
                         resetAudioBuffer();
 
@@ -448,7 +461,7 @@ int switchAudioImplementation()
                                 setImplSwitchNotReached();
                                 setEOFReached();
                                 free(filePath);
-                                pthread_mutex_unlock(&dataSourceMutex);                                
+                                pthread_mutex_unlock(&dataSourceMutex);
                                 return -1;
                         }
 
@@ -459,6 +472,7 @@ int switchAudioImplementation()
         }
         else if (endsWith(filePath, "m4a") || endsWith(filePath, "aac"))
         {
+#ifdef USE_FAAD
                 ma_uint32 sampleRate;
                 ma_uint32 channels;
                 ma_format format;
@@ -503,7 +517,7 @@ int switchAudioImplementation()
                                 setImplSwitchNotReached();
                                 setEOFReached();
                                 free(filePath);
-                                pthread_mutex_unlock(&dataSourceMutex);                                
+                                pthread_mutex_unlock(&dataSourceMutex);
                                 return -1;
                         }
 
@@ -511,6 +525,14 @@ int switchAudioImplementation()
 
                         setImplSwitchNotReached();
                 }
+#else
+                setCurrentImplementationType(NONE);
+                setImplSwitchNotReached();
+                setEOFReached();
+                free(filePath);
+                pthread_mutex_unlock(&dataSourceMutex);
+                return -1;
+#endif
         }
         else
         {
@@ -548,6 +570,8 @@ int createAudioDevice(UserData *userData)
                 {
 #ifdef USE_LIBNOTIFY
                         displaySongNotification(currentSongData->metadata->artist, currentSongData->metadata->title, currentSongData->coverArtPath);
+#elif __APPLE__
+                        displaySongNotificationApple(currentSongData->metadata->artist, currentSongData->metadata->title, currentSongData->coverArtPath);                        
 #endif
 
                         gint64 length = getLengthInMicroSec(currentSongData->duration);

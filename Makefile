@@ -4,6 +4,8 @@ PKG_CONFIG ?= pkg-config
 
 # To disable libnotify, run:
 # make USE_LIBNOTIFY=0
+# To disable faad2, run:
+# make USE_FAAD=0
 
 # Detect system and architecture
 UNAME_S := $(shell uname -s)
@@ -36,6 +38,17 @@ endif
 
 PKG_CONFIG_PATH ?= $(PKG_CONFIG_PATH):/usr/local/lib/pkgconfig:/usr/lib/pkgconfig
 
+# Default USE_FAAD to auto-detect if not set by user
+ifeq ($(origin USE_FAAD), undefined)
+  USE_FAAD = $(shell $(PKG_CONFIG) --exists faad && echo 1 || echo 0)
+  ifeq ($(USE_FAAD), 0)
+    # If pkg-config fails, try to find libfaad dynamically in common paths
+    USE_FAAD = $(shell [ -f /usr/lib/libfaad.so ] || [ -f /usr/local/lib/libfaad.so ] || \
+                       [ -f /opt/local/lib/libfaad.so ] || [ -f /opt/homebrew/lib/libfaad.dylib ] || \
+                       [ -f /usr/local/lib/libfaad.dylib ] && echo 1 || echo 0)
+  endif
+endif
+
 CFLAGS = -I/usr/include -I/usr/lib -Iinclude/minimp4 -I/usr/include/chafa -I/usr/lib/chafa/include -I/usr/include/ogg -I/usr/include/opus -I/usr/include/stb -Iinclude/imgtotxt/ext -Iinclude/imgtotxt -I/usr/include/ffmpeg -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -Iinclude/miniaudio -I/usr/include/gdk-pixbuf-2.0 -O2 $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) $(PKG_CONFIG) --cflags gio-2.0 chafa fftw3f opus opusfile vorbis glib-2.0)
 CFLAGS += $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) $(PKG_CONFIG) --cflags taglib)
 CFLAGS += -fstack-protector-strong -Wformat -Werror=format-security -fPIE -fstack-protector -fstack-protector-strong -D_FORTIFY_SOURCE=2
@@ -43,7 +56,7 @@ CFLAGS += -Wall -Wextra -Wpointer-arith -flto
 
 CXXFLAGS = -std=c++11 $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) $(PKG_CONFIG) --cflags taglib)
 
-LIBS = -lfaad -L/usr/lib -lpthread -pthread -lm -lglib-2.0 $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) $(PKG_CONFIG) --libs gio-2.0 chafa fftw3f opus opusfile vorbis vorbisfile glib-2.0)
+LIBS = -L/usr/lib -lpthread -pthread -lm -lglib-2.0 $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) $(PKG_CONFIG) --libs gio-2.0 chafa fftw3f opus opusfile vorbis vorbisfile glib-2.0)
 LIBS += $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) $(PKG_CONFIG) --libs taglib)
 LIBS += -lstdc++
 
@@ -55,14 +68,21 @@ endif
 
 # Conditionally add libnotify if USE_LIBNOTIFY is enabled
 ifeq ($(USE_LIBNOTIFY), 1)
-  CFLAGS += $(shell $(PKG_CONFIG) --cflags libnotify)
+  CFLAGS += $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) $(PKG_CONFIG) --cflags libnotify)
   LIBS += -lnotify
   DEFINES += -DUSE_LIBNOTIFY
+endif
+
+# Conditionally add faad2 support if USE_FAAD is enabled
+ifeq ($(USE_FAAD), 1)
+  LIBS += -lfaad
+  DEFINES += -DUSE_FAAD
 endif
 
 ifeq ($(origin CC),default) 
         CC := gcc 
 endif
+
 ifneq ($(findstring gcc,$(CC)),) 
     ifeq ($(UNAME_S), Linux)
         LIBS += -latomic
@@ -96,7 +116,7 @@ $(OBJDIR)/write_ascii.o: include/imgtotxt/write_ascii.c Makefile | $(OBJDIR)
 $(OBJDIR):
 	mkdir -p $(OBJDIR)
 
-# Link all object files together, including the C++ wrapper
+# Link all objects together
 kew: $(OBJDIR)/write_ascii.o $(OBJS) $(WRAPPER_OBJ) Makefile
 	$(CC) -o kew $(OBJDIR)/write_ascii.o $(OBJS) $(WRAPPER_OBJ) $(LIBS) $(LDFLAGS)
 

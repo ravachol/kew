@@ -1119,8 +1119,10 @@ int loadDecoder(SongData *songData, bool *songDataDeleted)
                                 result = prepareNextOpusDecoder(songData->filePath);
                         else if (endsWith(songData->filePath, "ogg"))
                                 result = prepareNextVorbisDecoder(songData->filePath);
+#ifdef USE_FAAD                                
                         else if (endsWith(songData->filePath, "m4a") || endsWith(songData->filePath, "aac"))
                                 result = prepareNextM4aDecoder(songData->filePath);
+#endif                                
                 }
         }
         return result;
