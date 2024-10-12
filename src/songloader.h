@@ -2,7 +2,7 @@
 #include <gio/gio.h>
 #include <sys/wait.h>
 #include <unistd.h>
-#include <libavformat/avformat.h>
+#include "tagLibWrapper.h"
 #include "cache.h"
 #include "chafafunc.h"
 #include "file.h"
