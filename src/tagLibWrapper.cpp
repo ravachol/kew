@@ -21,39 +21,39 @@
 #include <string>
 #include "tagLibWrapper.h"
 
-extern "C"
+// Simple Base64 decoding function for Ogg Vorbis/Opus cover art
+std::vector<unsigned char> decodeBase64(const std::string &data)
 {
-        // Simple Base64 decoding function for Ogg Vorbis/Opus cover art
-        std::vector<unsigned char> decodeBase64(const std::string &data)
+        static const char lookup[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+        std::vector<unsigned char> decodedData;
+
+        unsigned int buffer = 0;
+        int bits = 0;
+
+        for (char ch : data)
         {
-                static const char lookup[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-                std::vector<unsigned char> decodedData;
+                if (ch == '=')
+                        break;
 
-                unsigned int buffer = 0;
-                int bits = 0;
+                const char *pos = std::strchr(lookup, ch);
+                if (!pos)
+                        continue;
 
-                for (char ch : data)
+                buffer = (buffer << 6) | (pos - lookup);
+                bits += 6;
+
+                if (bits >= 8)
                 {
-                        if (ch == '=')
-                                break;
-
-                        const char *pos = std::strchr(lookup, ch);
-                        if (!pos)
-                                continue;
-
-                        buffer = (buffer << 6) | (pos - lookup);
-                        bits += 6;
-
-                        if (bits >= 8)
-                        {
-                                bits -= 8;
-                                decodedData.push_back((buffer >> bits) & 0xFF);
-                        }
+                        bits -= 8;
+                        decodedData.push_back((buffer >> bits) & 0xFF);
                 }
-
-                return decodedData;
         }
 
+        return decodedData;
+}
+
+extern "C"
+{
         void trimcpp(std::string &str)
         {
                 // Remove leading spaces
