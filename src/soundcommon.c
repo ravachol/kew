@@ -1300,6 +1300,44 @@ int displaySongNotification(const char *artist, const char *title, const char *c
 #endif
 
 #ifdef __APPLE__
+static char sanitizedArtist[512];
+static char sanitizedTitle[512];
+
+void removeBlacklistedChars(const char *input, const char *blacklist, char *output, size_t output_size)
+{
+        if (!input || !blacklist || !output || output_size == 0)
+        {
+                return;
+        }
+
+        const char *in_ptr = input;
+        char *out_ptr = output;
+        size_t chars_copied = 0;
+
+        while (*in_ptr && chars_copied < output_size - 1)
+        {
+                // Copy characters not in blacklist
+                if (!strchr(blacklist, *in_ptr))
+                {
+                        *out_ptr++ = *in_ptr;
+                        chars_copied++;
+                }
+                in_ptr++;
+        }
+
+        *out_ptr = '\0';
+}
+
+void ensureNonEmpty(char *str)
+{
+        if (str == NULL || str[0] == '\0')
+        {
+                str[0] = ' ';
+                str[1] = '\0';
+        }
+}
+
+
 void send_notification(const char *artist, const char *title, const char *cover)
 {
         // Create the base command
