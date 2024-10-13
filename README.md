@@ -81,18 +81,18 @@ Notes for mac users:
 2) The visualizer and album colors are disabled by default on macOS, because the default terminal doesn't handle them too well. To enable press v and i respectively.
 
 #### For Fedora:
-Requires RPM-fusion to be enabled.
 
 ```bash
-dnf install -y pkg-config faad2-devel taglib-devel fftw-devel opus-devel opusfile-devel libvorbis-devel git gcc make chafa-devel libnotify-devel libatomic
+dnf install -y pkg-config taglib-devel fftw-devel opus-devel opusfile-devel libvorbis-devel git gcc make chafa-devel libnotify-devel libatomic
 ```
+Option: add faad2-devel (Requires RPM-fusion to be enabled).
 
 #### For OpenSUSE:
-Requires the Packman repository to be added.
 
 ```bash
-sudo zypper install -y pkg-config faad2 taglib-devel fftw-devel opus-devel opusfile-devel libvorbis-devel git chafa-devel gcc make libnotify-devel
+sudo zypper install -y pkg-config taglib-devel fftw-devel opus-devel opusfile-devel libvorbis-devel git chafa-devel gcc make libnotify-devel
 ```
+Option: add faad2-devel (Requires RPM-fusion and Packman to be enabled).
 
 #### For CentOS/RHEL:
 Requires RPM-fusion to be enabled.
