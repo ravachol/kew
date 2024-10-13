@@ -1337,16 +1337,15 @@ void ensureNonEmpty(char *str)
         }
 }
 
+void sendNotification(const char *artist, const char *title)
+{
 
-void send_notification(const char *artist, const char *title) {
-    // Create the command to display a notification with just the artist and title
-    char command[512];
-    snprintf(command, sizeof(command), 
-             "osascript -e 'display notification \"%s\" with title \"%s\"'", 
-             title, artist);
+        char command[512];
+        snprintf(command, sizeof(command),
+                 "osascript -e 'display notification \"%s\" with title \"%s\"'",
+                 title, artist);
 
-    // Execute the command
-    system(command);
+        system(command);
 }
 
 int displaySongNotificationApple(const char *artist, const char *title, const char *cover)
@@ -1368,11 +1367,11 @@ int displaySongNotificationApple(const char *artist, const char *title, const ch
 
         if (coverExists)
         {
-                send_notification(sanitizedArtist, sanitizedTitle, cover);
+                sendNotification(sanitizedArtist, sanitizedTitle);
         }
         else
         {
-                send_notification(sanitizedArtist, sanitizedTitle, NULL);
+                sendNotification(sanitizedArtist, sanitizedTitle);
         }
 
         return 0;
