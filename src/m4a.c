@@ -12,4 +12,6 @@ You need to include this file after miniaudio.h.
 #include "../include/minimp4/minimp4.h"
 
 #include <miniaudio.h>
+#ifdef USE_FAAD
 #include "m4a.h"
+#endif
