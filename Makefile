@@ -63,7 +63,9 @@ LIBS += -lstdc++
 LDFLAGS = -lz -flto
 
 ifeq ($(UNAME_S), Linux)
-    LDFLAGS += -pie -Wl,-z,relro 
+  CFLAGS += -fPIE 
+  CXXFLAGS += -fPIE
+  LDFLAGS += -pie -Wl,-z,relro 
 endif
 
 # Conditionally add libnotify if USE_LIBNOTIFY is enabled
