@@ -85,21 +85,22 @@ Notes for mac users:
 ```bash
 dnf install -y pkg-config taglib-devel fftw-devel opus-devel opusfile-devel libvorbis-devel git gcc make chafa-devel libnotify-devel libatomic gcc-c++
 ```
-Option: add faad2-devel (Requires RPM-fusion to be enabled).
+Option: add faad2-devel for AAC,M4A support (Requires RPM-fusion to be enabled).
 
 #### For OpenSUSE:
 
 ```bash
 sudo zypper install -y pkg-config taglib-devel fftw-devel opus-devel opusfile-devel libvorbis-devel git chafa-devel gcc make libnotify-devel
 ```
-Option: add faad2-devel (Requires RPM-fusion and Packman to be enabled).
+Option: add faad2-devel for AAC,M4A support (Requires RPM-fusion and Packman to be enabled).
 
 #### For CentOS/RHEL:
 Requires RPM-fusion to be enabled.
 
 ```bash
-sudo yum install -y pkgconfig faad2-devel taglib-devel fftw-devel opus-devel opusfile-devel libvorbis-devel git gcc make chafa-devel libnotify-devel
+sudo yum install -y pkgconfig taglib-devel fftw-devel opus-devel opusfile-devel libvorbis-devel git gcc make chafa-devel libnotify-devel
 ```
+Option: add faad2-devel for AAC,M4A support (Requires RPM-fusion to be enabled).
 
 #### For Solus
 
