@@ -59,10 +59,12 @@ kew dependencies are:
 
 Install these dependencies using your distro's package manager. For instance:
 
+Note: FFmpeg has been recently replaced with TagLib and Faad2!
+
 #### For Debian/Ubuntu:
 
 ```bash
-sudo apt install -y pkg-config faad libfaad-dev libtag1-dev libfftw3-dev libopus-dev libopusfile-dev libvorbis-dev git gcc make libchafa-dev libnotify-dev
+sudo apt install -y pkg-config libfaad-dev libtag1-dev libfftw3-dev libopus-dev libopusfile-dev libvorbis-dev git gcc make libchafa-dev libnotify-dev
 ```
 
 #### For Arch Linux:
@@ -85,14 +87,14 @@ Notes for mac users:
 ```bash
 dnf install -y pkg-config taglib-devel fftw-devel opus-devel opusfile-devel libvorbis-devel git gcc make chafa-devel libnotify-devel libatomic gcc-c++
 ```
-Option: add faad2-devel for AAC,M4A support (Requires RPM-fusion to be enabled).
+Option: add libfaad-devel for AAC,M4A support (Requires RPM-fusion to be enabled).
 
 #### For OpenSUSE:
 
 ```bash
 sudo zypper install -y pkg-config taglib-devel fftw-devel opus-devel opusfile-devel libvorbis-devel git chafa-devel gcc make libnotify-devel
 ```
-Option: add faad2-devel for AAC,M4A support (Requires RPM-fusion and Packman to be enabled).
+Option: add libfaad-devel for AAC,M4A support (Requires RPM-fusion and Packman to be enabled).
 
 #### For CentOS/RHEL:
 Requires RPM-fusion to be enabled.
@@ -100,7 +102,7 @@ Requires RPM-fusion to be enabled.
 ```bash
 sudo yum install -y pkgconfig taglib-devel fftw-devel opus-devel opusfile-devel libvorbis-devel git gcc make chafa-devel libnotify-devel
 ```
-Option: add faad2-devel for AAC,M4A support (Requires RPM-fusion to be enabled).
+Option: add libfaad2-devel for AAC,M4A support (Requires RPM-fusion to be enabled).
 
 #### For Solus
 
@@ -123,7 +125,7 @@ sudo xbps-install -y pkg-config faad2 taglib fftw git gcc make chafa opus opusfi
 #### For Alpine Linux
 
 ```bash
-sudo apk add pkgconfig faad2 faad2-dev taglib-dev fftw-dev opus opusfile libvorbis-dev git gcc make chafa-dev libnotify-dev
+sudo apk add pkgconfig faad2 faad2-dev taglib-dev fftw-dev opus opusfile libvorbis-dev git build-base chafa-dev libnotify-dev
 ```
 
 Notice that for some packages not only the library needs to be installed, but also development packages, for instance libopus-dev or opus-devel.
