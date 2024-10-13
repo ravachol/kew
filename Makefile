@@ -49,7 +49,7 @@ ifeq ($(origin USE_FAAD), undefined)
   endif
 endif
 
-CFLAGS = -I/usr/include -I/usr/lib -Iinclude/minimp4 -I/usr/include/chafa -I/usr/lib/chafa/include -I/usr/include/ogg -I/usr/include/opus -I/usr/include/stb -Iinclude/imgtotxt/ext -Iinclude/imgtotxt -I/usr/include/ffmpeg -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -Iinclude/miniaudio -I/usr/include/gdk-pixbuf-2.0 -O2 $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) $(PKG_CONFIG) --cflags gio-2.0 chafa fftw3f opus opusfile vorbis glib-2.0)
+CFLAGS = -I/usr/include -I/opt/homebrew/include -I/usr/local/include -I/usr/lib -Iinclude/minimp4 -I/usr/include/chafa -I/usr/lib/chafa/include -I/usr/include/ogg -I/usr/include/opus -I/usr/include/stb -Iinclude/imgtotxt/ext -Iinclude/imgtotxt -I/usr/include/ffmpeg -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -Iinclude/miniaudio -I/usr/include/gdk-pixbuf-2.0 -O2 $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) $(PKG_CONFIG) --cflags gio-2.0 chafa fftw3f opus opusfile vorbis glib-2.0)
 CFLAGS += $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) $(PKG_CONFIG) --cflags taglib)
 CFLAGS += -fstack-protector-strong -Wformat -Werror=format-security -fPIE -fstack-protector -fstack-protector-strong -D_FORTIFY_SOURCE=2
 CFLAGS += -Wall -Wextra -Wpointer-arith -flto
@@ -77,9 +77,16 @@ endif
 
 # Conditionally add faad2 support if USE_FAAD is enabled
 ifeq ($(USE_FAAD), 1)
-  LIBS += -lfaad
+  ifeq ($(ARCH), arm64)
+    CFLAGS += -I/opt/homebrew/include
+    LIBS += -L/opt/homebrew/lib -lfaad
+  else
+    CFLAGS += -I/usr/local/include
+    LIBS += -L/usr/local/lib -lfaad
+  endif
   DEFINES += -DUSE_FAAD
 endif
+
 
 ifeq ($(origin CC),default) 
         CC := gcc 
