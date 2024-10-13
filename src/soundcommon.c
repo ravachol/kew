@@ -1338,27 +1338,15 @@ void ensureNonEmpty(char *str)
 }
 
 
-void send_notification(const char *artist, const char *title, const char *cover)
-{
-        // Create the base command
-        char command[512];
+void send_notification(const char *artist, const char *title) {
+    // Create the command to display a notification with just the artist and title
+    char command[512];
+    snprintf(command, sizeof(command), 
+             "osascript -e 'display notification \"%s\" with title \"%s\"'", 
+             title, artist);
 
-        // If the cover exists, include it in the notification
-        if (cover != NULL)
-        {
-                snprintf(command, sizeof(command),
-                         "osascript -e 'display notification \"%s\" with title \"%s\" subtitle \"%s\"'",
-                         title, artist, cover);
-        }
-        else
-        {
-                snprintf(command, sizeof(command),
-                         "osascript -e 'display notification \"%s\" with title \"%s\"'",
-                         title, artist);
-        }
-
-        // Execute the command
-        system(command);
+    // Execute the command
+    system(command);
 }
 
 int displaySongNotificationApple(const char *artist, const char *title, const char *cover)
