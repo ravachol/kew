@@ -26,38 +26,43 @@ endif
 ifeq ($(UNAME_S), Darwin)
     ifeq ($(ARCH), arm64)
         PREFIX ?= /opt/homebrew
-        PKG_CONFIG_PATH ?= /opt/homebrew/lib/pkgconfig:/opt/homebrew/share/pkgconfig
+        PKG_CONFIG_PATH := /opt/homebrew/lib/pkgconfig:/opt/homebrew/share/pkgconfig:$(PKG_CONFIG_PATH)
     else
         PREFIX ?= /usr/local
-        PKG_CONFIG_PATH ?= /usr/local/lib/pkgconfig:/usr/local/share/pkgconfig
+        PKG_CONFIG_PATH := /usr/local/lib/pkgconfig:/usr/local/share/pkgconfig:$(PKG_CONFIG_PATH)
     endif
 else
     PREFIX ?= /usr
-    PKG_CONFIG_PATH ?= /usr/lib/pkgconfig:/usr/share/pkgconfig
+    PKG_CONFIG_PATH := /usr/lib/pkgconfig:/usr/share/pkgconfig:$(PKG_CONFIG_PATH)
 endif
-
-PKG_CONFIG_PATH ?= $(PKG_CONFIG_PATH):/usr/local/lib/pkgconfig:/usr/lib/pkgconfig
 
 # Default USE_FAAD to auto-detect if not set by user
 ifeq ($(origin USE_FAAD), undefined)
-   USE_FAAD = $(shell $(PKG_CONFIG) --exists faad && echo 1 || echo 0)
+
+  USE_FAAD = $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) $(PKG_CONFIG) --exists faad && echo 1 || echo 0)
+  
   ifeq ($(USE_FAAD), 0)
     # If pkg-config fails, try to find libfaad dynamically in common paths
-    USE_FAAD = $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) $(PKG_CONFIG) [ -f /usr/lib/libfaad.so ] || [ -f /usr/local/lib/libfaad.so ] || \
-                       [ -f /opt/local/lib/libfaad.so ] || [ -f /opt/homebrew/lib/libfaad.dylib ] ||  [ -f /opt/homebrew/opt/faad2/lib/libfaad.dylib ] || \
+    USE_FAAD = $(shell [ -f /usr/lib/libfaad.so ] || [ -f /usr/local/lib/libfaad.so ] || \
+                       [ -f /opt/local/lib/libfaad.so ] || [ -f /opt/homebrew/lib/libfaad.dylib ] || \
+                       [ -f /opt/homebrew/opt/faad2/lib/libfaad.dylib ] || \
                        [ -f /usr/local/lib/libfaad.dylib ] || [ -f /lib/x86_64-linux-gnu/libfaad.so.2 ] && echo 1 || echo 0)
   endif
 endif
 
-CFLAGS = -I/usr/include -I/opt/homebrew/include -I/usr/local/include -I/usr/lib -Iinclude/minimp4 -I/usr/include/chafa -I/usr/lib/chafa/include -I/usr/include/ogg -I/usr/include/opus -I/usr/include/stb -Iinclude/imgtotxt/ext -Iinclude/imgtotxt -I/usr/include/ffmpeg -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -Iinclude/miniaudio -I/usr/include/gdk-pixbuf-2.0 -O2 $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) $(PKG_CONFIG) --cflags gio-2.0 chafa fftw3f opus opusfile vorbis glib-2.0)
-CFLAGS += $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) $(PKG_CONFIG) --cflags taglib)
+# Compiler flags
+CFLAGS = -I/usr/include -I/opt/homebrew/include -I/usr/local/include -I/usr/lib -Iinclude/minimp4 -I/usr/include/chafa \
+         -I/usr/lib/chafa/include -I/usr/include/ogg -I/usr/include/opus -I/usr/include/stb -Iinclude/imgtotxt/ext \
+         -Iinclude/imgtotxt -I/usr/include/ffmpeg -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include \
+         -Iinclude/miniaudio -I/usr/include/gdk-pixbuf-2.0 -O2
+CFLAGS += $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) $(PKG_CONFIG) --cflags gio-2.0 chafa fftw3f opus opusfile vorbis glib-2.0 taglib)
 CFLAGS += -fstack-protector-strong -Wformat -Werror=format-security -fPIE -fstack-protector -fstack-protector-strong -D_FORTIFY_SOURCE=2
 CFLAGS += -Wall -Wextra -Wpointer-arith -flto
 
 CXXFLAGS = -std=c++11 $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) $(PKG_CONFIG) --cflags taglib)
 
-LIBS = -L/usr/lib -lpthread -pthread -lm -lglib-2.0 $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) $(PKG_CONFIG) --libs gio-2.0 chafa fftw3f opus opusfile vorbis vorbisfile glib-2.0)
-LIBS += $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) $(PKG_CONFIG) --libs taglib)
+# Libraries
+LIBS = -L/usr/lib -lpthread -pthread -lm -lglib-2.0 $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) $(PKG_CONFIG) --libs gio-2.0 chafa fftw3f opus opusfile vorbis vorbisfile glib-2.0 taglib)
 LIBS += -lstdc++
 
 LDFLAGS = -lz -flto
@@ -88,7 +93,7 @@ ifeq ($(USE_FAAD), 1)
 endif
 
 ifeq ($(origin CC),default) 
-        CC := gcc 
+    CC := gcc 
 endif
 
 ifneq ($(findstring gcc,$(CC)),) 
@@ -99,7 +104,9 @@ endif
 
 OBJDIR = src/obj
 
-SRCS = src/common_ui.c src/sound.c src/directorytree.c src/soundcommon.c src/m4a.c src/search_ui.c src/playlist_ui.c src/player.c src/soundbuiltin.c src/mpris.c src/playerops.c src/utils.c src/file.c src/chafafunc.c src/cache.c src/songloader.c src/playlist.c src/term.c src/settings.c src/visuals.c src/kew.c
+SRCS = src/common_ui.c src/sound.c src/directorytree.c src/soundcommon.c src/m4a.c src/search_ui.c src/playlist_ui.c src/player.c \
+       src/soundbuiltin.c src/mpris.c src/playerops.c src/utils.c src/file.c src/chafafunc.c src/cache.c src/songloader.c \
+       src/playlist.c src/term.c src/settings.c src/visuals.c src/kew.c
 OBJS = $(SRCS:src/%.c=$(OBJDIR)/%.o)
 
 # Add the C++ wrapper to the list of object files
