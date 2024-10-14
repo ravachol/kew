@@ -27,7 +27,7 @@ jobs:
       - name: Update Homebrew and install dependencies
         run: |
           brew update
-          brew install gettext faad2 taglib chafa fftw opus opusfile libvorbis glib pkg-config make git stb
+          brew install gettext faad2 taglib chafa fftw opus opusfile libvorbis glib pkg-config make git
           
 
       - name: Build code
