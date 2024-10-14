@@ -78,8 +78,8 @@ endif
 # Conditionally add faad2 support if USE_FAAD is enabled
 ifeq ($(USE_FAAD), 1)
   ifeq ($(ARCH), arm64)
-    CFLAGS += -I/opt/homebrew/include
-    LIBS += -L/opt/homebrew/lib -lfaad
+    CFLAGS += -I/opt/homebrew/include -I/opt/homebrew/opt/faad2/include
+    LIBS += -L/opt/homebrew/lib -L/opt/homebrew/opt/faad2/lib -lfaad
   else
     CFLAGS += -I/usr/local/include
     LIBS += -L/usr/local/lib -lfaad
