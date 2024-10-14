@@ -18,6 +18,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
+      - name: Check system architecture
+        run: uname -m
+
       - name: Install Homebrew
         run: |
           if ! command -v brew &> /dev/null; then
