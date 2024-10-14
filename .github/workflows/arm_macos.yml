@@ -18,6 +18,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
+      - name: Check system architecture
+        run: uname -m
+
       - name: Install Homebrew
         run: |
           if ! command -v brew &> /dev/null; then
@@ -27,8 +30,7 @@ jobs:
       - name: Update Homebrew and install dependencies
         run: |
           brew update
-          brew install faad2 taglib chafa fftw opus opusfile libvorbis make 
-          
+          brew install faad2 taglib chafa fftw opus opusfile libvorbis make          
 
       - name: Build code
         run: make
