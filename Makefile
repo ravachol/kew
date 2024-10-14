@@ -25,7 +25,7 @@ endif
 # Adjust the PREFIX for macOS and Linux
 ifeq ($(UNAME_S), Darwin)
     ifeq ($(ARCH), arm64)
-        PREFIX ?= /opt/homebrew
+        PREFIX ?= /usr/local
         PKG_CONFIG_PATH := /opt/homebrew/lib/pkgconfig:/opt/homebrew/share/pkgconfig:$(PKG_CONFIG_PATH)
     else
         PREFIX ?= /usr/local
