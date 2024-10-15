@@ -28,7 +28,7 @@ jobs:
       - name: Update Homebrew and install dependencies
         run: |
           brew update
-          brew install faad2 taglib chafa fftw opus opusfile libvorbis make          
+          brew install faad2 taglib chafa fftw opus opusfile libogg libvorbis make          
 
       - name: Build code
         run: make
