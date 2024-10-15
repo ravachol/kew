@@ -51,8 +51,11 @@ kew dependencies are:
 * libopus
 * opusfile
 * libvorbis
-* TagLib
-* faad2
+* TagLib (New)
+* faad2 (New)
+* libogg (New)
+~~FFmpeg~~
+~~FreeImage~~
 * pkg-config
 * glib2.0
 * libnotify (optional)
@@ -64,19 +67,19 @@ Note: FFmpeg has been recently replaced with TagLib and Faad2!
 #### For Debian/Ubuntu:
 
 ```bash
-sudo apt install -y pkg-config libfaad-dev libtag1-dev libfftw3-dev libopus-dev libopusfile-dev libvorbis-dev git gcc make libchafa-dev libnotify-dev
+sudo apt install -y pkg-config libfaad-dev libtag1-dev libfftw3-dev libopus-dev libopusfile-dev libvorbis-dev libogg-dev git gcc make libchafa-dev libnotify-dev
 ```
 
 #### For Arch Linux:
 
 ```bash
-sudo pacman -Syu --noconfirm --needed pkg-config faad2 taglib fftw git gcc make chafa glib2 opus opusfile libvorbis libnotify
+sudo pacman -Syu --noconfirm --needed pkg-config faad2 taglib fftw git gcc make chafa glib2 opus opusfile libvorbis libogg libnotify
 ```
 
 #### For macOS:
 
 ```bash
-brew install gettext faad2 taglib chafa fftw opus opusfile libvorbis glib pkg-config make git
+brew install gettext faad2 taglib chafa fftw opus opusfile libvorbis libogg glib pkg-config make git
 ```
 Notes for mac users: 
 1) A sixel-capable terminal like kitty or WezTerm is recommended for macOS. 
@@ -85,14 +88,14 @@ Notes for mac users:
 #### For Fedora:
 
 ```bash
-dnf install -y pkg-config taglib-devel fftw-devel opus-devel opusfile-devel libvorbis-devel git gcc make chafa-devel libnotify-devel libatomic gcc-c++
+dnf install -y pkg-config taglib-devel fftw-devel opus-devel opusfile-devel libvorbis-devel libogg-devel git gcc make chafa-devel libnotify-devel libatomic gcc-c++
 ```
 Option: add libfaad-devel for AAC,M4A support (Requires RPM-fusion to be enabled).
 
 #### For OpenSUSE:
 
 ```bash
-sudo zypper install -y pkg-config taglib-devel fftw-devel opus-devel opusfile-devel libvorbis-devel git chafa-devel gcc make libnotify-devel
+sudo zypper install -y pkg-config taglib-devel fftw-devel opus-devel opusfile-devel libvorbis-devel libogg-devel git chafa-devel gcc make libnotify-devel
 ```
 Option: add libfaad-devel for AAC,M4A support (Requires RPM-fusion and Packman to be enabled).
 
@@ -100,32 +103,32 @@ Option: add libfaad-devel for AAC,M4A support (Requires RPM-fusion and Packman t
 Requires RPM-fusion to be enabled.
 
 ```bash
-sudo yum install -y pkgconfig taglib-devel fftw-devel opus-devel opusfile-devel libvorbis-devel git gcc make chafa-devel libnotify-devel
+sudo yum install -y pkgconfig taglib-devel fftw-devel opus-devel opusfile-devel libvorbis-devel libogg-devel git gcc make chafa-devel libnotify-devel
 ```
 Option: add libfaad2-devel for AAC,M4A support (Requires RPM-fusion to be enabled).
 
 #### For Solus
 
 ```bash
-sudo eopkg install -y pkg-config faad2-devel taglib-devel fftw-devel opus-devel opusfile-devel libvorbis-devel git gcc make chafa-devel libnotify-devel
+sudo eopkg install -y pkg-config faad2-devel taglib-devel fftw-devel opus-devel opusfile-devel libvorbis-devel libogg-devel git gcc make chafa-devel libnotify-devel
 ```
 
 #### For Guix
 
 ```bash
-guix install pkg-config faad2 taglib fftw git gcc make chafa opus opusfile libvorbis libnotify
+guix install pkg-config faad2 taglib fftw git gcc make chafa opus opusfile libvorbis libogg libnotify
 ```
 
 #### For Void Linux
 
 ```bash
-sudo xbps-install -y pkg-config faad2 taglib fftw git gcc make chafa opus opusfile libvorbis libnotify-devel
+sudo xbps-install -y pkg-config faad2 taglib fftw git gcc make chafa opus opusfile libvorbis libogg libnotify-devel
 ```
 
 #### For Alpine Linux
 
 ```bash
-sudo apk add pkgconfig faad2 faad2-dev taglib-dev fftw-dev opus opusfile libvorbis-dev git build-base chafa-dev libnotify-dev
+sudo apk add pkgconfig faad2 faad2-dev taglib-dev fftw-dev opus opusfile libvorbis-dev libogg-dev git build-base chafa-dev libnotify-dev
 ```
 
 Notice that for some packages not only the library needs to be installed, but also development packages, for instance libopus-dev or opus-devel.
