@@ -387,7 +387,7 @@ extern "C"
                                 }
 
                                 // Read PICTURE TYPE
-                                unsigned int pictureType = read_uint32_be(pictureBlock.data(), offset);
+                                read_uint32_be(pictureBlock.data(), offset);
                                 offset += 4;
 
                                 // Read MIME TYPE LENGTH
@@ -418,20 +418,20 @@ extern "C"
                                 // Optionally print or ignore description
 
                                 // Read WIDTH
-                                unsigned int width = read_uint32_be(pictureBlock.data(), offset);
+                                read_uint32_be(pictureBlock.data(), offset);
                                 offset += 4;
 
                                 // Read HEIGHT
-                                unsigned int height = read_uint32_be(pictureBlock.data(), offset);
+                                read_uint32_be(pictureBlock.data(), offset);
                                 offset += 4;
                                 ;
 
                                 // Read COLOR DEPTH
-                                unsigned int colorDepth = read_uint32_be(pictureBlock.data(), offset);
+                                read_uint32_be(pictureBlock.data(), offset);
                                 offset += 4;
 
                                 // Read NUMBER OF COLORS
-                                unsigned int numColors = read_uint32_be(pictureBlock.data(), offset);
+                                read_uint32_be(pictureBlock.data(), offset);
                                 offset += 4;
 
                                 // Read DATA LENGTH
