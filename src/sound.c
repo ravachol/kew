@@ -567,7 +567,7 @@ int createAudioDevice(UserData *userData)
                 SongData *currentSongData = userData->currentSongData;
 
                 if (currentSongData != NULL && currentSongData->hasErrors == 0 && currentSongData->metadata && strlen(currentSongData->metadata->title) > 0)
-                {
+                {                    
                         gint64 length = getLengthInMicroSec(currentSongData->duration);
                         // update mpris
                         emitMetadataChanged(
