@@ -51,14 +51,14 @@ kew dependencies are:
 * libopus
 * opusfile
 * libvorbis
-* TagLib (New)
-* faad2 (New)
-* libogg (New)
-~~FFmpeg~~
-~~FreeImage~~
+* TagLib
+* faad2
+* libogg
 * pkg-config
 * glib2.0
 * libnotify (optional)
+
+Notic
 
 Install these dependencies using your distro's package manager. For instance:
 
