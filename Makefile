@@ -62,7 +62,7 @@ CFLAGS += -Wall -Wextra -Wpointer-arith -flto
 CXXFLAGS = -std=c++11 -O2 $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) $(PKG_CONFIG) --cflags taglib vorbis opus opusfile)
 
 # Libraries
-LIBS = -L/usr/lib -lpthread -pthread -logg -lm -lglib-2.0 $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) $(PKG_CONFIG) --libs gio-2.0 chafa fftw3f opus opusfile vorbis vorbisfile glib-2.0 taglib)
+LIBS = -L/usr/lib -lpthread -pthread -logg -lopusfile -lm -lglib-2.0 $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) $(PKG_CONFIG) --libs gio-2.0 chafa fftw3f opus opusfile vorbis vorbisfile glib-2.0 taglib)
 LIBS += -lstdc++
 
 LDFLAGS = -logg -lz -flto
