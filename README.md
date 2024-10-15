@@ -52,7 +52,7 @@ kew dependencies are:
 * opusfile
 * libvorbis
 * TagLib
-* faad2
+* faad2 (optional)
 * libogg
 * pkg-config
 * glib2.0
