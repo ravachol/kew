@@ -62,8 +62,6 @@ kew dependencies are:
 
 Install these dependencies using your distro's package manager. For instance:
 
-Note: FFmpeg has been recently replaced with TagLib and Faad2!
-
 #### For Debian/Ubuntu:
 
 ```bash
