@@ -58,7 +58,7 @@ kew dependencies are:
 * glib2.0
 * libnotify (optional)
 
-Notic
+Note: TagLib faad2 and libogg have replaced FFmpeg.
 
 Install these dependencies using your distro's package manager. For instance:
 
