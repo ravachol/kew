@@ -67,6 +67,8 @@ int m4aDecoderIndex = -1;
 int opusDecoderIndex = -1;
 int vorbisDecoderIndex = -1;
 
+const char *lastCover = NULL;
+
 #ifdef USE_LIBNOTIFY
 NotifyNotification *previous_notification;
 #endif
@@ -1251,51 +1253,75 @@ void ensureNonEmpty(char *str)
 
 int displaySongNotification(const char *artist, const char *title, const char *cover)
 {
-        if (!allowNotifications || !canShowNotification() || !notify_is_initted())
-        {
-                return 0;
-        }
-
-        const char *blacklist = "&;`|*~<>^()[]{}$\\\"";
-
-        removeBlacklistedChars(artist, blacklist, sanitizedArtist, sizeof(sanitizedArtist));
-        removeBlacklistedChars(title, blacklist, sanitizedTitle, sizeof(sanitizedTitle));
-
-        ensureNonEmpty(sanitizedArtist);
-        ensureNonEmpty(sanitizedTitle);
-
-        int coverExists = isValidFilepath(cover);
-
-        if (previous_notification == NULL)
-        {
-                previous_notification = notify_notification_new(
-                    sanitizedArtist,
-                    sanitizedTitle,
-                    coverExists ? cover : NULL);
-
-                g_signal_connect(previous_notification, "closed", G_CALLBACK(onNotificationClosed), NULL);
-        }
-        else
-        {
-                notify_notification_update(
-                    previous_notification,
-                    sanitizedArtist,
-                    sanitizedTitle,
-                    coverExists ? cover : NULL);
-        }
-
-        GError *error = NULL;
-
-        if (!notify_notification_show(previous_notification, &error))
-        {
-                if (error != NULL)
-                {
-                        fprintf(stderr, "Failed to show notification: %s\n", error->message);
-                        g_error_free(error);
-                }
-        }
-
+    if (!allowNotifications || !canShowNotification() || !notify_is_initted())
+    {
         return 0;
+    }
+
+    const char *blacklist = "&;`|*~<>^()[]{}$\\\"";
+
+    removeBlacklistedChars(artist, blacklist, sanitizedArtist, sizeof(sanitizedArtist));
+    removeBlacklistedChars(title, blacklist, sanitizedTitle, sizeof(sanitizedTitle));
+
+    ensureNonEmpty(sanitizedArtist);
+    ensureNonEmpty(sanitizedTitle);
+
+    int coverExists = isValidFilepath(cover);
+
+    // Check if the cover has changed
+    bool coverChanged = true;
+    if (lastCover != NULL && cover != NULL)
+    {
+        coverChanged = (strcmp(cover, lastCover) != 0);
+    }
+    else if (lastCover == cover)
+    {
+        coverChanged = false;
+    }
+
+    if (lastCover != NULL)
+    {
+        free((void *)lastCover);
+    }
+    lastCover = cover != NULL ? strdup(cover) : NULL;
+
+    if (previous_notification == NULL || coverChanged)
+    {
+        if (previous_notification != NULL)
+        {
+            notify_notification_close(previous_notification, NULL);
+            g_object_unref(G_OBJECT(previous_notification));
+            previous_notification = NULL;
+        }
+
+        previous_notification = notify_notification_new(
+            sanitizedArtist,
+            sanitizedTitle,
+            coverExists ? cover : NULL);
+
+        g_signal_connect(previous_notification, "closed", G_CALLBACK(onNotificationClosed), NULL);
+    }
+    else
+    {
+        notify_notification_update(
+            previous_notification,
+            sanitizedArtist,
+            sanitizedTitle,
+            coverExists ? cover : NULL);
+    }
+
+    GError *error = NULL;
+
+    if (!notify_notification_show(previous_notification, &error))
+    {
+        if (error != NULL)
+        {
+            fprintf(stderr, "Failed to show notification: %s\n", error->message);
+            g_error_free(error);
+        }
+    }
+
+    return 0;
 }
 #endif
 
