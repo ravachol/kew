@@ -23,10 +23,10 @@
 #include <taglib/xiphcomment.h>
 #include <taglib/tag.h>
 #include <ogg/ogg.h>
-#if defined(__APPLE__)
-#include <opusfile.h>
-#elif defined(__linux__)
+#if defined(__linux__)
 #include <opus/opusfile.h>
+#else
+#include <opusfile.h>
 #endif
 #include "tagLibWrapper.h"
 
