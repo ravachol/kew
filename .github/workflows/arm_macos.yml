@@ -3,8 +3,6 @@ name: Build Check macOS
 on:
   pull_request:
   push:
-    branches:
-      - develop
     paths:
       - 'Makefile'
   workflow_dispatch:
