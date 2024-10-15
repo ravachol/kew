@@ -51,18 +51,20 @@ ifeq ($(origin USE_FAAD), undefined)
 endif
 
 # Compiler flags
-CFLAGS = -I/usr/include -I/opt/homebrew/include -I/usr/local/include -I/usr/lib -Iinclude/minimp4 -I/usr/include/chafa \
-         -I/usr/lib/chafa/include -I/usr/include/ogg -I/usr/include/opus -I/usr/include/stb -Iinclude/imgtotxt/ext \
-         -Iinclude/imgtotxt -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include \
-         -Iinclude/miniaudio -I/usr/include/gdk-pixbuf-2.0 -O2
+CFLAGS = -I/usr/include -I/opt/homebrew/include -I/usr/local/include -I/usr/lib -Iinclude/minimp4 \
+         -I/usr/include/chafa -I/usr/lib/chafa/include -I/usr/include/ogg -I/usr/include/opus \
+         -I/usr/include/stb -Iinclude/imgtotxt/ext -Iinclude/imgtotxt -I/usr/include/glib-2.0 \
+         -I/usr/lib/glib-2.0/include -Iinclude/miniaudio -I/usr/include/gdk-pixbuf-2.0 -O2
+
 CFLAGS += $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) $(PKG_CONFIG) --cflags gio-2.0 chafa fftw3f opus opusfile vorbis glib-2.0 taglib)
-CFLAGS += -fstack-protector-strong -Wformat -Werror=format-security -fPIE -fstack-protector -fstack-protector-strong -D_FORTIFY_SOURCE=2
+CFLAGS += -fstack-protector-strong -Wformat -Werror=format-security -fPIE -D_FORTIFY_SOURCE=2
 CFLAGS += -Wall -Wextra -Wpointer-arith -flto
 
-CXXFLAGS = -std=c++11 -O2 $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) $(PKG_CONFIG) --cflags taglib vorbis opus opusfile)
+# Compiler flags for C++ code (inherits from CFLAGS)
+CXXFLAGS = $(CFLAGS) -std=c++11
 
 # Libraries
-LIBS = -L/usr/lib -lpthread -pthread -logg -lopusfile -lm -lglib-2.0 $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) $(PKG_CONFIG) --libs gio-2.0 chafa fftw3f opus opusfile vorbis vorbisfile glib-2.0 taglib)
+LIBS = -L/usr/lib -lm -logg -lopusfile -lglib-2.0 -lpthread $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) $(PKG_CONFIG) --libs gio-2.0 chafa fftw3f opus opusfile vorbis vorbisfile glib-2.0 taglib)
 LIBS += -lstdc++
 
 LDFLAGS = -logg -lz -flto
