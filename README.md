@@ -269,6 +269,7 @@ There is also Track View <kbd>F5</kbd> for seeing song info and cover. Search Vi
 * <kbd>a</kbd> to seek back.
 * <kbd>d</kbd> to seek forward.
 * <kbd>x</kbd> to save the currently loaded playlist to a m3u file in your music folder.
+* <kbd>Tab</kbd> to switch between views.
 * <kbd>gg</kbd> go to first song.
 * number +<kbd>G</kbd>, <kbd>g</kbd> or <kbd>Enter</kbd>, go to specific song number in the playlist.
 * <kbd>g</kbd> go to last song.
