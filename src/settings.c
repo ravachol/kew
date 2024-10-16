@@ -111,166 +111,170 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         {
                 KeyValuePair *pair = &pairs[i];
 
-                if (strcmp(stringToLower(pair->key), "path") == 0)
+                char *lowercaseKey = stringToLower(pair->key); 
+
+                if (strcmp(lowercaseKey, "path") == 0)
                 {
                         snprintf(settings.path, sizeof(settings.path), "%s", pair->value);
                 }
-                else if (strcmp(stringToLower(pair->key), "coverenabled") == 0)
+                else if (strcmp(lowercaseKey, "coverenabled") == 0)
                 {
                         snprintf(settings.coverEnabled, sizeof(settings.coverEnabled), "%s", pair->value);
                 }
-                else if (strcmp(stringToLower(pair->key), "coveransi") == 0)
+                else if (strcmp(lowercaseKey, "coveransi") == 0)
                 {
                         snprintf(settings.coverAnsi, sizeof(settings.coverAnsi), "%s", pair->value);
                 }
-                else if (strcmp(stringToLower(pair->key), "visualizerenabled") == 0)
+                else if (strcmp(lowercaseKey, "visualizerenabled") == 0)
                 {
                         snprintf(settings.visualizerEnabled, sizeof(settings.visualizerEnabled), "%s", pair->value);
                 }
-                else if (strcmp(stringToLower(pair->key), "useprofilecolors") == 0)
+                else if (strcmp(lowercaseKey, "useprofilecolors") == 0)
                 {
                         snprintf(settings.useProfileColors, sizeof(settings.useProfileColors), "%s", pair->value);
                 }
-                else if (strcmp(stringToLower(pair->key), "visualizerheight") == 0)
+                else if (strcmp(lowercaseKey, "visualizerheight") == 0)
                 {
                         snprintf(settings.visualizerHeight, sizeof(settings.visualizerHeight), "%s", pair->value);
                 }
-                else if (strcmp(stringToLower(pair->key), "volumeup") == 0)
+                else if (strcmp(lowercaseKey, "volumeup") == 0)
                 {
                         snprintf(settings.volumeUp, sizeof(settings.volumeUp), "%s", pair->value);
                 }
-                else if (strcmp(stringToLower(pair->key), "volumeupalt") == 0)
+                else if (strcmp(lowercaseKey, "volumeupalt") == 0)
                 {
                         snprintf(settings.volumeUpAlt, sizeof(settings.volumeUpAlt), "%s", pair->value);
                 }
-                else if (strcmp(stringToLower(pair->key), "volumedown") == 0)
+                else if (strcmp(lowercaseKey, "volumedown") == 0)
                 {
                         snprintf(settings.volumeDown, sizeof(settings.volumeDown), "%s", pair->value);
                 }
-                else if (strcmp(stringToLower(pair->key), "previoustrackalt") == 0)
+                else if (strcmp(lowercaseKey, "previoustrackalt") == 0)
                 {
                         snprintf(settings.previousTrackAlt, sizeof(settings.previousTrackAlt), "%s", pair->value);
                 }
-                else if (strcmp(stringToLower(pair->key), "nexttrackalt") == 0)
+                else if (strcmp(lowercaseKey, "nexttrackalt") == 0)
                 {
                         snprintf(settings.nextTrackAlt, sizeof(settings.nextTrackAlt), "%s", pair->value);
                 }
-                else if (strcmp(stringToLower(pair->key), "scrollupalt") == 0)
+                else if (strcmp(lowercaseKey, "scrollupalt") == 0)
                 {
                         snprintf(settings.scrollUpAlt, sizeof(settings.scrollUpAlt), "%s", pair->value);
                 }
-                else if (strcmp(stringToLower(pair->key), "scrolldownalt") == 0)
+                else if (strcmp(lowercaseKey, "scrolldownalt") == 0)
                 {
                         snprintf(settings.scrollDownAlt, sizeof(settings.scrollDownAlt), "%s", pair->value);
                 }
-                else if (strcmp(stringToLower(pair->key), "switchnumberedsong") == 0)
+                else if (strcmp(lowercaseKey, "switchnumberedsong") == 0)
                 {
                         snprintf(settings.switchNumberedSong, sizeof(settings.switchNumberedSong), "%s", pair->value);
                 }
-                else if (strcmp(stringToLower(pair->key), "togglepause") == 0)
+                else if (strcmp(lowercaseKey, "togglepause") == 0)
                 {
                         snprintf(settings.togglePause, sizeof(settings.togglePause), "%s", pair->value);
                 }
-                else if (strcmp(stringToLower(pair->key), "togglecolorsderivedfrom") == 0)
+                else if (strcmp(lowercaseKey, "togglecolorsderivedfrom") == 0)
                 {
                         snprintf(settings.toggleColorsDerivedFrom, sizeof(settings.toggleColorsDerivedFrom), "%s", pair->value);
                 }
-                else if (strcmp(stringToLower(pair->key), "togglevisualizer") == 0)
+                else if (strcmp(lowercaseKey, "togglevisualizer") == 0)
                 {
                         snprintf(settings.toggleVisualizer, sizeof(settings.toggleVisualizer), "%s", pair->value);
                 }
-                else if (strcmp(stringToLower(pair->key), "toggleascii") == 0)
+                else if (strcmp(lowercaseKey, "toggleascii") == 0)
                 {
                         snprintf(settings.toggleAscii, sizeof(settings.toggleAscii), "%s", pair->value);
                 }
-                else if (strcmp(stringToLower(pair->key), "togglerepeat") == 0)
+                else if (strcmp(lowercaseKey, "togglerepeat") == 0)
                 {
                         snprintf(settings.toggleRepeat, sizeof(settings.toggleRepeat), "%s", pair->value);
                 }
-                else if (strcmp(stringToLower(pair->key), "toggleshuffle") == 0)
+                else if (strcmp(lowercaseKey, "toggleshuffle") == 0)
                 {
                         snprintf(settings.toggleShuffle, sizeof(settings.toggleShuffle), "%s", pair->value);
                 }
-                else if (strcmp(stringToLower(pair->key), "seekbackward") == 0)
+                else if (strcmp(lowercaseKey, "seekbackward") == 0)
                 {
                         snprintf(settings.seekBackward, sizeof(settings.seekBackward), "%s", pair->value);
                 }
-                else if (strcmp(stringToLower(pair->key), "seekforward") == 0)
+                else if (strcmp(lowercaseKey, "seekforward") == 0)
                 {
                         snprintf(settings.seekForward, sizeof(settings.seekForward), "%s", pair->value);
                 }
-                else if (strcmp(stringToLower(pair->key), "saveplaylist") == 0)
+                else if (strcmp(lowercaseKey, "saveplaylist") == 0)
                 {
                         snprintf(settings.savePlaylist, sizeof(settings.savePlaylist), "%s", pair->value);
                 }
-                else if (strcmp(stringToLower(pair->key), "addtomainplaylist") == 0)
+                else if (strcmp(lowercaseKey, "addtomainplaylist") == 0)
                 {
                         snprintf(settings.quit, sizeof(settings.quit), "%s", pair->value);
                 }
-                else if (strcmp(stringToLower(pair->key), "lastvolume") == 0)
+                else if (strcmp(lowercaseKey, "lastvolume") == 0)
                 {
                         snprintf(settings.lastVolume, sizeof(settings.lastVolume), "%s", pair->value);
                 }
-                else if (strcmp(stringToLower(pair->key), "allownotifications") == 0)
+                else if (strcmp(lowercaseKey, "allownotifications") == 0)
                 {
                         snprintf(settings.allowNotifications, sizeof(settings.allowNotifications), "%s", pair->value);
                 }
-                else if (strcmp(stringToLower(pair->key), "color") == 0)
+                else if (strcmp(lowercaseKey, "color") == 0)
                 {
                         snprintf(settings.color, sizeof(settings.color), "%s", pair->value);
                 }
-                else if (strcmp(stringToLower(pair->key), "artistcolor") == 0)
+                else if (strcmp(lowercaseKey, "artistcolor") == 0)
                 {
                         snprintf(settings.artistColor, sizeof(settings.artistColor), "%s", pair->value);
                 }
-                else if (strcmp(stringToLower(pair->key), "enqueuedcolor") == 0)
+                else if (strcmp(lowercaseKey, "enqueuedcolor") == 0)
                 {
                         snprintf(settings.enqueuedColor, sizeof(settings.enqueuedColor), "%s", pair->value);
                 }
-                else if (strcmp(stringToLower(pair->key), "titlecolor") == 0)
+                else if (strcmp(lowercaseKey, "titlecolor") == 0)
                 {
                         snprintf(settings.titleColor, sizeof(settings.titleColor), "%s", pair->value);
                 }
-                else if (strcmp(stringToLower(pair->key), "hidelogo") == 0)
+                else if (strcmp(lowercaseKey, "hidelogo") == 0)
                 {
                         snprintf(settings.hideLogo, sizeof(settings.hideLogo), "%s", pair->value);
                 }
-                else if (strcmp(stringToLower(pair->key), "hidehelp") == 0)
+                else if (strcmp(lowercaseKey, "hidehelp") == 0)
                 {
                         snprintf(settings.hideHelp, sizeof(settings.hideHelp), "%s", pair->value);
                 }
-                else if (strcmp(stringToLower(pair->key), "cachelibrary") == 0)
+                else if (strcmp(lowercaseKey, "cachelibrary") == 0)
                 {
                         snprintf(settings.cacheLibrary, sizeof(settings.cacheLibrary), "%s", pair->value);
                 }
-                else if (strcmp(stringToLower(pair->key), "quit") == 0)
+                else if (strcmp(lowercaseKey, "quit") == 0)
                 {
                         snprintf(settings.quit, sizeof(settings.quit), "%s", pair->value);
                 }
-                else if (strcmp(stringToLower(pair->key), "updatelibrary") == 0)
+                else if (strcmp(lowercaseKey, "updatelibrary") == 0)
                 {
                         snprintf(settings.updateLibrary, sizeof(settings.updateLibrary), "%s", pair->value);
                 }
-                else if (strcmp(stringToLower(pair->key), "showplaylistalt") == 0)
+                else if (strcmp(lowercaseKey, "showplaylistalt") == 0)
                 {
                         snprintf(settings.showPlaylistAlt, sizeof(settings.showPlaylistAlt), "%s", pair->value);
                 }
-                else if (strcmp(stringToLower(pair->key), "showlibraryalt") == 0)
+                else if (strcmp(lowercaseKey, "showlibraryalt") == 0)
                 {
                         snprintf(settings.showLibraryAlt, sizeof(settings.showLibraryAlt), "%s", pair->value);
                 }
-                else if (strcmp(stringToLower(pair->key), "showtrackalt") == 0)
+                else if (strcmp(lowercaseKey, "showtrackalt") == 0)
                 {
                         snprintf(settings.showTrackAlt, sizeof(settings.showTrackAlt), "%s", pair->value);
                 }
-                else if (strcmp(stringToLower(pair->key), "showsearchalt") == 0)
+                else if (strcmp(lowercaseKey, "showsearchalt") == 0)
                 {
                         snprintf(settings.showSearchAlt, sizeof(settings.showSearchAlt), "%s", pair->value);
                 }
-                else if (strcmp(stringToLower(pair->key), "showkeysalt") == 0)
+                else if (strcmp(lowercaseKey, "showkeysalt") == 0)
                 {
                         snprintf(settings.showKeysAlt, sizeof(settings.showKeysAlt), "%s", pair->value);
                 }
+
+                free(lowercaseKey);                
         }
 
         freeKeyValuePairs(pairs, count);

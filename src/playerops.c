@@ -990,6 +990,7 @@ void enqueueSongs(FileSystemEntry *entry)
         {
                 waitingForNext = true;
                 audioData.endOfListReached = false;
+                lastPlayedId = -1;
         }
 
         if (nextSongNeedsRebuilding)
