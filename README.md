@@ -245,6 +245,12 @@ kew path "/home/joe/Musik/" (changes the path)
 
 Put single-quotes inside quotes "guns n' roses"
 
+#### Views
+
+In kew, you normally add songs to the playlist in Library View <kbd>F3</kbd>. Then you can see the playlist in Playlist View <kbd>F2</kbd>.
+
+There is also Track View <kbd>F5</kbd> for seeing song info and cover. Search View is <kbd>F5</kbd> and Help View is <kbd>F6</kbd>.
+
 #### Key Bindings
 * Use <kbd>+</kbd> (or <kbd>=</kbd>), <kbd>-</kbd> keys to adjust the volume.
 * Use <kbd>←</kbd>, <kbd>→</kbd> or <kbd>h</kbd>, <kbd>l</kbd> keys to switch tracks.
