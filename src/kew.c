@@ -450,6 +450,7 @@ void handleGoToSong()
                 pthread_mutex_lock(&(playlist.mutex));
 
                 enqueueSongs(getCurrentLibEntry());
+                
                 resetListAfterDequeuingPlayingSong();
 
                 pthread_mutex_unlock(&(playlist.mutex));
@@ -458,9 +459,12 @@ void handleGoToSong()
         {
                 pthread_mutex_lock(&(playlist.mutex));
 
-                setChosenDir(getCurrentSearchEntry());
+                FileSystemEntry *entry = getCurrentSearchEntry();
 
-                enqueueSongs(getCurrentSearchEntry());
+                setChosenDir(entry);
+
+                enqueueSongs(entry);
+
                 resetListAfterDequeuingPlayingSong();
 
                 pthread_mutex_unlock(&(playlist.mutex));

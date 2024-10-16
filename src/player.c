@@ -985,6 +985,11 @@ void processName(const char *name, char *output, int maxWidth)
 
 void setChosenDir(FileSystemEntry *entry)
 {
+        if (entry == NULL)
+        {
+                return;
+        }
+
         if (entry->isDirectory)
         {
                 currentEntry = chosenDir = entry;                
@@ -1140,10 +1145,14 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
 
                                         snprintf(dirName, maxNameWidth + 1, "%s", root->name);
 
+                                        char *upperDirName = stringToUpper(dirName);
+
                                         if (depth == 1)
-                                                printf("%s \n", stringToUpper(dirName));
+                                                printf("%s \n", upperDirName);
                                         else
                                                 printf("%s \n", dirName);
+
+                                        free(upperDirName);   
                                 }
                                 else
                                 {
