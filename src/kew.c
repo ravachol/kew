@@ -170,7 +170,7 @@ struct Event processInput()
                         fuzzySearch(getLibrary(), fuzzySearchThreshold);
                         event.type = EVENT_SEARCH;
                 }
-                else if (((strlen(event.key) == 1 && event.key[0] != '\033' && event.key[0] != '\n' && event.key[0] != '\t' && event.key[0] != '\r') || strcmp(event.key, " ") == 0 || (unsigned char)event.key[0] >= 0xC0))
+                else if (((strlen(event.key) == 1 && event.key[0] != '\033' && event.key[0] != '\n' && event.key[0] != '\t' && event.key[0] != '\r') || strcmp(event.key, " ") == 0 || (unsigned char)event.key[0] >= 0xC0) && strcmp(event.key, "Z") != 0 && strcmp(event.key, "X") != 0 && strcmp(event.key, "C") != 0 && strcmp(event.key, "V") != 0 && strcmp(event.key, "B") != 0)
                 {
                         addToSearchText(event.key);
                         chosenSearchResultRow = 0;
@@ -450,7 +450,6 @@ void handleGoToSong()
                 pthread_mutex_lock(&(playlist.mutex));
 
                 enqueueSongs(getCurrentLibEntry());
-                
                 resetListAfterDequeuingPlayingSong();
 
                 pthread_mutex_unlock(&(playlist.mutex));
@@ -969,9 +968,9 @@ void cleanupOnExit()
         resetDecoders();
         resetVorbisDecoders();
         resetOpusDecoders();
-#ifdef USE_FAAD        
+#ifdef USE_FAAD
         resetM4aDecoders();
-#endif        
+#endif
         if (isContextInitialized)
         {
                 cleanupPlaybackDevice();
