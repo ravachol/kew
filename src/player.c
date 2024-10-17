@@ -488,8 +488,8 @@ void printGlimmeringText(char *text, char *nerdFontText, PixelData color)
 void printLastRow()
 {
 #ifdef __APPLE__
-        if (minWidth < 80)
-                minWidth = 80;
+        if (minWidth < 84)
+                minWidth = 84;
 #endif        
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
