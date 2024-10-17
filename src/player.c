@@ -488,8 +488,8 @@ void printGlimmeringText(char *text, char *nerdFontText, PixelData color)
 void printLastRow()
 {
 #ifdef __APPLE__
-        if (minWidth < 82)
-                minWidth = 82;
+        if (minWidth < 80)
+                minWidth = 80;
 #endif        
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
@@ -498,7 +498,7 @@ void printLastRow()
         setTextColorRGB(lastRowColor.r, lastRowColor.g, lastRowColor.b);
 
 #ifdef __APPLE__
-        char text[100] = " [Sh+Z List|Sh+X Lib|Sh+C Track|Sh+V Search|Sh+B Help|Esc Quit]";
+        char text[100] = "[Sh+Z List|Sh+X Lib|Sh+C Song|Sh+V Search|Sh+B Help|Esc Quit]";
 #else
         char text[100] = " [F2 Playlist|F3 Library|F4 Track|F5 Search|F6 Help|Esc Quit]";
 #endif
