@@ -875,17 +875,19 @@ void dequeueChildren(FileSystemEntry *parent)
         }
 }
 
-void enqueueChildren(FileSystemEntry *child)
+void enqueueChildren(FileSystemEntry *child, FileSystemEntry **firstEnqueuedEntry)
 {
         while (child != NULL)
         {
                 if (child->isDirectory && child->children != NULL)
                 {
                         child->isEnqueued = 1;
-                        enqueueChildren(child->children);
+                        enqueueChildren(child->children, firstEnqueuedEntry);
                 }
                 else if (!child->isEnqueued)
                 {
+                        if(*firstEnqueuedEntry == NULL)
+                                *firstEnqueuedEntry = child;
                         enqueueSong(child);
                 }
 
@@ -935,6 +937,7 @@ void enqueueSongs(FileSystemEntry *entry)
 {
         FileSystemEntry *chosenDir = getChosenDir();
         bool hasEnqueued = false;
+        FileSystemEntry *firstEnqueuedEntry = NULL;
 
         if (entry != NULL)
         {
@@ -947,7 +950,7 @@ void enqueueSongs(FileSystemEntry *entry)
                                         entry->isEnqueued = 1;
                                         entry = entry->children;
 
-                                        enqueueChildren(entry);
+                                        enqueueChildren(entry, &firstEnqueuedEntry);
 
                                         nextSongNeedsRebuilding = true;
 
@@ -970,6 +973,7 @@ void enqueueSongs(FileSystemEntry *entry)
                         {
                                 nextSong = NULL;
                                 nextSongNeedsRebuilding = true;
+                                firstEnqueuedEntry = entry;
 
                                 enqueueSong(entry);
 
@@ -990,6 +994,8 @@ void enqueueSongs(FileSystemEntry *entry)
         {
                 waitingForNext = true;
                 audioData.endOfListReached = false;
+                if (firstEnqueuedEntry != NULL)
+                        songToStartFrom = findPathInPlaylist(firstEnqueuedEntry->fullPath, &playlist);
                 lastPlayedId = -1;
         }
 
