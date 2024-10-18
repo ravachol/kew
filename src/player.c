@@ -1036,17 +1036,6 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
                 return false;
         }
 
-        FileSystemEntry *tmp = root->parent == NULL ? NULL : root->parent->children;
-        int numAudioChildren = 0;
-
-        while (tmp != NULL)
-        {
-                if (!tmp->isDirectory)
-                        numAudioChildren++;
-
-                tmp = tmp->next;
-        }
-
         if (chosenLibRow > startLibIter + maxListSize - round(maxListSize / 2))
         {
                 startLibIter = chosenLibRow - maxListSize + round(maxListSize / 2) + 1;
