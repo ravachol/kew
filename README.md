@@ -157,21 +157,8 @@ sudo make uninstall
 
 By default, the build system will automatically detect if `libnotify` and `faad2` are available and include them if found.
 
-Libnotify provides desktop notifications. 
+Libnotify provides desktop notifications and Faad2 provides AAC decoding. 
 
-Disable with:
-
- ```bash
- make -ij4 USE_LIBNOTIFY=0
- ```
-
-Faad2 provides AAC decoding.
-
-Disable with:
-
- ```bash
-make -ij4 USE_FAAD=0
- ```
 
 ### Standalone AppImage for musl systems
 
