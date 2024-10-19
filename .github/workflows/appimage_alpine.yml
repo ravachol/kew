@@ -28,6 +28,7 @@ jobs:
             opus-dev \
             opusfile-dev \
             libvorbis-dev \
+            libogg-dev \
             libnotify-dev \
             glib-dev \
             wget git desktop-file-utils \

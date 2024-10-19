@@ -255,27 +255,27 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
                 }
                 else if (strcmp(lowercaseKey, "showplaylistalt") == 0)
                 {
-                        if (strcmp(pair->value, "") != 0)  // FIXME: remove awhile after releasing 3.0
+                        if (strcmp(pair->value, "") != 0) // Don't set these to nothing
                                 snprintf(settings.showPlaylistAlt, sizeof(settings.showPlaylistAlt), "%s", pair->value);
                 }
                 else if (strcmp(lowercaseKey, "showlibraryalt") == 0)
                 {
-                        if (strcmp(pair->value, "") != 0)  // FIXME: remove awhile after releasing 3.0                       
+                        if (strcmp(pair->value, "") != 0)
                                 snprintf(settings.showLibraryAlt, sizeof(settings.showLibraryAlt), "%s", pair->value);
                 }
                 else if (strcmp(lowercaseKey, "showtrackalt") == 0)
                 {
-                        if (strcmp(pair->value, "") != 0) // FIXME: remove awhile after releasing 3.0
+                        if (strcmp(pair->value, "") != 0)
                                 snprintf(settings.showTrackAlt, sizeof(settings.showTrackAlt), "%s", pair->value);
                 }
                 else if (strcmp(lowercaseKey, "showsearchalt") == 0)
                 {
-                        if (strcmp(pair->value, "") != 0) // FIXME: remove awhile after releasing 3.0
+                        if (strcmp(pair->value, "") != 0)
                                 snprintf(settings.showSearchAlt, sizeof(settings.showSearchAlt), "%s", pair->value);
                 }
                 else if (strcmp(lowercaseKey, "showkeysalt") == 0)
                 {
-                        if (strcmp(pair->value, "") != 0) // FIXME: remove awhile after releasing 3.0
+                        if (strcmp(pair->value, "") != 0)
                                 snprintf(settings.showKeysAlt, sizeof(settings.showKeysAlt), "%s", pair->value);
                 }
 
