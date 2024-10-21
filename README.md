@@ -236,7 +236,7 @@ Put single-quotes inside quotes "guns n' roses"
 
 In kew, you normally add songs to the playlist in Library View <kbd>F3</kbd>. Then you can see the playlist in Playlist View <kbd>F2</kbd>.
 
-There is also Track View <kbd>F5</kbd> for seeing song info and cover. Search View is <kbd>F5</kbd> and Help View is <kbd>F6</kbd>.
+There is also Track View <kbd>F4</kbd> for seeing song info and cover. Search View is <kbd>F5</kbd> and Help View is <kbd>F6</kbd>.
 
 #### Key Bindings
 * Use <kbd>+</kbd> (or <kbd>=</kbd>), <kbd>-</kbd> keys to adjust the volume.
