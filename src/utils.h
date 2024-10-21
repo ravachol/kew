@@ -35,6 +35,8 @@ char *stringToUpper(const char *str);
 
 char *stringToLower(const char *str);
 
+char *utf8_strstr(const char *haystack, const char *needle);
+
 char *c_strcasestr(const char *haystack, const char *needle);
 
 int match_regex(regex_t *regex, const char *ext);

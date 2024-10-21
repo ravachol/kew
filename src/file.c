@@ -12,22 +12,21 @@ file.c
 
 */
 
-
 void getDirectoryFromPath(const char *path, char *directory)
 {
-    size_t path_length = strlen(path);
-    char tempPath[path_length + 1];
-    c_strcpy(tempPath, sizeof(tempPath), path);
+        size_t path_length = strlen(path);
+        char tempPath[path_length + 1];
+        c_strcpy(tempPath, sizeof(tempPath), path);
 
-    char *dir = dirname(tempPath);
+        char *dir = dirname(tempPath);
 
-    c_strcpy(directory, MAXPATHLEN, dir);
+        c_strcpy(directory, MAXPATHLEN, dir);
 
-    size_t directory_length = strlen(directory);
-    if (directory[directory_length - 1] != '/' && directory_length + 1 < MAXPATHLEN)
-    {
-        strncat(directory, "/", MAXPATHLEN - directory_length - 1);
-    }
+        size_t directory_length = strlen(directory);
+        if (directory[directory_length - 1] != '/' && directory_length + 1 < MAXPATHLEN)
+        {
+                strncat(directory, "/", MAXPATHLEN - directory_length - 1);
+        }
 }
 
 int existsFile(const char *fname)
@@ -60,7 +59,7 @@ int isDirectory(const char *path)
 }
 
 // Traverse a directory tree and search for a given file or directory
-int walker(const char *startPath, const char *searching, char *result,
+int walker(const char *startPath, const char *lowCaseSearching, char *result,
            const char *allowedExtensions, enum SearchType searchType, bool exactSearch)
 {
         DIR *d;
@@ -110,34 +109,39 @@ int walker(const char *startPath, const char *searching, char *result,
                 }
 
                 char entryPath[MAXPATHLEN];
-                char *currentDir = getcwd(NULL, 0);                
+                char *currentDir = getcwd(NULL, 0);
                 snprintf(entryPath, sizeof(entryPath), "%s/%s", currentDir, dir->d_name);
                 free(currentDir);
 
                 if (stat(entryPath, &file_stat) != 0)
                 {
                         continue;
-                }
+                }                
 
                 if (S_ISDIR(file_stat.st_mode))
                 {
-                        if (((exactSearch && (strcasecmp(dir->d_name, searching) == 0)) || (!exactSearch && c_strcasestr(dir->d_name, searching) != NULL)) &&
+                        char *name = g_utf8_casefold(dir->d_name, -1);
+
+                        if (((exactSearch && (strcasecmp(name, lowCaseSearching) == 0)) || (!exactSearch && c_strcasestr(name, lowCaseSearching) != NULL)) &&
                             (searchType != FileOnly) && (searchType != SearchPlayList))
                         {
                                 char *curDir = getcwd(NULL, 0);
                                 snprintf(result, MAXPATHLEN, "%s/%s", curDir, dir->d_name);
                                 free(curDir);
+                                free(name);
                                 copyresult = true;
                                 break;
                         }
                         else
                         {
+                                free(name);
+
                                 if (chdir(dir->d_name) == -1)
                                 {
                                         fprintf(stderr, "Failed to change directory: %s\n", dir->d_name);
                                         continue;
                                 }
-                                if (walker(NULL, searching, result, allowedExtensions, searchType, exactSearch) == 0)
+                                if (walker(NULL, lowCaseSearching, result, allowedExtensions, searchType, exactSearch) == 0)
                                 {
                                         copyresult = true;
                                         break;
@@ -150,7 +154,7 @@ int walker(const char *startPath, const char *searching, char *result,
                         }
                 }
                 else
-                {
+                {                        
                         if (searchType == DirOnly)
                         {
                                 continue;
@@ -168,14 +172,18 @@ int walker(const char *startPath, const char *searching, char *result,
                                 continue;
                         }
 
-                        if ((exactSearch && (strcasecmp(dir->d_name, searching) == 0)) || (!exactSearch && c_strcasestr(dir->d_name, searching) != NULL))
+                        char *name = g_utf8_casefold(dir->d_name, -1);
+
+                        if ((exactSearch && (strcasecmp(name, lowCaseSearching) == 0)) || (!exactSearch && c_strcasestr(name, lowCaseSearching) != NULL))
                         {
                                 char *curDir = getcwd(NULL, 0);
                                 snprintf(result, MAXPATHLEN, "%s/%s", curDir, dir->d_name);
                                 copyresult = true;
                                 free(curDir);
+                                free(name);
                                 break;
                         }
+                        free(name);
                 }
         }
         closedir(d);
@@ -377,32 +385,31 @@ bool checkFileBelowMaxSize(const char *filePath, int maxSize)
 
 void generateTempFilePath(char *filePath, const char *prefix, const char *suffix)
 {
-    const char *tempDir = getenv("TMPDIR");
-    if (tempDir == NULL)
-    {
-        tempDir = "/tmp";
-    }
+        const char *tempDir = getenv("TMPDIR");
+        if (tempDir == NULL)
+        {
+                tempDir = "/tmp";
+        }
 
-    struct passwd *pw = getpwuid(getuid());
-    const char *username = pw ? pw->pw_name : "unknown";
+        struct passwd *pw = getpwuid(getuid());
+        const char *username = pw ? pw->pw_name : "unknown";
 
+        char dirPath[MAXPATHLEN];
+        snprintf(dirPath, sizeof(dirPath), "%s/kew", tempDir);
+        createDirectory(dirPath);
+        snprintf(dirPath, sizeof(dirPath), "%s/kew/%s", tempDir, username);
+        createDirectory(dirPath);
 
-    char dirPath[MAXPATHLEN];
-    snprintf(dirPath, sizeof(dirPath), "%s/kew", tempDir);
-    createDirectory(dirPath);
-    snprintf(dirPath, sizeof(dirPath), "%s/kew/%s", tempDir, username);
-    createDirectory(dirPath);
+        char randomString[7];
+        for (int i = 0; i < 6; ++i)
+        {
+                randomString[i] = 'a' + rand() % 26;
+        }
+        randomString[6] = '\0';
 
-    char randomString[7];
-    for (int i = 0; i < 6; ++i)
-    {
-        randomString[i] = 'a' + rand() % 26;
-    }
-    randomString[6] = '\0';
-
-    int written = snprintf(filePath, MAXPATHLEN, "%s/%s%.6s%s", dirPath, prefix, randomString, suffix);
-    if (written < 0 || written >= MAXPATHLEN)
-    {
-        filePath[0] = '\0';
-    }
+        int written = snprintf(filePath, MAXPATHLEN, "%s/%s%.6s%s", dirPath, prefix, randomString, suffix);
+        if (written < 0 || written >= MAXPATHLEN)
+        {
+                filePath[0] = '\0';
+        }
 }
