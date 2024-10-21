@@ -553,7 +553,9 @@ int makePlaylist(int argc, char *argv[], bool exactSearch, const char *path)
                                 searchType = FileOnly;
                         }
                         trim(token);
-                        if (walker(path, token, buf, allowedExtensions, searchType, exactSearch) == 0)
+                        char *searching = g_utf8_casefold(token, -1);
+                        
+                        if (walker(path, searching, buf, allowedExtensions, searchType, exactSearch) == 0)
                         {
                                 if (strcmp(argv[1], "list") == 0)
                                 {
@@ -569,7 +571,7 @@ int makePlaylist(int argc, char *argv[], bool exactSearch, const char *path)
                                         pthread_mutex_unlock(&(playlist.mutex));
                                 }
                         }
-
+                        free(searching);
                         token = strtok(NULL, delimiter);
                 }
         }

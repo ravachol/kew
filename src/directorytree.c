@@ -463,64 +463,62 @@ int min(int a, int b, int c)
 // Calculates the Levenshtein distance.
 // The Levenshtein distance between two strings is the minimum number of single-character edits
 // (insertions, deletions, or substitutions) required to change one string into the other.
-int levenshteinDistance(const char *s1, const char *s2)
+int utf8_levenshteinDistance(const char *s1, const char *s2)
 {
-        int len1 = strlen(s1);
-        int len2 = strlen(s2);
-        int **d = (int **)malloc((len1 + 1) * sizeof(int *));
-        for (int i = 0; i <= len1; i++)
+    // Get the length of s1 and s2 in terms of characters, not bytes
+    int len1 = g_utf8_strlen(s1, -1);
+    int len2 = g_utf8_strlen(s2, -1);
+
+    // Allocate a 2D matrix (only two rows at a time are needed)
+    int *prevRow = (int *)malloc((len2 + 1) * sizeof(int));
+    int *currRow = (int *)malloc((len2 + 1) * sizeof(int));
+
+    // Initialize the first row (for empty s1)
+    for (int j = 0; j <= len2; j++) {
+        prevRow[j] = j;
+    }
+
+    // Iterate over the characters of both strings
+    const char *p1 = s1;
+    for (int i = 1; i <= len1; i++, p1 = g_utf8_next_char(p1))
+    {
+        currRow[0] = i;
+        const char *p2 = s2;
+        for (int j = 1; j <= len2; j++, p2 = g_utf8_next_char(p2))
         {
-                d[i] = (int *)malloc((len2 + 1) * sizeof(int));
-                for (int j = 0; j <= len2; j++)
-                {
-                        d[i][j] = 0;
-                }
+            // Compare Unicode characters using g_utf8_get_char
+            gunichar c1 = g_utf8_get_char(p1);
+            gunichar c2 = g_utf8_get_char(p2);
+
+            int cost = (c1 == c2) ? 0 : 1;
+
+            // Fill the current row with the minimum of deletion, insertion, or substitution
+            currRow[j] = MIN(prevRow[j] + 1,         // deletion
+                             MIN(currRow[j - 1] + 1, // insertion
+                                 prevRow[j - 1] + cost)); // substitution
         }
 
-        for (int i = 0; i <= len1; i++)
-        {
-                d[i][0] = i;
-        }
-        for (int j = 0; j <= len2; j++)
-        {
-                d[0][j] = j;
-        }
+        // Swap rows (current becomes previous for the next iteration)
+        int *temp = prevRow;
+        prevRow = currRow;
+        currRow = temp;
+    }
 
-        for (int i = 1; i <= len1; i++)
-        {
-                for (int j = 1; j <= len2; j++)
-                {
-                        int cost = (s1[i - 1] == s2[j - 1]) ? 0 : 1;
-                        d[i][j] = min(d[i - 1][j] + 1,         // deletion
-                                      d[i][j - 1] + 1,         // insertion
-                                      d[i - 1][j - 1] + cost); // substitution
-                }
-        }
+    // The last value in prevRow contains the Levenshtein distance
+    int distance = prevRow[len2];
 
-        int distance = d[len1][len2];
-        for (int i = 0; i <= len1; i++)
-        {
-                free(d[i]);
-        }
-        free(d);
-        return distance;
+    // Free the allocated memory
+    free(prevRow);
+    free(currRow);
+
+    return distance;
 }
+
 #ifdef __GNUC__
 #ifndef __APPLE__
 #pragma GCC diagnostic pop
 #endif
 #endif
-
-// Returns a new string that is lowercase of str
-char *strLower(char *str)
-{
-        char *lowerStr = strdup(str);
-        for (char *p = lowerStr; *p; ++p)
-        {
-                *p = tolower(*p);
-        }
-        return lowerStr;
-}
 
 // Traverses the tree and applies fuzzy search on each node
 void fuzzySearchRecursive(FileSystemEntry *node, const char *searchTerm, int threshold, void (*callback)(FileSystemEntry *, int))
@@ -531,10 +529,10 @@ void fuzzySearchRecursive(FileSystemEntry *node, const char *searchTerm, int thr
         }
 
         // Convert search term, name, and fullPath to lowercase
-        char *lowerSearchTerm = strLower((char *)searchTerm);
-        char *lowerName = strLower(node->name);
+        char *lowerSearchTerm = g_utf8_casefold((char *)searchTerm, -1);
+        char *lowerName = g_utf8_casefold(node->name, -1);
 
-        int nameDistance = levenshteinDistance(lowerName, lowerSearchTerm);
+        int nameDistance = utf8_levenshteinDistance(lowerName, lowerSearchTerm);
 
         // Partial matching with lowercase strings
         if (strstr(lowerName, lowerSearchTerm) != NULL)

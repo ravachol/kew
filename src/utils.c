@@ -43,24 +43,24 @@ char *stringToUpper(const char *str)
 
 char *c_strcasestr(const char *haystack, const char *needle)
 {
-    if (!haystack || !needle)
-        return NULL;
+        if (!haystack || !needle)
+                return NULL;
 
-    size_t needleLen = strlen(needle);
-    size_t haystackLen = strlen(haystack);
+        size_t needleLen = strlen(needle);
+        size_t haystackLen = strlen(haystack);
 
-    if (needleLen > haystackLen)
-        return NULL;
+        if (needleLen > haystackLen)
+                return NULL;
 
-    for (size_t i = 0; i <= haystackLen - needleLen; i++)
-    {
-        if (strncasecmp(&haystack[i], needle, needleLen) == 0)
+        for (size_t i = 0; i <= haystackLen - needleLen; i++)
         {
-            return (char *)(haystack + i);
+                if (strncasecmp(&haystack[i], needle, needleLen) == 0)
+                {
+                        return (char *)(haystack + i);
+                }
         }
-    }
 
-    return NULL;
+        return NULL;
 }
 
 int match_regex(regex_t *regex, const char *ext)
@@ -89,46 +89,58 @@ int match_regex(regex_t *regex, const char *ext)
         }
 }
 
-void extractExtension(const char *filename, size_t numChars, char *ext) {
-    size_t length = strlen(filename);
-    size_t copyChars = length < numChars ? length : numChars;
+void extractExtension(const char *filename, size_t numChars, char *ext)
+{
+        size_t length = strlen(filename);
+        size_t copyChars = length < numChars ? length : numChars;
 
-    // Start copying from the calculated position
-    const char *extStart = filename + length - copyChars;
+        // Start copying from the calculated position
+        const char *extStart = filename + length - copyChars;
 
-    // Copy characters carefully to avoid breaking UTF-8 sequences
-    size_t i = 0, j = 0;
-    while (i < copyChars && extStart[i] != '\0') {
-        unsigned char c = extStart[i];
+        // Copy characters carefully to avoid breaking UTF-8 sequences
+        size_t i = 0, j = 0;
+        while (i < copyChars && extStart[i] != '\0')
+        {
+                unsigned char c = extStart[i];
 
-        // Determine the number of bytes for the current UTF-8 character
-        size_t charSize;
-        if (c < 0x80) {
-            charSize = 1; // 1-byte character (ASCII)
-        } else if ((c & 0xE0) == 0xC0) {
-            charSize = 2; // 2-byte character
-        } else if ((c & 0xF0) == 0xE0) {
-            charSize = 3; // 3-byte character
-        } else if ((c & 0xF8) == 0xF0) {
-            charSize = 4; // 4-byte character
-        } else {
-            // Invalid UTF-8 byte sequence, stop copying
-            break;
+                // Determine the number of bytes for the current UTF-8 character
+                size_t charSize;
+                if (c < 0x80)
+                {
+                        charSize = 1; // 1-byte character (ASCII)
+                }
+                else if ((c & 0xE0) == 0xC0)
+                {
+                        charSize = 2; // 2-byte character
+                }
+                else if ((c & 0xF0) == 0xE0)
+                {
+                        charSize = 3; // 3-byte character
+                }
+                else if ((c & 0xF8) == 0xF0)
+                {
+                        charSize = 4; // 4-byte character
+                }
+                else
+                {
+                        // Invalid UTF-8 byte sequence, stop copying
+                        break;
+                }
+
+                // Make sure we don't copy past the buffer
+                if (i + charSize > copyChars)
+                {
+                        break;
+                }
+
+                // Copy the UTF-8 character
+                strncpy(ext + j, extStart + i, charSize);
+                j += charSize;
+                i += charSize;
         }
 
-        // Make sure we don't copy past the buffer
-        if (i + charSize > copyChars) {
-            break;
-        }
-
-        // Copy the UTF-8 character
-        strncpy(ext + j, extStart + i, charSize);
-        j += charSize;
-        i += charSize;
-    }
-
-    // Null-terminate the result
-    ext[j] = '\0';
+        // Null-terminate the result
+        ext[j] = '\0';
 }
 
 int endsWith(const char *str, const char *suffix)
