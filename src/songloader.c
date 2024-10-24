@@ -13,16 +13,7 @@ songloader.c
 #endif
 
 Cache *tempCache = NULL;
-
-void removeTagPrefix(char *value)
-{
-        char *colon_pos = strchr(value, ':');
-        if (colon_pos)
-        {
-                // Remove the tag prefix by shifting the characters
-                memmove(value, colon_pos + 1, strlen(colon_pos));
-        }
-}
+static guint track_counter = 0;
 
 char *findLargestImageFile(const char *directoryPath, char *largestImageFile, off_t *largestFileSize)
 {
@@ -77,8 +68,6 @@ char *findLargestImageFile(const char *directoryPath, char *largestImageFile, of
         closedir(directory);
         return largestImageFile;
 }
-
-static guint track_counter = 0;
 
 // Generate a new track ID
 gchar *generateTrackId()
