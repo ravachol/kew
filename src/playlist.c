@@ -237,6 +237,7 @@ void createNode(Node **node, const char *directoryPath, int id)
         if (*node == NULL)
         {
                 printf("Failed to allocate memory.");
+                free(song.filePath);
                 exit(0);
                 return;
         }
@@ -586,7 +587,6 @@ int makePlaylist(int argc, char *argv[], bool exactSearch, const char *path)
         return 0;
 }
 
-
 void generateM3UFilename(const char *basePath, const char *filePath, char *m3uFilename, size_t size) {
 
     const char *baseName = strrchr(filePath, '/');
@@ -614,6 +614,7 @@ void generateM3UFilename(const char *basePath, const char *filePath, char *m3uFi
         }
     }
 }
+
 void writeM3UFile(const char *filename, PlayList *playlist)
 {
         FILE *file = fopen(filename, "w");
@@ -755,7 +756,7 @@ void deepCopyPlayListOntoList(PlayList *originalList, PlayList *newList)
         newList->count = originalList->count;
 }
 
-Node *findPathInPlaylist(char *path, PlayList *playlist)
+Node *findPathInPlaylist(const char *path, PlayList *playlist)
 {
         Node *currentNode = playlist->head;
 
