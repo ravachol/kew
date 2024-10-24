@@ -72,7 +72,7 @@ LDFLAGS = -logg -lz -flto
 ifeq ($(UNAME_S), Linux)
   CFLAGS += -fPIE 
   CXXFLAGS += -fPIE
-  LDFLAGS += -pie -Wl,-z,relro 
+  LDFLAGS += -pie -Wl,-z,relro -s
 endif
 
 # Conditionally add libnotify if USE_LIBNOTIFY is enabled
