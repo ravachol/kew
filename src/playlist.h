@@ -83,9 +83,9 @@ PlayList deepCopyPlayList(PlayList *originalList);
 
 void deepCopyPlayListOntoList(PlayList *originalList, PlayList *newList);
 
-Node *findPathInPlaylist(char *path, PlayList *playlist);
+Node *findPathInPlaylist(const char *path, PlayList *playlist);
 
-Node *findLastPathInPlaylist(char *path, PlayList *playlist);
+Node *findLastPathInPlaylist(const char *path, PlayList *playlist);
 
 int findNodeInList(PlayList *list, int id, Node **foundNode);
 

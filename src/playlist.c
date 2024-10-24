@@ -772,7 +772,7 @@ Node *findPathInPlaylist(const char *path, PlayList *playlist)
         return NULL;
 }
 
-Node *findLastPathInPlaylist(char *path, PlayList *playlist)
+Node *findLastPathInPlaylist(const char *path, PlayList *playlist)
 {
         Node *currentNode = playlist->tail;
 
