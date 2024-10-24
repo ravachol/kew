@@ -155,7 +155,7 @@ extern "C"
 
                 tag = file->tag();
 
-                TagLib::Ogg::XiphComment *xiphComment = dynamic_cast<TagLib::Ogg::XiphComment *>(tag);
+                const TagLib::Ogg::XiphComment *xiphComment = dynamic_cast<TagLib::Ogg::XiphComment *>(tag);
                 if (!xiphComment)
                 {
                         std::cerr << "Error: No XiphComment found in the file." << std::endl;
@@ -194,7 +194,6 @@ extern "C"
                 {
                         std::string base64Data = coverArtList.front().to8Bit(true);
                         std::vector<unsigned char> imageData = decodeBase64(base64Data);
-                        std::string mimeType = coverArtMimeList.front().to8Bit(true);
 
                         std::ofstream outFile(outputFileName, std::ios::binary);
                         if (!outFile)
@@ -338,6 +337,94 @@ extern "C"
                 return true; // Success
         }
 
+        bool extractCoverArtFromMp3(const std::string &inputFile, const std::string &coverFilePath)
+        {
+                TagLib::MPEG::File file(inputFile.c_str());
+                if (!file.isValid())
+                {
+                        return false;
+                }
+
+                const TagLib::ID3v2::Tag *id3v2tag = file.ID3v2Tag();
+                if (id3v2tag)
+                {
+                        // Collect all attached picture frames
+                        TagLib::ID3v2::FrameList frames;
+                        frames.append(id3v2tag->frameListMap()["APIC"]);
+                        frames.append(id3v2tag->frameListMap()["PIC"]);
+
+                        if (!frames.isEmpty())
+                        {
+                                for (auto it = frames.begin(); it != frames.end(); ++it)
+                                {
+                                        const TagLib::ID3v2::AttachedPictureFrame *picFrame = dynamic_cast<TagLib::ID3v2::AttachedPictureFrame *>(*it);
+                                        if (picFrame)
+                                        {
+                                                // Access picture data and MIME type
+                                                TagLib::ByteVector pictureData = picFrame->picture();
+                                                TagLib::String mimeType = picFrame->mimeType();
+
+                                                // Construct the output file path
+                                                std::string outputFilePath = coverFilePath;
+
+                                                // Write the image data to a file
+                                                FILE *outFile = fopen(outputFilePath.c_str(), "wb");
+                                                if (outFile)
+                                                {
+                                                        fwrite(pictureData.data(), 1, pictureData.size(), outFile);
+                                                        fclose(outFile);
+
+                                                        return true;
+                                                }
+                                                else
+                                                {
+                                                        return false; // Failed to open output file
+                                                }
+
+                                                // Break if only the first image is needed
+                                                break;
+                                        }
+                                }
+                        }
+                        else
+                        {
+                                return false; // No picture frames found
+                        }
+                }
+                else
+                {
+                        return false; // No ID3v2 tag found
+                }
+
+                return true; // Success
+        }
+
+        bool extractCoverArtFromFlac(const std::string &inputFile, const std::string &coverFilePath)
+        {
+                TagLib::FLAC::File file(inputFile.c_str());
+
+                if (file.pictureList().size() > 0)
+                {
+                        const TagLib::FLAC::Picture *picture = file.pictureList().front();
+                        if (picture)
+                        {
+                                FILE *coverFile = fopen(coverFilePath.c_str(), "wb");
+                                if (coverFile)
+                                {
+                                        fwrite(picture->data().data(), 1, picture->data().size(), coverFile);
+                                        fclose(coverFile);
+                                        return true;
+                                }
+                                else
+                                {
+                                        return false;
+                                }
+                        }
+                }
+
+                return false;
+        }
+
         bool extractCoverArtFromOpus(const std::string &audioFilePath, const std::string &outputFileName)
         {
                 int error;
@@ -400,7 +487,6 @@ extern "C"
                                         op_free(of);
                                         return false;
                                 }
-                                std::string mimeType(reinterpret_cast<const char *>(pictureBlock.data() + offset), mimeTypeLength);
                                 offset += mimeTypeLength;
 
                                 // Read DESCRIPTION LENGTH
@@ -413,7 +499,6 @@ extern "C"
                                         op_free(of);
                                         return false;
                                 }
-                                std::string description(reinterpret_cast<const char *>(pictureBlock.data() + offset), descriptionLength);
                                 offset += descriptionLength;
                                 // Optionally print or ignore description
 
@@ -467,6 +552,35 @@ extern "C"
                 std::cerr << "No cover art found in the metadata." << std::endl;
                 op_free(of);
                 return false;
+        }
+
+        bool extractCoverArtFromMp4(const std::string &inputFile, const std::string &coverFilePath)
+        {
+                TagLib::MP4::File file(inputFile.c_str());
+                const TagLib::MP4::Item coverItem = file.tag()->item("covr");
+
+                if (coverItem.isValid())
+                {
+                        TagLib::MP4::CoverArtList coverArtList = coverItem.toCoverArtList();
+                        if (!coverArtList.isEmpty())
+                        {
+                                const TagLib::MP4::CoverArt &coverArt = coverArtList.front();
+                                FILE *coverFile = fopen(coverFilePath.c_str(), "wb");
+                                if (coverFile)
+                                {
+                                        fwrite(coverArt.data().data(), 1, coverArt.data().size(), coverFile);
+                                        fclose(coverFile);
+                                        return true; // Success
+                                }
+                                else
+                                {
+                                        fprintf(stderr, "Could not open output file '%s'\n", coverFilePath.c_str());
+                                        return false; // Failed to open the output file
+                                }
+                        }
+                }
+
+                return false; // No valid cover item or cover art found
         }
 
         void trimcpp(std::string &str)
@@ -534,7 +648,7 @@ extern "C"
                 }
 
                 // Extract tags using the stable method that worked before.
-                TagLib::Tag *tag = f.tag();
+                const TagLib::Tag *tag = f.tag();
                 if (!tag)
                 {
                         fprintf(stderr, "Tag is null for file '%s'\n", input_file);
@@ -546,7 +660,7 @@ extern "C"
                 tag_settings->title[sizeof(tag_settings->title) - 1] = '\0';
 
                 // Check if the title is empty, and if so, use the file path to generate a title
-                if (strlen(tag_settings->title) <= 0)
+                if (strlen(tag_settings->title) == 0)
                 {
                         char title[4096];
                         turnFilePathIntoTitle(input_file, title, 4096);
@@ -564,7 +678,7 @@ extern "C"
                         tag_settings->album[sizeof(tag_settings->album) - 1] = '\0';
 
                         // Copy the year as date
-                        snprintf(tag_settings->date, sizeof(tag_settings->date), "%d", tag->year());
+                        snprintf(tag_settings->date, sizeof(tag_settings->date), "%d", (int)tag->year());
                 }
 
                 // Extract audio properties for duration.
@@ -586,127 +700,15 @@ extern "C"
 
                 if (extension == "mp3")
                 {
-                        TagLib::MPEG::File file(input_file);
-                        if (!file.isValid())
-                        {
-                                return -2;
-                        }
-                        tag = file.tag();
-
-                        // Extract cover art from ID3v2 tags
-                        TagLib::ID3v2::Tag *id3v2tag = file.ID3v2Tag();
-                        if (id3v2tag)
-                        {
-                                // Collect all attached picture frames
-                                TagLib::ID3v2::FrameList frames;
-                                frames.append(id3v2tag->frameListMap()["APIC"]);
-                                frames.append(id3v2tag->frameListMap()["PIC"]);
-
-                                if (!frames.isEmpty())
-                                {
-                                        for (auto it = frames.begin(); it != frames.end(); ++it)
-                                        {
-                                                TagLib::ID3v2::AttachedPictureFrame *picFrame = dynamic_cast<TagLib::ID3v2::AttachedPictureFrame *>(*it);
-                                                if (picFrame)
-                                                {
-                                                        // Access picture data and MIME type
-                                                        TagLib::ByteVector pictureData = picFrame->picture();
-                                                        TagLib::String mimeType = picFrame->mimeType();
-
-                                                        // Determine the file extension
-                                                        std::string extension = "jpg"; // Default
-                                                        if (mimeType == "image/jpeg")
-                                                                extension = "jpg";
-                                                        else if (mimeType == "image/png")
-                                                                extension = "png";
-                                                        else if (mimeType == "image/gif")
-                                                                extension = "gif";
-
-                                                        // Construct the output file path
-                                                        std::string outputFilePath = coverFilePath;
-
-                                                        // Write the image data to a file
-                                                        FILE *outFile = fopen(outputFilePath.c_str(), "wb");
-                                                        if (outFile)
-                                                        {
-                                                                fwrite(pictureData.data(), 1, pictureData.size(), outFile);
-                                                                fclose(outFile);
-                                                                coverArtExtracted = true;
-                                                        }
-                                                        else
-                                                        {
-                                                                return -1;
-                                                        }
-
-                                                        // Break if only the first image is needed
-                                                        break;
-                                                }
-                                        }
-                                }
-                                else
-                                {
-                                        return -1;
-                                }
-                        }
-                        else
-                        {
-                                return -1;
-                        }
+                        coverArtExtracted = extractCoverArtFromMp3(input_file, coverFilePath);
                 }
                 else if (extension == "flac")
                 {
-                        TagLib::FLAC::File file(input_file);
-                        if (file.pictureList().size() > 0)
-                        {
-                                TagLib::FLAC::Picture *picture = file.pictureList().front();
-                                if (picture)
-                                {
-                                        FILE *file = fopen(coverFilePath, "wb");
-                                        if (file)
-                                        {
-                                                fwrite(picture->data().data(), 1, picture->data().size(), file);
-                                                fclose(file);
-                                                coverArtExtracted = true;
-                                        }
-                                        else
-                                        {
-                                                return -1;
-                                        }
-                                }
-                        }
-                        else
-                        {
-                                return -1;
-                        }
+                        coverArtExtracted = extractCoverArtFromFlac(input_file, coverFilePath);
                 }
                 else if (extension == "m4a" || extension == "aac")
                 {
-                        TagLib::MP4::File file(input_file);
-                        const TagLib::MP4::Item coverItem = file.tag()->item("covr");
-                        if (coverItem.isValid())
-                        {
-                                TagLib::MP4::CoverArtList coverArtList = coverItem.toCoverArtList();
-                                if (!coverArtList.isEmpty())
-                                {
-                                        const TagLib::MP4::CoverArt &coverArt = coverArtList.front();
-                                        FILE *file = fopen(coverFilePath, "wb");
-                                        if (file)
-                                        {
-                                                fwrite(coverArt.data().data(), 1, coverArt.data().size(), file);
-                                                fclose(file);
-                                                coverArtExtracted = true;
-                                        }
-                                        else
-                                        {
-                                                fprintf(stderr, "Could not open output file '%s'\n", coverFilePath);
-                                                return -1;
-                                        }
-                                }
-                        }
-                        else
-                        {
-                                return -1;
-                        }
+                        coverArtExtracted = extractCoverArtFromMp4(input_file, coverFilePath);
                 }
                 if (extension == "opus")
                 {
