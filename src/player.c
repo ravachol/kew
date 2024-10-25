@@ -82,6 +82,7 @@ int chosenNodeId = 0;
 int cacheLibrary = -1;
 
 bool previouslyAllowedChooseSongs = false;
+int previousChosenLibRow = 0;
 int libCurrentDirSongCount = 0;
 FileSystemEntry *lastEntry = NULL;
 
@@ -786,6 +787,7 @@ void scrollNext()
         }
         else if (appState.currentView == LIBRARY_VIEW)
         {
+                previousChosenLibRow = chosenLibRow;
                 chosenLibRow++;
                 refresh = true;
         }
@@ -806,6 +808,7 @@ void scrollPrev()
         }
         else if (appState.currentView == LIBRARY_VIEW)
         {
+                previousChosenLibRow = chosenLibRow;
                 chosenLibRow--;
                 refresh = true;
         }
@@ -1129,7 +1132,6 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
                                                                          (currentEntry != NULL && currentEntry->parent != NULL && chosenDir != NULL && (strcmp(currentEntry->parent->fullPath, chosenDir->fullPath) != 0) &&
                                                                           strcmp(root->fullPath, chosenDir->fullPath) != 0)))
                                         {
-                                                // chosenLibRow -= libSongIter;
                                                 previouslyAllowedChooseSongs = true;
                                                 allowChooseSongs = false;
                                                 chosenDir = NULL;
@@ -1218,9 +1220,12 @@ void showLibrary(SongData *songData)
 
         if (previouslyAllowedChooseSongs && !allowChooseSongs)
         {
-                chosenLibRow -= libCurrentDirSongCount;
-                libCurrentDirSongCount = 0;
-                previouslyAllowedChooseSongs = false;
+                if (previousChosenLibRow < chosenLibRow)
+                {
+                        chosenLibRow -= libCurrentDirSongCount;
+                        libCurrentDirSongCount = 0;
+                        previouslyAllowedChooseSongs = false;
+                }
         }
 
         libIter = 0;
