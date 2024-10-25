@@ -576,13 +576,13 @@ void setConfig(AppSettings *settings)
 
         fprintf(file, "\n# Color values are 0=Black, 1=Red, 2=Green, 3=Yellow, 4=Blue, 5=Magenta, 6=Cyan, 7=White\n");
         fprintf(file, "# These mostly affect the library view.\n\n");
-        fprintf(file, "# Logo color: \n");
+        fprintf(file, "# Logo color:\n");
         fprintf(file, "color=%s\n", settings->color);
-        fprintf(file, "# Header color in library view: \n");
+        fprintf(file, "# Header color in library view:\n");
         fprintf(file, "artistColor=%s\n", settings->artistColor);
-        fprintf(file, "# Now playing song text in library view: \n");
+        fprintf(file, "# Now playing song text in library view:\n");
         fprintf(file, "titleColor=%s\n", settings->titleColor);
-        fprintf(file, "# Color of enqueued songs in library view: \n");
+        fprintf(file, "# Color of enqueued songs in library view:\n");
         fprintf(file, "enqueuedColor=%s\n", settings->enqueuedColor);
 
         fprintf(file, "\n# Key Bindings:\n\n");
@@ -605,7 +605,7 @@ void setConfig(AppSettings *settings)
         fprintf(file, "savePlaylist=%s\n", settings->savePlaylist);
         fprintf(file, "addToMainPlaylist=%s\n", settings->addToMainPlaylist);
         fprintf(file, "updateLibrary=%s\n", settings->updateLibrary);
-        fprintf(file, "\n# The different main views, normally F2-F6: \n");
+        fprintf(file, "\n# The different main views, normally F2-F6:\n");
         fprintf(file, "showPlaylistAlt=%s\n", settings->showPlaylistAlt);
         fprintf(file, "showLibraryAlt=%s\n", settings->showLibraryAlt);
         fprintf(file, "showTrackAlt=%s\n", settings->showTrackAlt);
@@ -616,7 +616,6 @@ void setConfig(AppSettings *settings)
         fprintf(file, "# For special keys use terminal codes: OS, for F4 for instance. This can depend on the terminal.\n");
         fprintf(file, "# You can find out the codes for the keys by using tools like showkey.\n");
         fprintf(file, "# For special keys, see the key value after the bracket \"[\" after typing \"showkey -a\" in the terminal and then pressing a key you want info about.\n");
-        fprintf(file, "\n\n");
 
         fclose(file);
         free(filepath);
