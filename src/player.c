@@ -81,6 +81,10 @@ int libTopLevelSongIter = 0;
 int chosenNodeId = 0;
 int cacheLibrary = -1;
 
+bool previouslyAllowedChooseSongs = false;
+int libCurrentDirSongCount = 0;
+FileSystemEntry *lastEntry = NULL;
+
 const char LIBRARY_FILE[] = "kewlibrary";
 
 FileSystemEntry *library = NULL;
@@ -490,7 +494,7 @@ void printLastRow()
 #ifdef __APPLE__
         if (minWidth < 80)
                 minWidth = 80;
-#endif        
+#endif
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
         if (term_w < minWidth)
@@ -502,7 +506,6 @@ void printLastRow()
 #else
         char text[100] = " [F2 Playlist|F3 Library|F4 Track|F5 Search|F6 Help|Esc Quit]";
 #endif
-
 
         char nerdFontText[100] = "";
 
@@ -595,7 +598,7 @@ int showKeyBindings(SongData *songdata, AppSettings *settings)
         printBlankSpaces(indent);
         printf(" - Volume is adjusted with %s (or %s) and %s.\n", settings->volumeUp, settings->volumeUpAlt, settings->volumeDown);
         printBlankSpaces(indent);
-        printf(" - Press F2 for Playlist View:\n");        
+        printf(" - Press F2 for Playlist View:\n");
         printBlankSpaces(indent);
         printf("     Use ↑, ↓  or %s, %s keys to scroll through the playlist.\n", settings->scrollUpAlt, settings->scrollDownAlt);
         printBlankSpaces(indent);
@@ -603,11 +606,11 @@ int showKeyBindings(SongData *songdata, AppSettings *settings)
         printBlankSpaces(indent);
         printf(" - Press F3 for Library View:\n");
         printBlankSpaces(indent);
-        printf("     Use ↑, ↓  or %s, %s keys to scroll through the library.\n", settings->scrollUpAlt, settings->scrollDownAlt);        
+        printf("     Use ↑, ↓  or %s, %s keys to scroll through the library.\n", settings->scrollUpAlt, settings->scrollDownAlt);
         printBlankSpaces(indent);
         printf("     Press Enter to add/remove songs to/from the playlist.\n");
         printBlankSpaces(indent);
-        printf(" - Press F4 for Track View.\n");        
+        printf(" - Press F4 for Track View.\n");
         printBlankSpaces(indent);
         printf(" - Enter a number then Enter to switch song.\n");
         printBlankSpaces(indent);
@@ -704,7 +707,7 @@ void tabNext()
                 appState.currentView = KEYBINDINGS_VIEW;
         else if (appState.currentView == KEYBINDINGS_VIEW)
                 appState.currentView = PLAYLIST_VIEW;
-                
+
         refresh = true;
 }
 
@@ -743,10 +746,10 @@ void flipNextPage()
         }
         else if (appState.currentView == SEARCH_VIEW)
         {
-                chosenSearchResultRow += maxSearchListSize -1;
+                chosenSearchResultRow += maxSearchListSize - 1;
                 chosenSearchResultRow = (chosenSearchResultRow >= getSearchResultsCount()) ? getSearchResultsCount() - 1 : chosenSearchResultRow;
                 startSearchIter += maxSearchListSize - 1;
-                refresh = true;                
+                refresh = true;
         }
 }
 
@@ -790,7 +793,7 @@ void scrollNext()
         {
                 chosenSearchResultRow++;
                 refresh = true;
-        }        
+        }
 }
 
 void scrollPrev()
@@ -809,9 +812,9 @@ void scrollPrev()
         else if (appState.currentView == SEARCH_VIEW)
         {
                 chosenSearchResultRow--;
-                chosenSearchResultRow = ( chosenSearchResultRow > 0) ?  chosenSearchResultRow : 0;
+                chosenSearchResultRow = (chosenSearchResultRow > 0) ? chosenSearchResultRow : 0;
                 refresh = true;
-        }        
+        }
 }
 
 int getRowWithinBounds(int row)
@@ -845,7 +848,7 @@ int printLogoAndAdjustments(SongData *songData, int termWidth, bool hideHelp, in
 void showSearch(SongData *songData, int *chosenRow)
 {
         int term_w, term_h;
-        getTermSize(&term_w, &term_h);        
+        getTermSize(&term_w, &term_h);
         maxSearchListSize = term_h - 5;
 
         int aboutRows = printLogo(songData);
@@ -853,9 +856,9 @@ void showSearch(SongData *songData, int *chosenRow)
 
         printBlankSpaces(indent);
         printf(" Use ↑, ↓ to choose. Enter to accept.\n\n");
-        maxSearchListSize -= 2;             
-        
-        displaySearch(maxSearchListSize, indent, chosenRow, startSearchIter);       
+        maxSearchListSize -= 2;
+
+        displaySearch(maxSearchListSize, indent, chosenRow, startSearchIter);
 
         printf("\n");
         printLastRow();
@@ -864,13 +867,13 @@ void showSearch(SongData *songData, int *chosenRow)
 void showPlaylist(SongData *songData, PlayList *list, int *chosenSong, int *chosenNodeId)
 {
         int term_w, term_h;
-        getTermSize(&term_w, &term_h);        
+        getTermSize(&term_w, &term_h);
         maxListSize = term_h - 2;
 
         int aboutRows = printLogoAndAdjustments(songData, term_w, hideHelp, indent);
-        maxListSize -= aboutRows;        
-        
-        displayPlaylist(list, maxListSize, indent, chosenSong, chosenNodeId, resetPlaylistDisplay);       
+        maxListSize -= aboutRows;
+
+        displayPlaylist(list, maxListSize, indent, chosenSong, chosenNodeId, resetPlaylistDisplay);
 
         printf("\n");
         printLastRow();
@@ -1001,7 +1004,7 @@ void setChosenDir(FileSystemEntry *entry)
 
         if (entry->isDirectory)
         {
-                currentEntry = chosenDir = entry;                
+                currentEntry = chosenDir = entry;
         }
 }
 
@@ -1044,7 +1047,7 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
         if (allowChooseSongs)
         {
                 if (chosenLibRow >= libIter + libSongIter && libSongIter != 0)
-                {                               
+                {
                         startLibIter = chosenLibRow - round(maxListSize / 2);
                 }
         }
@@ -1069,6 +1072,21 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
         {
                 if (depth > 0)
                 {
+                        if (currentEntry != NULL && currentEntry != lastEntry && !currentEntry->isDirectory && currentEntry->parent != NULL && currentEntry->parent == chosenDir)
+                        {
+                                FileSystemEntry *tmpc = currentEntry->parent->children;
+
+                                libCurrentDirSongCount = 0;
+
+                                while (tmpc != NULL)
+                                {
+                                        tmpc = tmpc->next;
+                                        libCurrentDirSongCount++;
+                                }
+
+                                lastEntry = currentEntry;
+                        }
+
                         if (libIter >= startLibIter)
                         {
 
@@ -1111,13 +1129,14 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
                                                                          (currentEntry != NULL && currentEntry->parent != NULL && chosenDir != NULL && (strcmp(currentEntry->parent->fullPath, chosenDir->fullPath) != 0) &&
                                                                           strcmp(root->fullPath, chosenDir->fullPath) != 0)))
                                         {
-                                                chosenLibRow -= libSongIter;
+                                                // chosenLibRow -= libSongIter;
+                                                previouslyAllowedChooseSongs = true;
                                                 allowChooseSongs = false;
                                                 chosenDir = NULL;
                                                 refresh = true;
                                         }
 
-                                        foundChosen = true;                               
+                                        foundChosen = true;
                                 }
                                 else
                                 {
@@ -1150,7 +1169,7 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
                                         else
                                                 printf("%s \n", dirName);
 
-                                        free(upperDirName);   
+                                        free(upperDirName);
                                 }
                                 else
                                 {
@@ -1196,6 +1215,14 @@ char *getLibraryFilePath()
 
 void showLibrary(SongData *songData)
 {
+
+        if (previouslyAllowedChooseSongs && !allowChooseSongs)
+        {
+                chosenLibRow -= libCurrentDirSongCount;
+                libCurrentDirSongCount = 0;
+                previouslyAllowedChooseSongs = false;
+        }
+
         libIter = 0;
         libSongIter = 0;
         startLibIter = 0;
@@ -1279,10 +1306,7 @@ int printPlayer(SongData *songdata, double elapsedSeconds, AppSettings *settings
         }
         else
         {
-                if (appState.currentView != LIBRARY_VIEW 
-                        && appState.currentView != PLAYLIST_VIEW 
-                        && appState.currentView != SEARCH_VIEW
-                        && appState.currentView != KEYBINDINGS_VIEW)
+                if (appState.currentView != LIBRARY_VIEW && appState.currentView != PLAYLIST_VIEW && appState.currentView != SEARCH_VIEW && appState.currentView != KEYBINDINGS_VIEW)
                 {
                         appState.currentView = LIBRARY_VIEW;
                 }
@@ -1304,7 +1328,7 @@ int printPlayer(SongData *songdata, double elapsedSeconds, AppSettings *settings
         if (appState.currentView == KEYBINDINGS_VIEW && refresh)
         {
                 clearScreen();
-                showKeyBindings(songdata, settings); 
+                showKeyBindings(songdata, settings);
                 saveCursorPosition();
                 refresh = false;
         }
@@ -1312,16 +1336,16 @@ int printPlayer(SongData *songdata, double elapsedSeconds, AppSettings *settings
         {
                 clearScreen();
                 showPlaylist(songdata, originalPlaylist, &chosenRow, &chosenNodeId);
-                resetPlaylistDisplay = false;                
+                resetPlaylistDisplay = false;
                 refresh = false;
         }
         else if (appState.currentView == SEARCH_VIEW && (refresh || newUndisplayedSearch))
         {
                 clearScreen();
-                showSearch(songdata, &chosenSearchResultRow);            
+                showSearch(songdata, &chosenSearchResultRow);
                 refresh = false;
                 newUndisplayedSearch = false;
-        }        
+        }
         else if (appState.currentView == LIBRARY_VIEW && refresh)
         {
                 clearScreen();
