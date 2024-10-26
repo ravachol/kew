@@ -1217,15 +1217,14 @@ char *getLibraryFilePath()
 
 void showLibrary(SongData *songData)
 {
-
-        if (previouslyAllowedChooseSongs && !allowChooseSongs)
+        if (previouslyAllowedChooseSongs)
         {
                 if (previousChosenLibRow < chosenLibRow)
                 {
                         chosenLibRow -= libCurrentDirSongCount;
-                        libCurrentDirSongCount = 0;
-                        previouslyAllowedChooseSongs = false;
+                        libCurrentDirSongCount = 0;                        
                 }
+                previouslyAllowedChooseSongs = false;                
         }
 
         libIter = 0;
