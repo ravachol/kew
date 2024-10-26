@@ -63,7 +63,7 @@ char *c_strcasestr(const char *haystack, const char *needle)
         return NULL;
 }
 
-int match_regex(regex_t *regex, const char *ext)
+int match_regex(const regex_t *regex, const char *ext)
 {
         if (regex == NULL || ext == NULL)
         {

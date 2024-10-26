@@ -39,7 +39,7 @@ char *utf8_strstr(const char *haystack, const char *needle);
 
 char *c_strcasestr(const char *haystack, const char *needle);
 
-int match_regex(regex_t *regex, const char *ext);
+int match_regex(const regex_t *regex, const char *ext);
 
 void extractExtension(const char *filename, size_t numChars, char *ext);
 
