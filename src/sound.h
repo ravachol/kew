@@ -48,8 +48,6 @@ typedef struct
 } AudioData;
 #endif
 
-extern AudioData audioData;
-
 extern UserData userData;
 
 extern bool isContextInitialized;
