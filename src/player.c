@@ -220,9 +220,11 @@ int printLogo(SongData *songData)
                 getTermSize(&term_w, &term_h);
 
                 char title[MAXPATHLEN] = {0};
+                
+                printBlankSpaces(indent);
+
                 if (hideLogo && songData->metadata->artist[0] != '\0')
-                {
-                        printBlankSpaces(indent);
+                {                        
                         snprintf(title, MAXPATHLEN, "%s - %s",
                                  songData->metadata->artist, songData->metadata->title);
                 }
@@ -857,9 +859,12 @@ void showSearch(SongData *songData, int *chosenRow)
         int aboutRows = printLogo(songData);
         maxSearchListSize -= aboutRows;
 
-        printBlankSpaces(indent);
-        printf(" Use ↑, ↓ to choose. Enter to accept.\n\n");
-        maxSearchListSize -= 2;
+        if (term_w > indent + 38 && !hideHelp)
+        {
+                printBlankSpaces(indent);
+                printf(" Use ↑, ↓ to choose. Enter to accept.\n\n");
+                maxSearchListSize -= 2;
+        }
 
         displaySearch(maxSearchListSize, indent, chosenRow, startSearchIter);
 
