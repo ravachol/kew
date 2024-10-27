@@ -14,8 +14,6 @@ settings.c
 
 const char SETTINGS_FILE[] = "kewrc";
 
-EventMapping keyMappings[NUM_KEY_MAPPINGS];
-
 time_t lastTimeAppRan;
 
 AppSettings settings;
@@ -560,7 +558,6 @@ void setConfig(AppSettings *settings)
         fprintf(file, "# Make sure that kew is closed before editing this file in order for changes to take effect.\n\n");
 
         fprintf(file, "path=%s\n", settings->path);
-        // fprintf(file, "useThemeColors=%s\n", settings->useThemeColors);
         fprintf(file, "coverEnabled=%s\n", settings->coverEnabled);
         fprintf(file, "coverAnsi=%s\n", settings->coverAnsi);
         fprintf(file, "visualizerEnabled=%s\n", settings->visualizerEnabled);

@@ -33,6 +33,7 @@ typedef struct
 } LoadingThreadData;
 
 extern GDBusConnection *connection;
+extern GMainContext *global_main_context;
 extern LoadingThreadData loadingdata;
 extern double elapsedSeconds;
 extern double pauseSeconds;
@@ -48,7 +49,6 @@ extern bool usingSongDataA;
 extern Node *nextSong;
 extern Node *songToStartFrom;
 extern int lastPlayedId;
-extern bool playingMainPlaylist;
 extern bool songHasErrors;
 extern bool doQuit;
 extern bool loadingFailed;
@@ -59,7 +59,6 @@ extern bool skipping;
 extern bool skipOutOfOrder;
 extern Node *tryNextSong;
 extern struct timespec lastInputTime;
-extern struct timespec lastPlaylistChangeTime;
 extern bool skipFromStopped;
 extern bool doNotifyMPRISSwitched;
 

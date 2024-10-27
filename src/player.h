@@ -23,8 +23,6 @@ extern bool coverEnabled;
 extern bool uiEnabled;
 extern bool coverAnsi;
 extern bool visualizerEnabled;
-extern bool useThemeColors;
-extern bool hasPrintedPaused;
 extern bool quitAfterStopping;
 extern bool nerdFontsEnabled;
 extern bool hideLogo;

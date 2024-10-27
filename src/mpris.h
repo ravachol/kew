@@ -8,10 +8,6 @@
 #include "sound.h"
 #include "soundcommon.h"
 
-extern GDBusConnection *connection;
-extern GMainContext *global_main_context;
-extern GMainLoop *main_loop;
-
 void initMpris(void);
 
 void emitStringPropertyChanged(const gchar *propertyName, const gchar *newValue);
