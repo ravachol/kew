@@ -7,8 +7,6 @@ Functions related to mpris implementation.
 
 */
 
-GMainContext *global_main_context = NULL;
-GMainLoop *main_loop;
 guint registration_id;
 guint player_registration_id;
 guint bus_name_id;

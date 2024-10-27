@@ -70,6 +70,8 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #define COOLDOWN_MS 500
 #define COOLDOWN2_MS 100
 
+#define NUM_KEY_MAPPINGS 48
+
 FILE *logFile = NULL;
 struct winsize windowSize;
 char digitsPressed[MAX_SEQ_LEN];
@@ -80,6 +82,8 @@ bool startFromTop = false;
 int lastNotifiedId = -1;
 bool songWasRemoved = false;
 bool noPlaylist = false;
+GMainLoop *main_loop;
+EventMapping keyMappings[NUM_KEY_MAPPINGS];
 
 bool exactSearch = false;
 int fuzzySearchThreshold = 2;
@@ -1125,8 +1129,6 @@ void playSpecialPlaylist()
                 printf("Couldn't find any songs in the special playlist. Add a song by pressing '.' while it's playing. \n");
                 exit(0);
         }
-
-        playingMainPlaylist = true;
 
         init();
         deepCopyPlayListOntoList(specialPlaylist, &playlist);

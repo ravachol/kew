@@ -18,11 +18,9 @@
 #define MAXPATHLEN 4096
 #endif
 
-#define NUM_KEY_MAPPINGS 48
+
 
 extern time_t lastTimeAppRan;
-
-extern EventMapping keyMappings[];
 
 extern AppSettings settings;
 

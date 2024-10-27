@@ -19,14 +19,12 @@ struct timespec current_time;
 struct timespec start_time;
 struct timespec pause_time;
 struct timespec lastInputTime;
-struct timespec lastPlaylistChangeTime;
 struct timespec lastUpdateTime = {0, 0};
 
 bool playlistNeedsUpdate = false;
 bool nextSongNeedsRebuilding = false;
 bool enqueuedNeedsUpdate = false;
 bool skipFromStopped = false;
-bool playingMainPlaylist = false;
 bool usingSongDataA = true;
 bool doNotifyMPRISSwitched = false;
 
@@ -48,7 +46,9 @@ bool loadingFailed = false;
 bool forceSkip = false;
 volatile bool clearingErrors = false;
 volatile bool songLoading = false;
+
 GDBusConnection *connection = NULL;
+GMainContext *global_main_context = NULL;
 
 void reshufflePlaylist()
 {
@@ -108,10 +108,7 @@ void updateLastSongSwitchTime()
         clock_gettime(CLOCK_MONOTONIC, &start_time);
 }
 
-void updateLastPlaylistChangeTime()
-{
-        clock_gettime(CLOCK_MONOTONIC, &lastPlaylistChangeTime);
-}
+
 void updateLastInputTime()
 {
         clock_gettime(CLOCK_MONOTONIC, &lastInputTime);
@@ -1003,7 +1000,6 @@ void enqueueSongs(FileSystemEntry *entry)
         {
                 reshufflePlaylist();
         }
-        updateLastPlaylistChangeTime();
 }
 
 void handleRemove()
@@ -1060,8 +1056,6 @@ void handleRemove()
 
         if (node2 != NULL)
                 deleteFromList(&playlist, node2);
-
-        updateLastPlaylistChangeTime();
 
         if (isShuffleEnabled())
                 rebuild = true;
