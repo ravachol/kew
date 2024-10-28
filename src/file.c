@@ -348,7 +348,7 @@ int isInTempDir(const char *path)
         return (startsWith(path, tempDir));
 }
 
-void deleteTempDir()
+void deleteTempDir(void)
 {
         const char *tempDir = getenv("TMPDIR");
         if (tempDir == NULL)

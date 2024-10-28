@@ -18,15 +18,13 @@
 #define MAXPATHLEN 4096
 #endif
 
-
-
 extern time_t lastTimeAppRan;
 
 extern AppSettings settings;
 
-void getConfig(AppSettings *settings);
+void getConfig(AppSettings *settings, UISettings *ui);
 
-void setConfig(AppSettings *settings);
+void setConfig(AppSettings *settings, UISettings *ui);
 
 void mapSettingsToKeys(AppSettings *settings, EventMapping *mappings);
 

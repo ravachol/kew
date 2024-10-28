@@ -49,13 +49,9 @@ int startsWith(const char *str, const char *prefix);
 
 void trim(char *str);
 
-const char *getHomePath();
+const char *getHomePath(void);
 
-char *getConfigPathOld();
-
-char *getConfigPath();
-
-int moveConfigFiles(void);
+char *getConfigPath(void);
 
 void removeUnneededChars(char *str);
 

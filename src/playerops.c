@@ -50,7 +50,7 @@ volatile bool songLoading = false;
 GDBusConnection *connection = NULL;
 GMainContext *global_main_context = NULL;
 
-void reshufflePlaylist()
+void reshufflePlaylist(void)
 {
         playlistNeedsUpdate = false;
 
@@ -65,7 +65,7 @@ void reshufflePlaylist()
         }
 }
 
-void rebuildAndUpdatePlaylist()
+void rebuildAndUpdatePlaylist(void)
 {
         if (!playlistNeedsUpdate && !nextSongNeedsRebuilding)
                 return;
@@ -80,7 +80,7 @@ void rebuildAndUpdatePlaylist()
         pthread_mutex_unlock(&(playlist.mutex));
 }
 
-void skip()
+void skip(void)
 {
         setCurrentImplementationType(NONE);
 
@@ -103,13 +103,13 @@ void skip()
                 refresh = true;
 }
 
-void updateLastSongSwitchTime()
+void updateLastSongSwitchTime(void)
 {
         clock_gettime(CLOCK_MONOTONIC, &start_time);
 }
 
 
-void updateLastInputTime()
+void updateLastInputTime(void)
 {
         clock_gettime(CLOCK_MONOTONIC, &lastInputTime);
 }
@@ -253,7 +253,7 @@ void skipToSong(int id, bool startPlaying)
         skip();
 }
 
-void skipToBegginningOfSong()
+void skipToBegginningOfSong(void)
 {
         if (currentSong != NULL)
         {
@@ -262,7 +262,7 @@ void skipToBegginningOfSong()
         }
 }
 
-void prepareIfSkippedSilent()
+void prepareIfSkippedSilent(void)
 {
         if (hasSilentlySwitched)
         {
@@ -333,7 +333,7 @@ void togglePause(double *totalPauseSeconds, double *pauseSeconds, struct timespe
         }
 }
 
-void toggleRepeat()
+void toggleRepeat(void)
 {
 
         bool repeatEnabled = !isRepeatEnabled();
@@ -351,7 +351,7 @@ void toggleRepeat()
                 refresh = true;
 }
 
-void addToSpecialPlaylist()
+void addToSpecialPlaylist(void)
 {
         if (currentSong == NULL)
                 return;
@@ -367,7 +367,7 @@ void addToSpecialPlaylist()
         addToList(specialPlaylist, node);
 }
 
-void toggleShuffle()
+void toggleShuffle(void)
 {
         bool shuffleEnabled = !isShuffleEnabled();
         setShuffleEnabled(shuffleEnabled);
@@ -413,39 +413,39 @@ void toggleShuffle()
                 refresh = true;
 }
 
-void toggleBlocks(AppSettings *settings)
+void toggleBlocks(AppSettings *settings, UISettings *ui)
 {
-        coverAnsi = !coverAnsi;
-        c_strcpy(settings->coverAnsi, sizeof(settings->coverAnsi), coverAnsi ? "1" : "0");
-        if (coverEnabled)
+        ui->coverAnsi = !ui->coverAnsi;
+        c_strcpy(settings->coverAnsi, sizeof(settings->coverAnsi), ui->coverAnsi ? "1" : "0");
+        if (ui->coverEnabled)
         {
                 clearScreen();
                 refresh = true;
         }
 }
 
-void toggleColors(AppSettings *settings)
+void toggleColors(AppSettings *settings, UISettings *ui)
 {
-        useProfileColors = !useProfileColors;
-        c_strcpy(settings->useProfileColors, sizeof(settings->useProfileColors), useProfileColors ? "1" : "0");
+        ui->useProfileColors = !ui->useProfileColors;
+        c_strcpy(settings->useProfileColors, sizeof(settings->useProfileColors), ui->useProfileColors ? "1" : "0");
         clearScreen();
         refresh = true;
 }
 
-void toggleVisualizer(AppSettings *settings)
+void toggleVisualizer(AppSettings *settings, UISettings *ui)
 {
-        visualizerEnabled = !visualizerEnabled;
-        c_strcpy(settings->visualizerEnabled, sizeof(settings->visualizerEnabled), visualizerEnabled ? "1" : "0");
+        ui->visualizerEnabled = !ui->visualizerEnabled;
+        c_strcpy(settings->visualizerEnabled, sizeof(settings->visualizerEnabled), ui->visualizerEnabled ? "1" : "0");
         restoreCursorPosition();
         refresh = true;
 }
 
-void quit()
+void quit(void)
 {
         doQuit = true;
 }
 
-bool isCurrentSongDeleted()
+bool isCurrentSongDeleted(void)
 {
         return (audioData.currentFileIndex == 0) ? userData.songdataADeleted == true : userData.songdataBDeleted == true;
 }
@@ -476,7 +476,7 @@ SongData *getCurrentSongData(void)
         return songData;
 }
 
-void calcElapsedTime()
+void calcElapsedTime(void)
 {
         if (isStopped())
                 return;
@@ -519,7 +519,7 @@ void calcElapsedTime()
         }
 }
 
-void flushSeek()
+void flushSeek(void)
 {
         if (seekAccumulatedSeconds != 0.0)
         {
@@ -580,7 +580,7 @@ bool seekPosition(gint64 offset)
         }
 }
 
-void seekForward()
+void seekForward(void)
 {
         if (currentSong != NULL)
         {
@@ -598,7 +598,7 @@ void seekForward()
         fastForwarding = true;
 }
 
-void seekBack()
+void seekBack(void)
 {
         if (currentSong != NULL)
         {
@@ -724,7 +724,7 @@ bool markAsDequeued(FileSystemEntry *root, char *path)
         return false;
 }
 
-Node *getNextSong()
+Node *getNextSong(void)
 {
         if (nextSong != NULL)
                 return nextSong;
@@ -783,7 +783,7 @@ void silentSwitchToNext(bool loadSong)
         hasSilentlySwitched = true;
 }
 
-void removeCurrentlyPlayingSong()
+void removeCurrentlyPlayingSong(void)
 {
         stopPlayback();
         emitStringPropertyChanged("PlaybackStatus", "Stopped");
@@ -1002,7 +1002,7 @@ void enqueueSongs(FileSystemEntry *entry)
         }
 }
 
-void handleRemove()
+void handleRemove(void)
 {
         if (refresh)
                 return;
@@ -1129,7 +1129,7 @@ int loadDecoder(SongData *songData, bool *songDataDeleted)
         return result;
 }
 
-int assignLoadedData()
+int assignLoadedData(void)
 {
         int result = 0;
 
@@ -1277,7 +1277,7 @@ void rebuildNextSong(Node *song)
         songLoading = false;
 }
 
-void stop()
+void stop(void)
 {
         stopPlayback();
 
@@ -1287,7 +1287,7 @@ void stop()
         }
 }
 
-void loadNextSong()
+void loadNextSong(void)
 {
         songLoading = true;
         nextSongNeedsRebuilding = false;
@@ -1317,14 +1317,14 @@ bool determineCurrentSongData(SongData **currentSongData)
         return isDeleted;
 }
 
-void setCurrentSongToNext()
+void setCurrentSongToNext(void)
 {
         if (currentSong != NULL)
                 lastPlayedId = currentSong->id;
         currentSong = getNextSong();
 }
 
-void finishLoading()
+void finishLoading(void)
 {
         int maxNumTries = 20;
         int numtries = 0;
@@ -1338,14 +1338,14 @@ void finishLoading()
         loadedNextSong = true;
 }
 
-void resetTimeCount()
+void resetTimeCount(void)
 {
         elapsedSeconds = 0.0;
         pauseSeconds = 0.0;
         totalPauseSeconds = 0.0;
 }
 
-void skipToNextSong()
+void skipToNextSong(void)
 {
         // Stop if there is no song or no next song
         if (currentSong == NULL || currentSong->next == NULL)
@@ -1375,7 +1375,7 @@ void skipToNextSong()
         skip();
 }
 
-void setCurrentSongToPrev()
+void setCurrentSongToPrev(void)
 {
         if (isShuffleEnabled() && currentSong != NULL && currentSong->prev == NULL)
         {
@@ -1388,7 +1388,7 @@ void setCurrentSongToPrev()
                 currentSong = currentSong->prev;
 }
 
-void silentSwitchToPrev()
+void silentSwitchToPrev(void)
 {
         skipping = true;
 
@@ -1417,7 +1417,7 @@ void silentSwitchToPrev()
         hasSilentlySwitched = true;
 }
 
-void skipToPrevSong()
+void skipToPrevSong(void)
 {
         // Stop if there is no song or no previous song
         if ((currentSong == NULL || currentSong->prev == NULL) && !isShuffleEnabled())
@@ -1510,7 +1510,7 @@ void skipToNumberedSong(int songNumber)
         skip();
 }
 
-void skipToLastSong()
+void skipToLastSong(void)
 {
         Node *song = playlist.head;
 
@@ -1526,7 +1526,7 @@ void skipToLastSong()
         skipToNumberedSong(count);
 }
 
-void loadFirstSong(Node *song)
+void loadFirstSong(Node *song, UISettings *ui)
 {
         if (song == NULL)
                 return;
@@ -1536,7 +1536,7 @@ void loadFirstSong(Node *song)
         int i = 0;
         while (!loadedNextSong)
         {
-                if (i != 0 && i % 1000 == 0 && uiEnabled)
+                if (i != 0 && i % 1000 == 0 && ui->uiEnabled)
                         printf(".");
                 i++;
                 c_sleep(10);
@@ -1544,7 +1544,7 @@ void loadFirstSong(Node *song)
         }
 }
 
-void unloadSongA()
+void unloadSongA(void)
 {
         if (userData.songdataADeleted == false)
         {
@@ -1554,7 +1554,7 @@ void unloadSongA()
         }
 }
 
-void unloadSongB()
+void unloadSongB(void)
 {
         if (userData.songdataBDeleted == false)
         {
@@ -1564,7 +1564,7 @@ void unloadSongB()
         }
 }
 
-void unloadPreviousSong()
+void unloadPreviousSong(void)
 {
         pthread_mutex_lock(&(loadingdata.mutex));
 
@@ -1594,9 +1594,9 @@ void unloadPreviousSong()
         pthread_mutex_unlock(&(loadingdata.mutex));
 }
 
-int loadFirst(Node *song)
+int loadFirst(Node *song, UISettings *ui)
 {
-        loadFirstSong(song);
+        loadFirstSong(song, ui);
 
         usingSongDataA = true;
 
@@ -1605,7 +1605,7 @@ int loadFirst(Node *song)
                 songHasErrors = false;
                 loadedNextSong = false;
                 currentSong = currentSong->next;
-                loadFirstSong(currentSong);
+                loadFirstSong(currentSong, ui);
         }
 
         if (songHasErrors)
@@ -1659,9 +1659,9 @@ void updateLibrary(char *path)
         }
 }
 
-void askIfCacheLibrary()
+void askIfCacheLibrary(UISettings *ui)
 {
-        if (cacheLibrary > -1) // Only use this function if cacheLibrary isn't set
+        if (ui->cacheLibrary > -1) // Only use this function if cacheLibrary isn't set
                 return;
 
         char input = '\0';
@@ -1686,12 +1686,12 @@ void askIfCacheLibrary()
         if (input == 'Y' || input == 'y')
         {
                 printf("Y\n");
-                cacheLibrary = 1;
+                ui->cacheLibrary = 1;
         }
         else
         {
                 printf("N\n");
-                cacheLibrary = 0;
+                ui->cacheLibrary = 0;
         }
 
         setNonblockingMode();
@@ -1699,9 +1699,9 @@ void askIfCacheLibrary()
         hideCursor();
 }
 
-void createLibrary(AppSettings *settings)
+void createLibrary(AppSettings *settings, AppState *state)
 {
-        if (cacheLibrary > 0)
+        if (state->uiSettings.cacheLibrary > 0)
         {
                 char *libFilepath = getLibraryFilePath();
                 library = reconstructTreeFromFile(libFilepath, settings->path, &numDirectoryTreeEntries);
@@ -1725,7 +1725,7 @@ void createLibrary(AppSettings *settings)
                 // If time to load the library was significant, ask to use cache instead
                 if (elapsed > ASK_IF_USE_CACHE_LIMIT_SECONDS)
                 {
-                        askIfCacheLibrary();
+                        askIfCacheLibrary(&state->uiSettings);
                 }
         }
 
@@ -1811,7 +1811,7 @@ void *updateIfTopLevelFoldersMtimesChangedThread(void *arg)
 }
 
 // This only checks the library mtime and toplevel subfolders mtimes
-void updateLibraryIfChangedDetected()
+void updateLibraryIfChangedDetected(void)
 {
         pthread_t tid;
         if (pthread_create(&tid, NULL, updateIfTopLevelFoldersMtimesChangedThread, (void *)settings.path) != 0)

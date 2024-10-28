@@ -982,7 +982,7 @@ void emitPlaybackStoppedMpris()
 #endif
 }
 
-void cleanupMpris()
+void cleanupMpris(void)
 {
 #ifndef __APPLE__
         if (registration_id > 0)
@@ -1025,7 +1025,7 @@ void cleanupMpris()
 #endif
 }
 
-void initMpris()
+void initMpris(void)
 {
 #ifndef __APPLE__
         if (global_main_context == NULL)
@@ -1167,7 +1167,7 @@ void emit_properties_changed(GDBusConnection *connection,
 #endif
 }
 
-void emitVolumeChanged()
+void emitVolumeChanged(void)
 {
 #ifndef __APPLE__
         gdouble newVolume = (gdouble)getCurrentVolume() / 100;
@@ -1181,7 +1181,7 @@ void emitVolumeChanged()
 #endif
 }
 
-void emitShuffleChanged()
+void emitShuffleChanged(void)
 {
 #ifndef __APPLE__
         gboolean shuffleEnabled = isShuffleEnabled();

@@ -16,6 +16,7 @@
 #include <stdatomic.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include "appstate.h"
 #include "file.h"
 #include "utils.h"
 
@@ -194,17 +195,6 @@ enum AudioImplementation
         NONE
 };
 
-typedef enum {
-    SONG_VIEW,
-    KEYBINDINGS_VIEW,
-    PLAYLIST_VIEW,
-    LIBRARY_VIEW,
-    SEARCH_VIEW
-} ViewState;
-
-typedef struct {
-    ViewState currentView;
-} AppState;
 
 #ifdef USE_LIBNOTIFY
 extern NotifyNotification *previous_notification;
@@ -234,37 +224,37 @@ enum AudioImplementation getCurrentImplementationType();
 
 void setCurrentImplementationType(enum AudioImplementation value);
 
-int getBufferSize();
+int getBufferSize(void);
 
 void setBufferSize(int value);
 
 void setPlayingStatus(bool playing);
 
-bool isPlaying();
+bool isPlaying(void);
 
-ma_decoder *getFirstDecoder();
+ma_decoder *getFirstDecoder(void);
 
-ma_decoder *getCurrentBuiltinDecoder();
+ma_decoder *getCurrentBuiltinDecoder(void);
 
-ma_decoder *getPreviousDecoder();
+ma_decoder *getPreviousDecoder(void);
 
-ma_format getCurrentFormat();
+ma_format getCurrentFormat(void);
 
-void resetDecoders();
+void resetDecoders(void);
 
-ma_libopus *getCurrentOpusDecoder();
+ma_libopus *getCurrentOpusDecoder(void);
 
-void resetOpusDecoders();
+void resetOpusDecoders(void);
 
 #ifdef USE_FAAD
-m4a_decoder *getCurrentM4aDecoder();
+m4a_decoder *getCurrentM4aDecoder(void);
 
-m4a_decoder *getFirstM4aDecoder();
+m4a_decoder *getFirstM4aDecoder(void);
 #endif
 
-ma_libopus *getFirstOpusDecoder();
+ma_libopus *getFirstOpusDecoder(void);
 
-ma_libvorbis *getFirstVorbisDecoder();
+ma_libvorbis *getFirstVorbisDecoder(void);
 
 void getVorbisFileInfo(const char *filename, ma_format *format, ma_uint32*channels, ma_uint32 *sampleRate, ma_channel *channelMap);
 
@@ -272,9 +262,9 @@ void getM4aFileInfo(const char *filename, ma_format *format, ma_uint32*channels,
 
 void getOpusFileInfo(const char *filename, ma_format *format, ma_uint32*channels, ma_uint32 *sampleRate, ma_channel *channelMap);
 
-ma_libvorbis *getCurrentVorbisDecoder();
+ma_libvorbis *getCurrentVorbisDecoder(void);
 
-void switchVorbisDecoder();
+void switchVorbisDecoder(void);
 
 int prepareNextOpusDecoder(char *filepath);
 
@@ -284,81 +274,81 @@ int prepareNextVorbisDecoder(char *filepath);
 
 int prepareNextM4aDecoder(char *filepath);
 
-void resetVorbisDecoders();
+void resetVorbisDecoders(void);
 
-void resetM4aDecoders();
+void resetM4aDecoders(void);
 
-ma_libvorbis *getFirstVorbisDecoder();
+ma_libvorbis *getFirstVorbisDecoder(void);
 
 void getFileInfo(const char* filename, ma_uint32* sampleRate, ma_uint32* channels, ma_format* format);
 
-void initAudioBuffer();
+void initAudioBuffer(void);
 
-ma_int32 *getAudioBuffer();
+ma_int32 *getAudioBuffer(void);
 
 void setAudioBuffer(ma_int32 *buf);
 
-void resetAudioBuffer();
+void resetAudioBuffer(void);
 
-void freeAudioBuffer();
+void freeAudioBuffer(void);
 
-bool isRepeatEnabled();
+bool isRepeatEnabled(void);
 
 void setRepeatEnabled(bool value);
 
-bool isShuffleEnabled();
+bool isShuffleEnabled(void);
 
 void setShuffleEnabled(bool value);
 
-bool isSkipToNext();
+bool isSkipToNext(void);
 
 void setSkipToNext(bool value);
 
-double getSeekElapsed();
+double getSeekElapsed(void);
 
 void setSeekElapsed(double value);
 
-bool isEOFReached();
+bool isEOFReached(void);
 
-void setEOFReached();
+void setEOFReached(void);
 
-void setEOFNotReached();
+void setEOFNotReached(void);
 
-bool isImplSwitchReached();
+bool isImplSwitchReached(void);
 
-void setImplSwitchReached();
+void setImplSwitchReached(void);
 
-void setImplSwitchNotReached();
+void setImplSwitchNotReached(void);
 
-bool isPlaybackDone();
+bool isPlaybackDone(void);
 
-float getSeekPercentage();
+float getSeekPercentage(void);
 
-double getPercentageElapsed();
+double getPercentageElapsed(void);
 
-bool isSeekRequested();
+bool isSeekRequested(void);
 
 void setSeekRequested(bool value);
 
 void seekPercentage(float percent);
 
-void resumePlayback();
+void resumePlayback(void);
 
-void stopPlayback();
+void stopPlayback(void);
 
-void pausePlayback();
+void pausePlayback(void);
 
-void cleanupPlaybackDevice();
+void cleanupPlaybackDevice(void);
 
-void togglePausePlayback();
+void togglePausePlayback(void);
 
-bool isPaused();
+bool isPaused(void);
 
-bool isStopped();
+bool isStopped(void);
 
-void resetDevice();
+void resetDevice(void);
 
-ma_device *getDevice();
+ma_device *getDevice(void);
 
 bool hasBuiltinDecoder(char *filePath);
 
@@ -370,9 +360,9 @@ void executeSwitch(AudioData *pPCMDataSource);
 
 gint64 getLengthInMicroSec(double duration);
 
-int displaySongNotification(const char *artist, const char *title, const char *cover);
+int displaySongNotification(const char *artist, const char *title, const char *cover, UISettings *ui);
 
-int displaySongNotificationApple(const char *artist, const char *title, const char *cover);
+int displaySongNotificationApple(const char *artist, const char *title, const char *cover, UISettings *ui);
 
 int getCurrentVolume(void);
 
@@ -388,6 +378,6 @@ void vorbis_on_audio_frames(ma_device *pDevice, void *pFramesOut, const void *pF
 
 void logTime(const char *message);
 
-void clearCurrentTrack();
+void clearCurrentTrack(void);
 
 #endif

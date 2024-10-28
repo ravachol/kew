@@ -264,7 +264,7 @@ bool validFilePath(char *filePath)
 
 bool tryAgain = false;
 
-int switchAudioImplementation()
+int switchAudioImplementation(void)
 {
         if (audioData.endOfListReached)
         {
@@ -546,7 +546,7 @@ int switchAudioImplementation()
         return 0;
 }
 
-void cleanupAudioContext()
+void cleanupAudioContext(void)
 {
         ma_context_uninit(&context);
         isContextInitialized = false;

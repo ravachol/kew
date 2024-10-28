@@ -190,7 +190,7 @@ void trim(char *str)
         }
 }
 
-const char *getHomePath()
+const char *getHomePath(void)
 {
         const char *home = getenv("HOME");
 
@@ -206,7 +206,7 @@ const char *getHomePath()
         return home;
 }
 
-char *getConfigPath()
+char *getConfigPath(void)
 {
         char *configPath = malloc(MAXPATHLEN);
         if (!configPath)
