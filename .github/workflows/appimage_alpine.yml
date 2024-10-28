@@ -20,8 +20,6 @@ jobs:
           apk update
           apk add --no-cache \
             build-base \
-            faad2 \
-            faad2-dev \
             taglib-dev \
             fftw-dev \
             chafa-dev \
@@ -68,10 +66,6 @@ jobs:
       - name: Use appimagetool with --appimage-extract-and-run
         run: |
           ./appimagetool-x86_64.AppImage --appimage-extract-and-run deploy appdir/usr/share/applications/kew.desktop
-
-      - name: Remove unnecessary libraries
-        run: |
-          rm appdir/usr/lib/libfaad*
 
       - name: Create AppImage
         run: |
