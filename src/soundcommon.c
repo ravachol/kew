@@ -14,7 +14,6 @@ soundcommon.c
 #define PATH_MAX 4096
 #endif
 
-bool allowNotifications = true;
 bool repeatEnabled = false;
 bool shuffleEnabled = false;
 bool skipToNext = false;
@@ -81,7 +80,7 @@ void logTime(const char *message)
         // printf("[%ld.%09ld] %s\n", ts.tv_sec, ts.tv_nsec, message);
 }
 
-enum AudioImplementation getCurrentImplementationType()
+enum AudioImplementation getCurrentImplementationType(void)
 {
         return currentImplementation;
 }
@@ -91,12 +90,12 @@ void setCurrentImplementationType(enum AudioImplementation value)
         currentImplementation = value;
 }
 
-ma_decoder *getFirstDecoder()
+ma_decoder *getFirstDecoder(void)
 {
         return firstDecoder;
 }
 
-ma_decoder *getCurrentBuiltinDecoder()
+ma_decoder *getCurrentBuiltinDecoder(void)
 {
         if (decoderIndex == -1)
                 return getFirstDecoder();
@@ -104,7 +103,7 @@ ma_decoder *getCurrentBuiltinDecoder()
                 return decoders[decoderIndex];
 }
 
-void switchDecoder()
+void switchDecoder(void)
 {
         if (decoderIndex == -1)
                 decoderIndex = 0;
@@ -112,7 +111,7 @@ void switchDecoder()
                 decoderIndex = 1 - decoderIndex;
 }
 
-void resetDecoders()
+void resetDecoders(void)
 {
         decoderIndex = -1;
 
@@ -138,7 +137,7 @@ void resetDecoders()
         }
 }
 
-void uninitPreviousDecoder()
+void uninitPreviousDecoder(void)
 {
         if (decoderIndex == -1)
         {
@@ -154,7 +153,7 @@ void uninitPreviousDecoder()
         }
 }
 
-void uninitPreviousVorbisDecoder()
+void uninitPreviousVorbisDecoder(void)
 {
         if (vorbisDecoderIndex == -1)
         {
@@ -171,7 +170,7 @@ void uninitPreviousVorbisDecoder()
 }
 
 #ifdef USE_FAAD
-void uninitPreviousM4aDecoder()
+void uninitPreviousM4aDecoder(void)
 {
         if (m4aDecoderIndex == -1) // either start of the program or resetM4aDecoders has been called
         {
@@ -187,12 +186,12 @@ void uninitPreviousM4aDecoder()
         }
 }
 
-m4a_decoder *getFirstM4aDecoder()
+m4a_decoder *getFirstM4aDecoder(void)
 {
         return firstM4aDecoder;
 }
 
-m4a_decoder *getCurrentM4aDecoder()
+m4a_decoder *getCurrentM4aDecoder(void)
 {
         if (m4aDecoderIndex == -1)
                 return getFirstM4aDecoder();
@@ -231,7 +230,7 @@ void setNextM4aDecoder(m4a_decoder *decoder)
         }
 }
 
-void resetM4aDecoders()
+void resetM4aDecoders(void)
 {
         m4aDecoderIndex = -1;
 
@@ -352,7 +351,7 @@ int prepareNextM4aDecoder(char *filepath)
 
 #endif
 
-void uninitPreviousOpusDecoder()
+void uninitPreviousOpusDecoder(void)
 {
         if (opusDecoderIndex == -1)
         {
@@ -368,17 +367,17 @@ void uninitPreviousOpusDecoder()
         }
 }
 
-ma_libvorbis *getFirstVorbisDecoder()
+ma_libvorbis *getFirstVorbisDecoder(void)
 {
         return firstVorbisDecoder;
 }
 
-ma_libopus *getFirstOpusDecoder()
+ma_libopus *getFirstOpusDecoder(void)
 {
         return firstOpusDecoder;
 }
 
-ma_libvorbis *getCurrentVorbisDecoder()
+ma_libvorbis *getCurrentVorbisDecoder(void)
 {
         if (vorbisDecoderIndex == -1)
                 return getFirstVorbisDecoder();
@@ -386,7 +385,7 @@ ma_libvorbis *getCurrentVorbisDecoder()
                 return vorbisDecoders[vorbisDecoderIndex];
 }
 
-ma_libopus *getCurrentOpusDecoder()
+ma_libopus *getCurrentOpusDecoder(void)
 {
         if (opusDecoderIndex == -1)
                 return getFirstOpusDecoder();
@@ -394,7 +393,7 @@ ma_libopus *getCurrentOpusDecoder()
                 return opusDecoders[opusDecoderIndex];
 }
 
-ma_format getCurrentFormat()
+ma_format getCurrentFormat(void)
 {
         ma_format format = ma_format_unknown;
 
@@ -432,7 +431,7 @@ ma_format getCurrentFormat()
         return format;
 }
 
-void switchVorbisDecoder()
+void switchVorbisDecoder(void)
 {
         if (vorbisDecoderIndex == -1)
                 vorbisDecoderIndex = 0;
@@ -440,7 +439,7 @@ void switchVorbisDecoder()
                 vorbisDecoderIndex = 1 - vorbisDecoderIndex;
 }
 
-void switchM4aDecoder()
+void switchM4aDecoder(void)
 {
         if (m4aDecoderIndex == -1)
                 m4aDecoderIndex = 0;
@@ -448,7 +447,7 @@ void switchM4aDecoder()
                 m4aDecoderIndex = 1 - m4aDecoderIndex;
 }
 
-void switchOpusDecoder()
+void switchOpusDecoder(void)
 {
         if (opusDecoderIndex == -1)
                 opusDecoderIndex = 0;
@@ -517,7 +516,7 @@ void setNextOpusDecoder(ma_libopus *decoder)
         }
 }
 
-void resetVorbisDecoders()
+void resetVorbisDecoders(void)
 {
         vorbisDecoderIndex = -1;
 
@@ -543,7 +542,7 @@ void resetVorbisDecoders()
         }
 }
 
-void resetOpusDecoders()
+void resetOpusDecoders(void)
 {
         opusDecoderIndex = -1;
 
@@ -849,7 +848,7 @@ int prepareNextOpusDecoder(char *filepath)
         return 0;
 }
 
-int getBufferSize()
+int getBufferSize(void)
 {
         return bufSize;
 }
@@ -859,7 +858,7 @@ void setBufferSize(int value)
         bufSize = value;
 }
 
-void initAudioBuffer()
+void initAudioBuffer(void)
 {
         if (audioBuffer == NULL)
         {
@@ -872,7 +871,7 @@ void initAudioBuffer()
         }
 }
 
-ma_int32 *getAudioBuffer()
+ma_int32 *getAudioBuffer(void)
 {
         return audioBuffer;
 }
@@ -882,12 +881,12 @@ void setAudioBuffer(ma_int32 *buf)
         audioBuffer = buf;
 }
 
-void resetAudioBuffer()
+void resetAudioBuffer(void)
 {
         memset(audioBuffer, 0, sizeof(float) * MAX_BUFFER_SIZE);
 }
 
-void freeAudioBuffer()
+void freeAudioBuffer(void)
 {
         if (audioBuffer != NULL)
         {
@@ -896,7 +895,7 @@ void freeAudioBuffer()
         }
 }
 
-bool isRepeatEnabled()
+bool isRepeatEnabled(void)
 {
         return repeatEnabled;
 }
@@ -906,7 +905,7 @@ void setRepeatEnabled(bool value)
         repeatEnabled = value;
 }
 
-bool isShuffleEnabled()
+bool isShuffleEnabled(void)
 {
         return shuffleEnabled;
 }
@@ -916,7 +915,7 @@ void setShuffleEnabled(bool value)
         shuffleEnabled = value;
 }
 
-bool isSkipToNext()
+bool isSkipToNext(void)
 {
         return skipToNext;
 }
@@ -926,12 +925,12 @@ void setSkipToNext(bool value)
         skipToNext = value;
 }
 
-double getSeekElapsed()
+double getSeekElapsed(void)
 {
         return seekElapsed;
 }
 
-double getPercentageElapsed()
+double getPercentageElapsed(void)
 {
         return elapsedSeconds / duration;
 }
@@ -941,42 +940,42 @@ void setSeekElapsed(double value)
         seekElapsed = value;
 }
 
-bool isEOFReached()
+bool isEOFReached(void)
 {
         return atomic_load(&EOFReached);
 }
 
-void setEOFReached()
+void setEOFReached(void)
 {
         atomic_store(&EOFReached, true);
 }
 
-void setEOFNotReached()
+void setEOFNotReached(void)
 {
         atomic_store(&EOFReached, false);
 }
 
-bool isImplSwitchReached()
+bool isImplSwitchReached(void)
 {
         return atomic_load(&switchReached) ? true : false;
 }
 
-void setImplSwitchReached()
+void setImplSwitchReached(void)
 {
         atomic_store(&switchReached, true);
 }
 
-void setImplSwitchNotReached()
+void setImplSwitchNotReached(void)
 {
         atomic_store(&switchReached, false);
 }
 
-bool isPlaying()
+bool isPlaying(void)
 {
         return ma_device_is_started(&device);
 }
 
-bool isPlaybackDone()
+bool isPlaybackDone(void)
 {
         if (isEOFReached())
         {
@@ -988,12 +987,12 @@ bool isPlaybackDone()
         }
 }
 
-float getSeekPercentage()
+float getSeekPercentage(void)
 {
         return seekPercent;
 }
 
-bool isSeekRequested()
+bool isSeekRequested(void)
 {
         return seekRequested;
 }
@@ -1009,7 +1008,7 @@ void seekPercentage(float percent)
         seekRequested = true;
 }
 
-void resumePlayback()
+void resumePlayback(void)
 {
         // if this was unpaused with no song loaded
         if (audioData.restart)
@@ -1032,7 +1031,7 @@ void resumePlayback()
         }
 }
 
-void stopPlayback()
+void stopPlayback(void)
 {
         if (ma_device_is_started(&device))
         {
@@ -1047,7 +1046,7 @@ void stopPlayback()
         }
 }
 
-void pausePlayback()
+void pausePlayback(void)
 {
         if (ma_device_is_started(&device))
         {
@@ -1062,7 +1061,7 @@ void pausePlayback()
         }
 }
 
-void cleanupPlaybackDevice()
+void cleanupPlaybackDevice(void)
 {
         ma_device_stop(&device);
         while (ma_device_get_state(&device) != ma_device_state_stopped && ma_device_get_state(&device) != ma_device_state_uninitialized)
@@ -1072,7 +1071,7 @@ void cleanupPlaybackDevice()
         ma_device_uninit(&device);
 }
 
-void clearCurrentTrack()
+void clearCurrentTrack(void)
 {
         if (ma_device_is_started(&device))
         {
@@ -1089,7 +1088,7 @@ void clearCurrentTrack()
         ma_data_source_set_next(currentDecoder, NULL);
 }
 
-void togglePausePlayback()
+void togglePausePlayback(void)
 {
         if (ma_device_is_started(&device))
         {
@@ -1101,12 +1100,12 @@ void togglePausePlayback()
         }
 }
 
-bool isPaused()
+bool isPaused(void)
 {
         return paused;
 }
 
-bool isStopped()
+bool isStopped(void)
 {
         return stopped;
 }
@@ -1114,7 +1113,7 @@ bool isStopped()
 pthread_mutex_t deviceMutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t deviceStopped = PTHREAD_COND_INITIALIZER;
 
-void resetDevice()
+void resetDevice(void)
 {
         pthread_mutex_lock(&deviceMutex);
 
@@ -1131,7 +1130,7 @@ void resetDevice()
         ma_device_uninit(&device);
 }
 
-ma_device *getDevice()
+ma_device *getDevice(void)
 {
         return &device;
 }
@@ -1225,7 +1224,7 @@ struct timeval lastNotificationTime = {0, 0};
 static char sanitizedArtist[512];
 static char sanitizedTitle[512];
 
-int canShowNotification()
+int canShowNotification(void)
 {
         struct timeval now;
         gettimeofday(&now, NULL);
@@ -1251,9 +1250,9 @@ void ensureNonEmpty(char *str)
         }
 }
 
-int displaySongNotification(const char *artist, const char *title, const char *cover)
+int displaySongNotification(const char *artist, const char *title, const char *cover, UISettings *ui)
 {
-    if (!allowNotifications || !canShowNotification() || !notify_is_initted())
+    if (!ui->allowNotifications || !canShowNotification() || !notify_is_initted())
     {
         return 0;
     }
@@ -1374,9 +1373,9 @@ void sendNotification(const char *artist, const char *title)
         system(command);
 }
 
-int displaySongNotificationApple(const char *artist, const char *title, const char *cover)
+int displaySongNotificationApple(const char *artist, const char *title, const char *cover, UISettings *ui)
 {
-        if (!allowNotifications)
+        if (!ui->allowNotifications)
         {
                 return 0;
         }
@@ -1421,7 +1420,7 @@ void executeSwitch(AudioData *pAudioData)
         setEOFReached();
 }
 
-int getCurrentVolume()
+int getCurrentVolume(void)
 {
         return soundVolume;
 }
@@ -1453,7 +1452,7 @@ int extractPercentageMac(const char *buf)
         return -1;
 }
 
-int getSystemVolumeMac()
+int getSystemVolumeMac(void)
 {
         FILE *fp;
         char command_str[1000];
@@ -1482,7 +1481,7 @@ int getSystemVolumeMac()
         return currentVolume;
 }
 
-int getSystemVolume()
+int getSystemVolume(void)
 {
 #ifdef __APPLE__
         return getSystemVolumeMac();

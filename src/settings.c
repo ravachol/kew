@@ -336,7 +336,7 @@ KeyValuePair *readKeyValuePairs(const char *file_path, int *count, time_t *lastT
         return pairs;
 }
 
-const char *getDefaultMusicFolder()
+const char *getDefaultMusicFolder(void)
 {
         const char *home = getHomePath();
         if (home != NULL)
@@ -418,7 +418,7 @@ void mapSettingsToKeys(AppSettings *settings, EventMapping *mappings)
         mappings[47] = (EventMapping){settings->tabNext, EVENT_TABNEXT};
 }
 
-void getConfig(AppSettings *settings)
+void getConfig(AppSettings *settings, UISettings *ui)
 {
         int pair_count;
         char *configdir = getConfigPath();
@@ -451,32 +451,32 @@ void getConfig(AppSettings *settings)
         free(filepath);
         *settings = constructAppSettings(pairs, pair_count);
 
-        allowNotifications = (settings->allowNotifications[0] == '1');
-        coverEnabled = (settings->coverEnabled[0] == '1');
-        coverAnsi = (settings->coverAnsi[0] == '1');
-        visualizerEnabled = (settings->visualizerEnabled[0] == '1');
-        useProfileColors = (settings->useProfileColors[0] == '1');
-        hideLogo = (settings->hideLogo[0] == '1');
-        hideHelp = (settings->hideHelp[0] == '1');
+        ui->allowNotifications = (settings->allowNotifications[0] == '1');
+        ui->coverEnabled = (settings->coverEnabled[0] == '1');
+        ui->coverAnsi = (settings->coverAnsi[0] == '1');
+        ui->visualizerEnabled = (settings->visualizerEnabled[0] == '1');
+        ui->useProfileColors = (settings->useProfileColors[0] == '1');
+        ui->hideLogo = (settings->hideLogo[0] == '1');
+        ui->hideHelp = (settings->hideHelp[0] == '1');
 
         int temp = atoi(settings->color);
         if (temp >= 0)
-                mainColor = temp;
+                ui->mainColor = temp;
         temp = atoi(settings->artistColor);
         if (temp >= 0)
-                artistColor = temp;
+                ui->artistColor = temp;
 
         temp = atoi(settings->enqueuedColor);
         if (temp >= 0)
-                enqueuedColor = temp;
+                ui->enqueuedColor = temp;
 
         temp = atoi(settings->titleColor);
         if (temp >= 0)
-                titleColor = temp;
+                ui->titleColor = temp;
 
         int temp2 = atoi(settings->visualizerHeight);
         if (temp2 > 0)
-                visualizerHeight = temp2;
+                ui->visualizerHeight = temp2;
 
         int temp3 = atoi(settings->lastVolume);
         if (temp3 >= 0)
@@ -484,13 +484,13 @@ void getConfig(AppSettings *settings)
 
         int temp4 = atoi(settings->cacheLibrary);
         if (temp4 >= 0)
-                cacheLibrary = temp4;
+                ui->cacheLibrary = temp4;
 
         getMusicLibraryPath(settings->path);
         free(configdir);
 }
 
-void setConfig(AppSettings *settings)
+void setConfig(AppSettings *settings, UISettings *ui)
 {
         // Create the file path
         char *configdir = getConfigPath();
@@ -516,25 +516,25 @@ void setConfig(AppSettings *settings)
         }
 
         if (settings->allowNotifications[0] == '\0')
-                allowNotifications ? c_strcpy(settings->allowNotifications, sizeof(settings->allowNotifications), "1") : c_strcpy(settings->allowNotifications, sizeof(settings->allowNotifications), "0");
+                ui->allowNotifications ? c_strcpy(settings->allowNotifications, sizeof(settings->allowNotifications), "1") : c_strcpy(settings->allowNotifications, sizeof(settings->allowNotifications), "0");
         if (settings->coverEnabled[0] == '\0')
-                coverEnabled ? c_strcpy(settings->coverEnabled, sizeof(settings->coverEnabled), "1") : c_strcpy(settings->coverEnabled, sizeof(settings->coverEnabled), "0");
+                ui->coverEnabled ? c_strcpy(settings->coverEnabled, sizeof(settings->coverEnabled), "1") : c_strcpy(settings->coverEnabled, sizeof(settings->coverEnabled), "0");
         if (settings->coverAnsi[0] == '\0')
-                coverAnsi ? c_strcpy(settings->coverAnsi, sizeof(settings->coverAnsi), "1") : c_strcpy(settings->coverAnsi, sizeof(settings->coverAnsi), "0");
+                ui->coverAnsi ? c_strcpy(settings->coverAnsi, sizeof(settings->coverAnsi), "1") : c_strcpy(settings->coverAnsi, sizeof(settings->coverAnsi), "0");
         if (settings->visualizerEnabled[0] == '\0')
-                visualizerEnabled ? c_strcpy(settings->visualizerEnabled, sizeof(settings->visualizerEnabled), "1") : c_strcpy(settings->visualizerEnabled, sizeof(settings->visualizerEnabled), "0");
+                ui->visualizerEnabled ? c_strcpy(settings->visualizerEnabled, sizeof(settings->visualizerEnabled), "1") : c_strcpy(settings->visualizerEnabled, sizeof(settings->visualizerEnabled), "0");
         if (settings->useProfileColors[0] == '\0')
-                useProfileColors ? c_strcpy(settings->useProfileColors, sizeof(settings->useProfileColors), "1") : c_strcpy(settings->useProfileColors, sizeof(settings->useProfileColors), "0");
+                ui->useProfileColors ? c_strcpy(settings->useProfileColors, sizeof(settings->useProfileColors), "1") : c_strcpy(settings->useProfileColors, sizeof(settings->useProfileColors), "0");
         if (settings->visualizerHeight[0] == '\0')
         {
-                snprintf(settings->visualizerHeight, sizeof(settings->visualizerHeight), "%d", visualizerHeight);
+                snprintf(settings->visualizerHeight, sizeof(settings->visualizerHeight), "%d", ui->visualizerHeight);
         }
         if (settings->hideLogo[0] == '\0')
-                hideLogo ? c_strcpy(settings->hideLogo, sizeof(settings->hideLogo), "1") : c_strcpy(settings->hideLogo, sizeof(settings->hideLogo), "0");
+                ui->hideLogo ? c_strcpy(settings->hideLogo, sizeof(settings->hideLogo), "1") : c_strcpy(settings->hideLogo, sizeof(settings->hideLogo), "0");
         if (settings->hideHelp[0] == '\0')
-                hideHelp ? c_strcpy(settings->hideHelp, sizeof(settings->hideHelp), "1") : c_strcpy(settings->hideHelp, sizeof(settings->hideHelp), "0");
+                ui->hideHelp ? c_strcpy(settings->hideHelp, sizeof(settings->hideHelp), "1") : c_strcpy(settings->hideHelp, sizeof(settings->hideHelp), "0");
 
-        snprintf(settings->cacheLibrary, sizeof(settings->cacheLibrary), "%d", cacheLibrary);
+        snprintf(settings->cacheLibrary, sizeof(settings->cacheLibrary), "%d", ui->cacheLibrary);
 
         int currentVolume = getCurrentVolume();
         currentVolume = (currentVolume <= 0) ? 10 : currentVolume;

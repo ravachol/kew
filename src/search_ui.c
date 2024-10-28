@@ -21,12 +21,12 @@ FileSystemEntry *currentSearchEntry = NULL;
 
 char searchText[MAX_SEARCH_LEN * 4 + 1]; // unicode can be 4 characters
 
-FileSystemEntry *getCurrentSearchEntry()
+FileSystemEntry *getCurrentSearchEntry(void)
 {
         return currentSearchEntry;
 }
 
-int getSearchResultsCount()
+int getSearchResultsCount(void)
 {
         return resultsCount;
 }
@@ -51,7 +51,7 @@ void collectResult(FileSystemEntry *entry, int distance)
 }
 
 // Free allocated memory from previous search
-void freeSearchResults()
+void freeSearchResults(void)
 {
         if (results != NULL)
         {
@@ -80,7 +80,7 @@ int compareResults(const void *a, const void *b)
         return resultA->distance - resultB->distance;
 }
 
-void sortResults()
+void sortResults(void)
 {
         qsort(results, resultsCount, sizeof(SearchResult), compareResults);
 }
@@ -152,7 +152,7 @@ int getLastCharBytes(const char *str, int len)
 }
 
 // Remove the preceding character from the search text
-int removeFromSearchText()
+int removeFromSearchText(void)
 {
         if (numSearchLetters == 0)
                 return 0;
@@ -200,7 +200,7 @@ int removeFromSearchText()
         return 0;
 }
 
-int displaySearchResults(int maxListSize, int indent, int *chosenRow, int startSearchIter)
+int displaySearchResults(int maxListSize, int indent, int *chosenRow, int startSearchIter, UISettings *ui)
 {
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
@@ -250,10 +250,10 @@ int displaySearchResults(int maxListSize, int indent, int *chosenRow, int startS
 
                         if (results[i].entry->isEnqueued)
                         {
-                                if (useProfileColors)
-                                        setTextColor(enqueuedColor);
+                                if (ui->useProfileColors)
+                                        setTextColor(ui->enqueuedColor);
                                 else
-                                        setColor();
+                                        setColor(ui);
                                 printf("\x1b[7m * ");
                         }
                         else
@@ -265,10 +265,10 @@ int displaySearchResults(int maxListSize, int indent, int *chosenRow, int startS
                 {
                         if (results[i].entry->isEnqueued)
                         {
-                                if (useProfileColors)
-                                        setTextColor(enqueuedColor);
+                                if (ui->useProfileColors)
+                                        setTextColor(ui->enqueuedColor);
                                 else
-                                        setColor();
+                                        setColor(ui);
                                 printf(" * ");
                         }
                         else
@@ -297,10 +297,10 @@ int displaySearchResults(int maxListSize, int indent, int *chosenRow, int startS
         return 0;
 }
 
-int displaySearch(int maxListSize, int indent, int *chosenRow, int startSearchIter)
+int displaySearch(int maxListSize, int indent, int *chosenRow, int startSearchIter, UISettings *ui)
 {     
         displaySearchBox(indent);
-        displaySearchResults(maxListSize, indent, chosenRow, startSearchIter);
+        displaySearchResults(maxListSize, indent, chosenRow, startSearchIter, ui);
 
         return 0;
 }
