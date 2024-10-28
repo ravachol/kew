@@ -60,7 +60,7 @@ void preparePlaylistString(Node *node, char *buffer, int bufferSize, int shorten
         }
 }
 
-int displayPlaylistItems(Node *startNode, int startIter, int maxListSize, int termWidth, int indent, int chosenSong, int *chosenNodeId)
+int displayPlaylistItems(Node *startNode, int startIter, int maxListSize, int termWidth, int indent, int chosenSong, int *chosenNodeId, UISettings *ui)
 {
         int numPrintedRows = 0;
         Node *node = startNode;
@@ -77,10 +77,10 @@ int displayPlaylistItems(Node *startNode, int startIter, int maxListSize, int te
                 preparePlaylistString(node, buffer, MAXPATHLEN, termWidth - indent - 10);
                 if (buffer[0] != '\0')
                 {
-                        if (useProfileColors)
-                                setTextColor(artistColor);
+                        if (ui->useProfileColors)
+                                setTextColor(ui->artistColor);
                         else
-                                setColor();
+                                setColor(ui);
 
                         printBlankSpaces(indent);
 
@@ -115,7 +115,7 @@ int displayPlaylistItems(Node *startNode, int startIter, int maxListSize, int te
         return numPrintedRows;
 }
 
-int displayPlaylist(PlayList *list, int maxListSize, int indent, int *chosenSong, int *chosenNodeId, bool reset)
+int displayPlaylist(PlayList *list, int maxListSize, int indent, int *chosenSong, int *chosenNodeId, bool reset, UISettings *ui)
 {
         int termWidth, termHeight;
         getTerminalSize(&termWidth, &termHeight);
@@ -169,7 +169,7 @@ int displayPlaylist(PlayList *list, int maxListSize, int indent, int *chosenSong
                         startNode = startNode->next;
         }
 
-        int printedRows = displayPlaylistItems(startNode, startIter, maxListSize, termWidth, indent, *chosenSong, chosenNodeId);
+        int printedRows = displayPlaylistItems(startNode, startIter, maxListSize, termWidth, indent, *chosenSong, chosenNodeId, ui);
 
         if (printedRows > 1)
         {

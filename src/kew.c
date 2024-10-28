@@ -48,6 +48,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include <sys/stat.h>
 #include <time.h>
 #include <unistd.h>
+#include "appstate.h"
 #include "cache.h"
 #include "events.h"
 #include "file.h"
@@ -321,15 +322,15 @@ void notifyMPRISSwitch(SongData *currentSongData)
             length);
 }
 
-void notifySongSwitch(SongData *currentSongData)
+void notifySongSwitch(SongData *currentSongData, UISettings *ui)
 {
         if (currentSongData != NULL && currentSongData->hasErrors == 0 && currentSongData->metadata && strlen(currentSongData->metadata->title) > 0)
         {
 #ifdef USE_LIBNOTIFY
-                displaySongNotification(currentSongData->metadata->artist, currentSongData->metadata->title, currentSongData->coverArtPath);
+                displaySongNotification(currentSongData->metadata->artist, currentSongData->metadata->title, currentSongData->coverArtPath, ui);
 
 #elif __APPLE__
-                displaySongNotificationApple(currentSongData->metadata->artist, currentSongData->metadata->title, currentSongData->coverArtPath);
+                displaySongNotificationApple(currentSongData->metadata->artist, currentSongData->metadata->title, currentSongData->coverArtPath, ui);
 #endif
 
                 notifyMPRISSwitch(currentSongData);
@@ -338,7 +339,7 @@ void notifySongSwitch(SongData *currentSongData)
         }
 }
 
-void determineSongAndNotify()
+void determineSongAndNotify(UISettings *ui)
 {
         SongData *currentSongData = NULL;
 
@@ -347,7 +348,7 @@ void determineSongAndNotify()
         if (lastNotifiedId != currentSong->id)
         {
                 if (!isDeleted)
-                        notifySongSwitch(currentSongData);
+                        notifySongSwitch(currentSongData, ui);
         }
 }
 
@@ -377,7 +378,7 @@ void refreshPlayer()
 
         if (shouldRefreshPlayer())
         {
-                printPlayer(getCurrentSongData(), elapsedSeconds, &settings);
+                printPlayer(getCurrentSongData(), elapsedSeconds, &settings, &appState);
         }
 
         pthread_mutex_unlock(&switchMutex);
@@ -566,20 +567,20 @@ void handleInput()
                 togglePause(&totalPauseSeconds, &pauseSeconds, &pause_time);
                 break;
         case EVENT_TOGGLEVISUALIZER:
-                toggleVisualizer(&settings);
+                toggleVisualizer(&settings, &(appState.uiSettings));
                 break;
         case EVENT_TOGGLEREPEAT:
                 toggleRepeat();
                 break;
         case EVENT_TOGGLEBLOCKS:
-                toggleBlocks(&settings);
+                toggleBlocks(&settings, &(appState.uiSettings));
                 break;
         case EVENT_SHUFFLE:
                 toggleShuffle();
                 emitShuffleChanged();
                 break;
         case EVENT_TOGGLE_PROFILE_COLORS:
-                toggleColors(&settings);
+                toggleColors(&settings, &(appState.uiSettings));
                 break;
         case EVENT_QUIT:
                 quit();
@@ -691,7 +692,7 @@ void updatePlayer()
         }
 }
 
-void loadAudioData()
+void loadAudioData(AppState *state)
 {
         if (audioData.restart == true)
         {
@@ -741,7 +742,7 @@ void loadAudioData()
                         unloadSongA();
                         unloadSongB();
 
-                        int res = loadFirst(currentSong);
+                        int res = loadFirst(currentSong, &(state->uiSettings));
 
                         finishLoading();
 
@@ -770,7 +771,7 @@ void loadAudioData()
         else if (currentSong != NULL && (nextSongNeedsRebuilding || nextSong == NULL) && !songLoading)
         {
                 loadNextSong();
-                determineSongAndNotify();
+                determineSongAndNotify(&state->uiSettings);
         }
 }
 
@@ -797,7 +798,7 @@ void tryLoadNext()
         }
 }
 
-void prepareNextSong()
+void prepareNextSong(AppState *state)
 {
         if (!skipOutOfOrder && !isRepeatEnabled())
         {
@@ -821,14 +822,14 @@ void prepareNextSong()
 
         if (currentSong == NULL)
         {
-                if (quitAfterStopping)
+                if (state->uiSettings.quitAfterStopping)
                         quit();
                 else
                         setEndOfListReached();
         }
         else
         {
-                determineSongAndNotify();
+                determineSongAndNotify(&state->uiSettings);
         }
 
         clock_gettime(CLOCK_MONOTONIC, &start_time);
@@ -870,7 +871,7 @@ gboolean mainloop_callback(gpointer data)
                 {
                         if ((skipFromStopped || !loadedNextSong || nextSongNeedsRebuilding) && !audioData.endOfListReached)
                         {
-                                loadAudioData();
+                                loadAudioData(&appState);
                         }
 
                         if (songHasErrors)
@@ -879,7 +880,7 @@ gboolean mainloop_callback(gpointer data)
                         if (isPlaybackDone())
                         {
                                 updateLastSongSwitchTime();
-                                prepareNextSong();
+                                prepareNextSong(&appState);
 
                                 if (!doQuit)
                                         switchAudioImplementation();
@@ -907,7 +908,7 @@ static gboolean quitOnSignal(gpointer user_data)
         return G_SOURCE_REMOVE; // Remove the signal source
 }
 
-void initFirstPlay(Node *song)
+void initFirstPlay(Node *song, AppState *state)
 {
         updateLastInputTime();
         updateLastSongSwitchTime();
@@ -924,7 +925,7 @@ void initFirstPlay(Node *song)
         {
                 audioData.currentFileIndex = 0;
                 loadingdata.loadA = true;
-                res = loadFirst(song);
+                res = loadFirst(song, &(state->uiSettings));
 
                 if (res >= 0)
                 {
@@ -1004,12 +1005,12 @@ void cleanupOnExit()
         cleanupMpris();
         restoreTerminalMode();
         enableInputBuffering();
-        setConfig(&settings);
+        setConfig(&settings, &(appState.uiSettings));
         saveSpecialPlaylist(settings.path);
         freeAudioBuffer();
         deleteCache(tempCache);
         deleteTempDir();
-        freeMainDirectoryTree();
+        freeMainDirectoryTree(&appState);
         deletePlaylist(&playlist);
         deletePlaylist(originalPlaylist);
         deletePlaylist(specialPlaylist);
@@ -1048,7 +1049,7 @@ void cleanupOnExit()
         }
 }
 
-void run()
+void run(AppState *state)
 {
         if (originalPlaylist == NULL)
         {
@@ -1059,18 +1060,18 @@ void run()
 
         if (playlist.head == NULL)
         {
-                appState.currentView = LIBRARY_VIEW;
+                state->currentView = LIBRARY_VIEW;
         }
 
         initMpris();
 
         currentSong = playlist.head;
-        initFirstPlay(currentSong);
+        initFirstPlay(currentSong, state);
         clearScreen();
         fflush(stdout);
 }
 
-void init()
+void init(AppState *state)
 {
         disableInputBuffering();
         srand(time(NULL));
@@ -1093,8 +1094,8 @@ void init()
         pthread_mutex_init(&switchMutex, NULL);
         pthread_mutex_init(&(loadingdata.mutex), NULL);
         pthread_mutex_init(&(playlist.mutex), NULL);
-        nerdFontsEnabled = true;
-        createLibrary(&settings);
+        state->uiSettings.nerdFontsEnabled = true;
+        createLibrary(&settings, state);
         setlocale(LC_ALL, "");
         fflush(stdout);
 #ifdef USE_LIBNOTIFY
@@ -1114,15 +1115,15 @@ void init()
 #endif
 }
 
-void openLibrary()
+void openLibrary(AppState *state)
 {
         appState.currentView = LIBRARY_VIEW;
-        init();
+        init(state);
         playlist.head = NULL;
-        run();
+        run(state);
 }
 
-void playSpecialPlaylist()
+void playSpecialPlaylist(AppState *state)
 {
         if (specialPlaylist->count == 0)
         {
@@ -1130,33 +1131,33 @@ void playSpecialPlaylist()
                 exit(0);
         }
 
-        init();
+        init(state);
         deepCopyPlayListOntoList(specialPlaylist, &playlist);
         shufflePlaylist(&playlist);
-        run();
+        run(state);
 }
 
-void playAll()
+void playAll(AppState *state)
 {
-        init();
+        init(state);
         createPlayListFromFileSystemEntry(library, &playlist, MAX_FILES);
         if (playlist.count == 0)
         {
                 exit(0);
         }
         shufflePlaylist(&playlist);
-        run();
+        run(state);
 }
 
-void playAllAlbums()
+void playAllAlbums(AppState *state)
 {
-        init();
+        init(state);
         addShuffledAlbumsToPlayList(library, &playlist, MAX_FILES);
         if (playlist.count == 0)
         {
                 exit(0);
         }
-        run();
+        run(state);
 }
 
 void removeArgElement(char *argv[], int index, int *argc)
@@ -1177,7 +1178,7 @@ void removeArgElement(char *argv[], int index, int *argc)
         (*argc)--;
 }
 
-void handleOptions(int *argc, char *argv[])
+void handleOptions(int *argc, char *argv[], UISettings *ui)
 {
         const char *noUiOption = "--noui";
         const char *noCoverOption = "--nocover";
@@ -1191,7 +1192,7 @@ void handleOptions(int *argc, char *argv[])
         {
                 if (c_strcasestr(argv[i], noUiOption))
                 {
-                        uiEnabled = false;
+                        ui->uiEnabled = false;
                         idx = i;
                 }
         }
@@ -1203,7 +1204,7 @@ void handleOptions(int *argc, char *argv[])
         {
                 if (c_strcasestr(argv[i], noCoverOption))
                 {
-                        coverEnabled = false;
+                        ui->coverEnabled = false;
                         idx = i;
                 }
         }
@@ -1215,7 +1216,7 @@ void handleOptions(int *argc, char *argv[])
         {
                 if (c_strcasestr(argv[i], quitOnStop) || c_strcasestr(argv[i], quitOnStop2))
                 {
-                        quitAfterStopping = true;
+                        ui->quitAfterStopping = true;
                         idx = i;
                 }
         }
@@ -1393,8 +1394,28 @@ void setMusicPath()
                 exit(1);
 }
 
+void initState(AppState *state)
+{
+        state->uiSettings.nerdFontsEnabled = true;
+        state->uiSettings.visualizerEnabled = true;
+        state->uiSettings.coverEnabled = true;
+        state->uiSettings.hideLogo = false;
+        state->uiSettings.hideHelp = false;
+        state->uiSettings.quitAfterStopping = false;
+        state->uiSettings.coverAnsi = false;
+        state->uiSettings.uiEnabled = true;
+        state->uiSettings.visualizerHeight = 5;
+        state->uiSettings.cacheLibrary = -1;
+        state->uiSettings.useProfileColors = false;
+        state->uiSettings.color.r = 125;
+        state->uiSettings.color.g = 125;
+        state->uiSettings.color.b = 125;
+}
+
 int main(int argc, char *argv[])
 {
+        UISettings *ui = &(appState.uiSettings);
+
         exitIfAlreadyRunning();
 
         if ((argc == 2 && ((strcmp(argv[1], "--help") == 0) || (strcmp(argv[1], "-h") == 0) || (strcmp(argv[1], "-?") == 0))))
@@ -1404,17 +1425,18 @@ int main(int argc, char *argv[])
         }
         else if (argc == 2 && (strcmp(argv[1], "--version") == 0 || strcmp(argv[1], "-v") == 0))
         {
-                printAbout(NULL);
+                printAbout(NULL, ui);
                 exit(0);
         }
 
-        getConfig(&settings);
+        initState(&appState);
+        getConfig(&settings, ui);
         mapSettingsToKeys(&settings, keyMappings);
 
         if (argc == 3 && (strcmp(argv[1], "path") == 0))
         {
                 c_strcpy(settings.path, sizeof(settings.path), argv[2]);
-                setConfig(&settings);
+                setConfig(&settings, ui);
                 exit(0);
         }
 
@@ -1425,35 +1447,35 @@ int main(int argc, char *argv[])
 
         atexit(cleanupOnExit);
 
-        handleOptions(&argc, argv);
+        handleOptions(&argc, argv, ui);
         loadSpecialPlaylist(settings.path);
 
         if (argc == 1)
         {
-                openLibrary();
+                openLibrary(&appState);
         }
         else if (argc == 2 && strcmp(argv[1], "all") == 0)
         {
-                playAll();
+                playAll(&appState);
         }
         else if (argc == 2 && strcmp(argv[1], "albums") == 0)
         {
-                playAllAlbums();
+                playAllAlbums(&appState);
         }
         else if (argc == 2 && strcmp(argv[1], ".") == 0)
         {
-                playSpecialPlaylist();
+                playSpecialPlaylist(&appState);
         }
         else if (argc >= 2)
         {
-                init();
+                init(&appState);
                 makePlaylist(argc, argv, exactSearch, settings.path);
                 if (playlist.count == 0)
                 {
                         noPlaylist = true;
                         exit(0);
                 }
-                run();
+                run(&appState);
         }
 
         return 0;

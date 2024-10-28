@@ -66,11 +66,11 @@ extern UserData userData;
 
 SongData *getCurrentSongData(void);
 
-void rebuildAndUpdatePlaylist();
+void rebuildAndUpdatePlaylist(void);
 
-Node *getNextSong();
+Node *getNextSong(void);
 
-void handleRemove();
+void handleRemove(void);
 
 void enqueueSongs(FileSystemEntry *entry);
 
@@ -84,7 +84,7 @@ void playbackPlay(double *totalPauseSeconds, double *pauseSeconds);
 
 void togglePause(double *totalPauseSeconds, double *pauseSeconds, struct timespec *pause_time);
 
-void stop();
+void stop(void);
 
 void toggleRepeat(void);
 
@@ -92,11 +92,11 @@ void toggleShuffle(void);
 
 void addToSpecialPlaylist(void);
 
-void toggleBlocks(AppSettings *settings);
+void toggleBlocks(AppSettings *settings, UISettings *ui);
 
-void toggleColors(AppSettings *settings);
+void toggleColors(AppSettings *settings, UISettings *ui);
 
-void toggleVisualizer(AppSettings *settings);
+void toggleVisualizer(AppSettings *settings, UISettings *ui);
 
 void quit(void);
 
@@ -122,7 +122,7 @@ void loadSong(Node *song, LoadingThreadData *loadingdata);
 
 void loadNext(LoadingThreadData *loadingdata);
 
-int loadFirst(Node *song);
+int loadFirst(Node *song, UISettings *ui);
 
 void flushSeek(void);
 
@@ -134,23 +134,23 @@ void rebuildNextSong(Node *song);
 
 void updateLibrary(char *path);
 
-void askIfCacheLibrary();
+void askIfCacheLibrary(UISettings *ui);
 
-void unloadSongA();
+void unloadSongA(void);
 
-void unloadSongB();
+void unloadSongB(void);
 
-void unloadPreviousSong();
+void unloadPreviousSong(void);
 
-void createLibrary(AppSettings *settings);
+void createLibrary(AppSettings *settings, AppState *state);
 
-void loadNextSong();
+void loadNextSong(void);
 
-void setCurrentSongToNext();
+void setCurrentSongToNext(void);
 
-void finishLoading();
+void finishLoading(void);
 
-void resetTimeCount();
+void resetTimeCount(void);
 
 bool setPosition(gint64 newPosition);
 
@@ -158,10 +158,10 @@ bool seekPosition(gint64 offset);
 
 void silentSwitchToNext(bool loadSong);
 
-void reshufflePlaylist();
+void reshufflePlaylist(void);
 
 bool determineCurrentSongData(SongData **currentSongData);
 
-void updateLibraryIfChangedDetected();
+void updateLibraryIfChangedDetected(void);
 
 #endif

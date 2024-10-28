@@ -22,9 +22,9 @@
     } PixelData;
 #endif
 
-void initVisuals();
+void initVisuals(void);
 
-void freeVisuals();
+void freeVisuals(void);
 
 void drawSpectrumVisualizer(int height, int width, PixelData c, int indentation, bool useProfileColors);
 

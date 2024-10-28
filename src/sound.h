@@ -64,8 +64,8 @@ void setDecoders(bool usingA, char *filePath);
 
 int createAudioDevice(UserData *userData);
 
-int switchAudioImplementation();
+int switchAudioImplementation(void);
 
-void cleanupAudioContext();
+void cleanupAudioContext(void);
 
 #endif

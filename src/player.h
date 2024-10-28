@@ -7,6 +7,7 @@
 #include <string.h>
 #include "../include/imgtotxt/write_ascii.h"
 #include "../include/imgtotxt/options.h"
+#include "appstate.h"
 #include "chafafunc.h"
 #include "directorytree.h"
 #include "playlist.h"
@@ -19,18 +20,9 @@
 #include "visuals.h"
 #include "common_ui.h"
 
-extern bool coverEnabled;
-extern bool uiEnabled;
-extern bool coverAnsi;
-extern bool visualizerEnabled;
-extern bool quitAfterStopping;
-extern bool nerdFontsEnabled;
-extern bool hideLogo;
-extern bool hideHelp;
 extern int numProgressBars;
 extern int chosenSong;
 extern bool resetPlaylistDisplay;
-extern int visualizerHeight;
 extern TagSettings metadata;
 extern bool fastForwarding;
 extern bool rewinding;
@@ -43,55 +35,54 @@ extern int chosenLibRow;
 extern int chosenSearchResultRow;
 extern int chosenRow;
 extern int chosenNodeId;
-extern int cacheLibrary;
 extern int numDirectoryTreeEntries;
 
 extern FileSystemEntry *library;
 
-bool hasNerdFonts();
+bool hasNerdFonts(void);
 
-int printPlayer(SongData *songdata, double elapsedSeconds, AppSettings *settings);
+int printPlayer(SongData *songdata, double elapsedSeconds, AppSettings *settings, AppState *appState);
 
-void flipNextPage();
+void flipNextPage(void);
 
-void flipPrevPage();
+void flipPrevPage(void);
 
 void showHelp(void);
 
 void setChosenDir(FileSystemEntry *entry);
 
-int printAbout(SongData *songdata);
+int printAbout(SongData *songdata, UISettings *ui);
 
-FileSystemEntry *getCurrentLibEntry();
+FileSystemEntry *getCurrentLibEntry(void);
 
-FileSystemEntry *getChosenDir();
+FileSystemEntry *getChosenDir(void);
 
-FileSystemEntry *getLibrary();
+FileSystemEntry *getLibrary(void);
 
 void scrollNext(void);
 
 void scrollPrev(void);
 
-void setCurrentAsChosenDir();
+void setCurrentAsChosenDir(void);
 
 void toggleShowKeyBindings(void);
 
-void toggleShowLibrary();
+void toggleShowLibrary(void);
 
 void toggleShowPlaylist(void);
 
 void toggleShowSearch(void);
 
-void showTrack();
+void showTrack(void);
 
-void setTextColorRGB2(int r, int g, int b);
+void setTextColorRGB2(int r, int g, int b, UISettings *ui);
 
-void freeMainDirectoryTree();
+void freeMainDirectoryTree(AppState *state);
 
-char *getLibraryFilePath();
+char *getLibraryFilePath(void);
 
-void resetChosenDir();
+void resetChosenDir(void);
 
-void tabNext();
+void tabNext(void);
 
 #endif

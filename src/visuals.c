@@ -12,6 +12,10 @@ visuals.c
 #define MAX_BUFFER_SIZE 4800
 #endif
 
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+
 int bufferSize = 4800;
 int prevBufferSize = 0;
 float alpha = 0.2f;
@@ -27,7 +31,7 @@ float lastMagnitudes[MAX_BUFFER_SIZE] = {0.0f};
 float smoothedMagnitudes[MAX_BUFFER_SIZE];
 float maxPossibleMagnitude = 0;
 
-int terminalSupportsUnicode()
+int terminalSupportsUnicode(void)
 {
         char *locale = setlocale(LC_ALL, "");
         if (locale != NULL)
@@ -36,7 +40,7 @@ int terminalSupportsUnicode()
         return 0;
 }
 
-void initVisuals()
+void initVisuals(void)
 {
         unicodeSupport = false;
 
@@ -353,7 +357,7 @@ void printSpectrum(int height, int width, float *magnitudes, PixelData color, in
         fflush(stdout);
 }
 
-void freeVisuals()
+void freeVisuals(void)
 {
         if (fftInput != NULL)
         {

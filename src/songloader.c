@@ -70,7 +70,7 @@ char *findLargestImageFile(const char *directoryPath, char *largestImageFile, of
 }
 
 // Generate a new track ID
-gchar *generateTrackId()
+gchar *generateTrackId(void)
 {
         gchar *trackId = g_strdup_printf("/org/kew/tracklist/track%d", track_counter);
         track_counter++;
