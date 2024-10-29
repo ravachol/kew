@@ -16,14 +16,11 @@ const int ABSOLUTE_MIN_WIDTH = 68;
 bool timeEnabled = true;
 bool drewCover = true;
 bool showList = true;
-bool resetPlaylistDisplay = true;
 bool fastForwarding = false;
 bool rewinding = false;
 bool nerdFontsEnabled = true;
-int numProgressBars = 35;
 int elapsedBars = 0;
-int chosenRow = 0;
-int chosenSong = 0;
+int chosenSong = 0;                             // The id of the playlist entry that is chosen in playlist view
 int aboutHeight = 8;
 
 int minWidth = ABSOLUTE_MIN_WIDTH;
@@ -46,20 +43,18 @@ double seekAccumulatedSeconds = 0.0;
 int maxListSize = 0;
 int maxSearchListSize = 0;
 
-int numDirectoryTreeEntries = 0;
 int numTopLevelSongs = 0;
 int startLibIter = 0;
 int startSearchIter = 0;
 int maxLibListSize = 0;
-int chosenLibRow = 0;
-int chosenSearchResultRow = 0;
-bool allowChooseSongs = false;
+int chosenRow = 0;                              // The row that is chosen in playlist view
+int chosenLibRow = 0;                           // The row that is chosen in library view
+int chosenSearchResultRow = 0;                  // The row that is chosen in search view
 FileSystemEntry *currentEntry = NULL;
 FileSystemEntry *chosenDir = NULL;
 int libIter = 0;
 int libSongIter = 0;
 int libTopLevelSongIter = 0;
-int chosenNodeId = 0;
 
 bool previouslyAllowedChooseSongs = false;
 int previousChosenLibRow = 0;
@@ -166,7 +161,7 @@ void printHelp()
 
 int printLogo(SongData *songData, UISettings *ui)
 {
-        if (ui->useProfileColors)
+        if (ui->useConfigColors)
                 setTextColor(ui->mainColor);
         else
                 setColor(ui);
@@ -217,7 +212,7 @@ int printLogo(SongData *songData, UISettings *ui)
 
                 shortenString(title, term_w - indent - indent - logoWidth - 4);
 
-                if (ui->useProfileColors)
+                if (ui->useConfigColors)
                         setTextColor(ui->titleColor);
 
                 printf(" %s\n\n", title);
@@ -354,7 +349,7 @@ void printBasicMetadata(TagSettings const *metadata, UISettings *ui)
                         printf("\033[1;38;2;%03u;%03u;%03um", pixel.r, pixel.g, pixel.b);
                 }
 
-                if (ui->useProfileColors)
+                if (ui->useConfigColors)
                         printf("\e[1m\e[39m");
 
                 printWithDelay(metadata->title, 9, maxWidth - 2);
@@ -418,7 +413,7 @@ void printTime(double elapsedSeconds, AppState *state)
 {
         if (!timeEnabled || appState.currentView == LIBRARY_VIEW || appState.currentView == PLAYLIST_VIEW || appState.currentView == SEARCH_VIEW)
                 return;
-        setColor(&state->uiSettings);
+        setColor(&(state->uiSettings));
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
         printBlankSpaces(indent);
@@ -853,22 +848,27 @@ void showSearch(SongData *songData, int *chosenRow, UISettings *ui)
         printLastRow();
 }
 
-void showPlaylist(SongData *songData, PlayList *list, int *chosenSong, int *chosenNodeId, UISettings *ui)
+void showPlaylist(SongData *songData, PlayList *list, int *chosenSong, int *chosenNodeId, AppState *state)
 {
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
         maxListSize = term_h - 2;
 
-        int aboutRows = printLogoAndAdjustments(songData, term_w, ui, indent);
+        int aboutRows = printLogoAndAdjustments(songData, term_w, &(state->uiSettings), indent);
         maxListSize -= aboutRows;
 
-        displayPlaylist(list, maxListSize, indent, chosenSong, chosenNodeId, resetPlaylistDisplay, ui);
+        displayPlaylist(list, maxListSize, indent, chosenSong, chosenNodeId, state->uiState.resetPlaylistDisplay, state);
 
         printf("\n");
         printLastRow();
 }
 
-void printElapsedBars(int elapsedBars)
+void resetSearchResult(void)
+{
+        chosenSearchResultRow = 0;
+}
+
+void printElapsedBars(int elapsedBars, int numProgressBars)
 {
         printBlankSpaces(indent);
         printf(" ");
@@ -888,8 +888,11 @@ void printElapsedBars(int elapsedBars)
         printf("\n");
 }
 
-void printVisualizer(double elapsedSeconds, UISettings *ui)
+void printVisualizer(double elapsedSeconds, AppState *state)
 {
+        UISettings *ui = &(state->uiSettings);
+        UIState *uis = &(state->uiState);
+
         if (ui->visualizerEnabled && appState.currentView == SONG_VIEW)
         {
                 printf("\n");
@@ -898,11 +901,11 @@ void printVisualizer(double elapsedSeconds, UISettings *ui)
                 int visualizerWidth = (ABSOLUTE_MIN_WIDTH > preferredWidth) ? ABSOLUTE_MIN_WIDTH : preferredWidth;
                 visualizerWidth = (visualizerWidth < textWidth && textWidth < term_w - 2) ? textWidth : visualizerWidth;
                 visualizerWidth = (visualizerWidth > term_w - 2) ? term_w - 2 : visualizerWidth;
-                numProgressBars = (int)visualizerWidth / 2;
+                uis->numProgressBars = (int)visualizerWidth / 2;
 
-                drawSpectrumVisualizer(ui->visualizerHeight, visualizerWidth, ui->color, indent, ui->useProfileColors);
+                drawSpectrumVisualizer(ui->visualizerHeight, visualizerWidth, ui->color, indent, ui->useConfigColors);
 
-                printElapsedBars(calcElapsedBars(elapsedSeconds, duration, numProgressBars));
+                printElapsedBars(calcElapsedBars(elapsedSeconds, duration, uis->numProgressBars), uis->numProgressBars);
                 printLastRow();
                 int jumpAmount = ui->visualizerHeight + 2;
                 cursorJump(jumpAmount);
@@ -1008,12 +1011,15 @@ void resetChosenDir(void)
         chosenDir = NULL;
 }
 
-int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWidth, UISettings *ui)
+int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWidth, AppState *state)
 {
         char dirName[maxNameWidth + 1];
         char filename[maxNameWidth + 1];
         bool foundChosen = false;
         int foundCurrent = 0;
+
+        UISettings *ui = &(state->uiSettings);
+        UIState *uis = &(state->uiState);
 
         if (currentSong != NULL && (strcmp(currentSong->song.filePath, root->fullPath) == 0))
         {
@@ -1033,7 +1039,7 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
                 startLibIter = chosenLibRow - maxListSize + round(maxListSize / 2) + 1;
         }
 
-        if (allowChooseSongs)
+        if (uis->allowChooseSongs)
         {
                 if (chosenLibRow >= libIter + libSongIter && libSongIter != 0)
                 {
@@ -1042,10 +1048,10 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
         }
         else
         {
-                if (chosenLibRow >= numDirectoryTreeEntries + numTopLevelSongs)
+                if (chosenLibRow >= uis->numDirectoryTreeEntries + numTopLevelSongs)
                 {
-                        startLibIter = numDirectoryTreeEntries + numTopLevelSongs - maxListSize;
-                        chosenLibRow = numDirectoryTreeEntries + numTopLevelSongs - 1;
+                        startLibIter = uis->numDirectoryTreeEntries + numTopLevelSongs - maxListSize;
+                        chosenLibRow = uis->numDirectoryTreeEntries + numTopLevelSongs - 1;
                 }
         }
 
@@ -1057,7 +1063,7 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
 
         if (root->isDirectory ||
             (!root->isDirectory && depth == 1) ||
-            (chosenDir != NULL && allowChooseSongs && root->parent != NULL && (strcmp(root->parent->fullPath, chosenDir->fullPath) == 0 || strcmp(root->fullPath, chosenDir->fullPath) == 0)))
+            (chosenDir != NULL && uis->allowChooseSongs && root->parent != NULL && (strcmp(root->parent->fullPath, chosenDir->fullPath) == 0 || strcmp(root->fullPath, chosenDir->fullPath) == 0)))
         {
                 if (depth > 0)
                 {
@@ -1081,7 +1087,7 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
 
                                 if (depth == 1)
                                 {
-                                        if (ui->useProfileColors)
+                                        if (ui->useConfigColors)
                                                 setTextColor(ui->artistColor);
                                         else
                                                 setColor(ui);
@@ -1100,7 +1106,7 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
                                 {
                                         if (root->isEnqueued)
                                         {
-                                                if (ui->useProfileColors)
+                                                if (ui->useConfigColors)
                                                         setTextColor(ui->enqueuedColor);
                                                 else
                                                         setColor(ui);
@@ -1114,12 +1120,12 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
 
                                         currentEntry = root;
 
-                                        if (allowChooseSongs == true && (chosenDir == NULL ||
+                                        if (uis->allowChooseSongs == true && (chosenDir == NULL ||
                                                                          (currentEntry != NULL && currentEntry->parent != NULL && chosenDir != NULL && (strcmp(currentEntry->parent->fullPath, chosenDir->fullPath) != 0) &&
                                                                           strcmp(root->fullPath, chosenDir->fullPath) != 0)))
                                         {
                                                 previouslyAllowedChooseSongs = true;
-                                                allowChooseSongs = false;
+                                                uis->allowChooseSongs = false;
                                                 chosenDir = NULL;
                                                 refresh = true;
                                         }
@@ -1131,7 +1137,7 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
                                         if (root->isEnqueued)
                                         {
 
-                                                if (ui->useProfileColors)
+                                                if (ui->useConfigColors)
                                                         printf("\033[%d;3%dm", foundCurrent, ui->enqueuedColor);
                                                 else
                                                         setColorAndWeight(foundCurrent, ui);
@@ -1177,7 +1183,7 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
                 FileSystemEntry *child = root->children;
                 while (child != NULL)
                 {
-                        if (displayTree(child, depth + 1, maxListSize, maxNameWidth, ui))
+                        if (displayTree(child, depth + 1, maxListSize, maxNameWidth, state))
                                 foundChosen = true;
 
                         child = child->next;
@@ -1201,7 +1207,7 @@ char *getLibraryFilePath(void)
         return filepath;
 }
 
-void showLibrary(SongData *songData, UISettings *ui)
+void showLibrary(SongData *songData, AppState *state)
 {
         if (previouslyAllowedChooseSongs)
         {
@@ -1212,6 +1218,8 @@ void showLibrary(SongData *songData, UISettings *ui)
                 }
                 previouslyAllowedChooseSongs = false;                
         }
+
+        UISettings *ui = &(state->uiSettings);
 
         libIter = 0;
         libSongIter = 0;
@@ -1251,7 +1259,7 @@ void showLibrary(SongData *songData, UISettings *ui)
                 tmp = tmp->next;
         }
 
-        bool foundChosen = displayTree(library, 0, maxLibListSize, maxNameWidth, ui);
+        bool foundChosen = displayTree(library, 0, maxLibListSize, maxNameWidth, state);
 
         if (!foundChosen)
         {
@@ -1267,95 +1275,92 @@ void showLibrary(SongData *songData, UISettings *ui)
         {
                 printf("\033[1;1H");
                 clearScreen();
-                showLibrary(songData, ui);
+                showLibrary(songData, state);
         }
 }
 
-int printPlayer(SongData *songdata, double elapsedSeconds, AppSettings *settings, AppState *appState)
+int printPlayer(SongData *songdata, double elapsedSeconds, AppSettings *settings, AppState *state)
 {
-        UISettings ui = appState->uiSettings;
+        UISettings *ui = &(state->uiSettings);
+        UIState *uis = &(state->uiState);
 
-        if (!ui.uiEnabled)
+        if (!ui->uiEnabled)
         {
                 return 0;
         }        
 
         hideCursor();
 
-        setColor(&ui);
+        setColor(ui);
 
         if (songdata != NULL && songdata->metadata != NULL && !songdata->hasErrors && (songdata->hasErrors < 1))
         {
                 metadata = *songdata->metadata;
                 duration = songdata->duration;
 
-                if (songdata->cover != NULL && ui.coverEnabled)
-                {
-                        ui.color.r = songdata->red;
-                        ui.color.g = songdata->green;
-                        ui.color.b = songdata->blue;
-                }
+                ui->color.r = songdata->red;
+                ui->color.g = songdata->green;
+                ui->color.b = songdata->blue;
         }
         else
         {
-                if (appState->currentView != LIBRARY_VIEW && appState->currentView != PLAYLIST_VIEW && appState->currentView != SEARCH_VIEW && appState->currentView != KEYBINDINGS_VIEW)
+                if (state->currentView != LIBRARY_VIEW && state->currentView != PLAYLIST_VIEW && state->currentView != SEARCH_VIEW && state->currentView != KEYBINDINGS_VIEW)
                 {
-                        appState->currentView = LIBRARY_VIEW;
+                        state->currentView = LIBRARY_VIEW;
                 }
 
-                ui.color.r = defaultColor;
-                ui.color.g = defaultColor;
-                ui.color.b = defaultColor;
+                ui->color.r = defaultColor;
+                ui->color.g = defaultColor;
+                ui->color.b = defaultColor;
         }
 
-        calcPreferredSize(&ui);
+        calcPreferredSize(ui);
         calcIndent(songdata);
 
         if (preferredWidth <= 0 || preferredHeight <= 0)
                 return -1;
 
-        if (appState->currentView != PLAYLIST_VIEW)
-                resetPlaylistDisplay = true;
+        if (state->currentView != PLAYLIST_VIEW)
+                state->uiState.resetPlaylistDisplay = true;
 
-        if (appState->currentView == KEYBINDINGS_VIEW && refresh)
+        if (state->currentView == KEYBINDINGS_VIEW && refresh)
         {
                 clearScreen();
-                showKeyBindings(songdata, settings, &ui);
+                showKeyBindings(songdata, settings, ui);
                 saveCursorPosition();
                 refresh = false;
         }
-        else if (appState->currentView == PLAYLIST_VIEW && refresh)
+        else if (state->currentView == PLAYLIST_VIEW && refresh)
         {
                 clearScreen();
-                showPlaylist(songdata, originalPlaylist, &chosenRow, &chosenNodeId, &ui);
-                resetPlaylistDisplay = false;
+                showPlaylist(songdata, originalPlaylist, &chosenRow, &uis->chosenNodeId, state);
+                state->uiState.resetPlaylistDisplay = false;
                 refresh = false;
         }
-        else if (appState->currentView == SEARCH_VIEW && (refresh || newUndisplayedSearch))
+        else if (state->currentView == SEARCH_VIEW && refresh)
         {
                 clearScreen();
-                showSearch(songdata, &chosenSearchResultRow, &ui);
+                showSearch(songdata, &chosenSearchResultRow, ui);
                 refresh = false;
-                newUndisplayedSearch = false;
         }
-        else if (appState->currentView == LIBRARY_VIEW && refresh)
+        else if (state->currentView == LIBRARY_VIEW && refresh)
         {
                 clearScreen();
-                showLibrary(songdata, &ui);
+                showLibrary(songdata, state);
                 refresh = false;
         }
-        else if (appState->currentView == SONG_VIEW && songdata != NULL)
+        else if (state->currentView == SONG_VIEW && songdata != NULL)
         {
                 if (refresh)
                 {
                         clearScreen();
                         printf("\n");
-                        printCover(songdata, &ui);
-                        printMetadata(songdata->metadata, &ui);
+                        printCover(songdata, ui);
+                        printMetadata(songdata->metadata, ui);
                         refresh = false;
                 }
-                printTime(elapsedSeconds, appState);
-                printVisualizer(elapsedSeconds, &ui);
+                printTime(elapsedSeconds, state);
+                printVisualizer(elapsedSeconds, state);
         }
 
         fflush(stdout);
@@ -1381,4 +1386,9 @@ void freeMainDirectoryTree(AppState *state)
                 freeTree(library);
 
         free(filepath);
+}
+
+int getChosenRow(void)
+{
+        return chosenRow;
 }

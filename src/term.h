@@ -21,8 +21,6 @@
 # define _BSD_SOURCE
 #endif
 
-extern volatile sig_atomic_t resizeFlag;
-
 void setTextColor(int color);
 
 void setTextColorRGB(int r, int g, int b);
@@ -52,10 +50,6 @@ void showCursor(void);
 void clearRestOfScreen(void);
 
 void enableScrolling(void);
-
-void handleResize(int sig);
-
-void resetResizeFlag(int sig);
 
 void initResize(void);
 

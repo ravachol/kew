@@ -5,7 +5,7 @@
 
 void setTextColorRGB2(int r, int g, int b, UISettings *ui)
 {
-        if (!ui->useProfileColors)
+        if (!ui->useConfigColors)
                 setTextColorRGB(r, g, b);
 }
 
@@ -16,7 +16,7 @@ void setColor(UISettings *ui)
 
 void setColorAndWeight(int bold, UISettings *ui)
 {
-        if (ui->useProfileColors)
+        if (ui->useConfigColors)
         {
                 printf("\033[%dm", bold);
                 return;

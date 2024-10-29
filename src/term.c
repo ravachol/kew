@@ -9,8 +9,6 @@ term.c
 
 */
 
-volatile sig_atomic_t resizeFlag = 0;
-
 void setTextColor(int color)
 {
         /*
@@ -128,29 +126,6 @@ void clearScreen()
 void enableScrolling()
 {
         printf("\033[?7h");
-}
-
-void handleResize(int sig)
-{
-        (void)sig;
-        resizeFlag = 1;
-}
-
-void resetResizeFlag(int sig)
-{
-        (void)sig;
-        resizeFlag = 0;
-}
-
-void initResize()
-{
-        signal(SIGWINCH, handleResize);
-
-        struct sigaction sa;
-        sa.sa_handler = resetResizeFlag;
-        sigemptyset(&sa.sa_mask);
-        sa.sa_flags = 0;
-        sigaction(SIGALRM, &sa, NULL);
 }
 
 void disableInputBuffering(void)

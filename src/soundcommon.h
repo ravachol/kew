@@ -117,7 +117,7 @@ typedef struct
         char path[MAXPATHLEN];
         char coverEnabled[2];
         char coverAnsi[2];
-        char useProfileColors[2];
+        char useConfigColors[2];
         char visualizerEnabled[2];
         char visualizerHeight[6];
         char togglePlaylist[6];
@@ -200,17 +200,15 @@ enum AudioImplementation
 extern NotifyNotification *previous_notification;
 #endif
 
+extern volatile bool refresh;
+
 extern AppState appState;
 
 extern bool allowNotifications;
 
-extern volatile bool refresh;
-
 extern AudioData audioData;
 
 extern double duration;
-
-extern bool doQuit;
 
 extern double elapsedSeconds;
 
@@ -379,5 +377,7 @@ void vorbis_on_audio_frames(ma_device *pDevice, void *pFramesOut, const void *pF
 void logTime(const char *message);
 
 void clearCurrentTrack(void);
+
+void cleanupPreviousNotification();
 
 #endif

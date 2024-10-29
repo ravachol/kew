@@ -287,7 +287,7 @@ unsigned char *getBitmap(const char *image_path, int *width, int *height)
         return image;
 }
 
-float calcAspectRatio()
+float calcAspectRatio(void)
 {
         TermSize term_size;
         gint cell_width = -1, cell_height = -1;
