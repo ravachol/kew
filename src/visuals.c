@@ -292,7 +292,7 @@ PixelData increaseLuminosity(PixelData pixel, int amount)
         return pixel2;
 }
 
-void printSpectrum(int height, int width, float *magnitudes, PixelData color, int indentation, bool useProfileColors)
+void printSpectrum(int height, int width, float *magnitudes, PixelData color, int indentation, bool useConfigColors)
 {
         printf("\n");
         clearRestOfScreen();
@@ -305,7 +305,7 @@ void printSpectrum(int height, int width, float *magnitudes, PixelData color, in
                 printBlankSpaces(indentation);
                 if (color.r != 0 || color.g != 0 || color.b != 0)
                 {
-                        if (!useProfileColors)
+                        if (!useConfigColors)
                         {
                                 tmp = increaseLuminosity(color, round(j * height * 4));
                                 printf("\033[38;2;%d;%d;%dm", tmp.r, tmp.g, tmp.b);
@@ -371,7 +371,7 @@ void freeVisuals(void)
         }
 }
 
-void drawSpectrumVisualizer(int height, int width, PixelData c, int indentation, bool useProfileColors)
+void drawSpectrumVisualizer(int height, int width, PixelData c, int indentation, bool useConfigColors)
 {
         bufferSize = getBufferSize();
         PixelData color;
@@ -422,7 +422,7 @@ void drawSpectrumVisualizer(int height, int width, PixelData c, int indentation,
 
         calcSpectrum(height, numBars, fftInput, fftOutput, magnitudes, plan);
 
-        printSpectrum(height, numBars, magnitudes, color, indentation, useProfileColors);
+        printSpectrum(height, numBars, magnitudes, color, indentation, useConfigColors);
 
         fftwf_destroy_plan(plan);
 }

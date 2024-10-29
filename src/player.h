@@ -21,8 +21,7 @@
 #include "common_ui.h"
 
 extern int numProgressBars;
-extern int chosenSong;
-extern bool resetPlaylistDisplay;
+
 extern TagSettings metadata;
 extern bool fastForwarding;
 extern bool rewinding;
@@ -30,13 +29,6 @@ extern double elapsedSeconds;
 extern double pauseSeconds;
 extern double totalPauseSeconds;
 extern double seekAccumulatedSeconds;
-extern bool allowChooseSongs;
-extern int chosenLibRow;
-extern int chosenSearchResultRow;
-extern int chosenRow;
-extern int chosenNodeId;
-extern int numDirectoryTreeEntries;
-
 extern FileSystemEntry *library;
 
 bool hasNerdFonts(void);
@@ -84,5 +76,9 @@ char *getLibraryFilePath(void);
 void resetChosenDir(void);
 
 void tabNext(void);
+
+void resetSearchResult(void);
+
+int getChosenRow(void);
 
 #endif

@@ -12,7 +12,6 @@ songloader.c
 #define MAXPATHLEN 4096
 #endif
 
-Cache *tempCache = NULL;
 static guint track_counter = 0;
 
 char *findLargestImageFile(const char *directoryPath, char *largestImageFile, off_t *largestFileSize)
@@ -82,7 +81,7 @@ void loadColor(SongData *songdata)
         getCoverColor(songdata->cover, songdata->coverWidth, songdata->coverHeight, &(songdata->red), &(songdata->green), &(songdata->blue));
 }
 
-void loadMetaData(SongData *songdata)
+void loadMetaData(SongData *songdata, AppState *state)
 {
         char path[MAXPATHLEN];
 
@@ -109,13 +108,13 @@ void loadMetaData(SongData *songdata)
         }
         else
         {
-                addToCache(tempCache, songdata->coverArtPath);
+                addToCache(state->tempCache, songdata->coverArtPath);
         }
 
         songdata->cover = getBitmap(songdata->coverArtPath, &songdata->coverWidth, &songdata->coverHeight);
 }
 
-SongData *loadSongData(char *filePath)
+SongData *loadSongData(char *filePath, AppState *state)
 {
         SongData *songdata = NULL;
         songdata = malloc(sizeof(SongData));
@@ -123,19 +122,19 @@ SongData *loadSongData(char *filePath)
         songdata->hasErrors = false;
         c_strcpy(songdata->filePath, sizeof(songdata->filePath), "");
         c_strcpy(songdata->coverArtPath, sizeof(songdata->coverArtPath), "");
-        songdata->red = 150;
-        songdata->green = 150;
-        songdata->blue = 150;
+        songdata->red = defaultColor;
+        songdata->green = defaultColor;
+        songdata->blue = defaultColor;
         songdata->metadata = NULL;
         songdata->cover = NULL;
         songdata->duration = 0.0;
         c_strcpy(songdata->filePath, sizeof(songdata->filePath), filePath);
-        loadMetaData(songdata);
+        loadMetaData(songdata, state);
         loadColor(songdata);
         return songdata;
 }
 
-void unloadSongData(SongData **songdata)
+void unloadSongData(SongData **songdata, AppState *state)
 {
         if (*songdata == NULL)
                 return;
@@ -148,7 +147,7 @@ void unloadSongData(SongData **songdata)
                 data->cover = NULL;
         }
 
-        if (existsInCache(tempCache, data->coverArtPath) && isInTempDir(data->coverArtPath))
+        if (existsInCache(state->tempCache, data->coverArtPath) && isInTempDir(data->coverArtPath))
         {
                 deleteFile(data->coverArtPath);
         }

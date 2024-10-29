@@ -2,6 +2,7 @@
 #include <gio/gio.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#include "appstate.h"
 #include "tagLibWrapper.h"
 #include "cache.h"
 #include "chafafunc.h"
@@ -60,7 +61,5 @@ typedef struct
 
 #endif
 
-extern Cache *tempCache;
-
-SongData *loadSongData(char *filePath);
-void unloadSongData(SongData **songdata);
+SongData *loadSongData(char *filePath, AppState *state);
+void unloadSongData(SongData **songdata, AppState *state);

@@ -50,7 +50,6 @@ extern Node *nextSong;
 extern Node *songToStartFrom;
 extern int lastPlayedId;
 extern bool songHasErrors;
-extern bool doQuit;
 extern bool loadingFailed;
 extern volatile bool clearingErrors;
 extern volatile bool songLoading;
@@ -58,10 +57,7 @@ extern struct timespec start_time;
 extern bool skipping;
 extern bool skipOutOfOrder;
 extern Node *tryNextSong;
-extern struct timespec lastInputTime;
 extern bool skipFromStopped;
-extern bool doNotifyMPRISSwitched;
-
 extern UserData userData;
 
 SongData *getCurrentSongData(void);
@@ -72,11 +68,9 @@ Node *getNextSong(void);
 
 void handleRemove(void);
 
-void enqueueSongs(FileSystemEntry *entry);
+void enqueueSongs(FileSystemEntry *entry, UIState *uis);
 
 void updateLastSongSwitchTime(void);
-
-void updateLastInputTime(void);
 
 void playbackPause(struct timespec *pause_time);
 
@@ -104,15 +98,15 @@ void calcElapsedTime(void);
 
 Node *getSongByNumber(PlayList *playlist, int songNumber);
 
-void skipToNextSong(void);
+void skipToNextSong(AppState *state);
 
-void skipToPrevSong(void);
+void skipToPrevSong(AppState *state);
 
 void skipToSong(int id, bool startPlaying);
 
-void seekForward(void);
+void seekForward(UIState *uis);
 
-void seekBack(void);
+void seekBack(UIState *uis);
 
 void skipToNumberedSong(int songNumber);
 
@@ -122,7 +116,7 @@ void loadSong(Node *song, LoadingThreadData *loadingdata);
 
 void loadNext(LoadingThreadData *loadingdata);
 
-int loadFirst(Node *song, UISettings *ui);
+int loadFirst(Node *song, AppState *state);
 
 void flushSeek(void);
 
@@ -136,11 +130,11 @@ void updateLibrary(char *path);
 
 void askIfCacheLibrary(UISettings *ui);
 
-void unloadSongA(void);
+void unloadSongA(AppState *state);
 
-void unloadSongB(void);
+void unloadSongB(AppState *state);
 
-void unloadPreviousSong(void);
+void unloadPreviousSong(AppState *state);
 
 void createLibrary(AppSettings *settings, AppState *state);
 
@@ -156,7 +150,7 @@ bool setPosition(gint64 newPosition);
 
 bool seekPosition(gint64 offset);
 
-void silentSwitchToNext(bool loadSong);
+void silentSwitchToNext(bool loadSong, AppState *state);
 
 void reshufflePlaylist(void);
 
