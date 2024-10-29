@@ -38,9 +38,8 @@ int bufSize;
 ma_event switchAudioImpl;
 enum AudioImplementation currentImplementation = NONE;
 
-bool doQuit = false;
 AppState appState;
-volatile bool refresh = true;
+volatile bool refresh = true;   // Should the whole view be refreshed next time it redraws
 double duration;
 
 double elapsedSeconds = 0.0;
@@ -1594,9 +1593,6 @@ void m4a_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_uint6
 
         while (framesRead < frameCount)
         {
-                if (doQuit)
-                        return;
-
                 if (isImplSwitchReached())
                         return;
 
@@ -1720,9 +1716,6 @@ void opus_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_uint
 
         while (framesRead < frameCount)
         {
-                if (doQuit)
-                        return;
-
                 if (isImplSwitchReached())
                         return;
 
@@ -1841,9 +1834,6 @@ void vorbis_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_ui
 
         while (framesRead < frameCount)
         {
-                if (doQuit)
-                        return;
-
                 if (isImplSwitchReached())
                         return;
 
@@ -1929,4 +1919,15 @@ void vorbis_on_audio_frames(ma_device *pDevice, void *pFramesOut, const void *pF
         ma_uint64 framesRead = 0;
         vorbis_read_pcm_frames(&pDataSource->base, pFramesOut, frameCount, &framesRead);
         (void)pFramesIn;
+}
+
+void cleanupPreviousNotification()
+{
+#ifdef USE_LIBNOTIFY
+        if (previous_notification != NULL)
+        {
+                g_object_unref(previous_notification);
+                previous_notification = NULL;
+        }
+#endif        
 }

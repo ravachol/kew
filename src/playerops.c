@@ -18,7 +18,6 @@ playerops.c
 struct timespec current_time;
 struct timespec start_time;
 struct timespec pause_time;
-struct timespec lastInputTime;
 struct timespec lastUpdateTime = {0, 0};
 
 bool playlistNeedsUpdate = false;
@@ -26,7 +25,6 @@ bool nextSongNeedsRebuilding = false;
 bool enqueuedNeedsUpdate = false;
 bool skipFromStopped = false;
 bool usingSongDataA = true;
-bool doNotifyMPRISSwitched = false;
 
 LoadingThreadData loadingdata;
 
@@ -49,6 +47,12 @@ volatile bool songLoading = false;
 
 GDBusConnection *connection = NULL;
 GMainContext *global_main_context = NULL;
+
+typedef struct
+{
+        char *path;
+        UISettings *ui;
+} UpdateLibraryThreadArgs;
 
 void reshufflePlaylist(void)
 {
@@ -108,12 +112,6 @@ void updateLastSongSwitchTime(void)
         clock_gettime(CLOCK_MONOTONIC, &start_time);
 }
 
-
-void updateLastInputTime(void)
-{
-        clock_gettime(CLOCK_MONOTONIC, &lastInputTime);
-}
-
 void updatePlaybackPosition(double elapsedSeconds)
 {
         GVariantBuilder changedPropertiesBuilder;
@@ -146,7 +144,7 @@ void emitSeekedSignal(double newPositionSeconds)
                                       parameters,
                                       NULL);
 #else
-    (void)newPositionSeconds;
+        (void)newPositionSeconds;
 #endif
 }
 
@@ -160,9 +158,9 @@ void emitStringPropertyChanged(const gchar *propertyName, const gchar *newValue)
                                       g_variant_new("(sa{sv}as)", "org.mpris.MediaPlayer2.Player", &changed_properties_builder, NULL), NULL);
         g_variant_builder_clear(&changed_properties_builder);
 #else
-    (void)propertyName;
-    (void)newValue;
-#endif        
+        (void)propertyName;
+        (void)newValue;
+#endif
 }
 
 void emitBooleanPropertyChanged(const gchar *propertyName, gboolean newValue)
@@ -426,8 +424,8 @@ void toggleBlocks(AppSettings *settings, UISettings *ui)
 
 void toggleColors(AppSettings *settings, UISettings *ui)
 {
-        ui->useProfileColors = !ui->useProfileColors;
-        c_strcpy(settings->useProfileColors, sizeof(settings->useProfileColors), ui->useProfileColors ? "1" : "0");
+        ui->useConfigColors = !ui->useConfigColors;
+        c_strcpy(settings->useConfigColors, sizeof(settings->useConfigColors), ui->useConfigColors ? "1" : "0");
         clearScreen();
         refresh = true;
 }
@@ -442,7 +440,7 @@ void toggleVisualizer(AppSettings *settings, UISettings *ui)
 
 void quit(void)
 {
-        doQuit = true;
+        exit(0);
 }
 
 bool isCurrentSongDeleted(void)
@@ -580,7 +578,7 @@ bool seekPosition(gint64 offset)
         }
 }
 
-void seekForward(void)
+void seekForward(UIState *uis)
 {
         if (currentSong != NULL)
         {
@@ -592,13 +590,13 @@ void seekForward(void)
 
         if (duration != 0.0)
         {
-                float step = 100 / numProgressBars;
+                float step = 100 / uis->numProgressBars;
                 seekAccumulatedSeconds += step * duration / 100.0;
         }
         fastForwarding = true;
 }
 
-void seekBack(void)
+void seekBack(UIState *uis)
 {
         if (currentSong != NULL)
         {
@@ -610,7 +608,7 @@ void seekBack(void)
 
         if (duration != 0.0)
         {
-                float step = 100 / numProgressBars;
+                float step = 100 / uis->numProgressBars;
                 seekAccumulatedSeconds -= step * duration / 100.0;
         }
         rewinding = true;
@@ -754,7 +752,7 @@ void enqueueSong(FileSystemEntry *child)
         child->parent->isEnqueued = 1;
 }
 
-void silentSwitchToNext(bool loadSong)
+void silentSwitchToNext(bool loadSong, AppState *state)
 {
         skipping = true;
         nextSong = NULL;
@@ -770,7 +768,7 @@ void silentSwitchToNext(bool loadSong)
                 loadNextSong();
                 finishLoading();
                 loadedNextSong = true;
-                doNotifyMPRISSwitched = true;
+                state->uiState.doNotifyMPRISSwitched = true;
         }
 
         resetTimeCount();
@@ -883,7 +881,7 @@ void enqueueChildren(FileSystemEntry *child, FileSystemEntry **firstEnqueuedEntr
                 }
                 else if (!child->isEnqueued)
                 {
-                        if(*firstEnqueuedEntry == NULL)
+                        if (*firstEnqueuedEntry == NULL)
                                 *firstEnqueuedEntry = child;
                         enqueueSong(child);
                 }
@@ -930,7 +928,7 @@ bool hasDequeuedChildren(FileSystemEntry *parent)
         return isDequeued;
 }
 
-void enqueueSongs(FileSystemEntry *entry)
+void enqueueSongs(FileSystemEntry *entry, UIState *uis)
 {
         FileSystemEntry *chosenDir = getChosenDir();
         bool hasEnqueued = false;
@@ -962,7 +960,7 @@ void enqueueSongs(FileSystemEntry *entry)
                         }
 
                         setCurrentAsChosenDir();
-                        allowChooseSongs = true;
+                        uis->allowChooseSongs = true;
                 }
                 else
                 {
@@ -1014,7 +1012,7 @@ void handleRemove(void)
 
         bool rebuild = false;
 
-        Node *node = findSelectedEntry(originalPlaylist, chosenRow);
+        Node *node = findSelectedEntry(originalPlaylist, getChosenRow());
 
         if (node == NULL)
         {
@@ -1120,10 +1118,10 @@ int loadDecoder(SongData *songData, bool *songDataDeleted)
                                 result = prepareNextOpusDecoder(songData->filePath);
                         else if (endsWith(songData->filePath, "ogg"))
                                 result = prepareNextVorbisDecoder(songData->filePath);
-#ifdef USE_FAAD                                
+#ifdef USE_FAAD
                         else if (endsWith(songData->filePath, "m4a") || endsWith(songData->filePath, "aac"))
                                 result = prepareNextM4aDecoder(songData->filePath);
-#endif                                
+#endif
                 }
         }
         return result;
@@ -1164,7 +1162,7 @@ void *songDataReaderThread(void *arg)
                 if (!userData.songdataADeleted)
                 {
                         userData.songdataADeleted = true;
-                        unloadSongData(&loadingdata->songdataA);
+                        unloadSongData(&loadingdata->songdataA, &appState);
                 }
         }
         else
@@ -1172,13 +1170,13 @@ void *songDataReaderThread(void *arg)
                 if (!userData.songdataBDeleted)
                 {
                         userData.songdataBDeleted = true;
-                        unloadSongData(&loadingdata->songdataB);
+                        unloadSongData(&loadingdata->songdataB, &appState);
                 }
         }
 
         if (filepath[0] != '\0')
         {
-                songdata = loadSongData(filepath);
+                songdata = loadSongData(filepath, &appState);
         }
         else
                 songdata = NULL;
@@ -1345,7 +1343,7 @@ void resetTimeCount(void)
         totalPauseSeconds = 0.0;
 }
 
-void skipToNextSong(void)
+void skipToNextSong(AppState *state)
 {
         // Stop if there is no song or no next song
         if (currentSong == NULL || currentSong->next == NULL)
@@ -1361,7 +1359,7 @@ void skipToNextSong(void)
         if (isStopped() || isPaused())
         {
                 // FIXME: Emit MPRIS signal
-                silentSwitchToNext(true);
+                silentSwitchToNext(true, state);
                 return;
         }
 
@@ -1388,7 +1386,7 @@ void setCurrentSongToPrev(void)
                 currentSong = currentSong->prev;
 }
 
-void silentSwitchToPrev(void)
+void silentSwitchToPrev(AppState *state)
 {
         skipping = true;
 
@@ -1404,7 +1402,7 @@ void silentSwitchToPrev(void)
         loadingdata.loadA = usingSongDataA;
         loadingdata.loadingFirstDecoder = true;
         loadSong(currentSong, &loadingdata);
-        doNotifyMPRISSwitched = true;
+        state->uiState.doNotifyMPRISSwitched = true;
         finishLoading();
 
         resetTimeCount();
@@ -1417,7 +1415,7 @@ void silentSwitchToPrev(void)
         hasSilentlySwitched = true;
 }
 
-void skipToPrevSong(void)
+void skipToPrevSong(AppState *state)
 {
         // Stop if there is no song or no previous song
         if ((currentSong == NULL || currentSong->prev == NULL) && !isShuffleEnabled())
@@ -1433,7 +1431,7 @@ void skipToPrevSong(void)
 
         if (isStopped() || isPaused())
         {
-                silentSwitchToPrev();
+                silentSwitchToPrev(state);
                 return;
         }
 
@@ -1463,7 +1461,7 @@ void skipToPrevSong(void)
         {
                 songHasErrors = false;
                 forceSkip = true;
-                skipToPrevSong();
+                skipToPrevSong(state);
         }
 
         updateLastSongSwitchTime();
@@ -1544,27 +1542,27 @@ void loadFirstSong(Node *song, UISettings *ui)
         }
 }
 
-void unloadSongA(void)
+void unloadSongA(AppState *state)
 {
         if (userData.songdataADeleted == false)
         {
                 userData.songdataADeleted = true;
-                unloadSongData(&loadingdata.songdataA);
+                unloadSongData(&loadingdata.songdataA, state);
                 userData.songdataA = NULL;
         }
 }
 
-void unloadSongB(void)
+void unloadSongB(AppState *state)
 {
         if (userData.songdataBDeleted == false)
         {
                 userData.songdataBDeleted = true;
-                unloadSongData(&loadingdata.songdataB);
+                unloadSongData(&loadingdata.songdataB, state);
                 userData.songdataB = NULL;
         }
 }
 
-void unloadPreviousSong(void)
+void unloadPreviousSong(AppState *state)
 {
         pthread_mutex_lock(&(loadingdata.mutex));
 
@@ -1572,7 +1570,7 @@ void unloadPreviousSong(void)
             (skipping || (userData.currentSongData == NULL || userData.songdataADeleted == false ||
                           (loadingdata.songdataA != NULL && userData.songdataADeleted == false && userData.currentSongData->hasErrors == 0 && userData.currentSongData->trackId != NULL && strcmp(loadingdata.songdataA->trackId, userData.currentSongData->trackId) != 0))))
         {
-                unloadSongA();
+                unloadSongA(state);
 
                 if (!audioData.endOfListReached)
                         loadedNextSong = false;
@@ -1583,7 +1581,7 @@ void unloadPreviousSong(void)
                  (skipping || (userData.currentSongData == NULL || userData.songdataBDeleted == false ||
                                (loadingdata.songdataB != NULL && userData.songdataBDeleted == false && userData.currentSongData->hasErrors == 0 && userData.currentSongData->trackId != NULL && strcmp(loadingdata.songdataB->trackId, userData.currentSongData->trackId) != 0))))
         {
-                unloadSongB();
+                unloadSongB(state);
 
                 if (!audioData.endOfListReached)
                         loadedNextSong = false;
@@ -1594,9 +1592,9 @@ void unloadPreviousSong(void)
         pthread_mutex_unlock(&(loadingdata.mutex));
 }
 
-int loadFirst(Node *song, UISettings *ui)
+int loadFirst(Node *song, AppState *state)
 {
-        loadFirstSong(song, ui);
+        loadFirstSong(song, &state->uiSettings);
 
         usingSongDataA = true;
 
@@ -1605,13 +1603,13 @@ int loadFirst(Node *song, UISettings *ui)
                 songHasErrors = false;
                 loadedNextSong = false;
                 currentSong = currentSong->next;
-                loadFirstSong(currentSong, ui);
+                loadFirstSong(currentSong, &state->uiSettings);
         }
 
         if (songHasErrors)
         {
                 // couldn't play any of the songs
-                unloadPreviousSong();
+                unloadPreviousSong(state);
                 currentSong = NULL;
                 songHasErrors = false;
                 return -1;
@@ -1636,7 +1634,7 @@ void *updateLibraryThread(void *arg)
 
         freeTree(library);
         library = temp;
-        numDirectoryTreeEntries = tmpDirectoryTreeEntries;
+        appState.uiState.numDirectoryTreeEntries = tmpDirectoryTreeEntries;
         resetChosenDir();
 
         pthread_mutex_unlock(&switchMutex);
@@ -1704,7 +1702,7 @@ void createLibrary(AppSettings *settings, AppState *state)
         if (state->uiSettings.cacheLibrary > 0)
         {
                 char *libFilepath = getLibraryFilePath();
-                library = reconstructTreeFromFile(libFilepath, settings->path, &numDirectoryTreeEntries);
+                library = reconstructTreeFromFile(libFilepath, settings->path, &state->uiState.numDirectoryTreeEntries);
                 free(libFilepath);
                 updateLibraryIfChangedDetected();
         }
@@ -1715,7 +1713,7 @@ void createLibrary(AppSettings *settings, AppState *state)
 
                 gettimeofday(&start, NULL);
 
-                library = createDirectoryTree(settings->path, &numDirectoryTreeEntries);
+                library = createDirectoryTree(settings->path, &state->uiState.numDirectoryTreeEntries);
 
                 gettimeofday(&end, NULL);
                 long seconds = end.tv_sec - start.tv_sec;
@@ -1754,18 +1752,23 @@ time_t getModificationTime(struct stat *path_stat)
 
 void *updateIfTopLevelFoldersMtimesChangedThread(void *arg)
 {
-        char *path = (char *)arg;
+        UpdateLibraryThreadArgs *args = (UpdateLibraryThreadArgs *)arg; // Cast `arg` back to the structure pointer
+        char *path = args->path;
+        UISettings *ui = args->ui;
+
         struct stat path_stat;
 
         if (stat(path, &path_stat) == -1)
         {
                 perror("stat");
+                free(args);                
                 pthread_exit(NULL);
         }
 
-        if (getModificationTime(&path_stat) > lastTimeAppRan && lastTimeAppRan > 0)
+        if (getModificationTime(&path_stat) > ui->lastTimeAppRan && ui->lastTimeAppRan > 0)
         {
                 updateLibrary(path);
+                free(args);                
                 pthread_exit(NULL);
         }
 
@@ -1773,6 +1776,7 @@ void *updateIfTopLevelFoldersMtimesChangedThread(void *arg)
         if (!dir)
         {
                 perror("opendir");
+                free(args);                
                 pthread_exit(NULL);
         }
 
@@ -1797,7 +1801,7 @@ void *updateIfTopLevelFoldersMtimesChangedThread(void *arg)
                 if (S_ISDIR(path_stat.st_mode))
                 {
 
-                        if (getModificationTime(&path_stat) > lastTimeAppRan && lastTimeAppRan > 0)
+                        if (getModificationTime(&path_stat) > ui->lastTimeAppRan && ui->lastTimeAppRan > 0)
                         {
                                 updateLibrary(path);
                                 break;
@@ -1807,6 +1811,8 @@ void *updateIfTopLevelFoldersMtimesChangedThread(void *arg)
 
         closedir(dir);
 
+        free(args);
+
         pthread_exit(NULL);
 }
 
@@ -1814,8 +1820,20 @@ void *updateIfTopLevelFoldersMtimesChangedThread(void *arg)
 void updateLibraryIfChangedDetected(void)
 {
         pthread_t tid;
-        if (pthread_create(&tid, NULL, updateIfTopLevelFoldersMtimesChangedThread, (void *)settings.path) != 0)
+
+        UpdateLibraryThreadArgs *args = malloc(sizeof(UpdateLibraryThreadArgs));
+        if (args == NULL)
+        {
+                perror("malloc");
+                return;
+        }
+
+        args->path = settings.path;
+        args->ui = &appState.uiSettings;
+
+        if (pthread_create(&tid, NULL, updateIfTopLevelFoldersMtimesChangedThread, (void *)args) != 0)
         {
                 perror("pthread_create");
+                free(args);
         }
 }

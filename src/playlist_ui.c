@@ -77,7 +77,7 @@ int displayPlaylistItems(Node *startNode, int startIter, int maxListSize, int te
                 preparePlaylistString(node, buffer, MAXPATHLEN, termWidth - indent - 10);
                 if (buffer[0] != '\0')
                 {
-                        if (ui->useProfileColors)
+                        if (ui->useConfigColors)
                                 setTextColor(ui->artistColor);
                         else
                                 setColor(ui);
@@ -115,10 +115,13 @@ int displayPlaylistItems(Node *startNode, int startIter, int maxListSize, int te
         return numPrintedRows;
 }
 
-int displayPlaylist(PlayList *list, int maxListSize, int indent, int *chosenSong, int *chosenNodeId, bool reset, UISettings *ui)
+int displayPlaylist(PlayList *list, int maxListSize, int indent, int *chosenSong, int *chosenNodeId, bool reset, AppState *state)
 {
         int termWidth, termHeight;
         getTerminalSize(&termWidth, &termHeight);
+
+        UISettings *ui = &(state->uiSettings);
+        UIState *uis = &(state->uiState);
 
         int foundAt = -1;
         bool startFromCurrent = false;

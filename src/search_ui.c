@@ -15,7 +15,7 @@ typedef struct SearchResult
 SearchResult *results = NULL;
 size_t resultsCount = 0;
 size_t resultsCapacity = 0;
-bool newUndisplayedSearch = false;
+
 int minSearchLetters = 1;
 FileSystemEntry *currentSearchEntry = NULL;
 
@@ -70,7 +70,7 @@ void fuzzySearch(FileSystemEntry *root, int threshold)
         {
                 fuzzySearchRecursive(root, searchText, threshold, collectResult);
         }
-        newUndisplayedSearch = true;
+        refresh = true;
 }
 
 int compareResults(const void *a, const void *b)
@@ -250,7 +250,7 @@ int displaySearchResults(int maxListSize, int indent, int *chosenRow, int startS
 
                         if (results[i].entry->isEnqueued)
                         {
-                                if (ui->useProfileColors)
+                                if (ui->useConfigColors)
                                         setTextColor(ui->enqueuedColor);
                                 else
                                         setColor(ui);
@@ -265,7 +265,7 @@ int displaySearchResults(int maxListSize, int indent, int *chosenRow, int startS
                 {
                         if (results[i].entry->isEnqueued)
                         {
-                                if (ui->useProfileColors)
+                                if (ui->useConfigColors)
                                         setTextColor(ui->enqueuedColor);
                                 else
                                         setColor(ui);

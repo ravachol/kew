@@ -67,7 +67,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #endif
 
 // #define DEBUG 1
-#define MAX_TMP_SEQ_LEN 256 // Maximum length of temporary sequence buffer
+#define MAX_TMP_SEQ_LEN 256                     // Maximum length of temporary sequence buffer
 #define COOLDOWN_MS 500
 #define COOLDOWN2_MS 100
 
@@ -85,10 +85,15 @@ bool songWasRemoved = false;
 bool noPlaylist = false;
 GMainLoop *main_loop;
 EventMapping keyMappings[NUM_KEY_MAPPINGS];
-
+struct timespec lastInputTime;                  // When the user last pressed a key FIXME: Should ideally only be reset in one place
 bool exactSearch = false;
 int fuzzySearchThreshold = 2;
 int maxDigitsPressedCount = 9;
+
+void updateLastInputTime(void)
+{
+        clock_gettime(CLOCK_MONOTONIC, &lastInputTime);
+}
 
 bool isCooldownElapsed(int milliSeconds)
 {
@@ -171,14 +176,14 @@ struct Event processInput()
                 if (strcmp(event.key, "\x7F") == 0 || strcmp(event.key, "\x08") == 0)
                 {
                         removeFromSearchText();
-                        chosenSearchResultRow = 0;
+                        resetSearchResult();
                         fuzzySearch(getLibrary(), fuzzySearchThreshold);
                         event.type = EVENT_SEARCH;
                 }
                 else if (((strlen(event.key) == 1 && event.key[0] != '\033' && event.key[0] != '\n' && event.key[0] != '\t' && event.key[0] != '\r') || strcmp(event.key, " ") == 0 || (unsigned char)event.key[0] >= 0xC0) && strcmp(event.key, "Z") != 0 && strcmp(event.key, "X") != 0 && strcmp(event.key, "C") != 0 && strcmp(event.key, "V") != 0 && strcmp(event.key, "B") != 0)
                 {
                         addToSearchText(event.key);
-                        chosenSearchResultRow = 0;
+                        resetSearchResult();
                         fuzzySearch(getLibrary(), fuzzySearchThreshold);
                         event.type = EVENT_SEARCH;
                 }
@@ -286,9 +291,9 @@ struct Event processInput()
         return event;
 }
 
-void setEndOfListReached()
+void setEndOfListReached(AppState *state)
 {
-        appState.currentView = LIBRARY_VIEW;
+        state->currentView = LIBRARY_VIEW;
         loadedNextSong = false;
         audioData.endOfListReached = true;
         usingSongDataA = false;
@@ -302,7 +307,6 @@ void setEndOfListReached()
         cleanupPlaybackDevice();
         pthread_mutex_unlock(&dataSourceMutex);
         refresh = true;
-        chosenRow = playlist.count - 1;
 }
 
 void notifyMPRISSwitch(SongData *currentSongData)
@@ -359,7 +363,7 @@ bool shouldRefreshPlayer()
 }
 
 // Refreshes the player visually if conditions are met
-void refreshPlayer()
+void refreshPlayer(UIState *uis)
 {
         int mutexResult = pthread_mutex_trylock(&switchMutex);
 
@@ -369,9 +373,9 @@ void refreshPlayer()
                 return;
         }
 
-        if (doNotifyMPRISSwitched)
+        if (uis->doNotifyMPRISSwitched)
         {
-                doNotifyMPRISSwitched = false;
+                uis->doNotifyMPRISSwitched = false;
 
                 notifyMPRISSwitch(getCurrentSongData());
         }
@@ -384,7 +388,7 @@ void refreshPlayer()
         pthread_mutex_unlock(&switchMutex);
 }
 
-void resetListAfterDequeuingPlayingSong()
+void resetListAfterDequeuingPlayingSong(AppState *state)
 {
         if (lastPlayedId < 0)
                 return;
@@ -410,8 +414,8 @@ void resetListAfterDequeuingPlayingSong()
 
                 switchAudioImplementation();
 
-                unloadSongA();
-                unloadSongB();
+                unloadSongA(state);
+                unloadSongB(state);
                 songWasRemoved = true;
                 userData.currentSongData = NULL;
 
@@ -431,9 +435,9 @@ void resetListAfterDequeuingPlayingSong()
         }
 }
 
-void handleGoToSong()
+void handleGoToSong(AppState *state)
 {
-        if (appState.currentView == LIBRARY_VIEW)
+        if (state->currentView == LIBRARY_VIEW)
         {
                 if (audioData.restart)
                 {
@@ -454,12 +458,12 @@ void handleGoToSong()
 
                 pthread_mutex_lock(&(playlist.mutex));
 
-                enqueueSongs(getCurrentLibEntry());
-                resetListAfterDequeuingPlayingSong();
+                enqueueSongs(getCurrentLibEntry(), &state->uiState);
+                resetListAfterDequeuingPlayingSong(state);
 
                 pthread_mutex_unlock(&(playlist.mutex));
         }
-        else if (appState.currentView == SEARCH_VIEW)
+        else if (state->currentView == SEARCH_VIEW)
         {
                 pthread_mutex_lock(&(playlist.mutex));
 
@@ -467,9 +471,9 @@ void handleGoToSong()
 
                 setChosenDir(entry);
 
-                enqueueSongs(entry);
+                enqueueSongs(entry, &state->uiState);
 
-                resetListAfterDequeuingPlayingSong();
+                resetListAfterDequeuingPlayingSong(state);
 
                 pthread_mutex_unlock(&(playlist.mutex));
         }
@@ -477,7 +481,7 @@ void handleGoToSong()
         {
                 if (digitsPressedCount == 0)
                 {
-                        if (isPaused() && currentSong != NULL && chosenNodeId == currentSong->id)
+                        if (isPaused() && currentSong != NULL && state->uiState.chosenNodeId == currentSong->id)
                         {
                                 togglePause(&totalPauseSeconds, &pauseSeconds, &pause_time);
                         }
@@ -488,8 +492,8 @@ void handleGoToSong()
                                 playlistNeedsUpdate = false;
                                 nextSongNeedsRebuilding = false;
 
-                                unloadSongA();
-                                unloadSongB();
+                                unloadSongA(state);
+                                unloadSongB(state);
 
                                 usingSongDataA = false;
                                 audioData.currentFileIndex = 0;
@@ -499,7 +503,7 @@ void handleGoToSong()
                                 if (audioData.endOfListReached)
                                         wasEndOfList = true;
 
-                                skipToSong(chosenNodeId, true);
+                                skipToSong(state->uiState.chosenNodeId, true);
 
                                 if ((songWasRemoved && currentSong != NULL))
                                 {
@@ -515,7 +519,7 @@ void handleGoToSong()
                 }
                 else
                 {
-                        resetPlaylistDisplay = true;
+                        state->uiState.resetPlaylistDisplay = true;
                         int songNumber = atoi(digitsPressed);
                         memset(digitsPressed, '\0', sizeof(digitsPressed));
                         digitsPressedCount = 0;
@@ -528,19 +532,19 @@ void handleGoToSong()
         }
 }
 
-void gotoBeginningOfPlaylist()
+void gotoBeginningOfPlaylist(AppState *state)
 {
         digitsPressed[0] = 1;
         digitsPressed[1] = '\0';
         digitsPressedCount = 1;
-        handleGoToSong();
+        handleGoToSong(state);
 }
 
-void gotoEndOfPlaylist()
+void gotoEndOfPlaylist(AppState *state)
 {
         if (digitsPressedCount > 0)
         {
-                handleGoToSong();
+                handleGoToSong(state);
         }
         else
         {
@@ -548,39 +552,39 @@ void gotoEndOfPlaylist()
         }
 }
 
-void handleInput()
+void handleInput(AppState *state)
 {
         struct Event event = processInput();
 
         switch (event.type)
         {
         case EVENT_GOTOBEGINNINGOFPLAYLIST:
-                gotoBeginningOfPlaylist();
+                gotoBeginningOfPlaylist(state);
                 break;
         case EVENT_GOTOENDOFPLAYLIST:
-                gotoEndOfPlaylist();
+                gotoEndOfPlaylist(state);
                 break;
         case EVENT_GOTOSONG:
-                handleGoToSong();
+                handleGoToSong(state);
                 break;
         case EVENT_PLAY_PAUSE:
                 togglePause(&totalPauseSeconds, &pauseSeconds, &pause_time);
                 break;
         case EVENT_TOGGLEVISUALIZER:
-                toggleVisualizer(&settings, &(appState.uiSettings));
+                toggleVisualizer(&settings, &(state->uiSettings));
                 break;
         case EVENT_TOGGLEREPEAT:
                 toggleRepeat();
                 break;
         case EVENT_TOGGLEBLOCKS:
-                toggleBlocks(&settings, &(appState.uiSettings));
+                toggleBlocks(&settings, &(state->uiSettings));
                 break;
         case EVENT_SHUFFLE:
                 toggleShuffle();
                 emitShuffleChanged();
                 break;
         case EVENT_TOGGLE_PROFILE_COLORS:
-                toggleColors(&settings, &(appState.uiSettings));
+                toggleColors(&settings, &(state->uiSettings));
                 break;
         case EVENT_QUIT:
                 quit();
@@ -600,18 +604,18 @@ void handleInput()
                 emitVolumeChanged();
                 break;
         case EVENT_NEXT:
-                resetPlaylistDisplay = true;
-                skipToNextSong();
+                state->uiState.resetPlaylistDisplay = true;
+                skipToNextSong(state);
                 break;
         case EVENT_PREV:
-                resetPlaylistDisplay = true;
-                skipToPrevSong();
+                state->uiState.resetPlaylistDisplay = true;
+                skipToPrevSong(state);
                 break;
         case EVENT_SEEKBACK:
-                seekBack();
+                seekBack(&(state->uiState));
                 break;
         case EVENT_SEEKFORWARD:
-                seekForward();
+                seekForward(&(state->uiState));
                 break;
         case EVENT_ADDTOMAINPLAYLIST:
                 addToSpecialPlaylist();
@@ -642,7 +646,7 @@ void handleInput()
                 break;
         case EVENT_REMOVE:
                 handleRemove();
-                resetListAfterDequeuingPlayingSong();
+                resetListAfterDequeuingPlayingSong(state);
                 break;
         case EVENT_SHOWTRACK:
                 showTrack();
@@ -657,12 +661,12 @@ void handleInput()
         }
 }
 
-void resize()
+void resize(UIState *uis)
 {
         alarm(1); // Timer
-        while (resizeFlag)
+        while (uis->resizeFlag)
         {
-                resizeFlag = 0;
+                uis->resizeFlag = 0;
                 c_sleep(100);
         }
         alarm(0); // Cancel timer
@@ -671,7 +675,7 @@ void resize()
         refresh = true;
 }
 
-void updatePlayer()
+void updatePlayer(UIState *uis)
 {
         struct winsize ws;
         ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws);
@@ -679,16 +683,16 @@ void updatePlayer()
         // check if window has changed size
         if (ws.ws_col != windowSize.ws_col || ws.ws_row != windowSize.ws_row)
         {
-                resizeFlag = 1;
+                uis->resizeFlag = 1;
                 windowSize = ws;
         }
 
         // resizeFlag can also be set by handleResize
-        if (resizeFlag)
-                resize();
+        if (uis->resizeFlag)
+                resize(uis);
         else
         {
-                refreshPlayer();
+                refreshPlayer(uis);
         }
 }
 
@@ -739,10 +743,10 @@ void loadAudioData(AppState *state)
                         if (isShuffleEnabled())
                                 reshufflePlaylist();
 
-                        unloadSongA();
-                        unloadSongB();
+                        unloadSongA(state);
+                        unloadSongB(state);
 
-                        int res = loadFirst(currentSong, &(state->uiSettings));
+                        int res = loadFirst(currentSong, state);
 
                         finishLoading();
 
@@ -757,7 +761,7 @@ void loadAudioData(AppState *state)
                         }
                         else
                         {
-                                setEndOfListReached();
+                                setEndOfListReached(state);
                         }
 
                         playlistNeedsUpdate = false;
@@ -817,7 +821,7 @@ void prepareNextSong(AppState *state)
 
         if (!isRepeatEnabled() || currentSong == NULL)
         {
-                unloadPreviousSong();
+                unloadPreviousSong(state);
         }
 
         if (currentSong == NULL)
@@ -825,11 +829,11 @@ void prepareNextSong(AppState *state)
                 if (state->uiSettings.quitAfterStopping)
                         quit();
                 else
-                        setEndOfListReached();
+                        setEndOfListReached(state);
         }
         else
         {
-                determineSongAndNotify(&state->uiSettings);
+                determineSongAndNotify(&(state->uiSettings));
         }
 
         clock_gettime(CLOCK_MONOTONIC, &start_time);
@@ -852,7 +856,7 @@ gboolean mainloop_callback(gpointer data)
 
         calcElapsedTime();
 
-        handleInput();
+        handleInput(&appState);
 
         updateCounter++;
 
@@ -865,7 +869,7 @@ gboolean mainloop_callback(gpointer data)
                         g_main_context_iteration(global_main_context, FALSE);
                 }
 
-                updatePlayer();
+                updatePlayer(&appState.uiState);
 
                 if (playlist.head != NULL)
                 {
@@ -881,30 +885,22 @@ gboolean mainloop_callback(gpointer data)
                         {
                                 updateLastSongSwitchTime();
                                 prepareNextSong(&appState);
-
-                                if (!doQuit)
-                                        switchAudioImplementation();
+                                switchAudioImplementation();
                         }
                 }
                 else
                 {
                         setEOFNotReached();
                 }
-
-                if (doQuit)
-                {
-                        g_main_loop_quit(main_loop);
-                        return FALSE;
-                }
         }
         return TRUE;
 }
 
 static gboolean quitOnSignal(gpointer user_data)
-{
-        doQuit = true;
+{        
         GMainLoop *loop = (GMainLoop *)user_data;
         g_main_loop_quit(loop);
+        quit();
         return G_SOURCE_REMOVE; // Remove the signal source
 }
 
@@ -925,7 +921,7 @@ void initFirstPlay(Node *song, AppState *state)
         {
                 audioData.currentFileIndex = 0;
                 loadingdata.loadA = true;
-                res = loadFirst(song, &(state->uiSettings));
+                res = loadFirst(song, state);
 
                 if (res >= 0)
                 {
@@ -937,7 +933,7 @@ void initFirstPlay(Node *song, AppState *state)
                 }
 
                 if (res < 0)
-                        setEndOfListReached();
+                        setEndOfListReached(state);
         }
 
         if (song == NULL || res < 0)
@@ -993,12 +989,12 @@ void cleanupOnExit()
         if (!userData.songdataADeleted)
         {
                 userData.songdataADeleted = true;
-                unloadSongData(&loadingdata.songdataA);
+                unloadSongData(&loadingdata.songdataA, &appState);
         }
         if (!userData.songdataBDeleted)
         {
                 userData.songdataBDeleted = true;
-                unloadSongData(&loadingdata.songdataB);
+                unloadSongData(&loadingdata.songdataB, &appState);
         }
 
         freeSearchResults();
@@ -1008,7 +1004,7 @@ void cleanupOnExit()
         setConfig(&settings, &(appState.uiSettings));
         saveSpecialPlaylist(settings.path);
         freeAudioBuffer();
-        deleteCache(tempCache);
+        deleteCache(appState.tempCache);
         deleteTempDir();
         freeMainDirectoryTree(&appState);
         deletePlaylist(&playlist);
@@ -1024,6 +1020,7 @@ void cleanupOnExit()
         pthread_mutex_destroy(&(dataSourceMutex));
 #ifdef USE_LIBNOTIFY
         notify_uninit();
+        cleanupPreviousNotification();
 #endif
         resetConsole();
         showCursor();
@@ -1071,6 +1068,29 @@ void run(AppState *state)
         fflush(stdout);
 }
 
+void handleResize(int sig)
+{
+        (void)sig;
+        appState.uiState.resizeFlag = 1;
+}
+
+void resetResizeFlag(int sig)
+{
+        (void)sig;
+        appState.uiState.resizeFlag = 0;
+}
+
+void initResize()
+{
+        signal(SIGWINCH, handleResize);
+
+        struct sigaction sa;
+        sa.sa_handler = resetResizeFlag;
+        sigemptyset(&sa.sa_mask);
+        sa.sa_flags = 0;
+        sigaction(SIGALRM, &sa, NULL);
+}
+
 void init(AppState *state)
 {
         disableInputBuffering();
@@ -1079,7 +1099,7 @@ void init(AppState *state)
         ioctl(STDOUT_FILENO, TIOCGWINSZ, &windowSize);
         enableScrolling();
         setNonblockingMode();
-        tempCache = createCache();
+        state->tempCache = createCache();
         c_strcpy(loadingdata.filePath, sizeof(loadingdata.filePath), "");
         loadingdata.songdataA = NULL;
         loadingdata.songdataB = NULL;
@@ -1117,7 +1137,7 @@ void init(AppState *state)
 
 void openLibrary(AppState *state)
 {
-        appState.currentView = LIBRARY_VIEW;
+        state->currentView = LIBRARY_VIEW;
         init(state);
         playlist.head = NULL;
         run(state);
@@ -1406,10 +1426,18 @@ void initState(AppState *state)
         state->uiSettings.uiEnabled = true;
         state->uiSettings.visualizerHeight = 5;
         state->uiSettings.cacheLibrary = -1;
-        state->uiSettings.useProfileColors = false;
+        state->uiSettings.useConfigColors = false;
         state->uiSettings.color.r = 125;
         state->uiSettings.color.g = 125;
         state->uiSettings.color.b = 125;
+        state->uiState.numDirectoryTreeEntries = 0;
+        state->uiState.numProgressBars = 35;
+        state->uiState.chosenNodeId = 0;
+        state->uiState.resetPlaylistDisplay = true;
+        state->uiState.allowChooseSongs = false;
+        state->uiState.resizeFlag = 0;
+        state->uiState.doNotifyMPRISSwitched = false;
+        state->tempCache = NULL;
 }
 
 int main(int argc, char *argv[])

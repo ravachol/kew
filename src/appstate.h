@@ -32,57 +32,41 @@ typedef enum
 
 typedef struct
 {
-        int mainColor;
-        int titleColor;
-        int artistColor;
-        int enqueuedColor;
-        PixelData color;
-        bool useProfileColors;
-        bool coverEnabled;
-        bool uiEnabled;
-        bool coverAnsi;
-        bool visualizerEnabled;
-        bool useThemeColors;
-        bool nerdFontsEnabled;
-        bool hideLogo;
-        bool hideHelp;
-        bool allowNotifications;
-        int visualizerHeight;
-        int cacheLibrary;
-        bool quitAfterStopping;
+        int mainColor;                                  // Main terminal color, when using config colors
+        int titleColor;                                 // Color of the title, when using config colors
+        int artistColor;                                // Artist color, when using config colors
+        int enqueuedColor;                              // Color of enqueued files, when using config colors
+        PixelData color;                                // The current color, when using album derived colors
+        bool useConfigColors;                           // Use colors stored in config file or use an album derived color
+        bool coverEnabled;                              // Show covers or not
+        bool uiEnabled;                                 // Show ui or not
+        bool coverAnsi;                                 // Show chafa cover (picture perfect in the right terminal), or ascii/ansi typ cover
+        bool visualizerEnabled;                         // Show spectrum visualizer
+        bool nerdFontsEnabled;                          // Show nerd font icons
+        bool hideLogo;                                  // No kew text at top
+        bool hideHelp;                                  // No help text at top
+        bool allowNotifications;                        // Send desktop notifications or not
+        int visualizerHeight;                           // Height in characters of the spectrum visualizer
+        int cacheLibrary;                               // Cache the library or not
+        bool quitAfterStopping;                         // Exit kew when the music stops or not
+        time_t lastTimeAppRan;                          // When did this app run last, used for updating the cached library if it has been modified since that time         
 } UISettings;
 
 typedef struct
 {
-        bool allowChooseSongs;
-        int chosenLibRow;
-        int chosenSearchResultRow;
-        int chosenRow;
-        int chosenNodeId;
-        int chosenSong;
-        int numDirectoryTreeEntries;
-        int numProgressBars;
-        volatile bool refresh;
-        volatile sig_atomic_t resizeFlag;
-        bool newUndisplayedSearch;
-        bool resetPlaylistDisplay;
-        struct timespec start_time;
-        struct timespec lastInputTime;
-#ifdef USE_LIBNOTIFY
-        NotifyNotification *previous_notification;
-#endif
-        GDBusConnection *connection;
-        GMainContext *global_main_context;
-        bool doQuit;
-        bool doNotifyMPRISSwitched;
-        Cache *tempCache;
-        time_t lastTimeAppRan;
-        ViewState currentView;
+        int chosenNodeId;                               // The id of the tree node that is chosen in library view        
+        bool allowChooseSongs;                          // In library view, has the user entered a folder that contains songs                               
+        int numDirectoryTreeEntries;                    // The number of entries in directory tree in library view
+        int numProgressBars;                            // The number of progress dots at the bottom of track view
+        volatile sig_atomic_t resizeFlag;               // Is the user resizing the terminal window
+        bool resetPlaylistDisplay;                      // Should the playlist be reset, ie drawn starting from playing song                 
+        bool doNotifyMPRISSwitched;                     // Tell mpris  to emit song switched signal        
 } UIState;
 
 typedef struct
 {
-        ViewState currentView;
+        Cache *tempCache;                               // Cache for temporary files
+        ViewState currentView;                          // The current view (playlist, library, track) that kew is on
         UIState uiState;
         UISettings uiSettings;
 } AppState;

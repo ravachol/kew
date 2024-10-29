@@ -1,6 +1,6 @@
 #include <stdbool.h>
 #include <math.h>
-#include "appstate.h"
+#include "soundcommon.h"
 #include "directorytree.h"
 #include "term.h"
 #include "common_ui.h"

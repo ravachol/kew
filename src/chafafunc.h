@@ -6,7 +6,7 @@
 #include <string.h>
 #include <unistd.h>
 
-float calcAspectRatio();
+float calcAspectRatio(void);
 void printImage(const char *image_path, int width, int height);
 unsigned char *getBitmap(const char *image_path, int *width, int *height);
 void printSquareBitmapCentered(unsigned char *pixels, int width, int height, int baseHeight);

@@ -38,10 +38,10 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         strncpy(settings.coverAnsi, "0", sizeof(settings.coverAnsi));
 #ifdef __APPLE__        
         strncpy(settings.visualizerEnabled, "0", sizeof(settings.visualizerEnabled)); // visualizer looks wonky in default terminal 
-        strncpy(settings.useProfileColors, "1", sizeof(settings.useProfileColors));   // colors from album look wrong in default terminal
+        strncpy(settings.useConfigColors, "1", sizeof(settings.useConfigColors));   // colors from album look wrong in default terminal
 #else
         strncpy(settings.visualizerEnabled, "1", sizeof(settings.visualizerEnabled));
-        strncpy(settings.useProfileColors, "0", sizeof(settings.useProfileColors));
+        strncpy(settings.useConfigColors, "0", sizeof(settings.useConfigColors));
 #endif
         strncpy(settings.hideLogo, "0", sizeof(settings.hideLogo));
         strncpy(settings.hideHelp, "0", sizeof(settings.hideHelp));
@@ -127,9 +127,9 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
                 {
                         snprintf(settings.visualizerEnabled, sizeof(settings.visualizerEnabled), "%s", pair->value);
                 }
-                else if (strcmp(lowercaseKey, "useprofilecolors") == 0)
+                else if (strcmp(lowercaseKey, "useConfigColors") == 0)
                 {
-                        snprintf(settings.useProfileColors, sizeof(settings.useProfileColors), "%s", pair->value);
+                        snprintf(settings.useConfigColors, sizeof(settings.useConfigColors), "%s", pair->value);
                 }
                 else if (strcmp(lowercaseKey, "visualizerheight") == 0)
                 {
@@ -446,7 +446,7 @@ void getConfig(AppSettings *settings, UISettings *ui)
         strcat(filepath, "/");
         strcat(filepath, SETTINGS_FILE);
 
-        KeyValuePair *pairs = readKeyValuePairs(filepath, &pair_count, &lastTimeAppRan);
+        KeyValuePair *pairs = readKeyValuePairs(filepath, &pair_count, &ui->lastTimeAppRan);
 
         free(filepath);
         *settings = constructAppSettings(pairs, pair_count);
@@ -455,7 +455,7 @@ void getConfig(AppSettings *settings, UISettings *ui)
         ui->coverEnabled = (settings->coverEnabled[0] == '1');
         ui->coverAnsi = (settings->coverAnsi[0] == '1');
         ui->visualizerEnabled = (settings->visualizerEnabled[0] == '1');
-        ui->useProfileColors = (settings->useProfileColors[0] == '1');
+        ui->useConfigColors = (settings->useConfigColors[0] == '1');
         ui->hideLogo = (settings->hideLogo[0] == '1');
         ui->hideHelp = (settings->hideHelp[0] == '1');
 
@@ -523,8 +523,8 @@ void setConfig(AppSettings *settings, UISettings *ui)
                 ui->coverAnsi ? c_strcpy(settings->coverAnsi, sizeof(settings->coverAnsi), "1") : c_strcpy(settings->coverAnsi, sizeof(settings->coverAnsi), "0");
         if (settings->visualizerEnabled[0] == '\0')
                 ui->visualizerEnabled ? c_strcpy(settings->visualizerEnabled, sizeof(settings->visualizerEnabled), "1") : c_strcpy(settings->visualizerEnabled, sizeof(settings->visualizerEnabled), "0");
-        if (settings->useProfileColors[0] == '\0')
-                ui->useProfileColors ? c_strcpy(settings->useProfileColors, sizeof(settings->useProfileColors), "1") : c_strcpy(settings->useProfileColors, sizeof(settings->useProfileColors), "0");
+        if (settings->useConfigColors[0] == '\0')
+                ui->useConfigColors ? c_strcpy(settings->useConfigColors, sizeof(settings->useConfigColors), "1") : c_strcpy(settings->useConfigColors, sizeof(settings->useConfigColors), "0");
         if (settings->visualizerHeight[0] == '\0')
         {
                 snprintf(settings->visualizerHeight, sizeof(settings->visualizerHeight), "%d", ui->visualizerHeight);
@@ -548,7 +548,7 @@ void setConfig(AppSettings *settings, UISettings *ui)
         settings->visualizerEnabled[1] = '\0';
         settings->visualizerHeight[5] = '\0';
         settings->lastVolume[5] = '\0';
-        settings->useProfileColors[1] = '\0';
+        settings->useConfigColors[1] = '\0';
         settings->allowNotifications[1] = '\0';
         settings->hideLogo[1] = '\0';
         settings->hideHelp[1] = '\0';
@@ -562,7 +562,7 @@ void setConfig(AppSettings *settings, UISettings *ui)
         fprintf(file, "coverAnsi=%s\n", settings->coverAnsi);
         fprintf(file, "visualizerEnabled=%s\n", settings->visualizerEnabled);
         fprintf(file, "visualizerHeight=%s\n", settings->visualizerHeight);
-        fprintf(file, "useProfileColors=%s\n", settings->useProfileColors);
+        fprintf(file, "useConfigColors=%s\n", settings->useConfigColors);
         fprintf(file, "allowNotifications=%s\n", settings->allowNotifications);
         fprintf(file, "hideLogo=%s\n", settings->hideLogo);
         fprintf(file, "hideHelp=%s\n", settings->hideHelp);
