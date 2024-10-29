@@ -62,4 +62,5 @@ typedef struct
 #endif
 
 SongData *loadSongData(char *filePath, AppState *state);
+
 void unloadSongData(SongData **songdata, AppState *state);
