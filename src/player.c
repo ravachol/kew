@@ -498,7 +498,7 @@ void printLastRow()
         setTextColorRGB(lastRowColor.r, lastRowColor.g, lastRowColor.b);
 
 #ifdef __APPLE__
-        char text[100] = "Sh+Z List|Sh+X Lib|Sh+C Track|Sh+V Search|Sh+B Help|Esc Quit";
+        char text[100] = " Sh+Z List|Sh+X Lib|Sh+C Track|Sh+V Search|Sh+B Help|Esc Quit";
 #else
         char text[100] = " [F2 Playlist|F3 Library|F4 Track|F5 Search|F6 Help|Esc Quit]";
 #endif
