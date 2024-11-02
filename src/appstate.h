@@ -60,7 +60,8 @@ typedef struct
         int numProgressBars;                            // The number of progress dots at the bottom of track view
         volatile sig_atomic_t resizeFlag;               // Is the user resizing the terminal window
         bool resetPlaylistDisplay;                      // Should the playlist be reset, ie drawn starting from playing song                 
-        bool doNotifyMPRISSwitched;                     // Tell mpris  to emit song switched signal        
+        bool doNotifyMPRISSwitched;                     // Tell mpris to emit song switched signal        
+        bool doNotifyMPRISPlaying;                      // Tell mpris to emit music is playing
 } UIState;
 
 typedef struct

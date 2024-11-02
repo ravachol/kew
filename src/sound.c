@@ -3,7 +3,6 @@
 #define MINIAUDIO_IMPLEMENTATION
 
 #include <miniaudio.h>
-#include "mpris.h"
 #include "sound.h"
 
 /*
@@ -119,8 +118,9 @@ int createDevice(UserData *userData, ma_device *device, ma_context *context, ma_
 
         result = ma_device_start(device);
         if (result != MA_SUCCESS)
-                return -1;
-        emitStringPropertyChanged("PlaybackStatus", "Playing");
+                return -1;        
+
+        appState.uiState.doNotifyMPRISPlaying = true;
 
         return 0;
 }
@@ -164,7 +164,8 @@ int vorbis_createAudioDevice(UserData *userData, ma_device *device, ma_context *
                 printf("\n\nFailed to start miniaudio device.\n");
                 return -1;
         }
-        emitStringPropertyChanged("PlaybackStatus", "Playing");
+        
+        appState.uiState.doNotifyMPRISPlaying = true;
 
         return 0;
 }
@@ -205,7 +206,8 @@ int m4a_createAudioDevice(UserData *userData, ma_device *device, ma_context *con
                 printf("\n\nFailed to start miniaudio device.\n");
                 return -1;
         }
-        emitStringPropertyChanged("PlaybackStatus", "Playing");
+       
+        appState.uiState.doNotifyMPRISPlaying = true;
 
         return 0;
 }
@@ -246,7 +248,8 @@ int opus_createAudioDevice(UserData *userData, ma_device *device, ma_context *co
                 printf("\n\nFailed to start miniaudio device.\n");
                 return -1;
         }
-        emitStringPropertyChanged("PlaybackStatus", "Playing");
+        
+        appState.uiState.doNotifyMPRISPlaying = true;
 
         return 0;
 }
@@ -564,20 +567,7 @@ int createAudioDevice(UserData *userData)
 
         if (switchAudioImplementation() >= 0)
         {
-                SongData *currentSongData = userData->currentSongData;
-
-                if (currentSongData != NULL && currentSongData->hasErrors == 0 && currentSongData->metadata && strlen(currentSongData->metadata->title) > 0)
-                {                    
-                        gint64 length = getLengthInMicroSec(currentSongData->duration);
-                        // update mpris
-                        emitMetadataChanged(
-                            currentSongData->metadata->title,
-                            currentSongData->metadata->artist,
-                            currentSongData->metadata->album,
-                            currentSongData->coverArtPath,
-                            currentSongData->trackId != NULL ? currentSongData->trackId : "", currentSong,
-                            length);
-                }
+                appState.uiState.doNotifyMPRISSwitched = true;
         }
         else
         {
