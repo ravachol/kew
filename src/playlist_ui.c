@@ -121,7 +121,6 @@ int displayPlaylist(PlayList *list, int maxListSize, int indent, int *chosenSong
         getTerminalSize(&termWidth, &termHeight);
 
         UISettings *ui = &(state->uiSettings);
-        UIState *uis = &(state->uiState);
 
         int foundAt = -1;
         bool startFromCurrent = false;

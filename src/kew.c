@@ -373,6 +373,13 @@ void refreshPlayer(UIState *uis)
                 return;
         }
 
+        if (uis->doNotifyMPRISPlaying)
+        {
+                uis->doNotifyMPRISPlaying = false;
+                
+                emitStringPropertyChanged("PlaybackStatus", "Playing");
+        }
+
         if (uis->doNotifyMPRISSwitched)
         {
                 uis->doNotifyMPRISSwitched = false;
@@ -1437,6 +1444,7 @@ void initState(AppState *state)
         state->uiState.allowChooseSongs = false;
         state->uiState.resizeFlag = 0;
         state->uiState.doNotifyMPRISSwitched = false;
+        state->uiState.doNotifyMPRISPlaying = false;
         state->tempCache = NULL;
 }
 
