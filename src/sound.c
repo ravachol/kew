@@ -555,7 +555,7 @@ void cleanupAudioContext(void)
         isContextInitialized = false;
 }
 
-int createAudioDevice(UserData *userData)
+int createAudioDevice()
 {
         if (isContextInitialized)
         {

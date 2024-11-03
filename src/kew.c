@@ -759,7 +759,7 @@ void loadAudioData(AppState *state)
 
                         if (res >= 0)
                         {
-                                res = createAudioDevice(&userData);
+                                res = createAudioDevice();
                         }
 
                         if (res >= 0)
@@ -932,7 +932,7 @@ void initFirstPlay(Node *song, AppState *state)
 
                 if (res >= 0)
                 {
-                        res = createAudioDevice(&userData);
+                        res = createAudioDevice();
                 }
                 if (res >= 0)
                 {

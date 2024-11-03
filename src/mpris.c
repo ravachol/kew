@@ -105,6 +105,8 @@ static void handle_raise(GDBusConnection *connection, const gchar *sender,
         (void)parameters;
         (void)invocation;
         (void)user_data;
+        
+        g_dbus_method_invocation_return_value(invocation, NULL);        
 }
 
 static void handle_quit(GDBusConnection *connection, const gchar *sender,
@@ -224,6 +226,7 @@ static void handle_pause(GDBusConnection *connection, const gchar *sender,
         (void)user_data;
 
         playbackPause(&pause_time);
+        g_dbus_method_invocation_return_value(invocation, NULL);
 }
 
 static void handle_play_pause(GDBusConnection *connection, const gchar *sender,
@@ -276,6 +279,7 @@ static void handle_play(GDBusConnection *connection, const gchar *sender,
         (void)user_data;
 
         playbackPlay(&totalPauseSeconds, &pauseSeconds);
+        g_dbus_method_invocation_return_value(invocation, NULL);
 }
 
 static void handle_seek(GDBusConnection *connection,
@@ -1252,6 +1256,12 @@ void emitMetadataChanged(const gchar *title, const gchar *artist, const gchar *a
         g_variant_builder_add(&changed_properties_builder, "{sv}", "Metadata", metadata_variant);
         g_variant_builder_add(&changed_properties_builder, "{sv}", "CanGoPrevious", g_variant_new_boolean((currentSong != NULL && currentSong->prev != NULL)));
         g_variant_builder_add(&changed_properties_builder, "{sv}", "CanGoNext", g_variant_new_boolean((currentSong != NULL && currentSong->next != NULL)));
+        g_variant_builder_add(&changed_properties_builder, "{sv}", "Shuffle", g_variant_new_boolean(isShuffleEnabled()));
+        g_variant_builder_add(&changed_properties_builder, "{sv}", "CanPlay", g_variant_new_boolean(length != 0 ? true : false));
+        g_variant_builder_add(&changed_properties_builder, "{sv}", "CanPause", g_variant_new_boolean(length != 0 ? true : false));
+        g_variant_builder_add(&changed_properties_builder, "{sv}", "LoopStatus", g_variant_new_string(isRepeatEnabled() ? "Track" : "None"));
+
+        
 
         CanSeek = true;
         if (currentSong != NULL && endsWith(currentSong->song.filePath, "ogg"))
