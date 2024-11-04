@@ -78,6 +78,7 @@ extern "C"
 #define MAX_CHANNELS 2
 #define MAX_SAMPLES 4800 // Maximum expected frame size
 #define MAX_SAMPLE_SIZE 4
+
         static uint8_t leftoverBuffer[MAX_SAMPLES * MAX_CHANNELS * MAX_SAMPLE_SIZE];
 
         static ma_uint64 leftoverSampleCount = 0;
@@ -142,21 +143,6 @@ extern "C"
                 }
                 return MA_SUCCESS;
         }
-
-        // static ma_result file_on_tell(void *pUserData, ma_int64 *pCursor)
-        // {
-        //         FILE *fp = (FILE *)pUserData;
-        //         long pos = ftell(fp);
-        //         if (pos < 0)
-        //         {
-        //                 return MA_ERROR;
-        //         }
-        //         if (pCursor)
-        //         {
-        //                 *pCursor = (ma_int64)pos;
-        //         }
-        //         return MA_SUCCESS;
-        // }
 
         static int minimp4_read_callback(int64_t offset, void *buffer, size_t size, void *token)
         {
@@ -592,6 +578,13 @@ extern "C"
                         if (pM4a->frameInfo.error > 0)
                         {
                                 // Error in decoding, skip to the next frame.
+                                continue;
+                        }
+
+                        // Remove support for HE-AAC components (SBR or PS)
+                        if (pM4a->frameInfo.sbr || pM4a->frameInfo.ps)
+                        {
+                                // HE-AAC detected (either SBR or PS is present), skip processing
                                 continue;
                         }
 
