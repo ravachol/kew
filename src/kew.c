@@ -444,6 +444,8 @@ void resetListAfterDequeuingPlayingSong(AppState *state)
 
 void handleGoToSong(AppState *state)
 {
+        bool canGoNext = (currentSong != NULL && currentSong->next != NULL);
+
         if (state->currentView == LIBRARY_VIEW)
         {
                 if (audioData.restart)
@@ -536,6 +538,12 @@ void handleGoToSong(AppState *state)
 
                         skipToNumberedSong(songNumber);
                 }
+        }
+
+        // Handle MPRIS CanGoNext
+        bool couldGoNext = (currentSong != NULL && currentSong->next != NULL);
+        if (canGoNext != couldGoNext) {
+                emitBooleanPropertyChanged("CanGoNext", couldGoNext);
         }
 }
 
