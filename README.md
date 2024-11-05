@@ -38,9 +38,8 @@ sudo yay -S kew              (Arch Linux, Manjaro)
 sudo yay -S kew-git          (Arch Linux, Manjaro)
 sudo zypper install kew      (OpenSUSE)
 sudo pkg install kew         (FreeBSD)
-brew install kew             (Linux Only, No macOS yet*)
+brew install kew             (macOS, Linux)
 ```
-*macOS is supported if you build manually. See below.
 
 ### Building the project manually
 
