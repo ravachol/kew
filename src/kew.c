@@ -498,7 +498,6 @@ void handleGoToSong(AppState *state)
                         {
                                 loadedNextSong = true;
 
-                                playlistNeedsUpdate = false;
                                 nextSongNeedsRebuilding = false;
 
                                 unloadSongA(state);
@@ -533,7 +532,6 @@ void handleGoToSong(AppState *state)
                         memset(digitsPressed, '\0', sizeof(digitsPressed));
                         digitsPressedCount = 0;
 
-                        playlistNeedsUpdate = false;
                         nextSongNeedsRebuilding = false;
 
                         skipToNumberedSong(songNumber);
@@ -779,7 +777,6 @@ void loadAudioData(AppState *state)
                                 setEndOfListReached(state);
                         }
 
-                        playlistNeedsUpdate = false;
                         loadedNextSong = false;
                         nextSong = NULL;
                         refresh = true;
