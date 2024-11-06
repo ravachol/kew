@@ -204,8 +204,6 @@ extern volatile bool refresh;
 
 extern AppState appState;
 
-extern bool allowNotifications;
-
 extern AudioData audioData;
 
 extern double duration;

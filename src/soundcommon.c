@@ -39,7 +39,7 @@ ma_event switchAudioImpl;
 enum AudioImplementation currentImplementation = NONE;
 
 AppState appState;
-volatile bool refresh = true;   // Should the whole view be refreshed next time it redraws
+volatile bool refresh = true; // Should the whole view be refreshed next time it redraws
 double duration;
 
 double elapsedSeconds = 0.0;
@@ -342,9 +342,11 @@ int prepareNextM4aDecoder(char *filepath)
         decoder->cursor = 0;
 
         setNextM4aDecoder(decoder);
-        if (currentDecoder != NULL)
-                ma_data_source_set_next(currentDecoder, decoder);
-
+        if (currentDecoder != NULL && decoder != NULL)
+        {
+                if (!isEOFReached())
+                        ma_data_source_set_next(currentDecoder, decoder);
+        }
         return 0;
 }
 
@@ -732,9 +734,11 @@ int prepareNextVorbisDecoder(char *filepath)
         decoder->onTell = ma_libvorbis_get_cursor_in_pcm_frames_wrapper;
 
         setNextVorbisDecoder(decoder);
-        if (currentDecoder != NULL)
-                ma_data_source_set_next(currentDecoder, decoder);
-
+        if (currentDecoder != NULL && decoder != NULL)
+        {
+                if (!isEOFReached())
+                        ma_data_source_set_next(currentDecoder, decoder);
+        }
         return 0;
 }
 
@@ -778,8 +782,10 @@ int prepareNextDecoder(char *filepath)
         setNextDecoder(decoder);
 
         if (currentDecoder != NULL && decoder != NULL)
-                ma_data_source_set_next(currentDecoder, decoder);
-
+        {
+                if (!isEOFReached())
+                        ma_data_source_set_next(currentDecoder, decoder);
+        }
         return 0;
 }
 
@@ -841,9 +847,11 @@ int prepareNextOpusDecoder(char *filepath)
 
         setNextOpusDecoder(decoder);
 
-        if (currentDecoder != NULL)
-                ma_data_source_set_next(currentDecoder, decoder);
-
+        if (currentDecoder != NULL && decoder != NULL)
+        {
+                if (!isEOFReached())
+                        ma_data_source_set_next(currentDecoder, decoder);
+        }
         return 0;
 }
 
@@ -1251,75 +1259,75 @@ void ensureNonEmpty(char *str)
 
 int displaySongNotification(const char *artist, const char *title, const char *cover, UISettings *ui)
 {
-    if (!ui->allowNotifications || !canShowNotification() || !notify_is_initted())
-    {
+        if (!ui->allowNotifications || !canShowNotification() || !notify_is_initted())
+        {
+                return 0;
+        }
+
+        const char *blacklist = "&;`|*~<>^()[]{}$\\\"";
+
+        removeBlacklistedChars(artist, blacklist, sanitizedArtist, sizeof(sanitizedArtist));
+        removeBlacklistedChars(title, blacklist, sanitizedTitle, sizeof(sanitizedTitle));
+
+        ensureNonEmpty(sanitizedArtist);
+        ensureNonEmpty(sanitizedTitle);
+
+        int coverExists = isValidFilepath(cover);
+
+        // Check if the cover has changed
+        bool coverChanged = true;
+        if (lastCover != NULL && cover != NULL)
+        {
+                coverChanged = (strcmp(cover, lastCover) != 0);
+        }
+        else if (lastCover == cover)
+        {
+                coverChanged = false;
+        }
+
+        if (lastCover != NULL)
+        {
+                free((void *)lastCover);
+        }
+        lastCover = cover != NULL ? strdup(cover) : NULL;
+
+        if (previous_notification == NULL || coverChanged)
+        {
+                if (previous_notification != NULL)
+                {
+                        notify_notification_close(previous_notification, NULL);
+                        g_object_unref(G_OBJECT(previous_notification));
+                        previous_notification = NULL;
+                }
+
+                previous_notification = notify_notification_new(
+                    sanitizedArtist,
+                    sanitizedTitle,
+                    coverExists ? cover : NULL);
+
+                g_signal_connect(previous_notification, "closed", G_CALLBACK(onNotificationClosed), NULL);
+        }
+        else
+        {
+                notify_notification_update(
+                    previous_notification,
+                    sanitizedArtist,
+                    sanitizedTitle,
+                    coverExists ? cover : NULL);
+        }
+
+        GError *error = NULL;
+
+        if (!notify_notification_show(previous_notification, &error))
+        {
+                if (error != NULL)
+                {
+                        fprintf(stderr, "Failed to show notification: %s\n", error->message);
+                        g_error_free(error);
+                }
+        }
+
         return 0;
-    }
-
-    const char *blacklist = "&;`|*~<>^()[]{}$\\\"";
-
-    removeBlacklistedChars(artist, blacklist, sanitizedArtist, sizeof(sanitizedArtist));
-    removeBlacklistedChars(title, blacklist, sanitizedTitle, sizeof(sanitizedTitle));
-
-    ensureNonEmpty(sanitizedArtist);
-    ensureNonEmpty(sanitizedTitle);
-
-    int coverExists = isValidFilepath(cover);
-
-    // Check if the cover has changed
-    bool coverChanged = true;
-    if (lastCover != NULL && cover != NULL)
-    {
-        coverChanged = (strcmp(cover, lastCover) != 0);
-    }
-    else if (lastCover == cover)
-    {
-        coverChanged = false;
-    }
-
-    if (lastCover != NULL)
-    {
-        free((void *)lastCover);
-    }
-    lastCover = cover != NULL ? strdup(cover) : NULL;
-
-    if (previous_notification == NULL || coverChanged)
-    {
-        if (previous_notification != NULL)
-        {
-            notify_notification_close(previous_notification, NULL);
-            g_object_unref(G_OBJECT(previous_notification));
-            previous_notification = NULL;
-        }
-
-        previous_notification = notify_notification_new(
-            sanitizedArtist,
-            sanitizedTitle,
-            coverExists ? cover : NULL);
-
-        g_signal_connect(previous_notification, "closed", G_CALLBACK(onNotificationClosed), NULL);
-    }
-    else
-    {
-        notify_notification_update(
-            previous_notification,
-            sanitizedArtist,
-            sanitizedTitle,
-            coverExists ? cover : NULL);
-    }
-
-    GError *error = NULL;
-
-    if (!notify_notification_show(previous_notification, &error))
-    {
-        if (error != NULL)
-        {
-            fprintf(stderr, "Failed to show notification: %s\n", error->message);
-            g_error_free(error);
-        }
-    }
-
-    return 0;
 }
 #endif
 
@@ -1658,6 +1666,12 @@ void m4a_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_uint6
                         return;
                 }
 
+                if (isEOFReached())
+                {
+                        pthread_mutex_unlock(&dataSourceMutex);
+                        return;
+                }
+
                 result = ma_data_source_read_pcm_frames(firstDecoder, (ma_int32 *)pFramesOut + framesRead * pAudioData->channels, remainingFrames, &framesToRead);
 
                 ma_data_source_get_cursor_in_pcm_frames(decoder, &cursor);
@@ -1779,6 +1793,12 @@ void opus_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_uint
                         return;
                 }
 
+                if (isEOFReached())
+                {
+                        pthread_mutex_unlock(&dataSourceMutex);
+                        return;
+                }
+
                 result = ma_data_source_read_pcm_frames(firstDecoder, (ma_int32 *)pFramesOut + framesRead * pAudioData->channels, remainingFrames, &framesToRead);
 
                 ma_data_source_get_cursor_in_pcm_frames(decoder, &cursor);
@@ -1876,6 +1896,12 @@ void vorbis_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_ui
                         return;
                 }
 
+                if (isEOFReached())
+                {
+                        pthread_mutex_unlock(&dataSourceMutex);
+                        return;
+                }
+
                 result = ma_data_source_read_pcm_frames(firstDecoder, (ma_int32 *)pFramesOut + framesRead * pAudioData->channels, remainingFrames, &framesToRead);
 
                 if ((getPercentageElapsed() >= 1.0 || isSkipToNext() || result != MA_SUCCESS) &&
@@ -1929,5 +1955,5 @@ void cleanupPreviousNotification()
                 g_object_unref(previous_notification);
                 previous_notification = NULL;
         }
-#endif        
+#endif
 }
