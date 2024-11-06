@@ -31,8 +31,6 @@ extern double totalPauseSeconds;
 extern double seekAccumulatedSeconds;
 extern FileSystemEntry *library;
 
-bool hasNerdFonts(void);
-
 int printPlayer(SongData *songdata, double elapsedSeconds, AppSettings *settings, AppState *appState);
 
 void flipNextPage(void);

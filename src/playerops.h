@@ -40,9 +40,7 @@ extern double pauseSeconds;
 extern double totalPauseSeconds;
 extern struct timespec pause_time;
 extern volatile bool loadedNextSong;
-extern bool playlistNeedsUpdate;
 extern bool nextSongNeedsRebuilding;
-extern bool enqueuedNeedsUpdate;
 extern bool waitingForPlaylist;
 extern bool waitingForNext;
 extern bool usingSongDataA;
@@ -61,8 +59,6 @@ extern bool skipFromStopped;
 extern UserData userData;
 
 SongData *getCurrentSongData(void);
-
-void rebuildAndUpdatePlaylist(void);
 
 Node *getNextSong(void);
 
