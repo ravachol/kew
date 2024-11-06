@@ -1,4 +1,3 @@
-
 # kew
 [![GitHub license](https://img.shields.io/github/license/ravachol/kew?color=333333&style=for-the-badge)](https://github.com/ravachol/kew/blob/master/LICENSE)
 
@@ -10,7 +9,7 @@ Listen to music in the terminal.
 
   
 
-kew (/kjuː/) is a terminal music player for Linux.
+kew (/kjuː/) is a terminal music player.
 
 ## Features
 
