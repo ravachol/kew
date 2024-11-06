@@ -65,11 +65,6 @@ const char LIBRARY_FILE[] = "kewlibrary";
 
 FileSystemEntry *library = NULL;
 
-bool hasNerdFonts(void)
-{
-        return (printf("\uf28b") >= 0); // nerd fonts
-}
-
 int calcMetadataHeight(void)
 {
         int term_w, term_h;

@@ -20,9 +20,7 @@ struct timespec start_time;
 struct timespec pause_time;
 struct timespec lastUpdateTime = {0, 0};
 
-bool playlistNeedsUpdate = false;
 bool nextSongNeedsRebuilding = false;
-bool enqueuedNeedsUpdate = false;
 bool skipFromStopped = false;
 bool usingSongDataA = true;
 
@@ -56,8 +54,6 @@ typedef struct
 
 void reshufflePlaylist(void)
 {
-        playlistNeedsUpdate = false;
-
         if (isShuffleEnabled())
         {
                 if (currentSong != NULL)
@@ -69,29 +65,12 @@ void reshufflePlaylist(void)
         }
 }
 
-void rebuildAndUpdatePlaylist(void)
-{
-        if (!playlistNeedsUpdate && !nextSongNeedsRebuilding)
-                return;
-
-        pthread_mutex_lock(&(playlist.mutex));
-
-        if (playlistNeedsUpdate)
-        {
-                reshufflePlaylist();
-        }
-
-        pthread_mutex_unlock(&(playlist.mutex));
-}
-
 void skip(void)
 {
         setCurrentImplementationType(NONE);
 
         setRepeatEnabled(false);
         audioData.endOfListReached = false;
-
-        rebuildAndUpdatePlaylist();
 
         if (!isPlaying())
         {
@@ -270,8 +249,6 @@ void prepareIfSkippedSilent(void)
                 setCurrentImplementationType(NONE);
                 setRepeatEnabled(false);
                 audioData.endOfListReached = false;
-
-                rebuildAndUpdatePlaylist();
 
                 switchAudioImplementation();
 
