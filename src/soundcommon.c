@@ -1491,69 +1491,55 @@ int getSystemVolumeMac(void)
 int getSystemVolume(void)
 {
 #ifdef __APPLE__
-        return getSystemVolumeMac();
+    return getSystemVolumeMac();
 #else
-        FILE *fp;
-        char buf[256];
-        int currentVolume = -1;
+    FILE *fp;
+    char command_str[1000];
+    char buf[256];
+    int currentVolume = -1;
 
-        // Get the default sink's name
-        fp = popen("pactl info", "r");
+    // Use '@DEFAULT_SINK@' to get the default sink's volume directly
+    snprintf(command_str, sizeof(command_str),
+             "pactl get-sink-volume @DEFAULT_SINK@");
+
+    fp = popen(command_str, "r");
+    if (fp != NULL)
+    {
+        while (fgets(buf, sizeof(buf), fp) != NULL)
+        {
+            int tempVolume = extractPercentage(buf);
+            if (tempVolume != -1)
+            {
+                currentVolume = tempVolume;
+                break;
+            }
+        }
+        pclose(fp);
+    }
+
+    // ALSA fallback if `pactl` fails
+    if (currentVolume == -1)
+    {
+        snprintf(command_str, sizeof(command_str),
+                 "amixer get Master");
+
+        fp = popen(command_str, "r");
         if (fp != NULL)
         {
-                char default_sink[256] = "";
-                while (fgets(buf, sizeof(buf), fp) != NULL)
+            while (fgets(buf, sizeof(buf), fp) != NULL)
+            {
+                int tempVolume = extractPercentage(buf);
+                if (tempVolume != -1)
                 {
-                        if (sscanf(buf, "Default Sink: %255s", default_sink) == 1)
-                        {
-                                break;
-                        }
+                    currentVolume = tempVolume;
+                    break;
                 }
-                pclose(fp);
-
-                // Validate sink name (assume only alphanumeric and limited length for simplicity)
-                if (strspn(default_sink, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-") == strlen(default_sink))
-                {
-                        char command_str[512];
-                        snprintf(command_str, sizeof(command_str), "pactl get-sink-volume %s", default_sink);
-                        
-                        FILE *volume_fp = popen(command_str, "r");
-                        if (volume_fp != NULL)
-                        {
-                                while (fgets(buf, sizeof(buf), volume_fp) != NULL)
-                                {
-                                        int tempVolume = extractPercentage(buf);
-                                        if (tempVolume != -1)
-                                        {
-                                                currentVolume = tempVolume;
-                                                break;
-                                        }
-                                }
-                                pclose(volume_fp);
-                        }
-                }
+            }
+            pclose(fp);
         }
+    }
 
-        // Fallback to ALSA
-        if (currentVolume == -1)
-        {
-                fp = popen("amixer get Master", "r");
-                if (fp != NULL)
-                {
-                        while (fgets(buf, sizeof(buf), fp) != NULL)
-                        {
-                                int tempVolume = extractPercentage(buf);
-                                if (tempVolume != -1)
-                                {
-                                        currentVolume = tempVolume;
-                                        break;
-                                }
-                        }
-                        pclose(fp);
-                }
-        }
-
-        return currentVolume;
+    return currentVolume;
 #endif
 }
 
