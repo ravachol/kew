@@ -1494,24 +1494,29 @@ int getSystemVolume(void)
         return getSystemVolumeMac();
 #else
         FILE *fp;
-        char command_str[1000];
         char buf[256];
         int currentVolume = -1;
 
         // Get the default sink's name
-        snprintf(command_str, sizeof(command_str),
-                 "pactl info | grep 'Default Sink' | awk '{print $3}'");
-
-        fp = popen(command_str, "r");
+        fp = popen("pactl info", "r");
         if (fp != NULL)
         {
-                if (fgets(buf, sizeof(buf), fp) != NULL)
+                char default_sink[256] = "";
+                while (fgets(buf, sizeof(buf), fp) != NULL)
                 {
-                        buf[strcspn(buf, "\n")] = '\0';
+                        if (sscanf(buf, "Default Sink: %255s", default_sink) == 1)
+                        {
+                                break;
+                        }
+                }
+                pclose(fp);
 
-                        snprintf(command_str, sizeof(command_str),
-                                 "pactl get-sink-volume %s", buf);
-
+                // Validate sink name (assume only alphanumeric and limited length for simplicity)
+                if (strspn(default_sink, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-") == strlen(default_sink))
+                {
+                        char command_str[512];
+                        snprintf(command_str, sizeof(command_str), "pactl get-sink-volume %s", default_sink);
+                        
                         FILE *volume_fp = popen(command_str, "r");
                         if (volume_fp != NULL)
                         {
@@ -1527,16 +1532,12 @@ int getSystemVolume(void)
                                 pclose(volume_fp);
                         }
                 }
-                pclose(fp);
         }
 
-        // ALSA
+        // Fallback to ALSA
         if (currentVolume == -1)
         {
-                snprintf(command_str, sizeof(command_str),
-                         "amixer get Master");
-
-                fp = popen(command_str, "r");
+                fp = popen("amixer get Master", "r");
                 if (fp != NULL)
                 {
                         while (fgets(buf, sizeof(buf), fp) != NULL)
