@@ -174,6 +174,42 @@ char *stringToUpperWithoutSpaces(const char *str)
         return result;
 }
 
+int naturalCompare(const char *a, const char *b)
+{
+        while (*a && *b)
+        {
+                if (isdigit(*a) && isdigit(*b))
+                {
+                        // Compare numerically
+                        char *endA, *endB;
+                        long numA = strtol(a, &endA, 10);
+                        long numB = strtol(b, &endB, 10);
+
+                        if (numA != numB)
+                        {
+                                return numA - numB;
+                        }
+
+                        // Move pointers past the numeric part
+                        a = endA;
+                        b = endB;
+                }
+                else
+                {
+                        if (*a != *b)
+                        {
+                                return *a - *b;
+                        }
+
+                        a++;
+                        b++;
+                }
+        }
+
+        // If all parts so far are equal, shorter string should come first
+        return *a - *b;
+}
+
 int compareLibEntries(const struct dirent **a, const struct dirent **b)
 {
         char *nameA = stringToUpperWithoutSpaces((*a)->d_name);
@@ -192,7 +228,8 @@ int compareLibEntries(const struct dirent **a, const struct dirent **b)
                 return -1;
         }
 
-        int result = strcmp(nameB, nameA);
+        int result = -naturalCompare(nameA, nameB); // Reverse the result for ascending order
+
         free(nameA);
         free(nameB);
 
@@ -465,53 +502,54 @@ int min(int a, int b, int c)
 // (insertions, deletions, or substitutions) required to change one string into the other.
 int utf8_levenshteinDistance(const char *s1, const char *s2)
 {
-    // Get the length of s1 and s2 in terms of characters, not bytes
-    int len1 = g_utf8_strlen(s1, -1);
-    int len2 = g_utf8_strlen(s2, -1);
+        // Get the length of s1 and s2 in terms of characters, not bytes
+        int len1 = g_utf8_strlen(s1, -1);
+        int len2 = g_utf8_strlen(s2, -1);
 
-    // Allocate a 2D matrix (only two rows at a time are needed)
-    int *prevRow = (int *)malloc((len2 + 1) * sizeof(int));
-    int *currRow = (int *)malloc((len2 + 1) * sizeof(int));
+        // Allocate a 2D matrix (only two rows at a time are needed)
+        int *prevRow = (int *)malloc((len2 + 1) * sizeof(int));
+        int *currRow = (int *)malloc((len2 + 1) * sizeof(int));
 
-    // Initialize the first row (for empty s1)
-    for (int j = 0; j <= len2; j++) {
-        prevRow[j] = j;
-    }
-
-    // Iterate over the characters of both strings
-    const char *p1 = s1;
-    for (int i = 1; i <= len1; i++, p1 = g_utf8_next_char(p1))
-    {
-        currRow[0] = i;
-        const char *p2 = s2;
-        for (int j = 1; j <= len2; j++, p2 = g_utf8_next_char(p2))
+        // Initialize the first row (for empty s1)
+        for (int j = 0; j <= len2; j++)
         {
-            // Compare Unicode characters using g_utf8_get_char
-            gunichar c1 = g_utf8_get_char(p1);
-            gunichar c2 = g_utf8_get_char(p2);
-
-            int cost = (c1 == c2) ? 0 : 1;
-
-            // Fill the current row with the minimum of deletion, insertion, or substitution
-            currRow[j] = MIN(prevRow[j] + 1,         // deletion
-                             MIN(currRow[j - 1] + 1, // insertion
-                                 prevRow[j - 1] + cost)); // substitution
+                prevRow[j] = j;
         }
 
-        // Swap rows (current becomes previous for the next iteration)
-        int *temp = prevRow;
-        prevRow = currRow;
-        currRow = temp;
-    }
+        // Iterate over the characters of both strings
+        const char *p1 = s1;
+        for (int i = 1; i <= len1; i++, p1 = g_utf8_next_char(p1))
+        {
+                currRow[0] = i;
+                const char *p2 = s2;
+                for (int j = 1; j <= len2; j++, p2 = g_utf8_next_char(p2))
+                {
+                        // Compare Unicode characters using g_utf8_get_char
+                        gunichar c1 = g_utf8_get_char(p1);
+                        gunichar c2 = g_utf8_get_char(p2);
 
-    // The last value in prevRow contains the Levenshtein distance
-    int distance = prevRow[len2];
+                        int cost = (c1 == c2) ? 0 : 1;
 
-    // Free the allocated memory
-    free(prevRow);
-    free(currRow);
+                        // Fill the current row with the minimum of deletion, insertion, or substitution
+                        currRow[j] = MIN(prevRow[j] + 1,              // deletion
+                                         MIN(currRow[j - 1] + 1,      // insertion
+                                             prevRow[j - 1] + cost)); // substitution
+                }
 
-    return distance;
+                // Swap rows (current becomes previous for the next iteration)
+                int *temp = prevRow;
+                prevRow = currRow;
+                currRow = temp;
+        }
+
+        // The last value in prevRow contains the Levenshtein distance
+        int distance = prevRow[len2];
+
+        // Free the allocated memory
+        free(prevRow);
+        free(currRow);
+
+        return distance;
 }
 
 #ifdef __GNUC__
