@@ -33,6 +33,10 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #define __USE_POSIX
 #endif
 
+#ifdef __FreeBSD__
+#define __BSD_VISIBLE 1
+#endif
+
 #include <dirent.h>
 #include <fcntl.h>
 #include <gio/gio.h>
