@@ -1021,7 +1021,6 @@ void cleanupOnExit()
         saveSpecialPlaylist(settings.path);
         freeAudioBuffer();
         deleteCache(appState.tempCache);
-        deleteTempDir();
         freeMainDirectoryTree(&appState);
         deletePlaylist(&playlist);
         deletePlaylist(originalPlaylist);
