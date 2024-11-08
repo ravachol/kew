@@ -262,7 +262,7 @@ ma_libvorbis *getCurrentVorbisDecoder(void);
 
 void switchVorbisDecoder(void);
 
-int prepareNextOpusDecoder(char *filepath);
+int prepareNextDecoder(char *filepath);
 
 int prepareNextOpusDecoder(char *filepath);
 
