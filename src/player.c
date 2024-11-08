@@ -90,23 +90,40 @@ int calcMetadataHeight(void)
 
 int calcIdealImgSize(int *width, int *height, const int visualizerHeight, const int metatagHeight)
 {
-        float aspectRatio = calcAspectRatio();
+    float aspectRatio = calcAspectRatio();
 
-        int term_w, term_h;
-        getTermSize(&term_w, &term_h);
-        int timeDisplayHeight = 1;
-        int heightMargin = 4;
-        int minHeight = visualizerHeight + metatagHeight + timeDisplayHeight + heightMargin;
-        int minBorderWidth = 0;
-        *height = term_h - minHeight;
-        *width = ceil(*height * aspectRatio);
-        if (*width > term_w)
-        {
-                *width = term_w - minBorderWidth;
-                *height = floor(*width / aspectRatio);
+    int term_w, term_h;
+    getTermSize(&term_w, &term_h);
+    int timeDisplayHeight = 1;
+    int heightMargin = 4;
+    int minHeight = visualizerHeight + metatagHeight + timeDisplayHeight + heightMargin;
+    int minBorderWidth = 0;
+    *height = term_h - minHeight;
+
+    double temp_width = ceil((double)(*height) * aspectRatio);
+    if (temp_width > INT_MAX) {
+        *width = INT_MAX;
+    } else if (temp_width < INT_MIN) {
+        *width = INT_MIN;
+    } else {
+        *width = (int)temp_width;
+    }
+
+    if (*width > term_w)
+    {
+        *width = term_w - minBorderWidth;
+
+        double temp_height = floor((double)(*width) / aspectRatio);
+        if (temp_height > INT_MAX) {
+            *height = INT_MAX;
+        } else if (temp_height < INT_MIN) {
+            *height = INT_MIN;
+        } else {
+            *height = (int)temp_height;
         }
+    }
 
-        return 0;
+    return 0;
 }
 
 void calcPreferredSize(UISettings *ui)

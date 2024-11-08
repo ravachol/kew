@@ -47,13 +47,9 @@ int expandPath(const char *inputPath, char *expandedPath);
 
 int createDirectory(const char *path);
 
-int removeDirectory(const char *path);
-
 int deleteFile(const char *filePath);
 
 void generateTempFilePath(char *filePath, const char *prefix, const char *suffix);
-
-void deleteTempDir(void);
 
 int isInTempDir(const char *path);
 
