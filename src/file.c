@@ -278,49 +278,6 @@ int createDirectory(const char *path)
         return -1; // Failed to create directory
 }
 
-int removeDirectory(const char *path)
-{
-        struct stat st;
-
-        // Check if path exists
-        if (stat(path, &st) != 0)
-                return -1; // Path does not exist
-
-        // Check if it is a directory
-        if (!S_ISDIR(st.st_mode))
-                return -1; // Path exists but is not a directory
-
-        DIR *dir = opendir(path);
-
-        if (dir == NULL)
-                return -1; // Failed to open directory
-
-        struct dirent *entry;
-        char filePath[MAXPATHLEN];
-
-        // Remove all entries in the directory
-        while ((entry = readdir(dir)) != NULL)
-        {
-                if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
-                        continue; // Skip current and parent directories
-
-                snprintf(filePath, sizeof(filePath), "%s/%s", path, entry->d_name);
-
-                if (entry->d_type == DT_DIR)
-                        removeDirectory(filePath); // Recursively remove subdirectories
-                else
-                        remove(filePath); // Remove regular file
-        }
-
-        closedir(dir);
-
-        // Remove the directory itself
-        if (rmdir(path) == 0)
-                return 0; // Directory removed successfully
-
-        return -1; // Failed to remove directory
-}
-
 int deleteFile(const char *filePath)
 {
         if (remove(filePath) == 0)
@@ -346,27 +303,6 @@ int isInTempDir(const char *path)
         }
 
         return (startsWith(path, tempDir));
-}
-
-void deleteTempDir(void)
-{
-        const char *tempDir = getenv("TMPDIR");
-        if (tempDir == NULL)
-        {
-#ifdef __APPLE__
-                tempDir = "/tmp";
-#else
-                tempDir = "/tmp";
-#endif
-        }
-        else
-        {
-        }
-        char dirPath[MAXPATHLEN];
-        struct passwd *pw = getpwuid(getuid());
-        const char *username = pw->pw_name;
-        snprintf(dirPath, MAXPATHLEN, "%s/kew/%s", tempDir, username);
-        removeDirectory(dirPath);
 }
 
 bool checkFileBelowMaxSize(const char *filePath, int maxSize)
