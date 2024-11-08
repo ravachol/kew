@@ -52,16 +52,6 @@ extern UserData userData;
 
 extern bool isContextInitialized;
 
-int prepareNextDecoder(char *filepath);
-
-int prepareNextOpusDecoder(char *filepath);
-
-int prepareNextVorbisDecoder(char *filepath);
-
-int prepareNextM4aDecoder(char *filepath);
-
-void setDecoders(bool usingA, char *filePath);
-
 int createAudioDevice();
 
 int switchAudioImplementation(void);
