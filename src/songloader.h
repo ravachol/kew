@@ -5,7 +5,7 @@
 #include "appstate.h"
 #include "tagLibWrapper.h"
 #include "cache.h"
-#include "chafafunc.h"
+#include "imgfunc.h"
 #include "file.h"
 #include "sound.h"
 #include "soundcommon.h"

@@ -53,7 +53,7 @@ endif
 # Compiler flags
 CFLAGS = -I/usr/include -I/opt/homebrew/include -I/usr/local/include -I/usr/lib -Iinclude/minimp4 \
          -I/usr/include/chafa -I/usr/lib/chafa/include -I/usr/include/ogg -I/usr/include/opus \
-         -I/usr/include/stb -Iinclude/imgtotxt/ext -Iinclude/imgtotxt -I/usr/include/glib-2.0 \
+         -I/usr/include/stb -Iinclude/stb_image -I/usr/include/glib-2.0 \
          -I/usr/lib/glib-2.0/include -Iinclude/miniaudio -I/usr/include/gdk-pixbuf-2.0 -O2
 
 CFLAGS += $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) $(PKG_CONFIG) --cflags gio-2.0 chafa fftw3f opus opusfile vorbis ogg glib-2.0 taglib)
@@ -107,7 +107,7 @@ endif
 OBJDIR = src/obj
 
 SRCS = src/common_ui.c src/sound.c src/directorytree.c src/soundcommon.c src/m4a.c src/search_ui.c src/playlist_ui.c src/player.c \
-       src/soundbuiltin.c src/mpris.c src/playerops.c src/utils.c src/file.c src/chafafunc.c src/cache.c src/songloader.c \
+       src/soundbuiltin.c src/mpris.c src/playerops.c src/utils.c src/file.c src/imgfunc.c src/cache.c src/songloader.c \
        src/playlist.c src/term.c src/settings.c src/visuals.c src/kew.c
 OBJS = $(SRCS:src/%.c=$(OBJDIR)/%.o)
 
@@ -127,15 +127,12 @@ $(OBJDIR)/%.o: src/%.c Makefile | $(OBJDIR)
 $(WRAPPER_OBJ): $(WRAPPER_SRC) Makefile | $(OBJDIR)
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
-$(OBJDIR)/write_ascii.o: include/imgtotxt/write_ascii.c Makefile | $(OBJDIR)
-	$(CC) $(CFLAGS) $(DEFINES) -c -o $@ $<
-
 $(OBJDIR):
 	mkdir -p $(OBJDIR)
 
 # Link all objects together
-kew: $(OBJDIR)/write_ascii.o $(OBJS) $(WRAPPER_OBJ) Makefile
-	$(CC) -o kew $(OBJDIR)/write_ascii.o $(OBJS) $(WRAPPER_OBJ) $(LIBS) $(LDFLAGS)
+kew: $(OBJS) $(WRAPPER_OBJ) Makefile
+	$(CC) -o kew $(OBJS) $(WRAPPER_OBJ) $(LIBS) $(LDFLAGS)
 
 .PHONY: install
 install: all

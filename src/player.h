@@ -5,9 +5,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "../include/imgtotxt/write_ascii.h"
 #include "appstate.h"
-#include "chafafunc.h"
+#include "imgfunc.h"
 #include "directorytree.h"
 #include "playlist.h"
 #include "playlist_ui.h"
