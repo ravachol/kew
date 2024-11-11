@@ -1,7 +1,6 @@
 #ifndef C_H
 #define C_H
 #include <stdbool.h>
-#include "options.h"
 
 /* This ifdef allows the header to be used from both C and C++. */
 #ifdef __cplusplus
@@ -17,8 +16,7 @@ extern "C"
         unsigned char b;
     } PixelData;
 #endif
-    int getBrightPixel(char *filepath, int width, int height);
-    int output_ascii(const char *pathToImgFile, int height, int width);
+    int printInAscii(const char *pathToImgFile, int height, int width);
 #ifdef __cplusplus
 }
 #endif
