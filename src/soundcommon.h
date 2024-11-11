@@ -195,7 +195,6 @@ enum AudioImplementation
         NONE
 };
 
-
 #ifdef USE_LIBNOTIFY
 extern NotifyNotification *previous_notification;
 #endif

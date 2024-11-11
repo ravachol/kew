@@ -13,6 +13,7 @@
 #include <string.h>
 #include "directorytree.h"
 #include "file.h"
+#include "utils.h"
 
 #define MAX_FILES 10000
 

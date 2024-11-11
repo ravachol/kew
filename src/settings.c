@@ -386,7 +386,7 @@ void mapSettingsToKeys(AppSettings *settings, EventMapping *mappings)
         mappings[15] = (EventMapping){settings->seekForward, EVENT_SEEKFORWARD};
         mappings[16] = (EventMapping){settings->toggleRepeat, EVENT_TOGGLEREPEAT};
         mappings[17] = (EventMapping){settings->savePlaylist, EVENT_EXPORTPLAYLIST};
-        mappings[18] = (EventMapping){settings->toggleColorsDerivedFrom, EVENT_TOGGLE_PROFILE_COLORS};
+        mappings[18] = (EventMapping){settings->toggleColorsDerivedFrom, EVENT_TOGGLEPROFILECOLORS};
         mappings[19] = (EventMapping){settings->addToMainPlaylist, EVENT_ADDTOMAINPLAYLIST};
         mappings[20] = (EventMapping){settings->updateLibrary, EVENT_UPDATELIBRARY};
         mappings[21] = (EventMapping){settings->hardPlayPause, EVENT_PLAY_PAUSE};

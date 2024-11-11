@@ -210,23 +210,6 @@ void shufflePlaylistStartingFromSong(PlayList *playlist, Node *song)
         }
 }
 
-int compare(const struct dirent **a, const struct dirent **b)
-{
-        const char *nameA = (*a)->d_name;
-        const char *nameB = (*b)->d_name;
-
-        if (nameA[0] == '_' && nameB[0] != '_')
-        {
-                return -1;
-        }
-        else if (nameA[0] != '_' && nameB[0] == '_')
-        {
-                return 1;
-        }
-
-        return strcmp(nameA, nameB);
-}
-
 void createNode(Node **node, const char *directoryPath, int id)
 {
         SongInfo song;
@@ -277,7 +260,7 @@ void buildPlaylistRecursive(const char *directoryPath, const char *allowedExtens
 
         char exto[100];
         struct dirent **entries;
-        int numEntries = scandir(directoryPath, &entries, NULL, compare);
+        int numEntries = scandir(directoryPath, &entries, NULL, compareLibEntries);
 
         if (numEntries < 0)
         {
