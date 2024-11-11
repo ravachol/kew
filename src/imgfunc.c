@@ -1,5 +1,16 @@
-#include "chafafunc.h"
+#include "imgfunc.h"
+#include "term.h"
+
+// Disable some warnings for stb headers.
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-qual"
+#pragma GCC diagnostic ignored "-Wstrict-overflow"
+#define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
+#define STB_IMAGE_RESIZE_IMPLEMENTATION
+#include <stb_image_resize2.h>
+#pragma GCC diagnostic pop
+
 /*
 
 chafafunc.c
@@ -18,11 +29,16 @@ chafafunc.c
 #include <sys/ioctl.h> /* ioctl */
 #endif
 
+#define MACRO_STRLEN(s) (sizeof(s) / sizeof(s[0]))
+
 typedef struct
 {
         gint width_cells, height_cells;
         gint width_pixels, height_pixels;
 } TermSize;
+
+char scale[] = "$@&B%8WM#ZO0QoahkbdpqwmLCJUYXIjft/\\|()1{}[]l?zcvunxr!<>i;:*-+~_,\"^`'. ";
+unsigned int brightness_levels = MACRO_STRLEN(scale) - 2;
 
 static void detect_terminal(ChafaTermInfo **term_info_out, ChafaCanvasMode *mode_out, ChafaPixelMode *pixel_mode_out)
 {
@@ -342,7 +358,7 @@ void printSquareBitmapCentered(unsigned char *pixels, int width, int height, int
         g_string_free(printable, TRUE);
 }
 
-unsigned char luminance(unsigned char r, unsigned char g, unsigned char b)
+unsigned char luminanceFromRGB(unsigned char r, unsigned char g, unsigned char b)
 {
         return (unsigned char)(0.2126 * r + 0.7152 * g + 0.0722 * b);
 }
@@ -350,7 +366,7 @@ unsigned char luminance(unsigned char r, unsigned char g, unsigned char b)
 void checkIfBrightPixel(unsigned char r, unsigned char g, unsigned char b, bool *found)
 {
         // Calc luminace and use to find Ascii char.
-        unsigned char ch = luminance(r, g, b);
+        unsigned char ch = luminanceFromRGB(r, g, b);
 
         if (ch > 80 && !(r < g + 20 && r > g - 20 && g < b + 20 && g > b - 20) && !(r > 150 && g > 150 && b > 150))
         {
@@ -389,4 +405,105 @@ int getCoverColor(unsigned char *pixels, int width, int height, unsigned char *r
         }
 
         return found ? 0 : -1;
+}
+
+unsigned char calcAsciiChar(PixelData *p)
+{
+        unsigned char ch = luminanceFromRGB(p->r, p->g, p->b);
+        int rescaled = ch * brightness_levels / 256;
+
+        return scale[brightness_levels - rescaled];
+}
+
+int convertToAscii(const char *filepath, unsigned int width, unsigned int height)
+{
+        /*
+        Modified, originally by Danny Burrows:
+        https://github.com/danny-burrows/img_to_txt
+
+        MIT License
+
+        Copyright (c) 2021 Danny Burrows
+
+        Permission is hereby granted, free of charge, to any person obtaining a copy
+        of this software and associated documentation files (the "Software"), to deal
+        in the Software without restriction, including without limitation the rights
+        to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+        copies of the Software, and to permit persons to whom the Software is
+        furnished to do so, subject to the following conditions:
+
+        The above copyright notice and this permission notice shall be included in all
+        copies or substantial portions of the Software.
+
+        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+        IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+        FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+        AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+        LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+        OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+        SOFTWARE.
+        */
+
+        int rwidth, rheight, rchannels;
+        unsigned char *read_data = stbi_load(filepath, &rwidth, &rheight, &rchannels, 3);
+
+        if (read_data == NULL)
+        {
+                return -1;
+        }
+
+        PixelData *data;
+        if (width != (unsigned)rwidth || height != (unsigned)rheight)
+        {
+                // 3 * uint8 for RGB!
+                unsigned char *new_data = malloc(3 * sizeof(unsigned char) * width * height);
+                stbir_resize_uint8_srgb(
+                    read_data, rwidth, rheight, 0,
+                    new_data, width, height, 0, 3);
+
+                stbi_image_free(read_data);
+                data = (PixelData *)new_data;
+        }
+        else
+        {
+                data = (PixelData *)read_data;
+        }
+
+        int term_w, term_h;
+        getTermSize(&term_w, &term_h);
+
+        int indent = ((term_w - width) / 2) + 1;
+
+        printf("\n");
+        printf("%*s", indent, "");
+
+        for (unsigned int d = 0; d < width * height; d++)
+        {
+                if (d % width == 0 && d != 0)
+                {
+                        printf("\n");
+                        printf("%*s", indent, "");
+                }
+
+                PixelData *c = data + d;
+
+                printf("\033[1;38;2;%03u;%03u;%03um%c", c->r, c->g, c->b, calcAsciiChar(c));
+        }
+
+        printf("\n");
+
+        stbi_image_free(data);
+        return 0;
+}
+
+int printInAscii(const char *pathToImgFile, int height, int width)
+{
+        width -= 1;
+
+        printf("\r");
+
+        int ret = convertToAscii(pathToImgFile, (unsigned)width, (unsigned)height);
+        if (ret == -1)
+                printf("\033[0m");
+        return 0;
 }
