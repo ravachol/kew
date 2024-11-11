@@ -250,8 +250,6 @@ void prepareIfSkippedSilent(void)
                 setRepeatEnabled(false);
                 audioData.endOfListReached = false;
 
-                switchAudioImplementation();
-
                 usingSongDataA = !usingSongDataA;
 
                 skipping = false;
@@ -756,6 +754,9 @@ void silentSwitchToNext(bool loadSong, AppState *state)
         skipping = false;
 
         hasSilentlySwitched = true;
+        
+        nextSongNeedsRebuilding = true;
+        nextSong = NULL;
 }
 
 void removeCurrentlyPlayingSong(void)
@@ -1387,6 +1388,8 @@ void silentSwitchToPrev(AppState *state)
 
         refresh = true;
         skipping = false;
+        nextSongNeedsRebuilding = true;
+        nextSong = NULL;
 
         skipOutOfOrder = true;
         hasSilentlySwitched = true;
