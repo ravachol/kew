@@ -1491,55 +1491,55 @@ int getSystemVolumeMac(void)
 int getSystemVolume(void)
 {
 #ifdef __APPLE__
-    return getSystemVolumeMac();
+        return getSystemVolumeMac();
 #else
-    FILE *fp;
-    char command_str[1000];
-    char buf[256];
-    int currentVolume = -1;
+        FILE *fp;
+        char command_str[1000];
+        char buf[256];
+        int currentVolume = -1;
 
-    // Use '@DEFAULT_SINK@' to get the default sink's volume directly
-    snprintf(command_str, sizeof(command_str),
-             "pactl get-sink-volume @DEFAULT_SINK@");
-
-    fp = popen(command_str, "r");
-    if (fp != NULL)
-    {
-        while (fgets(buf, sizeof(buf), fp) != NULL)
-        {
-            int tempVolume = extractPercentage(buf);
-            if (tempVolume != -1)
-            {
-                currentVolume = tempVolume;
-                break;
-            }
-        }
-        pclose(fp);
-    }
-
-    // ALSA fallback if `pactl` fails
-    if (currentVolume == -1)
-    {
+        // Use '@DEFAULT_SINK@' to get the default sink's volume directly
         snprintf(command_str, sizeof(command_str),
-                 "amixer get Master");
+                 "pactl get-sink-volume @DEFAULT_SINK@");
 
         fp = popen(command_str, "r");
         if (fp != NULL)
         {
-            while (fgets(buf, sizeof(buf), fp) != NULL)
-            {
-                int tempVolume = extractPercentage(buf);
-                if (tempVolume != -1)
+                while (fgets(buf, sizeof(buf), fp) != NULL)
                 {
-                    currentVolume = tempVolume;
-                    break;
+                        int tempVolume = extractPercentage(buf);
+                        if (tempVolume != -1)
+                        {
+                                currentVolume = tempVolume;
+                                break;
+                        }
                 }
-            }
-            pclose(fp);
+                pclose(fp);
         }
-    }
 
-    return currentVolume;
+        // ALSA fallback if `pactl` fails
+        if (currentVolume == -1)
+        {
+                snprintf(command_str, sizeof(command_str),
+                         "amixer get Master");
+
+                fp = popen(command_str, "r");
+                if (fp != NULL)
+                {
+                        while (fgets(buf, sizeof(buf), fp) != NULL)
+                        {
+                                int tempVolume = extractPercentage(buf);
+                                if (tempVolume != -1)
+                                {
+                                        currentVolume = tempVolume;
+                                        break;
+                                }
+                        }
+                        pclose(fp);
+                }
+        }
+
+        return currentVolume;
 #endif
 }
 
@@ -1618,14 +1618,16 @@ void m4a_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_uint6
                 // Check if seeking is requested
                 if (isSeekRequested())
                 {
-                        ma_uint64 totalFrames = 0;
-                        m4a_decoder_get_length_in_pcm_frames(decoder, &totalFrames);
+                        ma_uint64 totalFrames = pAudioData->totalFrames;
                         ma_uint64 seekPercent = getSeekPercentage();
 
                         if (seekPercent >= 100.0)
                                 seekPercent = 100.0;
 
-                        ma_uint64 targetFrame = (totalFrames * seekPercent) / 100 - 1; // Remove one frame or we get invalid args if we send in totalframes
+                        ma_uint64 targetFrame = (ma_uint64)((totalFrames - 1) * seekPercent / 100.0);
+
+                        if (targetFrame >= totalFrames)
+                                targetFrame = totalFrames - 1;
 
                         // Set the read pointer for the decoder
                         ma_result seekResult = m4a_decoder_seek_to_pcm_frame(decoder, targetFrame);

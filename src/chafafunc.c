@@ -1,5 +1,5 @@
 #include "chafafunc.h"
-#include "stb_image.h"
+#include <stb_image.h>
 /*
 
 chafafunc.c
@@ -220,53 +220,6 @@ convert_image(const void *pixels, gint pix_width, gint pix_height,
         symbol_map = NULL;
         term_info = NULL;
         return printable;
-}
-
-void printImage(const char *image_path, int width, int height)
-{
-        int pix_width, pix_height, n_channels;
-
-        // Load the image using stb_image
-        unsigned char *pixels = stbi_load(image_path, &pix_width, &pix_height, &n_channels, 4); // We force 4 channels (RGBA)
-        if (!pixels)
-        {
-                // Failed to load the image
-                printf("Failed to load image: %s\n", image_path);
-                return;
-        }
-
-        TermSize term_size;
-        GString *printable;
-        gfloat font_ratio = 0.5;
-        gint cell_width = -1, cell_height = -1;
-        gint width_cells, height_cells;
-
-        tty_init();
-        get_tty_size(&term_size);
-
-        if (term_size.width_cells > 0 && term_size.height_cells > 0 && term_size.width_pixels > 0 && term_size.height_pixels > 0)
-        {
-                cell_width = term_size.width_pixels / term_size.width_cells;
-                cell_height = term_size.height_pixels / term_size.height_cells;
-                font_ratio = (gdouble)cell_width / (gdouble)cell_height;
-        }
-
-        width_cells = term_size.width_cells;
-        height_cells = term_size.height_cells;
-
-        chafa_calc_canvas_geometry(pix_width, pix_height, &width_cells, &height_cells, font_ratio, TRUE, FALSE);
-
-        /* Convert the image to a printable string */
-        printable = convert_image(pixels, pix_width, pix_height, pix_width * 4, CHAFA_PIXEL_BGRA8_UNASSOCIATED,
-                                  width, height, cell_width, cell_height);
-
-        /* Print the string */
-        fwrite(printable->str, sizeof(char), printable->len, stdout);
-        fputc('\n', stdout);
-
-        // Free resources
-        stbi_image_free(pixels);
-        g_string_free(printable, TRUE);
 }
 
 // The function to load and return image data

@@ -38,7 +38,6 @@ int lastPlayedId = -1;
 bool songHasErrors = false;
 bool skipOutOfOrder = false;
 bool skipping = false;
-bool loadingFailed = false;
 bool forceSkip = false;
 volatile bool clearingErrors = false;
 volatile bool songLoading = false;
@@ -212,7 +211,7 @@ void skipToSong(int id, bool startPlaying)
         int maxNumTries = 50;
         int numtries = 0;
 
-        while (!loadedNextSong && !loadingFailed && numtries < maxNumTries)
+        while (!loadedNextSong && numtries < maxNumTries)
         {
                 c_sleep(100);
                 numtries++;
@@ -1245,7 +1244,7 @@ void rebuildNextSong(Node *song)
         int maxNumTries = 50;
         int numtries = 0;
 
-        while (songLoading && !loadedNextSong && !loadingFailed && numtries < maxNumTries)
+        while (songLoading && !loadedNextSong && numtries < maxNumTries)
         {
                 c_sleep(100);
                 numtries++;
@@ -1305,7 +1304,7 @@ void finishLoading(void)
         int maxNumTries = 20;
         int numtries = 0;
 
-        while (!loadedNextSong && !loadingFailed && numtries < maxNumTries)
+        while (!loadedNextSong && numtries < maxNumTries)
         {
                 c_sleep(100);
                 numtries++;
@@ -1431,7 +1430,7 @@ void skipToPrevSong(AppState *state)
         int maxNumTries = 50;
         int numtries = 0;
 
-        while (!loadedNextSong && !loadingFailed && numtries < maxNumTries)
+        while (!loadedNextSong && numtries < maxNumTries)
         {
                 c_sleep(100);
                 numtries++;
@@ -1470,7 +1469,7 @@ void skipToNumberedSong(int songNumber)
         int maxNumTries = 50;
         int numtries = 0;
 
-        while (!loadedNextSong && !loadingFailed && numtries < maxNumTries)
+        while (!loadedNextSong && numtries < maxNumTries)
         {
                 c_sleep(100);
                 numtries++;
