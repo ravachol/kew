@@ -1,18 +1,4 @@
 /*
-TODO:
-    - Debug arguments parsing behaviour.
-    - Options at beginning or end applied to all unless specified otherwise?
-
-    - Improve 'scale' for plane ASCII output.
-    - Preserve aspect-ratio option.
-
-    - Check if 256 colors is default.
-    - Check if rbg colors are widely supported.
-    - Translating from rgb into 256 colors.
-
-    - Windows support?
-
-
     Modified, originally by Danny Burrows:
     https://github.com/danny-burrows/img_to_txt
 */
@@ -31,138 +17,88 @@ TODO:
 #define STB_IMAGE_RESIZE_IMPLEMENTATION
 #include <stb_image_resize2.h>
 #pragma GCC diagnostic pop
-#include "options.h"
 #include "write_ascii.h"
 
-#define MAX_IMG_SIZE 25000
-
 #define MACRO_STRLEN(s) (sizeof(s) / sizeof(s[0]))
-
-bool brightPixelFound;
 
 char scale[] = "$@&B%8WM#ZO0QoahkbdpqwmLCJUYXIjft/\\|()1{}[]l?zcvunxr!<>i;:*-+~_,\"^`'. ";
 unsigned int brightness_levels = MACRO_STRLEN(scale) - 2;
 
 unsigned char luminanceFromRGB(unsigned char r, unsigned char g, unsigned char b)
 {
-    return (unsigned char)(0.2126 * r + 0.7152 * g + 0.0722 * b);
+        return (unsigned char)(0.2126 * r + 0.7152 * g + 0.0722 * b);
 }
 
-unsigned char calc_ascii_char(PixelData *p)
+unsigned char calcAsciiChar(PixelData *p)
 {
-    // Calc luminace and use to find Ascii char.
-    unsigned char ch = luminanceFromRGB(p->r, p->g, p->b);
-    int rescaled = ch * brightness_levels / 256;
+        unsigned char ch = luminanceFromRGB(p->r, p->g, p->b);
+        int rescaled = ch * brightness_levels / 256;
 
-    return scale[brightness_levels - rescaled];
+        return scale[brightness_levels - rescaled];
 }
 
-int read_and_convert(const char *filepath, ImageOptions *options)
+int convertToAscii(const char *filepath, unsigned int width, unsigned int height)
 {
-    int rwidth, rheight, rchannels;
-    unsigned char *read_data = stbi_load(filepath, &rwidth, &rheight, &rchannels, 3);
+        int rwidth, rheight, rchannels;
+        unsigned char *read_data = stbi_load(filepath, &rwidth, &rheight, &rchannels, 3);
 
-    if (read_data == NULL)
-    {
-        fprintf(stderr, "Error reading image data!\n\n");
-        return -1;
-    }
-
-    unsigned int desired_width, desired_height;
-    desired_width = options->width;
-    desired_height = options->height;
-
-    // Check for and do any needed image resizing...
-    PixelData *data;
-    if (desired_width != (unsigned)rwidth || desired_height != (unsigned)rheight)
-    {
-        // 3 * uint8 for RGB!
-        unsigned char *new_data = malloc(3 * sizeof(unsigned char) * desired_width * desired_height);
-        stbir_resize_uint8_srgb(
-            read_data, rwidth, rheight, 0,
-            new_data, desired_width, desired_height, 0, 3);
-
-        stbi_image_free(read_data); // Free read_data.
-        data = (PixelData *)new_data;
-    }
-    else
-    {
-        data = (PixelData *)read_data;
-    }
-
-    int term_w, term_h;
-    getTermSize(&term_w, &term_h);
-
-    int indent = ((term_w - desired_width) / 2)+1;
-
-    if (!options->suppress_header)
-        printf("\n\r");
-    printf("\n");
-    printf("%*s", indent, "");
-    for (unsigned int d = 0; d < desired_width * desired_height; d++)
-    {
-        if (d % desired_width == 0 && d != 0)
+        if (read_data == NULL)
         {
-            if (options->output_mode == SOLID_ANSI)
+                return -1;
+        }
+
+        PixelData *data;
+        if (width != (unsigned)rwidth || height != (unsigned)rheight)
+        {
+                // 3 * uint8 for RGB!
+                unsigned char *new_data = malloc(3 * sizeof(unsigned char) * width * height);
+                stbir_resize_uint8_srgb(
+                    read_data, rwidth, rheight, 0,
+                    new_data, width, height, 0, 3);
+
+                stbi_image_free(read_data);
+                data = (PixelData *)new_data;
+        }
+        else
+        {
+                data = (PixelData *)read_data;
+        }
+
+        int term_w, term_h;
+        getTermSize(&term_w, &term_h);
+
+        int indent = ((term_w - width) / 2) + 1;
+
+        printf("\n");
+        printf("%*s", indent, "");
+
+        for (unsigned int d = 0; d < width * height; d++)
+        {
+                if (d % width == 0 && d != 0)
+                {
+                        printf("\n");
+                        printf("%*s", indent, "");
+                }
+
+                PixelData *c = data + d;
+
+                printf("\033[1;38;2;%03u;%03u;%03um%c", c->r, c->g, c->b, calcAsciiChar(c));
+        }
+
+        printf("\n");
+
+        stbi_image_free(data);
+        return 0;
+}
+
+int printInAscii(const char *pathToImgFile, int height, int width)
+{
+        width -= 1;
+
+        printf("\r");
+
+        int ret = convertToAscii(pathToImgFile, (unsigned)width, (unsigned)height);
+        if (ret == -1)
                 printf("\033[0m");
-            printf("\n");
-            printf("%*s", indent, "");
-        }
-
-        PixelData *c = data + d;
-
-        switch (options->output_mode)
-        {
-        case ASCII:
-            printf("%c", calc_ascii_char(c));
-            break;
-        case ANSI:
-            printf("\033[1;38;2;%03u;%03u;%03um%c", c->r, c->g, c->b, calc_ascii_char(c));
-            break;
-        case SOLID_ANSI:
-            printf("\033[48;2;%03u;%03u;%03um ", c->r, c->g, c->b);
-            calc_ascii_char(c);
-            break;
-        default:
-            break;
-        }
-    }
-    if (options->output_mode == SOLID_ANSI)
-        printf("\033[0m");
-    printf("\n");
-
-    stbi_image_free(data);
-    return 0;
-}
-
-int output_ascii(const char *pathToImgFile, int height, int width)
-{
-    ImageOptions opts = {
-        .output_mode = ANSI,
-        .original_size = false,
-        .true_color = true,
-        .squashing_enabled = true,
-        .suppress_header = true,
-    };
-
-    if (width > MAX_IMG_SIZE)
-    {
-        fprintf(stderr, "[ERR] Width exceeds maximum image size!\n");
-        return -1;
-    }
-    opts.width = width--; // compensate, first character on each line is going to be blank
-
-    if (height > MAX_IMG_SIZE)
-    {
-        fprintf(stderr, "[ERR] Height exceeds maximum image size!\n");
-        return -1;
-    }
-    opts.height = height;
-
-    printf("\r");
-    int ret = read_and_convert(pathToImgFile, &opts);
-    if (ret == -1)
-        //  fprintf(stderr, "Failed to convert image: %s\n", pathToImgFile);
-        printf("\033[0m");
-    return 0;
+        return 0;
 }
