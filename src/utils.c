@@ -297,3 +297,100 @@ void printBlankSpaces(int numSpaces)
 {
         printf("%*s", numSpaces, " ");
 }
+
+char *stringToUpperWithoutSpaces(const char *str)
+{
+        if (str == NULL)
+        {
+                return NULL;
+        }
+
+        size_t len = strlen(str);
+        char *result = (char *)malloc(len + 1);
+        if (result == NULL)
+        {
+                return NULL;
+        }
+
+        size_t resultIndex = 0;
+        for (size_t i = 0; i < len; ++i)
+        {
+                if (!isspace((unsigned char)str[i]))
+                {
+                        result[resultIndex++] = toupper((unsigned char)str[i]);
+                }
+        }
+
+        result[resultIndex] = '\0';
+
+        return result;
+}
+
+int naturalCompare(const char *a, const char *b)
+{
+        while (*a && *b)
+        {
+                if (isdigit(*a) && isdigit(*b))
+                {
+                        // Compare numerically
+                        char *endA, *endB;
+                        long numA = strtol(a, &endA, 10);
+                        long numB = strtol(b, &endB, 10);
+
+                        if (numA != numB)
+                        {
+                                return numA - numB;
+                        }
+
+                        // Move pointers past the numeric part
+                        a = endA;
+                        b = endB;
+                }
+                else
+                {
+                        if (*a != *b)
+                        {
+                                return *a - *b;
+                        }
+
+                        a++;
+                        b++;
+                }
+        }
+
+        // If all parts so far are equal, shorter string should come first
+        return *a - *b;
+}
+
+int compareLibEntries(const struct dirent **a, const struct dirent **b)
+{
+        char *nameA = stringToUpperWithoutSpaces((*a)->d_name);
+        char *nameB = stringToUpperWithoutSpaces((*b)->d_name);
+
+        if (nameA[0] == '_' && nameB[0] != '_')
+        {
+                free(nameA);
+                free(nameB);
+                return 1;
+        }
+        else if (nameA[0] != '_' && nameB[0] == '_')
+        {
+                free(nameA);
+                free(nameB);
+                return -1;
+        }
+
+        int result = naturalCompare(nameA, nameB);
+
+        free(nameA);
+        free(nameB);
+
+        return result;
+}
+
+int compareLibEntriesReversed(const struct dirent **a, const struct dirent **b)
+{
+        int result = compareLibEntries(a, b);
+
+        return -result;
+}

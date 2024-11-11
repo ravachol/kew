@@ -600,7 +600,7 @@ void handleInput(AppState *state)
                 toggleShuffle();
                 emitShuffleChanged();
                 break;
-        case EVENT_TOGGLE_PROFILE_COLORS:
+        case EVENT_TOGGLEPROFILECOLORS:
                 toggleColors(&settings, &(state->uiSettings));
                 break;
         case EVENT_QUIT:
