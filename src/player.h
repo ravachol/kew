@@ -6,7 +6,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include "../include/imgtotxt/write_ascii.h"
-#include "../include/imgtotxt/options.h"
 #include "appstate.h"
 #include "chafafunc.h"
 #include "directorytree.h"
@@ -25,7 +24,7 @@ extern int numProgressBars;
 extern TagSettings metadata;
 extern bool fastForwarding;
 extern bool rewinding;
-extern double elapsedSeconds;
+
 extern double pauseSeconds;
 extern double totalPauseSeconds;
 extern double seekAccumulatedSeconds;
@@ -64,8 +63,6 @@ void toggleShowPlaylist(void);
 void toggleShowSearch(void);
 
 void showTrack(void);
-
-void setTextColorRGB2(int r, int g, int b, UISettings *ui);
 
 void freeMainDirectoryTree(AppState *state);
 

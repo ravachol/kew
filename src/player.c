@@ -250,16 +250,16 @@ int getYear(const char *dateString)
         return year;
 }
 
-int displayCover(unsigned char *cover, int coverWidth, int coverHeight, const char *coverArtPath, int height, bool ansii)
+int displayCover(unsigned char *cover, int coverWidth, int coverHeight, const char *coverArtPath, int height, bool ascii)
 {
-        if (!ansii)
+        if (!ascii)
         {
                 printSquareBitmapCentered(cover, coverWidth, coverHeight, height);
         }
         else
         {
                 int width = height * 2;
-                output_ascii(coverArtPath, height, width);
+                printInAscii(coverArtPath, height, width);
         }
         printf("\n");
 
