@@ -3,14 +3,12 @@
 #include <float.h>
 #include <fftw3.h>
 #include <math.h>
-#include <locale.h>
 #include <complex.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include "sound.h"
 #include "term.h"
 #include "utils.h"
-#include <wchar.h>
 
 #ifndef PIXELDATA_STRUCT
 #define PIXELDATA_STRUCT

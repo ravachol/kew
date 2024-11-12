@@ -51,17 +51,19 @@ ifeq ($(origin USE_FAAD), undefined)
 endif
 
 # Compiler flags
-CFLAGS = -I/usr/include -I/opt/homebrew/include -I/usr/local/include -I/usr/lib -Iinclude/minimp4 \
+COMMONFLAGS = -I/usr/include -I/opt/homebrew/include -I/usr/local/include -I/usr/lib -Iinclude/minimp4 \
          -I/usr/include/chafa -I/usr/lib/chafa/include -I/usr/include/ogg -I/usr/include/opus \
          -I/usr/include/stb -Iinclude/stb_image -I/usr/include/glib-2.0 \
          -I/usr/lib/glib-2.0/include -Iinclude/miniaudio -I/usr/include/gdk-pixbuf-2.0 -O2
 
-CFLAGS += $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) $(PKG_CONFIG) --cflags gio-2.0 chafa fftw3f opus opusfile vorbis ogg glib-2.0 taglib)
-CFLAGS += -fstack-protector-strong -Wformat -Werror=format-security -fPIE -D_FORTIFY_SOURCE=2
-CFLAGS += -Wall -Wextra -Wpointer-arith -flto
+COMMONFLAGS += $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) $(PKG_CONFIG) --cflags gio-2.0 chafa fftw3f opus opusfile vorbis ogg glib-2.0 taglib)
+COMMONFLAGS += -fstack-protector-strong -Wformat -Werror=format-security -fPIE -D_FORTIFY_SOURCE=2
+COMMONFLAGS += -Wall -Wextra -Wpointer-arith -flto
 
-# Compiler flags for C++ code (inherits from CFLAGS)
-CXXFLAGS = $(CFLAGS) -std=c++11
+CFLAGS = $(COMMONFLAGS) -std=c11 -D_POSIX_C_SOURCE=200809L
+
+# Compiler flags for C++ code
+CXXFLAGS = $(COMMONFLAGS) -std=c++11
 
 # Libraries
 LIBS = -L/usr/lib -lm -lopusfile -lglib-2.0 -lpthread $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) $(PKG_CONFIG) --libs gio-2.0 chafa fftw3f opus opusfile ogg vorbis vorbisfile glib-2.0 taglib)

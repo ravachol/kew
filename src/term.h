@@ -16,6 +16,7 @@
 #include <sys/select.h>
 #include <termios.h>
 #include <unistd.h>
+#include "utils.h"
 
 #ifdef __GNU__
 # define _BSD_SOURCE
@@ -66,9 +67,5 @@ void clearScreen(void);
 int readInputSequence(char *seq, size_t seqSize);
 
 int isFunctionKey(const char *seq);
-
-void convertControlNotationToAscii(char *input, char *output, size_t size);
-
-void convertAsciiToControlNotation(char input, char *output, size_t size);
 
 #endif

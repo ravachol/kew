@@ -388,7 +388,7 @@ void toggleShuffle(void)
 void toggleBlocks(AppSettings *settings, UISettings *ui)
 {
         ui->coverAnsi = !ui->coverAnsi;
-        c_strcpy(settings->coverAnsi, sizeof(settings->coverAnsi), ui->coverAnsi ? "1" : "0");
+        c_strcpy(settings->coverAnsi, ui->coverAnsi ? "1" : "0", sizeof(settings->coverAnsi));
         if (ui->coverEnabled)
         {
                 clearScreen();
@@ -399,7 +399,7 @@ void toggleBlocks(AppSettings *settings, UISettings *ui)
 void toggleColors(AppSettings *settings, UISettings *ui)
 {
         ui->useConfigColors = !ui->useConfigColors;
-        c_strcpy(settings->useConfigColors, sizeof(settings->useConfigColors), ui->useConfigColors ? "1" : "0");
+        c_strcpy(settings->useConfigColors, ui->useConfigColors ? "1" : "0", sizeof(settings->useConfigColors));
         clearScreen();
         refresh = true;
 }
@@ -407,7 +407,7 @@ void toggleColors(AppSettings *settings, UISettings *ui)
 void toggleVisualizer(AppSettings *settings, UISettings *ui)
 {
         ui->visualizerEnabled = !ui->visualizerEnabled;
-        c_strcpy(settings->visualizerEnabled, sizeof(settings->visualizerEnabled), ui->visualizerEnabled ? "1" : "0");
+        c_strcpy(settings->visualizerEnabled, ui->visualizerEnabled ? "1" : "0", sizeof(settings->visualizerEnabled));
         restoreCursorPosition();
         refresh = true;
 }
@@ -1130,7 +1130,7 @@ void *songDataReaderThread(void *arg)
         pthread_mutex_lock(&(loadingdata->mutex));
 
         char filepath[MAXPATHLEN];
-        c_strcpy(filepath, sizeof(filepath), loadingdata->filePath);
+        c_strcpy(filepath, loadingdata->filePath, sizeof(filepath));
 
         SongData *songdata = NULL;
 
@@ -1206,7 +1206,7 @@ void loadSong(Node *song, LoadingThreadData *loadingdata)
                 return;
         }
 
-        c_strcpy(loadingdata->filePath, sizeof(loadingdata->filePath), song->song.filePath);
+        c_strcpy(loadingdata->filePath, song->song.filePath, sizeof(loadingdata->filePath));
 
         pthread_t loadingThread;
         pthread_create(&loadingThread, NULL, songDataReaderThread, (void *)loadingdata);
@@ -1218,11 +1218,11 @@ void loadNext(LoadingThreadData *loadingdata)
 
         if (nextSong == NULL)
         {
-                c_strcpy(loadingdata->filePath, sizeof(loadingdata->filePath), "");
+                c_strcpy(loadingdata->filePath, "", sizeof(loadingdata->filePath));
         }
         else
         {
-                c_strcpy(loadingdata->filePath, sizeof(loadingdata->filePath), nextSong->song.filePath);
+                c_strcpy(loadingdata->filePath, nextSong->song.filePath, sizeof(loadingdata->filePath));
         }
 
         pthread_t loadingThread;

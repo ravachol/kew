@@ -102,9 +102,9 @@ void loadMetaData(SongData *songdata, AppState *state)
                 tmp = findLargestImageFile(path, tmp, &size);
 
                 if (tmp != NULL)
-                        c_strcpy(songdata->coverArtPath, sizeof(songdata->coverArtPath), tmp);
+                        c_strcpy(songdata->coverArtPath, tmp, sizeof(songdata->coverArtPath));
                 else
-                        c_strcpy(songdata->coverArtPath, sizeof(songdata->coverArtPath), "");
+                        c_strcpy(songdata->coverArtPath, "", sizeof(songdata->coverArtPath));
         }
         else
         {
@@ -120,15 +120,15 @@ SongData *loadSongData(char *filePath, AppState *state)
         songdata = malloc(sizeof(SongData));
         songdata->trackId = generateTrackId();
         songdata->hasErrors = false;
-        c_strcpy(songdata->filePath, sizeof(songdata->filePath), "");
-        c_strcpy(songdata->coverArtPath, sizeof(songdata->coverArtPath), "");
+        c_strcpy(songdata->filePath, "", sizeof(songdata->filePath));
+        c_strcpy(songdata->coverArtPath, "", sizeof(songdata->coverArtPath));
         songdata->red = defaultColor;
         songdata->green = defaultColor;
         songdata->blue = defaultColor;
         songdata->metadata = NULL;
         songdata->cover = NULL;
         songdata->duration = 0.0;
-        c_strcpy(songdata->filePath, sizeof(songdata->filePath), filePath);
+        c_strcpy(songdata->filePath, filePath, sizeof(songdata->filePath));
         loadMetaData(songdata, state);
         loadColor(songdata);
         return songdata;
