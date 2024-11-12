@@ -1655,12 +1655,6 @@ void m4a_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_uint6
                         return;
                 }
 
-                if (isEOFReached())
-                {
-                        pthread_mutex_unlock(&dataSourceMutex);
-                        return;
-                }
-
                 result = ma_data_source_read_pcm_frames(firstDecoder, (ma_int32 *)pFramesOut + framesRead * pAudioData->channels, remainingFrames, &framesToRead);
 
                 ma_data_source_get_cursor_in_pcm_frames(decoder, &cursor);

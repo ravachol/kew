@@ -20,7 +20,7 @@ bool fastForwarding = false;
 bool rewinding = false;
 bool nerdFontsEnabled = true;
 int elapsedBars = 0;
-int chosenSong = 0;                             // The id of the playlist entry that is chosen in playlist view
+int chosenSong = 0; // The id of the playlist entry that is chosen in playlist view
 int aboutHeight = 8;
 
 int minWidth = ABSOLUTE_MIN_WIDTH;
@@ -47,9 +47,9 @@ int numTopLevelSongs = 0;
 int startLibIter = 0;
 int startSearchIter = 0;
 int maxLibListSize = 0;
-int chosenRow = 0;                              // The row that is chosen in playlist view
-int chosenLibRow = 0;                           // The row that is chosen in library view
-int chosenSearchResultRow = 0;                  // The row that is chosen in search view
+int chosenRow = 0;             // The row that is chosen in playlist view
+int chosenLibRow = 0;          // The row that is chosen in library view
+int chosenSearchResultRow = 0; // The row that is chosen in search view
 FileSystemEntry *currentEntry = NULL;
 FileSystemEntry *chosenDir = NULL;
 int libIter = 0;
@@ -72,11 +72,11 @@ int calcMetadataHeight(void)
 
         if (metadata.title[0] != '\0')
         {
-                size_t titleLength = strlen(metadata.title);
+                size_t titleLength = strnlen(metadata.title, METADATA_MAX_LENGTH);
                 int titleHeight = (int)ceil((float)titleLength / term_w);
-                size_t artistLength = strlen(metadata.artist);
+                size_t artistLength = strnlen(metadata.artist, METADATA_MAX_LENGTH);
                 int artistHeight = (int)ceil((float)artistLength / term_w);
-                size_t albumLength = strlen(metadata.album);
+                size_t albumLength = strnlen(metadata.album, METADATA_MAX_LENGTH);
                 int albumHeight = (int)ceil((float)albumLength / term_w);
                 int yearHeight = 1;
 
@@ -90,40 +90,50 @@ int calcMetadataHeight(void)
 
 int calcIdealImgSize(int *width, int *height, const int visualizerHeight, const int metatagHeight)
 {
-    float aspectRatio = calcAspectRatio();
+        float aspectRatio = calcAspectRatio();
 
-    int term_w, term_h;
-    getTermSize(&term_w, &term_h);
-    int timeDisplayHeight = 1;
-    int heightMargin = 4;
-    int minHeight = visualizerHeight + metatagHeight + timeDisplayHeight + heightMargin;
-    int minBorderWidth = 0;
-    *height = term_h - minHeight;
+        int term_w, term_h;
+        getTermSize(&term_w, &term_h);
+        int timeDisplayHeight = 1;
+        int heightMargin = 4;
+        int minHeight = visualizerHeight + metatagHeight + timeDisplayHeight + heightMargin;
+        int minBorderWidth = 0;
+        *height = term_h - minHeight;
 
-    double temp_width = ceil((double)(*height) * aspectRatio);
-    if (temp_width > INT_MAX) {
-        *width = INT_MAX;
-    } else if (temp_width < INT_MIN) {
-        *width = INT_MIN;
-    } else {
-        *width = (int)temp_width;
-    }
-
-    if (*width > term_w)
-    {
-        *width = term_w - minBorderWidth;
-
-        double temp_height = floor((double)(*width) / aspectRatio);
-        if (temp_height > INT_MAX) {
-            *height = INT_MAX;
-        } else if (temp_height < INT_MIN) {
-            *height = INT_MIN;
-        } else {
-            *height = (int)temp_height;
+        double temp_width = ceil((double)(*height) * aspectRatio);
+        if (temp_width > INT_MAX)
+        {
+                *width = INT_MAX;
         }
-    }
+        else if (temp_width < INT_MIN)
+        {
+                *width = INT_MIN;
+        }
+        else
+        {
+                *width = (int)temp_width;
+        }
 
-    return 0;
+        if (*width > term_w)
+        {
+                *width = term_w - minBorderWidth;
+
+                double temp_height = floor((double)(*width) / aspectRatio);
+                if (temp_height > INT_MAX)
+                {
+                        *height = INT_MAX;
+                }
+                else if (temp_height < INT_MIN)
+                {
+                        *height = INT_MIN;
+                }
+                else
+                {
+                        *height = (int)temp_height;
+                }
+        }
+
+        return 0;
 }
 
 void calcPreferredSize(UISettings *ui)
@@ -207,10 +217,10 @@ int printLogo(SongData *songData, UISettings *ui)
                 getTermSize(&term_w, &term_h);
 
                 char title[MAXPATHLEN] = {0};
-                
+
                 if (ui->hideLogo && songData->metadata->artist[0] != '\0')
-                {                        
-                        printBlankSpaces(indent);                        
+                {
+                        printBlankSpaces(indent);
                         snprintf(title, MAXPATHLEN, "%s - %s",
                                  songData->metadata->artist, songData->metadata->title);
                 }
@@ -218,7 +228,7 @@ int printLogo(SongData *songData, UISettings *ui)
                 {
                         if (ui->hideLogo)
                                 printBlankSpaces(indent);
-                        strncpy(title, songData->metadata->title, MAXPATHLEN - 1);
+                        c_strcpy(title, songData->metadata->title, MAXPATHLEN - 1);
                         title[MAXPATHLEN - 1] = '\0';
                 }
 
@@ -321,19 +331,19 @@ void printBasicMetadata(TagSettings const *metadata, UISettings *ui)
         printf("\n");
         setColor(ui);
         int rows = 1;
-        if (strlen(metadata->artist) > 0)
+        if (strnlen(metadata->artist, METADATA_MAX_LENGTH) > 0)
         {
                 printBlankSpaces(indent);
                 printf(" %.*s\n", maxWidth, metadata->artist);
                 rows++;
         }
-        if (strlen(metadata->album) > 0)
+        if (strnlen(metadata->album, METADATA_MAX_LENGTH) > 0)
         {
                 printBlankSpaces(indent);
                 printf(" %.*s\n", maxWidth, metadata->album);
                 rows++;
         }
-        if (strlen(metadata->date) > 0)
+        if (strnlen(metadata->date, METADATA_MAX_LENGTH) > 0)
         {
                 printBlankSpaces(indent);
                 int year = getYear(metadata->date);
@@ -344,7 +354,7 @@ void printBasicMetadata(TagSettings const *metadata, UISettings *ui)
                 rows++;
         }
         cursorJump(rows);
-        if (strlen(metadata->title) > 0)
+        if (strnlen(metadata->title, METADATA_MAX_LENGTH) > 0)
         {
                 PixelData pixel = increaseLuminosity(ui->color, 20);
 
@@ -945,8 +955,8 @@ void calcIndent(SongData *songdata)
                 return;
         }
 
-        int titleLength = strlen(songdata->metadata->title);
-        int albumLength = strlen(songdata->metadata->album);
+        int titleLength = strnlen(songdata->metadata->title, METADATA_MAX_LENGTH);
+        int albumLength = strnlen(songdata->metadata->album, METADATA_MAX_LENGTH);
         int maxTextLength = (albumLength > titleLength) ? albumLength : titleLength;
         textWidth = (ABSOLUTE_MIN_WIDTH > preferredWidth) ? ABSOLUTE_MIN_WIDTH : preferredWidth;
         int term_w, term_h;
@@ -980,23 +990,24 @@ FileSystemEntry *getChosenDir(void)
 void processName(const char *name, char *output, int maxWidth)
 {
         char *lastDot = strrchr(name, '.');
+        int copyLength;
+
         if (lastDot != NULL)
         {
-                int copyLength = lastDot - name;
+                copyLength = lastDot - name;
                 if (copyLength > maxWidth)
                 {
                         copyLength = maxWidth;
                 }
-                strncpy(output, name, copyLength);
-                output[copyLength] = '\0';
-                removeUnneededChars(output);
         }
         else
         {
-                strncpy(output, name, maxWidth);
-                output[maxWidth] = '\0';
-                removeUnneededChars(output);
+                copyLength = maxWidth;
         }
+
+        c_strcpy(output, name, copyLength + 1);
+        output[copyLength] = '\0';
+        removeUnneededChars(output);
 }
 
 void setChosenDir(FileSystemEntry *entry)
@@ -1133,8 +1144,8 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
                                         currentEntry = root;
 
                                         if (uis->allowChooseSongs == true && (chosenDir == NULL ||
-                                                                         (currentEntry != NULL && currentEntry->parent != NULL && chosenDir != NULL && (strcmp(currentEntry->parent->fullPath, chosenDir->fullPath) != 0) &&
-                                                                          strcmp(root->fullPath, chosenDir->fullPath) != 0)))
+                                                                              (currentEntry != NULL && currentEntry->parent != NULL && chosenDir != NULL && (strcmp(currentEntry->parent->fullPath, chosenDir->fullPath) != 0) &&
+                                                                               strcmp(root->fullPath, chosenDir->fullPath) != 0)))
                                         {
                                                 previouslyAllowedChooseSongs = true;
                                                 uis->allowChooseSongs = false;
@@ -1212,7 +1223,7 @@ char *getLibraryFilePath(void)
 
         size_t filepath_length = strlen(configdir) + strlen("/") + strlen(LIBRARY_FILE) + 1;
         filepath = (char *)malloc(filepath_length);
-        c_strcpy(filepath, filepath_length, configdir);
+        c_strcpy(filepath, configdir, filepath_length);
         strcat(filepath, "/");
         strcat(filepath, LIBRARY_FILE);
         free(configdir);
@@ -1226,9 +1237,9 @@ void showLibrary(SongData *songData, AppState *state)
                 if (previousChosenLibRow < chosenLibRow)
                 {
                         chosenLibRow -= libCurrentDirSongCount;
-                        libCurrentDirSongCount = 0;                        
+                        libCurrentDirSongCount = 0;
                 }
-                previouslyAllowedChooseSongs = false;                
+                previouslyAllowedChooseSongs = false;
         }
 
         UISettings *ui = &(state->uiSettings);
@@ -1299,7 +1310,7 @@ int printPlayer(SongData *songdata, double elapsedSeconds, AppSettings *settings
         if (!ui->uiEnabled)
         {
                 return 0;
-        }        
+        }
 
         hideCursor();
 

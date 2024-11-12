@@ -8,6 +8,7 @@
 #endif
 
 #include <ctype.h>
+#include <errno.h>
 #include <glib.h>
 #include <pwd.h>
 #include <regex.h>
@@ -29,7 +30,7 @@ void c_sleep(int milliseconds);
 
 void c_usleep(int microseconds);
 
-void c_strcpy(char *dest, size_t dest_size, const char *src);
+void c_strcpy(char *dest, const char *src, size_t dest_size);
 
 char *stringToUpper(const char *str);
 

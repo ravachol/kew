@@ -39,7 +39,7 @@ void preparePlaylistString(Node *node, char *buffer, int bufferSize, int shorten
         }
 
         char filePath[MAXPATHLEN];
-        c_strcpy(filePath, sizeof(filePath), node->song.filePath);
+        c_strcpy(filePath, node->song.filePath, sizeof(filePath));
         char *lastSlash = strrchr(filePath, '/');
         char *lastDot = strrchr(filePath, '.');
 
@@ -48,7 +48,7 @@ void preparePlaylistString(Node *node, char *buffer, int bufferSize, int shorten
                 int nameLength = lastDot - lastSlash - 1;
                 nameLength = (nameLength < bufferSize - 1) ? nameLength : bufferSize - 1;
 
-                strncpy(buffer, lastSlash + 1, nameLength);
+                c_strcpy(buffer, lastSlash + 1, nameLength + 1);
                 buffer[nameLength] = '\0';
                 removeUnneededChars(buffer);
                 shortenString(buffer, shortenAmount);

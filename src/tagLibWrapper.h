@@ -7,15 +7,18 @@ extern "C"
 {
 #endif
 
+
+
 #ifndef TAGSETTINGS_STRUCT
+#define METADATA_MAX_LENGTH 256
 #define TAGSETTINGS_STRUCT
         typedef struct
         {
-                char title[256];
-                char artist[256];
-                char album_artist[256];
-                char album[256];
-                char date[256];
+                char title[METADATA_MAX_LENGTH];
+                char artist[METADATA_MAX_LENGTH];
+                char album_artist[METADATA_MAX_LENGTH];
+                char album[METADATA_MAX_LENGTH];
+                char date[METADATA_MAX_LENGTH];
         } TagSettings;
 #endif
         int extractTags(const char *input_file, TagSettings *tag_settings, double *duration, const char *coverFilePath);

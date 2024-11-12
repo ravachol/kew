@@ -16,11 +16,11 @@ void getDirectoryFromPath(const char *path, char *directory)
 {
         size_t path_length = strlen(path);
         char tempPath[path_length + 1];
-        c_strcpy(tempPath, sizeof(tempPath), path);
+        c_strcpy(tempPath, path, sizeof(tempPath));
 
         char *dir = dirname(tempPath);
 
-        c_strcpy(directory, MAXPATHLEN, dir);
+        c_strcpy(directory, dir, MAXPATHLEN);
 
         size_t directory_length = strlen(directory);
         if (directory[directory_length - 1] != '/' && directory_length + 1 < MAXPATHLEN)
@@ -245,7 +245,7 @@ int expandPath(const char *inputPath, char *expandedPath)
                         return -1; // Expanded path exceeds maximum length
                 }
 
-                c_strcpy(expandedPath, sizeof(expandedPath), homeDir);
+                c_strcpy(expandedPath, homeDir, sizeof(expandedPath));
                 strcat(expandedPath, inputPath);
         }
         else // Handle if path is not prefixed with '~'
