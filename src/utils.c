@@ -1,4 +1,5 @@
 #include "utils.h"
+
 /*
 
  utils.c
@@ -6,6 +7,7 @@
  Utility functions for instance for replacing some standard functions with safer alternatives.
 
 */
+
 void c_sleep(int milliseconds)
 {
         struct timespec ts;
@@ -22,13 +24,14 @@ void c_usleep(int microseconds)
         nanosleep(&ts, NULL);
 }
 
-void c_strcpy(char *dest, size_t dest_size, const char *src)
+void c_strcpy(char *dest, const char *src, size_t dest_size)
 {
-        if (dest && dest_size > 0 && src)
-        {
-                strncpy(dest, src, dest_size - 1);
-                dest[dest_size - 1] = '\0';
-        }
+    if (dest && dest_size > 0 && src)
+    {
+        size_t src_length = strnlen(src, dest_size - 1);
+        memcpy(dest, src, src_length);
+        dest[src_length] = '\0';
+    }
 }
 
 char *stringToLower(const char *str)
@@ -145,7 +148,7 @@ void extractExtension(const char *filename, size_t numChars, char *ext)
 
 int endsWith(const char *str, const char *suffix)
 {
-        size_t strLength = strlen(str);
+        size_t strLength = strnlen(str, MAXPATHLEN);
         size_t suffixLength = strlen(suffix);
 
         if (suffixLength > strLength)
@@ -159,7 +162,7 @@ int endsWith(const char *str, const char *suffix)
 
 int startsWith(const char *str, const char *prefix)
 {
-        size_t strLength = strlen(str);
+        size_t strLength = strnlen(str, MAXPATHLEN);
         size_t prefixLength = strlen(prefix);
 
         if (prefixLength > strLength)

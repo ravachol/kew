@@ -20,7 +20,6 @@ int bufferSize = 4800;
 int prevBufferSize = 0;
 float alpha = 0.2f;
 float lastMax = -1.0f;
-bool unicodeSupport = false;
 fftwf_complex *fftInput = NULL;
 fftwf_complex *fftOutput = NULL;
 
@@ -30,23 +29,6 @@ float magnitudeBuffer[MAX_BUFFER_SIZE] = {0.0f};
 float lastMagnitudes[MAX_BUFFER_SIZE] = {0.0f};
 float smoothedMagnitudes[MAX_BUFFER_SIZE];
 float maxPossibleMagnitude = 0;
-
-int terminalSupportsUnicode(void)
-{
-        char *locale = setlocale(LC_ALL, "");
-        if (locale != NULL)
-                return 1;
-
-        return 0;
-}
-
-void initVisuals(void)
-{
-        unicodeSupport = false;
-
-        if (terminalSupportsUnicode() > 0)
-                unicodeSupport = true;
-}
 
 #define MOVING_AVERAGE_WINDOW_SIZE 2
 
@@ -231,10 +213,10 @@ void calc(int height, int numBars, ma_int32 *audioBuffer, int bitDepth, fftwf_co
         enhancePeaks(numBars, magnitudes, height);
 }
 
-wchar_t *upwardMotionChars[] = {
-    L" ", L"▁", L"▂", L"▃", L"▄", L"▅", L"▆", L"▇", L"█"};
+char *upwardMotionChars[] = {
+    " ", "▁", "▂", "▃", "▄", "▅", "▆", "▇", "█"};
 
-wchar_t *getUpwardMotionChar(int level)
+char *getUpwardMotionChar(int level)
 {
         if (level < 0 || level > 8)
         {
@@ -330,19 +312,12 @@ void printSpectrum(int height, int width, float *magnitudes, PixelData color, in
                                 {
                                         if (magnitudes[i] >= j)
                                         {
-                                                if (unicodeSupport)
-                                                {
-                                                        printf(" %S", getUpwardMotionChar(10));
-                                                }
-                                                else
-                                                {
-                                                        printf(" █");
-                                                }
+                                                printf(" %s", getUpwardMotionChar(10));
                                         }
-                                        else if (magnitudes[i] + 1 >= j && unicodeSupport)
+                                        else if (magnitudes[i] + 1 >= j)
                                         {
                                                 int firstDecimalDigit = (int)(fmod(magnitudes[i] * 10, 10));
-                                                printf(" %S", getUpwardMotionChar(firstDecimalDigit));
+                                                printf(" %s", getUpwardMotionChar(firstDecimalDigit));
                                         }
                                         else
                                         {

@@ -33,72 +33,72 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
 {
         AppSettings settings;
         memset(&settings, 0, sizeof(settings));
-        strncpy(settings.coverEnabled, "1", sizeof(settings.coverEnabled));
-        strncpy(settings.allowNotifications, "1", sizeof(settings.allowNotifications));
-        strncpy(settings.coverAnsi, "0", sizeof(settings.coverAnsi));
+        c_strcpy(settings.coverEnabled, "1", sizeof(settings.coverEnabled));
+        c_strcpy(settings.allowNotifications, "1", sizeof(settings.allowNotifications));
+        c_strcpy(settings.coverAnsi, "0", sizeof(settings.coverAnsi));
 #ifdef __APPLE__        
-        strncpy(settings.visualizerEnabled, "0", sizeof(settings.visualizerEnabled)); // visualizer looks wonky in default terminal 
-        strncpy(settings.useConfigColors, "1", sizeof(settings.useConfigColors));   // colors from album look wrong in default terminal
+        c_strcpy(settings.visualizerEnabled, "0", sizeof(settings.visualizerEnabled)); // visualizer looks wonky in default terminal 
+        c_strcpy(settings.useConfigColors, "1", sizeof(settings.useConfigColors));   // colors from album look wrong in default terminal
 #else
-        strncpy(settings.visualizerEnabled, "1", sizeof(settings.visualizerEnabled));
-        strncpy(settings.useConfigColors, "0", sizeof(settings.useConfigColors));
+        c_strcpy(settings.visualizerEnabled, "1", sizeof(settings.visualizerEnabled));
+        c_strcpy(settings.useConfigColors, "0", sizeof(settings.useConfigColors));
 #endif
-        strncpy(settings.hideLogo, "0", sizeof(settings.hideLogo));
-        strncpy(settings.hideHelp, "0", sizeof(settings.hideHelp));
-        strncpy(settings.cacheLibrary, "-1", sizeof(settings.cacheLibrary));
+        c_strcpy(settings.hideLogo, "0", sizeof(settings.hideLogo));
+        c_strcpy(settings.hideHelp, "0", sizeof(settings.hideHelp));
+        c_strcpy(settings.cacheLibrary, "-1", sizeof(settings.cacheLibrary));
 
-        strncpy(settings.tabNext, "\t", sizeof(settings.tabNext));
-        strncpy(settings.volumeUp, "+", sizeof(settings.volumeUp));
-        strncpy(settings.volumeUpAlt, "=", sizeof(settings.volumeUpAlt));
-        strncpy(settings.volumeDown, "-", sizeof(settings.volumeDown));
-        strncpy(settings.previousTrackAlt, "h", sizeof(settings.previousTrackAlt));
-        strncpy(settings.nextTrackAlt, "l", sizeof(settings.nextTrackAlt));
-        strncpy(settings.scrollUpAlt, "k", sizeof(settings.scrollUpAlt));
-        strncpy(settings.scrollDownAlt, "j", sizeof(settings.scrollDownAlt));
-        strncpy(settings.toggleColorsDerivedFrom, "i", sizeof(settings.toggleColorsDerivedFrom));
-        strncpy(settings.toggleVisualizer, "v", sizeof(settings.toggleVisualizer));
-        strncpy(settings.toggleAscii, "b", sizeof(settings.toggleAscii));
-        strncpy(settings.toggleRepeat, "r", sizeof(settings.toggleRepeat));
-        strncpy(settings.toggleShuffle, "s", sizeof(settings.toggleShuffle));
-        strncpy(settings.togglePause, "p", sizeof(settings.togglePause));
-        strncpy(settings.seekBackward, "a", sizeof(settings.seekBackward));
-        strncpy(settings.seekForward, "d", sizeof(settings.seekForward));
-        strncpy(settings.savePlaylist, "x", sizeof(settings.savePlaylist));
-        strncpy(settings.updateLibrary, "u", sizeof(settings.updateLibrary));
-        strncpy(settings.addToMainPlaylist, ".", sizeof(settings.addToMainPlaylist));
-        strncpy(settings.hardPlayPause, " ", sizeof(settings.hardPlayPause));
-        strncpy(settings.hardSwitchNumberedSong, "\n", sizeof(settings.hardSwitchNumberedSong));
-        strncpy(settings.hardPrev, "[D", sizeof(settings.hardPrev));
-        strncpy(settings.hardNext, "[C", sizeof(settings.hardNext));
-        strncpy(settings.hardScrollUp, "[A", sizeof(settings.hardScrollUp));
-        strncpy(settings.hardScrollDown, "[B", sizeof(settings.hardScrollDown));
-        strncpy(settings.hardShowPlaylist, "OQ", sizeof(settings.hardShowPlaylist));
-        strncpy(settings.hardShowPlaylistAlt, "[[B", sizeof(settings.hardShowPlaylistAlt));
-        strncpy(settings.showPlaylistAlt, "Z", sizeof(settings.showPlaylistAlt));
-        strncpy(settings.hardShowKeys, "[17~", sizeof(settings.hardShowKeys));
-        strncpy(settings.hardShowKeysAlt, "[17~", sizeof(settings.hardShowKeysAlt));
-        strncpy(settings.showKeysAlt, "B", sizeof(settings.showKeysAlt));
-        strncpy(settings.hardShowTrack, "OS", sizeof(settings.hardShowTrack));
-        strncpy(settings.hardShowTrackAlt, "[[D", sizeof(settings.hardShowTrackAlt));
-        strncpy(settings.showTrackAlt, "C", sizeof(settings.showTrackAlt));
-        strncpy(settings.hardEndOfPlaylist, "G", sizeof(settings.hardEndOfPlaylist));
-        strncpy(settings.hardShowLibrary, "OR", sizeof(settings.hardShowLibrary));
-        strncpy(settings.hardShowLibraryAlt, "[[C", sizeof(settings.hardShowLibraryAlt));
-        strncpy(settings.showLibraryAlt, "X", sizeof(settings.showLibraryAlt));
-        strncpy(settings.hardShowSearch, "[15~", sizeof(settings.hardShowSearch));
-        strncpy(settings.hardShowSearchAlt, "[[E", sizeof(settings.hardShowSearchAlt));
-        strncpy(settings.showSearchAlt, "V", sizeof(settings.showSearchAlt));
-        strncpy(settings.hardNextPage, "[6~", sizeof(settings.hardNextPage));
-        strncpy(settings.hardPrevPage, "[5~", sizeof(settings.hardPrevPage));
-        strncpy(settings.hardRemove, "[3~", sizeof(settings.hardRemove));
-        strncpy(settings.hardRemove2, "[P", sizeof(settings.hardRemove2));
-        strncpy(settings.lastVolume, "100", sizeof(settings.lastVolume));
-        strncpy(settings.color, "6", sizeof(settings.color));
-        strncpy(settings.artistColor, "6", sizeof(settings.artistColor));
-        strncpy(settings.titleColor, "6", sizeof(settings.titleColor));
-        strncpy(settings.enqueuedColor, "7", sizeof(settings.enqueuedColor));
-        strncpy(settings.quit, "q", sizeof(settings.quit));
-        strncpy(settings.hardQuit, "\x1B", sizeof(settings.hardQuit));
+        c_strcpy(settings.tabNext, "\t", sizeof(settings.tabNext));
+        c_strcpy(settings.volumeUp, "+", sizeof(settings.volumeUp));
+        c_strcpy(settings.volumeUpAlt, "=", sizeof(settings.volumeUpAlt));
+        c_strcpy(settings.volumeDown, "-", sizeof(settings.volumeDown));
+        c_strcpy(settings.previousTrackAlt, "h", sizeof(settings.previousTrackAlt));
+        c_strcpy(settings.nextTrackAlt, "l", sizeof(settings.nextTrackAlt));
+        c_strcpy(settings.scrollUpAlt, "k", sizeof(settings.scrollUpAlt));
+        c_strcpy(settings.scrollDownAlt, "j", sizeof(settings.scrollDownAlt));
+        c_strcpy(settings.toggleColorsDerivedFrom, "i", sizeof(settings.toggleColorsDerivedFrom));
+        c_strcpy(settings.toggleVisualizer, "v", sizeof(settings.toggleVisualizer));
+        c_strcpy(settings.toggleAscii, "b", sizeof(settings.toggleAscii));
+        c_strcpy(settings.toggleRepeat, "r", sizeof(settings.toggleRepeat));
+        c_strcpy(settings.toggleShuffle, "s", sizeof(settings.toggleShuffle));
+        c_strcpy(settings.togglePause, "p", sizeof(settings.togglePause));
+        c_strcpy(settings.seekBackward, "a", sizeof(settings.seekBackward));
+        c_strcpy(settings.seekForward, "d", sizeof(settings.seekForward));
+        c_strcpy(settings.savePlaylist, "x", sizeof(settings.savePlaylist));
+        c_strcpy(settings.updateLibrary, "u", sizeof(settings.updateLibrary));
+        c_strcpy(settings.addToMainPlaylist, ".", sizeof(settings.addToMainPlaylist));
+        c_strcpy(settings.hardPlayPause, " ", sizeof(settings.hardPlayPause));
+        c_strcpy(settings.hardSwitchNumberedSong, "\n", sizeof(settings.hardSwitchNumberedSong));
+        c_strcpy(settings.hardPrev, "[D", sizeof(settings.hardPrev));
+        c_strcpy(settings.hardNext, "[C", sizeof(settings.hardNext));
+        c_strcpy(settings.hardScrollUp, "[A", sizeof(settings.hardScrollUp));
+        c_strcpy(settings.hardScrollDown, "[B", sizeof(settings.hardScrollDown));
+        c_strcpy(settings.hardShowPlaylist, "OQ", sizeof(settings.hardShowPlaylist));
+        c_strcpy(settings.hardShowPlaylistAlt, "[[B", sizeof(settings.hardShowPlaylistAlt));
+        c_strcpy(settings.showPlaylistAlt, "Z", sizeof(settings.showPlaylistAlt));
+        c_strcpy(settings.hardShowKeys, "[17~", sizeof(settings.hardShowKeys));
+        c_strcpy(settings.hardShowKeysAlt, "[17~", sizeof(settings.hardShowKeysAlt));
+        c_strcpy(settings.showKeysAlt, "B", sizeof(settings.showKeysAlt));
+        c_strcpy(settings.hardShowTrack, "OS", sizeof(settings.hardShowTrack));
+        c_strcpy(settings.hardShowTrackAlt, "[[D", sizeof(settings.hardShowTrackAlt));
+        c_strcpy(settings.showTrackAlt, "C", sizeof(settings.showTrackAlt));
+        c_strcpy(settings.hardEndOfPlaylist, "G", sizeof(settings.hardEndOfPlaylist));
+        c_strcpy(settings.hardShowLibrary, "OR", sizeof(settings.hardShowLibrary));
+        c_strcpy(settings.hardShowLibraryAlt, "[[C", sizeof(settings.hardShowLibraryAlt));
+        c_strcpy(settings.showLibraryAlt, "X", sizeof(settings.showLibraryAlt));
+        c_strcpy(settings.hardShowSearch, "[15~", sizeof(settings.hardShowSearch));
+        c_strcpy(settings.hardShowSearchAlt, "[[E", sizeof(settings.hardShowSearchAlt));
+        c_strcpy(settings.showSearchAlt, "V", sizeof(settings.showSearchAlt));
+        c_strcpy(settings.hardNextPage, "[6~", sizeof(settings.hardNextPage));
+        c_strcpy(settings.hardPrevPage, "[5~", sizeof(settings.hardPrevPage));
+        c_strcpy(settings.hardRemove, "[3~", sizeof(settings.hardRemove));
+        c_strcpy(settings.hardRemove2, "[P", sizeof(settings.hardRemove2));
+        c_strcpy(settings.lastVolume, "100", sizeof(settings.lastVolume));
+        c_strcpy(settings.color, "6", sizeof(settings.color));
+        c_strcpy(settings.artistColor, "6", sizeof(settings.artistColor));
+        c_strcpy(settings.titleColor, "6", sizeof(settings.titleColor));
+        c_strcpy(settings.enqueuedColor, "7", sizeof(settings.enqueuedColor));
+        c_strcpy(settings.quit, "q", sizeof(settings.quit));
+        c_strcpy(settings.hardQuit, "\x1B", sizeof(settings.hardQuit));
 
         if (pairs == NULL)
         {
@@ -359,7 +359,7 @@ int getMusicLibraryPath(char *path)
         {
                 if (expandPath(path, expandedPath) >= 0)
                 {
-                        c_strcpy(path, sizeof(expandedPath), expandedPath);
+                        c_strcpy(path, expandedPath, sizeof(expandedPath));
                 }
         }
 
@@ -442,7 +442,7 @@ void getConfig(AppSettings *settings, UISettings *ui)
                 perror("malloc");
                 exit(EXIT_FAILURE);
         }
-        c_strcpy(filepath, filepath_length, configdir);
+        c_strcpy(filepath, configdir, filepath_length);
         strcat(filepath, "/");
         strcat(filepath, SETTINGS_FILE);
 
@@ -502,7 +502,7 @@ void setConfig(AppSettings *settings, UISettings *ui)
                 perror("malloc");
                 exit(EXIT_FAILURE);
         }
-        c_strcpy(filepath, filepath_length, configdir);
+        c_strcpy(filepath, configdir, filepath_length);
         strcat(filepath, "/");
         strcat(filepath, SETTINGS_FILE);
 
@@ -516,23 +516,23 @@ void setConfig(AppSettings *settings, UISettings *ui)
         }
 
         if (settings->allowNotifications[0] == '\0')
-                ui->allowNotifications ? c_strcpy(settings->allowNotifications, sizeof(settings->allowNotifications), "1") : c_strcpy(settings->allowNotifications, sizeof(settings->allowNotifications), "0");
+                ui->allowNotifications ? c_strcpy(settings->allowNotifications, "1", sizeof(settings->allowNotifications)) : c_strcpy(settings->allowNotifications, "0", sizeof(settings->allowNotifications));
         if (settings->coverEnabled[0] == '\0')
-                ui->coverEnabled ? c_strcpy(settings->coverEnabled, sizeof(settings->coverEnabled), "1") : c_strcpy(settings->coverEnabled, sizeof(settings->coverEnabled), "0");
+                ui->coverEnabled ? c_strcpy(settings->coverEnabled, "1", sizeof(settings->coverEnabled)) : c_strcpy(settings->coverEnabled, "0", sizeof(settings->coverEnabled));
         if (settings->coverAnsi[0] == '\0')
-                ui->coverAnsi ? c_strcpy(settings->coverAnsi, sizeof(settings->coverAnsi), "1") : c_strcpy(settings->coverAnsi, sizeof(settings->coverAnsi), "0");
+                ui->coverAnsi ? c_strcpy(settings->coverAnsi, "1", sizeof(settings->coverAnsi)) : c_strcpy(settings->coverAnsi, "0", sizeof(settings->coverAnsi));
         if (settings->visualizerEnabled[0] == '\0')
-                ui->visualizerEnabled ? c_strcpy(settings->visualizerEnabled, sizeof(settings->visualizerEnabled), "1") : c_strcpy(settings->visualizerEnabled, sizeof(settings->visualizerEnabled), "0");
+                ui->visualizerEnabled ? c_strcpy(settings->visualizerEnabled, "1", sizeof(settings->visualizerEnabled)) : c_strcpy(settings->visualizerEnabled, "0", sizeof(settings->visualizerEnabled));
         if (settings->useConfigColors[0] == '\0')
-                ui->useConfigColors ? c_strcpy(settings->useConfigColors, sizeof(settings->useConfigColors), "1") : c_strcpy(settings->useConfigColors, sizeof(settings->useConfigColors), "0");
+                ui->useConfigColors ? c_strcpy(settings->useConfigColors,"1",  sizeof(settings->useConfigColors)) : c_strcpy(settings->useConfigColors, "0", sizeof(settings->useConfigColors));
         if (settings->visualizerHeight[0] == '\0')
         {
                 snprintf(settings->visualizerHeight, sizeof(settings->visualizerHeight), "%d", ui->visualizerHeight);
         }
         if (settings->hideLogo[0] == '\0')
-                ui->hideLogo ? c_strcpy(settings->hideLogo, sizeof(settings->hideLogo), "1") : c_strcpy(settings->hideLogo, sizeof(settings->hideLogo), "0");
+                ui->hideLogo ? c_strcpy(settings->hideLogo, "1", sizeof(settings->hideLogo)) : c_strcpy(settings->hideLogo, "0", sizeof(settings->hideLogo));
         if (settings->hideHelp[0] == '\0')
-                ui->hideHelp ? c_strcpy(settings->hideHelp, sizeof(settings->hideHelp), "1") : c_strcpy(settings->hideHelp, sizeof(settings->hideHelp), "0");
+                ui->hideHelp ? c_strcpy(settings->hideHelp, "1", sizeof(settings->hideHelp)) : c_strcpy(settings->hideHelp, "0", sizeof(settings->hideHelp));
 
         snprintf(settings->cacheLibrary, sizeof(settings->cacheLibrary), "%d", ui->cacheLibrary);
 

@@ -148,7 +148,7 @@ struct Event processInput()
                         break;
                 }
 
-                if (strlen(seq) + strlen(tmpSeq) >= MAX_SEQ_LEN)
+                if (strnlen(seq, MAX_SEQ_LEN) + strnlen(tmpSeq, MAX_TMP_SEQ_LEN) >= MAX_SEQ_LEN)
                 {
                         break;
                 }
@@ -173,7 +173,7 @@ struct Event processInput()
 
         event.type = EVENT_NONE;
 
-        strncpy(event.key, seq, MAX_SEQ_LEN);
+        c_strcpy(event.key, seq, MAX_SEQ_LEN);
 
         if (appState.currentView == SEARCH_VIEW)
         {
@@ -1115,7 +1115,7 @@ void init(AppState *state)
         enableScrolling();
         setNonblockingMode();
         state->tempCache = createCache();
-        c_strcpy(loadingdata.filePath, sizeof(loadingdata.filePath), "");
+        c_strcpy(loadingdata.filePath, "", sizeof(loadingdata.filePath));
         loadingdata.songdataA = NULL;
         loadingdata.songdataB = NULL;
         loadingdata.loadA = true;
@@ -1124,14 +1124,12 @@ void init(AppState *state)
         userData.songdataADeleted = true;
         userData.songdataBDeleted = true;
         initAudioBuffer();
-        initVisuals();
         pthread_mutex_init(&dataSourceMutex, NULL);
         pthread_mutex_init(&switchMutex, NULL);
         pthread_mutex_init(&(loadingdata.mutex), NULL);
         pthread_mutex_init(&(playlist.mutex), NULL);
         state->uiSettings.nerdFontsEnabled = true;
         createLibrary(&settings, state);
-        setlocale(LC_ALL, "");
         fflush(stdout);
 #ifdef USE_LIBNOTIFY
         notify_init("kew");
@@ -1394,7 +1392,7 @@ void setMusicPath()
 
                         if (choice == 'y' || choice == 'Y')
                         {
-                                strncpy(settings.path, path, sizeof(settings.path));
+                                c_strcpy(settings.path, path, sizeof(settings.path));
                                 return;
                         }
                         else if (choice == 'n' || choice == 'N')
@@ -1416,7 +1414,7 @@ void setMusicPath()
 
                 if (directoryExists(path))
                 {
-                        strncpy(settings.path, path, sizeof(settings.path));
+                        c_strcpy(settings.path, path, sizeof(settings.path));
                 }
                 else
                 {
@@ -1479,7 +1477,7 @@ int main(int argc, char *argv[])
 
         if (argc == 3 && (strcmp(argv[1], "path") == 0))
         {
-                c_strcpy(settings.path, sizeof(settings.path), argv[2]);
+                c_strcpy(settings.path, argv[2], sizeof(settings.path));
                 setConfig(&settings, ui);
                 exit(0);
         }

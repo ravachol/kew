@@ -618,7 +618,7 @@ void writeM3UFile(const char *filename, PlayList *playlist)
 void loadSpecialPlaylist(const char *directory)
 {
         char playlistPath[MAXPATHLEN];
-        c_strcpy(playlistPath, sizeof(playlistPath), directory);
+        c_strcpy(playlistPath, directory, sizeof(playlistPath));
         if (playlistPath[strlen(playlistPath) - 1] != '/')
                 strcat(playlistPath, "/");
         strcat(playlistPath, mainPlaylistName);
@@ -644,7 +644,7 @@ void saveSpecialPlaylist(const char *directory)
         char playlistPath[MAXPATHLEN];
         playlistPath[0] = '\0';
 
-        c_strcpy(playlistPath, sizeof(playlistPath), directory);
+        c_strcpy(playlistPath, directory, sizeof(playlistPath));
 
         if (playlistPath[0] == '\0')
         {
