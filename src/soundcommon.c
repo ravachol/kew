@@ -1172,18 +1172,19 @@ void activateSwitch(AudioData *pAudioData)
 
 bool isValidFilepath(const char *path)
 {
-        if (path == NULL || strlen(path) == 0 || strlen(path) >= PATH_MAX)
-        {
-                return false;
-        }
+    if (path == NULL || strnlen(path, PATH_MAX) == 0 || strnlen(path, PATH_MAX) >= PATH_MAX)
+    {
+        return false;
+    }
 
-        // Check if the path can be accessed (exists)
-        if (access(path, F_OK) != 0)
-        {
-                return false;
-        }
-
-        return true;
+    int fd = open(path, O_RDONLY);
+    if (fd == -1)
+    {
+        return false;
+    }
+    
+    close(fd);
+    return true;
 }
 
 gint64 getLengthInMicroSec(double duration)

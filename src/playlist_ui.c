@@ -50,9 +50,9 @@ void preparePlaylistString(Node *node, char *buffer, int bufferSize, int shorten
 
                 c_strcpy(buffer, lastSlash + 1, nameLength + 1);
                 buffer[nameLength] = '\0';
-                removeUnneededChars(buffer);
+                removeUnneededChars(buffer, nameLength);
                 shortenString(buffer, shortenAmount);
-                trim(buffer);
+                trim(buffer, MAXPATHLEN);
         }
         else
         {

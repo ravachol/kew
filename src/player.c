@@ -300,7 +300,7 @@ void printCover(SongData *songdata, UISettings *ui)
 
 void printWithDelay(const char *text, int delay, int maxWidth)
 {
-        int length = strlen(text);
+        int length = strnlen(text, maxWidth);
         int max = (maxWidth > length) ? length : maxWidth;
         for (int i = 0; i <= max; i++)
         {
@@ -422,6 +422,7 @@ void printProgress(double elapsed_seconds, double total_seconds)
         // Restore the cursor position
         printf("\033[u");
 }
+
 void printMetadata(TagSettings const *metadata, UISettings *ui)
 {
         if (appState.currentView == LIBRARY_VIEW || appState.currentView == PLAYLIST_VIEW || appState.currentView == SEARCH_VIEW)
@@ -443,14 +444,8 @@ void printTime(double elapsedSeconds, AppState *state)
                 printProgress(elapsedSeconds, duration);
 }
 
-int getRandomNumber(int min, int max)
+void printGlimmeringText(char *text, int textLength, char *nerdFontText, PixelData color)
 {
-        return min + rand() % (max - min + 1);
-}
-
-void printGlimmeringText(char *text, char *nerdFontText, PixelData color)
-{
-        int textLength = strlen(text);
         int brightIndex = 0;
         PixelData vbright = increaseLuminosity(color, 120);
         PixelData bright = increaseLuminosity(color, 60);
@@ -492,6 +487,7 @@ void printGlimmeringText(char *text, char *nerdFontText, PixelData color)
 
 void printLastRow(void)
 {
+
 #ifdef __APPLE__
         if (minWidth < 80)
                 minWidth = 80;
@@ -512,58 +508,73 @@ void printLastRow(void)
 
         printf("\r");
 
+        size_t maxLength = sizeof(nerdFontText);
+
         if (nerdFontsEnabled)
         {
+                size_t currentLength = strnlen(nerdFontText, maxLength);
+
                 if (isPaused())
                 {
                         char pauseText[] = " \uf04c";
-                        strcat(nerdFontText, pauseText);
+                        snprintf(nerdFontText + currentLength, maxLength - currentLength, "%s", pauseText);
+                        currentLength += strnlen(pauseText, maxLength - currentLength);
                 }
 
                 if (isRepeatEnabled())
                 {
                         char repeatText[] = " \uf01e";
-                        strcat(nerdFontText, repeatText);
+                        snprintf(nerdFontText + currentLength, maxLength - currentLength, "%s", repeatText);
+                        currentLength += strnlen(repeatText, maxLength - currentLength);
                 }
 
                 if (isShuffleEnabled())
                 {
                         char shuffleText[] = " \uf074";
-                        strcat(nerdFontText, shuffleText);
+                        snprintf(nerdFontText + currentLength, maxLength - currentLength, "%s", shuffleText);
+                        currentLength += strnlen(shuffleText, maxLength - currentLength);
                 }
 
                 if (fastForwarding)
                 {
                         char forwardText[] = " \uf04e";
-                        strcat(nerdFontText, forwardText);
+                        snprintf(nerdFontText + currentLength, maxLength - currentLength, "%s", forwardText);
+                        currentLength += strnlen(forwardText, maxLength - currentLength);
                 }
 
                 if (rewinding)
                 {
                         char rewindText[] = " \uf04a";
-                        strcat(nerdFontText, rewindText);
+                        snprintf(nerdFontText + currentLength, maxLength - currentLength, "%s", rewindText);
+                        currentLength += strnlen(rewindText, maxLength - currentLength);
                 }
         }
         else
         {
+                size_t currentLength = strnlen(nerdFontText, maxLength);
+
                 if (isRepeatEnabled())
                 {
                         char repeatText[] = " R";
-                        strcat(text, repeatText);
+                        snprintf(nerdFontText + currentLength, maxLength - currentLength, "%s", repeatText);
+                        currentLength += strnlen(repeatText, maxLength - currentLength);
                 }
 
                 if (isShuffleEnabled())
                 {
                         char shuffleText[] = " S";
-                        strcat(text, shuffleText);
+                        snprintf(nerdFontText + currentLength, maxLength - currentLength, "%s", shuffleText);
+                        currentLength += strnlen(shuffleText, maxLength - currentLength);
                 }
         }
 
         printf("\033[K"); // clear the line
+        
+        int textLength = strnlen(text, 100);
 
         int randomNumber = getRandomNumber(1, 808);
         if (randomNumber == 808)
-                printGlimmeringText(text, nerdFontText, lastRowColor);
+                printGlimmeringText(text, textLength, nerdFontText, lastRowColor);
         else
         {
                 printBlankSpaces(indent);
@@ -1007,7 +1018,7 @@ void processName(const char *name, char *output, int maxWidth)
 
         c_strcpy(output, name, copyLength + 1);
         output[copyLength] = '\0';
-        removeUnneededChars(output);
+        removeUnneededChars(output, copyLength);
 }
 
 void setChosenDir(FileSystemEntry *entry)
@@ -1221,11 +1232,31 @@ char *getLibraryFilePath(void)
         char *configdir = getConfigPath();
         char *filepath = NULL;
 
-        size_t filepath_length = strlen(configdir) + strlen("/") + strlen(LIBRARY_FILE) + 1;
+        if (configdir == NULL)
+        {
+                return NULL;
+        }
+
+        size_t configdir_length = strnlen(configdir, MAXPATHLEN);
+        size_t library_file_length = strnlen(LIBRARY_FILE, MAXPATHLEN);
+
+        size_t filepath_length = configdir_length + 1 + library_file_length + 1;
+
+        if (filepath_length > MAXPATHLEN)
+        {
+                free(configdir);
+                return NULL;
+        }
+
         filepath = (char *)malloc(filepath_length);
-        c_strcpy(filepath, configdir, filepath_length);
-        strcat(filepath, "/");
-        strcat(filepath, LIBRARY_FILE);
+        if (filepath == NULL)
+        {
+                free(configdir);
+                return NULL;
+        }
+
+        snprintf(filepath, filepath_length, "%s/%s", configdir, LIBRARY_FILE);
+
         free(configdir);
         return filepath;
 }

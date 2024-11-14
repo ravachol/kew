@@ -1264,7 +1264,7 @@ void emitMetadataChanged(const gchar *title, const gchar *artist, const gchar *a
         
 
         CanSeek = true;
-        if (currentSong != NULL && endsWith(currentSong->song.filePath, "ogg"))
+        if (currentSong != NULL && pathEndsWith(currentSong->song.filePath, "ogg"))
         {
                 CanSeek = false;
         }

@@ -14,19 +14,21 @@ file.c
 
 void getDirectoryFromPath(const char *path, char *directory)
 {
-        size_t path_length = strlen(path);
-        char tempPath[path_length + 1];
-        c_strcpy(tempPath, path, sizeof(tempPath));
+    size_t path_length = strnlen(path, MAXPATHLEN);
+    char tempPath[path_length + 1];
+    strncpy(tempPath, path, sizeof(tempPath));
 
-        char *dir = dirname(tempPath);
+    char *dir = dirname(tempPath);
 
-        c_strcpy(directory, dir, MAXPATHLEN);
+    // Copy directory name to the output buffer
+    snprintf(directory, MAXPATHLEN, "%s", dir);
 
-        size_t directory_length = strlen(directory);
-        if (directory[directory_length - 1] != '/' && directory_length + 1 < MAXPATHLEN)
-        {
-                strncat(directory, "/", MAXPATHLEN - directory_length - 1);
-        }
+    size_t directory_length = strnlen(directory, MAXPATHLEN);
+    if (directory[directory_length - 1] != '/' && directory_length + 1 < MAXPATHLEN)
+    {
+        // Use snprintf to append '/' at the end of directory
+        snprintf(directory + directory_length, MAXPATHLEN - directory_length, "/");
+    }
 }
 
 int existsFile(const char *fname)
@@ -116,13 +118,13 @@ int walker(const char *startPath, const char *lowCaseSearching, char *result,
                 if (stat(entryPath, &file_stat) != 0)
                 {
                         continue;
-                }                
+                }
 
                 if (S_ISDIR(file_stat.st_mode))
                 {
                         char *name = g_utf8_casefold(dir->d_name, -1);
 
-                        if (((exactSearch && (strcasecmp(name, lowCaseSearching) == 0)) || (!exactSearch && c_strcasestr(name, lowCaseSearching) != NULL)) &&
+                        if (((exactSearch && (strcasecmp(name, lowCaseSearching) == 0)) || (!exactSearch && c_strcasestr(name, lowCaseSearching, MAXPATHLEN) != NULL)) &&
                             (searchType != FileOnly) && (searchType != SearchPlayList))
                         {
                                 char *curDir = getcwd(NULL, 0);
@@ -154,14 +156,14 @@ int walker(const char *startPath, const char *lowCaseSearching, char *result,
                         }
                 }
                 else
-                {                        
+                {
                         if (searchType == DirOnly)
                         {
                                 continue;
                         }
 
                         char *filename = dir->d_name;
-                        if (strlen(filename) <= 4)
+                        if (strnlen(filename, MAXPATHLEN) <= 4)
                         {
                                 continue;
                         }
@@ -174,7 +176,7 @@ int walker(const char *startPath, const char *lowCaseSearching, char *result,
 
                         char *name = g_utf8_casefold(dir->d_name, -1);
 
-                        if ((exactSearch && (strcasecmp(name, lowCaseSearching) == 0)) || (!exactSearch && c_strcasestr(name, lowCaseSearching) != NULL))
+                        if ((exactSearch && (strcasecmp(name, lowCaseSearching) == 0)) || (!exactSearch && c_strcasestr(name, lowCaseSearching, MAXPATHLEN) != NULL))
                         {
                                 char *curDir = getcwd(NULL, 0);
                                 snprintf(result, MAXPATHLEN, "%s/%s", curDir, dir->d_name);
@@ -237,16 +239,16 @@ int expandPath(const char *inputPath, char *expandedPath)
                         }
                 }
 
-                size_t homeDirLen = strlen(homeDir);
-                size_t inputPathLen = strlen(inputPath);
+                size_t homeDirLen = strnlen(homeDir, MAXPATHLEN);
+                size_t inputPathLen = strnlen(inputPath, MAXPATHLEN);
 
                 if (homeDirLen + inputPathLen >= MAXPATHLEN)
                 {
                         return -1; // Expanded path exceeds maximum length
                 }
 
-                c_strcpy(expandedPath, homeDir, sizeof(expandedPath));
-                strcat(expandedPath, inputPath);
+                c_strcpy(expandedPath, homeDir, MAXPATHLEN);
+                snprintf(expandedPath + homeDirLen, MAXPATHLEN - homeDirLen, "%s", inputPath);
         }
         else // Handle if path is not prefixed with '~'
         {
@@ -293,16 +295,12 @@ int deleteFile(const char *filePath)
 int isInTempDir(const char *path)
 {
         const char *tempDir = getenv("TMPDIR");
-        if (tempDir == NULL)
+        if (tempDir == NULL || strnlen(tempDir, PATH_MAX) >= PATH_MAX)
         {
-#ifdef __APPLE__
                 tempDir = "/tmp";
-#else
-                tempDir = "/tmp";
-#endif
         }
 
-        return (startsWith(path, tempDir));
+        return (pathStartsWith(path, tempDir));
 }
 
 bool checkFileBelowMaxSize(const char *filePath, int maxSize)
@@ -322,7 +320,7 @@ bool checkFileBelowMaxSize(const char *filePath, int maxSize)
 void generateTempFilePath(char *filePath, const char *prefix, const char *suffix)
 {
         const char *tempDir = getenv("TMPDIR");
-        if (tempDir == NULL)
+        if (tempDir == NULL || strnlen(tempDir, PATH_MAX) >= PATH_MAX)
         {
                 tempDir = "/tmp";
         }

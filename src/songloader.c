@@ -30,7 +30,7 @@ char *findLargestImageFile(const char *directoryPath, char *largestImageFile, of
         {
                 char filePath[MAXPATHLEN];
 
-                if (directoryPath[strlen(directoryPath) - 1] == '/')
+                if (directoryPath[strnlen(directoryPath, MAXPATHLEN) - 1] == '/')
                 {
                         snprintf(filePath, sizeof(filePath), "%s%s", directoryPath, entry->d_name);
                 }

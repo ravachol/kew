@@ -660,7 +660,7 @@ extern "C"
                 tag_settings->title[sizeof(tag_settings->title) - 1] = '\0';
 
                 // Check if the title is empty, and if so, use the file path to generate a title
-                if (strlen(tag_settings->title) == 0)
+                if (strnlen(tag_settings->title, 10) == 0)
                 {
                         char title[4096];
                         turnFilePathIntoTitle(input_file, title, 4096);

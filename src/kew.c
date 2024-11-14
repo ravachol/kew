@@ -71,11 +71,13 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #endif
 
 // #define DEBUG 1
-#define MAX_TMP_SEQ_LEN 256                     // Maximum length of temporary sequence buffer
+#define MAX_TMP_SEQ_LEN 256 // Maximum length of temporary sequence buffer
 #define COOLDOWN_MS 500
 #define COOLDOWN2_MS 100
 
 #define NUM_KEY_MAPPINGS 48
+
+#define TMPFOLDER "/tmp"
 
 FILE *logFile = NULL;
 struct winsize windowSize;
@@ -89,7 +91,7 @@ bool songWasRemoved = false;
 bool noPlaylist = false;
 GMainLoop *main_loop;
 EventMapping keyMappings[NUM_KEY_MAPPINGS];
-struct timespec lastInputTime;                  // When the user last pressed a key FIXME: Should ideally only be reset in one place
+struct timespec lastInputTime; // When the user last pressed a key FIXME: Should ideally only be reset in one place
 bool exactSearch = false;
 int fuzzySearchThreshold = 2;
 int maxDigitsPressedCount = 9;
@@ -148,12 +150,15 @@ struct Event processInput()
                         break;
                 }
 
-                if (strnlen(seq, MAX_SEQ_LEN) + strnlen(tmpSeq, MAX_TMP_SEQ_LEN) >= MAX_SEQ_LEN)
+                size_t seq_len = strnlen(seq, MAX_SEQ_LEN);
+                size_t remaining_space = MAX_SEQ_LEN - seq_len;
+
+                if (remaining_space < 1)
                 {
                         break;
                 }
 
-                strcat(seq, tmpSeq);
+                snprintf(seq + seq_len, remaining_space, "%s", tmpSeq);
 
                 // This slows the continous reads down to not get a a too fast scrolling speed
                 if (strcmp(seq + 1, settings.hardScrollUp) == 0 || strcmp(seq + 1, settings.hardScrollDown) == 0 || strcmp(seq + 1, settings.scrollUpAlt) == 0 ||
@@ -184,7 +189,7 @@ struct Event processInput()
                         fuzzySearch(getLibrary(), fuzzySearchThreshold);
                         event.type = EVENT_SEARCH;
                 }
-                else if (((strlen(event.key) == 1 && event.key[0] != '\033' && event.key[0] != '\n' && event.key[0] != '\t' && event.key[0] != '\r') || strcmp(event.key, " ") == 0 || (unsigned char)event.key[0] >= 0xC0) && strcmp(event.key, "Z") != 0 && strcmp(event.key, "X") != 0 && strcmp(event.key, "C") != 0 && strcmp(event.key, "V") != 0 && strcmp(event.key, "B") != 0)
+                else if (((strnlen(event.key, sizeof(event.key)) == 1 && event.key[0] != '\033' && event.key[0] != '\n' && event.key[0] != '\t' && event.key[0] != '\r') || strcmp(event.key, " ") == 0 || (unsigned char)event.key[0] >= 0xC0) && strcmp(event.key, "Z") != 0 && strcmp(event.key, "X") != 0 && strcmp(event.key, "C") != 0 && strcmp(event.key, "V") != 0 && strcmp(event.key, "B") != 0)
                 {
                         addToSearchText(event.key);
                         resetSearchResult();
@@ -197,7 +202,7 @@ struct Event processInput()
         for (int i = 0; i < NUM_KEY_MAPPINGS; i++)
         {
                 if (keyMappings[i].seq[0] != '\0' &&
-                    ((seq[0] == '\033' && strlen(seq) > 1 && strcmp(seq + 1, keyMappings[i].seq) == 0) ||
+                    ((seq[0] == '\033' && strnlen(seq, MAX_SEQ_LEN) > 1 && strcmp(seq + 1, keyMappings[i].seq) == 0) ||
                      strcmp(seq, keyMappings[i].seq) == 0))
                 {
                         if (event.type == EVENT_SEARCH && keyMappings[i].eventType != EVENT_GOTOSONG)
@@ -332,7 +337,7 @@ void notifyMPRISSwitch(SongData *currentSongData)
 
 void notifySongSwitch(SongData *currentSongData, UISettings *ui)
 {
-        if (currentSongData != NULL && currentSongData->hasErrors == 0 && currentSongData->metadata && strlen(currentSongData->metadata->title) > 0)
+        if (currentSongData != NULL && currentSongData->hasErrors == 0 && currentSongData->metadata && strnlen(currentSongData->metadata->title, 10) > 0)
         {
 #ifdef USE_LIBNOTIFY
                 displaySongNotification(currentSongData->metadata->artist, currentSongData->metadata->title, currentSongData->coverArtPath, ui);
@@ -380,7 +385,7 @@ void refreshPlayer(UIState *uis)
         if (uis->doNotifyMPRISPlaying)
         {
                 uis->doNotifyMPRISPlaying = false;
-                
+
                 emitStringPropertyChanged("PlaybackStatus", "Playing");
         }
 
@@ -544,7 +549,8 @@ void handleGoToSong(AppState *state)
 
         // Handle MPRIS CanGoNext
         bool couldGoNext = (currentSong != NULL && currentSong->next != NULL);
-        if (canGoNext != couldGoNext) {
+        if (canGoNext != couldGoNext)
+        {
                 emitBooleanPropertyChanged("CanGoNext", couldGoNext);
         }
 }
@@ -913,7 +919,7 @@ gboolean mainloop_callback(gpointer data)
 }
 
 static gboolean quitOnSignal(gpointer user_data)
-{        
+{
         GMainLoop *loop = (GMainLoop *)user_data;
         g_main_loop_quit(loop);
         quit();
@@ -1109,7 +1115,6 @@ void initResize()
 void init(AppState *state)
 {
         disableInputBuffering();
-        srand(time(NULL));
         initResize();
         ioctl(STDOUT_FILENO, TIOCGWINSZ, &windowSize);
         enableScrolling();
@@ -1220,10 +1225,12 @@ void handleOptions(int *argc, char *argv[], UISettings *ui)
         const char *exactOption = "--exact";
         const char *exactOption2 = "-e";
 
+        int maxLen = 1000;
+
         int idx = -1;
         for (int i = 0; i < *argc; i++)
         {
-                if (c_strcasestr(argv[i], noUiOption))
+                if (c_strcasestr(argv[i], noUiOption, maxLen))
                 {
                         ui->uiEnabled = false;
                         idx = i;
@@ -1235,7 +1242,7 @@ void handleOptions(int *argc, char *argv[], UISettings *ui)
         idx = -1;
         for (int i = 0; i < *argc; i++)
         {
-                if (c_strcasestr(argv[i], noCoverOption))
+                if (c_strcasestr(argv[i], noCoverOption, maxLen))
                 {
                         ui->coverEnabled = false;
                         idx = i;
@@ -1247,7 +1254,7 @@ void handleOptions(int *argc, char *argv[], UISettings *ui)
         idx = -1;
         for (int i = 0; i < *argc; i++)
         {
-                if (c_strcasestr(argv[i], quitOnStop) || c_strcasestr(argv[i], quitOnStop2))
+                if (c_strcasestr(argv[i], quitOnStop, maxLen) || c_strcasestr(argv[i], quitOnStop2, maxLen))
                 {
                         ui->quitAfterStopping = true;
                         idx = i;
@@ -1259,7 +1266,7 @@ void handleOptions(int *argc, char *argv[], UISettings *ui)
         idx = -1;
         for (int i = 0; i < *argc; i++)
         {
-                if (c_strcasestr(argv[i], exactOption) || c_strcasestr(argv[i], exactOption2))
+                if (c_strcasestr(argv[i], exactOption, maxLen) || c_strcasestr(argv[i], exactOption2, maxLen))
                 {
                         exactSearch = true;
                         idx = i;
@@ -1268,8 +1275,6 @@ void handleOptions(int *argc, char *argv[], UISettings *ui)
         if (idx >= 0)
                 removeArgElement(argv, idx, argc);
 }
-
-#define PIDFILE_TEMPLATE "/tmp/kew_%d.pid" // Template for user-specific PID file
 
 int isProcessRunning(pid_t pid)
 {
@@ -1283,7 +1288,9 @@ int isProcessRunning(pid_t pid)
 void exitIfAlreadyRunning()
 {
         char pidfile_path[256];
-        snprintf(pidfile_path, sizeof(pidfile_path), PIDFILE_TEMPLATE, getuid());
+
+        snprintf(pidfile_path, sizeof(pidfile_path), "%s%s", TMPFOLDER, "/kew_");
+        snprintf(pidfile_path + strnlen(pidfile_path, MAXPATHLEN), sizeof(pidfile_path) - strnlen(pidfile_path, MAXPATHLEN), "%d.pid", getuid());
 
         FILE *pidfile;
         pid_t pid;
@@ -1339,28 +1346,19 @@ int directoryExists(const char *path)
 
 void setMusicPath()
 {
-        char *user = getenv("USER");
+        struct passwd *pw = getpwuid(getuid());
+        char *user = NULL;
 
-        // Fallback if USER is not set
-        if (!user)
+        if (pw)
         {
-                user = getlogin();
-
-                if (!user)
-                {
-                        struct passwd *pw = getpwuid(getuid());
-                        if (pw)
-                        {
-                                user = pw->pw_name;
-                        }
-                        else
-                        {
-                                printf("Error: Could not retrieve user information.\n");
-                                printf("Please set a path to your music library.\n");
-                                printf("To set it, type: kew path \"/path/to/Music\".\n");
-                                exit(0);
-                        }
-                }
+                user = pw->pw_name;
+        }
+        else
+        {
+                printf("Error: Could not retrieve user information.\n");
+                printf("Please set a path to your music library.\n");
+                printf("To set it, type: kew path \"/path/to/Music\".\n");
+                exit(0);
         }
 
         // Music folder names in different languages
@@ -1371,9 +1369,9 @@ void setMusicPath()
 
         char path[PATH_MAX];
         int found = 0;
-        char choice = ' ';
         int result = -1;
-
+        char choice[2];
+        
         for (size_t i = 0; i < sizeof(musicFolderNames) / sizeof(musicFolderNames[0]); i++)
         {
 #ifdef __APPLE__
@@ -1388,14 +1386,15 @@ void setMusicPath()
                         printf("Do you want to use %s as your music library folder?\n", path);
                         printf("y = Yes\nn = Enter a path\n");
 
-                        result = scanf(" %c", &choice);
+                       
+                        result = scanf("%1s", choice);
 
-                        if (choice == 'y' || choice == 'Y')
+                        if (choice[0] == 'y' || choice[0]  == 'Y')
                         {
                                 c_strcpy(settings.path, path, sizeof(settings.path));
                                 return;
                         }
-                        else if (choice == 'n' || choice == 'N')
+                        else if (choice[0]  == 'n' || choice[0]  == 'N')
                         {
                                 break;
                         }
@@ -1407,7 +1406,7 @@ void setMusicPath()
                 }
         }
 
-        if (!found || (found && (choice == 'n' || choice == 'N')))
+        if (!found || (found && (choice[0]  == 'n' || choice[0]  == 'N')))
         {
                 printf("Please enter the path to your music library (/path/to/Music):\n");
                 result = scanf("%s", path);

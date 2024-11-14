@@ -8,6 +8,29 @@
 
 */
 
+#if defined(__APPLE__) || defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__)
+#include <stdlib.h> // For arc4random
+
+int getRandomNumber(int min, int max)
+{
+        return min + arc4random_uniform(max - min + 1);
+}
+
+#else
+#include <sys/random.h> // For getrandom
+
+int getRandomNumber(int min, int max)
+{
+        unsigned int random_value;
+        if (getrandom(&random_value, sizeof(random_value), 0) != sizeof(random_value))
+        {
+                return min;
+        }
+        return min + (random_value % (max - min + 1));
+}
+
+#endif
+
 void c_sleep(int milliseconds)
 {
         struct timespec ts;
@@ -26,12 +49,12 @@ void c_usleep(int microseconds)
 
 void c_strcpy(char *dest, const char *src, size_t dest_size)
 {
-    if (dest && dest_size > 0 && src)
-    {
-        size_t src_length = strnlen(src, dest_size - 1);
-        memcpy(dest, src, src_length);
-        dest[src_length] = '\0';
-    }
+        if (dest && dest_size > 0 && src)
+        {
+                size_t src_length = strnlen(src, dest_size - 1);
+                memcpy(dest, src, src_length);
+                dest[src_length] = '\0';
+        }
 }
 
 char *stringToLower(const char *str)
@@ -44,13 +67,13 @@ char *stringToUpper(const char *str)
         return g_utf8_strup(str, -1);
 }
 
-char *c_strcasestr(const char *haystack, const char *needle)
+char *c_strcasestr(const char *haystack, const char *needle, int maxScanLen)
 {
         if (!haystack || !needle)
                 return NULL;
 
-        size_t needleLen = strlen(needle);
-        size_t haystackLen = strlen(haystack);
+        size_t needleLen = strnlen(needle, maxScanLen);
+        size_t haystackLen = strnlen(haystack, maxScanLen);
 
         if (needleLen > haystackLen)
                 return NULL;
@@ -94,7 +117,7 @@ int match_regex(const regex_t *regex, const char *ext)
 
 void extractExtension(const char *filename, size_t numChars, char *ext)
 {
-        size_t length = strlen(filename);
+        size_t length = strnlen(filename, MAXPATHLEN);
         size_t copyChars = length < numChars ? length : numChars;
 
         // Start copying from the calculated position
@@ -146,26 +169,26 @@ void extractExtension(const char *filename, size_t numChars, char *ext)
         ext[j] = '\0';
 }
 
-int endsWith(const char *str, const char *suffix)
+int pathEndsWith(const char *str, const char *suffix)
 {
-        size_t strLength = strnlen(str, MAXPATHLEN);
-        size_t suffixLength = strlen(suffix);
+        size_t length = strnlen(str, MAXPATHLEN);
+        size_t suffixLength = strnlen(suffix, MAXPATHLEN);
 
-        if (suffixLength > strLength)
+        if (suffixLength > length)
         {
                 return 0;
         }
 
-        const char *strSuffix = str + (strLength - suffixLength);
+        const char *strSuffix = str + (length - suffixLength);
         return strcmp(strSuffix, suffix) == 0;
 }
 
-int startsWith(const char *str, const char *prefix)
+int pathStartsWith(const char *str, const char *prefix)
 {
-        size_t strLength = strnlen(str, MAXPATHLEN);
-        size_t prefixLength = strlen(prefix);
+        size_t length = strnlen(str, MAXPATHLEN);
+        size_t prefixLength = strnlen(prefix, MAXPATHLEN);
 
-        if (prefixLength > strLength)
+        if (prefixLength > length)
         {
                 return 0;
         }
@@ -173,14 +196,14 @@ int startsWith(const char *str, const char *prefix)
         return strncmp(str, prefix, prefixLength) == 0;
 }
 
-void trim(char *str)
+void trim(char *str, int maxLen)
 {
         char *start = str;
         while (*start && isspace(*start))
         {
                 start++;
         }
-        char *end = str + strlen(str) - 1;
+        char *end = str + strnlen(str, maxLen) - 1;
         while (end > start && isspace(*end))
         {
                 end--;
@@ -195,18 +218,12 @@ void trim(char *str)
 
 const char *getHomePath(void)
 {
-        const char *home = getenv("HOME");
-
-        if (!home)
+        struct passwd *pw = getpwuid(getuid());
+        if (pw && pw->pw_dir)
         {
-                struct passwd *pw = getpwuid(getuid());
-                if (pw && pw->pw_dir)
-                {
-                        return pw->pw_dir;
-                }
+                return pw->pw_dir;
         }
-
-        return home;
+        return NULL;
 }
 
 char *getConfigPath(void)
@@ -254,9 +271,9 @@ char *getConfigPath(void)
         return configPath;
 }
 
-void removeUnneededChars(char *str)
+void removeUnneededChars(char *str, int length)
 {
-        if (strlen(str) < 6)
+        if (length < 6)
         {
                 return;
         }
@@ -288,7 +305,7 @@ void removeUnneededChars(char *str)
 
 void shortenString(char *str, size_t maxLength)
 {
-        size_t length = strlen(str);
+        size_t length = strnlen(str, maxLength + 2);
 
         if (length > maxLength)
         {
@@ -301,14 +318,14 @@ void printBlankSpaces(int numSpaces)
         printf("%*s", numSpaces, " ");
 }
 
-char *stringToUpperWithoutSpaces(const char *str)
+char *stringToUpperWithoutSpaces(const char *str, int maxLen)
 {
         if (str == NULL)
         {
                 return NULL;
         }
 
-        size_t len = strlen(str);
+        size_t len = strnlen(str, maxLen);
         char *result = (char *)malloc(len + 1);
         if (result == NULL)
         {
@@ -367,8 +384,8 @@ int naturalCompare(const char *a, const char *b)
 
 int compareLibEntries(const struct dirent **a, const struct dirent **b)
 {
-        char *nameA = stringToUpperWithoutSpaces((*a)->d_name);
-        char *nameB = stringToUpperWithoutSpaces((*b)->d_name);
+        char *nameA = stringToUpperWithoutSpaces((*a)->d_name, MAXPATHLEN);
+        char *nameB = stringToUpperWithoutSpaces((*b)->d_name, MAXPATHLEN);
 
         if (nameA[0] == '_' && nameB[0] != '_')
         {

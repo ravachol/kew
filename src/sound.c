@@ -40,7 +40,7 @@ ma_result initFirstDatasource(AudioData *pAudioData, UserData *pUserData)
                 pAudioData->sampleRate = first->outputSampleRate;
                 ma_data_source_get_length_in_pcm_frames(first, &pAudioData->totalFrames);
         }
-        else if (endsWith(filePath, "opus"))
+        else if (pathEndsWith(filePath, "opus"))
         {
                 int result = prepareNextOpusDecoder(filePath);
                 if (result < 0)
@@ -53,7 +53,7 @@ ma_result initFirstDatasource(AudioData *pAudioData, UserData *pUserData)
                 base->pCurrent = first;
                 first->pReadSeekTellUserData = pAudioData;
         }
-        else if (endsWith(filePath, "ogg"))
+        else if (pathEndsWith(filePath, "ogg"))
         {
                 int result = prepareNextVorbisDecoder(filePath);
                 if (result < 0)
@@ -66,7 +66,7 @@ ma_result initFirstDatasource(AudioData *pAudioData, UserData *pUserData)
                 base->pCurrent = first;
                 first->pReadSeekTellUserData = pAudioData;
         }
-        else if (endsWith(filePath, "m4a") || endsWith(filePath, "aac"))
+        else if (pathEndsWith(filePath, "m4a") || pathEndsWith(filePath, "aac"))
         {
 #ifdef USE_FAAD
 
@@ -359,7 +359,7 @@ int switchAudioImplementation(void)
                         setImplSwitchNotReached();
                 }
         }
-        else if (endsWith(filePath, "opus"))
+        else if (pathEndsWith(filePath, "opus"))
         {
                 ma_uint32 sampleRate;
                 ma_uint32 channels;
@@ -416,7 +416,7 @@ int switchAudioImplementation(void)
                         setImplSwitchNotReached();
                 }
         }
-        else if (endsWith(filePath, "ogg"))
+        else if (pathEndsWith(filePath, "ogg"))
         {
                 ma_uint32 sampleRate;
                 ma_uint32 channels;
@@ -473,7 +473,7 @@ int switchAudioImplementation(void)
                         setImplSwitchNotReached();
                 }
         }
-        else if (endsWith(filePath, "m4a") || endsWith(filePath, "aac"))
+        else if (pathEndsWith(filePath, "m4a") || pathEndsWith(filePath, "aac"))
         {
 #ifdef USE_FAAD
                 ma_uint32 sampleRate;
