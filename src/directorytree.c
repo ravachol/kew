@@ -46,7 +46,7 @@ void setFullPath(FileSystemEntry *entry, const char *parentPath, const char *ent
                 return;
         }
 
-        size_t fullPathLength = strlen(parentPath) + strlen(entryName) + 2; // +2 for '/' and '\0'
+        size_t fullPathLength = strnlen(parentPath, MAXPATHLEN) + strnlen(entryName, MAXPATHLEN) + 2; // +2 for '/' and '\0'
 
         entry->fullPath = (char *)malloc(fullPathLength);
         if (entry->fullPath == NULL)

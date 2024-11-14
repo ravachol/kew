@@ -1,6 +1,7 @@
 #ifndef SOUND_COMMON_H
 #define SOUND_COMMON_H
 
+#include <fcntl.h>
 #include <glib.h>
 #include <math.h>
 #include <miniaudio.h>

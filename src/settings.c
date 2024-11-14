@@ -36,9 +36,9 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         c_strcpy(settings.coverEnabled, "1", sizeof(settings.coverEnabled));
         c_strcpy(settings.allowNotifications, "1", sizeof(settings.allowNotifications));
         c_strcpy(settings.coverAnsi, "0", sizeof(settings.coverAnsi));
-#ifdef __APPLE__        
-        c_strcpy(settings.visualizerEnabled, "0", sizeof(settings.visualizerEnabled)); // visualizer looks wonky in default terminal 
-        c_strcpy(settings.useConfigColors, "1", sizeof(settings.useConfigColors));   // colors from album look wrong in default terminal
+#ifdef __APPLE__
+        c_strcpy(settings.visualizerEnabled, "0", sizeof(settings.visualizerEnabled)); // visualizer looks wonky in default terminal
+        c_strcpy(settings.useConfigColors, "1", sizeof(settings.useConfigColors));     // colors from album look wrong in default terminal
 #else
         c_strcpy(settings.visualizerEnabled, "1", sizeof(settings.visualizerEnabled));
         c_strcpy(settings.useConfigColors, "0", sizeof(settings.useConfigColors));
@@ -109,7 +109,7 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         {
                 KeyValuePair *pair = &pairs[i];
 
-                char *lowercaseKey = stringToLower(pair->key); 
+                char *lowercaseKey = stringToLower(pair->key);
 
                 if (strcmp(lowercaseKey, "path") == 0)
                 {
@@ -277,7 +277,7 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
                                 snprintf(settings.showKeysAlt, sizeof(settings.showKeysAlt), "%s", pair->value);
                 }
 
-                free(lowercaseKey);                
+                free(lowercaseKey);
         }
 
         freeKeyValuePairs(pairs, count);
@@ -418,11 +418,38 @@ void mapSettingsToKeys(AppSettings *settings, EventMapping *mappings)
         mappings[47] = (EventMapping){settings->tabNext, EVENT_TABNEXT};
 }
 
+char *getConfigFilePath(char *configdir)
+{
+        size_t configdir_length = strnlen(configdir, MAXPATHLEN - 1);
+        size_t settings_file_length = strnlen(SETTINGS_FILE, MAXPATHLEN - 1);
+
+        if (configdir_length + 1 + settings_file_length + 1 > MAXPATHLEN)
+        {
+                fprintf(stderr, "Error: File path exceeds maximum length.\n");
+                exit(EXIT_FAILURE);
+        }
+
+        char *filepath = (char *)malloc(MAXPATHLEN);
+        if (filepath == NULL)
+        {
+                perror("malloc");
+                exit(EXIT_FAILURE);
+        }
+
+        int written = snprintf(filepath, MAXPATHLEN, "%s/%s", configdir, SETTINGS_FILE);
+        if (written < 0 || written >= MAXPATHLEN)
+        {
+                fprintf(stderr, "Error: snprintf failed or filepath truncated.\n");
+                free(filepath);
+                exit(EXIT_FAILURE);
+        } 
+        return filepath;       
+}
+
 void getConfig(AppSettings *settings, UISettings *ui)
 {
         int pair_count;
         char *configdir = getConfigPath();
-        char *filepath = NULL;
 
         // Create the directory if it doesn't exist
         struct stat st = {0};
@@ -435,16 +462,7 @@ void getConfig(AppSettings *settings, UISettings *ui)
                 }
         }
 
-        size_t filepath_length = strlen(configdir) + strlen("/") + strlen(SETTINGS_FILE) + 1;
-        filepath = (char *)malloc(filepath_length);
-        if (filepath == NULL)
-        {
-                perror("malloc");
-                exit(EXIT_FAILURE);
-        }
-        c_strcpy(filepath, configdir, filepath_length);
-        strcat(filepath, "/");
-        strcat(filepath, SETTINGS_FILE);
+        char *filepath = getConfigFilePath(configdir);
 
         KeyValuePair *pairs = readKeyValuePairs(filepath, &pair_count, &ui->lastTimeAppRan);
 
@@ -495,16 +513,7 @@ void setConfig(AppSettings *settings, UISettings *ui)
         // Create the file path
         char *configdir = getConfigPath();
 
-        size_t filepath_length = strlen(configdir) + strlen("/") + strlen(SETTINGS_FILE) + 1;
-        char *filepath = (char *)malloc(filepath_length);
-        if (filepath == NULL)
-        {
-                perror("malloc");
-                exit(EXIT_FAILURE);
-        }
-        c_strcpy(filepath, configdir, filepath_length);
-        strcat(filepath, "/");
-        strcat(filepath, SETTINGS_FILE);
+        char *filepath = getConfigFilePath(configdir);
 
         FILE *file = fopen(filepath, "w");
         if (file == NULL)
@@ -524,7 +533,7 @@ void setConfig(AppSettings *settings, UISettings *ui)
         if (settings->visualizerEnabled[0] == '\0')
                 ui->visualizerEnabled ? c_strcpy(settings->visualizerEnabled, "1", sizeof(settings->visualizerEnabled)) : c_strcpy(settings->visualizerEnabled, "0", sizeof(settings->visualizerEnabled));
         if (settings->useConfigColors[0] == '\0')
-                ui->useConfigColors ? c_strcpy(settings->useConfigColors,"1",  sizeof(settings->useConfigColors)) : c_strcpy(settings->useConfigColors, "0", sizeof(settings->useConfigColors));
+                ui->useConfigColors ? c_strcpy(settings->useConfigColors, "1", sizeof(settings->useConfigColors)) : c_strcpy(settings->useConfigColors, "0", sizeof(settings->useConfigColors));
         if (settings->visualizerHeight[0] == '\0')
         {
                 snprintf(settings->visualizerHeight, sizeof(settings->visualizerHeight), "%d", ui->visualizerHeight);
