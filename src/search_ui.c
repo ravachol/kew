@@ -105,10 +105,10 @@ int addToSearchText(const char *str)
                 return -1;
         }
 
-        size_t len = strlen(str);
+        size_t len = strnlen(str, MAX_SEARCH_LEN);
 
         // Check if the string can fit into the search text buffer
-        if (numSearchLetters + 1 > MAX_SEARCH_LEN)
+        if (numSearchLetters + len > MAX_SEARCH_LEN)
         {
                 return 0; // Not enough space
         }
