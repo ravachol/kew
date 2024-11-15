@@ -442,8 +442,8 @@ char *getConfigFilePath(char *configdir)
                 fprintf(stderr, "Error: snprintf failed or filepath truncated.\n");
                 free(filepath);
                 exit(EXIT_FAILURE);
-        } 
-        return filepath;       
+        }
+        return filepath;
 }
 
 void getConfig(AppSettings *settings, UISettings *ui)
@@ -477,30 +477,30 @@ void getConfig(AppSettings *settings, UISettings *ui)
         ui->hideLogo = (settings->hideLogo[0] == '1');
         ui->hideHelp = (settings->hideHelp[0] == '1');
 
-        int temp = atoi(settings->color);
+        int temp = getNumber(settings->color);
         if (temp >= 0)
                 ui->mainColor = temp;
-        temp = atoi(settings->artistColor);
+        temp = getNumber(settings->artistColor);
         if (temp >= 0)
                 ui->artistColor = temp;
 
-        temp = atoi(settings->enqueuedColor);
+        temp = getNumber(settings->enqueuedColor);
         if (temp >= 0)
                 ui->enqueuedColor = temp;
 
-        temp = atoi(settings->titleColor);
+        temp = getNumber(settings->titleColor);
         if (temp >= 0)
                 ui->titleColor = temp;
 
-        int temp2 = atoi(settings->visualizerHeight);
+        int temp2 = getNumber(settings->visualizerHeight);
         if (temp2 > 0)
                 ui->visualizerHeight = temp2;
 
-        int temp3 = atoi(settings->lastVolume);
+        int temp3 = getNumber(settings->lastVolume);
         if (temp3 >= 0)
                 setVolume(temp3);
 
-        int temp4 = atoi(settings->cacheLibrary);
+        int temp4 = getNumber(settings->cacheLibrary);
         if (temp4 >= 0)
                 ui->cacheLibrary = temp4;
 

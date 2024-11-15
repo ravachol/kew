@@ -26,9 +26,6 @@ WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
 ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
-#ifndef _POSIX_C_SOURCE
-#define _POSIX_C_SOURCE 200809L
-#endif
 #ifndef __USE_POSIX
 #define __USE_POSIX
 #endif
@@ -451,6 +448,24 @@ void resetListAfterDequeuingPlayingSong(AppState *state)
         }
 }
 
+int getSongNumber(const char *str)
+{
+        char *endptr;
+        long value = strtol(str, &endptr, 10);
+
+        if (*endptr != '\0')
+        {
+                return 0;
+        }
+
+        if (value < 0 || value > INT_MAX)
+        {
+                return 0;
+        }
+
+        return (int)value;
+}
+
 void handleGoToSong(AppState *state)
 {
         bool canGoNext = (currentSong != NULL && currentSong->next != NULL);
@@ -537,7 +552,7 @@ void handleGoToSong(AppState *state)
                 else
                 {
                         state->uiState.resetPlaylistDisplay = true;
-                        int songNumber = atoi(digitsPressed);
+                        int songNumber = getSongNumber(digitsPressed);
                         memset(digitsPressed, '\0', sizeof(digitsPressed));
                         digitsPressedCount = 0;
 
@@ -1290,7 +1305,7 @@ void exitIfAlreadyRunning()
         char pidfile_path[256];
 
         snprintf(pidfile_path, sizeof(pidfile_path), "%s%s", TMPFOLDER, "/kew_");
-        snprintf(pidfile_path + strnlen(pidfile_path, MAXPATHLEN), sizeof(pidfile_path) - strnlen(pidfile_path, MAXPATHLEN), "%d.pid", getuid());
+        snprintf(pidfile_path + strnlen(pidfile_path, 256), sizeof(pidfile_path) - strnlen(pidfile_path, 256), "%d.pid", getuid());
 
         FILE *pidfile;
         pid_t pid;
@@ -1371,7 +1386,7 @@ void setMusicPath()
         int found = 0;
         int result = -1;
         char choice[2];
-        
+
         for (size_t i = 0; i < sizeof(musicFolderNames) / sizeof(musicFolderNames[0]); i++)
         {
 #ifdef __APPLE__
@@ -1386,15 +1401,14 @@ void setMusicPath()
                         printf("Do you want to use %s as your music library folder?\n", path);
                         printf("y = Yes\nn = Enter a path\n");
 
-                       
                         result = scanf("%1s", choice);
 
-                        if (choice[0] == 'y' || choice[0]  == 'Y')
+                        if (choice[0] == 'y' || choice[0] == 'Y')
                         {
                                 c_strcpy(settings.path, path, sizeof(settings.path));
                                 return;
                         }
-                        else if (choice[0]  == 'n' || choice[0]  == 'N')
+                        else if (choice[0] == 'n' || choice[0] == 'N')
                         {
                                 break;
                         }
@@ -1406,7 +1420,7 @@ void setMusicPath()
                 }
         }
 
-        if (!found || (found && (choice[0]  == 'n' || choice[0]  == 'N')))
+        if (!found || (found && (choice[0] == 'n' || choice[0] == 'N')))
         {
                 printf("Please enter the path to your music library (/path/to/Music):\n");
                 result = scanf("%s", path);

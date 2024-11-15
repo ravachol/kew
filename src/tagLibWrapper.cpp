@@ -23,6 +23,7 @@
 #include <taglib/xiphcomment.h>
 #include <taglib/tag.h>
 #include <ogg/ogg.h>
+
 #if defined(__linux__)
 #include <opus/opusfile.h>
 #else
@@ -619,7 +620,7 @@ extern "C"
                         }
 
                         // Copy the result into the output char* title, ensuring no overflow
-                        strncpy(title, extractedTitle.c_str(), titleMaxLength - 1); // Copy up to titleMaxLength - 1 characters
+                        c_strcpy(title, extractedTitle.c_str(), titleMaxLength - 1); // Copy up to titleMaxLength - 1 characters
                         title[titleMaxLength - 1] = '\0';                           // Null-terminate the string
                 }
                 else
@@ -641,7 +642,7 @@ extern "C"
 
                         char title[4096];
                         turnFilePathIntoTitle(input_file, title, 4096);
-                        strncpy(tag_settings->title, title, sizeof(tag_settings->title) - 1);
+                        c_strcpy(tag_settings->title, title, sizeof(tag_settings->title) - 1);
                         tag_settings->title[sizeof(tag_settings->title) - 1] = '\0';
 
                         return -1;
@@ -656,7 +657,7 @@ extern "C"
                 }
 
                 // Copy the title
-                strncpy(tag_settings->title, tag->title().toCString(true), sizeof(tag_settings->title) - 1);
+                c_strcpy(tag_settings->title, tag->title().toCString(true), sizeof(tag_settings->title) - 1);
                 tag_settings->title[sizeof(tag_settings->title) - 1] = '\0';
 
                 // Check if the title is empty, and if so, use the file path to generate a title
@@ -664,17 +665,17 @@ extern "C"
                 {
                         char title[4096];
                         turnFilePathIntoTitle(input_file, title, 4096);
-                        strncpy(tag_settings->title, title, sizeof(tag_settings->title) - 1);
+                        c_strcpy(tag_settings->title, title, sizeof(tag_settings->title) - 1);
                         tag_settings->title[sizeof(tag_settings->title) - 1] = '\0';
                 }
                 else
                 {
                         // Copy the artist
-                        strncpy(tag_settings->artist, tag->artist().toCString(true), sizeof(tag_settings->artist) - 1);
+                        c_strcpy(tag_settings->artist, tag->artist().toCString(true), sizeof(tag_settings->artist) - 1);
                         tag_settings->artist[sizeof(tag_settings->artist) - 1] = '\0';
 
                         // Copy the album
-                        strncpy(tag_settings->album, tag->album().toCString(true), sizeof(tag_settings->album) - 1);
+                        c_strcpy(tag_settings->album, tag->album().toCString(true), sizeof(tag_settings->album) - 1);
                         tag_settings->album[sizeof(tag_settings->album) - 1] = '\0';
 
                         // Copy the year as date

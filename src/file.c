@@ -16,7 +16,7 @@ void getDirectoryFromPath(const char *path, char *directory)
 {
     size_t path_length = strnlen(path, MAXPATHLEN);
     char tempPath[path_length + 1];
-    strncpy(tempPath, path, sizeof(tempPath));
+    c_strcpy(tempPath, path, sizeof(tempPath));
 
     char *dir = dirname(tempPath);
 
@@ -163,7 +163,7 @@ int walker(const char *startPath, const char *lowCaseSearching, char *result,
                         }
 
                         char *filename = dir->d_name;
-                        if (strnlen(filename, MAXPATHLEN) <= 4)
+                        if (strnlen(filename, 256) <= 4)
                         {
                                 continue;
                         }

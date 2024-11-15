@@ -1445,7 +1445,7 @@ int extractPercentage(char *str)
                 while (percentSign > str && *(percentSign - 1) >= '0' && *(percentSign - 1) <= '9')
                         percentSign--;
 
-                volume = atoi(percentSign);
+                volume = getNumber(percentSign);
         }
         return volume;
 }

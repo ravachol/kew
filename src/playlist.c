@@ -16,7 +16,7 @@ Playlist related functions.
 #define MAXPATHLEN 4096
 #endif
 
-const char PLAYLIST_EXTENSIONS[] = "\\.(m3u8?)$";
+const char PLAYLIST_EXTENSIONS[] = "(m3u8?)$";
 const char mainPlaylistName[] = "kew.m3u";
 
 // The playlist unshuffled as it appears in playlist view
@@ -311,41 +311,6 @@ void buildPlaylistRecursive(const char *directoryPath, const char *allowedExtens
         regfree(&regex);
 }
 
-int playDirectory(const char *directoryPath, const char *allowedExtensions, PlayList *playlist)
-{
-        DIR *dir = opendir(directoryPath);
-        if (dir == NULL)
-        {
-                printf("Failed to open directory: %s\n", directoryPath);
-                return -1;
-        }
-
-        regex_t regex;
-        int ret = regcomp(&regex, allowedExtensions, REG_EXTENDED);
-        if (ret != 0)
-        {
-                return -1;
-        }
-        char ext[100];
-        struct dirent *entry;
-        while ((entry = readdir(dir)) != NULL)
-        {
-                extractExtension(entry->d_name, sizeof(ext) - 1, ext);
-                if (match_regex(&regex, ext) == 0)
-                {
-                        char filePath[FILENAME_MAX];
-                        snprintf(filePath, sizeof(filePath), "%s/%s", directoryPath, entry->d_name);
-
-                        Node *node = NULL;
-                        createNode(&node, filePath, nodeIdCounter++);
-                        addToList(playlist, node);
-                }
-        }
-        closedir(dir);
-
-        return 0;
-}
-
 int joinPlaylist(PlayList *dest, PlayList *src)
 {
         if (src->count == 0)
@@ -379,7 +344,7 @@ void makePlaylistName(const char *search, int maxSize)
 
         snprintf(playlistName, maxSize, "%s", search);
 
-        snprintf(playlistName + strnlen(playlistName, MAXPATHLEN), maxSize - strnlen(playlistName, MAXPATHLEN), ".m3u");
+        snprintf(playlistName + strnlen(playlistName, maxSize), maxSize - strnlen(playlistName, maxSize), ".m3u");
 
         for (int i = 0; playlistName[i] != '\0'; i++)
         {
@@ -968,7 +933,6 @@ void addShuffledAlbumsToPlayList(FileSystemEntry *root, PlayList *list, int play
 
         collectAlbums(root, albums, &albumCount);
 
-        srand(time(NULL));
         shuffleEntries(albums, albumCount);
 
         for (size_t i = 0; i < albumCount && list->count < playlistMax; i++)
