@@ -10,6 +10,9 @@
 
 #if defined(__APPLE__) || defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__)
 #include <stdlib.h> // For arc4random
+#include <stdint.h> // For uint32_t
+
+uint32_t arc4random_uniform(uint32_t upper_bound);
 
 int getRandomNumber(int min, int max)
 {
@@ -115,19 +118,31 @@ int match_regex(const regex_t *regex, const char *ext)
         }
 }
 
-void extractExtension(const char *filename, size_t numChars, char *ext)
+void extractExtension(const char *filename, size_t ext_size, char *ext)
 {
         size_t length = strnlen(filename, MAXPATHLEN);
-        size_t copyChars = length < numChars ? length : numChars;
 
-        // Start copying from the calculated position
-        const char *extStart = filename + length - copyChars;
-
-        // Copy characters carefully to avoid breaking UTF-8 sequences
-        size_t i = 0, j = 0;
-        while (i < copyChars && extStart[i] != '\0')
+        // Find the last '.' character in the filename
+        const char *dot = NULL;
+        for (size_t i = 0; i < length; i++)
         {
-                unsigned char c = extStart[i];
+                if (filename[i] == '.')
+                {
+                        dot = &filename[i];
+                }
+        }
+
+        // If no dot was found, there's no extension
+        if (!dot || dot == filename + length - 1)
+        {
+                ext[0] = '\0'; // No extension found
+                return;
+        }
+
+        size_t i = 0, j = 0;
+        while (dot[i + 1] != '\0' && j < ext_size - 1)
+        {
+                unsigned char c = dot[i + 1];
 
                 // Determine the number of bytes for the current UTF-8 character
                 size_t charSize;
@@ -154,13 +169,13 @@ void extractExtension(const char *filename, size_t numChars, char *ext)
                 }
 
                 // Make sure we don't copy past the buffer
-                if (i + charSize > copyChars)
+                if (j + charSize >= ext_size)
                 {
                         break;
                 }
 
                 // Copy the UTF-8 character
-                strncpy(ext + j, extStart + i, charSize);
+                memcpy(ext + j, dot + 1 + i, charSize);
                 j += charSize;
                 i += charSize;
         }
@@ -413,4 +428,17 @@ int compareLibEntriesReversed(const struct dirent **a, const struct dirent **b)
         int result = compareLibEntries(a, b);
 
         return -result;
+}
+
+int getNumber(const char *str)
+{
+        char *endptr;
+        long value = strtol(str, &endptr, 10);
+
+        if (value < INT_MIN || value > INT_MAX)
+        {
+                return 0;
+        }
+
+        return (int)value;
 }

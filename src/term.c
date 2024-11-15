@@ -155,40 +155,6 @@ void cursorJumpDown(int numRows)
         printf("\033[%dB", numRows);
 }
 
-int readInputSequence_old(char *seq, size_t seqSize)
-{
-        char c;
-        ssize_t bytesRead;
-        seq[0] = '\0';
-        bytesRead = read(STDIN_FILENO, &c, 1);
-        if (bytesRead <= 0)
-        {
-                return 0;
-        }
-
-        // If it's not an escape character, return it as a single-character sequence
-        if (c != '\x1b')
-        {
-                seq[0] = c;
-                seq[1] = '\0';
-                return 1;
-        }
-
-        // Read additional characters
-        if (seqSize < 3)
-                return 0;
-
-        bytesRead = read(STDIN_FILENO, seq, 2);
-        if ((bytesRead <= 0) & (seq[0] == '\0'))
-        {
-                seq[0] = '\0';
-                return 0;
-        }
-
-        seq[bytesRead] = '\0';
-        return bytesRead;
-}
-
 int readInputSequence(char *seq, size_t seqSize)
 {
         char c;
