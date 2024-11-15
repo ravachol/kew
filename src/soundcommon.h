@@ -36,13 +36,15 @@
 #ifndef TAGSETTINGS_STRUCT
 #define TAGSETTINGS_STRUCT
 
+#define METADATA_MAX_SIZE 256
+
 typedef struct
 {
-        char title[256];
-        char artist[256];
-        char album_artist[256];
-        char album[256];
-        char date[256];
+        char title[METADATA_MAX_SIZE];
+        char artist[METADATA_MAX_SIZE];
+        char album_artist[METADATA_MAX_SIZE];
+        char album[METADATA_MAX_SIZE];
+        char date[METADATA_MAX_SIZE];
 } TagSettings;
 
 #endif

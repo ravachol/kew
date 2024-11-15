@@ -11,6 +11,10 @@ Functions related to printing the player to the screen.
 #define MAXPATHLEN 4096
 #endif
 
+#ifndef METADATA_MAX_SIZE
+#define METADATA_MAX_SIZE 256
+#endif
+
 const char VERSION[] = "3.0.0";
 const int ABSOLUTE_MIN_WIDTH = 68;
 bool timeEnabled = true;
@@ -221,14 +225,14 @@ int printLogo(SongData *songData, UISettings *ui)
                 if (ui->hideLogo && songData->metadata->artist[0] != '\0')
                 {
                         printBlankSpaces(indent);
-                        snprintf(title, MAXPATHLEN, "%s - %s",
+                        snprintf(title, METADATA_MAX_SIZE, "%s - %s",
                                  songData->metadata->artist, songData->metadata->title);
                 }
                 else
                 {
                         if (ui->hideLogo)
                                 printBlankSpaces(indent);
-                        c_strcpy(title, songData->metadata->title, MAXPATHLEN - 1);
+                        c_strcpy(title, songData->metadata->title, METADATA_MAX_SIZE - 1);
                         title[MAXPATHLEN - 1] = '\0';
                 }
 

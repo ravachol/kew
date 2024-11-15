@@ -60,7 +60,7 @@ COMMONFLAGS += $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) $(PKG_CONFIG) --cflags
 COMMONFLAGS += -fstack-protector-strong -Wformat -Werror=format-security -fPIE -D_FORTIFY_SOURCE=2
 COMMONFLAGS += -Wall -Wextra -Wpointer-arith -flto
 
-CFLAGS = $(COMMONFLAGS) -std=c11 -D_POSIX_C_SOURCE=200809L
+CFLAGS = $(COMMONFLAGS)
 
 # Compiler flags for C++ code
 CXXFLAGS = $(COMMONFLAGS) -std=c++11
