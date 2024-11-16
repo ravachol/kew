@@ -56,30 +56,6 @@ void setFullPath(FileSystemEntry *entry, const char *parentPath, const char *ent
         snprintf(entry->fullPath, fullPathLength, "%s/%s", parentPath, entryName);
 }
 
-void displayTreeSimple(FileSystemEntry *root, int depth)
-{
-        for (int i = 0; i < depth; ++i)
-        {
-                printf("  ");
-        }
-
-        printf("%s", root->name);
-        if (root->isDirectory)
-        {
-                printf(" (Directory)\n");
-                FileSystemEntry *child = root->children;
-                while (child != NULL)
-                {
-                        displayTreeSimple(child, depth + 1);
-                        child = child->next;
-                }
-        }
-        else
-        {
-                printf(" (File)\n");
-        }
-}
-
 void freeTree(FileSystemEntry *root)
 {
         if (root == NULL)
