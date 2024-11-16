@@ -421,7 +421,7 @@ void mapSettingsToKeys(AppSettings *settings, EventMapping *mappings)
 char *getConfigFilePath(char *configdir)
 {
         size_t configdir_length = strnlen(configdir, MAXPATHLEN - 1);
-        size_t settings_file_length = strnlen(SETTINGS_FILE, MAXPATHLEN - 1);
+        size_t settings_file_length = strnlen(SETTINGS_FILE, sizeof(SETTINGS_FILE) - 1);
 
         if (configdir_length + 1 + settings_file_length + 1 > MAXPATHLEN)
         {

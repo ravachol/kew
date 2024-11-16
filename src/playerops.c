@@ -562,6 +562,9 @@ void seekForward(UIState *uis)
                 }
         }
 
+        if (isPaused())
+                return;
+
         if (duration != 0.0)
         {
                 float step = 100 / uis->numProgressBars;
@@ -579,6 +582,9 @@ void seekBack(UIState *uis)
                         return;
                 }
         }
+
+        if (isPaused())
+                return;        
 
         if (duration != 0.0)
         {
@@ -930,12 +936,15 @@ void enqueueSongs(FileSystemEntry *entry, UIState *uis)
                                 }
                                 else
                                 {
-                                        dequeueChildren(entry);
+                                        dequeueChildren(entry); 
+
+                                        entry->isEnqueued = 0;                                      
 
                                         nextSongNeedsRebuilding = true;
                                 }
                         }
-
+                        if (chosenDir == NULL || entry->parent == NULL || strcmp(chosenDir->fullPath, entry->parent->fullPath) != 0)
+                        {}
                         setCurrentAsChosenDir();
                         uis->allowChooseSongs = true;
                 }

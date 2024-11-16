@@ -225,7 +225,7 @@ int printLogo(SongData *songData, UISettings *ui)
                 if (ui->hideLogo && songData->metadata->artist[0] != '\0')
                 {
                         printBlankSpaces(indent);
-                        snprintf(title, METADATA_MAX_SIZE, "%s - %s",
+                        snprintf(title, MAXPATHLEN, "%s - %s",
                                  songData->metadata->artist, songData->metadata->title);
                 }
                 else
@@ -573,7 +573,7 @@ void printLastRow(void)
         }
 
         printf("\033[K"); // clear the line
-        
+
         int textLength = strnlen(text, 100);
 
         int randomNumber = getRandomNumber(1, 808);
@@ -1055,6 +1055,7 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
         char filename[maxNameWidth + 1];
         bool foundChosen = false;
         int foundCurrent = 0;
+        int extraIndent = 0;
 
         UISettings *ui = &(state->uiSettings);
         UIState *uis = &(state->uiState);
@@ -1138,7 +1139,10 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
                                 if (depth >= 2)
                                         printf("  ");
 
-                                printBlankSpaces(indent);
+                                // If more than two levels deep add an extra indentation
+                                extraIndent = (depth - 2 <= 0) ? 0 : depth;
+                                
+                                printBlankSpaces(indent + extraIndent);
 
                                 if (chosenLibRow == libIter)
                                 {
@@ -1192,21 +1196,22 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
                                 {
                                         dirName[0] = '\0';
 
-                                        snprintf(dirName, maxNameWidth + 1, "%s", root->name);
+                                        snprintf(dirName, maxNameWidth + 1 - extraIndent, "%s", root->name);
 
                                         char *upperDirName = stringToUpper(dirName);
 
                                         if (depth == 1)
                                                 printf("%s \n", upperDirName);
                                         else
+                                        {
                                                 printf("%s \n", dirName);
-
+                                        }
                                         free(upperDirName);
                                 }
                                 else
                                 {
                                         filename[0] = '\0';
-                                        processName(root->name, filename, maxNameWidth);
+                                        processName(root->name, filename, maxNameWidth - extraIndent);
                                         printf(" └─%s \n", filename);
 
                                         libSongIter++;
@@ -1242,7 +1247,7 @@ char *getLibraryFilePath(void)
         }
 
         size_t configdir_length = strnlen(configdir, MAXPATHLEN);
-        size_t library_file_length = strnlen(LIBRARY_FILE, MAXPATHLEN);
+        size_t library_file_length = strnlen(LIBRARY_FILE, sizeof(LIBRARY_FILE));
 
         size_t filepath_length = configdir_length + 1 + library_file_length + 1;
 

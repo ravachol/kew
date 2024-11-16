@@ -330,6 +330,8 @@ void shortenString(char *str, size_t maxLength)
 
 void printBlankSpaces(int numSpaces)
 {
+        if (numSpaces < 1)
+                return;
         printf("%*s", numSpaces, " ");
 }
 
