@@ -268,7 +268,7 @@ int displayCover(unsigned char *cover, int coverWidth, int coverHeight, const ch
 {
         if (!ascii)
         {
-                printSquareBitmapCentered(cover, coverWidth, coverHeight-1, height);
+                printSquareBitmapCentered(cover, coverWidth, coverHeight, height-1);
         }
         else
         {
