@@ -15,7 +15,7 @@ Functions related to printing the player to the screen.
 #define METADATA_MAX_SIZE 256
 #endif
 
-const char VERSION[] = "3.0.0";
+const char VERSION[] = "3.0.1";
 const int ABSOLUTE_MIN_WIDTH = 68;
 bool timeEnabled = true;
 bool drewCover = true;
