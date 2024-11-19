@@ -1141,7 +1141,7 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
 
                                 // If more than two levels deep add an extra indentation
                                 extraIndent = (depth - 2 <= 0) ? 0 : depth;
-                                
+
                                 printBlankSpaces(indent + extraIndent);
 
                                 if (chosenLibRow == libIter)
@@ -1167,9 +1167,14 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
                                                                                strcmp(root->fullPath, chosenDir->fullPath) != 0)))
                                         {
                                                 previouslyAllowedChooseSongs = true;
-                                                uis->allowChooseSongs = false;
-                                                chosenDir = NULL;
                                                 refresh = true;
+
+                                                if (!uis->openedSubDir)
+                                                {
+                                                        
+                                                        uis->allowChooseSongs = false;
+                                                        chosenDir = NULL;
+                                                }
                                         }
 
                                         foundChosen = true;
@@ -1276,8 +1281,22 @@ void showLibrary(SongData *songData, AppState *state)
         {
                 if (previousChosenLibRow < chosenLibRow)
                 {
-                        chosenLibRow -= libCurrentDirSongCount;
-                        libCurrentDirSongCount = 0;
+                        if (!state->uiState.openedSubDir)
+                        {
+                                chosenLibRow -= libCurrentDirSongCount;
+                                libCurrentDirSongCount = 0;
+                        }
+                        else
+                        {
+                                chosenLibRow -= state->uiState.numSongsAboveSubDir;
+                                state->uiState.openedSubDir = false;
+                                state->uiState.numSongsAboveSubDir = 0;
+                        }
+                }
+                else
+                {
+                        state->uiState.openedSubDir = false;
+                        state->uiState.numSongsAboveSubDir = 0;                        
                 }
                 previouslyAllowedChooseSongs = false;
         }
