@@ -268,14 +268,14 @@ int displayCover(unsigned char *cover, int coverWidth, int coverHeight, const ch
 {
         if (!ascii)
         {
-                printSquareBitmapCentered(cover, coverWidth, coverHeight, height);
+                printSquareBitmapCentered(cover, coverWidth, coverHeight-1, height);
         }
         else
         {
                 int width = height * 2;
-                printInAscii(coverArtPath, height, width);
+                printInAscii(coverArtPath, height-1, width);
         }
-        printf("\n");
+        printf("\n\n");
 
         return 0;
 }
