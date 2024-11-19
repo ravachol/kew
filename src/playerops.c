@@ -522,6 +522,9 @@ void flushSeek(void)
 
 bool setPosition(gint64 newPosition)
 {
+        if (isPaused())
+                return false;
+
         gint64 currentPositionMicroseconds = llround(elapsedSeconds * G_USEC_PER_SEC);
 
         if (duration != 0.0)
@@ -539,6 +542,9 @@ bool setPosition(gint64 newPosition)
 
 bool seekPosition(gint64 offset)
 {
+        if (isPaused())
+                return false;
+
         if (duration != 0.0)
         {
                 gint64 step = offset;
@@ -584,7 +590,7 @@ void seekBack(UIState *uis)
         }
 
         if (isPaused())
-                return;        
+                return;
 
         if (duration != 0.0)
         {
@@ -759,7 +765,7 @@ void silentSwitchToNext(bool loadSong, AppState *state)
         skipping = false;
 
         hasSilentlySwitched = true;
-        
+
         nextSongNeedsRebuilding = true;
         nextSong = NULL;
 }
@@ -936,15 +942,29 @@ void enqueueSongs(FileSystemEntry *entry, UIState *uis)
                                 }
                                 else
                                 {
-                                        dequeueChildren(entry); 
+                                        dequeueChildren(entry);
 
-                                        entry->isEnqueued = 0;                                      
+                                        entry->isEnqueued = 0;
 
                                         nextSongNeedsRebuilding = true;
                                 }
                         }
-                        if (chosenDir == NULL || entry->parent == NULL || strcmp(chosenDir->fullPath, entry->parent->fullPath) != 0)
-                        {}
+                        if ((chosenDir != NULL && entry->parent != NULL && strcmp(entry->parent->fullPath, chosenDir->fullPath) == 0) && uis->allowChooseSongs == true)
+                        {
+                                uis->openedSubDir = true;
+
+                                FileSystemEntry *tmpc = entry->parent->children;
+
+                                uis->numSongsAboveSubDir = 0;
+
+                                while (tmpc != NULL)
+                                {
+                                        tmpc = tmpc->next;                                        
+                                        uis->numSongsAboveSubDir++;                                        
+                                        if (tmpc != NULL && strcmp(entry->fullPath, tmpc->fullPath) == 0)
+                                                break;                                                                              
+                                }
+                        }
                         setCurrentAsChosenDir();
                         uis->allowChooseSongs = true;
                 }
@@ -1749,14 +1769,14 @@ void *updateIfTopLevelFoldersMtimesChangedThread(void *arg)
         if (stat(path, &path_stat) == -1)
         {
                 perror("stat");
-                free(args);                
+                free(args);
                 pthread_exit(NULL);
         }
 
         if (getModificationTime(&path_stat) > ui->lastTimeAppRan && ui->lastTimeAppRan > 0)
         {
                 updateLibrary(path);
-                free(args);                
+                free(args);
                 pthread_exit(NULL);
         }
 
@@ -1764,7 +1784,7 @@ void *updateIfTopLevelFoldersMtimesChangedThread(void *arg)
         if (!dir)
         {
                 perror("opendir");
-                free(args);                
+                free(args);
                 pthread_exit(NULL);
         }
 
