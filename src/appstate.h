@@ -56,6 +56,8 @@ typedef struct
 {
         int chosenNodeId;                               // The id of the tree node that is chosen in library view        
         bool allowChooseSongs;                          // In library view, has the user entered a folder that contains songs                               
+        bool openedSubDir;                              // Opening a directory in an open directory.        
+        int numSongsAboveSubDir;                        // How many rows do we need to jump up if we close the parent directory and open one within
         int numDirectoryTreeEntries;                    // The number of entries in directory tree in library view
         int numProgressBars;                            // The number of progress dots at the bottom of track view
         volatile sig_atomic_t resizeFlag;               // Is the user resizing the terminal window

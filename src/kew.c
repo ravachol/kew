@@ -341,6 +341,8 @@ void notifySongSwitch(SongData *currentSongData, UISettings *ui)
 
 #elif __APPLE__
                 displaySongNotificationApple(currentSongData->metadata->artist, currentSongData->metadata->title, currentSongData->coverArtPath, ui);
+#else
+                (void)ui;                
 #endif
 
                 notifyMPRISSwitch(currentSongData);
@@ -1461,6 +1463,8 @@ void initState(AppState *state)
         state->uiState.chosenNodeId = 0;
         state->uiState.resetPlaylistDisplay = true;
         state->uiState.allowChooseSongs = false;
+        state->uiState.openedSubDir = false;
+        state->uiState.numSongsAboveSubDir  = 0;        
         state->uiState.resizeFlag = 0;
         state->uiState.doNotifyMPRISSwitched = false;
         state->uiState.doNotifyMPRISPlaying = false;
