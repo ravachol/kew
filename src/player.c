@@ -1114,8 +1114,9 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
 
                                 while (tmpc != NULL)
                                 {
-                                        tmpc = tmpc->next;
-                                        libCurrentDirSongCount++;
+                                        if (!tmpc->isDirectory)
+                                                libCurrentDirSongCount++;
+                                        tmpc = tmpc->next;                                        
                                 }
 
                                 lastEntry = currentEntry;
@@ -1291,6 +1292,7 @@ void showLibrary(SongData *songData, AppState *state)
                                 chosenLibRow -= state->uiState.numSongsAboveSubDir;
                                 state->uiState.openedSubDir = false;
                                 state->uiState.numSongsAboveSubDir = 0;
+                                previouslyAllowedChooseSongs = false;
                         }
                 }
                 else

@@ -959,10 +959,10 @@ void enqueueSongs(FileSystemEntry *entry, UIState *uis)
 
                                 while (tmpc != NULL)
                                 {
+                                        if (strcmp(entry->fullPath, tmpc->fullPath) == 0)
+                                                break;                                         
                                         tmpc = tmpc->next;                                        
-                                        uis->numSongsAboveSubDir++;                                        
-                                        if (tmpc != NULL && strcmp(entry->fullPath, tmpc->fullPath) == 0)
-                                                break;                                                                              
+                                        uis->numSongsAboveSubDir++;                                                                                                                     
                                 }
                         }
                         setCurrentAsChosenDir();
