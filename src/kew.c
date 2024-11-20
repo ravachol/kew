@@ -116,12 +116,6 @@ struct Event processInput()
         bool cooldownElapsed = false;
         bool cooldown2Elapsed = false;
 
-        if (!isInputAvailable())
-        {
-                flushSeek();
-                return event;
-        }
-
         if (isCooldownElapsed(COOLDOWN_MS))
                 cooldownElapsed = true;
 
@@ -132,6 +126,8 @@ struct Event processInput()
         char seq[MAX_SEQ_LEN];
         seq[0] = '\0'; // Set initial value
         int keyReleased = 0;
+
+        bool foundInput = false;
 
         // Find input
         while (isInputAvailable())
@@ -147,13 +143,15 @@ struct Event processInput()
                         break;
                 }
 
+                foundInput = true;                
+
                 size_t seq_len = strnlen(seq, MAX_SEQ_LEN);
                 size_t remaining_space = MAX_SEQ_LEN - seq_len;
 
                 if (remaining_space < 1)
                 {
                         break;
-                }
+                }              
 
                 snprintf(seq + seq_len, remaining_space, "%s", tmpSeq);
 
@@ -168,6 +166,12 @@ struct Event processInput()
                 }
 
                 keyReleased = 0;
+        }
+
+        if (!foundInput && cooldownElapsed)
+        {
+                flushSeek();
+                return event;
         }
 
         if (keyReleased)
