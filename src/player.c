@@ -1141,7 +1141,7 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
                                         printf("  ");
 
                                 // If more than two levels deep add an extra indentation
-                                extraIndent = (depth - 2 <= 0) ? 0 : depth;
+                                extraIndent = (depth - 2 <= 0) ? 0 : depth - 2;
 
                                 printBlankSpaces(indent + extraIndent);
 
@@ -1218,7 +1218,7 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
                                 {
                                         filename[0] = '\0';
                                         processName(root->name, filename, maxNameWidth - extraIndent);
-                                        printf(" └─%s \n", filename);
+                                        printf("└─%s \n", filename);
 
                                         libSongIter++;
                                 }
