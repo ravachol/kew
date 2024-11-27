@@ -335,34 +335,6 @@ void printBlankSpaces(int numSpaces)
         printf("%*s", numSpaces, " ");
 }
 
-char *stringToUpperWithoutSpaces(const char *str, int maxLen)
-{
-        if (str == NULL)
-        {
-                return NULL;
-        }
-
-        size_t len = strnlen(str, maxLen);
-        char *result = (char *)malloc(len + 1);
-        if (result == NULL)
-        {
-                return NULL;
-        }
-
-        size_t resultIndex = 0;
-        for (size_t i = 0; i < len; ++i)
-        {
-                if (!isspace((unsigned char)str[i]))
-                {
-                        result[resultIndex++] = toupper((unsigned char)str[i]);
-                }
-        }
-
-        result[resultIndex] = '\0';
-
-        return result;
-}
-
 int naturalCompare(const char *a, const char *b)
 {
         while (*a && *b)
@@ -401,10 +373,10 @@ int naturalCompare(const char *a, const char *b)
 
 int compareLibEntries(const struct dirent **a, const struct dirent **b)
 {
-        char *nameA = stringToUpperWithoutSpaces((*a)->d_name, MAXPATHLEN);
-        char *nameB = stringToUpperWithoutSpaces((*b)->d_name, MAXPATHLEN);
+        char *nameA = stringToUpper((*a)->d_name);
+        char *nameB = stringToUpper((*b)->d_name);
 
-        if (nameA[0] == '_' && nameB[0] != '_')
+        if (nameA[0] == '_' && nameB[0] != '_') 
         {
                 free(nameA);
                 free(nameB);
