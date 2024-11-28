@@ -373,28 +373,19 @@ int naturalCompare(const char *a, const char *b)
 
 int compareLibEntries(const struct dirent **a, const struct dirent **b)
 {
-        char *nameA = stringToUpper((*a)->d_name);
-        char *nameB = stringToUpper((*b)->d_name);
+    const char *nameA = (*a)->d_name;
+    const char *nameB = (*b)->d_name;
 
-        if (nameA[0] == '_' && nameB[0] != '_') 
-        {
-                free(nameA);
-                free(nameB);
-                return 1;
-        }
-        else if (nameA[0] != '_' && nameB[0] == '_')
-        {
-                free(nameA);
-                free(nameB);
-                return -1;
-        }
+    if (nameA[0] == '_' && nameB[0] != '_') 
+    {
+        return 1;
+    }
+    else if (nameA[0] != '_' && nameB[0] == '_')
+    {
+        return -1;
+    }
 
-        int result = naturalCompare(nameA, nameB);
-
-        free(nameA);
-        free(nameB);
-
-        return result;
+    return naturalCompare(nameA, nameB);
 }
 
 int compareLibEntriesReversed(const struct dirent **a, const struct dirent **b)
