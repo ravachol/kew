@@ -303,20 +303,6 @@ int isInTempDir(const char *path)
         return (pathStartsWith(path, tempDir));
 }
 
-bool checkFileBelowMaxSize(const char *filePath, int maxSize)
-{
-        struct stat st;
-
-        if (stat(filePath, &st) == 0)
-        {
-                return (st.st_size <= maxSize);
-        }
-
-        perror("stat failed");
-
-        return false;
-}
-
 void generateTempFilePath(char *filePath, const char *prefix, const char *suffix)
 {
         const char *tempDir = getenv("TMPDIR");
