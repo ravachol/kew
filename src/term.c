@@ -219,12 +219,3 @@ int getIndentation(int terminalWidth)
         int indent = ((term_w - terminalWidth) / 2) + 1;
         return (indent > 0) ? indent : 0;
 }
-
-int isFunctionKey(const char *seq)
-{
-        if (seq[0] == '\033')
-        { // ESC character
-                return 1;
-        }
-        return 0;
-}

@@ -66,6 +66,4 @@ void clearScreen(void);
 
 int readInputSequence(char *seq, size_t seqSize);
 
-int isFunctionKey(const char *seq);
-
 #endif
