@@ -143,7 +143,7 @@ struct Event processInput()
                         break;
                 }
 
-                foundInput = true;                
+                foundInput = true;
 
                 size_t seq_len = strnlen(seq, MAX_SEQ_LEN);
                 size_t remaining_space = MAX_SEQ_LEN - seq_len;
@@ -151,7 +151,7 @@ struct Event processInput()
                 if (remaining_space < 1)
                 {
                         break;
-                }              
+                }
 
                 snprintf(seq + seq_len, remaining_space, "%s", tmpSeq);
 
@@ -346,7 +346,7 @@ void notifySongSwitch(SongData *currentSongData, UISettings *ui)
 #elif __APPLE__
                 displaySongNotificationApple(currentSongData->metadata->artist, currentSongData->metadata->title, currentSongData->coverArtPath, ui);
 #else
-                (void)ui;                
+                (void)ui;
 #endif
 
                 notifyMPRISSwitch(currentSongData);
@@ -1365,6 +1365,13 @@ int directoryExists(const char *path)
         return 0;
 }
 
+void clearInputBuffer()
+{
+        int c;
+        while ((c = getchar()) != '\n' && c != EOF)
+                ;
+}
+
 void setMusicPath()
 {
         struct passwd *pw = getpwuid(getuid());
@@ -1379,7 +1386,7 @@ void setMusicPath()
                 printf("Error: Could not retrieve user information.\n");
                 printf("Please set a path to your music library.\n");
                 printf("To set it, type: kew path \"/path/to/Music\".\n");
-                exit(0);
+                exit(1);
         }
 
         // Music folder names in different languages
@@ -1429,7 +1436,16 @@ void setMusicPath()
         if (!found || (found && (choice[0] == 'n' || choice[0] == 'N')))
         {
                 printf("Please enter the path to your music library (/path/to/Music):\n");
-                result = scanf("%s", path);
+
+                clearInputBuffer();
+
+                if (fgets(path, sizeof(path), stdin) == NULL)
+                {
+                        printf("Error reading input.\n");
+                        exit(1);
+                }
+                
+                path[strcspn(path, "\n")] = '\0';
 
                 if (directoryExists(path))
                 {
@@ -1468,7 +1484,7 @@ void initState(AppState *state)
         state->uiState.resetPlaylistDisplay = true;
         state->uiState.allowChooseSongs = false;
         state->uiState.openedSubDir = false;
-        state->uiState.numSongsAboveSubDir  = 0;        
+        state->uiState.numSongsAboveSubDir = 0;
         state->uiState.resizeFlag = 0;
         state->uiState.doNotifyMPRISSwitched = false;
         state->uiState.doNotifyMPRISPlaying = false;
