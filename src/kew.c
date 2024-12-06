@@ -550,7 +550,10 @@ void handleGoToSong(AppState *state)
                                 }
 
                                 if (wasEndOfList)
+                                {
                                         usingSongDataA = true;
+                                        skipOutOfOrder = false;
+                                }
 
                                 audioData.endOfListReached = false;
                         }
