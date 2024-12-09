@@ -15,7 +15,7 @@ Functions related to printing the player to the screen.
 #define METADATA_MAX_SIZE 256
 #endif
 
-const char VERSION[] = "3.0.1";
+const char VERSION[] = "3.0.2";
 const int ABSOLUTE_MIN_WIDTH = 68;
 bool timeEnabled = true;
 bool drewCover = true;
@@ -1087,10 +1087,10 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
         }
         else
         {
-                if (chosenLibRow >= uis->numDirectoryTreeEntries + numTopLevelSongs)
+                if (chosenLibRow >= 1 + uis->numDirectoryTreeEntries + numTopLevelSongs)  // 1 for root
                 {
-                        startLibIter = uis->numDirectoryTreeEntries + numTopLevelSongs - maxListSize;
-                        chosenLibRow = uis->numDirectoryTreeEntries + numTopLevelSongs - 1;
+                        startLibIter = 1 + uis->numDirectoryTreeEntries + numTopLevelSongs - maxListSize;
+                        chosenLibRow = uis->numDirectoryTreeEntries + numTopLevelSongs;
                 }
         }
 
@@ -1102,9 +1102,10 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
 
         if (root->isDirectory ||
             (!root->isDirectory && depth == 1) ||
+            (root->isDirectory && depth == 0) ||
             (chosenDir != NULL && uis->allowChooseSongs && root->parent != NULL && (strcmp(root->parent->fullPath, chosenDir->fullPath) == 0 || strcmp(root->fullPath, chosenDir->fullPath) == 0)))
         {
-                if (depth > 0)
+                if (depth >= 0)
                 {
                         if (currentEntry != NULL && currentEntry != lastEntry && !currentEntry->isDirectory && currentEntry->parent != NULL && currentEntry->parent == chosenDir)
                         {
@@ -1116,7 +1117,7 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
                                 {
                                         if (!tmpc->isDirectory)
                                                 libCurrentDirSongCount++;
-                                        tmpc = tmpc->next;                                        
+                                        tmpc = tmpc->next;
                                 }
 
                                 lastEntry = currentEntry;
@@ -1172,7 +1173,7 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
 
                                                 if (!uis->openedSubDir)
                                                 {
-                                                        
+
                                                         uis->allowChooseSongs = false;
                                                         chosenDir = NULL;
                                                 }
@@ -1202,7 +1203,10 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
                                 {
                                         dirName[0] = '\0';
 
-                                        snprintf(dirName, maxNameWidth + 1 - extraIndent, "%s", root->name);
+                                        if (strcmp(root->name, "root") == 0)
+                                                snprintf(dirName, maxNameWidth + 1 - extraIndent, "%s", "ALL MUSIC");
+                                        else
+                                                snprintf(dirName, maxNameWidth + 1 - extraIndent, "%s", root->name);
 
                                         char *upperDirName = stringToUpper(dirName);
 
@@ -1298,7 +1302,7 @@ void showLibrary(SongData *songData, AppState *state)
                 else
                 {
                         state->uiState.openedSubDir = false;
-                        state->uiState.numSongsAboveSubDir = 0;                        
+                        state->uiState.numSongsAboveSubDir = 0;
                 }
                 previouslyAllowedChooseSongs = false;
         }

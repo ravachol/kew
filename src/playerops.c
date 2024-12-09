@@ -921,16 +921,20 @@ void enqueueSongs(FileSystemEntry *entry, UIState *uis)
 {
         FileSystemEntry *chosenDir = getChosenDir();
         bool hasEnqueued = false;
+        bool shuffle = false;
         FileSystemEntry *firstEnqueuedEntry = NULL;
 
         if (entry != NULL)
         {
                 if (entry->isDirectory)
                 {
-                        if (!hasSongChildren(entry) || (chosenDir != NULL && strcmp(entry->fullPath, chosenDir->fullPath) == 0))
+                        if (!hasSongChildren(entry) || entry->parent == NULL || (chosenDir != NULL && strcmp(entry->fullPath, chosenDir->fullPath) == 0))
                         {
                                 if (hasDequeuedChildren(entry))
                                 {
+                                        if (entry->parent == NULL)      // Shuffle playlist if it's the root
+                                                shuffle = true;
+
                                         entry->isEnqueued = 1;
                                         entry = entry->children;
 
@@ -960,9 +964,9 @@ void enqueueSongs(FileSystemEntry *entry, UIState *uis)
                                 while (tmpc != NULL)
                                 {
                                         if (strcmp(entry->fullPath, tmpc->fullPath) == 0)
-                                                break;                                         
-                                        tmpc = tmpc->next;                                        
-                                        uis->numSongsAboveSubDir++;                                                                                                                     
+                                                break;
+                                        tmpc = tmpc->next;
+                                        uis->numSongsAboveSubDir++;
                                 }
                         }
                         setCurrentAsChosenDir();
@@ -998,6 +1002,12 @@ void enqueueSongs(FileSystemEntry *entry, UIState *uis)
                 if (firstEnqueuedEntry != NULL)
                         songToStartFrom = findPathInPlaylist(firstEnqueuedEntry->fullPath, &playlist);
                 lastPlayedId = -1;
+        }
+
+        if (shuffle)
+        {
+                shufflePlaylist(&playlist);
+                songToStartFrom = NULL;
         }
 
         if (nextSongNeedsRebuilding)
