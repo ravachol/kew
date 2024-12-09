@@ -3,11 +3,11 @@
 
 Listen to music in the terminal.
 
-![Example screenshot](images/kew-screenshot.png)  
+![Example screenshot](images/kew-screenshot.png)
 *Example screenshot running in Konsole: [Jenova 7: Lost Sci-Fi Movie Themes](https://jenova7.bandcamp.com/album/lost-sci-fi-movie-themes).*
 
 
-  
+
 
 kew (/kjuː/) is a terminal music player.
 
@@ -77,8 +77,8 @@ sudo pacman -Syu --noconfirm --needed pkg-config faad2 taglib fftw git gcc make 
 ```bash
 brew install gettext faad2 taglib chafa fftw opus opusfile libvorbis libogg glib pkg-config make git
 ```
-Notes for mac users: 
-1) A sixel-capable terminal like kitty or WezTerm is recommended for macOS. 
+Notes for mac users:
+1) A sixel-capable terminal like kitty or WezTerm is recommended for macOS.
 2) The visualizer and album colors are disabled by default on macOS, because the default terminal doesn't handle them too well. To enable press v and i respectively.
 
 #### For Fedora:
@@ -155,7 +155,7 @@ sudo make uninstall
 
 By default, the build system will automatically detect if `libnotify` and `faad2` are available and include them if found.
 
-Libnotify provides desktop notifications and Faad2 provides AAC decoding. 
+Libnotify provides desktop notifications and Faad2 provides AAC decoding.
 
 
 ### Standalone AppImage for musl systems
