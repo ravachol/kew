@@ -21,10 +21,6 @@
 #include "file.h"
 #include "utils.h"
 
-#ifdef USE_LIBNOTIFY
-#include <libnotify/notify.h>
-#endif
-
 #ifndef MAXPATHLEN
 #define MAXPATHLEN 4096
 #endif
@@ -126,7 +122,7 @@ typedef struct
         char togglePlaylist[6];
         char toggleBindings[6];
         char volumeUp[6];
-        char volumeUpAlt[6];        
+        char volumeUpAlt[6];
         char volumeDown[6];
         char previousTrackAlt[6];
         char nextTrackAlt[6];
@@ -176,7 +172,7 @@ typedef struct
         char hardRemove2[6];
         char lastVolume[12];
         char allowNotifications[2];
-        char color[2];       
+        char color[2];
         char artistColor[2];
         char enqueuedColor[2];
         char titleColor[2];
@@ -197,10 +193,6 @@ enum AudioImplementation
         M4A,
         NONE
 };
-
-#ifdef USE_LIBNOTIFY
-extern NotifyNotification *previous_notification;
-#endif
 
 extern volatile bool refresh;
 
@@ -378,6 +370,8 @@ void logTime(const char *message);
 
 void clearCurrentTrack(void);
 
-void cleanupPreviousNotification();
+void cleanupDbusConnection();
+
+void freeLastCover(void);
 
 #endif
