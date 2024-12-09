@@ -1325,23 +1325,45 @@ typedef struct
         GMainLoop *loop;
         gboolean connected;
         GDBusConnection *connection;
+        gboolean timeout_triggered;
+        int ref_count;
 } BusConnectionData;
+
+static void bus_connection_data_ref(BusConnectionData *data)
+{
+        g_atomic_int_inc(&data->ref_count);
+}
+
+static void bus_connection_data_unref(BusConnectionData *data)
+{
+        if (g_atomic_int_dec_and_test(&data->ref_count))
+        {
+                g_main_loop_unref(data->loop);
+                g_free(data);
+        }
+}
 
 static gboolean on_timeout(gpointer user_data)
 {
-        BusConnectionData *data = user_data;
+        BusConnectionData *data = (BusConnectionData *)user_data;
+
         if (!data->connected)
         {
                 fprintf(stderr, "D-Bus connection timed out.\n");
+                data->timeout_triggered = TRUE;
                 g_main_loop_quit(data->loop);
         }
-        return FALSE;
+
+        // Decrement reference count
+        bus_connection_data_unref(data);
+
+        return FALSE; // Stop the timeout callback from repeating
 }
 
 static void on_bus_get_complete(GObject *source_object, GAsyncResult *res, gpointer user_data)
 {
         (void)source_object;
-        BusConnectionData *data = user_data;
+        BusConnectionData *data = (BusConnectionData *)user_data;
         GError *error = NULL;
 
         data->connection = g_bus_get_finish(res, &error);
@@ -1355,43 +1377,66 @@ static void on_bus_get_complete(GObject *source_object, GAsyncResult *res, gpoin
                 data->connected = TRUE;
         }
 
-        g_main_loop_quit(data->loop);
+        if (!data->timeout_triggered)
+        {
+                g_main_loop_quit(data->loop);
+        }
+
+        // Decrement reference count
+        bus_connection_data_unref(data);
 }
 
 GDBusConnection *get_dbus_connection_with_timeout(GBusType bus_type, guint timeout_ms)
 {
-        GMainLoop *loop = g_main_loop_new(NULL, FALSE);
-        BusConnectionData data = {loop, FALSE, NULL};
+        // Allocate and initialize the data structure
+        BusConnectionData *data = g_new0(BusConnectionData, 1);
+        data->loop = g_main_loop_new(NULL, FALSE);
+        data->connected = FALSE;
+        data->connection = NULL;
+        data->timeout_triggered = FALSE;
+        data->ref_count = 1; // Start with a single reference
 
-        g_bus_get(bus_type, NULL, on_bus_get_complete, &data);
+        // Increment reference count for each callback
+        bus_connection_data_ref(data); // For on_timeout
+        bus_connection_data_ref(data); // For on_bus_get_complete
 
-        g_timeout_add(timeout_ms, on_timeout, &data);
+        // Start the asynchronous bus connection
+        g_bus_get(bus_type, NULL, on_bus_get_complete, data);
 
-        g_main_loop_run(loop);
-        g_main_loop_unref(loop);
+        // Add a timeout callback
+        g_timeout_add(timeout_ms, on_timeout, data);
 
-        return data.connection;
+        // Run the main loop
+        g_main_loop_run(data->loop);
+
+        // Store the connection result before cleaning up
+        GDBusConnection *connection = data->connection;
+
+        // Decrement reference count for the main loop
+        bus_connection_data_unref(data);
+
+        return connection;
 }
 
 void cleanupPreviousNotification()
 {
-    if (last_notification_id != 0)
-    {
-        // Send CloseNotification call for the active notification
-        g_dbus_connection_call(
-            connection,
-            "org.freedesktop.Notifications",
-            "/org/freedesktop/Notifications",
-            "org.freedesktop.Notifications",
-            "CloseNotification",
-            g_variant_new("(u)", last_notification_id),
-            NULL, // No return value expected
-            G_DBUS_CALL_FLAGS_NONE,
-            100, // Timeout in milliseconds
-            NULL, // Cancellable
-            on_close_notification_complete,
-            NULL);
-    }
+        if (last_notification_id != 0)
+        {
+                // Send CloseNotification call for the active notification
+                g_dbus_connection_call(
+                    connection,
+                    "org.freedesktop.Notifications",
+                    "/org/freedesktop/Notifications",
+                    "org.freedesktop.Notifications",
+                    "CloseNotification",
+                    g_variant_new("(u)", last_notification_id),
+                    NULL, // No return value expected
+                    G_DBUS_CALL_FLAGS_NONE,
+                    100,  // Timeout in milliseconds
+                    NULL, // Cancellable
+                    on_close_notification_complete,
+                    NULL);
+        }
 }
 
 int displaySongNotification(const char *artist, const char *title, const char *cover, UISettings *ui)
