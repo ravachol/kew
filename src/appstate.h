@@ -5,9 +5,7 @@
 
 #include <gio/gio.h>
 #include <glib.h>
-#ifdef USE_LIBNOTIFY
-#include <libnotify/notify.h>
-#endif
+
 #include <sys/param.h>
 
 #ifndef PIXELDATA_STRUCT
@@ -49,20 +47,20 @@ typedef struct
         int visualizerHeight;                           // Height in characters of the spectrum visualizer
         int cacheLibrary;                               // Cache the library or not
         bool quitAfterStopping;                         // Exit kew when the music stops or not
-        time_t lastTimeAppRan;                          // When did this app run last, used for updating the cached library if it has been modified since that time         
+        time_t lastTimeAppRan;                          // When did this app run last, used for updating the cached library if it has been modified since that time
 } UISettings;
 
 typedef struct
 {
-        int chosenNodeId;                               // The id of the tree node that is chosen in library view        
-        bool allowChooseSongs;                          // In library view, has the user entered a folder that contains songs                               
-        bool openedSubDir;                              // Opening a directory in an open directory.        
+        int chosenNodeId;                               // The id of the tree node that is chosen in library view
+        bool allowChooseSongs;                          // In library view, has the user entered a folder that contains songs
+        bool openedSubDir;                              // Opening a directory in an open directory.
         int numSongsAboveSubDir;                        // How many rows do we need to jump up if we close the parent directory and open one within
         int numDirectoryTreeEntries;                    // The number of entries in directory tree in library view
         int numProgressBars;                            // The number of progress dots at the bottom of track view
         volatile sig_atomic_t resizeFlag;               // Is the user resizing the terminal window
-        bool resetPlaylistDisplay;                      // Should the playlist be reset, ie drawn starting from playing song                 
-        bool doNotifyMPRISSwitched;                     // Emit mpris song switched signal        
+        bool resetPlaylistDisplay;                      // Should the playlist be reset, ie drawn starting from playing song
+        bool doNotifyMPRISSwitched;                     // Emit mpris song switched signal
         bool doNotifyMPRISPlaying;                      // Emit mpris music is playing signal
 } UIState;
 
