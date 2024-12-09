@@ -1,9 +1,11 @@
+# SECURITY
+
 ## Reporting a Bug
 
 If you find a security related issue, please contact us at kew-music-player@proton.me.
 
 When a fix is published, you will receive credit under your real name or bug
-tracker handle in GitHub. If you prefer to remain anonymous or pseudonymous, 
+tracker handle in GitHub. If you prefer to remain anonymous or pseudonymous,
 you should mention this in your e-mail.
 
 ## Disclosure Policy
@@ -13,7 +15,7 @@ following steps:
 
   * Confirm the problem and determine the affected versions.
   * Audit code to find any potential similar problems.
-  * Prepare fixes for all releases still under maintenance. These fixes will be
+  * Prepare fix for the latest release. This fix will be
     released as fast as possible.
 
 You may be asked to provide further information in pursuit of a fix.
