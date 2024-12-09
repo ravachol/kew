@@ -63,9 +63,6 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include "soundcommon.h"
 #include "songloader.h"
 #include "utils.h"
-#ifdef USE_LIBNOTIFY
-#include "libnotify/notify.h"
-#endif
 
 // #define DEBUG 1
 #define MAX_TMP_SEQ_LEN 256 // Maximum length of temporary sequence buffer
@@ -340,7 +337,7 @@ void notifySongSwitch(SongData *currentSongData, UISettings *ui)
 {
         if (currentSongData != NULL && currentSongData->hasErrors == 0 && currentSongData->metadata && strnlen(currentSongData->metadata->title, 10) > 0)
         {
-#ifdef USE_LIBNOTIFY
+#ifdef USE_DBUS
                 displaySongNotification(currentSongData->metadata->artist, currentSongData->metadata->title, currentSongData->coverArtPath, ui);
 
 #elif __APPLE__
@@ -1063,9 +1060,9 @@ void cleanupOnExit()
         pthread_mutex_destroy(&(switchMutex));
         pthread_mutex_unlock(&dataSourceMutex);
         pthread_mutex_destroy(&(dataSourceMutex));
-#ifdef USE_LIBNOTIFY
-        notify_uninit();
-        cleanupPreviousNotification();
+        freeLastCover();
+#ifdef USE_DBUS
+        cleanupDbusConnection();
 #endif
         resetConsole();
         showCursor();
@@ -1153,6 +1150,8 @@ void init(AppState *state)
         userData.songdataADeleted = true;
         userData.songdataBDeleted = true;
         initAudioBuffer();
+        unsigned int seed = (unsigned int) time(NULL);
+        srand(seed);
         pthread_mutex_init(&dataSourceMutex, NULL);
         pthread_mutex_init(&switchMutex, NULL);
         pthread_mutex_init(&(loadingdata.mutex), NULL);
@@ -1160,9 +1159,6 @@ void init(AppState *state)
         state->uiSettings.nerdFontsEnabled = true;
         createLibrary(&settings, state);
         fflush(stdout);
-#ifdef USE_LIBNOTIFY
-        notify_init("kew");
-#endif
 
 #ifdef DEBUG
         g_setenv("G_MESSAGES_DEBUG", "all", TRUE);
@@ -1447,7 +1443,7 @@ void setMusicPath()
                         printf("Error reading input.\n");
                         exit(1);
                 }
-                
+
                 path[strcspn(path, "\n")] = '\0';
 
                 if (directoryExists(path))

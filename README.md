@@ -54,7 +54,6 @@ kew dependencies are:
 * libogg
 * pkg-config
 * glib2.0
-* libnotify (optional)
 
 Note: TagLib, faad2 and libogg have replaced FFmpeg.
 
@@ -63,13 +62,13 @@ Install these dependencies using your distro's package manager. For instance:
 #### For Debian/Ubuntu:
 
 ```bash
-sudo apt install -y pkg-config libfaad-dev libtag1-dev libfftw3-dev libopus-dev libopusfile-dev libvorbis-dev libogg-dev git gcc make libchafa-dev libnotify-dev
+sudo apt install -y pkg-config libfaad-dev libtag1-dev libfftw3-dev libopus-dev libopusfile-dev libvorbis-dev libogg-dev git gcc make libchafa-dev
 ```
 
 #### For Arch Linux:
 
 ```bash
-sudo pacman -Syu --noconfirm --needed pkg-config faad2 taglib fftw git gcc make chafa glib2 opus opusfile libvorbis libogg libnotify
+sudo pacman -Syu --noconfirm --needed pkg-config faad2 taglib fftw git gcc make chafa glib2 opus opusfile libvorbis libogg
 ```
 
 #### For macOS:
@@ -84,14 +83,14 @@ Notes for mac users:
 #### For Fedora:
 
 ```bash
-dnf install -y pkg-config taglib-devel fftw-devel opus-devel opusfile-devel libvorbis-devel libogg-devel git gcc make chafa-devel libnotify-devel libatomic gcc-c++
+dnf install -y pkg-config taglib-devel fftw-devel opus-devel opusfile-devel libvorbis-devel libogg-devel git gcc make chafa-devel libatomic gcc-c++
 ```
 Option: add libfaad-devel for AAC,M4A support (Requires RPM-fusion to be enabled).
 
 #### For OpenSUSE:
 
 ```bash
-sudo zypper install -y pkg-config taglib-devel fftw-devel opus-devel opusfile-devel libvorbis-devel libogg-devel git chafa-devel gcc make libnotify-devel
+sudo zypper install -y pkg-config taglib-devel fftw-devel opus-devel opusfile-devel libvorbis-devel libogg-devel git chafa-devel gcc make
 ```
 Option: add libfaad-devel for AAC,M4A support (Requires RPM-fusion and Packman to be enabled).
 
@@ -99,32 +98,32 @@ Option: add libfaad-devel for AAC,M4A support (Requires RPM-fusion and Packman t
 Requires RPM-fusion to be enabled.
 
 ```bash
-sudo yum install -y pkgconfig taglib-devel fftw-devel opus-devel opusfile-devel libvorbis-devel libogg-devel git gcc make chafa-devel libnotify-devel
+sudo yum install -y pkgconfig taglib-devel fftw-devel opus-devel opusfile-devel libvorbis-devel libogg-devel git gcc make chafa-devel
 ```
 Option: add libfaad2-devel for AAC,M4A support (Requires RPM-fusion to be enabled).
 
 #### For Solus
 
 ```bash
-sudo eopkg install -y pkg-config faad2-devel taglib-devel fftw-devel opus-devel opusfile-devel libvorbis-devel libogg-devel git gcc make chafa-devel libnotify-devel
+sudo eopkg install -y pkg-config faad2-devel taglib-devel fftw-devel opus-devel opusfile-devel libvorbis-devel libogg-devel git gcc make chafa-devel
 ```
 
 #### For Guix
 
 ```bash
-guix install pkg-config faad2 taglib fftw git gcc make chafa opus opusfile libvorbis libogg libnotify
+guix install pkg-config faad2 taglib fftw git gcc make chafa opus opusfile libvorbis libogg
 ```
 
 #### For Void Linux
 
 ```bash
-sudo xbps-install -y pkg-config faad2 taglib taglib-devel fftw git gcc make chafa chafa-devel opus opusfile opusfile-devel libvorbis libogg libnotify-devel
+sudo xbps-install -y pkg-config faad2 taglib taglib-devel fftw git gcc make chafa chafa-devel opus opusfile opusfile-devel libvorbis libogg
 ```
 
 #### For Alpine Linux
 
 ```bash
-sudo apk add pkgconfig faad2 faad2-dev taglib-dev fftw-dev opus opusfile libvorbis-dev libogg-dev git build-base chafa-dev libnotify-dev
+sudo apk add pkgconfig faad2 faad2-dev taglib-dev fftw-dev opus opusfile libvorbis-dev libogg-dev git build-base chafa-dev
 ```
 
 Notice that for some packages not only the library needs to be installed, but also development packages, for instance libopus-dev or opus-devel.
@@ -151,11 +150,9 @@ If you installed kew manually, simply run:
 sudo make uninstall
 ```
 
-#### LibNotify and Faad2 are optional
+#### Faad2 is optional
 
-By default, the build system will automatically detect if `libnotify` and `faad2` are available and include them if found.
-
-Libnotify provides desktop notifications and Faad2 provides AAC decoding.
+By default, the build system will automatically detect if `faad2` is available and includes it if found.
 
 
 ### Standalone AppImage for musl systems

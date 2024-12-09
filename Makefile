@@ -2,8 +2,8 @@ CC ?= gcc
 CXX ?= g++
 PKG_CONFIG ?= pkg-config
 
-# To disable libnotify, run:
-# make USE_LIBNOTIFY=0
+# To disable DBUS notifications, run:
+# make USE_DBUS=0
 # To disable faad2, run:
 # make USE_FAAD=0
 
@@ -11,14 +11,12 @@ PKG_CONFIG ?= pkg-config
 UNAME_S := $(shell uname -s)
 ARCH := $(shell uname -m)
 
-# Default USE_LIBNOTIFY to auto-detect if not set by user
-ifeq ($(origin USE_LIBNOTIFY), undefined)
+# Default USE_DBUS to auto-detect if not set by user
+ifeq ($(origin USE_DBUS), undefined)
   ifeq ($(UNAME_S), Darwin)
-    USE_LIBNOTIFY = 0
-  else ifneq ($(shell $(PKG_CONFIG) --exists libnotify && echo yes), yes)
-    USE_LIBNOTIFY = 0
+    USE_DBUS = 0
   else
-    USE_LIBNOTIFY = 1
+    USE_DBUS = 1
   endif
 endif
 
@@ -40,7 +38,7 @@ endif
 ifeq ($(origin USE_FAAD), undefined)
 
   USE_FAAD = $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) $(PKG_CONFIG) --exists faad && echo 1 || echo 0)
-  
+
   ifeq ($(USE_FAAD), 0)
     # If pkg-config fails, try to find libfaad dynamically in common paths
     USE_FAAD = $(shell [ -f /usr/lib/libfaad.so ] || [ -f /usr/local/lib/libfaad.so ] || \
@@ -72,16 +70,14 @@ LIBS += -lstdc++
 LDFLAGS = -logg -lz -flto
 
 ifeq ($(UNAME_S), Linux)
-  CFLAGS += -fPIE 
+  CFLAGS += -fPIE
   CXXFLAGS += -fPIE
   LDFLAGS += -pie -Wl,-z,relro -s
 endif
 
-# Conditionally add libnotify if USE_LIBNOTIFY is enabled
-ifeq ($(USE_LIBNOTIFY), 1)
-  CFLAGS += $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) $(PKG_CONFIG) --cflags libnotify)
-  LIBS += -lnotify
-  DEFINES += -DUSE_LIBNOTIFY
+# Conditionally add  USE_DBUS is enabled
+ifeq ($(USE_DBUS), 1)
+  DEFINES += -DUSE_DBUS
 endif
 
 # Conditionally add faad2 support if USE_FAAD is enabled
@@ -96,11 +92,11 @@ ifeq ($(USE_FAAD), 1)
   DEFINES += -DUSE_FAAD
 endif
 
-ifeq ($(origin CC),default) 
-    CC := gcc 
+ifeq ($(origin CC),default)
+    CC := gcc
 endif
 
-ifneq ($(findstring gcc,$(CC)),) 
+ifneq ($(findstring gcc,$(CC)),)
     ifeq ($(UNAME_S), Linux)
         LIBS += -latomic
     endif

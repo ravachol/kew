@@ -65,11 +65,7 @@ int m4aDecoderIndex = -1;
 int opusDecoderIndex = -1;
 int vorbisDecoderIndex = -1;
 
-const char *lastCover = NULL;
-
-#ifdef USE_LIBNOTIFY
-NotifyNotification *previous_notification;
-#endif
+char *lastCover = NULL;
 
 void logTime(const char *message)
 {
@@ -1172,19 +1168,19 @@ void activateSwitch(AudioData *pAudioData)
 
 bool isValidFilepath(const char *path)
 {
-    if (path == NULL || strnlen(path, PATH_MAX) == 0 || strnlen(path, PATH_MAX) >= PATH_MAX)
-    {
-        return false;
-    }
+        if (path == NULL || strnlen(path, PATH_MAX) == 0 || strnlen(path, PATH_MAX) >= PATH_MAX)
+        {
+                return false;
+        }
 
-    int fd = open(path, O_RDONLY);
-    if (fd == -1)
-    {
-        return false;
-    }
-    
-    close(fd);
-    return true;
+        int fd = open(path, O_RDONLY);
+        if (fd == -1)
+        {
+                return false;
+        }
+
+        close(fd);
+        return true;
 }
 
 gint64 getLengthInMicroSec(double duration)
@@ -1192,14 +1188,7 @@ gint64 getLengthInMicroSec(double duration)
         return floor(llround(duration * G_USEC_PER_SEC));
 }
 
-#ifdef USE_LIBNOTIFY
-void onNotificationClosed(NotifyNotification *notification, gpointer user_data)
-{
-        (void)user_data;
-
-        g_object_unref(notification);
-        previous_notification = NULL;
-}
+#ifdef USE_DBUS
 
 void removeBlacklistedChars(const char *input, const char *blacklist, char *output, size_t output_size)
 {
@@ -1258,14 +1247,190 @@ void ensureNonEmpty(char *str)
         }
 }
 
+void onNotificationClosed(void)
+{
+}
+
+static GDBusConnection *connection = NULL;
+static guint last_notification_id = 0;
+static guint signal_subscription_id = 0;
+
+static void on_dbus_call_complete(GObject *source_object,
+                                  GAsyncResult *res,
+                                  gpointer user_data)
+{
+        GError *error = NULL;
+        GVariant *result = g_dbus_connection_call_finish(G_DBUS_CONNECTION(source_object), res, &error);
+
+        if (error)
+        {
+                fprintf(stderr, "D-Bus call failed or timed out: %s\n", error->message);
+                g_error_free(error);
+                return;
+        }
+
+        // Extract the notification ID from the result
+        guint32 *last_notification_id = (guint32 *)user_data;
+        g_variant_get(result, "(u)", last_notification_id);
+        g_variant_unref(result);
+}
+
+static void on_notification_closed_signal(GDBusConnection *connection,
+                                          const gchar *sender_name,
+                                          const gchar *object_path,
+                                          const gchar *interface_name,
+                                          const gchar *signal_name,
+                                          GVariant *parameters,
+                                          gpointer user_data)
+{
+        (void)connection;
+        (void)sender_name;
+        (void)object_path;
+        (void)interface_name;
+        (void)signal_name;
+        (void)user_data;
+
+        guint32 id, reason;
+        g_variant_get(parameters, "(uu)", &id, &reason);
+
+        if (id == last_notification_id)
+        {
+                last_notification_id = 0;
+        }
+}
+
+static void on_close_notification_complete(GObject *source_object,
+                                           GAsyncResult *res,
+                                           gpointer user_data)
+{
+        (void)user_data;
+        GError *error = NULL;
+        GVariant *result = g_dbus_connection_call_finish(G_DBUS_CONNECTION(source_object), res, &error);
+
+        if (error)
+        {
+                fprintf(stderr, "Failed to close notification: %s\n", error->message);
+                g_error_free(error);
+        }
+        else if (result)
+        {
+                g_variant_unref(result);
+        }
+
+        last_notification_id = 0;
+}
+
+typedef struct
+{
+        GMainLoop *loop;
+        gboolean connected;
+        GDBusConnection *connection;
+} BusConnectionData;
+
+static gboolean on_timeout(gpointer user_data)
+{
+        BusConnectionData *data = user_data;
+        if (!data->connected)
+        {
+                fprintf(stderr, "D-Bus connection timed out.\n");
+                g_main_loop_quit(data->loop);
+        }
+        return FALSE;
+}
+
+static void on_bus_get_complete(GObject *source_object, GAsyncResult *res, gpointer user_data)
+{
+        (void)source_object;
+        BusConnectionData *data = user_data;
+        GError *error = NULL;
+
+        data->connection = g_bus_get_finish(res, &error);
+        if (error)
+        {
+                fprintf(stderr, "Failed to connect to D-Bus: %s\n", error->message);
+                g_error_free(error);
+        }
+        else
+        {
+                data->connected = TRUE;
+        }
+
+        g_main_loop_quit(data->loop);
+}
+
+GDBusConnection *get_dbus_connection_with_timeout(GBusType bus_type, guint timeout_ms)
+{
+        GMainLoop *loop = g_main_loop_new(NULL, FALSE);
+        BusConnectionData data = {loop, FALSE, NULL};
+
+        g_bus_get(bus_type, NULL, on_bus_get_complete, &data);
+
+        g_timeout_add(timeout_ms, on_timeout, &data);
+
+        g_main_loop_run(loop);
+        g_main_loop_unref(loop);
+
+        return data.connection;
+}
+
+void cleanupPreviousNotification()
+{
+    if (last_notification_id != 0)
+    {
+        // Send CloseNotification call for the active notification
+        g_dbus_connection_call(
+            connection,
+            "org.freedesktop.Notifications",
+            "/org/freedesktop/Notifications",
+            "org.freedesktop.Notifications",
+            "CloseNotification",
+            g_variant_new("(u)", last_notification_id),
+            NULL, // No return value expected
+            G_DBUS_CALL_FLAGS_NONE,
+            100, // Timeout in milliseconds
+            NULL, // Cancellable
+            on_close_notification_complete,
+            NULL);
+    }
+}
+
 int displaySongNotification(const char *artist, const char *title, const char *cover, UISettings *ui)
 {
-        if (!ui->allowNotifications || !canShowNotification() || !notify_is_initted())
+        if (!ui->allowNotifications || !canShowNotification())
         {
                 return 0;
         }
 
-        const char *blacklist = "&;`|*~<>^()[]{}$\\\"";
+        if (getenv("DBUS_SESSION_BUS_ADDRESS") == NULL)
+        {
+                fprintf(stderr, "D-Bus session bus is not available. Skipping notification.\n");
+                return -1;
+        }
+
+        if (connection == NULL)
+        {
+                connection = get_dbus_connection_with_timeout(G_BUS_TYPE_SESSION, 100);
+
+                if (connection == NULL)
+                {
+                        fprintf(stderr, "Failed to connect to session bus\n");
+                        return -1;
+                }
+
+                signal_subscription_id = g_dbus_connection_signal_subscribe(
+                    connection,
+                    "org.freedesktop.Notifications",
+                    "org.freedesktop.Notifications",
+                    "NotificationClosed",
+                    "/org/freedesktop/Notifications",
+                    NULL,
+                    G_DBUS_SIGNAL_FLAGS_NONE,
+                    on_notification_closed_signal,
+                    NULL,
+                    NULL);
+        }
+
+        const char *blacklist = "&;|*~<>^()[]{}$\\\"";
 
         removeBlacklistedChars(artist, blacklist, sanitizedArtist, sizeof(sanitizedArtist));
         removeBlacklistedChars(title, blacklist, sanitizedTitle, sizeof(sanitizedTitle));
@@ -1275,60 +1440,74 @@ int displaySongNotification(const char *artist, const char *title, const char *c
 
         int coverExists = isValidFilepath(cover);
 
-        // Check if the cover has changed
-        bool coverChanged = true;
-        if (lastCover != NULL && cover != NULL)
-        {
-                coverChanged = (strcmp(cover, lastCover) != 0);
-        }
-        else if (lastCover == cover)
-        {
-                coverChanged = false;
-        }
-
+        // Free and update the cover
         if (lastCover != NULL)
         {
-                free((void *)lastCover);
+                free(lastCover);
+                lastCover = NULL;
         }
         lastCover = cover != NULL ? strdup(cover) : NULL;
 
-        if (previous_notification == NULL || coverChanged)
-        {
-                if (previous_notification != NULL)
-                {
-                        notify_notification_close(previous_notification, NULL);
-                        g_object_unref(G_OBJECT(previous_notification));
-                        previous_notification = NULL;
-                }
+        cleanupPreviousNotification();
 
-                previous_notification = notify_notification_new(
-                    sanitizedArtist,
-                    sanitizedTitle,
-                    coverExists ? cover : NULL);
+        // Create a new notification
+        const gchar *app_name = "kew";
+        const gchar *app_icon = (coverExists && cover) ? cover : "";
+        const gchar *summary = sanitizedArtist;
+        const gchar *body = sanitizedTitle;
 
-                g_signal_connect(previous_notification, "closed", G_CALLBACK(onNotificationClosed), NULL);
-        }
-        else
-        {
-                notify_notification_update(
-                    previous_notification,
-                    sanitizedArtist,
-                    sanitizedTitle,
-                    coverExists ? cover : NULL);
-        }
+        GVariantBuilder actions_builder;
+        g_variant_builder_init(&actions_builder, G_VARIANT_TYPE("as"));
 
-        GError *error = NULL;
+        GVariantBuilder hints_builder;
+        g_variant_builder_init(&hints_builder, G_VARIANT_TYPE("a{sv}"));
 
-        if (!notify_notification_show(previous_notification, &error))
-        {
-                if (error != NULL)
-                {
-                        fprintf(stderr, "Failed to show notification: %s\n", error->message);
-                        g_error_free(error);
-                }
-        }
+        gint32 expire_timeout = -1;
+
+        g_dbus_connection_call(
+            connection,
+            "org.freedesktop.Notifications",
+            "/org/freedesktop/Notifications",
+            "org.freedesktop.Notifications",
+            "Notify",
+            g_variant_new("(susssasa{sv}i)",
+                          app_name,
+                          0, // New notification, no replaces_id
+                          app_icon,
+                          summary,
+                          body,
+                          &actions_builder,
+                          &hints_builder,
+                          expire_timeout),
+            G_VARIANT_TYPE("(u)"),
+            G_DBUS_CALL_FLAGS_NONE,
+            100,  // Timeout in milliseconds
+            NULL, // Cancellable
+            on_dbus_call_complete,
+            &last_notification_id);
 
         return 0;
+}
+
+void cleanupDbusConnection()
+{
+        cleanupPreviousNotification();
+
+        // Unsubscribe from signals
+        if (signal_subscription_id != 0)
+        {
+                g_dbus_connection_signal_unsubscribe(connection, signal_subscription_id);
+                signal_subscription_id = 0;
+        }
+
+        // Release the connection
+        if (connection != NULL)
+        {
+                g_object_unref(connection);
+                connection = NULL;
+        }
+
+        printf("D-Bus connection successfully cleaned up.\n");
 }
 #endif
 
@@ -1754,7 +1933,6 @@ void opus_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_uint
                         if (targetFrame >= totalFrames)
                                 targetFrame = totalFrames - 1;
 
-
                         // Set the read pointer for the decoder
                         ma_result seekResult = ma_libopus_seek_to_pcm_frame(decoder, targetFrame);
                         if (seekResult != MA_SUCCESS)
@@ -1935,13 +2113,10 @@ void vorbis_on_audio_frames(ma_device *pDevice, void *pFramesOut, const void *pF
         (void)pFramesIn;
 }
 
-void cleanupPreviousNotification()
+void freeLastCover(void)
 {
-#ifdef USE_LIBNOTIFY
-        if (previous_notification != NULL)
+        if (lastCover != NULL)
         {
-                g_object_unref(previous_notification);
-                previous_notification = NULL;
+                free(lastCover);
         }
-#endif
 }
