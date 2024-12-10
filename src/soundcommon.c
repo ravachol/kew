@@ -1446,12 +1446,6 @@ int displaySongNotification(const char *artist, const char *title, const char *c
                 return 0;
         }
 
-        if (getenv("DBUS_SESSION_BUS_ADDRESS") == NULL)
-        {
-                fprintf(stderr, "D-Bus session bus is not available. Skipping notification.\n");
-                return -1;
-        }
-
         if (connection == NULL)
         {
                 connection = get_dbus_connection_with_timeout(G_BUS_TYPE_SESSION, 100);
