@@ -1,12 +1,12 @@
 # CHANGELOG
 
-### 3.1.0
+### 3.0.2
 
 - You can now enqueue and play all your music (shuffled) in library view, by pressing ALL MUSIC at the top.
 
 - Removed dependency on Libnotify because its' blocking in nature, and some users were experiencing freezes. Instead dbus is used directly if available and used with timeouts.
 
-- Fixed bug where songs whose titles start with a number would be sorted wrong, introduced in 3.0.1.
+- Fixed bug introduced in 3.0.1 where songs whose titles start with a number would be sorted wrong.
 
 - Fixed music library folders containing spaces weren't being accepted. Found by @PoutineSyropErable.
 
