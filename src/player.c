@@ -15,7 +15,7 @@ Functions related to printing the player to the screen.
 #define METADATA_MAX_SIZE 256
 #endif
 
-const char VERSION[] = "3.1.0";
+const char VERSION[] = "3.0.2";
 const int ABSOLUTE_MIN_WIDTH = 68;
 bool timeEnabled = true;
 bool drewCover = true;
@@ -1126,7 +1126,7 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
                         if (libIter >= startLibIter)
                         {
 
-                                if (depth == 1)
+                                if (depth <= 1)
                                 {
                                         if (ui->useConfigColors)
                                                 setTextColor(ui->artistColor);
