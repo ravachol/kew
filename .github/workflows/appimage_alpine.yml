@@ -27,7 +27,6 @@ jobs:
             opusfile-dev \
             libvorbis-dev \
             libogg-dev \
-            libnotify-dev \
             glib-dev \
             wget git desktop-file-utils \
             squashfs-tools \
