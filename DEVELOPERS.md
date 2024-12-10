@@ -85,8 +85,6 @@ To enable debugging in VSCode, you'll need to create a `launch.json` file that c
                 "/usr/include/opus",
                 "/usr/include/vorbis",
                 "/usr/include/chafa/",
-                "/usr/include/curl/",
-                "/usr/include/json-glib-1.0",
                 "/usr/include/glib-2.0/**",
                 "/usr/lib/chafa/include/**",
                 "/usr/lib/glib-2.0/include/**"
