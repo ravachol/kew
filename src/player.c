@@ -1020,7 +1020,11 @@ void processName(const char *name, char *output, int maxWidth)
                 copyLength = maxWidth;
         }
 
+        if (copyLength < 0)
+                copyLength = 0;
+
         c_strcpy(output, name, copyLength + 1);
+
         output[copyLength] = '\0';
         removeUnneededChars(output, copyLength);
 }
@@ -1051,6 +1055,9 @@ void resetChosenDir(void)
 
 int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWidth, AppState *state)
 {
+        if (maxNameWidth < 0)
+                maxNameWidth = 0;
+
         char dirName[maxNameWidth + 1];
         char filename[maxNameWidth + 1];
         bool foundChosen = false;
@@ -1198,6 +1205,9 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
                                                 printf("   ");
                                         }
                                 }
+
+                                if (maxNameWidth < extraIndent)
+                                        maxNameWidth = extraIndent;
 
                                 if (root->isDirectory)
                                 {
