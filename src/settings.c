@@ -96,7 +96,7 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         c_strcpy(settings.color, "6", sizeof(settings.color));
         c_strcpy(settings.artistColor, "6", sizeof(settings.artistColor));
         c_strcpy(settings.titleColor, "6", sizeof(settings.titleColor));
-        c_strcpy(settings.enqueuedColor, "7", sizeof(settings.enqueuedColor));
+        c_strcpy(settings.enqueuedColor, "6", sizeof(settings.enqueuedColor));
         c_strcpy(settings.quit, "q", sizeof(settings.quit));
         c_strcpy(settings.hardQuit, "\x1B", sizeof(settings.hardQuit));
 
@@ -127,7 +127,7 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
                 {
                         snprintf(settings.visualizerEnabled, sizeof(settings.visualizerEnabled), "%s", pair->value);
                 }
-                else if (strcmp(lowercaseKey, "useConfigColors") == 0)
+                else if (strcmp(lowercaseKey, "useconfigcolors") == 0)
                 {
                         snprintf(settings.useConfigColors, sizeof(settings.useConfigColors), "%s", pair->value);
                 }
