@@ -89,7 +89,7 @@ int displaySearchBox(int indent)
 {
         printBlankSpaces(indent);
         printf(" [Search]: ");
-        setDefaultTextColor();   
+        setDefaultTextColor();
         // Save cursor position
         printf("%s", searchText);
         printf("\033[s");
@@ -283,10 +283,10 @@ int displaySearchResults(int maxListSize, int indent, int *chosenRow, int startS
                                 snprintf(name, maxNameWidth + 1, "[%s] (%s)", results[i].entry->name, results[i].entry->parent->name);
                         else
                                 snprintf(name, maxNameWidth + 1, "[%s]", results[i].entry->name);
-                        
-                }       
+
+                }
                 else
-                {         
+                {
                         if (results[i].entry->parent != NULL && strcmp(results[i].entry->parent->name, "root") != 0)
                                 snprintf(name, maxNameWidth + 1, "%s (%s)", results[i].entry->name, results[i].entry->parent->name);
                         else
@@ -298,7 +298,7 @@ int displaySearchResults(int maxListSize, int indent, int *chosenRow, int startS
 }
 
 int displaySearch(int maxListSize, int indent, int *chosenRow, int startSearchIter, UISettings *ui)
-{     
+{
         displaySearchBox(indent);
         displaySearchResults(maxListSize, indent, chosenRow, startSearchIter, ui);
 
