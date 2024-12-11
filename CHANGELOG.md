@@ -2,9 +2,9 @@
 
 ### 3.0.2
 
-- You can now enqueue and play all your music (shuffled) in library view, by pressing ALL MUSIC at the top.
+- You can now enqueue and play all your music (shuffled) in library view, by pressing MUSIC LIBRARY at the top.
 
-- Removed dependency on Libnotify because its' blocking in nature, and some users were experiencing freezes. Instead dbus is used directly if available and used with timeouts.
+- Removed dependency on Libnotify because its' blocking in nature, and some users were experiencing freezes. Instead dbus is used directly if available and used with timeouts. Reported by @sina-salahshour.
 
 - Fixed bug introduced in 3.0.1 where songs whose titles start with a number would be sorted wrong.
 
@@ -12,7 +12,13 @@
 
 - Fixed bug where after finishing playing a playlist and then choosing a song in it, the next song would play twice.
 
+- Fixed kew all not being randomized properly. Found by @j-lakeman.
+
+- Fixed useConfigColors setting not being remembered. Found by @j-lakeman.
+
 - Added AUTHORS.md, DEVELOPERS.md and CHANGELOG.md files.
+
+- Dependencies Removed: Libnotify.
 
 ### 3.0.1
 
