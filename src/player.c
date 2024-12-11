@@ -268,12 +268,12 @@ int displayCover(unsigned char *cover, int coverWidth, int coverHeight, const ch
 {
         if (!ascii)
         {
-                printSquareBitmapCentered(cover, coverWidth, coverHeight, height-1);
+                printSquareBitmapCentered(cover, coverWidth, coverHeight, height - 1);
         }
         else
         {
                 int width = height * 2;
-                printInAscii(coverArtPath, height-1, width);
+                printInAscii(coverArtPath, height - 1, width);
         }
         printf("\n\n");
 
@@ -416,6 +416,7 @@ void printProgress(double elapsed_seconds, double total_seconds)
 
         // Clear the current line
         printf("\r\033[K");
+
         printBlankSpaces(indent);
 
         printf(" %02d:%02d:%02d / %02d:%02d:%02d (%d%%) Vol:%d%%",
@@ -440,7 +441,8 @@ void printTime(double elapsedSeconds, AppState *state)
 {
         if (!timeEnabled || appState.currentView == LIBRARY_VIEW || appState.currentView == PLAYLIST_VIEW || appState.currentView == SEARCH_VIEW)
                 return;
-        setColor(&(state->uiSettings));
+        if (!state->uiSettings.useConfigColors)
+                setTextColorRGB(state->uiSettings.color.r, state->uiSettings.color.g,state->uiSettings.color.b);
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
         printBlankSpaces(indent);
@@ -894,6 +896,15 @@ void showPlaylist(SongData *songData, PlayList *list, int *chosenSong, int *chos
         int aboutRows = printLogoAndAdjustments(songData, term_w, &(state->uiSettings), indent);
         maxListSize -= aboutRows;
 
+        if (state->uiSettings.useConfigColors)
+                setTextColor(state->uiSettings.artistColor);
+        else
+                setColor(&state->uiSettings);
+
+        printBlankSpaces(indent);
+        printf(" ─ PLAYLIST ─\n");
+        maxListSize -= 1;
+
         displayPlaylist(list, maxListSize, indent, chosenSong, chosenNodeId, state->uiState.resetPlaylistDisplay, state);
 
         printf("\n");
@@ -1094,7 +1105,7 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
         }
         else
         {
-                if (chosenLibRow >= 1 + uis->numDirectoryTreeEntries + numTopLevelSongs)  // 1 for root
+                if (chosenLibRow >= 1 + uis->numDirectoryTreeEntries + numTopLevelSongs) // 1 for root
                 {
                         startLibIter = 1 + uis->numDirectoryTreeEntries + numTopLevelSongs - maxListSize;
                         chosenLibRow = uis->numDirectoryTreeEntries + numTopLevelSongs;
@@ -1214,7 +1225,7 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
                                         dirName[0] = '\0';
 
                                         if (strcmp(root->name, "root") == 0)
-                                                snprintf(dirName, maxNameWidth + 1 - extraIndent, "%s", "ALL MUSIC");
+                                                snprintf(dirName, maxNameWidth + 1 - extraIndent, "%s", "─ MUSIC LIBRARY ─");
                                         else
                                                 snprintf(dirName, maxNameWidth + 1 - extraIndent, "%s", root->name);
 
