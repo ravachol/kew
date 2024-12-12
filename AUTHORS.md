@@ -29,7 +29,7 @@
 
 We would like to extend our gratitude to the following individuals who have contributed significantly to kew:
 
-* Xplshn <114888778+xplshn@users.noreply.github.com>
+* Xplshn @xplshn
 * Hans Petter Jansson @hpjansson <hpj@hpjansson.org>
 * Matthias Geiger @werdahias <werdahias@riseup.net>
 * Yuri @yurivict yuri@freebsd.org
