@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <sys/time.h>
 #include <unistd.h>
+#include "appstate.h"
 #include "player.h"
 #include "songloader.h"
 #include "settings.h"

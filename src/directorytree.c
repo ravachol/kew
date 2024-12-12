@@ -369,15 +369,6 @@ FileSystemEntry *reconstructTreeFromFile(const char *filename, const char *start
         return root;
 }
 
-int min(int a, int b, int c)
-{
-        if (a <= b && a <= c)
-                return a;
-        if (b <= a && b <= c)
-                return b;
-        return c;
-}
-
 #ifdef __GNUC__
 #ifndef __APPLE__
 #pragma GCC diagnostic push
