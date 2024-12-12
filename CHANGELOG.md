@@ -469,7 +469,7 @@ This release adds:
 
 ### 1.7.1
 
-    Fixes a few issues in 1.7.0
+- Fixes a few issues in 1.7.0
 
 ### 1.7.0
 
