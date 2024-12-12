@@ -3,7 +3,7 @@
 
 Listen to music in the terminal.
 
-![Example screenshot](images/kew-screenshot.png)  
+![Example screenshot](images/kew-screenshot.png)
 *Example screenshot running in Konsole: [Jenova 7: Lost Sci-Fi Movie Themes](https://jenova7.bandcamp.com/album/lost-sci-fi-movie-themes).*
 
 
@@ -274,7 +274,7 @@ Licensed under GPL. [See LICENSE for more information](https://github.com/ravach
 
 kew makes use of the following great open source projects:
 
-Chafa by  Petter Jansson - https://hpjansson.org/chafa/
+Chafa by Hans Petter Jansson - https://hpjansson.org/chafa/
 
 TagLib by TagLib Team - https://taglib.org/
 
