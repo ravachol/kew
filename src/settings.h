@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <sys/param.h>
 #include <unistd.h>
+#include "appstate.h"
 #include "events.h"
 #include "file.h"
 #include "soundcommon.h"

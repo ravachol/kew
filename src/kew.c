@@ -54,6 +54,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include "events.h"
 #include "file.h"
 #include "mpris.h"
+#include "notifications.h"
 #include "player.h"
 #include "playerops.h"
 #include "playlist.h"
@@ -85,7 +86,7 @@ bool songWasRemoved = false;
 bool noPlaylist = false;
 GMainLoop *main_loop;
 EventMapping keyMappings[NUM_KEY_MAPPINGS];
-struct timespec lastInputTime; // When the user last pressed a key FIXME: Should ideally only be reset in one place
+struct timespec lastInputTime;
 bool exactSearch = false;
 int fuzzySearchThreshold = 2;
 int maxDigitsPressedCount = 9;

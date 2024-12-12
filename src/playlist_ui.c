@@ -2,11 +2,6 @@
 
 int startIter = 0;
 
-void getTerminalSize(int *width, int *height)
-{
-        getTermSize(width, height);
-}
-
 Node *determineStartNode(Node *head, int *foundAt, bool *startFromCurrent, int listSize)
 {
         Node *node = head;
@@ -118,7 +113,7 @@ int displayPlaylistItems(Node *startNode, int startIter, int maxListSize, int te
 int displayPlaylist(PlayList *list, int maxListSize, int indent, int *chosenSong, int *chosenNodeId, bool reset, AppState *state)
 {
         int termWidth, termHeight;
-        getTerminalSize(&termWidth, &termHeight);
+        getTermSize(&termWidth, &termHeight);
 
         UISettings *ui = &(state->uiSettings);
 

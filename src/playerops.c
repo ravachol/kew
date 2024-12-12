@@ -1374,7 +1374,6 @@ void skipToNextSong(AppState *state)
 
         if (isStopped() || isPaused())
         {
-                // FIXME: Emit MPRIS signal
                 silentSwitchToNext(true, state);
                 return;
         }
