@@ -1,5 +1,13 @@
 #include "search_ui.h"
 
+/*
+
+search_ui.c
+
+ Search UI functions.
+
+*/
+
 #define MAX_SEARCH_LEN 32
 
 int numSearchLetters = 0;

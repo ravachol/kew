@@ -24,6 +24,14 @@
 #include <taglib/tag.h>
 #include <ogg/ogg.h>
 
+/*
+
+tagLibWrapper.cpp
+
+ Related to extracting meta tags and cover from audio files.
+
+*/
+
 #if defined(__linux__)
 #include <opus/opusfile.h>
 #else
