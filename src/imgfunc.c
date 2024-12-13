@@ -1,6 +1,14 @@
 #include "imgfunc.h"
 #include "term.h"
 
+/*
+
+imgfunc.c
+
+ Related to displaying an image in the terminal.
+
+*/
+
 // Disable some warnings for stb headers.
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wcast-qual"

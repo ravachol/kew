@@ -1,5 +1,13 @@
 #include "playlist_ui.h"
 
+/*
+
+playlist_ui.c
+
+ Playlist UI functions.
+
+*/
+
 int startIter = 0;
 
 Node *determineStartNode(Node *head, int *foundAt, bool *startFromCurrent, int listSize)
