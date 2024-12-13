@@ -404,7 +404,7 @@ void sendNotification(const char *artist, const char *title)
         system(command);
 }
 
-int displaySongNotificationApple(const char *artist, const char *title, const char *cover, UISettings *ui)
+int displaySongNotificationApple(const char *artist, const char *title, UISettings *ui)
 {
         if (!ui->allowNotifications)
         {
