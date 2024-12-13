@@ -102,25 +102,25 @@ sudo yum install -y pkgconfig taglib-devel fftw-devel opus-devel opusfile-devel 
 ```
 Option: add libfaad2-devel for AAC,M4A support (Requires RPM-fusion to be enabled).
 
-#### For Solus
+#### For Solus:
 
 ```bash
 sudo eopkg install -y pkg-config faad2-devel taglib-devel fftw-devel opus-devel opusfile-devel libvorbis-devel libogg-devel git gcc make chafa-devel
 ```
 
-#### For Guix
+#### For Guix:
 
 ```bash
 guix install pkg-config faad2 taglib fftw git gcc make chafa opus opusfile libvorbis libogg
 ```
 
-#### For Void Linux
+#### For Void Linux:
 
 ```bash
 sudo xbps-install -y pkg-config faad2 taglib taglib-devel fftw git gcc make chafa chafa-devel opus opusfile opusfile-devel libvorbis libogg
 ```
 
-#### For Alpine Linux
+#### For Alpine Linux:
 
 ```bash
 sudo apk add pkgconfig faad2 faad2-dev taglib-dev fftw-dev opus opusfile libvorbis-dev libogg-dev git build-base chafa-dev
