@@ -1,5 +1,13 @@
 #include "directorytree.h"
 
+/*
+
+directorytree.c
+
+ Related to library / directory structure.
+
+*/
+
 static int lastUsedId = 0;
 
 typedef void (*TimeoutCallback)(void);

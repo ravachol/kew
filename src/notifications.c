@@ -52,6 +52,15 @@ void removeBlacklistedChars(const char *input, const char *blacklist, char *outp
         *out_ptr = '\0';
 }
 
+void ensureNonEmpty(char *str)
+{
+        if (str[0] == '\0')
+        {
+                str[0] = ' ';
+                str[1] = '\0';
+        }
+}
+
 #ifdef USE_DBUS
 
 #define NOTIFICATION_INTERVAL_MICROSECONDS 500000 // 0.5 seconds
@@ -75,15 +84,6 @@ int canShowNotification(void)
                 return 1;
         }
         return 0;
-}
-
-void ensureNonEmpty(char *str)
-{
-        if (str == NULL || str[0] == '\0')
-        {
-                str[0] = ' ';
-                str[1] = '\0';
-        }
 }
 
 void onNotificationClosed(void)
@@ -392,15 +392,6 @@ void cleanupDbusConnection()
 #ifdef __APPLE__
 static char sanitizedArtist[512];
 static char sanitizedTitle[512];
-
-void ensureNonEmpty(char *str)
-{
-        if (str == NULL || str[0] == '\0')
-        {
-                str[0] = ' ';
-                str[1] = '\0';
-        }
-}
 
 void sendNotification(const char *artist, const char *title)
 {

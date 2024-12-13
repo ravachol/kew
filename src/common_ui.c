@@ -1,6 +1,14 @@
 
 #include "common_ui.h"
 
+/*
+
+common_ui.c
+
+ UI functions.
+
+*/
+
 //0=Black, 1=Red, 2=Green, 3=Yellow, 4=Blue, 5=Magenta, 6=Cyan, 7=White
 
 void setTextColorRGB2(int r, int g, int b, UISettings *ui)
