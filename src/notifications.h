@@ -17,7 +17,7 @@ int displaySongNotification(const char *artist, const char *title, const char *c
 
 #ifdef __APPLE__
 
-int displaySongNotificationApple(const char *artist, const char *title, const char *cover, UISettings *ui);
+int displaySongNotificationApple(const char *artist, const char *title, UISettings *ui);
 
 #endif
 
