@@ -34,7 +34,7 @@ We would like to extend our gratitude to the following individuals who have cont
 * Matthias Geiger @werdahias <werdahias@riseup.net>
 * Yuri @yurivict yuri@freebsd.org
 * Joey Schaff @jaoheah <jschaff@proton.me>
-* Augistin Ballesteros @agus-balles <arcpie@aur>
+* Agustin  Ballesteros @agus-balles <arcpie@aur>
 * Mateo @malteo <mateo@aur>
 * Hampa @hampa
 * Markmark1 @markmark1
