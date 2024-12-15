@@ -15,12 +15,6 @@ int displaySongNotification(const char *artist, const char *title, const char *c
 
 #endif
 
-#ifdef __APPLE__
-
-int displaySongNotificationApple(const char *artist, const char *title, UISettings *ui);
-
-#endif
-
 void freeLastCover(void);
 
 #endif

@@ -340,9 +340,6 @@ void notifySongSwitch(SongData *currentSongData, UISettings *ui)
         {
 #ifdef USE_DBUS
                 displaySongNotification(currentSongData->metadata->artist, currentSongData->metadata->title, currentSongData->coverArtPath, ui);
-
-#elif __APPLE__
-                displaySongNotificationApple(currentSongData->metadata->artist, currentSongData->metadata->title, ui);
 #else
                 (void)ui;
 #endif
