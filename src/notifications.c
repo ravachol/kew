@@ -389,42 +389,6 @@ void cleanupDbusConnection()
 }
 #endif
 
-#ifdef __APPLE__
-static char sanitizedArtist[512];
-static char sanitizedTitle[512];
-
-void sendNotification(const char *artist, const char *title)
-{
-
-        char command[512];
-        snprintf(command, sizeof(command),
-                 "osascript -e 'display notification \"%s\" with title \"%s\"'",
-                 title, artist);
-
-        system(command);
-}
-
-int displaySongNotificationApple(const char *artist, const char *title, UISettings *ui)
-{
-        if (!ui->allowNotifications)
-        {
-                return 0;
-        }
-
-        const char *blacklist = "&;`|*~<>^()[]{}$\\\"";
-
-        removeBlacklistedChars(artist, blacklist, sanitizedArtist, sizeof(sanitizedArtist));
-        removeBlacklistedChars(title, blacklist, sanitizedTitle, sizeof(sanitizedTitle));
-
-        ensureNonEmpty(sanitizedArtist);
-        ensureNonEmpty(sanitizedTitle);
-
-        sendNotification(sanitizedArtist, sanitizedTitle);
-
-        return 0;
-}
-#endif
-
 void freeLastCover(void)
 {
         if (lastCover != NULL)
