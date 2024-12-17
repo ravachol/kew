@@ -30,7 +30,8 @@
 We would like to extend our gratitude to the following individuals who have contributed significantly to kew:
 
 * Xplshn @xplshn
-* Hans Petter Jansson @hpjansson <hpj@hpjansson.org>
+* David Reid @mackron <mackron@gmail.com> (author of Miniaudio, used for playing music)
+* Hans Petter Jansson @hpjansson <hpj@hpjansson.org> (author of Chafa, used for displaying images)
 * Matthias Geiger @werdahias <werdahias@riseup.net>
 * Yuri @yurivict yuri@freebsd.org
 * Joey Schaff @jaoheah <jschaff@proton.me>
