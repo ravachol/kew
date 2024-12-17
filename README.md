@@ -3,7 +3,7 @@
 
 Listen to music in the terminal.
 
-![Example screenshot](images/kew-screenshot.png)  
+![Example screenshot](images/kew-screenshot.png)
 *Example screenshot running in Konsole: [Jenova 7: Lost Sci-Fi Movie Themes](https://jenova7.bandcamp.com/album/lost-sci-fi-movie-themes).*
 
 
@@ -225,13 +225,15 @@ kew path "/home/joe/Musik/" (changes the path)
 
  ```
 
-Put single-quotes inside quotes "guns n' roses"
+Put single-quotes inside quotes "guns n' roses".
 
 #### Views
 
 In kew, you normally add songs to the playlist in Library View <kbd>F3</kbd>. Then you can see the playlist in Playlist View <kbd>F2</kbd>.
 
 There is also Track View <kbd>F4</kbd> for seeing song info and cover. Search View is <kbd>F5</kbd> and Help View is <kbd>F6</kbd>.
+
+You can select all music by pressing the - MUSIC LIBRARY - header at the top of Library View.
 
 #### Key Bindings
 * Use <kbd>+</kbd> (or <kbd>=</kbd>), <kbd>-</kbd> keys to adjust the volume.
@@ -260,7 +262,7 @@ There is also Track View <kbd>F4</kbd> for seeing song info and cover. Search Vi
 
 ## Configuration
 
-kew will create a config file, kewrc, in a kew folder in your default config directory for instance ~/.config/kew. There you can change some settings like key bindings and the default colors of the app. To edit this file please make sure you quit kew first.
+kew will create a config file, kewrc, in a kew folder in your default config directory for instance ~/.config/kew or ~/Library/Preferences/kew on macOS. There you can change some settings like key bindings and the default colors of the app. To edit this file please make sure you quit kew first.
 
 ## Nerd Fonts
 
