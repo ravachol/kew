@@ -62,7 +62,7 @@ Install these dependencies using your distro's package manager. For instance:
 #### For Debian/Ubuntu:
 
 ```bash
-sudo apt install -y pkg-config libfaad-dev libtag1-dev libfftw3-dev libopus-dev libopusfile-dev libvorbis-dev libogg-dev git gcc make libchafa-dev
+sudo apt install -y pkg-config libfaad-dev libtag1-dev libfftw3-dev libopus-dev libopusfile-dev libvorbis-dev libogg-dev git gcc make libchafa-dev libglib2.0-dev
 ```
 
 #### For Arch Linux:
