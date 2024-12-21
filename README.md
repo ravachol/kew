@@ -3,7 +3,7 @@
 
 Listen to music in the terminal.
 
-![Example screenshot](images/kew-screenshot.png)   
+![Example screenshot](images/kew-screenshot.png)
 *Example screenshot running in Konsole: [Jenova 7: Lost Sci-Fi Movie Themes](https://jenova7.bandcamp.com/album/lost-sci-fi-movie-themes).*
 
 
@@ -83,14 +83,14 @@ Notes for mac users:
 #### For Fedora:
 
 ```bash
-dnf install -y pkg-config taglib-devel fftw-devel opus-devel opusfile-devel libvorbis-devel libogg-devel git gcc make chafa-devel libatomic gcc-c++
+dnf install -y pkg-config taglib-devel fftw-devel opus-devel opusfile-devel libvorbis-devel libogg-devel git gcc make chafa-devel libatomic gcc-c++ glib2-devel
 ```
 Option: add libfaad-devel for AAC,M4A support (Requires RPM-fusion to be enabled).
 
 #### For OpenSUSE:
 
 ```bash
-sudo zypper install -y pkg-config taglib-devel fftw-devel opus-devel opusfile-devel libvorbis-devel libogg-devel git chafa-devel gcc make
+sudo zypper install -y pkg-config taglib-devel fftw-devel opus-devel opusfile-devel libvorbis-devel libogg-devel git chafa-devel gcc make glib2-devel
 ```
 Option: add libfaad-devel for AAC,M4A support (Requires RPM-fusion and Packman to be enabled).
 
@@ -98,32 +98,32 @@ Option: add libfaad-devel for AAC,M4A support (Requires RPM-fusion and Packman t
 Requires RPM-fusion to be enabled.
 
 ```bash
-sudo yum install -y pkgconfig taglib-devel fftw-devel opus-devel opusfile-devel libvorbis-devel libogg-devel git gcc make chafa-devel
+sudo yum install -y pkgconfig taglib-devel fftw-devel opus-devel opusfile-devel libvorbis-devel libogg-devel git gcc make chafa-devel glib2-devel
 ```
 Option: add libfaad2-devel for AAC,M4A support (Requires RPM-fusion to be enabled).
 
 #### For Solus:
 
 ```bash
-sudo eopkg install -y pkg-config faad2-devel taglib-devel fftw-devel opus-devel opusfile-devel libvorbis-devel libogg-devel git gcc make chafa-devel
+sudo eopkg install -y pkg-config faad2-devel taglib-devel fftw-devel opus-devel opusfile-devel libvorbis-devel libogg-devel git gcc make chafa-devel glib2-devel
 ```
 
 #### For Guix:
 
 ```bash
-guix install pkg-config faad2 taglib fftw git gcc make chafa opus opusfile libvorbis libogg
+guix install pkg-config faad2 taglib fftw git gcc make chafa opus opusfile libvorbis libogg glib
 ```
 
 #### For Void Linux:
 
 ```bash
-sudo xbps-install -y pkg-config faad2 taglib taglib-devel fftw git gcc make chafa chafa-devel opus opusfile opusfile-devel libvorbis libogg
+sudo xbps-install -y pkg-config faad2 taglib taglib-devel fftw git gcc make chafa chafa-devel opus opusfile opusfile-devel libvorbis libogg glib-devel
 ```
 
 #### For Alpine Linux:
 
 ```bash
-sudo apk add pkgconfig faad2 faad2-dev taglib-dev fftw-dev opus opusfile libvorbis-dev libogg-dev git build-base chafa-dev
+sudo apk add pkgconfig faad2 faad2-dev taglib-dev fftw-dev opus opusfile libvorbis-dev libogg-dev git build-base chafa-dev glib-dev
 ```
 
 Notice that for some packages not only the library needs to be installed, but also development packages, for instance libopus-dev or opus-devel.
