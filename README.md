@@ -56,9 +56,7 @@ kew dependencies are:
 * pkg-config
 * glib2.0
 
-Note: TagLib, faad2 and libogg have replaced FFmpeg.
-
-Install these dependencies using your distro's package manager. For instance:
+Install these dependencies using your distro's package manager. Below are some examples.
 
 #### For Debian/Ubuntu:
 
@@ -126,8 +124,6 @@ sudo xbps-install -y pkg-config faad2 taglib taglib-devel fftw git gcc make chaf
 ```bash
 sudo apk add pkgconfig faad2 faad2-dev taglib-dev fftw-dev opus opusfile libvorbis-dev libogg-dev git build-base chafa-dev glib-dev
 ```
-
-Notice that for some packages not only the library needs to be installed, but also development packages, for instance libopus-dev or opus-devel.
 
 Then run this (either git clone or unzip a release zip into a folder of your choice):
 
