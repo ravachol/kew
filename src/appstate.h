@@ -62,6 +62,7 @@ typedef struct
         bool resetPlaylistDisplay;                      // Should the playlist be reset, ie drawn starting from playing song
         bool doNotifyMPRISSwitched;                     // Emit mpris song switched signal
         bool doNotifyMPRISPlaying;                      // Emit mpris music is playing signal
+        bool collapseView;                              // Signal that ui needs to collapse the view
 } UIState;
 
 typedef struct
