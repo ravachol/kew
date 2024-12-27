@@ -72,7 +72,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
 #define NUM_KEY_MAPPINGS 48
 
-#define TMPFOLDER "/tmp"
+#define TMPPIDFILE "/tmp/kew_"
 
 FILE *logFile = NULL;
 struct winsize windowSize;
@@ -1307,8 +1307,7 @@ void exitIfAlreadyRunning()
 {
         char pidfile_path[256];
 
-        snprintf(pidfile_path, sizeof(pidfile_path), "%s%s", TMPFOLDER, "/kew_");
-        snprintf(pidfile_path + strnlen(pidfile_path, 256), sizeof(pidfile_path) - strnlen(pidfile_path, 256), "%d.pid", getuid());
+        snprintf(pidfile_path, sizeof(pidfile_path), "%s%d.pid", TMPPIDFILE, getuid());
 
         FILE *pidfile;
         pid_t pid;
