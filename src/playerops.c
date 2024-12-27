@@ -970,6 +970,11 @@ void enqueueSongs(FileSystemEntry *entry, UIState *uis)
                                 }
                         }
                         setCurrentAsChosenDir();
+                        if (uis->allowChooseSongs == true)
+                        {
+                                uis->collapseView = true;
+                                refresh = true;
+                        }
                         uis->allowChooseSongs = true;
                 }
                 else

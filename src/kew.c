@@ -1484,6 +1484,7 @@ void initState(AppState *state)
         state->uiState.resizeFlag = 0;
         state->uiState.doNotifyMPRISSwitched = false;
         state->uiState.doNotifyMPRISPlaying = false;
+        state->uiState.collapseView = false;
         state->tempCache = NULL;
 }
 
