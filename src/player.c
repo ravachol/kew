@@ -60,7 +60,6 @@ int libIter = 0;
 int libSongIter = 0;
 int libTopLevelSongIter = 0;
 
-bool previouslyAllowedChooseSongs = false;
 int previousChosenLibRow = 0;
 int libCurrentDirSongCount = 0;
 FileSystemEntry *lastEntry = NULL;
@@ -1193,7 +1192,7 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
                                                                               (currentEntry != NULL && currentEntry->parent != NULL && chosenDir != NULL && (strcmp(currentEntry->parent->fullPath, chosenDir->fullPath) != 0) &&
                                                                                strcmp(root->fullPath, chosenDir->fullPath) != 0)))
                                         {
-                                                previouslyAllowedChooseSongs = true;
+                                                uis->collapseView = true;
                                                 refresh = true;
 
                                                 if (!uis->openedSubDir)
@@ -1310,7 +1309,7 @@ char *getLibraryFilePath(void)
 
 void showLibrary(SongData *songData, AppState *state)
 {
-        if (previouslyAllowedChooseSongs)
+        if (state->uiState.collapseView)
         {
                 if (previousChosenLibRow < chosenLibRow)
                 {
@@ -1324,7 +1323,7 @@ void showLibrary(SongData *songData, AppState *state)
                                 chosenLibRow -= state->uiState.numSongsAboveSubDir;
                                 state->uiState.openedSubDir = false;
                                 state->uiState.numSongsAboveSubDir = 0;
-                                previouslyAllowedChooseSongs = false;
+                                state->uiState.collapseView = false;
                         }
                 }
                 else
@@ -1332,7 +1331,7 @@ void showLibrary(SongData *songData, AppState *state)
                         state->uiState.openedSubDir = false;
                         state->uiState.numSongsAboveSubDir = 0;
                 }
-                previouslyAllowedChooseSongs = false;
+                state->uiState.collapseView = false;
         }
 
         UISettings *ui = &(state->uiSettings);
