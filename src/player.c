@@ -294,7 +294,7 @@ void printCover(SongData *songdata, UISettings *ui)
         else
         {
                 clearRestOfScreen();
-                for (int i = 0; i < preferredHeight - 1; i++)
+                for (int i = 0; i < preferredHeight; i++)
                 {
                         printf("\n");
                 }
@@ -333,7 +333,6 @@ void printBasicMetadata(TagSettings const *metadata, UISettings *ui)
         getTermSize(&term_w, &term_h);
         maxWidth = textWidth; // term_w - 3 - (indent * 2);
         printf("\n");
-        setColor(ui);
         int rows = 1;
         if (strnlen(metadata->artist, METADATA_MAX_LENGTH) > 0)
         {
@@ -362,7 +361,11 @@ void printBasicMetadata(TagSettings const *metadata, UISettings *ui)
         {
                 PixelData pixel = increaseLuminosity(ui->color, 20);
 
-                if (pixel.r == 255 && pixel.g == 255 && pixel.b == 255)
+                if (ui->useConfigColors)
+                {
+                        setDefaultTextColor();
+                }
+                else if (pixel.r == 255 && pixel.g == 255 && pixel.b == 255)
                 {
                         PixelData gray;
                         gray.r = defaultColor;
@@ -374,9 +377,6 @@ void printBasicMetadata(TagSettings const *metadata, UISettings *ui)
                 {
                         printf("\033[1;38;2;%03u;%03u;%03um", pixel.r, pixel.g, pixel.b);
                 }
-
-                if (ui->useConfigColors)
-                        printf("\e[1m\e[39m");
 
                 printWithDelay(metadata->title, 9, maxWidth - 2);
         }
@@ -433,7 +433,11 @@ void printMetadata(TagSettings const *metadata, UISettings *ui)
         if (appState.currentView == LIBRARY_VIEW || appState.currentView == PLAYLIST_VIEW || appState.currentView == SEARCH_VIEW)
                 return;
         c_sleep(100);
-        setColor(ui);
+
+        if (ui->useConfigColors)
+                setDefaultTextColor();
+        else
+                setTextColorRGB(ui->color.r, ui->color.g,ui->color.b);
         printBasicMetadata(metadata, ui);
 }
 
@@ -441,7 +445,9 @@ void printTime(double elapsedSeconds, AppState *state)
 {
         if (!timeEnabled || appState.currentView == LIBRARY_VIEW || appState.currentView == PLAYLIST_VIEW || appState.currentView == SEARCH_VIEW)
                 return;
-        if (!state->uiSettings.useConfigColors)
+        if (state->uiSettings.useConfigColors)
+                setDefaultTextColor();
+        else
                 setTextColorRGB(state->uiSettings.color.r, state->uiSettings.color.g,state->uiSettings.color.b);
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
@@ -1038,6 +1044,7 @@ void processName(const char *name, char *output, int maxWidth)
 
         output[copyLength] = '\0';
         removeUnneededChars(output, copyLength);
+        trim(output, copyLength);
 }
 
 void setChosenDir(FileSystemEntry *entry)
@@ -1243,7 +1250,7 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
                                 {
                                         filename[0] = '\0';
                                         processName(root->name, filename, maxNameWidth - extraIndent);
-                                        printf("└─%s \n", filename);
+                                        printf("└─ %s\n", filename);
 
                                         libSongIter++;
                                 }

@@ -353,7 +353,7 @@ void printSquareBitmapCentered(unsigned char *pixels, int width, int height, int
         gchar **lines = g_strsplit(printable->str, delimiters, -1);
 
         // Calculate indentation to center the image
-        int indentation = ((term_size.width_cells - correctedWidth) / 2) + 1;
+        int indentation = ((term_size.width_cells - correctedWidth) / 2);
 
         // Print each line with indentation
         for (int i = 0; lines[i] != NULL; i++)
