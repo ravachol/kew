@@ -296,7 +296,7 @@ void removeUnneededChars(char *str, int length)
         int i;
         for (i = 0; i < 3 && str[i] != '\0' && str[i] != ' '; i++)
         {
-                if (isdigit(str[i]) || str[i] == '-' || str[i] == ' ')
+                if (isdigit(str[i]) || str[i] == '.' || str[i] == '-' || str[i] == ' ')
                 {
                         int j;
                         for (j = i; str[j] != '\0'; j++)
