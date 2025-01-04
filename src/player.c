@@ -954,6 +954,7 @@ void printVisualizer(double elapsedSeconds, AppState *state)
                 int visualizerWidth = (ABSOLUTE_MIN_WIDTH > preferredWidth) ? ABSOLUTE_MIN_WIDTH : preferredWidth;
                 visualizerWidth = (visualizerWidth < textWidth && textWidth < term_w - 2) ? textWidth : visualizerWidth;
                 visualizerWidth = (visualizerWidth > term_w - 2) ? term_w - 2 : visualizerWidth;
+                visualizerWidth -= 1;
                 uis->numProgressBars = (int)visualizerWidth / 2;
 
                 drawSpectrumVisualizer(ui->visualizerHeight, visualizerWidth, ui->color, indent, ui->useConfigColors);
