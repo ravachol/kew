@@ -293,7 +293,7 @@ void printCover(SongData *songdata, UISettings *ui)
         else
         {
                 clearRestOfScreen();
-                for (int i = 0; i < preferredHeight; i++)
+                for (int i = 0; i <= preferredHeight; i++)
                 {
                         printf("\n");
                 }
@@ -611,6 +611,7 @@ int showKeyBindings(SongData *songdata, AppSettings *settings, UISettings *ui)
         int numPrintedRows = 0;
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
+        maxListSize = term_h - 2;
 
         numPrintedRows += printAbout(songdata, ui);
 
@@ -661,9 +662,17 @@ int showKeyBindings(SongData *songdata, AppSettings *settings, UISettings *ui)
         printBlankSpaces(indent);
         printf(" - Esc or %s to quit.\n", settings->quit);
         printf("\n");
-        printLastRow();
 
-        numPrintedRows += 23;
+        numPrintedRows += 22;
+
+        while (numPrintedRows < maxListSize)
+        {
+                printf("\n");
+                numPrintedRows++;
+        }
+
+        printLastRow();
+        numPrintedRows++;
 
         return numPrintedRows;
 }
@@ -874,7 +883,7 @@ void showSearch(SongData *songData, int *chosenRow, UISettings *ui)
 {
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
-        maxSearchListSize = term_h - 5;
+        maxSearchListSize = term_h - 3;
 
         int aboutRows = printLogo(songData, ui);
         maxSearchListSize -= aboutRows;

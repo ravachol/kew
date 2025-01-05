@@ -176,13 +176,10 @@ int displayPlaylist(PlayList *list, int maxListSize, int indent, int *chosenSong
 
         int printedRows = displayPlaylistItems(startNode, startIter, maxListSize, termWidth, indent, *chosenSong, chosenNodeId, ui);
 
-        if (printedRows > 1)
+        while (printedRows < maxListSize)
         {
-                while (printedRows < maxListSize)
-                {
-                        printf("\n");
-                        printedRows++;
-                }
+                printf("\n");
+                printedRows++;
         }
 
         return printedRows;

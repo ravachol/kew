@@ -215,6 +215,7 @@ int displaySearchResults(int maxListSize, int indent, int *chosenRow, int startS
 
         int maxNameWidth = term_w - indent - 5;
         char name[maxNameWidth + 1];
+        int printedRows = 0;
 
         sortResults();
 
@@ -238,6 +239,7 @@ int displaySearchResults(int maxListSize, int indent, int *chosenRow, int startS
                 startSearchIter = *chosenRow = 0;
 
         printf("\n");
+        printedRows++;
 
         // Print the sorted results
         for (size_t i = startSearchIter; i < resultsCount; i++)
@@ -245,7 +247,7 @@ int displaySearchResults(int maxListSize, int indent, int *chosenRow, int startS
                 if (numSearchLetters < minSearchLetters)
                         break;
 
-                if ((int)i >= (maxListSize + startSearchIter))
+                if ((int)i >= maxListSize + startSearchIter - 1)
                         break;
 
                 setDefaultTextColor();
@@ -301,7 +303,15 @@ int displaySearchResults(int maxListSize, int indent, int *chosenRow, int startS
                                 snprintf(name, maxNameWidth + 1, "%s", results[i].entry->name);
                 }
                 printf("%s\n", name);
+                printedRows++;
         }
+
+        while (printedRows < maxListSize)
+        {
+                printf("\n");
+                printedRows++;
+        }
+
         return 0;
 }
 
