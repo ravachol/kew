@@ -93,8 +93,13 @@ void sortResults(void)
         qsort(results, resultsCount, sizeof(SearchResult), compareResults);
 }
 
-int displaySearchBox(int indent)
+int displaySearchBox(int indent, UISettings *ui)
 {
+        if (ui->useConfigColors)
+                setTextColor(ui->mainColor);
+        else
+                setColor(ui);
+
         printBlankSpaces(indent);
         printf(" [Search]: ");
         setDefaultTextColor();
@@ -317,7 +322,7 @@ int displaySearchResults(int maxListSize, int indent, int *chosenRow, int startS
 
 int displaySearch(int maxListSize, int indent, int *chosenRow, int startSearchIter, UISettings *ui)
 {
-        displaySearchBox(indent);
+        displaySearchBox(indent, ui);
         displaySearchResults(maxListSize, indent, chosenRow, startSearchIter, ui);
 
         return 0;

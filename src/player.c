@@ -455,13 +455,51 @@ void printTime(double elapsedSeconds, AppState *state)
                 printProgress(elapsedSeconds, duration);
 }
 
+int calcIndentNormal(void)
+{
+        int textWidth = (ABSOLUTE_MIN_WIDTH > preferredWidth) ? ABSOLUTE_MIN_WIDTH : preferredWidth;
+        return getIndentation(textWidth - 1) - 1;
+}
+
+int calcIndentSongView(SongData *songdata)
+{
+        if (songdata == NULL)
+                return calcIndentNormal();
+
+        int titleLength = strnlen(songdata->metadata->title, METADATA_MAX_LENGTH);
+        int albumLength = strnlen(songdata->metadata->album, METADATA_MAX_LENGTH);
+        int maxTextLength = (albumLength > titleLength) ? albumLength : titleLength;
+        textWidth = (ABSOLUTE_MIN_WIDTH > preferredWidth) ? ABSOLUTE_MIN_WIDTH : preferredWidth;
+        int term_w, term_h;
+        getTermSize(&term_w, &term_h);
+        int maxSize = term_w - 2;
+        if (titleLength > 0 && titleLength < maxSize && titleLength > textWidth)
+                textWidth = titleLength;
+        if (maxTextLength > 0 && maxTextLength < maxSize && maxTextLength > textWidth)
+                textWidth = maxTextLength;
+        if (textWidth > maxSize)
+                textWidth = maxSize;
+
+       return getIndentation(textWidth - 1) - 1;
+}
+
+void calcIndent(SongData *songdata)
+{
+        if ((appState.currentView == SONG_VIEW && songdata == NULL) || appState.currentView != SONG_VIEW)
+        {
+                indent = calcIndentNormal();
+        }
+
+        indent = calcIndentSongView(songdata);
+}
+
 void printGlimmeringText(char *text, int textLength, char *nerdFontText, PixelData color)
 {
         int brightIndex = 0;
         PixelData vbright = increaseLuminosity(color, 120);
         PixelData bright = increaseLuminosity(color, 60);
 
-        printBlankSpaces(indent);
+        printBlankSpaces(calcIndentNormal());
 
         while (brightIndex < textLength)
         {
@@ -507,6 +545,10 @@ void printLastRow(void)
         getTermSize(&term_w, &term_h);
         if (term_w < minWidth)
                 return;
+
+        // Move to lastRow
+        printf("\033[%d;1H", term_h);
+
         setTextColorRGB(lastRowColor.r, lastRowColor.g, lastRowColor.b);
 
 #ifdef __APPLE__
@@ -582,13 +624,13 @@ void printLastRow(void)
         printf("\033[K"); // clear the line
 
         int textLength = strnlen(text, 100);
-
         int randomNumber = getRandomNumber(1, 808);
+
         if (randomNumber == 808)
                 printGlimmeringText(text, textLength, nerdFontText, lastRowColor);
         else
         {
-                printBlankSpaces(indent);
+                printBlankSpaces(calcIndentNormal());
                 printf("%s", text);
                 printf("%s", nerdFontText);
         }
@@ -888,6 +930,8 @@ void showSearch(SongData *songData, int *chosenRow, UISettings *ui)
         int aboutRows = printLogo(songData, ui);
         maxSearchListSize -= aboutRows;
 
+        setDefaultTextColor();
+
         if (term_w > indent + 38 && !ui->hideHelp)
         {
                 printBlankSpaces(indent);
@@ -916,7 +960,7 @@ void showPlaylist(SongData *songData, PlayList *list, int *chosenSong, int *chos
                 setColor(&state->uiSettings);
 
         printBlankSpaces(indent);
-        printf(" ─ PLAYLIST ─\n");
+        printf("   ─ PLAYLIST ─\n");
         maxListSize -= 1;
 
         displayPlaylist(list, maxListSize, indent, chosenSong, chosenNodeId, state->uiState.resetPlaylistDisplay, state);
@@ -954,63 +998,36 @@ void printVisualizer(double elapsedSeconds, AppState *state)
 {
         UISettings *ui = &(state->uiSettings);
         UIState *uis = &(state->uiState);
+        int term_w, term_h;
+        getTermSize(&term_w, &term_h);
 
         if (ui->visualizerEnabled && appState.currentView == SONG_VIEW)
         {
                 printf("\n");
-                int term_w, term_h;
-                getTermSize(&term_w, &term_h);
+
                 int visualizerWidth = (ABSOLUTE_MIN_WIDTH > preferredWidth) ? ABSOLUTE_MIN_WIDTH : preferredWidth;
                 visualizerWidth = (visualizerWidth < textWidth && textWidth < term_w - 2) ? textWidth : visualizerWidth;
                 visualizerWidth = (visualizerWidth > term_w - 2) ? term_w - 2 : visualizerWidth;
                 visualizerWidth -= 1;
                 uis->numProgressBars = (int)visualizerWidth / 2;
 
+                saveCursorPosition();
                 drawSpectrumVisualizer(ui->visualizerHeight, visualizerWidth, ui->color, indent, ui->useConfigColors);
-
                 printElapsedBars(calcElapsedBars(elapsedSeconds, duration, uis->numProgressBars), uis->numProgressBars);
                 printLastRow();
-                int jumpAmount = ui->visualizerHeight + 2;
-                cursorJump(jumpAmount);
-                saveCursorPosition();
+                restoreCursorPosition();
+                cursorJump(1);
         }
         else if (!ui->visualizerEnabled)
         {
-                int term_w, term_h;
-                getTermSize(&term_w, &term_h);
                 if (term_w >= minWidth)
                 {
                         printf("\n\n");
+                        saveCursorPosition();
                         printLastRow();
-                        cursorJump(2);
+                        restoreCursorPosition();
                 }
         }
-}
-
-void calcIndent(SongData *songdata)
-{
-        if ((appState.currentView == SONG_VIEW && songdata == NULL) || appState.currentView != SONG_VIEW)
-        {
-                int textWidth = (ABSOLUTE_MIN_WIDTH > preferredWidth) ? ABSOLUTE_MIN_WIDTH : preferredWidth;
-                indent = getIndentation(textWidth - 1) - 1;
-                return;
-        }
-
-        int titleLength = strnlen(songdata->metadata->title, METADATA_MAX_LENGTH);
-        int albumLength = strnlen(songdata->metadata->album, METADATA_MAX_LENGTH);
-        int maxTextLength = (albumLength > titleLength) ? albumLength : titleLength;
-        textWidth = (ABSOLUTE_MIN_WIDTH > preferredWidth) ? ABSOLUTE_MIN_WIDTH : preferredWidth;
-        int term_w, term_h;
-        getTermSize(&term_w, &term_h);
-        int maxSize = term_w - 2;
-        if (titleLength > 0 && titleLength < maxSize && titleLength > textWidth)
-                textWidth = titleLength;
-        if (maxTextLength > 0 && maxTextLength < maxSize && maxTextLength > textWidth)
-                textWidth = maxTextLength;
-        if (textWidth > maxSize)
-                textWidth = maxSize;
-
-        indent = getIndentation(textWidth - 1) - 1;
 }
 
 FileSystemEntry *getCurrentLibEntry(void)
@@ -1107,25 +1124,9 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
                 return false;
         }
 
-        if (chosenLibRow > startLibIter + maxListSize - round(maxListSize / 2))
+        if (chosenLibRow > startLibIter + maxListSize - floor(maxListSize / 2))
         {
-                startLibIter = chosenLibRow - maxListSize + round(maxListSize / 2) + 1;
-        }
-
-        if (uis->allowChooseSongs)
-        {
-                if (chosenLibRow >= libIter + libSongIter && libSongIter != 0)
-                {
-                        startLibIter = chosenLibRow - round(maxListSize / 2);
-                }
-        }
-        else
-        {
-                if (chosenLibRow >= 1 + uis->numDirectoryTreeEntries + numTopLevelSongs) // 1 for root
-                {
-                        startLibIter = 1 + uis->numDirectoryTreeEntries + numTopLevelSongs - maxListSize;
-                        chosenLibRow = uis->numDirectoryTreeEntries + numTopLevelSongs;
-                }
+                startLibIter = chosenLibRow - maxListSize + ceil(maxListSize / 2) + 1;
         }
 
         if (chosenLibRow < 0)
@@ -1338,6 +1339,10 @@ void showLibrary(SongData *songData, AppState *state)
                 }
                 else
                 {
+                        if (state->uiState.openedSubDir)
+                        {
+                                chosenLibRow -= state->uiState.numSongsAboveSubDir;
+                        }
                         state->uiState.openedSubDir = false;
                         state->uiState.numSongsAboveSubDir = 0;
                 }
@@ -1390,6 +1395,11 @@ void showLibrary(SongData *songData, AppState *state)
         {
                 chosenLibRow--;
                 refresh = true;
+        }
+
+        for (int i = libIter - startLibIter; i < maxLibListSize; i++)
+        {
+                printf("\n");
         }
 
         printf("\n");

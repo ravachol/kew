@@ -77,7 +77,7 @@ int displayPlaylistItems(Node *startNode, int startIter, int maxListSize, int te
 
         for (int i = startIter; node != NULL && i < startIter + maxListSize; i++)
         {
-                preparePlaylistString(node, buffer, MAXPATHLEN, termWidth - indent - 10);
+                preparePlaylistString(node, buffer, MAXPATHLEN, termWidth - indent - 12);
                 if (buffer[0] != '\0')
                 {
                         if (ui->useConfigColors)
@@ -87,7 +87,7 @@ int displayPlaylistItems(Node *startNode, int startIter, int maxListSize, int te
 
                         printBlankSpaces(indent);
 
-                        printf(" %d. ", i + 1);
+                        printf("   %d. ", i + 1);
 
                         setDefaultTextColor();
 
