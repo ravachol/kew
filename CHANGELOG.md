@@ -1,5 +1,17 @@
 # CHANGELOG
 
+### 3.0.3
+
+- Minor UI improvements, style adjustments and cleaning up.
+
+- Last Row is shown in the same place across all views.
+
+- The library text no longer shifts one char to the left sometimes when starting songs.
+
+- Fixed minor bug related to scrolling in library.
+
+- Disabled desktop notifications on macOS. The macOS desktop notifications didn't really gel well with the app, and the method used was unsafe in the long run. A better way to do it is by using objective-c, which I want to avoid using.
+
 ### 3.0.2
 
 - You can now enqueue and play all your music (shuffled) in library view, by pressing MUSIC LIBRARY at the top.
