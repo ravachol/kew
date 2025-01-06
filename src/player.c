@@ -989,7 +989,7 @@ void printVisualizer(double elapsedSeconds, AppState *state)
 
 void calcIndent(SongData *songdata)
 {
-        if (songdata == NULL || appState.currentView != SONG_VIEW)
+        if ((appState.currentView == SONG_VIEW && songdata == NULL) || appState.currentView != SONG_VIEW)
         {
                 int textWidth = (ABSOLUTE_MIN_WIDTH > preferredWidth) ? ABSOLUTE_MIN_WIDTH : preferredWidth;
                 indent = getIndentation(textWidth - 1) - 1;
