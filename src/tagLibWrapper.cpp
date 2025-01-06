@@ -566,6 +566,11 @@ extern "C"
         bool extractCoverArtFromMp4(const std::string &inputFile, const std::string &coverFilePath)
         {
                 TagLib::MP4::File file(inputFile.c_str());
+
+                if (!file.isValid()) {
+                        return false;
+                }
+
                 const TagLib::MP4::Item coverItem = file.tag()->item("covr");
 
                 if (coverItem.isValid())
