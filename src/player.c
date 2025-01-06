@@ -97,44 +97,25 @@ int calcIdealImgSize(int *width, int *height, const int visualizerHeight, const 
 
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
-        int timeDisplayHeight = 1;
-        int heightMargin = 4;
-        int minHeight = visualizerHeight + metatagHeight + timeDisplayHeight + heightMargin;
-        int minBorderWidth = 0;
-        *height = term_h - minHeight;
 
-        double temp_width = ceil((double)(*height) * aspectRatio);
-        if (temp_width > INT_MAX)
-        {
-                *width = INT_MAX;
-        }
-        else if (temp_width < INT_MIN)
-        {
-                *width = INT_MIN;
-        }
-        else
-        {
-                *width = (int)temp_width;
-        }
+        const int timeDisplayHeight = 1;
+        const int heightMargin = 4;
+        const int minHeight = visualizerHeight + metatagHeight + timeDisplayHeight + heightMargin;
+        const int minBorderWidth = 0;
+
+        *height = term_h - minHeight;
+        *width = (int)ceil((double)(*height) * aspectRatio);
 
         if (*width > term_w)
         {
                 *width = term_w - minBorderWidth;
-
-                double temp_height = floor((double)(*width) / aspectRatio);
-                if (temp_height > INT_MAX)
-                {
-                        *height = INT_MAX;
-                }
-                else if (temp_height < INT_MIN)
-                {
-                        *height = INT_MIN;
-                }
-                else
-                {
-                        *height = (int)temp_height;
-                }
+                *height = (int)floor((double)(*width) / aspectRatio);
         }
+
+        if (*width > INT_MAX)
+                *width = INT_MAX;
+        if (*height > INT_MAX)
+                *height = INT_MAX;
 
         return 0;
 }
@@ -436,7 +417,7 @@ void printMetadata(TagSettings const *metadata, UISettings *ui)
         if (ui->useConfigColors)
                 setDefaultTextColor();
         else
-                setTextColorRGB(ui->color.r, ui->color.g,ui->color.b);
+                setTextColorRGB(ui->color.r, ui->color.g, ui->color.b);
         printBasicMetadata(metadata, ui);
 }
 
@@ -447,7 +428,7 @@ void printTime(double elapsedSeconds, AppState *state)
         if (state->uiSettings.useConfigColors)
                 setDefaultTextColor();
         else
-                setTextColorRGB(state->uiSettings.color.r, state->uiSettings.color.g,state->uiSettings.color.b);
+                setTextColorRGB(state->uiSettings.color.r, state->uiSettings.color.g, state->uiSettings.color.b);
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
         printBlankSpaces(indent);
@@ -480,7 +461,7 @@ int calcIndentSongView(SongData *songdata)
         if (textWidth > maxSize)
                 textWidth = maxSize;
 
-       return getIndentation(textWidth - 1) - 1;
+        return getIndentation(textWidth - 1) - 1;
 }
 
 void calcIndent(SongData *songdata)
