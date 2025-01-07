@@ -68,29 +68,6 @@ const char LIBRARY_FILE[] = "kewlibrary";
 
 FileSystemEntry *library = NULL;
 
-int calcMetadataHeight(void)
-{
-        int term_w, term_h;
-        getTermSize(&term_w, &term_h);
-
-        if (metadata.title[0] != '\0')
-        {
-                size_t titleLength = strnlen(metadata.title, METADATA_MAX_LENGTH);
-                int titleHeight = (int)ceil((float)titleLength / term_w);
-                size_t artistLength = strnlen(metadata.artist, METADATA_MAX_LENGTH);
-                int artistHeight = (int)ceil((float)artistLength / term_w);
-                size_t albumLength = strnlen(metadata.album, METADATA_MAX_LENGTH);
-                int albumHeight = (int)ceil((float)albumLength / term_w);
-                int yearHeight = 1;
-
-                return titleHeight + artistHeight + albumHeight + yearHeight;
-        }
-        else
-        {
-                return 4;
-        }
-}
-
 int calcIdealImgSize(int *width, int *height, const int visualizerHeight, const int metatagHeight)
 {
         float aspectRatio = calcAspectRatio();
@@ -123,7 +100,8 @@ int calcIdealImgSize(int *width, int *height, const int visualizerHeight, const 
 void calcPreferredSize(UISettings *ui)
 {
         minHeight = 2 + (ui->visualizerEnabled ? ui->visualizerHeight : 0);
-        calcIdealImgSize(&preferredWidth, &preferredHeight, (ui->visualizerEnabled ? ui->visualizerHeight : 0), calcMetadataHeight());
+        int metadataHeight = 4;
+        calcIdealImgSize(&preferredWidth, &preferredHeight, (ui->visualizerEnabled ? ui->visualizerHeight : 0), metadataHeight);
 }
 
 void printHelp()
@@ -320,11 +298,16 @@ void printBasicMetadata(TagSettings const *metadata, UISettings *ui)
                 printf(" %.*s\n", maxWidth, metadata->artist);
                 rows++;
         }
+        else {
+                printf("\n");
+        }
         if (strnlen(metadata->album, METADATA_MAX_LENGTH) > 0)
         {
                 printBlankSpaces(indent);
                 printf(" %.*s\n", maxWidth, metadata->album);
-                rows++;
+        }
+        else {
+                printf("\n");
         }
         if (strnlen(metadata->date, METADATA_MAX_LENGTH) > 0)
         {
@@ -334,9 +317,11 @@ void printBasicMetadata(TagSettings const *metadata, UISettings *ui)
                         printf(" %s\n", metadata->date);
                 else
                         printf(" %d\n", year);
-                rows++;
         }
-        cursorJump(rows);
+        else {
+                printf("\n");
+        }
+        cursorJump(4);
         if (strnlen(metadata->title, METADATA_MAX_LENGTH) > 0)
         {
                 PixelData pixel = increaseLuminosity(ui->color, 20);
@@ -360,7 +345,10 @@ void printBasicMetadata(TagSettings const *metadata, UISettings *ui)
 
                 printWithDelay(metadata->title, 9, maxWidth - 2);
         }
-        cursorJumpDown(rows - 1);
+        else {
+                printf("\n");
+        }
+        cursorJumpDown(3);
 }
 
 int calcElapsedBars(double elapsedSeconds, double duration, int numProgressBars)
