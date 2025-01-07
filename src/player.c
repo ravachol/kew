@@ -458,8 +458,9 @@ void calcIndent(SongData *songdata)
         {
                 indent = calcIndentNormal();
         }
-
-        indent = calcIndentSongView(songdata);
+        else {
+                indent = calcIndentSongView(songdata);
+        }
 }
 
 void printGlimmeringText(char *text, int textLength, char *nerdFontText, PixelData color)
