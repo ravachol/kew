@@ -1105,9 +1105,10 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
                 return false;
         }
 
-        if (chosenLibRow > startLibIter + maxListSize - floor(maxListSize / 2))
+        int threshold = startLibIter + (maxListSize + 1) / 2;
+        if (chosenLibRow > threshold)
         {
-                startLibIter = chosenLibRow - maxListSize + ceil(maxListSize / 2) + 1;
+                startLibIter = chosenLibRow - maxListSize / 2 + 1;
         }
 
         if (chosenLibRow < 0)
