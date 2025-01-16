@@ -91,15 +91,14 @@ Option: add libfaad-devel for AAC,M4A support (Requires RPM-fusion to be enabled
 ```bash
 sudo zypper install -y pkg-config taglib-devel fftw-devel opus-devel opusfile-devel libvorbis-devel libogg-devel git chafa-devel gcc make glib2-devel
 ```
-Option: add libfaad-devel for AAC,M4A support (Requires RPM-fusion and Packman to be enabled).
+Option: add libfaad-devel for AAC,M4A support (Requires Packman to be enabled).
 
 #### For CentOS/RHEL:
-Requires RPM-fusion to be enabled.
 
 ```bash
 sudo yum install -y pkgconfig taglib-devel fftw-devel opus-devel opusfile-devel libvorbis-devel libogg-devel git gcc make chafa-devel glib2-devel
 ```
-Option: add libfaad2-devel for AAC,M4A support (Requires RPM-fusion to be enabled).
+Option: add libfaad2-devel for AAC,M4A support (Probably requires EPEL to be enabled).
 
 #### For Solus:
 
