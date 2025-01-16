@@ -1314,6 +1314,7 @@ void showLibrary(SongData *songData, AppState *state)
                         {
                                 chosenLibRow -= state->uiState.numSongsAboveSubDir;
                         }
+                        libCurrentDirSongCount = 0;
                         state->uiState.openedSubDir = false;
                         state->uiState.numSongsAboveSubDir = 0;
                 }
