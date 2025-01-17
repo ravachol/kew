@@ -541,14 +541,27 @@ void printLastRow(void)
 
                 if (isPaused())
                 {
-                        char pauseText[] = " \uf04c";
+                        char pauseText[] = " \u23f8";
                         snprintf(nerdFontText + currentLength, maxLength - currentLength, "%s", pauseText);
                         currentLength += strnlen(pauseText, maxLength - currentLength);
+                }
+                else if (isStopped())
+                {
+                        char pauseText[] = " \u23f9";
+                        snprintf(nerdFontText + currentLength, maxLength - currentLength, "%s", pauseText);
+                        currentLength += strnlen(pauseText, maxLength - currentLength);
+                }
+                else
+                {
+                        char pauseText[] = " \u25b6";
+                        snprintf(nerdFontText + currentLength, maxLength - currentLength, "%s", pauseText);
+                        currentLength += strnlen(pauseText, maxLength - currentLength);
+
                 }
 
                 if (isRepeatEnabled())
                 {
-                        char repeatText[] = " \uf01e";
+                        char repeatText[] = " \u27f3";
                         snprintf(nerdFontText + currentLength, maxLength - currentLength, "%s", repeatText);
                         currentLength += strnlen(repeatText, maxLength - currentLength);
                 }
