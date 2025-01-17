@@ -77,7 +77,7 @@ int calcIdealImgSize(int *width, int *height, const int visualizerHeight, const 
 
         const int timeDisplayHeight = 1;
         const int heightMargin = 4;
-        const int minHeight = visualizerHeight + metatagHeight + timeDisplayHeight + heightMargin;
+        const int minHeight = visualizerHeight + metatagHeight + timeDisplayHeight + heightMargin + 1;
         const int minBorderWidth = 0;
 
         *height = term_h - minHeight;
@@ -93,6 +93,9 @@ int calcIdealImgSize(int *width, int *height, const int visualizerHeight, const 
                 *width = INT_MAX;
         if (*height > INT_MAX)
                 *height = INT_MAX;
+
+
+        *height -= 1;
 
         return 0;
 }
@@ -226,12 +229,12 @@ int displayCover(unsigned char *cover, int coverWidth, int coverHeight, const ch
 {
         if (!ascii)
         {
-                printSquareBitmapCentered(cover, coverWidth, coverHeight, height - 1);
+                printSquareBitmapCentered(cover, coverWidth, coverHeight, height);
         }
         else
         {
                 int width = height * 2;
-                printInAscii(coverArtPath, height - 1, width);
+                printInAscii(coverArtPath, height);
         }
         printf("\n\n");
 
