@@ -2,8 +2,6 @@
 
 ### 3.0.3
 
-- Minor UI improvements, style adjustments and cleaning up.
-
 - Last Row is shown in the same place across all views.
 
 - The library text no longer shifts one char to the left sometimes when starting songs.
@@ -11,6 +9,10 @@
 - Fixed minor bug related to scrolling in library.
 
 - Fixed bug related to covers in ascii, on narrow terminal sizes it wouldn't print correctly.
+
+- Minor UI improvements, style adjustments and cleaning up.
+
+- Added play and stop icon, and replaced some nerdfont characters with unicode equivalents.
 
 - Disabled desktop notifications on macOS. The macOS desktop notifications didn't really gel well with the app, and the method used was unsafe in the long run. A better way to do it is by using objective-c, which I want to avoid using.
 
