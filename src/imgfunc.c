@@ -423,7 +423,7 @@ unsigned char calcAsciiChar(PixelData *p)
         return scale[brightness_levels - rescaled];
 }
 
-int convertToAscii(const char *filepath, unsigned int width, unsigned int height)
+int convertToAscii(const char *filepath, unsigned int height)
 {
         /*
         Modified, originally by Danny Burrows:
@@ -452,6 +452,26 @@ int convertToAscii(const char *filepath, unsigned int width, unsigned int height
         SOFTWARE.
         */
 
+        TermSize term_size;
+        gint cell_width = -1, cell_height = -1;
+
+        tty_init();
+        get_tty_size(&term_size);
+
+        if (term_size.width_cells > 0 && term_size.height_cells > 0 &&
+            term_size.width_pixels > 0 && term_size.height_pixels > 0)
+        {
+                cell_width = term_size.width_pixels / term_size.width_cells;
+                cell_height = term_size.height_pixels / term_size.height_cells;
+        }
+
+        float aspect_ratio_correction = (float)cell_height / (float)cell_width;
+        unsigned int correctedWidth = (int)(height * aspect_ratio_correction) - 1;
+
+
+        // Calculate indentation to center the image
+        int indent = ((term_size.width_cells - correctedWidth) / 2);
+
         int rwidth, rheight, rchannels;
         unsigned char *read_data = stbi_load(filepath, &rwidth, &rheight, &rchannels, 3);
 
@@ -461,13 +481,13 @@ int convertToAscii(const char *filepath, unsigned int width, unsigned int height
         }
 
         PixelData *data;
-        if (width != (unsigned)rwidth || height != (unsigned)rheight)
+        if (correctedWidth != (unsigned)rwidth || height != (unsigned)rheight)
         {
                 // 3 * uint8 for RGB!
-                unsigned char *new_data = malloc(3 * sizeof(unsigned char) * width * height);
+                unsigned char *new_data = malloc(3 * sizeof(unsigned char) * correctedWidth * height);
                 stbir_resize_uint8_srgb(
                     read_data, rwidth, rheight, 0,
-                    new_data, width, height, 0, 3);
+                    new_data, correctedWidth, height, 0, 3);
 
                 stbi_image_free(read_data);
                 data = (PixelData *)new_data;
@@ -477,17 +497,12 @@ int convertToAscii(const char *filepath, unsigned int width, unsigned int height
                 data = (PixelData *)read_data;
         }
 
-        int term_w, term_h;
-        getTermSize(&term_w, &term_h);
-
-        int indent = ((term_w - width) / 2) + 1;
-
         printf("\n");
         printf("%*s", indent, "");
 
-        for (unsigned int d = 0; d < width * height; d++)
+        for (unsigned int d = 0; d < correctedWidth * height; d++)
         {
-                if (d % width == 0 && d != 0)
+                if (d % correctedWidth == 0 && d != 0)
                 {
                         printf("\n");
                         printf("%*s", indent, "");
@@ -504,13 +519,11 @@ int convertToAscii(const char *filepath, unsigned int width, unsigned int height
         return 0;
 }
 
-int printInAscii(const char *pathToImgFile, int height, int width)
+int printInAscii(const char *pathToImgFile, int height)
 {
-        width -= 1;
-
         printf("\r");
 
-        int ret = convertToAscii(pathToImgFile, (unsigned)width, (unsigned)height);
+        int ret = convertToAscii(pathToImgFile,(unsigned)height);
         if (ret == -1)
                 printf("\033[0m");
         return 0;
