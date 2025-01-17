@@ -556,7 +556,6 @@ void printLastRow(void)
                         char pauseText[] = " \u25b6";
                         snprintf(nerdFontText + currentLength, maxLength - currentLength, "%s", pauseText);
                         currentLength += strnlen(pauseText, maxLength - currentLength);
-
                 }
 
                 if (isRepeatEnabled())
