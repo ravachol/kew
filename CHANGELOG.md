@@ -10,6 +10,8 @@
 
 - Fixed minor bug related to scrolling in library.
 
+- Fixed bug related to covers in ascii, on narrow terminal sizes it wouldn't print correctly.
+
 - Disabled desktop notifications on macOS. The macOS desktop notifications didn't really gel well with the app, and the method used was unsafe in the long run. A better way to do it is by using objective-c, which I want to avoid using.
 
 ### 3.0.2
