@@ -1006,9 +1006,12 @@ void printVisualizer(double elapsedSeconds, AppState *state)
         {
                 if (term_w >= minWidth)
                 {
+                        printf("\n");
+
                         saveCursorPosition();
                         printLastRow();
                         restoreCursorPosition();
+                        cursorJump(1);
                 }
         }
 }
