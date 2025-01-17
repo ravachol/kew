@@ -518,8 +518,10 @@ void printLastRow(void)
         if (term_w < minWidth)
                 return;
 
+#ifndef __APPLE__
         // Move to lastRow
         printf("\033[%d;1H", term_h);
+#endif
 
         setTextColorRGB(lastRowColor.r, lastRowColor.g, lastRowColor.b);
 
@@ -995,12 +997,19 @@ void printVisualizer(double elapsedSeconds, AppState *state)
                 visualizerWidth -= 1;
                 uis->numProgressBars = (int)visualizerWidth / 2;
 
+#ifndef __APPLE__
                 saveCursorPosition();
+#endif
                 drawSpectrumVisualizer(ui->visualizerHeight, visualizerWidth, ui->color, indent, ui->useConfigColors);
                 printElapsedBars(calcElapsedBars(elapsedSeconds, duration, uis->numProgressBars), uis->numProgressBars);
                 printLastRow();
+#ifndef __APPLE__
                 restoreCursorPosition();
                 cursorJump(1);
+#else
+                int jumpAmount = ui->visualizerHeight + 2;
+                cursorJump(jumpAmount);
+#endif
         }
         else if (!ui->visualizerEnabled)
         {
