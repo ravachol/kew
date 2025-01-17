@@ -16,7 +16,7 @@
     } PixelData;
 #endif
 
-int printInAscii(const char *pathToImgFile, int height, int width);
+int printInAscii(const char *pathToImgFile, int height);
 
 float calcAspectRatio(void);
 
