@@ -66,4 +66,8 @@ void clearScreen(void);
 
 int readInputSequence(char *seq, size_t seqSize);
 
+void enterAlternateScreenBuffer(void);
+
+void exitAlternateScreenBuffer(void);
+
 #endif
