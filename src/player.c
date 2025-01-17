@@ -233,7 +233,6 @@ int displayCover(unsigned char *cover, int coverWidth, int coverHeight, const ch
         }
         else
         {
-                int width = height * 2;
                 printInAscii(coverArtPath, height);
         }
         printf("\n\n");
@@ -995,7 +994,6 @@ void printVisualizer(double elapsedSeconds, AppState *state)
         {
                 if (term_w >= minWidth)
                 {
-                        printf("\n\n");
                         saveCursorPosition();
                         printLastRow();
                         restoreCursorPosition();
