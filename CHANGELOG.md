@@ -2,6 +2,8 @@
 
 ### 3.0.3
 
+- Fixed buffer redraw issue with cover images on ghostty.
+
 - Last Row is shown in the same place across all views.
 
 - The library text no longer shifts one char to the left sometimes when starting songs.
