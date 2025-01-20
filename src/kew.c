@@ -1348,17 +1348,13 @@ void exitIfAlreadyRunning()
 
 int directoryExists(const char *path)
 {
-        struct stat info;
-        if (stat(path, &info) != 0)
-        {
-                return 0;
-        }
-        else if (S_ISDIR(info.st_mode))
-        {
-                return 1;
-        }
+    DIR *dir = opendir(path);
+    if (dir != NULL) {
+        closedir(dir);
+        return 1;
+    }
 
-        return 0;
+    return 0;
 }
 
 void clearInputBuffer()
@@ -1449,7 +1445,7 @@ void setMusicPath()
                 }
                 else
                 {
-                        printf("The entered path does not exist.\n");
+                        printf("The entered path does not exist or is inaccessible.\n");
                         exit(1);
                 }
         }
