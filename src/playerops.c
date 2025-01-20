@@ -932,7 +932,7 @@ void enqueueSongs(FileSystemEntry *entry, UIState *uis)
                         {
                                 if (hasDequeuedChildren(entry))
                                 {
-                                        if (entry->parent == NULL)      // Shuffle playlist if it's the root
+                                        if (entry->parent == NULL) // Shuffle playlist if it's the root
                                                 shuffle = true;
 
                                         entry->isEnqueued = 1;
@@ -1395,15 +1395,20 @@ void skipToNextSong(AppState *state)
 
 void setCurrentSongToPrev(void)
 {
-        if (isShuffleEnabled() && currentSong != NULL && currentSong->prev == NULL)
+        if (currentSong != NULL)
         {
-                if (currentSong->prev == NULL && currentSong->next != NULL)
-                        currentSong = currentSong->next;
+                if (isShuffleEnabled())
+                {
+                        if (currentSong->prev == NULL && currentSong->next != NULL)
+                                currentSong = currentSong->next;
+                        else
+                                return;
+                }
                 else
-                        return;
+                {
+                        currentSong = currentSong->prev;
+                }
         }
-        else
-                currentSong = currentSong->prev;
 }
 
 void silentSwitchToPrev(AppState *state)
