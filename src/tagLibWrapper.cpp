@@ -20,6 +20,7 @@
 #include <taglib/mp4coverart.h>
 #include <taglib/vorbisfile.h>
 #include <taglib/opusfile.h>
+#include <taglib/wavfile.h>
 #include <taglib/xiphcomment.h>
 #include <taglib/tag.h>
 #include <ogg/ogg.h>
@@ -434,6 +435,68 @@ extern "C"
                 return false;
         }
 
+        bool extractCoverArtFromWav(const std::string &inputFile, const std::string &coverFilePath)
+        {
+                TagLib::RIFF::WAV::File file(inputFile.c_str());
+                if (!file.isValid())
+                {
+                        return false;
+                }
+
+                const TagLib::ID3v2::Tag *id3v2tag = file.ID3v2Tag();
+                if (id3v2tag)
+                {
+                        // Collect all attached picture frames
+                        TagLib::ID3v2::FrameList frames;
+                        frames.append(id3v2tag->frameListMap()["APIC"]);
+                        frames.append(id3v2tag->frameListMap()["PIC"]);
+
+                        if (!frames.isEmpty())
+                        {
+                                for (auto it = frames.begin(); it != frames.end(); ++it)
+                                {
+                                        const TagLib::ID3v2::AttachedPictureFrame *picFrame = dynamic_cast<TagLib::ID3v2::AttachedPictureFrame *>(*it);
+                                        if (picFrame)
+                                        {
+                                                // Access picture data and MIME type
+                                                TagLib::ByteVector pictureData = picFrame->picture();
+                                                TagLib::String mimeType = picFrame->mimeType();
+
+                                                // Construct the output file path
+                                                std::string outputFilePath = coverFilePath;
+
+                                                // Write the image data to a file
+                                                FILE *outFile = fopen(outputFilePath.c_str(), "wb");
+                                                if (outFile)
+                                                {
+                                                        fwrite(pictureData.data(), 1, pictureData.size(), outFile);
+                                                        fclose(outFile);
+
+                                                        return true;
+                                                }
+                                                else
+                                                {
+                                                        return false; // Failed to open output file
+                                                }
+
+                                                // Break if only the first image is needed
+                                                break;
+                                        }
+                                }
+                        }
+                        else
+                        {
+                                return false; // No picture frames found
+                        }
+                }
+                else
+                {
+                        return false; // No ID3v2 tag found
+                }
+
+                return true; // Success
+        }
+
         bool extractCoverArtFromOpus(const std::string &audioFilePath, const std::string &outputFileName)
         {
                 int error;
@@ -736,6 +799,10 @@ extern "C"
                         {
                                 coverArtExtracted = extractCoverArtFromOgg(input_file, coverFilePath);
                         }
+                }
+                else if (extension == "wav")
+                {
+                        coverArtExtracted = extractCoverArtFromWav(input_file, coverFilePath);
                 }
 
                 if (coverArtExtracted)
