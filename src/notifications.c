@@ -384,8 +384,6 @@ void cleanupDbusConnection()
                 g_object_unref(connection);
                 connection = NULL;
         }
-
-        printf("D-Bus connection successfully cleaned up.\n");
 }
 #endif
 
