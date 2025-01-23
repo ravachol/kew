@@ -219,3 +219,13 @@ int getIndentation(int terminalWidth)
         int indent = ((term_w - terminalWidth) / 2) + 1;
         return (indent > 0) ? indent : 0;
 }
+
+void enterAlternateScreenBuffer() {
+        // Enter alternate screen buffer
+        printf("\033[?1049h");
+}
+
+void exitAlternateScreenBuffer() {
+        // Exit alternate screen buffer
+        printf("\033[?1049l");
+}
