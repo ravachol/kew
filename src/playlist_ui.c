@@ -98,15 +98,16 @@ int displayPlaylistItems(Node *startNode, int startIter, int maxListSize, int te
                                 printf("\x1b[7m");
                         }
 
-                        if (currentSong != NULL && currentSong->id == node->id)
-                        {
-                                printf("\e[1m\e[39m");
-                        }
-
                         if (i + 1 < 10)
                                 printf(" ");
 
-                        printf("%s \n", buffer);
+
+                        if (currentSong != NULL && currentSong->id == node->id)
+                        {
+                                printf("\e[4m\e[1m");
+                        }
+
+                        printf("%s\n", buffer);
 
                         numPrintedRows++;
                 }
