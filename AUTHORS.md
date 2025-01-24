@@ -7,6 +7,7 @@
 ## Contributors (in alphabetical order)
 
 * Davis @kazemaksOG <davis.kazemaks@gmail.com>
+* DNEGEL3125 @DNEGEL3125
 * Hans Petter Jansson @hpjansson <hpj@hpjansson.org>
 * John Lakeman @j-lakeman <le0324tb@anonaddy.me>
 * Matthias Geiger @werdahias <werdahias@riseup.net>
