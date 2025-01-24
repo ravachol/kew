@@ -1216,7 +1216,6 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
                                 {
                                         if (root->isEnqueued)
                                         {
-
                                                 if (ui->useConfigColors)
                                                         printf("\033[%d;3%dm", foundCurrent, ui->enqueuedColor);
                                                 else
@@ -1256,7 +1255,15 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
                                 {
                                         filename[0] = '\0';
                                         processName(root->name, filename, maxNameWidth - extraIndent);
-                                        printf("└─ %s\n", filename);
+
+                                        printf("└─ ");
+
+                                        if (foundCurrent)
+                                        {
+                                                printf("\e[4m\e[1m");
+                                        }
+
+                                        printf("%s\n", filename);
 
                                         libSongIter++;
                                 }
