@@ -94,7 +94,6 @@ int calcIdealImgSize(int *width, int *height, const int visualizerHeight, const 
         if (*height > INT_MAX)
                 *height = INT_MAX;
 
-
         *height -= 1;
 
         return 0;
@@ -300,7 +299,8 @@ void printBasicMetadata(TagSettings const *metadata, UISettings *ui)
                 printf(" %.*s\n", maxWidth, metadata->artist);
                 rows++;
         }
-        else {
+        else
+        {
                 printf("\n");
         }
         if (strnlen(metadata->album, METADATA_MAX_LENGTH) > 0)
@@ -308,7 +308,8 @@ void printBasicMetadata(TagSettings const *metadata, UISettings *ui)
                 printBlankSpaces(indent);
                 printf(" %.*s\n", maxWidth, metadata->album);
         }
-        else {
+        else
+        {
                 printf("\n");
         }
         if (strnlen(metadata->date, METADATA_MAX_LENGTH) > 0)
@@ -320,7 +321,8 @@ void printBasicMetadata(TagSettings const *metadata, UISettings *ui)
                 else
                         printf(" %d\n", year);
         }
-        else {
+        else
+        {
                 printf("\n");
         }
         cursorJump(4);
@@ -347,7 +349,8 @@ void printBasicMetadata(TagSettings const *metadata, UISettings *ui)
 
                 printWithDelay(metadata->title, 9, maxWidth - 2);
         }
-        else {
+        else
+        {
                 printf("\n");
         }
         cursorJumpDown(3);
@@ -460,7 +463,8 @@ void calcIndent(SongData *songdata)
         {
                 indent = calcIndentNormal();
         }
-        else {
+        else
+        {
                 indent = calcIndentSongView(songdata);
         }
 }
@@ -1428,33 +1432,36 @@ int printPlayer(SongData *songdata, double elapsedSeconds, AppSettings *settings
                 return 0;
         }
 
-        hideCursor();
-
-        setColor(ui);
-
-        if (songdata != NULL && songdata->metadata != NULL && !songdata->hasErrors && (songdata->hasErrors < 1))
+        if (refresh)
         {
-                metadata = *songdata->metadata;
-                duration = songdata->duration;
+                hideCursor();
 
-                ui->color.r = songdata->red;
-                ui->color.g = songdata->green;
-                ui->color.b = songdata->blue;
-        }
-        else
-        {
-                if (state->currentView != LIBRARY_VIEW && state->currentView != PLAYLIST_VIEW && state->currentView != SEARCH_VIEW && state->currentView != KEYBINDINGS_VIEW)
+                setColor(ui);
+
+                if (songdata != NULL && songdata->metadata != NULL && !songdata->hasErrors && (songdata->hasErrors < 1))
                 {
-                        state->currentView = LIBRARY_VIEW;
+                        metadata = *songdata->metadata;
+                        duration = songdata->duration;
+
+                        ui->color.r = songdata->red;
+                        ui->color.g = songdata->green;
+                        ui->color.b = songdata->blue;
+                }
+                else
+                {
+                        if (state->currentView != LIBRARY_VIEW && state->currentView != PLAYLIST_VIEW && state->currentView != SEARCH_VIEW && state->currentView != KEYBINDINGS_VIEW)
+                        {
+                                state->currentView = LIBRARY_VIEW;
+                        }
+
+                        ui->color.r = defaultColor;
+                        ui->color.g = defaultColor;
+                        ui->color.b = defaultColor;
                 }
 
-                ui->color.r = defaultColor;
-                ui->color.g = defaultColor;
-                ui->color.b = defaultColor;
+                calcPreferredSize(ui);
+                calcIndent(songdata);
         }
-
-        calcPreferredSize(ui);
-        calcIndent(songdata);
 
         if (preferredWidth <= 0 || preferredHeight <= 0)
                 return -1;
@@ -1468,6 +1475,7 @@ int printPlayer(SongData *songdata, double elapsedSeconds, AppSettings *settings
                 showKeyBindings(songdata, settings, ui);
                 saveCursorPosition();
                 refresh = false;
+                fflush(stdout);
         }
         else if (state->currentView == PLAYLIST_VIEW && refresh)
         {
@@ -1475,18 +1483,21 @@ int printPlayer(SongData *songdata, double elapsedSeconds, AppSettings *settings
                 showPlaylist(songdata, originalPlaylist, &chosenRow, &uis->chosenNodeId, state);
                 state->uiState.resetPlaylistDisplay = false;
                 refresh = false;
+                fflush(stdout);
         }
         else if (state->currentView == SEARCH_VIEW && refresh)
         {
                 clearScreen();
                 showSearch(songdata, &chosenSearchResultRow, ui);
                 refresh = false;
+                fflush(stdout);
         }
         else if (state->currentView == LIBRARY_VIEW && refresh)
         {
                 clearScreen();
                 showLibrary(songdata, state);
                 refresh = false;
+                fflush(stdout);
         }
         else if (state->currentView == SONG_VIEW && songdata != NULL)
         {
@@ -1500,9 +1511,8 @@ int printPlayer(SongData *songdata, double elapsedSeconds, AppSettings *settings
                 }
                 printTime(elapsedSeconds, state);
                 printVisualizer(elapsedSeconds, state);
+                fflush(stdout);
         }
-
-        fflush(stdout);
 
         return 0;
 }
