@@ -1301,20 +1301,23 @@ void handleOptions(int *argc, char *argv[], UISettings *ui)
  *  1 if the process is running, 0 otherwise.
  */
 int isProcessRunning(pid_t pid) {
-    if (pid <= 0) {
-        return 0; // Invalid PID
-    }
+        if (pid <= 0) {
+                return 0; // Invalid PID
+        }
 
-#if defined(__APPLE__)
-    char cmd[64];
-    snprintf(cmd, sizeof(cmd), "ps -p %d > /dev/null 2>&1", pid);
-    return (system(cmd) == 0);
-#else
-    char proc_path[64];
-    snprintf(proc_path, sizeof(proc_path), "/proc/%d", pid);
-    struct stat statbuf;
-    return (stat(proc_path, &statbuf) == 0);
-#endif
+        // Send signal 0 to check if the process exists
+        if (kill(pid, 0) == 0) {
+            return 1; // Process exists
+        }
+
+        // Check errno for detailed status
+        if (errno == ESRCH) {
+            return 0; // No such process
+        } else if (errno == EPERM) {
+            return 1; // Process exists but we don't have permission
+        }
+
+        return 0; // Other errors
 }
 
 // Ensures only a single instance of kew can run at a time for the current user.
