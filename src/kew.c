@@ -1294,12 +1294,30 @@ void handleOptions(int *argc, char *argv[], UISettings *ui)
                 removeArgElement(argv, idx, argc);
 }
 
-int isProcessRunning(pid_t pid)
-{
-        char proc_path[64];
-        snprintf(proc_path, sizeof(proc_path), "/proc/%d", pid);
-        struct stat statbuf;
-        return (stat(proc_path, &statbuf) == 0);
+/*
+ * Checks if a process with the given PID is running
+ *
+ * Returns:
+ *  1 if the process is running, 0 otherwise.
+ */
+int isProcessRunning(pid_t pid) {
+        if (pid <= 0) {
+                return 0; // Invalid PID
+        }
+
+        // Send signal 0 to check if the process exists
+        if (kill(pid, 0) == 0) {
+                return 1; // Process exists
+        }
+
+        // Check errno for detailed status
+        if (errno == ESRCH) {
+                return 0; // No such process
+        } else if (errno == EPERM) {
+                return 1; // Process exists but we don't have permission
+        }
+
+        return 0; // Other errors
 }
 
 // Ensures only a single instance of kew can run at a time for the current user.
