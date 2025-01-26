@@ -1307,14 +1307,14 @@ int isProcessRunning(pid_t pid) {
 
         // Send signal 0 to check if the process exists
         if (kill(pid, 0) == 0) {
-            return 1; // Process exists
+                return 1; // Process exists
         }
 
         // Check errno for detailed status
         if (errno == ESRCH) {
-            return 0; // No such process
+                return 0; // No such process
         } else if (errno == EPERM) {
-            return 1; // Process exists but we don't have permission
+                return 1; // Process exists but we don't have permission
         }
 
         return 0; // Other errors
