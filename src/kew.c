@@ -843,7 +843,7 @@ void tryLoadNext()
         }
 }
 
-void prepareNextSong(AppState *state)
+void handleSkipOutOfOrder(void)
 {
         if (!skipOutOfOrder && !isRepeatEnabled())
         {
@@ -853,9 +853,19 @@ void prepareNextSong(AppState *state)
         {
                 skipOutOfOrder = false;
         }
+}
 
-        finishLoading();
+void resetClock(void)
+{
         resetTimeCount();
+        clock_gettime(CLOCK_MONOTONIC, &start_time);
+}
+
+void prepareNextSong(AppState *state)
+{
+        resetClock();
+        handleSkipOutOfOrder();
+        finishLoading();
 
         nextSong = NULL;
         refresh = true;
@@ -868,16 +878,18 @@ void prepareNextSong(AppState *state)
         if (currentSong == NULL)
         {
                 if (state->uiSettings.quitAfterStopping)
+                {
                         quit();
+                }
                 else
+                {
                         setEndOfListReached(state);
+                }
         }
         else
         {
                 determineSongAndNotify(&(state->uiSettings));
         }
-
-        clock_gettime(CLOCK_MONOTONIC, &start_time);
 }
 
 void handleSkipFromStopped()
@@ -888,6 +900,41 @@ void handleSkipFromStopped()
                 usingSongDataA = !usingSongDataA;
                 skipOutOfOrder = false;
                 skipFromStopped = false;
+        }
+}
+
+void updatePlayerStatus(AppState *state)
+{
+        updatePlayer(&state->uiState);
+
+        if (playlist.head != NULL)
+        {
+                if ((skipFromStopped || !loadedNextSong || nextSongNeedsRebuilding) && !audioData.endOfListReached)
+                {
+                        loadAudioData(state);
+                }
+
+                if (songHasErrors)
+                        tryLoadNext();
+
+                if (isPlaybackDone())
+                {
+                        updateLastSongSwitchTime();
+                        prepareNextSong(state);
+                        switchAudioImplementation();
+                }
+        }
+        else
+        {
+                setEOFNotReached();
+        }
+}
+
+void processDBusEvents(void)
+{
+        while (g_main_context_pending(global_main_context))
+        {
+                g_main_context_iteration(global_main_context, FALSE);
         }
 }
 
@@ -904,36 +951,11 @@ gboolean mainloop_callback(gpointer data)
         // Update every other time or if searching (search needs to update often to detect keypresses)
         if (updateCounter % 2 == 0 || appState.currentView == SEARCH_VIEW)
         {
-                // Process GDBus events in the global_main_context
-                while (g_main_context_pending(global_main_context))
-                {
-                        g_main_context_iteration(global_main_context, FALSE);
-                }
+                processDBusEvents();
 
-                updatePlayer(&appState.uiState);
-
-                if (playlist.head != NULL)
-                {
-                        if ((skipFromStopped || !loadedNextSong || nextSongNeedsRebuilding) && !audioData.endOfListReached)
-                        {
-                                loadAudioData(&appState);
-                        }
-
-                        if (songHasErrors)
-                                tryLoadNext();
-
-                        if (isPlaybackDone())
-                        {
-                                updateLastSongSwitchTime();
-                                prepareNextSong(&appState);
-                                switchAudioImplementation();
-                        }
-                }
-                else
-                {
-                        setEOFNotReached();
-                }
+                updatePlayerStatus(&appState);
         }
+
         return TRUE;
 }
 
@@ -1148,7 +1170,7 @@ void init(AppState *state)
         userData.songdataADeleted = true;
         userData.songdataBDeleted = true;
         initAudioBuffer();
-        unsigned int seed = (unsigned int) time(NULL);
+        unsigned int seed = (unsigned int)time(NULL);
         srand(seed);
         pthread_mutex_init(&dataSourceMutex, NULL);
         pthread_mutex_init(&switchMutex, NULL);
@@ -1300,20 +1322,26 @@ void handleOptions(int *argc, char *argv[], UISettings *ui)
  * Returns:
  *  1 if the process is running, 0 otherwise.
  */
-int isProcessRunning(pid_t pid) {
-        if (pid <= 0) {
+int isProcessRunning(pid_t pid)
+{
+        if (pid <= 0)
+        {
                 return 0; // Invalid PID
         }
 
         // Send signal 0 to check if the process exists
-        if (kill(pid, 0) == 0) {
+        if (kill(pid, 0) == 0)
+        {
                 return 1; // Process exists
         }
 
         // Check errno for detailed status
-        if (errno == ESRCH) {
+        if (errno == ESRCH)
+        {
                 return 0; // No such process
-        } else if (errno == EPERM) {
+        }
+        else if (errno == EPERM)
+        {
                 return 1; // Process exists but we don't have permission
         }
 
@@ -1366,13 +1394,14 @@ void exitIfAlreadyRunning()
 
 int directoryExists(const char *path)
 {
-    DIR *dir = opendir(path);
-    if (dir != NULL) {
-        closedir(dir);
-        return 1;
-    }
+        DIR *dir = opendir(path);
+        if (dir != NULL)
+        {
+                closedir(dir);
+                return 1;
+        }
 
-    return 0;
+        return 0;
 }
 
 void clearInputBuffer()
@@ -1502,6 +1531,13 @@ void initState(AppState *state)
         state->tempCache = NULL;
 }
 
+void initializeStateAndSettings(AppState *appState, AppSettings *settings)
+{
+        initState(appState);
+        getConfig(settings, &appState->uiSettings);
+        mapSettingsToKeys(settings, keyMappings);
+}
+
 int main(int argc, char *argv[])
 {
         UISettings *ui = &(appState.uiSettings);
@@ -1520,9 +1556,7 @@ int main(int argc, char *argv[])
         }
 
         enterAlternateScreenBuffer();
-        initState(&appState);
-        getConfig(&settings, ui);
-        mapSettingsToKeys(&settings, keyMappings);
+        initializeStateAndSettings(&appState, &settings);
 
         if (argc == 3 && (strcmp(argv[1], "path") == 0))
         {
