@@ -1377,25 +1377,28 @@ void m4a_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_uint6
                 // Check if seeking is requested
                 if (isSeekRequested())
                 {
-                        ma_uint64 totalFrames = pAudioData->totalFrames;
-                        ma_uint64 seekPercent = getSeekPercentage();
-
-                        if (seekPercent >= 100.0)
-                                seekPercent = 100.0;
-
-                        ma_uint64 targetFrame = (ma_uint64)((totalFrames - 1) * seekPercent / 100.0);
-
-                        if (targetFrame >= totalFrames)
-                                targetFrame = totalFrames - 1;
-
-                        // Set the read pointer for the decoder
-                        ma_result seekResult = m4a_decoder_seek_to_pcm_frame(decoder, targetFrame);
-                        if (seekResult != MA_SUCCESS)
+                        if (!decoder->isRawAAC)
                         {
-                                // Handle seek error
-                                setSeekRequested(false);
-                                pthread_mutex_unlock(&dataSourceMutex);
-                                return;
+                                ma_uint64 totalFrames = pAudioData->totalFrames;
+                                ma_uint64 seekPercent = getSeekPercentage();
+
+                                if (seekPercent >= 100.0)
+                                        seekPercent = 100.0;
+
+                                ma_uint64 targetFrame = (ma_uint64)((totalFrames - 1) * seekPercent / 100.0);
+
+                                if (targetFrame >= totalFrames)
+                                        targetFrame = totalFrames - 1;
+
+                                // Set the read pointer for the decoder
+                                ma_result seekResult = m4a_decoder_seek_to_pcm_frame(decoder, targetFrame);
+                                if (seekResult != MA_SUCCESS)
+                                {
+                                        // Handle seek error
+                                        setSeekRequested(false);
+                                        pthread_mutex_unlock(&dataSourceMutex);
+                                        return;
+                                }
                         }
 
                         setSeekRequested(false); // Reset seek flag
