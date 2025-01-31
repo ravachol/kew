@@ -501,6 +501,13 @@ void flushSeek(void)
                         {
                                 return;
                         }
+
+                        if (pathEndsWith(currentSong->song.filePath, "aac"))
+                        {
+                                m4a_decoder *decoder = getCurrentM4aDecoder();
+                                if (decoder->isRawAAC)
+                                        return;
+                        }
                 }
 
                 setSeekElapsed(getSeekElapsed() + seekAccumulatedSeconds);
@@ -568,6 +575,13 @@ void seekForward(UIState *uis)
                 }
         }
 
+        if (pathEndsWith(currentSong->song.filePath, "aac"))
+        {
+                m4a_decoder *decoder = getCurrentM4aDecoder();
+                if (decoder->isRawAAC)
+                        return;
+        }
+
         if (isPaused())
                 return;
 
@@ -586,6 +600,13 @@ void seekBack(UIState *uis)
                 if (pathEndsWith(currentSong->song.filePath, "ogg"))
                 {
                         return;
+                }
+
+                if (pathEndsWith(currentSong->song.filePath, "aac"))
+                {
+                        m4a_decoder *decoder = getCurrentM4aDecoder();
+                        if (decoder->isRawAAC)
+                                return;
                 }
         }
 
