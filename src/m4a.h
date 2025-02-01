@@ -38,6 +38,8 @@ extern "C"
                 int bitDepth;
                 ma_uint32 sampleRate;
                 ma_uint32 channels;
+                double duration;
+                unsigned long totalFrames;
 
                 // tells the program this is a raw AAC file
                 int isRawAAC;
@@ -333,6 +335,49 @@ extern "C"
                 return MA_SUCCESS;
         }
 
+        double calculate_aac_duration(FILE *fp, unsigned long sampleRate, unsigned long *totalFrames)
+        {
+                if (fp == NULL || sampleRate == 0 || totalFrames == NULL)
+                {
+                        return -1.0;
+                }
+
+                unsigned char buffer[7];
+                unsigned long fileSize = 0;
+                *totalFrames = 0;
+
+                // Get file size
+                fseek(fp, 0, SEEK_END);
+                fileSize = ftell(fp);
+                fseek(fp, 0, SEEK_SET);
+
+                // Loop to count frames
+                while (ftell(fp) < (long)(fileSize - 7)) // Ensure at least an ADTS header remains
+                {
+                        // Read header
+                        if (fread(buffer, 1, 7, fp) < 7)
+                                break;
+
+                        // Extract frame size
+                        unsigned int frameSize = ((buffer[3] & 0x03) << 11) | ((buffer[4] & 0xFF) << 3) | ((buffer[5] & 0xE0) >> 5);
+
+                        if (frameSize <= 7)
+                                break;
+
+                        // Skip to next frame
+                        fseek(fp, frameSize - 7, SEEK_CUR);
+
+                        (*totalFrames)++;
+                }
+
+                // Compute duration using: duration = (totalFrames * 1024) / sampleRate
+                double duration = (double)(*totalFrames * 1024) / sampleRate;
+
+                fseek(fp, 0, SEEK_SET);
+
+                return duration;
+        }
+
         MA_API ma_result m4a_decoder_init_file(
             const char *pFilePath,
             const ma_decoding_backend_config *pConfig,
@@ -444,7 +489,7 @@ extern "C"
                                 return MA_OUT_OF_MEMORY;
                         }
 
-                        unsigned long decoder_config_size = sizeof(decoder_config);
+                        unsigned long decoder_config_size = 2;
 
                         decoder_config[0] = ((buffer[2] & 0xC0) >> 6) + 1; // Object type
                         decoder_config[0] |= ((buffer[2] & 0x3C) >> 2) << 2;
@@ -492,6 +537,8 @@ extern "C"
 
                         pM4a->sampleRate = (ma_uint32)sampleRate;
                         pM4a->channels = (ma_uint32)channels;
+
+                        pM4a->duration = calculate_aac_duration(fp, pM4a->sampleRate, &pM4a->totalFrames);
 
                         // Clean up the frame data after processing
                         free(frameData);
@@ -714,6 +761,8 @@ extern "C"
                                         result = MA_ERROR;
                                         break; // Failed to read full frame
                                 }
+
+                                pM4a->current_sample++;
 
                                 // Decode the AAC frame using faad2
                                 void *decodedData = NeAACDecDecode(pM4a->hDecoder, &(pM4a->frameInfo), sample_data + 7, frame_bytes - 7);

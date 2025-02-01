@@ -23,7 +23,14 @@ ma_result initFirstDatasource(AudioData *pAudioData, UserData *pUserData)
 {
         char *filePath = NULL;
 
-        filePath = (pAudioData->currentFileIndex == 0) ? pUserData->songdataA->filePath : pUserData->songdataB->filePath;
+        SongData *songData = (pAudioData->currentFileIndex == 0) ? pUserData->songdataA : pUserData->songdataB;
+
+        if (songData == NULL)
+        {
+                return MA_ERROR;
+        }
+
+        filePath = songData->filePath;
 
         pAudioData->pUserData = pUserData;
         pAudioData->currentPCMFrame = 0;
@@ -70,7 +77,7 @@ ma_result initFirstDatasource(AudioData *pAudioData, UserData *pUserData)
         {
 #ifdef USE_FAAD
 
-                int result = prepareNextM4aDecoder(filePath);
+                int result = prepareNextM4aDecoder(songData);
                 if (result < 0)
                         return -1;
                 m4a_decoder *first = getFirstM4aDecoder();
@@ -118,7 +125,7 @@ int createDevice(UserData *userData, ma_device *device, ma_context *context, ma_
 
         result = ma_device_start(device);
         if (result != MA_SUCCESS)
-                return -1;        
+                return -1;
 
         appState.uiState.doNotifyMPRISPlaying = true;
 
@@ -164,7 +171,7 @@ int vorbis_createAudioDevice(UserData *userData, ma_device *device, ma_context *
                 printf("\n\nFailed to start miniaudio device.\n");
                 return -1;
         }
-        
+
         appState.uiState.doNotifyMPRISPlaying = true;
 
         return 0;
@@ -206,7 +213,7 @@ int m4a_createAudioDevice(UserData *userData, ma_device *device, ma_context *con
                 printf("\n\nFailed to start miniaudio device.\n");
                 return -1;
         }
-       
+
         appState.uiState.doNotifyMPRISPlaying = true;
 
         return 0;
@@ -248,7 +255,7 @@ int opus_createAudioDevice(UserData *userData, ma_device *device, ma_context *co
                 printf("\n\nFailed to start miniaudio device.\n");
                 return -1;
         }
-        
+
         appState.uiState.doNotifyMPRISPlaying = true;
 
         return 0;
@@ -336,9 +343,9 @@ int switchAudioImplementation(void)
 
                         resetDecoders();
                         resetVorbisDecoders();
-#ifdef USE_FAAD                        
+#ifdef USE_FAAD
                         resetM4aDecoders();
-#endif                        
+#endif
                         resetOpusDecoders();
                         resetAudioBuffer();
 
@@ -393,9 +400,9 @@ int switchAudioImplementation(void)
 
                         resetDecoders();
                         resetVorbisDecoders();
-#ifdef USE_FAAD                        
+#ifdef USE_FAAD
                         resetM4aDecoders();
-#endif                        
+#endif
                         resetOpusDecoders();
                         resetAudioBuffer();
 
@@ -450,9 +457,9 @@ int switchAudioImplementation(void)
 
                         resetDecoders();
                         resetVorbisDecoders();
-#ifdef USE_FAD                        
+#ifdef USE_FAD
                         resetM4aDecoders();
-#endif                        
+#endif
                         resetOpusDecoders();
                         resetAudioBuffer();
 
@@ -486,15 +493,17 @@ int switchAudioImplementation(void)
                 ma_format nFormat;
                 ma_channel nChannelMap[MA_MAX_CHANNELS];
                 m4a_decoder *decoder = getCurrentM4aDecoder();
+                int isRawAAC;
 
-                getM4aFileInfo(filePath, &format, &channels, &sampleRate, channelMap);
+                getM4aFileInfo(filePath, &format, &channels, &sampleRate, channelMap, &isRawAAC);
 
                 if (decoder != NULL)
                         m4a_decoder_ds_get_data_format(decoder, &nFormat, &nChannels, &nSampleRate, nChannelMap, MA_MAX_CHANNELS);
 
                 bool sameFormat = (decoder != NULL && (format == decoder->format &&
                                                        channels == nChannels &&
-                                                       sampleRate == nSampleRate));
+                                                       sampleRate == nSampleRate &&
+                                                        decoder->isRawAAC != 1));
 
                 if (isRepeatEnabled() || !(sameFormat && currentImplementation == M4A))
                 {

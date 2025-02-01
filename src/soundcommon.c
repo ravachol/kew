@@ -249,13 +249,14 @@ void resetM4aDecoders(void)
         }
 }
 
-void getM4aFileInfo(const char *filename, ma_format *format, ma_uint32 *channels, ma_uint32 *sampleRate, ma_channel *channelMap)
+void getM4aFileInfo(const char *filename, ma_format *format, ma_uint32 *channels, ma_uint32 *sampleRate, ma_channel *channelMap, int *isRawAAC)
 {
         m4a_decoder decoder;
         if (m4a_decoder_init_file(filename, NULL, NULL, &decoder) == MA_SUCCESS)
         {
                 *format = decoder.format;
                 m4a_decoder_get_data_format(&decoder, format, channels, sampleRate, channelMap, MA_MAX_CHANNELS);
+                *isRawAAC = decoder.isRawAAC;
                 m4a_decoder_uninit(&decoder, NULL);
         }
 }
@@ -279,9 +280,14 @@ MA_API ma_result m4a_get_cursor_in_pcm_frames_wrapper(void *pDecoder, long long 
         return m4a_decoder_get_cursor_in_pcm_frames((m4a_decoder *)dec->pUserData, (ma_uint64 *)pCursor);
 }
 
-int prepareNextM4aDecoder(char *filepath)
+int prepareNextM4aDecoder(SongData *songData)
 {
         m4a_decoder *currentDecoder;
+
+        if (songData == NULL)
+                return -1;
+
+        char *filepath = songData->filePath;
 
         if (m4aDecoderIndex == -1)
         {
@@ -336,7 +342,16 @@ int prepareNextM4aDecoder(char *filepath)
         decoder->cursor = 0;
 
         setNextM4aDecoder(decoder);
-        if (currentDecoder != NULL && decoder != NULL)
+
+        if (songData != NULL)
+        {
+                if (decoder != NULL && decoder->isRawAAC)
+                {
+                        songData->duration = decoder->duration;
+                }
+        }
+
+        if (currentDecoder != NULL && decoder != NULL && decoder->isRawAAC != 1)
         {
                 if (!isEOFReached())
                         ma_data_source_set_next(currentDecoder, decoder);
