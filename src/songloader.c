@@ -102,7 +102,11 @@ void loadMetaData(SongData *songdata, AppState *state)
                 tmp = findLargestImageFile(path, tmp, &size);
 
                 if (tmp != NULL)
+                {
                         c_strcpy(songdata->coverArtPath, tmp, sizeof(songdata->coverArtPath));
+                        free(tmp);
+                        tmp = NULL;
+                }
                 else
                         c_strcpy(songdata->coverArtPath, "", sizeof(songdata->coverArtPath));
         }

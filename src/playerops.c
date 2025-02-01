@@ -469,6 +469,7 @@ void calcElapsedTime(void)
                         seekElapsed -= diff;
 
                 elapsedSeconds += seekElapsed + seekAccumulatedSeconds - totalPauseSeconds;
+
                 if (elapsedSeconds > duration)
                         elapsedSeconds = duration;
 
@@ -1162,7 +1163,8 @@ int loadDecoder(SongData *songData, bool *songDataDeleted)
                                 result = prepareNextVorbisDecoder(songData->filePath);
 #ifdef USE_FAAD
                         else if (pathEndsWith(songData->filePath, "m4a") || pathEndsWith(songData->filePath, "aac"))
-                                result = prepareNextM4aDecoder(songData->filePath);
+                                result = prepareNextM4aDecoder(songData);
+
 #endif
                 }
         }
