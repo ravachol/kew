@@ -162,7 +162,7 @@ ma_libvorbis *getFirstVorbisDecoder(void);
 
 void getVorbisFileInfo(const char *filename, ma_format *format, ma_uint32*channels, ma_uint32 *sampleRate, ma_channel *channelMap);
 
-void getM4aFileInfo(const char *filename, ma_format *format, ma_uint32*channels, ma_uint32 *sampleRate, ma_channel *channelMap);
+void getM4aFileInfo(const char *filename, ma_format *format, ma_uint32 *channels, ma_uint32 *sampleRate, ma_channel *channelMap, int *isRawAAC);
 
 void getOpusFileInfo(const char *filename, ma_format *format, ma_uint32*channels, ma_uint32 *sampleRate, ma_channel *channelMap);
 
@@ -176,7 +176,7 @@ int prepareNextOpusDecoder(char *filepath);
 
 int prepareNextVorbisDecoder(char *filepath);
 
-int prepareNextM4aDecoder(char *filepath);
+int prepareNextM4aDecoder(SongData *songData);
 
 void resetVorbisDecoders(void);
 
