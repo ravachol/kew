@@ -38,7 +38,7 @@ void updateMagnitudes(int height, int width, float maxMagnitude, float *magnitud
         {
                 maxMagnitude = 1.0f;
         }
-        
+
         // Apply moving average smoothing to magnitudes
         for (int i = 0; i < width; i++)
         {
@@ -277,7 +277,6 @@ PixelData increaseLuminosity(PixelData pixel, int amount)
 void printSpectrum(int height, int width, float *magnitudes, PixelData color, int indentation, bool useConfigColors)
 {
         printf("\n");
-        clearRestOfScreen();
 
         PixelData tmp;
 
