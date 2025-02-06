@@ -1176,7 +1176,6 @@ void init(AppState *state)
         pthread_mutex_init(&switchMutex, NULL);
         pthread_mutex_init(&(loadingdata.mutex), NULL);
         pthread_mutex_init(&(playlist.mutex), NULL);
-        state->uiSettings.nerdFontsEnabled = true;
         createLibrary(&settings, state);
         fflush(stdout);
 
@@ -1503,7 +1502,6 @@ void setMusicPath()
 
 void initState(AppState *state)
 {
-        state->uiSettings.nerdFontsEnabled = true;
         state->uiSettings.visualizerEnabled = true;
         state->uiSettings.coverEnabled = true;
         state->uiSettings.hideLogo = false;
