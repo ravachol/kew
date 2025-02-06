@@ -15,28 +15,17 @@ Functions related to printing the player to the screen.
 #define METADATA_MAX_SIZE 256
 #endif
 
-const char VERSION[] = "3.0.3";
+const char VERSION[] = "3.0.4";
 const int ABSOLUTE_MIN_WIDTH = 68;
-bool timeEnabled = true;
-bool drewCover = true;
-bool showList = true;
 bool fastForwarding = false;
 bool rewinding = false;
-bool nerdFontsEnabled = true;
 int elapsedBars = 0;
-int chosenSong = 0; // The id of the playlist entry that is chosen in playlist view
-int aboutHeight = 8;
-
 int minWidth = ABSOLUTE_MIN_WIDTH;
 int minHeight = 2;
-int maxWidth = 0;
-int coverRow = 0;
 int preferredWidth = 0;
 int preferredHeight = 0;
 int textWidth = 0;
 int indent = 0;
-char *tagsPath;
-double totalDurationSeconds = 0.0;
 
 PixelData lastRowColor = {120, 120, 120};
 TagSettings metadata = {};
@@ -224,44 +213,33 @@ int getYear(const char *dateString)
         return year;
 }
 
-int displayCover(unsigned char *cover, int coverWidth, int coverHeight, const char *coverArtPath, int height, bool ascii)
-{
-        if (!ascii)
-        {
-                printSquareBitmapCentered(cover, coverWidth, coverHeight, height);
-        }
-        else
-        {
-                printInAscii(coverArtPath, height);
-        }
-        printf("\n\n");
-
-        return 0;
-}
-
 void printCover(SongData *songdata, UISettings *ui)
 {
-        clearRestOfScreen();
-        minWidth = ABSOLUTE_MIN_WIDTH + indent;
+        clearScreen();
+
         if (songdata->cover != NULL && ui->coverEnabled)
         {
-                clearScreen();
-                displayCover(songdata->cover, songdata->coverWidth, songdata->coverHeight, songdata->coverArtPath, preferredHeight, ui->coverAnsi);
-
-                drewCover = true;
+                if (!ui->coverAnsi)
+                {
+                        printSquareBitmapCentered(songdata->cover, songdata->coverWidth, songdata->coverHeight, preferredHeight);
+                }
+                else
+                {
+                        printInAscii(songdata->coverArtPath, preferredHeight);
+                }
         }
         else
         {
-                clearRestOfScreen();
-                for (int i = 0; i <= preferredHeight; i++)
+                for (int i = 0; i <= preferredHeight; ++i)
                 {
                         printf("\n");
                 }
-                drewCover = false;
         }
+
+        printf("\n\n");
 }
 
-void printWithDelay(const char *text, int delay, int maxWidth)
+void printTitleWithDelay(const char *text, int delay, int maxWidth)
 {
         int length = strnlen(text, maxWidth);
         int max = (maxWidth > length) ? length : maxWidth;
@@ -290,7 +268,7 @@ void printBasicMetadata(TagSettings const *metadata, UISettings *ui)
 {
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
-        maxWidth = textWidth; // term_w - 3 - (indent * 2);
+        int maxWidth = textWidth; // term_w - 3 - (indent * 2);
         printf("\n");
         int rows = 1;
         if (strnlen(metadata->artist, METADATA_MAX_LENGTH) > 0)
@@ -347,7 +325,7 @@ void printBasicMetadata(TagSettings const *metadata, UISettings *ui)
                         printf("\033[1;38;2;%03u;%03u;%03um", pixel.r, pixel.g, pixel.b);
                 }
 
-                printWithDelay(metadata->title, 9, maxWidth - 2);
+                printTitleWithDelay(metadata->title, 9, maxWidth - 2);
         }
         else
         {
@@ -416,7 +394,7 @@ void printMetadata(TagSettings const *metadata, UISettings *ui)
 
 void printTime(double elapsedSeconds, AppState *state)
 {
-        if (!timeEnabled || appState.currentView == LIBRARY_VIEW || appState.currentView == PLAYLIST_VIEW || appState.currentView == SEARCH_VIEW)
+        if (appState.currentView == LIBRARY_VIEW || appState.currentView == PLAYLIST_VIEW || appState.currentView == SEARCH_VIEW)
                 return;
         if (state->uiSettings.useConfigColors)
                 setDefaultTextColor();
@@ -541,74 +519,53 @@ void printLastRow(void)
 
         size_t maxLength = sizeof(nerdFontText);
 
-        if (nerdFontsEnabled)
+        size_t currentLength = strnlen(nerdFontText, maxLength);
+
+        if (isPaused())
         {
-                size_t currentLength = strnlen(nerdFontText, maxLength);
-
-                if (isPaused())
-                {
-                        char pauseText[] = " \u23f8";
-                        snprintf(nerdFontText + currentLength, maxLength - currentLength, "%s", pauseText);
-                        currentLength += strnlen(pauseText, maxLength - currentLength);
-                }
-                else if (isStopped())
-                {
-                        char pauseText[] = " \u23f9";
-                        snprintf(nerdFontText + currentLength, maxLength - currentLength, "%s", pauseText);
-                        currentLength += strnlen(pauseText, maxLength - currentLength);
-                }
-                else
-                {
-                        char pauseText[] = " \u25b6";
-                        snprintf(nerdFontText + currentLength, maxLength - currentLength, "%s", pauseText);
-                        currentLength += strnlen(pauseText, maxLength - currentLength);
-                }
-
-                if (isRepeatEnabled())
-                {
-                        char repeatText[] = " \u27f3";
-                        snprintf(nerdFontText + currentLength, maxLength - currentLength, "%s", repeatText);
-                        currentLength += strnlen(repeatText, maxLength - currentLength);
-                }
-
-                if (isShuffleEnabled())
-                {
-                        char shuffleText[] = " \uf074";
-                        snprintf(nerdFontText + currentLength, maxLength - currentLength, "%s", shuffleText);
-                        currentLength += strnlen(shuffleText, maxLength - currentLength);
-                }
-
-                if (fastForwarding)
-                {
-                        char forwardText[] = " \uf04e";
-                        snprintf(nerdFontText + currentLength, maxLength - currentLength, "%s", forwardText);
-                        currentLength += strnlen(forwardText, maxLength - currentLength);
-                }
-
-                if (rewinding)
-                {
-                        char rewindText[] = " \uf04a";
-                        snprintf(nerdFontText + currentLength, maxLength - currentLength, "%s", rewindText);
-                        currentLength += strnlen(rewindText, maxLength - currentLength);
-                }
+                char pauseText[] = " \u23f8";
+                snprintf(nerdFontText + currentLength, maxLength - currentLength, "%s", pauseText);
+                currentLength += strnlen(pauseText, maxLength - currentLength);
+        }
+        else if (isStopped())
+        {
+                char pauseText[] = " \u23f9";
+                snprintf(nerdFontText + currentLength, maxLength - currentLength, "%s", pauseText);
+                currentLength += strnlen(pauseText, maxLength - currentLength);
         }
         else
         {
-                size_t currentLength = strnlen(nerdFontText, maxLength);
+                char pauseText[] = " \u25b6";
+                snprintf(nerdFontText + currentLength, maxLength - currentLength, "%s", pauseText);
+                currentLength += strnlen(pauseText, maxLength - currentLength);
+        }
 
-                if (isRepeatEnabled())
-                {
-                        char repeatText[] = " R";
-                        snprintf(nerdFontText + currentLength, maxLength - currentLength, "%s", repeatText);
-                        currentLength += strnlen(repeatText, maxLength - currentLength);
-                }
+        if (isRepeatEnabled())
+        {
+                char repeatText[] = " \u27f3";
+                snprintf(nerdFontText + currentLength, maxLength - currentLength, "%s", repeatText);
+                currentLength += strnlen(repeatText, maxLength - currentLength);
+        }
 
-                if (isShuffleEnabled())
-                {
-                        char shuffleText[] = " S";
-                        snprintf(nerdFontText + currentLength, maxLength - currentLength, "%s", shuffleText);
-                        currentLength += strnlen(shuffleText, maxLength - currentLength);
-                }
+        if (isShuffleEnabled())
+        {
+                char shuffleText[] = " \uf074";
+                snprintf(nerdFontText + currentLength, maxLength - currentLength, "%s", shuffleText);
+                currentLength += strnlen(shuffleText, maxLength - currentLength);
+        }
+
+        if (fastForwarding)
+        {
+                char forwardText[] = " \uf04e";
+                snprintf(nerdFontText + currentLength, maxLength - currentLength, "%s", forwardText);
+                currentLength += strnlen(forwardText, maxLength - currentLength);
+        }
+
+        if (rewinding)
+        {
+                char rewindText[] = " \uf04a";
+                snprintf(nerdFontText + currentLength, maxLength - currentLength, "%s", rewindText);
+                currentLength += strnlen(rewindText, maxLength - currentLength);
         }
 
         printf("\033[K"); // clear the line

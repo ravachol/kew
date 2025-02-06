@@ -40,7 +40,6 @@ typedef struct
         bool uiEnabled;                                 // Show ui or not
         bool coverAnsi;                                 // Show chafa cover (picture perfect in the right terminal), or ascii/ansi typ cover
         bool visualizerEnabled;                         // Show spectrum visualizer
-        bool nerdFontsEnabled;                          // Show nerd font icons
         bool hideLogo;                                  // No kew text at top
         bool hideHelp;                                  // No help text at top
         bool allowNotifications;                        // Send desktop notifications or not
