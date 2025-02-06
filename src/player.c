@@ -16,11 +16,10 @@ Functions related to printing the player to the screen.
 #endif
 
 const char VERSION[] = "3.0.4";
-const int ABSOLUTE_MIN_WIDTH = 68;
+const int ABSOLUTE_MIN_WIDTH = 80;
 bool fastForwarding = false;
 bool rewinding = false;
 int elapsedBars = 0;
-int minWidth = ABSOLUTE_MIN_WIDTH;
 int minHeight = 2;
 int preferredWidth = 0;
 int preferredHeight = 0;
@@ -490,14 +489,9 @@ void printGlimmeringText(char *text, int textLength, char *nerdFontText, PixelDa
 
 void printLastRow(void)
 {
-
-#ifdef __APPLE__
-        if (minWidth < 80)
-                minWidth = 80;
-#endif
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
-        if (term_w < minWidth)
+        if (term_w < ABSOLUTE_MIN_WIDTH)
                 return;
 
 #ifndef __APPLE__
@@ -974,7 +968,7 @@ void printVisualizer(double elapsedSeconds, AppState *state)
         }
         else if (!ui->visualizerEnabled)
         {
-                if (term_w >= minWidth)
+                if (term_w >= ABSOLUTE_MIN_WIDTH)
                 {
                         printf("\n");
 
