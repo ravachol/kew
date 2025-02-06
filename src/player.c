@@ -17,23 +17,22 @@ Functions related to printing the player to the screen.
 
 const char VERSION[] = "3.0.4";
 const int ABSOLUTE_MIN_WIDTH = 80;
+
 bool fastForwarding = false;
 bool rewinding = false;
-int elapsedBars = 0;
-int minHeight = 2;
-int preferredWidth = 0;
-int preferredHeight = 0;
-int textWidth = 0;
-int indent = 0;
-
-PixelData lastRowColor = {120, 120, 120};
 
 double pauseSeconds = 0.0;
 double totalPauseSeconds = 0.0;
 double seekAccumulatedSeconds = 0.0;
+
+int minHeight = 0;
+int elapsedBars = 0;
+int preferredWidth = 0;
+int preferredHeight = 0;
+int textWidth = 0;
+int indent = 0;
 int maxListSize = 0;
 int maxSearchListSize = 0;
-
 int numTopLevelSongs = 0;
 int startLibIter = 0;
 int startSearchIter = 0;
@@ -41,18 +40,19 @@ int maxLibListSize = 0;
 int chosenRow = 0;             // The row that is chosen in playlist view
 int chosenLibRow = 0;          // The row that is chosen in library view
 int chosenSearchResultRow = 0; // The row that is chosen in search view
-FileSystemEntry *currentEntry = NULL;
-FileSystemEntry *chosenDir = NULL;
 int libIter = 0;
 int libSongIter = 0;
 int libTopLevelSongIter = 0;
-
 int previousChosenLibRow = 0;
 int libCurrentDirSongCount = 0;
-FileSystemEntry *lastEntry = NULL;
+
+PixelData lastRowColor = {120, 120, 120};
 
 const char LIBRARY_FILE[] = "kewlibrary";
 
+FileSystemEntry *currentEntry = NULL;
+FileSystemEntry *lastEntry = NULL;
+FileSystemEntry *chosenDir = NULL;
 FileSystemEntry *library = NULL;
 
 int calcIdealImgSize(int *width, int *height, const int visualizerHeight, const int metatagHeight)
