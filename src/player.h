@@ -20,7 +20,6 @@
 
 extern int numProgressBars;
 
-extern TagSettings metadata;
 extern bool fastForwarding;
 extern bool rewinding;
 
