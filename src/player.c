@@ -27,7 +27,6 @@ int textWidth = 0;
 int indent = 0;
 
 PixelData lastRowColor = {120, 120, 120};
-TagSettings metadata = {};
 
 double pauseSeconds = 0.0;
 double totalPauseSeconds = 0.0;
@@ -1391,7 +1390,6 @@ int printPlayer(SongData *songdata, double elapsedSeconds, AppSettings *settings
 
                 if (songdata != NULL && songdata->metadata != NULL && !songdata->hasErrors && (songdata->hasErrors < 1))
                 {
-                        metadata = *songdata->metadata;
                         duration = songdata->duration;
 
                         ui->color.r = songdata->red;

@@ -1044,6 +1044,8 @@ void cleanupOnExit()
 
         bool noMusicFound = false;
 
+        FileSystemEntry *library = getLibrary();
+
         if (library == NULL || library->children == NULL)
         {
                 noMusicFound = true;
@@ -1217,6 +1219,7 @@ void playSpecialPlaylist(AppState *state)
 void playAll(AppState *state)
 {
         init(state);
+        FileSystemEntry *library = getLibrary();
         createPlayListFromFileSystemEntry(library, &playlist, MAX_FILES);
         if (playlist.count == 0)
         {
@@ -1229,6 +1232,7 @@ void playAll(AppState *state)
 void playAllAlbums(AppState *state)
 {
         init(state);
+        FileSystemEntry *library = getLibrary();
         addShuffledAlbumsToPlayList(library, &playlist, MAX_FILES);
         if (playlist.count == 0)
         {
