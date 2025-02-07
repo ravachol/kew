@@ -1392,8 +1392,6 @@ int printPlayer(SongData *songdata, double elapsedSeconds, AppSettings *settings
 
                 if (songdata != NULL && songdata->metadata != NULL && !songdata->hasErrors && (songdata->hasErrors < 1))
                 {
-                        duration = songdata->duration;
-
                         ui->color.r = songdata->red;
                         ui->color.g = songdata->green;
                         ui->color.b = songdata->blue;
