@@ -536,6 +536,7 @@ bool setPosition(gint64 newPosition)
                 return false;
 
         gint64 currentPositionMicroseconds = llround(elapsedSeconds * G_USEC_PER_SEC);
+        double duration = getCurrentSongData()->duration;
 
         if (duration != 0.0)
         {
