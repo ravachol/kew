@@ -14,8 +14,9 @@
 #include "songloader.h"
 #include "settings.h"
 #include "soundcommon.h"
+#ifdef USE_FAAD
 #include "m4a.h"
-
+#endif
 #ifndef CLOCK_MONOTONIC
 #define CLOCK_MONOTONIC 1
 #endif
