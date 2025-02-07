@@ -574,13 +574,14 @@ void seekForward(UIState *uis)
                 {
                         return;
                 }
-
+#ifdef USE_FAAD
                 if (pathEndsWith(currentSong->song.filePath, "aac"))
                 {
                         m4a_decoder *decoder = getCurrentM4aDecoder();
                         if (decoder != NULL && decoder->isRawAAC)
                                 return;
                 }
+#endif
         }
 
         if (isPaused())
@@ -602,13 +603,15 @@ void seekBack(UIState *uis)
                 {
                         return;
                 }
-
+#ifdef USE_FAAD
                 if (pathEndsWith(currentSong->song.filePath, "aac"))
                 {
+
                         m4a_decoder *decoder = getCurrentM4aDecoder();
                         if (decoder != NULL && decoder->isRawAAC)
                                 return;
                 }
+#endif
         }
 
         if (isPaused())
