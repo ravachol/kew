@@ -114,8 +114,6 @@ extern AppState appState;
 
 extern AudioData audioData;
 
-extern double duration;
-
 extern double elapsedSeconds;
 
 extern bool hasSilentlySwitched;
