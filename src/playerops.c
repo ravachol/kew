@@ -464,6 +464,7 @@ void calcElapsedTime(void)
                                  (double)(current_time.tv_nsec - start_time.tv_nsec) / 1e9;
                 double seekElapsed = getSeekElapsed();
                 double diff = elapsedSeconds + (seekElapsed + seekAccumulatedSeconds - totalPauseSeconds);
+                double duration = getCurrentSongData()->duration;
 
                 if (diff < 0)
                         seekElapsed -= diff;
