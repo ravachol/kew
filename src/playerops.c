@@ -502,13 +502,14 @@ void flushSeek(void)
                         {
                                 return;
                         }
-
+#ifdef USE_FAAD
                         if (pathEndsWith(currentSong->song.filePath, "aac"))
                         {
                                 m4a_decoder *decoder = getCurrentM4aDecoder();
                                 if (decoder->isRawAAC)
                                         return;
                         }
+#endif
                 }
 
                 setSeekElapsed(getSeekElapsed() + seekAccumulatedSeconds);
