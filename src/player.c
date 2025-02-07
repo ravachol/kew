@@ -402,7 +402,8 @@ void printTime(double elapsedSeconds, AppState *state)
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
         printBlankSpaces(indent);
-        if (term_h > minHeight) {
+        if (term_h > minHeight)
+        {
                 double duration = getCurrentSongData()->duration;
                 printProgress(elapsedSeconds, duration);
         }
