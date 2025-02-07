@@ -1,4 +1,5 @@
 #include "soundcommon.h"
+#include "playerops.h"
 
 /*
 
@@ -948,6 +949,7 @@ double getSeekElapsed(void)
 
 double getPercentageElapsed(void)
 {
+        double duration = getCurrentSongData()->duration;
         return elapsedSeconds / duration;
 }
 
