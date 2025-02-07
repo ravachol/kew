@@ -1,5 +1,29 @@
 # CHANGELOG
 
+### 3.0.4
+
+#### Changes:
+
+- When the program exits previous commands and outputs are restored. By @DNEGEL3125.
+
+- Added support for wav file covers. By @DNEGEL3125.
+
+- Made the app do less work when idle. By @ravachol.
+
+- The currently playing track is now underlined as well as bolded, because bold weight wasn't working with some fonts. Found By @yurivict.
+
+- Added logic that enables running raw AAC files (but not HE-AAC).  By @ravachol.
+
+#### Bug Fixes:
+
+- Fixed setting path on some machines doesn't work, returns 'path not found'. Found by @illnesse.
+
+- Fixed crash when in shuffle mode and choosing previous song on empty playlist. Found by @DNEGEL3125.
+
+- Uses a different method for detecting if kew is already running since the previous method didn't work on macOS. By @DNEGEL3125.
+
+- Prevent the cover from scrolling up on tmux+konsole. Found by @acdcbyl.
+
 ### 3.0.3
 
 - Fixed buffer redraw issue with cover images on ghostty.
@@ -10,7 +34,7 @@
 
 - Fixed minor bug related to scrolling in library.
 
-- Fixed bug related to covers in ascii, on narrow terminal sizes it wouldn't print correctly.
+- Fixed bug related to covers in ascii, on narrow terminal sizes it wouldn't print correctly. Found by @Hostuu.
 
 - Minor UI improvements, style adjustments and cleaning up.
 
