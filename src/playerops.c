@@ -622,6 +622,7 @@ void seekBack(UIState *uis)
         if (isPaused())
                 return;
 
+        double duration = currentSong->song.duration;
         if (duration != 0.0)
         {
                 float step = 100 / uis->numProgressBars;
