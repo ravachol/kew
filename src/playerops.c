@@ -574,13 +574,13 @@ void seekForward(UIState *uis)
                 {
                         return;
                 }
-        }
 
-        if (pathEndsWith(currentSong->song.filePath, "aac"))
-        {
-                m4a_decoder *decoder = getCurrentM4aDecoder();
-                if (decoder->isRawAAC)
-                        return;
+                if (pathEndsWith(currentSong->song.filePath, "aac"))
+                {
+                        m4a_decoder *decoder = getCurrentM4aDecoder();
+                        if (decoder != NULL && decoder->isRawAAC)
+                                return;
+                }
         }
 
         if (isPaused())
@@ -606,7 +606,7 @@ void seekBack(UIState *uis)
                 if (pathEndsWith(currentSong->song.filePath, "aac"))
                 {
                         m4a_decoder *decoder = getCurrentM4aDecoder();
-                        if (decoder->isRawAAC)
+                        if (decoder != NULL && decoder->isRawAAC)
                                 return;
                 }
         }
