@@ -1,4 +1,5 @@
 #include "player.h"
+#include "playerops.h"
 /*
 
 player.c
@@ -950,6 +951,7 @@ void printVisualizer(double elapsedSeconds, AppState *state)
                 visualizerWidth = (visualizerWidth > term_w - 2) ? term_w - 2 : visualizerWidth;
                 visualizerWidth -= 1;
                 uis->numProgressBars = (int)visualizerWidth / 2;
+                double duration = getCurrentSongData()->duration;
 
 #ifndef __APPLE__
                 saveCursorPosition();
