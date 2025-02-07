@@ -41,7 +41,6 @@ enum AudioImplementation currentImplementation = NONE;
 
 AppState appState;
 volatile bool refresh = true; // Should the whole view be refreshed next time it redraws
-double duration;
 
 double elapsedSeconds = 0.0;
 
