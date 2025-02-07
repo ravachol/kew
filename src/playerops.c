@@ -556,6 +556,7 @@ bool seekPosition(gint64 offset)
         if (isPaused())
                 return false;
 
+        double duration = getCurrentSongData()->duration;
         if (duration != 0.0)
         {
                 gint64 step = offset;
