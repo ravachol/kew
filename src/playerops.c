@@ -516,6 +516,7 @@ void flushSeek(void)
                 setSeekElapsed(getSeekElapsed() + seekAccumulatedSeconds);
                 seekAccumulatedSeconds = 0.0;
                 calcElapsedTime();
+                double duration = getCurrentSongData()->duration;
                 float percentage = elapsedSeconds / (float)duration * 100.0;
 
                 if (percentage < 0.0)
