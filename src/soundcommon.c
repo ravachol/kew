@@ -951,6 +951,8 @@ double getPercentageElapsed(void)
         double duration = getCurrentSongDuration();
         if (duration > 0.0)
                 return elapsedSeconds / duration;
+        else
+                return 0.0;
 }
 
 void setSeekElapsed(double value)
