@@ -356,6 +356,8 @@ void determineSongAndNotify(UISettings *ui)
 
         bool isDeleted = determineCurrentSongData(&currentSongData);
 
+        currentSong->song.duration = currentSongData->duration;
+
         if (lastNotifiedId != currentSong->id)
         {
                 if (!isDeleted)
