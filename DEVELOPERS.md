@@ -22,11 +22,11 @@ Before contributing, ensure you have the following tools installed on your devel
    cd kew
    ```
 
-2. To enable debugging symbols, replace `-O2` with `-g` in the `COMMONFLAGS` variable, and remove the `-s` (strip) flag from the `LDFLAGS` variable in the Makefile:
+2. To enable debugging symbols, run make with DEBUG=1
 
 3. Build the project:
    ```
-   make -j$(nproc)  # Use all available processor cores for faster builds
+   make DEBUG=1 -j$(nproc)  # Use all available processor cores for faster builds
    ```
 
 ### Debugging with Visual Studio Code
