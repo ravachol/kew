@@ -17,7 +17,12 @@ Functions related to printing the player to the screen.
 #endif
 
 const char VERSION[] = "3.0.4";
+
+#ifdef __APPLE__
 const int ABSOLUTE_MIN_WIDTH = 80;
+#else
+const int ABSOLUTE_MIN_WIDTH = 68;
+#endif
 
 bool fastForwarding = false;
 bool rewinding = false;
