@@ -2,6 +2,8 @@ CC ?= gcc
 CXX ?= g++
 PKG_CONFIG ?= pkg-config
 
+# To enable debugging, run:
+# make DEBUG=1
 # To disable DBUS notifications, run:
 # make USE_DBUS=0
 # To disable faad2, run:
@@ -52,7 +54,13 @@ endif
 COMMONFLAGS = -I/usr/include -I/opt/homebrew/include -I/usr/local/include -I/usr/lib -Iinclude/minimp4 \
          -I/usr/include/chafa -I/usr/lib/chafa/include -I/usr/include/ogg -I/usr/include/opus \
          -I/usr/include/stb -Iinclude/stb_image -I/usr/include/glib-2.0 \
-         -I/usr/lib/glib-2.0/include -Iinclude/miniaudio -I/usr/include/gdk-pixbuf-2.0 -O2
+         -I/usr/lib/glib-2.0/include -Iinclude/miniaudio -I/usr/include/gdk-pixbuf-2.0
+
+ifeq ($(DEBUG), 1)
+COMMONFLAGS += -g
+else
+COMMONFLAGS += -O2
+endif
 
 COMMONFLAGS += $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) $(PKG_CONFIG) --cflags gio-2.0 chafa fftw3f opus opusfile vorbis ogg glib-2.0 taglib)
 COMMONFLAGS += -fstack-protector-strong -Wformat -Werror=format-security -fPIE -D_FORTIFY_SOURCE=2
@@ -72,7 +80,10 @@ LDFLAGS = -logg -lz -flto
 ifeq ($(UNAME_S), Linux)
   CFLAGS += -fPIE
   CXXFLAGS += -fPIE
-  LDFLAGS += -pie -Wl,-z,relro -s
+  LDFLAGS += -pie -Wl,-z,relro
+  ifneq ($(DEBUG), 1)
+  LDFLAGS += -s
+  endif
 endif
 
 # Conditionally add  USE_DBUS is enabled

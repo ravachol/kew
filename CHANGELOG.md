@@ -14,6 +14,9 @@
 
 - Added logic that enables running raw AAC files (but not HE-AAC).  By @ravachol.
 
+- Added debugging flag to the makefile. Now to run make with debug symbols, run:
+  make DEBUG=1 -ij4.
+
 #### Bug Fixes:
 
 - Fixed setting path on some machines doesn't work, returns 'path not found'. Found by @illnesse.
