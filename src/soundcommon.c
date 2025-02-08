@@ -948,7 +948,7 @@ double getSeekElapsed(void)
 
 double getPercentageElapsed(void)
 {
-        double duration = getCurrentSongData()->duration;
+        double duration = getCurrentSongDuration();
         return elapsedSeconds / duration;
 }
 
