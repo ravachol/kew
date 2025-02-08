@@ -409,7 +409,7 @@ void printTime(double elapsedSeconds, AppState *state)
         printBlankSpaces(indent);
         if (term_h > minHeight)
         {
-                double duration = getCurrentSongData()->duration;
+                double duration = getCurrentSongDuration();
                 printProgress(elapsedSeconds, duration);
         }
 }
@@ -959,7 +959,7 @@ void printVisualizer(double elapsedSeconds, AppState *state)
                 visualizerWidth = (visualizerWidth > term_w - 2) ? term_w - 2 : visualizerWidth;
                 visualizerWidth -= 1;
                 uis->numProgressBars = (int)visualizerWidth / 2;
-                double duration = getCurrentSongData()->duration;
+                double duration = getCurrentSongDuration();
 
 #ifndef __APPLE__
                 saveCursorPosition();
