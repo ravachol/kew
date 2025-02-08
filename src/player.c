@@ -1,4 +1,5 @@
 #include "player.h"
+#include "playerops.h"
 /*
 
 player.c
@@ -402,7 +403,10 @@ void printTime(double elapsedSeconds, AppState *state)
         getTermSize(&term_w, &term_h);
         printBlankSpaces(indent);
         if (term_h > minHeight)
+        {
+                double duration = getCurrentSongData()->duration;
                 printProgress(elapsedSeconds, duration);
+        }
 }
 
 int calcIndentNormal(void)
@@ -950,6 +954,7 @@ void printVisualizer(double elapsedSeconds, AppState *state)
                 visualizerWidth = (visualizerWidth > term_w - 2) ? term_w - 2 : visualizerWidth;
                 visualizerWidth -= 1;
                 uis->numProgressBars = (int)visualizerWidth / 2;
+                double duration = getCurrentSongData()->duration;
 
 #ifndef __APPLE__
                 saveCursorPosition();
@@ -1390,8 +1395,6 @@ int printPlayer(SongData *songdata, double elapsedSeconds, AppSettings *settings
 
                 if (songdata != NULL && songdata->metadata != NULL && !songdata->hasErrors && (songdata->hasErrors < 1))
                 {
-                        duration = songdata->duration;
-
                         ui->color.r = songdata->red;
                         ui->color.g = songdata->green;
                         ui->color.b = songdata->blue;
