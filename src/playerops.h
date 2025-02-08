@@ -153,4 +153,6 @@ bool determineCurrentSongData(SongData **currentSongData);
 
 void updateLibraryIfChangedDetected(void);
 
+double getCurrentSongDuration(void);
+
 #endif
