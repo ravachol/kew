@@ -1604,7 +1604,7 @@ void loadFirstSong(Node *song, UISettings *ui)
         loadSong(song, &loadingdata);
 
         int i = 0;
-        while (!loadedNextSong && i < 30000)
+        while (!loadedNextSong && i < 10000)
         {
                 if (i != 0 && i % 1000 == 0 && ui->uiEnabled)
                         printf(".");
