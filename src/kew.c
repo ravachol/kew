@@ -1421,6 +1421,8 @@ void setMusicPath()
         struct passwd *pw = getpwuid(getuid());
         char *user = NULL;
 
+        clearScreen();
+
         if (pw)
         {
                 user = pw->pw_name;
