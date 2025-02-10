@@ -1595,22 +1595,21 @@ void skipToLastSong(void)
         skipToNumberedSong(count);
 }
 
-void loadFirstSong(Node *song, UISettings *ui)
-{
-        if (song == NULL)
-                return;
-        loadingdata.loadingFirstDecoder = true;
-        loadSong(song, &loadingdata);
+void loadFirstSong(Node *song, UISettings *ui) {
+    if (song == NULL)
+        return;
 
-        int i = 0;
-        while (!loadedNextSong)
-        {
-                if (i != 0 && i % 1000 == 0 && ui->uiEnabled)
-                        printf(".");
-                i++;
-                c_sleep(10);
-                fflush(stdout);
-        }
+    loadingdata.loadingFirstDecoder = true;
+    loadSong(song, &loadingdata);
+
+    int i = 0;
+    while (!loadedNextSong && i < 30000) {
+        if (i != 0 && i % 1000 == 0 && ui->uiEnabled)
+            printf(".");
+        c_sleep(10);
+        fflush(stdout);
+        i++;
+    }
 }
 
 void unloadSongA(AppState *state)
