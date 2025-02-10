@@ -1595,21 +1595,23 @@ void skipToLastSong(void)
         skipToNumberedSong(count);
 }
 
-void loadFirstSong(Node *song, UISettings *ui) {
-    if (song == NULL)
-        return;
+void loadFirstSong(Node *song, UISettings *ui)
+{
+        if (song == NULL)
+                return;
 
-    loadingdata.loadingFirstDecoder = true;
-    loadSong(song, &loadingdata);
+        loadingdata.loadingFirstDecoder = true;
+        loadSong(song, &loadingdata);
 
-    int i = 0;
-    while (!loadedNextSong && i < 30000) {
-        if (i != 0 && i % 1000 == 0 && ui->uiEnabled)
-            printf(".");
-        c_sleep(10);
-        fflush(stdout);
-        i++;
-    }
+        int i = 0;
+        while (!loadedNextSong && i < 30000)
+        {
+                if (i != 0 && i % 1000 == 0 && ui->uiEnabled)
+                        printf(".");
+                c_sleep(10);
+                fflush(stdout);
+                i++;
+        }
 }
 
 void unloadSongA(AppState *state)
@@ -1697,6 +1699,13 @@ void *updateLibraryThread(void *arg)
         int tmpDirectoryTreeEntries = 0;
 
         FileSystemEntry *temp = createDirectoryTree(path, &tmpDirectoryTreeEntries);
+
+        if (!temp)
+        {
+                perror("createDirectoryTree");
+                pthread_mutex_unlock(&switchMutex);
+                return NULL;
+        }
 
         pthread_mutex_lock(&switchMutex);
 
