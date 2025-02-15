@@ -251,8 +251,8 @@ You can select all music by pressing the - MUSIC LIBRARY - header at the top of 
 * <kbd>x</kbd> to save the currently loaded playlist to a m3u file in your music folder.
 * <kbd>Tab</kbd> to switch between views.
 * <kbd>gg</kbd> go to first song.
-* number +<kbd>G</kbd>, <kbd>g</kbd> or <kbd>Enter</kbd>, go to specific song number in the playlist.
-* <kbd>g</kbd> go to last song.
+* number +<kbd>G</kbd> or <kbd>Enter</kbd>, go to specific song number in the playlist.
+* <kbd>G</kbd> go to last song.
 * . to add current song to kew.m3u (run with "kew .").
 * <kbd>Esc</kbd> to quit.
 
