@@ -358,7 +358,7 @@ void printSquareBitmapCentered(unsigned char *pixels, int width, int height, int
         // Print each line with indentation
         for (int i = 0; lines[i] != NULL; i++)
         {
-                printf("\n%*s%s", indentation, "", lines[i]);
+                printf("\n\033[%dC%s", indentation, lines[i]);
         }
 
         // Free allocated memory
