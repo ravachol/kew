@@ -19,6 +19,8 @@
 
 #### Bug Fixes:
 
+- Fixed cover sometimes not centered on wezterm.
+
 - Fixed setting path on some machines doesn't work, returns 'path not found'. Found by @illnesse.
 
 - Fixed crash when in shuffle mode and choosing previous song on empty playlist. Found by @DNEGEL3125.
