@@ -193,7 +193,7 @@ kew moon (finds and plays moonlight sonata)
 
 kew beet (finds and plays all music files under "beethoven" directory)
 
-kew dir <album name> (sometimes it's necessary to specify it's a directory you want)
+kew dir <album name> (sometimes if names collide, it's necessary to specify it's a directory you want)
 
 kew song <song> (or a song)
 
