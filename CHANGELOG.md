@@ -19,7 +19,7 @@
 
 #### Bug Fixes:
 
-- Fixed cover sometimes not centered on wezterm.
+- Fixed cover sometimes not centered in wezterm terminal.
 
 - Fixed setting path on some machines doesn't work, returns 'path not found'. Found by @illnesse.
 
