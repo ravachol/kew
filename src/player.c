@@ -274,12 +274,11 @@ void printBasicMetadata(TagSettings const *metadata, UISettings *ui)
         getTermSize(&term_w, &term_h);
         int maxWidth = textWidth; // term_w - 3 - (indent * 2);
         printf("\n");
-        int rows = 1;
+
         if (strnlen(metadata->artist, METADATA_MAX_LENGTH) > 0)
         {
                 printBlankSpaces(indent);
                 printf(" %.*s\n", maxWidth, metadata->artist);
-                rows++;
         }
         else
         {
