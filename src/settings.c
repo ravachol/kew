@@ -46,6 +46,7 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         c_strcpy(settings.hideLogo, "0", sizeof(settings.hideLogo));
         c_strcpy(settings.hideHelp, "0", sizeof(settings.hideHelp));
         c_strcpy(settings.cacheLibrary, "-1", sizeof(settings.cacheLibrary));
+        c_strcpy(settings.titleDelay, "9", sizeof(settings.titleDelay));
 
         c_strcpy(settings.tabNext, "\t", sizeof(settings.tabNext));
         c_strcpy(settings.volumeUp, "+", sizeof(settings.volumeUp));
@@ -134,6 +135,10 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
                 else if (strcmp(lowercaseKey, "visualizerheight") == 0)
                 {
                         snprintf(settings.visualizerHeight, sizeof(settings.visualizerHeight), "%s", pair->value);
+                }
+                else if (strcmp(lowercaseKey, "titledelay") == 0)
+                {
+                        snprintf(settings.titleDelay, sizeof(settings.titleDelay), "%s", pair->value);
                 }
                 else if (strcmp(lowercaseKey, "volumeup") == 0)
                 {
@@ -496,13 +501,17 @@ void getConfig(AppSettings *settings, UISettings *ui)
         if (temp2 > 0)
                 ui->visualizerHeight = temp2;
 
-        int temp3 = getNumber(settings->lastVolume);
+        int temp3 = getNumber(settings->titleDelay);
         if (temp3 >= 0)
-                setVolume(temp3);
+                ui->titleDelay = temp3;
 
-        int temp4 = getNumber(settings->cacheLibrary);
+        int temp4 = getNumber(settings->lastVolume);
         if (temp4 >= 0)
-                ui->cacheLibrary = temp4;
+                setVolume(temp4);
+
+        int temp5 = getNumber(settings->cacheLibrary);
+        if (temp5 >= 0)
+                ui->cacheLibrary = temp5;
 
         getMusicLibraryPath(settings->path);
         free(configdir);
@@ -538,6 +547,10 @@ void setConfig(AppSettings *settings, UISettings *ui)
         {
                 snprintf(settings->visualizerHeight, sizeof(settings->visualizerHeight), "%d", ui->visualizerHeight);
         }
+        if (settings->titleDelay[0] == '\0')
+        {
+                snprintf(settings->titleDelay, sizeof(settings->titleDelay), "%d", ui->titleDelay);
+        }
         if (settings->hideLogo[0] == '\0')
                 ui->hideLogo ? c_strcpy(settings->hideLogo, "1", sizeof(settings->hideLogo)) : c_strcpy(settings->hideLogo, "0", sizeof(settings->hideLogo));
         if (settings->hideHelp[0] == '\0')
@@ -556,6 +569,7 @@ void setConfig(AppSettings *settings, UISettings *ui)
         settings->coverAnsi[1] = '\0';
         settings->visualizerEnabled[1] = '\0';
         settings->visualizerHeight[5] = '\0';
+        settings->titleDelay[5] = '\0';
         settings->lastVolume[5] = '\0';
         settings->useConfigColors[1] = '\0';
         settings->allowNotifications[1] = '\0';
@@ -571,6 +585,8 @@ void setConfig(AppSettings *settings, UISettings *ui)
         fprintf(file, "coverAnsi=%s\n", settings->coverAnsi);
         fprintf(file, "visualizerEnabled=%s\n", settings->visualizerEnabled);
         fprintf(file, "visualizerHeight=%s\n", settings->visualizerHeight);
+        fprintf(file, "# Delay when drawing title in track view, set to 0 to have no delay\n");
+        fprintf(file, "titleDelay=%s\n", settings->titleDelay);
         fprintf(file, "useConfigColors=%s\n", settings->useConfigColors);
         fprintf(file, "allowNotifications=%s\n", settings->allowNotifications);
         fprintf(file, "hideLogo=%s\n", settings->hideLogo);
