@@ -17,6 +17,8 @@
 - Added debugging flag to the makefile. Now to run make with debug symbols, run:
   make DEBUG=1 -ij4.
 
+- It's now possible to remove or alter the delay when printing the song title, in settings. By @Chromium-3-Oxide.
+
 #### Bug Fixes:
 
 - Fixed cover sometimes not centered in wezterm terminal.
