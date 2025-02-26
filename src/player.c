@@ -257,9 +257,12 @@ void printTitleWithDelay(const char *text, int delay, int maxWidth)
                 }
                 printf("█");
                 fflush(stdout);
-                c_sleep(delay);
+
+                if (delay)
+                        c_sleep(delay);
         }
-        c_sleep(delay * 20);
+        if (delay)
+                c_sleep(delay * 20);
         printf("\r");
         printf("\033[K");
         printBlankSpaces(indent);
@@ -328,7 +331,7 @@ void printBasicMetadata(TagSettings const *metadata, UISettings *ui)
                         printf("\033[1;38;2;%03u;%03u;%03um", pixel.r, pixel.g, pixel.b);
                 }
 
-                printTitleWithDelay(metadata->title, 9, maxWidth - 2);
+                printTitleWithDelay(metadata->title, ui->titleDelay, maxWidth - 2);
         }
         else
         {
@@ -386,7 +389,9 @@ void printMetadata(TagSettings const *metadata, UISettings *ui)
 {
         if (appState.currentView == LIBRARY_VIEW || appState.currentView == PLAYLIST_VIEW || appState.currentView == SEARCH_VIEW)
                 return;
-        c_sleep(100);
+
+        if (ui->titleDelay)
+                c_sleep(100);
 
         if (ui->useConfigColors)
                 setDefaultTextColor();
