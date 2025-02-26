@@ -6,6 +6,7 @@
 
 ## Contributors (in alphabetical order)
 
+* Chromium-3-Oxide <Chromium3Oxide@protonmail.com>
 * Davis @kazemaksOG <davis.kazemaks@gmail.com>
 * DNEGEL3125 @DNEGEL3125
 * Hans Petter Jansson @hpjansson <hpj@hpjansson.org>
