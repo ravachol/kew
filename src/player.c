@@ -263,6 +263,7 @@ void printTitleWithDelay(const char *text, int delay, int maxWidth)
         }
         if (delay)
                 c_sleep(delay * 20);
+
         printf("\r");
         printf("\033[K");
         printBlankSpaces(indent);
@@ -579,7 +580,7 @@ void printLastRow(void)
         int textLength = strnlen(text, 100);
         int randomNumber = getRandomNumber(1, 808);
 
-        if (randomNumber == 808)
+        if (randomNumber == 1)
                 printGlimmeringText(text, textLength, nerdFontText, lastRowColor);
         else
         {
