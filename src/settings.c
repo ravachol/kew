@@ -497,21 +497,21 @@ void getConfig(AppSettings *settings, UISettings *ui)
         if (temp >= 0)
                 ui->titleColor = temp;
 
-        int temp2 = getNumber(settings->visualizerHeight);
-        if (temp2 > 0)
-                ui->visualizerHeight = temp2;
+        temp = getNumber(settings->visualizerHeight);
+        if (temp > 0)
+                ui->visualizerHeight = temp;
 
-        int temp3 = getNumber(settings->titleDelay);
-        if (temp3 >= 0)
-                ui->titleDelay = temp3;
+        temp = getNumber(settings->titleDelay);
+        if (temp >= 0)
+                ui->titleDelay = temp;
 
-        int temp4 = getNumber(settings->lastVolume);
-        if (temp4 >= 0)
-                setVolume(temp4);
+        temp = getNumber(settings->lastVolume);
+        if (temp >= 0)
+                setVolume(temp);
 
-        int temp5 = getNumber(settings->cacheLibrary);
-        if (temp5 >= 0)
-                ui->cacheLibrary = temp5;
+        temp = getNumber(settings->cacheLibrary);
+        if (temp >= 0)
+                ui->cacheLibrary = temp;
 
         getMusicLibraryPath(settings->path);
         free(configdir);
