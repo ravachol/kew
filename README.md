@@ -199,7 +199,7 @@ kew song <song> (or a song)
 
 kew list <playlist> (or a playlist)
 
-kew shuffle <album name> (shuffles the playlist)
+kew shuffle <album name> (shuffles the playlist. shuffle needs to come first.)
 
 kew artistA:artistB:artistC (plays all three artists, shuffled)
 
