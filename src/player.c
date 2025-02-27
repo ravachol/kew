@@ -580,7 +580,7 @@ void printLastRow(void)
         int textLength = strnlen(text, 100);
         int randomNumber = getRandomNumber(1, 808);
 
-        if (randomNumber == 1)
+        if (randomNumber == 808)
                 printGlimmeringText(text, textLength, nerdFontText, lastRowColor);
         else
         {
