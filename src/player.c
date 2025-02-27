@@ -263,6 +263,7 @@ void printTitleWithDelay(const char *text, int delay, int maxWidth)
         }
         if (delay)
                 c_sleep(delay * 20);
+
         printf("\r");
         printf("\033[K");
         printBlankSpaces(indent);
