@@ -604,7 +604,7 @@ void setConfig(AppSettings *settings, UISettings *ui)
         fprintf(file, "\n# Cache: Set to 1 to use cache of the music library directory tree for faster startup times.\n");
         fprintf(file, "cacheLibrary=%s\n", settings->cacheLibrary);
 
-        fprintf(file, "# Delay when drawing title in track view, set to 0 to have no delay.\n");
+        fprintf(file, "\n# Delay when drawing title in track view, set to 0 to have no delay.\n");
         fprintf(file, "titleDelay=%s\n", settings->titleDelay);
 
         fprintf(file, "\n# Same as '--quitonstop' flag, exits after playing the whole playlist.\n");
