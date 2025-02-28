@@ -36,6 +36,7 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         c_strcpy(settings.coverEnabled, "1", sizeof(settings.coverEnabled));
         c_strcpy(settings.allowNotifications, "1", sizeof(settings.allowNotifications));
         c_strcpy(settings.coverAnsi, "0", sizeof(settings.coverAnsi));
+        c_strcpy(settings.quitAfterStopping, "0", sizeof(settings.quitAfterStopping));
 #ifdef __APPLE__
         c_strcpy(settings.visualizerEnabled, "0", sizeof(settings.visualizerEnabled)); // visualizer looks wonky in default terminal
         c_strcpy(settings.useConfigColors, "1", sizeof(settings.useConfigColors));     // colors from album look wrong in default terminal
@@ -247,6 +248,10 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
                 else if (strcmp(lowercaseKey, "cachelibrary") == 0)
                 {
                         snprintf(settings.cacheLibrary, sizeof(settings.cacheLibrary), "%s", pair->value);
+                }
+                else if (strcmp(lowercaseKey, "quitonstop") == 0)
+                {
+                        snprintf(settings.quitAfterStopping, sizeof(settings.quitAfterStopping), "%s", pair->value);
                 }
                 else if (strcmp(lowercaseKey, "quit") == 0)
                 {
@@ -479,12 +484,14 @@ void getConfig(AppSettings *settings, UISettings *ui)
         ui->coverAnsi = (settings->coverAnsi[0] == '1');
         ui->visualizerEnabled = (settings->visualizerEnabled[0] == '1');
         ui->useConfigColors = (settings->useConfigColors[0] == '1');
+        ui->quitAfterStopping = (settings->quitAfterStopping[0] == '1');
         ui->hideLogo = (settings->hideLogo[0] == '1');
         ui->hideHelp = (settings->hideHelp[0] == '1');
 
         int temp = getNumber(settings->color);
         if (temp >= 0)
                 ui->mainColor = temp;
+
         temp = getNumber(settings->artistColor);
         if (temp >= 0)
                 ui->artistColor = temp;
@@ -543,6 +550,8 @@ void setConfig(AppSettings *settings, UISettings *ui)
                 ui->visualizerEnabled ? c_strcpy(settings->visualizerEnabled, "1", sizeof(settings->visualizerEnabled)) : c_strcpy(settings->visualizerEnabled, "0", sizeof(settings->visualizerEnabled));
         if (settings->useConfigColors[0] == '\0')
                 ui->useConfigColors ? c_strcpy(settings->useConfigColors, "1", sizeof(settings->useConfigColors)) : c_strcpy(settings->useConfigColors, "0", sizeof(settings->useConfigColors));
+        if (settings->quitAfterStopping[0] == '\0')
+                ui->quitAfterStopping ? c_strcpy(settings->quitAfterStopping, "1", sizeof(settings->quitAfterStopping)) : c_strcpy(settings->quitAfterStopping, "0", sizeof(settings->quitAfterStopping));
         if (settings->visualizerHeight[0] == '\0')
         {
                 snprintf(settings->visualizerHeight, sizeof(settings->visualizerHeight), "%d", ui->visualizerHeight);
@@ -576,6 +585,7 @@ void setConfig(AppSettings *settings, UISettings *ui)
         settings->hideLogo[1] = '\0';
         settings->hideHelp[1] = '\0';
         settings->cacheLibrary[5] = '\0';
+        settings->quitAfterStopping[1] = '\0';
 
         // Write the settings to the file
         fprintf(file, "# Make sure that kew is closed before editing this file in order for changes to take effect.\n\n");
@@ -585,7 +595,7 @@ void setConfig(AppSettings *settings, UISettings *ui)
         fprintf(file, "coverAnsi=%s\n", settings->coverAnsi);
         fprintf(file, "visualizerEnabled=%s\n", settings->visualizerEnabled);
         fprintf(file, "visualizerHeight=%s\n", settings->visualizerHeight);
-        fprintf(file, "# Delay when drawing title in track view, set to 0 to have no delay\n");
+        fprintf(file, "# Delay when drawing title in track view, set to 0 to have no delay.\n");
         fprintf(file, "titleDelay=%s\n", settings->titleDelay);
         fprintf(file, "useConfigColors=%s\n", settings->useConfigColors);
         fprintf(file, "allowNotifications=%s\n", settings->allowNotifications);
@@ -595,6 +605,9 @@ void setConfig(AppSettings *settings, UISettings *ui)
 
         fprintf(file, "\n# Cache: Set to 1 to use cache of the music library directory tree for faster startup times.\n");
         fprintf(file, "cacheLibrary=%s\n", settings->cacheLibrary);
+
+        fprintf(file, "\n# Same as '--quitonstop' flag, exits after playing the whole playlist.\n");
+        fprintf(file, "quitonstop=%s\n", settings->quitAfterStopping);
 
         fprintf(file, "\n# Color values are 0=Black, 1=Red, 2=Green, 3=Yellow, 4=Blue, 5=Magenta, 6=Cyan, 7=White\n");
         fprintf(file, "# These mostly affect the library view.\n\n");
