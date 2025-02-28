@@ -598,18 +598,17 @@ void seekForward(UIState *uis)
                                 return;
                 }
 #endif
-        }
+                if (isPaused())
+                        return;
 
-        if (isPaused())
-                return;
-
-        double duration = currentSong->song.duration;
-        if (duration != 0.0)
-        {
-                float step = 100 / uis->numProgressBars;
-                seekAccumulatedSeconds += step * duration / 100.0;
+                double duration = currentSong->song.duration;
+                if (duration != 0.0)
+                {
+                        float step = 100 / uis->numProgressBars;
+                        seekAccumulatedSeconds += step * duration / 100.0;
+                }
+                fastForwarding = true;
         }
-        fastForwarding = true;
 }
 
 void seekBack(UIState *uis)
@@ -629,18 +628,17 @@ void seekBack(UIState *uis)
                                 return;
                 }
 #endif
-        }
+                if (isPaused())
+                        return;
 
-        if (isPaused())
-                return;
-
-        double duration = currentSong->song.duration;
-        if (duration != 0.0)
-        {
-                float step = 100 / uis->numProgressBars;
-                seekAccumulatedSeconds -= step * duration / 100.0;
+                double duration = currentSong->song.duration;
+                if (duration != 0.0)
+                {
+                        float step = 100 / uis->numProgressBars;
+                        seekAccumulatedSeconds -= step * duration / 100.0;
+                }
+                rewinding = true;
         }
-        rewinding = true;
 }
 
 Node *findSelectedEntryById(PlayList *playlist, int id)
