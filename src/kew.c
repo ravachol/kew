@@ -1520,7 +1520,6 @@ void initState(AppState *state)
         state->uiSettings.visualizerHeight = 5;
         state->uiSettings.titleDelay = 9;
         state->uiSettings.cacheLibrary = -1;
-        state->uiSettings.quitAfterStopping = 0;
         state->uiSettings.useConfigColors = false;
         state->uiSettings.color.r = 125;
         state->uiSettings.color.g = 125;

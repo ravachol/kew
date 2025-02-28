@@ -249,7 +249,7 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
                 {
                         snprintf(settings.cacheLibrary, sizeof(settings.cacheLibrary), "%s", pair->value);
                 }
-                else if (strcmp(lowercaseKey, "quitOnStop") == 0)
+                else if (strcmp(lowercaseKey, "quitonstop") == 0)
                 {
                         snprintf(settings.quitAfterStopping, sizeof(settings.quitAfterStopping), "%s", pair->value);
                 }
