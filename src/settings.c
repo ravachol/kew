@@ -249,7 +249,7 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
                 {
                         snprintf(settings.cacheLibrary, sizeof(settings.cacheLibrary), "%s", pair->value);
                 }
-                else if (strcmp(lowercaseKey, "quitonstop") == 0)
+                else if (strcmp(lowercaseKey, "quitOnStop") == 0)
                 {
                         snprintf(settings.quitAfterStopping, sizeof(settings.quitAfterStopping), "%s", pair->value);
                 }
@@ -607,7 +607,7 @@ void setConfig(AppSettings *settings, UISettings *ui)
         fprintf(file, "cacheLibrary=%s\n", settings->cacheLibrary);
 
         fprintf(file, "\n# Same as '--quitonstop' flag, exits after playing the whole playlist.\n");
-        fprintf(file, "quitonstop=%s\n", settings->quitAfterStopping);
+        fprintf(file, "quitOnStop=%s\n", settings->quitAfterStopping);
 
         fprintf(file, "\n# Color values are 0=Black, 1=Red, 2=Green, 3=Yellow, 4=Blue, 5=Magenta, 6=Cyan, 7=White\n");
         fprintf(file, "# These mostly affect the library view.\n\n");
