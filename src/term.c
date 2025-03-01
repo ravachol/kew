@@ -220,12 +220,26 @@ int getIndentation(int terminalWidth)
         return (indent > 0) ? indent : 0;
 }
 
-void enterAlternateScreenBuffer() {
+void enterAlternateScreenBuffer()
+{
         // Enter alternate screen buffer
         printf("\033[?1049h");
 }
 
-void exitAlternateScreenBuffer() {
+void exitAlternateScreenBuffer()
+{
         // Exit alternate screen buffer
         printf("\033[?1049l");
+}
+
+void enableMouseButtons()
+{
+        // Enable program to accept mouse input as codes
+        printf("\033[?1002h");
+}
+
+void disableMouseButtons()
+{
+        // Disable program to accept mouse input as codes
+        printf("\033[?1002l");
 }
