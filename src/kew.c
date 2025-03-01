@@ -215,7 +215,7 @@ struct Event processInput()
         }
 
         // Handle mouse scroll in library view
-        if (appState.currentView == LIBRARY_VIEW) {
+        if (appState.currentView == PLAYLIST_VIEW || appState.currentView == LIBRARY_VIEW) {
                 if (strncmp(seq, "\033[M`", 4) == 0) {
                         event.type = EVENT_SCROLLPREV;
                 }
