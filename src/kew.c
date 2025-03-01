@@ -214,6 +214,19 @@ struct Event processInput()
                 }
         }
 
+        // Handle mouse scroll in library view
+        if (appState.currentView == LIBRARY_VIEW) {
+                if (strncmp(seq, "\033[M`", 4) == 0) {
+                        event.type = EVENT_SCROLLPREV;
+                }
+                else if (strncmp(seq, "\033[Ma", 4) == 0) {
+                        event.type = EVENT_SCROLLNEXT;
+                }
+                else if (strncmp(seq, "\033[M ", 4) == 0) {
+                        event.type = EVENT_GOTOSONG;
+                }
+        }
+
         // Handle gg
         if (event.key[0] == 'g' && event.type == EVENT_NONE)
         {
@@ -1090,6 +1103,7 @@ void cleanupOnExit()
 #endif
         showCursor();
         exitAlternateScreenBuffer();
+        disableMouseButtons();
         fflush(stdout);
 
         if (noMusicFound)
@@ -1562,6 +1576,7 @@ int main(int argc, char *argv[])
                 exit(0);
         }
 
+        enableMouseButtons();
         enterAlternateScreenBuffer();
         initializeStateAndSettings(&appState, &settings);
 
