@@ -70,7 +70,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #define COOLDOWN_MS 500
 #define COOLDOWN2_MS 100
 
-#define NUM_KEY_MAPPINGS 48
+#define NUM_KEY_MAPPINGS 52
 
 #define TMPPIDFILE "/tmp/kew_"
 
@@ -212,18 +212,14 @@ struct Event processInput()
                         event.type = keyMappings[i].eventType;
                         break;
                 }
-        }
 
-        // Handle mouse scroll in library view
-        if (appState.currentView == PLAYLIST_VIEW || appState.currentView == LIBRARY_VIEW) {
-                if (strncmp(seq, "\033[M`", 4) == 0) {
-                        event.type = EVENT_SCROLLPREV;
-                }
-                else if (strncmp(seq, "\033[Ma", 4) == 0) {
-                        event.type = EVENT_SCROLLNEXT;
-                }
-                else if (strncmp(seq, "\033[M ", 4) == 0) {
-                        event.type = EVENT_GOTOSONG;
+                // Received mouse input instead of keyboard input
+                if (keyMappings[i].seq[0] != '\0' && strnlen(seq, MAX_SEQ_LEN) > 3 && strncmp(seq, "\033[M", 3) == 0 &&
+                   ((strncmp(seq + 1, keyMappings[i].seq, 3) == 0) ||
+                     strncmp(seq, keyMappings[i].seq, 3) == 0))
+                {
+                        event.type = keyMappings[i].eventType;
+                        break;
                 }
         }
 
