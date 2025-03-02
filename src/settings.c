@@ -432,8 +432,8 @@ void mapSettingsToKeys(AppSettings *settings, EventMapping *mappings)
         mappings[47] = (EventMapping){settings->tabNext, EVENT_TABNEXT};
         mappings[48] = (EventMapping){settings->mouseScrollUp, EVENT_SCROLLPREV};
         mappings[49] = (EventMapping){settings->mouseScrollDown, EVENT_SCROLLNEXT};
-        mappings[50] = (EventMapping){settings->mouseLeftClick, EVENT_PLAY_PAUSE};
-        mappings[51] = (EventMapping){settings->mouseRightClick, EVENT_GOTOSONG};
+        mappings[50] = (EventMapping){settings->mouseLeftClick, EVENT_GOTOSONG};
+        mappings[51] = (EventMapping){settings->mouseRightClick, EVENT_PLAY_PAUSE};
 }
 
 char *getConfigFilePath(char *configdir)
