@@ -9,14 +9,14 @@ visuals.c
 */
 
 #ifndef MAX_BUFFER_SIZE
-#define MAX_BUFFER_SIZE 4800
+#define MAX_BUFFER_SIZE 8192
 #endif
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
 
-int bufferSize = 4800;
+int bufferSize = 8192;
 int prevBufferSize = 0;
 float alpha = 0.2f;
 float lastMax = -1.0f;

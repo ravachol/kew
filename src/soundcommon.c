@@ -249,14 +249,14 @@ void resetM4aDecoders(void)
         }
 }
 
-void getM4aFileInfo(const char *filename, ma_format *format, ma_uint32 *channels, ma_uint32 *sampleRate, ma_channel *channelMap, int *isRawAAC)
+void getM4aFileInfo(const char *filename, ma_format *format, ma_uint32 *channels, ma_uint32 *sampleRate, ma_channel *channelMap, k_m4adec_filetype *fileType)
 {
         m4a_decoder decoder;
         if (m4a_decoder_init_file(filename, NULL, NULL, &decoder) == MA_SUCCESS)
         {
                 *format = decoder.format;
                 m4a_decoder_get_data_format(&decoder, format, channels, sampleRate, channelMap, MA_MAX_CHANNELS);
-                *isRawAAC = decoder.isRawAAC;
+                *fileType = decoder.fileType;
                 m4a_decoder_uninit(&decoder, NULL);
         }
 }
@@ -320,7 +320,9 @@ int prepareNextM4aDecoder(SongData *songData)
         m4a_decoder_get_data_format(decoder, &nformat, &nchannels, &nsampleRate, nchannelMap, MA_MAX_CHANNELS);
         bool sameFormat = (currentDecoder == NULL || (format == nformat &&
                                                       channels == nchannels &&
-                                                      sampleRate == nsampleRate));
+                                                      sampleRate == nsampleRate &&
+                                                      currentDecoder->fileType == decoder->fileType &&
+                                                      currentDecoder->fileType != k_rawAAC));
 
         if (!sameFormat)
         {
@@ -345,13 +347,13 @@ int prepareNextM4aDecoder(SongData *songData)
 
         if (songData != NULL)
         {
-                if (decoder != NULL && decoder->isRawAAC)
+                if (decoder != NULL && decoder->fileType == k_rawAAC)
                 {
                         songData->duration = decoder->duration;
                 }
         }
 
-        if (currentDecoder != NULL && decoder != NULL && decoder->isRawAAC != 1)
+        if (currentDecoder != NULL && decoder != NULL && decoder->fileType != k_rawAAC)
         {
                 if (!isEOFReached())
                         ma_data_source_set_next(currentDecoder, decoder);
@@ -1396,7 +1398,7 @@ void m4a_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_uint6
                 // Check if seeking is requested
                 if (isSeekRequested())
                 {
-                        if (!decoder->isRawAAC)
+                        if (decoder->fileType != k_rawAAC)
                         {
                                 ma_uint64 totalFrames = pAudioData->totalFrames;
                                 ma_uint64 seekPercent = getSeekPercentage();
