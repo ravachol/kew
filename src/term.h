@@ -70,4 +70,8 @@ void enterAlternateScreenBuffer(void);
 
 void exitAlternateScreenBuffer(void);
 
+void enableMouseButtons(void);
+
+void disableMouseButtons(void);
+
 #endif
