@@ -493,9 +493,9 @@ int switchAudioImplementation(void)
                 ma_format nFormat;
                 ma_channel nChannelMap[MA_MAX_CHANNELS];
                 m4a_decoder *decoder = getCurrentM4aDecoder();
-                int isRawAAC;
+                k_m4adec_filetype fileType = k_unknown;
 
-                getM4aFileInfo(filePath, &format, &channels, &sampleRate, channelMap, &isRawAAC);
+                getM4aFileInfo(filePath, &format, &channels, &sampleRate, channelMap, &fileType);
 
                 if (decoder != NULL)
                         m4a_decoder_ds_get_data_format(decoder, &nFormat, &nChannels, &nSampleRate, nChannelMap, MA_MAX_CHANNELS);
@@ -503,7 +503,8 @@ int switchAudioImplementation(void)
                 bool sameFormat = (decoder != NULL && (format == decoder->format &&
                                                        channels == nChannels &&
                                                        sampleRate == nSampleRate &&
-                                                        decoder->isRawAAC != 1));
+                                                        decoder->fileType == fileType &&
+                                                        decoder->fileType != k_rawAAC));
 
                 if (isRepeatEnabled() || !(sameFormat && currentImplementation == M4A))
                 {
