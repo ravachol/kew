@@ -94,6 +94,10 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         c_strcpy(settings.hardPrevPage, "[5~", sizeof(settings.hardPrevPage));
         c_strcpy(settings.hardRemove, "[3~", sizeof(settings.hardRemove));
         c_strcpy(settings.hardRemove2, "[P", sizeof(settings.hardRemove2));
+        c_strcpy(settings.mouseScrollUp, "[M`", sizeof(settings.mouseScrollUp));
+        c_strcpy(settings.mouseScrollDown, "[Ma", sizeof(settings.mouseScrollDown));
+        c_strcpy(settings.mouseLeftClick, "[M ", sizeof(settings.mouseLeftClick));
+        c_strcpy(settings.mouseRightClick, "[M\"", sizeof(settings.mouseRightClick));
         c_strcpy(settings.lastVolume, "100", sizeof(settings.lastVolume));
         c_strcpy(settings.color, "6", sizeof(settings.color));
         c_strcpy(settings.artistColor, "6", sizeof(settings.artistColor));
@@ -426,6 +430,10 @@ void mapSettingsToKeys(AppSettings *settings, EventMapping *mappings)
         mappings[45] = (EventMapping){settings->hardRemove, EVENT_REMOVE};
         mappings[46] = (EventMapping){settings->hardRemove2, EVENT_REMOVE};
         mappings[47] = (EventMapping){settings->tabNext, EVENT_TABNEXT};
+        mappings[48] = (EventMapping){settings->mouseScrollUp, EVENT_SCROLLPREV};
+        mappings[49] = (EventMapping){settings->mouseScrollDown, EVENT_SCROLLNEXT};
+        mappings[50] = (EventMapping){settings->mouseLeftClick, EVENT_GOTOSONG};
+        mappings[51] = (EventMapping){settings->mouseRightClick, EVENT_PLAY_PAUSE};
 }
 
 char *getConfigFilePath(char *configdir)
@@ -641,6 +649,7 @@ void setConfig(AppSettings *settings, UISettings *ui)
         fprintf(file, "savePlaylist=%s\n", settings->savePlaylist);
         fprintf(file, "addToMainPlaylist=%s\n", settings->addToMainPlaylist);
         fprintf(file, "updateLibrary=%s\n", settings->updateLibrary);
+
         fprintf(file, "\n# The different main views, normally F2-F6:\n");
         fprintf(file, "showPlaylistAlt=%s\n", settings->showPlaylistAlt);
         fprintf(file, "showLibraryAlt=%s\n", settings->showLibraryAlt);
