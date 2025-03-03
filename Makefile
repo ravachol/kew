@@ -115,7 +115,6 @@ endif
 
 OBJDIR = src/obj
 
-# Your original C sources
 SRCS = src/common_ui.c src/sound.c src/directorytree.c src/notifications.c \
        src/soundcommon.c src/m4a.c src/search_ui.c src/playlist_ui.c \
        src/player.c src/soundbuiltin.c src/mpris.c src/playerops.c \
