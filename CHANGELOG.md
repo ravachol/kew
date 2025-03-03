@@ -4,7 +4,11 @@
 
 #### Changes:
 
+- Added support for m4a files using ALAC decoder. By @ravachol.
+
 - When the program exits previous commands and outputs are restored. By @DNEGEL3125.
+
+- Added mouse support. By @Chromium-3-Oxide.
 
 - Added support for wav file covers. By @DNEGEL3125.
 
@@ -12,7 +16,7 @@
 
 - The currently playing track is now underlined as well as bolded, because bold weight wasn't working with some fonts. Found By @yurivict.
 
-- Added logic that enables running raw AAC files (but not HE-AAC).  By @ravachol.
+- Added logic that enables running raw AAC files (but not HE-AAC). By @ravachol.
 
 - Added debugging flag to the makefile. Now to run make with debug symbols, run:
   make DEBUG=1 -ij4.

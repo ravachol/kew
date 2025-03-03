@@ -26,7 +26,7 @@
 #endif
 
 #ifndef MAX_BUFFER_SIZE
-#define MAX_BUFFER_SIZE 4800
+#define MAX_BUFFER_SIZE 8192
 #endif
 
 #ifndef TAGSETTINGS_STRUCT
@@ -152,6 +152,8 @@ void resetOpusDecoders(void);
 m4a_decoder *getCurrentM4aDecoder(void);
 
 m4a_decoder *getFirstM4aDecoder(void);
+
+void getM4aFileInfo(const char *filename, ma_format *format, ma_uint32 *channels, ma_uint32 *sampleRate, ma_channel *channelMap,  k_m4adec_filetype *fileType);
 #endif
 
 ma_libopus *getFirstOpusDecoder(void);
@@ -159,8 +161,6 @@ ma_libopus *getFirstOpusDecoder(void);
 ma_libvorbis *getFirstVorbisDecoder(void);
 
 void getVorbisFileInfo(const char *filename, ma_format *format, ma_uint32*channels, ma_uint32 *sampleRate, ma_channel *channelMap);
-
-void getM4aFileInfo(const char *filename, ma_format *format, ma_uint32 *channels, ma_uint32 *sampleRate, ma_channel *channelMap, int *isRawAAC);
 
 void getOpusFileInfo(const char *filename, ma_format *format, ma_uint32*channels, ma_uint32 *sampleRate, ma_channel *channelMap);
 
