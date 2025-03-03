@@ -18,6 +18,8 @@
  * @APPLE_APACHE_LICENSE_HEADER_END@
  */
 
+/* File changed from the original to supress some warnings */
+
 /*
 	File:		ag_dec.c
 
