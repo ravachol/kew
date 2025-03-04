@@ -16,7 +16,7 @@ Functions related to printing the player to the screen.
 #define METADATA_MAX_SIZE 256
 #endif
 
-const char VERSION[] = "3.0.4";
+const char VERSION[] = "3.1.0";
 
 #ifdef __APPLE__
 const int ABSOLUTE_MIN_WIDTH = 80;
