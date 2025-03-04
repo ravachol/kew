@@ -214,13 +214,13 @@ struct Event processInput()
                 }
 
                 // Received mouse input instead of keyboard input
-                // if (keyMappings[i].seq[0] != '\0' && strnlen(seq, MAX_SEQ_LEN) > 3 && strncmp(seq, "\033[M", 3) == 0 &&
-                //    ((strncmp(seq + 1, keyMappings[i].seq, 3) == 0) ||
-                //      strncmp(seq, keyMappings[i].seq, 3) == 0))
-                // {
-                //         event.type = keyMappings[i].eventType;
-                //         break;
-                // }
+                if (keyMappings[i].seq[0] != '\0' && strnlen(seq, MAX_SEQ_LEN) > 3 && strncmp(seq, "\033[M", 3) == 0 &&
+                   ((strncmp(seq + 1, keyMappings[i].seq, 3) == 0) ||
+                     strncmp(seq, keyMappings[i].seq, 3) == 0))
+                {
+                        event.type = keyMappings[i].eventType;
+                        break;
+                }
         }
 
         // Handle gg
