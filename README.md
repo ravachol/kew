@@ -234,7 +234,7 @@ You can select all music by pressing the - MUSIC LIBRARY - header at the top of 
 #### Key Bindings
 * Use <kbd>+</kbd> (or <kbd>=</kbd>), <kbd>-</kbd> keys to adjust the volume.
 * Use <kbd>←</kbd>, <kbd>→</kbd> or <kbd>h</kbd>, <kbd>l</kbd> keys to switch tracks.
-* <kbd>Space</kbd>, <kbd>p</kbd> to toggle pause.
+* <kbd>Space</kbd>, <kbd>p</kbd> or right mouse to toggle pause.
 * <kbd>F2</kbd> or <kbd>Shift+z</kbd> to show/hide the playlist.
 * <kbd>F3</kbd> or <kbd>Shift+x</kbd> to show/hide the library.
 * <kbd>F4</kbd> or <kbd>Shift+c</kbd> to show/hide the track view.
