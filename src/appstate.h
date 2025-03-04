@@ -150,7 +150,7 @@ typedef struct
         char hardRemove2[6];
         char mouseScrollUp[12];
         char mouseScrollDown[12];
-        char mouseLeftClick[12];
+        char mouseMiddleClick[12];
         char mouseRightClick[12];
         char lastVolume[12];
         char allowNotifications[2];
