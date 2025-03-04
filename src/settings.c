@@ -96,7 +96,7 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         c_strcpy(settings.hardRemove2, "[P", sizeof(settings.hardRemove2));
         c_strcpy(settings.mouseScrollUp, "[M`", sizeof(settings.mouseScrollUp));
         c_strcpy(settings.mouseScrollDown, "[Ma", sizeof(settings.mouseScrollDown));
-        c_strcpy(settings.mouseLeftClick, "[M ", sizeof(settings.mouseLeftClick));
+        c_strcpy(settings.mouseMiddleClick, "[M!", sizeof(settings.mouseMiddleClick));
         c_strcpy(settings.mouseRightClick, "[M\"", sizeof(settings.mouseRightClick));
         c_strcpy(settings.lastVolume, "100", sizeof(settings.lastVolume));
         c_strcpy(settings.color, "6", sizeof(settings.color));
@@ -432,7 +432,7 @@ void mapSettingsToKeys(AppSettings *settings, EventMapping *mappings)
         mappings[47] = (EventMapping){settings->tabNext, EVENT_TABNEXT};
         mappings[48] = (EventMapping){settings->mouseScrollUp, EVENT_SCROLLPREV};
         mappings[49] = (EventMapping){settings->mouseScrollDown, EVENT_SCROLLNEXT};
-        mappings[50] = (EventMapping){settings->mouseLeftClick, EVENT_GOTOSONG};
+        mappings[50] = (EventMapping){settings->mouseMiddleClick, EVENT_GOTOSONG};
         mappings[51] = (EventMapping){settings->mouseRightClick, EVENT_PLAY_PAUSE};
 }
 
