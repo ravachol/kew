@@ -65,7 +65,6 @@ endif
 COMMONFLAGS += $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) $(PKG_CONFIG) --cflags gio-2.0 chafa fftw3f opus opusfile vorbis ogg glib-2.0 taglib)
 COMMONFLAGS += -fstack-protector-strong -Wformat -Werror=format-security -fPIE -D_FORTIFY_SOURCE=2
 COMMONFLAGS += -Wall -Wextra -Wpointer-arith -flto
-
 CFLAGS = $(COMMONFLAGS)
 
 # Compiler flags for C++ code
@@ -78,8 +77,8 @@ LIBS += -lstdc++
 LDFLAGS = -logg -lz -flto
 
 ifeq ($(UNAME_S), Linux)
-  CFLAGS += -fPIE
-  CXXFLAGS += -fPIE
+  CFLAGS += -fPIE -fstack-clash-protection -fcf-protection
+  CXXFLAGS += -fPIE -fstack-clash-protection -fcf-protection
   LDFLAGS += -pie -Wl,-z,relro
   ifneq ($(DEBUG), 1)
   LDFLAGS += -s
