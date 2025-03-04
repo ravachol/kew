@@ -523,7 +523,7 @@ void handleGoToSong(AppState *state)
 
                 pthread_mutex_unlock(&(playlist.mutex));
         }
-        else
+        else if (state->currentView == PLAYLIST_VIEW)
         {
                 if (digitsPressedCount == 0)
                 {
