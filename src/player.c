@@ -630,8 +630,6 @@ int showKeyBindings(SongData *songdata, AppSettings *settings, UISettings *ui)
         printBlankSpaces(indent);
         printf("     Press Enter or middle click to add/remove songs to/from the playlist.\n");
         printBlankSpaces(indent);
-        printf(" - Enter a number then Enter to switch song.\n");
-        printBlankSpaces(indent);
         printf(" - Press F4 for Track View.\n");
         printBlankSpaces(indent);
         printf(" - Space, %s, or right click to toggle pause.\n", settings->togglePause);
