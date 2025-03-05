@@ -8,6 +8,10 @@
 
 #include <sys/param.h>
 
+#ifndef MAXPATHLEN
+#define MAXPATHLEN 4096
+#endif
+
 #ifndef PIXELDATA_STRUCT
 #define PIXELDATA_STRUCT
 
