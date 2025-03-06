@@ -1,6 +1,6 @@
 # CHANGELOG
 
-### 3.0.4
+### 3.1.0
 
 #### Changes:
 
@@ -23,6 +23,8 @@
 
 - It's now possible to remove or alter the delay when printing the song title, in settings. By @Chromium-3-Oxide.
 
+- Added the config option of quitting after playing the playlist, same as --quitonstop flag. By @Chromium-3-Oxide.
+
 #### Bug Fixes:
 
 - Fixed cover sometimes not centered in wezterm terminal.
@@ -36,6 +38,11 @@
 - Uses a different method for detecting if kew is already running since the previous method didn't work on macOS. By @DNEGEL3125.
 
 - Prevent the cover from scrolling up on tmux+konsole. Found by @acdcbyl.
+
+#### Special Thanks To Sponsors:
+
+- @codemacabre
+- @SpaceCheeseWizard
 
 ### 3.0.3
 
