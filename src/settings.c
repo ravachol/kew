@@ -47,6 +47,7 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         c_strcpy(settings.hideLogo, "0", sizeof(settings.hideLogo));
         c_strcpy(settings.hideHelp, "0", sizeof(settings.hideHelp));
         c_strcpy(settings.cacheLibrary, "-1", sizeof(settings.cacheLibrary));
+        c_strcpy(settings.visualizerHeight, "5", sizeof(settings.visualizerHeight));
         c_strcpy(settings.titleDelay, "9", sizeof(settings.titleDelay));
 
         c_strcpy(settings.tabNext, "\t", sizeof(settings.tabNext));
