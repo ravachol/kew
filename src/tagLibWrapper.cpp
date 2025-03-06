@@ -630,7 +630,8 @@ extern "C"
         {
                 TagLib::MP4::File file(inputFile.c_str());
 
-                if (!file.isValid()) {
+                if (!file.isValid())
+                {
                         return false;
                 }
 

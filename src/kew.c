@@ -1521,17 +1521,7 @@ void setMusicPath()
 
 void initState(AppState *state)
 {
-        state->uiSettings.visualizerEnabled = true;
-        state->uiSettings.coverEnabled = true;
-        state->uiSettings.hideLogo = false;
-        state->uiSettings.hideHelp = false;
-        state->uiSettings.quitAfterStopping = false;
-        state->uiSettings.coverAnsi = false;
         state->uiSettings.uiEnabled = true;
-        state->uiSettings.visualizerHeight = 5;
-        state->uiSettings.titleDelay = 9;
-        state->uiSettings.cacheLibrary = -1;
-        state->uiSettings.useConfigColors = false;
         state->uiSettings.color.r = 125;
         state->uiSettings.color.g = 125;
         state->uiSettings.color.b = 125;
