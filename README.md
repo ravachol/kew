@@ -115,7 +115,7 @@ guix install pkg-config faad2 taglib fftw git gcc make chafa opus opusfile libvo
 #### For Void Linux:
 
 ```bash
-sudo xbps-install -y pkg-config faad2 taglib taglib-devel fftw git gcc make chafa chafa-devel opus opusfile opusfile-devel libvorbis libogg glib-devel
+sudo xbps-install -y pkg-config faad2 taglib taglib-devel fftw-devel git gcc make chafa chafa-devel opus opusfile opusfile-devel libvorbis-devel libogg glib-devel
 ```
 
 #### For Alpine Linux:
