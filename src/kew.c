@@ -681,16 +681,16 @@ void handleInput(AppState *state)
                 updateLibrary(settings.path);
                 break;
         case EVENT_SHOWKEYBINDINGS:
-                toggleShowKeyBindings();
+                toggleShowView(KEYBINDINGS_VIEW);
                 break;
         case EVENT_SHOWPLAYLIST:
-                toggleShowPlaylist();
+                toggleShowView(PLAYLIST_VIEW);
                 break;
         case EVENT_SHOWSEARCH:
-                toggleShowSearch();
+                toggleShowView(SEARCH_VIEW);
                 break;
         case EVENT_SHOWLIBRARY:
-                toggleShowLibrary();
+                toggleShowView(LIBRARY_VIEW);
                 break;
         case EVENT_NEXTPAGE:
                 flipNextPage();
