@@ -109,7 +109,8 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         c_strcpy(settings.enqueuedColor, "6", sizeof(settings.enqueuedColor));
         c_strcpy(settings.quit, "q", sizeof(settings.quit));
         c_strcpy(settings.hardQuit, "\x1B", sizeof(settings.hardQuit));
-        c_strcpy(settings.clearPlaylist, "\x7F", sizeof(settings.clearPlaylist));
+        c_strcpy(settings.hardClearPlaylist, "\b", sizeof(settings.hardClearPlaylist));
+
 
         if (pairs == NULL)
         {
@@ -447,7 +448,7 @@ void mapSettingsToKeys(AppSettings *settings, EventMapping *mappings)
         mappings[49] = (EventMapping){settings->mouseScrollDown, EVENT_SCROLLNEXT};
         mappings[50] = (EventMapping){settings->mouseMiddleClick, EVENT_GOTOSONG};
         mappings[51] = (EventMapping){settings->mouseRightClick, EVENT_PLAY_PAUSE};
-        mappings[52] = (EventMapping){settings->clearPlaylist, EVENT_CLEARPLAYLIST};
+        mappings[52] = (EventMapping){settings->hardClearPlaylist, EVENT_CLEARPLAYLIST};
         mappings[53] = (EventMapping){settings->showRadioSearchAlt, EVENT_SHOWRADIOSEARCH};
         mappings[54] = (EventMapping){settings->hardShowRadioSearch, EVENT_SHOWRADIOSEARCH};
         mappings[55] = (EventMapping){settings->hardShowRadioSearchAlt, EVENT_SHOWRADIOSEARCH};
