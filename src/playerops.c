@@ -1938,11 +1938,6 @@ void updateLibraryIfChangedDetected(void)
 // Go through the display playlist and the shuffle playlist to remove all songs except the current one
 void updatePlaylistToPlayingSong(void)
 {
-        if (appState.currentView != PLAYLIST_VIEW)
-        {
-                return;
-        }
-
         if (currentSong == NULL)
         {
                 return;
@@ -1962,24 +1957,24 @@ void updatePlaylistToPlayingSong(void)
                         songToBeRemoved = nextInPlaylist;
                         int id = songToBeRemoved->id;
 
-                        // Update Library                           
+                        // Update Library
                         if (songToBeRemoved != NULL)
                                 markAsDequeued(getLibrary(), songToBeRemoved->song.filePath);
-                        
+
                         // Remove from Display playlist
                         if (songToBeRemoved != NULL)
-                                deleteFromList(originalPlaylist, songToBeRemoved);    
+                                deleteFromList(originalPlaylist, songToBeRemoved);
 
-                        // Remove from Shuffle playlist        
+                        // Remove from Shuffle playlist
                         Node *node2 = findSelectedEntryById(&playlist, id);
                         if (node2 != NULL)
-                                deleteFromList(&playlist, node2);        
-                }    
-                nextInPlaylist = nextInPlaylist->next;                
+                                deleteFromList(&playlist, node2);
+                }
+                nextInPlaylist = nextInPlaylist->next;
         }
         pthread_mutex_unlock(&(playlist.mutex));
 
         nextSongNeedsRebuilding = true;
         nextSong = NULL;
-        refresh = true;          
+        refresh = true;
 }
