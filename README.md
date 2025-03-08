@@ -86,7 +86,7 @@ Notes for mac users:
 ```bash
 dnf install -y pkg-config taglib-devel fftw-devel opus-devel opusfile-devel libvorbis-devel libogg-devel git gcc make chafa-devel libatomic gcc-c++ glib2-devel curl
 ```
-Option: add libfaad-devel for AAC,M4A support (Requires RPM-fusion to be enabled).
+Option: add faad2-devel for AAC,M4A support (Requires RPM-fusion to be enabled).
 
 #### For OpenSUSE:
 
