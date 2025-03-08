@@ -33,7 +33,8 @@ jobs:
             patchelf \
             musl \
             musl-dev \
-            gcompat
+            gcompat \
+            curl
 
       - name: Build code with static linking
         run: |
