@@ -630,7 +630,8 @@ extern "C"
         {
                 TagLib::MP4::File file(inputFile.c_str());
 
-                if (!file.isValid()) {
+                if (!file.isValid())
+                {
                         return false;
                 }
 
@@ -756,6 +757,11 @@ extern "C"
 
                         // Copy the year as date
                         snprintf(tag_settings->date, sizeof(tag_settings->date), "%d", (int)tag->year());
+
+                        if (tag_settings->date[0] == '0')
+                        {
+                                tag_settings->date[0] = '\0';
+                        }
                 }
 
                 // Extract audio properties for duration.
