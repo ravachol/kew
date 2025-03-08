@@ -155,4 +155,6 @@ void updateLibraryIfChangedDetected(void);
 
 double getCurrentSongDuration(void);
 
+void updatePlaylistToPlayingSong(void);
+
 #endif

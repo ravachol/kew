@@ -1914,3 +1914,52 @@ void updateLibraryIfChangedDetected(void)
                 free(args);
         }
 }
+
+// Go through the display playlist and the shuffle playlist to remove all songs except the current one
+void updatePlaylistToPlayingSong(void)
+{
+        if (appState.currentView != PLAYLIST_VIEW)
+        {
+                return;
+        }
+
+        if (currentSong == NULL)
+        {
+                return;
+        }
+
+        int currentID = currentSong->id;
+        int nextInPlaylistID;
+        pthread_mutex_lock(&(playlist.mutex));
+        Node *songToBeRemoved;
+        Node *nextInPlaylist = originalPlaylist->head;
+
+        while (nextInPlaylist != NULL)
+        {
+                nextInPlaylistID = nextInPlaylist->id;
+
+                if (nextInPlaylistID != currentID){
+                        songToBeRemoved = nextInPlaylist;
+                        int id = songToBeRemoved->id;
+
+                        // Update Library                           
+                        if (songToBeRemoved != NULL)
+                                markAsDequeued(getLibrary(), songToBeRemoved->song.filePath);
+                        
+                        // Remove from Display playlist
+                        if (songToBeRemoved != NULL)
+                                deleteFromList(originalPlaylist, songToBeRemoved);    
+
+                        // Remove from Shuffle playlist        
+                        Node *node2 = findSelectedEntryById(&playlist, id);
+                        if (node2 != NULL)
+                                deleteFromList(&playlist, node2);        
+                }    
+                nextInPlaylist = nextInPlaylist->next;                
+        }
+        pthread_mutex_unlock(&(playlist.mutex));
+
+        nextSongNeedsRebuilding = true;
+        nextSong = NULL;
+        refresh = true;          
+}
