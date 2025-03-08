@@ -1047,7 +1047,7 @@ void resumePlayback(void)
 
         stopped = false;
 
-        if (appState.currentView != SONG_VIEW)
+        if (appState.currentView != TRACK_VIEW)
         {
                 refresh = true;
         }
@@ -1062,7 +1062,7 @@ void stopPlayback(void)
 
         stopped = true;
 
-        if (appState.currentView != SONG_VIEW)
+        if (appState.currentView != TRACK_VIEW)
         {
                 refresh = true;
         }
@@ -1077,7 +1077,7 @@ void pausePlayback(void)
 
         paused = true;
 
-        if (appState.currentView != SONG_VIEW)
+        if (appState.currentView != TRACK_VIEW)
         {
                 refresh = true;
         }
