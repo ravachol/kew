@@ -77,9 +77,13 @@ LIBS += -lstdc++
 LDFLAGS = -logg -lz -flto
 
 ifeq ($(UNAME_S), Linux)
-  CFLAGS += -fPIE -fstack-clash-protection -fcf-protection
-  CXXFLAGS += -fPIE -fstack-clash-protection -fcf-protection
+  CFLAGS += -fPIE -fstack-clash-protection
+  CXXFLAGS += -fPIE -fstack-clash-protection
   LDFLAGS += -pie -Wl,-z,relro
+  ifneq (,$(filter $(ARCH), x86_64 i386))
+        CFLAGS += -fcf-protection
+        CXXFLAGS += -fcf-protection
+  endif
   ifneq ($(DEBUG), 1)
   LDFLAGS += -s
   endif
