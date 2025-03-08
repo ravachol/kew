@@ -20,6 +20,7 @@
 * Samuel @Samueru-sama
 * Vafone @vafone
 * Xplshn @xplshn
+* Zane Godden @mechatour
 
 ## Testers
 
