@@ -8,16 +8,18 @@
 
 #### Changes:
 
-- Added Internet radio support.
-  MP3 streams only so far, but the vast majority of stream are MP3 streams in the database we are using. By @ravachol.
+- Added Internet radio support. By @ravachol.
+  MP3 streams only so far, but the vast majority of stream are MP3 streams in the database we are using, others are excluded.
   Press F6 for radio search or Shift+B on macOS.
+
+- Added mouse support.
+  Use the middle button for playing or enqueueing a song. Right button to pause. By @Chromium-3-Oxide.
 
 - Added support for m4a files using ALAC decoder. By @ravachol.
 
 - When the program exits previous commands and outputs are restored. By @DNEGEL3125.
 
-- Added mouse support.
-  Use the middle button for playing or enqueueing a song. Right button to pause. By @Chromium-3-Oxide.
+- Clear the entire playlist by pressing backspace. By @mechatour.
 
 - Added support for wav file covers. By @DNEGEL3125.
 
