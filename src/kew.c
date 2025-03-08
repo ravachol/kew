@@ -70,7 +70,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #define COOLDOWN_MS 500
 #define COOLDOWN2_MS 100
 
-#define NUM_KEY_MAPPINGS 52
+#define NUM_KEY_MAPPINGS 53
 
 #define TMPPIDFILE "/tmp/kew_"
 
@@ -707,6 +707,10 @@ void handleInput(AppState *state)
                 break;
         case EVENT_TABNEXT:
                 tabNext();
+                break;
+        case EVENT_CLEARPLAYLIST:              
+                updatePlaylistToPlayingSong();
+                state->uiState.resetPlaylistDisplay = true;
                 break;
         default:
                 fastForwarding = false;
