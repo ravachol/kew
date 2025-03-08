@@ -11,12 +11,14 @@
 #include "playlist.h"
 #include "playlist_ui.h"
 #include "search_ui.h"
+#include "searchradio_ui.h"
 #include "songloader.h"
 #include "sound.h"
 #include "term.h"
 #include "utils.h"
 #include "visuals.h"
 #include "common_ui.h"
+#include "common.h"
 
 extern int numProgressBars;
 
@@ -54,6 +56,8 @@ void setCurrentAsChosenDir(void);
 
 void toggleShowView(ViewState VIEW_TO_SHOW);
 
+void toggleShowRadioSearch(void);
+
 void showTrack(void);
 
 void freeMainDirectoryTree(AppState *state);
@@ -65,6 +69,8 @@ void resetChosenDir(void);
 void tabNext(void);
 
 void resetSearchResult(void);
+
+void resetRadioSearchResult(void);
 
 int getChosenRow(void);
 

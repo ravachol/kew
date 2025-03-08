@@ -16,8 +16,6 @@ Functions related to printing the player to the screen.
 #define METADATA_MAX_SIZE 256
 #endif
 
-const char VERSION[] = "3.1.0";
-
 #ifdef __APPLE__
 const int ABSOLUTE_MIN_WIDTH = 80;
 #else
@@ -39,13 +37,16 @@ int textWidth = 0;
 int indent = 0;
 int maxListSize = 0;
 int maxSearchListSize = 0;
+int maxRadioSearchListSize = 0;
 int numTopLevelSongs = 0;
 int startLibIter = 0;
 int startSearchIter = 0;
+int startRadioSearchIter = 0;
 int maxLibListSize = 0;
-int chosenRow = 0;             // The row that is chosen in playlist view
-int chosenLibRow = 0;          // The row that is chosen in library view
-int chosenSearchResultRow = 0; // The row that is chosen in search view
+int chosenRow = 0;                  // The row that is chosen in playlist view
+int chosenLibRow = 0;               // The row that is chosen in library view
+int chosenSearchResultRow = 0;      // The row that is chosen in search view
+int chosenRadioSearchResultRow = 0; // The row that is chosen in radio search view
 int libIter = 0;
 int libSongIter = 0;
 int libTopLevelSongIter = 0;
@@ -196,6 +197,34 @@ int printLogo(SongData *songData, UISettings *ui)
 
                 printf(" %s\n\n", title);
                 height += 2;
+        }
+        else if (isRadioPlaying())
+        {
+                int term_w, term_h;
+                getTermSize(&term_w, &term_h);
+
+                RadioSearchResult *station = getCurrentPlayingRadioStation();
+
+                if (station != NULL)
+                {
+                        char title[MAXPATHLEN] = {0};
+
+                        snprintf(title, MAXPATHLEN, "%s (%s)",
+                                 station->name, station->country);
+
+                        shortenString(title, term_w - indent - indent - logoWidth - 4);
+
+                        if (ui->useConfigColors)
+                                setTextColor(ui->titleColor);
+
+                        printf(" %s\n\n", title);
+                        height += 2;
+                }
+                else
+                {
+                        printf("\n\n");
+                        height += 2;
+                }
         }
         else
         {
@@ -500,6 +529,34 @@ void printGlimmeringText(char *text, int textLength, char *nerdFontText, PixelDa
         }
 }
 
+void printErrorRow(void)
+{
+        int indent = calcIndentNormal();
+
+        int term_w, term_h;
+        getTermSize(&term_w, &term_h);
+        if (term_w < ABSOLUTE_MIN_WIDTH)
+                return;
+
+#ifndef __APPLE__
+        // Move to lastRow - 1
+        printf("\033[%d;1H", term_h - 1);
+#endif
+
+        if (!hasPrintedError && hasErrorMessage())
+        {
+                setTextColorRGB(lastRowColor.r, lastRowColor.g, lastRowColor.b);
+                printBlankSpaces(indent);
+                printf(" %s\n", getErrorMessage());
+                hasPrintedError = true;
+                fflush(stdout);
+        }
+        else
+        {
+                printf("\n");
+        }
+}
+
 void printLastRow(void)
 {
         int term_w, term_h;
@@ -515,9 +572,9 @@ void printLastRow(void)
         setTextColorRGB(lastRowColor.r, lastRowColor.g, lastRowColor.b);
 
 #ifdef __APPLE__
-        char text[100] = " Sh+Z List|Sh+X Lib|Sh+C Track|Sh+V Search|Sh+B Help|Esc Quit";
+        char text[100] = " Sh+Z List|Sh+X Lib|Sh+C Track|Sh+V Search|Sh+B Radio|Sh+N Help";
 #else
-        char text[100] = " [F2 Playlist|F3 Library|F4 Track|F5 Search|F6 Help|Esc Quit]";
+        char text[100] = " [F2 Playlist|F3 Library|F4 Track|F5 Search|F6 Radio|F7 Help]";
 #endif
 
         char nerdFontText[100] = "";
@@ -577,6 +634,7 @@ void printLastRow(void)
 
         printf("\033[K"); // clear the line
 
+        int indent = calcIndentNormal();
         int textLength = strnlen(text, 100);
         int randomNumber = getRandomNumber(1, 808);
 
@@ -584,7 +642,7 @@ void printLastRow(void)
                 printGlimmeringText(text, textLength, nerdFontText, lastRowColor);
         else
         {
-                printBlankSpaces(calcIndentNormal());
+                printBlankSpaces(indent);
                 printf("%s", text);
                 printf("%s", nerdFontText);
         }
@@ -607,7 +665,7 @@ int showKeyBindings(SongData *songdata, AppSettings *settings, UISettings *ui)
         int numPrintedRows = 0;
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
-        maxListSize = term_h - 2;
+        maxListSize = term_h - 4;
 
         numPrintedRows += printAbout(songdata, ui);
 
@@ -665,6 +723,7 @@ int showKeyBindings(SongData *songdata, AppSettings *settings, UISettings *ui)
                 numPrintedRows++;
         }
 
+        printErrorRow();
         printLastRow();
         numPrintedRows++;
 
@@ -703,6 +762,8 @@ void tabNext(void)
         else if (appState.currentView == TRACK_VIEW)
                 appState.currentView = SEARCH_VIEW;
         else if (appState.currentView == SEARCH_VIEW)
+                appState.currentView = RADIOSEARCH_VIEW;
+        else if (appState.currentView == RADIOSEARCH_VIEW)
                 appState.currentView = KEYBINDINGS_VIEW;
         else if (appState.currentView == KEYBINDINGS_VIEW)
                 appState.currentView = PLAYLIST_VIEW;
@@ -737,6 +798,13 @@ void flipNextPage(void)
                 startSearchIter += maxSearchListSize - 1;
                 refresh = true;
         }
+        else if (appState.currentView == SEARCH_VIEW)
+        {
+                chosenRadioSearchResultRow += maxRadioSearchListSize - 1;
+                chosenRadioSearchResultRow = (chosenRadioSearchResultRow >= getRadioSearchResultsCount()) ? getRadioSearchResultsCount() - 1 : chosenRadioSearchResultRow;
+                startRadioSearchIter += maxRadioSearchListSize - 1;
+                refresh = true;
+        }
 }
 
 void flipPrevPage(void)
@@ -760,6 +828,13 @@ void flipPrevPage(void)
                 startSearchIter -= maxSearchListSize;
                 refresh = true;
         }
+        else if (appState.currentView == RADIOSEARCH_VIEW)
+        {
+                chosenRadioSearchResultRow -= maxRadioSearchListSize;
+                chosenRadioSearchResultRow = (chosenRadioSearchResultRow > 0) ? chosenRadioSearchResultRow : 0;
+                startRadioSearchIter -= maxRadioSearchListSize;
+                refresh = true;
+        }
 }
 
 void scrollNext(void)
@@ -779,6 +854,11 @@ void scrollNext(void)
         else if (appState.currentView == SEARCH_VIEW)
         {
                 chosenSearchResultRow++;
+                refresh = true;
+        }
+        else if (appState.currentView == RADIOSEARCH_VIEW)
+        {
+                chosenRadioSearchResultRow++;
                 refresh = true;
         }
 }
@@ -801,6 +881,12 @@ void scrollPrev(void)
         {
                 chosenSearchResultRow--;
                 chosenSearchResultRow = (chosenSearchResultRow > 0) ? chosenSearchResultRow : 0;
+                refresh = true;
+        }
+        else if (appState.currentView == RADIOSEARCH_VIEW)
+        {
+                chosenRadioSearchResultRow--;
+                chosenRadioSearchResultRow = (chosenRadioSearchResultRow > 0) ? chosenRadioSearchResultRow : 0;
                 refresh = true;
         }
 }
@@ -827,7 +913,11 @@ int printLogoAndAdjustments(SongData *songData, int termWidth, UISettings *ui, i
                 printBlankSpaces(indentation);
                 printf(" Use ↑, ↓ or k, j to choose. Enter to accept.\n");
                 printBlankSpaces(indentation);
+                #ifndef __APPLE__
                 printf(" Pg Up and Pg Dn to scroll. Del to remove entry.\n\n");
+                #else
+                printf(" Fn+Arrow Up and Fn+Arrow Down to scroll. Del to remove entry.\n\n");
+                #endif
                 return aboutRows + 3;
         }
         return aboutRows;
@@ -853,7 +943,31 @@ void showSearch(SongData *songData, int *chosenRow, UISettings *ui)
 
         displaySearch(maxSearchListSize, indent, chosenRow, startSearchIter, ui);
 
-        printf("\n");
+        printErrorRow();
+        printLastRow();
+}
+
+void showRadioSearch(SongData *songData, int *chosenRow, UISettings *ui)
+{
+        int term_w, term_h;
+        getTermSize(&term_w, &term_h);
+        maxRadioSearchListSize = term_h - 4;
+
+        int aboutRows = printLogo(songData, ui);
+        maxRadioSearchListSize -= aboutRows;
+
+        setDefaultTextColor();
+
+        if (term_w > indent + 38 && !ui->hideHelp)
+        {
+                printBlankSpaces(indent);
+                printf(" Use ↑, ↓ to choose. Enter to search and then enter to accept a station.\n\n");
+                maxRadioSearchListSize -= 2;
+        }
+
+        displayRadioSearch(maxRadioSearchListSize, indent, chosenRow, startSearchIter, ui);
+
+        printErrorRow();
         printLastRow();
 }
 
@@ -861,7 +975,7 @@ void showPlaylist(SongData *songData, PlayList *list, int *chosenSong, int *chos
 {
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
-        maxListSize = term_h - 2;
+        maxListSize = term_h - 3;
 
         int aboutRows = printLogoAndAdjustments(songData, term_w, &(state->uiSettings), indent);
         maxListSize -= aboutRows;
@@ -877,13 +991,18 @@ void showPlaylist(SongData *songData, PlayList *list, int *chosenSong, int *chos
 
         displayPlaylist(list, maxListSize, indent, chosenSong, chosenNodeId, state->uiState.resetPlaylistDisplay, state);
 
-        printf("\n");
+        printErrorRow();
         printLastRow();
 }
 
 void resetSearchResult(void)
 {
         chosenSearchResultRow = 0;
+}
+
+void resetRadioSearchResult(void)
+{
+        chosenRadioSearchResultRow = 0;
 }
 
 void printElapsedBars(int elapsedBars, int numProgressBars)
@@ -903,7 +1022,6 @@ void printElapsedBars(int elapsedBars, int numProgressBars)
                         printf("= ");
                 }
         }
-        printf("\n");
 }
 
 void printVisualizer(double elapsedSeconds, AppState *state)
@@ -929,6 +1047,7 @@ void printVisualizer(double elapsedSeconds, AppState *state)
 #endif
                 drawSpectrumVisualizer(ui->visualizerHeight, visualizerWidth, ui->color, indent, ui->useConfigColors);
                 printElapsedBars(calcElapsedBars(elapsedSeconds, duration, uis->numProgressBars), uis->numProgressBars);
+                printErrorRow();
                 printLastRow();
 #ifndef __APPLE__
                 restoreCursorPosition();
@@ -942,8 +1061,7 @@ void printVisualizer(double elapsedSeconds, AppState *state)
         {
                 if (term_w >= ABSOLUTE_MIN_WIDTH)
                 {
-                        printf("\n");
-
+                        printErrorRow();
                         saveCursorPosition();
                         printLastRow();
                         restoreCursorPosition();
@@ -1305,7 +1423,11 @@ void showLibrary(SongData *songData, AppState *state)
                 printBlankSpaces(indent);
                 printf(" Use ↑, ↓ or k, j to choose. Enter to enqueue/dequeue.\n");
                 printBlankSpaces(indent);
+                #ifndef __APPLE__
                 printf(" Pg Up and Pg Dn to scroll. Press u to update the library.\n\n");
+                #else
+                printf(" Fn+Arrow Up and Fn+Arrow Down to scroll. Press u to update the library.\n\n");
+                #endif
         }
 
         numTopLevelSongs = 0;
@@ -1333,8 +1455,7 @@ void showLibrary(SongData *songData, AppState *state)
                 printf("\n");
         }
 
-        printf("\n");
-
+        printErrorRow();
         printLastRow();
 
         if (refresh)
@@ -1349,6 +1470,9 @@ int printPlayer(SongData *songdata, double elapsedSeconds, AppSettings *settings
 {
         UISettings *ui = &(state->uiSettings);
         UIState *uis = &(state->uiState);
+
+        if (hasPrintedError && refresh)
+                clearErrorMessage();
 
         if (!ui->uiEnabled)
         {
@@ -1369,7 +1493,7 @@ int printPlayer(SongData *songdata, double elapsedSeconds, AppSettings *settings
                 }
                 else
                 {
-                        if (state->currentView != LIBRARY_VIEW && state->currentView != PLAYLIST_VIEW && state->currentView != SEARCH_VIEW && state->currentView != KEYBINDINGS_VIEW)
+                        if (state->currentView == TRACK_VIEW)
                         {
                                 state->currentView = LIBRARY_VIEW;
                         }
@@ -1409,6 +1533,13 @@ int printPlayer(SongData *songdata, double elapsedSeconds, AppSettings *settings
         {
                 clearScreen();
                 showSearch(songdata, &chosenSearchResultRow, ui);
+                refresh = false;
+                fflush(stdout);
+        }
+        else if (state->currentView == RADIOSEARCH_VIEW && refresh)
+        {
+                clearScreen();
+                showRadioSearch(songdata, &chosenRadioSearchResultRow, ui);
                 refresh = false;
                 fflush(stdout);
         }

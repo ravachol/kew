@@ -159,7 +159,7 @@ int vorbis_createAudioDevice(UserData *userData, ma_device *device, ma_context *
         result = ma_device_init(context, &deviceConfig, device);
         if (result != MA_SUCCESS)
         {
-                printf("\n\nFailed to initialize miniaudio device.\n");
+                setErrorMessage("Failed to initialize miniaudio device.");
                 return -1;
         }
 
@@ -168,7 +168,7 @@ int vorbis_createAudioDevice(UserData *userData, ma_device *device, ma_context *
         result = ma_device_start(device);
         if (result != MA_SUCCESS)
         {
-                printf("\n\nFailed to start miniaudio device.\n");
+                setErrorMessage("Failed to start miniaudio device.");
                 return -1;
         }
 
@@ -185,7 +185,7 @@ int m4a_createAudioDevice(UserData *userData, ma_device *device, ma_context *con
         result = initFirstDatasource(&audioData, userData);
         if (result != MA_SUCCESS)
         {
-                printf("\n\nFailed to initialize m4a file.\n");
+                setErrorMessage("M4a type not supported.");
                 return -1;
         }
         m4a_decoder *decoder = getFirstM4aDecoder();
@@ -200,7 +200,7 @@ int m4a_createAudioDevice(UserData *userData, ma_device *device, ma_context *con
         result = ma_device_init(context, &deviceConfig, device);
         if (result != MA_SUCCESS)
         {
-                printf("\n\nFailed to initialize miniaudio device.\n");
+                setErrorMessage("Failed to initialize miniaudio device.");
                 return -1;
         }
 
@@ -210,7 +210,7 @@ int m4a_createAudioDevice(UserData *userData, ma_device *device, ma_context *con
 
         if (result != MA_SUCCESS)
         {
-                printf("\n\nFailed to start miniaudio device.\n");
+                setErrorMessage("Failed to start miniaudio device.");
                 return -1;
         }
 
@@ -243,7 +243,7 @@ int opus_createAudioDevice(UserData *userData, ma_device *device, ma_context *co
         result = ma_device_init(context, &deviceConfig, device);
         if (result != MA_SUCCESS)
         {
-                printf("\n\nFailed to initialize miniaudio device.\n");
+                setErrorMessage("Failed to initialize miniaudio device.");
                 return -1;
         }
 
@@ -252,7 +252,7 @@ int opus_createAudioDevice(UserData *userData, ma_device *device, ma_context *co
         result = ma_device_start(device);
         if (result != MA_SUCCESS)
         {
-                printf("\n\nFailed to start miniaudio device.\n");
+                setErrorMessage("Failed to start miniaudio device.");
                 return -1;
         }
 
@@ -276,6 +276,11 @@ bool tryAgain = false;
 
 int switchAudioImplementation(void)
 {
+        if (isRadioPlaying())
+        {
+                stopRadio();
+        }
+
         if (audioData.endOfListReached)
         {
                 setEOFNotReached();

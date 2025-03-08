@@ -40,7 +40,6 @@ ma_event switchAudioImpl;
 enum AudioImplementation currentImplementation = NONE;
 
 AppState appState;
-volatile bool refresh = true; // Should the whole view be refreshed next time it redraws
 
 double elapsedSeconds = 0.0;
 
@@ -1033,7 +1032,7 @@ void seekPercentage(float percent)
 void resumePlayback(void)
 {
         // if this was unpaused with no song loaded
-        if (audioData.restart)
+        if (audioData.restart && !isRadioPlaying())
         {
                 audioData.endOfListReached = false;
         }
@@ -1636,7 +1635,7 @@ void vorbis_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_ui
                 {
                         executeSwitch(pAudioData);
                         pthread_mutex_unlock(&dataSourceMutex);
-                        break; // Exit the loop after the file switch
+                        break;
                 }
 
                 ma_libvorbis *decoder = getCurrentVorbisDecoder();

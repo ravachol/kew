@@ -757,6 +757,11 @@ extern "C"
 
                         // Copy the year as date
                         snprintf(tag_settings->date, sizeof(tag_settings->date), "%d", (int)tag->year());
+
+                        if (tag_settings->date[0] == '0')
+                        {
+                                tag_settings->date[0] = '\0';
+                        }
                 }
 
                 // Extract audio properties for duration.

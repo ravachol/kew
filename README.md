@@ -21,6 +21,7 @@ kew (/kjuː/) is a terminal music player.
  * Supports gapless playback (between files of the same format and type).
  * Supports MP3, FLAC, MPEG-4/M4A (AAC, ALAC), OPUS, OGG and WAV audio.
  * Supports desktop events through MPRIS.
+ * Has Internet Radio.
  * Private, no data is collected by kew.
 
 ## Installing
@@ -55,25 +56,26 @@ kew dependencies are:
 * libogg
 * pkg-config
 * glib2.0
+* curl
 
 Install these dependencies using your distro's package manager. Below are some examples.
 
 #### For Debian/Ubuntu:
 
 ```bash
-sudo apt install -y pkg-config libfaad-dev libtag1-dev libfftw3-dev libopus-dev libopusfile-dev libvorbis-dev libogg-dev git gcc make libchafa-dev libglib2.0-dev
+sudo apt install -y pkg-config libfaad-dev libtag1-dev libfftw3-dev libopus-dev libopusfile-dev libvorbis-dev libogg-dev git gcc make libchafa-dev libglib2.0-dev curl
 ```
 
 #### For Arch Linux:
 
 ```bash
-sudo pacman -Syu --noconfirm --needed pkg-config faad2 taglib fftw git gcc make chafa glib2 opus opusfile libvorbis libogg
+sudo pacman -Syu --noconfirm --needed pkg-config faad2 taglib fftw git gcc make chafa glib2 opus opusfile libvorbis libogg curl
 ```
 
 #### For macOS:
 
 ```bash
-brew install gettext faad2 taglib chafa fftw opus opusfile libvorbis libogg glib pkg-config make git
+brew install gettext faad2 taglib chafa fftw opus opusfile libvorbis libogg glib pkg-config make git curl
 ```
 Notes for mac users:
 1) A sixel-capable terminal like kitty or WezTerm is recommended for macOS.
@@ -82,46 +84,46 @@ Notes for mac users:
 #### For Fedora:
 
 ```bash
-dnf install -y pkg-config taglib-devel fftw-devel opus-devel opusfile-devel libvorbis-devel libogg-devel git gcc make chafa-devel libatomic gcc-c++ glib2-devel
+dnf install -y pkg-config taglib-devel fftw-devel opus-devel opusfile-devel libvorbis-devel libogg-devel git gcc make chafa-devel libatomic gcc-c++ glib2-devel curl
 ```
 Option: add libfaad-devel for AAC,M4A support (Requires RPM-fusion to be enabled).
 
 #### For OpenSUSE:
 
 ```bash
-sudo zypper install -y pkg-config taglib-devel fftw-devel opus-devel opusfile-devel libvorbis-devel libogg-devel git chafa-devel gcc make glib2-devel
+sudo zypper install -y pkg-config taglib-devel fftw-devel opus-devel opusfile-devel libvorbis-devel libogg-devel git chafa-devel gcc make glib2-devel curl
 ```
 Option: add libfaad-devel for AAC,M4A support (Requires Packman to be enabled).
 
 #### For CentOS/RHEL:
 
 ```bash
-sudo yum install -y pkgconfig taglib-devel fftw-devel opus-devel opusfile-devel libvorbis-devel libogg-devel git gcc make chafa-devel glib2-devel
+sudo yum install -y pkgconfig taglib-devel fftw-devel opus-devel opusfile-devel libvorbis-devel libogg-devel git gcc make chafa-devel glib2-devel curl
 ```
 Option: add libfaad2-devel for AAC,M4A support (Probably requires EPEL to be enabled).
 
 #### For Solus:
 
 ```bash
-sudo eopkg install -y pkg-config faad2-devel taglib-devel fftw-devel opus-devel opusfile-devel libvorbis-devel libogg-devel git gcc make chafa-devel glib2-devel
+sudo eopkg install -y pkg-config faad2-devel taglib-devel fftw-devel opus-devel opusfile-devel libvorbis-devel libogg-devel git gcc make chafa-devel glib2-devel curl
 ```
 
 #### For Guix:
 
 ```bash
-guix install pkg-config faad2 taglib fftw git gcc make chafa opus opusfile libvorbis libogg glib
+guix install pkg-config faad2 taglib fftw git gcc make chafa opus opusfile libvorbis libogg glib curl
 ```
 
 #### For Void Linux:
 
 ```bash
-sudo xbps-install -y pkg-config faad2 taglib taglib-devel fftw-devel git gcc make chafa chafa-devel opus opusfile opusfile-devel libvorbis-devel libogg glib-devel
+sudo xbps-install -y pkg-config faad2 taglib taglib-devel fftw-devel git gcc make chafa chafa-devel opus opusfile opusfile-devel libvorbis-devel libogg glib-devel curl
 ```
 
 #### For Alpine Linux:
 
 ```bash
-sudo apk add pkgconfig faad2 faad2-dev taglib-dev fftw-dev opus opusfile libvorbis-dev libogg-dev git build-base chafa-dev glib-dev
+sudo apk add pkgconfig faad2 faad2-dev taglib-dev fftw-dev opus opusfile libvorbis-dev libogg-dev git build-base chafa-dev glib-dev curl
 ```
 
 Then run this (either git clone or unzip a release zip into a folder of your choice):
@@ -239,7 +241,8 @@ You can select all music by pressing the - MUSIC LIBRARY - header at the top of 
 * <kbd>F3</kbd> or <kbd>Shift+x</kbd> to show/hide the library.
 * <kbd>F4</kbd> or <kbd>Shift+c</kbd> to show/hide the track view.
 * <kbd>F5</kbd> or <kbd>Shift+v</kbd> to search.
-* <kbd>F6</kbd> or <kbd>Shift+b</kbd> to show/hide key bindings.
+* <kbd>F6</kbd> or <kbd>Shift+b</kbd> for internet radio search.
+* <kbd>F7</kbd> or <kbd>Shift+n</kbd> to show/hide key bindings.
 * <kbd>u</kbd> to update the library.
 * <kbd>v</kbd> to toggle the spectrum visualizer.
 * <kbd>i</kbd> to switch between using your regular color scheme or colors derived from the track cover.
@@ -275,6 +278,8 @@ kew makes use of the following great open source projects:
 Alac by Apple - https://github.com/macosforge/alac
 
 Chafa by Hans Petter Jansson - https://hpjansson.org/chafa/
+
+Curl by Curl Team - https://github.com/curl/curl
 
 TagLib by TagLib Team - https://taglib.org/
 
