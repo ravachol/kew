@@ -752,6 +752,10 @@ void handleInput(AppState *state)
         case EVENT_TABNEXT:
                 tabNext();
                 break;
+        case EVENT_CLEARPLAYLIST:              
+                updatePlaylistToPlayingSong();
+                state->uiState.resetPlaylistDisplay = true;
+                break;
         default:
                 fastForwarding = false;
                 rewinding = false;

@@ -682,6 +682,8 @@ int showKeyBindings(SongData *songdata, AppSettings *settings, UISettings *ui)
         printBlankSpaces(indent);
         printf("     Press Enter or middle click to play.\n");
         printBlankSpaces(indent);
+        printf("     Press Backspace to clear the playlist or Delete to remove a single entry.\n");
+        printBlankSpaces(indent);
         printf(" - Press F3 for Library View:\n");
         printBlankSpaces(indent);
         printf("     Use ↑, ↓ keys, %s, %s keys, or mouse scroll to scroll through the library.\n", settings->scrollUpAlt, settings->scrollDownAlt);
@@ -918,7 +920,9 @@ int printLogoAndAdjustments(SongData *songData, int termWidth, UISettings *ui, i
                 #else
                 printf(" Fn+Arrow Up and Fn+Arrow Down to scroll. Del to remove entry.\n\n");
                 #endif
-                return aboutRows + 3;
+                printBlankSpaces(indentation);
+                printf(" Backspace to clear.\n\n");          
+                return aboutRows + 4;
         }
         return aboutRows;
 }
