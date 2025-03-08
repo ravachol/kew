@@ -224,7 +224,7 @@ struct Event processInput()
         }
 
         if (seq[0] == 127)
-        {                  
+        {
                 seq[0] = '\b'; // Treat as Backspace
         }
 
@@ -253,12 +253,6 @@ struct Event processInput()
                 if (keyMappings[i].seq[0] != '\0' && strnlen(seq, MAX_SEQ_LEN) > 3 && strncmp(seq, "\033[M", 3) == 0 &&
                     ((strncmp(seq + 1, keyMappings[i].seq, 3) == 0) ||
                      strncmp(seq, keyMappings[i].seq, 3) == 0))
-                {
-                        event.type = keyMappings[i].eventType;
-                        break;
-                }
-
-                if (strcmp(seq, keyMappings[i].seq) == 0)
                 {
                         event.type = keyMappings[i].eventType;
                         break;
