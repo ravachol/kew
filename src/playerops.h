@@ -157,4 +157,6 @@ double getCurrentSongDuration(void);
 
 void updatePlaylistToPlayingSong(void);
 
+void playRadio();
+
 #endif

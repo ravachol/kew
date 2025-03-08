@@ -319,7 +319,7 @@ void toggleRepeat(void)
         {
                 emitStringPropertyChanged("LoopStatus", "None");
         }
-        if (appState.currentView != SONG_VIEW)
+        if (appState.currentView != TRACK_VIEW)
                 refresh = true;
 }
 
@@ -813,18 +813,39 @@ void silentSwitchToNext(bool loadSong, AppState *state)
 
 void removeCurrentlyPlayingSong(void)
 {
-        stopPlayback();
-        emitStringPropertyChanged("PlaybackStatus", "Stopped");
-
-        clearCurrentTrack();
+        if (currentSong != NULL)
+        {
+                stopPlayback();
+                emitStringPropertyChanged("PlaybackStatus", "Stopped");
+                clearCurrentTrack();
+        }
 
         loadedNextSong = false;
         audioData.restart = true;
         audioData.endOfListReached = true;
-        lastPlayedId = currentSong->id;
-        songToStartFrom = getListNext(currentSong);
+
+        if (currentSong != NULL)
+        {
+                lastPlayedId = currentSong->id;
+                songToStartFrom = getListNext(currentSong);
+        }
         waitingForNext = true;
         currentSong = NULL;
+}
+
+void playRadio()
+{
+        pthread_mutex_lock(&(playlist.mutex));
+
+        RadioSearchResult *station = getCurrentRadioSearchEntry();
+
+        if (station != NULL)
+        {
+                removeCurrentlyPlayingSong();
+                playRadioStation(station);
+        }
+
+        pthread_mutex_unlock(&(playlist.mutex));
 }
 
 void dequeueSong(FileSystemEntry *child)
@@ -1083,7 +1104,6 @@ void handleRemove(void)
 
         Node *song = getNextSong();
         int id = node->id;
-
         int currentId = (currentSong != NULL) ? currentSong->id : -1;
 
         if (currentId == node->id)

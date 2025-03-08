@@ -71,15 +71,19 @@ CFLAGS = $(COMMONFLAGS)
 CXXFLAGS = $(COMMONFLAGS) -std=c++11
 
 # Libraries
-LIBS = -L/usr/lib -lm -lopusfile -lglib-2.0 -lpthread $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) $(PKG_CONFIG) --libs gio-2.0 chafa fftw3f opus opusfile ogg vorbis vorbisfile glib-2.0 taglib)
+LIBS = -L/usr/lib -lm -lopusfile -lcurl -lglib-2.0 -lpthread $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) $(PKG_CONFIG) --libs gio-2.0 chafa fftw3f opus opusfile ogg vorbis vorbisfile glib-2.0 taglib)
 LIBS += -lstdc++
 
 LDFLAGS = -logg -lz -flto
 
 ifeq ($(UNAME_S), Linux)
-  CFLAGS += -fPIE -fstack-clash-protection -fcf-protection
-  CXXFLAGS += -fPIE -fstack-clash-protection -fcf-protection
+  CFLAGS += -fPIE -fstack-clash-protection
+  CXXFLAGS += -fPIE -fstack-clash-protection
   LDFLAGS += -pie -Wl,-z,relro
+  ifneq (,$(filter $(ARCH), x86_64 i386))
+        CFLAGS += -fcf-protection
+        CXXFLAGS += -fcf-protection
+  endif
   ifneq ($(DEBUG), 1)
   LDFLAGS += -s
   endif
@@ -114,8 +118,8 @@ endif
 
 OBJDIR = src/obj
 
-SRCS = src/common_ui.c src/sound.c src/directorytree.c src/notifications.c \
-       src/soundcommon.c src/m4a.c src/search_ui.c src/playlist_ui.c \
+SRCS = src/common_ui.c  src/common.c src/sound.c src/directorytree.c src/notifications.c \
+       src/soundcommon.c src/m4a.c src/search_ui.c  src/soundradio.c src/searchradio_ui.c  src/playlist_ui.c \
        src/player.c src/soundbuiltin.c src/mpris.c src/playerops.c \
        src/utils.c src/file.c src/imgfunc.c src/cache.c src/songloader.c \
        src/playlist.c src/term.c src/settings.c src/visuals.c src/kew.c
