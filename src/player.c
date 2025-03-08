@@ -916,12 +916,12 @@ int printLogoAndAdjustments(SongData *songData, int termWidth, UISettings *ui, i
                 printf(" Use ↑, ↓ or k, j to choose. Enter to accept.\n");
                 printBlankSpaces(indentation);
                 #ifndef __APPLE__
-                printf(" Pg Up and Pg Dn to scroll. Del to remove entry.\n\n");
+                printf(" Pg Up and Pg Dn to scroll. Del to remove entry.\n");
                 #else
                 printf(" Fn+Arrow Up and Fn+Arrow Down to scroll. Del to remove entry.\n\n");
                 #endif
                 printBlankSpaces(indentation);
-                printf(" Backspace to clear.\n\n");          
+                printf(" Backspace to clear.\n\n");
                 return aboutRows + 4;
         }
         return aboutRows;
