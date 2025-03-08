@@ -38,7 +38,8 @@ enum EventType
         EVENT_PREVPAGE,
         EVENT_REMOVE,
         EVENT_SEARCH,
-        EVENT_TABNEXT
+        EVENT_TABNEXT,
+        EVENT_CLEARPLAYLIST
 };
 
 struct Event
