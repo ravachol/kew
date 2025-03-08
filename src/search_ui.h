@@ -4,8 +4,7 @@
 #include "directorytree.h"
 #include "term.h"
 #include "common_ui.h"
-
-extern bool newUndisplayedSearch;
+#include "common.h"
 
 int displaySearch(int maxListSize, int indent, int *chosenRow, int startSearchIter, UISettings *ui);
 
