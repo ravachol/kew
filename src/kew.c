@@ -359,6 +359,7 @@ void setEndOfListReached(AppState *state)
         pthread_mutex_lock(&dataSourceMutex);
         cleanupPlaybackDevice();
         pthread_mutex_unlock(&dataSourceMutex);
+        stopped = true;
         refresh = true;
 }
 
