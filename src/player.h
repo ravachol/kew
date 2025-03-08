@@ -52,13 +52,7 @@ void scrollPrev(void);
 
 void setCurrentAsChosenDir(void);
 
-void toggleShowKeyBindings(void);
-
-void toggleShowLibrary(void);
-
-void toggleShowPlaylist(void);
-
-void toggleShowSearch(void);
+void toggleShowView(ViewState VIEW_TO_SHOW);
 
 void showTrack(void);
 
