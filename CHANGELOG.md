@@ -2,13 +2,22 @@
 
 ### 3.1.0
 
+#### Dependencies:
+
+- New dependency on Curl.
+
 #### Changes:
+
+- Added Internet radio support.
+  MP3 streams only so far, but the vast majority of stream are MP3 streams in the database we are using. By @ravachol.
+  Press F6 for radio search or Shift+B on macOS.
 
 - Added support for m4a files using ALAC decoder. By @ravachol.
 
 - When the program exits previous commands and outputs are restored. By @DNEGEL3125.
 
-- Added mouse support. By @Chromium-3-Oxide.
+- Added mouse support.
+  Use the middle button for playing or enqueueing a song. Right button to pause. By @Chromium-3-Oxide.
 
 - Added support for wav file covers. By @DNEGEL3125.
 
@@ -24,6 +33,8 @@
 - It's now possible to remove or alter the delay when printing the song title, in settings. By @Chromium-3-Oxide.
 
 - Added the config option of quitting after playing the playlist, same as --quitonstop flag. By @Chromium-3-Oxide.
+
+- Improved error message system.
 
 #### Bug Fixes:
 

@@ -108,8 +108,6 @@ enum AudioImplementation
         NONE
 };
 
-extern volatile bool refresh;
-
 extern AppState appState;
 
 extern AudioData audioData;
@@ -121,6 +119,12 @@ extern bool hasSilentlySwitched;
 extern pthread_mutex_t dataSourceMutex;
 
 extern pthread_mutex_t switchMutex;
+
+extern bool paused;
+
+extern bool stopped;
+
+extern ma_device device;
 
 enum AudioImplementation getCurrentImplementationType();
 

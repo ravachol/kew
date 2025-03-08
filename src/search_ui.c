@@ -74,7 +74,6 @@ void freeSearchResults(void)
         resultsCount = 0;
 }
 
-
 void fuzzySearch(FileSystemEntry *root, int threshold)
 {
         freeSearchResults();

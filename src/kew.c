@@ -70,8 +70,6 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #define COOLDOWN_MS 500
 #define COOLDOWN2_MS 100
 
-#define NUM_KEY_MAPPINGS 52
-
 #define TMPPIDFILE "/tmp/kew_"
 
 FILE *logFile = NULL;
@@ -90,6 +88,7 @@ struct timespec lastInputTime;
 bool exactSearch = false;
 int fuzzySearchThreshold = 2;
 int maxDigitsPressedCount = 9;
+int isNewSearchTerm = false;
 
 void updateLastInputTime(void)
 {
@@ -188,12 +187,39 @@ struct Event processInput()
                         fuzzySearch(getLibrary(), fuzzySearchThreshold);
                         event.type = EVENT_SEARCH;
                 }
-                else if (((strnlen(event.key, sizeof(event.key)) == 1 && event.key[0] != '\033' && event.key[0] != '\n' && event.key[0] != '\t' && event.key[0] != '\r') || strcmp(event.key, " ") == 0 || (unsigned char)event.key[0] >= 0xC0) && strcmp(event.key, "Z") != 0 && strcmp(event.key, "X") != 0 && strcmp(event.key, "C") != 0 && strcmp(event.key, "V") != 0 && strcmp(event.key, "B") != 0)
+                else if (((strnlen(event.key, sizeof(event.key)) == 1 && event.key[0] != '\033' && event.key[0] != '\n' && event.key[0] != '\t' && event.key[0] != '\r') || strcmp(event.key, " ") == 0 || (unsigned char)event.key[0] >= 0xC0) && strcmp(event.key, "Z") != 0 && strcmp(event.key, "X") != 0 && strcmp(event.key, "C") != 0 && strcmp(event.key, "V") != 0 && strcmp(event.key, "B") != 0 && strcmp(event.key, "N") != 0)
                 {
                         addToSearchText(event.key);
                         resetSearchResult();
                         fuzzySearch(getLibrary(), fuzzySearchThreshold);
                         event.type = EVENT_SEARCH;
+                }
+        }
+
+        if (appState.currentView == RADIOSEARCH_VIEW)
+        {
+                if (strcmp(event.key, "\x7F") == 0 || strcmp(event.key, "\x08") == 0)
+                {
+                        removeFromRadioSearchText();
+                        resetRadioSearchResult();
+                        isNewSearchTerm = true;
+                        event.type = EVENT_RADIOSEARCH;
+                }
+                else if (((strnlen(event.key, sizeof(event.key)) == 1 && event.key[0] != '\033' && event.key[0] != '\n' && event.key[0] != '\t' && event.key[0] != '\r') || strcmp(event.key, " ") == 0 || (unsigned char)event.key[0] >= 0xC0) && strcmp(event.key, "Z") != 0 && strcmp(event.key, "X") != 0 && strcmp(event.key, "C") != 0 && strcmp(event.key, "V") != 0 && strcmp(event.key, "B") != 0 && strcmp(event.key, "N") != 0)
+                {
+                        addToRadioSearchText(event.key);
+                        resetRadioSearchResult();
+                        isNewSearchTerm = true;
+                        event.type = EVENT_RADIOSEARCH;
+                }
+                else if (event.key[0] == '\n')
+                {
+                        if (isNewSearchTerm)
+                        {
+                                radioSearch();
+                                event.type = EVENT_RADIOSEARCH;
+                                isNewSearchTerm = false;
+                        }
                 }
         }
 
@@ -209,13 +235,18 @@ struct Event processInput()
                                 break;
                         }
 
+                        if (event.type == EVENT_RADIOSEARCH && keyMappings[i].eventType != EVENT_GOTOSONG)
+                        {
+                                break;
+                        }
+
                         event.type = keyMappings[i].eventType;
                         break;
                 }
 
                 // Received mouse input instead of keyboard input
                 if (keyMappings[i].seq[0] != '\0' && strnlen(seq, MAX_SEQ_LEN) > 3 && strncmp(seq, "\033[M", 3) == 0 &&
-                   ((strncmp(seq + 1, keyMappings[i].seq, 3) == 0) ||
+                    ((strncmp(seq + 1, keyMappings[i].seq, 3) == 0) ||
                      strncmp(seq, keyMappings[i].seq, 3) == 0))
                 {
                         event.type = keyMappings[i].eventType;
@@ -523,6 +554,10 @@ void handleGoToSong(AppState *state)
 
                 pthread_mutex_unlock(&(playlist.mutex));
         }
+        else if (state->currentView == RADIOSEARCH_VIEW)
+        {
+                playRadio();
+        }
         else if (state->currentView == PLAYLIST_VIEW)
         {
                 if (digitsPressedCount == 0)
@@ -533,6 +568,12 @@ void handleGoToSong(AppState *state)
                         }
                         else
                         {
+                                if (isRadioPlaying())
+                                {
+                                        stopRadio();
+                                        setEOFReached();
+                                }
+
                                 loadedNextSong = true;
 
                                 nextSongNeedsRebuilding = false;
@@ -689,6 +730,9 @@ void handleInput(AppState *state)
         case EVENT_SHOWSEARCH:
                 toggleShowView(SEARCH_VIEW);
                 break;
+        case EVENT_SHOWRADIOSEARCH:
+                toggleShowView(RADIOSEARCH_VIEW);
+                break;
         case EVENT_SHOWLIBRARY:
                 toggleShowView(LIBRARY_VIEW);
                 break;
@@ -752,7 +796,7 @@ void updatePlayer(UIState *uis)
 
 void loadAudioData(AppState *state)
 {
-        if (audioData.restart == true)
+        if (audioData.restart == true )
         {
                 if (playlist.head != NULL && (waitingForPlaylist || waitingForNext))
                 {
@@ -1052,6 +1096,9 @@ void cleanupOnExit()
                 cleanupPlaybackDevice();
                 cleanupAudioContext();
         }
+
+        stopRadio();
+
         emitPlaybackStoppedMpris();
 
         bool noMusicFound = false;
@@ -1075,6 +1122,9 @@ void cleanupOnExit()
         }
 
         freeSearchResults();
+        freeRadioSearchResults();
+        freeCurrentlyPlayingRadioStation();
+        curl_global_cleanup();
         cleanupMpris();
         restoreTerminalMode();
         enableInputBuffering();
@@ -1192,6 +1242,7 @@ void init(AppState *state)
         pthread_mutex_init(&(loadingdata.mutex), NULL);
         pthread_mutex_init(&(playlist.mutex), NULL);
         createLibrary(&settings, state);
+        curl_global_init(CURL_GLOBAL_DEFAULT);
         fflush(stdout);
 
 #ifdef DEBUG
