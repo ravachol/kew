@@ -63,7 +63,7 @@ Install these dependencies using your distro's package manager. Below are some e
 #### For Debian/Ubuntu:
 
 ```bash
-sudo apt install -y pkg-config libfaad-dev libtag1-dev libfftw3-dev libopus-dev libopusfile-dev libvorbis-dev libogg-dev git gcc make libchafa-dev libglib2.0-dev curl
+sudo apt install -y pkg-config libfaad-dev libtag1-dev libfftw3-dev libopus-dev libopusfile-dev libvorbis-dev libogg-dev git gcc make libchafa-dev libglib2.0-dev libcurl4-openssl-dev curl
 ```
 
 #### For Arch Linux:
