@@ -187,7 +187,7 @@ struct Event processInput()
                         fuzzySearch(getLibrary(), fuzzySearchThreshold);
                         event.type = EVENT_SEARCH;
                 }
-                else if (((strnlen(event.key, sizeof(event.key)) == 1 && event.key[0] != '\033' && event.key[0] != '\n' && event.key[0] != '\t' && event.key[0] != '\r') || strcmp(event.key, " ") == 0 || (unsigned char)event.key[0] >= 0xC0) && strcmp(event.key, "Z") != 0 && strcmp(event.key, "X") != 0 && strcmp(event.key, "C") != 0 && strcmp(event.key, "V") != 0 && strcmp(event.key, "B") != 0 && strcmp(event.key, "N") != 0)
+                else if (((strnlen(event.key, sizeof(event.key)) == 1 && event.key[0] != '\033' && event.key[0] != '\n' && event.key[0] != '\b' && event.key[0] != '\t' && event.key[0] != '\r') || strcmp(event.key, " ") == 0 || (unsigned char)event.key[0] >= 0xC0) && strcmp(event.key, "Z") != 0 && strcmp(event.key, "X") != 0 && strcmp(event.key, "C") != 0 && strcmp(event.key, "V") != 0 && strcmp(event.key, "B") != 0 && strcmp(event.key, "N") != 0)
                 {
                         addToSearchText(event.key);
                         resetSearchResult();
@@ -205,7 +205,7 @@ struct Event processInput()
                         isNewSearchTerm = true;
                         event.type = EVENT_RADIOSEARCH;
                 }
-                else if (((strnlen(event.key, sizeof(event.key)) == 1 && event.key[0] != '\033' && event.key[0] != '\n' && event.key[0] != '\t' && event.key[0] != '\r') || strcmp(event.key, " ") == 0 || (unsigned char)event.key[0] >= 0xC0) && strcmp(event.key, "Z") != 0 && strcmp(event.key, "X") != 0 && strcmp(event.key, "C") != 0 && strcmp(event.key, "V") != 0 && strcmp(event.key, "B") != 0 && strcmp(event.key, "N") != 0)
+                else if (((strnlen(event.key, sizeof(event.key)) == 1 && event.key[0] != '\033' && event.key[0] != '\n' && event.key[0] != '\b' && event.key[0] != '\t' && event.key[0] != '\r') || strcmp(event.key, " ") == 0 || (unsigned char)event.key[0] >= 0xC0) && strcmp(event.key, "Z") != 0 && strcmp(event.key, "X") != 0 && strcmp(event.key, "C") != 0 && strcmp(event.key, "V") != 0 && strcmp(event.key, "B") != 0 && strcmp(event.key, "N") != 0)
                 {
                         addToRadioSearchText(event.key);
                         resetRadioSearchResult();
@@ -221,6 +221,11 @@ struct Event processInput()
                                 isNewSearchTerm = false;
                         }
                 }
+        }
+
+        if (seq[0] == 127)
+        {                  
+                seq[0] = '\b'; // Treat as Backspace
         }
 
         // Set event for pressed key
@@ -248,6 +253,12 @@ struct Event processInput()
                 if (keyMappings[i].seq[0] != '\0' && strnlen(seq, MAX_SEQ_LEN) > 3 && strncmp(seq, "\033[M", 3) == 0 &&
                     ((strncmp(seq + 1, keyMappings[i].seq, 3) == 0) ||
                      strncmp(seq, keyMappings[i].seq, 3) == 0))
+                {
+                        event.type = keyMappings[i].eventType;
+                        break;
+                }
+
+                if (strcmp(seq, keyMappings[i].seq) == 0)
                 {
                         event.type = keyMappings[i].eventType;
                         break;
@@ -752,7 +763,7 @@ void handleInput(AppState *state)
         case EVENT_TABNEXT:
                 tabNext();
                 break;
-        case EVENT_CLEARPLAYLIST:              
+        case EVENT_CLEARPLAYLIST:
                 updatePlaylistToPlayingSong();
                 state->uiState.resetPlaylistDisplay = true;
                 break;
@@ -800,7 +811,7 @@ void updatePlayer(UIState *uis)
 
 void loadAudioData(AppState *state)
 {
-        if (audioData.restart == true )
+        if (audioData.restart == true)
         {
                 if (playlist.head != NULL && (waitingForPlaylist || waitingForNext))
                 {
