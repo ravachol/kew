@@ -319,7 +319,7 @@ void toggleRepeat(void)
         {
                 emitStringPropertyChanged("LoopStatus", "None");
         }
-        if (appState.currentView != SONG_VIEW)
+        if (appState.currentView != TRACK_VIEW)
                 refresh = true;
 }
 

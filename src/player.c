@@ -449,7 +449,7 @@ int calcIndentSongView(SongData *songdata)
 
 void calcIndent(SongData *songdata)
 {
-        if ((appState.currentView == SONG_VIEW && songdata == NULL) || appState.currentView != SONG_VIEW)
+        if ((appState.currentView == TRACK_VIEW && songdata == NULL) || appState.currentView != TRACK_VIEW)
         {
                 indent = calcIndentNormal();
         }
@@ -677,7 +677,7 @@ void toggleShowPlaylist(void)
 
         if (appState.currentView == PLAYLIST_VIEW)
         {
-                appState.currentView = SONG_VIEW;
+                appState.currentView = TRACK_VIEW;
         }
         else
         {
@@ -691,7 +691,7 @@ void toggleShowSearch(void)
 
         if (appState.currentView == SEARCH_VIEW)
         {
-                appState.currentView = SONG_VIEW;
+                appState.currentView = TRACK_VIEW;
         }
         else
         {
@@ -704,7 +704,7 @@ void toggleShowLibrary(void)
         refresh = true;
         if (appState.currentView == LIBRARY_VIEW)
         {
-                appState.currentView = SONG_VIEW;
+                appState.currentView = TRACK_VIEW;
         }
         else
         {
@@ -720,14 +720,14 @@ void tabNext(void)
         {
                 if (currentSong != NULL)
                 {
-                        appState.currentView = SONG_VIEW;
+                        appState.currentView = TRACK_VIEW;
                 }
                 else
                 {
                         appState.currentView = SEARCH_VIEW;
                 }
         }
-        else if (appState.currentView == SONG_VIEW)
+        else if (appState.currentView == TRACK_VIEW)
                 appState.currentView = SEARCH_VIEW;
         else if (appState.currentView == SEARCH_VIEW)
                 appState.currentView = KEYBINDINGS_VIEW;
@@ -740,7 +740,7 @@ void tabNext(void)
 void showTrack(void)
 {
         refresh = true;
-        appState.currentView = SONG_VIEW;
+        appState.currentView = TRACK_VIEW;
 }
 
 void toggleShowKeyBindings(void)
@@ -748,7 +748,7 @@ void toggleShowKeyBindings(void)
         refresh = true;
         if (appState.currentView == KEYBINDINGS_VIEW)
         {
-                appState.currentView = SONG_VIEW;
+                appState.currentView = TRACK_VIEW;
         }
         else
         {
@@ -953,7 +953,7 @@ void printVisualizer(double elapsedSeconds, AppState *state)
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
 
-        if (ui->visualizerEnabled && appState.currentView == SONG_VIEW)
+        if (ui->visualizerEnabled && appState.currentView == TRACK_VIEW)
         {
                 printf("\n");
 
@@ -1459,7 +1459,7 @@ int printPlayer(SongData *songdata, double elapsedSeconds, AppSettings *settings
                 refresh = false;
                 fflush(stdout);
         }
-        else if (state->currentView == SONG_VIEW && songdata != NULL)
+        else if (state->currentView == TRACK_VIEW && songdata != NULL)
         {
                 if (refresh)
                 {
