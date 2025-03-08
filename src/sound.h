@@ -16,6 +16,8 @@
 #include "songloader.h"
 #include "soundbuiltin.h"
 #include "soundcommon.h"
+#include "soundradio.h"
+#include "common.h"
 
 #ifndef USERDATA_STRUCT
 #define USERDATA_STRUCT
@@ -44,7 +46,7 @@ typedef struct
         int currentFileIndex;
         ma_uint64 totalFrames;
         bool endOfListReached;
-        bool restart;     
+        bool restart;
 } AudioData;
 #endif
 

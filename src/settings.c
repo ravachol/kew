@@ -78,9 +78,9 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         c_strcpy(settings.hardShowPlaylist, "OQ", sizeof(settings.hardShowPlaylist));
         c_strcpy(settings.hardShowPlaylistAlt, "[[B", sizeof(settings.hardShowPlaylistAlt));
         c_strcpy(settings.showPlaylistAlt, "Z", sizeof(settings.showPlaylistAlt));
-        c_strcpy(settings.hardShowKeys, "[17~", sizeof(settings.hardShowKeys));
-        c_strcpy(settings.hardShowKeysAlt, "[17~", sizeof(settings.hardShowKeysAlt));
-        c_strcpy(settings.showKeysAlt, "B", sizeof(settings.showKeysAlt));
+        c_strcpy(settings.hardShowKeys, "[18~", sizeof(settings.hardShowKeys));
+        c_strcpy(settings.hardShowKeysAlt, "[18~", sizeof(settings.hardShowKeysAlt));
+        c_strcpy(settings.showKeysAlt, "N", sizeof(settings.showKeysAlt));
         c_strcpy(settings.hardShowTrack, "OS", sizeof(settings.hardShowTrack));
         c_strcpy(settings.hardShowTrackAlt, "[[D", sizeof(settings.hardShowTrackAlt));
         c_strcpy(settings.showTrackAlt, "C", sizeof(settings.showTrackAlt));
@@ -90,7 +90,10 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         c_strcpy(settings.showLibraryAlt, "X", sizeof(settings.showLibraryAlt));
         c_strcpy(settings.hardShowSearch, "[15~", sizeof(settings.hardShowSearch));
         c_strcpy(settings.hardShowSearchAlt, "[[E", sizeof(settings.hardShowSearchAlt));
+        c_strcpy(settings.hardShowRadioSearch, "[17~", sizeof(settings.hardShowSearch));
+        c_strcpy(settings.hardShowRadioSearchAlt, "[17~", sizeof(settings.hardShowSearchAlt));
         c_strcpy(settings.showSearchAlt, "V", sizeof(settings.showSearchAlt));
+        c_strcpy(settings.showRadioSearchAlt, "B", sizeof(settings.showSearchAlt));
         c_strcpy(settings.hardNextPage, "[6~", sizeof(settings.hardNextPage));
         c_strcpy(settings.hardPrevPage, "[5~", sizeof(settings.hardPrevPage));
         c_strcpy(settings.hardRemove, "[3~", sizeof(settings.hardRemove));
@@ -286,8 +289,16 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
                         if (strcmp(pair->value, "") != 0)
                                 snprintf(settings.showSearchAlt, sizeof(settings.showSearchAlt), "%s", pair->value);
                 }
-                else if (strcmp(lowercaseKey, "showkeysalt") == 0)
+                else if (strcmp(lowercaseKey, "showradiosearchalt") == 0)
                 {
+                        if (strcmp(pair->value, "") != 0)
+                                snprintf(settings.showRadioSearchAlt, sizeof(settings.showRadioSearchAlt), "%s", pair->value);
+                }
+                else if (strcmp(lowercaseKey, "showkeysalt") == 0 && strcmp(pair->value, "B") != 0)
+                {
+                        // We need to prevent the previous key B or else config files wont get updated
+                        // to the new key N and B for radio search on macOS
+
                         if (strcmp(pair->value, "") != 0)
                                 snprintf(settings.showKeysAlt, sizeof(settings.showKeysAlt), "%s", pair->value);
                 }
@@ -435,6 +446,9 @@ void mapSettingsToKeys(AppSettings *settings, EventMapping *mappings)
         mappings[49] = (EventMapping){settings->mouseScrollDown, EVENT_SCROLLNEXT};
         mappings[50] = (EventMapping){settings->mouseMiddleClick, EVENT_GOTOSONG};
         mappings[51] = (EventMapping){settings->mouseRightClick, EVENT_PLAY_PAUSE};
+        mappings[52] = (EventMapping){settings->showRadioSearchAlt, EVENT_SHOWRADIOSEARCH};
+        mappings[53] = (EventMapping){settings->hardShowRadioSearch, EVENT_SHOWRADIOSEARCH};
+        mappings[54] = (EventMapping){settings->hardShowRadioSearchAlt, EVENT_SHOWRADIOSEARCH};
 }
 
 char *getConfigFilePath(char *configdir)

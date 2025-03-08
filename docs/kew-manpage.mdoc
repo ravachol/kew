@@ -10,36 +10,36 @@
 .\" Use .Nm macro to designate other names for the documented program.
 .Nd A command-line music player.
 .Sh SYNOPSIS             \" Section Header - required - don't modify
-.Nm 
-.Op OPTIONS              \" 
+.Nm
+.Op OPTIONS              \"
 .Op Ar PARTIAL FILE OR DIRECTORY NAME              \" [file]
 .Sh DESCRIPTION          \" Section Header - required - don't modify
 .Nm
-plays audio from your music folder when given a partial (or whole) file or directory name. 
-A playlist is created when finding more than one file. 
+plays audio from your music folder when given a partial (or whole) file or directory name.
+A playlist is created when finding more than one file.
 It supports gapless playback, 24-bit/192khz audio and MPRIS.
 .Pp
 
 On first use, set a path for the music library (this is a once-only operation):
-.Bl 
+.Bl
 .It
-.Nm 
+.Nm
 path "/home/joe/Music"
-.El 
+.El
 .Pp
 Typical use:
 .Bl
 .It
-.Nm 
+.Nm
 artist, album or song name
-.El 
+.El
 .Pp
-.Nm 
+.Nm
 returns results from the location of the first match, it doesn't return every result possible.
-.Pp 
+.Pp
 .Sh OPTIONS
 .Pp
-.Bl -tag -width -indent 
+.Bl -tag -width -indent
 .It Fl h, -help
 Displays help.
 .It Fl v, -version
@@ -60,7 +60,7 @@ Plays the directory not the song.
 Plays the song not the directory.
 .It list
 Searches for a (.m3u) playlist. These are normally not included in searches.
-.El                      
+.El
 .Sh EXAMPLES
 .Pp
 .Bl -tag -width -indent
@@ -95,7 +95,7 @@ Play the kew.m3u playlist.
 .El                      \" Ends the list
 .Sh KEY BINDINGS
 .Pp
-.Bl -tag -width -indent  
+.Bl -tag -width -indent
 .It +, -
 Adjusts volume.
 .It Left-right arrows/h,l
@@ -111,6 +111,8 @@ Show track view
 .It F5 or Shift+v
 Show search view
 .It F6 or Shift+b
+Show radio search view.
+.It F7 or Shift+n
 Show key bindings view
 .It u
 Update the libarary.
@@ -134,33 +136,33 @@ Add to kew.m3u playlist. Run with "kew .".
 Save currently loaded playlist to a .m3u file in the music folder.
 .It Tab
 Switch between views.
-.It gg 
+.It gg
 Go to first song.
 .It number + G, g or Enter
 Go to specific song number in the playlist.
 .It G
 Go to last song.
 .It Esc or q
-Quit 
+Quit
 .Nm .
-.El                     
-.Sh FILES                
+.El
+.Sh FILES
 .Bl -tag -width -compact
 .It Pa "~/<configfolder>/kewrc"
 Config file.
 .It Pa "~/<configfolder>/kew/kewlibrary"
 Music library directory tree cache.
 .It Pa "/<musicfolder>/kew.m3u"
-The 
+The
 .Nm
 playlist. Add to it by pressing '.' during playback of any song. This playlist is saved before q exits.
-.El                      
+.El
 .Sh COPYRIGHT
-Copyright © 2023 Ravachol. License GPLv2+: GNU GPL version 2 or later <https://gnu.org/licenses/gpl.html>.  
+Copyright © 2023 Ravachol. License GPLv2+: GNU GPL version 2 or later <https://gnu.org/licenses/gpl.html>.
 This is free software: you are free to change and redistribute it.
 There is NO WARRANTY, to the extent permitted by law.
 .Sh SEE ALSO
 .Bl -tag -width -compact
-Project home page: 
+Project home page:
 .It Pa <https://github.com/ravachol/kew>.
 .El                      \" Ends the list
