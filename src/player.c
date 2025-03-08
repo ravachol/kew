@@ -671,44 +671,17 @@ int showKeyBindings(SongData *songdata, AppSettings *settings, UISettings *ui)
         return numPrintedRows;
 }
 
-void toggleShowPlaylist(void)
+void toggleShowView(ViewState viewToShow)
 {
         refresh = true;
 
-        if (appState.currentView == PLAYLIST_VIEW)
+        if (appState.currentView == viewToShow)
         {
                 appState.currentView = TRACK_VIEW;
         }
         else
         {
-                appState.currentView = PLAYLIST_VIEW;
-        }
-}
-
-void toggleShowSearch(void)
-{
-        refresh = true;
-
-        if (appState.currentView == SEARCH_VIEW)
-        {
-                appState.currentView = TRACK_VIEW;
-        }
-        else
-        {
-                appState.currentView = SEARCH_VIEW;
-        }
-}
-
-void toggleShowLibrary(void)
-{
-        refresh = true;
-        if (appState.currentView == LIBRARY_VIEW)
-        {
-                appState.currentView = TRACK_VIEW;
-        }
-        else
-        {
-                appState.currentView = LIBRARY_VIEW;
+                appState.currentView = viewToShow;
         }
 }
 
@@ -741,19 +714,6 @@ void showTrack(void)
 {
         refresh = true;
         appState.currentView = TRACK_VIEW;
-}
-
-void toggleShowKeyBindings(void)
-{
-        refresh = true;
-        if (appState.currentView == KEYBINDINGS_VIEW)
-        {
-                appState.currentView = TRACK_VIEW;
-        }
-        else
-        {
-                appState.currentView = KEYBINDINGS_VIEW;
-        }
 }
 
 void flipNextPage(void)
