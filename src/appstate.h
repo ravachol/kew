@@ -171,6 +171,7 @@ typedef struct
         char cacheLibrary[6];
         char quitAfterStopping[2];
         char tabNext[6];
+        char clearPlaylist[6];
 } AppSettings;
 
 #endif
