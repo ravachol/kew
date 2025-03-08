@@ -25,7 +25,7 @@ typedef struct
 
 typedef enum
 {
-        SONG_VIEW,
+        TRACK_VIEW,
         KEYBINDINGS_VIEW,
         PLAYLIST_VIEW,
         LIBRARY_VIEW,
