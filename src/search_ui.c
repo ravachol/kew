@@ -147,7 +147,7 @@ int addToSearchText(const char *str)
                 searchText[numSearchBytes++] = str[i];
         }
 
-        searchText[numSearchBytes + 1] = '\0'; // Null-terminate the buffer
+        searchText[numSearchBytes] = '\0'; // Null-terminate the buffer
 
         numSearchLetters++;
 

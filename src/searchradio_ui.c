@@ -160,7 +160,7 @@ int addToRadioSearchText(const char *str)
                 radioSearchText[numRadioSearchBytes++] = str[i];
         }
 
-        radioSearchText[numRadioSearchBytes + 1] = '\0'; // Null-terminate the buffer
+        radioSearchText[numRadioSearchBytes] = '\0'; // Null-terminate the buffer
 
         numRadioSearchLetters++;
 

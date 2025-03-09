@@ -762,6 +762,9 @@ void handleInput(AppState *state)
                 updatePlaylistToPlayingSong();
                 state->uiState.resetPlaylistDisplay = true;
                 break;
+        case EVENT_RADIOSEARCH:
+                refresh = true;
+                break;
         default:
                 fastForwarding = false;
                 rewinding = false;
@@ -1015,7 +1018,7 @@ gboolean mainloop_callback(gpointer data)
         updateCounter++;
 
         // Update every other time or if searching (search needs to update often to detect keypresses)
-        if (updateCounter % 2 == 0 || appState.currentView == SEARCH_VIEW)
+        if (updateCounter % 2 == 0 || appState.currentView == SEARCH_VIEW || appState.currentView == RADIOSEARCH_VIEW)
         {
                 processDBusEvents();
 
