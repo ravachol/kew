@@ -91,7 +91,7 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         c_strcpy(settings.hardShowSearch, "[15~", sizeof(settings.hardShowSearch));
         c_strcpy(settings.hardShowSearchAlt, "[[E", sizeof(settings.hardShowSearchAlt));
         c_strcpy(settings.hardShowRadioSearch, "[17~", sizeof(settings.hardShowSearch));
-        c_strcpy(settings.hardShowRadioSearchAlt, "[17~", sizeof(settings.hardShowSearchAlt));
+        c_strcpy(settings.hardShowRadioSearchAlt, "B", sizeof(settings.hardShowSearchAlt));
         c_strcpy(settings.showSearchAlt, "V", sizeof(settings.showSearchAlt));
         c_strcpy(settings.showRadioSearchAlt, "B", sizeof(settings.showSearchAlt));
         c_strcpy(settings.hardNextPage, "[6~", sizeof(settings.hardNextPage));
