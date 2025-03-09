@@ -535,8 +535,7 @@ void printErrorRow(void)
 
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
-        if (term_w < ABSOLUTE_MIN_WIDTH)
-                return;
+
 
 #ifndef __APPLE__
         // Move to lastRow - 1
@@ -545,6 +544,11 @@ void printErrorRow(void)
 
         if (!hasPrintedError && hasErrorMessage())
         {
+                if (term_w < ABSOLUTE_MIN_WIDTH)
+                {
+                        printf("\n");
+                        return;
+                }
                 setTextColorRGB(lastRowColor.r, lastRowColor.g, lastRowColor.b);
                 printBlankSpaces(indent);
                 printf(" %s\n", getErrorMessage());
@@ -1065,11 +1069,18 @@ void printVisualizer(double elapsedSeconds, AppState *state)
         {
                 if (term_w >= ABSOLUTE_MIN_WIDTH)
                 {
+#ifdef __APPLE__
                         printErrorRow();
                         saveCursorPosition();
                         printLastRow();
                         restoreCursorPosition();
                         cursorJump(1);
+#else
+                        saveCursorPosition();
+                        printErrorRow();
+                        printLastRow();
+                        restoreCursorPosition();
+#endif
                 }
         }
 }
