@@ -536,6 +536,11 @@ void printErrorRow(void)
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
 
+        if (term_w < ABSOLUTE_MIN_WIDTH)
+        {
+                printf("\n");
+                return;
+        }
 
 #ifndef __APPLE__
         // Move to lastRow - 1
@@ -544,11 +549,6 @@ void printErrorRow(void)
 
         if (!hasPrintedError && hasErrorMessage())
         {
-                if (term_w < ABSOLUTE_MIN_WIDTH)
-                {
-                        printf("\n");
-                        return;
-                }
                 setTextColorRGB(lastRowColor.r, lastRowColor.g, lastRowColor.b);
                 printBlankSpaces(indent);
                 printf(" %s\n", getErrorMessage());
@@ -919,11 +919,11 @@ int printLogoAndAdjustments(SongData *songData, int termWidth, UISettings *ui, i
                 printBlankSpaces(indentation);
                 printf(" Use ↑, ↓ or k, j to choose. Enter to accept.\n");
                 printBlankSpaces(indentation);
-                #ifndef __APPLE__
+#ifndef __APPLE__
                 printf(" Pg Up and Pg Dn to scroll. Del to remove entry.\n");
-                #else
+#else
                 printf(" Fn+Arrow Up and Fn+Arrow Down to scroll. Del to remove entry.\n\n");
-                #endif
+#endif
                 printBlankSpaces(indentation);
                 printf(" Backspace to clear.\n\n");
                 return aboutRows + 4;
@@ -1070,11 +1070,12 @@ void printVisualizer(double elapsedSeconds, AppState *state)
                 if (term_w >= ABSOLUTE_MIN_WIDTH)
                 {
 #ifdef __APPLE__
+                        printf("\n");
                         printErrorRow();
                         saveCursorPosition();
                         printLastRow();
                         restoreCursorPosition();
-                        cursorJump(1);
+                        cursorJump(2);
 #else
                         saveCursorPosition();
                         printErrorRow();
@@ -1438,11 +1439,11 @@ void showLibrary(SongData *songData, AppState *state)
                 printBlankSpaces(indent);
                 printf(" Use ↑, ↓ or k, j to choose. Enter to enqueue/dequeue.\n");
                 printBlankSpaces(indent);
-                #ifndef __APPLE__
+#ifndef __APPLE__
                 printf(" Pg Up and Pg Dn to scroll. Press u to update the library.\n\n");
-                #else
+#else
                 printf(" Fn+Arrow Up and Fn+Arrow Down to scroll. Press u to update the library.\n\n");
-                #endif
+#endif
         }
 
         numTopLevelSongs = 0;
