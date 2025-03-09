@@ -135,7 +135,7 @@ git clone https://github.com/ravachol/kew.git
 cd kew
 ```
 ```bash
-make -ij4
+make -ij$(nproc)
 ```
 ```bash
 sudo make install
