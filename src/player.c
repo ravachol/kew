@@ -1070,7 +1070,6 @@ void printVisualizer(double elapsedSeconds, AppState *state)
                 if (term_w >= ABSOLUTE_MIN_WIDTH)
                 {
 #ifdef __APPLE__
-                        printf("\n");
                         printErrorRow();
                         saveCursorPosition();
                         printLastRow();
