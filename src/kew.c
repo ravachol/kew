@@ -1657,7 +1657,7 @@ int main(int argc, char *argv[])
         {
                 playAllAlbums(&appState);
         }
-        else if (argc == 2 && strcmp(argv[1], ".") == 0)
+        else if (argc == 2 && strcmp(argv[1], ".") == 0 && specialPlaylist->count != 0)
         {
                 playSpecialPlaylist(&appState);
         }
