@@ -966,7 +966,7 @@ void showRadioSearch(SongData *songData, int *chosenRow, UISettings *ui)
 
         setDefaultTextColor();
 
-        if (term_w > indent + 38 && !ui->hideHelp)
+        if (term_w > indent + 73 && !ui->hideHelp)
         {
                 printBlankSpaces(indent);
                 printf(" Use ↑, ↓ to choose. Enter to search and then enter to accept a station.\n\n");
