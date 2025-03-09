@@ -63,19 +63,19 @@ Install these dependencies using your distro's package manager. Below are some e
 #### For Debian/Ubuntu:
 
 ```bash
-sudo apt install -y pkg-config libfaad-dev libtag1-dev libfftw3-dev libopus-dev libopusfile-dev libvorbis-dev libogg-dev git gcc make libchafa-dev libglib2.0-dev libcurl4-openssl-dev curl
+sudo apt install -y pkg-config libfaad-dev libtag1-dev libfftw3-dev libopus-dev libopusfile-dev libvorbis-dev libogg-dev git gcc make libchafa-dev libglib2.0-dev libcurl4-openssl-dev
 ```
 
 #### For Arch Linux:
 
 ```bash
-sudo pacman -Syu --noconfirm --needed pkg-config faad2 taglib fftw git gcc make chafa glib2 opus opusfile libvorbis libogg curl
+sudo pacman -Syu --noconfirm --needed pkg-config faad2 taglib fftw git gcc make chafa glib2 opus opusfile libvorbis libogg libcurl
 ```
 
 #### For macOS:
 
 ```bash
-brew install gettext faad2 taglib chafa fftw opus opusfile libvorbis libogg glib pkg-config make git curl
+brew install gettext faad2 taglib chafa fftw opus opusfile libvorbis libogg glib pkg-config make git libcurl
 ```
 Notes for mac users:
 1) A sixel-capable terminal like kitty or WezTerm is recommended for macOS.
@@ -84,46 +84,46 @@ Notes for mac users:
 #### For Fedora:
 
 ```bash
-dnf install -y pkg-config taglib-devel fftw-devel opus-devel opusfile-devel libvorbis-devel libogg-devel git gcc make chafa-devel libatomic gcc-c++ glib2-devel curl
+dnf install -y pkg-config taglib-devel fftw-devel opus-devel opusfile-devel libvorbis-devel libogg-devel git gcc make chafa-devel libatomic gcc-c++ glib2-devel libcurl-devel
 ```
 Option: add faad2-devel for AAC,M4A support (Requires RPM-fusion to be enabled).
 
 #### For OpenSUSE:
 
 ```bash
-sudo zypper install -y pkg-config taglib-devel fftw-devel opus-devel opusfile-devel libvorbis-devel libogg-devel git chafa-devel gcc make glib2-devel curl
+sudo zypper install -y pkg-config taglib-devel fftw-devel opus-devel opusfile-devel libvorbis-devel libogg-devel git chafa-devel gcc make glib2-devel libcurl-devel
 ```
 Option: add libfaad-devel for AAC,M4A support (Requires Packman to be enabled).
 
 #### For CentOS/RHEL:
 
 ```bash
-sudo yum install -y pkgconfig taglib-devel fftw-devel opus-devel opusfile-devel libvorbis-devel libogg-devel git gcc make chafa-devel glib2-devel curl
+sudo yum install -y pkgconfig taglib-devel fftw-devel opus-devel opusfile-devel libvorbis-devel libogg-devel git gcc make chafa-devel glib2-devel libcurl-devel
 ```
 Option: add libfaad2-devel for AAC,M4A support (Probably requires EPEL to be enabled).
 
 #### For Solus:
 
 ```bash
-sudo eopkg install -y pkg-config faad2-devel taglib-devel fftw-devel opus-devel opusfile-devel libvorbis-devel libogg-devel git gcc make chafa-devel glib2-devel curl
+sudo eopkg install -y pkg-config faad2-devel taglib-devel fftw-devel opus-devel opusfile-devel libvorbis-devel libogg-devel git gcc make chafa-devel glib2-devel libcurl-devel
 ```
 
 #### For Guix:
 
 ```bash
-guix install pkg-config faad2 taglib fftw git gcc make chafa opus opusfile libvorbis libogg glib curl
+guix install pkg-config faad2 taglib fftw git gcc make chafa opus opusfile libvorbis libogg glib libcurl
 ```
 
 #### For Void Linux:
 
 ```bash
-sudo xbps-install -y pkg-config faad2 taglib taglib-devel fftw-devel git gcc make chafa chafa-devel opus opusfile opusfile-devel libvorbis-devel libogg glib-devel curl
+sudo xbps-install -y pkg-config faad2 taglib taglib-devel fftw-devel git gcc make chafa chafa-devel opus opusfile opusfile-devel libvorbis-devel libogg glib-devel libcurl-devel
 ```
 
 #### For Alpine Linux:
 
 ```bash
-sudo apk add pkgconfig faad2 faad2-dev taglib-dev fftw-dev opus opusfile libvorbis-dev libogg-dev git build-base chafa-dev glib-dev curl
+sudo apk add pkgconfig faad2 faad2-dev taglib-dev fftw-dev opus opusfile libvorbis-dev libogg-dev git build-base chafa-dev glib-dev libcurl-dev
 ```
 
 Then run this (either git clone or unzip a release zip into a folder of your choice):
