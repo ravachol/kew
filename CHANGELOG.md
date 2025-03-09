@@ -36,7 +36,7 @@
 
 - Added the config option of quitting after playing the playlist, same as --quitonstop flag. By @Chromium-3-Oxide.
 
-- Improved error message system.
+- Improved error message system. By @ravachol.
 
 #### Bug Fixes:
 
