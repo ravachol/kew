@@ -536,6 +536,11 @@ void printErrorRow(void)
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
 
+#ifndef __APPLE__
+        // Move to next to lastRow
+        printf("\033[%d;1H", term_h - 1);
+#endif
+
         if (term_w < ABSOLUTE_MIN_WIDTH)
         {
                 printf("\n");
@@ -1072,8 +1077,10 @@ void printVisualizer(double elapsedSeconds, AppState *state)
                         restoreCursorPosition();
                         cursorJump(2);
 #else
+                        saveCursorPosition();
                         printErrorRow();
-
+                        restoreCursorPosition();
+                        printf("\n");
                         saveCursorPosition();
                         printLastRow();
                         restoreCursorPosition();
