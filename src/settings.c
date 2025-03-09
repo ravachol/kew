@@ -668,11 +668,12 @@ void setConfig(AppSettings *settings, UISettings *ui)
         fprintf(file, "addToMainPlaylist=%s\n", settings->addToMainPlaylist);
         fprintf(file, "updateLibrary=%s\n", settings->updateLibrary);
 
-        fprintf(file, "\n# The different main views, normally F2-F6:\n");
+        fprintf(file, "\n# Alt keys for the different main views, normally F2-F7:\n");
         fprintf(file, "showPlaylistAlt=%s\n", settings->showPlaylistAlt);
         fprintf(file, "showLibraryAlt=%s\n", settings->showLibraryAlt);
         fprintf(file, "showTrackAlt=%s\n", settings->showTrackAlt);
         fprintf(file, "showSearchAlt=%s\n", settings->showSearchAlt);
+        fprintf(file, "showRadioSearchAlt=%s\n\n", settings->showRadioSearchAlt);
         fprintf(file, "showKeysAlt=%s\n\n", settings->showKeysAlt);
 
         fprintf(file, "quit=%s\n\n", settings->quit);
