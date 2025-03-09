@@ -542,11 +542,6 @@ void printErrorRow(void)
                 return;
         }
 
-#ifndef __APPLE__
-        // Move to lastRow - 1
-        printf("\033[%d;1H", term_h - 1);
-#endif
-
         if (!hasPrintedError && hasErrorMessage())
         {
                 setTextColorRGB(lastRowColor.r, lastRowColor.g, lastRowColor.b);
@@ -1077,10 +1072,12 @@ void printVisualizer(double elapsedSeconds, AppState *state)
                         restoreCursorPosition();
                         cursorJump(2);
 #else
-                        saveCursorPosition();
                         printErrorRow();
+
+                        saveCursorPosition();
                         printLastRow();
                         restoreCursorPosition();
+                        cursorJump(1);
 #endif
                 }
         }
