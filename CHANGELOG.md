@@ -56,6 +56,7 @@
 
 - @codemacabre
 - @SpaceCheeseWizard
+- @nicolasdmtr
 
 ### 3.0.3
 
