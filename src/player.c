@@ -959,7 +959,7 @@ void showRadioSearch(SongData *songData, int *chosenRow, UISettings *ui)
 {
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
-        maxRadioSearchListSize = term_h - 4;
+        maxRadioSearchListSize = term_h - 3;
 
         int aboutRows = printLogo(songData, ui);
         maxRadioSearchListSize -= aboutRows;
