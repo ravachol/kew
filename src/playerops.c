@@ -1935,15 +1935,24 @@ void updateLibraryIfChangedDetected(void)
         }
 }
 
-// Go through the display playlist and the shuffle playlist to remove all songs except the current one
+// Go through the display playlist and the shuffle playlist to remove all songs except the current one. 
+// If no active song (if stopped rather than paused for example) entire playlist will be removed
 void updatePlaylistToPlayingSong(void)
 {
+
+        bool clearAll = false;
+        int currentID = -1;
+
+        // Do we need to clear the entire playlist?
         if (currentSong == NULL)
         {
-                return;
+                clearAll = true;
+        }
+        else
+        {
+                currentID = currentSong->id;
         }
 
-        int currentID = currentSong->id;
         int nextInPlaylistID;
         pthread_mutex_lock(&(playlist.mutex));
         Node *songToBeRemoved;
@@ -1953,7 +1962,8 @@ void updatePlaylistToPlayingSong(void)
         {
                 nextInPlaylistID = nextInPlaylist->id;
 
-                if (nextInPlaylistID != currentID){
+                if (clearAll || nextInPlaylistID != currentID)
+                {
                         songToBeRemoved = nextInPlaylist;
                         int id = songToBeRemoved->id;
 
