@@ -99,20 +99,20 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         c_strcpy(settings.hardRemove, "[3~", sizeof(settings.hardRemove));
         c_strcpy(settings.hardRemove2, "[P", sizeof(settings.hardRemove2));
         c_strcpy(settings.mouseLeftClick, "[M ", sizeof(settings.mouseLeftClick));
-        c_strcpy(settings.mouseScrollUp, "[M`", sizeof(settings.mouseScrollUp));
-        c_strcpy(settings.mouseScrollDown, "[Ma", sizeof(settings.mouseScrollDown));
         c_strcpy(settings.mouseMiddleClick, "[M!", sizeof(settings.mouseMiddleClick));
         c_strcpy(settings.mouseRightClick, "[M\"", sizeof(settings.mouseRightClick));
+        c_strcpy(settings.mouseScrollUp, "[M`", sizeof(settings.mouseScrollUp));
+        c_strcpy(settings.mouseScrollDown, "[Ma", sizeof(settings.mouseScrollDown));
         c_strcpy(settings.lastVolume, "100", sizeof(settings.lastVolume));
         c_strcpy(settings.color, "6", sizeof(settings.color));
         c_strcpy(settings.artistColor, "6", sizeof(settings.artistColor));
         c_strcpy(settings.titleColor, "6", sizeof(settings.titleColor));
         c_strcpy(settings.enqueuedColor, "6", sizeof(settings.enqueuedColor));
         c_strcpy(settings.mouseLeftClickAction, "0", sizeof(settings.mouseLeftClickAction));
-        c_strcpy(settings.mouseScrollUpAction, "3", sizeof(settings.mouseScrollUpAction));
-        c_strcpy(settings.mouseScrollDownAction, "4", sizeof(settings.mouseScrollDownAction));
         c_strcpy(settings.mouseMiddleClickAction, "1", sizeof(settings.mouseMiddleClickAction));
         c_strcpy(settings.mouseRightClickAction, "2", sizeof(settings.mouseRightClickAction));
+        c_strcpy(settings.mouseScrollUpAction, "3", sizeof(settings.mouseScrollUpAction));
+        c_strcpy(settings.mouseScrollDownAction, "4", sizeof(settings.mouseScrollDownAction));
         c_strcpy(settings.quit, "q", sizeof(settings.quit));
         c_strcpy(settings.hardQuit, "\x1B", sizeof(settings.hardQuit));
         c_strcpy(settings.hardClearPlaylist, "\b", sizeof(settings.hardClearPlaylist));
@@ -257,14 +257,6 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
                 {
                         snprintf(settings.mouseLeftClickAction, sizeof(settings.mouseLeftClickAction), "%s", pair->value);
                 }
-                else if (strcmp(lowercaseKey, "mousescrollupaction") == 0)
-                {
-                        snprintf(settings.mouseScrollUpAction, sizeof(settings.mouseScrollUpAction), "%s", pair->value);
-                }
-                else if (strcmp(lowercaseKey, "mousescrolldownaction") == 0)
-                {
-                        snprintf(settings.mouseScrollDownAction, sizeof(settings.mouseScrollDownAction), "%s", pair->value);
-                }
                 else if (strcmp(lowercaseKey, "mousemiddleclickaction") == 0)
                 {
                         snprintf(settings.mouseMiddleClickAction, sizeof(settings.mouseMiddleClickAction), "%s", pair->value);
@@ -272,6 +264,14 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
                 else if (strcmp(lowercaseKey, "mouserightclickaction") == 0)
                 {
                         snprintf(settings.mouseRightClickAction, sizeof(settings.mouseRightClickAction), "%s", pair->value);
+                }
+                else if (strcmp(lowercaseKey, "mousescrollupaction") == 0)
+                {
+                        snprintf(settings.mouseScrollUpAction, sizeof(settings.mouseScrollUpAction), "%s", pair->value);
+                }
+                else if (strcmp(lowercaseKey, "mousescrolldownaction") == 0)
+                {
+                        snprintf(settings.mouseScrollDownAction, sizeof(settings.mouseScrollDownAction), "%s", pair->value);
                 }
                 else if (strcmp(lowercaseKey, "hidelogo") == 0)
                 {
@@ -471,10 +471,10 @@ void mapSettingsToKeys(AppSettings *settings, UISettings *ui, EventMapping *mapp
         mappings[46] = (EventMapping){settings->hardRemove2, EVENT_REMOVE};
         mappings[47] = (EventMapping){settings->tabNext, EVENT_TABNEXT};
         mappings[48] = (EventMapping){settings->mouseLeftClick, ui->mouseLeftClickAction};
-        mappings[49] = (EventMapping){settings->mouseScrollUp, ui->mouseScrollUpAction};
-        mappings[50] = (EventMapping){settings->mouseScrollDown, ui->mouseScrollDownAction};
-        mappings[51] = (EventMapping){settings->mouseMiddleClick, ui->mouseMiddleClickAction};
-        mappings[52] = (EventMapping){settings->mouseRightClick, ui->mouseRightClickAction};
+        mappings[49] = (EventMapping){settings->mouseMiddleClick, ui->mouseMiddleClickAction};
+        mappings[50] = (EventMapping){settings->mouseRightClick, ui->mouseRightClickAction};
+        mappings[51] = (EventMapping){settings->mouseScrollUp, ui->mouseScrollUpAction};
+        mappings[52] = (EventMapping){settings->mouseScrollDown, ui->mouseScrollDownAction};
         mappings[53] = (EventMapping){settings->hardClearPlaylist, EVENT_CLEARPLAYLIST};
         mappings[54] = (EventMapping){settings->showRadioSearchAlt, EVENT_SHOWRADIOSEARCH};
         mappings[55] = (EventMapping){settings->hardShowRadioSearch, EVENT_SHOWRADIOSEARCH};
@@ -597,16 +597,6 @@ void getConfig(AppSettings *settings, UISettings *ui)
         if (temp >= 0)
                 ui->mouseLeftClickAction = tempEvent;
 
-        temp = getNumber(settings->mouseScrollUpAction);
-        tempEvent = getMouseAction(temp);
-        if (temp >= 0)
-                ui->mouseScrollUpAction = tempEvent;
-
-        temp = getNumber(settings->mouseScrollDownAction);
-        tempEvent = getMouseAction(temp);
-        if (temp >= 0)
-                ui->mouseScrollDownAction = tempEvent;
-
         temp = getNumber(settings->mouseMiddleClickAction);
         tempEvent = getMouseAction(temp);
         if (temp >= 0)
@@ -616,6 +606,16 @@ void getConfig(AppSettings *settings, UISettings *ui)
         tempEvent = getMouseAction(temp);
         if (temp >= 0)
                 ui->mouseRightClickAction = tempEvent;
+
+        temp = getNumber(settings->mouseScrollUpAction);
+        tempEvent = getMouseAction(temp);
+        if (temp >= 0)
+                ui->mouseScrollUpAction = tempEvent;
+
+        temp = getNumber(settings->mouseScrollDownAction);
+        tempEvent = getMouseAction(temp);
+        if (temp >= 0)
+                ui->mouseScrollDownAction = tempEvent;
 
         temp = getNumber(settings->visualizerHeight);
         if (temp > 0)
@@ -736,10 +736,10 @@ void setConfig(AppSettings *settings, UISettings *ui)
 
         fprintf(file, "\n# Mouse actions are 0=none, 1=select song, 2=toggle pause, 3=scroll up, 4=scroll down, 5=seek forward, 6=seek backward\n");
         fprintf(file, "mouseLeftClickAction=%s\n", settings->mouseLeftClickAction);
-        fprintf(file, "mouseScrollUpAction=%s\n", settings->mouseScrollUpAction);
-        fprintf(file, "mouseScrollDownAction=%s\n", settings->mouseScrollDownAction);
         fprintf(file, "mouseMiddleClickAction=%s\n", settings->mouseMiddleClickAction);
         fprintf(file, "mouseRightClickAction=%s\n", settings->mouseRightClickAction);
+        fprintf(file, "mouseScrollUpAction=%s\n", settings->mouseScrollUpAction);
+        fprintf(file, "mouseScrollDownAction=%s\n", settings->mouseScrollDownAction);
 
         fprintf(file, "\n# Key Bindings:\n\n");
         fprintf(file, "volumeUp=%s\n", settings->volumeUp);
