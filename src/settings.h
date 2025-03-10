@@ -25,10 +25,12 @@
 
 extern AppSettings settings;
 
+enum EventType getMouseAction(int num);
+
 void getConfig(AppSettings *settings, UISettings *ui);
 
 void setConfig(AppSettings *settings, UISettings *ui);
 
-void mapSettingsToKeys(AppSettings *settings, EventMapping *mappings);
+void mapSettingsToKeys(AppSettings *settings, UISettings *ui, EventMapping *mappings);
 
 #endif
