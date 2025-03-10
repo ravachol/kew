@@ -332,6 +332,84 @@ const char *json_get(const char *json, const char *key, char *dst, size_t dst_si
 
 #define GETF(k, v) json_get(ptr, k, v, sizeof(v))
 
+bool isControlChar(char c)
+{
+        return (c >= 0 && c <= 31) || c == 127;
+}
+
+// Function to sanitize the URL by removing control characters and checking for malicious patterns
+bool sanitizeUrl(const char *url)
+{
+        // Check for common unsafe schemes
+        if (strstr(url, "javascript:") != NULL ||
+            strstr(url, "data:") != NULL ||
+            strstr(url, "file:") != NULL ||
+            strstr(url, "vbscript:") != NULL)
+        {
+                fprintf(stderr, "Unsafe URL pattern detected: %s\n", url);
+                return false;
+        }
+
+        // Check for control characters
+        for (const char *p = url; *p; p++)
+        {
+                if (isControlChar(*p))
+                {
+                        fprintf(stderr, "URL contains control character: %s\n", url);
+                        return false;
+                }
+        }
+
+        return true;
+}
+
+bool isSafeURL(const char *url)
+{
+        // Sanitize the URL first
+        if (!sanitizeUrl(url))
+        {
+                return false;
+        }
+
+        CURLUcode rc;
+        CURLU *curlu = curl_url();
+        if (!curlu)
+        {
+                fprintf(stderr, "Failed to initialize CURLU.\n");
+                return false;
+        }
+
+        rc = curl_url_set(curlu, CURLUPART_URL, url, 0);
+        if (rc != CURLUE_OK)
+        {
+                fprintf(stderr, "Invalid URL: %s\n", url);
+                curl_url_cleanup(curlu);
+                return false;
+        }
+
+        char *scheme = NULL;
+        rc = curl_url_get(curlu, CURLUPART_SCHEME, &scheme, 0);
+        if (rc != CURLUE_OK || !scheme)
+        {
+                fprintf(stderr, "Failed to get URL scheme.\n");
+                curl_free(scheme);
+                curl_url_cleanup(curlu);
+                return false;
+        }
+
+        bool is_safe = strcmp(scheme, "http") == 0 || strcmp(scheme, "https") == 0;
+
+        curl_free(scheme);
+        curl_url_cleanup(curlu);
+
+        if (!is_safe)
+        {
+                fprintf(stderr, "Unsafe URL scheme: %s\n", url);
+        }
+
+        return is_safe;
+}
+
 int updateServerList()
 {
         struct addrinfo hints, *res, *p;
@@ -362,7 +440,7 @@ Server *pickServer()
         for (int attempts = 0; attempts < serverCount; attempts++)
         {
                 int idx = rand() % serverCount;
-                if (!servers[idx].isBroken)
+                if (!servers[idx].isBroken && isSafeURL(servers[idx].url))
                         return &servers[idx];
         }
         return NULL;
@@ -398,7 +476,7 @@ int internetRadioSearch(const char *searchTerm, void (*callback)(const char *, c
                 }
 
                 snprintf(url, sizeof(url), "%s/json/stations/byname/%s", server->url, encodedTerm);
-                curl_free(encodedTerm); // Important!
+                curl_free(encodedTerm);
 
                 curl_easy_setopt(curl, CURLOPT_URL, url);
                 curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
@@ -428,6 +506,10 @@ int internetRadioSearch(const char *searchTerm, void (*callback)(const char *, c
                                 GETF("\"codec\"", codec);
                                 int br = GETF("\"bitrate\"", bitrate) ? atoi(bitrate) : 0;
                                 int vo = GETF("\"votes\"", votes) ? atoi(votes) : 0;
+
+                                if (!isSafeURL(resolved))
+                                        continue;
+
                                 callback(name, resolved, getCountryCode(country), codec, br, vo);
                                 count++;
                                 ptr++;
@@ -641,7 +723,8 @@ void stopRadio(void)
 
         ma_decoder_uninit(&ctx.decoder);
 
-        if (ctx.curl != NULL) {
+        if (ctx.curl != NULL)
+        {
                 curl_easy_cleanup(ctx.curl);
                 ctx.curl = NULL;
         }
