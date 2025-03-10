@@ -1986,5 +1986,9 @@ void updatePlaylistToPlayingSong(void)
 
         nextSongNeedsRebuilding = true;
         nextSong = NULL;
-        refresh = true;
+        
+        // Only refresh the screen if it makes sense to do so
+        if (appState.currentView == PLAYLIST_VIEW || appState.currentView == LIBRARY_VIEW){
+                refresh = true;
+        }
 }
