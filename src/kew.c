@@ -1,4 +1,4 @@
-/* kew - a command-line music player
+/* kew - A terminal music player
 Copyright (C) 2022 Ravachol
 
 http://github.com/ravachol/kew
