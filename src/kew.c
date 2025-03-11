@@ -857,6 +857,14 @@ void loadAudioData(AppState *state)
                         unloadSongA(state);
                         unloadSongB(state);
 
+                        if (isRadioPlaying())
+                        {
+                                stopRadio();
+                                audioData.currentFileIndex = 0;
+                                loadingdata.loadA = true;
+                                usingSongDataA = false;
+                        }
+
                         int res = loadFirst(currentSong, state);
 
                         finishLoading();
@@ -1098,12 +1106,9 @@ void initFirstPlay(Node *song, AppState *state)
 void cleanupOnExit()
 {
         pthread_mutex_lock(&dataSourceMutex);
-        resetDecoders();
-        resetVorbisDecoders();
-        resetOpusDecoders();
-#ifdef USE_FAAD
-        resetM4aDecoders();
-#endif
+
+        resetAllDecoders();
+
         if (isContextInitialized)
         {
                 cleanupPlaybackDevice();

@@ -64,6 +64,77 @@ int m4aDecoderIndex = -1;
 int opusDecoderIndex = -1;
 int vorbisDecoderIndex = -1;
 
+void uninitMaDecoder(void *decoder)
+{
+        ma_decoder_uninit((ma_decoder *)decoder);
+}
+
+void uninitOpusDecoder(void *decoder)
+{
+        ma_libopus_uninit((ma_libopus *)decoder, NULL);
+}
+
+void uninitVorbisDecoder(void *decoder)
+{
+        ma_libvorbis_uninit((ma_libvorbis *)decoder, NULL);
+}
+
+#ifdef USE_FAAD
+void uninitM4aDecoder(void *decoder)
+{
+        m4a_decoder_uninit((m4a_decoder *)decoder, NULL);
+}
+#endif
+
+void uninitPreviousDecoder(void **decoderArray, int index, uninit_func uninit)
+{
+        if (index == -1)
+        {
+                return;
+        }
+
+        void *toUninit = decoderArray[1 - index];
+
+        if (toUninit != NULL)
+        {
+                uninit(toUninit);
+                free(toUninit);
+                decoderArray[1 - index] = NULL;
+        }
+}
+
+void resetDecoders(void **decoderArray, void **firstDecoder, int arraySize, int *decoderIndex, uninit_func uninit)
+{
+        *decoderIndex = -1;
+
+        if (*firstDecoder != NULL)
+        {
+                uninit(*firstDecoder);
+                free(*firstDecoder);
+                *firstDecoder = NULL;
+        }
+
+        for (int i = 0; i < arraySize; i++)
+        {
+                if (decoderArray[i] != NULL)
+                {
+                        uninit(decoderArray[i]);
+                        free(decoderArray[i]);
+                        decoderArray[i] = NULL;
+                }
+        }
+}
+
+void resetAllDecoders()
+{
+        resetDecoders((void **)decoders, (void **)&firstDecoder, MAX_DECODERS, &decoderIndex, uninitMaDecoder);
+        resetDecoders((void **)vorbisDecoders, (void **)&firstVorbisDecoder, MAX_DECODERS, &vorbisDecoderIndex, uninitVorbisDecoder);
+        resetDecoders((void **)opusDecoders, (void **)&firstOpusDecoder, MAX_DECODERS, &opusDecoderIndex, uninitOpusDecoder);
+#ifdef USE_FAAD
+        resetDecoders((void **)m4aDecoders, (void **)&firstM4aDecoder, MAX_DECODERS, &m4aDecoderIndex, uninitM4aDecoder);
+#endif
+}
+
 void logTime(const char *message)
 {
         (void)message;
@@ -103,81 +174,7 @@ void switchDecoder(void)
                 decoderIndex = 1 - decoderIndex;
 }
 
-void resetDecoders(void)
-{
-        decoderIndex = -1;
-
-        if (firstDecoder != NULL && firstDecoder->outputFormat != ma_format_unknown)
-        {
-                ma_decoder_uninit(firstDecoder);
-                free(firstDecoder);
-                firstDecoder = NULL;
-        }
-
-        if (decoders[0] != NULL && decoders[0]->outputFormat != ma_format_unknown)
-        {
-                ma_decoder_uninit(decoders[0]);
-                free(decoders[0]);
-                decoders[0] = NULL;
-        }
-
-        if (decoders[1] != NULL && decoders[1]->outputFormat != ma_format_unknown)
-        {
-                ma_decoder_uninit(decoders[1]);
-                free(decoders[1]);
-                decoders[1] = NULL;
-        }
-}
-
-void uninitPreviousDecoder(void)
-{
-        if (decoderIndex == -1)
-        {
-                return;
-        }
-        ma_decoder *toUninit = decoders[1 - decoderIndex];
-
-        if (toUninit != NULL)
-        {
-                ma_decoder_uninit(toUninit);
-                free(toUninit);
-                decoders[1 - decoderIndex] = NULL;
-        }
-}
-
-void uninitPreviousVorbisDecoder(void)
-{
-        if (vorbisDecoderIndex == -1)
-        {
-                return;
-        }
-        ma_libvorbis *toUninit = vorbisDecoders[1 - vorbisDecoderIndex];
-
-        if (toUninit != NULL)
-        {
-                ma_libvorbis_uninit(toUninit, NULL);
-                free(toUninit);
-                vorbisDecoders[1 - vorbisDecoderIndex] = NULL;
-        }
-}
-
 #ifdef USE_FAAD
-void uninitPreviousM4aDecoder(void)
-{
-        if (m4aDecoderIndex == -1) // either start of the program or resetM4aDecoders has been called
-        {
-                return;
-        }
-        m4a_decoder *toUninit = m4aDecoders[1 - m4aDecoderIndex];
-
-        if (toUninit != NULL)
-        {
-                m4a_decoder_uninit(toUninit, NULL);
-                free(toUninit);
-                m4aDecoders[1 - m4aDecoderIndex] = NULL;
-        }
-}
-
 m4a_decoder *getFirstM4aDecoder(void)
 {
         return firstM4aDecoder;
@@ -219,32 +216,6 @@ void setNextM4aDecoder(m4a_decoder *decoder)
                 }
 
                 m4aDecoders[nextIndex] = decoder;
-        }
-}
-
-void resetM4aDecoders(void)
-{
-        m4aDecoderIndex = -1;
-
-        if (firstM4aDecoder != NULL && firstM4aDecoder->format != ma_format_unknown)
-        {
-                m4a_decoder_uninit(firstM4aDecoder, NULL);
-                free(firstM4aDecoder);
-                firstM4aDecoder = NULL;
-        }
-
-        if (m4aDecoders[0] != NULL && m4aDecoders[0]->format != ma_format_unknown)
-        {
-                m4a_decoder_uninit(m4aDecoders[0], NULL);
-                free(m4aDecoders[0]);
-                m4aDecoders[0] = NULL;
-        }
-
-        if (m4aDecoders[1] != NULL && m4aDecoders[1]->format != ma_format_unknown)
-        {
-                m4a_decoder_uninit(m4aDecoders[1], NULL);
-                free(m4aDecoders[1]);
-                m4aDecoders[1] = NULL;
         }
 }
 
@@ -303,7 +274,7 @@ int prepareNextM4aDecoder(SongData *songData)
         ma_channel channelMap[MA_MAX_CHANNELS];
         m4a_decoder_get_data_format(currentDecoder, &format, &channels, &sampleRate, channelMap, MA_MAX_CHANNELS);
 
-        uninitPreviousM4aDecoder();
+        uninitPreviousDecoder((void **)m4aDecoders, m4aDecoderIndex, (uninit_func)uninitM4aDecoder);
 
         m4a_decoder *decoder = (m4a_decoder *)malloc(sizeof(m4a_decoder));
         ma_result result = m4a_decoder_init_file(filepath, NULL, NULL, decoder);
@@ -361,22 +332,6 @@ int prepareNextM4aDecoder(SongData *songData)
 }
 
 #endif
-
-void uninitPreviousOpusDecoder(void)
-{
-        if (opusDecoderIndex == -1)
-        {
-                return;
-        }
-        ma_libopus *toUninit = opusDecoders[1 - opusDecoderIndex];
-
-        if (toUninit != NULL)
-        {
-                ma_libopus_uninit(toUninit, NULL);
-                free(toUninit);
-                opusDecoders[1 - opusDecoderIndex] = NULL;
-        }
-}
 
 ma_libvorbis *getFirstVorbisDecoder(void)
 {
@@ -527,58 +482,6 @@ void setNextOpusDecoder(ma_libopus *decoder)
         }
 }
 
-void resetVorbisDecoders(void)
-{
-        vorbisDecoderIndex = -1;
-
-        if (firstVorbisDecoder != NULL && firstVorbisDecoder->format != ma_format_unknown)
-        {
-                ma_libvorbis_uninit(firstVorbisDecoder, NULL);
-                free(firstVorbisDecoder);
-                firstVorbisDecoder = NULL;
-        }
-
-        if (vorbisDecoders[0] != NULL && vorbisDecoders[0]->format != ma_format_unknown)
-        {
-                ma_libvorbis_uninit(vorbisDecoders[0], NULL);
-                free(vorbisDecoders[0]);
-                vorbisDecoders[0] = NULL;
-        }
-
-        if (vorbisDecoders[1] != NULL && vorbisDecoders[1]->format != ma_format_unknown)
-        {
-                ma_libvorbis_uninit(vorbisDecoders[1], NULL);
-                free(vorbisDecoders[1]);
-                vorbisDecoders[1] = NULL;
-        }
-}
-
-void resetOpusDecoders(void)
-{
-        opusDecoderIndex = -1;
-
-        if (firstOpusDecoder != NULL && firstOpusDecoder->format != ma_format_unknown)
-        {
-                ma_libopus_uninit(firstOpusDecoder, NULL);
-                free(firstOpusDecoder);
-                firstOpusDecoder = NULL;
-        }
-
-        if (opusDecoders[0] != NULL && opusDecoders[0]->format != ma_format_unknown)
-        {
-                ma_libopus_uninit(opusDecoders[0], NULL);
-                ma_free(opusDecoders[0], NULL);
-                opusDecoders[0] = NULL;
-        }
-
-        if (opusDecoders[1] != NULL && opusDecoders[1]->format != ma_format_unknown)
-        {
-                ma_libopus_uninit(opusDecoders[1], NULL);
-                ma_free(opusDecoders[1], NULL);
-                opusDecoders[1] = NULL;
-        }
-}
-
 void getFileInfo(const char *filename, ma_uint32 *sampleRate, ma_uint32 *channels, ma_format *format)
 {
         ma_decoder tmp;
@@ -707,7 +610,7 @@ int prepareNextVorbisDecoder(char *filepath)
         ma_channel channelMap[MA_MAX_CHANNELS];
         ma_libvorbis_get_data_format(currentDecoder, &format, &channels, &sampleRate, channelMap, MA_MAX_CHANNELS);
 
-        uninitPreviousVorbisDecoder();
+        uninitPreviousDecoder((void **)vorbisDecoders, vorbisDecoderIndex, (uninit_func)uninitVorbisDecoder);
 
         ma_libvorbis *decoder = (ma_libvorbis *)malloc(sizeof(ma_libvorbis));
         ma_result result = ma_libvorbis_init_file(filepath, NULL, NULL, decoder);
@@ -725,30 +628,48 @@ int prepareNextVorbisDecoder(char *filepath)
                                                       channels == nchannels &&
                                                       sampleRate == nsampleRate));
 
-        if (!sameFormat)
+       if (!sameFormat)
         {
                 ma_libvorbis_uninit(decoder, NULL);
                 free(decoder);
                 return -1;
         }
 
-        ma_libvorbis *first = getFirstVorbisDecoder();
-        if (first != NULL)
-        {
-                decoder->pReadSeekTellUserData = (AudioData *)first->pReadSeekTellUserData;
-        }
+
+        // Disable gapless playback for ogg files until we know of a robust way to detect when miniaudio changes decoder
+        // Old code:
+        //ma_libvorbis *first = getFirstVorbisDecoder();
+        // if (first != NULL)
+        // {
+        //         decoder->pReadSeekTellUserData = (AudioData *)first->pReadSeekTellUserData;
+        // }
 
         decoder->format = nformat;
         decoder->onRead = ma_libvorbis_read_pcm_frames_wrapper;
         decoder->onSeek = ma_libvorbis_seek_to_pcm_frame_wrapper;
         decoder->onTell = ma_libvorbis_get_cursor_in_pcm_frames_wrapper;
 
-        setNextVorbisDecoder(decoder);
-        if (currentDecoder != NULL && decoder != NULL)
+        // Disable gapless playback for ogg files until we know of a robust way to detect when miniaudio changes decoder
+        // Always set it to the first one since we have disabled gapless playback for ogg
+        // New code:
+        if (firstVorbisDecoder != NULL)
         {
-                if (!isEOFReached())
-                        ma_data_source_set_next(currentDecoder, decoder);
+                uninitVorbisDecoder(firstVorbisDecoder);
+                free(firstVorbisDecoder);
+                firstVorbisDecoder = NULL;
         }
+
+        decoderIndex = -1;
+        firstVorbisDecoder = decoder;
+
+        // Disable gapless playback for ogg files until we know of a robust way to detect when miniaudio changes decoder
+        // Old code:
+        // if (currentDecoder != NULL && decoder != NULL)
+        // {
+        //         if (!isEOFReached())
+        //                 ma_data_source_set_next(currentDecoder, decoder);
+        // }
+
         return 0;
 }
 
@@ -779,7 +700,7 @@ int prepareNextDecoder(char *filepath)
                 return 0;
         }
 
-        uninitPreviousDecoder();
+        uninitPreviousDecoder((void **)decoders, decoderIndex, (uninit_func)uninitMaDecoder);
 
         ma_decoder *decoder = (ma_decoder *)malloc(sizeof(ma_decoder));
         ma_result result = ma_decoder_init_file(filepath, NULL, decoder);
@@ -818,7 +739,7 @@ int prepareNextOpusDecoder(char *filepath)
         ma_channel channelMap[MA_MAX_CHANNELS];
         ma_libopus_get_data_format(currentDecoder, &format, &channels, &sampleRate, channelMap, MA_MAX_CHANNELS);
 
-        uninitPreviousOpusDecoder();
+        uninitPreviousDecoder((void **)opusDecoders, opusDecoderIndex, (uninit_func)uninitOpusDecoder);
 
         ma_libopus *decoder = (ma_libopus *)malloc(sizeof(ma_libopus));
         ma_result result = ma_libopus_init_file(filepath, NULL, NULL, decoder);
@@ -947,14 +868,18 @@ double getSeekElapsed(void)
         return seekElapsed;
 }
 
-double getPercentageElapsed(void)
-{
-        double duration = getCurrentSongDuration();
-        if (duration > 0.0)
-                return elapsedSeconds / duration;
-        else
-                return 0.0;
-}
+  double getPercentageElapsed(void) {
+      double duration = getCurrentSongDuration();
+      if (duration > 0.0) {
+          double fraction = elapsedSeconds / duration;
+          if (fraction > 1.0) {
+              fraction = 1.0;
+          }
+          return fraction;
+      }
+      return 0.0;
+  }
+
 
 void setSeekElapsed(double value)
 {
@@ -1100,12 +1025,7 @@ void clearCurrentTrack(void)
                 ma_device_stop(&device);
         }
 
-        resetDecoders();
-        resetVorbisDecoders();
-        resetOpusDecoders();
-#ifdef USE_FAAD
-        resetM4aDecoders();
-#endif
+        resetAllDecoders();
         ma_data_source_set_next(currentDecoder, NULL);
 }
 
@@ -1241,15 +1161,10 @@ int extractPercentageMac(const char *buf)
 int getSystemVolumeMac(void)
 {
         FILE *fp;
-        char command_str[1000];
         char buf[256];
         int currentVolume = -1;
 
-        // macOS uses AppleScript to get the system volume
-        snprintf(command_str, sizeof(command_str),
-                 "osascript -e 'output volume of (get volume settings)'");
-
-        fp = popen(command_str, "r");
+        fp = popen("osascript -e 'output volume of (get volume settings)'", "r");
         if (fp != NULL)
         {
                 if (fgets(buf, sizeof(buf), fp) != NULL)
@@ -1655,7 +1570,7 @@ void vorbis_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_ui
                 // Read from the current decoder
                 ma_uint64 framesToRead = 0;
                 ma_result result;
-                ma_uint64 remainingFrames = frameCount - framesRead;
+                ma_uint64 framesRequested = frameCount - framesRead;
                 ma_libvorbis *firstDecoder = getFirstVorbisDecoder();
 
                 if (firstDecoder == NULL)
@@ -1670,9 +1585,9 @@ void vorbis_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_ui
                         return;
                 }
 
-                result = ma_data_source_read_pcm_frames(firstDecoder, (ma_int32 *)pFramesOut + framesRead * pAudioData->channels, remainingFrames, &framesToRead);
+                result = ma_data_source_read_pcm_frames(firstDecoder, (ma_int32 *)pFramesOut + framesRead * pAudioData->channels, framesRequested, &framesToRead);
 
-                if ((getPercentageElapsed() >= 1.0 || isSkipToNext() || result != MA_SUCCESS) &&
+                if ((isSkipToNext() || result != MA_SUCCESS) &&
                     !isEOFReached())
                 {
                         activateSwitch(pAudioData);
