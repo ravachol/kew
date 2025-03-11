@@ -29,6 +29,10 @@
 #define MAX_BUFFER_SIZE 8192
 #endif
 
+#ifndef MAX_DECODERS
+#define MAX_DECODERS 2
+#endif
+
 #ifndef TAGSETTINGS_STRUCT
 #define TAGSETTINGS_STRUCT
 
@@ -47,7 +51,6 @@ typedef struct
 
 #ifndef SONGDATA_STRUCT
 #define SONGDATA_STRUCT
-
 typedef struct
 {
         gchar *trackId;
@@ -63,7 +66,6 @@ typedef struct
         double duration;
         bool hasErrors;
 } SongData;
-
 #endif
 
 #ifndef USERDATA_STRUCT
@@ -108,6 +110,8 @@ enum AudioImplementation
         NONE
 };
 
+typedef void (*uninit_func)(void *decoder);
+
 extern AppState appState;
 
 extern AudioData audioData;
@@ -146,11 +150,9 @@ ma_decoder *getPreviousDecoder(void);
 
 ma_format getCurrentFormat(void);
 
-void resetDecoders(void);
+void resetAllDecoders();
 
 ma_libopus *getCurrentOpusDecoder(void);
-
-void resetOpusDecoders(void);
 
 #ifdef USE_FAAD
 m4a_decoder *getCurrentM4aDecoder(void);
@@ -179,10 +181,6 @@ int prepareNextOpusDecoder(char *filepath);
 int prepareNextVorbisDecoder(char *filepath);
 
 int prepareNextM4aDecoder(SongData *songData);
-
-void resetVorbisDecoders(void);
-
-void resetM4aDecoders(void);
 
 ma_libvorbis *getFirstVorbisDecoder(void);
 
