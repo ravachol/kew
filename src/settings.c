@@ -536,6 +536,12 @@ enum EventType getMouseAction(int num)
         case 6:
                 value = EVENT_SEEKBACK;
                 break;
+        case 7:
+                value = EVENT_VOLUME_UP;
+                break;
+        case 8:
+                value = EVENT_VOLUME_DOWN;
+                break;
         default:
                 value = EVENT_NONE;
                 break;
@@ -734,7 +740,7 @@ void setConfig(AppSettings *settings, UISettings *ui)
         fprintf(file, "# Color of enqueued songs in library view:\n");
         fprintf(file, "enqueuedColor=%s\n", settings->enqueuedColor);
 
-        fprintf(file, "\n# Mouse actions are 0=none, 1=select song, 2=toggle pause, 3=scroll up, 4=scroll down, 5=seek forward, 6=seek backward\n");
+        fprintf(file, "\n# Mouse actions are 0=none, 1=select song, 2=toggle pause, 3=scroll up, 4=scroll down, 5=seek forward, 6=seek backward, 7=volume up, 8=volume down\n");
         fprintf(file, "mouseLeftClickAction=%s\n", settings->mouseLeftClickAction);
         fprintf(file, "mouseMiddleClickAction=%s\n", settings->mouseMiddleClickAction);
         fprintf(file, "mouseRightClickAction=%s\n", settings->mouseRightClickAction);
