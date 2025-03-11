@@ -1166,11 +1166,6 @@ void cleanupOnExit()
 #ifdef USE_DBUS
         cleanupDbusConnection();
 #endif
-        showCursor();
-        exitAlternateScreenBuffer();
-        disableMouseButtons();
-        fflush(stdout);
-
         if (noMusicFound)
         {
                 printf("No Music found.\n");
@@ -1189,6 +1184,12 @@ void cleanupOnExit()
         {
                 perror("freopen error");
         }
+
+        printf("\n");
+        showCursor();
+        exitAlternateScreenBuffer();
+        disableMouseButtons();
+        fflush(stdout);
 }
 
 void run(AppState *state)
@@ -1640,7 +1641,9 @@ int main(int argc, char *argv[])
         {
                 c_strcpy(settings.path, argv[2], sizeof(settings.path));
                 setConfig(&settings, ui);
-                exit(0);
+                atexit(cleanupOnExit);
+                openLibrary(&appState);
+                return 0;
         }
 
         if (settings.path[0] == '\0')
