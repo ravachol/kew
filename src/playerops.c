@@ -1827,7 +1827,11 @@ void createLibrary(AppSettings *settings, AppState *state)
 
         if (library == NULL || library->children == NULL)
         {
-                exit(0);
+                char message[MAXPATHLEN + 64];
+
+                snprintf(message, MAXPATHLEN + 64, "No music found at %s.", settings->path);
+
+                setErrorMessage(message);
         }
 }
 
@@ -1936,7 +1940,7 @@ void updateLibraryIfChangedDetected(void)
         }
 }
 
-// Go through the display playlist and the shuffle playlist to remove all songs except the current one. 
+// Go through the display playlist and the shuffle playlist to remove all songs except the current one.
 // If no active song (if stopped rather than paused for example) entire playlist will be removed
 void updatePlaylistToPlayingSong(void)
 {
@@ -1987,7 +1991,7 @@ void updatePlaylistToPlayingSong(void)
 
         nextSongNeedsRebuilding = true;
         nextSong = NULL;
-        
+
         // Only refresh the screen if it makes sense to do so
         if (appState.currentView == PLAYLIST_VIEW || appState.currentView == LIBRARY_VIEW){
                 refresh = true;

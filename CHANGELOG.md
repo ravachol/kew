@@ -48,13 +48,13 @@
 
 - Fixed crash sometimes when pressing enter in track view. By @ravachol.
 
-- Disabled gapless playback forr ogg files, because there is an issue where kew sometimes can't detect whether miniaudio had switched ogg files, eventually leading to a crash. Ongoing. By @ravachol
+- Disabled gapless playback for ogg files because there is an issue where kew sometimes can't detect whether miniaudio had switched file, eventually leading to a crash. Ongoing. By @ravachol
 
 - Uses a different method for detecting if kew is already running since the previous method didn't work on macOS. By @DNEGEL3125.
 
 - Prevent the cover from scrolling up on tmux+konsole. Found by @acdcbyl.
 
-#### Special Thanks To Sponsors:
+#### Special Thanks To These Sponsors:
 
 - @codemacabre
 - @SpaceCheeseWizard
