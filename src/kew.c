@@ -1607,7 +1607,7 @@ void initializeStateAndSettings(AppState *appState, AppSettings *settings)
 {
         initState(appState);
         getConfig(settings, &appState->uiSettings);
-        mapSettingsToKeys(settings, keyMappings);
+        mapSettingsToKeys(settings, &appState->uiSettings, keyMappings);
 }
 
 int main(int argc, char *argv[])
