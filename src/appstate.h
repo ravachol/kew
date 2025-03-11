@@ -39,6 +39,11 @@ typedef struct
         int titleColor;                                 // Color of the title, when using config colors
         int artistColor;                                // Artist color, when using config colors
         int enqueuedColor;                              // Color of enqueued files, when using config colors
+        int mouseLeftClickAction;                       // Left mouse action
+        int mouseMiddleClickAction;                     // Middle mouse action
+        int mouseRightClickAction;                      // Right mouse action
+        int mouseScrollUpAction;                        // Mouse scroll up action
+        int mouseScrollDownAction;                      // Mouse scroll down action
         PixelData color;                                // The current color, when using album derived colors
         bool useConfigColors;                           // Use colors stored in config file or use an album derived color
         bool coverEnabled;                              // Show covers or not
@@ -156,16 +161,22 @@ typedef struct
         char hardPrevPage[6];
         char hardRemove[6];
         char hardRemove2[6];
-        char mouseScrollUp[12];
-        char mouseScrollDown[12];
+        char mouseLeftClick[12];
         char mouseMiddleClick[12];
         char mouseRightClick[12];
+        char mouseScrollUp[12];
+        char mouseScrollDown[12];
         char lastVolume[12];
         char allowNotifications[2];
         char color[2];
         char artistColor[2];
         char enqueuedColor[2];
         char titleColor[2];
+        char mouseLeftClickAction[2];
+        char mouseMiddleClickAction[2];
+        char mouseRightClickAction[2];
+        char mouseScrollUpAction[2];
+        char mouseScrollDownAction[2];
         char hideLogo[2];
         char hideHelp[2];
         char cacheLibrary[6];
