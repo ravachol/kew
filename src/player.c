@@ -102,7 +102,7 @@ void calcPreferredSize(UISettings *ui)
 
 void printHelp()
 {
-        printf(" kew - a command-line music player.\n");
+        printf(" kew - A terminal music player.\n");
         printf("\n");
         printf(" \033[1;4mUsage:\033[0m   kew path \"path to music library\"\n");
         printf("          (Saves the music library path. Use this the first time. Ie: kew path \"/home/joe/Music/\")\n");
