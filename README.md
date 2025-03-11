@@ -69,7 +69,7 @@ sudo apt install -y pkg-config libfaad-dev libtag1-dev libfftw3-dev libopus-dev 
 #### For Arch Linux:
 
 ```bash
-sudo pacman -Syu --noconfirm --needed pkg-config faad2 taglib fftw git gcc make chafa glib2 opus opusfile libvorbis libogg libcurl
+sudo pacman -Syu --noconfirm --needed pkg-config faad2 taglib fftw git gcc make chafa glib2 opus opusfile libvorbis libogg curl
 ```
 
 #### For macOS:
