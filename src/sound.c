@@ -346,12 +346,7 @@ int switchAudioImplementation(void)
 
                         cleanupPlaybackDevice();
 
-                        resetDecoders();
-                        resetVorbisDecoders();
-#ifdef USE_FAAD
-                        resetM4aDecoders();
-#endif
-                        resetOpusDecoders();
+                        resetAllDecoders();
                         resetAudioBuffer();
 
                         int result = builtin_createAudioDevice(&userData, getDevice(), &context, &builtin_file_data_source_vtable);
@@ -403,12 +398,7 @@ int switchAudioImplementation(void)
 
                         cleanupPlaybackDevice();
 
-                        resetDecoders();
-                        resetVorbisDecoders();
-#ifdef USE_FAAD
-                        resetM4aDecoders();
-#endif
-                        resetOpusDecoders();
+                        resetAllDecoders();
                         resetAudioBuffer();
 
                         int result = opus_createAudioDevice(&userData, getDevice(), &context);
@@ -460,12 +450,7 @@ int switchAudioImplementation(void)
 
                         cleanupPlaybackDevice();
 
-                        resetDecoders();
-                        resetVorbisDecoders();
-#ifdef USE_FAD
-                        resetM4aDecoders();
-#endif
-                        resetOpusDecoders();
+                        resetAllDecoders();
                         resetAudioBuffer();
 
                         int result = vorbis_createAudioDevice(&userData, getDevice(), &context);
@@ -521,10 +506,7 @@ int switchAudioImplementation(void)
 
                         cleanupPlaybackDevice();
 
-                        resetDecoders();
-                        resetVorbisDecoders();
-                        resetM4aDecoders();
-                        resetOpusDecoders();
+                        resetAllDecoders();
                         resetAudioBuffer();
 
                         int result = m4a_createAudioDevice(&userData, getDevice(), &context);
