@@ -46,7 +46,9 @@
 
 - Fixed crash when in shuffle mode and choosing previous song on empty playlist. Found by @DNEGEL3125.
 
-- Fixed crash sometimes when pressing enter in track view. By @Ravachol.
+- Fixed crash sometimes when pressing enter in track view. By @ravachol.
+
+- Disabled gapless playback forr ogg files, because there is an issue where kew sometimes can't detect whether miniaudio had switched ogg files, eventually leading to a crash. Ongoing. By @ravachol
 
 - Uses a different method for detecting if kew is already running since the previous method didn't work on macOS. By @DNEGEL3125.
 
