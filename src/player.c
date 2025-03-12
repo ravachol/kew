@@ -750,7 +750,7 @@ void toggleShowView(ViewState viewToShow)
         }
 }
 
-void tabNext(void)
+void switchToNextView(void)
 {
         if (appState.currentView == PLAYLIST_VIEW)
                 appState.currentView = LIBRARY_VIEW;
