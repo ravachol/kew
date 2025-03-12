@@ -9,7 +9,7 @@
 #### Changes:
 
 - Added Internet radio support. By @ravachol.
-  MP3 streams only so far, but the vast majority of stream are MP3 streams in the database we are using, others are excluded.
+  MP3 streams only so far, but the vast majority of streams are MP3 streams in the database we are using, others are excluded.
   Press F6 for radio search or Shift+B on macOS.
 
 - Added mouse support.
@@ -48,7 +48,7 @@
 
 - Fixed crash sometimes when pressing enter in track view. By @ravachol.
 
-- Disabled gapless playback for ogg files because there is an issue where kew sometimes can't detect whether miniaudio had switched file, eventually leading to a crash. Ongoing. By @ravachol
+- Disabled gapless playback for ogg files because there is an issue where kew sometimes can't detect whether miniaudio had switched file, eventually leading to a crash. Ongoing. By @ravachol.
 
 - Uses a different method for detecting if kew is already running since the previous method didn't work on macOS. By @DNEGEL3125.
 
@@ -56,9 +56,9 @@
 
 #### Special Thanks To These Sponsors:
 
-- @codemacabre
 - @SpaceCheeseWizard
 - @nicolasdmtr
+- *one private sponsor*
 
 ### 3.0.3
 
