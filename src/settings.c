@@ -662,6 +662,7 @@ void setConfig(AppSettings *settings, UISettings *ui)
                 return;
         }
 
+        // Make sure strings are valid before writing settings to the file
         if (settings->allowNotifications[0] == '\0')
                 ui->allowNotifications ? c_strcpy(settings->allowNotifications, "1", sizeof(settings->allowNotifications)) : c_strcpy(settings->allowNotifications, "0", sizeof(settings->allowNotifications));
         if (settings->coverEnabled[0] == '\0')
@@ -674,40 +675,45 @@ void setConfig(AppSettings *settings, UISettings *ui)
                 ui->useConfigColors ? c_strcpy(settings->useConfigColors, "1", sizeof(settings->useConfigColors)) : c_strcpy(settings->useConfigColors, "0", sizeof(settings->useConfigColors));
         if (settings->quitAfterStopping[0] == '\0')
                 ui->quitAfterStopping ? c_strcpy(settings->quitAfterStopping, "1", sizeof(settings->quitAfterStopping)) : c_strcpy(settings->quitAfterStopping, "0", sizeof(settings->quitAfterStopping));
-        if (settings->visualizerHeight[0] == '\0')
-        {
-                snprintf(settings->visualizerHeight, sizeof(settings->visualizerHeight), "%d", ui->visualizerHeight);
-        }
-        if (settings->titleDelay[0] == '\0')
-        {
-                snprintf(settings->titleDelay, sizeof(settings->titleDelay), "%d", ui->titleDelay);
-        }
         if (settings->hideLogo[0] == '\0')
                 ui->hideLogo ? c_strcpy(settings->hideLogo, "1", sizeof(settings->hideLogo)) : c_strcpy(settings->hideLogo, "0", sizeof(settings->hideLogo));
         if (settings->hideHelp[0] == '\0')
                 ui->hideHelp ? c_strcpy(settings->hideHelp, "1", sizeof(settings->hideHelp)) : c_strcpy(settings->hideHelp, "0", sizeof(settings->hideHelp));
 
-        snprintf(settings->cacheLibrary, sizeof(settings->cacheLibrary), "%d", ui->cacheLibrary);
+        if (settings->visualizerHeight[0] == '\0')
+                snprintf(settings->visualizerHeight, sizeof(settings->visualizerHeight), "%d", ui->visualizerHeight);
+        if (settings->titleDelay[0] == '\0')
+                snprintf(settings->titleDelay, sizeof(settings->titleDelay), "%d", ui->titleDelay);
+        if (settings->cacheLibrary[0] == '\0')
+                snprintf(settings->cacheLibrary, sizeof(settings->cacheLibrary), "%d", ui->cacheLibrary);
 
-        int currentVolume = getCurrentVolume();
-        currentVolume = (currentVolume <= 0) ? 10 : currentVolume;
+        if (settings->lastVolume[0] == '\0')
+        {
+                int currentVolume = getCurrentVolume();
+                currentVolume = (currentVolume <= 0) ? 10 : currentVolume;
+                snprintf(settings->lastVolume, sizeof(settings->lastVolume), "%d", currentVolume);
+        }
 
-        snprintf(settings->lastVolume, sizeof(settings->lastVolume), "%d", currentVolume);
 
-        // Null-terminate the character arrays
-        settings->path[MAXPATHLEN - 1] = '\0';
-        settings->coverEnabled[1] = '\0';
-        settings->coverAnsi[1] = '\0';
-        settings->visualizerEnabled[1] = '\0';
-        settings->visualizerHeight[5] = '\0';
-        settings->titleDelay[5] = '\0';
-        settings->lastVolume[5] = '\0';
-        settings->useConfigColors[1] = '\0';
-        settings->allowNotifications[1] = '\0';
-        settings->hideLogo[1] = '\0';
-        settings->hideHelp[1] = '\0';
-        settings->cacheLibrary[5] = '\0';
-        settings->quitAfterStopping[1] = '\0';
+        if (settings->color[0] == '\0')
+                snprintf(settings->color, sizeof(settings->color), "%d", ui->mainColor);
+        if (settings->artistColor[0] == '\0')
+                snprintf(settings->artistColor, sizeof(settings->artistColor), "%d", ui->artistColor);
+        if (settings->titleColor[0] == '\0')
+                snprintf(settings->titleColor, sizeof(settings->titleColor), "%d", ui->titleColor);
+        if (settings->enqueuedColor[0] == '\0')
+                snprintf(settings->enqueuedColor, sizeof(settings->enqueuedColor), "%d", ui->enqueuedColor);
+
+        if (settings->mouseLeftClickAction[0] == '\0')
+                snprintf(settings->mouseLeftClickAction, sizeof(settings->mouseLeftClickAction), "%d", ui->mouseLeftClickAction);
+        if (settings->mouseMiddleClickAction[0] == '\0')
+                snprintf(settings->mouseMiddleClickAction, sizeof(settings->mouseMiddleClickAction), "%d", ui->mouseMiddleClickAction);
+        if (settings->mouseRightClickAction[0] == '\0')
+                snprintf(settings->mouseRightClickAction, sizeof(settings->mouseRightClickAction), "%d", ui->mouseRightClickAction);
+        if (settings->mouseScrollUpAction[0] == '\0')
+                snprintf(settings->mouseScrollUpAction, sizeof(settings->mouseScrollUpAction), "%d", ui->mouseScrollUpAction);
+        if (settings->mouseScrollDownAction[0] == '\0')
+                snprintf(settings->mouseScrollDownAction, sizeof(settings->mouseScrollDownAction), "%d", ui->mouseScrollDownAction);
 
         // Write the settings to the file
         fprintf(file, "# Make sure that kew is closed before editing this file in order for changes to take effect.\n\n");
