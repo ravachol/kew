@@ -135,6 +135,37 @@ void resetAllDecoders()
 #endif
 }
 
+void setNextDecoder(void **decoderArray, void **decoder, void **firstDecoder, int *decoderIndex, uninit_func uninit)
+{
+        if (*decoderIndex == -1 && *firstDecoder == NULL)
+        {
+                *firstDecoder = *decoder;
+        }
+        else if (*decoderIndex == -1) // array hasn't been used yet
+        {
+                if (decoderArray[0] != NULL)
+                {
+                        uninit(decoderArray[0]);
+                        free(decoderArray[0]);
+                        decoderArray[0] = NULL;
+                }
+
+                decoderArray[0] = *decoder;
+        }
+        else
+        {
+                int nextIndex = 1 - *decoderIndex;
+                if (decoderArray[nextIndex] != NULL)
+                {
+                        uninit(decoderArray[nextIndex]);
+                        free(decoderArray[nextIndex]);
+                        decoderArray[nextIndex] = NULL;
+                }
+
+                decoderArray[nextIndex] = *decoder;
+        }
+}
+
 void logTime(const char *message)
 {
         (void)message;
@@ -313,7 +344,7 @@ int prepareNextM4aDecoder(SongData *songData)
         decoder->onTell = m4a_get_cursor_in_pcm_frames_wrapper;
         decoder->cursor = 0;
 
-        setNextM4aDecoder(decoder);
+        setNextDecoder((void **)m4aDecoders, (void**)&decoder, (void**)&firstM4aDecoder, &m4aDecoderIndex, (uninit_func)uninitM4aDecoder);
 
         if (songData != NULL)
         {
@@ -421,67 +452,6 @@ void switchOpusDecoder(void)
                 opusDecoderIndex = 1 - opusDecoderIndex;
 }
 
-void setNextVorbisDecoder(ma_libvorbis *decoder)
-{
-        if (vorbisDecoderIndex == -1 && firstVorbisDecoder == NULL)
-        {
-                firstVorbisDecoder = decoder;
-        }
-        else if (vorbisDecoderIndex == -1)
-        {
-                if (vorbisDecoders[0] != NULL)
-                {
-                        ma_libvorbis_uninit(vorbisDecoders[0], NULL);
-                        free(vorbisDecoders[0]);
-                        vorbisDecoders[0] = NULL;
-                }
-
-                vorbisDecoders[0] = decoder;
-        }
-        else
-        {
-                int nextIndex = 1 - vorbisDecoderIndex;
-
-                if (vorbisDecoders[nextIndex] != NULL)
-                {
-                        ma_libvorbis_uninit(vorbisDecoders[nextIndex], NULL);
-                        free(vorbisDecoders[nextIndex]);
-                        vorbisDecoders[nextIndex] = NULL;
-                }
-
-                vorbisDecoders[nextIndex] = decoder;
-        }
-}
-
-void setNextOpusDecoder(ma_libopus *decoder)
-{
-        if (opusDecoderIndex == -1 && firstOpusDecoder == NULL)
-        {
-                firstOpusDecoder = decoder;
-        }
-        else if (opusDecoderIndex == -1)
-        {
-                if (opusDecoders[0] != NULL)
-                {
-                        ma_libopus_uninit(opusDecoders[0], NULL);
-                        free(opusDecoders[0]);
-                        opusDecoders[0] = NULL;
-                }
-                opusDecoders[0] = decoder;
-        }
-        else
-        {
-                int nextIndex = 1 - opusDecoderIndex;
-                if (opusDecoders[nextIndex] != NULL)
-                {
-                        ma_libopus_uninit(opusDecoders[nextIndex], NULL);
-                        free(opusDecoders[nextIndex]);
-                        opusDecoders[nextIndex] = NULL;
-                }
-                opusDecoders[nextIndex] = decoder;
-        }
-}
-
 void getFileInfo(const char *filename, ma_uint32 *sampleRate, ma_uint32 *channels, ma_format *format)
 {
         ma_decoder tmp;
@@ -518,38 +488,6 @@ void getOpusFileInfo(const char *filename, ma_format *format, ma_uint32 *channel
                 *format = decoder.format;
                 ma_libopus_get_data_format(&decoder, format, channels, sampleRate, channelMap, MA_MAX_CHANNELS);
                 ma_libopus_uninit(&decoder, NULL);
-        }
-}
-
-void setNextDecoder(ma_decoder *decoder)
-{
-        if (decoderIndex == -1 && firstDecoder == NULL)
-        {
-                firstDecoder = decoder;
-        }
-        else if (decoderIndex == -1)
-        {
-                if (decoders[0] != NULL)
-                {
-                        ma_decoder_uninit(decoders[0]);
-                        free(decoders[0]);
-                        decoders[0] = NULL;
-                }
-
-                decoders[0] = decoder;
-        }
-        else
-        {
-                int nextIndex = 1 - decoderIndex;
-
-                if (decoders[nextIndex] != NULL)
-                {
-                        ma_decoder_uninit(decoders[nextIndex]);
-                        free(decoders[nextIndex]);
-                        decoders[nextIndex] = NULL;
-                }
-
-                decoders[nextIndex] = decoder;
         }
 }
 
@@ -664,6 +602,8 @@ int prepareNextVorbisDecoder(char *filepath)
 
         // Disable gapless playback for ogg files until we know of a robust way to detect when miniaudio changes decoder
         // Old code:
+        // setNextDecoder((void **)vorbisDecoders, (void**)&decoder, (void**)&firstVorbisDecoder, &vorbisDecoderIndex, (uninit_func)uninitVorbisDecoder);
+        //
         // if (currentDecoder != NULL && decoder != NULL)
         // {
         //         if (!isEOFReached())
@@ -710,7 +650,7 @@ int prepareNextDecoder(char *filepath)
                 free(decoder);
                 return -1;
         }
-        setNextDecoder(decoder);
+        setNextDecoder((void **)decoders, (void**)&decoder, (void**)&firstDecoder, &decoderIndex, (uninit_func)uninitMaDecoder);
 
         if (currentDecoder != NULL && decoder != NULL)
         {
@@ -730,7 +670,7 @@ int prepareNextOpusDecoder(char *filepath)
         }
         else
         {
-                currentDecoder = opusDecoders[decoderIndex];
+                currentDecoder = opusDecoders[opusDecoderIndex];
         }
 
         ma_uint32 sampleRate;
@@ -764,11 +704,9 @@ int prepareNextOpusDecoder(char *filepath)
                 return -1;
         }
 
-        ma_libopus *first = getFirstOpusDecoder();
-
-        if (first != NULL)
+        if (firstOpusDecoder != NULL)
         {
-                decoder->pReadSeekTellUserData = (AudioData *)first->pReadSeekTellUserData;
+                decoder->pReadSeekTellUserData = (AudioData *)firstOpusDecoder->pReadSeekTellUserData;
         }
 
         decoder->format = nformat;
@@ -776,7 +714,7 @@ int prepareNextOpusDecoder(char *filepath)
         decoder->onSeek = ma_libopus_seek_to_pcm_frame_wrapper;
         decoder->onTell = ma_libopus_get_cursor_in_pcm_frames_wrapper;
 
-        setNextOpusDecoder(decoder);
+        setNextDecoder((void **)opusDecoders, (void**)&decoder, (void**)&firstOpusDecoder, &opusDecoderIndex, (uninit_func)uninitOpusDecoder);
 
         if (currentDecoder != NULL && decoder != NULL)
         {
