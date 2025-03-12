@@ -518,42 +518,24 @@ int prepareNextVorbisDecoder(char *filepath)
                 return -1;
         }
 
-
-        // Disable gapless playback for ogg files until we know of a robust way to detect when miniaudio changes decoder
-        // Old code:
-        //ma_libvorbis *first = getFirstVorbisDecoder();
-        // if (first != NULL)
-        // {
-        //         decoder->pReadSeekTellUserData = (AudioData *)first->pReadSeekTellUserData;
-        // }
+        ma_libvorbis *first = getFirstVorbisDecoder();
+        if (first != NULL)
+        {
+                decoder->pReadSeekTellUserData = (AudioData *)first->pReadSeekTellUserData;
+        }
 
         decoder->format = nformat;
         decoder->onRead = ma_libvorbis_read_pcm_frames_wrapper;
         decoder->onSeek = ma_libvorbis_seek_to_pcm_frame_wrapper;
         decoder->onTell = ma_libvorbis_get_cursor_in_pcm_frames_wrapper;
 
-        // Disable gapless playback for ogg files until we know of a robust way to detect when miniaudio changes decoder
-        // Always set it to the first one since we have disabled gapless playback for ogg
-        // New code:
-        if (firstVorbisDecoder != NULL)
+        setNextDecoder((void **)vorbisDecoders, (void**)&decoder, (void**)&firstVorbisDecoder, &vorbisDecoderIndex, (uninit_func)uninitVorbisDecoder);
+
+        if (currentDecoder != NULL && decoder != NULL)
         {
-                uninitVorbisDecoder(firstVorbisDecoder);
-                free(firstVorbisDecoder);
-                firstVorbisDecoder = NULL;
+                if (!isEOFReached())
+                        ma_data_source_set_next(currentDecoder, decoder);
         }
-
-        decoderIndex = -1;
-        firstVorbisDecoder = decoder;
-
-        // Disable gapless playback for ogg files until we know of a robust way to detect when miniaudio changes decoder
-        // Old code:
-        // setNextDecoder((void **)vorbisDecoders, (void**)&decoder, (void**)&firstVorbisDecoder, &vorbisDecoderIndex, (uninit_func)uninitVorbisDecoder);
-        //
-        // if (currentDecoder != NULL && decoder != NULL)
-        // {
-        //         if (!isEOFReached())
-        //                 ma_data_source_set_next(currentDecoder, decoder);
-        // }
 
         return 0;
 }
@@ -1438,16 +1420,39 @@ void vorbis_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_ui
 
                 ma_libvorbis *decoder = getCurrentVorbisDecoder();
 
+                if (pAudioData->totalFrames == 0)
+                        ma_data_source_get_length_in_pcm_frames(decoder, &pAudioData->totalFrames);
+
                 if ((getCurrentImplementationType() != VORBIS && !isSkipToNext()) || (decoder == NULL))
                 {
                         pthread_mutex_unlock(&dataSourceMutex);
                         return;
                 }
 
+                // Check if seeking is requested
                 if (isSeekRequested())
                 {
-                        // disabled for ogg vorbis
-                        setSeekRequested(false);
+                        ma_uint64 totalFrames = 0;
+                        ma_libvorbis_get_length_in_pcm_frames(decoder, &totalFrames);
+                        ma_uint64 seekPercent = getSeekPercentage();
+                        if (seekPercent >= 100.0)
+                                seekPercent = 100.0;
+                        ma_uint64 targetFrame = (ma_uint64)((totalFrames - 1) * seekPercent / 100.0);
+
+                        if (targetFrame >= totalFrames)
+                                targetFrame = totalFrames - 1;
+
+                        // Set the read pointer for the decoder
+                        ma_result seekResult = ma_libvorbis_seek_to_pcm_frame(decoder, targetFrame);
+                        if (seekResult != MA_SUCCESS)
+                        {
+                                // Handle seek error
+                                setSeekRequested(false);
+                                pthread_mutex_unlock(&dataSourceMutex);
+                                return;
+                        }
+
+                        setSeekRequested(false); // Reset seek flag
                 }
 
                 // Read from the current decoder
@@ -1455,6 +1460,7 @@ void vorbis_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_ui
                 ma_result result;
                 ma_uint64 framesRequested = frameCount - framesRead;
                 ma_libvorbis *firstDecoder = getFirstVorbisDecoder();
+                ma_uint64 cursor = 0;
 
                 if (firstDecoder == NULL)
                 {
@@ -1470,7 +1476,9 @@ void vorbis_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_ui
 
                 result = ma_data_source_read_pcm_frames(firstDecoder, (ma_int32 *)pFramesOut + framesRead * pAudioData->channels, framesRequested, &framesToRead);
 
-                if ((isSkipToNext() || result != MA_SUCCESS) &&
+                ma_data_source_get_cursor_in_pcm_frames(decoder, &cursor);
+
+                if (((cursor != 0 && cursor >= pAudioData->totalFrames) || isSkipToNext() || result != MA_SUCCESS) &&
                     !isEOFReached())
                 {
                         activateSwitch(pAudioData);
