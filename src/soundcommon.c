@@ -197,12 +197,12 @@ ma_decoder *getCurrentBuiltinDecoder(void)
                 return decoders[decoderIndex];
 }
 
-void switchDecoder(void)
+void switchDecoder(int *decoderIndex)
 {
-        if (decoderIndex == -1)
-                decoderIndex = 0;
-        else
-                decoderIndex = 1 - decoderIndex;
+    if (*decoderIndex == -1)
+        *decoderIndex = 0;
+    else
+        *decoderIndex = 1 - *decoderIndex;
 }
 
 #ifdef USE_FAAD
@@ -395,30 +395,6 @@ ma_format getCurrentFormat(void)
         }
 
         return format;
-}
-
-void switchVorbisDecoder(void)
-{
-        if (vorbisDecoderIndex == -1)
-                vorbisDecoderIndex = 0;
-        else
-                vorbisDecoderIndex = 1 - vorbisDecoderIndex;
-}
-
-void switchM4aDecoder(void)
-{
-        if (m4aDecoderIndex == -1)
-                m4aDecoderIndex = 0;
-        else
-                m4aDecoderIndex = 1 - m4aDecoderIndex;
-}
-
-void switchOpusDecoder(void)
-{
-        if (opusDecoderIndex == -1)
-                opusDecoderIndex = 0;
-        else
-                opusDecoderIndex = 1 - opusDecoderIndex;
 }
 
 void getFileInfo(const char *filename, ma_uint32 *sampleRate, ma_uint32 *channels, ma_format *format)
@@ -1019,10 +995,10 @@ gint64 getLengthInMicroSec(double duration)
 void executeSwitch(AudioData *pAudioData)
 {
         pAudioData->switchFiles = false;
-        switchDecoder();
-        switchOpusDecoder();
-        switchM4aDecoder();
-        switchVorbisDecoder();
+        switchDecoder(&decoderIndex);
+        switchDecoder(&opusDecoderIndex);
+        switchDecoder(&m4aDecoderIndex);
+        switchDecoder(&vorbisDecoderIndex);
 
         pAudioData->pUserData->currentSongData = (pAudioData->currentFileIndex == 0) ? pAudioData->pUserData->songdataA : pAudioData->pUserData->songdataB;
         pAudioData->totalFrames = 0;
