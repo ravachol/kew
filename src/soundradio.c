@@ -486,8 +486,6 @@ int internetRadioSearch(const char *searchTerm, void (*callback)(const char *, c
                 snprintf(userAgent, sizeof(userAgent), "kew/%s", VERSION);
                 curl_easy_setopt(curl, CURLOPT_USERAGENT, userAgent);
                 curl_easy_setopt(curl, CURLOPT_TIMEOUT, 10L);
-                curl_easy_setopt(curl, CURLOPT_PROTOCOLS_STR, "http,https");
-                curl_easy_setopt(curl, CURLOPT_REDIR_PROTOCOLS_STR, "http,https");
                 curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 1L);
 
                 CURLcode result = curl_easy_perform(curl);
