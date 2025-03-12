@@ -50,7 +50,7 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         c_strcpy(settings.visualizerHeight, "5", sizeof(settings.visualizerHeight));
         c_strcpy(settings.titleDelay, "9", sizeof(settings.titleDelay));
 
-        c_strcpy(settings.tabNext, "\t", sizeof(settings.tabNext));
+        c_strcpy(settings.nextView, "\t", sizeof(settings.nextView));
         c_strcpy(settings.volumeUp, "+", sizeof(settings.volumeUp));
         c_strcpy(settings.volumeUpAlt, "=", sizeof(settings.volumeUpAlt));
         c_strcpy(settings.volumeDown, "-", sizeof(settings.volumeDown));
@@ -469,7 +469,7 @@ void mapSettingsToKeys(AppSettings *settings, UISettings *ui, EventMapping *mapp
         mappings[44] = (EventMapping){settings->hardPrevPage, EVENT_PREVPAGE};
         mappings[45] = (EventMapping){settings->hardRemove, EVENT_REMOVE};
         mappings[46] = (EventMapping){settings->hardRemove2, EVENT_REMOVE};
-        mappings[47] = (EventMapping){settings->tabNext, EVENT_TABNEXT};
+        mappings[47] = (EventMapping){settings->nextView, EVENT_NEXTVIEW};
         mappings[48] = (EventMapping){settings->mouseLeftClick, ui->mouseLeftClickAction};
         mappings[49] = (EventMapping){settings->mouseMiddleClick, ui->mouseMiddleClickAction};
         mappings[50] = (EventMapping){settings->mouseRightClick, ui->mouseRightClickAction};
@@ -541,6 +541,9 @@ enum EventType getMouseAction(int num)
                 break;
         case 8:
                 value = EVENT_VOLUME_DOWN;
+                break;
+        case 9:
+                value = EVENT_NEXTVIEW;
                 break;
         default:
                 value = EVENT_NONE;
@@ -740,7 +743,7 @@ void setConfig(AppSettings *settings, UISettings *ui)
         fprintf(file, "# Color of enqueued songs in library view:\n");
         fprintf(file, "enqueuedColor=%s\n", settings->enqueuedColor);
 
-        fprintf(file, "\n# Mouse actions are 0=none, 1=select song, 2=toggle pause, 3=scroll up, 4=scroll down, 5=seek forward, 6=seek backward, 7=volume up, 8=volume down\n");
+        fprintf(file, "\n# Mouse actions are 0=none, 1=select song, 2=toggle pause, 3=scroll up, 4=scroll down, 5=seek forward, 6=seek backward, 7=volume up, 8=volume down, 9=switch to next view\n");
         fprintf(file, "mouseLeftClickAction=%s\n", settings->mouseLeftClickAction);
         fprintf(file, "mouseMiddleClickAction=%s\n", settings->mouseMiddleClickAction);
         fprintf(file, "mouseRightClickAction=%s\n", settings->mouseRightClickAction);
