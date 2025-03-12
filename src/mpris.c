@@ -105,8 +105,8 @@ static void handle_raise(GDBusConnection *connection, const gchar *sender,
         (void)parameters;
         (void)invocation;
         (void)user_data;
-        
-        g_dbus_method_invocation_return_value(invocation, NULL);        
+
+        g_dbus_method_invocation_return_value(invocation, NULL);
 }
 
 static void handle_quit(GDBusConnection *connection, const gchar *sender,
@@ -1261,13 +1261,9 @@ void emitMetadataChanged(const gchar *title, const gchar *artist, const gchar *a
         g_variant_builder_add(&changed_properties_builder, "{sv}", "CanPause", g_variant_new_boolean(length != 0 ? true : false));
         g_variant_builder_add(&changed_properties_builder, "{sv}", "LoopStatus", g_variant_new_string(isRepeatEnabled() ? "Track" : "None"));
 
-        
+
 
         CanSeek = true;
-        if (currentSong != NULL && pathEndsWith(currentSong->song.filePath, "ogg"))
-        {
-                CanSeek = false;
-        }
 
         g_variant_builder_add(&changed_properties_builder, "{sv}", "CanSeek", g_variant_new_boolean(CanSeek));
 
