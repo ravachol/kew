@@ -219,37 +219,6 @@ m4a_decoder *getCurrentM4aDecoder(void)
                 return m4aDecoders[m4aDecoderIndex];
 }
 
-void setNextM4aDecoder(m4a_decoder *decoder)
-{
-        if (m4aDecoderIndex == -1 && firstM4aDecoder == NULL)
-        {
-                firstM4aDecoder = decoder;
-        }
-        else if (m4aDecoderIndex == -1) // array hasn't been used yet
-        {
-                if (m4aDecoders[0] != NULL)
-                {
-                        m4a_decoder_uninit(m4aDecoders[0], NULL);
-                        free(m4aDecoders[0]);
-                        m4aDecoders[0] = NULL;
-                }
-
-                m4aDecoders[0] = decoder;
-        }
-        else
-        {
-                int nextIndex = 1 - m4aDecoderIndex;
-                if (m4aDecoders[nextIndex] != NULL)
-                {
-                        m4a_decoder_uninit(m4aDecoders[nextIndex], NULL);
-                        free(m4aDecoders[nextIndex]);
-                        m4aDecoders[nextIndex] = NULL;
-                }
-
-                m4aDecoders[nextIndex] = decoder;
-        }
-}
-
 void getM4aFileInfo(const char *filename, ma_format *format, ma_uint32 *channels, ma_uint32 *sampleRate, ma_channel *channelMap, k_m4adec_filetype *fileType)
 {
         m4a_decoder decoder;
