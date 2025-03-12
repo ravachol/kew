@@ -510,10 +510,6 @@ void flushSeek(void)
         {
                 if (currentSong != NULL)
                 {
-                        if (pathEndsWith(currentSong->song.filePath, "ogg"))
-                        {
-                                return;
-                        }
 #ifdef USE_FAAD
                         if (pathEndsWith(currentSong->song.filePath, "aac"))
                         {
@@ -586,10 +582,6 @@ void seekForward(UIState *uis)
 {
         if (currentSong != NULL)
         {
-                if (pathEndsWith(currentSong->song.filePath, "ogg"))
-                {
-                        return;
-                }
 #ifdef USE_FAAD
                 if (pathEndsWith(currentSong->song.filePath, "aac"))
                 {
@@ -615,10 +607,6 @@ void seekBack(UIState *uis)
 {
         if (currentSong != NULL)
         {
-                if (pathEndsWith(currentSong->song.filePath, "ogg"))
-                {
-                        return;
-                }
 #ifdef USE_FAAD
                 if (pathEndsWith(currentSong->song.filePath, "aac"))
                 {
@@ -1198,9 +1186,8 @@ int loadDecoder(SongData *songData, bool *songDataDeleted)
                                 result = prepareNextDecoder(songData->filePath);
                         else if (pathEndsWith(songData->filePath, "opus"))
                                 result = prepareNextOpusDecoder(songData->filePath);
-                        // Disable gapless playback for ogg
-                        // else if (pathEndsWith(songData->filePath, "ogg"))
-                        //         result = prepareNextVorbisDecoder(songData->filePath);
+                        else if (pathEndsWith(songData->filePath, "ogg"))
+                                 result = prepareNextVorbisDecoder(songData->filePath);
 #ifdef USE_FAAD
                         else if (pathEndsWith(songData->filePath, "m4a") || pathEndsWith(songData->filePath, "aac"))
                                 result = prepareNextM4aDecoder(songData);
