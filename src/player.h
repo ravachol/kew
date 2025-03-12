@@ -66,7 +66,7 @@ char *getLibraryFilePath(void);
 
 void resetChosenDir(void);
 
-void tabNext(void);
+void switchToNextView(void);
 
 void resetSearchResult(void);
 

@@ -39,7 +39,7 @@ enum EventType
         EVENT_PREVPAGE,
         EVENT_REMOVE,
         EVENT_SEARCH,
-        EVENT_TABNEXT,
+        EVENT_NEXTVIEW,
         EVENT_CLEARPLAYLIST,
         EVENT_RADIOSEARCH
 };
