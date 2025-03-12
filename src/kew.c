@@ -755,8 +755,8 @@ void handleInput(AppState *state)
         case EVENT_SHOWTRACK:
                 showTrack();
                 break;
-        case EVENT_TABNEXT:
-                tabNext();
+        case EVENT_NEXTVIEW:
+                switchToNextView();
                 break;
         case EVENT_CLEARPLAYLIST:
                 updatePlaylistToPlayingSong();

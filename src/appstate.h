@@ -172,16 +172,16 @@ typedef struct
         char artistColor[2];
         char enqueuedColor[2];
         char titleColor[2];
-        char mouseLeftClickAction[2];
-        char mouseMiddleClickAction[2];
-        char mouseRightClickAction[2];
-        char mouseScrollUpAction[2];
-        char mouseScrollDownAction[2];
+        char mouseLeftClickAction[3];
+        char mouseMiddleClickAction[3];
+        char mouseRightClickAction[3];
+        char mouseScrollUpAction[3];
+        char mouseScrollDownAction[3];
         char hideLogo[2];
         char hideHelp[2];
         char cacheLibrary[6];
         char quitAfterStopping[2];
-        char tabNext[6];
+        char nextView[6];
         char hardClearPlaylist[6];
 } AppSettings;
 
