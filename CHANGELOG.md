@@ -25,7 +25,7 @@
 
 - Made the app do less work when idle. By @ravachol.
 
-- The currently playing track is now underlined as well as bolded, because bold weight wasn't working with some fonts. Found By @yurivict.
+- The currently playing track is now underlined as well as bolded, because bold weight wasn't working with some fonts. Found By @yurivict. By @ravachol.
 
 - Added logic that enables running raw AAC files (but not HE-AAC). By @ravachol.
 
@@ -42,7 +42,7 @@
 
 #### Bug Fixes:
 
-- Fixed cover sometimes not centered in wezterm terminal.
+- Fixed cover sometimes not centered in wezterm terminal. By @ravachol.
 
 - Fixed setting path on some machines doesn't work, returns 'path not found'. Found by @illnesse.
 
@@ -50,9 +50,13 @@
 
 - Fixed crash sometimes when pressing enter in track view. By @ravachol.
 
+- Fixed ogg vorbis playback sometimes leading to crash because there was no reliable way to tell if the song had ended. By @ravachol.
+
+- Fixed opus playback sometimes leading to crash because of a mixup wwith decoders. By @ravachol.
+
 - Uses a different method for detecting if kew is already running since the previous method didn't work on macOS. By @DNEGEL3125.
 
-- Prevent the cover from scrolling up on tmux+konsole. Found by @acdcbyl.
+- Prevent the cover from scrolling up on tmux+konsole. Found by @acdcbyl. By @ravachol.
 
 #### Special Thanks To These Sponsors:
 
