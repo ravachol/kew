@@ -4,16 +4,16 @@
 
 #### Dependencies:
 
-- New dependency on Curl.
+- New dependency on libcurl.
 
 #### Changes:
 
-- Added Internet radio support. By @ravachol.
+- Added Internet radio support.
   MP3 streams only so far, but the vast majority of streams are MP3 streams in the database we are using, others are excluded.
-  Press F6 for radio search or Shift+B on macOS.
+  Press F6 for radio search or Shift+B on macOS. By @ravachol.
 
 - Added mouse support.
-  Use the middle button for playing or enqueueing a song. Right button to pause. By @Chromium-3-Oxide.
+  Use the middle button for playing or enqueueing a song. Right button to pause. This is configurable with plenty of options. By @Chromium-3-Oxide.
 
 - Added support for m4a files using ALAC decoder. By @ravachol.
 
