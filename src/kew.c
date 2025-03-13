@@ -1595,6 +1595,16 @@ void initState(AppState *state)
         state->uiSettings.color.r = 125;
         state->uiSettings.color.g = 125;
         state->uiSettings.color.b = 125;
+        state->uiSettings.visualizerEnabled = true;
+        state->uiSettings.coverEnabled = true;
+        state->uiSettings.hideLogo = false;
+        state->uiSettings.hideHelp = false;
+        state->uiSettings.quitAfterStopping = false;
+        state->uiSettings.coverAnsi = false;
+        state->uiSettings.visualizerHeight = 5;
+        state->uiSettings.titleDelay = 9;
+        state->uiSettings.cacheLibrary = -1;
+        state->uiSettings.useConfigColors = false;
         state->uiState.numDirectoryTreeEntries = 0;
         state->uiState.numProgressBars = 35;
         state->uiState.chosenNodeId = 0;
