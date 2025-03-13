@@ -52,7 +52,7 @@
 
 - Fixed ogg vorbis playback sometimes leading to crash because there was no reliable way to tell if the song had ended. By @ravachol.
 
-- Fixed opus playback sometimes leading to crash because of a mixup wwith decoders. By @ravachol.
+- Fixed opus playback sometimes leading to crash because of a mixup with decoders. By @ravachol.
 
 - Uses a different method for detecting if kew is already running since the previous method didn't work on macOS. By @DNEGEL3125.
 
