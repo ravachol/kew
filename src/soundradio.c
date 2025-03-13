@@ -559,32 +559,37 @@ static size_t curl_writefunc(void *ptr, size_t size, size_t nmemb, void *userdat
 {
         stream_buffer *buf = (stream_buffer *)userdata;
         size_t bytes = size * nmemb;
-
+        size_t written = 0;
 
         pthread_mutex_lock(&buf->mutex);
 
+        // If we previously flagged EOF, just ignore further data
         if (buf->eof)
         {
                 pthread_mutex_unlock(&buf->mutex);
                 return 0;
         }
 
-        size_t written = 0;
+        unsigned char *src = (unsigned char *)ptr;
+
+        // Write into ring buffer, discard oldest data if necessary
         while (written < bytes)
         {
-                size_t next_write_pos = (buf->write_pos + 1) % STREAM_BUFFER_SIZE;
+                size_t nextWritePos = (buf->write_pos + 1) % STREAM_BUFFER_SIZE;
 
-                if (next_write_pos == buf->read_pos)
+                // If the buffer is full, advance the read pointer (“drop” oldest byte)
+                if (nextWritePos == buf->read_pos)
                 {
-                        // Buffer full, prevent overflow
-                        break;
-
+                        buf->read_pos = (buf->read_pos + 1) % STREAM_BUFFER_SIZE;
                 }
 
-                buf->buffer[buf->write_pos] = ((unsigned char *)ptr)[written++];
-                buf->write_pos = next_write_pos;
+                // Now there is space for at least one byte
+                buf->buffer[buf->write_pos] = src[written];
+                buf->write_pos = nextWritePos;
+                written++;
         }
 
+        // Signal to the consumer that the data is ready
         pthread_cond_signal(&buf->cond);
         pthread_mutex_unlock(&buf->mutex);
 
