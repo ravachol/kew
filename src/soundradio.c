@@ -559,6 +559,7 @@ static size_t curl_writefunc(void *ptr, size_t size, size_t nmemb, void *userdat
 {
         stream_buffer *buf = (stream_buffer *)userdata;
         size_t bytes = size * nmemb;
+        size_t written = 0;
 
         pthread_mutex_lock(&buf->mutex);
 
@@ -568,24 +569,32 @@ static size_t curl_writefunc(void *ptr, size_t size, size_t nmemb, void *userdat
                 return 0;
         }
 
-        size_t written = 0;
         while (written < bytes)
         {
-                size_t next_write_pos = (buf->write_pos + 1) % STREAM_BUFFER_SIZE;
+                size_t spaceAvailable = (buf->read_pos > buf->write_pos)
+                                            ? (buf->read_pos - buf->write_pos - 1)
+                                            : (STREAM_BUFFER_SIZE - buf->write_pos + (buf->read_pos == 0 ? -1 : 0));
 
-                if (next_write_pos == buf->read_pos)
+                if (spaceAvailable == 0)
                 {
-                        // Buffer full, prevent overflow
-                        break;
+                        // Buffer full, wait until space is available
+                        pthread_cond_wait(&buf->cond, &buf->mutex);
+                        continue;
                 }
 
-                buf->buffer[buf->write_pos] = ((unsigned char *)ptr)[written++];
-                buf->write_pos = next_write_pos;
+                size_t chunk = (bytes - written < spaceAvailable) ? (bytes - written) : spaceAvailable;
+                size_t firstChunk = (buf->write_pos + chunk <= STREAM_BUFFER_SIZE) ? chunk : (STREAM_BUFFER_SIZE - buf->write_pos);
+                size_t secondChunk = chunk - firstChunk;
+
+                memcpy(&buf->buffer[buf->write_pos], (unsigned char *)ptr + written, firstChunk);
+                memcpy(&buf->buffer[0], (unsigned char *)ptr + written + firstChunk, secondChunk);
+
+                buf->write_pos = (buf->write_pos + chunk) % STREAM_BUFFER_SIZE;
+                written += chunk;
+
+                pthread_cond_signal(&buf->cond);
         }
-
-        pthread_cond_signal(&buf->cond);
         pthread_mutex_unlock(&buf->mutex);
-
         return bytes;
 }
 
