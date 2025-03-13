@@ -228,8 +228,6 @@ bool isPlaybackDone(void);
 
 float getSeekPercentage(void);
 
-double getPercentageElapsed(void);
-
 bool isSeekRequested(void);
 
 void setSeekRequested(bool value);

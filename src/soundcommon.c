@@ -733,19 +733,6 @@ double getSeekElapsed(void)
         return seekElapsed;
 }
 
-  double getPercentageElapsed(void) {
-      double duration = getCurrentSongDuration();
-      if (duration > 0.0) {
-          double fraction = elapsedSeconds / duration;
-          if (fraction > 1.0) {
-              fraction = 1.0;
-          }
-          return fraction;
-      }
-      return 0.0;
-  }
-
-
 void setSeekElapsed(double value)
 {
         seekElapsed = value;
