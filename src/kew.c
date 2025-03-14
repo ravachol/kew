@@ -1456,7 +1456,7 @@ void exitIfAlreadyRunning()
                         if (isProcessRunning(pid))
                         {
                                 fprintf(stderr, "An instance of kew is already running. Pid: %d.\n", pid);
-                                exit(EXIT_FAILURE);
+                                exit(1);
                         }
                         else
                         {
@@ -1475,7 +1475,7 @@ void exitIfAlreadyRunning()
         if (pidfile == NULL)
         {
                 perror("Unable to create PID file");
-                exit(EXIT_FAILURE);
+                exit(1);
         }
         fprintf(pidfile, "%d\n", getpid());
         fclose(pidfile);

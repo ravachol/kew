@@ -321,7 +321,7 @@ FileSystemEntry *reconstructTreeFromFile(const char *filename, const char *start
                                         }
                                         free(nodes);
                                         fclose(file);
-                                        exit(EXIT_FAILURE);
+                                        exit(1);
                                 }
                                 nodes = tempNodes;
                         }
@@ -332,7 +332,7 @@ FileSystemEntry *reconstructTreeFromFile(const char *filename, const char *start
                                 perror("Failed to allocate node");
 
                                 fclose(file);
-                                exit(EXIT_FAILURE);
+                                exit(1);
                         }
                         node->id = id;
                         node->name = strdup(name);
