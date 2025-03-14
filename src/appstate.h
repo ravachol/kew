@@ -44,6 +44,8 @@ typedef struct
         int mouseRightClickAction;                      // Right mouse action
         int mouseScrollUpAction;                        // Mouse scroll up action
         int mouseScrollDownAction;                      // Mouse scroll down action
+        int mouseAltScrollUpAction;                     // Mouse scroll up + alt action
+        int mouseAltScrollDownAction;                   // Mouse scroll down + alt action
         PixelData color;                                // The current color, when using album derived colors
         bool useConfigColors;                           // Use colors stored in config file or use an album derived color
         bool coverEnabled;                              // Show covers or not
@@ -166,6 +168,8 @@ typedef struct
         char mouseRightClick[12];
         char mouseScrollUp[12];
         char mouseScrollDown[12];
+        char mouseAltScrollUp[12];
+        char mouseAltScrollDown[12];
         char lastVolume[12];
         char allowNotifications[2];
         char color[2];
@@ -177,6 +181,8 @@ typedef struct
         char mouseRightClickAction[3];
         char mouseScrollUpAction[3];
         char mouseScrollDownAction[3];
+        char mouseAltScrollUpAction[12];
+        char mouseAltScrollDownAction[12];
         char hideLogo[2];
         char hideHelp[2];
         char cacheLibrary[6];
