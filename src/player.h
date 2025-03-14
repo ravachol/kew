@@ -68,6 +68,8 @@ void resetChosenDir(void);
 
 void switchToNextView(void);
 
+void switchToPreviousView(void);
+
 void resetSearchResult(void);
 
 void resetRadioSearchResult(void);
