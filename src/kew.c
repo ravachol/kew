@@ -758,6 +758,9 @@ void handleInput(AppState *state)
         case EVENT_NEXTVIEW:
                 switchToNextView();
                 break;
+        case EVENT_PREVVIEW:
+                switchToPreviousView();
+                break;
         case EVENT_CLEARPLAYLIST:
                 updatePlaylistToPlayingSong();
                 state->uiState.resetPlaylistDisplay = true;
