@@ -104,6 +104,8 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         c_strcpy(settings.mouseRightClick, "[M\"", sizeof(settings.mouseRightClick));
         c_strcpy(settings.mouseScrollUp, "[M`", sizeof(settings.mouseScrollUp));
         c_strcpy(settings.mouseScrollDown, "[Ma", sizeof(settings.mouseScrollDown));
+        c_strcpy(settings.mouseAltScrollUp, "[Mh", sizeof(settings.mouseAltScrollUp));
+        c_strcpy(settings.mouseAltScrollDown, "[Mi", sizeof(settings.mouseAltScrollDown));
         c_strcpy(settings.lastVolume, "100", sizeof(settings.lastVolume));
         c_strcpy(settings.color, "6", sizeof(settings.color));
         c_strcpy(settings.artistColor, "6", sizeof(settings.artistColor));
@@ -114,6 +116,8 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         c_strcpy(settings.mouseRightClickAction, "2", sizeof(settings.mouseRightClickAction));
         c_strcpy(settings.mouseScrollUpAction, "3", sizeof(settings.mouseScrollUpAction));
         c_strcpy(settings.mouseScrollDownAction, "4", sizeof(settings.mouseScrollDownAction));
+        c_strcpy(settings.mouseAltScrollUpAction, "7", sizeof(settings.mouseAltScrollUpAction));
+        c_strcpy(settings.mouseAltScrollDownAction, "8", sizeof(settings.mouseAltScrollDownAction));
         c_strcpy(settings.quit, "q", sizeof(settings.quit));
         c_strcpy(settings.hardQuit, "\x1B", sizeof(settings.hardQuit));
         c_strcpy(settings.hardClearPlaylist, "\b", sizeof(settings.hardClearPlaylist));
@@ -273,6 +277,14 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
                 else if (strcmp(lowercaseKey, "mousescrolldownaction") == 0)
                 {
                         snprintf(settings.mouseScrollDownAction, sizeof(settings.mouseScrollDownAction), "%s", pair->value);
+                }
+                else if (strcmp(lowercaseKey, "mouseshiftscrollupaction") == 0)
+                {
+                        snprintf(settings.mouseAltScrollUpAction, sizeof(settings.mouseAltScrollUpAction), "%s", pair->value);
+                }
+                else if (strcmp(lowercaseKey, "mouseshiftscrolldownaction") == 0)
+                {
+                        snprintf(settings.mouseAltScrollDownAction, sizeof(settings.mouseAltScrollDownAction), "%s", pair->value);
                 }
                 else if (strcmp(lowercaseKey, "hidelogo") == 0)
                 {
@@ -477,10 +489,12 @@ void mapSettingsToKeys(AppSettings *settings, UISettings *ui, EventMapping *mapp
         mappings[51] = (EventMapping){settings->mouseRightClick, ui->mouseRightClickAction};
         mappings[52] = (EventMapping){settings->mouseScrollUp, ui->mouseScrollUpAction};
         mappings[53] = (EventMapping){settings->mouseScrollDown, ui->mouseScrollDownAction};
-        mappings[54] = (EventMapping){settings->hardClearPlaylist, EVENT_CLEARPLAYLIST};
-        mappings[55] = (EventMapping){settings->showRadioSearchAlt, EVENT_SHOWRADIOSEARCH};
-        mappings[56] = (EventMapping){settings->hardShowRadioSearch, EVENT_SHOWRADIOSEARCH};
-        mappings[57] = (EventMapping){settings->hardShowRadioSearchAlt, EVENT_SHOWRADIOSEARCH};
+        mappings[54] = (EventMapping){settings->mouseAltScrollUp, ui->mouseAltScrollUpAction};
+        mappings[55] = (EventMapping){settings->mouseAltScrollDown, ui->mouseAltScrollDownAction};
+        mappings[56] = (EventMapping){settings->hardClearPlaylist, EVENT_CLEARPLAYLIST};
+        mappings[57] = (EventMapping){settings->showRadioSearchAlt, EVENT_SHOWRADIOSEARCH};
+        mappings[58] = (EventMapping){settings->hardShowRadioSearch, EVENT_SHOWRADIOSEARCH};
+        mappings[59] = (EventMapping){settings->hardShowRadioSearchAlt, EVENT_SHOWRADIOSEARCH};
 }
 
 char *getConfigFilePath(char *configdir)
@@ -631,6 +645,16 @@ void getConfig(AppSettings *settings, UISettings *ui)
         if (temp >= 0)
                 ui->mouseScrollDownAction = tempEvent;
 
+        temp = getNumber(settings->mouseAltScrollUpAction);
+        tempEvent = getMouseAction(temp);
+        if (temp >= 0)
+                ui->mouseAltScrollUpAction = tempEvent;
+
+        temp = getNumber(settings->mouseAltScrollDownAction);
+        tempEvent = getMouseAction(temp);
+        if (temp >= 0)
+                ui->mouseAltScrollDownAction = tempEvent;
+
         temp = getNumber(settings->visualizerHeight);
         if (temp > 0)
                 ui->visualizerHeight = temp;
@@ -719,6 +743,10 @@ void setConfig(AppSettings *settings, UISettings *ui)
                 snprintf(settings->mouseScrollUpAction, sizeof(settings->mouseScrollUpAction), "%d", ui->mouseScrollUpAction);
         if (settings->mouseScrollDownAction[0] == '\0')
                 snprintf(settings->mouseScrollDownAction, sizeof(settings->mouseScrollDownAction), "%d", ui->mouseScrollDownAction);
+        if (settings->mouseAltScrollUpAction[0] == '\0')
+                snprintf(settings->mouseAltScrollUpAction, sizeof(settings->mouseAltScrollUpAction), "%d", ui->mouseAltScrollUpAction);
+        if (settings->mouseAltScrollDownAction[0] == '\0')
+                snprintf(settings->mouseAltScrollDownAction, sizeof(settings->mouseAltScrollDownAction), "%d", ui->mouseAltScrollDownAction);
 
         // Write the settings to the file
         fprintf(file, "# Make sure that kew is closed before editing this file in order for changes to take effect.\n\n");
@@ -760,6 +788,9 @@ void setConfig(AppSettings *settings, UISettings *ui)
         fprintf(file, "mouseRightClickAction=%s\n", settings->mouseRightClickAction);
         fprintf(file, "mouseScrollUpAction=%s\n", settings->mouseScrollUpAction);
         fprintf(file, "mouseScrollDownAction=%s\n", settings->mouseScrollDownAction);
+        fprintf(file, "# Mouse action when using mouse scroll + alt\n");
+        fprintf(file, "mouseAltScrollUpAction=%s\n", settings->mouseAltScrollUpAction);
+        fprintf(file, "mouseAltScrollDownAction=%s\n", settings->mouseAltScrollDownAction);
 
         fprintf(file, "\n# Key Bindings:\n\n");
         fprintf(file, "volumeUp=%s\n", settings->volumeUp);
