@@ -102,41 +102,43 @@ void calcPreferredSize(UISettings *ui)
 
 void printHelp()
 {
-        printf(" kew - A terminal music player.\n");
-        printf("\n");
-        printf(" \033[1;4mUsage:\033[0m   kew path \"path to music library\"\n");
-        printf("          (Saves the music library path. Use this the first time. Ie: kew path \"/home/joe/Music/\")\n");
-        printf("          kew (no argument, opens library)\n");
-        printf("          kew all (loads all your songs up to 10 000)\n");
-        printf("          kew albums (plays all albums up to 2000 randomly one after the other)");
-        printf("          kew <song name,directory or playlist words>\n");
-        printf("          kew --help, -? or -h\n");
-        printf("          kew --version or -v\n");
-        printf("          kew dir <album name> (Sometimes it's necessary to specify it's a directory you want)\n");
-        printf("          kew song <song name> \n");
-        printf("          kew list <m3u list name> \n");
-        printf("          kew shuffle <dir name> (random and rand works too)\n");
-        printf("          kew artistA:artistB (plays artistA and artistB shuffled)\n");
-        printf("          kew . (plays kew.m3u file)\n");
-        printf("\n");
-        printf(" \033[1;4mExample:\033[0m kew moon\n");
-        printf(" (Plays the first song or directory it finds that has the word moon, ie moonlight sonata)\n");
-        printf("\n");
-        printf(" kew returns the first directory or file whose name partially matches the string you provide.\n\n");
-        printf(" Use quotes when providing strings with single quotes in them (') or vice versa.\n");
-        printf(" Use ←, → or h, l to play the next or previous track in the playlist.\n");
-        printf(" Use + (or =), - to adjust volume.\n");
-        printf(" Use a, d to seek in a song.\n");
-        printf(" Press space or p to pause.\n");
-        printf(" Press u to update the library.\n");
-        printf(" Press F2 to display playlist.\n");
-        printf(" Press F3 to display music library.\n");
-        printf(" Press F4 to display song info.\n");
-        printf(" Press F5 to search.\n");
-        printf(" Press F6 to display key bindings.\n");
-        printf(" Press . to add the currently playing song to kew.m3u.\n");
-        printf(" Press Esc to quit.\n");
-        printf("\n");
+        printf(" kew - A terminal music player.\n"
+               "\n"
+               " \033[1;4mUsage:\033[0m   kew path \"path to music library\"\n"
+               "          (Saves the music library path. Use this the first time. Ie: kew path \"/home/joe/Music/\")\n"
+               "          kew (no argument, opens library)\n"
+               "          kew all (loads all your songs up to 10 000)\n"
+               "          kew albums (plays all albums up to 2000 randomly one after the other)"
+               "          kew <song name,directory or playlist words>\n"
+               "          kew --help, -? or -h\n"
+               "          kew --version or -v\n"
+               "          kew dir <album name> (Sometimes it's necessary to specify it's a directory you want)\n"
+               "          kew song <song name> \n"
+               "          kew list <m3u list name> \n"
+               "          kew shuffle <dir name> (random and rand works too)\n"
+               "          kew artistA:artistB (plays artistA and artistB shuffled)\n"
+               "          kew . (plays kew.m3u file)\n"
+               "\n"
+               " \033[1;4mExample:\033[0m kew moon\n"
+               " (Plays the first song or directory it finds that has the word moon, ie moonlight sonata)\n"
+               "\n"
+               " kew returns the first directory or file whose name partially matches the string you provide.\n"
+               "\n"
+               " Use quotes when providing strings with single quotes in them (') or vice versa.\n"
+               " Switch tracks with ←, → or h, l keys.\n"
+               " Volume is adjusted with + (or =) and -.\n"
+               " Use a, d to seek in a song.\n"
+               " Space, p, or right click to toggle pause.\n"
+               " u to update the library.\n"
+               " Press F2 for playlist view.\n"
+               " Press F3 for music library view.\n"
+               " Press F4 for track view.\n"
+               " Press F5 for search view.\n"
+               " Press F6 for radio search view.\n"
+               " Press F7 for key bindings.\n"
+               " . to add the currently playing song to kew.m3u.\n"
+               " Esc or q to quit.\n"
+               "\n");
 }
 
 int printLogo(SongData *songData, UISettings *ui)

@@ -491,14 +491,14 @@ char *getConfigFilePath(char *configdir)
         if (configdir_length + 1 + settings_file_length + 1 > MAXPATHLEN)
         {
                 fprintf(stderr, "Error: File path exceeds maximum length.\n");
-                exit(EXIT_FAILURE);
+                exit(1);
         }
 
         char *filepath = (char *)malloc(MAXPATHLEN);
         if (filepath == NULL)
         {
                 perror("malloc");
-                exit(EXIT_FAILURE);
+                exit(1);
         }
 
         int written = snprintf(filepath, MAXPATHLEN, "%s/%s", configdir, SETTINGS_FILE);
@@ -506,7 +506,7 @@ char *getConfigFilePath(char *configdir)
         {
                 fprintf(stderr, "Error: snprintf failed or filepath truncated.\n");
                 free(filepath);
-                exit(EXIT_FAILURE);
+                exit(1);
         }
         return filepath;
 }
@@ -570,7 +570,7 @@ void getConfig(AppSettings *settings, UISettings *ui)
                 if (mkdir(configdir, 0700) != 0)
                 {
                         perror("mkdir");
-                        exit(EXIT_FAILURE);
+                        exit(1);
                 }
         }
 
