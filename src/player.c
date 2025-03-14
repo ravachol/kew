@@ -777,6 +777,31 @@ void switchToNextView(void)
         refresh = true;
 }
 
+void switchToPreviousView(void)
+{
+        if (appState.currentView == PLAYLIST_VIEW)
+                appState.currentView = KEYBINDINGS_VIEW;
+        else if (appState.currentView == LIBRARY_VIEW)
+                appState.currentView = PLAYLIST_VIEW;
+        else if (appState.currentView == TRACK_VIEW)
+                appState.currentView = LIBRARY_VIEW;
+        else if (appState.currentView == SEARCH_VIEW)
+                if (currentSong != NULL)
+                {
+                        appState.currentView = TRACK_VIEW;
+                }
+                else
+                {
+                        appState.currentView = LIBRARY_VIEW;
+                }
+        else if (appState.currentView == RADIOSEARCH_VIEW)
+                appState.currentView = SEARCH_VIEW;
+        else if (appState.currentView == KEYBINDINGS_VIEW)
+                appState.currentView = RADIOSEARCH_VIEW;
+
+        refresh = true;
+}
+
 void showTrack(void)
 {
         refresh = true;
