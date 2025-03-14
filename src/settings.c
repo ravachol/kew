@@ -51,6 +51,7 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         c_strcpy(settings.titleDelay, "9", sizeof(settings.titleDelay));
 
         c_strcpy(settings.nextView, "\t", sizeof(settings.nextView));
+        c_strcpy(settings.prevView, "[Z", sizeof(settings.prevView));
         c_strcpy(settings.volumeUp, "+", sizeof(settings.volumeUp));
         c_strcpy(settings.volumeUpAlt, "=", sizeof(settings.volumeUpAlt));
         c_strcpy(settings.volumeDown, "-", sizeof(settings.volumeDown));
@@ -470,15 +471,16 @@ void mapSettingsToKeys(AppSettings *settings, UISettings *ui, EventMapping *mapp
         mappings[45] = (EventMapping){settings->hardRemove, EVENT_REMOVE};
         mappings[46] = (EventMapping){settings->hardRemove2, EVENT_REMOVE};
         mappings[47] = (EventMapping){settings->nextView, EVENT_NEXTVIEW};
-        mappings[48] = (EventMapping){settings->mouseLeftClick, ui->mouseLeftClickAction};
-        mappings[49] = (EventMapping){settings->mouseMiddleClick, ui->mouseMiddleClickAction};
-        mappings[50] = (EventMapping){settings->mouseRightClick, ui->mouseRightClickAction};
-        mappings[51] = (EventMapping){settings->mouseScrollUp, ui->mouseScrollUpAction};
-        mappings[52] = (EventMapping){settings->mouseScrollDown, ui->mouseScrollDownAction};
-        mappings[53] = (EventMapping){settings->hardClearPlaylist, EVENT_CLEARPLAYLIST};
-        mappings[54] = (EventMapping){settings->showRadioSearchAlt, EVENT_SHOWRADIOSEARCH};
-        mappings[55] = (EventMapping){settings->hardShowRadioSearch, EVENT_SHOWRADIOSEARCH};
-        mappings[56] = (EventMapping){settings->hardShowRadioSearchAlt, EVENT_SHOWRADIOSEARCH};
+        mappings[48] = (EventMapping){settings->prevView, EVENT_PREVVIEW};
+        mappings[49] = (EventMapping){settings->mouseLeftClick, ui->mouseLeftClickAction};
+        mappings[50] = (EventMapping){settings->mouseMiddleClick, ui->mouseMiddleClickAction};
+        mappings[51] = (EventMapping){settings->mouseRightClick, ui->mouseRightClickAction};
+        mappings[52] = (EventMapping){settings->mouseScrollUp, ui->mouseScrollUpAction};
+        mappings[53] = (EventMapping){settings->mouseScrollDown, ui->mouseScrollDownAction};
+        mappings[54] = (EventMapping){settings->hardClearPlaylist, EVENT_CLEARPLAYLIST};
+        mappings[55] = (EventMapping){settings->showRadioSearchAlt, EVENT_SHOWRADIOSEARCH};
+        mappings[56] = (EventMapping){settings->hardShowRadioSearch, EVENT_SHOWRADIOSEARCH};
+        mappings[57] = (EventMapping){settings->hardShowRadioSearchAlt, EVENT_SHOWRADIOSEARCH};
 }
 
 char *getConfigFilePath(char *configdir)
@@ -544,6 +546,9 @@ enum EventType getMouseAction(int num)
                 break;
         case 9:
                 value = EVENT_NEXTVIEW;
+                break;
+        case 10:
+                value = EVENT_PREVVIEW;
                 break;
         default:
                 value = EVENT_NONE;
@@ -749,7 +754,7 @@ void setConfig(AppSettings *settings, UISettings *ui)
         fprintf(file, "# Color of enqueued songs in library view:\n");
         fprintf(file, "enqueuedColor=%s\n", settings->enqueuedColor);
 
-        fprintf(file, "\n# Mouse actions are 0=none, 1=select song, 2=toggle pause, 3=scroll up, 4=scroll down, 5=seek forward, 6=seek backward, 7=volume up, 8=volume down, 9=switch to next view\n");
+        fprintf(file, "\n# Mouse actions are 0=none, 1=select song, 2=toggle pause, 3=scroll up, 4=scroll down, 5=seek forward, 6=seek backward, 7=volume up, 8=volume down, 9=switch to next view, 10=switch to previous view\n");
         fprintf(file, "mouseLeftClickAction=%s\n", settings->mouseLeftClickAction);
         fprintf(file, "mouseMiddleClickAction=%s\n", settings->mouseMiddleClickAction);
         fprintf(file, "mouseRightClickAction=%s\n", settings->mouseRightClickAction);
