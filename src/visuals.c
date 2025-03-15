@@ -296,33 +296,31 @@ void printSpectrum(int height, int width, float *magnitudes, PixelData color, in
                 {
                         setDefaultTextColor();
                 }
+
                 if (isPaused() || isStopped())
                 {
                         for (int i = 0; i < width; i++)
                         {
                                 printf("  ");
                         }
+                        printf("\n ");
+                        continue;
                 }
-                else
+
+                for (int i = 0; i < width; i++)
                 {
-                        for (int i = 0; i < width; i++)
+                        if (magnitudes[i] >= j)
                         {
-                                if (j >= 0)
-                                {
-                                        if (magnitudes[i] >= j)
-                                        {
-                                                printf(" %s", getUpwardMotionChar(10));
-                                        }
-                                        else if (magnitudes[i] + 1 >= j)
-                                        {
-                                                int firstDecimalDigit = (int)(fmod(magnitudes[i] * 10, 10));
-                                                printf(" %s", getUpwardMotionChar(firstDecimalDigit));
-                                        }
-                                        else
-                                        {
-                                                printf("  ");
-                                        }
-                                }
+                                printf(" %s", getUpwardMotionChar(10));
+                        }
+                        else if (magnitudes[i] + 1 >= j)
+                        {
+                                int firstDecimalDigit = (int)(fmod(magnitudes[i] * 10, 10));
+                                printf(" %s", getUpwardMotionChar(firstDecimalDigit));
+                        }
+                        else
+                        {
+                                printf("  ");
                         }
                 }
                 printf("\n ");
