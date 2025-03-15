@@ -20,7 +20,7 @@
 #endif
 
 #ifndef NUM_KEY_MAPPINGS
-#define NUM_KEY_MAPPINGS 58
+#define NUM_KEY_MAPPINGS 60
 #endif
 
 extern AppSettings settings;
