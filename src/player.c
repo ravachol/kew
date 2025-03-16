@@ -688,7 +688,9 @@ int showKeyBindings(SongData *songdata, AppSettings *settings, UISettings *ui)
         printBlankSpaces(indent);
         printf("     Press Enter or middle click to play.\n");
         printBlankSpaces(indent);
-        printf("     Press Backspace to clear the playlist or Delete to remove a single entry.\n");
+        printf("     Press Backspace to clear the playlist.\n");
+        printBlankSpaces(indent);
+        printf("     Press Delete to remove a single playlist entry.\n");
         printBlankSpaces(indent);
         printf(" - Press F3 for Library View:\n");
         printBlankSpaces(indent);
@@ -718,12 +720,22 @@ int showKeyBindings(SongData *songdata, AppSettings *settings, UISettings *ui)
         printBlankSpaces(indent);
         printf(" - %s to save the playlist to your music folder.\n", settings->savePlaylist);
         printBlankSpaces(indent);
+        printf(" - Tab to switch to next view.\n");
+        printBlankSpaces(indent);
+        printf(" - Shift+Tab to switch to previous view.\n");
+        printBlankSpaces(indent);
+        printf(" - gg to go to first song.\n");
+        printBlankSpaces(indent);
+        printf(" - number + %s or Enter to go to specific song number in the playlist.\n", settings->hardEndOfPlaylist);
+        printBlankSpaces(indent);
+        printf(" - %s to go to last song.\n", settings->hardEndOfPlaylist);
+        printBlankSpaces(indent);
         printf(" - %s to add current song to kew.m3u (run with \"kew .\").\n", settings->addToMainPlaylist);
         printBlankSpaces(indent);
         printf(" - Esc or %s to quit.\n", settings->quit);
         printf("\n");
 
-        numPrintedRows += 24;
+        numPrintedRows += 29;
 
         while (numPrintedRows < maxListSize)
         {

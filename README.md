@@ -227,13 +227,22 @@ Put single-quotes inside quotes "guns n' roses".
 
 #### Views
 
-In kew, you normally add songs to the playlist in Library View <kbd>F3</kbd>. Then you can see the playlist in Playlist View <kbd>F2</kbd>.
+Add songs to the playlist in Library View <kbd>F3</kbd>.
 
-There is also Track View <kbd>F4</kbd> for seeing song info and cover. Search View is <kbd>F5</kbd> and Help View is <kbd>F6</kbd>.
+See the playlist and select songs in Playlist View <kbd>F2</kbd>.
+
+See the song info and cover in Track View <kbd>F4</kbd>.
+
+Search music in Search View <kbd>F5</kbd>.
+
+Search internet radio in Radio Search View <kbd>F6</kbd>.
+
+See help in Help View <kbd>F7</kbd>.
 
 You can select all music by pressing the - MUSIC LIBRARY - header at the top of Library View.
 
 #### Key Bindings
+* <kbd>Enter</kbd> to select or replay a song.
 * Use <kbd>+</kbd> (or <kbd>=</kbd>), <kbd>-</kbd> keys to adjust the volume.
 * Use <kbd>←</kbd>, <kbd>→</kbd> or <kbd>h</kbd>, <kbd>l</kbd> keys to switch tracks.
 * <kbd>Space</kbd>, <kbd>p</kbd> or right mouse to toggle pause.
@@ -252,11 +261,14 @@ You can select all music by pressing the - MUSIC LIBRARY - header at the top of 
 * <kbd>a</kbd> to seek back.
 * <kbd>d</kbd> to seek forward.
 * <kbd>x</kbd> to save the currently loaded playlist to a m3u file in your music folder.
-* <kbd>Tab</kbd> to switch between views.
+* <kbd>Tab</kbd> to switch to next view.
+* <kbd>Shift+Tab</kbd> to switch to previous view.
+* <kbd>Backspace</kbd> to clear the playlist.
+* <kbd>Delete</kbd> to remove a single playlist entry.
 * <kbd>gg</kbd> go to first song.
-* number +<kbd>G</kbd> or <kbd>Enter</kbd>, go to specific song number in the playlist.
-* <kbd>G</kbd> go to last song.
-* . to add current song to kew.m3u (run with "kew .").
+* number + <kbd>G</kbd> or <kbd>Enter</kbd> to go to specific song number in the playlist.
+* <kbd>G</kbd> to go to last song.
+* <kbd>.</kbd> to add current song to kew.m3u (run with "kew .").
 * <kbd>Esc</kbd> to quit.
 
 ## Configuration
