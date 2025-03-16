@@ -738,7 +738,7 @@ int showKeyBindings(SongData *songdata, AppSettings *settings, UISettings *ui)
         printf(" - Esc or %s to quit.\n", settings->quit);
         printf("\n");
 
-        numPrintedRows += 29;
+        numPrintedRows += 24;
 
         while (numPrintedRows < maxListSize)
         {
