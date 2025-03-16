@@ -125,18 +125,33 @@ void printHelp()
                " kew returns the first directory or file whose name partially matches the string you provide.\n"
                "\n"
                " Use quotes when providing strings with single quotes in them (') or vice versa.\n"
+               " Enter to select or replay a song.\n"
                " Switch tracks with ←, → or h, l keys.\n"
                " Volume is adjusted with + (or =) and -.\n"
-               " Use a, d to seek in a song.\n"
-               " Space, p, or right click to toggle pause.\n"
+               " Space, p or right mouse to toggle pause.\n"
+               " F2 to show/hide playlist view.\n"
+               " F3 to show/hide library view.\n"
+               " F4 to show/hide track view.\n"
+               " F5 to show/hide search view.\n"
+               " F6 to show/hide radio search view.\n"
+               " F7 to show/hide show/hide key bindings view.\n"
                " u to update the library.\n"
-               " Press F2 for playlist view.\n"
-               " Press F3 for music library view.\n"
-               " Press F4 for track view.\n"
-               " Press F5 for search view.\n"
-               " Press F6 for radio search view.\n"
-               " Press F7 for key bindings.\n"
-               " . to add the currently playing song to kew.m3u.\n"
+               " v to toggle the spectrum visualizer.\n"
+               " i to switch between using your regular color scheme or colors derived from the track cover.\n"
+               " b to toggle album covers drawn in ascii or as a normal image.\n"
+               " r to repeat the current song.\n"
+               " s to shuffle the playlist.\n"
+               " a to seek back.\n"
+               " d to seek forward.\n"
+               " x to save the currently loaded playlist to a m3u file in your music folder.\n"
+               " Tab to switch to next view.\n"
+               " Shift+Tab to switch to previous view.\n"
+               " Backspace to clear the playlist.\n"
+               " Delete to remove a single playlist entry.\n"
+               " gg go to first song.\n"
+               " number + G or Enter to go to specific song number in the playlist.\n"
+               " G to go to last song.\n"
+               " . to add current song to kew.m3u (run with \"kew .\").\n"
                " Esc or q to quit.\n"
                "\n");
 }
@@ -688,9 +703,7 @@ int showKeyBindings(SongData *songdata, AppSettings *settings, UISettings *ui)
         printBlankSpaces(indent);
         printf("     Press Enter or middle click to play.\n");
         printBlankSpaces(indent);
-        printf("     Press Backspace to clear the playlist.\n");
-        printBlankSpaces(indent);
-        printf("     Press Delete to remove a single playlist entry.\n");
+        printf("     Press Backspace to clear the playlist or Delete to remove a single entry.\n");
         printBlankSpaces(indent);
         printf(" - Press F3 for Library View:\n");
         printBlankSpaces(indent);
@@ -719,16 +732,6 @@ int showKeyBindings(SongData *songdata, AppSettings *settings, UISettings *ui)
         printf(" - %s to seek forward.\n", settings->seekForward);
         printBlankSpaces(indent);
         printf(" - %s to save the playlist to your music folder.\n", settings->savePlaylist);
-        printBlankSpaces(indent);
-        printf(" - Tab to switch to next view.\n");
-        printBlankSpaces(indent);
-        printf(" - Shift+Tab to switch to previous view.\n");
-        printBlankSpaces(indent);
-        printf(" - gg to go to first song.\n");
-        printBlankSpaces(indent);
-        printf(" - number + %s or Enter to go to specific song number in the playlist.\n", settings->hardEndOfPlaylist);
-        printBlankSpaces(indent);
-        printf(" - %s to go to last song.\n", settings->hardEndOfPlaylist);
         printBlankSpaces(indent);
         printf(" - %s to add current song to kew.m3u (run with \"kew .\").\n", settings->addToMainPlaylist);
         printBlankSpaces(indent);

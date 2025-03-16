@@ -246,12 +246,12 @@ You can select all music by pressing the - MUSIC LIBRARY - header at the top of 
 * Use <kbd>+</kbd> (or <kbd>=</kbd>), <kbd>-</kbd> keys to adjust the volume.
 * Use <kbd>←</kbd>, <kbd>→</kbd> or <kbd>h</kbd>, <kbd>l</kbd> keys to switch tracks.
 * <kbd>Space</kbd>, <kbd>p</kbd> or right mouse to toggle pause.
-* <kbd>F2</kbd> or <kbd>Shift+z</kbd> to show/hide the playlist.
-* <kbd>F3</kbd> or <kbd>Shift+x</kbd> to show/hide the library.
-* <kbd>F4</kbd> or <kbd>Shift+c</kbd> to show/hide the track view.
-* <kbd>F5</kbd> or <kbd>Shift+v</kbd> to search.
-* <kbd>F6</kbd> or <kbd>Shift+b</kbd> for internet radio search.
-* <kbd>F7</kbd> or <kbd>Shift+n</kbd> to show/hide key bindings.
+* <kbd>F2</kbd> or <kbd>Shift+z</kbd> to show/hide playlist view.
+* <kbd>F3</kbd> or <kbd>Shift+x</kbd> to show/hide library view.
+* <kbd>F4</kbd> or <kbd>Shift+c</kbd> to show/hide track view.
+* <kbd>F5</kbd> or <kbd>Shift+v</kbd> to show/hide search view.
+* <kbd>F6</kbd> or <kbd>Shift+b</kbd> to show/hide internet radio search view.
+* <kbd>F7</kbd> or <kbd>Shift+n</kbd> to show/hide key bindings view.
 * <kbd>u</kbd> to update the library.
 * <kbd>v</kbd> to toggle the spectrum visualizer.
 * <kbd>i</kbd> to switch between using your regular color scheme or colors derived from the track cover.
