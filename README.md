@@ -256,7 +256,7 @@ You can select all music by pressing the - MUSIC LIBRARY - header at the top of 
 * <kbd>v</kbd> to toggle the spectrum visualizer.
 * <kbd>i</kbd> to switch between using your regular color scheme or colors derived from the track cover.
 * <kbd>b</kbd> to toggle album covers drawn in ascii or as a normal image.
-* <kbd>r</kbd> to repeat the current song.
+* <kbd>r</kbd> to repeat the current song after playing.
 * <kbd>s</kbd> to shuffle the playlist.
 * <kbd>a</kbd> to seek back.
 * <kbd>d</kbd> to seek forward.
