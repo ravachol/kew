@@ -4,7 +4,7 @@
 
 player.c
 
-Functions related to printing the player to the screen.
+ Functions related to printing the player to the screen.
 
 */
 
@@ -139,7 +139,7 @@ void printHelp()
                " v to toggle the spectrum visualizer.\n"
                " i to switch between using your regular color scheme or colors derived from the track cover.\n"
                " b to toggle album covers drawn in ascii or as a normal image.\n"
-               " r to repeat the current song.\n"
+               " r to repeat the current song after playing.\n"
                " s to shuffle the playlist.\n"
                " a to seek back.\n"
                " d to seek forward.\n"
@@ -723,7 +723,7 @@ int showKeyBindings(SongData *songdata, AppSettings *settings, UISettings *ui)
         printBlankSpaces(indent);
         printf(" - %s to toggle album covers drawn in ascii.\n", settings->toggleAscii);
         printBlankSpaces(indent);
-        printf(" - %s to repeat the current song.\n", settings->toggleRepeat);
+        printf(" - %s to repeat the current song after playing.\n", settings->toggleRepeat);
         printBlankSpaces(indent);
         printf(" - %s to shuffle the playlist.\n", settings->toggleShuffle);
         printBlankSpaces(indent);
