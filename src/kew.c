@@ -987,6 +987,8 @@ void updatePlayerStatus(AppState *state)
 {
         updatePlayer(&state->uiState);
 
+        reconnectRadioIfNeeded();
+
         if (playlist.head != NULL)
         {
                 if ((skipFromStopped || !loadedNextSong || nextSongNeedsRebuilding) && !audioData.endOfListReached)
@@ -1620,6 +1622,8 @@ void initState(AppState *state)
         state->uiState.doNotifyMPRISPlaying = false;
         state->uiState.collapseView = false;
         state->tempCache = NULL;
+
+        radioContext.buf.stale = false;
 }
 
 void initializeStateAndSettings(AppState *appState, AppSettings *settings)
