@@ -13,6 +13,7 @@ radio.c
 #define MAX_STATIONS 1000
 #define NI_MAXHOST 1025
 #define WAIT_TIMEOUT_SECONDS 3
+#define MAX_RECONNECT_RETRIES 20
 #define BUFFER_SIZE 8192
 
 typedef struct
@@ -31,6 +32,8 @@ Server servers[MAX_SERVERS];
 int serverCount = 0;
 bool hasUpdatedServerList = false;
 RadioSearchResult *currentlyPlayingRadioStation = NULL;
+RadioPlayerContext radioContext = {0};
+int reconnectCounter = 0;
 
 typedef struct
 {
@@ -533,28 +536,6 @@ bool isRadioPlaying()
         return radioIsPlaying;
 }
 
-#define STREAM_BUFFER_SIZE (256 * 1024)
-
-typedef struct
-{
-        unsigned char buffer[STREAM_BUFFER_SIZE];
-        size_t write_pos;
-        size_t read_pos;
-        int eof;
-        pthread_mutex_t mutex;
-        pthread_cond_t cond;
-} stream_buffer;
-
-typedef struct
-{
-        stream_buffer buf;
-        CURL *curl;
-        pthread_t curl_thread;
-        ma_decoder decoder;
-} RadioPlayerContext;
-
-RadioPlayerContext ctx = {0};
-
 static size_t curl_writefunc(void *ptr, size_t size, size_t nmemb, void *userdata)
 {
         stream_buffer *buf = (stream_buffer *)userdata;
@@ -563,7 +544,6 @@ static size_t curl_writefunc(void *ptr, size_t size, size_t nmemb, void *userdat
 
         pthread_mutex_lock(&buf->mutex);
 
-        // If we previously flagged EOF, just ignore further data
         if (buf->eof)
         {
                 pthread_mutex_unlock(&buf->mutex);
@@ -571,23 +551,22 @@ static size_t curl_writefunc(void *ptr, size_t size, size_t nmemb, void *userdat
         }
 
         unsigned char *src = (unsigned char *)ptr;
-
-        // Write into ring buffer, discard oldest data if necessary
         while (written < bytes)
         {
                 size_t nextWritePos = (buf->write_pos + 1) % STREAM_BUFFER_SIZE;
 
-                // If the buffer is full, advance the read pointer (“drop” oldest byte)
+                // If buffer is full, advance read pointer (drop oldest)
                 if (nextWritePos == buf->read_pos)
                 {
                         buf->read_pos = (buf->read_pos + 1) % STREAM_BUFFER_SIZE;
                 }
 
-                // Now there is space for at least one byte
                 buf->buffer[buf->write_pos] = src[written];
                 buf->write_pos = nextWritePos;
                 written++;
         }
+
+        buf->last_data_time = time(NULL);
 
         // Signal to the consumer that the data is ready
         pthread_cond_signal(&buf->cond);
@@ -606,9 +585,9 @@ static ma_result decoder_read_callback(ma_decoder *decoder, void *pBufferOut, si
 
         while (total_read < bytesToRead)
         {
+                // Wait until data is available OR EOF is flagged.
                 while ((buf->read_pos == buf->write_pos) && !buf->eof)
                 {
-
                         // Set up a timespec for timeout
                         struct timespec ts;
                         clock_gettime(CLOCK_REALTIME, &ts);
@@ -618,9 +597,18 @@ static ma_result decoder_read_callback(ma_decoder *decoder, void *pBufferOut, si
                         int wait_result = pthread_cond_timedwait(&buf->cond, &buf->mutex, &ts);
                         if (wait_result == ETIMEDOUT)
                         {
-                                pthread_mutex_unlock(&buf->mutex);
-                                *bytesRead = total_read;
-                                return MA_ERROR;
+                                // Check how long it's been since last data arrived
+                                time_t now = time(NULL);
+                                if ((now - buf->last_data_time) >= WAIT_TIMEOUT_SECONDS)
+                                {
+                                        // We haven't received data in too long, so signal error.
+                                        pthread_mutex_unlock(&buf->mutex);
+                                        *bytesRead = total_read;
+
+                                        buf->stale = true;
+
+                                        return MA_ERROR;
+                                }
                         }
                 }
 
@@ -645,6 +633,7 @@ static ma_result decoder_read_callback(ma_decoder *decoder, void *pBufferOut, si
         }
 
         pthread_mutex_unlock(&buf->mutex);
+
         *bytesRead = total_read;
         return MA_SUCCESS;
 }
@@ -710,38 +699,54 @@ void freeCurrentlyPlayingRadioStation(void)
 
 void stopRadio(void)
 {
-        pthread_mutex_lock(&ctx.buf.mutex);
-        ctx.buf.eof = 1;
-        ctx.buf.read_pos = ctx.buf.write_pos = 0;
-        pthread_cond_broadcast(&ctx.buf.cond);
-        pthread_mutex_unlock(&ctx.buf.mutex);
+        pthread_mutex_lock(&radioContext.buf.mutex);
+        radioContext.buf.eof = 1;
+        radioContext.buf.read_pos = radioContext.buf.write_pos = 0;
+        radioContext.buf.stale = false;
+        pthread_cond_broadcast(&radioContext.buf.cond);
+        pthread_mutex_unlock(&radioContext.buf.mutex);
 
-        if (ctx.curl_thread)
+        if (radioContext.curl_thread)
         {
-                pthread_join(ctx.curl_thread, NULL);
-                ctx.curl_thread = 0;
+                pthread_join(radioContext.curl_thread, NULL);
+                radioContext.curl_thread = 0;
         }
 
         resetDevice();
 
         memset(&device, 0, sizeof(device));
 
-        ma_decoder_uninit(&ctx.decoder);
+        ma_decoder_uninit(&radioContext.decoder);
 
-        if (ctx.curl != NULL)
+        if (radioContext.curl != NULL)
         {
-                curl_easy_cleanup(ctx.curl);
-                ctx.curl = NULL;
+                curl_easy_cleanup(radioContext.curl);
+                radioContext.curl = NULL;
         }
 
-        pthread_mutex_destroy(&ctx.buf.mutex);
-        pthread_cond_destroy(&ctx.buf.cond);
+        pthread_mutex_destroy(&radioContext.buf.mutex);
+        pthread_cond_destroy(&radioContext.buf.cond);
 
-        memset(&ctx.decoder, 0, sizeof(ma_decoder));
+        memset(&radioContext.decoder, 0, sizeof(ma_decoder));
 
         radioIsPlaying = false;
 
         freeCurrentlyPlayingRadioStation();
+}
+
+void reconnectRadioIfNeeded()
+{
+        if (radioContext.buf.stale && radioIsPlaying && reconnectCounter < MAX_RECONNECT_RETRIES)
+        {
+                RadioSearchResult *station = copyRadioSearchResult(getCurrentPlayingRadioStation());
+
+                playRadioStation(station);
+
+                reconnectCounter++;
+
+                if (station)
+                        free(station);
+        }
 }
 
 void *curl_perform_wrapper(void *arg)
@@ -759,34 +764,47 @@ void *curl_perform_wrapper(void *arg)
 
 int playRadioStation(const RadioSearchResult *station)
 {
+        if (isRadioPlaying())
+        {
+                RadioSearchResult *radio = getCurrentPlayingRadioStation();
+
+                // If it's not the same station, reset the reconnect counter
+                if (strcmp(radio->url_resolved, station->url_resolved) != 0)
+                        reconnectCounter = 0;
+        }
+
         stopRadio();
 
-        if (!(ctx.curl = curl_easy_init()))
+        if (station == NULL)
+                return -1;
+
+        if (!(radioContext.curl = curl_easy_init()))
         {
                 fprintf(stderr, "Curl init failed\n");
                 return -1;
         }
 
-        pthread_mutex_init(&ctx.buf.mutex, NULL);
-        pthread_cond_init(&ctx.buf.cond, NULL);
-        ctx.buf.eof = 0;
+        pthread_mutex_init(&radioContext.buf.mutex, NULL);
+        pthread_cond_init(&radioContext.buf.cond, NULL);
+        radioContext.buf.eof = 0;
+        radioContext.buf.stale = false;
 
-        curl_easy_setopt(ctx.curl, CURLOPT_URL, station->url_resolved);
-        curl_easy_setopt(ctx.curl, CURLOPT_WRITEFUNCTION, curl_writefunc);
-        curl_easy_setopt(ctx.curl, CURLOPT_WRITEDATA, &ctx.buf);
-        curl_easy_setopt(ctx.curl, CURLOPT_FOLLOWLOCATION, 1L);
+        curl_easy_setopt(radioContext.curl, CURLOPT_URL, station->url_resolved);
+        curl_easy_setopt(radioContext.curl, CURLOPT_WRITEFUNCTION, curl_writefunc);
+        curl_easy_setopt(radioContext.curl, CURLOPT_WRITEDATA, &radioContext.buf);
+        curl_easy_setopt(radioContext.curl, CURLOPT_FOLLOWLOCATION, 1L);
 
         char userAgent[64];
         snprintf(userAgent, sizeof(userAgent), "kew/%s", VERSION);
-        curl_easy_setopt(ctx.curl, CURLOPT_USERAGENT, userAgent);
+        curl_easy_setopt(radioContext.curl, CURLOPT_USERAGENT, userAgent);
 
-        pthread_create(&ctx.curl_thread, NULL, curl_perform_wrapper, ctx.curl);
+        pthread_create(&radioContext.curl_thread, NULL, curl_perform_wrapper, radioContext.curl);
 
         ma_decoder_config decoderConfig = ma_decoder_config_init(ma_format_f32, 2, 44100);
 
         decoderConfig.encodingFormat = ma_encoding_format_mp3;
 
-        if (ma_decoder_init(decoder_read_callback, decoder_seek_callback, &ctx.buf, &decoderConfig, &ctx.decoder) != MA_SUCCESS)
+        if (ma_decoder_init(decoder_read_callback, decoder_seek_callback, &radioContext.buf, &decoderConfig, &radioContext.decoder) != MA_SUCCESS)
         {
                 fprintf(stderr, "Decoder init failed\n");
                 setErrorMessage("Radio station unsupported or unavailable.");
@@ -795,16 +813,16 @@ int playRadioStation(const RadioSearchResult *station)
         }
 
         ma_device_config devConfig = ma_device_config_init(ma_device_type_playback);
-        devConfig.playback.format = ctx.decoder.outputFormat;
-        devConfig.playback.channels = ctx.decoder.outputChannels;
-        devConfig.sampleRate = ctx.decoder.outputSampleRate;
+        devConfig.playback.format = radioContext.decoder.outputFormat;
+        devConfig.playback.channels = radioContext.decoder.outputChannels;
+        devConfig.sampleRate = radioContext.decoder.outputSampleRate;
         devConfig.dataCallback = audio_data_callback;
-        devConfig.pUserData = &ctx.decoder;
+        devConfig.pUserData = &radioContext.decoder;
 
         if (ma_device_init(NULL, &devConfig, &device) != MA_SUCCESS)
         {
                 fprintf(stderr, "Device init failed\n");
-                ma_decoder_uninit(&ctx.decoder);
+                ma_decoder_uninit(&radioContext.decoder);
                 return -1;
         }
 
@@ -814,7 +832,7 @@ int playRadioStation(const RadioSearchResult *station)
         {
                 fprintf(stderr, "Failed to start device playback\n");
                 ma_device_uninit(&device);
-                ma_decoder_uninit(&ctx.decoder);
+                ma_decoder_uninit(&radioContext.decoder);
                 return -1;
         }
 
@@ -823,7 +841,7 @@ int playRadioStation(const RadioSearchResult *station)
 
         refresh = true;
 
-        pthread_cond_signal(&ctx.buf.cond);
+        pthread_cond_signal(&radioContext.buf.cond);
 
         radioIsPlaying = true;
 
