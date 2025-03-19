@@ -38,14 +38,22 @@ int getRadioSearchResultsCount(void)
 
 void addRadioResult(const char *name, const char *url_resolved, const char *country, const char *codec, const int bitrate, const int votes)
 {
+        if (strcmp(codec, "MP3") != 0)
+                return;
+
+        for (size_t i = 0; i < radioResultsCount; i++)
+        {
+                if (strcmp(radioSearchResults[i].url_resolved, url_resolved) == 0)
+                {
+                        return; // Duplicate
+                }
+        }
+
         if (radioResultsCount >= radioResultsCapacity)
         {
                 radioResultsCapacity = radioResultsCapacity == 0 ? 10 : radioResultsCapacity * 2;
                 radioSearchResults = realloc(radioSearchResults, radioResultsCapacity * sizeof(RadioSearchResult));
         }
-
-        if (strcmp(codec, "MP3") != 0)
-                return;
 
         strncpy(radioSearchResults[radioResultsCount].name, name, sizeof(radioSearchResults[radioResultsCount].name) - 1);
         radioSearchResults[radioResultsCount].name[sizeof(radioSearchResults[radioResultsCount].name) - 1] = '\0';
