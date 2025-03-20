@@ -190,6 +190,8 @@ typedef struct
         char nextView[6];
         char prevView[6];
         char hardClearPlaylist[6];
+        char moveSongUp[6];
+        char moveSongDown[6];
 } AppSettings;
 
 #endif

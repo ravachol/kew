@@ -159,4 +159,8 @@ void updatePlaylistToPlayingSong(void);
 
 void playRadio();
 
+void moveSongUp();
+
+void moveSongDown();
+
 #endif

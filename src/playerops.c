@@ -836,6 +836,153 @@ void playRadio()
         pthread_mutex_unlock(&(playlist.mutex));
 }
 
+void moveSongUp()
+{
+        if (appState.currentView != PLAYLIST_VIEW)
+        {
+                return;
+        }
+
+        bool rebuild = false;
+
+        int chosenRow = getChosenRow();
+
+        Node *node = findSelectedEntry(originalPlaylist, chosenRow);
+
+        if (node == NULL)
+        {
+                return;
+        }
+
+        int id = node->id;
+
+        pthread_mutex_lock(&(playlist.mutex));
+
+        if (node != NULL && nextSong != NULL && currentSong != NULL)
+        {
+                // Rebuild if current song, the next song or the song after are affected
+                if (currentSong != NULL)
+                {
+                        Node *temp = currentSong;
+
+                        for (int i = 0; i < 3; i++)
+                        {
+                                if (temp == NULL)
+                                        break;
+
+                                if (temp->id == id)
+                                {
+                                        rebuild = true;
+                                }
+                                temp = temp->next;
+                        }
+
+                }
+        }
+
+        moveUpList(originalPlaylist, node);
+        Node *plNode = findSelectedEntryById(&playlist, node->id);
+
+        if (!isShuffleEnabled())
+                moveUpList(&playlist, plNode);
+
+        chosenRow--;
+        chosenRow = (chosenRow > 0) ? chosenRow : 0;
+        setChosenRow(chosenRow);
+
+        if (rebuild && currentSong != NULL)
+        {
+                node = NULL;
+                nextSong = NULL;
+
+                tryNextSong = currentSong->next;
+                nextSongNeedsRebuilding = false;
+                nextSong = NULL;
+                nextSong = getListNext(currentSong);
+                rebuildNextSong(nextSong);
+                loadedNextSong = true;
+        }
+
+        pthread_mutex_unlock(&(playlist.mutex));
+
+        refresh = true;
+}
+
+void moveSongDown()
+{
+        if (appState.currentView != PLAYLIST_VIEW)
+        {
+                return;
+        }
+
+        bool rebuild = false;
+
+        int chosenRow = getChosenRow();
+
+        Node *node = findSelectedEntry(originalPlaylist, chosenRow);
+
+        if (node == NULL)
+        {
+                return;
+        }
+
+        int id = node->id;
+
+        pthread_mutex_lock(&(playlist.mutex));
+
+        if (node != NULL && nextSong != NULL && currentSong != NULL)
+        {
+                // Rebuild if current song, the next song or the previous song are affected
+                if (currentSong != NULL)
+                {
+                        Node *temp = currentSong;
+
+                        for (int i = 0; i < 2; i++)
+                        {
+                                if (temp == NULL)
+                                        break;
+
+                                if (temp->id == id)
+                                {
+                                        rebuild = true;
+                                }
+                                temp = temp->next;
+                        }
+
+                        if (currentSong->prev != NULL && currentSong->prev->id == id)
+                                rebuild = true;
+                }
+
+        }
+
+        moveDownList(originalPlaylist, node);
+        Node *plNode = findSelectedEntryById(&playlist, node->id);
+
+        if (!isShuffleEnabled())
+                moveDownList(&playlist, plNode);
+
+        chosenRow++;
+        chosenRow = (chosenRow >= originalPlaylist->count) ? originalPlaylist->count - 1 : chosenRow;
+        setChosenRow(chosenRow);
+
+        if (rebuild && currentSong != NULL)
+        {
+                node = NULL;
+                nextSong = NULL;
+
+                tryNextSong = currentSong->next;
+                nextSongNeedsRebuilding = false;
+                nextSong = NULL;
+                nextSong = getListNext(currentSong);
+                rebuildNextSong(nextSong);
+                loadedNextSong = true;
+        }
+
+        pthread_mutex_unlock(&(playlist.mutex));
+
+        refresh = true;
+}
+
 void dequeueSong(FileSystemEntry *child)
 {
         Node *node1 = findLastPathInPlaylist(child->fullPath, originalPlaylist);
@@ -1187,7 +1334,7 @@ int loadDecoder(SongData *songData, bool *songDataDeleted)
                         else if (pathEndsWith(songData->filePath, "opus"))
                                 result = prepareNextOpusDecoder(songData->filePath);
                         else if (pathEndsWith(songData->filePath, "ogg"))
-                                 result = prepareNextVorbisDecoder(songData->filePath);
+                                result = prepareNextVorbisDecoder(songData->filePath);
 #ifdef USE_FAAD
                         else if (pathEndsWith(songData->filePath, "m4a") || pathEndsWith(songData->filePath, "aac"))
                                 result = prepareNextM4aDecoder(songData);
@@ -1980,7 +2127,8 @@ void updatePlaylistToPlayingSong(void)
         nextSong = NULL;
 
         // Only refresh the screen if it makes sense to do so
-        if (appState.currentView == PLAYLIST_VIEW || appState.currentView == LIBRARY_VIEW){
+        if (appState.currentView == PLAYLIST_VIEW || appState.currentView == LIBRARY_VIEW)
+        {
                 refresh = true;
         }
 }

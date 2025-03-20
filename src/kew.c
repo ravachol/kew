@@ -77,7 +77,6 @@ struct winsize windowSize;
 char digitsPressed[MAX_SEQ_LEN];
 int digitsPressedCount = 0;
 static unsigned int updateCounter = 0;
-bool gPressed = false;
 bool startFromTop = false;
 int lastNotifiedId = -1;
 bool songWasRemoved = false;
@@ -259,20 +258,6 @@ struct Event processInput()
                 }
         }
 
-        // Handle gg
-        if (event.key[0] == 'g' && event.type == EVENT_NONE)
-        {
-                if (gPressed)
-                {
-                        event.type = EVENT_GOTOBEGINNINGOFPLAYLIST;
-                        gPressed = false;
-                }
-                else
-                {
-                        gPressed = true;
-                }
-        }
-
         // Handle numbers
         if (isdigit(event.key[0]))
         {
@@ -333,12 +318,6 @@ struct Event processInput()
         {
                 memset(digitsPressed, '\0', sizeof(digitsPressed));
                 digitsPressedCount = 0;
-        }
-
-        // Forget g pressed
-        if (event.key[0] != 'g')
-        {
-                gPressed = false;
         }
 
         return event;
@@ -767,6 +746,12 @@ void handleInput(AppState *state)
                 break;
         case EVENT_RADIOSEARCH:
                 refresh = true;
+                break;
+        case EVENT_MOVESONGUP:
+                moveSongUp();
+                break;
+        case EVENT_MOVESONGDOWN:
+                moveSongDown();
                 break;
         default:
                 fastForwarding = false;

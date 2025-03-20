@@ -2,6 +2,10 @@
 
 ### 3.1.0
 
+Rumors of kew's feature-completeness have been wildly exaggerated.
+
+Now with internet radio, mouse support and ability to move songs around in the playlist.
+
 #### Dependencies:
 
 - New dependency on libcurl.
@@ -14,6 +18,8 @@
 
 - Added mouse support.
   Use the middle button for playing or enqueueing a song. Right button to pause. This is configurable with plenty of options. By @Chromium-3-Oxide.
+
+- Move songs up and down the playlist with t and g. By @ravachol. Suggested By @HAPPIOcrz007.
 
 - Added support for m4a files using ALAC decoder. By @ravachol.
 

@@ -76,4 +76,6 @@ void resetRadioSearchResult(void);
 
 int getChosenRow(void);
 
+void setChosenRow(int row);
+
 #endif
