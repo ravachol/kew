@@ -38,7 +38,7 @@ typedef struct
 {
         Node *head;
         Node *tail;
-        int count; 
+        int count;
         pthread_mutex_t mutex;
 } PlayList;
 
@@ -93,3 +93,8 @@ int findNodeInList(PlayList *list, int id, Node **foundNode);
 void createPlayListFromFileSystemEntry(FileSystemEntry *root, PlayList *list, int playlistMax);
 
 void addShuffledAlbumsToPlayList(FileSystemEntry *root, PlayList *list, int playlistMax);
+
+void moveUpList(PlayList *list, Node *node);
+
+void moveDownList(PlayList *list, Node *node);
+

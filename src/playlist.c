@@ -67,6 +67,57 @@ void addToList(PlayList *list, Node *newNode)
         }
 }
 
+void moveUpList(PlayList *list, Node *node)
+{
+    if (node == list->head || node == NULL || node->prev == NULL)
+        return;
+
+    Node *prevNode = node->prev;
+    Node *nextNode = node->next;
+
+    if (prevNode->prev)
+        prevNode->prev->next = node;
+    else
+        list->head = node;
+
+    node->prev = prevNode->prev;
+    node->next = prevNode;
+
+    prevNode->prev = node;
+    prevNode->next = nextNode;
+
+    if (nextNode)
+        nextNode->prev = prevNode;
+    else
+        list->tail = prevNode;
+}
+
+void moveDownList(PlayList *list, Node *node)
+{
+    if (node == list->tail || node == NULL || node->next == NULL)
+        return;
+
+    Node *nextNode = node->next;
+    Node *prevNode = node->prev;
+    Node *nextNextNode = nextNode->next;
+
+    if (prevNode)
+        prevNode->next = nextNode;
+    else
+        list->head = nextNode;
+
+    nextNode->prev = prevNode;
+    nextNode->next = node;
+
+    node->prev = nextNode;
+    node->next = nextNextNode;
+
+    if (nextNextNode)
+        nextNextNode->prev = node;
+    else
+        list->tail = node;
+}
+
 Node *deleteFromList(PlayList *list, Node *node)
 {
         if (list->head == NULL || node == NULL)
