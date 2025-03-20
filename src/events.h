@@ -42,7 +42,9 @@ enum EventType
         EVENT_NEXTVIEW,
         EVENT_PREVVIEW,
         EVENT_CLEARPLAYLIST,
-        EVENT_RADIOSEARCH
+        EVENT_RADIOSEARCH,
+        EVENT_MOVESONGUP,
+        EVENT_MOVESONGDOWN
 };
 
 struct Event

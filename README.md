@@ -265,7 +265,7 @@ You can select all music by pressing the - MUSIC LIBRARY - header at the top of 
 * <kbd>Shift+Tab</kbd> to switch to previous view.
 * <kbd>Backspace</kbd> to clear the playlist.
 * <kbd>Delete</kbd> to remove a single playlist entry.
-* <kbd>gg</kbd> go to first song.
+* <kbd>t</kbd>, <kbd>g</kbd> to move songs up or down the playlist.
 * number + <kbd>G</kbd> or <kbd>Enter</kbd> to go to specific song number in the playlist.
 * <kbd>G</kbd> to go to last song.
 * <kbd>.</kbd> to add current song to kew.m3u (run with "kew .").

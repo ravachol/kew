@@ -964,10 +964,10 @@ int printLogoAndAdjustments(SongData *songData, int termWidth, UISettings *ui, i
 #ifndef __APPLE__
                 printf(" Pg Up and Pg Dn to scroll. Del to remove entry.\n");
 #else
-                printf(" Fn+Arrow Up and Fn+Arrow Down to scroll. Del to remove entry.\n\n");
+                printf(" Fn+Arrow Up and Fn+Arrow Down to scroll. Del to remove entry.\n");
 #endif
                 printBlankSpaces(indentation);
-                printf(" Backspace to clear.\n\n");
+                printf(" Backspace to clear. Use t, g to move the songs.\n\n");
                 return aboutRows + 4;
         }
         return aboutRows;
@@ -1653,4 +1653,9 @@ void freeMainDirectoryTree(AppState *state)
 int getChosenRow(void)
 {
         return chosenRow;
+}
+
+void setChosenRow(int row)
+{
+        chosenRow = row;
 }

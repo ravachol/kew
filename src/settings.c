@@ -118,6 +118,8 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         c_strcpy(settings.mouseScrollDownAction, "4", sizeof(settings.mouseScrollDownAction));
         c_strcpy(settings.mouseAltScrollUpAction, "7", sizeof(settings.mouseAltScrollUpAction));
         c_strcpy(settings.mouseAltScrollDownAction, "8", sizeof(settings.mouseAltScrollDownAction));
+        c_strcpy(settings.moveSongUp, "t", sizeof(settings.moveSongUp));
+        c_strcpy(settings.moveSongDown, "g", sizeof(settings.moveSongDown));
         c_strcpy(settings.quit, "q", sizeof(settings.quit));
         c_strcpy(settings.hardQuit, "\x1B", sizeof(settings.hardQuit));
         c_strcpy(settings.hardClearPlaylist, "\b", sizeof(settings.hardClearPlaylist));
@@ -330,10 +332,15 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
                         if (strcmp(pair->value, "") != 0)
                                 snprintf(settings.showSearchAlt, sizeof(settings.showSearchAlt), "%s", pair->value);
                 }
-                else if (strcmp(lowercaseKey, "showradiosearchalt") == 0)
+                else if (strcmp(lowercaseKey, "movesongup") == 0)
                 {
                         if (strcmp(pair->value, "") != 0)
-                                snprintf(settings.showRadioSearchAlt, sizeof(settings.showRadioSearchAlt), "%s", pair->value);
+                                snprintf(settings.moveSongUp, sizeof(settings.moveSongUp), "%s", pair->value);
+                }
+                else if (strcmp(lowercaseKey, "movesongdown") == 0)
+                {
+                        if (strcmp(pair->value, "") != 0)
+                                snprintf(settings.moveSongDown, sizeof(settings.moveSongDown), "%s", pair->value);
                 }
                 else if (strcmp(lowercaseKey, "showkeysalt") == 0 && strcmp(pair->value, "B") != 0)
                 {
@@ -495,6 +502,8 @@ void mapSettingsToKeys(AppSettings *settings, UISettings *ui, EventMapping *mapp
         mappings[57] = (EventMapping){settings->showRadioSearchAlt, EVENT_SHOWRADIOSEARCH};
         mappings[58] = (EventMapping){settings->hardShowRadioSearch, EVENT_SHOWRADIOSEARCH};
         mappings[59] = (EventMapping){settings->hardShowRadioSearchAlt, EVENT_SHOWRADIOSEARCH};
+        mappings[60] = (EventMapping){settings->moveSongUp, EVENT_MOVESONGUP};
+        mappings[61] = (EventMapping){settings->moveSongDown, EVENT_MOVESONGDOWN};
 }
 
 char *getConfigFilePath(char *configdir)
@@ -812,6 +821,8 @@ void setConfig(AppSettings *settings, UISettings *ui)
         fprintf(file, "savePlaylist=%s\n", settings->savePlaylist);
         fprintf(file, "addToMainPlaylist=%s\n", settings->addToMainPlaylist);
         fprintf(file, "updateLibrary=%s\n", settings->updateLibrary);
+        fprintf(file, "moveSongUp=%s\n", settings->moveSongUp);
+        fprintf(file, "moveSongDown=%s\n", settings->moveSongDown);
 
         fprintf(file, "\n# Alt keys for the different main views, normally F2-F7:\n");
         fprintf(file, "showPlaylistAlt=%s\n", settings->showPlaylistAlt);
