@@ -288,7 +288,7 @@ char *getConfigPath(void)
 
 void removeUnneededChars(char *str)
 {
-        // Do not remove characters if string does not contain letters
+        // Do not remove characters if filename only contains digits
         int i = 0;
         bool stringContainsLetters = false;
         while (str[i] != '\0')
