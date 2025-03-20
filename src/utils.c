@@ -293,7 +293,7 @@ void removeUnneededChars(char *str)
         bool stringContainsLetters = false;
         while (str[i] != '\0')
         {
-                if (!isdigit(str[i]) && str[i] != '.' && str[i] != '-' && str[i] != ' ')
+                if (!isdigit(str[i]))
                 {
                         stringContainsLetters = true;
                 }
