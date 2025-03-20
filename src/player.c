@@ -1171,7 +1171,7 @@ void processName(const char *name, char *output, int maxWidth)
         c_strcpy(output, name, copyLength + 1);
 
         output[copyLength] = '\0';
-        removeUnneededChars(output, copyLength);
+        removeUnneededChars(output);
         trim(output, copyLength);
 }
 
