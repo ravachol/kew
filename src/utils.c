@@ -286,14 +286,24 @@ char *getConfigPath(void)
         return configPath;
 }
 
-void removeUnneededChars(char *str, int length)
+void removeUnneededChars(char *str)
 {
-        if (length < 6)
+        // Do not remove characters if string does not contain letters
+        int i = 0;
+        bool stringContainsLetters = false;
+        while (str[i] != '\0')
+        {
+                if (!isdigit(str[i]) && str[i] != '.' && str[i] != '-' && str[i] != ' ')
+                {
+                        stringContainsLetters = true;
+                }
+                i++;
+        }
+        if (!stringContainsLetters)
         {
                 return;
         }
 
-        int i;
         for (i = 0; i < 3 && str[i] != '\0' && str[i] != ' '; i++)
         {
                 if (isdigit(str[i]) || str[i] == '.' || str[i] == '-' || str[i] == ' ')
