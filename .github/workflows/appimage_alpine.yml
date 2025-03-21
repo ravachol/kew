@@ -34,7 +34,7 @@ jobs:
             musl \
             musl-dev \
             gcompat \
-            libcurl-dev
+            curl-dev
 
       - name: Build code with static linking
         run: |
