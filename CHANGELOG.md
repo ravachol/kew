@@ -67,7 +67,7 @@ Now with internet radio, mouse support and ability to move songs around in the p
 #### Special Thanks To These Sponsors:
 
 - @SpaceCheeseWizard
-- @nicolasdmtr
+- @nikolasdmtr
 - *one private sponsor*
 
 ### 3.0.3
