@@ -74,8 +74,16 @@ sudo pacman -Syu --noconfirm --needed pkg-config faad2 taglib fftw git gcc make 
 
 #### For macOS:
 
+Install git:
+
 ```bash
-brew install gettext faad2 taglib chafa fftw opus opusfile libvorbis libogg glib pkg-config make git libcurl
+xcode-select --install
+```
+
+Install dependencies:
+
+```bash
+brew install gettext faad2 taglib chafa fftw opus opusfile libvorbis libogg glib pkg-config make libcurl
 ```
 Notes for mac users:
 1) A sixel-capable terminal like kitty or WezTerm is recommended for macOS.
