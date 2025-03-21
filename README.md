@@ -83,7 +83,7 @@ xcode-select --install
 Install dependencies:
 
 ```bash
-brew install gettext faad2 taglib chafa fftw opus opusfile libvorbis libogg glib pkg-config make libcurl
+brew install gettext faad2 taglib chafa fftw opus opusfile libvorbis libogg glib pkg-config make curl
 ```
 Notes for mac users:
 1) A sixel-capable terminal like kitty or WezTerm is recommended for macOS.
