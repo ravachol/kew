@@ -324,7 +324,7 @@ void removeUnneededChars(char *str, int length)
         while (str[i] != '\0')
         {
                 // Only remove if there are no spaces around
-                if (str[i] == '-' || str[i] == '_' && (i > 1 && i < length && str[i - 1] != ' ' && str[i + 1] != ' '))
+                if ((str[i] == '-' || str[i] == '_') && (i > 1 && i < length && str[i - 1] != ' ' && str[i + 1] != ' '))
                 {
                         str[i] = ' ';
                 }
