@@ -286,7 +286,7 @@ char *getConfigPath(void)
         return configPath;
 }
 
-void removeUnneededChars(char *str)
+void removeUnneededChars(char *str, int length)
 {
         // Do not remove characters if filename only contains digits
         int i = 0;
@@ -315,12 +315,16 @@ void removeUnneededChars(char *str)
                         }
                         str[j] = '\0';
                         i--; // Decrement i to re-check the current index
+                        length--;
                 }
         }
+
+        // Remove hyphens and underscores from filename
         i = 0;
         while (str[i] != '\0')
         {
-                if (str[i] == '-' || str[i] == '_')
+                // Only remove if there are no spaces around
+                if (str[i] == '-' || str[i] == '_' && (i > 1 && i < length && str[i - 1] != ' ' && str[i + 1] != ' '))
                 {
                         str[i] = ' ';
                 }
