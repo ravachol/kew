@@ -37,6 +37,7 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         c_strcpy(settings.allowNotifications, "1", sizeof(settings.allowNotifications));
         c_strcpy(settings.coverAnsi, "0", sizeof(settings.coverAnsi));
         c_strcpy(settings.quitAfterStopping, "0", sizeof(settings.quitAfterStopping));
+        c_strcpy(settings.hideGlimmeringText, "0", sizeof(settings.hideGlimmeringText));
 #ifdef __APPLE__
         c_strcpy(settings.visualizerEnabled, "0", sizeof(settings.visualizerEnabled)); // visualizer looks wonky in default terminal
         c_strcpy(settings.useConfigColors, "1", sizeof(settings.useConfigColors));     // colors from album look wrong in default terminal
@@ -302,6 +303,10 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
                 else if (strcmp(lowercaseKey, "quitonstop") == 0)
                 {
                         snprintf(settings.quitAfterStopping, sizeof(settings.quitAfterStopping), "%s", pair->value);
+                }
+                else if (strcmp(lowercaseKey, "hideglimmeringtext") == 0)
+                {
+                        snprintf(settings.hideGlimmeringText, sizeof(settings.hideGlimmeringText), "%s", pair->value);
                 }
                 else if (strcmp(lowercaseKey, "quit") == 0)
                 {
@@ -608,6 +613,7 @@ void getConfig(AppSettings *settings, UISettings *ui)
         ui->visualizerEnabled = (settings->visualizerEnabled[0] == '1');
         ui->useConfigColors = (settings->useConfigColors[0] == '1');
         ui->quitAfterStopping = (settings->quitAfterStopping[0] == '1');
+        ui->hideGlimmeringText = (settings->hideGlimmeringText[0] == '1');
         ui->hideLogo = (settings->hideLogo[0] == '1');
         ui->hideHelp = (settings->hideHelp[0] == '1');
 
@@ -711,6 +717,8 @@ void setConfig(AppSettings *settings, UISettings *ui)
                 ui->useConfigColors ? c_strcpy(settings->useConfigColors, "1", sizeof(settings->useConfigColors)) : c_strcpy(settings->useConfigColors, "0", sizeof(settings->useConfigColors));
         if (settings->quitAfterStopping[0] == '\0')
                 ui->quitAfterStopping ? c_strcpy(settings->quitAfterStopping, "1", sizeof(settings->quitAfterStopping)) : c_strcpy(settings->quitAfterStopping, "0", sizeof(settings->quitAfterStopping));
+        if (settings->hideGlimmeringText[0] == '\0')
+                ui->hideGlimmeringText ? c_strcpy(settings->hideGlimmeringText, "1", sizeof(settings->hideGlimmeringText)) : c_strcpy(settings->hideGlimmeringText, "0", sizeof(settings->hideGlimmeringText));
         if (settings->hideLogo[0] == '\0')
                 ui->hideLogo ? c_strcpy(settings->hideLogo, "1", sizeof(settings->hideLogo)) : c_strcpy(settings->hideLogo, "0", sizeof(settings->hideLogo));
         if (settings->hideHelp[0] == '\0')
@@ -777,6 +785,9 @@ void setConfig(AppSettings *settings, UISettings *ui)
 
         fprintf(file, "\n# Same as '--quitonstop' flag, exits after playing the whole playlist.\n");
         fprintf(file, "quitOnStop=%s\n", settings->quitAfterStopping);
+
+        fprintf(file, "\n# Glimmering text on the bottom row.\n");
+        fprintf(file, "hideGlimmeringText=%s\n", settings->hideGlimmeringText);
 
         fprintf(file, "\n# Color values are 0=Black, 1=Red, 2=Green, 3=Yellow, 4=Blue, 5=Magenta, 6=Cyan, 7=White\n");
         fprintf(file, "# These mostly affect the library view.\n\n");

@@ -578,7 +578,7 @@ void printErrorRow(void)
         }
 }
 
-void printLastRow(void)
+void printLastRow(UISettings *ui)
 {
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
@@ -659,7 +659,7 @@ void printLastRow(void)
         int textLength = strnlen(text, 100);
         int randomNumber = getRandomNumber(1, 808);
 
-        if (randomNumber == 808)
+        if (randomNumber == 808 && !ui->hideGlimmeringText)
                 printGlimmeringText(text, textLength, nerdFontText, lastRowColor);
         else
         {
@@ -747,7 +747,7 @@ int showKeyBindings(SongData *songdata, AppSettings *settings, UISettings *ui)
         }
 
         printErrorRow();
-        printLastRow();
+        printLastRow(ui);
         numPrintedRows++;
 
         return numPrintedRows;
@@ -994,7 +994,7 @@ void showSearch(SongData *songData, int *chosenRow, UISettings *ui)
         displaySearch(maxSearchListSize, indent, chosenRow, startSearchIter, ui);
 
         printErrorRow();
-        printLastRow();
+        printLastRow(ui);
 }
 
 void showRadioSearch(SongData *songData, int *chosenRow, UISettings *ui)
@@ -1018,7 +1018,7 @@ void showRadioSearch(SongData *songData, int *chosenRow, UISettings *ui)
         displayRadioSearch(maxRadioSearchListSize, indent, chosenRow, startSearchIter, ui);
 
         printErrorRow();
-        printLastRow();
+        printLastRow(ui);
 }
 
 void showPlaylist(SongData *songData, PlayList *list, int *chosenSong, int *chosenNodeId, AppState *state)
@@ -1042,7 +1042,7 @@ void showPlaylist(SongData *songData, PlayList *list, int *chosenSong, int *chos
         displayPlaylist(list, maxListSize, indent, chosenSong, chosenNodeId, state->uiState.resetPlaylistDisplay, state);
 
         printErrorRow();
-        printLastRow();
+        printLastRow(&state->uiSettings);
 }
 
 void resetSearchResult(void)
@@ -1098,7 +1098,7 @@ void printVisualizer(double elapsedSeconds, AppState *state)
                 drawSpectrumVisualizer(ui->visualizerHeight, visualizerWidth, ui->color, indent, ui->useConfigColors);
                 printElapsedBars(calcElapsedBars(elapsedSeconds, duration, uis->numProgressBars), uis->numProgressBars);
                 printErrorRow();
-                printLastRow();
+                printLastRow(&state->uiSettings);
 #ifndef __APPLE__
                 restoreCursorPosition();
                 cursorJump(1);
@@ -1115,7 +1115,7 @@ void printVisualizer(double elapsedSeconds, AppState *state)
                         printf("\n");
                         printErrorRow();
                         saveCursorPosition();
-                        printLastRow();
+                        printLastRow(ui);
                         restoreCursorPosition();
                         cursorJump(2);
 #else
@@ -1124,7 +1124,7 @@ void printVisualizer(double elapsedSeconds, AppState *state)
                         restoreCursorPosition();
                         printf("\n");
                         saveCursorPosition();
-                        printLastRow();
+                        printLastRow(ui);
                         restoreCursorPosition();
                         cursorJump(1);
 #endif
@@ -1518,7 +1518,7 @@ void showLibrary(SongData *songData, AppState *state)
         }
 
         printErrorRow();
-        printLastRow();
+        printLastRow(ui);
 
         if (refresh)
         {
