@@ -1156,16 +1156,6 @@ void cleanupOnExit()
 #ifdef USE_DBUS
         cleanupDbusConnection();
 #endif
-        if (noMusicFound)
-        {
-                printf("No Music found.\n");
-                printf("Please make sure the path is set correctly. \n");
-                printf("To set it type: kew path \"/path/to/Music\". \n");
-        }
-        else if (noPlaylist)
-        {
-                printf("Music not found.\n");
-        }
 
 #ifdef DEBUG
         fclose(logFile);
@@ -1179,6 +1169,18 @@ void cleanupOnExit()
         showCursor();
         exitAlternateScreenBuffer();
         disableMouseButtons();
+
+        if (noMusicFound)
+        {
+                printf("No Music found.\n");
+                printf("Please make sure the path is set correctly. \n");
+                printf("To set it type: kew path \"/path/to/Music\". \n");
+        }
+        else if (noPlaylist)
+        {
+                printf("Music not found.\n");
+        }
+
         fflush(stdout);
 }
 
@@ -1636,24 +1638,24 @@ int main(int argc, char *argv[])
         }
 
         enableMouseButtons();
-        enterAlternateScreenBuffer();
+
         initializeStateAndSettings(&appState, &settings);
+
 
         if (argc == 3 && (strcmp(argv[1], "path") == 0))
         {
                 c_strcpy(settings.path, argv[2], sizeof(settings.path));
                 setConfig(&settings, ui);
-                atexit(cleanupOnExit);
-                openLibrary(&appState);
-                return 0;
+                exit(0);
         }
+
+        enterAlternateScreenBuffer();
+        atexit(cleanupOnExit);
 
         if (settings.path[0] == '\0')
         {
                 setMusicPath();
         }
-
-        atexit(cleanupOnExit);
 
         handleOptions(&argc, argv, ui);
         loadSpecialPlaylist(settings.path);
