@@ -119,6 +119,7 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         c_strcpy(settings.mouseAltScrollDownAction, "8", sizeof(settings.mouseAltScrollDownAction));
         c_strcpy(settings.moveSongUp, "t", sizeof(settings.moveSongUp));
         c_strcpy(settings.moveSongDown, "g", sizeof(settings.moveSongDown));
+        c_strcpy(settings.enqueueAndPlay, "^M", sizeof(settings.enqueueAndPlay));
         c_strcpy(settings.quit, "q", sizeof(settings.quit));
         c_strcpy(settings.hardQuit, "\x1B", sizeof(settings.hardQuit));
         c_strcpy(settings.hardClearPlaylist, "\b", sizeof(settings.hardClearPlaylist));
@@ -341,6 +342,11 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
                         if (strcmp(pair->value, "") != 0)
                                 snprintf(settings.moveSongDown, sizeof(settings.moveSongDown), "%s", pair->value);
                 }
+                else if (strcmp(lowercaseKey, "enqueueandplay") == 0)
+                {
+                        if (strcmp(pair->value, "") != 0)
+                                snprintf(settings.enqueueAndPlay, sizeof(settings.enqueueAndPlay), "%s", pair->value);
+                }
                 else if (strcmp(lowercaseKey, "showkeysalt") == 0 && strcmp(pair->value, "B") != 0)
                 {
                         // We need to prevent the previous key B or else config files wont get updated
@@ -502,6 +508,7 @@ void mapSettingsToKeys(AppSettings *settings, UISettings *ui, EventMapping *mapp
         mappings[58] = (EventMapping){settings->hardShowRadioSearchAlt, EVENT_SHOWRADIOSEARCH};
         mappings[59] = (EventMapping){settings->moveSongUp, EVENT_MOVESONGUP};
         mappings[60] = (EventMapping){settings->moveSongDown, EVENT_MOVESONGDOWN};
+        mappings[61] = (EventMapping){settings->enqueueAndPlay, EVENT_ENQUEUEANDPLAY};
 }
 
 char *getConfigFilePath(char *configdir)
@@ -821,6 +828,7 @@ void setConfig(AppSettings *settings, UISettings *ui)
         fprintf(file, "updateLibrary=%s\n", settings->updateLibrary);
         fprintf(file, "moveSongUp=%s\n", settings->moveSongUp);
         fprintf(file, "moveSongDown=%s\n", settings->moveSongDown);
+        fprintf(file, "enqueueAndPlay=%s\n", settings->enqueueAndPlay);
 
         fprintf(file, "\n# Alt keys for the different main views, normally F2-F7:\n");
         fprintf(file, "showPlaylistAlt=%s\n", settings->showPlaylistAlt);
