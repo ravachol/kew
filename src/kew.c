@@ -231,7 +231,7 @@ struct Event processInput()
         for (int i = 0; i < NUM_KEY_MAPPINGS; i++)
         {
                 if (keyMappings[i].seq[0] != '\0' &&
-                    ((seq[0] == '\033' && strnlen(seq, MAX_SEQ_LEN) > 1 && strcmp(seq + 1, keyMappings[i].seq) == 0) ||
+                    ((seq[0] == '\033' && strcmp(seq, "\033\n") != 0 && strnlen(seq, MAX_SEQ_LEN) > 1 && strcmp(seq + 1, keyMappings[i].seq) == 0) ||
                      strcmp(seq, keyMappings[i].seq) == 0))
                 {
                         if (event.type == EVENT_SEARCH && keyMappings[i].eventType != EVENT_GOTOSONG)
@@ -244,6 +244,12 @@ struct Event processInput()
                                 break;
                         }
 
+                        event.type = keyMappings[i].eventType;
+                        break;
+                }
+
+                if (strcmp(seq, "\033\n") == 0 && strcmp(keyMappings[i].seq, "^M") == 0) // ALT+ENTER
+                {
                         event.type = keyMappings[i].eventType;
                         break;
                 }
@@ -495,35 +501,93 @@ int getSongNumber(const char *str)
         return (int)value;
 }
 
+FileSystemEntry *enqueue(AppState *state, FileSystemEntry *entry)
+{
+        FileSystemEntry *firstEnqueuedEntry = NULL;
+
+        if (audioData.restart)
+        {
+                Node *lastSong = findSelectedEntryById(&playlist, lastPlayedId);
+                startFromTop = false;
+
+                if (lastSong == NULL)
+                {
+                        if (playlist.tail != NULL)
+                                lastPlayedId = playlist.tail->id;
+                        else
+                        {
+                                lastPlayedId = -1;
+                                startFromTop = true;
+                        }
+                }
+        }
+
+        pthread_mutex_lock(&(playlist.mutex));
+
+        firstEnqueuedEntry = enqueueSongs(entry, &state->uiState);
+        resetListAfterDequeuingPlayingSong(state);
+
+        pthread_mutex_unlock(&(playlist.mutex));
+
+        return firstEnqueuedEntry;
+}
+
+void enqueueAndPlay(AppState *state)
+{
+        if (state->currentView == LIBRARY_VIEW || state->currentView == SEARCH_VIEW)
+        {
+                if (isRadioPlaying())
+                {
+                        stopRadio();
+                        setEOFReached();
+                }
+        }
+
+        FileSystemEntry *firstEnqueuedEntry = NULL;
+
+        bool wasEmpty = (playlist.count == 0);
+
+        if (state->currentView == LIBRARY_VIEW)
+        {
+                firstEnqueuedEntry = enqueue(state, getCurrentLibEntry());
+        }
+
+        if (state->currentView == SEARCH_VIEW)
+        {
+                FileSystemEntry *entry = getCurrentSearchEntry();
+                firstEnqueuedEntry = enqueue(state, entry);
+
+                setChosenDir(entry);
+        }
+
+        if (firstEnqueuedEntry && !wasEmpty)
+        {
+                Node *song = findPathInPlaylist(firstEnqueuedEntry->fullPath, &playlist);
+
+                loadedNextSong = true;
+
+                nextSongNeedsRebuilding = false;
+
+                unloadSongA(state);
+                unloadSongB(state);
+
+                usingSongDataA = false;
+                audioData.currentFileIndex = 0;
+                loadingdata.loadA = true;
+
+                playbackPlay(&totalPauseSeconds, &pauseSeconds);
+
+                play(song);
+        }
+}
+
 void handleGoToSong(AppState *state)
 {
         bool canGoNext = (currentSong != NULL && currentSong->next != NULL);
 
         if (state->currentView == LIBRARY_VIEW)
         {
-                if (audioData.restart)
-                {
-                        Node *lastSong = findSelectedEntryById(&playlist, lastPlayedId);
-                        startFromTop = false;
-
-                        if (lastSong == NULL)
-                        {
-                                if (playlist.tail != NULL)
-                                        lastPlayedId = playlist.tail->id;
-                                else
-                                {
-                                        lastPlayedId = -1;
-                                        startFromTop = true;
-                                }
-                        }
-                }
-
-                pthread_mutex_lock(&(playlist.mutex));
-
-                enqueueSongs(getCurrentLibEntry(), &state->uiState);
-                resetListAfterDequeuingPlayingSong(state);
-
-                pthread_mutex_unlock(&(playlist.mutex));
+                enqueue(state, getCurrentLibEntry());
         }
         else if (state->currentView == SEARCH_VIEW)
         {
@@ -752,6 +816,9 @@ void handleInput(AppState *state)
                 break;
         case EVENT_MOVESONGDOWN:
                 moveSongDown();
+                break;
+        case EVENT_ENQUEUEANDPLAY:
+                enqueueAndPlay(state);
                 break;
         default:
                 fastForwarding = false;
@@ -1640,7 +1707,6 @@ int main(int argc, char *argv[])
         enableMouseButtons();
 
         initializeStateAndSettings(&appState, &settings);
-
 
         if (argc == 3 && (strcmp(argv[1], "path") == 0))
         {

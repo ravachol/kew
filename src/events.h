@@ -44,7 +44,8 @@ enum EventType
         EVENT_CLEARPLAYLIST,
         EVENT_RADIOSEARCH,
         EVENT_MOVESONGUP,
-        EVENT_MOVESONGDOWN
+        EVENT_MOVESONGDOWN,
+        EVENT_ENQUEUEANDPLAY
 };
 
 struct Event

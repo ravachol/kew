@@ -192,6 +192,7 @@ typedef struct
         char hardClearPlaylist[6];
         char moveSongUp[6];
         char moveSongDown[6];
+        char enqueueAndPlay[6];
 } AppSettings;
 
 #endif
