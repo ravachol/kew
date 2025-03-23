@@ -1,6 +1,6 @@
 #include "common.h"
 
-const char VERSION[] = "3.1.1";
+const char VERSION[] = "3.1.2";
 
 #define ERROR_MESSAGE_LENGTH 256
 
