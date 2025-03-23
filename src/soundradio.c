@@ -500,7 +500,7 @@ int internetRadioSearch(const char *searchTerm, void (*callback)(const char *, c
                         int count = 0;
                         while ((ptr = strchr(ptr, '{')) && count < MAX_STATIONS)
                         {
-                                char name[128], resolved[2048], country[64], codec[32], bitrate[16], votes[16];
+                                char name[128], resolved[4096], country[64], codec[32], bitrate[16], votes[16];
                                 GETF("\"name\"", name);
                                 GETF("\"url_resolved\"", resolved);
                                 GETF("\"country\"", country);
@@ -509,8 +509,10 @@ int internetRadioSearch(const char *searchTerm, void (*callback)(const char *, c
                                 int vo = GETF("\"votes\"", votes) ? atoi(votes) : 0;
 
                                 if (!isSafeURL(resolved))
+                                {
+                                        ptr++;
                                         continue;
-
+                                }
                                 callback(name, resolved, getCountryCode(country), codec, br, vo);
                                 count++;
                                 ptr++;
