@@ -59,6 +59,7 @@ typedef struct
         int titleDelay;                                 // Delay when drawing title in track view
         int cacheLibrary;                               // Cache the library or not
         bool quitAfterStopping;                         // Exit kew when the music stops or not
+        bool hideGlimmeringText;                        // Glimmering text on the bottom row
         time_t lastTimeAppRan;                          // When did this app run last, used for updating the cached library if it has been modified since that time
 } UISettings;
 
@@ -187,6 +188,7 @@ typedef struct
         char hideHelp[2];
         char cacheLibrary[6];
         char quitAfterStopping[2];
+        char hideGlimmeringText[2];
         char nextView[6];
         char prevView[6];
         char hardClearPlaylist[6];
