@@ -1659,6 +1659,7 @@ void initState(AppState *state)
         state->uiSettings.hideLogo = false;
         state->uiSettings.hideHelp = false;
         state->uiSettings.quitAfterStopping = false;
+        state->uiSettings.hideGlimmeringText = false;
         state->uiSettings.coverAnsi = false;
         state->uiSettings.visualizerHeight = 5;
         state->uiSettings.titleDelay = 9;
