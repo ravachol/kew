@@ -2,9 +2,11 @@
 
 ### 3.1.2
 
-- Added ability to play a song directly from the library (instead of just adding it to the playlist) by pressing Alt+Enter. By @ravachol.
+- Added ability to play a song directly from the library (instead of just adding it to the playlist) by pressing Alt+Enter. Suggested by @PrivacyFriendlyMuffins. By @ravachol.
 
 - Added ability to disable the glimmering (flashing) last row. By @Chromium-3-Oxide.
+
+- Fix radio search sometimes freezing because of an invalid radio station URL. Found by @joel. by @ravachol.
 
 ### 3.1.1
 
