@@ -63,7 +63,7 @@ Node *getNextSong(void);
 
 void handleRemove(void);
 
-void enqueueSongs(FileSystemEntry *entry, UIState *uis);
+FileSystemEntry *enqueueSongs(FileSystemEntry *entry, UIState *uis);
 
 void updateLastSongSwitchTime(void);
 
@@ -162,5 +162,7 @@ void playRadio();
 void moveSongUp();
 
 void moveSongDown();
+
+void play(Node *song);
 
 #endif

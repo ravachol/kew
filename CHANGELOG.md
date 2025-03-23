@@ -1,8 +1,16 @@
 # CHANGELOG
 
-### 3.1.0
+### 3.1.2
 
-Rumors of kew's feature-completeness have been wildly exaggerated.
+- Added ability to play a song directly from the library (instead of just adding it to the playlist) by pressing Alt+Enter. By @ravachol.
+
+- Added ability to disable the glimmering (flashing) last row. By @Chromium-3-Oxide.
+
+### 3.1.1
+
+- Reverts the command `kew path` to its previous behavior (exit on completion), which enables some automated tests to function again. By @ravachol.
+
+### 3.1.0
 
 Now with internet radio, mouse support and ability to move songs around in the playlist.
 

@@ -846,7 +846,7 @@ void flipNextPage(void)
                 startSearchIter += maxSearchListSize - 1;
                 refresh = true;
         }
-        else if (appState.currentView == SEARCH_VIEW)
+        else if (appState.currentView == RADIOSEARCH_VIEW)
         {
                 chosenRadioSearchResultRow += maxRadioSearchListSize - 1;
                 chosenRadioSearchResultRow = (chosenRadioSearchResultRow >= getRadioSearchResultsCount()) ? getRadioSearchResultsCount() - 1 : chosenRadioSearchResultRow;
@@ -959,7 +959,7 @@ int printLogoAndAdjustments(SongData *songData, int termWidth, UISettings *ui, i
         {
                 setDefaultTextColor();
                 printBlankSpaces(indentation);
-                printf(" Use ↑, ↓ or k, j to choose. Enter to accept.\n");
+                printf(" Use ↑, ↓ or k, j to choose. Enter=Accept.\n");
                 printBlankSpaces(indentation);
 #ifndef __APPLE__
                 printf(" Pg Up and Pg Dn to scroll. Del to remove entry.\n");
@@ -987,7 +987,7 @@ void showSearch(SongData *songData, int *chosenRow, UISettings *ui)
         if (term_w > indent + 38 && !ui->hideHelp)
         {
                 printBlankSpaces(indent);
-                printf(" Use ↑, ↓ to choose. Enter to accept.\n\n");
+                printf(" Use ↑, ↓ to choose. Enter=Accept. Alt+Enter=Play.\n\n");
                 maxSearchListSize -= 2;
         }
 
@@ -1479,16 +1479,16 @@ void showLibrary(SongData *songData, AppState *state)
 
         setDefaultTextColor();
 
-        if (term_w > 60 && !ui->hideHelp)
+        if (term_w > 67 && !ui->hideHelp)
         {
                 maxLibListSize -= 3;
                 printBlankSpaces(indent);
-                printf(" Use ↑, ↓ or k, j to choose. Enter to enqueue/dequeue.\n");
+                printf(" Use ↑, ↓ or k, j to choose. Enter=Enqueue/Dequeue. Alt+Enter=Play.\n");
                 printBlankSpaces(indent);
 #ifndef __APPLE__
                 printf(" Pg Up and Pg Dn to scroll. Press u to update the library.\n\n");
 #else
-                printf(" Fn+Arrow Up and Fn+Arrow Down to scroll. Press u to update the library.\n\n");
+                printf(" Fn+Arrow Up and Fn+Arrow Down to scroll. u to update the library.\n\n");
 #endif
         }
 

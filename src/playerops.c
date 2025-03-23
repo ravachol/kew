@@ -166,17 +166,10 @@ void playbackPause(struct timespec *pause_time)
         pausePlayback();
 }
 
-void skipToSong(int id, bool startPlaying)
+void play(Node *song)
 {
-        if (songLoading || !loadedNextSong || skipping || clearingErrors)
-                if (!forceSkip)
-                        return;
-
-        Node *found = NULL;
-        findNodeInList(&playlist, id, &found);
-
-        if (found != NULL)
-                currentSong = found;
+        if (song != NULL)
+                currentSong = song;
         else
         {
                 return;
@@ -187,11 +180,6 @@ void skipToSong(int id, bool startPlaying)
         loadedNextSong = false;
         songLoading = true;
         forceSkip = false;
-
-        if (startPlaying)
-        {
-                playbackPlay(&totalPauseSeconds, &pauseSeconds);
-        }
 
         // cancel starting from top
         if (waitingForPlaylist || audioData.restart)
@@ -227,6 +215,23 @@ void skipToSong(int id, bool startPlaying)
 
         updateLastSongSwitchTime();
         skip();
+}
+
+void skipToSong(int id, bool startPlaying)
+{
+        if (songLoading || !loadedNextSong || skipping || clearingErrors)
+                if (!forceSkip)
+                        return;
+
+        Node *found = NULL;
+        findNodeInList(&playlist, id, &found);
+
+        if (startPlaying)
+        {
+                playbackPlay(&totalPauseSeconds, &pauseSeconds);
+        }
+
+        play(found);
 }
 
 void skipToBegginningOfSong(void)
@@ -1114,7 +1119,7 @@ bool hasDequeuedChildren(FileSystemEntry *parent)
         return isDequeued;
 }
 
-void enqueueSongs(FileSystemEntry *entry, UIState *uis)
+FileSystemEntry *enqueueSongs(FileSystemEntry *entry, UIState *uis)
 {
         FileSystemEntry *chosenDir = getChosenDir();
         bool hasEnqueued = false;
@@ -1216,6 +1221,8 @@ void enqueueSongs(FileSystemEntry *entry, UIState *uis)
         {
                 reshufflePlaylist();
         }
+
+        return firstEnqueuedEntry;
 }
 
 void handleRemove(void)
