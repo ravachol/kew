@@ -1599,19 +1599,10 @@ void skipToNextSong(AppState *state)
 
 void setCurrentSongToPrev(void)
 {
-        if (currentSong != NULL)
+        if (currentSong != NULL && currentSong->prev != NULL)
         {
-                if (isShuffleEnabled())
-                {
-                        if (currentSong->prev == NULL && currentSong->next != NULL)
-                                currentSong = currentSong->next;
-                        else
-                                return;
-                }
-                else
-                {
-                        currentSong = currentSong->prev;
-                }
+                lastPlayedId = currentSong->id;
+                currentSong = currentSong->prev;
         }
 }
 
@@ -1670,6 +1661,7 @@ void skipToPrevSong(AppState *state)
 
         playbackPlay(&totalPauseSeconds, &pauseSeconds);
 
+        state->uiState.doNotifyMPRISSwitched = true;
         skipping = true;
         skipOutOfOrder = true;
         loadedNextSong = false;
