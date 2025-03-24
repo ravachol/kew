@@ -88,6 +88,7 @@ bool exactSearch = false;
 int fuzzySearchThreshold = 2;
 int maxDigitsPressedCount = 9;
 int isNewSearchTerm = false;
+bool wasEndOfList = false;
 
 void updateLastInputTime(void)
 {
@@ -532,6 +533,30 @@ FileSystemEntry *enqueue(AppState *state, FileSystemEntry *entry)
         return firstEnqueuedEntry;
 }
 
+void playPreProcessing()
+{
+        wasEndOfList = false;
+        if (audioData.endOfListReached)
+                wasEndOfList = true;
+}
+
+void playPostProcessing()
+{
+        if ((songWasRemoved && currentSong != NULL))
+        {
+                usingSongDataA = !usingSongDataA;
+                songWasRemoved = false;
+        }
+
+        if (wasEndOfList)
+        {
+                usingSongDataA = true;
+                skipOutOfOrder = false;
+        }
+
+        audioData.endOfListReached = false;
+}
+
 void enqueueAndPlay(AppState *state)
 {
         if (state->currentView == LIBRARY_VIEW || state->currentView == SEARCH_VIEW)
@@ -546,6 +571,8 @@ void enqueueAndPlay(AppState *state)
         FileSystemEntry *firstEnqueuedEntry = NULL;
 
         bool wasEmpty = (playlist.count == 0);
+
+        playPreProcessing();
 
         if (state->currentView == LIBRARY_VIEW)
         {
@@ -578,6 +605,8 @@ void enqueueAndPlay(AppState *state)
                 playbackPlay(&totalPauseSeconds, &pauseSeconds);
 
                 play(song);
+
+                playPostProcessing();
         }
 }
 
@@ -634,26 +663,11 @@ void handleGoToSong(AppState *state)
                                 audioData.currentFileIndex = 0;
                                 loadingdata.loadA = true;
 
-                                bool wasEndOfList = false;
-                                if (audioData.endOfListReached)
-                                        wasEndOfList = true;
+                                playPreProcessing();
 
                                 skipToSong(state->uiState.chosenNodeId, true);
 
-                                if ((songWasRemoved && currentSong != NULL))
-                                {
-                                        usingSongDataA = !usingSongDataA;
-                                        songWasRemoved = false;
-                                }
-
-                                if (wasEndOfList)
-                                {
-                                        usingSongDataA = true;
-                                        skipOutOfOrder = false;
-                                }
-
-                                audioData.endOfListReached = false;
-                        }
+                                playPostProcessing();                        }
                 }
                 else
                 {
