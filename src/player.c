@@ -1055,10 +1055,17 @@ void resetRadioSearchResult(void)
         chosenRadioSearchResultRow = 0;
 }
 
-void printElapsedBars(int elapsedBars, int numProgressBars, PixelData color, int height)
+void printElapsedBars(int elapsedBars, int numProgressBars, PixelData color, int height, bool useConfigColors)
 {
-        PixelData tmp = increaseLuminosity(color, round(height * 4));
-        printf("\033[38;2;%d;%d;%dm", tmp.r, tmp.g, tmp.b);
+        if (!useConfigColors)
+        {
+                PixelData tmp = increaseLuminosity(color, round(height * 4));
+                printf("\033[38;2;%d;%d;%dm", tmp.r, tmp.g, tmp.b);
+        }
+        else
+        {
+                setDefaultTextColor();
+        }
         printBlankSpaces(indent);
         printf(" ");
         for (int i = 0; i < numProgressBars; i++)
@@ -1098,7 +1105,7 @@ void printVisualizer(double elapsedSeconds, AppState *state)
                 saveCursorPosition();
 #endif
                 drawSpectrumVisualizer(ui->visualizerHeight, visualizerWidth, ui->color, indent, ui->useConfigColors, ui->visualizerColorType);
-                printElapsedBars(calcElapsedBars(elapsedSeconds, duration, uis->numProgressBars), uis->numProgressBars, ui->color, ui->visualizerHeight);
+                printElapsedBars(calcElapsedBars(elapsedSeconds, duration, uis->numProgressBars), uis->numProgressBars, ui->color, ui->visualizerHeight, ui->useConfigColors);
                 printErrorRow();
                 printLastRow(&state->uiSettings);
 #ifndef __APPLE__
