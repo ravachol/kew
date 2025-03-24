@@ -24,6 +24,6 @@ void initVisuals(void);
 
 void freeVisuals(void);
 
-void drawSpectrumVisualizer(int height, int width, PixelData c, int indentation, bool useConfigColors);
+void drawSpectrumVisualizer(int height, int width, PixelData c, int indentation, bool useConfigColors, int visualizerColorType);
 
 PixelData increaseLuminosity(PixelData pixel, int amount);
