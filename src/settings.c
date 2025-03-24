@@ -49,6 +49,7 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         c_strcpy(settings.hideHelp, "0", sizeof(settings.hideHelp));
         c_strcpy(settings.cacheLibrary, "-1", sizeof(settings.cacheLibrary));
         c_strcpy(settings.visualizerHeight, "5", sizeof(settings.visualizerHeight));
+        c_strcpy(settings.visualizerColorType, "0", sizeof(settings.visualizerColorType));
         c_strcpy(settings.titleDelay, "9", sizeof(settings.titleDelay));
 
         c_strcpy(settings.nextView, "\t", sizeof(settings.nextView));
@@ -160,6 +161,10 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
                 else if (strcmp(lowercaseKey, "visualizerheight") == 0)
                 {
                         snprintf(settings.visualizerHeight, sizeof(settings.visualizerHeight), "%s", pair->value);
+                }
+                else if (strcmp(lowercaseKey, "visualizercolortype") == 0)
+                {
+                        snprintf(settings.visualizerColorType, sizeof(settings.visualizerColorType), "%s", pair->value);
                 }
                 else if (strcmp(lowercaseKey, "titledelay") == 0)
                 {
@@ -679,6 +684,10 @@ void getConfig(AppSettings *settings, UISettings *ui)
         if (temp > 0)
                 ui->visualizerHeight = temp;
 
+        temp = getNumber(settings->visualizerColorType);
+        if (temp > 0)
+                ui->visualizerColorType = temp;
+
         temp = getNumber(settings->titleDelay);
         if (temp >= 0)
                 ui->titleDelay = temp;
@@ -733,6 +742,8 @@ void setConfig(AppSettings *settings, UISettings *ui)
 
         if (settings->visualizerHeight[0] == '\0')
                 snprintf(settings->visualizerHeight, sizeof(settings->visualizerHeight), "%d", ui->visualizerHeight);
+        if (settings->visualizerColorType[0] == '\0')
+                snprintf(settings->visualizerColorType, sizeof(settings->visualizerColorType), "%d", ui->visualizerColorType);
         if (settings->titleDelay[0] == '\0')
                 snprintf(settings->titleDelay, sizeof(settings->titleDelay), "%d", ui->titleDelay);
         if (settings->cacheLibrary[0] == '\0')
@@ -778,6 +789,8 @@ void setConfig(AppSettings *settings, UISettings *ui)
         fprintf(file, "coverAnsi=%s\n", settings->coverAnsi);
         fprintf(file, "visualizerEnabled=%s\n", settings->visualizerEnabled);
         fprintf(file, "visualizerHeight=%s\n", settings->visualizerHeight);
+        fprintf(file, "# How colors are laid out in the spectrum visualizer. 0 for default, or 1 for brightness to change depending on bar height.\n");
+        fprintf(file, "visualizerColorType=%s\n", settings->visualizerColorType);
         fprintf(file, "useConfigColors=%s\n", settings->useConfigColors);
         fprintf(file, "allowNotifications=%s\n", settings->allowNotifications);
         fprintf(file, "hideLogo=%s\n", settings->hideLogo);

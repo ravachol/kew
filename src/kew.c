@@ -1676,6 +1676,7 @@ void initState(AppState *state)
         state->uiSettings.hideGlimmeringText = false;
         state->uiSettings.coverAnsi = false;
         state->uiSettings.visualizerHeight = 5;
+        state->uiSettings.visualizerColorType = 0;
         state->uiSettings.titleDelay = 9;
         state->uiSettings.cacheLibrary = -1;
         state->uiSettings.useConfigColors = false;
