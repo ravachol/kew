@@ -274,7 +274,7 @@ PixelData increaseLuminosity(PixelData pixel, int amount)
         return pixel2;
 }
 
-void printSpectrum(int height, int width, float *magnitudes, PixelData color, int indentation, bool useConfigColors)
+void printSpectrum(int height, int width, float *magnitudes, PixelData color, int indentation, bool useConfigColors, int visualizerColorType)
 {
         printf("\n");
 
@@ -286,7 +286,7 @@ void printSpectrum(int height, int width, float *magnitudes, PixelData color, in
                 printBlankSpaces(indentation);
                 if (color.r != 0 || color.g != 0 || color.b != 0)
                 {
-                        if (!useConfigColors)
+                        if (!useConfigColors && visualizerColorType == 0)
                         {
                                 tmp = increaseLuminosity(color, round(j * height * 4));
                                 printf("\033[38;2;%d;%d;%dm", tmp.r, tmp.g, tmp.b);
@@ -309,6 +309,14 @@ void printSpectrum(int height, int width, float *magnitudes, PixelData color, in
 
                 for (int i = 0; i < width; i++)
                 {
+                        if (!useConfigColors && visualizerColorType == 1)
+                        {
+                                // Make colors half as bright before increasing brightness
+                                tmp = (PixelData){ color.r / 2, color.g / 2, color.b / 2 };
+                                tmp = increaseLuminosity(color, round(magnitudes[i] * 10 * 4));
+                                printf("\033[38;2;%d;%d;%dm", tmp.r, tmp.g, tmp.b);
+                        }
+
                         if (magnitudes[i] >= j)
                         {
                                 printf(" %s", getUpwardMotionChar(10));
@@ -343,7 +351,7 @@ void freeVisuals(void)
         }
 }
 
-void drawSpectrumVisualizer(int height, int width, PixelData c, int indentation, bool useConfigColors)
+void drawSpectrumVisualizer(int height, int width, PixelData c, int indentation, bool useConfigColors, int visualizerColorType)
 {
         bufferSize = getBufferSize();
         PixelData color;
@@ -394,7 +402,7 @@ void drawSpectrumVisualizer(int height, int width, PixelData c, int indentation,
 
         calcSpectrum(height, numBars, fftInput, fftOutput, magnitudes, plan);
 
-        printSpectrum(height, numBars, magnitudes, color, indentation, useConfigColors);
+        printSpectrum(height, numBars, magnitudes, color, indentation, useConfigColors, visualizerColorType);
 
         fftwf_destroy_plan(plan);
 }
