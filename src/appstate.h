@@ -56,6 +56,7 @@ typedef struct
         bool hideHelp;                                  // No help text at top
         bool allowNotifications;                        // Send desktop notifications or not
         int visualizerHeight;                           // Height in characters of the spectrum visualizer
+        int visualizerColorType;                        // How colors are laid out in the spectrum visualizer
         int titleDelay;                                 // Delay when drawing title in track view
         int cacheLibrary;                               // Cache the library or not
         bool quitAfterStopping;                         // Exit kew when the music stops or not
@@ -109,6 +110,7 @@ typedef struct
         char useConfigColors[2];
         char visualizerEnabled[2];
         char visualizerHeight[6];
+        char visualizerColorType[2];
         char titleDelay[6];
         char togglePlaylist[6];
         char toggleBindings[6];
