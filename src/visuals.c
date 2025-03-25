@@ -274,6 +274,16 @@ PixelData increaseLuminosity(PixelData pixel, int amount)
         return pixel2;
 }
 
+PixelData decreaseLuminosity(PixelData pixel, int amount)
+{
+        PixelData pixel2;
+        pixel2.r = pixel.r - amount >= 0 ? pixel.r - amount : 0;
+        pixel2.g = pixel.g - amount >= 0 ? pixel.g - amount : 0;
+        pixel2.b = pixel.b - amount >= 0 ? pixel.b - amount : 0;
+
+        return pixel2;
+}
+
 void printSpectrum(int height, int width, float *magnitudes, PixelData color, int indentation, bool useConfigColors, int visualizerColorType)
 {
         printf("\n");
@@ -286,10 +296,17 @@ void printSpectrum(int height, int width, float *magnitudes, PixelData color, in
                 printBlankSpaces(indentation);
                 if (color.r != 0 || color.g != 0 || color.b != 0)
                 {
-                        if (!useConfigColors && visualizerColorType == 0)
+                        if (!useConfigColors && (visualizerColorType == 0 || visualizerColorType == 2))
                         {
-                                int multiplier = (j > 0) ? j * height * 8 : 1;
-                                tmp = increaseLuminosity(color, round(multiplier));
+                                if (visualizerColorType == 0)
+                                {       int multiplier = (j > 0) ? j * height * 8 : 1;
+                                        tmp = increaseLuminosity(color, round(multiplier));
+                                }
+                                else if (visualizerColorType == 2)
+                                {
+                                        int multiplier = j * height * 6;
+                                        tmp = decreaseLuminosity(color, round(multiplier));
+                                }
                                 printf("\033[38;2;%d;%d;%dm", tmp.r, tmp.g, tmp.b);
                         }
                 }
@@ -314,6 +331,7 @@ void printSpectrum(int height, int width, float *magnitudes, PixelData color, in
                         {
                                 tmp = (PixelData){color.r / 2, color.g / 2, color.b / 2}; // Make colors half as bright before increasing brightness
                                 tmp = increaseLuminosity(tmp, round(magnitudes[i] * 10 * 4));
+
                                 printf("\033[38;2;%d;%d;%dm", tmp.r, tmp.g, tmp.b);
                         }
 
