@@ -311,9 +311,8 @@ void printSpectrum(int height, int width, float *magnitudes, PixelData color, in
                 {
                         if (!useConfigColors && visualizerColorType == 1)
                         {
-                                // Make colors half as bright before increasing brightness
-                                tmp = (PixelData){ color.r / 2, color.g / 2, color.b / 2 };
-                                tmp = increaseLuminosity(color, round(magnitudes[i] * 10 * 4));
+                                tmp = (PixelData){ color.r / 2, color.g / 2, color.b / 2 }; // Make colors half as bright before increasing brightness
+                                tmp = increaseLuminosity(tmp, round(magnitudes[i] * 10 * 4));
                                 printf("\033[38;2;%d;%d;%dm", tmp.r, tmp.g, tmp.b);
                         }
 
