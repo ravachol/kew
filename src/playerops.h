@@ -165,4 +165,6 @@ void moveSongDown();
 
 void play(Node *song);
 
+void repeatList();
+
 #endif

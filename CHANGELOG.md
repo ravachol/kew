@@ -1,5 +1,13 @@
 # CHANGELOG
 
+### 3.1.3
+
+- Repeat List Option. Suggested by: @HAPPIOcrz007. By @ravachol.
+
+- Added setting option to set the visualizer so that the brightness of it depends on the height of the bar. By @Chromium-3-Oxide.
+
+- Fixed bug with previous track with shuffle enabled. Found by @GuyInAShack. By @ravachol.
+
 ### 3.1.2
 
 - Fix radio search sometimes freezing because of an invalid radio station URL. Found by joel. by @ravachol.

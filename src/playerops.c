@@ -313,17 +313,28 @@ void togglePause(double *totalPauseSeconds, double *pauseSeconds, struct timespe
 void toggleRepeat(void)
 {
 
-        bool repeatEnabled = !isRepeatEnabled();
-        setRepeatEnabled(repeatEnabled);
+        bool repeatEnabled = isRepeatEnabled();
+        bool repeatListEnabled = isRepeatListEnabled();
 
         if (repeatEnabled)
         {
-                emitStringPropertyChanged("LoopStatus", "Track");
+                setRepeatEnabled(false);
+                setRepeatListEnabled(true);
+                emitStringPropertyChanged("LoopStatus", "List");
+        }
+        else if (repeatListEnabled)
+        {
+                setRepeatEnabled(false);
+                setRepeatListEnabled(false);
+                emitStringPropertyChanged("LoopStatus", "None");
         }
         else
         {
-                emitStringPropertyChanged("LoopStatus", "None");
+                setRepeatEnabled(true);
+                setRepeatListEnabled(false);
+                emitStringPropertyChanged("LoopStatus", "Track");
         }
+
         if (appState.currentView != TRACK_VIEW)
                 refresh = true;
 }
@@ -1568,14 +1579,31 @@ void resetTimeCount(void)
         totalPauseSeconds = 0.0;
 }
 
+void repeatList()
+{
+        waitingForPlaylist = true;
+        nextSongNeedsRebuilding = true;
+        audioData.endOfListReached = false;
+}
+
 void skipToNextSong(AppState *state)
 {
         // Stop if there is no song or no next song
         if (currentSong == NULL || currentSong->next == NULL)
         {
-                if (!isStopped() && !isPaused())
+                if (isRepeatListEnabled())
+                {
+                        currentSong = NULL;
+                }
+                else if (!isStopped() && !isPaused())
+                {
                         stop();
-                return;
+                        return;
+                }
+                else
+                {
+                        return;
+                }
         }
 
         if (songLoading || nextSongNeedsRebuilding || skipping || clearingErrors)

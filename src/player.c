@@ -631,6 +631,12 @@ void printLastRow(UISettings *ui)
                 snprintf(nerdFontText + currentLength, maxLength - currentLength, "%s", repeatText);
                 currentLength += strnlen(repeatText, maxLength - currentLength);
         }
+        else if (isRepeatListEnabled())
+        {
+                char repeatText[] = " \u27f3L";
+                snprintf(nerdFontText + currentLength, maxLength - currentLength, "%s", repeatText);
+                currentLength += strnlen(repeatText, maxLength - currentLength);
+        }
 
         if (isShuffleEnabled())
         {

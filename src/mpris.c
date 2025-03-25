@@ -676,6 +676,7 @@ static gboolean get_can_go_next(GDBusConnection *connection, const gchar *sender
         (void)user_data;
 
         CanGoNext = (currentSong == NULL || currentSong->next != NULL) ? TRUE : FALSE;
+        CanGoNext = (isRepeatListEnabled() && playlist.head != NULL) ? TRUE : CanGoNext;
 
         *value = g_variant_new_boolean(CanGoNext);
         return TRUE;
@@ -1255,13 +1256,21 @@ void emitMetadataChanged(const gchar *title, const gchar *artist, const gchar *a
         g_variant_builder_init(&changed_properties_builder, G_VARIANT_TYPE("a{sv}"));
         g_variant_builder_add(&changed_properties_builder, "{sv}", "Metadata", metadata_variant);
         g_variant_builder_add(&changed_properties_builder, "{sv}", "CanGoPrevious", g_variant_new_boolean((currentSong != NULL && currentSong->prev != NULL)));
-        g_variant_builder_add(&changed_properties_builder, "{sv}", "CanGoNext", g_variant_new_boolean((currentSong != NULL && currentSong->next != NULL)));
+
+        CanGoNext = (currentSong == NULL || currentSong->next != NULL) ? TRUE : FALSE;
+        CanGoNext = (isRepeatListEnabled() && playlist.head != NULL) ? TRUE : CanGoNext;
+
+        g_variant_builder_add(&changed_properties_builder, "{sv}", "CanGoNext", g_variant_new_boolean(CanGoNext));
         g_variant_builder_add(&changed_properties_builder, "{sv}", "Shuffle", g_variant_new_boolean(isShuffleEnabled()));
         g_variant_builder_add(&changed_properties_builder, "{sv}", "CanPlay", g_variant_new_boolean(length != 0 ? true : false));
         g_variant_builder_add(&changed_properties_builder, "{sv}", "CanPause", g_variant_new_boolean(length != 0 ? true : false));
-        g_variant_builder_add(&changed_properties_builder, "{sv}", "LoopStatus", g_variant_new_string(isRepeatEnabled() ? "Track" : "None"));
 
-
+        if (isRepeatEnabled())
+                g_variant_builder_add(&changed_properties_builder, "{sv}", "LoopStatus", g_variant_new_string("Track"));
+        else if (isRepeatListEnabled())
+                g_variant_builder_add(&changed_properties_builder, "{sv}", "LoopStatus", g_variant_new_string("List"));
+        else
+                g_variant_builder_add(&changed_properties_builder, "{sv}", "LoopStatus", g_variant_new_string("None"));
 
         CanSeek = true;
 
