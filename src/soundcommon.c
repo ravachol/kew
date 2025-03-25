@@ -16,6 +16,7 @@ soundcommon.c
 #endif
 
 bool repeatEnabled = false;
+bool repeatListEnabled = false;
 bool shuffleEnabled = false;
 bool skipToNext = false;
 bool seekRequested = false;
@@ -706,6 +707,16 @@ bool isRepeatEnabled(void)
 void setRepeatEnabled(bool value)
 {
         repeatEnabled = value;
+}
+
+bool isRepeatListEnabled(void)
+{
+        return repeatListEnabled;
+}
+
+void setRepeatListEnabled(bool value)
+{
+        repeatListEnabled = value;
 }
 
 bool isShuffleEnabled(void)
