@@ -789,7 +789,7 @@ void setConfig(AppSettings *settings, UISettings *ui)
         fprintf(file, "coverAnsi=%s\n", settings->coverAnsi);
         fprintf(file, "visualizerEnabled=%s\n", settings->visualizerEnabled);
         fprintf(file, "visualizerHeight=%s\n", settings->visualizerHeight);
-        fprintf(file, "# How colors are laid out in the spectrum visualizer. 0 for default, or 1 for brightness to change depending on bar height.\n");
+        fprintf(file, "# How colors are laid out in the spectrum visualizer. 0=default, 1=brightness depending on bar height, 2=reversed.\n");
         fprintf(file, "visualizerColorType=%s\n", settings->visualizerColorType);
         fprintf(file, "useConfigColors=%s\n", settings->useConfigColors);
         fprintf(file, "allowNotifications=%s\n", settings->allowNotifications);
