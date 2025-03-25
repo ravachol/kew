@@ -332,7 +332,6 @@ struct Event processInput()
 
 void setEndOfListReached(AppState *state)
 {
-        state->currentView = LIBRARY_VIEW;
         loadedNextSong = false;
         audioData.endOfListReached = true;
         usingSongDataA = false;
@@ -340,13 +339,21 @@ void setEndOfListReached(AppState *state)
         audioData.currentFileIndex = 0;
         audioData.restart = true;
         loadingdata.loadA = true;
-        emitMetadataChanged("", "", "", "", "/org/mpris/MediaPlayer2/TrackList/NoTrack", NULL, 0);
-        emitPlaybackStoppedMpris();
+
         pthread_mutex_lock(&dataSourceMutex);
         cleanupPlaybackDevice();
         pthread_mutex_unlock(&dataSourceMutex);
         stopped = true;
         refresh = true;
+
+        if (isRepeatListEnabled())
+                repeatList();
+        else
+        {
+                emitPlaybackStoppedMpris();
+                emitMetadataChanged("", "", "", "", "/org/mpris/MediaPlayer2/TrackList/NoTrack", NULL, 0);
+                state->currentView = LIBRARY_VIEW;
+        }
 }
 
 void notifyMPRISSwitch(SongData *currentSongData)

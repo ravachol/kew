@@ -200,6 +200,10 @@ bool isRepeatEnabled(void);
 
 void setRepeatEnabled(bool value);
 
+bool isRepeatListEnabled(void);
+
+void setRepeatListEnabled(bool value);
+
 bool isShuffleEnabled(void);
 
 void setShuffleEnabled(bool value);
