@@ -274,16 +274,6 @@ PixelData increaseLuminosity(PixelData pixel, int amount)
         return pixel2;
 }
 
-PixelData decreaseLuminosity(PixelData pixel, int amount)
-{
-        PixelData pixel2;
-        pixel2.r = pixel.r - amount >= 0 ? pixel.r - amount : 0;
-        pixel2.g = pixel.g - amount >= 0 ? pixel.g - amount : 0;
-        pixel2.b = pixel.b - amount >= 0 ? pixel.b - amount : 0;
-
-        return pixel2;
-}
-
 void printSpectrum(int height, int width, float *magnitudes, PixelData color, int indentation, bool useConfigColors, int visualizerColorType)
 {
         printf("\n");
@@ -299,13 +289,12 @@ void printSpectrum(int height, int width, float *magnitudes, PixelData color, in
                         if (!useConfigColors && (visualizerColorType == 0 || visualizerColorType == 2))
                         {
                                 if (visualizerColorType == 0)
-                                {       int multiplier = (j > 0) ? j * height * 8 : 1;
-                                        tmp = increaseLuminosity(color, round(multiplier));
+                                {
+                                        tmp = increaseLuminosity(color, round(j * height * 8));
                                 }
                                 else if (visualizerColorType == 2)
                                 {
-                                        int multiplier = j * height * 6;
-                                        tmp = decreaseLuminosity(color, round(multiplier));
+                                        tmp = increaseLuminosity(color, round((height - j) * height * 8));
                                 }
                                 printf("\033[38;2;%d;%d;%dm", tmp.r, tmp.g, tmp.b);
                         }
