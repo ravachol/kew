@@ -2,6 +2,8 @@
 
 ### 3.1.3
 
+- Previous on first track now resets the track instead of stopping.
+
 - Added repeat playlist option. Suggested by: @HAPPIOcrz007. By @ravachol.
 
 - Added setting option to set the visualizer so that the brightness of it depends on the height of the bar. By @Chromium-3-Oxide.
