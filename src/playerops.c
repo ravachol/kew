@@ -1689,7 +1689,6 @@ void skipToPrevSong(AppState *state)
 
         playbackPlay(&totalPauseSeconds, &pauseSeconds);
 
-        state->uiState.doNotifyMPRISSwitched = true;
         skipping = true;
         skipOutOfOrder = true;
         loadedNextSong = false;
