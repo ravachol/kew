@@ -92,6 +92,7 @@ void updateLastSongSwitchTime(void)
 
 void updatePlaybackPosition(double elapsedSeconds)
 {
+#ifndef __APPLE__
         GVariantBuilder changedPropertiesBuilder;
         g_variant_builder_init(&changedPropertiesBuilder, G_VARIANT_TYPE_DICTIONARY);
         g_variant_builder_add(&changedPropertiesBuilder, "{sv}", "Position", g_variant_new_int64(llround(elapsedSeconds * G_USEC_PER_SEC)));
@@ -105,6 +106,9 @@ void updatePlaybackPosition(double elapsedSeconds)
                                       "PropertiesChanged",
                                       parameters,
                                       NULL);
+#else
+        (void)elapsedSeconds;
+#endif
 }
 
 void emitSeekedSignal(double newPositionSeconds)
@@ -1667,8 +1671,7 @@ void silentSwitchToPrev(AppState *state)
 
 void skipToPrevSong(AppState *state)
 {
-        // Stop if there is no song or no previous song
-        if ((currentSong == NULL || currentSong->prev == NULL) && !isShuffleEnabled())
+        if (currentSong == NULL)
         {
                 if (!isStopped() && !isPaused())
                         stop();
@@ -1685,7 +1688,15 @@ void skipToPrevSong(AppState *state)
                 return;
         }
 
+        Node *song = currentSong;
+
         setCurrentSongToPrev();
+
+        if (song == currentSong)
+        {
+                resetTimeCount();
+                updatePlaybackPosition(0); // we need to signal to mpris that the song was reset to the beginning
+        }
 
         playbackPlay(&totalPauseSeconds, &pauseSeconds);
 
