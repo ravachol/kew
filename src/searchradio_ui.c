@@ -78,8 +78,6 @@ void addRadioResult(const char *name, const char *url_resolved, const char *coun
 void collectRadioResult(const char *name, const char *url_resolved, const char *country, const char *codec, const int bitrate, const int votes)
 {
         addRadioResult(name, url_resolved, country, codec, bitrate, votes);
-
-        refresh = true;
 }
 
 // Free allocated memory from previous search
