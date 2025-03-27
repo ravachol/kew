@@ -128,7 +128,8 @@ void printHelp()
                " Enter to select or replay a song.\n"
                " Switch tracks with ←, → or h, l keys.\n"
                " Volume is adjusted with + (or =) and -.\n"
-               " Space, p or right mouse to toggle pause.\n"
+               " Space, p or right mouse to play or pause.\n"
+               " Alt+s to stop.\n"
                " F2 to show/hide playlist view.\n"
                " F3 to show/hide library view.\n"
                " F4 to show/hide track view.\n"
@@ -719,7 +720,9 @@ int showKeyBindings(SongData *songdata, AppSettings *settings, UISettings *ui)
         printBlankSpaces(indent);
         printf(" - Press F4 for Track View.\n");
         printBlankSpaces(indent);
-        printf(" - Space, %s, or right click to toggle pause.\n", settings->togglePause);
+        printf(" - Space, %s, or right click to play or pause.\n", settings->togglePause);
+        printBlankSpaces(indent);
+        printf(" - Alt+s to stop.\n");
         printBlankSpaces(indent);
         printf(" - %s toggle color derived from album or from profile.\n", settings->toggleColorsDerivedFrom);
         printBlankSpaces(indent);
