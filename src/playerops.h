@@ -167,4 +167,6 @@ void play(Node *song);
 
 void repeatList();
 
+void skipToBegginningOfSong(void);
+
 #endif

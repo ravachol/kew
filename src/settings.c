@@ -51,7 +51,6 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         c_strcpy(settings.visualizerHeight, "5", sizeof(settings.visualizerHeight));
         c_strcpy(settings.visualizerColorType, "0", sizeof(settings.visualizerColorType));
         c_strcpy(settings.titleDelay, "9", sizeof(settings.titleDelay));
-
         c_strcpy(settings.nextView, "\t", sizeof(settings.nextView));
         c_strcpy(settings.prevView, "[Z", sizeof(settings.prevView));
         c_strcpy(settings.volumeUp, "+", sizeof(settings.volumeUp));
@@ -122,6 +121,7 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         c_strcpy(settings.moveSongUp, "t", sizeof(settings.moveSongUp));
         c_strcpy(settings.moveSongDown, "g", sizeof(settings.moveSongDown));
         c_strcpy(settings.enqueueAndPlay, "^M", sizeof(settings.enqueueAndPlay));
+        c_strcpy(settings.stop, "\033s", sizeof(settings.stop));
         c_strcpy(settings.quit, "q", sizeof(settings.quit));
         c_strcpy(settings.hardQuit, "\x1B", sizeof(settings.hardQuit));
         c_strcpy(settings.hardClearPlaylist, "\b", sizeof(settings.hardClearPlaylist));
@@ -357,6 +357,11 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
                         if (strcmp(pair->value, "") != 0)
                                 snprintf(settings.enqueueAndPlay, sizeof(settings.enqueueAndPlay), "%s", pair->value);
                 }
+                else if (strcmp(lowercaseKey, "stop") == 0)
+                {
+                        if (strcmp(pair->value, "") != 0)
+                                snprintf(settings.stop, sizeof(settings.stop), "%s", pair->value);
+                }
                 else if (strcmp(lowercaseKey, "showkeysalt") == 0 && strcmp(pair->value, "B") != 0)
                 {
                         // We need to prevent the previous key B or else config files wont get updated
@@ -519,6 +524,7 @@ void mapSettingsToKeys(AppSettings *settings, UISettings *ui, EventMapping *mapp
         mappings[59] = (EventMapping){settings->moveSongUp, EVENT_MOVESONGUP};
         mappings[60] = (EventMapping){settings->moveSongDown, EVENT_MOVESONGDOWN};
         mappings[61] = (EventMapping){settings->enqueueAndPlay, EVENT_ENQUEUEANDPLAY};
+        mappings[62] = (EventMapping){settings->stop, EVENT_STOP};
 }
 
 char *getConfigFilePath(char *configdir)
@@ -853,6 +859,7 @@ void setConfig(AppSettings *settings, UISettings *ui)
         fprintf(file, "moveSongUp=%s\n", settings->moveSongUp);
         fprintf(file, "moveSongDown=%s\n", settings->moveSongDown);
         fprintf(file, "enqueueAndPlay=%s\n", settings->enqueueAndPlay);
+        fprintf(file, "stop=%s\n", settings->stop);
 
         fprintf(file, "\n# Alt keys for the different main views, normally F2-F7:\n");
         fprintf(file, "showPlaylistAlt=%s\n", settings->showPlaylistAlt);
