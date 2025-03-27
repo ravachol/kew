@@ -1,6 +1,7 @@
 #ifndef SOUND_RADIO_H
 #define SOUND_RADIO_H
 
+#include <pthread.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
