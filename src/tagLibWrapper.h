@@ -19,6 +19,8 @@ extern "C"
                 char album_artist[METADATA_MAX_LENGTH];
                 char album[METADATA_MAX_LENGTH];
                 char date[METADATA_MAX_LENGTH];
+                double replaygainTrack;
+                double replaygainAlbum;
         } TagSettings;
 #endif
         int extractTags(const char *input_file, TagSettings *tag_settings, double *duration, const char *coverFilePath);

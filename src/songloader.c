@@ -86,7 +86,11 @@ void loadMetaData(SongData *songdata, AppState *state)
         char path[MAXPATHLEN];
 
         songdata->metadata = malloc(sizeof(TagSettings));
+        songdata->metadata->replaygainTrack = 0.0;
+        songdata->metadata->replaygainAlbum = 0.0;
+
         generateTempFilePath(songdata->coverArtPath, "cover", ".jpg");
+
         int res = extractTags(songdata->filePath, songdata->metadata, &songdata->duration, songdata->coverArtPath);
 
         if (res == -2)
