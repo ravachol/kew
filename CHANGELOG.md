@@ -2,6 +2,8 @@
 
 ### 3.1.3
 
+- Added a stop command (alt+s). Space bar is play as before. By @ravachol.
+
 - Previous on first track now resets the track instead of stopping. By @ravachol.
 
 - Added repeat playlist option. Suggested by: @HAPPIOcrz007. By @ravachol.
