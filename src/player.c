@@ -741,10 +741,14 @@ int showKeyBindings(SongData *songdata, AppSettings *settings, UISettings *ui)
         printBlankSpaces(indent);
         printf(" - %s to add current song to kew.m3u (run with \"kew .\").\n", settings->addToMainPlaylist);
         printBlankSpaces(indent);
-        printf(" - Esc or %s to quit.\n", settings->quit);
+        printf(" - Esc or %s to quit.\n\n", settings->quit);
+        printBlankSpaces(indent);
+        printf(" Copyright © 2022-2025 Ravachol.\n");
+        printBlankSpaces(indent);
+        printf(" Please donate: https://github.com/sponsors/ravachol\n");
         printf("\n");
 
-        numPrintedRows += 24;
+        numPrintedRows += 27;
 
         while (numPrintedRows < maxListSize)
         {
