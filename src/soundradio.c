@@ -276,6 +276,19 @@ Country countries[] = {
     {"Zambia", "ZM"},
     {"Zimbabwe", "ZW"}};
 
+typedef struct
+{
+        char *searchTerm;
+        void (*callback)(const char *, const char *, const char *, const char *, const int, const int);
+        bool *stopFlag;
+} SearchThreadArgs;
+
+pthread_mutex_t server_list_mutex = PTHREAD_MUTEX_INITIALIZER;
+
+pthread_t currentThread;
+
+bool stopFlag = false;
+
 const char *getCountryCode(const char *country_name)
 {
         for (int i = 0; i < (int)sizeof(countries) / (int)sizeof(countries[0]); i++)
@@ -449,37 +462,61 @@ Server *pickServer()
         return NULL;
 }
 
-int internetRadioSearch(const char *searchTerm, void (*callback)(const char *, const char *, const char *, const char *, const int, const int))
+void *searchThreadFunction(void *arg)
 {
-        CURL *curl;
-        Memory res = {0};
-        Server *server;
+        SearchThreadArgs *args = (SearchThreadArgs *)arg;
+        CURL *curl = NULL;
+        Memory res = {.memory = NULL, .size = 0};
+        Server *server = NULL;
+        char *encodedTerm = NULL;
 
+        pthread_mutex_lock(&server_list_mutex);
         if (!hasUpdatedServerList)
         {
                 if (updateServerList() != 0)
                 {
-                        return -1;
+                        pthread_mutex_unlock(&server_list_mutex);
+                        free(args->searchTerm);
+                        free(args);
+                        return NULL;
                 }
-
                 hasUpdatedServerList = true;
         }
+        pthread_mutex_unlock(&server_list_mutex);
 
-        while ((server = pickServer()))
+        while (true)
         {
-                char url[2070];
+                pthread_mutex_lock(&server_list_mutex);
+                server = pickServer();
+                pthread_mutex_unlock(&server_list_mutex);
 
-                curl = curl_easy_init();
-                char *encodedTerm = curl_easy_escape(curl, searchTerm, 0);
-                if (!encodedTerm)
+                if (!server)
                 {
-                        fprintf(stderr, "Could not URL-encode the term\n");
-                        curl_easy_cleanup(curl);
-                        return -1;
+                        break;
                 }
 
+                free(res.memory);
+                res.memory = NULL;
+                res.size = 0;
+
+                curl = curl_easy_init();
+                if (!curl)
+                {
+                        continue;
+                }
+
+                encodedTerm = curl_easy_escape(curl, args->searchTerm, 0);
+                if (!encodedTerm)
+                {
+                        curl_easy_cleanup(curl);
+                        curl = NULL;
+                        continue;
+                }
+
+                char url[2070];
                 snprintf(url, sizeof(url), "%s/json/stations/byname/%s", server->url, encodedTerm);
                 curl_free(encodedTerm);
+                encodedTerm = NULL;
 
                 curl_easy_setopt(curl, CURLOPT_URL, url);
                 curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
@@ -489,46 +526,129 @@ int internetRadioSearch(const char *searchTerm, void (*callback)(const char *, c
                 snprintf(userAgent, sizeof(userAgent), "kew/%s", VERSION);
                 curl_easy_setopt(curl, CURLOPT_USERAGENT, userAgent);
                 curl_easy_setopt(curl, CURLOPT_TIMEOUT, 10L);
+                curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
                 curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 1L);
 
                 CURLcode result = curl_easy_perform(curl);
                 curl_easy_cleanup(curl);
+                curl = NULL;
 
-                if (result == CURLE_OK)
+                if (result == CURLE_OK && res.memory != NULL)
                 {
                         char *ptr = res.memory;
                         int count = 0;
-                        while ((ptr = strchr(ptr, '{')) && count < MAX_STATIONS)
+
+                        while ((ptr = strchr(ptr, '{')) != NULL && count < MAX_STATIONS)
                         {
-                                char name[128], resolved[4096], country[64], codec[32], bitrate[16], votes[16];
-                                GETF("\"name\"", name);
-                                GETF("\"url_resolved\"", resolved);
+                                char name[128] = {0}, resolved[4096] = {0}, country[64] = {0}, codec[32] = {0}, bitrate_str[16] = {0}, votes_str[16] = {0};
+                                int br = 0, vo = 0;
+
+                                if (!GETF("\"name\"", name))
+                                {
+                                        ptr++;
+                                        continue;
+                                }
+                                if (!GETF("\"url_resolved\"", resolved))
+                                {
+                                        ptr++;
+                                        continue;
+                                }
                                 GETF("\"country\"", country);
                                 GETF("\"codec\"", codec);
-                                int br = GETF("\"bitrate\"", bitrate) ? atoi(bitrate) : 0;
-                                int vo = GETF("\"votes\"", votes) ? atoi(votes) : 0;
+                                if (GETF("\"bitrate\"", bitrate_str))
+                                        br = atoi(bitrate_str);
+                                if (GETF("\"votes\"", votes_str))
+                                        vo = atoi(votes_str);
 
                                 if (!isSafeURL(resolved))
                                 {
                                         ptr++;
                                         continue;
                                 }
-                                callback(name, resolved, getCountryCode(country), codec, br, vo);
+                                args->callback(name, resolved, getCountryCode(country), codec, br, vo);
                                 count++;
                                 ptr++;
+
+                                if (count % 10 == 0)
+                                {
+                                        refresh = true;
+                                        c_sleep(100);
+                                }
                         }
+
                         free(res.memory);
+                        res.memory = NULL;
+                        res.size = 0;
 
-                        return 0;
+                        free(encodedTerm);
+                        if (curl)
+                                curl_easy_cleanup(curl);
+
+                        free(args->searchTerm);
+                        free(args);
+
+                        return NULL;
                 }
+                else
+                {
 
-                server->isBroken = true;
-                free(res.memory);
-                res.memory = NULL;
-                res.size = 0;
+                        pthread_mutex_lock(&server_list_mutex);
+                        server->isBroken = true;
+                        pthread_mutex_unlock(&server_list_mutex);
+
+                        free(res.memory);
+                        res.memory = NULL;
+                        res.size = 0;
+                }
         }
 
-        return 0;
+        return NULL;
+}
+
+void stopCurrentThread() {
+    if (currentThread) {
+        stopFlag = true;
+        pthread_cancel(currentThread);  // This cancels the thread if it is still running
+        pthread_join(currentThread, NULL);  // Wait for the thread to join
+        stopFlag = false;  // Reset the stop flag
+    }
+}
+
+int internetRadioSearch(const char *searchTerm, void (*callback)(const char *, const char *, const char *, const char *, const int, const int)) {
+    pthread_t threadId;
+    SearchThreadArgs *args;
+
+    if (!searchTerm || !callback) {
+        return -1;
+    }
+
+    stopCurrentThread();
+
+    args = malloc(sizeof(SearchThreadArgs));
+    if (!args) {
+        return -1;
+    }
+
+    args->searchTerm = strdup(searchTerm);
+    if (!args->searchTerm) {
+        free(args);
+        return -1;
+    }
+
+    args->callback = callback;
+    args->stopFlag = &stopFlag;
+
+
+    if (pthread_create(&threadId, NULL, searchThreadFunction, args) != 0) {
+        free(args->searchTerm);
+        free(args);
+        return -1;
+    }
+
+    pthread_detach(threadId);
+    currentThread = threadId;
+
+    return 0;
 }
 
 static bool radioIsPlaying = false;
