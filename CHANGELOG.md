@@ -2,7 +2,7 @@
 
 ### 3.1.3
 
-- Previous on first track now resets the track instead of stopping.
+- Previous on first track now resets the track instead of stopping. By @ravachol.
 
 - Added repeat playlist option. Suggested by: @HAPPIOcrz007. By @ravachol.
 
