@@ -45,7 +45,8 @@ enum EventType
         EVENT_RADIOSEARCH,
         EVENT_MOVESONGUP,
         EVENT_MOVESONGDOWN,
-        EVENT_ENQUEUEANDPLAY
+        EVENT_ENQUEUEANDPLAY,
+        EVENT_STOP
 };
 
 struct Event

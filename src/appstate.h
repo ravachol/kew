@@ -197,6 +197,7 @@ typedef struct
         char moveSongUp[6];
         char moveSongDown[6];
         char enqueueAndPlay[6];
+        char stop[6];
 } AppSettings;
 
 #endif

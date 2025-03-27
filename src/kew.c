@@ -232,7 +232,7 @@ struct Event processInput()
         for (int i = 0; i < NUM_KEY_MAPPINGS; i++)
         {
                 if (keyMappings[i].seq[0] != '\0' &&
-                    ((seq[0] == '\033' && strcmp(seq, "\033\n") != 0 && strnlen(seq, MAX_SEQ_LEN) > 1 && strcmp(seq + 1, keyMappings[i].seq) == 0) ||
+                    ((seq[0] == '\033' && strnlen(seq, MAX_SEQ_LEN) > 1 && strcmp(seq, "\033\n") != 0 && strcmp(seq + 1, keyMappings[i].seq) == 0) ||
                      strcmp(seq, keyMappings[i].seq) == 0))
                 {
                         if (event.type == EVENT_SEARCH && keyMappings[i].eventType != EVENT_GOTOSONG)
@@ -249,16 +249,25 @@ struct Event processInput()
                         break;
                 }
 
+                // Received mouse input instead of keyboard input
+                if (keyMappings[i].seq[0] != '\0' && strnlen(seq, MAX_SEQ_LEN) > 3 && strncmp(seq, "\033[M", 3) == 0 &&
+                    ((strncmp(seq + 1, keyMappings[i].seq, 3) == 0) ||
+                     strncmp(seq, keyMappings[i].seq, 3) == 0))
+                {
+                        event.type = keyMappings[i].eventType;
+                        break;
+                }
+        }
+
+         for (int i = 0; i < NUM_KEY_MAPPINGS; i++)
+        {
                 if (strcmp(seq, "\033\n") == 0 && strcmp(keyMappings[i].seq, "^M") == 0) // ALT+ENTER
                 {
                         event.type = keyMappings[i].eventType;
                         break;
                 }
 
-                // Received mouse input instead of keyboard input
-                if (keyMappings[i].seq[0] != '\0' && strnlen(seq, MAX_SEQ_LEN) > 3 && strncmp(seq, "\033[M", 3) == 0 &&
-                    ((strncmp(seq + 1, keyMappings[i].seq, 3) == 0) ||
-                     strncmp(seq, keyMappings[i].seq, 3) == 0))
+                if (strcmp(seq, keyMappings[i].seq) == 0 && strnlen(seq, MAX_SEQ_LEN) > 1) // ALT+something
                 {
                         event.type = keyMappings[i].eventType;
                         break;
@@ -841,6 +850,10 @@ void handleInput(AppState *state)
         case EVENT_ENQUEUEANDPLAY:
                 enqueueAndPlay(state);
                 break;
+        case EVENT_STOP:
+                stop();
+                break;
+
         default:
                 fastForwarding = false;
                 rewinding = false;
