@@ -698,7 +698,7 @@ extern "C"
 
                         // Copy the result into the output char* title, ensuring no overflow
                         c_strcpy(title, extractedTitle.c_str(), titleMaxLength - 1); // Copy up to titleMaxLength - 1 characters
-                        title[titleMaxLength - 1] = '\0';                           // Null-terminate the string
+                        title[titleMaxLength - 1] = '\0';                            // Null-terminate the string
                 }
                 else
                 {
@@ -710,6 +710,9 @@ extern "C"
         int extractTags(const char *input_file, TagSettings *tag_settings, double *duration, const char *coverFilePath)
         {
                 memset(tag_settings, 0, sizeof(TagSettings)); // Initialize tag settings
+
+                tag_settings->replaygainTrack = 0.0;
+                tag_settings->replaygainAlbum = 0.0;
 
                 // Use TagLib's FileRef for generic file parsing.
                 TagLib::FileRef f(input_file);
@@ -776,7 +779,60 @@ extern "C"
                         return -2;
                 }
 
-                // Cover art extraction using format-specific classes if necessary.
+                // Extract replay gain information
+                if (std::string(input_file).find(".mp3") != std::string::npos)
+                {
+                        TagLib::MPEG::File mp3File(input_file);
+                        TagLib::ID3v2::Tag *id3v2Tag = mp3File.ID3v2Tag();
+
+                        if (id3v2Tag)
+                        {
+                                TagLib::ID3v2::FrameList trackGainFrames = id3v2Tag->frameListMap()["REPLAYGAIN_TRACK_GAIN"];
+                                if (!trackGainFrames.isEmpty())
+                                {
+                                        std::string trackGainStr = trackGainFrames.front()->toString().toCString();
+                                        tag_settings->replaygainTrack = std::stod(trackGainStr);
+                                }
+
+                                TagLib::ID3v2::FrameList albumGainFrames = id3v2Tag->frameListMap()["REPLAYGAIN_ALBUM_GAIN"];
+                                if (!albumGainFrames.isEmpty())
+                                {
+                                        std::string albumGainStr = albumGainFrames.front()->toString().toCString();
+                                        tag_settings->replaygainAlbum = std::stod(albumGainStr);
+                                }
+                        }
+                }
+                else if (std::string(input_file).find(".flac") != std::string::npos)
+                {
+                        TagLib::FLAC::File flacFile(input_file);
+                        TagLib::Ogg::XiphComment *xiphComment = flacFile.xiphComment();
+
+                        if (xiphComment)
+                        {
+                                const TagLib::Ogg::FieldListMap &fieldMap = xiphComment->fieldListMap();
+
+                                auto trackGainIt = fieldMap.find("REPLAYGAIN_TRACK_GAIN");
+                                if (trackGainIt != fieldMap.end())
+                                {
+                                        const TagLib::StringList &trackGainList = trackGainIt->second;
+                                        if (!trackGainList.isEmpty())
+                                        {
+                                                tag_settings->replaygainTrack = std::stod(trackGainList.front().toCString());
+                                        }
+                                }
+
+                                auto albumGainIt = fieldMap.find("REPLAYGAIN_ALBUM_GAIN");
+                                if (albumGainIt != fieldMap.end())
+                                {
+                                        const TagLib::StringList &albumGainList = albumGainIt->second;
+                                        if (!albumGainList.isEmpty())
+                                        {
+                                                tag_settings->replaygainAlbum = std::stod(albumGainList.front().toCString());
+                                        }
+                                }
+                        }
+                }
+
                 std::string filename(input_file);
                 std::string extension = filename.substr(filename.find_last_of('.') + 1);
                 bool coverArtExtracted = false;
