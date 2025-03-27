@@ -2,6 +2,8 @@
 
 ### 3.1.3
 
+- Added replay gain handling for flac files.
+
 - Added a stop command (alt+s). Space bar is play as before. By @ravachol.
 
 - Previous on first track now resets the track instead of stopping. By @ravachol.
