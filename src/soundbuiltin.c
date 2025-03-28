@@ -114,7 +114,7 @@ void builtin_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_u
         bool gainAvailable = false;
 
         if ((!audioData->pUserData->songdataADeleted && audioData->pUserData->currentSongData == audioData->pUserData->songdataA) ||
-             (!audioData->pUserData->songdataBDeleted && audioData->pUserData->currentSongData == audioData->pUserData->songdataB))
+            (!audioData->pUserData->songdataBDeleted && audioData->pUserData->currentSongData == audioData->pUserData->songdataB))
         {
                 if (audioData->pUserData->currentSongData->metadata->replaygainTrack > -50.0)
                 {
@@ -210,78 +210,81 @@ void builtin_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_u
                 result = ma_data_source_read_pcm_frames(firstDecoder, (ma_int32 *)pFramesOut + framesRead * audioData->channels, remainingFrames, &framesToRead);
                 ma_data_source_get_cursor_in_pcm_frames(decoder, &cursor);
 
+                float *frames = (float *)pFramesOut + framesRead * audioData->channels;
+
+                // Apply replay gain
+                if (totalGainFactor != 1.0)
+                {
+                        switch (audioData->format)
+                        {
+                        case ma_format_f32:
+                                for (ma_uint64 i = 0; i < framesToRead; ++i)
+                                {
+                                        for (int ch = 0; ch < (int)audioData->channels; ++ch)
+                                        {
+                                                ma_uint64 frameIndex = i * audioData->channels + ch;
+                                                float originalSample = frames[frameIndex];
+                                                double sample = (double)originalSample;
+
+                                                sample *= totalGainFactor;
+                                                frames[frameIndex] = (float)sample;
+                                        }
+                                }
+                                break;
+
+                        case ma_format_s16:
+                                for (ma_uint64 i = 0; i < framesToRead; ++i)
+                                {
+                                        for (int ch = 0; ch < (int)audioData->channels; ++ch)
+                                        {
+                                                ma_uint64 frameIndex = i * audioData->channels + ch;
+                                                ma_int16 originalSample = frames[frameIndex];
+                                                double sample = (double)originalSample;
+
+                                                sample *= totalGainFactor;
+
+                                                if (sample > 32767.0)
+                                                        sample = 32767.0;
+                                                else if (sample < -32768.0)
+                                                        sample = -32768.0;
+
+                                                frames[frameIndex] = (ma_int16)sample;
+                                        }
+                                }
+                                break;
+
+                        case ma_format_s32:
+                                for (ma_uint64 i = 0; i < framesToRead; ++i)
+                                {
+                                        for (int ch = 0; ch < (int)audioData->channels; ++ch)
+                                        {
+                                                ma_uint64 frameIndex = i * audioData->channels + ch;
+                                                ma_int32 originalSample = frames[frameIndex];
+                                                double sample = (double)originalSample;
+
+                                                sample *= totalGainFactor;
+
+                                                // Clamp
+                                                if (sample > 2147483647.0)
+                                                        sample = 2147483647.0;
+                                                else if (sample < -2147483648.0)
+                                                        sample = -2147483648.0;
+
+                                                frames[frameIndex] = (ma_int32)sample;
+                                        }
+                                }
+                                break;
+
+                        default:
+                                break;
+                        }
+                }
+
                 if (((audioData->totalFrames != 0 && cursor != 0 && cursor >= audioData->totalFrames) || framesToRead == 0 || isSkipToNext() || result != MA_SUCCESS) && !isEOFReached())
                 {
                         activateSwitch(audioData);
                         pthread_mutex_unlock(&dataSourceMutex);
                         continue;
-                }
-
-                float *frames = (float *)pFramesOut + framesRead * audioData->channels;
-
-                // Apply replay gain
-                switch (audioData->format)
-                {
-                case ma_format_f32:
-                        for (ma_uint64 i = 0; i < framesToRead; ++i)
-                        {
-                                for (int ch = 0; ch < (int)audioData->channels; ++ch)
-                                {
-                                        ma_uint64 frameIndex = i * audioData->channels + ch;
-                                        float originalSample = frames[frameIndex];
-                                        double sample = (double)originalSample;
-
-                                        sample *= totalGainFactor;
-                                        frames[frameIndex] = (float)sample;
-                                }
-                        }
-                        break;
-
-                case ma_format_s16:
-                        for (ma_uint64 i = 0; i < framesToRead; ++i)
-                        {
-                                for (int ch = 0; ch < (int)audioData->channels; ++ch)
-                                {
-                                        ma_uint64 frameIndex = i * audioData->channels + ch;
-                                        ma_int16 originalSample = frames[frameIndex];
-                                        double sample = (double)originalSample;
-
-                                        sample *= totalGainFactor;
-
-                                        if (sample > 32767.0)
-                                                sample = 32767.0;
-                                        else if (sample < -32768.0)
-                                                sample = -32768.0;
-
-                                        frames[frameIndex] = (ma_int16)sample;
-                                }
-                        }
-                        break;
-
-                case ma_format_s32:
-                        for (ma_uint64 i = 0; i < framesToRead; ++i)
-                        {
-                                for (int ch = 0; ch < (int)audioData->channels; ++ch)
-                                {
-                                        ma_uint64 frameIndex = i * audioData->channels + ch;
-                                        ma_int32 originalSample = frames[frameIndex];
-                                        double sample = (double)originalSample;
-
-                                        sample *= totalGainFactor;
-
-                                        // Clamp
-                                        if (sample > 2147483647.0)
-                                                sample = 2147483647.0;
-                                        else if (sample < -2147483648.0)
-                                                sample = -2147483648.0;
-
-                                        frames[frameIndex] = (ma_int32)sample;
-                                }
-                        }
-                        break;
-
-                default:
-                        break;
                 }
 
                 framesRead += framesToRead;
