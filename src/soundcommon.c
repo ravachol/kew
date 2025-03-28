@@ -842,8 +842,6 @@ void resumePlayback(void)
 
 void stopPlayback(void)
 {
-        skipToBegginningOfSong();
-
         if (ma_device_is_started(&device))
         {
                 ma_device_stop(&device);
