@@ -1519,7 +1519,7 @@ void stop(void)
 {
         stopPlayback();
 
-        if (isStopped() && !hasSilentlySwitched)
+        if (isStopped())
         {
                 skipToBegginningOfSong();
                 emitStringPropertyChanged("PlaybackStatus", "Stopped");
