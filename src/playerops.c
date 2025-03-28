@@ -242,8 +242,8 @@ void skipToBegginningOfSong(void)
 {
         if (currentSong != NULL)
         {
-                bool playSong = false;
-                skipToSong(currentSong->id, playSong);
+                seekPercentage(0);
+                emitSeekedSignal(0.0);
         }
 }
 
@@ -1519,8 +1519,9 @@ void stop(void)
 {
         stopPlayback();
 
-        if (isStopped())
+        if (isStopped() && !hasSilentlySwitched)
         {
+                skipToBegginningOfSong();
                 emitStringPropertyChanged("PlaybackStatus", "Stopped");
         }
 }
