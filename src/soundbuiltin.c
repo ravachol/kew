@@ -113,7 +113,8 @@ void builtin_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_u
         double gainDb = 0.0; // Default to 0 dB (no gain)
         bool gainAvailable = false;
 
-        if (audioData->pUserData->currentSongData)
+        if ((!audioData->pUserData->songdataADeleted && audioData->pUserData->currentSongData == audioData->pUserData->songdataA) ||
+             (!audioData->pUserData->songdataBDeleted && audioData->pUserData->currentSongData == audioData->pUserData->songdataB))
         {
                 if (audioData->pUserData->currentSongData->metadata->replaygainTrack > -50.0)
                 {
