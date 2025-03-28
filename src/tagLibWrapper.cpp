@@ -23,6 +23,10 @@
 #include <taglib/wavfile.h>
 #include <taglib/xiphcomment.h>
 #include <taglib/tag.h>
+#include <taglib/apefooter.h>
+#include <taglib/apeitem.h>
+#include <taglib/apetag.h>
+#include <taglib/textidentificationframe.h>
 #include <ogg/ogg.h>
 
 /*
@@ -707,6 +711,28 @@ extern "C"
                 }
         }
 
+        double parseDecibelValue(const TagLib::String &dbString)
+        {
+                double val = 0.0;
+                try
+                {
+                        std::string valStr = dbString.to8Bit(true);
+                        std::string filtered;
+                        for (char c : valStr)
+                        {
+                                if (std::isdigit((unsigned char)c) || c == '.' || c == '-' || c == '+' || c == 'e' || c == 'E')
+                                {
+                                        filtered.push_back(c);
+                                }
+                        }
+                        val = std::stod(filtered);
+                }
+                catch (...)
+                {
+                }
+                return val;
+        }
+
         int extractTags(const char *input_file, TagSettings *tag_settings, double *duration, const char *coverFilePath)
         {
                 memset(tag_settings, 0, sizeof(TagSettings)); // Initialize tag settings
@@ -787,18 +813,53 @@ extern "C"
 
                         if (id3v2Tag)
                         {
-                                TagLib::ID3v2::FrameList trackGainFrames = id3v2Tag->frameListMap()["REPLAYGAIN_TRACK_GAIN"];
-                                if (!trackGainFrames.isEmpty())
+                                // Retrieve all TXXX frames
+                                TagLib::ID3v2::FrameList frames = id3v2Tag->frameList("TXXX");
+                                for (TagLib::ID3v2::FrameList::Iterator it = frames.begin();
+                                     it != frames.end(); ++it)
                                 {
-                                        std::string trackGainStr = trackGainFrames.front()->toString().toCString();
-                                        tag_settings->replaygainTrack = std::stod(trackGainStr);
-                                }
+                                        // Cast to the user-text (TXXX) frame class
+                                        TagLib::ID3v2::TextIdentificationFrame *txxx =
+                                            dynamic_cast<TagLib::ID3v2::TextIdentificationFrame *>(*it);
+                                        if (!txxx)
+                                                continue;
 
-                                TagLib::ID3v2::FrameList albumGainFrames = id3v2Tag->frameListMap()["REPLAYGAIN_ALBUM_GAIN"];
-                                if (!albumGainFrames.isEmpty())
+                                        TagLib::StringList fields = txxx->fieldList();
+                                        if (fields.size() >= 2)
+                                        {
+                                                TagLib::String desc = fields[0];
+                                                TagLib::String val = fields[1];
+
+                                                if (desc.upper() == "REPLAYGAIN_TRACK_GAIN")
+                                                {
+                                                        tag_settings->replaygainTrack = parseDecibelValue(val);
+                                                }
+                                                else if (desc.upper() == "REPLAYGAIN_ALBUM_GAIN")
+                                                {
+                                                        tag_settings->replaygainAlbum = parseDecibelValue(val);
+                                                }
+                                        }
+                                }
+                        }
+
+                        TagLib::APE::Tag *apeTag = mp3File.APETag();
+
+                        if (apeTag)
+                        {
+                                TagLib::APE::ItemListMap items = apeTag->itemListMap();
+                                for (auto it = items.begin(); it != items.end(); ++it)
                                 {
-                                        std::string albumGainStr = albumGainFrames.front()->toString().toCString();
-                                        tag_settings->replaygainAlbum = std::stod(albumGainStr);
+                                        std::string key = it->first.upper().toCString();
+                                        TagLib::String value = it->second.toString();
+
+                                        if (key == "REPLAYGAIN_TRACK_GAIN")
+                                        {
+                                                tag_settings->replaygainTrack = parseDecibelValue(value);
+                                        }
+                                        else if (key == "REPLAYGAIN_ALBUM_GAIN")
+                                        {
+                                                tag_settings->replaygainAlbum = parseDecibelValue(value);
+                                        }
                                 }
                         }
                 }
@@ -817,7 +878,7 @@ extern "C"
                                         const TagLib::StringList &trackGainList = trackGainIt->second;
                                         if (!trackGainList.isEmpty())
                                         {
-                                                tag_settings->replaygainTrack = std::stod(trackGainList.front().toCString());
+                                                tag_settings->replaygainTrack = parseDecibelValue(trackGainList.front());
                                         }
                                 }
 
@@ -827,7 +888,7 @@ extern "C"
                                         const TagLib::StringList &albumGainList = albumGainIt->second;
                                         if (!albumGainList.isEmpty())
                                         {
-                                                tag_settings->replaygainAlbum = std::stod(albumGainList.front().toCString());
+                                                tag_settings->replaygainAlbum = parseDecibelValue(albumGainList.front());
                                         }
                                 }
                         }
