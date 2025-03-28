@@ -2,7 +2,7 @@
 
 ### 3.1.3
 
-- Added replay gain handling for flac files.
+- Added audio normalization for flac and mp3 files using replay gain metatags. By @ravachol.
 
 - Added a stop command (alt+s). Space bar is play as before. By @ravachol.
 
