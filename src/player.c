@@ -473,7 +473,7 @@ int calcIndentNormal(void)
         return getIndentation(textWidth - 1) - 1;
 }
 
-int calcIndentSongView(SongData *songdata)
+int calcIndentTrackView(SongData *songdata)
 {
         if (songdata == NULL)
                 return calcIndentNormal();
@@ -485,8 +485,6 @@ int calcIndentSongView(SongData *songdata)
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
         int maxSize = term_w - 2;
-        if (titleLength > 0 && titleLength < maxSize && titleLength > textWidth)
-                textWidth = titleLength;
         if (maxTextLength > 0 && maxTextLength < maxSize && maxTextLength > textWidth)
                 textWidth = maxTextLength;
         if (textWidth > maxSize)
@@ -503,7 +501,7 @@ void calcIndent(SongData *songdata)
         }
         else
         {
-                indent = calcIndentSongView(songdata);
+                indent = calcIndentTrackView(songdata);
         }
 }
 
