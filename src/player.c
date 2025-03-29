@@ -292,8 +292,8 @@ void printCover(SongData *songdata, UISettings *ui)
 
 void printTitleWithDelay(const char *text, int delay, int maxWidth)
 {
-        maxWidth -= 2; // Accommodate for the cursor that we display after the name.
         int max = strnlen(text, maxWidth);
+        max -= 2; // Accommodate for the cursor that we display after the name.
 
         for (int i = 0; i <= max; i++)
         {
