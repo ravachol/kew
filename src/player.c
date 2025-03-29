@@ -379,7 +379,7 @@ void printBasicMetadata(TagSettings const *metadata, UISettings *ui)
                         printf("\033[1;38;2;%03u;%03u;%03um", pixel.r, pixel.g, pixel.b);
                 }
 
-                printTitleWithDelay(metadata->title, ui->titleDelay, maxWidth - 2);
+                printTitleWithDelay(metadata->title, ui->titleDelay, maxWidth);
         }
         else
         {
