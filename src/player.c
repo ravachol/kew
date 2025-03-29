@@ -292,8 +292,8 @@ void printCover(SongData *songdata, UISettings *ui)
 
 void printTitleWithDelay(const char *text, int delay, int maxWidth)
 {
+        maxWidth -= 2; // Accommodate for the cursor that we display after the name.
         int max = strnlen(text, maxWidth);
-        max -= 2; // accommodate for the cursor that we display after the name.
 
         for (int i = 0; i <= max; i++)
         {
@@ -473,7 +473,7 @@ int calcIndentNormal(void)
         return getIndentation(textWidth - 1) - 1;
 }
 
-int calcIndentSongView(SongData *songdata)
+int calcIndentTrackView(SongData *songdata)
 {
         if (songdata == NULL)
                 return calcIndentNormal();
@@ -485,8 +485,6 @@ int calcIndentSongView(SongData *songdata)
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
         int maxSize = term_w - 2;
-        if (titleLength > 0 && titleLength < maxSize && titleLength > textWidth)
-                textWidth = titleLength;
         if (maxTextLength > 0 && maxTextLength < maxSize && maxTextLength > textWidth)
                 textWidth = maxTextLength;
         if (textWidth > maxSize)
@@ -503,7 +501,7 @@ void calcIndent(SongData *songdata)
         }
         else
         {
-                indent = calcIndentSongView(songdata);
+                indent = calcIndentTrackView(songdata);
         }
 }
 
