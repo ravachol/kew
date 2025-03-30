@@ -878,6 +878,7 @@ void cleanupPlaybackDevice(void)
                 c_sleep(100);
         }
         ma_device_uninit(&device);
+        memset(&device, 0, sizeof(device));
 }
 
 void clearCurrentTrack(void)
