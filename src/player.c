@@ -294,8 +294,8 @@ void printTitleWithDelay(const char *text, int delay, int maxWidth)
 {
         int max = strnlen(text, maxWidth);
 
-        if (max == maxWidth)    // For long names
-                max -= 2;       // Accommodate for the cursor that we display after the name.
+        if (max == maxWidth) // For long names
+                max -= 2;    // Accommodate for the cursor that we display after the name.
 
         for (int i = 0; i <= max; i++)
         {
@@ -783,53 +783,53 @@ void toggleShowView(ViewState viewToShow)
 
 void switchToNextView(void)
 {
-        if (appState.currentView == PLAYLIST_VIEW)
-                appState.currentView = LIBRARY_VIEW;
-        else if (appState.currentView == LIBRARY_VIEW)
+        switch (appState.currentView)
         {
-                if (currentSong != NULL)
-                {
-                        appState.currentView = TRACK_VIEW;
-                }
-                else
-                {
-                        appState.currentView = SEARCH_VIEW;
-                }
-        }
-        else if (appState.currentView == TRACK_VIEW)
+        case PLAYLIST_VIEW:
+                appState.currentView = LIBRARY_VIEW;
+                break;
+        case LIBRARY_VIEW:
+                appState.currentView = (currentSong != NULL) ? TRACK_VIEW : SEARCH_VIEW;
+                break;
+        case TRACK_VIEW:
                 appState.currentView = SEARCH_VIEW;
-        else if (appState.currentView == SEARCH_VIEW)
+                break;
+        case SEARCH_VIEW:
                 appState.currentView = RADIOSEARCH_VIEW;
-        else if (appState.currentView == RADIOSEARCH_VIEW)
+                break;
+        case RADIOSEARCH_VIEW:
                 appState.currentView = KEYBINDINGS_VIEW;
-        else if (appState.currentView == KEYBINDINGS_VIEW)
+                break;
+        case KEYBINDINGS_VIEW:
                 appState.currentView = PLAYLIST_VIEW;
-
+                break;
+        }
         refresh = true;
 }
 
 void switchToPreviousView(void)
 {
-        if (appState.currentView == PLAYLIST_VIEW)
+        switch (appState.currentView)
+        {
+        case PLAYLIST_VIEW:
                 appState.currentView = KEYBINDINGS_VIEW;
-        else if (appState.currentView == LIBRARY_VIEW)
+                break;
+        case LIBRARY_VIEW:
                 appState.currentView = PLAYLIST_VIEW;
-        else if (appState.currentView == TRACK_VIEW)
+                break;
+        case TRACK_VIEW:
                 appState.currentView = LIBRARY_VIEW;
-        else if (appState.currentView == SEARCH_VIEW)
-                if (currentSong != NULL)
-                {
-                        appState.currentView = TRACK_VIEW;
-                }
-                else
-                {
-                        appState.currentView = LIBRARY_VIEW;
-                }
-        else if (appState.currentView == RADIOSEARCH_VIEW)
+                break;
+        case SEARCH_VIEW:
+                appState.currentView = (currentSong != NULL) ? TRACK_VIEW : LIBRARY_VIEW;
+                break;
+        case RADIOSEARCH_VIEW:
                 appState.currentView = SEARCH_VIEW;
-        else if (appState.currentView == KEYBINDINGS_VIEW)
+                break;
+        case KEYBINDINGS_VIEW:
                 appState.currentView = RADIOSEARCH_VIEW;
-
+                break;
+        }
         refresh = true;
 }
 
