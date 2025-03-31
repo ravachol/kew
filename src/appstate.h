@@ -39,6 +39,7 @@ typedef struct
         int titleColor;                                 // Color of the title, when using config colors
         int artistColor;                                // Artist color, when using config colors
         int enqueuedColor;                              // Color of enqueued files, when using config colors
+        bool mouseEnabled;                              // Accept mouse input or not
         int mouseLeftClickAction;                       // Left mouse action
         int mouseMiddleClickAction;                     // Middle mouse action
         int mouseRightClickAction;                      // Right mouse action
@@ -179,6 +180,7 @@ typedef struct
         char artistColor[2];
         char enqueuedColor[2];
         char titleColor[2];
+        char mouseEnabled[2];
         char mouseLeftClickAction[3];
         char mouseMiddleClickAction[3];
         char mouseRightClickAction[3];

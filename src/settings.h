@@ -25,8 +25,6 @@
 
 extern AppSettings settings;
 
-enum EventType getMouseAction(int num);
-
 void getConfig(AppSettings *settings, UISettings *ui);
 
 void setConfig(AppSettings *settings, UISettings *ui);
