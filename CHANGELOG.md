@@ -6,9 +6,11 @@
 
 - Added a stop command (alt+s). Space bar is play as before. By @ravachol.
 
-- Remove the playback of tiny left overs of the previous song, when pausing and then switching song. By @ravachol.
+- Removed the playback of tiny left overs of the previous song, when pausing and then switching song. By @ravachol.
 
 - Previous on first track now resets the track instead of stopping. By @ravachol.
+
+- Radio search now refreshes the list as radio stations are found, making it less "laggy". By @ravachol.
 
 - Added repeat playlist option. Suggested by @HAPPIOcrz007. By @ravachol.
 
