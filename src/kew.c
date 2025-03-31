@@ -611,6 +611,8 @@ void enqueueAndPlay(AppState *state)
 
                 nextSongNeedsRebuilding = false;
 
+                cleanupPlaybackDevice();
+
                 unloadSongA(state);
                 unloadSongB(state);
 
