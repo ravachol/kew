@@ -560,72 +560,15 @@ void playPostProcessing()
 {
         if ((songWasRemoved && currentSong != NULL))
         {
-                usingSongDataA = !usingSongDataA;
                 songWasRemoved = false;
         }
 
         if (wasEndOfList)
         {
-                usingSongDataA = true;
                 skipOutOfOrder = false;
         }
 
         audioData.endOfListReached = false;
-}
-
-void enqueueAndPlay(AppState *state)
-{
-        if (state->currentView == LIBRARY_VIEW || state->currentView == SEARCH_VIEW)
-        {
-                if (isRadioPlaying())
-                {
-                        stopRadio();
-                        setEOFReached();
-                }
-        }
-
-        FileSystemEntry *firstEnqueuedEntry = NULL;
-
-        bool wasEmpty = (playlist.count == 0);
-
-        playPreProcessing();
-
-        if (state->currentView == LIBRARY_VIEW)
-        {
-                firstEnqueuedEntry = enqueue(state, getCurrentLibEntry());
-        }
-
-        if (state->currentView == SEARCH_VIEW)
-        {
-                FileSystemEntry *entry = getCurrentSearchEntry();
-                firstEnqueuedEntry = enqueue(state, entry);
-
-                setChosenDir(entry);
-        }
-
-        if (firstEnqueuedEntry && !wasEmpty)
-        {
-                Node *song = findPathInPlaylist(firstEnqueuedEntry->fullPath, &playlist);
-
-                loadedNextSong = true;
-
-                nextSongNeedsRebuilding = false;
-
-                cleanupPlaybackDevice();
-
-                unloadSongA(state);
-                unloadSongB(state);
-
-                usingSongDataA = false;
-                audioData.currentFileIndex = 0;
-                loadingdata.loadA = true;
-
-                playbackPlay(&totalPauseSeconds, &pauseSeconds);
-
-                play(song);
-
-                playPostProcessing();
-        }
 }
 
 void handleGoToSong(AppState *state)
@@ -687,7 +630,9 @@ void handleGoToSong(AppState *state)
 
                                 skipToSong(state->uiState.chosenNodeId, true);
 
-                                playPostProcessing();                        }
+                                playPostProcessing();
+
+                                usingSongDataA = true;                 }
                 }
                 else
                 {
@@ -707,6 +652,69 @@ void handleGoToSong(AppState *state)
         if (canGoNext != couldGoNext)
         {
                 emitBooleanPropertyChanged("CanGoNext", couldGoNext);
+        }
+}
+
+void enqueueAndPlay(AppState *state)
+{
+        if (state->currentView == LIBRARY_VIEW || state->currentView == SEARCH_VIEW)
+        {
+                if (isRadioPlaying())
+                {
+                        stopRadio();
+                        setEOFReached();
+                }
+        }
+
+        FileSystemEntry *firstEnqueuedEntry = NULL;
+
+        bool wasEmpty = (playlist.count == 0);
+
+        playPreProcessing();
+
+        if (state->currentView == PLAYLIST_VIEW)
+        {
+                handleGoToSong(state);
+                return;
+        }
+
+        if (state->currentView == LIBRARY_VIEW)
+        {
+                firstEnqueuedEntry = enqueue(state, getCurrentLibEntry());
+        }
+
+        if (state->currentView == SEARCH_VIEW)
+        {
+                FileSystemEntry *entry = getCurrentSearchEntry();
+                firstEnqueuedEntry = enqueue(state, entry);
+
+                setChosenDir(entry);
+        }
+
+        if (firstEnqueuedEntry && !wasEmpty)
+        {
+                Node *song = findPathInPlaylist(firstEnqueuedEntry->fullPath, &playlist);
+
+                loadedNextSong = true;
+
+                nextSongNeedsRebuilding = false;
+
+                cleanupPlaybackDevice();
+
+                unloadSongA(state);
+                unloadSongB(state);
+
+                usingSongDataA = false;
+                audioData.currentFileIndex = 0;
+                loadingdata.loadA = true;
+
+                playbackPlay(&totalPauseSeconds, &pauseSeconds);
+
+                play(song);
+
+                playPostProcessing();
+
+                usingSongDataA = true;
         }
 }
 
