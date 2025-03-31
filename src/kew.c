@@ -668,6 +668,8 @@ void handleGoToSong(AppState *state)
                                         setEOFReached();
                                 }
 
+                                cleanupPlaybackDevice();
+
                                 loadedNextSong = true;
 
                                 nextSongNeedsRebuilding = false;

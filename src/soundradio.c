@@ -353,25 +353,19 @@ bool isControlChar(char c)
         return (c >= 0 && c <= 31) || c == 127;
 }
 
-// Function to sanitize the URL by removing control characters and checking for malicious patterns
 bool sanitizeUrl(const char *url)
 {
-        // Check for common unsafe schemes
         if (strstr(url, "javascript:") != NULL ||
             strstr(url, "data:") != NULL ||
             strstr(url, "file:") != NULL ||
             strstr(url, "vbscript:") != NULL)
         {
-                fprintf(stderr, "Unsafe URL pattern detected: %s\n", url);
                 return false;
         }
-
-        // Check for control characters
         for (const char *p = url; *p; p++)
         {
                 if (isControlChar(*p))
                 {
-                        fprintf(stderr, "URL contains control character: %s\n", url);
                         return false;
                 }
         }
@@ -478,6 +472,7 @@ void *searchThreadFunction(void *arg)
                         pthread_mutex_unlock(&server_list_mutex);
                         free(args->searchTerm);
                         free(args);
+                        setErrorMessage("Radio database unavailable.");
                         return NULL;
                 }
                 hasUpdatedServerList = true;
@@ -608,9 +603,9 @@ void *searchThreadFunction(void *arg)
 void stopCurrentThread() {
     if (currentThread) {
         stopFlag = true;
-        pthread_cancel(currentThread);  // This cancels the thread if it is still running
-        pthread_join(currentThread, NULL);  // Wait for the thread to join
-        stopFlag = false;  // Reset the stop flag
+        pthread_cancel(currentThread);
+        pthread_join(currentThread, NULL);
+        stopFlag = false;
     }
 }
 
