@@ -1281,7 +1281,8 @@ void cleanupOnExit()
         printf("\n");
         showCursor();
         exitAlternateScreenBuffer();
-        disableMouseButtons();
+        if (appState.uiSettings.mouseEnabled)
+                disableMouseButtons();
 
         if (noMusicFound)
         {
@@ -1712,6 +1713,7 @@ void initState(AppState *state)
         state->uiSettings.titleDelay = 9;
         state->uiSettings.cacheLibrary = -1;
         state->uiSettings.useConfigColors = false;
+        state->uiSettings.mouseEnabled = true;
         state->uiState.numDirectoryTreeEntries = 0;
         state->uiState.numProgressBars = 35;
         state->uiState.chosenNodeId = 0;
@@ -1752,7 +1754,8 @@ int main(int argc, char *argv[])
                 exit(0);
         }
 
-        enableMouseButtons();
+        if (ui->mouseEnabled)
+                enableMouseButtons();
 
         initializeStateAndSettings(&appState, &settings);
 
