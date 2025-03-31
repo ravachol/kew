@@ -375,8 +375,10 @@ void drawSpectrumVisualizer(int height, int width, PixelData c, int indentation,
         }
 
         if (bufferSize <= 0)
+        {
+                for (int i = 0; i <= height; i++) {printf("\n");}
                 return;
-
+        }
         if (bufferSize != prevBufferSize)
         {
                 lastMax = -1.0f;
@@ -386,6 +388,7 @@ void drawSpectrumVisualizer(int height, int width, PixelData c, int indentation,
                 fftInput = (fftwf_complex *)fftwf_malloc(sizeof(fftwf_complex) * bufferSize);
                 if (fftInput == NULL)
                 {
+                        for (int i = 0; i <= height; i++) {printf("\n");}
                         return;
                 }
 
@@ -394,6 +397,7 @@ void drawSpectrumVisualizer(int height, int width, PixelData c, int indentation,
                 {
                         fftwf_free(fftInput);
                         fftInput = NULL;
+                        for (int i = 0; i <= height; i++) {printf("\n");}
                         return;
                 }
                 prevBufferSize = bufferSize;
