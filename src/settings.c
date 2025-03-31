@@ -38,6 +38,7 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         c_strcpy(settings.coverAnsi, "0", sizeof(settings.coverAnsi));
         c_strcpy(settings.quitAfterStopping, "0", sizeof(settings.quitAfterStopping));
         c_strcpy(settings.hideGlimmeringText, "0", sizeof(settings.hideGlimmeringText));
+        c_strcpy(settings.mouseEnabled, "1", sizeof(settings.mouseEnabled));
 #ifdef __APPLE__
         c_strcpy(settings.visualizerEnabled, "0", sizeof(settings.visualizerEnabled)); // visualizer looks wonky in default terminal
         c_strcpy(settings.useConfigColors, "1", sizeof(settings.useConfigColors));     // colors from album look wrong in default terminal
@@ -265,6 +266,10 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
                 else if (strcmp(lowercaseKey, "titlecolor") == 0)
                 {
                         snprintf(settings.titleColor, sizeof(settings.titleColor), "%s", pair->value);
+                }
+                else if (strcmp(lowercaseKey, "mouseenabled") == 0)
+                {
+                        snprintf(settings.mouseEnabled, sizeof(settings.mouseEnabled), "%s", pair->value);
                 }
                 else if (strcmp(lowercaseKey, "mouseleftclickaction") == 0)
                 {
@@ -632,6 +637,7 @@ void getConfig(AppSettings *settings, UISettings *ui)
         ui->useConfigColors = (settings->useConfigColors[0] == '1');
         ui->quitAfterStopping = (settings->quitAfterStopping[0] == '1');
         ui->hideGlimmeringText = (settings->hideGlimmeringText[0] == '1');
+        ui->mouseEnabled = (settings->mouseEnabled[0] == '1');
         ui->hideLogo = (settings->hideLogo[0] == '1');
         ui->hideHelp = (settings->hideHelp[0] == '1');
 
@@ -741,6 +747,8 @@ void setConfig(AppSettings *settings, UISettings *ui)
                 ui->quitAfterStopping ? c_strcpy(settings->quitAfterStopping, "1", sizeof(settings->quitAfterStopping)) : c_strcpy(settings->quitAfterStopping, "0", sizeof(settings->quitAfterStopping));
         if (settings->hideGlimmeringText[0] == '\0')
                 ui->hideGlimmeringText ? c_strcpy(settings->hideGlimmeringText, "1", sizeof(settings->hideGlimmeringText)) : c_strcpy(settings->hideGlimmeringText, "0", sizeof(settings->hideGlimmeringText));
+        if (settings->mouseEnabled[0] == '\0')
+                ui->mouseEnabled ? c_strcpy(settings->mouseEnabled, "1", sizeof(settings->mouseEnabled)) : c_strcpy(settings->mouseEnabled, "0", sizeof(settings->mouseEnabled));
         if (settings->hideLogo[0] == '\0')
                 ui->hideLogo ? c_strcpy(settings->hideLogo, "1", sizeof(settings->hideLogo)) : c_strcpy(settings->hideLogo, "0", sizeof(settings->hideLogo));
         if (settings->hideHelp[0] == '\0')
@@ -825,6 +833,8 @@ void setConfig(AppSettings *settings, UISettings *ui)
         fprintf(file, "titleColor=%s\n", settings->titleColor);
         fprintf(file, "# Color of enqueued songs in library view:\n");
         fprintf(file, "enqueuedColor=%s\n", settings->enqueuedColor);
+
+        fprintf(file, "\nmouseEnabled=%s\n", settings->mouseEnabled);
 
         fprintf(file, "\n# Mouse actions are 0=none, 1=select song, 2=toggle pause, 3=scroll up, 4=scroll down, 5=seek forward, 6=seek backward, 7=volume up, 8=volume down, 9=switch to next view, 10=switch to previous view\n");
         fprintf(file, "mouseLeftClickAction=%s\n", settings->mouseLeftClickAction);
