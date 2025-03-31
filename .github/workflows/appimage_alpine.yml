@@ -1,8 +1,6 @@
 name: Alpine-appimage
 
 on:
-  release:
-    types: [created]  # Triggers on release created
   workflow_dispatch:
 
 jobs:
