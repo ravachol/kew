@@ -40,6 +40,7 @@ sudo yay -S kew-git          (Arch Linux, Manjaro)
 sudo zypper install kew      (OpenSUSE)
 sudo pkg install kew         (FreeBSD)
 brew install kew             (macOS, Linux)
+apk add kew                  (Alpine Linux)
 ```
 
 ### Building the project manually
@@ -165,12 +166,6 @@ sudo make uninstall
 
 By default, the build system will automatically detect if `faad2` is available and includes it if found.
 
-
-### Standalone AppImage for musl systems
-
-If you are running a musl-based system, for instance Alpine Linux, you can download a standalone appImage of kew:
-
-https://github.com/ravachol/kew/releases/tag/stable-musl
 
 ### Terminals
 
