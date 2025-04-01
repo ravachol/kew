@@ -16,6 +16,8 @@
 
 - Added setting option to set the visualizer so that the brightness of it depends on the height of the bar. By @Chromium-3-Oxide.
 
+- Add config option to disable mouse (in kewrc file). By @Chromium-3-Oxide.
+
 - Fixed bug with previous track with shuffle enabled. Found by @GuyInAShack. By @ravachol.
 
 ### 3.1.2
