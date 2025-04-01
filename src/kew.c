@@ -1282,7 +1282,7 @@ void cleanupOnExit()
         showCursor();
         exitAlternateScreenBuffer();
         if (appState.uiSettings.mouseEnabled)
-                disableMouseButtons();
+                disableTerminalMouseButtons();
 
         if (noMusicFound)
         {
@@ -1695,6 +1695,14 @@ void setMusicPath()
                 exit(1);
 }
 
+void enableMouse(UISettings *ui)
+{
+        if (ui->mouseEnabled)
+        {
+                enableTerminalMouseButtons();
+        }
+}
+
 void initState(AppState *state)
 {
         state->uiSettings.uiEnabled = true;
@@ -1735,6 +1743,7 @@ void initializeStateAndSettings(AppState *appState, AppSettings *settings)
         initState(appState);
         getConfig(settings, &appState->uiSettings);
         mapSettingsToKeys(settings, &appState->uiSettings, keyMappings);
+        enableMouse(&appState->uiSettings);
 }
 
 int main(int argc, char *argv[])
@@ -1753,9 +1762,6 @@ int main(int argc, char *argv[])
                 printAbout(NULL, ui);
                 exit(0);
         }
-
-        if (ui->mouseEnabled)
-                enableMouseButtons();
 
         initializeStateAndSettings(&appState, &settings);
 

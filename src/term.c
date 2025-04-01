@@ -232,13 +232,13 @@ void exitAlternateScreenBuffer()
         printf("\033[?1049l");
 }
 
-void enableMouseButtons()
+void enableTerminalMouseButtons()
 {
         // Enable program to accept mouse input as codes
         printf("\033[?1002h");
 }
 
-void disableMouseButtons()
+void disableTerminalMouseButtons()
 {
         // Disable program to accept mouse input as codes
         printf("\033[?1002l");
