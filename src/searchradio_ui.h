@@ -17,8 +17,18 @@ int removeFromRadioSearchText(void);
 
 int getRadioSearchResultsCount(void);
 
+bool hasRadioSearchText();
+
 void radioSearch();
 
 void freeRadioSearchResults(void);
+
+void freeAndwriteRadioFavorites(void);
+
+void createRadioFavorites(void);
+
+void addToRadioFavorites(RadioSearchResult *result);
+
+void removeFromRadioFavorites(RadioSearchResult *result);
 
 RadioSearchResult *getCurrentRadioSearchEntry(void);

@@ -1025,8 +1025,10 @@ void showRadioSearch(SongData *songData, int *chosenRow, UISettings *ui)
         if (term_w > indent + 73 && !ui->hideHelp)
         {
                 printBlankSpaces(indent);
-                printf(" Use ↑, ↓ to choose. Enter to search and then enter to accept a station.\n\n");
-                maxRadioSearchListSize -= 2;
+                printf(" Use ↑, ↓ to choose. Enter to search and then enter to accept a station.\n");
+                printBlankSpaces(indent);
+                printf(" Alt+f to add, del to remove favorites. Empty search to show favorites.\n\n");
+                maxRadioSearchListSize -= 3;
         }
 
         displayRadioSearch(maxRadioSearchListSize, indent, chosenRow, startSearchIter, ui);
@@ -1419,36 +1421,7 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
 
 char *getLibraryFilePath(void)
 {
-        char *configdir = getConfigPath();
-        char *filepath = NULL;
-
-        if (configdir == NULL)
-        {
-                return NULL;
-        }
-
-        size_t configdir_length = strnlen(configdir, MAXPATHLEN);
-        size_t library_file_length = strnlen(LIBRARY_FILE, sizeof(LIBRARY_FILE));
-
-        size_t filepath_length = configdir_length + 1 + library_file_length + 1;
-
-        if (filepath_length > MAXPATHLEN)
-        {
-                free(configdir);
-                return NULL;
-        }
-
-        filepath = (char *)malloc(filepath_length);
-        if (filepath == NULL)
-        {
-                free(configdir);
-                return NULL;
-        }
-
-        snprintf(filepath, filepath_length, "%s/%s", configdir, LIBRARY_FILE);
-
-        free(configdir);
-        return filepath;
+        return getFilePath(LIBRARY_FILE);
 }
 
 void showLibrary(SongData *songData, AppState *state)

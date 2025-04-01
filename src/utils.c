@@ -240,7 +240,6 @@ const char *getHomePath(void)
         }
         return NULL;
 }
-
 char *getConfigPath(void)
 {
         char *configPath = malloc(MAXPATHLEN);
@@ -284,6 +283,43 @@ char *getConfigPath(void)
         }
 
         return configPath;
+}
+
+char *getFilePath(const char *filename)
+{
+    if (filename == NULL)
+    {
+        return NULL;
+    }
+
+    char *configdir = getConfigPath();
+    if (configdir == NULL)
+    {
+        return NULL;
+    }
+
+    size_t configdir_length = strnlen(configdir, MAXPATHLEN);
+    size_t filename_length = strnlen(filename, MAXPATHLEN);
+
+    size_t filepath_length = configdir_length + 1 + filename_length + 1;
+
+    if (filepath_length > MAXPATHLEN)
+    {
+        free(configdir);
+        return NULL;
+    }
+
+    char *filepath = (char *)malloc(filepath_length);
+    if (filepath == NULL)
+    {
+        free(configdir);
+        return NULL;
+    }
+
+    snprintf(filepath, filepath_length, "%s/%s", configdir, filename);
+
+    free(configdir);
+    return filepath;
 }
 
 void removeUnneededChars(char *str, int length)
