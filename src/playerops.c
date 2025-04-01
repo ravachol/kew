@@ -896,7 +896,6 @@ void moveSongUp()
                                 }
                                 temp = temp->next;
                         }
-
                 }
         }
 
@@ -972,7 +971,6 @@ void moveSongDown()
                         if (currentSong->prev != NULL && currentSong->prev->id == id)
                                 rebuild = true;
                 }
-
         }
 
         moveDownList(originalPlaylist, node);
@@ -1245,75 +1243,87 @@ void handleRemove(void)
         if (refresh)
                 return;
 
-        if (appState.currentView != PLAYLIST_VIEW)
+        if (appState.currentView == RADIOSEARCH_VIEW)
         {
-                return;
+                RadioSearchResult *station = getCurrentRadioSearchEntry();
+
+                if (station)
+                {
+                        removeFromRadioFavorites(station);
+                }
         }
-
-        bool rebuild = false;
-
-        Node *node = findSelectedEntry(originalPlaylist, getChosenRow());
-
-        if (node == NULL)
+        else if (appState.currentView == PLAYLIST_VIEW)
         {
-                return;
-        }
 
-        Node *song = getNextSong();
-        int id = node->id;
-        int currentId = (currentSong != NULL) ? currentSong->id : -1;
+                bool rebuild = false;
 
-        if (currentId == node->id)
-        {
-                removeCurrentlyPlayingSong();
+                Node *node = findSelectedEntry(originalPlaylist, getChosenRow());
+
+                if (node == NULL)
+                {
+                        return;
+                }
+
+                Node *song = getNextSong();
+                int id = node->id;
+                int currentId = (currentSong != NULL) ? currentSong->id : -1;
+
+                if (currentId == node->id)
+                {
+                        removeCurrentlyPlayingSong();
+                }
+                else
+                {
+                        if (songToStartFrom != NULL)
+                        {
+                                songToStartFrom = getListNext(node);
+                        }
+                }
+
+                pthread_mutex_lock(&(playlist.mutex));
+
+                if (node != NULL && song != NULL && currentSong != NULL)
+                {
+                        if (strcmp(song->song.filePath, node->song.filePath) == 0 || (currentSong != NULL && currentSong->next != NULL && id == currentSong->next->id))
+                                rebuild = true;
+                }
+
+                if (node != NULL)
+                        markAsDequeued(getLibrary(), node->song.filePath);
+
+                Node *node2 = findSelectedEntryById(&playlist, id);
+
+                if (node != NULL)
+                        deleteFromList(originalPlaylist, node);
+
+                if (node2 != NULL)
+                        deleteFromList(&playlist, node2);
+
+                if (isShuffleEnabled())
+                        rebuild = true;
+
+                currentSong = findSelectedEntryById(&playlist, currentId);
+
+                if (rebuild && currentSong != NULL)
+                {
+                        node = NULL;
+                        nextSong = NULL;
+                        reshufflePlaylist();
+
+                        tryNextSong = currentSong->next;
+                        nextSongNeedsRebuilding = false;
+                        nextSong = NULL;
+                        nextSong = getListNext(currentSong);
+                        rebuildNextSong(nextSong);
+                        loadedNextSong = true;
+                }
+
+                pthread_mutex_unlock(&(playlist.mutex));
         }
         else
         {
-                if (songToStartFrom != NULL)
-                {
-                        songToStartFrom = getListNext(node);
-                }
+                return;
         }
-
-        pthread_mutex_lock(&(playlist.mutex));
-
-        if (node != NULL && song != NULL && currentSong != NULL)
-        {
-                if (strcmp(song->song.filePath, node->song.filePath) == 0 || (currentSong != NULL && currentSong->next != NULL && id == currentSong->next->id))
-                        rebuild = true;
-        }
-
-        if (node != NULL)
-                markAsDequeued(getLibrary(), node->song.filePath);
-
-        Node *node2 = findSelectedEntryById(&playlist, id);
-
-        if (node != NULL)
-                deleteFromList(originalPlaylist, node);
-
-        if (node2 != NULL)
-                deleteFromList(&playlist, node2);
-
-        if (isShuffleEnabled())
-                rebuild = true;
-
-        currentSong = findSelectedEntryById(&playlist, currentId);
-
-        if (rebuild && currentSong != NULL)
-        {
-                node = NULL;
-                nextSong = NULL;
-                reshufflePlaylist();
-
-                tryNextSong = currentSong->next;
-                nextSongNeedsRebuilding = false;
-                nextSong = NULL;
-                nextSong = getListNext(currentSong);
-                rebuildNextSong(nextSong);
-                loadedNextSong = true;
-        }
-
-        pthread_mutex_unlock(&(playlist.mutex));
 
         refresh = true;
 }

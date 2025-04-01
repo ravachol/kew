@@ -214,7 +214,7 @@ struct Event processInput()
                 }
                 else if (event.key[0] == '\n')
                 {
-                        if (isNewSearchTerm)
+                        if (isNewSearchTerm && hasRadioSearchText())
                         {
                                 radioSearch();
                                 event.type = EVENT_RADIOSEARCH;
@@ -571,6 +571,20 @@ void playPostProcessing()
         audioData.endOfListReached = false;
 }
 
+void handleAddToRadioFavorites(AppState *state)
+{
+        if (state->currentView == RADIOSEARCH_VIEW)
+        {
+                RadioSearchResult *station = getCurrentRadioSearchEntry();
+
+                if (station)
+                {
+                        addToRadioFavorites(station);
+                        refresh = true;
+                }
+        }
+}
+
 void handleGoToSong(AppState *state)
 {
         bool canGoNext = (currentSong != NULL && currentSong->next != NULL);
@@ -861,6 +875,9 @@ void handleInput(AppState *state)
                 break;
         case EVENT_ENQUEUEANDPLAY:
                 enqueueAndPlay(state);
+                break;
+        case EVENT_ADDTORADIOFAVORITES:
+                handleAddToRadioFavorites(state);
                 break;
         case EVENT_STOP:
                 stop();
@@ -1254,6 +1271,7 @@ void cleanupOnExit()
         freeAudioBuffer();
         deleteCache(appState.tempCache);
         freeMainDirectoryTree(&appState);
+        freeAndwriteRadioFavorites();
         deletePlaylist(&playlist);
         deletePlaylist(originalPlaylist);
         deletePlaylist(specialPlaylist);
@@ -1367,6 +1385,7 @@ void init(AppState *state)
         pthread_mutex_init(&(loadingdata.mutex), NULL);
         pthread_mutex_init(&(playlist.mutex), NULL);
         createLibrary(&settings, state);
+        createRadioFavorites();
         curl_global_init(CURL_GLOBAL_DEFAULT);
         fflush(stdout);
 

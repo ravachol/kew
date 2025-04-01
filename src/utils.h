@@ -68,4 +68,6 @@ int compareLibEntriesReversed(const struct dirent **a, const struct dirent **b);
 
 int getNumber(const char *str);
 
+char *getFilePath(const char *filename);
+
 #endif

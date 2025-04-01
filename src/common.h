@@ -6,6 +6,10 @@
 #include <string.h>
 #include <pthread.h>
 
+#ifndef MAXPATHLEN
+#define MAXPATHLEN 4096
+#endif
+
 extern volatile bool refresh;
 
 extern const char VERSION[];

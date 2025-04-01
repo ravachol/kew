@@ -122,6 +122,7 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         c_strcpy(settings.moveSongUp, "t", sizeof(settings.moveSongUp));
         c_strcpy(settings.moveSongDown, "g", sizeof(settings.moveSongDown));
         c_strcpy(settings.enqueueAndPlay, "^M", sizeof(settings.enqueueAndPlay));
+        c_strcpy(settings.addToRadioFavorites, "\033f", sizeof(settings.addToRadioFavorites));
         c_strcpy(settings.stop, "\033s", sizeof(settings.stop));
         c_strcpy(settings.quit, "q", sizeof(settings.quit));
         c_strcpy(settings.hardQuit, "\x1B", sizeof(settings.hardQuit));
@@ -367,6 +368,11 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
                         if (strcmp(pair->value, "") != 0)
                                 snprintf(settings.stop, sizeof(settings.stop), "%s", pair->value);
                 }
+                else if (strcmp(lowercaseKey, "addtoradiofavorites") == 0)
+                {
+                        if (strcmp(pair->value, "") != 0)
+                                snprintf(settings.addToRadioFavorites, sizeof(settings.addToRadioFavorites), "%s", pair->value);
+                }
                 else if (strcmp(lowercaseKey, "showkeysalt") == 0 && strcmp(pair->value, "B") != 0)
                 {
                         // We need to prevent the previous key B or else config files wont get updated
@@ -530,6 +536,7 @@ void mapSettingsToKeys(AppSettings *settings, UISettings *ui, EventMapping *mapp
         mappings[60] = (EventMapping){settings->moveSongDown, EVENT_MOVESONGDOWN};
         mappings[61] = (EventMapping){settings->enqueueAndPlay, EVENT_ENQUEUEANDPLAY};
         mappings[62] = (EventMapping){settings->stop, EVENT_STOP};
+        mappings[63] = (EventMapping){settings->addToRadioFavorites, EVENT_ADDTORADIOFAVORITES};
 }
 
 char *getConfigFilePath(char *configdir)
@@ -763,13 +770,9 @@ void setConfig(AppSettings *settings, UISettings *ui)
         if (settings->cacheLibrary[0] == '\0')
                 snprintf(settings->cacheLibrary, sizeof(settings->cacheLibrary), "%d", ui->cacheLibrary);
 
-        if (settings->lastVolume[0] == '\0')
-        {
-                int currentVolume = getCurrentVolume();
-                currentVolume = (currentVolume <= 0) ? 10 : currentVolume;
-                snprintf(settings->lastVolume, sizeof(settings->lastVolume), "%d", currentVolume);
-        }
-
+        int currentVolume = getCurrentVolume();
+        currentVolume = (currentVolume <= 0) ? 10 : currentVolume;
+        snprintf(settings->lastVolume, sizeof(settings->lastVolume), "%d", currentVolume);
 
         if (settings->color[0] == '\0')
                 snprintf(settings->color, sizeof(settings->color), "%d", ui->mainColor);
@@ -869,6 +872,7 @@ void setConfig(AppSettings *settings, UISettings *ui)
         fprintf(file, "moveSongUp=%s\n", settings->moveSongUp);
         fprintf(file, "moveSongDown=%s\n", settings->moveSongDown);
         fprintf(file, "enqueueAndPlay=%s\n", settings->enqueueAndPlay);
+        fprintf(file, "addToRadioFavorites=%s\n", settings->addToRadioFavorites);
         fprintf(file, "stop=%s\n", settings->stop);
 
         fprintf(file, "\n# Alt keys for the different main views, normally F2-F7:\n");
