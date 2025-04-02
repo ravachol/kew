@@ -1316,7 +1316,7 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
                                                 if (ui->useConfigColors)
                                                         setTextColor(ui->enqueuedColor);
                                                 else
-                                                        setColor(ui);
+                                                         setColorAndWeight(0, ui);
 
                                                 printf("\x1b[7m * ");
                                         }
@@ -1390,7 +1390,7 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
 
                                         printf("└─ ");
 
-                                        if (foundCurrent)
+                                        if (foundCurrent && chosenLibRow != libIter)
                                         {
                                                 printf("\e[4m\e[1m");
                                         }
