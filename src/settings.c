@@ -40,8 +40,8 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         c_strcpy(settings.hideGlimmeringText, "0", sizeof(settings.hideGlimmeringText));
         c_strcpy(settings.mouseEnabled, "1", sizeof(settings.mouseEnabled));
 #ifdef __APPLE__
-        c_strcpy(settings.visualizerEnabled, "0", sizeof(settings.visualizerEnabled)); // visualizer looks wonky in default terminal
-        c_strcpy(settings.useConfigColors, "1", sizeof(settings.useConfigColors));     // colors from album look wrong in default terminal
+        c_strcpy(settings.visualizerEnabled, "0", sizeof(settings.visualizerEnabled)); // Visualizer looks wonky in default terminal
+        c_strcpy(settings.useConfigColors, "1", sizeof(settings.useConfigColors));     // Colors from album look wrong in default terminal
 #else
         c_strcpy(settings.visualizerEnabled, "1", sizeof(settings.visualizerEnabled));
         c_strcpy(settings.useConfigColors, "0", sizeof(settings.useConfigColors));
@@ -632,7 +632,7 @@ void getConfig(AppSettings *settings, UISettings *ui)
 
         char *filepath = getConfigFilePath(configdir);
 
-        KeyValuePair *pairs = readKeyValuePairs(filepath, &pair_count, &ui->lastTimeAppRan);
+        KeyValuePair *pairs = readKeyValuePairs(filepath, &pair_count, &(ui->lastTimeAppRan));
 
         free(filepath);
         *settings = constructAppSettings(pairs, pair_count);

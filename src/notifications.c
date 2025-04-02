@@ -170,12 +170,12 @@ typedef struct
 
 static void bus_connection_data_ref(BusConnectionData *data)
 {
-        g_atomic_int_inc(&data->ref_count);
+        g_atomic_int_inc(&(data->ref_count));
 }
 
 static void bus_connection_data_unref(BusConnectionData *data)
 {
-        if (g_atomic_int_dec_and_test(&data->ref_count))
+        if (g_atomic_int_dec_and_test(&(data->ref_count)))
         {
                 g_main_loop_unref(data->loop);
                 g_free(data);

@@ -323,7 +323,7 @@ extern "C"
                                         // Clean up stream states
                                         for (auto &streamEntry : streams)
                                         {
-                                                ogg_stream_clear(&streamEntry.second);
+                                                ogg_stream_clear(&(streamEntry.second));
                                         }
                                         return false; // Could not write to output file
                                 }
@@ -338,7 +338,7 @@ extern "C"
                 // Clean up stream states
                 for (auto &streamEntry : streams)
                 {
-                        ogg_stream_clear(&streamEntry.second);
+                        ogg_stream_clear(&(streamEntry.second));
                 }
 
                 // Return whether the cover art was successfully found and written
