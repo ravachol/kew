@@ -28,10 +28,6 @@ size_t radioResultsCapacity = 0;
 int minRadioSearchLetters = 1;
 RadioSearchResult *currentRadioSearchEntry = NULL;
 
-RadioSearchResult *playingRadioSearchEntry = NULL;
-
-RadioSearchResult *currentPlayingRadioStation = NULL;
-
 char radioSearchText[MAX_SEARCH_LEN * 4 + 1]; // unicode can be 4 characters
 
 RadioSearchResult *getCurrentRadioSearchEntry(void)
