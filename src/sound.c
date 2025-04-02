@@ -45,7 +45,7 @@ ma_result initFirstDatasource(AudioData *pAudioData, UserData *pUserData)
                 pAudioData->format = first->outputFormat;
                 pAudioData->channels = first->outputChannels;
                 pAudioData->sampleRate = first->outputSampleRate;
-                ma_data_source_get_length_in_pcm_frames(first, &pAudioData->totalFrames);
+                ma_data_source_get_length_in_pcm_frames(first, &(pAudioData->totalFrames));
         }
         else if (pathEndsWith(filePath, "opus"))
         {
@@ -54,8 +54,8 @@ ma_result initFirstDatasource(AudioData *pAudioData, UserData *pUserData)
                         return -1;
                 ma_libopus *first = getFirstOpusDecoder();
                 ma_channel channelMap[MA_MAX_CHANNELS];
-                ma_libopus_ds_get_data_format(first, &pAudioData->format, &pAudioData->channels, &pAudioData->sampleRate, channelMap, MA_MAX_CHANNELS);
-                ma_data_source_get_length_in_pcm_frames(first, &pAudioData->totalFrames);
+                ma_libopus_ds_get_data_format(first, &(pAudioData->format), &(pAudioData->channels), &(pAudioData->sampleRate), channelMap, MA_MAX_CHANNELS);
+                ma_data_source_get_length_in_pcm_frames(first, &(pAudioData->totalFrames));
                 ma_data_source_base *base = (ma_data_source_base *)first;
                 base->pCurrent = first;
                 first->pReadSeekTellUserData = pAudioData;
@@ -67,8 +67,8 @@ ma_result initFirstDatasource(AudioData *pAudioData, UserData *pUserData)
                         return -1;
                 ma_libvorbis *first = getFirstVorbisDecoder();
                 ma_channel channelMap[MA_MAX_CHANNELS];
-                ma_libvorbis_ds_get_data_format(first, &pAudioData->format, &pAudioData->channels, &pAudioData->sampleRate, channelMap, MA_MAX_CHANNELS);
-                ma_data_source_get_length_in_pcm_frames(first, &pAudioData->totalFrames);
+                ma_libvorbis_ds_get_data_format(first, &(pAudioData->format), &(pAudioData->channels), &(pAudioData->sampleRate), channelMap, MA_MAX_CHANNELS);
+                ma_data_source_get_length_in_pcm_frames(first, &(pAudioData->totalFrames));
                 ma_data_source_base *base = (ma_data_source_base *)first;
                 base->pCurrent = first;
                 first->pReadSeekTellUserData = pAudioData;
@@ -82,8 +82,8 @@ ma_result initFirstDatasource(AudioData *pAudioData, UserData *pUserData)
                         return -1;
                 m4a_decoder *first = getFirstM4aDecoder();
                 ma_channel channelMap[MA_MAX_CHANNELS];
-                m4a_decoder_ds_get_data_format(first, &pAudioData->format, &pAudioData->channels, &pAudioData->sampleRate, channelMap, MA_MAX_CHANNELS);
-                ma_data_source_get_length_in_pcm_frames(first, &pAudioData->totalFrames);
+                m4a_decoder_ds_get_data_format(first, &(pAudioData->format), &(pAudioData->channels), &(pAudioData->sampleRate), channelMap, MA_MAX_CHANNELS);
+                ma_data_source_get_length_in_pcm_frames(first, &(pAudioData->totalFrames));
                 ma_data_source_base *base = (ma_data_source_base *)first;
                 base->pCurrent = first;
                 first->pReadSeekTellUserData = pAudioData;

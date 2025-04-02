@@ -185,7 +185,7 @@ void play(Node *song)
         songLoading = true;
         forceSkip = false;
 
-        // cancel starting from top
+        // Cancel starting from top
         if (waitingForPlaylist || audioData.restart)
         {
                 waitingForPlaylist = false;
@@ -352,7 +352,7 @@ void addToSpecialPlaylist(void)
 
         Node *node = NULL;
 
-        if (findSelectedEntryById(specialPlaylist, id) != NULL) // song is already in list
+        if (findSelectedEntryById(specialPlaylist, id) != NULL) // Song is already in list
                 return;
 
         createNode(&node, currentSong->song.filePath, id);
@@ -1032,7 +1032,7 @@ void dequeueSong(FileSystemEntry *child)
 
         child->isEnqueued = 0;
 
-        // check if parent needs to be dequeued as well
+        // Check if parent needs to be dequeued as well
         bool isEnqueued = false;
 
         FileSystemEntry *ch = child->parent->children;
@@ -1358,7 +1358,7 @@ int loadDecoder(SongData *songData, bool *songDataDeleted)
         {
                 *songDataDeleted = false;
 
-                // this should only be done for the second song, as switchAudioImplementation() handles the first one
+                // This should only be done for the second song, as switchAudioImplementation() handles the first one
                 if (!loadingdata.loadingFirstDecoder)
                 {
                         if (hasBuiltinDecoder(songData->filePath))
@@ -1384,12 +1384,12 @@ int assignLoadedData(void)
         if (loadingdata.loadA)
         {
                 userData.songdataA = loadingdata.songdataA;
-                result = loadDecoder(loadingdata.songdataA, &userData.songdataADeleted);
+                result = loadDecoder(loadingdata.songdataA, &(userData.songdataADeleted));
         }
         else
         {
                 userData.songdataB = loadingdata.songdataB;
-                result = loadDecoder(loadingdata.songdataB, &userData.songdataBDeleted);
+                result = loadDecoder(loadingdata.songdataB, &(userData.songdataBDeleted));
         }
 
         return result;
@@ -1412,7 +1412,7 @@ void *songDataReaderThread(void *arg)
                 if (!userData.songdataADeleted)
                 {
                         userData.songdataADeleted = true;
-                        unloadSongData(&loadingdata->songdataA, &appState);
+                        unloadSongData(&(loadingdata->songdataA), &appState);
                 }
         }
         else
@@ -1420,7 +1420,7 @@ void *songDataReaderThread(void *arg)
                 if (!userData.songdataBDeleted)
                 {
                         userData.songdataBDeleted = true;
-                        unloadSongData(&loadingdata->songdataB, &appState);
+                        unloadSongData(&(loadingdata->songdataB), &appState);
                 }
         }
 
@@ -1706,7 +1706,7 @@ void skipToPrevSong(AppState *state)
         if (song == currentSong)
         {
                 resetTimeCount();
-                updatePlaybackPosition(0); // we need to signal to mpris that the song was reset to the beginning
+                updatePlaybackPosition(0); // We need to signal to mpris that the song was reset to the beginning
         }
 
         playbackPlay(&totalPauseSeconds, &pauseSeconds);
@@ -1820,7 +1820,7 @@ void unloadSongA(AppState *state)
         if (userData.songdataADeleted == false)
         {
                 userData.songdataADeleted = true;
-                unloadSongData(&loadingdata.songdataA, state);
+                unloadSongData(&(loadingdata.songdataA), state);
                 userData.songdataA = NULL;
         }
 }
@@ -1830,7 +1830,7 @@ void unloadSongB(AppState *state)
         if (userData.songdataBDeleted == false)
         {
                 userData.songdataBDeleted = true;
-                unloadSongData(&loadingdata.songdataB, state);
+                unloadSongData(&(loadingdata.songdataB), state);
                 userData.songdataB = NULL;
         }
 }
@@ -1867,7 +1867,7 @@ void unloadPreviousSong(AppState *state)
 
 int loadFirst(Node *song, AppState *state)
 {
-        loadFirstSong(song, &state->uiSettings);
+        loadFirstSong(song, &(state->uiSettings));
 
         usingSongDataA = true;
 
@@ -1876,12 +1876,12 @@ int loadFirst(Node *song, AppState *state)
                 songHasErrors = false;
                 loadedNextSong = false;
                 currentSong = currentSong->next;
-                loadFirstSong(currentSong, &state->uiSettings);
+                loadFirstSong(currentSong, &(state->uiSettings));
         }
 
         if (songHasErrors)
         {
-                // couldn't play any of the songs
+                // Couldn't play any of the songs
                 unloadPreviousSong(state);
                 currentSong = NULL;
                 songHasErrors = false;
@@ -1982,7 +1982,7 @@ void createLibrary(AppSettings *settings, AppState *state)
         if (state->uiSettings.cacheLibrary > 0)
         {
                 char *libFilepath = getLibraryFilePath();
-                library = reconstructTreeFromFile(libFilepath, settings->path, &state->uiState.numDirectoryTreeEntries);
+                library = reconstructTreeFromFile(libFilepath, settings->path, &(state->uiState.numDirectoryTreeEntries));
                 free(libFilepath);
                 updateLibraryIfChangedDetected();
         }
@@ -1993,7 +1993,7 @@ void createLibrary(AppSettings *settings, AppState *state)
 
                 gettimeofday(&start, NULL);
 
-                library = createDirectoryTree(settings->path, &state->uiState.numDirectoryTreeEntries);
+                library = createDirectoryTree(settings->path, &(state->uiState.numDirectoryTreeEntries));
 
                 gettimeofday(&end, NULL);
                 long seconds = end.tv_sec - start.tv_sec;
@@ -2003,7 +2003,7 @@ void createLibrary(AppSettings *settings, AppState *state)
                 // If time to load the library was significant, ask to use cache instead
                 if (elapsed > ASK_IF_USE_CACHE_LIMIT_SECONDS)
                 {
-                        askIfCacheLibrary(&state->uiSettings);
+                        askIfCacheLibrary(&(state->uiSettings));
                 }
         }
 
@@ -2113,7 +2113,7 @@ void updateLibraryIfChangedDetected(void)
         }
 
         args->path = settings.path;
-        args->ui = &appState.uiSettings;
+        args->ui = &(appState.uiSettings);
 
         if (pthread_create(&tid, NULL, updateIfTopLevelFoldersMtimesChangedThread, (void *)args) != 0)
         {

@@ -28,14 +28,14 @@ extern "C"
         {
                 k_unknown = 0,
                 k_aac = 1,
-                k_rawAAC = 2, // raw aac (.aac file) decoding is included here for convenience although they are not .m4a files
+                k_rawAAC = 2, // Raw aac (.aac file) decoding is included here for convenience although they are not .m4a files
                 k_ALAC = 3,
                 k_FLAC = 4
         } k_m4adec_filetype;
 
         typedef struct
         {
-                ma_data_source_base ds; /* The m4a decoder can be used independently as a data source. */
+                ma_data_source_base ds; // The m4a decoder can be used independently as a data source.
                 ma_read_proc onRead;
                 ma_seek_proc onSeek;
                 ma_tell_proc onTell;
@@ -421,7 +421,7 @@ extern "C"
                                 if (atom_size_out)
                                         *atom_size_out = atom_size - 8;
 
-                                return 1; // found
+                                return 1; // Found
                         }
 
                         if (fseek(fp, atom_size - 8, SEEK_CUR) != 0)
@@ -478,25 +478,25 @@ extern "C"
                 if (!find_atom(fp, FOUR_CHAR_INT('s', 't', 's', 'd'), atom_size, &atom_size))
                         return 0;
 
-                fseek(fp, 8, SEEK_CUR); // skip stsd header (version+entry)
+                fseek(fp, 8, SEEK_CUR); // Skip stsd header (version+entry)
 
                 read_u32be(fp); // uint32_t sample_entry_size
                 uint32_t sample_entry_fourcc = read_u32be(fp);
                 if (sample_entry_fourcc != FOUR_CHAR_INT('a', 'l', 'a', 'c'))
                         return 0;
 
-                fseek(fp, 28, SEEK_CUR); // skip audio sample entry fields
+                fseek(fp, 28, SEEK_CUR); // Skip audio sample entry fields
 
                 uint32_t config_atom_size = read_u32be(fp);
                 uint32_t config_atom_fourcc = read_u32be(fp);
                 if (config_atom_fourcc != FOUR_CHAR_INT('a', 'l', 'a', 'c'))
                         return 0;
 
-                fseek(fp, 4, SEEK_CUR); // skip 1-byte version and 3-byte flags (4 bytes total)!
+                fseek(fp, 4, SEEK_CUR); // Skip 1-byte version and 3-byte flags (4 bytes total)!
 
                 uint32_t alac_dsi_size = config_atom_size - 12; // size(4)+fourcc(4)+version/flags(4) total=12 bytes overhead
                 if (alac_dsi_size < 24 || alac_dsi_size > 64)
-                        return 0; // sanity check
+                        return 0; // Sanity check
 
                 if (fread(dsi_out, 1, alac_dsi_size, fp) != alac_dsi_size)
                         return 0;

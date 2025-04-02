@@ -91,7 +91,7 @@ void loadMetaData(SongData *songdata, AppState *state)
 
         generateTempFilePath(songdata->coverArtPath, "cover", ".jpg");
 
-        int res = extractTags(songdata->filePath, songdata->metadata, &songdata->duration, songdata->coverArtPath);
+        int res = extractTags(songdata->filePath, songdata->metadata, &(songdata->duration), songdata->coverArtPath);
 
         if (res == -2)
         {
@@ -119,7 +119,7 @@ void loadMetaData(SongData *songdata, AppState *state)
                 addToCache(state->tempCache, songdata->coverArtPath);
         }
 
-        songdata->cover = getBitmap(songdata->coverArtPath, &songdata->coverWidth, &songdata->coverHeight);
+        songdata->cover = getBitmap(songdata->coverArtPath, &(songdata->coverWidth), &(songdata->coverHeight));
 }
 
 SongData *loadSongData(char *filePath, AppState *state)
