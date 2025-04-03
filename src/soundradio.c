@@ -767,12 +767,27 @@ static void audio_data_callback(ma_device *device, void *output, const void *inp
 {
         (void)input;
         ma_decoder *decoder = (ma_decoder *)device->pUserData;
-        ma_uint64 frames_read = 0;
-        ma_decoder_read_pcm_frames(decoder, output, frameCount, &frames_read);
-        if (frames_read < frameCount)
+        ma_uint64 framesRead = 0;
+        ma_decoder_read_pcm_frames(decoder, output, frameCount, &framesRead);
+        if (framesRead < frameCount)
         {
-                memset((char *)output + frames_read * device->playback.channels * sizeof(float), 0, (frameCount - frames_read) * device->playback.channels * sizeof(float));
+                memset((char *)output + framesRead * device->playback.channels * sizeof(float), 0, (frameCount - framesRead) * device->playback.channels * sizeof(float));
         }
+
+        setBufferSize(framesRead);
+
+        ma_int32 *audioBuffer = getAudioBuffer();
+        if (audioBuffer == NULL)
+        {
+                audioBuffer = malloc(sizeof(ma_int32) * MAX_BUFFER_SIZE);
+                if (audioBuffer == NULL)
+                {
+                        return;
+                }
+        }
+
+        memcpy(audioBuffer, output, sizeof(ma_int32) * framesRead);
+        setAudioBuffer(audioBuffer);
 }
 
 RadioSearchResult *copyRadioSearchResult(const RadioSearchResult *original)

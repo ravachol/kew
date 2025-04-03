@@ -2,11 +2,15 @@
 
 ### 3.1.3
 
-- Added audio normalization for flac and mp3 files using replay gain metatags. Suggested by @endless-stupidity. By @ravachol.
+- Mini-player mode. Suggested by @HAPPIOcrz007. By @ravachol.
 
-- Added a favorites list for radio stations. It's visible when the radio search field is empty. By @ravachol.
+- A favorites list for radio stations. It's visible when the radio search field is empty. By @ravachol.
+
+- Audio normalization for flac and mp3 files using replay gain metatags. Suggested by @endless-stupidity. By @ravachol.
 
 - Radio search now refreshes the list as radio stations are found, making it less "laggy". By @ravachol.
+
+- Track view works with radio now. By @ravachol.
 
 - Added a stop command (alt+s). Space bar is play as before. By @ravachol.
 
@@ -20,7 +24,7 @@
 
 - Added setting option to set the visualizer so that the brightness of it depends on the height of the bar. By @Chromium-3-Oxide.
 
-- Add config option to disable mouse (in kewrc file). By @Chromium-3-Oxide.
+- Added config option to disable mouse (in kewrc file). By @Chromium-3-Oxide.
 
 - Fixed bug with previous track with shuffle enabled. Found by @GuyInAShack. By @ravachol.
 
