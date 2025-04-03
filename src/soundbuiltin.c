@@ -96,7 +96,7 @@ ma_data_source_vtable builtin_file_data_source_vtable = {
     builtin_file_data_source_get_cursor,
     builtin_file_data_source_get_length,
     builtin_file_data_source_set_looping,
-    0 // flags
+    0 // Flags
 };
 
 double dbToLinear(double db)
@@ -165,7 +165,7 @@ void builtin_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_u
                 }
 
                 if (audioData->totalFrames == 0)
-                        ma_data_source_get_length_in_pcm_frames(decoder, &audioData->totalFrames);
+                        ma_data_source_get_length_in_pcm_frames(decoder, &(audioData->totalFrames));
 
                 if (isSeekRequested())
                 {
@@ -316,6 +316,6 @@ void builtin_on_audio_frames(ma_device *pDevice, void *pFramesOut, const void *p
 {
         AudioData *pDataSource = (AudioData *)pDevice->pUserData;
         ma_uint64 framesRead = 0;
-        builtin_read_pcm_frames(&pDataSource->base, pFramesOut, frameCount, &framesRead);
+        builtin_read_pcm_frames(&(pDataSource->base), pFramesOut, frameCount, &framesRead);
         (void)pFramesIn;
 }
