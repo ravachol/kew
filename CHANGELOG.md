@@ -12,7 +12,7 @@
 
 - Track view works with radio now. By @ravachol.
 
-- Added a stop command (alt+s). Space bar is play as before. By @ravachol.
+- Added a stop command (shift+s). Space bar is play as before. By @ravachol.
 
 - Removed the playback of tiny left overs of the previous song, when pausing and then switching song. By @ravachol.
 
@@ -27,6 +27,8 @@
 - Added config option to disable mouse (in kewrc file). By @Chromium-3-Oxide.
 
 - Fixed bug with previous track with shuffle enabled. Found by @GuyInAShack. By @ravachol.
+
+- Code cleanup. By @Chromium-3-Oxide.
 
 ### 3.1.2
 
