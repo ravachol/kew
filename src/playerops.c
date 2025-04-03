@@ -217,7 +217,7 @@ void play(Node *song)
                         skipToSong(currentSong->next->id, true);
         }
 
-        updateLastSongSwitchTime();
+        resetClock();
         skip();
 }
 
@@ -1594,6 +1594,12 @@ void resetTimeCount(void)
         totalPauseSeconds = 0.0;
 }
 
+void resetClock(void)
+{
+        resetTimeCount();
+        clock_gettime(CLOCK_MONOTONIC, &start_time);
+}
+
 void repeatList()
 {
         waitingForPlaylist = true;
@@ -1635,7 +1641,7 @@ void skipToNextSong(AppState *state)
         skipping = true;
         skipOutOfOrder = false;
 
-        updateLastSongSwitchTime();
+        resetClock();
 
         skip();
 }
@@ -1736,7 +1742,8 @@ void skipToPrevSong(AppState *state)
                 skipToPrevSong(state);
         }
 
-        updateLastSongSwitchTime();
+        resetClock();
+
         skip();
 }
 
@@ -1776,7 +1783,7 @@ void skipToNumberedSong(int songNumber)
                         skipToNumberedSong(songNumber + 1);
         }
 
-        updateLastSongSwitchTime();
+        resetClock();
         skip();
 }
 

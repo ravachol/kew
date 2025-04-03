@@ -78,6 +78,7 @@ typedef struct
         bool doNotifyMPRISSwitched;                     // Emit mpris song switched signal
         bool doNotifyMPRISPlaying;                      // Emit mpris music is playing signal
         bool collapseView;                              // Signal that ui needs to collapse the view
+        bool miniMode;
 } UIState;
 
 typedef struct
