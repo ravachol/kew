@@ -142,7 +142,7 @@ void setNextDecoder(void **decoderArray, void **decoder, void **firstDecoder, in
         {
                 *firstDecoder = *decoder;
         }
-        else if (*decoderIndex == -1) // array hasn't been used yet
+        else if (*decoderIndex == -1) // Array hasn't been used yet
         {
                 if (decoderArray[0] != NULL)
                 {
@@ -824,7 +824,7 @@ void seekPercentage(float percent)
 
 void resumePlayback(void)
 {
-        // if this was unpaused with no song loaded
+        // If this was unpaused with no song loaded
         if (audioData.restart && !isRadioPlaying())
         {
                 audioData.endOfListReached = false;
@@ -1176,7 +1176,7 @@ void m4a_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_uint6
                 m4a_decoder *decoder = getCurrentM4aDecoder();
 
                 if (pAudioData->totalFrames == 0)
-                        ma_data_source_get_length_in_pcm_frames(decoder, &pAudioData->totalFrames);
+                        ma_data_source_get_length_in_pcm_frames(decoder, &(pAudioData->totalFrames));
 
                 // Check if seeking is requested
                 if (isSeekRequested())
@@ -1265,7 +1265,7 @@ void m4a_on_audio_frames(ma_device *pDevice, void *pFramesOut, const void *pFram
 {
         AudioData *pDataSource = (AudioData *)pDevice->pUserData;
         ma_uint64 framesRead = 0;
-        m4a_read_pcm_frames(&pDataSource->base, pFramesOut, frameCount, &framesRead);
+        m4a_read_pcm_frames(&(pDataSource->base), pFramesOut, frameCount, &framesRead);
         (void)pFramesIn;
 }
 #endif
@@ -1304,7 +1304,7 @@ void opus_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_uint
                 ma_libopus *decoder = getCurrentOpusDecoder();
 
                 if (pAudioData->totalFrames == 0)
-                        ma_data_source_get_length_in_pcm_frames(decoder, &pAudioData->totalFrames);
+                        ma_data_source_get_length_in_pcm_frames(decoder, &(pAudioData->totalFrames));
 
                 // Check if seeking is requested
                 if (isSeekRequested())
@@ -1393,7 +1393,7 @@ void opus_on_audio_frames(ma_device *pDevice, void *pFramesOut, const void *pFra
 {
         AudioData *pDataSource = (AudioData *)pDevice->pUserData;
         ma_uint64 framesRead = 0;
-        opus_read_pcm_frames(&pDataSource->base, pFramesOut, frameCount, &framesRead);
+        opus_read_pcm_frames(&(pDataSource->base), pFramesOut, frameCount, &framesRead);
         (void)pFramesIn;
 }
 
@@ -1425,7 +1425,7 @@ void vorbis_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_ui
                 ma_libvorbis *decoder = getCurrentVorbisDecoder();
 
                 if (pAudioData->totalFrames == 0)
-                        ma_data_source_get_length_in_pcm_frames(decoder, &pAudioData->totalFrames);
+                        ma_data_source_get_length_in_pcm_frames(decoder, &(pAudioData->totalFrames));
 
                 if ((getCurrentImplementationType() != VORBIS && !isSkipToNext()) || (decoder == NULL))
                 {
@@ -1521,6 +1521,6 @@ void vorbis_on_audio_frames(ma_device *pDevice, void *pFramesOut, const void *pF
 {
         AudioData *pDataSource = (AudioData *)pDevice->pUserData;
         ma_uint64 framesRead = 0;
-        vorbis_read_pcm_frames(&pDataSource->base, pFramesOut, frameCount, &framesRead);
+        vorbis_read_pcm_frames(&(pDataSource->base), pFramesOut, frameCount, &framesRead);
         (void)pFramesIn;
 }
