@@ -133,6 +133,8 @@ void unloadPreviousSong(AppState *state);
 
 void createLibrary(AppSettings *settings, AppState *state);
 
+void resetClock(void);
+
 void loadNextSong(void);
 
 void setCurrentSongToNext(void);

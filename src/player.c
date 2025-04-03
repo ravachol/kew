@@ -268,7 +268,7 @@ void printCover(SongData *songdata, UISettings *ui)
 {
         clearScreen();
 
-        if (songdata->cover != NULL && ui->coverEnabled)
+        if (songdata != NULL && songdata->cover != NULL && ui->coverEnabled)
         {
                 if (!ui->coverAnsi)
                 {
@@ -453,8 +453,6 @@ void printMetadata(TagSettings const *metadata, UISettings *ui)
 
 void printTime(double elapsedSeconds, AppState *state)
 {
-        if (appState.currentView == LIBRARY_VIEW || appState.currentView == PLAYLIST_VIEW || appState.currentView == SEARCH_VIEW)
-                return;
         if (state->uiSettings.useConfigColors)
                 setDefaultTextColor();
         else
@@ -475,13 +473,13 @@ int calcIndentNormal(void)
         return getIndentation(textWidth - 1) - 1;
 }
 
-int calcIndentTrackView(SongData *songdata)
+int calcIndentTrackView(TagSettings *metadata)
 {
-        if (songdata == NULL)
+        if (metadata == NULL)
                 return calcIndentNormal();
 
-        int titleLength = strnlen(songdata->metadata->title, METADATA_MAX_LENGTH);
-        int albumLength = strnlen(songdata->metadata->album, METADATA_MAX_LENGTH);
+        int titleLength = strnlen(metadata->title, METADATA_MAX_LENGTH);
+        int albumLength = strnlen(metadata->album, METADATA_MAX_LENGTH);
         int maxTextLength = (albumLength > titleLength) ? albumLength : titleLength;
         textWidth = (ABSOLUTE_MIN_WIDTH > preferredWidth) ? ABSOLUTE_MIN_WIDTH : preferredWidth;
         int term_w, term_h;
@@ -503,7 +501,7 @@ void calcIndent(SongData *songdata)
         }
         else
         {
-                indent = calcIndentTrackView(songdata);
+                indent = calcIndentTrackView(songdata->metadata);
         }
 }
 
@@ -584,6 +582,10 @@ void printLastRow(UISettings *ui)
 {
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
+
+        if (preferredWidth < 0 || preferredHeight < 0) // mini view
+                return;
+
         if (term_w < ABSOLUTE_MIN_WIDTH)
                 return;
 
@@ -789,7 +791,7 @@ void switchToNextView(void)
                 appState.currentView = LIBRARY_VIEW;
                 break;
         case LIBRARY_VIEW:
-                appState.currentView = (currentSong != NULL) ? TRACK_VIEW : SEARCH_VIEW;
+                appState.currentView = (currentSong != NULL || isRadioPlaying()) ? TRACK_VIEW : SEARCH_VIEW;
                 break;
         case TRACK_VIEW:
                 appState.currentView = SEARCH_VIEW;
@@ -821,7 +823,7 @@ void switchToPreviousView(void)
                 appState.currentView = LIBRARY_VIEW;
                 break;
         case SEARCH_VIEW:
-                appState.currentView = (currentSong != NULL) ? TRACK_VIEW : LIBRARY_VIEW;
+                appState.currentView = (currentSong != NULL || isRadioPlaying()) ? TRACK_VIEW : LIBRARY_VIEW;
                 break;
         case RADIOSEARCH_VIEW:
                 appState.currentView = SEARCH_VIEW;
@@ -1106,7 +1108,7 @@ void printVisualizer(double elapsedSeconds, AppState *state)
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
 
-        if (ui->visualizerEnabled && appState.currentView == TRACK_VIEW)
+        if (ui->visualizerEnabled)
         {
                 printf("\n");
 
@@ -1316,7 +1318,7 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
                                                 if (ui->useConfigColors)
                                                         setTextColor(ui->enqueuedColor);
                                                 else
-                                                         setColorAndWeight(0, ui);
+                                                        setColorAndWeight(0, ui);
 
                                                 printf("\x1b[7m * ");
                                         }
@@ -1524,6 +1526,139 @@ void showLibrary(SongData *songData, AppState *state)
         }
 }
 
+void createMetadataForRadio(TagSettings **metadata, RadioSearchResult *station)
+{
+        if (station)
+        {
+                *metadata = malloc(sizeof(TagSettings));
+                if (!*metadata)
+                        return;
+
+                c_strcpy((*(metadata))->title, station->name, sizeof((*(metadata))->title) - 1);
+                (*metadata)->title[sizeof((*metadata)->title) - 1] = '\0';
+
+                (*metadata)->album[0] = '\0';
+                (*metadata)->artist[0] = '\0';
+                (*metadata)->date[0] = '\0';
+
+                calcIndentTrackView(*metadata);
+        }
+}
+
+void showTrackViewMini(SongData *songdata, AppState *state, double elapsedSeconds)
+{
+        TagSettings *metadata = NULL;
+
+        if (refresh)
+        {
+                printf("\n");
+
+                clearScreen();
+
+                if (currentSong == NULL && !isRadioPlaying())
+                {
+                        int term_w, term_h;
+                        getTermSize(&term_w, &term_h);
+
+                        if (term_w > 21 && term_h > 4)
+                        {
+                                printBlankSpaces(indent);
+                                printf(" __\n");
+                                printBlankSpaces(indent);
+                                printf("|  |--.-----.--.--.--.\n");
+                                printBlankSpaces(indent);
+                                printf("|    <|  -__|  |  |  |\n");
+                                printBlankSpaces(indent);
+                                printf("|__|__|_____|________|\n");
+                                printBlankSpaces(indent);
+                                printf(" kew version: %s", VERSION);
+                        }
+                        return;
+                }
+                if (songdata)
+                {
+                        metadata = songdata->metadata;
+                }
+                else if (isRadioPlaying())
+                {
+                        RadioSearchResult *station = getCurrentPlayingRadioStation();
+
+                        createMetadataForRadio(&metadata, station);
+                }
+
+                calcIndentTrackView(metadata);
+
+                if (state->uiSettings.useConfigColors)
+                        setDefaultTextColor();
+                else
+                        setTextColorRGB(state->uiSettings.color.r, state->uiSettings.color.g, state->uiSettings.color.b);
+
+                if (strnlen(metadata->artist, METADATA_MAX_LENGTH) > 0 && strnlen(metadata->title, METADATA_MAX_LENGTH) > 0)
+                {
+                        printBlankSpaces(indent);
+
+                        int text_len = textWidth - 3;
+                        char combined[text_len + 1];
+                        snprintf(combined, sizeof(combined), "%s - %s", metadata->artist, metadata->title);
+
+                        printf(" %.*s\n", text_len, combined);
+                }
+                else if (strnlen(metadata->title, METADATA_MAX_LENGTH) > 0)
+                {
+                        printBlankSpaces(indent);
+                        printf(" %.*s\n", textWidth, metadata->title);
+                }
+
+                if (!songdata && metadata)
+                        free(metadata);
+                refresh = false;
+        }
+
+        int term_w, term_h;
+        getTermSize(&term_w, &term_h);
+
+        bool doPrintTime = term_h > (state->uiSettings.visualizerHeight + 3);
+        bool doPrintVis = term_h > (state->uiSettings.visualizerHeight + 2);
+
+        if (songdata && doPrintTime)
+                printTime(elapsedSeconds, state);
+
+        if (doPrintVis)
+                printVisualizer(elapsedSeconds, state);
+}
+
+void showTrackView(SongData *songdata, AppState *state, double elapsedSeconds)
+{
+        TagSettings *metadata = NULL;
+
+        if (refresh)
+        {
+                if (songdata)
+                {
+                        metadata = songdata->metadata;
+                }
+                else if (isRadioPlaying())
+                {
+                        RadioSearchResult *station = getCurrentPlayingRadioStation();
+
+                        createMetadataForRadio(&metadata, station);
+                }
+
+                clearScreen();
+                printf("\n");
+                printCover(songdata, &(state->uiSettings));
+
+                printMetadata(metadata, &(state->uiSettings));
+
+                if (!songdata && metadata)
+                        free(metadata);
+                refresh = false;
+        }
+        if (songdata)
+                printTime(elapsedSeconds, state);
+        printVisualizer(elapsedSeconds, state);
+}
+
 int printPlayer(SongData *songdata, double elapsedSeconds, AppSettings *settings, AppState *state)
 {
         UISettings *ui = &(state->uiSettings);
@@ -1551,7 +1686,7 @@ int printPlayer(SongData *songdata, double elapsedSeconds, AppSettings *settings
                 }
                 else
                 {
-                        if (state->currentView == TRACK_VIEW)
+                        if (state->currentView == TRACK_VIEW && !isRadioPlaying())
                         {
                                 state->currentView = LIBRARY_VIEW;
                         }
@@ -1565,9 +1700,18 @@ int printPlayer(SongData *songdata, double elapsedSeconds, AppSettings *settings
                 calcIndent(songdata);
         }
 
-        if (preferredWidth <= 0 || preferredHeight <= 0)
-                return -1;
+        int term_w, term_h;
+        getTermSize(&term_w, &term_h);
 
+        state->uiState.miniMode = false;
+
+        if ((term_w <= 30 || term_h <= 15) || ((preferredHeight <= 0 || preferredWidth <= 0) && state->currentView == TRACK_VIEW))
+        {
+                state->uiState.miniMode = true;
+                showTrackViewMini(songdata, state, elapsedSeconds);
+                fflush(stdout);
+                return 0;
+        }
         if (state->currentView != PLAYLIST_VIEW)
                 state->uiState.resetPlaylistDisplay = true;
 
@@ -1608,18 +1752,9 @@ int printPlayer(SongData *songdata, double elapsedSeconds, AppSettings *settings
                 refresh = false;
                 fflush(stdout);
         }
-        else if (state->currentView == TRACK_VIEW && songdata != NULL)
+        else if (state->currentView == TRACK_VIEW)
         {
-                if (refresh)
-                {
-                        clearScreen();
-                        printf("\n");
-                        printCover(songdata, ui);
-                        printMetadata(songdata->metadata, ui);
-                        refresh = false;
-                }
-                printTime(elapsedSeconds, state);
-                printVisualizer(elapsedSeconds, state);
+                showTrackView(songdata, state, elapsedSeconds);
                 fflush(stdout);
         }
 

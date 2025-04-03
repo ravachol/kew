@@ -364,7 +364,12 @@ ma_format getCurrentFormat(void)
 {
         ma_format format = ma_format_unknown;
 
-        if (getCurrentImplementationType() == BUILTIN)
+        if (isRadioPlaying())
+        {
+                ma_uint32 channels;
+                ma_data_source_get_data_format(radioContext.decoder.pBackend, &format, &channels, NULL, NULL, 0);
+        }
+        else if (getCurrentImplementationType() == BUILTIN)
         {
                 ma_decoder *decoder = getCurrentBuiltinDecoder();
 

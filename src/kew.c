@@ -642,10 +642,15 @@ void handleGoToSong(AppState *state)
 
                                 playPreProcessing();
 
-                                skipToSong(state->uiState.chosenNodeId, true);
+                                playbackPlay(&totalPauseSeconds, &pauseSeconds);
+
+                                Node *found = NULL;
+                                findNodeInList(&playlist, state->uiState.chosenNodeId, &found);
+                                play(found);
 
                                 playPostProcessing();
 
+                                skipOutOfOrder = false;
                                 usingSongDataA = true;                 }
                 }
                 else
@@ -728,6 +733,7 @@ void enqueueAndPlay(AppState *state)
 
                 playPostProcessing();
 
+                skipOutOfOrder = false;
                 usingSongDataA = true;
         }
 }
@@ -1050,12 +1056,6 @@ void handleSkipOutOfOrder(void)
         }
 }
 
-void resetClock(void)
-{
-        resetTimeCount();
-        clock_gettime(CLOCK_MONOTONIC, &start_time);
-}
-
 void prepareNextSong(AppState *state)
 {
         resetClock();
@@ -1146,7 +1146,7 @@ gboolean mainloop_callback(gpointer data)
         updateCounter++;
 
         // Update every other time or if searching (search needs to update often to detect keypresses)
-        if (updateCounter % 2 == 0 || appState.currentView == SEARCH_VIEW || appState.currentView == RADIOSEARCH_VIEW)
+        if (updateCounter % 2 == 0 || ((appState.currentView == SEARCH_VIEW || appState.currentView == RADIOSEARCH_VIEW) && !appState.uiState.miniMode))
         {
                 processDBusEvents();
 
@@ -1218,7 +1218,7 @@ void initFirstPlay(Node *song, AppState *state)
         else
                 emitPlaybackStoppedMpris();
 
-        g_timeout_add(50, mainloop_callback, NULL);
+        g_timeout_add(56, mainloop_callback, NULL);
         g_main_loop_run(main_loop);
         g_main_loop_unref(main_loop);
 }
