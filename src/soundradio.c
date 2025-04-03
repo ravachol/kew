@@ -659,11 +659,11 @@ static size_t curl_writefunc(void *ptr, size_t size, size_t nmemb, void *userdat
         size_t bytes = size * nmemb;
         size_t written = 0;
 
-        pthread_mutex_lock(&buf->mutex);
+        pthread_mutex_lock(&(buf->mutex));
 
         if (buf->eof)
         {
-                pthread_mutex_unlock(&buf->mutex);
+                pthread_mutex_unlock(&(buf->mutex));
                 return 0;
         }
 
@@ -686,8 +686,8 @@ static size_t curl_writefunc(void *ptr, size_t size, size_t nmemb, void *userdat
         buf->last_data_time = time(NULL);
 
         // Signal to the consumer that the data is ready
-        pthread_cond_signal(&buf->cond);
-        pthread_mutex_unlock(&buf->mutex);
+        pthread_cond_signal(&(buf->cond));
+        pthread_mutex_unlock(&(buf->mutex));
 
         return bytes;
 }
@@ -698,7 +698,7 @@ static ma_result decoder_read_callback(ma_decoder *decoder, void *pBufferOut, si
         size_t total_read = 0;
         unsigned char *out = (unsigned char *)pBufferOut;
 
-        pthread_mutex_lock(&buf->mutex);
+        pthread_mutex_lock(&(buf->mutex));
 
         while (total_read < bytesToRead)
         {
@@ -711,7 +711,7 @@ static ma_result decoder_read_callback(ma_decoder *decoder, void *pBufferOut, si
                         ts.tv_sec += WAIT_TIMEOUT_SECONDS;
 
                         // Use timed wait
-                        int wait_result = pthread_cond_timedwait(&buf->cond, &buf->mutex, &ts);
+                        int wait_result = pthread_cond_timedwait(&(buf->cond), &(buf->mutex), &ts);
                         if (wait_result == ETIMEDOUT)
                         {
                                 // Check how long it's been since last data arrived
@@ -719,7 +719,7 @@ static ma_result decoder_read_callback(ma_decoder *decoder, void *pBufferOut, si
                                 if ((now - buf->last_data_time) >= WAIT_TIMEOUT_SECONDS)
                                 {
                                         // We haven't received data in too long, so signal error.
-                                        pthread_mutex_unlock(&buf->mutex);
+                                        pthread_mutex_unlock(&(buf->mutex));
                                         *bytesRead = total_read;
 
                                         buf->stale = true;
@@ -731,7 +731,7 @@ static ma_result decoder_read_callback(ma_decoder *decoder, void *pBufferOut, si
 
                 if ((buf->read_pos == buf->write_pos) && buf->eof)
                 {
-                        pthread_mutex_unlock(&buf->mutex);
+                        pthread_mutex_unlock(&(buf->mutex));
                         *bytesRead = total_read;
                         return (total_read > 0) ? MA_SUCCESS : MA_AT_END;
                 }
@@ -744,12 +744,12 @@ static ma_result decoder_read_callback(ma_decoder *decoder, void *pBufferOut, si
                                      ? chunk
                                      : (bytesToRead - total_read);
 
-                memcpy(out + total_read, &buf->buffer[buf->read_pos], to_copy);
+                memcpy(out + total_read, &(buf->buffer[buf->read_pos]), to_copy);
                 buf->read_pos = (buf->read_pos + to_copy) % STREAM_BUFFER_SIZE;
                 total_read += to_copy;
         }
 
-        pthread_mutex_unlock(&buf->mutex);
+        pthread_mutex_unlock(&(buf->mutex));
 
         *bytesRead = total_read;
         return MA_SUCCESS;
@@ -831,12 +831,12 @@ void freeCurrentlyPlayingRadioStation(void)
 
 void stopRadio(void)
 {
-        pthread_mutex_lock(&radioContext.buf.mutex);
+        pthread_mutex_lock(&(radioContext.buf.mutex));
         radioContext.buf.eof = 1;
         radioContext.buf.read_pos = radioContext.buf.write_pos = 0;
         radioContext.buf.stale = false;
-        pthread_cond_broadcast(&radioContext.buf.cond);
-        pthread_mutex_unlock(&radioContext.buf.mutex);
+        pthread_cond_broadcast(&(radioContext.buf.cond));
+        pthread_mutex_unlock(&(radioContext.buf.mutex));
 
         if (radioContext.curl_thread)
         {
@@ -848,7 +848,7 @@ void stopRadio(void)
 
         memset(&device, 0, sizeof(device));
 
-        ma_decoder_uninit(&radioContext.decoder);
+        ma_decoder_uninit(&(radioContext.decoder));
 
         if (radioContext.curl != NULL)
         {
@@ -856,10 +856,10 @@ void stopRadio(void)
                 radioContext.curl = NULL;
         }
 
-        pthread_mutex_destroy(&radioContext.buf.mutex);
-        pthread_cond_destroy(&radioContext.buf.cond);
+        pthread_mutex_destroy(&(radioContext.buf.mutex));
+        pthread_cond_destroy(&(radioContext.buf.cond));
 
-        memset(&radioContext.decoder, 0, sizeof(ma_decoder));
+        memset(&(radioContext.decoder), 0, sizeof(ma_decoder));
 
         radioIsPlaying = false;
 
@@ -916,27 +916,27 @@ int playRadioStation(const RadioSearchResult *station)
                 return -1;
         }
 
-        pthread_mutex_init(&radioContext.buf.mutex, NULL);
-        pthread_cond_init(&radioContext.buf.cond, NULL);
+        pthread_mutex_init(&(radioContext.buf.mutex), NULL);
+        pthread_cond_init(&(radioContext.buf.cond), NULL);
         radioContext.buf.eof = 0;
         radioContext.buf.stale = false;
 
         curl_easy_setopt(radioContext.curl, CURLOPT_URL, station->url_resolved);
         curl_easy_setopt(radioContext.curl, CURLOPT_WRITEFUNCTION, curl_writefunc);
-        curl_easy_setopt(radioContext.curl, CURLOPT_WRITEDATA, &radioContext.buf);
+        curl_easy_setopt(radioContext.curl, CURLOPT_WRITEDATA, &(radioContext.buf));
         curl_easy_setopt(radioContext.curl, CURLOPT_FOLLOWLOCATION, 1L);
 
         char userAgent[64];
         snprintf(userAgent, sizeof(userAgent), "kew/%s", VERSION);
         curl_easy_setopt(radioContext.curl, CURLOPT_USERAGENT, userAgent);
 
-        pthread_create(&radioContext.curl_thread, NULL, curl_perform_wrapper, radioContext.curl);
+        pthread_create(&(radioContext.curl_thread), NULL, curl_perform_wrapper, radioContext.curl);
 
         ma_decoder_config decoderConfig = ma_decoder_config_init(ma_format_f32, 2, 44100);
 
         decoderConfig.encodingFormat = ma_encoding_format_mp3;
 
-        if (ma_decoder_init(decoder_read_callback, decoder_seek_callback, &radioContext.buf, &decoderConfig, &radioContext.decoder) != MA_SUCCESS)
+        if (ma_decoder_init(decoder_read_callback, decoder_seek_callback, &(radioContext.buf), &decoderConfig, &(radioContext.decoder)) != MA_SUCCESS)
         {
                 fprintf(stderr, "Decoder init failed\n");
                 setErrorMessage("Radio station unsupported or unavailable.");
@@ -949,12 +949,12 @@ int playRadioStation(const RadioSearchResult *station)
         devConfig.playback.channels = radioContext.decoder.outputChannels;
         devConfig.sampleRate = radioContext.decoder.outputSampleRate;
         devConfig.dataCallback = audio_data_callback;
-        devConfig.pUserData = &radioContext.decoder;
+        devConfig.pUserData = &(radioContext.decoder);
 
         if (ma_device_init(NULL, &devConfig, &device) != MA_SUCCESS)
         {
                 fprintf(stderr, "Device init failed\n");
-                ma_decoder_uninit(&radioContext.decoder);
+                ma_decoder_uninit(&(radioContext.decoder));
                 return -1;
         }
 
@@ -964,7 +964,7 @@ int playRadioStation(const RadioSearchResult *station)
         {
                 fprintf(stderr, "Failed to start device playback\n");
                 ma_device_uninit(&device);
-                ma_decoder_uninit(&radioContext.decoder);
+                ma_decoder_uninit(&(radioContext.decoder));
                 return -1;
         }
 
@@ -973,7 +973,7 @@ int playRadioStation(const RadioSearchResult *station)
 
         refresh = true;
 
-        pthread_cond_signal(&radioContext.buf.cond);
+        pthread_cond_signal(&(radioContext.buf.cond));
 
         radioIsPlaying = true;
 
