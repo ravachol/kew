@@ -27,7 +27,7 @@ size_t resultsCapacity = 0;
 int minSearchLetters = 1;
 FileSystemEntry *currentSearchEntry = NULL;
 
-char searchText[MAX_SEARCH_LEN * 4 + 1]; // unicode can be 4 characters
+char searchText[MAX_SEARCH_LEN * 4 + 1]; // Unicode can be 4 characters
 
 FileSystemEntry *getCurrentSearchEntry(void)
 {

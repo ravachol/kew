@@ -158,7 +158,7 @@ struct Event processInput()
                     strcmp(seq + 1, settings.hardNextPage) == 0 || strcmp(seq + 1, settings.hardPrevPage) == 0)
                 {
                         keyReleased = 0;
-                        readInputSequence(tmpSeq, sizeof(tmpSeq)); // dummy read to prevent scrolling after key released
+                        readInputSequence(tmpSeq, sizeof(tmpSeq)); // Dummy read to prevent scrolling after key released
                         break;
                 }
 
@@ -372,7 +372,7 @@ void notifyMPRISSwitch(SongData *currentSongData)
 
         gint64 length = getLengthInMicroSec(currentSongData->duration);
 
-        // update mpris
+        // Update mpris
         emitMetadataChanged(
             currentSongData->metadata->title,
             currentSongData->metadata->artist,
@@ -541,7 +541,7 @@ FileSystemEntry *enqueue(AppState *state, FileSystemEntry *entry)
 
         pthread_mutex_lock(&(playlist.mutex));
 
-        firstEnqueuedEntry = enqueueSongs(entry, &state->uiState);
+        firstEnqueuedEntry = enqueueSongs(entry, &(state->uiState));
         resetListAfterDequeuingPlayingSong(state);
 
         pthread_mutex_unlock(&(playlist.mutex));
@@ -601,7 +601,7 @@ void handleGoToSong(AppState *state)
 
                 setChosenDir(entry);
 
-                enqueueSongs(entry, &state->uiState);
+                enqueueSongs(entry, &(state->uiState));
 
                 resetListAfterDequeuingPlayingSong(state);
 
@@ -915,7 +915,7 @@ void updatePlayer(UIState *uis)
         struct winsize ws;
         ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws);
 
-        // check if window has changed size
+        // Check if window has changed size
         if (ws.ws_col != windowSize.ws_col || ws.ws_row != windowSize.ws_row)
         {
                 uis->resizeFlag = 1;
@@ -1017,7 +1017,7 @@ void loadAudioData(AppState *state)
         else if (currentSong != NULL && (nextSongNeedsRebuilding || nextSong == NULL) && !songLoading)
         {
                 loadNextSong();
-                determineSongAndNotify(&state->uiSettings);
+                determineSongAndNotify(&(state->uiSettings));
         }
 }
 
@@ -1100,7 +1100,7 @@ void handleSkipFromStopped()
 
 void updatePlayerStatus(AppState *state)
 {
-        updatePlayer(&state->uiState);
+        updatePlayer(&(state->uiState));
 
         reconnectRadioIfNeeded();
 
@@ -1251,12 +1251,12 @@ void cleanupOnExit()
         if (!userData.songdataADeleted)
         {
                 userData.songdataADeleted = true;
-                unloadSongData(&loadingdata.songdataA, &appState);
+                unloadSongData(&(loadingdata.songdataA), &appState);
         }
         if (!userData.songdataBDeleted)
         {
                 userData.songdataBDeleted = true;
-                unloadSongData(&loadingdata.songdataB, &appState);
+                unloadSongData(&(loadingdata.songdataB), &appState);
         }
 
         freeSearchResults();
@@ -1356,7 +1356,7 @@ void initResize()
 
         struct sigaction sa;
         sa.sa_handler = resetResizeFlag;
-        sigemptyset(&sa.sa_mask);
+        sigemptyset(&(sa.sa_mask));
         sa.sa_flags = 0;
         sigaction(SIGALRM, &sa, NULL);
 }
@@ -1760,9 +1760,9 @@ void initState(AppState *state)
 void initializeStateAndSettings(AppState *appState, AppSettings *settings)
 {
         initState(appState);
-        getConfig(settings, &appState->uiSettings);
-        mapSettingsToKeys(settings, &appState->uiSettings, keyMappings);
-        enableMouse(&appState->uiSettings);
+        getConfig(settings, &(appState->uiSettings));
+        mapSettingsToKeys(settings, &(appState->uiSettings), keyMappings);
+        enableMouse(&(appState->uiSettings));
 }
 
 int main(int argc, char *argv[])

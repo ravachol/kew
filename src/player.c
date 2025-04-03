@@ -663,7 +663,7 @@ void printLastRow(UISettings *ui)
                 currentLength += strnlen(rewindText, maxLength - currentLength);
         }
 
-        printf("\033[K"); // clear the line
+        printf("\033[K"); // Clear the line
 
         int indent = calcIndentNormal();
         int textLength = strnlen(text, 100);
@@ -1051,7 +1051,7 @@ void showPlaylist(SongData *songData, PlayList *list, int *chosenSong, int *chos
         if (state->uiSettings.useConfigColors)
                 setTextColor(state->uiSettings.artistColor);
         else
-                setColor(&state->uiSettings);
+                setColor(&(state->uiSettings));
 
         printBlankSpaces(indent);
         printf("   ─ PLAYLIST ─\n");
@@ -1060,7 +1060,7 @@ void showPlaylist(SongData *songData, PlayList *list, int *chosenSong, int *chos
         displayPlaylist(list, maxListSize, indent, chosenSong, chosenNodeId, state->uiState.resetPlaylistDisplay, state);
 
         printErrorRow();
-        printLastRow(&state->uiSettings);
+        printLastRow(&(state->uiSettings));
 }
 
 void resetSearchResult(void)
@@ -1125,7 +1125,7 @@ void printVisualizer(double elapsedSeconds, AppState *state)
                 drawSpectrumVisualizer(ui->visualizerHeight, visualizerWidth, ui->color, indent, ui->useConfigColors, ui->visualizerColorType);
                 printElapsedBars(calcElapsedBars(elapsedSeconds, duration, uis->numProgressBars), uis->numProgressBars, ui->color, ui->visualizerHeight, ui->useConfigColors);
                 printErrorRow();
-                printLastRow(&state->uiSettings);
+                printLastRow(&(state->uiSettings));
 #ifndef __APPLE__
                 restoreCursorPosition();
                 cursorJump(1);
@@ -1726,7 +1726,7 @@ int printPlayer(SongData *songdata, double elapsedSeconds, AppSettings *settings
         else if (state->currentView == PLAYLIST_VIEW && refresh)
         {
                 clearScreen();
-                showPlaylist(songdata, originalPlaylist, &chosenRow, &uis->chosenNodeId, state);
+                showPlaylist(songdata, originalPlaylist, &chosenRow, &(uis->chosenNodeId), state);
                 state->uiState.resetPlaylistDisplay = false;
                 refresh = false;
                 fflush(stdout);
