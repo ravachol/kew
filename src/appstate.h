@@ -200,8 +200,8 @@ typedef struct
         char moveSongUp[6];
         char moveSongDown[6];
         char enqueueAndPlay[6];
-        char stop[6];
-        char addToRadioFavorites[6];
+        char hardStop[6];
+        char hardAddToRadioFavorites[6];
 } AppSettings;
 
 #endif

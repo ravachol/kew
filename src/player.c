@@ -129,7 +129,7 @@ void printHelp()
                " Switch tracks with ←, → or h, l keys.\n"
                " Volume is adjusted with + (or =) and -.\n"
                " Space, p or right mouse to play or pause.\n"
-               " Alt+s to stop.\n"
+               " Shift+s to stop.\n"
                " F2 to show/hide playlist view.\n"
                " F3 to show/hide library view.\n"
                " F4 to show/hide track view.\n"
@@ -725,7 +725,7 @@ int showKeyBindings(SongData *songdata, AppSettings *settings, UISettings *ui)
         printBlankSpaces(indent);
         printf(" - Space, %s, or right click to play or pause.\n", settings->togglePause);
         printBlankSpaces(indent);
-        printf(" - Alt+s to stop.\n");
+        printf(" - Shift+s to stop.\n");
         printBlankSpaces(indent);
         printf(" - %s toggle color derived from album or from profile.\n", settings->toggleColorsDerivedFrom);
         printBlankSpaces(indent);
@@ -1029,7 +1029,7 @@ void showRadioSearch(SongData *songData, int *chosenRow, UISettings *ui)
                 printBlankSpaces(indent);
                 printf(" Use ↑, ↓ to choose. Enter to search and then enter to accept a station.\n");
                 printBlankSpaces(indent);
-                printf(" Alt+f to add, del to remove favorites. Empty search to show favorites.\n\n");
+                printf(" Shift+f to add, del to remove favorites. Empty search to show favorites.\n\n");
                 maxRadioSearchListSize -= 3;
         }
 
