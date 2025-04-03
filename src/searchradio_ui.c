@@ -32,7 +32,7 @@ RadioSearchResult *playingRadioSearchEntry = NULL;
 
 RadioSearchResult *currentPlayingRadioStation = NULL;
 
-char radioSearchText[MAX_SEARCH_LEN * 4 + 1]; // unicode can be 4 characters
+char radioSearchText[MAX_SEARCH_LEN * 4 + 1]; // Unicode can be 4 characters
 
 RadioSearchResult *getCurrentRadioSearchEntry(void)
 {
