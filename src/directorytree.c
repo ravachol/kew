@@ -417,9 +417,9 @@ int utf8_levenshteinDistance(const char *s1, const char *s2)
                         int cost = (c1 == c2) ? 0 : 1;
 
                         // Fill the current row with the minimum of deletion, insertion, or substitution
-                        currRow[j] = MIN(prevRow[j] + 1,              // deletion
-                                         MIN(currRow[j - 1] + 1,      // insertion
-                                             prevRow[j - 1] + cost)); // substitution
+                        currRow[j] = MIN(prevRow[j] + 1,              // Deletion
+                                         MIN(currRow[j - 1] + 1,      // Insertion
+                                             prevRow[j - 1] + cost)); // Substitution
                 }
 
                 // Swap rows (current becomes previous for the next iteration)

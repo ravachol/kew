@@ -1116,7 +1116,7 @@ gchar *sanitizeTitle(const gchar *title)
         // Replace underscores with hyphens, otherwise some widgets have a problem
         g_strdelimit(sanitized, "_", '-');
 
-        // duplicate string otherwise widgets have a problem with certain strings for some reason
+        // Duplicate string otherwise widgets have a problem with certain strings for some reason
         gchar *sanitized_dup = g_strdup_printf("%s", sanitized);
 
         g_free(sanitized);
