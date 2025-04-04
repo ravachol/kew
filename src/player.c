@@ -1705,7 +1705,7 @@ int printPlayer(SongData *songdata, double elapsedSeconds, AppSettings *settings
 
         state->uiState.miniMode = false;
 
-        if ((term_w <= 30 || term_h <= 15) || ((preferredHeight <= 0 || preferredWidth <= 0) && state->currentView == TRACK_VIEW))
+        if ((term_w <= 10 || term_h <= 8) || (preferredHeight <= 0 || preferredWidth <= 0))
         {
                 state->uiState.miniMode = true;
                 showTrackViewMini(songdata, state, elapsedSeconds);
