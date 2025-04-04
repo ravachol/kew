@@ -150,7 +150,7 @@ ma_decoder *getCurrentBuiltinDecoder(void);
 
 ma_decoder *getPreviousDecoder(void);
 
-ma_format getCurrentFormat(void);
+void getCurrentFormatAndSampleRate(ma_format *format, ma_uint32 *sampleRate);
 
 void resetAllDecoders();
 
