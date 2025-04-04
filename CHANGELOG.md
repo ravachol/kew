@@ -4,6 +4,8 @@
 
 - Mini-player mode. Suggested by @HAPPIOcrz007. By @ravachol.
 
+- More accurate and detailed visualizer, with lower memory footprint. By @ravachol.
+
 - A favorites list for radio stations. It's visible when the radio search field is empty. By @ravachol.
 
 - Audio normalization for flac and mp3 files using replay gain metatags. Suggested by @endless-stupidity. By @ravachol.
@@ -26,9 +28,9 @@
 
 - Added config option to disable mouse (in kewrc file). By @Chromium-3-Oxide.
 
-- Fixed bug with previous track with shuffle enabled. Found by @GuyInAShack. By @ravachol.
-
 - Code cleanup. By @Chromium-3-Oxide.
+
+- Fixed bug with previous track with shuffle enabled. Found by @GuyInAShack. By @ravachol.
 
 ### 3.1.2
 
