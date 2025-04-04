@@ -360,35 +360,35 @@ ma_libopus *getCurrentOpusDecoder(void)
                 return opusDecoders[opusDecoderIndex];
 }
 
-ma_format getCurrentFormat(void)
+void getCurrentFormatAndSampleRate(ma_format *format, ma_uint32 *sampleRate)
 {
-        ma_format format = ma_format_unknown;
+        *format = ma_format_unknown;
 
         if (isRadioPlaying())
         {
                 ma_uint32 channels;
-                ma_data_source_get_data_format(radioContext.decoder.pBackend, &format, &channels, NULL, NULL, 0);
+                ma_data_source_get_data_format(radioContext.decoder.pBackend, format, &channels, sampleRate, NULL, 0);
         }
         else if (getCurrentImplementationType() == BUILTIN)
         {
                 ma_decoder *decoder = getCurrentBuiltinDecoder();
 
                 if (decoder != NULL)
-                        format = decoder->outputFormat;
+                        *format = decoder->outputFormat;
         }
         else if (getCurrentImplementationType() == OPUS)
         {
                 ma_libopus *decoder = getCurrentOpusDecoder();
 
                 if (decoder != NULL)
-                        format = decoder->format;
+                        *format = decoder->format;
         }
         else if (getCurrentImplementationType() == VORBIS)
         {
                 ma_libvorbis *decoder = getCurrentVorbisDecoder();
 
                 if (decoder != NULL)
-                        format = decoder->format;
+                        *format = decoder->format;
         }
         else if (getCurrentImplementationType() == M4A)
         {
@@ -396,11 +396,11 @@ ma_format getCurrentFormat(void)
                 m4a_decoder *decoder = getCurrentM4aDecoder();
 
                 if (decoder != NULL)
-                        format = decoder->format;
+                        *format = decoder->format;
 #endif
         }
 
-        return format;
+        *sampleRate = audioData.sampleRate;
 }
 
 void getFileInfo(const char *filename, ma_uint32 *sampleRate, ma_uint32 *channels, ma_format *format)

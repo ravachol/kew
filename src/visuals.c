@@ -8,39 +8,49 @@ visuals.c
 
 */
 
-#ifndef MAX_BUFFER_SIZE
-#define MAX_BUFFER_SIZE 8192
-#endif
-
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
+
+#define MAX_BARS 64
 
 int bufferSize = 8192;
 int prevBufferSize = 0;
 float alpha = 0.2f;
 float lastMax = -1.0f;
-fftwf_complex *fftInput = NULL;
+float *fftInput = NULL;
 fftwf_complex *fftOutput = NULL;
 
 int bufferIndex = 0;
 
-float magnitudeBuffer[MAX_BUFFER_SIZE] = {0.0f};
-float lastMagnitudes[MAX_BUFFER_SIZE] = {0.0f};
-float smoothedMagnitudes[MAX_BUFFER_SIZE];
-float maxPossibleMagnitude = 0;
+ma_format format = ma_format_unknown;
+ma_uint32 sampleRate = 44100;
+
+float magnitudeBuffer[MAX_BARS] = {0.0f};
+float lastMagnitudes[MAX_BARS] = {0.0f};
+float smoothedMagnitudes[MAX_BARS] = {0.0f};
+float minMaxMagnitude = 100.0f;
+float enhancePeak = 1.4f;
+float exponent = 0.7f; // Lower than 1.0 makes quiet sounds more visible
+float baseDecay = 0.8f;
+float rangeDecay = 0.2f;
+float baseAttack = 0.2f;
+float rangeAttack = 0.6f;
+float maxMagnitude = 0.0f;
+
+// Snare detection
+float snarePeak[MAX_BARS] = {0.0f};
+int spikeTimeout = 150;
+static int framesSinceSpike = 0;
+bool snareDetected = false;
+float snarePeakDecay = 0.8f;
 
 #define MOVING_AVERAGE_WINDOW_SIZE 2
 
-void updateMagnitudes(int height, int width, float maxMagnitude, float *magnitudes)
+void smoothMovingAverageMagnitudes(int numBars, float *magnitudes)
 {
-        if (maxMagnitude == 0.0f)
-        {
-                maxMagnitude = 1.0f;
-        }
-
         // Apply moving average smoothing to magnitudes
-        for (int i = 0; i < width; i++)
+        for (int i = 0; i < numBars; i++)
         {
                 float sum = magnitudes[i];
                 int count = 1;
@@ -53,7 +63,7 @@ void updateMagnitudes(int height, int width, float maxMagnitude, float *magnitud
                                 sum += magnitudes[i - j];
                                 count++;
                         }
-                        if (i + j < width)
+                        if (i + j < numBars)
                         {
                                 sum += magnitudes[i + j];
                                 count++;
@@ -65,36 +75,57 @@ void updateMagnitudes(int height, int width, float maxMagnitude, float *magnitud
         }
 
         // Update magnitudes array with smoothed values
-        memcpy(magnitudes, smoothedMagnitudes, width * sizeof(float));
-        // Apply adaptive decay factor to the smoothed magnitudes
-        float exponent = 1.0f;
+        memcpy(magnitudes, smoothedMagnitudes, numBars * sizeof(float));
+}
 
-        for (int i = 0; i < width; i++)
+float applyAttackandDecay(float linearVal, float lastMagnitude)
+{
+        float ratio = linearVal / maxMagnitude; // 0..1
+        if (ratio > 1.0f)
+                ratio = 1.0f; // Clamp
+
+        float decreaseFactor = baseDecay + rangeDecay * ratio;
+        float decayedMagnitude = linearVal * decreaseFactor;
+
+        float attackFactor = baseAttack + rangeAttack * ratio;
+
+        float newVal;
+
+        if (linearVal < decayedMagnitude)
         {
-                float normalizedMagnitude = magnitudes[i] / maxMagnitude;
-                normalizedMagnitude = fminf(normalizedMagnitude, 1.0f);
+                // Decay
+                newVal = decayedMagnitude;
+        }
+        else
+        {
+                // Attack
+                newVal = lastMagnitude + attackFactor * (linearVal - lastMagnitude);
+        }
 
-                float scaledMagnitude = powf(normalizedMagnitude, exponent) * height;
+        return newVal;
+}
 
-                // Adaptive decay based on magnitude
-                float decreaseFactor = 0.8f + 0.2f * (normalizedMagnitude);
-                float decayedMagnitude = lastMagnitudes[i] * decreaseFactor;
+void updateMagnitudes(int height, int numBars, float maxMagnitude, float *magnitudes)
+{
+        smoothMovingAverageMagnitudes(numBars, magnitudes);
 
-                if (scaledMagnitude < decayedMagnitude)
-                {
-                        magnitudes[i] = decayedMagnitude;
-                }
-                else
-                {
-                        magnitudes[i] = scaledMagnitude;
-                }
-                lastMagnitudes[i] = magnitudes[i];
+        for (int i = 0; i < numBars; i++)
+        {
+                float newVal = applyAttackandDecay(magnitudes[i], lastMagnitudes[i]);
+
+                lastMagnitudes[i] = newVal;
+
+                // Normalize
+                float displayRatio = newVal / maxMagnitude;
+                if (displayRatio > 1.0f)
+                        displayRatio = 1.0f;
+                magnitudes[i] = powf(displayRatio, exponent) * height;
         }
 }
 
 float calcMaxMagnitude(int numBars, float *magnitudes)
 {
-        float maxMagnitude = 0.0f;
+        maxMagnitude = 0.0f;
         for (int i = 0; i < numBars; i++)
         {
                 if (magnitudes[i] > maxMagnitude)
@@ -103,19 +134,24 @@ float calcMaxMagnitude(int numBars, float *magnitudes)
                 }
         }
 
+        if (maxMagnitude < minMaxMagnitude)
+                maxMagnitude = minMaxMagnitude;
+
         if (lastMax < 0.0f)
         {
                 lastMax = maxMagnitude;
                 return maxMagnitude;
         }
 
-        lastMax = (1 - alpha) * lastMax + alpha * maxMagnitude; // Apply exponential smoothing
+        // Apply exponential smoothing
+        lastMax = (1 - alpha) * lastMax + alpha * maxMagnitude;
+
         return lastMax;
 }
 
-void clearMagnitudes(int width, float *magnitudes)
+void clearMagnitudes(int numBars, float *magnitudes)
 {
-        for (int i = 0; i < width; i++)
+        for (int i = 0; i < numBars; i++)
         {
                 magnitudes[i] = 0.0f;
         }
@@ -127,14 +163,189 @@ void enhancePeaks(int numBars, float *magnitudes, int height)
         {
                 if (magnitudes[i] > magnitudes[i - 1] && magnitudes[i] > magnitudes[i + 1])
                 {
-                        magnitudes[i] *= 1.3f; // Emphasize the peak
+                        magnitudes[i] *= enhancePeak;
 
                         magnitudes[i] = fminf(magnitudes[i], (float)height);
                 }
         }
 }
 
-void calc(int height, int numBars, ma_int32 *audioBuffer, int bitDepth, fftwf_complex *fftInput, fftwf_complex *fftOutput, float *magnitudes, fftwf_plan plan)
+void applyBlackmanHarris(float *fftInput, int bufferSize)
+{
+        for (int i = 0; i < bufferSize; i++)
+        {
+                float alpha0 = 0.35875f;
+                float alpha1 = 0.48829f;
+                float alpha2 = 0.14128f;
+                float alpha3 = 0.01168f;
+
+                float fraction = (float)i / (float)(bufferSize - 1); // i / (N-1)
+                float window =
+                    alpha0 - alpha1 * cosf(2.0f * M_PI * fraction) + alpha2 * cosf(4.0f * M_PI * fraction) - alpha3 * cosf(6.0f * M_PI * fraction);
+
+                fftInput[i] *= window;
+        }
+}
+
+float getAvgAmplitude(const float *samples, int windowSize)
+{
+        float sum = 0.0f;
+        for (int i = 0; i < windowSize; i++)
+        {
+                sum += fabsf(samples[i]);
+        }
+        return sum / windowSize;
+}
+
+bool detectSpike(const float *magnitudes, int windowSize, ma_uint32 sampleRate)
+{
+        static float amplitudeAvg = 0.0f;
+        static const float alpha = 0.85f;      // Baseline smoothing
+        static const float spikeFactor = 2.0f; // "Twice" baseline = spike
+
+        float amplitude = getAvgAmplitude(magnitudes, windowSize);
+
+        // Update rolling average (baseline)
+        amplitudeAvg = alpha * amplitudeAvg + (1.0f - alpha) * amplitude;
+
+        float timeout = spikeTimeout * (((float)windowSize / (float)sampleRate) + 0.01f); // Roughly every spikeTimeout ms
+
+        bool spikeDetected = (amplitude > spikeFactor * amplitudeAvg);
+
+        if (spikeDetected)
+        {
+                framesSinceSpike = 0;
+        }
+        else
+        {
+                framesSinceSpike++;
+                if (framesSinceSpike > timeout)
+                {
+                        amplitudeAvg = 0.0f;
+                }
+        }
+        return spikeDetected;
+}
+
+void detectSnare(const float *fftInput, int numBins, int sampleRate, int fftSize)
+{
+        if (detectSpike(fftInput, numBins, sampleRate))
+        {
+                // Convert frequencies to bin indices for ~150..4000 Hz
+                int binStart = (int)(150.0f * (float)fftSize / (float)sampleRate);
+                int binEnd = (int)(4000.0f * (float)fftSize / (float)sampleRate);
+
+                // Clamp them to [0..(numBins-1)]
+                if (binStart < 0)
+                        binStart = 0;
+                if (binEnd >= numBins)
+                        binEnd = numBins - 1;
+
+                if (binStart == 0)
+                        binStart = 1; // First bar reserved for deeper bases
+
+                // If the range is invalid, no snare can be detected.
+                if (binStart > binEnd)
+                {
+                        snareDetected = false;
+                        return;
+                }
+
+                // Sum midrange bins vs total energy
+                float sumMidBins = 0.0f;
+                float sumAllBins = 0.0f;
+                for (int b = 1; b < numBins; b++)
+                {
+                        sumAllBins += fftInput[b];
+                        if (b >= binStart && b <= binEnd)
+                        {
+                                sumMidBins += fftInput[b];
+                        }
+                }
+
+                // Avoid divide-by-zero
+                if (sumAllBins < 1e-9f)
+                {
+                        snareDetected = false;
+                        return;
+                }
+
+                // Fraction of energy in the snare band
+                float midrangeEnergy = sumMidBins / sumAllBins;
+
+                // Threshold for calling it a snare
+                if (midrangeEnergy > 0.12f)
+                        snareDetected = true;
+                else
+                        snareDetected = false;
+        }
+        else
+        {
+                snareDetected = false;
+        }
+}
+
+void elevateSnare(float *magnitudes, int numBars, int bufferSize, int height, ma_uint32 sampleRate)
+{
+        if (snareDetected)
+        {
+                snareDetected = false;
+
+                int binStart = (int)(150.0f * bufferSize / (float)sampleRate);
+                int binEnd = (int)(4000.0f * bufferSize / (float)sampleRate);
+
+                if (binStart < 0)
+                        binStart = 0;
+                if (binEnd >= numBars)
+                        binEnd = numBars - 1;
+
+                if (binEnd < binStart)
+                {
+                        goto DecayPeakAndCombine;
+                }
+
+                // Find the strongest bar (index)
+                float maxVal = 0.0f;
+                int snareBin = binStart;
+                for (int b = binStart; b <= binEnd; b++)
+                {
+                        if (magnitudes[b] > maxVal)
+                        {
+                                maxVal = magnitudes[b];
+                                snareBin = b;
+                        }
+                }
+
+                int barIndex = snareBin;
+
+                if (barIndex >= numBars)
+                {
+                        barIndex = numBars - 1;
+                }
+
+                float spikeFactor = 2.0f;
+                float spikedValue = maxVal * spikeFactor;
+                if (spikedValue > height)
+                {
+                        spikedValue = (float)height - (height*0.1);
+                }
+
+                if (spikedValue > snarePeak[barIndex] && barIndex > 0)
+                {
+                        snarePeak[barIndex] = spikedValue;
+                }
+        }
+DecayPeakAndCombine:
+
+        for (int i = 1; i < numBars; i++)
+        {
+                float displayVal = fmaxf(magnitudes[i], snarePeak[i]);
+                snarePeak[i] *= snarePeakDecay;
+                magnitudes[i] = displayVal;
+        }
+}
+
+void calc(int height, int numBars, ma_int32 *audioBuffer, int bitDepth, float *fftInput, fftwf_complex *fftOutput, float *magnitudes, fftwf_plan plan)
 {
         int bufferSize = getBufferSize();
 
@@ -175,42 +386,45 @@ void calc(int height, int numBars, ma_int32 *audioBuffer, int bitDepth, fftwf_co
                         return;
                 }
 
-                fftInput[i][0] = normalizedSample;
-                fftInput[i][1] = 0.0f;
+                fftInput[i] = normalizedSample;
         }
-
-        // Apply Windowing (Hamming Window)
-        if (bufferSize > 1)
-        {
-                for (int i = 0; i < bufferSize; i++)
-                {
-                        float window = 0.54f - 0.46f * cosf(2.0f * M_PI * i / (bufferSize - 1));
-                        fftInput[i][0] *= window;
-                }
-        }
-
-        fftwf_execute(plan); // Execute FFT
-
-        clearMagnitudes(numBars, magnitudes);
 
         int halfSize = bufferSize / 2;
         int limit = (numBars < halfSize) ? numBars : halfSize;
 
+        applyBlackmanHarris(fftInput, bufferSize);
+
+        fftwf_execute(plan);
+
+        clearMagnitudes(numBars, magnitudes);
+
         for (int i = 0; i < limit; i++)
         {
-                // Compute magnitude for each frequency bin
                 float real = fftOutput[i][0];
                 float imag = fftOutput[i][1];
                 float magnitude = sqrtf(real * real + imag * imag);
                 magnitudes[i] = magnitude;
         }
 
-        // Normalize and update magnitudes for visualization
         float maxMagnitude = calcMaxMagnitude(limit, magnitudes);
 
         updateMagnitudes(height, limit, maxMagnitude, magnitudes);
 
         enhancePeaks(numBars, magnitudes, height);
+
+        float fftMagnitudesHalf[halfSize];
+
+        for (int i = 0; i < halfSize; i++)
+        {
+                float real = fftOutput[i][0];
+                float imag = fftOutput[i][1];
+                float magnitude = sqrtf(real * real + imag * imag);
+                fftMagnitudesHalf[i] = magnitude;
+        }
+
+        detectSnare(fftMagnitudesHalf, halfSize, sampleRate, bufferSize);
+
+        elevateSnare(magnitudes, numBars, bufferSize, height, sampleRate);
 }
 
 char *upwardMotionChars[] = {
@@ -225,12 +439,12 @@ char *getUpwardMotionChar(int level)
         return upwardMotionChars[level];
 }
 
-int calcSpectrum(int height, int numBars, fftwf_complex *fftInput, fftwf_complex *fftOutput, float *magnitudes, fftwf_plan plan)
+int calcSpectrum(int height, int numBars, float *fftInput, fftwf_complex *fftOutput, float *magnitudes, fftwf_plan plan)
 {
 
         ma_int32 *g_audioBuffer = getAudioBuffer();
 
-        ma_format format = getCurrentFormat();
+        getCurrentFormatAndSampleRate(&format, &sampleRate);
 
         if (format == ma_format_unknown)
                 return -1;
@@ -274,7 +488,7 @@ PixelData increaseLuminosity(PixelData pixel, int amount)
         return pixel2;
 }
 
-void printSpectrum(int height, int width, float *magnitudes, PixelData color, int indentation, bool useConfigColors, int visualizerColorType)
+void printSpectrum(int height, int numBars, float *magnitudes, PixelData color, int indentation, bool useConfigColors, int visualizerColorType)
 {
         printf("\n");
 
@@ -306,7 +520,7 @@ void printSpectrum(int height, int width, float *magnitudes, PixelData color, in
 
                 if (isPaused() || isStopped())
                 {
-                        for (int i = 0; i < width; i++)
+                        for (int i = 0; i < numBars; i++)
                         {
                                 printf("  ");
                         }
@@ -314,7 +528,7 @@ void printSpectrum(int height, int width, float *magnitudes, PixelData color, in
                         continue;
                 }
 
-                for (int i = 0; i < width; i++)
+                for (int i = 0; i < numBars; i++)
                 {
                         if (!useConfigColors && visualizerColorType == 1)
                         {
@@ -348,7 +562,7 @@ void freeVisuals(void)
 {
         if (fftInput != NULL)
         {
-                fftwf_free(fftInput);
+                free(fftInput);
                 fftInput = NULL;
         }
         if (fftOutput != NULL)
@@ -358,7 +572,7 @@ void freeVisuals(void)
         }
 }
 
-void drawSpectrumVisualizer(int height, int width, PixelData c, int indentation, bool useConfigColors, int visualizerColorType)
+void drawSpectrumVisualizer(int height, int numBars, PixelData c, int indentation, bool useConfigColors, int visualizerColorType)
 {
         bufferSize = getBufferSize();
         PixelData color;
@@ -366,17 +580,23 @@ void drawSpectrumVisualizer(int height, int width, PixelData c, int indentation,
         color.g = c.g;
         color.b = c.b;
 
-        int numBars = (width / 2);
+        numBars = (numBars / 2);
         height = height - 1;
 
-        if (height <= 0 || width <= 0)
+        if (height <= 0 || numBars <= 0)
         {
                 return;
         }
 
+        if (numBars > MAX_BARS)
+                numBars = MAX_BARS;
+
         if (bufferSize <= 0)
         {
-                for (int i = 0; i <= height; i++) {printf("\n");}
+                for (int i = 0; i <= height; i++)
+                {
+                        printf("\n");
+                }
                 return;
         }
         if (bufferSize != prevBufferSize)
@@ -385,10 +605,13 @@ void drawSpectrumVisualizer(int height, int width, PixelData c, int indentation,
 
                 freeVisuals();
 
-                fftInput = (fftwf_complex *)fftwf_malloc(sizeof(fftwf_complex) * bufferSize);
+                fftInput = (float *)malloc(sizeof(float) * bufferSize);
                 if (fftInput == NULL)
                 {
-                        for (int i = 0; i <= height; i++) {printf("\n");}
+                        for (int i = 0; i <= height; i++)
+                        {
+                                printf("\n");
+                        }
                         return;
                 }
 
@@ -397,13 +620,19 @@ void drawSpectrumVisualizer(int height, int width, PixelData c, int indentation,
                 {
                         fftwf_free(fftInput);
                         fftInput = NULL;
-                        for (int i = 0; i <= height; i++) {printf("\n");}
+                        for (int i = 0; i <= height; i++)
+                        {
+                                printf("\n");
+                        }
                         return;
                 }
                 prevBufferSize = bufferSize;
         }
 
-        fftwf_plan plan = fftwf_plan_dft_1d(bufferSize, fftInput, fftOutput, FFTW_FORWARD, FFTW_ESTIMATE);
+        fftwf_plan plan = fftwf_plan_dft_r2c_1d(bufferSize,
+                                                fftInput,
+                                                fftOutput,
+                                                FFTW_ESTIMATE);
 
         float magnitudes[numBars];
         for (int i = 0; i < numBars; i++)

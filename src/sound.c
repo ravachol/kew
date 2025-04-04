@@ -349,6 +349,8 @@ int switchAudioImplementation(void)
                         resetAllDecoders();
                         resetAudioBuffer();
 
+                        audioData.sampleRate = sampleRate;
+
                         int result = builtin_createAudioDevice(&userData, getDevice(), &context, &builtin_file_data_source_vtable);
 
                         if (result < 0)
@@ -401,6 +403,8 @@ int switchAudioImplementation(void)
                         resetAllDecoders();
                         resetAudioBuffer();
 
+                        audioData.sampleRate = sampleRate;
+
                         int result = opus_createAudioDevice(&userData, getDevice(), &context);
 
                         if (result < 0)
@@ -452,6 +456,8 @@ int switchAudioImplementation(void)
 
                         resetAllDecoders();
                         resetAudioBuffer();
+
+                        audioData.sampleRate = sampleRate;
 
                         int result = vorbis_createAudioDevice(&userData, getDevice(), &context);
 
@@ -508,6 +514,8 @@ int switchAudioImplementation(void)
 
                         resetAllDecoders();
                         resetAudioBuffer();
+
+                        audioData.sampleRate = sampleRate;
 
                         int result = m4a_createAudioDevice(&userData, getDevice(), &context);
 
