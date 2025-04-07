@@ -297,7 +297,7 @@ void printTitleWithDelay(const char *text, int delay, int maxWidth)
         if (max == maxWidth) // For long names
                 max -= 2;    // Accommodate for the cursor that we display after the name.
 
-        for (int i = 0; i <= max; i++)
+        for (int i = 0; i <= max && delay; i++)
         {
                 printf("\r ");
                 printBlankSpaces(indent);
@@ -308,8 +308,7 @@ void printTitleWithDelay(const char *text, int delay, int maxWidth)
                 printf("█");
                 fflush(stdout);
 
-                if (delay)
-                        c_sleep(delay);
+                c_sleep(delay);
         }
         if (delay)
                 c_sleep(delay * 20);
