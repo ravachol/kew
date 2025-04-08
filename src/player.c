@@ -59,7 +59,7 @@ bool isLongName = false;
 bool finishedScrolling = false;
 int lastNamePosition = 0;
 const int scrollingInterval = 1;    // Interval between scrolling updates
-const int startScrollingDelay = 20; // Delay before beginning to scroll. 64ms * scrollingInterval * startScrollingDelay = delay in ms
+const int startScrollingDelay = 10; // Delay before beginning to scroll. 64ms * scrollingInterval * startScrollingDelay = delay in ms
 int scrollDelaySkippedCount = 0;
 int updateCounter = 0;
 

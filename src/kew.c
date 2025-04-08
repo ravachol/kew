@@ -1152,8 +1152,8 @@ gboolean mainloop_callback(gpointer data)
         updateCounter++;
 
         // Different views run at different speeds to lower the impact on system requirements
-        if ((updateCounter % 3 == 0 && (appState.currentView == SEARCH_VIEW || appState.currentView == RADIOSEARCH_VIEW))
-            || (appState.currentView == TRACK_VIEW || appState.uiState.miniMode) || updateCounter % 6 == 0)
+        if ((updateCounter % 2 == 0 && (appState.currentView == SEARCH_VIEW || appState.currentView == RADIOSEARCH_VIEW))
+            || (appState.currentView == TRACK_VIEW || appState.uiState.miniMode) || updateCounter % 3 == 0)
         {
                 processDBusEvents();
 
@@ -1225,7 +1225,7 @@ void initFirstPlay(Node *song, AppState *state)
         else
                 emitPlaybackStoppedMpris();
 
-        g_timeout_add(16, mainloop_callback, NULL);
+        g_timeout_add(32, mainloop_callback, NULL);
         g_main_loop_run(main_loop);
         g_main_loop_unref(main_loop);
 }
