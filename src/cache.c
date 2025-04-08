@@ -31,10 +31,10 @@ void deleteCache(Cache *cache)
                 CacheNode *current = cache->head;
                 while (current != NULL)
                 {
-                        CacheNode *temp = current;
+                        CacheNode *tmp = current;
                         current = current->next;
-                        free(temp->filePath);
-                        free(temp);
+                        free(tmp->filePath);
+                        free(tmp);
                 }
                 free(cache);
         }

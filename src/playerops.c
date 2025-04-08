@@ -883,18 +883,18 @@ void moveSongUp()
                 // Rebuild if current song, the next song or the song after are affected
                 if (currentSong != NULL)
                 {
-                        Node *temp = currentSong;
+                        Node *tmp = currentSong;
 
                         for (int i = 0; i < 3; i++)
                         {
-                                if (temp == NULL)
+                                if (tmp == NULL)
                                         break;
 
-                                if (temp->id == id)
+                                if (tmp->id == id)
                                 {
                                         rebuild = true;
                                 }
-                                temp = temp->next;
+                                tmp = tmp->next;
                         }
                 }
         }
@@ -954,18 +954,18 @@ void moveSongDown()
                 // Rebuild if current song, the next song or the previous song are affected
                 if (currentSong != NULL)
                 {
-                        Node *temp = currentSong;
+                        Node *tmp = currentSong;
 
                         for (int i = 0; i < 2; i++)
                         {
-                                if (temp == NULL)
+                                if (tmp == NULL)
                                         break;
 
-                                if (temp->id == id)
+                                if (tmp->id == id)
                                 {
                                         rebuild = true;
                                 }
-                                temp = temp->next;
+                                tmp = tmp->next;
                         }
 
                         if (currentSong->prev != NULL && currentSong->prev->id == id)
@@ -1906,9 +1906,9 @@ void *updateLibraryThread(void *arg)
         char *path = (char *)arg;
         int tmpDirectoryTreeEntries = 0;
 
-        FileSystemEntry *temp = createDirectoryTree(path, &tmpDirectoryTreeEntries);
+        FileSystemEntry *tmp = createDirectoryTree(path, &tmpDirectoryTreeEntries);
 
-        if (!temp)
+        if (!tmp)
         {
                 perror("createDirectoryTree");
                 pthread_mutex_unlock(&switchMutex);
@@ -1917,10 +1917,10 @@ void *updateLibraryThread(void *arg)
 
         pthread_mutex_lock(&switchMutex);
 
-        copyIsEnqueued(library, temp);
+        copyIsEnqueued(library, tmp);
 
         freeTree(library);
-        library = temp;
+        library = tmp;
         appState.uiState.numDirectoryTreeEntries = tmpDirectoryTreeEntries;
         resetChosenDir();
 

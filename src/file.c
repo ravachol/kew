@@ -15,10 +15,10 @@ file.c
 void getDirectoryFromPath(const char *path, char *directory)
 {
     size_t path_length = strnlen(path, MAXPATHLEN);
-    char tempPath[path_length + 1];
-    c_strcpy(tempPath, path, sizeof(tempPath));
+    char tmpPath[path_length + 1];
+    c_strcpy(tmpPath, path, sizeof(tmpPath));
 
-    char *dir = dirname(tempPath);
+    char *dir = dirname(tmpPath);
 
     // Copy directory name to the output buffer
     snprintf(directory, MAXPATHLEN, "%s", dir);
@@ -294,30 +294,30 @@ int deleteFile(const char *filePath)
 
 int isInTempDir(const char *path)
 {
-        const char *tempDir = getenv("TMPDIR");
-        if (tempDir == NULL || strnlen(tempDir, PATH_MAX) >= PATH_MAX)
+        const char *tmpDir = getenv("TMPDIR");
+        if (tmpDir == NULL || strnlen(tmpDir, PATH_MAX) >= PATH_MAX)
         {
-                tempDir = "/tmp";
+                tmpDir = "/tmp";
         }
 
-        return (pathStartsWith(path, tempDir));
+        return (pathStartsWith(path, tmpDir));
 }
 
 void generateTempFilePath(char *filePath, const char *prefix, const char *suffix)
 {
-        const char *tempDir = getenv("TMPDIR");
-        if (tempDir == NULL || strnlen(tempDir, PATH_MAX) >= PATH_MAX)
+        const char *tmpDir = getenv("TMPDIR");
+        if (tmpDir == NULL || strnlen(tmpDir, PATH_MAX) >= PATH_MAX)
         {
-                tempDir = "/tmp";
+                tmpDir = "/tmp";
         }
 
         struct passwd *pw = getpwuid(getuid());
         const char *username = pw ? pw->pw_name : "unknown";
 
         char dirPath[MAXPATHLEN];
-        snprintf(dirPath, sizeof(dirPath), "%s/kew", tempDir);
+        snprintf(dirPath, sizeof(dirPath), "%s/kew", tmpDir);
         createDirectory(dirPath);
-        snprintf(dirPath, sizeof(dirPath), "%s/kew/%s", tempDir, username);
+        snprintf(dirPath, sizeof(dirPath), "%s/kew/%s", tmpDir, username);
         createDirectory(dirPath);
 
         char randomString[7];
