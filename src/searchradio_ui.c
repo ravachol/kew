@@ -60,12 +60,12 @@ void addRadioResult(RadioSearchResult **radioSearchResults, size_t *radioResults
         if (*radioResultsCount >= *radioResultsCapacity)
         {
                 *radioResultsCapacity = (*radioResultsCapacity == 0) ? 10 : (*radioResultsCapacity * 2);
-                RadioSearchResult *temp = realloc(*radioSearchResults, *radioResultsCapacity * sizeof(RadioSearchResult));
-                if (!temp)
+                RadioSearchResult *tmp = realloc(*radioSearchResults, *radioResultsCapacity * sizeof(RadioSearchResult));
+                if (!tmp)
                 {
                         return; // Memory allocation failed
                 }
-                *radioSearchResults = temp;
+                *radioSearchResults = tmp;
         }
 
         // Add new radio station
@@ -598,14 +598,14 @@ RadioSearchResult *reconstructRadioFavoritesFromFile(const char *filename, size_
                 if (*count >= *capacity)
                 {
                         *capacity *= 2;
-                        RadioSearchResult *temp = realloc(radioFavorites, *capacity * sizeof(RadioSearchResult));
-                        if (!temp)
+                        RadioSearchResult *tmp = realloc(radioFavorites, *capacity * sizeof(RadioSearchResult));
+                        if (!tmp)
                         {
                                 free(radioFavorites);
                                 fclose(file);
                                 return NULL;
                         }
-                        radioFavorites = temp;
+                        radioFavorites = tmp;
                 }
         }
 

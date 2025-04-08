@@ -197,9 +197,9 @@ void shufflePlaylist(PlayList *playlist)
         for (int j = playlist->count - 1; j >= 1; --j)
         {
                 int k = rand() % (j + 1);
-                Node *temp = nodes[j];
+                Node *tmp = nodes[j];
                 nodes[j] = nodes[k];
-                nodes[k] = temp;
+                nodes[k] = tmp;
         }
         playlist->head = nodes[0];
         playlist->tail = nodes[playlist->count - 1];
@@ -947,9 +947,9 @@ void shuffleEntries(FileSystemEntry **array, size_t n)
             size_t j = getRandomNumber(i, n - 1);
 
             // Swap entries at i and j
-            FileSystemEntry *temp = array[i];
+            FileSystemEntry *tmp = array[i];
             array[i] = array[j];
-            array[j] = temp;
+            array[j] = tmp;
         }
     }
 }

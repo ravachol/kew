@@ -46,6 +46,6 @@ FileSystemEntry *reconstructTreeFromFile(const char *filename, const char *start
 
 void fuzzySearchRecursive(FileSystemEntry *node, const char *searchTerm, int threshold, void (*callback)(FileSystemEntry *, int));
 
-void copyIsEnqueued(FileSystemEntry *library, FileSystemEntry *temp);
+void copyIsEnqueued(FileSystemEntry *library, FileSystemEntry *tmp);
 
 #endif

@@ -1039,10 +1039,10 @@ int getSystemVolumeMac(void)
                 if (fgets(buf, sizeof(buf), fp) != NULL)
                 {
                         buf[strcspn(buf, "\n")] = '\0';
-                        int tempVolume = extractPercentageMac(buf);
-                        if (tempVolume != -1)
+                        int tmpVolume = extractPercentageMac(buf);
+                        if (tmpVolume != -1)
                         {
-                                currentVolume = tempVolume;
+                                currentVolume = tmpVolume;
                         }
                 }
                 pclose(fp);
@@ -1070,10 +1070,10 @@ int getSystemVolume(void)
         {
                 while (fgets(buf, sizeof(buf), fp) != NULL)
                 {
-                        int tempVolume = extractPercentage(buf);
-                        if (tempVolume != -1)
+                        int tmpVolume = extractPercentage(buf);
+                        if (tmpVolume != -1)
                         {
-                                currentVolume = tempVolume;
+                                currentVolume = tmpVolume;
                                 break;
                         }
                 }
@@ -1091,10 +1091,10 @@ int getSystemVolume(void)
                 {
                         while (fgets(buf, sizeof(buf), fp) != NULL)
                         {
-                                int tempVolume = extractPercentage(buf);
-                                if (tempVolume != -1)
+                                int tmpVolume = extractPercentage(buf);
+                                if (tmpVolume != -1)
                                 {
-                                        currentVolume = tempVolume;
+                                        currentVolume = tmpVolume;
                                         break;
                                 }
                         }
