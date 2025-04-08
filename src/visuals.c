@@ -38,14 +38,14 @@ float minMaxMagnitude = 100.0f;
 float enhancePeak = 2.2f;
 float exponent = 0.85f; // Lower than 1.0 makes quiet sounds more visible
 
-float baseDecay = 0.97f;
-float rangeDecay = 0.03f;
+float baseDecay = 0.85f;
+float rangeDecay = 0.2f;
 float baseAttack = 0.2f;
 float rangeAttack = 0.4f;
 
 float maxMagnitude = 0.0f;
 
-float tweenFactor = 0.2f;
+float tweenFactor = 0.3f;
 
 #define MOVING_AVERAGE_WINDOW_SIZE 2
 
