@@ -83,7 +83,7 @@ typedef struct
 
 typedef struct
 {
-        Cache *tempCache;                               // Cache for temporary files
+        Cache *tmpCache;                                // Cache for temporary files
         ViewState currentView;                          // The current view (playlist, library, track) that kew is on
         UIState uiState;
         UISettings uiSettings;

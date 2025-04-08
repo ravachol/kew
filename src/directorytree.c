@@ -305,8 +305,8 @@ FileSystemEntry *reconstructTreeFromFile(const char *filename, const char *start
                         {
                                 oldCapacity = nodesCapacity;
                                 nodesCapacity = id + 100;
-                                FileSystemEntry **tempNodes = resizeNodesArray(nodes, oldCapacity, nodesCapacity);
-                                if (!tempNodes)
+                                FileSystemEntry **tmpNodes = resizeNodesArray(nodes, oldCapacity, nodesCapacity);
+                                if (!tmpNodes)
                                 {
                                         perror("Failed to resize nodes array");
 
@@ -323,7 +323,7 @@ FileSystemEntry *reconstructTreeFromFile(const char *filename, const char *start
                                         fclose(file);
                                         exit(1);
                                 }
-                                nodes = tempNodes;
+                                nodes = tmpNodes;
                         }
 
                         FileSystemEntry *node = malloc(sizeof(FileSystemEntry));
@@ -423,9 +423,9 @@ int utf8_levenshteinDistance(const char *s1, const char *s2)
                 }
 
                 // Swap rows (current becomes previous for the next iteration)
-                int *temp = prevRow;
+                int *tmp = prevRow;
                 prevRow = currRow;
-                currRow = temp;
+                currRow = tmp;
         }
 
         // The last value in prevRow contains the Levenshtein distance
@@ -476,35 +476,35 @@ void fuzzySearchRecursive(FileSystemEntry *node, const char *searchTerm, int thr
         fuzzySearchRecursive(node->next, searchTerm, threshold, callback);
 }
 
-FileSystemEntry *findCorrespondingEntry(FileSystemEntry *temp, const char *fullPath)
+FileSystemEntry *findCorrespondingEntry(FileSystemEntry *tmp, const char *fullPath)
 {
-        if (temp == NULL)
+        if (tmp == NULL)
                 return NULL;
-        if (strcmp(temp->fullPath, fullPath) == 0)
-                return temp;
+        if (strcmp(tmp->fullPath, fullPath) == 0)
+                return tmp;
 
-        FileSystemEntry *found = findCorrespondingEntry(temp->children, fullPath);
+        FileSystemEntry *found = findCorrespondingEntry(tmp->children, fullPath);
         if (found != NULL)
                 return found;
 
-        return findCorrespondingEntry(temp->next, fullPath);
+        return findCorrespondingEntry(tmp->next, fullPath);
 }
 
-void copyIsEnqueued(FileSystemEntry *library, FileSystemEntry *temp)
+void copyIsEnqueued(FileSystemEntry *library, FileSystemEntry *tmp)
 {
         if (library == NULL)
                 return;
 
         if (library->isEnqueued)
         {
-                FileSystemEntry *tempEntry = findCorrespondingEntry(temp, library->fullPath);
-                if (tempEntry != NULL)
+                FileSystemEntry *tmpEntry = findCorrespondingEntry(tmp, library->fullPath);
+                if (tmpEntry != NULL)
                 {
-                        tempEntry->isEnqueued = library->isEnqueued;
+                        tmpEntry->isEnqueued = library->isEnqueued;
                 }
         }
 
-        copyIsEnqueued(library->children, temp);
+        copyIsEnqueued(library->children, tmp);
 
-        copyIsEnqueued(library->next, temp);
+        copyIsEnqueued(library->next, tmp);
 }

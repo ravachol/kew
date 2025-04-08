@@ -1274,7 +1274,7 @@ void cleanupOnExit()
         setConfig(&settings, &(appState.uiSettings));
         saveSpecialPlaylist(settings.path);
         freeAudioBuffer();
-        deleteCache(appState.tempCache);
+        deleteCache(appState.tmpCache);
         freeMainDirectoryTree(&appState);
         freeAndwriteRadioFavorites();
         deletePlaylist(&playlist);
@@ -1373,7 +1373,7 @@ void init(AppState *state)
         ioctl(STDOUT_FILENO, TIOCGWINSZ, &windowSize);
         enableScrolling();
         setNonblockingMode();
-        state->tempCache = createCache();
+        state->tmpCache = createCache();
         c_strcpy(loadingdata.filePath, "", sizeof(loadingdata.filePath));
         loadingdata.songdataA = NULL;
         loadingdata.songdataB = NULL;
@@ -1757,7 +1757,7 @@ void initState(AppState *state)
         state->uiState.doNotifyMPRISSwitched = false;
         state->uiState.doNotifyMPRISPlaying = false;
         state->uiState.collapseView = false;
-        state->tempCache = NULL;
+        state->tmpCache = NULL;
 
         radioContext.buf.stale = false;
 }

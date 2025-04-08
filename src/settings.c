@@ -638,76 +638,76 @@ void getConfig(AppSettings *settings, UISettings *ui)
         ui->hideLogo = (settings->hideLogo[0] == '1');
         ui->hideHelp = (settings->hideHelp[0] == '1');
 
-        int temp = getNumber(settings->color);
-        if (temp >= 0)
-                ui->mainColor = temp;
+        int tmp = getNumber(settings->color);
+        if (tmp >= 0)
+                ui->mainColor = tmp;
 
-        temp = getNumber(settings->artistColor);
-        if (temp >= 0)
-                ui->artistColor = temp;
+        tmp = getNumber(settings->artistColor);
+        if (tmp >= 0)
+                ui->artistColor = tmp;
 
-        temp = getNumber(settings->enqueuedColor);
-        if (temp >= 0)
-                ui->enqueuedColor = temp;
+        tmp = getNumber(settings->enqueuedColor);
+        if (tmp >= 0)
+                ui->enqueuedColor = tmp;
 
-        temp = getNumber(settings->titleColor);
-        if (temp >= 0)
-                ui->titleColor = temp;
+        tmp = getNumber(settings->titleColor);
+        if (tmp >= 0)
+                ui->titleColor = tmp;
 
-        temp = getNumber(settings->mouseLeftClickAction);
-        enum EventType tempEvent = getMouseAction(temp);
-        if (temp >= 0)
-                ui->mouseLeftClickAction = tempEvent;
+        tmp = getNumber(settings->mouseLeftClickAction);
+        enum EventType tmpEvent = getMouseAction(tmp);
+        if (tmp >= 0)
+                ui->mouseLeftClickAction = tmpEvent;
 
-        temp = getNumber(settings->mouseMiddleClickAction);
-        tempEvent = getMouseAction(temp);
-        if (temp >= 0)
-                ui->mouseMiddleClickAction = tempEvent;
+        tmp = getNumber(settings->mouseMiddleClickAction);
+        tmpEvent = getMouseAction(tmp);
+        if (tmp >= 0)
+                ui->mouseMiddleClickAction = tmpEvent;
 
-        temp = getNumber(settings->mouseRightClickAction);
-        tempEvent = getMouseAction(temp);
-        if (temp >= 0)
-                ui->mouseRightClickAction = tempEvent;
+        tmp = getNumber(settings->mouseRightClickAction);
+        tmpEvent = getMouseAction(tmp);
+        if (tmp >= 0)
+                ui->mouseRightClickAction = tmpEvent;
 
-        temp = getNumber(settings->mouseScrollUpAction);
-        tempEvent = getMouseAction(temp);
-        if (temp >= 0)
-                ui->mouseScrollUpAction = tempEvent;
+        tmp = getNumber(settings->mouseScrollUpAction);
+        tmpEvent = getMouseAction(tmp);
+        if (tmp >= 0)
+                ui->mouseScrollUpAction = tmpEvent;
 
-        temp = getNumber(settings->mouseScrollDownAction);
-        tempEvent = getMouseAction(temp);
-        if (temp >= 0)
-                ui->mouseScrollDownAction = tempEvent;
+        tmp = getNumber(settings->mouseScrollDownAction);
+        tmpEvent = getMouseAction(tmp);
+        if (tmp >= 0)
+                ui->mouseScrollDownAction = tmpEvent;
 
-        temp = getNumber(settings->mouseAltScrollUpAction);
-        tempEvent = getMouseAction(temp);
-        if (temp >= 0)
-                ui->mouseAltScrollUpAction = tempEvent;
+        tmp = getNumber(settings->mouseAltScrollUpAction);
+        tmpEvent = getMouseAction(tmp);
+        if (tmp >= 0)
+                ui->mouseAltScrollUpAction = tmpEvent;
 
-        temp = getNumber(settings->mouseAltScrollDownAction);
-        tempEvent = getMouseAction(temp);
-        if (temp >= 0)
-                ui->mouseAltScrollDownAction = tempEvent;
+        tmp = getNumber(settings->mouseAltScrollDownAction);
+        tmpEvent = getMouseAction(tmp);
+        if (tmp >= 0)
+                ui->mouseAltScrollDownAction = tmpEvent;
 
-        temp = getNumber(settings->visualizerHeight);
-        if (temp > 0)
-                ui->visualizerHeight = temp;
+        tmp = getNumber(settings->visualizerHeight);
+        if (tmp > 0)
+                ui->visualizerHeight = tmp;
 
-        temp = getNumber(settings->visualizerColorType);
-        if (temp > 0)
-                ui->visualizerColorType = temp;
+        tmp = getNumber(settings->visualizerColorType);
+        if (tmp > 0)
+                ui->visualizerColorType = tmp;
 
-        temp = getNumber(settings->titleDelay);
-        if (temp >= 0)
-                ui->titleDelay = temp;
+        tmp = getNumber(settings->titleDelay);
+        if (tmp >= 0)
+                ui->titleDelay = tmp;
 
-        temp = getNumber(settings->lastVolume);
-        if (temp >= 0)
-                setVolume(temp);
+        tmp = getNumber(settings->lastVolume);
+        if (tmp >= 0)
+                setVolume(tmp);
 
-        temp = getNumber(settings->cacheLibrary);
-        if (temp >= 0)
-                ui->cacheLibrary = temp;
+        tmp = getNumber(settings->cacheLibrary);
+        if (tmp >= 0)
+                ui->cacheLibrary = tmp;
 
         getMusicLibraryPath(settings->path);
         free(configdir);
