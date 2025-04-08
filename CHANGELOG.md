@@ -4,7 +4,10 @@
 
 - Mini-player mode. Suggested by @HAPPIOcrz007. By @ravachol.
 
-- More accurate and detailed visualizer, with lower memory footprint. By @ravachol.
+
+- The visualizer now runs at 60 fps instead of 10, while the ui runs slower much like before. By Ravachol
+
+- Visualizer now only shows 20hz - 10 000hz instead of going all the way to 20 000hz.
 
 - A favorites list for radio stations. It's visible when the radio search field is empty. By @ravachol.
 

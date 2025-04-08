@@ -23,6 +23,7 @@ extern "C"
 #include <stdint.h>
 #include <string.h>
 #include <stdint.h>
+#include "common.h"
 
         typedef enum
         {
@@ -627,7 +628,7 @@ extern "C"
                         unsigned char objectType = decoder_config[0];
                         if (objectType == 5 || objectType >= 29)
                         {
-                                printf("File is encoded with HE-AAC which is not supported\n");
+                                setErrorMessage("File is encoded with HE-AAC which is not supported");
                                 free(frameData);
                                 free(decoder_config);
                                 fclose(fp);
@@ -972,7 +973,7 @@ extern "C"
                                 // Remove support for HE-AAC components (SBR or PS)
                                 if (pM4a->frameInfo.sbr || pM4a->frameInfo.ps)
                                 {
-                                        printf("File is encoded with HE-AAC which is not supported\n");
+                                        // File is encoded with HE-AAC which is not supported
                                         return MA_ERROR;
                                 }
 

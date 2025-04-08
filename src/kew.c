@@ -206,11 +206,11 @@ struct Event processInput()
                         event.type = EVENT_RADIOSEARCH;
                 }
                 else if (((strnlen(event.key, sizeof(event.key)) == 1 && event.key[0] != '\033' && event.key[0] != '\n' && event.key[0] != '\t' && event.key[0] != '\r') ||
-                strcmp(event.key, " ") == 0 || (unsigned char)event.key[0] >= 0xC0) &&
-                strcmp(event.key, "Z") != 0 && strcmp(event.key, "X") != 0 &&
-                strcmp(event.key, "C") != 0 && strcmp(event.key, "V") != 0 &&
-                strcmp(event.key, "F") != 0 && strcmp(event.key, "S") != 0 &&
-                strcmp(event.key, "B") != 0 && strcmp(event.key, "N") != 0)
+                          strcmp(event.key, " ") == 0 || (unsigned char)event.key[0] >= 0xC0) &&
+                         strcmp(event.key, "Z") != 0 && strcmp(event.key, "X") != 0 &&
+                         strcmp(event.key, "C") != 0 && strcmp(event.key, "V") != 0 &&
+                         strcmp(event.key, "F") != 0 && strcmp(event.key, "S") != 0 &&
+                         strcmp(event.key, "B") != 0 && strcmp(event.key, "N") != 0)
                 {
                         addToRadioSearchText(event.key);
                         resetRadioSearchResult();
@@ -264,7 +264,7 @@ struct Event processInput()
                 }
         }
 
-         for (int i = 0; i < NUM_KEY_MAPPINGS; i++)
+        for (int i = 0; i < NUM_KEY_MAPPINGS; i++)
         {
                 if (strcmp(seq, "\033\n") == 0 && strcmp(keyMappings[i].seq, "^M") == 0) // ALT+ENTER
                 {
@@ -656,7 +656,8 @@ void handleGoToSong(AppState *state)
                                 playPostProcessing();
 
                                 skipOutOfOrder = false;
-                                usingSongDataA = true;                 }
+                                usingSongDataA = true;
+                        }
                 }
                 else
                 {
@@ -1150,8 +1151,9 @@ gboolean mainloop_callback(gpointer data)
 
         updateCounter++;
 
-        // Update every other time or if searching (search needs to update often to detect keypresses)
-        if (updateCounter % 2 == 0 || ((appState.currentView == SEARCH_VIEW || appState.currentView == RADIOSEARCH_VIEW) && !appState.uiState.miniMode))
+        // Different views run at different speeds to lower the impact on system requirements
+        if ((updateCounter % 3 == 0 && (appState.currentView == SEARCH_VIEW || appState.currentView == RADIOSEARCH_VIEW))
+            || (appState.currentView == TRACK_VIEW || appState.uiState.miniMode) || updateCounter % 6 == 0)
         {
                 processDBusEvents();
 
@@ -1223,7 +1225,7 @@ void initFirstPlay(Node *song, AppState *state)
         else
                 emitPlaybackStoppedMpris();
 
-        g_timeout_add(56, mainloop_callback, NULL);
+        g_timeout_add(16, mainloop_callback, NULL);
         g_main_loop_run(main_loop);
         g_main_loop_unref(main_loop);
 }
@@ -1288,6 +1290,7 @@ void cleanupOnExit()
         pthread_mutex_destroy(&(switchMutex));
         pthread_mutex_unlock(&dataSourceMutex);
         pthread_mutex_destroy(&(dataSourceMutex));
+        destroyRadioMutexes();
         freeLastCover();
 #ifdef USE_DBUS
         cleanupDbusConnection();
@@ -1389,6 +1392,7 @@ void init(AppState *state)
         pthread_mutex_init(&switchMutex, NULL);
         pthread_mutex_init(&(loadingdata.mutex), NULL);
         pthread_mutex_init(&(playlist.mutex), NULL);
+        initRadioMutexes();
         createLibrary(&settings, state);
         createRadioFavorites();
         curl_global_init(CURL_GLOBAL_DEFAULT);

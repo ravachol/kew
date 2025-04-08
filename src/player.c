@@ -53,6 +53,16 @@ int libTopLevelSongIter = 0;
 int previousChosenLibRow = 0;
 int libCurrentDirSongCount = 0;
 
+// Name scrolling
+bool isSameNameAsLastTime = false;
+bool isLongName = false;
+bool finishedScrolling = false;
+int lastNamePosition = 0;
+const int scrollingInterval = 1;    // Interval between scrolling updates
+const int startScrollingDelay = 20; // Delay before beginning to scroll. 64ms * scrollingInterval * startScrollingDelay = delay in ms
+int scrollDelaySkippedCount = 0;
+int updateCounter = 0;
+
 PixelData lastRowColor = {120, 120, 120};
 
 const char LIBRARY_FILE[] = "kewlibrary";
@@ -398,7 +408,7 @@ int calcElapsedBars(double elapsedSeconds, double duration, int numProgressBars)
         return (int)((elapsedSeconds / duration) * numProgressBars);
 }
 
-void printProgress(double elapsed_seconds, double total_seconds)
+void printProgress(double elapsed_seconds, double total_seconds, ma_uint32 sampleRate)
 {
         int progressWidth = 39;
         int term_w, term_h;
@@ -431,6 +441,16 @@ void printProgress(double elapsed_seconds, double total_seconds)
                total_hours, total_minutes, total_seconds_remainder,
                progress_percentage, vol);
 
+        double rate = ((float)sampleRate) / 1000;
+
+        if (term_w > progressWidth + 9)
+        {
+                if (rate == (int)rate)
+                        printf(" %dkHz", (int)rate); // No decimals
+                else
+                        printf(" %.1fkHz", rate);
+        }
+
         // Restore the cursor position
         printf("\033[u");
 }
@@ -450,7 +470,7 @@ void printMetadata(TagSettings const *metadata, UISettings *ui)
         printBasicMetadata(metadata, ui);
 }
 
-void printTime(double elapsedSeconds, AppState *state)
+void printTime(double elapsedSeconds, ma_uint32 sampleRate, AppState *state)
 {
         if (state->uiSettings.useConfigColors)
                 setDefaultTextColor();
@@ -462,7 +482,7 @@ void printTime(double elapsedSeconds, AppState *state)
         if (term_h > minHeight)
         {
                 double duration = getCurrentSongDuration();
-                printProgress(elapsedSeconds, duration);
+                printProgress(elapsedSeconds, duration, sampleRate);
         }
 }
 
@@ -1121,7 +1141,9 @@ void printVisualizer(double elapsedSeconds, AppState *state)
 #ifndef __APPLE__
                 saveCursorPosition();
 #endif
-                drawSpectrumVisualizer(ui->visualizerHeight, visualizerWidth, ui->color, indent, ui->useConfigColors, ui->visualizerColorType);
+                int numBars = visualizerWidth / 2;
+
+                drawSpectrumVisualizer(ui->visualizerHeight, numBars, ui->color, indent, ui->useConfigColors, ui->visualizerColorType);
                 printElapsedBars(calcElapsedBars(elapsedSeconds, duration, uis->numProgressBars), uis->numProgressBars, ui->color, ui->visualizerHeight, ui->useConfigColors);
                 printErrorRow();
                 printLastRow(&(state->uiSettings));
@@ -1199,6 +1221,56 @@ void processName(const char *name, char *output, int maxWidth)
         output[copyLength] = '\0';
         removeUnneededChars(output, copyLength);
         trim(output, copyLength);
+}
+
+void processNameScroll(const char *name, char *output, int maxWidth, int lastStartPosition, int isSameNameAsLastTime)
+{
+        const char *lastDot = strrchr(name, '.');
+        size_t nameLength = strlen(name);
+        size_t scrollableLength = (lastDot != NULL) ? (size_t)(lastDot - name) : nameLength;
+
+        if (scrollDelaySkippedCount <= startScrollingDelay && scrollableLength > (size_t)maxWidth)
+        {
+                scrollableLength = maxWidth;
+                scrollDelaySkippedCount++;
+                refresh = true;
+                isLongName = true;
+        }
+
+        int start = (isSameNameAsLastTime) ? lastStartPosition : 0;
+
+        if (finishedScrolling)
+                scrollableLength = maxWidth;
+
+        if (scrollableLength <= (size_t)maxWidth || finishedScrolling)
+        {
+                strncpy(output, name, scrollableLength);
+                output[scrollableLength] = '\0';
+                start = 0;
+
+                removeUnneededChars(output, scrollableLength);
+                trim(output, scrollableLength);
+        }
+        else
+        {
+                isLongName = true;
+
+                if ((size_t)(start + maxWidth) > scrollableLength)
+                {
+                        start = 0;
+                        finishedScrolling = true;
+                }
+
+                strncpy(output, name + start, maxWidth);
+                output[maxWidth] = '\0';
+
+                removeUnneededChars(output, maxWidth);
+                trim(output, maxWidth);
+
+                lastNamePosition++;
+
+                refresh = true;
+        }
 }
 
 void setChosenDir(FileSystemEntry *entry)
@@ -1387,7 +1459,30 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
                                 else
                                 {
                                         filename[0] = '\0';
-                                        processName(root->name, filename, maxNameWidth - extraIndent);
+
+                                        isSameNameAsLastTime = (previousChosenLibRow == chosenLibRow);
+
+                                        if (foundChosen)
+                                        {
+                                                previousChosenLibRow = chosenLibRow;
+                                        }
+
+                                        if (!isSameNameAsLastTime)
+                                        {
+                                                lastNamePosition = 0;
+                                                isLongName = false;
+                                                finishedScrolling = false;
+                                                scrollDelaySkippedCount = 0;
+                                        }
+
+                                        if (foundChosen)
+                                        {
+                                                processNameScroll(root->name, filename, maxNameWidth - extraIndent, lastNamePosition, isSameNameAsLastTime);
+                                        }
+                                        else
+                                        {
+                                                processName(root->name, filename, maxNameWidth - extraIndent);
+                                        }
 
                                         printf("└─ ");
 
@@ -1427,6 +1522,20 @@ char *getLibraryFilePath(void)
 
 void showLibrary(SongData *songData, AppState *state)
 {
+        // For scrolling names, update every nth time
+        if (isLongName && isSameNameAsLastTime && updateCounter % scrollingInterval != 0)
+        {
+                updateCounter++;
+                refresh = true;
+                return;
+        }
+        else
+                refresh = false;
+
+        clearScreen();
+
+        updateCounter++;
+
         if (state->uiState.collapseView)
         {
                 if (previousChosenLibRow < chosenLibRow)
@@ -1517,7 +1626,7 @@ void showLibrary(SongData *songData, AppState *state)
         printErrorRow();
         printLastRow(ui);
 
-        if (refresh)
+        if (!foundChosen && refresh)
         {
                 printf("\033[1;1H");
                 clearScreen();
@@ -1620,8 +1729,12 @@ void showTrackViewMini(SongData *songdata, AppState *state, double elapsedSecond
         bool doPrintVis = term_h > (state->uiSettings.visualizerHeight + 2);
 
         if (songdata && doPrintTime)
-                printTime(elapsedSeconds, state);
-
+        {
+                ma_uint32 sampleRate;
+                ma_format format;
+                getCurrentFormatAndSampleRate(&format, &sampleRate);
+                printTime(elapsedSeconds, sampleRate, state);
+        }
         if (doPrintVis)
                 printVisualizer(elapsedSeconds, state);
 }
@@ -1654,7 +1767,12 @@ void showTrackView(SongData *songdata, AppState *state, double elapsedSeconds)
                 refresh = false;
         }
         if (songdata)
-                printTime(elapsedSeconds, state);
+        {
+                ma_uint32 sampleRate;
+                ma_format format;
+                getCurrentFormatAndSampleRate(&format, &sampleRate);
+                printTime(elapsedSeconds, sampleRate, state);
+        }
         printVisualizer(elapsedSeconds, state);
 }
 
@@ -1746,9 +1864,7 @@ int printPlayer(SongData *songdata, double elapsedSeconds, AppSettings *settings
         }
         else if (state->currentView == LIBRARY_VIEW && refresh)
         {
-                clearScreen();
                 showLibrary(songdata, state);
-                refresh = false;
                 fflush(stdout);
         }
         else if (state->currentView == TRACK_VIEW)
