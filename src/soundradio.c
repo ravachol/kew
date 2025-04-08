@@ -829,6 +829,18 @@ void freeCurrentlyPlayingRadioStation(void)
         }
 }
 
+void initRadioMutexes()
+{
+        pthread_mutex_init(&(radioContext.buf.mutex), NULL);
+        pthread_cond_init(&(radioContext.buf.cond), NULL);
+}
+
+void destroyRadioMutexes()
+{
+        pthread_mutex_destroy(&(radioContext.buf.mutex));
+        pthread_cond_destroy(&(radioContext.buf.cond));
+}
+
 void stopRadio(void)
 {
         pthread_mutex_lock(&(radioContext.buf.mutex));
@@ -855,9 +867,6 @@ void stopRadio(void)
                 curl_easy_cleanup(radioContext.curl);
                 radioContext.curl = NULL;
         }
-
-        pthread_mutex_destroy(&(radioContext.buf.mutex));
-        pthread_cond_destroy(&(radioContext.buf.cond));
 
         memset(&(radioContext.decoder), 0, sizeof(ma_decoder));
 
@@ -916,8 +925,6 @@ int playRadioStation(const RadioSearchResult *station)
                 return -1;
         }
 
-        pthread_mutex_init(&(radioContext.buf.mutex), NULL);
-        pthread_cond_init(&(radioContext.buf.cond), NULL);
         radioContext.buf.eof = 0;
         radioContext.buf.stale = false;
 

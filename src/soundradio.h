@@ -45,6 +45,7 @@ typedef struct
         CURL *curl;
         pthread_t curl_thread;
         ma_decoder decoder;
+        bool isRunning;
 } RadioPlayerContext;
 
 extern RadioPlayerContext radioContext;
@@ -64,5 +65,9 @@ RadioSearchResult *getCurrentPlayingRadioStation(void);
 void setCurrentlyPlayingRadioStation(const RadioSearchResult * result);
 
 void freeCurrentlyPlayingRadioStation(void);
+
+void initRadioMutexes();
+
+void destroyRadioMutexes();
 
 #endif

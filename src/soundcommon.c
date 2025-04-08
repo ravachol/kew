@@ -368,6 +368,7 @@ void getCurrentFormatAndSampleRate(ma_format *format, ma_uint32 *sampleRate)
         {
                 ma_uint32 channels;
                 ma_data_source_get_data_format(radioContext.decoder.pBackend, format, &channels, sampleRate, NULL, 0);
+                return;
         }
         else if (getCurrentImplementationType() == BUILTIN)
         {
