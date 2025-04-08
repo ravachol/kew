@@ -116,7 +116,7 @@ void loadMetaData(SongData *songdata, AppState *state)
         }
         else
         {
-                addToCache(state->tempCache, songdata->coverArtPath);
+                addToCache(state->tmpCache, songdata->coverArtPath);
         }
 
         songdata->cover = getBitmap(songdata->coverArtPath, &(songdata->coverWidth), &(songdata->coverHeight));
@@ -155,7 +155,7 @@ void unloadSongData(SongData **songdata, AppState *state)
                 data->cover = NULL;
         }
 
-        if (existsInCache(state->tempCache, data->coverArtPath) && isInTempDir(data->coverArtPath))
+        if (existsInCache(state->tmpCache, data->coverArtPath) && isInTempDir(data->coverArtPath))
         {
                 deleteFile(data->coverArtPath);
         }
