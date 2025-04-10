@@ -72,6 +72,13 @@ FileSystemEntry *lastEntry = NULL;
 FileSystemEntry *chosenDir = NULL;
 FileSystemEntry *library = NULL;
 
+const char *LOGO[] = {
+        " __\n",
+        "|  |--.-----.--.--.--.\n",
+        "|    <|  -__|  |  |  |\n",
+        "|__|__|_____|________|"
+};
+
 int calcIdealImgSize(int *width, int *height, const int visualizerHeight, const int metatagHeight)
 {
         float aspectRatio = calcAspectRatio();
@@ -179,14 +186,11 @@ int printLogo(SongData *songData, UISettings *ui)
 
         if (!ui->hideLogo)
         {
-                printBlankSpaces(indent);
-                printf(" __\n");
-                printBlankSpaces(indent);
-                printf("|  |--.-----.--.--.--.\n");
-                printBlankSpaces(indent);
-                printf("|    <|  -__|  |  |  |\n");
-                printBlankSpaces(indent);
-                printf("|__|__|_____|________|");
+                for (size_t i = 0; i < sizeof(LOGO) / sizeof(LOGO[0]); i++)
+                {
+                        printBlankSpaces(indent);
+                        printf("%s", LOGO[i]);
+                }
 
                 logoWidth = 22;
                 height += 3;
@@ -1668,14 +1672,12 @@ void showTrackViewMini(SongData *songdata, AppState *state, double elapsedSecond
 
                         if (term_w > 21 && term_h > 4)
                         {
-                                printBlankSpaces(indent);
-                                printf(" __\n");
-                                printBlankSpaces(indent);
-                                printf("|  |--.-----.--.--.--.\n");
-                                printBlankSpaces(indent);
-                                printf("|    <|  -__|  |  |  |\n");
-                                printBlankSpaces(indent);
-                                printf("|__|__|_____|________|\n");
+                                for (size_t i = 0; i < sizeof(LOGO) / sizeof(LOGO[0]); i++)
+                                {
+                                        printBlankSpaces(indent);
+                                        printf("%s", LOGO[i]);
+                                }
+                                printf("\n");
                                 printBlankSpaces(indent);
                                 printf(" kew version: %s", VERSION);
                         }
