@@ -631,19 +631,19 @@ void printLastRow(UISettings *ui)
 
         if (isPaused())
         {
-                char pauseText[] = " \u23f8";
+                char pauseText[] = " ⏸";
                 snprintf(nerdFontText + currentLength, maxLength - currentLength, "%s", pauseText);
                 currentLength += strnlen(pauseText, maxLength - currentLength);
         }
         else if (isStopped())
         {
-                char pauseText[] = " \u23f9";
+                char pauseText[] = " ■";
                 snprintf(nerdFontText + currentLength, maxLength - currentLength, "%s", pauseText);
                 currentLength += strnlen(pauseText, maxLength - currentLength);
         }
         else
         {
-                char pauseText[] = " \u25b6";
+                char pauseText[] = " ▶";
                 snprintf(nerdFontText + currentLength, maxLength - currentLength, "%s", pauseText);
                 currentLength += strnlen(pauseText, maxLength - currentLength);
         }
@@ -1141,9 +1141,7 @@ void printVisualizer(double elapsedSeconds, AppState *state)
 #ifndef __APPLE__
                 saveCursorPosition();
 #endif
-                int numBars = visualizerWidth / 2;
-
-                drawSpectrumVisualizer(ui->visualizerHeight, numBars, ui->color, indent, ui->useConfigColors, ui->visualizerColorType);
+                drawSpectrumVisualizer(ui->visualizerHeight, uis->numProgressBars, ui->color, indent, ui->useConfigColors, ui->visualizerColorType);
                 printElapsedBars(calcElapsedBars(elapsedSeconds, duration, uis->numProgressBars), uis->numProgressBars, ui->color, ui->visualizerHeight, ui->useConfigColors);
                 printErrorRow();
                 printLastRow(&(state->uiSettings));

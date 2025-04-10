@@ -1225,7 +1225,7 @@ void initFirstPlay(Node *song, AppState *state)
         else
                 emitPlaybackStoppedMpris();
 
-        g_timeout_add(32, mainloop_callback, NULL);
+        g_timeout_add(33, mainloop_callback, NULL);
         g_main_loop_run(main_loop);
         g_main_loop_unref(main_loop);
 }
