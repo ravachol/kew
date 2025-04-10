@@ -34,18 +34,19 @@ float lastMagnitudes[MAX_BARS] = {0.0f};
 float smoothedMagnitudes[MAX_BARS] = {0.0f};
 float smoothedFramesMagnitudes[MAX_BARS] = {0.0f};
 float barEnergies[MAX_BARS] = {0.0f};
-float minMaxMagnitude = 100.0f;
-float enhancePeak = 2.2f;
+float minMaxMagnitude = 10.0f;
+float enhancePeak = 2.6f;
 float exponent = 0.85f; // Lower than 1.0 makes quiet sounds more visible
 
 float baseDecay = 0.85f;
 float rangeDecay = 0.2f;
-float baseAttack = 0.2f;
+float baseAttack = 0.35f;
 float rangeAttack = 0.4f;
 
 float maxMagnitude = 0.0f;
 
-float tweenFactor = 0.3f;
+float tweenFactor = 0.20f;
+float tweenFactorFall = 0.10f;
 
 #define MOVING_AVERAGE_WINDOW_SIZE 2
 
@@ -222,6 +223,7 @@ void smoothFrames(
     int numBars,
     int height,
     float tweenFactor,
+    float tweenFactorFall,
     int sensitivity,
     int bassSensitivity)
 {
@@ -230,11 +232,11 @@ void smoothFrames(
                 float currentVal = smoothedFramesMagnitudes[i];
                 float targetVal = magnitudes[i];
                 float newHeight = currentVal + (targetVal - currentVal) * tweenFactor;
-                int currentSensitivity = (i < 2) ? bassSensitivity : sensitivity;
-                float minChange = ((float)height) / currentSensitivity;
-
-                if (fabsf(newHeight - currentVal) > minChange)
-                        smoothedFramesMagnitudes[i] = newHeight;
+                float delta = targetVal - currentVal;
+                if (delta > 0)
+                        smoothedFramesMagnitudes[i] += delta * tweenFactor;
+                else
+                        smoothedFramesMagnitudes[i] += delta * tweenFactorFall;
         }
 }
 
@@ -282,23 +284,13 @@ void calc(int height, int numBars, ma_int32 *audioBuffer, int bitDepth, float *f
                 fftInput[i] = normalizedSample;
         }
 
-        int halfSize = bufferSize / 2;
-        int limit = (numBars < halfSize) ? numBars : halfSize;
-
         applyBlackmanHarris(fftInput, bufferSize);
 
         fftwf_execute(plan);
 
         clearMagnitudes(numBars, magnitudes);
 
-        int freqCutoffBin = (int)((maxFrequency * bufferSize) / sampleRate);
-
-        if (freqCutoffBin > limit)
-        {
-                freqCutoffBin = limit;
-        }
-
-        for (int i = 0; i < freqCutoffBin; i++)
+        for (int i = 0; i < numBars; i++)
         {
                 float real = fftOutput[i][0];
                 float imag = fftOutput[i][1];
@@ -306,16 +298,16 @@ void calc(int height, int numBars, ma_int32 *audioBuffer, int bitDepth, float *f
                 magnitudes[i] = magnitude;
         }
 
-        float maxMagnitude = calcMaxMagnitude(limit, magnitudes);
+        float maxMagnitude = calcMaxMagnitude(numBars, magnitudes);
 
-        updateMagnitudes(height, limit, maxMagnitude, magnitudes);
+        updateMagnitudes(height, numBars, maxMagnitude, magnitudes);
 
         enhancePeaks(numBars, magnitudes, height, enhancePeak);
 
-        float sensitivity = height * 16;
+        float sensitivity = height * 10;
         float bassSensitivity = height * 10;
 
-        smoothFrames(magnitudes, smoothedFramesMagnitudes, numBars, height, tweenFactor, sensitivity, bassSensitivity);
+        smoothFrames(magnitudes, smoothedFramesMagnitudes, numBars, height, tweenFactor, tweenFactorFall, sensitivity, bassSensitivity);
 }
 
 char *upwardMotionChars[] = {

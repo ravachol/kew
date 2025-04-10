@@ -4,10 +4,7 @@
 
 - Mini-player mode. Suggested by @HAPPIOcrz007. By @ravachol.
 
-
-- The visualizer now runs at 60 fps instead of 10, while the ui runs slower much like before. By Ravachol
-
-- Visualizer now only shows 20hz - 10 000hz instead of going all the way to 20 000hz.
+- The visualizer now runs at 30 fps instead of 10, while the ui runs slower much like before. We tried 60fps but it didn't work well everywhere.
 
 - A favorites list for radio stations. It's visible when the radio search field is empty. By @ravachol.
 
@@ -24,6 +21,8 @@
 - Added bitrate field to radio station list. By @ravachol.
 
 - Previous on first track now resets the track instead of stopping. By @ravachol.
+
+- Long names now scroll in the library. Suggested by @HAPPIOcrz007. By @ravachol.
 
 - Added repeat playlist option. Suggested by @HAPPIOcrz007. By @ravachol.
 
