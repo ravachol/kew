@@ -221,17 +221,13 @@ void smoothFrames(
     float *magnitudes,
     float *smoothedFramesMagnitudes,
     int numBars,
-    int height,
     float tweenFactor,
-    float tweenFactorFall,
-    int sensitivity,
-    int bassSensitivity)
+    float tweenFactorFall)
 {
         for (int i = 0; i < numBars; i++)
         {
                 float currentVal = smoothedFramesMagnitudes[i];
                 float targetVal = magnitudes[i];
-                float newHeight = currentVal + (targetVal - currentVal) * tweenFactor;
                 float delta = targetVal - currentVal;
                 if (delta > 0)
                         smoothedFramesMagnitudes[i] += delta * tweenFactor;
@@ -304,10 +300,7 @@ void calc(int height, int numBars, ma_int32 *audioBuffer, int bitDepth, float *f
 
         enhancePeaks(numBars, magnitudes, height, enhancePeak);
 
-        float sensitivity = height * 10;
-        float bassSensitivity = height * 10;
-
-        smoothFrames(magnitudes, smoothedFramesMagnitudes, numBars, height, tweenFactor, tweenFactorFall, sensitivity, bassSensitivity);
+        smoothFrames(magnitudes, smoothedFramesMagnitudes, numBars, tweenFactor, tweenFactorFall);
 }
 
 char *upwardMotionChars[] = {
