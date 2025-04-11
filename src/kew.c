@@ -85,7 +85,7 @@ GMainLoop *main_loop;
 EventMapping keyMappings[NUM_KEY_MAPPINGS];
 struct timespec lastInputTime;
 bool exactSearch = false;
-int fuzzySearchThreshold = 2;
+int fuzzySearchThreshold = 3;
 int maxDigitsPressedCount = 9;
 int isNewSearchTerm = false;
 bool wasEndOfList = false;
