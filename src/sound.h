@@ -42,6 +42,7 @@ typedef struct
         ma_uint32 channels;
         ma_uint32 sampleRate;
         ma_uint32 currentPCMFrame;
+        ma_uint32 avgBitRate;
         bool switchFiles;
         int currentFileIndex;
         ma_uint64 totalFrames;

@@ -57,6 +57,7 @@ typedef struct
         unsigned char blue;
         TagSettings *metadata;
         unsigned char *cover;
+        int avgBitRate;
         int coverWidth;
         int coverHeight;
         double duration;

@@ -136,6 +136,7 @@ SongData *loadSongData(char *filePath, AppState *state)
         songdata->metadata = NULL;
         songdata->cover = NULL;
         songdata->duration = 0.0;
+        songdata->avgBitRate = 0;
         c_strcpy(songdata->filePath, filePath, sizeof(songdata->filePath));
         loadMetaData(songdata, state);
         loadColor(songdata);

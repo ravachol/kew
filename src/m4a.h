@@ -53,6 +53,7 @@ extern "C"
                 int bitDepth;
                 ma_uint32 sampleRate;
                 ma_uint32 channels;
+                ma_uint32 avgBitRate;
                 double duration;
                 unsigned long totalFrames;
 
@@ -728,7 +729,7 @@ extern "C"
 
                         pM4a->current_sample = 0;
                         pM4a->total_samples = pM4a->track->sample_count;
-
+                        pM4a->avgBitRate = pM4a->track->avg_bitrate_bps;
                         uint8_t alac_dsi[32];
                         size_t alac_dsi_size;
 
@@ -747,6 +748,7 @@ extern "C"
                                 pM4a->bitDepth = alacConfig.bitDepth;
                                 pM4a->sampleRate = (ma_uint32)alacConfig.sampleRate;
                                 pM4a->channels = (ma_uint32)alacConfig.numChannels;
+                                pM4a->avgBitRate = (ma_uint32)alacConfig.avgBitRate;
 
                                 if (pM4a->bitDepth == 32)
                                 {
