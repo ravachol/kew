@@ -17,6 +17,8 @@ ma_context context;
 
 bool isContextInitialized = false;
 
+bool tryAgain = false;
+
 UserData userData;
 
 ma_result initFirstDatasource(AudioData *pAudioData, UserData *pUserData)
@@ -272,7 +274,29 @@ bool validFilePath(char *filePath)
         return true;
 }
 
-bool tryAgain = false;
+long long getFileSize(const char *filename)
+{
+        struct stat st;
+        if (stat(filename, &st) == 0)
+        {
+                return (long long)st.st_size;
+        }
+        else
+        {
+                return -1;
+        }
+}
+
+int calcAvgBitRate(double duration, const char *filePath)
+{
+        long long fileSize = getFileSize(filePath); // in bytes
+        int avgBitRate = 0;
+
+        if (duration > 0.0)
+                avgBitRate = (int)((fileSize * 8.0) / duration / 1000.0); // use 1000 for kbps
+
+        return avgBitRate;
+}
 
 int switchAudioImplementation(void)
 {
@@ -335,6 +359,18 @@ int switchAudioImplementation(void)
                 bool sameFormat = (decoder != NULL && (sampleRate == decoder->outputSampleRate &&
                                                        channels == decoder->outputChannels &&
                                                        format == decoder->outputFormat));
+
+                if (pathEndsWith(filePath, ".mp3") && userData.currentSongData)
+                {
+                        int avgBitRate = calcAvgBitRate(userData.currentSongData->duration, filePath);
+
+                        if (avgBitRate > 320)
+                                avgBitRate = 320;
+
+                        userData.currentSongData->avgBitRate = audioData.avgBitRate = avgBitRate;
+                }
+                else
+                        audioData.avgBitRate = 0;
 
                 if (isRepeatEnabled() || !(sameFormat && currentImplementation == BUILTIN))
                 {
@@ -404,6 +440,7 @@ int switchAudioImplementation(void)
                         resetAudioBuffer();
 
                         audioData.sampleRate = sampleRate;
+                        audioData.avgBitRate = 0;
 
                         int result = opus_createAudioDevice(&userData, getDevice(), &context);
 
@@ -443,6 +480,11 @@ int switchAudioImplementation(void)
                 bool sameFormat = (decoder != NULL && (format == decoder->format &&
                                                        channels == nChannels &&
                                                        sampleRate == nSampleRate));
+
+                if (userData.currentSongData)
+                        userData.currentSongData->avgBitRate = audioData.avgBitRate = calcAvgBitRate(userData.currentSongData->duration, filePath);
+                else
+                        audioData.avgBitRate = 0;
 
                 if (isRepeatEnabled() || !(sameFormat && currentImplementation == VORBIS))
                 {
@@ -487,11 +529,12 @@ int switchAudioImplementation(void)
                 ma_uint32 nSampleRate;
                 ma_uint32 nChannels;
                 ma_format nFormat;
+                int avgBitRate;
                 ma_channel nChannelMap[MA_MAX_CHANNELS];
                 m4a_decoder *decoder = getCurrentM4aDecoder();
                 k_m4adec_filetype fileType = k_unknown;
 
-                getM4aFileInfo(filePath, &format, &channels, &sampleRate, channelMap, &fileType);
+                getM4aFileInfo(filePath, &format, &channels, &sampleRate, channelMap, &avgBitRate, &fileType);
 
                 if (decoder != NULL)
                         m4a_decoder_ds_get_data_format(decoder, &nFormat, &nChannels, &nSampleRate, nChannelMap, MA_MAX_CHANNELS);
@@ -499,8 +542,11 @@ int switchAudioImplementation(void)
                 bool sameFormat = (decoder != NULL && (format == decoder->format &&
                                                        channels == nChannels &&
                                                        sampleRate == nSampleRate &&
-                                                        decoder->fileType == fileType &&
-                                                        decoder->fileType != k_rawAAC));
+                                                       decoder->fileType == fileType &&
+                                                       decoder->fileType != k_rawAAC));
+
+                if (userData.currentSongData)
+                        userData.currentSongData->avgBitRate = audioData.avgBitRate = avgBitRate;
 
                 if (isRepeatEnabled() || !(sameFormat && currentImplementation == M4A))
                 {
