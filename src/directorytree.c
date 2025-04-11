@@ -444,6 +444,19 @@ int utf8_levenshteinDistance(const char *s1, const char *s2)
 #endif
 #endif
 
+char *stripFileExtension(const char *filename) {
+    char *dot = strrchr(filename, '.'); // find last '.'
+    size_t length = (dot != NULL) ? (size_t)(dot - filename) : strlen(filename);
+
+    char *result = (char *)malloc(length + 1);
+    if (!result) return NULL; // handle malloc failure
+
+    strncpy(result, filename, length);
+    result[length] = '\0';
+
+    return result;
+}
+
 // Traverses the tree and applies fuzzy search on each node
 void fuzzySearchRecursive(FileSystemEntry *node, const char *searchTerm, int threshold, void (*callback)(FileSystemEntry *, int))
 {
@@ -456,10 +469,12 @@ void fuzzySearchRecursive(FileSystemEntry *node, const char *searchTerm, int thr
         char *lowerSearchTerm = g_utf8_casefold((char *)searchTerm, -1);
         char *lowerName = g_utf8_casefold(node->name, -1);
 
-        int nameDistance = utf8_levenshteinDistance(lowerName, lowerSearchTerm);
+        char *strippedName = stripFileExtension(lowerName);
+
+        int nameDistance = utf8_levenshteinDistance(strippedName, lowerSearchTerm);
 
         // Partial matching with lowercase strings
-        if (strstr(lowerName, lowerSearchTerm) != NULL)
+        if (strstr(strippedName, lowerSearchTerm) != NULL)
         {
                 callback(node, 0);
         }
@@ -469,8 +484,9 @@ void fuzzySearchRecursive(FileSystemEntry *node, const char *searchTerm, int thr
         }
 
         // Free the allocated memory for lowercase strings
-        free(lowerSearchTerm);
-        free(lowerName);
+        g_free(lowerSearchTerm);
+        g_free(lowerName);
+        free(strippedName);
 
         fuzzySearchRecursive(node->children, searchTerm, threshold, callback);
         fuzzySearchRecursive(node->next, searchTerm, threshold, callback);

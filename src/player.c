@@ -73,11 +73,10 @@ FileSystemEntry *chosenDir = NULL;
 FileSystemEntry *library = NULL;
 
 const char *LOGO[] = {
-        " __\n",
-        "|  |--.-----.--.--.--.\n",
-        "|    <|  -__|  |  |  |\n",
-        "|__|__|_____|________|"
-};
+    " __\n",
+    "|  |--.-----.--.--.--.\n",
+    "|    <|  -__|  |  |  |\n",
+    "|__|__|_____|________|"};
 
 int calcIdealImgSize(int *width, int *height, const int visualizerHeight, const int metatagHeight)
 {
@@ -461,8 +460,6 @@ void printProgress(double elapsed_seconds, double total_seconds, ma_uint32 sampl
                         printf(" %dkb/s ", avgBitRate);
         }
 
-
-
         // Restore the cursor position
         printf("\033[u");
 }
@@ -782,7 +779,7 @@ int showKeyBindings(SongData *songdata, AppSettings *settings, UISettings *ui)
         printBlankSpaces(indent);
         printf(" Project URL: https://github.com/ravachol/kew\n");
         printBlankSpaces(indent);
-        printf(" Please donate: https://github.com/sponsors/ravachol\n");
+        printf(" Copyright © 2022-2025 Ravachol.\n");
         printf("\n");
 
         numPrintedRows += 27;
@@ -1646,39 +1643,39 @@ void showLibrary(SongData *songData, AppState *state)
 
 void createMetadataForRadio(TagSettings **metadata, RadioSearchResult *station)
 {
-    if (station)
-    {
-        *metadata = malloc(sizeof(TagSettings));
-        if (!*metadata)
-            return;
-
-        if (station->bitrate > 0)
+        if (station)
         {
-        // Reserve space for " %dkb/s"
-        const int maxBitratePartLen = 18;
-        size_t maxNameLen = sizeof((*metadata)->title) - maxBitratePartLen;
+                *metadata = malloc(sizeof(TagSettings));
+                if (!*metadata)
+                        return;
 
-        // Copy a truncated name safely
-        strncpy((*metadata)->title, station->name, maxNameLen);
-        (*metadata)->title[maxNameLen] = '\0'; // ensure null termination
+                if (station->bitrate > 0)
+                {
+                        // Reserve space for " %dkb/s"
+                        const int maxBitratePartLen = 18;
+                        size_t maxNameLen = sizeof((*metadata)->title) - maxBitratePartLen;
 
-        // Now append the bitrate string safely
-        snprintf((*metadata)->title + strlen((*metadata)->title),
-                 sizeof((*metadata)->title) - strlen((*metadata)->title),
-                 " %dkb/s", station->bitrate);
+                        // Copy a truncated name safely
+                        strncpy((*metadata)->title, station->name, maxNameLen);
+                        (*metadata)->title[maxNameLen] = '\0'; // ensure null termination
+
+                        // Now append the bitrate string safely
+                        snprintf((*metadata)->title + strlen((*metadata)->title),
+                                 sizeof((*metadata)->title) - strlen((*metadata)->title),
+                                 " %dkb/s", station->bitrate);
+                }
+                else
+                {
+                        c_strcpy((*(metadata))->title, station->name, sizeof((*(metadata))->title) - 1);
+                        (*metadata)->title[sizeof((*metadata)->title) - 1] = '\0';
+                }
+
+                (*metadata)->album[0] = '\0';
+                (*metadata)->artist[0] = '\0';
+                (*metadata)->date[0] = '\0';
+
+                calcIndentTrackView(*metadata);
         }
-        else
-        {
-                c_strcpy((*(metadata))->title, station->name, sizeof((*(metadata))->title) - 1);
-                (*metadata)->title[sizeof((*metadata)->title) - 1] = '\0';
-        }
-
-        (*metadata)->album[0] = '\0';
-        (*metadata)->artist[0] = '\0';
-        (*metadata)->date[0] = '\0';
-
-        calcIndentTrackView(*metadata);
-    }
 }
 
 void showTrackViewMini(SongData *songdata, AppState *state, double elapsedSeconds)
