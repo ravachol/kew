@@ -2,7 +2,7 @@
 
 ### 3.1.3
 
-- Mini-player mode. Suggested by @HAPPIOcrz007. By @ravachol.
+- New mini-player mode. Make the window small and it goes into this mode. Suggested by @HAPPIOcrz007. By @ravachol.
 
 - The visualizer now runs at 30 fps instead of 10, while the ui runs slower much like before. We tried 60fps but it didn't work well everywhere.
 

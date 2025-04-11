@@ -220,15 +220,17 @@ m4a_decoder *getCurrentM4aDecoder(void)
                 return m4aDecoders[m4aDecoderIndex];
 }
 
-void getM4aFileInfo(const char *filename, ma_format *format, ma_uint32 *channels, ma_uint32 *sampleRate, ma_channel *channelMap, k_m4adec_filetype *fileType)
+void getM4aFileInfo(const char *filename, ma_format *format, ma_uint32 *channels, ma_uint32 *sampleRate, ma_channel *channelMap, int *avgBitRate, k_m4adec_filetype *fileType)
 {
         m4a_decoder decoder;
         if (m4a_decoder_init_file(filename, NULL, NULL, &decoder) == MA_SUCCESS)
         {
                 *format = decoder.format;
                 m4a_decoder_get_data_format(&decoder, format, channels, sampleRate, channelMap, MA_MAX_CHANNELS);
+                *avgBitRate = decoder.avgBitRate / 1000;
                 *fileType = decoder.fileType;
                 m4a_decoder_uninit(&decoder, NULL);
+
         }
 }
 

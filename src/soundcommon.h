@@ -63,6 +63,7 @@ typedef struct
         unsigned char blue;
         TagSettings *metadata;
         unsigned char *cover;
+        int avgBitRate;
         int coverWidth;
         int coverHeight;
         double duration;
@@ -94,6 +95,7 @@ typedef struct
         ma_uint32 channels;
         ma_uint32 sampleRate;
         ma_uint32 currentPCMFrame;
+        ma_uint32 avgBitRate;
         bool switchFiles;
         int currentFileIndex;
         ma_uint64 totalFrames;
@@ -161,7 +163,7 @@ m4a_decoder *getCurrentM4aDecoder(void);
 
 m4a_decoder *getFirstM4aDecoder(void);
 
-void getM4aFileInfo(const char *filename, ma_format *format, ma_uint32 *channels, ma_uint32 *sampleRate, ma_channel *channelMap,  k_m4adec_filetype *fileType);
+void getM4aFileInfo(const char *filename, ma_format *format, ma_uint32 *channels, ma_uint32 *sampleRate, ma_channel *channelMap, int *avgBitRate, k_m4adec_filetype *fileType);
 #endif
 
 ma_libopus *getFirstOpusDecoder(void);

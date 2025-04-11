@@ -412,7 +412,7 @@ int calcElapsedBars(double elapsedSeconds, double duration, int numProgressBars)
         return (int)((elapsedSeconds / duration) * numProgressBars);
 }
 
-void printProgress(double elapsed_seconds, double total_seconds, ma_uint32 sampleRate)
+void printProgress(double elapsed_seconds, double total_seconds, ma_uint32 sampleRate, int avgBitRate)
 {
         int progressWidth = 39;
         int term_w, term_h;
@@ -447,13 +447,21 @@ void printProgress(double elapsed_seconds, double total_seconds, ma_uint32 sampl
 
         double rate = ((float)sampleRate) / 1000;
 
-        if (term_w > progressWidth + 9)
+        if (term_w > progressWidth + 10)
         {
                 if (rate == (int)rate)
                         printf(" %dkHz", (int)rate); // No decimals
                 else
                         printf(" %.1fkHz", rate);
         }
+
+        if (term_w > progressWidth + 19)
+        {
+                if (avgBitRate > 0)
+                        printf(" %dkb/s ", avgBitRate);
+        }
+
+
 
         // Restore the cursor position
         printf("\033[u");
@@ -474,7 +482,7 @@ void printMetadata(TagSettings const *metadata, UISettings *ui)
         printBasicMetadata(metadata, ui);
 }
 
-void printTime(double elapsedSeconds, ma_uint32 sampleRate, AppState *state)
+void printTime(double elapsedSeconds, ma_uint32 sampleRate, int avgBitRate, AppState *state)
 {
         if (state->uiSettings.useConfigColors)
                 setDefaultTextColor();
@@ -486,7 +494,7 @@ void printTime(double elapsedSeconds, ma_uint32 sampleRate, AppState *state)
         if (term_h > minHeight)
         {
                 double duration = getCurrentSongDuration();
-                printProgress(elapsedSeconds, duration, sampleRate);
+                printProgress(elapsedSeconds, duration, sampleRate, avgBitRate);
         }
 }
 
@@ -732,17 +740,17 @@ int showKeyBindings(SongData *songdata, AppSettings *settings, UISettings *ui)
         printBlankSpaces(indent);
         printf(" - Press F2 for Playlist View:\n");
         printBlankSpaces(indent);
-        printf("     Use ↑, ↓ keys, %s, %s keys, or mouse scroll to scroll through the playlist.\n", settings->scrollUpAlt, settings->scrollDownAlt);
+        printf("     Use ↑, ↓ keys, %s, %s keys, or mouse scroll to scroll.\n", settings->scrollUpAlt, settings->scrollDownAlt);
         printBlankSpaces(indent);
         printf("     Press Enter or middle click to play.\n");
         printBlankSpaces(indent);
-        printf("     Press Backspace to clear the playlist or Delete to remove a single entry.\n");
+        printf("     Press Backspace to clear the list or Delete to remove an entry.\n");
         printBlankSpaces(indent);
         printf(" - Press F3 for Library View:\n");
         printBlankSpaces(indent);
-        printf("     Use ↑, ↓ keys, %s, %s keys, or mouse scroll to scroll through the library.\n", settings->scrollUpAlt, settings->scrollDownAlt);
+        printf("     Use ↑, ↓ keys, %s, %s keys, or mouse scroll to scroll.\n", settings->scrollUpAlt, settings->scrollDownAlt);
         printBlankSpaces(indent);
-        printf("     Press Enter or middle click to add/remove songs to/from the playlist.\n");
+        printf("     Press Enter or middle click to add/remove songs.\n");
         printBlankSpaces(indent);
         printf(" - Press F4 for Track View.\n");
         printBlankSpaces(indent);
@@ -772,7 +780,7 @@ int showKeyBindings(SongData *songdata, AppSettings *settings, UISettings *ui)
         printBlankSpaces(indent);
         printf(" - Esc or %s to quit.\n\n", settings->quit);
         printBlankSpaces(indent);
-        printf(" Copyright © 2022-2025 Ravachol.\n");
+        printf(" Project URL: https://github.com/ravachol/kew\n");
         printBlankSpaces(indent);
         printf(" Please donate: https://github.com/sponsors/ravachol\n");
         printf("\n");
@@ -1638,26 +1646,45 @@ void showLibrary(SongData *songData, AppState *state)
 
 void createMetadataForRadio(TagSettings **metadata, RadioSearchResult *station)
 {
-        if (station)
-        {
-                *metadata = malloc(sizeof(TagSettings));
-                if (!*metadata)
-                        return;
+    if (station)
+    {
+        *metadata = malloc(sizeof(TagSettings));
+        if (!*metadata)
+            return;
 
+        if (station->bitrate > 0)
+        {
+        // Reserve space for " %dkb/s"
+        const int maxBitratePartLen = 18;
+        size_t maxNameLen = sizeof((*metadata)->title) - maxBitratePartLen;
+
+        // Copy a truncated name safely
+        strncpy((*metadata)->title, station->name, maxNameLen);
+        (*metadata)->title[maxNameLen] = '\0'; // ensure null termination
+
+        // Now append the bitrate string safely
+        snprintf((*metadata)->title + strlen((*metadata)->title),
+                 sizeof((*metadata)->title) - strlen((*metadata)->title),
+                 " %dkb/s", station->bitrate);
+        }
+        else
+        {
                 c_strcpy((*(metadata))->title, station->name, sizeof((*(metadata))->title) - 1);
                 (*metadata)->title[sizeof((*metadata)->title) - 1] = '\0';
-
-                (*metadata)->album[0] = '\0';
-                (*metadata)->artist[0] = '\0';
-                (*metadata)->date[0] = '\0';
-
-                calcIndentTrackView(*metadata);
         }
+
+        (*metadata)->album[0] = '\0';
+        (*metadata)->artist[0] = '\0';
+        (*metadata)->date[0] = '\0';
+
+        calcIndentTrackView(*metadata);
+    }
 }
 
 void showTrackViewMini(SongData *songdata, AppState *state, double elapsedSeconds)
 {
         TagSettings *metadata = NULL;
+        int avgBitRate = 0;
 
         if (refresh)
         {
@@ -1732,8 +1759,9 @@ void showTrackViewMini(SongData *songdata, AppState *state, double elapsedSecond
         {
                 ma_uint32 sampleRate;
                 ma_format format;
+                avgBitRate = songdata->avgBitRate;
                 getCurrentFormatAndSampleRate(&format, &sampleRate);
-                printTime(elapsedSeconds, sampleRate, state);
+                printTime(elapsedSeconds, sampleRate, avgBitRate, state);
         }
         if (doPrintVis)
                 printVisualizer(elapsedSeconds, state);
@@ -1742,6 +1770,7 @@ void showTrackViewMini(SongData *songdata, AppState *state, double elapsedSecond
 void showTrackView(SongData *songdata, AppState *state, double elapsedSeconds)
 {
         TagSettings *metadata = NULL;
+        int avgBitRate = 0;
 
         if (refresh)
         {
@@ -1752,6 +1781,8 @@ void showTrackView(SongData *songdata, AppState *state, double elapsedSeconds)
                 else if (isRadioPlaying())
                 {
                         RadioSearchResult *station = getCurrentPlayingRadioStation();
+
+                        avgBitRate = station->bitrate;
 
                         createMetadataForRadio(&metadata, station);
                 }
@@ -1770,8 +1801,9 @@ void showTrackView(SongData *songdata, AppState *state, double elapsedSeconds)
         {
                 ma_uint32 sampleRate;
                 ma_format format;
+                avgBitRate = songdata->avgBitRate;
                 getCurrentFormatAndSampleRate(&format, &sampleRate);
-                printTime(elapsedSeconds, sampleRate, state);
+                printTime(elapsedSeconds, sampleRate, avgBitRate, state);
         }
         printVisualizer(elapsedSeconds, state);
 }

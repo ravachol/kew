@@ -106,35 +106,6 @@ float applyAttackandDecay(float linearVal, float lastMagnitude, float maxMagnitu
         return newVal;
 }
 
-float _applyAttackandDecay(float linearVal, float lastMagnitude, float maxMagnitude)
-{
-        float ratio = linearVal / maxMagnitude;
-        if (ratio > 1.0f)
-                ratio = 1.0f; // Clamp
-
-        float adjustedRatio = ratio * ratio * 0.4f;
-
-        float decreaseFactor = baseDecay + rangeDecay * adjustedRatio;
-        float decayedMagnitude = linearVal * decreaseFactor;
-
-        float attackFactor = baseAttack + rangeAttack * adjustedRatio;
-
-        float newVal;
-
-        if (linearVal < decayedMagnitude)
-        {
-                // Decay
-                newVal = decayedMagnitude;
-        }
-        else
-        {
-                // Attack
-                newVal = lastMagnitude + attackFactor * (linearVal - lastMagnitude);
-        }
-
-        return newVal;
-}
-
 void updateMagnitudes(int height, int numBars, float maxMagnitude, float *magnitudes)
 {
         smoothMovingAverageMagnitudes(numBars, magnitudes);
@@ -461,7 +432,6 @@ void drawSpectrumVisualizer(int height, int numBars, PixelData c, int indentatio
         color.g = c.g;
         color.b = c.b;
 
-        // numBars = (numBars / 2);
         height = height - 1;
 
         if (height <= 0 || numBars <= 0)
