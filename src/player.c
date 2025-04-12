@@ -53,16 +53,6 @@ int libTopLevelSongIter = 0;
 int previousChosenLibRow = 0;
 int libCurrentDirSongCount = 0;
 
-// Name scrolling
-bool isSameNameAsLastTime = false;
-bool isLongName = false;
-bool finishedScrolling = false;
-int lastNamePosition = 0;
-const int scrollingInterval = 1;    // Interval between scrolling updates
-const int startScrollingDelay = 10; // Delay before beginning to scroll. 64ms * scrollingInterval * startScrollingDelay = delay in ms
-int scrollDelaySkippedCount = 0;
-int updateCounter = 0;
-
 PixelData lastRowColor = {120, 120, 120};
 
 const char LIBRARY_FILE[] = "kewlibrary";
@@ -1073,6 +1063,18 @@ void showPlaylist(SongData *songData, PlayList *list, int *chosenSong, int *chos
         getTermSize(&term_w, &term_h);
         maxListSize = term_h - 3;
 
+        // Setup scrolling names
+        if (getIsLongName() && isSameNameAsLastTime && updateCounter % scrollingInterval != 0)
+        {
+                updateCounter++;
+                refresh = true;
+                return;
+        }
+        else
+                refresh = false;
+
+        clearScreen();
+
         int aboutRows = printLogoAndAdjustments(songData, term_w, &(state->uiSettings), indent);
         maxListSize -= aboutRows;
 
@@ -1200,84 +1202,6 @@ FileSystemEntry *getLibrary(void)
 FileSystemEntry *getChosenDir(void)
 {
         return chosenDir;
-}
-
-void processName(const char *name, char *output, int maxWidth)
-{
-        char *lastDot = strrchr(name, '.');
-        int copyLength;
-
-        if (lastDot != NULL)
-        {
-                copyLength = lastDot - name;
-                if (copyLength > maxWidth)
-                {
-                        copyLength = maxWidth;
-                }
-        }
-        else
-        {
-                copyLength = maxWidth;
-        }
-
-        if (copyLength < 0)
-                copyLength = 0;
-
-        c_strcpy(output, name, copyLength + 1);
-
-        output[copyLength] = '\0';
-        removeUnneededChars(output, copyLength);
-        trim(output, copyLength);
-}
-
-void processNameScroll(const char *name, char *output, int maxWidth, int lastStartPosition, int isSameNameAsLastTime)
-{
-        const char *lastDot = strrchr(name, '.');
-        size_t nameLength = strlen(name);
-        size_t scrollableLength = (lastDot != NULL) ? (size_t)(lastDot - name) : nameLength;
-
-        if (scrollDelaySkippedCount <= startScrollingDelay && scrollableLength > (size_t)maxWidth)
-        {
-                scrollableLength = maxWidth;
-                scrollDelaySkippedCount++;
-                refresh = true;
-                isLongName = true;
-        }
-
-        int start = (isSameNameAsLastTime) ? lastStartPosition : 0;
-
-        if (finishedScrolling)
-                scrollableLength = maxWidth;
-
-        if (scrollableLength <= (size_t)maxWidth || finishedScrolling)
-        {
-                strncpy(output, name, scrollableLength);
-                output[scrollableLength] = '\0';
-                start = 0;
-
-                removeUnneededChars(output, scrollableLength);
-                trim(output, scrollableLength);
-        }
-        else
-        {
-                isLongName = true;
-
-                if ((size_t)(start + maxWidth) > scrollableLength)
-                {
-                        start = 0;
-                        finishedScrolling = true;
-                }
-
-                strncpy(output, name + start, maxWidth);
-                output[maxWidth] = '\0';
-
-                removeUnneededChars(output, maxWidth);
-                trim(output, maxWidth);
-
-                lastNamePosition++;
-
-                refresh = true;
-        }
 }
 
 void setChosenDir(FileSystemEntry *entry)
@@ -1476,15 +1400,12 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
 
                                         if (!isSameNameAsLastTime)
                                         {
-                                                lastNamePosition = 0;
-                                                isLongName = false;
-                                                finishedScrolling = false;
-                                                scrollDelaySkippedCount = 0;
+                                                resetNameScroll();
                                         }
 
                                         if (foundChosen)
                                         {
-                                                processNameScroll(root->name, filename, maxNameWidth - extraIndent, lastNamePosition, isSameNameAsLastTime);
+                                                processNameScroll(root->name, filename, maxNameWidth - extraIndent, isSameNameAsLastTime);
                                         }
                                         else
                                         {
@@ -1530,9 +1451,8 @@ char *getLibraryFilePath(void)
 void showLibrary(SongData *songData, AppState *state)
 {
         // For scrolling names, update every nth time
-        if (isLongName && isSameNameAsLastTime && updateCounter % scrollingInterval != 0)
+        if (getIsLongName() && isSameNameAsLastTime && updateCounter % scrollingInterval != 0)
         {
-                updateCounter++;
                 refresh = true;
                 return;
         }
@@ -1540,8 +1460,6 @@ void showLibrary(SongData *songData, AppState *state)
                 refresh = false;
 
         clearScreen();
-
-        updateCounter++;
 
         if (state->uiState.collapseView)
         {
@@ -1871,10 +1789,8 @@ int printPlayer(SongData *songdata, double elapsedSeconds, AppSettings *settings
         }
         else if (state->currentView == PLAYLIST_VIEW && refresh)
         {
-                clearScreen();
                 showPlaylist(songdata, originalPlaylist, &chosenRow, &(uis->chosenNodeId), state);
                 state->uiState.resetPlaylistDisplay = false;
-                refresh = false;
                 fflush(stdout);
         }
         else if (state->currentView == SEARCH_VIEW && refresh)

@@ -9,6 +9,7 @@ playlist_ui.c
 */
 
 int startIter = 0;
+int previousChosenSong = 0;
 
 Node *determineStartNode(Node *head, int *foundAt, bool *startFromCurrent, int listSize)
 {
@@ -33,7 +34,7 @@ Node *determineStartNode(Node *head, int *foundAt, bool *startFromCurrent, int l
         return foundNode ? foundNode : head;
 }
 
-void preparePlaylistString(Node *node, char *buffer, int bufferSize, int shortenAmount)
+void preparePlaylistString(Node *node, char *buffer, int bufferSize)
 {
         if (node == NULL || buffer == NULL)
         {
@@ -53,9 +54,6 @@ void preparePlaylistString(Node *node, char *buffer, int bufferSize, int shorten
 
                 c_strcpy(buffer, lastSlash + 1, nameLength + 1);
                 buffer[nameLength] = '\0';
-                removeUnneededChars(buffer, nameLength);
-                shortenString(buffer, shortenAmount);
-                trim(buffer, MAXPATHLEN);
         }
         else
         {
@@ -68,16 +66,19 @@ int displayPlaylistItems(Node *startNode, int startIter, int maxListSize, int te
         int numPrintedRows = 0;
         Node *node = startNode;
 
+        int bufferSize = termWidth - indent - 12;
         char *buffer = (char *)malloc(MAXPATHLEN * sizeof(char));
+        char *filename = (char *)malloc(bufferSize * sizeof(char) + 1);
 
-        if (!buffer)
+        if (!buffer || !filename)
         {
                 return 0;
         }
 
         for (int i = startIter; node != NULL && i < startIter + maxListSize; i++)
         {
-                preparePlaylistString(node, buffer, MAXPATHLEN, termWidth - indent - 12);
+                preparePlaylistString(node, buffer, MAXPATHLEN);
+
                 if (buffer[0] != '\0')
                 {
                         if (ui->useConfigColors)
@@ -91,23 +92,39 @@ int displayPlaylistItems(Node *startNode, int startIter, int maxListSize, int te
 
                         setDefaultTextColor();
 
+                        isSameNameAsLastTime = (previousChosenSong == chosenSong);
+
+                        if (!isSameNameAsLastTime)
+                        {
+                                resetNameScroll();
+                        }
+
+                        filename[0] = '\0';
+
                         if (i == chosenSong)
                         {
+                                previousChosenSong = chosenSong;
+
                                 *chosenNodeId = node->id;
 
+                                processNameScroll(buffer, filename, bufferSize, isSameNameAsLastTime);
+
                                 printf("\x1b[7m");
+                        }
+                        else
+                        {
+                                processName(buffer, filename, bufferSize);
                         }
 
                         if (i + 1 < 10)
                                 printf(" ");
-
 
                         if (currentSong != NULL && currentSong->id == node->id)
                         {
                                 printf("\e[4m\e[1m");
                         }
 
-                        printf("%s\n", buffer);
+                        printf("%s\n", filename);
 
                         numPrintedRows++;
                 }
@@ -116,6 +133,7 @@ int displayPlaylistItems(Node *startNode, int startIter, int maxListSize, int te
         }
 
         free(buffer);
+        free(filename);
         return numPrintedRows;
 }
 
