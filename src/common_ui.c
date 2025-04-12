@@ -64,20 +64,10 @@ void resetNameScroll()
 void processName(const char *name, char *output, int maxWidth)
 {
         char *lastDot = strrchr(name, '.');
-        int copyLength;
+        int copyLength = (lastDot != NULL) ? lastDot - name : maxWidth;
 
-        if (lastDot != NULL)
-        {
-                copyLength = lastDot - name;
-                if (copyLength > maxWidth)
-                {
-                        copyLength = maxWidth;
-                }
-        }
-        else
-        {
+        if (copyLength > maxWidth)
                 copyLength = maxWidth;
-        }
 
         if (copyLength < 0)
                 copyLength = 0;

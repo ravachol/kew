@@ -50,13 +50,13 @@ int pathEndsWith(const char *str, const char *suffix);
 
 int pathStartsWith(const char *str, const char *prefix);
 
-void trim(char *str, int maxLen);
+void trim(char *str, size_t maxLen);
 
 const char *getHomePath(void);
 
 char *getConfigPath(void);
 
-void removeUnneededChars(char *str, int length);
+void removeUnneededChars(char *str, size_t length);
 
 void shortenString(char *str, size_t maxLength);
 
