@@ -1,14 +1,16 @@
 # CHANGELOG
 
-### 3.1.3
+### 3.2.0
 
 - New mini-player mode. Make the window small and it goes into this mode. Suggested by @HAPPIOcrz007. By @ravachol.
 
-- The visualizer now runs at 30 fps instead of 10, while the ui runs slower much like before. We tried 60fps but it didn't work well everywhere.
+- The visualizer now runs at 30 fps instead of 10, making it much smoother. The rest of the ui runs slower much like before. We tried 60fps but it didn't work well everywhere.
 
 - A favorites list for radio stations. It's visible when the radio search field is empty. By @ravachol.
 
 - Audio normalization for flac and mp3 files using replay gain metatags. Suggested by @endless-stupidity. By @ravachol.
+
+- Long song names now scroll in the library and playlist. Suggested by @HAPPIOcrz007. By @ravachol.
 
 - Radio search now refreshes the list as radio stations are found, making it less "laggy". By @ravachol.
 
@@ -20,15 +22,13 @@
 
 - Added bitrate field to radio station list. By @ravachol.
 
-- Previous on first track now resets the track instead of stopping. By @ravachol.
-
-- Long names now scroll in the library. Suggested by @HAPPIOcrz007. By @ravachol.
-
 - Added repeat playlist option. Suggested by @HAPPIOcrz007. By @ravachol.
 
-- Added setting option to set the visualizer so that the brightness of it depends on the height of the bar. By @Chromium-3-Oxide.
+- Added option to set the visualizer so that the brightness of it depends on the height of the bar. By @Chromium-3-Oxide.
 
 - Added config option to disable mouse (in kewrc file). By @Chromium-3-Oxide.
+
+- Previous on first track now resets the track instead of stopping. By @ravachol.
 
 - Code cleanup. By @Chromium-3-Oxide.
 

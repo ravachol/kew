@@ -76,7 +76,6 @@ FILE *logFile = NULL;
 struct winsize windowSize;
 char digitsPressed[MAX_SEQ_LEN];
 int digitsPressedCount = 0;
-static unsigned int updateCounter = 0;
 bool startFromTop = false;
 int lastNotifiedId = -1;
 bool songWasRemoved = false;
