@@ -197,17 +197,26 @@ int printLogo(SongData *songData, UISettings *ui)
 
                 char title[MAXPATHLEN] = {0};
 
+                int titleLength = strnlen(songData->metadata->title, METADATA_MAX_SIZE);
+                char prettyTitle[titleLength + 1];
+
+                strncpy(prettyTitle, songData->metadata->title, titleLength);
+                prettyTitle[titleLength] = '\0';
+
+                removeUnneededChars(prettyTitle, titleLength);
+                trim(prettyTitle, titleLength);
+
                 if (ui->hideLogo && songData->metadata->artist[0] != '\0')
                 {
                         printBlankSpaces(indent);
                         snprintf(title, MAXPATHLEN, "%s - %s",
-                                 songData->metadata->artist, songData->metadata->title);
+                                 songData->metadata->artist, prettyTitle);
                 }
                 else
                 {
                         if (ui->hideLogo)
                                 printBlankSpaces(indent);
-                        c_strcpy(title, songData->metadata->title, METADATA_MAX_SIZE - 1);
+                        c_strcpy(title, prettyTitle, METADATA_MAX_SIZE - 1);
                         title[MAXPATHLEN - 1] = '\0';
                 }
 
@@ -384,7 +393,17 @@ void printBasicMetadata(TagSettings const *metadata, UISettings *ui)
                         printf("\033[1;38;2;%03u;%03u;%03um", pixel.r, pixel.g, pixel.b);
                 }
 
-                printTitleWithDelay(metadata->title, ui->titleDelay, maxWidth);
+                // Clean up title before printing
+                int titleLength = strnlen(metadata->title, maxWidth);
+                char prettyTitle[titleLength + 1];
+
+                strncpy(prettyTitle, metadata->title, titleLength);
+                prettyTitle[titleLength] = '\0';
+
+                removeUnneededChars(prettyTitle, titleLength);
+                trim(prettyTitle, titleLength);
+
+                printTitleWithDelay(prettyTitle, ui->titleDelay, maxWidth);
         }
         else
         {
