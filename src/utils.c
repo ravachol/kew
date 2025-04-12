@@ -325,22 +325,20 @@ char *getFilePath(const char *filename)
 void removeUnneededChars(char *str, int length)
 {
         // Do not remove characters if filename only contains digits
-        int i = 0;
         bool stringContainsLetters = false;
-        while (str[i] != '\0')
+        for (int i = 0; str[i] != '\0'; i++)
         {
                 if (!isdigit(str[i]))
                 {
                         stringContainsLetters = true;
                 }
-                i++;
         }
         if (!stringContainsLetters)
         {
                 return;
         }
 
-        for (i = 0; i < 3 && str[i] != '\0' && str[i] != ' '; i++)
+        for (int i = 0; i < 3 && str[i] != '\0' && str[i] != ' '; i++)
         {
                 if (isdigit(str[i]) || str[i] == '.' || str[i] == '-' || str[i] == ' ')
                 {
@@ -356,15 +354,13 @@ void removeUnneededChars(char *str, int length)
         }
 
         // Remove hyphens and underscores from filename
-        i = 0;
-        while (str[i] != '\0')
+        for (int i = 0; str[i] != '\0'; i++)
         {
                 // Only remove if there are no spaces around
                 if ((str[i] == '-' || str[i] == '_') && (i > 0 && i < length && str[i - 1] != ' ' && str[i + 1] != ' '))
                 {
                         str[i] = ' ';
                 }
-                i++;
         }
 }
 
