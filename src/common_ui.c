@@ -185,7 +185,6 @@ void copyHalfOrFullWidthCharsWithMaxWidth(const char *src, char *dst, int maxWid
 
 static bool hasFullwidthChars(const char *str)
 {
-        setlocale(LC_CTYPE, "");
         mbstate_t state;
         memset(&state, 0, sizeof(state));
 
@@ -215,14 +214,14 @@ static bool hasFullwidthChars(const char *str)
 
 void processName(const char *name, char *output, int maxWidth)
 {
-        setlocale(LC_CTYPE, "");
         const char *lastDot = strrchr(name, '.');
 
         if (lastDot != NULL)
         {
                 char tmp[1024];
                 size_t len = lastDot - name;
-                strncpy(tmp, name, len);
+                if (len >= sizeof(tmp)) len = sizeof(tmp) - 1;
+                        strncpy(tmp, name, len);
                 tmp[len] = '\0';
                 copyHalfOrFullWidthCharsWithMaxWidth(tmp, output, maxWidth);
         }
@@ -237,7 +236,6 @@ void processName(const char *name, char *output, int maxWidth)
 
 void processNameScroll(const char *name, char *output, int maxWidth, bool isSameNameAsLastTime)
 {
-        setlocale(LC_CTYPE, "");
         const char *lastDot = strrchr(name, '.');
         size_t nameLength = strlen(name);
         size_t scrollableLength = (lastDot != NULL) ? (size_t)(lastDot - name) : nameLength;
