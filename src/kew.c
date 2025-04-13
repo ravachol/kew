@@ -1395,6 +1395,7 @@ void init(AppState *state)
         createLibrary(&settings, state);
         createRadioFavorites();
         curl_global_init(CURL_GLOBAL_DEFAULT);
+        setlocale(LC_CTYPE, "");
         fflush(stdout);
 
 #ifdef DEBUG
