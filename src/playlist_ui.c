@@ -67,16 +67,17 @@ int displayPlaylistItems(Node *startNode, int startIter, int maxListSize, int te
         Node *node = startNode;
 
         int bufferSize = termWidth - indent - 12;
-        char *buffer = (char *)malloc(MAXPATHLEN * sizeof(char));
-        char *filename = (char *)malloc(bufferSize * sizeof(char) + 1);
-
-        if (!buffer || !filename)
-        {
-                return 0;
-        }
 
         for (int i = startIter; node != NULL && i < startIter + maxListSize; i++)
         {
+                char *buffer = (char *)malloc(MAXPATHLEN * sizeof(char));
+                char *filename = (char *)malloc(MAXPATHLEN * sizeof(char) + 1);
+
+                if (!buffer || !filename)
+                {
+
+                        return 0;
+                }
                 preparePlaylistString(node, buffer, MAXPATHLEN);
 
                 if (buffer[0] != '\0')
@@ -129,11 +130,13 @@ int displayPlaylistItems(Node *startNode, int startIter, int maxListSize, int te
                         numPrintedRows++;
                 }
 
+                free(buffer);
+                free(filename);
+
                 node = node->next;
         }
 
-        free(buffer);
-        free(filename);
+
         return numPrintedRows;
 }
 
