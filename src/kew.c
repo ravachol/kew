@@ -1290,6 +1290,7 @@ void cleanupOnExit()
         pthread_mutex_unlock(&dataSourceMutex);
         pthread_mutex_destroy(&(dataSourceMutex));
         destroyRadioMutexes();
+        freeVisuals();
         freeLastCover();
 #ifdef USE_DBUS
         cleanupDbusConnection();

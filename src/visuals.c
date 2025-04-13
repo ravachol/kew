@@ -471,6 +471,8 @@ void drawSpectrumVisualizer(int height, int numBars, PixelData c, int indentatio
                 fftPreviousInput = (float *)malloc(sizeof(float) * bufferSize);
                 if (fftPreviousInput == NULL)
                 {
+                        fftwf_free(fftInput);
+                        fftInput = NULL;
                         for (int i = 0; i <= height; i++)
                         {
                                 printf("\n");
@@ -487,7 +489,9 @@ void drawSpectrumVisualizer(int height, int numBars, PixelData c, int indentatio
                 if (fftOutput == NULL)
                 {
                         fftwf_free(fftInput);
+                        fftwf_free(fftPreviousInput);
                         fftInput = NULL;
+                        fftPreviousInput = NULL;
                         for (int i = 0; i <= height; i++)
                         {
                                 printf("\n");
