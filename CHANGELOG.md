@@ -6,6 +6,8 @@
 
 - The visualizer now runs at 30 fps instead of 10, making it much smoother. The rest of the ui runs slower much like before. We tried 60fps but it didn't work well everywhere.
 
+- Now shows sample rate and if relevant, bitrate, in track vieww.
+
 - A favorites list for radio stations. It's visible when the radio search field is empty. By @ravachol.
 
 - Audio normalization for flac and mp3 files using replay gain metatags. Suggested by @endless-stupidity. By @ravachol.
