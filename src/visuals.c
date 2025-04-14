@@ -28,12 +28,10 @@ int bufferIndex = 0;
 ma_format format = ma_format_unknown;
 ma_uint32 sampleRate = 44100;
 
-float maxFrequency = 10000.0f;
 float magnitudeBuffer[MAX_BARS] = {0.0f};
 float lastMagnitudes[MAX_BARS] = {0.0f};
 float smoothedMagnitudes[MAX_BARS] = {0.0f};
 float smoothedFramesMagnitudes[MAX_BARS] = {0.0f};
-float barEnergies[MAX_BARS] = {0.0f};
 float minMaxMagnitude = 10.0f;
 float enhancePeak = 2.6f;
 float exponent = 0.85f; // Lower than 1.0 makes quiet sounds more visible
