@@ -288,6 +288,4 @@ void cleanupDbusConnection();
 
 void freeLastCover(void);
 
-void destroyDeviceMutexes();
-
 #endif
