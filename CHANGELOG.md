@@ -2,41 +2,43 @@
 
 ### 3.2.0
 
-- New mini-player mode. Make the window small and it goes into this mode. Suggested by @HAPPIOcrz007. By @ravachol.
+- New mini-player mode. Make the window small and it goes into this mode. Suggested by @HAPPIOcrz007.
 
 - The visualizer now runs at 30 fps instead of 10, making it much smoother. The rest of the ui runs slower much like before. We tried 60fps but it didn't work well everywhere.
 
-- Now shows sample rate and if relevant, bitrate, in track vieww.
+- Now shows sample rate and if relevant, bitrate, in track view.
 
-- A favorites list for radio stations. It's visible when the radio search field is empty. By @ravachol.
+- A favorites list for radio stations. It's visible when the radio search field is empty.
 
-- Audio normalization for flac and mp3 files using replay gain metatags. Suggested by @endless-stupidity. By @ravachol.
+- Audio normalization for flac and mp3 files using replay gain metatags. Suggested by @endless-stupidity.
 
-- Long song names now scroll in the library and playlist. Suggested by @HAPPIOcrz007. By @ravachol.
+- Long song names now scroll in the library and playlist. Suggested by @HAPPIOcrz007.
 
-- Radio search now refreshes the list as radio stations are found, making it less "laggy". By @ravachol.
+- Radio search now refreshes the list as radio stations are found, making it less "laggy".
 
-- Track view works with radio now. By @ravachol.
+- Track view works with radio now.
 
-- Added a stop command (shift+s). Space bar is play as before. By @ravachol.
+- Added a stop command (shift+s). Space bar is play as before.
 
-- Removed the playback of tiny left overs of the previous song, when pausing and then switching song. By @ravachol.
+- Removed the playback of tiny left overs of the previous song, when pausing and then switching song.
 
-- Added bitrate field to radio station list. By @ravachol.
+- Added bitrate field to radio station list.
 
 - Added support for fullwidth characters.
 
-- Added repeat playlist option. Suggested by @HAPPIOcrz007. By @ravachol.
+- Added repeat playlist option. Suggested by @HAPPIOcrz007.
 
 - Added option to set the visualizer so that the brightness of it depends on the height of the bar. By @Chromium-3-Oxide.
 
 - Added config option to disable mouse (in kewrc file). By @Chromium-3-Oxide.
 
-- Previous on first track now resets the track instead of stopping. By @ravachol.
+- Previous on first track now resets the track instead of stopping.
 
 - Code cleanup. By @Chromium-3-Oxide.
 
-- Fixed bug with previous track with shuffle enabled. Found by @GuyInAShack. By @ravachol.
+#### Bug Fixes
+
+- Fixed bug with previous track with shuffle enabled. Found by @GuyInAShack.
 
 ### 3.1.2
 
