@@ -630,8 +630,10 @@ void handleGoToSong(AppState *state)
                                         stopRadio();
                                         setEOFReached();
                                 }
-
-                                cleanupPlaybackDevice();
+                                else
+                                {
+                                        cleanupPlaybackDevice();
+                                }
 
                                 loadedNextSong = true;
 
@@ -1151,8 +1153,7 @@ gboolean mainloop_callback(gpointer data)
         updateCounter++;
 
         // Different views run at different speeds to lower the impact on system requirements
-        if ((updateCounter % 2 == 0 && (appState.currentView == SEARCH_VIEW || appState.currentView == RADIOSEARCH_VIEW))
-            || (appState.currentView == TRACK_VIEW || appState.uiState.miniMode) || updateCounter % 3 == 0)
+        if ((updateCounter % 2 == 0 && (appState.currentView == SEARCH_VIEW || appState.currentView == RADIOSEARCH_VIEW)) || (appState.currentView == TRACK_VIEW || appState.uiState.miniMode) || updateCounter % 3 == 0)
         {
                 processDBusEvents();
 
@@ -1231,6 +1232,8 @@ void initFirstPlay(Node *song, AppState *state)
 
 void cleanupOnExit()
 {
+        stopRadio();
+
         pthread_mutex_lock(&dataSourceMutex);
 
         resetAllDecoders();
@@ -1240,8 +1243,6 @@ void cleanupOnExit()
                 cleanupPlaybackDevice();
                 cleanupAudioContext();
         }
-
-        stopRadio();
 
         emitPlaybackStoppedMpris();
 
@@ -1289,6 +1290,7 @@ void cleanupOnExit()
         pthread_mutex_destroy(&(switchMutex));
         pthread_mutex_unlock(&dataSourceMutex);
         pthread_mutex_destroy(&(dataSourceMutex));
+        destroyDeviceMutexes();
         destroyRadioMutexes();
         freeVisuals();
         freeLastCover();
