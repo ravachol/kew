@@ -2,6 +2,7 @@
 #define SOUND_RADIO_H
 
 #include <pthread.h>
+#include <stdatomic.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -54,11 +55,13 @@ int internetRadioSearch(const char *searchTerm, void (*callback)(const char *, c
 
 int playRadioStation(const RadioSearchResult *station);
 
-void stopRadio(void);
+int stopRadio(void);
 
 void reconnectRadioIfNeeded();
 
 bool isRadioPlaying(void);
+
+bool IsActiveRadio(void);
 
 RadioSearchResult *getCurrentPlayingRadioStation(void);
 
@@ -66,8 +69,8 @@ void setCurrentlyPlayingRadioStation(const RadioSearchResult * result);
 
 void freeCurrentlyPlayingRadioStation(void);
 
-void initRadioMutexes();
+void initRadioMutexes(void);
 
-void destroyRadioMutexes();
+void destroyRadioMutexes(void);
 
 #endif

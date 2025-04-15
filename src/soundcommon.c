@@ -200,10 +200,10 @@ ma_decoder *getCurrentBuiltinDecoder(void)
 
 void switchDecoder(int *decoderIndex)
 {
-    if (*decoderIndex == -1)
-        *decoderIndex = 0;
-    else
-        *decoderIndex = 1 - *decoderIndex;
+        if (*decoderIndex == -1)
+                *decoderIndex = 0;
+        else
+                *decoderIndex = 1 - *decoderIndex;
 }
 
 #ifdef USE_FAAD
@@ -230,7 +230,6 @@ void getM4aFileInfo(const char *filename, ma_format *format, ma_uint32 *channels
                 *avgBitRate = decoder.avgBitRate / 1000;
                 *fileType = decoder.fileType;
                 m4a_decoder_uninit(&decoder, NULL);
-
         }
 }
 
@@ -316,7 +315,7 @@ int prepareNextM4aDecoder(SongData *songData)
         decoder->onTell = m4a_get_cursor_in_pcm_frames_wrapper;
         decoder->cursor = 0;
 
-        setNextDecoder((void **)m4aDecoders, (void**)&decoder, (void**)&firstM4aDecoder, &m4aDecoderIndex, (uninit_func)uninitM4aDecoder);
+        setNextDecoder((void **)m4aDecoders, (void **)&decoder, (void **)&firstM4aDecoder, &m4aDecoderIndex, (uninit_func)uninitM4aDecoder);
 
         if (songData != NULL)
         {
@@ -520,7 +519,7 @@ int prepareNextVorbisDecoder(char *filepath)
                                                       channels == nchannels &&
                                                       sampleRate == nsampleRate));
 
-       if (!sameFormat)
+        if (!sameFormat)
         {
                 ma_libvorbis_uninit(decoder, NULL);
                 free(decoder);
@@ -538,7 +537,7 @@ int prepareNextVorbisDecoder(char *filepath)
         decoder->onSeek = ma_libvorbis_seek_to_pcm_frame_wrapper;
         decoder->onTell = ma_libvorbis_get_cursor_in_pcm_frames_wrapper;
 
-        setNextDecoder((void **)vorbisDecoders, (void**)&decoder, (void**)&firstVorbisDecoder, &vorbisDecoderIndex, (uninit_func)uninitVorbisDecoder);
+        setNextDecoder((void **)vorbisDecoders, (void **)&decoder, (void **)&firstVorbisDecoder, &vorbisDecoderIndex, (uninit_func)uninitVorbisDecoder);
 
         if (currentDecoder != NULL && decoder != NULL)
         {
@@ -586,7 +585,7 @@ int prepareNextDecoder(char *filepath)
                 free(decoder);
                 return -1;
         }
-        setNextDecoder((void **)decoders, (void**)&decoder, (void**)&firstDecoder, &decoderIndex, (uninit_func)uninitMaDecoder);
+        setNextDecoder((void **)decoders, (void **)&decoder, (void **)&firstDecoder, &decoderIndex, (uninit_func)uninitMaDecoder);
 
         if (currentDecoder != NULL && decoder != NULL)
         {
@@ -650,7 +649,7 @@ int prepareNextOpusDecoder(char *filepath)
         decoder->onSeek = ma_libopus_seek_to_pcm_frame_wrapper;
         decoder->onTell = ma_libopus_get_cursor_in_pcm_frames_wrapper;
 
-        setNextDecoder((void **)opusDecoders, (void**)&decoder, (void**)&firstOpusDecoder, &opusDecoderIndex, (uninit_func)uninitOpusDecoder);
+        setNextDecoder((void **)opusDecoders, (void **)&decoder, (void **)&firstOpusDecoder, &opusDecoderIndex, (uninit_func)uninitOpusDecoder);
 
         if (currentDecoder != NULL && decoder != NULL)
         {
@@ -880,11 +879,17 @@ void pausePlayback(void)
 
 void cleanupPlaybackDevice(void)
 {
+        const int maxRetries = 20;
+        int retry = 0;
+
         ma_device_stop(&device);
-        while (ma_device_get_state(&device) != ma_device_state_stopped && ma_device_get_state(&device) != ma_device_state_uninitialized)
+
+        while (retry < maxRetries && ma_device_get_state(&device) != ma_device_state_stopped && ma_device_get_state(&device) != ma_device_state_uninitialized)
         {
                 c_sleep(100);
+                retry++;
         }
+
         ma_device_uninit(&device);
         memset(&device, 0, sizeof(device));
 }
@@ -926,21 +931,10 @@ bool isStopped(void)
 pthread_mutex_t deviceMutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t deviceStopped = PTHREAD_COND_INITIALIZER;
 
-void resetDevice(void)
+void destroyDeviceMutexes()
 {
-        pthread_mutex_lock(&deviceMutex);
-
-        if (ma_device_get_state(&device) == ma_device_state_started)
-                ma_device_stop(&device);
-
-        while (ma_device_get_state(&device) == ma_device_state_started)
-        {
-                pthread_cond_wait(&deviceStopped, &deviceMutex);
-        }
-
-        pthread_mutex_unlock(&deviceMutex);
-
-        ma_device_uninit(&device);
+        pthread_mutex_destroy(&deviceMutex);
+        pthread_cond_destroy(&deviceStopped);
 }
 
 ma_device *getDevice(void)
