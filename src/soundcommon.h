@@ -256,8 +256,6 @@ bool isPaused(void);
 
 bool isStopped(void);
 
-void resetDevice(void);
-
 ma_device *getDevice(void);
 
 bool hasBuiltinDecoder(char *filePath);
@@ -289,5 +287,7 @@ void clearCurrentTrack(void);
 void cleanupDbusConnection();
 
 void freeLastCover(void);
+
+void destroyDeviceMutexes();
 
 #endif

@@ -34,6 +34,11 @@ bool hasUpdatedServerList = false;
 RadioSearchResult *currentlyPlayingRadioStation = NULL;
 RadioPlayerContext radioContext = {0};
 int reconnectCounter = 0;
+bool radioIsActive = false;
+
+static atomic_bool isSearching = ATOMIC_VAR_INIT(false);
+
+pthread_mutex_t radioLifecycleMutex = PTHREAD_MUTEX_INITIALIZER;
 
 typedef struct
 {
@@ -456,6 +461,18 @@ Server *pickServer()
         return NULL;
 }
 
+bool isRadioSearching()
+{
+        bool value = atomic_load(&isSearching);
+
+        return value;
+}
+
+bool IsActiveRadio()
+{
+        return radioIsActive;
+}
+
 void *searchThreadFunction(void *arg)
 {
         SearchThreadArgs *args = (SearchThreadArgs *)arg;
@@ -463,6 +480,8 @@ void *searchThreadFunction(void *arg)
         Memory res = {.memory = NULL, .size = 0};
         Server *server = NULL;
         char *encodedTerm = NULL;
+
+        atomic_store(&isSearching, true);
 
         pthread_mutex_lock(&server_list_mutex);
         if (!hasUpdatedServerList)
@@ -473,6 +492,8 @@ void *searchThreadFunction(void *arg)
                         free(args->searchTerm);
                         free(args);
                         setErrorMessage("Radio database unavailable.");
+                        atomic_store(&isSearching, false);
+
                         return NULL;
                 }
                 hasUpdatedServerList = true;
@@ -582,6 +603,8 @@ void *searchThreadFunction(void *arg)
                         free(args->searchTerm);
                         free(args);
 
+                        atomic_store(&isSearching, false);
+
                         return NULL;
                 }
                 else
@@ -597,53 +620,61 @@ void *searchThreadFunction(void *arg)
                 }
         }
 
+        atomic_store(&isSearching, false);
+
         return NULL;
 }
 
-void stopCurrentThread() {
-    if (currentThread) {
-        stopFlag = true;
-        pthread_cancel(currentThread);
-        pthread_join(currentThread, NULL);
-        stopFlag = false;
-    }
+void stopCurrentThread()
+{
+        if (currentThread)
+        {
+                stopFlag = true;
+                pthread_cancel(currentThread);
+                pthread_join(currentThread, NULL);
+                stopFlag = false;
+        }
 }
 
-int internetRadioSearch(const char *searchTerm, void (*callback)(const char *, const char *, const char *, const char *, const int, const int)) {
-    pthread_t threadId;
-    SearchThreadArgs *args;
+int internetRadioSearch(const char *searchTerm, void (*callback)(const char *, const char *, const char *, const char *, const int, const int))
+{
+        pthread_t threadId;
+        SearchThreadArgs *args;
 
-    if (!searchTerm || !callback) {
-        return -1;
-    }
+        if (!searchTerm || !callback)
+        {
+                return -1;
+        }
 
-    stopCurrentThread();
+        stopCurrentThread();
 
-    args = malloc(sizeof(SearchThreadArgs));
-    if (!args) {
-        return -1;
-    }
+        args = malloc(sizeof(SearchThreadArgs));
+        if (!args)
+        {
+                return -1;
+        }
 
-    args->searchTerm = strdup(searchTerm);
-    if (!args->searchTerm) {
-        free(args);
-        return -1;
-    }
+        args->searchTerm = strdup(searchTerm);
+        if (!args->searchTerm)
+        {
+                free(args);
+                return -1;
+        }
 
-    args->callback = callback;
-    args->stopFlag = &stopFlag;
+        args->callback = callback;
+        args->stopFlag = &stopFlag;
 
+        if (pthread_create(&threadId, NULL, searchThreadFunction, args) != 0)
+        {
+                free(args->searchTerm);
+                free(args);
+                return -1;
+        }
 
-    if (pthread_create(&threadId, NULL, searchThreadFunction, args) != 0) {
-        free(args->searchTerm);
-        free(args);
-        return -1;
-    }
+        pthread_detach(threadId);
+        currentThread = threadId;
 
-    pthread_detach(threadId);
-    currentThread = threadId;
-
-    return 0;
+        return 0;
 }
 
 static bool radioIsPlaying = false;
@@ -702,6 +733,13 @@ static ma_result decoder_read_callback(ma_decoder *decoder, void *pBufferOut, si
 
         while (total_read < bytesToRead)
         {
+                if ((buf->read_pos == buf->write_pos) && buf->eof)
+                {
+                        pthread_mutex_unlock(&(buf->mutex));
+                        *bytesRead = total_read;
+                        return (total_read > 0) ? MA_SUCCESS : MA_AT_END;
+                }
+
                 // Wait until data is available OR EOF is flagged.
                 while ((buf->read_pos == buf->write_pos) && !buf->eof)
                 {
@@ -768,6 +806,7 @@ static void audio_data_callback(ma_device *device, void *output, const void *inp
         (void)input;
         ma_decoder *decoder = (ma_decoder *)device->pUserData;
         ma_uint64 framesRead = 0;
+
         ma_decoder_read_pcm_frames(decoder, output, frameCount, &framesRead);
         if (framesRead < frameCount)
         {
@@ -775,6 +814,8 @@ static void audio_data_callback(ma_device *device, void *output, const void *inp
         }
 
         setBufferSize(framesRead);
+
+        radioIsActive = true;
 
         ma_int32 *audioBuffer = getAudioBuffer();
         if (audioBuffer == NULL)
@@ -792,7 +833,7 @@ static void audio_data_callback(ma_device *device, void *output, const void *inp
 
 RadioSearchResult *copyRadioSearchResult(const RadioSearchResult *original)
 {
-        if (!original)
+        if (!original || strlen(original->name) <= 0)
                 return NULL;
 
         RadioSearchResult *copy = malloc(sizeof(RadioSearchResult));
@@ -839,26 +880,28 @@ void destroyRadioMutexes()
 {
         pthread_mutex_destroy(&(radioContext.buf.mutex));
         pthread_cond_destroy(&(radioContext.buf.cond));
+        pthread_mutex_destroy(&radioLifecycleMutex);
 }
 
-void stopRadio(void)
+int stopRadio(void)
 {
         pthread_mutex_lock(&(radioContext.buf.mutex));
         radioContext.buf.eof = 1;
-        radioContext.buf.read_pos = radioContext.buf.write_pos = 0;
         radioContext.buf.stale = false;
         pthread_cond_broadcast(&(radioContext.buf.cond));
         pthread_mutex_unlock(&(radioContext.buf.mutex));
+
+
+        ma_device_state state = ma_device_get_state(&device);
+        if (state == ma_device_state_started || state == ma_device_state_starting) {
+                cleanupPlaybackDevice();
+        }
 
         if (radioContext.curl_thread)
         {
                 pthread_join(radioContext.curl_thread, NULL);
                 radioContext.curl_thread = 0;
         }
-
-        resetDevice();
-
-        memset(&device, 0, sizeof(device));
 
         ma_decoder_uninit(&(radioContext.decoder));
 
@@ -868,11 +911,17 @@ void stopRadio(void)
                 radioContext.curl = NULL;
         }
 
+        radioContext.buf.read_pos = radioContext.buf.write_pos = 0;
+
         memset(&(radioContext.decoder), 0, sizeof(ma_decoder));
 
         radioIsPlaying = false;
 
         freeCurrentlyPlayingRadioStation();
+
+        radioIsActive = false;
+
+        return 0;
 }
 
 void reconnectRadioIfNeeded()
@@ -905,23 +954,37 @@ void *curl_perform_wrapper(void *arg)
 
 int playRadioStation(const RadioSearchResult *station)
 {
+        if (isRadioPlaying() && !radioIsActive) // Don't stop and start if things haven't really started
+                return -1;
+
+        if (isRadioSearching()) // Don't stop and start if we are searching
+                return -1;
+
+        if (station == NULL)
+        {
+                return -1;
+        }
+
+        pthread_mutex_lock(&radioLifecycleMutex);
+
         if (isRadioPlaying())
         {
                 RadioSearchResult *radio = getCurrentPlayingRadioStation();
 
                 // If it's not the same station, reset the reconnect counter
-                if (strcmp(radio->url_resolved, station->url_resolved) != 0)
+                if (radio && strcmp(radio->url_resolved, station->url_resolved) != 0)
                         reconnectCounter = 0;
         }
 
-        stopRadio();
-
-        if (station == NULL)
+        if (stopRadio() < 0)
+        {
+                pthread_mutex_unlock(&radioLifecycleMutex);
                 return -1;
+        }
 
         if (!(radioContext.curl = curl_easy_init()))
         {
-                fprintf(stderr, "Curl init failed\n");
+                pthread_mutex_unlock(&radioLifecycleMutex);
                 return -1;
         }
 
@@ -947,7 +1010,7 @@ int playRadioStation(const RadioSearchResult *station)
         {
                 fprintf(stderr, "Decoder init failed\n");
                 setErrorMessage("Radio station unsupported or unavailable.");
-
+                pthread_mutex_unlock(&radioLifecycleMutex);
                 return -1;
         }
 
@@ -962,6 +1025,7 @@ int playRadioStation(const RadioSearchResult *station)
         {
                 fprintf(stderr, "Device init failed\n");
                 ma_decoder_uninit(&(radioContext.decoder));
+                pthread_mutex_unlock(&radioLifecycleMutex);
                 return -1;
         }
 
@@ -972,7 +1036,12 @@ int playRadioStation(const RadioSearchResult *station)
                 fprintf(stderr, "Failed to start device playback\n");
                 ma_device_uninit(&device);
                 ma_decoder_uninit(&(radioContext.decoder));
+                pthread_mutex_unlock(&radioLifecycleMutex);
                 return -1;
+        }
+
+        while (ma_device_get_state(&device) == ma_device_state_starting) {
+                c_sleep(100);
         }
 
         stopped = false;
@@ -985,6 +1054,8 @@ int playRadioStation(const RadioSearchResult *station)
         radioIsPlaying = true;
 
         setCurrentlyPlayingRadioStation(station);
+
+        pthread_mutex_unlock(&radioLifecycleMutex);
 
         return 0;
 }
