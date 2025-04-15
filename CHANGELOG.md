@@ -38,6 +38,8 @@
 
 #### Bug Fixes
 
+- Fixed deadlock when quickly and repeatedly starting a radio station.
+
 - Fixed bug with previous track with shuffle enabled. Found by @GuyInAShack.
 
 ### 3.1.2
