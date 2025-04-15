@@ -879,9 +879,6 @@ void pausePlayback(void)
 
 void cleanupPlaybackDevice(void)
 {
-        const int maxRetries = 20;
-        int retry = 0;
-
         ma_device_uninit(&device);
         memset(&device, 0, sizeof(device));
 }
