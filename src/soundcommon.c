@@ -882,14 +882,6 @@ void cleanupPlaybackDevice(void)
         const int maxRetries = 20;
         int retry = 0;
 
-        ma_device_stop(&device);
-
-        while (retry < maxRetries && ma_device_get_state(&device) != ma_device_state_stopped && ma_device_get_state(&device) != ma_device_state_uninitialized)
-        {
-                c_sleep(100);
-                retry++;
-        }
-
         ma_device_uninit(&device);
         memset(&device, 0, sizeof(device));
 }
@@ -926,15 +918,6 @@ bool isPaused(void)
 bool isStopped(void)
 {
         return stopped;
-}
-
-pthread_mutex_t deviceMutex = PTHREAD_MUTEX_INITIALIZER;
-pthread_cond_t deviceStopped = PTHREAD_COND_INITIALIZER;
-
-void destroyDeviceMutexes()
-{
-        pthread_mutex_destroy(&deviceMutex);
-        pthread_cond_destroy(&deviceStopped);
 }
 
 ma_device *getDevice(void)
