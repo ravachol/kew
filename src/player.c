@@ -1040,7 +1040,7 @@ void showSearch(SongData *songData, int *chosenRow, UISettings *ui)
         if (term_w > indent + 38 && !ui->hideHelp)
         {
                 printBlankSpaces(indent);
-                printf(" Use ↑, ↓ to choose. Enter=Accept. Alt+Enter=Play.\n\n");
+                printf(" Use ↑, ↓ to choose. Enter=Enqueue. Alt+Enter=Play.\n\n");
                 maxSearchListSize -= 2;
         }
 
