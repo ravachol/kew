@@ -36,8 +36,6 @@ RadioPlayerContext radioContext = {0};
 int reconnectCounter = 0;
 bool radioIsActive = false;
 
-static atomic_bool isSearching = ATOMIC_VAR_INIT(false);
-
 pthread_mutex_t radioLifecycleMutex = PTHREAD_MUTEX_INITIALIZER;
 
 typedef struct
@@ -461,13 +459,6 @@ Server *pickServer()
         return NULL;
 }
 
-bool isRadioSearching()
-{
-        bool value = atomic_load(&isSearching);
-
-        return value;
-}
-
 bool IsActiveRadio()
 {
         return radioIsActive;
@@ -481,8 +472,6 @@ void *searchThreadFunction(void *arg)
         Server *server = NULL;
         char *encodedTerm = NULL;
 
-        atomic_store(&isSearching, true);
-
         pthread_mutex_lock(&server_list_mutex);
         if (!hasUpdatedServerList)
         {
@@ -492,7 +481,6 @@ void *searchThreadFunction(void *arg)
                         free(args->searchTerm);
                         free(args);
                         setErrorMessage("Radio database unavailable.");
-                        atomic_store(&isSearching, false);
 
                         return NULL;
                 }
@@ -603,8 +591,6 @@ void *searchThreadFunction(void *arg)
                         free(args->searchTerm);
                         free(args);
 
-                        atomic_store(&isSearching, false);
-
                         return NULL;
                 }
                 else
@@ -619,8 +605,6 @@ void *searchThreadFunction(void *arg)
                         res.size = 0;
                 }
         }
-
-        atomic_store(&isSearching, false);
 
         return NULL;
 }
@@ -817,18 +801,7 @@ static void audio_data_callback(ma_device *device, void *output, const void *inp
 
         radioIsActive = true;
 
-        ma_int32 *audioBuffer = getAudioBuffer();
-        if (audioBuffer == NULL)
-        {
-                audioBuffer = malloc(sizeof(ma_int32) * MAX_BUFFER_SIZE);
-                if (audioBuffer == NULL)
-                {
-                        return;
-                }
-        }
-
-        memcpy(audioBuffer, output, sizeof(ma_int32) * framesRead);
-        setAudioBuffer(audioBuffer);
+        setAudioBuffer(output, framesRead);
 }
 
 RadioSearchResult *copyRadioSearchResult(const RadioSearchResult *original)
@@ -955,9 +928,6 @@ void *curl_perform_wrapper(void *arg)
 int playRadioStation(const RadioSearchResult *station)
 {
         if (isRadioPlaying() && !radioIsActive) // Don't stop and start if things haven't really started
-                return -1;
-
-        if (isRadioSearching()) // Don't stop and start if we are searching
                 return -1;
 
         if (station == NULL)

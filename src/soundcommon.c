@@ -34,7 +34,9 @@ _Atomic bool readingFrames = false;
 pthread_mutex_t dataSourceMutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t switchMutex = PTHREAD_MUTEX_INITIALIZER;
 ma_device device = {0};
-ma_int32 *audioBuffer = NULL;
+static ma_int32 audioBuffer[MAX_BUFFER_SIZE];
+static int writeHead = 0;
+bool bufferReady = false;
 AudioData audioData;
 int bufSize;
 ma_event switchAudioImpl;
@@ -669,41 +671,53 @@ void setBufferSize(int value)
         bufSize = value;
 }
 
-void initAudioBuffer(void)
+void setAudioBuffer(ma_int32 *buf, int numSamples)
 {
-        if (audioBuffer == NULL)
-        {
-                audioBuffer = malloc(sizeof(ma_int32) * MAX_BUFFER_SIZE);
-                if (audioBuffer == NULL)
-                {
-                        // Memory allocation failed
-                        return;
-                }
+    int bufIndex = 0;
+
+    while (bufIndex < numSamples)
+    {
+        if (writeHead >= MAX_BUFFER_SIZE) {
+            break;
         }
+
+        int spaceLeft = FFT_SIZE - writeHead;
+        int samplesLeft = numSamples - bufIndex;
+        int samplesToCopy = (samplesLeft < spaceLeft) ? samplesLeft : spaceLeft;
+
+        // Clamp copy to avoid buffer overflow
+        int maxCopy = MAX_BUFFER_SIZE - writeHead;
+        if (samplesToCopy > maxCopy)
+            samplesToCopy = maxCopy;
+
+        memcpy(&audioBuffer[writeHead], &buf[bufIndex], sizeof(ma_int32) * samplesToCopy);
+
+        writeHead += samplesToCopy;
+        bufIndex  += samplesToCopy;
+
+        // As long as we have at least FFT_SIZE samples, process one window
+        while (writeHead >= FFT_SIZE)
+        {
+            bufferReady = true;
+
+            // Shift the buffer left by HOP_SIZE
+            memmove(audioBuffer, audioBuffer + HOP_SIZE, sizeof(ma_int32) * (FFT_SIZE - HOP_SIZE));
+
+            writeHead -= HOP_SIZE;
+        }
+    }
+}
+
+void resetAudioBuffer(void)
+{
+    memset(audioBuffer, 0, sizeof(ma_int32) * MAX_BUFFER_SIZE);
+    writeHead = 0;
+    bufferReady = false;
 }
 
 ma_int32 *getAudioBuffer(void)
 {
         return audioBuffer;
-}
-
-void setAudioBuffer(ma_int32 *buf)
-{
-        audioBuffer = buf;
-}
-
-void resetAudioBuffer(void)
-{
-        memset(audioBuffer, 0, sizeof(float) * MAX_BUFFER_SIZE);
-}
-
-void freeAudioBuffer(void)
-{
-        if (audioBuffer != NULL)
-        {
-                free(audioBuffer);
-                audioBuffer = NULL;
-        }
 }
 
 bool isRepeatEnabled(void)
@@ -1217,20 +1231,7 @@ void m4a_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_uint6
                 pthread_mutex_unlock(&dataSourceMutex);
         }
 
-        ma_int32 *audioBuffer = getAudioBuffer();
-        if (audioBuffer == NULL)
-        {
-                audioBuffer = malloc(sizeof(ma_int32) * MAX_BUFFER_SIZE);
-                if (audioBuffer == NULL)
-                {
-                        // Memory allocation failed
-                        return;
-                }
-        }
-
-        // No format conversion needed, just copy the audio samples
-        memcpy(audioBuffer, pFramesOut, sizeof(ma_int32) * framesRead);
-        setAudioBuffer(audioBuffer);
+        setAudioBuffer(pFramesOut, framesRead);
 
         if (pFramesRead != NULL)
         {
@@ -1345,20 +1346,7 @@ void opus_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_uint
                 pthread_mutex_unlock(&dataSourceMutex);
         }
 
-        ma_int32 *audioBuffer = getAudioBuffer();
-        if (audioBuffer == NULL)
-        {
-                audioBuffer = malloc(sizeof(ma_int32) * MAX_BUFFER_SIZE);
-                if (audioBuffer == NULL)
-                {
-                        // Memory allocation failed
-                        return;
-                }
-        }
-
-        // No format conversion needed, just copy the audio samples
-        memcpy(audioBuffer, pFramesOut, sizeof(ma_int32) * framesRead);
-        setAudioBuffer(audioBuffer);
+        setAudioBuffer(pFramesOut, framesRead);
 
         if (pFramesRead != NULL)
         {
@@ -1473,20 +1461,7 @@ void vorbis_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_ui
                 pthread_mutex_unlock(&dataSourceMutex);
         }
 
-        ma_int32 *audioBuffer = getAudioBuffer();
-        if (audioBuffer == NULL)
-        {
-                audioBuffer = malloc(sizeof(ma_int32) * MAX_BUFFER_SIZE);
-                if (audioBuffer == NULL)
-                {
-                        // Memory allocation failed
-                        return;
-                }
-        }
-
-        // No format conversion needed, just copy the audio samples
-        memcpy(audioBuffer, pFramesOut, sizeof(ma_int32) * framesRead);
-        setAudioBuffer(audioBuffer);
+        setAudioBuffer(pFramesOut, framesRead);
 
         if (pFramesRead != NULL)
         {

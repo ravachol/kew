@@ -1153,7 +1153,7 @@ gboolean mainloop_callback(gpointer data)
         updateCounter++;
 
         // Different views run at different speeds to lower the impact on system requirements
-        if ((updateCounter % 2 == 0 && (appState.currentView == SEARCH_VIEW || appState.currentView == RADIOSEARCH_VIEW)) || (appState.currentView == TRACK_VIEW || appState.uiState.miniMode) || updateCounter % 3 == 0)
+        if ((updateCounter % 4 == 0 && (appState.currentView == SEARCH_VIEW || appState.currentView == RADIOSEARCH_VIEW)) || (appState.currentView == TRACK_VIEW || appState.uiState.miniMode) || updateCounter % 6 == 0)
         {
                 processDBusEvents();
 
@@ -1225,7 +1225,7 @@ void initFirstPlay(Node *song, AppState *state)
         else
                 emitPlaybackStoppedMpris();
 
-        g_timeout_add(33, mainloop_callback, NULL);
+        g_timeout_add(17, mainloop_callback, NULL);
         g_main_loop_run(main_loop);
         g_main_loop_unref(main_loop);
 }
@@ -1275,7 +1275,6 @@ void cleanupOnExit()
         enableInputBuffering();
         setConfig(&settings, &(appState.uiSettings));
         saveSpecialPlaylist(settings.path);
-        freeAudioBuffer();
         deleteCache(appState.tmpCache);
         freeMainDirectoryTree(&appState);
         freeAndwriteRadioFavorites();
@@ -1386,7 +1385,6 @@ void init(AppState *state)
         audioData.restart = true;
         userData.songdataADeleted = true;
         userData.songdataBDeleted = true;
-        initAudioBuffer();
         unsigned int seed = (unsigned int)time(NULL);
         srand(seed);
         pthread_mutex_init(&dataSourceMutex, NULL);
