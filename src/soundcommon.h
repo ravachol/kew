@@ -114,11 +114,16 @@ enum AudioImplementation
         NONE
 };
 
+#define FFT_SIZE 4096
+#define HOP_SIZE 1024
+
 typedef void (*uninit_func)(void *decoder);
 
 extern AppState appState;
 
 extern AudioData audioData;
+
+extern bool bufferReady;
 
 extern double elapsedSeconds;
 
@@ -194,7 +199,7 @@ void initAudioBuffer(void);
 
 ma_int32 *getAudioBuffer(void);
 
-void setAudioBuffer(ma_int32 *buf);
+void setAudioBuffer(ma_int32 *buf, int numSamples);
 
 void resetAudioBuffer(void);
 
