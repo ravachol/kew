@@ -36,29 +36,29 @@ Node *determineStartNode(Node *head, int *foundAt, bool *startFromCurrent, int l
 
 void preparePlaylistString(Node *node, char *buffer, int bufferSize)
 {
-        if (node == NULL || buffer == NULL)
-        {
-                buffer[0] = '\0';
-                return;
-        }
+    if (node == NULL || buffer == NULL)
+    {
+        buffer[0] = '\0';
+        return;
+    }
 
-        char filePath[MAXPATHLEN];
-        c_strcpy(filePath, node->song.filePath, sizeof(filePath));
-        char *lastSlash = strrchr(filePath, '/');
-        char *lastDot = strrchr(filePath, '.');
+    char filePath[MAXPATHLEN];
+    c_strcpy(filePath, node->song.filePath, sizeof(filePath));
+    char *lastSlash = strrchr(filePath, '/');
+    size_t len = strnlen(filePath, sizeof(filePath));
 
-        if (lastSlash != NULL && lastDot != NULL && lastDot > lastSlash)
-        {
-                int nameLength = lastDot - lastSlash - 1;
-                nameLength = (nameLength < bufferSize - 1) ? nameLength : bufferSize - 1;
+    if (lastSlash != NULL)
+    {
+        int nameLength = filePath + len - (lastSlash + 1); // Length of the filename
+        nameLength = (nameLength < bufferSize - 1) ? nameLength : bufferSize - 1;
 
-                c_strcpy(buffer, lastSlash + 1, nameLength + 1);
-                buffer[nameLength] = '\0';
-        }
-        else
-        {
-                buffer[0] = '\0';
-        }
+        c_strcpy(buffer, lastSlash + 1, nameLength + 1);
+        buffer[nameLength] = '\0';
+    }
+    else
+    {
+        buffer[0] = '\0';
+    }
 }
 
 int displayPlaylistItems(Node *startNode, int startIter, int maxListSize, int termWidth, int indent, int chosenSong, int *chosenNodeId, UISettings *ui)
