@@ -14,7 +14,6 @@ visuals.c
 
 #define MAX_BARS 64
 
-int bufferSize = 8192;
 int prevBufferSize = 0;
 float alpha = 0.02f;
 float smoothFramesAlpha = 0.8f;
@@ -171,13 +170,13 @@ void enhancePeaks(int numBars, float *magnitudes, int height, float enhancePeak)
 
 void applyBlackmanHarris(float *fftInput, int bufferSize)
 {
+        float alpha0 = 0.35875f;
+        float alpha1 = 0.48829f;
+        float alpha2 = 0.14128f;
+        float alpha3 = 0.01168f;
+
         for (int i = 0; i < bufferSize; i++)
         {
-                float alpha0 = 0.35875f;
-                float alpha1 = 0.48829f;
-                float alpha2 = 0.14128f;
-                float alpha3 = 0.01168f;
-
                 float fraction = (float)i / (float)(bufferSize - 1); // i / (N-1)
                 float window =
                     alpha0 - alpha1 * cosf(2.0f * M_PI * fraction) + alpha2 * cosf(4.0f * M_PI * fraction) - alpha3 * cosf(6.0f * M_PI * fraction);
@@ -205,9 +204,80 @@ void smoothFrames(
         }
 }
 
+void fillSpectrumBars(
+    const fftwf_complex *fftOutput,
+    int bufferSize,
+    float sampleRate,
+    float *magnitudes,
+    int numBars,
+    float minFreq,
+    float maxFreq)
+{
+    float *barFreqLo = (float *)malloc(sizeof(float) * numBars);
+    float *barFreqHi = (float *)malloc(sizeof(float) * numBars);
+
+    // Logarithmic spacing, tweakable curve
+    float logMin = log10f(minFreq);
+    float logMax = log10f(maxFreq);
+
+    float spacingPower = 0.8f; // Closer to 1 = more even spacing
+
+    for (int i = 0; i < numBars; i++) {
+        float tLo = (float)i / numBars;
+        float tHi = (float)(i + 1) / numBars;
+
+        // Slight bias toward lower freqs using power curve
+        float skewLo = powf(tLo, spacingPower);
+        float skewHi = powf(tHi, spacingPower);
+
+        barFreqLo[i] = powf(10.0f, logMin + (logMax - logMin) * skewLo);
+        barFreqHi[i] = powf(10.0f, logMin + (logMax - logMin) * skewHi);
+    }
+
+    memset(magnitudes, 0, sizeof(float) * numBars);
+    int *counts = (int *)calloc(numBars, sizeof(int));
+
+    int numBins = bufferSize / 2 + 1;
+
+    for (int k = 0; k < numBins; k++) {
+        float freq = (k * sampleRate) / (float)bufferSize;
+
+        if (freq < minFreq || freq > maxFreq)
+            continue;
+
+        // Find bar that contains this frequency
+        for (int i = 0; i < numBars; i++) {
+            if (freq >= barFreqLo[i] && freq < barFreqHi[i]) {
+                float real = fftOutput[k][0];
+                float imag = fftOutput[k][1];
+                float mag = sqrtf(real * real + imag * imag);
+
+                magnitudes[i] += mag;
+                counts[i]++;
+                break;
+            }
+        }
+    }
+
+    for (int i = 0; i < numBars; i++) {
+        if (counts[i] > 0)
+            magnitudes[i] /= (float)counts[i];
+    }
+
+    free(barFreqLo);
+    free(barFreqHi);
+    free(counts);
+}
+
 void calc(int height, int numBars, ma_int32 *audioBuffer, int bitDepth, float *fftInput, fftwf_complex *fftOutput, float *magnitudes, fftwf_plan plan)
 {
-        int bufferSize = getBufferSize();
+        static float localBuffer[MAX_BUFFER_SIZE];
+
+        if (!bufferReady)
+                return;
+
+        memcpy(localBuffer, audioBuffer, sizeof(float) * MAX_BUFFER_SIZE);
+        bufferReady = false;
 
         if (audioBuffer == NULL)
         {
@@ -215,7 +285,7 @@ void calc(int height, int numBars, ma_int32 *audioBuffer, int bitDepth, float *f
                 return;
         }
 
-        for (int i = 0; i < bufferSize; i++)
+        for (int i = 0; i < FFT_SIZE; i++)
         {
                 ma_int32 sample = audioBuffer[i];
                 float normalizedSample = 0.0f;
@@ -249,19 +319,13 @@ void calc(int height, int numBars, ma_int32 *audioBuffer, int bitDepth, float *f
                 fftInput[i] = normalizedSample;
         }
 
-        applyBlackmanHarris(fftInput, bufferSize);
+        applyBlackmanHarris(fftInput, FFT_SIZE);
 
         fftwf_execute(plan);
 
         clearMagnitudes(numBars, magnitudes);
 
-        for (int i = 0; i < numBars; i++)
-        {
-                float real = fftOutput[i][0];
-                float imag = fftOutput[i][1];
-                float magnitude = sqrtf(real * real + imag * imag);
-                magnitudes[i] = magnitude;
-        }
+        fillSpectrumBars(fftOutput, FFT_SIZE, sampleRate, magnitudes, numBars, 20.0f, 10000.0f);
 
         float maxMagnitude = calcMaxMagnitude(numBars, magnitudes);
 
@@ -424,7 +488,6 @@ void freeVisuals(void)
 
 void drawSpectrumVisualizer(int height, int numBars, PixelData c, int indentation, bool useConfigColors, int visualizerColorType)
 {
-        bufferSize = getBufferSize();
         PixelData color;
         color.r = c.r;
         color.g = c.g;
@@ -440,15 +503,7 @@ void drawSpectrumVisualizer(int height, int numBars, PixelData c, int indentatio
         if (numBars > MAX_BARS)
                 numBars = MAX_BARS;
 
-        if (bufferSize <= 0)
-        {
-                for (int i = 0; i <= height; i++)
-                {
-                        printf("\n");
-                }
-                return;
-        }
-        if (bufferSize != prevBufferSize)
+        if (FFT_SIZE != prevBufferSize)
         {
                 lastMax = -1.0f;
 
@@ -456,7 +511,7 @@ void drawSpectrumVisualizer(int height, int numBars, PixelData c, int indentatio
 
                 memset(smoothedFramesMagnitudes, 0, sizeof(smoothedFramesMagnitudes));
 
-                fftInput = (float *)malloc(sizeof(float) * bufferSize);
+                fftInput = (float *)malloc(sizeof(float) * FFT_SIZE);
                 if (fftInput == NULL)
                 {
                         for (int i = 0; i <= height; i++)
@@ -466,7 +521,7 @@ void drawSpectrumVisualizer(int height, int numBars, PixelData c, int indentatio
                         return;
                 }
 
-                fftPreviousInput = (float *)malloc(sizeof(float) * bufferSize);
+                fftPreviousInput = (float *)malloc(sizeof(float) * FFT_SIZE);
                 if (fftPreviousInput == NULL)
                 {
                         fftwf_free(fftInput);
@@ -478,12 +533,12 @@ void drawSpectrumVisualizer(int height, int numBars, PixelData c, int indentatio
                         return;
                 }
 
-                for (int i = 0; i < bufferSize; i++)
+                for (int i = 0; i < FFT_SIZE; i++)
                 {
                         fftPreviousInput[i] = 0.0f;
                 }
 
-                fftOutput = (fftwf_complex *)fftwf_malloc(sizeof(fftwf_complex) * bufferSize);
+                fftOutput = (fftwf_complex *)fftwf_malloc(sizeof(fftwf_complex) * FFT_SIZE);
                 if (fftOutput == NULL)
                 {
                         fftwf_free(fftInput);
@@ -496,10 +551,10 @@ void drawSpectrumVisualizer(int height, int numBars, PixelData c, int indentatio
                         }
                         return;
                 }
-                prevBufferSize = bufferSize;
+                prevBufferSize = FFT_SIZE;
         }
 
-        fftwf_plan plan = fftwf_plan_dft_r2c_1d(bufferSize,
+        fftwf_plan plan = fftwf_plan_dft_r2c_1d(FFT_SIZE,
                                                 fftInput,
                                                 fftOutput,
                                                 FFTW_ESTIMATE);

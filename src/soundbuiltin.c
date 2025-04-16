@@ -293,18 +293,7 @@ void builtin_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_u
                 pthread_mutex_unlock(&dataSourceMutex);
         }
 
-        ma_int32 *audioBuffer = getAudioBuffer();
-        if (audioBuffer == NULL)
-        {
-                audioBuffer = malloc(sizeof(ma_int32) * MAX_BUFFER_SIZE);
-                if (audioBuffer == NULL)
-                {
-                        return;
-                }
-        }
-
-        memcpy(audioBuffer, pFramesOut, sizeof(ma_int32) * framesRead);
-        setAudioBuffer(audioBuffer);
+        setAudioBuffer(pFramesOut, framesRead);
 
         if (pFramesRead != NULL)
         {

@@ -4,7 +4,7 @@
 
 - New mini-player mode. Make the window small and it goes into this mode. Suggested by @HAPPIOcrz007.
 
-- The visualizer now runs at 30 fps instead of 10, making it much smoother. The rest of the ui runs slower much like before. We tried 60fps but it didn't work well everywhere.
+- The visualizer now runs at 60 fps instead of 10, making it much smoother. The rest of the ui runs slower much like before to save on system resources.
 
 - Now shows sample rate and if relevant, bitrate, in track view.
 

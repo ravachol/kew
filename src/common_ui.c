@@ -17,8 +17,8 @@ int lastNamePosition = 0;
 bool isLongName = false;
 int scrollDelaySkippedCount = 0;
 bool isSameNameAsLastTime = false;
-const int startScrollingDelay = 10; // Delay before beginning to scroll. 64ms * scrollingInterval * startScrollingDelay = delay in ms
-const int scrollingInterval = 1;    // Interval between scrolling updates
+const int startScrollingDelay = 20; // Delay before beginning to scroll
+const int scrollingInterval = 2;    // Interval between scrolling updates
 
 void setTextColorRGB2(int r, int g, int b, UISettings *ui)
 {
