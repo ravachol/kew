@@ -202,6 +202,7 @@ typedef struct
         char enqueueAndPlay[6];
         char hardStop[6];
         char hardAddToRadioFavorites[6];
+        char sortLibrary[6];
 } AppSettings;
 
 #endif

@@ -47,7 +47,8 @@ enum EventType
         EVENT_MOVESONGDOWN,
         EVENT_ENQUEUEANDPLAY,
         EVENT_ADDTORADIOFAVORITES,
-        EVENT_STOP
+        EVENT_STOP,
+        EVENT_SORTLIBRARY
 };
 
 struct Event

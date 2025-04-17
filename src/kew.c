@@ -895,6 +895,9 @@ void handleInput(AppState *state)
         case EVENT_STOP:
                 stop();
                 break;
+        case EVENT_SORTLIBRARY:
+                sortLibrary();
+                break;
 
         default:
                 fastForwarding = false;
