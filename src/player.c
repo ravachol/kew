@@ -197,7 +197,7 @@ int printLogo(SongData *songData, UISettings *ui)
 
                 char title[MAXPATHLEN] = {0};
 
-                int titleLength = strnlen(songData->metadata->title, METADATA_MAX_SIZE);
+                size_t titleLength = strnlen(songData->metadata->title, METADATA_MAX_SIZE);
                 char prettyTitle[titleLength + 1];
 
                 strncpy(prettyTitle, songData->metadata->title, titleLength);
@@ -394,7 +394,7 @@ void printBasicMetadata(TagSettings const *metadata, UISettings *ui)
                 }
 
                 // Clean up title before printing
-                int titleLength = strnlen(metadata->title, maxWidth);
+                size_t titleLength = strnlen(metadata->title, maxWidth);
                 char prettyTitle[titleLength + 1];
 
                 strncpy(prettyTitle, metadata->title, titleLength);

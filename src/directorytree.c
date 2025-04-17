@@ -548,7 +548,8 @@ int utf8_levenshteinDistance(const char *s1, const char *s2)
 #endif
 #endif
 
-char *stripFileExtension(const char *filename) {
+char *stripFileExtension(const char *filename)
+{
     char *dot = strrchr(filename, '.'); // find last '.'
     size_t length = (dot != NULL) ? (size_t)(dot - filename) : strlen(filename);
 

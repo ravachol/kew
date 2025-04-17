@@ -211,7 +211,7 @@ int pathStartsWith(const char *str, const char *prefix)
         return strncmp(str, prefix, prefixLength) == 0;
 }
 
-void trim(char *str, int maxLen)
+void trim(char *str, size_t maxLen)
 {
         char *start = str;
         while (*start && isspace(*start))
@@ -322,11 +322,11 @@ char *getFilePath(const char *filename)
     return filepath;
 }
 
-void removeUnneededChars(char *str, int length)
+void removeUnneededChars(char *str, size_t length)
 {
         // Do not remove characters if filename only contains digits
         bool stringContainsLetters = false;
-        for (int i = 0; str[i] != '\0'; i++)
+        for (size_t i = 0; str[i] != '\0'; i++)
         {
                 if (!isdigit(str[i]))
                 {
@@ -338,11 +338,11 @@ void removeUnneededChars(char *str, int length)
                 return;
         }
 
-        for (int i = 0; i < 3 && str[i] != '\0' && str[i] != ' '; i++)
+        for (size_t i = 0; i < 3 && str[i] != '\0' && str[i] != ' '; i++)
         {
                 if (isdigit(str[i]) || str[i] == '.' || str[i] == '-' || str[i] == ' ')
                 {
-                        int j;
+                        size_t j;
                         for (j = i; str[j] != '\0'; j++)
                         {
                                 str[j] = str[j + 1];
@@ -354,7 +354,7 @@ void removeUnneededChars(char *str, int length)
         }
 
         // Remove hyphens and underscores from filename
-        for (int i = 0; str[i] != '\0'; i++)
+        for (size_t i = 0; str[i] != '\0'; i++)
         {
                 // Only remove if there are no spaces around
                 if ((str[i] == '-' || str[i] == '_') && (i > 0 && i < length && str[i - 1] != ' ' && str[i + 1] != ' '))
