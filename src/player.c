@@ -1536,9 +1536,9 @@ void showLibrary(SongData *songData, AppState *state)
                 printf(" Use ↑, ↓ or k, j to choose. Enter=Enqueue/Dequeue. Alt+Enter=Play.\n");
                 printBlankSpaces(indent);
 #ifndef __APPLE__
-                printf(" Pg Up and Pg Dn to scroll. Press u to update the library.\n\n");
+                printf(" Pg Up and Pg Dn to scroll. Press u to update, o to sort.\n\n");
 #else
-                printf(" Fn+Arrow Up and Fn+Arrow Down to scroll. u to update the library.\n\n");
+                printf(" Fn+Arrow Up and Fn+Arrow Down to scroll. u to update, o to sort.\n\n");
 #endif
         }
 

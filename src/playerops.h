@@ -171,4 +171,6 @@ void repeatList();
 
 void skipToBegginningOfSong(void);
 
+void sortLibrary(void);
+
 #endif

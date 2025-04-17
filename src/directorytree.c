@@ -85,6 +85,110 @@ void freeTree(FileSystemEntry *root)
         free(root);
 }
 
+int naturalCompare(const char *a, const char *b)
+{
+        while (*a && *b)
+        {
+                if (isdigit(*a) && isdigit(*b))
+                {
+                        // Compare numerically
+                        char *endA, *endB;
+                        long numA = strtol(a, &endA, 10);
+                        long numB = strtol(b, &endB, 10);
+
+                        if (numA != numB)
+                        {
+                                return numA - numB;
+                        }
+
+                        // Move pointers past the numeric part
+                        a = endA;
+                        b = endB;
+                }
+                else
+                {
+                        if (*a != *b)
+                        {
+                                return *a - *b;
+                        }
+
+                        a++;
+                        b++;
+                }
+        }
+
+        // If all parts so far are equal, shorter string should come first
+        return *a - *b;
+}
+
+int compareLibEntries(const struct dirent **a, const struct dirent **b)
+{
+        // All strings need to be uppercased or already uppercased characters will come before all lower-case ones
+        char *nameA = stringToUpper((*a)->d_name);
+        char *nameB = stringToUpper((*b)->d_name);
+
+        if (nameA[0] == '_' && nameB[0] != '_')
+        {
+                free(nameA);
+                free(nameB);
+                return 1;
+        }
+        else if (nameA[0] != '_' && nameB[0] == '_')
+        {
+                free(nameA);
+                free(nameB);
+                return -1;
+        }
+
+        int result = naturalCompare(nameA, nameB);
+
+        free(nameA);
+        free(nameB);
+
+        return result;
+}
+
+int compareLibEntriesReversed(const struct dirent **a, const struct dirent **b)
+{
+        int result = compareLibEntries(a, b);
+
+        return -result;
+}
+
+int compareEntryNatural(const void *a, const void *b)
+{
+    const FileSystemEntry *entryA = *(const FileSystemEntry **)a;
+    const FileSystemEntry *entryB = *(const FileSystemEntry **)b;
+
+    // Optional: handle leading underscores like your original comparator
+    char *nameA = stringToUpper(entryA->name);
+    char *nameB = stringToUpper(entryB->name);
+
+    if (nameA[0] == '_' && nameB[0] != '_')
+    {
+        free(nameA);
+        free(nameB);
+        return 1;
+    }
+    else if (nameA[0] != '_' && nameB[0] == '_')
+    {
+        free(nameA);
+        free(nameB);
+        return -1;
+    }
+
+    int result = naturalCompare(nameA, nameB);
+
+    free(nameA);
+    free(nameB);
+    return result;
+}
+
+int compareEntryNaturalReversed(const void *a, const void *b)
+{
+    return -compareEntryNatural(a, b);
+}
+
 int removeEmptyDirectories(FileSystemEntry *node)
 {
         if (node == NULL)
@@ -523,4 +627,82 @@ void copyIsEnqueued(FileSystemEntry *library, FileSystemEntry *tmp)
         copyIsEnqueued(library->children, tmp);
 
         copyIsEnqueued(library->next, tmp);
+}
+
+int compareFoldersByAgeFilesAlphabetically(const void *a, const void *b)
+{
+    const FileSystemEntry *entryA = *(const FileSystemEntry **)a;
+    const FileSystemEntry *entryB = *(const FileSystemEntry **)b;
+
+    // Both are directories → sort by mtime descending
+    if (entryA->isDirectory && entryB->isDirectory)
+    {
+        struct stat statA, statB;
+
+        if (stat(entryA->fullPath, &statA) != 0 || stat(entryB->fullPath, &statB) != 0)
+            return 0;
+
+        return (int)(statB.st_mtime - statA.st_mtime); // newer first
+    }
+
+    // Both are files → sort alphabetically
+    if (!entryA->isDirectory && !entryB->isDirectory)
+    {
+        return strcasecmp(entryA->name, entryB->name);
+    }
+
+    // Put directories before files
+    return entryB->isDirectory - entryA->isDirectory;
+}
+
+void sortFileSystemEntryChildren(FileSystemEntry *parent,
+                                  int (*comparator)(const void *, const void *))
+{
+    int count = 0;
+    FileSystemEntry *curr = parent->children;
+    while (curr)
+    {
+        count++;
+        curr = curr->next;
+    }
+
+    if (count < 2)
+        return;
+
+    FileSystemEntry **entryArray = malloc(count * sizeof(FileSystemEntry *));
+    curr = parent->children;
+    for (int i = 0; i < count; i++)
+    {
+        entryArray[i] = curr;
+        curr = curr->next;
+    }
+
+    qsort(entryArray, count, sizeof(FileSystemEntry *), comparator);
+
+    for (int i = 0; i < count - 1; i++)
+    {
+        entryArray[i]->next = entryArray[i + 1];
+    }
+    entryArray[count - 1]->next = NULL;
+    parent->children = entryArray[0];
+
+    free(entryArray);
+}
+
+void sortFileSystemTree(FileSystemEntry *root, int (*comparator)(const void *, const void *))
+{
+    if (!root)
+        return;
+
+    sortFileSystemEntryChildren(root, comparator);
+
+    FileSystemEntry *child = root->children;
+    while (child)
+    {
+        if (child->isDirectory)
+        {
+            sortFileSystemTree(child, comparator);
+        }
+        child = child->next;
+    }
 }

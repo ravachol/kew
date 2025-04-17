@@ -48,4 +48,16 @@ void fuzzySearchRecursive(FileSystemEntry *node, const char *searchTerm, int thr
 
 void copyIsEnqueued(FileSystemEntry *library, FileSystemEntry *tmp);
 
+void sortFileSystemTree(FileSystemEntry *root, int (*comparator)(const void *, const void *));
+
+int compareFoldersByAgeFilesAlphabetically(const void *a, const void *b);
+
+int compareLibEntries(const struct dirent **a, const struct dirent **b);
+
+int compareLibEntriesReversed(const struct dirent **a, const struct dirent **b);
+
+int compareEntryNaturalReversed(const void *a, const void *b);
+
+int compareEntryNatural(const void *a, const void *b);
+
 #endif
