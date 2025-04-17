@@ -713,7 +713,12 @@ static ma_result decoder_read_callback(ma_decoder *decoder, void *pBufferOut, si
         size_t total_read = 0;
         unsigned char *out = (unsigned char *)pBufferOut;
 
-        pthread_mutex_lock(&(buf->mutex));
+        int rc = pthread_mutex_lock(&(buf->mutex));
+        if (rc == EOWNERDEAD)
+        {
+                // Thread died without unlocking
+                pthread_mutex_consistent(&(buf->mutex));
+        }
 
         while (total_read < bytesToRead)
         {
@@ -845,7 +850,10 @@ void freeCurrentlyPlayingRadioStation(void)
 
 void initRadioMutexes()
 {
-        pthread_mutex_init(&(radioContext.buf.mutex), NULL);
+        pthread_mutexattr_t attr;
+        pthread_mutexattr_init(&attr);
+        pthread_mutexattr_setrobust(&attr, PTHREAD_MUTEX_ROBUST);
+        pthread_mutex_init(&(radioContext.buf.mutex), &attr);
         pthread_cond_init(&(radioContext.buf.cond), NULL);
 }
 
@@ -858,17 +866,19 @@ void destroyRadioMutexes()
 
 int stopRadio(void)
 {
-        pthread_mutex_lock(&(radioContext.buf.mutex));
+        int rc = pthread_mutex_lock(&(radioContext.buf.mutex));
+        if (rc == EOWNERDEAD)
+        {
+                // Thread died without unlocking
+                pthread_mutex_consistent(&(radioContext.buf.mutex));
+        }
+
         radioContext.buf.eof = 1;
         radioContext.buf.stale = false;
         pthread_cond_broadcast(&(radioContext.buf.cond));
         pthread_mutex_unlock(&(radioContext.buf.mutex));
 
-
-        ma_device_state state = ma_device_get_state(&device);
-        if (state == ma_device_state_started || state == ma_device_state_starting) {
-                cleanupPlaybackDevice();
-        }
+        cleanupPlaybackDevice();
 
         if (radioContext.curl_thread)
         {
@@ -1010,7 +1020,8 @@ int playRadioStation(const RadioSearchResult *station)
                 return -1;
         }
 
-        while (ma_device_get_state(&device) == ma_device_state_starting) {
+        while (ma_device_get_state(&device) == ma_device_state_starting)
+        {
                 c_sleep(100);
         }
 
