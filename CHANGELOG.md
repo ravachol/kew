@@ -14,7 +14,8 @@
 
 - Long song names now scroll in the library and playlist. Suggested by @HAPPIOcrz007.
 
-- Press o to sort the library, either showing latest first or alphabetically.
+- Press o to sort the library, either showing latest first or alphabetically. Suggested by @j-lakeman.
+
 
 - Radio search now refreshes the list as radio stations are found, making it less "laggy".
 
