@@ -1536,6 +1536,24 @@ void stop(void)
         }
 }
 
+int currentSort = 0;
+
+void sortLibrary(void)
+{
+        if (currentSort == 0)
+        {
+                sortFileSystemTree(library, compareFoldersByAgeFilesAlphabetically);
+                currentSort = 1;
+        }
+        else
+        {
+                sortFileSystemTree(library, compareEntryNatural);
+                currentSort = 0;
+        }
+
+        refresh = true;
+}
+
 void loadNextSong(void)
 {
         songLoading = true;

@@ -124,10 +124,10 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         c_strcpy(settings.enqueueAndPlay, "^M", sizeof(settings.enqueueAndPlay));
         c_strcpy(settings.hardAddToRadioFavorites, "F", sizeof(settings.hardAddToRadioFavorites));
         c_strcpy(settings.hardStop, "S", sizeof(settings.hardStop));
+        c_strcpy(settings.sortLibrary, "o", sizeof(settings.sortLibrary));
         c_strcpy(settings.quit, "q", sizeof(settings.quit));
         c_strcpy(settings.hardQuit, "\x1B", sizeof(settings.hardQuit));
         c_strcpy(settings.hardClearPlaylist, "\b", sizeof(settings.hardClearPlaylist));
-
 
         if (pairs == NULL)
         {
@@ -363,6 +363,11 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
                         if (strcmp(pair->value, "") != 0)
                                 snprintf(settings.enqueueAndPlay, sizeof(settings.enqueueAndPlay), "%s", pair->value);
                 }
+                else if (strcmp(lowercaseKey, "sort") == 0)
+                {
+                        if (strcmp(pair->value, "") != 0)
+                                snprintf(settings.sortLibrary, sizeof(settings.sortLibrary), "%s", pair->value);
+                }
                 else if (strcmp(lowercaseKey, "showkeysalt") == 0 && strcmp(pair->value, "B") != 0)
                 {
                         // We need to prevent the previous key B or else config files wont get updated
@@ -527,6 +532,7 @@ void mapSettingsToKeys(AppSettings *settings, UISettings *ui, EventMapping *mapp
         mappings[61] = (EventMapping){settings->enqueueAndPlay, EVENT_ENQUEUEANDPLAY};
         mappings[62] = (EventMapping){settings->hardStop, EVENT_STOP};
         mappings[63] = (EventMapping){settings->hardAddToRadioFavorites, EVENT_ADDTORADIOFAVORITES};
+        mappings[64] = (EventMapping){settings->sortLibrary, EVENT_SORTLIBRARY};
 }
 
 char *getConfigFilePath(char *configdir)
@@ -862,6 +868,7 @@ void setConfig(AppSettings *settings, UISettings *ui)
         fprintf(file, "moveSongUp=%s\n", settings->moveSongUp);
         fprintf(file, "moveSongDown=%s\n", settings->moveSongDown);
         fprintf(file, "enqueueAndPlay=%s\n", settings->enqueueAndPlay);
+        fprintf(file, "sortLibrary=%s\n", settings->sortLibrary);
 
         fprintf(file, "\n# Alt keys for the different main views, normally F2-F7:\n");
         fprintf(file, "showPlaylistAlt=%s\n", settings->showPlaylistAlt);
