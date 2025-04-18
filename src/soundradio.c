@@ -14,7 +14,6 @@ radio.c
 #define NI_MAXHOST 1025
 #define WAIT_TIMEOUT_SECONDS 3
 #define MAX_RECONNECT_RETRIES 20
-#define BUFFER_SIZE 8192
 
 typedef struct
 {
@@ -713,12 +712,16 @@ static ma_result decoder_read_callback(ma_decoder *decoder, void *pBufferOut, si
         size_t total_read = 0;
         unsigned char *out = (unsigned char *)pBufferOut;
 
+#ifndef __APPLE__
         int rc = pthread_mutex_lock(&(buf->mutex));
         if (rc == EOWNERDEAD)
         {
                 // Thread died without unlocking
                 pthread_mutex_consistent(&(buf->mutex));
         }
+#else
+        pthread_mutex_lock(&(buf->mutex));
+#endif
 
         while (total_read < bytesToRead)
         {
@@ -850,10 +853,15 @@ void freeCurrentlyPlayingRadioStation(void)
 
 void initRadioMutexes()
 {
+#ifndef __APPLE__
         pthread_mutexattr_t attr;
         pthread_mutexattr_init(&attr);
         pthread_mutexattr_setrobust(&attr, PTHREAD_MUTEX_ROBUST);
         pthread_mutex_init(&(radioContext.buf.mutex), &attr);
+#else
+        pthread_mutex_init(&(radioContext.buf.mutex), NULL);
+#endif
+
         pthread_cond_init(&(radioContext.buf.cond), NULL);
 }
 
@@ -866,12 +874,16 @@ void destroyRadioMutexes()
 
 int stopRadio(void)
 {
+#ifndef __APPLE__
         int rc = pthread_mutex_lock(&(radioContext.buf.mutex));
         if (rc == EOWNERDEAD)
         {
                 // Thread died without unlocking
                 pthread_mutex_consistent(&(radioContext.buf.mutex));
         }
+#else
+        pthread_mutex_lock(&(radioContext.buf.mutex));
+#endif
 
         radioContext.buf.eof = 1;
         radioContext.buf.stale = false;
