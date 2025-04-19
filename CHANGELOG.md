@@ -44,6 +44,8 @@
 
 - Fixed bug with previous track with shuffle enabled. Found by @GuyInAShack.
 
+- Fixed bug with moving songs around, there was a case where it wasn't rebuilding the chain and the wrong song would get played.
+
 ### 3.1.2
 
 - Fix radio search sometimes freezing because of an invalid radio station URL. Found by joel. by @ravachol.
