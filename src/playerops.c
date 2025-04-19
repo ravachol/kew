@@ -878,7 +878,7 @@ void moveSongUp()
 
         pthread_mutex_lock(&(playlist.mutex));
 
-        if (node != NULL && nextSong != NULL && currentSong != NULL)
+        if (node != NULL && currentSong != NULL)
         {
                 // Rebuild if current song, the next song or the song after are affected
                 if (currentSong != NULL)
@@ -949,7 +949,7 @@ void moveSongDown()
 
         pthread_mutex_lock(&(playlist.mutex));
 
-        if (node != NULL && nextSong != NULL && currentSong != NULL)
+        if (node != NULL && currentSong != NULL)
         {
                 // Rebuild if current song, the next song or the previous song are affected
                 if (currentSong != NULL)
