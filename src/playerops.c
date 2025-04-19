@@ -405,7 +405,7 @@ void toggleShuffle(void)
                 refresh = true;
 }
 
-void toggleBlocks(AppSettings *settings, UISettings *ui)
+void toggleAscii(AppSettings *settings, UISettings *ui)
 {
         ui->coverAnsi = !ui->coverAnsi;
         c_strcpy(settings->coverAnsi, ui->coverAnsi ? "1" : "0", sizeof(settings->coverAnsi));

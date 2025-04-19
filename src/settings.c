@@ -480,7 +480,7 @@ void mapSettingsToKeys(AppSettings *settings, UISettings *ui, EventMapping *mapp
         mappings[9] = (EventMapping){settings->hardQuit, EVENT_QUIT};
         mappings[10] = (EventMapping){settings->toggleShuffle, EVENT_SHUFFLE};
         mappings[11] = (EventMapping){settings->toggleVisualizer, EVENT_TOGGLEVISUALIZER};
-        mappings[12] = (EventMapping){settings->toggleAscii, EVENT_TOGGLEBLOCKS};
+        mappings[12] = (EventMapping){settings->toggleAscii, EVENT_TOGGLEASCII};
         mappings[13] = (EventMapping){settings->switchNumberedSong, EVENT_GOTOSONG};
         mappings[14] = (EventMapping){settings->seekBackward, EVENT_SEEKBACK};
         mappings[15] = (EventMapping){settings->seekForward, EVENT_SEEKFORWARD};
