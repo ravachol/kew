@@ -789,8 +789,8 @@ void handleInput(AppState *state)
         case EVENT_TOGGLEREPEAT:
                 toggleRepeat();
                 break;
-        case EVENT_TOGGLEBLOCKS:
-                toggleBlocks(&settings, &(state->uiSettings));
+        case EVENT_TOGGLEASCII:
+                toggleAscii(&settings, &(state->uiSettings));
                 break;
         case EVENT_SHUFFLE:
                 toggleShuffle();
