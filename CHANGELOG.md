@@ -2,6 +2,8 @@
 
 ### 3.2.0
 
+Now with a mini-player mode, a braille visualizer mode, a favorites list for radio stations, scrolling names that don't fit, the visualizer running at 60 fps, and much more!
+
 - New mini-player mode. Make the window small and it goes into this mode. Suggested by @HAPPIOcrz007.
 
 - The visualizer now runs at 60 fps instead of 10, making it much smoother. The rest of the ui runs slower much like before to save on system resources.
