@@ -615,6 +615,31 @@ enum EventType getMouseAction(int num)
         return value;
 }
 
+int mkdir_p(const char *path, mode_t mode) {
+    char tmp[PATH_MAX];
+    char *p = NULL;
+    size_t len;
+
+    snprintf(tmp, sizeof(tmp), "%s", path);
+    len = strlen(tmp);
+    if (tmp[len - 1] == '/')
+        tmp[len - 1] = 0;
+
+    for (p = tmp + 1; *p; p++) {
+        if (*p == '/') {
+            *p = 0;
+            if (mkdir(tmp, mode) == -1) {
+                if (errno != EEXIST) return -1;
+            }
+            *p = '/';
+        }
+    }
+    if (mkdir(tmp, mode) == -1) {
+        if (errno != EEXIST) return -1;
+    }
+    return 0;
+}
+
 void getConfig(AppSettings *settings, UISettings *ui)
 {
         int pair_count;
@@ -624,7 +649,7 @@ void getConfig(AppSettings *settings, UISettings *ui)
         struct stat st = {0};
         if (stat(configdir, &st) == -1)
         {
-                if (mkdir(configdir, 0700) != 0)
+                if (mkdir_p(configdir, 0700) != 0)
                 {
                         perror("mkdir");
                         exit(1);
