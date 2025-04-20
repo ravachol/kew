@@ -1171,7 +1171,7 @@ void printVisualizer(double elapsedSeconds, AppState *state)
 #ifndef __APPLE__
                 saveCursorPosition();
 #endif
-                drawSpectrumVisualizer(ui->visualizerHeight, uis->numProgressBars, ui->color, indent, ui->useConfigColors, ui->visualizerColorType);
+                drawSpectrumVisualizer(ui->visualizerHeight, uis->numProgressBars, ui->color, indent, ui->useConfigColors, ui->visualizerColorType, ui->visualizerBrailleMode);
                 printElapsedBars(calcElapsedBars(elapsedSeconds, duration, uis->numProgressBars), uis->numProgressBars, ui->color, ui->visualizerHeight, ui->useConfigColors);
                 printErrorRow();
                 printLastRow(&(state->uiSettings));

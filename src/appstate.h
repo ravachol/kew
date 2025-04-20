@@ -58,6 +58,7 @@ typedef struct
         bool allowNotifications;                        // Send desktop notifications or not
         int visualizerHeight;                           // Height in characters of the spectrum visualizer
         int visualizerColorType;                        // How colors are laid out in the spectrum visualizer
+        bool visualizerBrailleMode;                     // Display the visualizer using braille characteres
         int titleDelay;                                 // Delay when drawing title in track view
         int cacheLibrary;                               // Cache the library or not
         bool quitAfterStopping;                         // Exit kew when the music stops or not
@@ -203,6 +204,7 @@ typedef struct
         char hardStop[6];
         char hardAddToRadioFavorites[6];
         char sortLibrary[6];
+        char visualizerBrailleMode[2];
 } AppSettings;
 
 #endif

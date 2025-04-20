@@ -213,60 +213,65 @@ void fillSpectrumBars(
     float minFreq,
     float maxFreq)
 {
-    float *barFreqLo = (float *)malloc(sizeof(float) * numBars);
-    float *barFreqHi = (float *)malloc(sizeof(float) * numBars);
+        float *barFreqLo = (float *)malloc(sizeof(float) * numBars);
+        float *barFreqHi = (float *)malloc(sizeof(float) * numBars);
 
-    // Logarithmic spacing, tweakable curve
-    float logMin = log10f(minFreq);
-    float logMax = log10f(maxFreq);
+        // Logarithmic spacing, tweakable curve
+        float logMin = log10f(minFreq);
+        float logMax = log10f(maxFreq);
 
-    float spacingPower = 0.8f; // Closer to 1 = more even spacing
+        float spacingPower = 0.8f; // Closer to 1 = more even spacing
 
-    for (int i = 0; i < numBars; i++) {
-        float tLo = (float)i / numBars;
-        float tHi = (float)(i + 1) / numBars;
+        for (int i = 0; i < numBars; i++)
+        {
+                float tLo = (float)i / numBars;
+                float tHi = (float)(i + 1) / numBars;
 
-        // Slight bias toward lower freqs using power curve
-        float skewLo = powf(tLo, spacingPower);
-        float skewHi = powf(tHi, spacingPower);
+                // Slight bias toward lower freqs using power curve
+                float skewLo = powf(tLo, spacingPower);
+                float skewHi = powf(tHi, spacingPower);
 
-        barFreqLo[i] = powf(10.0f, logMin + (logMax - logMin) * skewLo);
-        barFreqHi[i] = powf(10.0f, logMin + (logMax - logMin) * skewHi);
-    }
-
-    memset(magnitudes, 0, sizeof(float) * numBars);
-    int *counts = (int *)calloc(numBars, sizeof(int));
-
-    int numBins = bufferSize / 2 + 1;
-
-    for (int k = 0; k < numBins; k++) {
-        float freq = (k * sampleRate) / (float)bufferSize;
-
-        if (freq < minFreq || freq > maxFreq)
-            continue;
-
-        // Find bar that contains this frequency
-        for (int i = 0; i < numBars; i++) {
-            if (freq >= barFreqLo[i] && freq < barFreqHi[i]) {
-                float real = fftOutput[k][0];
-                float imag = fftOutput[k][1];
-                float mag = sqrtf(real * real + imag * imag);
-
-                magnitudes[i] += mag;
-                counts[i]++;
-                break;
-            }
+                barFreqLo[i] = powf(10.0f, logMin + (logMax - logMin) * skewLo);
+                barFreqHi[i] = powf(10.0f, logMin + (logMax - logMin) * skewHi);
         }
-    }
 
-    for (int i = 0; i < numBars; i++) {
-        if (counts[i] > 0)
-            magnitudes[i] /= (float)counts[i];
-    }
+        memset(magnitudes, 0, sizeof(float) * numBars);
+        int *counts = (int *)calloc(numBars, sizeof(int));
 
-    free(barFreqLo);
-    free(barFreqHi);
-    free(counts);
+        int numBins = bufferSize / 2 + 1;
+
+        for (int k = 0; k < numBins; k++)
+        {
+                float freq = (k * sampleRate) / (float)bufferSize;
+
+                if (freq < minFreq || freq > maxFreq)
+                        continue;
+
+                // Find bar that contains this frequency
+                for (int i = 0; i < numBars; i++)
+                {
+                        if (freq >= barFreqLo[i] && (freq < barFreqHi[i] || (i == numBars - 1 && freq <= barFreqHi[i])))
+                        {
+                                float real = fftOutput[k][0];
+                                float imag = fftOutput[k][1];
+                                float mag = sqrtf(real * real + imag * imag);
+
+                                magnitudes[i] += mag;
+                                counts[i]++;
+                                break;
+                        }
+                }
+        }
+
+        for (int i = 0; i < numBars; i++)
+        {
+                if (counts[i] > 0)
+                        magnitudes[i] /= (float)counts[i];
+        }
+
+        free(barFreqLo);
+        free(barFreqHi);
+        free(counts);
 }
 
 void calc(int height, int numBars, ma_int32 *audioBuffer, int bitDepth, float *fftInput, fftwf_complex *fftOutput, float *magnitudes, fftwf_plan plan)
@@ -325,7 +330,7 @@ void calc(int height, int numBars, ma_int32 *audioBuffer, int bitDepth, float *f
 
         clearMagnitudes(numBars, magnitudes);
 
-        fillSpectrumBars(fftOutput, FFT_SIZE, sampleRate, magnitudes, numBars, 20.0f, 10000.0f);
+        fillSpectrumBars(fftOutput, FFT_SIZE, sampleRate, magnitudes, numBars, 20.0f, (float)(sampleRate / 2 > 48000 ? 48000 : sampleRate / 2));
 
         float maxMagnitude = calcMaxMagnitude(numBars, magnitudes);
 
@@ -336,16 +341,55 @@ void calc(int height, int numBars, ma_int32 *audioBuffer, int bitDepth, float *f
         smoothFrames(magnitudes, smoothedFramesMagnitudes, numBars, tweenFactor, tweenFactorFall);
 }
 
-char *upwardMotionChars[] = {
+char *upwardMotionCharsBlock[] = {
     " ", "▁", "▂", "▃", "▄", "▅", "▆", "▇", "█"};
 
-char *getUpwardMotionChar(int level)
+char *upwardMotionCharsBraille[] = {
+    " ", "⣀", "⣀", "⣤", "⣤", "⣶", "⣶", "⣿", "⣿"};
+
+char *inbetweenCharsRising[] = {
+    " ", "⣠", "⣠", "⣴", "⣴", "⣾", "⣾", "⣿", "⣿"};
+
+char *inbetweenCharsFalling[] = {
+    " ", "⡀", "⡀", "⣄", "⣄", "⣦", "⣦", "⣷", "⣷"};
+
+char *getUpwardMotionChar(int level, bool braille)
 {
         if (level < 0 || level > 8)
         {
                 level = 8;
         }
-        return upwardMotionChars[level];
+        if (braille)
+                return upwardMotionCharsBraille[level];
+        else
+                return upwardMotionCharsBlock[level];
+}
+
+char *getInbetweendMotionChar(float magnitudePrev, float magnitudeNext, int prev, int next)
+{
+        if (prev < 0)
+                prev = 0;
+        if (prev > 8)
+                prev = 8;
+        if (next < 0)
+                next = 0;
+        if (next > 8)
+                next = 8;
+
+        if (magnitudeNext > magnitudePrev)
+                return inbetweenCharsRising[prev];
+        else if (magnitudeNext < magnitudePrev)
+                return inbetweenCharsFalling[prev];
+        else
+                return upwardMotionCharsBraille[prev];
+}
+
+char *getInbetweenChar(float prev, float next)
+{
+        int firstDecimalDigit = (int)(fmod(prev * 10, 10));
+        int secondDecimalDigit = (int)(fmod(next * 10, 10));
+
+        return getInbetweendMotionChar(prev, next, firstDecimalDigit, secondDecimalDigit);
 }
 
 int calcSpectrum(int height, int numBars, float *fftInput, fftwf_complex *fftOutput, float *magnitudes, fftwf_plan plan)
@@ -397,7 +441,7 @@ PixelData increaseLuminosity(PixelData pixel, int amount)
         return pixel2;
 }
 
-void printSpectrum(int height, int numBars, float *magnitudes, PixelData color, int indentation, bool useConfigColors, int visualizerColorType)
+void printSpectrum(int height, int numBars, float *magnitudes, PixelData color, int indentation, bool useConfigColors, int visualizerColorType, int brailleMode)
 {
         printf("\n");
 
@@ -447,18 +491,43 @@ void printSpectrum(int height, int numBars, float *magnitudes, PixelData color, 
                                 printf("\033[38;2;%d;%d;%dm", tmp.r, tmp.g, tmp.b);
                         }
 
+                        if (i == 0 && brailleMode)
+                        {
+                                printf(" ");
+                        }
+                        else if (i > 0 && brailleMode)
+                        {
+                                if (magnitudes[i - 1] >= j)
+                                {
+                                        printf("%s", getUpwardMotionChar(10, brailleMode));
+                                }
+                                else if (magnitudes[i - 1] + 1 >= j)
+                                {
+                                        printf("%s", getInbetweenChar(magnitudes[i - 1], magnitudes[i]));
+                                }
+                                else
+                                {
+                                        printf(" ");
+                                }
+                        }
+
+                        if (!brailleMode)
+                        {
+                                printf(" ");
+                        }
+
                         if (magnitudes[i] >= j)
                         {
-                                printf(" %s", getUpwardMotionChar(10));
+                                printf("%s", getUpwardMotionChar(10, brailleMode));
                         }
                         else if (magnitudes[i] + 1 >= j)
                         {
                                 int firstDecimalDigit = (int)(fmod(magnitudes[i] * 10, 10));
-                                printf(" %s", getUpwardMotionChar(firstDecimalDigit));
+                                printf("%s", getUpwardMotionChar(firstDecimalDigit, brailleMode));
                         }
                         else
                         {
-                                printf("  ");
+                                printf(" ");
                         }
                 }
                 printf("\n ");
@@ -486,7 +555,7 @@ void freeVisuals(void)
         }
 }
 
-void drawSpectrumVisualizer(int height, int numBars, PixelData c, int indentation, bool useConfigColors, int visualizerColorType)
+void drawSpectrumVisualizer(int height, int numBars, PixelData c, int indentation, bool useConfigColors, int visualizerColorType, bool brailleMode)
 {
         PixelData color;
         color.r = c.r;
@@ -563,7 +632,7 @@ void drawSpectrumVisualizer(int height, int numBars, PixelData c, int indentatio
 
         calcSpectrum(height, numBars, fftInput, fftOutput, magnitudes, plan);
 
-        printSpectrum(height, numBars, smoothedFramesMagnitudes, color, indentation, useConfigColors, visualizerColorType);
+        printSpectrum(height, numBars, smoothedFramesMagnitudes, color, indentation, useConfigColors, visualizerColorType, brailleMode);
 
         fftwf_destroy_plan(plan);
 }
