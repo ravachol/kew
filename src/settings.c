@@ -39,6 +39,7 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         c_strcpy(settings.quitAfterStopping, "0", sizeof(settings.quitAfterStopping));
         c_strcpy(settings.hideGlimmeringText, "0", sizeof(settings.hideGlimmeringText));
         c_strcpy(settings.mouseEnabled, "1", sizeof(settings.mouseEnabled));
+        c_strcpy(settings.visualizerBrailleMode, "0", sizeof(settings.visualizerBrailleMode));
 #ifdef __APPLE__
         c_strcpy(settings.visualizerEnabled, "0", sizeof(settings.visualizerEnabled)); // Visualizer looks wonky in default terminal
         c_strcpy(settings.useConfigColors, "1", sizeof(settings.useConfigColors));     // Colors from album look wrong in default terminal
@@ -271,6 +272,10 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
                 else if (strcmp(lowercaseKey, "mouseenabled") == 0)
                 {
                         snprintf(settings.mouseEnabled, sizeof(settings.mouseEnabled), "%s", pair->value);
+                }
+                else if (strcmp(lowercaseKey, "visualizerbraillemode") == 0)
+                {
+                        snprintf(settings.visualizerBrailleMode, sizeof(settings.visualizerBrailleMode), "%s", pair->value);
                 }
                 else if (strcmp(lowercaseKey, "mouseleftclickaction") == 0)
                 {
@@ -610,6 +615,31 @@ enum EventType getMouseAction(int num)
         return value;
 }
 
+int mkdir_p(const char *path, mode_t mode) {
+    char tmp[PATH_MAX];
+    char *p = NULL;
+    size_t len;
+
+    snprintf(tmp, sizeof(tmp), "%s", path);
+    len = strlen(tmp);
+    if (tmp[len - 1] == '/')
+        tmp[len - 1] = 0;
+
+    for (p = tmp + 1; *p; p++) {
+        if (*p == '/') {
+            *p = 0;
+            if (mkdir(tmp, mode) == -1) {
+                if (errno != EEXIST) return -1;
+            }
+            *p = '/';
+        }
+    }
+    if (mkdir(tmp, mode) == -1) {
+        if (errno != EEXIST) return -1;
+    }
+    return 0;
+}
+
 void getConfig(AppSettings *settings, UISettings *ui)
 {
         int pair_count;
@@ -619,7 +649,7 @@ void getConfig(AppSettings *settings, UISettings *ui)
         struct stat st = {0};
         if (stat(configdir, &st) == -1)
         {
-                if (mkdir(configdir, 0700) != 0)
+                if (mkdir_p(configdir, 0700) != 0)
                 {
                         perror("mkdir");
                         exit(1);
@@ -641,6 +671,7 @@ void getConfig(AppSettings *settings, UISettings *ui)
         ui->quitAfterStopping = (settings->quitAfterStopping[0] == '1');
         ui->hideGlimmeringText = (settings->hideGlimmeringText[0] == '1');
         ui->mouseEnabled = (settings->mouseEnabled[0] == '1');
+        ui->visualizerBrailleMode = (settings->visualizerBrailleMode[0] == '1');
         ui->hideLogo = (settings->hideLogo[0] == '1');
         ui->hideHelp = (settings->hideHelp[0] == '1');
 
@@ -752,6 +783,8 @@ void setConfig(AppSettings *settings, UISettings *ui)
                 ui->hideGlimmeringText ? c_strcpy(settings->hideGlimmeringText, "1", sizeof(settings->hideGlimmeringText)) : c_strcpy(settings->hideGlimmeringText, "0", sizeof(settings->hideGlimmeringText));
         if (settings->mouseEnabled[0] == '\0')
                 ui->mouseEnabled ? c_strcpy(settings->mouseEnabled, "1", sizeof(settings->mouseEnabled)) : c_strcpy(settings->mouseEnabled, "0", sizeof(settings->mouseEnabled));
+        if (settings->visualizerBrailleMode[0] == '\0')
+                ui->visualizerBrailleMode ? c_strcpy(settings->visualizerBrailleMode, "1", sizeof(settings->visualizerBrailleMode)) : c_strcpy(settings->visualizerBrailleMode, "0", sizeof(settings->visualizerBrailleMode));
         if (settings->hideLogo[0] == '\0')
                 ui->hideLogo ? c_strcpy(settings->hideLogo, "1", sizeof(settings->hideLogo)) : c_strcpy(settings->hideLogo, "0", sizeof(settings->hideLogo));
         if (settings->hideHelp[0] == '\0')
@@ -804,6 +837,7 @@ void setConfig(AppSettings *settings, UISettings *ui)
         fprintf(file, "visualizerHeight=%s\n", settings->visualizerHeight);
         fprintf(file, "# How colors are laid out in the spectrum visualizer. 0=default, 1=brightness depending on bar height, 2=reversed.\n");
         fprintf(file, "visualizerColorType=%s\n", settings->visualizerColorType);
+        fprintf(file, "visualizerBrailleMode=%s\n", settings->visualizerBrailleMode);
         fprintf(file, "useConfigColors=%s\n", settings->useConfigColors);
         fprintf(file, "allowNotifications=%s\n", settings->allowNotifications);
         fprintf(file, "hideLogo=%s\n", settings->hideLogo);

@@ -1750,6 +1750,7 @@ void initState(AppState *state)
         state->uiSettings.visualizerHeight = 5;
         state->uiSettings.visualizerColorType = 0;
         state->uiSettings.titleDelay = 9;
+        state->uiSettings.visualizerBrailleMode = false;
         state->uiSettings.cacheLibrary = -1;
         state->uiSettings.useConfigColors = false;
         state->uiSettings.mouseEnabled = true;

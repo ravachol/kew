@@ -33,7 +33,7 @@ ifeq ($(UNAME_S), Darwin)
     endif
 else
     PREFIX ?= /usr
-    PKG_CONFIG_PATH := /usr/lib/pkgconfig:/usr/share/pkgconfig:$(PKG_CONFIG_PATH)
+    PKG_CONFIG_PATH := /usr/lib/x86_64-linux-gnu/pkgconfig:/usr/lib/pkgconfig:/usr/share/pkgconfig:$(PKG_CONFIG_PATH)
 endif
 
 # Default USE_FAAD to auto-detect if not set by user
