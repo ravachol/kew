@@ -615,29 +615,50 @@ enum EventType getMouseAction(int num)
         return value;
 }
 
-int mkdir_p(const char *path, mode_t mode) {
-    char tmp[PATH_MAX];
-    char *p = NULL;
-    size_t len;
+int mkdir_p(const char *path, mode_t mode)
+{
+        if (path == NULL)
+                return -1;
 
-    snprintf(tmp, sizeof(tmp), "%s", path);
-    len = strlen(tmp);
-    if (tmp[len - 1] == '/')
-        tmp[len - 1] = 0;
-
-    for (p = tmp + 1; *p; p++) {
-        if (*p == '/') {
-            *p = 0;
-            if (mkdir(tmp, mode) == -1) {
-                if (errno != EEXIST) return -1;
-            }
-            *p = '/';
+        if (path[0] == '~')
+        {
+                // Just try a plain mkdir if there's a tilde
+                if (mkdir(path, mode) == -1)
+                {
+                        if (errno != EEXIST)
+                                return -1;
+                }
+                return 0;
         }
-    }
-    if (mkdir(tmp, mode) == -1) {
-        if (errno != EEXIST) return -1;
-    }
-    return 0;
+
+        char tmp[PATH_MAX];
+        char *p = NULL;
+        size_t len;
+
+        snprintf(tmp, sizeof(tmp), "%s", path);
+        len = strlen(tmp);
+        if (len > 0 && tmp[len - 1] == '/')
+                tmp[len - 1] = 0;
+
+        for (p = tmp + 1; *p; p++)
+        {
+                if (*p == '/')
+                {
+                        *p = 0;
+                        if (mkdir(tmp, mode) == -1)
+                        {
+                                if (errno != EEXIST)
+                                        return -1;
+                        }
+                        *p = '/';
+                }
+        }
+        if (mkdir(tmp, mode) == -1)
+        {
+                if (errno != EEXIST)
+                        return -1;
+        }
+        return 0;
 }
 
 void getConfig(AppSettings *settings, UISettings *ui)
