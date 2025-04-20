@@ -90,6 +90,17 @@ Notes for mac users:
 1) A sixel-capable terminal like kitty or WezTerm is recommended for macOS.
 2) The visualizer and album colors are disabled by default on macOS, because the default terminal doesn't handle them too well. To enable press v and i respectively.
 
+#### For Windows (WSL):
+
+1) Install Windows Subsystem for Linux (WSL).
+
+2) Install kew using the instructions for Ubuntu.
+
+3) If you are running Windows 11, Pulseaudio should work out of the box, but if you are running Windows 10, use the instructions below for installing PulseAudio:
+https://www.reddit.com/r/bashonubuntuonwindows/comments/hrn1lz/wsl_sound_through_pulseaudio_solved/
+
+4) To install Pulseaudio as a service on Windows 10, follow the instructions at the bottom in this guide: https://www.linuxuprising.com/2021/03/how-to-get-sound-pulseaudio-to-work-on.html
+
 #### For Fedora:
 
 ```bash
