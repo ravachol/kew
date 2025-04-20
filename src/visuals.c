@@ -250,7 +250,7 @@ void fillSpectrumBars(
                 // Find bar that contains this frequency
                 for (int i = 0; i < numBars; i++)
                 {
-                        if (freq >= barFreqLo[i] && freq < barFreqHi[i])
+                        if (freq >= barFreqLo[i] && (freq < barFreqHi[i] || (i == numBars - 1 && freq <= barFreqHi[i])))
                         {
                                 float real = fftOutput[k][0];
                                 float imag = fftOutput[k][1];
@@ -330,7 +330,7 @@ void calc(int height, int numBars, ma_int32 *audioBuffer, int bitDepth, float *f
 
         clearMagnitudes(numBars, magnitudes);
 
-        fillSpectrumBars(fftOutput, FFT_SIZE, sampleRate, magnitudes, numBars, 20.0f, 10000.0f);
+        fillSpectrumBars(fftOutput, FFT_SIZE, sampleRate, magnitudes, numBars, 20.0f, (float)(sampleRate / 2 > 48000 ? 48000 : sampleRate / 2));
 
         float maxMagnitude = calcMaxMagnitude(numBars, magnitudes);
 
@@ -367,17 +367,21 @@ char *getUpwardMotionChar(int level, bool braille)
 
 char *getInbetweendMotionChar(float magnitudePrev, float magnitudeNext, int prev, int next)
 {
-    if (prev < 0) prev = 0;
-    if (prev > 8) prev = 8;
-    if (next < 0) next = 0;
-    if (next > 8) next = 8;
+        if (prev < 0)
+                prev = 0;
+        if (prev > 8)
+                prev = 8;
+        if (next < 0)
+                next = 0;
+        if (next > 8)
+                next = 8;
 
-    if (magnitudeNext > magnitudePrev)
-        return inbetweenCharsRising[prev];
-    else if (magnitudeNext < magnitudePrev)
-        return inbetweenCharsFalling[prev];
-    else
-        return upwardMotionCharsBraille[prev];
+        if (magnitudeNext > magnitudePrev)
+                return inbetweenCharsRising[prev];
+        else if (magnitudeNext < magnitudePrev)
+                return inbetweenCharsFalling[prev];
+        else
+                return upwardMotionCharsBraille[prev];
 }
 
 char *getInbetweenChar(float prev, float next)
@@ -482,24 +486,24 @@ void printSpectrum(int height, int numBars, float *magnitudes, PixelData color, 
                         if (!useConfigColors && visualizerColorType == 1)
                         {
                                 tmp = (PixelData){color.r / 2, color.g / 2, color.b / 2}; // Make colors half as bright before increasing brightness
-                                tmp = increaseLuminosity(tmp, round(magnitudes[i] * 10 * 6));
+                                tmp = increaseLuminosity(tmp, round(magnitudes[i] * 10 * 4));
 
                                 printf("\033[38;2;%d;%d;%dm", tmp.r, tmp.g, tmp.b);
                         }
 
                         if (i == 0 && brailleMode)
                         {
-                        printf(" ");
+                                printf(" ");
                         }
                         else if (i > 0 && brailleMode)
                         {
-                                if (magnitudes[i-1] >= j)
+                                if (magnitudes[i - 1] >= j)
                                 {
                                         printf("%s", getUpwardMotionChar(10, brailleMode));
                                 }
-                                else if (magnitudes[i-1] + 1 >= j)
+                                else if (magnitudes[i - 1] + 1 >= j)
                                 {
-                                        printf("%s", getInbetweenChar(magnitudes[i-1], magnitudes[i]));
+                                        printf("%s", getInbetweenChar(magnitudes[i - 1], magnitudes[i]));
                                 }
                                 else
                                 {
