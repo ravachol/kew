@@ -6,6 +6,8 @@
 
 - The visualizer now runs at 60 fps instead of 10, making it much smoother. The rest of the ui runs slower much like before to save on system resources.
 
+- The visualizer can now be shown in braille mode (visualizerBrailleMode option in kewrc config file).
+
 - Now shows sample rate and if relevant, bitrate, in track view.
 
 - A favorites list for radio stations. It's visible when the radio search field is empty.

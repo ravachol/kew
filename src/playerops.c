@@ -1240,9 +1240,6 @@ FileSystemEntry *enqueueSongs(FileSystemEntry *entry, UIState *uis)
 
 void handleRemove(void)
 {
-        if (refresh)
-                return;
-
         if (appState.currentView == RADIOSEARCH_VIEW)
         {
                 RadioSearchResult *station = getCurrentRadioSearchEntry();
