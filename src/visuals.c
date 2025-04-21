@@ -42,8 +42,8 @@ float rangeAttack = 0.4f;
 
 float maxMagnitude = 0.0f;
 
-float tweenFactor = 0.20f;
-float tweenFactorFall = 0.10f;
+float tweenFactor = 0.26f;
+float tweenFactorFall = 0.16f;
 
 #define MOVING_AVERAGE_WINDOW_SIZE 2
 
@@ -555,12 +555,20 @@ void freeVisuals(void)
         }
 }
 
-void drawSpectrumVisualizer(int height, int numBars, PixelData c, int indentation, bool useConfigColors, int visualizerColorType, bool brailleMode)
+void drawSpectrumVisualizer(AppState *state, int indentation)
 {
+        int height = state->uiSettings.visualizerHeight;
         PixelData color;
-        color.r = c.r;
-        color.g = c.g;
-        color.b = c.b;
+        color.r = state->uiSettings.color.r;
+        color.g = state->uiSettings.color.g;
+        color.b = state->uiSettings.color.b;
+
+        int numBars = state->uiState.numProgressBars;
+        bool useConfigColors = state->uiSettings.useConfigColors;
+        int visualizerColorType = state->uiSettings.visualizerColorType;
+        bool brailleMode = state->uiSettings.visualizerBrailleMode;
+        tweenFactor = state->uiSettings.tweenFactor;
+        tweenFactorFall = state->uiSettings.tweenFactorFall;
 
         height = height - 1;
 

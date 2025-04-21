@@ -40,6 +40,8 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         c_strcpy(settings.hideGlimmeringText, "0", sizeof(settings.hideGlimmeringText));
         c_strcpy(settings.mouseEnabled, "1", sizeof(settings.mouseEnabled));
         c_strcpy(settings.visualizerBrailleMode, "0", sizeof(settings.visualizerBrailleMode));
+        c_strcpy(settings.tweenFactor, "0.26", sizeof(settings.tweenFactor));
+        c_strcpy(settings.tweenFactorFall, "0.16", sizeof(settings.tweenFactor));
 #ifdef __APPLE__
         c_strcpy(settings.visualizerEnabled, "0", sizeof(settings.visualizerEnabled)); // Visualizer looks wonky in default terminal
         c_strcpy(settings.useConfigColors, "1", sizeof(settings.useConfigColors));     // Colors from album look wrong in default terminal
@@ -372,6 +374,16 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
                 {
                         if (strcmp(pair->value, "") != 0)
                                 snprintf(settings.sortLibrary, sizeof(settings.sortLibrary), "%s", pair->value);
+                }
+                else if (strcmp(lowercaseKey, "tweenfactor") == 0)
+                {
+                        if (strcmp(pair->value, "") != 0)
+                                snprintf(settings.tweenFactor, sizeof(settings.tweenFactor), "%s", pair->value);
+                }
+                else if (strcmp(lowercaseKey, "tweenfactorfall") == 0)
+                {
+                        if (strcmp(pair->value, "") != 0)
+                                snprintf(settings.tweenFactorFall, sizeof(settings.tweenFactorFall), "%s", pair->value);
                 }
                 else if (strcmp(lowercaseKey, "showkeysalt") == 0 && strcmp(pair->value, "B") != 0)
                 {
@@ -767,6 +779,14 @@ void getConfig(AppSettings *settings, UISettings *ui)
         if (tmp >= 0)
                 ui->cacheLibrary = tmp;
 
+        float tmpFloat = getFloat(settings->tweenFactor);
+        if (tmpFloat >= 0.0f)
+                ui->tweenFactor = tmpFloat;
+
+        tmpFloat = getFloat(settings->tweenFactorFall);
+        if (tmpFloat >= 0.0f)
+                ui->tweenFactorFall  = tmpFloat;
+
         getMusicLibraryPath(settings->path);
         free(configdir);
 }
@@ -813,6 +833,11 @@ void setConfig(AppSettings *settings, UISettings *ui)
 
         if (settings->visualizerHeight[0] == '\0')
                 snprintf(settings->visualizerHeight, sizeof(settings->visualizerHeight), "%d", ui->visualizerHeight);
+        if (settings->tweenFactor[0] == '\0')
+                snprintf(settings->tweenFactor, sizeof(settings->tweenFactor), "%.2f", ui->tweenFactor);
+        if (settings->tweenFactorFall[0] == '\0')
+                snprintf(settings->tweenFactorFall, sizeof(settings->tweenFactorFall), "%.2f", ui->tweenFactorFall);
+        if (settings->visualizerColorType[0] == '\0')
         if (settings->visualizerColorType[0] == '\0')
                 snprintf(settings->visualizerColorType, sizeof(settings->visualizerColorType), "%d", ui->visualizerColorType);
         if (settings->titleDelay[0] == '\0')
@@ -859,6 +884,9 @@ void setConfig(AppSettings *settings, UISettings *ui)
         fprintf(file, "# How colors are laid out in the spectrum visualizer. 0=default, 1=brightness depending on bar height, 2=reversed.\n");
         fprintf(file, "visualizerColorType=%s\n", settings->visualizerColorType);
         fprintf(file, "visualizerBrailleMode=%s\n", settings->visualizerBrailleMode);
+        fprintf(file, "# How fast the visualizer moves (higher values = faster) Normal values: 0.26 and 0.16.\n");
+        fprintf(file, "tweenFactor=%s\n", settings->tweenFactor);
+        fprintf(file, "tweenFactorFall=%s\n", settings->tweenFactorFall);
         fprintf(file, "useConfigColors=%s\n", settings->useConfigColors);
         fprintf(file, "allowNotifications=%s\n", settings->allowNotifications);
         fprintf(file, "hideLogo=%s\n", settings->hideLogo);

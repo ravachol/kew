@@ -24,6 +24,6 @@ void initVisuals(void);
 
 void freeVisuals(void);
 
-void drawSpectrumVisualizer(int height, int width, PixelData c, int indentation, bool useConfigColors, int visualizerColorType, bool brailleMode);
+void drawSpectrumVisualizer(AppState *state, int indentation);
 
 PixelData increaseLuminosity(PixelData pixel, int amount);
