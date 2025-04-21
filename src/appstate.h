@@ -64,6 +64,8 @@ typedef struct
         bool quitAfterStopping;                         // Exit kew when the music stops or not
         bool hideGlimmeringText;                        // Glimmering text on the bottom row
         time_t lastTimeAppRan;                          // When did this app run last, used for updating the cached library if it has been modified since that time
+        float tweenFactor;                              // How fast the bars in the visualizer rise (higher value = faster)
+        float tweenFactorFall;                          // How fast the bars in the visualizer fall (higher value = faster)
 } UISettings;
 
 typedef struct
@@ -205,6 +207,8 @@ typedef struct
         char hardAddToRadioFavorites[6];
         char sortLibrary[6];
         char visualizerBrailleMode[2];
+        char tweenFactor[12];
+        char tweenFactorFall[12];
 } AppSettings;
 
 #endif

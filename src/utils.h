@@ -10,6 +10,7 @@
 #include <ctype.h>
 #include <errno.h>
 #include <glib.h>
+#include <math.h>
 #include <pwd.h>
 #include <regex.h>
 #include <stdbool.h>
@@ -65,5 +66,7 @@ void printBlankSpaces(int numSpaces);
 int getNumber(const char *str);
 
 char *getFilePath(const char *filename);
+
+float getFloat(const char *str);
 
 #endif
