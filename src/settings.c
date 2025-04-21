@@ -42,6 +42,7 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         c_strcpy(settings.visualizerBrailleMode, "0", sizeof(settings.visualizerBrailleMode));
         c_strcpy(settings.tweenFactor, "0.26", sizeof(settings.tweenFactor));
         c_strcpy(settings.tweenFactorFall, "0.16", sizeof(settings.tweenFactor));
+        c_strcpy(settings.progressBarType, "0", sizeof(settings.progressBarType));
 #ifdef __APPLE__
         c_strcpy(settings.visualizerEnabled, "0", sizeof(settings.visualizerEnabled)); // Visualizer looks wonky in default terminal
         c_strcpy(settings.useConfigColors, "1", sizeof(settings.useConfigColors));     // Colors from album look wrong in default terminal
@@ -384,6 +385,11 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
                 {
                         if (strcmp(pair->value, "") != 0)
                                 snprintf(settings.tweenFactorFall, sizeof(settings.tweenFactorFall), "%s", pair->value);
+                }
+                else if (strcmp(lowercaseKey, "progressbartype") == 0)
+                {
+                        if (strcmp(pair->value, "") != 0)
+                                snprintf(settings.progressBarType, sizeof(settings.progressBarType), "%s", pair->value);
                 }
                 else if (strcmp(lowercaseKey, "showkeysalt") == 0 && strcmp(pair->value, "B") != 0)
                 {
@@ -764,8 +770,12 @@ void getConfig(AppSettings *settings, UISettings *ui)
                 ui->visualizerHeight = tmp;
 
         tmp = getNumber(settings->visualizerColorType);
-        if (tmp > 0)
+        if (tmp >= 0)
                 ui->visualizerColorType = tmp;
+
+        tmp = getNumber(settings->progressBarType);
+        if (tmp >= 0)
+                ui->progressBarType = tmp;
 
         tmp = getNumber(settings->titleDelay);
         if (tmp >= 0)
@@ -838,8 +848,9 @@ void setConfig(AppSettings *settings, UISettings *ui)
         if (settings->tweenFactorFall[0] == '\0')
                 snprintf(settings->tweenFactorFall, sizeof(settings->tweenFactorFall), "%.2f", ui->tweenFactorFall);
         if (settings->visualizerColorType[0] == '\0')
-        if (settings->visualizerColorType[0] == '\0')
                 snprintf(settings->visualizerColorType, sizeof(settings->visualizerColorType), "%d", ui->visualizerColorType);
+        if (settings->progressBarType[0] == '\0')
+                snprintf(settings->progressBarType, sizeof(settings->progressBarType), "%d", ui->progressBarType);
         if (settings->titleDelay[0] == '\0')
                 snprintf(settings->titleDelay, sizeof(settings->titleDelay), "%d", ui->titleDelay);
         if (settings->cacheLibrary[0] == '\0')
@@ -876,7 +887,7 @@ void setConfig(AppSettings *settings, UISettings *ui)
         // Write the settings to the file
         fprintf(file, "# Make sure that kew is closed before editing this file in order for changes to take effect.\n\n");
 
-        fprintf(file, "#[MISCELLANEOUS]\n");
+        fprintf(file, "[miscellaneous]\n");
         fprintf(file, "path=%s\n", settings->path);
         fprintf(file, "version=%s\n", VERSION);
         fprintf(file, "allowNotifications=%s\n", settings->allowNotifications);
@@ -896,7 +907,7 @@ void setConfig(AppSettings *settings, UISettings *ui)
         fprintf(file, "# Glimmering text on the bottom row.\n");
         fprintf(file, "hideGlimmeringText=%s\n\n", settings->hideGlimmeringText);
 
-        fprintf(file, "#[VISUALIZER]\n");
+        fprintf(file, "[visualizer]\n");
         fprintf(file, "visualizerEnabled=%s\n", settings->visualizerEnabled);
         fprintf(file, "visualizerHeight=%s\n", settings->visualizerHeight);
         fprintf(file, "visualizerBrailleMode=%s\n\n", settings->visualizerBrailleMode);
@@ -908,7 +919,10 @@ void setConfig(AppSettings *settings, UISettings *ui)
         fprintf(file, "tweenFactor=%s\n", settings->tweenFactor);
         fprintf(file, "tweenFactorFall=%s\n\n", settings->tweenFactorFall);
 
-        fprintf(file, "#[COLORS]\n\n");
+        fprintf(file, "# How the progress bar looks. 0=Dots, 1=Line\n");
+        fprintf(file, "progressBarType=%s\n\n", settings->progressBarType);
+
+        fprintf(file, "[colors]\n\n");
 
         fprintf(file, "# Use the configuration file colors below\n");
         fprintf(file, "useConfigColors=%s\n\n", settings->useConfigColors);
@@ -928,11 +942,11 @@ void setConfig(AppSettings *settings, UISettings *ui)
         fprintf(file, "# Color of enqueued songs in library view:\n");
         fprintf(file, "enqueuedColor=%s\n\n", settings->enqueuedColor);
 
-        fprintf(file, "#[TRACK COVER]\n");
+        fprintf(file, "[track cover]\n");
         fprintf(file, "coverEnabled=%s\n", settings->coverEnabled);
         fprintf(file, "coverAnsi=%s\n\n", settings->coverAnsi);
 
-        fprintf(file, "#[MOUSE]\n");
+        fprintf(file, "[mouse]\n");
         fprintf(file, "mouseEnabled=%s\n\n", settings->mouseEnabled);
 
         fprintf(file, "# Mouse actions are 0=none, 1=select song, 2=toggle pause, 3=scroll up, 4=scroll down, 5=seek forward, 6=seek backward, 7=volume up, 8=volume down, 9=switch to next view, 10=switch to previous view\n");
@@ -946,7 +960,7 @@ void setConfig(AppSettings *settings, UISettings *ui)
         fprintf(file, "mouseAltScrollUpAction=%s\n", settings->mouseAltScrollUpAction);
         fprintf(file, "mouseAltScrollDownAction=%s\n\n", settings->mouseAltScrollDownAction);
 
-        fprintf(file, "#[KEY BINDINGS]\n");
+        fprintf(file, "[key bindings]\n");
         fprintf(file, "volumeUp=%s\n", settings->volumeUp);
         fprintf(file, "volumeUpAlt=%s\n", settings->volumeUpAlt);
         fprintf(file, "volumeDown=%s\n", settings->volumeDown);

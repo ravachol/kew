@@ -542,13 +542,11 @@ void calcIndent(SongData *songdata)
         }
 }
 
-void printGlimmeringText(char *text, int textLength, char *nerdFontText, PixelData color)
+void printGlimmeringText(char *text, int textLength, char *nerdFontText, PixelData color, int indent)
 {
         int brightIndex = 0;
         PixelData vbright = increaseLuminosity(color, 120);
         PixelData bright = increaseLuminosity(color, 60);
-
-        printBlankSpaces(calcIndentNormal());
 
         while (brightIndex < textLength)
         {
@@ -707,7 +705,7 @@ void printLastRow(UISettings *ui)
         int randomNumber = getRandomNumber(1, 808);
 
         if (randomNumber == 808 && !ui->hideGlimmeringText)
-                printGlimmeringText(text, textLength, nerdFontText, lastRowColor);
+                printGlimmeringText(text, textLength, nerdFontText, lastRowColor, indent);
         else
         {
                 printBlankSpaces(indent);
@@ -1122,6 +1120,41 @@ void resetRadioSearchResult(void)
         chosenRadioSearchResultRow = 0;
 }
 
+void printElapsedLine(int elapsedBars, int numProgressBars, PixelData color, bool useConfigColors)
+{
+        printBlankSpaces(indent);
+        printf(" ");
+        for (int i = 0; i < numProgressBars; i++)
+        {
+                if (i > elapsedBars)
+                {
+                        if (!useConfigColors)
+                        {
+                                PixelData tmp = increaseLuminosity(color, 50);
+                                printf("\033[38;2;%d;%d;%dm", tmp.r, tmp.g, tmp.b);
+                        }
+                        else
+                        {
+                                setTextColorRGB(lastRowColor.r, lastRowColor.g, lastRowColor.b);
+                        }
+                        printf("─");
+                }
+                else if (i <= elapsedBars)
+                {
+                        if (!useConfigColors)
+                        {
+                                printf("\033[38;2;%d;%d;%dm", color.r, color.g, color.b);
+                        }
+                        else
+                        {
+                                setDefaultTextColor();
+                        }
+
+                        printf("─");
+                }
+        }
+}
+
 void printElapsedBars(int elapsedBars, int numProgressBars, PixelData color, int height, bool useConfigColors)
 {
         if (!useConfigColors)
@@ -1172,7 +1205,11 @@ void printVisualizer(double elapsedSeconds, AppState *state)
                 saveCursorPosition();
 #endif
                 drawSpectrumVisualizer(state, indent);
-                printElapsedBars(calcElapsedBars(elapsedSeconds, duration, uis->numProgressBars), uis->numProgressBars, ui->color, ui->visualizerHeight, ui->useConfigColors);
+
+                if (ui->progressBarType == 1)
+                        printElapsedLine(calcElapsedBars(elapsedSeconds, duration, uis->numProgressBars * 2), uis->numProgressBars * 2, ui->color, ui->useConfigColors);
+                else
+                        printElapsedBars(calcElapsedBars(elapsedSeconds, duration, uis->numProgressBars), uis->numProgressBars, ui->color, ui->visualizerHeight, ui->useConfigColors);
                 printErrorRow();
                 printLastRow(&(state->uiSettings));
 #ifndef __APPLE__
