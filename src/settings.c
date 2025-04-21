@@ -910,7 +910,7 @@ void setConfig(AppSettings *settings, UISettings *ui)
 
         fprintf(file, "#[COLORS]\n\n");
 
-        fprintf(file, "# Use to colors below\n");
+        fprintf(file, "# Use the configuration file colors below\n");
         fprintf(file, "useConfigColors=%s\n\n", settings->useConfigColors);
 
         fprintf(file, "# Color values are 0=Black, 1=Red, 2=Green, 3=Yellow, 4=Blue, 5=Magenta, 6=Cyan, 7=White\n");
