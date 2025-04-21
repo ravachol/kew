@@ -1589,7 +1589,7 @@ void exitIfAlreadyRunning()
                         fclose(pidfile);
                         if (isProcessRunning(pid))
                         {
-                                fprintf(stderr, "An instance of kew is already running. Pid: %d.\n", pid);
+                                fprintf(stderr, "An instance of kew is already running. Pid: %d. Type 'kill %d' to remove it.\n", pid, pid);
                                 exit(1);
                         }
                         else
@@ -1756,6 +1756,7 @@ void initState(AppState *state)
         state->uiSettings.cacheLibrary = -1;
         state->uiSettings.useConfigColors = false;
         state->uiSettings.mouseEnabled = true;
+        state->uiSettings.progressBarType = 0;
         state->uiState.numDirectoryTreeEntries = 0;
         state->uiState.numProgressBars = 35;
         state->uiState.chosenNodeId = 0;

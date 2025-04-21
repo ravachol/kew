@@ -166,6 +166,7 @@ https://www.reddit.com/r/bashonubuntuonwindows/comments/hrn1lz/wsl_sound_through
 
 4) To install Pulseaudio as a service on Windows 10, follow the instructions at the bottom in this guide: https://www.linuxuprising.com/2021/03/how-to-get-sound-pulseaudio-to-work-on.html
 
+
 ### Uninstalling
 
 If you installed kew manually, simply run:

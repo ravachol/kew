@@ -10,6 +10,8 @@ Now with a mini-player mode, a braille visualizer mode, a favorites list for rad
 
 - The visualizer can now be shown in braille mode (visualizerBrailleMode option in kewrc config file).
 
+- Track progress can now be shown as a thin line instead of dots.
+
 - Now shows sample rate and if relevant, bitrate, in track view.
 
 - A favorites list for radio stations. It's visible when the radio search field is empty.
