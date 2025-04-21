@@ -876,59 +876,77 @@ void setConfig(AppSettings *settings, UISettings *ui)
         // Write the settings to the file
         fprintf(file, "# Make sure that kew is closed before editing this file in order for changes to take effect.\n\n");
 
+        fprintf(file, "#[MISCELLANEOUS]\n");
         fprintf(file, "path=%s\n", settings->path);
-        fprintf(file, "coverEnabled=%s\n", settings->coverEnabled);
-        fprintf(file, "coverAnsi=%s\n", settings->coverAnsi);
-        fprintf(file, "visualizerEnabled=%s\n", settings->visualizerEnabled);
-        fprintf(file, "visualizerHeight=%s\n", settings->visualizerHeight);
-        fprintf(file, "# How colors are laid out in the spectrum visualizer. 0=default, 1=brightness depending on bar height, 2=reversed.\n");
-        fprintf(file, "visualizerColorType=%s\n", settings->visualizerColorType);
-        fprintf(file, "visualizerBrailleMode=%s\n", settings->visualizerBrailleMode);
-        fprintf(file, "# How fast the visualizer moves (higher values = faster) Normal values: 0.26 and 0.16.\n");
-        fprintf(file, "tweenFactor=%s\n", settings->tweenFactor);
-        fprintf(file, "tweenFactorFall=%s\n", settings->tweenFactorFall);
-        fprintf(file, "useConfigColors=%s\n", settings->useConfigColors);
+        fprintf(file, "version=%s\n", VERSION);
         fprintf(file, "allowNotifications=%s\n", settings->allowNotifications);
         fprintf(file, "hideLogo=%s\n", settings->hideLogo);
         fprintf(file, "hideHelp=%s\n", settings->hideHelp);
-        fprintf(file, "lastVolume=%s\n", settings->lastVolume);
+        fprintf(file, "lastVolume=%s\n\n", settings->lastVolume);
 
-        fprintf(file, "\n# Cache: Set to 1 to use cache of the music library directory tree for faster startup times.\n");
-        fprintf(file, "cacheLibrary=%s\n", settings->cacheLibrary);
+        fprintf(file, "# Cache: Set to 1 to use cache of the music library directory tree for faster startup times.\n");
+        fprintf(file, "cacheLibrary=%s\n\n", settings->cacheLibrary);
 
-        fprintf(file, "\n# Delay when drawing title in track view, set to 0 to have no delay.\n");
-        fprintf(file, "titleDelay=%s\n", settings->titleDelay);
+        fprintf(file, "# Delay when drawing title in track view, set to 0 to have no delay.\n");
+        fprintf(file, "titleDelay=%s\n\n", settings->titleDelay);
 
-        fprintf(file, "\n# Same as '--quitonstop' flag, exits after playing the whole playlist.\n");
-        fprintf(file, "quitOnStop=%s\n", settings->quitAfterStopping);
+        fprintf(file, "# Same as '--quitonstop' flag, exits after playing the whole playlist.\n");
+        fprintf(file, "quitOnStop=%s\n\n", settings->quitAfterStopping);
 
-        fprintf(file, "\n# Glimmering text on the bottom row.\n");
-        fprintf(file, "hideGlimmeringText=%s\n", settings->hideGlimmeringText);
+        fprintf(file, "# Glimmering text on the bottom row.\n");
+        fprintf(file, "hideGlimmeringText=%s\n\n", settings->hideGlimmeringText);
 
-        fprintf(file, "\n# Color values are 0=Black, 1=Red, 2=Green, 3=Yellow, 4=Blue, 5=Magenta, 6=Cyan, 7=White\n");
+        fprintf(file, "#[VISUALIZER]\n");
+        fprintf(file, "visualizerEnabled=%s\n", settings->visualizerEnabled);
+        fprintf(file, "visualizerHeight=%s\n", settings->visualizerHeight);
+        fprintf(file, "visualizerBrailleMode=%s\n\n", settings->visualizerBrailleMode);
+
+        fprintf(file, "# How colors are laid out in the spectrum visualizer. 0=default, 1=brightness depending on bar height, 2=reversed.\n");
+        fprintf(file, "visualizerColorType=%s\n\n", settings->visualizerColorType);
+
+        fprintf(file, "# How fast the visualizer moves (higher values = faster) Normal values: 0.26 and 0.16.\n");
+        fprintf(file, "tweenFactor=%s\n", settings->tweenFactor);
+        fprintf(file, "tweenFactorFall=%s\n\n", settings->tweenFactorFall);
+
+        fprintf(file, "#[COLORS]\n\n");
+
+        fprintf(file, "# Use to colors below\n");
+        fprintf(file, "useConfigColors=%s\n\n", settings->useConfigColors);
+
+        fprintf(file, "# Color values are 0=Black, 1=Red, 2=Green, 3=Yellow, 4=Blue, 5=Magenta, 6=Cyan, 7=White\n");
         fprintf(file, "# These mostly affect the library view.\n\n");
+
         fprintf(file, "# Logo color:\n");
-        fprintf(file, "color=%s\n", settings->color);
+        fprintf(file, "color=%s\n\n", settings->color);
+
         fprintf(file, "# Header color in library view:\n");
-        fprintf(file, "artistColor=%s\n", settings->artistColor);
+        fprintf(file, "artistColor=%s\n\n", settings->artistColor);
+
         fprintf(file, "# Now playing song text in library view:\n");
-        fprintf(file, "titleColor=%s\n", settings->titleColor);
+        fprintf(file, "titleColor=%s\n\n", settings->titleColor);
+
         fprintf(file, "# Color of enqueued songs in library view:\n");
-        fprintf(file, "enqueuedColor=%s\n", settings->enqueuedColor);
+        fprintf(file, "enqueuedColor=%s\n\n", settings->enqueuedColor);
 
-        fprintf(file, "\nmouseEnabled=%s\n", settings->mouseEnabled);
+        fprintf(file, "#[TRACK COVER]\n");
+        fprintf(file, "coverEnabled=%s\n", settings->coverEnabled);
+        fprintf(file, "coverAnsi=%s\n\n", settings->coverAnsi);
 
-        fprintf(file, "\n# Mouse actions are 0=none, 1=select song, 2=toggle pause, 3=scroll up, 4=scroll down, 5=seek forward, 6=seek backward, 7=volume up, 8=volume down, 9=switch to next view, 10=switch to previous view\n");
+        fprintf(file, "#[MOUSE]\n");
+        fprintf(file, "mouseEnabled=%s\n\n", settings->mouseEnabled);
+
+        fprintf(file, "# Mouse actions are 0=none, 1=select song, 2=toggle pause, 3=scroll up, 4=scroll down, 5=seek forward, 6=seek backward, 7=volume up, 8=volume down, 9=switch to next view, 10=switch to previous view\n");
         fprintf(file, "mouseLeftClickAction=%s\n", settings->mouseLeftClickAction);
         fprintf(file, "mouseMiddleClickAction=%s\n", settings->mouseMiddleClickAction);
         fprintf(file, "mouseRightClickAction=%s\n", settings->mouseRightClickAction);
         fprintf(file, "mouseScrollUpAction=%s\n", settings->mouseScrollUpAction);
-        fprintf(file, "mouseScrollDownAction=%s\n", settings->mouseScrollDownAction);
+        fprintf(file, "mouseScrollDownAction=%s\n\n", settings->mouseScrollDownAction);
+
         fprintf(file, "# Mouse action when using mouse scroll + alt\n");
         fprintf(file, "mouseAltScrollUpAction=%s\n", settings->mouseAltScrollUpAction);
-        fprintf(file, "mouseAltScrollDownAction=%s\n", settings->mouseAltScrollDownAction);
+        fprintf(file, "mouseAltScrollDownAction=%s\n\n", settings->mouseAltScrollDownAction);
 
-        fprintf(file, "\n# Key Bindings:\n\n");
+        fprintf(file, "#[KEY BINDINGS]\n");
         fprintf(file, "volumeUp=%s\n", settings->volumeUp);
         fprintf(file, "volumeUpAlt=%s\n", settings->volumeUpAlt);
         fprintf(file, "volumeDown=%s\n", settings->volumeDown);
@@ -952,17 +970,16 @@ void setConfig(AppSettings *settings, UISettings *ui)
         fprintf(file, "moveSongDown=%s\n", settings->moveSongDown);
         fprintf(file, "enqueueAndPlay=%s\n", settings->enqueueAndPlay);
         fprintf(file, "sortLibrary=%s\n", settings->sortLibrary);
+        fprintf(file, "quit=%s\n\n", settings->quit);
 
-        fprintf(file, "\n# Alt keys for the different main views, normally F2-F7:\n");
+        fprintf(file, "# Alt keys for the different main views, normally F2-F7:\n");
         fprintf(file, "showPlaylistAlt=%s\n", settings->showPlaylistAlt);
         fprintf(file, "showLibraryAlt=%s\n", settings->showLibraryAlt);
         fprintf(file, "showTrackAlt=%s\n", settings->showTrackAlt);
         fprintf(file, "showSearchAlt=%s\n", settings->showSearchAlt);
-        fprintf(file, "showRadioSearchAlt=%s\n\n", settings->showRadioSearchAlt);
+        fprintf(file, "showRadioSearchAlt=%s\n", settings->showRadioSearchAlt);
         fprintf(file, "showKeysAlt=%s\n\n", settings->showKeysAlt);
-        fprintf(file, "version=%s\n\n", VERSION);
 
-        fprintf(file, "quit=%s\n\n", settings->quit);
         fprintf(file, "# For special keys use terminal codes: OS, for F4 for instance. This can depend on the terminal.\n");
         fprintf(file, "# You can find out the codes for the keys by using tools like showkey.\n");
         fprintf(file, "# For special keys, see the key value after the bracket \"[\" after typing \"showkey -a\" in the terminal and then pressing a key you want info about.\n");
