@@ -393,3 +393,21 @@ int getNumber(const char *str)
 
         return (int)value;
 }
+
+float getFloat(const char *str)
+{
+    char *endptr;
+    float value = strtof(str, &endptr);
+
+    if (str == endptr)
+    {
+        return 0.0f;
+    }
+
+    if (isnan(value) || isinf(value) || value < -FLT_MAX || value > FLT_MAX)
+    {
+        return 0.0f;
+    }
+
+    return value;
+}
