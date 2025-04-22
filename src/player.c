@@ -1207,7 +1207,7 @@ void printVisualizer(double elapsedSeconds, AppState *state)
                 drawSpectrumVisualizer(state, indent);
 
                 if (ui->progressBarType == 1)
-                        printElapsedLine(calcElapsedBars(elapsedSeconds, duration, uis->numProgressBars * 2), uis->numProgressBars * 2, ui->color, ui->useConfigColors);
+                        printElapsedLine(calcElapsedBars(elapsedSeconds, duration, uis->numProgressBars * 2), uis->numProgressBars * 2 - 1, ui->color, ui->useConfigColors);
                 else
                         printElapsedBars(calcElapsedBars(elapsedSeconds, duration, uis->numProgressBars), uis->numProgressBars, ui->color, ui->visualizerHeight, ui->useConfigColors);
                 printErrorRow();
