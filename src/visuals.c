@@ -204,6 +204,7 @@ void smoothFrames(
         }
 }
 
+// Average All Bins in Bar Range
 void fillSpectrumBars(
     const fftwf_complex *fftOutput,
     int bufferSize,
@@ -213,65 +214,48 @@ void fillSpectrumBars(
     float minFreq,
     float maxFreq)
 {
-        float *barFreqLo = (float *)malloc(sizeof(float) * numBars);
-        float *barFreqHi = (float *)malloc(sizeof(float) * numBars);
+    float *barFreqLo = (float *)malloc(sizeof(float) * numBars);
+    float *barFreqHi = (float *)malloc(sizeof(float) * numBars);
 
-        // Logarithmic spacing, tweakable curve
-        float logMin = log10f(minFreq);
-        float logMax = log10f(maxFreq);
+    float logMin = log10f(minFreq);
+    float logMax = log10f(maxFreq);
+    float spacingPower = 0.8f;
 
-        float spacingPower = 0.8f; // Closer to 1 = more even spacing
+    for (int i = 0; i < numBars; i++) {
+        float tLo = (float)i / numBars;
+        float tHi = (float)(i + 1) / numBars;
 
-        for (int i = 0; i < numBars; i++)
-        {
-                float tLo = (float)i / numBars;
-                float tHi = (float)(i + 1) / numBars;
+        float skewLo = powf(tLo, spacingPower);
+        float skewHi = powf(tHi, spacingPower);
 
-                // Slight bias toward lower freqs using power curve
-                float skewLo = powf(tLo, spacingPower);
-                float skewHi = powf(tHi, spacingPower);
+        barFreqLo[i] = powf(10.0f, logMin + (logMax - logMin) * skewLo);
+        barFreqHi[i] = powf(10.0f, logMin + (logMax - logMin) * skewHi);
+    }
 
-                barFreqLo[i] = powf(10.0f, logMin + (logMax - logMin) * skewLo);
-                barFreqHi[i] = powf(10.0f, logMin + (logMax - logMin) * skewHi);
+    int numBins = bufferSize / 2 + 1;
+
+    for (int i = 0; i < numBars; i++) {
+        // Find what bins map to this bar
+        int binLo = (int)ceilf(barFreqLo[i] * bufferSize / sampleRate);
+        int binHi = (int)floorf(barFreqHi[i] * bufferSize / sampleRate);
+
+        if (binLo < 0) binLo = 0;
+        if (binHi >= numBins) binHi = numBins - 1;
+        if (binHi < binLo) binHi = binLo;
+
+        float sum = 0.0f;
+        int count = 0;
+        for (int k = binLo; k <= binHi; k++) {
+            float real = fftOutput[k][0];
+            float imag = fftOutput[k][1];
+            sum += sqrtf(real * real + imag * imag);
+            count++;
         }
+        magnitudes[i] = (count > 0) ? sum / count : 0.0f;
+    }
 
-        memset(magnitudes, 0, sizeof(float) * numBars);
-        int *counts = (int *)calloc(numBars, sizeof(int));
-
-        int numBins = bufferSize / 2 + 1;
-
-        for (int k = 0; k < numBins; k++)
-        {
-                float freq = (k * sampleRate) / (float)bufferSize;
-
-                if (freq < minFreq || freq > maxFreq)
-                        continue;
-
-                // Find bar that contains this frequency
-                for (int i = 0; i < numBars; i++)
-                {
-                        if (freq >= barFreqLo[i] && (freq < barFreqHi[i] || (i == numBars - 1 && freq <= barFreqHi[i])))
-                        {
-                                float real = fftOutput[k][0];
-                                float imag = fftOutput[k][1];
-                                float mag = sqrtf(real * real + imag * imag);
-
-                                magnitudes[i] += mag;
-                                counts[i]++;
-                                break;
-                        }
-                }
-        }
-
-        for (int i = 0; i < numBars; i++)
-        {
-                if (counts[i] > 0)
-                        magnitudes[i] /= (float)counts[i];
-        }
-
-        free(barFreqLo);
-        free(barFreqHi);
-        free(counts);
+    free(barFreqLo);
+    free(barFreqHi);
 }
 
 void calc(int height, int numBars, ma_int32 *audioBuffer, int bitDepth, float *fftInput, fftwf_complex *fftOutput, float *magnitudes, fftwf_plan plan)
