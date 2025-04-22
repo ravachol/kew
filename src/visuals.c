@@ -42,8 +42,8 @@ float rangeAttack = 0.4f;
 
 float maxMagnitude = 0.0f;
 
-float tweenFactor = 0.26f;
-float tweenFactorFall = 0.16f;
+float tweenFactor = 0.23f;
+float tweenFactorFall = 0.13f;
 
 #define MOVING_AVERAGE_WINDOW_SIZE 2
 
@@ -221,6 +221,9 @@ void fillSpectrumBars(
     float logMax = log10f(maxFreq);
     float spacingPower = 0.8f;
 
+    int numBins = bufferSize / 2 + 1;
+    float binSpacing = sampleRate / bufferSize;
+
     for (int i = 0; i < numBars; i++) {
         float tLo = (float)i / numBars;
         float tHi = (float)(i + 1) / numBars;
@@ -232,15 +235,16 @@ void fillSpectrumBars(
         barFreqHi[i] = powf(10.0f, logMin + (logMax - logMin) * skewHi);
     }
 
-    int numBins = bufferSize / 2 + 1;
-
     for (int i = 0; i < numBars; i++) {
-        // Find what bins map to this bar
-        int binLo = (int)ceilf(barFreqLo[i] * bufferSize / sampleRate);
-        int binHi = (int)floorf(barFreqHi[i] * bufferSize / sampleRate);
+        // Find bins covered by this bar range
+        int binLo = (int)ceilf(barFreqLo[i] / binSpacing);
+        int binHi = (int)floorf(barFreqHi[i] / binSpacing);
 
+        // Clamp to valid bins
         if (binLo < 0) binLo = 0;
         if (binHi >= numBins) binHi = numBins - 1;
+
+        // Special case: if range selects no bins, pick the closest one
         if (binHi < binLo) binHi = binLo;
 
         float sum = 0.0f;
