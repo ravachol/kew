@@ -40,8 +40,8 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         c_strcpy(settings.hideGlimmeringText, "0", sizeof(settings.hideGlimmeringText));
         c_strcpy(settings.mouseEnabled, "1", sizeof(settings.mouseEnabled));
         c_strcpy(settings.visualizerBrailleMode, "0", sizeof(settings.visualizerBrailleMode));
-        c_strcpy(settings.tweenFactor, "0.26", sizeof(settings.tweenFactor));
-        c_strcpy(settings.tweenFactorFall, "0.16", sizeof(settings.tweenFactor));
+        c_strcpy(settings.tweenFactor, "0.23", sizeof(settings.tweenFactor));
+        c_strcpy(settings.tweenFactorFall, "0.13", sizeof(settings.tweenFactor));
         c_strcpy(settings.progressBarType, "0", sizeof(settings.progressBarType));
 #ifdef __APPLE__
         c_strcpy(settings.visualizerEnabled, "0", sizeof(settings.visualizerEnabled)); // Visualizer looks wonky in default terminal
@@ -915,7 +915,7 @@ void setConfig(AppSettings *settings, UISettings *ui)
         fprintf(file, "# How colors are laid out in the spectrum visualizer. 0=default, 1=brightness depending on bar height, 2=reversed.\n");
         fprintf(file, "visualizerColorType=%s\n\n", settings->visualizerColorType);
 
-        fprintf(file, "# How fast the visualizer moves (higher values = faster) Normal values: 0.26 and 0.16.\n");
+        fprintf(file, "# How fast the visualizer moves (higher values = faster) Normal values: 0.23 and 0.13.\n");
         fprintf(file, "tweenFactor=%s\n", settings->tweenFactor);
         fprintf(file, "tweenFactorFall=%s\n\n", settings->tweenFactorFall);
 
