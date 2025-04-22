@@ -300,11 +300,11 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
                 {
                         snprintf(settings.mouseScrollDownAction, sizeof(settings.mouseScrollDownAction), "%s", pair->value);
                 }
-                else if (strcmp(lowercaseKey, "mouseshiftscrollupaction") == 0)
+                else if (strcmp(lowercaseKey, "mousealtscrollupaction") == 0)
                 {
                         snprintf(settings.mouseAltScrollUpAction, sizeof(settings.mouseAltScrollUpAction), "%s", pair->value);
                 }
-                else if (strcmp(lowercaseKey, "mouseshiftscrolldownaction") == 0)
+                else if (strcmp(lowercaseKey, "mousealtscrolldownaction") == 0)
                 {
                         snprintf(settings.mouseAltScrollDownAction, sizeof(settings.mouseAltScrollDownAction), "%s", pair->value);
                 }

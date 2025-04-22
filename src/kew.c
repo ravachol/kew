@@ -1756,6 +1756,13 @@ void initState(AppState *state)
         state->uiSettings.cacheLibrary = -1;
         state->uiSettings.useConfigColors = false;
         state->uiSettings.mouseEnabled = true;
+        state->uiSettings.mouseLeftClickAction = 0;
+        state->uiSettings.mouseMiddleClickAction = 1;
+        state->uiSettings.mouseRightClickAction = 2;
+        state->uiSettings.mouseScrollUpAction = 3;
+        state->uiSettings.mouseScrollDownAction = 4;
+        state->uiSettings.mouseAltScrollUpAction = 7;
+        state->uiSettings.mouseAltScrollDownAction = 8;
         state->uiSettings.progressBarType = 0;
         state->uiState.numDirectoryTreeEntries = 0;
         state->uiState.numProgressBars = 35;
