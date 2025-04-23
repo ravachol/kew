@@ -35,8 +35,8 @@ kew is available from Ubuntu 24.04.
 
 ```bash
 sudo apt install kew         (Debian, Ubuntu)
-sudo yay -S kew              (Arch Linux, Manjaro)
-sudo yay -S kew-git          (Arch Linux, Manjaro)
+yay -S kew                   (Arch Linux, Manjaro)
+yay -S kew-git               (Arch Linux, Manjaro)
 sudo zypper install kew      (OpenSUSE)
 sudo pkg install kew         (FreeBSD)
 brew install kew             (macOS, Linux)
@@ -93,7 +93,7 @@ Notes for mac users:
 #### For Fedora:
 
 ```bash
-dnf install -y pkg-config taglib-devel fftw-devel opus-devel opusfile-devel libvorbis-devel libogg-devel git gcc make chafa-devel libatomic gcc-c++ glib2-devel libcurl-devel
+sudo dnf install -y pkg-config taglib-devel fftw-devel opus-devel opusfile-devel libvorbis-devel libogg-devel git gcc make chafa-devel libatomic gcc-c++ glib2-devel libcurl-devel
 ```
 Option: add faad2-devel for AAC,M4A support (Requires RPM-fusion to be enabled).
 
