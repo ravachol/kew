@@ -52,6 +52,8 @@ Now with a mini-player mode, a braille visualizer mode, a favorites list for rad
 
 - Fixed bug with moving songs around, there was a case where it wasn't rebuilding the chain and the wrong song would get played.
 
+- Fixed bug with alt + mouse commands not working.  By @Chromium-3-Oxide.
+
 ### 3.1.2
 
 - Fix radio search sometimes freezing because of an invalid radio station URL. Found by joel. by @ravachol.
