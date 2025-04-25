@@ -214,52 +214,58 @@ void fillSpectrumBars(
     float minFreq,
     float maxFreq)
 {
-    float *barFreqLo = (float *)malloc(sizeof(float) * numBars);
-    float *barFreqHi = (float *)malloc(sizeof(float) * numBars);
+        float *barFreqLo = (float *)malloc(sizeof(float) * numBars);
+        float *barFreqHi = (float *)malloc(sizeof(float) * numBars);
 
-    float logMin = log10f(minFreq);
-    float logMax = log10f(maxFreq);
-    float spacingPower = 0.8f;
+        float logMin = log10f(minFreq);
+        float logMax = log10f(maxFreq);
+        float spacingPower = 0.8f;
 
-    int numBins = bufferSize / 2 + 1;
-    float binSpacing = sampleRate / bufferSize;
+        int numBins = bufferSize / 2 + 1;
+        float binSpacing = sampleRate / bufferSize;
 
-    for (int i = 0; i < numBars; i++) {
-        float tLo = (float)i / numBars;
-        float tHi = (float)(i + 1) / numBars;
+        for (int i = 0; i < numBars; i++)
+        {
+                float tLo = (float)i / numBars;
+                float tHi = (float)(i + 1) / numBars;
 
-        float skewLo = powf(tLo, spacingPower);
-        float skewHi = powf(tHi, spacingPower);
+                float skewLo = powf(tLo, spacingPower);
+                float skewHi = powf(tHi, spacingPower);
 
-        barFreqLo[i] = powf(10.0f, logMin + (logMax - logMin) * skewLo);
-        barFreqHi[i] = powf(10.0f, logMin + (logMax - logMin) * skewHi);
-    }
-
-    for (int i = 0; i < numBars; i++) {
-        // Find bins covered by this bar range
-        int binLo = (int)ceilf(barFreqLo[i] / binSpacing);
-        int binHi = (int)floorf(barFreqHi[i] / binSpacing);
-
-        // Clamp to valid bins
-        if (binLo < 0) binLo = 0;
-        if (binHi >= numBins) binHi = numBins - 1;
-
-        // Special case: if range selects no bins, pick the closest one
-        if (binHi < binLo) binHi = binLo;
-
-        float sum = 0.0f;
-        int count = 0;
-        for (int k = binLo; k <= binHi; k++) {
-            float real = fftOutput[k][0];
-            float imag = fftOutput[k][1];
-            sum += sqrtf(real * real + imag * imag);
-            count++;
+                barFreqLo[i] = powf(10.0f, logMin + (logMax - logMin) * skewLo);
+                barFreqHi[i] = powf(10.0f, logMin + (logMax - logMin) * skewHi);
         }
-        magnitudes[i] = (count > 0) ? sum / count : 0.0f;
-    }
 
-    free(barFreqLo);
-    free(barFreqHi);
+        for (int i = 0; i < numBars; i++)
+        {
+                // Find bins covered by this bar range
+                int binLo = (int)ceilf(barFreqLo[i] / binSpacing);
+                int binHi = (int)floorf(barFreqHi[i] / binSpacing);
+
+                // Clamp to valid bins
+                if (binLo < 0)
+                        binLo = 0;
+                if (binHi >= numBins)
+                        binHi = numBins - 1;
+
+                // Special case: if range selects no bins, pick the closest one
+                if (binHi < binLo)
+                        binHi = binLo;
+
+                float sum = 0.0f;
+                int count = 0;
+                for (int k = binLo; k <= binHi; k++)
+                {
+                        float real = fftOutput[k][0];
+                        float imag = fftOutput[k][1];
+                        sum += sqrtf(real * real + imag * imag);
+                        count++;
+                }
+                magnitudes[i] = (count > 0) ? sum / count : 0.0f;
+        }
+
+        free(barFreqLo);
+        free(barFreqHi);
 }
 
 void calc(int height, int numBars, ma_int32 *audioBuffer, int bitDepth, float *fftInput, fftwf_complex *fftOutput, float *magnitudes, fftwf_plan plan)
@@ -419,16 +425,6 @@ int calcSpectrum(int height, int numBars, float *fftInput, fftwf_complex *fftOut
         return 0;
 }
 
-PixelData increaseLuminosity(PixelData pixel, int amount)
-{
-        PixelData pixel2;
-        pixel2.r = pixel.r + amount <= 255 ? pixel.r + amount : 255;
-        pixel2.g = pixel.g + amount <= 255 ? pixel.g + amount : 255;
-        pixel2.b = pixel.b + amount <= 255 ? pixel.b + amount : 255;
-
-        return pixel2;
-}
-
 void printSpectrum(int height, int numBars, float *magnitudes, PixelData color, int indentation, bool useConfigColors, int visualizerColorType, int brailleMode)
 {
         printf("\n");
@@ -441,7 +437,7 @@ void printSpectrum(int height, int numBars, float *magnitudes, PixelData color, 
                 printBlankSpaces(indentation);
                 if (color.r != 0 || color.g != 0 || color.b != 0)
                 {
-                        if (!useConfigColors && (visualizerColorType == 0 || visualizerColorType == 2))
+                        if (!useConfigColors && (visualizerColorType == 0 || visualizerColorType == 2 || visualizerColorType == 3))
                         {
                                 if (visualizerColorType == 0)
                                 {
@@ -450,6 +446,11 @@ void printSpectrum(int height, int numBars, float *magnitudes, PixelData color, 
                                 else if (visualizerColorType == 2)
                                 {
                                         tmp = increaseLuminosity(color, round((height - j) * height * 4));
+
+                                }
+                                else if (visualizerColorType == 3)
+                                {
+                                        tmp = getGradientColor(color, j, height, 1, 0.6f);
                                 }
                                 printf("\033[38;2;%d;%d;%dm", tmp.r, tmp.g, tmp.b);
                         }

@@ -912,7 +912,7 @@ void setConfig(AppSettings *settings, UISettings *ui)
         fprintf(file, "visualizerHeight=%s\n", settings->visualizerHeight);
         fprintf(file, "visualizerBrailleMode=%s\n\n", settings->visualizerBrailleMode);
 
-        fprintf(file, "# How colors are laid out in the spectrum visualizer. 0=default, 1=brightness depending on bar height, 2=reversed.\n");
+        fprintf(file, "# How colors are laid out in the spectrum visualizer. 0=default, 1=brightness depending on bar height, 2=reversed, 3=reversed darken.\n");
         fprintf(file, "visualizerColorType=%s\n\n", settings->visualizerColorType);
 
         fprintf(file, "# How fast the visualizer moves (higher values = faster) Normal values: 0.23 and 0.13.\n");
