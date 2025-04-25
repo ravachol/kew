@@ -36,29 +36,29 @@ Node *determineStartNode(Node *head, int *foundAt, bool *startFromCurrent, int l
 
 void preparePlaylistString(Node *node, char *buffer, int bufferSize)
 {
-    if (node == NULL || buffer == NULL)
-    {
-        buffer[0] = '\0';
-        return;
-    }
+        if (node == NULL || buffer == NULL)
+        {
+                buffer[0] = '\0';
+                return;
+        }
 
-    char filePath[MAXPATHLEN];
-    c_strcpy(filePath, node->song.filePath, sizeof(filePath));
-    char *lastSlash = strrchr(filePath, '/');
-    size_t len = strnlen(filePath, sizeof(filePath));
+        char filePath[MAXPATHLEN];
+        c_strcpy(filePath, node->song.filePath, sizeof(filePath));
+        char *lastSlash = strrchr(filePath, '/');
+        size_t len = strnlen(filePath, sizeof(filePath));
 
-    if (lastSlash != NULL)
-    {
-        int nameLength = filePath + len - (lastSlash + 1); // Length of the filename
-        nameLength = (nameLength < bufferSize - 1) ? nameLength : bufferSize - 1;
+        if (lastSlash != NULL)
+        {
+                int nameLength = filePath + len - (lastSlash + 1); // Length of the filename
+                nameLength = (nameLength < bufferSize - 1) ? nameLength : bufferSize - 1;
 
-        c_strcpy(buffer, lastSlash + 1, nameLength + 1);
-        buffer[nameLength] = '\0';
-    }
-    else
-    {
-        buffer[0] = '\0';
-    }
+                c_strcpy(buffer, lastSlash + 1, nameLength + 1);
+                buffer[nameLength] = '\0';
+        }
+        else
+        {
+                buffer[0] = '\0';
+        }
 }
 
 int displayPlaylistItems(Node *startNode, int startIter, int maxListSize, int termWidth, int indent, int chosenSong, int *chosenNodeId, UISettings *ui)
@@ -68,8 +68,16 @@ int displayPlaylistItems(Node *startNode, int startIter, int maxListSize, int te
 
         int bufferSize = termWidth - indent - 12;
 
+        PixelData rowColor;
+        rowColor.r = defaultColor;
+        rowColor.g = defaultColor;
+        rowColor.b = defaultColor;
+
         for (int i = startIter; node != NULL && i < startIter + maxListSize; i++)
         {
+                if (!(ui->color.r == defaultColor && ui->color.g == defaultColor && ui->color.b == defaultColor))
+                        rowColor = getGradientColor(ui->color, i - startIter, maxListSize, maxListSize / 2, 0.6f);
+
                 char *buffer = (char *)malloc(MAXPATHLEN * sizeof(char));
                 char *filename = (char *)malloc(MAXPATHLEN * sizeof(char) + 1);
 
@@ -85,7 +93,7 @@ int displayPlaylistItems(Node *startNode, int startIter, int maxListSize, int te
                         if (ui->useConfigColors)
                                 setTextColor(ui->artistColor);
                         else
-                                setColor(ui);
+                                setColorAndWeight(0, rowColor, ui->useConfigColors);
 
                         printBlankSpaces(indent);
 
@@ -135,7 +143,6 @@ int displayPlaylistItems(Node *startNode, int startIter, int maxListSize, int te
 
                 node = node->next;
         }
-
 
         return numPrintedRows;
 }

@@ -16,7 +16,7 @@ void setTextColorRGB2(int r, int g, int b, UISettings *ui);
 
 void setColor(UISettings *ui);
 
-void setColorAndWeight(int bold, UISettings *ui);
+void setColorAndWeight(int bold, PixelData color, int useConfigColors);
 
 void processNameScroll(const char *name, char *output, int maxWidth, bool isSameNameAsLastTime);
 
@@ -25,5 +25,11 @@ void resetNameScroll();
 bool getIsLongName();
 
 void processName(const char *name, char *output, int maxWidth);
+
+PixelData increaseLuminosity(PixelData pixel, int amount);
+
+PixelData decreaseLuminosityPct(PixelData base, float pct);
+
+PixelData getGradientColor(PixelData baseColor, int row, int maxListSize, int startGradient, float minPct);
 
 #endif

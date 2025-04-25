@@ -9,6 +9,8 @@ common_ui.c
 
 */
 
+#define MIN_CHANNEL 50 // Minimum color red green blue
+
 unsigned int updateCounter = 0;
 
 // Name scrolling
@@ -28,28 +30,28 @@ void setTextColorRGB2(int r, int g, int b, UISettings *ui)
 
 void setColor(UISettings *ui)
 {
-        setColorAndWeight(0, ui);
+        setColorAndWeight(0, ui->color, ui->useConfigColors);
 }
 
-void setColorAndWeight(int bold, UISettings *ui)
+void setColorAndWeight(int bold, PixelData color, int useConfigColors)
 {
-        if (ui->useConfigColors)
+        if (useConfigColors)
         {
                 printf("\033[%dm", bold);
                 return;
         }
-        if (ui->color.r == defaultColor && ui->color.g == defaultColor && ui->color.b == defaultColor)
-                printf("\033[%dm", bold);
-        else if (ui->color.r >= 210 && ui->color.g >= 210 && ui->color.b >= 210)
+
+        if (color.r == defaultColor && color.g == defaultColor && color.b == defaultColor)
         {
-                ui->color.r = defaultColor;
-                ui->color.g = defaultColor;
-                ui->color.b = defaultColor;
-                printf("\033[%d;38;2;%03u;%03u;%03um", bold, ui->color.r, ui->color.g, ui->color.b);
+                printf("\033[%dm", bold);
+        }
+        else if (color.r >= 210 && color.g >= 210 && color.b >= 210)
+        {
+                printf("\033[%d;38;2;%03u;%03u;%03um", bold, defaultColor, defaultColor, defaultColor);
         }
         else
         {
-                printf("\033[%d;38;2;%03u;%03u;%03um", bold, ui->color.r, ui->color.g, ui->color.b);
+                printf("\033[%d;38;2;%03u;%03u;%03um", bold, color.r, color.g, color.b);
         }
 }
 
@@ -220,8 +222,9 @@ void processName(const char *name, char *output, int maxWidth)
         {
                 char tmp[1024];
                 size_t len = lastDot - name;
-                if (len >= sizeof(tmp)) len = sizeof(tmp) - 1;
-                        strncpy(tmp, name, len);
+                if (len >= sizeof(tmp))
+                        len = sizeof(tmp) - 1;
+                strncpy(tmp, name, len);
                 tmp[len] = '\0';
                 copyHalfOrFullWidthCharsWithMaxWidth(tmp, output, maxWidth);
         }
@@ -286,4 +289,49 @@ void processNameScroll(const char *name, char *output, int maxWidth, bool isSame
 bool getIsLongName()
 {
         return isLongName;
+}
+
+PixelData increaseLuminosity(PixelData pixel, int amount)
+{
+        PixelData pixel2;
+        pixel2.r = pixel.r + amount <= 255 ? pixel.r + amount : 255;
+        pixel2.g = pixel.g + amount <= 255 ? pixel.g + amount : 255;
+        pixel2.b = pixel.b + amount <= 255 ? pixel.b + amount : 255;
+
+        return pixel2;
+}
+
+PixelData decreaseLuminosityPct(PixelData base, float pct)
+{
+        PixelData c;
+
+        int r = (int)((float)base.r * pct);
+        int g = (int)((float)base.g * pct);
+        int b = (int)((float)base.b * pct);
+
+        c.r = (r < MIN_CHANNEL) ? MIN_CHANNEL : r;
+        c.g = (g < MIN_CHANNEL) ? MIN_CHANNEL : g;
+        c.b = (b < MIN_CHANNEL) ? MIN_CHANNEL : b;
+        return c;
+}
+
+PixelData getGradientColor(PixelData baseColor, int row, int maxListSize, int startGradient, float minPct)
+{
+        if (row < startGradient)
+                return baseColor;
+
+        int steps = maxListSize - startGradient;
+        int gradRow = row - startGradient;
+        float pct;
+
+        if (steps <= 1)
+                pct = minPct;
+        else
+                pct = 1.0f - (gradRow * (1.0f - minPct) / (steps - 1));
+
+        if (pct < minPct)
+                pct = minPct;
+        if (pct > 1.0f)
+                pct = 1.0f;
+        return decreaseLuminosityPct(baseColor, pct);
 }
