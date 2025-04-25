@@ -240,6 +240,7 @@ const char *getHomePath(void)
         }
         return NULL;
 }
+
 char *getConfigPath(void)
 {
         char *configPath = malloc(MAXPATHLEN);

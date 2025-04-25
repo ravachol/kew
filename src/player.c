@@ -165,18 +165,26 @@ void printHelp()
 
 int printLogo(SongData *songData, UISettings *ui)
 {
-        if (ui->useConfigColors)
-                setTextColor(ui->mainColor);
-        else
-                setColor(ui);
-
         int height = 0;
         int logoWidth = 0;
+        size_t logoHeight = sizeof(LOGO) / sizeof(LOGO[0]);
+
+        PixelData rowColor;
+        rowColor.r = defaultColor;
+        rowColor.g = defaultColor;
+        rowColor.b = defaultColor;
 
         if (!ui->hideLogo)
         {
-                for (size_t i = 0; i < sizeof(LOGO) / sizeof(LOGO[0]); i++)
+                for (size_t i = 0; i < logoHeight; i++)
                 {
+                        if (!(ui->color.r == defaultColor && ui->color.g == defaultColor && ui->color.b == defaultColor))
+                                rowColor = getGradientColor(ui->color, logoHeight - i, logoHeight, 2, 0.7f);
+
+                        if (ui->useConfigColors)
+                                setTextColor(ui->mainColor);
+                        else
+                                setColorAndWeight(false, rowColor, ui->useConfigColors);
                         printBlankSpaces(indent);
                         printf("%s", LOGO[i]);
                 }
@@ -1013,9 +1021,9 @@ int printLogoAndAdjustments(SongData *songData, int termWidth, UISettings *ui, i
                 printf(" Use ↑, ↓ or k, j to choose. Enter=Accept.\n");
                 printBlankSpaces(indentation);
 #ifndef __APPLE__
-                printf(" Pg Up and Pg Dn to scroll. Del to remove entry.\n");
+                printf(" Pg Up and Pg Dn to scroll. Del to remove an entry.\n");
 #else
-                printf(" Fn+Arrow Up and Fn+Arrow Down to scroll. Del to remove entry.\n");
+                printf(" Fn+Arrow Up and Fn+Arrow Down to scroll. Del to remove an entry.\n");
 #endif
                 printBlankSpaces(indentation);
                 printf(" Backspace to clear. Use t, g to move the songs.\n\n");
@@ -1323,6 +1331,14 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
         if (root == NULL)
                 return false;
 
+        PixelData rowColor;
+        rowColor.r = defaultColor;
+        rowColor.g = defaultColor;
+        rowColor.b = defaultColor;
+
+        if (!(ui->color.r == defaultColor && ui->color.g == defaultColor && ui->color.b == defaultColor))
+                rowColor = getGradientColor(ui->color, libIter - startLibIter, maxListSize, maxListSize / 2, 0.6f);
+
         if (root->isDirectory ||
             (!root->isDirectory && depth == 1) ||
             (root->isDirectory && depth == 0) ||
@@ -1354,7 +1370,7 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
                                         if (ui->useConfigColors)
                                                 setTextColor(ui->artistColor);
                                         else
-                                                setColor(ui);
+                                                setColorAndWeight(0, rowColor, ui->useConfigColors);
                                 }
                                 else
                                 {
@@ -1376,7 +1392,7 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
                                                 if (ui->useConfigColors)
                                                         setTextColor(ui->enqueuedColor);
                                                 else
-                                                        setColorAndWeight(0, ui);
+                                                        setColorAndWeight(0, rowColor, ui->useConfigColors);
 
                                                 printf("\x1b[7m * ");
                                         }
@@ -1411,7 +1427,7 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
                                                 if (ui->useConfigColors)
                                                         printf("\033[%d;3%dm", foundCurrent, ui->enqueuedColor);
                                                 else
-                                                        setColorAndWeight(foundCurrent, ui);
+                                                        setColorAndWeight(foundCurrent, rowColor, ui->useConfigColors);
 
                                                 printf(" * ");
                                         }
