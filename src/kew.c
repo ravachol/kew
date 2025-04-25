@@ -1691,8 +1691,8 @@ void setMusicPath()
                         }
                         else
                         {
-                                printf("Invalid choice. Please try again.\n");
-                                i--;
+                                choice[0] = 'n';
+                                break;
                         }
                 }
         }
