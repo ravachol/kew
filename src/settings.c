@@ -42,7 +42,7 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         c_strcpy(settings.visualizerBrailleMode, "0", sizeof(settings.visualizerBrailleMode));
         c_strcpy(settings.tweenFactor, "0.23", sizeof(settings.tweenFactor));
         c_strcpy(settings.tweenFactorFall, "0.13", sizeof(settings.tweenFactor));
-        c_strcpy(settings.progressBarType, "0", sizeof(settings.progressBarType));
+        c_strcpy(settings.progressBarType, "1", sizeof(settings.progressBarType));
 #ifdef __APPLE__
         c_strcpy(settings.visualizerEnabled, "0", sizeof(settings.visualizerEnabled)); // Visualizer looks wonky in default terminal
         c_strcpy(settings.useConfigColors, "1", sizeof(settings.useConfigColors));     // Colors from album look wrong in default terminal
