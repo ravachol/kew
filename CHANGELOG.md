@@ -4,6 +4,8 @@
 
 - Gradient in library and playlist that makes the bottom rows a bit darker when using album colors.
 
+- Line progressbar is now the default.
+
 ### 3.2.0
 
 Now with a mini-player mode, a braille visualizer mode, a favorites list for radio stations, scrolling names that don't fit, the visualizer running at 60 fps, and much more!
