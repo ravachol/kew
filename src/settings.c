@@ -887,7 +887,7 @@ void setConfig(AppSettings *settings, UISettings *ui)
         // Write the settings to the file
         fprintf(file, "# Make sure that kew is closed before editing this file in order for changes to take effect.\n\n");
 
-        fprintf(file, "[miscellaneous]\n");
+        fprintf(file, "\n[miscellaneous]\n\n");
         fprintf(file, "path=%s\n", settings->path);
         fprintf(file, "version=%s\n", VERSION);
         fprintf(file, "allowNotifications=%s\n", settings->allowNotifications);
@@ -907,7 +907,7 @@ void setConfig(AppSettings *settings, UISettings *ui)
         fprintf(file, "# Glimmering text on the bottom row.\n");
         fprintf(file, "hideGlimmeringText=%s\n\n", settings->hideGlimmeringText);
 
-        fprintf(file, "[visualizer]\n");
+        fprintf(file, "\n[visualizer]\n\n");
         fprintf(file, "visualizerEnabled=%s\n", settings->visualizerEnabled);
         fprintf(file, "visualizerHeight=%s\n", settings->visualizerHeight);
         fprintf(file, "visualizerBrailleMode=%s\n\n", settings->visualizerBrailleMode);
@@ -922,7 +922,7 @@ void setConfig(AppSettings *settings, UISettings *ui)
         fprintf(file, "# How the progress bar looks. 0=Dots, 1=Line\n");
         fprintf(file, "progressBarType=%s\n\n", settings->progressBarType);
 
-        fprintf(file, "[colors]\n\n");
+        fprintf(file, "\n[colors]\n\n");
 
         fprintf(file, "# Use the configuration file colors below\n");
         fprintf(file, "useConfigColors=%s\n\n", settings->useConfigColors);
@@ -942,11 +942,11 @@ void setConfig(AppSettings *settings, UISettings *ui)
         fprintf(file, "# Color of enqueued songs in library view:\n");
         fprintf(file, "enqueuedColor=%s\n\n", settings->enqueuedColor);
 
-        fprintf(file, "[track cover]\n");
+        fprintf(file, "\n[track cover]\n\n");
         fprintf(file, "coverEnabled=%s\n", settings->coverEnabled);
         fprintf(file, "coverAnsi=%s\n\n", settings->coverAnsi);
 
-        fprintf(file, "[mouse]\n");
+        fprintf(file, "\n[mouse]\n\n");
         fprintf(file, "mouseEnabled=%s\n\n", settings->mouseEnabled);
 
         fprintf(file, "# Mouse actions are 0=none, 1=select song, 2=toggle pause, 3=scroll up, 4=scroll down, 5=seek forward, 6=seek backward, 7=volume up, 8=volume down, 9=switch to next view, 10=switch to previous view\n");
@@ -960,7 +960,7 @@ void setConfig(AppSettings *settings, UISettings *ui)
         fprintf(file, "mouseAltScrollUpAction=%s\n", settings->mouseAltScrollUpAction);
         fprintf(file, "mouseAltScrollDownAction=%s\n\n", settings->mouseAltScrollDownAction);
 
-        fprintf(file, "[key bindings]\n");
+        fprintf(file, "\n[key bindings]\n\n");
         fprintf(file, "volumeUp=%s\n", settings->volumeUp);
         fprintf(file, "volumeUpAlt=%s\n", settings->volumeUpAlt);
         fprintf(file, "volumeDown=%s\n", settings->volumeDown);
