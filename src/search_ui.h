@@ -12,6 +12,8 @@ int addToSearchText(const char *str);
 
 int removeFromSearchText(void);
 
+int removeSearchTextUntilSpace(void);
+
 int getSearchResultsCount(void);
 
 void fuzzySearch(FileSystemEntry *root, int threshold);

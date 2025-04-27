@@ -186,6 +186,13 @@ struct Event processInput()
                         fuzzySearch(getLibrary(), fuzzySearchThreshold);
                         event.type = EVENT_SEARCH;
                 }
+                else if (strcmp(event.key, "\033\x7F") == 0) // Alt + backspace deletes search text until a space
+                {
+                        removeSearchTextUntilSpace();
+                        resetSearchResult();
+                        fuzzySearch(getLibrary(), fuzzySearchThreshold);
+                        event.type = EVENT_SEARCH;
+                }
                 else if (((strnlen(event.key, sizeof(event.key)) == 1 && event.key[0] != '\033' && event.key[0] != '\n' && event.key[0] != '\t' && event.key[0] != '\r') || strcmp(event.key, " ") == 0 || (unsigned char)event.key[0] >= 0xC0) && strcmp(event.key, "Z") != 0 && strcmp(event.key, "X") != 0 && strcmp(event.key, "C") != 0 && strcmp(event.key, "V") != 0 && strcmp(event.key, "B") != 0 && strcmp(event.key, "N") != 0)
                 {
                         addToSearchText(event.key);

@@ -191,8 +191,8 @@ typedef struct
         char mouseRightClickAction[3];
         char mouseScrollUpAction[3];
         char mouseScrollDownAction[3];
-        char mouseAltScrollUpAction[12];
-        char mouseAltScrollDownAction[12];
+        char mouseAltScrollUpAction[3];
+        char mouseAltScrollDownAction[3];
         char hideLogo[2];
         char hideHelp[2];
         char cacheLibrary[6];

@@ -185,18 +185,6 @@ int removeFromSearchText(void)
         // Move cursor back one step
         printf("\033[D");
 
-        // Overwrite the character with spaces
-        for (int i = 0; i < lastCharBytes; i++)
-        {
-                printf(" ");
-        }
-
-        // Move cursor back again to the original position
-        for (int i = 0; i < lastCharBytes; i++)
-        {
-                printf("\033[D");
-        }
-
         // Save cursor position
         printf("\033[s");
 
@@ -213,6 +201,82 @@ int removeFromSearchText(void)
         searchText[numSearchBytes] = '\0';
 
         numSearchLetters--;
+
+        return 0;
+}
+
+int removeSearchTextUntilSpace(void)
+{
+        if (numSearchLetters == 0)
+                return 0;
+
+        char *lastSpace = strrchr(searchText, ' ');
+        int lastSpaceLocation;
+        int numCharBytesToRemove;
+        int numCharLettersToRemove;
+
+        // Check if search text contains spaces
+        if (lastSpace == NULL)
+        {
+                lastSpaceLocation = 0;
+                numCharBytesToRemove = numSearchBytes;
+                numCharLettersToRemove = numSearchLetters;
+        }
+        else
+        {
+                lastSpaceLocation = lastSpace - searchText;
+                // If character before cursor is space, delete only it
+                if (lastSpaceLocation == numSearchLetters - 1)
+                {
+                        numCharBytesToRemove = 1;
+                        numCharLettersToRemove = 1;
+                }
+                else
+                {
+                        numCharBytesToRemove = strlen(searchText + lastSpaceLocation + 1); // strlen returns amount of bytes, not letters, in a string
+                        numCharLettersToRemove = numSearchLetters - lastSpaceLocation - 1;
+                }
+        }
+
+        // Restore cursor position
+        printf("\033[u");
+
+        // Move cursor back one step
+        printf("\033[%dD", numCharLettersToRemove);
+
+        // Save cursor position
+        printf("\033[s");
+
+        // Print a block character to represent the cursor
+        printf("█");
+
+        // Clear the end of the line
+        printf("\033[K");
+
+        fflush(stdout);
+
+        // Remove the character from the buffer
+        numSearchBytes -= numCharBytesToRemove;
+
+        // Clear the entire search text if there is not space
+        if (lastSpace == NULL)
+        {
+                searchText[0] = '\0';
+        }
+        else
+        {
+                if (lastSpaceLocation == numSearchLetters - 1)
+                {
+                        // If character before cursor is space, delete only it
+                        searchText[lastSpaceLocation] = '\0';
+                }
+                else
+                {
+                        searchText[lastSpaceLocation + 1] = '\0';
+                }
+        }
+
+        numSearchLetters -= numCharLettersToRemove;
 
         return 0;
 }
