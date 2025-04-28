@@ -919,7 +919,7 @@ void setConfig(AppSettings *settings, UISettings *ui)
         fprintf(file, "tweenFactor=%s\n", settings->tweenFactor);
         fprintf(file, "tweenFactorFall=%s\n\n", settings->tweenFactorFall);
 
-        fprintf(file, "# How the progress bar looks. 0=Dots, 1=Line\n");
+        fprintf(file, "# How the progress bar looks. 0=Dots, 1=Line, 2=Thick line\n");
         fprintf(file, "progressBarType=%s\n\n", settings->progressBarType);
 
         fprintf(file, "\n[colors]\n\n");
@@ -949,7 +949,7 @@ void setConfig(AppSettings *settings, UISettings *ui)
         fprintf(file, "\n[mouse]\n\n");
         fprintf(file, "mouseEnabled=%s\n\n", settings->mouseEnabled);
 
-        fprintf(file, "# Mouse actions are 0=none, 1=select song, 2=toggle pause, 3=scroll up, 4=scroll down, 5=seek forward, 6=seek backward, 7=volume up, 8=volume down, 9=switch to next view, 10=switch to previous view\n");
+        fprintf(file, "# Mouse actions are 0=None, 1=Select song, 2=Toggle pause, 3=Scroll up, 4=Scroll down, 5=Seek forward, 6=Seek backward, 7=Volume up, 8=Volume down, 9=Switch to next view, 10=Switch to previous view\n");
         fprintf(file, "mouseLeftClickAction=%s\n", settings->mouseLeftClickAction);
         fprintf(file, "mouseMiddleClickAction=%s\n", settings->mouseMiddleClickAction);
         fprintf(file, "mouseRightClickAction=%s\n", settings->mouseRightClickAction);
