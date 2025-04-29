@@ -1128,7 +1128,7 @@ void resetRadioSearchResult(void)
         chosenRadioSearchResultRow = 0;
 }
 
-void printElapsedLine(int elapsedBars, int numProgressBars, PixelData color, bool useConfigColors)
+void printElapsedLine(int elapsedBars, int numProgressBars, PixelData color, bool useConfigColors, int progressBarType)
 {
         printBlankSpaces(indent);
         printf(" ");
@@ -1145,7 +1145,6 @@ void printElapsedLine(int elapsedBars, int numProgressBars, PixelData color, boo
                         {
                                 setTextColorRGB(lastRowColor.r, lastRowColor.g, lastRowColor.b);
                         }
-                        printf("─");
                 }
                 else if (i <= elapsedBars)
                 {
@@ -1157,8 +1156,15 @@ void printElapsedLine(int elapsedBars, int numProgressBars, PixelData color, boo
                         {
                                 setDefaultTextColor();
                         }
+                }
 
+                if (progressBarType == 1)
+                {
                         printf("─");
+                }
+                else if (progressBarType == 2)
+                {
+                        printf("━");
                 }
         }
 }
@@ -1214,10 +1220,10 @@ void printVisualizer(double elapsedSeconds, AppState *state)
 #endif
                 drawSpectrumVisualizer(state, indent);
 
-                if (ui->progressBarType == 1)
-                        printElapsedLine(calcElapsedBars(elapsedSeconds, duration, uis->numProgressBars * 2), uis->numProgressBars * 2 - 1, ui->color, ui->useConfigColors);
-                else
+                if (ui->progressBarType == 0)
                         printElapsedBars(calcElapsedBars(elapsedSeconds, duration, uis->numProgressBars), uis->numProgressBars, ui->color, ui->visualizerHeight, ui->useConfigColors);
+                else
+                        printElapsedLine(calcElapsedBars(elapsedSeconds, duration, uis->numProgressBars * 2), uis->numProgressBars * 2 - 1, ui->color, ui->useConfigColors, ui->progressBarType);
                 printErrorRow();
                 printLastRow(&(state->uiSettings));
 #ifndef __APPLE__
