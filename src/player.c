@@ -1220,10 +1220,10 @@ void printVisualizer(double elapsedSeconds, AppState *state)
 #endif
                 drawSpectrumVisualizer(state, indent);
 
-                if (ui->progressBarType == 1)
-                        printElapsedLine(calcElapsedBars(elapsedSeconds, duration, uis->numProgressBars * 2), uis->numProgressBars * 2 - 1, ui->color, ui->useConfigColors, ui->progressBarType);
-                else
+                if (ui->progressBarType == 0)
                         printElapsedBars(calcElapsedBars(elapsedSeconds, duration, uis->numProgressBars), uis->numProgressBars, ui->color, ui->visualizerHeight, ui->useConfigColors);
+                else
+                        printElapsedLine(calcElapsedBars(elapsedSeconds, duration, uis->numProgressBars * 2), uis->numProgressBars * 2 - 1, ui->color, ui->useConfigColors, ui->progressBarType);
                 printErrorRow();
                 printLastRow(&(state->uiSettings));
 #ifndef __APPLE__
