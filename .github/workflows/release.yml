@@ -1,6 +1,3 @@
-To make the workflow also run on pull requests and behave like `push` (upload the artifact), you need to add a `pull_request` trigger to the `on` section and adjust the condition for the "Upload Artifact" step to include `pull_request`. Here's the updated workflow:
-
-```yaml
 name: anylinux-release
 on:
   workflow_dispatch:
@@ -103,10 +100,3 @@ jobs:
           make_latest: true
           files: |
             output/*.AppBundle*
-```
-
-### Changes Made:
-1. Added `pull_request` trigger to the `on` section with the same branch and path filters as the `push` trigger.
-2. Updated the condition for the "Upload Artifact" step to include `pull_request`.
-
-This will ensure that the workflow runs on pull requests and uploads the artifact just like it does for pushes.
