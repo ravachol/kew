@@ -834,7 +834,7 @@ void handleInput(AppState *state)
                 addToSpecialPlaylist();
                 break;
         case EVENT_EXPORTPLAYLIST:
-                savePlaylist(settings.path);
+                exportCurrentPlaylist(settings.path);
                 break;
         case EVENT_UPDATELIBRARY:
                 updateLibrary(settings.path);
@@ -1209,7 +1209,8 @@ void initFirstPlay(Node *song, AppState *state)
         if (song == NULL || res < 0)
         {
                 song = NULL;
-                waitingForPlaylist = true;
+                if (!waitingForNext)
+                        waitingForPlaylist = true;
         }
 
         loadedNextSong = false;
@@ -1278,6 +1279,7 @@ void cleanupOnExit()
         enableInputBuffering();
         setConfig(&settings, &(appState.uiSettings));
         saveSpecialPlaylist(settings.path);
+        saveLastUsedPlaylist();
         deleteCache(appState.tmpCache);
         freeMainDirectoryTree(&appState);
         freeAndwriteRadioFavorites();
@@ -1327,7 +1329,7 @@ void cleanupOnExit()
         fflush(stdout);
 }
 
-void run(AppState *state)
+void run(AppState *state, bool startPlaying)
 {
         if (originalPlaylist == NULL)
         {
@@ -1343,7 +1345,11 @@ void run(AppState *state)
 
         initMpris();
 
-        currentSong = playlist.head;
+        if (startPlaying)
+                currentSong = playlist.head;
+        else if (playlist.count > 0)
+                waitingForNext = true;
+
         initFirstPlay(currentSong, state);
         clearScreen();
         fflush(stdout);
@@ -1414,12 +1420,22 @@ void init(AppState *state)
 #endif
 }
 
-void openLibrary(AppState *state)
+void initDefaultState(AppState *state)
 {
-        state->currentView = LIBRARY_VIEW;
         init(state);
-        playlist.head = NULL;
-        run(state);
+
+        loadLastUsedPlaylist();
+        markListAsEnqueued(library, &playlist);
+
+        resetListAfterDequeuingPlayingSong(state);
+
+        audioData.restart = true;
+        audioData.endOfListReached = true;
+        loadedNextSong = false;
+
+        state->currentView = LIBRARY_VIEW;
+
+        run(state, false);
 }
 
 void playSpecialPlaylist(AppState *state)
@@ -1433,7 +1449,8 @@ void playSpecialPlaylist(AppState *state)
         init(state);
         deepCopyPlayListOntoList(specialPlaylist, &playlist);
         shufflePlaylist(&playlist);
-        run(state);
+        markListAsEnqueued(library, &playlist);
+        run(state, true);
 }
 
 void playAll(AppState *state)
@@ -1446,7 +1463,7 @@ void playAll(AppState *state)
                 exit(0);
         }
         shufflePlaylist(&playlist);
-        run(state);
+        run(state, true);
 }
 
 void playAllAlbums(AppState *state)
@@ -1458,7 +1475,7 @@ void playAllAlbums(AppState *state)
         {
                 exit(0);
         }
-        run(state);
+        run(state, true);
 }
 
 void removeArgElement(char *argv[], int index, int *argc)
@@ -1539,12 +1556,7 @@ void handleOptions(int *argc, char *argv[], UISettings *ui)
                 removeArgElement(argv, idx, argc);
 }
 
-/*
- * Checks if a process with the given PID is running
- *
- * Returns:
- *  1 if the process is running, 0 otherwise.
- */
+// Returns 1 if the process is running
 int isProcessRunning(pid_t pid)
 {
         if (pid <= 0)
@@ -1827,7 +1839,7 @@ int main(int argc, char *argv[])
 
         if (argc == 1)
         {
-                openLibrary(&appState);
+                initDefaultState(&appState);
         }
         else if (argc == 2 && strcmp(argv[1], "all") == 0)
         {
@@ -1850,7 +1862,7 @@ int main(int argc, char *argv[])
                         noPlaylist = true;
                         exit(0);
                 }
-                run(&appState);
+                run(&appState, true);
         }
 
         return 0;
