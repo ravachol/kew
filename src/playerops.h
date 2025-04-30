@@ -173,4 +173,6 @@ void skipToBegginningOfSong(void);
 
 void sortLibrary(void);
 
+void markListAsEnqueued(FileSystemEntry *root, PlayList *playlist);
+
 #endif

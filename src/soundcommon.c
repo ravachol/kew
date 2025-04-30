@@ -848,7 +848,11 @@ void resumePlayback(void)
 
         if (!ma_device_is_started(&device))
         {
-                ma_device_start(&device);
+                if (ma_device_start(&device) != MA_SUCCESS)
+                {
+                        createAudioDevice();
+                        ma_device_start(&device);
+                }
         }
 
         paused = false;
