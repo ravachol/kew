@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - main
+      - main # :/
     paths:
       - "src/**"
       - "include/**"
@@ -74,7 +74,7 @@ jobs:
       - name: Upload Version Info
         uses: actions/upload-artifact@v4.6.1
         with:
-          name: version-info
+          name: version-info-${{ matrix.arch }}
           path: version.txt
           retention-days: 7
 
@@ -126,7 +126,8 @@ jobs:
 
       - name: Set version from artifact
         run: |
-          VERSION=$(cat artifacts/version.txt)
+          # Since we might have multiple version files from different architectures, just use the first one
+          VERSION=$(cat artifacts/version-info-*/version.txt | head -n 1)
           echo "VERSION=${VERSION}" >> $GITHUB_ENV
 
       - name: Delete Previous Release
