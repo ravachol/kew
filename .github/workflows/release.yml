@@ -86,7 +86,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           name: "kew ${{ env.VERSION }}"
-          tag_name: "${{ env.VERSION }}"
+          tag_name: "v${{ env.VERSION }}"
           draft: false
           generate_release_notes: true
           make_latest: true
