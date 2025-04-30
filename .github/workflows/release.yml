@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - main # :/
+      - main
     paths:
       - "src/**"
       - "include/**"
@@ -126,8 +126,7 @@ jobs:
 
       - name: Set version from artifact
         run: |
-          # Since we might have multiple version files from different architectures, just use the first one
-          VERSION=$(cat artifacts/version-info-*/version.txt | head -n 1)
+          VERSION=$(cat artifacts/version-info-x86_64/version.txt)
           echo "VERSION=${VERSION}" >> $GITHUB_ENV
 
       - name: Delete Previous Release
