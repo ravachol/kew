@@ -1,7 +1,18 @@
+To make the workflow also run on pull requests and behave like `push` (upload the artifact), you need to add a `pull_request` trigger to the `on` section and adjust the condition for the "Upload Artifact" step to include `pull_request`. Here's the updated workflow:
+
+```yaml
 name: anylinux-release
 on:
   workflow_dispatch:
   push:
+    branches:
+      - main
+    paths:
+      - "src/**"
+      - "include/**"
+      - "appdir/**"
+      - "Makefile"
+  pull_request:
     branches:
       - main
     paths:
@@ -65,7 +76,7 @@ jobs:
           echo "ARTIFACT_NAME=kew-${VERSION}-anylinux-$(uname -m).dwfs.AppBundle" >> $GITHUB_ENV
 
       - name: Upload Artifact
-        if: ${{ github.event_name == 'push' }}
+        if: ${{ github.event_name == 'push' || github.event_name == 'pull_request' }}
         uses: actions/upload-artifact@v4.6.1
         with:
           name: kew-appbundle
@@ -92,3 +103,10 @@ jobs:
           make_latest: true
           files: |
             output/*.AppBundle*
+```
+
+### Changes Made:
+1. Added `pull_request` trigger to the `on` section with the same branch and path filters as the `push` trigger.
+2. Updated the condition for the "Upload Artifact" step to include `pull_request`.
+
+This will ensure that the workflow runs on pull requests and uploads the artifact just like it does for pushes.
