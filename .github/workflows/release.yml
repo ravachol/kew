@@ -1,0 +1,94 @@
+name: anylinux-release
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - "src/**"
+      - "include/**"
+      - "appdir/**"
+      - "Makefile"
+
+jobs:
+  build-appbundle:
+    runs-on: ubuntu-latest
+    container:
+      image: alpine:latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install dependencies
+        run: |
+          apk update
+          apk add --no-cache \
+            build-base \
+            taglib-dev \
+            fftw-dev \
+            chafa-dev \
+            opus-dev \
+            opusfile-dev \
+            libvorbis-dev \
+            libogg-dev \
+            glib-dev \
+            curl-dev \
+            github-cli \
+            git
+
+      - name: Build kew
+        run: |
+          make -j$(nproc) -l$(nproc)
+          VERSION=$(./kew --version | awk -F": " 'FNR==6 {printf $NF}')
+          echo "VERSION=${VERSION}" >> $GITHUB_ENV
+
+      - name: Prepare AppDir
+        run: |
+          wget -qO ./sharun "https://github.com/VHSgunzo/sharun/releases/latest/download/sharun-$(uname -m)-aio"
+          chmod +x ./sharun
+          ./sharun l --with-sharun --gen-lib-path --with-hooks --dst-dir ./appdir ./kew
+          cd ./appdir && {
+            ln -sfT ./sharun ./AppRun
+            echo "kew" >> .app
+          }
+
+      - name: Create AppBundle
+        run: |
+          wget -qO ./pelf "https://github.com/xplshn/pelf/releases/latest/download/pelf_$(uname -m)"
+          chmod +x ./pelf
+          mkdir -p output
+          echo "Generating [dwfs]AppBundle...(Go runtime)"
+          ./pelf --add-appdir ./appdir \
+                 --appbundle-id="kew-${VERSION}" \
+                 --output-to "./output/kew-${VERSION}-anylinux-$(uname -m).dwfs.AppBundle"
+          echo "ARTIFACT_NAME=kew-${VERSION}-anylinux-$(uname -m).dwfs.AppBundle" >> $GITHUB_ENV
+
+      - name: Upload Artifact
+        if: ${{ github.event_name == 'push' }}
+        uses: actions/upload-artifact@v4.6.1
+        with:
+          name: kew-appbundle
+          path: ./output/*.AppBundle*
+          retention-days: 7
+
+      # For workflow_dispatch (Version Release)
+      - name: Delete Previous Release
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        run: |
+          gh release delete "${VERSION}" --repo "${GITHUB_REPOSITORY}" --cleanup-tag -y || true
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Version Release
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "kew ${{ env.VERSION }}"
+          tag_name: "${{ env.VERSION }}"
+          draft: false
+          generate_release_notes: true
+          make_latest: true
+          files: |
+            output/*.AppBundle*
