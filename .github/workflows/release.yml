@@ -69,6 +69,14 @@ jobs:
           make -j$(nproc) -l$(nproc)
           VERSION=$(./kew --version | awk -F": " 'FNR==6 {printf $NF}')
           echo "VERSION=${VERSION}" >> $GITHUB_ENV
+          echo "${VERSION}" > version.txt
+
+      - name: Upload Version Info
+        uses: actions/upload-artifact@v4.6.1
+        with:
+          name: version-info
+          path: version.txt
+          retention-days: 7
 
       - name: Prepare AppDir
         run: |
@@ -106,9 +114,6 @@ jobs:
     runs-on: ubuntu-latest
     container: "alpine:edge"
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
       - name: Install dependencies
         run: |
           apk add --no-cache github-cli
@@ -119,9 +124,9 @@ jobs:
           path: artifacts
           merge-multiple: true
 
-      - name: Set version
+      - name: Set version from artifact
         run: |
-          VERSION=$(./kew --version | awk -F": " 'FNR==6 {printf $NF}')
+          VERSION=$(cat artifacts/version.txt)
           echo "VERSION=${VERSION}" >> $GITHUB_ENV
 
       - name: Delete Previous Release
@@ -140,4 +145,4 @@ jobs:
           generate_release_notes: true
           make_latest: true
           files: |
-            artifacts/*
+            artifacts/*.AppBundle*
