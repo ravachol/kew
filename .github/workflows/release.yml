@@ -9,14 +9,41 @@ on:
       - "include/**"
       - "appdir/**"
       - "Makefile"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "src/**"
+      - "include/**"
+      - "appdir/**"
+      - "Makefile"
 
 jobs:
   build-appbundle:
-    runs-on: ubuntu-latest
+    name: "Build kew (${{ matrix.arch }})"
+    runs-on: ${{ matrix.runs-on }}
+    strategy:
+      matrix:
+        include:
+          - runs-on: ubuntu-latest
+            arch: x86_64
+          - runs-on: ubuntu-24.04-arm
+            arch: aarch64
     container:
-      image: alpine:latest
-
+      image: "alpine:edge"
+      volumes:
+        - /:/host  # Jailbreak!
     steps:
+      - name: Patch native Alpine NodeJS into Runner environment
+        if: runner.os == 'Linux'
+        run: |
+          apk add nodejs gcompat
+          sed -i "s:ID=alpine:ID=NotpineForGHA:" /etc/os-release
+          cd /host/home/runner/runners/*/externals/
+          rm -rf node20/*
+          mkdir node20/bin
+          ln -s /usr/bin/node node20/bin/node
+
       - name: Checkout code
         uses: actions/checkout@v3
 
@@ -65,30 +92,52 @@ jobs:
           echo "ARTIFACT_NAME=kew-${VERSION}-anylinux-$(uname -m).dwfs.AppBundle" >> $GITHUB_ENV
 
       - name: Upload Artifact
-        if: ${{ github.event_name == 'push' }}
+        if: ${{ github.event_name == 'push' || github.event_name == 'pull_request' }}
         uses: actions/upload-artifact@v4.6.1
         with:
-          name: kew-appbundle
+          name: kew-appbundle-${{ matrix.arch }}
           path: ./output/*.AppBundle*
           retention-days: 7
 
-      # For workflow_dispatch (Version Release)
-      - name: Delete Previous Release
-        if: ${{ github.event_name == 'workflow_dispatch' }}
+  release:
+    name: Create Release
+    needs: build-appbundle
+    if: ${{ github.event_name == 'workflow_dispatch' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install dependencies
         run: |
-          gh release delete "${VERSION}" --repo "${GITHUB_REPOSITORY}" --cleanup-tag -y || true
+          sudo apt-get update
+          sudo apt-get install -y github-cli
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: Set version
+        run: |
+          VERSION=$(./kew --version | awk -F": " 'FNR==6 {printf $NF}')
+          echo "VERSION=${VERSION}" >> $GITHUB_ENV
+
+      - name: Delete Previous Release
+        run: |
+          gh release delete "v${VERSION}" --repo "${GITHUB_REPOSITORY}" --cleanup-tag -y || true
         continue-on-error: true
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Version Release
-        if: ${{ github.event_name == 'workflow_dispatch' }}
+      - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
           name: "kew ${{ env.VERSION }}"
-          tag_name: "${{ env.VERSION }}"
+          tag_name: "v${{ env.VERSION }}"
           draft: false
           generate_release_notes: true
           make_latest: true
           files: |
-            output/*.AppBundle*
+            artifacts/*
