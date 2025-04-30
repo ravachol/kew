@@ -104,14 +104,14 @@ jobs:
     needs: build-appbundle
     if: ${{ github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
+    container: "alpine:edge"
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
       - name: Install dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y github-cli
+          apk add --no-cache github-cli
 
       - name: Download all artifacts
         uses: actions/download-artifact@v4
