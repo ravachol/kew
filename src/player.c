@@ -1197,6 +1197,81 @@ void printElapsedBars(int elapsedBars, int numProgressBars, PixelData color, int
         }
 }
 
+void printPacmanStyleBars(int elapsedBars, int numProgressBars, PixelData color, bool useConfigColors)
+{
+        int candySpacing = (int)(numProgressBars / 30) + 1;
+        printBlankSpaces(indent);
+        printf(" ");
+        for (int i = 0; i < numProgressBars; i++)
+        {
+                if (i == 0 || i == numProgressBars - 1) // Square brackets on each side
+                {
+                        if (!useConfigColors)
+                        {
+                                PixelData tmp = increaseLuminosity(color, 50);
+                                printf("\033[38;2;%d;%d;%dm", tmp.r, tmp.g, tmp.b);
+                        }
+                        else
+                        {
+                                setTextColorRGB(lastRowColor.r, lastRowColor.g, lastRowColor.b);
+                        }
+
+                        if (i == 0)
+                        {
+                                printf("[");
+                        }
+                        else
+                        {
+                                printf("]");
+                        }
+                }
+                else if (i > elapsedBars && i % candySpacing == 0)
+                {
+                        if (!useConfigColors)
+                        {
+                                PixelData tmp = increaseLuminosity(color, 50);
+                                printf("\033[38;2;%d;%d;%dm", tmp.r, tmp.g, tmp.b);
+                        }
+                        else
+                        {
+                                setTextColorRGB(lastRowColor.r, lastRowColor.g, lastRowColor.b);
+                        }
+                        printf("o");
+                }
+                else if (i <= elapsedBars)
+                {
+                        if (!useConfigColors)
+                        {
+                                printf("\033[38;2;%d;%d;%dm", color.r, color.g, color.b);
+                        }
+                        else
+                        {
+                                setDefaultTextColor();
+                        }
+
+                        if (i == elapsedBars)
+                        {
+                                if (i % candySpacing == 0)
+                                {
+                                    printf("c");
+                                }
+                                else
+                                {
+                                    printf("C");
+                                }
+                        }
+                        else
+                        {
+                                printf("-");
+                        }
+                }
+                else
+                {
+                        printf(" ");
+                }
+        }
+}
+
 void printVisualizer(double elapsedSeconds, AppState *state)
 {
         UISettings *ui = &(state->uiSettings);
@@ -1222,6 +1297,8 @@ void printVisualizer(double elapsedSeconds, AppState *state)
 
                 if (ui->progressBarType == 0)
                         printElapsedBars(calcElapsedBars(elapsedSeconds, duration, uis->numProgressBars), uis->numProgressBars, ui->color, ui->visualizerHeight, ui->useConfigColors);
+                else if (ui->progressBarType == 3)
+                        printPacmanStyleBars(calcElapsedBars(elapsedSeconds, duration, uis->numProgressBars * 2), uis->numProgressBars * 2 - 1, ui->color, ui->useConfigColors);
                 else
                         printElapsedLine(calcElapsedBars(elapsedSeconds, duration, uis->numProgressBars * 2), uis->numProgressBars * 2 - 1, ui->color, ui->useConfigColors, ui->progressBarType);
                 printErrorRow();

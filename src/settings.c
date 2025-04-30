@@ -919,7 +919,7 @@ void setConfig(AppSettings *settings, UISettings *ui)
         fprintf(file, "tweenFactor=%s\n", settings->tweenFactor);
         fprintf(file, "tweenFactorFall=%s\n\n", settings->tweenFactorFall);
 
-        fprintf(file, "# How the progress bar looks. 0=Dots, 1=Line, 2=Thick line\n");
+        fprintf(file, "# How the progress bar looks. 0=Dots, 1=Line, 2=Thick line, 3=Pacman-style\n");
         fprintf(file, "progressBarType=%s\n\n", settings->progressBarType);
 
         fprintf(file, "\n[colors]\n\n");
