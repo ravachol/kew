@@ -72,13 +72,19 @@ int makePlaylist(int argc, char *argv[], bool exactSearch, const char *path);
 
 void writeCurrentPlaylistToM3UFile(PlayList *playlist);
 
-void writeM3UFile(const char *filename, PlayList *playlist);
+void writeM3UFile(const char *filename, const PlayList *playlist);
 
 void loadSpecialPlaylist(const char *directory);
 
+void saveNamedPlaylist(const char *directory, const char *playlistName, const PlayList *playlist);
+
+void exportCurrentPlaylist(const char *path);
+
 void saveSpecialPlaylist(const char *directory);
 
-void savePlaylist(const char *path);
+void saveLastUsedPlaylist(void);
+
+void loadLastUsedPlaylist(void);
 
 PlayList deepCopyPlayList(PlayList *originalList);
 

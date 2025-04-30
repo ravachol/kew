@@ -707,6 +707,63 @@ Node *findSelectedEntry(PlayList *playlist, int row)
         return NULL;
 }
 
+bool markAsEnqueued(FileSystemEntry *root, char *path)
+{
+        if (root == NULL)
+                return false;
+
+        if (!root->isDirectory)
+        {
+                if (strcmp(root->fullPath, path) == 0)
+                {
+                        root->isEnqueued = true;
+                        return true;
+                }
+        }
+        else
+        {
+                FileSystemEntry *child = root->children;
+                bool found = false;
+                while (child != NULL)
+                {
+                        found = markAsEnqueued(child, path);
+                        child = child->next;
+
+                        if (found)
+                                break;
+                }
+
+                if (found)
+                {
+                        root->isEnqueued = true;
+
+                        return true;
+                }
+        }
+
+        return false;
+}
+
+void markListAsEnqueued(FileSystemEntry *root, PlayList *playlist)
+{
+        Node *node = playlist->head;
+
+        for (int i = 0; i < playlist->count; i++)
+        {
+                if (node == NULL)
+                        break;
+
+                if (node->song.filePath == NULL)
+                        break;
+
+                markAsEnqueued(root, node->song.filePath);
+
+                node = node->next;
+        }
+
+        root->isEnqueued = false; // Don't mark the absolute root
+}
+
 bool markAsDequeued(FileSystemEntry *root, char *path)
 {
         int numChildrenEnqueued = 0;

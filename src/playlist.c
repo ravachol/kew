@@ -18,6 +18,7 @@ Playlist related functions.
 
 const char PLAYLIST_EXTENSIONS[] = "(m3u8?)$";
 const char mainPlaylistName[] = "kew.m3u";
+const char lastUsedPlaylistName[] = "lastPlaylist.m3u";
 
 // The playlist unshuffled as it appears in playlist view
 PlayList *originalPlaylist = NULL;
@@ -625,7 +626,7 @@ void generateM3UFilename(const char *basePath, const char *filePath, char *m3uFi
         }
 }
 
-void writeM3UFile(const char *filename, PlayList *playlist)
+void writeM3UFile(const char *filename, const PlayList *playlist)
 {
         FILE *file = fopen(filename, "w");
         if (file == NULL)
@@ -642,32 +643,49 @@ void writeM3UFile(const char *filename, PlayList *playlist)
         fclose(file);
 }
 
-void loadSpecialPlaylist(const char *directory)
+void loadPlaylist(const char *directory, const char *playlistName, PlayList *playlist)
 {
         char playlistPath[MAXPATHLEN];
 
         if (directory[strnlen(directory, MAXPATHLEN) - 1] == '/')
         {
-                snprintf(playlistPath, sizeof(playlistPath), "%s%s", directory, mainPlaylistName);
+                snprintf(playlistPath, sizeof(playlistPath), "%s%s", directory, playlistName);
         }
         else
         {
-                snprintf(playlistPath, sizeof(playlistPath), "%s/%s", directory, mainPlaylistName);
+                snprintf(playlistPath, sizeof(playlistPath), "%s/%s", directory, playlistName);
         }
 
-        specialPlaylist = malloc(sizeof(PlayList));
-        if (specialPlaylist == NULL)
+        if (playlist == NULL)
         {
                 printf("Failed to allocate memory for special playlist.\n");
                 exit(0);
         }
-        specialPlaylist->count = 0;
-        specialPlaylist->head = NULL;
-        specialPlaylist->tail = NULL;
-        readM3UFile(playlistPath, specialPlaylist);
+        playlist->count = 0;
+        playlist->head = NULL;
+        playlist->tail = NULL;
+        readM3UFile(playlistPath, playlist);
 }
 
-void saveSpecialPlaylist(const char *directory)
+void loadSpecialPlaylist(const char *directory)
+{
+        specialPlaylist = malloc(sizeof(PlayList));
+        loadPlaylist(directory, mainPlaylistName, specialPlaylist);
+}
+
+void loadLastUsedPlaylist(void)
+{
+        loadPlaylist(getConfigPath(), lastUsedPlaylistName, &playlist);
+
+        if (originalPlaylist == NULL)
+        {
+
+                originalPlaylist = malloc(sizeof(PlayList));
+                *originalPlaylist = deepCopyPlayList(&playlist);
+        }
+}
+
+void saveNamedPlaylist(const char *directory, const char *playlistName, const PlayList *playlist)
 {
     if (directory == NULL)
     {
@@ -685,34 +703,52 @@ void saveSpecialPlaylist(const char *directory)
 
     if (playlistPath[length - 1] != '/')
     {
-        snprintf(playlistPath + length, sizeof(playlistPath) - length, "/%s", mainPlaylistName);
+        snprintf(playlistPath + length, sizeof(playlistPath) - length, "/%s", playlistName);
     }
     else
     {
-        snprintf(playlistPath + length, sizeof(playlistPath) - length, "%s", mainPlaylistName);
+        snprintf(playlistPath + length, sizeof(playlistPath) - length, "%s", playlistName);
     }
 
-    if (specialPlaylist != NULL && specialPlaylist->count > 0)
+    if (playlist != NULL)
     {
-        writeM3UFile(playlistPath, specialPlaylist);
+        writeM3UFile(playlistPath, playlist);
     }
 }
 
-void savePlaylist(const char *path)
+void saveSpecialPlaylist(const char *directory)
+{
+        if (specialPlaylist != NULL && specialPlaylist->count > 0)
+        {
+                saveNamedPlaylist(directory, mainPlaylistName, specialPlaylist);
+        }
+}
+
+void saveLastUsedPlaylist(void)
+{
+        saveNamedPlaylist(getConfigPath(), lastUsedPlaylistName, originalPlaylist);
+}
+
+void savePlaylist(const char *path, const PlayList *playlist)
 {
         if (path == NULL)
         {
                 return;
         }
 
-        if (playlist.head == NULL || playlist.head->song.filePath == NULL)
+        if (playlist->head == NULL || playlist->head->song.filePath == NULL)
                 return;
 
+        writeM3UFile(path, playlist);
+}
+
+void exportCurrentPlaylist(const char *path)
+{
         char m3uFilename[MAXPATHLEN];
 
         generateM3UFilename(path, playlist.head->song.filePath, m3uFilename, sizeof(m3uFilename));
 
-        writeM3UFile(m3uFilename, &playlist);
+        savePlaylist(m3uFilename, &playlist);
 }
 
 Node *deepCopyNode(Node *originalNode)
