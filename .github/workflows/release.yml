@@ -84,6 +84,7 @@ jobs:
           wget -qO ./sharun "https://github.com/VHSgunzo/sharun/releases/latest/download/sharun-$(uname -m)-aio"
           chmod +x ./sharun
           ./sharun l --with-sharun --gen-lib-path --with-hooks --dst-dir ./appdir ./kew
+          ./sharun l --strace-mode --with-sharun --gen-lib-path --with-hooks --dst-dir ./appdir ./kew || true
           cd ./appdir && {
             ln -sfT ./sharun ./AppRun
             echo "kew" >> .app
