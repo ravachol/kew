@@ -214,7 +214,10 @@ void play(Node *song)
                 songHasErrors = false;
                 forceSkip = true;
                 if (currentSong->next != NULL)
+                {
                         skipToSong(currentSong->next->id, true);
+                        return;
+                }
         }
 
         resetClock();
@@ -1478,7 +1481,7 @@ void *songDataReaderThread(void *arg)
                 }
         }
 
-        if (filepath[0] != '\0')
+        if (existsFile(filepath) >= 0)
         {
                 songdata = loadSongData(filepath, &appState);
         }
@@ -1502,7 +1505,7 @@ void *songDataReaderThread(void *arg)
         // Release the mutex lock
         pthread_mutex_unlock(&(loadingdata->mutex));
 
-        if (songdata != NULL && songdata->hasErrors)
+        if (songdata == NULL || songdata->hasErrors)
         {
                 songHasErrors = true;
                 clearingErrors = true;
@@ -1534,23 +1537,6 @@ void loadSong(Node *song, LoadingThreadData *loadingdata)
         }
 
         c_strcpy(loadingdata->filePath, song->song.filePath, sizeof(loadingdata->filePath));
-
-        pthread_t loadingThread;
-        pthread_create(&loadingThread, NULL, songDataReaderThread, (void *)loadingdata);
-}
-
-void loadNext(LoadingThreadData *loadingdata)
-{
-        nextSong = getListNext(currentSong);
-
-        if (nextSong == NULL)
-        {
-                c_strcpy(loadingdata->filePath, "", sizeof(loadingdata->filePath));
-        }
-        else
-        {
-                c_strcpy(loadingdata->filePath, nextSong->song.filePath, sizeof(loadingdata->filePath));
-        }
 
         pthread_t loadingThread;
         pthread_create(&loadingThread, NULL, songDataReaderThread, (void *)loadingdata);
