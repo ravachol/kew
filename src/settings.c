@@ -42,7 +42,12 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         c_strcpy(settings.visualizerBrailleMode, "0", sizeof(settings.visualizerBrailleMode));
         c_strcpy(settings.tweenFactor, "0.23", sizeof(settings.tweenFactor));
         c_strcpy(settings.tweenFactorFall, "0.13", sizeof(settings.tweenFactor));
-        c_strcpy(settings.progressBarType, "2", sizeof(settings.progressBarType));
+        c_strcpy(settings.progressBarElapsedEvenChar, "━", sizeof(settings.progressBarElapsedEvenChar));
+        c_strcpy(settings.progressBarElapsedOddChar, "━", sizeof(settings.progressBarElapsedOddChar));
+        c_strcpy(settings.progressBarApproachingEvenChar, "━", sizeof(settings.progressBarApproachingEvenChar));
+        c_strcpy(settings.progressBarApproachingOddChar, "━", sizeof(settings.progressBarApproachingOddChar));
+        c_strcpy(settings.progressBarCurrentEvenChar, "━", sizeof(settings.progressBarCurrentEvenChar));
+        c_strcpy(settings.progressBarCurrentOddChar, "━", sizeof(settings.progressBarCurrentOddChar));
 #ifdef __APPLE__
         c_strcpy(settings.visualizerEnabled, "0", sizeof(settings.visualizerEnabled)); // Visualizer looks wonky in default terminal
         c_strcpy(settings.useConfigColors, "1", sizeof(settings.useConfigColors));     // Colors from album look wrong in default terminal
@@ -386,10 +391,35 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
                         if (strcmp(pair->value, "") != 0)
                                 snprintf(settings.tweenFactorFall, sizeof(settings.tweenFactorFall), "%s", pair->value);
                 }
-                else if (strcmp(lowercaseKey, "progressbartype") == 0)
+                else if (strcmp(lowercaseKey, "progressbarelapsedevenchar") == 0)
                 {
                         if (strcmp(pair->value, "") != 0)
-                                snprintf(settings.progressBarType, sizeof(settings.progressBarType), "%s", pair->value);
+                                snprintf(settings.progressBarElapsedEvenChar, sizeof(settings.progressBarElapsedEvenChar), "%s", pair->value);
+                }
+                else if (strcmp(lowercaseKey, "progressbarelapsedoddchar") == 0)
+                {
+                        if (strcmp(pair->value, "") != 0)
+                                snprintf(settings.progressBarElapsedOddChar, sizeof(settings.progressBarElapsedOddChar), "%s", pair->value);
+                }
+                else if (strcmp(lowercaseKey, "progressbarapproachingevenchar") == 0)
+                {
+                        if (strcmp(pair->value, "") != 0)
+                                snprintf(settings.progressBarApproachingEvenChar, sizeof(settings.progressBarApproachingEvenChar), "%s", pair->value);
+                }
+                else if (strcmp(lowercaseKey, "progressbarapproachingoddchar") == 0)
+                {
+                        if (strcmp(pair->value, "") != 0)
+                                snprintf(settings.progressBarApproachingOddChar, sizeof(settings.progressBarApproachingOddChar), "%s", pair->value);
+                }
+                else if (strcmp(lowercaseKey, "progressbarcurrentevenchar") == 0)
+                {
+                        if (strcmp(pair->value, "") != 0)
+                                snprintf(settings.progressBarCurrentEvenChar, sizeof(settings.progressBarCurrentEvenChar), "%s", pair->value);
+                }
+                else if (strcmp(lowercaseKey, "progressbarcurrentoddchar") == 0)
+                {
+                        if (strcmp(pair->value, "") != 0)
+                                snprintf(settings.progressBarCurrentOddChar, sizeof(settings.progressBarCurrentOddChar), "%s", pair->value);
                 }
                 else if (strcmp(lowercaseKey, "showkeysalt") == 0 && strcmp(pair->value, "B") != 0)
                 {
@@ -586,6 +616,21 @@ char *getConfigFilePath(char *configdir)
         return filepath;
 }
 
+int getBytesInFirstChar(const char *str)
+{
+        if (str == NULL || str[0] == '\0')
+        {
+                return 0;
+        }
+
+        mbstate_t state;
+        memset(&state, 0, sizeof(state));
+        wchar_t wc;
+        int numBytes = mbrtowc(&wc, str, MB_CUR_MAX, &state);
+
+        return numBytes;
+}
+
 enum EventType getMouseAction(int num)
 {
         enum EventType value = EVENT_NONE;
@@ -702,6 +747,30 @@ void getConfig(AppSettings *settings, UISettings *ui)
         free(filepath);
         *settings = constructAppSettings(pairs, pair_count);
 
+        int tmpNumBytes = getBytesInFirstChar(settings->progressBarElapsedEvenChar);
+        if (tmpNumBytes != 0)
+                settings->progressBarElapsedEvenChar[tmpNumBytes] = '\0';
+
+        tmpNumBytes = getBytesInFirstChar(settings->progressBarElapsedOddChar);
+        if (tmpNumBytes != 0)
+                settings->progressBarElapsedOddChar[tmpNumBytes] = '\0';
+
+        tmpNumBytes = getBytesInFirstChar(settings->progressBarApproachingEvenChar);
+        if (tmpNumBytes != 0)
+                settings->progressBarApproachingEvenChar[tmpNumBytes] = '\0';
+
+        tmpNumBytes = getBytesInFirstChar(settings->progressBarApproachingOddChar);
+        if (tmpNumBytes != 0)
+                settings->progressBarApproachingOddChar[tmpNumBytes] = '\0';
+
+        tmpNumBytes = getBytesInFirstChar(settings->progressBarCurrentEvenChar);
+        if (tmpNumBytes != 0)
+                settings->progressBarCurrentEvenChar[tmpNumBytes] = '\0';
+
+        tmpNumBytes = getBytesInFirstChar(settings->progressBarCurrentOddChar);
+        if (tmpNumBytes != 0)
+                settings->progressBarCurrentOddChar[tmpNumBytes] = '\0';
+
         ui->allowNotifications = (settings->allowNotifications[0] == '1');
         ui->coverEnabled = (settings->coverEnabled[0] == '1');
         ui->coverAnsi = (settings->coverAnsi[0] == '1');
@@ -772,10 +841,6 @@ void getConfig(AppSettings *settings, UISettings *ui)
         tmp = getNumber(settings->visualizerColorType);
         if (tmp >= 0)
                 ui->visualizerColorType = tmp;
-
-        tmp = getNumber(settings->progressBarType);
-        if (tmp >= 0)
-                ui->progressBarType = tmp;
 
         tmp = getNumber(settings->titleDelay);
         if (tmp >= 0)
@@ -849,8 +914,6 @@ void setConfig(AppSettings *settings, UISettings *ui)
                 snprintf(settings->tweenFactorFall, sizeof(settings->tweenFactorFall), "%.2f", ui->tweenFactorFall);
         if (settings->visualizerColorType[0] == '\0')
                 snprintf(settings->visualizerColorType, sizeof(settings->visualizerColorType), "%d", ui->visualizerColorType);
-        if (settings->progressBarType[0] == '\0')
-                snprintf(settings->progressBarType, sizeof(settings->progressBarType), "%d", ui->progressBarType);
         if (settings->titleDelay[0] == '\0')
                 snprintf(settings->titleDelay, sizeof(settings->titleDelay), "%d", ui->titleDelay);
         if (settings->cacheLibrary[0] == '\0')
@@ -920,8 +983,14 @@ void setConfig(AppSettings *settings, UISettings *ui)
         fprintf(file, "tweenFactor=%s\n", settings->tweenFactor);
         fprintf(file, "tweenFactorFall=%s\n\n", settings->tweenFactorFall);
 
-        fprintf(file, "# How the progress bar looks. 0=Dots, 1=Line, 2=Thick line\n");
-        fprintf(file, "progressBarType=%s\n\n", settings->progressBarType);
+        fprintf(file, "[progress bar]\n");
+        fprintf(file, "# Progress bar in track view\n");
+        fprintf(file, "progressBarElapsedEvenChar=%s\n", settings->progressBarElapsedEvenChar);
+        fprintf(file, "progressBarElapsedOddChar=%s\n", settings->progressBarElapsedOddChar);
+        fprintf(file, "progressBarApproachingEvenChar=%s\n", settings->progressBarApproachingEvenChar);
+        fprintf(file, "progressBarApproachingOddChar=%s\n", settings->progressBarApproachingOddChar);
+        fprintf(file, "progressBarCurrentEvenChar=%s\n", settings->progressBarCurrentEvenChar);
+        fprintf(file, "progressBarCurrentOddChar=%s\n", settings->progressBarCurrentOddChar);
 
         fprintf(file, "\n[colors]\n\n");
 
