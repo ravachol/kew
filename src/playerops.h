@@ -10,6 +10,7 @@
 #include <sys/time.h>
 #include <unistd.h>
 #include "appstate.h"
+#include "file.h"
 #include "player.h"
 #include "songloader.h"
 #include "settings.h"
@@ -108,8 +109,6 @@ void skipToNumberedSong(int songNumber);
 void skipToLastSong(void);
 
 void loadSong(Node *song, LoadingThreadData *loadingdata);
-
-void loadNext(LoadingThreadData *loadingdata);
 
 int loadFirst(Node *song, AppState *state);
 
