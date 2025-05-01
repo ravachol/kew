@@ -31,6 +31,7 @@ jobs:
             arch: aarch64
     container:
       image: "alpine:edge"
+      options: --privileged
       volumes:
         - /:/host  # Jailbreak!
     steps:
