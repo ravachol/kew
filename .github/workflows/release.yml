@@ -90,22 +90,15 @@ jobs:
             wget -qO- "https://github.com/xplshn/filesystems/releases/latest/download/$RELEASE_NAME" | tar xzvf - -C ./proto
             wget -qO ./AppRun "https://github.com/xplshn/pelf/raw/refs/heads/pelf-ng/assets/AppRun.rootfs-based"
             chmod +x ./AppRun
-
-            touch       "./proto/etc/machine-id"       \
-                        "./proto/etc/hostname"         \
-                        "./proto/etc/localtime"        \
-                        "./proto/etc/passwd"           \
-                        "./proto/etc/groups"           \
-                        "./proto/etc/hosts"            \
-                        "./proto/etc/nsswitch.conf"    \
-                        "./proto/etc/resolv.conf"      \
-                        "./proto/etc/asound.conf"
-            mkdir -p    "./proto/usr/share/fonts"      \
-                        "./proto/usr/share/fontconfig" \
-                        "./proto/media" \
-                        "./proto/mnt"
-
             cp ../kew ./proto/usr/bin
+            ./AppRun >/dev/null 2>&1
+            ./AppRun --Xbwrap --gid 0 --uid 0 -- apk add libcurl          \
+                                                         glib             \
+                                                         fftw-single-libs \
+                                                         libvorbis        \
+                                                         libogg           \
+                                                         libstdc++        \
+                                                         libgcc
           }
 
       - name: Create AppBundle
