@@ -126,7 +126,7 @@ jobs:
 
       - name: Set version from artifact
         run: |
-          VERSION=$(cat artifacts/version-info-x86_64/version.txt)
+          VERSION=$(cat artifacts/version-info-*/version.txt | head -n 1)
           echo "VERSION=${VERSION}" >> $GITHUB_ENV
 
       - name: Delete Previous Release
