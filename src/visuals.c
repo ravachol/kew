@@ -56,6 +56,35 @@ float fallThresholdPercent = 0.1f;
 
 #define MIN_THRESHOLD 0.01f // adjust for silence sensitivity
 
+void smoothMovingAverageMagnitudes(int numBars, float *magnitudes)
+{
+        // Apply moving average smoothing
+        for (int i = 0; i < numBars; i++)
+        {
+                float sum = magnitudes[i];
+                int count = 1;
+
+                // Calculate moving average using a window centered at the current frequency bin
+                for (int j = 1; j <= MOVING_AVERAGE_WINDOW_SIZE / 2; j++)
+                {
+                        if (i - j >= 0)
+                        {
+                                sum += magnitudes[i - j];
+                                count++;
+                        }
+                        if (i + j < numBars)
+                        {
+                                sum += magnitudes[i + j];
+                                count++;
+                        }
+                }
+
+                smoothedMagnitudes[i] = sum / count;
+        }
+
+        memcpy(magnitudes, smoothedMagnitudes, numBars * sizeof(float));
+}
+
 float applyAttackandDecay(float linearVal, float lastMagnitude, float maxMagnitude)
 {
         float ratio = linearVal / maxMagnitude; // 0..1
@@ -85,6 +114,8 @@ float applyAttackandDecay(float linearVal, float lastMagnitude, float maxMagnitu
 
 void updateMagnitudes(int height, int numBars, float maxMagnitude, float *magnitudes)
 {
+        smoothMovingAverageMagnitudes(numBars, magnitudes);
+
         for (int i = 0; i < numBars; i++)
         {
                 float newVal = applyAttackandDecay(magnitudes[i], lastMagnitudes[i], maxMagnitude);
