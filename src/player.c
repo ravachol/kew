@@ -1128,8 +1128,11 @@ void resetRadioSearchResult(void)
         chosenRadioSearchResultRow = 0;
 }
 
-void printElapsedLine(int elapsedBars, int numProgressBars, PixelData color, bool useConfigColors, int progressBarType)
+void printElapsedChars(AppSettings *settings, UISettings *ui, int elapsedBars, int numProgressBars)
 {
+        PixelData color = ui->color;
+        bool useConfigColors = ui->useConfigColors;
+
         printBlankSpaces(indent);
         printf(" ");
         for (int i = 0; i < numProgressBars; i++)
@@ -1145,59 +1148,45 @@ void printElapsedLine(int elapsedBars, int numProgressBars, PixelData color, boo
                         {
                                 setTextColorRGB(lastRowColor.r, lastRowColor.g, lastRowColor.b);
                         }
-                }
-                else if (i <= elapsedBars)
-                {
-                        if (!useConfigColors)
-                        {
-                                printf("\033[38;2;%d;%d;%dm", color.r, color.g, color.b);
-                        }
+
+                        if (i % 2 == 0)
+                                printf("%s", settings->progressBarApproachingEvenChar);
                         else
-                        {
-                                setDefaultTextColor();
-                        }
+                                printf("%s", settings->progressBarApproachingOddChar);
+
+                        continue;
                 }
 
-                if (progressBarType == 1)
+                if (!useConfigColors)
                 {
-                        printf("─");
+                        printf("\033[38;2;%d;%d;%dm", color.r, color.g, color.b);
                 }
-                else if (progressBarType == 2)
-                {
-                        printf("━");
-                }
-        }
-}
-
-void printElapsedBars(int elapsedBars, int numProgressBars, PixelData color, int height, bool useConfigColors)
-{
-        if (!useConfigColors)
-        {
-                PixelData tmp = increaseLuminosity(color, round(height * 4));
-                printf("\033[38;2;%d;%d;%dm", tmp.r, tmp.g, tmp.b);
-        }
-        else
-        {
-                setDefaultTextColor();
-        }
-        printBlankSpaces(indent);
-        printf(" ");
-        for (int i = 0; i < numProgressBars; i++)
-        {
-                if (i == 0)
-                {
-                        printf("■ ");
-                }
-                else if (i < elapsedBars)
-                        printf("■ ");
                 else
                 {
-                        printf("= ");
+                        setDefaultTextColor();
+                }
+
+                if (i < elapsedBars)
+                {
+                        if (i % 2 == 0)
+                                printf("%s", settings->progressBarElapsedEvenChar);
+                        else
+                                printf("%s", settings->progressBarElapsedOddChar);
+
+                        continue;
+                }
+
+                else if (i == elapsedBars)
+                {
+                        if (i % 2 == 0)
+                                printf("%s", settings->progressBarCurrentEvenChar);
+                        else
+                                printf("%s", settings->progressBarCurrentOddChar);
                 }
         }
 }
 
-void printVisualizer(double elapsedSeconds, AppState *state)
+void printVisualizer(AppSettings *settings, double elapsedSeconds, AppState *state)
 {
         UISettings *ui = &(state->uiSettings);
         UIState *uis = &(state->uiState);
@@ -1220,10 +1209,7 @@ void printVisualizer(double elapsedSeconds, AppState *state)
 #endif
                 drawSpectrumVisualizer(state, indent);
 
-                if (ui->progressBarType == 0)
-                        printElapsedBars(calcElapsedBars(elapsedSeconds, duration, uis->numProgressBars), uis->numProgressBars, ui->color, ui->visualizerHeight, ui->useConfigColors);
-                else
-                        printElapsedLine(calcElapsedBars(elapsedSeconds, duration, uis->numProgressBars * 2), uis->numProgressBars * 2 - 1, ui->color, ui->useConfigColors, ui->progressBarType);
+                printElapsedChars(settings, ui, calcElapsedBars(elapsedSeconds, duration, uis->numProgressBars * 2), uis->numProgressBars * 2 - 1);
                 printErrorRow();
                 printLastRow(&(state->uiSettings));
 #ifndef __APPLE__
@@ -1674,7 +1660,7 @@ void createMetadataForRadio(TagSettings **metadata, RadioSearchResult *station)
         }
 }
 
-void showTrackViewMini(SongData *songdata, AppState *state, double elapsedSeconds)
+void showTrackViewMini(AppSettings *settings, SongData *songdata, AppState *state, double elapsedSeconds)
 {
         TagSettings *metadata = NULL;
         int avgBitRate = 0;
@@ -1757,10 +1743,10 @@ void showTrackViewMini(SongData *songdata, AppState *state, double elapsedSecond
                 printTime(elapsedSeconds, sampleRate, avgBitRate, state);
         }
         if (doPrintVis)
-                printVisualizer(elapsedSeconds, state);
+                printVisualizer(settings, elapsedSeconds, state);
 }
 
-void showTrackView(SongData *songdata, AppState *state, double elapsedSeconds)
+void showTrackView(AppSettings *settings, SongData *songdata, AppState *state, double elapsedSeconds)
 {
         TagSettings *metadata = NULL;
         int avgBitRate = 0;
@@ -1798,7 +1784,7 @@ void showTrackView(SongData *songdata, AppState *state, double elapsedSeconds)
                 getCurrentFormatAndSampleRate(&format, &sampleRate);
                 printTime(elapsedSeconds, sampleRate, avgBitRate, state);
         }
-        printVisualizer(elapsedSeconds, state);
+        printVisualizer(settings, elapsedSeconds, state);
 }
 
 int printPlayer(SongData *songdata, double elapsedSeconds, AppSettings *settings, AppState *state)
@@ -1850,7 +1836,7 @@ int printPlayer(SongData *songdata, double elapsedSeconds, AppSettings *settings
         if ((term_w <= 10 || term_h <= 8) || (preferredHeight <= 0 || preferredWidth <= 0))
         {
                 state->uiState.miniMode = true;
-                showTrackViewMini(songdata, state, elapsedSeconds);
+                showTrackViewMini(settings, songdata, state, elapsedSeconds);
                 fflush(stdout);
                 return 0;
         }
@@ -1892,7 +1878,7 @@ int printPlayer(SongData *songdata, double elapsedSeconds, AppSettings *settings
         }
         else if (state->currentView == TRACK_VIEW)
         {
-                showTrackView(songdata, state, elapsedSeconds);
+                showTrackView(settings, songdata, state, elapsedSeconds);
                 fflush(stdout);
         }
 
