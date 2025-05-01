@@ -122,11 +122,10 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: artifacts
-          merge-multiple: true
 
       - name: Set version from artifact
         run: |
-          VERSION=$(cat artifacts/version-info-*/version.txt | head -n 1)
+          VERSION=$(cat artifacts/version-info-x86_64/version.txt)
           echo "VERSION=${VERSION}" >> $GITHUB_ENV
 
       - name: Delete Previous Release
@@ -145,4 +144,4 @@ jobs:
           generate_release_notes: true
           make_latest: true
           files: |
-            artifacts/*.AppBundle*
+            artifacts/kew-appbundle-*/*.AppBundle*
