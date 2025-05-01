@@ -100,7 +100,6 @@ jobs:
           echo "ARTIFACT_NAME=kew-${VERSION}-anylinux-$(uname -m).dwfs.AppBundle" >> $GITHUB_ENV
 
       - name: Upload Artifact
-        if: ${{ github.event_name == 'push' || github.event_name == 'pull_request' }}
         uses: actions/upload-artifact@v4.6.1
         with:
           name: kew-appbundle-${{ matrix.arch }}
