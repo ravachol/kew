@@ -85,11 +85,25 @@ jobs:
           cd ./appdir && {
             export DBIN_INSTALL_DIR="$PWD/usr/bin"
             mkdir "$DBIN_INSTALL_DIR" ./proto
-            wget -qO- "https://raw.githubusercontent.com/xplshn/dbin/master/stubdl" | sh -s -- add bwrap#github.com.containers.bubblewrap.patched            
+            wget -qO- "https://raw.githubusercontent.com/xplshn/dbin/master/stubdl" | sh -s -- add bwrap#github.com.containers.bubblewrap.patched
             echo "kew" >> ./entrypoint
             wget -qO- "https://github.com/xplshn/filesystems/releases/latest/download/$RELEASE_NAME" | tar xzvf - -C ./proto
             wget -qO ./AppRun "https://github.com/xplshn/pelf/raw/refs/heads/pelf-ng/assets/AppRun.rootfs-based"
             chmod +x ./AppRun
+
+            touch       "$APPDIR/proto/etc/machine-id"       \
+                        "$APPDIR/proto/etc/hostname"         \
+                        "$APPDIR/proto/etc/localtime"        \
+                        "$APPDIR/proto/etc/passwd"           \
+                        "$APPDIR/proto/etc/groups"           \
+                        "$APPDIR/proto/etc/hosts"            \
+                        "$APPDIR/proto/etc/nsswitch.conf"    \
+                        "$APPDIR/proto/etc/resolv.conf"      \
+                        "$APPDIR/proto/etc/asound.conf"
+            mkdir -p    "$APPDIR/proto/usr/share/fonts"      \
+                        "$APPDIR/proto/usr/share/fontconfig" \
+                        "$APPDIR/proto/media"
+
             cp ../kew ./proto/usr/bin
           }
 
