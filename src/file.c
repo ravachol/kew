@@ -33,6 +33,9 @@ void getDirectoryFromPath(const char *path, char *directory)
 
 int existsFile(const char *fname)
 {
+        if (fname == NULL || fname[0] == '\0')
+                return -1;
+
         FILE *file;
         if ((file = fopen(fname, "r")))
         {
