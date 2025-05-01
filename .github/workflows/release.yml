@@ -61,6 +61,7 @@ jobs:
             libogg-dev \
             glib-dev \
             curl-dev \
+            pipewire-dev \
             github-cli \
             git
 
