@@ -2,6 +2,8 @@
 
 ### 3.2.1
 
+- Snare detection in the visualizer. This makes the visualization more energetic.
+
 - kew now remembers the playlist between sessions, unless you tell it to load something else.
 
 - Gradient in library and playlist that makes the bottom rows a bit darker when using album colors.
