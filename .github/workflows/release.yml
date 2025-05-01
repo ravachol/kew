@@ -91,18 +91,18 @@ jobs:
             wget -qO ./AppRun "https://github.com/xplshn/pelf/raw/refs/heads/pelf-ng/assets/AppRun.rootfs-based"
             chmod +x ./AppRun
 
-            touch       "$APPDIR/proto/etc/machine-id"       \
-                        "$APPDIR/proto/etc/hostname"         \
-                        "$APPDIR/proto/etc/localtime"        \
-                        "$APPDIR/proto/etc/passwd"           \
-                        "$APPDIR/proto/etc/groups"           \
-                        "$APPDIR/proto/etc/hosts"            \
-                        "$APPDIR/proto/etc/nsswitch.conf"    \
-                        "$APPDIR/proto/etc/resolv.conf"      \
-                        "$APPDIR/proto/etc/asound.conf"
-            mkdir -p    "$APPDIR/proto/usr/share/fonts"      \
-                        "$APPDIR/proto/usr/share/fontconfig" \
-                        "$APPDIR/proto/media"
+            touch       "./proto/etc/machine-id"       \
+                        "./proto/etc/hostname"         \
+                        "./proto/etc/localtime"        \
+                        "./proto/etc/passwd"           \
+                        "./proto/etc/groups"           \
+                        "./proto/etc/hosts"            \
+                        "./proto/etc/nsswitch.conf"    \
+                        "./proto/etc/resolv.conf"      \
+                        "./proto/etc/asound.conf"
+            mkdir -p    "./proto/usr/share/fonts"      \
+                        "./proto/usr/share/fontconfig" \
+                        "./proto/media"
 
             cp ../kew ./proto/usr/bin
           }
