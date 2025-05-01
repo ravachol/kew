@@ -87,18 +87,18 @@ jobs:
             mkdir "$DBIN_INSTALL_DIR" ./proto
             wget -qO- "https://raw.githubusercontent.com/xplshn/dbin/master/stubdl" | sh -s -- add bwrap#github.com.containers.bubblewrap.patched
             echo "kew" >> ./entrypoint
-            wget -qO- "https://github.com/xplshn/filesystems/releases/latest/download/$RELEASE_NAME" | tar xzvf - -C ./proto
+            wget -qO- "https://github.com/xplshn/filesystems/releases/latest/download/$RELEASE_NAME" | tar xzf - -C ./proto
             wget -qO ./AppRun "https://github.com/xplshn/pelf/raw/refs/heads/pelf-ng/assets/AppRun.rootfs-based"
             chmod +x ./AppRun
             cp ../kew ./proto/usr/bin
-            ./AppRun >/dev/null 2>&1
+            ./AppRun >/dev/null 2>&1 || true
             ./AppRun --Xbwrap --gid 0 --uid 0 -- apk add libcurl          \
                                                          glib             \
                                                          fftw-single-libs \
                                                          libvorbis        \
                                                          libogg           \
                                                          libstdc++        \
-                                                         libgcc
+                                                         libgcc || true
           }
 
       - name: Create AppBundle
