@@ -81,13 +81,16 @@ jobs:
 
       - name: Prepare AppDir
         run: |
-          wget -qO ./sharun "https://github.com/VHSgunzo/sharun/releases/latest/download/sharun-$(uname -m)-aio"
-          chmod +x ./sharun
-          ./sharun l --with-sharun --gen-lib-path --with-hooks --dst-dir ./appdir ./kew
-          ./sharun l --strace-mode --with-sharun --gen-lib-path --with-hooks --dst-dir ./appdir ./kew || true
+          RELEASE_NAME="AlpineLinux_latest-stable-$(uname -m).tar.gz"
           cd ./appdir && {
-            ln -sfT ./sharun ./AppRun
-            echo "kew" >> .app
+            export DBIN_INSTALL_DIR="$PWD/usr/bin"
+            mkdir "$DBIN_INSTALL_DIR" ./proto
+            wget -qO- "https://raw.githubusercontent.com/xplshn/dbin/master/stubdl" | sh -s -- add bwrap#github.com.containers.bubblewrap.patched            
+            echo "kew" >> ./entrypoint
+            wget -qO- "https://github.com/xplshn/filesystems/releases/latest/download/$RELEASE_NAME" | tar xzvf - -C ./proto
+            wget -qO ./AppRun "https://github.com/xplshn/pelf/raw/refs/heads/pelf-ng/assets/AppRun.rootfs-based"
+            chmod +x ./AppRun
+            cp ../kew ./proto/usr/bin
           }
 
       - name: Create AppBundle
