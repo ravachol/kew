@@ -243,6 +243,8 @@ void skipToSong(int id, bool startPlaying)
 
 void skipToBegginningOfSong(void)
 {
+        resetClock();
+
         if (currentSong != NULL)
         {
                 seekPercentage(0);
