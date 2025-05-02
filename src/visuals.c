@@ -31,15 +31,15 @@ float magnitudeBuffer[MAX_BARS] = {0.0f};
 float lastMagnitudes[MAX_BARS] = {0.0f};
 float smoothedMagnitudes[MAX_BARS] = {0.0f};
 float smoothedFramesMagnitudes[MAX_BARS] = {0.0f};
-float minMaxMagnitude = 100.0f;
+float minMaxMagnitude = 10.0f;
 float spacingPower = 1.0f; // 0.8 = Bars skewed toward bass values. 1.0 = Linear
 
 float baseDecay = 0.85f;
-float rangeDecay = 0.2f;
+float rangeDecay = 0.02f;
 float baseAttack = 0.45f;
 float rangeAttack = 0.4f;
 
-float maxMagnitude = 250.0f;
+float maxMagnitude = 50.0f;
 
 float tweenFactor = 0.23f;
 float tweenFactorFall = 0.13f;
@@ -47,11 +47,13 @@ float tweenFactorFall = 0.13f;
 float snareTweenFactor = 0.23f;
 float snareTweenFactorFall = 0.13f;
 
-float riseThresholdPercent = 0.05f;
-float fallThresholdPercent = 0.05f;
+float riseThresholdPercent = 0.03f;
+float fallThresholdPercent = 0.03f;
 
 bool snareDetected = false;
 bool elevateBarsOnSnare = false;
+
+bool fatBars = false;
 
 #define MOVING_AVERAGE_WINDOW_SIZE 2
 
@@ -421,6 +423,7 @@ void calc(
         fftwf_execute(plan);
 
         clearMagnitudes(numBars, magnitudes);
+        sampleRate = 44100;
 
         float minFreq = 20.0f;
         float maxFreq = (float)((sampleRate / 2 > 48000) ? 48000 : sampleRate / 2);
@@ -633,15 +636,22 @@ void printSpectrum(int height, int numBars, float *magnitudes, PixelData color, 
                         if (magnitudes[i] >= j)
                         {
                                 printf("%s", getUpwardMotionChar(10, brailleMode));
+                                if (fatBars)
+                                        printf("%s", getUpwardMotionChar(10, brailleMode));
                         }
                         else if (magnitudes[i] + 1 >= j)
                         {
                                 int firstDecimalDigit = (int)(fmod(magnitudes[i] * 10, 10));
                                 printf("%s", getUpwardMotionChar(firstDecimalDigit, brailleMode));
+                                if (fatBars)
+                                        printf("%s", getUpwardMotionChar(firstDecimalDigit, brailleMode));
+
                         }
                         else
                         {
                                 printf(" ");
+                                if (fatBars)
+                                        printf(" ");
                         }
                 }
                 printf("\n ");
@@ -684,6 +694,7 @@ void drawSpectrumVisualizer(AppState *state, int indentation)
         tweenFactor = state->uiSettings.tweenFactor;
         tweenFactorFall = state->uiSettings.tweenFactorFall;
         elevateBarsOnSnare = state->uiSettings.elevateBarsOnSnare;
+        fatBars = state->uiSettings.fatBars;
 
         height = height - 1;
 
@@ -691,6 +702,9 @@ void drawSpectrumVisualizer(AppState *state, int indentation)
         {
                 return;
         }
+
+        if (fatBars)
+                numBars *= 0.67f;
 
         if (numBars > MAX_BARS)
                 numBars = MAX_BARS;

@@ -67,6 +67,7 @@ typedef struct
         float tweenFactor;                              // How fast the bars in the visualizer rise (higher value = faster)
         float tweenFactorFall;                          // How fast the bars in the visualizer fall (higher value = faster)
         bool elevateBarsOnSnare;                        // Snare flare, set to 0, for a more truthful visualizer
+        bool fatBars;                                   // Bars twice the width
 } UISettings;
 
 typedef struct
@@ -217,6 +218,7 @@ typedef struct
         char progressBarCurrentEvenChar[12];
         char progressBarCurrentOddChar[12];
         char elevateBarsOnSnare[2];
+        char fatBars[2];
 } AppSettings;
 
 #endif
