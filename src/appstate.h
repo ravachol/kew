@@ -66,6 +66,7 @@ typedef struct
         time_t lastTimeAppRan;                          // When did this app run last, used for updating the cached library if it has been modified since that time
         float tweenFactor;                              // How fast the bars in the visualizer rise (higher value = faster)
         float tweenFactorFall;                          // How fast the bars in the visualizer fall (higher value = faster)
+        bool elevateBarsOnSnare;                        // Snare flare, set to 0, for a more truthful visualizer
 } UISettings;
 
 typedef struct
@@ -215,6 +216,7 @@ typedef struct
         char progressBarApproachingOddChar[12];
         char progressBarCurrentEvenChar[12];
         char progressBarCurrentOddChar[12];
+        char elevateBarsOnSnare[2];
 } AppSettings;
 
 #endif
