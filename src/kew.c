@@ -1776,6 +1776,7 @@ void initState(AppState *state)
         state->uiSettings.mouseAltScrollUpAction = 7;
         state->uiSettings.mouseAltScrollDownAction = 8;
         state->uiSettings.elevateBarsOnSnare = false;
+        state->uiSettings.fatBars = false;
         state->uiState.numDirectoryTreeEntries = 0;
         state->uiState.numProgressBars = 35;
         state->uiState.chosenNodeId = 0;
