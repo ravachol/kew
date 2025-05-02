@@ -39,6 +39,7 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         c_strcpy(settings.quitAfterStopping, "0", sizeof(settings.quitAfterStopping));
         c_strcpy(settings.hideGlimmeringText, "0", sizeof(settings.hideGlimmeringText));
         c_strcpy(settings.mouseEnabled, "1", sizeof(settings.mouseEnabled));
+        c_strcpy(settings.elevateBarsOnSnare, "1", sizeof(settings.elevateBarsOnSnare));
         c_strcpy(settings.visualizerBrailleMode, "0", sizeof(settings.visualizerBrailleMode));
         c_strcpy(settings.tweenFactor, "0.23", sizeof(settings.tweenFactor));
         c_strcpy(settings.tweenFactorFall, "0.13", sizeof(settings.tweenFactor));
@@ -280,6 +281,10 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
                 else if (strcmp(lowercaseKey, "mouseenabled") == 0)
                 {
                         snprintf(settings.mouseEnabled, sizeof(settings.mouseEnabled), "%s", pair->value);
+                }
+                else if (strcmp(lowercaseKey, "elevatebarsonsnare") == 0)
+                {
+                        snprintf(settings.elevateBarsOnSnare, sizeof(settings.elevateBarsOnSnare), "%s", pair->value);
                 }
                 else if (strcmp(lowercaseKey, "visualizerbraillemode") == 0)
                 {
@@ -782,6 +787,7 @@ void getConfig(AppSettings *settings, UISettings *ui)
         ui->visualizerBrailleMode = (settings->visualizerBrailleMode[0] == '1');
         ui->hideLogo = (settings->hideLogo[0] == '1');
         ui->hideHelp = (settings->hideHelp[0] == '1');
+        ui->elevateBarsOnSnare = (settings->elevateBarsOnSnare[0] == '1');
 
         int tmp = getNumber(settings->color);
         if (tmp >= 0)
@@ -899,6 +905,9 @@ void setConfig(AppSettings *settings, UISettings *ui)
                 ui->hideGlimmeringText ? c_strcpy(settings->hideGlimmeringText, "1", sizeof(settings->hideGlimmeringText)) : c_strcpy(settings->hideGlimmeringText, "0", sizeof(settings->hideGlimmeringText));
         if (settings->mouseEnabled[0] == '\0')
                 ui->mouseEnabled ? c_strcpy(settings->mouseEnabled, "1", sizeof(settings->mouseEnabled)) : c_strcpy(settings->mouseEnabled, "0", sizeof(settings->mouseEnabled));
+        if (settings->elevateBarsOnSnare[0] == '\0')
+                ui->elevateBarsOnSnare ? c_strcpy(settings->elevateBarsOnSnare, "1", sizeof(settings->elevateBarsOnSnare)) : c_strcpy(settings->elevateBarsOnSnare, "0", sizeof(settings->elevateBarsOnSnare));
+
         if (settings->visualizerBrailleMode[0] == '\0')
                 ui->visualizerBrailleMode ? c_strcpy(settings->visualizerBrailleMode, "1", sizeof(settings->visualizerBrailleMode)) : c_strcpy(settings->visualizerBrailleMode, "0", sizeof(settings->visualizerBrailleMode));
         if (settings->hideLogo[0] == '\0')
@@ -983,32 +992,43 @@ void setConfig(AppSettings *settings, UISettings *ui)
         fprintf(file, "tweenFactor=%s\n", settings->tweenFactor);
         fprintf(file, "tweenFactorFall=%s\n\n", settings->tweenFactorFall);
 
+
+        fprintf(file, " # Set to 0 if you want a more truthful spectrum visualizer.\n");
+        fprintf(file, "elevateBarsOnSnare=%s\n\n", settings->elevateBarsOnSnare);
+
         fprintf(file, "\n[progress bar]\n\n");
 
         fprintf(file, "# Progress bar in track view\n");
         fprintf(file, "# The progress bar can be configured in many ways.\n\n");
         fprintf(file, "# For instance use the below values for a pill muncher mode:\n\n");
+
         fprintf(file, "#progressBarElapsedEvenChar= \n");
         fprintf(file, "#progressBarElapsedOddChar= \n");
         fprintf(file, "#progressBarApproachingEvenChar=•\n");
         fprintf(file, "#progressBarApproachingOddChar=·\n");
         fprintf(file, "#progressBarCurrentEvenChar=ᗧ\n");
         fprintf(file, "#progressBarCurrentOddChar=ᗧ\n\n");
-        fprintf(file, "#To have a thick line: \n\n");
+
+        fprintf(file, "# To have a thick line: \n\n");
+
         fprintf(file, "#progressBarElapsedEvenChar=━\n");
         fprintf(file, "#progressBarElapsedOddChar=━\n");
         fprintf(file, "#progressBarApproachingEvenChar=━\n");
         fprintf(file, "#progressBarApproachingOddChar=━\n");
         fprintf(file, "#progressBarCurrentEvenChar=━\n");
         fprintf(file, "#progressBarCurrentOddChar=━\n\n");
-        fprintf(file, "#To have dots (the original): \n\n");
+
+        fprintf(file, "# To have dots (the original): \n\n");
+
         fprintf(file, "#progressBarElapsedEvenChar=■\n");
         fprintf(file, "#progressBarElapsedOddChar= \n");
         fprintf(file, "#progressBarApproachingEvenChar==\n");
         fprintf(file, "#progressBarApproachingOddChar= \n");
         fprintf(file, "#progressBarCurrentEvenChar=■\n");
         fprintf(file, "#progressBarCurrentOddChar= \n\n");
-        fprintf(file, "#Current values: \n\n");
+
+        fprintf(file, "# Current values: \n\n");
+
         fprintf(file, "progressBarElapsedEvenChar=%s\n", settings->progressBarElapsedEvenChar);
         fprintf(file, "progressBarElapsedOddChar=%s\n", settings->progressBarElapsedOddChar);
         fprintf(file, "progressBarApproachingEvenChar=%s\n", settings->progressBarApproachingEvenChar);

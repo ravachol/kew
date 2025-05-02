@@ -32,16 +32,14 @@ float lastMagnitudes[MAX_BARS] = {0.0f};
 float smoothedMagnitudes[MAX_BARS] = {0.0f};
 float smoothedFramesMagnitudes[MAX_BARS] = {0.0f};
 float minMaxMagnitude = 100.0f;
-float enhancePeak = 2.6f;
-float exponent = 0.85f;    // Lower than 1.0 makes quiet sounds more visible
-float spacingPower = 0.8f; // 0.8 = Bars skewed toward bass values. 1.0 = Linear
+float spacingPower = 1.0f; // 0.8 = Bars skewed toward bass values. 1.0 = Linear
 
-float baseDecay = 1.0f;
+float baseDecay = 0.85f;
 float rangeDecay = 0.2f;
 float baseAttack = 0.45f;
 float rangeAttack = 0.4f;
 
-float maxMagnitude = 0.0f;
+float maxMagnitude = 250.0f;
 
 float tweenFactor = 0.23f;
 float tweenFactorFall = 0.13f;
@@ -49,8 +47,11 @@ float tweenFactorFall = 0.13f;
 float snareTweenFactor = 0.23f;
 float snareTweenFactorFall = 0.13f;
 
-float riseThresholdPercent = 0.1f;
-float fallThresholdPercent = 0.1f;
+float riseThresholdPercent = 0.05f;
+float fallThresholdPercent = 0.05f;
+
+bool snareDetected = false;
+bool elevateBarsOnSnare = false;
 
 #define MOVING_AVERAGE_WINDOW_SIZE 2
 
@@ -114,40 +115,17 @@ float applyAttackandDecay(float linearVal, float lastMagnitude, float maxMagnitu
 
 void updateMagnitudes(int height, int numBars, float maxMagnitude, float *magnitudes)
 {
-        smoothMovingAverageMagnitudes(numBars, magnitudes);
+    for (int i = 0; i < numBars; i++)
+    {
+        float value = applyAttackandDecay(magnitudes[i], lastMagnitudes[i], maxMagnitude);
 
-        for (int i = 0; i < numBars; i++)
-        {
-                float newVal = applyAttackandDecay(magnitudes[i], lastMagnitudes[i], maxMagnitude);
+        float ratio = value / maxMagnitude;
 
-                float displayRatio = newVal / maxMagnitude;
-                if (displayRatio > 1.0f)
-                        displayRatio = 1.0f;
+        if (ratio < 0) ratio = 0.0f;
+        if (ratio > 1) ratio = 1.0f;
 
-                float expo;
-
-                // Calculate a smooth expo ramp, so there's no sharp jump between regions.
-                float t = (float)i / (numBars - 1);
-
-                // Blend expo, e.g.: low bars = 2.2, snare/mid = 1.3, highs = 1.0
-                if (t < 0.25f)
-                {                                                  // Leftmost 25% = bass
-                        expo = 2.2f - (t / 0.25f) * (2.2f - 1.3f); // 2.2 -> 1.3
-                }
-                else if (t < 0.7f)
-                {                                                            // Middle 45% = mid/snares
-                        expo = 1.3f - ((t - 0.25f) / 0.45f) * (1.3f - 1.0f); // 1.3 -> 1.0 smoothly
-                }
-                else
-                { // High bars
-                        expo = 0.9f;
-                }
-
-                if (displayRatio < 0.008f)
-                        displayRatio = 0.0f;
-
-                magnitudes[i] = powf(fmaxf(displayRatio, 0.0f), expo) * height;
-        }
+        magnitudes[i] = ratio * height;
+    }
 }
 
 float calcMaxMagnitude(int numBars, float *magnitudes)
@@ -220,10 +198,6 @@ void smoothFrames(
     int numBars,
     float tweenFactor,
     float tweenFactorFall,
-    int snareStart,
-    int snareEnd,
-    float snareTweenFactor,
-    float snareTweenFactorFall,
     float riseThresholdPercent,
     float fallThresholdPercent)
 {
@@ -235,27 +209,20 @@ void smoothFrames(
 
                 float rise = tweenFactor;
                 float fall = tweenFactorFall;
-                if (i >= snareStart && i <= snareEnd)
-                {
-                        rise = snareTweenFactor;
-                        fall = snareTweenFactorFall;
-                }
 
-                // For rising, use max(current, target)
                 float riseRef = fmax(currentVal, targetVal);
                 float riseThreshold = riseThresholdPercent * riseRef;
 
-                // For falling, use min(current, target)
                 float fallRef = fmin(currentVal, targetVal);
                 float fallThreshold = fallThresholdPercent * fallRef;
 
                 if (delta > riseThreshold)
                 {
-                        smoothedFramesMagnitudes[i] += delta * rise;
+                         smoothedFramesMagnitudes[i] += delta * rise;
                 }
                 else if (delta < -fallThreshold)
                 {
-                        smoothedFramesMagnitudes[i] += delta * fall;
+                         smoothedFramesMagnitudes[i] += delta * fall;
                 }
         }
 }
@@ -462,7 +429,7 @@ void calc(
             fftOutput, FFT_SIZE, sampleRate, magnitudes, numBars,
             minFreq, maxFreq, spacingPower);
 
-        bool snareDetected = detectSnare(magnitudes, numBars, minFreq, maxFreq);
+        snareDetected = detectSnare(magnitudes, numBars, minFreq, maxFreq);
 
         float maxMagnitude = calcMaxMagnitude(numBars, magnitudes);
 
@@ -475,21 +442,23 @@ void calc(
 
         updateMagnitudes(height, numBars, maxMagnitude, magnitudes);
 
-        if (snareDetected)
+        if (snareDetected && elevateBarsOnSnare)
         {
-                for (int i = 0; i < numBars; i++)
-                {
-                        if (i <= snareEnd)
-                                magnitudes[i] *= 4.0f;
-                        else
-                                magnitudes[i] *= 3.0f;
-                }
+            for (int i = 0; i < numBars; i++)
+            {
+                float magnitude = magnitudes[i];
+
+                float normalized = magnitude / maxMagnitude;
+
+                // The lower the magnitude, the higher the boost factor
+                float boostFactor = 1.0f + (2.5f * (1.0f - normalized));
+
+                magnitudes[i] *= boostFactor;
+            }
         }
 
-        enhancePeaks(numBars, magnitudes, height, enhancePeak);
-
         smoothFrames(magnitudes, smoothedFramesMagnitudes, numBars, tweenFactor, tweenFactorFall,
-                     snareStart, snareEnd, snareTweenFactor, snareTweenFactorFall, riseThresholdPercent, fallThresholdPercent);
+                     riseThresholdPercent, fallThresholdPercent);
 }
 
 char *upwardMotionCharsBlock[] = {
@@ -714,6 +683,7 @@ void drawSpectrumVisualizer(AppState *state, int indentation)
         bool brailleMode = state->uiSettings.visualizerBrailleMode;
         tweenFactor = state->uiSettings.tweenFactor;
         tweenFactorFall = state->uiSettings.tweenFactorFall;
+        elevateBarsOnSnare = state->uiSettings.elevateBarsOnSnare;
 
         height = height - 1;
 

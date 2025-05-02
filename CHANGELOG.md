@@ -2,9 +2,11 @@
 
 ### 3.2.1
 
-- Snare detection in the visualizer. This makes the visualization more energetic.
-
 - kew now remembers the playlist between sessions, unless you tell it to load something else.
+
+- The appearance of the progress bar can now be configured in detail. There's even a pill muncher mode, where this round guy eats everything in his path. By @Chromium-3-Oxide.
+
+- Snare detection and flare up in the visualizer. This can be disabled for more truthful values.
 
 - Gradient in library and playlist that makes the bottom rows a bit darker when using album colors.
 
