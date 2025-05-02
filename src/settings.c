@@ -40,6 +40,7 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         c_strcpy(settings.hideGlimmeringText, "0", sizeof(settings.hideGlimmeringText));
         c_strcpy(settings.mouseEnabled, "1", sizeof(settings.mouseEnabled));
         c_strcpy(settings.elevateBarsOnSnare, "1", sizeof(settings.elevateBarsOnSnare));
+        c_strcpy(settings.fatBars, "0", sizeof(settings.fatBars));
         c_strcpy(settings.visualizerBrailleMode, "0", sizeof(settings.visualizerBrailleMode));
         c_strcpy(settings.tweenFactor, "0.23", sizeof(settings.tweenFactor));
         c_strcpy(settings.tweenFactorFall, "0.13", sizeof(settings.tweenFactor));
@@ -285,6 +286,10 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
                 else if (strcmp(lowercaseKey, "elevatebarsonsnare") == 0)
                 {
                         snprintf(settings.elevateBarsOnSnare, sizeof(settings.elevateBarsOnSnare), "%s", pair->value);
+                }
+                else if (strcmp(lowercaseKey, "fatbars") == 0)
+                {
+                        snprintf(settings.fatBars, sizeof(settings.fatBars), "%s", pair->value);
                 }
                 else if (strcmp(lowercaseKey, "visualizerbraillemode") == 0)
                 {
@@ -788,6 +793,7 @@ void getConfig(AppSettings *settings, UISettings *ui)
         ui->hideLogo = (settings->hideLogo[0] == '1');
         ui->hideHelp = (settings->hideHelp[0] == '1');
         ui->elevateBarsOnSnare = (settings->elevateBarsOnSnare[0] == '1');
+        ui->fatBars = (settings->fatBars[0] == '1');
 
         int tmp = getNumber(settings->color);
         if (tmp >= 0)
@@ -907,6 +913,8 @@ void setConfig(AppSettings *settings, UISettings *ui)
                 ui->mouseEnabled ? c_strcpy(settings->mouseEnabled, "1", sizeof(settings->mouseEnabled)) : c_strcpy(settings->mouseEnabled, "0", sizeof(settings->mouseEnabled));
         if (settings->elevateBarsOnSnare[0] == '\0')
                 ui->elevateBarsOnSnare ? c_strcpy(settings->elevateBarsOnSnare, "1", sizeof(settings->elevateBarsOnSnare)) : c_strcpy(settings->elevateBarsOnSnare, "0", sizeof(settings->elevateBarsOnSnare));
+        if (settings->fatBars[0] == '\0')
+                ui->fatBars ? c_strcpy(settings->fatBars, "1", sizeof(settings->fatBars)) : c_strcpy(settings->fatBars, "0", sizeof(settings->fatBars));
 
         if (settings->visualizerBrailleMode[0] == '\0')
                 ui->visualizerBrailleMode ? c_strcpy(settings->visualizerBrailleMode, "1", sizeof(settings->visualizerBrailleMode)) : c_strcpy(settings->visualizerBrailleMode, "0", sizeof(settings->visualizerBrailleMode));
@@ -992,6 +1000,8 @@ void setConfig(AppSettings *settings, UISettings *ui)
         fprintf(file, "tweenFactor=%s\n", settings->tweenFactor);
         fprintf(file, "tweenFactorFall=%s\n\n", settings->tweenFactorFall);
 
+        fprintf(file, "# Bars twice the width.\n");
+        fprintf(file, "fatBars=%s\n\n", settings->fatBars);
 
         fprintf(file, " # Set to 0 if you want a more truthful spectrum visualizer.\n");
         fprintf(file, "elevateBarsOnSnare=%s\n\n", settings->elevateBarsOnSnare);
@@ -999,7 +1009,9 @@ void setConfig(AppSettings *settings, UISettings *ui)
         fprintf(file, "\n[progress bar]\n\n");
 
         fprintf(file, "# Progress bar in track view\n");
-        fprintf(file, "# The progress bar can be configured in many ways.\n\n");
+        fprintf(file, "# The progress bar can be configured in many ways.\n");
+        fprintf(file, "# When copying the values below, be sure to include values that are empty spaces or things will get messed up.\n");
+        fprintf(file, "# Be sure to have the actual uncommented values last.\n");
         fprintf(file, "# For instance use the below values for a pill muncher mode:\n\n");
 
         fprintf(file, "#progressBarElapsedEvenChar= \n");
