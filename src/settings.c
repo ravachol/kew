@@ -948,7 +948,7 @@ void setConfig(AppSettings *settings, UISettings *ui)
                 snprintf(settings->mouseAltScrollDownAction, sizeof(settings->mouseAltScrollDownAction), "%d", ui->mouseAltScrollDownAction);
 
         // Write the settings to the file
-        fprintf(file, "Configuration file for kew terminal music player.\n");
+        fprintf(file, "# Configuration file for kew terminal music player.\n");
         fprintf(file, "# Make sure that kew is not running before editing this file in order for changes to take effect.\n\n");
 
         fprintf(file, "\n[miscellaneous]\n\n");
@@ -983,8 +983,32 @@ void setConfig(AppSettings *settings, UISettings *ui)
         fprintf(file, "tweenFactor=%s\n", settings->tweenFactor);
         fprintf(file, "tweenFactorFall=%s\n\n", settings->tweenFactorFall);
 
-        fprintf(file, "[progress bar]\n");
+        fprintf(file, "\n[progress bar]\n\n");
+
         fprintf(file, "# Progress bar in track view\n");
+        fprintf(file, "# The progress bar can be configured in many ways.\n\n");
+        fprintf(file, "# For instance use the below values for a pill muncher mode:\n\n");
+        fprintf(file, "#progressBarElapsedEvenChar= \n");
+        fprintf(file, "#progressBarElapsedOddChar= \n");
+        fprintf(file, "#progressBarApproachingEvenChar=•\n");
+        fprintf(file, "#progressBarApproachingOddChar=·\n");
+        fprintf(file, "#progressBarCurrentEvenChar=ᗧ\n");
+        fprintf(file, "#progressBarCurrentOddChar=ᗧ\n\n");
+        fprintf(file, "#To have a thick line: \n\n");
+        fprintf(file, "#progressBarElapsedEvenChar=━\n");
+        fprintf(file, "#progressBarElapsedOddChar=━\n");
+        fprintf(file, "#progressBarApproachingEvenChar=━\n");
+        fprintf(file, "#progressBarApproachingOddChar=━\n");
+        fprintf(file, "#progressBarCurrentEvenChar=━\n");
+        fprintf(file, "#progressBarCurrentOddChar=━\n\n");
+        fprintf(file, "#To have dots (the original): \n\n");
+        fprintf(file, "#progressBarElapsedEvenChar=■\n");
+        fprintf(file, "#progressBarElapsedOddChar= \n");
+        fprintf(file, "#progressBarApproachingEvenChar==\n");
+        fprintf(file, "#progressBarApproachingOddChar= \n");
+        fprintf(file, "#progressBarCurrentEvenChar=■\n");
+        fprintf(file, "#progressBarCurrentOddChar= \n\n");
+        fprintf(file, "#Current values: \n\n");
         fprintf(file, "progressBarElapsedEvenChar=%s\n", settings->progressBarElapsedEvenChar);
         fprintf(file, "progressBarElapsedOddChar=%s\n", settings->progressBarElapsedOddChar);
         fprintf(file, "progressBarApproachingEvenChar=%s\n", settings->progressBarApproachingEvenChar);
