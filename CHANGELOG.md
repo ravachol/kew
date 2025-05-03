@@ -16,7 +16,7 @@
 
 #### Bug Fixes
 
-- The clock wasn't getting reset completely when restarting songs after seeking or when using alt+s to stop.
+- The clock wasn't getting reset completely when restarting songs after seeking or when using alt+s to stop. Found by @Chromium-3-Oxide.
 
 ### 3.2.0
 
