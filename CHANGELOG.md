@@ -16,7 +16,7 @@
 
 #### Bug Fixes
 
-- The clock wasn't getting reset when using shift+s to stop and then enter or space to start a song.
+- The clock wasn't getting reset completely when restarting songs after seeking or when using alt+s to stop.
 
 ### 3.2.0
 

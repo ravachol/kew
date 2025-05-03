@@ -1652,6 +1652,7 @@ void resetTimeCount(void)
         elapsedSeconds = 0.0;
         pauseSeconds = 0.0;
         totalPauseSeconds = 0.0;
+        setSeekElapsed(0.0);
 }
 
 void resetClock(void)
