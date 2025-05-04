@@ -68,6 +68,7 @@ typedef struct
         float tweenFactorFall;                          // How fast the bars in the visualizer fall (higher value = faster)
         bool elevateBarsOnSnare;                        // Snare flare, set to 0, for a more truthful visualizer
         bool fatBars;                                   // Bars twice the width
+        int replayGainCheckFirst;                       // Prioritize track or album replay gain setting
 } UISettings;
 
 typedef struct
@@ -219,6 +220,7 @@ typedef struct
         char progressBarCurrentOddChar[12];
         char elevateBarsOnSnare[2];
         char fatBars[2];
+        char replayGainCheckFirst[2];
 } AppSettings;
 
 #endif

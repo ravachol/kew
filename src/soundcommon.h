@@ -79,6 +79,7 @@ typedef struct
         SongData *songdataB;
         bool songdataADeleted;
         bool songdataBDeleted;
+        int replayGainCheckFirst;
         SongData *currentSongData;
         ma_uint32 currentPCMFrame;
 } UserData;

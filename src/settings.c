@@ -40,6 +40,7 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         c_strcpy(settings.hideGlimmeringText, "0", sizeof(settings.hideGlimmeringText));
         c_strcpy(settings.mouseEnabled, "1", sizeof(settings.mouseEnabled));
         c_strcpy(settings.elevateBarsOnSnare, "1", sizeof(settings.elevateBarsOnSnare));
+        c_strcpy(settings.replayGainCheckFirst, "0", sizeof(settings.replayGainCheckFirst));
         c_strcpy(settings.fatBars, "0", sizeof(settings.fatBars));
         c_strcpy(settings.visualizerBrailleMode, "0", sizeof(settings.visualizerBrailleMode));
         c_strcpy(settings.tweenFactor, "0.23", sizeof(settings.tweenFactor));
@@ -286,6 +287,10 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
                 else if (strcmp(lowercaseKey, "elevatebarsonsnare") == 0)
                 {
                         snprintf(settings.elevateBarsOnSnare, sizeof(settings.elevateBarsOnSnare), "%s", pair->value);
+                }
+                else if (strcmp(lowercaseKey, "replaygaincheckfirst") == 0)
+                {
+                        snprintf(settings.replayGainCheckFirst, sizeof(settings.replayGainCheckFirst), "%s", pair->value);
                 }
                 else if (strcmp(lowercaseKey, "fatbars") == 0)
                 {
@@ -811,6 +816,10 @@ void getConfig(AppSettings *settings, UISettings *ui)
         if (tmp >= 0)
                 ui->titleColor = tmp;
 
+        tmp = getNumber(settings->replayGainCheckFirst);
+        if (tmp >= 0)
+                ui->replayGainCheckFirst = tmp;
+
         tmp = getNumber(settings->mouseLeftClickAction);
         enum EventType tmpEvent = getMouseAction(tmp);
         if (tmp >= 0)
@@ -940,6 +949,9 @@ void setConfig(AppSettings *settings, UISettings *ui)
         currentVolume = (currentVolume <= 0) ? 10 : currentVolume;
         snprintf(settings->lastVolume, sizeof(settings->lastVolume), "%d", currentVolume);
 
+        if (settings->replayGainCheckFirst[0] == '\0')
+                snprintf(settings->replayGainCheckFirst, sizeof(settings->replayGainCheckFirst), "%d", ui->replayGainCheckFirst);
+
         if (settings->color[0] == '\0')
                 snprintf(settings->color, sizeof(settings->color), "%d", ui->mainColor);
         if (settings->artistColor[0] == '\0')
@@ -987,6 +999,9 @@ void setConfig(AppSettings *settings, UISettings *ui)
 
         fprintf(file, "# Glimmering text on the bottom row.\n");
         fprintf(file, "hideGlimmeringText=%s\n\n", settings->hideGlimmeringText);
+
+        fprintf(file, "# Replay gain check first, can be either 0=track, 1=album or 2=disabled.\n");
+        fprintf(file, "replayGainCheckFirst=%s\n\n", settings->replayGainCheckFirst);
 
         fprintf(file, "\n[visualizer]\n\n");
         fprintf(file, "visualizerEnabled=%s\n", settings->visualizerEnabled);
