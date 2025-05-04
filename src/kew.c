@@ -1776,6 +1776,7 @@ void initState(AppState *state)
         state->uiSettings.mouseAltScrollUpAction = 7;
         state->uiSettings.mouseAltScrollDownAction = 8;
         state->uiSettings.elevateBarsOnSnare = false;
+        state->uiSettings.replayGainCheckFirst = 0;
         state->uiSettings.fatBars = false;
         state->uiState.numDirectoryTreeEntries = 0;
         state->uiState.numProgressBars = 35;
@@ -1797,6 +1798,7 @@ void initializeStateAndSettings(AppState *appState, AppSettings *settings)
 {
         initState(appState);
         getConfig(settings, &(appState->uiSettings));
+        userData.replayGainCheckFirst = appState->uiSettings.replayGainCheckFirst;
         mapSettingsToKeys(settings, &(appState->uiSettings), keyMappings);
         enableMouse(&(appState->uiSettings));
 }

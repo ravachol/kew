@@ -116,15 +116,31 @@ void builtin_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_u
         if ((!audioData->pUserData->songdataADeleted && audioData->pUserData->currentSongData == audioData->pUserData->songdataA) ||
             (!audioData->pUserData->songdataBDeleted && audioData->pUserData->currentSongData == audioData->pUserData->songdataB))
         {
-                if (audioData->pUserData->currentSongData->metadata->replaygainTrack > -50.0)
+                if (audioData->pUserData->replayGainCheckFirst == 0)  // Track first
                 {
+                    if (audioData->pUserData->currentSongData->metadata->replaygainTrack > -50.0)
+                    {
                         gainDb = audioData->pUserData->currentSongData->metadata->replaygainTrack;
                         gainAvailable = true;
-                }
-                else if (audioData->pUserData->currentSongData->metadata->replaygainAlbum > -50.0)
-                {
+                    }
+                    else if (audioData->pUserData->currentSongData->metadata->replaygainAlbum > -50.0)
+                    {
                         gainDb = audioData->pUserData->currentSongData->metadata->replaygainAlbum;
                         gainAvailable = true;
+                    }
+                }
+                else if (audioData->pUserData->replayGainCheckFirst == 1)  // Album first
+                {
+                    if (audioData->pUserData->currentSongData->metadata->replaygainAlbum > -50.0)
+                    {
+                        gainDb = audioData->pUserData->currentSongData->metadata->replaygainAlbum;
+                        gainAvailable = true;
+                    }
+                    else if (audioData->pUserData->currentSongData->metadata->replaygainTrack > -50.0)
+                    {
+                        gainDb = audioData->pUserData->currentSongData->metadata->replaygainTrack;
+                        gainAvailable = true;
+                    }
                 }
         }
 
