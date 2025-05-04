@@ -1070,7 +1070,7 @@ void showRadioSearch(SongData *songData, int *chosenRow, UISettings *ui)
         if (term_w > indent + 73 && !ui->hideHelp)
         {
                 printBlankSpaces(indent);
-                printf(" Use ↑, ↓ to choose. Enter to search and then enter to accept a station.\n");
+                printf(" Enter to input search. Use ↑, ↓ to choose. Enter to accept a station.\n");
                 printBlankSpaces(indent);
                 printf(" Shift+f to add, del to remove favorites. Empty search to show favorites.\n\n");
                 maxRadioSearchListSize -= 3;
