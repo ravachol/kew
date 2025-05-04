@@ -14,6 +14,8 @@
 
 - fatBars=1. Added option to make bars twice the width.
 
+- Replay gain source can now be set in the config file. 0 = track, 1 = album or 2 = disabled. Suggested by @ksushagryaznaya.
+
 #### Bug Fixes
 
 - The clock wasn't getting reset completely when restarting songs after seeking or when using alt+s to stop. Found by @Chromium-3-Oxide.
