@@ -34,18 +34,18 @@ float smoothedFramesMagnitudes[MAX_BARS] = {0.0f};
 float minMaxMagnitude = 10.0f;
 float spacingPower = 1.0f; // 0.8 = Bars skewed toward bass values. 1.0 = Linear
 
-float baseDecay = 0.85f;
-float rangeDecay = 0.02f;
-float baseAttack = 0.45f;
-float rangeAttack = 0.4f;
-
 float maxMagnitude = 50.0f;
 
-float tweenFactor = 0.23f;
-float tweenFactorFall = 0.13f;
+float baseDecay = 0.72f;
+float rangeDecay = 0.04f;
+float baseAttack = 0.7f;
+float rangeAttack = 0.6f;
 
-float snareTweenFactor = 0.23f;
-float snareTweenFactorFall = 0.13f;
+float tweenFactor = 0.4f;
+float tweenFactorFall = 0.2f;
+
+float snareTweenFactor = 0.4f;
+float snareTweenFactorFall = 0.2f;
 
 float riseThresholdPercent = 0.03f;
 float fallThresholdPercent = 0.03f;
