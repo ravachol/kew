@@ -75,6 +75,19 @@ ma_result initFirstDatasource(AudioData *pAudioData, UserData *pUserData)
                 base->pCurrent = first;
                 first->pReadSeekTellUserData = pAudioData;
         }
+        else if (pathEndsWith(filePath, "webm"))
+        {
+                int result = prepareNextWebmDecoder(songData);
+                if (result < 0)
+                        return -1;
+                ma_webm *first = getFirstWebmDecoder();
+                ma_channel channelMap[MA_MAX_CHANNELS];
+                ma_webm_ds_get_data_format(first, &(pAudioData->format), &(pAudioData->channels), &(pAudioData->sampleRate), channelMap, MA_MAX_CHANNELS);
+                ma_data_source_get_length_in_pcm_frames(first, &(pAudioData->totalFrames));
+                ma_data_source_base *base = (ma_data_source_base *)first;
+                base->pCurrent = first;
+                first->pReadSeekTellUserData = pAudioData;
+        }
         else if (pathEndsWith(filePath, "m4a") || pathEndsWith(filePath, "aac"))
         {
 #ifdef USE_FAAD
@@ -241,6 +254,46 @@ int opus_createAudioDevice(UserData *userData, ma_device *device, ma_context *co
         deviceConfig.sampleRate = audioData.sampleRate;
         deviceConfig.dataCallback = opus_on_audio_frames;
         deviceConfig.pUserData = opus;
+
+        result = ma_device_init(context, &deviceConfig, device);
+        if (result != MA_SUCCESS)
+        {
+                setErrorMessage("Failed to initialize miniaudio device.");
+                return -1;
+        }
+
+        setVolume(getCurrentVolume());
+
+        result = ma_device_start(device);
+        if (result != MA_SUCCESS)
+        {
+                setErrorMessage("Failed to start miniaudio device.");
+                return -1;
+        }
+
+        appState.uiState.doNotifyMPRISPlaying = true;
+
+        return 0;
+}
+
+int webm_createAudioDevice(UserData *userData, ma_device *device, ma_context *context)
+{
+        ma_result result;
+
+        result = initFirstDatasource(&audioData, userData);
+        if (result != MA_SUCCESS)
+        {
+                printf("\n\nFailed to initialize webm file.\n");
+                return -1;
+        }
+        ma_webm *webm = getFirstWebmDecoder();
+        ma_device_config deviceConfig = ma_device_config_init(ma_device_type_playback);
+
+        deviceConfig.playback.format = audioData.format;
+        deviceConfig.playback.channels = audioData.channels;
+        deviceConfig.sampleRate = audioData.sampleRate;
+        deviceConfig.dataCallback = webm_on_audio_frames;
+        deviceConfig.pUserData = webm;
 
         result = ma_device_init(context, &deviceConfig, device);
         if (result != MA_SUCCESS)
@@ -502,6 +555,65 @@ int switchAudioImplementation(void)
                         audioData.sampleRate = sampleRate;
 
                         int result = vorbis_createAudioDevice(&userData, getDevice(), &context);
+
+                        if (result < 0)
+                        {
+                                setCurrentImplementationType(NONE);
+                                setImplSwitchNotReached();
+                                setEOFReached();
+                                free(filePath);
+                                pthread_mutex_unlock(&dataSourceMutex);
+                                return -1;
+                        }
+
+                        pthread_mutex_unlock(&dataSourceMutex);
+
+                        setImplSwitchNotReached();
+                }
+        }
+        else if (pathEndsWith(filePath, "webm"))
+        {
+                ma_uint32 sampleRate;
+                ma_uint32 channels;
+                ma_format format;
+                ma_channel channelMap[MA_MAX_CHANNELS];
+
+                ma_uint32 nSampleRate;
+                ma_uint32 nChannels;
+                ma_format nFormat;
+                ma_channel nChannelMap[MA_MAX_CHANNELS];
+                ma_webm *decoder = getCurrentWebmDecoder();
+
+                getWebmFileInfo(filePath, &format, &channels, &sampleRate, channelMap);
+
+                if (decoder != NULL)
+                        ma_webm_ds_get_data_format(decoder, &nFormat, &nChannels, &nSampleRate, nChannelMap, MA_MAX_CHANNELS);
+
+                bool sameFormat = false;
+
+                // FIXME: Gapless/chaining of decoders disabled for now
+                //bool sameFormat = (decoder != NULL && (format == decoder->format &&
+                //                                       channels == nChannels &&
+                //                                       sampleRate == nSampleRate));
+
+                audioData.avgBitRate = 0;
+
+                if (isRepeatEnabled() || !(sameFormat && currentImplementation == WEBM))
+                {
+                        setImplSwitchReached();
+
+                        pthread_mutex_lock(&dataSourceMutex);
+
+                        setCurrentImplementationType(WEBM);
+
+                        cleanupPlaybackDevice();
+
+                        resetAllDecoders();
+                        resetAudioBuffer();
+
+                        audioData.sampleRate = sampleRate;
+
+                        int result = webm_createAudioDevice(&userData, getDevice(), &context);
 
                         if (result < 0)
                         {

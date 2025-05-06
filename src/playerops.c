@@ -1426,6 +1426,8 @@ int loadDecoder(SongData *songData, bool *songDataDeleted)
                                 result = prepareNextOpusDecoder(songData->filePath);
                         else if (pathEndsWith(songData->filePath, "ogg"))
                                 result = prepareNextVorbisDecoder(songData->filePath);
+                        else if (pathEndsWith(songData->filePath, "webm"))
+                                result = prepareNextWebmDecoder(songData);
 #ifdef USE_FAAD
                         else if (pathEndsWith(songData->filePath, "m4a") || pathEndsWith(songData->filePath, "aac"))
                                 result = prepareNextM4aDecoder(songData);
