@@ -41,7 +41,7 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         c_strcpy(settings.mouseEnabled, "1", sizeof(settings.mouseEnabled));
         c_strcpy(settings.elevateBarsOnSnare, "1", sizeof(settings.elevateBarsOnSnare));
         c_strcpy(settings.replayGainCheckFirst, "0", sizeof(settings.replayGainCheckFirst));
-        c_strcpy(settings.fatBars, "0", sizeof(settings.fatBars));
+        c_strcpy(settings.fatBars, "1", sizeof(settings.fatBars));
         c_strcpy(settings.visualizerBrailleMode, "0", sizeof(settings.visualizerBrailleMode));
         c_strcpy(settings.tweenFactor, "0.23", sizeof(settings.tweenFactor));
         c_strcpy(settings.tweenFactorFall, "0.13", sizeof(settings.tweenFactor));
@@ -61,7 +61,7 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         c_strcpy(settings.hideLogo, "0", sizeof(settings.hideLogo));
         c_strcpy(settings.hideHelp, "0", sizeof(settings.hideHelp));
         c_strcpy(settings.cacheLibrary, "-1", sizeof(settings.cacheLibrary));
-        c_strcpy(settings.visualizerHeight, "5", sizeof(settings.visualizerHeight));
+        c_strcpy(settings.visualizerHeight, "6", sizeof(settings.visualizerHeight));
         c_strcpy(settings.visualizerColorType, "0", sizeof(settings.visualizerColorType));
         c_strcpy(settings.titleDelay, "9", sizeof(settings.titleDelay));
         c_strcpy(settings.nextView, "\t", sizeof(settings.nextView));
