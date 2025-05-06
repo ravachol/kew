@@ -1761,7 +1761,7 @@ void initState(AppState *state)
         state->uiSettings.quitAfterStopping = false;
         state->uiSettings.hideGlimmeringText = false;
         state->uiSettings.coverAnsi = false;
-        state->uiSettings.visualizerHeight = 5;
+        state->uiSettings.visualizerHeight = 6;
         state->uiSettings.visualizerColorType = 0;
         state->uiSettings.titleDelay = 9;
         state->uiSettings.visualizerBrailleMode = false;
@@ -1777,7 +1777,7 @@ void initState(AppState *state)
         state->uiSettings.mouseAltScrollDownAction = 8;
         state->uiSettings.elevateBarsOnSnare = false;
         state->uiSettings.replayGainCheckFirst = 0;
-        state->uiSettings.fatBars = false;
+        state->uiSettings.fatBars = true;
         state->uiState.numDirectoryTreeEntries = 0;
         state->uiState.numProgressBars = 35;
         state->uiState.chosenNodeId = 0;
