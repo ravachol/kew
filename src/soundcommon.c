@@ -1711,6 +1711,7 @@ void getWebmFileInfo(const char *filename, ma_format *format, ma_uint32 *channel
                 *format = tmp.format;
                 ma_webm_uninit(&tmp, NULL);
         }
+        (void)channelMap;
 }
 
 ma_webm *getFirstWebmDecoder(void)

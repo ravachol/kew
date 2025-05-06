@@ -117,72 +117,6 @@ static ma_data_source_vtable g_ma_webm_ds_vtable =
         NULL,
         (ma_uint64)0};
 
-#if !defined(MA_NO_WEBM)
-static int ma_webm_of_callback__read(void *pUserData, unsigned char *pBufferOut, int bytesToRead)
-{
-        ma_webm *pWebm = (ma_webm *)pUserData;
-        ma_result result;
-        size_t bytesRead;
-
-        result = pWebm->onRead(pWebm->pReadSeekTellUserData, (void *)pBufferOut, bytesToRead, &bytesRead);
-
-        if (result != MA_SUCCESS)
-        {
-                return -1;
-        }
-
-        return (int)bytesRead;
-}
-
-static int ma_webm_of_callback__seek(void *pUserData, ogg_int64_t offset, int whence)
-{
-        ma_webm *pWebm = (ma_webm *)pUserData;
-        ma_result result;
-        ma_seek_origin origin;
-
-        if (whence == SEEK_SET)
-        {
-                origin = ma_seek_origin_start;
-        }
-        else if (whence == SEEK_END)
-        {
-                origin = ma_seek_origin_end;
-        }
-        else
-        {
-                origin = ma_seek_origin_current;
-        }
-
-        result = pWebm->onSeek(pWebm->pReadSeekTellUserData, offset, origin);
-        if (result != MA_SUCCESS)
-        {
-                return -1;
-        }
-
-        return 0;
-}
-
-static opus_int64 ma_webm_of_callback__tell(void *pUserData)
-{
-        ma_webm *pWebm = (ma_webm *)pUserData;
-        ma_result result;
-        ma_int64 cursor;
-
-        if (pWebm->onTell == NULL)
-        {
-                return -1;
-        }
-
-        result = pWebm->onTell(pWebm->pReadSeekTellUserData, &cursor);
-        if (result != MA_SUCCESS)
-        {
-                return -1;
-        }
-
-        return cursor;
-}
-#endif
-
 static ma_result ma_webm_init_internal(const ma_decoding_backend_config *pConfig, ma_webm *pWebm)
 {
         ma_result result;
@@ -841,7 +775,7 @@ MA_API ma_result ma_webm_read_pcm_frames(ma_webm *pWebm, void *pFramesOut, ma_ui
                                 {
                                         vorbis_synthesis_blockin(&pWebm->vorbisDSP, &pWebm->vorbisBlock);
                                         float **pcm;
-                                        long framesAvail = vorbis_synthesis_pcmout(&pWebm->vorbisDSP, &pcm);
+                                        int framesAvail = vorbis_synthesis_pcmout(&pWebm->vorbisDSP, &pcm);
                                         if (framesAvail > 0)
                                         {
                                                 ma_uint64 skipFrames = 0;
@@ -857,10 +791,10 @@ MA_API ma_result ma_webm_read_pcm_frames(ma_webm *pWebm, void *pFramesOut, ma_ui
 
                                                 while (framesAvail > 0 && totalFramesRead < frameCount)
                                                 {
-                                                        ma_uint32 framesToCopy = (frameCount - totalFramesRead) < framesAvail ? (frameCount - totalFramesRead) : framesAvail;
+                                                        ma_uint64 framesToCopy = (frameCount - totalFramesRead) < (ma_uint64)framesAvail ? (frameCount - totalFramesRead) : (ma_uint64)framesAvail;
 
                                                         // Interleave framesToCopy to output buffer directly
-                                                        for (ma_uint32 f = 0; f < framesToCopy; ++f)
+                                                        for (ma_uint64 f = 0; f < framesToCopy; ++f)
                                                                 for (ma_uint32 c = 0; c < channels; ++c)
                                                                         f32Out[(totalFramesRead + f) * channels + c] = pcm[c][f];
 
@@ -870,10 +804,10 @@ MA_API ma_result ma_webm_read_pcm_frames(ma_webm *pWebm, void *pFramesOut, ma_ui
                                                         // If left-over decoded frames after output buffer fills, write to leftover
                                                         if (framesAvail > 0)
                                                         {
-                                                                for (ma_uint32 f = 0; f < framesAvail; ++f)
+                                                                for (ma_uint32 f = 0; f < (ma_uint64)framesAvail; ++f)
                                                                         for (ma_uint32 c = 0; c < channels; ++c)
                                                                                 vorbisLeftoverBuffer[f * channels + c] = pcm[c][framesToCopy + f];
-                                                                bufferLeftoverFrameCount = framesAvail;
+                                                                bufferLeftoverFrameCount = (ma_uint64)framesAvail;
                                                                 bufferLeftoverFrameOffset = 0;
                                                                 framesAvail = 0;
                                                                 // Don't call vorbis_synthesis_read or increment cursor yet, do after finished with all available data!
