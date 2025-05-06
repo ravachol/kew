@@ -1463,6 +1463,7 @@ void playAll(AppState *state)
                 exit(0);
         }
         shufflePlaylist(&playlist);
+        markListAsEnqueued(library, &playlist);
         run(state, true);
 }
 
@@ -1475,6 +1476,7 @@ void playAllAlbums(AppState *state)
         {
                 exit(0);
         }
+        markListAsEnqueued(library, &playlist);
         run(state, true);
 }
 
@@ -1865,6 +1867,7 @@ int main(int argc, char *argv[])
                         noPlaylist = true;
                         exit(0);
                 }
+                markListAsEnqueued(library, &playlist);
                 run(&appState, true);
         }
 
