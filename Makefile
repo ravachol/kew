@@ -54,7 +54,7 @@ endif
 COMMONFLAGS = -I/usr/include -I/opt/homebrew/include -I/usr/local/include -I/usr/lib -Iinclude/minimp4 \
          -I/usr/include/chafa -I/usr/lib/chafa/include -I/usr/include/ogg -I/usr/include/opus \
          -I/usr/include/stb -Iinclude/stb_image -Iinclude/alac/codec -I/usr/include/glib-2.0 \
-         -I/usr/lib/glib-2.0/include -Iinclude/miniaudio -I/usr/include/gdk-pixbuf-2.0
+         -I/usr/lib/glib-2.0/include -Iinclude/miniaudio -Iinclude -Iinclude/nestegg -I/usr/include/gdk-pixbuf-2.0
 
 ifeq ($(DEBUG), 1)
 COMMONFLAGS += -g
@@ -143,8 +143,11 @@ ALAC_SRCS_C = include/alac/codec/ag_dec.c include/alac/codec/ALACBitUtilities.c 
 OBJS_C = $(SRCS:src/%.c=$(OBJDIR)/%.o) $(ALAC_SRCS_C:include/alac/codec/%.c=$(OBJDIR)/alac/%.o)
 OBJS_CPP = $(ALAC_SRCS_CPP:include/alac/codec/%.cpp=$(OBJDIR)/alac/%.o)
 
+NESTEGG_SRCS = include/nestegg/nestegg.c
+NESTEGG_OBJS = $(NESTEGG_SRCS:include/nestegg/%.c=$(OBJDIR)/nestegg/%.o)
+
 # All objects together
-OBJS = $(OBJS_C) $(OBJS_CPP)
+OBJS = $(OBJS_C) $(OBJS_CPP) $(NESTEGG_OBJS)
 
 # Create object directories
 $(OBJDIR):
@@ -174,6 +177,11 @@ $(OBJDIR)/%.o: src/%.cpp Makefile | $(OBJDIR)
 $(WRAPPER_OBJ): $(WRAPPER_SRC) Makefile | $(OBJDIR)
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(DEFINES) -c $< -o $@
+
+# Compile C files in include/nestegg
+$(OBJDIR)/nestegg/%.o: include/nestegg/%.c Makefile | $(OBJDIR)
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) $(DEFINES) -c -o $@ $<
 
 # Link all objects safely together using C++ linker
 kew: $(OBJS) $(WRAPPER_OBJ) Makefile
