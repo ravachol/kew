@@ -20,6 +20,7 @@
 #include "appstate.h"
 #include "file.h"
 #include "utils.h"
+#include "webm.h"
 
 #ifndef MAXPATHLEN
 #define MAXPATHLEN 4096
@@ -112,6 +113,7 @@ enum AudioImplementation
         VORBIS,
         OPUS,
         M4A,
+        WEBM,
         NONE
 };
 
@@ -293,5 +295,15 @@ void clearCurrentTrack(void);
 void cleanupDbusConnection();
 
 void freeLastCover(void);
+
+void getWebmFileInfo(const char *filename, ma_format *format, ma_uint32*channels, ma_uint32 *sampleRate, ma_channel *channelMap);
+
+int prepareNextWebmDecoder(SongData *songData);
+
+ma_webm *getCurrentWebmDecoder(void);
+
+ma_webm *getFirstWebmDecoder(void);
+
+void webm_on_audio_frames(ma_device *pDevice, void *pFramesOut, const void *pFramesIn, ma_uint32 frameCount);
 
 #endif

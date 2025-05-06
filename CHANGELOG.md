@@ -2,19 +2,19 @@
 
 ### 3.2.1
 
+- Added webm decoding, both opus and vorbis but no pcm. Also, seeking is disabled in webm for now.
+
 - kew now remembers the playlist between sessions, unless you tell it to load something else.
 
 - The appearance of the progress bar can now be configured in detail. There's even a pill muncher mode, where this round guy eats everything in his path. By @Chromium-3-Oxide.
 
-- fatBars=1. Added option to make bars twice the width.
+- fatBars=1. Added option to make bars twice the width. It is now the default. Also line progressbar is now the default.
 
 - The visualizer now runs at 30fps instead of 60fps. 60 fps was just at odds with kew's very low system requirements profile, and we want kew to consume very little resources. This cuts the cpu utilization in half when in track view with really no big noticeable differences.
 
 - Snare detection and flare-ups in the visualizer. This can be disabled for more truthful values.
 
 - Gradient in library and playlist that makes the bottom rows a bit darker when using album colors.
-
-- Line progressbar is now the default.
 
 - Replay gain source can now be set in the config file. 0 = track, 1 = album or 2 = disabled. Suggested by @ksushagryaznaya.
 
