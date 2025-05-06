@@ -675,7 +675,9 @@ void loadSpecialPlaylist(const char *directory)
 
 void loadLastUsedPlaylist(void)
 {
-        loadPlaylist(getConfigPath(), lastUsedPlaylistName, &playlist);
+        char *configdir = getConfigPath();
+
+        loadPlaylist(configdir, lastUsedPlaylistName, &playlist);
 
         if (originalPlaylist == NULL)
         {
@@ -683,6 +685,8 @@ void loadLastUsedPlaylist(void)
                 originalPlaylist = malloc(sizeof(PlayList));
                 *originalPlaylist = deepCopyPlayList(&playlist);
         }
+        if (configdir)
+                free(configdir);
 }
 
 void saveNamedPlaylist(const char *directory, const char *playlistName, const PlayList *playlist)
@@ -726,7 +730,10 @@ void saveSpecialPlaylist(const char *directory)
 
 void saveLastUsedPlaylist(void)
 {
-        saveNamedPlaylist(getConfigPath(), lastUsedPlaylistName, originalPlaylist);
+        char *configdir = getConfigPath();
+        saveNamedPlaylist(configdir, lastUsedPlaylistName, originalPlaylist);
+        if (configdir)
+                free(configdir);
 }
 
 void savePlaylist(const char *path, const PlayList *playlist)
