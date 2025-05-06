@@ -19,7 +19,7 @@ kew (/kjuː/) is a terminal music player.
  * Control the player with previous, next and pause.
  * Edit the playlist by adding and removing songs.
  * Gapless playback (between files of the same format and type).
- * Supports MP3, FLAC, MPEG-4/M4A (AAC, ALAC), OPUS, OGG and WAV audio.
+ * Supports MP3, FLAC, MPEG-4/M4A (AAC, ALAC), OPUS, OGG, Webm and WAV audio.
  * Supports desktop events through MPRIS.
  * Internet Radio.
  * Private, no data is collected by kew.
