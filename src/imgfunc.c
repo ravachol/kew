@@ -465,6 +465,13 @@ int convertToAscii(const char *filepath, unsigned int height)
                 cell_height = term_size.height_pixels / term_size.height_cells;
         }
 
+        // Set default cell size for some terminals
+        if (cell_width == -1 || cell_height == -1)
+        {
+                cell_width = 8;
+                cell_height = 16;
+        }
+
         float aspect_ratio_correction = (float)cell_height / (float)cell_width;
         unsigned int correctedWidth = (int)(height * aspect_ratio_correction) - 1;
 
