@@ -2,7 +2,7 @@
 
 ### 3.2.1
 
-- Added webm decoding, both opus and vorbis but no pcm. Also, seeking is disabled in webm for now.
+- Added webm support. Seeking is disabled in webm for now.
 
 - kew now remembers the playlist between sessions, unless you tell it to load something else.
 
@@ -21,6 +21,8 @@
 #### Bug Fixes
 
 - The clock wasn't getting reset completely when restarting songs after seeking or when using alt+s to stop. Found by @Chromium-3-Oxide.
+
+- Fixed ascii cover image being too narrow on gnome terminal.
 
 ### 3.2.0
 
