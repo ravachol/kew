@@ -1167,6 +1167,85 @@ int adjustVolumePercent(int volumeChange)
 
 ma_uint64 lastCursor = 0;
 
+ma_result callReadPCMFrames(
+    ma_data_source *pDataSource,
+    ma_format format,
+    void *pFramesOut,
+    ma_uint64 framesRead,       /* How many frames have already been read */
+    ma_uint32 channels,         /* Number of channels */
+    ma_uint64 remainingFrames,  /* How many more frames we want to read now */
+    ma_uint64 *pFramesToRead    /* On output, how many frames actually read */
+)
+{
+        ma_result result;
+
+        switch (format)
+        {
+        case ma_format_u8:
+        {
+                ma_uint8 *pOut = (ma_uint8 *)pFramesOut;
+                result = ma_data_source_read_pcm_frames(
+                    pDataSource,
+                    pOut + (framesRead * channels),
+                    remainingFrames,
+                    pFramesToRead);
+        }
+        break;
+
+        case ma_format_s16:
+        {
+                ma_int16 *pOut = (ma_int16 *)pFramesOut;
+                result = ma_data_source_read_pcm_frames(
+                    pDataSource,
+                    pOut + (framesRead * channels),
+                    remainingFrames,
+                    pFramesToRead);
+        }
+        break;
+
+        case ma_format_s24:
+        {
+                ma_uint8 *pOut = (ma_uint8 *)pFramesOut;
+                result = ma_data_source_read_pcm_frames(
+                    pDataSource,
+                    pOut + (framesRead * channels * 3),
+                    remainingFrames,
+                    pFramesToRead);
+        }
+        break;
+
+        case ma_format_s32:
+        {
+                ma_int32 *pOut = (ma_int32 *)pFramesOut;
+                result = ma_data_source_read_pcm_frames(
+                    pDataSource,
+                    pOut + (framesRead * channels),
+                    remainingFrames,
+                    pFramesToRead);
+        }
+        break;
+
+        case ma_format_f32:
+        {
+                float *pOut = (float *)pFramesOut;
+                result = ma_data_source_read_pcm_frames(
+                    pDataSource,
+                    pOut + (framesRead * channels),
+                    remainingFrames,
+                    pFramesToRead);
+        }
+        break;
+
+        default:
+        {
+                result = MA_INVALID_ARGS;
+        }
+        break;
+        }
+
+        return result;
+}
+
 #ifdef USE_FAAD
 void m4a_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_uint64 frameCount, ma_uint64 *pFramesRead)
 {
@@ -1246,7 +1325,15 @@ void m4a_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_uint6
                         return;
                 }
 
-                result = ma_data_source_read_pcm_frames(firstDecoder, (ma_int32 *)pFramesOut + framesRead * pAudioData->channels, remainingFrames, &framesToRead);
+                result = callReadPCMFrames(
+                        firstDecoder,
+                        m4a->format,
+                        pFramesOut,
+                        framesRead,
+                        pAudioData->channels,
+                        remainingFrames,
+                        &framesToRead
+                    );
 
                 ma_data_source_get_cursor_in_pcm_frames(decoder, &cursor);
 
@@ -1363,7 +1450,15 @@ void opus_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_uint
                         return;
                 }
 
-                result = ma_data_source_read_pcm_frames(firstDecoder, (ma_int32 *)pFramesOut + framesRead * pAudioData->channels, remainingFrames, &framesToRead);
+                result = callReadPCMFrames(
+                        firstDecoder,
+                        opus->format,
+                        pFramesOut,
+                        framesRead,
+                        pAudioData->channels,
+                        remainingFrames,
+                        &framesToRead
+                    );
 
                 ma_data_source_get_cursor_in_pcm_frames(decoder, &cursor);
 
@@ -1477,7 +1572,15 @@ void vorbis_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_ui
                         return;
                 }
 
-                result = ma_data_source_read_pcm_frames(firstDecoder, (ma_int32 *)pFramesOut + framesRead * pAudioData->channels, framesRequested, &framesToRead);
+                result = callReadPCMFrames(
+                        firstDecoder,
+                        vorbis->format,
+                        pFramesOut,
+                        framesRead,
+                        pAudioData->channels,
+                        framesRequested,
+                        &framesToRead
+                    );
 
                 ma_data_source_get_cursor_in_pcm_frames(decoder, &cursor);
 
@@ -1593,7 +1696,15 @@ void webm_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_uint
                         return;
                 }
 
-                result = ma_data_source_read_pcm_frames(firstDecoder, (ma_float *)pFramesOut + framesRead * webm->channels, framesRequested, &framesToRead);
+                result = callReadPCMFrames(
+                        firstDecoder,
+                        webm->format,
+                        pFramesOut,
+                        framesRead,
+                        pAudioData->channels,
+                        framesRequested,
+                        &framesToRead
+                    );
 
                 ma_data_source_get_cursor_in_pcm_frames(decoder, &cursor);
 
