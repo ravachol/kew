@@ -27,7 +27,7 @@
 #endif
 
 #ifndef MAX_BUFFER_SIZE
-#define MAX_BUFFER_SIZE 8192
+#define MAX_BUFFER_SIZE 32768
 #endif
 
 #ifndef MAX_DECODERS
@@ -39,16 +39,16 @@
 
 #define METADATA_MAX_LENGTH 256
 
-        typedef struct
-        {
-                char title[METADATA_MAX_LENGTH];
-                char artist[METADATA_MAX_LENGTH];
-                char album_artist[METADATA_MAX_LENGTH];
-                char album[METADATA_MAX_LENGTH];
-                char date[METADATA_MAX_LENGTH];
-                double replaygainTrack;
-                double replaygainAlbum;
-        } TagSettings;
+typedef struct
+{
+        char title[METADATA_MAX_LENGTH];
+        char artist[METADATA_MAX_LENGTH];
+        char album_artist[METADATA_MAX_LENGTH];
+        char album[METADATA_MAX_LENGTH];
+        char date[METADATA_MAX_LENGTH];
+        double replaygainTrack;
+        double replaygainAlbum;
+} TagSettings;
 
 #endif
 
@@ -86,7 +86,6 @@ typedef struct
 } UserData;
 #endif
 
-
 #ifndef AUDIODATA_STRUCT
 #define AUDIODATA_STRUCT
 typedef struct
@@ -117,8 +116,9 @@ enum AudioImplementation
         NONE
 };
 
-#define FFT_SIZE 4096
-#define HOP_SIZE 1024
+extern int hopSize;
+extern int fftSize;
+extern int prevFftSize;
 
 typedef void (*uninit_func)(void *decoder);
 
@@ -178,9 +178,9 @@ ma_libopus *getFirstOpusDecoder(void);
 
 ma_libvorbis *getFirstVorbisDecoder(void);
 
-void getVorbisFileInfo(const char *filename, ma_format *format, ma_uint32*channels, ma_uint32 *sampleRate, ma_channel *channelMap);
+void getVorbisFileInfo(const char *filename, ma_format *format, ma_uint32 *channels, ma_uint32 *sampleRate, ma_channel *channelMap);
 
-void getOpusFileInfo(const char *filename, ma_format *format, ma_uint32*channels, ma_uint32 *sampleRate, ma_channel *channelMap);
+void getOpusFileInfo(const char *filename, ma_format *format, ma_uint32 *channels, ma_uint32 *sampleRate, ma_channel *channelMap);
 
 ma_libvorbis *getCurrentVorbisDecoder(void);
 
@@ -196,13 +196,13 @@ int prepareNextM4aDecoder(SongData *songData);
 
 ma_libvorbis *getFirstVorbisDecoder(void);
 
-void getFileInfo(const char* filename, ma_uint32* sampleRate, ma_uint32* channels, ma_format* format);
+void getFileInfo(const char *filename, ma_uint32 *sampleRate, ma_uint32 *channels, ma_format *format);
 
 void initAudioBuffer(void);
 
 ma_int32 *getAudioBuffer(void);
 
-void setAudioBuffer(ma_int32 *buf, int numSamples);
+void setAudioBuffer(ma_int32 *buf, int numSamples, ma_uint32 sampleRate);
 
 void resetAudioBuffer(void);
 
@@ -296,7 +296,7 @@ void cleanupDbusConnection();
 
 void freeLastCover(void);
 
-void getWebmFileInfo(const char *filename, ma_format *format, ma_uint32*channels, ma_uint32 *sampleRate, ma_channel *channelMap);
+void getWebmFileInfo(const char *filename, ma_format *format, ma_uint32 *channels, ma_uint32 *sampleRate, ma_channel *channelMap);
 
 int prepareNextWebmDecoder(SongData *songData);
 
@@ -305,5 +305,14 @@ ma_webm *getCurrentWebmDecoder(void);
 ma_webm *getFirstWebmDecoder(void);
 
 void webm_on_audio_frames(ma_device *pDevice, void *pFramesOut, const void *pFramesIn, ma_uint32 frameCount);
+
+ma_result callReadPCMFrames(
+    ma_data_source *pDataSource,
+    ma_format format,
+    void *pFramesOut,
+    ma_uint64 framesRead,
+    ma_uint32 channels,
+    ma_uint64 remainingFrames,
+    ma_uint64 *pFramesToRead);
 
 #endif

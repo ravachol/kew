@@ -64,9 +64,6 @@ typedef struct
         bool quitAfterStopping;                         // Exit kew when the music stops or not
         bool hideGlimmeringText;                        // Glimmering text on the bottom row
         time_t lastTimeAppRan;                          // When did this app run last, used for updating the cached library if it has been modified since that time
-        float tweenFactor;                              // How fast the bars in the visualizer rise (higher value = faster)
-        float tweenFactorFall;                          // How fast the bars in the visualizer fall (higher value = faster)
-        bool elevateBarsOnSnare;                        // Snare flare, set to 0, for a more truthful visualizer
         bool fatBars;                                   // Bars twice the width
         int replayGainCheckFirst;                       // Prioritize track or album replay gain setting
 } UISettings;
@@ -210,15 +207,12 @@ typedef struct
         char hardAddToRadioFavorites[6];
         char sortLibrary[6];
         char visualizerBrailleMode[2];
-        char tweenFactor[12];
-        char tweenFactorFall[12];
         char progressBarElapsedEvenChar[12];
         char progressBarElapsedOddChar[12];
         char progressBarApproachingEvenChar[12];
         char progressBarApproachingOddChar[12];
         char progressBarCurrentEvenChar[12];
         char progressBarCurrentOddChar[12];
-        char elevateBarsOnSnare[2];
         char fatBars[2];
         char replayGainCheckFirst[2];
 } AppSettings;

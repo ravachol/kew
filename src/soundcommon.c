@@ -25,6 +25,11 @@ bool stopped = true;
 
 bool hasSilentlySwitched;
 
+int hopSize = 512;
+int fftSize = 2048;
+int prevFftSize = 0;
+int fftSizeMilliseconds = 45;
+
 float seekPercent = 0.0;
 double seekElapsed;
 
@@ -403,6 +408,13 @@ void getCurrentFormatAndSampleRate(ma_format *format, ma_uint32 *sampleRate)
                 if (decoder != NULL)
                         *format = decoder->format;
         }
+        else if (getCurrentImplementationType() == WEBM)
+        {
+                ma_webm *decoder = getCurrentWebmDecoder();
+
+                if (decoder != NULL)
+                        *format = decoder->format;
+        }
         else if (getCurrentImplementationType() == M4A)
         {
 #ifdef USE_FAAD
@@ -699,18 +711,40 @@ void setBufferSize(int value)
         bufSize = value;
 }
 
-void setAudioBuffer(ma_int32 *buf, int numSamples)
+int closestPowerOfTwo(int x)
+{
+        int n = 1;
+        while (n < x)
+                n <<= 1;
+        return n;
+}
+
+void setAudioBuffer(ma_int32 *buf, int numSamples, ma_uint32 sampleRate)
 {
         int bufIndex = 0;
+
+        // Dynamically determine FFT and hop size
+        float hopFraction = 0.25f;   // 25% hop (75% overlap)
+
+        // Compute power-of-two window/hop sizes in samples
+        int wantFFTSamples = (int)(fftSizeMilliseconds * sampleRate / 1000.0f);
+        fftSize = closestPowerOfTwo(wantFFTSamples);   // 2048 or 4096
+        int wantHopSamples = (int)(fftSize * hopFraction); // 25% of window length
+        hopSize = closestPowerOfTwo(wantHopSamples);   // 256, 512, 1024
+
+        if (fftSize > MAX_BUFFER_SIZE)
+        fftSize = MAX_BUFFER_SIZE;
+
+        // Ensure hop is never >= window
+        if (hopSize >= fftSize)
+                hopSize = fftSize / 2; // fallback minimum overlap
 
         while (bufIndex < numSamples)
         {
                 if (writeHead >= MAX_BUFFER_SIZE)
-                {
                         break;
-                }
 
-                int spaceLeft = FFT_SIZE - writeHead;
+                int spaceLeft = fftSize - writeHead;
                 int samplesLeft = numSamples - bufIndex;
                 int samplesToCopy = (samplesLeft < spaceLeft) ? samplesLeft : spaceLeft;
 
@@ -724,15 +758,15 @@ void setAudioBuffer(ma_int32 *buf, int numSamples)
                 writeHead += samplesToCopy;
                 bufIndex += samplesToCopy;
 
-                // As long as we have at least FFT_SIZE samples, process one window
-                while (writeHead >= FFT_SIZE)
+                // As long as we have at least fftSize samples, process one window
+                while (writeHead >= fftSize)
                 {
                         bufferReady = true;
 
-                        // Shift the buffer left by HOP_SIZE
-                        memmove(audioBuffer, audioBuffer + HOP_SIZE, sizeof(ma_int32) * (FFT_SIZE - HOP_SIZE));
+                        // Shift the buffer left by hopSize
+                        memmove(audioBuffer, audioBuffer + hopSize, sizeof(ma_int32) * (fftSize - hopSize));
 
-                        writeHead -= HOP_SIZE;
+                        writeHead -= hopSize;
                 }
         }
 }
@@ -1171,10 +1205,10 @@ ma_result callReadPCMFrames(
     ma_data_source *pDataSource,
     ma_format format,
     void *pFramesOut,
-    ma_uint64 framesRead,       /* How many frames have already been read */
-    ma_uint32 channels,         /* Number of channels */
-    ma_uint64 remainingFrames,  /* How many more frames we want to read now */
-    ma_uint64 *pFramesToRead    /* On output, how many frames actually read */
+    ma_uint64 framesRead,
+    ma_uint32 channels,
+    ma_uint64 remainingFrames,
+    ma_uint64 *pFramesToRead
 )
 {
         ma_result result;
@@ -1326,14 +1360,13 @@ void m4a_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_uint6
                 }
 
                 result = callReadPCMFrames(
-                        firstDecoder,
-                        m4a->format,
-                        pFramesOut,
-                        framesRead,
-                        pAudioData->channels,
-                        remainingFrames,
-                        &framesToRead
-                    );
+                    firstDecoder,
+                    m4a->format,
+                    pFramesOut,
+                    framesRead,
+                    pAudioData->channels,
+                    remainingFrames,
+                    &framesToRead);
 
                 ma_data_source_get_cursor_in_pcm_frames(decoder, &cursor);
 
@@ -1352,7 +1385,7 @@ void m4a_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_uint6
                 pthread_mutex_unlock(&dataSourceMutex);
         }
 
-        setAudioBuffer(pFramesOut, framesRead);
+        setAudioBuffer(pFramesOut, framesRead, pAudioData->sampleRate);
 
         if (pFramesRead != NULL)
         {
@@ -1451,14 +1484,13 @@ void opus_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_uint
                 }
 
                 result = callReadPCMFrames(
-                        firstDecoder,
-                        opus->format,
-                        pFramesOut,
-                        framesRead,
-                        pAudioData->channels,
-                        remainingFrames,
-                        &framesToRead
-                    );
+                    firstDecoder,
+                    opus->format,
+                    pFramesOut,
+                    framesRead,
+                    pAudioData->channels,
+                    remainingFrames,
+                    &framesToRead);
 
                 ma_data_source_get_cursor_in_pcm_frames(decoder, &cursor);
 
@@ -1475,7 +1507,7 @@ void opus_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_uint
                 pthread_mutex_unlock(&dataSourceMutex);
         }
 
-        setAudioBuffer(pFramesOut, framesRead);
+        setAudioBuffer(pFramesOut, framesRead, pAudioData->sampleRate);
 
         if (pFramesRead != NULL)
         {
@@ -1573,14 +1605,13 @@ void vorbis_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_ui
                 }
 
                 result = callReadPCMFrames(
-                        firstDecoder,
-                        vorbis->format,
-                        pFramesOut,
-                        framesRead,
-                        pAudioData->channels,
-                        framesRequested,
-                        &framesToRead
-                    );
+                    firstDecoder,
+                    vorbis->format,
+                    pFramesOut,
+                    framesRead,
+                    pAudioData->channels,
+                    framesRequested,
+                    &framesToRead);
 
                 ma_data_source_get_cursor_in_pcm_frames(decoder, &cursor);
 
@@ -1598,7 +1629,7 @@ void vorbis_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_ui
                 pthread_mutex_unlock(&dataSourceMutex);
         }
 
-        setAudioBuffer(pFramesOut, framesRead);
+        setAudioBuffer(pFramesOut, framesRead, pAudioData->sampleRate);
 
         if (pFramesRead != NULL)
         {
@@ -1697,14 +1728,13 @@ void webm_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_uint
                 }
 
                 result = callReadPCMFrames(
-                        firstDecoder,
-                        webm->format,
-                        pFramesOut,
-                        framesRead,
-                        pAudioData->channels,
-                        framesRequested,
-                        &framesToRead
-                    );
+                    firstDecoder,
+                    webm->format,
+                    pFramesOut,
+                    framesRead,
+                    pAudioData->channels,
+                    framesRequested,
+                    &framesToRead);
 
                 ma_data_source_get_cursor_in_pcm_frames(decoder, &cursor);
 
@@ -1722,7 +1752,7 @@ void webm_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_uint
                 pthread_mutex_unlock(&dataSourceMutex);
         }
 
-        setAudioBuffer(pFramesOut, framesRead);
+        setAudioBuffer(pFramesOut, framesRead, pAudioData->sampleRate);
 
         if (pFramesRead != NULL)
         {

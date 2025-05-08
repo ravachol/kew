@@ -223,7 +223,15 @@ void builtin_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_u
                         return;
                 }
 
-                result = ma_data_source_read_pcm_frames(firstDecoder, (ma_int32 *)pFramesOut + framesRead * audioData->channels, remainingFrames, &framesToRead);
+                result = callReadPCMFrames(
+                        firstDecoder,
+                        audioData->format,
+                        pFramesOut,
+                        framesRead,
+                        audioData->channels,
+                        remainingFrames,
+                        &framesToRead);
+
                 ma_data_source_get_cursor_in_pcm_frames(decoder, &cursor);
 
                 float *frames = (float *)pFramesOut + framesRead * audioData->channels;
@@ -309,7 +317,7 @@ void builtin_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_u
                 pthread_mutex_unlock(&dataSourceMutex);
         }
 
-        setAudioBuffer(pFramesOut, framesRead);
+        setAudioBuffer(pFramesOut, framesRead, audioData->sampleRate);
 
         if (pFramesRead != NULL)
         {

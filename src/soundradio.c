@@ -809,7 +809,7 @@ static void audio_data_callback(ma_device *device, void *output, const void *inp
 
         radioIsActive = true;
 
-        setAudioBuffer(output, framesRead);
+        setAudioBuffer(output, framesRead, decoder->outputSampleRate);
 }
 
 RadioSearchResult *copyRadioSearchResult(const RadioSearchResult *original)
