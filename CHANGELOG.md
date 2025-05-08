@@ -6,11 +6,11 @@
 
 - kew now remembers the playlist between sessions, unless you tell it to load something else.
 
+- Rework of the visualizer to make it have more punch and to make higher frequency value changes more visible. The visualizer now also runs at 30fps instead of 60fps. 60 fps was just at odds with kew's very low system requirements profile, and we want kew to consume very little resources. The lower framerate cuts the cpu utilization in half when in track view with no big noticeable differences.
+
 - The appearance of the progress bar can now be configured in detail. There's even a pill muncher mode, where this round guy eats everything in his path. By @Chromium-3-Oxide.
 
 - fatBars=1. Added option to make bars twice the width. It is now the default. Also line progressbar is now the default.
-
-- The visualizer now runs at 30fps instead of 60fps. 60 fps was just at odds with kew's very low system requirements profile, and we want kew to consume very little resources. This cuts the cpu utilization in half when in track view with really no big noticeable differences.
 
 - Snare detection and flare-ups in the visualizer. This can be disabled for more truthful values.
 

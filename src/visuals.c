@@ -14,12 +14,9 @@ visuals.c
 
 #define MAX_BARS 64
 
-int prevBufferSize = 0;
-float alpha = 0.02f;
-float smoothFramesAlpha = 0.8f;
-float lastMax = -1.0f;
+int isFftInitialized = false;
+
 float *fftInput = NULL;
-float *fftPreviousInput = NULL;
 fftwf_complex *fftOutput = NULL;
 
 int bufferIndex = 0;
@@ -27,153 +24,24 @@ int bufferIndex = 0;
 ma_format format = ma_format_unknown;
 ma_uint32 sampleRate = 0;
 
-float magnitudeBuffer[MAX_BARS] = {0.0f};
-float lastMagnitudes[MAX_BARS] = {0.0f};
-float smoothedMagnitudes[MAX_BARS] = {0.0f};
-float smoothedFramesMagnitudes[MAX_BARS] = {0.0f};
-float minMaxMagnitude = 10.0f;
-float spacingPower = 1.0f; // 0.8 = Bars skewed toward bass values. 1.0 = Linear
+float barHeight[MAX_BARS] = {0.0f};
+float displayMagnitudes[MAX_BARS] = {0.0f};
+float smoothed[MAX_BARS] = {0.0f};
 
-float maxMagnitude = 50.0f;
-
-float baseDecay = 0.72f;
-float rangeDecay = 0.04f;
-float baseAttack = 0.7f;
-float rangeAttack = 0.6f;
-
-float tweenFactor = 0.4f;
-float tweenFactorFall = 0.2f;
-
-float snareTweenFactor = 0.4f;
-float snareTweenFactorFall = 0.2f;
-
-float riseThresholdPercent = 0.03f;
-float fallThresholdPercent = 0.03f;
-
-bool snareDetected = false;
-bool elevateBarsOnSnare = false;
+float dB_floor = -36.0f;
+float dB_ceil = -18.0f;
+float emphasis = 1.8f;
+float fastAttack = 0.6f;
+float decay = 0.14f;
+float slowAttack = 0.15f;
 
 bool fatBars = false;
-
-#define MOVING_AVERAGE_WINDOW_SIZE 2
-
-#define MIN_THRESHOLD 0.01f // adjust for silence sensitivity
-
-void smoothMovingAverageMagnitudes(int numBars, float *magnitudes)
-{
-        // Apply moving average smoothing
-        for (int i = 0; i < numBars; i++)
-        {
-                float sum = magnitudes[i];
-                int count = 1;
-
-                // Calculate moving average using a window centered at the current frequency bin
-                for (int j = 1; j <= MOVING_AVERAGE_WINDOW_SIZE / 2; j++)
-                {
-                        if (i - j >= 0)
-                        {
-                                sum += magnitudes[i - j];
-                                count++;
-                        }
-                        if (i + j < numBars)
-                        {
-                                sum += magnitudes[i + j];
-                                count++;
-                        }
-                }
-
-                smoothedMagnitudes[i] = sum / count;
-        }
-
-        memcpy(magnitudes, smoothedMagnitudes, numBars * sizeof(float));
-}
-
-float applyAttackandDecay(float linearVal, float lastMagnitude, float maxMagnitude)
-{
-        float ratio = linearVal / maxMagnitude; // 0..1
-        if (ratio > 1.0f)
-                ratio = 1.0f; // Clamp
-
-        float decreaseFactor = baseDecay + rangeDecay * ratio;
-        float decayedMagnitude = linearVal * decreaseFactor;
-
-        float attackFactor = baseAttack + rangeAttack * ratio;
-
-        float newVal;
-
-        if (linearVal < decayedMagnitude)
-        {
-                // Decay
-                newVal = decayedMagnitude;
-        }
-        else
-        {
-                // Attack
-                newVal = lastMagnitude + attackFactor * (linearVal - lastMagnitude);
-        }
-
-        return newVal;
-}
-
-void updateMagnitudes(int height, int numBars, float maxMagnitude, float *magnitudes)
-{
-    for (int i = 0; i < numBars; i++)
-    {
-        float value = applyAttackandDecay(magnitudes[i], lastMagnitudes[i], maxMagnitude);
-
-        float ratio = value / maxMagnitude;
-
-        if (ratio < 0) ratio = 0.0f;
-        if (ratio > 1) ratio = 1.0f;
-
-        magnitudes[i] = ratio * height;
-    }
-}
-
-float calcMaxMagnitude(int numBars, float *magnitudes)
-{
-        maxMagnitude = 0.0f;
-        for (int i = 0; i < numBars; i++)
-        {
-                if (magnitudes[i] > maxMagnitude)
-                {
-                        maxMagnitude = magnitudes[i];
-                }
-        }
-
-        if (maxMagnitude < minMaxMagnitude)
-                maxMagnitude = minMaxMagnitude;
-
-        if (lastMax < 0.0f)
-        {
-                lastMax = maxMagnitude;
-                return maxMagnitude;
-        }
-
-        // Apply exponential smoothing
-        lastMax = (1 - alpha) * lastMax + alpha * maxMagnitude;
-
-        return lastMax;
-}
 
 void clearMagnitudes(int numBars, float *magnitudes)
 {
         for (int i = 0; i < numBars; i++)
         {
                 magnitudes[i] = 0.0f;
-        }
-}
-
-void enhancePeaks(int numBars, float *magnitudes, int height, float enhancePeak)
-{
-        for (int i = 2; i < numBars - 1; i++) // Don't enhance bass sounds as they already dominate too much in most music
-        {
-                if (magnitudes[i] > magnitudes[i - 1] && magnitudes[i] > magnitudes[i + 1])
-                {
-                        magnitudes[i] *= enhancePeak;
-
-                        magnitudes[i] = fminf(magnitudes[i], (float)height);
-                }
         }
 }
 
@@ -194,181 +62,127 @@ void applyBlackmanHarris(float *fftInput, int bufferSize)
         }
 }
 
-void smoothFrames(
-    float *magnitudes,
-    float *smoothedFramesMagnitudes,
-    int numBars,
-    float tweenFactor,
-    float tweenFactorFall,
-    float riseThresholdPercent,
-    float fallThresholdPercent)
+// Fill center freqs for 1/3-octave bands, given min/max freq and numBands
+void computeBandCenters(
+    float minFreq, float maxFreq, int numBands, float *centerFreqs)
 {
-        for (int i = 0; i < numBars; i++)
+        float startF = minFreq;
+        float endF = maxFreq;
+        // 1/3 octave spacing
+        float octaveFraction = 1.0f / 3.0f; // For 1/3 octave
+        float factor = powf(2.0f, octaveFraction);
+        float f = startF;
+
+        for (int i = 0; i < numBands; i++)
         {
-                float currentVal = smoothedFramesMagnitudes[i];
-                float targetVal = magnitudes[i];
-                float delta = targetVal - currentVal;
-
-                float rise = tweenFactor;
-                float fall = tweenFactorFall;
-
-                float riseRef = fmax(currentVal, targetVal);
-                float riseThreshold = riseThresholdPercent * riseRef;
-
-                float fallRef = fmin(currentVal, targetVal);
-                float fallThreshold = fallThresholdPercent * fallRef;
-
-                if (delta > riseThreshold)
+                centerFreqs[i] = f;
+                f *= factor;
+                if (f > endF)
                 {
-                         smoothedFramesMagnitudes[i] += delta * rise;
-                }
-                else if (delta < -fallThreshold)
-                {
-                         smoothedFramesMagnitudes[i] += delta * fall;
+                        // Clamp the last band if we've reached maxFreq
+                        centerFreqs[i] = f / factor + (endF - f / factor) * ((float)i / (numBands - 1));
                 }
         }
 }
 
-// Average All Bins in Bar Range
-void fillSpectrumBars(
+void fillEQBands(
     const fftwf_complex *fftOutput,
     int bufferSize,
     float sampleRate,
-    float *magnitudes,
-    int numBars,
-    float minFreq,
-    float maxFreq,
-    float spacingPower)
+    float *bandDb,
+    int numBands,
+    const float *centerFreqs)
 {
-        float *barFreqLo = (float *)malloc(sizeof(float) * numBars);
-        float *barFreqHi = (float *)malloc(sizeof(float) * numBars);
-
-        float logMin = log10f(minFreq);
-        float logMax = log10f(maxFreq);
-
         int numBins = bufferSize / 2 + 1;
         float binSpacing = sampleRate / bufferSize;
+        float width = powf(2.0f, 1.0f / 6.0f); // 1/3 octave: +/- 1/6 octave half-width
 
-        for (int i = 0; i < numBars; i++)
+        float normFactor = bufferSize;
+
+        // Pink-noise flattening: +3 dB/octave
+        float referenceFreq = centerFreqs[0];
+        float correctionPerOctave = 3.0f;
+        float maxFreqForCorrection = 10000.0f; // Above this, keep correction flat
+
+        for (int i = 0; i < numBands; i++)
         {
-                float tLo = (float)i / numBars;
-                float tHi = (float)(i + 1) / numBars;
+                float center = centerFreqs[i];
+                float lo = center / width;
+                float hi = center * width;
 
-                float skewLo = powf(tLo, spacingPower);
-                float skewHi = powf(tHi, spacingPower);
-
-                barFreqLo[i] = powf(10.0f, logMin + (logMax - logMin) * skewLo);
-                barFreqHi[i] = powf(10.0f, logMin + (logMax - logMin) * skewHi);
-        }
-
-        for (int i = 0; i < numBars; i++)
-        {
-                // Find bins covered by this bar range
-                int binLo = (int)ceilf(barFreqLo[i] / binSpacing);
-                int binHi = (int)floorf(barFreqHi[i] / binSpacing);
-
-                // Clamp to valid bins
+                int binLo = (int)ceilf(lo / binSpacing);
+                int binHi = (int)floorf(hi / binSpacing);
                 if (binLo < 0)
                         binLo = 0;
                 if (binHi >= numBins)
                         binHi = numBins - 1;
-
-                // Special case: if range selects no bins, pick the closest one
                 if (binHi < binLo)
                         binHi = binLo;
 
-                float sum = 0.0f;
+                float sumSq = 0.0f;
                 int count = 0;
                 for (int k = binLo; k <= binHi; k++)
                 {
-                        float real = fftOutput[k][0];
-                        float imag = fftOutput[k][1];
-                        sum += sqrtf(real * real + imag * imag);
+                        // Normalize FFT output
+                        float real = fftOutput[k][0] / normFactor;
+                        float imag = fftOutput[k][1] / normFactor;
+                        float mag = sqrtf(real * real + imag * imag);
+                        sumSq += mag * mag;
                         count++;
                 }
-                magnitudes[i] = (count > 0) ? sum / count : 0.0f;
-        }
+                float rms = (count > 0) ? sqrtf(sumSq / count) : 0.0f;
+                bandDb[i] = 20.0f * log10f(rms + 1e-9f);
 
-        free(barFreqLo);
-        free(barFreqHi);
+                float freq = centerFreqs[i];
+                float octavesAboveRef = log2f(fminf(freq, maxFreqForCorrection) / referenceFreq);
+                float correction = fmaxf(octavesAboveRef, 0.0f) * correctionPerOctave;
+                bandDb[i] += correction;
+        }
 }
 
-void findBarIndicesForFreqRange(
-    float minFreq, float maxFreq,
-    int numBars, float overallMinFreq, float overallMaxFreq,
-    int *outStart, int *outEnd, float spacingPower)
+int normalizeAudioSamples(const int32_t *audioBuffer, float *fftInput, int fftSize, int bitDepth)
 {
-        int startBar = -1, endBar = -1;
-        float logMin = log10f(overallMinFreq);
-        float logMax = log10f(overallMaxFreq);
+        float min = 0.0f, max = 0.0f;
+        float scale = 1.0f;
 
-        for (int i = 0; i < numBars; ++i)
+        // Only 24 bit and 16 bit need this correction, otherwize use 1.0f
+        if (bitDepth == 24 || bitDepth == 16)
         {
-                float tLo = (float)i / numBars;
-                float tHi = (float)(i + 1) / numBars;
-
-                float skewLo = powf(tLo, spacingPower);
-                float skewHi = powf(tHi, spacingPower);
-
-                float barFreqLo = powf(10.0f, logMin + (logMax - logMin) * skewLo);
-                float barFreqHi = powf(10.0f, logMin + (logMax - logMin) * skewHi);
-
-                // If this bar at least partly overlaps target band, include it
-                if (barFreqHi >= minFreq && barFreqLo <= maxFreq)
+                for (int i = 0; i < fftSize; ++i)
                 {
-                        if (startBar < 0)
-                                startBar = i;
-                        endBar = i;
+                        float normalized = (float)audioBuffer[i] / 2147483648.0f;
+                        if (i == 0)
+                        {
+                                min = max = normalized;
+                        }
+                        if (normalized < min)
+                                min = normalized;
+                        if (normalized > max)
+                                max = normalized;
                 }
+
+                // Calculate the scale factor
+                float absMin = fabs(min);
+                float absMax = fabs(max);
+                scale = (absMin > absMax) ? absMin : absMax;
+
+                // Prevent division by zero
+                if (scale == 0.0f)
+                        scale = 1.0f; // Default
+
+                if (scale > 0.96f && scale < 1.04f)
+                        scale = 1.0f;
         }
-        if (startBar < 0)
-                startBar = 0;
-        if (endBar < 0)
-                endBar = numBars - 1;
-        *outStart = startBar;
-        *outEnd = endBar;
-}
 
-float avgEnergyInBand(int startFreq, int endFreq, float *magnitudes,
-                      int numBars, float minFreq, float maxFreq)
-{
-        int startBar, endBar;
-        findBarIndicesForFreqRange(
-            (float)startFreq, (float)endFreq,
-            numBars, minFreq, maxFreq,
-            &startBar, &endBar, spacingPower);
-
-        float sum = 0.0f;
-        int n = 0;
-        for (int i = startBar; i <= endBar && i < numBars; i++)
+        for (int i = 0; i < fftSize; ++i)
         {
-                sum += magnitudes[i];
-                n++;
+                fftInput[i] = (float)audioBuffer[i] / (2147483648.0f * scale);
         }
-        if (n <= 0)
-                return 0.0f;
-        return sum / n;
+
+        return 0; // Success
 }
 
-bool detectSnare(float *magnitudes, int numBars, float minFreq, float maxFreq)
-{
-        float snareBody = avgEnergyInBand(150, 900, magnitudes, numBars, minFreq, maxFreq);
-        float snareAttack = avgEnergyInBand(1500, 4500, magnitudes, numBars, minFreq, maxFreq);
-        float snareEnergy = 0.5 * snareBody + 1.0 * snareAttack; // Heavily bias toward attack
-
-        static float runningSnareAvg = 0.0f;
-        float alpha = 0.05f; // Smoothing. Lower = slower adapt (>percussion, <vocals)
-        runningSnareAvg = (1.0f - alpha) * runningSnareAvg + alpha * snareEnergy;
-        float threshold = 1.2f * runningSnareAvg;
-
-        bool snareDetected = false;
-        if (snareEnergy > threshold)
-                snareDetected = true;
-
-        return snareDetected;
-}
-
-void calc(
+void calcMagnitudes(
     int height,
     int numBars,
     ma_int32 *audioBuffer,
@@ -376,10 +190,12 @@ void calc(
     float *fftInput,
     fftwf_complex *fftOutput,
     float *magnitudes,
-    fftwf_plan plan)
+    fftwf_plan plan, float *displayMagnitudes)
 {
+        // Only execute when we get the signal that we have enough samples (fftSize)
         if (!bufferReady)
                 return;
+
         if (!audioBuffer)
         {
                 fprintf(stderr, "Audio buffer is NULL.\n");
@@ -388,80 +204,66 @@ void calc(
 
         bufferReady = false;
 
-        for (int i = 0; i < FFT_SIZE; i++)
-        {
-                ma_int32 sample = audioBuffer[i];
-                float normalizedSample = 0.0f;
+        normalizeAudioSamples(audioBuffer, fftInput, fftSize, bitDepth);
 
-                switch (bitDepth)
-                {
-                case 8:
-                        normalizedSample = ((float)sample - 128.0f) / 127.0f;
-                        break;
-                case 16:
-                        normalizedSample = (float)sample / 32768.0f;
-                        break;
-                case 24:
-                {
-                        int32_t lower24Bits = sample & 0xFFFFFF;
-                        if (lower24Bits & 0x800000)
-                                lower24Bits |= 0xFF000000; // Sign extend
-                        normalizedSample = (float)lower24Bits / 8388608.0f;
-                        break;
-                }
-                case 32:
-                        normalizedSample = (float)sample / 2147483648.0f;
-                        break;
-                default:
-                        fprintf(stderr, "Unsupported bit depth: %d\n", bitDepth);
-                        return;
-                }
-                fftInput[i] = normalizedSample;
-        }
+        // Apply Blackman Harris window function
+        applyBlackmanHarris(fftInput, fftSize);
 
-        applyBlackmanHarris(fftInput, FFT_SIZE);
+        // Compute fast fourier transform
         fftwf_execute(plan);
 
+        // Clear previous magnitudes
         clearMagnitudes(numBars, magnitudes);
-        sampleRate = 44100;
 
-        float minFreq = 20.0f;
-        float maxFreq = (float)((sampleRate / 2 > 48000) ? 48000 : sampleRate / 2);
+        float centerFreqs[numBars];
 
-        fillSpectrumBars(
-            fftOutput, FFT_SIZE, sampleRate, magnitudes, numBars,
-            minFreq, maxFreq, spacingPower);
+        float minFreq = 25.0f;
+        float audibleHalf = 10000.0f;
+        float maxFreq = fmin(audibleHalf, 0.5f * sampleRate);
 
-        snareDetected = detectSnare(magnitudes, numBars, minFreq, maxFreq);
+        // Compute center frequencies for EQ bands
+        computeBandCenters(minFreq, maxFreq, numBars, centerFreqs);
 
-        float maxMagnitude = calcMaxMagnitude(numBars, magnitudes);
+        // Fill magnitudes for EQ bands from FFT output
+        fillEQBands(fftOutput, fftSize, sampleRate, magnitudes, numBars, centerFreqs);
 
-        int snareStart, snareEnd;
-        findBarIndicesForFreqRange(
-            300.0f, 3000.0f, // Snare-like freq range is 150 - 3000
-            numBars,
-            minFreq, maxFreq,
-            &snareStart, &snareEnd, spacingPower);
+        // Apply Weighted Smoothing
+        smoothed[0] = magnitudes[0];
+        for (int i = 1; i < numBars - 1; ++i)
+                smoothed[i] = 0.25f * magnitudes[i - 1] + 0.5f * magnitudes[i] + 0.25f * magnitudes[i + 1];
+        smoothed[numBars - 1] = magnitudes[numBars - 1];
 
-        updateMagnitudes(height, numBars, maxMagnitude, magnitudes);
-
-        if (snareDetected && elevateBarsOnSnare)
+        // Map magnitudes (in dB) to bar heights with gating and emphasis (pow/gated)
+        for (int i = 0; i < numBars; ++i)
         {
-            for (int i = 0; i < numBars; i++)
-            {
-                float magnitude = magnitudes[i];
-
-                float normalized = magnitude / maxMagnitude;
-
-                // The lower the magnitude, the higher the boost factor
-                float boostFactor = 1.0f + (2.5f * (1.0f - normalized));
-
-                magnitudes[i] *= boostFactor;
-            }
+                float db = smoothed[i];
+                if (db < dB_floor)
+                        db = dB_floor;
+                if (db > dB_ceil)
+                        db = dB_ceil;
+                float ratio = (db - dB_floor) / (dB_ceil - dB_floor);
+                ratio = powf(ratio, emphasis);
+                if (ratio < 0.2f)
+                        barHeight[i] = 0.0f; // Gate out tiny bars
+                else
+                        barHeight[i] = ratio * height;
         }
 
-        smoothFrames(magnitudes, smoothedFramesMagnitudes, numBars, tweenFactor, tweenFactorFall,
-                     riseThresholdPercent, fallThresholdPercent);
+        float snapThreshold = 0.2f * height;
+
+        // Smoothly update display magnitudes with attack/decay and snap threshold
+        for (int i = 0; i < numBars; ++i)
+        {
+                float current = displayMagnitudes[i];
+                float target = barHeight[i];
+                float delta = target - current;
+                if (delta > snapThreshold)
+                        displayMagnitudes[i] += delta * fastAttack; // SNAP on big hits
+                else if (delta > 0)
+                        displayMagnitudes[i] += delta * slowAttack;
+                else
+                        displayMagnitudes[i] += delta * decay;
+        }
 }
 
 char *upwardMotionCharsBlock[] = {
@@ -515,12 +317,8 @@ char *getInbetweenChar(float prev, float next)
         return getInbetweendMotionChar(prev, next, firstDecimalDigit, secondDecimalDigit);
 }
 
-int calcSpectrum(int height, int numBars, float *fftInput, fftwf_complex *fftOutput, float *magnitudes, fftwf_plan plan)
+int getBitDepth(ma_format format)
 {
-
-        ma_int32 *g_audioBuffer = getAudioBuffer();
-
-        getCurrentFormatAndSampleRate(&format, &sampleRate);
 
         if (format == ma_format_unknown)
                 return -1;
@@ -549,9 +347,7 @@ int calcSpectrum(int height, int numBars, float *fftInput, fftwf_complex *fftOut
                 break;
         }
 
-        calc(height, numBars, g_audioBuffer, bitDepth, fftInput, fftOutput, magnitudes, plan);
-
-        return 0;
+        return bitDepth;
 }
 
 void printSpectrum(int height, int numBars, float *magnitudes, PixelData color, int indentation, bool useConfigColors, int visualizerColorType, int brailleMode)
@@ -592,7 +388,7 @@ void printSpectrum(int height, int numBars, float *magnitudes, PixelData color, 
                 {
                         for (int i = 0; i < numBars; i++)
                         {
-                                printf("  ");
+                                printf("\r");
                         }
                         printf("\n ");
                         continue;
@@ -645,7 +441,6 @@ void printSpectrum(int height, int numBars, float *magnitudes, PixelData color, 
                                 printf("%s", getUpwardMotionChar(firstDecimalDigit, brailleMode));
                                 if (fatBars)
                                         printf("%s", getUpwardMotionChar(firstDecimalDigit, brailleMode));
-
                         }
                         else
                         {
@@ -667,11 +462,6 @@ void freeVisuals(void)
                 free(fftInput);
                 fftInput = NULL;
         }
-        if (fftPreviousInput != NULL)
-        {
-                free(fftPreviousInput);
-                fftPreviousInput = NULL;
-        }
         if (fftOutput != NULL)
         {
                 fftwf_free(fftOutput);
@@ -691,9 +481,6 @@ void drawSpectrumVisualizer(AppState *state, int indentation)
         bool useConfigColors = state->uiSettings.useConfigColors;
         int visualizerColorType = state->uiSettings.visualizerColorType;
         bool brailleMode = state->uiSettings.visualizerBrailleMode;
-        tweenFactor = state->uiSettings.tweenFactor;
-        tweenFactorFall = state->uiSettings.tweenFactorFall;
-        elevateBarsOnSnare = state->uiSettings.elevateBarsOnSnare;
         fatBars = state->uiSettings.fatBars;
 
         height = height - 1;
@@ -709,15 +496,13 @@ void drawSpectrumVisualizer(AppState *state, int indentation)
         if (numBars > MAX_BARS)
                 numBars = MAX_BARS;
 
-        if (FFT_SIZE != prevBufferSize)
+        if (fftSize != prevFftSize)
         {
-                lastMax = -1.0f;
-
                 freeVisuals();
 
-                memset(smoothedFramesMagnitudes, 0, sizeof(smoothedFramesMagnitudes));
+                memset(displayMagnitudes, 0, sizeof(displayMagnitudes));
 
-                fftInput = (float *)malloc(sizeof(float) * FFT_SIZE);
+                fftInput = (float *)malloc(sizeof(float) * fftSize);
                 if (fftInput == NULL)
                 {
                         for (int i = 0; i <= height; i++)
@@ -727,49 +512,36 @@ void drawSpectrumVisualizer(AppState *state, int indentation)
                         return;
                 }
 
-                fftPreviousInput = (float *)malloc(sizeof(float) * FFT_SIZE);
-                if (fftPreviousInput == NULL)
-                {
-                        fftwf_free(fftInput);
-                        fftInput = NULL;
-                        for (int i = 0; i <= height; i++)
-                        {
-                                printf("\n");
-                        }
-                        return;
-                }
-
-                for (int i = 0; i < FFT_SIZE; i++)
-                {
-                        fftPreviousInput[i] = 0.0f;
-                }
-
-                fftOutput = (fftwf_complex *)fftwf_malloc(sizeof(fftwf_complex) * FFT_SIZE);
+                fftOutput = (fftwf_complex *)fftwf_malloc(sizeof(fftwf_complex) * fftSize);
                 if (fftOutput == NULL)
                 {
                         fftwf_free(fftInput);
-                        fftwf_free(fftPreviousInput);
                         fftInput = NULL;
-                        fftPreviousInput = NULL;
                         for (int i = 0; i <= height; i++)
                         {
                                 printf("\n");
                         }
                         return;
                 }
-                prevBufferSize = FFT_SIZE;
+                prevFftSize = fftSize;
         }
 
-        fftwf_plan plan = fftwf_plan_dft_r2c_1d(FFT_SIZE,
+        fftwf_plan plan = fftwf_plan_dft_r2c_1d(fftSize,
                                                 fftInput,
                                                 fftOutput,
                                                 FFTW_ESTIMATE);
 
         float magnitudes[numBars];
 
-        calcSpectrum(height, numBars, fftInput, fftOutput, magnitudes, plan);
+        ma_int32 *g_audioBuffer = getAudioBuffer();
 
-        printSpectrum(height, numBars, smoothedFramesMagnitudes, color, indentation, useConfigColors, visualizerColorType, brailleMode);
+        getCurrentFormatAndSampleRate(&format, &sampleRate);
+
+        int bitDepth = getBitDepth(format);
+
+        calcMagnitudes(height, numBars, g_audioBuffer, bitDepth, fftInput, fftOutput, magnitudes, plan, displayMagnitudes);
+
+        printSpectrum(height, numBars, displayMagnitudes, color, indentation, useConfigColors, visualizerColorType, brailleMode);
 
         fftwf_destroy_plan(plan);
 }

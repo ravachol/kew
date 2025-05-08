@@ -39,12 +39,9 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         c_strcpy(settings.quitAfterStopping, "0", sizeof(settings.quitAfterStopping));
         c_strcpy(settings.hideGlimmeringText, "0", sizeof(settings.hideGlimmeringText));
         c_strcpy(settings.mouseEnabled, "1", sizeof(settings.mouseEnabled));
-        c_strcpy(settings.elevateBarsOnSnare, "1", sizeof(settings.elevateBarsOnSnare));
         c_strcpy(settings.replayGainCheckFirst, "0", sizeof(settings.replayGainCheckFirst));
         c_strcpy(settings.fatBars, "1", sizeof(settings.fatBars));
         c_strcpy(settings.visualizerBrailleMode, "0", sizeof(settings.visualizerBrailleMode));
-        c_strcpy(settings.tweenFactor, "0.23", sizeof(settings.tweenFactor));
-        c_strcpy(settings.tweenFactorFall, "0.13", sizeof(settings.tweenFactor));
         c_strcpy(settings.progressBarElapsedEvenChar, "━", sizeof(settings.progressBarElapsedEvenChar));
         c_strcpy(settings.progressBarElapsedOddChar, "━", sizeof(settings.progressBarElapsedOddChar));
         c_strcpy(settings.progressBarApproachingEvenChar, "━", sizeof(settings.progressBarApproachingEvenChar));
@@ -52,8 +49,10 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         c_strcpy(settings.progressBarCurrentEvenChar, "━", sizeof(settings.progressBarCurrentEvenChar));
         c_strcpy(settings.progressBarCurrentOddChar, "━", sizeof(settings.progressBarCurrentOddChar));
 #ifdef __APPLE__
-        c_strcpy(settings.visualizerEnabled, "0", sizeof(settings.visualizerEnabled)); // Visualizer looks wonky in default terminal
-        c_strcpy(settings.useConfigColors, "1", sizeof(settings.useConfigColors));     // Colors from album look wrong in default terminal
+        // Visualizer looks wonky in default terminal but let's enable it anyway. People need to switch
+        c_strcpy(settings.visualizerEnabled, "1", sizeof(settings.visualizerEnabled));
+        // Colors from album look wrong in default terminal
+        c_strcpy(settings.useConfigColors, "1", sizeof(settings.useConfigColors));
 #else
         c_strcpy(settings.visualizerEnabled, "1", sizeof(settings.visualizerEnabled));
         c_strcpy(settings.useConfigColors, "0", sizeof(settings.useConfigColors));
@@ -284,10 +283,6 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
                 {
                         snprintf(settings.mouseEnabled, sizeof(settings.mouseEnabled), "%s", pair->value);
                 }
-                else if (strcmp(lowercaseKey, "elevatebarsonsnare") == 0)
-                {
-                        snprintf(settings.elevateBarsOnSnare, sizeof(settings.elevateBarsOnSnare), "%s", pair->value);
-                }
                 else if (strcmp(lowercaseKey, "replaygaincheckfirst") == 0)
                 {
                         snprintf(settings.replayGainCheckFirst, sizeof(settings.replayGainCheckFirst), "%s", pair->value);
@@ -395,16 +390,6 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
                 {
                         if (strcmp(pair->value, "") != 0)
                                 snprintf(settings.sortLibrary, sizeof(settings.sortLibrary), "%s", pair->value);
-                }
-                else if (strcmp(lowercaseKey, "tweenfactor") == 0)
-                {
-                        if (strcmp(pair->value, "") != 0)
-                                snprintf(settings.tweenFactor, sizeof(settings.tweenFactor), "%s", pair->value);
-                }
-                else if (strcmp(lowercaseKey, "tweenfactorfall") == 0)
-                {
-                        if (strcmp(pair->value, "") != 0)
-                                snprintf(settings.tweenFactorFall, sizeof(settings.tweenFactorFall), "%s", pair->value);
                 }
                 else if (strcmp(lowercaseKey, "progressbarelapsedevenchar") == 0)
                 {
@@ -797,7 +782,6 @@ void getConfig(AppSettings *settings, UISettings *ui)
         ui->visualizerBrailleMode = (settings->visualizerBrailleMode[0] == '1');
         ui->hideLogo = (settings->hideLogo[0] == '1');
         ui->hideHelp = (settings->hideHelp[0] == '1');
-        ui->elevateBarsOnSnare = (settings->elevateBarsOnSnare[0] == '1');
         ui->fatBars = (settings->fatBars[0] == '1');
 
         int tmp = getNumber(settings->color);
@@ -875,14 +859,6 @@ void getConfig(AppSettings *settings, UISettings *ui)
         if (tmp >= 0)
                 ui->cacheLibrary = tmp;
 
-        float tmpFloat = getFloat(settings->tweenFactor);
-        if (tmpFloat >= 0.0f)
-                ui->tweenFactor = tmpFloat;
-
-        tmpFloat = getFloat(settings->tweenFactorFall);
-        if (tmpFloat >= 0.0f)
-                ui->tweenFactorFall  = tmpFloat;
-
         getMusicLibraryPath(settings->path);
         free(configdir);
 }
@@ -920,8 +896,6 @@ void setConfig(AppSettings *settings, UISettings *ui)
                 ui->hideGlimmeringText ? c_strcpy(settings->hideGlimmeringText, "1", sizeof(settings->hideGlimmeringText)) : c_strcpy(settings->hideGlimmeringText, "0", sizeof(settings->hideGlimmeringText));
         if (settings->mouseEnabled[0] == '\0')
                 ui->mouseEnabled ? c_strcpy(settings->mouseEnabled, "1", sizeof(settings->mouseEnabled)) : c_strcpy(settings->mouseEnabled, "0", sizeof(settings->mouseEnabled));
-        if (settings->elevateBarsOnSnare[0] == '\0')
-                ui->elevateBarsOnSnare ? c_strcpy(settings->elevateBarsOnSnare, "1", sizeof(settings->elevateBarsOnSnare)) : c_strcpy(settings->elevateBarsOnSnare, "0", sizeof(settings->elevateBarsOnSnare));
         if (settings->fatBars[0] == '\0')
                 ui->fatBars ? c_strcpy(settings->fatBars, "1", sizeof(settings->fatBars)) : c_strcpy(settings->fatBars, "0", sizeof(settings->fatBars));
 
@@ -934,10 +908,6 @@ void setConfig(AppSettings *settings, UISettings *ui)
 
         if (settings->visualizerHeight[0] == '\0')
                 snprintf(settings->visualizerHeight, sizeof(settings->visualizerHeight), "%d", ui->visualizerHeight);
-        if (settings->tweenFactor[0] == '\0')
-                snprintf(settings->tweenFactor, sizeof(settings->tweenFactor), "%.2f", ui->tweenFactor);
-        if (settings->tweenFactorFall[0] == '\0')
-                snprintf(settings->tweenFactorFall, sizeof(settings->tweenFactorFall), "%.2f", ui->tweenFactorFall);
         if (settings->visualizerColorType[0] == '\0')
                 snprintf(settings->visualizerColorType, sizeof(settings->visualizerColorType), "%d", ui->visualizerColorType);
         if (settings->titleDelay[0] == '\0')
@@ -1011,15 +981,8 @@ void setConfig(AppSettings *settings, UISettings *ui)
         fprintf(file, "# How colors are laid out in the spectrum visualizer. 0=default, 1=brightness depending on bar height, 2=reversed, 3=reversed darken.\n");
         fprintf(file, "visualizerColorType=%s\n\n", settings->visualizerColorType);
 
-        fprintf(file, "# How fast the visualizer moves (higher values = faster) Normal values: 0.23 and 0.13.\n");
-        fprintf(file, "tweenFactor=%s\n", settings->tweenFactor);
-        fprintf(file, "tweenFactorFall=%s\n\n", settings->tweenFactorFall);
-
         fprintf(file, "# Bars twice the width.\n");
         fprintf(file, "fatBars=%s\n\n", settings->fatBars);
-
-        fprintf(file, " # Set to 0 if you want a more truthful spectrum visualizer.\n");
-        fprintf(file, "elevateBarsOnSnare=%s\n\n", settings->elevateBarsOnSnare);
 
         fprintf(file, "\n[progress bar]\n\n");
 
