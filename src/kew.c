@@ -1754,8 +1754,6 @@ void initState(AppState *state)
         state->uiSettings.color.r = 125;
         state->uiSettings.color.g = 125;
         state->uiSettings.color.b = 125;
-        state->uiSettings.tweenFactor = 0.23f;
-        state->uiSettings.tweenFactorFall = 0.13f;
         state->uiSettings.visualizerEnabled = true;
         state->uiSettings.coverEnabled = true;
         state->uiSettings.hideLogo = false;
@@ -1777,7 +1775,6 @@ void initState(AppState *state)
         state->uiSettings.mouseScrollDownAction = 4;
         state->uiSettings.mouseAltScrollUpAction = 7;
         state->uiSettings.mouseAltScrollDownAction = 8;
-        state->uiSettings.elevateBarsOnSnare = false;
         state->uiSettings.replayGainCheckFirst = 0;
         state->uiSettings.fatBars = true;
         state->uiState.numDirectoryTreeEntries = 0;

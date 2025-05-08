@@ -76,29 +76,46 @@ To enable debugging in VSCode, you'll need to create a `launch.json` file that c
 
     ```json
     {
-    "configurations": [
-        {
-            "name": "linux-gcc-x64",
-            "includePath": [
-                "${workspaceFolder}/**",
-                "/usr/include",
-                "/usr/include/opus",
-                "/usr/include/vorbis",
-                "/usr/include/chafa/",
-                "/usr/include/glib-2.0/**",
-                "/usr/lib/chafa/include/**",
-                "/usr/lib/glib-2.0/include/**"
-            ],
-            "defines": [
-                "_POSIX_C_SOURCE=200809L"
-            ],
-            "compilerPath": "/usr/bin/gcc",
-            "cStandard": "${default}",
-            "cppStandard": "${default}",
-            "intelliSenseMode": "linux-gcc-x64"
-        }
-    ],
-    "version": 4
+        "configurations": [
+                {
+                        "name": "linux-gcc-x64",
+                        "includePath": [
+                                "${workspaceFolder}/include/miniaudio",
+                                "${workspaceFolder}/include/nestegg",
+                                "${workspaceFolder}/**",
+                                "/usr/include",
+                                "/usr/include/opus",
+                                "/usr/include/vorbis",
+                                "/usr/include/chafa/",
+                                "/lib/chafa/include",
+                                "/usr/include/glib-2.0",
+                                "/usr/lib/glib-2.0/include",
+                                "/usr/include/libmount",
+                                "/usr/include/blkid",
+                                "/usr/include/sysprof-6",
+                                "/usr/include/glib-2.0/gio",
+                                "/usr/include/glib-2.0",
+                                "${workspaceFolder}/include"
+                        ],
+                        "browse": {
+                                "path": [
+                                        "${workspaceFolder}/include/miniaudio",
+                                        "${workspaceFolder}/src",
+                                        "${workspaceFolder}/include",
+                                        "${workspaceFolder}/**"
+                                ],
+                                "limitSymbolsToIncludedHeaders": true
+                        },
+                        "defines": [
+                                "_POSIX_C_SOURCE=200809L"
+                        ],
+                        "compilerPath": "/usr/bin/gcc",
+                        "cStandard": "${default}",
+                        "cppStandard": "${default}",
+                        "intelliSenseMode": "linux-gcc-x64"
+                }
+        ],
+        "version": 4
     }
 
     ```
