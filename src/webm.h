@@ -50,6 +50,9 @@ extern "C"
                 ma_uint16 opusPreSkip;
                 ma_uint16 preSkipLeft;
 
+                ma_uint64 bufferLeftoverFrameCount;
+                ma_uint64 bufferLeftoverFrameOffset;
+
 #endif
         } ma_webm;
 
@@ -73,9 +76,6 @@ extern "C"
 #define MAX_OPUS_SAMPLES 5760 // Maximum expected frame size
 
 static float opusLeftoverBuffer[MAX_OPUS_SAMPLES * MAX_OPUS_CHANNELS];
-
-static ma_uint64 bufferLeftoverFrameCount = 0;
-static ma_uint64 bufferLeftoverFrameOffset = 0;
 
 #define MAX_VORBIS_PACKET_FRAMES 4096
 #define MAX_VORBIS_CHANNELS 8
@@ -132,8 +132,8 @@ static ma_result ma_webm_init_internal(const ma_decoding_backend_config *pConfig
         pWebm->seekTargetPCMFrame = (ma_uint64)-1;
 
         // Clear leftover buffer
-        bufferLeftoverFrameCount = 0;
-        bufferLeftoverFrameOffset = 0;
+        pWebm->bufferLeftoverFrameCount = 0;
+        pWebm->bufferLeftoverFrameOffset = 0;
 
         if (pConfig != NULL && (pConfig->preferredFormat == ma_format_f32 || pConfig->preferredFormat == ma_format_s16))
         {
@@ -611,6 +611,7 @@ MA_API ma_result ma_webm_read_pcm_frames(ma_webm *pWebm, void *pFramesOut, ma_ui
                 {
                         nestegg_packet *pkt = NULL;
                         // Next audio packet...
+
                         while (nestegg_read_packet(pWebm->ctx, &pkt) > 0)
                         {
                                 unsigned int track;
@@ -645,21 +646,21 @@ MA_API ma_result ma_webm_read_pcm_frames(ma_webm *pWebm, void *pFramesOut, ma_ui
 
                         if (pWebm->codec_id == NESTEGG_CODEC_OPUS)
                         {
-                                if (bufferLeftoverFrameCount > 0)
+                                if (pWebm->bufferLeftoverFrameCount > 0)
                                 {
-                                        ma_uint64 framesToCopy = bufferLeftoverFrameCount < framesNeeded ? bufferLeftoverFrameCount : framesNeeded;
+                                        ma_uint64 framesToCopy = pWebm->bufferLeftoverFrameCount < framesNeeded ? pWebm->bufferLeftoverFrameCount : framesNeeded;
 
                                         memcpy(f32Out + totalFramesRead * channels,
-                                               opusLeftoverBuffer + bufferLeftoverFrameOffset * channels,
+                                               opusLeftoverBuffer + pWebm->bufferLeftoverFrameOffset * channels,
                                                framesToCopy * channels * sizeof(float));
 
-                                        bufferLeftoverFrameOffset += framesToCopy;
+                                        pWebm->bufferLeftoverFrameOffset += framesToCopy;
                                         totalFramesRead += framesToCopy;
                                         framesNeeded -= framesToCopy;
-                                        bufferLeftoverFrameCount -= framesToCopy;
+                                        pWebm->bufferLeftoverFrameCount -= framesToCopy;
 
-                                        if (bufferLeftoverFrameCount == 0)
-                                                bufferLeftoverFrameOffset = 0;
+                                        if (pWebm->bufferLeftoverFrameCount == 0)
+                                                pWebm->bufferLeftoverFrameOffset = 0;
 
                                         if (framesNeeded == 0)
                                                 break;
@@ -722,13 +723,13 @@ MA_API ma_result ma_webm_read_pcm_frames(ma_webm *pWebm, void *pFramesOut, ma_ui
                                         memcpy(opusLeftoverBuffer,
                                                decodeBuf + framesUsed * channels,
                                                framesLeft * channels * sizeof(float));
-                                        bufferLeftoverFrameCount = framesLeft;
-                                        bufferLeftoverFrameOffset = 0;
+                                        pWebm->bufferLeftoverFrameCount = framesLeft;
+                                        pWebm->bufferLeftoverFrameOffset = 0;
                                 }
                                 else
                                 {
-                                        bufferLeftoverFrameCount = 0;
-                                        bufferLeftoverFrameOffset = 0;
+                                        pWebm->bufferLeftoverFrameCount = 0;
+                                        pWebm->bufferLeftoverFrameOffset = 0;
                                 }
 
                                 // Always advance the PCM cursor by all decoded frames (skipped + copied)
@@ -751,20 +752,20 @@ MA_API ma_result ma_webm_read_pcm_frames(ma_webm *pWebm, void *pFramesOut, ma_ui
                                 oggPkt.e_o_s = 0;
                                 oggPkt.granulepos = -1;
 
-                                if (bufferLeftoverFrameCount > 0)
+                                if (pWebm->bufferLeftoverFrameCount > 0)
                                 {
-                                        ma_uint32 avail = bufferLeftoverFrameCount - bufferLeftoverFrameOffset;
+                                        ma_uint32 avail = pWebm->bufferLeftoverFrameCount - pWebm->bufferLeftoverFrameOffset;
                                         ma_uint32 toCopy = (frameCount - totalFramesRead) < avail ? (frameCount - totalFramesRead) : avail;
                                         memcpy(
                                             f32Out + totalFramesRead * channels,
-                                            vorbisLeftoverBuffer + bufferLeftoverFrameOffset * channels,
+                                            vorbisLeftoverBuffer + pWebm->bufferLeftoverFrameOffset * channels,
                                             toCopy * channels * sizeof(float));
-                                        bufferLeftoverFrameOffset += toCopy;
+                                        pWebm->bufferLeftoverFrameOffset += toCopy;
                                         totalFramesRead += toCopy;
-                                        if (bufferLeftoverFrameOffset == bufferLeftoverFrameCount)
+                                        if (pWebm->bufferLeftoverFrameOffset == pWebm->bufferLeftoverFrameCount)
                                         {
-                                                bufferLeftoverFrameCount = 0;
-                                                bufferLeftoverFrameOffset = 0;
+                                                pWebm->bufferLeftoverFrameCount = 0;
+                                                pWebm->bufferLeftoverFrameOffset = 0;
                                         }
                                         if (totalFramesRead >= frameCount)
                                                 break; // Buffer full
@@ -807,15 +808,15 @@ MA_API ma_result ma_webm_read_pcm_frames(ma_webm *pWebm, void *pFramesOut, ma_ui
                                                                 for (ma_uint32 f = 0; f < (ma_uint64)framesAvail; ++f)
                                                                         for (ma_uint32 c = 0; c < channels; ++c)
                                                                                 vorbisLeftoverBuffer[f * channels + c] = pcm[c][framesToCopy + f];
-                                                                bufferLeftoverFrameCount = (ma_uint64)framesAvail;
-                                                                bufferLeftoverFrameOffset = 0;
+                                                                pWebm->bufferLeftoverFrameCount = (ma_uint64)framesAvail;
+                                                                pWebm->bufferLeftoverFrameOffset = 0;
                                                                 framesAvail = 0;
                                                                 // Don't call vorbis_synthesis_read or increment cursor yet, do after finished with all available data!
                                                         }
 
                                                         // Consume these frames, even if we buffered them
-                                                        vorbis_synthesis_read(&pWebm->vorbisDSP, framesToCopy + bufferLeftoverFrameCount); // or just all at once depending on your loop
-                                                        pWebm->cursorInPCMFrames += (ma_uint64)(framesToCopy + bufferLeftoverFrameCount);
+                                                        vorbis_synthesis_read(&pWebm->vorbisDSP, framesToCopy + pWebm->bufferLeftoverFrameCount); // or just all at once depending on your loop
+                                                        pWebm->cursorInPCMFrames += (ma_uint64)(framesToCopy + pWebm->bufferLeftoverFrameCount);
                                                         break; // Output full, let next call handle leftovers
                                                 }
 
@@ -871,15 +872,24 @@ MA_API ma_result ma_webm_seek_to_pcm_frame(ma_webm *pWebm, ma_uint64 frameIndex)
         if (!pWebm)
                 return MA_INVALID_ARGS;
 
-        // For Opus: preroll ~80ms, as spec
+        // For Opus: 80ms preroll = 3840 @ 48000Hz
         ma_uint64 preroll = 0;
+        ma_uint64 prerollFrame = frameIndex;
+        ma_uint64 tstamp_ns = 0;
+
         if (pWebm->codec_id == NESTEGG_CODEC_OPUS)
-                preroll = (frameIndex > 3840) ? 3840 : frameIndex; // 80ms @ 48000Hz
+        {
+                preroll = (frameIndex > 3840) ? 3840 : frameIndex;
+                prerollFrame = (frameIndex > preroll) ? (frameIndex - preroll) : 0;
+                tstamp_ns = (prerollFrame * 1000000000ULL) / 48000;
+        }
+        else
+        {
+                prerollFrame = frameIndex;
+                tstamp_ns = (prerollFrame * 1000000000ULL) / pWebm->sampleRate;
+        }
 
-        ma_uint64 prerollFrame = frameIndex - preroll;
-
-        ma_uint64 tstamp_ns = (prerollFrame * 1000000000ULL) / pWebm->sampleRate;
-        if (nestegg_offset_seek(pWebm->ctx, tstamp_ns) != 0)
+        if (nestegg_track_seek(pWebm->ctx, pWebm->audioTrack, tstamp_ns) != 0)
                 return MA_INVALID_OPERATION;
 
         // Reset packet and decoder state
@@ -893,9 +903,7 @@ MA_API ma_result ma_webm_seek_to_pcm_frame(ma_webm *pWebm, ma_uint64 frameIndex)
         pWebm->numFramesInPacket = 0;
 
         if (pWebm->codec_id == NESTEGG_CODEC_OPUS)
-        {
                 opus_decoder_ctl(pWebm->opusDecoder, OPUS_RESET_STATE);
-        }
         else if (pWebm->codec_id == NESTEGG_CODEC_VORBIS)
         {
                 vorbis_dsp_clear(&pWebm->vorbisDSP);
@@ -904,17 +912,19 @@ MA_API ma_result ma_webm_seek_to_pcm_frame(ma_webm *pWebm, ma_uint64 frameIndex)
                 vorbis_block_init(&pWebm->vorbisDSP, &pWebm->vorbisBlock);
         }
 
-        // Clear leftover buffer
-        bufferLeftoverFrameCount = 0;
-        bufferLeftoverFrameOffset = 0;
+        pWebm->bufferLeftoverFrameCount = 0;
+        pWebm->bufferLeftoverFrameOffset = 0;
 
-        // Set cursor and target
-        pWebm->cursorInPCMFrames = 0;
+        pWebm->cursorInPCMFrames = prerollFrame;
         pWebm->seekTargetPCMFrame = frameIndex;
+
+        if (pWebm->seekTargetPCMFrame == 0)
+                pWebm->preSkipLeft = pWebm->opusPreSkip;
+        else
+                pWebm->preSkipLeft = 0;
 
         return MA_SUCCESS;
 }
-
 MA_API ma_result ma_webm_get_data_format(
     ma_webm *pWebm,
     ma_format *pFormat,
@@ -997,10 +1007,26 @@ ma_uint64 calculate_length_in_pcm_frames(ma_webm *pWebm)
         uint64_t duration_ns = 0;
         if (nestegg_duration(pWebm->ctx, &duration_ns) == 0 && duration_ns > 0)
         {
-                // NNanoseconds to PCM frames
-                return (ma_uint64)((duration_ns * (uint64_t)pWebm->sampleRate) / 1000000000ull);
-        }
+                // For Opus, duration_ns is always in 48kHz timebase per WebM spec
+                if (pWebm->codec_id == NESTEGG_CODEC_OPUS)
+                {
+                        // Convert nanoseconds to 48kHz PCM frames
+                        uint64_t total_frames_48k = (duration_ns * 48000ull) / 1000000000ull;
 
+                        // Subtract pre-skip and trimming (if known)
+                        uint64_t pre_skip = pWebm->opusPreSkip;
+
+                        if (total_frames_48k > pre_skip)
+                                total_frames_48k -= pre_skip;
+
+                        return total_frames_48k;
+                }
+                else
+                {
+                        // For Vorbis and others, just use sampleRate
+                        return (ma_uint64)((duration_ns * (uint64_t)pWebm->sampleRate) / 1000000000ull);
+                }
+        }
         return 0;
 }
 
