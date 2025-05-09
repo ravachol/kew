@@ -738,16 +738,16 @@ void setAudioBuffer(
         int bufIndex = 0;
 
         // Dynamically determine FFT and hop size
-        float hopFraction = 0.25f;   // 25% hop (75% overlap)
+        float hopFraction = 0.25f; // 25% hop (75% overlap)
 
         // Compute power-of-two window/hop sizes in samples
         int wantFFTSamples = (int)(fftSizeMilliseconds * sampleRate / 1000.0f);
-        fftSize = closestPowerOfTwo(wantFFTSamples);   // 2048 or 4096
+        fftSize = closestPowerOfTwo(wantFFTSamples);       // 2048 or 4096
         int wantHopSamples = (int)(fftSize * hopFraction); // 25% of window length
-        hopSize = closestPowerOfTwo(wantHopSamples);   // 256, 512, 1024
+        hopSize = closestPowerOfTwo(wantHopSamples);       // 256, 512, 1024
 
         if (fftSize > MAX_BUFFER_SIZE)
-        fftSize = MAX_BUFFER_SIZE;
+                fftSize = MAX_BUFFER_SIZE;
 
         // Ensure hop is never >= window
         if (hopSize >= fftSize)
@@ -1771,26 +1771,25 @@ void webm_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_uint
                 // Check if seeking is requested
                 if (isSeekRequested())
                 {
-                        // FIXME: Seeking disabled in webm for now
-                        // ma_uint64 totalFrames = 0;
-                        // ma_webm_get_length_in_pcm_frames(decoder, &totalFrames);
-                        // ma_uint64 seekPercent = getSeekPercentage();
-                        // if (seekPercent >= 100.0)
-                        //         seekPercent = 100.0;
-                        // ma_uint64 targetFrame = (ma_uint64)((totalFrames - 1) * seekPercent / 100.0);
+                        ma_uint64 totalFrames = 0;
+                        ma_webm_get_length_in_pcm_frames(decoder, &totalFrames);
+                        ma_uint64 seekPercent = getSeekPercentage();
+                        if (seekPercent >= 100.0)
+                                seekPercent = 100.0;
+                        ma_uint64 targetFrame = (ma_uint64)((totalFrames - 1) * seekPercent / 100.0);
 
-                        // if (targetFrame >= totalFrames)
-                        //         targetFrame = totalFrames - 1;
+                        if (targetFrame >= totalFrames)
+                                targetFrame = totalFrames - 1;
 
-                        // // Set the read pointer for the decoder
-                        // ma_result seekResult = ma_webm_seek_to_pcm_frame(decoder, targetFrame);
-                        // if (seekResult != MA_SUCCESS)
-                        // {
-                        //         // Handle seek error
-                        //         setSeekRequested(false);
-                        //         pthread_mutex_unlock(&dataSourceMutex);
-                        //         return;
-                        // }
+                        // Set the read pointer for the decoder
+                        ma_result seekResult = ma_webm_seek_to_pcm_frame(decoder, targetFrame);
+                        if (seekResult != MA_SUCCESS)
+                        {
+                                // Handle seek error
+                                setSeekRequested(false);
+                                pthread_mutex_unlock(&dataSourceMutex);
+                                return;
+                        }
 
                         setSeekRequested(false); // Reset seek flag
                 }
