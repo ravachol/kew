@@ -1,8 +1,8 @@
-#include "player.h"
+#include "player_ui.h"
 #include "playerops.h"
 /*
 
-player.c
+player_ui.c
 
  Functions related to printing the player to the screen.
 

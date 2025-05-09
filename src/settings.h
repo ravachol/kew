@@ -12,7 +12,7 @@
 #include "events.h"
 #include "file.h"
 #include "soundcommon.h"
-#include "player.h"
+#include "player_ui.h"
 #include "utils.h"
 
 #ifndef MAXPATHLEN

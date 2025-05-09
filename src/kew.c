@@ -55,7 +55,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include "file.h"
 #include "mpris.h"
 #include "notifications.h"
-#include "player.h"
+#include "player_ui.h"
 #include "playerops.h"
 #include "playlist.h"
 #include "search_ui.h"
@@ -1010,6 +1010,7 @@ void loadAudioData(AppState *state)
 
                         if (res >= 0)
                         {
+                                resetClock();
                                 resumePlayback();
                         }
                         else
@@ -1404,6 +1405,7 @@ void init(AppState *state)
         createLibrary(&settings, state);
         createRadioFavorites();
         curl_global_init(CURL_GLOBAL_DEFAULT);
+        setlocale(LC_ALL, "");
         setlocale(LC_CTYPE, "");
         fflush(stdout);
 
