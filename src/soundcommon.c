@@ -39,7 +39,7 @@ _Atomic bool readingFrames = false;
 pthread_mutex_t dataSourceMutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t switchMutex = PTHREAD_MUTEX_INITIALIZER;
 ma_device device = {0};
-static ma_int32 audioBuffer[MAX_BUFFER_SIZE];
+static float audioBuffer[MAX_BUFFER_SIZE];
 static int writeHead = 0;
 bool bufferReady = false;
 AudioData audioData;
@@ -719,7 +719,21 @@ int closestPowerOfTwo(int x)
         return n;
 }
 
-void setAudioBuffer(ma_int32 *buf, int numSamples, ma_uint32 sampleRate)
+// Sign-extend s24
+ma_int32 unpack_s24(const ma_uint8 *p)
+{
+        ma_int32 sample = p[0] | (p[1] << 8) | (p[2] << 16);
+        if (sample & 0x800000)
+                sample |= ~0xFFFFFF;
+        return sample;
+}
+
+void setAudioBuffer(
+    void *buf,
+    int numFrames,
+    ma_uint32 sampleRate,
+    ma_uint32 channels,
+    ma_format format)
 {
         int bufIndex = 0;
 
@@ -739,33 +753,107 @@ void setAudioBuffer(ma_int32 *buf, int numSamples, ma_uint32 sampleRate)
         if (hopSize >= fftSize)
                 hopSize = fftSize / 2; // fallback minimum overlap
 
-        while (bufIndex < numSamples)
+        while (bufIndex < numFrames)
         {
-                if (writeHead >= MAX_BUFFER_SIZE)
+
+                if (writeHead >= fftSize)
                         break;
 
+                int framesLeft = numFrames - bufIndex;
                 int spaceLeft = fftSize - writeHead;
-                int samplesLeft = numSamples - bufIndex;
-                int samplesToCopy = (samplesLeft < spaceLeft) ? samplesLeft : spaceLeft;
+                int framesToCopy = framesLeft < spaceLeft ? framesLeft : spaceLeft;
 
-                // Clamp copy to avoid buffer overflow
-                int maxCopy = MAX_BUFFER_SIZE - writeHead;
-                if (samplesToCopy > maxCopy)
-                        samplesToCopy = maxCopy;
+                switch (format)
+                {
+                case ma_format_u8:
+                {
+                        ma_uint8 *src = (ma_uint8 *)buf + bufIndex * channels;
+                        for (int i = 0; i < framesToCopy; ++i)
+                        {
+                                float sum = 0.0f;
+                                for (ma_uint32 ch = 0; ch < channels; ++ch)
+                                {
+                                        // Convert 0..255 to -1..1
+                                        sum += ((float)src[i * channels + ch] - 128.0f) / 128.0f;
+                                }
+                                audioBuffer[writeHead++] = sum / channels;
+                        }
+                        break;
+                }
+                case ma_format_s16:
+                {
+                        ma_int16 *src = (ma_int16 *)buf + bufIndex * channels;
+                        for (int i = 0; i < framesToCopy; ++i)
+                        {
+                                float sum = 0.0f;
+                                for (ma_uint32 ch = 0; ch < channels; ++ch)
+                                {
+                                        sum += (float)src[i * channels + ch] / 32768.0f;
+                                }
+                                audioBuffer[writeHead++] = sum / channels;
+                        }
+                        break;
+                }
+                case ma_format_s24:
+                {
+                        ma_uint8 *src = (ma_uint8 *)buf + bufIndex * channels * 3;
+                        for (int i = 0; i < framesToCopy; ++i)
+                        {
+                                float sum = 0.0f;
+                                for (ma_uint32 ch = 0; ch < channels; ++ch)
+                                {
+                                        int idx = i * channels * 3 + ch * 3;
+                                        int32_t s = unpack_s24(&src[idx]);
+                                        sum += (float)s / 8388608.0f;
+                                }
+                                audioBuffer[writeHead++] = sum / channels;
+                        }
+                        break;
+                }
+                case ma_format_s32:
+                {
+                        int32_t *src = (int32_t *)buf + bufIndex * channels;
+                        for (int i = 0; i < framesToCopy; ++i)
+                        {
+                                float sum = 0.0f;
+                                for (ma_uint32 ch = 0; ch < channels; ++ch)
+                                {
+                                        sum += (float)src[i * channels + ch] / 2147483648.0f;
+                                }
+                                audioBuffer[writeHead++] = sum / channels;
+                        }
+                        break;
+                }
+                case ma_format_f32:
+                {
+                        float *src = (float *)buf + bufIndex * channels;
+                        for (int i = 0; i < framesToCopy; ++i)
+                        {
+                                float sum = 0.0f;
+                                for (ma_uint32 ch = 0; ch < channels; ++ch)
+                                {
+                                        sum += src[i * channels + ch];
+                                }
+                                audioBuffer[writeHead++] = sum / channels;
+                        }
+                        break;
+                }
+                default:
+                        fprintf(stderr, "Unsupported format in setAudioBuffer!\n");
+                        return;
+                }
+                bufIndex += framesToCopy;
 
-                memcpy(&audioBuffer[writeHead], &buf[bufIndex], sizeof(ma_int32) * samplesToCopy);
-
-                writeHead += samplesToCopy;
-                bufIndex += samplesToCopy;
-
-                // As long as we have at least fftSize samples, process one window
+                // Process full window(s), maintain overlap (hop)
                 while (writeHead >= fftSize)
                 {
-                        bufferReady = true;
+                        bufferReady = true; // let main loop know FFT is ready
 
-                        // Shift the buffer left by hopSize
-                        memmove(audioBuffer, audioBuffer + hopSize, sizeof(ma_int32) * (fftSize - hopSize));
-
+                        // Shift buffer for overlap (keep last fftSize-hopSize samples)
+                        memmove(
+                            audioBuffer,
+                            audioBuffer + hopSize,
+                            sizeof(float) * (fftSize - hopSize));
                         writeHead -= hopSize;
                 }
         }
@@ -778,7 +866,7 @@ void resetAudioBuffer(void)
         bufferReady = false;
 }
 
-ma_int32 *getAudioBuffer(void)
+void *getAudioBuffer(void)
 {
         return audioBuffer;
 }
@@ -1208,8 +1296,7 @@ ma_result callReadPCMFrames(
     ma_uint64 framesRead,
     ma_uint32 channels,
     ma_uint64 remainingFrames,
-    ma_uint64 *pFramesToRead
-)
+    ma_uint64 *pFramesToRead)
 {
         ma_result result;
 
@@ -1385,7 +1472,7 @@ void m4a_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_uint6
                 pthread_mutex_unlock(&dataSourceMutex);
         }
 
-        setAudioBuffer(pFramesOut, framesRead, pAudioData->sampleRate);
+        setAudioBuffer(pFramesOut, framesRead, pAudioData->sampleRate, pAudioData->channels, pAudioData->format);
 
         if (pFramesRead != NULL)
         {
@@ -1507,7 +1594,7 @@ void opus_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_uint
                 pthread_mutex_unlock(&dataSourceMutex);
         }
 
-        setAudioBuffer(pFramesOut, framesRead, pAudioData->sampleRate);
+        setAudioBuffer(pFramesOut, framesRead, pAudioData->sampleRate, pAudioData->channels, pAudioData->format);
 
         if (pFramesRead != NULL)
         {
@@ -1629,7 +1716,7 @@ void vorbis_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_ui
                 pthread_mutex_unlock(&dataSourceMutex);
         }
 
-        setAudioBuffer(pFramesOut, framesRead, pAudioData->sampleRate);
+        setAudioBuffer(pFramesOut, framesRead, pAudioData->sampleRate, pAudioData->channels, pAudioData->format);
 
         if (pFramesRead != NULL)
         {
@@ -1752,7 +1839,7 @@ void webm_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_uint
                 pthread_mutex_unlock(&dataSourceMutex);
         }
 
-        setAudioBuffer(pFramesOut, framesRead, pAudioData->sampleRate);
+        setAudioBuffer(pFramesOut, framesRead, pAudioData->sampleRate, pAudioData->channels, pAudioData->format);
 
         if (pFramesRead != NULL)
         {

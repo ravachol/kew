@@ -28,9 +28,9 @@ float barHeight[MAX_BARS] = {0.0f};
 float displayMagnitudes[MAX_BARS] = {0.0f};
 float smoothed[MAX_BARS] = {0.0f};
 
-float dB_floor = -36.0f;
-float dB_ceil = -18.0f;
-float emphasis = 1.8f;
+float dBFloor = -60.0f;
+float dBCeil = -18.0f;
+float emphasis = 1.3f;
 float fastAttack = 0.6f;
 float decay = 0.14f;
 float slowAttack = 0.15f;
@@ -140,52 +140,48 @@ void fillEQBands(
         }
 }
 
-int normalizeAudioSamples(const int32_t *audioBuffer, float *fftInput, int fftSize, int bitDepth)
+int normalizeAudioSamples(const void *audioBuffer, float *fftInput, int fftSize, int bitDepth)
 {
-        float min = 0.0f, max = 0.0f;
-        float scale = 1.0f;
-
-        // Only 24 bit and 16 bit need this correction, otherwize use 1.0f
-        if (bitDepth == 24 || bitDepth == 16)
+        if (bitDepth == 8)
         {
+                const uint8_t *buf = (const uint8_t *)audioBuffer;
+                for (int i = 0; i < fftSize; ++i)
+                        fftInput[i] = ((float)buf[i] - 127.0f) / 128.0f;
+        }
+        else if (bitDepth == 16)
+        {
+                const int16_t *buf = (const int16_t *)audioBuffer;
+                for (int i = 0; i < fftSize; ++i)
+                        fftInput[i] = (float)buf[i] / 32768.0f;
+        }
+        else if (bitDepth == 24)
+        {
+                const uint8_t *buf = (const uint8_t *)audioBuffer;
                 for (int i = 0; i < fftSize; ++i)
                 {
-                        float normalized = (float)audioBuffer[i] / 2147483648.0f;
-                        if (i == 0)
-                        {
-                                min = max = normalized;
-                        }
-                        if (normalized < min)
-                                min = normalized;
-                        if (normalized > max)
-                                max = normalized;
+                        int32_t sample = unpack_s24(buf + i * 3);
+                        fftInput[i] = (float)sample / 8388608.0f;
                 }
-
-                // Calculate the scale factor
-                float absMin = fabs(min);
-                float absMax = fabs(max);
-                scale = (absMin > absMax) ? absMin : absMax;
-
-                // Prevent division by zero
-                if (scale == 0.0f)
-                        scale = 1.0f; // Default
-
-                if (scale > 0.96f && scale < 1.04f)
-                        scale = 1.0f;
         }
-
-        for (int i = 0; i < fftSize; ++i)
+        else if (bitDepth == 32)
         {
-                fftInput[i] = (float)audioBuffer[i] / (2147483648.0f * scale);
+                const float *buf = (const float *)audioBuffer;
+                for (int i = 0; i < fftSize; ++i)
+                    fftInput[i] = buf[i];
+        }
+        else
+        {
+                // Unsupported bit depth
+                return -1;
         }
 
-        return 0; // Success
+        return 0;
 }
 
 void calcMagnitudes(
     int height,
     int numBars,
-    ma_int32 *audioBuffer,
+    void *audioBuffer,
     int bitDepth,
     float *fftInput,
     fftwf_complex *fftOutput,
@@ -227,23 +223,17 @@ void calcMagnitudes(
         // Fill magnitudes for EQ bands from FFT output
         fillEQBands(fftOutput, fftSize, sampleRate, magnitudes, numBars, centerFreqs);
 
-        // Apply Weighted Smoothing
-        smoothed[0] = magnitudes[0];
-        for (int i = 1; i < numBars - 1; ++i)
-                smoothed[i] = 0.25f * magnitudes[i - 1] + 0.5f * magnitudes[i] + 0.25f * magnitudes[i + 1];
-        smoothed[numBars - 1] = magnitudes[numBars - 1];
-
         // Map magnitudes (in dB) to bar heights with gating and emphasis (pow/gated)
         for (int i = 0; i < numBars; ++i)
         {
-                float db = smoothed[i];
-                if (db < dB_floor)
-                        db = dB_floor;
-                if (db > dB_ceil)
-                        db = dB_ceil;
-                float ratio = (db - dB_floor) / (dB_ceil - dB_floor);
+                float db = magnitudes[i];
+                if (db < dBFloor)
+                        db = dBFloor;
+                if (db > dBCeil)
+                        db = dBCeil;
+                float ratio = (db - dBFloor) / (dBCeil - dBFloor);
                 ratio = powf(ratio, emphasis);
-                if (ratio < 0.2f)
+                if (ratio < 0.1f)
                         barHeight[i] = 0.0f; // Gate out tiny bars
                 else
                         barHeight[i] = ratio * height;
@@ -533,13 +523,11 @@ void drawSpectrumVisualizer(AppState *state, int indentation)
 
         float magnitudes[numBars];
 
-        ma_int32 *g_audioBuffer = getAudioBuffer();
-
         getCurrentFormatAndSampleRate(&format, &sampleRate);
 
         int bitDepth = getBitDepth(format);
 
-        calcMagnitudes(height, numBars, g_audioBuffer, bitDepth, fftInput, fftOutput, magnitudes, plan, displayMagnitudes);
+        calcMagnitudes(height, numBars, getAudioBuffer(), bitDepth, fftInput, fftOutput, magnitudes, plan, displayMagnitudes);
 
         printSpectrum(height, numBars, displayMagnitudes, color, indentation, useConfigColors, visualizerColorType, brailleMode);
 

@@ -200,9 +200,11 @@ void getFileInfo(const char *filename, ma_uint32 *sampleRate, ma_uint32 *channel
 
 void initAudioBuffer(void);
 
-ma_int32 *getAudioBuffer(void);
+void *getAudioBuffer(void);
 
-void setAudioBuffer(ma_int32 *buf, int numSamples, ma_uint32 sampleRate);
+void setAudioBuffer(void *buf, int numSamples, ma_uint32 sampleRate, ma_uint32 channels, ma_format format);
+
+int32_t unpack_s24(const ma_uint8* p);
 
 void resetAudioBuffer(void);
 
