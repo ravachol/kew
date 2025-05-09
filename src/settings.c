@@ -729,6 +729,8 @@ void getConfig(AppSettings *settings, UISettings *ui)
         int pair_count;
         char *configdir = getConfigPath();
 
+        setlocale(LC_ALL, "");
+
         // Create the directory if it doesn't exist
         struct stat st = {0};
         if (stat(configdir, &st) == -1)
@@ -869,6 +871,8 @@ void setConfig(AppSettings *settings, UISettings *ui)
         char *configdir = getConfigPath();
 
         char *filepath = getConfigFilePath(configdir);
+
+        setlocale(LC_ALL, "");
 
         FILE *file = fopen(filepath, "w");
         if (file == NULL)

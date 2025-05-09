@@ -8,7 +8,7 @@
 
 - kew now remembers the playlist between sessions, unless you tell it to load something else.
 
-- The appearance of the progress bar can now be configured in detail. There's even a pill muncher mode, where this round guy eats everything in his path. By @Chromium-3-Oxide.
+- The appearance of the progress bar can now be configured in detail. There's even a pill muncher mode, where this round guy eats everything in his path. There are commented out examples in the kewrc so you can go back to the old look, if you don't like the new. By @Chromium-3-Oxide.
 
 - fatBars=1. Added option to make bars twice the width. It is now the default. Also line progressbar is now the default.
 
@@ -20,7 +20,7 @@
 
 - Fixed a bunch of issues with the visualizer.
 
-- The clock wasn't getting reset completely when restarting songs after seeking or when using alt+s to stop. Found by @Chromium-3-Oxide.
+- The clock wasn't getting reset completely when restarting songs after seeking or when using alt+s to stop. Found by @Chromium-3-Oxide and @Kuuuube.
 
 - Fixed ascii cover image being too narrow on gnome terminal.
 
