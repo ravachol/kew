@@ -11,7 +11,7 @@
 #include <unistd.h>
 #include "appstate.h"
 #include "file.h"
-#include "player.h"
+#include "player_ui.h"
 #include "songloader.h"
 #include "settings.h"
 #include "soundcommon.h"

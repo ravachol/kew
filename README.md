@@ -328,6 +328,8 @@ Miniaudio by David Reid - https://github.com/mackron/miniaudio
 
 Minimp4 by Lieff - https://github.com/lieff/minimp4
 
+Nestegg by Mozilla - https://github.com/mozilla/nestegg
+
 Img_To_Txt by Danny Burrows - https://github.com/danny-burrows/img_to_txt
 
 
