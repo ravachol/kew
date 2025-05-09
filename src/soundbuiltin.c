@@ -317,7 +317,7 @@ void builtin_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_u
                 pthread_mutex_unlock(&dataSourceMutex);
         }
 
-        setAudioBuffer(pFramesOut, framesRead, audioData->sampleRate);
+        setAudioBuffer(pFramesOut, framesRead, audioData->sampleRate, audioData->channels, audioData->format);
 
         if (pFramesRead != NULL)
         {
