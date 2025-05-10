@@ -104,22 +104,28 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         c_strcpy(settings.hardScrollDown, "[B", sizeof(settings.hardScrollDown));
         c_strcpy(settings.hardShowPlaylist, "OQ", sizeof(settings.hardShowPlaylist));
         c_strcpy(settings.hardShowPlaylistAlt, "[[B", sizeof(settings.hardShowPlaylistAlt));
-        c_strcpy(settings.showPlaylistAlt, "Z", sizeof(settings.showPlaylistAlt));
+
         c_strcpy(settings.hardShowKeys, "[18~", sizeof(settings.hardShowKeys));
         c_strcpy(settings.hardShowKeysAlt, "[18~", sizeof(settings.hardShowKeysAlt));
+#ifdef __APPLE__
+        c_strcpy(settings.showPlaylistAlt, "Z", sizeof(settings.showPlaylistAlt));
+        c_strcpy(settings.showTrackAlt, "C", sizeof(settings.showTrackAlt));
+        c_strcpy(settings.showLibraryAlt, "X", sizeof(settings.showLibraryAlt));
+        c_strcpy(settings.showSearchAlt, "V", sizeof(settings.showSearchAlt));
+        c_strcpy(settings.showRadioSearchAlt, "B", sizeof(settings.showSearchAlt));
         c_strcpy(settings.showKeysAlt, "N", sizeof(settings.showKeysAlt));
+#endif
         c_strcpy(settings.hardShowTrack, "OS", sizeof(settings.hardShowTrack));
         c_strcpy(settings.hardShowTrackAlt, "[[D", sizeof(settings.hardShowTrackAlt));
-        c_strcpy(settings.showTrackAlt, "C", sizeof(settings.showTrackAlt));
+
         c_strcpy(settings.hardShowLibrary, "OR", sizeof(settings.hardShowLibrary));
         c_strcpy(settings.hardShowLibraryAlt, "[[C", sizeof(settings.hardShowLibraryAlt));
-        c_strcpy(settings.showLibraryAlt, "X", sizeof(settings.showLibraryAlt));
+
         c_strcpy(settings.hardShowSearch, "[15~", sizeof(settings.hardShowSearch));
         c_strcpy(settings.hardShowSearchAlt, "[[E", sizeof(settings.hardShowSearchAlt));
         c_strcpy(settings.hardShowRadioSearch, "[17~", sizeof(settings.hardShowSearch));
-        c_strcpy(settings.hardShowRadioSearchAlt, "B", sizeof(settings.hardShowSearchAlt));
-        c_strcpy(settings.showSearchAlt, "V", sizeof(settings.showSearchAlt));
-        c_strcpy(settings.showRadioSearchAlt, "B", sizeof(settings.showSearchAlt));
+        c_strcpy(settings.hardShowRadioSearchAlt, "[17~", sizeof(settings.hardShowRadioSearchAlt));
+
         c_strcpy(settings.hardNextPage, "[6~", sizeof(settings.hardNextPage));
         c_strcpy(settings.hardPrevPage, "[5~", sizeof(settings.hardPrevPage));
         c_strcpy(settings.hardRemove, "[3~", sizeof(settings.hardRemove));
