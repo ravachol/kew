@@ -34,23 +34,27 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #define __BSD_VISIBLE 1
 #endif
 
+#include <ctype.h>
 #include <dirent.h>
 #include <fcntl.h>
 #include <gio/gio.h>
 #include <glib.h>
 #include <glib-unix.h>
+#include <locale.h>
 #include <poll.h>
 #include <pwd.h>
 #include <signal.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/ioctl.h>
 #include <sys/param.h>
 #include <sys/stat.h>
 #include <time.h>
 #include <unistd.h>
 #include "appstate.h"
 #include "cache.h"
+#include "common_ui.h"
 #include "events.h"
 #include "file.h"
 #include "mpris.h"
@@ -59,11 +63,14 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include "playerops.h"
 #include "playlist.h"
 #include "search_ui.h"
+#include "searchradio_ui.h"
 #include "settings.h"
 #include "sound.h"
 #include "soundcommon.h"
 #include "songloader.h"
+#include "term.h"
 #include "utils.h"
+#include "visuals.h"
 
 // #define DEBUG 1
 #define MAX_TMP_SEQ_LEN 256 // Maximum length of temporary sequence buffer
@@ -1010,7 +1017,6 @@ void loadAudioData(AppState *state)
 
                         if (res >= 0)
                         {
-                                resetClock();
                                 resumePlayback();
                         }
                         else

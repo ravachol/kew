@@ -1,12 +1,15 @@
 #define _XOPEN_SOURCE 700
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "cache.h"
 /*
 
 cache.c
 
  Related to cache which contains paths to cached files.
- 
+
 */
 
 Cache *createCache()
@@ -50,6 +53,6 @@ bool existsInCache(Cache *cache, char *filePath)
                         return true;
                 }
                 current = current->next;
-        } 
-        return false;       
+        }
+        return false;
 }

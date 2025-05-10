@@ -1,11 +1,5 @@
 #include <chafa.h>
 #include <chafa-canvas-config.h>
-#include <stdbool.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-
 #ifndef PIXELDATA_STRUCT
 #define PIXELDATA_STRUCT
     typedef struct

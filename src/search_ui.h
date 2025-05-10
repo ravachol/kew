@@ -1,10 +1,5 @@
-#include <stdbool.h>
-#include <math.h>
-#include "soundcommon.h"
+#include "appstate.h"
 #include "directorytree.h"
-#include "term.h"
-#include "common_ui.h"
-#include "common.h"
 
 int displaySearch(int maxListSize, int indent, int *chosenRow, int startSearchIter, UISettings *ui);
 

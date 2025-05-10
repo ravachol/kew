@@ -1,20 +1,10 @@
 #ifndef SOUND_RADIO_H
 #define SOUND_RADIO_H
 
+#include <curl/curl.h>
 #include <pthread.h>
 #include <stdatomic.h>
 #include <stdbool.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <curl/curl.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netdb.h>
-#include <time.h>
-#include <pthread.h>
-#include "soundcommon.h"
-#include "common.h"
 
 typedef struct RadioSearchResult
 {

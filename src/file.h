@@ -1,22 +1,9 @@
 #ifndef FILE_H
 #define FILE_H
 
-#include <dirent.h>
-#include <errno.h>
-#include <libgen.h>
-#include <pwd.h>
-#include <regex.h>
 #include <stdbool.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/param.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <time.h>
+
 #define __USE_GNU
-#include <unistd.h>
-#include "utils.h"
 
 #ifndef MAXPATHLEN
 #define MAXPATHLEN 4096

@@ -1,16 +1,8 @@
 #ifndef DIRECTORYTREE_H
 #define DIRECTORYTREE_H
 
-#include <ctype.h>
-#include <dirent.h>
-#include <regex.h>
 #include <stdbool.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/types.h>
-#include "file.h"
-#include "utils.h"
+
 
 #ifndef PATH_MAX
 #define PATH_MAX 4096

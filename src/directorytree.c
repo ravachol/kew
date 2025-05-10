@@ -1,4 +1,20 @@
+#include <ctype.h>
+#include <dirent.h>
+#include <glib.h>
+#include <regex.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include "file.h"
+#include "utils.h"
 #include "directorytree.h"
+
+
+
+
+
 
 /*
 
