@@ -18,6 +18,8 @@
 
 - Logging to error.log is now enabled if you run make DEBUG=1.
 
+- Prevent Z,X,C,V,B,N to trigger view changes in search or radio search if not on macOS. These are the shortcuts that are used instead of the F1-F7 keys on macOS, because there F-keys don't always mean F-functions. Delete the config file kewrc if you want to type uppercase letters in search.
+
 #### Bug Fixes
 
 - Fixed a format conversion issue with the visualizer.

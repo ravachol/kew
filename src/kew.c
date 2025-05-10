@@ -212,10 +212,12 @@ struct Event processInput()
                 }
                 else if (((strnlen(event.key, sizeof(event.key)) == 1 && event.key[0] != '\033' && event.key[0] != '\n' && event.key[0] != '\t' && event.key[0] != '\r') ||
                           strcmp(event.key, " ") == 0 || (unsigned char)event.key[0] >= 0xC0) &&
+#ifdef __APPLE__
                          strcmp(event.key, "Z") != 0 && strcmp(event.key, "X") != 0 &&
                          strcmp(event.key, "C") != 0 && strcmp(event.key, "V") != 0 &&
-                         strcmp(event.key, "F") != 0 && strcmp(event.key, "S") != 0 &&
-                         strcmp(event.key, "B") != 0 && strcmp(event.key, "N") != 0)
+                         strcmp(event.key, "B") != 0 && strcmp(event.key, "N") != 0 &&
+#endif
+                         strcmp(event.key, "F") != 0 && strcmp(event.key, "S") != 0)
                 {
                         addToRadioSearchText(event.key);
                         resetRadioSearchResult();
