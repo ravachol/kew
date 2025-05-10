@@ -72,7 +72,6 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include "utils.h"
 #include "visuals.h"
 
-// #define DEBUG 1
 #define MAX_TMP_SEQ_LEN 256 // Maximum length of temporary sequence buffer
 #define COOLDOWN_MS 500
 #define COOLDOWN2_MS 100
@@ -1417,7 +1416,7 @@ void init(AppState *state)
         fflush(stdout);
 
 #ifdef DEBUG
-        g_setenv("G_MESSAGES_DEBUG", "all", TRUE);
+        //g_setenv("G_MESSAGES_DEBUG", "all", TRUE);
         logFile = freopen("error.log", "w", stderr);
         if (logFile == NULL)
         {

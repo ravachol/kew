@@ -57,7 +57,7 @@ COMMONFLAGS = -I/usr/include -I/opt/homebrew/include -I/usr/local/include -I/usr
          -I/usr/lib/glib-2.0/include -Iinclude/miniaudio -Iinclude -Iinclude/nestegg -I/usr/include/gdk-pixbuf-2.0
 
 ifeq ($(DEBUG), 1)
-COMMONFLAGS += -g
+COMMONFLAGS += -g -DDEBUG
 else
 COMMONFLAGS += -O2
 endif
