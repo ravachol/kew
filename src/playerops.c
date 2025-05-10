@@ -2237,6 +2237,9 @@ void updatePlaylistToPlayingSong(void)
                 if (clearAll || nextInPlaylistID != currentID)
                 {
                         songToBeRemoved = nextInPlaylist;
+                        
+                        nextInPlaylist = nextInPlaylist->next;
+
                         int id = songToBeRemoved->id;
 
                         // Update Library
@@ -2252,7 +2255,11 @@ void updatePlaylistToPlayingSong(void)
                         if (node2 != NULL)
                                 deleteFromList(&playlist, node2);
                 }
-                nextInPlaylist = nextInPlaylist->next;
+                else
+                {
+                        nextInPlaylist = nextInPlaylist->next;
+                }
+
         }
         pthread_mutex_unlock(&(playlist.mutex));
 
