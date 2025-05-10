@@ -363,11 +363,11 @@ void printSpectrum(UISettings *ui, int height, int numBars, int visualizerWidth,
 
         PixelData tmp;
 
-        bool notPlaying = (isPaused() || isStopped());
+        bool isPlaying = !(isPaused() || isStopped());
 
         printf("\n");
 
-        for (int j = height; j > 0 && notPlaying; j--)
+        for (int j = height; j > 0 && !isPlaying; j--)
         {
                 printf("\r");
                 printBlankSpaces(indentation);
@@ -378,7 +378,7 @@ void printSpectrum(UISettings *ui, int height, int numBars, int visualizerWidth,
                 printf("\n ");
         }
 
-        for (int j = height; j > 0 && !notPlaying; j--)
+        for (int j = height; j > 0 && isPlaying; j--)
         {
                 printf("\r");
                 printBlankSpaces(indentation);
