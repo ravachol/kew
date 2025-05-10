@@ -1017,6 +1017,7 @@ void loadAudioData(AppState *state)
 
                         if (res >= 0)
                         {
+                                resetClock();
                                 resumePlayback();
                         }
                         else
