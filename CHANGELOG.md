@@ -4,7 +4,7 @@
 
 - Reworked the visualizer to make it have more punch and to make higher frequency value changes more visible. The visualizer now also runs at 30fps instead of 60fps. 60 fps was just at odds with kew's very low system requirements profile, and we want kew to consume very little resources. The lower framerate cuts the cpu utilization in half when in track view with no big noticeable differences.
 
-- Added webm support. Seeking is disabled in webm for now. Suggested by @Kuuuube.
+- Added webm support. Suggested by @Kuuuube.
 
 - kew now remembers the playlist between sessions, unless you tell it to load something else.
 
@@ -16,13 +16,17 @@
 
 - Replay gain source can now be set in the config file. 0 = track, 1 = album or 2 = disabled. Suggested by @ksushagryaznaya.
 
+- Logging to error.log is now enabled if you run make DEBUG=1.
+
 #### Bug Fixes
 
-- Fixed a bunch of issues with the visualizer.
+- Fixed a format conversion issue with the visualizer.
 
 - The clock wasn't getting reset completely when restarting songs after seeking or when using alt+s to stop. Found by @Chromium-3-Oxide and @Kuuuube.
 
 - Fixed ascii cover image being too narrow on gnome terminal.
+
+- Fixed error (invalid read 8 bytes) when using backspace to clear a stopped playlist.
 
 ### 3.2.0
 
