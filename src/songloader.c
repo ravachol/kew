@@ -1,3 +1,14 @@
+#include <glib.h>
+#include <gio/gio.h>
+#include <sys/wait.h>
+#include <unistd.h>
+#include "tagLibWrapper.h"
+#include "cache.h"
+#include "imgfunc.h"
+#include "file.h"
+#include "sound.h"
+#include "soundcommon.h"
+#include "utils.h"
 #include "songloader.h"
 #include "stb_image.h"
 /*

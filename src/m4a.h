@@ -19,22 +19,14 @@ extern "C"
 #include "../include/minimp4/minimp4.h"
 #include "../include/alac/codec/alac_wrapper.h"
 #include "../include/alac/codec/EndianPortable.h"
+#include "player_ui.h"
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
 #include <stdint.h>
 #include "common.h"
 
-        typedef enum
-        {
-                k_unknown = 0,
-                k_aac = 1,
-                k_rawAAC = 2, // Raw aac (.aac file) decoding is included here for convenience although they are not .m4a files
-                k_ALAC = 3,
-                k_FLAC = 4
-        } k_m4adec_filetype;
-
-        typedef struct
+        typedef struct m4a_decoder
         {
                 ma_data_source_base ds; // The m4a decoder can be used independently as a data source.
                 ma_read_proc onRead;

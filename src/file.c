@@ -1,7 +1,22 @@
 #ifndef _DEFAULT_SOURCE
 #define _DEFAULT_SOURCE
 #endif
+#include <dirent.h>
+#include <errno.h>
+#include <glib.h>
+#include <libgen.h>
+#include <pwd.h>
+#include <regex.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/param.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <time.h>
+#include <unistd.h>
 #include "file.h"
+#include "utils.h"
 
 /*
 

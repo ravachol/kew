@@ -1,4 +1,8 @@
+#include "common_ui.h"
 #include "playlist_ui.h"
+#include "songloader.h"
+#include "term.h"
+#include "utils.h"
 
 /*
 

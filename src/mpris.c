@@ -1,4 +1,9 @@
+#include <glib.h>
+#include "playerops.h"
+#include "sound.h"
+#include "soundcommon.h"
 #include "mpris.h"
+
 /*
 
 mpris.c

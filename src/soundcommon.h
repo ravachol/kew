@@ -19,6 +19,7 @@
 #include <stdlib.h>
 #include "appstate.h"
 #include "file.h"
+#include "soundradio.h"
 #include "utils.h"
 #include "webm.h"
 
@@ -115,6 +116,9 @@ enum AudioImplementation
         WEBM,
         NONE
 };
+
+struct m4a_decoder;
+typedef struct m4a_decoder m4a_decoder;
 
 extern int hopSize;
 extern int fftSize;

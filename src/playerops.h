@@ -2,19 +2,12 @@
 #ifndef PLAYEROPS_H
 #define PLAYEROPS_H
 
-#include <dirent.h>
-#include <pthread.h>
-#include <stdio.h>
-#include <stdbool.h>
-#include <stdlib.h>
-#include <sys/time.h>
-#include <unistd.h>
+
 #include "appstate.h"
-#include "file.h"
-#include "player_ui.h"
-#include "songloader.h"
-#include "settings.h"
+#include "playlist.h"
+#include "sound.h"
 #include "soundcommon.h"
+
 #ifdef USE_FAAD
 #include "m4a.h"
 #endif

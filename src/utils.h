@@ -7,21 +7,7 @@
 #define __USE_POSIX
 #endif
 
-#include <ctype.h>
-#include <errno.h>
-#include <glib.h>
-#include <math.h>
-#include <pwd.h>
 #include <regex.h>
-#include <stdbool.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/param.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#include <string.h>
-#include <strings.h>
-#include <time.h>
 
 #ifndef MAXPATHLEN
 #define MAXPATHLEN 4096

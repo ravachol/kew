@@ -1,3 +1,16 @@
+#include <fcntl.h>
+#include <poll.h>
+#include <pwd.h>
+#include <signal.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/ioctl.h>
+#include <sys/param.h>
+#include <sys/select.h>
+#include <termios.h>
+#include <unistd.h>
+#include "utils.h"
 #include "term.h"
 
 /*

@@ -1,11 +1,5 @@
-#include <stdbool.h>
-#include <math.h>
-#include "soundcommon.h"
-#include "directorytree.h"
-#include "term.h"
-#include "common_ui.h"
-#include "common.h"
 #include "soundradio.h"
+#include "appstate.h"
 
 extern bool newUndisplayedRadioSearch;
 

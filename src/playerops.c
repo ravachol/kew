@@ -1,4 +1,19 @@
+#include <dirent.h>
+#include <pthread.h>
+#include <stdio.h>
+#include <stdbool.h>
+#include <stdlib.h>
+#include <sys/time.h>
+#include <unistd.h>
 #include "playerops.h"
+#include "file.h"
+#include "player_ui.h"
+#include "songloader.h"
+#include "search_ui.h"
+#include "searchradio_ui.h"
+#include "settings.h"
+#include "term.h"
+
 /*
 
 playerops.c
