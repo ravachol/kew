@@ -1,6 +1,6 @@
 # CHANGELOG
 
-### 3.2.1
+### 3.3.0
 
 - Reworked the visualizer to make it have more punch and to make higher frequency value changes more visible. The visualizer now also runs at 30fps instead of 60fps. 60 fps was just at odds with kew's very low system requirements profile, and we want kew to consume very little resources. The lower framerate cuts the cpu utilization in half when in track view with no big noticeable differences.
 
