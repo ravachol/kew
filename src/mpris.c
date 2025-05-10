@@ -548,16 +548,15 @@ static gboolean get_metadata(GDBusConnection *connection, const gchar *sender,
 
                 // Build list of strings for artist
                 const gchar *artistList[2];
-                if (currentSongData->metadata->artist[0] != '\0')
+                if (g_strcmp0(currentSongData->metadata->artist, "") == 0)
                 {
-                        artistList[0] = currentSongData->metadata->artist;
-                        artistList[1] = NULL;
+                        artistList[0] = "";
                 }
                 else
                 {
-                        artistList[0] = "";
-                        artistList[1] = NULL;
+                        artistList[0] = currentSongData->metadata->artist;
                 }
+                artistList[1] = NULL;
 
                 gchar *coverArtUrl = g_strdup_printf("file://%s", currentSongData->coverArtPath);
 
