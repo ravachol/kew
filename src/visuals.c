@@ -350,13 +350,35 @@ int getBitDepth(ma_format format)
         return bitDepth;
 }
 
-void printSpectrum(int height, int numBars, float *magnitudes, PixelData color, int indentation, bool useConfigColors, int visualizerColorType, int brailleMode)
+void printSpectrum(UISettings *ui, int height, int numBars, int visualizerWidth, float *magnitudes, int indentation)
 {
-        printf("\n");
+        PixelData color;
+        color.r = ui->color.r;
+        color.g = ui->color.g;
+        color.b = ui->color.b;
+
+        bool useConfigColors = ui->useConfigColors;
+        int visualizerColorType = ui->visualizerColorType;
+        bool brailleMode = ui->visualizerBrailleMode;
 
         PixelData tmp;
 
-        for (int j = height; j > 0; j--)
+        bool isPlaying = !(isPaused() || isStopped());
+
+        printf("\n");
+
+        for (int j = height; j > 0 && !isPlaying; j--)
+        {
+                printf("\r");
+                printBlankSpaces(indentation);
+                for (int i = 0; i < visualizerWidth; i++)
+                {
+                        printf("  ");
+                }
+                printf("\n");
+        }
+
+        for (int j = height; j > 0 && isPlaying; j--)
         {
                 printf("\r");
                 printBlankSpaces(indentation);
@@ -382,16 +404,6 @@ void printSpectrum(int height, int numBars, float *magnitudes, PixelData color, 
                 else
                 {
                         setDefaultTextColor();
-                }
-
-                if (isPaused() || isStopped())
-                {
-                        for (int i = 0; i < numBars; i++)
-                        {
-                                printf("\r");
-                        }
-                        printf("\n ");
-                        continue;
                 }
 
                 for (int i = 0; i < numBars; i++)
@@ -449,7 +461,7 @@ void printSpectrum(int height, int numBars, float *magnitudes, PixelData color, 
                                         printf(" ");
                         }
                 }
-                printf("\n ");
+                printf("\n");
         }
         printf("\r");
         fflush(stdout);
@@ -472,18 +484,11 @@ void freeVisuals(void)
 void drawSpectrumVisualizer(AppState *state, int indentation)
 {
         int height = state->uiSettings.visualizerHeight;
-        PixelData color;
-        color.r = state->uiSettings.color.r;
-        color.g = state->uiSettings.color.g;
-        color.b = state->uiSettings.color.b;
-
         int numBars = state->uiState.numProgressBars;
-        bool useConfigColors = state->uiSettings.useConfigColors;
-        int visualizerColorType = state->uiSettings.visualizerColorType;
-        bool brailleMode = state->uiSettings.visualizerBrailleMode;
+        int visualizerWidth = state->uiState.numProgressBars;
         fatBars = state->uiSettings.fatBars;
 
-        height = height - 1;
+        height -= 1;
 
         if (height <= 0 || numBars <= 0)
         {
@@ -539,7 +544,7 @@ void drawSpectrumVisualizer(AppState *state, int indentation)
 
         calcMagnitudes(height, numBars, getAudioBuffer(), bitDepth, fftInput, fftOutput, magnitudes, plan, displayMagnitudes);
 
-        printSpectrum(height, numBars, displayMagnitudes, color, indentation, useConfigColors, visualizerColorType, brailleMode);
+        printSpectrum(&(state->uiSettings), height, numBars, visualizerWidth, displayMagnitudes, indentation);
 
         fftwf_destroy_plan(plan);
 }
