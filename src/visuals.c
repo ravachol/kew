@@ -375,7 +375,7 @@ void printSpectrum(UISettings *ui, int height, int numBars, int visualizerWidth,
                 {
                         printf("  ");
                 }
-                printf("\n ");
+                printf("\n");
         }
 
         for (int j = height; j > 0 && isPlaying; j--)
@@ -461,7 +461,7 @@ void printSpectrum(UISettings *ui, int height, int numBars, int visualizerWidth,
                                         printf(" ");
                         }
                 }
-                printf("\n ");
+                printf("\n");
         }
         printf("\r");
         fflush(stdout);
