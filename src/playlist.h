@@ -5,15 +5,8 @@
 #define __USE_XOPEN_EXTENDED
 #endif
 
-#include <glib.h>
-#include <pthread.h>
 #include <stdbool.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include "directorytree.h"
-#include "file.h"
-#include "utils.h"
 
 #define MAX_FILES 10000
 
@@ -103,4 +96,3 @@ void addShuffledAlbumsToPlayList(FileSystemEntry *root, PlayList *list, int play
 void moveUpList(PlayList *list, Node *node);
 
 void moveDownList(PlayList *list, Node *node);
-

@@ -59,6 +59,8 @@ int createAudioDevice();
 
 int switchAudioImplementation(void);
 
+void resumePlayback(void);
+
 void cleanupAudioContext(void);
 
 #endif

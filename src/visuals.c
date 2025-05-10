@@ -1,3 +1,13 @@
+#include <float.h>
+#include <fftw3.h>
+#include <math.h>
+#include <complex.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include "sound.h"
+#include "term.h"
+#include "utils.h"
+#include "common_ui.h"
 #include "visuals.h"
 
 /*

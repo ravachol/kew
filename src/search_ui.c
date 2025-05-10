@@ -1,3 +1,9 @@
+#include <stdbool.h>
+#include <math.h>
+#include "soundcommon.h"
+#include "term.h"
+#include "common_ui.h"
+#include "common.h"
 #include "search_ui.h"
 
 /*

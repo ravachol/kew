@@ -1,3 +1,16 @@
+#include <pwd.h>
+#include <string.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/param.h>
+#include <unistd.h>
+#include "file.h"
+#include "soundcommon.h"
+#include "player_ui.h"
+#include "utils.h"
+#include <locale.h>
+#include <wchar.h>
 #include "settings.h"
 
 /*

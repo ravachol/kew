@@ -739,3 +739,30 @@ int createAudioDevice()
 
         return 0;
 }
+
+void resumePlayback(void)
+{
+        // If this was unpaused with no song loaded
+        if (audioData.restart && !isRadioPlaying())
+        {
+                audioData.endOfListReached = false;
+        }
+
+        if (!ma_device_is_started(&device))
+        {
+                if (ma_device_start(&device) != MA_SUCCESS)
+                {
+                        createAudioDevice();
+                        ma_device_start(&device);
+                }
+        }
+
+        paused = false;
+
+        stopped = false;
+
+        if (appState.currentView != TRACK_VIEW)
+        {
+                refresh = true;
+        }
+}

@@ -1,5 +1,10 @@
-
+#include <locale.h>
+#include <stdio.h>
+#include <wchar.h>
+#include "term.h"
+#include "common.h"
 #include "common_ui.h"
+#include "utils.h"
 
 /*
 

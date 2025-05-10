@@ -1,3 +1,17 @@
+#include <ctype.h>
+#include <errno.h>
+#include <glib.h>
+#include <math.h>
+#include <pwd.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/param.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <string.h>
+#include <strings.h>
+#include <time.h>
 #include "utils.h"
 
 /*

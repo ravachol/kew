@@ -1,15 +1,5 @@
-#include <glib.h>
-#include <gio/gio.h>
-#include <sys/wait.h>
-#include <unistd.h>
+#include <stdbool.h>
 #include "appstate.h"
-#include "tagLibWrapper.h"
-#include "cache.h"
-#include "imgfunc.h"
-#include "file.h"
-#include "sound.h"
-#include "soundcommon.h"
-#include "utils.h"
 
 #ifndef MAXPATHLEN
 #define MAXPATHLEN 4096

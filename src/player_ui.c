@@ -1,3 +1,18 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "imgfunc.h"
+#include "directorytree.h"
+#include "playlist.h"
+#include "playlist_ui.h"
+#include "search_ui.h"
+#include "searchradio_ui.h"
+#include "songloader.h"
+#include "sound.h"
+#include "term.h"
+#include "utils.h"
+#include "visuals.h"
+#include "common_ui.h"
 #include "player_ui.h"
 #include "playerops.h"
 /*

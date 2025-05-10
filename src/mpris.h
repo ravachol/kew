@@ -2,11 +2,7 @@
 #define MPRIS_H
 
 #include <gio/gio.h>
-#include <glib.h>
-#include "playerops.h"
 #include "playlist.h"
-#include "sound.h"
-#include "soundcommon.h"
 
 void initMpris(void);
 

@@ -1,11 +1,7 @@
 #ifndef COMMON_UI_H
 #define COMMON_UI_H
 #include <stdbool.h>
-#include <locale.h>
-#include <wchar.h>
 #include "appstate.h"
-#include "term.h"
-#include "common.h"
 
 extern unsigned int updateCounter;
 
