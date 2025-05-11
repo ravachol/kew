@@ -64,7 +64,7 @@ typedef struct
         bool quitAfterStopping;                         // Exit kew when the music stops or not
         bool hideGlimmeringText;                        // Glimmering text on the bottom row
         time_t lastTimeAppRan;                          // When did this app run last, used for updating the cached library if it has been modified since that time
-        bool fatBars;                                   // Bars twice the width
+        int visualizerBarWidth;                         // 0=Thin bars, 1=Bars twice the width or 2=Auto (Depends on window size, default)
         int replayGainCheckFirst;                       // Prioritize track or album replay gain setting
 } UISettings;
 
@@ -213,7 +213,7 @@ typedef struct
         char progressBarApproachingOddChar[12];
         char progressBarCurrentEvenChar[12];
         char progressBarCurrentOddChar[12];
-        char fatBars[2];
+        char visualizerBarWidth[2];
         char replayGainCheckFirst[2];
 } AppSettings;
 

@@ -53,7 +53,7 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         c_strcpy(settings.hideGlimmeringText, "0", sizeof(settings.hideGlimmeringText));
         c_strcpy(settings.mouseEnabled, "1", sizeof(settings.mouseEnabled));
         c_strcpy(settings.replayGainCheckFirst, "0", sizeof(settings.replayGainCheckFirst));
-        c_strcpy(settings.fatBars, "1", sizeof(settings.fatBars));
+        c_strcpy(settings.visualizerBarWidth, "2", sizeof(settings.visualizerBarWidth));
         c_strcpy(settings.visualizerBrailleMode, "0", sizeof(settings.visualizerBrailleMode));
         c_strcpy(settings.progressBarElapsedEvenChar, "━", sizeof(settings.progressBarElapsedEvenChar));
         c_strcpy(settings.progressBarElapsedOddChar, "━", sizeof(settings.progressBarElapsedOddChar));
@@ -73,7 +73,7 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         c_strcpy(settings.hideLogo, "0", sizeof(settings.hideLogo));
         c_strcpy(settings.hideHelp, "0", sizeof(settings.hideHelp));
         c_strcpy(settings.cacheLibrary, "-1", sizeof(settings.cacheLibrary));
-        c_strcpy(settings.visualizerHeight, "6", sizeof(settings.visualizerHeight));
+        c_strcpy(settings.visualizerHeight, "5", sizeof(settings.visualizerHeight));
         c_strcpy(settings.visualizerColorType, "0", sizeof(settings.visualizerColorType));
         c_strcpy(settings.titleDelay, "9", sizeof(settings.titleDelay));
         c_strcpy(settings.nextView, "\t", sizeof(settings.nextView));
@@ -306,9 +306,9 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
                 {
                         snprintf(settings.replayGainCheckFirst, sizeof(settings.replayGainCheckFirst), "%s", pair->value);
                 }
-                else if (strcmp(lowercaseKey, "fatbars") == 0)
+                else if (strcmp(lowercaseKey, "visualizerbarwidth") == 0)
                 {
-                        snprintf(settings.fatBars, sizeof(settings.fatBars), "%s", pair->value);
+                        snprintf(settings.visualizerBarWidth, sizeof(settings.visualizerBarWidth), "%s", pair->value);
                 }
                 else if (strcmp(lowercaseKey, "visualizerbraillemode") == 0)
                 {
@@ -803,7 +803,6 @@ void getConfig(AppSettings *settings, UISettings *ui)
         ui->visualizerBrailleMode = (settings->visualizerBrailleMode[0] == '1');
         ui->hideLogo = (settings->hideLogo[0] == '1');
         ui->hideHelp = (settings->hideHelp[0] == '1');
-        ui->fatBars = (settings->fatBars[0] == '1');
 
         int tmp = getNumber(settings->color);
         if (tmp >= 0)
@@ -864,6 +863,10 @@ void getConfig(AppSettings *settings, UISettings *ui)
         if (tmp > 0)
                 ui->visualizerHeight = tmp;
 
+        tmp = getNumber(settings->visualizerBarWidth);
+        if (tmp >= 0)
+                ui->visualizerBarWidth = tmp;
+
         tmp = getNumber(settings->visualizerColorType);
         if (tmp >= 0)
                 ui->visualizerColorType = tmp;
@@ -919,8 +922,8 @@ void setConfig(AppSettings *settings, UISettings *ui)
                 ui->hideGlimmeringText ? c_strcpy(settings->hideGlimmeringText, "1", sizeof(settings->hideGlimmeringText)) : c_strcpy(settings->hideGlimmeringText, "0", sizeof(settings->hideGlimmeringText));
         if (settings->mouseEnabled[0] == '\0')
                 ui->mouseEnabled ? c_strcpy(settings->mouseEnabled, "1", sizeof(settings->mouseEnabled)) : c_strcpy(settings->mouseEnabled, "0", sizeof(settings->mouseEnabled));
-        if (settings->fatBars[0] == '\0')
-                ui->fatBars ? c_strcpy(settings->fatBars, "1", sizeof(settings->fatBars)) : c_strcpy(settings->fatBars, "0", sizeof(settings->fatBars));
+        if (settings->visualizerBarWidth[0] == '\0')
+                snprintf(settings->visualizerBarWidth, sizeof(settings->visualizerBarWidth), "%d", ui->visualizerBarWidth);
 
         if (settings->visualizerBrailleMode[0] == '\0')
                 ui->visualizerBrailleMode ? c_strcpy(settings->visualizerBrailleMode, "1", sizeof(settings->visualizerBrailleMode)) : c_strcpy(settings->visualizerBrailleMode, "0", sizeof(settings->visualizerBrailleMode));
@@ -1004,8 +1007,8 @@ void setConfig(AppSettings *settings, UISettings *ui)
         fprintf(file, "# How colors are laid out in the spectrum visualizer. 0=default, 1=brightness depending on bar height, 2=reversed, 3=reversed darken.\n");
         fprintf(file, "visualizerColorType=%s\n\n", settings->visualizerColorType);
 
-        fprintf(file, "# Bars twice the width.\n");
-        fprintf(file, "fatBars=%s\n\n", settings->fatBars);
+        fprintf(file, "# 0=Thin bars, 1=Bars twice the width, 2=Auto (depends on window size).\n");
+        fprintf(file, "visualizerBarWidth=%s\n\n", settings->visualizerBarWidth);
 
         fprintf(file, "\n[progress bar]\n\n");
 
