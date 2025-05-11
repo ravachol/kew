@@ -66,6 +66,9 @@ typedef struct
         time_t lastTimeAppRan;                          // When did this app run last, used for updating the cached library if it has been modified since that time
         int visualizerBarWidth;                         // 0=Thin bars, 1=Bars twice the width or 2=Auto (Depends on window size, default)
         int replayGainCheckFirst;                       // Prioritize track or album replay gain setting
+        bool saveRepeatShuffleSettings;                 // Save repeat and shuffle settings between sessions. Default on.
+        int repeatState;                                // 0=disabled,1=repeat track ,2=repeat list
+        bool shuffleEnabled;
 } UISettings;
 
 typedef struct
@@ -215,6 +218,9 @@ typedef struct
         char progressBarCurrentOddChar[12];
         char visualizerBarWidth[2];
         char replayGainCheckFirst[2];
+        char saveRepeatShuffleSettings[2];
+        char repeatState[2];
+        char shuffleEnabled[2];
 } AppSettings;
 
 #endif

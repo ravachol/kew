@@ -18,6 +18,10 @@ typedef enum
 
 extern volatile bool refresh;
 
+extern double pauseSeconds;
+extern double totalPauseSeconds;
+extern double seekAccumulatedSeconds;
+
 extern const char VERSION[];
 
 extern bool hasPrintedError;

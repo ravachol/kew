@@ -34,15 +34,11 @@ player_ui.c
 #ifdef __APPLE__
 const int ABSOLUTE_MIN_WIDTH = 80;
 #else
-const int ABSOLUTE_MIN_WIDTH = 68;
+const int ABSOLUTE_MIN_WIDTH = 73;
 #endif
 
 bool fastForwarding = false;
 bool rewinding = false;
-
-double pauseSeconds = 0.0;
-double totalPauseSeconds = 0.0;
-double seekAccumulatedSeconds = 0.0;
 
 int minHeight = 0;
 int elapsedBars = 0;
@@ -493,7 +489,7 @@ void printProgress(double elapsed_seconds, double total_seconds, ma_uint32 sampl
         }
 
         // Restore the cursor position
-        printf("\033[u");
+        printf("\r");
 }
 
 void printMetadata(TagSettings const *metadata, UISettings *ui)
@@ -651,7 +647,6 @@ void printLastRow(UISettings *ui)
         // Move to lastRow
         printf("\033[%d;1H", term_h);
 #endif
-
         setTextColorRGB(lastRowColor.r, lastRowColor.g, lastRowColor.b);
 
 #ifdef __APPLE__
@@ -689,20 +684,20 @@ void printLastRow(UISettings *ui)
 
         if (isRepeatEnabled())
         {
-                char repeatText[] = " \u27f3";
+                char repeatText[] = "\u27f3";
                 snprintf(nerdFontText + currentLength, maxLength - currentLength, "%s", repeatText);
                 currentLength += strnlen(repeatText, maxLength - currentLength);
         }
         else if (isRepeatListEnabled())
         {
-                char repeatText[] = " \u27f3L";
+                char repeatText[] = "\u27f3L";
                 snprintf(nerdFontText + currentLength, maxLength - currentLength, "%s", repeatText);
                 currentLength += strnlen(repeatText, maxLength - currentLength);
         }
 
         if (isShuffleEnabled())
         {
-                char shuffleText[] = " \uf074";
+                char shuffleText[] = "\uf074";
                 snprintf(nerdFontText + currentLength, maxLength - currentLength, "%s", shuffleText);
                 currentLength += strnlen(shuffleText, maxLength - currentLength);
         }

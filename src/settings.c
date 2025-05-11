@@ -61,6 +61,7 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         c_strcpy(settings.progressBarApproachingOddChar, "━", sizeof(settings.progressBarApproachingOddChar));
         c_strcpy(settings.progressBarCurrentEvenChar, "━", sizeof(settings.progressBarCurrentEvenChar));
         c_strcpy(settings.progressBarCurrentOddChar, "━", sizeof(settings.progressBarCurrentOddChar));
+        c_strcpy(settings.saveRepeatShuffleSettings, "1", sizeof(settings.saveRepeatShuffleSettings));
 #ifdef __APPLE__
         // Visualizer looks wonky in default terminal but let's enable it anyway. People need to switch
         c_strcpy(settings.visualizerEnabled, "1", sizeof(settings.visualizerEnabled));
@@ -301,6 +302,18 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
                 else if (strcmp(lowercaseKey, "mouseenabled") == 0)
                 {
                         snprintf(settings.mouseEnabled, sizeof(settings.mouseEnabled), "%s", pair->value);
+                }
+                else if (strcmp(lowercaseKey, "repeatstate") == 0)
+                {
+                        snprintf(settings.repeatState, sizeof(settings.repeatState), "%s", pair->value);
+                }
+                else if (strcmp(lowercaseKey, "shuffleenabled") == 0)
+                {
+                        snprintf(settings.shuffleEnabled, sizeof(settings.shuffleEnabled), "%s", pair->value);
+                }
+                else if (strcmp(lowercaseKey, "saverepeatshufflesettings") == 0)
+                {
+                        snprintf(settings.saveRepeatShuffleSettings, sizeof(settings.saveRepeatShuffleSettings), "%s", pair->value);
                 }
                 else if (strcmp(lowercaseKey, "replaygaincheckfirst") == 0)
                 {
@@ -800,13 +813,20 @@ void getConfig(AppSettings *settings, UISettings *ui)
         ui->quitAfterStopping = (settings->quitAfterStopping[0] == '1');
         ui->hideGlimmeringText = (settings->hideGlimmeringText[0] == '1');
         ui->mouseEnabled = (settings->mouseEnabled[0] == '1');
+        ui->shuffleEnabled = (settings->shuffleEnabled[0] == '1');
+
         ui->visualizerBrailleMode = (settings->visualizerBrailleMode[0] == '1');
         ui->hideLogo = (settings->hideLogo[0] == '1');
         ui->hideHelp = (settings->hideHelp[0] == '1');
+        ui->saveRepeatShuffleSettings = (settings->saveRepeatShuffleSettings[0] == '1');
 
         int tmp = getNumber(settings->color);
         if (tmp >= 0)
                 ui->mainColor = tmp;
+
+        tmp = getNumber(settings->repeatState);
+        if (tmp >= 0)
+                ui->repeatState = tmp;
 
         tmp = getNumber(settings->artistColor);
         if (tmp >= 0)
@@ -922,6 +942,11 @@ void setConfig(AppSettings *settings, UISettings *ui)
                 ui->hideGlimmeringText ? c_strcpy(settings->hideGlimmeringText, "1", sizeof(settings->hideGlimmeringText)) : c_strcpy(settings->hideGlimmeringText, "0", sizeof(settings->hideGlimmeringText));
         if (settings->mouseEnabled[0] == '\0')
                 ui->mouseEnabled ? c_strcpy(settings->mouseEnabled, "1", sizeof(settings->mouseEnabled)) : c_strcpy(settings->mouseEnabled, "0", sizeof(settings->mouseEnabled));
+
+        snprintf(settings->repeatState, sizeof(settings->repeatState), "%d", ui->repeatState);
+
+        ui->shuffleEnabled ? c_strcpy(settings->shuffleEnabled, "1", sizeof(settings->shuffleEnabled)) : c_strcpy(settings->shuffleEnabled, "0", sizeof(settings->shuffleEnabled));
+
         if (settings->visualizerBarWidth[0] == '\0')
                 snprintf(settings->visualizerBarWidth, sizeof(settings->visualizerBarWidth), "%d", ui->visualizerBarWidth);
 
@@ -998,6 +1023,12 @@ void setConfig(AppSettings *settings, UISettings *ui)
 
         fprintf(file, "# Replay gain check first, can be either 0=track, 1=album or 2=disabled.\n");
         fprintf(file, "replayGainCheckFirst=%s\n\n", settings->replayGainCheckFirst);
+
+        fprintf(file, "# Save Repeat and Shuffle Settings.\n");
+        fprintf(file, "saveRepeatShuffleSettings=%s\n\n", settings->saveRepeatShuffleSettings);
+
+        fprintf(file, "repeatState=%s\n\n", settings->repeatState);
+        fprintf(file, "shuffleEnabled=%s\n\n", settings->shuffleEnabled);
 
         fprintf(file, "\n[visualizer]\n\n");
         fprintf(file, "visualizerEnabled=%s\n", settings->visualizerEnabled);

@@ -334,7 +334,7 @@ void togglePause(double *totalPauseSeconds, double *pauseSeconds, struct timespe
         }
 }
 
-void toggleRepeat(void)
+void toggleRepeat(UISettings *ui)
 {
 
         bool repeatEnabled = isRepeatEnabled();
@@ -345,18 +345,22 @@ void toggleRepeat(void)
                 setRepeatEnabled(false);
                 setRepeatListEnabled(true);
                 emitStringPropertyChanged("LoopStatus", "List");
+                ui->repeatState = 2;
+
         }
         else if (repeatListEnabled)
         {
                 setRepeatEnabled(false);
                 setRepeatListEnabled(false);
                 emitStringPropertyChanged("LoopStatus", "None");
+                ui->repeatState = 0;
         }
         else
         {
                 setRepeatEnabled(true);
                 setRepeatListEnabled(false);
                 emitStringPropertyChanged("LoopStatus", "Track");
+                ui->repeatState = 1;
         }
 
         if (appState.currentView != TRACK_VIEW)
@@ -379,12 +383,12 @@ void addToSpecialPlaylist(void)
         addToList(specialPlaylist, node);
 }
 
-void toggleShuffle(void)
+void toggleShuffle(UISettings *ui)
 {
-        bool shuffleEnabled = !isShuffleEnabled();
-        setShuffleEnabled(shuffleEnabled);
+        ui->shuffleEnabled = !isShuffleEnabled();
+        setShuffleEnabled(ui->shuffleEnabled);
 
-        if (shuffleEnabled)
+        if (ui->shuffleEnabled)
         {
                 pthread_mutex_lock(&(playlist.mutex));
 
@@ -2237,7 +2241,7 @@ void updatePlaylistToPlayingSong(void)
                 if (clearAll || nextInPlaylistID != currentID)
                 {
                         songToBeRemoved = nextInPlaylist;
-                        
+
                         nextInPlaylist = nextInPlaylist->next;
 
                         int id = songToBeRemoved->id;
