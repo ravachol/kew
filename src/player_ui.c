@@ -1341,177 +1341,179 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
         if (!(ui->color.r == defaultColor && ui->color.g == defaultColor && ui->color.b == defaultColor))
                 rowColor = getGradientColor(ui->color, libIter - startLibIter, maxListSize, maxListSize / 2, 0.6f);
 
-        if (root->isDirectory ||
+        if (!(root->isDirectory ||
             (!root->isDirectory && depth == 1) ||
             (root->isDirectory && depth == 0) ||
-            (chosenDir != NULL && uis->allowChooseSongs && root->parent != NULL && (strcmp(root->parent->fullPath, chosenDir->fullPath) == 0 || strcmp(root->fullPath, chosenDir->fullPath) == 0)))
+            (chosenDir != NULL && uis->allowChooseSongs && root->parent != NULL && (strcmp(root->parent->fullPath, chosenDir->fullPath) == 0 || strcmp(root->fullPath, chosenDir->fullPath) == 0))))
         {
-                if (depth >= 0)
+                return foundChosen;
+        }
+
+        if (depth >= 0)
+        {
+                if (currentEntry != NULL && currentEntry != lastEntry && !currentEntry->isDirectory && currentEntry->parent != NULL && currentEntry->parent == chosenDir)
                 {
-                        if (currentEntry != NULL && currentEntry != lastEntry && !currentEntry->isDirectory && currentEntry->parent != NULL && currentEntry->parent == chosenDir)
+                        FileSystemEntry *tmpc = currentEntry->parent->children;
+
+                        libCurrentDirSongCount = 0;
+
+                        while (tmpc != NULL)
                         {
-                                FileSystemEntry *tmpc = currentEntry->parent->children;
-
-                                libCurrentDirSongCount = 0;
-
-                                while (tmpc != NULL)
-                                {
-                                        if (!tmpc->isDirectory)
-                                                libCurrentDirSongCount++;
-                                        tmpc = tmpc->next;
-                                }
-
-                                lastEntry = currentEntry;
+                                if (!tmpc->isDirectory)
+                                        libCurrentDirSongCount++;
+                                tmpc = tmpc->next;
                         }
 
-                        if (libIter >= startLibIter)
-                        {
+                        lastEntry = currentEntry;
+                }
 
-                                if (depth <= 1)
+                if (libIter >= startLibIter)
+                {
+
+                        if (depth <= 1)
+                        {
+                                if (ui->useConfigColors)
+                                        setTextColor(ui->artistColor);
+                                else
+                                        setColorAndWeight(0, rowColor, ui->useConfigColors);
+                        }
+                        else
+                        {
+                                setDefaultTextColor();
+                        }
+
+                        if (depth >= 2)
+                                printf("  ");
+
+                        // If more than two levels deep add an extra indentation
+                        extraIndent = (depth - 2 <= 0) ? 0 : depth - 2;
+
+                        printBlankSpaces(indent + extraIndent);
+
+                        if (chosenLibRow == libIter)
+                        {
+                                if (root->isEnqueued)
                                 {
                                         if (ui->useConfigColors)
-                                                setTextColor(ui->artistColor);
+                                                setTextColor(ui->enqueuedColor);
                                         else
                                                 setColorAndWeight(0, rowColor, ui->useConfigColors);
+
+                                        printf("\x1b[7m * ");
                                 }
                                 else
                                 {
-                                        setDefaultTextColor();
+                                        printf("  \x1b[7m ");
                                 }
 
-                                if (depth >= 2)
-                                        printf("  ");
+                                currentEntry = root;
 
-                                // If more than two levels deep add an extra indentation
-                                extraIndent = (depth - 2 <= 0) ? 0 : depth - 2;
-
-                                printBlankSpaces(indent + extraIndent);
-
-                                if (chosenLibRow == libIter)
+                                if (uis->allowChooseSongs == true && (chosenDir == NULL ||
+                                                                      (currentEntry != NULL && currentEntry->parent != NULL && chosenDir != NULL && (strcmp(currentEntry->parent->fullPath, chosenDir->fullPath) != 0) &&
+                                                                       strcmp(root->fullPath, chosenDir->fullPath) != 0)))
                                 {
-                                        if (root->isEnqueued)
-                                        {
-                                                if (ui->useConfigColors)
-                                                        setTextColor(ui->enqueuedColor);
-                                                else
-                                                        setColorAndWeight(0, rowColor, ui->useConfigColors);
+                                        uis->collapseView = true;
+                                        refresh = true;
 
-                                                printf("\x1b[7m * ");
+                                        if (!uis->openedSubDir)
+                                        {
+
+                                                uis->allowChooseSongs = false;
+                                                chosenDir = NULL;
                                         }
+                                }
+
+                                foundChosen = true;
+                        }
+                        else
+                        {
+                                if (root->isEnqueued)
+                                {
+                                        if (ui->useConfigColors)
+                                                printf("\033[%d;3%dm", foundCurrent, ui->enqueuedColor);
                                         else
-                                        {
-                                                printf("  \x1b[7m ");
-                                        }
+                                                setColorAndWeight(foundCurrent, rowColor, ui->useConfigColors);
 
-                                        currentEntry = root;
-
-                                        if (uis->allowChooseSongs == true && (chosenDir == NULL ||
-                                                                              (currentEntry != NULL && currentEntry->parent != NULL && chosenDir != NULL && (strcmp(currentEntry->parent->fullPath, chosenDir->fullPath) != 0) &&
-                                                                               strcmp(root->fullPath, chosenDir->fullPath) != 0)))
-                                        {
-                                                uis->collapseView = true;
-                                                refresh = true;
-
-                                                if (!uis->openedSubDir)
-                                                {
-
-                                                        uis->allowChooseSongs = false;
-                                                        chosenDir = NULL;
-                                                }
-                                        }
-
-                                        foundChosen = true;
+                                        printf(" * ");
                                 }
                                 else
                                 {
-                                        if (root->isEnqueued)
-                                        {
-                                                if (ui->useConfigColors)
-                                                        printf("\033[%d;3%dm", foundCurrent, ui->enqueuedColor);
-                                                else
-                                                        setColorAndWeight(foundCurrent, rowColor, ui->useConfigColors);
-
-                                                printf(" * ");
-                                        }
-                                        else
-                                        {
-                                                printf("   ");
-                                        }
+                                        printf("   ");
                                 }
-
-                                if (maxNameWidth < extraIndent)
-                                        maxNameWidth = extraIndent;
-
-                                if (root->isDirectory)
-                                {
-                                        dirName[0] = '\0';
-
-                                        if (strcmp(root->name, "root") == 0)
-                                                snprintf(dirName, maxNameWidth + 1 - extraIndent, "%s", "─ MUSIC LIBRARY ─");
-                                        else
-                                                snprintf(dirName, maxNameWidth + 1 - extraIndent, "%s", root->name);
-
-                                        char *upperDirName = stringToUpper(dirName);
-
-                                        if (depth == 1)
-                                                printf("%s \n", upperDirName);
-                                        else
-                                        {
-                                                printf("%s \n", dirName);
-                                        }
-                                        free(upperDirName);
-                                }
-                                else
-                                {
-                                        filename[0] = '\0';
-
-                                        isSameNameAsLastTime = (previousChosenLibRow == chosenLibRow);
-
-                                        if (foundChosen)
-                                        {
-                                                previousChosenLibRow = chosenLibRow;
-                                        }
-
-                                        if (!isSameNameAsLastTime)
-                                        {
-                                                resetNameScroll();
-                                        }
-
-                                        if (foundChosen)
-                                        {
-                                                processNameScroll(root->name, filename, maxNameWidth - extraIndent, isSameNameAsLastTime);
-                                        }
-                                        else
-                                        {
-                                                processName(root->name, filename, maxNameWidth - extraIndent);
-                                        }
-
-                                        printf("└─ ");
-
-                                        if (foundCurrent && chosenLibRow != libIter)
-                                        {
-                                                printf("\e[4m\e[1m");
-                                        }
-
-                                        printf("%s\n", filename);
-
-                                        libSongIter++;
-                                }
-
-                                setColor(ui);
                         }
 
-                        libIter++;
+                        if (maxNameWidth < extraIndent)
+                                maxNameWidth = extraIndent;
+
+                        if (root->isDirectory)
+                        {
+                                dirName[0] = '\0';
+
+                                if (strcmp(root->name, "root") == 0)
+                                        snprintf(dirName, maxNameWidth + 1 - extraIndent, "%s", "─ MUSIC LIBRARY ─");
+                                else
+                                        snprintf(dirName, maxNameWidth + 1 - extraIndent, "%s", root->name);
+
+                                char *upperDirName = stringToUpper(dirName);
+
+                                if (depth == 1)
+                                        printf("%s \n", upperDirName);
+                                else
+                                {
+                                        printf("%s \n", dirName);
+                                }
+                                free(upperDirName);
+                        }
+                        else
+                        {
+                                filename[0] = '\0';
+
+                                isSameNameAsLastTime = (previousChosenLibRow == chosenLibRow);
+
+                                if (foundChosen)
+                                {
+                                        previousChosenLibRow = chosenLibRow;
+                                }
+
+                                if (!isSameNameAsLastTime)
+                                {
+                                        resetNameScroll();
+                                }
+
+                                if (foundChosen)
+                                {
+                                        processNameScroll(root->name, filename, maxNameWidth - extraIndent, isSameNameAsLastTime);
+                                }
+                                else
+                                {
+                                        processName(root->name, filename, maxNameWidth - extraIndent);
+                                }
+
+                                printf("└─ ");
+
+                                if (foundCurrent && chosenLibRow != libIter)
+                                {
+                                        printf("\e[4m\e[1m");
+                                }
+
+                                printf("%s\n", filename);
+
+                                libSongIter++;
+                        }
+
+                        setColor(ui);
                 }
 
-                FileSystemEntry *child = root->children;
-                while (child != NULL)
-                {
-                        if (displayTree(child, depth + 1, maxListSize, maxNameWidth, state))
-                                foundChosen = true;
+                libIter++;
+        }
 
-                        child = child->next;
-                }
+        FileSystemEntry *child = root->children;
+        while (child != NULL)
+        {
+                if (displayTree(child, depth + 1, maxListSize, maxNameWidth, state))
+                        foundChosen = true;
+
+                child = child->next;
         }
 
         return foundChosen;
