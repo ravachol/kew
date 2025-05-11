@@ -45,7 +45,8 @@ float fastAttack = 0.6f;
 float decay = 0.14f;
 float slowAttack = 0.15f;
 
-bool fatBars = false;
+int visualizerBarWidth = 2;
+int maxThinBarsInAutoMode = 20;
 
 void clearMagnitudes(int numBars, float *magnitudes)
 {
@@ -177,7 +178,7 @@ int normalizeAudioSamples(const void *audioBuffer, float *fftInput, int fftSize,
         {
                 const float *buf = (const float *)audioBuffer;
                 for (int i = 0; i < fftSize; ++i)
-                    fftInput[i] = buf[i];
+                        fftInput[i] = buf[i];
         }
         else
         {
@@ -444,20 +445,20 @@ void printSpectrum(UISettings *ui, int height, int numBars, int visualizerWidth,
                         if (magnitudes[i] >= j)
                         {
                                 printf("%s", getUpwardMotionChar(10, brailleMode));
-                                if (fatBars)
+                                if (visualizerBarWidth == 1 || (visualizerBarWidth == 2 && visualizerWidth > maxThinBarsInAutoMode))
                                         printf("%s", getUpwardMotionChar(10, brailleMode));
                         }
                         else if (magnitudes[i] + 1 >= j)
                         {
                                 int firstDecimalDigit = (int)(fmod(magnitudes[i] * 10, 10));
                                 printf("%s", getUpwardMotionChar(firstDecimalDigit, brailleMode));
-                                if (fatBars)
+                                if (visualizerBarWidth == 1 || (visualizerBarWidth == 2 && visualizerWidth > maxThinBarsInAutoMode))
                                         printf("%s", getUpwardMotionChar(firstDecimalDigit, brailleMode));
                         }
                         else
                         {
                                 printf(" ");
-                                if (fatBars)
+                                if (visualizerBarWidth == 1 || (visualizerBarWidth == 2 && visualizerWidth > maxThinBarsInAutoMode))
                                         printf(" ");
                         }
                 }
@@ -486,17 +487,17 @@ void drawSpectrumVisualizer(AppState *state, int indentation)
         int height = state->uiSettings.visualizerHeight;
         int numBars = state->uiState.numProgressBars;
         int visualizerWidth = state->uiState.numProgressBars;
-        fatBars = state->uiSettings.fatBars;
+        visualizerBarWidth = state->uiSettings.visualizerBarWidth;
 
-        height -= 1;
+        if (visualizerBarWidth == 1 || (visualizerBarWidth == 2 && visualizerWidth > maxThinBarsInAutoMode))
+                numBars *= 0.67f;
+        else
+                height -= 1; // Thin bar mode is slightly less tall, looks better
 
         if (height <= 0 || numBars <= 0)
         {
                 return;
         }
-
-        if (fatBars)
-                numBars *= 0.67f;
 
         if (numBars > MAX_BARS)
                 numBars = MAX_BARS;

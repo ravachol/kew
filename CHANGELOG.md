@@ -8,9 +8,9 @@
 
 - kew now remembers the playlist between sessions, unless you tell it to load something else.
 
-- The appearance of the progress bar can now be configured in detail. There's even a pill muncher mode, where this round guy eats everything in his path. There are commented out examples in the kewrc so you can go back to the old look, if you don't like the new. By @Chromium-3-Oxide.
+- Added a new setting, visualizerBarWidth. 0=Thin,1=Fat (twice as wide bars) or 2=Auto (depends on the window size. the default). Also line progressbar is now the default, mainly because it looks better with fat bars.
 
-- fatBars=1. Added option to make bars twice the width. It is now the default. Also line progressbar is now the default.
+- The appearance of the progress bar can now be configured in detail. There's even a pill muncher mode, where this round guy eats everything in his path. There are commented out examples in the kewrc so you can go back to the old look, if you don't like the new. By @Chromium-3-Oxide.
 
 - Gradient in library and playlist that makes the bottom rows a bit darker when using album colors.
 
