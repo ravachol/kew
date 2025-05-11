@@ -1,4 +1,5 @@
 #include <glib.h>
+#include "common.h"
 #include "playerops.h"
 #include "sound.h"
 #include "soundcommon.h"
@@ -915,12 +916,12 @@ static gboolean set_property_callback(GDBusConnection *connection, const gchar *
                 }
                 else if (g_strcmp0(property_name, "LoopStatus") == 0)
                 {
-                        toggleRepeat();
+                        toggleRepeat(&(appState.uiSettings));
                         return TRUE;
                 }
                 else if (g_strcmp0(property_name, "Shuffle") == 0)
                 {
-                        toggleShuffle();
+                        toggleShuffle(&(appState.uiSettings));
                         return TRUE;
                 }
                 else if (g_strcmp0(property_name, "Position") == 0)

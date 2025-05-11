@@ -20,6 +20,8 @@
 
 - Prevent Z,X,C,V,B,N to trigger view changes in search or radio search if not on macOS. These are the shortcuts that are used instead of the F1-F7 keys on macOS, because there F-keys don't always mean F-functions. Delete the config file kewrc if you want to type uppercase letters in search.
 
+- Now saves repeat and shuffle settings betweens sessions. This can be turned off in the settings file.
+
 #### Bug Fixes
 
 - Fixed a format conversion issue with the visualizer.
@@ -29,6 +31,11 @@
 - Fixed ascii cover image being too narrow on gnome terminal.
 
 - Fixed error (invalid read 8 bytes) when using backspace to clear a stopped playlist.
+
+- Gave the last row more minimum space.
+
+- Fixed bug where on some terminals when in a small window and visualizer disabled, the time progress row would get repeated.
+
 
 ### 3.2.0
 

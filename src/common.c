@@ -5,6 +5,10 @@
 
 const char VERSION[] = "3.3.0";
 
+double pauseSeconds = 0.0;
+double totalPauseSeconds = 0.0;
+double seekAccumulatedSeconds = 0.0;
+
 #define ERROR_MESSAGE_LENGTH 256
 
 char currentErrorMessage[ERROR_MESSAGE_LENGTH];
