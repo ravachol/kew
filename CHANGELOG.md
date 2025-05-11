@@ -36,6 +36,9 @@
 
 - Fixed bug where on some terminals when in a small window and visualizer disabled, the time progress row would get repeated.
 
+- Removed a use-after-unlock race in radio search.
+
+- Eliminated memory leak on radio search cancel by switching to cooperative thread cancellation (stop flag) instead of pthread_cancel.
 
 ### 3.2.0
 
