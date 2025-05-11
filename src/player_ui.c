@@ -1450,6 +1450,8 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
                                                 snprintf(dirName, maxNameWidth + 1 - extraIndent, "%s", "─ MUSIC LIBRARY ─");
                                         else
                                                 snprintf(dirName, maxNameWidth + 1 - extraIndent, "%s", root->name);
+                                                removeUnneededChars(dirName, maxNameWidth - 1);
+                                                trim(dirName, maxNameWidth - 1);
 
                                         char *upperDirName = stringToUpper(dirName);
 
