@@ -292,14 +292,14 @@ typedef struct
 {
         char *searchTerm;
         void (*callback)(const char *, const char *, const char *, const char *, const int, const int);
-        bool *stopFlag;
+        volatile sig_atomic_t *stopFlag;
 } SearchThreadArgs;
 
 pthread_mutex_t server_list_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 pthread_t currentThread;
 
-bool stopFlag = false;
+volatile sig_atomic_t stopFlag = 0;
 
 const char *getCountryCode(const char *country_name)
 {
@@ -480,6 +480,7 @@ void *searchThreadFunction(void *arg)
         Memory res = {.memory = NULL, .size = 0};
         Server *server = NULL;
         char *encodedTerm = NULL;
+        volatile sig_atomic_t *stopFlag = args->stopFlag;
 
         pthread_mutex_lock(&server_list_mutex);
         if (!hasUpdatedServerList)
@@ -487,26 +488,28 @@ void *searchThreadFunction(void *arg)
                 if (updateServerList() != 0)
                 {
                         pthread_mutex_unlock(&server_list_mutex);
-                        free(args->searchTerm);
-                        free(args);
                         setErrorMessage("Radio database unavailable.");
-
-                        return NULL;
+                        goto cleanup;
                 }
                 hasUpdatedServerList = true;
         }
         pthread_mutex_unlock(&server_list_mutex);
 
-        while (true)
+        while (!(*stopFlag)) // CANCEL CHECK
         {
+                char serverUrl[2048];
+
                 pthread_mutex_lock(&server_list_mutex);
                 server = pickServer();
+
+                if (server != NULL)
+                {
+                        strncpy(serverUrl, server->url, sizeof(serverUrl));
+                }
                 pthread_mutex_unlock(&server_list_mutex);
 
-                if (!server)
-                {
+                if (server == NULL)
                         break;
-                }
 
                 free(res.memory);
                 res.memory = NULL;
@@ -514,12 +517,10 @@ void *searchThreadFunction(void *arg)
 
                 curl = curl_easy_init();
                 if (!curl)
-                {
                         continue;
-                }
 
                 encodedTerm = curl_easy_escape(curl, args->searchTerm, 0);
-                if (!encodedTerm)
+                if (encodedTerm == NULL)
                 {
                         curl_easy_cleanup(curl);
                         curl = NULL;
@@ -527,7 +528,7 @@ void *searchThreadFunction(void *arg)
                 }
 
                 char url[2070];
-                snprintf(url, sizeof(url), "%s/json/stations/byname/%s", server->url, encodedTerm);
+                snprintf(url, sizeof(url), "%s/json/stations/byname/%s", serverUrl, encodedTerm);
                 curl_free(encodedTerm);
                 encodedTerm = NULL;
 
@@ -542,17 +543,31 @@ void *searchThreadFunction(void *arg)
                 curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
                 curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 1L);
 
+                // CANCEL CHECK
+                if (*stopFlag)
+                {
+                        curl_easy_cleanup(curl);
+                        curl = NULL;
+                        break;
+                }
+
                 CURLcode result = curl_easy_perform(curl);
                 curl_easy_cleanup(curl);
                 curl = NULL;
+
+                if (*stopFlag) // CANCEL CHECK
+                        break;
 
                 if (result == CURLE_OK && res.memory != NULL)
                 {
                         char *ptr = res.memory;
                         int count = 0;
-
                         while ((ptr = strchr(ptr, '{')) != NULL && count < MAX_STATIONS)
                         {
+                                // CANCEL CHECK
+                                if (*stopFlag)
+                                        break;
+
                                 char name[128] = {0}, resolved[4096] = {0}, country[64] = {0}, codec[32] = {0}, bitrate_str[16] = {0}, votes_str[16] = {0};
                                 int br = 0, vo = 0;
 
@@ -582,39 +597,36 @@ void *searchThreadFunction(void *arg)
                                 count++;
                                 ptr++;
 
-                                if (count % 10 == 0)
+                                if (count % 4 == 0)
                                 {
                                         refresh = true;
-                                        c_sleep(100);
+                                        c_sleep(100); // opt: c_sleep can also check *stopFlag if needed
                                 }
                         }
-
-                        free(res.memory);
-                        res.memory = NULL;
-                        res.size = 0;
-
-                        free(encodedTerm);
-                        if (curl)
-                                curl_easy_cleanup(curl);
-
-                        free(args->searchTerm);
-                        free(args);
-
-                        return NULL;
+                        break;
                 }
                 else
                 {
-
                         pthread_mutex_lock(&server_list_mutex);
                         server->isBroken = true;
                         pthread_mutex_unlock(&server_list_mutex);
-
-                        free(res.memory);
-                        res.memory = NULL;
-                        res.size = 0;
+                        // try next server
                 }
         }
 
+cleanup:
+        free(res.memory);
+        res.memory = NULL;
+        res.size = 0;
+        if (encodedTerm)
+                curl_free(encodedTerm);
+        if (curl)
+                curl_easy_cleanup(curl);
+        if (args)
+        {
+                free(args->searchTerm);
+                free(args);
+        }
         return NULL;
 }
 
@@ -622,10 +634,10 @@ void stopCurrentThread()
 {
         if (currentThread)
         {
-                stopFlag = true;
-                pthread_cancel(currentThread);
+                stopFlag = 1;
                 pthread_join(currentThread, NULL);
-                stopFlag = false;
+                stopFlag = 0;
+                currentThread = 0;
         }
 }
 
@@ -824,7 +836,7 @@ static void audio_data_callback(ma_device *device, void *output, const void *inp
 
 RadioSearchResult *copyRadioSearchResult(const RadioSearchResult *original)
 {
-        if (!original || strlen(original->name) <= 0)
+        if (!original || original->name[0] == '\0')
                 return NULL;
 
         RadioSearchResult *copy = malloc(sizeof(RadioSearchResult));
@@ -900,13 +912,13 @@ int stopRadio(void)
         pthread_cond_broadcast(&(radioContext.buf.cond));
         pthread_mutex_unlock(&(radioContext.buf.mutex));
 
-        cleanupPlaybackDevice();
-
         if (radioContext.curl_thread)
         {
                 pthread_join(radioContext.curl_thread, NULL);
                 radioContext.curl_thread = 0;
         }
+
+        cleanupPlaybackDevice();
 
         ma_decoder_uninit(&(radioContext.decoder));
 
