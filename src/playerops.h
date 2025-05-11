@@ -69,9 +69,9 @@ void togglePause(double *totalPauseSeconds, double *pauseSeconds, struct timespe
 
 void stop(void);
 
-void toggleRepeat(void);
+void toggleRepeat(UISettings *ui);
 
-void toggleShuffle(void);
+void toggleShuffle(UISettings *ui);
 
 void addToSpecialPlaylist(void);
 

@@ -795,13 +795,13 @@ void handleInput(AppState *state)
                 toggleVisualizer(&settings, &(state->uiSettings));
                 break;
         case EVENT_TOGGLEREPEAT:
-                toggleRepeat();
+                toggleRepeat(&(state->uiSettings));
                 break;
         case EVENT_TOGGLEASCII:
                 toggleAscii(&settings, &(state->uiSettings));
                 break;
         case EVENT_SHUFFLE:
-                toggleShuffle();
+                toggleShuffle(&(state->uiSettings));
                 emitShuffleChanged();
                 break;
         case EVENT_TOGGLEPROFILECOLORS:
@@ -1347,6 +1347,19 @@ void run(AppState *state, bool startPlaying)
                 *originalPlaylist = deepCopyPlayList(&playlist);
         }
 
+        if (state->uiSettings.saveRepeatShuffleSettings)
+        {
+                if (state->uiSettings.repeatState == 1)
+                        toggleRepeat(&(state->uiSettings));
+                if (state->uiSettings.repeatState == 2)
+                {
+                        toggleRepeat(&(state->uiSettings));
+                        toggleRepeat(&(state->uiSettings));
+                }
+                if (state->uiSettings.shuffleEnabled)
+                        toggleShuffle(&(state->uiSettings));
+        }
+
         if (playlist.head == NULL)
         {
                 state->currentView = LIBRARY_VIEW;
@@ -1458,7 +1471,8 @@ void playSpecialPlaylist(AppState *state)
 
         init(state);
         deepCopyPlayListOntoList(specialPlaylist, &playlist);
-        shufflePlaylist(&playlist);
+        if (!state->uiSettings.saveRepeatShuffleSettings)
+                shufflePlaylist(&playlist);
         markListAsEnqueued(library, &playlist);
         run(state, true);
 }
@@ -1472,7 +1486,8 @@ void playAll(AppState *state)
         {
                 exit(0);
         }
-        shufflePlaylist(&playlist);
+        if (!state->uiSettings.saveRepeatShuffleSettings)
+                shufflePlaylist(&playlist);
         markListAsEnqueued(library, &playlist);
         run(state, true);
 }
@@ -1787,6 +1802,9 @@ void initState(AppState *state)
         state->uiSettings.mouseAltScrollUpAction = 7;
         state->uiSettings.mouseAltScrollDownAction = 8;
         state->uiSettings.replayGainCheckFirst = 0;
+        state->uiSettings.saveRepeatShuffleSettings = 1;
+        state->uiSettings.repeatState = 0;
+        state->uiSettings.shuffleEnabled = 0;
         state->uiState.numDirectoryTreeEntries = 0;
         state->uiState.numProgressBars = 35;
         state->uiState.chosenNodeId = 0;
