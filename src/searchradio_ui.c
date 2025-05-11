@@ -357,22 +357,24 @@ int displayRadioSearchResults(RadioSearchResult *radioSearchResults, size_t radi
         bool isFavorite = false;
 
         // Print the sorted results
-        for (size_t i = startSearchIter; i < radioResultsCount; i++)
+        for (size_t i = startSearchIter;
+             i < radioResultsCount && i < startSearchIter + maxListSize; i++)
         {
-                if ((int)i >= maxListSize + startSearchIter - 1)
-                        break;
-
                 setDefaultTextColor();
 
                 printBlankSpaces(indent);
 
-                if (radioSearchResults != radioFavorites)
+                bool isFavorite = false;
+                for (size_t j = 0; j < radioFavoritesCount; j++)
                 {
-                        for (size_t j = 0; j < radioFavoritesCount; j++)
+                        if (!radioSearchResults || !radioFavorites) // NULL check
+                                break;
+
+                        if (strcmp(radioSearchResults[i].url_resolved,
+                                   radioFavorites[j].url_resolved) == 0)
                         {
-                                isFavorite = strcmp(radioSearchResults[i].url_resolved, radioFavorites[j].url_resolved) == 0;
-                                if (isFavorite)
-                                        break;
+                                isFavorite = true;
+                                break;
                         }
                 }
 
