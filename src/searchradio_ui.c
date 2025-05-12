@@ -32,7 +32,7 @@ size_t radioFavoritesCapacity = 0;
 size_t radioResultsCount = 0;
 size_t radioResultsCapacity = 0;
 
-int minRadioSearchLetters = 1;
+int minRadioSearchLetters = 3;
 RadioSearchResult *currentRadioSearchEntry = NULL;
 
 char radioSearchText[MAX_SEARCH_LEN * 4 + 1]; // Unicode can be 4 characters
@@ -170,12 +170,16 @@ void radioSearch()
 {
         freeRadioSearchResults();
 
-        if (numRadioSearchLetters > minRadioSearchLetters)
+        if (numRadioSearchLetters >= minRadioSearchLetters)
         {
                 if (internetRadioSearch(radioSearchText, collectRadioResult) < 0)
                 {
                         setErrorMessage("Radio database unavailable.");
                 }
+        }
+        else
+        {
+                setErrorMessage("The search query is too short.");
         }
         refresh = true;
 }
@@ -357,14 +361,14 @@ int displayRadioSearchResults(RadioSearchResult *radioSearchResults, size_t radi
         bool isFavorite = false;
 
         // Print the sorted results
-        for (size_t i = startSearchIter;
-             i < radioResultsCount && i < startSearchIter + maxListSize; i++)
+        for (int i = startSearchIter;
+             i < (int)radioResultsCount && i < startSearchIter + maxListSize; i++)
         {
                 setDefaultTextColor();
 
                 printBlankSpaces(indent);
 
-                bool isFavorite = false;
+                isFavorite = false;
                 for (size_t j = 0; j < radioFavoritesCount; j++)
                 {
                         if (!radioSearchResults || !radioFavorites) // NULL check
