@@ -297,7 +297,7 @@ typedef struct
 
 pthread_mutex_t server_list_mutex = PTHREAD_MUTEX_INITIALIZER;
 
-pthread_t currentThread;
+pthread_t currentRadioSearchThread;
 
 volatile sig_atomic_t stopFlag = 0;
 
@@ -630,14 +630,14 @@ cleanup:
         return NULL;
 }
 
-void stopCurrentThread()
+void stopCurrentRadioSearchThread(void)
 {
-        if (currentThread)
+        if (currentRadioSearchThread)
         {
                 stopFlag = 1;
-                pthread_join(currentThread, NULL);
+                pthread_join(currentRadioSearchThread, NULL);
                 stopFlag = 0;
-                currentThread = 0;
+                currentRadioSearchThread = 0;
         }
 }
 
@@ -651,7 +651,7 @@ int internetRadioSearch(const char *searchTerm, void (*callback)(const char *, c
                 return -1;
         }
 
-        stopCurrentThread();
+        stopCurrentRadioSearchThread();
 
         args = malloc(sizeof(SearchThreadArgs));
         if (!args)
@@ -677,7 +677,7 @@ int internetRadioSearch(const char *searchTerm, void (*callback)(const char *, c
         }
 
         pthread_detach(threadId);
-        currentThread = threadId;
+        currentRadioSearchThread = threadId;
 
         return 0;
 }
@@ -906,7 +906,6 @@ int stopRadio(void)
 #else
         pthread_mutex_lock(&(radioContext.buf.mutex));
 #endif
-
         radioContext.buf.eof = 1;
         radioContext.buf.stale = false;
         pthread_cond_broadcast(&(radioContext.buf.cond));
