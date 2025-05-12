@@ -63,4 +63,6 @@ void initRadioMutexes(void);
 
 void destroyRadioMutexes(void);
 
+void stopCurrentRadioSearchThread(void);
+
 #endif
