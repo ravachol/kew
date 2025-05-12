@@ -1247,6 +1247,8 @@ void cleanupOnExit()
 {
         stopRadio();
 
+        stopCurrentRadioSearchThread();
+
         pthread_mutex_lock(&dataSourceMutex);
 
         resetAllDecoders();
