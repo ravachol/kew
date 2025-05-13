@@ -6,7 +6,6 @@
 #include "playlist.h"
 #include "playlist_ui.h"
 #include "search_ui.h"
-#include "searchradio_ui.h"
 #include "songloader.h"
 #include "sound.h"
 #include "term.h"
@@ -34,7 +33,7 @@ player_ui.c
 #ifdef __APPLE__
 const int ABSOLUTE_MIN_WIDTH = 80;
 #else
-const int ABSOLUTE_MIN_WIDTH = 73;
+const int ABSOLUTE_MIN_WIDTH = 65;
 #endif
 
 bool fastForwarding = false;
@@ -48,16 +47,13 @@ int textWidth = 0;
 int indent = 0;
 int maxListSize = 0;
 int maxSearchListSize = 0;
-int maxRadioSearchListSize = 0;
 int numTopLevelSongs = 0;
 int startLibIter = 0;
 int startSearchIter = 0;
-int startRadioSearchIter = 0;
 int maxLibListSize = 0;
 int chosenRow = 0;                  // The row that is chosen in playlist view
 int chosenLibRow = 0;               // The row that is chosen in library view
 int chosenSearchResultRow = 0;      // The row that is chosen in search view
-int chosenRadioSearchResultRow = 0; // The row that is chosen in radio search view
 int libIter = 0;
 int libSongIter = 0;
 int libTopLevelSongIter = 0;
@@ -151,8 +147,7 @@ void printHelp()
                " F3 to show/hide library view.\n"
                " F4 to show/hide track view.\n"
                " F5 to show/hide search view.\n"
-               " F6 to show/hide radio search view.\n"
-               " F7 to show/hide show/hide key bindings view.\n"
+               " F6 to show/hide show/hide key bindings view.\n"
                " u to update the library.\n"
                " v to toggle the spectrum visualizer.\n"
                " i to switch between using your regular color scheme or colors derived from the track cover.\n"
@@ -246,34 +241,6 @@ int printLogo(SongData *songData, UISettings *ui)
 
                 printf(" %s\n\n", title);
                 height += 2;
-        }
-        else if (isRadioPlaying())
-        {
-                int term_w, term_h;
-                getTermSize(&term_w, &term_h);
-
-                RadioSearchResult *station = getCurrentPlayingRadioStation();
-
-                if (station != NULL)
-                {
-                        char title[MAXPATHLEN] = {0};
-
-                        snprintf(title, MAXPATHLEN, "%s (%s)",
-                                 station->name, station->country);
-
-                        shortenString(title, term_w - indent - indent - logoWidth - 4);
-
-                        if (ui->useConfigColors)
-                                setTextColor(ui->titleColor);
-
-                        printf(" %s\n\n", title);
-                        height += 2;
-                }
-                else
-                {
-                        printf("\n\n");
-                        height += 2;
-                }
         }
         else
         {
@@ -650,9 +617,9 @@ void printLastRow(UISettings *ui)
         setTextColorRGB(lastRowColor.r, lastRowColor.g, lastRowColor.b);
 
 #ifdef __APPLE__
-        char text[100] = " Sh+Z List|Sh+X Lib|Sh+C Track|Sh+V Search|Sh+B Radio|Sh+N Help";
+        char text[100] = " Sh+Z List|Sh+X Lib|Sh+C Track|Sh+V Search|Sh+B Help";
 #else
-        char text[100] = " [F2 Playlist|F3 Library|F4 Track|F5 Search|F6 Radio|F7 Help]";
+        char text[100] = " [F2 Playlist|F3 Library|F4 Track|F5 Search|F6 Help]";
 #endif
 
         char nerdFontText[100] = "";
@@ -844,15 +811,12 @@ void switchToNextView(void)
                 appState.currentView = LIBRARY_VIEW;
                 break;
         case LIBRARY_VIEW:
-                appState.currentView = (currentSong != NULL || isRadioPlaying()) ? TRACK_VIEW : SEARCH_VIEW;
+                appState.currentView = (currentSong != NULL) ? TRACK_VIEW : SEARCH_VIEW;
                 break;
         case TRACK_VIEW:
                 appState.currentView = SEARCH_VIEW;
                 break;
         case SEARCH_VIEW:
-                appState.currentView = RADIOSEARCH_VIEW;
-                break;
-        case RADIOSEARCH_VIEW:
                 appState.currentView = KEYBINDINGS_VIEW;
                 break;
         case KEYBINDINGS_VIEW:
@@ -876,13 +840,10 @@ void switchToPreviousView(void)
                 appState.currentView = LIBRARY_VIEW;
                 break;
         case SEARCH_VIEW:
-                appState.currentView = (currentSong != NULL || isRadioPlaying()) ? TRACK_VIEW : LIBRARY_VIEW;
-                break;
-        case RADIOSEARCH_VIEW:
-                appState.currentView = SEARCH_VIEW;
+                appState.currentView = (currentSong != NULL) ? TRACK_VIEW : LIBRARY_VIEW;
                 break;
         case KEYBINDINGS_VIEW:
-                appState.currentView = RADIOSEARCH_VIEW;
+                appState.currentView = SEARCH_VIEW;
                 break;
         }
         refresh = true;
@@ -915,13 +876,6 @@ void flipNextPage(void)
                 startSearchIter += maxSearchListSize - 1;
                 refresh = true;
         }
-        else if (appState.currentView == RADIOSEARCH_VIEW)
-        {
-                chosenRadioSearchResultRow += maxRadioSearchListSize - 1;
-                chosenRadioSearchResultRow = (chosenRadioSearchResultRow >= getRadioSearchResultsCount()) ? getRadioSearchResultsCount() - 1 : chosenRadioSearchResultRow;
-                startRadioSearchIter += maxRadioSearchListSize - 1;
-                refresh = true;
-        }
 }
 
 void flipPrevPage(void)
@@ -945,13 +899,6 @@ void flipPrevPage(void)
                 startSearchIter -= maxSearchListSize;
                 refresh = true;
         }
-        else if (appState.currentView == RADIOSEARCH_VIEW)
-        {
-                chosenRadioSearchResultRow -= maxRadioSearchListSize;
-                chosenRadioSearchResultRow = (chosenRadioSearchResultRow > 0) ? chosenRadioSearchResultRow : 0;
-                startRadioSearchIter -= maxRadioSearchListSize;
-                refresh = true;
-        }
 }
 
 void scrollNext(void)
@@ -971,11 +918,6 @@ void scrollNext(void)
         else if (appState.currentView == SEARCH_VIEW)
         {
                 chosenSearchResultRow++;
-                refresh = true;
-        }
-        else if (appState.currentView == RADIOSEARCH_VIEW)
-        {
-                chosenRadioSearchResultRow++;
                 refresh = true;
         }
 }
@@ -998,12 +940,6 @@ void scrollPrev(void)
         {
                 chosenSearchResultRow--;
                 chosenSearchResultRow = (chosenSearchResultRow > 0) ? chosenSearchResultRow : 0;
-                refresh = true;
-        }
-        else if (appState.currentView == RADIOSEARCH_VIEW)
-        {
-                chosenRadioSearchResultRow--;
-                chosenRadioSearchResultRow = (chosenRadioSearchResultRow > 0) ? chosenRadioSearchResultRow : 0;
                 refresh = true;
         }
 }
@@ -1066,32 +1002,6 @@ void showSearch(SongData *songData, int *chosenRow, UISettings *ui)
         printLastRow(ui);
 }
 
-void showRadioSearch(SongData *songData, int *chosenRow, UISettings *ui)
-{
-        int term_w, term_h;
-        getTermSize(&term_w, &term_h);
-        maxRadioSearchListSize = term_h - 3;
-
-        int aboutRows = printLogo(songData, ui);
-        maxRadioSearchListSize -= aboutRows;
-
-        setDefaultTextColor();
-
-        if (term_w > indent + 73 && !ui->hideHelp)
-        {
-                printBlankSpaces(indent);
-                printf(" Enter to input search. Use ↑, ↓ to choose. Enter to accept a station.\n");
-                printBlankSpaces(indent);
-                printf(" Shift+f to add, del to remove favorites. Empty search to show favorites.\n\n");
-                maxRadioSearchListSize -= 3;
-        }
-
-        displayRadioSearch(maxRadioSearchListSize, indent, chosenRow, startSearchIter, ui);
-
-        printErrorRow();
-        printLastRow(ui);
-}
-
 void showPlaylist(SongData *songData, PlayList *list, int *chosenSong, int *chosenNodeId, AppState *state)
 {
         int term_w, term_h;
@@ -1131,11 +1041,6 @@ void showPlaylist(SongData *songData, PlayList *list, int *chosenSong, int *chos
 void resetSearchResult(void)
 {
         chosenSearchResultRow = 0;
-}
-
-void resetRadioSearchResult(void)
-{
-        chosenRadioSearchResultRow = 0;
 }
 
 void printElapsedChars(AppSettings *settings, UISettings *ui, int elapsedBars, int numProgressBars)
@@ -1635,43 +1540,6 @@ void showLibrary(SongData *songData, AppState *state)
         }
 }
 
-void createMetadataForRadio(TagSettings **metadata, RadioSearchResult *station)
-{
-        if (station)
-        {
-                *metadata = malloc(sizeof(TagSettings));
-                if (!*metadata)
-                        return;
-
-                if (station->bitrate > 0)
-                {
-                        // Reserve space for " %dkb/s"
-                        const int maxBitratePartLen = 18;
-                        size_t maxNameLen = sizeof((*metadata)->title) - maxBitratePartLen;
-
-                        // Copy a truncated name safely
-                        strncpy((*metadata)->title, station->name, maxNameLen);
-                        (*metadata)->title[maxNameLen] = '\0'; // ensure null termination
-
-                        // Now append the bitrate string safely
-                        snprintf((*metadata)->title + strlen((*metadata)->title),
-                                 sizeof((*metadata)->title) - strlen((*metadata)->title),
-                                 " %dkb/s", station->bitrate);
-                }
-                else
-                {
-                        c_strcpy((*(metadata))->title, station->name, sizeof((*(metadata))->title) - 1);
-                        (*metadata)->title[sizeof((*metadata)->title) - 1] = '\0';
-                }
-
-                (*metadata)->album[0] = '\0';
-                (*metadata)->artist[0] = '\0';
-                (*metadata)->date[0] = '\0';
-
-                calcIndentTrackView(*metadata);
-        }
-}
-
 void showTrackViewMini(AppSettings *settings, SongData *songdata, AppState *state, double elapsedSeconds)
 {
         TagSettings *metadata = NULL;
@@ -1683,7 +1551,7 @@ void showTrackViewMini(AppSettings *settings, SongData *songdata, AppState *stat
 
                 clearScreen();
 
-                if (currentSong == NULL && !isRadioPlaying())
+                if (currentSong == NULL)
                 {
                         int term_w, term_h;
                         getTermSize(&term_w, &term_h);
@@ -1701,15 +1569,10 @@ void showTrackViewMini(AppSettings *settings, SongData *songdata, AppState *stat
                         }
                         return;
                 }
+
                 if (songdata)
                 {
                         metadata = songdata->metadata;
-                }
-                else if (isRadioPlaying())
-                {
-                        RadioSearchResult *station = getCurrentPlayingRadioStation();
-
-                        createMetadataForRadio(&metadata, station);
                 }
 
                 calcIndentTrackView(metadata);
@@ -1769,14 +1632,6 @@ void showTrackView(AppSettings *settings, SongData *songdata, AppState *state, d
                 {
                         metadata = songdata->metadata;
                 }
-                else if (isRadioPlaying())
-                {
-                        RadioSearchResult *station = getCurrentPlayingRadioStation();
-
-                        avgBitRate = station->bitrate;
-
-                        createMetadataForRadio(&metadata, station);
-                }
 
                 clearScreen();
                 printf("\n");
@@ -1826,7 +1681,7 @@ int printPlayer(SongData *songdata, double elapsedSeconds, AppSettings *settings
                 }
                 else
                 {
-                        if (state->currentView == TRACK_VIEW && !isRadioPlaying())
+                        if (state->currentView == TRACK_VIEW)
                         {
                                 state->currentView = LIBRARY_VIEW;
                         }
@@ -1873,13 +1728,6 @@ int printPlayer(SongData *songdata, double elapsedSeconds, AppSettings *settings
         {
                 clearScreen();
                 showSearch(songdata, &chosenSearchResultRow, ui);
-                refresh = false;
-                fflush(stdout);
-        }
-        else if (state->currentView == RADIOSEARCH_VIEW && refresh)
-        {
-                clearScreen();
-                showRadioSearch(songdata, &chosenRadioSearchResultRow, ui);
                 refresh = false;
                 fflush(stdout);
         }

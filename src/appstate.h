@@ -29,8 +29,7 @@ typedef enum
         KEYBINDINGS_VIEW,
         PLAYLIST_VIEW,
         LIBRARY_VIEW,
-        SEARCH_VIEW,
-        RADIOSEARCH_VIEW
+        SEARCH_VIEW
 } ViewState;
 
 typedef struct
@@ -163,10 +162,7 @@ typedef struct
         char showLibraryAlt[6];
         char hardShowSearch[6];
         char hardShowSearchAlt[6];
-        char hardShowRadioSearch[6];
-        char hardShowRadioSearchAlt[6];
         char showSearchAlt[6];
-        char showRadioSearchAlt[6];
         char hardShowTrack[6];
         char hardShowTrackAlt[6];
         char showTrackAlt[6];
@@ -207,7 +203,6 @@ typedef struct
         char moveSongDown[6];
         char enqueueAndPlay[6];
         char hardStop[6];
-        char hardAddToRadioFavorites[6];
         char sortLibrary[6];
         char visualizerBrailleMode[2];
         char progressBarElapsedEvenChar[12];

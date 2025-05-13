@@ -119,7 +119,7 @@ endif
 OBJDIR = src/obj
 
 SRCS = src/common_ui.c  src/common.c src/sound.c src/directorytree.c src/notifications.c \
-       src/soundcommon.c src/m4a.c src/search_ui.c  src/soundradio.c src/searchradio_ui.c  src/playlist_ui.c \
+       src/soundcommon.c src/m4a.c src/search_ui.c src/playlist_ui.c \
        src/player_ui.c src/soundbuiltin.c src/mpris.c src/playerops.c \
        src/utils.c src/file.c src/imgfunc.c src/cache.c src/songloader.c \
        src/playlist.c src/term.c src/settings.c src/visuals.c src/kew.c

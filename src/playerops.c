@@ -10,7 +10,6 @@
 #include "player_ui.h"
 #include "songloader.h"
 #include "search_ui.h"
-#include "searchradio_ui.h"
 #include "settings.h"
 #include "term.h"
 
@@ -922,21 +921,6 @@ void removeCurrentlyPlayingSong(void)
         currentSong = NULL;
 }
 
-void playRadio()
-{
-        pthread_mutex_lock(&(playlist.mutex));
-
-        RadioSearchResult *station = getCurrentRadioSearchEntry();
-
-        if (station != NULL)
-        {
-                removeCurrentlyPlayingSong();
-                playRadioStation(station);
-        }
-
-        pthread_mutex_unlock(&(playlist.mutex));
-}
-
 void moveSongUp()
 {
         if (appState.currentView != PLAYLIST_VIEW)
@@ -1321,16 +1305,7 @@ FileSystemEntry *enqueueSongs(FileSystemEntry *entry, UIState *uis)
 
 void handleRemove(void)
 {
-        if (appState.currentView == RADIOSEARCH_VIEW)
-        {
-                RadioSearchResult *station = getCurrentRadioSearchEntry();
-
-                if (station)
-                {
-                        removeFromRadioFavorites(station);
-                }
-        }
-        else if (appState.currentView == PLAYLIST_VIEW)
+        if (appState.currentView == PLAYLIST_VIEW)
         {
 
                 bool rebuild = false;

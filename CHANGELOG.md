@@ -1,5 +1,18 @@
 # CHANGELOG
 
+### 3.3.1
+
+Removal of Internet Radio Feature:
+We have decided to remove the internet radio feature from this release. This decision was made after careful consideration of stability and security concerns.
+
+Why This Change:
+To focus on core functionality. By removing the internet radio feature, we can concentrate on making the core music player really high quality, and making kew a more enjoyable experience.
+
+Security and Stability:
+It has been challenging addressing issues related to the internet radio feature. Removing it allows us to focus on other aspects of the application without compromising its stability and security.
+
+To summarize: By removing internet access completely from kew, we can make it a simple, secure and robust tool much more easily.
+
 ### 3.3.0
 
 - Reworked the visualizer to make it have more punch and to make higher frequency value changes more visible. The visualizer now also runs at 30fps instead of 60fps. 60 fps was just at odds with kew's very low system requirements profile, and we want kew to consume very little resources. The lower framerate cuts the cpu utilization in half when in track view with no big noticeable differences.
