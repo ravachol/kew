@@ -106,15 +106,14 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         c_strcpy(settings.hardShowPlaylist, "OQ", sizeof(settings.hardShowPlaylist));
         c_strcpy(settings.hardShowPlaylistAlt, "[[B", sizeof(settings.hardShowPlaylistAlt));
 
-        c_strcpy(settings.hardShowKeys, "[18~", sizeof(settings.hardShowKeys));
-        c_strcpy(settings.hardShowKeysAlt, "[18~", sizeof(settings.hardShowKeysAlt));
+        c_strcpy(settings.hardShowKeys, "[17~", sizeof(settings.hardShowKeys));
+        c_strcpy(settings.hardShowKeysAlt, "[17~", sizeof(settings.hardShowKeysAlt));
 #ifdef __APPLE__
         c_strcpy(settings.showPlaylistAlt, "Z", sizeof(settings.showPlaylistAlt));
         c_strcpy(settings.showTrackAlt, "C", sizeof(settings.showTrackAlt));
         c_strcpy(settings.showLibraryAlt, "X", sizeof(settings.showLibraryAlt));
         c_strcpy(settings.showSearchAlt, "V", sizeof(settings.showSearchAlt));
-        c_strcpy(settings.showRadioSearchAlt, "B", sizeof(settings.showSearchAlt));
-        c_strcpy(settings.showKeysAlt, "N", sizeof(settings.showKeysAlt));
+        c_strcpy(settings.showKeysAlt, "B", sizeof(settings.showKeysAlt));
 #endif
         c_strcpy(settings.hardShowTrack, "OS", sizeof(settings.hardShowTrack));
         c_strcpy(settings.hardShowTrackAlt, "[[D", sizeof(settings.hardShowTrackAlt));
@@ -124,8 +123,6 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
 
         c_strcpy(settings.hardShowSearch, "[15~", sizeof(settings.hardShowSearch));
         c_strcpy(settings.hardShowSearchAlt, "[[E", sizeof(settings.hardShowSearchAlt));
-        c_strcpy(settings.hardShowRadioSearch, "[17~", sizeof(settings.hardShowSearch));
-        c_strcpy(settings.hardShowRadioSearchAlt, "[17~", sizeof(settings.hardShowRadioSearchAlt));
 
         c_strcpy(settings.hardNextPage, "[6~", sizeof(settings.hardNextPage));
         c_strcpy(settings.hardPrevPage, "[5~", sizeof(settings.hardPrevPage));
@@ -153,7 +150,6 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         c_strcpy(settings.moveSongUp, "t", sizeof(settings.moveSongUp));
         c_strcpy(settings.moveSongDown, "g", sizeof(settings.moveSongDown));
         c_strcpy(settings.enqueueAndPlay, "^M", sizeof(settings.enqueueAndPlay));
-        c_strcpy(settings.hardAddToRadioFavorites, "F", sizeof(settings.hardAddToRadioFavorites));
         c_strcpy(settings.hardStop, "S", sizeof(settings.hardStop));
         c_strcpy(settings.sortLibrary, "o", sizeof(settings.sortLibrary));
         c_strcpy(settings.quit, "q", sizeof(settings.quit));
@@ -453,7 +449,7 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
                         if (strcmp(pair->value, "") != 0)
                                 snprintf(settings.progressBarCurrentOddChar, sizeof(settings.progressBarCurrentOddChar), "%s", pair->value);
                 }
-                else if (strcmp(lowercaseKey, "showkeysalt") == 0 && strcmp(pair->value, "B") != 0)
+                else if (strcmp(lowercaseKey, "showkeysalt") == 0 && strcmp(pair->value, "N") != 0)
                 {
                         // We need to prevent the previous key B or else config files wont get updated
                         // to the new key N and B for radio search on macOS
@@ -609,15 +605,11 @@ void mapSettingsToKeys(AppSettings *settings, UISettings *ui, EventMapping *mapp
         mappings[53] = (EventMapping){settings->mouseAltScrollUp, ui->mouseAltScrollUpAction};
         mappings[54] = (EventMapping){settings->mouseAltScrollDown, ui->mouseAltScrollDownAction};
         mappings[55] = (EventMapping){settings->hardClearPlaylist, EVENT_CLEARPLAYLIST};
-        mappings[56] = (EventMapping){settings->showRadioSearchAlt, EVENT_SHOWRADIOSEARCH};
-        mappings[57] = (EventMapping){settings->hardShowRadioSearch, EVENT_SHOWRADIOSEARCH};
-        mappings[58] = (EventMapping){settings->hardShowRadioSearchAlt, EVENT_SHOWRADIOSEARCH};
-        mappings[59] = (EventMapping){settings->moveSongUp, EVENT_MOVESONGUP};
-        mappings[60] = (EventMapping){settings->moveSongDown, EVENT_MOVESONGDOWN};
-        mappings[61] = (EventMapping){settings->enqueueAndPlay, EVENT_ENQUEUEANDPLAY};
-        mappings[62] = (EventMapping){settings->hardStop, EVENT_STOP};
-        mappings[63] = (EventMapping){settings->hardAddToRadioFavorites, EVENT_ADDTORADIOFAVORITES};
-        mappings[64] = (EventMapping){settings->sortLibrary, EVENT_SORTLIBRARY};
+        mappings[56] = (EventMapping){settings->moveSongUp, EVENT_MOVESONGUP};
+        mappings[57] = (EventMapping){settings->moveSongDown, EVENT_MOVESONGDOWN};
+        mappings[58] = (EventMapping){settings->enqueueAndPlay, EVENT_ENQUEUEANDPLAY};
+        mappings[59] = (EventMapping){settings->hardStop, EVENT_STOP};
+        mappings[60] = (EventMapping){settings->sortLibrary, EVENT_SORTLIBRARY};
 }
 
 char *getConfigFilePath(char *configdir)
@@ -1152,7 +1144,6 @@ void setConfig(AppSettings *settings, UISettings *ui)
         fprintf(file, "showLibraryAlt=%s\n", settings->showLibraryAlt);
         fprintf(file, "showTrackAlt=%s\n", settings->showTrackAlt);
         fprintf(file, "showSearchAlt=%s\n", settings->showSearchAlt);
-        fprintf(file, "showRadioSearchAlt=%s\n", settings->showRadioSearchAlt);
         fprintf(file, "showKeysAlt=%s\n\n", settings->showKeysAlt);
 
         fprintf(file, "# For special keys use terminal codes: OS, for F4 for instance. This can depend on the terminal.\n");

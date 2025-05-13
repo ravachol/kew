@@ -353,11 +353,6 @@ int calcAvgBitRate(double duration, const char *filePath)
 
 int switchAudioImplementation(void)
 {
-        if (isRadioPlaying())
-        {
-                stopRadio();
-        }
-
         if (audioData.endOfListReached)
         {
                 setEOFNotReached();
@@ -743,7 +738,7 @@ int createAudioDevice()
 void resumePlayback(void)
 {
         // If this was unpaused with no song loaded
-        if (audioData.restart && !isRadioPlaying())
+        if (audioData.restart)
         {
                 audioData.endOfListReached = false;
         }

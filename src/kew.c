@@ -63,7 +63,6 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include "playerops.h"
 #include "playlist.h"
 #include "search_ui.h"
-#include "searchradio_ui.h"
 #include "settings.h"
 #include "sound.h"
 #include "soundcommon.h"
@@ -201,40 +200,6 @@ struct Event processInput()
                 }
         }
 
-        if (appState.currentView == RADIOSEARCH_VIEW)
-        {
-                if (strcmp(event.key, "\x7F") == 0 || strcmp(event.key, "\x08") == 0)
-                {
-                        removeFromRadioSearchText();
-                        resetRadioSearchResult();
-                        isNewSearchTerm = true;
-                        event.type = EVENT_RADIOSEARCH;
-                }
-                else if (((strnlen(event.key, sizeof(event.key)) == 1 && event.key[0] != '\033' && event.key[0] != '\n' && event.key[0] != '\t' && event.key[0] != '\r') ||
-                          strcmp(event.key, " ") == 0 || (unsigned char)event.key[0] >= 0xC0) &&
-#ifdef __APPLE__
-                         strcmp(event.key, "Z") != 0 && strcmp(event.key, "X") != 0 &&
-                         strcmp(event.key, "C") != 0 && strcmp(event.key, "V") != 0 &&
-                         strcmp(event.key, "B") != 0 && strcmp(event.key, "N") != 0 &&
-#endif
-                         strcmp(event.key, "F") != 0 && strcmp(event.key, "S") != 0)
-                {
-                        addToRadioSearchText(event.key);
-                        resetRadioSearchResult();
-                        isNewSearchTerm = true;
-                        event.type = EVENT_RADIOSEARCH;
-                }
-                else if (event.key[0] == '\n')
-                {
-                        if (isNewSearchTerm && hasRadioSearchText())
-                        {
-                                radioSearch();
-                                event.type = EVENT_RADIOSEARCH;
-                                isNewSearchTerm = false;
-                        }
-                }
-        }
-
         if (seq[0] == 127)
         {
                 seq[0] = '\b'; // Treat as Backspace
@@ -248,11 +213,6 @@ struct Event processInput()
                      strcmp(seq, keyMappings[i].seq) == 0))
                 {
                         if (event.type == EVENT_SEARCH && keyMappings[i].eventType != EVENT_GOTOSONG)
-                        {
-                                break;
-                        }
-
-                        if (event.type == EVENT_RADIOSEARCH && keyMappings[i].eventType != EVENT_GOTOSONG)
                         {
                                 break;
                         }
@@ -583,20 +543,6 @@ void playPostProcessing()
         audioData.endOfListReached = false;
 }
 
-void handleAddToRadioFavorites(AppState *state)
-{
-        if (state->currentView == RADIOSEARCH_VIEW)
-        {
-                RadioSearchResult *station = getCurrentRadioSearchEntry();
-
-                if (station)
-                {
-                        addToRadioFavorites(station);
-                        refresh = true;
-                }
-        }
-}
-
 void handleGoToSong(AppState *state)
 {
         bool canGoNext = (currentSong != NULL && currentSong->next != NULL);
@@ -619,10 +565,6 @@ void handleGoToSong(AppState *state)
 
                 pthread_mutex_unlock(&(playlist.mutex));
         }
-        else if (state->currentView == RADIOSEARCH_VIEW)
-        {
-                playRadio();
-        }
         else if (state->currentView == PLAYLIST_VIEW)
         {
                 if (digitsPressedCount == 0)
@@ -633,15 +575,7 @@ void handleGoToSong(AppState *state)
                         }
                         else
                         {
-                                if (isRadioPlaying())
-                                {
-                                        stopRadio();
-                                        setEOFReached();
-                                }
-                                else
-                                {
-                                        cleanupPlaybackDevice();
-                                }
+                                cleanupPlaybackDevice();
 
                                 loadedNextSong = true;
 
@@ -691,15 +625,6 @@ void handleGoToSong(AppState *state)
 
 void enqueueAndPlay(AppState *state)
 {
-        if (state->currentView == LIBRARY_VIEW || state->currentView == SEARCH_VIEW)
-        {
-                if (isRadioPlaying())
-                {
-                        stopRadio();
-                        setEOFReached();
-                }
-        }
-
         FileSystemEntry *firstEnqueuedEntry = NULL;
 
         bool wasEmpty = (playlist.count == 0);
@@ -856,8 +781,6 @@ void handleInput(AppState *state)
         case EVENT_SHOWSEARCH:
                 toggleShowView(SEARCH_VIEW);
                 break;
-        case EVENT_SHOWRADIOSEARCH:
-                toggleShowView(RADIOSEARCH_VIEW);
                 break;
         case EVENT_SHOWLIBRARY:
                 toggleShowView(LIBRARY_VIEW);
@@ -885,9 +808,6 @@ void handleInput(AppState *state)
                 updatePlaylistToPlayingSong();
                 state->uiState.resetPlaylistDisplay = true;
                 break;
-        case EVENT_RADIOSEARCH:
-                refresh = true;
-                break;
         case EVENT_MOVESONGUP:
                 moveSongUp();
                 break;
@@ -896,9 +816,6 @@ void handleInput(AppState *state)
                 break;
         case EVENT_ENQUEUEANDPLAY:
                 enqueueAndPlay(state);
-                break;
-        case EVENT_ADDTORADIOFAVORITES:
-                handleAddToRadioFavorites(state);
                 break;
         case EVENT_STOP:
                 stop();
@@ -998,14 +915,6 @@ void loadAudioData(AppState *state)
 
                         unloadSongA(state);
                         unloadSongB(state);
-
-                        if (isRadioPlaying())
-                        {
-                                stopRadio();
-                                audioData.currentFileIndex = 0;
-                                loadingdata.loadA = true;
-                                usingSongDataA = false;
-                        }
 
                         int res = loadFirst(currentSong, state);
 
@@ -1121,8 +1030,6 @@ void updatePlayerStatus(AppState *state)
 {
         updatePlayer(&(state->uiState));
 
-        reconnectRadioIfNeeded();
-
         if (playlist.head != NULL)
         {
                 if ((skipFromStopped || !loadedNextSong || nextSongNeedsRebuilding) && !audioData.endOfListReached)
@@ -1165,7 +1072,7 @@ gboolean mainloop_callback(gpointer data)
         updateCounter++;
 
         // Different views run at different speeds to lower the impact on system requirements
-        if ((updateCounter % 2 == 0 && (appState.currentView == SEARCH_VIEW || appState.currentView == RADIOSEARCH_VIEW)) || (appState.currentView == TRACK_VIEW || appState.uiState.miniMode) || updateCounter % 3 == 0)
+        if ((updateCounter % 2 == 0 && appState.currentView == SEARCH_VIEW) || (appState.currentView == TRACK_VIEW || appState.uiState.miniMode) || updateCounter % 3 == 0)
         {
                 processDBusEvents();
 
@@ -1245,10 +1152,6 @@ void initFirstPlay(Node *song, AppState *state)
 
 void cleanupOnExit()
 {
-        stopRadio();
-
-        stopCurrentRadioSearchThread();
-
         pthread_mutex_lock(&dataSourceMutex);
 
         resetAllDecoders();
@@ -1282,9 +1185,6 @@ void cleanupOnExit()
         }
 
         freeSearchResults();
-        freeRadioSearchResults();
-        freeCurrentlyPlayingRadioStation();
-        curl_global_cleanup();
         cleanupMpris();
         restoreTerminalMode();
         enableInputBuffering();
@@ -1293,7 +1193,6 @@ void cleanupOnExit()
         saveLastUsedPlaylist();
         deleteCache(appState.tmpCache);
         freeMainDirectoryTree(&appState);
-        freeAndwriteRadioFavorites();
         deletePlaylist(&playlist);
         deletePlaylist(originalPlaylist);
         deletePlaylist(specialPlaylist);
@@ -1305,7 +1204,6 @@ void cleanupOnExit()
         pthread_mutex_destroy(&(switchMutex));
         pthread_mutex_unlock(&dataSourceMutex);
         pthread_mutex_destroy(&(dataSourceMutex));
-        destroyRadioMutexes();
         freeVisuals();
         freeLastCover();
 #ifdef USE_DBUS
@@ -1424,10 +1322,7 @@ void init(AppState *state)
         pthread_mutex_init(&switchMutex, NULL);
         pthread_mutex_init(&(loadingdata.mutex), NULL);
         pthread_mutex_init(&(playlist.mutex), NULL);
-        initRadioMutexes();
         createLibrary(&settings, state);
-        createRadioFavorites();
-        curl_global_init(CURL_GLOBAL_DEFAULT);
         setlocale(LC_ALL, "");
         setlocale(LC_CTYPE, "");
         fflush(stdout);
@@ -1819,8 +1714,6 @@ void initState(AppState *state)
         state->uiState.doNotifyMPRISPlaying = false;
         state->uiState.collapseView = false;
         state->tmpCache = NULL;
-
-        radioContext.buf.stale = false;
 }
 
 void initializeStateAndSettings(AppState *appState, AppSettings *settings)
