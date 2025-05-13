@@ -1,5 +1,9 @@
 # CHANGELOG
 
+### 3.3.2
+
+- remove -lcurl from makefile.
+
 ### 3.3.1
 
 Removal of Internet Radio Feature:
