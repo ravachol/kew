@@ -3,7 +3,7 @@
 #include <pthread.h>
 #include "common.h"
 
-const char VERSION[] = "3.3.0";
+const char VERSION[] = "3.3.1";
 
 double pauseSeconds = 0.0;
 double totalPauseSeconds = 0.0;

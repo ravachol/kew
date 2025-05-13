@@ -80,8 +80,6 @@ void setCurrentAsChosenDir(void);
 
 void toggleShowView(ViewState VIEW_TO_SHOW);
 
-void toggleShowRadioSearch(void);
-
 void showTrack(void);
 
 void freeMainDirectoryTree(AppState *state);
@@ -95,8 +93,6 @@ void switchToNextView(void);
 void switchToPreviousView(void);
 
 void resetSearchResult(void);
-
-void resetRadioSearchResult(void);
 
 int getChosenRow(void);
 
