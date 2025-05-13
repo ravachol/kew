@@ -491,8 +491,8 @@ void drawSpectrumVisualizer(AppState *state, int indentation)
 
         if (visualizerBarWidth == 1 || (visualizerBarWidth == 2 && visualizerWidth > maxThinBarsInAutoMode))
                 numBars *= 0.67f;
-        else
-                height -= 1; // Thin bar mode is slightly less tall, looks better
+
+        height -= 1;
 
         if (height <= 0 || numBars <= 0)
         {
