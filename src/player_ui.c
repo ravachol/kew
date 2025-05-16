@@ -51,9 +51,9 @@ int numTopLevelSongs = 0;
 int startLibIter = 0;
 int startSearchIter = 0;
 int maxLibListSize = 0;
-int chosenRow = 0;                  // The row that is chosen in playlist view
-int chosenLibRow = 0;               // The row that is chosen in library view
-int chosenSearchResultRow = 0;      // The row that is chosen in search view
+int chosenRow = 0;             // The row that is chosen in playlist view
+int chosenLibRow = 0;          // The row that is chosen in library view
+int chosenSearchResultRow = 0; // The row that is chosen in search view
 int libIter = 0;
 int libSongIter = 0;
 int libTopLevelSongIter = 0;
@@ -434,10 +434,27 @@ void printProgress(double elapsed_seconds, double total_seconds, ma_uint32 sampl
 
         printBlankSpaces(indent);
 
-        printf(" %02d:%02d:%02d / %02d:%02d:%02d (%d%%) Vol:%d%%",
-               elapsed_hours, elapsed_minutes, elapsed_seconds_remainder,
-               total_hours, total_minutes, total_seconds_remainder,
-               progress_percentage, vol);
+        if (total_seconds >= 3600)
+        {
+                // Song is more than 1 hour long: use full HH:MM:SS format
+                printf(" %02d:%02d:%02d / %02d:%02d:%02d (%d%%) Vol:%d%%",
+                       elapsed_hours, elapsed_minutes, elapsed_seconds_remainder,
+                       total_hours, total_minutes, total_seconds_remainder,
+                       progress_percentage, vol);
+        }
+        else
+        {
+                // Song is less than 1 hour: use M:SS format
+                int elapsed_total_minutes = elapsed_seconds / 60;
+                int elapsed_secs = (int)elapsed_seconds % 60;
+                int total_total_minutes = total_seconds / 60;
+                int total_secs = (int)total_seconds % 60;
+
+                printf(" %d:%02d / %d:%02d (%d%%) Vol:%d%%",
+                       elapsed_total_minutes, elapsed_secs,
+                       total_total_minutes, total_secs,
+                       progress_percentage, vol);
+        }
 
         double rate = ((float)sampleRate) / 1000;
 
@@ -1247,9 +1264,9 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
                 rowColor = getGradientColor(ui->color, libIter - startLibIter, maxListSize, maxListSize / 2, 0.6f);
 
         if (!(root->isDirectory ||
-            (!root->isDirectory && depth == 1) ||
-            (root->isDirectory && depth == 0) ||
-            (chosenDir != NULL && uis->allowChooseSongs && root->parent != NULL && (strcmp(root->parent->fullPath, chosenDir->fullPath) == 0 || strcmp(root->fullPath, chosenDir->fullPath) == 0))))
+              (!root->isDirectory && depth == 1) ||
+              (root->isDirectory && depth == 0) ||
+              (chosenDir != NULL && uis->allowChooseSongs && root->parent != NULL && (strcmp(root->parent->fullPath, chosenDir->fullPath) == 0 || strcmp(root->fullPath, chosenDir->fullPath) == 0))))
         {
                 return foundChosen;
         }
