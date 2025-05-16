@@ -170,15 +170,23 @@ void copyHalfOrFullWidthCharsWithMaxWidth(const char *src, char *dst, int maxWid
 
     while (*p) {
         len = mbrtowc(&wc, p, MB_CUR_MAX, &state);
-        if (len == (size_t)-1) // Invalid multibyte sequence
+        if (len == (size_t)-1) { // Invalid UTF-8/locale error
+            // Skip one byte, reinit state, and keep going
+            p++; // Try resyncing at next byte
+            memset(&state, 0, sizeof(state));
+            continue;
+        }
+        if (len == (size_t)-2) { // Incomplete sequence (shouldn't normally happen)
             break;
-        if (len == (size_t)-2) // Incomplete multibyte sequence (shouldn't happen in null-terminated strings)
+        }
+        if (len == 0) { // Null - end of string
             break;
-        if (len == 0) // Null character found
-            break;
+        }
         int w = mk_wcwidth(wc);
-        if (w < 0) // Unprintable character
-            break;
+        if (w < 0) { // Not displayable? Just skip
+            p += len;
+            continue;
+        }
         if (width + w > maxWidth)
             break;
         memcpy(o, p, len);
