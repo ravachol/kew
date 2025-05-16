@@ -4,6 +4,12 @@
 
 - Don't show zero's for hours unless the duration is more than an hour long.
 
+#### Bug Fixes
+
+- Fixed Volume not working correctly when an audio interface is plugged in on macOS. Volume controls are now disabled like they should be when an audio interface is plugged in. Reported by @arcathrax.
+
+- Fixed issue with corrupted file names and unicode characters. Reported by @Knusper.
+
 ### 3.3.2
 
 - remove -lcurl from makefile.
