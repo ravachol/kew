@@ -1220,8 +1220,60 @@ int getSystemVolume(void)
 #endif
 }
 
+#ifdef __APPLE__
+#include <CoreAudio/CoreAudio.h>
+#include <stdio.h>
+
+bool isVolumeControlEnabled(AudioDeviceID deviceID) {
+    AudioObjectPropertyAddress volumeAddress = {
+        kAudioDevicePropertyVolumeScalar,
+        kAudioDevicePropertyScopeOutput,
+        1 // Channel 1 (left). Check channel 2 too if needed.
+    };
+
+    // Check if volume property exists
+    Boolean hasProperty = AudioObjectHasProperty(deviceID, &volumeAddress);
+    if (!hasProperty) {
+        return false; // No volume control
+    }
+
+    // Check if volume property is writable
+    Boolean isWritable = false;
+    AudioObjectIsPropertySettable(deviceID, &volumeAddress, &isWritable);
+
+    return isWritable != false;
+}
+
+AudioDeviceID getDefaultOutputDevice() {
+    AudioDeviceID deviceID = kAudioObjectUnknown;
+    UInt32 size = sizeof(deviceID);
+    AudioObjectPropertyAddress defaultOutputAddress = {
+        kAudioHardwarePropertyDefaultOutputDevice,
+        kAudioObjectPropertyScopeGlobal,
+        kAudioObjectPropertyElementMain
+    };
+
+    if (AudioObjectGetPropertyData(kAudioObjectSystemObject, &defaultOutputAddress, 0, NULL, &size, &deviceID) != noErr) {
+        return kAudioObjectUnknown;
+    }
+
+    return deviceID;
+}
+#endif
+
 void setVolume(int volume)
 {
+#ifdef __APPLE__
+        AudioDeviceID deviceID = getDefaultOutputDevice();
+        if (deviceID == kAudioObjectUnknown) {
+            return;
+        }
+
+        if (!isVolumeControlEnabled(deviceID)) {
+            return;
+        }
+#endif
+
         if (volume > 100)
         {
                 volume = 100;

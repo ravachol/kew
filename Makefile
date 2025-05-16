@@ -87,6 +87,8 @@ ifeq ($(UNAME_S), Linux)
   ifneq ($(DEBUG), 1)
   LDFLAGS += -s
   endif
+else ifeq ($(UNAME_S), Darwin)
+  LIBS += -framework CoreAudio -framework CoreFoundation
 endif
 
 # Conditionally add  USE_DBUS is enabled
