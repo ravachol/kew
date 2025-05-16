@@ -1,5 +1,9 @@
 # CHANGELOG
 
+### 3.3.3
+
+- Don't show zero's for hours unless the duration is more than an hour long.
+
 ### 3.3.2
 
 - remove -lcurl from makefile.
@@ -16,6 +20,8 @@ Security and Stability:
 It has been challenging addressing issues related to the internet radio feature. Removing it allows us to focus on other aspects of the application without compromising its stability and security.
 
 To summarize: By removing internet access completely from kew, we can make it a simple, secure and robust tool much more easily.
+
+- Also Fixes an issue with visualizer height on macOS.
 
 ### 3.3.0
 
