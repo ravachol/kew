@@ -4,11 +4,16 @@
 
 - Don't show zero's for hours unless the duration is more than an hour long.
 
+- Show shuffle, repeat settings even if last row not visible.
+
+- Better handling of comments in config file.
+
+- Minimum frequency for the visualizer changed from 25hz to 50hz.
+
 #### Bug Fixes
 
 - Fixed Volume not working correctly when an audio interface is plugged in on macOS. Volume controls are now disabled like they should be when an audio interface is plugged in. Reported by @arcathrax.
 
-- Fixed issue with corrupted file names and unicode characters. Reported by @Knusper.
 
 ### 3.3.2
 
