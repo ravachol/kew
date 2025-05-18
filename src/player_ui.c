@@ -31,7 +31,7 @@ player_ui.c
 #endif
 
 #ifdef __APPLE__
-const int ABSOLUTE_MIN_WIDTH = 80;
+const int ABSOLUTE_MIN_WIDTH = 65;
 #else
 const int ABSOLUTE_MIN_WIDTH = 65;
 #endif
@@ -624,9 +624,6 @@ void printLastRow(UISettings *ui)
         if (preferredWidth < 0 || preferredHeight < 0) // mini view
                 return;
 
-        if (term_w < ABSOLUTE_MIN_WIDTH)
-                return;
-
 #ifndef __APPLE__
         // Move to lastRow
         printf("\033[%d;1H", term_h);
@@ -647,41 +644,44 @@ void printLastRow(UISettings *ui)
 
         size_t currentLength = strnlen(nerdFontText, maxLength);
 
-        if (isPaused())
+        if (term_w >= ABSOLUTE_MIN_WIDTH)
         {
-                char pauseText[] = " ⏸";
-                snprintf(nerdFontText + currentLength, maxLength - currentLength, "%s", pauseText);
-                currentLength += strnlen(pauseText, maxLength - currentLength);
-        }
-        else if (isStopped())
-        {
-                char pauseText[] = " ■";
-                snprintf(nerdFontText + currentLength, maxLength - currentLength, "%s", pauseText);
-                currentLength += strnlen(pauseText, maxLength - currentLength);
-        }
-        else
-        {
-                char pauseText[] = " ▶";
-                snprintf(nerdFontText + currentLength, maxLength - currentLength, "%s", pauseText);
-                currentLength += strnlen(pauseText, maxLength - currentLength);
+                if (isPaused())
+                {
+                        char pauseText[] = " ⏸";
+                        snprintf(nerdFontText + currentLength, maxLength - currentLength, "%s", pauseText);
+                        currentLength += strnlen(pauseText, maxLength - currentLength);
+                }
+                else if (isStopped())
+                {
+                        char pauseText[] = " ■";
+                        snprintf(nerdFontText + currentLength, maxLength - currentLength, "%s", pauseText);
+                        currentLength += strnlen(pauseText, maxLength - currentLength);
+                }
+                else
+                {
+                        char pauseText[] = " ▶";
+                        snprintf(nerdFontText + currentLength, maxLength - currentLength, "%s", pauseText);
+                        currentLength += strnlen(pauseText, maxLength - currentLength);
+                }
         }
 
         if (isRepeatEnabled())
         {
-                char repeatText[] = "\u27f3";
+                char repeatText[] = " \u27f3";
                 snprintf(nerdFontText + currentLength, maxLength - currentLength, "%s", repeatText);
                 currentLength += strnlen(repeatText, maxLength - currentLength);
         }
         else if (isRepeatListEnabled())
         {
-                char repeatText[] = "\u27f3L";
+                char repeatText[] = " \u27f3L";
                 snprintf(nerdFontText + currentLength, maxLength - currentLength, "%s", repeatText);
                 currentLength += strnlen(repeatText, maxLength - currentLength);
         }
 
         if (isShuffleEnabled())
         {
-                char shuffleText[] = "\uf074";
+                char shuffleText[] = " \uf074";
                 snprintf(nerdFontText + currentLength, maxLength - currentLength, "%s", shuffleText);
                 currentLength += strnlen(shuffleText, maxLength - currentLength);
         }
@@ -701,6 +701,16 @@ void printLastRow(UISettings *ui)
         }
 
         printf("\033[K"); // Clear the line
+
+        if (term_w < ABSOLUTE_MIN_WIDTH)
+        {
+                if (term_w > (int)currentLength + indent)
+                {
+                        printBlankSpaces(indent);
+                        printf("%s", nerdFontText); // Print just the shuffle and replay settings
+                }
+                return;
+        }
 
         int indent = calcIndentNormal();
         int textLength = strnlen(text, 100);
