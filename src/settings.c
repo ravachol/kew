@@ -74,7 +74,7 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         c_strcpy(settings.hideLogo, "0", sizeof(settings.hideLogo));
         c_strcpy(settings.hideHelp, "0", sizeof(settings.hideHelp));
         c_strcpy(settings.cacheLibrary, "-1", sizeof(settings.cacheLibrary));
-        c_strcpy(settings.visualizerHeight, "5", sizeof(settings.visualizerHeight));
+        c_strcpy(settings.visualizerHeight, "6", sizeof(settings.visualizerHeight));
         c_strcpy(settings.visualizerColorType, "0", sizeof(settings.visualizerColorType));
         c_strcpy(settings.titleDelay, "9", sizeof(settings.titleDelay));
         c_strcpy(settings.nextView, "\t", sizeof(settings.nextView));
@@ -496,7 +496,14 @@ KeyValuePair *readKeyValuePairs(const char *file_path, int *count, time_t *lastT
                 // Remove trailing newline character if present
                 line[strcspn(line, "\n")] = '\0';
 
+                char *comment = strchr(line, '#');
+
+                // Remove comments
+                if (comment != NULL)
+                        comment = '\0';
+
                 char *delimiter = strchr(line, '=');
+
                 if (delimiter != NULL)
                 {
                         *delimiter = '\0';
