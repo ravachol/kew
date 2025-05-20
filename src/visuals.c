@@ -37,6 +37,7 @@ ma_uint32 sampleRate = 0;
 float barHeight[MAX_BARS] = {0.0f};
 float displayMagnitudes[MAX_BARS] = {0.0f};
 float smoothed[MAX_BARS] = {0.0f};
+float magnitudes[MAX_BARS] = {0.0f};
 
 float dBFloor = -60.0f;
 float dBCeil = -18.0f;
@@ -86,6 +87,8 @@ void computeBandCenters(
 
         for (int i = 0; i < numBands; i++)
         {
+                if (f > endF)
+                        break;
                 centerFreqs[i] = f;
                 f *= factor;
                 if (f > endF)
@@ -220,13 +223,15 @@ void calcMagnitudes(
         fftwf_execute(plan);
 
         // Clear previous magnitudes
-        clearMagnitudes(numBars, magnitudes);
+        clearMagnitudes(MAX_BARS, magnitudes);
 
         float centerFreqs[numBars];
 
         float minFreq = 50.0f;
         float audibleHalf = 10000.0f;
         float maxFreq = fmin(audibleHalf, 0.5f * sampleRate);
+        float octaveFraction = 1.0f / 3.0f;
+        int usedBars = floor( log2(maxFreq / minFreq) / octaveFraction ) + 1; // How many bars are actually in use, given we increase with 1/3 octave per bar
 
         // Compute center frequencies for EQ bands
         computeBandCenters(minFreq, maxFreq, numBars, centerFreqs);
@@ -235,7 +240,7 @@ void calcMagnitudes(
         fillEQBands(fftOutput, fftSize, sampleRate, magnitudes, numBars, centerFreqs);
 
         // Map magnitudes (in dB) to bar heights with gating and emphasis (pow/gated)
-        for (int i = 0; i < numBars; ++i)
+        for (int i = 0; i < usedBars; ++i)
         {
                 float db = magnitudes[i];
                 if (db < dBFloor)
@@ -253,7 +258,7 @@ void calcMagnitudes(
         float snapThreshold = 0.2f * height;
 
         // Smoothly update display magnitudes with attack/decay and snap threshold
-        for (int i = 0; i < numBars; ++i)
+        for (int i = 0; i < usedBars; ++i)
         {
                 float current = displayMagnitudes[i];
                 float target = barHeight[i];
@@ -536,8 +541,6 @@ void drawSpectrumVisualizer(AppState *state, int indentation)
                                                 fftInput,
                                                 fftOutput,
                                                 FFTW_ESTIMATE);
-
-        float magnitudes[numBars];
 
         getCurrentFormatAndSampleRate(&format, &sampleRate);
 
