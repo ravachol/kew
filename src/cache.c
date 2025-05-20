@@ -14,14 +14,29 @@ cache.c
 
 Cache *createCache()
 {
-        Cache *cache = (Cache *)malloc(sizeof(Cache));
+        Cache *cache = malloc(sizeof(Cache));
+        if (cache == NULL)
+        {
+                perror("malloc");
+                return NULL;
+        }
         cache->head = NULL;
         return cache;
 }
 
 void addToCache(Cache *cache, const char *filePath)
 {
-        CacheNode *newNode = (CacheNode *)malloc(sizeof(CacheNode));
+        if (cache == NULL)
+        {
+                fprintf(stderr, "Cache is null.");
+                return;
+        }
+        CacheNode *newNode = malloc(sizeof(CacheNode));
+        if (newNode == NULL)
+        {
+                perror("malloc");
+                return;
+        }
         newNode->filePath = strdup(filePath);
         newNode->next = cache->head;
         cache->head = newNode;
@@ -29,22 +44,29 @@ void addToCache(Cache *cache, const char *filePath)
 
 void deleteCache(Cache *cache)
 {
-        if (cache)
+        if (cache == NULL)
         {
-                CacheNode *current = cache->head;
-                while (current != NULL)
-                {
-                        CacheNode *tmp = current;
-                        current = current->next;
-                        free(tmp->filePath);
-                        free(tmp);
-                }
-                free(cache);
+                fprintf(stderr, "Cache is null.");
+                return;
         }
+        CacheNode *current = cache->head;
+        while (current != NULL)
+        {
+                CacheNode *tmp = current;
+                current = current->next;
+                free(tmp->filePath);
+                free(tmp);
+        }
+        free(cache);
 }
 
 bool existsInCache(Cache *cache, char *filePath)
 {
+        if (cache == NULL)
+        {
+                fprintf(stderr, "Cache is null.");
+                return false;
+        }
         CacheNode *current = cache->head;
         while (current != NULL)
         {
@@ -52,6 +74,7 @@ bool existsInCache(Cache *cache, char *filePath)
                 {
                         return true;
                 }
+
                 current = current->next;
         }
         return false;

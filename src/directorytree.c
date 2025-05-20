@@ -11,11 +11,6 @@
 #include "utils.h"
 #include "directorytree.h"
 
-
-
-
-
-
 /*
 
 directorytree.c
@@ -30,7 +25,7 @@ typedef void (*TimeoutCallback)(void);
 
 FileSystemEntry *createEntry(const char *name, int isDirectory, FileSystemEntry *parent)
 {
-        FileSystemEntry *newEntry = (FileSystemEntry *)malloc(sizeof(FileSystemEntry));
+        FileSystemEntry *newEntry = malloc(sizeof(FileSystemEntry));
         if (newEntry != NULL)
         {
                 newEntry->name = strdup(name);
@@ -72,7 +67,7 @@ void setFullPath(FileSystemEntry *entry, const char *parentPath, const char *ent
 
         size_t fullPathLength = strnlen(parentPath, MAXPATHLEN) + strnlen(entryName, MAXPATHLEN) + 2; // +2 for '/' and '\0'
 
-        entry->fullPath = (char *)malloc(fullPathLength);
+        entry->fullPath = malloc(fullPathLength);
         if (entry->fullPath == NULL)
         {
                 return;
@@ -173,36 +168,35 @@ int compareLibEntriesReversed(const struct dirent **a, const struct dirent **b)
 
 int compareEntryNatural(const void *a, const void *b)
 {
-    const FileSystemEntry *entryA = *(const FileSystemEntry **)a;
-    const FileSystemEntry *entryB = *(const FileSystemEntry **)b;
+        const FileSystemEntry *entryA = *(const FileSystemEntry **)a;
+        const FileSystemEntry *entryB = *(const FileSystemEntry **)b;
 
-    // Optional: handle leading underscores like your original comparator
-    char *nameA = stringToUpper(entryA->name);
-    char *nameB = stringToUpper(entryB->name);
+        char *nameA = stringToUpper(entryA->name);
+        char *nameB = stringToUpper(entryB->name);
 
-    if (nameA[0] == '_' && nameB[0] != '_')
-    {
+        if (nameA[0] == '_' && nameB[0] != '_')
+        {
+                free(nameA);
+                free(nameB);
+                return 1;
+        }
+        else if (nameA[0] != '_' && nameB[0] == '_')
+        {
+                free(nameA);
+                free(nameB);
+                return -1;
+        }
+
+        int result = naturalCompare(nameA, nameB);
+
         free(nameA);
         free(nameB);
-        return 1;
-    }
-    else if (nameA[0] != '_' && nameB[0] == '_')
-    {
-        free(nameA);
-        free(nameB);
-        return -1;
-    }
-
-    int result = naturalCompare(nameA, nameB);
-
-    free(nameA);
-    free(nameB);
-    return result;
+        return result;
 }
 
 int compareEntryNaturalReversed(const void *a, const void *b)
 {
-    return -compareEntryNatural(a, b);
+        return -compareEntryNatural(a, b);
 }
 
 int removeEmptyDirectories(FileSystemEntry *node)
@@ -279,6 +273,11 @@ int readDirectory(const char *path, FileSystemEntry *parent)
         {
                 struct dirent *entry = entries[i];
 
+                if (entry == NULL)
+                {
+                        continue;
+                }
+
                 if (entry->d_name[0] != '.' && strcmp(entry->d_name, ".") != 0 && strcmp(entry->d_name, "..") != 0)
                 {
                         char childPath[MAXPATHLEN];
@@ -290,11 +289,11 @@ int readDirectory(const char *path, FileSystemEntry *parent)
                                 continue;
                         }
 
-                        int isDirectory = true;
+                        int isDir = true;
 
                         if (S_ISREG(fileStats.st_mode))
                         {
-                                isDirectory = false;
+                                isDir = false;
                         }
 
                         char exto[100];
@@ -302,18 +301,16 @@ int readDirectory(const char *path, FileSystemEntry *parent)
 
                         int isAudio = match_regex(&regex, exto);
 
-                        if (isAudio == 0 || isDirectory)
+                        if (isAudio == 0 || isDir)
                         {
-                                FileSystemEntry *child = createEntry(entry->d_name, isDirectory, parent);
 
-                                if (entry != NULL)
-                                {
-                                        setFullPath(child, path, entry->d_name);
-                                }
+                                FileSystemEntry *child = createEntry(entry->d_name, isDir, parent);
+
+                                setFullPath(child, path, entry->d_name);
 
                                 addChild(parent, child);
 
-                                if (isDirectory)
+                                if (isDir)
                                 {
                                         numEntries++;
                                         numEntries += readDirectory(childPath, child);
@@ -416,10 +413,10 @@ FileSystemEntry *reconstructTreeFromFile(const char *filename, const char *start
 
         while (fgets(line, sizeof(line), file))
         {
-                int id, parentId, isDirectory;
+                int id, parentId, isDir;
                 char name[256];
 
-                if (sscanf(line, "%d\t%255[^\t]\t%d\t%d", &id, name, &isDirectory, &parentId) == 4)
+                if (sscanf(line, "%d\t%255[^\t]\t%d\t%d", &id, name, &isDir, &parentId) == 4)
                 {
                         if (id >= nodesCapacity)
                         {
@@ -456,7 +453,7 @@ FileSystemEntry *reconstructTreeFromFile(const char *filename, const char *start
                         }
                         node->id = id;
                         node->name = strdup(name);
-                        node->isDirectory = isDirectory;
+                        node->isDirectory = isDir;
                         node->isEnqueued = 0;
                         node->children = node->next = node->parent = NULL;
                         nodes[id] = node;
@@ -481,7 +478,7 @@ FileSystemEntry *reconstructTreeFromFile(const char *filename, const char *start
 
                                 setFullPath(node, nodes[parentId]->fullPath, node->name);
 
-                                if (isDirectory)
+                                if (isDir)
                                         *numDirectoryEntries = *numDirectoryEntries + 1;
                         }
                         else
@@ -513,8 +510,23 @@ int utf8_levenshteinDistance(const char *s1, const char *s2)
         int len2 = g_utf8_strlen(s2, -1);
 
         // Allocate a 2D matrix (only two rows at a time are needed)
-        int *prevRow = (int *)malloc((len2 + 1) * sizeof(int));
-        int *currRow = (int *)malloc((len2 + 1) * sizeof(int));
+        int *prevRow = malloc((len2 + 1) * sizeof(int));
+        int *currRow = malloc((len2 + 1) * sizeof(int));
+
+        if (prevRow == NULL)
+        {
+                if (currRow != NULL)
+                        free(currRow);
+                perror("malloc");
+                return 0;
+        }
+
+        if (currRow == NULL)
+        {
+                free(prevRow);
+                perror("malloc");
+                return 0;
+        }
 
         // Initialize the first row (for empty s1)
         for (int j = 0; j <= len2; j++)
@@ -564,17 +576,21 @@ int utf8_levenshteinDistance(const char *s1, const char *s2)
 #endif
 #endif
 
-char *stripFileExtension(const char *filename) {
-    char *dot = strrchr(filename, '.'); // find last '.'
-    size_t length = (dot != NULL) ? (size_t)(dot - filename) : strlen(filename);
+char *stripFileExtension(const char *filename)
+{
+        const char *dot = strrchr(filename, '.'); // find last '.'
+        size_t length = (dot != NULL) ? (size_t)(dot - filename) : strlen(filename);
 
-    char *result = (char *)malloc(length + 1);
-    if (!result) return NULL; // handle malloc failure
+        char *result = malloc(length + 1);
+        if (!result)
+        {
+                perror("malloc");
+                return NULL;
+        }
+        c_strcpy(result, filename, length);
+        result[length] = '\0';
 
-    strncpy(result, filename, length);
-    result[length] = '\0';
-
-    return result;
+        return result;
 }
 
 // Traverses the tree and applies fuzzy search on each node
@@ -586,7 +602,7 @@ void fuzzySearchRecursive(FileSystemEntry *node, const char *searchTerm, int thr
         }
 
         // Convert search term, name, and fullPath to lowercase
-        char *lowerSearchTerm = g_utf8_casefold((char *)searchTerm, -1);
+        char *lowerSearchTerm = g_utf8_casefold(searchTerm, -1);
         char *lowerName = g_utf8_casefold(node->name, -1);
 
         char *strippedName = stripFileExtension(lowerName);
@@ -647,78 +663,85 @@ void copyIsEnqueued(FileSystemEntry *library, FileSystemEntry *tmp)
 
 int compareFoldersByAgeFilesAlphabetically(const void *a, const void *b)
 {
-    const FileSystemEntry *entryA = *(const FileSystemEntry **)a;
-    const FileSystemEntry *entryB = *(const FileSystemEntry **)b;
+        const FileSystemEntry *entryA = *(const FileSystemEntry **)a;
+        const FileSystemEntry *entryB = *(const FileSystemEntry **)b;
 
-    // Both are directories → sort by mtime descending
-    if (entryA->isDirectory && entryB->isDirectory)
-    {
-        struct stat statA, statB;
+        // Both are directories → sort by mtime descending
+        if (entryA->isDirectory && entryB->isDirectory)
+        {
+                struct stat statA, statB;
 
-        if (stat(entryA->fullPath, &statA) != 0 || stat(entryB->fullPath, &statB) != 0)
-            return 0;
+                if (stat(entryA->fullPath, &statA) != 0 || stat(entryB->fullPath, &statB) != 0)
+                        return 0;
 
-        return (int)(statB.st_mtime - statA.st_mtime); // newer first
-    }
+                return (int)(statB.st_mtime - statA.st_mtime); // newer first
+        }
 
-    // Both are files → sort alphabetically
-    if (!entryA->isDirectory && !entryB->isDirectory)
-    {
-        return strcasecmp(entryA->name, entryB->name);
-    }
+        // Both are files → sort alphabetically
+        if (!entryA->isDirectory && !entryB->isDirectory)
+        {
+                return strcasecmp(entryA->name, entryB->name);
+        }
 
-    // Put directories before files
-    return entryB->isDirectory - entryA->isDirectory;
+        // Put directories before files
+        return entryB->isDirectory - entryA->isDirectory;
 }
 
 void sortFileSystemEntryChildren(FileSystemEntry *parent,
-                                  int (*comparator)(const void *, const void *))
+                                 int (*comparator)(const void *, const void *))
 {
-    int count = 0;
-    FileSystemEntry *curr = parent->children;
-    while (curr)
-    {
-        count++;
-        curr = curr->next;
-    }
+        int count = 0;
+        FileSystemEntry *curr = parent->children;
+        while (curr)
+        {
+                count++;
+                curr = curr->next;
+        }
 
-    if (count < 2)
-        return;
+        if (count < 2)
+                return;
 
-    FileSystemEntry **entryArray = malloc(count * sizeof(FileSystemEntry *));
-    curr = parent->children;
-    for (int i = 0; i < count; i++)
-    {
-        entryArray[i] = curr;
-        curr = curr->next;
-    }
+        FileSystemEntry **entryArray = malloc(count * sizeof(FileSystemEntry *));
 
-    qsort(entryArray, count, sizeof(FileSystemEntry *), comparator);
+        if (entryArray == NULL)
+        {
+                perror("malloc");
+                return;
+        }
 
-    for (int i = 0; i < count - 1; i++)
-    {
-        entryArray[i]->next = entryArray[i + 1];
-    }
-    entryArray[count - 1]->next = NULL;
-    parent->children = entryArray[0];
+        curr = parent->children;
+        for (int i = 0; i < count; i++)
+        {
+                entryArray[i] = curr;
+                curr = curr->next;
+        }
 
-    free(entryArray);
+        qsort(entryArray, count, sizeof(FileSystemEntry *), comparator);
+
+        for (int i = 0; i < count - 1; i++)
+        {
+                entryArray[i]->next = entryArray[i + 1];
+        }
+        entryArray[count - 1]->next = NULL;
+        parent->children = entryArray[0];
+
+        free(entryArray);
 }
 
 void sortFileSystemTree(FileSystemEntry *root, int (*comparator)(const void *, const void *))
 {
-    if (!root)
-        return;
+        if (!root)
+                return;
 
-    sortFileSystemEntryChildren(root, comparator);
+        sortFileSystemEntryChildren(root, comparator);
 
-    FileSystemEntry *child = root->children;
-    while (child)
-    {
-        if (child->isDirectory)
+        FileSystemEntry *child = root->children;
+        while (child)
         {
-            sortFileSystemTree(child, comparator);
+                if (child->isDirectory)
+                {
+                        sortFileSystemTree(child, comparator);
+                }
+                child = child->next;
         }
-        child = child->next;
-    }
 }
