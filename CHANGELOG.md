@@ -8,11 +8,7 @@
 
 - Better handling of comments in config file.
 
-- Minimum frequency for the visualizer changed from 25hz to 50hz.
-
 #### Bug Fixes
-
-- Fixed Volume not working correctly when an audio interface is plugged in on macOS. Volume controls are now disabled like they should be when an audio interface is plugged in. Reported by @arcathrax.
 
 
 ### 3.3.2
