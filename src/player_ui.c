@@ -383,8 +383,7 @@ void printBasicMetadata(TagSettings const *metadata, UISettings *ui)
                 int titleLength = strnlen(metadata->title, maxWidth);
                 char prettyTitle[titleLength + 1];
 
-                c_strcpy(prettyTitle, metadata->title, titleLength);
-                prettyTitle[titleLength] = '\0';
+                c_strcpy(prettyTitle, metadata->title, titleLength + 1);
 
                 removeUnneededChars(prettyTitle, titleLength);
                 trim(prettyTitle, titleLength);
