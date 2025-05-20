@@ -10,6 +10,8 @@
 
 #### Bug Fixes
 
+- Fix "ghost" bars showing up at higher frequencies in zoomed out terminal window.
+
 
 ### 3.3.2
 
