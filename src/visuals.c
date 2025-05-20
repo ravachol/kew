@@ -227,7 +227,7 @@ void calcMagnitudes(
 
         float centerFreqs[numBars];
 
-        float minFreq = 50.0f;
+        float minFreq = 20.0f;
         float audibleHalf = 10000.0f;
         float maxFreq = fmin(audibleHalf, 0.5f * sampleRate);
         float octaveFraction = 1.0f / 3.0f;
