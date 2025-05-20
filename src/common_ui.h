@@ -8,7 +8,7 @@ extern unsigned int updateCounter;
 extern const int scrollingInterval;
 extern bool isSameNameAsLastTime;
 
-void setTextColorRGB2(int r, int g, int b, UISettings *ui);
+void setTextColorRGB2(int r, int g, int b, const UISettings *ui);
 
 void setColor(UISettings *ui);
 

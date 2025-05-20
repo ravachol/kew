@@ -1,4 +1,6 @@
 #ifndef TERM_H
+#include <stdio.h>
+
 #define TERM_H
 #ifndef __USE_POSIX
 #define __USE_POSIX

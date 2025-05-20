@@ -27,7 +27,7 @@ bool isSameNameAsLastTime = false;
 const int startScrollingDelay = 10; // Delay before beginning to scroll
 const int scrollingInterval = 1;    // Interval between scrolling updates
 
-void setTextColorRGB2(int r, int g, int b, UISettings *ui)
+void setTextColorRGB2(int r, int g, int b, const UISettings *ui)
 {
         if (!ui->useConfigColors)
                 setTextColorRGB(r, g, b);
@@ -88,13 +88,12 @@ struct interval
 static int bisearch(wchar_t ucs, const struct interval *table, int max)
 {
         int min = 0;
-        int mid;
 
         if (ucs < table[0].first || ucs > table[max].last)
                 return 0;
         while (max >= min)
         {
-                mid = (min + max) / 2;
+                int mid = (min + max) / 2;
                 if (ucs > table[mid].last)
                         min = mid + 1;
                 else if (ucs < table[mid].first)
@@ -144,14 +143,16 @@ int mk_wcwidth(wchar_t ucs)
 
 int mk_wcswidth(const wchar_t *pwcs, size_t n)
 {
-        int w, width = 0;
+        int width = 0;
 
         for (; *pwcs && n-- > 0; pwcs++)
+        {
+                int w;
                 if ((w = mk_wcwidth(*pwcs)) < 0)
                         return -1;
                 else
                         width += w;
-
+        }
         return width;
 }
 
@@ -165,11 +166,10 @@ void copyHalfOrFullWidthCharsWithMaxWidth(const char *src, char *dst, int maxWid
     const char *p = src;
     char *o = dst;
     wchar_t wc;
-    size_t len;
     int width = 0;
 
     while (*p) {
-        len = mbrtowc(&wc, p, MB_CUR_MAX, &state);
+        size_t len = mbrtowc(&wc, p, MB_CUR_MAX, &state);
         if (len == (size_t)-1) { // Invalid UTF-8/locale error
             // Skip one byte, reinit state, and keep going
             p++; // Try resyncing at next byte
@@ -204,11 +204,10 @@ static bool hasFullwidthChars(const char *str)
 
         const char *p = str;
         wchar_t wc;
-        size_t len;
 
         while (*p)
         {
-                len = mbrtowc(&wc, p, MB_CUR_MAX, &state);
+                size_t len = mbrtowc(&wc, p, MB_CUR_MAX, &state);
                 if (len == (size_t)-1 || len == (size_t)-2 || len == 0)
                         break;
 
@@ -233,10 +232,10 @@ void processName(const char *name, char *output, int maxWidth)
         if (lastDot != NULL)
         {
                 char tmp[MAXPATHLEN];
-                size_t len = lastDot - name;
+                size_t len = lastDot - name + 1;
                 if (len >= sizeof(tmp))
                         len = sizeof(tmp) - 1;
-                strncpy(tmp, name, len);
+                c_strcpy(tmp, name, len);
                 tmp[len] = '\0';
                 copyHalfOrFullWidthCharsWithMaxWidth(tmp, output, maxWidth);
         }
@@ -245,14 +244,14 @@ void processName(const char *name, char *output, int maxWidth)
                 copyHalfOrFullWidthCharsWithMaxWidth(name, output, maxWidth);
         }
 
-        removeUnneededChars(output, strlen(output));
-        trim(output, strlen(output));
+        removeUnneededChars(output, strnlen(output, maxWidth));
+        trim(output, strnlen(output, maxWidth));
 }
 
 void processNameScroll(const char *name, char *output, int maxWidth, bool isSameNameAsLastTime)
 {
         const char *lastDot = strrchr(name, '.');
-        size_t nameLength = strlen(name);
+        size_t nameLength = strnlen(name, maxWidth);
         size_t scrollableLength = (lastDot != NULL) ? (size_t)(lastDot - name) : nameLength;
 
         if (scrollDelaySkippedCount <= startScrollingDelay && scrollableLength > (size_t)maxWidth)
@@ -286,8 +285,7 @@ void processNameScroll(const char *name, char *output, int maxWidth, bool isSame
                         finishedScrolling = true;
                 }
 
-                strncpy(output, name + start, maxWidth);
-                output[maxWidth] = '\0';
+                c_strcpy(output, name + start, maxWidth + 1);
 
                 removeUnneededChars(output, maxWidth);
                 trim(output, maxWidth);
@@ -333,13 +331,13 @@ PixelData getGradientColor(PixelData baseColor, int row, int maxListSize, int st
                 return baseColor;
 
         int steps = maxListSize - startGradient;
-        int gradRow = row - startGradient;
+
         float pct;
 
         if (steps <= 1)
                 pct = minPct;
         else
-                pct = 1.0f - (gradRow * (1.0f - minPct) / (steps - 1));
+                pct = 1.0f - ((row - startGradient) * (1.0f - minPct) / (steps - 1));
 
         if (pct < minPct)
                 pct = minPct;

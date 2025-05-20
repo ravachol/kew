@@ -320,4 +320,6 @@ ma_result callReadPCMFrames(
     ma_uint64 remainingFrames,
     ma_uint64 *pFramesToRead);
 
+bool doesOSallowVolumeControl();
+
 #endif
