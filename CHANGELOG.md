@@ -10,7 +10,7 @@
 
 #### Bug Fixes
 
-- Fix "ghost" bars showing up at higher frequencies in zoomed out terminal window.
+- Fix "ghost" visualizer bars showing up at higher frequencies in a zoomed out terminal window.
 
 
 ### 3.3.2
