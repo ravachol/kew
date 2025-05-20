@@ -2,7 +2,6 @@
 #define __USE_XOPEN_EXTENDED 1
 
 #include <glib.h>
-#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -654,7 +653,12 @@ void loadPlaylist(const char *directory, const char *playlistName, PlayList *pla
 {
         char playlistPath[MAXPATHLEN];
 
-        if (directory[strnlen(directory, MAXPATHLEN) - 1] == '/')
+        size_t len = strnlen(directory, MAXPATHLEN);
+
+        if (len <= 0)
+                return;
+
+        if (directory[len - 1] == '/')
         {
                 snprintf(playlistPath, sizeof(playlistPath), "%s%s", directory, playlistName);
         }
@@ -707,7 +711,7 @@ void saveNamedPlaylist(const char *directory, const char *playlistName, const Pl
 
     int length = snprintf(playlistPath, sizeof(playlistPath), "%s", directory);
 
-    if (length < 0 || length >= (int)sizeof(playlistPath) || playlistPath[0] == '\0')
+    if (length <= 0 || length >= (int)sizeof(playlistPath) || playlistPath[0] == '\0')
     {
         return;
     }

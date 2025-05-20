@@ -730,7 +730,7 @@ int mkdir_p(const char *path, mode_t mode)
         size_t len;
 
         snprintf(tmp, sizeof(tmp), "%s", path);
-        len = strlen(tmp);
+        len = strnlen(tmp, MAXPATHLEN);
         if (len > 0 && tmp[len - 1] == '/')
                 tmp[len - 1] = 0;
 

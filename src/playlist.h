@@ -5,6 +5,7 @@
 #define __USE_XOPEN_EXTENDED
 #endif
 
+#include <pthread.h>
 #include <stdbool.h>
 #include "directorytree.h"
 

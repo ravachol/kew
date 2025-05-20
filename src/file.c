@@ -180,7 +180,7 @@ int walker(const char *startPath, const char *lowCaseSearching, char *result,
                                 continue;
                         }
 
-                        char *filename = dir->d_name;
+                        const char *filename = dir->d_name;
                         if (strnlen(filename, 256) <= 4)
                         {
                                 continue;
@@ -235,7 +235,7 @@ int expandPath(const char *inputPath, char *expandedPath)
                         const char *slash = strchr(username, '/');
                         if (slash == NULL)
                         {
-                                struct passwd *pw = getpwnam(username);
+                                const struct passwd *pw = getpwnam(username);
                                 if (pw == NULL)
                                 {
                                         return -1; // Unable to retrieve user directory
@@ -246,7 +246,7 @@ int expandPath(const char *inputPath, char *expandedPath)
                         else
                         {
                                 size_t usernameLen = slash - username;
-                                struct passwd *pw = getpwuid(getuid());
+                                const struct passwd *pw = getpwuid(getuid());
 
                                 if (pw == NULL)
                                 {
