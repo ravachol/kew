@@ -1113,10 +1113,7 @@ void printElapsedChars(AppSettings *settings, UISettings *ui, int elapsedBars, i
                                 printf("%s", settings->progressBarElapsedEvenChar);
                         else
                                 printf("%s", settings->progressBarElapsedOddChar);
-
-                        continue;
                 }
-
                 else if (i == elapsedBars)
                 {
                         if (i % 2 == 0)
