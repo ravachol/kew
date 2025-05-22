@@ -1271,38 +1271,37 @@ bool isVolumeControlEnabled_HighSierraAndLater(AudioDeviceID deviceID)
 
 bool isVolumeControlEnabled(AudioDeviceID deviceID)
 {
-        if (@available(macOS 10.13, *))
-        {
-                return isVolumeControlEnabled_HighSierraAndLater(deviceID);
-        }
-        else
-        {
-                UInt32 channels[] = {
-                    kAudioObjectPropertyElementMaster,
-                    1, // Left
-                    2  // Right
-                };
+#if __MAC_OS_X_VERSION_MIN_REQUIRED >= 101300
 
-                for (int i = 0; i < 3; ++i)
+        return isVolumeControlEnabled_HighSierraAndLater(deviceID);
+
+#else
+        UInt32 channels[] = {
+            kAudioObjectPropertyElementMaster,
+            1, // Left
+            2  // Right
+        };
+
+        for (int i = 0; i < 3; ++i)
+        {
+                AudioObjectPropertyAddress volumeAddress = {
+                    kAudioDevicePropertyVolumeScalar,
+                    kAudioDevicePropertyScopeOutput,
+                    channels[i]};
+
+                // Check if property exists
+                if (AudioObjectHasProperty(deviceID, &volumeAddress))
                 {
-                        AudioObjectPropertyAddress volumeAddress = {
-                            kAudioDevicePropertyVolumeScalar,
-                            kAudioDevicePropertyScopeOutput,
-                            channels[i]};
-
-                        // Check if property exists
-                        if (AudioObjectHasProperty(deviceID, &volumeAddress))
+                        Boolean isWritable = false;
+                        if (AudioObjectIsPropertySettable(deviceID, &volumeAddress, &isWritable) == noErr && isWritable)
                         {
-                                Boolean isWritable = false;
-                                if (AudioObjectIsPropertySettable(deviceID, &volumeAddress, &isWritable) == noErr && isWritable)
-                                {
-                                        return true; // Volume control available
-                                }
+                                return true; // Volume control available
                         }
                 }
-
-                return false;
         }
+
+        return false;
+#endif
 }
 
 AudioDeviceID getDefaultOutputDevice()
