@@ -165,4 +165,6 @@ void sortLibrary(void);
 
 void markListAsEnqueued(FileSystemEntry *root, PlayList *playlist);
 
+bool isContainedWithin(FileSystemEntry *entry, FileSystemEntry *containingEntry);
+
 #endif

@@ -1340,8 +1340,7 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
                                 currentEntry = root;
 
                                 if (uis->allowChooseSongs == true && (chosenDir == NULL ||
-                                                                      (currentEntry != NULL && currentEntry->parent != NULL && chosenDir != NULL && (strcmp(currentEntry->parent->fullPath, chosenDir->fullPath) != 0) &&
-                                                                       strcmp(root->fullPath, chosenDir->fullPath) != 0)))
+                                                                      (currentEntry != NULL && currentEntry->parent != NULL && chosenDir != NULL && !isContainedWithin(currentEntry, chosenDir) && strcmp(root->fullPath, chosenDir->fullPath) != 0)))
                                 {
                                         uis->collapseView = true;
                                         refresh = true;
