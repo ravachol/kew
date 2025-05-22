@@ -500,7 +500,7 @@ KeyValuePair *readKeyValuePairs(const char *file_path, int *count, time_t *lastT
 
                 // Remove comments
                 if (comment != NULL)
-                        comment = '\0';
+                        *comment = '\0';
 
                 char *delimiter = strchr(line, '=');
 
