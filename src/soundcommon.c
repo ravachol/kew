@@ -1224,33 +1224,85 @@ int getSystemVolume(void)
 #include <CoreAudio/CoreAudio.h>
 #include <stdio.h>
 
-bool isVolumeControlEnabled(AudioDeviceID deviceID)
+bool isVolumeControlEnabled_HighSierraAndLater(AudioDeviceID deviceID)
 {
-        UInt32 channels[] = {
-            kAudioObjectPropertyElementMaster,
-            1, // Left
-            2  // Right
-        };
+        UInt32 dataSize;
 
-        for (int i = 0; i < 3; ++i)
+        // Get the number of channels
+        AudioObjectPropertyAddress channelAddress = {kAudioDevicePropertyStreamConfiguration, kAudioDevicePropertyScopeOutput, 0};
+        if (AudioObjectGetPropertyDataSize(deviceID, &channelAddress, 0, NULL, &dataSize) != noErr)
         {
-                AudioObjectPropertyAddress volumeAddress = {
-                    kAudioDevicePropertyVolumeScalar,
-                    kAudioDevicePropertyScopeOutput,
-                    channels[i]};
+                return false;
+        }
+
+        UInt32 channelCount = dataSize / sizeof(AudioChannelLayout);
+        AudioChannelLayout *layouts = (AudioChannelLayout *)malloc(dataSize);
+        if (!layouts)
+        {
+                return false;
+        }
+
+        if (AudioObjectGetPropertyData(deviceID, &channelAddress, 0, NULL, &dataSize, layouts) != noErr)
+        {
+                free(layouts);
+                return false;
+        }
+
+        // Check each channel
+        for (UInt32 i = 1; i <= channelCount * layouts->mNumberChannelDescriptions; ++i)
+        {
+                AudioObjectPropertyAddress volumeAddress = {kAudioDevicePropertyVolumeScalar, kAudioDevicePropertyScopeOutput, i};
 
                 // Check if property exists
                 if (AudioObjectHasProperty(deviceID, &volumeAddress))
                 {
-                        Boolean isWritable = false;
+                        Boolean isWritable;
                         if (AudioObjectIsPropertySettable(deviceID, &volumeAddress, &isWritable) == noErr && isWritable)
                         {
+                                free(layouts);
                                 return true; // Volume control available
                         }
                 }
         }
 
+        free(layouts);
         return false;
+}
+
+bool isVolumeControlEnabled(AudioDeviceID deviceID)
+{
+        if (@available(macOS 10.13, *))
+        {
+                return isVolumeControlEnabled_HighSierraAndLater(deviceID);
+        }
+        else
+        {
+                UInt32 channels[] = {
+                    kAudioObjectPropertyElementMaster,
+                    1, // Left
+                    2  // Right
+                };
+
+                for (int i = 0; i < 3; ++i)
+                {
+                        AudioObjectPropertyAddress volumeAddress = {
+                            kAudioDevicePropertyVolumeScalar,
+                            kAudioDevicePropertyScopeOutput,
+                            channels[i]};
+
+                        // Check if property exists
+                        if (AudioObjectHasProperty(deviceID, &volumeAddress))
+                        {
+                                Boolean isWritable = false;
+                                if (AudioObjectIsPropertySettable(deviceID, &volumeAddress, &isWritable) == noErr && isWritable)
+                                {
+                                        return true; // Volume control available
+                                }
+                        }
+                }
+
+                return false;
+        }
 }
 
 AudioDeviceID getDefaultOutputDevice()
