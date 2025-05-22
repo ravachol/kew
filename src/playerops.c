@@ -1197,6 +1197,24 @@ bool hasDequeuedChildren(FileSystemEntry *parent)
         return isDequeued;
 }
 
+bool isContainedWithin(FileSystemEntry *entry, FileSystemEntry *containingEntry)
+{
+        if (entry == NULL || containingEntry == NULL)
+                return false;
+
+        FileSystemEntry *tmp = entry->parent;
+
+        while (tmp != NULL)
+        {
+                if (strcmp(tmp->fullPath, containingEntry->fullPath) == 0)
+                        return true;
+
+                tmp = tmp->parent;
+        }
+
+        return false;
+}
+
 FileSystemEntry *enqueueSongs(FileSystemEntry *entry, UIState *uis)
 {
         FileSystemEntry *chosenDir = getChosenDir();
@@ -1233,17 +1251,18 @@ FileSystemEntry *enqueueSongs(FileSystemEntry *entry, UIState *uis)
                                         nextSongNeedsRebuilding = true;
                                 }
                         }
-                        if ((chosenDir != NULL && entry->parent != NULL && strcmp(entry->parent->fullPath, chosenDir->fullPath) == 0) && uis->allowChooseSongs == true)
+                        if (chosenDir != NULL && entry->parent != NULL && isContainedWithin(entry, chosenDir) && uis->allowChooseSongs == true)
                         {
+                                // If the chosen directory is the same as the entry's parent and it is  open
                                 uis->openedSubDir = true;
 
-                                FileSystemEntry *tmpc = entry->parent->children;
+                                FileSystemEntry *tmpc = chosenDir->children;
 
                                 uis->numSongsAboveSubDir = 0;
 
                                 while (tmpc != NULL)
                                 {
-                                        if (strcmp(entry->fullPath, tmpc->fullPath) == 0)
+                                        if (strcmp(entry->fullPath, tmpc->fullPath) == 0 || isContainedWithin(entry, tmpc))
                                                 break;
                                         tmpc = tmpc->next;
                                         uis->numSongsAboveSubDir++;
