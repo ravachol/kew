@@ -12,10 +12,11 @@
 
 - Fix "ghost" visualizer bars showing up at higher frequencies in a zoomed out terminal window.
 
+- Fixed bug in library related to handling of sub-directories several levels deep.
 
 ### 3.3.2
 
-- remove -lcurl from makefile.
+- Remove -lcurl from makefile.
 
 ### 3.3.1
 
