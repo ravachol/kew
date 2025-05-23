@@ -1165,10 +1165,101 @@ int getSystemVolumeMac(void)
         return currentVolume;
 }
 
+#ifdef __APPLE__
+#include <CoreAudio/CoreAudio.h>
+#include <stdio.h>
+#include <sys/types.h>
+#include <sys/sysctl.h>
+
+static int is_at_least_macos_10_12(void) {
+    int mib[2] = {CTL_KERN, KERN_OSRELEASE};
+    char osrelease[256];
+    size_t size = sizeof(osrelease);
+
+    if (sysctl(mib, 2, osrelease, &size, NULL, 0) == 0) {
+        int major = atoi(strtok(osrelease, "."));
+        int minor = atoi(strtok(NULL, "."));
+        // macOS 10.12 (Sierra) is Darwin 16.x.x
+        if (major > 16 || (major == 16 && minor >= 0)) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+// Returns volume [0.0, 1.0] or -1.0f if error/unsupported
+Float32 getDeviceVolumeMac(void)
+{
+    AudioDeviceID outputDevice = kAudioObjectUnknown;
+    UInt32 dataSize = sizeof(outputDevice);
+
+    UInt32 main = is_at_least_macos_10_12()
+    ? kAudioObjectPropertyElementMain
+    : kAudioObjectPropertyElementMaster;
+
+    // 1. Get the default output device (main output device)
+    AudioObjectPropertyAddress deviceAddress = {
+        kAudioHardwarePropertyDefaultOutputDevice,
+        kAudioObjectPropertyScopeGlobal,
+        main
+    };
+    OSStatus status = AudioObjectGetPropertyData(
+        kAudioObjectSystemObject, &deviceAddress,
+        0, NULL, &dataSize, &outputDevice
+    );
+    if (status != noErr) {
+        fprintf(stderr, "Failed to get default output device: OSStatus=%d\n", (int)status);
+        return -1.0f;
+    }
+
+    // 2. Try to get MAIN element first (0, replacing deprecated MASTER)
+    Float32 volume = -1.0f;
+    dataSize = sizeof(Float32);
+    AudioObjectPropertyAddress volumeAddress = {
+        kAudioDevicePropertyVolumeScalar,
+        kAudioDevicePropertyScopeOutput,
+        main
+    };
+    status = AudioObjectGetPropertyData(
+        outputDevice, &volumeAddress,
+        0, NULL, &dataSize, &volume
+    );
+    if (status == noErr && volume >= 0.0f && volume <= 1.0f)
+        return volume;
+
+    // 3. If MAIN fails, try first channels (typical stereo: 1=left, 2=right)
+    Float32 vols[2] = { -1.f, -1.f };
+    int found = 0;
+
+    for (UInt32 channel = 1; channel <= 2; ++channel) {
+        volumeAddress.mElement = channel;
+        dataSize = sizeof(Float32);
+        status = AudioObjectGetPropertyData(
+            outputDevice, &volumeAddress,
+            0, NULL, &dataSize, &vols[channel-1]
+        );
+        if (status == noErr && vols[channel-1] >= 0.f && vols[channel-1] <= 1.f)
+            found++;
+    }
+
+    if (found == 2)       // both channels ok, average
+        return (vols[0] + vols[1]) * 0.5f;
+    else if (found == 1)  // only one; use that
+        return vols[0] != -1.f ? vols[0] : vols[1];
+    else                  // no valid volume found
+        return -1.0f;
+}
+
+#endif
+
 int getSystemVolume(void)
 {
 #ifdef __APPLE__
+#if __MAC_OS_X_VERSION_MIN_REQUIRED >= 100500
+        return getDeviceVolumeMac() * 100;
+#else
         return getSystemVolumeMac();
+#endif
 #else
         FILE *fp;
         char command_str[1000];
@@ -1220,126 +1311,6 @@ int getSystemVolume(void)
 #endif
 }
 
-#ifdef __APPLE__
-#include <CoreAudio/CoreAudio.h>
-#include <stdio.h>
-
-bool isVolumeControlEnabled_HighSierraAndLater(AudioDeviceID deviceID)
-{
-        UInt32 dataSize;
-
-        // Get the number of channels
-        AudioObjectPropertyAddress channelAddress = {kAudioDevicePropertyStreamConfiguration, kAudioDevicePropertyScopeOutput, 0};
-        if (AudioObjectGetPropertyDataSize(deviceID, &channelAddress, 0, NULL, &dataSize) != noErr)
-        {
-                return false;
-        }
-
-        UInt32 channelCount = dataSize / sizeof(AudioChannelLayout);
-        AudioChannelLayout *layouts = (AudioChannelLayout *)malloc(dataSize);
-        if (!layouts)
-        {
-                return false;
-        }
-
-        if (AudioObjectGetPropertyData(deviceID, &channelAddress, 0, NULL, &dataSize, layouts) != noErr)
-        {
-                free(layouts);
-                return false;
-        }
-
-        // Check each channel
-        for (UInt32 i = 1; i <= channelCount * layouts->mNumberChannelDescriptions; ++i)
-        {
-                AudioObjectPropertyAddress volumeAddress = {kAudioDevicePropertyVolumeScalar, kAudioDevicePropertyScopeOutput, i};
-
-                // Check if property exists
-                if (AudioObjectHasProperty(deviceID, &volumeAddress))
-                {
-                        Boolean isWritable;
-                        if (AudioObjectIsPropertySettable(deviceID, &volumeAddress, &isWritable) == noErr && isWritable)
-                        {
-                                free(layouts);
-                                return true; // Volume control available
-                        }
-                }
-        }
-
-        free(layouts);
-        return false;
-}
-
-bool isVolumeControlEnabled(AudioDeviceID deviceID)
-{
-#if __MAC_OS_X_VERSION_MIN_REQUIRED >= 101300
-
-        return isVolumeControlEnabled_HighSierraAndLater(deviceID);
-
-#else
-        UInt32 channels[] = {
-            kAudioObjectPropertyElementMaster,
-            1, // Left
-            2  // Right
-        };
-
-        for (int i = 0; i < 3; ++i)
-        {
-                AudioObjectPropertyAddress volumeAddress = {
-                    kAudioDevicePropertyVolumeScalar,
-                    kAudioDevicePropertyScopeOutput,
-                    channels[i]};
-
-                // Check if property exists
-                if (AudioObjectHasProperty(deviceID, &volumeAddress))
-                {
-                        Boolean isWritable = false;
-                        if (AudioObjectIsPropertySettable(deviceID, &volumeAddress, &isWritable) == noErr && isWritable)
-                        {
-                                return true; // Volume control available
-                        }
-                }
-        }
-
-        return false;
-#endif
-}
-
-AudioDeviceID getDefaultOutputDevice()
-{
-        AudioDeviceID deviceID = kAudioObjectUnknown;
-        UInt32 size = sizeof(deviceID);
-        AudioObjectPropertyAddress defaultOutputAddress = {
-            kAudioHardwarePropertyDefaultOutputDevice,
-            kAudioObjectPropertyScopeGlobal,
-            kAudioObjectPropertyElementMain};
-
-        if (AudioObjectGetPropertyData(kAudioObjectSystemObject, &defaultOutputAddress, 0, NULL, &size, &deviceID) != noErr)
-        {
-                return kAudioObjectUnknown;
-        }
-
-        return deviceID;
-}
-
-#endif
-
-bool doesOSallowVolumeControl()
-{
-#ifdef __APPLE__
-        AudioDeviceID deviceID = getDefaultOutputDevice();
-        if (deviceID == kAudioObjectUnknown)
-        {
-                return true; // Something went wrong, just ignore it or risk disabling audio
-        }
-
-        if (!isVolumeControlEnabled(deviceID))
-        {
-                return false;
-        }
-#endif
-        return true;
-}
-
 void setVolume(int volume)
 {
         if (volume > 100)
@@ -1358,10 +1329,10 @@ void setVolume(int volume)
 
 int adjustVolumePercent(int volumeChange)
 {
-        if (!doesOSallowVolumeControl())
-                return 0;
-
         int sysVol = getSystemVolume();
+
+        if (sysVol < 0)
+                return -1;
 
         if (sysVol == 0)
                 return 0;
@@ -1371,6 +1342,15 @@ int adjustVolumePercent(int volumeChange)
         int relativeVolChange = volumeChange / 5 * step;
 
         soundVolume += relativeVolChange;
+
+        if (soundVolume > 100)
+        {
+                soundVolume = 100;
+        }
+        else if (soundVolume < 0)
+        {
+                soundVolume = 0;
+        }
 
         setVolume(soundVolume);
 
