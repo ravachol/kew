@@ -75,7 +75,7 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         c_strcpy(settings.hideHelp, "0", sizeof(settings.hideHelp));
         c_strcpy(settings.cacheLibrary, "-1", sizeof(settings.cacheLibrary));
         c_strcpy(settings.visualizerHeight, "6", sizeof(settings.visualizerHeight));
-        c_strcpy(settings.visualizerColorType, "0", sizeof(settings.visualizerColorType));
+        c_strcpy(settings.visualizerColorType, "2", sizeof(settings.visualizerColorType));
         c_strcpy(settings.titleDelay, "9", sizeof(settings.titleDelay));
         c_strcpy(settings.nextView, "\t", sizeof(settings.nextView));
         c_strcpy(settings.prevView, "[Z", sizeof(settings.prevView));
@@ -1046,7 +1046,7 @@ void setConfig(AppSettings *settings, UISettings *ui)
         fprintf(file, "visualizerHeight=%s\n", settings->visualizerHeight);
         fprintf(file, "visualizerBrailleMode=%s\n\n", settings->visualizerBrailleMode);
 
-        fprintf(file, "# How colors are laid out in the spectrum visualizer. 0=default, 1=brightness depending on bar height, 2=reversed, 3=reversed darken.\n");
+        fprintf(file, "# How colors are laid out in the spectrum visualizer. 0=lighten, 1=brightness depending on bar height, 2=reversed, 3=reversed darken.\n");
         fprintf(file, "visualizerColorType=%s\n\n", settings->visualizerColorType);
 
         fprintf(file, "# 0=Thin bars, 1=Bars twice the width, 2=Auto (depends on window size).\n");
