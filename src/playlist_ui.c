@@ -80,7 +80,7 @@ int displayPlaylistItems(Node *startNode, int startIter, int maxListSize, int te
         for (int i = startIter; node != NULL && i < startIter + maxListSize; i++)
         {
                 if (!(ui->color.r == defaultColor && ui->color.g == defaultColor && ui->color.b == defaultColor))
-                        rowColor = getGradientColor(ui->color, i - startIter, maxListSize, maxListSize / 2, 0.6f);
+                        rowColor = getGradientColor(ui->color, i - startIter, maxListSize, maxListSize / 2, 0.7f);
 
                 char *buffer = (char *)malloc(MAXPATHLEN * sizeof(char));
                 char *filename = (char *)malloc(MAXPATHLEN * sizeof(char) + 1);
