@@ -153,7 +153,7 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         c_strcpy(settings.hardStop, "S", sizeof(settings.hardStop));
         c_strcpy(settings.sortLibrary, "o", sizeof(settings.sortLibrary));
         c_strcpy(settings.quit, "q", sizeof(settings.quit));
-        c_strcpy(settings.hardQuit, "\x1B", sizeof(settings.hardQuit));
+        c_strcpy(settings.altQuit, "\x1B", sizeof(settings.altQuit));
         c_strcpy(settings.hardClearPlaylist, "\b", sizeof(settings.hardClearPlaylist));
 
         if (pairs == NULL)
@@ -375,6 +375,10 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
                 {
                         snprintf(settings.quit, sizeof(settings.quit), "%s", pair->value);
                 }
+                else if (strcmp(lowercaseKey, "altquit") == 0)
+                {
+                        snprintf(settings.altQuit, sizeof(settings.altQuit), "%s", pair->value);
+                }
                 else if (strcmp(lowercaseKey, "updatelibrary") == 0)
                 {
                         snprintf(settings.updateLibrary, sizeof(settings.updateLibrary), "%s", pair->value);
@@ -565,7 +569,7 @@ void mapSettingsToKeys(AppSettings *settings, UISettings *ui, EventMapping *mapp
         mappings[6] = (EventMapping){settings->volumeDown, EVENT_VOLUME_DOWN};
         mappings[7] = (EventMapping){settings->togglePause, EVENT_PLAY_PAUSE};
         mappings[8] = (EventMapping){settings->quit, EVENT_QUIT};
-        mappings[9] = (EventMapping){settings->hardQuit, EVENT_QUIT};
+        mappings[9] = (EventMapping){settings->altQuit, EVENT_QUIT};
         mappings[10] = (EventMapping){settings->toggleShuffle, EVENT_SHUFFLE};
         mappings[11] = (EventMapping){settings->toggleVisualizer, EVENT_TOGGLEVISUALIZER};
         mappings[12] = (EventMapping){settings->toggleAscii, EVENT_TOGGLEASCII};
@@ -1144,7 +1148,8 @@ void setConfig(AppSettings *settings, UISettings *ui)
         fprintf(file, "moveSongDown=%s\n", settings->moveSongDown);
         fprintf(file, "enqueueAndPlay=%s\n", settings->enqueueAndPlay);
         fprintf(file, "sortLibrary=%s\n", settings->sortLibrary);
-        fprintf(file, "quit=%s\n\n", settings->quit);
+        fprintf(file, "quit=%s\n", settings->quit);
+        fprintf(file, "altQuit=%s\n\n", settings->altQuit);
 
         fprintf(file, "# Alt keys for the different main views, normally F2-F7:\n");
         fprintf(file, "showPlaylistAlt=%s\n", settings->showPlaylistAlt);
