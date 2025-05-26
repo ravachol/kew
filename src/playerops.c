@@ -366,22 +366,6 @@ void toggleRepeat(UISettings *ui)
                 refresh = true;
 }
 
-void addToSpecialPlaylist(void)
-{
-        if (currentSong == NULL)
-                return;
-
-        int id = currentSong->id;
-
-        Node *node = NULL;
-
-        if (findSelectedEntryById(specialPlaylist, id) != NULL) // Song is already in list
-                return;
-
-        createNode(&node, currentSong->song.filePath, id);
-        addToList(specialPlaylist, node);
-}
-
 void toggleShuffle(UISettings *ui)
 {
         ui->shuffleEnabled = !isShuffleEnabled();

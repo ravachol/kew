@@ -73,8 +73,6 @@ void toggleRepeat(UISettings *ui);
 
 void toggleShuffle(UISettings *ui);
 
-void addToSpecialPlaylist(void);
-
 void toggleAscii(AppSettings *settings, UISettings *ui);
 
 void toggleColors(AppSettings *settings, UISettings *ui);

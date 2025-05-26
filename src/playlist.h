@@ -41,9 +41,8 @@ extern Node *currentSong;
 #endif
 
 extern PlayList playlist;
-
-extern PlayList *specialPlaylist;
 extern PlayList *originalPlaylist;
+
 extern int nodeIdCounter;
 
 Node *getListNext(Node *node);
@@ -68,13 +67,9 @@ void writeCurrentPlaylistToM3UFile(PlayList *playlist);
 
 void writeM3UFile(const char *filename, const PlayList *playlist);
 
-void loadSpecialPlaylist(const char *directory);
-
 void saveNamedPlaylist(const char *directory, const char *playlistName, const PlayList *playlist);
 
 void exportCurrentPlaylist(const char *path);
-
-void saveSpecialPlaylist(const char *directory);
 
 void saveLastUsedPlaylist(void);
 
