@@ -182,7 +182,6 @@ void copyHalfOrFullWidthCharsWithMaxWidth(const char *src, char *dst, int maxCha
         if (len == 0) { // Null terminator
             break;
         }
-        // Optionally skip non-printable chars, but if not just count everything:
 
         memcpy(o, p, len);
         o += len;
