@@ -8,11 +8,19 @@
 
 - Better handling of comments in config file.
 
+- Volume settings now follow a more conventional pattern where it increases or decreases based directly on the system output, instead of being relative to maximum output. Was able to remove a lot of code related to getting system volume on linux and macOS. Suggested by @arcathrax.
+
+- Escape for quit is no longer hard coded and can be disabled or changed in settings. Suggested by @0023-119.
+
+- Remove special playlist function. It's kew's most odd feature and confuses people because they think it's related to the normal saving playlist function. Plus nobody has ever mentioned using it.
+
 #### Bug Fixes
 
-- Fix "ghost" visualizer bars showing up at higher frequencies in a zoomed out terminal window.
+- Fixed "ghost" visualizer bars showing up at higher frequencies in a zoomed out terminal window. Reported by @Chromium-3-Oxide.
 
 - Fixed bug in library related to handling of sub-directories several levels deep.
+
+- Fixed volume up/down not working when audio interface plugged in on macOS. Reported by @arcathrax.
 
 ### 3.3.2
 
