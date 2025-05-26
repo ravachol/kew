@@ -166,8 +166,8 @@ typedef struct
         char hardShowTrack[6];
         char hardShowTrackAlt[6];
         char showTrackAlt[6];
-        char hardNextPage[6];
-        char hardPrevPage[6];
+        char nextPage[6];
+        char prevPage[6];
         char hardRemove[6];
         char hardRemove2[6];
         char mouseLeftClick[12];

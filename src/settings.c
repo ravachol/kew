@@ -124,8 +124,8 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         c_strcpy(settings.hardShowSearch, "[15~", sizeof(settings.hardShowSearch));
         c_strcpy(settings.hardShowSearchAlt, "[[E", sizeof(settings.hardShowSearchAlt));
 
-        c_strcpy(settings.hardNextPage, "[6~", sizeof(settings.hardNextPage));
-        c_strcpy(settings.hardPrevPage, "[5~", sizeof(settings.hardPrevPage));
+        c_strcpy(settings.nextPage, "[6~", sizeof(settings.nextPage));
+        c_strcpy(settings.prevPage, "[5~", sizeof(settings.prevPage));
         c_strcpy(settings.hardRemove, "[3~", sizeof(settings.hardRemove));
         c_strcpy(settings.hardRemove2, "[P", sizeof(settings.hardRemove2));
         c_strcpy(settings.mouseLeftClick, "[M ", sizeof(settings.mouseLeftClick));
@@ -379,6 +379,14 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
                 {
                         snprintf(settings.altQuit, sizeof(settings.altQuit), "%s", pair->value);
                 }
+                else if (strcmp(lowercaseKey, "prevpage") == 0)
+                {
+                        snprintf(settings.prevPage, sizeof(settings.prevPage), "%s", pair->value);
+                }
+                else if (strcmp(lowercaseKey, "nextpage") == 0)
+                {
+                        snprintf(settings.nextPage, sizeof(settings.nextPage), "%s", pair->value);
+                }
                 else if (strcmp(lowercaseKey, "updatelibrary") == 0)
                 {
                         snprintf(settings.updateLibrary, sizeof(settings.updateLibrary), "%s", pair->value);
@@ -602,8 +610,8 @@ void mapSettingsToKeys(AppSettings *settings, UISettings *ui, EventMapping *mapp
         mappings[39] = (EventMapping){settings->hardShowSearch, EVENT_SHOWSEARCH};
         mappings[40] = (EventMapping){settings->hardShowSearchAlt, EVENT_SHOWSEARCH};
         mappings[41] = (EventMapping){settings->showSearchAlt, EVENT_SHOWSEARCH};
-        mappings[42] = (EventMapping){settings->hardNextPage, EVENT_NEXTPAGE};
-        mappings[43] = (EventMapping){settings->hardPrevPage, EVENT_PREVPAGE};
+        mappings[42] = (EventMapping){settings->nextPage, EVENT_NEXTPAGE};
+        mappings[43] = (EventMapping){settings->prevPage, EVENT_PREVPAGE};
         mappings[44] = (EventMapping){settings->hardRemove, EVENT_REMOVE};
         mappings[45] = (EventMapping){settings->hardRemove2, EVENT_REMOVE};
         mappings[46] = (EventMapping){settings->nextView, EVENT_NEXTVIEW};
@@ -1157,6 +1165,11 @@ void setConfig(AppSettings *settings, UISettings *ui)
         fprintf(file, "showTrackAlt=%s\n", settings->showTrackAlt);
         fprintf(file, "showSearchAlt=%s\n", settings->showSearchAlt);
         fprintf(file, "showKeysAlt=%s\n\n", settings->showKeysAlt);
+
+        fprintf(file, "# Keys for scrolling page up and page down:\n");
+        fprintf(file, "prevPage=%s\n", settings->prevPage);
+        fprintf(file, "nextPage=%s\n\n", settings->nextPage);
+
 
         fprintf(file, "# For special keys use terminal codes: OS, for F4 for instance. This can depend on the terminal.\n");
         fprintf(file, "# You can find out the codes for the keys by using tools like showkey.\n");
