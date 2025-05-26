@@ -143,7 +143,7 @@ typedef struct
         char addToMainPlaylist[6];
         char updateLibrary[6];
         char quit[6];
-        char hardQuit[6];
+        char altQuit[6];
         char hardSwitchNumberedSong[6];
         char hardPlayPause[6];
         char hardPrev[6];
