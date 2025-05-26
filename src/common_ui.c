@@ -158,7 +158,7 @@ int mk_wcswidth(const wchar_t *pwcs, size_t n)
 
 /* End Markus Kuhn code */
 
-void copyHalfOrFullWidthCharsWithMaxWidth(const char *src, char *dst, int maxWidth)
+void copyHalfOrFullWidthCharsWithMaxWidth(const char *src, char *dst, int maxChars)
 {
     mbstate_t state;
     memset(&state, 0, sizeof(state));
@@ -166,33 +166,28 @@ void copyHalfOrFullWidthCharsWithMaxWidth(const char *src, char *dst, int maxWid
     const char *p = src;
     char *o = dst;
     wchar_t wc;
-    int width = 0;
+    int count = 0;
 
-    while (*p) {
+    while (*p && count < maxChars) {
         size_t len = mbrtowc(&wc, p, MB_CUR_MAX, &state);
         if (len == (size_t)-1) { // Invalid UTF-8/locale error
-            // Skip one byte, reinit state, and keep going
-            p++; // Try resyncing at next byte
+            // Skip one byte, reinit state
+            p++;
             memset(&state, 0, sizeof(state));
             continue;
         }
-        if (len == (size_t)-2) { // Incomplete sequence (shouldn't normally happen)
+        if (len == (size_t)-2) { // Incomplete sequence
             break;
         }
-        if (len == 0) { // Null - end of string
+        if (len == 0) { // Null terminator
             break;
         }
-        int w = mk_wcwidth(wc);
-        if (w < 0) { // Not displayable? Just skip
-            p += len;
-            continue;
-        }
-        if (width + w > maxWidth)
-            break;
+        // Optionally skip non-printable chars, but if not just count everything:
+
         memcpy(o, p, len);
         o += len;
         p += len;
-        width += w;
+        count++; // Count one codepoint
     }
     *o = '\0';
 }
@@ -245,7 +240,7 @@ void processName(const char *name, char *output, int maxWidth)
         }
 
         removeUnneededChars(output, strnlen(output, maxWidth));
-        trim(output, strnlen(output, maxWidth));
+        trim(output, strlen(output));
 }
 
 void processNameScroll(const char *name, char *output, int maxWidth, bool isSameNameAsLastTime)
