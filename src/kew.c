@@ -159,7 +159,7 @@ struct Event processInput()
                 // This slows the continous reads down to not get a a too fast scrolling speed
                 if (strcmp(seq + 1, settings.hardScrollUp) == 0 || strcmp(seq + 1, settings.hardScrollDown) == 0 || strcmp(seq + 1, settings.scrollUpAlt) == 0 ||
                     strcmp(seq + 1, settings.scrollDownAlt) == 0 || strcmp(seq + 1, settings.seekBackward) == 0 || strcmp(seq + 1, settings.seekForward) == 0 ||
-                    strcmp(seq + 1, settings.hardNextPage) == 0 || strcmp(seq + 1, settings.hardPrevPage) == 0)
+                    strcmp(seq + 1, settings.nextPage) == 0 || strcmp(seq + 1, settings.prevPage) == 0)
                 {
                         keyReleased = 0;
                         readInputSequence(tmpSeq, sizeof(tmpSeq)); // Dummy read to prevent scrolling after key released
