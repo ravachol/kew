@@ -183,7 +183,7 @@ int printLogo(SongData *songData, UISettings *ui)
                 for (size_t i = 0; i < logoHeight; i++)
                 {
                         if (!(ui->color.r == defaultColor && ui->color.g == defaultColor && ui->color.b == defaultColor))
-                                rowColor = getGradientColor(ui->color, logoHeight - i, logoHeight, 2, 0.7f);
+                                rowColor = getGradientColor(ui->color, logoHeight - i, logoHeight, 2, 0.8f);
 
                         if (ui->useConfigColors)
                                 setTextColor(ui->mainColor);
@@ -1265,7 +1265,7 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
         rowColor.b = defaultColor;
 
         if (!(ui->color.r == defaultColor && ui->color.g == defaultColor && ui->color.b == defaultColor))
-                rowColor = getGradientColor(ui->color, libIter - startLibIter, maxListSize, maxListSize / 2, 0.6f);
+                rowColor = getGradientColor(ui->color, libIter - startLibIter, maxListSize, maxListSize / 2, 0.7f);
 
         if (!(root->isDirectory ||
               (!root->isDirectory && depth == 1) ||
