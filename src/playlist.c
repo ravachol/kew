@@ -32,9 +32,6 @@ PlayList *originalPlaylist = NULL;
 // The (sometimes shuffled) sequence of songs that will be played
 PlayList playlist = {NULL, NULL, 0, PTHREAD_MUTEX_INITIALIZER};
 
-// The playlist from kew.m3u
-PlayList *specialPlaylist = NULL;
-
 char search[MAX_SEARCH_SIZE];
 char playlistName[MAX_SEARCH_SIZE];
 bool shuffle = false;
@@ -678,12 +675,6 @@ void loadPlaylist(const char *directory, const char *playlistName, PlayList *pla
         readM3UFile(playlistPath, playlist);
 }
 
-void loadSpecialPlaylist(const char *directory)
-{
-        specialPlaylist = malloc(sizeof(PlayList));
-        loadPlaylist(directory, mainPlaylistName, specialPlaylist);
-}
-
 void loadLastUsedPlaylist(void)
 {
         char *configdir = getConfigPath();
@@ -729,14 +720,6 @@ void saveNamedPlaylist(const char *directory, const char *playlistName, const Pl
     {
         writeM3UFile(playlistPath, playlist);
     }
-}
-
-void saveSpecialPlaylist(const char *directory)
-{
-        if (specialPlaylist != NULL && specialPlaylist->count > 0)
-        {
-                saveNamedPlaylist(directory, mainPlaylistName, specialPlaylist);
-        }
 }
 
 void saveLastUsedPlaylist(void)

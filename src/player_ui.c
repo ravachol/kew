@@ -130,7 +130,6 @@ void printHelp()
                "          kew list <m3u list name> \n"
                "          kew shuffle <dir name> (random and rand works too)\n"
                "          kew artistA:artistB (plays artistA and artistB shuffled)\n"
-               "          kew . (plays kew.m3u file)\n"
                "\n"
                " \033[1;4mExample:\033[0m kew moon\n"
                " (Plays the first song or directory it finds that has the word moon, ie moonlight sonata)\n"
@@ -156,7 +155,7 @@ void printHelp()
                " s to shuffle the playlist.\n"
                " a to seek back.\n"
                " d to seek forward.\n"
-               " x to save the currently loaded playlist to a m3u file in your music folder.\n"
+               " x to save the current playlist to a .m3u in your music folder named after the first song.\n"
                " Tab to switch to next view.\n"
                " Shift+Tab to switch to previous view.\n"
                " Backspace to clear the playlist.\n"
@@ -164,7 +163,6 @@ void printHelp()
                " gg go to first song.\n"
                " number + G or Enter to go to specific song number in the playlist.\n"
                " G to go to last song.\n"
-               " . to add current song to kew.m3u (run with \"kew .\").\n"
                " Esc or q to quit.\n"
                "\n");
 }
@@ -789,9 +787,9 @@ int showKeyBindings(SongData *songdata, AppSettings *settings, UISettings *ui)
         printBlankSpaces(indent);
         printf(" - %s to seek forward.\n", settings->seekForward);
         printBlankSpaces(indent);
-        printf(" - %s to save the playlist to your music folder.\n", settings->savePlaylist);
+        printf(" - %s to save the playlist to your music folder,\n", settings->savePlaylist);
         printBlankSpaces(indent);
-        printf(" - %s to add current song to kew.m3u (run with \"kew .\").\n", settings->addToMainPlaylist);
+        printf("   in an .m3u file named after the first song in the playlist.\n");
         printBlankSpaces(indent);
         printf(" - Esc or %s to quit.\n\n", settings->quit);
         printBlankSpaces(indent);
