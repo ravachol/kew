@@ -53,48 +53,6 @@ typedef struct
 char scale[] = "$@&B%8WM#ZO0QoahkbdpqwmLCJUYXIjft/\\|()1{}[]l?zcvunxr!<>i;:*-+~_,\"^`'. ";
 unsigned int brightness_levels = MACRO_STRLEN(scale) - 2;
 
-#ifdef CHAFA_VERSION_1_16
-
-static void detect_terminal(ChafaTermInfo **term_info_out, ChafaCanvasMode *mode_out, ChafaPixelMode *pixel_mode_out,
-                            ChafaPassthrough *passthrough_out, ChafaSymbolMap **symbol_map_out)
-{
-        ChafaCanvasMode mode;
-        ChafaPixelMode pixel_mode;
-        ChafaPassthrough passthrough;
-        ChafaTermInfo *term_info;
-        gchar **envp;
-
-        /* Examine the environment variables and guess what the terminal can do */
-
-        envp = g_get_environ();
-        term_info = chafa_term_db_detect(chafa_term_db_get_default(), envp);
-
-        /* Pick the most high-quality rendering possible */
-
-        mode = chafa_term_info_get_best_canvas_mode(term_info);
-        pixel_mode = chafa_term_info_get_best_pixel_mode(term_info);
-        passthrough = chafa_term_info_get_is_pixel_passthrough_needed(term_info, pixel_mode)
-                          ? chafa_term_info_get_passthrough_type(term_info)
-                          : CHAFA_PASSTHROUGH_NONE;
-
-        *symbol_map_out = chafa_symbol_map_new();
-        chafa_symbol_map_add_by_tags(*symbol_map_out,
-                                     chafa_term_info_get_safe_symbol_tags(term_info));
-
-        /* Hand over the information to caller */
-
-        *term_info_out = term_info;
-        *mode_out = mode;
-        *pixel_mode_out = pixel_mode;
-        *passthrough_out = passthrough;
-
-        /* Cleanup */
-
-        g_strfreev(envp);
-}
-
-#else
-
 static void detect_terminal(ChafaTermInfo **term_info_out, ChafaCanvasMode *mode_out, ChafaPixelMode *pixel_mode_out)
 {
         ChafaCanvasMode mode;
@@ -146,7 +104,6 @@ static void detect_terminal(ChafaTermInfo **term_info_out, ChafaCanvasMode *mode
 
         g_strfreev(envp);
 }
-#endif
 
 static void
 get_tty_size(TermSize *term_size_out)
@@ -243,20 +200,6 @@ convert_image(const void *pixels, gint pix_width, gint pix_height,
         ChafaCanvas *canvas;
         GString *printable;
 
-#ifdef CHAFA_VERSION_1_16
-
-        ChafaPassthrough passthrough;
-
-        detect_terminal(&term_info, &mode, &pixel_mode,
-                        &passthrough, &symbol_map);
-
-            config = chafa_canvas_config_new();
-        chafa_canvas_config_set_canvas_mode(config, mode);
-        chafa_canvas_config_set_pixel_mode(config, pixel_mode);
-        chafa_canvas_config_set_geometry(config, width_cells, height_cells);
-        chafa_canvas_config_set_passthrough(config, passthrough);
-        chafa_canvas_config_set_symbol_map(config, symbol_map);
-#else
         detect_terminal(&term_info, &mode, &pixel_mode);
 
         /* Specify the symbols we want */
@@ -271,7 +214,7 @@ convert_image(const void *pixels, gint pix_width, gint pix_height,
         chafa_canvas_config_set_pixel_mode(config, pixel_mode);
         chafa_canvas_config_set_geometry(config, width_cells, height_cells);
         chafa_canvas_config_set_symbol_map(config, symbol_map);
-#endif
+
         if (cell_width > 0 && cell_height > 0)
         {
                 /* We know the pixel dimensions of each cell. Store it in the config. */
@@ -537,6 +480,7 @@ int convertToAscii(const char *filepath, unsigned int height)
         float aspect_ratio_correction = (float)cell_height / (float)cell_width;
         unsigned int correctedWidth = (int)(height * aspect_ratio_correction) - 1;
 
+
         // Calculate indentation to center the image
         int indent = ((term_size.width_cells - correctedWidth) / 2);
 
@@ -591,7 +535,7 @@ int printInAscii(const char *pathToImgFile, int height)
 {
         printf("\r");
 
-        int ret = convertToAscii(pathToImgFile, (unsigned)height);
+        int ret = convertToAscii(pathToImgFile,(unsigned)height);
         if (ret == -1)
                 printf("\033[0m");
         return 0;
