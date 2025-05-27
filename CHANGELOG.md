@@ -24,6 +24,8 @@
 
 - Fixed volume up/down not working when audio interface plugged in on macOS. Reported by @arcathrax.
 
+- Fixed bug with library cache setting not being remembered. Reported by @Saijin-Naib.
+
 ### 3.3.2
 
 - Remove -lcurl from makefile.
