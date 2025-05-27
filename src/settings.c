@@ -974,8 +974,8 @@ void setConfig(AppSettings *settings, UISettings *ui)
                 snprintf(settings->visualizerColorType, sizeof(settings->visualizerColorType), "%d", ui->visualizerColorType);
         if (settings->titleDelay[0] == '\0')
                 snprintf(settings->titleDelay, sizeof(settings->titleDelay), "%d", ui->titleDelay);
-        if (settings->cacheLibrary[0] == '\0')
-                snprintf(settings->cacheLibrary, sizeof(settings->cacheLibrary), "%d", ui->cacheLibrary);
+
+        snprintf(settings->cacheLibrary, sizeof(settings->cacheLibrary), "%d", ui->cacheLibrary);
 
         int currentVolume = getCurrentVolume();
         currentVolume = (currentVolume <= 0) ? 10 : currentVolume;
