@@ -53,6 +53,142 @@ typedef struct
 char scale[] = "$@&B%8WM#ZO0QoahkbdpqwmLCJUYXIjft/\\|()1{}[]l?zcvunxr!<>i;:*-+~_,\"^`'. ";
 unsigned int brightness_levels = MACRO_STRLEN(scale) - 2;
 
+#ifdef CHAFA_VERSION_1_16
+
+static gchar *tmux_allow_passthrough_original;
+static gboolean tmux_allow_passthrough_is_changed;
+
+static gboolean
+apply_passthrough_workarounds_tmux(void)
+{
+        gboolean result = FALSE;
+        gchar *standard_output = NULL;
+        gchar *standard_error = NULL;
+        gchar **strings;
+        gchar *mode = NULL;
+        gint wait_status = -1;
+
+        /* allow-passthrough can be either unset, "on" or "all". Both "on" and "all"
+         * are fine, so don't mess with it if we don't have to.
+         *
+         * Also note that we may be in a remote session inside tmux. */
+
+        if (!g_spawn_command_line_sync("tmux show allow-passthrough",
+                                       &standard_output, &standard_error,
+                                       &wait_status, NULL))
+                goto out;
+
+        strings = g_strsplit_set(standard_output, " ", -1);
+        if (strings[0] && strings[1])
+        {
+                mode = g_ascii_strdown(strings[1], -1);
+                g_strstrip(mode);
+        }
+        g_strfreev(strings);
+
+        g_free(standard_output);
+        standard_output = NULL;
+        g_free(standard_error);
+        standard_error = NULL;
+
+        if (!mode || (strcmp(mode, "on") && strcmp(mode, "all")))
+        {
+                result = g_spawn_command_line_sync("tmux set-option allow-passthrough on",
+                                                   &standard_output, &standard_error,
+                                                   &wait_status, NULL);
+                if (result)
+                {
+                        tmux_allow_passthrough_original = mode;
+                        tmux_allow_passthrough_is_changed = TRUE;
+                }
+        }
+        else
+        {
+                g_free(mode);
+        }
+
+out:
+        g_free(standard_output);
+        g_free(standard_error);
+        return result;
+}
+
+gboolean
+retire_passthrough_workarounds_tmux(void)
+{
+        gboolean result = FALSE;
+        gchar *standard_output = NULL;
+        gchar *standard_error = NULL;
+        gchar *cmd;
+        gint wait_status = -1;
+
+        if (!tmux_allow_passthrough_is_changed)
+                return TRUE;
+
+        if (tmux_allow_passthrough_original)
+        {
+                cmd = g_strdup_printf("tmux set-option allow-passthrough %s",
+                                      tmux_allow_passthrough_original);
+        }
+        else
+        {
+                cmd = g_strdup("tmux set-option -u allow-passthrough");
+        }
+
+        result = g_spawn_command_line_sync(cmd, &standard_output, &standard_error,
+                                           &wait_status, NULL);
+        if (result)
+        {
+                g_free(tmux_allow_passthrough_original);
+                tmux_allow_passthrough_original = NULL;
+                tmux_allow_passthrough_is_changed = FALSE;
+        }
+
+        g_free(standard_output);
+        g_free(standard_error);
+        return result;
+}
+
+static void detect_terminal(ChafaTermInfo **term_info_out, ChafaCanvasMode *mode_out, ChafaPixelMode *pixel_mode_out,
+                            ChafaPassthrough *passthrough_out, ChafaSymbolMap **symbol_map_out)
+{
+        ChafaCanvasMode mode;
+        ChafaPixelMode pixel_mode;
+        ChafaPassthrough passthrough;
+        ChafaTermInfo *term_info;
+        gchar **envp;
+
+        /* Examine the environment variables and guess what the terminal can do */
+
+        envp = g_get_environ();
+        term_info = chafa_term_db_detect(chafa_term_db_get_default(), envp);
+
+        /* Pick the most high-quality rendering possible */
+
+        mode = chafa_term_info_get_best_canvas_mode(term_info);
+        pixel_mode = chafa_term_info_get_best_pixel_mode(term_info);
+        passthrough = chafa_term_info_get_is_pixel_passthrough_needed(term_info, pixel_mode)
+                          ? chafa_term_info_get_passthrough_type(term_info)
+                          : CHAFA_PASSTHROUGH_NONE;
+
+        *symbol_map_out = chafa_symbol_map_new();
+        chafa_symbol_map_add_by_tags(*symbol_map_out,
+                                     chafa_term_info_get_safe_symbol_tags(term_info));
+
+        /* Hand over the information to caller */
+
+        *term_info_out = term_info;
+        *mode_out = mode;
+        *pixel_mode_out = pixel_mode;
+        *passthrough_out = passthrough;
+
+        /* Cleanup */
+
+        g_strfreev(envp);
+}
+
+#else
+
 static void detect_terminal(ChafaTermInfo **term_info_out, ChafaCanvasMode *mode_out, ChafaPixelMode *pixel_mode_out)
 {
         ChafaCanvasMode mode;
@@ -104,6 +240,7 @@ static void detect_terminal(ChafaTermInfo **term_info_out, ChafaCanvasMode *mode
 
         g_strfreev(envp);
 }
+#endif
 
 static void
 get_tty_size(TermSize *term_size_out)
@@ -200,6 +337,64 @@ convert_image(const void *pixels, gint pix_width, gint pix_height,
         ChafaCanvas *canvas;
         GString *printable;
 
+#ifdef CHAFA_VERSION_1_16
+
+        ChafaPassthrough passthrough;
+        ChafaFrame *frame;
+        ChafaImage *image;
+        ChafaPlacement *placement;
+
+        detect_terminal(&term_info, &mode, &pixel_mode,
+                        &passthrough, &symbol_map);
+
+        if (passthrough == CHAFA_PASSTHROUGH_TMUX)
+                apply_passthrough_workarounds_tmux();
+
+        config = chafa_canvas_config_new();
+        chafa_canvas_config_set_canvas_mode(config, mode);
+        chafa_canvas_config_set_pixel_mode(config, pixel_mode);
+        chafa_canvas_config_set_geometry(config, width_cells, height_cells);
+
+        if (cell_width > 0 && cell_height > 0)
+        {
+                /* We know the pixel dimensions of each cell. Store it in the config. */
+
+                chafa_canvas_config_set_cell_geometry(config, cell_width, cell_height);
+        }
+
+        chafa_canvas_config_set_passthrough(config, passthrough);
+        chafa_canvas_config_set_symbol_map(config, symbol_map);
+
+        canvas = chafa_canvas_new(config);
+        frame = chafa_frame_new_borrow((gpointer)pixels, pixel_type,
+                                       pix_width, pix_height, pix_rowstride);
+        image = chafa_image_new();
+        chafa_image_set_frame(image, frame);
+
+        placement = chafa_placement_new(image, 1);
+        chafa_placement_set_tuck (placement, CHAFA_TUCK_STRETCH);
+        chafa_placement_set_halign (placement, CHAFA_ALIGN_START);
+        chafa_placement_set_valign (placement, CHAFA_ALIGN_START);
+        chafa_canvas_set_placement(canvas, placement);
+
+        printable = chafa_canvas_print(canvas, term_info);
+
+        /* Clean up and return */
+
+        chafa_placement_unref(placement);
+        chafa_image_unref(image);
+        chafa_frame_unref(frame);
+        chafa_canvas_unref(canvas);
+        chafa_canvas_config_unref(config);
+        chafa_symbol_map_unref(symbol_map);
+        chafa_term_info_unref(term_info);
+        canvas = NULL;
+        config = NULL;
+        symbol_map = NULL;
+        term_info = NULL;
+
+        return printable;
+#else
         detect_terminal(&term_info, &mode, &pixel_mode);
 
         /* Specify the symbols we want */
@@ -248,9 +443,10 @@ convert_image(const void *pixels, gint pix_width, gint pix_height,
         config = NULL;
         symbol_map = NULL;
         term_info = NULL;
-        return printable;
-}
 
+        return printable;
+#endif
+}
 // The function to load and return image data
 unsigned char *getBitmap(const char *image_path, int *width, int *height)
 {
@@ -338,6 +534,9 @@ void printSquareBitmapCentered(unsigned char *pixels, int width, int height, int
         float aspect_ratio_correction = (float)cell_height / (float)cell_width;
         int correctedWidth = (int)(baseHeight * aspect_ratio_correction);
 
+        // Calculate indentation to center the image
+        int indentation = ((term_size.width_cells - correctedWidth) / 2);
+
         // Convert image to a printable string using Chafa
         printable = convert_image(
             pixels,
@@ -356,9 +555,6 @@ void printSquareBitmapCentered(unsigned char *pixels, int width, int height, int
         // Split the printable string into lines
         const gchar *delimiters = "\n";
         gchar **lines = g_strsplit(printable->str, delimiters, -1);
-
-        // Calculate indentation to center the image
-        int indentation = ((term_size.width_cells - correctedWidth) / 2);
 
         // Print each line with indentation
         for (int i = 0; lines[i] != NULL; i++)
@@ -480,7 +676,6 @@ int convertToAscii(const char *filepath, unsigned int height)
         float aspect_ratio_correction = (float)cell_height / (float)cell_width;
         unsigned int correctedWidth = (int)(height * aspect_ratio_correction) - 1;
 
-
         // Calculate indentation to center the image
         int indent = ((term_size.width_cells - correctedWidth) / 2);
 
@@ -535,7 +730,7 @@ int printInAscii(const char *pathToImgFile, int height)
 {
         printf("\r");
 
-        int ret = convertToAscii(pathToImgFile,(unsigned)height);
+        int ret = convertToAscii(pathToImgFile, (unsigned)height);
         if (ret == -1)
                 printf("\033[0m");
         return 0;
