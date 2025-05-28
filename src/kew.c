@@ -57,6 +57,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include "common_ui.h"
 #include "events.h"
 #include "file.h"
+#include "imgfunc.h"
 #include "mpris.h"
 #include "notifications.h"
 #include "player_ui.h"
@@ -1180,6 +1181,10 @@ void cleanupOnExit()
                 userData.songdataBDeleted = true;
                 unloadSongData(&(loadingdata.songdataB), &appState);
         }
+
+        #ifdef CHAFA_VERSION_1_16
+        retire_passthrough_workarounds_tmux();
+        #endif
 
         freeSearchResults();
         cleanupMpris();
