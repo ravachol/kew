@@ -55,6 +55,99 @@ unsigned int brightness_levels = MACRO_STRLEN(scale) - 2;
 
 #ifdef CHAFA_VERSION_1_16
 
+static gchar *tmux_allow_passthrough_original;
+static gboolean tmux_allow_passthrough_is_changed;
+
+static gboolean
+apply_passthrough_workarounds_tmux(void)
+{
+        gboolean result = FALSE;
+        gchar *standard_output = NULL;
+        gchar *standard_error = NULL;
+        gchar **strings;
+        gchar *mode = NULL;
+        gint wait_status = -1;
+
+        /* allow-passthrough can be either unset, "on" or "all". Both "on" and "all"
+         * are fine, so don't mess with it if we don't have to.
+         *
+         * Also note that we may be in a remote session inside tmux. */
+
+        if (!g_spawn_command_line_sync("tmux show allow-passthrough",
+                                       &standard_output, &standard_error,
+                                       &wait_status, NULL))
+                goto out;
+
+        strings = g_strsplit_set(standard_output, " ", -1);
+        if (strings[0] && strings[1])
+        {
+                mode = g_ascii_strdown(strings[1], -1);
+                g_strstrip(mode);
+        }
+        g_strfreev(strings);
+
+        g_free(standard_output);
+        standard_output = NULL;
+        g_free(standard_error);
+        standard_error = NULL;
+
+        if (!mode || (strcmp(mode, "on") && strcmp(mode, "all")))
+        {
+                result = g_spawn_command_line_sync("tmux set-option allow-passthrough on",
+                                                   &standard_output, &standard_error,
+                                                   &wait_status, NULL);
+                if (result)
+                {
+                        tmux_allow_passthrough_original = mode;
+                        tmux_allow_passthrough_is_changed = TRUE;
+                }
+        }
+        else
+        {
+                g_free(mode);
+        }
+
+out:
+        g_free(standard_output);
+        g_free(standard_error);
+        return result;
+}
+
+gboolean
+retire_passthrough_workarounds_tmux(void)
+{
+        gboolean result = FALSE;
+        gchar *standard_output = NULL;
+        gchar *standard_error = NULL;
+        gchar *cmd;
+        gint wait_status = -1;
+
+        if (!tmux_allow_passthrough_is_changed)
+                return TRUE;
+
+        if (tmux_allow_passthrough_original)
+        {
+                cmd = g_strdup_printf("tmux set-option allow-passthrough %s",
+                                      tmux_allow_passthrough_original);
+        }
+        else
+        {
+                cmd = g_strdup("tmux set-option -u allow-passthrough");
+        }
+
+        result = g_spawn_command_line_sync(cmd, &standard_output, &standard_error,
+                                           &wait_status, NULL);
+        if (result)
+        {
+                g_free(tmux_allow_passthrough_original);
+                tmux_allow_passthrough_original = NULL;
+                tmux_allow_passthrough_is_changed = FALSE;
+        }
+
+        g_free(standard_output);
+        g_free(standard_error);
+        return result;
+}
 
 static void detect_terminal(ChafaTermInfo **term_info_out, ChafaCanvasMode *mode_out, ChafaPixelMode *pixel_mode_out,
                             ChafaPassthrough *passthrough_out, ChafaSymbolMap **symbol_map_out)
@@ -80,7 +173,7 @@ static void detect_terminal(ChafaTermInfo **term_info_out, ChafaCanvasMode *mode
 
         const gchar *term_name = chafa_term_info_get_name(term_info);
 
-        if (strstr(term_name, "tmux") != NULL)
+        if (strstr(term_name, "tmux") != NULL && pixel_mode != CHAFA_PIXEL_MODE_KITTY)
         {
                 /* Always use sixels in tmux */
                 pixel_mode = CHAFA_PIXEL_MODE_SIXELS;
@@ -262,6 +355,9 @@ convert_image(const void *pixels, gint pix_width, gint pix_height,
 
         detect_terminal(&term_info, &mode, &pixel_mode,
                         &passthrough, &symbol_map);
+
+        if (passthrough == CHAFA_PASSTHROUGH_TMUX)
+                apply_passthrough_workarounds_tmux();
 
         config = chafa_canvas_config_new();
         chafa_canvas_config_set_canvas_mode(config, mode);
