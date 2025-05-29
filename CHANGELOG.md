@@ -12,9 +12,11 @@
 
 - Escape for quit is no longer hard coded and can be disabled or changed in the settings file. Suggested by @0023-119.
 
-- Page Up and Page Down for scrolling is no longer hard coded and can be changed in the settings file. Suggested by The Linux Cast.
+- Page Up and Page Down for scrolling are no longer hard coded and can be changed in the settings file. Suggested by The Linux Cast.
 
 - Remove special playlist function. It's kew's most odd feature and confuses people because they think it's related to the normal saving playlist function. Plus nobody has ever mentioned using it.
+
+- Tmux + kitty and Tmux + foot now displays images correctly. Reported by @amigthea and @acdcbyl.
 
 #### Bug Fixes
 
