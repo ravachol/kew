@@ -1182,10 +1182,6 @@ void cleanupOnExit()
                 unloadSongData(&(loadingdata.songdataB), &appState);
         }
 
-        #ifdef CHAFA_VERSION_1_16
-        retire_passthrough_workarounds_tmux();
-        #endif
-
         freeSearchResults();
         cleanupMpris();
         restoreTerminalMode();

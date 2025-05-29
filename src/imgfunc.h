@@ -1,3 +1,6 @@
+#ifndef IMGFUNC_H
+#define IMGFUNC_H
+
 #include <chafa.h>
 #include <chafa-canvas-config.h>
 #ifndef PIXELDATA_STRUCT
@@ -22,4 +25,6 @@ int getCoverColor(unsigned char *pixels, int width, int height, unsigned char *r
 
 #ifdef CHAFA_VERSION_1_16
 gboolean retire_passthrough_workarounds_tmux(void);
+#endif
+
 #endif
