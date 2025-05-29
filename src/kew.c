@@ -1182,6 +1182,10 @@ void cleanupOnExit()
                 unloadSongData(&(loadingdata.songdataB), &appState);
         }
 
+#ifdef CHAFA_VERSION_1_16
+        retire_passthrough_workarounds_tmux();
+#endif
+
         freeSearchResults();
         cleanupMpris();
         restoreTerminalMode();
@@ -1323,7 +1327,7 @@ void init(AppState *state)
         fflush(stdout);
 
 #ifdef DEBUG
-        //g_setenv("G_MESSAGES_DEBUG", "all", TRUE);
+        // g_setenv("G_MESSAGES_DEBUG", "all", TRUE);
         logFile = freopen("error.log", "w", stderr);
         if (logFile == NULL)
         {
