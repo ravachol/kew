@@ -25,6 +25,20 @@ songloader.c
 
 static guint track_counter = 0;
 
+void logger_str(char *path, char *log_message){
+        //REMOVE THE LOGGER AFTER FINAL UPDATE//
+        FILE *log = fopen("/tmp/kew_debug.log", "w");
+        fprintf(log, "%s: %s\n", log_message,  path);
+        fclose(log);
+}
+
+void logger_int(int val, char *log_message){
+        //REMOVE THE LOGGER AFTER FINAL UPDATE//
+        FILE *log = fopen("/tmp/kew_debug.log", "w");
+        fprintf(log, "%s: %d\n", log_message,  val);
+        fclose(log);
+}
+
 char *findLargestImageFile(const char *directoryPath, char *largestImageFile, off_t *largestFileSize)
 {
         DIR *directory = opendir(directoryPath);
