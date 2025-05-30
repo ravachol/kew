@@ -64,6 +64,8 @@ void showHelp(void);
 
 void setChosenDir(FileSystemEntry *entry);
 
+int getIndent();
+
 int printAbout(SongData *songdata, UISettings *ui);
 
 FileSystemEntry *getCurrentLibEntry(void);
