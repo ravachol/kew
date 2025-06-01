@@ -152,6 +152,49 @@ enum EventType getMouseLastRowEvent(char *lastRow, int mouseXLastRow)
         return result;
 }
 
+bool mouseInputHandled(char *seq, int i, struct Event *event)
+{
+        int term_w, term_h;
+        getTermSize(&term_w, &term_h);
+        (void)term_w;
+
+        int mouseButton, mouseX, mouseY;
+        mouseButton = mouseX = mouseY = 0;
+        char *mouseTmp = strtok(seq + 3, ";");
+
+        if (mouseTmp != NULL)
+                mouseButton = getNumber(mouseTmp);
+        mouseTmp = strtok(NULL, ";");
+        if (mouseTmp != NULL)
+                mouseX = getNumber(mouseTmp);
+        mouseTmp = strtok(NULL, ";");
+        if (mouseTmp != NULL)
+                mouseY = getNumber(mouseTmp);
+
+        int indent = getIndent();
+
+        // Clicked on last row
+        if (mouseY == term_h && indent > 0 &&
+            mouseX - indent > 0 && mouseX - indent < (int)strlen(LAST_ROW) &&
+            mouseButton != 32) // Mouse code 32 means drag, so we ignore
+        {
+#ifndef __APPLE__
+                event->type = getMouseLastRowEvent((char *)LAST_ROW, mouseX - indent);
+#else
+                event->type = getMouseLastRowEvent((char *)LAST_ROW_APPLE, mouseX - indent);
+#endif
+                return true;
+        }
+        // Normal mouse event
+        else if (strncmp(seq + 1, keyMappings[i].seq, strlen(keyMappings[i].seq)) == 0)
+        {
+                event->type = keyMappings[i].eventType;
+                return true;
+        }
+
+                return false;
+}
+
 struct Event processInput()
 {
         struct Event event;
@@ -265,45 +308,10 @@ struct Event processInput()
                 }
 
                 // Received mouse input instead of keyboard input
-                if (keyMappings[i].seq[0] != '\0' && strncmp(seq, "\033[<", 3) == 0 && strnlen(seq, MAX_SEQ_LEN) > 4 && strchr(seq, 'M') != NULL)
+                if (keyMappings[i].seq[0] != '\0' && strncmp(seq, "\033[<", 3) == 0 && strnlen(seq, MAX_SEQ_LEN) > 4 && strchr(seq, 'M') != NULL &&
+		    mouseInputHandled(seq, i, &event))
                 {
-                        int term_w, term_h;
-                        getTermSize(&term_w, &term_h);
-                        (void)term_w;
-
-                        int mouseButton, mouseX, mouseY;
-                        mouseButton = mouseX = mouseY = 0;
-                        char *mouseTmp = strtok(seq + 3, ";");
-
-                        if (mouseTmp != NULL)
-                                mouseButton = getNumber(mouseTmp);
-                        mouseTmp = strtok(NULL, ";");
-                        if (mouseTmp != NULL)
-                                mouseX = getNumber(mouseTmp);
-                        mouseTmp = strtok(NULL, ";");
-                        if (mouseTmp != NULL)
-                                mouseY = getNumber(mouseTmp);
-
-                        int indent = getIndent();
-
-                        // Clicked on last row
-                        if (mouseY == term_h && indent > 0 &&
-                            mouseX - indent > 0 && mouseX - indent < (int)strlen(LAST_ROW) &&
-                            mouseButton != 32) // Mouse code 32 means drag, so we ignore
-                        {
-#ifndef __APPLE__
-                                event.type = getMouseLastRowEvent((char *)LAST_ROW, mouseX - indent);
-#else
-                                event.type = getMouseLastRowEvent((char *)LAST_ROW_APPLE, mouseX - indent);
-#endif
-                                break;
-                        }
-                        // Normal mouse event
-                        else if (strncmp(seq + 1, keyMappings[i].seq, strlen(keyMappings[i].seq)) == 0)
-                        {
-                                event.type = keyMappings[i].eventType;
-                                break;
-                        }
+                        break;
                 }
         }
 
