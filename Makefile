@@ -32,7 +32,7 @@ ifeq ($(UNAME_S), Darwin)
         PKG_CONFIG_PATH := /usr/local/lib/pkgconfig:/usr/local/share/pkgconfig:$(PKG_CONFIG_PATH)
     endif
 else
-    PREFIX ?= /usr
+    PREFIX ?= /usr/local
     PKG_CONFIG_PATH := /usr/lib/x86_64-linux-gnu/pkgconfig:/usr/lib/pkgconfig:/usr/share/pkgconfig:$(PKG_CONFIG_PATH)
 endif
 
