@@ -25,7 +25,6 @@ extern double seekAccumulatedSeconds;
 extern const char VERSION[];
 
 extern const char LAST_ROW[];
-extern const char LAST_ROW_APPLE[];
 
 extern bool hasPrintedError;
 
