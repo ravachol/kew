@@ -110,14 +110,14 @@ bool isCooldownElapsed(int milliSeconds)
         return elapsedMilliseconds >= milliSeconds;
 }
 
-enum EventType getMouseLastRowEvent(char *lastRow, int mouseXLastRow)
+enum EventType getMouseLastRowEvent(int mouseXOnLastRow)
 {
         enum EventType result = EVENT_NONE;
 
         int viewClicked = 1;
-        for (int i = 0; i < mouseXLastRow; i++)
+        for (int i = 0; i < mouseXOnLastRow; i++)
         {
-                if (lastRow[i] == '|')
+                if (LAST_ROW[i] == '|')
                 {
                         viewClicked++;
                 }
@@ -179,7 +179,7 @@ bool mouseInputHandled(char *seq, int i, struct Event *event)
             mouseX - indent > 0 && mouseX - indent < (int)strlen(LAST_ROW) &&
             mouseButton != 32) // Mouse code 32 means drag, so we ignore
         {
-                event->type = getMouseLastRowEvent((char *)LAST_ROW, mouseX - indent);
+                event->type = getMouseLastRowEvent(mouseX - indent);
                 return true;
         }
 #endif
