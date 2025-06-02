@@ -24,6 +24,8 @@ extern double seekAccumulatedSeconds;
 
 extern const char VERSION[];
 
+extern const char LAST_ROW[];
+
 extern bool hasPrintedError;
 
 void setErrorMessage(const char *message);
