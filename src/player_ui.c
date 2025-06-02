@@ -540,6 +540,11 @@ void calcIndent(SongData *songdata)
         }
 }
 
+int getIndent()
+{
+        return indent;
+}
+
 void printGlimmeringText(char *text, int textLength, char *nerdFontText, PixelData color, int indent)
 {
         int brightIndex = 0;
@@ -625,10 +630,11 @@ void printLastRow(UISettings *ui)
 #endif
         setTextColorRGB(lastRowColor.r, lastRowColor.g, lastRowColor.b);
 
+        char text[100];
 #ifdef __APPLE__
-        char text[100] = " Sh+Z List|Sh+X Lib|Sh+C Track|Sh+V Search|Sh+B Help";
+        strcpy(text, " Sh+Z List|Sh+X Lib|Sh+C Track|Sh+V Search|Sh+B Help");
 #else
-        char text[100] = " [F2 Playlist|F3 Library|F4 Track|F5 Search|F6 Help]";
+        strcpy(text, LAST_ROW);
 #endif
 
         char nerdFontText[100] = "";
