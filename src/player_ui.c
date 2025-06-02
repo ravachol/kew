@@ -147,6 +147,7 @@ void printHelp()
                " F4 to show/hide track view.\n"
                " F5 to show/hide search view.\n"
                " F6 to show/hide show/hide key bindings view.\n"
+               " You can also use the mouse to switch views (except on macOS).\n"
                " u to update the library.\n"
                " v to toggle the spectrum visualizer.\n"
                " i to switch between using your regular color scheme or colors derived from the track cover.\n"
@@ -774,6 +775,8 @@ int showKeyBindings(SongData *songdata, AppSettings *settings, UISettings *ui)
         printf(" - Space, %s, or right click to play or pause.\n", settings->togglePause);
         printBlankSpaces(indent);
         printf(" - Shift+s to stop.\n");
+        printBlankSpaces(indent);
+        printf(" - You can also use the mouse to switch views (except on macOS).\n");
         printBlankSpaces(indent);
         printf(" - %s toggle color derived from album or from profile.\n", settings->toggleColorsDerivedFrom);
         printBlankSpaces(indent);
