@@ -1966,6 +1966,8 @@ void *updateLibraryThread(void *arg)
         char *path = (char *)arg;
         int tmpDirectoryTreeEntries = 0;
 
+        setErrorMessage("Updating Library...");
+
         FileSystemEntry *tmp = createDirectoryTree(path, &tmpDirectoryTreeEntries);
 
         if (!tmp)
