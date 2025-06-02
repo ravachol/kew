@@ -215,7 +215,6 @@ int printLogo(SongData *songData, UISettings *ui)
                 strncpy(prettyTitle, songData->metadata->title, titleLength);
                 prettyTitle[titleLength] = '\0';
 
-                removeUnneededChars(prettyTitle, titleLength);
                 trim(prettyTitle, titleLength);
 
                 if (ui->hideLogo && songData->metadata->artist[0] != '\0')
@@ -383,7 +382,6 @@ void printBasicMetadata(TagSettings const *metadata, UISettings *ui)
 
                 c_strcpy(prettyTitle, metadata->title, titleLength + 1);
 
-                removeUnneededChars(prettyTitle, titleLength);
                 trim(prettyTitle, titleLength);
 
                 printTitleWithDelay(prettyTitle, ui->titleDelay, maxWidth);
