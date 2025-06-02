@@ -1,5 +1,11 @@
 # CHANGELOG
 
+### 3.3.4
+
+- Don't strip numbers from titles when presenting the actual title taken from metadata. We still strip numbers like 01-01 from the beginning of filenames before presenting them though.
+
+- Added an indicator when the library is being updated. Suggested by @Saijin-Naib.
+
 ### 3.3.3
 
 - Don't show zero's for hours unless the duration is more than an hour long.
