@@ -634,7 +634,7 @@ void printLastRow(UISettings *ui)
 
         char text[100];
 #ifdef __APPLE__
-        strcpy(text, LAST_ROW_APPLE);
+        strcpy(text, " Sh+Z List|Sh+X Lib|Sh+C Track|Sh+V Search|Sh+B Help");
 #else
         strcpy(text, LAST_ROW);
 #endif
