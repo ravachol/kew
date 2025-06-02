@@ -29,21 +29,21 @@ file.c
 
 void getDirectoryFromPath(const char *path, char *directory)
 {
-    size_t path_length = strnlen(path, MAXPATHLEN);
-    char tmpPath[path_length + 1];
-    c_strcpy(tmpPath, path, sizeof(tmpPath));
+        size_t path_length = strnlen(path, MAXPATHLEN);
+        char tmpPath[path_length + 1];
+        c_strcpy(tmpPath, path, sizeof(tmpPath));
 
-    char *dir = dirname(tmpPath);
+        char *dir = dirname(tmpPath);
 
-    // Copy directory name to the output buffer
-    snprintf(directory, MAXPATHLEN, "%s", dir);
+        // Copy directory name to the output buffer
+        snprintf(directory, MAXPATHLEN, "%s", dir);
 
-    size_t directory_length = strnlen(directory, MAXPATHLEN);
-    if (directory[directory_length - 1] != '/' && directory_length + 1 < MAXPATHLEN)
-    {
-        // Use snprintf to append '/' at the end of directory
-        snprintf(directory + directory_length, MAXPATHLEN - directory_length, "/");
-    }
+        size_t directory_length = strnlen(directory, MAXPATHLEN);
+        if (directory[directory_length - 1] != '/' && directory_length + 1 < MAXPATHLEN)
+        {
+                // Use snprintf to append '/' at the end of directory
+                snprintf(directory + directory_length, MAXPATHLEN - directory_length, "/");
+        }
 }
 
 int existsFile(const char *fname)
@@ -313,12 +313,22 @@ int deleteFile(const char *filePath)
 int isInTempDir(const char *path)
 {
         const char *tmpDir = getenv("TMPDIR");
+        static char tmpdirBuf[PATH_MAX + 2];
+
         if (tmpDir == NULL || strnlen(tmpDir, PATH_MAX) >= PATH_MAX)
-        {
                 tmpDir = "/tmp";
+
+        size_t len = strlen(tmpDir);
+        strncpy(tmpdirBuf, tmpDir, PATH_MAX);
+        tmpdirBuf[PATH_MAX] = '\0';
+
+        if (len == 0 || tmpdirBuf[len - 1] != '/')
+        {
+                tmpdirBuf[len] = '/';
+                tmpdirBuf[len + 1] = '\0';
         }
 
-        return (pathStartsWith(path, tmpDir));
+        return pathStartsWith(path, tmpdirBuf);
 }
 
 void generateTempFilePath(char *filePath, const char *prefix, const char *suffix)
