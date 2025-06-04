@@ -44,11 +44,11 @@ char *findImageFile(const char *directoryPath, char *largestImageFile, off_t *la
                 "front.jpg",
                 "front.jpeg",
                 "folder.png",
-                "folder.jpg"
-                "folder.jepg"
+                "folder.jpg",
+                "folder.jpeg"
                 "cover.png",
                 "cover.jpg",
-                "cover.jepg",
+                "cover.jpeg",
                 NULL // Placeholder for wildcard matches
         };
 
