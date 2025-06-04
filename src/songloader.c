@@ -107,27 +107,47 @@ char *findImageFile(const char *directoryPath, char *largestImageFile, off_t *la
                         {
                                 gifMatch = strdup(filePath);
                         }
+                }
         }
-    }
 
-    closedir(directory);
+        closedir(directory);
 
-    // Search for the image in the order png>jpg>jpeg>gif
-    if (pngMatch)
+        // Search for the image in the order png>jpg>jpeg>gif
+        if (pngMatch)
         {
                 preferredImage = pngMatch;
         }
-    else if (jpgMatch)
+        else if (jpgMatch)
         {
                 preferredImage = jpgMatch;
         }
-    else if (jpegMatch)
+        else if (jpegMatch)
         {
                 preferredImage = jpegMatch;
         }
-    else if (gifMatch)
+        else if (gifMatch)
         {
                 preferredImage = gifMatch;
+        }
+
+        // If not found, try specific subdirectories: art, scans, covers, artwork, artworks
+        if (preferredImage == NULL)
+        {
+                const char *subdirs[] = { "art", "scans", "covers", "artwork", "artworks" };
+                size_t subdirCount = sizeof(subdirs) / sizeof(subdirs[0]);
+
+                for (size_t i = 0; i < subdirCount; ++i)
+                {
+                        char subdirPath[PATH_MAX];
+                        snprintf(subdirPath, sizeof(subdirPath), "%s/%s", directoryPath, subdirs[i]);
+
+                        // Recursively call this function for subdirectory
+                        preferredImage = findImageFile(subdirPath, largestImageFile, largestFileSize);
+                        if (preferredImage != NULL)
+                        {
+                                return preferredImage;
+                        }
+                }
         }
 
     return preferredImage;
