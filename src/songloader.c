@@ -27,80 +27,110 @@ static guint track_counter = 0;
 
 char *findImageFile(const char *directoryPath, char *largestImageFile, off_t *largestFileSize)
 {
-        // Initialisatin of the used variables/objects/structs
         DIR *directory = opendir(directoryPath);
         struct dirent *entry;
-        struct stat fileStats;
+        char filePath[PATH_MAX];
+        char *preferredImage = NULL;
 
-        // Check if the directory exists
         if (directory == NULL)
         {
                 fprintf(stderr, "Failed to open directory: %s\n", directoryPath);
-                return largestImageFile;
+                return NULL;
         }
 
-        // Loop over the files in the directory
+        // Arrays of preference order
+        const char *priorityList[] = {
+                "front.png",
+                "front.jpg",
+                "front.jpeg",
+                "folder.png",
+                "folder.jpg"
+                "folder.jepg"
+                "cover.png",
+                "cover.jpg",
+                "cover.jepg",
+                NULL // Placeholder for wildcard matches
+        };
+
+        // Calculate and store the length of the array `priorityList` into `priorityCount`
+        size_t priorityCount = sizeof(priorityList) / sizeof(priorityList[0]);
+
+        // Initialize arrays to store wildcard matches by type
+        char *pngMatch = NULL;
+        char *jpgMatch = NULL;
+        char *jpegMatch = NULL;
+        char *gifMatch = NULL;
+
+        // Loop over the files
         while ((entry = readdir(directory)) != NULL)
         {
-                char filePath[MAXPATHLEN];
-
-                if (directoryPath[strnlen(directoryPath, MAXPATHLEN) - 1] == '/')
-                {
-                        snprintf(filePath, sizeof(filePath), "%s%s", directoryPath, entry->d_name);
-                }
-                else
-                {
-                        snprintf(filePath, sizeof(filePath), "%s/%s", directoryPath, entry->d_name);
-                }
-
-                // Load file attributes into stat object and abrot if it can't be done
-                if (stat(filePath, &fileStats) == -1)
+                // Skip non-regular files
+                if (entry->d_type != DT_REG)
                 {
                         continue;
                 }
 
-                // Check if file is not a directory
-                if (S_ISREG(fileStats.st_mode))
+                // Combine directory path and file name into full file path, storing it in `filePath`
+                snprintf(filePath, sizeof(filePath), "%s/%s", directoryPath, entry->d_name);
+
+                // Loop over the files and check if they match an entry in the `priorityList`
+                for (size_t i = 0; i < priorityCount - 1; ++i)
                 {
-                        // Get the file extension
-                        char *extension = strrchr(entry->d_name, '.');
-
-                        // Check if file is a png
-                        if (extension != NULL && (strcasecmp(extension, ".png")) == 0)
+                        // Check if filename matches a entry in the `priorityList`
+                        if (strcasecmp(entry->d_name, priorityList[i]) == 0)
                         {
-                                *largestImageFile = fileStats.st_size;
+                                preferredImage = strdup(filePath);
+                                closedir(directory);
+                                return preferredImage;
                         }
-
-                        // Check if file is a jpg
-                        else if (extension != NULL && (strcasecmp(extension, ".jpg")) == 0)
-                        {
-                                *largestImageFile = fileStats.st_size;
-                        }
-
-                        // Check if file is jpeg
-                        else if (extension != NULL && (strcasecmp(extension, ".jepg")) == 0)
-                        {
-                                *largestImageFile = fileStats.st_size;
-                        }
-
-                        // Check if file is gif
-                        else if (extension != NULL && (strcasecmp(extension, ".gif")) == 0)
-                        {
-                                *largestImageFile = fileStats.st_size;
-                        }
-
-
-                        // If file doesn't exist, free up the memory
-                        if (largestImageFile != NULL)
-                        {
-                                free(largestImageFile);
-                        }
-
                 }
+
+                // Store the last dot and everything after in `*extension`
+                char *extension = strrchr(entry->d_name, '.');
+
+                // Loop over the files and check if they match a given file extension
+                if (extension != NULL)
+                {
+                        if (strcasecmp(extension, ".png") == 0 && pngMatch == NULL)
+                        {
+                                pngMatch = strdup(filePath);
+                        }
+                        else if (strcasecmp(extension, ".jpg") == 0 && jpgMatch == NULL)
+                        {
+                                jpgMatch = strdup(filePath);
+                        }
+                        else if (strcasecmp(extension, ".jpeg") == 0 && jpegMatch == NULL)
+                        {
+                                jpegMatch = strdup(filePath);
+                        }
+                        else if (strcasecmp(extension, ".gif") == 0 && gifMatch == NULL)
+                        {
+                                gifMatch = strdup(filePath);
+                        }
+        }
+    }
+
+    closedir(directory);
+
+    // Search for the image in the order png>jpg>jpeg>gif
+    if (pngMatch)
+        {
+                preferredImage = pngMatch;
+        }
+    else if (jpgMatch)
+        {
+                preferredImage = jpgMatch;
+        }
+    else if (jpegMatch)
+        {
+                preferredImage = jpegMatch;
+        }
+    else if (gifMatch)
+        {
+                preferredImage = gifMatch;
         }
 
-        closedir(directory);
-        return largestImageFile;
+    return preferredImage;
 }
 
 // Generate a new track ID
