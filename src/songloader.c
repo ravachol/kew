@@ -25,18 +25,21 @@ songloader.c
 
 static guint track_counter = 0;
 
-char *findLargestImageFile(const char *directoryPath, char *largestImageFile, off_t *largestFileSize)
+char *findImageFile(const char *directoryPath, char *largestImageFile, off_t *largestFileSize)
 {
+        // Initialisatin of the used variables/objects/structs
         DIR *directory = opendir(directoryPath);
         struct dirent *entry;
         struct stat fileStats;
 
+        // Check if the directory exists
         if (directory == NULL)
         {
                 fprintf(stderr, "Failed to open directory: %s\n", directoryPath);
                 return largestImageFile;
         }
 
+        // Loop over the files in the directory
         while ((entry = readdir(directory)) != NULL)
         {
                 char filePath[MAXPATHLEN];
@@ -50,28 +53,49 @@ char *findLargestImageFile(const char *directoryPath, char *largestImageFile, of
                         snprintf(filePath, sizeof(filePath), "%s/%s", directoryPath, entry->d_name);
                 }
 
+                // Load file attributes into stat object and abrot if it can't be done
                 if (stat(filePath, &fileStats) == -1)
                 {
                         continue;
                 }
 
+                // Check if file is not a directory
                 if (S_ISREG(fileStats.st_mode))
                 {
-                        // Check if the entry is an image file and has a larger size than the current largest image file
+                        // Get the file extension
                         char *extension = strrchr(entry->d_name, '.');
-                        if (extension != NULL && (strcasecmp(extension, ".jpg") == 0 || strcasecmp(extension, ".jpeg") == 0 ||
-                                                  strcasecmp(extension, ".png") == 0 || strcasecmp(extension, ".gif") == 0))
+
+                        // Check if file is a png
+                        if (extension != NULL && (strcasecmp(extension, ".png")) == 0)
                         {
-                                if (fileStats.st_size > *largestFileSize)
-                                {
-                                        *largestFileSize = fileStats.st_size;
-                                        if (largestImageFile != NULL)
-                                        {
-                                                free(largestImageFile);
-                                        }
-                                        largestImageFile = strdup(filePath);
-                                }
+                                *largestImageFile = fileStats.st_size;
                         }
+
+                        // Check if file is a jpg
+                        else if (extension != NULL && (strcasecmp(extension, ".jpg")) == 0)
+                        {
+                                *largestImageFile = fileStats.st_size;
+                        }
+
+                        // Check if file is jpeg
+                        else if (extension != NULL && (strcasecmp(extension, ".jepg")) == 0)
+                        {
+                                *largestImageFile = fileStats.st_size;
+                        }
+
+                        // Check if file is gif
+                        else if (extension != NULL && (strcasecmp(extension, ".gif")) == 0)
+                        {
+                                *largestImageFile = fileStats.st_size;
+                        }
+
+
+                        // If file doesn't exist, free up the memory
+                        if (largestImageFile != NULL)
+                        {
+                                free(largestImageFile);
+                        }
+
                 }
         }
 
@@ -114,7 +138,7 @@ void loadMetaData(SongData *songdata, AppState *state)
                 getDirectoryFromPath(songdata->filePath, path);
                 char *tmp = NULL;
                 off_t size = 0;
-                tmp = findLargestImageFile(path, tmp, &size);
+                tmp = findImageFile(path, tmp, &size);
 
                 if (tmp != NULL)
                 {
