@@ -67,21 +67,14 @@ char *chooseAlbumArt(char *dirPath, char **customFileNameArr, int size){
                     // Using those file path check if the paths lead ot files or directories //
                     if(stat(filePath, &fileStat) == 0){
     
-                        if(S_ISDIR(fileStat.st_mode)){
-                            result = chooseAlbumArt(filePath, customFileNameArr, size);
-                            if(result != NULL){
-                                break; // if album art is found in the directory, break, else keep searching //
-                            }
-                        }else{
-                            if(strcmp(entry->d_name, *ptr) == 0){
+                        if(strcmp(entry->d_name, *ptr) == 0){
                                 result = filePath;
                                 break;
-                            }else if(sampleExt && strcmp(starExt, *ptr) == 0){
+                        }else if(sampleExt && strcmp(starExt, *ptr) == 0){
                                 if(fileExt && sampleExt && strcmp(fileExt, sampleExt) == 0){
-                                    result = filePath;
-                                    break;
+                                        result = filePath;
+                                        break;
                                 }                           
-                            }
                         }
                     }
                 }
@@ -92,10 +85,45 @@ char *chooseAlbumArt(char *dirPath, char **customFileNameArr, int size){
             if(result){
                 closedir(directory);
                 return strdup(result);
+            }else{
+                // Recursion //
+                for(char **ptr = customFileNameArr; ptr<customFileNameArr+size; ptr++){
+                
+                        rewinddir(directory);
+            
+                        while ((entry = readdir(directory)) != NULL){
+            
+                            // Handle hidden folders etc //
+                            if(strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0){
+                                continue;
+                            }
+            
+                            // Create required data //
+                            char filePath[MAXPATHLEN];
+                            makeFilePath(dirPath, filePath, entry);
+                            
+                            // Using those file path check if the paths lead ot files or directories //
+                            if(stat(filePath, &fileStat) == 0){
+            
+                                if(S_ISDIR(fileStat.st_mode)){
+                                        result = chooseAlbumArt(filePath, customFileNameArr, size);
+                                        if(result != NULL){
+                                            break; // if album art is found in the directory, break, else keep searching in other directories //
+                                        }
+                                }
+                            }
+                        }
+                        if(result){
+                            break;
+                        }
+                } 
+                if(result){
+                closedir(directory);
+                return strdup(result);
+                }
             }
-    
         }
-    
+
         closedir(directory);
         return NULL;
 }
