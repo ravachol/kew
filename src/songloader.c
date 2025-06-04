@@ -51,11 +51,6 @@ char *chooseAlbumArt(char *dirPath, char **customFileNameArr, int size){
     
                 while ((entry = readdir(directory)) != NULL){
     
-                    // Handle hidden folders etc //
-                    if(strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0){
-                        continue;
-                    }
-    
                     // Create required data //
                     char filePath[MAXPATHLEN];
                     makeFilePath(dirPath, filePath, entry);
