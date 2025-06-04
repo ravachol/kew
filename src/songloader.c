@@ -63,7 +63,7 @@ char *chooseAlbumArt(char *dirPath, char **customFileNameArr, int size){
                     char *sampleExt = strrchr(*ptr, '.'); // extension of the current custom file extension that's in loop //
                     char starExt[50];
                     sprintf(starExt, "*%s", sampleExt); // add a star before the extension to match with names like *.jpg, *.png etc //
-                    logger_str(filePath, "File Path:");
+
                     // Using those file path check if the paths lead ot files or directories //
                     if(stat(filePath, &fileStat) == 0){
     
@@ -189,9 +189,9 @@ void loadMetaData(SongData *songdata, AppState *state)
                 getDirectoryFromPath(songdata->filePath, path);
                 char *tmp = NULL;
                 off_t size = 0;
-                char *fileArr[21] = {"front.png","front.jpg","front.jpeg","folder.png","folder.jpg","folder.jpeg","cover.png","cover.jpg","cover.jpeg","f.png","f.jpg","f.jpeg","*front*.png","*front*.jpg",
-                        "*front*.jpeg","*cover*.png","*cover*.jpg","*cover*.jpeg","*folder*.png","*folder*.jpg","*fol1der*.jpeg"};
-                tmp = chooseAlbumArt(path, fileArr, 21);
+                char *fileArr[24] = {"front.png","front.jpg","front.jpeg","folder.png","folder.jpg","folder.jpeg","cover.png","cover.jpg","cover.jpeg","f.png","f.jpg","f.jpeg","*front*.png","*front*.jpg",
+                        "*front*.jpeg","*cover*.png","*cover*.jpg","*cover*.jpeg","*folder*.png","*folder*.jpg","*folder*.jpeg", "*.jpg", "*.png", "*jpeg"};
+                tmp = chooseAlbumArt(path, fileArr, 24);
                 if(tmp == NULL){
                         tmp = findLargestImageFile(path, tmp, &size);
                 }     

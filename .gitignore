@@ -30,7 +30,6 @@
 *.exe
 *.out
 *.app
-*.c
 kew
 .vscode/
 error.log
