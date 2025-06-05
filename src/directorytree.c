@@ -392,105 +392,109 @@ FileSystemEntry **resizeNodesArray(FileSystemEntry **nodes, int oldSize, int new
         return newNodes;
 }
 
-FileSystemEntry *reconstructTreeFromFile(const char *filename, const char *startMusicPath, int *numDirectoryEntries)
+int countLinesAndMaxId(const char *filename, int *maxId_out)
 {
         FILE *file = fopen(filename, "r");
         if (!file)
-        {
-                return NULL;
-        }
+                return -1;
 
         char line[1024];
-        int nodesCount = 0, nodesCapacity = 1000, oldCapacity = 0;
-        FileSystemEntry **nodes = calloc(nodesCapacity, sizeof(FileSystemEntry *));
+        int lines = 0, maxId = -1;
+
+        while (fgets(line, sizeof(line), file))
+        {
+                int id;
+                if (sscanf(line, "%d", &id) == 1)
+                {
+                        if (id > maxId)
+                                maxId = id;
+                }
+                lines++;
+        }
+
+        fclose(file);
+
+        if (maxId_out)
+                *maxId_out = maxId;
+
+        return lines;
+}
+
+FileSystemEntry *reconstructTreeFromFile(const char *filename, const char *startMusicPath, int *numDirectoryEntries)
+{
+        int maxId = -1;
+        int nodeCount = countLinesAndMaxId(filename, &maxId);
+        if (nodeCount <= 0 || maxId < 0)
+                return NULL;
+
+        FILE *file = fopen(filename, "r");
+        if (!file)
+                return NULL;
+
+        // Allocate memory for maxid + 1 nodes
+        FileSystemEntry **nodes = calloc((size_t)(maxId + 1), sizeof(FileSystemEntry *));
         if (!nodes)
         {
                 fclose(file);
                 return NULL;
         }
-
+        char line[1024];
         FileSystemEntry *root = NULL;
+        if (numDirectoryEntries)
+                *numDirectoryEntries = 0;
 
         while (fgets(line, sizeof(line), file))
         {
                 int id, parentId, isDir;
                 char name[256];
+                if (sscanf(line, "%d\t%255[^\t]\t%d\t%d", &id, name, &isDir, &parentId) != 4)
+                        continue;
+                FileSystemEntry *node = malloc(sizeof(FileSystemEntry));
+                node->id = id;
+                node->name = strdup(name);
+                node->isDirectory = isDir;
+                node->isEnqueued = 0;
+                node->parentId = parentId;
+                node->parent = NULL;
+                node->children = NULL;
+                node->next = NULL;
+                node->lastChild = NULL;
+                nodes[id] = node;
 
-                if (sscanf(line, "%d\t%255[^\t]\t%d\t%d", &id, name, &isDir, &parentId) == 4)
+                if (parentId >= 0 && parentId <= maxId && nodes[parentId])
                 {
-                        if (id >= nodesCapacity)
+                        node->parent = nodes[parentId];
+                        FileSystemEntry *parent = nodes[parentId];
+                        if (!parent->children)
                         {
-                                oldCapacity = nodesCapacity;
-                                nodesCapacity = id + 100;
-                                FileSystemEntry **tmpNodes = resizeNodesArray(nodes, oldCapacity, nodesCapacity);
-                                if (!tmpNodes)
-                                {
-                                        perror("Failed to resize nodes array");
-
-                                        for (int i = 0; i < nodesCount; i++)
-                                        {
-                                                if (nodes[i])
-                                                {
-                                                        free(nodes[i]->name);
-                                                        free(nodes[i]->fullPath);
-                                                        free(nodes[i]);
-                                                }
-                                        }
-                                        free(nodes);
-                                        fclose(file);
-                                        exit(1);
-                                }
-                                nodes = tmpNodes;
-                        }
-
-                        FileSystemEntry *node = malloc(sizeof(FileSystemEntry));
-                        if (!node)
-                        {
-                                perror("Failed to allocate node");
-
-                                fclose(file);
-                                exit(1);
-                        }
-                        node->id = id;
-                        node->name = strdup(name);
-                        node->isDirectory = isDir;
-                        node->isEnqueued = 0;
-                        node->children = node->next = node->parent = NULL;
-                        nodes[id] = node;
-                        nodesCount++;
-
-                        if (parentId >= 0 && nodes[parentId])
-                        {
-                                node->parent = nodes[parentId];
-                                if (nodes[parentId]->children)
-                                {
-                                        FileSystemEntry *child = nodes[parentId]->children;
-                                        while (child->next)
-                                        {
-                                                child = child->next;
-                                        }
-                                        child->next = node;
-                                }
-                                else
-                                {
-                                        nodes[parentId]->children = node;
-                                }
-
-                                setFullPath(node, nodes[parentId]->fullPath, node->name);
-
-                                if (isDir)
-                                        *numDirectoryEntries = *numDirectoryEntries + 1;
+                                parent->children = parent->lastChild = node;
                         }
                         else
                         {
-                                root = node;
-                                setFullPath(node, startMusicPath, "");
+                                parent->lastChild->next = node;
+                                parent->lastChild = node;
                         }
+                        // fullPath = parent/fullName
+                        size_t plen = strlen(parent->fullPath);
+                        size_t nlen = strlen(name);
+                        node->fullPath = malloc(plen + 1 + nlen + 1);
+                        memcpy(node->fullPath, parent->fullPath, plen);
+                        node->fullPath[plen] = '/';
+                        memcpy(node->fullPath + plen + 1, name, nlen);
+                        node->fullPath[plen + 1 + nlen] = 0;
+                        if (isDir && numDirectoryEntries)
+                                (*numDirectoryEntries)++;
+                }
+                else
+                {
+                        node->parent = NULL;
+                        node->fullPath = strdup(startMusicPath);
+                        root = node;
                 }
         }
         fclose(file);
-        free(nodes);
 
+        free(nodes);
         return root;
 }
 
