@@ -20,6 +20,7 @@ typedef struct FileSystemEntry
         struct FileSystemEntry *parent;
         struct FileSystemEntry *children;
         struct FileSystemEntry *next; // For siblings (next node in the same directory)
+        struct FileSystemEntry *lastChild; // TEMP: only for construction
 } FileSystemEntry;
 #endif
 
