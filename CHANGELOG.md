@@ -2,6 +2,10 @@
 
 ### 3.3.4
 
+- Added ability to switch views by using the mouse (except for on macOS). By @Chromium-3-Oxide.
+
+- Faster loading of library cache from file, for people with very large music collections.
+
 - Don't strip numbers from titles when presenting the actual title taken from metadata. We still strip numbers like 01-01 from the beginning of filenames before presenting them though.
 
 - Added an indicator when the library is being updated. Suggested by @Saijin-Naib.
