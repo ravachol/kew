@@ -1729,9 +1729,13 @@ void setMusicPath()
 void enableMouse(UISettings *ui)
 {
         if (ui->mouseEnabled)
-        {
                 enableTerminalMouseButtons();
-        }
+}
+
+void setTrackTitleAsWindowTitle(UISettings *ui)
+{
+        if (ui->trackTitleAsWindowTitle)
+                setTerminalWindowTitle("kew");
 }
 
 void initState(AppState *state)
@@ -1766,6 +1770,7 @@ void initState(AppState *state)
         state->uiSettings.saveRepeatShuffleSettings = 1;
         state->uiSettings.repeatState = 0;
         state->uiSettings.shuffleEnabled = 0;
+        state->uiSettings.trackTitleAsWindowTitle = 1;
         state->uiState.numDirectoryTreeEntries = 0;
         state->uiState.numProgressBars = 35;
         state->uiState.chosenNodeId = 0;
@@ -1787,6 +1792,7 @@ void initializeStateAndSettings(AppState *appState, AppSettings *settings)
         userData.replayGainCheckFirst = appState->uiSettings.replayGainCheckFirst;
         mapSettingsToKeys(settings, &(appState->uiSettings), keyMappings);
         enableMouse(&(appState->uiSettings));
+        setTrackTitleAsWindowTitle(&(appState->uiSettings));
 }
 
 int main(int argc, char *argv[])
