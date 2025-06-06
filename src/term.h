@@ -64,4 +64,8 @@ void disableTerminalMouseButtons(void);
 
 void setTerminalWindowTitle(char *title);
 
+void saveTerminalWindowTitle();
+
+void restoreTerminalWindowTitle();
+
 #endif
