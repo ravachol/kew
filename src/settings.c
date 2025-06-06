@@ -62,6 +62,7 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         c_strcpy(settings.progressBarCurrentEvenChar, "━", sizeof(settings.progressBarCurrentEvenChar));
         c_strcpy(settings.progressBarCurrentOddChar, "━", sizeof(settings.progressBarCurrentOddChar));
         c_strcpy(settings.saveRepeatShuffleSettings, "1", sizeof(settings.saveRepeatShuffleSettings));
+        c_strcpy(settings.trackTitleAsWindowTitle, "1", sizeof(settings.trackTitleAsWindowTitle));
 #ifdef __APPLE__
         // Visualizer looks wonky in default terminal but let's enable it anyway. People need to switch
         c_strcpy(settings.visualizerEnabled, "1", sizeof(settings.visualizerEnabled));
@@ -310,6 +311,10 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
                 else if (strcmp(lowercaseKey, "saverepeatshufflesettings") == 0)
                 {
                         snprintf(settings.saveRepeatShuffleSettings, sizeof(settings.saveRepeatShuffleSettings), "%s", pair->value);
+                }
+                else if (strcmp(lowercaseKey, "tracktitleaswindowtitle") == 0)
+                {
+                        snprintf(settings.trackTitleAsWindowTitle, sizeof(settings.trackTitleAsWindowTitle), "%s", pair->value);
                 }
                 else if (strcmp(lowercaseKey, "replaygaincheckfirst") == 0)
                 {
@@ -830,6 +835,7 @@ void getConfig(AppSettings *settings, UISettings *ui)
         ui->hideLogo = (settings->hideLogo[0] == '1');
         ui->hideHelp = (settings->hideHelp[0] == '1');
         ui->saveRepeatShuffleSettings = (settings->saveRepeatShuffleSettings[0] == '1');
+        ui->trackTitleAsWindowTitle = (settings->trackTitleAsWindowTitle[0] == '1');
 
         int tmp = getNumber(settings->color);
         if (tmp >= 0)
@@ -953,6 +959,8 @@ void setConfig(AppSettings *settings, UISettings *ui)
                 ui->hideGlimmeringText ? c_strcpy(settings->hideGlimmeringText, "1", sizeof(settings->hideGlimmeringText)) : c_strcpy(settings->hideGlimmeringText, "0", sizeof(settings->hideGlimmeringText));
         if (settings->mouseEnabled[0] == '\0')
                 ui->mouseEnabled ? c_strcpy(settings->mouseEnabled, "1", sizeof(settings->mouseEnabled)) : c_strcpy(settings->mouseEnabled, "0", sizeof(settings->mouseEnabled));
+        if (settings->trackTitleAsWindowTitle[0] == '\0')
+                ui->trackTitleAsWindowTitle ? c_strcpy(settings->trackTitleAsWindowTitle, "1", sizeof(settings->trackTitleAsWindowTitle)) : c_strcpy(settings->trackTitleAsWindowTitle, "0", sizeof(settings->trackTitleAsWindowTitle));
 
         snprintf(settings->repeatState, sizeof(settings->repeatState), "%d", ui->repeatState);
 
@@ -1040,6 +1048,9 @@ void setConfig(AppSettings *settings, UISettings *ui)
 
         fprintf(file, "repeatState=%s\n\n", settings->repeatState);
         fprintf(file, "shuffleEnabled=%s\n\n", settings->shuffleEnabled);
+
+        fprintf(file, "# Set the window title to the title of the currently playing track\n");
+        fprintf(file, "trackTitleAsWindowTitle=%s\n\n", settings->trackTitleAsWindowTitle);
 
         fprintf(file, "\n[visualizer]\n\n");
         fprintf(file, "visualizerEnabled=%s\n", settings->visualizerEnabled);
