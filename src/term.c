@@ -262,3 +262,15 @@ void setTerminalWindowTitle(char *title)
         // Only change window title, no icon
         printf("\033]2;%s\007", title);
 }
+
+void saveTerminalWindowTitle()
+{
+        // Save terminal window title on the stack
+        printf("\033[22;0t");
+}
+
+void restoreTerminalWindowTitle()
+{
+        // Restore terminal window title from the stack
+        printf("\033[23;0t");
+}
