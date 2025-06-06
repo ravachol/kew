@@ -1304,6 +1304,9 @@ void cleanupOnExit()
         if (appState.uiSettings.mouseEnabled)
                 disableTerminalMouseButtons();
 
+        if (appState.uiSettings.trackTitleAsWindowTitle)
+                restoreTerminalWindowTitle();
+
         if (noMusicFound)
         {
                 printf("No Music found.\n");
@@ -1735,7 +1738,10 @@ void enableMouse(UISettings *ui)
 void setTrackTitleAsWindowTitle(UISettings *ui)
 {
         if (ui->trackTitleAsWindowTitle)
+        {
+                saveTerminalWindowTitle();
                 setTerminalWindowTitle("kew");
+        }
 }
 
 void initState(AppState *state)
