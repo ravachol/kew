@@ -1705,6 +1705,9 @@ int printPlayer(SongData *songdata, double elapsedSeconds, AppSettings *settings
                         ui->color.r = songdata->red;
                         ui->color.g = songdata->green;
                         ui->color.b = songdata->blue;
+
+                        if (ui->trackTitleAsWindowTitle)
+                                setTerminalWindowTitle(songdata->metadata->title);
                 }
                 else
                 {
@@ -1716,6 +1719,9 @@ int printPlayer(SongData *songdata, double elapsedSeconds, AppSettings *settings
                         ui->color.r = defaultColor;
                         ui->color.g = defaultColor;
                         ui->color.b = defaultColor;
+
+                        if (ui->trackTitleAsWindowTitle)
+                                setTerminalWindowTitle("kew");
                 }
 
                 calcPreferredSize(ui);
