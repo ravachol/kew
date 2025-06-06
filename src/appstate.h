@@ -68,6 +68,7 @@ typedef struct
         bool saveRepeatShuffleSettings;                 // Save repeat and shuffle settings between sessions. Default on.
         int repeatState;                                // 0=disabled,1=repeat track ,2=repeat list
         bool shuffleEnabled;
+        bool trackTitleAsWindowTitle;                   // Set the window title to the title of the currently playing track
 } UISettings;
 
 typedef struct
@@ -216,6 +217,7 @@ typedef struct
         char saveRepeatShuffleSettings[2];
         char repeatState[2];
         char shuffleEnabled[2];
+        char trackTitleAsWindowTitle[2];
 } AppSettings;
 
 #endif

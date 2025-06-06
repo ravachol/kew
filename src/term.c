@@ -256,3 +256,9 @@ void disableTerminalMouseButtons()
         // Disable program to accept mouse input as codes
         printf("\033[?1002l\033[?1006l");
 }
+
+void setTerminalWindowTitle(char *title)
+{
+        // Only change window title, no icon
+        printf("\033]2;%s\007", title);
+}
