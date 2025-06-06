@@ -26,88 +26,110 @@ songloader.c
 
 static guint track_counter = 0;
 
-void makeFilePath(char *dirPath, char *filePath, struct dirent *entry){
-    if(dirPath[strnlen(dirPath, MAXPATHLEN)-1] == '/'){
-        sprintf(filePath, "%s%s", dirPath, entry->d_name);
-    }else{
-        sprintf(filePath, "%s/%s", dirPath, entry->d_name);
-    }
+void makeFilePath(char *dirPath, char *filePath, struct dirent *entry)
+{
+        if (dirPath[strnlen(dirPath, MAXPATHLEN) - 1] == '/')
+        {
+                sprintf(filePath, "%s%s", dirPath, entry->d_name);
+        }
+        else
+        {
+                sprintf(filePath, "%s/%s", dirPath, entry->d_name);
+        }
 }
 
-char *chooseAlbumArt(char *dirPath, char **customFileNameArr, int size){
+char *chooseAlbumArt(char *dirPath, char **customFileNameArr, int size)
+{
 
         DIR *directory = opendir(dirPath);
         struct dirent *entry;
         struct stat fileStat;
-    
+
         // Check if selected directory is empty //
-        if(directory != NULL){
-    
-            // If it's not empty go through all the files in it and file paths and match files / extension with prio list //
-            char *result = NULL;
-            for(char **ptr = customFileNameArr; ptr<customFileNameArr+size; ptr++){
-                
-                rewinddir(directory);
-    
-                while ((entry = readdir(directory)) != NULL){
-    
-                    // Create required data //
-                    char filePath[MAXPATHLEN];
-                    makeFilePath(dirPath, filePath, entry);
-        
-                    // Using those file path check if the paths lead ot files or directories //
-                    if(stat(filePath, &fileStat) == 0){
-    
-                        if(strcmp(entry->d_name, *ptr) == 0){
-                                result = filePath;
-                                break;
-                        }
-                    }
-                }
-                if(result){
-                    break;
-                }
-            }
-            if(result){
-                closedir(directory);
-                return strdup(result);
-            }else{
-                // Recursion //
-                for(char **ptr = customFileNameArr; ptr<customFileNameArr+size; ptr++){
-                
+        if (directory != NULL)
+        {
+
+                // If it's not empty go through all the files in it and file paths and match files / extension with prio list //
+                char *result = NULL;
+                for (char **ptr = customFileNameArr; ptr < customFileNameArr + size; ptr++)
+                {
+
                         rewinddir(directory);
-            
-                        while ((entry = readdir(directory)) != NULL){
-            
-                            // Handle hidden folders etc //
-                            if(strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0){
-                                continue;
-                            }
-            
-                            // Create required data //
-                            char filePath[MAXPATHLEN];
-                            makeFilePath(dirPath, filePath, entry);
-                            
-                            // Using those file path check if the paths lead ot files or directories //
-                            if(stat(filePath, &fileStat) == 0){
-            
-                                if(S_ISDIR(fileStat.st_mode)){
-                                        result = chooseAlbumArt(filePath, customFileNameArr, size);
-                                        if(result != NULL){
-                                            break; // if album art is found in the directory, break, else keep searching in other directories //
+
+                        while ((entry = readdir(directory)) != NULL)
+                        {
+
+                                // Create required data //
+                                char filePath[MAXPATHLEN];
+                                makeFilePath(dirPath, filePath, entry);
+
+                                // Using those file path check if the paths lead ot files or directories //
+                                if (stat(filePath, &fileStat) == 0)
+                                {
+
+                                        if (strcmp(entry->d_name, *ptr) == 0)
+                                        {
+                                                result = filePath;
+                                                break;
                                         }
                                 }
-                            }
                         }
-                        if(result){
-                            break;
+                        if (result)
+                        {
+                                break;
                         }
-                } 
-                if(result){
-                closedir(directory);
-                return strdup(result);
                 }
-            }
+                if (result)
+                {
+                        closedir(directory);
+                        return strdup(result);
+                }
+                else
+                {
+                        // Recursion //
+                        for (char **ptr = customFileNameArr; ptr < customFileNameArr + size; ptr++)
+                        {
+
+                                rewinddir(directory);
+
+                                while ((entry = readdir(directory)) != NULL)
+                                {
+
+                                        // Handle hidden folders etc //
+                                        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
+                                        {
+                                                continue;
+                                        }
+
+                                        // Create required data //
+                                        char filePath[MAXPATHLEN];
+                                        makeFilePath(dirPath, filePath, entry);
+
+                                        // Using those file path check if the paths lead ot files or directories //
+                                        if (stat(filePath, &fileStat) == 0)
+                                        {
+
+                                                if (S_ISDIR(fileStat.st_mode))
+                                                {
+                                                        result = chooseAlbumArt(filePath, customFileNameArr, size);
+                                                        if (result != NULL)
+                                                        {
+                                                                break; // if album art is found in the directory, break, else keep searching in other directories //
+                                                        }
+                                                }
+                                        }
+                                }
+                                if (result)
+                                {
+                                        break;
+                                }
+                        }
+                        if (result)
+                        {
+                                closedir(directory);
+                                return strdup(result);
+                        }
+                }
         }
 
         closedir(directory);
@@ -203,12 +225,25 @@ void loadMetaData(SongData *songdata, AppState *state)
                 getDirectoryFromPath(songdata->filePath, path);
                 char *tmp = NULL;
                 off_t size = 0;
-                char *fileArr[21] = {"front.png","front.jpg","front.jpeg","folder.png","folder.jpg","folder.jpeg","cover.png","cover.jpg","cover.jpeg","f.png","f.jpg","f.jpeg","*front*.png","*front*.jpg",
-                        "*front*.jpeg","*cover*.png","*cover*.jpg","*cover*.jpeg","*folder*.png","*folder*.jpg","*folder*.jpeg"};
-                tmp = chooseAlbumArt(path, fileArr, 21);
-                if(tmp == NULL){
+                char *fileArr[12] = {
+                    "front.png",
+                    "front.jpg",
+                    "front.jpeg",
+                    "folder.png",
+                    "folder.jpg",
+                    "folder.jpeg",
+                    "cover.png",
+                    "cover.jpg",
+                    "cover.jpeg",
+                    "f.png",
+                    "f.jpg",
+                    "f.jpeg",
+                };
+                tmp = chooseAlbumArt(path, fileArr, 12);
+                if (tmp == NULL)
+                {
                         tmp = findLargestImageFile(path, tmp, &size);
-                }     
+                }
 
                 if (tmp != NULL)
                 {
