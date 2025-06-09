@@ -16,4 +16,4 @@ void initVisuals(void);
 
 void freeVisuals(void);
 
-void drawSpectrumVisualizer(AppState *state, int indentation);
+void drawSpectrumVisualizer(int row, int col, AppState *state);

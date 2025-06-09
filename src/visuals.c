@@ -354,7 +354,7 @@ int getBitDepth(ma_format format)
         return bitDepth;
 }
 
-void printSpectrum(UISettings *ui, int height, int numBars, int visualizerWidth, float *magnitudes, int indentation)
+void printSpectrum(int row, int col, UISettings *ui, int height, int numBars, int visualizerWidth, float *magnitudes)
 {
         PixelData color;
         color.r = ui->color.r;
@@ -369,23 +369,15 @@ void printSpectrum(UISettings *ui, int height, int numBars, int visualizerWidth,
 
         bool isPlaying = !(isPaused() || isStopped());
 
-        printf("\n");
-
         for (int j = height; j > 0 && !isPlaying; j--)
         {
-                printf("\r");
-                printBlankSpaces(indentation);
-                for (int i = 0; i < visualizerWidth; i++)
-                {
-                        printf("  ");
-                }
-                printf("\n");
+                printf("\033[%d;%dH", row, col);
+                printf("\033[K"); // Clear the line
         }
 
         for (int j = height; j > 0 && isPlaying; j--)
         {
-                printf("\r");
-                printBlankSpaces(indentation);
+                printf("\033[%d;%dH", row+height-j, col);
                 if (color.r != 0 || color.g != 0 || color.b != 0)
                 {
                         if (!useConfigColors && (visualizerColorType == 0 || visualizerColorType == 2 || visualizerColorType == 3))
@@ -465,9 +457,7 @@ void printSpectrum(UISettings *ui, int height, int numBars, int visualizerWidth,
                                         printf(" ");
                         }
                 }
-                printf("\n");
         }
-        printf("\r");
         fflush(stdout);
 }
 
@@ -485,7 +475,7 @@ void freeVisuals(void)
         }
 }
 
-void drawSpectrumVisualizer(AppState *state, int indentation)
+void drawSpectrumVisualizer(int row, int col, AppState *state)
 {
         int height = state->uiSettings.visualizerHeight;
         int numBars = state->uiState.numProgressBars;
@@ -546,7 +536,7 @@ void drawSpectrumVisualizer(AppState *state, int indentation)
 
         calcMagnitudes(height, numBars, getAudioBuffer(), bitDepth, fftInput, fftOutput, magnitudes, plan, displayMagnitudes);
 
-        printSpectrum(&(state->uiSettings), height, numBars, visualizerWidth, displayMagnitudes, indentation);
+        printSpectrum(row, col, &(state->uiSettings), height, numBars, visualizerWidth, displayMagnitudes);
 
         fftwf_destroy_plan(plan);
 }
