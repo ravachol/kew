@@ -499,6 +499,109 @@ float calcAspectRatio(void)
         return (float)cell_height / (float)cell_width;
 }
 
+float getAspectRatio()
+{
+        TermSize term_size;
+        gint cell_width = -1, cell_height = -1;
+
+        tty_init();
+        get_tty_size(&term_size);
+
+        if (term_size.width_cells > 0 && term_size.height_cells > 0 &&
+            term_size.width_pixels > 0 && term_size.height_pixels > 0)
+        {
+                cell_width = term_size.width_pixels / term_size.width_cells;
+                cell_height = term_size.height_pixels / term_size.height_cells;
+        }
+
+        // Set default cell size for some terminals
+        if (cell_width == -1 || cell_height == -1)
+        {
+                cell_width = 8;
+                cell_height = 16;
+        }
+
+        // Calculate corrected width based on aspect ratio correction
+        return (float)cell_height / (float)cell_width;
+}
+
+void printSquareBitmap(int row, int col, unsigned char *pixels, int width, int height, int baseHeight)
+{
+        if (pixels == NULL)
+        {
+                printf("Error: Invalid pixel data.\n");
+                return;
+        }
+
+        // Use the provided width and height
+        int pix_width = width;
+        int pix_height = height;
+        int n_channels = 4; // Assuming RGBA format
+
+        // Validate the image dimensions
+        if (pix_width == 0 || pix_height == 0)
+        {
+                printf("Error: Invalid image dimensions.\n");
+                return;
+        }
+
+        TermSize term_size;
+        GString *printable;
+        gint cell_width = -1, cell_height = -1;
+
+        tty_init();
+        get_tty_size(&term_size);
+
+        if (term_size.width_cells > 0 && term_size.height_cells > 0 &&
+            term_size.width_pixels > 0 && term_size.height_pixels > 0)
+        {
+                cell_width = term_size.width_pixels / term_size.width_cells;
+                cell_height = term_size.height_pixels / term_size.height_cells;
+        }
+
+        // Set default cell size for some terminals
+        if (cell_width == -1 || cell_height == -1)
+        {
+                cell_width = 8;
+                cell_height = 16;
+        }
+
+        // Calculate corrected width based on aspect ratio correction
+        float aspect_ratio_correction = (float)cell_height / (float)cell_width;
+        int correctedWidth = (int)(baseHeight * aspect_ratio_correction);
+
+        // Convert image to a printable string using Chafa
+        printable = convert_image(
+            pixels,
+            pix_width,
+            pix_height,
+            pix_width * n_channels,         // Row stride
+            CHAFA_PIXEL_RGBA8_UNASSOCIATED, // Correct pixel format
+            correctedWidth,
+            baseHeight,
+            cell_width,
+            cell_height);
+
+        // Ensure the string is null-terminated
+        g_string_append_c(printable, '\0');
+
+        // Split the printable string into lines
+        const gchar *delimiters = "\n";
+        gchar **lines = g_strsplit(printable->str, delimiters, -1);
+
+        // Print each line with indentation
+        for (int i = 0; lines[i] != NULL; i++)
+        {
+                printf("\033[%d;%dH", row+i, col);
+                printf("%s", lines[i]);
+                fflush(stdout);
+        }
+
+        // Free allocated memory
+        g_strfreev(lines);
+        g_string_free(printable, TRUE);
+}
+
 void printSquareBitmapCentered(unsigned char *pixels, int width, int height, int baseHeight)
 {
         if (pixels == NULL)
@@ -634,7 +737,7 @@ unsigned char calcAsciiChar(PixelData *p)
         return scale[brightness_levels - rescaled];
 }
 
-int convertToAscii(const char *filepath, unsigned int height)
+int convertToAsciiCentered(const char *filepath, unsigned int height)
 {
         /*
         Modified, originally by Danny Burrows:
@@ -736,11 +839,120 @@ int convertToAscii(const char *filepath, unsigned int height)
         return 0;
 }
 
-int printInAscii(const char *pathToImgFile, int height)
+int convertToAscii(int indentation, const char *filepath, unsigned int height)
+{
+        /*
+        Modified, originally by Danny Burrows:
+        https://github.com/danny-burrows/img_to_txt
+
+        MIT License
+
+        Copyright (c) 2021 Danny Burrows
+
+        Permission is hereby granted, free of charge, to any person obtaining a copy
+        of this software and associated documentation files (the "Software"), to deal
+        in the Software without restriction, including without limitation the rights
+        to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+        copies of the Software, and to permit persons to whom the Software is
+        furnished to do so, subject to the following conditions:
+
+        The above copyright notice and this permission notice shall be included in all
+        copies or substantial portions of the Software.
+
+        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+        IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+        FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+        AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+        LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+        OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+        SOFTWARE.
+        */
+
+        TermSize term_size;
+        gint cell_width = -1, cell_height = -1;
+
+        tty_init();
+        get_tty_size(&term_size);
+
+        if (term_size.width_cells > 0 && term_size.height_cells > 0 &&
+            term_size.width_pixels > 0 && term_size.height_pixels > 0)
+        {
+                cell_width = term_size.width_pixels / term_size.width_cells;
+                cell_height = term_size.height_pixels / term_size.height_cells;
+        }
+
+        // Set default cell size for some terminals
+        if (cell_width == -1 || cell_height == -1)
+        {
+                cell_width = 8;
+                cell_height = 16;
+        }
+
+        float aspect_ratio_correction = (float)cell_height / (float)cell_width;
+        unsigned int correctedWidth = (int)(height * aspect_ratio_correction) - 1;
+
+        int rwidth, rheight, rchannels;
+        unsigned char *read_data = stbi_load(filepath, &rwidth, &rheight, &rchannels, 3);
+
+        if (read_data == NULL)
+        {
+                return -1;
+        }
+
+        PixelData *data;
+        if (correctedWidth != (unsigned)rwidth || height != (unsigned)rheight)
+        {
+                // 3 * uint8 for RGB!
+                unsigned char *new_data = malloc(3 * sizeof(unsigned char) * correctedWidth * height);
+                stbir_resize_uint8_srgb(
+                    read_data, rwidth, rheight, 0,
+                    new_data, correctedWidth, height, 0, 3);
+
+                stbi_image_free(read_data);
+                data = (PixelData *)new_data;
+        }
+        else
+        {
+                data = (PixelData *)read_data;
+        }
+
+        printf("\n");
+        printf("%*s", indentation, "");
+
+        for (unsigned int d = 0; d < correctedWidth * height; d++)
+        {
+                if (d % correctedWidth == 0 && d != 0)
+                {
+                        printf("\n");
+                        printf("%*s", indentation, "");
+                }
+
+                PixelData *c = data + d;
+
+                printf("\033[1;38;2;%03u;%03u;%03um%c", c->r, c->g, c->b, calcAsciiChar(c));
+        }
+
+        printf("\n");
+
+        stbi_image_free(data);
+        return 0;
+}
+
+int printInAscii(int indentation, const char *pathToImgFile, int height)
 {
         printf("\r");
 
-        int ret = convertToAscii(pathToImgFile, (unsigned)height);
+        int ret = convertToAscii(indentation, pathToImgFile, (unsigned)height);
+        if (ret == -1)
+                printf("\033[0m");
+        return 0;
+}
+
+int printInAsciiCentered(const char *pathToImgFile, int height)
+{
+        printf("\r");
+
+        int ret = convertToAsciiCentered(pathToImgFile, (unsigned)height);
         if (ret == -1)
                 printf("\033[0m");
         return 0;

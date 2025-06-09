@@ -52,6 +52,9 @@ extern int numProgressBars;
 extern bool fastForwarding;
 extern bool rewinding;
 
+extern int lastRowRow;
+extern int lastRowCol;
+
 extern FileSystemEntry *library;
 
 int printPlayer(SongData *songdata, double elapsedSeconds, AppSettings *settings, AppState *appState);

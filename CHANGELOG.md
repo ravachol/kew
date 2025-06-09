@@ -2,13 +2,17 @@
 
 ### 3.3.4
 
-- Added ability to switch views by using the mouse (except for on macOS). By @Chromium-3-Oxide.
+- Landscape View (horizontal layout). Something that was long overdue. Widen the window and it automatically goes into landscape mode. By @Ravachol. Suggested by @Saijin-Naib.
+
+- Added ability to switch views by using the mouse. By @Chromium-3-Oxide.
 
 - Faster loading of library cache from file, for people with very large music collections.
 
 - Don't strip numbers from titles when presenting the actual title taken from metadata. We still strip numbers like 01-01 from the beginning of filenames before presenting them though.
 
 - Added an indicator when the library is being updated. Suggested by @Saijin-Naib.
+
+- Now (optionally) sets the currently playing track as the window title. By @Chromium-3-Oxide. Suggested by @Saijin-Naib.
 
 ### 3.3.3
 
