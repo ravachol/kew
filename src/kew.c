@@ -154,7 +154,6 @@ enum EventType getMouseLastRowEvent(int mouseXOnLastRow)
 
 bool mouseInputHandled(char *seq, int i, struct Event *event)
 {
-#ifndef __APPLE__
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
         (void)term_w;
@@ -175,14 +174,14 @@ bool mouseInputHandled(char *seq, int i, struct Event *event)
         int indent = getIndent();
 
         // Clicked on last row
-        if (mouseY == term_h && indent > 0 &&
-            mouseX - indent > 0 && mouseX - indent < (int)strlen(LAST_ROW) &&
+        if (mouseY == lastRowRow && indent > 0 &&
+            mouseX - lastRowCol > 0 && mouseX - lastRowCol < (int)strlen(LAST_ROW) &&
             mouseButton != 32) // Mouse code 32 means drag, so we ignore
         {
-                event->type = getMouseLastRowEvent(mouseX - indent);
+                event->type = getMouseLastRowEvent(mouseX - lastRowCol);
                 return true;
         }
-#endif
+
         // Normal mouse event
         if (strncmp(seq + 1, keyMappings[i].seq, strlen(keyMappings[i].seq)) == 0)
         {

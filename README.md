@@ -130,7 +130,7 @@ sudo xbps-install -y pkg-config faad2 taglib taglib-devel fftw-devel git gcc mak
 #### For Alpine Linux:
 
 ```bash
-sudo apk add pkgconfig faad2 faad2-dev taglib-dev fftw-dev opus opusfile libvorbis-dev libogg-dev git build-base chafa-dev glib-dev
+sudo apk add pkgconfig faad2-dev taglib-dev fftw-dev opus-dev opusfile-dev libvorbis-dev libogg-dev git build-base chafa-dev glib-dev
 ```
 
 #### For Gentoo Linux:

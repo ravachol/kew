@@ -3,9 +3,9 @@
 #include <pthread.h>
 #include "common.h"
 
-const char VERSION[] = "3.3.3";
+const char VERSION[] = "3.3.4";
 
-const char LAST_ROW[] = "[F2 Playlist|F3 Library|F4 Track|F5 Search|F6 Help]";
+const char LAST_ROW[] = " [F2 Playlist|F3 Library|F4 Track|F5 Search|F6 Help]";
 
 double pauseSeconds = 0.0;
 double totalPauseSeconds = 0.0;
