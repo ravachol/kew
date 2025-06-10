@@ -592,7 +592,7 @@ void printErrorRow(int row, int col)
         }
 }
 
-void formatWithShPlus(char *dest, size_t size, const char *src) {
+void formatWithShiftPlus(char *dest, size_t size, const char *src) {
     if (isupper((unsigned char)src[0])) {
         snprintf(dest, size, "Shift+%s", src);
     } else {
@@ -620,11 +620,11 @@ void printLastRow(int row, int col, UISettings *ui, AppSettings *settings)
         char playlist[8], library[8], track[8], search[8], help[8];
 
         // Assume settings->showPlaylistAlt etc. are defined properly
-        formatWithShPlus(playlist, sizeof(playlist), settings->showPlaylistAlt);
-        formatWithShPlus(library, sizeof(library), settings->showLibraryAlt);
-        formatWithShPlus(track, sizeof(track), settings->showTrackAlt);
-        formatWithShPlus(search, sizeof(search), settings->showSearchAlt);
-        formatWithShPlus(help, sizeof(help), settings->showKeysAlt);
+        formatWithShiftPlus(playlist, sizeof(playlist), settings->showPlaylistAlt);
+        formatWithShiftPlus(library, sizeof(library), settings->showLibraryAlt);
+        formatWithShiftPlus(track, sizeof(track), settings->showTrackAlt);
+        formatWithShiftPlus(search, sizeof(search), settings->showSearchAlt);
+        formatWithShiftPlus(help, sizeof(help), settings->showKeysAlt);
 
         snprintf(text, sizeof(text), "%s: Playlist|%s: Library|%s: Track|%s: Search|%s: Help",
                 playlist, library, track, search, help);
