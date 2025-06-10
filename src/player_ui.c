@@ -626,7 +626,7 @@ void printLastRow(int row, int col, UISettings *ui, AppSettings *settings)
         formatWithShiftPlus(search, sizeof(search), settings->showSearchAlt);
         formatWithShiftPlus(help, sizeof(help), settings->showKeysAlt);
 
-        snprintf(text, sizeof(text), "%s: Playlist|%s: Library|%s: Track|%s: Search|%s: Help",
+        snprintf(text, sizeof(text), "%s Playlist|%s Library|%s Track|%s Search|%s Help",
                 playlist, library, track, search, help);
 
 #else
