@@ -32,9 +32,9 @@ player_ui.c
 #endif
 
 #ifdef __APPLE__
-const int ABSOLUTE_MIN_WIDTH = 65;
+const int ABSOLUTE_MIN_WIDTH = 80;
 #else
-const int ABSOLUTE_MIN_WIDTH = 65;
+const int ABSOLUTE_MIN_WIDTH = 80;
 #endif
 
 bool fastForwarding = false;
