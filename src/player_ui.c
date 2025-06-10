@@ -608,7 +608,13 @@ void printLastRow(int row, int col, UISettings *ui, AppSettings *settings)
 
         char text[100];
 #ifdef __APPLE__
-        strcpy(text, " Sh+Z List|Sh+X Lib|Sh+C Track|Sh+V Search|Sh+B Help");
+        snprintf(text, sizeof(text), " Sh+%s Playlist|Sh+%s Library|Sh+%s Track|Sh+%s Search|Sh+%s Help",
+                 settings->showPlaylistAlt,
+                 settings->showLibraryAlt,
+                 settings->showTrackAlt,
+                 settings->showSearchAlt,
+                 settings->showKeysAlt
+                 );
 #else
         strcpy(text, LAST_ROW);
 #endif
