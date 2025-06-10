@@ -594,7 +594,7 @@ void printErrorRow(int row, int col)
 
 void formatWithShPlus(char *dest, size_t size, const char *src) {
     if (isupper((unsigned char)src[0])) {
-        snprintf(dest, size, "Sh+%s", src);
+        snprintf(dest, size, "Shift+%s", src);
     } else {
         snprintf(dest, size, "%s", src);
     }
@@ -617,7 +617,7 @@ void printLastRow(int row, int col, UISettings *ui, AppSettings *settings)
 
         char text[100];
 #ifdef __APPLE__
-        char playlist[5], library[5], track[5], search[5], help[5];
+        char playlist[8], library[8], track[8], search[8], help[8];
 
         // Assume settings->showPlaylistAlt etc. are defined properly
         formatWithShPlus(playlist, sizeof(playlist), settings->showPlaylistAlt);
@@ -626,7 +626,7 @@ void printLastRow(int row, int col, UISettings *ui, AppSettings *settings)
         formatWithShPlus(search, sizeof(search), settings->showSearchAlt);
         formatWithShPlus(help, sizeof(help), settings->showKeysAlt);
 
-        snprintf(text, sizeof(text), "%s Playlist|%s Library|%s Track|%s Search|%s Help",
+        snprintf(text, sizeof(text), "%s: Playlist|%s: Library|%s: Track|%s: Search|%s: Help",
                 playlist, library, track, search, help);
 
 #else
