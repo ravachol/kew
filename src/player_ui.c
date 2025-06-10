@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
 #include "imgfunc.h"
@@ -591,6 +592,14 @@ void printErrorRow(int row, int col)
         }
 }
 
+void formatWithShPlus(char *dest, size_t size, const char *src) {
+    if (isupper((unsigned char)src[0])) {
+        snprintf(dest, size, "Sh+%s", src);
+    } else {
+        snprintf(dest, size, "%s", src);
+    }
+}
+
 void printLastRow(int row, int col, UISettings *ui, AppSettings *settings)
 {
         int term_w, term_h;
@@ -608,13 +617,18 @@ void printLastRow(int row, int col, UISettings *ui, AppSettings *settings)
 
         char text[100];
 #ifdef __APPLE__
-        snprintf(text, sizeof(text), " Sh+%s Playlist|Sh+%s Library|Sh+%s Track|Sh+%s Search|Sh+%s Help",
-                 settings->showPlaylistAlt,
-                 settings->showLibraryAlt,
-                 settings->showTrackAlt,
-                 settings->showSearchAlt,
-                 settings->showKeysAlt
-                 );
+        char playlist[5], library[5], track[5], search[5], help[5];
+
+        // Assume settings->showPlaylistAlt etc. are defined properly
+        formatWithShPlus(playlist, sizeof(playlist), settings->showPlaylistAlt);
+        formatWithShPlus(library, sizeof(library), settings->showLibraryAlt);
+        formatWithShPlus(track, sizeof(track), settings->showTrackAlt);
+        formatWithShPlus(search, sizeof(search), settings->showSearchAlt);
+        formatWithShPlus(help, sizeof(help), settings->showKeysAlt);
+
+        snprintf(text, sizeof(text), "%s Playlist|%s Library|%s Track|%s Search|%s Help",
+                playlist, library, track, search, help);
+
 #else
         strcpy(text, LAST_ROW);
 #endif
