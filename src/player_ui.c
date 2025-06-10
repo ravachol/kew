@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
 #include "imgfunc.h"
@@ -31,7 +32,7 @@ player_ui.c
 #endif
 
 #ifdef __APPLE__
-const int ABSOLUTE_MIN_WIDTH = 65;
+const int ABSOLUTE_MIN_WIDTH = 80;
 #else
 const int ABSOLUTE_MIN_WIDTH = 65;
 #endif
@@ -591,7 +592,15 @@ void printErrorRow(int row, int col)
         }
 }
 
-void printLastRow(int row, int col, UISettings *ui)
+void formatWithShiftPlus(char *dest, size_t size, const char *src) {
+    if (isupper((unsigned char)src[0])) {
+        snprintf(dest, size, "Shift+%s", src);
+    } else {
+        snprintf(dest, size, "%s", src);
+    }
+}
+
+void printLastRow(int row, int col, UISettings *ui, AppSettings *settings)
 {
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
@@ -608,7 +617,18 @@ void printLastRow(int row, int col, UISettings *ui)
 
         char text[100];
 #ifdef __APPLE__
-        strcpy(text, " Sh+Z List|Sh+X Lib|Sh+C Track|Sh+V Search|Sh+B Help");
+        char playlist[8], library[8], track[8], search[8], help[8];
+
+        // Assume settings->showPlaylistAlt etc. are defined properly
+        formatWithShiftPlus(playlist, sizeof(playlist), settings->showPlaylistAlt);
+        formatWithShiftPlus(library, sizeof(library), settings->showLibraryAlt);
+        formatWithShiftPlus(track, sizeof(track), settings->showTrackAlt);
+        formatWithShiftPlus(search, sizeof(search), settings->showSearchAlt);
+        formatWithShiftPlus(help, sizeof(help), settings->showKeysAlt);
+
+        snprintf(text, sizeof(text), "%s Playlist|%s Library|%s Track|%s Search|%s Help",
+                playlist, library, track, search, help);
+
 #else
         strcpy(text, LAST_ROW);
 #endif
@@ -698,13 +718,13 @@ void printLastRow(int row, int col, UISettings *ui)
         }
 }
 
-void calcAndPrintLastRowAndErrorRow(UISettings *ui)
+void calcAndPrintLastRowAndErrorRow(UISettings *ui, AppSettings *settings)
 {
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
 
         printErrorRow(term_h-1, indent);
-        printLastRow(term_h, indent, ui);
+        printLastRow(term_h, indent, ui, settings);
 }
 
 int printAbout(SongData *songdata, UISettings *ui)
@@ -792,7 +812,7 @@ int showKeyBindings(SongData *songdata, AppSettings *settings, UISettings *ui)
                 numPrintedRows++;
         }
 
-        calcAndPrintLastRowAndErrorRow(ui);
+        calcAndPrintLastRowAndErrorRow(ui, settings);
 
         numPrintedRows++;
 
@@ -988,7 +1008,7 @@ int printLogoAndAdjustments(SongData *songData, int termWidth, UISettings *ui, i
         return aboutRows;
 }
 
-void showSearch(SongData *songData, int *chosenRow, UISettings *ui)
+void showSearch(SongData *songData, int *chosenRow, UISettings *ui, AppSettings *settings)
 {
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
@@ -1008,10 +1028,10 @@ void showSearch(SongData *songData, int *chosenRow, UISettings *ui)
 
         displaySearch(maxSearchListSize, indent, chosenRow, startSearchIter, ui);
 
-        calcAndPrintLastRowAndErrorRow(ui);
+        calcAndPrintLastRowAndErrorRow(ui, settings);
 }
 
-void showPlaylist(SongData *songData, PlayList *list, int *chosenSong, int *chosenNodeId, AppState *state)
+void showPlaylist(SongData *songData, PlayList *list, int *chosenSong, int *chosenNodeId, AppState *state, AppSettings *settings)
 {
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
@@ -1043,7 +1063,7 @@ void showPlaylist(SongData *songData, PlayList *list, int *chosenSong, int *chos
 
         displayPlaylist(list, maxListSize, indent, chosenSong, chosenNodeId, state->uiState.resetPlaylistDisplay, state);
 
-        calcAndPrintLastRowAndErrorRow(&(state->uiSettings));
+        calcAndPrintLastRowAndErrorRow(&(state->uiSettings), settings);
 }
 
 void resetSearchResult(void)
@@ -1392,7 +1412,7 @@ char *getLibraryFilePath(void)
         return getFilePath(LIBRARY_FILE);
 }
 
-void showLibrary(SongData *songData, AppState *state)
+void showLibrary(SongData *songData, AppState *state, AppSettings *settings)
 {
         // For scrolling names, update every nth time
         if (getIsLongName() && isSameNameAsLastTime && updateCounter % scrollingInterval != 0)
@@ -1492,13 +1512,13 @@ void showLibrary(SongData *songData, AppState *state)
                 printf("\n");
         }
 
-        calcAndPrintLastRowAndErrorRow(ui);
+        calcAndPrintLastRowAndErrorRow(ui, settings);
 
         if (!foundChosen && refresh)
         {
                 printf("\033[1;1H");
                 clearScreen();
-                showLibrary(songData, state);
+                showLibrary(songData, state, settings);
         }
 }
 
@@ -1651,7 +1671,7 @@ void showTrackViewLandscape(int height, int width, float aspectRatio, AppSetting
         if (width - col > ABSOLUTE_MIN_WIDTH)
         {
                 printErrorRow(row+metadataHeight+2+state->uiSettings.visualizerHeight, col);
-                printLastRow(row+metadataHeight+2+state->uiSettings.visualizerHeight+1, col, &(state->uiSettings));
+                printLastRow(row+metadataHeight+2+state->uiSettings.visualizerHeight+1, col, &(state->uiSettings), settings);
         }
 }
 
@@ -1690,7 +1710,7 @@ void showTrackViewPortrait(int height, AppSettings *settings, SongData *songdata
 
         printVisualizer(row+metadataHeight+2, col, visualizerWidth, settings, elapsedSeconds, state);
 
-        calcAndPrintLastRowAndErrorRow(&(state)->uiSettings);
+        calcAndPrintLastRowAndErrorRow(&(state)->uiSettings, settings);
 }
 
 void showTrackView(int width, int height, AppSettings *settings, SongData *songdata, AppState *state, double elapsedSeconds)
@@ -1783,20 +1803,20 @@ int printPlayer(SongData *songdata, double elapsedSeconds, AppSettings *settings
         }
         else if (state->currentView == PLAYLIST_VIEW && refresh)
         {
-                showPlaylist(songdata, originalPlaylist, &chosenRow, &(uis->chosenNodeId), state);
+                showPlaylist(songdata, originalPlaylist, &chosenRow, &(uis->chosenNodeId), state, settings);
                 state->uiState.resetPlaylistDisplay = false;
                 fflush(stdout);
         }
         else if (state->currentView == SEARCH_VIEW && refresh)
         {
                 clearScreen();
-                showSearch(songdata, &chosenSearchResultRow, ui);
+                showSearch(songdata, &chosenSearchResultRow, ui, settings);
                 refresh = false;
                 fflush(stdout);
         }
         else if (state->currentView == LIBRARY_VIEW && refresh)
         {
-                showLibrary(songdata, state);
+                showLibrary(songdata, state, settings);
                 fflush(stdout);
         }
         else if (state->currentView == TRACK_VIEW)
