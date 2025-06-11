@@ -1689,6 +1689,8 @@ void showTrackViewPortrait(int height, AppSettings *settings, SongData *songdata
         int row = height + 3;
         int col = indent;
 
+        int visualizerWidth = calcVisualizerWidth();
+
         if (refresh)
         {
                 if (songdata)
@@ -1697,7 +1699,7 @@ void showTrackViewPortrait(int height, AppSettings *settings, SongData *songdata
                 }
 
                 printCoverCentered(songdata, &(state->uiSettings));
-                printBasicMetadata(row, col, textWidth, metadata, &(state->uiSettings));
+                printBasicMetadata(row, col, visualizerWidth-1, metadata, &(state->uiSettings));
 
                 refresh = false;
         }
@@ -1709,8 +1711,6 @@ void showTrackViewPortrait(int height, AppSettings *settings, SongData *songdata
                 getCurrentFormatAndSampleRate(&format, &sampleRate);
                 printTime(row + metadataHeight, col, elapsedSeconds, sampleRate, avgBitRate, state);
         }
-
-        int visualizerWidth = calcVisualizerWidth();
 
         printVisualizer(row + metadataHeight + 2, col, visualizerWidth, settings, elapsedSeconds, state);
 
