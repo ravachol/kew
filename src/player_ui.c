@@ -342,10 +342,8 @@ void printTitleWithDelay(int row, int col, const char *text, int delay, int maxW
         fflush(stdout);
 }
 
-void printBasicMetadata(int row, int col, TagSettings const *metadata, UISettings *ui)
+void printBasicMetadata(int row, int col, int maxWidth, TagSettings const *metadata, UISettings *ui)
 {
-        int maxWidth = textWidth; // term_w - 3 - (indent * 2);
-
         if (ui->useConfigColors)
                 setDefaultTextColor();
         else
@@ -353,19 +351,19 @@ void printBasicMetadata(int row, int col, TagSettings const *metadata, UISetting
 
         if (strnlen(metadata->artist, METADATA_MAX_LENGTH) > 0)
         {
-                printf("\033[%d;%dH", row+1, col);
+                printf("\033[%d;%dH", row + 1, col);
                 printf(" %.*s", maxWidth, metadata->artist);
         }
 
         if (strnlen(metadata->album, METADATA_MAX_LENGTH) > 0)
         {
-                printf("\033[%d;%dH", row+2, col);
+                printf("\033[%d;%dH", row + 2, col);
                 printf(" %.*s", maxWidth, metadata->album);
         }
 
         if (strnlen(metadata->date, METADATA_MAX_LENGTH) > 0)
         {
-                printf("\033[%d;%dH", row+3, col);
+                printf("\033[%d;%dH", row + 3, col);
                 int year = getYear(metadata->date);
                 if (year == -1)
                         printf(" %s", metadata->date);
@@ -402,7 +400,7 @@ void printBasicMetadata(int row, int col, TagSettings const *metadata, UISetting
 
                 trim(prettyTitle, titleLength);
 
-                printTitleWithDelay(row, col+1, prettyTitle, ui->titleDelay, maxWidth);
+                printTitleWithDelay(row, col + 1, prettyTitle, ui->titleDelay, maxWidth);
         }
 }
 
@@ -592,12 +590,16 @@ void printErrorRow(int row, int col)
         }
 }
 
-void formatWithShiftPlus(char *dest, size_t size, const char *src) {
-    if (isupper((unsigned char)src[0])) {
-        snprintf(dest, size, "Shift+%s", src);
-    } else {
-        snprintf(dest, size, "%s", src);
-    }
+void formatWithShiftPlus(char *dest, size_t size, const char *src)
+{
+        if (isupper((unsigned char)src[0]))
+        {
+                snprintf(dest, size, "Shift+%s", src);
+        }
+        else
+        {
+                snprintf(dest, size, "%s", src);
+        }
 }
 
 void printLastRow(int row, int col, UISettings *ui, AppSettings *settings)
@@ -627,9 +629,10 @@ void printLastRow(int row, int col, UISettings *ui, AppSettings *settings)
         formatWithShiftPlus(help, sizeof(help), settings->showKeysAlt);
 
         snprintf(text, sizeof(text), "%s Playlist|%s Library|%s Track|%s Search|%s Help",
-                playlist, library, track, search, help);
+                 playlist, library, track, search, help);
 
 #else
+        (void)settings;
         strcpy(text, LAST_ROW);
 #endif
 
@@ -723,7 +726,7 @@ void calcAndPrintLastRowAndErrorRow(UISettings *ui, AppSettings *settings)
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
 
-        printErrorRow(term_h-1, indent);
+        printErrorRow(term_h - 1, indent);
         printLastRow(term_h, indent, ui, settings);
 }
 
@@ -1076,7 +1079,7 @@ void printElapsedChars(int row, int col, AppSettings *settings, UISettings *ui, 
         PixelData color = ui->color;
         bool useConfigColors = ui->useConfigColors;
 
-        printf("\033[%d;%dH", row, col+1);
+        printf("\033[%d;%dH", row, col + 1);
 
         for (int i = 0; i < numProgressBars; i++)
         {
@@ -1140,7 +1143,7 @@ void printVisualizer(int row, int col, int visualizerWidth, AppSettings *setting
 
                 int height = state->uiSettings.visualizerHeight;
 
-                printElapsedChars(row+height-1, col, settings, ui, calcElapsedBars(elapsedSeconds, duration, visualizerWidth), visualizerWidth - 1);
+                printElapsedChars(row + height - 1, col, settings, ui, calcElapsedBars(elapsedSeconds, duration, visualizerWidth), visualizerWidth - 1);
         }
 }
 
@@ -1615,8 +1618,7 @@ void showTrackViewMini(AppSettings *settings, SongData *songdata, AppState *stat
                 ma_format format;
                 avgBitRate = songdata->avgBitRate;
                 getCurrentFormatAndSampleRate(&format, &sampleRate);
-                printTime(miniVisualizerRow-1, col, elapsedSeconds, sampleRate, avgBitRate, state);
-
+                printTime(miniVisualizerRow - 1, col, elapsedSeconds, sampleRate, avgBitRate, state);
         }
         if (doPrintVis)
         {
@@ -1633,11 +1635,14 @@ void showTrackViewLandscape(int height, int width, float aspectRatio, AppSetting
         int metadataHeight = 4;
         int timeHeight = 1;
 
-
         int col = height * aspectRatio;
 
         if (!state->uiSettings.coverEnabled)
                 col = 1;
+
+        int term_w, term_h;
+        getTermSize(&term_w, &term_h);
+        int visualizerWidth = term_w - col;
 
         int row = height - metadataHeight - timeHeight - state->uiSettings.visualizerHeight - 3;
 
@@ -1649,7 +1654,8 @@ void showTrackViewLandscape(int height, int width, float aspectRatio, AppSetting
                 }
 
                 printCover(height, songdata, &(state->uiSettings));
-                if (height > metadataHeight) printBasicMetadata(row, col, metadata, &(state->uiSettings));
+                if (height > metadataHeight)
+                        printBasicMetadata(row, col, visualizerWidth-1, metadata, &(state->uiSettings));
 
                 refresh = false;
         }
@@ -1659,19 +1665,17 @@ void showTrackViewLandscape(int height, int width, float aspectRatio, AppSetting
                 ma_format format;
                 avgBitRate = songdata->avgBitRate;
                 getCurrentFormatAndSampleRate(&format, &sampleRate);
-                if (height > metadataHeight + timeHeight) printTime(row+4, col, elapsedSeconds, sampleRate, avgBitRate, state);
+                if (height > metadataHeight + timeHeight)
+                        printTime(row + 4, col, elapsedSeconds, sampleRate, avgBitRate, state);
         }
 
-        int term_w, term_h;
-        getTermSize(&term_w, &term_h);
-        int visualizerWidth = term_w - col;
-
-        if (row > 0) printVisualizer(row+metadataHeight+2, col, visualizerWidth, settings, elapsedSeconds, state);
+        if (row > 0)
+                printVisualizer(row + metadataHeight + 2, col, visualizerWidth, settings, elapsedSeconds, state);
 
         if (width - col > ABSOLUTE_MIN_WIDTH)
         {
-                printErrorRow(row+metadataHeight+2+state->uiSettings.visualizerHeight, col);
-                printLastRow(row+metadataHeight+2+state->uiSettings.visualizerHeight+1, col, &(state->uiSettings), settings);
+                printErrorRow(row + metadataHeight + 2 + state->uiSettings.visualizerHeight, col);
+                printLastRow(row + metadataHeight + 2 + state->uiSettings.visualizerHeight + 1, col, &(state->uiSettings), settings);
         }
 }
 
@@ -1693,7 +1697,7 @@ void showTrackViewPortrait(int height, AppSettings *settings, SongData *songdata
                 }
 
                 printCoverCentered(songdata, &(state->uiSettings));
-                printBasicMetadata(row, col, metadata, &(state->uiSettings));
+                printBasicMetadata(row, col, textWidth, metadata, &(state->uiSettings));
 
                 refresh = false;
         }
@@ -1703,12 +1707,12 @@ void showTrackViewPortrait(int height, AppSettings *settings, SongData *songdata
                 ma_format format;
                 avgBitRate = songdata->avgBitRate;
                 getCurrentFormatAndSampleRate(&format, &sampleRate);
-                printTime(row+metadataHeight, col, elapsedSeconds, sampleRate, avgBitRate, state);
+                printTime(row + metadataHeight, col, elapsedSeconds, sampleRate, avgBitRate, state);
         }
 
         int visualizerWidth = calcVisualizerWidth();
 
-        printVisualizer(row+metadataHeight+2, col, visualizerWidth, settings, elapsedSeconds, state);
+        printVisualizer(row + metadataHeight + 2, col, visualizerWidth, settings, elapsedSeconds, state);
 
         calcAndPrintLastRowAndErrorRow(&(state)->uiSettings, settings);
 }
