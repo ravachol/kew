@@ -8,11 +8,17 @@
 
 - Faster loading of library cache from file, for people with very large music collections.
 
+- Show the actual keys bound to different views on the last row on macOS and show Shift+key instead of Sh+key for clarity. By @arcathrax.
+
 - Don't strip numbers from titles when presenting the actual title taken from metadata. We still strip numbers like 01-01 from the beginning of filenames before presenting them though.
 
 - Added an indicator when the library is being updated. Suggested by @Saijin-Naib.
 
 - Now (optionally) sets the currently playing track as the window title. By @Chromium-3-Oxide. Suggested by @Saijin-Naib.
+
+#### Bug Fixes
+
+- Reset clock when resuming playback when stopped. Found by @Knusper.
 
 ### 3.3.3
 
