@@ -1039,6 +1039,10 @@ void togglePausePlayback(void)
         }
         else if (isPaused() || isStopped())
         {
+                if (isStopped())
+                {
+                        resetClock();
+                }
                 resumePlayback();
         }
 }

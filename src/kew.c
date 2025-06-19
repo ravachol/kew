@@ -1120,7 +1120,7 @@ void updatePlayerStatus(AppState *state)
 
                 if (isPlaybackDone())
                 {
-                        updateLastSongSwitchTime();
+                        resetStartTime();
                         prepareNextSong(state);
                         switchAudioImplementation();
                 }
@@ -1171,7 +1171,7 @@ static gboolean quitOnSignal(gpointer user_data)
 void initFirstPlay(Node *song, AppState *state)
 {
         updateLastInputTime();
-        updateLastSongSwitchTime();
+        resetStartTime();
 
         userData.currentSongData = NULL;
         userData.songdataA = NULL;

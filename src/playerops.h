@@ -59,7 +59,7 @@ void handleRemove(void);
 
 FileSystemEntry *enqueueSongs(FileSystemEntry *entry, UIState *uis);
 
-void updateLastSongSwitchTime(void);
+void resetStartTime(void);
 
 void playbackPause(struct timespec *pause_time);
 

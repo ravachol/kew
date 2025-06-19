@@ -99,7 +99,7 @@ void skip(void)
                 refresh = true;
 }
 
-void updateLastSongSwitchTime(void)
+void resetStartTime(void)
 {
         clock_gettime(CLOCK_MONOTONIC, &start_time);
 }
@@ -272,7 +272,7 @@ void prepareIfSkippedSilent(void)
         {
                 skipping = true;
                 hasSilentlySwitched = false;
-                updateLastSongSwitchTime();
+                resetStartTime();
                 setCurrentImplementationType(NONE);
                 setRepeatEnabled(false);
                 audioData.endOfListReached = false;
