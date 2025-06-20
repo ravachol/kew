@@ -59,6 +59,7 @@ extern int progressBarRow;
 extern int progressBarCol;
 extern int progressBarLength;
 extern int draggedProgressBarCol;
+extern double draggedPositionSeconds;
 extern bool draggingProgressBar;
 
 extern FileSystemEntry *library;
