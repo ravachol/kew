@@ -173,7 +173,7 @@ bool mouseInputHandled(char *seq, int i, struct Event *event)
 
         int indent = getIndent();
 
-        if (draggingProgressBar && progressBarLength > 0)
+        if (progressBarLength > 0)
         {
                 draggedProgressBarCol = mouseX - progressBarCol;
 
