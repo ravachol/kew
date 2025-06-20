@@ -6,6 +6,8 @@
 
 - Added ability to switch views by using the mouse. By @Chromium-3-Oxide.
 
+- Added ability to drag the progress bar using the mouse. Suggested by @icejix.
+
 - Faster loading of library cache from file, for people with very large music collections.
 
 - Show the actual keys bound to different views on the last row on macOS and show Shift+key instead of Sh+key for clarity. By @arcathrax.
