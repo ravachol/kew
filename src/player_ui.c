@@ -66,6 +66,7 @@ int progressBarRow = 0;
 int progressBarCol = 0;
 int progressBarLength = 0;
 int draggedProgressBarCol = 0;
+double draggedPositionSeconds = 0.0;
 bool draggingProgressBar = false;
 int miniVisualizerRow = 0;
 
@@ -488,7 +489,15 @@ void printTime(int row, int col, double elapsedSeconds, ma_uint32 sampleRate, in
         if (term_h > minHeight)
         {
                 double duration = getCurrentSongDuration();
-                printProgress(elapsedSeconds, duration, sampleRate, avgBitRate);
+
+                double elapsed = elapsedSeconds;
+
+                if (draggingProgressBar)
+                {
+                        elapsed = draggedPositionSeconds;
+                }
+
+                printProgress(elapsed, duration, sampleRate, avgBitRate);
         }
 }
 

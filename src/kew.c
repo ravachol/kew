@@ -173,7 +173,14 @@ bool mouseInputHandled(char *seq, int i, struct Event *event)
 
         int indent = getIndent();
 
-        draggedProgressBarCol = mouseX - progressBarCol;
+        if (draggingProgressBar && progressBarLength > 0)
+        {
+                draggedProgressBarCol = mouseX - progressBarCol;
+
+                float position = (float)draggedProgressBarCol / (float)progressBarLength;
+                double duration = getCurrentSongDuration();
+                draggedPositionSeconds = (float)duration * position;
+        }
 
         // Clicked on last row
         if (mouseY == lastRowRow && indent > 0 &&
@@ -333,17 +340,8 @@ struct Event processInput()
                 if (draggingProgressBar)
                 {
                         draggingProgressBar = false;
-
-                        if (progressBarLength > 0)
-                        {
-                                float position = (float)draggedProgressBarCol / (float)progressBarLength;
-
-                                double duration = getCurrentSongDuration();
-                                double newPositionSeconds = (float)duration * position;
-                                gint64 newPositionMicroSeconds = newPositionSeconds * G_USEC_PER_SEC;
-
-                                setPosition(newPositionMicroSeconds);
-                        }
+                        gint64 newPositionMicroSeconds = draggedPositionSeconds * G_USEC_PER_SEC;
+                        setPosition(newPositionMicroSeconds);
                 }
         }
 
