@@ -24,6 +24,9 @@ extern double seekAccumulatedSeconds;
 
 extern const char VERSION[];
 
+extern const int MOUSE_DRAG;
+extern const int MOUSE_CLICK;
+
 extern const char LAST_ROW[];
 
 extern bool hasPrintedError;

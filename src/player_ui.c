@@ -62,6 +62,11 @@ int previousChosenLibRow = 0;
 int libCurrentDirSongCount = 0;
 int lastRowRow = 0;
 int lastRowCol = 0;
+int progressBarRow = 0;
+int progressBarCol = 0;
+int progressBarLength = 0;
+int draggedProgressBarCol = 0;
+bool draggingProgressBar = false;
 int miniVisualizerRow = 0;
 
 PixelData lastRowColor = {120, 120, 120};
@@ -1074,10 +1079,14 @@ void resetSearchResult(void)
         chosenSearchResultRow = 0;
 }
 
-void printElapsedChars(int row, int col, AppSettings *settings, UISettings *ui, int elapsedBars, int numProgressBars)
+void printProgressBar(int row, int col, AppSettings *settings, UISettings *ui, int elapsedBars, int numProgressBars)
 {
         PixelData color = ui->color;
         bool useConfigColors = ui->useConfigColors;
+
+        progressBarRow = row;
+        progressBarCol = col + 1;
+        progressBarLength = numProgressBars;
 
         printf("\033[%d;%dH", row, col + 1);
 
@@ -1143,7 +1152,12 @@ void printVisualizer(int row, int col, int visualizerWidth, AppSettings *setting
 
                 int height = state->uiSettings.visualizerHeight;
 
-                printElapsedChars(row + height - 1, col, settings, ui, calcElapsedBars(elapsedSeconds, duration, visualizerWidth), visualizerWidth - 1);
+                int elapsedBars = calcElapsedBars(elapsedSeconds, duration, visualizerWidth);
+
+                if (draggingProgressBar)
+                        elapsedBars = draggedProgressBarCol;
+
+                printProgressBar(row + height - 1, col, settings, ui, elapsedBars, visualizerWidth - 1);
         }
 }
 

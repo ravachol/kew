@@ -55,6 +55,12 @@ extern bool rewinding;
 extern int lastRowRow;
 extern int lastRowCol;
 
+extern int progressBarRow;
+extern int progressBarCol;
+extern int progressBarLength;
+extern int draggedProgressBarCol;
+extern bool draggingProgressBar;
+
 extern FileSystemEntry *library;
 
 int printPlayer(SongData *songdata, double elapsedSeconds, AppSettings *settings, AppState *appState);
