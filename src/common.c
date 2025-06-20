@@ -7,6 +7,9 @@ const char VERSION[] = "3.3.4";
 
 const char LAST_ROW[] = " [F2 Playlist|F3 Library|F4 Track|F5 Search|F6 Help]";
 
+const int MOUSE_DRAG = 32;
+const int MOUSE_CLICK = 0;
+
 double pauseSeconds = 0.0;
 double totalPauseSeconds = 0.0;
 double seekAccumulatedSeconds = 0.0;

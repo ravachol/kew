@@ -173,12 +173,25 @@ bool mouseInputHandled(char *seq, int i, struct Event *event)
 
         int indent = getIndent();
 
+        draggedProgressBarCol = mouseX - progressBarCol;
+
         // Clicked on last row
         if (mouseY == lastRowRow && indent > 0 &&
             mouseX - lastRowCol > 0 && mouseX - lastRowCol < (int)strlen(LAST_ROW) &&
-            mouseButton != 32) // Mouse code 32 means drag, so we ignore
+            mouseButton != MOUSE_DRAG)
         {
                 event->type = getMouseLastRowEvent(mouseX - lastRowCol);
+                return true;
+        }
+        // Clicked on progress bar
+        else if (mouseY == progressBarRow && indent > 0 &&
+                 mouseX - progressBarCol >= 0 && mouseX - progressBarCol < progressBarLength)
+        {
+
+                if (mouseButton == MOUSE_DRAG || mouseButton == MOUSE_CLICK)
+                {
+                        draggingProgressBar = true;
+                }
                 return true;
         }
 
@@ -288,6 +301,7 @@ struct Event processInput()
                 seq[0] = '\b'; // Treat as Backspace
         }
 
+        bool handledMouse = false;
         // Set event for pressed key
         for (int i = 0; i < NUM_KEY_MAPPINGS; i++)
         {
@@ -308,7 +322,28 @@ struct Event processInput()
                 if (keyMappings[i].seq[0] != '\0' && strncmp(seq, "\033[<", 3) == 0 && strnlen(seq, MAX_SEQ_LEN) > 4 && strchr(seq, 'M') != NULL &&
                     mouseInputHandled(seq, i, &event))
                 {
+                        handledMouse = true;
                         break;
+                }
+        }
+
+        if (!handledMouse)
+        {
+                // Stop dragging progress bar
+                if (draggingProgressBar)
+                {
+                        draggingProgressBar = false;
+
+                        if (progressBarLength > 0)
+                        {
+                                float position = (float)draggedProgressBarCol / (float)progressBarLength;
+
+                                double duration = getCurrentSongDuration();
+                                double newPositionSeconds = (float)duration * position;
+                                gint64 newPositionMicroSeconds = newPositionSeconds * G_USEC_PER_SEC;
+
+                                setPosition(newPositionMicroSeconds);
+                        }
                 }
         }
 
