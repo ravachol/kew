@@ -191,7 +191,7 @@ bool mouseInputHandled(char *seq, int i, struct Event *event)
                 return true;
         }
         // Clicked on progress bar
-        else if (mouseY == progressBarRow && indent > 0 &&
+        else if ((mouseY == progressBarRow || draggingProgressBar) &&
                  mouseX - progressBarCol >= 0 && mouseX - progressBarCol < progressBarLength)
         {
 
