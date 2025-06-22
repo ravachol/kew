@@ -198,6 +198,8 @@ bool mouseInputHandled(char *seq, int i, struct Event *event)
                 if (mouseButton == MOUSE_DRAG || mouseButton == MOUSE_CLICK)
                 {
                         draggingProgressBar = true;
+                        gint64 newPositionMicroSeconds = draggedPositionSeconds * G_USEC_PER_SEC;
+                        setPosition(newPositionMicroSeconds);
                 }
                 return true;
         }
@@ -274,7 +276,8 @@ struct Event processInput()
 
         if (!foundInput && cooldownElapsed)
         {
-                flushSeek();
+                if (!draggingProgressBar)
+                        flushSeek();
                 return event;
         }
 
@@ -337,12 +340,7 @@ struct Event processInput()
         if (!handledMouse)
         {
                 // Stop dragging progress bar
-                if (draggingProgressBar)
-                {
-                        draggingProgressBar = false;
-                        gint64 newPositionMicroSeconds = draggedPositionSeconds * G_USEC_PER_SEC;
-                        setPosition(newPositionMicroSeconds);
-                }
+                draggingProgressBar = false;
         }
 
         for (int i = 0; i < NUM_KEY_MAPPINGS; i++)
