@@ -143,10 +143,10 @@ enum EventType getMouseLastRowEvent(int mouseXOnLastRow)
                 result = EVENT_NONE;
                 break;
         }
-        // Do not switch to track view if no song is currently playing
+        // Switch to library view if track view is clicked and no song is currently playing
         if (result == EVENT_SHOWTRACK && getCurrentSongData() == NULL)
         {
-                result = EVENT_NONE;
+                result = EVENT_SHOWLIBRARY;
         }
 
         return result;
