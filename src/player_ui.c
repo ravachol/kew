@@ -489,13 +489,7 @@ void printTime(int row, int col, double elapsedSeconds, ma_uint32 sampleRate, in
         if (term_h > minHeight)
         {
                 double duration = getCurrentSongDuration();
-
                 double elapsed = elapsedSeconds;
-
-                if (draggingProgressBar)
-                {
-                        elapsed = draggedPositionSeconds;
-                }
 
                 printProgress(elapsed, duration, sampleRate, avgBitRate);
         }
@@ -1160,11 +1154,7 @@ void printVisualizer(int row, int col, int visualizerWidth, AppSettings *setting
                 drawSpectrumVisualizer(row, col, state);
 
                 int height = state->uiSettings.visualizerHeight;
-
                 int elapsedBars = calcElapsedBars(elapsedSeconds, duration, visualizerWidth);
-
-                if (draggingProgressBar)
-                        elapsedBars = draggedProgressBarCol;
 
                 printProgressBar(row + height - 1, col, settings, ui, elapsedBars, visualizerWidth - 1);
         }
