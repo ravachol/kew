@@ -147,6 +147,34 @@ extern "C"
                 imageData.assign(&ptr[offset], &ptr[offset + dataLength]);
         }
 
+        TagLib::StringList getOggFieldListCaseInsensitive(const TagLib::Ogg::XiphComment *comment,
+                                                          const std::string &fieldName)
+        {
+                // Create a mutable copy of fieldName for transformation
+                std::string lowerFieldName = fieldName;
+                std::transform(lowerFieldName.begin(), lowerFieldName.end(), lowerFieldName.begin(),
+                               [](unsigned char c)
+                               { return std::tolower(c); });
+
+                TagLib::Ogg::FieldListMap fieldListMap = comment->fieldListMap();
+
+                for (auto it = fieldListMap.begin(); it != fieldListMap.end(); ++it)
+                {
+                        // Create a mutable copy of current key for transformation
+                        std::string currentKey(it->first.toCString());
+                        std::transform(currentKey.begin(), currentKey.end(), currentKey.begin(),
+                                       [](unsigned char c)
+                                       { return std::tolower(c); });
+
+                        if (currentKey == lowerFieldName)
+                        {
+                                return it->second;
+                        }
+                }
+
+                return TagLib::StringList();
+        }
+
         int extractCoverArtFromOgg(const std::string &audioFilePath, const std::string &outputFileName)
         {
                 TagLib::File *file = nullptr;
@@ -178,7 +206,9 @@ extern "C"
                 }
 
                 // Check METADATA_BLOCK_PICTURE
-                TagLib::StringList pictureList = xiphComment->fieldListMap()["METADATA_BLOCK_PICTURE"];
+                TagLib::StringList pictureList = getOggFieldListCaseInsensitive(xiphComment,
+                                                                                "METADATA_BLOCK_PICTURE");
+
                 if (!pictureList.isEmpty())
                 {
                         std::string base64Data = pictureList.front().to8Bit(true);
@@ -202,8 +232,11 @@ extern "C"
                 }
 
                 // Check COVERART and COVERARTMIME
-                TagLib::StringList coverArtList = xiphComment->fieldListMap()["COVERART"];
-                TagLib::StringList coverArtMimeList = xiphComment->fieldListMap()["COVERARTMIME"];
+                TagLib::StringList coverArtList = getOggFieldListCaseInsensitive(xiphComment,
+                                                                                 "COVERART");
+                TagLib::StringList coverArtMimeList = getOggFieldListCaseInsensitive(xiphComment,
+                                                                                     "COVERARTMIME");
+
                 if (!coverArtList.isEmpty() && !coverArtMimeList.isEmpty())
                 {
                         std::string base64Data = coverArtList.front().to8Bit(true);
@@ -524,7 +557,7 @@ extern "C"
                 {
                         // Check for METADATA_BLOCK_PICTURE
                         const char *comment = tags->user_comments[i];
-                        if (strncmp(comment, "METADATA_BLOCK_PICTURE=", 23) == 0)
+                        if (strncasecmp(comment, "METADATA_BLOCK_PICTURE=", 23) == 0)
                         {
                                 // Extract the value after "METADATA_BLOCK_PICTURE="
                                 std::string metadataBlockPicture(comment + 23);
