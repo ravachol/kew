@@ -22,6 +22,8 @@
 
 - Reset clock when resuming playback when stopped. Found by @Knusper.
 
+- Better way of checking for embedded opus covers, some covers weren't detected. Reported by @LeahTheSlug.
+
 ### 3.3.3
 
 - Don't show zero's for hours unless the duration is more than an hour long.
