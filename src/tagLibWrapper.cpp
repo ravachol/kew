@@ -9,6 +9,7 @@
 #include <cstring>
 #include <fstream>
 #include <iostream>
+#include <unordered_map>
 
 #include <taglib/attachedpictureframe.h>
 #include <taglib/fileref.h>
@@ -175,89 +176,88 @@ extern "C"
                 return TagLib::StringList();
         }
 
-        int extractCoverArtFromOgg(const std::string &audioFilePath, const std::string &outputFileName)
+        bool extractCoverArtFromOgg(const std::string &audioFilePath, const std::string &outputFileName)
         {
-                TagLib::File *file = nullptr;
-                TagLib::Tag *tag = nullptr;
-
-                // Try to open as Ogg Vorbis
-                file = new TagLib::Vorbis::File(audioFilePath.c_str());
-                if (!file->isValid())
+                TagLib::FileRef f(audioFilePath.c_str(), true);
+                if (!f.file() || !f.file()->isOpen())
                 {
-                        delete file;
-                        // Try to open as Opus
-                        file = new TagLib::Ogg::Opus::File(audioFilePath.c_str());
-                        if (!file->isValid())
-                        {
-                                delete file;
-                                std::cerr << "Error: File not found or not a valid Ogg Vorbis or Opus file." << std::endl;
-                                return false; // File not found or invalid
-                        }
+                        std::cerr << "Error: Could not open file: " << audioFilePath << std::endl;
+                        return false;
                 }
 
-                tag = file->tag();
-
-                const TagLib::Ogg::XiphComment *xiphComment = dynamic_cast<TagLib::Ogg::XiphComment *>(tag);
-                if (!xiphComment)
+                auto pictures = f.file()->complexProperties("PICTURE");
+                if (pictures.isEmpty())
                 {
-                        std::cerr << "Error: No XiphComment found in the file." << std::endl;
-                        delete file;
-                        return false; // No cover art found
+                        std::cerr << "No cover art found in the file (via complexProperties).\n";
+                        return false;
                 }
 
-                // Check METADATA_BLOCK_PICTURE
-                TagLib::StringList pictureList = getOggFieldListCaseInsensitive(xiphComment,
-                                                                                "METADATA_BLOCK_PICTURE");
-
-                if (!pictureList.isEmpty())
+                // Use the first picture found (usually the front cover)
+                for (const auto &pic : pictures)
                 {
-                        std::string base64Data = pictureList.front().to8Bit(true);
-                        std::vector<unsigned char> decodedData = decodeBase64(base64Data);
+                        auto it_data = pic.find("data");
 
-                        std::string mimeType;
-                        std::vector<unsigned char> imageData;
-                        parseFlacPictureBlock(decodedData, mimeType, imageData);
+                        if (it_data == pic.end())
+                                continue; // Skip if no data
 
+                        // Write the image data to a file
                         std::ofstream outFile(outputFileName, std::ios::binary);
                         if (!outFile)
                         {
-                                std::cerr << "Error: Could not write to output file." << std::endl;
-                                delete file;
-                                return false; // Could not write to output file
+                                std::cerr << "Error: Could not write to output file.\n";
+                                return false;
                         }
-                        outFile.write(reinterpret_cast<const char *>(imageData.data()), imageData.size());
+                        TagLib::ByteVector bv = it_data->second.toByteVector();
+                        outFile.write(bv.data(), bv.size());
                         outFile.close();
-                        delete file;
-                        return 0; // Success
+
+                        return true;
                 }
 
-                // Check COVERART and COVERARTMIME
-                TagLib::StringList coverArtList = getOggFieldListCaseInsensitive(xiphComment,
-                                                                                 "COVERART");
-                TagLib::StringList coverArtMimeList = getOggFieldListCaseInsensitive(xiphComment,
-                                                                                     "COVERARTMIME");
+                std::cerr << "No usable cover image found in complexProperties().\n";
+                return false;
+        }
 
-                if (!coverArtList.isEmpty() && !coverArtMimeList.isEmpty())
+        bool looksLikeJpeg(const std::vector<unsigned char> &data)
+        {
+                return data.size() > 4 &&
+                       data[0] == 0xFF && data[1] == 0xD8 &&
+                       data[data.size() - 2] == 0xFF && data[data.size() - 1] == 0xD9;
+        }
+        bool looksLikePng(const std::vector<unsigned char> &data)
+        {
+                static const unsigned char pngHeader[8] = {0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A};
+                if (data.size() < 12)
+                        return false;
+                if (memcmp(data.data(), pngHeader, 8) != 0)
+                        return false;
+                // Look for IEND within last 16 bytes
+                for (size_t i = data.size() >= 16 ? data.size() - 16 : 0; i + 3 < data.size(); ++i)
                 {
-                        std::string base64Data = coverArtList.front().to8Bit(true);
-                        std::vector<unsigned char> imageData = decodeBase64(base64Data);
-
-                        std::ofstream outFile(outputFileName, std::ios::binary);
-                        if (!outFile)
-                        {
-                                std::cerr << "Error: Could not write to output file." << std::endl;
-                                delete file;
-                                return false; // Could not write to output file
-                        }
-                        outFile.write(reinterpret_cast<const char *>(imageData.data()), imageData.size());
-                        outFile.close();
-                        delete file;
-                        return true; // Success
+                        if (memcmp(&data[i], "IEND", 4) == 0)
+                                return true;
                 }
-
-                std::cerr << "No cover art found in the file." << std::endl;
-                delete file;
-                return false; // No cover art found
+                return false;
+        }
+        bool looksLikeWebp(const std::vector<unsigned char> &data)
+        {
+                return data.size() > 12 &&
+                       memcmp(&data[0], "RIFF", 4) == 0 &&
+                       memcmp(&data[8], "WEBP", 4) == 0;
+        }
+        bool isAudioOggStreamHeader(const ogg_packet &headerPacket)
+        {
+                if (headerPacket.bytes >= 7 &&
+                    headerPacket.packet[0] == 0x01 &&
+                    memcmp(headerPacket.packet + 1, "vorbis", 6) == 0)
+                        return true;
+                if (headerPacket.bytes >= 8 &&
+                    memcmp(headerPacket.packet, "OpusHead", 8) == 0)
+                        return true;
+                if (headerPacket.bytes >= 4 &&
+                    memcmp(headerPacket.packet, "fLaC", 4) == 0)
+                        return true;
+                return false;
         }
 
         bool extractCoverArtFromOggVideo(const std::string &audioFilePath, const std::string &outputFileName)
@@ -265,8 +265,8 @@ extern "C"
                 FILE *oggFile = fopen(audioFilePath.c_str(), "rb");
                 if (!oggFile)
                 {
-                        std::cerr << "Error: Could not open file." << std::endl;
-                        return false; // File not found or could not be opened
+                        std::cerr << "Error: Could not open file: " << audioFilePath << std::endl;
+                        return false;
                 }
 
                 ogg_sync_state oy;
@@ -276,14 +276,13 @@ extern "C"
                 ogg_packet op;
 
                 std::map<int, ogg_stream_state> streams;
-                std::map<int, std::vector<unsigned char>> imageDataStreams;
-                std::map<int, bool> isImageStream; // Track if a stream is an image (JPEG/PNG)
+                std::map<int, bool> isHeaderParsed;
+                std::map<int, bool> isAudioStream;
+                std::map<int, std::vector<unsigned char>> streamPackets;
 
                 char *buffer;
-                int bytes;
-                bool coverArtFound = false;
+                int bytes = 0;
 
-                // Read through the Ogg container to find and extract PNG or JPEG streams
                 while (true)
                 {
                         buffer = ogg_sync_buffer(&oy, 4096);
@@ -294,94 +293,68 @@ extern "C"
                         {
                                 int serialNo = ogg_page_serialno(&og);
 
-                                // Initialize stream if not already done
+                                // Lazily create state for new streams
                                 if (streams.find(serialNo) == streams.end())
                                 {
                                         ogg_stream_state os;
                                         ogg_stream_init(&os, serialNo);
                                         streams[serialNo] = os;
-                                        isImageStream[serialNo] = false; // Start by assuming this is not an image stream
+                                        isHeaderParsed[serialNo] = false;
+                                        isAudioStream[serialNo] = false;
                                 }
-
                                 ogg_stream_state &os = streams[serialNo];
                                 ogg_stream_pagein(&os, &og);
 
                                 while (ogg_stream_packetout(&os, &op) == 1)
                                 {
-                                        // Check the packet for PNG signature (\x89PNG\r\n\x1A\n) or JPEG SOI (\xFF\xD8)
-                                        if (op.bytes >= 8 && std::memcmp(op.packet, "\x89PNG\r\n\x1A\n", 8) == 0)
+                                        // Only decide on audio-ness for first packet
+                                        if (!isHeaderParsed[serialNo])
                                         {
-                                                isImageStream[serialNo] = true;
-                                        }
-                                        else if (op.bytes >= 2 && op.packet[0] == 0xFF && op.packet[1] == 0xD8)
-                                        {
-                                                isImageStream[serialNo] = true;
-                                        }
-                                        else if (op.bytes >= 12 && std::memcmp(op.packet, "RIFF", 4) == 0 && std::memcmp(op.packet + 8, "WEBP", 4) == 0)
-                                        {
-                                                isImageStream[serialNo] = true;
-                                        }
+                                                isAudioStream[serialNo] = isAudioOggStreamHeader(op);
+                                                isHeaderParsed[serialNo] = true;
 
-                                        // If this is a detected image stream (either PNG or JPEG), collect the packet data
-                                        if (isImageStream[serialNo])
+                                                if (isAudioStream[serialNo])
+                                                        continue;
+                                        }
+                                        if (!isAudioStream[serialNo])
                                         {
-                                                imageDataStreams[serialNo].insert(
-                                                    imageDataStreams[serialNo].end(),
+                                                // For image/video: collect all packets from this stream
+                                                streamPackets[serialNo].insert(
+                                                    streamPackets[serialNo].end(),
                                                     op.packet,
                                                     op.packet + op.bytes);
                                         }
                                 }
                         }
-
-                        // Stop reading if the file ends
                         if (bytes == 0)
-                        {
                                 break;
-                        }
                 }
 
-                fclose(oggFile);
+                // Clean up
+                for (auto &entry : streams)
+                        ogg_stream_clear(&(entry.second));
                 ogg_sync_clear(&oy);
+                fclose(oggFile);
 
-                // Process collected image data streams
-                for (const auto &entry : imageDataStreams)
+                // Write out a valid image stream
+                for (auto &kv : streamPackets)
                 {
-                        if (isImageStream[entry.first] && !entry.second.empty())
+                        const auto &data = kv.second;
+                        if (looksLikeJpeg(data) || looksLikePng(data) || looksLikeWebp(data))
                         {
-                                // Save the image data to a file using outputFileName
                                 std::ofstream outFile(outputFileName, std::ios::binary);
                                 if (!outFile)
                                 {
                                         std::cerr << "Error: Could not write to output file." << std::endl;
-                                        // Clean up stream states
-                                        for (auto &streamEntry : streams)
-                                        {
-                                                ogg_stream_clear(&(streamEntry.second));
-                                        }
-                                        return false; // Could not write to output file
+                                        return false;
                                 }
-                                outFile.write(reinterpret_cast<const char *>(entry.second.data()), entry.second.size());
+                                outFile.write(reinterpret_cast<const char *>(data.data()), data.size());
                                 outFile.close();
-
-                                coverArtFound = true;
-                                break; // Stop after finding and writing the first cover art
+                                return true;
                         }
                 }
-
-                // Clean up stream states
-                for (auto &streamEntry : streams)
-                {
-                        ogg_stream_clear(&(streamEntry.second));
-                }
-
-                // Return whether the cover art was successfully found and written
-                if (!coverArtFound)
-                {
-                        std::cerr << "No cover art found in the file." << std::endl;
-                        return false; // No cover art found
-                }
-
-                return true; // Success
+                std::cerr << "No embedded image stream found in file." << std::endl;
+                return false;
         }
 
         bool extractCoverArtFromMp3(const std::string &inputFile, const std::string &coverFilePath)
@@ -949,11 +922,11 @@ extern "C"
                 }
                 else if (extension == "ogg")
                 {
-                        coverArtExtracted = extractCoverArtFromOggVideo(input_file, coverFilePath);
+                        coverArtExtracted = extractCoverArtFromOgg(input_file, coverFilePath);
 
                         if (!coverArtExtracted)
                         {
-                                coverArtExtracted = extractCoverArtFromOgg(input_file, coverFilePath);
+                                coverArtExtracted = extractCoverArtFromOggVideo(input_file, coverFilePath);
                         }
                 }
                 else if (extension == "wav")

@@ -24,6 +24,8 @@
 
 - Better way of checking for embedded opus covers, some covers weren't detected. Reported by @LeahTheSlug.
 
+- Better way of extracting ogg vorbis covers. Reported by @musselmandev.
+
 ### 3.3.3
 
 - Don't show zero's for hours unless the duration is more than an hour long.
