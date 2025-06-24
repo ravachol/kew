@@ -284,12 +284,16 @@ You can select all music by pressing the - MUSIC LIBRARY - header at the top of 
 * <kbd>Delete</kbd> to remove a single playlist entry.
 * <kbd>t</kbd>, <kbd>g</kbd> to move songs up or down the playlist.
 * number + <kbd>G</kbd> or <kbd>Enter</kbd> to go to specific song number in the playlist.
-* <kbd>.</kbd> to add current song to kew.m3u (run with "kew .").
+* <kbd>.</kbd> to add currently playing song to kew favorites.m3u (run with "kew .").
 * <kbd>Esc</kbd> to quit.
 
 ## Configuration
 
 kew will create a config file, kewrc, in a kew folder in your default config directory for instance ~/.config/kew or ~/Library/Preferences/kew on macOS. There you can change some settings like key bindings and the default colors of the app. To edit this file please make sure you quit kew first.
+
+## Favorites playlist
+
+To add a song to your favorites, press "." while the song is playing. This will add the song to the "kew favorites.m3u" playlist. You can then play this playlist by running "kew ." or "kew list kew favorites"
 
 ## Nerd Fonts
 

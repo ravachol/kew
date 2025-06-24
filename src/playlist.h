@@ -42,6 +42,7 @@ extern Node *currentSong;
 
 extern PlayList playlist;
 extern PlayList *originalPlaylist;
+extern PlayList *favoritesPlaylist;
 
 extern int nodeIdCounter;
 
@@ -92,3 +93,7 @@ void addShuffledAlbumsToPlayList(FileSystemEntry *root, PlayList *list, int play
 void moveUpList(PlayList *list, Node *node);
 
 void moveDownList(PlayList *list, Node *node);
+
+void loadFavoritesPlaylist(const char *directory);
+
+void saveFavoritesPlaylist(const char *directory);

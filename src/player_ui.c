@@ -138,6 +138,7 @@ void printHelp()
                "          kew dir <album name> (Sometimes it's necessary to specify it's a directory you want)\n"
                "          kew song <song name> \n"
                "          kew list <m3u list name> \n"
+               "          kew . (plays kew favorites.m3u file)\n"
                "          kew shuffle <dir name> (random and rand works too)\n"
                "          kew artistA:artistB (plays artistA and artistB shuffled)\n"
                "\n"
@@ -174,6 +175,7 @@ void printHelp()
                " gg go to first song.\n"
                " number + G or Enter to go to specific song number in the playlist.\n"
                " G to go to last song.\n"
+               " . to add currently playing song to \"kew favorites.m3u\" (run with \"kew .\").\n"
                " Esc or q to quit.\n"
                "\n");
 }
@@ -807,6 +809,8 @@ int showKeyBindings(SongData *songdata, AppSettings *settings, UISettings *ui)
         printf(" - %s to save the playlist to your music folder,\n", settings->savePlaylist);
         printBlankSpaces(indent);
         printf("   in an .m3u file named after the first song in the playlist.\n");
+        printBlankSpaces(indent);
+        printf(" - %s to add current song to kew favorites.m3u (run with \"kew .\").\n", settings->addToFavoritesPlaylist);
         printBlankSpaces(indent);
         printf(" - Esc or %s to quit.\n\n", settings->quit);
         printBlankSpaces(indent);

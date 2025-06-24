@@ -165,4 +165,6 @@ void markListAsEnqueued(FileSystemEntry *root, PlayList *playlist);
 
 bool isContainedWithin(FileSystemEntry *entry, FileSystemEntry *containingEntry);
 
+void addToFavoritesPlaylist(void);
+
 #endif
