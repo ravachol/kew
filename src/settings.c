@@ -97,7 +97,7 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         c_strcpy(settings.seekForward, "d", sizeof(settings.seekForward));
         c_strcpy(settings.savePlaylist, "x", sizeof(settings.savePlaylist));
         c_strcpy(settings.updateLibrary, "u", sizeof(settings.updateLibrary));
-        c_strcpy(settings.addToMainPlaylist, ".", sizeof(settings.addToMainPlaylist));
+        c_strcpy(settings.addToFavoritesPlaylist, ".", sizeof(settings.addToFavoritesPlaylist));
         c_strcpy(settings.hardPlayPause, " ", sizeof(settings.hardPlayPause));
         c_strcpy(settings.hardSwitchNumberedSong, "\n", sizeof(settings.hardSwitchNumberedSong));
         c_strcpy(settings.hardPrev, "[D", sizeof(settings.hardPrev));
@@ -268,9 +268,9 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
                 {
                         snprintf(settings.savePlaylist, sizeof(settings.savePlaylist), "%s", pair->value);
                 }
-                else if (strcmp(lowercaseKey, "addtomainplaylist") == 0)
+                else if (strcmp(lowercaseKey, "addtofavoritesplaylist") == 0)
                 {
-                        snprintf(settings.quit, sizeof(settings.quit), "%s", pair->value);
+                        snprintf(settings.addToFavoritesPlaylist, sizeof(settings.addToFavoritesPlaylist), "%s", pair->value);
                 }
                 else if (strcmp(lowercaseKey, "lastvolume") == 0)
                 {
@@ -592,7 +592,7 @@ void mapSettingsToKeys(AppSettings *settings, UISettings *ui, EventMapping *mapp
         mappings[16] = (EventMapping){settings->toggleRepeat, EVENT_TOGGLEREPEAT};
         mappings[17] = (EventMapping){settings->savePlaylist, EVENT_EXPORTPLAYLIST};
         mappings[18] = (EventMapping){settings->toggleColorsDerivedFrom, EVENT_TOGGLEPROFILECOLORS};
-        mappings[19] = (EventMapping){settings->addToMainPlaylist, EVENT_ADDTOMAINPLAYLIST};
+        mappings[19] = (EventMapping){settings->addToFavoritesPlaylist, EVENT_ADDTOFAVORITESPLAYLIST};
         mappings[20] = (EventMapping){settings->updateLibrary, EVENT_UPDATELIBRARY};
         mappings[21] = (EventMapping){settings->hardPlayPause, EVENT_PLAY_PAUSE};
         mappings[22] = (EventMapping){settings->hardPrev, EVENT_PREV};
@@ -1161,7 +1161,7 @@ void setConfig(AppSettings *settings, UISettings *ui)
         fprintf(file, "seekBackward=%s\n", settings->seekBackward);
         fprintf(file, "seekForward=%s\n", settings->seekForward);
         fprintf(file, "savePlaylist=%s\n", settings->savePlaylist);
-        fprintf(file, "addToMainPlaylist=%s\n", settings->addToMainPlaylist);
+        fprintf(file, "addToFavoritesPlaylist=%s\n", settings->addToFavoritesPlaylist);
         fprintf(file, "updateLibrary=%s\n", settings->updateLibrary);
         fprintf(file, "moveSongUp=%s\n", settings->moveSongUp);
         fprintf(file, "moveSongDown=%s\n", settings->moveSongDown);
