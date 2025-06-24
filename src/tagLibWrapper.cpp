@@ -228,7 +228,7 @@ extern "C"
 
 #else
 
-        boolo extractCoverArtFromOgg(const std::string &audioFilePath, const std::string &outputFileName)
+        bool extractCoverArtFromOgg(const std::string &audioFilePath, const std::string &outputFileName)
         {
                 TagLib::File *file = nullptr;
                 TagLib::Tag *tag = nullptr;
