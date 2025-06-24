@@ -18,6 +18,8 @@
 
 - Now (optionally) sets the currently playing track as the window title. By @Chromium-3-Oxide. Suggested by @Saijin-Naib.
 
+- Added back the special playlist, but renamed as the kew favorites playlist. This is a playlist you can add songs to by pressing ". while the song is playing. Requested by @nikolasdmtr.
+
 #### Bug Fixes
 
 - Reset clock when resuming playback when stopped. Found by @Knusper.

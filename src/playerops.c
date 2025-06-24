@@ -1407,6 +1407,22 @@ Node *getSongByNumber(PlayList *playlist, int songNumber)
         return song;
 }
 
+void addToFavoritesPlaylist(void)
+{
+        if (currentSong == NULL)
+                return;
+
+        int id = currentSong->id;
+
+        Node *node = NULL;
+
+        if (findSelectedEntryById(favoritesPlaylist, id) != NULL) // Song is already in list
+                return;
+
+        createNode(&node, currentSong->song.filePath, id);
+        addToList(favoritesPlaylist, node);
+}
+
 int loadDecoder(SongData *songData, bool *songDataDeleted)
 {
         int result = 0;

@@ -875,6 +875,9 @@ void handleInput(AppState *state)
         case EVENT_SEEKFORWARD:
                 seekForward(&(state->uiState));
                 break;
+        case EVENT_ADDTOFAVORITESPLAYLIST:
+                addToFavoritesPlaylist();
+                break;
         case EVENT_EXPORTPLAYLIST:
                 exportCurrentPlaylist(settings.path);
                 break;
@@ -1302,11 +1305,14 @@ void cleanupOnExit()
         restoreTerminalMode();
         enableInputBuffering();
         setConfig(&settings, &(appState.uiSettings));
+        saveFavoritesPlaylist(settings.path);
         saveLastUsedPlaylist();
         deleteCache(appState.tmpCache);
         freeMainDirectoryTree(&appState);
         deletePlaylist(&playlist);
         deletePlaylist(originalPlaylist);
+        deletePlaylist(favoritesPlaylist);
+        free(favoritesPlaylist);
         free(originalPlaylist);
         setDefaultTextColor();
         pthread_mutex_destroy(&(loadingdata.mutex));
@@ -1469,6 +1475,22 @@ void initDefaultState(AppState *state)
         state->currentView = LIBRARY_VIEW;
 
         run(state, false);
+}
+
+void playFavoritesPlaylist(AppState *state)
+{
+        if (favoritesPlaylist->count == 0)
+        {
+                printf("Couldn't find any songs in the special playlist. Add a song by pressing '.' while it's playing. \n");
+                exit(0);
+        }
+
+        init(state);
+        deepCopyPlayListOntoList(favoritesPlaylist, &playlist);
+        if (!state->uiSettings.saveRepeatShuffleSettings)
+                shufflePlaylist(&playlist);
+        markListAsEnqueued(library, &playlist);
+        run(state, true);
 }
 
 void playAll(AppState *state)
@@ -1866,6 +1888,7 @@ int main(int argc, char *argv[])
         }
 
         handleOptions(&argc, argv, ui);
+        loadFavoritesPlaylist(settings.path);
 
         if (argc == 1)
         {
@@ -1878,6 +1901,10 @@ int main(int argc, char *argv[])
         else if (argc == 2 && strcmp(argv[1], "albums") == 0)
         {
                 playAllAlbums(&appState);
+        }
+        else if (argc == 2 && strcmp(argv[1], ".") == 0 && favoritesPlaylist->count != 0)
+        {
+                playFavoritesPlaylist(&appState);
         }
         else if (argc >= 2)
         {

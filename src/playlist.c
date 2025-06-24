@@ -23,7 +23,7 @@ Playlist related functions.
 #endif
 
 const char PLAYLIST_EXTENSIONS[] = "(m3u8?)$";
-const char mainPlaylistName[] = "kew.m3u";
+const char favoritesPlaylistName[] = "kew favorites.m3u";
 const char lastUsedPlaylistName[] = "lastPlaylist.m3u";
 
 // The playlist unshuffled as it appears in playlist view
@@ -31,6 +31,9 @@ PlayList *originalPlaylist = NULL;
 
 // The (sometimes shuffled) sequence of songs that will be played
 PlayList playlist = {NULL, NULL, 0, PTHREAD_MUTEX_INITIALIZER};
+
+// The playlist from kew favorites .m3u
+PlayList *favoritesPlaylist = NULL;
 
 char search[MAX_SEARCH_SIZE];
 char playlistName[MAX_SEARCH_SIZE];
@@ -675,6 +678,12 @@ void loadPlaylist(const char *directory, const char *playlistName, PlayList *pla
         readM3UFile(playlistPath, playlist);
 }
 
+void loadFavoritesPlaylist(const char *directory)
+{
+        favoritesPlaylist = malloc(sizeof(PlayList));
+        loadPlaylist(directory, favoritesPlaylistName, favoritesPlaylist);
+}
+
 void loadLastUsedPlaylist(void)
 {
         char *configdir = getConfigPath();
@@ -720,6 +729,14 @@ void saveNamedPlaylist(const char *directory, const char *playlistName, const Pl
     {
         writeM3UFile(playlistPath, playlist);
     }
+}
+
+void saveFavoritesPlaylist(const char *directory)
+{
+        if (favoritesPlaylist != NULL && favoritesPlaylist->count > 0)
+        {
+                saveNamedPlaylist(directory, favoritesPlaylistName, favoritesPlaylist);
+        }
 }
 
 void saveLastUsedPlaylist(void)

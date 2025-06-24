@@ -141,7 +141,7 @@ typedef struct
         char seekBackward[6];
         char seekForward[6];
         char savePlaylist[6];
-        char addToMainPlaylist[6];
+        char addToFavoritesPlaylist[6];
         char updateLibrary[6];
         char quit[6];
         char altQuit[6];
