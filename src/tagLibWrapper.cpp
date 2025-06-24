@@ -56,6 +56,12 @@ static inline bool is_base64(unsigned char c)
         return (isalnum(c) || (c == '+') || (c == '/'));
 }
 
+#if defined(TAGLIB_MAJOR_VERSION) && TAGLIB_MAJOR_VERSION >= 2
+#define HAVE_COMPLEXPROPERTIES 1
+#else
+#define HAVE_COMPLEXPROPERTIES 0
+#endif
+
 // Function to decode Base64-encoded data
 std::vector<unsigned char> decodeBase64(const std::string &encoded_string)
 {
@@ -176,6 +182,8 @@ extern "C"
                 return TagLib::StringList();
         }
 
+#if HAVE_COMPLEXPROPERTIES
+
         bool extractCoverArtFromOgg(const std::string &audioFilePath, const std::string &outputFileName)
         {
                 TagLib::FileRef f(audioFilePath.c_str(), true);
@@ -217,6 +225,95 @@ extern "C"
                 std::cerr << "No usable cover image found in complexProperties().\n";
                 return false;
         }
+
+#else
+
+        boolo extractCoverArtFromOgg(const std::string &audioFilePath, const std::string &outputFileName)
+        {
+                TagLib::File *file = nullptr;
+                TagLib::Tag *tag = nullptr;
+
+                // Try to open as Ogg Vorbis
+                file = new TagLib::Vorbis::File(audioFilePath.c_str());
+                if (!file->isValid())
+                {
+                        delete file;
+                        // Try to open as Opus
+                        file = new TagLib::Ogg::Opus::File(audioFilePath.c_str());
+                        if (!file->isValid())
+                        {
+                                delete file;
+                                std::cerr << "Error: File not found or not a valid Ogg Vorbis or Opus file." << std::endl;
+                                return false; // File not found or invalid
+                        }
+                }
+
+                tag = file->tag();
+
+                const TagLib::Ogg::XiphComment *xiphComment = dynamic_cast<TagLib::Ogg::XiphComment *>(tag);
+                if (!xiphComment)
+                {
+                        std::cerr << "Error: No XiphComment found in the file." << std::endl;
+                        delete file;
+                        return false; // No cover art found
+                }
+
+                // Check METADATA_BLOCK_PICTURE
+                TagLib::StringList pictureList = getOggFieldListCaseInsensitive(xiphComment,
+                                                                                "METADATA_BLOCK_PICTURE");
+
+                if (!pictureList.isEmpty())
+                {
+                        std::string base64Data = pictureList.front().to8Bit(true);
+                        std::vector<unsigned char> decodedData = decodeBase64(base64Data);
+
+                        std::string mimeType;
+                        std::vector<unsigned char> imageData;
+                        parseFlacPictureBlock(decodedData, mimeType, imageData);
+
+                        std::ofstream outFile(outputFileName, std::ios::binary);
+                        if (!outFile)
+                        {
+                                std::cerr << "Error: Could not write to output file." << std::endl;
+                                delete file;
+                                return false; // Could not write to output file
+                        }
+                        outFile.write(reinterpret_cast<const char *>(imageData.data()), imageData.size());
+
+                        outFile.close();
+                        delete file;
+                        return true; // Success
+                }
+
+                // Check COVERART and COVERARTMIME
+                TagLib::StringList coverArtList = getOggFieldListCaseInsensitive(xiphComment,
+                                                                                 "COVERART");
+                TagLib::StringList coverArtMimeList = getOggFieldListCaseInsensitive(xiphComment,
+                                                                                     "COVERARTMIME");
+                if (!coverArtList.isEmpty() && !coverArtMimeList.isEmpty())
+                {
+                        std::string base64Data = coverArtList.front().to8Bit(true);
+                        std::vector<unsigned char> imageData = decodeBase64(base64Data);
+
+                        std::ofstream outFile(outputFileName, std::ios::binary);
+                        if (!outFile)
+                        {
+                                std::cerr << "Error: Could not write to output file." << std::endl;
+                                delete file;
+                                return false; // Could not write to output file
+                        }
+                        outFile.write(reinterpret_cast<const char *>(imageData.data()), imageData.size());
+                        outFile.close();
+                        delete file;
+                        return true; // Success
+                }
+
+                std::cerr << "No cover art found in the file." << std::endl;
+                delete file;
+                return false; // No cover art found
+        }
+
+#endif
 
         bool looksLikeJpeg(const std::vector<unsigned char> &data)
         {
