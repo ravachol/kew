@@ -1487,8 +1487,7 @@ void playFavoritesPlaylist(AppState *state)
 
         init(state);
         deepCopyPlayListOntoList(favoritesPlaylist, &playlist);
-        if (!state->uiSettings.saveRepeatShuffleSettings)
-                shufflePlaylist(&playlist);
+        shufflePlaylist(&playlist);
         markListAsEnqueued(library, &playlist);
         run(state, true);
 }
