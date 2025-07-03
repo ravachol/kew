@@ -3,7 +3,7 @@
 #include <pthread.h>
 #include "common.h"
 
-const char VERSION[] = "3.3.4";
+const char VERSION[] = "3.4.0";
 
 const char LAST_ROW[] = " [F2 Playlist|F3 Library|F4 Track|F5 Search|F6 Help]";
 
