@@ -1501,8 +1501,7 @@ void playAll(AppState *state)
         {
                 exit(0);
         }
-        if (!state->uiSettings.saveRepeatShuffleSettings)
-                shufflePlaylist(&playlist);
+        shufflePlaylist(&playlist);
         markListAsEnqueued(library, &playlist);
         run(state, true);
 }
