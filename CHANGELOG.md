@@ -1,6 +1,6 @@
 # CHANGELOG
 
-### 3.3.4
+### 3.4.0
 
 - Landscape View (horizontal layout). Something that was long overdue. Widen the window and it automatically goes into landscape mode. By @Ravachol. Suggested by @Saijin-Naib.
 
@@ -18,7 +18,7 @@
 
 - Now (optionally) sets the currently playing track as the window title. By @Chromium-3-Oxide. Suggested by @Saijin-Naib.
 
-- Added back the special playlist, but renamed as the kew favorites playlist. This is a playlist you can add songs to by pressing ". while the song is playing. Requested by @nikolasdmtr.
+- Added back the special playlist, but renamed as the kew favorites playlist. This is a playlist you can add songs to by pressing "."." while the song is playing. Requested by @nikolasdmtr.
 
 #### Bug Fixes
 
@@ -27,6 +27,8 @@
 - Better way of checking for embedded opus covers, some covers weren't detected. Reported by @LeahTheSlug.
 
 - Better way of extracting ogg vorbis covers. Reported by @musselmandev.
+
+- Fixed 'kew all' not being shuffled if 'save repeat and shuffle settings' was turned on. By @j-lakeman.
 
 ### 3.3.3
 
