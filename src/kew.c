@@ -192,7 +192,8 @@ bool mouseInputHandled(char *seq, int i, struct Event *event)
         }
         // Clicked on progress bar
         else if ((mouseY == progressBarRow || draggingProgressBar) &&
-                 mouseX - progressBarCol >= 0 && mouseX - progressBarCol < progressBarLength)
+                 mouseX - progressBarCol >= 0 && mouseX - progressBarCol < progressBarLength &&
+                 appState.currentView == TRACK_VIEW)
         {
 
                 if (mouseButton == MOUSE_DRAG || mouseButton == MOUSE_CLICK)
