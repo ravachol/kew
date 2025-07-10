@@ -110,6 +110,34 @@ std::vector<unsigned char> decodeBase64(const std::string &encoded_string)
         return decoded_data;
 }
 
+TagLib::StringList getOggFieldListCaseInsensitive(const TagLib::Ogg::XiphComment *comment,
+                                                  const std::string &fieldName)
+{
+        // Create a mutable copy of fieldName for transformation
+        std::string lowerFieldName = fieldName;
+        std::transform(lowerFieldName.begin(), lowerFieldName.end(), lowerFieldName.begin(),
+                       [](unsigned char c)
+                       { return std::tolower(c); });
+
+        TagLib::Ogg::FieldListMap fieldListMap = comment->fieldListMap();
+
+        for (auto it = fieldListMap.begin(); it != fieldListMap.end(); ++it)
+        {
+                // Create a mutable copy of current key for transformation
+                std::string currentKey(it->first.toCString());
+                std::transform(currentKey.begin(), currentKey.end(), currentKey.begin(),
+                               [](unsigned char c)
+                               { return std::tolower(c); });
+
+                if (currentKey == lowerFieldName)
+                {
+                        return it->second;
+                }
+        }
+
+        return TagLib::StringList();
+}
+
 extern "C"
 {
         // Function to read a 32-bit unsigned integer from buffer in big-endian format
@@ -152,34 +180,6 @@ extern "C"
                 readUInt32(dataLength);
 
                 imageData.assign(&ptr[offset], &ptr[offset + dataLength]);
-        }
-
-        TagLib::StringList getOggFieldListCaseInsensitive(const TagLib::Ogg::XiphComment *comment,
-                                                          const std::string &fieldName)
-        {
-                // Create a mutable copy of fieldName for transformation
-                std::string lowerFieldName = fieldName;
-                std::transform(lowerFieldName.begin(), lowerFieldName.end(), lowerFieldName.begin(),
-                               [](unsigned char c)
-                               { return std::tolower(c); });
-
-                TagLib::Ogg::FieldListMap fieldListMap = comment->fieldListMap();
-
-                for (auto it = fieldListMap.begin(); it != fieldListMap.end(); ++it)
-                {
-                        // Create a mutable copy of current key for transformation
-                        std::string currentKey(it->first.toCString());
-                        std::transform(currentKey.begin(), currentKey.end(), currentKey.begin(),
-                                       [](unsigned char c)
-                                       { return std::tolower(c); });
-
-                        if (currentKey == lowerFieldName)
-                        {
-                                return it->second;
-                        }
-                }
-
-                return TagLib::StringList();
         }
 
 #if HAVE_COMPLEXPROPERTIES
