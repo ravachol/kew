@@ -87,6 +87,7 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         c_strcpy(settings.nextTrackAlt, "l", sizeof(settings.nextTrackAlt));
         c_strcpy(settings.scrollUpAlt, "k", sizeof(settings.scrollUpAlt));
         c_strcpy(settings.scrollDownAlt, "j", sizeof(settings.scrollDownAlt));
+        c_strcpy(settings.switchNumberedSong, "G", sizeof(settings.switchNumberedSong));
         c_strcpy(settings.toggleColorsDerivedFrom, "i", sizeof(settings.toggleColorsDerivedFrom));
         c_strcpy(settings.toggleVisualizer, "v", sizeof(settings.toggleVisualizer));
         c_strcpy(settings.toggleAscii, "b", sizeof(settings.toggleAscii));
