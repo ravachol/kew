@@ -1,5 +1,13 @@
 # CHANGELOG
 
+### 3.4.1
+
+#### Bug Fixes
+
+- Fixed G key not bound for new config files. By @Chromium-3-Oxide.
+
+- Fixed restarting from stop by pressing stop only working once. By @ravachol. Found by @Chromium-3-Oxide.
+
 ### 3.4.0
 
 - Landscape View (horizontal layout). Something that was long overdue. Widen the window and it automatically goes into landscape mode. By @Ravachol. Suggested by @Saijin-Naib.
