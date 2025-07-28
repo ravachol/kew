@@ -433,6 +433,7 @@ void setEndOfListReached(AppState *state)
         audioData.currentFileIndex = 0;
         audioData.restart = true;
         loadingdata.loadA = true;
+        waitingForNext = true;
 
         pthread_mutex_lock(&dataSourceMutex);
         cleanupPlaybackDevice();

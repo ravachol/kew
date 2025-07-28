@@ -1027,8 +1027,8 @@ void clearCurrentTrack(void)
                 ma_device_stop(&device);
         }
 
-        resetAllDecoders();
         ma_data_source_set_next(currentDecoder, NULL);
+        resetAllDecoders();
 }
 
 void togglePausePlayback(void)
