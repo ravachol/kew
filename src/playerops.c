@@ -2006,6 +2006,9 @@ void *updateLibraryThread(void *arg)
 
         refresh = true;
 
+        // Keep the message on screen for a second, confirmation for the user
+        sleep(1);
+        setErrorMessage("");
         return NULL;
 }
 
