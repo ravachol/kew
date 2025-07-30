@@ -2004,8 +2004,9 @@ void *updateLibraryThread(void *arg)
 
         pthread_mutex_unlock(&switchMutex);
 
+        c_sleep(1000); // Don't refresh immediately or we risk the error message not clearing
         refresh = true;
-
+        
         return NULL;
 }
 
