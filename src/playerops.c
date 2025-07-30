@@ -2004,11 +2004,9 @@ void *updateLibraryThread(void *arg)
 
         pthread_mutex_unlock(&switchMutex);
 
+        c_sleep(1000); // Don't refresh immediately or we risk the error message not clearing
         refresh = true;
-
-        // Keep the message on screen for a second, confirmation for the user
-        sleep(1);
-        setErrorMessage("");
+        
         return NULL;
 }
 
