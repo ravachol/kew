@@ -12,6 +12,8 @@
 
 - Fixed playlist sometimes starting from last song when enqueueing all by pressing "MUSIC LIBRARY". By @ravachol. Found by j-lakeman.
 
+- Fixed fullwidth characters not being truncated correctly. By @ravachol. Found by Kuuuube.
+
 ### 3.4.0
 
 - Landscape View (horizontal layout). Something that was long overdue. Widen the window and it automatically goes into landscape mode. By @Ravachol. Suggested by @Saijin-Naib.

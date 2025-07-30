@@ -1,4 +1,6 @@
+#define _XOPEN_SOURCE 700
 #include <locale.h>
+#include <string.h>
 #include <stdio.h>
 #include <wchar.h>
 #include "term.h"
@@ -158,37 +160,55 @@ int mk_wcswidth(const wchar_t *pwcs, size_t n)
 
 /* End Markus Kuhn code */
 
-void copyHalfOrFullWidthCharsWithMaxWidth(const char *src, char *dst, int maxChars)
+void copyHalfOrFullWidthCharsWithMaxWidth(const char *src, char *dst, int maxDisplayWidth)
 {
-    mbstate_t state;
-    memset(&state, 0, sizeof(state));
+        mbstate_t state;
+        memset(&state, 0, sizeof(state));
 
-    const char *p = src;
-    char *o = dst;
-    wchar_t wc;
-    int count = 0;
+        const char *p = src;
+        char *o = dst;
+        wchar_t wc;
+        int widthSum = 0;
 
-    while (*p && count < maxChars) {
-        size_t len = mbrtowc(&wc, p, MB_CUR_MAX, &state);
-        if (len == (size_t)-1) { // Invalid UTF-8/locale error
-            // Skip one byte, reinit state
-            p++;
-            memset(&state, 0, sizeof(state));
-            continue;
-        }
-        if (len == (size_t)-2) { // Incomplete sequence
-            break;
-        }
-        if (len == 0) { // Null terminator
-            break;
+        while (*p)
+        {
+                size_t len = mbrtowc(&wc, p, MB_CUR_MAX, &state);
+
+                if (len == (size_t)-1)
+                { // Invalid UTF-8/locale error
+                        // Skip one byte, reinit state
+                        p++;
+                        memset(&state, 0, sizeof(state));
+                        continue;
+                }
+                if (len == (size_t)-2)
+                { // Incomplete sequence
+                        break;
+                }
+                if (len == 0)
+                { // Null terminator
+                        break;
+                }
+
+                int w = wcwidth(wc);
+                if (w < 0)
+                {
+                        // Non-printable character; skip it
+                        p += len;
+                        continue;
+                }
+
+                if (widthSum + w > maxDisplayWidth)
+                        break;
+
+                // Copy valid multibyte sequence
+                memcpy(o, p, len);
+                o += len;
+                p += len;
+                widthSum += w;
         }
 
-        memcpy(o, p, len);
-        o += len;
-        p += len;
-        count++; // Count one codepoint
-    }
-    *o = '\0';
+        *o = '\0';
 }
 
 static bool hasFullwidthChars(const char *str)
