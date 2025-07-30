@@ -541,6 +541,8 @@ void refreshPlayer(UIState *uis)
 
 void resetListAfterDequeuingPlayingSong(AppState *state)
 {
+        startFromTop = true;
+
         if (lastPlayedId < 0)
                 return;
 
@@ -573,7 +575,6 @@ void resetListAfterDequeuingPlayingSong(AppState *state)
                 audioData.currentFileIndex = 0;
                 audioData.restart = true;
                 waitingForNext = true;
-                startFromTop = true;
                 loadingdata.loadA = true;
                 usingSongDataA = false;
 
