@@ -6,7 +6,11 @@
 
 - Fixed G key not bound for new config files. By @Chromium-3-Oxide.
 
-- Fixed restarting from stop by pressing stop only working once. By @ravachol. Found by @Chromium-3-Oxide.
+- Fixed restarting from stop by pressing space bar only working once. By @ravachol. Found by @Chromium-3-Oxide.
+
+- Fixed status/error message sometimes not being cleared. By @SynthSlayer. Found by @SynthSlayer.
+
+- Fixed playlist sometimes starting from last song when enqueueing all by pressing "MUSIC LIBRARY". By @ravachol. Found by j-lakeman.
 
 ### 3.4.0
 
