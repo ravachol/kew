@@ -181,7 +181,7 @@ bool mouseInputHandled(char *seq, int i, struct Event *event)
         }
 
         // Clicked on last row
-        if (mouseY == lastRowRow &&
+        if (mouseY == lastRowRow && lastRowCol > 0 &&
             mouseX - lastRowCol > 0 && mouseX - lastRowCol < (int)strlen(LAST_ROW) &&
             mouseButton != MOUSE_DRAG)
         {
