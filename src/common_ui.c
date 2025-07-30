@@ -239,8 +239,13 @@ static bool hasFullwidthChars(const char *str)
         return false;
 }
 
-void processName(const char *name, char *output, int maxWidth)
+void processName(const char *name, char *output, int maxWidth, bool stripUnneededChars)
 {
+        if (!name) {
+                output[0] = '\0';
+                return;
+        }
+
         const char *lastDot = strrchr(name, '.');
 
         if (lastDot != NULL)
@@ -258,7 +263,9 @@ void processName(const char *name, char *output, int maxWidth)
                 copyHalfOrFullWidthCharsWithMaxWidth(name, output, maxWidth);
         }
 
-        removeUnneededChars(output, strnlen(output, maxWidth));
+        if (stripUnneededChars)
+                removeUnneededChars(output, strnlen(output, maxWidth));
+
         trim(output, strlen(output));
 }
 
@@ -283,11 +290,11 @@ void processNameScroll(const char *name, char *output, int maxWidth, bool isSame
 
         if (hasFullwidthChars(name))
         {
-                processName(name, output, maxWidth);
+                processName(name, output, maxWidth, true);
         }
         else if (scrollableLength <= (size_t)maxWidth || finishedScrolling)
         {
-                processName(name, output, scrollableLength);
+                processName(name, output, scrollableLength, true);
         }
         else
         {
