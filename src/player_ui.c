@@ -244,12 +244,16 @@ int printLogo(SongData *songData, UISettings *ui)
                         title[MAXPATHLEN - 1] = '\0';
                 }
 
-                shortenString(title, term_w - indent - indent - logoWidth - 4);
+                int maxWidth = term_w - indent - indent - logoWidth - 4;
+                char output[maxWidth + 1];
+                output[0] = '\0';
+
+                processName(title, output, maxWidth);
 
                 if (ui->useConfigColors)
                         setTextColor(ui->titleColor);
 
-                printf(" %s\n\n", title);
+                printf(" %s\n\n", output);
                 height += 2;
         }
         else
