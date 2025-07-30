@@ -245,10 +245,10 @@ int printLogo(SongData *songData, UISettings *ui)
                 }
 
                 int maxWidth = term_w - indent - indent - logoWidth - 4;
-                char output[maxWidth + 1];
+                char output[MAXPATHLEN + 1];
                 output[0] = '\0';
 
-                processName(title, output, maxWidth);
+                processName(title, output, maxWidth, false);
 
                 if (ui->useConfigColors)
                         setTextColor(ui->titleColor);
@@ -349,7 +349,7 @@ void printTitleWithDelay(int row, int col, const char *text, int delay, int maxW
 
         printf("\033[%d;%dH", row, col);
         printf("\033[K");
-        printf("%.*s", maxWidth, text);
+        printf("%s", text);
         printf("\n");
         fflush(stdout);
 }
@@ -405,12 +405,10 @@ void printBasicMetadata(int row, int col, int maxWidth, TagSettings const *metad
         if (strnlen(metadata->title, METADATA_MAX_LENGTH) > 0)
         {
                 // Clean up title before printing
-                int titleLength = strnlen(metadata->title, maxWidth);
-                char prettyTitle[titleLength + 1];
+                char prettyTitle[MAXPATHLEN + 1];
+                prettyTitle[0] = '\0';
 
-                c_strcpy(prettyTitle, metadata->title, titleLength + 1);
-
-                trim(prettyTitle, titleLength);
+                processName(metadata->title, prettyTitle, maxWidth, false);
 
                 printTitleWithDelay(row, col + 1, prettyTitle, ui->titleDelay, maxWidth);
         }
@@ -1213,7 +1211,7 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
                 maxNameWidth = 0;
 
         char dirName[maxNameWidth + 1];
-        char filename[maxNameWidth + 1];
+        char filename[MAXPATHLEN + 1];
         bool foundChosen = false;
         int foundCurrent = 0;
         int extraIndent = 0;
@@ -1398,7 +1396,7 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
                                 }
                                 else
                                 {
-                                        processName(root->name, filename, maxNameWidth - extraIndent);
+                                        processName(root->name, filename, maxNameWidth - extraIndent, true);
                                 }
 
                                 printf("└─ ");
