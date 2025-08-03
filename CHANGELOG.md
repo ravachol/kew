@@ -2,6 +2,8 @@
 
 ### 3.4.1
 
+- Removed -flto from the makefile since it was causing compatibility problems, for instance Ubuntu 25.04.
+
 #### Bug Fixes
 
 - Fixed G key not bound for new config files. By @Chromium-3-Oxide.
