@@ -69,7 +69,7 @@ char *chooseAlbumArt(char *dirPath, char **customFileNameArr, int size)
 
                                         if (strcmp(entry->d_name, *ptr) == 0)
                                         {
-                                                result = filePath;
+                                                result = strdup(filePath);
                                                 break;
                                         }
                                 }
@@ -82,7 +82,7 @@ char *chooseAlbumArt(char *dirPath, char **customFileNameArr, int size)
                 if (result)
                 {
                         closedir(directory);
-                        return strdup(result);
+                        return result;
                 }
                 else
                 {
@@ -127,7 +127,7 @@ char *chooseAlbumArt(char *dirPath, char **customFileNameArr, int size)
                         if (result)
                         {
                                 closedir(directory);
-                                return strdup(result);
+                                return result;
                         }
                 }
         }
