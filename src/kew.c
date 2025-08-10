@@ -1842,9 +1842,8 @@ void initState(AppState *state)
         state->tmpCache = NULL;
 }
 
-void initializeStateAndSettings(AppState *appState, AppSettings *settings)
+void initSettings(AppState *appState, AppSettings *settings)
 {
-        initState(appState);
         getConfig(settings, &(appState->uiSettings));
         userData.replayGainCheckFirst = appState->uiSettings.replayGainCheckFirst;
         mapSettingsToKeys(settings, &(appState->uiSettings), keyMappings);
@@ -1854,6 +1853,8 @@ void initializeStateAndSettings(AppState *appState, AppSettings *settings)
 
 int main(int argc, char *argv[])
 {
+        initState(&appState);
+
         UISettings *ui = &(appState.uiSettings);
 
         exitIfAlreadyRunning();
@@ -1869,7 +1870,7 @@ int main(int argc, char *argv[])
                 exit(0);
         }
 
-        initializeStateAndSettings(&appState, &settings);
+        initSettings(&appState, &settings);
 
         if (argc == 3 && (strcmp(argv[1], "path") == 0))
         {
