@@ -248,7 +248,7 @@ int printLogo(SongData *songData, UISettings *ui)
                 char output[MAXPATHLEN + 1];
                 output[0] = '\0';
 
-                processName(title, output, maxWidth, false);
+                processName(title, output, maxWidth, false, false);
 
                 if (ui->useConfigColors)
                         setTextColor(ui->titleColor);
@@ -408,7 +408,7 @@ void printBasicMetadata(int row, int col, int maxWidth, TagSettings const *metad
                 char prettyTitle[MAXPATHLEN + 1];
                 prettyTitle[0] = '\0';
 
-                processName(metadata->title, prettyTitle, maxWidth, false);
+                processName(metadata->title, prettyTitle, maxWidth, false, false);
 
                 printTitleWithDelay(row, col + 1, prettyTitle, ui->titleDelay, maxWidth);
         }
@@ -1396,7 +1396,7 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
                                 }
                                 else
                                 {
-                                        processName(root->name, filename, maxNameWidth - extraIndent, true);
+                                        processName(root->name, filename, maxNameWidth - extraIndent, true, true);
                                 }
 
                                 printf("└─ ");
