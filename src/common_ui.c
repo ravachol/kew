@@ -239,7 +239,7 @@ static bool hasFullwidthChars(const char *str)
         return false;
 }
 
-void processName(const char *name, char *output, int maxWidth, bool stripUnneededChars)
+void processName(const char *name, char *output, int maxWidth, bool stripUnneededChars, bool stripSuffix)
 {
         if (!name) {
                 output[0] = '\0';
@@ -248,7 +248,7 @@ void processName(const char *name, char *output, int maxWidth, bool stripUnneede
 
         const char *lastDot = strrchr(name, '.');
 
-        if (lastDot != NULL)
+        if (lastDot != NULL && stripSuffix)
         {
                 char tmp[MAXPATHLEN];
                 size_t len = lastDot - name + 1;
@@ -290,11 +290,11 @@ void processNameScroll(const char *name, char *output, int maxWidth, bool isSame
 
         if (hasFullwidthChars(name))
         {
-                processName(name, output, maxWidth, true);
+                processName(name, output, maxWidth, true, true);
         }
         else if (scrollableLength <= (size_t)maxWidth || finishedScrolling)
         {
-                processName(name, output, scrollableLength, true);
+                processName(name, output, scrollableLength, true, true);
         }
         else
         {

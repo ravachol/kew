@@ -126,7 +126,7 @@ int displayPlaylistItems(Node *startNode, int startIter, int maxListSize, int te
                         }
                         else
                         {
-                                processName(buffer, filename, bufferSize, true);
+                                processName(buffer, filename, bufferSize, true, true);
                         }
 
                         if (i + 1 < 10)
