@@ -20,7 +20,7 @@ void resetNameScroll();
 
 bool getIsLongName();
 
-void processName(const char *name, char *output, int maxWidth, bool stripUnneededChars);
+void processName(const char *name, char *output, int maxWidth, bool stripUnneededChars, bool stripSuffix);
 
 PixelData increaseLuminosity(PixelData pixel, int amount);
 
