@@ -41,7 +41,7 @@ extern Node *currentSong;
 #endif
 
 extern PlayList playlist;
-extern PlayList *originalPlaylist;
+extern PlayList *unshuffledPlaylist;
 extern PlayList *favoritesPlaylist;
 
 extern int nodeIdCounter;
@@ -97,3 +97,7 @@ void moveDownList(PlayList *list, Node *node);
 void loadFavoritesPlaylist(const char *directory);
 
 void saveFavoritesPlaylist(const char *directory);
+
+int isMusicFile(const char *filename);
+
+void readM3UFile(const char *filename, PlayList *playlist, FileSystemEntry *library);

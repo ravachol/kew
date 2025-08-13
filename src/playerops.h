@@ -167,4 +167,6 @@ bool isContainedWithin(FileSystemEntry *entry, FileSystemEntry *containingEntry)
 
 void addToFavoritesPlaylist(void);
 
+void autostartIfStopped(FileSystemEntry *firstEnqueuedEntry);
+
 #endif

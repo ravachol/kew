@@ -392,7 +392,7 @@ void toggleShuffle(UISettings *ui)
                 pthread_mutex_lock(&(playlist.mutex));
 
                 deletePlaylist(&playlist); // Doesn't destroy the mutex
-                deepCopyPlayListOntoList(originalPlaylist, &playlist);
+                deepCopyPlayListOntoList(unshuffledPlaylist, &playlist);
 
                 if (path != NULL)
                 {
@@ -841,7 +841,7 @@ void enqueueSong(FileSystemEntry *child)
 
         Node *node = NULL;
         createNode(&node, child->fullPath, id);
-        addToList(originalPlaylist, node);
+        addToList(unshuffledPlaylist, node);
 
         Node *node2 = NULL;
         createNode(&node2, child->fullPath, id);
@@ -916,7 +916,7 @@ void moveSongUp()
 
         int chosenRow = getChosenRow();
 
-        Node *node = findSelectedEntry(originalPlaylist, chosenRow);
+        Node *node = findSelectedEntry(unshuffledPlaylist, chosenRow);
 
         if (node == NULL)
         {
@@ -948,7 +948,7 @@ void moveSongUp()
                 }
         }
 
-        moveUpList(originalPlaylist, node);
+        moveUpList(unshuffledPlaylist, node);
         Node *plNode = findSelectedEntryById(&playlist, node->id);
 
         if (!isShuffleEnabled())
@@ -987,7 +987,7 @@ void moveSongDown()
 
         int chosenRow = getChosenRow();
 
-        Node *node = findSelectedEntry(originalPlaylist, chosenRow);
+        Node *node = findSelectedEntry(unshuffledPlaylist, chosenRow);
 
         if (node == NULL)
         {
@@ -1022,14 +1022,14 @@ void moveSongDown()
                 }
         }
 
-        moveDownList(originalPlaylist, node);
+        moveDownList(unshuffledPlaylist, node);
         Node *plNode = findSelectedEntryById(&playlist, node->id);
 
         if (!isShuffleEnabled())
                 moveDownList(&playlist, plNode);
 
         chosenRow++;
-        chosenRow = (chosenRow >= originalPlaylist->count) ? originalPlaylist->count - 1 : chosenRow;
+        chosenRow = (chosenRow >= unshuffledPlaylist->count) ? unshuffledPlaylist->count - 1 : chosenRow;
         setChosenRow(chosenRow);
 
         if (rebuild && currentSong != NULL)
@@ -1052,7 +1052,7 @@ void moveSongDown()
 
 void dequeueSong(FileSystemEntry *child)
 {
-        Node *node1 = findLastPathInPlaylist(child->fullPath, originalPlaylist);
+        Node *node1 = findLastPathInPlaylist(child->fullPath, unshuffledPlaylist);
 
         if (node1 == NULL)
                 return;
@@ -1074,7 +1074,7 @@ void dequeueSong(FileSystemEntry *child)
         Node *node2 = findSelectedEntryById(&playlist, id);
 
         if (node1 != NULL)
-                deleteFromList(originalPlaylist, node1);
+                deleteFromList(unshuffledPlaylist, node1);
 
         if (node2 != NULL)
                 deleteFromList(&playlist, node2);
@@ -1199,6 +1199,15 @@ bool isContainedWithin(FileSystemEntry *entry, FileSystemEntry *containingEntry)
         return false;
 }
 
+void autostartIfStopped(FileSystemEntry *firstEnqueuedEntry)
+{
+        waitingForNext = true;
+        audioData.endOfListReached = false;
+        if (firstEnqueuedEntry != NULL)
+                songToStartFrom = findPathInPlaylist(firstEnqueuedEntry->fullPath, &playlist);
+        lastPlayedId = -1;
+}
+
 FileSystemEntry *enqueueSongs(FileSystemEntry *entry, UIState *uis)
 {
         FileSystemEntry *chosenDir = getChosenDir();
@@ -1285,11 +1294,7 @@ FileSystemEntry *enqueueSongs(FileSystemEntry *entry, UIState *uis)
 
         if (hasEnqueued)
         {
-                waitingForNext = true;
-                audioData.endOfListReached = false;
-                if (firstEnqueuedEntry != NULL)
-                        songToStartFrom = findPathInPlaylist(firstEnqueuedEntry->fullPath, &playlist);
-                lastPlayedId = -1;
+                autostartIfStopped(firstEnqueuedEntry);
         }
 
         if (shuffle)
@@ -1313,7 +1318,7 @@ void handleRemove(void)
 
                 bool rebuild = false;
 
-                Node *node = findSelectedEntry(originalPlaylist, getChosenRow());
+                Node *node = findSelectedEntry(unshuffledPlaylist, getChosenRow());
 
                 if (node == NULL)
                 {
@@ -1350,7 +1355,7 @@ void handleRemove(void)
                 Node *node2 = findSelectedEntryById(&playlist, id);
 
                 if (node != NULL)
-                        deleteFromList(originalPlaylist, node);
+                        deleteFromList(unshuffledPlaylist, node);
 
                 if (node2 != NULL)
                         deleteFromList(&playlist, node2);
@@ -1837,7 +1842,7 @@ void skipToNumberedSong(int songNumber)
         songLoading = true;
         forceSkip = false;
 
-        currentSong = getSongByNumber(originalPlaylist, songNumber);
+        currentSong = getSongByNumber(unshuffledPlaylist, songNumber);
 
         loadingdata.loadA = !usingSongDataA;
         loadingdata.loadingFirstDecoder = true;
@@ -2006,7 +2011,7 @@ void *updateLibraryThread(void *arg)
 
         c_sleep(1000); // Don't refresh immediately or we risk the error message not clearing
         refresh = true;
-        
+
         return NULL;
 }
 
@@ -2229,7 +2234,7 @@ void updatePlaylistToPlayingSong(void)
         int nextInPlaylistID;
         pthread_mutex_lock(&(playlist.mutex));
         Node *songToBeRemoved;
-        Node *nextInPlaylist = originalPlaylist->head;
+        Node *nextInPlaylist = unshuffledPlaylist->head;
 
         while (nextInPlaylist != NULL)
         {
@@ -2249,7 +2254,7 @@ void updatePlaylistToPlayingSong(void)
 
                         // Remove from Display playlist
                         if (songToBeRemoved != NULL)
-                                deleteFromList(originalPlaylist, songToBeRemoved);
+                                deleteFromList(unshuffledPlaylist, songToBeRemoved);
 
                         // Remove from Shuffle playlist
                         Node *node2 = findSelectedEntryById(&playlist, id);

@@ -27,7 +27,7 @@ const char favoritesPlaylistName[] = "kew favorites.m3u";
 const char lastUsedPlaylistName[] = "lastPlaylist.m3u";
 
 // The playlist unshuffled as it appears in playlist view
-PlayList *originalPlaylist = NULL;
+PlayList *unshuffledPlaylist = NULL;
 
 // The (sometimes shuffled) sequence of songs that will be played
 PlayList playlist = {NULL, NULL, 0, PTHREAD_MUTEX_INITIALIZER};
@@ -76,53 +76,53 @@ void addToList(PlayList *list, Node *newNode)
 
 void moveUpList(PlayList *list, Node *node)
 {
-    if (node == list->head || node == NULL || node->prev == NULL)
-        return;
+        if (node == list->head || node == NULL || node->prev == NULL)
+                return;
 
-    Node *prevNode = node->prev;
-    Node *nextNode = node->next;
+        Node *prevNode = node->prev;
+        Node *nextNode = node->next;
 
-    if (prevNode->prev)
-        prevNode->prev->next = node;
-    else
-        list->head = node;
+        if (prevNode->prev)
+                prevNode->prev->next = node;
+        else
+                list->head = node;
 
-    node->prev = prevNode->prev;
-    node->next = prevNode;
+        node->prev = prevNode->prev;
+        node->next = prevNode;
 
-    prevNode->prev = node;
-    prevNode->next = nextNode;
+        prevNode->prev = node;
+        prevNode->next = nextNode;
 
-    if (nextNode)
-        nextNode->prev = prevNode;
-    else
-        list->tail = prevNode;
+        if (nextNode)
+                nextNode->prev = prevNode;
+        else
+                list->tail = prevNode;
 }
 
 void moveDownList(PlayList *list, Node *node)
 {
-    if (node == list->tail || node == NULL || node->next == NULL)
-        return;
+        if (node == list->tail || node == NULL || node->next == NULL)
+                return;
 
-    Node *nextNode = node->next;
-    Node *prevNode = node->prev;
-    Node *nextNextNode = nextNode->next;
+        Node *nextNode = node->next;
+        Node *prevNode = node->prev;
+        Node *nextNextNode = nextNode->next;
 
-    if (prevNode)
-        prevNode->next = nextNode;
-    else
-        list->head = nextNode;
+        if (prevNode)
+                prevNode->next = nextNode;
+        else
+                list->head = nextNode;
 
-    nextNode->prev = prevNode;
-    nextNode->next = node;
+        nextNode->prev = prevNode;
+        nextNode->next = node;
 
-    node->prev = nextNode;
-    node->next = nextNextNode;
+        node->prev = nextNode;
+        node->next = nextNextNode;
 
-    if (nextNextNode)
-        nextNextNode->prev = node;
-    else
-        list->tail = node;
+        if (nextNextNode)
+                nextNextNode->prev = node;
+        else
+                list->tail = node;
 }
 
 Node *deleteFromList(PlayList *list, Node *node)
@@ -413,7 +413,7 @@ void makePlaylistName(const char *search, int maxSize)
         }
 }
 
-void readM3UFile(const char *filename, PlayList *playlist)
+void readM3UFile(const char *filename, PlayList *playlist, FileSystemEntry *library)
 {
         GError *error = NULL;
         gchar *contents;
@@ -447,6 +447,24 @@ void readM3UFile(const char *filename, PlayList *playlist)
                         else
                         {
                                 songPath = g_build_filename(directory, trimmed_line, NULL);
+                        }
+
+                        if (songPath == NULL)
+                                continue;
+
+                        if (existsFile(songPath) < 0)
+                                continue;
+
+                        // Don't add songs that are already enqueued
+                        if (library != NULL)
+                        {
+                                FileSystemEntry *entry = findCorrespondingEntry(library, songPath);
+
+                                if (entry != NULL && entry->isEnqueued)
+                                {
+                                        g_free(songPath);
+                                        continue;
+                                }
                         }
 
                         Node *newNode = NULL;
@@ -483,7 +501,7 @@ int makePlaylist(int argc, char *argv[], bool exactSearch, const char *path)
         const char *delimiter = ":";
         PlayList partialPlaylist = {NULL, NULL, 0, PTHREAD_MUTEX_INITIALIZER};
 
-        const char *allowedExtensions = AUDIO_EXTENSIONS;
+        const char *allowedExtensions = MUSIC_FILE_EXTENSIONS;
 
         if (strcmp(argv[1], "all") == 0)
         {
@@ -564,7 +582,7 @@ int makePlaylist(int argc, char *argv[], bool exactSearch, const char *path)
                         {
                                 if (strcmp(argv[1], "list") == 0)
                                 {
-                                        readM3UFile(buf, &playlist);
+                                        readM3UFile(buf, &playlist, NULL);
                                 }
                                 else
                                 {
@@ -675,7 +693,7 @@ void loadPlaylist(const char *directory, const char *playlistName, PlayList *pla
         playlist->count = 0;
         playlist->head = NULL;
         playlist->tail = NULL;
-        readM3UFile(playlistPath, playlist);
+        readM3UFile(playlistPath, playlist, NULL);
 }
 
 void loadFavoritesPlaylist(const char *directory)
@@ -690,11 +708,11 @@ void loadLastUsedPlaylist(void)
 
         loadPlaylist(configdir, lastUsedPlaylistName, &playlist);
 
-        if (originalPlaylist == NULL)
+        if (unshuffledPlaylist == NULL)
         {
 
-                originalPlaylist = malloc(sizeof(PlayList));
-                *originalPlaylist = deepCopyPlayList(&playlist);
+                unshuffledPlaylist = malloc(sizeof(PlayList));
+                *unshuffledPlaylist = deepCopyPlayList(&playlist);
         }
         if (configdir)
                 free(configdir);
@@ -702,33 +720,33 @@ void loadLastUsedPlaylist(void)
 
 void saveNamedPlaylist(const char *directory, const char *playlistName, const PlayList *playlist)
 {
-    if (directory == NULL)
-    {
-        return;
-    }
+        if (directory == NULL)
+        {
+                return;
+        }
 
-    char playlistPath[MAXPATHLEN];
+        char playlistPath[MAXPATHLEN];
 
-    int length = snprintf(playlistPath, sizeof(playlistPath), "%s", directory);
+        int length = snprintf(playlistPath, sizeof(playlistPath), "%s", directory);
 
-    if (length <= 0 || length >= (int)sizeof(playlistPath) || playlistPath[0] == '\0')
-    {
-        return;
-    }
+        if (length <= 0 || length >= (int)sizeof(playlistPath) || playlistPath[0] == '\0')
+        {
+                return;
+        }
 
-    if (playlistPath[length - 1] != '/')
-    {
-        snprintf(playlistPath + length, sizeof(playlistPath) - length, "/%s", playlistName);
-    }
-    else
-    {
-        snprintf(playlistPath + length, sizeof(playlistPath) - length, "%s", playlistName);
-    }
+        if (playlistPath[length - 1] != '/')
+        {
+                snprintf(playlistPath + length, sizeof(playlistPath) - length, "/%s", playlistName);
+        }
+        else
+        {
+                snprintf(playlistPath + length, sizeof(playlistPath) - length, "%s", playlistName);
+        }
 
-    if (playlist != NULL)
-    {
-        writeM3UFile(playlistPath, playlist);
-    }
+        if (playlist != NULL)
+        {
+                writeM3UFile(playlistPath, playlist);
+        }
 }
 
 void saveFavoritesPlaylist(const char *directory)
@@ -742,7 +760,7 @@ void saveFavoritesPlaylist(const char *directory)
 void saveLastUsedPlaylist(void)
 {
         char *configdir = getConfigPath();
-        saveNamedPlaylist(configdir, lastUsedPlaylistName, originalPlaylist);
+        saveNamedPlaylist(configdir, lastUsedPlaylistName, unshuffledPlaylist);
         if (configdir)
                 free(configdir);
 }
@@ -923,6 +941,9 @@ void createPlayListFromFileSystemEntry(FileSystemEntry *root, PlayList *list, in
 
 int isMusicFile(const char *filename)
 {
+        if (filename == NULL)
+                return 0;
+
         const char *extensions[] = {".m4a", ".aac", ".mp3", ".ogg", ".flac", ".wav", ".opus", ".webm"};
 
         size_t numExtensions = sizeof(extensions) / sizeof(extensions[0]);
@@ -994,18 +1015,18 @@ void addAlbumsToPlayList(FileSystemEntry *entry, PlayList *list, int playlistMax
 
 void shuffleEntries(FileSystemEntry **array, size_t n)
 {
-    if (n > 1)
-    {
-        for (size_t i = 0; i < n - 1; i++)
+        if (n > 1)
         {
-            size_t j = getRandomNumber(i, n - 1);
+                for (size_t i = 0; i < n - 1; i++)
+                {
+                        size_t j = getRandomNumber(i, n - 1);
 
-            // Swap entries at i and j
-            FileSystemEntry *tmp = array[i];
-            array[i] = array[j];
-            array[j] = tmp;
+                        // Swap entries at i and j
+                        FileSystemEntry *tmp = array[i];
+                        array[i] = array[j];
+                        array[j] = tmp;
+                }
         }
-    }
 }
 
 void collectAlbums(FileSystemEntry *entry, FileSystemEntry **albums, size_t *count)
