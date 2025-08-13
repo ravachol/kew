@@ -2,6 +2,10 @@
 
 ### 3.4.1
 
+Adds a few minor bug fixes and you can now use playlists from the library view.
+
+- Added ability to see and enqueue playlists (m3u and m3u8) from library view. By Ravachol. Suggested by Kansei994.
+
 - Removed -flto from the makefile since it was causing compatibility problems, for instance Ubuntu 25.04.
 
 #### Bug Fixes
