@@ -670,14 +670,21 @@ void handleGoToSong(AppState *state)
                 // Enqueue playlist
                 if (pathEndsWith(entry->fullPath, "m3u") || pathEndsWith(entry->fullPath, "m3u8"))
                 {
+                        FileSystemEntry *firstEnqueuedEntry = NULL;
+                        Node *prevTail = playlist.tail;
+
                         readM3UFile(entry->fullPath, &playlist, library);
 
-                        if (playlist.head != NULL)
+                        if (prevTail != NULL && prevTail->next != NULL)
                         {
-                                FileSystemEntry *firstEnqueuedEntry = findCorrespondingEntry(library, playlist.head->song.filePath);
-
-                                autostartIfStopped(firstEnqueuedEntry);
+                                firstEnqueuedEntry = findCorrespondingEntry(library, prevTail->next->song.filePath);
                         }
+                        else if (playlist.head != NULL)
+                        {
+                                firstEnqueuedEntry = findCorrespondingEntry(library, playlist.head->song.filePath);
+                        }
+
+                        autostartIfStopped(firstEnqueuedEntry);
 
                         markListAsEnqueued(library, &playlist);
 
