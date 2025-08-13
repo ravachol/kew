@@ -9,8 +9,12 @@
 #define MAXPATHLEN 4096
 #endif
 
+#ifndef MUSIC_FILE_EXTENSIONS
+#define MUSIC_FILE_EXTENSIONS "(m4a|aac|mp3|ogg|flac|wav|opus|webm)$"
+#endif
+
 #ifndef AUDIO_EXTENSIONS
-#define AUDIO_EXTENSIONS "(m4a|aac|mp3|ogg|flac|wav|opus|webm)$"
+#define AUDIO_EXTENSIONS "(m4a|aac|mp3|ogg|flac|wav|opus|webm|m3u|m3u8)$"
 #endif
 
 enum SearchType

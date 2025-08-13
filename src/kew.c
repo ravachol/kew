@@ -662,7 +662,29 @@ void handleGoToSong(AppState *state)
 
         if (state->currentView == LIBRARY_VIEW)
         {
-                enqueue(state, getCurrentLibEntry());
+                FileSystemEntry *entry = getCurrentLibEntry();
+
+                if (entry == NULL)
+                        return;
+
+                // Enqueue playlist
+                if (pathEndsWith(entry->fullPath, "m3u") || pathEndsWith(entry->fullPath, "m3u8"))
+                {
+                        readM3UFile(entry->fullPath, &playlist, library);
+
+                        if (playlist.head != NULL)
+                        {
+                                FileSystemEntry *firstEnqueuedEntry = findCorrespondingEntry(library, playlist.head->song.filePath);
+
+                                autostartIfStopped(firstEnqueuedEntry);
+                        }
+
+                        markListAsEnqueued(library, &playlist);
+
+                        deepCopyPlayListOntoList(&playlist, unshuffledPlaylist);
+                }
+                else
+                        enqueue(state, entry); // Enqueue song
         }
         else if (state->currentView == SEARCH_VIEW)
         {
@@ -1311,10 +1333,10 @@ void cleanupOnExit()
         deleteCache(appState.tmpCache);
         freeMainDirectoryTree(&appState);
         deletePlaylist(&playlist);
-        deletePlaylist(originalPlaylist);
+        deletePlaylist(unshuffledPlaylist);
         deletePlaylist(favoritesPlaylist);
         free(favoritesPlaylist);
-        free(originalPlaylist);
+        free(unshuffledPlaylist);
         setDefaultTextColor();
         pthread_mutex_destroy(&(loadingdata.mutex));
         pthread_mutex_destroy(&(playlist.mutex));
@@ -1360,11 +1382,11 @@ void cleanupOnExit()
 
 void run(AppState *state, bool startPlaying)
 {
-        if (originalPlaylist == NULL)
+        if (unshuffledPlaylist == NULL)
         {
 
-                originalPlaylist = malloc(sizeof(PlayList));
-                *originalPlaylist = deepCopyPlayList(&playlist);
+                unshuffledPlaylist = malloc(sizeof(PlayList));
+                *unshuffledPlaylist = deepCopyPlayList(&playlist);
         }
 
         if (state->uiSettings.saveRepeatShuffleSettings)

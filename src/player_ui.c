@@ -913,7 +913,7 @@ void flipNextPage(void)
         else if (appState.currentView == PLAYLIST_VIEW)
         {
                 chosenRow += maxListSize - 1;
-                chosenRow = (chosenRow >= originalPlaylist->count) ? originalPlaylist->count - 1 : chosenRow;
+                chosenRow = (chosenRow >= unshuffledPlaylist->count) ? unshuffledPlaylist->count - 1 : chosenRow;
                 refresh = true;
         }
         else if (appState.currentView == SEARCH_VIEW)
@@ -953,7 +953,7 @@ void scrollNext(void)
         if (appState.currentView == PLAYLIST_VIEW)
         {
                 chosenRow++;
-                chosenRow = (chosenRow >= originalPlaylist->count) ? originalPlaylist->count - 1 : chosenRow;
+                chosenRow = (chosenRow >= unshuffledPlaylist->count) ? unshuffledPlaylist->count - 1 : chosenRow;
                 refresh = true;
         }
         else if (appState.currentView == LIBRARY_VIEW)
@@ -993,9 +993,9 @@ void scrollPrev(void)
 
 int getRowWithinBounds(int row)
 {
-        if (row >= originalPlaylist->count)
+        if (row >= unshuffledPlaylist->count)
         {
-                row = originalPlaylist->count - 1;
+                row = unshuffledPlaylist->count - 1;
         }
 
         if (row < 0)
@@ -1826,7 +1826,7 @@ int printPlayer(SongData *songdata, double elapsedSeconds, AppSettings *settings
         }
         else if (state->currentView == PLAYLIST_VIEW && refresh)
         {
-                showPlaylist(songdata, originalPlaylist, &chosenRow, &(uis->chosenNodeId), state, settings);
+                showPlaylist(songdata, unshuffledPlaylist, &chosenRow, &(uis->chosenNodeId), state, settings);
                 state->uiState.resetPlaylistDisplay = false;
                 fflush(stdout);
         }
