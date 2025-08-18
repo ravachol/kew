@@ -8,6 +8,8 @@ Adds a few minor bug fixes and you can now use playlists from the library view.
 
 - Removed -flto from the makefile since it was causing compatibility problems, for instance Ubuntu 25.04.
 
+- Removed ALAC file support due to CVEs in the Apple ALAC decoder: https://github.com/macosforge/alac/issues/22. By Ravachol. Reported by @werdahias.
+
 #### Bug Fixes
 
 - Fixed G key not bound for new config files. By @Chromium-3-Oxide.
