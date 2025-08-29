@@ -1,9 +1,10 @@
-name: Manual Codebase Security Review
+name: Security Review
 permissions:
   contents: read
+  pull-requests: write
 
 on:
-  workflow_dispatch:  # Only manual triggering
+  pull_request:  # Change this from workflow_dispatch
 
 jobs:
   security:
@@ -15,6 +16,5 @@ jobs:
           
       - uses: anthropics/claude-code-security-review@main
         with:
-          comment-pr: false
+          comment-pr: true  # Change to true to see results in PR
           claude-api-key: ${{ secrets.CLAUDE_API_KEY }}
-          upload-results: false
