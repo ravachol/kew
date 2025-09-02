@@ -236,7 +236,7 @@ kew -q <song>, --quitonstop (exits after finishing playing the playlist)
 
 kew -e <song>, --exact (specifies you want an exact (but not case sensitive) match, of for instance an album)
 
-kew . loads kew.m3u
+kew . loads kew favorites.m3u
 
 kew path "/home/joe/Musik/" (changes the path)
 
