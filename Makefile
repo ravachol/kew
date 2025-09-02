@@ -50,11 +50,16 @@ ifeq ($(origin USE_FAAD), undefined)
   endif
 endif
 
-# Compiler flags
-COMMONFLAGS = -I/usr/include -I/opt/homebrew/include -I/usr/local/include -I/usr/lib -Iinclude/minimp4 \
-         -I/usr/include/chafa -I/usr/lib/chafa/include -I/usr/include/ogg -I/usr/include/opus \
-         -I/usr/include/stb -Iinclude/stb_image -I/usr/include/glib-2.0 \
-         -I/usr/lib/glib-2.0/include -Iinclude/miniaudio -Iinclude -Iinclude/nestegg -I/usr/include/gdk-pixbuf-2.0
+COMMONFLAGS = $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) $(PKG_CONFIG) --cflags gio-2.0 chafa fftw3f opus opusfile vorbis ogg glib-2.0 taglib)
+
+COMMONFLAGS += -Iinclude/minimp4 \
+               -I/usr/include -I/opt/homebrew/include -I/usr/local/include -I/usr/lib -Iinclude/minimp4 \
+               -I/usr/include/chafa -I/usr/lib/chafa/include \
+               -I/usr/include/ogg -I/usr/include/opus \
+               -I/usr/include/stb -Iinclude/stb_image \
+               -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include \
+               -Iinclude/miniaudio -Iinclude -Iinclude/nestegg \
+               -I/usr/include/gdk-pixbuf-2.0
 
 ifeq ($(DEBUG), 1)
 COMMONFLAGS += -g -DDEBUG
@@ -62,7 +67,6 @@ else
 COMMONFLAGS += -O2
 endif
 
-COMMONFLAGS += $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) $(PKG_CONFIG) --cflags gio-2.0 chafa fftw3f opus opusfile vorbis ogg glib-2.0 taglib)
 COMMONFLAGS += -fstack-protector-strong -Wformat -Werror=format-security -fPIE -D_FORTIFY_SOURCE=2
 COMMONFLAGS += -Wall -Wextra -Wpointer-arith
 CFLAGS = $(COMMONFLAGS)
