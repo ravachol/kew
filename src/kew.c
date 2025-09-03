@@ -1654,12 +1654,31 @@ int isProcessRunning(pid_t pid)
         return 0; // Other errors
 }
 
+const char *getTempDir()
+{
+        const char *tmpdir = getenv("TMPDIR");
+        if (tmpdir != NULL)
+        {
+                return tmpdir; // Use TMPDIR if set (common on Android/Termux)
+        }
+
+        tmpdir = getenv("TEMP");
+        if (tmpdir != NULL)
+        {
+                return tmpdir;
+        }
+
+        // Fallback to /tmp on Unix-like systems
+        return "/tmp";
+}
+
 // Ensures only a single instance of kew can run at a time for the current user.
 void exitIfAlreadyRunning()
 {
-        char pidfile_path[256];
+        char pidfile_path[512]; // Increased size for longer paths
+        const char *temp_dir = getTempDir();
 
-        snprintf(pidfile_path, sizeof(pidfile_path), "%s%d.pid", TMPPIDFILE, getuid());
+        snprintf(pidfile_path, sizeof(pidfile_path), "%s/kew_%d.pid", temp_dir, getuid());
 
         FILE *pidfile;
         pid_t pid;
