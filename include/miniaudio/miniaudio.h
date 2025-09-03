@@ -18846,9 +18846,8 @@ static void ma_device__handle_data_callback(ma_device* pDevice, void* pFramesOut
 static void ma_device__read_frames_from_client(ma_device* pDevice, ma_uint32 frameCount, void* pFramesOut)
 {
     MA_ASSERT(pDevice != NULL);
+    MA_ASSERT(frameCount > 0);
     MA_ASSERT(pFramesOut != NULL);
-
-    if (frameCount == 0) return;
 
     if (pDevice->playback.converter.isPassthrough) {
         ma_device__handle_data_callback(pDevice, pFramesOut, NULL, frameCount);
