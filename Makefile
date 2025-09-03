@@ -60,6 +60,7 @@ COMMONFLAGS += -Iinclude/minimp4 \
                -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include \
                -Iinclude/miniaudio -Iinclude -Iinclude/nestegg \
                -I/usr/include/gdk-pixbuf-2.0
+COMMONFLAGS += -DMA_NO_AAUDIO
 
 ifeq ($(DEBUG), 1)
 COMMONFLAGS += -g -DDEBUG
