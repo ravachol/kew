@@ -1230,13 +1230,6 @@ void m4a_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_uint6
         AudioData *pAudioData = (AudioData *)m4a->pReadSeekTellUserData;
         ma_uint64 framesRead = 0;
 
-        if (frameCount == 0)
-        {
-                // Android sometimes calls us with 0 frames during focus changes
-                // Just return - don't process anything
-                return;
-        }
-
         while (framesRead < frameCount)
         {
                 if (isImplSwitchReached())
@@ -1359,13 +1352,6 @@ void opus_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_uint
 
         ma_uint64 framesRead = 0;
 
-        if (frameCount == 0)
-        {
-                // Android sometimes calls us with 0 frames during focus changes
-                // Just return - don't process anything
-                return;
-        }
-
         while (framesRead < frameCount)
         {
                 if (isImplSwitchReached())
@@ -1486,13 +1472,6 @@ void vorbis_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_ui
         AudioData *pAudioData = (AudioData *)vorbis->pReadSeekTellUserData;
 
         ma_uint64 framesRead = 0;
-
-        if (frameCount == 0)
-        {
-                // Android sometimes calls us with 0 frames during focus changes
-                // Just return - don't process anything
-                return;
-        }
 
         while (framesRead < frameCount)
         {
@@ -1615,13 +1594,6 @@ void webm_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_uint
         AudioData *pAudioData = (AudioData *)webm->pReadSeekTellUserData;
 
         ma_uint64 framesRead = 0;
-
-        if (frameCount == 0)
-        {
-                // Android sometimes calls us with 0 frames during focus changes
-                // Just return - don't process anything
-                return;
-        }
 
         while (framesRead < frameCount)
         {
