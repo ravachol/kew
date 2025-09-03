@@ -34,16 +34,17 @@ int getRandomNumber(int min, int max)
 }
 
 #else
-#include <sys/random.h> // For getrandom
+#include <stdlib.h>
+#include <time.h>
 
 int getRandomNumber(int min, int max)
 {
-        unsigned int random_value;
-        if (getrandom(&random_value, sizeof(random_value), 0) != sizeof(random_value))
-        {
-                return min;
-        }
-        return min + (random_value % (max - min + 1));
+    static int seeded = 0;
+    if (!seeded) {
+        srand(time(NULL));
+        seeded = 1;
+    }
+    return min + (rand() % (max - min + 1));
 }
 
 #endif
