@@ -34,32 +34,6 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #define __BSD_VISIBLE 1
 #endif
 
-// Detect Android platform
-#if defined(__ANDROID__)
-
-// Disable desktop-only backends
-#define MA_NO_ALSA
-#define MA_NO_JACK
-#define MA_NO_WASAPI
-#define MA_NO_DSOUND
-#define MA_NO_COREAUDIO
-
-// By default, enable Android audio
-#if __ANDROID_API__ >= 26
-    #define MA_ENABLE_AAUDIO
-#else
-    #define MA_ENABLE_OPENSL
-#endif
-
-// Optional: enable PulseAudio only if requested
-#ifdef KEW_USE_PULSEAUDIO
-    #undef MA_NO_PULSEAUDIO
-#endif
-
-#else // Non-Android platforms
-// Desktop: keep PulseAudio/ALSA as usual
-#endif
-
 #include <ctype.h>
 #include <dirent.h>
 #include <fcntl.h>
