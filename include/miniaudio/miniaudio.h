@@ -16187,7 +16187,7 @@ static void ma_thread_wait__posix(ma_thread* pThread)
 static ma_result ma_mutex_init__posix(ma_mutex* pMutex)
 {
     int result;
-    
+
     if (pMutex == NULL) {
         return MA_INVALID_ARGS;
     }
@@ -18846,8 +18846,9 @@ static void ma_device__handle_data_callback(ma_device* pDevice, void* pFramesOut
 static void ma_device__read_frames_from_client(ma_device* pDevice, ma_uint32 frameCount, void* pFramesOut)
 {
     MA_ASSERT(pDevice != NULL);
-    MA_ASSERT(frameCount > 0);
     MA_ASSERT(pFramesOut != NULL);
+
+    if (frameCount == 0) return;
 
     if (pDevice->playback.converter.isPassthrough) {
         ma_device__handle_data_callback(pDevice, pFramesOut, NULL, frameCount);
@@ -28108,7 +28109,7 @@ static ma_result ma_device_stop__alsa(ma_device* pDevice)
         ssize_t result = read(((struct pollfd*)pDevice->alsa.pPollDescriptorsPlayback)[0].fd, &t, sizeof(t));
         if (result == -1) {
                 perror("read error");
-        }        
+        }
     }
 
     }

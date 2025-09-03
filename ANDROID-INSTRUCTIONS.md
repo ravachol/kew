@@ -1,4 +1,4 @@
-I had to do all this:
+Here's one way of running kew on android. Might not work on your device!
 
 1. Install F-Droid https://f-droid.org/en/docs/Get_F-Droid/.
 

@@ -113,13 +113,6 @@ void builtin_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_u
         AudioData *audioData = (AudioData *)pDataSource;
         ma_uint64 framesRead = 0;
 
-        if (frameCount == 0)
-        {
-                // Android sometimes calls us with 0 frames during focus changes
-                // Just return - don't process anything
-                return;
-        }
-
         // Convert ReplayGain dB values to linear gain factors
         double gainDb = 0.0; // Default to 0 dB (no gain)
         bool gainAvailable = false;
