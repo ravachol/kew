@@ -61,15 +61,23 @@ Install these dependencies using your distro's package manager. Below are some e
 
 #### For Debian/Ubuntu:
 
+Install dependencies:
+
 ```bash
 sudo apt install -y pkg-config libfaad-dev libtag1-dev libfftw3-dev libopus-dev libopusfile-dev libvorbis-dev libogg-dev git gcc make libchafa-dev libglib2.0-dev
 ```
 
+[Install kew](#install-kew)
+
 #### For Arch Linux:
+
+Install dependencies:
 
 ```bash
 sudo pacman -Syu --noconfirm --needed pkg-config faad2 taglib fftw git gcc make chafa glib2 opus opusfile libvorbis libogg
 ```
+
+[Install kew](#install-kew)
 
 #### For macOS:
 
@@ -88,56 +96,104 @@ Notes for mac users:
 1) A sixel-capable terminal like kitty or WezTerm is recommended for macOS.
 2) The visualizer and album colors are disabled by default on macOS, because the default terminal doesn't handle them too well. To enable press v and i respectively.
 
+  [Install kew](#install-kew)
+
 #### For Fedora:
+
+Install dependencies:
 
 ```bash
 sudo dnf install -y pkg-config taglib-devel fftw-devel opus-devel opusfile-devel libvorbis-devel libogg-devel git gcc make chafa-devel libatomic gcc-c++ glib2-devel
 ```
 Option: add faad2-devel for AAC,M4A support (Requires RPM-fusion to be enabled).
 
+Enable RPM Fusion free repository:
+
+```bash
+sudo dnf install https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm
+```
+
+Install faad2:
+
+```bash
+sudo dnf install faad2-devel faad2
+```
+
+[Install kew](#install-kew)
+
 #### For OpenSUSE:
+
+Install dependencies:
 
 ```bash
 sudo zypper install -y pkg-config taglib-devel fftw-devel opus-devel opusfile-devel libvorbis-devel libogg-devel git chafa-devel gcc make glib2-devel
 ```
 Option: add libfaad-devel for AAC,M4A support (Requires Packman to be enabled).
 
+[Install kew](#install-kew)
+
 #### For CentOS/RHEL:
+
+Install dependencies:
 
 ```bash
 sudo yum install -y pkgconfig taglib-devel fftw-devel opus-devel opusfile-devel libvorbis-devel libogg-devel git gcc make chafa-devel glib2-devel
 ```
 Option: add libfaad2-devel for AAC,M4A support (Probably requires EPEL to be enabled).
 
+[Install kew](#install-kew)
+
 #### For Solus:
+
+Install dependencies:
 
 ```bash
 sudo eopkg install -y pkg-config faad2-devel taglib-devel fftw-devel opus-devel opusfile-devel libvorbis-devel libogg-devel git gcc make chafa-devel glib2-devel
 ```
 
+[Install kew](#install-kew)
+
 #### For Guix:
+
+Install dependencies:
 
 ```bash
 guix install pkg-config faad2 taglib fftw git gcc make chafa opus opusfile libvorbis libogg glib
 ```
 
+[Install kew](#install-kew)
+
 #### For Void Linux:
+
+Install dependencies:
 
 ```bash
 sudo xbps-install -y pkg-config faad2 taglib taglib-devel fftw-devel git gcc make chafa chafa-devel opus opusfile opusfile-devel libvorbis-devel libogg glib-devel
 ```
 
+[Install kew](#install-kew)
+
 #### For Alpine Linux:
+
+Install dependencies:
 
 ```bash
 sudo apk add pkgconfig faad2-dev taglib-dev fftw-dev opus-dev opusfile-dev libvorbis-dev libogg-dev git build-base chafa-dev glib-dev
 ```
 
+[Install kew](#install-kew)
+
 #### For Gentoo Linux:
+
+Install dependencies:
+
 ```bash
 sudo emerge --ask pkgconf faad2 taglib fftw opus opusfile libvorbis libogg chafa dev-libs/glib
 ```
 
+[Install kew](#install-kew)
+
+#### Install kew
 Then run this (either git clone or unzip a release zip into a folder of your choice):
 
 ```bash
@@ -264,11 +320,11 @@ You can select all music by pressing the - MUSIC LIBRARY - header at the top of 
 * Use <kbd>←</kbd>, <kbd>→</kbd> or <kbd>h</kbd>, <kbd>l</kbd> keys to switch tracks.
 * <kbd>Space</kbd>, <kbd>p</kbd> or right mouse to play or pause.
 * <kbd>Alt+s</kbd> to stop.
-* <kbd>F2</kbd> or <kbd>Shift+z</kbd> (macOS) to show/hide playlist view.
-* <kbd>F3</kbd> or <kbd>Shift+x</kbd> (macOS) to show/hide library view.
-* <kbd>F4</kbd> or <kbd>Shift+c</kbd> (macOS) to show/hide track view.
-* <kbd>F5</kbd> or <kbd>Shift+v</kbd> (macOS) to show/hide search view.
-* <kbd>F6</kbd> or <kbd>Shift+b</kbd> (macOS) to show/hide key bindings view.
+* <kbd>F2</kbd> or <kbd>Shift+z</kbd> (macOS/Android) to show/hide playlist view.
+* <kbd>F3</kbd> or <kbd>Shift+x</kbd> (macOS/Android) to show/hide library view.
+* <kbd>F4</kbd> or <kbd>Shift+c</kbd> (macOS/Android) to show/hide track view.
+* <kbd>F5</kbd> or <kbd>Shift+v</kbd> (macOS/Android) to show/hide search view.
+* <kbd>F6</kbd> or <kbd>Shift+b</kbd> (macOS/Android) to show/hide key bindings view.
 * <kbd>u</kbd> to update the library.
 * <kbd>v</kbd> to toggle the spectrum visualizer.
 * <kbd>i</kbd> to switch between using your regular color scheme or colors derived from the track cover.
