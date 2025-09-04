@@ -264,11 +264,11 @@ You can select all music by pressing the - MUSIC LIBRARY - header at the top of 
 * Use <kbd>←</kbd>, <kbd>→</kbd> or <kbd>h</kbd>, <kbd>l</kbd> keys to switch tracks.
 * <kbd>Space</kbd>, <kbd>p</kbd> or right mouse to play or pause.
 * <kbd>Alt+s</kbd> to stop.
-* <kbd>F2</kbd> or <kbd>Shift+z</kbd> (macOS) to show/hide playlist view.
-* <kbd>F3</kbd> or <kbd>Shift+x</kbd> (macOS) to show/hide library view.
-* <kbd>F4</kbd> or <kbd>Shift+c</kbd> (macOS) to show/hide track view.
-* <kbd>F5</kbd> or <kbd>Shift+v</kbd> (macOS) to show/hide search view.
-* <kbd>F6</kbd> or <kbd>Shift+b</kbd> (macOS) to show/hide key bindings view.
+* <kbd>F2</kbd> or <kbd>Shift+z</kbd> (macOS/Android) to show/hide playlist view.
+* <kbd>F3</kbd> or <kbd>Shift+x</kbd> (macOS/Android) to show/hide library view.
+* <kbd>F4</kbd> or <kbd>Shift+c</kbd> (macOS/Android) to show/hide track view.
+* <kbd>F5</kbd> or <kbd>Shift+v</kbd> (macOS/Android) to show/hide search view.
+* <kbd>F6</kbd> or <kbd>Shift+b</kbd> (macOS/Android) to show/hide key bindings view.
 * <kbd>u</kbd> to update the library.
 * <kbd>v</kbd> to toggle the spectrum visualizer.
 * <kbd>i</kbd> to switch between using your regular color scheme or colors derived from the track cover.
