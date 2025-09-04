@@ -1,5 +1,9 @@
 # CHANGELOG
 
+### 3.5.0
+
+- Experimental Android compatibility! Please see ANDROID-INSTRUCTIONS.md for installation instructions using termux. By @Welpyes and @ravachol.
+
 ### 3.4.1
 
 Adds a few minor bug fixes and you can now use playlists from the library view.
