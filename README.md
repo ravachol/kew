@@ -95,11 +95,17 @@ sudo dnf install -y pkg-config taglib-devel fftw-devel opus-devel opusfile-devel
 ```
 Option: add faad2-devel for AAC,M4A support (Requires RPM-fusion to be enabled).
 
-# Enable RPM Fusion free repository
-sudo dnf install https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm
+Enable RPM Fusion free repository
 
-# Install faad2
+```bash
+sudo dnf install https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm
+```
+
+Install faad2
+
+```bash
 sudo dnf install faad2-devel faad2
+```
 
 #### For OpenSUSE:
 
