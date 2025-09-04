@@ -39,25 +39,17 @@ endif
 # Default USE_FAAD to auto-detect if not set by user
 ifeq ($(origin USE_FAAD), undefined)
 
-  # Check if we're building for Android
-  ifdef ANDROID_NDK_ROOT
-    # Android build - check NDK sysroot and common Android paths
-    USE_FAAD = $(shell [ -f "$(ANDROID_NDK_ROOT)/sysroot/usr/lib/$(TARGET_ARCH)-linux-android/libfaad.so" ] || \
-                       [ -f "$(ANDROID_NDK_ROOT)/sysroot/usr/lib/$(TARGET_ARCH)-linux-androideabi/libfaad.so" ] || \
-                       [ -f "$(SYSROOT)/usr/lib/libfaad.so" ] || \
-                       [ -f "$(SYSROOT)/usr/local/lib/libfaad.so" ] && echo 1 || echo 0)
-  else ifdef ANDROID_NDK_HOME
-    # Alternative Android NDK environment variable
-    USE_FAAD = $(shell [ -f "$(ANDROID_NDK_HOME)/sysroot/usr/lib/$(TARGET_ARCH)-linux-android/libfaad.so" ] || \
-                       [ -f "$(ANDROID_NDK_HOME)/sysroot/usr/lib/$(TARGET_ARCH)-linux-androideabi/libfaad.so" ] || \
-                       [ -f "$(SYSROOT)/usr/lib/libfaad.so" ] || \
-                       [ -f "$(SYSROOT)/usr/local/lib/libfaad.so" ] && echo 1 || echo 0)
-  else ifdef ANDROID_NDK
-    # Another common Android NDK environment variable
-    USE_FAAD = $(shell [ -f "$(ANDROID_NDK)/sysroot/usr/lib/$(TARGET_ARCH)-linux-android/libfaad.so" ] || \
-                       [ -f "$(ANDROID_NDK)/sysroot/usr/lib/$(TARGET_ARCH)-linux-androideabi/libfaad.so" ] || \
-                       [ -f "$(SYSROOT)/usr/lib/libfaad.so" ] || \
-                       [ -f "$(SYSROOT)/usr/local/lib/libfaad.so" ] && echo 1 || echo 0)
+  # Check if we're in Termux environment
+  ifneq ($(wildcard /data/data/com.termux/files/usr),)
+    # Termux environment - check common installation paths
+    USE_FAAD = $(shell [ -f "$(PREFIX)/lib/libfaad.so" ] || \
+                       [ -f "$(PREFIX)/lib/libfaad2.so" ] || \
+                       [ -f "$(PREFIX)/local/lib/libfaad.so" ] || \
+                       [ -f "$(PREFIX)/local/lib/libfaad2.so" ] || \
+                       [ -f "/data/data/com.termux/files/usr/lib/libfaad.so" ] || \
+                       [ -f "/data/data/com.termux/files/usr/lib/libfaad2.so" ] || \
+                       [ -f "/data/data/com.termux/files/usr/local/lib/libfaad.so" ] || \
+                       [ -f "/data/data/com.termux/files/usr/local/lib/libfaad2.so" ] && echo 1 || echo 0)
   else
     # Non-Android build - try pkg-config first
     USE_FAAD = $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) $(PKG_CONFIG) --exists faad && echo 1 || echo 0)
