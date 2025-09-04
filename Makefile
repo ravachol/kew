@@ -69,9 +69,9 @@ endif
 
 # Compiler flags
 COMMONFLAGS = -I/usr/include -I/opt/homebrew/include -I/usr/local/include -I/usr/lib -Iinclude/minimp4 \
-         -I/usr/include/chafa -I/usr/lib/chafa/include -I/usr/include/ogg -I/usr/include/opus \
+         -I/usr/include/chafa -I/usr/lib/chafa/include /usr/lib64/chafa/include -I/usr/include/ogg -I/usr/include/opus \
          -I/usr/include/stb -Iinclude/stb_image -I/usr/include/glib-2.0 \
-         -I/usr/lib/glib-2.0/include -Iinclude/miniaudio -Iinclude -Iinclude/nestegg -I/usr/include/gdk-pixbuf-2.0
+         -I/usr/lib/glib-2.0/include -I/usr/lib64/glib-2.0/include -Iinclude/miniaudio -Iinclude -Iinclude/nestegg -I/usr/include/gdk-pixbuf-2.0
 
 ifeq ($(DEBUG), 1)
 COMMONFLAGS += -g -DDEBUG
