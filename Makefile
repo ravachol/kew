@@ -55,10 +55,11 @@ ifeq ($(origin USE_FAAD), undefined)
     USE_FAAD = $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) $(PKG_CONFIG) --exists faad && echo 1 || echo 0)
 
     ifeq ($(USE_FAAD), 0)
-      # If pkg-config fails, try to find libfaad dynamically in common paths
-      USE_FAAD = $(shell [ -f /usr/lib/libfaad.so ] || || [ -f /usr/bin/faad ] || [ -f /usr/local/lib/libfaad.so ] || \
-                         [ -f /opt/local/lib/libfaad.so ] || [ -f /opt/homebrew/lib/libfaad.dylib ] || \
-                         [ -f /opt/homebrew/opt/faad2/lib/libfaad.dylib ] || \
+        # If pkg-config fails, try to find libfaad dynamically in common paths
+        USE_FAAD = $(shell [ -f /usr/lib/libfaad.so ] || [ -f /usr/lib64/libfaad.so ] || [ -f /usr/lib64/libfaad2.so ] || \
+                        [ -f /usr/bin/faad ] || [ -f /usr/local/lib/libfaad.so ] || \
+                        [ -f /opt/local/lib/libfaad.so ] || [ -f /opt/homebrew/lib/libfaad.dylib ] || \
+                        [ -f /opt/homebrew/opt/faad2/lib/libfaad.dylib ] || \
                          [ -f /usr/local/lib/libfaad.dylib ] || [ -f /lib/x86_64-linux-gnu/libfaad.so.2 ] && echo 1 || echo 0)
     endif
   endif
