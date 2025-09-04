@@ -110,7 +110,7 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
 
         c_strcpy(settings.hardShowKeys, "[17~", sizeof(settings.hardShowKeys));
         c_strcpy(settings.hardShowKeysAlt, "[17~", sizeof(settings.hardShowKeysAlt));
-#ifdef __APPLE__
+#if defined(__ANDROID__) || defined(__APPLE__)
         c_strcpy(settings.showPlaylistAlt, "Z", sizeof(settings.showPlaylistAlt));
         c_strcpy(settings.showTrackAlt, "C", sizeof(settings.showTrackAlt));
         c_strcpy(settings.showLibraryAlt, "X", sizeof(settings.showLibraryAlt));
