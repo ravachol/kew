@@ -56,7 +56,7 @@ ifeq ($(origin USE_FAAD), undefined)
 
     ifeq ($(USE_FAAD), 0)
       # If pkg-config fails, try to find libfaad dynamically in common paths
-      USE_FAAD = $(shell [ -f /usr/lib/libfaad.so ] || [ -f /usr/local/lib/libfaad.so ] || \
+      USE_FAAD = $(shell [ -f /usr/lib/libfaad.so ] || || [ -f /usr/bin/faad ] || [ -f /usr/local/lib/libfaad.so ] || \
                          [ -f /opt/local/lib/libfaad.so ] || [ -f /opt/homebrew/lib/libfaad.dylib ] || \
                          [ -f /opt/homebrew/opt/faad2/lib/libfaad.dylib ] || \
                          [ -f /usr/local/lib/libfaad.dylib ] || [ -f /lib/x86_64-linux-gnu/libfaad.so.2 ] && echo 1 || echo 0)
