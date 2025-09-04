@@ -47,6 +47,7 @@ ifeq ($(origin USE_FAAD), undefined)
                        [ -f "$(PREFIX)/local/lib/libfaad.so" ] || \
                        [ -f "$(PREFIX)/local/lib/libfaad2.so" ] || \
                        [ -f "/data/data/com.termux/files/usr/lib/libfaad.so" ] || \
+                       [ -f "/data/data/com.termux/files/usr/bin/faad" ] || \
                        [ -f "/data/data/com.termux/files/usr/lib/libfaad2.so" ] || \
                        [ -f "/data/data/com.termux/files/usr/local/lib/libfaad.so" ] || \
                        [ -f "/data/data/com.termux/files/usr/local/lib/libfaad2.so" ] && echo 1 || echo 0)
