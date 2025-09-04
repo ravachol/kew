@@ -59,17 +59,25 @@ kew dependencies are:
 
 Install these dependencies using your distro's package manager. Below are some examples.
 
-#### For Debian/Ubuntu:
+#### For Debian/Ubuntu:  
+  
+Install dependencies:
 
 ```bash
 sudo apt install -y pkg-config libfaad-dev libtag1-dev libfftw3-dev libopus-dev libopusfile-dev libvorbis-dev libogg-dev git gcc make libchafa-dev libglib2.0-dev
 ```
 
-#### For Arch Linux:
+[Install kew](#install-kew)  
+
+#### For Arch Linux:  
+
+Install dependencies:
 
 ```bash
 sudo pacman -Syu --noconfirm --needed pkg-config faad2 taglib fftw git gcc make chafa glib2 opus opusfile libvorbis libogg
 ```
+
+[Install kew](#install-kew)  
 
 #### For macOS:
 
@@ -86,26 +94,32 @@ brew install gettext faad2 taglib chafa fftw opus opusfile libvorbis libogg glib
 ```
 Notes for mac users:
 1) A sixel-capable terminal like kitty or WezTerm is recommended for macOS.
-2) The visualizer and album colors are disabled by default on macOS, because the default terminal doesn't handle them too well. To enable press v and i respectively.
+2) The visualizer and album colors are disabled by default on macOS, because the default terminal doesn't handle them too well. To enable press v and i respectively.  
+  
+  [Install kew](#install-kew)  
 
-#### For Fedora:
+#### For Fedora:  
+
+Install dependencies:
 
 ```bash
 sudo dnf install -y pkg-config taglib-devel fftw-devel opus-devel opusfile-devel libvorbis-devel libogg-devel git gcc make chafa-devel libatomic gcc-c++ glib2-devel
 ```
 Option: add faad2-devel for AAC,M4A support (Requires RPM-fusion to be enabled).
 
-Enable RPM Fusion free repository
+Enable RPM Fusion free repository:
 
 ```bash
 sudo dnf install https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm
 ```
 
-Install faad2
+Install faad2:
 
 ```bash
 sudo dnf install faad2-devel faad2
 ```
+  
+[Install kew](#install-kew)
 
 #### For OpenSUSE:
 
@@ -113,43 +127,71 @@ sudo dnf install faad2-devel faad2
 sudo zypper install -y pkg-config taglib-devel fftw-devel opus-devel opusfile-devel libvorbis-devel libogg-devel git chafa-devel gcc make glib2-devel
 ```
 Option: add libfaad-devel for AAC,M4A support (Requires Packman to be enabled).
-
+  
+[Install kew](#install-kew)      
+    
 #### For CentOS/RHEL:
+
+Install dependencies:
 
 ```bash
 sudo yum install -y pkgconfig taglib-devel fftw-devel opus-devel opusfile-devel libvorbis-devel libogg-devel git gcc make chafa-devel glib2-devel
 ```
-Option: add libfaad2-devel for AAC,M4A support (Probably requires EPEL to be enabled).
+Option: add libfaad2-devel for AAC,M4A support (Probably requires EPEL to be enabled).  
+  
+[Install kew](#install-kew)
 
 #### For Solus:
+
+Install dependencies:
 
 ```bash
 sudo eopkg install -y pkg-config faad2-devel taglib-devel fftw-devel opus-devel opusfile-devel libvorbis-devel libogg-devel git gcc make chafa-devel glib2-devel
 ```
+  
+[Install kew](#install-kew)
 
 #### For Guix:
+
+Install dependencies:
 
 ```bash
 guix install pkg-config faad2 taglib fftw git gcc make chafa opus opusfile libvorbis libogg glib
 ```
 
+[Install kew](#install-kew)
+
 #### For Void Linux:
+
+Install dependencies:
 
 ```bash
 sudo xbps-install -y pkg-config faad2 taglib taglib-devel fftw-devel git gcc make chafa chafa-devel opus opusfile opusfile-devel libvorbis-devel libogg glib-devel
 ```
 
+[Install kew](#install-kew)
+
 #### For Alpine Linux:
+
+Install dependencies:
 
 ```bash
 sudo apk add pkgconfig faad2-dev taglib-dev fftw-dev opus-dev opusfile-dev libvorbis-dev libogg-dev git build-base chafa-dev glib-dev
 ```
 
+[Install kew](#install-kew)
+
 #### For Gentoo Linux:
+
+Install dependencies:
+
 ```bash
 sudo emerge --ask pkgconf faad2 taglib fftw opus opusfile libvorbis libogg chafa dev-libs/glib
 ```
 
+[Install kew](#install-kew)
+
+#### Install kew
 Then run this (either git clone or unzip a release zip into a folder of your choice):
 
 ```bash
