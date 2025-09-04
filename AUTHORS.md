@@ -13,6 +13,7 @@
 * John Lakeman @j-lakeman <le0324tb@anonaddy.me>
 * Matthias Geiger @werdahias <werdahias@riseup.net>
 * Ravachol @ravachol <ravacholf@proton.me>
+* Robertson D. Torress @Welpyes
 * Rowan Shi @rowanxshi
 * Rui Chen @chenrui333 <rui@chenrui.dev>
 * Ruoyu Zhong @ZhongRuoyu <zhongruoyu@outlook.com>

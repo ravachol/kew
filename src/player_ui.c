@@ -630,7 +630,7 @@ void printLastRow(int row, int col, UISettings *ui, AppSettings *settings)
         setTextColorRGB(lastRowColor.r, lastRowColor.g, lastRowColor.b);
 
         char text[100];
-#ifdef __APPLE__
+#if defined(__ANDROID__) || defined(__APPLE__)
         char playlist[8], library[8], track[8], search[8], help[8];
 
         // Assume settings->showPlaylistAlt etc. are defined properly
