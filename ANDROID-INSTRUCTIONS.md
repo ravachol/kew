@@ -13,7 +13,13 @@ To run kew on Android please install the following applications :
 
 1. **Update and install dependencies**
 ```sh
-pkg install root-repo tur-repo x11-repo -y && yes | pkg upgrade -y && pkg install clang pkg-config taglib fftw git make chafa glib libopus opusfile libvorbis libogg pulseaudio dbus termux-api
+pkg install tur-repo -y && yes | pkg upgrade -y && pkg install clang pkg-config taglib fftw git make chafa glib libopus opusfile libvorbis libogg pulseaudio dbus termux-api
+```
+
+2. **Check Termux sound volume:**
+to make sure termux has sound use this command:
+```
+termux-volume music 10
 ```
 
 <details>
