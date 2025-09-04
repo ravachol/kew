@@ -1,71 +1,87 @@
-Here's one way of running kew on android. Might not work on your device!
+### **Basic Installation Requirements :**
 
-1. Install F-Droid https://f-droid.org/en/docs/Get_F-Droid/.
+To run kew on Android please install the following applications :
 
-2. Install Termux from F-Droid (not Play Store).
+- **Termux** : A terminal emulator for Android that allows you to run Linux commands on your device.  
+  [![Download Termux](https://img.shields.io/badge/Download-Termux-brightgreen?style=for-the-badge&logo=android)](https://github.com/termux/termux-app/releases/) - click to go to downloads page
 
-3. Install Termux:API from F-Droid and run pkg install termux-api from termux
+- **Termux-Api** : A plugin for Termux that executes Termux-api package commands.
 
-4. Allow Music, Notices, File Access for Termux in Android App Settings.
+  [![Download Termux-Api](https://img.shields.io/badge/Download-Termux--X11-blue?style=for-the-badge&logo=android)](https://github.com/termux/termux-api/releases/download/v0.53.0/termux-api-app_v0.53.0+github.debug.apk) - click to download
 
-5. Run in termux:
+### **Termux Setup:**
 
-	termux-setup-storage
+1. **Update and install dependencies**
+```sh
+pkg install tur-repo -y && yes | pkg upgrade -y && pkg install clang pkg-config taglib fftw git make chafa glib libopus opusfile libvorbis libogg pulseaudio dbus termux-api
+```
 
-	This will:
-* Request storage permission from Android.
-* You'll see a permission dialog - tap "Allow".
+2. **Check Termux sound volume:**
+to make sure termux has sound use this command:
+```
+termux-volume music 10
+```
 
-6. Attach your phone to your computer and copy your music to your music folder on your phone.
+<details>
+<summary><b>Building Faad2 from source(optional)</b></summary>
 
-7. If you need .m4a file support you need to compile the faad library yourself at this point, because it's not available on temux. kew will detect that it's installed when compiling and include it:
+```sh
+pkg install cmake make clang
+git clone https://github.com/knik0/faad2
+cd faad2
+cmake -DCMAKE_EXE_LINKER_FLAGS="-lm" . -D CMAKE_INSTALL_PREFIX=/data/data/com.termux/files/usr
+make install
+```
 
-        pkg install git make binutils clang libtool autoconf automake m4 pkg-config
-        wget https://sourceforge.net/projects/faac/files/faad2-src/faad2-2.8.0/faad2-2.8.8.tar.gz
-        tar -xzf faad2-2.8.8.tar.gz
-        cd faad2-2.8.8
-        ./configure --prefix=$PREFIX
-        make -j$(nproc)
-        make install
+</details>
 
-8. Run in termux:
+2. **Enable storage permissions**
+```sh
+termux-setup-storage
+```
+Tap allow for the setup to finish
 
-	pkg install git make pkg-config chafa fftw taglib libvorbis opusfile pulseaudio
+3. **Setup Pulseaudio for audio output**
+* edit/create `~/.bashrc`
+```
+nano ~/.bashrc
+```
 
-	git clone https://github.com/ravachol/kew.git
+* add this function and save it
+```bash
+headless () {
+        unset PULSE_SERVER
+        pulseaudio --kill &
+        pkill -9 pulseaudio
+        export PULSE_RUNTIME_PATH="$PREFIX/var/run/pulse"
+        pulseaudio --start --load="module-native-protocol-tcp auth-ip-acl=127.0.0.1 auth-anonymous=1" --load="module-sles-source" --exit-idle-time=-1
+        export XDG_RUNTIME_DIR=${TMPDIR}
+        export PULSE_SERVER=127.0.0.1
+        export $(dbus-launch)
+}
+```
 
-	cd kew
+### **Compiling Kew:** 
 
-	make -j4
+```sh
+git clone https://github.com/ravachol/kew.git
+cd kew
+make -j4
+make install
+```
 
-	make install
+### **Run kew:**
 
-	kew path ~/storage/music
-
-9. Run in termux:
-
-	mkdir -p ~/.config/pulse
-
-	pulseaudio --kill &
-	pkill -9 pulseaudio
-
-	export PULSE_RUNTIME_PATH="$PREFIX/var/run/pulse"
-
-	pulseaudio --start --load="module-native-protocol-tcp auth-ip-acl=127.0.0.1 auth anonymous=1" --load="module-sles-source" --exit-idle-time=-1
-
-	export XDG_RUNTIME_DIR=${TMPDIR}
-
-	export PULSE_SERVER=127.0.0.1
-
-	export $(dbus-launch)
-
-
-10. Run kew:
-
-	kew
-
-11. Sound issue
-
-If there's no sound you might need to change the music volume in termux from 0 to higher (max 15).
-
-termux-volume 8
+1. Restart the shell: `exec $SHELL`
+2. Run the `headless` command
+```
+$ headless
+```
+3. Set kew's music library
+```
+kew path <music path> 
+```
+4. Run kew
+```
+kew
+```
