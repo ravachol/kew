@@ -59,17 +59,17 @@ kew dependencies are:
 
 Install these dependencies using your distro's package manager. Below are some examples.
 
-#### For Debian/Ubuntu:  
-  
+#### For Debian/Ubuntu:
+
 Install dependencies:
 
 ```bash
 sudo apt install -y pkg-config libfaad-dev libtag1-dev libfftw3-dev libopus-dev libopusfile-dev libvorbis-dev libogg-dev git gcc make libchafa-dev libglib2.0-dev
 ```
 
-[Install kew](#install-kew)  
+[Install kew](#install-kew)
 
-#### For Arch Linux:  
+#### For Arch Linux:
 
 Install dependencies:
 
@@ -77,7 +77,7 @@ Install dependencies:
 sudo pacman -Syu --noconfirm --needed pkg-config faad2 taglib fftw git gcc make chafa glib2 opus opusfile libvorbis libogg
 ```
 
-[Install kew](#install-kew)  
+[Install kew](#install-kew)
 
 #### For macOS:
 
@@ -94,11 +94,11 @@ brew install gettext faad2 taglib chafa fftw opus opusfile libvorbis libogg glib
 ```
 Notes for mac users:
 1) A sixel-capable terminal like kitty or WezTerm is recommended for macOS.
-2) The visualizer and album colors are disabled by default on macOS, because the default terminal doesn't handle them too well. To enable press v and i respectively.  
-  
-  [Install kew](#install-kew)  
+2) The visualizer and album colors are disabled by default on macOS, because the default terminal doesn't handle them too well. To enable press v and i respectively.
 
-#### For Fedora:  
+  [Install kew](#install-kew)
+
+#### For Fedora:
 
 Install dependencies:
 
@@ -118,18 +118,20 @@ Install faad2:
 ```bash
 sudo dnf install faad2-devel faad2
 ```
-  
+
 [Install kew](#install-kew)
 
 #### For OpenSUSE:
+
+Install dependencies:
 
 ```bash
 sudo zypper install -y pkg-config taglib-devel fftw-devel opus-devel opusfile-devel libvorbis-devel libogg-devel git chafa-devel gcc make glib2-devel
 ```
 Option: add libfaad-devel for AAC,M4A support (Requires Packman to be enabled).
-  
-[Install kew](#install-kew)      
-    
+
+[Install kew](#install-kew)
+
 #### For CentOS/RHEL:
 
 Install dependencies:
@@ -137,8 +139,8 @@ Install dependencies:
 ```bash
 sudo yum install -y pkgconfig taglib-devel fftw-devel opus-devel opusfile-devel libvorbis-devel libogg-devel git gcc make chafa-devel glib2-devel
 ```
-Option: add libfaad2-devel for AAC,M4A support (Probably requires EPEL to be enabled).  
-  
+Option: add libfaad2-devel for AAC,M4A support (Probably requires EPEL to be enabled).
+
 [Install kew](#install-kew)
 
 #### For Solus:
@@ -148,7 +150,7 @@ Install dependencies:
 ```bash
 sudo eopkg install -y pkg-config faad2-devel taglib-devel fftw-devel opus-devel opusfile-devel libvorbis-devel libogg-devel git gcc make chafa-devel glib2-devel
 ```
-  
+
 [Install kew](#install-kew)
 
 #### For Guix:
