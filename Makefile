@@ -39,34 +39,47 @@ endif
 # Default USE_FAAD to auto-detect if not set by user
 ifeq ($(origin USE_FAAD), undefined)
 
-  USE_FAAD = $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) $(PKG_CONFIG) --exists faad && echo 1 || echo 0)
+  # Check if we're in Termux environment
+  ifneq ($(wildcard /data/data/com.termux/files/usr),)
+    # Termux environment - check common installation paths
+    USE_FAAD = $(shell [ -f "$(PREFIX)/lib/libfaad.so" ] || \
+                       [ -f "$(PREFIX)/lib/libfaad2.so" ] || \
+                       [ -f "$(PREFIX)/local/lib/libfaad.so" ] || \
+                       [ -f "$(PREFIX)/local/lib/libfaad2.so" ] || \
+                       [ -f "/data/data/com.termux/files/usr/lib/libfaad.so" ] || \
+                       [ -f "/data/data/com.termux/files/usr/bin/faad" ] || \
+                       [ -f "/data/data/com.termux/files/usr/lib/libfaad2.so" ] || \
+                       [ -f "/data/data/com.termux/files/usr/local/lib/libfaad.so" ] || \
+                       [ -f "/data/data/com.termux/files/usr/local/lib/libfaad2.so" ] && echo 1 || echo 0)
+  else
+    # Non-Android build - try pkg-config first
+    USE_FAAD = $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) $(PKG_CONFIG) --exists faad && echo 1 || echo 0)
 
-  ifeq ($(USE_FAAD), 0)
-    # If pkg-config fails, try to find libfaad dynamically in common paths
-    USE_FAAD = $(shell [ -f /usr/lib/libfaad.so ] || [ -f /usr/local/lib/libfaad.so ] || \
-                       [ -f /opt/local/lib/libfaad.so ] || [ -f /opt/homebrew/lib/libfaad.dylib ] || \
-                       [ -f /opt/homebrew/opt/faad2/lib/libfaad.dylib ] || \
-                       [ -f /usr/local/lib/libfaad.dylib ] || [ -f /lib/x86_64-linux-gnu/libfaad.so.2 ] && echo 1 || echo 0)
+    ifeq ($(USE_FAAD), 0)
+        # If pkg-config fails, try to find libfaad dynamically in common paths
+        USE_FAAD = $(shell [ -f /usr/lib/libfaad.so ] || [ -f /usr/lib64/libfaad.so ] || [ -f /usr/lib64/libfaad2.so ] || \
+                        [ -f /usr/bin/faad ] || [ -f /usr/local/lib/libfaad.so ] || \
+                        [ -f /opt/local/lib/libfaad.so ] || [ -f /opt/homebrew/lib/libfaad.dylib ] || \
+                        [ -f /opt/homebrew/opt/faad2/lib/libfaad.dylib ] || \
+                         [ -f /usr/local/lib/libfaad.dylib ] || [ -f /lib/x86_64-linux-gnu/libfaad.so.2 ] && echo 1 || echo 0)
+    endif
   endif
+
 endif
 
-COMMONFLAGS = $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) $(PKG_CONFIG) --cflags gio-2.0 chafa fftw3f opus opusfile vorbis ogg glib-2.0 taglib)
-
-COMMONFLAGS += -Iinclude/minimp4 \
-               -I/usr/include -I/opt/homebrew/include -I/usr/local/include -I/usr/lib -Iinclude/minimp4 \
-               -I/usr/include/chafa -I/usr/lib/chafa/include \
-               -I/usr/include/ogg -I/usr/include/opus \
-               -I/usr/include/stb -Iinclude/stb_image \
-               -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include \
-               -Iinclude/miniaudio -Iinclude -Iinclude/nestegg \
-               -I/usr/include/gdk-pixbuf-2.0
-COMMONFLAGS += -DMA_NO_AAUDIO
+# Compiler flags
+COMMONFLAGS = -I/usr/include -I/opt/homebrew/include -I/usr/local/include -I/usr/lib -Iinclude/minimp4 \
+         -I/usr/include/chafa -I/usr/lib/chafa/include -I/usr/include/ogg -I/usr/include/opus \
+         -I/usr/include/stb -Iinclude/stb_image -I/usr/include/glib-2.0 \
+         -I/usr/lib/glib-2.0/include -Iinclude/miniaudio -Iinclude -Iinclude/nestegg -I/usr/include/gdk-pixbuf-2.0
 
 ifeq ($(DEBUG), 1)
 COMMONFLAGS += -g -DDEBUG
 else
 COMMONFLAGS += -O2
 endif
+
+COMMONFLAGS += $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) $(PKG_CONFIG) --cflags gio-2.0 chafa fftw3f opus opusfile vorbis ogg glib-2.0 taglib)
 
 COMMONFLAGS += -fstack-protector-strong -Wformat -Werror=format-security -fPIE -D_FORTIFY_SOURCE=2
 COMMONFLAGS += -Wall -Wextra -Wpointer-arith
@@ -106,6 +119,9 @@ ifeq ($(USE_FAAD), 1)
   ifeq ($(ARCH), arm64)
     CFLAGS += -I/opt/homebrew/opt/faad2/include
     LIBS += -L/opt/homebrew/opt/faad2/lib -lfaad
+  else ifeq ($(shell uname -o 2>/dev/null), Android)
+    CFLAGS += -I$(PREFIX)/include
+    LIBS += -L$(PREFIX)/lib -lfaad
   else
     CFLAGS += -I/usr/local/include
     LIBS += -L/usr/local/lib -lfaad

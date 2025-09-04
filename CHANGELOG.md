@@ -1,5 +1,11 @@
 # CHANGELOG
 
+### 3.5.0
+
+- Experimental Android compatibility! Please see ANDROID-INSTRUCTIONS.md for installation instructions using termux. By @Welpyes and @ravachol.
+
+- Improved installation instructions on Fedora for adding m4a support and enabled the detection of faad (which handles m4a) properly in the makefile. By @ravachol.
+
 ### 3.4.1
 
 Adds a few minor bug fixes and you can now use playlists from the library view.
