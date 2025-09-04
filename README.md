@@ -126,9 +126,8 @@ sudo dnf install faad2-devel faad2
 Install dependencies:
 
 ```bash
-sudo zypper install -y pkg-config taglib-devel fftw-devel opus-devel opusfile-devel libvorbis-devel libogg-devel git chafa-devel gcc make glib2-devel
+sudo zypper install -y pkgconf taglib fftw3-devel opusfile-devel libvorbis-devel libogg-devel git chafa-devel gcc make glib2-devel faad2 faad2-devel gcc-c++ libtag-devel
 ```
-Option: add libfaad-devel for AAC,M4A support (Requires Packman to be enabled).
 
 [Install kew](#install-kew)
 
