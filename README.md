@@ -79,6 +79,12 @@ sudo pacman -Syu --noconfirm --needed pkg-config faad2 taglib fftw git gcc make 
 
 [Install kew](#install-kew)
 
+#### For Android:
+
+kew is in an experimental state on Android. To install, follow the instructions here:
+
+[ANDROID-INSTRUCTIONS-md](ANDROID-INSTRUCTIONS.md)
+
 #### For macOS:
 
 Install git:
