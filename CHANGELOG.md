@@ -4,7 +4,11 @@
 
 - Experimental Android compatibility! Please see ANDROID-INSTRUCTIONS.md for installation instructions using termux. By @Welpyes and @ravachol.
 
-- Improved installation instructions on Fedora for adding m4a support and enabled the detection of faad (which handles m4a) properly in the makefile. By @ravachol.
+- Improved installation instructions for Fedora and openSuse in the README.
+
+- Enabled the detection of FAAD2 (which handles m4a) on Fedora properly in the makefile. By @ravachol.
+
+- Made makefile compatible with openSuse tumbleweed.
 
 ### 3.4.1
 
