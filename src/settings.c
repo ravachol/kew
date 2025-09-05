@@ -72,7 +72,11 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         c_strcpy(settings.visualizerEnabled, "1", sizeof(settings.visualizerEnabled));
         c_strcpy(settings.useConfigColors, "0", sizeof(settings.useConfigColors));
 #endif
+#ifdef __ANDROID__
+        c_strcpy(settings.hideLogo, "1", sizeof(settings.hideLogo));
+#else
         c_strcpy(settings.hideLogo, "0", sizeof(settings.hideLogo));
+#endif
         c_strcpy(settings.hideHelp, "0", sizeof(settings.hideHelp));
         c_strcpy(settings.cacheLibrary, "-1", sizeof(settings.cacheLibrary));
         c_strcpy(settings.visualizerHeight, "6", sizeof(settings.visualizerHeight));
