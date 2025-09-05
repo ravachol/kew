@@ -15,7 +15,7 @@ playlist_ui.c
 int startIter = 0;
 int previousChosenSong = 0;
 
-Node *determineStartNode(Node *head, int *foundAt, bool *startFromCurrent, int listSize)
+Node *determineStartNode(Node *head, int *foundAt, int listSize)
 {
         Node *node = head;
         Node *foundNode = NULL;
@@ -34,7 +34,6 @@ Node *determineStartNode(Node *head, int *foundAt, bool *startFromCurrent, int l
                 numSongs++;
         }
 
-        *startFromCurrent = (*foundAt > -1) ? true : false;
         return foundNode ? foundNode : head;
 }
 
@@ -159,8 +158,8 @@ int displayPlaylist(PlayList *list, int maxListSize, int indent, int *chosenSong
         UISettings *ui = &(state->uiSettings);
 
         int foundAt = -1;
-        bool startFromCurrent = false;
-        Node *startNode = determineStartNode(list->head, &foundAt, &startFromCurrent, list->count);
+
+        Node *startNode = determineStartNode(list->head, &foundAt, list->count);
 
         // Determine chosen song
         if (*chosenSong >= list->count)
@@ -176,7 +175,7 @@ int displayPlaylist(PlayList *list, int maxListSize, int indent, int *chosenSong
         int startIter = 0;
 
         // Determine where to start iterating
-        startIter = (startFromCurrent && (foundAt < startIter || foundAt > startIter + maxListSize)) ? foundAt : startIter;
+        startIter = (foundAt > -1 && (foundAt > startIter + maxListSize)) ? foundAt : startIter;
 
         if (*chosenSong < startIter)
         {
@@ -190,7 +189,10 @@ int displayPlaylist(PlayList *list, int maxListSize, int indent, int *chosenSong
 
         if (reset && !audioData.endOfListReached)
         {
-                startIter = *chosenSong = foundAt;
+                if (foundAt > maxListSize)
+                        startIter = *chosenSong = foundAt;
+                else
+                        startIter = *chosenSong = 0;
         }
 
         // Go up to find the starting node

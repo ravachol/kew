@@ -10,6 +10,8 @@
 
 - Made makefile compatible with openSuse tumbleweed.
 
+- Shows the playlist from the first song if the playing song will still be in view, instead of always starting from the playing song. By @ravachol. Suggested by @affhp.
+
 ### 3.4.1
 
 Adds a few minor bug fixes and you can now use playlists from the library view.
