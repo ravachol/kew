@@ -200,7 +200,8 @@ int m4a_createAudioDevice(UserData *userData, ma_device *device, ma_context *con
         result = initFirstDatasource(&audioData, userData);
         if (result != MA_SUCCESS)
         {
-                setErrorMessage("M4a type not supported.");
+                if (!hasErrorMessage())
+                        setErrorMessage("M4a type not supported.");
                 return -1;
         }
         m4a_decoder *decoder = getFirstM4aDecoder();
