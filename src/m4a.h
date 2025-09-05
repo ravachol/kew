@@ -696,6 +696,7 @@ extern "C"
                         if (is_alac(fp, alac_dsi, &alac_dsi_size))
                         {
                                 // This is an alac file and is currently unsupported.
+                                setErrorMessage("M4a files that use the ALAC encoder are not supported.");
                                 return MA_ERROR;
                         }
                         else // AAC
