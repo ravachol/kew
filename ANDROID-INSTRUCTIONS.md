@@ -42,7 +42,7 @@ termux-setup-storage
 ```
 Tap allow for the setup to finish
 
-3. **Setup Pulseaudio for audio output**
+3. **Setup dbus for kew**
 * edit/create `~/.bashrc`
 ```
 nano ~/.bashrc
