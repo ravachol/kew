@@ -3,6 +3,7 @@
 To run kew on Android please install the following applications :
 
 - **Termux** : A terminal emulator for Android that allows you to run Linux commands on your device.
+
   [![Download Termux](https://img.shields.io/badge/Download-Termux-brightgreen?style=for-the-badge&logo=android)](https://github.com/termux/termux-app/releases/) - click to go to downloads page
 
 - **Termux-Api** : A plugin for Termux that executes Termux-api package commands.
