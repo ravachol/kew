@@ -322,4 +322,6 @@ ma_result callReadPCMFrames(
 
 bool doesOSallowVolumeControl();
 
+void shutdownAndroid(void);
+
 #endif
