@@ -2,18 +2,18 @@
 
 To run kew on Android please install the following applications :
 
-- **Termux** : A terminal emulator for Android that allows you to run Linux commands on your device.  
+- **Termux** : A terminal emulator for Android that allows you to run Linux commands on your device.
   [![Download Termux](https://img.shields.io/badge/Download-Termux-brightgreen?style=for-the-badge&logo=android)](https://github.com/termux/termux-app/releases/) - click to go to downloads page
 
 - **Termux-Api** : A plugin for Termux that executes Termux-api package commands.
 
-  [![Download Termux-Api](https://img.shields.io/badge/Download-Termux--X11-blue?style=for-the-badge&logo=android)](https://github.com/termux/termux-api/releases/download/v0.53.0/termux-api-app_v0.53.0+github.debug.apk) - click to download
+  [![Download Termux-Api](https://img.shields.io/badge/Download-Termux--API-blue?style=for-the-badge&logo=android)](https://github.com/termux/termux-api/releases/download/v0.53.0/termux-api-app_v0.53.0+github.debug.apk) - click to download
 
 ### **Termux Setup:**
 
 1. **Update and install dependencies**
 ```sh
-pkg install tur-repo -y && yes | pkg upgrade -y && pkg install clang pkg-config taglib fftw git make chafa glib libopus opusfile libvorbis libogg pulseaudio dbus termux-api
+pkg install tur-repo -y && yes | pkg upgrade -y && pkg install clang pkg-config taglib fftw git make chafa glib libopus opusfile libvorbis libogg dbus termux-api
 ```
 
 2. **Check Termux sound volume:**
@@ -47,21 +47,12 @@ Tap allow for the setup to finish
 nano ~/.bashrc
 ```
 
-* add this function and save it
+* add this alias and save it
 ```bash
-headless () {
-        unset PULSE_SERVER
-        pulseaudio --kill &
-        pkill -9 pulseaudio
-        export PULSE_RUNTIME_PATH="$PREFIX/var/run/pulse"
-        pulseaudio --start --load="module-native-protocol-tcp auth-ip-acl=127.0.0.1 auth-anonymous=1" --load="module-sles-source" --exit-idle-time=-1
-        export XDG_RUNTIME_DIR=${TMPDIR}
-        export PULSE_SERVER=127.0.0.1
-        export $(dbus-launch)
-}
+alias kew="dbus-launch kew"
 ```
 
-### **Compiling Kew:** 
+### **Compiling Kew:**
 
 ```sh
 git clone https://github.com/ravachol/kew.git
@@ -79,7 +70,7 @@ $ headless
 ```
 3. Set kew's music library
 ```
-kew path <music path> 
+kew path <music path>
 ```
 4. Run kew
 ```
