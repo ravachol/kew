@@ -1019,6 +1019,12 @@ void cleanupPlaybackDevice(void)
         memset(&device, 0, sizeof(device));
 }
 
+void shutdownAndroid(void)
+{
+        // Avoid race condition when shutting down
+        memset(&device, 0, sizeof(device));
+}
+
 void clearCurrentTrack(void)
 {
         if (ma_device_is_started(&device))
