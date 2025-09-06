@@ -1300,7 +1300,11 @@ void cleanupOnExit()
 
         if (isContextInitialized)
         {
+#ifdef __ANDROID__
+                shutdownAndroid();
+#else
                 cleanupPlaybackDevice();
+#endif
                 cleanupAudioContext();
         }
 
