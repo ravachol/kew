@@ -17,14 +17,12 @@ To run kew on Android please install the following applications :
 pkg install tur-repo -y && yes | pkg upgrade -y && pkg install clang pkg-config taglib fftw git make chafa glib libopus opusfile libvorbis libogg dbus termux-api
 ```
 
-2. **Check Termux sound volume:**
-to make sure termux has sound use this command:
-```
-termux-volume music 10
-```
+2. **Make sure termux has sound:**
+
+On your phone, go to Settings -> Sound and Vibration -> Volume and make sure the level for Media is not 0.
 
 <details>
-<summary><b>Building Faad2 from source(optional)</b></summary>
+<summary><b>Building Faad2 from source (needed to run .m4a files)</b></summary>
 
 ```sh
 pkg install cmake make clang
@@ -36,22 +34,24 @@ make install
 
 </details>
 
-2. **Enable storage permissions**
+3. **Enable storage permissions**
 ```sh
 termux-setup-storage
 ```
 Tap allow for the setup to finish
 
-3. **Setup dbus for kew**
+4. **Setup dbus for kew**
 * edit/create `~/.bashrc`
 ```
 nano ~/.bashrc
 ```
 
-* add this alias and save it
+* In nano, add this line and save it (ctrl+x):
 ```bash
 alias kew="dbus-launch kew"
 ```
+
+* Restart the shell: `exec $SHELL
 
 ### **Compiling Kew:**
 
@@ -64,16 +64,14 @@ make install
 
 ### **Run kew:**
 
-1. Restart the shell: `exec $SHELL`
-2. Run the `headless` command
-```
-$ headless
-```
-3. Set kew's music library
+1. **Set kew's music library path**
+
+This could be ~/storage/music for instance:
 ```
 kew path <music path>
 ```
-4. Run kew
+  
+2. **Run kew**
 ```
 kew
 ```
