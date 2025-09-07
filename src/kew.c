@@ -50,6 +50,11 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include <sys/ioctl.h>
 #include <sys/param.h>
 #include <sys/stat.h>
+#if defined(__FreeBSD__) || defined(__APPLE__) || defined(__OpenBSD__) || defined(__NetBSD__)
+#include <sys/types.h>
+#include <sys/param.h>
+#include <sys/sysctl.h>
+#endif
 #include <time.h>
 #include <unistd.h>
 #include "appstate.h"
@@ -1678,11 +1683,33 @@ const char *getTempDir()
 
 int isKewProcess(pid_t pid)
 {
+// Use sysctl to get process command line on FreeBSD
+#if defined(__FreeBSD__) || defined(__APPLE__) || defined(__OpenBSD__) || defined(__NetBSD__)
+        char cmdline[1024];
+        size_t cmdline_size = sizeof(cmdline);
+        int mib[4];
+        mib[0] = CTL_KERN;
+        mib[1] = KERN_PROC;
+        mib[2] = KERN_PROC_ARGS;
+        mib[3] = pid;
+
+        if (sysctl(mib, 4, cmdline, &cmdline_size, NULL, 0) == 0)
+        {
+                // Check if cmdline contains kew
+                if (strstr(cmdline, "kew") != NULL)
+                {
+                        return 1; // It's kew
+                }
+        }
+#endif
+        // Fallback: try /proc if mounted (less reliable on FreeBSD)
         char comm_path[64];
+        char proc_cmdline[64];
         char process_name[256];
+        char proc_cmd[1024];
         FILE *file;
 
-        // First check /proc/[pid]/comm for the process name
+        // Check /proc/[pid]/comm
         snprintf(comm_path, sizeof(comm_path), "/proc/%d/comm", pid);
         file = fopen(comm_path, "r");
         if (file != NULL)
@@ -1690,13 +1717,29 @@ int isKewProcess(pid_t pid)
                 if (fgets(process_name, sizeof(process_name), file))
                 {
                         fclose(file);
-                        // Remove trailing newline
                         process_name[strcspn(process_name, "\n")] = 0;
-
-                        // Check if it's kew (process name might be truncated to 15 chars)
                         if (strstr(process_name, "kew") != NULL)
                         {
-                                return 1; // It's likely kew
+                                return 1;
+                        }
+                }
+                else
+                {
+                        fclose(file);
+                }
+        }
+
+        // Check /proc/[pid]/cmdline
+        snprintf(proc_cmdline, sizeof(proc_cmdline), "/proc/%d/cmdline", pid);
+        file = fopen(proc_cmdline, "r");
+        if (file != NULL)
+        {
+                if (fgets(proc_cmd, sizeof(proc_cmd), file))
+                {
+                        fclose(file);
+                        if (strstr(proc_cmd, "kew") != NULL)
+                        {
+                                return 1;
                         }
                 }
                 else
