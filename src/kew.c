@@ -1676,6 +1676,38 @@ const char *getTempDir()
         return "/tmp";
 }
 
+int isKewProcess(pid_t pid)
+{
+        char comm_path[64];
+        char process_name[256];
+        FILE *file;
+
+        // First check /proc/[pid]/comm for the process name
+        snprintf(comm_path, sizeof(comm_path), "/proc/%d/comm", pid);
+        file = fopen(comm_path, "r");
+        if (file != NULL)
+        {
+                if (fgets(process_name, sizeof(process_name), file))
+                {
+                        fclose(file);
+                        // Remove trailing newline
+                        process_name[strcspn(process_name, "\n")] = 0;
+
+                        // Check if it's kew (process name might be truncated to 15 chars)
+                        if (strstr(process_name, "kew") != NULL)
+                        {
+                                return 1; // It's likely kew
+                        }
+                }
+                else
+                {
+                        fclose(file);
+                }
+        }
+
+        return 0; // Not kew or couldn't determine
+}
+
 // Ensures only a single instance of kew can run at a time for the current user.
 void exitIfAlreadyRunning()
 {
@@ -1693,7 +1725,7 @@ void exitIfAlreadyRunning()
                 if (fscanf(pidfile, "%d", &pid) == 1)
                 {
                         fclose(pidfile);
-                        if (isProcessRunning(pid))
+                        if (isProcessRunning(pid) && isKewProcess(pid))
                         {
                                 fprintf(stderr, "An instance of kew is already running. Pid: %d. Type 'kill %d' to remove it.\n", pid, pid);
                                 exit(1);
