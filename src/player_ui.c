@@ -631,7 +631,7 @@ void printLastRow(int row, int col, UISettings *ui, AppSettings *settings)
 
         char text[100];
 #if defined(__ANDROID__) || defined(__APPLE__)
-        char playlist[8], library[8], track[8], search[8], help[8];
+        char playlist[32], library[32], track[32], search[32], help[32];
 
         // Assume settings->showPlaylistAlt etc. are defined properly
         formatWithShiftPlus(playlist, sizeof(playlist), settings->showPlaylistAlt);
@@ -738,8 +738,16 @@ void calcAndPrintLastRowAndErrorRow(UISettings *ui, AppSettings *settings)
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
 
+#ifdef ANDROID
+        // Use two rows for the footer on Android. It makes everything fit even with narrow terminal widths.
+        if (hasErrorMessage())
+                printErrorRow(term_h - 1, indent);
+        else
+                printLastRow(term_h - 1, indent, ui, settings);
+#else
         printErrorRow(term_h - 1, indent);
         printLastRow(term_h, indent, ui, settings);
+#endif
 }
 
 int printAbout(SongData *songdata, UISettings *ui)
