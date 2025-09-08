@@ -57,7 +57,7 @@ kew dependencies are:
 * pkg-config
 * glib2.0
 
-Install these dependencies using your distro's package manager. Below are some examples.
+Install these dependencies using your distro's package manager and then install kew. Below are some examples.
 
 #### For Debian/Ubuntu:
 
@@ -81,9 +81,9 @@ sudo pacman -Syu --noconfirm --needed pkg-config faad2 taglib fftw git gcc make 
 
 #### For Android:
 
-kew is in an experimental state on Android. To install, follow the instructions here:
+Follow the instructions here:
 
-[ANDROID-INSTRUCTIONS-md](ANDROID-INSTRUCTIONS.md)
+[ANDROID-INSTRUCTIONS.md](ANDROID-INSTRUCTIONS.md)
 
 #### For macOS:
 
