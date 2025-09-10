@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include "common.h"
 #include "imgfunc.h"
 #include "term.h"
 
@@ -381,9 +382,9 @@ convert_image(const void *pixels, gint pix_width, gint pix_height,
         chafa_image_set_frame(image, frame);
 
         placement = chafa_placement_new(image, 1);
-        chafa_placement_set_tuck (placement, CHAFA_TUCK_STRETCH);
-        chafa_placement_set_halign (placement, CHAFA_ALIGN_START);
-        chafa_placement_set_valign (placement, CHAFA_ALIGN_START);
+        chafa_placement_set_tuck(placement, CHAFA_TUCK_STRETCH);
+        chafa_placement_set_halign(placement, CHAFA_ALIGN_START);
+        chafa_placement_set_valign(placement, CHAFA_ALIGN_START);
         chafa_canvas_set_placement(canvas, placement);
 
         printable = chafa_canvas_print(canvas, NULL);
@@ -529,7 +530,7 @@ void printSquareBitmap(int row, int col, unsigned char *pixels, int width, int h
 {
         if (pixels == NULL)
         {
-                printf("Error: Invalid pixel data.\n");
+                setErrorMessage("Invalid pixel data.\n");
                 return;
         }
 
@@ -541,7 +542,7 @@ void printSquareBitmap(int row, int col, unsigned char *pixels, int width, int h
         // Validate the image dimensions
         if (pix_width == 0 || pix_height == 0)
         {
-                printf("Error: Invalid image dimensions.\n");
+                setErrorMessage("Invalid image dimensions.\n");
                 return;
         }
 
@@ -560,15 +561,35 @@ void printSquareBitmap(int row, int col, unsigned char *pixels, int width, int h
         }
 
         // Set default cell size for some terminals
-        if (cell_width == -1 || cell_height == -1)
+        if (cell_width <= -1 || cell_height <= -1)
         {
                 cell_width = 8;
                 cell_height = 16;
         }
 
+        if (cell_width == 0 || cell_height == 0)
+        {
+                setErrorMessage("Invalid image cell width dimensions.\n");
+                return;
+        }
+
         // Calculate corrected width based on aspect ratio correction
         float aspect_ratio_correction = (float)cell_height / (float)cell_width;
         int correctedWidth = (int)(baseHeight * aspect_ratio_correction);
+
+        if (term_size.width_cells > 0 && correctedWidth > term_size.width_cells)
+        {
+                setErrorMessage("Invalid terminal dimensions.\n");
+                return;
+        }
+
+        if (term_size.height_cells > 0 && baseHeight > term_size.height_cells)
+        {
+                setErrorMessage("Invalid terminal dimensions.\n");
+                return;
+        }
+
+        fprintf(stderr, "correctedWidth: %d, baseHeight: %d", correctedWidth, baseHeight);
 
         // Convert image to a printable string using Chafa
         printable = convert_image(
@@ -592,7 +613,7 @@ void printSquareBitmap(int row, int col, unsigned char *pixels, int width, int h
         // Print each line with indentation
         for (int i = 0; lines[i] != NULL; i++)
         {
-                printf("\033[%d;%dH", row+i, col);
+                printf("\033[%d;%dH", row + i, col);
                 printf("%s", lines[i]);
                 fflush(stdout);
         }
@@ -606,7 +627,7 @@ void printSquareBitmapCentered(unsigned char *pixels, int width, int height, int
 {
         if (pixels == NULL)
         {
-                printf("Error: Invalid pixel data.\n");
+                setErrorMessage("Error: Invalid pixel data.\n");
                 return;
         }
 
@@ -618,7 +639,7 @@ void printSquareBitmapCentered(unsigned char *pixels, int width, int height, int
         // Validate the image dimensions
         if (pix_width == 0 || pix_height == 0)
         {
-                printf("Error: Invalid image dimensions.\n");
+                setErrorMessage("Invalid image dimensions.\n");
                 return;
         }
 
@@ -637,15 +658,35 @@ void printSquareBitmapCentered(unsigned char *pixels, int width, int height, int
         }
 
         // Set default cell size for some terminals
-        if (cell_width == -1 || cell_height == -1)
+        if (cell_width <= -1 || cell_height <= -1)
         {
                 cell_width = 8;
                 cell_height = 16;
         }
 
+        if (cell_width == 0 || cell_height == 0)
+        {
+                setErrorMessage("Invalid image cell width dimensions.\n");
+                return;
+        }
+
         // Calculate corrected width based on aspect ratio correction
         float aspect_ratio_correction = (float)cell_height / (float)cell_width;
         int correctedWidth = (int)(baseHeight * aspect_ratio_correction);
+
+        if (term_size.width_cells > 0 && correctedWidth > term_size.width_cells)
+        {
+                setErrorMessage("Invalid terminal dimensions.\n");
+                return;
+        }
+
+        if (term_size.height_cells > 0 && baseHeight > term_size.height_cells)
+        {
+                setErrorMessage("Invalid terminal dimensions.\n");
+                return;
+        }
+
+        fprintf(stderr, "correctedWidth: %d, baseHeight: %d", correctedWidth, baseHeight);
 
         // Calculate indentation to center the image
         int indentation = ((term_size.width_cells - correctedWidth) / 2);
