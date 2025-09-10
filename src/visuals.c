@@ -116,9 +116,18 @@ void fillEQBands(
         float correctionPerOctave = 3.0f;
         float maxFreqForCorrection = 10000.0f; // Above this, keep correction flat
 
+        float nyquist = sampleRate * 0.5f;
+
         for (int i = 0; i < numBands; i++)
         {
                 float center = centerFreqs[i];
+
+                if (center > nyquist)
+                {
+                        bandDb[i] = -INFINITY;
+                        continue;
+                }
+
                 float lo = center / width;
                 float hi = center * width;
 
