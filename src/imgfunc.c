@@ -589,8 +589,6 @@ void printSquareBitmap(int row, int col, unsigned char *pixels, int width, int h
                 return;
         }
 
-        fprintf(stderr, "correctedWidth: %d, baseHeight: %d", correctedWidth, baseHeight);
-
         // Convert image to a printable string using Chafa
         printable = convert_image(
             pixels,
@@ -685,8 +683,6 @@ void printSquareBitmapCentered(unsigned char *pixels, int width, int height, int
                 setErrorMessage("Invalid terminal dimensions.\n");
                 return;
         }
-
-        fprintf(stderr, "correctedWidth: %d, baseHeight: %d", correctedWidth, baseHeight);
 
         // Calculate indentation to center the image
         int indentation = ((term_size.width_cells - correctedWidth) / 2);
