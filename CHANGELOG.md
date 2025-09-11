@@ -12,6 +12,10 @@
 
 - Shows the playlist from the first song if the playing song will still be in view, instead of always starting from the playing song. By @ravachol. Suggested by @affhp.
 
+#### Bug Fixes
+
+- Fixed visualizer crashing the app on ultrawide monitors. By @arcathrax.
+
 ### 3.4.1
 
 Adds a few minor bug fixes and you can now use playlists from the library view.
