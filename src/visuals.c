@@ -75,24 +75,24 @@ void applyBlackmanHarris(float *fftInput, int bufferSize)
 }
 
 // Fill center freqs for 1/3-octave bands, given min/max freq and numBands
-void computeBandCenters(
-    float minFreq, float maxFreq, int numBands, float *centerFreqs)
+void computeBandCenters(float minFreq, float sampleRate, int numBands, float *centerFreqs)
 {
-        float startF = minFreq;
-        float endF = maxFreq;
-        // 1/3 octave spacing
-        float octaveFraction = 1.0f / 3.0f; // For 1/3 octave
+        float nyquist = sampleRate * 0.5f;
+        float maxFreq = fminf(nyquist, sampleRate * 0.5f); // clamp at Nyquist
+        float octaveFraction = 1.0f / 3.0f;                // 1/3 octave
         float factor = powf(2.0f, octaveFraction);
-        float f = startF;
-
+        float f = minFreq;
+        
         for (int i = 0; i < numBands; i++)
         {
-                centerFreqs[i] = f;
-                f *= factor;
-                if (f > endF)
+                if (f > maxFreq)
                 {
-                        // Clamp the last band if we've reached maxFreq
-                        centerFreqs[i] = f / factor + (endF - f / factor) * ((float)i / (numBands - 1));
+                        centerFreqs[i] = nyquist; // Clamp remaining bands at Nyquist
+                }
+                else
+                {
+                        centerFreqs[i] = f;
+                        f *= factor;
                 }
         }
 }
@@ -206,6 +206,7 @@ void calcMagnitudes(
     int bitDepth,
     float *fftInput,
     fftwf_complex *fftOutput,
+    int fftSize,
     float *magnitudes,
     fftwf_plan plan, float *displayMagnitudes)
 {
@@ -238,7 +239,7 @@ void calcMagnitudes(
         float audibleHalf = 10000.0f;
         float maxFreq = fmin(audibleHalf, 0.5f * sampleRate);
         float octaveFraction = 1.0f / 3.0f;
-        int usedBars = floor( log2(maxFreq / minFreq) / octaveFraction ) + 1; // How many bars are actually in use, given we increase with 1/3 octave per bar
+        int usedBars = floor(log2(maxFreq / minFreq) / octaveFraction) + 1; // How many bars are actually in use, given we increase with 1/3 octave per bar
 
         // Compute center frequencies for EQ bands
         computeBandCenters(minFreq, maxFreq, numBars, centerFreqs);
@@ -386,7 +387,7 @@ void printSpectrum(int row, int col, UISettings *ui, int height, int numBars, in
 
         for (int j = height; j > 0 && isPlaying; j--)
         {
-                printf("\033[%d;%dH", row+height-j, col);
+                printf("\033[%d;%dH", row + height - j, col);
                 if (color.r != 0 || color.g != 0 || color.b != 0)
                 {
                         if (!useConfigColors && (visualizerColorType == 0 || visualizerColorType == 2 || visualizerColorType == 3))
@@ -543,7 +544,7 @@ void drawSpectrumVisualizer(int row, int col, AppState *state)
 
         int bitDepth = getBitDepth(format);
 
-        calcMagnitudes(height, numBars, getAudioBuffer(), bitDepth, fftInput, fftOutput, magnitudes, plan, displayMagnitudes);
+        calcMagnitudes(height, numBars, getAudioBuffer(), bitDepth, fftInput, fftOutput, fftSize, magnitudes, plan, displayMagnitudes);
 
         printSpectrum(row, col, &(state->uiSettings), height, numBars, visualizerWidth, displayMagnitudes);
 
