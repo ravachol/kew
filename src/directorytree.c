@@ -246,21 +246,11 @@ int removeEmptyDirectories(FileSystemEntry *node)
 
 int readDirectory(const char *path, FileSystemEntry *parent)
 {
-
-        DIR *directory = opendir(path);
-        if (directory == NULL)
-        {
-                perror("Error opening directory");
-                return 0;
-        }
-
         struct dirent **entries;
         int dirEntries = scandir(path, &entries, NULL, compareLibEntriesReversed);
 
         if (dirEntries < 0)
         {
-                perror("Error scanning directory entries");
-                closedir(directory);
                 return 0;
         }
 
@@ -323,8 +313,6 @@ int readDirectory(const char *path, FileSystemEntry *parent)
 
         free(entries);
         regfree(&regex);
-
-        closedir(directory);
 
         return numEntries;
 }
