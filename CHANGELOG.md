@@ -2,7 +2,7 @@
 
 ### 3.5.0
 
-- Experimental Android compatibility! Please see ANDROID-INSTRUCTIONS.md for installation instructions using termux. By @Welpyes and @ravachol.
+- Android compatibility! Please see ANDROID-INSTRUCTIONS.md for installation instructions using termux. By @Welpyes and @ravachol.
 
 - Improved installation instructions for Fedora and openSuse in the README.
 
