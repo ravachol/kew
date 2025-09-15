@@ -22,7 +22,7 @@ ffprobe -i AUDIO FILE -show_streams -select_streams a:0 -v quiet -print_format j
 
 After making any changes, open a pull request on Github.
 
-- Please contact me (kew-music-player@proton.me) before doing a big change, or risk the whole thing getting rejected.
+- Please contact me (kew-player@proton.me) before doing a big change, or risk the whole thing getting rejected.
 
 - Try to keep commits fairly small so that they are easy to review.
 

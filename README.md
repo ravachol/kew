@@ -23,6 +23,22 @@ kew (/kjuː/) is a terminal music player.
  * Supports desktop events through MPRIS.
  * Private, no data is collected by kew.
 
+<div align="center">
+  <table>
+    <tr>
+      <td colspan="2"><strong>Please Sponsor Our Developers</strong></td>
+    </tr>
+    <tr>
+      <td><strong>Ravachol</strong> (Maintainer)</td>
+      <td><a href="https://github.com/sponsors/ravachol">
+          <img src="https://img.shields.io/badge/Sponsor-F39C12?style=for-the-badge&logo=sponsor&labelColor=gray" alt="Sponsor Ravachol"/>
+        </a></td>
+    </tr>
+  </table>
+</div>
+
+
+
 ## Installing
 
 <a href="https://repology.org/project/kew/versions"><img src="https://repology.org/badge/vertical-allrepos/kew.svg" alt="Packaging status" align="right"></a>
@@ -389,4 +405,4 @@ Nestegg by Mozilla - https://github.com/mozilla/nestegg
 Img_To_Txt by Danny Burrows - https://github.com/danny-burrows/img_to_txt
 
 
-Comments? Suggestions? Send mail to kew-music-player@proton.me.
+Comments? Suggestions? Send mail to kew-player@proton.me.
