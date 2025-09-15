@@ -230,21 +230,48 @@ int printLogo(SongData *songData, UISettings *ui)
 
                 trim(prettyTitle, titleLength);
 
+                const char *playerStatusIcon;
+
+                if (isPaused()) {
+                    playerStatusIcon = "⏸";
+                } else if (isStopped()) {
+                    playerStatusIcon = "■";
+                } else {
+                    playerStatusIcon = "▶";
+                }
+
                 if (ui->hideLogo && songData->metadata->artist[0] != '\0')
                 {
                         printBlankSpaces(indent);
-                        snprintf(title, MAXPATHLEN, "%s - %s",
-                                 songData->metadata->artist, prettyTitle);
+                        snprintf(title, MAXPATHLEN, "%s %s - %s",
+                                 playerStatusIcon,
+                                 songData->metadata->artist,
+                                 prettyTitle);
                 }
                 else
                 {
                         if (ui->hideLogo)
+                        {
                                 printBlankSpaces(indent);
-                        c_strcpy(title, prettyTitle, METADATA_MAX_SIZE - 1);
+                                snprintf(title, MAXPATHLEN, "%s %s",
+                                        playerStatusIcon,
+                                        prettyTitle);
+
+                        }
+                        else
+                        {
+                                c_strcpy(title, prettyTitle, METADATA_MAX_SIZE - 1);
+                        }
                         title[MAXPATHLEN - 1] = '\0';
                 }
 
-                int maxWidth = term_w - indent - indent - logoWidth - 4;
+                int maxWidth = term_w - indent - indent;
+
+                if (!ui->hideLogo)
+                        maxWidth -= logoWidth + 4;
+                else
+                        maxWidth -= 2;
+
                 char output[MAXPATHLEN + 1];
                 output[0] = '\0';
 
