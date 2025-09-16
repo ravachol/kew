@@ -7,9 +7,6 @@ Listen to music in the terminal.
 *Example screenshot running in Konsole: [Jenova 7: Lost Sci-Fi Movie Themes](https://jenova7.bandcamp.com/album/lost-sci-fi-movie-themes).*
 
 
-
-
-
 kew (/kjuː/) is a terminal music player.
 
 ## Features
@@ -22,6 +19,8 @@ kew (/kjuː/) is a terminal music player.
  * Supports MP3, FLAC, MPEG-4/M4A (AAC), OPUS, OGG, Webm and WAV audio.
  * Supports desktop events through MPRIS.
  * Private, no data is collected by kew.
+
+![https://ko-fi.com/ravachol](images/ravachol-Sharable-Profile-Horizontal.jpg)
 
 ## Installing
 
@@ -57,9 +56,10 @@ kew dependencies are:
 * pkg-config
 * glib2.0
 
-Install these dependencies using your distro's package manager and then install kew. Below are some examples.
+Install the necessary dependencies using your distro's package manager and then install kew. Below are some examples.
 
-#### For Debian/Ubuntu:
+<details>
+<summary>Debian/Ubuntu</summary>
 
 Install dependencies:
 
@@ -68,8 +68,10 @@ sudo apt install -y pkg-config libfaad-dev libtag1-dev libfftw3-dev libopus-dev 
 ```
 
 [Install kew](#install-kew)
+</details>
 
-#### For Arch Linux:
+<details>
+<summary>Arch Linux</summary>
 
 Install dependencies:
 
@@ -78,14 +80,18 @@ sudo pacman -Syu --noconfirm --needed pkg-config faad2 taglib fftw git gcc make 
 ```
 
 [Install kew](#install-kew)
+</details>
 
-#### For Android:
+<details>
+<summary>Android</summary>
 
 Follow the instructions here:
 
 [ANDROID-INSTRUCTIONS.md](ANDROID-INSTRUCTIONS.md)
+</details>
 
-#### For macOS:
+<details>
+<summary>macOS</summary>
 
 Install git:
 
@@ -102,9 +108,11 @@ Notes for mac users:
 1) A sixel-capable terminal like kitty or WezTerm is recommended for macOS.
 2) The visualizer and album colors are disabled by default on macOS, because the default terminal doesn't handle them too well. To enable press v and i respectively.
 
-  [Install kew](#install-kew)
+[Install kew](#install-kew)
+</details>
 
-#### For Fedora:
+<details>
+<summary>Fedora</summary>
 
 Install dependencies:
 
@@ -126,8 +134,10 @@ sudo dnf install faad2-devel faad2
 ```
 
 [Install kew](#install-kew)
+</details>
 
-#### For OpenSUSE:
+<details>
+<summary>OpenSUSE</summary>
 
 Install dependencies:
 
@@ -136,39 +146,38 @@ sudo zypper install -y pkgconf taglib fftw3-devel opusfile-devel libvorbis-devel
 ```
 
 [Install kew](#install-kew)
+</details>
 
-#### For CentOS/RHEL:
-
-Install dependencies:
-
-```bash
-sudo yum install -y pkgconfig taglib-devel fftw-devel opus-devel opusfile-devel libvorbis-devel libogg-devel git gcc make chafa-devel glib2-devel
-```
-Option: add libfaad2-devel for AAC,M4A support (Probably requires EPEL to be enabled).
-
-[Install kew](#install-kew)
-
-#### For Solus:
+<details>
+<summary>CentOS/Red Hat</summary>
 
 Install dependencies:
 
 ```bash
-sudo eopkg install -y pkg-config faad2-devel taglib-devel fftw-devel opus-devel opusfile-devel libvorbis-devel libogg-devel git gcc make chafa-devel glib2-devel
+sudo dnf config-manager --set-enabled crb
+
+sudo dnf install -y pkgconfig taglib taglib-devel fftw-devel opus-devel opusfile-devel libvorbis-devel libogg-devel git gcc make chafa-devel glib2-devel gcc-c++
 ```
 
-[Install kew](#install-kew)
+Option: add faad2-devel for AAC,M4A support (Requires RPM-fusion to be enabled).
 
-#### For Guix:
-
-Install dependencies:
+Enable RPM Fusion Free repository:
 
 ```bash
-guix install pkg-config faad2 taglib fftw git gcc make chafa opus opusfile libvorbis libogg glib
+sudo dnf install https://download1.rpmfusion.org/free/el/rpmfusion-free-release-$(rpm -E %rhel).noarch.rpm
+```
+
+Install faad2:
+
+```bash
+sudo dnf install faad2-devel
 ```
 
 [Install kew](#install-kew)
+</details>
 
-#### For Void Linux:
+<details>
+<summary>Void Linux</summary>
 
 Install dependencies:
 
@@ -177,8 +186,10 @@ sudo xbps-install -y pkg-config faad2 taglib taglib-devel fftw-devel git gcc mak
 ```
 
 [Install kew](#install-kew)
+</details>
 
-#### For Alpine Linux:
+<details>
+<summary>Alpine Linux</summary>
 
 Install dependencies:
 
@@ -188,15 +199,21 @@ sudo apk add pkgconfig faad2-dev taglib-dev fftw-dev opus-dev opusfile-dev libvo
 
 [Install kew](#install-kew)
 
-#### For Gentoo Linux:
+</details>
 
-Install dependencies:
+<details>
+<summary>Windows (WSL)</summary>
 
-```bash
-sudo emerge --ask pkgconf faad2 taglib fftw opus opusfile libvorbis libogg chafa dev-libs/glib
-```
+1) Install Windows Subsystem for Linux (WSL).
 
-[Install kew](#install-kew)
+2) Install kew using the instructions for Ubuntu.
+
+3) If you are running Windows 11, Pulseaudio should work out of the box, but if you are running Windows 10, use the instructions below for installing PulseAudio:
+https://www.reddit.com/r/bashonubuntuonwindows/comments/hrn1lz/wsl_sound_through_pulseaudio_solved/
+
+4) To install Pulseaudio as a service on Windows 10, follow the instructions at the bottom in this guide: https://www.linuxuprising.com/2021/03/how-to-get-sound-pulseaudio-to-work-on.html
+
+</details>
 
 #### Install kew
 Then run this (either git clone or unzip a release zip into a folder of your choice):
@@ -213,18 +230,6 @@ make -j4
 ```bash
 sudo make install
 ```
-
-#### For Windows (WSL):
-
-1) Install Windows Subsystem for Linux (WSL).
-
-2) Install kew using the instructions for Ubuntu.
-
-3) If you are running Windows 11, Pulseaudio should work out of the box, but if you are running Windows 10, use the instructions below for installing PulseAudio:
-https://www.reddit.com/r/bashonubuntuonwindows/comments/hrn1lz/wsl_sound_through_pulseaudio_solved/
-
-4) To install Pulseaudio as a service on Windows 10, follow the instructions at the bottom in this guide: https://www.linuxuprising.com/2021/03/how-to-get-sound-pulseaudio-to-work-on.html
-
 
 ### Uninstalling
 
