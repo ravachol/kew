@@ -753,7 +753,7 @@ void printLastRow(int row, int col, UISettings *ui, AppSettings *settings)
         int randomNumber = getRandomNumber(1, 808);
 
         if (randomNumber == 808 && !ui->hideGlimmeringText)
-                printGlimmeringText(row, col, text, textLength, nerdFontText, lastRowColor);
+                printGlimmeringText(row, centerIndent, text, textLength, nerdFontText, lastRowColor);
         else
         {
                 printf("%s", text);
