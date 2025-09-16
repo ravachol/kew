@@ -651,8 +651,9 @@ void printLastRow(int row, int col, UISettings *ui, AppSettings *settings)
 
         lastRowRow = row;
         lastRowCol = col;
+        int centerIndent = (term_w / 2) - strlen(LAST_ROW)/2;
 
-        printf("\033[%d;%dH", row, col);
+        printf("\033[%d;%dH", row, centerIndent);
 
         setTextColorRGB(lastRowColor.r, lastRowColor.g, lastRowColor.b);
 
