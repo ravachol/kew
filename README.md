@@ -20,7 +20,7 @@ kew (/kjuː/) is a terminal music player.
  * Supports desktop events through MPRIS.
  * Private, no data is collected by kew.
 
-![https://ko-fi.com/ravachol](images/ravachol-Sharable-Profile-Horizontal.jpg)
+<a href="https://ko-fi.com/ravachol"><img src="images/ravachol-Sharable-Profile-Horizontal.jpg" alt="Support kew"></a>
 
 ## Installing
 
