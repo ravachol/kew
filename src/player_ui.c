@@ -765,8 +765,8 @@ void calcAndPrintLastRowAndErrorRow(UISettings *ui, AppSettings *settings)
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
 
-#ifdef ANDROID
-        // Use two rows for the footer on Android. It makes everything fit even with narrow terminal widths.
+#if defined(__ANDROID__) || defined(__APPLE__)
+        // Use two rows for the footer on Android and macOS. It makes everything fit even with narrow terminal widths.
         if (hasErrorMessage())
                 printErrorRow(term_h - 1, indent);
         else
@@ -853,10 +853,12 @@ int showKeyBindings(SongData *songdata, AppSettings *settings, UISettings *ui)
         printBlankSpaces(indent);
         printf(" Project URL: https://github.com/ravachol/kew\n");
         printBlankSpaces(indent);
+        printf(" Please Donate: https://ko-fi.com/ravachol\n");
+        printBlankSpaces(indent);
         printf(" Copyright © 2022-2025 Ravachol.\n");
         printf("\n");
 
-        numPrintedRows += 27;
+        numPrintedRows += 28;
 
         while (numPrintedRows < maxListSize)
         {
