@@ -10,8 +10,6 @@
 
 - Made makefile compatible with openSuse Tumbleweed. The kew package has been updated on openSuse for the first time in a long time.
 
-- The kew logo is now hidden by default on new installs, for a more timeless aesthetics. This can be changed by setting hidelogo=0 in kewrc.
-
 - Added an icon indicating if the song is playing or paused before the title at the top when the logo is hidden.
 
 - Shows the playlist from the first song if the playing song will still be in view, instead of always starting from the playing song. By @ravachol. Suggested by @affhp.
