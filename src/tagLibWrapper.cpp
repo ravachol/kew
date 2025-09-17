@@ -62,23 +62,43 @@ static inline bool is_base64(unsigned char c)
 #define HAVE_COMPLEXPROPERTIES 0
 #endif
 
-// Function to decode Base64-encoded data
 std::vector<unsigned char> decodeBase64(const std::string &encoded_string)
 {
+        const size_t MAX_DECODED_SIZE = 100 * 1024 * 1024; // 100 MB
+        const std::string base64_chars =
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+        auto is_base64 = [&](unsigned char c) -> bool
+        {
+                return base64_chars.find(c) != std::string::npos;
+        };
+
+        auto base64_index = [&](unsigned char c) -> unsigned char
+        {
+                auto pos = base64_chars.find(c);
+                return pos != std::string::npos ? static_cast<unsigned char>(pos) : 0;
+        };
+
         size_t in_len = encoded_string.size();
         size_t i = 0;
         size_t in_ = 0;
         unsigned char char_array_4[4], char_array_3[3];
-        std::vector<unsigned char> decoded_data;
 
-        while (in_len-- && (encoded_string[in_] != '=') && is_base64(encoded_string[in_]))
+        // Rough estimate of decoded size
+        size_t decoded_size = (in_len * 3) / 4;
+        if (decoded_size > MAX_DECODED_SIZE)
+                throw std::runtime_error("Base64 input too large: exceeds 100 MB limit");
+
+        std::vector<unsigned char> decoded_data;
+        decoded_data.reserve(decoded_size);
+
+        while (in_len-- && encoded_string[in_] != '=' && is_base64(encoded_string[in_]))
         {
-                char_array_4[i++] = encoded_string[in_];
-                in_++;
+                char_array_4[i++] = encoded_string[in_++];
                 if (i == 4)
                 {
                         for (i = 0; i < 4; i++)
-                                char_array_4[i] = static_cast<unsigned char>(base64_chars.find(char_array_4[i]));
+                                char_array_4[i] = base64_index(char_array_4[i]);
 
                         char_array_3[0] = (char_array_4[0] << 2) + ((char_array_4[1] & 0x30) >> 4);
                         char_array_3[1] = ((char_array_4[1] & 0xf) << 4) + ((char_array_4[2] & 0x3c) >> 2);
@@ -91,20 +111,24 @@ std::vector<unsigned char> decodeBase64(const std::string &encoded_string)
                 }
         }
 
-        if (i)
+        // Process remaining characters
+        if (i > 0)
         {
                 for (size_t j = i; j < 4; j++)
                         char_array_4[j] = 0;
 
                 for (size_t j = 0; j < 4; j++)
-                        char_array_4[j] = static_cast<unsigned char>(base64_chars.find(char_array_4[j]));
+                        char_array_4[j] = is_base64(char_array_4[j]) ? base64_index(char_array_4[j]) : 0;
 
                 char_array_3[0] = (char_array_4[0] << 2) + ((char_array_4[1] & 0x30) >> 4);
                 char_array_3[1] = ((char_array_4[1] & 0xf) << 4) + ((char_array_4[2] & 0x3c) >> 2);
                 char_array_3[2] = ((char_array_4[2] & 0x3) << 6) + char_array_4[3];
 
-                for (size_t j = 0; j < i - 1; j++)
-                        decoded_data.push_back(char_array_3[j]);
+                if (i > 1)
+                {
+                        for (size_t j = 0; j < i - 1; j++)
+                                decoded_data.push_back(char_array_3[j]);
+                }
         }
 
         return decoded_data;
@@ -155,30 +179,39 @@ extern "C"
         {
                 const unsigned char *ptr = data.data();
                 size_t offset = 0;
+                size_t dataSize = data.size();
 
-                auto readUInt32 = [&](uint32_t &value)
+                auto readUInt32 = [&](uint32_t &value) -> bool
                 {
+                        if (offset + 4 > dataSize)
+                                return false; // check bounds
                         value = (ptr[offset] << 24) | (ptr[offset + 1] << 16) |
                                 (ptr[offset + 2] << 8) | ptr[offset + 3];
                         offset += 4;
+                        return true;
                 };
 
                 uint32_t pictureType, mimeLength, descLength, width, height, depth, colors, dataLength;
-                readUInt32(pictureType);
-                readUInt32(mimeLength);
 
+                if (!readUInt32(pictureType) || !readUInt32(mimeLength))
+                        return;
+                if (offset + mimeLength > dataSize)
+                        return;
                 mimeType = std::string(reinterpret_cast<const char *>(&ptr[offset]), mimeLength);
                 offset += mimeLength;
 
-                readUInt32(descLength);
-                offset += descLength; // Skip description
+                if (!readUInt32(descLength))
+                        return;
+                if (offset + descLength > dataSize)
+                        return;
+                offset += descLength; // skip description
 
-                readUInt32(width);
-                readUInt32(height);
-                readUInt32(depth);
-                readUInt32(colors);
-                readUInt32(dataLength);
+                if (!readUInt32(width) || !readUInt32(height) || !readUInt32(depth) ||
+                    !readUInt32(colors) || !readUInt32(dataLength))
+                        return;
 
+                if (offset + dataLength > dataSize)
+                        return;
                 imageData.assign(&ptr[offset], &ptr[offset + dataLength]);
         }
 

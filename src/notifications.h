@@ -14,6 +14,4 @@ int displaySongNotification(const char *artist, const char *title, const char *c
 
 #endif
 
-void freeLastCover(void);
-
 #endif

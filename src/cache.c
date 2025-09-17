@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "cache.h"
+
 /*
 
 cache.c
@@ -17,7 +18,7 @@ Cache *createCache()
         Cache *cache = malloc(sizeof(Cache));
         if (cache == NULL)
         {
-                perror("malloc");
+                fprintf(stderr, "createCache: malloc\n");
                 return NULL;
         }
         cache->head = NULL;
@@ -26,27 +27,42 @@ Cache *createCache()
 
 void addToCache(Cache *cache, const char *filePath)
 {
-        if (cache == NULL)
-        {
-                fprintf(stderr, "Cache is null.");
-                return;
-        }
-        CacheNode *newNode = malloc(sizeof(CacheNode));
-        if (newNode == NULL)
-        {
-                perror("malloc");
-                return;
-        }
-        newNode->filePath = strdup(filePath);
-        newNode->next = cache->head;
-        cache->head = newNode;
+    if (cache == NULL)
+    {
+        fprintf(stderr, "Cache is null.\n");
+        return;
+    }
+
+    if (filePath == NULL || *filePath == '\0')
+    {
+        fprintf(stderr, "Invalid filePath.\n");
+        return;
+    }
+
+    CacheNode *newNode = malloc(sizeof(CacheNode));
+    if (newNode == NULL)
+    {
+        fprintf(stderr, "addToCache: malloc\n");
+        return;
+    }
+
+    newNode->filePath = strdup(filePath);
+    if (newNode->filePath == NULL)
+    {
+        fprintf(stderr, "addToCache: strdup\n");
+        free(newNode); // prevent memory leak
+        return;
+    }
+
+    newNode->next = cache->head;
+    cache->head = newNode;
 }
 
 void deleteCache(Cache *cache)
 {
         if (cache == NULL)
         {
-                fprintf(stderr, "Cache is null.");
+                fprintf(stderr, "deleteCache: Cache is null.");
                 return;
         }
         CacheNode *current = cache->head;
@@ -64,7 +80,7 @@ bool existsInCache(Cache *cache, char *filePath)
 {
         if (cache == NULL)
         {
-                fprintf(stderr, "Cache is null.");
+                fprintf(stderr, "existsInCache: Cache is null.");
                 return false;
         }
         CacheNode *current = cache->head;

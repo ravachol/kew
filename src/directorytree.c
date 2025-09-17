@@ -29,6 +29,12 @@ FileSystemEntry *createEntry(const char *name, int isDirectory, FileSystemEntry 
         if (newEntry != NULL)
         {
                 newEntry->name = strdup(name);
+                if (newEntry->name == NULL)
+                {
+                        fprintf(stderr, "createEntry: name is null\n");
+                        free(newEntry);
+                        return NULL;
+                }
 
                 newEntry->isDirectory = isDirectory;
                 newEntry->isEnqueued = 0;
@@ -57,15 +63,49 @@ void addChild(FileSystemEntry *parent, FileSystemEntry *child)
         }
 }
 
+int isValidEntryName(const char *name)
+{
+        if (name == NULL)
+                return 0;
+
+        // Reject path separators and traversal
+        for (const char *p = name; *p; p++)
+        {
+                if (*p == '/' || *p == '\\')
+                        return 0;
+        }
+        return 1;
+}
+
 void setFullPath(FileSystemEntry *entry, const char *parentPath, const char *entryName)
 {
         if (entry == NULL || parentPath == NULL || entryName == NULL)
         {
-
                 return;
         }
 
-        size_t fullPathLength = strnlen(parentPath, MAXPATHLEN) + strnlen(entryName, MAXPATHLEN) + 2; // +2 for '/' and '\0'
+        if (!isValidEntryName(entryName))
+        {
+                // Limit printed length to avoid huge strings
+                size_t maxLen = 256;
+                char buf[257]; // +1 for null terminator
+                strncpy(buf, entryName, maxLen);
+                buf[maxLen] = '\0'; // ensure null-termination
+
+                fprintf(stderr, "Invalid entryName (possible path traversal): '%s'\n", buf);
+                return;
+        }
+
+        size_t parentLen = strnlen(parentPath, MAXPATHLEN);
+        size_t nameLen = strnlen(entryName, MAXPATHLEN);
+
+        // Check for overflow against MAXPATHLEN
+        if (parentLen + nameLen + 2 > MAXPATHLEN)
+        {
+
+                return; // Path too long
+        }
+        size_t fullPathLength = parentLen + nameLen + 2; // +1 for '/' +1 for '\0'
 
         entry->fullPath = malloc(fullPathLength);
         if (entry->fullPath == NULL)
@@ -100,36 +140,38 @@ int naturalCompare(const char *a, const char *b)
 {
         while (*a && *b)
         {
-                if (isdigit(*a) && isdigit(*b))
+                if (isdigit((unsigned char)*a) && isdigit((unsigned char)*b))
                 {
-                        // Compare numerically
                         char *endA, *endB;
                         long numA = strtol(a, &endA, 10);
                         long numB = strtol(b, &endB, 10);
 
-                        if (numA != numB)
-                        {
-                                return numA - numB;
-                        }
+                        if (numA < numB)
+                                return -1;
+                        else if (numA > numB)
+                                return 1;
 
-                        // Move pointers past the numeric part
+                        // Numbers are equal, advance pointers
                         a = endA;
                         b = endB;
                 }
                 else
                 {
                         if (*a != *b)
-                        {
-                                return *a - *b;
-                        }
+                                return (unsigned char)*a - (unsigned char)*b;
 
                         a++;
                         b++;
                 }
         }
 
-        // If all parts so far are equal, shorter string should come first
-        return *a - *b;
+        // If all parts equal so far, shorter string comes first
+        if (*a == 0 && *b == 0)
+                return 0;
+        else if (*a == 0)
+                return -1;
+        else
+                return 1;
 }
 
 int compareLibEntries(const struct dirent **a, const struct dirent **b)
@@ -199,12 +241,12 @@ int compareEntryNaturalReversed(const void *a, const void *b)
         return -compareEntryNatural(a, b);
 }
 
-int removeEmptyDirectories(FileSystemEntry *node)
+#define MAX_RECURSION_DEPTH 1024
+
+int removeEmptyDirectories(FileSystemEntry *node, int depth)
 {
-        if (node == NULL)
-        {
+        if (node == NULL || depth > MAX_RECURSION_DEPTH)
                 return 0;
-        }
 
         FileSystemEntry *currentChild = node->children;
         FileSystemEntry *prevChild = NULL;
@@ -214,7 +256,7 @@ int removeEmptyDirectories(FileSystemEntry *node)
         {
                 if (currentChild->isDirectory)
                 {
-                        numEntries += removeEmptyDirectories(currentChild);
+                        numEntries += removeEmptyDirectories(currentChild, depth+1);
 
                         if (currentChild->children == NULL)
                         {
@@ -296,7 +338,13 @@ int readDirectory(const char *path, FileSystemEntry *parent)
 
                                 FileSystemEntry *child = createEntry(entry->d_name, isDir, parent);
 
+                                if (child == NULL)
+                                        continue;
+
                                 setFullPath(child, path, entry->d_name);
+
+                                if (child->fullPath == NULL)
+                                        continue;
 
                                 addChild(parent, child);
 
@@ -360,7 +408,7 @@ FileSystemEntry *createDirectoryTree(const char *startPath, int *numEntries)
         setFullPath(root, "", "");
 
         *numEntries = readDirectory(startPath, root);
-        *numEntries -= removeEmptyDirectories(root);
+        *numEntries -= removeEmptyDirectories(root, 0);
 
         lastUsedId = 0;
 
@@ -440,6 +488,12 @@ FileSystemEntry *reconstructTreeFromFile(const char *filename, const char *start
                 FileSystemEntry *node = malloc(sizeof(FileSystemEntry));
                 node->id = id;
                 node->name = strdup(name);
+                if (node->name == NULL)
+                {
+                        fprintf(stderr, "reconstructTreeFromFile:name is null\n");
+                        free(node);
+                        continue;
+                }
                 node->isDirectory = isDir;
                 node->isEnqueued = 0;
                 node->parentId = parentId;
@@ -477,6 +531,12 @@ FileSystemEntry *reconstructTreeFromFile(const char *filename, const char *start
                 {
                         node->parent = NULL;
                         node->fullPath = strdup(startMusicPath);
+                        if (node->fullPath == NULL)
+                        {
+                                fprintf(stderr, "reconstructTreeFromFiley: fullPath is null\n");
+                                free(node);
+                                continue;
+                        }
                         root = node;
                 }
         }

@@ -59,6 +59,9 @@ void clearMagnitudes(int numBars, float *magnitudes)
 
 void applyBlackmanHarris(float *fftInput, int bufferSize)
 {
+        if (!fftInput || bufferSize <= 1)
+                return;
+
         float alpha0 = 0.35875f;
         float alpha1 = 0.48829f;
         float alpha2 = 0.14128f;
@@ -78,14 +81,13 @@ void applyBlackmanHarris(float *fftInput, int bufferSize)
 void computeBandCenters(float minFreq, float sampleRate, int numBands, float *centerFreqs)
 {
         float nyquist = sampleRate * 0.5f;
-        float maxFreq = fminf(nyquist, sampleRate * 0.5f); // clamp at Nyquist
-        float octaveFraction = 1.0f / 3.0f;                // 1/3 octave
+        float octaveFraction = 1.0f / 3.0f; // 1/3 octave
         float factor = powf(2.0f, octaveFraction);
         float f = minFreq;
-        
+
         for (int i = 0; i < numBands; i++)
         {
-                if (f > maxFreq)
+                if (f > nyquist)
                 {
                         centerFreqs[i] = nyquist; // Clamp remaining bands at Nyquist
                 }
@@ -105,14 +107,17 @@ void fillEQBands(
     int numBands,
     const float *centerFreqs)
 {
+        if (!fftOutput || !bandDb || !centerFreqs || bufferSize <= 0 || numBands <= 0 || sampleRate <= 0.0f)
+                return;
+
         int numBins = bufferSize / 2 + 1;
-        float binSpacing = sampleRate / bufferSize;
+        float binSpacing = (float)sampleRate / (float)bufferSize;
         float width = powf(2.0f, 1.0f / 6.0f); // 1/3 octave: +/- 1/6 octave half-width
 
         float normFactor = bufferSize;
 
         // Pink-noise flattening: +3 dB/octave
-        float referenceFreq = centerFreqs[0];
+        float referenceFreq = fmaxf(centerFreqs[0], 1e-6f);
         float correctionPerOctave = 3.0f;
         float maxFreqForCorrection = 10000.0f; // Above this, keep correction flat
 
@@ -144,6 +149,9 @@ void fillEQBands(
                 int count = 0;
                 for (int k = binLo; k <= binHi; k++)
                 {
+                        if (k < 0 || k >= numBins)
+                                continue;
+
                         // Normalize FFT output
                         float real = fftOutput[k][0] / normFactor;
                         float imag = fftOutput[k][1] / normFactor;
