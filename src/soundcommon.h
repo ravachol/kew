@@ -299,8 +299,6 @@ void clearCurrentTrack(void);
 
 void cleanupDbusConnection();
 
-void freeLastCover(void);
-
 void getWebmFileInfo(const char *filename, ma_format *format, ma_uint32 *channels, ma_uint32 *sampleRate, ma_channel *channelMap);
 
 int prepareNextWebmDecoder(SongData *songData);

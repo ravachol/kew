@@ -62,56 +62,75 @@ static gboolean tmux_allow_passthrough_is_changed;
 static gboolean
 apply_passthrough_workarounds_tmux(void)
 {
-        gboolean result = FALSE;
-        gchar *standard_output = NULL;
-        gchar *standard_error = NULL;
-        gchar **strings;
-        gchar *mode = NULL;
-        gint wait_status = -1;
+    gboolean result = FALSE;
+    gchar *standard_output = NULL;
+    gchar *standard_error = NULL;
+    gchar **argv = NULL;
+    gint wait_status = -1;
+    gchar *mode = NULL;
 
-        /* allow-passthrough can be either unset, "on" or "all". Both "on" and "all"
-         * are fine, so don't mess with it if we don't have to.
-         *
-         * Also note that we may be in a remote session inside tmux. */
+    /* Use g_spawn_sync with explicit argv to avoid shell injection */
+    argv = g_new0(gchar*, 4);
+    argv[0] = g_strdup("tmux");
+    argv[1] = g_strdup("show");
+    argv[2] = g_strdup("allow-passthrough");
+    argv[3] = NULL;
 
-        if (!g_spawn_command_line_sync("tmux show allow-passthrough",
-                                       &standard_output, &standard_error,
-                                       &wait_status, NULL))
-                goto out;
+    if (!g_spawn_sync(NULL, argv, NULL, G_SPAWN_SEARCH_PATH,
+                      NULL, NULL, &standard_output, &standard_error,
+                      &wait_status, NULL))
+    {
+        g_strfreev(argv);
+        goto out;
+    }
+    g_strfreev(argv);
 
-        strings = g_strsplit_set(standard_output, " ", -1);
-        if (strings[0] && strings[1])
+    /* Parse output safely */
+    if (standard_output && *standard_output)
+    {
+        gchar **lines = g_strsplit(standard_output, "\n", 2);
+        if (lines[0])
         {
-                mode = g_ascii_strdown(strings[1], -1);
+            gchar **parts = g_strsplit(lines[0], " ", 3);
+            if (parts[0] && parts[1])
+            {
+                mode = g_ascii_strdown(parts[1], -1);
                 g_strstrip(mode);
+            }
+            g_strfreev(parts);
         }
-        g_strfreev(strings);
+        g_strfreev(lines);
+    }
 
-        g_free(standard_output);
-        standard_output = NULL;
-        g_free(standard_error);
-        standard_error = NULL;
+    if (!mode || (strcmp(mode, "on") && strcmp(mode, "all")))
+    {
+        argv = g_new0(gchar*, 4);
+        argv[0] = g_strdup("tmux");
+        argv[1] = g_strdup("set-option");
+        argv[2] = g_strdup("allow-passthrough on");
+        argv[3] = NULL;
 
-        if (!mode || (strcmp(mode, "on") && strcmp(mode, "all")))
+        result = g_spawn_sync(NULL, argv, NULL, G_SPAWN_SEARCH_PATH,
+                             NULL, NULL, &standard_output, &standard_error,
+                             &wait_status, NULL);
+        g_strfreev(argv);
+
+        if (result)
         {
-                result = g_spawn_command_line_sync("tmux set-option allow-passthrough on",
-                                                   &standard_output, &standard_error,
-                                                   &wait_status, NULL);
-                if (result)
-                {
-                        tmux_allow_passthrough_original = mode;
-                        tmux_allow_passthrough_is_changed = TRUE;
-                }
+            tmux_allow_passthrough_original = mode;
+            tmux_allow_passthrough_is_changed = TRUE;
         }
-        else
-        {
-                g_free(mode);
-        }
+    }
+    else
+    {
+        g_free(mode);
+    }
 
 out:
-        g_free(standard_output);
-        g_free(standard_error);
-        return result;
+    g_free(standard_output);
+    g_free(standard_error);
+    g_free(mode);
+    return result;
 }
 
 gboolean
@@ -120,24 +139,44 @@ retire_passthrough_workarounds_tmux(void)
         gboolean result = FALSE;
         gchar *standard_output = NULL;
         gchar *standard_error = NULL;
-        gchar *cmd;
         gint wait_status = -1;
+        gchar **argv = NULL;
 
         if (!tmux_allow_passthrough_is_changed)
                 return TRUE;
 
         if (tmux_allow_passthrough_original)
         {
-                cmd = g_strdup_printf("tmux set-option allow-passthrough %s",
-                                      tmux_allow_passthrough_original);
+                // Use argument array to avoid shell injection
+                argv = g_new0(gchar *, 5);
+                argv[0] = g_strdup("tmux");
+                argv[1] = g_strdup("set-option");
+                argv[2] = g_strdup("allow-passthrough");
+                argv[3] = g_strdup(tmux_allow_passthrough_original);
+                argv[4] = NULL;
         }
         else
         {
-                cmd = g_strdup("tmux set-option -u allow-passthrough");
+                // Use argument array for unsetting the option
+                argv = g_new0(gchar *, 4);
+                argv[0] = g_strdup("tmux");
+                argv[1] = g_strdup("set-option");
+                argv[2] = g_strdup("-u");
+                argv[3] = g_strdup("allow-passthrough");
         }
 
-        result = g_spawn_command_line_sync(cmd, &standard_output, &standard_error,
-                                           &wait_status, NULL);
+        result = g_spawn_sync(
+            NULL, argv, NULL,
+            G_SPAWN_SEARCH_PATH,
+            NULL, NULL,
+            &standard_output, &standard_error,
+            &wait_status, NULL);
+
+        // Free the argument array
+        for (int i = 0; argv[i] != NULL; i++)
+                g_free(argv[i]);
+        g_free(argv);
+
         if (result)
         {
                 g_free(tmux_allow_passthrough_original);
