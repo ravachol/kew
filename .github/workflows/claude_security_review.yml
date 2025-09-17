@@ -42,16 +42,16 @@ jobs:
               """Find code files to analyze"""
               code_files = []
               exclude_dirs = {'.git', 'node_modules', '__pycache__', 'venv', 'build', 'dist', 'target'}
-              
+
               for ext in extensions.split(','):
                   ext = ext.strip()
                   files = glob.glob(f"**/*.{ext}", recursive=True)
-                  
+
                   # Filter out excluded directories
                   for file in files:
                       if not any(excluded in file for excluded in exclude_dirs):
                           code_files.append(file)
-              
+
               # Remove duplicates, sort, and limit
               code_files = sorted(list(set(code_files)))[:int(max_files)]
               return code_files
@@ -62,7 +62,7 @@ jobs:
                   # Read file with size limit for cost control
                   with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
                       content = f.read()[:6000]  # Limit to ~6k chars per file
-                  
+
                   prompt = f"""Analyze this {file_path} file for security vulnerabilities in a C/C++ Linux terminal music player application.
 
           CONTEXT: This is a terminal music player with NO database, web access, or network functionality. Focus on vulnerabilities specific to:
@@ -102,17 +102,17 @@ jobs:
           ```
 
           Respond with findings in this format:
-          SEVERITY: Description (Line X if applicable) - AUDIO_PARSING/BUFFER/MEMORY/etc
+          SEVERITY: Description (function name) - AUDIO_PARSING/BUFFER/MEMORY/etc
           """
-                  
+
                   response = client.messages.create(
                       model="claude-sonnet-4-20250514",
                       max_tokens=1500,
                       messages=[{"role": "user", "content": prompt}]
                   )
-                  
+
                   return response.content[0].text
-                  
+
               except Exception as e:
                   return f"Error analyzing {file_path}: {str(e)}"
 
@@ -122,30 +122,30 @@ jobs:
               if not api_key:
                   print("❌ ERROR: ANTHROPIC_API_KEY not found")
                   return
-              
+
               max_files = os.environ.get('MAX_FILES', '50')
               extensions = os.environ.get('EXTENSIONS', 'c,cpp,h')
-              
+
               print(f"🔍 Security Scan Starting")
               print(f"📁 Max files: {max_files}")
               print(f"📄 Extensions: {extensions}")
               print("=" * 60)
-              
+
               client = anthropic.Anthropic(api_key=api_key)
-              
+
               # Find files
               code_files = get_code_files(extensions, max_files)
               print(f"Found {len(code_files)} files to analyze\n")
-              
+
               # Analyze files
               total_issues = 0
               critical_issues = 0
-              
+
               for i, file_path in enumerate(code_files, 1):
                   print(f"[{i:2d}/{len(code_files)}] 🔍 {file_path}")
-                  
+
                   analysis = analyze_file(client, file_path)
-                  
+
                   # Count issues
                   if "CRITICAL:" in analysis:
                       critical_issues += analysis.count("CRITICAL:")
@@ -156,7 +156,7 @@ jobs:
                       total_issues += analysis.count("MEDIUM:")
                   if "LOW:" in analysis:
                       total_issues += analysis.count("LOW:")
-                  
+
                   # Print results
                   if any(severity in analysis for severity in ["CRITICAL:", "HIGH:", "MEDIUM:", "LOW:"]):
                       print(f"     ⚠️  Issues found:")
@@ -166,9 +166,9 @@ jobs:
                       print()
                   else:
                       print("     ✅ No issues found")
-                  
+
                   print("-" * 50)
-              
+
               # Summary
               print(f"\n🎯 SECURITY SCAN COMPLETE")
               print(f"📊 Files analyzed: {len(code_files)}")
@@ -187,7 +187,7 @@ jobs:
               main()
           EOF
 
-      - name: Upload Results Summary  
+      - name: Upload Results Summary
         if: always()
         run: |
           echo "Security scan completed at $(date)" > scan-summary.txt
