@@ -79,6 +79,8 @@ FileSystemEntry *lastEntry = NULL;
 FileSystemEntry *chosenDir = NULL;
 FileSystemEntry *library = NULL;
 
+static const int LOGO_WIDTH = 22;
+
 const char *LOGO[] = {
     " __\n",
     "|  |--.-----.--.--.--.\n",
@@ -180,116 +182,106 @@ void printHelp()
                "\n");
 }
 
-int printLogo(SongData *songData, UISettings *ui)
+static const char *getPlayerStatusIcon(void)
 {
-        int height = 0;
-        int logoWidth = 0;
-        size_t logoHeight = sizeof(LOGO) / sizeof(LOGO[0]);
+        if (isPaused())
+                return "⏸";
+        if (isStopped())
+                return "■";
+        return "▶";
+}
 
-        PixelData rowColor;
-        rowColor.r = defaultColor;
-        rowColor.g = defaultColor;
-        rowColor.b = defaultColor;
-
-        if (!ui->hideLogo)
-        {
-                for (size_t i = 0; i < logoHeight; i++)
-                {
-                        if (!(ui->color.r == defaultColor && ui->color.g == defaultColor && ui->color.b == defaultColor))
-                                rowColor = getGradientColor(ui->color, logoHeight - i, logoHeight, 2, 0.8f);
-
-                        if (ui->useConfigColors)
-                                setTextColor(ui->mainColor);
-                        else
-                                setColorAndWeight(false, rowColor, ui->useConfigColors);
-                        printBlankSpaces(indent);
-                        printf("%s", LOGO[i]);
-                }
-
-                logoWidth = 22;
-                height += 3;
-        }
-        else
+static int printLogoArt(const UISettings *ui, int indent)
+{
+        if (ui->hideLogo)
         {
                 printf("\n");
-                height += 1;
+                return 1;
         }
 
-        if (songData != NULL && songData->metadata != NULL)
+        size_t logoHeight = sizeof(LOGO) / sizeof(LOGO[0]);
+        for (size_t i = 0; i < logoHeight; i++)
         {
-                int term_w, term_h;
-                getTermSize(&term_w, &term_h);
+                PixelData rowColor = {defaultColor, defaultColor, defaultColor};
 
-                char title[MAXPATHLEN] = {0};
-
-                int titleLength = strnlen(songData->metadata->title, METADATA_MAX_SIZE);
-                char prettyTitle[titleLength + 1];
-
-                strncpy(prettyTitle, songData->metadata->title, titleLength);
-                prettyTitle[titleLength] = '\0';
-
-                trim(prettyTitle, titleLength);
-
-                const char *playerStatusIcon;
-
-                if (isPaused()) {
-                    playerStatusIcon = "⏸";
-                } else if (isStopped()) {
-                    playerStatusIcon = "■";
-                } else {
-                    playerStatusIcon = "▶";
-                }
-
-                if (ui->hideLogo && songData->metadata->artist[0] != '\0')
+                if (!(ui->color.r == defaultColor &&
+                      ui->color.g == defaultColor &&
+                      ui->color.b == defaultColor))
                 {
-                        printBlankSpaces(indent);
-                        snprintf(title, MAXPATHLEN, "%s %s - %s",
-                                 playerStatusIcon,
-                                 songData->metadata->artist,
-                                 prettyTitle);
+                        rowColor = getGradientColor(ui->color, logoHeight - i, logoHeight, 2, 0.8f);
                 }
-                else
-                {
-                        if (ui->hideLogo)
-                        {
-                                printBlankSpaces(indent);
-                                snprintf(title, MAXPATHLEN, "%s %s",
-                                        playerStatusIcon,
-                                        prettyTitle);
-
-                        }
-                        else
-                        {
-                                c_strcpy(title, prettyTitle, METADATA_MAX_SIZE - 1);
-                        }
-                        title[MAXPATHLEN - 1] = '\0';
-                }
-
-                int maxWidth = term_w - indent - indent;
-
-                if (!ui->hideLogo)
-                        maxWidth -= logoWidth + 4;
-                else
-                        maxWidth -= 2;
-
-                char output[MAXPATHLEN + 1];
-                output[0] = '\0';
-
-                processName(title, output, maxWidth, false, false);
 
                 if (ui->useConfigColors)
-                        setTextColor(ui->titleColor);
+                        setTextColor(ui->mainColor);
+                else
+                        setColorAndWeight(false, rowColor, ui->useConfigColors);
 
-                printf(" %s\n\n", output);
-                height += 2;
+                printBlankSpaces(indent);
+                printf("%s", LOGO[i]);
+        }
+        return 3; // lines used by logo
+}
+
+static void buildSongTitle(const SongData *songData, const UISettings *ui,
+                           char *out, size_t outSize, int indent)
+{
+        if (!songData || !songData->metadata)
+        {
+                out[0] = '\0';
+                return;
+        }
+
+        const char *icon = getPlayerStatusIcon();
+
+        char prettyTitle[METADATA_MAX_SIZE] = {0};
+        strncpy(prettyTitle, songData->metadata->title, METADATA_MAX_SIZE - 1);
+        trim(prettyTitle, strlen(prettyTitle));
+
+        if (ui->hideLogo && songData->metadata->artist[0] != '\0')
+        {
+                snprintf(out, outSize, "%*s%s %s - %s", indent, "", icon,
+                         songData->metadata->artist, prettyTitle);
+        }
+        else if (ui->hideLogo)
+        {
+                snprintf(out, outSize, "%*s%s %s", indent, "", icon, prettyTitle);
         }
         else
         {
-                printf("\n\n");
-                height += 2;
+                strncpy(out, prettyTitle, outSize - 1);
+                out[outSize - 1] = '\0';
+        }
+}
+
+int printLogo(SongData *songData, UISettings *ui)
+{
+        int term_w, term_h;
+        getTermSize(&term_w, &term_h);
+
+        char title[MAXPATHLEN + 1];
+        int logoWidth = ui->hideLogo ? 0 : LOGO_WIDTH;
+        int maxWidth = term_w - indent - indent - (ui->hideLogo ? 2 : logoWidth + 4);
+
+        int height = printLogoArt(ui, indent);
+
+        buildSongTitle(songData, ui, title, sizeof(title), indent);
+
+        if (ui->useConfigColors)
+                setTextColor(ui->mainColor);
+
+        if (title[0] != '\0')
+        {
+                char processed[MAXPATHLEN + 1] = {0};
+                processName(title, processed, maxWidth, false, false);
+
+                if (ui->hideLogo)
+                        printBlankSpaces(indent);
+                printf(" %s", processed);
         }
 
-        return height;
+        printf("\n\n");
+
+        return height + 2;
 }
 
 int getYear(const char *dateString)
@@ -1048,16 +1040,14 @@ int printLogoAndAdjustments(SongData *songData, int termWidth, UISettings *ui, i
         {
                 setDefaultTextColor();
                 printBlankSpaces(indentation);
-                printf(" Use ↑, ↓ or k, j to choose. Enter=Accept.\n");
+                printf(" Use ↑/↓ or k/j to select. Enter=Accept. Backspace: clear.\n");
                 printBlankSpaces(indentation);
 #ifndef __APPLE__
-                printf(" Pg Up and Pg Dn to scroll. Del to remove an entry.\n");
+                printf(" PgUp/PgDn: scroll. Del: remove. t/g: move songs.\n\n");
 #else
-                printf(" Fn+Arrow Up and Fn+Arrow Down to scroll. Del to remove an entry.\n");
+                printf(" Fn+↑/↓: scroll. Del: remove. t/g: move songs.\n\n");
 #endif
-                printBlankSpaces(indentation);
-                printf(" Backspace to clear. Use t, g to move the songs.\n\n");
-                return aboutRows + 4;
+                return aboutRows + 3;
         }
         return aboutRows;
 }
@@ -1076,7 +1066,7 @@ void showSearch(SongData *songData, int *chosenRow, UISettings *ui, AppSettings 
         if (term_w > indent + 38 && !ui->hideHelp)
         {
                 printBlankSpaces(indent);
-                printf(" Use ↑, ↓ to choose. Enter=Enqueue. Alt+Enter=Play.\n\n");
+                printf(" Use ↑/↓ to select. Enter=Enq. Alt+Enter=Play.\n\n");
                 maxSearchListSize -= 2;
         }
 
@@ -1445,7 +1435,7 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
 
                                 if (pathEndsWith(root->fullPath, "m3u") || pathEndsWith(root->fullPath, "m3u8"))
                                 {
-                                    printf("\e[3m"); // print playlists in italics to distinguish them
+                                        printf("\e[3m"); // print playlists in italics to distinguish them
                                 }
 
                                 printf("%s\n", filename);
@@ -1542,12 +1532,12 @@ void showLibrary(SongData *songData, AppState *state, AppSettings *settings)
         {
                 maxLibListSize -= 3;
                 printBlankSpaces(indent);
-                printf(" Use ↑, ↓ or k, j to choose. Enter=Enqueue/Dequeue. Alt+Enter=Play.\n");
+                printf(" Use ↑/↓ or k/j to select. Enter=Enq/Deq. Alt+Enter=Play.\n");
                 printBlankSpaces(indent);
 #ifndef __APPLE__
-                printf(" Pg Up and Pg Dn to scroll. Press u to update, o to sort.\n\n");
+                printf(" PgUp/PgDn: scroll. u: update, o: sort.\n\n");
 #else
-                printf(" Fn+Arrow Up and Fn+Arrow Down to scroll. u to update, o to sort.\n\n");
+                printf(" Fn+↑/↓: scroll. u: update, o: sort.\n\n");
 #endif
         }
 
@@ -1716,7 +1706,7 @@ void showTrackViewLandscape(int height, int width, float aspectRatio, AppSetting
 
                 printCover(height, songdata, &(state->uiSettings));
                 if (height > metadataHeight)
-                        printBasicMetadata(row, col, visualizerWidth-1, metadata, &(state->uiSettings));
+                        printBasicMetadata(row, col, visualizerWidth - 1, metadata, &(state->uiSettings));
 
                 refresh = false;
         }
@@ -1760,7 +1750,7 @@ void showTrackViewPortrait(int height, AppSettings *settings, SongData *songdata
                 }
 
                 printCoverCentered(songdata, &(state->uiSettings));
-                printBasicMetadata(row, col, visualizerWidth-1, metadata, &(state->uiSettings));
+                printBasicMetadata(row, col, visualizerWidth - 1, metadata, &(state->uiSettings));
 
                 refresh = false;
         }
