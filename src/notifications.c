@@ -1,5 +1,6 @@
 #include <fcntl.h>
 #include <glib.h>
+#include <pthread.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <sys/time.h>
@@ -14,11 +15,9 @@ notifications.c
 
 */
 
-char *lastCover = NULL;
-
 bool isValidFilepath(const char *path)
 {
-        if (path == NULL || strnlen(path, PATH_MAX) == 0 || strnlen(path, PATH_MAX) >= PATH_MAX)
+        if (path == NULL || *path == '\0' || strnlen(path, PATH_MAX) >= PATH_MAX)
         {
                 return false;
         }
@@ -37,6 +36,8 @@ void removeBlacklistedChars(const char *input, const char *blacklist, char *outp
 {
         if (!input || !blacklist || !output || output_size == 0)
         {
+                if (output && output_size > 0)
+                        *output = '\0';
                 return;
         }
 
@@ -60,6 +61,10 @@ void removeBlacklistedChars(const char *input, const char *blacklist, char *outp
 
 void ensureNonEmpty(char *str)
 {
+        if (str == NULL)
+        {
+                return;
+        }
         if (str[0] == '\0')
         {
                 str[0] = ' ';
@@ -324,14 +329,6 @@ int displaySongNotification(const char *artist, const char *title, const char *c
 
         int coverExists = isValidFilepath(cover);
 
-        // Free and update the cover
-        if (lastCover != NULL)
-        {
-                free(lastCover);
-                lastCover = NULL;
-        }
-        lastCover = cover != NULL ? strdup(cover) : NULL;
-
         cleanupPreviousNotification();
 
         // Create a new notification
@@ -392,12 +389,3 @@ void cleanupDbusConnection()
         }
 }
 #endif
-
-void freeLastCover(void)
-{
-        if (lastCover != NULL)
-        {
-                free(lastCover);
-                lastCover = NULL;
-        }
-}

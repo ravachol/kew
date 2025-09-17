@@ -7,7 +7,7 @@
 #endif
 
 #ifdef __GNU__
-# define _BSD_SOURCE
+#define _BSD_SOURCE
 #endif
 
 void setTextColor(int color);
@@ -16,7 +16,7 @@ void setTextColorRGB(int r, int g, int b);
 
 void getTermSize(int *width, int *height);
 
-int getIndentation(int terminalWidth);
+int getIndentation(int textWidth);
 
 void setNonblockingMode(void);
 

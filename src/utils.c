@@ -39,12 +39,13 @@ int getRandomNumber(int min, int max)
 
 int getRandomNumber(int min, int max)
 {
-    static int seeded = 0;
-    if (!seeded) {
-        srand(time(NULL));
-        seeded = 1;
-    }
-    return min + (rand() % (max - min + 1));
+        static int seeded = 0;
+        if (!seeded)
+        {
+                srand(time(NULL));
+                seeded = 1;
+        }
+        return min + (rand() % (max - min + 1));
 }
 
 #endif
@@ -59,9 +60,15 @@ void c_sleep(int milliseconds)
 
 void c_usleep(int microseconds)
 {
+        if (microseconds < 0 || microseconds > 100000000) // Max 100 seconds
+        {
+                return;
+        }
+
         struct timespec ts;
         ts.tv_sec = microseconds / 1000000;
-        ts.tv_nsec = microseconds % 1000;
+        ts.tv_nsec = (microseconds % 1000000) * 1000; // Convert remaining microseconds to nanoseconds
+
         nanosleep(&ts, NULL);
 }
 
@@ -91,6 +98,10 @@ char *c_strcasestr(const char *haystack, const char *needle, int maxScanLen)
                 return NULL;
 
         size_t needleLen = strnlen(needle, maxScanLen);
+
+        if (needleLen == 0)
+                return (char *)haystack;
+
         size_t haystackLen = strnlen(haystack, maxScanLen);
 
         if (needleLen > haystackLen)
@@ -114,8 +125,10 @@ int match_regex(const regex_t *regex, const char *ext)
                 fprintf(stderr, "Invalid arguments\n");
                 return 1;
         }
-        regmatch_t pmatch[1]; // Array to store match results
+
+        regmatch_t pmatch[1];
         int ret = regexec(regex, ext, 1, pmatch, 0);
+
         if (ret == REG_NOMATCH)
         {
                 return 1;
@@ -126,15 +139,31 @@ int match_regex(const regex_t *regex, const char *ext)
         }
         else
         {
-                char errorBuf[100];
-                regerror(ret, regex, errorBuf, sizeof(errorBuf));
-                fprintf(stderr, "Regex match failed: %s\n", errorBuf);
+                char errorBuf[512]; // Much larger buffer
+                size_t error_size = regerror(ret, regex, errorBuf, sizeof(errorBuf));
+
+                if (error_size >= sizeof(errorBuf))
+                {
+                        fprintf(stderr, "Regex match failed (error message truncated): %s\n", errorBuf);
+                }
+                else
+                {
+                        fprintf(stderr, "Regex match failed: %s\n", errorBuf);
+                }
+
                 return 1;
         }
 }
 
 void extractExtension(const char *filename, size_t ext_size, char *ext)
 {
+        if (!filename || !ext || ext_size == 0)
+        {
+                if (ext && ext_size > 0)
+                        ext[0] = '\0';
+                return;
+        }
+
         size_t length = strnlen(filename, MAXPATHLEN);
 
         // Find the last '.' character in the filename
@@ -155,6 +184,8 @@ void extractExtension(const char *filename, size_t ext_size, char *ext)
         }
 
         size_t i = 0, j = 0;
+        size_t dot_pos = dot - filename;
+
         while (dot[i + 1] != '\0' && j < ext_size - 1)
         {
                 unsigned char c = dot[i + 1];
@@ -183,10 +214,34 @@ void extractExtension(const char *filename, size_t ext_size, char *ext)
                         break;
                 }
 
+                // Safe overflow check
+                if (dot_pos + i + 1 >= length || charSize > length - dot_pos - i - 1)
+                {
+                        break;
+                }
+
                 // Make sure we don't copy past the buffer
                 if (j + charSize >= ext_size)
                 {
                         break;
+                }
+
+                bool valid_utf8 = true;
+                if (charSize > 1)
+                {
+                        for (size_t k = 1; k < charSize; k++)
+                        {
+                                if ((dot[i + 1 + k] & 0xC0) != 0x80)
+                                {
+                                        valid_utf8 = false;
+                                        break;
+                                }
+                        }
+                }
+
+                if (!valid_utf8)
+                {
+                        charSize = 1;
                 }
 
                 // Copy the UTF-8 character
@@ -195,7 +250,6 @@ void extractExtension(const char *filename, size_t ext_size, char *ext)
                 i += charSize;
         }
 
-        // Null-terminate the result
         ext[j] = '\0';
 }
 
@@ -228,21 +282,41 @@ int pathStartsWith(const char *str, const char *prefix)
 
 void trim(char *str, int maxLen)
 {
+        if (!str || maxLen <= 0)
+        {
+                return;
+        }
+
+        // Find start (skip leading whitespace)
         char *start = str;
         while (*start && isspace(*start))
         {
                 start++;
         }
-        char *end = str + strnlen(str, maxLen) - 1;
-        while (end > start && isspace(*end))
+
+        // Handle case where string is all whitespace or empty
+        size_t len = strnlen(start, maxLen - (start - str));
+        if (len == 0)
+        {
+                str[0] = '\0';
+                return;
+        }
+
+        // Find end (skip trailing whitespace)
+        char *end = start + len - 1;
+        while (end >= start && isspace(*end))
         {
                 end--;
         }
+
+        // Null terminate
         *(end + 1) = '\0';
 
-        if (str != start)
+        // Move trimmed string to beginning if needed
+        if (start != str)
         {
-                memmove(str, start, end - start + 2);
+                size_t trimmed_len = end - start + 1;
+                memmove(str, start, trimmed_len + 1); // +1 for null terminator
         }
 }
 
@@ -301,41 +375,71 @@ char *getConfigPath(void)
         return configPath;
 }
 
+bool isValidFilename(const char *filename)
+{
+        // Check for path traversal patterns
+        if (strstr(filename, "..") != NULL)
+        {
+                return false;
+        }
+
+        // Check for path separators (works for UTF-8)
+        if (strchr(filename, '/') != NULL || strchr(filename, '\\') != NULL)
+        {
+                return false;
+        }
+
+        // Don't allow starting with dot (hidden files)
+        if (filename[0] == '.')
+        {
+                return false;
+        }
+
+        // Allow everything else (including UTF-8 Chinese characters)
+        return true;
+}
+
 char *getFilePath(const char *filename)
 {
-    if (filename == NULL)
-    {
-        return NULL;
-    }
+        if (filename == NULL || !isValidFilename(filename))
+        {
+                return NULL;
+        }
 
-    char *configdir = getConfigPath();
-    if (configdir == NULL)
-    {
-        return NULL;
-    }
+        // Also check it doesn't start with a dot (hidden files)
+        if (filename[0] == '.')
+        {
+                return NULL;
+        }
 
-    size_t configdir_length = strnlen(configdir, MAXPATHLEN);
-    size_t filename_length = strnlen(filename, MAXPATHLEN);
+        char *configdir = getConfigPath();
+        if (configdir == NULL)
+        {
+                return NULL;
+        }
 
-    size_t filepath_length = configdir_length + 1 + filename_length + 1;
+        size_t configdir_length = strnlen(configdir, MAXPATHLEN);
+        size_t filename_length = strnlen(filename, MAXPATHLEN);
 
-    if (filepath_length > MAXPATHLEN)
-    {
+        size_t filepath_length = configdir_length + 1 + filename_length + 1;
+
+        if (filepath_length > MAXPATHLEN)
+        {
+                free(configdir);
+                return NULL;
+        }
+
+        char *filepath = (char *)malloc(filepath_length);
+        if (filepath == NULL)
+        {
+                free(configdir);
+                return NULL;
+        }
+
+        snprintf(filepath, filepath_length, "%s/%s", configdir, filename);
+
         free(configdir);
-        return NULL;
-    }
-
-    char *filepath = (char *)malloc(filepath_length);
-    if (filepath == NULL)
-    {
-        free(configdir);
-        return NULL;
-    }
-
-    snprintf(filepath, filepath_length, "%s/%s", configdir, filename);
-
-    free(configdir);
-    return filepath;
+        return filepath;
 }
 
 void removeUnneededChars(char *str, int length)
@@ -412,18 +516,18 @@ int getNumber(const char *str)
 
 float getFloat(const char *str)
 {
-    char *endptr;
-    float value = strtof(str, &endptr);
+        char *endptr;
+        float value = strtof(str, &endptr);
 
-    if (str == endptr)
-    {
-        return 0.0f;
-    }
+        if (str == endptr)
+        {
+                return 0.0f;
+        }
 
-    if (isnan(value) || isinf(value) || value < -FLT_MAX || value > FLT_MAX)
-    {
-        return 0.0f;
-    }
+        if (isnan(value) || isinf(value) || value < -FLT_MAX || value > FLT_MAX)
+        {
+                return 0.0f;
+        }
 
-    return value;
+        return value;
 }

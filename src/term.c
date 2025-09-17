@@ -45,7 +45,13 @@ void setTextColorRGB(int r, int g, int b)
 void getTermSize(int *width, int *height)
 {
         struct winsize w;
-        ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
+
+        if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) == -1 ||
+            w.ws_row == 0 || w.ws_col == 0)
+        {
+                fprintf(stderr, "Cannot determine terminal size. Make sure you're running in a terminal.\n");
+                exit(1);
+        }
 
         *height = (int)w.ws_row;
         *width = (int)w.ws_col;
@@ -132,7 +138,7 @@ void clearRestOfScreen()
 
 void clearScreen()
 {
-        printf("\033[3J");      // Clear scrollback buffer
+        printf("\033[3J");              // Clear scrollback buffer
         printf("\033[2J\033[3J\033[H"); // Move cursor to top-left and clear screen and scrollback buffer
 }
 
@@ -225,12 +231,25 @@ int readInputSequence(char *seq, size_t seqSize)
         return additionalBytes + 1;
 }
 
-int getIndentation(int terminalWidth)
+int getIndentation(int textWidth)
 {
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
-        int indent = ((term_w - terminalWidth) / 2) + 1;
-        return (indent > 0) ? indent : 0;
+
+        if (textWidth <= 0 || term_w <= 0)
+        {
+                return 0;
+        }
+
+        if (textWidth >= term_w)
+        {
+                textWidth = term_w;
+        }
+
+        int available_space = term_w - textWidth;
+        int indent = (available_space / 2) + 1;
+
+        return indent;
 }
 
 void enterAlternateScreenBuffer()
