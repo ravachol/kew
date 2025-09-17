@@ -75,7 +75,7 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
 #ifdef __ANDROID__
         c_strcpy(settings.hideLogo, "1", sizeof(settings.hideLogo));
 #else
-        c_strcpy(settings.hideLogo, "1", sizeof(settings.hideLogo));
+        c_strcpy(settings.hideLogo, "0", sizeof(settings.hideLogo));
 #endif
         c_strcpy(settings.hideHelp, "0", sizeof(settings.hideHelp));
         c_strcpy(settings.cacheLibrary, "-1", sizeof(settings.cacheLibrary));
