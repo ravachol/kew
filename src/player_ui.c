@@ -234,7 +234,7 @@ static void buildSongTitle(const SongData *songData, const UISettings *ui,
         const char *icon = getPlayerStatusIcon();
 
         char prettyTitle[METADATA_MAX_SIZE] = {0};
-        strncpy(prettyTitle, songData->metadata->title, METADATA_MAX_SIZE - 1);
+        snprintf(prettyTitle, METADATA_MAX_SIZE, "%s", songData->metadata->title);
         trim(prettyTitle, strlen(prettyTitle));
 
         if (ui->hideLogo && songData->metadata->artist[0] != '\0')
@@ -1435,7 +1435,7 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize, int maxNameWi
 
                                 if (pathEndsWith(root->fullPath, "m3u") || pathEndsWith(root->fullPath, "m3u8"))
                                 {
-                                        printf("\e[3m"); // print playlists in italics to distinguish them
+                                        printf("\e[3m"); // Print playlists in italics to distinguish them
                                 }
 
                                 printf("%s\n", filename);
