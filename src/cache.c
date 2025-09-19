@@ -62,10 +62,12 @@ void deleteCache(Cache *cache)
 {
         if (cache == NULL)
         {
-                fprintf(stderr, "deleteCache: Cache is null.");
+                fprintf(stderr, "deleteCache: Cache is null.\n");
                 return;
         }
+
         CacheNode *current = cache->head;
+
         while (current != NULL)
         {
                 CacheNode *tmp = current;
@@ -73,17 +75,23 @@ void deleteCache(Cache *cache)
                 free(tmp->filePath);
                 free(tmp);
         }
+        
         free(cache);
 }
 
 bool existsInCache(Cache *cache, char *filePath)
 {
+        if (filePath == NULL)
+                return false;
+
         if (cache == NULL)
         {
                 fprintf(stderr, "existsInCache: Cache is null.");
                 return false;
         }
+
         CacheNode *current = cache->head;
+
         while (current != NULL)
         {
                 if (strcmp(filePath, current->filePath) == 0)
@@ -93,5 +101,6 @@ bool existsInCache(Cache *cache, char *filePath)
 
                 current = current->next;
         }
+
         return false;
 }

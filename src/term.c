@@ -22,6 +22,8 @@ term.c
 
 */
 
+const int MAX_TERMINAL_ROWS = 9999;
+
 void setTextColor(int color)
 {
         /*
@@ -34,11 +36,22 @@ void setTextColor(int color)
         - 6: Cyan
         - 7: White
         */
+
+        if (color < 0 || color > 7)
+                color = 7;
+
         printf("\033[0;3%dm", color);
 }
 
 void setTextColorRGB(int r, int g, int b)
 {
+        if (r < 0 || r > 255)
+                r = 255;
+        if (g < 0 || g > 255)
+                g = 255;
+        if (b < 0 || b > 255)
+                b = 255;
+
         printf("\033[0;38;2;%03u;%03u;%03um", (unsigned int)r, (unsigned int)g, (unsigned int)b);
 }
 
@@ -165,70 +178,74 @@ void enableInputBuffering()
 
 void cursorJump(int numRows)
 {
+        if (numRows < 0 || numRows > MAX_TERMINAL_ROWS)
+                return;
+
         printf("\033[%dA", numRows);
         printf("\033[0m");
 }
 
 void cursorJumpDown(int numRows)
 {
+        if (numRows < 0 || numRows > MAX_TERMINAL_ROWS)
+                return;
+
         printf("\033[%dB", numRows);
 }
 
 int readInputSequence(char *seq, size_t seqSize)
 {
-        char c;
-        ssize_t bytesRead;
-        seq[0] = '\0';
-        bytesRead = read(STDIN_FILENO, &c, 1);
-        if (bytesRead <= 0)
-        {
+        if (seq == NULL || seqSize < 2) // Buffer needs at least 1 byte + null terminator
                 return 0;
-        }
 
-        // If it's a single-byte ASCII character, return it
+        char c;
+        ssize_t bytesRead = read(STDIN_FILENO, &c, 1);
+        if (bytesRead <= 0)
+                return 0;
+
+        // ASCII character (single byte, no continuation bytes)
         if ((c & 0x80) == 0)
         {
+                if (seqSize < 2) // Make sure there's space for the null terminator
+                        return 0;
                 seq[0] = c;
                 seq[1] = '\0';
                 return 1;
         }
 
-        // Determine the length of the UTF-8 sequence
+        // Determine the length of the UTF-8 sequence and validate the first byte
         int additionalBytes;
         if ((c & 0xE0) == 0xC0)
-        {
                 additionalBytes = 1; // 2-byte sequence
-        }
         else if ((c & 0xF0) == 0xE0)
-        {
                 additionalBytes = 2; // 3-byte sequence
-        }
         else if ((c & 0xF8) == 0xF0)
-        {
                 additionalBytes = 3; // 4-byte sequence
-        }
         else
-        {
-                // Invalid UTF-8 start byte
-                return 0;
-        }
+                return 0; // Invalid UTF-8 start byte
 
-        // Ensure there's enough space in the buffer
-        if ((size_t)additionalBytes + 1 >= seqSize)
-        {
+        // Ensure the buffer can hold the full sequence plus the null terminator
+        if ((size_t)additionalBytes + 2 > seqSize)
                 return 0;
-        }
 
-        // Read the remaining bytes of the UTF-8 sequence
         seq[0] = c;
+
+        // Read the continuation bytes
         bytesRead = read(STDIN_FILENO, &seq[1], additionalBytes);
         if (bytesRead != additionalBytes)
-        {
                 return 0;
+
+        // Validate continuation bytes (0x80 <= byte <= 0xBF)
+        for (int i = 1; i <= additionalBytes; ++i)
+        {
+                if ((seq[i] & 0xC0) != 0x80)
+                        return 0; // Invalid continuation byte
         }
 
+        // Null terminate the string
         seq[additionalBytes + 1] = '\0';
-        return additionalBytes + 1;
+
+        return additionalBytes + 1; // Return the total length including the null terminator
 }
 
 int getIndentation(int textWidth)

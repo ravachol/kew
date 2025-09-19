@@ -154,57 +154,87 @@ enum EventType getMouseLastRowEvent(int mouseXOnLastRow)
 
 bool mouseInputHandled(char *seq, int i, struct Event *event)
 {
+        if (!seq || !event)
+                return false;
+
+        const char *expected = (i >= 0 && i < NUM_KEY_MAPPINGS) ? keyMappings[i].seq : NULL;
+        if (!expected)
+                return false;
+
+        // Copy the sequence safely
         char tmpSeq[MAX_SEQ_LEN];
+        size_t src_len = strnlen(seq, MAX_SEQ_LEN - 1);
+        snprintf(tmpSeq, sizeof tmpSeq, "%.*s", (int)src_len, seq);
 
-        c_strcpy(tmpSeq, seq, MAX_SEQ_LEN - 1);
+        // If the sequence is too short we cannot have a valid mouse event.
+        if (src_len < 4) // At least ESC[ M + 3 digits?
+                return false;
 
-        int mouseButton, mouseX, mouseY;
-        mouseButton = mouseX = mouseY = 0;
-        char *mouseTmp = strtok(tmpSeq + 3, ";");
+        // Parse the three semicolon-separated numbers safely
+        int mouseButton = 0, mouseX = 0, mouseY = 0;
+        const char *p = tmpSeq + 3; // Skip ESC[ M
 
-        if (mouseTmp != NULL)
-                mouseButton = getNumber(mouseTmp);
-        mouseTmp = strtok(NULL, ";");
-        if (mouseTmp != NULL)
-                mouseX = getNumber(mouseTmp);
-        mouseTmp = strtok(NULL, ";");
-        if (mouseTmp != NULL)
-                mouseY = getNumber(mouseTmp);
-
-        if (progressBarLength > 0)
+        for (int field = 0; field < 3 && p && *p; ++field)
         {
-                draggedProgressBarCol = mouseX - progressBarCol;
+                long val = strtol(p, (char **)&p, 10); // Stop at ';' or NUL
+                if (*p == ';')
+                        ++p; // Consume ';'
 
-                float position = (float)draggedProgressBarCol / (float)progressBarLength;
-                double duration = getCurrentSongDuration();
-                draggedPositionSeconds = (float)duration * position;
+                switch (field)
+                {
+                case 0:
+                        mouseButton = (int)val;
+                        break;
+                case 1:
+                        mouseX = (int)val;
+                        break;
+                case 2:
+                        mouseY = (int)val;
+                        break;
+                }
         }
 
-        // Clicked on last row
-        if (mouseY == lastRowRow && lastRowCol > 0 &&
-            mouseX - lastRowCol > 0 && mouseX - lastRowCol < (int)strlen(LAST_ROW) &&
+        // Progress-bar math
+        if (progressBarLength > 0)
+        {
+                long long deltaCol = (long long)mouseX - (long long)progressBarCol;
+
+                // Clamp the value so we never divide by zero or overflow.
+                double position = 0.0;
+                if (deltaCol >= 0 && deltaCol <= progressBarLength)
+                        position = (double)deltaCol / (double)progressBarLength;
+
+                double duration = getCurrentSongDuration();
+                draggedPositionSeconds = duration * position;
+        }
+
+        // Handle various click cases
+        if (mouseY == lastRowRow &&
+            lastRowCol > 0 &&
+            mouseX - lastRowCol > 0 &&
+            mouseX - lastRowCol < (int)strlen(LAST_ROW) &&
             mouseButton != MOUSE_DRAG)
         {
                 event->type = getMouseLastRowEvent(mouseX - lastRowCol);
                 return true;
         }
-        // Clicked on progress bar
-        else if ((mouseY == progressBarRow || draggingProgressBar) &&
-                 mouseX - progressBarCol >= 0 && mouseX - progressBarCol < progressBarLength &&
-                 appState.currentView == TRACK_VIEW)
-        {
 
+        if ((mouseY == progressBarRow || draggingProgressBar) &&
+            mouseX - progressBarCol >= 0 &&
+            mouseX - progressBarCol < progressBarLength &&
+            appState.currentView == TRACK_VIEW)
+        {
                 if (mouseButton == MOUSE_DRAG || mouseButton == MOUSE_CLICK)
                 {
                         draggingProgressBar = true;
-                        gint64 newPositionMicroSeconds = draggedPositionSeconds * G_USEC_PER_SEC;
-                        setPosition(newPositionMicroSeconds);
+                        gint64 newPosUs = (gint64)(draggedPositionSeconds * G_USEC_PER_SEC);
+                        setPosition(newPosUs);
                 }
                 return true;
         }
 
-        // Normal mouse event
-        if (strncmp(seq + 1, keyMappings[i].seq, strlen(keyMappings[i].seq)) == 0)
+        // Fallback: normal key-mapping comparison
+        if (strncmp(seq + 1, expected, strlen(expected)) == 0)
         {
                 event->type = keyMappings[i].eventType;
                 return true;

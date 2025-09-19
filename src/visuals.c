@@ -80,11 +80,15 @@ void applyBlackmanHarris(float *fftInput, int bufferSize)
 // Fill center freqs for 1/3-octave bands, given min/max freq and numBands
 void computeBandCenters(float minFreq, float sampleRate, int numBands, float *centerFreqs)
 {
+        if (!centerFreqs || numBands <= 0 || minFreq <= 0 || sampleRate <= 0)
+                return;
+
         float nyquist = sampleRate * 0.5f;
         float octaveFraction = 1.0f / 3.0f; // 1/3 octave
         float factor = powf(2.0f, octaveFraction);
         float f = minFreq;
 
+        // Ensure we don't exceed the Nyquist frequency
         for (int i = 0; i < numBands; i++)
         {
                 if (f > nyquist)
@@ -95,6 +99,12 @@ void computeBandCenters(float minFreq, float sampleRate, int numBands, float *ce
                 {
                         centerFreqs[i] = f;
                         f *= factor;
+
+                        // Safeguard against overflow in case 'f' grows too large
+                        if (f > nyquist)
+                        {
+                                f = nyquist;
+                        }
                 }
         }
 }
@@ -110,11 +120,23 @@ void fillEQBands(
         if (!fftOutput || !bandDb || !centerFreqs || bufferSize <= 0 || numBands <= 0 || sampleRate <= 0.0f)
                 return;
 
-        int numBins = bufferSize / 2 + 1;
-        float binSpacing = (float)sampleRate / (float)bufferSize;
-        float width = powf(2.0f, 1.0f / 6.0f); // 1/3 octave: +/- 1/6 octave half-width
+        // Check for valid bufferSize before proceeding
+        if (bufferSize <= 0)
+                return;
 
-        float normFactor = bufferSize;
+        int numBins = bufferSize / 2 + 1;
+        if (numBins <= 0)
+                return; // Guard against potential overflow during division
+
+        // Ensure binSpacing is valid (non-zero)
+        float binSpacing = (float)sampleRate / (float)bufferSize;
+        if (binSpacing <= 0)
+                return; // Avoid invalid bin spacing
+
+        float width = powf(2.0f, 1.0f / 6.0f); // 1/3 octave: +/- 1/6 octave half-width
+        float normFactor = (float)bufferSize;
+        if (normFactor <= 0)
+                return; // Avoid division by zero in future calculations
 
         // Pink-noise flattening: +3 dB/octave
         float referenceFreq = fmaxf(centerFreqs[0], 1e-6f);
@@ -136,14 +158,13 @@ void fillEQBands(
                 float lo = center / width;
                 float hi = center * width;
 
+                // Prevent integer overflow while computing bin indices
                 int binLo = (int)ceilf(lo / binSpacing);
                 int binHi = (int)floorf(hi / binSpacing);
-                if (binLo < 0)
-                        binLo = 0;
-                if (binHi >= numBins)
-                        binHi = numBins - 1;
-                if (binHi < binLo)
-                        binHi = binLo;
+
+                binLo = (binLo < 0) ? 0 : binLo;
+                binHi = (binHi >= numBins) ? numBins - 1 : binHi;
+                binHi = (binHi < binLo) ? binLo : binHi;
 
                 float sumSq = 0.0f;
                 int count = 0;
@@ -159,8 +180,10 @@ void fillEQBands(
                         sumSq += mag * mag;
                         count++;
                 }
-                float rms = (count > 0) ? sqrtf(sumSq / count) : 0.0f;
-                bandDb[i] = 20.0f * log10f(rms + 1e-9f);
+
+                // Ensure rms does not become zero, as log10(0) is undefined
+                float rms = (count > 0) ? sqrtf(sumSq / count) : 1e-9f; // Use a small value instead of 0
+                bandDb[i] = 20.0f * log10f(rms);
 
                 float freq = centerFreqs[i];
                 float octavesAboveRef = log2f(fminf(freq, maxFreqForCorrection) / referenceFreq);
@@ -169,24 +192,24 @@ void fillEQBands(
         }
 }
 
-int normalizeAudioSamples(const void *audioBuffer, float *fftInput, int fftSize, int bitDepth)
+int normalizeAudioSamples(const void *audioBuffer, float *fftInput, int bufferSize, int bitDepth)
 {
         if (bitDepth == 8)
         {
                 const uint8_t *buf = (const uint8_t *)audioBuffer;
-                for (int i = 0; i < fftSize; ++i)
+                for (int i = 0; i < bufferSize; ++i)
                         fftInput[i] = ((float)buf[i] - 127.0f) / 128.0f;
         }
         else if (bitDepth == 16)
         {
                 const int16_t *buf = (const int16_t *)audioBuffer;
-                for (int i = 0; i < fftSize; ++i)
+                for (int i = 0; i < bufferSize; ++i)
                         fftInput[i] = (float)buf[i] / 32768.0f;
         }
         else if (bitDepth == 24)
         {
                 const uint8_t *buf = (const uint8_t *)audioBuffer;
-                for (int i = 0; i < fftSize; ++i)
+                for (int i = 0; i < bufferSize; ++i)
                 {
                         int32_t sample = unpack_s24(buf + i * 3);
                         fftInput[i] = (float)sample / 8388608.0f;
@@ -195,7 +218,7 @@ int normalizeAudioSamples(const void *audioBuffer, float *fftInput, int fftSize,
         else if (bitDepth == 32)
         {
                 const float *buf = (const float *)audioBuffer;
-                for (int i = 0; i < fftSize; ++i)
+                for (int i = 0; i < bufferSize; ++i)
                         fftInput[i] = buf[i];
         }
         else

@@ -29,21 +29,37 @@ file.c
 
 void getDirectoryFromPath(const char *path, char *directory)
 {
-        size_t path_length = strnlen(path, MAXPATHLEN);
-        char tmpPath[path_length + 1];
-        c_strcpy(tmpPath, path, sizeof(tmpPath));
+        if (!path || !directory)
+                return;
 
-        char *dir = dirname(tmpPath);
+        size_t len = strnlen(path, MAXPATHLEN);
 
-        // Copy directory name to the output buffer
-        snprintf(directory, MAXPATHLEN, "%s", dir);
-
-        size_t directory_length = strnlen(directory, MAXPATHLEN);
-        if (directory[directory_length - 1] != '/' && directory_length + 1 < MAXPATHLEN)
+        char *tmp = malloc(len + 1);
+        if (!tmp)
         {
-                // Use snprintf to append '/' at the end of directory
-                snprintf(directory + directory_length, MAXPATHLEN - directory_length, "/");
+                fprintf(stderr, "Out of memory while processing path\n");
+                return;
         }
+
+        memcpy(tmp, path, len + 1);
+
+        // dirname() may modify the buffer, so we keep it in tmp
+        char *dir = dirname(tmp);
+
+        // Copy the result to the caller‑supplied buffer safely
+        strlcpy(directory, dir, MAXPATHLEN);
+
+        /// Ensure a trailing '/'
+        size_t dlen = strnlen(directory, MAXPATHLEN);
+
+        if (dlen > 0 && directory[dlen - 1] != '/' &&
+            dlen + 1 < MAXPATHLEN)
+        {
+                directory[dlen] = '/';
+                directory[dlen + 1] = '\0';
+        }
+
+        free(tmp);
 }
 
 int existsFile(const char *fname)

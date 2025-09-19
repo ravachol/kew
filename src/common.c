@@ -24,6 +24,9 @@ volatile bool refresh = true; // Should the whole view be refreshed next time it
 
 void setErrorMessage(const char *message)
 {
+        if (message == NULL)
+                return;
+
         strncpy(currentErrorMessage, message, ERROR_MESSAGE_LENGTH - 1);
         currentErrorMessage[ERROR_MESSAGE_LENGTH - 1] = '\0';
         hasPrintedError = false;

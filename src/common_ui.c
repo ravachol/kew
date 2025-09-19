@@ -48,6 +48,9 @@ void setColorAndWeight(int bold, PixelData color, int useConfigColors)
                 return;
         }
 
+        if (bold < 0 || bold > 1)
+                bold = 0;
+
         if (color.r == defaultColor && color.g == defaultColor && color.b == defaultColor)
         {
                 printf("\033[%dm", bold);
@@ -86,22 +89,36 @@ struct interval
         int last;
 };
 
-/* auxiliary function for binary search in interval table */
+// Auxiliary function for binary search in interval table
 static int bisearch(wchar_t ucs, const struct interval *table, int max)
 {
         int min = 0;
 
-        if (ucs < table[0].first || ucs > table[max].last)
+        if (table == NULL || max < 0)
                 return 0;
-        while (max >= min)
+
+        // Clamp ucs to int range for comparison
+        if (ucs < (wchar_t)table[0].first || ucs > (wchar_t)table[max].last)
+                return 0;
+
+        while (min <= max)
         {
                 int mid = min + (max - min) / 2;
-                if (ucs > table[mid].last)
+
+                if (ucs > (wchar_t)table[mid].last)
+                {
                         min = mid + 1;
-                else if (ucs < table[mid].first)
+                }
+                else if (ucs < (wchar_t)table[mid].first)
+                {
+                        if (mid == 0) // Prevent mid-1 underflow
+                                return 0;
                         max = mid - 1;
+                }
                 else
+                {
                         return 1;
+                }
         }
 
         return 0;
@@ -241,7 +258,8 @@ static bool hasFullwidthChars(const char *str)
 
 void processName(const char *name, char *output, int maxWidth, bool stripUnneededChars, bool stripSuffix)
 {
-        if (!name) {
+        if (!name)
+        {
                 output[0] = '\0';
                 return;
         }
