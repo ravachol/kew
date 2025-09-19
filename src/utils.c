@@ -42,10 +42,11 @@ int getRandomNumber(int min, int max)
         static int seeded = 0;
         if (!seeded)
         {
-                srand(time(NULL));
+                srandom(time(NULL)); // Use srandom() to seed the random number generator
                 seeded = 1;
         }
-        return min + (rand() % (max - min + 1));
+
+        return min + (random() % (max - min + 1)); // Use random() instead of rand()
 }
 
 #endif
@@ -53,8 +54,17 @@ int getRandomNumber(int min, int max)
 void c_sleep(int milliseconds)
 {
         struct timespec ts;
-        ts.tv_sec = milliseconds / 1000;
-        ts.tv_nsec = milliseconds % 1000 * 1000000;
+        ts.tv_sec = milliseconds / 1000; // Seconds part
+        // Ensure that the nanoseconds part is computed safely, and no overflow happens
+        ts.tv_nsec = (milliseconds % 1000) * 1000000;
+
+        // Make sure that nanoseconds is within valid range
+        if (ts.tv_nsec >= 1000000000)
+        {
+                ts.tv_sec += ts.tv_nsec / 1000000000;
+                ts.tv_nsec %= 1000000000;
+        }
+
         nanosleep(&ts, NULL);
 }
 
@@ -74,27 +84,51 @@ void c_usleep(int microseconds)
 
 void c_strcpy(char *dest, const char *src, size_t dest_size)
 {
-        if (dest && dest_size > 0 && src)
+        // Ensure the destination and source are valid, and dest_size is large enough to hold at least one byte
+        if (dest && src && dest_size > 0)
         {
+                // Calculate the length of the source string, limited by dest_size - 1 (for the null terminator)
                 size_t src_length = strnlen(src, dest_size - 1);
+
+                // Safely copy up to src_length bytes from src to dest
                 memcpy(dest, src, src_length);
+
+                // Null-terminate the destination string
                 dest[src_length] = '\0';
+        }
+        else if (dest && dest_size > 0) // If source is NULL, we clear the destination buffer
+        {
+                dest[0] = '\0';
         }
 }
 
 char *stringToLower(const char *str)
 {
-        return g_utf8_strdown(str, -1);
+        if (str == NULL)
+        {
+                return NULL;
+        }
+
+        size_t length = strnlen(str, MAXPATHLEN);
+
+        return g_utf8_strdown(str, length);
 }
 
 char *stringToUpper(const char *str)
 {
-        return g_utf8_strup(str, -1);
+        if (str == NULL)
+        {
+                return NULL;
+        }
+
+        size_t length = strnlen(str, MAXPATHLEN);
+
+        return g_utf8_strup(str, length);
 }
 
 char *c_strcasestr(const char *haystack, const char *needle, int maxScanLen)
 {
-        if (!haystack || !needle)
+        if (!haystack || !needle || maxScanLen <= 0)
                 return NULL;
 
         size_t needleLen = strnlen(needle, maxScanLen);
@@ -139,20 +173,46 @@ int match_regex(const regex_t *regex, const char *ext)
         }
         else
         {
-                char errorBuf[512]; // Much larger buffer
-                size_t error_size = regerror(ret, regex, errorBuf, sizeof(errorBuf));
-
-                if (error_size >= sizeof(errorBuf))
-                {
-                        fprintf(stderr, "Regex match failed (error message truncated): %s\n", errorBuf);
-                }
-                else
-                {
-                        fprintf(stderr, "Regex match failed: %s\n", errorBuf);
-                }
+                fprintf(stderr, "match_regex: Regex match failed");
 
                 return 1;
         }
+}
+
+bool isValidUTF8(const char *str, size_t len)
+{
+        size_t i = 0;
+        while (i < len)
+        {
+                unsigned char c = str[i];
+                if (c <= 0x7F) // 1-byte ASCII character
+                {
+                        i++;
+                }
+                else if ((c & 0xE0) == 0xC0) // 2-byte sequence
+                {
+                        if (i + 1 >= len || (str[i + 1] & 0xC0) != 0x80)
+                                return false;
+                        i += 2;
+                }
+                else if ((c & 0xF0) == 0xE0) // 3-byte sequence
+                {
+                        if (i + 2 >= len || (str[i + 1] & 0xC0) != 0x80 || (str[i + 2] & 0xC0) != 0x80)
+                                return false;
+                        i += 3;
+                }
+                else if ((c & 0xF8) == 0xF0) // 4-byte sequence
+                {
+                        if (i + 3 >= len || (str[i + 1] & 0xC0) != 0x80 || (str[i + 2] & 0xC0) != 0x80 || (str[i + 3] & 0xC0) != 0x80)
+                                return false;
+                        i += 4;
+                }
+                else
+                {
+                        return false; // Invalid UTF-8
+                }
+        }
+        return true;
 }
 
 void extractExtension(const char *filename, size_t ext_size, char *ext)
@@ -184,72 +244,47 @@ void extractExtension(const char *filename, size_t ext_size, char *ext)
         }
 
         size_t i = 0, j = 0;
-        size_t dot_pos = dot - filename;
+        size_t dot_pos = dot - filename + 1;
 
-        while (dot[i + 1] != '\0' && j < ext_size - 1)
+        // Copy the extension while checking for UTF-8 validity
+        while (dot_pos + i < length && filename[dot_pos + i] != '\0' && j < ext_size - 1)
         {
-                unsigned char c = dot[i + 1];
+                size_t char_size = 1; // Default to 1 byte (ASCII)
 
-                // Determine the number of bytes for the current UTF-8 character
-                size_t charSize;
-                if (c < 0x80)
+                unsigned char c = filename[dot_pos + i];
+                if ((c & 0x80) != 0) // Check if the character is multi-byte
                 {
-                        charSize = 1; // 1-byte character (ASCII)
-                }
-                else if ((c & 0xE0) == 0xC0)
-                {
-                        charSize = 2; // 2-byte character
-                }
-                else if ((c & 0xF0) == 0xE0)
-                {
-                        charSize = 3; // 3-byte character
-                }
-                else if ((c & 0xF8) == 0xF0)
-                {
-                        charSize = 4; // 4-byte character
-                }
-                else
-                {
-                        // Invalid UTF-8 byte sequence, stop copying
-                        break;
-                }
-
-                // Safe overflow check
-                if (dot_pos + i + 1 >= length || charSize > length - dot_pos - i - 1)
-                {
-                        break;
-                }
-
-                // Make sure we don't copy past the buffer
-                if (j + charSize >= ext_size)
-                {
-                        break;
-                }
-
-                bool valid_utf8 = true;
-                if (charSize > 1)
-                {
-                        for (size_t k = 1; k < charSize; k++)
+                        if ((c & 0xE0) == 0xC0) // 2-byte sequence
+                                char_size = 2;
+                        else if ((c & 0xF0) == 0xE0) // 3-byte sequence
+                                char_size = 3;
+                        else if ((c & 0xF8) == 0xF0) // 4-byte sequence
+                                char_size = 4;
+                        else
                         {
-                                if ((dot[i + 1 + k] & 0xC0) != 0x80)
-                                {
-                                        valid_utf8 = false;
-                                        break;
-                                }
+                                break; // Invalid UTF-8 start byte
                         }
                 }
 
-                if (!valid_utf8)
-                {
-                        charSize = 1;
-                }
+                // Ensure we don't overflow the destination buffer
+                if (j + char_size >= ext_size)
+                        break;
 
-                // Copy the UTF-8 character
-                memcpy(ext + j, dot + 1 + i, charSize);
-                j += charSize;
-                i += charSize;
+                // Check if the character is valid UTF-8
+                if (isValidUTF8(&filename[dot_pos + i], char_size))
+                {
+                        // Copy the character to the extension buffer
+                        memcpy(ext + j, filename + dot_pos + i, char_size);
+                        j += char_size;
+                        i += char_size;
+                }
+                else
+                {
+                        break; // Invalid UTF-8, stop copying
+                }
         }
 
+        // Null-terminate the extension
         ext[j] = '\0';
 }
 

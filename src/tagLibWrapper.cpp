@@ -51,6 +51,8 @@ static const std::string base64_chars =
     "abcdefghijklmnopqrstuvwxyz"
     "0123456789+/";
 
+const uint32_t MAX_REASONABLE_SIZE = 100 * 1024 * 1024; // 100MB limit
+
 static inline bool is_base64(unsigned char c)
 {
         return (isalnum(c) || (c == '+') || (c == '/'));
@@ -64,7 +66,8 @@ static inline bool is_base64(unsigned char c)
 
 std::vector<unsigned char> decodeBase64(const std::string &encoded_string)
 {
-        const size_t MAX_DECODED_SIZE = 100 * 1024 * 1024; // 100 MB
+        const size_t MAX_DECODED_SIZE = 100 * 1024 * 1024;              // 100 MB
+        const size_t MAX_ENCODED_SIZE = (MAX_DECODED_SIZE * 4) / 3 + 4; // Max base64 size + padding
         const std::string base64_chars =
             "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
@@ -84,13 +87,26 @@ std::vector<unsigned char> decodeBase64(const std::string &encoded_string)
         size_t in_ = 0;
         unsigned char char_array_4[4], char_array_3[3];
 
+        // Early check to prevent any overflow issues
+        if (in_len > MAX_ENCODED_SIZE)
+        {
+                throw std::runtime_error("Base64 input too large: exceeds reasonable limit");
+        }
+
         // Rough estimate of decoded size
         size_t decoded_size = (in_len * 3) / 4;
         if (decoded_size > MAX_DECODED_SIZE)
                 throw std::runtime_error("Base64 input too large: exceeds 100 MB limit");
 
         std::vector<unsigned char> decoded_data;
-        decoded_data.reserve(decoded_size);
+        try
+        {
+                decoded_data.reserve(decoded_size);
+        }
+        catch (const std::bad_alloc &)
+        {
+                throw std::runtime_error("Cannot allocate memory for base64 decoding");
+        }
 
         while (in_len-- && encoded_string[in_] != '=' && is_base64(encoded_string[in_]))
         {
@@ -103,6 +119,11 @@ std::vector<unsigned char> decodeBase64(const std::string &encoded_string)
                         char_array_3[0] = (char_array_4[0] << 2) + ((char_array_4[1] & 0x30) >> 4);
                         char_array_3[1] = ((char_array_4[1] & 0xf) << 4) + ((char_array_4[2] & 0x3c) >> 2);
                         char_array_3[2] = ((char_array_4[2] & 0x3) << 6) + char_array_4[3];
+
+                        if (decoded_data.size() + 3 > MAX_DECODED_SIZE)
+                        {
+                                throw std::runtime_error("Decoded data exceeds size limit during processing");
+                        }
 
                         for (i = 0; i < 3; i++)
                                 decoded_data.push_back(char_array_3[i]);
@@ -126,6 +147,11 @@ std::vector<unsigned char> decodeBase64(const std::string &encoded_string)
 
                 if (i > 1)
                 {
+                        size_t remaining_bytes = i - 1;
+                        if (decoded_data.size() + remaining_bytes > MAX_DECODED_SIZE) {
+                            throw std::runtime_error("Decoded data exceeds size limit during final processing");
+                        }
+                        
                         for (size_t j = 0; j < i - 1; j++)
                                 decoded_data.push_back(char_array_3[j]);
                 }
@@ -137,23 +163,22 @@ std::vector<unsigned char> decodeBase64(const std::string &encoded_string)
 TagLib::StringList getOggFieldListCaseInsensitive(const TagLib::Ogg::XiphComment *comment,
                                                   const std::string &fieldName)
 {
-        // Create a mutable copy of fieldName for transformation
-        std::string lowerFieldName = fieldName;
-        std::transform(lowerFieldName.begin(), lowerFieldName.end(), lowerFieldName.begin(),
-                       [](unsigned char c)
-                       { return std::tolower(c); });
+        if (!comment)
+        {
+                return TagLib::StringList();
+        }
+
+        // Use TagLib::String for safer Unicode handling
+        TagLib::String targetField(fieldName, TagLib::String::UTF8);
+        TagLib::String lowerTargetField = targetField.upper(); // TagLib handles case conversion safely
 
         TagLib::Ogg::FieldListMap fieldListMap = comment->fieldListMap();
 
         for (auto it = fieldListMap.begin(); it != fieldListMap.end(); ++it)
         {
-                // Create a mutable copy of current key for transformation
-                std::string currentKey(it->first.toCString());
-                std::transform(currentKey.begin(), currentKey.end(), currentKey.begin(),
-                               [](unsigned char c)
-                               { return std::tolower(c); });
+                TagLib::String currentKey = it->first;
 
-                if (currentKey == lowerFieldName)
+                if (currentKey.upper() == lowerTargetField)
                 {
                         return it->second;
                 }
@@ -165,8 +190,14 @@ TagLib::StringList getOggFieldListCaseInsensitive(const TagLib::Ogg::XiphComment
 extern "C"
 {
         // Function to read a 32-bit unsigned integer from buffer in big-endian format
-        unsigned int read_uint32_be(const unsigned char *buffer, size_t offset)
+        unsigned int read_uint32_be(const unsigned char *buffer, size_t buffer_size, size_t offset)
         {
+                if (buffer == nullptr || offset + 4 > buffer_size)
+                {
+                        // Handle error - throw exception, return error code, etc.
+                        throw std::runtime_error("Buffer overflow in read_uint32_be");
+                }
+
                 return (static_cast<unsigned int>(buffer[offset]) << 24) |
                        (static_cast<unsigned int>(buffer[offset + 1]) << 16) |
                        (static_cast<unsigned int>(buffer[offset + 2]) << 8) |
@@ -184,34 +215,48 @@ extern "C"
                 auto readUInt32 = [&](uint32_t &value) -> bool
                 {
                         if (offset + 4 > dataSize)
-                                return false; // check bounds
+                                return false;
                         value = (ptr[offset] << 24) | (ptr[offset + 1] << 16) |
                                 (ptr[offset + 2] << 8) | ptr[offset + 3];
                         offset += 4;
                         return true;
                 };
 
+                auto safeAdd = [](size_t a, uint32_t b) -> bool
+                {
+                        return b <= SIZE_MAX - a; // Check if a + b would overflow
+                };
+
                 uint32_t pictureType, mimeLength, descLength, width, height, depth, colors, dataLength;
 
                 if (!readUInt32(pictureType) || !readUInt32(mimeLength))
                         return;
-                if (offset + mimeLength > dataSize)
+
+                if (mimeLength > MAX_REASONABLE_SIZE || offset + mimeLength > dataSize)
                         return;
+
+                // Check for overflow before adding
+                if (!safeAdd(offset, mimeLength) || offset + mimeLength > dataSize)
+                        return;
+
                 mimeType = std::string(reinterpret_cast<const char *>(&ptr[offset]), mimeLength);
                 offset += mimeLength;
 
                 if (!readUInt32(descLength))
                         return;
-                if (offset + descLength > dataSize)
+
+                if (!safeAdd(offset, descLength) || offset + descLength > dataSize)
                         return;
-                offset += descLength; // skip description
+
+                offset += descLength;
 
                 if (!readUInt32(width) || !readUInt32(height) || !readUInt32(depth) ||
                     !readUInt32(colors) || !readUInt32(dataLength))
                         return;
 
-                if (offset + dataLength > dataSize)
+                if (!safeAdd(offset, dataLength) || offset + dataLength > dataSize)
                         return;
+
                 imageData.assign(&ptr[offset], &ptr[offset + dataLength]);
         }
 
@@ -686,11 +731,11 @@ extern "C"
                                 }
 
                                 // Read PICTURE TYPE
-                                read_uint32_be(pictureBlock.data(), offset);
+                                read_uint32_be(pictureBlock.data(), pictureBlock.size(), offset);
                                 offset += 4;
 
                                 // Read MIME TYPE LENGTH
-                                unsigned int mimeTypeLength = read_uint32_be(pictureBlock.data(), offset);
+                                unsigned int mimeTypeLength = read_uint32_be(pictureBlock.data(), pictureBlock.size(), offset);
                                 offset += 4;
 
                                 // Read MIME TYPE
@@ -702,7 +747,7 @@ extern "C"
                                 offset += mimeTypeLength;
 
                                 // Read DESCRIPTION LENGTH
-                                unsigned int descriptionLength = read_uint32_be(pictureBlock.data(), offset);
+                                unsigned int descriptionLength = read_uint32_be(pictureBlock.data(), pictureBlock.size(), offset);
                                 offset += 4;
 
                                 // Read DESCRIPTION
@@ -715,24 +760,24 @@ extern "C"
                                 // Optionally print or ignore description
 
                                 // Read WIDTH
-                                read_uint32_be(pictureBlock.data(), offset);
+                                read_uint32_be(pictureBlock.data(), pictureBlock.size(), offset);
                                 offset += 4;
 
                                 // Read HEIGHT
-                                read_uint32_be(pictureBlock.data(), offset);
+                                read_uint32_be(pictureBlock.data(), pictureBlock.size(), offset);
                                 offset += 4;
                                 ;
 
                                 // Read COLOR DEPTH
-                                read_uint32_be(pictureBlock.data(), offset);
+                                read_uint32_be(pictureBlock.data(), pictureBlock.size(), offset);
                                 offset += 4;
 
                                 // Read NUMBER OF COLORS
-                                read_uint32_be(pictureBlock.data(), offset);
+                                read_uint32_be(pictureBlock.data(), pictureBlock.size(), offset);
                                 offset += 4;
 
                                 // Read DATA LENGTH
-                                unsigned int dataLength = read_uint32_be(pictureBlock.data(), offset);
+                                unsigned int dataLength = read_uint32_be(pictureBlock.data(), pictureBlock.size(), offset);
                                 offset += 4;
 
                                 if (offset + dataLength > pictureBlock.size())

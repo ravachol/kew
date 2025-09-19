@@ -25,6 +25,9 @@ typedef void (*TimeoutCallback)(void);
 
 FileSystemEntry *createEntry(const char *name, int isDirectory, FileSystemEntry *parent)
 {
+        if (lastUsedId == INT_MAX)
+                return NULL;
+
         FileSystemEntry *newEntry = malloc(sizeof(FileSystemEntry));
         if (newEntry != NULL)
         {
@@ -63,35 +66,54 @@ void addChild(FileSystemEntry *parent, FileSystemEntry *child)
         }
 }
 
+#ifndef MAX_NAME
+#define MAX_NAME 255
+#endif
+
 int isValidEntryName(const char *name)
 {
         if (name == NULL)
                 return 0;
 
-        // Reject path separators and traversal
-        for (const char *p = name; *p; p++)
+        size_t len = strlen(name);
+        if (len > MAX_NAME)
+                return 0;
+
+        if (len == 0)
+                return 1;
+
+        // Reject "." and ".." exactly
+        if (len == 1 && name[0] == '.')
+                return 0;
+        if (len == 2 && name[0] == '.' && name[1] == '.')
+                return 0;
+
+        for (size_t i = 0; i < len; ++i)
         {
-                if (*p == '/' || *p == '\\')
+                unsigned char c = (unsigned char)name[i];
+
+                // Reject path separators
+                if (c == '/' || c == '\\')
+                        return 0;
+
+                // Reject ASCII control chars and DEL
+                if (c <= 0x1F || c == 0x7F)
                         return 0;
         }
+
         return 1;
 }
 
 void setFullPath(FileSystemEntry *entry, const char *parentPath, const char *entryName)
 {
         if (entry == NULL || parentPath == NULL || entryName == NULL)
-        {
                 return;
-        }
 
         if (!isValidEntryName(entryName))
         {
                 // Limit printed length to avoid huge strings
-                size_t maxLen = 256;
-                char buf[257]; // +1 for null terminator
-                strncpy(buf, entryName, maxLen);
-                buf[maxLen] = '\0'; // ensure null-termination
-
+                char buf[257]; // 256 chars + null
+                snprintf(buf, sizeof(buf), "%s", entryName);
                 fprintf(stderr, "Invalid entryName (possible path traversal): '%s'\n", buf);
                 return;
         }
@@ -99,59 +121,112 @@ void setFullPath(FileSystemEntry *entry, const char *parentPath, const char *ent
         size_t parentLen = strnlen(parentPath, MAXPATHLEN);
         size_t nameLen = strnlen(entryName, MAXPATHLEN);
 
-        // Check for overflow against MAXPATHLEN
-        if (parentLen + nameLen + 2 > MAXPATHLEN)
-        {
+        // +1 for '/', +1 for null terminator
+        size_t needed = parentLen + 1 + nameLen + 1;
 
-                return; // Path too long
-        }
-        size_t fullPathLength = parentLen + nameLen + 2; // +1 for '/' +1 for '\0'
-
-        entry->fullPath = malloc(fullPathLength);
-        if (entry->fullPath == NULL)
+        if (needed > MAXPATHLEN)
         {
+                fprintf(stderr, "Path too long, rejecting.\n");
                 return;
         }
-        snprintf(entry->fullPath, fullPathLength, "%s/%s", parentPath, entryName);
+
+        entry->fullPath = malloc(needed);
+        if (entry->fullPath == NULL)
+                return;
+
+        snprintf(entry->fullPath, needed, "%s/%s", parentPath, entryName);
 }
 
 void freeTree(FileSystemEntry *root)
 {
         if (root == NULL)
-        {
                 return;
-        }
 
-        FileSystemEntry *child = root->children;
-        while (child != NULL)
+        // Stack of pointers
+        size_t cap = 128, top = 0;
+        FileSystemEntry **stack = malloc(cap * sizeof(*stack));
+        if (!stack)
+                return;
+
+        stack[top++] = root;
+
+        while (top > 0)
         {
-                FileSystemEntry *next = child->next;
-                freeTree(child);
-                child = next;
+                FileSystemEntry *node = stack[top - 1]; /* peek */
+
+                // If node has a child, push sibling then child so child is processed first */
+                if (node->children)
+                {
+                        // Ensure capacity
+                        if (top + 2 > cap)
+                        {
+                                size_t nc = cap * 2;
+                                FileSystemEntry **tmp = realloc(stack, nc * sizeof(*stack));
+                                if (!tmp)
+                                        break; // Allocation failure: abort early
+                                stack = tmp;
+                                cap = nc;
+                        }
+                        if (node->next)
+                        {
+                                stack[top++] = node->next;
+                        }
+                        stack[top++] = node->children;
+
+                        // Disconnect to avoid re-traversal down this pointer path
+                        node->children = NULL;
+                        node->next = NULL;
+                        continue;
+                }
+
+                // No children left, pop and free this node
+                top--; // Pop
+                free(node->name);
+                free(node->fullPath);
+                free(node);
         }
 
-        free(root->name);
-        free(root->fullPath);
-
-        free(root);
+        free(stack);
 }
 
 int naturalCompare(const char *a, const char *b)
 {
         while (*a && *b)
         {
-                if (isdigit((unsigned char)*a) && isdigit((unsigned char)*b))
+                if (*a >= '0' && *a <= '9' && *b >= '0' && *b <= '9')
                 {
+                        // Parse number sequences
                         char *endA, *endB;
-                        long numA = strtol(a, &endA, 10);
-                        long numB = strtol(b, &endB, 10);
+                        errno = 0;
+                        unsigned long long numA = strtoull(a, &endA, 10);
+                        int overflowA = (errno == ERANGE);
 
-                        if (numA < numB)
-                                return -1;
-                        else if (numA > numB)
-                                return 1;
+                        errno = 0;
+                        unsigned long long numB = strtoull(b, &endB, 10);
+                        int overflowB = (errno == ERANGE);
 
-                        // Numbers are equal, advance pointers
+                        if (!overflowA && !overflowB)
+                        {
+                                if (numA < numB)
+                                        return -1;
+                                if (numA > numB)
+                                        return 1;
+                        }
+                        else
+                        {
+                                // Fallback: compare digit length, then lexicographically
+                                size_t lenA = endA - a;
+                                size_t lenB = endB - b;
+                                if (lenA < lenB)
+                                        return -1;
+                                if (lenA > lenB)
+                                        return 1;
+                                int cmp = strncmp(a, b, lenA);
+                                if (cmp != 0)
+                                        return cmp;
+                        }
+
+                        // Numbers equal, advance
                         a = endA;
                         b = endB;
                 }
@@ -159,19 +234,16 @@ int naturalCompare(const char *a, const char *b)
                 {
                         if (*a != *b)
                                 return (unsigned char)*a - (unsigned char)*b;
-
                         a++;
                         b++;
                 }
         }
 
-        // If all parts equal so far, shorter string comes first
         if (*a == 0 && *b == 0)
                 return 0;
-        else if (*a == 0)
+        if (*a == 0)
                 return -1;
-        else
-                return 1;
+        return 1;
 }
 
 int compareLibEntries(const struct dirent **a, const struct dirent **b)
@@ -256,7 +328,7 @@ int removeEmptyDirectories(FileSystemEntry *node, int depth)
         {
                 if (currentChild->isDirectory)
                 {
-                        numEntries += removeEmptyDirectories(currentChild, depth+1);
+                        numEntries += removeEmptyDirectories(currentChild, depth + 1);
 
                         if (currentChild->children == NULL)
                         {

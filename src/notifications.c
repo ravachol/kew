@@ -17,27 +17,31 @@ notifications.c
 
 bool isValidFilepath(const char *path)
 {
-        if (path == NULL || *path == '\0' || strnlen(path, PATH_MAX) >= PATH_MAX)
-        {
-                return false;
-        }
+    if (path == NULL || *path == '\0' || strnlen(path, PATH_MAX) >= PATH_MAX)
+    {
+        return false;
+    }
 
-        int fd = open(path, O_RDONLY);
-        if (fd == -1)
-        {
-                return false;
-        }
+    int fd = open(path, O_RDONLY);
+    bool result = (fd != -1);
 
+    if (fd != -1)
+    {
         close(fd);
-        return true;
+    }
+
+    return result;
 }
 
-void removeBlacklistedChars(const char *input, const char *blacklist, char *output, size_t output_size)
+void removeBlacklistedChars(const char *input,
+                            const char *blacklist,
+                            char *output,
+                            size_t output_size)
 {
         if (!input || !blacklist || !output || output_size == 0)
         {
                 if (output && output_size > 0)
-                        *output = '\0';
+                        output[0] = '\0';
                 return;
         }
 
@@ -45,23 +49,29 @@ void removeBlacklistedChars(const char *input, const char *blacklist, char *outp
         char *out_ptr = output;
         size_t chars_copied = 0;
 
-        while (*in_ptr && chars_copied < output_size - 1)
+        while (*in_ptr)
         {
-                // Copy characters not in blacklist
+                if (chars_copied >= output_size - 1)
+                        break;
+
                 if (!strchr(blacklist, *in_ptr))
                 {
-                        *out_ptr++ = *in_ptr;
+                        *out_ptr = *in_ptr;
+                        out_ptr++;
                         chars_copied++;
                 }
                 in_ptr++;
         }
 
-        *out_ptr = '\0';
+        if (chars_copied < output_size)
+                output[chars_copied] = '\0';
+        else
+                output[output_size - 1] = '\0';
 }
 
-void ensureNonEmpty(char *str)
+void ensureNonEmpty(char *str, size_t bufferSize)
 {
-        if (str == NULL)
+        if (str == NULL|| bufferSize < 2)
         {
                 return;
         }
@@ -80,21 +90,39 @@ struct timeval lastNotificationTime = {0, 0};
 static char sanitizedArtist[512];
 static char sanitizedTitle[512];
 
+static pthread_mutex_t notificationMutex = PTHREAD_MUTEX_INITIALIZER;
+
 int canShowNotification(void)
 {
-        struct timeval now;
-        gettimeofday(&now, NULL);
+    struct timeval now;
+    gettimeofday(&now, NULL);
 
-        long seconds = now.tv_sec - lastNotificationTime.tv_sec;
-        long microseconds = now.tv_usec - lastNotificationTime.tv_usec;
-        long elapsed = seconds * 1000000 + microseconds; // Total elapsed time in microseconds
+    // Lock the mutex to prevent race conditions
+    pthread_mutex_lock(&notificationMutex);
 
-        if (elapsed >= NOTIFICATION_INTERVAL_MICROSECONDS)
-        {
-                lastNotificationTime = now;
-                return 1;
-        }
-        return 0;
+    // Calculate the elapsed time safely
+    long seconds = now.tv_sec - lastNotificationTime.tv_sec;
+    long microseconds = now.tv_usec - lastNotificationTime.tv_usec;
+
+    // Handle microsecond wraparound
+    if (microseconds < 0) {
+        microseconds += 1000000;
+        seconds -= 1;
+    }
+
+    // Calculate the total elapsed time in microseconds
+    long elapsed = seconds * 1000000 + microseconds;
+
+    // Check if the elapsed time is greater than or equal to the notification interval
+    if (elapsed >= NOTIFICATION_INTERVAL_MICROSECONDS)
+    {
+        lastNotificationTime = now; // Update the last notification time
+        pthread_mutex_unlock(&notificationMutex);
+        return 1;
+    }
+
+    pthread_mutex_unlock(&notificationMutex);
+    return 0;
 }
 
 void onNotificationClosed(void)
@@ -324,8 +352,8 @@ int displaySongNotification(const char *artist, const char *title, const char *c
         removeBlacklistedChars(artist, blacklist, sanitizedArtist, sizeof(sanitizedArtist));
         removeBlacklistedChars(title, blacklist, sanitizedTitle, sizeof(sanitizedTitle));
 
-        ensureNonEmpty(sanitizedArtist);
-        ensureNonEmpty(sanitizedTitle);
+        ensureNonEmpty(sanitizedArtist, sizeof(sanitizedTitle));
+        ensureNonEmpty(sanitizedTitle, sizeof(sanitizedTitle));
 
         int coverExists = isValidFilepath(cover);
 
