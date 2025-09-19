@@ -14,6 +14,8 @@
 
 - Shows the playlist from the first song if the playing song will still be in view, instead of always starting from the playing song. By @ravachol. Suggested by @affhp.
 
+- Improved the safety of various functions and addressed potential vulnerabilities.
+
 #### Bug Fixes
 
 - Fixed visualizer crashing the app on ultrawide monitors. By @arcathrax.
