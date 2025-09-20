@@ -22,8 +22,9 @@ kew (/kjuː/) is a terminal music player.
 
 ## Support Us
 
-It's possible to sponsor/donate to kew's development (currently the maintainer) through ko-fi and github sponsors:  
-[https://ko-fi.com/ravachol](https://ko-fi.com/ravachol)
+It's possible to donate to kew's development (currently the maintainer) through ko-fi and github sponsors: 
+ 
+[https://ko-fi.com/ravachol](https://ko-fi.com/ravachol)  
 [https://github.com/sponsors/ravachol](https://ko-fi.com/ravachol)
 
 ## Installing
