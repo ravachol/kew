@@ -1,5 +1,5 @@
 # kew
-[![GitHub license](https://img.shields.io/github/license/ravachol/kew?color=333333&style=for-the-badge)](https://github.com/ravachol/kew/blob/master/LICENSE)
+[![License](https://img.shields.io/github/license/ravachol/kew?color=333333&style=for-the-badge)](./LICENSE)
 
 Listen to music in the terminal.
 
@@ -19,6 +19,8 @@ kew (/kjuː/) is a terminal music player.
  * Supports MP3, FLAC, MPEG-4/M4A (AAC), OPUS, OGG, Webm and WAV audio.
  * Supports desktop events through MPRIS.
  * Private, no data is collected by kew.
+
+ ⚠️ This repository has moved to [Codeberg](https://codeberg.org/ravachol/kew). Please update your links and bookmarks!
 
 ## Support Us
 
@@ -224,7 +226,7 @@ https://www.reddit.com/r/bashonubuntuonwindows/comments/hrn1lz/wsl_sound_through
 Then run this (either git clone or unzip a release zip into a folder of your choice):
 
 ```bash
-git clone https://github.com/ravachol/kew.git
+git clone https://codeberg.org/ravachol/kew.git
 ```
 ```bash
 cd kew
@@ -372,7 +374,7 @@ kew looks better with Nerd Fonts: https://www.nerdfonts.com/.
 
 ## License
 
-Licensed under GPL. [See LICENSE for more information](https://github.com/ravachol/kew/blob/main/LICENSE).
+Licensed under GPL. [See LICENSE for more information](./LICENSE).
 
 ## Attributions
 
