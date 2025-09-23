@@ -56,7 +56,7 @@ alias kew="dbus-launch kew"
 ### **Compiling Kew:**
 
 ```sh
-git clone https://github.com/ravachol/kew.git
+git clone https://codeberg.org/ravachol/kew.git
 cd kew
 make -j4
 make install

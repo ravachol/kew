@@ -1,7 +1,7 @@
 /* kew - A terminal music player
 Copyright (C) 2022 Ravachol
 
-http://github.com/ravachol/kew
+http://codeberg.org/ravachol/kew
 
 $$\
 $$ |
