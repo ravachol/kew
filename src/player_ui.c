@@ -843,7 +843,7 @@ int showKeyBindings(SongData *songdata, AppSettings *settings, UISettings *ui)
         printBlankSpaces(indent);
         printf(" - Esc or %s to quit.\n\n", settings->quit);
         printBlankSpaces(indent);
-        printf(" Project URL: https://github.com/ravachol/kew\n");
+        printf(" Project URL: https://codeberg.org/ravachol/kew\n");
         printBlankSpaces(indent);
         printf(" Please Donate: https://ko-fi.com/ravachol\n");
         printBlankSpaces(indent);

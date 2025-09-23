@@ -5,7 +5,7 @@
 If you find a security related issue, please contact us at kew-player@proton.me.
 
 When a fix is published, you will receive credit under your real name or bug
-tracker handle in GitHub. If you prefer to remain anonymous or pseudonymous,
+tracker handle in Codeberg. If you prefer to remain anonymous or pseudonymous,
 you should mention this in your e-mail.
 
 ## Disclosure Policy

@@ -14,21 +14,19 @@ We want to keep the codebase easy to manage and free of bloat, so might reject a
 
 ### Bugs
 
-Please report any bugs directly on github, with as much relevant detail as possible.
+Please report any bugs directly on codeberg, with as much relevant detail as possible.
 If there's a crash or stability issue, the audio file details are interesting, but also the details of the previous and next file on the playlist. You can extract these details by running:
 ffprobe -i AUDIO FILE -show_streams -select_streams a:0 -v quiet -print_format json
 
 ### Create a pull request
 
-After making any changes, open a pull request on Github.
+After making any changes, open a pull request on Codeberg.
 
 - Please contact me (kew-player@proton.me) before doing a big change, or risk the whole thing getting rejected.
 
 - Try to keep commits fairly small so that they are easy to review.
 
 - If you're fixing a particular bug in the issue list, please explicitly say "Fixes #" in your description".
-
-Once your PR has been reviewed and merged, you will be proudly listed as a contributor in the [contributor chart](https://github.com/ravachol/kew/graphs/contributors)!
 
 ### Issue assignment
 

@@ -18,7 +18,7 @@ Before contributing, ensure you have the following tools installed on your devel
 
 1. Clone the repository:
    ```
-   git clone https://github.com/ravachol/kew.git
+   git clone https://codeberg.org/ravachol/kew.git
    cd kew
    ```
 
