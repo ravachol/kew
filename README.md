@@ -22,13 +22,6 @@ kew (/kjuː/) is a terminal music player.
 
  ⚠️ This repository has moved to [Codeberg](https://codeberg.org/ravachol/kew). Please update your links and bookmarks!
 
-## Support Us
-
-It's possible to donate to kew's development (currently the maintainer) through ko-fi and github sponsors: 
- 
-[https://ko-fi.com/ravachol](https://ko-fi.com/ravachol)  
-[https://github.com/sponsors/ravachol](https://ko-fi.com/ravachol)
-
 ## Installing
 
 <a href="https://repology.org/project/kew/versions"><img src="https://repology.org/badge/vertical-allrepos/kew.svg" alt="Packaging status" align="right"></a>
