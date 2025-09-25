@@ -20,8 +20,6 @@ kew (/kjuː/) is a terminal music player.
  * Supports desktop events through MPRIS.
  * Private, no data is collected by kew.
 
- ⚠️ This repository has moved to [Codeberg](https://codeberg.org/ravachol/kew). Please update your links and bookmarks!
-
 ## Installing
 
 <a href="https://repology.org/project/kew/versions"><img src="https://repology.org/badge/vertical-allrepos/kew.svg" alt="Packaging status" align="right"></a>
