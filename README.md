@@ -1,7 +1,7 @@
-<table>
+<table border="0" cellpadding="0" cellspacing="0">
   <tr>
     <td width="64" height="64"><img src="images/kew.png" width="64" height="64" alt="kew logo"></td>
-    <td><h1 style="margin: 0;">kew</h1></td>
+    <td><h1 style="margin:0; padding:0;">kew</h1></td>
   </tr>
 </table>
 
