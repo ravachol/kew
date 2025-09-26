@@ -1,9 +1,9 @@
-<table border="0" cellpadding="0" cellspacing="0">
-  <tr>
-    <td width="64" height="64"><img src="images/kew.png" width="64" height="64" alt="kew logo"></td>
-    <td><h1 style="margin:0; padding:0;">kew</h1></td>
-  </tr>
-</table>
+<span style="display: inline-block; vertical-align: middle;">
+  <img src="images/kew.png" width="64" height="64" alt="kew logo" style="vertical-align: middle;">
+</span>
+<span style="display: inline-block; vertical-align: middle; margin-left: 8px;">
+ <h1 style="margin:0; padding:0;">kew</h1>
+</span>
 
 [![License](https://img.shields.io/github/license/ravachol/kew?color=333333&style=for-the-badge)](./LICENSE)
 
