@@ -1,11 +1,9 @@
-<div style="display: flex; align-items: center; gap: 10px;">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="images/kew.png">
-    <source media="(prefers-color-scheme: light)" srcset="images/kew.png">
-    <img width="32" height="32" alt="kew logo" src="images/kew.png">
-  </picture>
-  <h1 style="margin: 0;">kew</h1>
-</div>
+<table>
+  <tr>
+    <td width="32"><img src="images/kew.png" width="32" height="32" alt="kew logo"></td>
+    <td><h1 style="margin: 0;">kew</h1></td>
+  </tr>
+</table>
 
 [![License](https://img.shields.io/github/license/ravachol/kew?color=333333&style=for-the-badge)](./LICENSE)
 
