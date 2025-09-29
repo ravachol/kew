@@ -34,3 +34,4 @@ kew
 .vscode/
 error.log
 valgrind-out.txt
+tags
