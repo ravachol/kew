@@ -119,7 +119,8 @@ void uninitPreviousDecoder(void **decoderArray, int index, uninit_func uninit)
         }
 }
 
-void resetDecoders(void **decoderArray, void **firstDecoder, int arraySize, int *decoderIndex, uninit_func uninit)
+void resetDecoders(void **decoderArray, void **firstDecoder, int arraySize,
+                   int *decoderIndex, uninit_func uninit)
 {
         *decoderIndex = -1;
 
@@ -143,16 +144,22 @@ void resetDecoders(void **decoderArray, void **firstDecoder, int arraySize, int 
 
 void resetAllDecoders()
 {
-        resetDecoders((void **)decoders, (void **)&firstDecoder, MAX_DECODERS, &decoderIndex, uninitMaDecoder);
-        resetDecoders((void **)vorbisDecoders, (void **)&firstVorbisDecoder, MAX_DECODERS, &vorbisDecoderIndex, uninitVorbisDecoder);
-        resetDecoders((void **)opusDecoders, (void **)&firstOpusDecoder, MAX_DECODERS, &opusDecoderIndex, uninitOpusDecoder);
-        resetDecoders((void **)webmDecoders, (void **)&firstWebmDecoder, MAX_DECODERS, &webmDecoderIndex, uninitWebmDecoder);
+        resetDecoders((void **)decoders, (void **)&firstDecoder, MAX_DECODERS,
+                      &decoderIndex, uninitMaDecoder);
+        resetDecoders((void **)vorbisDecoders, (void **)&firstVorbisDecoder,
+                      MAX_DECODERS, &vorbisDecoderIndex, uninitVorbisDecoder);
+        resetDecoders((void **)opusDecoders, (void **)&firstOpusDecoder,
+                      MAX_DECODERS, &opusDecoderIndex, uninitOpusDecoder);
+        resetDecoders((void **)webmDecoders, (void **)&firstWebmDecoder,
+                      MAX_DECODERS, &webmDecoderIndex, uninitWebmDecoder);
 #ifdef USE_FAAD
-        resetDecoders((void **)m4aDecoders, (void **)&firstM4aDecoder, MAX_DECODERS, &m4aDecoderIndex, uninitM4aDecoder);
+        resetDecoders((void **)m4aDecoders, (void **)&firstM4aDecoder,
+                      MAX_DECODERS, &m4aDecoderIndex, uninitM4aDecoder);
 #endif
 }
 
-void setNextDecoder(void **decoderArray, void **decoder, void **firstDecoder, int *decoderIndex, uninit_func uninit)
+void setNextDecoder(void **decoderArray, void **decoder, void **firstDecoder,
+                    int *decoderIndex, uninit_func uninit)
 {
         if (*decoderIndex == -1 && *firstDecoder == NULL)
         {
@@ -201,10 +208,7 @@ void setCurrentImplementationType(enum AudioImplementation value)
         currentImplementation = value;
 }
 
-ma_decoder *getFirstDecoder(void)
-{
-        return firstDecoder;
-}
+ma_decoder *getFirstDecoder(void) { return firstDecoder; }
 
 ma_decoder *getCurrentBuiltinDecoder(void)
 {
@@ -223,10 +227,7 @@ void switchDecoder(int *decoderIndex)
 }
 
 #ifdef USE_FAAD
-m4a_decoder *getFirstM4aDecoder(void)
-{
-        return firstM4aDecoder;
-}
+m4a_decoder *getFirstM4aDecoder(void) { return firstM4aDecoder; }
 
 m4a_decoder *getCurrentM4aDecoder(void)
 {
@@ -236,36 +237,50 @@ m4a_decoder *getCurrentM4aDecoder(void)
                 return m4aDecoders[m4aDecoderIndex];
 }
 
-void getM4aFileInfo(const char *filename, ma_format *format, ma_uint32 *channels, ma_uint32 *sampleRate, ma_channel *channelMap, int *avgBitRate, k_m4adec_filetype *fileType)
+void getM4aFileInfo(const char *filename, ma_format *format,
+                    ma_uint32 *channels, ma_uint32 *sampleRate,
+                    ma_channel *channelMap, int *avgBitRate,
+                    k_m4adec_filetype *fileType)
 {
         m4a_decoder decoder;
         if (m4a_decoder_init_file(filename, NULL, NULL, &decoder) == MA_SUCCESS)
         {
                 *format = decoder.format;
-                m4a_decoder_get_data_format(&decoder, format, channels, sampleRate, channelMap, MA_MAX_CHANNELS);
+                m4a_decoder_get_data_format(&decoder, format, channels,
+                                            sampleRate, channelMap,
+                                            MA_MAX_CHANNELS);
                 *avgBitRate = decoder.avgBitRate / 1000;
                 *fileType = decoder.fileType;
                 m4a_decoder_uninit(&decoder, NULL);
         }
 }
 
-MA_API ma_result m4a_read_pcm_frames_wrapper(void *pDecoder, void *pFramesOut, size_t frameCount, size_t *pFramesRead)
+MA_API ma_result m4a_read_pcm_frames_wrapper(void *pDecoder, void *pFramesOut,
+                                             size_t frameCount,
+                                             size_t *pFramesRead)
 {
         ma_decoder *dec = (ma_decoder *)pDecoder;
-        return m4a_decoder_read_pcm_frames((m4a_decoder *)dec->pUserData, pFramesOut, frameCount, (ma_uint64 *)pFramesRead);
+        return m4a_decoder_read_pcm_frames((m4a_decoder *)dec->pUserData,
+                                           pFramesOut, frameCount,
+                                           (ma_uint64 *)pFramesRead);
 }
 
-MA_API ma_result m4a_seek_to_pcm_frame_wrapper(void *pDecoder, long long int frameIndex, ma_seek_origin origin)
+MA_API ma_result m4a_seek_to_pcm_frame_wrapper(void *pDecoder,
+                                               long long int frameIndex,
+                                               ma_seek_origin origin)
 {
         (void)origin;
         ma_decoder *dec = (ma_decoder *)pDecoder;
-        return m4a_decoder_seek_to_pcm_frame((m4a_decoder *)dec->pUserData, frameIndex);
+        return m4a_decoder_seek_to_pcm_frame((m4a_decoder *)dec->pUserData,
+                                             frameIndex);
 }
 
-MA_API ma_result m4a_get_cursor_in_pcm_frames_wrapper(void *pDecoder, long long int *pCursor)
+MA_API ma_result m4a_get_cursor_in_pcm_frames_wrapper(void *pDecoder,
+                                                      long long int *pCursor)
 {
         ma_decoder *dec = (ma_decoder *)pDecoder;
-        return m4a_decoder_get_cursor_in_pcm_frames((m4a_decoder *)dec->pUserData, (ma_uint64 *)pCursor);
+        return m4a_decoder_get_cursor_in_pcm_frames(
+            (m4a_decoder *)dec->pUserData, (ma_uint64 *)pCursor);
 }
 
 int prepareNextM4aDecoder(SongData *songData)
@@ -290,9 +305,11 @@ int prepareNextM4aDecoder(SongData *songData)
         ma_uint32 channels;
         ma_format format;
         ma_channel channelMap[MA_MAX_CHANNELS];
-        m4a_decoder_get_data_format(currentDecoder, &format, &channels, &sampleRate, channelMap, MA_MAX_CHANNELS);
+        m4a_decoder_get_data_format(currentDecoder, &format, &channels,
+                                    &sampleRate, channelMap, MA_MAX_CHANNELS);
 
-        uninitPreviousDecoder((void **)m4aDecoders, m4aDecoderIndex, (uninit_func)uninitM4aDecoder);
+        uninitPreviousDecoder((void **)m4aDecoders, m4aDecoderIndex,
+                              (uninit_func)uninitM4aDecoder);
 
         m4a_decoder *decoder = (m4a_decoder *)malloc(sizeof(m4a_decoder));
         ma_result result = m4a_decoder_init_file(filepath, NULL, NULL, decoder);
@@ -305,12 +322,13 @@ int prepareNextM4aDecoder(SongData *songData)
         ma_uint32 nsampleRate;
         ma_channel nchannelMap[MA_MAX_CHANNELS];
 
-        m4a_decoder_get_data_format(decoder, &nformat, &nchannels, &nsampleRate, nchannelMap, MA_MAX_CHANNELS);
-        bool sameFormat = (currentDecoder == NULL || (format == nformat &&
-                                                      channels == nchannels &&
-                                                      sampleRate == nsampleRate &&
-                                                      currentDecoder->fileType == decoder->fileType &&
-                                                      currentDecoder->fileType != k_rawAAC));
+        m4a_decoder_get_data_format(decoder, &nformat, &nchannels, &nsampleRate,
+                                    nchannelMap, MA_MAX_CHANNELS);
+        bool sameFormat = (currentDecoder == NULL ||
+                           (format == nformat && channels == nchannels &&
+                            sampleRate == nsampleRate &&
+                            currentDecoder->fileType == decoder->fileType &&
+                            currentDecoder->fileType != k_rawAAC));
 
         if (!sameFormat)
         {
@@ -322,7 +340,8 @@ int prepareNextM4aDecoder(SongData *songData)
         m4a_decoder *first = getFirstM4aDecoder();
         if (first != NULL)
         {
-                decoder->pReadSeekTellUserData = (AudioData *)first->pReadSeekTellUserData;
+                decoder->pReadSeekTellUserData =
+                    (AudioData *)first->pReadSeekTellUserData;
         }
 
         decoder->format = nformat;
@@ -331,7 +350,9 @@ int prepareNextM4aDecoder(SongData *songData)
         decoder->onTell = m4a_get_cursor_in_pcm_frames_wrapper;
         decoder->cursor = 0;
 
-        setNextDecoder((void **)m4aDecoders, (void **)&decoder, (void **)&firstM4aDecoder, &m4aDecoderIndex, (uninit_func)uninitM4aDecoder);
+        setNextDecoder((void **)m4aDecoders, (void **)&decoder,
+                       (void **)&firstM4aDecoder, &m4aDecoderIndex,
+                       (uninit_func)uninitM4aDecoder);
 
         if (songData != NULL)
         {
@@ -341,7 +362,8 @@ int prepareNextM4aDecoder(SongData *songData)
                 }
         }
 
-        if (currentDecoder != NULL && decoder != NULL && decoder->fileType != k_rawAAC)
+        if (currentDecoder != NULL && decoder != NULL &&
+            decoder->fileType != k_rawAAC)
         {
                 if (!isEOFReached())
                         ma_data_source_set_next(currentDecoder, decoder);
@@ -351,15 +373,9 @@ int prepareNextM4aDecoder(SongData *songData)
 
 #endif
 
-ma_libvorbis *getFirstVorbisDecoder(void)
-{
-        return firstVorbisDecoder;
-}
+ma_libvorbis *getFirstVorbisDecoder(void) { return firstVorbisDecoder; }
 
-ma_libopus *getFirstOpusDecoder(void)
-{
-        return firstOpusDecoder;
-}
+ma_libopus *getFirstOpusDecoder(void) { return firstOpusDecoder; }
 
 ma_libvorbis *getCurrentVorbisDecoder(void)
 {
@@ -422,7 +438,8 @@ void getCurrentFormatAndSampleRate(ma_format *format, ma_uint32 *sampleRate)
         *sampleRate = audioData.sampleRate;
 }
 
-void getFileInfo(const char *filename, ma_uint32 *sampleRate, ma_uint32 *channels, ma_format *format)
+void getFileInfo(const char *filename, ma_uint32 *sampleRate,
+                 ma_uint32 *channels, ma_format *format)
 {
         ma_decoder tmp;
         if (ma_decoder_init_file(filename, NULL, &tmp) == MA_SUCCESS)
@@ -438,84 +455,120 @@ void getFileInfo(const char *filename, ma_uint32 *sampleRate, ma_uint32 *channel
         }
 }
 
-void getVorbisFileInfo(const char *filename, ma_format *format, ma_uint32 *channels, ma_uint32 *sampleRate, ma_channel *channelMap)
+void getVorbisFileInfo(const char *filename, ma_format *format,
+                       ma_uint32 *channels, ma_uint32 *sampleRate,
+                       ma_channel *channelMap)
 {
         ma_libvorbis decoder;
-        if (ma_libvorbis_init_file(filename, NULL, NULL, &decoder) == MA_SUCCESS)
+        if (ma_libvorbis_init_file(filename, NULL, NULL, &decoder) ==
+            MA_SUCCESS)
         {
                 *format = decoder.format;
-                ma_libvorbis_get_data_format(&decoder, format, channels, sampleRate, channelMap, MA_MAX_CHANNELS);
+                ma_libvorbis_get_data_format(&decoder, format, channels,
+                                             sampleRate, channelMap,
+                                             MA_MAX_CHANNELS);
                 ma_libvorbis_uninit(&decoder, NULL);
         }
 }
 
-void getOpusFileInfo(const char *filename, ma_format *format, ma_uint32 *channels, ma_uint32 *sampleRate, ma_channel *channelMap)
+void getOpusFileInfo(const char *filename, ma_format *format,
+                     ma_uint32 *channels, ma_uint32 *sampleRate,
+                     ma_channel *channelMap)
 {
         ma_libopus decoder;
 
         if (ma_libopus_init_file(filename, NULL, NULL, &decoder) == MA_SUCCESS)
         {
                 *format = decoder.format;
-                ma_libopus_get_data_format(&decoder, format, channels, sampleRate, channelMap, MA_MAX_CHANNELS);
+                ma_libopus_get_data_format(&decoder, format, channels,
+                                           sampleRate, channelMap,
+                                           MA_MAX_CHANNELS);
                 ma_libopus_uninit(&decoder, NULL);
         }
 }
 
-MA_API ma_result ma_libopus_read_pcm_frames_wrapper(void *pDecoder, void *pFramesOut, size_t frameCount, size_t *pFramesRead)
+MA_API ma_result ma_libopus_read_pcm_frames_wrapper(void *pDecoder,
+                                                    void *pFramesOut,
+                                                    size_t frameCount,
+                                                    size_t *pFramesRead)
 {
         ma_decoder *dec = (ma_decoder *)pDecoder;
-        return ma_libopus_read_pcm_frames((ma_libopus *)dec->pUserData, pFramesOut, frameCount, (ma_uint64 *)pFramesRead);
+        return ma_libopus_read_pcm_frames((ma_libopus *)dec->pUserData,
+                                          pFramesOut, frameCount,
+                                          (ma_uint64 *)pFramesRead);
 }
 
-MA_API ma_result ma_libopus_seek_to_pcm_frame_wrapper(void *pDecoder, long long int frameIndex, ma_seek_origin origin)
-{
-        (void)origin;
-        ma_decoder *dec = (ma_decoder *)pDecoder;
-        return ma_libopus_seek_to_pcm_frame((ma_libopus *)dec->pUserData, frameIndex);
-}
-
-MA_API ma_result ma_libopus_get_cursor_in_pcm_frames_wrapper(void *pDecoder, long long int *pCursor)
-{
-        ma_decoder *dec = (ma_decoder *)pDecoder;
-        return ma_libopus_get_cursor_in_pcm_frames((ma_libopus *)dec->pUserData, (ma_uint64 *)pCursor);
-}
-
-MA_API ma_result ma_libvorbis_read_pcm_frames_wrapper(void *pDecoder, void *pFramesOut, size_t frameCount, size_t *pFramesRead)
-{
-        ma_decoder *dec = (ma_decoder *)pDecoder;
-        return ma_libvorbis_read_pcm_frames((ma_libvorbis *)dec->pUserData, pFramesOut, frameCount, (ma_uint64 *)pFramesRead);
-}
-
-MA_API ma_result ma_libvorbis_seek_to_pcm_frame_wrapper(void *pDecoder, long long int frameIndex, ma_seek_origin origin)
+MA_API ma_result ma_libopus_seek_to_pcm_frame_wrapper(void *pDecoder,
+                                                      long long int frameIndex,
+                                                      ma_seek_origin origin)
 {
         (void)origin;
         ma_decoder *dec = (ma_decoder *)pDecoder;
-        return ma_libvorbis_seek_to_pcm_frame((ma_libvorbis *)dec->pUserData, frameIndex);
+        return ma_libopus_seek_to_pcm_frame((ma_libopus *)dec->pUserData,
+                                            frameIndex);
 }
 
-MA_API ma_result ma_libvorbis_get_cursor_in_pcm_frames_wrapper(void *pDecoder, long long int *pCursor)
+MA_API ma_result ma_libopus_get_cursor_in_pcm_frames_wrapper(
+    void *pDecoder, long long int *pCursor)
 {
         ma_decoder *dec = (ma_decoder *)pDecoder;
-        return ma_libvorbis_get_cursor_in_pcm_frames((ma_libvorbis *)dec->pUserData, (ma_uint64 *)pCursor);
+        return ma_libopus_get_cursor_in_pcm_frames((ma_libopus *)dec->pUserData,
+                                                   (ma_uint64 *)pCursor);
 }
 
-MA_API ma_result ma_webm_read_pcm_frames_wrapper(void *pDecoder, void *pFramesOut, size_t frameCount, size_t *pFramesRead)
+MA_API ma_result ma_libvorbis_read_pcm_frames_wrapper(void *pDecoder,
+                                                      void *pFramesOut,
+                                                      size_t frameCount,
+                                                      size_t *pFramesRead)
 {
         ma_decoder *dec = (ma_decoder *)pDecoder;
-        return ma_webm_read_pcm_frames((ma_webm *)dec->pUserData, pFramesOut, frameCount, (ma_uint64 *)pFramesRead);
+        return ma_libvorbis_read_pcm_frames((ma_libvorbis *)dec->pUserData,
+                                            pFramesOut, frameCount,
+                                            (ma_uint64 *)pFramesRead);
 }
 
-MA_API ma_result ma_webm_seek_to_pcm_frame_wrapper(void *pDecoder, long long int frameIndex, ma_seek_origin origin)
+MA_API ma_result ma_libvorbis_seek_to_pcm_frame_wrapper(
+    void *pDecoder, long long int frameIndex, ma_seek_origin origin)
+{
+        (void)origin;
+        ma_decoder *dec = (ma_decoder *)pDecoder;
+        return ma_libvorbis_seek_to_pcm_frame((ma_libvorbis *)dec->pUserData,
+                                              frameIndex);
+}
+
+MA_API ma_result ma_libvorbis_get_cursor_in_pcm_frames_wrapper(
+    void *pDecoder, long long int *pCursor)
+{
+        ma_decoder *dec = (ma_decoder *)pDecoder;
+        return ma_libvorbis_get_cursor_in_pcm_frames(
+            (ma_libvorbis *)dec->pUserData, (ma_uint64 *)pCursor);
+}
+
+MA_API ma_result ma_webm_read_pcm_frames_wrapper(void *pDecoder,
+                                                 void *pFramesOut,
+                                                 size_t frameCount,
+                                                 size_t *pFramesRead)
+{
+        ma_decoder *dec = (ma_decoder *)pDecoder;
+        return ma_webm_read_pcm_frames((ma_webm *)dec->pUserData, pFramesOut,
+                                       frameCount, (ma_uint64 *)pFramesRead);
+}
+
+MA_API ma_result ma_webm_seek_to_pcm_frame_wrapper(void *pDecoder,
+                                                   long long int frameIndex,
+                                                   ma_seek_origin origin)
 {
         (void)origin;
         ma_decoder *dec = (ma_decoder *)pDecoder;
         return ma_webm_seek_to_pcm_frame((ma_webm *)dec->pUserData, frameIndex);
 }
 
-MA_API ma_result ma_webm_get_cursor_in_pcm_frames_wrapper(void *pDecoder, long long int *pCursor)
+MA_API ma_result
+ma_webm_get_cursor_in_pcm_frames_wrapper(void *pDecoder, long long int *pCursor)
 {
         ma_decoder *dec = (ma_decoder *)pDecoder;
-        return ma_webm_get_cursor_in_pcm_frames((ma_webm *)dec->pUserData, (ma_uint64 *)pCursor);
+        return ma_webm_get_cursor_in_pcm_frames((ma_webm *)dec->pUserData,
+                                                (ma_uint64 *)pCursor);
 }
 
 int prepareNextVorbisDecoder(char *filepath)
@@ -535,12 +588,15 @@ int prepareNextVorbisDecoder(char *filepath)
         ma_uint32 channels;
         ma_format format;
         ma_channel channelMap[MA_MAX_CHANNELS];
-        ma_libvorbis_get_data_format(currentDecoder, &format, &channels, &sampleRate, channelMap, MA_MAX_CHANNELS);
+        ma_libvorbis_get_data_format(currentDecoder, &format, &channels,
+                                     &sampleRate, channelMap, MA_MAX_CHANNELS);
 
-        uninitPreviousDecoder((void **)vorbisDecoders, vorbisDecoderIndex, (uninit_func)uninitVorbisDecoder);
+        uninitPreviousDecoder((void **)vorbisDecoders, vorbisDecoderIndex,
+                              (uninit_func)uninitVorbisDecoder);
 
         ma_libvorbis *decoder = (ma_libvorbis *)malloc(sizeof(ma_libvorbis));
-        ma_result result = ma_libvorbis_init_file(filepath, NULL, NULL, decoder);
+        ma_result result =
+            ma_libvorbis_init_file(filepath, NULL, NULL, decoder);
 
         if (result != MA_SUCCESS)
                 return -1;
@@ -550,10 +606,12 @@ int prepareNextVorbisDecoder(char *filepath)
         ma_uint32 nsampleRate;
         ma_channel nchannelMap[MA_MAX_CHANNELS];
 
-        ma_libvorbis_get_data_format(decoder, &nformat, &nchannels, &nsampleRate, nchannelMap, MA_MAX_CHANNELS);
-        bool sameFormat = (currentDecoder == NULL || (format == nformat &&
-                                                      channels == nchannels &&
-                                                      sampleRate == nsampleRate));
+        ma_libvorbis_get_data_format(decoder, &nformat, &nchannels,
+                                     &nsampleRate, nchannelMap,
+                                     MA_MAX_CHANNELS);
+        bool sameFormat = (currentDecoder == NULL ||
+                           (format == nformat && channels == nchannels &&
+                            sampleRate == nsampleRate));
 
         if (!sameFormat)
         {
@@ -565,7 +623,8 @@ int prepareNextVorbisDecoder(char *filepath)
         ma_libvorbis *first = getFirstVorbisDecoder();
         if (first != NULL)
         {
-                decoder->pReadSeekTellUserData = (AudioData *)first->pReadSeekTellUserData;
+                decoder->pReadSeekTellUserData =
+                    (AudioData *)first->pReadSeekTellUserData;
         }
 
         decoder->format = nformat;
@@ -573,7 +632,9 @@ int prepareNextVorbisDecoder(char *filepath)
         decoder->onSeek = ma_libvorbis_seek_to_pcm_frame_wrapper;
         decoder->onTell = ma_libvorbis_get_cursor_in_pcm_frames_wrapper;
 
-        setNextDecoder((void **)vorbisDecoders, (void **)&decoder, (void **)&firstVorbisDecoder, &vorbisDecoderIndex, (uninit_func)uninitVorbisDecoder);
+        setNextDecoder((void **)vorbisDecoders, (void **)&decoder,
+                       (void **)&firstVorbisDecoder, &vorbisDecoderIndex,
+                       (uninit_func)uninitVorbisDecoder);
 
         if (currentDecoder != NULL && decoder != NULL)
         {
@@ -602,16 +663,18 @@ int prepareNextDecoder(char *filepath)
         ma_format format;
         getFileInfo(filepath, &sampleRate, &channels, &format);
 
-        bool sameFormat = (currentDecoder == NULL || (format == currentDecoder->outputFormat &&
-                                                      channels == currentDecoder->outputChannels &&
-                                                      sampleRate == currentDecoder->outputSampleRate));
+        bool sameFormat = (currentDecoder == NULL ||
+                           (format == currentDecoder->outputFormat &&
+                            channels == currentDecoder->outputChannels &&
+                            sampleRate == currentDecoder->outputSampleRate));
 
         if (!sameFormat)
         {
                 return 0;
         }
 
-        uninitPreviousDecoder((void **)decoders, decoderIndex, (uninit_func)uninitMaDecoder);
+        uninitPreviousDecoder((void **)decoders, decoderIndex,
+                              (uninit_func)uninitMaDecoder);
 
         ma_decoder *decoder = (ma_decoder *)malloc(sizeof(ma_decoder));
         ma_result result = ma_decoder_init_file(filepath, NULL, decoder);
@@ -621,7 +684,9 @@ int prepareNextDecoder(char *filepath)
                 free(decoder);
                 return -1;
         }
-        setNextDecoder((void **)decoders, (void **)&decoder, (void **)&firstDecoder, &decoderIndex, (uninit_func)uninitMaDecoder);
+        setNextDecoder((void **)decoders, (void **)&decoder,
+                       (void **)&firstDecoder, &decoderIndex,
+                       (uninit_func)uninitMaDecoder);
 
         if (currentDecoder != NULL && decoder != NULL)
         {
@@ -648,9 +713,11 @@ int prepareNextOpusDecoder(char *filepath)
         ma_uint32 channels;
         ma_format format;
         ma_channel channelMap[MA_MAX_CHANNELS];
-        ma_libopus_get_data_format(currentDecoder, &format, &channels, &sampleRate, channelMap, MA_MAX_CHANNELS);
+        ma_libopus_get_data_format(currentDecoder, &format, &channels,
+                                   &sampleRate, channelMap, MA_MAX_CHANNELS);
 
-        uninitPreviousDecoder((void **)opusDecoders, opusDecoderIndex, (uninit_func)uninitOpusDecoder);
+        uninitPreviousDecoder((void **)opusDecoders, opusDecoderIndex,
+                              (uninit_func)uninitOpusDecoder);
 
         ma_libopus *decoder = (ma_libopus *)malloc(sizeof(ma_libopus));
         ma_result result = ma_libopus_init_file(filepath, NULL, NULL, decoder);
@@ -663,10 +730,11 @@ int prepareNextOpusDecoder(char *filepath)
         ma_uint32 nsampleRate;
         ma_channel nchannelMap[MA_MAX_CHANNELS];
 
-        ma_libopus_get_data_format(decoder, &nformat, &nchannels, &nsampleRate, nchannelMap, MA_MAX_CHANNELS);
-        bool sameFormat = (currentDecoder == NULL || (format == nformat &&
-                                                      channels == nchannels &&
-                                                      sampleRate == nsampleRate));
+        ma_libopus_get_data_format(decoder, &nformat, &nchannels, &nsampleRate,
+                                   nchannelMap, MA_MAX_CHANNELS);
+        bool sameFormat = (currentDecoder == NULL ||
+                           (format == nformat && channels == nchannels &&
+                            sampleRate == nsampleRate));
 
         if (!sameFormat)
         {
@@ -677,7 +745,8 @@ int prepareNextOpusDecoder(char *filepath)
 
         if (firstOpusDecoder != NULL)
         {
-                decoder->pReadSeekTellUserData = (AudioData *)firstOpusDecoder->pReadSeekTellUserData;
+                decoder->pReadSeekTellUserData =
+                    (AudioData *)firstOpusDecoder->pReadSeekTellUserData;
         }
 
         decoder->format = nformat;
@@ -685,7 +754,9 @@ int prepareNextOpusDecoder(char *filepath)
         decoder->onSeek = ma_libopus_seek_to_pcm_frame_wrapper;
         decoder->onTell = ma_libopus_get_cursor_in_pcm_frames_wrapper;
 
-        setNextDecoder((void **)opusDecoders, (void **)&decoder, (void **)&firstOpusDecoder, &opusDecoderIndex, (uninit_func)uninitOpusDecoder);
+        setNextDecoder((void **)opusDecoders, (void **)&decoder,
+                       (void **)&firstOpusDecoder, &opusDecoderIndex,
+                       (uninit_func)uninitOpusDecoder);
 
         if (currentDecoder != NULL && decoder != NULL)
         {
@@ -695,15 +766,9 @@ int prepareNextOpusDecoder(char *filepath)
         return 0;
 }
 
-int getBufferSize(void)
-{
-        return bufSize;
-}
+int getBufferSize(void) { return bufSize; }
 
-void setBufferSize(int value)
-{
-        bufSize = value;
-}
+void setBufferSize(int value) { bufSize = value; }
 
 int closestPowerOfTwo(int x)
 {
@@ -722,12 +787,8 @@ ma_int32 unpack_s24(const ma_uint8 *p)
         return sample;
 }
 
-void setAudioBuffer(
-    void *buf,
-    int numFrames,
-    ma_uint32 sampleRate,
-    ma_uint32 channels,
-    ma_format format)
+void setAudioBuffer(void *buf, int numFrames, ma_uint32 sampleRate,
+                    ma_uint32 channels, ma_format format)
 {
         int bufIndex = 0;
 
@@ -736,9 +797,10 @@ void setAudioBuffer(
 
         // Compute power-of-two window/hop sizes in samples
         int wantFFTSamples = (int)(fftSizeMilliseconds * sampleRate / 1000.0f);
-        fftSize = closestPowerOfTwo(wantFFTSamples);       // 2048 or 4096
-        int wantHopSamples = (int)(fftSize * hopFraction); // 25% of window length
-        hopSize = closestPowerOfTwo(wantHopSamples);       // 256, 512, 1024
+        fftSize = closestPowerOfTwo(wantFFTSamples); // 2048 or 4096
+        int wantHopSamples =
+            (int)(fftSize * hopFraction);            // 25% of window length
+        hopSize = closestPowerOfTwo(wantHopSamples); // 256, 512, 1024
 
         if (fftSize > MAX_BUFFER_SIZE)
                 fftSize = MAX_BUFFER_SIZE;
@@ -755,7 +817,8 @@ void setAudioBuffer(
 
                 int framesLeft = numFrames - bufIndex;
                 int spaceLeft = fftSize - writeHead;
-                int framesToCopy = framesLeft < spaceLeft ? framesLeft : spaceLeft;
+                int framesToCopy =
+                    framesLeft < spaceLeft ? framesLeft : spaceLeft;
 
                 switch (format)
                 {
@@ -768,7 +831,9 @@ void setAudioBuffer(
                                 for (ma_uint32 ch = 0; ch < channels; ++ch)
                                 {
                                         // Convert 0..255 to -1..1
-                                        sum += ((float)src[i * channels + ch] - 128.0f) / 128.0f;
+                                        sum += ((float)src[i * channels + ch] -
+                                                128.0f) /
+                                               128.0f;
                                 }
                                 audioBuffer[writeHead++] = sum / channels;
                         }
@@ -782,7 +847,8 @@ void setAudioBuffer(
                                 float sum = 0.0f;
                                 for (ma_uint32 ch = 0; ch < channels; ++ch)
                                 {
-                                        sum += (float)src[i * channels + ch] / 32768.0f;
+                                        sum += (float)src[i * channels + ch] /
+                                               32768.0f;
                                 }
                                 audioBuffer[writeHead++] = sum / channels;
                         }
@@ -790,7 +856,8 @@ void setAudioBuffer(
                 }
                 case ma_format_s24:
                 {
-                        ma_uint8 *src = (ma_uint8 *)buf + bufIndex * channels * 3;
+                        ma_uint8 *src =
+                            (ma_uint8 *)buf + bufIndex * channels * 3;
                         for (int i = 0; i < framesToCopy; ++i)
                         {
                                 float sum = 0.0f;
@@ -812,7 +879,8 @@ void setAudioBuffer(
                                 float sum = 0.0f;
                                 for (ma_uint32 ch = 0; ch < channels; ++ch)
                                 {
-                                        sum += (float)src[i * channels + ch] / 2147483648.0f;
+                                        sum += (float)src[i * channels + ch] /
+                                               2147483648.0f;
                                 }
                                 audioBuffer[writeHead++] = sum / channels;
                         }
@@ -833,7 +901,8 @@ void setAudioBuffer(
                         break;
                 }
                 default:
-                        fprintf(stderr, "Unsupported format in setAudioBuffer!\n");
+                        fprintf(stderr,
+                                "Unsupported format in setAudioBuffer!\n");
                         return;
                 }
                 bufIndex += framesToCopy;
@@ -843,11 +912,10 @@ void setAudioBuffer(
                 {
                         bufferReady = true; // let main loop know FFT is ready
 
-                        // Shift buffer for overlap (keep last fftSize-hopSize samples)
-                        memmove(
-                            audioBuffer,
-                            audioBuffer + hopSize,
-                            sizeof(float) * (fftSize - hopSize));
+                        // Shift buffer for overlap (keep last fftSize-hopSize
+                        // samples)
+                        memmove(audioBuffer, audioBuffer + hopSize,
+                                sizeof(float) * (fftSize - hopSize));
                         writeHead -= hopSize;
                 }
         }
@@ -860,95 +928,44 @@ void resetAudioBuffer(void)
         bufferReady = false;
 }
 
-void *getAudioBuffer(void)
-{
-        return audioBuffer;
-}
+void *getAudioBuffer(void) { return audioBuffer; }
 
-bool isRepeatEnabled(void)
-{
-        return repeatEnabled;
-}
+bool isRepeatEnabled(void) { return repeatEnabled; }
 
-void setRepeatEnabled(bool value)
-{
-        repeatEnabled = value;
-}
+void setRepeatEnabled(bool value) { repeatEnabled = value; }
 
-bool isRepeatListEnabled(void)
-{
-        return repeatListEnabled;
-}
+bool isRepeatListEnabled(void) { return repeatListEnabled; }
 
-void setRepeatListEnabled(bool value)
-{
-        repeatListEnabled = value;
-}
+void setRepeatListEnabled(bool value) { repeatListEnabled = value; }
 
-bool isShuffleEnabled(void)
-{
-        return shuffleEnabled;
-}
+bool isShuffleEnabled(void) { return shuffleEnabled; }
 
-void setShuffleEnabled(bool value)
-{
-        shuffleEnabled = value;
-}
+void setShuffleEnabled(bool value) { shuffleEnabled = value; }
 
-bool isSkipToNext(void)
-{
-        return skipToNext;
-}
+bool isSkipToNext(void) { return skipToNext; }
 
-void setSkipToNext(bool value)
-{
-        skipToNext = value;
-}
+void setSkipToNext(bool value) { skipToNext = value; }
 
-double getSeekElapsed(void)
-{
-        return seekElapsed;
-}
+double getSeekElapsed(void) { return seekElapsed; }
 
-void setSeekElapsed(double value)
-{
-        seekElapsed = value;
-}
+void setSeekElapsed(double value) { seekElapsed = value; }
 
-bool isEOFReached(void)
-{
-        return atomic_load(&EOFReached);
-}
+bool isEOFReached(void) { return atomic_load(&EOFReached); }
 
-void setEOFReached(void)
-{
-        atomic_store(&EOFReached, true);
-}
+void setEOFReached(void) { atomic_store(&EOFReached, true); }
 
-void setEOFNotReached(void)
-{
-        atomic_store(&EOFReached, false);
-}
+void setEOFNotReached(void) { atomic_store(&EOFReached, false); }
 
 bool isImplSwitchReached(void)
 {
         return atomic_load(&switchReached) ? true : false;
 }
 
-void setImplSwitchReached(void)
-{
-        atomic_store(&switchReached, true);
-}
+void setImplSwitchReached(void) { atomic_store(&switchReached, true); }
 
-void setImplSwitchNotReached(void)
-{
-        atomic_store(&switchReached, false);
-}
+void setImplSwitchNotReached(void) { atomic_store(&switchReached, false); }
 
-bool isPlaying(void)
-{
-        return ma_device_is_started(&device);
-}
+bool isPlaying(void) { return ma_device_is_started(&device); }
 
 bool isPlaybackDone(void)
 {
@@ -962,20 +979,11 @@ bool isPlaybackDone(void)
         }
 }
 
-float getSeekPercentage(void)
-{
-        return seekPercent;
-}
+float getSeekPercentage(void) { return seekPercent; }
 
-bool isSeekRequested(void)
-{
-        return seekRequested;
-}
+bool isSeekRequested(void) { return seekRequested; }
 
-void setSeekRequested(bool value)
-{
-        seekRequested = value;
-}
+void setSeekRequested(bool value) { seekRequested = value; }
 
 void seekPercentage(float percent)
 {
@@ -1053,25 +1061,17 @@ void togglePausePlayback(void)
         }
 }
 
-bool isPaused(void)
-{
-        return paused;
-}
+bool isPaused(void) { return paused; }
 
-bool isStopped(void)
-{
-        return stopped;
-}
+bool isStopped(void) { return stopped; }
 
-ma_device *getDevice(void)
-{
-        return &device;
-}
+ma_device *getDevice(void) { return &device; }
 
 bool hasBuiltinDecoder(char *filePath)
 {
         char *extension = strrchr(filePath, '.');
-        return (extension != NULL && (strcasecmp(extension, ".wav") == 0 || strcasecmp(extension, ".flac") == 0 ||
+        return (extension != NULL && (strcasecmp(extension, ".wav") == 0 ||
+                                      strcasecmp(extension, ".flac") == 0 ||
                                       strcasecmp(extension, ".mp3") == 0));
 }
 
@@ -1089,7 +1089,8 @@ void activateSwitch(AudioData *pAudioData)
         if (!isRepeatEnabled())
         {
                 pthread_mutex_lock(&switchMutex);
-                pAudioData->currentFileIndex = 1 - pAudioData->currentFileIndex; // Toggle between 0 and 1
+                pAudioData->currentFileIndex =
+                    1 - pAudioData->currentFileIndex; // Toggle between 0 and 1
                 pthread_mutex_unlock(&switchMutex);
         }
 
@@ -1110,7 +1111,10 @@ void executeSwitch(AudioData *pAudioData)
         switchDecoder(&vorbisDecoderIndex);
         switchDecoder(&webmDecoderIndex);
 
-        pAudioData->pUserData->currentSongData = (pAudioData->currentFileIndex == 0) ? pAudioData->pUserData->songdataA : pAudioData->pUserData->songdataB;
+        pAudioData->pUserData->currentSongData =
+            (pAudioData->currentFileIndex == 0)
+                ? pAudioData->pUserData->songdataA
+                : pAudioData->pUserData->songdataB;
         pAudioData->totalFrames = 0;
         pAudioData->currentPCMFrame = 0;
 
@@ -1119,10 +1123,7 @@ void executeSwitch(AudioData *pAudioData)
         setEOFReached();
 }
 
-int getCurrentVolume(void)
-{
-        return soundVolume;
-}
+int getCurrentVolume(void) { return soundVolume; }
 
 void setVolume(int volume)
 {
@@ -1151,14 +1152,10 @@ int adjustVolumePercent(int volumeChange)
 
 ma_uint64 lastCursor = 0;
 
-ma_result callReadPCMFrames(
-    ma_data_source *pDataSource,
-    ma_format format,
-    void *pFramesOut,
-    ma_uint64 framesRead,
-    ma_uint32 channels,
-    ma_uint64 remainingFrames,
-    ma_uint64 *pFramesToRead)
+ma_result callReadPCMFrames(ma_data_source *pDataSource, ma_format format,
+                            void *pFramesOut, ma_uint64 framesRead,
+                            ma_uint32 channels, ma_uint64 remainingFrames,
+                            ma_uint64 *pFramesToRead)
 {
         ma_result result;
 
@@ -1168,10 +1165,8 @@ ma_result callReadPCMFrames(
         {
                 ma_uint8 *pOut = (ma_uint8 *)pFramesOut;
                 result = ma_data_source_read_pcm_frames(
-                    pDataSource,
-                    pOut + (framesRead * channels),
-                    remainingFrames,
-                    pFramesToRead);
+                    pDataSource, pOut + (framesRead * channels),
+                    remainingFrames, pFramesToRead);
         }
         break;
 
@@ -1179,10 +1174,8 @@ ma_result callReadPCMFrames(
         {
                 ma_int16 *pOut = (ma_int16 *)pFramesOut;
                 result = ma_data_source_read_pcm_frames(
-                    pDataSource,
-                    pOut + (framesRead * channels),
-                    remainingFrames,
-                    pFramesToRead);
+                    pDataSource, pOut + (framesRead * channels),
+                    remainingFrames, pFramesToRead);
         }
         break;
 
@@ -1190,10 +1183,8 @@ ma_result callReadPCMFrames(
         {
                 ma_uint8 *pOut = (ma_uint8 *)pFramesOut;
                 result = ma_data_source_read_pcm_frames(
-                    pDataSource,
-                    pOut + (framesRead * channels * 3),
-                    remainingFrames,
-                    pFramesToRead);
+                    pDataSource, pOut + (framesRead * channels * 3),
+                    remainingFrames, pFramesToRead);
         }
         break;
 
@@ -1201,10 +1192,8 @@ ma_result callReadPCMFrames(
         {
                 ma_int32 *pOut = (ma_int32 *)pFramesOut;
                 result = ma_data_source_read_pcm_frames(
-                    pDataSource,
-                    pOut + (framesRead * channels),
-                    remainingFrames,
-                    pFramesToRead);
+                    pDataSource, pOut + (framesRead * channels),
+                    remainingFrames, pFramesToRead);
         }
         break;
 
@@ -1212,10 +1201,8 @@ ma_result callReadPCMFrames(
         {
                 float *pOut = (float *)pFramesOut;
                 result = ma_data_source_read_pcm_frames(
-                    pDataSource,
-                    pOut + (framesRead * channels),
-                    remainingFrames,
-                    pFramesToRead);
+                    pDataSource, pOut + (framesRead * channels),
+                    remainingFrames, pFramesToRead);
         }
         break;
 
@@ -1230,7 +1217,8 @@ ma_result callReadPCMFrames(
 }
 
 #ifdef USE_FAAD
-void m4a_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_uint64 frameCount, ma_uint64 *pFramesRead)
+void m4a_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut,
+                         ma_uint64 frameCount, ma_uint64 *pFramesRead)
 {
         m4a_decoder *m4a = (m4a_decoder *)pDataSource;
         AudioData *pAudioData = (AudioData *)m4a->pReadSeekTellUserData;
@@ -1263,7 +1251,8 @@ void m4a_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_uint6
                 m4a_decoder *decoder = getCurrentM4aDecoder();
 
                 if (pAudioData->totalFrames == 0)
-                        ma_data_source_get_length_in_pcm_frames(decoder, &(pAudioData->totalFrames));
+                        ma_data_source_get_length_in_pcm_frames(
+                            decoder, &(pAudioData->totalFrames));
 
                 // Check if seeking is requested
                 if (isSeekRequested())
@@ -1276,13 +1265,17 @@ void m4a_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_uint6
                                 if (seekPercent >= 100.0)
                                         seekPercent = 100.0;
 
-                                ma_uint64 targetFrame = (ma_uint64)((totalFrames - 1) * seekPercent / 100.0);
+                                ma_uint64 targetFrame =
+                                    (ma_uint64)((totalFrames - 1) *
+                                                seekPercent / 100.0);
 
                                 if (targetFrame >= totalFrames)
                                         targetFrame = totalFrames - 1;
 
                                 // Set the read pointer for the decoder
-                                ma_result seekResult = m4a_decoder_seek_to_pcm_frame(decoder, targetFrame);
+                                ma_result seekResult =
+                                    m4a_decoder_seek_to_pcm_frame(decoder,
+                                                                  targetFrame);
                                 if (seekResult != MA_SUCCESS)
                                 {
                                         // Handle seek error
@@ -1309,17 +1302,15 @@ void m4a_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_uint6
                 }
 
                 result = callReadPCMFrames(
-                    firstDecoder,
-                    m4a->format,
-                    pFramesOut,
-                    framesRead,
-                    pAudioData->channels,
-                    remainingFrames,
-                    &framesToRead);
+                    firstDecoder, m4a->format, pFramesOut, framesRead,
+                    pAudioData->channels, remainingFrames, &framesToRead);
 
                 ma_data_source_get_cursor_in_pcm_frames(decoder, &cursor);
 
-                if (((cursor != 0 && cursor == lastCursor) || framesToRead == 0 || isSkipToNext() || result != MA_SUCCESS) && !isEOFReached())
+                if (((cursor != 0 && cursor == lastCursor) ||
+                     framesToRead == 0 || isSkipToNext() ||
+                     result != MA_SUCCESS) &&
+                    !isEOFReached())
                 {
                         activateSwitch(pAudioData);
                         pthread_mutex_unlock(&dataSourceMutex);
@@ -1334,7 +1325,8 @@ void m4a_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_uint6
                 pthread_mutex_unlock(&dataSourceMutex);
         }
 
-        setAudioBuffer(pFramesOut, framesRead, pAudioData->sampleRate, pAudioData->channels, pAudioData->format);
+        setAudioBuffer(pFramesOut, framesRead, pAudioData->sampleRate,
+                       pAudioData->channels, pAudioData->format);
 
         if (pFramesRead != NULL)
         {
@@ -1342,16 +1334,19 @@ void m4a_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_uint6
         }
 }
 
-void m4a_on_audio_frames(ma_device *pDevice, void *pFramesOut, const void *pFramesIn, ma_uint32 frameCount)
+void m4a_on_audio_frames(ma_device *pDevice, void *pFramesOut,
+                         const void *pFramesIn, ma_uint32 frameCount)
 {
         AudioData *pDataSource = (AudioData *)pDevice->pUserData;
         ma_uint64 framesRead = 0;
-        m4a_read_pcm_frames(&(pDataSource->base), pFramesOut, frameCount, &framesRead);
+        m4a_read_pcm_frames(&(pDataSource->base), pFramesOut, frameCount,
+                            &framesRead);
         (void)pFramesIn;
 }
 #endif
 
-void opus_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_uint64 frameCount, ma_uint64 *pFramesRead)
+void opus_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut,
+                          ma_uint64 frameCount, ma_uint64 *pFramesRead)
 {
         ma_libopus *opus = (ma_libopus *)pDataSource;
         AudioData *pAudioData = (AudioData *)opus->pReadSeekTellUserData;
@@ -1385,23 +1380,28 @@ void opus_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_uint
                 ma_libopus *decoder = getCurrentOpusDecoder();
 
                 if (pAudioData->totalFrames == 0)
-                        ma_data_source_get_length_in_pcm_frames(decoder, &(pAudioData->totalFrames));
+                        ma_data_source_get_length_in_pcm_frames(
+                            decoder, &(pAudioData->totalFrames));
 
                 // Check if seeking is requested
                 if (isSeekRequested())
                 {
                         ma_uint64 totalFrames = 0;
-                        ma_libopus_get_length_in_pcm_frames(decoder, &totalFrames);
+                        ma_libopus_get_length_in_pcm_frames(decoder,
+                                                            &totalFrames);
                         ma_uint64 seekPercent = getSeekPercentage();
                         if (seekPercent >= 100.0)
                                 seekPercent = 100.0;
-                        ma_uint64 targetFrame = (ma_uint64)((totalFrames - 1) * seekPercent / 100.0);
+                        ma_uint64 targetFrame =
+                            (ma_uint64)((totalFrames - 1) * seekPercent /
+                                        100.0);
 
                         if (targetFrame >= totalFrames)
                                 targetFrame = totalFrames - 1;
 
                         // Set the read pointer for the decoder
-                        ma_result seekResult = ma_libopus_seek_to_pcm_frame(decoder, targetFrame);
+                        ma_result seekResult =
+                            ma_libopus_seek_to_pcm_frame(decoder, targetFrame);
                         if (seekResult != MA_SUCCESS)
                         {
                                 // Handle seek error
@@ -1433,17 +1433,15 @@ void opus_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_uint
                 }
 
                 result = callReadPCMFrames(
-                    firstDecoder,
-                    opus->format,
-                    pFramesOut,
-                    framesRead,
-                    pAudioData->channels,
-                    remainingFrames,
-                    &framesToRead);
+                    firstDecoder, opus->format, pFramesOut, framesRead,
+                    pAudioData->channels, remainingFrames, &framesToRead);
 
                 ma_data_source_get_cursor_in_pcm_frames(decoder, &cursor);
 
-                if (((cursor != 0 && cursor >= pAudioData->totalFrames) || framesToRead == 0 || isSkipToNext() || result != MA_SUCCESS) && !isEOFReached())
+                if (((cursor != 0 && cursor >= pAudioData->totalFrames) ||
+                     framesToRead == 0 || isSkipToNext() ||
+                     result != MA_SUCCESS) &&
+                    !isEOFReached())
                 {
                         activateSwitch(pAudioData);
                         pthread_mutex_unlock(&dataSourceMutex);
@@ -1456,7 +1454,8 @@ void opus_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_uint
                 pthread_mutex_unlock(&dataSourceMutex);
         }
 
-        setAudioBuffer(pFramesOut, framesRead, pAudioData->sampleRate, pAudioData->channels, pAudioData->format);
+        setAudioBuffer(pFramesOut, framesRead, pAudioData->sampleRate,
+                       pAudioData->channels, pAudioData->format);
 
         if (pFramesRead != NULL)
         {
@@ -1464,15 +1463,18 @@ void opus_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_uint
         }
 }
 
-void opus_on_audio_frames(ma_device *pDevice, void *pFramesOut, const void *pFramesIn, ma_uint32 frameCount)
+void opus_on_audio_frames(ma_device *pDevice, void *pFramesOut,
+                          const void *pFramesIn, ma_uint32 frameCount)
 {
         AudioData *pDataSource = (AudioData *)pDevice->pUserData;
         ma_uint64 framesRead = 0;
-        opus_read_pcm_frames(&(pDataSource->base), pFramesOut, frameCount, &framesRead);
+        opus_read_pcm_frames(&(pDataSource->base), pFramesOut, frameCount,
+                             &framesRead);
         (void)pFramesIn;
 }
 
-void vorbis_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_uint64 frameCount, ma_uint64 *pFramesRead)
+void vorbis_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut,
+                            ma_uint64 frameCount, ma_uint64 *pFramesRead)
 {
         ma_libvorbis *vorbis = (ma_libvorbis *)pDataSource;
         AudioData *pAudioData = (AudioData *)vorbis->pReadSeekTellUserData;
@@ -1500,9 +1502,12 @@ void vorbis_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_ui
                 ma_libvorbis *decoder = getCurrentVorbisDecoder();
 
                 if (pAudioData->totalFrames == 0)
-                        ma_data_source_get_length_in_pcm_frames(decoder, &(pAudioData->totalFrames));
+                        ma_data_source_get_length_in_pcm_frames(
+                            decoder, &(pAudioData->totalFrames));
 
-                if ((getCurrentImplementationType() != VORBIS && !isSkipToNext()) || (decoder == NULL))
+                if ((getCurrentImplementationType() != VORBIS &&
+                     !isSkipToNext()) ||
+                    (decoder == NULL))
                 {
                         pthread_mutex_unlock(&dataSourceMutex);
                         return;
@@ -1512,17 +1517,21 @@ void vorbis_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_ui
                 if (isSeekRequested())
                 {
                         ma_uint64 totalFrames = 0;
-                        ma_libvorbis_get_length_in_pcm_frames(decoder, &totalFrames);
+                        ma_libvorbis_get_length_in_pcm_frames(decoder,
+                                                              &totalFrames);
                         ma_uint64 seekPercent = getSeekPercentage();
                         if (seekPercent >= 100.0)
                                 seekPercent = 100.0;
-                        ma_uint64 targetFrame = (ma_uint64)((totalFrames - 1) * seekPercent / 100.0);
+                        ma_uint64 targetFrame =
+                            (ma_uint64)((totalFrames - 1) * seekPercent /
+                                        100.0);
 
                         if (targetFrame >= totalFrames)
                                 targetFrame = totalFrames - 1;
 
                         // Set the read pointer for the decoder
-                        ma_result seekResult = ma_libvorbis_seek_to_pcm_frame(decoder, targetFrame);
+                        ma_result seekResult = ma_libvorbis_seek_to_pcm_frame(
+                            decoder, targetFrame);
                         if (seekResult != MA_SUCCESS)
                         {
                                 // Handle seek error
@@ -1554,17 +1563,13 @@ void vorbis_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_ui
                 }
 
                 result = callReadPCMFrames(
-                    firstDecoder,
-                    vorbis->format,
-                    pFramesOut,
-                    framesRead,
-                    pAudioData->channels,
-                    framesRequested,
-                    &framesToRead);
+                    firstDecoder, vorbis->format, pFramesOut, framesRead,
+                    pAudioData->channels, framesRequested, &framesToRead);
 
                 ma_data_source_get_cursor_in_pcm_frames(decoder, &cursor);
 
-                if (((cursor != 0 && cursor >= pAudioData->totalFrames) || isSkipToNext() || result != MA_SUCCESS) &&
+                if (((cursor != 0 && cursor >= pAudioData->totalFrames) ||
+                     isSkipToNext() || result != MA_SUCCESS) &&
                     !isEOFReached())
                 {
                         activateSwitch(pAudioData);
@@ -1578,7 +1583,8 @@ void vorbis_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_ui
                 pthread_mutex_unlock(&dataSourceMutex);
         }
 
-        setAudioBuffer(pFramesOut, framesRead, pAudioData->sampleRate, pAudioData->channels, pAudioData->format);
+        setAudioBuffer(pFramesOut, framesRead, pAudioData->sampleRate,
+                       pAudioData->channels, pAudioData->format);
 
         if (pFramesRead != NULL)
         {
@@ -1586,15 +1592,18 @@ void vorbis_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_ui
         }
 }
 
-void vorbis_on_audio_frames(ma_device *pDevice, void *pFramesOut, const void *pFramesIn, ma_uint32 frameCount)
+void vorbis_on_audio_frames(ma_device *pDevice, void *pFramesOut,
+                            const void *pFramesIn, ma_uint32 frameCount)
 {
         AudioData *pDataSource = (AudioData *)pDevice->pUserData;
         ma_uint64 framesRead = 0;
-        vorbis_read_pcm_frames(&(pDataSource->base), pFramesOut, frameCount, &framesRead);
+        vorbis_read_pcm_frames(&(pDataSource->base), pFramesOut, frameCount,
+                               &framesRead);
         (void)pFramesIn;
 }
 
-void webm_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_uint64 frameCount, ma_uint64 *pFramesRead)
+void webm_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut,
+                          ma_uint64 frameCount, ma_uint64 *pFramesRead)
 {
         ma_webm *webm = (ma_webm *)pDataSource;
         AudioData *pAudioData = (AudioData *)webm->pReadSeekTellUserData;
@@ -1622,9 +1631,12 @@ void webm_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_uint
                 ma_webm *decoder = getCurrentWebmDecoder();
 
                 if (pAudioData->totalFrames == 0)
-                        ma_data_source_get_length_in_pcm_frames(decoder, &(pAudioData->totalFrames));
+                        ma_data_source_get_length_in_pcm_frames(
+                            decoder, &(pAudioData->totalFrames));
 
-                if ((getCurrentImplementationType() != WEBM && !isSkipToNext()) || (decoder == NULL))
+                if ((getCurrentImplementationType() != WEBM &&
+                     !isSkipToNext()) ||
+                    (decoder == NULL))
                 {
                         pthread_mutex_unlock(&dataSourceMutex);
                         return;
@@ -1638,13 +1650,16 @@ void webm_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_uint
                         ma_uint64 seekPercent = getSeekPercentage();
                         if (seekPercent >= 100.0)
                                 seekPercent = 100.0;
-                        ma_uint64 targetFrame = (ma_uint64)((totalFrames - 1) * seekPercent / 100.0);
+                        ma_uint64 targetFrame =
+                            (ma_uint64)((totalFrames - 1) * seekPercent /
+                                        100.0);
 
                         if (targetFrame >= totalFrames)
                                 targetFrame = totalFrames - 1;
 
                         // Set the read pointer for the decoder
-                        ma_result seekResult = ma_webm_seek_to_pcm_frame(decoder, targetFrame);
+                        ma_result seekResult =
+                            ma_webm_seek_to_pcm_frame(decoder, targetFrame);
                         if (seekResult != MA_SUCCESS)
                         {
                                 // Handle seek error
@@ -1676,17 +1691,13 @@ void webm_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_uint
                 }
 
                 result = callReadPCMFrames(
-                    firstDecoder,
-                    webm->format,
-                    pFramesOut,
-                    framesRead,
-                    pAudioData->channels,
-                    framesRequested,
-                    &framesToRead);
+                    firstDecoder, webm->format, pFramesOut, framesRead,
+                    pAudioData->channels, framesRequested, &framesToRead);
 
                 ma_data_source_get_cursor_in_pcm_frames(decoder, &cursor);
 
-                if (((cursor != 0 && cursor >= pAudioData->totalFrames) || isSkipToNext() || result != MA_SUCCESS) &&
+                if (((cursor != 0 && cursor >= pAudioData->totalFrames) ||
+                     isSkipToNext() || result != MA_SUCCESS) &&
                     !isEOFReached())
                 {
                         activateSwitch(pAudioData);
@@ -1700,7 +1711,8 @@ void webm_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut, ma_uint
                 pthread_mutex_unlock(&dataSourceMutex);
         }
 
-        setAudioBuffer(pFramesOut, framesRead, pAudioData->sampleRate, pAudioData->channels, pAudioData->format);
+        setAudioBuffer(pFramesOut, framesRead, pAudioData->sampleRate,
+                       pAudioData->channels, pAudioData->format);
 
         if (pFramesRead != NULL)
         {
@@ -1730,9 +1742,11 @@ int prepareNextWebmDecoder(SongData *songData)
         ma_uint32 channels;
         ma_format format;
         ma_channel channelMap[MA_MAX_CHANNELS];
-        ma_webm_get_data_format(currentDecoder, &format, &channels, &sampleRate, channelMap, MA_MAX_CHANNELS);
+        ma_webm_get_data_format(currentDecoder, &format, &channels, &sampleRate,
+                                channelMap, MA_MAX_CHANNELS);
 
-        uninitPreviousDecoder((void **)webmDecoders, webmDecoderIndex, (uninit_func)uninitWebmDecoder);
+        uninitPreviousDecoder((void **)webmDecoders, webmDecoderIndex,
+                              (uninit_func)uninitWebmDecoder);
 
         ma_webm *decoder = (ma_webm *)malloc(sizeof(ma_webm));
         ma_result result = ma_webm_init_file(filepath, NULL, NULL, decoder);
@@ -1745,14 +1759,16 @@ int prepareNextWebmDecoder(SongData *songData)
         ma_uint32 nsampleRate;
         ma_channel nchannelMap[MA_MAX_CHANNELS];
 
-        ma_webm_get_data_format(decoder, &nformat, &nchannels, &nsampleRate, nchannelMap, MA_MAX_CHANNELS);
+        ma_webm_get_data_format(decoder, &nformat, &nchannels, &nsampleRate,
+                                nchannelMap, MA_MAX_CHANNELS);
 
         bool sameFormat = (currentDecoder == NULL);
 
         // FIXME gapless playback disabled for webm
         // bool sameFormat = (currentDecoder == NULL || (format == nformat &&
         //                                              channels == nchannels &&
-        //                                              sampleRate == nsampleRate));
+        //                                              sampleRate ==
+        //                                              nsampleRate));
 
         if (!sameFormat)
         {
@@ -1763,7 +1779,8 @@ int prepareNextWebmDecoder(SongData *songData)
 
         if (firstWebmDecoder != NULL)
         {
-                decoder->pReadSeekTellUserData = (AudioData *)firstWebmDecoder->pReadSeekTellUserData;
+                decoder->pReadSeekTellUserData =
+                    (AudioData *)firstWebmDecoder->pReadSeekTellUserData;
         }
 
         decoder->format = nformat;
@@ -1771,7 +1788,9 @@ int prepareNextWebmDecoder(SongData *songData)
         decoder->onSeek = ma_webm_seek_to_pcm_frame_wrapper;
         decoder->onTell = ma_webm_get_cursor_in_pcm_frames_wrapper;
 
-        setNextDecoder((void **)webmDecoders, (void **)&decoder, (void **)&firstWebmDecoder, &webmDecoderIndex, (uninit_func)uninitWebmDecoder);
+        setNextDecoder((void **)webmDecoders, (void **)&decoder,
+                       (void **)&firstWebmDecoder, &webmDecoderIndex,
+                       (uninit_func)uninitWebmDecoder);
 
         if (songData != NULL)
         {
@@ -1790,7 +1809,9 @@ int prepareNextWebmDecoder(SongData *songData)
         return 0;
 }
 
-void getWebmFileInfo(const char *filename, ma_format *format, ma_uint32 *channels, ma_uint32 *sampleRate, ma_channel *channelMap)
+void getWebmFileInfo(const char *filename, ma_format *format,
+                     ma_uint32 *channels, ma_uint32 *sampleRate,
+                     ma_channel *channelMap)
 {
         ma_webm tmp;
         if (ma_webm_init_file(filename, NULL, NULL, &tmp) == MA_SUCCESS)
@@ -1803,10 +1824,7 @@ void getWebmFileInfo(const char *filename, ma_format *format, ma_uint32 *channel
         (void)channelMap;
 }
 
-ma_webm *getFirstWebmDecoder(void)
-{
-        return firstWebmDecoder;
-}
+ma_webm *getFirstWebmDecoder(void) { return firstWebmDecoder; }
 
 ma_webm *getCurrentWebmDecoder(void)
 {
@@ -1816,17 +1834,21 @@ ma_webm *getCurrentWebmDecoder(void)
                 return webmDecoders[webmDecoderIndex];
 }
 
-void webm_on_audio_frames(ma_device *pDevice, void *pFramesOut, const void *pFramesIn, ma_uint32 frameCount)
+void webm_on_audio_frames(ma_device *pDevice, void *pFramesOut,
+                          const void *pFramesIn, ma_uint32 frameCount)
 {
         AudioData *pDataSource = (AudioData *)pDevice->pUserData;
         ma_uint64 framesRead = 0;
-        webm_read_pcm_frames(&(pDataSource->base), pFramesOut, frameCount, &framesRead);
+        webm_read_pcm_frames(&(pDataSource->base), pFramesOut, frameCount,
+                             &framesRead);
 
         if (framesRead < frameCount)
         {
                 ma_webm *webm = (ma_webm *)&(pDataSource->base);
                 float *output = (float *)pFramesOut;
-                memset(output + framesRead * webm->channels, 0, (frameCount - framesRead) * webm->channels * sizeof(float));
+                memset(output + framesRead * webm->channels, 0,
+                       (frameCount - framesRead) * webm->channels *
+                           sizeof(float));
         }
         (void)pFramesIn;
 }

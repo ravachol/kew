@@ -29,6 +29,10 @@ playerops.c
 #define ASK_IF_USE_CACHE_LIMIT_SECONDS 4
 #endif
 
+#ifndef G_USEC_PER_SEC
+#define G_USEC_PER_SEC 1000000
+#endif
+
 struct timespec current_time;
 struct timespec start_time;
 struct timespec pause_time;
@@ -104,39 +108,53 @@ void resetStartTime(void) { clock_gettime(CLOCK_MONOTONIC, &start_time); }
 void updatePlaybackPosition(double elapsedSeconds)
 {
 #ifndef __APPLE__
-        GVariantBuilder changedPropertiesBuilder;
-        g_variant_builder_init(&changedPropertiesBuilder,
-                               G_VARIANT_TYPE_DICTIONARY);
-        g_variant_builder_add(
-            &changedPropertiesBuilder, "{sv}", "Position",
-            g_variant_new_int64(llround(elapsedSeconds * G_USEC_PER_SEC)));
+    if (elapsedSeconds < 0.0)
+        elapsedSeconds = 0.0;
 
-        GVariant *parameters =
-            g_variant_new("(sa{sv}as)", "org.mpris.MediaPlayer2.Player",
-                          &changedPropertiesBuilder, NULL);
+    // Max safe seconds to avoid overflow when multiplied by 1,000,000
+    const double maxSeconds = (double)(LLONG_MAX / G_USEC_PER_SEC);
 
-        g_dbus_connection_emit_signal(connection, NULL,
-                                      "/org/mpris/MediaPlayer2",
-                                      "org.freedesktop.DBus.Properties",
-                                      "PropertiesChanged", parameters, NULL);
+    if (elapsedSeconds > maxSeconds)
+        elapsedSeconds = maxSeconds;
+
+    GVariantBuilder changedPropertiesBuilder;
+    g_variant_builder_init(&changedPropertiesBuilder, G_VARIANT_TYPE_DICTIONARY);
+    g_variant_builder_add(
+        &changedPropertiesBuilder, "{sv}", "Position",
+        g_variant_new_int64(llround(elapsedSeconds * G_USEC_PER_SEC)));
+
+    GVariant *parameters =
+        g_variant_new("(sa{sv}as)", "org.mpris.MediaPlayer2.Player",
+                      &changedPropertiesBuilder, NULL);
+
+    g_dbus_connection_emit_signal(connection, NULL,
+                                  "/org/mpris/MediaPlayer2",
+                                  "org.freedesktop.DBus.Properties",
+                                  "PropertiesChanged", parameters, NULL);
 #else
-        (void)elapsedSeconds;
+    (void)elapsedSeconds;
 #endif
 }
 
 void emitSeekedSignal(double newPositionSeconds)
 {
 #ifndef __APPLE__
-        gint64 newPositionMicroseconds =
-            llround(newPositionSeconds * G_USEC_PER_SEC);
+    if (newPositionSeconds < 0.0)
+        newPositionSeconds = 0.0;
 
-        GVariant *parameters = g_variant_new("(x)", newPositionMicroseconds);
+    const double maxSeconds = (double)(LLONG_MAX / G_USEC_PER_SEC);
+    if (newPositionSeconds > maxSeconds)
+        newPositionSeconds = maxSeconds;
 
-        g_dbus_connection_emit_signal(
-            connection, NULL, "/org/mpris/MediaPlayer2",
-            "org.mpris.MediaPlayer2.Player", "Seeked", parameters, NULL);
+    gint64 newPositionMicroseconds = llround(newPositionSeconds * G_USEC_PER_SEC);
+
+    GVariant *parameters = g_variant_new("(x)", newPositionMicroseconds);
+
+    g_dbus_connection_emit_signal(
+        connection, NULL, "/org/mpris/MediaPlayer2",
+        "org.mpris.MediaPlayer2.Player", "Seeked", parameters, NULL);
 #else
-        (void)newPositionSeconds;
+    (void)newPositionSeconds;
 #endif
 }
 
@@ -144,10 +162,36 @@ void emitStringPropertyChanged(const gchar *propertyName, const gchar *newValue)
 {
 #ifndef __APPLE__
         GVariantBuilder changed_properties_builder;
-        g_variant_builder_init(&changed_properties_builder, G_VARIANT_TYPE("a{sv}"));
-        g_variant_builder_add(&changed_properties_builder, "{sv}", propertyName, g_variant_new_string(newValue));
-        g_dbus_connection_emit_signal(connection, NULL, "/org/mpris/MediaPlayer2", "org.freedesktop.DBus.Properties", "PropertiesChanged",
-                                      g_variant_new("(sa{sv}as)", "org.mpris.MediaPlayer2.Player", &changed_properties_builder, NULL), NULL);
+        g_variant_builder_init(&changed_properties_builder,
+                               G_VARIANT_TYPE("a{sv}"));
+
+        GVariant *value_variant = g_variant_new_string(newValue);
+        if (value_variant == NULL)
+        {
+                fprintf(stderr,
+                        "Failed to allocate GVariant for string property\n");
+                return;
+        }
+
+        g_variant_builder_add(&changed_properties_builder, "{sv}", propertyName,
+                              value_variant);
+
+        GVariant *signal_variant =
+            g_variant_new("(sa{sv}as)", "org.mpris.MediaPlayer2.Player",
+                          &changed_properties_builder, NULL);
+        if (signal_variant == NULL)
+        {
+                fprintf(stderr, "Failed to allocate GVariant for "
+                                "PropertiesChanged signal\n");
+                g_variant_builder_clear(&changed_properties_builder);
+                return;
+        }
+
+        g_dbus_connection_emit_signal(
+            connection, NULL, "/org/mpris/MediaPlayer2",
+            "org.freedesktop.DBus.Properties", "PropertiesChanged",
+            signal_variant, NULL);
+
         g_variant_builder_clear(&changed_properties_builder);
 #else
         (void)propertyName;
@@ -159,10 +203,36 @@ void emitBooleanPropertyChanged(const gchar *propertyName, gboolean newValue)
 {
 #ifndef __APPLE__
         GVariantBuilder changed_properties_builder;
-        g_variant_builder_init(&changed_properties_builder, G_VARIANT_TYPE("a{sv}"));
-        g_variant_builder_add(&changed_properties_builder, "{sv}", propertyName, g_variant_new_boolean(newValue));
-        g_dbus_connection_emit_signal(connection, NULL, "/org/mpris/MediaPlayer2", "org.freedesktop.DBus.Properties", "PropertiesChanged",
-                                      g_variant_new("(sa{sv}as)", "org.mpris.MediaPlayer2.Player", &changed_properties_builder, NULL), NULL);
+        g_variant_builder_init(&changed_properties_builder,
+                               G_VARIANT_TYPE("a{sv}"));
+
+        GVariant *value_variant = g_variant_new_boolean(newValue);
+        if (value_variant == NULL)
+        {
+                fprintf(stderr,
+                        "Failed to allocate GVariant for boolean property\n");
+                return;
+        }
+
+        g_variant_builder_add(&changed_properties_builder, "{sv}", propertyName,
+                              value_variant);
+
+        GVariant *signal_variant =
+            g_variant_new("(sa{sv}as)", "org.mpris.MediaPlayer2.Player",
+                          &changed_properties_builder, NULL);
+        if (signal_variant == NULL)
+        {
+                fprintf(stderr, "Failed to allocate GVariant for "
+                                "PropertiesChanged signal\n");
+                g_variant_builder_clear(&changed_properties_builder);
+                return;
+        }
+
+        g_dbus_connection_emit_signal(
+            connection, NULL, "/org/mpris/MediaPlayer2",
+            "org.freedesktop.DBus.Properties", "PropertiesChanged",
+            signal_variant, NULL);
+
         g_variant_builder_clear(&changed_properties_builder);
 #else
         (void)propertyName;
@@ -180,17 +250,26 @@ void playbackPause(struct timespec *pause_time)
         pausePlayback();
 }
 
+bool isValidAudioNode(Node *node)
+{
+        if (!node)
+                return false;
+        if (node->id <= 0)
+                return false;
+        if (!node->song.filePath ||
+            strnlen(node->song.filePath, MAXPATHLEN) == 0)
+                return false;
+
+        return true;
+}
+
 void play(Node *node)
 {
-        if (node == NULL)
+        if (isValidAudioNode(currentSong))
+        {
+                fprintf(stderr, "Song is invalid.\n");
                 return;
-
-        if (node->id <= 0)
-                return;
-
-        if (node->song.filePath == NULL || strlen(node->song.filePath) == 0)
-                return;
-
+        }
         currentSong = node;
 
         skipping = true;

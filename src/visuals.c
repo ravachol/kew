@@ -59,22 +59,26 @@ void clearMagnitudes(int numBars, float *magnitudes)
 
 void applyBlackmanHarris(float *fftInput, int bufferSize)
 {
-        if (!fftInput || bufferSize <= 1)
-                return;
+    if (!fftInput || bufferSize < 2)  // Must be at least 2 to avoid division by zero
+        return;
 
-        float alpha0 = 0.35875f;
-        float alpha1 = 0.48829f;
-        float alpha2 = 0.14128f;
-        float alpha3 = 0.01168f;
+    const float alpha0 = 0.35875f;
+    const float alpha1 = 0.48829f;
+    const float alpha2 = 0.14128f;
+    const float alpha3 = 0.01168f;
 
-        for (int i = 0; i < bufferSize; i++)
-        {
-                float fraction = (float)i / (float)(bufferSize - 1); // i / (N-1)
-                float window =
-                    alpha0 - alpha1 * cosf(2.0f * M_PI * fraction) + alpha2 * cosf(4.0f * M_PI * fraction) - alpha3 * cosf(6.0f * M_PI * fraction);
+    float denom = (float)(bufferSize - 1);
 
-                fftInput[i] *= window;
-        }
+    for (int i = 0; i < bufferSize; i++)
+    {
+        float fraction = (float)i / denom;
+        float window = alpha0
+                       - alpha1 * cosf(2.0f * M_PI * fraction)
+                       + alpha2 * cosf(4.0f * M_PI * fraction)
+                       - alpha3 * cosf(6.0f * M_PI * fraction);
+
+        fftInput[i] *= window;
+    }
 }
 
 // Fill center freqs for 1/3-octave bands, given min/max freq and numBands
@@ -117,79 +121,84 @@ void fillEQBands(
     int numBands,
     const float *centerFreqs)
 {
-        if (!fftOutput || !bandDb || !centerFreqs || bufferSize <= 0 || numBands <= 0 || sampleRate <= 0.0f)
-                return;
+    // Basic input checks
+    if (!fftOutput || !bandDb || !centerFreqs || bufferSize <= 0 || numBands <= 0 || sampleRate <= 0.0f)
+        return;
 
-        // Check for valid bufferSize before proceeding
-        if (bufferSize <= 0)
-                return;
+    // Guard against potential overflow in bin count computation
+    if (bufferSize > INT_MAX - 1)
+        return;
 
-        int numBins = bufferSize / 2 + 1;
-        if (numBins <= 0)
-                return; // Guard against potential overflow during division
+    int numBins = bufferSize / 2 + 1;
 
-        // Ensure binSpacing is valid (non-zero)
-        float binSpacing = (float)sampleRate / (float)bufferSize;
-        if (binSpacing <= 0)
-                return; // Avoid invalid bin spacing
+    // Safe binSpacing computation
+    float binSpacing = sampleRate / (float)bufferSize;
+    if (binSpacing <= 0.0f || !isfinite(binSpacing))
+        return;
 
-        float width = powf(2.0f, 1.0f / 6.0f); // 1/3 octave: +/- 1/6 octave half-width
-        float normFactor = (float)bufferSize;
-        if (normFactor <= 0)
-                return; // Avoid division by zero in future calculations
+    // Prevent division by zero in normalization
+    float normFactor = (float)bufferSize;
+    if (normFactor <= 0.0f)
+        return;
 
-        // Pink-noise flattening: +3 dB/octave
-        float referenceFreq = fmaxf(centerFreqs[0], 1e-6f);
-        float correctionPerOctave = 3.0f;
-        float maxFreqForCorrection = 10000.0f; // Above this, keep correction flat
+    // Frequency window width for 1/3-octave bands
+    const float width = powf(2.0f, 1.0f / 6.0f);  // +/-1/6 octave
 
-        float nyquist = sampleRate * 0.5f;
+    // Pink noise correction
+    const float correctionPerOctave = 3.0f;
+    const float maxFreqForCorrection = 10000.0f;
+    const float nyquist = sampleRate * 0.5f;
 
-        for (int i = 0; i < numBands; i++)
+    // Make sure referenceFreq is safe
+    float referenceFreq = fmaxf(centerFreqs[0], 1.0f);
+    if (!isfinite(referenceFreq) || referenceFreq <= 0.0f)
+        referenceFreq = 1.0f;
+
+    for (int i = 0; i < numBands; i++)
+    {
+        float center = centerFreqs[i];
+
+        if (!isfinite(center) || center <= 0.0f || center > nyquist)
         {
-                float center = centerFreqs[i];
-
-                if (center > nyquist)
-                {
-                        bandDb[i] = -INFINITY;
-                        continue;
-                }
-
-                float lo = center / width;
-                float hi = center * width;
-
-                // Prevent integer overflow while computing bin indices
-                int binLo = (int)ceilf(lo / binSpacing);
-                int binHi = (int)floorf(hi / binSpacing);
-
-                binLo = (binLo < 0) ? 0 : binLo;
-                binHi = (binHi >= numBins) ? numBins - 1 : binHi;
-                binHi = (binHi < binLo) ? binLo : binHi;
-
-                float sumSq = 0.0f;
-                int count = 0;
-                for (int k = binLo; k <= binHi; k++)
-                {
-                        if (k < 0 || k >= numBins)
-                                continue;
-
-                        // Normalize FFT output
-                        float real = fftOutput[k][0] / normFactor;
-                        float imag = fftOutput[k][1] / normFactor;
-                        float mag = sqrtf(real * real + imag * imag);
-                        sumSq += mag * mag;
-                        count++;
-                }
-
-                // Ensure rms does not become zero, as log10(0) is undefined
-                float rms = (count > 0) ? sqrtf(sumSq / count) : 1e-9f; // Use a small value instead of 0
-                bandDb[i] = 20.0f * log10f(rms);
-
-                float freq = centerFreqs[i];
-                float octavesAboveRef = log2f(fminf(freq, maxFreqForCorrection) / referenceFreq);
-                float correction = fmaxf(octavesAboveRef, 0.0f) * correctionPerOctave;
-                bandDb[i] += correction;
+            bandDb[i] = -INFINITY;
+            continue;
         }
+
+        float lo = center / width;
+        float hi = center * width;
+
+        // Avoid integer overflows in bin index computation
+        int binLo = (int)ceilf(lo / binSpacing);
+        int binHi = (int)floorf(hi / binSpacing);
+
+        binLo = (binLo < 0) ? 0 : binLo;
+        binHi = (binHi >= numBins) ? numBins - 1 : binHi;
+        binHi = (binHi < binLo) ? binLo : binHi;
+
+        float sumSq = 0.0f;
+        int count = 0;
+
+        for (int k = binLo; k <= binHi; k++)
+        {
+            if (k < 0 || k >= numBins)
+                continue;
+
+            float real = fftOutput[k][0] / normFactor;
+            float imag = fftOutput[k][1] / normFactor;
+            float mag = sqrtf(real * real + imag * imag);
+            sumSq += mag * mag;
+            count++;
+        }
+
+        float rms = (count > 0) ? sqrtf(sumSq / count) : 1e-9f;  // Small nonzero floor
+        bandDb[i] = 20.0f * log10f(rms);
+
+        // Pink noise EQ compensation
+        float freq = fminf(center, maxFreqForCorrection);
+        float octavesAboveRef = log2f(freq / referenceFreq);
+        float correction = fmaxf(octavesAboveRef, 0.0f) * correctionPerOctave;
+        bandDb[i] += correction;
+    }
 }
 
 int normalizeAudioSamples(const void *audioBuffer, float *fftInput, int bufferSize, int bitDepth)
