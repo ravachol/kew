@@ -52,7 +52,7 @@ Node *getListPrev(Node *node);
 
 void createNode(Node **node, const char *directoryPath, int id);
 
-void addToList(PlayList *list, Node *newNode);
+int addToList(PlayList *list, Node *newNode);
 
 Node *deleteFromList(PlayList *list, Node *node);
 
