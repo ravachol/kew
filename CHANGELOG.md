@@ -2,23 +2,50 @@
 
 ### 3.5.0
 
-- Android compatibility! Please see ANDROID-INSTRUCTIONS.md for installation instructions using termux. By @Welpyes and @ravachol.
+kew now works on Android phones!
 
-- Improved installation instructions for Fedora and openSuse in the README.
+I always wanted to have kew on my phone as a sort of walkman that I helped create. I was just looking at getting a FairPhone and installing Linux on it, and all kinds of things, when @welpyes showed up and he was trying to put kew on Termux. I didn't know Termux was that powerful, that all libs required would be available and so on. But in the end it wasn't much work at all to get it up and running.
 
-- Enabled the detection of FAAD2 (which handles m4a) on Fedora properly in the makefile. By @ravachol.
+I haven't looked at battery life aspects yet, but staying in library view will be easier on the battery than using track view with the visualizer. You can also press v to toggle the visualizer on or off.
 
-- Made makefile compatible with openSuse Tumbleweed. The kew package has been updated on openSuse for the first time in a long time.
+The other news is that I have gone through the codebase with the help of SASTs and AIs to improve the quality of the code from a security standpoint. This has been a quite large undertaking, but one has to keep in mind that kew is currently an entirely offline app, which should make it less of a target already.
 
-- Added an icon indicating if the song is playing or paused before the title at the top when the logo is hidden.
+Third, we now have a repo on Codeberg and that will be the preferred repo going forward. But people will be welcome to contribute in whichever place they prefer.
 
-- Shows the playlist from the first song if the playing song will still be in view, instead of always starting from the playing song. By @ravachol. Suggested by @affhp.
+Fourth, we are now back on openSuse, as our package there was quite old, version 2.8.1. It hadn't been updated because we switched from FFmpeg to Faad for decoding .m4a files, and Faad wasn't available on openSuse until now. FFmpeg was overkill for that job and Faad is a much smaller lib. Fedora is now the only place that I know of that still doesn't have the Faad library in their official package repository, and therefore doesn't have a kew package. You can however install kew manually on Fedora, and even with Faad support. I have corrected some mistakes in those install instructions.
 
-- Improved the safety of various functions and addressed potential vulnerabilities.
+Thank you to @welpyes for bringing up Termux and helping out with that, and @arcathrax for fixing the ultrawide monitor bug. Thank you to mantarimay for updating the openSuse library.
+
+Thank you also to a new sponsor, @BasedScience! You can join him at https://ko-fi.com/ravachol or https://github.com/sponsors/ravachol.
+
+- Ravachol
+
+@welpyes,
+@ravachol
+        Android compatibility! Please see ANDROID-INSTRUCTIONS.md for how to get kew on your phone.
+
+@ravachol
+        Improved installation instructions for Fedora and openSuse in the README.
+
+@ravachol
+        Enabled the detection of FAAD2 (which handles m4a) on Fedora properly in the makefile.
+
+@ravachol
+        Made makefile compatible with openSuse Tumbleweed. The kew package has been updated on openSuse for the first time in a long time, thank you mantarimay (maintainer on openSuse).
+
+@ravachol
+        Added an icon indicating if the song is playing or paused before the title at the top when the logo is hidden.
+
+@ravachol
+        Shows the playlist from the first song (if it's in view), instead of always starting from the playing song. Suggested by @affhp.
+
+@ravachol
+        Improved the safety of various functions and addressed potential vulnerabilities.
 
 #### Bug Fixes
 
-- Fixed visualizer crashing the app on ultrawide monitors. By @arcathrax.
+@arcathrax
+        Fixed visualizer crashing the app on ultrawide monitors.
 
 ### 3.4.1
 
