@@ -27,7 +27,7 @@ typedef struct
         bool songdataADeleted;
         bool songdataBDeleted;
         SongData *currentSongData;
-        ma_uint32 currentPCMFrame;
+        ma_uint64 currentPCMFrame;
 } UserData;
 #endif
 
@@ -40,7 +40,7 @@ typedef struct
         ma_format format;
         ma_uint32 channels;
         ma_uint32 sampleRate;
-        ma_uint32 currentPCMFrame;
+        ma_uint64 currentPCMFrame;
         ma_uint32 avgBitRate;
         bool switchFiles;
         int currentFileIndex;

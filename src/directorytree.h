@@ -1,8 +1,8 @@
 #ifndef DIRECTORYTREE_H
 #define DIRECTORYTREE_H
 
+#include <dirent.h>
 #include <stdbool.h>
-
 
 #ifndef PATH_MAX
 #define PATH_MAX 4096
@@ -19,7 +19,8 @@ typedef struct FileSystemEntry
         int parentId;
         struct FileSystemEntry *parent;
         struct FileSystemEntry *children;
-        struct FileSystemEntry *next; // For siblings (next node in the same directory)
+        struct FileSystemEntry
+            *next; // For siblings (next node in the same directory)
         struct FileSystemEntry *lastChild; // TEMP: only for construction
 } FileSystemEntry;
 #endif
@@ -35,13 +36,18 @@ void freeTree(FileSystemEntry *root);
 
 void freeAndWriteTree(FileSystemEntry *root, const char *filename);
 
-FileSystemEntry *reconstructTreeFromFile(const char *filename, const char *startMusicPath, int *numDirectoryEntries);
+FileSystemEntry *reconstructTreeFromFile(const char *filename,
+                                         const char *startMusicPath,
+                                         int *numDirectoryEntries);
 
-void fuzzySearchRecursive(FileSystemEntry *node, const char *searchTerm, int threshold, void (*callback)(FileSystemEntry *, int));
+void fuzzySearchRecursive(FileSystemEntry *node, const char *searchTerm,
+                          int threshold,
+                          void (*callback)(FileSystemEntry *, int));
 
 void copyIsEnqueued(FileSystemEntry *library, FileSystemEntry *tmp);
 
-void sortFileSystemTree(FileSystemEntry *root, int (*comparator)(const void *, const void *));
+void sortFileSystemTree(FileSystemEntry *root,
+                        int (*comparator)(const void *, const void *));
 
 int compareFoldersByAgeFilesAlphabetically(const void *a, const void *b);
 
@@ -53,6 +59,7 @@ int compareEntryNaturalReversed(const void *a, const void *b);
 
 int compareEntryNatural(const void *a, const void *b);
 
-FileSystemEntry *findCorrespondingEntry(FileSystemEntry *tmp, const char *fullPath);
+FileSystemEntry *findCorrespondingEntry(FileSystemEntry *tmp,
+                                        const char *fullPath);
 
 #endif
