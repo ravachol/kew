@@ -92,36 +92,37 @@ struct interval
 // Auxiliary function for binary search in interval table
 static int bisearch(wchar_t ucs, const struct interval *table, int max)
 {
-        int min = 0;
-
-        if (table == NULL || max < 0)
-                return 0;
-
-        // Clamp ucs to int range for comparison
-        if (ucs < (wchar_t)table[0].first || ucs > (wchar_t)table[max].last)
-                return 0;
-
-        while (min <= max)
-        {
-                int mid = min + (max - min) / 2;
-
-                if (ucs > (wchar_t)table[mid].last)
-                {
-                        min = mid + 1;
-                }
-                else if (ucs < (wchar_t)table[mid].first)
-                {
-                        if (mid == 0) // Prevent mid-1 underflow
-                                return 0;
-                        max = mid - 1;
-                }
-                else
-                {
-                        return 1;
-                }
-        }
-
+    if (table == NULL || max < 0)
         return 0;
+
+    // Range validation to avoid unsafe casts
+    if (table[0].first > ucs || table[max].last < ucs)
+        return 0;
+
+    size_t min = 0;
+    size_t maxIndex = (size_t)max;
+
+    while (min <= maxIndex)
+    {
+        size_t mid = min + ((maxIndex - min) >> 1);
+
+        if (ucs > table[mid].last)
+        {
+            min = mid + 1;
+        }
+        else if (ucs < table[mid].first)
+        {
+            if (mid == 0)
+                return 0;
+            maxIndex = mid - 1;
+        }
+        else
+        {
+            return 1;
+        }
+    }
+
+    return 0;
 }
 
 int mk_wcwidth(wchar_t ucs)

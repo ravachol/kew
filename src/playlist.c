@@ -128,33 +128,35 @@ void moveDownList(PlayList *list, Node *node)
 
 Node *deleteFromList(PlayList *list, Node *node)
 {
-        if (list->head == NULL || node == NULL)
+        if (list == NULL || node == NULL || list->head == NULL)
                 return NULL;
-
-        if (list->head == node)
-        {
-                list->head = node->next;
-                if (list->head == NULL)
-                {
-                        list->tail = NULL;
-                }
-        }
-
-        if (node == list->tail)
-                list->tail = node->prev;
-
-        if (node->prev != NULL)
-                node->prev->next = node->next;
-        if (node->next != NULL)
-                node->next->prev = node->prev;
-
-        if (node->song.filePath != NULL)
-                free(node->song.filePath);
 
         Node *nextNode = node->next;
 
+        // Adjust head and tail
+        if (list->head == node)
+                list->head = nextNode;
+        if (list->tail == node)
+                list->tail = node->prev;
+
+        // Fix neighbors
+        if (node->prev != NULL)
+                node->prev->next = nextNode;
+        if (nextNode != NULL)
+                nextNode->prev = node->prev;
+
+        // Free song file path string if allocated
+        if (node->song.filePath != NULL)
+        {
+                free(node->song.filePath);
+                node->song.filePath = NULL;
+        }
+
         free(node);
+        node = NULL;
+
         list->count--;
+
         return nextNode;
 }
 
