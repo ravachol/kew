@@ -1,10 +1,13 @@
-#include <stdbool.h>
-#include <math.h>
+#include "search_ui.h"
+#include "common.h"
+#include "common_ui.h"
 #include "soundcommon.h"
 #include "term.h"
-#include "common_ui.h"
-#include "common.h"
-#include "search_ui.h"
+#include <math.h>
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <string.h>
 
 /*
 
@@ -35,27 +38,32 @@ FileSystemEntry *currentSearchEntry = NULL;
 
 char searchText[MAX_SEARCH_LEN * 4 + 1]; // Unicode can be 4 characters
 
-FileSystemEntry *getCurrentSearchEntry(void)
-{
-        return currentSearchEntry;
-}
+FileSystemEntry *getCurrentSearchEntry(void) { return currentSearchEntry; }
 
-int getSearchResultsCount(void)
-{
-        return resultsCount;
-}
+int getSearchResultsCount(void) { return resultsCount; }
 
 // Function to add a result to the global array
 void addResult(FileSystemEntry *entry, int distance)
 {
-        if (resultsCount >= resultsCapacity)
+    if (resultsCount >= resultsCapacity)
+    {
+        size_t newCapacity = resultsCapacity == 0 ? 10 : resultsCapacity * 2;
+
+        SearchResult *newResults = realloc(results, newCapacity * sizeof(SearchResult));
+        if (newResults == NULL)
         {
-                resultsCapacity = resultsCapacity == 0 ? 10 : resultsCapacity * 2;
-                results = realloc(results, resultsCapacity * sizeof(SearchResult));
+            // Allocation failed — do not modify state
+            // Optional: log error or handle gracefully
+            return;
         }
-        results[resultsCount].distance = distance;
-        results[resultsCount].entry = entry;
-        resultsCount++;
+
+        results = newResults;
+        resultsCapacity = newCapacity;
+    }
+
+    results[resultsCount].distance = distance;
+    results[resultsCount].entry = entry;
+    resultsCount++;
 }
 
 // Callback function to collect results
@@ -86,7 +94,8 @@ void fuzzySearch(FileSystemEntry *root, int threshold)
 
         if (numSearchLetters > minSearchLetters)
         {
-                fuzzySearchRecursive(root, searchText, threshold, collectResult);
+                fuzzySearchRecursive(root, searchText, threshold,
+                                     collectResult);
         }
         refresh = true;
 }
@@ -121,6 +130,11 @@ int displaySearchBox(int indent, UISettings *ui)
         return 0;
 }
 
+bool isValidUtf8CharStart(unsigned char byte)
+{
+        return (byte & 0xC0) != 0x80; // Not a continuation byte
+}
+
 int addToSearchText(const char *str)
 {
         if (str == NULL)
@@ -128,50 +142,133 @@ int addToSearchText(const char *str)
                 return -1;
         }
 
-        size_t len = strnlen(str, MAX_SEARCH_LEN);
+        size_t strLen = strnlen(str, MAX_SEARCH_LEN);
 
-        // Check if the string can fit into the search text buffer
-        if (numSearchLetters + len > MAX_SEARCH_LEN)
+        // Make sure we have space for every byte + null terminator
+        if (strLen == 0 || strLen > (size_t)(MAX_SEARCH_LEN - numSearchBytes - 1))
         {
                 return 0; // Not enough space
+        }
+
+        // Count how many actual UTF-8 characters are in the string
+        int utf8CharCount = 0;
+        for (size_t i = 0; i < strLen; i++)
+        {
+                if (isValidUtf8CharStart((unsigned char)str[i]))
+                {
+                        utf8CharCount++;
+                }
+        }
+
+        // Make sure character limit is also not exceeded
+        if (numSearchLetters + utf8CharCount > MAX_SEARCH_LEN)
+        {
+                return 0;
         }
 
         // Restore cursor position
         printf("\033[u");
 
-        // Print the string
-        printf("%s", str);
+        // Safely print the string
+        printf("%.*s", (int)strLen, str);
 
         // Save cursor position
         printf("\033[s");
-
         printf("█\n");
 
-        // Add the string to the search text buffer
-        for (size_t i = 0; i < len; i++)
+        // Copy into buffer
+        for (size_t i = 0; i < strLen; i++)
         {
                 searchText[numSearchBytes++] = str[i];
         }
 
-        searchText[numSearchBytes] = '\0'; // Null-terminate the buffer
-
-        numSearchLetters++;
+        searchText[numSearchBytes] = '\0';
+        numSearchLetters += utf8CharCount;
 
         return 0;
 }
 
-// Determine the number of bytes in the last UTF-8 character
+/*
+ * Return the number of bytes occupied by the last UTF-8 character
+ * in `str` of length `len`. Returns 0 for NULL/len <= 0.
+ *
+ * Behavior on malformed UTF-8:
+ *  - If a valid lead byte is found and the available continuation
+ *    bytes match the expected length, return that expected length (1..4).
+ *  - If a valid lead byte is found but the sequence is truncated
+ *    (not enough continuation bytes), return 1 (treat last byte as lone).
+ *  - If no lead byte is found within the last 4 bytes, return the
+ *    number of bytes available in the suffix (clamped to len).
+ */
 int getLastCharBytes(const char *str, int len)
 {
-        if (len == 0)
-                return 0;
-
-        int i = len - 1;
-        while (i >= 0 && (str[i] & 0xC0) == 0x80)
+        if (str == NULL || len <= 0)
         {
+                return 0;
+        }
+
+        /* Walk backwards to count continuation bytes (0x80..0xBF). */
+        int i = len - 1;
+        int cont = 0;
+        while (i >= 0 && cont < 3 && ((unsigned char)str[i] & 0xC0) == 0x80)
+        {
+                cont++;
                 i--;
         }
-        return len - i;
+
+        /* If we walked off the front (no lead within 4 bytes), return available
+         * suffix length. */
+        if (i < 0)
+        {
+                int bytes = cont + 1; /* suffix includes the last continuation
+                                         bytes + the (missing) lead */
+                if (bytes > len)
+                        bytes = len;
+                return bytes;
+        }
+
+        unsigned char lead = (unsigned char)str[i];
+        int expected;
+        if ((lead & 0x80) == 0x00)
+        {
+                expected = 1;
+        }
+        else if ((lead & 0xE0) == 0xC0)
+        {
+                expected = 2;
+        }
+        else if ((lead & 0xF0) == 0xE0)
+        {
+                expected = 3;
+        }
+        else if ((lead & 0xF8) == 0xF0)
+        {
+                expected = 4;
+        }
+        else
+        {
+                /* Invalid lead byte (0x80..0xBF would have been counted as
+                 * cont, anything else is invalid). */
+                return 1;
+        }
+
+        int available = len - i;
+        if (available == expected)
+        {
+                /* Full valid-looking sequence length */
+                return expected;
+        }
+
+        if (available > expected)
+        {
+                /* Too many bytes after lead: this shouldn't normally happen,
+                 * but clamp to expected. */
+                return expected;
+        }
+
+        /* Sequence is truncated (available < expected). Treat conservatively as
+         * 1 (avoid assuming wide char). */
+        return 1;
 }
 
 // Remove the preceding character from the search text
@@ -223,12 +320,19 @@ int removeFromSearchText(void)
         return 0;
 }
 
-int displaySearchResults(int maxListSize, int indent, int *chosenRow, int startSearchIter, UISettings *ui)
+int displaySearchResults(int maxListSize, int indent, int *chosenRow,
+                         int startSearchIter, UISettings *ui)
 {
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
 
         int maxNameWidth = term_w - indent - 5;
+
+        if (maxNameWidth < 16)
+                maxNameWidth = 16;
+        if (maxNameWidth > 1024)
+                maxNameWidth = 1024;
+
         char name[maxNameWidth + 1];
         int printedRows = 0;
 
@@ -256,13 +360,14 @@ int displaySearchResults(int maxListSize, int indent, int *chosenRow, int startS
         printf("\n");
         printedRows++;
 
+        int end = startSearchIter + maxListSize;
+        if (end > (int)resultsCount)
+                end = resultsCount;
+
         // Print the sorted results
-        for (size_t i = startSearchIter; i < resultsCount; i++)
+        for (int i = startSearchIter; i < end; i++)
         {
                 if (numSearchLetters < minSearchLetters)
-                        break;
-
-                if ((int)i >= maxListSize + startSearchIter - 1)
                         break;
 
                 setDefaultTextColor();
@@ -300,22 +405,28 @@ int displaySearchResults(int maxListSize, int indent, int *chosenRow, int startS
                                 printf("   ");
                 }
 
-
                 name[0] = '\0';
                 if (results[i].entry->isDirectory)
                 {
-                        if (results[i].entry->parent != NULL && strcmp(results[i].entry->parent->name, "root") != 0)
-                                snprintf(name, maxNameWidth + 1, "[%s] (%s)", results[i].entry->name, results[i].entry->parent->name);
+                        if (results[i].entry->parent != NULL &&
+                            strcmp(results[i].entry->parent->name, "root") != 0)
+                                snprintf(name, maxNameWidth + 1, "[%s] (%s)",
+                                         results[i].entry->name,
+                                         results[i].entry->parent->name);
                         else
-                                snprintf(name, maxNameWidth + 1, "[%s]", results[i].entry->name);
-
+                                snprintf(name, maxNameWidth + 1, "[%s]",
+                                         results[i].entry->name);
                 }
                 else
                 {
-                        if (results[i].entry->parent != NULL && strcmp(results[i].entry->parent->name, "root") != 0)
-                                snprintf(name, maxNameWidth + 1, "%s (%s)", results[i].entry->name, results[i].entry->parent->name);
+                        if (results[i].entry->parent != NULL &&
+                            strcmp(results[i].entry->parent->name, "root") != 0)
+                                snprintf(name, maxNameWidth + 1, "%s (%s)",
+                                         results[i].entry->name,
+                                         results[i].entry->parent->name);
                         else
-                                snprintf(name, maxNameWidth + 1, "%s", results[i].entry->name);
+                                snprintf(name, maxNameWidth + 1, "%s",
+                                         results[i].entry->name);
                 }
                 printf("%s\n", name);
                 printedRows++;
@@ -330,10 +441,12 @@ int displaySearchResults(int maxListSize, int indent, int *chosenRow, int startS
         return 0;
 }
 
-int displaySearch(int maxListSize, int indent, int *chosenRow, int startSearchIter, UISettings *ui)
+int displaySearch(int maxListSize, int indent, int *chosenRow,
+                  int startSearchIter, UISettings *ui)
 {
         displaySearchBox(indent, ui);
-        displaySearchResults(maxListSize, indent, chosenRow, startSearchIter, ui);
+        displaySearchResults(maxListSize, indent, chosenRow, startSearchIter,
+                             ui);
 
         return 0;
 }

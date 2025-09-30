@@ -331,7 +331,7 @@ void buildPlaylistRecursive(const char *directoryPath,
 
                 exitIfOverflow(nodeIdCounter);
                 createNode(&node, directoryPath, nodeIdCounter++);
-                if (!addToList(playlist, node))
+                if (addToList(playlist, node) == -1)
                         destroyNode(node);
 
                 return;
@@ -379,7 +379,7 @@ void buildPlaylistRecursive(const char *directoryPath,
                 snprintf(filePath, sizeof(filePath), "%s/%s", directoryPath,
                          entry->d_name);
 
-                if (isDirectory(filePath))
+                if (isDirectory(filePath) == 1)
                 {
                         int songCount = playlist->count;
                         buildPlaylistRecursive(filePath, allowedExtensions,
@@ -399,7 +399,7 @@ void buildPlaylistRecursive(const char *directoryPath,
 
                                 exitIfOverflow(nodeIdCounter);
                                 createNode(&node, filePath, nodeIdCounter++);
-                                if (!addToList(playlist, node))
+                                if (addToList(playlist, node) == -1)
                                         destroyNode(node);
                         }
                 }
@@ -633,7 +633,7 @@ int makePlaylist(int argc, char *argv[], bool exactSearch, const char *path)
                         char *searching = g_utf8_casefold(token, -1);
 
                         if (walker(path, searching, buf, allowedExtensions,
-                                   searchType, exactSearch) == 0)
+                                   searchType, exactSearch, 0) == 0)
                         {
                                 if (strcmp(argv[1], "list") == 0)
                                 {
@@ -983,7 +983,7 @@ void addSongToPlayList(PlayList *list, const char *filePath, int playlistMax)
 
         Node *newNode = NULL;
         createNode(&newNode, filePath, list->count);
-        if (!addToList(list, newNode))
+        if (addToList(list, newNode) == -1)
                 destroyNode(newNode);
 }
 
