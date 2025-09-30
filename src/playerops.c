@@ -731,6 +731,9 @@ bool markAsEnqueued(FileSystemEntry *root, char *path)
         if (root == NULL)
                 return false;
 
+        if (path == NULL)
+                return false;
+
         if (!root->isDirectory)
         {
                 if (strcmp(root->fullPath, path) == 0)
@@ -853,11 +856,13 @@ void enqueueSong(FileSystemEntry *child)
 
         Node *node = NULL;
         createNode(&node, child->fullPath, id);
-        addToList(unshuffledPlaylist, node);
+        if (addToList(unshuffledPlaylist, node) == -1)
+                destroyNode(node);
 
         Node *node2 = NULL;
         createNode(&node2, child->fullPath, id);
-        addToList(&playlist, node2);
+        if (addToList(&playlist, node2) == -1)
+                destroyNode(node2);
 
         child->isEnqueued = 1;
         child->parent->isEnqueued = 1;

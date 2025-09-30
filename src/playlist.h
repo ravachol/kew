@@ -58,6 +58,8 @@ Node *deleteFromList(PlayList *list, Node *node);
 
 void deletePlaylist(PlayList *playlist);
 
+void destroyNode(Node *node);
+
 void shufflePlaylist(PlayList *playlist);
 
 void shufflePlaylistStartingFromSong(PlayList *playlist, Node *song);

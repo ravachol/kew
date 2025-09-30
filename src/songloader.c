@@ -9,6 +9,7 @@
 #include "file.h"
 #include "sound.h"
 #include "soundcommon.h"
+#include <string.h>
 #include "utils.h"
 #include "songloader.h"
 #include "stb_image.h"
@@ -24,116 +25,92 @@ songloader.c
 #define MAXPATHLEN 4096
 #endif
 
+#define MAX_RECURSION_DEPTH 10
+
 static guint track_counter = 0;
 
-void makeFilePath(char *dirPath, char *filePath, struct dirent *entry)
+void makeFilePath(char *dirPath, char *filePath, size_t filePathSize, struct dirent *entry)
 {
-        if (dirPath[strnlen(dirPath, MAXPATHLEN) - 1] == '/')
-        {
-                sprintf(filePath, "%s%s", dirPath, entry->d_name);
-        }
-        else
-        {
-                sprintf(filePath, "%s/%s", dirPath, entry->d_name);
-        }
+    if (dirPath == NULL || filePath == NULL || entry == NULL || filePathSize == 0)
+        return;
+
+    size_t dirLen = strnlen(dirPath, filePathSize);
+
+    if (dirLen + 1 >= filePathSize) {
+        filePath[0] = '\0';
+        return; // Not enough space
+    }
+
+    // Check if dirPath ends with '/'
+    if (dirPath[dirLen - 1] == '/')
+    {
+        snprintf(filePath, filePathSize, "%s%s", dirPath, entry->d_name);
+    }
+    else
+    {
+        snprintf(filePath, filePathSize, "%s/%s", dirPath, entry->d_name);
+    }
+
+    filePath[filePathSize - 1] = '\0';
 }
 
-char *chooseAlbumArt(char *dirPath, char **customFileNameArr, int size)
+char *chooseAlbumArt(const char *dirPath, char **customFileNameArr, int size, int depth)
 {
-
-        DIR *directory = opendir(dirPath);
-        struct dirent *entry;
-        struct stat fileStat;
-
-        // Check if selected directory is empty //
-        if (directory != NULL)
-        {
-
-                // If it's not empty go through all the files in it and file paths and match files / extension with prio list //
-                char *result = NULL;
-                for (char **ptr = customFileNameArr; ptr < customFileNameArr + size; ptr++)
-                {
-
-                        rewinddir(directory);
-
-                        while ((entry = readdir(directory)) != NULL)
-                        {
-
-                                // Create required data //
-                                char filePath[MAXPATHLEN];
-                                makeFilePath(dirPath, filePath, entry);
-
-                                // Using those file path check if the paths lead ot files or directories //
-                                if (stat(filePath, &fileStat) == 0)
-                                {
-
-                                        if (strcmp(entry->d_name, *ptr) == 0)
-                                        {
-                                                result = strdup(filePath);
-                                                break;
-                                        }
-                                }
-                        }
-                        if (result)
-                        {
-                                break;
-                        }
-                }
-                if (result)
-                {
-                        closedir(directory);
-                        return result;
-                }
-                else
-                {
-                        // Recursion //
-                        for (char **ptr = customFileNameArr; ptr < customFileNameArr + size; ptr++)
-                        {
-
-                                rewinddir(directory);
-
-                                while ((entry = readdir(directory)) != NULL)
-                                {
-
-                                        // Handle hidden folders etc //
-                                        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
-                                        {
-                                                continue;
-                                        }
-
-                                        // Create required data //
-                                        char filePath[MAXPATHLEN];
-                                        makeFilePath(dirPath, filePath, entry);
-
-                                        // Using those file path check if the paths lead ot files or directories //
-                                        if (stat(filePath, &fileStat) == 0)
-                                        {
-
-                                                if (S_ISDIR(fileStat.st_mode))
-                                                {
-                                                        result = chooseAlbumArt(filePath, customFileNameArr, size);
-                                                        if (result != NULL)
-                                                        {
-                                                                break; // if album art is found in the directory, break, else keep searching in other directories //
-                                                        }
-                                                }
-                                        }
-                                }
-                                if (result)
-                                {
-                                        break;
-                                }
-                        }
-                        if (result)
-                        {
-                                closedir(directory);
-                                return result;
-                        }
-                }
-        }
-
-        closedir(directory);
+    if (!dirPath || !customFileNameArr || size <= 0 || depth > MAX_RECURSION_DEPTH) {
         return NULL;
+    }
+
+    DIR *directory = opendir(dirPath);
+    if (!directory) {
+        return NULL;
+    }
+
+    struct dirent *entry;
+    struct stat fileStat;
+    char filePath[MAXPATHLEN];
+    char *result = NULL;
+
+    // Phase 1: Look for exact matches
+    for (int i = 0; i < size && !result; i++) {
+        rewinddir(directory);
+        while ((entry = readdir(directory)) != NULL) {
+            if (strstr(entry->d_name, "..")) continue;
+
+            makeFilePath((char *)dirPath, filePath, sizeof(filePath), entry);
+
+            if (stat(filePath, &fileStat) == 0 && S_ISREG(fileStat.st_mode)) {
+                if (strcmp(entry->d_name, customFileNameArr[i]) == 0) {
+                    result = strdup(filePath);
+                    break;
+                }
+            }
+        }
+    }
+
+    // Phase 2: Recurse into subdirectories
+    if (!result) {
+        for (int i = 0; i < size && !result; i++) {
+            rewinddir(directory);
+            while ((entry = readdir(directory)) != NULL) {
+                if (strstr(entry->d_name, "..") ||
+                    strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
+                    continue;
+                }
+
+                makeFilePath((char *)dirPath, filePath, sizeof(filePath), entry);
+
+                if (stat(filePath, &fileStat) == 0 && S_ISDIR(fileStat.st_mode)) {
+                    result = chooseAlbumArt(filePath, customFileNameArr, size, depth + 1);
+                    if (result != NULL) {
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    closedir(directory);
+    return result;
 }
 
 char *findLargestImageFile(const char *directoryPath, char *largestImageFile, off_t *largestFileSize)
@@ -239,7 +216,7 @@ void loadMetaData(SongData *songdata, AppState *state)
                     "f.jpg",
                     "f.jpeg",
                 };
-                tmp = chooseAlbumArt(path, fileArr, 12);
+                tmp = chooseAlbumArt(path, fileArr, 12, 0);
                 if (tmp == NULL)
                 {
                         tmp = findLargestImageFile(path, tmp, &size);
