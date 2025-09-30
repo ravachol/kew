@@ -67,7 +67,7 @@ void preparePlaylistString(Node *node, char *buffer, int bufferSize)
         {
                 ptrdiff_t nameLength = filePath + len - (lastSlash + 1);
 
-                if (nameLength < 0 || (size_t)nameLength >= bufferSize)
+                if (nameLength < 0 || (size_t)nameLength >= (size_t)bufferSize)
                 {
                         nameLength = bufferSize - 1;
                 }
