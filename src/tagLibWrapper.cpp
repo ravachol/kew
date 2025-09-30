@@ -53,11 +53,6 @@ static const std::string base64_chars =
 
 const uint32_t MAX_REASONABLE_SIZE = 100 * 1024 * 1024; // 100MB limit
 
-static inline bool is_base64(unsigned char c)
-{
-        return (isalnum(c) || (c == '+') || (c == '/'));
-}
-
 #if defined(TAGLIB_MAJOR_VERSION) && TAGLIB_MAJOR_VERSION >= 2
 #define HAVE_COMPLEXPROPERTIES 1
 #else
@@ -151,7 +146,7 @@ std::vector<unsigned char> decodeBase64(const std::string &encoded_string)
                         if (decoded_data.size() + remaining_bytes > MAX_DECODED_SIZE) {
                             throw std::runtime_error("Decoded data exceeds size limit during final processing");
                         }
-                        
+
                         for (size_t j = 0; j < i - 1; j++)
                                 decoded_data.push_back(char_array_3[j]);
                 }

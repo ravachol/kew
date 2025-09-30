@@ -32,7 +32,7 @@ int isDirectory(const char *path);
 
 /* Traverse a directory tree and search for a given file or directory */
 int walker(const char *startPath, const char *searching, char *result,
-           const char *allowedExtensions, enum SearchType searchType, bool exactSearch);
+           const char *allowedExtensions, enum SearchType searchType, bool exactSearch, int depth);
 
 int expandPath(const char *inputPath, char *expandedPath);
 
