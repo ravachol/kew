@@ -8,15 +8,22 @@ Listen to music in the terminal.
 *Example screenshot running in Konsole: [Jenova 7: Lost Sci-Fi Movie Themes](https://jenova7.bandcamp.com/album/lost-sci-fi-movie-themes).*
 
 
+
 kew (/kjuː/) is a terminal music player.
+
+
 
 ## Features
 
  * Search a music library with partial titles.
  * Creates a playlist based on a matched directory.
- * Control the player with previous, next and pause.
- * Edit the playlist by adding and removing songs.
+ * Control the player with previous, next, pause, fast forward and rewind.
+ * Edit the playlist by adding, removing and reordering songs.
  * Gapless playback (between files of the same format and type).
+ * Explore the library and enqueue files or folders.
+ * Shuffle, Repeat or Repeat list.
+ * Export the playlist to an m3u file.
+ * Search your music library and add to the queue.
  * Supports MP3, FLAC, MPEG-4/M4A (AAC), OPUS, OGG, Webm and WAV audio.
  * Supports desktop events through MPRIS.
  * Private, no data is collected by kew.
