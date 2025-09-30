@@ -96,7 +96,7 @@ bool existsInCache(Cache *cache, char *filePath)
 
         if (cache == NULL)
         {
-                fprintf(stderr, "existsInCache: Cache is null.");
+                fprintf(stderr, "existsInCache: Cache is null.\n");
                 return false;
         }
 
