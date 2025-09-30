@@ -112,135 +112,151 @@ bool isCooldownElapsed(int milliSeconds)
 
 enum EventType getMouseLastRowEvent(int mouseXOnLastRow)
 {
-        enum EventType result = EVENT_NONE;
+    enum EventType result = EVENT_NONE;
 
-        int viewClicked = 1;
-        for (int i = 0; i < mouseXOnLastRow; i++)
+    size_t lastRowLen = strlen(LAST_ROW);
+    if (mouseXOnLastRow < 0 || (size_t)mouseXOnLastRow > lastRowLen)
+    {
+        // Out of bounds, return default
+        return EVENT_NONE;
+    }
+
+    int viewClicked = 1;
+    for (int i = 0; i < mouseXOnLastRow; i++)
+    {
+        if (LAST_ROW[i] == '|')
         {
-                if (LAST_ROW[i] == '|')
-                {
-                        viewClicked++;
-                }
+            viewClicked++;
         }
-        switch (viewClicked)
-        {
+    }
+
+    switch (viewClicked)
+    {
         case 1:
-                result = EVENT_SHOWPLAYLIST;
-                break;
+            result = EVENT_SHOWPLAYLIST;
+            break;
         case 2:
-                result = EVENT_SHOWLIBRARY;
-                break;
+            result = EVENT_SHOWLIBRARY;
+            break;
         case 3:
-                result = EVENT_SHOWTRACK;
-                break;
+            result = EVENT_SHOWTRACK;
+            break;
         case 4:
-                result = EVENT_SHOWSEARCH;
-                break;
+            result = EVENT_SHOWSEARCH;
+            break;
         case 5:
-                result = EVENT_SHOWKEYBINDINGS;
-                break;
+            result = EVENT_SHOWKEYBINDINGS;
+            break;
         default:
-                result = EVENT_NONE;
-                break;
-        }
-        // Switch to library view if track view is clicked and no song is currently playing
-        if (result == EVENT_SHOWTRACK && getCurrentSongData() == NULL)
-        {
-                result = EVENT_SHOWLIBRARY;
-        }
+            result = EVENT_NONE;
+            break;
+    }
 
-        return result;
+    // Switch to library view if track view is clicked and no song is currently playing
+    if (result == EVENT_SHOWTRACK && getCurrentSongData() == NULL)
+    {
+        result = EVENT_SHOWLIBRARY;
+    }
+
+    return result;
 }
 
 bool mouseInputHandled(char *seq, int i, struct Event *event)
 {
-        if (!seq || !event)
-                return false;
-
-        const char *expected = (i >= 0 && i < NUM_KEY_MAPPINGS) ? keyMappings[i].seq : NULL;
-        if (!expected)
-                return false;
-
-        // Copy the sequence safely
-        char tmpSeq[MAX_SEQ_LEN];
-        size_t src_len = strnlen(seq, MAX_SEQ_LEN - 1);
-        snprintf(tmpSeq, sizeof tmpSeq, "%.*s", (int)src_len, seq);
-
-        // If the sequence is too short we cannot have a valid mouse event.
-        if (src_len < 4) // At least ESC[ M + 3 digits?
-                return false;
-
-        // Parse the three semicolon-separated numbers safely
-        int mouseButton = 0, mouseX = 0, mouseY = 0;
-        const char *p = tmpSeq + 3; // Skip ESC[ M
-
-        for (int field = 0; field < 3 && p && *p; ++field)
-        {
-                long val = strtol(p, (char **)&p, 10); // Stop at ';' or NUL
-                if (*p == ';')
-                        ++p; // Consume ';'
-
-                switch (field)
-                {
-                case 0:
-                        mouseButton = (int)val;
-                        break;
-                case 1:
-                        mouseX = (int)val;
-                        break;
-                case 2:
-                        mouseY = (int)val;
-                        break;
-                }
-        }
-
-        // Progress-bar math
-        if (progressBarLength > 0)
-        {
-                long long deltaCol = (long long)mouseX - (long long)progressBarCol;
-
-                // Clamp the value so we never divide by zero or overflow.
-                double position = 0.0;
-                if (deltaCol >= 0 && deltaCol <= progressBarLength)
-                        position = (double)deltaCol / (double)progressBarLength;
-
-                double duration = getCurrentSongDuration();
-                draggedPositionSeconds = duration * position;
-        }
-
-        // Handle various click cases
-        if (mouseY == lastRowRow &&
-            lastRowCol > 0 &&
-            mouseX - lastRowCol > 0 &&
-            mouseX - lastRowCol < (int)strlen(LAST_ROW) &&
-            mouseButton != MOUSE_DRAG)
-        {
-                event->type = getMouseLastRowEvent(mouseX - lastRowCol);
-                return true;
-        }
-
-        if ((mouseY == progressBarRow || draggingProgressBar) &&
-            mouseX - progressBarCol >= 0 &&
-            mouseX - progressBarCol < progressBarLength &&
-            appState.currentView == TRACK_VIEW)
-        {
-                if (mouseButton == MOUSE_DRAG || mouseButton == MOUSE_CLICK)
-                {
-                        draggingProgressBar = true;
-                        gint64 newPosUs = (gint64)(draggedPositionSeconds * G_USEC_PER_SEC);
-                        setPosition(newPosUs);
-                }
-                return true;
-        }
-
-        // Fallback: normal key-mapping comparison
-        if (strncmp(seq + 1, expected, strlen(expected)) == 0)
-        {
-                event->type = keyMappings[i].eventType;
-                return true;
-        }
-
+    if (!seq || !event)
         return false;
+
+    if (i < 0 || i >= NUM_KEY_MAPPINGS || keyMappings[i].seq == NULL)
+        return false;
+
+    const char *expected = keyMappings[i].seq;
+
+    char tmpSeq[MAX_SEQ_LEN];
+    size_t src_len = strnlen(seq, MAX_SEQ_LEN - 1);
+
+    if (src_len < 4) // Must be at least ESC[ M + 3 digits
+        return false;
+
+    snprintf(tmpSeq, sizeof tmpSeq, "%.*s", (int)src_len, seq);
+
+    int mouseButton = 0, mouseX = 0, mouseY = 0;
+    const char *end = tmpSeq + src_len;
+    const char *p = tmpSeq + 3; // Skip ESC[ M
+
+    for (int field = 0; field < 3 && p && *p && p < end; ++field)
+    {
+        char *endptr;
+        long val = strtol(p, &endptr, 10);
+        if (endptr == p || endptr > end) // no progress or out of bounds
+            break;
+        p = endptr;
+
+        if (*p == ';')
+            ++p;
+
+        switch (field)
+        {
+        case 0: mouseButton = (int)val; break;
+        case 1: mouseX = (int)val; break;
+        case 2: mouseY = (int)val; break;
+        }
+    }
+
+    if (progressBarLength > 0)
+    {
+        long long deltaCol = (long long)mouseX - (long long)progressBarCol;
+
+        if (deltaCol >= 0 && deltaCol <= (long long)progressBarLength)
+        {
+            double position = (double)deltaCol / (double)progressBarLength;
+            double duration = getCurrentSongDuration();
+            draggedPositionSeconds = duration * position;
+        }
+        else
+        {
+            draggedPositionSeconds = 0.0;
+        }
+    }
+    else
+    {
+        draggedPositionSeconds = 0.0;
+    }
+
+    if (mouseY == lastRowRow &&
+        lastRowCol > 0 &&
+        mouseX - lastRowCol > 0 &&
+        mouseX - lastRowCol < (int)strlen(LAST_ROW) &&
+        mouseButton != MOUSE_DRAG)
+    {
+        event->type = getMouseLastRowEvent(mouseX - lastRowCol);
+        return true;
+    }
+
+    if ((mouseY == progressBarRow || draggingProgressBar) &&
+        mouseX - progressBarCol >= 0 &&
+        mouseX - progressBarCol < progressBarLength &&
+        appState.currentView == TRACK_VIEW)
+    {
+        if (mouseButton == MOUSE_DRAG || mouseButton == MOUSE_CLICK)
+        {
+            draggingProgressBar = true;
+            gint64 newPosUs = (gint64)(draggedPositionSeconds * G_USEC_PER_SEC);
+            setPosition(newPosUs);
+        }
+        return true;
+    }
+
+    size_t expected_len = strlen(expected);
+    if (strlen(seq) < expected_len + 1)
+        return false;
+
+    if (strncmp(seq + 1, expected, expected_len) == 0)
+    {
+        event->type = keyMappings[i].eventType;
+        return true;
+    }
+
+    return false;
 }
 
 struct Event processInput()

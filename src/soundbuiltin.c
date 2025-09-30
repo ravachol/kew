@@ -67,9 +67,16 @@ static ma_result builtin_file_data_source_get_data_format(
         }
 
         AudioData *audioData = (AudioData *)pDataSource;
+
+        if (pFormat == NULL || pChannels == NULL || pSampleRate == NULL)
+        {
+                return MA_INVALID_ARGS;
+        }
+
         *pFormat = audioData->format;
         *pChannels = audioData->channels;
         *pSampleRate = audioData->sampleRate;
+
         return MA_SUCCESS;
 }
 
@@ -143,42 +150,48 @@ bool isValidGain(double gain)
 
 static bool computeReplayGain(AudioData *audioData, double *outGainDb)
 {
-        if (audioData == NULL || audioData->pUserData == NULL)
-                return false;
-
-        UserData *ud = audioData->pUserData;
-
-        if ((!ud->songdataADeleted && ud->currentSongData == ud->songdataA) ||
-            (!ud->songdataBDeleted && ud->currentSongData == ud->songdataB))
-        {
-
-                SongData *song = ud->currentSongData;
-                if (song == NULL || song->metadata == NULL)
-                        return false;
-
-                double trackGain = song->metadata->replaygainTrack;
-                double albumGain = song->metadata->replaygainAlbum;
-
-                bool useTrackFirst = (ud->replayGainCheckFirst == 0);
-
-                if (useTrackFirst && isValidGain(trackGain))
-                {
-                        *outGainDb = trackGain;
-                        return true;
-                }
-                else if (isValidGain(albumGain))
-                {
-                        *outGainDb = albumGain;
-                        return true;
-                }
-                else if (!useTrackFirst && isValidGain(trackGain))
-                {
-                        *outGainDb = trackGain;
-                        return true;
-                }
-        }
-
+    if (audioData == NULL || audioData->pUserData == NULL)
         return false;
+
+    UserData *ud = audioData->pUserData;
+
+    bool result = false;
+    double gainDb = 0.0;
+
+    if ((!ud->songdataADeleted && ud->currentSongData == ud->songdataA) ||
+        (!ud->songdataBDeleted && ud->currentSongData == ud->songdataB))
+    {
+        SongData *song = ud->currentSongData;
+        if (song != NULL && song->metadata != NULL)
+        {
+            double trackGain = song->metadata->replaygainTrack;
+            double albumGain = song->metadata->replaygainAlbum;
+
+            bool useTrackFirst = (ud->replayGainCheckFirst == 0);
+
+            if (useTrackFirst && isValidGain(trackGain))
+            {
+                gainDb = trackGain;
+                result = true;
+            }
+            else if (isValidGain(albumGain))
+            {
+                gainDb = albumGain;
+                result = true;
+            }
+            else if (!useTrackFirst && isValidGain(trackGain))
+            {
+                gainDb = trackGain;
+                result = true;
+            }
+        }
+    }
+
+    if (result) {
+        *outGainDb = gainDb;
+    }
+
+    return result;
 }
 
 static void applyGainToInterleavedFrames(void *rawFrames, ma_format format,
@@ -188,6 +201,16 @@ static void applyGainToInterleavedFrames(void *rawFrames, ma_format format,
         if (gain == 1.0)
         {
                 return; // No gain to apply
+        }
+
+        // Prevent multiplication overflow:
+        if (channels <= 0)
+                return;
+
+        if (framesToRead > (UINT64_MAX / channels))
+        {
+                // Overflow would happen
+                return;
         }
 
         switch (format)

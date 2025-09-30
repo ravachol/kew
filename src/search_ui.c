@@ -18,6 +18,7 @@ search_ui.c
 */
 
 #define MAX_SEARCH_LEN 32
+#define MAX_SEARCH_BYTES 109
 
 int numSearchLetters = 0;
 int numSearchBytes = 0;
@@ -42,34 +43,51 @@ FileSystemEntry *getCurrentSearchEntry(void) { return currentSearchEntry; }
 
 int getSearchResultsCount(void) { return resultsCount; }
 
-// Function to add a result to the global array
-void addResult(FileSystemEntry *entry, int distance)
-{
-    if (resultsCount >= resultsCapacity)
-    {
-        size_t newCapacity = resultsCapacity == 0 ? 10 : resultsCapacity * 2;
+#define MAX_RESULTS_CAPACITY 100000
 
-        SearchResult *newResults = realloc(results, newCapacity * sizeof(SearchResult));
-        if (newResults == NULL)
+// Function to add a result to the global array
+int addResult(FileSystemEntry *entry, int distance)
+{
+        if (resultsCount >= resultsCapacity)
         {
-            // Allocation failed — do not modify state
-            // Optional: log error or handle gracefully
-            return;
+                size_t newCapacity =
+                    (resultsCapacity == 0) ? 10 : resultsCapacity * 2;
+
+                if (newCapacity > MAX_RESULTS_CAPACITY ||
+                    newCapacity > SIZE_MAX / sizeof(SearchResult))
+                {
+                        fprintf(stderr, "addResult: capacity overflow\n");
+                        return 0;
+                }
+
+                SearchResult *newResults =
+                    realloc(results, newCapacity * sizeof(SearchResult));
+                if (newResults == NULL)
+                {
+                        fprintf(stderr,
+                                "addResult: memory allocation failed\n");
+                        return -1;
+                }
+
+                results = newResults;
+                resultsCapacity = newCapacity;
         }
 
-        results = newResults;
-        resultsCapacity = newCapacity;
-    }
+        results[resultsCount].distance = distance;
+        results[resultsCount].entry = entry;
+        resultsCount++;
 
-    results[resultsCount].distance = distance;
-    results[resultsCount].entry = entry;
-    resultsCount++;
+        return 0; // success
 }
 
 // Callback function to collect results
 void collectResult(FileSystemEntry *entry, int distance)
 {
-        addResult(entry, distance);
+        if (!addResult(entry, distance))
+        {
+                printf("Memory allocation error.\n");
+                exit(1);
+        }
 }
 
 // Free allocated memory from previous search
@@ -102,9 +120,17 @@ void fuzzySearch(FileSystemEntry *root, int threshold)
 
 int compareResults(const void *a, const void *b)
 {
-        SearchResult *resultA = (SearchResult *)a;
-        SearchResult *resultB = (SearchResult *)b;
-        return resultA->distance - resultB->distance;
+    if (a == NULL && b == NULL)
+        return 0; // both equal
+    if (a == NULL)
+        return -1; // NULL is considered less (or greater, your choice)
+    if (b == NULL)
+        return 1;
+
+    SearchResult *resultA = (SearchResult *)a;
+    SearchResult *resultB = (SearchResult *)b;
+
+    return resultA->distance - resultB->distance;
 }
 
 void sortResults(void)
@@ -145,10 +171,18 @@ int addToSearchText(const char *str)
         size_t strLen = strnlen(str, MAX_SEARCH_LEN);
 
         // Make sure we have space for every byte + null terminator
-        if (strLen == 0 || strLen > (size_t)(MAX_SEARCH_LEN - numSearchBytes - 1))
+        if (strLen == 0 ||
+            strLen > (size_t)(MAX_SEARCH_LEN - numSearchBytes - 1))
         {
                 return 0; // Not enough space
         }
+
+        if (strLen == 0 ||
+            strLen > ((size_t)MAX_SEARCH_BYTES - numSearchBytes - 1))
+                return 0;
+
+        if (numSearchLetters > MAX_SEARCH_LEN)
+                return 0;
 
         // Count how many actual UTF-8 characters are in the string
         int utf8CharCount = 0;

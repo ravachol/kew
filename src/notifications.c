@@ -1,10 +1,14 @@
+#include <ctype.h>
 #include <fcntl.h>
 #include <glib.h>
 #include <pthread.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <sys/time.h>
+#include <sys/stat.h>
+#include <stdint.h>
 #include <stdio.h>
+#include <string.h>
 #include "notifications.h"
 
 /*
@@ -18,19 +22,10 @@ notifications.c
 bool isValidFilepath(const char *path)
 {
     if (path == NULL || *path == '\0' || strnlen(path, PATH_MAX) >= PATH_MAX)
-    {
         return false;
-    }
 
-    int fd = open(path, O_RDONLY);
-    bool result = (fd != -1);
-
-    if (fd != -1)
-    {
-        close(fd);
-    }
-
-    return result;
+    struct stat st;
+    return stat(path, &st) == 0 && S_ISREG(st.st_mode);
 }
 
 void removeBlacklistedChars(const char *input,
@@ -38,35 +33,30 @@ void removeBlacklistedChars(const char *input,
                             char *output,
                             size_t output_size)
 {
-        if (!input || !blacklist || !output || output_size == 0)
+    if (!input || !blacklist || !output || output_size < 2) {
+        if (output && output_size > 0)
+            output[0] = '\0';
+        return;
+    }
+
+    const char *in_ptr = input;
+    char *out_ptr = output;
+    size_t chars_copied = 0;
+
+    while (*in_ptr && chars_copied < output_size - 1)
+    {
+        unsigned char c = (unsigned char)*in_ptr;
+
+        // Skip non-printable characters and blacklist
+        if (isprint(c) && !strchr(blacklist, c))
         {
-                if (output && output_size > 0)
-                        output[0] = '\0';
-                return;
+            *out_ptr++ = c;
+            chars_copied++;
         }
+        in_ptr++;
+    }
 
-        const char *in_ptr = input;
-        char *out_ptr = output;
-        size_t chars_copied = 0;
-
-        while (*in_ptr)
-        {
-                if (chars_copied >= output_size - 1)
-                        break;
-
-                if (!strchr(blacklist, *in_ptr))
-                {
-                        *out_ptr = *in_ptr;
-                        out_ptr++;
-                        chars_copied++;
-                }
-                in_ptr++;
-        }
-
-        if (chars_copied < output_size)
-                output[chars_copied] = '\0';
-        else
-                output[output_size - 1] = '\0';
+    *out_ptr = '\0';
 }
 
 void ensureNonEmpty(char *str, size_t bufferSize)
@@ -97,26 +87,23 @@ int canShowNotification(void)
     struct timeval now;
     gettimeofday(&now, NULL);
 
-    // Lock the mutex to prevent race conditions
     pthread_mutex_lock(&notificationMutex);
 
-    // Calculate the elapsed time safely
-    long seconds = now.tv_sec - lastNotificationTime.tv_sec;
-    long microseconds = now.tv_usec - lastNotificationTime.tv_usec;
+    // Calculate elapsed time in microseconds using 64-bit unsigned math
+    int64_t sec_diff = (int64_t)(now.tv_sec - lastNotificationTime.tv_sec);
+    int64_t usec_diff = (int64_t)(now.tv_usec - lastNotificationTime.tv_usec);
 
-    // Handle microsecond wraparound
-    if (microseconds < 0) {
-        microseconds += 1000000;
-        seconds -= 1;
+    if (usec_diff < 0)
+    {
+        usec_diff += 1000000;
+        sec_diff -= 1;
     }
 
-    // Calculate the total elapsed time in microseconds
-    long elapsed = seconds * 1000000 + microseconds;
+    uint64_t elapsed = (uint64_t)(sec_diff * 1000000 + usec_diff);
 
-    // Check if the elapsed time is greater than or equal to the notification interval
     if (elapsed >= NOTIFICATION_INTERVAL_MICROSECONDS)
     {
-        lastNotificationTime = now; // Update the last notification time
+        lastNotificationTime = now;
         pthread_mutex_unlock(&notificationMutex);
         return 1;
     }

@@ -89,75 +89,88 @@ const char *LOGO[] = {" __\n", "|  |--.-----.--.--.--.\n",
 int calcIdealImgSize(int *width, int *height, const int visualizerHeight,
                      const int metatagHeight)
 {
+        if (!width || !height)
+                return -1;
+
         float aspectRatio = calcAspectRatio();
+
+        if (!isfinite(aspectRatio) || aspectRatio <= 0.0f ||
+            aspectRatio > 100.0f)
+                aspectRatio = 1.0f; // fallback to square
 
         int term_w = 0, term_h = 0;
         getTermSize(&term_w, &term_h);
 
-        // Validate terminal dimensions
         if (term_w <= 0 || term_h <= 0 || term_w > MAX_TERM_SIZE ||
             term_h > MAX_TERM_SIZE)
         {
                 *width = 1;
                 *height = 1;
-                return 0;
+                return -1;
         }
 
         const int timeDisplayHeight = 1;
         const int heightMargin = 4;
         const int minHeight = visualizerHeight + metatagHeight +
                               timeDisplayHeight + heightMargin + 1;
-        const int minBorderWidth = 0;
+
+        if (minHeight < 0 || minHeight > term_h)
+        {
+                *width = 1;
+                *height = 1;
+                return -1;
+        }
 
         int availableHeight = term_h - minHeight;
         if (availableHeight <= 0)
         {
                 *width = 1;
                 *height = 1;
-                return 0;
+                return -1;
         }
 
-        // Use double for safe calculations
+        // Safe calculation using double
         double safeHeight = (double)availableHeight;
         double safeAspect = (double)aspectRatio;
 
         double tempWidth = safeHeight * safeAspect;
 
-        if (tempWidth > (double)INT_MAX)
-                tempWidth = (double)INT_MAX;
+        // Clamp to INT_MAX and reasonable limits
+        if (tempWidth < 1.0)
+                tempWidth = 1.0;
+        else if (tempWidth > INT_MAX)
+                tempWidth = INT_MAX;
 
         int calcWidth = (int)ceil(tempWidth);
         int calcHeight = availableHeight;
 
         if (calcWidth > term_w)
         {
-                // Recalculate height to match max width
-                calcWidth = term_w - minBorderWidth;
+                calcWidth = term_w;
                 if (calcWidth <= 0)
                 {
                         *width = 1;
                         *height = 1;
-                        return 0;
+                        return -1;
                 }
 
                 double tempHeight = (double)calcWidth / safeAspect;
-                if (tempHeight > (double)INT_MAX)
-                        tempHeight = (double)INT_MAX;
+
+                if (tempHeight < 1.0)
+                        tempHeight = 1.0;
+                else if (tempHeight > INT_MAX)
+                        tempHeight = INT_MAX;
 
                 calcHeight = (int)floor(tempHeight);
         }
 
-        // Clamp values to safe range
+        // Final clamping
         if (calcWidth < 1)
                 calcWidth = 1;
-        if (calcHeight < 1)
-                calcHeight = 1;
+        if (calcHeight < 2)
+                calcHeight = 2;
 
-        if (calcWidth > INT_MAX)
-                calcWidth = INT_MAX;
-        if (calcHeight > INT_MAX)
-                calcHeight = INT_MAX;
-
+        // Slight adjustment
         calcHeight -= 1;
         if (calcHeight < 1)
                 calcHeight = 1;
@@ -838,8 +851,9 @@ void printLastRow(int row, int col, UISettings *ui, AppSettings *settings)
                                                     // and replay settings
                 }
 #else
-                // Always try to print the footer on Android because it will most likely
-                // be too narrow. We use two rows for the footer on Android.
+                // Always try to print the footer on Android because it will
+                // most likely be too narrow. We use two rows for the footer on
+                // Android.
                 printBlankSpaces(indent);
                 printf("%.*s", term_w * 2, text);
 #endif

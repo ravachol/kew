@@ -1,9 +1,9 @@
 #include "playlist_ui.h"
 #include "common_ui.h"
 #include "songloader.h"
-#include <string.h>
 #include "term.h"
 #include "utils.h"
+#include <string.h>
 
 /*
 
@@ -15,6 +15,8 @@ playlist_ui.c
 
 int startIter = 0;
 int previousChosenSong = 0;
+
+#define MAX_TERM_WIDTH 1000
 
 Node *determineStartNode(Node *head, int *foundAt, int listSize)
 {
@@ -45,9 +47,11 @@ Node *determineStartNode(Node *head, int *foundAt, int listSize)
 
 void preparePlaylistString(Node *node, char *buffer, int bufferSize)
 {
-        if (node == NULL || buffer == NULL || node->song.filePath == NULL)
+        if (node == NULL || buffer == NULL || node->song.filePath == NULL ||
+            bufferSize <= 0)
         {
-                buffer[0] = '\0';
+                if (buffer && bufferSize > 0)
+                        buffer[0] = '\0';
                 return;
         }
 
@@ -63,20 +67,24 @@ void preparePlaylistString(Node *node, char *buffer, int bufferSize)
         char *lastSlash = strrchr(filePath, '/');
         size_t len = strnlen(filePath, sizeof(filePath));
 
-        if (lastSlash != NULL)
+        if (lastSlash != NULL && lastSlash < filePath + len)
         {
-                ptrdiff_t nameLength = filePath + len - (lastSlash + 1);
+                size_t nameLength = (size_t)(filePath + len - (lastSlash + 1));
 
-                if (nameLength < 0 || (size_t)nameLength >= (size_t)bufferSize)
+                if (nameLength >= (size_t)bufferSize)
                 {
                         nameLength = bufferSize - 1;
                 }
+
                 c_strcpy(buffer, lastSlash + 1, nameLength + 1);
                 buffer[bufferSize - 1] = '\0';
         }
         else
         {
-                buffer[0] = '\0';
+                // If no slash found or invalid pointer arithmetic, just copy
+                // whole path safely or clear
+                c_strcpy(buffer, filePath, bufferSize);
+                buffer[bufferSize - 1] = '\0';
         }
 }
 
@@ -87,23 +95,21 @@ int displayPlaylistItems(Node *startNode, int startIter, int maxListSize,
         int numPrintedRows = 0;
         Node *node = startNode;
 
-        int bufferSize = termWidth - indent - 12;
+        if (termWidth < 0 || termWidth > MAX_TERM_WIDTH || indent < 0 ||
+            indent >= termWidth)
+                return 0;
 
+        int bufferSize = termWidth - indent - 12;
         if (bufferSize <= 0 || bufferSize > MAXPATHLEN)
                 return 0;
 
-        PixelData rowColor;
-        rowColor.r = defaultColor;
-        rowColor.g = defaultColor;
-        rowColor.b = defaultColor;
+        PixelData rowColor = {defaultColor, defaultColor, defaultColor};
 
-        char *buffer = (char *)malloc(MAXPATHLEN * sizeof(char));
-
+        char *buffer = malloc(bufferSize + 1);
         if (!buffer)
                 return 0;
 
-        char *filename = (char *)malloc(MAXPATHLEN * sizeof(char) + 1);
-
+        char *filename = malloc(bufferSize + 1);
         if (!filename)
         {
                 free(buffer);
