@@ -831,11 +831,18 @@ void printLastRow(int row, int col, UISettings *ui, AppSettings *settings)
 
         if (term_w < ABSOLUTE_MIN_WIDTH)
         {
+#ifndef __ANDROID__
                 if (term_w > (int)currentLength + indent)
                 {
                         printf("%s", nerdFontText); // Print just the shuffle
                                                     // and replay settings
                 }
+#else
+                // Always try to print the footer on Android because it will most likely
+                // be too narrow. We use two rows for the footer on Android.
+                printBlankSpaces(indent);
+                printf("%.*s", term_w * 2, text);
+#endif
                 return;
         }
 

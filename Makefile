@@ -83,6 +83,13 @@ COMMONFLAGS += $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) $(PKG_CONFIG) --cflags
 COMMONFLAGS += -DMA_NO_AAUDIO
 COMMONFLAGS += -fstack-protector-strong -Wformat -Werror=format-security -fPIE -D_FORTIFY_SOURCE=2
 COMMONFLAGS += -Wall -Wextra -Wpointer-arith
+
+  # Check if we're in Termux environment
+ifneq ($(wildcard /data/data/com.termux/files/usr),)
+  # Termux environment
+  COMMONFLAGS += -D__ANDROID__
+endif
+
 CFLAGS = $(COMMONFLAGS)
 
 # Compiler flags for C++ code
@@ -119,7 +126,7 @@ ifeq ($(USE_FAAD), 1)
   ifeq ($(ARCH), arm64)
     CFLAGS += -I/opt/homebrew/opt/faad2/include
     LIBS += -L/opt/homebrew/opt/faad2/lib -lfaad
-  else ifeq ($(shell uname -o 2>/dev/null), Android)
+  else ifeq ($(UNAME_O),Android)
     CFLAGS += -I$(PREFIX)/include
     LIBS += -L$(PREFIX)/lib -lfaad
   else
