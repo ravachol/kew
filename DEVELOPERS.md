@@ -177,7 +177,7 @@ If the paths in c_cpp_properties.json are wrong for your OS, to find the folder 
 
 To use Valgrind for memory debugging and profiling:
 
-1. Build your project with debug symbols (`-g`) and position-independent executables (`-no-pie`):
+1. Build kew with debug symbols. Run this command: make DEBUG=1 -j4
 
 2. Run Valgrind on your binary:
    ```
