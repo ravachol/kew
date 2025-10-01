@@ -119,7 +119,6 @@ int isInputAvailable()
 void hideCursor()
 {
         printf("\033[?25l");
-        fflush(stdout);
 }
 
 void showCursor()
