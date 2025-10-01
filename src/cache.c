@@ -43,7 +43,7 @@ void addToCache(Cache *cache, const char *filePath)
                 return;
         }
 
-        if (strlen(filePath) >= MAXPATHLEN)
+        if (strnlen(filePath, MAXPATHLEN + 1) >= MAXPATHLEN)
         {
                 fprintf(stderr, "File path too long.\n");
                 return;

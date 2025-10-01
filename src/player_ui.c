@@ -726,7 +726,7 @@ void formatWithShiftPlus(char *dest, size_t size, const char *src)
 {
         if (isupper((unsigned char)src[0]))
         {
-                snprintf(dest, size, "Shift+%s", src);
+                snprintf(dest, size, "Shft+%s", src);
         }
         else
         {
@@ -878,8 +878,8 @@ void calcAndPrintLastRowAndErrorRow(UISettings *ui, AppSettings *settings)
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
 
-#if defined(__ANDROID__) || defined(__APPLE__)
-        // Use two rows for the footer on Android and macOS. It makes everything
+#if defined(__ANDROID__)
+        // Use two rows for the footer on Android. It makes everything
         // fit even with narrow terminal widths.
         if (hasErrorMessage())
                 printErrorRow(term_h - 1, indent);
