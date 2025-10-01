@@ -31,14 +31,13 @@ Before contributing, ensure you have the following tools installed on your devel
 
 ### Debugging with VSCodium
 
-1. Install extension clangd, c/C++ Debug (gdb) and EditorConfig.
+1. Install extension clangd, C/C++ Debug (gdb) and EditorConfig.
 
 2. Install the program bear that can generate a compile_commands.json. This helps clangd find libs.
 
 3. Run bear -- make.
 
-
-This should enable you to  
+This should enable you to develop kew on VSCodium.
 
 ### Debugging with Visual Studio Code
 
