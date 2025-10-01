@@ -83,7 +83,7 @@ int addResult(FileSystemEntry *entry, int distance)
 // Callback function to collect results
 void collectResult(FileSystemEntry *entry, int distance)
 {
-        if (!addResult(entry, distance))
+        if (addResult(entry, distance) == -1)
         {
                 printf("Memory allocation error.\n");
                 exit(1);
