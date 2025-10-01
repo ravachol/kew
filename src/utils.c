@@ -1,3 +1,4 @@
+#include "utils.h"
 #include <ctype.h>
 #include <errno.h>
 #include <glib.h>
@@ -6,25 +7,26 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys/param.h>
-#include <sys/stat.h>
-#include <unistd.h>
 #include <string.h>
 #include <strings.h>
+#include <sys/param.h>
+#include <sys/stat.h>
 #include <time.h>
-#include "utils.h"
+#include <unistd.h>
 
 /*
 
  utils.c
 
- Utility functions for instance for replacing some standard functions with safer alternatives.
+ Utility functions for instance for replacing some standard functions with safer
+ alternatives.
 
 */
 
-#if defined(__APPLE__) || defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__)
-#include <stdlib.h> // For arc4random
+#if defined(__APPLE__) || defined(__FreeBSD__) || defined(__OpenBSD__) ||      \
+    defined(__NetBSD__)
 #include <stdint.h> // For uint32_t
+#include <stdlib.h> // For arc4random
 
 uint32_t arc4random_uniform(uint32_t upper_bound);
 
@@ -42,11 +44,13 @@ int getRandomNumber(int min, int max)
         static int seeded = 0;
         if (!seeded)
         {
-                srandom(time(NULL)); // Use srandom() to seed the random number generator
+                srand(time(
+                    NULL)); // Use srandom() to seed the random number generator
                 seeded = 1;
         }
 
-        return min + (random() % (max - min + 1)); // Use random() instead of rand()
+        return min +
+               (rand() % (max - min + 1)); // Use random() instead of rand()
 }
 
 #endif
@@ -55,7 +59,8 @@ void c_sleep(int milliseconds)
 {
         struct timespec ts;
         ts.tv_sec = milliseconds / 1000; // Seconds part
-        // Ensure that the nanoseconds part is computed safely, and no overflow happens
+        // Ensure that the nanoseconds part is computed safely, and no overflow
+        // happens
         ts.tv_nsec = (milliseconds % 1000) * 1000000;
 
         // Make sure that nanoseconds is within valid range
@@ -77,18 +82,25 @@ void c_usleep(int microseconds)
 
         struct timespec ts;
         ts.tv_sec = microseconds / 1000000;
-        ts.tv_nsec = (microseconds % 1000000) * 1000; // Convert remaining microseconds to nanoseconds
+        ts.tv_nsec = (microseconds % 1000000) *
+                     1000; // Convert remaining microseconds to nanoseconds
 
         nanosleep(&ts, NULL);
 }
 
 void c_strcpy(char *dest, const char *src, size_t dest_size)
 {
-        // Ensure the destination and source are valid, and dest_size is large enough to hold at least one byte
+        // Ensure the destination and source are valid, and dest_size is large
+        // enough to hold at least one byte
         if (dest && src && dest_size > 0)
         {
-                // Calculate the length of the source string, limited by dest_size - 1 (for the null terminator)
+                // Calculate the length of the source string, limited by
+                // dest_size - 1 (for the null terminator)
                 size_t src_length = strnlen(src, dest_size - 1);
+
+                // Ensure we do not write beyond dest_size - 1
+                if (src_length >= dest_size)
+                        src_length = dest_size - 1;
 
                 // Safely copy up to src_length bytes from src to dest
                 memcpy(dest, src, src_length);
@@ -96,7 +108,9 @@ void c_strcpy(char *dest, const char *src, size_t dest_size)
                 // Null-terminate the destination string
                 dest[src_length] = '\0';
         }
-        else if (dest && dest_size > 0) // If source is NULL, we clear the destination buffer
+        else if (dest &&
+                 dest_size >
+                     0) // If source is NULL, we clear the destination buffer
         {
                 dest[0] = '\0';
         }
@@ -197,13 +211,16 @@ bool isValidUTF8(const char *str, size_t len)
                 }
                 else if ((c & 0xF0) == 0xE0) // 3-byte sequence
                 {
-                        if (i + 2 >= len || (str[i + 1] & 0xC0) != 0x80 || (str[i + 2] & 0xC0) != 0x80)
+                        if (i + 2 >= len || (str[i + 1] & 0xC0) != 0x80 ||
+                            (str[i + 2] & 0xC0) != 0x80)
                                 return false;
                         i += 3;
                 }
                 else if ((c & 0xF8) == 0xF0) // 4-byte sequence
                 {
-                        if (i + 3 >= len || (str[i + 1] & 0xC0) != 0x80 || (str[i + 2] & 0xC0) != 0x80 || (str[i + 3] & 0xC0) != 0x80)
+                        if (i + 3 >= len || (str[i + 1] & 0xC0) != 0x80 ||
+                            (str[i + 2] & 0xC0) != 0x80 ||
+                            (str[i + 3] & 0xC0) != 0x80)
                                 return false;
                         i += 4;
                 }
@@ -247,7 +264,8 @@ void extractExtension(const char *filename, size_t ext_size, char *ext)
         size_t dot_pos = dot - filename + 1;
 
         // Copy the extension while checking for UTF-8 validity
-        while (dot_pos + i < length && filename[dot_pos + i] != '\0' && j < ext_size - 1)
+        while (dot_pos + i < length && filename[dot_pos + i] != '\0' &&
+               j < ext_size - 1)
         {
                 size_t char_size = 1; // Default to 1 byte (ASCII)
 
@@ -383,9 +401,11 @@ char *getConfigPath(void)
                 if (home)
                 {
 #ifdef __APPLE__
-                        snprintf(configPath, MAXPATHLEN, "%s/Library/Preferences/kew", home);
+                        snprintf(configPath, MAXPATHLEN,
+                                 "%s/Library/Preferences/kew", home);
 #else
-                        snprintf(configPath, MAXPATHLEN, "%s/.config/kew", home);
+                        snprintf(configPath, MAXPATHLEN, "%s/.config/kew",
+                                 home);
 #endif
                 }
                 else
@@ -394,9 +414,12 @@ char *getConfigPath(void)
                         if (pw)
                         {
 #ifdef __APPLE__
-                                snprintf(configPath, MAXPATHLEN, "%s/Library/Preferences/kew", pw->pw_dir);
+                                snprintf(configPath, MAXPATHLEN,
+                                         "%s/Library/Preferences/kew",
+                                         pw->pw_dir);
 #else
-                                snprintf(configPath, MAXPATHLEN, "%s/.config/kew", pw->pw_dir);
+                                snprintf(configPath, MAXPATHLEN,
+                                         "%s/.config/kew", pw->pw_dir);
 #endif
                         }
                         else
@@ -495,7 +518,8 @@ void removeUnneededChars(char *str, int length)
 
         for (int i = 0; i < 3 && str[i] != '\0' && str[i] != ' '; i++)
         {
-                if (isdigit(str[i]) || str[i] == '.' || str[i] == '-' || str[i] == ' ')
+                if (isdigit(str[i]) || str[i] == '.' || str[i] == '-' ||
+                    str[i] == ' ')
                 {
                         int j;
                         for (j = i; str[j] != '\0'; j++)
@@ -512,7 +536,9 @@ void removeUnneededChars(char *str, int length)
         for (int i = 0; str[i] != '\0'; i++)
         {
                 // Only remove if there are no spaces around
-                if ((str[i] == '-' || str[i] == '_') && (i > 0 && i < length && str[i - 1] != ' ' && str[i + 1] != ' '))
+                if ((str[i] == '-' || str[i] == '_') &&
+                    (i > 0 && i < length && str[i - 1] != ' ' &&
+                     str[i + 1] != ' '))
                 {
                         str[i] = ' ';
                 }

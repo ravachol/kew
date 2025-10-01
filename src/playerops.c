@@ -2222,7 +2222,7 @@ void askIfCacheLibrary(UISettings *ui)
         }
 
         setNonblockingMode();
-        disableInputBuffering();
+        setRawInputMode();
         hideCursor();
 }
 

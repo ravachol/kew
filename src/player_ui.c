@@ -272,6 +272,7 @@ static int printLogoArt(const UISettings *ui, int indent)
 {
         if (ui->hideLogo)
         {
+                clearLine();
                 printf("\n");
                 return 1;
         }
@@ -294,6 +295,7 @@ static int printLogoArt(const UISettings *ui, int indent)
                 else
                         setColorAndWeight(false, rowColor, ui->useConfigColors);
 
+                clearLine();
                 printBlankSpaces(indent);
                 printf("%s", LOGO[i]);
         }
@@ -360,7 +362,9 @@ int printLogo(SongData *songData, UISettings *ui)
                 printf(" %s", processed);
         }
 
-        printf("\n\n");
+        printf("\n");
+        clearLine();
+        printf("\n");
 
         return height + 2;
 }
@@ -378,8 +382,6 @@ int getYear(const char *dateString)
 
 void printCoverCentered(SongData *songdata, UISettings *ui)
 {
-        clearScreen();
-
         if (songdata != NULL && songdata->cover != NULL && ui->coverEnabled)
         {
                 if (!ui->coverAnsi)
@@ -472,18 +474,21 @@ void printBasicMetadata(int row, int col, int maxWidth,
         if (strnlen(metadata->artist, METADATA_MAX_LENGTH) > 0)
         {
                 printf("\033[%d;%dH", row + 1, col);
+                clearRestOfLine();
                 printf(" %.*s", maxWidth, metadata->artist);
         }
 
         if (strnlen(metadata->album, METADATA_MAX_LENGTH) > 0)
         {
                 printf("\033[%d;%dH", row + 2, col);
+                clearRestOfLine();
                 printf(" %.*s", maxWidth, metadata->album);
         }
 
         if (strnlen(metadata->date, METADATA_MAX_LENGTH) > 0)
         {
                 printf("\033[%d;%dH", row + 3, col);
+                clearRestOfLine();
                 int year = getYear(metadata->date);
                 if (year == -1)
                         printf(" %s", metadata->date);
@@ -605,6 +610,8 @@ void printTime(int row, int col, double elapsedSeconds, ma_uint32 sampleRate,
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
         printf("\033[%d;%dH", row, col);
+        clearLine();
+
         if (term_h > minHeight)
         {
                 double duration = getCurrentSongDuration();
@@ -669,6 +676,8 @@ void printGlimmeringText(int row, int col, char *text, int textLength,
 
         printf("\033[%d;%dH", row, col);
 
+        clearLine();
+
         while (brightIndex < textLength)
         {
                 for (int i = 0; i < textLength; i++)
@@ -709,6 +718,8 @@ void printErrorRow(int row, int col)
 
         printf("\033[%d;%dH", row, col);
 
+        clearLine();
+
         if (!hasPrintedError && hasErrorMessage())
         {
                 setTextColorRGB(lastRowColor.r, lastRowColor.g, lastRowColor.b);
@@ -746,6 +757,8 @@ void printLastRow(int row, int col, UISettings *ui, AppSettings *settings)
         lastRowCol = col;
 
         printf("\033[%d;%dH", row, col);
+
+        clearLine();
 
         setTextColorRGB(lastRowColor.r, lastRowColor.g, lastRowColor.b);
 
@@ -840,8 +853,6 @@ void printLastRow(int row, int col, UISettings *ui, AppSettings *settings)
                 currentLength += strlen(rewindText);
         }
 
-        printf("\033[K"); // Clear the line
-
         if (term_w < ABSOLUTE_MIN_WIDTH)
         {
 #ifndef __ANDROID__
@@ -893,11 +904,13 @@ void calcAndPrintLastRowAndErrorRow(UISettings *ui, AppSettings *settings)
 
 int printAbout(SongData *songdata, UISettings *ui)
 {
-        clearScreen();
+        clearLine();
         int numRows = printLogo(songdata, ui);
         setDefaultTextColor();
         printBlankSpaces(indent);
-        printf(" kew version: %s\n\n", VERSION);
+        printf(" kew version: %s\n", VERSION);
+        clearLine();
+        printf("\n");
         numRows += 2;
 
         return numRows;
@@ -1005,6 +1018,9 @@ void toggleShowView(ViewState viewToShow)
 {
         refresh = true;
 
+        if (appState.currentView == TRACK_VIEW)
+                clearScreen();
+
         if (appState.currentView == viewToShow)
         {
                 appState.currentView = TRACK_VIEW;
@@ -1028,6 +1044,7 @@ void switchToNextView(void)
                 break;
         case TRACK_VIEW:
                 appState.currentView = SEARCH_VIEW;
+                clearScreen();
                 break;
         case SEARCH_VIEW:
                 appState.currentView = KEYBINDINGS_VIEW;
@@ -1051,6 +1068,7 @@ void switchToPreviousView(void)
                 break;
         case TRACK_VIEW:
                 appState.currentView = LIBRARY_VIEW;
+                clearScreen();
                 break;
         case SEARCH_VIEW:
                 appState.currentView =
@@ -1192,9 +1210,13 @@ int printLogoAndAdjustments(SongData *songData, int termWidth, UISettings *ui,
                        "clear.\n");
                 printBlankSpaces(indentation);
 #ifndef __APPLE__
-                printf(" PgUp/PgDn: scroll. Del: remove. t/g: move songs.\n\n");
+                printf(" PgUp/PgDn: scroll. Del: remove. t/g: move songs.\n");
+                clearLine();
+                printf("\n");
 #else
-                printf(" Fn+↑/↓: scroll. Del: remove. t/g: move songs.\n\n");
+                printf(" Fn+↑/↓: scroll. Del: remove. t/g: move songs.\n");
+                clearLine();
+                printf("\n");
 #endif
                 return aboutRows + 3;
         }
@@ -1208,6 +1230,8 @@ void showSearch(SongData *songData, int *chosenRow, UISettings *ui,
         getTermSize(&term_w, &term_h);
         maxSearchListSize = term_h - 3;
 
+        gotoFirstLineFirstRow();
+
         int aboutRows = printLogo(songData, ui);
         maxSearchListSize -= aboutRows;
 
@@ -1215,8 +1239,11 @@ void showSearch(SongData *songData, int *chosenRow, UISettings *ui,
 
         if (term_w > indent + 38 && !ui->hideHelp)
         {
+                clearLine();
                 printBlankSpaces(indent);
-                printf(" Use ↑/↓ to select. Enter=Enq. Alt+Enter=Play.\n\n");
+                printf(" Use ↑/↓ to select. Enter=Enq. Alt+Enter=Play.\n");
+                clearLine();
+                printf("\n");
                 maxSearchListSize -= 2;
         }
 
@@ -1244,7 +1271,7 @@ void showPlaylist(SongData *songData, PlayList *list, int *chosenSong,
         else
                 refresh = false;
 
-        clearScreen();
+        gotoFirstLineFirstRow();
 
         int aboutRows = printLogoAndAdjustments(songData, term_w,
                                                 &(state->uiSettings), indent);
@@ -1255,12 +1282,19 @@ void showPlaylist(SongData *songData, PlayList *list, int *chosenSong,
         else
                 setColor(&(state->uiSettings));
 
-        printBlankSpaces(indent);
-        printf("   ─ PLAYLIST ─\n");
+        if (maxListSize > 0)
+        {
+                clearLine();
+                printBlankSpaces(indent);
+                printf("   ─ PLAYLIST ─\n");
+        }
+
         maxListSize -= 1;
 
-        displayPlaylist(list, maxListSize, indent, chosenSong, chosenNodeId,
-                        state->uiState.resetPlaylistDisplay, state);
+        if (maxListSize > 0)
+                displayPlaylist(list, maxListSize, indent, chosenSong,
+                                chosenNodeId,
+                                state->uiState.resetPlaylistDisplay, state);
 
         calcAndPrintLastRowAndErrorRow(&(state->uiSettings), settings);
 }
@@ -1278,6 +1312,7 @@ void printProgressBar(int row, int col, AppSettings *settings, UISettings *ui,
         progressBarLength = numProgressBars;
 
         printf("\033[%d;%dH", row, col + 1);
+        clearLine();
 
         for (int i = 0; i < numProgressBars; i++)
         {
@@ -1344,6 +1379,14 @@ void printVisualizer(int row, int col, int visualizerWidth,
         UISettings *ui = &(state->uiSettings);
         UIState *uis = &(state->uiState);
 
+        int height = state->uiSettings.visualizerHeight;
+
+        int term_w, term_h;
+        getTermSize(&term_w, &term_h);
+
+        if (row + height + 2 > term_h)
+                return;
+
         if (ui->visualizerEnabled)
         {
                 uis->numProgressBars = (int)visualizerWidth / 2;
@@ -1351,7 +1394,6 @@ void printVisualizer(int row, int col, int visualizerWidth,
 
                 drawSpectrumVisualizer(row, col, state);
 
-                int height = state->uiSettings.visualizerHeight;
                 int elapsedBars =
                     calcElapsedBars(elapsedSeconds, duration, visualizerWidth);
 
@@ -1485,6 +1527,8 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize,
                                 setDefaultTextColor();
                         }
 
+                        clearLine();
+
                         if (depth >= 2)
                                 printf("  ");
 
@@ -1586,7 +1630,7 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize,
                         else
                         {
                                 filename[0] = '\0';
-                                pathEndsWith(root->fullPath, "m3u");
+
                                 isSameNameAsLastTime =
                                     (previousChosenLibRow == chosenLibRow);
 
@@ -1598,6 +1642,16 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize,
                                 if (!isSameNameAsLastTime)
                                 {
                                         resetNameScroll();
+                                }
+
+                                printf("└─ ");
+
+                                // Playlist
+                                if (pathEndsWith(root->fullPath, "m3u") ||
+                                    pathEndsWith(root->fullPath, "m3u8"))
+                                {
+                                        printf("♫ ");
+                                        maxNameWidth = maxNameWidth - 2;
                                 }
 
                                 if (foundChosen)
@@ -1614,19 +1668,9 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize,
                                                     true, true);
                                 }
 
-                                printf("└─ ");
-
                                 if (foundCurrent && chosenLibRow != libIter)
                                 {
                                         printf("\e[4m\e[1m");
-                                }
-
-                                if (pathEndsWith(root->fullPath, "m3u") ||
-                                    pathEndsWith(root->fullPath, "m3u8"))
-                                {
-                                        printf("\e[3m"); // Print playlists in
-                                                         // italics to
-                                                         // distinguish them
                                 }
 
                                 printf("%s\n", filename);
@@ -1667,7 +1711,7 @@ void showLibrary(SongData *songData, AppState *state, AppSettings *settings)
         else
                 refresh = false;
 
-        clearScreen();
+        gotoFirstLineFirstRow();
 
         if (state->uiState.collapseView)
         {
@@ -1723,14 +1767,20 @@ void showLibrary(SongData *songData, AppState *state, AppSettings *settings)
         if (term_w > 67 && !ui->hideHelp)
         {
                 maxLibListSize -= 3;
+                clearLine();
                 printBlankSpaces(indent);
                 printf(" Use ↑/↓ or k/j to select. Enter=Enq/Deq. "
                        "Alt+Enter=Play.\n");
+                clearLine();
                 printBlankSpaces(indent);
 #ifndef __APPLE__
-                printf(" PgUp/PgDn: scroll. u: update, o: sort.\n\n");
+                printf(" PgUp/PgDn: scroll. u: update, o: sort.\n");
+                clearLine();
+                printf("\n");
 #else
-                printf(" Fn+↑/↓: scroll. u: update, o: sort.\n\n");
+                printf(" Fn+↑/↓: scroll. u: update, o: sort.\n");
+                clearLine();
+                printf("\n");
 #endif
         }
 
@@ -1746,8 +1796,13 @@ void showLibrary(SongData *songData, AppState *state, AppSettings *settings)
                 tmp = tmp->next;
         }
 
-        bool foundChosen =
-            displayTree(library, 0, maxLibListSize, maxNameWidth, state);
+        bool foundChosen = false;
+
+        if (maxLibListSize <= 0)
+                foundChosen = true;
+        else
+                foundChosen = displayTree(library, 0, maxLibListSize,
+                                          maxNameWidth, state);
 
         if (!foundChosen)
         {
@@ -1757,6 +1812,7 @@ void showLibrary(SongData *songData, AppState *state, AppSettings *settings)
 
         for (int i = libIter - startLibIter; i < maxLibListSize; i++)
         {
+                clearLine();
                 printf("\n");
         }
 
@@ -1764,8 +1820,7 @@ void showLibrary(SongData *songData, AppState *state, AppSettings *settings)
 
         if (!foundChosen && refresh)
         {
-                printf("\033[1;1H");
-                clearScreen();
+                gotoFirstLineFirstRow();
                 showLibrary(songData, state, settings);
         }
 }
@@ -1796,14 +1851,14 @@ void showTrackViewMini(AppSettings *settings, SongData *songdata,
 
         int col = indent;
 
+        clearScreen();
+
         if (refresh)
         {
                 miniVisualizerRow = 1;
 
                 printf("\n");
                 miniVisualizerRow++;
-
-                clearScreen();
 
                 if (currentSong == NULL)
                 {
@@ -1818,6 +1873,7 @@ void showTrackViewMini(AppSettings *settings, SongData *songdata,
                                         printBlankSpaces(indent);
                                         printf("%s", LOGO[i]);
                                 }
+
                                 printf("\n");
                                 printBlankSpaces(indent);
                                 printf(" kew version: %s", VERSION);
@@ -1843,13 +1899,12 @@ void showTrackViewMini(AppSettings *settings, SongData *songdata,
                 if (strnlen(metadata->artist, METADATA_MAX_LENGTH) > 0 &&
                     strnlen(metadata->title, METADATA_MAX_LENGTH) > 0)
                 {
-                        printBlankSpaces(indent);
-
                         int text_len = textWidth - 3;
                         char combined[text_len + 1];
                         snprintf(combined, sizeof(combined), "%s - %s",
                                  metadata->artist, metadata->title);
 
+                        printBlankSpaces(indent);
                         printf("%.*s\n", text_len, combined);
                         miniVisualizerRow++;
                 }
@@ -1896,9 +1951,14 @@ void showTrackViewLandscape(int height, int width, float aspectRatio,
         int metadataHeight = 4;
         int timeHeight = 1;
 
+        if (songdata)
+        {
+                metadata = songdata->metadata;
+        }
+
         int col = height * aspectRatio;
 
-        if (!state->uiSettings.coverEnabled)
+        if (!state->uiSettings.coverEnabled || (songdata && songdata->cover == NULL))
                 col = 1;
 
         int term_w, term_h;
@@ -1908,13 +1968,11 @@ void showTrackViewLandscape(int height, int width, float aspectRatio,
         int row = height - metadataHeight - timeHeight -
                   state->uiSettings.visualizerHeight - 3;
 
+        if (row < 2)
+                row = 2;
+
         if (refresh)
         {
-                if (songdata)
-                {
-                        metadata = songdata->metadata;
-                }
-
                 printCover(height, songdata, &(state->uiSettings));
                 if (height > metadataHeight)
                         printBasicMetadata(row, col, visualizerWidth - 1,
@@ -1968,7 +2026,7 @@ void showTrackViewPortrait(int height, AppSettings *settings,
                 {
                         metadata = songdata->metadata;
                 }
-
+                clearScreen();
                 printCoverCentered(songdata, &(state->uiSettings));
                 printBasicMetadata(row, col, visualizerWidth - 1, metadata,
                                    &(state->uiSettings));
@@ -2048,6 +2106,7 @@ int printPlayer(SongData *songdata, double elapsedSeconds,
                         if (state->currentView == TRACK_VIEW)
                         {
                                 state->currentView = LIBRARY_VIEW;
+                                clearScreen();
                         }
 
                         ui->color.r = defaultColor;
@@ -2067,14 +2126,14 @@ int printPlayer(SongData *songdata, double elapsedSeconds,
 
         state->uiState.miniMode = false;
 
-        if ((term_w <= 10 || term_h <= 8) ||
-            (preferredHeight <= 0 || preferredWidth <= 0))
-        {
-                state->uiState.miniMode = true;
-                showTrackViewMini(settings, songdata, state, elapsedSeconds);
-                fflush(stdout);
-                return 0;
-        }
+        // if ((term_w <= 10 || term_h <= 8) ||
+        //     (preferredHeight <= 0 || preferredWidth <= 0))
+        // {
+        //         state->uiState.miniMode = true;
+        //         showTrackViewMini(settings, songdata, state, elapsedSeconds);
+        //         fflush(stdout);
+        //         return 0;
+        // }
         if (state->currentView != PLAYLIST_VIEW)
                 state->uiState.resetPlaylistDisplay = true;
 
@@ -2095,7 +2154,6 @@ int printPlayer(SongData *songdata, double elapsedSeconds,
         }
         else if (state->currentView == SEARCH_VIEW && refresh)
         {
-                clearScreen();
                 showSearch(songdata, &chosenSearchResultRow, ui, settings);
                 refresh = false;
                 fflush(stdout);

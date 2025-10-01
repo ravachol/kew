@@ -69,14 +69,7 @@ void preparePlaylistString(Node *node, char *buffer, int bufferSize)
 
         if (lastSlash != NULL && lastSlash < filePath + len)
         {
-                size_t nameLength = (size_t)(filePath + len - (lastSlash + 1));
-
-                if (nameLength >= (size_t)bufferSize)
-                {
-                        nameLength = bufferSize - 1;
-                }
-
-                c_strcpy(buffer, lastSlash + 1, nameLength + 1);
+                c_strcpy(buffer, lastSlash + 1, bufferSize);
                 buffer[bufferSize - 1] = '\0';
         }
         else
@@ -126,7 +119,7 @@ int displayPlaylistItems(Node *startNode, int startIter, int maxListSize,
                                                     maxListSize,
                                                     maxListSize / 2, 0.7f);
 
-                preparePlaylistString(node, buffer, MAXPATHLEN);
+                preparePlaylistString(node, buffer, bufferSize);
 
                 if (buffer[0] != '\0')
                 {
@@ -136,8 +129,9 @@ int displayPlaylistItems(Node *startNode, int startIter, int maxListSize,
                                 setColorAndWeight(0, rowColor,
                                                   ui->useConfigColors);
 
-                        printBlankSpaces(indent);
 
+                        clearLine();
+                        printBlankSpaces(indent);
                         printf("   %d. ", i + 1);
 
                         setDefaultTextColor();
@@ -258,8 +252,9 @@ int displayPlaylist(PlayList *list, int maxListSize, int indent,
             displayPlaylistItems(startNode, startIter, maxListSize, termWidth,
                                  indent, *chosenSong, chosenNodeId, ui);
 
-        while (printedRows < maxListSize)
+        while (printedRows <= maxListSize)
         {
+                clearLine();
                 printf("\n");
                 printedRows++;
         }
