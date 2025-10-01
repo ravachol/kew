@@ -29,6 +29,17 @@ Before contributing, ensure you have the following tools installed on your devel
    make DEBUG=1 -j$(nproc)  # Use all available processor cores for faster builds
    ```
 
+### Debugging with VSCodium
+
+1. Install extension clangd, c/C++ Debug (gdb) and EditorConfig.
+
+2. Install the program bear that can generate a compile_commands.json. This helps clangd find libs.
+
+3. Run bear -- make.
+
+
+This should enable you to  
+
 ### Debugging with Visual Studio Code
 
 To enable debugging in VSCode, you'll need to create a `launch.json` file that configures the debugger. Follow these steps:
