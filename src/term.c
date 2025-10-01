@@ -73,7 +73,7 @@ void getTermSize(int *width, int *height)
         *width = (int)w.ws_col;
 }
 
-void setNonblockingMode()
+void setNonblockingMode(void)
 {
         struct termios ttystate;
         tcgetattr(STDIN_FILENO, &ttystate);
@@ -83,7 +83,7 @@ void setNonblockingMode()
         tcsetattr(STDIN_FILENO, TCSANOW, &ttystate);
 }
 
-void restoreTerminalMode()
+void restoreTerminalMode(void)
 {
         struct termios ttystate;
         tcgetattr(STDIN_FILENO, &ttystate);
@@ -91,13 +91,13 @@ void restoreTerminalMode()
         tcsetattr(STDIN_FILENO, TCSANOW, &ttystate);
 }
 
-void saveCursorPosition() { printf("\033[s"); }
+void saveCursorPosition(void) { printf("\033[s"); }
 
-void restoreCursorPosition() { printf("\033[u"); }
+void restoreCursorPosition(void) { printf("\033[u"); }
 
-void setDefaultTextColor() { printf("\033[0m"); }
+void setDefaultTextColor(void) { printf("\033[0m"); }
 
-int isInputAvailable()
+int isInputAvailable(void)
 {
         fd_set fds;
         FD_ZERO(&fds);
@@ -116,18 +116,18 @@ int isInputAvailable()
         return result;
 }
 
-void hideCursor()
+void hideCursor(void)
 {
         printf("\033[?25l");
 }
 
-void showCursor()
+void showCursor(void)
 {
         printf("\033[?25h");
         fflush(stdout);
 }
 
-void resetConsole()
+void resetConsole(void)
 {
         // Print ANSI escape codes to reset terminal, clear screen, and move
         // cursor to top-left
@@ -138,18 +138,38 @@ void resetConsole()
         fflush(stdout);
 }
 
-void clearRestOfScreen() { printf("\033[J"); }
+void clearRestOfScreen(void) { printf("\033[J"); }
 
-void clearScreen()
+void clearLine(void)
+{
+        printf("\033[2K");
+}
+
+void clearRestOfLine(void)
+{
+        printf("\033[K");
+}
+
+void clearScreen(void)
 {
         printf("\033[3J");              // Clear scrollback buffer
         printf("\033[2J\033[3J\033[H"); // Move cursor to top-left and clear
                                         // screen and scrollback buffer
 }
 
-void enableScrolling() { printf("\033[?7h"); }
+void gotoFirstLineFirstRow(void)
+{
+        printf("\033[H");
+}
 
-void disableInputBuffering(void)
+void enableScrolling(void) { printf("\033[?7h"); }
+
+void disableTerminalLineInput(void)
+{
+        setvbuf(stdout, NULL, _IOFBF, BUFSIZ);
+}
+
+void setRawInputMode(void)
 {
         struct termios term;
         tcgetattr(STDIN_FILENO, &term);
@@ -261,25 +281,25 @@ int getIndentation(int textWidth)
         return indent;
 }
 
-void enterAlternateScreenBuffer()
+void enterAlternateScreenBuffer(void)
 {
         // Enter alternate screen buffer
         printf("\033[?1049h");
 }
 
-void exitAlternateScreenBuffer()
+void exitAlternateScreenBuffer(void)
 {
         // Exit alternate screen buffer
         printf("\033[?1049l");
 }
 
-void enableTerminalMouseButtons()
+void enableTerminalMouseButtons(void)
 {
         // Enable program to accept mouse input as codes
         printf("\033[?1002h\033[?1006h");
 }
 
-void disableTerminalMouseButtons()
+void disableTerminalMouseButtons(void)
 {
         // Disable program to accept mouse input as codes
         printf("\033[?1002l\033[?1006l");
@@ -291,13 +311,13 @@ void setTerminalWindowTitle(char *title)
         printf("\033]2;%s\007", title);
 }
 
-void saveTerminalWindowTitle()
+void saveTerminalWindowTitle(void)
 {
         // Save terminal window title on the stack
         printf("\033[22;0t");
 }
 
-void restoreTerminalWindowTitle()
+void restoreTerminalWindowTitle(void)
 {
         // Restore terminal window title from the stack
         printf("\033[23;0t");

@@ -110,6 +110,7 @@ int displaySearchBox(int indent, UISettings *ui)
         else
                 setColor(ui);
 
+        clearLine();
         printBlankSpaces(indent);
         printf(" [Search]: ");
         setDefaultTextColor();
@@ -253,6 +254,7 @@ int displaySearchResults(int maxListSize, int indent, int *chosenRow, int startS
         if (*chosenRow < 0)
                 startSearchIter = *chosenRow = 0;
 
+        clearLine();
         printf("\n");
         printedRows++;
 
@@ -267,6 +269,7 @@ int displaySearchResults(int maxListSize, int indent, int *chosenRow, int startS
 
                 setDefaultTextColor();
 
+                clearLine();
                 printBlankSpaces(indent);
 
                 if (*chosenRow == (int)i)
@@ -323,6 +326,7 @@ int displaySearchResults(int maxListSize, int indent, int *chosenRow, int startS
 
         while (printedRows < maxListSize)
         {
+                clearLine();
                 printf("\n");
                 printedRows++;
         }

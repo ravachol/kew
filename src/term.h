@@ -40,9 +40,17 @@ void clearRestOfScreen(void);
 
 void enableScrolling(void);
 
+void clearLine(void);
+
+void clearRestOfLine(void);
+
+void gotoFirstLineFirstRow(void);
+
 void initResize(void);
 
-void disableInputBuffering(void);
+void disableTerminalLineInput(void);
+
+void setRawInputMode(void);
 
 void enableInputBuffering(void);
 
@@ -64,8 +72,8 @@ void disableTerminalMouseButtons(void);
 
 void setTerminalWindowTitle(char *title);
 
-void saveTerminalWindowTitle();
+void saveTerminalWindowTitle(void);
 
-void restoreTerminalWindowTitle();
+void restoreTerminalWindowTitle(void);
 
 #endif

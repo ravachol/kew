@@ -1500,7 +1500,8 @@ void initResize()
 
 void init(AppState *state)
 {
-        disableInputBuffering();
+        disableTerminalLineInput();
+        setRawInputMode();
         initResize();
         ioctl(STDOUT_FILENO, TIOCGWINSZ, &windowSize);
         enableScrolling();

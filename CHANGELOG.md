@@ -42,6 +42,9 @@ Thank you also to a new sponsor, @BasedScience! You can join him at https://ko-f
 @ravachol
         Improved the safety of various functions and addressed potential vulnerabilities.
 
+@ravachol
+        Don't make a space for the cover if there is none on landscape view.
+
 #### Bug Fixes
 
 @arcathrax
@@ -49,6 +52,9 @@ Thank you also to a new sponsor, @BasedScience! You can join him at https://ko-f
 
 @ravachol
         Added null check for when exporting an empty playlist to .m3u.
+
+@ravachol
+        Prevent flickering when scrolling on TTY and likely on some other terminals as well.
 
 ### 3.4.1
 
