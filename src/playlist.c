@@ -856,6 +856,9 @@ void exportCurrentPlaylist(const char *path)
 {
         char m3uFilename[MAXPATHLEN];
 
+        if (path == NULL || playlist.head == NULL)
+                return;
+
         generateM3UFilename(path, playlist.head->song.filePath, m3uFilename,
                             sizeof(m3uFilename));
 
