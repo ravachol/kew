@@ -265,7 +265,7 @@ bool isValidAudioNode(Node *node)
 
 void play(Node *node)
 {
-        if (isValidAudioNode(currentSong))
+        if (!isValidAudioNode(currentSong))
         {
                 fprintf(stderr, "Song is invalid.\n");
                 return;
