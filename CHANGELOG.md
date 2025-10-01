@@ -47,6 +47,9 @@ Thank you also to a new sponsor, @BasedScience! You can join him at https://ko-f
 @arcathrax
         Fixed visualizer crashing the app on ultrawide monitors.
 
+@ravachol
+        Added null check for when exporting an empty playlist to .m3u.
+
 ### 3.4.1
 
 Adds a few minor bug fixes and you can now use playlists from the library view.
