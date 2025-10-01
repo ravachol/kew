@@ -35,3 +35,5 @@ kew
 error.log
 valgrind-out.txt
 tags
+*.idx
+compile_commands.json
