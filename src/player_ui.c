@@ -1670,7 +1670,7 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize,
 
                                 if (foundCurrent && chosenLibRow != libIter)
                                 {
-                                        printf("\e[4m\e[1m");
+                                        printf("\e[4m");
                                 }
 
                                 printf("%s\n", filename);
