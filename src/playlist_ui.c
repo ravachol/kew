@@ -168,7 +168,7 @@ int displayPlaylistItems(Node *startNode, int startIter, int maxListSize,
 
                         if (currentSong != NULL && currentSong->id == node->id)
                         {
-                                printf("\e[4m\e[1m");
+                                printf("\e[4m");
                         }
 
                         printf("%s\n", filename);
