@@ -363,7 +363,7 @@ You can select all music by pressing the - MUSIC LIBRARY - header at the top of 
 
 kew will create a config file, kewrc, in a kew folder in your default config directory for instance ~/.config/kew or ~/Library/Preferences/kew on macOS. There you can change some settings like key bindings and the default colors of the app. To edit this file please make sure you quit kew first.
 
-# If Colors Look Wrong
+## If Colors Look Wrong
 
 If you are on tty or have limited colors and font on your terminal, try pressing i (for simpler colors), v (for visualizer off) and b (for ascii cover).
 That should make it look much more easy on the eye!
