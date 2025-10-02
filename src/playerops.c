@@ -254,7 +254,7 @@ bool isValidAudioNode(Node *node)
 {
         if (!node)
                 return false;
-        if (node->id <= 0)
+        if (node->id < 0)
                 return false;
         if (!node->song.filePath ||
             strnlen(node->song.filePath, MAXPATHLEN) == 0)
