@@ -422,7 +422,8 @@ void printSpectrum(int row, int col, UISettings *ui, int height, int numBars, in
         for (int j = height; j > 0 && !isPlaying; j--)
         {
                 printf("\033[%d;%dH", row, col);
-                printf("\033[K"); // Clear the line
+                clearRestOfLine();
+
         }
 
         for (int j = height; j > 0 && isPlaying; j--)
