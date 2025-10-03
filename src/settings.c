@@ -1,4 +1,5 @@
 #include "settings.h"
+#include "appstate.h"
 #include "file.h"
 #include "player_ui.h"
 #include "soundcommon.h"
@@ -120,8 +121,8 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         c_strcpy(settings.scrollDownAlt, "j", sizeof(settings.scrollDownAlt));
         c_strcpy(settings.switchNumberedSong, "G",
                  sizeof(settings.switchNumberedSong));
-        c_strcpy(settings.toggleColorsDerivedFrom, "i",
-                 sizeof(settings.toggleColorsDerivedFrom));
+        c_strcpy(settings.cycleColorsDerivedFrom, "i",
+                 sizeof(settings.cycleColorsDerivedFrom));
         c_strcpy(settings.toggleVisualizer, "v",
                  sizeof(settings.toggleVisualizer));
         c_strcpy(settings.toggleAscii, "b", sizeof(settings.toggleAscii));
@@ -236,6 +237,11 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
                         snprintf(settings.path, sizeof(settings.path), "%s",
                                  pair->value);
                 }
+                else if (strcmp(lowercaseKey, "theme") == 0)
+                {
+                        snprintf(settings.theme, sizeof(settings.theme), "%s",
+                                 pair->value);
+                }
                 else if (strcmp(lowercaseKey, "coverenabled") == 0)
                 {
                         snprintf(settings.coverEnabled,
@@ -332,8 +338,8 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
                 }
                 else if (strcmp(lowercaseKey, "togglecolorsderivedfrom") == 0)
                 {
-                        snprintf(settings.toggleColorsDerivedFrom,
-                                 sizeof(settings.toggleColorsDerivedFrom), "%s",
+                        snprintf(settings.cycleColorsDerivedFrom,
+                                 sizeof(settings.cycleColorsDerivedFrom), "%s",
                                  pair->value);
                 }
                 else if (strcmp(lowercaseKey, "togglevisualizer") == 0)
@@ -394,6 +400,11 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
                 {
                         snprintf(settings.allowNotifications,
                                  sizeof(settings.allowNotifications), "%s",
+                                 pair->value);
+                }
+                else if (strcmp(lowercaseKey, "colormode") == 0)
+                {
+                        snprintf(settings.colorMode, sizeof(settings.colorMode), "%s",
                                  pair->value);
                 }
                 else if (strcmp(lowercaseKey, "color") == 0)
@@ -813,7 +824,7 @@ void mapSettingsToKeys(AppSettings *settings, UISettings *ui,
             (EventMapping){settings->toggleRepeat, EVENT_TOGGLEREPEAT};
         mappings[17] =
             (EventMapping){settings->savePlaylist, EVENT_EXPORTPLAYLIST};
-        mappings[18] = (EventMapping){settings->toggleColorsDerivedFrom,
+        mappings[18] = (EventMapping){settings->cycleColorsDerivedFrom,
                                       EVENT_TOGGLEPROFILECOLORS};
         mappings[19] = (EventMapping){settings->addToFavoritesPlaylist,
                                       EVENT_ADDTOFAVORITESPLAYLIST};
@@ -1117,6 +1128,19 @@ void getConfig(AppSettings *settings, UISettings *ui)
         if (tmp >= 0)
                 ui->titleColor = tmp;
 
+        tmp = getNumber(settings->colorMode);
+        if (tmp >= 0 && tmp < 3)
+        {
+                ui->colorMode = tmp;
+        }
+        else
+        {
+                if (ui->useConfigColors)
+                        ui->colorMode = COLOR_MODE_TERMINAL;
+                else
+                         ui->colorMode = COLOR_MODE_ALBUM;
+        }
+
         tmp = getNumber(settings->replayGainCheckFirst);
         if (tmp >= 0)
                 ui->replayGainCheckFirst = tmp;
@@ -1181,6 +1205,7 @@ void getConfig(AppSettings *settings, UISettings *ui)
                 ui->cacheLibrary = tmp;
 
         getMusicLibraryPath(settings->path);
+        snprintf(ui->themeName, sizeof(ui->themeName), "%s", settings->theme);
         free(configdir);
 }
 
@@ -1313,6 +1338,7 @@ void setConfig(AppSettings *settings, UISettings *ui)
         if (settings->color[0] == '\0')
                 snprintf(settings->color, sizeof(settings->color), "%d",
                          ui->mainColor);
+
         if (settings->artistColor[0] == '\0')
                 snprintf(settings->artistColor, sizeof(settings->artistColor),
                          "%d", ui->artistColor);
@@ -1399,6 +1425,43 @@ void setConfig(AppSettings *settings, UISettings *ui)
         fprintf(file, "trackTitleAsWindowTitle=%s\n\n",
                 settings->trackTitleAsWindowTitle);
 
+
+        fprintf(file, "\n[colors]\n\n");
+
+        fprintf(file, "# Theme's go in ~/.config/kew/themes (on Linux/FreeBSD/Android), \n");
+        fprintf(file, "# and ~/Library/Preferences/kew/themes (on macOS), \n");
+        fprintf(file, "theme=%s\n\n", settings->theme);
+
+        fprintf(file, "# Color Mode is:\n");
+        fprintf(file, "# 0 = (Simple) Terminal colors from kewrc, \n");
+        fprintf(file, "# 1 = Colors derived from album cover, \n");
+        fprintf(file, "# 2 = Colors derived from theme, \n\n");
+        fprintf(file, "# Color Mode:\n");
+        fprintf(file, "colorMode=%d\n\n", ui->colorMode);
+
+        fprintf(file, "# Terminal color values are 0=Black, 1=Red, 2=Green, 3=Yellow, "
+                      "4=Blue, 5=Magenta, 6=Cyan, 7=White\n");
+        fprintf(file, "# These mostly affect the library view.\n\n");
+
+        fprintf(file, "# Logo color:\n");
+        fprintf(file, "color=%s\n\n", settings->color);
+
+        fprintf(file, "# Header color in library view:\n");
+        fprintf(file, "artistColor=%s\n\n", settings->artistColor);
+
+        fprintf(file, "# Now playing song text in library view:\n");
+        fprintf(file, "titleColor=%s\n\n", settings->titleColor);
+
+        fprintf(file, "# Color of enqueued songs in library view:\n");
+        fprintf(file, "enqueuedColor=%s\n\n", settings->enqueuedColor);
+
+        fprintf(file, "\n[track cover]\n\n");
+        fprintf(file, "coverEnabled=%s\n", settings->coverEnabled);
+        fprintf(file, "coverAnsi=%s\n\n", settings->coverAnsi);
+
+        fprintf(file, "\n[mouse]\n\n");
+        fprintf(file, "mouseEnabled=%s\n\n", settings->mouseEnabled);
+
         fprintf(file, "\n[visualizer]\n\n");
         fprintf(file, "visualizerEnabled=%s\n", settings->visualizerEnabled);
         fprintf(file, "visualizerHeight=%s\n", settings->visualizerHeight);
@@ -1466,36 +1529,8 @@ void setConfig(AppSettings *settings, UISettings *ui)
                 settings->progressBarApproachingOddChar);
         fprintf(file, "progressBarCurrentEvenChar=%s\n",
                 settings->progressBarCurrentEvenChar);
-        fprintf(file, "progressBarCurrentOddChar=%s\n",
+        fprintf(file, "progressBarCurrentOddChar=%s\n\n",
                 settings->progressBarCurrentOddChar);
-
-        fprintf(file, "\n[colors]\n\n");
-
-        fprintf(file, "# Use the configuration file colors below\n");
-        fprintf(file, "useConfigColors=%s\n\n", settings->useConfigColors);
-
-        fprintf(file, "# Color values are 0=Black, 1=Red, 2=Green, 3=Yellow, "
-                      "4=Blue, 5=Magenta, 6=Cyan, 7=White\n");
-        fprintf(file, "# These mostly affect the library view.\n\n");
-
-        fprintf(file, "# Logo color:\n");
-        fprintf(file, "color=%s\n\n", settings->color);
-
-        fprintf(file, "# Header color in library view:\n");
-        fprintf(file, "artistColor=%s\n\n", settings->artistColor);
-
-        fprintf(file, "# Now playing song text in library view:\n");
-        fprintf(file, "titleColor=%s\n\n", settings->titleColor);
-
-        fprintf(file, "# Color of enqueued songs in library view:\n");
-        fprintf(file, "enqueuedColor=%s\n\n", settings->enqueuedColor);
-
-        fprintf(file, "\n[track cover]\n\n");
-        fprintf(file, "coverEnabled=%s\n", settings->coverEnabled);
-        fprintf(file, "coverAnsi=%s\n\n", settings->coverAnsi);
-
-        fprintf(file, "\n[mouse]\n\n");
-        fprintf(file, "mouseEnabled=%s\n\n", settings->mouseEnabled);
 
         fprintf(file, "# Mouse actions are 0=None, 1=Select song, 2=Toggle "
                       "pause, 3=Scroll up, 4=Scroll down, 5=Seek forward, "
@@ -1529,7 +1564,7 @@ void setConfig(AppSettings *settings, UISettings *ui)
         fprintf(file, "switchNumberedSong=%s\n", settings->switchNumberedSong);
         fprintf(file, "togglePause=%s\n", settings->togglePause);
         fprintf(file, "toggleColorsDerivedFrom=%s\n",
-                settings->toggleColorsDerivedFrom);
+                settings->cycleColorsDerivedFrom);
         fprintf(file, "toggleVisualizer=%s\n", settings->toggleVisualizer);
         fprintf(file, "toggleAscii=%s\n", settings->toggleAscii);
         fprintf(file, "toggleRepeat=%s\n", settings->toggleRepeat);

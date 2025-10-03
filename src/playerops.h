@@ -75,7 +75,7 @@ void toggleShuffle(UISettings *ui);
 
 void toggleAscii(AppSettings *settings, UISettings *ui);
 
-void toggleColors(AppSettings *settings, UISettings *ui);
+void toggleColors(UISettings *ui);
 
 void toggleVisualizer(AppSettings *settings, UISettings *ui);
 

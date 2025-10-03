@@ -1,0 +1,58 @@
+# ============================================
+# GRUVBOX (Warm Retro)
+# ============================================
+
+[theme]
+name=Gruvbox
+author=ravachol
+
+# Core colors
+accent=#fabd2f
+text=#dbc4a1
+textDim=#d5c4a1
+textMuted=#928374
+
+# General Colors
+logo=#928374
+header=#928374
+footer=#928374
+help=#83a598
+link=#98971a
+nowplaying=#d79921
+
+# Playlist View
+playlist.rownum=#928374
+playlist.title=#dbc4a1
+playlist.playing=#ebdbb2
+
+# Track View
+trackview.title=#ebdbb2
+trackview.artist=#bdae93
+trackview.album=#a89984
+trackview.year=#a89984
+trackview.time=#a89984
+trackview.visualizer=#665c54
+
+# Library View
+library.artist=#928374
+library.album=#dbc4a1
+library.track=#dbc4a1
+library.enqueued=#98971a
+library.playing=#b8bb26
+
+# Search
+search.label=#928374
+search.query=#fe8019
+search.result=#dbc4a1
+search.enqueued=#98971a
+
+# Progress
+progress.filled=#665c54
+progress.empty=#3c3836
+progress.elapsed=#a89984
+
+# Status
+status.info=#fabd2f
+status.warning=#fabd2f
+status.error=#fabd2f
+status.success=#fabd2f

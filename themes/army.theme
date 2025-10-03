@@ -1,0 +1,58 @@
+# ============================================
+# ARMY
+# ============================================
+
+[theme]
+name=Army
+author=ravachol
+
+# Core colors
+accent=#a89074
+text=#d6cbb8
+textDim=#b59d82
+textMuted=#786b5a
+
+# General Colors
+logo=#786b5a
+header=#786b5a
+footer=#786b5a
+help=#bca890
+link=#b59d82
+nowplaying=#a89074
+
+# Playlist View
+playlist.rownum=#786b5a
+playlist.title=#d6cbb8
+playlist.playing=#b8a085
+
+# Track View
+trackview.title=#d6cbb8
+trackview.artist=#a89074
+trackview.album=#b59d82
+trackview.year=#b59d82
+trackview.time=#bca890
+trackview.visualizer=#2b2721
+
+# Library View
+library.artist=#786b5a
+library.album=#c8bfad
+library.track=#c8bfad
+library.enqueued=#8a8a70
+library.playing=#b8a085
+
+# Search
+search.label=#786b5a
+search.query=#a89074
+search.result=#d6cbb8
+search.enqueued=#8a8a70
+
+# Progress
+progress.filled=#786b5a
+progress.empty=#1f1d1a
+progress.elapsed=#3a3630
+
+# Status
+status.info=#a89074
+status.warning=#bca890
+status.error=#a87a7a
+status.success=#8a8a70
