@@ -67,6 +67,9 @@ Thank you also to a new sponsor, @BasedScience! You can join him at https://ko-f
 @ravachol
         Prevent flickering when scrolling on TTY and likely on some other terminals as well.
 
+@ravachol
+        Search: fixed files being reordered when scrolling on macOS/kitty.
+
 ### 3.4.1
 
 Adds a few minor bug fixes and you can now use playlists from the library view.
