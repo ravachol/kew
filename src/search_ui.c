@@ -1,10 +1,10 @@
-#include <stdbool.h>
-#include <math.h>
+#include "search_ui.h"
+#include "common.h"
+#include "common_ui.h"
 #include "soundcommon.h"
 #include "term.h"
-#include "common_ui.h"
-#include "common.h"
-#include "search_ui.h"
+#include <math.h>
+#include <stdbool.h>
 
 /*
 
@@ -35,23 +35,19 @@ FileSystemEntry *currentSearchEntry = NULL;
 
 char searchText[MAX_SEARCH_LEN * 4 + 1]; // Unicode can be 4 characters
 
-FileSystemEntry *getCurrentSearchEntry(void)
-{
-        return currentSearchEntry;
-}
+FileSystemEntry *getCurrentSearchEntry(void) { return currentSearchEntry; }
 
-int getSearchResultsCount(void)
-{
-        return resultsCount;
-}
+int getSearchResultsCount(void) { return resultsCount; }
 
 // Function to add a result to the global array
 void addResult(FileSystemEntry *entry, int distance)
 {
         if (resultsCount >= resultsCapacity)
         {
-                resultsCapacity = resultsCapacity == 0 ? 10 : resultsCapacity * 2;
-                results = realloc(results, resultsCapacity * sizeof(SearchResult));
+                resultsCapacity =
+                    resultsCapacity == 0 ? 10 : resultsCapacity * 2;
+                results =
+                    realloc(results, resultsCapacity * sizeof(SearchResult));
         }
         results[resultsCount].distance = distance;
         results[resultsCount].entry = entry;
@@ -86,7 +82,8 @@ void fuzzySearch(FileSystemEntry *root, int threshold)
 
         if (numSearchLetters > minSearchLetters)
         {
-                fuzzySearchRecursive(root, searchText, threshold, collectResult);
+                fuzzySearchRecursive(root, searchText, threshold,
+                                     collectResult);
         }
         refresh = true;
 }
@@ -95,7 +92,12 @@ int compareResults(const void *a, const void *b)
 {
         SearchResult *resultA = (SearchResult *)a;
         SearchResult *resultB = (SearchResult *)b;
-        return resultA->distance - resultB->distance;
+
+        if (resultA->distance != resultB->distance)
+                return resultA->distance - resultB->distance;
+
+        // Tie-breaker: compare names to ensure deterministic ordering
+        return strcmp(resultA->entry->name, resultB->entry->name);
 }
 
 void sortResults(void)
@@ -105,7 +107,8 @@ void sortResults(void)
 
 int displaySearchBox(int indent, UISettings *ui)
 {
-        applyColor(ui->colorMode, ui->theme.search_label, ui->color, ui->mainColor);
+        applyColor(ui->colorMode, ui->theme.search_label, ui->color,
+                   ui->mainColor);
 
         clearLine();
         printBlankSpaces(indent);
@@ -134,7 +137,8 @@ int addToSearchText(const char *str, UISettings *ui)
                 return 0; // Not enough space
         }
 
-        applyColor(ui->colorMode, ui->theme.search_label, ui->color, ui->mainColor);
+        applyColor(ui->colorMode, ui->theme.search_label, ui->color,
+                   ui->mainColor);
 
         // Restore cursor position
         printf("\033[u");
@@ -223,7 +227,8 @@ int removeFromSearchText(void)
         return 0;
 }
 
-int displaySearchResults(int maxListSize, int indent, int *chosenRow, int startSearchIter, UISettings *ui)
+int displaySearchResults(int maxListSize, int indent, int *chosenRow,
+                         int startSearchIter, UISettings *ui)
 {
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
@@ -266,7 +271,8 @@ int displaySearchResults(int maxListSize, int indent, int *chosenRow, int startS
                 if ((int)i >= maxListSize + startSearchIter - 1)
                         break;
 
-                applyColor(ui->colorMode, ui->theme.search_result, defaultColorRGB, -1);
+                applyColor(ui->colorMode, ui->theme.search_result,
+                           defaultColorRGB, -1);
 
                 clearLine();
                 printBlankSpaces(indent);
@@ -277,7 +283,9 @@ int displaySearchResults(int maxListSize, int indent, int *chosenRow, int startS
 
                         if (results[i].entry->isEnqueued)
                         {
-                                applyColor(ui->colorMode, ui->theme.search_enqueued, ui->color, ui->enqueuedColor);
+                                applyColor(ui->colorMode,
+                                           ui->theme.search_enqueued, ui->color,
+                                           ui->enqueuedColor);
 
                                 printf("\x1b[7m * ");
                         }
@@ -290,7 +298,9 @@ int displaySearchResults(int maxListSize, int indent, int *chosenRow, int startS
                 {
                         if (results[i].entry->isEnqueued)
                         {
-                                applyColor(ui->colorMode, ui->theme.search_enqueued, ui->color, ui->enqueuedColor);
+                                applyColor(ui->colorMode,
+                                           ui->theme.search_enqueued, ui->color,
+                                           ui->enqueuedColor);
 
                                 printf(" * ");
                         }
@@ -298,21 +308,28 @@ int displaySearchResults(int maxListSize, int indent, int *chosenRow, int startS
                                 printf("   ");
                 }
 
-
                 name[0] = '\0';
                 if (results[i].entry->isDirectory)
                 {
-                        if (results[i].entry->parent != NULL && strcmp(results[i].entry->parent->name, "root") != 0)
-                                snprintf(name, maxNameWidth + 1, "[%s] (%s)", results[i].entry->name, results[i].entry->parent->name);
+                        if (results[i].entry->parent != NULL &&
+                            strcmp(results[i].entry->parent->name, "root") != 0)
+                                snprintf(name, maxNameWidth + 1, "[%s] (%s)",
+                                         results[i].entry->name,
+                                         results[i].entry->parent->name);
                         else
-                                snprintf(name, maxNameWidth + 1, "[%s]", results[i].entry->name);
+                                snprintf(name, maxNameWidth + 1, "[%s]",
+                                         results[i].entry->name);
                 }
                 else
                 {
-                        if (results[i].entry->parent != NULL && strcmp(results[i].entry->parent->name, "root") != 0)
-                                snprintf(name, maxNameWidth + 1, "%s (%s)", results[i].entry->name, results[i].entry->parent->name);
+                        if (results[i].entry->parent != NULL &&
+                            strcmp(results[i].entry->parent->name, "root") != 0)
+                                snprintf(name, maxNameWidth + 1, "%s (%s)",
+                                         results[i].entry->name,
+                                         results[i].entry->parent->name);
                         else
-                                snprintf(name, maxNameWidth + 1, "%s", results[i].entry->name);
+                                snprintf(name, maxNameWidth + 1, "%s",
+                                         results[i].entry->name);
                 }
                 printf("%s\n", name);
                 printedRows++;
@@ -328,10 +345,12 @@ int displaySearchResults(int maxListSize, int indent, int *chosenRow, int startS
         return 0;
 }
 
-int displaySearch(int maxListSize, int indent, int *chosenRow, int startSearchIter, UISettings *ui)
+int displaySearch(int maxListSize, int indent, int *chosenRow,
+                  int startSearchIter, UISettings *ui)
 {
         displaySearchBox(indent, ui);
-        displaySearchResults(maxListSize, indent, chosenRow, startSearchIter, ui);
+        displaySearchResults(maxListSize, indent, chosenRow, startSearchIter,
+                             ui);
 
         return 0;
 }
