@@ -2197,7 +2197,7 @@ bool ensureDefaultThemes(void)
                         while ((entry = readdir(dir)) != NULL)
                         {
                                 if (entry->d_type == DT_REG &&
-                                    strstr(entry->d_name, ".theme"))
+                                    (strstr(entry->d_name, ".theme") || strstr(entry->d_name, ".txt")))
                                 {
                                         char src[MAXPATHLEN], dst[MAXPATHLEN];
 
