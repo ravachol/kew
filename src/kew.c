@@ -2180,14 +2180,7 @@ bool ensureDefaultThemes(void)
         {
                 mkdir(themesPath, 0755);
 
-                char systemThemes[MAXPATHLEN];
-                if (snprintf(systemThemes, sizeof(systemThemes),
-                             "%s/share/kew/themes",
-                             PREFIX) >= (int)sizeof(systemThemes))
-                {
-                        free(configPath);
-                        return false;
-                }
+                char *systemThemes = PREFIX "/share/kew/themes";
 
                 // Copy themes from systemThemes to themesPath
                 DIR *dir = opendir(systemThemes);
