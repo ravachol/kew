@@ -1,0 +1,58 @@
+# ============================================
+# PAPER (Soft Light Theme)
+# ============================================
+
+[theme]
+name=Paper
+author=ravachol
+
+# Core colors
+accent=#6b7f96
+text=#5a5a5a
+textDim=#707070
+textMuted=#8a8a8a
+
+# General Colors
+logo=#8a8a8a
+header=#8a8a8a
+footer=#8a8a8a
+help=#6b8f8f
+link=#7a8a70
+nowplaying=#6b7f96
+
+# Playlist View
+playlist.rownum=#8a8a8a
+playlist.title=#4a4a4a
+playlist.playing=#8a7a6b
+
+# Track View
+trackview.title=#4a4a4a
+trackview.artist=#6b7f96
+trackview.album=#7a8a8a
+trackview.year=#7a8a8a
+trackview.time=#7a8a8a
+trackview.visualizer=#e8e8e8
+
+# Library View
+library.artist=#8a8a8a
+library.album=#5a5a5a
+library.track=#5a5a5a
+library.enqueued=#7a8a70
+library.playing=#8a7a6b
+
+# Search
+search.label=#8a8a8a
+search.query=#6b7f96
+search.result=#5a5a5a
+search.enqueued=#7a8a70
+
+# Progress
+progress.filled=#d0d0d0
+progress.empty=#f5f5f5
+progress.elapsed=#8a8a8a
+
+# Status
+status.info=#6b7f96
+status.warning=#9a8a70
+status.error=#a87a7a
+status.success=#7a8a70

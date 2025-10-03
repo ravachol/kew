@@ -25,7 +25,7 @@ possible.
 
 const int MAX_TERMINAL_ROWS = 9999;
 
-void setTextColor(int color)
+void setTerminalColor(int color)
 {
         /*
         - 0: Black

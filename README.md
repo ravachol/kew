@@ -292,6 +292,8 @@ kew song <song> (or a song)
 
 kew list <playlist> (or a playlist)
 
+kew theme midnight (sets the 'midnight.theme' theme).
+
 kew shuffle <album name> (shuffles the playlist. shuffle needs to come first.)
 
 kew artistA:artistB:artistC (plays all three artists, shuffled)
@@ -343,7 +345,7 @@ You can select all music by pressing the - MUSIC LIBRARY - header at the top of 
 * <kbd>F6</kbd> or <kbd>Shift+b</kbd> (macOS/Android) to show/hide key bindings view.
 * <kbd>u</kbd> to update the library.
 * <kbd>v</kbd> to toggle the spectrum visualizer.
-* <kbd>i</kbd> to switch between using your regular color scheme or colors derived from the track cover.
+* <kbd>i</kbd> cycle colors derived from kewrc, theme or track cover.
 * <kbd>b</kbd> to toggle album covers drawn in ascii or as a normal image.
 * <kbd>r</kbd> to repeat the current song after playing.
 * <kbd>s</kbd> to shuffle the playlist.
@@ -362,6 +364,17 @@ You can select all music by pressing the - MUSIC LIBRARY - header at the top of 
 ## Configuration
 
 kew will create a config file, kewrc, in a kew folder in your default config directory for instance ~/.config/kew or ~/Library/Preferences/kew on macOS. There you can change some settings like key bindings and the default colors of the app. To edit this file please make sure you quit kew first.
+
+## Themes
+
+You can fully customize kew's colors with themes!
+
+There are many themes included in version 3.5 and up.
+
+To use themes:
+1. Make sure you run sudo make install if you're not intalling from a package manager.
+2. Put themes in ~/.config/kew/themes (~/Library/Preferences/kew/themes on macOS).
+3. Run kew with kew theme <themename>. For instance kew theme midnight will apply the midnight.theme.
 
 ## If Colors Look Wrong
 

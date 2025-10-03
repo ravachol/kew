@@ -2,11 +2,10 @@
 #define APPSTATE_H
 
 #include "cache.h"
-
 #include <gio/gio.h>
 #include <glib.h>
-
 #include <sys/param.h>
+#include "theme.h"
 
 #ifndef MAXPATHLEN
 #define MAXPATHLEN 4096
@@ -31,6 +30,12 @@ typedef enum
         LIBRARY_VIEW,
         SEARCH_VIEW
 } ViewState;
+
+typedef enum {
+        COLOR_MODE_TERMINAL = 0,  // Colors in 8-color terminal-safe palette
+        COLOR_MODE_ALBUM = 1,     // Colors derived from album art
+        COLOR_MODE_THEME = 2      // Colors from config/theme file
+} ColorMode;
 
 typedef struct
 {
@@ -69,6 +74,11 @@ typedef struct
         int repeatState;                                // 0=disabled,1=repeat track ,2=repeat list
         bool shuffleEnabled;
         bool trackTitleAsWindowTitle;                   // Set the window title to the title of the currently playing track
+        Theme theme;                                    // The color theme.
+        bool themeIsSet;                                // Whether a theme has been loaded;
+        char themeName[NAME_MAX];                       // the name part of <themeName>.theme, usually lowercase first character, unlike theme.name which is taken from within the file.
+        char themeAuthor[NAME_MAX];
+        ColorMode colorMode;                            // Which color mode to use.
 } UISettings;
 
 typedef struct
@@ -95,7 +105,18 @@ typedef struct
         UISettings uiSettings;
 } AppState;
 
+#ifndef DEFAULTCOLOR
+#define DEFAULTCOLOR
+
 static const unsigned char defaultColor = 150;
+
+static const PixelData defaultColorRGB = {
+    .r = defaultColor,
+    .g = defaultColor,
+    .b = defaultColor
+};
+
+#endif
 
 #ifndef KEYVALUEPAIR_STRUCT
 #define KEYVALUEPAIR_STRUCT
@@ -113,6 +134,8 @@ typedef struct
 typedef struct
 {
         char path[MAXPATHLEN];
+        char theme[NAME_MAX];
+        char colorMode[6];
         char coverEnabled[2];
         char coverAnsi[2];
         char useConfigColors[2];
@@ -133,7 +156,7 @@ typedef struct
         char switchNumberedSongAlt[6];
         char switchNumberedSongAlt2[6];
         char togglePause[6];
-        char toggleColorsDerivedFrom[6];
+        char cycleColorsDerivedFrom[6];
         char toggleVisualizer[6];
         char toggleAscii[6];
         char toggleRepeat[6];

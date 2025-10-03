@@ -12,7 +12,14 @@ void setTextColorRGB2(int r, int g, int b, const UISettings *ui);
 
 void setColor(UISettings *ui);
 
+void setRGB(PixelData p);
+
 void setColorAndWeight(int bold, PixelData color, int useConfigColors);
+
+void inverseText(void);
+
+void applyColor(ColorMode mode, PixelData themeColor, PixelData albumColor,
+                int terminalColor);
 
 void processNameScroll(const char *name, char *output, int maxWidth, bool isSameNameAsLastTime);
 

@@ -105,15 +105,12 @@ void sortResults(void)
 
 int displaySearchBox(int indent, UISettings *ui)
 {
-        if (ui->useConfigColors)
-                setTextColor(ui->mainColor);
-        else
-                setColor(ui);
+        applyColor(ui->colorMode, ui->theme.search_label, ui->color, ui->mainColor);
 
         clearLine();
         printBlankSpaces(indent);
         printf(" [Search]: ");
-        setDefaultTextColor();
+        applyColor(ui->colorMode, ui->theme.search_query, defaultColorRGB, -1);
         // Save cursor position
         printf("%s", searchText);
         printf("\033[s");
@@ -122,7 +119,7 @@ int displaySearchBox(int indent, UISettings *ui)
         return 0;
 }
 
-int addToSearchText(const char *str)
+int addToSearchText(const char *str, UISettings *ui)
 {
         if (str == NULL)
         {
@@ -136,6 +133,8 @@ int addToSearchText(const char *str)
         {
                 return 0; // Not enough space
         }
+
+        applyColor(ui->colorMode, ui->theme.search_label, ui->color, ui->mainColor);
 
         // Restore cursor position
         printf("\033[u");
@@ -267,7 +266,7 @@ int displaySearchResults(int maxListSize, int indent, int *chosenRow, int startS
                 if ((int)i >= maxListSize + startSearchIter - 1)
                         break;
 
-                setDefaultTextColor();
+                applyColor(ui->colorMode, ui->theme.search_result, defaultColorRGB, -1);
 
                 clearLine();
                 printBlankSpaces(indent);
@@ -278,10 +277,8 @@ int displaySearchResults(int maxListSize, int indent, int *chosenRow, int startS
 
                         if (results[i].entry->isEnqueued)
                         {
-                                if (ui->useConfigColors)
-                                        setTextColor(ui->enqueuedColor);
-                                else
-                                        setColor(ui);
+                                applyColor(ui->colorMode, ui->theme.search_enqueued, ui->color, ui->enqueuedColor);
+
                                 printf("\x1b[7m * ");
                         }
                         else
@@ -293,10 +290,8 @@ int displaySearchResults(int maxListSize, int indent, int *chosenRow, int startS
                 {
                         if (results[i].entry->isEnqueued)
                         {
-                                if (ui->useConfigColors)
-                                        setTextColor(ui->enqueuedColor);
-                                else
-                                        setColor(ui);
+                                applyColor(ui->colorMode, ui->theme.search_enqueued, ui->color, ui->enqueuedColor);
+
                                 printf(" * ");
                         }
                         else
@@ -311,7 +306,6 @@ int displaySearchResults(int maxListSize, int indent, int *chosenRow, int startS
                                 snprintf(name, maxNameWidth + 1, "[%s] (%s)", results[i].entry->name, results[i].entry->parent->name);
                         else
                                 snprintf(name, maxNameWidth + 1, "[%s]", results[i].entry->name);
-
                 }
                 else
                 {

@@ -1,6 +1,6 @@
 #include "utils.h"
 #include <ctype.h>
-#include <errno.h>
+#include <fcntl.h>
 #include <glib.h>
 #include <math.h>
 #include <pwd.h>
@@ -11,6 +11,7 @@
 #include <strings.h>
 #include <sys/param.h>
 #include <sys/stat.h>
+#include <sys/types.h>
 #include <time.h>
 #include <unistd.h>
 
@@ -591,4 +592,111 @@ float getFloat(const char *str)
         }
 
         return value;
+}
+
+int copyFile(const char *src, const char *dst)
+{
+        // Validate inputs
+        if (!src || !dst)
+        {
+                return -1;
+        }
+
+        // Check if source and destination are the same
+        struct stat src_stat, dst_stat;
+        if (stat(src, &src_stat) != 0)
+        {
+                return -1;
+        }
+
+        // Don't copy if destination exists and is the same file (same inode)
+        if (stat(dst, &dst_stat) == 0)
+        {
+                if (src_stat.st_dev == dst_stat.st_dev &&
+                    src_stat.st_ino == dst_stat.st_ino)
+                {
+                        return -1; // Same file
+                }
+        }
+
+        // Don't copy directories, symlinks, or special files
+        if (!S_ISREG(src_stat.st_mode))
+        {
+                return -1;
+        }
+
+        // Check file size is reasonable (prevent copying huge files)
+        if (src_stat.st_size > 10 * 1024 * 1024)
+        { // 10MB limit for theme files
+                return -1;
+        }
+
+        // Open source file
+        int src_fd = open(src, O_RDONLY);
+        if (src_fd < 0)
+        {
+                return -1;
+        }
+
+        // Create destination with user read/write permissions
+        int dst_fd = open(dst, O_WRONLY | O_CREAT | O_EXCL, 0600);
+        if (dst_fd < 0)
+        {
+                // If file exists, try to open it (but don't use O_EXCL)
+                dst_fd = open(dst, O_WRONLY | O_CREAT | O_TRUNC, 0600);
+                if (dst_fd < 0)
+                {
+                        close(src_fd);
+                        return -1;
+                }
+        }
+
+        // Copy data in chunks
+        char buffer[8192];
+        ssize_t bytes_read, bytes_written;
+        ssize_t total_written = 0;
+
+        while ((bytes_read = read(src_fd, buffer, sizeof(buffer))) > 0)
+        {
+                bytes_written = write(dst_fd, buffer, bytes_read);
+                if (bytes_written != bytes_read)
+                {
+                        close(src_fd);
+                        close(dst_fd);
+                        unlink(dst); // Remove partial file on error
+                        return -1;
+                }
+                total_written += bytes_written;
+
+                // Sanity check: make sure we're not writing more than expected
+                if (total_written > src_stat.st_size)
+                {
+                        close(src_fd);
+                        close(dst_fd);
+                        unlink(dst);
+                        return -1;
+                }
+        }
+
+        if (bytes_read < 0)
+        {
+                close(src_fd);
+                close(dst_fd);
+                unlink(dst); // Remove partial file on error
+                return -1;
+        }
+
+        // Sync to disk before closing
+        if (fsync(dst_fd) != 0)
+        {
+                close(src_fd);
+                close(dst_fd);
+                unlink(dst);
+                return -1;
+        }
+
+        close(src_fd);
+        close(dst_fd);
+
+        return 0;
 }

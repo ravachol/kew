@@ -1,0 +1,56 @@
+# ============================================
+# 4. TOKYO NIGHT (Modern Dark)
+# ============================================
+
+[theme]
+name=Tokyo Night
+author=ravachol
+
+# Core colors
+accent=#7aa2f7
+text=#c0caf5
+textDim=#9aa5ce
+textMuted=#565f89
+logo=#565f89
+header=#565f89
+footer=#565f89
+help=#7dcfff
+link=#9ece6a
+nowplaying=#ff9e64
+
+# Playlist View
+playlist.rownum=#565f89
+playlist.title=#c0caf5
+playlist.playing=#7aa2f7
+
+# Track View
+trackview.title=#c0caf5
+trackview.artist=#7aa2f7
+trackview.album=#bb9af7
+trackview.year=#bb9af7
+trackview.time=#7dcfff
+trackview.visualizer=#292e42
+
+# Library View
+library.artist=#7aa2f7
+library.album=#bb9af7
+library.track=#a9b1d6
+library.enqueued=#9ece6a
+library.playing=#7aa2f7
+
+# Search
+search.label=#bb9af7
+search.query=#c0caf5
+search.result=#a9b1d6
+search.enqueued=#9ece6a
+
+# Progress
+progress.filled=#7aa2f7
+progress.empty=#292e42
+progress.elapsed=#7dcfff
+
+# Status
+status.info=#7aa2f7
+status.warning=#e0af68
+status.error=#f7768e
+status.success=#9ece6a

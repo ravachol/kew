@@ -121,6 +121,8 @@ ifeq ($(USE_DBUS), 1)
   DEFINES += -DUSE_DBUS
 endif
 
+DEFINES += -DPREFIX=\"$(PREFIX)\"
+
 # Conditionally add faad2 support if USE_FAAD is enabled
 ifeq ($(USE_FAAD), 1)
   ifeq ($(ARCH), arm64)
@@ -148,7 +150,7 @@ endif
 
 OBJDIR = src/obj
 
-SRCS = src/common_ui.c  src/common.c src/sound.c src/directorytree.c src/notifications.c \
+SRCS = src/common_ui.c  src/common.c src/theme.c src/sound.c src/directorytree.c src/notifications.c \
        src/soundcommon.c src/m4a.c src/search_ui.c src/playlist_ui.c \
        src/player_ui.c src/soundbuiltin.c src/mpris.c src/playerops.c \
        src/utils.c src/file.c src/imgfunc.c src/cache.c src/songloader.c \
@@ -160,6 +162,8 @@ WRAPPER_OBJ = $(OBJDIR)/tagLibWrapper.o
 
 MAN_PAGE = kew.1
 MAN_DIR ?= $(PREFIX)/share/man
+DATADIR ?= $(PREFIX)/share
+THEMEDIR = $(DATADIR)/kew/themes
 
 all: kew
 
@@ -204,13 +208,22 @@ kew: $(OBJS) $(WRAPPER_OBJ) Makefile
 install: all
 	mkdir -p $(DESTDIR)$(MAN_DIR)/man1
 	mkdir -p $(DESTDIR)$(PREFIX)/bin
+	mkdir -p $(DESTDIR)$(THEMEDIR)
 	install -m 0755 kew $(DESTDIR)$(PREFIX)/bin/kew
 	install -m 0644 docs/kew.1 $(DESTDIR)$(MAN_DIR)/man1/kew.1
+	@if [ -d themes ]; then \
+		for theme in themes/*.theme; do \
+			if [ -f "$$theme" ]; then \
+				install -m 0644 "$$theme" $(DESTDIR)$(THEMEDIR)/; \
+			fi; \
+		done; \
+	fi
 
 .PHONY: uninstall
 uninstall:
 	rm -f $(DESTDIR)$(PREFIX)/bin/kew
 	rm -f $(DESTDIR)$(MAN_DIR)/man1/kew.1
+	rm -rf $(DESTDIR)$(THEMEDIR)
 
 .PHONY: clean
 clean:

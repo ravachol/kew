@@ -2,6 +2,15 @@
 
 ### 3.5.0
 
+Full customization of colors with themes!
+
+You can now create themes for kew or use one of the many themes included in this release.
+
+To use themes:
+1. Make sure you run sudo make install if you're not intalling from a package manager.
+2. Put themes in ~/.config/kew/themes (~/Library/Preferences/kew/themes on macOS).
+3. Run kew with kew theme <themename>. For instance kew theme midnight will apply midnight.theme.
+
 kew now works on Android phones!
 
 I always wanted to have kew on my phone as a sort of walkman that I helped create. I was just looking at getting a FairPhone and installing Linux on it, and all kinds of things, when @welpyes showed up and he was trying to put kew on Termux. I didn't know Termux was that powerful, that all libs required would be available and so on. But in the end it wasn't much work at all to get it up and running.
@@ -10,9 +19,11 @@ I haven't looked at battery life aspects yet, but staying in library view will b
 
 The other news is that I have gone through the codebase with the help of SASTs and AIs to improve the quality of the code from a security standpoint. This has been a quite large undertaking, but one has to keep in mind that kew is currently an entirely offline app, which should make it less of a target already.
 
-Third, we now have a repo on Codeberg and that will be the preferred repo going forward. But people will be welcome to contribute in whichever place they prefer.
+We now have a repo on Codeberg and that will be the preferred repo going forward. But people will be welcome to contribute in whichever place they prefer.
 
-Fourth, we are now back on openSuse, as our package there was quite old, version 2.8.1. It hadn't been updated because we switched from FFmpeg to Faad for decoding .m4a files, and Faad wasn't available on openSuse until now. FFmpeg was overkill for that job and Faad is a much smaller lib. Fedora is now the only place that I know of that still doesn't have the Faad library in their official package repository, and therefore doesn't have a kew package. You can however install kew manually on Fedora, and even with Faad support. I have corrected some mistakes in those install instructions.
+We are now back on openSuse, as our package there was quite old, version 2.8.1. It hadn't been updated because we switched from FFmpeg to Faad for decoding .m4a files, and Faad wasn't available on openSuse until now. FFmpeg was overkill for that job and Faad is a much smaller lib. Fedora is now the only place that I know of that still doesn't have the Faad library in their official package repository, and therefore doesn't have a kew package. You can however install kew manually on Fedora, and even with Faad support. I have corrected some mistakes in those install instructions.
+
+The flickering in TTY has been fixed. Btw, if you are on tty or have limited colors and font on your terminal, try pressing i (for simpler colors), v (for visualizer off) and b (for ascii cover). That should make it look much more easy on the eye!
 
 Thank you to @welpyes for bringing up Termux and helping out with that, and @arcathrax for fixing the ultrawide monitor bug. Thank you to mantarimay for updating the openSuse library.
 
