@@ -1303,7 +1303,7 @@ void showPlaylist(SongData *songData, PlayList *list, int *chosenSong,
         gotoFirstLineFirstRow();
 
         int aboutRows = printLogoAndAdjustments(songData, term_w,
-                                                &(state->uiSettings), indent);
+                                                ui, indent);
         maxListSize -= aboutRows;
 
         applyColor(ui->colorMode, ui->theme.header, ui->color, ui->artistColor);
@@ -1318,7 +1318,7 @@ void showPlaylist(SongData *songData, PlayList *list, int *chosenSong,
         maxListSize -= 1;
 
         if (maxListSize > 0)
-                displayPlaylist(list, maxListSize, indent, chosenSong,
+ displayPlaylist(list, maxListSize, indent, chosenSong,
                                 chosenNodeId,
                                 state->uiState.resetPlaylistDisplay, state);
 
