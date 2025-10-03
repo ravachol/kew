@@ -1,0 +1,58 @@
+# ============================================
+# GRUVBOX LIGHT (Warm Retro Light)
+# ============================================
+
+[theme]
+name=Gruvbox Light
+author=ravachol
+
+# Core colors
+accent=#d65d0e
+text=#3c3836
+textDim=#504945
+textMuted=#7c6f64
+
+# General Colors
+logo=#7c6f64
+header=#7c6f64
+footer=#7c6f64
+help=#076678
+link=#79740e
+nowplaying=#b57614
+
+# Playlist View
+playlist.rownum=#7c6f64
+playlist.title=#3c3836
+playlist.playing=#af3a03
+
+# Track View
+trackview.title=#282828
+trackview.artist=#9d0006
+trackview.album=#665c54
+trackview.year=#665c54
+trackview.time=#665c54
+trackview.visualizer=#d5c4a1
+
+# Library View
+library.artist=#7c6f64
+library.album=#3c3836
+library.track=#3c3836
+library.enqueued=#79740e
+library.playing=#8f3f71
+
+# Search
+search.label=#7c6f64
+search.query=#af3a03
+search.result=#3c3836
+search.enqueued=#79740e
+
+# Progress
+progress.filled=#d5c4a1
+progress.empty=#fbf1c7
+progress.elapsed=#665c54
+
+# Status
+status.info=#d65d0e
+status.warning=#b57614
+status.error=#9d0006
+status.success=#79740e

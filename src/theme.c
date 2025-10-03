@@ -1,0 +1,234 @@
+
+
+#include "theme.h"
+#include "common.h"
+#include <ctype.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+typedef struct
+{
+        const char *key;
+        PixelData *field;
+} ThemeMapping;
+
+PixelData hexToPixel(const char *hex)
+{
+        PixelData p = {0, 0, 0};
+        if (hex[0] == '#')
+                hex++; // skip #
+
+        if (strlen(hex) == 6)
+        {
+                char r[3], g[3], b[3];
+                strncpy(r, hex, 2);
+                r[2] = '\0';
+                strncpy(g, hex + 2, 2);
+                g[2] = '\0';
+                strncpy(b, hex + 4, 2);
+                b[2] = '\0';
+
+                p.r = (unsigned char)strtol(r, NULL, 16);
+                p.g = (unsigned char)strtol(g, NULL, 16);
+                p.b = (unsigned char)strtol(b, NULL, 16);
+        }
+        return p;
+}
+
+void trimWhitespace(char *str)
+{
+        while (isspace((unsigned char)*str))
+                str++;
+
+        char *end = str + strlen(str) - 1;
+        while (end > str && isspace((unsigned char)*end))
+                *end-- = '\0';
+
+        memmove(str, str, strlen(str) + 1);
+}
+
+void removeComment(char *str)
+{
+        char *p = str;
+        while (*p)
+        {
+                if (*p == '#')
+                {
+                        // If previous char is whitespace, treat as comment
+                        // start
+                        if (p == str || isspace((unsigned char)*(p - 1)))
+                        {
+                                *p = '\0';
+                                break;
+                        }
+                }
+                p++;
+        }
+}
+
+// Parse hex color safely (e.g. #aabbcc)
+int parseHexColor(const char *hex, PixelData *out)
+{
+        if (!hex || strlen(hex) != 7 || hex[0] != '#')
+                return 0;
+
+        unsigned int r, g, b;
+        if (sscanf(hex + 1, "%02x%02x%02x", &r, &g, &b) != 3)
+                return 0;
+
+        out->r = (unsigned char)r;
+        out->g = (unsigned char)g;
+        out->b = (unsigned char)b;
+        return 1;
+}
+
+int loadTheme(const char *themesDir, const char *filename, Theme *currentTheme)
+{
+        memset(currentTheme, 0, sizeof(Theme));
+
+        if (!themesDir || !filename)
+        {
+                fprintf(stderr, "Theme directory or filename is NULL.\n");
+                setErrorMessage("Theme directory or filename is NULL.");
+                return 0;
+        }
+
+        char path[512];
+        if (snprintf(path, sizeof(path), "%s/%s", themesDir, filename) >=
+            (int)sizeof(path))
+        {
+                fprintf(stderr, "Theme path too long.\n");
+                return 0;
+        }
+
+        FILE *file = fopen(path, "r");
+        if (!file)
+        {
+                fprintf(stderr, "Failed to open theme file.\n");
+                setErrorMessage("Failed to open theme file.");
+                return 0;
+        }
+
+        // Map of all known keys to Theme fields
+        ThemeMapping mappings[] = {
+            {"accent", &currentTheme->accent},
+            {"text", &currentTheme->text},
+            {"textDim", &currentTheme->textDim},
+            {"textMuted", &currentTheme->textMuted},
+            {"logo", &currentTheme->logo},
+            {"header", &currentTheme->header},
+            {"footer", &currentTheme->footer},
+            {"help", &currentTheme->help},
+            {"link", &currentTheme->link},
+            {"nowplaying", &currentTheme->nowplaying},
+            {"playlist_rownum", &currentTheme->playlist_rownum},
+            {"playlist_title", &currentTheme->playlist_title},
+            {"playlist_playing", &currentTheme->playlist_playing},
+            {"trackview_title", &currentTheme->trackview_title},
+            {"trackview_artist", &currentTheme->trackview_artist},
+            {"trackview_album", &currentTheme->trackview_album},
+            {"trackview_year", &currentTheme->trackview_year},
+            {"trackview_time", &currentTheme->trackview_time},
+            {"trackview_visualizer", &currentTheme->trackview_visualizer},
+            {"library_artist", &currentTheme->library_artist},
+            {"library_album", &currentTheme->library_album},
+            {"library_track", &currentTheme->library_track},
+            {"library_enqueued", &currentTheme->library_enqueued},
+            {"library_playing", &currentTheme->library_playing},
+            {"search_label", &currentTheme->search_label},
+            {"search_query", &currentTheme->search_query},
+            {"search_result", &currentTheme->search_result},
+            {"search_enqueued", &currentTheme->search_enqueued},
+            {"progress_filled", &currentTheme->progress_filled},
+            {"progress_elapsed", &currentTheme->progress_elapsed},
+            {"progress_empty", &currentTheme->progress_empty},
+            {"progress_duration", &currentTheme->progress_duration},
+            {"status_info", &currentTheme->status_info},
+            {"status_warning", &currentTheme->status_warning},
+            {"status_error", &currentTheme->status_error},
+            {"status_success", &currentTheme->status_success}};
+
+        const size_t mappingCount = sizeof(mappings) / sizeof(ThemeMapping);
+
+        char line[512];
+        int lineNum = 0;
+        int found = 0;
+
+        while (fgets(line, sizeof(line), file))
+        {
+                lineNum++;
+
+                removeComment(line);
+                trimWhitespace(line);
+
+                if (strlen(line) == 0 || line[0] == '[')
+                        continue; // skip empty or section headers
+
+                char *eq = strchr(line, '=');
+                if (!eq)
+                {
+                        continue;
+                }
+
+                *eq = '\0';
+                char *key = line;
+                char *value = eq + 1;
+
+                trimWhitespace(key);
+                trimWhitespace(value);
+
+                // Replace dots with underscores
+                for (char *c = key; *c; c++)
+                {
+                        if (*c == '.')
+                                *c = '_';
+                }
+
+                for (size_t i = 0; i < mappingCount; ++i)
+                {
+                        if (strcmp(key, "name") == 0)
+                        {
+                                // Copy theme name safely
+                                strncpy(currentTheme->theme_name, value,
+                                        sizeof(currentTheme->theme_name) - 1);
+                                currentTheme->theme_name
+                                    [sizeof(currentTheme->theme_name) - 1] =
+                                    '\0';
+                                found = 1;
+                                break;
+                        }
+                        if (strcmp(key, "author") == 0)
+                        {
+                                // Copy theme name safely
+                                strncpy(currentTheme->theme_author, value,
+                                        sizeof(currentTheme->theme_author) - 1);
+                                currentTheme->theme_author
+                                    [sizeof(currentTheme->theme_author) - 1] =
+                                    '\0';
+                                found = 1;
+                                break;
+                        }
+                        else if (strcmp(key, mappings[i].key) == 0)
+                        {
+                                PixelData color;
+                                if (!parseHexColor(value, &color))
+                                {
+                                        fprintf(stderr,
+                                                "Invalid color value at line "
+                                                "%d: %s\n",
+                                                lineNum, value);
+                                }
+                                else
+                                {
+                                        *(mappings[i].field) = color;
+                                }
+                                found = 1;
+                                break;
+                        }
+                }
+        }
+
+        fclose(file);
+        return found;
+}

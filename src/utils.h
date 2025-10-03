@@ -55,4 +55,6 @@ char *getFilePath(const char *filename);
 
 float getFloat(const char *str);
 
+int copyFile(const char *src, const char *dst);
+
 #endif

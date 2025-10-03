@@ -1,0 +1,58 @@
+# ============================================
+# FOREST (Natural Green)
+# ============================================
+
+[theme]
+name=Forest
+author=ravachol
+
+# Core colors
+accent=#5fb3a1
+text=#d8ebe4
+textDim=#9dc4bc
+textMuted=#4a7c70
+
+# General Colors
+logo=#4a7c70
+header=#4a7c70
+footer=#4a7c70
+help=#8fbc94
+link=#87b96b
+nowplaying=#e76f51
+
+# Playlist View
+playlist.rownum=#4a7c70
+playlist.title=#d8ebe4
+playlist.playing=#5fb3a1
+
+# Track View
+trackview.title=#d8ebe4
+trackview.artist=#5fb3a1
+trackview.album=#8fbc94
+trackview.year=#8fbc94
+trackview.time=#f4a261
+trackview.visualizer=#2d4a43
+
+# Library View
+library.artist=#4a7c70
+library.album=#c8dcd1
+library.track=#c8dcd1
+library.enqueued=#87b96b
+library.playing=#5fb3a1
+
+# Search
+search.label=#4a7c70
+search.query=#5fb3a1
+search.result=#d8ebe4
+search.enqueued=#87b96b
+
+# Progress
+progress.filled=#2d4a43
+progress.empty=#1a2e29
+progress.elapsed=#6a9a8a
+
+# Status
+status.info=#5fb3a1
+status.warning=#f4a261
+status.error=#e63946
+status.success=#87b96b

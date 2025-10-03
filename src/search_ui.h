@@ -3,7 +3,7 @@
 
 int displaySearch(int maxListSize, int indent, int *chosenRow, int startSearchIter, UISettings *ui);
 
-int addToSearchText(const char *str);
+int addToSearchText(const char *str, UISettings *ui);
 
 int removeFromSearchText(void);
 

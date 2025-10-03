@@ -1,0 +1,58 @@
+# ============================================
+# BUNKER
+# ============================================
+
+[theme]
+name=bunker
+author=ravachol
+
+# Core colors
+accent=#7c8c9e
+text=#c8d3dc
+textDim=#8b99a8
+textMuted=#5a6b7d
+
+# General Colors
+logo=#5a6b7d
+header=#5a6b7d
+footer=#5a6b7d
+help=#94a7bc
+link=#a8b8c8
+nowplaying=#7c8c9e
+
+# Playlist View
+playlist.rownum=#5a6b7d
+playlist.title=#c8d3dc
+playlist.playing=#9daec0
+
+# Track View
+trackview.title=#c8d3dc
+trackview.artist=#7c8c9e
+trackview.album=#8b99a8
+trackview.year=#8b99a8
+trackview.time=#94a7bc
+trackview.visualizer=#2a3441
+
+# Library View
+library.artist=#5a6b7d
+library.album=#b4c1ce
+library.track=#b4c1ce
+library.enqueued=#8b99a8
+library.playing=#9daec0
+
+# Search
+search.label=#5a6b7d
+search.query=#7c8c9e
+search.result=#c8d3dc
+search.enqueued=#8b99a8
+
+# Progress
+progress.filled=#3d4a58
+progress.empty=#1f2830
+progress.elapsed=#5a6b7d
+
+# Status
+status.info=#7c8c9e
+status.warning=#9daec0
+status.error=#a88080
+status.success=#88a897

@@ -108,53 +108,55 @@ void resetStartTime(void) { clock_gettime(CLOCK_MONOTONIC, &start_time); }
 void updatePlaybackPosition(double elapsedSeconds)
 {
 #ifndef __APPLE__
-    if (elapsedSeconds < 0.0)
-        elapsedSeconds = 0.0;
+        if (elapsedSeconds < 0.0)
+                elapsedSeconds = 0.0;
 
-    // Max safe seconds to avoid overflow when multiplied by 1,000,000
-    const double maxSeconds = (double)(LLONG_MAX / G_USEC_PER_SEC);
+        // Max safe seconds to avoid overflow when multiplied by 1,000,000
+        const double maxSeconds = (double)(LLONG_MAX / G_USEC_PER_SEC);
 
-    if (elapsedSeconds > maxSeconds)
-        elapsedSeconds = maxSeconds;
+        if (elapsedSeconds > maxSeconds)
+                elapsedSeconds = maxSeconds;
 
-    GVariantBuilder changedPropertiesBuilder;
-    g_variant_builder_init(&changedPropertiesBuilder, G_VARIANT_TYPE_DICTIONARY);
-    g_variant_builder_add(
-        &changedPropertiesBuilder, "{sv}", "Position",
-        g_variant_new_int64(llround(elapsedSeconds * G_USEC_PER_SEC)));
+        GVariantBuilder changedPropertiesBuilder;
+        g_variant_builder_init(&changedPropertiesBuilder,
+                               G_VARIANT_TYPE_DICTIONARY);
+        g_variant_builder_add(
+            &changedPropertiesBuilder, "{sv}", "Position",
+            g_variant_new_int64(llround(elapsedSeconds * G_USEC_PER_SEC)));
 
-    GVariant *parameters =
-        g_variant_new("(sa{sv}as)", "org.mpris.MediaPlayer2.Player",
-                      &changedPropertiesBuilder, NULL);
+        GVariant *parameters =
+            g_variant_new("(sa{sv}as)", "org.mpris.MediaPlayer2.Player",
+                          &changedPropertiesBuilder, NULL);
 
-    g_dbus_connection_emit_signal(connection, NULL,
-                                  "/org/mpris/MediaPlayer2",
-                                  "org.freedesktop.DBus.Properties",
-                                  "PropertiesChanged", parameters, NULL);
+        g_dbus_connection_emit_signal(connection, NULL,
+                                      "/org/mpris/MediaPlayer2",
+                                      "org.freedesktop.DBus.Properties",
+                                      "PropertiesChanged", parameters, NULL);
 #else
-    (void)elapsedSeconds;
+        (void)elapsedSeconds;
 #endif
 }
 
 void emitSeekedSignal(double newPositionSeconds)
 {
 #ifndef __APPLE__
-    if (newPositionSeconds < 0.0)
-        newPositionSeconds = 0.0;
+        if (newPositionSeconds < 0.0)
+                newPositionSeconds = 0.0;
 
-    const double maxSeconds = (double)(LLONG_MAX / G_USEC_PER_SEC);
-    if (newPositionSeconds > maxSeconds)
-        newPositionSeconds = maxSeconds;
+        const double maxSeconds = (double)(LLONG_MAX / G_USEC_PER_SEC);
+        if (newPositionSeconds > maxSeconds)
+                newPositionSeconds = maxSeconds;
 
-    gint64 newPositionMicroseconds = llround(newPositionSeconds * G_USEC_PER_SEC);
+        gint64 newPositionMicroseconds =
+            llround(newPositionSeconds * G_USEC_PER_SEC);
 
-    GVariant *parameters = g_variant_new("(x)", newPositionMicroseconds);
+        GVariant *parameters = g_variant_new("(x)", newPositionMicroseconds);
 
-    g_dbus_connection_emit_signal(
-        connection, NULL, "/org/mpris/MediaPlayer2",
-        "org.mpris.MediaPlayer2.Player", "Seeked", parameters, NULL);
+        g_dbus_connection_emit_signal(
+            connection, NULL, "/org/mpris/MediaPlayer2",
+            "org.mpris.MediaPlayer2.Player", "Seeked", parameters, NULL);
 #else
-    (void)newPositionSeconds;
+        (void)newPositionSeconds;
 #endif
 }
 
@@ -505,11 +507,24 @@ void toggleAscii(AppSettings *settings, UISettings *ui)
         }
 }
 
-void toggleColors(AppSettings *settings, UISettings *ui)
+void toggleColors( UISettings *ui)
 {
-        ui->useConfigColors = !ui->useConfigColors;
-        c_strcpy(settings->useConfigColors, ui->useConfigColors ? "1" : "0",
-                 sizeof(settings->useConfigColors));
+        switch (ui->colorMode)
+        {
+        case COLOR_MODE_TERMINAL:
+                ui->colorMode = COLOR_MODE_ALBUM;
+                break;
+        case COLOR_MODE_ALBUM:
+                if (ui->themeIsSet)
+                        ui->colorMode = COLOR_MODE_THEME;
+                else
+                        ui->colorMode = COLOR_MODE_TERMINAL;
+                break;
+        case COLOR_MODE_THEME:
+                ui->colorMode = COLOR_MODE_TERMINAL;
+                break;
+        }
+
         clearScreen();
         refresh = true;
 }

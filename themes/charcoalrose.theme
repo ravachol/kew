@@ -1,0 +1,58 @@
+# ============================================
+# CHARCOAL ROSE (Gray with Subtle Pink)
+# ============================================
+
+[theme]
+name=Charcoal Rose
+author=ravachol
+
+# Core colors
+accent=#a88996
+text=#d6ccd1
+textDim=#b098a3
+textMuted=#6d5d66
+
+# General Colors
+logo=#6d5d66
+header=#6d5d66
+footer=#6d5d66
+help=#ba9eaa
+link=#b098a3
+nowplaying=#a88996
+
+# Playlist View
+playlist.rownum=#6d5d66
+playlist.title=#d6ccd1
+playlist.playing=#b89aa5
+
+# Track View
+trackview.title=#d6ccd1
+trackview.artist=#a88996
+trackview.album=#b098a3
+trackview.year=#b098a3
+trackview.time=#ba9eaa
+trackview.visualizer=#262124
+
+# Library View
+library.artist=#6d5d66
+library.album=#c4b8bd
+library.track=#c4b8bd
+library.enqueued=#8a9184
+library.playing=#b89aa5
+
+# Search
+search.label=#6d5d66
+search.query=#a88996
+search.result=#d6ccd1
+search.enqueued=#8a9184
+
+# Progress
+progress.filled=#342f32
+progress.empty=#1c191b
+progress.elapsed=#6d5d66
+
+# Status
+status.info=#a88996
+status.warning=#ba9eaa
+status.error=#a87d7d
+status.success=#8a9184

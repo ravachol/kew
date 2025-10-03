@@ -34,24 +34,6 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #define __BSD_VISIBLE 1
 #endif
 
-#include <ctype.h>
-#include <dirent.h>
-#include <fcntl.h>
-#include <gio/gio.h>
-#include <glib.h>
-#include <glib-unix.h>
-#include <locale.h>
-#include <poll.h>
-#include <pwd.h>
-#include <signal.h>
-#include <stdbool.h>
-#include <stdio.h>
-#include <string.h>
-#include <sys/ioctl.h>
-#include <sys/param.h>
-#include <sys/stat.h>
-#include <time.h>
-#include <unistd.h>
 #include "appstate.h"
 #include "cache.h"
 #include "common_ui.h"
@@ -65,18 +47,39 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include "playlist.h"
 #include "search_ui.h"
 #include "settings.h"
+#include "songloader.h"
 #include "sound.h"
 #include "soundcommon.h"
-#include "songloader.h"
 #include "term.h"
+#include "theme.h"
 #include "utils.h"
 #include "visuals.h"
+#include <ctype.h>
+#include <dirent.h>
+#include <fcntl.h>
+#include <gio/gio.h>
+#include <glib-unix.h>
+#include <glib.h>
+#include <locale.h>
+#include <poll.h>
+#include <pwd.h>
+#include <signal.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <string.h>
+#include <sys/ioctl.h>
+#include <sys/param.h>
+#include <sys/stat.h>
+#include <time.h>
+#include <unistd.h>
 
 #define MAX_TMP_SEQ_LEN 256 // Maximum length of temporary sequence buffer
 #define COOLDOWN_MS 500
 #define COOLDOWN2_MS 100
 
 #define TMPPIDFILE "/tmp/kew_"
+
+#define PREFIX "/usr/local" // Fallback if not set in the makefile
 
 FILE *logFile = NULL;
 struct winsize windowSize;
@@ -104,162 +107,171 @@ bool isCooldownElapsed(int milliSeconds)
 {
         struct timespec currentTime;
         clock_gettime(CLOCK_MONOTONIC, &currentTime);
-        double elapsedMilliseconds = (currentTime.tv_sec - lastInputTime.tv_sec) * 1000.0 +
-                                     (currentTime.tv_nsec - lastInputTime.tv_nsec) / 1000000.0;
+        double elapsedMilliseconds =
+            (currentTime.tv_sec - lastInputTime.tv_sec) * 1000.0 +
+            (currentTime.tv_nsec - lastInputTime.tv_nsec) / 1000000.0;
 
         return elapsedMilliseconds >= milliSeconds;
 }
 
 enum EventType getMouseLastRowEvent(int mouseXOnLastRow)
 {
-    enum EventType result = EVENT_NONE;
+        enum EventType result = EVENT_NONE;
 
-    size_t lastRowLen = strlen(LAST_ROW);
-    if (mouseXOnLastRow < 0 || (size_t)mouseXOnLastRow > lastRowLen)
-    {
-        // Out of bounds, return default
-        return EVENT_NONE;
-    }
-
-    int viewClicked = 1;
-    for (int i = 0; i < mouseXOnLastRow; i++)
-    {
-        if (LAST_ROW[i] == '|')
+        size_t lastRowLen = strlen(LAST_ROW);
+        if (mouseXOnLastRow < 0 || (size_t)mouseXOnLastRow > lastRowLen)
         {
-            viewClicked++;
+                // Out of bounds, return default
+                return EVENT_NONE;
         }
-    }
 
-    switch (viewClicked)
-    {
+        int viewClicked = 1;
+        for (int i = 0; i < mouseXOnLastRow; i++)
+        {
+                if (LAST_ROW[i] == '|')
+                {
+                        viewClicked++;
+                }
+        }
+
+        switch (viewClicked)
+        {
         case 1:
-            result = EVENT_SHOWPLAYLIST;
-            break;
+                result = EVENT_SHOWPLAYLIST;
+                break;
         case 2:
-            result = EVENT_SHOWLIBRARY;
-            break;
+                result = EVENT_SHOWLIBRARY;
+                break;
         case 3:
-            result = EVENT_SHOWTRACK;
-            break;
+                result = EVENT_SHOWTRACK;
+                break;
         case 4:
-            result = EVENT_SHOWSEARCH;
-            break;
+                result = EVENT_SHOWSEARCH;
+                break;
         case 5:
-            result = EVENT_SHOWKEYBINDINGS;
-            break;
+                result = EVENT_SHOWKEYBINDINGS;
+                break;
         default:
-            result = EVENT_NONE;
-            break;
-    }
+                result = EVENT_NONE;
+                break;
+        }
 
-    // Switch to library view if track view is clicked and no song is currently playing
-    if (result == EVENT_SHOWTRACK && getCurrentSongData() == NULL)
-    {
-        result = EVENT_SHOWLIBRARY;
-    }
+        // Switch to library view if track view is clicked and no song is
+        // currently playing
+        if (result == EVENT_SHOWTRACK && getCurrentSongData() == NULL)
+        {
+                result = EVENT_SHOWLIBRARY;
+        }
 
-    return result;
+        return result;
 }
 
 bool mouseInputHandled(char *seq, int i, struct Event *event)
 {
-    if (!seq || !event)
-        return false;
+        if (!seq || !event)
+                return false;
 
-    if (i < 0 || i >= NUM_KEY_MAPPINGS || keyMappings[i].seq == NULL)
-        return false;
+        if (i < 0 || i >= NUM_KEY_MAPPINGS || keyMappings[i].seq == NULL)
+                return false;
 
-    const char *expected = keyMappings[i].seq;
+        const char *expected = keyMappings[i].seq;
 
-    char tmpSeq[MAX_SEQ_LEN];
-    size_t src_len = strnlen(seq, MAX_SEQ_LEN - 1);
+        char tmpSeq[MAX_SEQ_LEN];
+        size_t src_len = strnlen(seq, MAX_SEQ_LEN - 1);
 
-    if (src_len < 4) // Must be at least ESC[ M + 3 digits
-        return false;
+        if (src_len < 4) // Must be at least ESC[ M + 3 digits
+                return false;
 
-    snprintf(tmpSeq, sizeof tmpSeq, "%.*s", (int)src_len, seq);
+        snprintf(tmpSeq, sizeof tmpSeq, "%.*s", (int)src_len, seq);
 
-    int mouseButton = 0, mouseX = 0, mouseY = 0;
-    const char *end = tmpSeq + src_len;
-    const char *p = tmpSeq + 3; // Skip ESC[ M
+        int mouseButton = 0, mouseX = 0, mouseY = 0;
+        const char *end = tmpSeq + src_len;
+        const char *p = tmpSeq + 3; // Skip ESC[ M
 
-    for (int field = 0; field < 3 && p && *p && p < end; ++field)
-    {
-        char *endptr;
-        long val = strtol(p, &endptr, 10);
-        if (endptr == p || endptr > end) // no progress or out of bounds
-            break;
-        p = endptr;
-
-        if (*p == ';')
-            ++p;
-
-        switch (field)
+        for (int field = 0; field < 3 && p && *p && p < end; ++field)
         {
-        case 0: mouseButton = (int)val; break;
-        case 1: mouseX = (int)val; break;
-        case 2: mouseY = (int)val; break;
+                char *endptr;
+                long val = strtol(p, &endptr, 10);
+                if (endptr == p || endptr > end) // no progress or out of bounds
+                        break;
+                p = endptr;
+
+                if (*p == ';')
+                        ++p;
+
+                switch (field)
+                {
+                case 0:
+                        mouseButton = (int)val;
+                        break;
+                case 1:
+                        mouseX = (int)val;
+                        break;
+                case 2:
+                        mouseY = (int)val;
+                        break;
+                }
         }
-    }
 
-    if (progressBarLength > 0)
-    {
-        long long deltaCol = (long long)mouseX - (long long)progressBarCol;
-
-        if (deltaCol >= 0 && deltaCol <= (long long)progressBarLength)
+        if (progressBarLength > 0)
         {
-            double position = (double)deltaCol / (double)progressBarLength;
-            double duration = getCurrentSongDuration();
-            draggedPositionSeconds = duration * position;
+                long long deltaCol =
+                    (long long)mouseX - (long long)progressBarCol;
+
+                if (deltaCol >= 0 && deltaCol <= (long long)progressBarLength)
+                {
+                        double position =
+                            (double)deltaCol / (double)progressBarLength;
+                        double duration = getCurrentSongDuration();
+                        draggedPositionSeconds = duration * position;
+                }
+                else
+                {
+                        draggedPositionSeconds = 0.0;
+                }
         }
         else
         {
-            draggedPositionSeconds = 0.0;
+                draggedPositionSeconds = 0.0;
         }
-    }
-    else
-    {
-        draggedPositionSeconds = 0.0;
-    }
 
-    if (mouseY == lastRowRow &&
-        lastRowCol > 0 &&
-        mouseX - lastRowCol > 0 &&
-        mouseX - lastRowCol < (int)strlen(LAST_ROW) &&
-        mouseButton != MOUSE_DRAG)
-    {
-        event->type = getMouseLastRowEvent(mouseX - lastRowCol);
-        return true;
-    }
-
-    if ((mouseY == progressBarRow || draggingProgressBar) &&
-        mouseX - progressBarCol >= 0 &&
-        mouseX - progressBarCol < progressBarLength &&
-        appState.currentView == TRACK_VIEW)
-    {
-        if (mouseButton == MOUSE_DRAG || mouseButton == MOUSE_CLICK)
+        if (mouseY == lastRowRow && lastRowCol > 0 && mouseX - lastRowCol > 0 &&
+            mouseX - lastRowCol < (int)strlen(LAST_ROW) &&
+            mouseButton != MOUSE_DRAG)
         {
-            draggingProgressBar = true;
-            gint64 newPosUs = (gint64)(draggedPositionSeconds * G_USEC_PER_SEC);
-            setPosition(newPosUs);
+                event->type = getMouseLastRowEvent(mouseX - lastRowCol);
+                return true;
         }
-        return true;
-    }
 
-    size_t expected_len = strlen(expected);
-    if (strlen(seq) < expected_len + 1)
+        if ((mouseY == progressBarRow || draggingProgressBar) &&
+            mouseX - progressBarCol >= 0 &&
+            mouseX - progressBarCol < progressBarLength &&
+            appState.currentView == TRACK_VIEW)
+        {
+                if (mouseButton == MOUSE_DRAG || mouseButton == MOUSE_CLICK)
+                {
+                        draggingProgressBar = true;
+                        gint64 newPosUs =
+                            (gint64)(draggedPositionSeconds * G_USEC_PER_SEC);
+                        setPosition(newPosUs);
+                }
+                return true;
+        }
+
+        size_t expected_len = strlen(expected);
+        if (strlen(seq) < expected_len + 1)
+                return false;
+
+        if (strncmp(seq + 1, expected, expected_len) == 0)
+        {
+                event->type = keyMappings[i].eventType;
+                return true;
+        }
+
         return false;
-
-    if (strncmp(seq + 1, expected, expected_len) == 0)
-    {
-        event->type = keyMappings[i].eventType;
-        return true;
-    }
-
-    return false;
 }
 
-struct Event processInput()
+struct Event processInput(UISettings *ui)
 {
         struct Event event;
         event.type = EVENT_NONE;
@@ -285,10 +297,14 @@ struct Event processInput()
         {
                 char tmpSeq[MAX_TMP_SEQ_LEN];
 
-                seqLength = seqLength + readInputSequence(tmpSeq, sizeof(tmpSeq));
+                seqLength =
+                    seqLength + readInputSequence(tmpSeq, sizeof(tmpSeq));
 
-                // Release most keys directly, seekbackward and seekforward can be read continuously
-                if (seqLength <= 0 && strcmp(seq + 1, settings.seekBackward) != 0 && strcmp(seq + 1, settings.seekForward) != 0)
+                // Release most keys directly, seekbackward and seekforward can
+                // be read continuously
+                if (seqLength <= 0 &&
+                    strcmp(seq + 1, settings.seekBackward) != 0 &&
+                    strcmp(seq + 1, settings.seekForward) != 0)
                 {
                         keyReleased = 1;
                         break;
@@ -306,13 +322,22 @@ struct Event processInput()
 
                 snprintf(seq + seq_len, remaining_space, "%s", tmpSeq);
 
-                // This slows the continous reads down to not get a a too fast scrolling speed
-                if (strcmp(seq + 1, settings.hardScrollUp) == 0 || strcmp(seq + 1, settings.hardScrollDown) == 0 || strcmp(seq + 1, settings.scrollUpAlt) == 0 ||
-                    strcmp(seq + 1, settings.scrollDownAlt) == 0 || strcmp(seq + 1, settings.seekBackward) == 0 || strcmp(seq + 1, settings.seekForward) == 0 ||
-                    strcmp(seq + 1, settings.nextPage) == 0 || strcmp(seq + 1, settings.prevPage) == 0)
+                // This slows the continous reads down to not get a a too fast
+                // scrolling speed
+                if (strcmp(seq + 1, settings.hardScrollUp) == 0 ||
+                    strcmp(seq + 1, settings.hardScrollDown) == 0 ||
+                    strcmp(seq + 1, settings.scrollUpAlt) == 0 ||
+                    strcmp(seq + 1, settings.scrollDownAlt) == 0 ||
+                    strcmp(seq + 1, settings.seekBackward) == 0 ||
+                    strcmp(seq + 1, settings.seekForward) == 0 ||
+                    strcmp(seq + 1, settings.nextPage) == 0 ||
+                    strcmp(seq + 1, settings.prevPage) == 0)
                 {
                         keyReleased = 0;
-                        readInputSequence(tmpSeq, sizeof(tmpSeq)); // Dummy read to prevent scrolling after key released
+                        readInputSequence(
+                            tmpSeq,
+                            sizeof(tmpSeq)); // Dummy read to prevent scrolling
+                                             // after key released
                         break;
                 }
 
@@ -335,16 +360,27 @@ struct Event processInput()
 
         if (appState.currentView == SEARCH_VIEW)
         {
-                if (strcmp(event.key, "\x7F") == 0 || strcmp(event.key, "\x08") == 0)
+                if (strcmp(event.key, "\x7F") == 0 ||
+                    strcmp(event.key, "\x08") == 0)
                 {
                         removeFromSearchText();
                         resetSearchResult();
                         fuzzySearch(getLibrary(), fuzzySearchThreshold);
                         event.type = EVENT_SEARCH;
                 }
-                else if (((strnlen(event.key, sizeof(event.key)) == 1 && event.key[0] != '\033' && event.key[0] != '\n' && event.key[0] != '\t' && event.key[0] != '\r') || strcmp(event.key, " ") == 0 || (unsigned char)event.key[0] >= 0xC0) && strcmp(event.key, "Z") != 0 && strcmp(event.key, "X") != 0 && strcmp(event.key, "C") != 0 && strcmp(event.key, "V") != 0 && strcmp(event.key, "B") != 0 && strcmp(event.key, "N") != 0)
+                else if (((strnlen(event.key, sizeof(event.key)) == 1 &&
+                           event.key[0] != '\033' && event.key[0] != '\n' &&
+                           event.key[0] != '\t' && event.key[0] != '\r') ||
+                          strcmp(event.key, " ") == 0 ||
+                          (unsigned char)event.key[0] >= 0xC0) &&
+                         strcmp(event.key, "Z") != 0 &&
+                         strcmp(event.key, "X") != 0 &&
+                         strcmp(event.key, "C") != 0 &&
+                         strcmp(event.key, "V") != 0 &&
+                         strcmp(event.key, "B") != 0 &&
+                         strcmp(event.key, "N") != 0)
                 {
-                        addToSearchText(event.key);
+                        addToSearchText(event.key, ui);
                         resetSearchResult();
                         fuzzySearch(getLibrary(), fuzzySearchThreshold);
                         event.type = EVENT_SEARCH;
@@ -361,10 +397,13 @@ struct Event processInput()
         for (int i = 0; i < NUM_KEY_MAPPINGS; i++)
         {
                 if (keyMappings[i].seq[0] != '\0' &&
-                    ((seq[0] == '\033' && strnlen(seq, MAX_SEQ_LEN) > 1 && strcmp(seq, "\033\n") != 0 && strcmp(seq + 1, keyMappings[i].seq) == 0) ||
+                    ((seq[0] == '\033' && strnlen(seq, MAX_SEQ_LEN) > 1 &&
+                      strcmp(seq, "\033\n") != 0 &&
+                      strcmp(seq + 1, keyMappings[i].seq) == 0) ||
                      strcmp(seq, keyMappings[i].seq) == 0))
                 {
-                        if (event.type == EVENT_SEARCH && keyMappings[i].eventType != EVENT_GOTOSONG)
+                        if (event.type == EVENT_SEARCH &&
+                            keyMappings[i].eventType != EVENT_GOTOSONG)
                         {
                                 break;
                         }
@@ -374,7 +413,9 @@ struct Event processInput()
                 }
 
                 // Received mouse input instead of keyboard input
-                if (keyMappings[i].seq[0] != '\0' && strncmp(seq, "\033[<", 3) == 0 && strnlen(seq, MAX_SEQ_LEN) > 4 && strchr(seq, 'M') != NULL &&
+                if (keyMappings[i].seq[0] != '\0' &&
+                    strncmp(seq, "\033[<", 3) == 0 &&
+                    strnlen(seq, MAX_SEQ_LEN) > 4 && strchr(seq, 'M') != NULL &&
                     mouseInputHandled(seq, i, &event))
                 {
                         handledMouse = true;
@@ -390,13 +431,15 @@ struct Event processInput()
 
         for (int i = 0; i < NUM_KEY_MAPPINGS; i++)
         {
-                if (strcmp(seq, "\033\n") == 0 && strcmp(keyMappings[i].seq, "^M") == 0) // ALT+ENTER
+                if (strcmp(seq, "\033\n") == 0 &&
+                    strcmp(keyMappings[i].seq, "^M") == 0) // ALT+ENTER
                 {
                         event.type = keyMappings[i].eventType;
                         break;
                 }
 
-                if (strcmp(seq, keyMappings[i].seq) == 0 && strnlen(seq, MAX_SEQ_LEN) > 1) // ALT+something
+                if (strcmp(seq, keyMappings[i].seq) == 0 &&
+                    strnlen(seq, MAX_SEQ_LEN) > 1) // ALT+something
                 {
                         event.type = keyMappings[i].eventType;
                         break;
@@ -417,7 +460,8 @@ struct Event processInput()
                         if (isdigit(seq[i]))
                         {
                                 if (digitsPressedCount < maxDigitsPressedCount)
-                                        digitsPressed[digitsPressedCount++] = seq[i];
+                                        digitsPressed[digitsPressedCount++] =
+                                            seq[i];
                         }
                         else
                         {
@@ -425,14 +469,17 @@ struct Event processInput()
                                         break;
 
                                 if (seq[i] != settings.switchNumberedSong[0] &&
-                                    seq[i] != settings.hardSwitchNumberedSong[0] &&
+                                    seq[i] !=
+                                        settings.hardSwitchNumberedSong[0] &&
                                     seq[i] != settings.hardEndOfPlaylist[0])
                                 {
-                                        memset(digitsPressed, '\0', sizeof(digitsPressed));
+                                        memset(digitsPressed, '\0',
+                                               sizeof(digitsPressed));
                                         digitsPressedCount = 0;
                                         break;
                                 }
-                                else if (seq[i] == settings.hardEndOfPlaylist[0])
+                                else if (seq[i] ==
+                                         settings.hardEndOfPlaylist[0])
                                 {
                                         event.type = EVENT_GOTOENDOFPLAYLIST;
                                         break;
@@ -447,19 +494,24 @@ struct Event processInput()
         }
 
         // Handle song prev/next cooldown
-        if (!cooldownElapsed && (event.type == EVENT_NEXT || event.type == EVENT_PREV))
+        if (!cooldownElapsed &&
+            (event.type == EVENT_NEXT || event.type == EVENT_PREV))
                 event.type = EVENT_NONE;
         else if (event.type == EVENT_NEXT || event.type == EVENT_PREV)
                 updateLastInputTime();
 
         // Handle seek/remove cooldown
-        if (!cooldown2Elapsed && (event.type == EVENT_REMOVE || event.type == EVENT_SEEKBACK || event.type == EVENT_SEEKFORWARD))
+        if (!cooldown2Elapsed &&
+            (event.type == EVENT_REMOVE || event.type == EVENT_SEEKBACK ||
+             event.type == EVENT_SEEKFORWARD))
                 event.type = EVENT_NONE;
-        else if (event.type == EVENT_REMOVE || event.type == EVENT_SEEKBACK || event.type == EVENT_SEEKFORWARD)
+        else if (event.type == EVENT_REMOVE || event.type == EVENT_SEEKBACK ||
+                 event.type == EVENT_SEEKFORWARD)
                 updateLastInputTime();
 
         // Forget Numbers
-        if (event.type != EVENT_GOTOSONG && event.type != EVENT_GOTOENDOFPLAYLIST && event.type != EVENT_NONE)
+        if (event.type != EVENT_GOTOSONG &&
+            event.type != EVENT_GOTOENDOFPLAYLIST && event.type != EVENT_NONE)
         {
                 memset(digitsPressed, '\0', sizeof(digitsPressed));
                 digitsPressedCount = 0;
@@ -490,7 +542,9 @@ void setEndOfListReached(AppState *state)
         else
         {
                 emitPlaybackStoppedMpris();
-                emitMetadataChanged("", "", "", "", "/org/mpris/MediaPlayer2/TrackList/NoTrack", NULL, 0);
+                emitMetadataChanged("", "", "", "",
+                                    "/org/mpris/MediaPlayer2/TrackList/NoTrack",
+                                    NULL, 0);
                 state->currentView = LIBRARY_VIEW;
         }
 }
@@ -504,20 +558,22 @@ void notifyMPRISSwitch(SongData *currentSongData)
 
         // Update mpris
         emitMetadataChanged(
-            currentSongData->metadata->title,
-            currentSongData->metadata->artist,
-            currentSongData->metadata->album,
-            currentSongData->coverArtPath,
-            currentSongData->trackId != NULL ? currentSongData->trackId : "", currentSong,
-            length);
+            currentSongData->metadata->title, currentSongData->metadata->artist,
+            currentSongData->metadata->album, currentSongData->coverArtPath,
+            currentSongData->trackId != NULL ? currentSongData->trackId : "",
+            currentSong, length);
 }
 
 void notifySongSwitch(SongData *currentSongData, UISettings *ui)
 {
-        if (currentSongData != NULL && currentSongData->hasErrors == 0 && currentSongData->metadata && strnlen(currentSongData->metadata->title, 10) > 0)
+        if (currentSongData != NULL && currentSongData->hasErrors == 0 &&
+            currentSongData->metadata &&
+            strnlen(currentSongData->metadata->title, 10) > 0)
         {
 #ifdef USE_DBUS
-                displaySongNotification(currentSongData->metadata->artist, currentSongData->metadata->title, currentSongData->coverArtPath, ui);
+                displaySongNotification(currentSongData->metadata->artist,
+                                        currentSongData->metadata->title,
+                                        currentSongData->coverArtPath, ui);
 #else
                 (void)ui;
 #endif
@@ -577,7 +633,8 @@ void refreshPlayer(UIState *uis)
 
         if (shouldRefreshPlayer())
         {
-                printPlayer(getCurrentSongData(), elapsedSeconds, &settings, &appState);
+                printPlayer(getCurrentSongData(), elapsedSeconds, &settings,
+                            &appState);
         }
 
         pthread_mutex_unlock(&switchMutex);
@@ -600,7 +657,9 @@ void resetListAfterDequeuingPlayingSong(AppState *state)
                 audioData.endOfListReached = true;
                 audioData.restart = true;
 
-                emitMetadataChanged("", "", "", "", "/org/mpris/MediaPlayer2/TrackList/NoTrack", NULL, 0);
+                emitMetadataChanged("", "", "", "",
+                                    "/org/mpris/MediaPlayer2/TrackList/NoTrack",
+                                    NULL, 0);
                 emitPlaybackStoppedMpris();
 
                 pthread_mutex_lock(&dataSourceMutex);
@@ -714,7 +773,8 @@ void handleGoToSong(AppState *state)
                         return;
 
                 // Enqueue playlist
-                if (pathEndsWith(entry->fullPath, "m3u") || pathEndsWith(entry->fullPath, "m3u8"))
+                if (pathEndsWith(entry->fullPath, "m3u") ||
+                    pathEndsWith(entry->fullPath, "m3u8"))
                 {
                         FileSystemEntry *firstEnqueuedEntry = NULL;
                         Node *prevTail = playlist.tail;
@@ -723,11 +783,13 @@ void handleGoToSong(AppState *state)
 
                         if (prevTail != NULL && prevTail->next != NULL)
                         {
-                                firstEnqueuedEntry = findCorrespondingEntry(library, prevTail->next->song.filePath);
+                                firstEnqueuedEntry = findCorrespondingEntry(
+                                    library, prevTail->next->song.filePath);
                         }
                         else if (playlist.head != NULL)
                         {
-                                firstEnqueuedEntry = findCorrespondingEntry(library, playlist.head->song.filePath);
+                                firstEnqueuedEntry = findCorrespondingEntry(
+                                    library, playlist.head->song.filePath);
                         }
 
                         autostartIfStopped(firstEnqueuedEntry);
@@ -757,9 +819,11 @@ void handleGoToSong(AppState *state)
         {
                 if (digitsPressedCount == 0)
                 {
-                        if (isPaused() && currentSong != NULL && state->uiState.chosenNodeId == currentSong->id)
+                        if (isPaused() && currentSong != NULL &&
+                            state->uiState.chosenNodeId == currentSong->id)
                         {
-                                togglePause(&totalPauseSeconds, &pauseSeconds, &pause_time);
+                                togglePause(&totalPauseSeconds, &pauseSeconds,
+                                            &pause_time);
                         }
                         else
                         {
@@ -781,7 +845,9 @@ void handleGoToSong(AppState *state)
                                 playbackPlay(&totalPauseSeconds, &pauseSeconds);
 
                                 Node *found = NULL;
-                                findNodeInList(&playlist, state->uiState.chosenNodeId, &found);
+                                findNodeInList(&playlist,
+                                               state->uiState.chosenNodeId,
+                                               &found);
                                 play(found);
 
                                 playPostProcessing();
@@ -840,7 +906,8 @@ void enqueueAndPlay(AppState *state)
 
         if (firstEnqueuedEntry && !wasEmpty)
         {
-                Node *song = findPathInPlaylist(firstEnqueuedEntry->fullPath, &playlist);
+                Node *song =
+                    findPathInPlaylist(firstEnqueuedEntry->fullPath, &playlist);
 
                 loadedNextSong = true;
 
@@ -888,7 +955,7 @@ void gotoEndOfPlaylist(AppState *state)
 
 void handleInput(AppState *state)
 {
-        struct Event event = processInput();
+        struct Event event = processInput(&(state->uiSettings));
 
         switch (event.type)
         {
@@ -918,7 +985,7 @@ void handleInput(AppState *state)
                 emitShuffleChanged();
                 break;
         case EVENT_TOGGLEPROFILECOLORS:
-                toggleColors(&settings, &(state->uiSettings));
+                toggleColors(&(state->uiSettings));
                 break;
         case EVENT_QUIT:
                 quit();
@@ -1058,7 +1125,8 @@ void loadAudioData(AppState *state)
 {
         if (audioData.restart == true)
         {
-                if (playlist.head != NULL && (waitingForPlaylist || waitingForNext))
+                if (playlist.head != NULL &&
+                    (waitingForPlaylist || waitingForNext))
                 {
                         songLoading = true;
 
@@ -1070,15 +1138,20 @@ void loadAudioData(AppState *state)
                         {
                                 if (songToStartFrom != NULL)
                                 {
-                                        // Make sure it still exists in the playlist
-                                        findNodeInList(&playlist, songToStartFrom->id, &currentSong);
+                                        // Make sure it still exists in the
+                                        // playlist
+                                        findNodeInList(&playlist,
+                                                       songToStartFrom->id,
+                                                       &currentSong);
 
                                         songToStartFrom = NULL;
                                 }
                                 else if (lastPlayedId >= 0)
                                 {
-                                        currentSong = findSelectedEntryById(&playlist, lastPlayedId);
-                                        if (currentSong != NULL && currentSong->next != NULL)
+                                        currentSong = findSelectedEntryById(
+                                            &playlist, lastPlayedId);
+                                        if (currentSong != NULL &&
+                                            currentSong->next != NULL)
                                                 currentSong = currentSong->next;
                                 }
 
@@ -1130,7 +1203,8 @@ void loadAudioData(AppState *state)
                         clock_gettime(CLOCK_MONOTONIC, &start_time);
                 }
         }
-        else if (currentSong != NULL && (nextSongNeedsRebuilding || nextSong == NULL) && !songLoading)
+        else if (currentSong != NULL &&
+                 (nextSongNeedsRebuilding || nextSong == NULL) && !songLoading)
         {
                 loadNextSong();
                 determineSongAndNotify(&(state->uiSettings));
@@ -1220,7 +1294,9 @@ void updatePlayerStatus(AppState *state)
 
         if (playlist.head != NULL)
         {
-                if ((skipFromStopped || !loadedNextSong || nextSongNeedsRebuilding) && !audioData.endOfListReached)
+                if ((skipFromStopped || !loadedNextSong ||
+                     nextSongNeedsRebuilding) &&
+                    !audioData.endOfListReached)
                 {
                         loadAudioData(state);
                 }
@@ -1259,8 +1335,11 @@ gboolean mainloop_callback(gpointer data)
 
         updateCounter++;
 
-        // Different views run at different speeds to lower the impact on system requirements
-        if ((updateCounter % 2 == 0 && appState.currentView == SEARCH_VIEW) || (appState.currentView == TRACK_VIEW || appState.uiState.miniMode) || updateCounter % 3 == 0)
+        // Different views run at different speeds to lower the impact on system
+        // requirements
+        if ((updateCounter % 2 == 0 && appState.currentView == SEARCH_VIEW) ||
+            (appState.currentView == TRACK_VIEW || appState.uiState.miniMode) ||
+            updateCounter % 3 == 0)
         {
                 processDBusEvents();
 
@@ -1561,7 +1640,8 @@ void playFavoritesPlaylist(AppState *state)
 {
         if (favoritesPlaylist->count == 0)
         {
-                printf("Couldn't find any songs in the special playlist. Add a song by pressing '.' while it's playing. \n");
+                printf("Couldn't find any songs in the special playlist. Add a "
+                       "song by pressing '.' while it's playing. \n");
                 exit(0);
         }
 
@@ -1655,7 +1735,8 @@ void handleOptions(int *argc, char *argv[], UISettings *ui)
         idx = -1;
         for (int i = 0; i < *argc; i++)
         {
-                if (c_strcasestr(argv[i], quitOnStop, maxLen) || c_strcasestr(argv[i], quitOnStop2, maxLen))
+                if (c_strcasestr(argv[i], quitOnStop, maxLen) ||
+                    c_strcasestr(argv[i], quitOnStop2, maxLen))
                 {
                         ui->quitAfterStopping = true;
                         idx = i;
@@ -1667,7 +1748,8 @@ void handleOptions(int *argc, char *argv[], UISettings *ui)
         idx = -1;
         for (int i = 0; i < *argc; i++)
         {
-                if (c_strcasestr(argv[i], exactOption, maxLen) || c_strcasestr(argv[i], exactOption2, maxLen))
+                if (c_strcasestr(argv[i], exactOption, maxLen) ||
+                    c_strcasestr(argv[i], exactOption2, maxLen))
                 {
                         exactSearch = true;
                         idx = i;
@@ -1739,7 +1821,8 @@ int isKewProcess(pid_t pid)
                         // Remove trailing newline
                         process_name[strcspn(process_name, "\n")] = 0;
 
-                        // Check if it's kew (process name might be truncated to 15 chars)
+                        // Check if it's kew (process name might be truncated to
+                        // 15 chars)
                         if (strstr(process_name, "kew") != NULL)
                         {
                                 return 1; // It's likely kew
@@ -1760,7 +1843,8 @@ void exitIfAlreadyRunning()
         char pidfile_path[512]; // Increased size for longer paths
         const char *temp_dir = getTempDir();
 
-        snprintf(pidfile_path, sizeof(pidfile_path), "%s/kew_%d.pid", temp_dir, getuid());
+        snprintf(pidfile_path, sizeof(pidfile_path), "%s/kew_%d.pid", temp_dir,
+                 getuid());
 
         FILE *pidfile;
         pid_t pid;
@@ -1778,7 +1862,11 @@ void exitIfAlreadyRunning()
                         if (isProcessRunning(pid))
 #endif
                         {
-                                fprintf(stderr, "An instance of kew is already running. Pid: %d. Type 'kill %d' to remove it.\n", pid, pid);
+                                fprintf(
+                                    stderr,
+                                    "An instance of kew is already running. "
+                                    "Pid: %d. Type 'kill %d' to remove it.\n",
+                                    pid, pid);
                                 exit(1);
                         }
                         else
@@ -1844,34 +1932,41 @@ void setMusicPath()
 
         // Music folder names in different languages
         const char *musicFolderNames[] = {
-            "Music", "Música", "Musique", "Musik", "Musica", "Muziek", "Музыка",
-            "音乐", "音楽", "음악", "موسيقى", "संगीत", "Müzik", "Musikk", "Μουσική",
-            "Muzyka", "Hudba", "Musiikki", "Zene", "Muzică", "เพลง", "מוזיקה"};
+            "Music",  "Música", "Musique", "Musik",  "Musica", "Muziek",
+            "Музыка", "音乐",   "音楽",    "음악",   "موسيقى", "संगीत",
+            "Müzik",  "Musikk", "Μουσική", "Muzyka", "Hudba",  "Musiikki",
+            "Zene",   "Muzică", "เพลง",    "מוזיקה"};
 
         char path[PATH_MAX];
         int found = 0;
         int result = -1;
         char choice[2];
 
-        for (size_t i = 0; i < sizeof(musicFolderNames) / sizeof(musicFolderNames[0]); i++)
+        for (size_t i = 0;
+             i < sizeof(musicFolderNames) / sizeof(musicFolderNames[0]); i++)
         {
 #ifdef __APPLE__
-                snprintf(path, sizeof(path), "/Users/%s/%s", user, musicFolderNames[i]);
+                snprintf(path, sizeof(path), "/Users/%s/%s", user,
+                         musicFolderNames[i]);
 #else
-                snprintf(path, sizeof(path), "/home/%s/%s", user, musicFolderNames[i]);
+                snprintf(path, sizeof(path), "/home/%s/%s", user,
+                         musicFolderNames[i]);
 #endif
 
                 if (directoryExists(path))
                 {
                         found = 1;
-                        printf("Do you want to use %s as your music library folder?\n", path);
+                        printf("Do you want to use %s as your music library "
+                               "folder?\n",
+                               path);
                         printf("y = Yes\nn = Enter a path\n");
 
                         result = scanf("%1s", choice);
 
                         if (choice[0] == 'y' || choice[0] == 'Y')
                         {
-                                c_strcpy(settings.path, path, sizeof(settings.path));
+                                c_strcpy(settings.path, path,
+                                         sizeof(settings.path));
                                 return;
                         }
                         else if (choice[0] == 'n' || choice[0] == 'N')
@@ -1888,7 +1983,8 @@ void setMusicPath()
 
         if (!found || (found && (choice[0] == 'n' || choice[0] == 'N')))
         {
-                printf("Please enter the path to your music library (/path/to/Music):\n");
+                printf("Please enter the path to your music library "
+                       "(/path/to/Music):\n");
 
                 clearInputBuffer();
 
@@ -1906,7 +2002,8 @@ void setMusicPath()
                 }
                 else
                 {
-                        printf("The entered path does not exist or is inaccessible.\n");
+                        printf("The entered path does not exist or is "
+                               "inaccessible.\n");
                         exit(1);
                 }
         }
@@ -1980,10 +2077,159 @@ void initState(AppState *state)
 void initSettings(AppState *appState, AppSettings *settings)
 {
         getConfig(settings, &(appState->uiSettings));
-        userData.replayGainCheckFirst = appState->uiSettings.replayGainCheckFirst;
+        userData.replayGainCheckFirst =
+            appState->uiSettings.replayGainCheckFirst;
         mapSettingsToKeys(settings, &(appState->uiSettings), keyMappings);
         enableMouse(&(appState->uiSettings));
         setTrackTitleAsWindowTitle(&(appState->uiSettings));
+}
+
+int initTheme(AppState *appState, AppSettings *settings, const char *themeName)
+{
+        if (!appState || !themeName)
+                return 0;
+
+        char *configDir = getConfigPath();
+        if (!configDir)
+                return 0;
+
+        // Check if config directory exists
+        struct stat st = {0};
+        if (stat(configDir, &st) == -1)
+        {
+                return 0;
+        }
+
+        // Build full theme filename : themeName + ".theme"(if not already
+        // present)
+        char filename[NAME_MAX];
+        size_t themeNameLen = strlen(themeName);
+        const char *extension = ".theme";
+        size_t extLen = strlen(extension);
+
+        // Check if themeName already ends with ".theme"
+        int hasExtension =
+            (themeNameLen >= extLen &&
+             strcmp(themeName + themeNameLen - extLen, extension) == 0);
+
+        if (hasExtension)
+        {
+                // Already has .theme extension, use as-is
+                if (snprintf(filename, sizeof(filename), "%s", themeName) >=
+                    (int)sizeof(filename))
+                {
+                        fprintf(stderr, "Theme filename is too long\n");
+                        setErrorMessage("Theme filename is too long");
+                        return 0;
+                }
+        }
+        else
+        {
+                // Add .theme extension
+                if (snprintf(filename, sizeof(filename), "%s.theme",
+                             themeName) >= (int)sizeof(filename))
+                {
+                        fprintf(stderr, "Theme filename is too long\n");
+                        setErrorMessage("Theme filename is too long");
+                        return 0;
+                }
+        }
+
+        // Build full themes directory path: configDir + "/themes"
+        char themesDir[MAXPATHLEN];
+        if (snprintf(themesDir, sizeof(themesDir), "%s/themes", configDir) >=
+            (int)sizeof(themesDir))
+        {
+                fprintf(stderr, "Themes path is too long\n");
+                setErrorMessage("Themes path is too long");
+                return 0;
+        }
+
+        // Call the loader
+        if (loadTheme(themesDir, filename, &appState->uiSettings.theme))
+        {
+                appState->uiSettings.themeIsSet = true;
+                snprintf(settings->theme, sizeof(settings->theme), "%s",
+                         themeName);
+                return 1;
+        }
+
+        return -1;
+}
+
+// Copies default themes to config dir if they aren't alread there
+bool ensureDefaultThemes(void)
+{
+        bool copied = false;
+
+        char *configPath = getConfigPath();
+        if (!configPath)
+                return false;
+
+        char themesPath[MAXPATHLEN];
+        if (snprintf(themesPath, sizeof(themesPath), "%s/themes", configPath) >=
+            (int)sizeof(themesPath))
+        {
+                free(configPath);
+                return false;
+        }
+
+        // Check if user themes directory exists
+        struct stat st;
+        if (stat(themesPath, &st) == -1)
+        {
+                mkdir(themesPath, 0755);
+
+                char systemThemes[MAXPATHLEN];
+                if (snprintf(systemThemes, sizeof(systemThemes),
+                             "%s/share/kew/themes",
+                             PREFIX) >= (int)sizeof(systemThemes))
+                {
+                        free(configPath);
+                        return false;
+                }
+
+                // Copy themes from systemThemes to themesPath
+                DIR *dir = opendir(systemThemes);
+                if (dir)
+                {
+                        struct dirent *entry;
+                        while ((entry = readdir(dir)) != NULL)
+                        {
+                                if (entry->d_type == DT_REG &&
+                                    strstr(entry->d_name, ".theme"))
+                                {
+                                        char src[MAXPATHLEN], dst[MAXPATHLEN];
+
+                                        // Check if paths would be truncated
+                                        if (snprintf(src, sizeof(src), "%s/%s",
+                                                     systemThemes,
+                                                     entry->d_name) >=
+                                            (int)sizeof(src))
+                                        {
+                                                continue; // Skip this file if
+                                                          // path too long
+                                        }
+                                        if (snprintf(dst, sizeof(dst), "%s/%s",
+                                                     themesPath,
+                                                     entry->d_name) >=
+                                            (int)sizeof(dst))
+                                        {
+                                                continue; // Skip this file if
+                                                          // path too long
+                                        }
+
+                                        copyFile(src, dst);
+                                        copied = true;
+                                }
+                        }
+                        closedir(dir);
+                }
+        }
+
+        free(configPath);
+
+        return copied;
 }
 
 int main(int argc, char *argv[])
@@ -1994,12 +2240,15 @@ int main(int argc, char *argv[])
 
         exitIfAlreadyRunning();
 
-        if ((argc == 2 && ((strcmp(argv[1], "--help") == 0) || (strcmp(argv[1], "-h") == 0) || (strcmp(argv[1], "-?") == 0))))
+        if ((argc == 2 &&
+             ((strcmp(argv[1], "--help") == 0) ||
+              (strcmp(argv[1], "-h") == 0) || (strcmp(argv[1], "-?") == 0))))
         {
                 showHelp();
                 exit(0);
         }
-        else if (argc == 2 && (strcmp(argv[1], "--version") == 0 || strcmp(argv[1], "-v") == 0))
+        else if (argc == 2 && (strcmp(argv[1], "--version") == 0 ||
+                               strcmp(argv[1], "-v") == 0))
         {
                 printAbout(NULL, ui);
                 exit(0);
@@ -2024,6 +2273,29 @@ int main(int argc, char *argv[])
 
         handleOptions(&argc, argv, ui);
         loadFavoritesPlaylist(settings.path);
+        ensureDefaultThemes();
+
+        if (argc == 3 && (strcmp(argv[1], "theme") == 0))
+        {
+                if (initTheme(&appState, &settings, argv[2]) > 0)
+                {
+                        ui->colorMode = COLOR_MODE_THEME;
+                        initDefaultState(&appState);
+
+                        return 0;
+                }
+                else
+                {
+                        if (ui->colorMode == COLOR_MODE_THEME)
+                        {
+                                ui->colorMode = COLOR_MODE_ALBUM;
+                        }
+                }
+        }
+        else if (ui->themeName[0] != '\0')
+        {
+                initTheme(&appState, &settings, ui->themeName);
+        }
 
         if (argc == 1)
         {
@@ -2037,7 +2309,8 @@ int main(int argc, char *argv[])
         {
                 playAllAlbums(&appState);
         }
-        else if (argc == 2 && strcmp(argv[1], ".") == 0 && favoritesPlaylist->count != 0)
+        else if (argc == 2 && strcmp(argv[1], ".") == 0 &&
+                 favoritesPlaylist->count != 0)
         {
                 playFavoritesPlaylist(&appState);
         }

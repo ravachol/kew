@@ -1,0 +1,57 @@
+# ============================================
+# RAVACHOL'S THEME (Red & Black)
+# ============================================
+
+[theme]
+name=Ravachol
+author=ravachol
+
+# Core colors
+accent=#e6607a
+text=#e0e0e0
+textDim=#e6607a
+textMuted=#de2b4d
+
+# General Colors
+logo=#de2b4d
+header=#de2b4d
+footer=#5c5c5c
+help=#5c5c5c
+link=#e6607a
+nowplaying=#e6607a
+
+# Playlist View
+playlist.rownum=#de2b4d
+playlist.title=#e0e0e0
+playlist.playing=#e6607a
+
+# Track View
+trackview.title=#e0e0e0
+trackview.artist=#e6607a
+trackview.album=#d82953
+trackview.year=#d82953
+trackview.time=#9b1831
+trackview.visualizer=#de2b4d
+
+# Library View
+library.artist=#de2b4d
+library.album=#e0e0e0
+library.track=#e0e0e0
+library.enqueued=#d82953
+library.playing=#e6607a
+
+# Search
+search.label=#de2b4d
+search.query=#e6607a
+search.result=#e0e0e0
+search.enqueued=#d82953
+
+# Progress
+progress.filled=#de2b4d
+progress.empty=#e0e0e0
+progress.elapsed=#de2b4d
+
+# Status
+status.info=#e6607a
+status.warning=#ff3333
+status.error=#e6607a

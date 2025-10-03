@@ -123,18 +123,13 @@ int displayPlaylistItems(Node *startNode, int startIter, int maxListSize,
 
                 if (buffer[0] != '\0')
                 {
-                        if (ui->useConfigColors)
-                                setTextColor(ui->artistColor);
-                        else
-                                setColorAndWeight(0, rowColor,
-                                                  ui->useConfigColors);
-
+                        applyColor(ui->colorMode, ui->theme.playlist_rownum, rowColor, -1);
 
                         clearLine();
                         printBlankSpaces(indent);
                         printf("   %d. ", i + 1);
 
-                        setDefaultTextColor();
+                        applyColor(ui->colorMode, ui->theme.playlist_title, rowColor, ui->artistColor);
 
                         isSameNameAsLastTime =
                             (previousChosenSong == chosenSong);
@@ -155,7 +150,7 @@ int displayPlaylistItems(Node *startNode, int startIter, int maxListSize,
                                 processNameScroll(buffer, filename, bufferSize,
                                                   isSameNameAsLastTime);
 
-                                printf("\x1b[7m");
+                                inverseText();
                         }
                         else
                         {
@@ -163,13 +158,22 @@ int displayPlaylistItems(Node *startNode, int startIter, int maxListSize,
                                             true);
                         }
 
+                        if (currentSong != NULL && currentSong->id == node->id)
+                                applyColor(ui->colorMode, ui->theme.playlist_playing, rowColor, ui->artistColor);
+
                         if (i + 1 < 10)
                                 printf(" ");
 
-                        if (currentSong != NULL && currentSong->id == node->id)
+                        if (currentSong != NULL && currentSong->id == node->id && i == chosenSong)
                         {
-                                printf("\e[4m");
+                                inverseText();
                         }
+
+                        if (currentSong != NULL && currentSong->id == node->id && i != chosenSong)
+                        {
+                                 printf("\e[4m");
+                        }
+
 
                         printf("%s\n", filename);
 

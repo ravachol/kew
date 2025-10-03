@@ -1,0 +1,30 @@
+kew themes pack 1.
+
+Included in this pack:
+
+Dark Themes
+
+marianatrench
+monochrome
+gruvbox
+synthwave
+midnight
+forest
+tokyonight
+bunker
+army
+purple
+pewter
+charcoalrose
+ravachol
+cyberpunk
+
+Light Themes
+
+solarizedlight
+gruvboxlight
+paper
+
+These should be available under /themes here, in case you need to restore them to defaults:
+https://codeberg.org/ravachol/kew
+https://github.com/ravachol/kew
