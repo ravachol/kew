@@ -217,6 +217,11 @@ install: all
 				install -m 0644 "$$theme" $(DESTDIR)$(THEMEDIR)/; \
 			fi; \
 		done; \
+		for theme in themes/*.txt; do \
+			if [ -f "$$theme" ]; then \
+				install -m 0644 "$$theme" $(DESTDIR)$(THEMEDIR)/; \
+			fi; \
+		done; \
 	fi
 
 .PHONY: uninstall
