@@ -210,8 +210,7 @@ int removeFromSearchText(void)
         // Print a block character to represent the cursor
         printf("█");
 
-        // Clear the end of the line
-        printf("\033[K");
+        clearRestOfLine();
 
         fflush(stdout);
 

@@ -442,7 +442,7 @@ void printTitleWithDelay(int row, int col, const char *text, int delay,
         for (int i = 0; i <= max && delay; i++)
         {
                 printf("\033[%d;%dH", row, col);
-                printf("\033[K");
+                clearRestOfLine();
 
                 for (int j = 0; j < i; j++)
                 {
@@ -457,7 +457,7 @@ void printTitleWithDelay(int row, int col, const char *text, int delay,
                 c_sleep(delay * 20);
 
         printf("\033[%d;%dH", row, col);
-        printf("\033[K");
+        clearRestOfLine();
         printf("%s", text);
         printf("\n");
         fflush(stdout);
@@ -729,7 +729,7 @@ void printErrorRow(int row, int col)
         }
         else
         {
-                printf("\033[K"); // Clear the rest of the line
+                clearRestOfLine();
         }
 }
 
