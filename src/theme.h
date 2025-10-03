@@ -1,7 +1,7 @@
 #ifndef PIXELDATA_STRUCT
 #define PIXELDATA_STRUCT
 
-#include <linux/limits.h>
+#include <limits.h>
 typedef struct
 {
         unsigned char r;
