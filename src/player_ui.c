@@ -880,7 +880,7 @@ void calcAndPrintLastRowAndErrorRow(UISettings *ui, AppSettings *settings)
         if (hasErrorMessage())
                 printErrorRow(term_h - 1, indent);
         else
-                printLastRow(term_h - 1, indent, ui, settings);
+                printFooter(term_h - 1, indent, ui, settings);
 #else
         printErrorRow(term_h - 1, indent, ui);
         printFooter(term_h, indent, ui, settings);
