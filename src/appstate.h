@@ -32,17 +32,13 @@ typedef enum
 } ViewState;
 
 typedef enum {
-        COLOR_MODE_TERMINAL = 0,  // Colors from ANSI 8-color palette theme
+        COLOR_MODE_DEFAULT = 0,  // Colors from ANSI 16-color palette theme
         COLOR_MODE_ALBUM = 1,     // Colors derived from album art
         COLOR_MODE_THEME = 2      // Colors from truecolor theme
 } ColorMode;
 
 typedef struct
 {
-        int mainColor;                                  // Main terminal color, when using config colors
-        int titleColor;                                 // Color of the title, when using config colors
-        int artistColor;                                // Artist color, when using config colors
-        int enqueuedColor;                              // Color of enqueued files, when using config colors
         bool mouseEnabled;                              // Accept mouse input or not
         int mouseLeftClickAction;                       // Left mouse action
         int mouseMiddleClickAction;                     // Middle mouse action

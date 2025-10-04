@@ -479,7 +479,7 @@ void printSpectrum(int row, int col, UISettings *ui, int height, int numBars,
 
                 for (int i = 0; i < numBars; i++)
                 {
-                        if (ui->colorMode != COLOR_MODE_TERMINAL && visualizerColorType == 1)
+                        if (ui->colorMode != COLOR_MODE_DEFAULT && visualizerColorType == 1)
                         {
                                 tmp = (PixelData){
                                     color.r / 2, color.g / 2,
