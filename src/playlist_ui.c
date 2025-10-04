@@ -209,7 +209,7 @@ void ensureChosenSongWithinLimits(int *chosenSong, PlayList *list)
 }
 
 int determinePlaylistStart(int previousStartIter, int foundAt, int maxListSize,
-                           int chosenSong, bool reset, bool endOfListReached)
+                           int *chosenSong, bool reset, bool endOfListReached)
 {
         int startIter = 0;
 
@@ -220,22 +220,22 @@ int determinePlaylistStart(int previousStartIter, int foundAt, int maxListSize,
         if (previousStartIter <= foundAt && foundAt < previousStartIter + maxListSize)
                 startIter = previousStartIter;
 
-        if (chosenSong < startIter)
+        if (*chosenSong < startIter)
         {
-                startIter = chosenSong;
+                startIter = *chosenSong;
         }
 
-        if (chosenSong > startIter + maxListSize - round(maxListSize / 2))
+        if (*chosenSong > startIter + maxListSize - round(maxListSize / 2))
         {
-                startIter = chosenSong - maxListSize + round(maxListSize / 2);
+                startIter = *chosenSong - maxListSize + round(maxListSize / 2);
         }
 
         if (reset && !endOfListReached)
         {
                 if (foundAt > maxListSize)
-                        startIter = chosenSong = foundAt;
+                        startIter = previousStartIter = *chosenSong = foundAt;
                 else
-                        startIter = chosenSong = 0;
+                        startIter = *chosenSong = 0;
         }
 
         return startIter;
@@ -273,8 +273,7 @@ int displayPlaylist(PlayList *list, int maxListSize, int indent,
 
         ensureChosenSongWithinLimits(chosenSong, list);
 
-        startIter =
-            determinePlaylistStart(startIter, foundAt, maxListSize, *chosenSong,
+        startIter = determinePlaylistStart(startIter, foundAt, maxListSize, chosenSong,
                                    reset, audioData.endOfListReached);
 
         moveStartNodeIntoPosition(foundAt, &startNode);

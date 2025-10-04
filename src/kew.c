@@ -2156,6 +2156,8 @@ bool ensureDefaultThemes(void)
 
 void initTheme(int argc, char *argv[], UISettings *ui)
 {
+        bool themeLoaded = false;
+
         // Command-line theme handling
         if (argc == 3 && strcmp(argv[1], "theme") == 0)
         {
@@ -2164,6 +2166,7 @@ void initTheme(int argc, char *argv[], UISettings *ui)
                 {
                         ui->colorMode = COLOR_MODE_THEME;
                         initDefaultState(&appState);
+                        themeLoaded = true;
                 }
                 else
                 {
@@ -2181,6 +2184,7 @@ void initTheme(int argc, char *argv[], UISettings *ui)
                 if (loadTheme(&appState, &settings, ui->themeName, false) > 0)
                 {
                         ui->colorMode = COLOR_MODE_THEME;
+                        themeLoaded = true;
                 }
         }
 
@@ -2189,7 +2193,16 @@ void initTheme(int argc, char *argv[], UISettings *ui)
         {
                 // Load "default" ANSI theme, but don't overwrite
                 // settings->theme
-                loadTheme(&appState, &settings, "default", true);
+                if (loadTheme(&appState, &settings, "default", true))
+                {
+                        themeLoaded = true;
+                }
+        }
+
+        if (!themeLoaded && ui->colorMode != COLOR_MODE_ALBUM)
+        {
+                setErrorMessage("Couldn't load theme. Forgot to run 'sudo make install'?");
+                ui->colorMode = COLOR_MODE_ALBUM;
         }
 }
 
