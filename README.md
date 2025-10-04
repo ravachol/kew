@@ -233,6 +233,13 @@ cd kew
 ```bash
 make -j4
 ```
+
+On FreeBSD you might have to do
+```bash
+export CC=clang
+gmake -j4
+```
+
 ```bash
 sudo make install
 ```
@@ -367,14 +374,21 @@ kew will create a config file, kewrc, in a kew folder in your default config dir
 
 ## Themes
 
-You can fully customize kew's colors with themes!
+You can fully customize kew with themes, both TrueColor and 16-color palette themes.
 
-There are many themes included in version 3.5 and up.
+Included is a pack of 17 themes + the default 16-color theme.
 
-To use themes:
-1. Make sure you run sudo make install if you're not intalling from a package manager.
-2. Put themes in ~/.config/kew/themes (~/Library/Preferences/kew/themes on macOS).
-3. Run kew with kew theme <themename>. For instance kew theme midnight will apply the midnight.theme.
+You can also switch to using colors derived from the album cover. So that makes it a total of three ways you can apply colors in kew. Cycle through the color modes by pressing i.
+
+Run kew with kew theme <themename>. For instance kew theme midnight will apply midnight.theme.
+
+To install TrueColor themes:
+- Make sure you run sudo make install if you're not intalling from a package manager.
+
+To add your own themes:
+- Put them in ~/.config/kew/themes (~/Library/Preferences/kew/themes on macOS).
+
+The default theme is called default.theme and it's a 16-color theme that derives it's colors from whatever settings or theme you have on your terminal.
 
 ## If Colors Look Wrong
 
@@ -392,6 +406,12 @@ kew looks better with Nerd Fonts: https://www.nerdfonts.com/.
 ## License
 
 Licensed under GPL. [See LICENSE for more information](./LICENSE).
+
+#### Sponsors and Donations Wanted
+
+Please:
+https://ko-fi.com/ravachol
+https://github.com/sponsors/ravachol.
 
 ## Attributions
 

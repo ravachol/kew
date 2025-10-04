@@ -221,6 +221,8 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         c_strcpy(settings.hardClearPlaylist, "\b",
                  sizeof(settings.hardClearPlaylist));
 
+        memcpy(settings.ansiTheme, "default", 8);
+
         if (pairs == NULL)
         {
                 return settings;
@@ -825,7 +827,7 @@ void mapSettingsToKeys(AppSettings *settings, UISettings *ui,
         mappings[17] =
             (EventMapping){settings->savePlaylist, EVENT_EXPORTPLAYLIST};
         mappings[18] = (EventMapping){settings->cycleColorsDerivedFrom,
-                                      EVENT_TOGGLEPROFILECOLORS};
+                                      EVENT_CYCLECOLORMODE};
         mappings[19] = (EventMapping){settings->addToFavoritesPlaylist,
                                       EVENT_ADDTOFAVORITESPLAYLIST};
         mappings[20] =

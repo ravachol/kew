@@ -2,6 +2,7 @@
 #define PIXELDATA_STRUCT
 
 #include <limits.h>
+#include <stdint.h>
 typedef struct
 {
         unsigned char r;
@@ -13,47 +14,60 @@ typedef struct
 #ifndef THEME_STRUCT
 #define THEME_STRUCT
 
+typedef enum {
+    COLOR_TYPE_RGB,
+    COLOR_TYPE_ANSI
+} ColorType;
+
+typedef struct {
+    ColorType type;
+    union {
+        PixelData rgb;
+        int8_t ansiIndex;      // -1 to 15 for 16 colors + -1 = foreground
+    };
+} ColorValue;
+
 typedef struct
 {
         char theme_name[NAME_MAX];
         char theme_author[NAME_MAX];
-        PixelData accent;
-        PixelData text;
-        PixelData textDim;
-        PixelData textMuted;
-        PixelData logo;
-        PixelData header;
-        PixelData footer;
-        PixelData help;
-        PixelData link;
-        PixelData nowplaying;
-        PixelData playlist_rownum;
-        PixelData playlist_title;
-        PixelData playlist_playing;
-        PixelData trackview_title;
-        PixelData trackview_artist;
-        PixelData trackview_album;
-        PixelData trackview_year;
-        PixelData trackview_time;
-        PixelData trackview_visualizer;
-        PixelData library_artist;
-        PixelData library_album;
-        PixelData library_track;
-        PixelData library_enqueued;
-        PixelData library_playing;
-        PixelData search_label;
-        PixelData search_query;
-        PixelData search_result;
-        PixelData search_enqueued;
-        PixelData progress_filled;
-        PixelData progress_empty;
-        PixelData progress_elapsed;
-        PixelData progress_duration;
-        PixelData status_info;
-        PixelData status_warning;
-        PixelData status_error;
-        PixelData status_success;
+        ColorValue accent;
+        ColorValue text;
+        ColorValue textDim;
+        ColorValue textMuted;
+        ColorValue logo;
+        ColorValue header;
+        ColorValue footer;
+        ColorValue help;
+        ColorValue link;
+        ColorValue nowplaying;
+        ColorValue playlist_rownum;
+        ColorValue playlist_title;
+        ColorValue playlist_playing;
+        ColorValue trackview_title;
+        ColorValue trackview_artist;
+        ColorValue trackview_album;
+        ColorValue trackview_year;
+        ColorValue trackview_time;
+        ColorValue trackview_visualizer;
+        ColorValue library_artist;
+        ColorValue library_album;
+        ColorValue library_track;
+        ColorValue library_enqueued;
+        ColorValue library_playing;
+        ColorValue search_label;
+        ColorValue search_query;
+        ColorValue search_result;
+        ColorValue search_enqueued;
+        ColorValue progress_filled;
+        ColorValue progress_empty;
+        ColorValue progress_elapsed;
+        ColorValue progress_duration;
+        ColorValue status_info;
+        ColorValue status_warning;
+        ColorValue status_error;
+        ColorValue status_success;
 } Theme;
 #endif
 
-int loadTheme(const char *themesDir, const char *filename, Theme *currentTheme);
+int loadThemeFromFile(const char *themesDir, const char *filename, Theme *currentTheme);

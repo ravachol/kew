@@ -420,9 +420,9 @@ void printSpectrum(int row, int col, UISettings *ui, int height, int numBars,
         }
         else
         {
-                color.r = ui->theme.trackview_visualizer.r;
-                color.g = ui->theme.trackview_visualizer.g;
-                color.b = ui->theme.trackview_visualizer.b;
+                color.r = ui->theme.trackview_visualizer.rgb.r;
+                color.g = ui->theme.trackview_visualizer.rgb.g;
+                color.b = ui->theme.trackview_visualizer.rgb.b;
         }
 
         bool useConfigColors = ui->useConfigColors;
@@ -430,6 +430,9 @@ void printSpectrum(int row, int col, UISettings *ui, int height, int numBars,
         bool brailleMode = ui->visualizerBrailleMode;
 
         PixelData tmp;
+        ColorValue colorValue;
+
+        colorValue.type = COLOR_TYPE_RGB;
 
         bool isPlaying = !(isPaused() || isStopped());
 
@@ -466,13 +469,18 @@ void printSpectrum(int row, int col, UISettings *ui, int height, int numBars,
                                                                1, 0.6f);
                                 }
                         }
+
+                        colorValue.rgb = tmp;
                 }
 
-                applyColor(ui->colorMode, tmp, tmp, -1);
+                if (ui->colorMode == COLOR_MODE_TERMINAL)
+                        applyColor(ui->colorMode, ui->theme.trackview_visualizer, tmp);
+                else
+                        applyColor(ui->colorMode, colorValue, tmp);
 
                 for (int i = 0; i < numBars; i++)
                 {
-                        if (!useConfigColors && visualizerColorType == 1)
+                        if (ui->colorMode != COLOR_MODE_TERMINAL && visualizerColorType == 1)
                         {
                                 tmp = (PixelData){
                                     color.r / 2, color.g / 2,
