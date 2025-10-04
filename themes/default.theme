@@ -24,7 +24,7 @@
 #   -1: Default terminal foreground
 
 name=Default
-author=ravachol
+author=Ravachol
 
 # Core Colors
 accent=13       # Bright Magenta
@@ -35,7 +35,7 @@ textMuted=7     # White (dim)
 # General Colors
 logo=6          # Cyan
 header=6        # Cyan
-footer=4        # Blue
+footer=#787878  # The old school gray, this works on most terminals
 help=11         # Bright Yellow
 link=14         # Bright Cyan
 nowplaying=-1   # Default foreground
@@ -43,22 +43,22 @@ nowplaying=-1   # Default foreground
 # Playlist View
 playlist.rownum=8   # Bright Black / Gray
 playlist.title=-1    # Default foreground
-playlist.playing=8   # Bright Black / Gray
+playlist.playing=11 # Bright Yellow
 
 # Track View
-trackview.title=12      # Bright Blue
+trackview.title=-1      # Default foreground
 trackview.artist=-1     # Default foreground
-trackview.album=8       # Bright Black / Gray
-trackview.year=8        # Bright Black / Gray
+trackview.album=-1      # Default foreground
+trackview.year=-1       # Default foreground
 trackview.time=-1       # Default foreground
-trackview.visualizer=8  # Bright Black / Gray
+trackview.visualizer=-1 # Default foreground
 
 # Library View
 library.artist=6    # Cyan
 library.album=6     # Cyan
 library.track=-1    # Default foreground
 library.enqueued=11 # Bright Yellow
-library.playing=8   # Bright Black / Gray
+library.playing=11 # Bright Yellow
 
 # Search
 search.label=11     # Bright Yellow

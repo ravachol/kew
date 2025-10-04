@@ -4,7 +4,7 @@
 
 [theme]
 name=Forest
-author=ravachol
+author=Ravachol
 
 # Core colors
 accent=#5fb3a1
@@ -52,7 +52,7 @@ progress.empty=#1a2e29
 progress.elapsed=#6a9a8a
 
 # Status
-status.info=#5fb3a1
-status.warning=#f4a261
-status.error=#e63946
-status.success=#87b96b
+status.info=-1      	# Default foreground
+status.warning=#787878  # The old school gray, this works on most terminals
+status.error=#787878  	# The old school gray, this works on most terminals
+status.success=#787878  # The old school gray, this works on most terminals

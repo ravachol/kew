@@ -4,7 +4,7 @@
 
 [theme]
 name=Ravachol's Theme
-author=ravachol
+author=Ravachol
 
 # Core colors
 accent=#e6607a
@@ -16,7 +16,7 @@ textMuted=#de2b4d
 logo=#de2b4d
 header=#de2b4d
 footer=#5c5c5c
-help=#5c5c5c
+help=#787878
 link=#e6607a
 nowplaying=#e6607a
 
@@ -48,10 +48,11 @@ search.enqueued=#d82953
 
 # Progress
 progress.filled=#de2b4d
-progress.empty=#e0e0e0
+progress.empty=#e6607a
 progress.elapsed=#de2b4d
 
 # Status
-status.info=#e6607a
-status.warning=#ff3333
-status.error=#e6607a
+status.info=-1      	# Default foreground
+status.warning=#787878  # The old school gray, this works on most terminals
+status.error=#787878  	# The old school gray, this works on most terminals
+status.success=#787878  # The old school gray, this works on most terminals
