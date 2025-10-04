@@ -4,7 +4,7 @@
 
 [theme]
 name=Gruvbox
-author=ravachol
+author=Ravachol
 
 # Core colors
 accent=#fabd2f
@@ -52,7 +52,7 @@ progress.empty=#3c3836
 progress.elapsed=#a89984
 
 # Status
-status.info=#fabd2f
-status.warning=#fabd2f
-status.error=#fabd2f
-status.success=#fabd2f
+status.info=-1      	# Default foreground
+status.warning=#787878  # The old school gray, this works on most terminals
+status.error=#787878  	# The old school gray, this works on most terminals
+status.success=#787878  # The old school gray, this works on most terminals

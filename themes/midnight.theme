@@ -4,7 +4,7 @@
 
 [theme]
 name=Midnight
-author=ravachol
+author=Ravachol
 
 # Core colors
 accent=#ffffff
@@ -52,7 +52,7 @@ progress.empty=#222222
 progress.elapsed=#ffffff
 
 # Status
-status.info=#cccccc
-status.warning=#cccccc
-status.error=#888888
-status.success=#cccccc
+status.info=-1      	# Default foreground
+status.warning=#787878  # The old school gray, this works on most terminals
+status.error=#787878  	# The old school gray, this works on most terminals
+status.success=#787878  # The old school gray, this works on most terminals

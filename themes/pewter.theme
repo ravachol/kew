@@ -4,7 +4,7 @@
 
 [theme]
 name=Pewter
-author=ravachol
+author=Ravachol
 
 # Core colors
 accent=#7a8a96
@@ -52,7 +52,7 @@ progress.empty=#181e22
 progress.elapsed=#556169
 
 # Status
-status.info=#7a8a96
-status.warning=#94a1ab
-status.error=#a88080
-status.success=#7a8f7f
+status.info=-1      	# Default foreground
+status.warning=#787878  # The old school gray, this works on most terminals
+status.error=#787878  	# The old school gray, this works on most terminals
+status.success=#787878  # The old school gray, this works on most terminals

@@ -4,7 +4,7 @@
 
 [theme]
 name=Synthwave
-author=ravachol
+author=Ravachol
 
 # Core colors
 accent=#ff6ec7
@@ -52,7 +52,7 @@ progress.empty=#44475a
 progress.elapsed=#ffb86c
 
 # Status
-status.info=#8be9fd
-status.warning=#ffb86c
-status.error=#ff5555
-status.success=#50fa7b
+status.info=-1      	# Default foreground
+status.warning=#787878  # The old school gray, this works on most terminals
+status.error=#787878  	# The old school gray, this works on most terminals
+status.success=#787878  # The old school gray, this works on most terminals
