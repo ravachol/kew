@@ -15,7 +15,7 @@ kew (/kjuː/) is a terminal music player.
 
 ## Features
 
- * Search a music library with partial titles.
+ * Search a music library with partial titles from the command-line.
  * Creates a playlist based on a matched directory.
  * Control the player with previous, next, pause, fast forward and rewind.
  * Edit the playlist by adding, removing and reordering songs.
@@ -234,12 +234,6 @@ cd kew
 make -j4
 ```
 
-On FreeBSD you might have to do
-```bash
-export CC=clang
-gmake -j4
-```
-
 ```bash
 sudo make install
 ```
@@ -374,15 +368,17 @@ kew will create a config file, kewrc, in a kew folder in your default config dir
 
 ## Themes
 
-You can fully customize kew with themes, both TrueColor and 16-color palette themes.
+You can fully customize kew with themes, with TrueColor values or 16 color palette values, or mix them as you want.
 
-Included is a pack of 17 themes + the default 16-color theme.
+Included is a pack of 16 themes + the default 16-color theme.
 
-You can also switch to using colors derived from the album cover. So that makes it a total of three ways you can apply colors in kew. Cycle through the color modes by pressing i.
+You can also switch to using colors derived from the album cover. Cycle through the 3 color modes (default, theme and album cover) by pressing i.
 
-Run kew with:
+To set a theme, run kew with:
 
-kew theme <themename>. For instance 'kew theme midnight' will apply midnight.theme.
+kew theme <themename>
+
+For instance 'kew theme midnight' will apply midnight.theme.
 
 To install TrueColor themes:
 - Make sure you run sudo make install if you're not intalling from a package manager.
@@ -394,7 +390,7 @@ The default theme is called default.theme and it's a 16-color theme that derives
 
 ## If Colors Look Wrong
 
-If you are on tty or have limited colors and font on your terminal, try pressing i (for simpler colors), v (for visualizer off) and b (for ascii cover).
+If you are on tty or have limited colors and font on your terminal, try cycling i for the three modes until one is passable, v (for visualizer off) and b (for ascii cover).
 That should make it look much more easy on the eye!
 
 ## Favorites Playlist

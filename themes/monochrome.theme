@@ -31,7 +31,7 @@ trackview.artist=#ffffff
 trackview.album=#c0c0c0
 trackview.year=#c0c0c0
 trackview.time=#d0d0d0
-trackview.visualizer=#202020
+trackview.visualizer=#f0f0f0
 
 # Library View
 library.artist=#808080
