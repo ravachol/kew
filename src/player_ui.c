@@ -878,7 +878,7 @@ void calcAndPrintLastRowAndErrorRow(UISettings *ui, AppSettings *settings)
         // Use two rows for the footer on Android. It makes everything
         // fit even with narrow terminal widths.
         if (hasErrorMessage())
-                printErrorRow(term_h - 1, indent);
+                printErrorRow(term_h - 1, indent, ui);
         else
                 printFooter(term_h - 1, indent, ui, settings);
 #else
