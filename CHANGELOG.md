@@ -2,17 +2,37 @@
 
 ### 3.5.0
 
+#### kew 3.5 — now with themes, Android support, and song lyrics!
+
+New in this release:
+
+- Fully customizable colors
+
+- Themes supporting both TrueColor RGB and the terminal 16-color palette
+
+- Theme pack with 16 included themes
+
+- Android support
+
+- Fixed TTY flickering
+
+- Song lyrics support via user-supplied .lrc files
+
+- Improved search
+
 #### Full customization of colors with themes!
 
-Both TrueColor and 16-color palette themes are no possible to make.
+You can fully customize kew with themes, with TrueColor values or 16 color palette values, or mix them as you want.
 
-Included is a pack of 17 themes + the default 16-color theme.
+Included is a pack of 16 themes + the default 16-color theme.
 
-You can also switch to using colors derived from the album cover. So that makes it a total of three ways you can apply colors in kew. Cycle through the color modes by pressing i.
+You can also switch to using colors derived from the album cover. Cycle through the 3 color modes (default, theme and album colors) by pressing i.
 
-Run kew with:
+To set a theme, run kew with:
 
-kew theme <themename>. For instance 'kew theme midnight' will apply midnight.theme.
+kew theme <themename>
+
+For instance 'kew theme midnight' will apply midnight.theme.
 
 To install TrueColor themes:
 - Make sure you run sudo make install if you're not intalling from a package manager.
@@ -27,10 +47,6 @@ The default theme is called default.theme and it's a 16-color theme that derives
 I always wanted to have kew on my phone as a sort of walkman that I helped create. I was just looking at getting a FairPhone and installing Linux on it, and all kinds of things, when @welpyes showed up and he was trying to put kew on Termux. I didn't know Termux was that powerful, that all libs required would be available and so on. But in the end it wasn't much work at all to get it up and running.
 
 I haven't looked at battery life aspects yet, but staying in library view will be easier on the battery than using track view with the visualizer. You can also press v to toggle the visualizer on or off.
-
-#### Security
-
-The other news is that I have gone through the codebase with the help of SASTs and AIs to improve the quality of the code from a security standpoint. This has been a quite large undertaking, but one has to keep in mind that kew is currently an entirely offline app, which should make it less of a target already.
 
 #### TTY problems resolved
 
@@ -64,6 +80,9 @@ https://github.com/sponsors/ravachol.
 @welpyes,
 @ravachol
         Android compatibility! Please see ANDROID-INSTRUCTIONS.md for how to get kew on your phone.
+
+@ravachol
+        Improved the search function so that albums are shown below an artist hit.
 
 @ravachol
         Improved installation instructions for Fedora and openSuse in the README.
