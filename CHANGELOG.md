@@ -2,34 +2,56 @@
 
 ### 3.5.0
 
-Full customization of colors with themes!
+#### Full customization of colors with themes!
 
-You can now create themes for kew or use one of the many themes included in this release.
+Both TrueColor and 16-color palette themes!
 
-To use themes:
-1. Make sure you run sudo make install if you're not intalling from a package manager.
-2. Put themes in ~/.config/kew/themes (~/Library/Preferences/kew/themes on macOS).
-3. Run kew with kew theme <themename>. For instance kew theme midnight will apply midnight.theme.
+Included is a pack of 17 themes + the default 16-color theme.
 
-kew now works on Android phones!
+You can also switch to using colors derived from the album cover. So that makes it a total of three ways you can apply colors in kew. Cycle through the color modes by pressing i.
+
+Run kew with kew theme <themename>. For instance kew theme midnight will apply midnight.theme.
+
+To install TrueColor themes:
+- Make sure you run sudo make install if you're not intalling from a package manager.
+
+To add your own themes:
+- Put them in ~/.config/kew/themes (~/Library/Preferences/kew/themes on macOS).
+
+The default theme is called default.theme and it's a 16-color theme that derives it's colors from whatever settings or theme you have on your terminal.
+
+#### kew now works on Android phones!
 
 I always wanted to have kew on my phone as a sort of walkman that I helped create. I was just looking at getting a FairPhone and installing Linux on it, and all kinds of things, when @welpyes showed up and he was trying to put kew on Termux. I didn't know Termux was that powerful, that all libs required would be available and so on. But in the end it wasn't much work at all to get it up and running.
 
 I haven't looked at battery life aspects yet, but staying in library view will be easier on the battery than using track view with the visualizer. You can also press v to toggle the visualizer on or off.
 
+#### Security
+
 The other news is that I have gone through the codebase with the help of SASTs and AIs to improve the quality of the code from a security standpoint. This has been a quite large undertaking, but one has to keep in mind that kew is currently an entirely offline app, which should make it less of a target already.
 
 We now have a repo on Codeberg and that will be the preferred repo going forward. But people will be welcome to contribute in whichever place they prefer.
 
+#### OpenSuse
+
 We are now back on openSuse, as our package there was quite old, version 2.8.1. It hadn't been updated because we switched from FFmpeg to Faad for decoding .m4a files, and Faad wasn't available on openSuse until now. FFmpeg was overkill for that job and Faad is a much smaller lib. Fedora is now the only place that I know of that still doesn't have the Faad library in their official package repository, and therefore doesn't have a kew package. You can however install kew manually on Fedora, and even with Faad support. I have corrected some mistakes in those install instructions.
 
-The flickering in TTY has been fixed. Btw, if you are on tty or have limited colors and font on your terminal, try pressing i (for simpler colors), v (for visualizer off) and b (for ascii cover). That should make it look much more easy on the eye!
+#### TTY problems resolved
+
+The flickering in TTY has been fixed. Btw, if you are on tty or have limited colors and font on your terminal, try pressing i (for other color modes), v (for visualizer off) and b (for ascii cover). That should make it look much more easy on the eye!
 
 Thank you to @welpyes for bringing up Termux and helping out with that, and @arcathrax for fixing the ultrawide monitor bug. Thank you to mantarimay for updating the openSuse library.
+
+#### Sponsors and Donations Wanted
 
 Thank you also to a new sponsor, @BasedScience! You can join him at https://ko-fi.com/ravachol or https://github.com/sponsors/ravachol.
 
 - Ravachol
+
+#### New Features / Improvements
+
+@ravachol
+        Theme colors, both TrueColor and 16-color palette theming.
 
 @welpyes,
 @ravachol

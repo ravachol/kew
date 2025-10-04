@@ -3,6 +3,7 @@
 #include "theme.h"
 #include "common.h"
 #include <ctype.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -10,7 +11,7 @@
 typedef struct
 {
         const char *key;
-        PixelData *field;
+        ColorValue *field;
 } ThemeMapping;
 
 PixelData hexToPixel(const char *hex)
@@ -83,7 +84,46 @@ int parseHexColor(const char *hex, PixelData *out)
         return 1;
 }
 
-int loadTheme(const char *themesDir, const char *filename, Theme *currentTheme)
+int parseColorValue(const char *value, ColorValue *out)
+{
+        if (!value || !out)
+                return 0;
+
+        // Check if it's hex (#RRGGBB)
+        if (value[0] == '#')
+        {
+                unsigned int r, g, b;
+                if (sscanf(value, "#%02x%02x%02x", &r, &g, &b) != 3)
+                {
+                        return 0; // failed to parse hex
+                }
+                out->type = COLOR_TYPE_RGB;
+                out->rgb.r = (uint8_t)r;
+                out->rgb.g = (uint8_t)g;
+                out->rgb.b = (uint8_t)b;
+                return 1;
+        }
+
+        // Otherwise, try integer for ANSI index
+        char *endptr = NULL;
+        errno = 0;
+        long index = strtol(value, &endptr, 10);
+        if (errno || endptr == value || *endptr != '\0')
+        {
+                return 0; // invalid number
+        }
+
+        if (index < -1 || index > 15)
+        {
+                return 0; // out of range for 16-color ANSI
+        }
+
+        out->type = COLOR_TYPE_ANSI;
+        out->ansiIndex = (int8_t)index;
+        return 1;
+}
+
+int loadThemeFromFile(const char *themesDir, const char *filename, Theme *currentTheme)
 {
         memset(currentTheme, 0, sizeof(Theme));
 
@@ -211,8 +251,14 @@ int loadTheme(const char *themesDir, const char *filename, Theme *currentTheme)
                         }
                         else if (strcmp(key, mappings[i].key) == 0)
                         {
-                                PixelData color;
-                                if (!parseHexColor(value, &color))
+                                ColorValue color;
+
+                                if (strcmp(key, "library_track") == 0)
+                                {
+                                        printf("found it");
+                                }
+
+                                if (!parseColorValue(value, &color))
                                 {
                                         fprintf(stderr,
                                                 "Invalid color value at line "
@@ -222,8 +268,8 @@ int loadTheme(const char *themesDir, const char *filename, Theme *currentTheme)
                                 else
                                 {
                                         *(mappings[i].field) = color;
+                                        found = 1;
                                 }
-                                found = 1;
                                 break;
                         }
                 }
@@ -232,3 +278,5 @@ int loadTheme(const char *themesDir, const char *filename, Theme *currentTheme)
         fclose(file);
         return found;
 }
+
+

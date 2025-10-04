@@ -12,6 +12,7 @@
 #include <stdlib.h>
 #include <sys/time.h>
 #include <unistd.h>
+#include "theme.h"
 
 /*
 
@@ -507,7 +508,92 @@ void toggleAscii(AppSettings *settings, UISettings *ui)
         }
 }
 
-void toggleColors( UISettings *ui)
+int loadTheme(AppState *appState, AppSettings *settings, const char *themeName,
+              bool isAnsiTheme)
+{
+        if (!appState || !themeName)
+                return 0;
+
+        char *configDir = getConfigPath();
+        if (!configDir)
+                return 0;
+
+        // Check if config directory exists
+        struct stat st = {0};
+        if (stat(configDir, &st) == -1)
+        {
+                return 0;
+        }
+
+        // Build full theme filename
+        char filename[NAME_MAX];
+        const char *extension = ".theme";
+        size_t themeNameLen = strlen(themeName);
+        size_t extLen = strlen(extension);
+
+        // Check if themeName already ends with ".theme"
+        int hasExtension =
+            (themeNameLen >= extLen &&
+             strcmp(themeName + themeNameLen - extLen, extension) == 0);
+
+        if (hasExtension)
+        {
+                if (snprintf(filename, sizeof(filename), "%s", themeName) >=
+                    (int)sizeof(filename))
+                {
+                        fprintf(stderr, "Theme filename is too long\n");
+                        setErrorMessage("Theme filename is too long");
+                        return 0;
+                }
+        }
+        else
+        {
+                if (snprintf(filename, sizeof(filename), "%s.theme",
+                             themeName) >= (int)sizeof(filename))
+                {
+                        fprintf(stderr, "Theme filename is too long\n");
+                        setErrorMessage("Theme filename is too long");
+                        return 0;
+                }
+        }
+
+        // Build full themes directory path: configDir + "/themes"
+        char themesDir[MAXPATHLEN];
+        if (snprintf(themesDir, sizeof(themesDir), "%s/themes", configDir) >=
+            (int)sizeof(themesDir))
+        {
+                fprintf(stderr, "Themes path is too long\n");
+                setErrorMessage("Themes path is too long");
+                return 0;
+        }
+
+        // Call the loader
+        int loaded =
+            loadThemeFromFile(themesDir, filename, &appState->uiSettings.theme);
+        if (!loaded)
+        {
+                return -1; // failed to load
+        }
+
+        appState->uiSettings.themeIsSet = true;
+
+        if (isAnsiTheme)
+        {
+                // Default ANSI theme: store in settings->ansiTheme
+                snprintf(settings->ansiTheme, sizeof(settings->ansiTheme), "%s",
+                         themeName);
+        }
+        else
+        {
+                // Truecolor theme: store in settings->theme
+                snprintf(settings->theme, sizeof(settings->theme), "%s",
+                         themeName);
+        }
+
+        return 1;
+}
+
+void cycleColorMode( UISettings *ui)
 {
         switch (ui->colorMode)
         {
@@ -516,14 +602,22 @@ void toggleColors( UISettings *ui)
                 break;
         case COLOR_MODE_ALBUM:
                 if (ui->themeIsSet)
+                {
                         ui->colorMode = COLOR_MODE_THEME;
-                else
+                }
+                else {
                         ui->colorMode = COLOR_MODE_TERMINAL;
+                }
                 break;
         case COLOR_MODE_THEME:
                 ui->colorMode = COLOR_MODE_TERMINAL;
                 break;
         }
+
+        if (ui->colorMode == COLOR_MODE_TERMINAL)
+                loadTheme(&appState, &settings, "default", true);
+        else if (ui->colorMode == COLOR_MODE_THEME)
+                loadTheme(&appState, &settings, ui->themeName, true);
 
         clearScreen();
         refresh = true;

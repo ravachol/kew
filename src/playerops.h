@@ -75,11 +75,14 @@ void toggleShuffle(UISettings *ui);
 
 void toggleAscii(AppSettings *settings, UISettings *ui);
 
-void toggleColors(UISettings *ui);
+void cycleColorMode(UISettings *ui);
 
 void toggleVisualizer(AppSettings *settings, UISettings *ui);
 
 void quit(void);
+
+int loadTheme(AppState *appState, AppSettings *settings, const char *themeName,
+              bool isAnsiTheme);
 
 void calcElapsedTime(void);
 

@@ -124,14 +124,14 @@ int displayPlaylistItems(Node *startNode, int startIter, int maxListSize,
                 if (buffer[0] != '\0')
                 {
                         applyColor(ui->colorMode, ui->theme.playlist_rownum,
-                                   rowColor, -1);
+                                   rowColor);
 
                         clearLine();
                         printBlankSpaces(indent);
                         printf("   %d. ", i + 1);
 
                         applyColor(ui->colorMode, ui->theme.playlist_title,
-                                   rowColor, ui->artistColor);
+                                   rowColor);
 
                         isSameNameAsLastTime =
                             (previousChosenSong == chosenSong);
@@ -162,8 +162,7 @@ int displayPlaylistItems(Node *startNode, int startIter, int maxListSize,
 
                         if (currentSong != NULL && currentSong->id == node->id)
                                 applyColor(ui->colorMode,
-                                           ui->theme.playlist_playing, rowColor,
-                                           ui->artistColor);
+                                           ui->theme.playlist_playing, rowColor);
 
                         if (i + 1 < 10)
                                 printf(" ");
