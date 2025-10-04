@@ -32,9 +32,9 @@ typedef enum
 } ViewState;
 
 typedef enum {
-        COLOR_MODE_TERMINAL = 0,  // Colors in 8-color terminal-safe palette
+        COLOR_MODE_TERMINAL = 0,  // Colors from ANSI 8-color palette theme
         COLOR_MODE_ALBUM = 1,     // Colors derived from album art
-        COLOR_MODE_THEME = 2      // Colors from config/theme file
+        COLOR_MODE_THEME = 2      // Colors from truecolor theme
 } ColorMode;
 
 typedef struct
@@ -135,6 +135,7 @@ typedef struct
 {
         char path[MAXPATHLEN];
         char theme[NAME_MAX];
+        char ansiTheme[NAME_MAX];
         char colorMode[6];
         char coverEnabled[2];
         char coverAnsi[2];

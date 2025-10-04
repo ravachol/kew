@@ -107,13 +107,12 @@ void sortResults(void)
 
 int displaySearchBox(int indent, UISettings *ui)
 {
-        applyColor(ui->colorMode, ui->theme.search_label, ui->color,
-                   ui->mainColor);
+        applyColor(ui->colorMode, ui->theme.search_label, ui->color);
 
         clearLine();
         printBlankSpaces(indent);
         printf(" [Search]: ");
-        applyColor(ui->colorMode, ui->theme.search_query, defaultColorRGB, -1);
+        applyColor(ui->colorMode, ui->theme.search_query, defaultColorRGB);
         // Save cursor position
         printf("%s", searchText);
         printf("\033[s");
@@ -137,8 +136,7 @@ int addToSearchText(const char *str, UISettings *ui)
                 return 0; // Not enough space
         }
 
-        applyColor(ui->colorMode, ui->theme.search_label, ui->color,
-                   ui->mainColor);
+        applyColor(ui->colorMode, ui->theme.search_label, ui->color);
 
         // Restore cursor position
         printf("\033[u");
@@ -271,8 +269,7 @@ int displaySearchResults(int maxListSize, int indent, int *chosenRow,
                 if ((int)i >= maxListSize + startSearchIter - 1)
                         break;
 
-                applyColor(ui->colorMode, ui->theme.search_result,
-                           defaultColorRGB, -1);
+                applyColor(ui->colorMode, ui->theme.search_result, defaultColorRGB);
 
                 clearLine();
                 printBlankSpaces(indent);
@@ -284,8 +281,7 @@ int displaySearchResults(int maxListSize, int indent, int *chosenRow,
                         if (results[i].entry->isEnqueued)
                         {
                                 applyColor(ui->colorMode,
-                                           ui->theme.search_enqueued, ui->color,
-                                           ui->enqueuedColor);
+                                           ui->theme.search_enqueued, ui->color);
 
                                 printf("\x1b[7m * ");
                         }
@@ -299,8 +295,7 @@ int displaySearchResults(int maxListSize, int indent, int *chosenRow,
                         if (results[i].entry->isEnqueued)
                         {
                                 applyColor(ui->colorMode,
-                                           ui->theme.search_enqueued, ui->color,
-                                           ui->enqueuedColor);
+                                           ui->theme.search_enqueued, ui->color);
 
                                 printf(" * ");
                         }

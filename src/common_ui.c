@@ -79,28 +79,25 @@ void resetColor(void) { printf("\033[0m"); }
 
 void inverseText(void) { printf("\x1b[7m"); }
 
-void applyColor(ColorMode mode, PixelData themeColor, PixelData albumColor,
-                int terminalColor)
+void applyColor(ColorMode mode, ColorValue themeColor, PixelData albumColor)
 {
-        resetColor();
+    resetColor();
 
-        switch (mode)
-        {
-        case COLOR_MODE_THEME:
-                setRGB(themeColor);
-                break;
-
+    switch (mode)
+    {
         case COLOR_MODE_ALBUM:
-                setColorAndWeight(0, albumColor, false);
-                break;
+            setColorAndWeight(0, albumColor, false);
+            break;
 
+        case COLOR_MODE_THEME:
         case COLOR_MODE_TERMINAL:
-                if (terminalColor < 0)
-                        setDefaultTextColor();
-                else
-                        setTerminalColor(terminalColor); // 0–7 ANSI color index
-                break;
-        }
+            if (themeColor.type == COLOR_TYPE_RGB) {
+                setRGB(themeColor.rgb);        // RGB field
+            } else {
+                setTerminalColor(themeColor.ansiIndex);
+            }
+            break;
+    }
 }
 
 void resetNameScroll()

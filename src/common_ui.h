@@ -18,8 +18,7 @@ void setColorAndWeight(int bold, PixelData color, int useConfigColors);
 
 void inverseText(void);
 
-void applyColor(ColorMode mode, PixelData themeColor, PixelData albumColor,
-                int terminalColor);
+void applyColor(ColorMode mode, ColorValue themeColor, PixelData albumColor);
 
 void processNameScroll(const char *name, char *output, int maxWidth, bool isSameNameAsLastTime);
 

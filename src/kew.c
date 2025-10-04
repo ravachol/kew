@@ -79,7 +79,9 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
 #define TMPPIDFILE "/tmp/kew_"
 
+#ifndef PREFIX
 #define PREFIX "/usr/local" // Fallback if not set in the makefile
+#endif
 
 FILE *logFile = NULL;
 struct winsize windowSize;
@@ -984,8 +986,8 @@ void handleInput(AppState *state)
                 toggleShuffle(&(state->uiSettings));
                 emitShuffleChanged();
                 break;
-        case EVENT_TOGGLEPROFILECOLORS:
-                toggleColors(&(state->uiSettings));
+        case EVENT_CYCLECOLORMODE:
+                cycleColorMode(&(state->uiSettings));
                 break;
         case EVENT_QUIT:
                 quit();
@@ -2084,79 +2086,6 @@ void initSettings(AppState *appState, AppSettings *settings)
         setTrackTitleAsWindowTitle(&(appState->uiSettings));
 }
 
-int initTheme(AppState *appState, AppSettings *settings, const char *themeName)
-{
-        if (!appState || !themeName)
-                return 0;
-
-        char *configDir = getConfigPath();
-        if (!configDir)
-                return 0;
-
-        // Check if config directory exists
-        struct stat st = {0};
-        if (stat(configDir, &st) == -1)
-        {
-                return 0;
-        }
-
-        // Build full theme filename : themeName + ".theme"(if not already
-        // present)
-        char filename[NAME_MAX];
-        size_t themeNameLen = strlen(themeName);
-        const char *extension = ".theme";
-        size_t extLen = strlen(extension);
-
-        // Check if themeName already ends with ".theme"
-        int hasExtension =
-            (themeNameLen >= extLen &&
-             strcmp(themeName + themeNameLen - extLen, extension) == 0);
-
-        if (hasExtension)
-        {
-                // Already has .theme extension, use as-is
-                if (snprintf(filename, sizeof(filename), "%s", themeName) >=
-                    (int)sizeof(filename))
-                {
-                        fprintf(stderr, "Theme filename is too long\n");
-                        setErrorMessage("Theme filename is too long");
-                        return 0;
-                }
-        }
-        else
-        {
-                // Add .theme extension
-                if (snprintf(filename, sizeof(filename), "%s.theme",
-                             themeName) >= (int)sizeof(filename))
-                {
-                        fprintf(stderr, "Theme filename is too long\n");
-                        setErrorMessage("Theme filename is too long");
-                        return 0;
-                }
-        }
-
-        // Build full themes directory path: configDir + "/themes"
-        char themesDir[MAXPATHLEN];
-        if (snprintf(themesDir, sizeof(themesDir), "%s/themes", configDir) >=
-            (int)sizeof(themesDir))
-        {
-                fprintf(stderr, "Themes path is too long\n");
-                setErrorMessage("Themes path is too long");
-                return 0;
-        }
-
-        // Call the loader
-        if (loadTheme(themesDir, filename, &appState->uiSettings.theme))
-        {
-                appState->uiSettings.themeIsSet = true;
-                snprintf(settings->theme, sizeof(settings->theme), "%s",
-                         themeName);
-                return 1;
-        }
-
-        return -1;
-}
-
 // Copies default themes to config dir if they aren't alread there
 bool ensureDefaultThemes(void)
 {
@@ -2190,7 +2119,8 @@ bool ensureDefaultThemes(void)
                         while ((entry = readdir(dir)) != NULL)
                         {
                                 if (entry->d_type == DT_REG &&
-                                    (strstr(entry->d_name, ".theme") || strstr(entry->d_name, ".txt")))
+                                    (strstr(entry->d_name, ".theme") ||
+                                     strstr(entry->d_name, ".txt")))
                                 {
                                         char src[MAXPATHLEN], dst[MAXPATHLEN];
 
@@ -2223,6 +2153,45 @@ bool ensureDefaultThemes(void)
         free(configPath);
 
         return copied;
+}
+
+void initTheme(int argc, char *argv[], UISettings *ui)
+{
+        // Command-line theme handling
+        if (argc == 3 && strcmp(argv[1], "theme") == 0)
+        {
+                // Try to load the user-specified theme
+                if (loadTheme(&appState, &settings, argv[2], false) > 0)
+                {
+                        ui->colorMode = COLOR_MODE_THEME;
+                        initDefaultState(&appState);
+                }
+                else
+                {
+                        // Failed to load user theme → fall back to
+                        // terminal/ANSI
+                        if (ui->colorMode == COLOR_MODE_THEME)
+                        {
+                                ui->colorMode = COLOR_MODE_TERMINAL;
+                        }
+                }
+        }
+        else if (ui->colorMode == COLOR_MODE_THEME)
+        {
+                // If UI has a themeName stored, try to load it
+                if (loadTheme(&appState, &settings, ui->themeName, false) > 0)
+                {
+                        ui->colorMode = COLOR_MODE_THEME;
+                }
+        }
+
+        // If still in terminal mode, load default ANSI theme
+        if (ui->colorMode == COLOR_MODE_TERMINAL)
+        {
+                // Load "default" ANSI theme, but don't overwrite
+                // settings->theme
+                loadTheme(&appState, &settings, "default", true);
+        }
 }
 
 int main(int argc, char *argv[])
@@ -2267,28 +2236,7 @@ int main(int argc, char *argv[])
         handleOptions(&argc, argv, ui);
         loadFavoritesPlaylist(settings.path);
         ensureDefaultThemes();
-
-        if (argc == 3 && (strcmp(argv[1], "theme") == 0))
-        {
-                if (initTheme(&appState, &settings, argv[2]) > 0)
-                {
-                        ui->colorMode = COLOR_MODE_THEME;
-                        initDefaultState(&appState);
-
-                        return 0;
-                }
-                else
-                {
-                        if (ui->colorMode == COLOR_MODE_THEME)
-                        {
-                                ui->colorMode = COLOR_MODE_ALBUM;
-                        }
-                }
-        }
-        else if (ui->themeName[0] != '\0')
-        {
-                initTheme(&appState, &settings, ui->themeName);
-        }
+        initTheme(argc, argv, ui);
 
         if (argc == 1)
         {

@@ -291,8 +291,7 @@ static int printLogoArt(const UISettings *ui, int indent)
                                                     logoHeight, 2, 0.8f);
                 }
 
-                applyColor(ui->colorMode, ui->theme.logo, rowColor,
-                           ui->mainColor);
+                applyColor(ui->colorMode, ui->theme.logo, rowColor);
 
                 clearLine();
                 printBlankSpaces(indent);
@@ -348,8 +347,7 @@ int printLogo(SongData *songData, UISettings *ui)
 
         buildSongTitle(songData, ui, title, sizeof(title), indent);
 
-        applyColor(ui->colorMode, ui->theme.nowplaying, ui->color,
-                   ui->mainColor);
+        applyColor(ui->colorMode, ui->theme.nowplaying, ui->color);
 
         if (title[0] != '\0')
         {
@@ -467,8 +465,8 @@ void printBasicMetadata(int row, int col, int maxWidth,
 {
         if (strnlen(metadata->artist, METADATA_MAX_LENGTH) > 0)
         {
-                applyColor(ui->colorMode, ui->theme.trackview_artist, ui->color,
-                           -1);
+                applyColor(ui->colorMode, ui->theme.trackview_artist,
+                           ui->color);
                 printf("\033[%d;%dH", row + 1, col);
                 clearRestOfLine();
                 printf(" %.*s", maxWidth, metadata->artist);
@@ -476,8 +474,7 @@ void printBasicMetadata(int row, int col, int maxWidth,
 
         if (strnlen(metadata->album, METADATA_MAX_LENGTH) > 0)
         {
-                applyColor(ui->colorMode, ui->theme.trackview_album, ui->color,
-                           -1);
+                applyColor(ui->colorMode, ui->theme.trackview_album, ui->color);
                 printf("\033[%d;%dH", row + 2, col);
                 clearRestOfLine();
                 printf(" %.*s", maxWidth, metadata->album);
@@ -485,8 +482,7 @@ void printBasicMetadata(int row, int col, int maxWidth,
 
         if (strnlen(metadata->date, METADATA_MAX_LENGTH) > 0)
         {
-                applyColor(ui->colorMode, ui->theme.trackview_year, ui->color,
-                           -1);
+                applyColor(ui->colorMode, ui->theme.trackview_year, ui->color);
                 printf("\033[%d;%dH", row + 3, col);
                 clearRestOfLine();
                 int year = getYear(metadata->date);
@@ -505,7 +501,7 @@ void printBasicMetadata(int row, int col, int maxWidth,
                 pixel.b = defaultColor;
         }
 
-        applyColor(ui->colorMode, ui->theme.trackview_title, pixel, -1);
+        applyColor(ui->colorMode, ui->theme.trackview_title, pixel);
 
         if (strnlen(metadata->title, METADATA_MAX_LENGTH) > 0)
         {
@@ -594,7 +590,7 @@ void printTime(int row, int col, double elapsedSeconds, ma_uint32 sampleRate,
 {
         applyColor(state->uiSettings.colorMode,
                    state->uiSettings.theme.trackview_time,
-                   state->uiSettings.color, -1);
+                   state->uiSettings.color);
 
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
@@ -752,7 +748,7 @@ void printFooter(int row, int col, UISettings *ui, AppSettings *settings)
         if (ui->colorMode == COLOR_MODE_TERMINAL)
                 setTextColorRGB(lastRowColor.r, lastRowColor.g, lastRowColor.b);
         else
-                applyColor(ui->colorMode, ui->theme.footer, lastRowColor, -1);
+                applyColor(ui->colorMode, ui->theme.footer, lastRowColor);
 
         char text[100];
 #if defined(__ANDROID__) || defined(__APPLE__)
@@ -898,7 +894,7 @@ int printAbout(SongData *songdata, UISettings *ui)
 {
         clearLine();
         int numRows = printLogo(songdata, ui);
-        applyColor(ui->colorMode, ui->theme.help, defaultColorRGB, -1);
+        applyColor(ui->colorMode, ui->theme.help, defaultColorRGB);
         printBlankSpaces(indent);
         printf(" kew version: %s\n", VERSION);
         clearLine();
@@ -917,7 +913,7 @@ int showKeyBindings(SongData *songdata, AppSettings *settings, UISettings *ui)
 
         numPrintedRows += printAbout(songdata, ui);
 
-        applyColor(ui->colorMode, ui->theme.text, defaultColorRGB, -1);
+        applyColor(ui->colorMode, ui->theme.text, defaultColorRGB);
 
         printBlankSpaces(indent);
         printf(" - Switch tracks with ←, → or %s, %s keys.\n",
@@ -987,44 +983,56 @@ int showKeyBindings(SongData *songdata, AppSettings *settings, UISettings *ui)
                settings->addToFavoritesPlaylist);
         printBlankSpaces(indent);
         printf(" - Esc or %s to quit.\n\n", settings->quit);
-        printBlankSpaces(indent);
-        applyColor(ui->colorMode, ui->theme.help, defaultColorRGB, -1);
-        printf(" Project URL:");
-        applyColor(ui->colorMode, ui->theme.link, ui->color, ui->artistColor);
-        printf(" https://codeberg.org/ravachol/kew\n");
-        printBlankSpaces(indent);
-        applyColor(ui->colorMode, ui->theme.help, defaultColorRGB, -1);
-        printf(" Please Donate:");
-        applyColor(ui->colorMode, ui->theme.link, ui->color, ui->artistColor);
-        printf(" https://ko-fi.com/ravachol\n");
-        applyColor(ui->colorMode, ui->theme.help, defaultColorRGB, -1);
-        printBlankSpaces(indent);
-        printf(" Copyright © 2022-2025 Ravachol.\n");
+
         if (ui->themeIsSet)
         {
-                applyColor(ui->colorMode, ui->theme.help, defaultColorRGB, -1);
+                applyColor(ui->colorMode, ui->theme.help, defaultColorRGB);
                 printBlankSpaces(indent);
                 printf(" Theme: ");
-                applyColor(ui->colorMode, ui->theme.textDim, ui->color,
-                           ui->artistColor);
-                printf("%s.", ui->theme.theme_name);
-                if (ui->colorMode != COLOR_MODE_THEME)
-                        printf(
-                            " Not Enabled. Press %s to cycle color settings.",
-                            settings->cycleColorsDerivedFrom);
+                applyColor(ui->colorMode, ui->theme.textDim, ui->color);
+                if (ui->colorMode == COLOR_MODE_ALBUM)
+                {
+                        printf("%s.", "Track Cover Colors");
+                }
+                else
+                {
+                        printf("%s.", ui->theme.theme_name);
+                }
+
+                printf(" (Press %s to cycle color settings).",
+                       settings->cycleColorsDerivedFrom);
+
                 printf("\n");
-                applyColor(ui->colorMode, ui->theme.help, defaultColorRGB, -1);
+                applyColor(ui->colorMode, ui->theme.help, defaultColorRGB);
                 printBlankSpaces(indent);
-                printf(" Theme Author: ");
-                applyColor(ui->colorMode, ui->theme.textDim, ui->color,
-                           ui->artistColor);
-                printf("%s.\n", ui->theme.theme_author);
-                numPrintedRows += 2;
+                if (ui->colorMode != COLOR_MODE_ALBUM)
+                {
+                        printf(" Theme Author: ");
+                        applyColor(ui->colorMode, ui->theme.textDim, ui->color);
+                        printf("%s.\n", ui->theme.theme_author);
+                        numPrintedRows += 1;
+                }
+                numPrintedRows += 1;
         }
 
         printf("\n");
+        printBlankSpaces(indent);
+        applyColor(ui->colorMode, ui->theme.help, defaultColorRGB);
+        printf(" Project URL:");
+        applyColor(ui->colorMode, ui->theme.link, ui->color);
+        printf(" https://codeberg.org/ravachol/kew\n");
+        printBlankSpaces(indent);
+        applyColor(ui->colorMode, ui->theme.help, defaultColorRGB);
+        printf(" Please Donate:");
+        applyColor(ui->colorMode, ui->theme.link, ui->color);
+        printf(" https://ko-fi.com/ravachol\n");
+        applyColor(ui->colorMode, ui->theme.help, defaultColorRGB);
+        printBlankSpaces(indent);
+        printf(" Copyright © 2022-2025 Ravachol.\n");
 
-        numPrintedRows += 28;
+        printf("\n");
+
+        numPrintedRows += 29;
 
         while (numPrintedRows < maxListSize)
         {
@@ -1228,7 +1236,7 @@ int printLogoAndAdjustments(SongData *songData, int termWidth, UISettings *ui,
 {
         int aboutRows = printLogo(songData, ui);
 
-        applyColor(ui->colorMode, ui->theme.help, defaultColorRGB, -1);
+        applyColor(ui->colorMode, ui->theme.help, defaultColorRGB);
 
         if (termWidth > 52 && !ui->hideHelp)
         {
@@ -1262,7 +1270,7 @@ void showSearch(SongData *songData, int *chosenRow, UISettings *ui,
         int aboutRows = printLogo(songData, ui);
         maxSearchListSize -= aboutRows;
 
-        applyColor(ui->colorMode, ui->theme.help, defaultColorRGB, -1);
+        applyColor(ui->colorMode, ui->theme.help, defaultColorRGB);
 
         if (term_w > indent + 38 && !ui->hideHelp)
         {
@@ -1302,11 +1310,10 @@ void showPlaylist(SongData *songData, PlayList *list, int *chosenSong,
 
         gotoFirstLineFirstRow();
 
-        int aboutRows = printLogoAndAdjustments(songData, term_w,
-                                                ui, indent);
+        int aboutRows = printLogoAndAdjustments(songData, term_w, ui, indent);
         maxListSize -= aboutRows;
 
-        applyColor(ui->colorMode, ui->theme.header, ui->color, ui->artistColor);
+        applyColor(ui->colorMode, ui->theme.header, ui->color);
 
         if (maxListSize > 0)
         {
@@ -1318,7 +1325,7 @@ void showPlaylist(SongData *songData, PlayList *list, int *chosenSong,
         maxListSize -= 1;
 
         if (maxListSize > 0)
- displayPlaylist(list, maxListSize, indent, chosenSong,
+                displayPlaylist(list, maxListSize, indent, chosenSong,
                                 chosenNodeId,
                                 state->uiState.resetPlaylistDisplay, state);
 
@@ -1350,18 +1357,12 @@ void printProgressBar(int row, int col, AppSettings *settings, UISettings *ui,
                                        tmp.b);
 
                                 applyColor(ui->colorMode,
-                                           ui->theme.progress_empty, tmp, -1);
-                        }
-                        else if (ui->colorMode == COLOR_MODE_THEME)
-                        {
-                                applyColor(ui->colorMode,
-                                           ui->theme.progress_empty,
-                                           ui->theme.progress_empty, -1);
+                                           ui->theme.progress_empty, tmp);
                         }
                         else
                         {
-                                setTextColorRGB(lastRowColor.r, lastRowColor.g,
-                                                lastRowColor.b);
+                                applyColor(ui->colorMode,
+                                           ui->theme.progress_empty, color);
                         }
 
                         if (i % 2 == 0)
@@ -1377,16 +1378,8 @@ void printProgressBar(int row, int col, AppSettings *settings, UISettings *ui,
 
                 if (i < elapsedBars)
                 {
-                        if (ui->colorMode != COLOR_MODE_TERMINAL)
-                        {
-                                applyColor(ui->colorMode,
-                                           ui->theme.progress_filled, color,
-                                           -1);
-                        }
-                        else
-                        {
-                                setDefaultTextColor();
-                        }
+                        applyColor(ui->colorMode, ui->theme.progress_filled,
+                                   color);
 
                         if (i % 2 == 0)
                                 printf("%s",
@@ -1397,16 +1390,8 @@ void printProgressBar(int row, int col, AppSettings *settings, UISettings *ui,
                 }
                 else if (i == elapsedBars)
                 {
-                        if (ui->colorMode != COLOR_MODE_TERMINAL)
-                        {
-                                applyColor(ui->colorMode,
-                                           ui->theme.progress_elapsed, color,
-                                           -1);
-                        }
-                        else
-                        {
-                                setDefaultTextColor();
-                        }
+                        applyColor(ui->colorMode, ui->theme.progress_elapsed,
+                                   color);
 
                         if (i % 2 == 0)
                                 printf("%s",
@@ -1480,13 +1465,12 @@ void applyTreeItemColor(UISettings *ui, int depth, PixelData rowColor,
 {
         if (depth <= 1)
         {
-                applyColor(ui->colorMode, ui->theme.library_artist, rowColor,
-                           ui->artistColor);
+                applyColor(ui->colorMode, ui->theme.library_artist, rowColor);
         }
         else
         {
                 applyColor(ui->colorMode, ui->theme.library_track,
-                           defaultColorRGB, -1);
+                           defaultColorRGB);
         }
 
         if (isEnqueued)
@@ -1494,12 +1478,12 @@ void applyTreeItemColor(UISettings *ui, int depth, PixelData rowColor,
                 if (isPlaying)
                 {
                         applyColor(ui->colorMode, ui->theme.library_playing,
-                                   rowColor, ui->enqueuedColor);
+                                   rowColor);
                 }
                 else
                 {
                         applyColor(ui->colorMode, ui->theme.library_enqueued,
-                                   rowColor, ui->enqueuedColor);
+                                   rowColor);
                 }
         }
 }
@@ -1819,7 +1803,7 @@ void showLibrary(SongData *songData, AppState *state, AppSettings *settings)
         int maxNameWidth = term_w - 10 - indent;
         maxLibListSize -= aboutSize + 2;
 
-        applyColor(ui->colorMode, ui->theme.help, defaultColorRGB, -1);
+        applyColor(ui->colorMode, ui->theme.help, defaultColorRGB);
 
         if (term_w > 67 && !ui->hideHelp)
         {
