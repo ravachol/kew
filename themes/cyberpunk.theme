@@ -3,7 +3,7 @@
 # ============================================
 [theme]
 name=Cyberpunk
-author=ravachol
+author=Ravachol
 
 # Core colors
 accent=#6957ce
@@ -48,10 +48,10 @@ search.enqueued=#5994ce
 # Progress
 progress.filled=#6957ce
 progress.empty=#1a1e3a
-progress.elapsed=#e0e0ff
+progress.elapsed=#6957ce
 
 # Status
-status.info=#5994ce
-status.warning=#ffaa00
-status.error=#ff0066
-status.success=#54ff54
+status.info=-1      	# Default foreground
+status.warning=#787878  # The old school gray, this works on most terminals
+status.error=#787878  	# The old school gray, this works on most terminals
+status.success=#787878  # The old school gray, this works on most terminals

@@ -4,7 +4,7 @@
 
 [theme]
 name=Army
-author=ravachol
+author=Ravachol
 
 # Core colors
 accent=#a89074
@@ -52,7 +52,7 @@ progress.empty=#1f1d1a
 progress.elapsed=#3a3630
 
 # Status
-status.info=#a89074
-status.warning=#bca890
-status.error=#a87a7a
-status.success=#8a8a70
+status.info=-1      	# Default foreground
+status.warning=#787878  # The old school gray, this works on most terminals
+status.error=#787878  	# The old school gray, this works on most terminals
+status.success=#787878  # The old school gray, this works on most terminals
