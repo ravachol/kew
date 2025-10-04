@@ -15,7 +15,6 @@ bunker
 army
 purple
 pewter
-charcoalrose
 ravachol
 cyberpunk
 
@@ -24,6 +23,10 @@ Light Themes
 solarizedlight
 gruvboxlight
 paper
+
+To apply, run:
+
+kew theme <theme>
 
 These should be available under /themes here, in case you need to restore them to defaults:
 https://codeberg.org/ravachol/kew
