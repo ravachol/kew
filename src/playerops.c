@@ -5,6 +5,8 @@
 #include "settings.h"
 #include "songloader.h"
 #include "term.h"
+#include "theme.h"
+#include <ctype.h>
 #include <dirent.h>
 #include <pthread.h>
 #include <stdbool.h>
@@ -12,7 +14,6 @@
 #include <stdlib.h>
 #include <sys/time.h>
 #include <unistd.h>
-#include "theme.h"
 
 /*
 
@@ -508,6 +509,16 @@ void toggleAscii(AppSettings *settings, UISettings *ui)
         }
 }
 
+void strToLower(char *str)
+{
+        if (str == NULL)
+                return;
+        for (; *str; ++str)
+        {
+                *str = tolower((unsigned char)*str);
+        }
+}
+
 int loadTheme(AppState *appState, AppSettings *settings, const char *themeName,
               bool isAnsiTheme)
 {
@@ -567,6 +578,8 @@ int loadTheme(AppState *appState, AppSettings *settings, const char *themeName,
                 return 0;
         }
 
+        strToLower(filename);
+
         // Call the loader
         int loaded =
             loadThemeFromFile(themesDir, filename, &appState->uiSettings.theme);
@@ -593,18 +606,20 @@ int loadTheme(AppState *appState, AppSettings *settings, const char *themeName,
         return 1;
 }
 
-void cycleColorMode( UISettings *ui)
+void cycleColorMode(UISettings *ui)
 {
+        clearScreen();
+
         switch (ui->colorMode)
         {
-        case COLOR_MODE_TERMINAL:
+        case COLOR_MODE_DEFAULT:
                 ui->colorMode = COLOR_MODE_ALBUM;
                 break;
         case COLOR_MODE_ALBUM:
                 ui->colorMode = COLOR_MODE_THEME;
                 break;
         case COLOR_MODE_THEME:
-                ui->colorMode = COLOR_MODE_TERMINAL;
+                ui->colorMode = COLOR_MODE_DEFAULT;
                 break;
         }
 
@@ -612,7 +627,7 @@ void cycleColorMode( UISettings *ui)
 
         switch (ui->colorMode)
         {
-        case COLOR_MODE_TERMINAL:
+        case COLOR_MODE_DEFAULT:
                 if (loadTheme(&appState, &settings, "default", true))
                 {
                         themeLoaded = true;
@@ -622,7 +637,8 @@ void cycleColorMode( UISettings *ui)
                 themeLoaded = true;
                 break;
         case COLOR_MODE_THEME:
-                if (ui->themeName[0] != '\0' && loadTheme(&appState, &settings, ui->themeName, true))
+                if (ui->themeName[0] != '\0' &&
+                    loadTheme(&appState, &settings, ui->themeName, true))
                 {
                         themeLoaded = true;
                 }
@@ -633,7 +649,6 @@ void cycleColorMode( UISettings *ui)
                 cycleColorMode(ui);
         }
 
-        clearScreen();
         refresh = true;
 }
 
