@@ -20,6 +20,8 @@ void processNameScroll(const char *name, char *output, int maxWidth, bool isSame
 
 void resetNameScroll();
 
+void resetColor();
+
 bool getIsLongName();
 
 void processName(const char *name, char *output, int maxWidth, bool stripUnneededChars, bool stripSuffix);
