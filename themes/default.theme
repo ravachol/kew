@@ -1,0 +1,58 @@
+# Default Theme
+#
+# ANSI 8-Color Palette Theme
+# This theme will be used if you choose terminal profile colors (press i in kew to cycle color settings)
+
+name=Default
+author=ravachol
+
+# Core Colors
+accent=5        # magenta, works as highlight
+text=7          # white, main text
+textDim=3       # yellow, dimmed text
+textMuted=4     # blue, muted info
+
+# General Colors
+logo=6          # magenta, accent/logo
+header=4        # blue, header
+footer=4        # blue, footer
+help=3          # yellow, help text
+link=6          # cyan, clickable/links
+nowplaying=7    # white, foreground text
+
+# Playlist View
+playlist.rownum=3   # yellow, dim row numbers
+playlist.title=7    # white
+playlist.playing=5  # magenta, highlight playing
+
+# Track View
+trackview.title=7
+trackview.artist=7
+trackview.album=4   # blue, secondary info
+trackview.year=4
+trackview.time=7
+trackview.visualizer=3  # yellow, subtle highlight
+
+# Library View
+library.artist=3
+library.album=4
+library.track=7
+library.enqueued=7
+library.playing=5
+
+# Search
+search.label=3
+search.query=7
+search.result=7
+search.enqueued=7
+
+# Progress
+progress.filled=7
+progress.empty=0   # background for progress bar is fine
+progress.elapsed=7
+
+# Status
+status.info=7
+status.warning=3
+status.error=1
+status.success=2
