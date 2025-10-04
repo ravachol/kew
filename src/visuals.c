@@ -425,7 +425,6 @@ void printSpectrum(int row, int col, UISettings *ui, int height, int numBars,
                 color.b = ui->theme.trackview_visualizer.rgb.b;
         }
 
-        bool useConfigColors = ui->useConfigColors;
         int visualizerColorType = ui->visualizerColorType;
         bool brailleMode = ui->visualizerBrailleMode;
 

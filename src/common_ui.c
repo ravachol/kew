@@ -30,48 +30,21 @@ bool isSameNameAsLastTime = false;
 const int startScrollingDelay = 10; // Delay before beginning to scroll
 const int scrollingInterval = 1;    // Interval between scrolling updates
 
-void setTextColorRGB2(int r, int g, int b, const UISettings *ui)
-{
-        if (!ui->useConfigColors)
-                setTextColorRGB(r, g, b);
-}
-
-void setColor(UISettings *ui)
-{
-        setColorAndWeight(0, ui->color, ui->useConfigColors);
-}
-
 void setRGB(PixelData p)
 {
         // ANSI escape code for setting RGB foreground
         printf("\033[38;2;%d;%d;%dm", p.r, p.g, p.b);
 }
 
-void setColorAndWeight(int bold, PixelData color, int useConfigColors)
+void setAlbumColor(PixelData color)
 {
-        if (useConfigColors)
+        if (color.r >= 210 && color.g >= 210 && color.b >= 210)
         {
-                printf("\033[%dm", bold);
-                return;
-        }
-
-        if (bold < 0 || bold > 1)
-                bold = 0;
-
-        if (color.r == defaultColor && color.g == defaultColor &&
-            color.b == defaultColor)
-        {
-                printf("\033[%dm", bold);
-        }
-        else if (color.r >= 210 && color.g >= 210 && color.b >= 210)
-        {
-                printf("\033[%d;38;2;%03u;%03u;%03um", bold, defaultColor,
-                       defaultColor, defaultColor);
+                setRGB(defaultColorRGB);
         }
         else
         {
-                printf("\033[%d;38;2;%03u;%03u;%03um", bold, color.r, color.g,
-                       color.b);
+                setRGB(color);
         }
 }
 
@@ -86,7 +59,7 @@ void applyColor(ColorMode mode, ColorValue themeColor, PixelData albumColor)
     switch (mode)
     {
         case COLOR_MODE_ALBUM:
-            setColorAndWeight(0, albumColor, false);
+            setAlbumColor(albumColor);
             break;
 
         case COLOR_MODE_THEME:
