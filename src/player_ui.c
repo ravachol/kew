@@ -696,7 +696,7 @@ void printGlimmeringText(int row, int col, char *text, int textLength,
         }
 }
 
-void printErrorRow(int row, int col)
+void printErrorRow(int row, int col, UISettings *ui)
 {
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
@@ -707,7 +707,7 @@ void printErrorRow(int row, int col)
 
         if (!hasPrintedError && hasErrorMessage())
         {
-                setTextColorRGB(lastRowColor.r, lastRowColor.g, lastRowColor.b);
+                applyColor(ui->colorMode, ui->theme.footer, lastRowColor);
                 printf(" %s", getErrorMessage());
                 hasPrintedError = true;
                 fflush(stdout);
@@ -745,10 +745,7 @@ void printFooter(int row, int col, UISettings *ui, AppSettings *settings)
 
         clearLine();
 
-        if (ui->colorMode == COLOR_MODE_TERMINAL)
-                setTextColorRGB(lastRowColor.r, lastRowColor.g, lastRowColor.b);
-        else
-                applyColor(ui->colorMode, ui->theme.footer, lastRowColor);
+        applyColor(ui->colorMode, ui->theme.footer, lastRowColor);
 
         char text[100];
 #if defined(__ANDROID__) || defined(__APPLE__)
@@ -885,7 +882,7 @@ void calcAndPrintLastRowAndErrorRow(UISettings *ui, AppSettings *settings)
         else
                 printLastRow(term_h - 1, indent, ui, settings);
 #else
-        printErrorRow(term_h - 1, indent);
+        printErrorRow(term_h - 1, indent, ui);
         printFooter(term_h, indent, ui, settings);
 #endif
 }
@@ -989,7 +986,7 @@ int showKeyBindings(SongData *songdata, AppSettings *settings, UISettings *ui)
                 applyColor(ui->colorMode, ui->theme.help, defaultColorRGB);
                 printBlankSpaces(indent);
                 printf(" Theme: ");
-                applyColor(ui->colorMode, ui->theme.textDim, ui->color);
+                applyColor(ui->colorMode, ui->theme.text, ui->color);
                 if (ui->colorMode == COLOR_MODE_ALBUM)
                 {
                         printf("%s.", "Track Cover Colors");
@@ -1008,7 +1005,7 @@ int showKeyBindings(SongData *songdata, AppSettings *settings, UISettings *ui)
                 if (ui->colorMode != COLOR_MODE_ALBUM)
                 {
                         printf(" Theme Author: ");
-                        applyColor(ui->colorMode, ui->theme.textDim, ui->color);
+                        applyColor(ui->colorMode, ui->theme.text, ui->color);
                         printf("%s.\n", ui->theme.theme_author);
                         numPrintedRows += 1;
                 }
@@ -1025,14 +1022,14 @@ int showKeyBindings(SongData *songdata, AppSettings *settings, UISettings *ui)
         applyColor(ui->colorMode, ui->theme.help, defaultColorRGB);
         printf(" Please Donate:");
         applyColor(ui->colorMode, ui->theme.link, ui->color);
-        printf(" https://ko-fi.com/ravachol\n");
-        applyColor(ui->colorMode, ui->theme.help, defaultColorRGB);
+        printf(" https://ko-fi.com/ravachol\n\n");
+        applyColor(ui->colorMode, ui->theme.text, defaultColorRGB);
         printBlankSpaces(indent);
         printf(" Copyright © 2022-2025 Ravachol.\n");
 
         printf("\n");
 
-        numPrintedRows += 29;
+        numPrintedRows += 30;
 
         while (numPrintedRows < maxListSize)
         {
@@ -1941,7 +1938,7 @@ void showTrackViewLandscape(int height, int width, float aspectRatio,
         {
                 printErrorRow(row + metadataHeight + 2 +
                                   state->uiSettings.visualizerHeight,
-                              col);
+                              col, &(state->uiSettings));
                 printFooter(row + metadataHeight + 2 +
                                 state->uiSettings.visualizerHeight + 1,
                             col, &(state->uiSettings), settings);

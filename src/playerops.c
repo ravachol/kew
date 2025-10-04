@@ -572,7 +572,7 @@ int loadTheme(AppState *appState, AppSettings *settings, const char *themeName,
             loadThemeFromFile(themesDir, filename, &appState->uiSettings.theme);
         if (!loaded)
         {
-                return -1; // failed to load
+                return 0; // failed to load
         }
 
         appState->uiSettings.themeIsSet = true;
@@ -601,23 +601,37 @@ void cycleColorMode( UISettings *ui)
                 ui->colorMode = COLOR_MODE_ALBUM;
                 break;
         case COLOR_MODE_ALBUM:
-                if (ui->themeIsSet)
-                {
-                        ui->colorMode = COLOR_MODE_THEME;
-                }
-                else {
-                        ui->colorMode = COLOR_MODE_TERMINAL;
-                }
+                ui->colorMode = COLOR_MODE_THEME;
                 break;
         case COLOR_MODE_THEME:
                 ui->colorMode = COLOR_MODE_TERMINAL;
                 break;
         }
 
-        if (ui->colorMode == COLOR_MODE_TERMINAL)
-                loadTheme(&appState, &settings, "default", true);
-        else if (ui->colorMode == COLOR_MODE_THEME)
-                loadTheme(&appState, &settings, ui->themeName, true);
+        bool themeLoaded = false;
+
+        switch (ui->colorMode)
+        {
+        case COLOR_MODE_TERMINAL:
+                if (loadTheme(&appState, &settings, "default", true))
+                {
+                        themeLoaded = true;
+                }
+                break;
+        case COLOR_MODE_ALBUM:
+                themeLoaded = true;
+                break;
+        case COLOR_MODE_THEME:
+                if (ui->themeName[0] != '\0' && loadTheme(&appState, &settings, ui->themeName, true))
+                {
+                        themeLoaded = true;
+                }
+        }
+
+        if (!themeLoaded)
+        {
+                cycleColorMode(ui);
+        }
 
         clearScreen();
         refresh = true;

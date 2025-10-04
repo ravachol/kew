@@ -4,6 +4,7 @@
 #include <complex.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "appstate.h"
 #include "sound.h"
 #include "term.h"
 #include "utils.h"
@@ -418,7 +419,7 @@ void printSpectrum(int row, int col, UISettings *ui, int height, int numBars,
                 color.g = ui->color.g;
                 color.b = ui->color.b;
         }
-        else
+        else if (ui->colorMode == COLOR_MODE_THEME && ui->theme.trackview_visualizer.type == COLOR_TYPE_RGB)
         {
                 color.r = ui->theme.trackview_visualizer.rgb.r;
                 color.g = ui->theme.trackview_visualizer.rgb.g;
@@ -429,9 +430,6 @@ void printSpectrum(int row, int col, UISettings *ui, int height, int numBars,
         bool brailleMode = ui->visualizerBrailleMode;
 
         PixelData tmp;
-        ColorValue colorValue;
-
-        colorValue.type = COLOR_TYPE_RGB;
 
         bool isPlaying = !(isPaused() || isStopped());
 
@@ -468,14 +466,16 @@ void printSpectrum(int row, int col, UISettings *ui, int height, int numBars,
                                                                1, 0.6f);
                                 }
                         }
-
-                        colorValue.rgb = tmp;
                 }
 
-                if (ui->colorMode == COLOR_MODE_TERMINAL)
-                        applyColor(ui->colorMode, ui->theme.trackview_visualizer, tmp);
+                if (ui->colorMode == COLOR_MODE_ALBUM)
+                        printf("\033[38;2;%d;%d;%dm", tmp.r, tmp.g, tmp.b);
+                else if (ui->theme.trackview_visualizer.type == COLOR_TYPE_RGB)
+                {
+                        printf("\033[38;2;%d;%d;%dm", tmp.r, tmp.g, tmp.b);
+                }
                 else
-                        applyColor(ui->colorMode, colorValue, tmp);
+                        applyColor(ui->colorMode, ui->theme.trackview_visualizer, tmp);
 
                 for (int i = 0; i < numBars; i++)
                 {
