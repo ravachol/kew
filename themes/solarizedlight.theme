@@ -1,0 +1,58 @@
+# ============================================
+# SOLARIZED LIGHT (High Contrast Light)
+# ============================================
+
+[theme]
+name=Solarized Light
+author=Ravachol
+
+# Core colors
+accent=#268bd2
+text=#657b83
+textDim=#839496
+textMuted=#93a1a1
+
+# General Colors
+logo=#93a1a1
+header=#93a1a1
+footer=#93a1a1
+help=#2aa198
+link=#859900
+nowplaying=#268bd2
+
+# Playlist View
+playlist.rownum=#93a1a1
+playlist.title=#586e75
+playlist.playing=#cb4b16
+
+# Track View
+trackview.title=#586e75
+trackview.artist=#268bd2
+trackview.album=#2aa198
+trackview.year=#2aa198
+trackview.time=#b58900
+trackview.visualizer=#eee8d5
+
+# Library View
+library.artist=#93a1a1
+library.album=#657b83
+library.track=#657b83
+library.enqueued=#859900
+library.playing=#cb4b16
+
+# Search
+search.label=#93a1a1
+search.query=#268bd2
+search.result=#657b83
+search.enqueued=#859900
+
+# Progress
+progress.filled=#eee8d5
+progress.empty=#fdf6e3
+progress.elapsed=#93a1a1
+
+# Status
+status.info=-1      	# Default foreground
+status.warning=#787878  # The old school gray, this works on most terminals
+status.error=#787878  	# The old school gray, this works on most terminals
+status.success=#787878  # The old school gray, this works on most terminals

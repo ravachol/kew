@@ -1,0 +1,58 @@
+# ============================================
+# MARIANA TRENCH
+# ============================================
+
+[theme]
+name=Mariana Trench
+author=Ravachol
+
+# Core colors
+accent=#7a92a8
+text=#c8d5de
+textDim=#8599ab
+textMuted=#5a6e7d
+
+# General Colors
+logo=#5a6e7d
+header=#5a6e7d
+footer=#5a6e7d
+help=#92a5b5
+link=#8599ab
+nowplaying=#7a92a8
+
+# Playlist View
+playlist.rownum=#5a6e7d
+playlist.title=#c8d5de
+playlist.playing=#8fa4b6
+
+# Track View
+trackview.title=#c8d5de
+trackview.artist=#7a92a8
+trackview.album=#8599ab
+trackview.year=#8599ab
+trackview.time=#92a5b5
+trackview.visualizer=#212c35
+
+# Library View
+library.artist=#5a6e7d
+library.album=#b5c4ce
+library.track=#b5c4ce
+library.enqueued=#7a9487
+library.playing=#8fa4b6
+
+# Search
+search.label=#5a6e7d
+search.query=#7a92a8
+search.result=#c8d5de
+search.enqueued=#7a9487
+
+# Progress
+progress.filled=#2f3d48
+progress.empty=#1a2329
+progress.elapsed=#2f3d48
+
+# Status
+status.info=-1      	# Default foreground
+status.warning=#787878  # The old school gray, this works on most terminals
+status.error=#787878  	# The old school gray, this works on most terminals
+status.success=#787878  # The old school gray, this works on most terminals

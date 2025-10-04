@@ -1,0 +1,58 @@
+# ============================================
+# RAVACHOL'S THEME (Red & Black)
+# ============================================
+
+[theme]
+name=Ravachol's Theme
+author=Ravachol
+
+# Core colors
+accent=#e6607a
+text=#e0e0e0
+textDim=#e6607a
+textMuted=#de2b4d
+
+# General Colors
+logo=#de2b4d
+header=#de2b4d
+footer=#5c5c5c
+help=#787878
+link=#e6607a
+nowplaying=#e6607a
+
+# Playlist View
+playlist.rownum=#de2b4d
+playlist.title=#e0e0e0
+playlist.playing=#e6607a
+
+# Track View
+trackview.title=#e0e0e0
+trackview.artist=#e6607a
+trackview.album=#d82953
+trackview.year=#d82953
+trackview.time=#9b1831
+trackview.visualizer=#de2b4d
+
+# Library View
+library.artist=#de2b4d
+library.album=#e0e0e0
+library.track=#e0e0e0
+library.enqueued=#d82953
+library.playing=#e6607a
+
+# Search
+search.label=#de2b4d
+search.query=#e6607a
+search.result=#e0e0e0
+search.enqueued=#d82953
+
+# Progress
+progress.filled=#de2b4d
+progress.empty=#e6607a
+progress.elapsed=#de2b4d
+
+# Status
+status.info=-1      	# Default foreground
+status.warning=#787878  # The old school gray, this works on most terminals
+status.error=#787878  	# The old school gray, this works on most terminals
+status.success=#787878  # The old school gray, this works on most terminals

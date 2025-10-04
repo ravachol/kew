@@ -2,27 +2,87 @@
 
 ### 3.5.0
 
-kew now works on Android phones!
+#### kew 3.5 — now with themes, Android support, and song lyrics!
+
+New in this release:
+
+- Fully customizable colors
+
+- Themes supporting both TrueColor RGB and the terminal 16-color palette
+
+- Theme pack with 16 included themes
+
+- Android support
+
+- Fixed TTY flickering
+
+- Song lyrics support via user-supplied .lrc files
+
+- Improved search
+
+#### Full customization of colors with themes!
+
+You can fully customize kew with themes, with TrueColor values or 16 color palette values, or mix them as you want.
+
+Included is a pack of 16 themes + the default 16-color theme.
+
+You can also switch to using colors derived from the album cover. Cycle through the 3 color modes (default, theme and album colors) by pressing i.
+
+To set a theme, run kew with:
+
+kew theme <themename>
+
+For instance 'kew theme midnight' will apply midnight.theme.
+
+To install TrueColor themes:
+- Make sure you run sudo make install if you're not intalling from a package manager.
+
+To add your own themes:
+- Put them in ~/.config/kew/themes (~/Library/Preferences/kew/themes on macOS).
+
+The default theme is called default.theme and it's a 16-color theme that derives it's colors from whatever settings or theme you have on your terminal.
+
+#### kew now works on Android phones!
 
 I always wanted to have kew on my phone as a sort of walkman that I helped create. I was just looking at getting a FairPhone and installing Linux on it, and all kinds of things, when @welpyes showed up and he was trying to put kew on Termux. I didn't know Termux was that powerful, that all libs required would be available and so on. But in the end it wasn't much work at all to get it up and running.
 
 I haven't looked at battery life aspects yet, but staying in library view will be easier on the battery than using track view with the visualizer. You can also press v to toggle the visualizer on or off.
 
-The other news is that I have gone through the codebase with the help of SASTs and AIs to improve the quality of the code from a security standpoint. This has been a quite large undertaking, but one has to keep in mind that kew is currently an entirely offline app, which should make it less of a target already.
+#### TTY problems resolved
 
-Third, we now have a repo on Codeberg and that will be the preferred repo going forward. But people will be welcome to contribute in whichever place they prefer.
+The flickering in TTY has been fixed. Btw, if you are on tty or have limited colors and font on your terminal, try pressing i (for other color modes), v (for visualizer off) and b (for ascii cover). That should make it look much more easy on the eye!
 
-Fourth, we are now back on openSuse, as our package there was quite old, version 2.8.1. It hadn't been updated because we switched from FFmpeg to Faad for decoding .m4a files, and Faad wasn't available on openSuse until now. FFmpeg was overkill for that job and Faad is a much smaller lib. Fedora is now the only place that I know of that still doesn't have the Faad library in their official package repository, and therefore doesn't have a kew package. You can however install kew manually on Fedora, and even with Faad support. I have corrected some mistakes in those install instructions.
+#### Move to Codeberg
+
+We now have a repo on Codeberg and that will be the preferred repo going forward. But people will be welcome to contribute in whichever place they prefer. Except for PRs, PRs need to go to codeberg, develop branch.
+
+#### OpenSuse
+
+We are now back on openSuse, as our package there was quite old, version 2.8.1. It hadn't been updated because we switched from FFmpeg to Faad for decoding .m4a files, and Faad wasn't available on openSuse until now. FFmpeg was overkill for that job and Faad is a much smaller lib. Fedora is now the only place that I know of that still doesn't have the Faad library in their official package repository, and therefore doesn't have a kew package. You can however install kew manually on Fedora, and even with Faad support. I have corrected some mistakes in those install instructions.
 
 Thank you to @welpyes for bringing up Termux and helping out with that, and @arcathrax for fixing the ultrawide monitor bug. Thank you to mantarimay for updating the openSuse library.
 
-Thank you also to a new sponsor, @BasedScience! You can join him at https://ko-fi.com/ravachol or https://github.com/sponsors/ravachol.
+#### Sponsors and Donations Wanted
+
+Thank you to a new sponsor, @BasedScience!
+
+Please support this effort:
+https://ko-fi.com/ravachol
+https://github.com/sponsors/ravachol.
 
 - Ravachol
+
+#### New Features / Improvements
+
+@ravachol
+        Theme colors, both TrueColor and 16-color palette theming.
 
 @welpyes,
 @ravachol
         Android compatibility! Please see ANDROID-INSTRUCTIONS.md for how to get kew on your phone.
+
+@ravachol
+        Improved the search function so that albums are shown below an artist hit.
 
 @ravachol
         Improved installation instructions for Fedora and openSuse in the README.
@@ -55,6 +115,9 @@ Thank you also to a new sponsor, @BasedScience! You can join him at https://ko-f
 
 @ravachol
         Prevent flickering when scrolling on TTY and likely on some other terminals as well.
+
+@ravachol
+        Search: fixed files being reordered when scrolling on macOS/kitty.
 
 ### 3.4.1
 

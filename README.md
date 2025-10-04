@@ -15,7 +15,7 @@ kew (/kjuː/) is a terminal music player.
 
 ## Features
 
- * Search a music library with partial titles.
+ * Search a music library with partial titles from the command-line.
  * Creates a playlist based on a matched directory.
  * Control the player with previous, next, pause, fast forward and rewind.
  * Edit the playlist by adding, removing and reordering songs.
@@ -233,6 +233,7 @@ cd kew
 ```bash
 make -j4
 ```
+
 ```bash
 sudo make install
 ```
@@ -292,6 +293,8 @@ kew song <song> (or a song)
 
 kew list <playlist> (or a playlist)
 
+kew theme midnight (sets the 'midnight.theme' theme).
+
 kew shuffle <album name> (shuffles the playlist. shuffle needs to come first.)
 
 kew artistA:artistB:artistC (plays all three artists, shuffled)
@@ -343,7 +346,7 @@ You can select all music by pressing the - MUSIC LIBRARY - header at the top of 
 * <kbd>F6</kbd> or <kbd>Shift+b</kbd> (macOS/Android) to show/hide key bindings view.
 * <kbd>u</kbd> to update the library.
 * <kbd>v</kbd> to toggle the spectrum visualizer.
-* <kbd>i</kbd> to switch between using your regular color scheme or colors derived from the track cover.
+* <kbd>i</kbd> cycle colors derived from kewrc, theme or track cover.
 * <kbd>b</kbd> to toggle album covers drawn in ascii or as a normal image.
 * <kbd>r</kbd> to repeat the current song after playing.
 * <kbd>s</kbd> to shuffle the playlist.
@@ -363,9 +366,31 @@ You can select all music by pressing the - MUSIC LIBRARY - header at the top of 
 
 kew will create a config file, kewrc, in a kew folder in your default config directory for instance ~/.config/kew or ~/Library/Preferences/kew on macOS. There you can change some settings like key bindings and the default colors of the app. To edit this file please make sure you quit kew first.
 
+## Themes
+
+You can fully customize kew with themes, with TrueColor values or 16 color palette values, or mix them as you want.
+
+Included is a pack of 16 themes + the default 16-color theme.
+
+You can also switch to using colors derived from the album cover. Cycle through the 3 color modes (default, theme and album cover) by pressing i.
+
+To set a theme, run kew with:
+
+kew theme <themename>
+
+For instance 'kew theme midnight' will apply midnight.theme.
+
+To install TrueColor themes:
+- Make sure you run sudo make install if you're not intalling from a package manager.
+
+To add your own themes:
+- Put them in ~/.config/kew/themes (~/Library/Preferences/kew/themes on macOS).
+
+The default theme is called default.theme and it's a 16-color theme that derives it's colors from whatever settings or theme you have on your terminal.
+
 ## If Colors Look Wrong
 
-If you are on tty or have limited colors and font on your terminal, try pressing i (for simpler colors), v (for visualizer off) and b (for ascii cover).
+If you are on tty or have limited colors and font on your terminal, try cycling i for the three modes until one is passable, v (for visualizer off) and b (for ascii cover).
 That should make it look much more easy on the eye!
 
 ## Favorites Playlist
@@ -379,6 +404,12 @@ kew looks better with Nerd Fonts: https://www.nerdfonts.com/.
 ## License
 
 Licensed under GPL. [See LICENSE for more information](./LICENSE).
+
+#### Sponsors and Donations Wanted
+
+Please support this effort:
+https://ko-fi.com/ravachol
+https://github.com/sponsors/ravachol.
 
 ## Attributions
 
