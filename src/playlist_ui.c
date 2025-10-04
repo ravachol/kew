@@ -185,6 +185,8 @@ int displayPlaylistItems(Node *startNode, int startIter, int maxListSize,
                 }
 
                 node = node->next;
+
+                resetColor();
         }
 
         free(buffer);
