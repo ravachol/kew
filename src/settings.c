@@ -1121,7 +1121,7 @@ void getConfig(AppSettings *settings, UISettings *ui)
         else
         {
                 if (useConfigColors)
-                        ui->colorMode = COLOR_MODE_TERMINAL;
+                        ui->colorMode = COLOR_MODE_DEFAULT;
                 else
                          ui->colorMode = COLOR_MODE_ALBUM;
         }
@@ -1313,21 +1313,6 @@ void setConfig(AppSettings *settings, UISettings *ui)
                 snprintf(settings->replayGainCheckFirst,
                          sizeof(settings->replayGainCheckFirst), "%d",
                          ui->replayGainCheckFirst);
-
-        if (settings->color[0] == '\0')
-                snprintf(settings->color, sizeof(settings->color), "%d",
-                         ui->mainColor);
-
-        if (settings->artistColor[0] == '\0')
-                snprintf(settings->artistColor, sizeof(settings->artistColor),
-                         "%d", ui->artistColor);
-        if (settings->titleColor[0] == '\0')
-                snprintf(settings->titleColor, sizeof(settings->titleColor),
-                         "%d", ui->titleColor);
-        if (settings->enqueuedColor[0] == '\0')
-                snprintf(settings->enqueuedColor,
-                         sizeof(settings->enqueuedColor), "%d",
-                         ui->enqueuedColor);
 
         if (settings->mouseLeftClickAction[0] == '\0')
                 snprintf(settings->mouseLeftClickAction,

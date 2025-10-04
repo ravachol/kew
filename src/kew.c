@@ -95,7 +95,7 @@ GMainLoop *main_loop;
 EventMapping keyMappings[NUM_KEY_MAPPINGS];
 struct timespec lastInputTime;
 bool exactSearch = false;
-int fuzzySearchThreshold = 4;
+int fuzzySearchThreshold = 100;
 int maxDigitsPressedCount = 9;
 int isNewSearchTerm = false;
 bool wasEndOfList = false;
@@ -548,6 +548,7 @@ void setEndOfListReached(AppState *state)
                                     "/org/mpris/MediaPlayer2/TrackList/NoTrack",
                                     NULL, 0);
                 state->currentView = LIBRARY_VIEW;
+                clearScreen();
         }
 }
 
@@ -1514,6 +1515,11 @@ void cleanupOnExit()
                 printf("Music not found.\n");
         }
 
+        if (hasErrorMessage())
+        {
+                printf("%s\n", getErrorMessage());
+        }
+
         fflush(stdout);
 }
 
@@ -2159,7 +2165,11 @@ void initTheme(int argc, char *argv[], UISettings *ui)
         bool themeLoaded = false;
 
         // Command-line theme handling
-        if (argc == 3 && strcmp(argv[1], "theme") == 0)
+        if (argc > 3 && strcmp(argv[1], "theme") == 0)
+        {
+                setErrorMessage("Couldn't load theme. Theme file names shouldn't contain space.");
+        }
+        else if (argc == 3 && strcmp(argv[1], "theme") == 0)
         {
                 // Try to load the user-specified theme
                 if (loadTheme(&appState, &settings, argv[2], false) > 0)
@@ -2171,10 +2181,10 @@ void initTheme(int argc, char *argv[], UISettings *ui)
                 else
                 {
                         // Failed to load user theme → fall back to
-                        // terminal/ANSI
+                        // default/ANSI
                         if (ui->colorMode == COLOR_MODE_THEME)
                         {
-                                ui->colorMode = COLOR_MODE_TERMINAL;
+                                ui->colorMode = COLOR_MODE_DEFAULT;
                         }
                 }
         }
@@ -2188,8 +2198,8 @@ void initTheme(int argc, char *argv[], UISettings *ui)
                 }
         }
 
-        // If still in terminal mode, load default ANSI theme
-        if (ui->colorMode == COLOR_MODE_TERMINAL)
+        // If still in default mode, load default ANSI theme
+        if (ui->colorMode == COLOR_MODE_DEFAULT)
         {
                 // Load "default" ANSI theme, but don't overwrite
                 // settings->theme
@@ -2247,6 +2257,7 @@ int main(int argc, char *argv[])
 
         handleOptions(&argc, argv, ui);
         loadFavoritesPlaylist(settings.path);
+
         ensureDefaultThemes();
         initTheme(argc, argv, ui);
 

@@ -63,7 +63,7 @@ void applyColor(ColorMode mode, ColorValue themeColor, PixelData albumColor)
             break;
 
         case COLOR_MODE_THEME:
-        case COLOR_MODE_TERMINAL:
+        case COLOR_MODE_DEFAULT:
             if (themeColor.type == COLOR_TYPE_RGB) {
                 setRGB(themeColor.rgb);        // RGB field
             } else {

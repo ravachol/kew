@@ -1,4 +1,5 @@
 #include "player_ui.h"
+#include "appstate.h"
 #include "common_ui.h"
 #include "directorytree.h"
 #include "imgfunc.h"
@@ -745,7 +746,19 @@ void printFooter(int row, int col, UISettings *ui, AppSettings *settings)
 
         clearLine();
 
-        applyColor(ui->colorMode, ui->theme.footer, lastRowColor);
+        PixelData footerColor;
+        footerColor.r = lastRowColor.r;
+        footerColor.g = lastRowColor.g;
+        footerColor.b = lastRowColor.b;
+
+        applyColor(ui->colorMode, ui->theme.footer, footerColor);
+
+        if (ui->themeIsSet && ui->theme.footer.type == COLOR_TYPE_RGB)
+        {
+                footerColor.r =  ui->theme.footer.rgb.r;
+                footerColor.g =  ui->theme.footer.rgb.g;
+                footerColor.b =  ui->theme.footer.rgb.b;
+        }
 
         char text[100];
 #if defined(__ANDROID__) || defined(__APPLE__)
@@ -861,7 +874,7 @@ void printFooter(int row, int col, UISettings *ui, AppSettings *settings)
 
         if (randomNumber == 808 && !ui->hideGlimmeringText)
                 printGlimmeringText(row, col, text, textLength, nerdFontText,
-                                    lastRowColor);
+                                   footerColor);
         else
         {
                 printf("%s", text);
