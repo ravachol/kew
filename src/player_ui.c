@@ -1719,8 +1719,6 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize,
 
                                 libSongIter++;
                         }
-
-                        setColor(ui);
                 }
 
                 libIter++;
@@ -2032,7 +2030,6 @@ int printPlayer(SongData *songdata, double elapsedSeconds,
         if (refresh)
         {
                 hideCursor();
-                setColor(ui);
 
                 if (songdata != NULL && songdata->metadata != NULL &&
                     !songdata->hasErrors && (songdata->hasErrors < 1))

@@ -253,11 +253,6 @@ int loadThemeFromFile(const char *themesDir, const char *filename, Theme *curren
                         {
                                 ColorValue color;
 
-                                if (strcmp(key, "library_track") == 0)
-                                {
-                                        printf("found it");
-                                }
-
                                 if (!parseColorValue(value, &color))
                                 {
                                         fprintf(stderr,
