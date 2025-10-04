@@ -380,7 +380,9 @@ Included is a pack of 17 themes + the default 16-color theme.
 
 You can also switch to using colors derived from the album cover. So that makes it a total of three ways you can apply colors in kew. Cycle through the color modes by pressing i.
 
-Run kew with kew theme <themename>. For instance kew theme midnight will apply midnight.theme.
+Run kew with:
+
+kew theme <themename>. For instance 'kew theme midnight' will apply midnight.theme.
 
 To install TrueColor themes:
 - Make sure you run sudo make install if you're not intalling from a package manager.
@@ -409,7 +411,7 @@ Licensed under GPL. [See LICENSE for more information](./LICENSE).
 
 #### Sponsors and Donations Wanted
 
-Please:
+Please support this effort:
 https://ko-fi.com/ravachol
 https://github.com/sponsors/ravachol.
 

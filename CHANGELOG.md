@@ -4,13 +4,15 @@
 
 #### Full customization of colors with themes!
 
-Both TrueColor and 16-color palette themes!
+Both TrueColor and 16-color palette themes are no possible to make.
 
 Included is a pack of 17 themes + the default 16-color theme.
 
 You can also switch to using colors derived from the album cover. So that makes it a total of three ways you can apply colors in kew. Cycle through the color modes by pressing i.
 
-Run kew with kew theme <themename>. For instance kew theme midnight will apply midnight.theme.
+Run kew with:
+
+kew theme <themename>. For instance 'kew theme midnight' will apply midnight.theme.
 
 To install TrueColor themes:
 - Make sure you run sudo make install if you're not intalling from a package manager.
@@ -30,21 +32,27 @@ I haven't looked at battery life aspects yet, but staying in library view will b
 
 The other news is that I have gone through the codebase with the help of SASTs and AIs to improve the quality of the code from a security standpoint. This has been a quite large undertaking, but one has to keep in mind that kew is currently an entirely offline app, which should make it less of a target already.
 
-We now have a repo on Codeberg and that will be the preferred repo going forward. But people will be welcome to contribute in whichever place they prefer.
+#### TTY problems resolved
+
+The flickering in TTY has been fixed. Btw, if you are on tty or have limited colors and font on your terminal, try pressing i (for other color modes), v (for visualizer off) and b (for ascii cover). That should make it look much more easy on the eye!
+
+#### Move to Codeberg
+
+We now have a repo on Codeberg and that will be the preferred repo going forward. But people will be welcome to contribute in whichever place they prefer. Except for PRs, PRs need to go to codeberg, develop branch.
 
 #### OpenSuse
 
 We are now back on openSuse, as our package there was quite old, version 2.8.1. It hadn't been updated because we switched from FFmpeg to Faad for decoding .m4a files, and Faad wasn't available on openSuse until now. FFmpeg was overkill for that job and Faad is a much smaller lib. Fedora is now the only place that I know of that still doesn't have the Faad library in their official package repository, and therefore doesn't have a kew package. You can however install kew manually on Fedora, and even with Faad support. I have corrected some mistakes in those install instructions.
 
-#### TTY problems resolved
-
-The flickering in TTY has been fixed. Btw, if you are on tty or have limited colors and font on your terminal, try pressing i (for other color modes), v (for visualizer off) and b (for ascii cover). That should make it look much more easy on the eye!
-
 Thank you to @welpyes for bringing up Termux and helping out with that, and @arcathrax for fixing the ultrawide monitor bug. Thank you to mantarimay for updating the openSuse library.
 
 #### Sponsors and Donations Wanted
 
-Thank you also to a new sponsor, @BasedScience! You can join him at https://ko-fi.com/ravachol or https://github.com/sponsors/ravachol.
+Thank you to a new sponsor, @BasedScience!
+
+Please support this effort:
+https://ko-fi.com/ravachol
+https://github.com/sponsors/ravachol.
 
 - Ravachol
 

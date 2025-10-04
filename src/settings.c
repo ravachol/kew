@@ -88,9 +88,13 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         // anyway. People need to switch
         c_strcpy(settings.visualizerEnabled, "1",
                  sizeof(settings.visualizerEnabled));
+        c_strcpy(settings.colorMode, "0",
+                 sizeof(settings.colorMode));
 #else
         c_strcpy(settings.visualizerEnabled, "1",
                  sizeof(settings.visualizerEnabled));
+        c_strcpy(settings.colorMode, "1",
+                 sizeof(settings.colorMode));
 #endif
 #ifdef __ANDROID__
         c_strcpy(settings.hideLogo, "1", sizeof(settings.hideLogo));
