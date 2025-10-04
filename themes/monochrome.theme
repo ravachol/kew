@@ -1,0 +1,58 @@
+# ============================================
+# MONOCHROME (Distraction-Free)
+# ============================================
+
+[theme]
+name=Monochrome
+author=Ravachol
+
+# Core colors
+accent=#ffffff
+text=#e0e0e0
+textDim=#b0b0b0
+textMuted=#808080
+
+# General Colors
+logo=#808080
+header=#808080
+footer=#808080
+help=#c0c0c0
+link=#b0b0b0
+nowplaying=#ffffff
+
+# Playlist View
+playlist.rownum=#808080
+playlist.title=#f0f0f0
+playlist.playing=#ffffff
+
+# Track View
+trackview.title=#f0f0f0
+trackview.artist=#ffffff
+trackview.album=#c0c0c0
+trackview.year=#c0c0c0
+trackview.time=#d0d0d0
+trackview.visualizer=#f0f0f0
+
+# Library View
+library.artist=#808080
+library.album=#e0e0e0
+library.track=#e0e0e0
+library.enqueued=#b0b0b0
+library.playing=#ffffff
+
+# Search
+search.label=#808080
+search.query=#ffffff
+search.result=#e0e0e0
+search.enqueued=#b0b0b0
+
+# Progress
+progress.filled=#202020
+progress.empty=#101010
+progress.elapsed=#707070
+
+# Status
+status.info=-1      	# Default foreground
+status.warning=#787878  # The old school gray, this works on most terminals
+status.error=#787878  	# The old school gray, this works on most terminals
+status.success=#787878  # The old school gray, this works on most terminals

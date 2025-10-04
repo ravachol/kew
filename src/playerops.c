@@ -5,6 +5,8 @@
 #include "settings.h"
 #include "songloader.h"
 #include "term.h"
+#include "theme.h"
+#include <ctype.h>
 #include <dirent.h>
 #include <pthread.h>
 #include <stdbool.h>
@@ -108,53 +110,55 @@ void resetStartTime(void) { clock_gettime(CLOCK_MONOTONIC, &start_time); }
 void updatePlaybackPosition(double elapsedSeconds)
 {
 #ifndef __APPLE__
-    if (elapsedSeconds < 0.0)
-        elapsedSeconds = 0.0;
+        if (elapsedSeconds < 0.0)
+                elapsedSeconds = 0.0;
 
-    // Max safe seconds to avoid overflow when multiplied by 1,000,000
-    const double maxSeconds = (double)(LLONG_MAX / G_USEC_PER_SEC);
+        // Max safe seconds to avoid overflow when multiplied by 1,000,000
+        const double maxSeconds = (double)(LLONG_MAX / G_USEC_PER_SEC);
 
-    if (elapsedSeconds > maxSeconds)
-        elapsedSeconds = maxSeconds;
+        if (elapsedSeconds > maxSeconds)
+                elapsedSeconds = maxSeconds;
 
-    GVariantBuilder changedPropertiesBuilder;
-    g_variant_builder_init(&changedPropertiesBuilder, G_VARIANT_TYPE_DICTIONARY);
-    g_variant_builder_add(
-        &changedPropertiesBuilder, "{sv}", "Position",
-        g_variant_new_int64(llround(elapsedSeconds * G_USEC_PER_SEC)));
+        GVariantBuilder changedPropertiesBuilder;
+        g_variant_builder_init(&changedPropertiesBuilder,
+                               G_VARIANT_TYPE_DICTIONARY);
+        g_variant_builder_add(
+            &changedPropertiesBuilder, "{sv}", "Position",
+            g_variant_new_int64(llround(elapsedSeconds * G_USEC_PER_SEC)));
 
-    GVariant *parameters =
-        g_variant_new("(sa{sv}as)", "org.mpris.MediaPlayer2.Player",
-                      &changedPropertiesBuilder, NULL);
+        GVariant *parameters =
+            g_variant_new("(sa{sv}as)", "org.mpris.MediaPlayer2.Player",
+                          &changedPropertiesBuilder, NULL);
 
-    g_dbus_connection_emit_signal(connection, NULL,
-                                  "/org/mpris/MediaPlayer2",
-                                  "org.freedesktop.DBus.Properties",
-                                  "PropertiesChanged", parameters, NULL);
+        g_dbus_connection_emit_signal(connection, NULL,
+                                      "/org/mpris/MediaPlayer2",
+                                      "org.freedesktop.DBus.Properties",
+                                      "PropertiesChanged", parameters, NULL);
 #else
-    (void)elapsedSeconds;
+        (void)elapsedSeconds;
 #endif
 }
 
 void emitSeekedSignal(double newPositionSeconds)
 {
 #ifndef __APPLE__
-    if (newPositionSeconds < 0.0)
-        newPositionSeconds = 0.0;
+        if (newPositionSeconds < 0.0)
+                newPositionSeconds = 0.0;
 
-    const double maxSeconds = (double)(LLONG_MAX / G_USEC_PER_SEC);
-    if (newPositionSeconds > maxSeconds)
-        newPositionSeconds = maxSeconds;
+        const double maxSeconds = (double)(LLONG_MAX / G_USEC_PER_SEC);
+        if (newPositionSeconds > maxSeconds)
+                newPositionSeconds = maxSeconds;
 
-    gint64 newPositionMicroseconds = llround(newPositionSeconds * G_USEC_PER_SEC);
+        gint64 newPositionMicroseconds =
+            llround(newPositionSeconds * G_USEC_PER_SEC);
 
-    GVariant *parameters = g_variant_new("(x)", newPositionMicroseconds);
+        GVariant *parameters = g_variant_new("(x)", newPositionMicroseconds);
 
-    g_dbus_connection_emit_signal(
-        connection, NULL, "/org/mpris/MediaPlayer2",
-        "org.mpris.MediaPlayer2.Player", "Seeked", parameters, NULL);
+        g_dbus_connection_emit_signal(
+            connection, NULL, "/org/mpris/MediaPlayer2",
+            "org.mpris.MediaPlayer2.Player", "Seeked", parameters, NULL);
 #else
-    (void)newPositionSeconds;
+        (void)newPositionSeconds;
 #endif
 }
 
@@ -505,12 +509,146 @@ void toggleAscii(AppSettings *settings, UISettings *ui)
         }
 }
 
-void toggleColors(AppSettings *settings, UISettings *ui)
+void strToLower(char *str)
 {
-        ui->useConfigColors = !ui->useConfigColors;
-        c_strcpy(settings->useConfigColors, ui->useConfigColors ? "1" : "0",
-                 sizeof(settings->useConfigColors));
+        if (str == NULL)
+                return;
+        for (; *str; ++str)
+        {
+                *str = tolower((unsigned char)*str);
+        }
+}
+
+int loadTheme(AppState *appState, AppSettings *settings, const char *themeName,
+              bool isAnsiTheme)
+{
+        if (!appState || !themeName)
+                return 0;
+
+        char *configDir = getConfigPath();
+        if (!configDir)
+                return 0;
+
+        // Check if config directory exists
+        struct stat st = {0};
+        if (stat(configDir, &st) == -1)
+        {
+                return 0;
+        }
+
+        // Build full theme filename
+        char filename[NAME_MAX];
+        const char *extension = ".theme";
+        size_t themeNameLen = strlen(themeName);
+        size_t extLen = strlen(extension);
+
+        // Check if themeName already ends with ".theme"
+        int hasExtension =
+            (themeNameLen >= extLen &&
+             strcmp(themeName + themeNameLen - extLen, extension) == 0);
+
+        if (hasExtension)
+        {
+                if (snprintf(filename, sizeof(filename), "%s", themeName) >=
+                    (int)sizeof(filename))
+                {
+                        fprintf(stderr, "Theme filename is too long\n");
+                        setErrorMessage("Theme filename is too long");
+                        return 0;
+                }
+        }
+        else
+        {
+                if (snprintf(filename, sizeof(filename), "%s.theme",
+                             themeName) >= (int)sizeof(filename))
+                {
+                        fprintf(stderr, "Theme filename is too long\n");
+                        setErrorMessage("Theme filename is too long");
+                        return 0;
+                }
+        }
+
+        // Build full themes directory path: configDir + "/themes"
+        char themesDir[MAXPATHLEN];
+        if (snprintf(themesDir, sizeof(themesDir), "%s/themes", configDir) >=
+            (int)sizeof(themesDir))
+        {
+                fprintf(stderr, "Themes path is too long\n");
+                setErrorMessage("Themes path is too long");
+                return 0;
+        }
+
+        strToLower(filename);
+
+        // Call the loader
+        int loaded =
+            loadThemeFromFile(themesDir, filename, &appState->uiSettings.theme);
+        if (!loaded)
+        {
+                return 0; // failed to load
+        }
+
+        appState->uiSettings.themeIsSet = true;
+
+        if (isAnsiTheme)
+        {
+                // Default ANSI theme: store in settings->ansiTheme
+                snprintf(settings->ansiTheme, sizeof(settings->ansiTheme), "%s",
+                         themeName);
+        }
+        else
+        {
+                // Truecolor theme: store in settings->theme
+                snprintf(settings->theme, sizeof(settings->theme), "%s",
+                         themeName);
+        }
+
+        return 1;
+}
+
+void cycleColorMode(UISettings *ui)
+{
         clearScreen();
+
+        switch (ui->colorMode)
+        {
+        case COLOR_MODE_DEFAULT:
+                ui->colorMode = COLOR_MODE_ALBUM;
+                break;
+        case COLOR_MODE_ALBUM:
+                ui->colorMode = COLOR_MODE_THEME;
+                break;
+        case COLOR_MODE_THEME:
+                ui->colorMode = COLOR_MODE_DEFAULT;
+                break;
+        }
+
+        bool themeLoaded = false;
+
+        switch (ui->colorMode)
+        {
+        case COLOR_MODE_DEFAULT:
+                if (loadTheme(&appState, &settings, "default", true))
+                {
+                        themeLoaded = true;
+                }
+                break;
+        case COLOR_MODE_ALBUM:
+                themeLoaded = true;
+                break;
+        case COLOR_MODE_THEME:
+                if (ui->themeName[0] != '\0' &&
+                    loadTheme(&appState, &settings, ui->themeName, true))
+                {
+                        themeLoaded = true;
+                }
+        }
+
+        if (!themeLoaded)
+        {
+                cycleColorMode(ui);
+        }
+
         refresh = true;
 }
 

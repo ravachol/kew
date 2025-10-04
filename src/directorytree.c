@@ -686,6 +686,7 @@ FileSystemEntry *reconstructTreeFromFile(const char *filename,
 #pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 #endif
 #endif
+
 // Calculates the Levenshtein distance.
 // The Levenshtein distance between two strings is the minimum number of
 // single-character edits (insertions, deletions, or substitutions) required to
@@ -759,6 +760,77 @@ int utf8_levenshteinDistance(const char *s1, const char *s2)
         return distance;
 }
 
+// Helper function to normalize and remove accents
+char* normalizeString(const char *str)
+{
+        // First normalize to NFD (decomposed form) which separates base chars from accents
+        char *normalized = g_utf8_normalize(str, -1, G_NORMALIZE_NFD);
+        if (!normalized)
+                return g_utf8_strdown(str, -1);
+
+        // Then remove combining diacritical marks (accents)
+        GString *result = g_string_new("");
+        for (const char *p = normalized; *p; p = g_utf8_next_char(p)) {
+                gunichar c = g_utf8_get_char(p);
+                GUnicodeType type = g_unichar_type(c);
+                // Skip combining marks (accents, diacritics)
+                if (type != G_UNICODE_NON_SPACING_MARK &&
+                    type != G_UNICODE_SPACING_MARK &&
+                    type != G_UNICODE_ENCLOSING_MARK) {
+                        g_string_append_unichar(result, g_unichar_tolower(c));
+                }
+        }
+
+        // FIXME: This doesn't seem to work!
+
+        g_free(normalized);
+        return g_string_free(result, FALSE);
+}
+
+int calculateSearchDistance(const char *needle, const char *haystack, int isDirectory)
+{
+        // Convert to lowercase for case-insensitive matching
+        char *needleLower = normalizeString(needle);
+        char *haystackLower = normalizeString(haystack);
+
+        int distance;
+
+        // Check for exact match (distance 0)
+        if (strcmp(haystackLower, needleLower) == 0) {
+                distance = 0;
+        }
+        // Check for substring match (low distance based on extra chars)
+        else if (strstr(haystackLower, needleLower) != NULL) {
+                // Substring match: distance = extra characters
+                int needleLen = g_utf8_strlen(needleLower, -1);
+                int haystackLen = g_utf8_strlen(haystackLower, -1);
+                distance = haystackLen - needleLen;
+        }
+        // Check if haystack starts with needle (prefix match)
+        else if (g_str_has_prefix(haystackLower, needleLower)) {
+                int needleLen = g_utf8_strlen(needleLower, -1);
+                int haystackLen = g_utf8_strlen(haystackLower, -1);
+                distance = haystackLen - needleLen;
+        }
+        // No substring match: use Levenshtein but add penalty
+        else {
+                int levenshtein = utf8_levenshteinDistance(needleLower, haystackLower);
+                // Add large penalty to ensure substring matches rank higher
+                int needleLen = g_utf8_strlen(needleLower, -1);
+                distance = needleLen + levenshtein + 100;
+        }
+
+        // Add penalty for files (non-directories) to prioritize albums
+        if (!isDirectory) {
+                distance += 50;
+        }
+
+        g_free(needleLower);
+        g_free(haystackLower);
+
+        return distance;
+}
+
 #ifdef __GNUC__
 #ifndef __APPLE__
 #pragma GCC diagnostic pop
@@ -767,9 +839,16 @@ int utf8_levenshteinDistance(const char *s1, const char *s2)
 
 char *stripFileExtension(const char *filename)
 {
-        const char *dot = strrchr(filename, '.'); // find last '.'
-        size_t length =
-            (dot != NULL) ? (size_t)(dot - filename) : strlen(filename);
+        if (filename == NULL)
+                return NULL;
+
+        const char *dot = strrchr(filename, '.');
+
+        // Don't treat a leading '.' as an extension (e.g. ".bashrc")
+        if (dot == NULL || dot == filename)
+                dot = filename + strlen(filename);
+
+        size_t length = (size_t)(dot - filename);
 
         char *result = malloc(length + 1);
         if (!result)
@@ -777,7 +856,8 @@ char *stripFileExtension(const char *filename)
                 perror("malloc");
                 return NULL;
         }
-        c_strcpy(result, filename, length);
+
+        memcpy(result, filename, length);
         result[length] = '\0';
 
         return result;
@@ -797,15 +877,13 @@ void fuzzySearchRecursive(FileSystemEntry *node, const char *searchTerm,
         char *lowerSearchTerm = g_utf8_casefold(searchTerm, -1);
         char *lowerName = g_utf8_casefold(node->name, -1);
 
-        char *strippedName = stripFileExtension(lowerName);
-
         int nameDistance =
-            utf8_levenshteinDistance(strippedName, lowerSearchTerm);
+            calculateSearchDistance(lowerName, lowerSearchTerm, node->isDirectory);
 
         // Partial matching with lowercase strings
-        if (strstr(strippedName, lowerSearchTerm) != NULL)
+        if (strstr(lowerName, lowerSearchTerm) != NULL)
         {
-                callback(node, 0);
+                callback(node, nameDistance);
         }
         else if (nameDistance <= threshold)
         {
@@ -815,7 +893,6 @@ void fuzzySearchRecursive(FileSystemEntry *node, const char *searchTerm,
         // Free the allocated memory for lowercase strings
         g_free(lowerSearchTerm);
         g_free(lowerName);
-        free(strippedName);
 
         fuzzySearchRecursive(node->children, searchTerm, threshold, callback);
         fuzzySearchRecursive(node->next, searchTerm, threshold, callback);

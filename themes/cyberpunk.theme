@@ -1,0 +1,57 @@
+# ============================================
+# 1. CYBERPUNK (Neon Purple)
+# ============================================
+[theme]
+name=Cyberpunk
+author=Ravachol
+
+# Core colors
+accent=#6957ce
+text=#e0e0ff
+textDim=#5994ce
+textMuted=#3a4e93
+
+# General Colors
+logo=#5658b6
+header=#2a2e5a
+footer=#2a2e5a
+help=#5994ce
+link=#ff00ff
+nowplaying=#ff0080
+
+# Playlist View
+playlist.rownum=#3a4e93
+playlist.title=#b8b8ff
+playlist.playing=#6957ce
+
+# Track View
+trackview.title=#e0e0ff
+trackview.artist=#5994ce
+trackview.album=#5658b6
+trackview.year=#3a4e93
+trackview.time=#6957ce
+trackview.visualizer=#5994ce
+
+# Library View
+library.artist=#6957ce
+library.album=#5994ce
+library.track=#b8b8ff
+library.enqueued=#5994ce
+library.playing=#6957ce
+
+# Search
+search.label=#5658b6
+search.query=#e0e0ff
+search.result=#b8b8ff
+search.enqueued=#5994ce
+
+# Progress
+progress.filled=#6957ce
+progress.empty=#1a1e3a
+progress.elapsed=#6957ce
+
+# Status
+status.info=-1      	# Default foreground
+status.warning=#787878  # The old school gray, this works on most terminals
+status.error=#787878  	# The old school gray, this works on most terminals
+status.success=#787878  # The old school gray, this works on most terminals

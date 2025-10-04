@@ -10,7 +10,7 @@
 #define _BSD_SOURCE
 #endif
 
-void setTextColor(int color);
+void setTerminalColor(int color);
 
 void setTextColorRGB(int r, int g, int b);
 

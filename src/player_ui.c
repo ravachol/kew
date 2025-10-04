@@ -1,4 +1,5 @@
 #include "player_ui.h"
+#include "appstate.h"
 #include "common_ui.h"
 #include "directorytree.h"
 #include "imgfunc.h"
@@ -208,6 +209,7 @@ void printHelp()
               "specify it's a directory you want)\n"
               "          kew song <song name> \n"
               "          kew list <m3u list name> \n"
+              "          kew theme <theme name> (sets a theme)\n"
               "          kew . (plays kew favorites.m3u file)\n"
               "          kew shuffle <dir name> (random and rand works too)\n"
               "          kew artistA:artistB (plays artistA and artistB "
@@ -235,8 +237,8 @@ void printHelp()
               " You can also use the mouse to switch views.\n"
               " u to update the library.\n"
               " v to toggle the spectrum visualizer.\n"
-              " i to switch between using your regular color scheme or colors "
-              "derived from the track cover.\n"
+              " i to cycle between colors from kewrc, theme,"
+              " or from the track album cover \n"
               " b to toggle album covers drawn in ascii or as a normal image.\n"
               " r to repeat the current song after playing.\n"
               " s to shuffle the playlist.\n"
@@ -290,10 +292,7 @@ static int printLogoArt(const UISettings *ui, int indent)
                                                     logoHeight, 2, 0.8f);
                 }
 
-                if (ui->useConfigColors)
-                        setTextColor(ui->mainColor);
-                else
-                        setColorAndWeight(false, rowColor, ui->useConfigColors);
+                applyColor(ui->colorMode, ui->theme.logo, rowColor);
 
                 clearLine();
                 printBlankSpaces(indent);
@@ -349,8 +348,7 @@ int printLogo(SongData *songData, UISettings *ui)
 
         buildSongTitle(songData, ui, title, sizeof(title), indent);
 
-        if (ui->useConfigColors)
-                setTextColor(ui->mainColor);
+        applyColor(ui->colorMode, ui->theme.nowplaying, ui->color);
 
         if (title[0] != '\0')
         {
@@ -466,13 +464,10 @@ void printTitleWithDelay(int row, int col, const char *text, int delay,
 void printBasicMetadata(int row, int col, int maxWidth,
                         TagSettings const *metadata, UISettings *ui)
 {
-        if (ui->useConfigColors)
-                setDefaultTextColor();
-        else
-                setTextColorRGB(ui->color.r, ui->color.g, ui->color.b);
-
         if (strnlen(metadata->artist, METADATA_MAX_LENGTH) > 0)
         {
+                applyColor(ui->colorMode, ui->theme.trackview_artist,
+                           ui->color);
                 printf("\033[%d;%dH", row + 1, col);
                 clearRestOfLine();
                 printf(" %.*s", maxWidth, metadata->artist);
@@ -480,6 +475,7 @@ void printBasicMetadata(int row, int col, int maxWidth,
 
         if (strnlen(metadata->album, METADATA_MAX_LENGTH) > 0)
         {
+                applyColor(ui->colorMode, ui->theme.trackview_album, ui->color);
                 printf("\033[%d;%dH", row + 2, col);
                 clearRestOfLine();
                 printf(" %.*s", maxWidth, metadata->album);
@@ -487,6 +483,7 @@ void printBasicMetadata(int row, int col, int maxWidth,
 
         if (strnlen(metadata->date, METADATA_MAX_LENGTH) > 0)
         {
+                applyColor(ui->colorMode, ui->theme.trackview_year, ui->color);
                 printf("\033[%d;%dH", row + 3, col);
                 clearRestOfLine();
                 int year = getYear(metadata->date);
@@ -498,23 +495,14 @@ void printBasicMetadata(int row, int col, int maxWidth,
 
         PixelData pixel = increaseLuminosity(ui->color, 20);
 
-        if (ui->useConfigColors)
+        if (pixel.r == 255 && pixel.g == 255 && pixel.b == 255)
         {
-                setDefaultTextColor();
+                pixel.r = defaultColor;
+                pixel.g = defaultColor;
+                pixel.b = defaultColor;
         }
-        else if (pixel.r == 255 && pixel.g == 255 && pixel.b == 255)
-        {
-                PixelData gray;
-                gray.r = defaultColor;
-                gray.g = defaultColor;
-                gray.b = defaultColor;
-                printf("\033[1;38;2;%03u;%03u;%03um", gray.r, gray.g, gray.b);
-        }
-        else
-        {
-                printf("\033[1;38;2;%03u;%03u;%03um", pixel.r, pixel.g,
-                       pixel.b);
-        }
+
+        applyColor(ui->colorMode, ui->theme.trackview_title, pixel);
 
         if (strnlen(metadata->title, METADATA_MAX_LENGTH) > 0)
         {
@@ -601,12 +589,10 @@ void printProgress(double elapsed_seconds, double total_seconds,
 void printTime(int row, int col, double elapsedSeconds, ma_uint32 sampleRate,
                int avgBitRate, AppState *state)
 {
-        if (state->uiSettings.useConfigColors)
-                setDefaultTextColor();
-        else
-                setTextColorRGB(state->uiSettings.color.r,
-                                state->uiSettings.color.g,
-                                state->uiSettings.color.b);
+        applyColor(state->uiSettings.colorMode,
+                   state->uiSettings.theme.trackview_time,
+                   state->uiSettings.color);
+
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
         printf("\033[%d;%dH", row, col);
@@ -711,7 +697,7 @@ void printGlimmeringText(int row, int col, char *text, int textLength,
         }
 }
 
-void printErrorRow(int row, int col)
+void printErrorRow(int row, int col, UISettings *ui)
 {
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
@@ -722,7 +708,7 @@ void printErrorRow(int row, int col)
 
         if (!hasPrintedError && hasErrorMessage())
         {
-                setTextColorRGB(lastRowColor.r, lastRowColor.g, lastRowColor.b);
+                applyColor(ui->colorMode, ui->theme.footer, lastRowColor);
                 printf(" %s", getErrorMessage());
                 hasPrintedError = true;
                 fflush(stdout);
@@ -745,7 +731,7 @@ void formatWithShiftPlus(char *dest, size_t size, const char *src)
         }
 }
 
-void printLastRow(int row, int col, UISettings *ui, AppSettings *settings)
+void printFooter(int row, int col, UISettings *ui, AppSettings *settings)
 {
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
@@ -760,7 +746,19 @@ void printLastRow(int row, int col, UISettings *ui, AppSettings *settings)
 
         clearLine();
 
-        setTextColorRGB(lastRowColor.r, lastRowColor.g, lastRowColor.b);
+        PixelData footerColor;
+        footerColor.r = lastRowColor.r;
+        footerColor.g = lastRowColor.g;
+        footerColor.b = lastRowColor.b;
+
+        applyColor(ui->colorMode, ui->theme.footer, footerColor);
+
+        if (ui->themeIsSet && ui->theme.footer.type == COLOR_TYPE_RGB)
+        {
+                footerColor.r =  ui->theme.footer.rgb.r;
+                footerColor.g =  ui->theme.footer.rgb.g;
+                footerColor.b =  ui->theme.footer.rgb.b;
+        }
 
         char text[100];
 #if defined(__ANDROID__) || defined(__APPLE__)
@@ -876,7 +874,7 @@ void printLastRow(int row, int col, UISettings *ui, AppSettings *settings)
 
         if (randomNumber == 808 && !ui->hideGlimmeringText)
                 printGlimmeringText(row, col, text, textLength, nerdFontText,
-                                    lastRowColor);
+                                   footerColor);
         else
         {
                 printf("%s", text);
@@ -893,12 +891,12 @@ void calcAndPrintLastRowAndErrorRow(UISettings *ui, AppSettings *settings)
         // Use two rows for the footer on Android. It makes everything
         // fit even with narrow terminal widths.
         if (hasErrorMessage())
-                printErrorRow(term_h - 1, indent);
+                printErrorRow(term_h - 1, indent, ui);
         else
-                printLastRow(term_h - 1, indent, ui, settings);
+                printFooter(term_h - 1, indent, ui, settings);
 #else
-        printErrorRow(term_h - 1, indent);
-        printLastRow(term_h, indent, ui, settings);
+        printErrorRow(term_h - 1, indent, ui);
+        printFooter(term_h, indent, ui, settings);
 #endif
 }
 
@@ -906,7 +904,7 @@ int printAbout(SongData *songdata, UISettings *ui)
 {
         clearLine();
         int numRows = printLogo(songdata, ui);
-        setDefaultTextColor();
+        applyColor(ui->colorMode, ui->theme.help, defaultColorRGB);
         printBlankSpaces(indent);
         printf(" kew version: %s\n", VERSION);
         clearLine();
@@ -925,7 +923,7 @@ int showKeyBindings(SongData *songdata, AppSettings *settings, UISettings *ui)
 
         numPrintedRows += printAbout(songdata, ui);
 
-        setDefaultTextColor();
+        applyColor(ui->colorMode, ui->theme.text, defaultColorRGB);
 
         printBlankSpaces(indent);
         printf(" - Switch tracks with ←, → or %s, %s keys.\n",
@@ -933,6 +931,9 @@ int showKeyBindings(SongData *songdata, AppSettings *settings, UISettings *ui)
         printBlankSpaces(indent);
         printf(" - Volume is adjusted with %s (or %s) and %s.\n",
                settings->volumeUp, settings->volumeUpAlt, settings->volumeDown);
+        printBlankSpaces(indent);
+        printf(" - Theme is set by running kew theme <theme name>. 'kew theme "
+               "midnight'.\n");
         printBlankSpaces(indent);
         printf(" - Press F2 for Playlist View:\n");
         printBlankSpaces(indent);
@@ -960,8 +961,9 @@ int showKeyBindings(SongData *songdata, AppSettings *settings, UISettings *ui)
         printBlankSpaces(indent);
         printf(" - You can also use the mouse to switch views.\n");
         printBlankSpaces(indent);
-        printf(" - %s toggle color derived from album or from profile.\n",
-               settings->toggleColorsDerivedFrom);
+        printf(
+            " - %s cycle colors derived from album, kewrc profile or theme.\n",
+            settings->cycleColorsDerivedFrom);
         printBlankSpaces(indent);
         printf(" - %s to update the library.\n", settings->updateLibrary);
         printBlankSpaces(indent);
@@ -991,15 +993,56 @@ int showKeyBindings(SongData *songdata, AppSettings *settings, UISettings *ui)
                settings->addToFavoritesPlaylist);
         printBlankSpaces(indent);
         printf(" - Esc or %s to quit.\n\n", settings->quit);
+
+        if (ui->themeIsSet)
+        {
+                applyColor(ui->colorMode, ui->theme.help, defaultColorRGB);
+                printBlankSpaces(indent);
+                printf(" Theme: ");
+                applyColor(ui->colorMode, ui->theme.text, ui->color);
+                if (ui->colorMode == COLOR_MODE_ALBUM)
+                {
+                        printf("%s.", "Track Cover Colors");
+                }
+                else
+                {
+                        printf("%s.", ui->theme.theme_name);
+                }
+
+                printf(" (Press %s to cycle color settings).",
+                       settings->cycleColorsDerivedFrom);
+
+                printf("\n");
+                applyColor(ui->colorMode, ui->theme.help, defaultColorRGB);
+                printBlankSpaces(indent);
+                if (ui->colorMode != COLOR_MODE_ALBUM)
+                {
+                        printf(" Theme Author: ");
+                        applyColor(ui->colorMode, ui->theme.text, ui->color);
+                        printf("%s.\n", ui->theme.theme_author);
+                        numPrintedRows += 1;
+                }
+                numPrintedRows += 1;
+        }
+
+        printf("\n");
         printBlankSpaces(indent);
-        printf(" Project URL: https://codeberg.org/ravachol/kew\n");
+        applyColor(ui->colorMode, ui->theme.help, defaultColorRGB);
+        printf(" Project URL:");
+        applyColor(ui->colorMode, ui->theme.link, ui->color);
+        printf(" https://codeberg.org/ravachol/kew\n");
         printBlankSpaces(indent);
-        printf(" Please Donate: https://ko-fi.com/ravachol\n");
+        applyColor(ui->colorMode, ui->theme.help, defaultColorRGB);
+        printf(" Please Donate:");
+        applyColor(ui->colorMode, ui->theme.link, ui->color);
+        printf(" https://ko-fi.com/ravachol\n\n");
+        applyColor(ui->colorMode, ui->theme.text, defaultColorRGB);
         printBlankSpaces(indent);
         printf(" Copyright © 2022-2025 Ravachol.\n");
+
         printf("\n");
 
-        numPrintedRows += 28;
+        numPrintedRows += 30;
 
         while (numPrintedRows < maxListSize)
         {
@@ -1202,9 +1245,11 @@ int printLogoAndAdjustments(SongData *songData, int termWidth, UISettings *ui,
                             int indentation)
 {
         int aboutRows = printLogo(songData, ui);
+
+        applyColor(ui->colorMode, ui->theme.help, defaultColorRGB);
+
         if (termWidth > 52 && !ui->hideHelp)
         {
-                setDefaultTextColor();
                 printBlankSpaces(indentation);
                 printf(" Use ↑/↓ or k/j to select. Enter=Accept. Backspace: "
                        "clear.\n");
@@ -1235,7 +1280,7 @@ void showSearch(SongData *songData, int *chosenRow, UISettings *ui,
         int aboutRows = printLogo(songData, ui);
         maxSearchListSize -= aboutRows;
 
-        setDefaultTextColor();
+        applyColor(ui->colorMode, ui->theme.help, defaultColorRGB);
 
         if (term_w > indent + 38 && !ui->hideHelp)
         {
@@ -1260,6 +1305,8 @@ void showPlaylist(SongData *songData, PlayList *list, int *chosenSong,
         getTermSize(&term_w, &term_h);
         maxListSize = term_h - 3;
 
+        UISettings *ui = &(state->uiSettings);
+
         // Setup scrolling names
         if (getIsLongName() && isSameNameAsLastTime &&
             updateCounter % scrollingInterval != 0)
@@ -1273,14 +1320,10 @@ void showPlaylist(SongData *songData, PlayList *list, int *chosenSong,
 
         gotoFirstLineFirstRow();
 
-        int aboutRows = printLogoAndAdjustments(songData, term_w,
-                                                &(state->uiSettings), indent);
+        int aboutRows = printLogoAndAdjustments(songData, term_w, ui, indent);
         maxListSize -= aboutRows;
 
-        if (state->uiSettings.useConfigColors)
-                setTextColor(state->uiSettings.artistColor);
-        else
-                setColor(&(state->uiSettings));
+        applyColor(ui->colorMode, ui->theme.header, ui->color);
 
         if (maxListSize > 0)
         {
@@ -1305,7 +1348,6 @@ void printProgressBar(int row, int col, AppSettings *settings, UISettings *ui,
                       int elapsedBars, int numProgressBars)
 {
         PixelData color = ui->color;
-        bool useConfigColors = ui->useConfigColors;
 
         progressBarRow = row;
         progressBarCol = col + 1;
@@ -1318,16 +1360,19 @@ void printProgressBar(int row, int col, AppSettings *settings, UISettings *ui,
         {
                 if (i > elapsedBars)
                 {
-                        if (!useConfigColors)
+                        if (ui->colorMode == COLOR_MODE_ALBUM)
                         {
                                 PixelData tmp = increaseLuminosity(color, 50);
                                 printf("\033[38;2;%d;%d;%dm", tmp.r, tmp.g,
                                        tmp.b);
+
+                                applyColor(ui->colorMode,
+                                           ui->theme.progress_empty, tmp);
                         }
                         else
                         {
-                                setTextColorRGB(lastRowColor.r, lastRowColor.g,
-                                                lastRowColor.b);
+                                applyColor(ui->colorMode,
+                                           ui->theme.progress_empty, color);
                         }
 
                         if (i % 2 == 0)
@@ -1341,18 +1386,11 @@ void printProgressBar(int row, int col, AppSettings *settings, UISettings *ui,
                         continue;
                 }
 
-                if (!useConfigColors)
-                {
-                        printf("\033[38;2;%d;%d;%dm", color.r, color.g,
-                               color.b);
-                }
-                else
-                {
-                        setDefaultTextColor();
-                }
-
                 if (i < elapsedBars)
                 {
+                        applyColor(ui->colorMode, ui->theme.progress_filled,
+                                   color);
+
                         if (i % 2 == 0)
                                 printf("%s",
                                        settings->progressBarElapsedEvenChar);
@@ -1362,6 +1400,9 @@ void printProgressBar(int row, int col, AppSettings *settings, UISettings *ui,
                 }
                 else if (i == elapsedBars)
                 {
+                        applyColor(ui->colorMode, ui->theme.progress_elapsed,
+                                   color);
+
                         if (i % 2 == 0)
                                 printf("%s",
                                        settings->progressBarCurrentEvenChar);
@@ -1429,6 +1470,34 @@ void setCurrentAsChosenDir(void)
 
 void resetChosenDir(void) { chosenDir = NULL; }
 
+void applyTreeItemColor(UISettings *ui, int depth, PixelData rowColor,
+                        bool isEnqueued, bool isPlaying)
+{
+        if (depth <= 1)
+        {
+                applyColor(ui->colorMode, ui->theme.library_artist, rowColor);
+        }
+        else
+        {
+                applyColor(ui->colorMode, ui->theme.library_track,
+                           defaultColorRGB);
+        }
+
+        if (isEnqueued)
+        {
+                if (isPlaying)
+                {
+                        applyColor(ui->colorMode, ui->theme.library_playing,
+                                   rowColor);
+                }
+                else
+                {
+                        applyColor(ui->colorMode, ui->theme.library_enqueued,
+                                   rowColor);
+                }
+        }
+}
+
 int displayTree(FileSystemEntry *root, int depth, int maxListSize,
                 int maxNameWidth, AppState *state)
 {
@@ -1438,7 +1507,7 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize,
         char dirName[maxNameWidth + 1];
         char filename[MAXPATHLEN + 1];
         bool foundChosen = false;
-        int foundCurrent = 0;
+        int isPlaying = 0;
         int extraIndent = 0;
 
         UISettings *ui = &(state->uiSettings);
@@ -1447,7 +1516,7 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize,
         if (currentSong != NULL &&
             (strcmp(currentSong->song.filePath, root->fullPath) == 0))
         {
-                foundCurrent = 1;
+                isPlaying = 1;
         }
 
         if (startLibIter < 0)
@@ -1514,25 +1583,16 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize,
                 if (libIter >= startLibIter)
                 {
 
-                        if (depth <= 1)
-                        {
-                                if (ui->useConfigColors)
-                                        setTextColor(ui->artistColor);
-                                else
-                                        setColorAndWeight(0, rowColor,
-                                                          ui->useConfigColors);
-                        }
-                        else
-                        {
-                                setDefaultTextColor();
-                        }
+                        applyTreeItemColor(ui, depth, rowColor,
+                                           root->isEnqueued, isPlaying);
 
                         clearLine();
 
                         if (depth >= 2)
                                 printf("  ");
 
-                        // If more than two levels deep add an extra indentation
+                        // If more than two levels deep add an extra
+                        // indentation
                         extraIndent = (depth - 2 <= 0) ? 0 : depth - 2;
 
                         printBlankSpaces(indent + extraIndent);
@@ -1541,13 +1601,6 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize,
                         {
                                 if (root->isEnqueued)
                                 {
-                                        if (ui->useConfigColors)
-                                                setTextColor(ui->enqueuedColor);
-                                        else
-                                                setColorAndWeight(
-                                                    0, rowColor,
-                                                    ui->useConfigColors);
-
                                         printf("\x1b[7m * ");
                                 }
                                 else
@@ -1584,15 +1637,6 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize,
                         {
                                 if (root->isEnqueued)
                                 {
-                                        if (ui->useConfigColors)
-                                                printf("\033[%d;3%dm",
-                                                       foundCurrent,
-                                                       ui->enqueuedColor);
-                                        else
-                                                setColorAndWeight(
-                                                    foundCurrent, rowColor,
-                                                    ui->useConfigColors);
-
                                         printf(" * ");
                                 }
                                 else
@@ -1644,16 +1688,6 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize,
                                         resetNameScroll();
                                 }
 
-                                printf("└─ ");
-
-                                // Playlist
-                                if (pathEndsWith(root->fullPath, "m3u") ||
-                                    pathEndsWith(root->fullPath, "m3u8"))
-                                {
-                                        printf("♫ ");
-                                        maxNameWidth = maxNameWidth - 2;
-                                }
-
                                 if (foundChosen)
                                 {
                                         processNameScroll(root->name, filename,
@@ -1668,7 +1702,25 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize,
                                                     true, true);
                                 }
 
-                                if (foundCurrent && chosenLibRow != libIter)
+                                if (isPlaying)
+                                {
+                                        if (chosenLibRow == libIter)
+                                        {
+                                                printf("\x1b[7m");
+                                        }
+                                }
+
+                                printf("└─ ");
+
+                                // Playlist
+                                if (pathEndsWith(root->fullPath, "m3u") ||
+                                    pathEndsWith(root->fullPath, "m3u8"))
+                                {
+                                        printf("♫ ");
+                                        maxNameWidth = maxNameWidth - 2;
+                                }
+
+                                if (isPlaying && chosenLibRow != libIter)
                                 {
                                         printf("\e[4m");
                                 }
@@ -1677,8 +1729,6 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize,
 
                                 libSongIter++;
                         }
-
-                        setColor(ui);
                 }
 
                 libIter++;
@@ -1757,12 +1807,11 @@ void showLibrary(SongData *songData, AppState *state, AppSettings *settings)
         getTermSize(&term_w, &term_h);
         int totalHeight = term_h;
         maxLibListSize = totalHeight;
-        setColor(ui);
         int aboutSize = printLogo(songData, ui);
         int maxNameWidth = term_w - 10 - indent;
         maxLibListSize -= aboutSize + 2;
 
-        setDefaultTextColor();
+        applyColor(ui->colorMode, ui->theme.help, defaultColorRGB);
 
         if (term_w > 67 && !ui->hideHelp)
         {
@@ -1843,104 +1892,6 @@ int calcVisualizerWidth()
         return visualizerWidth;
 }
 
-void showTrackViewMini(AppSettings *settings, SongData *songdata,
-                       AppState *state, double elapsedSeconds)
-{
-        TagSettings *metadata = NULL;
-        int avgBitRate = 0;
-
-        int col = indent;
-
-        clearScreen();
-
-        if (refresh)
-        {
-                miniVisualizerRow = 1;
-
-                printf("\n");
-                miniVisualizerRow++;
-
-                if (currentSong == NULL)
-                {
-                        int term_w, term_h;
-                        getTermSize(&term_w, &term_h);
-
-                        if (term_w > 21 && term_h > 4)
-                        {
-                                for (size_t i = 0;
-                                     i < sizeof(LOGO) / sizeof(LOGO[0]); i++)
-                                {
-                                        printBlankSpaces(indent);
-                                        printf("%s", LOGO[i]);
-                                }
-
-                                printf("\n");
-                                printBlankSpaces(indent);
-                                printf(" kew version: %s", VERSION);
-                                miniVisualizerRow++;
-                        }
-                        return;
-                }
-
-                if (songdata)
-                {
-                        metadata = songdata->metadata;
-                }
-
-                calcIndentTrackView(metadata);
-
-                if (state->uiSettings.useConfigColors)
-                        setDefaultTextColor();
-                else
-                        setTextColorRGB(state->uiSettings.color.r,
-                                        state->uiSettings.color.g,
-                                        state->uiSettings.color.b);
-
-                if (strnlen(metadata->artist, METADATA_MAX_LENGTH) > 0 &&
-                    strnlen(metadata->title, METADATA_MAX_LENGTH) > 0)
-                {
-                        int text_len = textWidth - 3;
-                        char combined[text_len + 1];
-                        snprintf(combined, sizeof(combined), "%s - %s",
-                                 metadata->artist, metadata->title);
-
-                        printBlankSpaces(indent);
-                        printf("%.*s\n", text_len, combined);
-                        miniVisualizerRow++;
-                }
-                else if (strnlen(metadata->title, METADATA_MAX_LENGTH) > 0)
-                {
-                        printBlankSpaces(indent);
-                        printf("%.*s\n", textWidth, metadata->title);
-                        miniVisualizerRow++;
-                }
-
-                refresh = false;
-        }
-
-        int term_w, term_h;
-        getTermSize(&term_w, &term_h);
-
-        bool doPrintTime = term_h > (state->uiSettings.visualizerHeight + 3);
-        bool doPrintVis = term_h > (state->uiSettings.visualizerHeight + 2);
-
-        if (songdata && doPrintTime)
-        {
-                ma_uint32 sampleRate;
-                ma_format format;
-                avgBitRate = songdata->avgBitRate;
-                getCurrentFormatAndSampleRate(&format, &sampleRate);
-                printTime(miniVisualizerRow - 1, col, elapsedSeconds,
-                          sampleRate, avgBitRate, state);
-        }
-        if (doPrintVis)
-        {
-                int visualizerWidth = calcVisualizerWidth();
-                printVisualizer(miniVisualizerRow, col, visualizerWidth,
-                                settings, elapsedSeconds, state);
-        }
-}
-
 void showTrackViewLandscape(int height, int width, float aspectRatio,
                             AppSettings *settings, SongData *songdata,
                             AppState *state, double elapsedSeconds)
@@ -1958,7 +1909,8 @@ void showTrackViewLandscape(int height, int width, float aspectRatio,
 
         int col = height * aspectRatio;
 
-        if (!state->uiSettings.coverEnabled || (songdata && songdata->cover == NULL))
+        if (!state->uiSettings.coverEnabled ||
+            (songdata && songdata->cover == NULL))
                 col = 1;
 
         int term_w, term_h;
@@ -1999,10 +1951,10 @@ void showTrackViewLandscape(int height, int width, float aspectRatio,
         {
                 printErrorRow(row + metadataHeight + 2 +
                                   state->uiSettings.visualizerHeight,
-                              col);
-                printLastRow(row + metadataHeight + 2 +
-                                 state->uiSettings.visualizerHeight + 1,
-                             col, &(state->uiSettings), settings);
+                              col, &(state->uiSettings));
+                printFooter(row + metadataHeight + 2 +
+                                state->uiSettings.visualizerHeight + 1,
+                            col, &(state->uiSettings), settings);
         }
 }
 
@@ -2088,7 +2040,6 @@ int printPlayer(SongData *songdata, double elapsedSeconds,
         if (refresh)
         {
                 hideCursor();
-                setColor(ui);
 
                 if (songdata != NULL && songdata->metadata != NULL &&
                     !songdata->hasErrors && (songdata->hasErrors < 1))
@@ -2126,14 +2077,6 @@ int printPlayer(SongData *songdata, double elapsedSeconds,
 
         state->uiState.miniMode = false;
 
-        // if ((term_w <= 10 || term_h <= 8) ||
-        //     (preferredHeight <= 0 || preferredWidth <= 0))
-        // {
-        //         state->uiState.miniMode = true;
-        //         showTrackViewMini(settings, songdata, state, elapsedSeconds);
-        //         fflush(stdout);
-        //         return 0;
-        // }
         if (state->currentView != PLAYLIST_VIEW)
                 state->uiState.resetPlaylistDisplay = true;
 

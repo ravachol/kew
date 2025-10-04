@@ -1,0 +1,58 @@
+# ============================================
+# 4. TOKYO NIGHT (Modern Dark)
+# ============================================
+
+[theme]
+name=Tokyo Night
+author=Ravachol
+
+# Core colors
+accent=#7aa2f7
+text=#c0caf5
+textDim=#9aa5ce
+textMuted=#565f89
+
+# General Colors
+logo=#565f89
+header=#565f89
+footer=#565f89
+help=#7dcfff
+link=#9ece6a
+nowplaying=#ff9e64
+
+# Playlist View
+playlist.rownum=#565f89
+playlist.title=#c0caf5
+playlist.playing=#7aa2f7
+
+# Track View
+trackview.title=#c0caf5
+trackview.artist=#7aa2f7
+trackview.album=#bb9af7
+trackview.year=#bb9af7
+trackview.time=#7dcfff
+trackview.visualizer=#7aa2f7
+
+# Library View
+library.artist=#7aa2f7
+library.album=#bb9af7
+library.track=#a9b1d6
+library.enqueued=#7dcfff
+library.playing=#7aa2f7
+
+# Search
+search.label=#bb9af7
+search.query=#c0caf5
+search.result=#a9b1d6
+search.enqueued=#7dcfff
+
+# Progress
+progress.filled=#7aa2f7
+progress.empty=#292e42
+progress.elapsed=#7dcfff
+
+# Status
+status.info=-1      	# Default foreground
+status.warning=#787878  # The old school gray, this works on most terminals
+status.error=#787878  	# The old school gray, this works on most terminals
+status.success=#787878  # The old school gray, this works on most terminals
