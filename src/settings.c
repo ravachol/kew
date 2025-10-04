@@ -88,14 +88,9 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         // anyway. People need to switch
         c_strcpy(settings.visualizerEnabled, "1",
                  sizeof(settings.visualizerEnabled));
-        // Colors from album look wrong in default terminal
-        c_strcpy(settings.useConfigColors, "1",
-                 sizeof(settings.useConfigColors));
 #else
         c_strcpy(settings.visualizerEnabled, "1",
                  sizeof(settings.visualizerEnabled));
-        c_strcpy(settings.useConfigColors, "0",
-                 sizeof(settings.useConfigColors));
 #endif
 #ifdef __ANDROID__
         c_strcpy(settings.hideLogo, "1", sizeof(settings.hideLogo));
@@ -1096,7 +1091,7 @@ void getConfig(AppSettings *settings, UISettings *ui)
         ui->coverEnabled = (settings->coverEnabled[0] == '1');
         ui->coverAnsi = (settings->coverAnsi[0] == '1');
         ui->visualizerEnabled = (settings->visualizerEnabled[0] == '1');
-        ui->useConfigColors = (settings->useConfigColors[0] == '1');
+        bool useConfigColors = (settings->useConfigColors[0] == '1');
         ui->quitAfterStopping = (settings->quitAfterStopping[0] == '1');
         ui->hideGlimmeringText = (settings->hideGlimmeringText[0] == '1');
         ui->mouseEnabled = (settings->mouseEnabled[0] == '1');
@@ -1110,25 +1105,9 @@ void getConfig(AppSettings *settings, UISettings *ui)
         ui->trackTitleAsWindowTitle =
             (settings->trackTitleAsWindowTitle[0] == '1');
 
-        int tmp = getNumber(settings->color);
-        if (tmp >= 0)
-                ui->mainColor = tmp;
-
-        tmp = getNumber(settings->repeatState);
+        int tmp = getNumber(settings->repeatState);
         if (tmp >= 0)
                 ui->repeatState = tmp;
-
-        tmp = getNumber(settings->artistColor);
-        if (tmp >= 0)
-                ui->artistColor = tmp;
-
-        tmp = getNumber(settings->enqueuedColor);
-        if (tmp >= 0)
-                ui->enqueuedColor = tmp;
-
-        tmp = getNumber(settings->titleColor);
-        if (tmp >= 0)
-                ui->titleColor = tmp;
 
         tmp = getNumber(settings->colorMode);
         if (tmp >= 0 && tmp < 3)
@@ -1137,7 +1116,7 @@ void getConfig(AppSettings *settings, UISettings *ui)
         }
         else
         {
-                if (ui->useConfigColors)
+                if (useConfigColors)
                         ui->colorMode = COLOR_MODE_TERMINAL;
                 else
                          ui->colorMode = COLOR_MODE_ALBUM;
@@ -1252,12 +1231,6 @@ void setConfig(AppSettings *settings, UISettings *ui)
                                sizeof(settings->visualizerEnabled))
                     : c_strcpy(settings->visualizerEnabled, "0",
                                sizeof(settings->visualizerEnabled));
-        if (settings->useConfigColors[0] == '\0')
-                ui->useConfigColors
-                    ? c_strcpy(settings->useConfigColors, "1",
-                               sizeof(settings->useConfigColors))
-                    : c_strcpy(settings->useConfigColors, "0",
-                               sizeof(settings->useConfigColors));
         if (settings->quitAfterStopping[0] == '\0')
                 ui->quitAfterStopping
                     ? c_strcpy(settings->quitAfterStopping, "1",
@@ -1435,27 +1408,15 @@ void setConfig(AppSettings *settings, UISettings *ui)
         fprintf(file, "theme=%s\n\n", settings->theme);
 
         fprintf(file, "# Color Mode is:\n");
-        fprintf(file, "# 0 = (Simple) Terminal colors from kewrc, \n");
-        fprintf(file, "# 1 = Colors derived from album cover, \n");
-        fprintf(file, "# 2 = Colors derived from theme, \n\n");
+        fprintf(file, "# 0 = 16-bit color palette from default theme, \n");
+        fprintf(file, "# 1 = Colors derived from track cover, \n");
+        fprintf(file, "# 2 = Colors derived from TrueColor theme, \n\n");
         fprintf(file, "# Color Mode:\n");
         fprintf(file, "colorMode=%d\n\n", ui->colorMode);
 
-        fprintf(file, "# Terminal color values are 0=Black, 1=Red, 2=Green, 3=Yellow, "
-                      "4=Blue, 5=Magenta, 6=Cyan, 7=White\n");
-        fprintf(file, "# These mostly affect the library view.\n\n");
-
-        fprintf(file, "# Logo color:\n");
-        fprintf(file, "color=%s\n\n", settings->color);
-
-        fprintf(file, "# Header color in library view:\n");
-        fprintf(file, "artistColor=%s\n\n", settings->artistColor);
-
-        fprintf(file, "# Now playing song text in library view:\n");
-        fprintf(file, "titleColor=%s\n\n", settings->titleColor);
-
-        fprintf(file, "# Color of enqueued songs in library view:\n");
-        fprintf(file, "enqueuedColor=%s\n\n", settings->enqueuedColor);
+        fprintf(file, "# Terminal color theme is default.theme in \n");
+        fprintf(file, "# ~/.config/kew/themes (on Linux/FreeBSD/Android), \n");
+        fprintf(file, "# and ~/Library/Preferences/kew/themes (on macOS).\n\n");
 
         fprintf(file, "\n[track cover]\n\n");
         fprintf(file, "coverEnabled=%s\n", settings->coverEnabled);

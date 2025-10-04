@@ -2048,7 +2048,6 @@ void initState(AppState *state)
         state->uiSettings.visualizerBarWidth = 2;
         state->uiSettings.titleDelay = 9;
         state->uiSettings.cacheLibrary = -1;
-        state->uiSettings.useConfigColors = false;
         state->uiSettings.mouseEnabled = true;
         state->uiSettings.mouseLeftClickAction = 0;
         state->uiSettings.mouseMiddleClickAction = 1;
