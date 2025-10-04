@@ -1,0 +1,78 @@
+# Default kew Theme
+#
+# ANSI 16-Color Palette Theme
+# This theme will be used if you choose terminal profile colors (press i in kew to cycle color settings)
+#
+#   The available colors are:
+#
+#   0: Black
+#   1: Red
+#   2: Green
+#   3: Yellow
+#   4: Blue
+#   5: Magenta
+#   6: Cyan
+#   7: White
+#   8: Bright Black (Gray)
+#   9: Bright Red
+#   10: Bright Green
+#   11: Bright Yellow
+#   12: Bright Blue
+#   13: Bright Magenta
+#   14: Bright Cyan
+#   15: Bright White
+#   -1: Default terminal foreground
+
+name=Default
+author=Ravachol
+
+# Core Colors
+accent=13       # Bright Magenta
+text=-1         # Default terminal foreground
+textDim=8       # Bright Black / Gray
+textMuted=7     # White (dim)
+
+# General Colors
+logo=6          # Cyan
+header=6        # Cyan
+footer=#787878  # The old school gray, this works on most terminals
+help=11         # Bright Yellow
+link=14         # Bright Cyan
+nowplaying=-1   # Default foreground
+
+# Playlist View
+playlist.rownum=8   # Bright Black / Gray
+playlist.title=-1    # Default foreground
+playlist.playing=11 # Bright Yellow
+
+# Track View
+trackview.title=-1      # Default foreground
+trackview.artist=-1     # Default foreground
+trackview.album=-1      # Default foreground
+trackview.year=-1       # Default foreground
+trackview.time=-1       # Default foreground
+trackview.visualizer=-1 # Default foreground
+
+# Library View
+library.artist=6    # Cyan
+library.album=6     # Cyan
+library.track=-1    # Default foreground
+library.enqueued=11 # Bright Yellow
+library.playing=11 # Bright Yellow
+
+# Search
+search.label=11     # Bright Yellow
+search.query=-1     # Default foreground
+search.result=-1    # Default foreground
+search.enqueued=14  # Bright Cyan
+
+# Progress
+progress.filled=8   # Bright Black / Gray
+progress.empty=0    # Black
+progress.elapsed=8  # Bright Black / Gray
+
+# Status
+status.info=-1      # Default foreground
+status.warning=11   # Bright Yellow
+status.error=9      # Bright Red
+status.success=10   # Bright Green
