@@ -923,6 +923,8 @@ int showKeyBindings(SongData *songdata, AppSettings *settings, UISettings *ui)
         getTermSize(&term_w, &term_h);
         maxListSize = term_h - 4;
 
+        clearScreen();
+
         numPrintedRows += printAbout(songdata, ui);
 
         applyColor(ui->colorMode, ui->theme.text, defaultColorRGB);
@@ -983,6 +985,9 @@ int showKeyBindings(SongData *songdata, AppSettings *settings, UISettings *ui)
 
         printBlankSpaces(indent);
         printf(" · Toggle ASCII Cover: %s\n", settings->toggleAscii);
+
+        printBlankSpaces(indent);
+        printf(" · Toggle Notifications: %s\n", settings->toggleNotifications);
 
         printBlankSpaces(indent);
         printf(" · Cycle Repeat: %s (repeat/repeat list/off)\n",
@@ -1058,7 +1063,7 @@ int showKeyBindings(SongData *songdata, AppSettings *settings, UISettings *ui)
 
         printf("\n");
 
-        numPrintedRows += 30;
+        numPrintedRows += 31;
 
         while (numPrintedRows < maxListSize)
         {

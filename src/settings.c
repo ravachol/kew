@@ -124,6 +124,8 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
                  sizeof(settings.cycleColorsDerivedFrom));
         c_strcpy(settings.cycleThemes, "t",
                  sizeof(settings.cycleThemes));
+        c_strcpy(settings.toggleNotifications, "n",
+                 sizeof(settings.toggleNotifications));
         c_strcpy(settings.toggleVisualizer, "v",
                  sizeof(settings.toggleVisualizer));
         c_strcpy(settings.toggleAscii, "b", sizeof(settings.toggleAscii));
@@ -353,6 +355,12 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
                                  sizeof(settings.cycleThemes), "%s",
                                  pair->value);
                         foundCycleThemesSetting = true;
+                }
+                else if (strcmp(lowercaseKey, "togglenotifications") == 0)
+                {
+                        snprintf(settings.toggleNotifications,
+                                 sizeof(settings.toggleNotifications), "%s",
+                                 pair->value);
                 }
                 else if (strcmp(lowercaseKey, "togglevisualizer") == 0)
                 {
@@ -916,6 +924,8 @@ void mapSettingsToKeys(AppSettings *settings, UISettings *ui,
         mappings[60] = (EventMapping){settings->sortLibrary, EVENT_SORTLIBRARY};
         mappings[61] = (EventMapping){settings->cycleThemes,
                                       EVENT_CYCLETHEMES};
+        mappings[62] = (EventMapping){settings->toggleNotifications,
+                                      EVENT_TOGGLENOTIFICATIONS};
 }
 
 char *getConfigFilePath(char *configdir)
@@ -1534,6 +1544,7 @@ void setConfig(AppSettings *settings, UISettings *ui)
         fprintf(file, "scrollDownAlt=%s\n", settings->scrollDownAlt);
         fprintf(file, "switchNumberedSong=%s\n", settings->switchNumberedSong);
         fprintf(file, "togglePause=%s\n", settings->togglePause);
+        fprintf(file, "toggleNotifications=%s\n", settings->toggleNotifications);
         fprintf(file, "toggleColorsDerivedFrom=%s\n",
                 settings->cycleColorsDerivedFrom);
         fprintf(file, "cycleThemes=%s\n",

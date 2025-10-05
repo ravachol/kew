@@ -46,7 +46,8 @@ enum EventType
         EVENT_ENQUEUEANDPLAY,
         EVENT_STOP,
         EVENT_SORTLIBRARY,
-        EVENT_CYCLETHEMES
+        EVENT_CYCLETHEMES,
+        EVENT_TOGGLENOTIFICATIONS
 };
 
 struct Event

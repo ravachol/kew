@@ -1,4 +1,5 @@
 #include "search_ui.h"
+#include "appstate.h"
 #include "common.h"
 #include "common_ui.h"
 #include "soundcommon.h"
@@ -174,7 +175,7 @@ void calculateGroupDistances(void)
                                         break;
                                 }
                                 if (results[j].distance < minDist) {
-                                        minDist = results[j].distance;
+                                        minDist = results[j].distance + 1;
                                 }
                         }
                 }
@@ -460,6 +461,9 @@ int displaySearchResults(int maxListSize, int indent, int *chosenRow,
         printf("\n");
         printedRows++;
 
+        int nameWidth = maxNameWidth;
+        int extraIndent = 0;
+
         for (size_t i = startSearchIter; i < resultsCount; i++)
         {
                 if ((int)i >= maxListSize + startSearchIter - 1)
@@ -471,10 +475,16 @@ int displaySearchResults(int maxListSize, int indent, int *chosenRow,
                 clearLine();
 
                 // Indent sub dirs
-                if (results[i].parent != NULL || !results[i].entry->isDirectory)
-                        printBlankSpaces(indent + 2);
+                if (results[i].parent != NULL)
+                        extraIndent = 2;
+                else if (!results[i].entry->isDirectory)
+                        extraIndent = 4;
                 else
-                        printBlankSpaces(indent);
+                        extraIndent = 0;
+
+                nameWidth = maxNameWidth - extraIndent;
+
+                printBlankSpaces(indent + extraIndent);
 
                 bool isChosen = (*chosenRow == (int)i);
 
@@ -483,17 +493,19 @@ int displaySearchResults(int maxListSize, int indent, int *chosenRow,
                 name[0] = '\0';
                 if (results[i].entry->isDirectory)
                 {
-                        snprintf(name, maxNameWidth + 1, "[%s]",
+                        snprintf(name, nameWidth + 1, "[%s]",
                                  results[i].entry->name);
                 }
                 else
                 {
-                        snprintf(name, maxNameWidth + 1, "%s",
+                        snprintf(name, nameWidth + 1, "%s",
                                  results[i].entry->name);
                 }
                 printf("%s\n", name);
                 printedRows++;
         }
+
+        applyColor(ui->colorMode, ui->theme.help, defaultColorRGB);
 
         while (printedRows < maxListSize)
         {

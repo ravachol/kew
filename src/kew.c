@@ -1000,6 +1000,9 @@ void handleInput(AppState *state)
         case EVENT_CYCLETHEMES:
                 cycleThemes(&(state->uiSettings), &settings);
                 break;
+        case EVENT_TOGGLENOTIFICATIONS:
+                toggleNotifications(&(state->uiSettings), &settings);
+                break;
         case EVENT_QUIT:
                 quit();
                 break;
