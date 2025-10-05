@@ -1,15 +1,17 @@
-<div style="text-align: center;">
-    <img src="images/logo2.png" alt="kew Logo">
+<div align="center">
+  <img src="images/logo2.png" alt="kew Logo">
 </div>
 
-<div style="text-align: center; margin-top: 1em;">
+<div align="center">
+  <a href="https://jenova7.bandcamp.com/album/lost-sci-fi-movie-themes">
+    <img src="images/kew-screenshot.png" alt="Screenshot">
+  </a>
+  <br>
+  <em>Example screenshot running in Konsole:
     <a href="https://jenova7.bandcamp.com/album/lost-sci-fi-movie-themes">
-        <img width="400" src="images/kew-screenshot.png" alt="Screenshot">
-    </a>
-    <br>
-    <em>Example screenshot running in Konsole:
-        <a href="https://jenova7.bandcamp.com/album/lost-sci-fi-movie-themes">Jenova 7: Lost Sci-Fi Movie Themes</a>.
-    </em>
+      Jenova 7: Lost Sci-Fi Movie Themes
+    </a>.
+  </em>
 </div>
 
 [![License](https://img.shields.io/github/license/ravachol/kew?color=333333&style=for-the-badge)](./LICENSE)
