@@ -125,15 +125,7 @@ Install dependencies:
 ```bash
 sudo dnf install -y pkg-config taglib-devel fftw-devel opus-devel opusfile-devel libvorbis-devel libogg-devel git gcc make chafa-devel libatomic gcc-c++ glib2-devel
 ```
-Option: add faad2-devel for AAC,M4A support (Requires RPM-fusion to be enabled).
-
-Enable RPM Fusion free repository:
-
-```bash
-sudo dnf install https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm
-```
-
-Install faad2:
+Option: add faad2-devel for AAC, M4A support.
 
 ```bash
 sudo dnf install faad2-devel faad2
