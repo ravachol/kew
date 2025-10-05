@@ -13,13 +13,10 @@
     </a>.
   </em>
 </div>
-
+<br><br>
 [![License](https://img.shields.io/github/license/ravachol/kew?color=333333&style=for-the-badge)](./LICENSE)
 
-
-kew (/kjuː/) is a terminal music player.
-
-
+<br><br>
 
 ## Features
 
