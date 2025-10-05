@@ -338,7 +338,8 @@ You can select all music by pressing the - MUSIC LIBRARY - header at the top of 
 * <kbd>F6</kbd> or <kbd>Shift+b</kbd> (macOS/Android) to show/hide key bindings view.
 * <kbd>u</kbd> to update the library.
 * <kbd>v</kbd> to toggle the spectrum visualizer.
-* <kbd>i</kbd> cycle colors derived from kewrc, theme or track cover.
+* <kbd>i</kbd> to cycle colors derived from kewrc, theme or track cover.
+* <kbd>t</kbd> to cycle themes.
 * <kbd>b</kbd> to toggle album covers drawn in ascii or as a normal image.
 * <kbd>r</kbd> to repeat the current song after playing.
 * <kbd>s</kbd> to shuffle the playlist.
@@ -349,7 +350,7 @@ You can select all music by pressing the - MUSIC LIBRARY - header at the top of 
 * <kbd>Shift+Tab</kbd> to switch to previous view.
 * <kbd>Backspace</kbd> to clear the playlist.
 * <kbd>Delete</kbd> to remove a single playlist entry.
-* <kbd>t</kbd>, <kbd>g</kbd> to move songs up or down the playlist.
+* <kbd>f</kbd>, <kbd>g</kbd> to move songs up or down the playlist.
 * number + <kbd>G</kbd> or <kbd>Enter</kbd> to go to specific song number in the playlist.
 * <kbd>.</kbd> to add currently playing song to kew favorites.m3u (run with "kew .").
 * <kbd>Esc</kbd> to quit.
@@ -364,9 +365,11 @@ You can fully customize kew with themes, with TrueColor values or 16 color palet
 
 Included is a pack of 16 themes + the default 16-color theme.
 
-You can also switch to using colors derived from the album cover. Cycle through the 3 color modes (default, theme and album cover) by pressing i.
+You can also switch to using colors derived from the album cover. Cycle through the 3 color modes (default, theme and album colors) by pressing i.
 
-To set a theme, run kew with:
+Press t to cycle available themes.
+
+To set a theme from the command-line, run:
 
 kew theme <themename>
 
