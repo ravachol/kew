@@ -52,6 +52,7 @@ trackview.album=-1      # Default foreground
 trackview.year=-1       # Default foreground
 trackview.time=-1       # Default foreground
 trackview.visualizer=-1 # Default foreground
+trackview.lyrics=-1     # Default foreground
 
 # Library View
 library.artist=6    # Cyan
@@ -65,6 +66,7 @@ search.label=11     # Bright Yellow
 search.query=-1     # Default foreground
 search.result=-1    # Default foreground
 search.enqueued=14  # Bright Cyan
+search.playing=11   # Bright Yellow
 
 # Progress
 progress.filled=8   # Bright Black / Gray
