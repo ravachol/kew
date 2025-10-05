@@ -4,7 +4,7 @@
 
 <div align="center">
   <a href="https://jenova7.bandcamp.com/album/lost-sci-fi-movie-themes">
-    <img src="images/kew-screenshot.png" alt="Screenshot">
+    <img src="images/kew-screenshot.png" alt="Screenshot" style="width:400px;">
   </a>
   <br>
   <em>Example screenshot running in Konsole:
