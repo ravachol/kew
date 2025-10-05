@@ -452,8 +452,9 @@ void toggleRepeat(UISettings *ui)
 
 void toggleNotifications(UISettings *ui, AppSettings *settings)
 {
-          ui->allowNotifications = !ui->allowNotifications;
-        c_strcpy(settings->allowNotifications, ui->allowNotifications ? "1" : "0",
+        ui->allowNotifications = !ui->allowNotifications;
+        c_strcpy(settings->allowNotifications,
+                 ui->allowNotifications ? "1" : "0",
                  sizeof(settings->allowNotifications));
 
         if (ui->allowNotifications)
@@ -538,14 +539,15 @@ int loadTheme(AppState *appState, AppSettings *settings, const char *themeName,
         if (!appState || !themeName)
                 return 0;
 
-        char *configDir = getConfigPath();
-        if (!configDir)
+        char *configPath = getConfigPath();
+        if (!configPath)
                 return 0;
 
         // Check if config directory exists
         struct stat st = {0};
-        if (stat(configDir, &st) == -1)
+        if (stat(configPath, &st) == -1)
         {
+                free(configPath);
                 return 0;
         }
 
@@ -567,6 +569,7 @@ int loadTheme(AppState *appState, AppSettings *settings, const char *themeName,
                 {
                         fprintf(stderr, "Theme filename is too long\n");
                         setErrorMessage("Theme filename is too long");
+                        free(configPath);
                         return 0;
                 }
         }
@@ -577,17 +580,19 @@ int loadTheme(AppState *appState, AppSettings *settings, const char *themeName,
                 {
                         fprintf(stderr, "Theme filename is too long\n");
                         setErrorMessage("Theme filename is too long");
+                        free(configPath);
                         return 0;
                 }
         }
 
         // Build full themes directory path: configDir + "/themes"
         char themesDir[MAXPATHLEN];
-        if (snprintf(themesDir, sizeof(themesDir), "%s/themes", configDir) >=
+        if (snprintf(themesDir, sizeof(themesDir), "%s/themes", configPath) >=
             (int)sizeof(themesDir))
         {
                 fprintf(stderr, "Themes path is too long\n");
                 setErrorMessage("Themes path is too long");
+                free(configPath);
                 return 0;
         }
 
@@ -598,6 +603,7 @@ int loadTheme(AppState *appState, AppSettings *settings, const char *themeName,
             loadThemeFromFile(themesDir, filename, &appState->uiSettings.theme);
         if (!loaded)
         {
+                free(configPath);
                 return 0; // failed to load
         }
 
@@ -616,6 +622,8 @@ int loadTheme(AppState *appState, AppSettings *settings, const char *themeName,
                          themeName);
         }
 
+        free(configPath);
+
         return 1;
 }
 
@@ -623,7 +631,10 @@ void cycleThemes(UISettings *ui, AppSettings *settings)
 {
         clearScreen();
 
-        const char *configPath = getConfigPath();
+        char *configPath = getConfigPath();
+        if (!configPath)
+                return;
+
         char themesPath[MAXPATHLEN];
         snprintf(themesPath, sizeof(themesPath), "%s/themes", configPath);
 
@@ -651,6 +662,7 @@ void cycleThemes(UISettings *ui, AppSettings *settings)
         if (themeCount == 0)
         {
                 setErrorMessage("No themes found.");
+                free(configPath);
                 return;
         }
 
@@ -678,15 +690,23 @@ void cycleThemes(UISettings *ui, AppSettings *settings)
 
         if (loadTheme(&appState, settings, themes[nextIndex], false))
         {
-                 ui->colorMode = COLOR_MODE_THEME;
+                ui->colorMode = COLOR_MODE_THEME;
 
-                snprintf(ui->themeName, sizeof(ui->themeName), "%s", themes[nextIndex]);
+                snprintf(ui->themeName, sizeof(ui->themeName), "%s",
+                         themes[nextIndex]);
                 char *dot = strstr(ui->themeName, ".theme");
                 if (dot)
                         *dot = '\0';
         }
 
         refresh = true;
+
+        for (int i = 0; i < themeCount; i++)
+        {
+                free(themes[i]);
+        }
+
+        free(configPath);
 }
 
 void cycleColorMode(UISettings *ui)
