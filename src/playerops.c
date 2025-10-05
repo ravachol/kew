@@ -680,7 +680,7 @@ void cycleThemes(UISettings *ui, AppSettings *settings)
         {
                  ui->colorMode = COLOR_MODE_THEME;
 
-                strncpy(ui->themeName, themes[nextIndex], sizeof(ui->themeName));
+                snprintf(ui->themeName, sizeof(ui->themeName), "%s", themes[nextIndex]);
                 char *dot = strstr(ui->themeName, ".theme");
                 if (dot)
                         *dot = '\0';
