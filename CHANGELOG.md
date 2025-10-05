@@ -2,7 +2,7 @@
 
 ### 3.5.0
 
-#### kew 3.5 — now with themes, Android support, and song lyrics!
+#### kew 3.5 — now with themes and Android support
 
 New in this release:
 
