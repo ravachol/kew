@@ -26,7 +26,9 @@ Included is a pack of 16 themes + the default 16-color theme.
 
 You can also switch to using colors derived from the album cover. Cycle through the 3 color modes (default, theme and album colors) by pressing i.
 
-To set a theme, run kew with:
+Press 't' to cycle available themes.
+
+To set a theme from the command-line, run:
 
 kew theme <themename>
 
@@ -56,7 +58,7 @@ We now have a repo on Codeberg and that will be the preferred repo going forward
 
 #### OpenSuse
 
-We are now back on openSuse, as our package there was quite old, version 2.8.1. It hadn't been updated because we switched from FFmpeg to Faad for decoding .m4a files, and Faad wasn't available on openSuse until now. FFmpeg was overkill for that job and Faad is a much smaller lib. Fedora is now the only place that I know of that still doesn't have the Faad library in their official package repository, and therefore doesn't have a kew package. You can however install kew manually on Fedora, and even with Faad support. I have corrected some mistakes in those install instructions.
+We are now back on openSuse, as our package there was quite old, version 2.8.1. It hadn't been updated because we switched from FFmpeg to Faad for decoding .m4a files, and Faad wasn't available on openSuse until now. FFmpeg was overkill for that job and Faad is a much smaller lib.
 
 Thank you to @welpyes for bringing up Termux and helping out with that, and @arcathrax for fixing the ultrawide monitor bug. Thank you to mantarimay for updating the openSuse library.
 
@@ -73,7 +75,7 @@ https://github.com/sponsors/ravachol.
 #### New Features / Improvements
 
 @ravachol
-        Theme colors, both TrueColor and 16-color palette theming.
+        Theme colors, both TrueColor and 16-color palette theming. Cycle by pressing 't'.
 
 @welpyes,
 @ravachol
@@ -102,6 +104,9 @@ https://github.com/sponsors/ravachol.
 
 @ravachol
         Don't make a space for the cover if there is none on landscape view.
+
+@ravachol
+        Improved the instructions in the help view.
 
 #### Bug Fixes
 
