@@ -450,6 +450,19 @@ void toggleRepeat(UISettings *ui)
                 refresh = true;
 }
 
+void toggleNotifications(UISettings *ui, AppSettings *settings)
+{
+          ui->allowNotifications = !ui->allowNotifications;
+        c_strcpy(settings->allowNotifications, ui->allowNotifications ? "1" : "0",
+                 sizeof(settings->allowNotifications));
+
+        if (ui->allowNotifications)
+        {
+                clearScreen();
+                refresh = true;
+        }
+}
+
 void toggleShuffle(UISettings *ui)
 {
         ui->shuffleEnabled = !isShuffleEnabled();

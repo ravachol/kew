@@ -71,6 +71,8 @@ void stop(void);
 
 void toggleRepeat(UISettings *ui);
 
+void toggleNotifications(UISettings *ui, AppSettings *settings);
+
 void toggleShuffle(UISettings *ui);
 
 void toggleAscii(AppSettings *settings, UISettings *ui);
