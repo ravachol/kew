@@ -153,6 +153,7 @@ typedef struct
         char switchNumberedSongAlt2[6];
         char togglePause[6];
         char cycleColorsDerivedFrom[6];
+        char cycleThemes[6];
         char toggleVisualizer[6];
         char toggleAscii[6];
         char toggleRepeat[6];

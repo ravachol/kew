@@ -122,6 +122,8 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
                  sizeof(settings.switchNumberedSong));
         c_strcpy(settings.cycleColorsDerivedFrom, "i",
                  sizeof(settings.cycleColorsDerivedFrom));
+        c_strcpy(settings.cycleThemes, "t",
+                 sizeof(settings.cycleThemes));
         c_strcpy(settings.toggleVisualizer, "v",
                  sizeof(settings.toggleVisualizer));
         c_strcpy(settings.toggleAscii, "b", sizeof(settings.toggleAscii));
@@ -209,7 +211,7 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
                  sizeof(settings.mouseAltScrollUpAction));
         c_strcpy(settings.mouseAltScrollDownAction, "8",
                  sizeof(settings.mouseAltScrollDownAction));
-        c_strcpy(settings.moveSongUp, "t", sizeof(settings.moveSongUp));
+        c_strcpy(settings.moveSongUp, "f", sizeof(settings.moveSongUp));
         c_strcpy(settings.moveSongDown, "g", sizeof(settings.moveSongDown));
         c_strcpy(settings.enqueueAndPlay, "^M",
                  sizeof(settings.enqueueAndPlay));
@@ -226,6 +228,8 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         {
                 return settings;
         }
+
+        bool foundCycleThemesSetting = false;
 
         for (int i = 0; i < count; i++)
         {
@@ -342,6 +346,13 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
                         snprintf(settings.cycleColorsDerivedFrom,
                                  sizeof(settings.cycleColorsDerivedFrom), "%s",
                                  pair->value);
+                }
+                else if (strcmp(lowercaseKey, "cyclethemes") == 0)
+                {
+                        snprintf(settings.cycleThemes,
+                                 sizeof(settings.cycleThemes), "%s",
+                                 pair->value);
+                        foundCycleThemesSetting = true;
                 }
                 else if (strcmp(lowercaseKey, "togglevisualizer") == 0)
                 {
@@ -704,6 +715,12 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
 
         freeKeyValuePairs(pairs, count);
 
+        if (!foundCycleThemesSetting)
+        {
+                // moveSongUp is no longer t, it needs to be changed
+                c_strcpy(settings.moveSongUp, "f", sizeof(settings.moveSongUp));
+        }
+
         return settings;
 }
 
@@ -897,6 +914,8 @@ void mapSettingsToKeys(AppSettings *settings, UISettings *ui,
             (EventMapping){settings->enqueueAndPlay, EVENT_ENQUEUEANDPLAY};
         mappings[59] = (EventMapping){settings->hardStop, EVENT_STOP};
         mappings[60] = (EventMapping){settings->sortLibrary, EVENT_SORTLIBRARY};
+        mappings[61] = (EventMapping){settings->cycleThemes,
+                                      EVENT_CYCLETHEMES};
 }
 
 char *getConfigFilePath(char *configdir)
@@ -1517,6 +1536,8 @@ void setConfig(AppSettings *settings, UISettings *ui)
         fprintf(file, "togglePause=%s\n", settings->togglePause);
         fprintf(file, "toggleColorsDerivedFrom=%s\n",
                 settings->cycleColorsDerivedFrom);
+        fprintf(file, "cycleThemes=%s\n",
+                settings->cycleThemes);
         fprintf(file, "toggleVisualizer=%s\n", settings->toggleVisualizer);
         fprintf(file, "toggleAscii=%s\n", settings->toggleAscii);
         fprintf(file, "toggleRepeat=%s\n", settings->toggleRepeat);

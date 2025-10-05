@@ -755,9 +755,9 @@ void printFooter(int row, int col, UISettings *ui, AppSettings *settings)
 
         if (ui->themeIsSet && ui->theme.footer.type == COLOR_TYPE_RGB)
         {
-                footerColor.r =  ui->theme.footer.rgb.r;
-                footerColor.g =  ui->theme.footer.rgb.g;
-                footerColor.b =  ui->theme.footer.rgb.b;
+                footerColor.r = ui->theme.footer.rgb.r;
+                footerColor.g = ui->theme.footer.rgb.g;
+                footerColor.b = ui->theme.footer.rgb.b;
         }
 
         char text[100];
@@ -874,7 +874,7 @@ void printFooter(int row, int col, UISettings *ui, AppSettings *settings)
 
         if (randomNumber == 808 && !ui->hideGlimmeringText)
                 printGlimmeringText(row, col, text, textLength, nerdFontText,
-                                   footerColor);
+                                    footerColor);
         else
         {
                 printf("%s", text);
@@ -904,9 +904,11 @@ int printAbout(SongData *songdata, UISettings *ui)
 {
         clearLine();
         int numRows = printLogo(songdata, ui);
-        applyColor(ui->colorMode, ui->theme.help, defaultColorRGB);
+        applyColor(ui->colorMode, ui->theme.text, defaultColorRGB);
         printBlankSpaces(indent);
-        printf(" kew version: %s\n", VERSION);
+        printf(" kew version: ");
+        applyColor(ui->colorMode, ui->theme.help, ui->color);
+        printf("%s\n", VERSION);
         clearLine();
         printf("\n");
         numRows += 2;
@@ -926,104 +928,118 @@ int showKeyBindings(SongData *songdata, AppSettings *settings, UISettings *ui)
         applyColor(ui->colorMode, ui->theme.text, defaultColorRGB);
 
         printBlankSpaces(indent);
-        printf(" - Switch tracks with ←, → or %s, %s keys.\n",
-               settings->previousTrackAlt, settings->nextTrackAlt);
+        printf(" Keybindings:\n\n");
+
         printBlankSpaces(indent);
-        printf(" - Volume is adjusted with %s (or %s) and %s.\n",
-               settings->volumeUp, settings->volumeUpAlt, settings->volumeDown);
-        printBlankSpaces(indent);
-        printf(" - Theme is set by running kew theme <theme name>. 'kew theme "
-               "midnight'.\n");
-        printBlankSpaces(indent);
-        printf(" - Press F2 for Playlist View:\n");
-        printBlankSpaces(indent);
-        printf("   Use ↑, ↓ keys, %s, %s keys, or mouse scroll to scroll.\n",
-               settings->scrollUpAlt, settings->scrollDownAlt);
-        printBlankSpaces(indent);
-        printf("   Press Enter or middle click to play.\n");
-        printBlankSpaces(indent);
-        printf("   Press Backspace to clear the list or Delete to remove an "
-               "entry.\n");
-        printBlankSpaces(indent);
-        printf(" - Press F3 for Library View:\n");
-        printBlankSpaces(indent);
-        printf("   Use ↑, ↓ keys, %s, %s keys, or mouse scroll to scroll.\n",
-               settings->scrollUpAlt, settings->scrollDownAlt);
-        printBlankSpaces(indent);
-        printf("   Press Enter or middle click to add/remove songs.\n");
-        printBlankSpaces(indent);
-        printf(" - Press F4 for Track View.\n");
-        printBlankSpaces(indent);
-        printf(" - Space, %s, or right click to play or pause.\n",
+        printf(" · Play/Pause: SPACE, %s or right click\n",
                settings->togglePause);
+
         printBlankSpaces(indent);
-        printf(" - Shift+s to stop.\n");
+        printf(" · Enqueue/Dequeue: Enter\n");
+
         printBlankSpaces(indent);
-        printf(" - You can also use the mouse to switch views.\n");
+        printf(" · Quit: Esc or %s\n", settings->quit);
+
+        printBlankSpaces(indent);
+        printf(" · Switch tracks: ← and → or %s and %s\n",
+               settings->previousTrackAlt, settings->nextTrackAlt);
+
+        printBlankSpaces(indent);
+        printf(" · Volume: %s (or %s) and %s\n", settings->volumeUp,
+               settings->volumeUpAlt, settings->volumeDown);
+
+        printBlankSpaces(indent);
+        printf(" · Clear List: Backspace\n");
+
+        printBlankSpaces(indent);
+        printf(" · Change View: TAB or ");
+
+#if defined(__ANDROID__) || defined(__APPLE__)
+        printf("%s, %s, %s, %s, %s", settings->showPlaylistAlt,
+               settings->showLibraryAlt, settings->showTrackAlt,
+               settings->showSearchAlt, settings->showKeysAlt);
+#else
+        printf("F2-F6");
+#endif
+        printf(" or click the footer\n");
+
         printBlankSpaces(indent);
         printf(
-            " - %s cycle colors derived from album, kewrc profile or theme.\n",
+            " · Cycle Color Mode: %s (default theme, theme or cover colors)\n",
             settings->cycleColorsDerivedFrom);
-        printBlankSpaces(indent);
-        printf(" - %s to update the library.\n", settings->updateLibrary);
-        printBlankSpaces(indent);
-        printf(" - %s to show/hide the spectrum visualizer.\n",
-               settings->toggleVisualizer);
-        printBlankSpaces(indent);
-        printf(" - %s to toggle album covers drawn in ascii.\n",
-               settings->toggleAscii);
-        printBlankSpaces(indent);
-        printf(" - %s to repeat the current song after playing.\n",
-               settings->toggleRepeat);
-        printBlankSpaces(indent);
-        printf(" - %s to shuffle the playlist.\n", settings->toggleShuffle);
-        printBlankSpaces(indent);
-        printf(" - %s to seek backward.\n", settings->seekBackward);
-        printBlankSpaces(indent);
-        printf(" - %s to seek forward.\n", settings->seekForward);
-        printBlankSpaces(indent);
-        printf(" - %s to save the playlist to your music folder,\n",
-               settings->savePlaylist);
+
         printBlankSpaces(indent);
         printf(
-            "   in an .m3u file named after the first song in the playlist.\n");
+            " · Cycle Themes: %s\n", settings->cycleThemes);
+
         printBlankSpaces(indent);
-        printf(" - %s to add current song to kew favorites.m3u (run with \"kew "
-               ".\").\n",
+        printf(" · Stop: Shift+s\n");
+
+        printBlankSpaces(indent);
+        printf(" · Update Library: %s\n", settings->updateLibrary);
+
+        printBlankSpaces(indent);
+        printf(" · Toggle Visualizer: %s\n", settings->toggleVisualizer);
+
+        printBlankSpaces(indent);
+        printf(" · Toggle ASCII Cover: %s\n", settings->toggleAscii);
+
+        printBlankSpaces(indent);
+        printf(" · Cycle Repeat: %s (repeat/repeat list/off)\n",
+               settings->toggleRepeat);
+
+        printBlankSpaces(indent);
+        printf(" · Shuffle: %s\n", settings->toggleShuffle);
+
+        printBlankSpaces(indent);
+        printf(" · Seek: %s and %s\n", settings->seekBackward,
+               settings->seekForward);
+
+        printBlankSpaces(indent);
+        printf(" · Export Playlist: %s (to Music folder, "
+               "named after the first song)\n",
+               settings->savePlaylist);
+
+        printBlankSpaces(indent);
+        printf(" · Add Song To 'kew favorites.m3u': %s (run with 'kew .')\n\n",
                settings->addToFavoritesPlaylist);
+
         printBlankSpaces(indent);
-        printf(" - Esc or %s to quit.\n\n", settings->quit);
+        printf(" Manual: See");
+        applyColor(ui->colorMode, ui->theme.help, ui->color);
+        printf(" README");
+        applyColor(ui->colorMode, ui->theme.text, defaultColorRGB);
+        printf(" Or man kew\n\n");
 
-        if (ui->themeIsSet)
+        applyColor(ui->colorMode, ui->theme.text, defaultColorRGB);
+        printBlankSpaces(indent);
+        printf(" Theme: ");
+
+        if (ui->colorMode == COLOR_MODE_ALBUM)
         {
-                applyColor(ui->colorMode, ui->theme.help, defaultColorRGB);
-                printBlankSpaces(indent);
-                printf(" Theme: ");
+                applyColor(ui->colorMode, ui->theme.text, defaultColorRGB);
+                printf("Using ");
                 applyColor(ui->colorMode, ui->theme.text, ui->color);
-                if (ui->colorMode == COLOR_MODE_ALBUM)
-                {
-                        printf("%s.", "Track Cover Colors");
-                }
-                else
-                {
-                        printf("%s.", ui->theme.theme_name);
-                }
+                printf("Colors ");
+                applyColor(ui->colorMode, ui->theme.text, defaultColorRGB);
+                printf("From Track Covers");
+        }
+        else
+        {
+                applyColor(ui->colorMode, ui->theme.help, ui->color);
+                printf("%s", ui->theme.theme_name);
+        }
 
-                printf(" (Press %s to cycle color settings).",
-                       settings->cycleColorsDerivedFrom);
-
-                printf("\n");
-                applyColor(ui->colorMode, ui->theme.help, defaultColorRGB);
-                printBlankSpaces(indent);
-                if (ui->colorMode != COLOR_MODE_ALBUM)
-                {
-                        printf(" Theme Author: ");
-                        applyColor(ui->colorMode, ui->theme.text, ui->color);
-                        printf("%s.\n", ui->theme.theme_author);
-                        numPrintedRows += 1;
-                }
+        applyColor(ui->colorMode, ui->theme.text, defaultColorRGB);
+        if (ui->colorMode != COLOR_MODE_ALBUM)
+        {
+                printf(" Author: ");
+                applyColor(ui->colorMode, ui->theme.help, ui->color);
+                printf("%s", ui->theme.theme_author);
                 numPrintedRows += 1;
         }
+        printf("\n");
+        numPrintedRows += 1;
 
         printf("\n");
         printBlankSpaces(indent);
@@ -1038,7 +1054,7 @@ int showKeyBindings(SongData *songdata, AppSettings *settings, UISettings *ui)
         printf(" https://ko-fi.com/ravachol\n\n");
         applyColor(ui->colorMode, ui->theme.text, defaultColorRGB);
         printBlankSpaces(indent);
-        printf(" Copyright © 2022-2025 Ravachol.\n");
+        printf(" Copyright © 2022-2025 Ravachol\n");
 
         printf("\n");
 
@@ -1242,7 +1258,7 @@ int getRowWithinBounds(int row)
 }
 
 int printLogoAndAdjustments(SongData *songData, int termWidth, UISettings *ui,
-                            int indentation)
+                            int indentation, AppSettings *settings)
 {
         int aboutRows = printLogo(songData, ui);
 
@@ -1255,11 +1271,11 @@ int printLogoAndAdjustments(SongData *songData, int termWidth, UISettings *ui,
                        "clear.\n");
                 printBlankSpaces(indentation);
 #ifndef __APPLE__
-                printf(" PgUp/PgDn: scroll. Del: remove. t/g: move songs.\n");
+                printf(" PgUp/PgDn: scroll. Del: remove. %s/%s: move songs.\n", settings->moveSongUp, settings->moveSongDown);
                 clearLine();
                 printf("\n");
 #else
-                printf(" Fn+↑/↓: scroll. Del: remove. t/g: move songs.\n");
+                printf(" Fn+↑/↓: scroll. Del: remove. %s/%s: move songs.\n", settings->moveSongUp, settings->moveSongDown);
                 clearLine();
                 printf("\n");
 #endif
@@ -1286,7 +1302,7 @@ void showSearch(SongData *songData, int *chosenRow, UISettings *ui,
         {
                 clearLine();
                 printBlankSpaces(indent);
-                printf(" Use ↑/↓ to select. Enter=Enq. Alt+Enter=Play.\n");
+                printf(" Use ↑/↓ to select. Enter=Enqueue. Alt+Enter=Play.\n");
                 clearLine();
                 printf("\n");
                 maxSearchListSize -= 2;
@@ -1320,7 +1336,7 @@ void showPlaylist(SongData *songData, PlayList *list, int *chosenSong,
 
         gotoFirstLineFirstRow();
 
-        int aboutRows = printLogoAndAdjustments(songData, term_w, ui, indent);
+        int aboutRows = printLogoAndAdjustments(songData, term_w, ui, indent, settings);
         maxListSize -= aboutRows;
 
         applyColor(ui->colorMode, ui->theme.header, ui->color);
@@ -1818,7 +1834,7 @@ void showLibrary(SongData *songData, AppState *state, AppSettings *settings)
                 maxLibListSize -= 3;
                 clearLine();
                 printBlankSpaces(indent);
-                printf(" Use ↑/↓ or k/j to select. Enter=Enq/Deq. "
+                printf(" Use ↑/↓ or k/j to select. Enter=Enqueue/Dequeue. "
                        "Alt+Enter=Play.\n");
                 clearLine();
                 printBlankSpaces(indent);
