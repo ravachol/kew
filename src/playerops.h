@@ -77,6 +77,8 @@ void toggleAscii(AppSettings *settings, UISettings *ui);
 
 void cycleColorMode(UISettings *ui);
 
+void cycleThemes(UISettings *ui, AppSettings *settings);
+
 void toggleVisualizer(AppSettings *settings, UISettings *ui);
 
 void quit(void);
