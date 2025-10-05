@@ -50,6 +50,7 @@ typedef struct
         ColorValue trackview_year;
         ColorValue trackview_time;
         ColorValue trackview_visualizer;
+        ColorValue trackview_lyrics;
         ColorValue library_artist;
         ColorValue library_album;
         ColorValue library_track;
@@ -59,6 +60,7 @@ typedef struct
         ColorValue search_query;
         ColorValue search_result;
         ColorValue search_enqueued;
+        ColorValue search_playing;
         ColorValue progress_filled;
         ColorValue progress_empty;
         ColorValue progress_elapsed;
