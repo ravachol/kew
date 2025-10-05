@@ -606,6 +606,76 @@ int loadTheme(AppState *appState, AppSettings *settings, const char *themeName,
         return 1;
 }
 
+void cycleThemes(UISettings *ui, AppSettings *settings)
+{
+        clearScreen();
+
+        const char *configPath = getConfigPath();
+        char themesPath[MAXPATHLEN];
+        snprintf(themesPath, sizeof(themesPath), "%s/themes", configPath);
+
+        DIR *dir = opendir(themesPath);
+        if (!dir)
+        {
+                perror("Failed to open themes directory");
+                return;
+        }
+
+        struct dirent *entry;
+        char *themes[256];
+        int themeCount = 0;
+
+        // Collect all *.theme files
+        while ((entry = readdir(dir)) != NULL)
+        {
+                if (strstr(entry->d_name, ".theme"))
+                {
+                        themes[themeCount++] = strdup(entry->d_name);
+                }
+        }
+        closedir(dir);
+
+        if (themeCount == 0)
+        {
+                setErrorMessage("No themes found.");
+                return;
+        }
+
+        // Find the index of the current theme
+        int currentIndex = -1;
+        char currentFilename[NAME_MAX];
+
+        strncpy(currentFilename, ui->themeName, sizeof(currentFilename) - 1);
+        currentFilename[sizeof(currentFilename) - 1] = '\0';
+
+        if (strlen(currentFilename) + 6 < sizeof(currentFilename))
+                strcat(currentFilename, ".theme");
+
+        for (int i = 0; i < themeCount; i++)
+        {
+                if (strcmp(themes[i], currentFilename) == 0)
+                {
+                        currentIndex = i;
+                        break;
+                }
+        }
+
+        // Get next theme (wrap around)
+        int nextIndex = (currentIndex + 1) % themeCount;
+
+        if (loadTheme(&appState, settings, themes[nextIndex], false))
+        {
+                 ui->colorMode = COLOR_MODE_THEME;
+
+                strncpy(ui->themeName, themes[nextIndex], sizeof(ui->themeName));
+                char *dot = strstr(ui->themeName, ".theme");
+                if (dot)
+                        *dot = '\0';
+        }
+
+        refresh = true;
+}
+
 void cycleColorMode(UISettings *ui)
 {
         clearScreen();
