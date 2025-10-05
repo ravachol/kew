@@ -2,6 +2,7 @@
 #include "appstate.h"
 #include "common.h"
 #include "common_ui.h"
+#include "playlist.h"
 #include "soundcommon.h"
 #include "term.h"
 #include <math.h>
@@ -92,7 +93,7 @@ void addResult(FileSystemEntry *entry, int distance)
         if (resultsCount > terminalHeight * 10)
                 return;
 
-        if (entry->parent == NULL)      // Root
+        if (entry->parent == NULL) // Root
                 return;
 
         if (isDuplicate(entry))
@@ -151,10 +152,12 @@ void freeSearchResults(void)
 
 void calculateGroupDistances(void)
 {
-        for (size_t i = 0; i < resultsCount; i++) {
+        for (size_t i = 0; i < resultsCount; i++)
+        {
                 // Find top-level parent (entry with no parent, or root)
                 FileSystemEntry *root = results[i].entry;
-                while (root->parent != NULL) {
+                while (root->parent != NULL)
+                {
                         root = root->parent;
                 }
 
@@ -162,19 +165,25 @@ void calculateGroupDistances(void)
                 // Otherwise use minimum distance among descendants
                 int minDist = results[i].distance;
 
-                for (size_t j = 0; j < resultsCount; j++) {
+                for (size_t j = 0; j < resultsCount; j++)
+                {
                         FileSystemEntry *otherRoot = results[j].entry;
-                        while (otherRoot->parent != NULL) {
+                        while (otherRoot->parent != NULL)
+                        {
                                 otherRoot = otherRoot->parent;
                         }
 
-                        if (otherRoot == root) {
-                                if (results[j].entry == root) {
-                                        // The root itself is in results - use its distance
+                        if (otherRoot == root)
+                        {
+                                if (results[j].entry == root)
+                                {
+                                        // The root itself is in results - use
+                                        // its distance
                                         minDist = results[j].distance;
                                         break;
                                 }
-                                if (results[j].distance < minDist) {
+                                if (results[j].distance < minDist)
+                                {
                                         minDist = results[j].distance + 1;
                                 }
                         }
@@ -211,20 +220,32 @@ int compareResults(const void *a, const void *b)
                 return (A->groupDistance < B->groupDistance) ? -1 : 1;
 
         // If different parents, compare by hierarchy (path)
-        if (A->entry->parent != B->entry->parent) {
+        if (A->entry->parent != B->entry->parent)
+        {
                 const FileSystemEntry *pA = A->entry;
                 const FileSystemEntry *pB = B->entry;
 
                 // Walk up to same depth
                 int depthA = 0, depthB = 0;
-                for (const FileSystemEntry *p = pA; p->parent; p = p->parent) depthA++;
-                for (const FileSystemEntry *p = pB; p->parent; p = p->parent) depthB++;
+                for (const FileSystemEntry *p = pA; p->parent; p = p->parent)
+                        depthA++;
+                for (const FileSystemEntry *p = pB; p->parent; p = p->parent)
+                        depthB++;
 
-                while (depthA > depthB) { pA = pA->parent; depthA--; }
-                while (depthB > depthA) { pB = pB->parent; depthB--; }
+                while (depthA > depthB)
+                {
+                        pA = pA->parent;
+                        depthA--;
+                }
+                while (depthB > depthA)
+                {
+                        pB = pB->parent;
+                        depthB--;
+                }
 
                 // Walk up together to find where they diverge
-                while (pA->parent != pB->parent) {
+                while (pA->parent != pB->parent)
+                {
                         pA = pA->parent;
                         pB = pB->parent;
                 }
@@ -396,7 +417,8 @@ int removeFromSearchText(void)
         return 0;
 }
 
-void applyColorAndFormat(bool isChosen, FileSystemEntry *entry, UISettings *ui)
+void applyColorAndFormat(bool isChosen, FileSystemEntry *entry, UISettings *ui,
+                         bool isPlaying)
 {
         if (isChosen)
         {
@@ -404,8 +426,9 @@ void applyColorAndFormat(bool isChosen, FileSystemEntry *entry, UISettings *ui)
 
                 if (entry->isEnqueued)
                 {
-                        applyColor(ui->colorMode, ui->theme.search_enqueued,
-                                   ui->color);
+                        applyColor(ui->colorMode,
+                                   isPlaying ? ui->theme.search_playing :
+                                   ui->theme.search_enqueued, ui->color);
 
                         printf("\x1b[7m * ");
                 }
@@ -418,8 +441,9 @@ void applyColorAndFormat(bool isChosen, FileSystemEntry *entry, UISettings *ui)
         {
                 if (entry->isEnqueued)
                 {
-                        applyColor(ui->colorMode, ui->theme.search_enqueued,
-                                   ui->color);
+                        applyColor(ui->colorMode,
+                                   isPlaying ? ui->theme.search_playing :
+                                   ui->theme.search_enqueued, ui->color);
 
                         printf(" * ");
                 }
@@ -488,7 +512,9 @@ int displaySearchResults(int maxListSize, int indent, int *chosenRow,
 
                 bool isChosen = (*chosenRow == (int)i);
 
-                applyColorAndFormat(isChosen, results[i].entry, ui);
+                applyColorAndFormat(isChosen, results[i].entry, ui,
+                                    (strcmp(currentSong->song.filePath,
+                                            results[i].entry->fullPath) == 0));
 
                 name[0] = '\0';
                 if (results[i].entry->isDirectory)
