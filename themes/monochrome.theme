@@ -32,6 +32,7 @@ trackview.album=#c0c0c0
 trackview.year=#c0c0c0
 trackview.time=#d0d0d0
 trackview.visualizer=#f0f0f0
+trackview.lyrics=#f0f0f0
 
 # Library View
 library.artist=#808080
@@ -45,6 +46,7 @@ search.label=#808080
 search.query=#ffffff
 search.result=#e0e0e0
 search.enqueued=#b0b0b0
+search.playing=#ffffff
 
 # Progress
 progress.filled=#202020

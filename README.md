@@ -1,12 +1,9 @@
-# kew
-
-[![License](https://img.shields.io/github/license/ravachol/kew?color=333333&style=for-the-badge)](./LICENSE)
-
-Listen to music in the terminal.
+![kew Logo](images/logo2.png)
 
 <a href="https://jenova7.bandcamp.com/album/lost-sci-fi-movie-themes"><img src="images/kew-screenshot.png" alt="Screenshot"></a><br>
 *Example screenshot running in Konsole: [Jenova 7: Lost Sci-Fi Movie Themes](https://jenova7.bandcamp.com/album/lost-sci-fi-movie-themes).*
 
+[![License](https://img.shields.io/github/license/ravachol/kew?color=333333&style=for-the-badge)](./LICENSE)
 
 
 kew (/kjuː/) is a terminal music player.
@@ -214,7 +211,8 @@ https://www.reddit.com/r/bashonubuntuonwindows/comments/hrn1lz/wsl_sound_through
 </details>
 
 #### Install kew
-Then run this (either git clone or unzip a release zip into a folder of your choice):
+
+Download the latest release (recommended), or clone it:
 
 ```bash
 git clone https://codeberg.org/ravachol/kew.git
@@ -222,6 +220,9 @@ git clone https://codeberg.org/ravachol/kew.git
 ```bash
 cd kew
 ```
+
+Then run:
+
 ```bash
 make -j4
 ```
@@ -341,6 +342,7 @@ You can select all music by pressing the - MUSIC LIBRARY - header at the top of 
 * <kbd>i</kbd> to cycle colors derived from kewrc, theme or track cover.
 * <kbd>t</kbd> to cycle themes.
 * <kbd>b</kbd> to toggle album covers drawn in ascii or as a normal image.
+* <kbd>t</kbd> to toggle notifications.
 * <kbd>r</kbd> to repeat the current song after playing.
 * <kbd>s</kbd> to shuffle the playlist.
 * <kbd>a</kbd> to seek back.
@@ -379,7 +381,7 @@ To install TrueColor themes:
 - Make sure you run sudo make install if you're not intalling from a package manager.
 
 To add your own themes:
-- Put them in ~/.config/kew/themes (~/Library/Preferences/kew/themes on macOS).
+- Put them in \~/.config/kew/themes (\~/Library/Preferences/kew/themes on macOS).
 
 The default theme is called default.theme and it's a 16-color theme that derives it's colors from whatever settings or theme you have on your terminal.
 
@@ -399,12 +401,6 @@ kew looks better with Nerd Fonts: https://www.nerdfonts.com/.
 ## License
 
 Licensed under GPL. [See LICENSE for more information](./LICENSE).
-
-#### Sponsors and Donations Wanted
-
-Please support this effort:
-https://ko-fi.com/ravachol
-https://github.com/sponsors/ravachol.
 
 ## Attributions
 
@@ -429,6 +425,12 @@ Minimp4 by Lieff - https://github.com/lieff/minimp4
 Nestegg by Mozilla - https://github.com/mozilla/nestegg
 
 Img_To_Txt by Danny Burrows - https://github.com/danny-burrows/img_to_txt
+
+## Sponsors and Donations Wanted
+
+Please support this effort:
+https://ko-fi.com/ravachol
+https://github.com/sponsors/ravachol.
 
 
 Comments? Suggestions? Send mail to kew-player@proton.me.
