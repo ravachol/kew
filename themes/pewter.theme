@@ -32,6 +32,7 @@ trackview.album=#8d9ba5
 trackview.year=#8d9ba5
 trackview.time=#94a1ab
 trackview.visualizer=#1f262b
+trackview.lyrics=#c5ced6
 
 # Library View
 library.artist=#556169
@@ -45,6 +46,7 @@ search.label=#556169
 search.query=#7a8a96
 search.result=#c5ced6
 search.enqueued=#7a8f7f
+search.playing=#8c9aa5
 
 # Progress
 progress.filled=#2d363c
