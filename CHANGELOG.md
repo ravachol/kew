@@ -16,8 +16,6 @@ New in this release:
 
 - Fixed TTY flickering
 
-- Song lyrics support via user-supplied .lrc files
-
 - Improved search
 
 #### Full customization of colors with themes!
