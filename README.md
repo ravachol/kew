@@ -16,8 +16,8 @@
 <br><br>
 
 [![License](https://img.shields.io/github/license/ravachol/kew?color=333333&style=for-the-badge)](./LICENSE)
-
 <br>
+
 ## Features
 
  * Search a music library with partial titles from the command-line.
