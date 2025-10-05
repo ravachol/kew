@@ -512,9 +512,10 @@ int displaySearchResults(int maxListSize, int indent, int *chosenRow,
 
                 bool isChosen = (*chosenRow == (int)i);
 
-                applyColorAndFormat(isChosen, results[i].entry, ui,
-                                    (strcmp(currentSong->song.filePath,
-                                            results[i].entry->fullPath) == 0));
+                bool isCurrentSong = currentSong != NULL && strcmp(currentSong->song.filePath,
+                                            results[i].entry->fullPath) == 0;
+
+                applyColorAndFormat(isChosen, results[i].entry, ui, isCurrentSong);
 
                 name[0] = '\0';
                 if (results[i].entry->isDirectory)
