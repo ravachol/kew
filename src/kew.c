@@ -956,6 +956,7 @@ void gotoEndOfPlaylist(AppState *state)
         }
 }
 
+
 void handleInput(AppState *state)
 {
         struct Event event = processInput(&(state->uiSettings));
@@ -972,7 +973,13 @@ void handleInput(AppState *state)
                 handleGoToSong(state);
                 break;
         case EVENT_PLAY_PAUSE:
-                togglePause(&totalPauseSeconds, &pauseSeconds, &pause_time);
+                if (isStopped())
+                {
+                        handleGoToSong(state);
+                }
+                else {
+                        togglePause(&totalPauseSeconds, &pauseSeconds, &pause_time);
+                }
                 break;
         case EVENT_TOGGLEVISUALIZER:
                 toggleVisualizer(&settings, &(state->uiSettings));
