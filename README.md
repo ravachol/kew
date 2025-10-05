@@ -212,7 +212,7 @@ https://www.reddit.com/r/bashonubuntuonwindows/comments/hrn1lz/wsl_sound_through
 
 #### Install kew
 
-Download the latest release (recommended), or clone it:
+Download the latest release (recommended) or, if you are feeling adventurous, clone from the latest in main:
 
 ```bash
 git clone https://codeberg.org/ravachol/kew.git
