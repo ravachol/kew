@@ -2,7 +2,7 @@
 
 ### 3.5.0
 
-#### kew 3.5 — now with themes and Android support
+Now with themes and Android support
 
 New in this release:
 
@@ -18,33 +18,17 @@ New in this release:
 
 - Improved search
 
-#### Full customization of colors with themes!
+#### Themes
 
-You can fully customize kew with themes, with TrueColor values or 16 color palette values, or mix them as you want.
-
-Included is a pack of 16 themes + the default 16-color theme.
-
-You can also switch to using colors derived from the album cover. Cycle through the 3 color modes (default, theme and album colors) by pressing i.
-
-Press 't' to cycle available themes.
+Press t to cycle available themes.
 
 To set a theme from the command-line, run:
 
-kew theme <themename>
+kew theme themename (ie 'kew theme midnight')
 
-For instance 'kew theme midnight' will apply midnight.theme.
+Put themes in \~/.config/kew/themes (\~/Library/Preferences/kew/themes on macOS).
 
-To install TrueColor themes:
-- Make sure you run sudo make install if you're not intalling from a package manager.
-
-To add your own themes:
-- Put them in ~/.config/kew/themes (~/Library/Preferences/kew/themes on macOS).
-
-The default theme is called default.theme and it's a 16-color theme that derives it's colors from whatever settings or theme you have on your terminal.
-
-#### kew now works on Android phones!
-
-I always wanted to have kew on my phone as a sort of walkman that I helped create. I was just looking at getting a FairPhone and installing Linux on it, and all kinds of things, when @welpyes showed up and he was trying to put kew on Termux. I didn't know Termux was that powerful, that all libs required would be available and so on. But in the end it wasn't much work at all to get it up and running.
+#### Android
 
 I haven't looked at battery life aspects yet, but staying in library view will be easier on the battery than using track view with the visualizer. You can also press v to toggle the visualizer on or off.
 
@@ -58,7 +42,9 @@ We now have a repo on Codeberg and that will be the preferred repo going forward
 
 #### OpenSuse
 
-We are now back on openSuse, as our package there was quite old, version 2.8.1. It hadn't been updated because we switched from FFmpeg to Faad for decoding .m4a files, and Faad wasn't available on openSuse until now. FFmpeg was overkill for that job and Faad is a much smaller lib.
+We are now back on openSuse, our package there hadn't been updated in a long time, due to openSuse not having faad lib.
+
+We still need a Fedora package. We already have a RPM spec that @kazeevn added and everything.
 
 Thank you to @welpyes for bringing up Termux and helping out with that, and @arcathrax for fixing the ultrawide monitor bug. Thank you to mantarimay for updating the openSuse library.
 
