@@ -35,31 +35,17 @@
 
 Install through your package manager or homebrew (macOS). If you can't find it on your distro, or you want the bleeding edge, follow the [Manual Installation Instructions](MANUAL-INSTALL-INSTRUCTIONS.md).
 
-
-### Terminals
-
-A sixel (or equivalent) capable terminal is recommended, like Konsole or kitty, to display images properly.
-
-For a complete list of capable terminals, see this page: [Sixels in Terminal](https://www.arewesixelyet.com/).
-
-
 ## Usage
 
-Run kew. It will first help you set the path to your music folder, then show you that folder's contents.
+kew creates a playlist with the contents of the first directory or file whose name matches the arguments you provide in the command-line.
 
-kew can also be told to play a certain music from the command line. It automatically creates a playlist based on a partial name of a track or directory:
+It works best when your music library is organized this way:
 
-```bash
-kew cure great
+artist folder->album folder(s)->track(s).
+
+#### Example commands:
+
 ```
-
-This command plays all songs from "The Cure Greatest Hits" directory, provided it's in your music library.
-
-kew returns the first directory or file whose name matches the string you provide. It works best when your music library is organized in this way: artist folder->album folder(s)->track(s).
-
-#### Some Examples:
-
- ```
 kew (starting kew with no arguments opens the library view where you can choose what to play)
 
 kew all (plays all songs, up to 20 000, in your library, shuffled)
@@ -102,12 +88,6 @@ kew path "/home/joe/Musik/" (changes the path)
 
  ```
 
-Put single-quotes inside quotes "guns n' roses".
-
-* You can select all music by pressing the - MUSIC LIBRARY - header at the top of Library View.
-
-* Favorites playlist: Add current song by pressing '.'. Play this playlist by running "kew ." or "kew list kew favorites"
-
 #### Key Bindings
 * <kbd>Enter</kbd> to select or replay a song.
 * Use <kbd>+</kbd> (or <kbd>=</kbd>), <kbd>-</kbd> keys to adjust the volume.
@@ -120,11 +100,11 @@ Put single-quotes inside quotes "guns n' roses".
 * <kbd>F5</kbd> or <kbd>Shift+v</kbd> (macOS/Android) to show/hide search view.
 * <kbd>F6</kbd> or <kbd>Shift+b</kbd> (macOS/Android) to show/hide key bindings view.
 * <kbd>u</kbd> to update the library.
-* <kbd>v</kbd> to toggle the spectrum visualizer.
+* <kbd>v</kbd> to toggle the visualizer.
 * <kbd>i</kbd> to cycle colors derived from kewrc, theme or track cover.
 * <kbd>t</kbd> to cycle themes.
 * <kbd>b</kbd> to toggle album covers drawn in ascii or as a normal image.
-* <kbd>n</kbd> to toggle notifications.
+* <kbd>t</kbd> to toggle notifications.
 * <kbd>r</kbd> to repeat the current song after playing.
 * <kbd>s</kbd> to shuffle the playlist.
 * <kbd>a</kbd> to seek back.
@@ -141,7 +121,9 @@ Put single-quotes inside quotes "guns n' roses".
 
 ## Configuration
 
-kew will create a config file, kewrc, in a kew folder in your default config directory for instance ~/.config/kew or ~/Library/Preferences/kew on macOS. There you can change some settings like key bindings and the default colors of the app. To edit this file please make sure you quit kew first.
+Linux: ~/.config/kew/
+
+macOS: ~/Library/Preferences/kew/
 
 ## Themes
 
@@ -149,45 +131,39 @@ Press t to cycle available themes.
 
 To set a theme from the command-line, run:
 
-kew theme \<themename\>
+```bash
+kew theme <themename> (ie 'kew theme midnight')
+```
 
-For instance 'kew theme midnight' will apply midnight.theme.
-
-To add your own themes:
-- Put them in \~/.config/kew/themes (\~/Library/Preferences/kew/themes on macOS).
+Put themes in \~/.config/kew/themes (\~/Library/Preferences/kew/themes on macOS).
 
 ## If Colors Look Wrong
 
-If you are on tty or have limited colors and font on your terminal, try cycling i for the three modes until one is passable and pressing v (for visualizer off) and b (for ascii cover).
-That should make it look much more easy on the eye!
+Cycle <kbd>i</kbd> until they look right.
+
+Press <kbd>v</kbd> to turn off visualizer.
+
+Press <kbd>b</kbd> for ASCII covers.
+
+A terminal emulator that can handle sixels is recommended. See [Sixels in Terminal](https://www.arewesixelyet.com/).
+
+## Favorites Playlist
+
+Add current song: press <kbd>.</kbd>
+
+To load 'kew favorites.m3u':
+
+```bash
+kew .
+```
+
+## Join The Development Effort
+
+Join the development of kew if you can handle writing C with camelCase. We are also looking for beta testers and bug reporters. See [Contributing](CONTRIBUTING.md) and [Developers](DEVELOPERS.md).
 
 ## License
 
 Licensed under GPL. [See LICENSE for more information](./LICENSE).
-
-## Attributions
-
-kew makes use of the following great open source projects:
-
-Chafa by Hans Petter Jansson - https://hpjansson.org/chafa/
-
-TagLib by TagLib Team - https://taglib.org/
-
-faad2 by fabian_deb, knik, menno - https://sourceforge.net/projects/faac/
-
-FFTW by Matteo Frigo and Steven G. Johnson - https://www.fftw.org/
-
-Libopus by Opus - https://opus-codec.org/
-
-Libvorbis by Xiph.org - https://xiph.org/
-
-Miniaudio by David Reid - https://github.com/mackron/miniaudio
-
-Minimp4 by Lieff - https://github.com/lieff/minimp4
-
-Nestegg by Mozilla - https://github.com/mozilla/nestegg
-
-Img_To_Txt by Danny Burrows - https://github.com/danny-burrows/img_to_txt
 
 ## Sponsors and Donations Wanted
 
