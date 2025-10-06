@@ -596,7 +596,6 @@ void printTime(int row, int col, double elapsedSeconds, ma_uint32 sampleRate,
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
         printf("\033[%d;%dH", row, col);
-        clearLine();
 
         if (term_h > minHeight)
         {
@@ -704,8 +703,6 @@ void printErrorRow(int row, int col, UISettings *ui)
 
         printf("\033[%d;%dH", row, col);
 
-        clearLine();
-
         if (!hasPrintedError && hasErrorMessage())
         {
                 applyColor(ui->colorMode, ui->theme.footer, lastRowColor);
@@ -743,8 +740,6 @@ void printFooter(int row, int col, UISettings *ui, AppSettings *settings)
         lastRowCol = col;
 
         printf("\033[%d;%dH", row, col);
-
-        clearLine();
 
         PixelData footerColor;
         footerColor.r = lastRowColor.r;
@@ -1375,7 +1370,6 @@ void printProgressBar(int row, int col, AppSettings *settings, UISettings *ui,
         progressBarLength = numProgressBars;
 
         printf("\033[%d;%dH", row, col + 1);
-        clearLine();
 
         for (int i = 0; i < numProgressBars; i++)
         {
