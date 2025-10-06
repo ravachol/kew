@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 Support or Questions
+    url: https://chatgpt.com/
+    about: |
+      For support or general questions (like installation help, etc.),
+      please consider reading the readme, or asking ChatGPT or Mistral.ai **before** opening an issue here.
+      This issue tracker is for **bug reports and feature requests primarily**.
