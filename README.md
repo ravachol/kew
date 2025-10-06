@@ -93,7 +93,7 @@ kew path "/home/joe/Musik/" (changes the path)
 </details>
 
 <details>
-<summary>Example commands</summary>
+<summary>Key Bindings</summary>
 
 #### Key Bindings
 * <kbd>Enter</kbd> to select or replay a song.
