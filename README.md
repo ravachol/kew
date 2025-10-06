@@ -108,7 +108,7 @@ kew path "/home/joe/Musik/" (changes the path)
 * <kbd>i</kbd> to cycle colors derived from kewrc, theme or track cover.
 * <kbd>t</kbd> to cycle themes.
 * <kbd>b</kbd> to toggle album covers drawn in ascii or as a normal image.
-* <kbd>t</kbd> to toggle notifications.
+* <kbd>n</kbd> to toggle notifications.
 * <kbd>r</kbd> to repeat the current song after playing.
 * <kbd>s</kbd> to shuffle the playlist.
 * <kbd>a</kbd> to seek back.
