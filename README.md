@@ -1,12 +1,12 @@
 <div align="center">
-  <img src="images/logo2.png" alt="kew Logo">
+  <img src="images/logo.png" alt="kew Logo">
 </div>
 
 <br>
 
 <div align="center">
   <a href="https://jenova7.bandcamp.com/album/lost-sci-fi-movie-themes">
-    <img src="images/kew-screenshot.png" alt="Screenshot" style="width:400px;">
+    <img src="images/kew.gif" alt="Screenshot">
   </a>
 </div>
 <br><br>
@@ -40,6 +40,12 @@ Install through your package manager or homebrew (macOS). If you can't find it o
 ## Usage
 
 kew creates a playlist with the contents of the first directory or file whose name matches the arguments you provide in the command-line.
+
+```bash
+kew cure great
+```
+
+This creates and starts playing a playlist with 'The cure greatest hits' if it's in your music library.
 
 It works best when your music library is organized this way:
 
