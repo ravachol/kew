@@ -49,7 +49,8 @@ void getDirectoryFromPath(const char *path, char *directory)
         char *dir = dirname(tmp);
 
         // Copy the result to the caller‑supplied buffer safely
-        strlcpy(directory, dir, MAXPATHLEN);
+        strncpy(directory, dir, MAXPATHLEN - 1);
+        directory[MAXPATHLEN - 1] = '\0'; // Ensure null termination
 
         /// Ensure a trailing '/'
         size_t dlen = strnlen(directory, MAXPATHLEN);
