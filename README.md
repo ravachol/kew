@@ -33,7 +33,7 @@
 
 <a href="https://repology.org/project/kew/versions"><img src="https://repology.org/badge/vertical-allrepos/kew.svg" alt="Packaging status" align="right"></a>
 
-Install through your package manager or homebrew (macOS). If you can't find it on your distro, or you want the bleeding edge, follow the [Manual Installation Instructions](MANUAL-INSTALL-INSTRUCTIONS.md).
+Install through your package manager or homebrew (macOS). If you can't find it on your distro, or you want the bleeding edge, follow the [Manual Installation Instructions](docs/MANUAL-INSTALL-INSTRUCTIONS.md).
 
 ## Usage
 
@@ -168,7 +168,7 @@ kew .
 
 ## Join The Development Effort
 
-Join the development of kew if you can handle writing C with camelCase. We are also looking for beta testers and bug reporters. See [Contributing](CONTRIBUTING.md) and [Developers](DEVELOPERS.md).
+Join the development of kew if you can handle writing C with camelCase. We are also looking for beta testers and bug reporters. See [Contributing](docs/CONTRIBUTING.md) and [Developers](docs/DEVELOPERS.md).
 
 ## License
 
