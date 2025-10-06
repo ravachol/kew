@@ -1,5 +1,9 @@
 # CHANGELOG
 
+### 3.5.2
+
+- Fix issue/test on homebrew.
+
 ### 3.5.0
 
 Now with themes and Android support
