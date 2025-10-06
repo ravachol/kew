@@ -439,7 +439,10 @@ Img_To_Txt by Danny Burrows - https://github.com/danny-burrows/img_to_txt
 ## Sponsors and Donations Wanted
 
 Please support this effort:
+<br>
+
 https://ko-fi.com/ravachol
+
 https://github.com/sponsors/ravachol.
 
 
