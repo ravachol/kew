@@ -221,16 +221,6 @@ char *findLargestImageFile(const char *directoryPath, char *largestImageFile,
                         continue;
                 }
 
-                // Verify resolvedPath is inside directoryPath
-                size_t dirPathLen = strlen(directoryPath);
-                if (strncmp(resolvedPath, directoryPath, dirPathLen) != 0 ||
-                    (resolvedPath[dirPathLen] != '/' &&
-                     resolvedPath[dirPathLen] != '\0'))
-                {
-                        // Path traversal attempt, skip
-                        continue;
-                }
-
                 // Use lstat to avoid following symlinks
                 if (lstat(resolvedPath, &fileStats) == -1)
                 {
