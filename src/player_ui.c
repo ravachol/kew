@@ -405,11 +405,12 @@ void printCoverCentered(SongData *songdata, UISettings *ui)
         printf("\n\n");
 }
 
-void printCover(int height, SongData *songdata, UISettings *ui)
+void printCover(int row, int col, int height, SongData *songdata, UISettings *ui)
 {
-        int row = 2;
-        int col = 2;
-        int imgHeight = height - 2;
+        int imgHeight = height;
+
+        if (row == 2)
+                imgHeight -= 2;
 
         clearScreen();
 
@@ -596,7 +597,6 @@ void printTime(int row, int col, double elapsedSeconds, ma_uint32 sampleRate,
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
         printf("\033[%d;%dH", row, col);
-        clearLine();
 
         if (term_h > minHeight)
         {
@@ -604,6 +604,7 @@ void printTime(int row, int col, double elapsedSeconds, ma_uint32 sampleRate,
                 double elapsed = elapsedSeconds;
 
                 printProgress(elapsed, duration, sampleRate, avgBitRate);
+                clearRestOfLine();
         }
 }
 
@@ -662,7 +663,7 @@ void printGlimmeringText(int row, int col, char *text, int textLength,
 
         printf("\033[%d;%dH", row, col);
 
-        clearLine();
+        clearRestOfLine();
 
         while (brightIndex < textLength)
         {
@@ -704,19 +705,15 @@ void printErrorRow(int row, int col, UISettings *ui)
 
         printf("\033[%d;%dH", row, col);
 
-        clearLine();
-
         if (!hasPrintedError && hasErrorMessage())
         {
                 applyColor(ui->colorMode, ui->theme.footer, lastRowColor);
                 printf(" %s", getErrorMessage());
                 hasPrintedError = true;
-                fflush(stdout);
         }
-        else
-        {
-                clearRestOfLine();
-        }
+
+        clearRestOfLine();
+        fflush(stdout);
 }
 
 void formatWithShiftPlus(char *dest, size_t size, const char *src)
@@ -743,8 +740,6 @@ void printFooter(int row, int col, UISettings *ui, AppSettings *settings)
         lastRowCol = col;
 
         printf("\033[%d;%dH", row, col);
-
-        clearLine();
 
         PixelData footerColor;
         footerColor.r = lastRowColor.r;
@@ -880,6 +875,8 @@ void printFooter(int row, int col, UISettings *ui, AppSettings *settings)
                 printf("%s", text);
                 printf("%s", nerdFontText);
         }
+
+        clearRestOfLine();
 }
 
 void calcAndPrintLastRowAndErrorRow(UISettings *ui, AppSettings *settings)
@@ -971,8 +968,7 @@ int showKeyBindings(SongData *songdata, AppSettings *settings, UISettings *ui)
             settings->cycleColorsDerivedFrom);
 
         printBlankSpaces(indent);
-        printf(
-            " · Cycle Themes: %s\n", settings->cycleThemes);
+        printf(" · Cycle Themes: %s\n", settings->cycleThemes);
 
         printBlankSpaces(indent);
         printf(" · Stop: Shift+s\n");
@@ -1276,11 +1272,13 @@ int printLogoAndAdjustments(SongData *songData, int termWidth, UISettings *ui,
                        "clear.\n");
                 printBlankSpaces(indentation);
 #ifndef __APPLE__
-                printf(" PgUp/PgDn: scroll. Del: remove. %s/%s: move songs.\n", settings->moveSongUp, settings->moveSongDown);
+                printf(" PgUp/PgDn: scroll. Del: remove. %s/%s: move songs.\n",
+                       settings->moveSongUp, settings->moveSongDown);
                 clearLine();
                 printf("\n");
 #else
-                printf(" Fn+↑/↓: scroll. Del: remove. %s/%s: move songs.\n", settings->moveSongUp, settings->moveSongDown);
+                printf(" Fn+↑/↓: scroll. Del: remove. %s/%s: move songs.\n",
+                       settings->moveSongUp, settings->moveSongDown);
                 clearLine();
                 printf("\n");
 #endif
@@ -1341,7 +1339,8 @@ void showPlaylist(SongData *songData, PlayList *list, int *chosenSong,
 
         gotoFirstLineFirstRow();
 
-        int aboutRows = printLogoAndAdjustments(songData, term_w, ui, indent, settings);
+        int aboutRows =
+            printLogoAndAdjustments(songData, term_w, ui, indent, settings);
         maxListSize -= aboutRows;
 
         applyColor(ui->colorMode, ui->theme.header, ui->color);
@@ -1375,7 +1374,6 @@ void printProgressBar(int row, int col, AppSettings *settings, UISettings *ui,
         progressBarLength = numProgressBars;
 
         printf("\033[%d;%dH", row, col + 1);
-        clearLine();
 
         for (int i = 0; i < numProgressBars; i++)
         {
@@ -1432,6 +1430,7 @@ void printProgressBar(int row, int col, AppSettings *settings, UISettings *ui,
                                        settings->progressBarCurrentOddChar);
                 }
         }
+        clearRestOfLine();
 }
 
 void printVisualizer(int row, int col, int visualizerWidth,
@@ -1447,6 +1446,9 @@ void printVisualizer(int row, int col, int visualizerWidth,
         getTermSize(&term_w, &term_h);
 
         if (row + height + 2 > term_h)
+                height -= (row + height + 1 - term_h);
+
+        if (height < 2)
                 return;
 
         if (ui->visualizerEnabled)
@@ -1454,7 +1456,7 @@ void printVisualizer(int row, int col, int visualizerWidth,
                 uis->numProgressBars = (int)visualizerWidth / 2;
                 double duration = getCurrentSongDuration();
 
-                drawSpectrumVisualizer(row, col, state);
+                drawSpectrumVisualizer(row, col, height, state);
 
                 int elapsedBars =
                     calcElapsedBars(elapsedSeconds, duration, visualizerWidth);
@@ -1928,7 +1930,7 @@ void showTrackViewLandscape(int height, int width, float aspectRatio,
                 metadata = songdata->metadata;
         }
 
-        int col = height * aspectRatio;
+        int col = height * aspectRatio + 1;
 
         if (!state->uiSettings.coverEnabled ||
             (songdata && songdata->cover == NULL))
@@ -1946,7 +1948,7 @@ void showTrackViewLandscape(int height, int width, float aspectRatio,
 
         if (refresh)
         {
-                printCover(height, songdata, &(state->uiSettings));
+                printCover(1, 1, height, songdata, &(state->uiSettings));
                 if (height > metadataHeight)
                         printBasicMetadata(row, col, visualizerWidth - 1,
                                            metadata, &(state->uiSettings));
