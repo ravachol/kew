@@ -8,12 +8,6 @@
   <a href="https://jenova7.bandcamp.com/album/lost-sci-fi-movie-themes">
     <img src="images/kew-screenshot.png" alt="Screenshot" style="width:400px;">
   </a>
-  <br>
-  <em>Example screenshot running in Konsole:
-    <a href="https://jenova7.bandcamp.com/album/lost-sci-fi-movie-themes">
-      Jenova 7: Lost Sci-Fi Movie Themes
-    </a>.
-  </em>
 </div>
 <br><br>
 
@@ -23,235 +17,23 @@
 ## Features
 
  * Search a music library with partial titles from the command-line.
- * Creates a playlist based on a matched directory.
- * Control the player with previous, next, pause, fast forward and rewind.
+ * Creates a playlist automatically based on matched song, album or artist.
+ * Private, no data is collected by kew.
+ * Full color covers in sixel-capable terminals.
+ * Visualizer with various settings.
  * Edit the playlist by adding, removing and reordering songs.
- * Gapless playback (between files of the same format and type).
+ * Gapless playback.
  * Explore the library and enqueue files or folders.
- * Shuffle, Repeat or Repeat list.
- * Export the playlist to an m3u file.
  * Search your music library and add to the queue.
  * Supports MP3, FLAC, MPEG-4/M4A (AAC), OPUS, OGG, Webm and WAV audio.
  * Supports desktop events through MPRIS.
- * Private, no data is collected by kew.
+ * Use themes or colors derived from covers.
 
 ## Installing
 
 <a href="https://repology.org/project/kew/versions"><img src="https://repology.org/badge/vertical-allrepos/kew.svg" alt="Packaging status" align="right"></a>
 
-
-### Installing with package managers
-
-kew is available from Ubuntu 24.04.
-
-```bash
-sudo apt install kew         (Debian, Ubuntu)
-yay -S kew                   (Arch Linux, Manjaro)
-yay -S kew-git               (Arch Linux, Manjaro)
-sudo zypper install kew      (OpenSUSE)
-sudo pkg install kew         (FreeBSD)
-brew install kew             (macOS, Linux)
-apk add kew                  (Alpine Linux)
-```
-
-### Building the project manually
-
-kew dependencies are:
-
-* FFTW
-* Chafa
-* libopus
-* opusfile
-* libvorbis
-* TagLib
-* faad2 (optional)
-* libogg
-* pkg-config
-* glib2.0
-
-Install the necessary dependencies using your distro's package manager and then install kew. Below are some examples.
-
-<details>
-<summary>Debian/Ubuntu</summary>
-
-Install dependencies:
-
-```bash
-sudo apt install -y pkg-config libfaad-dev libtag1-dev libfftw3-dev libopus-dev libopusfile-dev libvorbis-dev libogg-dev git gcc make libchafa-dev libglib2.0-dev
-```
-
-[Install kew](#install-kew)
-</details>
-
-<details>
-<summary>Arch Linux</summary>
-
-Install dependencies:
-
-```bash
-sudo pacman -Syu --noconfirm --needed pkg-config faad2 taglib fftw git gcc make chafa glib2 opus opusfile libvorbis libogg
-```
-
-[Install kew](#install-kew)
-</details>
-
-<details>
-<summary>Android</summary>
-
-Follow the instructions here:
-
-[ANDROID-INSTRUCTIONS.md](ANDROID-INSTRUCTIONS.md)
-</details>
-
-<details>
-<summary>macOS</summary>
-
-Install git:
-
-```bash
-xcode-select --install
-```
-
-Install dependencies:
-
-```bash
-brew install gettext faad2 taglib chafa fftw opus opusfile libvorbis libogg glib pkg-config make
-```
-Notes for mac users:
-1) A sixel-capable terminal like kitty or WezTerm is recommended for macOS.
-2) The visualizer and album colors are disabled by default on macOS, because the default terminal doesn't handle them too well. To enable press v and i respectively.
-
-[Install kew](#install-kew)
-</details>
-
-<details>
-<summary>Fedora</summary>
-
-Install dependencies:
-
-```bash
-sudo dnf install -y pkg-config taglib-devel fftw-devel opus-devel opusfile-devel libvorbis-devel libogg-devel git gcc make chafa-devel libatomic gcc-c++ glib2-devel
-```
-Option: add faad2-devel for AAC, M4A support.
-
-```bash
-sudo dnf install faad2-devel faad2
-```
-
-[Install kew manually](#install-kew)/[Build an RPM package](FEDORA-RPM-INSTRUCTIONS.md)
-</details>
-
-<details>
-<summary>OpenSUSE</summary>
-
-Install dependencies:
-
-```bash
-sudo zypper install -y pkgconf taglib fftw3-devel opusfile-devel libvorbis-devel libogg-devel git chafa-devel gcc make glib2-devel faad2 faad2-devel gcc-c++ libtag-devel
-```
-
-[Install kew](#install-kew)
-</details>
-
-<details>
-<summary>CentOS/Red Hat</summary>
-
-Install dependencies:
-
-```bash
-sudo dnf config-manager --set-enabled crb
-
-sudo dnf install -y pkgconfig taglib taglib-devel fftw-devel opus-devel opusfile-devel libvorbis-devel libogg-devel git gcc make chafa-devel glib2-devel gcc-c++
-```
-
-Option: add faad2-devel for AAC,M4A support (Requires RPM-fusion to be enabled).
-
-Enable RPM Fusion Free repository:
-
-```bash
-sudo dnf install https://download1.rpmfusion.org/free/el/rpmfusion-free-release-$(rpm -E %rhel).noarch.rpm
-```
-
-Install faad2:
-
-```bash
-sudo dnf install faad2-devel
-```
-
-[Install kew manually](#install-kew)/[Build an RPM package](FEDORA-RPM-INSTRUCTIONS.md)
-</details>
-
-<details>
-<summary>Void Linux</summary>
-
-Install dependencies:
-
-```bash
-sudo xbps-install -y pkg-config faad2 taglib taglib-devel fftw-devel git gcc make chafa chafa-devel opus opusfile opusfile-devel libvorbis-devel libogg glib-devel
-```
-
-[Install kew](#install-kew)
-</details>
-
-<details>
-<summary>Alpine Linux</summary>
-
-Install dependencies:
-
-```bash
-sudo apk add pkgconfig faad2-dev taglib-dev fftw-dev opus-dev opusfile-dev libvorbis-dev libogg-dev git build-base chafa-dev glib-dev
-```
-
-[Install kew](#install-kew)
-
-</details>
-
-<details>
-<summary>Windows (WSL)</summary>
-
-1) Install Windows Subsystem for Linux (WSL).
-
-2) Install kew using the instructions for Ubuntu.
-
-3) If you are running Windows 11, Pulseaudio should work out of the box, but if you are running Windows 10, use the instructions below for installing PulseAudio:
-https://www.reddit.com/r/bashonubuntuonwindows/comments/hrn1lz/wsl_sound_through_pulseaudio_solved/
-
-4) To install Pulseaudio as a service on Windows 10, follow the instructions at the bottom in this guide: https://www.linuxuprising.com/2021/03/how-to-get-sound-pulseaudio-to-work-on.html
-
-</details>
-
-#### Install kew
-
-Download the latest release (recommended) or, if you are feeling adventurous, clone from the latest in main:
-
-```bash
-git clone https://codeberg.org/ravachol/kew.git
-```
-```bash
-cd kew
-```
-
-Then run:
-
-```bash
-make -j4
-```
-
-```bash
-sudo make install
-```
-
-### Uninstalling
-
-If you installed kew manually, simply run:
-
-```bash
-sudo make uninstall
-```
-
-#### Faad2 is optional
-
-By default, the build system will automatically detect if `faad2` is available and includes it if found.
+Install through your package manager or homebrew (macOS). If you can't find it on your distro, or you want the bleeding edge, follow the [Manual Installation Instructions](MANUAL-INSTALL-INSTRUCTIONS.md).
 
 
 ### Terminals
@@ -322,19 +104,9 @@ kew path "/home/joe/Musik/" (changes the path)
 
 Put single-quotes inside quotes "guns n' roses".
 
-#### Views
+* You can select all music by pressing the - MUSIC LIBRARY - header at the top of Library View.
 
-Add songs to the playlist in Library View <kbd>F3</kbd>.
-
-See the playlist and select songs in Playlist View <kbd>F2</kbd>.
-
-See the song info and cover in Track View <kbd>F4</kbd>.
-
-Search music in Search View <kbd>F5</kbd>.
-
-See help in Help View <kbd>F7</kbd>.
-
-You can select all music by pressing the - MUSIC LIBRARY - header at the top of Library View.
+* Favorites playlist: Add current song by pressing '.'. Play this playlist by running "kew ." or "kew list kew favorites"
 
 #### Key Bindings
 * <kbd>Enter</kbd> to select or replay a song.
@@ -352,7 +124,7 @@ You can select all music by pressing the - MUSIC LIBRARY - header at the top of 
 * <kbd>i</kbd> to cycle colors derived from kewrc, theme or track cover.
 * <kbd>t</kbd> to cycle themes.
 * <kbd>b</kbd> to toggle album covers drawn in ascii or as a normal image.
-* <kbd>t</kbd> to toggle notifications.
+* <kbd>n</kbd> to toggle notifications.
 * <kbd>r</kbd> to repeat the current song after playing.
 * <kbd>s</kbd> to shuffle the playlist.
 * <kbd>a</kbd> to seek back.
@@ -373,12 +145,6 @@ kew will create a config file, kewrc, in a kew folder in your default config dir
 
 ## Themes
 
-You can fully customize kew with themes, with TrueColor values or 16 color palette values, or mix them as you want.
-
-Included is a pack of 16 themes + the default 16-color theme.
-
-You can also switch to using colors derived from the album cover. Cycle through the 3 color modes (default, theme and album colors) by pressing i.
-
 Press t to cycle available themes.
 
 To set a theme from the command-line, run:
@@ -387,26 +153,13 @@ kew theme <themename>
 
 For instance 'kew theme midnight' will apply midnight.theme.
 
-To install TrueColor themes:
-- Make sure you run sudo make install if you're not intalling from a package manager.
-
 To add your own themes:
 - Put them in \~/.config/kew/themes (\~/Library/Preferences/kew/themes on macOS).
 
-The default theme is called default.theme and it's a 16-color theme that derives it's colors from whatever settings or theme you have on your terminal.
-
 ## If Colors Look Wrong
 
-If you are on tty or have limited colors and font on your terminal, try cycling i for the three modes until one is passable, v (for visualizer off) and b (for ascii cover).
+If you are on tty or have limited colors and font on your terminal, try cycling i for the three modes until one is passable and pressing v (for visualizer off) and b (for ascii cover).
 That should make it look much more easy on the eye!
-
-## Favorites Playlist
-
-To add a song to your favorites, press "." while the song is playing. This will add the song to the "kew favorites.m3u" playlist. You can then play this playlist by running "kew ." or "kew list kew favorites"
-
-## Nerd Fonts
-
-kew looks better with Nerd Fonts: https://www.nerdfonts.com/.
 
 ## License
 
