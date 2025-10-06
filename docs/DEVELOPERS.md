@@ -12,7 +12,31 @@ Before contributing, ensure you have the following tools installed on your devel
 - [Make](https://www.gnu.org/software/make/)
 - [Git](https://git-scm.com/)
 - [Valgrind](http://valgrind.org/) (optional, for memory debugging and profiling)
-- [VSCode](https://code.visualstudio.com/) (or other debugger)
+- [VSCodium](https://vscodium.com/) or [VSCode](https://code.visualstudio.com/) (or other debugger)
+
+### Building the Project
+
+1. Clone the repository:
+   ```
+   git clone https://codeberg.org/ravachol/kew.git
+   cd kew
+   ```
+
+2. To enable debugging symbols, run make with DEBUG=1
+
+3. Build the project:
+   ```
+   make DEBUG=1 -j$(nproc)  # Use all available processor cores for faster builds
+   ```
+
+### camelCase instead of snake_case
+
+kew uses camelCase, which is unorthodox, but it's what I am used to from my background in other languages.
+There are plenty of examples of projects using other things than strict snake_case in c. Please respect this choice in your contributions.
+
+### Commenting
+
+Please refrain from using a lot of comments, and make sure that they are in English. I am not a big believer in comments and avoid commenting as much as possible. If you feel you need to add a comment, please first consider if you can make the function or variable names clearer, or if you can structure the code differently so that it is simpler and the intent is clear, or if you can make the code block into a function with a name that explains crystally clear what is going on. If you used AI make sure to remove comments that aren't strictly needed.
 
 ### Building the Project
 
