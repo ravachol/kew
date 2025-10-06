@@ -149,7 +149,7 @@ Press t to cycle available themes.
 
 To set a theme from the command-line, run:
 
-kew theme <themename>
+kew theme \<themename\>
 
 For instance 'kew theme midnight' will apply midnight.theme.
 
