@@ -46,8 +46,6 @@ artist folder->album folder(s)->track(s).
 <details>
 <summary>Example commands</summary>
 
-#### Example commands:
-
 ```
 kew (starting kew with no arguments opens the library view where you can choose what to play)
 
@@ -95,7 +93,6 @@ kew path "/home/joe/Musik/" (changes the path)
 <details>
 <summary>Key Bindings</summary>
 
-#### Key Bindings
 * <kbd>Enter</kbd> to select or replay a song.
 * Use <kbd>+</kbd> (or <kbd>=</kbd>), <kbd>-</kbd> keys to adjust the volume.
 * Use <kbd>←</kbd>, <kbd>→</kbd> or <kbd>h</kbd>, <kbd>l</kbd> keys to switch tracks.
@@ -154,7 +151,7 @@ Press <kbd>v</kbd> to turn off visualizer.
 
 Press <kbd>b</kbd> for ASCII covers.
 
-A terminal emulator that can handle sixels is recommended. See [Sixels in Terminal](https://www.arewesixelyet.com/).
+A terminal emulator that can handle TrueColor and sixels is recommended. See [Sixels in Terminal](https://www.arewesixelyet.com/).
 
 ## Favorites Playlist
 
