@@ -1,8 +1,0 @@
-[Desktop Entry]
-Name=kew
-Exec=kew
-Icon=kew
-Comment=Listen to music in the terminal.
-Terminal=true
-Type=Application
-Categories=Audio;
