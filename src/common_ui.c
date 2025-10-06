@@ -351,13 +351,11 @@ void processName(const char *name, char *output, int maxWidth,
 void processNameScroll(const char *name, char *output, int maxWidth,
                        bool isSameNameAsLastTime)
 {
-        const char *lastDot = strrchr(name, '.');
-        size_t nameLength = strnlen(name, maxWidth);
-        size_t scrollableLength =
-            (lastDot != NULL) ? (size_t)(lastDot - name) : nameLength;
+        size_t scrollableLength = strnlen(name, maxWidth);
+        size_t nameLength = strlen(name);
 
         if (scrollDelaySkippedCount <= startScrollingDelay &&
-            scrollableLength > (size_t)maxWidth)
+            nameLength > (size_t)maxWidth)
         {
                 scrollableLength = maxWidth;
                 scrollDelaySkippedCount++;
@@ -374,7 +372,7 @@ void processNameScroll(const char *name, char *output, int maxWidth,
         {
                 processName(name, output, maxWidth, true, true);
         }
-        else if (scrollableLength <= (size_t)maxWidth || finishedScrolling)
+        else if (nameLength <= (size_t)maxWidth || finishedScrolling)
         {
                 processName(name, output, scrollableLength, true, true);
         }
@@ -382,7 +380,7 @@ void processNameScroll(const char *name, char *output, int maxWidth,
         {
                 isLongName = true;
 
-                if ((size_t)(start + maxWidth) > scrollableLength)
+                if ((size_t)(start + maxWidth) > nameLength)
                 {
                         start = 0;
                         finishedScrolling = true;
