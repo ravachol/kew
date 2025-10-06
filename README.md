@@ -14,6 +14,8 @@
 [![License](https://img.shields.io/github/license/ravachol/kew?color=333333&style=for-the-badge)](./LICENSE)
 <br>
 
+kew (/kjuː/) is a terminal music player.
+
 ## Features
 
  * Search a music library with partial titles from the command-line.
@@ -170,6 +172,31 @@ Join the development of kew if you can handle writing C with camelCase. We are a
 ## License
 
 Licensed under GPL. [See LICENSE for more information](./LICENSE).
+
+<details>
+<summary>Attributions</summary>
+kew makes use of the following great open source projects:
+
+Chafa by Hans Petter Jansson - https://hpjansson.org/chafa/
+
+TagLib by TagLib Team - https://taglib.org/
+
+faad2 by fabian_deb, knik, menno - https://sourceforge.net/projects/faac/
+
+FFTW by Matteo Frigo and Steven G. Johnson - https://www.fftw.org/
+
+Libopus by Opus - https://opus-codec.org/
+
+Libvorbis by Xiph.org - https://xiph.org/
+
+Miniaudio by David Reid - https://github.com/mackron/miniaudio
+
+Minimp4 by Lieff - https://github.com/lieff/minimp4
+
+Nestegg by Mozilla - https://github.com/mozilla/nestegg
+
+Img_To_Txt by Danny Burrows - https://github.com/danny-burrows/img_to_txt
+</details>
 
 ## Sponsors and Donations Wanted
 
