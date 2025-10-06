@@ -92,17 +92,17 @@ int displayPlaylistItems(Node *startNode, int startIter, int maxListSize,
             indent >= termWidth)
                 return 0;
 
-        int bufferSize = termWidth - indent - 12;
-        if (bufferSize <= 0 || bufferSize > MAXPATHLEN)
+        int maxNameWidth = termWidth - indent - 12;
+        if (maxNameWidth <= 0)
                 return 0;
 
         PixelData rowColor = {defaultColor, defaultColor, defaultColor};
 
-        char *buffer = malloc(bufferSize + 1);
+        char *buffer = malloc(NAME_MAX + 1);
         if (!buffer)
                 return 0;
 
-        char *filename = malloc(bufferSize + 1);
+        char *filename = malloc(NAME_MAX + 1);
         if (!filename)
         {
                 free(buffer);
@@ -119,7 +119,7 @@ int displayPlaylistItems(Node *startNode, int startIter, int maxListSize,
                                                     maxListSize,
                                                     maxListSize / 2, 0.7f);
 
-                preparePlaylistString(node, buffer, bufferSize);
+                preparePlaylistString(node, buffer, NAME_MAX);
 
                 if (buffer[0] != '\0')
                 {
@@ -149,14 +149,14 @@ int displayPlaylistItems(Node *startNode, int startIter, int maxListSize,
 
                                 *chosenNodeId = node->id;
 
-                                processNameScroll(buffer, filename, bufferSize,
+                                processNameScroll(buffer, filename, maxNameWidth,
                                                   isSameNameAsLastTime);
 
                                 inverseText();
                         }
                         else
                         {
-                                processName(buffer, filename, bufferSize, true,
+                                processName(buffer, filename, maxNameWidth, true,
                                             true);
                         }
 
