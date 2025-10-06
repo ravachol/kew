@@ -573,9 +573,8 @@ void freeVisuals(void)
         }
 }
 
-void drawSpectrumVisualizer(int row, int col, AppState *state)
+void drawSpectrumVisualizer(int row, int col, int height, AppState *state)
 {
-        int height = state->uiSettings.visualizerHeight;
         int numBars = state->uiState.numProgressBars;
         int visualizerWidth = state->uiState.numProgressBars;
         visualizerBarWidth = state->uiSettings.visualizerBarWidth;
