@@ -37,3 +37,4 @@ valgrind-out.txt
 tags
 *.idx
 compile_commands.json
+debug.log
