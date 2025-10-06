@@ -190,4 +190,4 @@ To use Valgrind for memory debugging and profiling:
 
 ### Contributing
 
-For further information on how to contribute, see the file CONTRIBUTING.md.
+For further information on how to contribute, see CONTRIBUTING.md.
