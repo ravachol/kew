@@ -43,6 +43,9 @@ It works best when your music library is organized this way:
 
 artist folder->album folder(s)->track(s).
 
+<details>
+<summary>Example commands</summary>
+
 #### Example commands:
 
 ```
@@ -87,6 +90,10 @@ kew . loads kew favorites.m3u
 kew path "/home/joe/Musik/" (changes the path)
 
  ```
+</details>
+
+<details>
+<summary>Example commands</summary>
 
 #### Key Bindings
 * <kbd>Enter</kbd> to select or replay a song.
@@ -118,6 +125,8 @@ kew path "/home/joe/Musik/" (changes the path)
 * number + <kbd>G</kbd> or <kbd>Enter</kbd> to go to specific song number in the playlist.
 * <kbd>.</kbd> to add currently playing song to kew favorites.m3u (run with "kew .").
 * <kbd>Esc</kbd> to quit.
+
+</details>
 
 ## Configuration
 
