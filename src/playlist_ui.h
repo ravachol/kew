@@ -5,8 +5,6 @@
 #include "playlist.h"
 #include "soundcommon.h"
 
-int displayPlaylist(PlayList *list, int maxListSize, int indent,
-                    int *chosenSong, int *chosenNodeId, bool reset,
-                    AppState *state);
+int displayPlaylist(PlayList *list, int maxListSize, int indent, int *chosenSong, int *chosenNodeId, bool reset, AppState *state);
 
 #endif

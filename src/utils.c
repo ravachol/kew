@@ -1,33 +1,30 @@
-#include "utils.h"
 #include <ctype.h>
-#include <fcntl.h>
+#include <errno.h>
 #include <glib.h>
 #include <math.h>
 #include <pwd.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <strings.h>
 #include <sys/param.h>
 #include <sys/stat.h>
-#include <sys/types.h>
-#include <time.h>
 #include <unistd.h>
+#include <string.h>
+#include <strings.h>
+#include <time.h>
+#include "utils.h"
 
 /*
 
  utils.c
 
- Utility functions for instance for replacing some standard functions with safer
- alternatives.
+ Utility functions for instance for replacing some standard functions with safer alternatives.
 
 */
 
-#if defined(__APPLE__) || defined(__FreeBSD__) || defined(__OpenBSD__) ||      \
-    defined(__NetBSD__)
-#include <stdint.h> // For uint32_t
+#if defined(__APPLE__) || defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__)
 #include <stdlib.h> // For arc4random
+#include <stdint.h> // For uint32_t
 
 uint32_t arc4random_uniform(uint32_t upper_bound);
 
@@ -45,13 +42,11 @@ int getRandomNumber(int min, int max)
         static int seeded = 0;
         if (!seeded)
         {
-                srand(time(
-                    NULL)); // Use srandom() to seed the random number generator
+                srandom(time(NULL)); // Use srandom() to seed the random number generator
                 seeded = 1;
         }
 
-        return min +
-               (rand() % (max - min + 1)); // Use random() instead of rand()
+        return min + (random() % (max - min + 1)); // Use random() instead of rand()
 }
 
 #endif
@@ -60,8 +55,7 @@ void c_sleep(int milliseconds)
 {
         struct timespec ts;
         ts.tv_sec = milliseconds / 1000; // Seconds part
-        // Ensure that the nanoseconds part is computed safely, and no overflow
-        // happens
+        // Ensure that the nanoseconds part is computed safely, and no overflow happens
         ts.tv_nsec = (milliseconds % 1000) * 1000000;
 
         // Make sure that nanoseconds is within valid range
@@ -83,25 +77,18 @@ void c_usleep(int microseconds)
 
         struct timespec ts;
         ts.tv_sec = microseconds / 1000000;
-        ts.tv_nsec = (microseconds % 1000000) *
-                     1000; // Convert remaining microseconds to nanoseconds
+        ts.tv_nsec = (microseconds % 1000000) * 1000; // Convert remaining microseconds to nanoseconds
 
         nanosleep(&ts, NULL);
 }
 
 void c_strcpy(char *dest, const char *src, size_t dest_size)
 {
-        // Ensure the destination and source are valid, and dest_size is large
-        // enough to hold at least one byte
+        // Ensure the destination and source are valid, and dest_size is large enough to hold at least one byte
         if (dest && src && dest_size > 0)
         {
-                // Calculate the length of the source string, limited by
-                // dest_size - 1 (for the null terminator)
+                // Calculate the length of the source string, limited by dest_size - 1 (for the null terminator)
                 size_t src_length = strnlen(src, dest_size - 1);
-
-                // Ensure we do not write beyond dest_size - 1
-                if (src_length >= dest_size)
-                        src_length = dest_size - 1;
 
                 // Safely copy up to src_length bytes from src to dest
                 memcpy(dest, src, src_length);
@@ -109,9 +96,7 @@ void c_strcpy(char *dest, const char *src, size_t dest_size)
                 // Null-terminate the destination string
                 dest[src_length] = '\0';
         }
-        else if (dest &&
-                 dest_size >
-                     0) // If source is NULL, we clear the destination buffer
+        else if (dest && dest_size > 0) // If source is NULL, we clear the destination buffer
         {
                 dest[0] = '\0';
         }
@@ -212,16 +197,13 @@ bool isValidUTF8(const char *str, size_t len)
                 }
                 else if ((c & 0xF0) == 0xE0) // 3-byte sequence
                 {
-                        if (i + 2 >= len || (str[i + 1] & 0xC0) != 0x80 ||
-                            (str[i + 2] & 0xC0) != 0x80)
+                        if (i + 2 >= len || (str[i + 1] & 0xC0) != 0x80 || (str[i + 2] & 0xC0) != 0x80)
                                 return false;
                         i += 3;
                 }
                 else if ((c & 0xF8) == 0xF0) // 4-byte sequence
                 {
-                        if (i + 3 >= len || (str[i + 1] & 0xC0) != 0x80 ||
-                            (str[i + 2] & 0xC0) != 0x80 ||
-                            (str[i + 3] & 0xC0) != 0x80)
+                        if (i + 3 >= len || (str[i + 1] & 0xC0) != 0x80 || (str[i + 2] & 0xC0) != 0x80 || (str[i + 3] & 0xC0) != 0x80)
                                 return false;
                         i += 4;
                 }
@@ -265,8 +247,7 @@ void extractExtension(const char *filename, size_t ext_size, char *ext)
         size_t dot_pos = dot - filename + 1;
 
         // Copy the extension while checking for UTF-8 validity
-        while (dot_pos + i < length && filename[dot_pos + i] != '\0' &&
-               j < ext_size - 1)
+        while (dot_pos + i < length && filename[dot_pos + i] != '\0' && j < ext_size - 1)
         {
                 size_t char_size = 1; // Default to 1 byte (ASCII)
 
@@ -402,11 +383,9 @@ char *getConfigPath(void)
                 if (home)
                 {
 #ifdef __APPLE__
-                        snprintf(configPath, MAXPATHLEN,
-                                 "%s/Library/Preferences/kew", home);
+                        snprintf(configPath, MAXPATHLEN, "%s/Library/Preferences/kew", home);
 #else
-                        snprintf(configPath, MAXPATHLEN, "%s/.config/kew",
-                                 home);
+                        snprintf(configPath, MAXPATHLEN, "%s/.config/kew", home);
 #endif
                 }
                 else
@@ -415,12 +394,9 @@ char *getConfigPath(void)
                         if (pw)
                         {
 #ifdef __APPLE__
-                                snprintf(configPath, MAXPATHLEN,
-                                         "%s/Library/Preferences/kew",
-                                         pw->pw_dir);
+                                snprintf(configPath, MAXPATHLEN, "%s/Library/Preferences/kew", pw->pw_dir);
 #else
-                                snprintf(configPath, MAXPATHLEN,
-                                         "%s/.config/kew", pw->pw_dir);
+                                snprintf(configPath, MAXPATHLEN, "%s/.config/kew", pw->pw_dir);
 #endif
                         }
                         else
@@ -519,8 +495,7 @@ void removeUnneededChars(char *str, int length)
 
         for (int i = 0; i < 3 && str[i] != '\0' && str[i] != ' '; i++)
         {
-                if (isdigit(str[i]) || str[i] == '.' || str[i] == '-' ||
-                    str[i] == ' ')
+                if (isdigit(str[i]) || str[i] == '.' || str[i] == '-' || str[i] == ' ')
                 {
                         int j;
                         for (j = i; str[j] != '\0'; j++)
@@ -537,9 +512,7 @@ void removeUnneededChars(char *str, int length)
         for (int i = 0; str[i] != '\0'; i++)
         {
                 // Only remove if there are no spaces around
-                if ((str[i] == '-' || str[i] == '_') &&
-                    (i > 0 && i < length && str[i - 1] != ' ' &&
-                     str[i + 1] != ' '))
+                if ((str[i] == '-' || str[i] == '_') && (i > 0 && i < length && str[i - 1] != ' ' && str[i + 1] != ' '))
                 {
                         str[i] = ' ';
                 }
@@ -592,111 +565,4 @@ float getFloat(const char *str)
         }
 
         return value;
-}
-
-int copyFile(const char *src, const char *dst)
-{
-        // Validate inputs
-        if (!src || !dst)
-        {
-                return -1;
-        }
-
-        // Check if source and destination are the same
-        struct stat src_stat, dst_stat;
-        if (stat(src, &src_stat) != 0)
-        {
-                return -1;
-        }
-
-        // Don't copy if destination exists and is the same file (same inode)
-        if (stat(dst, &dst_stat) == 0)
-        {
-                if (src_stat.st_dev == dst_stat.st_dev &&
-                    src_stat.st_ino == dst_stat.st_ino)
-                {
-                        return -1; // Same file
-                }
-        }
-
-        // Don't copy directories, symlinks, or special files
-        if (!S_ISREG(src_stat.st_mode))
-        {
-                return -1;
-        }
-
-        // Check file size is reasonable (prevent copying huge files)
-        if (src_stat.st_size > 10 * 1024 * 1024)
-        { // 10MB limit for theme files
-                return -1;
-        }
-
-        // Open source file
-        int src_fd = open(src, O_RDONLY);
-        if (src_fd < 0)
-        {
-                return -1;
-        }
-
-        // Create destination with user read/write permissions
-        int dst_fd = open(dst, O_WRONLY | O_CREAT | O_EXCL, 0600);
-        if (dst_fd < 0)
-        {
-                // If file exists, try to open it (but don't use O_EXCL)
-                dst_fd = open(dst, O_WRONLY | O_CREAT | O_TRUNC, 0600);
-                if (dst_fd < 0)
-                {
-                        close(src_fd);
-                        return -1;
-                }
-        }
-
-        // Copy data in chunks
-        char buffer[8192];
-        ssize_t bytes_read, bytes_written;
-        ssize_t total_written = 0;
-
-        while ((bytes_read = read(src_fd, buffer, sizeof(buffer))) > 0)
-        {
-                bytes_written = write(dst_fd, buffer, bytes_read);
-                if (bytes_written != bytes_read)
-                {
-                        close(src_fd);
-                        close(dst_fd);
-                        unlink(dst); // Remove partial file on error
-                        return -1;
-                }
-                total_written += bytes_written;
-
-                // Sanity check: make sure we're not writing more than expected
-                if (total_written > src_stat.st_size)
-                {
-                        close(src_fd);
-                        close(dst_fd);
-                        unlink(dst);
-                        return -1;
-                }
-        }
-
-        if (bytes_read < 0)
-        {
-                close(src_fd);
-                close(dst_fd);
-                unlink(dst); // Remove partial file on error
-                return -1;
-        }
-
-        // Sync to disk before closing
-        if (fsync(dst_fd) != 0)
-        {
-                close(src_fd);
-                close(dst_fd);
-                unlink(dst);
-                return -1;
-        }
-
-        close(src_fd);
-        close(dst_fd);
-
-        return 0;
 }

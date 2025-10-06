@@ -52,13 +52,11 @@ Node *getListPrev(Node *node);
 
 void createNode(Node **node, const char *directoryPath, int id);
 
-int addToList(PlayList *list, Node *newNode);
+void addToList(PlayList *list, Node *newNode);
 
 Node *deleteFromList(PlayList *list, Node *node);
 
 void deletePlaylist(PlayList *playlist);
-
-void destroyNode(Node *node);
 
 void shufflePlaylist(PlayList *playlist);
 

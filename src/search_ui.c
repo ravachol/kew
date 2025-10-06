@@ -1,12 +1,10 @@
-#include "search_ui.h"
-#include "appstate.h"
-#include "common.h"
-#include "common_ui.h"
-#include "playlist.h"
+#include <stdbool.h>
+#include <math.h>
 #include "soundcommon.h"
 #include "term.h"
-#include <math.h>
-#include <stdbool.h>
+#include "common_ui.h"
+#include "common.h"
+#include "search_ui.h"
 
 /*
 
@@ -24,9 +22,7 @@ int numSearchBytes = 0;
 typedef struct SearchResult
 {
         FileSystemEntry *entry;
-        struct FileSystemEntry *parent;
         int distance;
-        int groupDistance;
 } SearchResult;
 
 // Global variables to store results
@@ -34,98 +30,32 @@ SearchResult *results = NULL;
 size_t resultsCount = 0;
 size_t resultsCapacity = 0;
 
-size_t terminalHeight = 0;
-
 int minSearchLetters = 1;
 FileSystemEntry *currentSearchEntry = NULL;
 
 char searchText[MAX_SEARCH_LEN * 4 + 1]; // Unicode can be 4 characters
 
-FileSystemEntry *getCurrentSearchEntry(void) { return currentSearchEntry; }
-
-int getSearchResultsCount(void) { return resultsCount; }
-
-#define GROW_MARGIN 50
-
-void reallocResults()
+FileSystemEntry *getCurrentSearchEntry(void)
 {
-        if (resultsCount >= resultsCapacity)
-        {
-                resultsCapacity = resultsCapacity == 0
-                                      ? 10 + GROW_MARGIN
-                                      : resultsCapacity + GROW_MARGIN;
-
-                results =
-                    realloc(results, resultsCapacity * sizeof(SearchResult));
-        }
+        return currentSearchEntry;
 }
 
-void setResultFields(FileSystemEntry *entry, int distance,
-                     FileSystemEntry *parent)
+int getSearchResultsCount(void)
 {
-        results[resultsCount].distance = distance;
-        results[resultsCount].entry = entry;
-        results[resultsCount].parent = parent;
-}
-
-bool isDuplicate(const FileSystemEntry *entry)
-{
-        for (size_t i = 0; i < resultsCount; i++)
-        {
-                const FileSystemEntry *other = results[i].entry;
-
-                if (!entry->isDirectory)
-                        return false;
-
-                if (entry == other)
-                        return true;
-        }
-
-        return false;
+        return resultsCount;
 }
 
 // Function to add a result to the global array
 void addResult(FileSystemEntry *entry, int distance)
 {
-        if (numSearchLetters < minSearchLetters)
-                return;
-
-        if (resultsCount > terminalHeight * 10)
-                return;
-
-        if (entry->parent == NULL) // Root
-                return;
-
-        if (isDuplicate(entry))
-                return;
-
-        reallocResults();
-        setResultFields(entry, distance, NULL);
-        resultsCount++;
-
-        if (entry->isDirectory)
+        if (resultsCount >= resultsCapacity)
         {
-                if (entry->children && entry->parent != NULL &&
-                    entry->parent->parent == NULL)
-                {
-                        FileSystemEntry *child = entry->children;
-
-                        while (child)
-                        {
-                                if (child->isDirectory)
-                                {
-                                        if (resultsCount > terminalHeight * 10)
-                                                break;
-
-                                        reallocResults();
-                                        setResultFields(child, distance, entry);
-                                        resultsCount++;
-                                }
-
-                                child = child->next;
-                        }
-                }
+                resultsCapacity = resultsCapacity == 0 ? 10 : resultsCapacity * 2;
+                results = realloc(results, resultsCapacity * sizeof(SearchResult));
         }
+        results[resultsCount].distance = distance;
+        results[resultsCount].entry = entry;
+        resultsCount++;
 }
 
 // Callback function to collect results
@@ -150,162 +80,39 @@ void freeSearchResults(void)
         resultsCount = 0;
 }
 
-void calculateGroupDistances(void)
-{
-        for (size_t i = 0; i < resultsCount; i++)
-        {
-                // Find top-level parent (entry with no parent, or root)
-                FileSystemEntry *root = results[i].entry;
-                while (root->parent != NULL)
-                {
-                        root = root->parent;
-                }
-
-                // Find if this root appears in results, and use ITS distance
-                // Otherwise use minimum distance among descendants
-                int minDist = results[i].distance;
-
-                for (size_t j = 0; j < resultsCount; j++)
-                {
-                        FileSystemEntry *otherRoot = results[j].entry;
-                        while (otherRoot->parent != NULL)
-                        {
-                                otherRoot = otherRoot->parent;
-                        }
-
-                        if (otherRoot == root)
-                        {
-                                if (results[j].entry == root)
-                                {
-                                        // The root itself is in results - use
-                                        // its distance
-                                        minDist = results[j].distance;
-                                        break;
-                                }
-                                if (results[j].distance < minDist)
-                                {
-                                        minDist = results[j].distance + 1;
-                                }
-                        }
-                }
-
-                // If root is in results, use only its distance for grouping
-                // Otherwise use the best child distance
-                results[i].groupDistance = minDist;
-        }
-}
-
-static int ancestorCompare(const FileSystemEntry *A, const FileSystemEntry *B)
-{
-        for (const FileSystemEntry *p = B->parent; p; p = p->parent)
-                if (p == A)
-                        return -1;
-        for (const FileSystemEntry *p = A->parent; p; p = p->parent)
-                if (p == B)
-                        return 1;
-        return 0;
-}
-
-int compareResults(const void *a, const void *b)
-{
-        const SearchResult *A = a;
-        const SearchResult *B = b;
-
-        int rel = ancestorCompare(A->entry, B->entry);
-        if (rel != 0)
-                return rel;
-
-        // Sort by best distance in the top-level group first
-        if (A->groupDistance != B->groupDistance)
-                return (A->groupDistance < B->groupDistance) ? -1 : 1;
-
-        // If different parents, compare by hierarchy (path)
-        if (A->entry->parent != B->entry->parent)
-        {
-                const FileSystemEntry *pA = A->entry;
-                const FileSystemEntry *pB = B->entry;
-
-                // Walk up to same depth
-                int depthA = 0, depthB = 0;
-                for (const FileSystemEntry *p = pA; p->parent; p = p->parent)
-                        depthA++;
-                for (const FileSystemEntry *p = pB; p->parent; p = p->parent)
-                        depthB++;
-
-                while (depthA > depthB)
-                {
-                        pA = pA->parent;
-                        depthA--;
-                }
-                while (depthB > depthA)
-                {
-                        pB = pB->parent;
-                        depthB--;
-                }
-
-                // Walk up together to find where they diverge
-                while (pA->parent != pB->parent)
-                {
-                        pA = pA->parent;
-                        pB = pB->parent;
-                }
-
-                // Compare by name at divergence point
-                int cmp = strcmp(pA->name, pB->name);
-                if (cmp != 0)
-                        return cmp;
-        }
-
-        // Within same parent: directories first
-        if (A->entry->isDirectory != B->entry->isDirectory)
-                return A->entry->isDirectory ? -1 : 1;
-
-        // Then by individual distance
-        if (A->distance != B->distance)
-                return (A->distance < B->distance) ? -1 : 1;
-
-        // Then by name
-        int cmp = strcmp(A->entry->name, B->entry->name);
-        if (cmp != 0)
-                return cmp;
-
-        return (A->entry < B->entry) ? -1 : (A->entry > B->entry);
-}
-
-void sortSearchResults(void)
-{
-        calculateGroupDistances();
-        qsort(results, resultsCount, sizeof(SearchResult), compareResults);
-}
-
 void fuzzySearch(FileSystemEntry *root, int threshold)
 {
-        int term_w, term_h;
-        getTermSize(&term_w, &term_h);
-
-        terminalHeight = term_h;
-
         freeSearchResults();
 
         if (numSearchLetters > minSearchLetters)
         {
-                fuzzySearchRecursive(root, searchText, threshold,
-                                     collectResult);
+                fuzzySearchRecursive(root, searchText, threshold, collectResult);
         }
-
-        sortSearchResults();
-
         refresh = true;
+}
+
+int compareResults(const void *a, const void *b)
+{
+        SearchResult *resultA = (SearchResult *)a;
+        SearchResult *resultB = (SearchResult *)b;
+        return resultA->distance - resultB->distance;
+}
+
+void sortResults(void)
+{
+        qsort(results, resultsCount, sizeof(SearchResult), compareResults);
 }
 
 int displaySearchBox(int indent, UISettings *ui)
 {
-        applyColor(ui->colorMode, ui->theme.search_label, ui->color);
+        if (ui->useConfigColors)
+                setTextColor(ui->mainColor);
+        else
+                setColor(ui);
 
-        clearLine();
         printBlankSpaces(indent);
         printf(" [Search]: ");
-        applyColor(ui->colorMode, ui->theme.search_query, defaultColorRGB);
+        setDefaultTextColor();
         // Save cursor position
         printf("%s", searchText);
         printf("\033[s");
@@ -314,7 +121,7 @@ int displaySearchBox(int indent, UISettings *ui)
         return 0;
 }
 
-int addToSearchText(const char *str, UISettings *ui)
+int addToSearchText(const char *str)
 {
         if (str == NULL)
         {
@@ -328,8 +135,6 @@ int addToSearchText(const char *str, UISettings *ui)
         {
                 return 0; // Not enough space
         }
-
-        applyColor(ui->colorMode, ui->theme.search_label, ui->color);
 
         // Restore cursor position
         printf("\033[u");
@@ -404,7 +209,8 @@ int removeFromSearchText(void)
         // Print a block character to represent the cursor
         printf("█");
 
-        clearRestOfLine();
+        // Clear the end of the line
+        printf("\033[K");
 
         fflush(stdout);
 
@@ -417,43 +223,7 @@ int removeFromSearchText(void)
         return 0;
 }
 
-void applyColorAndFormat(bool isChosen, FileSystemEntry *entry, UISettings *ui,
-                         bool isPlaying)
-{
-        if (isChosen)
-        {
-                currentSearchEntry = entry;
-
-                if (entry->isEnqueued)
-                {
-                        applyColor(ui->colorMode,
-                                   isPlaying ? ui->theme.search_playing :
-                                   ui->theme.search_enqueued, ui->color);
-
-                        printf("\x1b[7m * ");
-                }
-                else
-                {
-                        printf("  \x1b[7m ");
-                }
-        }
-        else
-        {
-                if (entry->isEnqueued)
-                {
-                        applyColor(ui->colorMode,
-                                   isPlaying ? ui->theme.search_playing :
-                                   ui->theme.search_enqueued, ui->color);
-
-                        printf(" * ");
-                }
-                else
-                        printf("   ");
-        }
-}
-
-int displaySearchResults(int maxListSize, int indent, int *chosenRow,
-                         int startSearchIter, UISettings *ui)
+int displaySearchResults(int maxListSize, int indent, int *chosenRow, int startSearchIter, UISettings *ui)
 {
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
@@ -461,6 +231,8 @@ int displaySearchResults(int maxListSize, int indent, int *chosenRow,
         int maxNameWidth = term_w - indent - 5;
         char name[maxNameWidth + 1];
         int printedRows = 0;
+
+        sortResults();
 
         if (*chosenRow >= (int)resultsCount - 1)
         {
@@ -481,62 +253,76 @@ int displaySearchResults(int maxListSize, int indent, int *chosenRow,
         if (*chosenRow < 0)
                 startSearchIter = *chosenRow = 0;
 
-        clearLine();
         printf("\n");
         printedRows++;
 
-        int nameWidth = maxNameWidth;
-        int extraIndent = 0;
-
+        // Print the sorted results
         for (size_t i = startSearchIter; i < resultsCount; i++)
         {
+                if (numSearchLetters < minSearchLetters)
+                        break;
+
                 if ((int)i >= maxListSize + startSearchIter - 1)
                         break;
 
-                applyColor(ui->colorMode, ui->theme.search_result,
-                           defaultColorRGB);
+                setDefaultTextColor();
 
-                clearLine();
+                printBlankSpaces(indent);
 
-                // Indent sub dirs
-                if (results[i].parent != NULL)
-                        extraIndent = 2;
-                else if (!results[i].entry->isDirectory)
-                        extraIndent = 4;
+                if (*chosenRow == (int)i)
+                {
+                        currentSearchEntry = results[i].entry;
+
+                        if (results[i].entry->isEnqueued)
+                        {
+                                if (ui->useConfigColors)
+                                        setTextColor(ui->enqueuedColor);
+                                else
+                                        setColor(ui);
+                                printf("\x1b[7m * ");
+                        }
+                        else
+                        {
+                                printf("  \x1b[7m ");
+                        }
+                }
                 else
-                        extraIndent = 0;
+                {
+                        if (results[i].entry->isEnqueued)
+                        {
+                                if (ui->useConfigColors)
+                                        setTextColor(ui->enqueuedColor);
+                                else
+                                        setColor(ui);
+                                printf(" * ");
+                        }
+                        else
+                                printf("   ");
+                }
 
-                nameWidth = maxNameWidth - extraIndent;
-
-                printBlankSpaces(indent + extraIndent);
-
-                bool isChosen = (*chosenRow == (int)i);
-
-                bool isCurrentSong = currentSong != NULL && strcmp(currentSong->song.filePath,
-                                            results[i].entry->fullPath) == 0;
-
-                applyColorAndFormat(isChosen, results[i].entry, ui, isCurrentSong);
 
                 name[0] = '\0';
                 if (results[i].entry->isDirectory)
                 {
-                        snprintf(name, nameWidth + 1, "[%s]",
-                                 results[i].entry->name);
+                        if (results[i].entry->parent != NULL && strcmp(results[i].entry->parent->name, "root") != 0)
+                                snprintf(name, maxNameWidth + 1, "[%s] (%s)", results[i].entry->name, results[i].entry->parent->name);
+                        else
+                                snprintf(name, maxNameWidth + 1, "[%s]", results[i].entry->name);
+
                 }
                 else
                 {
-                        snprintf(name, nameWidth + 1, "%s",
-                                 results[i].entry->name);
+                        if (results[i].entry->parent != NULL && strcmp(results[i].entry->parent->name, "root") != 0)
+                                snprintf(name, maxNameWidth + 1, "%s (%s)", results[i].entry->name, results[i].entry->parent->name);
+                        else
+                                snprintf(name, maxNameWidth + 1, "%s", results[i].entry->name);
                 }
                 printf("%s\n", name);
                 printedRows++;
         }
 
-        applyColor(ui->colorMode, ui->theme.help, defaultColorRGB);
-
         while (printedRows < maxListSize)
         {
-                clearLine();
                 printf("\n");
                 printedRows++;
         }
@@ -544,12 +330,10 @@ int displaySearchResults(int maxListSize, int indent, int *chosenRow,
         return 0;
 }
 
-int displaySearch(int maxListSize, int indent, int *chosenRow,
-                  int startSearchIter, UISettings *ui)
+int displaySearch(int maxListSize, int indent, int *chosenRow, int startSearchIter, UISettings *ui)
 {
         displaySearchBox(indent, ui);
-        displaySearchResults(maxListSize, indent, chosenRow, startSearchIter,
-                             ui);
+        displaySearchResults(maxListSize, indent, chosenRow, startSearchIter, ui);
 
         return 0;
 }

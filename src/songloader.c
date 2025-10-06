@@ -1,18 +1,17 @@
-#include "songloader.h"
-#include "cache.h"
-#include "file.h"
-#include "imgfunc.h"
-#include "sound.h"
-#include "soundcommon.h"
-#include "stb_image.h"
-#include "tagLibWrapper.h"
-#include "utils.h"
-#include <dirent.h>
-#include <gio/gio.h>
 #include <glib.h>
-#include <string.h>
+#include <gio/gio.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#include <dirent.h>
+#include "tagLibWrapper.h"
+#include "cache.h"
+#include "imgfunc.h"
+#include "file.h"
+#include "sound.h"
+#include "soundcommon.h"
+#include "utils.h"
+#include "songloader.h"
+#include "stb_image.h"
 /*
 
 songloader.c
@@ -25,256 +24,163 @@ songloader.c
 #define MAXPATHLEN 4096
 #endif
 
-#define MAX_RECURSION_DEPTH 10
-
 static guint track_counter = 0;
 
-void makeFilePath(const char *dirPath, char *filePath, size_t filePathSize,
-                  const struct dirent *entry)
+void makeFilePath(char *dirPath, char *filePath, struct dirent *entry)
 {
-        if (dirPath == NULL || filePath == NULL || entry == NULL ||
-            filePathSize == 0)
-                return;
-
-        size_t dirLen = strnlen(dirPath, filePathSize);
-        size_t nameLen = strnlen(entry->d_name, filePathSize);
-
-        if (dirLen == filePathSize)
+        if (dirPath[strnlen(dirPath, MAXPATHLEN) - 1] == '/')
         {
-                filePath[0] = '\0';
-                return;
-        }
-
-        size_t neededSize = dirLen + nameLen + 1; // +1 for '\0'
-        if (dirPath[dirLen - 1] != '/')
-        {
-                neededSize += 1; // for the added '/'
-        }
-
-        if (neededSize > filePathSize)
-        {
-                filePath[0] = '\0';
-                return;
-        }
-
-        // Compose the path safely
-        if (dirPath[dirLen - 1] == '/')
-        {
-                snprintf(filePath, filePathSize, "%s%s", dirPath,
-                         entry->d_name);
+                sprintf(filePath, "%s%s", dirPath, entry->d_name);
         }
         else
         {
-                snprintf(filePath, filePathSize, "%s/%s", dirPath,
-                         entry->d_name);
+                sprintf(filePath, "%s/%s", dirPath, entry->d_name);
         }
-
-        // snprintf guarantees null termination if filePathSize > 0
 }
 
-char *chooseAlbumArt(const char *dirPath, char **customFileNameArr, int size,
-                     int depth)
+char *chooseAlbumArt(char *dirPath, char **customFileNameArr, int size)
 {
-        if (!dirPath || !customFileNameArr || size <= 0 ||
-            depth > MAX_RECURSION_DEPTH)
-        {
-                return NULL;
-        }
 
         DIR *directory = opendir(dirPath);
-        if (!directory)
-        {
-                return NULL;
-        }
-
         struct dirent *entry;
         struct stat fileStat;
-        char filePath[MAXPATHLEN];
-        char resolvedPath[MAXPATHLEN];
-        char *result = NULL;
 
-        for (int i = 0; i < size && !result; i++)
+        // Check if selected directory is empty //
+        if (directory != NULL)
         {
-                rewinddir(directory);
-                while ((entry = readdir(directory)) != NULL)
+
+                // If it's not empty go through all the files in it and file paths and match files / extension with prio list //
+                char *result = NULL;
+                for (char **ptr = customFileNameArr; ptr < customFileNameArr + size; ptr++)
                 {
-                        if (strcmp(entry->d_name, ".") == 0 ||
-                            strcmp(entry->d_name, "..") == 0)
-                                continue;
 
-                        int written = snprintf(filePath, sizeof(filePath),
-                                               "%s/%s", dirPath, entry->d_name);
-                        if (written < 0 || written >= (int)sizeof(filePath))
-                        {
-                                continue; // path too long
-                        }
+                        rewinddir(directory);
 
-                        if (realpath(filePath, resolvedPath) == NULL)
+                        while ((entry = readdir(directory)) != NULL)
                         {
-                                continue;
-                        }
 
-                        if (strncmp(resolvedPath, dirPath, strlen(dirPath)) !=
-                            0)
-                        {
-                                continue; // outside allowed directory
-                        }
+                                // Create required data //
+                                char filePath[MAXPATHLEN];
+                                makeFilePath(dirPath, filePath, entry);
 
-                        if (stat(resolvedPath, &fileStat) == 0 &&
-                            S_ISREG(fileStat.st_mode))
-                        {
-                                if (strcmp(entry->d_name,
-                                           customFileNameArr[i]) == 0)
+                                // Using those file path check if the paths lead ot files or directories //
+                                if (stat(filePath, &fileStat) == 0)
                                 {
-                                        result = strdup(resolvedPath);
+
+                                        if (strcmp(entry->d_name, *ptr) == 0)
+                                        {
+                                                result = strdup(filePath);
+                                                break;
+                                        }
+                                }
+                        }
+                        if (result)
+                        {
+                                break;
+                        }
+                }
+                if (result)
+                {
+                        closedir(directory);
+                        return result;
+                }
+                else
+                {
+                        // Recursion //
+                        for (char **ptr = customFileNameArr; ptr < customFileNameArr + size; ptr++)
+                        {
+
+                                rewinddir(directory);
+
+                                while ((entry = readdir(directory)) != NULL)
+                                {
+
+                                        // Handle hidden folders etc //
+                                        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
+                                        {
+                                                continue;
+                                        }
+
+                                        // Create required data //
+                                        char filePath[MAXPATHLEN];
+                                        makeFilePath(dirPath, filePath, entry);
+
+                                        // Using those file path check if the paths lead ot files or directories //
+                                        if (stat(filePath, &fileStat) == 0)
+                                        {
+
+                                                if (S_ISDIR(fileStat.st_mode))
+                                                {
+                                                        result = chooseAlbumArt(filePath, customFileNameArr, size);
+                                                        if (result != NULL)
+                                                        {
+                                                                break; // if album art is found in the directory, break, else keep searching in other directories //
+                                                        }
+                                                }
+                                        }
+                                }
+                                if (result)
+                                {
                                         break;
                                 }
                         }
-                }
-        }
-
-        // Recursive search for directories
-        if (!result)
-        {
-                rewinddir(directory);
-                while ((entry = readdir(directory)) != NULL && !result)
-                {
-                        if (strcmp(entry->d_name, ".") == 0 ||
-                            strcmp(entry->d_name, "..") == 0)
-                                continue;
-
-                        int written = snprintf(filePath, sizeof(filePath),
-                                               "%s/%s", dirPath, entry->d_name);
-                        if (written < 0 || written >= (int)sizeof(filePath))
+                        if (result)
                         {
-                                continue;
-                        }
-
-                        if (realpath(filePath, resolvedPath) == NULL)
-                        {
-                                continue;
-                        }
-
-                        if (strncmp(resolvedPath, dirPath, strlen(dirPath)) !=
-                            0)
-                        {
-                                continue;
-                        }
-
-                        struct stat linkStat;
-                        if (lstat(resolvedPath, &linkStat) == 0)
-                        {
-                                if (S_ISLNK(linkStat.st_mode))
-                                {
-                                        continue; // skip symlink
-                                }
-                                if (S_ISDIR(linkStat.st_mode))
-                                {
-                                        result = chooseAlbumArt(
-                                            resolvedPath, customFileNameArr,
-                                            size, depth + 1);
-                                }
+                                closedir(directory);
+                                return result;
                         }
                 }
         }
 
         closedir(directory);
-        return result;
+        return NULL;
 }
 
-char *findLargestImageFile(const char *directoryPath, char *largestImageFile,
-                           off_t *largestFileSize)
+char *findLargestImageFile(const char *directoryPath, char *largestImageFile, off_t *largestFileSize)
 {
         DIR *directory = opendir(directoryPath);
+        struct dirent *entry;
+        struct stat fileStats;
+
         if (directory == NULL)
         {
-                fprintf(stderr, "Failed to open directory: %s\n",
-                        directoryPath);
+                fprintf(stderr, "Failed to open directory: %s\n", directoryPath);
                 return largestImageFile;
         }
 
-        struct dirent *entry;
-        struct stat fileStats;
-        char filePath[MAXPATHLEN];
-        char resolvedPath[MAXPATHLEN];
-
         while ((entry = readdir(directory)) != NULL)
         {
-                // Skip "." and ".."
-                if (strcmp(entry->d_name, ".") == 0 ||
-                    strcmp(entry->d_name, "..") == 0)
-                        continue;
+                char filePath[MAXPATHLEN];
 
-                // Construct file path safely
-                int len = snprintf(filePath, sizeof(filePath), "%s/%s",
-                                   directoryPath, entry->d_name);
-                if (len < 0 || len >= (int)sizeof(filePath))
+                if (directoryPath[strnlen(directoryPath, MAXPATHLEN) - 1] == '/')
                 {
-                        // Path too long, skip
-                        continue;
+                        snprintf(filePath, sizeof(filePath), "%s%s", directoryPath, entry->d_name);
+                }
+                else
+                {
+                        snprintf(filePath, sizeof(filePath), "%s/%s", directoryPath, entry->d_name);
                 }
 
-                // Resolve the real path
-                if (realpath(filePath, resolvedPath) == NULL)
+                if (stat(filePath, &fileStats) == -1)
                 {
-                        // Could not resolve, skip
-                        continue;
-                }
-
-                // Use lstat to avoid following symlinks
-                if (lstat(resolvedPath, &fileStats) == -1)
-                {
-                        continue;
-                }
-
-                if (S_ISLNK(fileStats.st_mode))
-                {
-                        // Ignore symlinks
                         continue;
                 }
 
                 if (S_ISREG(fileStats.st_mode))
                 {
-                        // Validate extension
+                        // Check if the entry is an image file and has a larger size than the current largest image file
                         char *extension = strrchr(entry->d_name, '.');
-                        if (extension != NULL &&
-                            (strcasecmp(extension, ".jpg") == 0 ||
-                             strcasecmp(extension, ".jpeg") == 0 ||
-                             strcasecmp(extension, ".png") == 0 ||
-                             strcasecmp(extension, ".gif") == 0))
+                        if (extension != NULL && (strcasecmp(extension, ".jpg") == 0 || strcasecmp(extension, ".jpeg") == 0 ||
+                                                  strcasecmp(extension, ".png") == 0 || strcasecmp(extension, ".gif") == 0))
                         {
-                                // Ensure non-negative file size and prevent
-                                // integer overflow
-                                if (fileStats.st_size < 0)
-                                        continue;
-
-                                // Optional: impose max file size limit, e.g.,
-                                // 100 MB
-                                const off_t MAX_FILE_SIZE = 100 * 1024 * 1024;
-                                if (fileStats.st_size > MAX_FILE_SIZE)
-                                        continue;
-
                                 if (fileStats.st_size > *largestFileSize)
                                 {
                                         *largestFileSize = fileStats.st_size;
-
-                                        // Free previous allocation if owned
                                         if (largestImageFile != NULL)
                                         {
                                                 free(largestImageFile);
-                                                largestImageFile = NULL;
                                         }
-
-                                        largestImageFile = strdup(resolvedPath);
-                                        if (largestImageFile == NULL)
-                                        {
-                                                fprintf(stderr,
-                                                        "Memory allocation "
-                                                        "failure\n");
-                                                // Return early or continue
-                                                // depending on desired behavior
-                                                break;
-                                        }
+                                        largestImageFile = strdup(filePath);
                                 }
                         }
                 }
@@ -287,17 +193,14 @@ char *findLargestImageFile(const char *directoryPath, char *largestImageFile,
 // Generate a new track ID
 gchar *generateTrackId(void)
 {
-        gchar *trackId =
-            g_strdup_printf("/org/kew/tracklist/track%d", track_counter);
+        gchar *trackId = g_strdup_printf("/org/kew/tracklist/track%d", track_counter);
         track_counter++;
         return trackId;
 }
 
 void loadColor(SongData *songdata)
 {
-        getCoverColor(songdata->cover, songdata->coverWidth,
-                      songdata->coverHeight, &(songdata->red),
-                      &(songdata->green), &(songdata->blue));
+        getCoverColor(songdata->cover, songdata->coverWidth, songdata->coverHeight, &(songdata->red), &(songdata->green), &(songdata->blue));
 }
 
 void loadMetaData(SongData *songdata, AppState *state)
@@ -305,18 +208,12 @@ void loadMetaData(SongData *songdata, AppState *state)
         char path[MAXPATHLEN];
 
         songdata->metadata = malloc(sizeof(TagSettings));
-        if (songdata->metadata == NULL)
-        {
-                songdata->hasErrors = true;
-                return;
-        }
         songdata->metadata->replaygainTrack = 0.0;
         songdata->metadata->replaygainAlbum = 0.0;
 
         generateTempFilePath(songdata->coverArtPath, "cover", ".jpg");
 
-        int res = extractTags(songdata->filePath, songdata->metadata,
-                              &(songdata->duration), songdata->coverArtPath);
+        int res = extractTags(songdata->filePath, songdata->metadata, &(songdata->duration), songdata->coverArtPath);
 
         if (res == -2)
         {
@@ -329,11 +226,20 @@ void loadMetaData(SongData *songdata, AppState *state)
                 char *tmp = NULL;
                 off_t size = 0;
                 char *fileArr[12] = {
-                    "front.png",  "front.jpg",   "front.jpeg", "folder.png",
-                    "folder.jpg", "folder.jpeg", "cover.png",  "cover.jpg",
-                    "cover.jpeg", "f.png",       "f.jpg",      "f.jpeg",
+                    "front.png",
+                    "front.jpg",
+                    "front.jpeg",
+                    "folder.png",
+                    "folder.jpg",
+                    "folder.jpeg",
+                    "cover.png",
+                    "cover.jpg",
+                    "cover.jpeg",
+                    "f.png",
+                    "f.jpg",
+                    "f.jpeg",
                 };
-                tmp = chooseAlbumArt(path, fileArr, 12, 0);
+                tmp = chooseAlbumArt(path, fileArr, 12);
                 if (tmp == NULL)
                 {
                         tmp = findLargestImageFile(path, tmp, &size);
@@ -341,23 +247,19 @@ void loadMetaData(SongData *songdata, AppState *state)
 
                 if (tmp != NULL)
                 {
-                        c_strcpy(songdata->coverArtPath, tmp,
-                                 sizeof(songdata->coverArtPath));
+                        c_strcpy(songdata->coverArtPath, tmp, sizeof(songdata->coverArtPath));
                         free(tmp);
                         tmp = NULL;
                 }
                 else
-                        c_strcpy(songdata->coverArtPath, "",
-                                 sizeof(songdata->coverArtPath));
+                        c_strcpy(songdata->coverArtPath, "", sizeof(songdata->coverArtPath));
         }
         else
         {
                 addToCache(state->tmpCache, songdata->coverArtPath);
         }
 
-        songdata->cover =
-            getBitmap(songdata->coverArtPath, &(songdata->coverWidth),
-                      &(songdata->coverHeight));
+        songdata->cover = getBitmap(songdata->coverArtPath, &(songdata->coverWidth), &(songdata->coverHeight));
 }
 
 SongData *loadSongData(char *filePath, AppState *state)
@@ -394,8 +296,7 @@ void unloadSongData(SongData **songdata, AppState *state)
                 data->cover = NULL;
         }
 
-        if (existsInCache(state->tmpCache, data->coverArtPath) &&
-            isInTempDir(data->coverArtPath))
+        if (existsInCache(state->tmpCache, data->coverArtPath) && isInTempDir(data->coverArtPath))
         {
                 deleteFile(data->coverArtPath);
         }

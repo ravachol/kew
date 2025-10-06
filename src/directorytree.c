@@ -1,16 +1,15 @@
-#include "directorytree.h"
-#include "file.h"
-#include "utils.h"
 #include <ctype.h>
 #include <dirent.h>
 #include <glib.h>
-#include <limits.h>
 #include <regex.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/stat.h>
 #include <sys/types.h>
+#include <sys/stat.h>
+#include "file.h"
+#include "utils.h"
+#include "directorytree.h"
 
 /*
 
@@ -20,24 +19,13 @@ directorytree.c
 
 */
 
-#define MAX_STACK_SIZE 1000000
-
-#ifndef MAXPATHLEN
-#define MAXPATHLEN 4096
-#endif
-
 static int lastUsedId = 0;
 
 typedef void (*TimeoutCallback)(void);
 
-FileSystemEntry *createEntry(const char *name, int isDirectory,
-                             FileSystemEntry *parent)
+FileSystemEntry *createEntry(const char *name, int isDirectory, FileSystemEntry *parent)
 {
         if (lastUsedId == INT_MAX)
-                return NULL;
-
-        int newId = lastUsedId + 1;
-        if (newId < 0) // overflow detected
                 return NULL;
 
         FileSystemEntry *newEntry = malloc(sizeof(FileSystemEntry));
@@ -56,7 +44,7 @@ FileSystemEntry *createEntry(const char *name, int isDirectory,
                 newEntry->parent = parent;
                 newEntry->children = NULL;
                 newEntry->next = NULL;
-                newEntry->id = newId;
+                newEntry->id = ++lastUsedId;
                 if (parent != NULL)
                 {
                         newEntry->parentId = parent->id;
@@ -87,8 +75,8 @@ int isValidEntryName(const char *name)
         if (name == NULL)
                 return 0;
 
-        size_t len = strnlen(name, MAXPATHLEN + 1);
-        if (len > MAX_NAME || len > MAXPATHLEN)
+        size_t len = strlen(name);
+        if (len > MAX_NAME)
                 return 0;
 
         if (len == 0)
@@ -116,38 +104,26 @@ int isValidEntryName(const char *name)
         return 1;
 }
 
-void setFullPath(FileSystemEntry *entry, const char *parentPath,
-                 const char *entryName)
+void setFullPath(FileSystemEntry *entry, const char *parentPath, const char *entryName)
 {
         if (entry == NULL || parentPath == NULL || entryName == NULL)
                 return;
 
         if (!isValidEntryName(entryName))
         {
-                char buf[257];
+                // Limit printed length to avoid huge strings
+                char buf[257]; // 256 chars + null
                 snprintf(buf, sizeof(buf), "%s", entryName);
-                buf[sizeof(buf) - 1] = '\0'; // ensure null-termination
-                fprintf(stderr,
-                        "Invalid entryName (possible path traversal): '%s'\n",
-                        buf);
+                fprintf(stderr, "Invalid entryName (possible path traversal): '%s'\n", buf);
                 return;
         }
 
-        size_t parentLen = strnlen(parentPath, MAXPATHLEN + 1);
-        size_t nameLen = strnlen(entryName, MAXPATHLEN + 1);
+        size_t parentLen = strnlen(parentPath, MAXPATHLEN);
+        size_t nameLen = strnlen(entryName, MAXPATHLEN);
 
-        if (parentLen > MAXPATHLEN || nameLen > MAXPATHLEN)
-        {
-                fprintf(
-                    stderr,
-                    "Parent or entry name too long or not null-terminated.\n");
-                return;
-        }
+        // +1 for '/', +1 for null terminator
+        size_t needed = parentLen + 1 + nameLen + 1;
 
-        if (parentLen > 0 && parentPath[parentLen - 1] == '/')
-                parentLen--; // Normalize parent path (remove trailing slash)
-
-        size_t needed = parentLen + 1 + nameLen + 1; // slash + null
         if (needed > MAXPATHLEN)
         {
                 fprintf(stderr, "Path too long, rejecting.\n");
@@ -158,23 +134,7 @@ void setFullPath(FileSystemEntry *entry, const char *parentPath,
         if (entry->fullPath == NULL)
                 return;
 
-        snprintf(entry->fullPath, needed, "%.*s/%s", (int)parentLen, parentPath,
-                 entryName);
-        entry->fullPath[needed - 1] = '\0'; // Explicit null-termination
-
-        // Post-check for directory traversal patterns
-        if (strstr(entry->fullPath, "/../") != NULL ||
-            strstr(entry->fullPath, "/..") ==
-                entry->fullPath + strlen(entry->fullPath) - 3 ||
-            strncmp(entry->fullPath, "../", 3) == 0)
-        {
-                fprintf(stderr,
-                        "Path traversal attempt detected in fullPath: '%s'\n",
-                        entry->fullPath);
-                free(entry->fullPath);
-                entry->fullPath = NULL;
-                return;
-        }
+        snprintf(entry->fullPath, needed, "%s/%s", parentPath, entryName);
 }
 
 void freeTree(FileSystemEntry *root)
@@ -182,6 +142,7 @@ void freeTree(FileSystemEntry *root)
         if (root == NULL)
                 return;
 
+        // Stack of pointers
         size_t cap = 128, top = 0;
         FileSystemEntry **stack = malloc(cap * sizeof(*stack));
         if (!stack)
@@ -191,40 +152,35 @@ void freeTree(FileSystemEntry *root)
 
         while (top > 0)
         {
-                FileSystemEntry *node = stack[top - 1];
+                FileSystemEntry *node = stack[top - 1]; /* peek */
 
+                // If node has a child, push sibling then child so child is processed first */
                 if (node->children)
                 {
+                        // Ensure capacity
                         if (top + 2 > cap)
                         {
-                                if (cap > INT_MAX / 2 ||
-                                    cap * 2 > MAX_STACK_SIZE)
-                                {
-                                        fprintf(stderr,
-                                                "Stack capacity limit exceeded "
-                                                "in freeTree\n");
-                                        break;
-                                }
-
                                 size_t nc = cap * 2;
-                                FileSystemEntry **tmp =
-                                    realloc(stack, nc * sizeof(*stack));
+                                FileSystemEntry **tmp = realloc(stack, nc * sizeof(*stack));
                                 if (!tmp)
-                                        break;
+                                        break; // Allocation failure: abort early
                                 stack = tmp;
                                 cap = nc;
                         }
-
                         if (node->next)
+                        {
                                 stack[top++] = node->next;
+                        }
                         stack[top++] = node->children;
 
+                        // Disconnect to avoid re-traversal down this pointer path
                         node->children = NULL;
                         node->next = NULL;
                         continue;
                 }
 
-                top--;
+                // No children left, pop and free this node
+                top--; // Pop
                 free(node->name);
                 free(node->fullPath);
                 free(node);
@@ -258,8 +214,7 @@ int naturalCompare(const char *a, const char *b)
                         }
                         else
                         {
-                                // Fallback: compare digit length, then
-                                // lexicographically
+                                // Fallback: compare digit length, then lexicographically
                                 size_t lenA = endA - a;
                                 size_t lenB = endB - b;
                                 if (lenA < lenB)
@@ -293,8 +248,7 @@ int naturalCompare(const char *a, const char *b)
 
 int compareLibEntries(const struct dirent **a, const struct dirent **b)
 {
-        // All strings need to be uppercased or already uppercased characters
-        // will come before all lower-case ones
+        // All strings need to be uppercased or already uppercased characters will come before all lower-case ones
         char *nameA = stringToUpper((*a)->d_name);
         char *nameB = stringToUpper((*b)->d_name);
 
@@ -374,8 +328,7 @@ int removeEmptyDirectories(FileSystemEntry *node, int depth)
         {
                 if (currentChild->isDirectory)
                 {
-                        numEntries +=
-                            removeEmptyDirectories(currentChild, depth + 1);
+                        numEntries += removeEmptyDirectories(currentChild, depth + 1);
 
                         if (currentChild->children == NULL)
                         {
@@ -408,8 +361,7 @@ int removeEmptyDirectories(FileSystemEntry *node, int depth)
 int readDirectory(const char *path, FileSystemEntry *parent)
 {
         struct dirent **entries;
-        int dirEntries =
-            scandir(path, &entries, NULL, compareLibEntriesReversed);
+        int dirEntries = scandir(path, &entries, NULL, compareLibEntriesReversed);
 
         if (dirEntries < 0)
         {
@@ -430,13 +382,10 @@ int readDirectory(const char *path, FileSystemEntry *parent)
                         continue;
                 }
 
-                if (entry->d_name[0] != '.' &&
-                    strcmp(entry->d_name, ".") != 0 &&
-                    strcmp(entry->d_name, "..") != 0)
+                if (entry->d_name[0] != '.' && strcmp(entry->d_name, ".") != 0 && strcmp(entry->d_name, "..") != 0)
                 {
                         char childPath[MAXPATHLEN];
-                        snprintf(childPath, sizeof(childPath), "%s/%s", path,
-                                 entry->d_name);
+                        snprintf(childPath, sizeof(childPath), "%s/%s", path, entry->d_name);
 
                         struct stat fileStats;
                         if (stat(childPath, &fileStats) == -1)
@@ -459,8 +408,7 @@ int readDirectory(const char *path, FileSystemEntry *parent)
                         if (isAudio == 0 || isDir)
                         {
 
-                                FileSystemEntry *child =
-                                    createEntry(entry->d_name, isDir, parent);
+                                FileSystemEntry *child = createEntry(entry->d_name, isDir, parent);
 
                                 if (child == NULL)
                                         continue;
@@ -475,8 +423,7 @@ int readDirectory(const char *path, FileSystemEntry *parent)
                                 if (isDir)
                                 {
                                         numEntries++;
-                                        numEntries +=
-                                            readDirectory(childPath, child);
+                                        numEntries += readDirectory(childPath, child);
                                 }
                         }
                 }
@@ -497,8 +444,7 @@ void writeTreeToFile(FileSystemEntry *node, FILE *file, int parentId)
                 return;
         }
 
-        fprintf(file, "%d\t%s\t%d\t%d\n", node->id, node->name,
-                node->isDirectory, parentId);
+        fprintf(file, "%d\t%s\t%d\t%d\n", node->id, node->name, node->isDirectory, parentId);
 
         FileSystemEntry *child = node->children;
         FileSystemEntry *tmp = NULL;
@@ -541,11 +487,9 @@ FileSystemEntry *createDirectoryTree(const char *startPath, int *numEntries)
         return root;
 }
 
-FileSystemEntry **resizeNodesArray(FileSystemEntry **nodes, int oldSize,
-                                   int newSize)
+FileSystemEntry **resizeNodesArray(FileSystemEntry **nodes, int oldSize, int newSize)
 {
-        FileSystemEntry **newNodes =
-            realloc(nodes, newSize * sizeof(FileSystemEntry *));
+        FileSystemEntry **newNodes = realloc(nodes, newSize * sizeof(FileSystemEntry *));
         if (newNodes)
         {
                 for (int i = oldSize; i < newSize; i++)
@@ -584,9 +528,7 @@ int countLinesAndMaxId(const char *filename, int *maxId_out)
         return lines;
 }
 
-FileSystemEntry *reconstructTreeFromFile(const char *filename,
-                                         const char *startMusicPath,
-                                         int *numDirectoryEntries)
+FileSystemEntry *reconstructTreeFromFile(const char *filename, const char *startMusicPath, int *numDirectoryEntries)
 {
         int maxId = -1;
         int nodeCount = countLinesAndMaxId(filename, &maxId);
@@ -598,8 +540,7 @@ FileSystemEntry *reconstructTreeFromFile(const char *filename,
                 return NULL;
 
         // Allocate memory for maxid + 1 nodes
-        FileSystemEntry **nodes =
-            calloc((size_t)(maxId + 1), sizeof(FileSystemEntry *));
+        FileSystemEntry **nodes = calloc((size_t)(maxId + 1), sizeof(FileSystemEntry *));
         if (!nodes)
         {
                 fclose(file);
@@ -614,16 +555,14 @@ FileSystemEntry *reconstructTreeFromFile(const char *filename,
         {
                 int id, parentId, isDir;
                 char name[256];
-                if (sscanf(line, "%d\t%255[^\t]\t%d\t%d", &id, name, &isDir,
-                           &parentId) != 4)
+                if (sscanf(line, "%d\t%255[^\t]\t%d\t%d", &id, name, &isDir, &parentId) != 4)
                         continue;
                 FileSystemEntry *node = malloc(sizeof(FileSystemEntry));
                 node->id = id;
                 node->name = strdup(name);
                 if (node->name == NULL)
                 {
-                        fprintf(stderr,
-                                "reconstructTreeFromFile:name is null\n");
+                        fprintf(stderr, "reconstructTreeFromFile:name is null\n");
                         free(node);
                         continue;
                 }
@@ -666,8 +605,7 @@ FileSystemEntry *reconstructTreeFromFile(const char *filename,
                         node->fullPath = strdup(startMusicPath);
                         if (node->fullPath == NULL)
                         {
-                                fprintf(stderr, "reconstructTreeFromFiley: "
-                                                "fullPath is null\n");
+                                fprintf(stderr, "reconstructTreeFromFiley: fullPath is null\n");
                                 free(node);
                                 continue;
                         }
@@ -686,11 +624,9 @@ FileSystemEntry *reconstructTreeFromFile(const char *filename,
 #pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 #endif
 #endif
-
 // Calculates the Levenshtein distance.
-// The Levenshtein distance between two strings is the minimum number of
-// single-character edits (insertions, deletions, or substitutions) required to
-// change one string into the other.
+// The Levenshtein distance between two strings is the minimum number of single-character edits
+// (insertions, deletions, or substitutions) required to change one string into the other.
 int utf8_levenshteinDistance(const char *s1, const char *s2)
 {
         // Get the length of s1 and s2 in terms of characters, not bytes
@@ -736,12 +672,10 @@ int utf8_levenshteinDistance(const char *s1, const char *s2)
 
                         int cost = (c1 == c2) ? 0 : 1;
 
-                        // Fill the current row with the minimum of deletion,
-                        // insertion, or substitution
-                        currRow[j] =
-                            MIN(prevRow[j] + 1,              // Deletion
-                                MIN(currRow[j - 1] + 1,      // Insertion
-                                    prevRow[j - 1] + cost)); // Substitution
+                        // Fill the current row with the minimum of deletion, insertion, or substitution
+                        currRow[j] = MIN(prevRow[j] + 1,              // Deletion
+                                         MIN(currRow[j - 1] + 1,      // Insertion
+                                             prevRow[j - 1] + cost)); // Substitution
                 }
 
                 // Swap rows (current becomes previous for the next iteration)
@@ -760,77 +694,6 @@ int utf8_levenshteinDistance(const char *s1, const char *s2)
         return distance;
 }
 
-// Helper function to normalize and remove accents
-char* normalizeString(const char *str)
-{
-        // First normalize to NFD (decomposed form) which separates base chars from accents
-        char *normalized = g_utf8_normalize(str, -1, G_NORMALIZE_NFD);
-        if (!normalized)
-                return g_utf8_strdown(str, -1);
-
-        // Then remove combining diacritical marks (accents)
-        GString *result = g_string_new("");
-        for (const char *p = normalized; *p; p = g_utf8_next_char(p)) {
-                gunichar c = g_utf8_get_char(p);
-                GUnicodeType type = g_unichar_type(c);
-                // Skip combining marks (accents, diacritics)
-                if (type != G_UNICODE_NON_SPACING_MARK &&
-                    type != G_UNICODE_SPACING_MARK &&
-                    type != G_UNICODE_ENCLOSING_MARK) {
-                        g_string_append_unichar(result, g_unichar_tolower(c));
-                }
-        }
-
-        // FIXME: This doesn't seem to work!
-
-        g_free(normalized);
-        return g_string_free(result, FALSE);
-}
-
-int calculateSearchDistance(const char *needle, const char *haystack, int isDirectory)
-{
-        // Convert to lowercase for case-insensitive matching
-        char *needleLower = normalizeString(needle);
-        char *haystackLower = normalizeString(haystack);
-
-        int distance;
-
-        // Check for exact match (distance 0)
-        if (strcmp(haystackLower, needleLower) == 0) {
-                distance = 0;
-        }
-        // Check for substring match (low distance based on extra chars)
-        else if (strstr(haystackLower, needleLower) != NULL) {
-                // Substring match: distance = extra characters
-                int needleLen = g_utf8_strlen(needleLower, -1);
-                int haystackLen = g_utf8_strlen(haystackLower, -1);
-                distance = haystackLen - needleLen;
-        }
-        // Check if haystack starts with needle (prefix match)
-        else if (g_str_has_prefix(haystackLower, needleLower)) {
-                int needleLen = g_utf8_strlen(needleLower, -1);
-                int haystackLen = g_utf8_strlen(haystackLower, -1);
-                distance = haystackLen - needleLen;
-        }
-        // No substring match: use Levenshtein but add penalty
-        else {
-                int levenshtein = utf8_levenshteinDistance(needleLower, haystackLower);
-                // Add large penalty to ensure substring matches rank higher
-                int needleLen = g_utf8_strlen(needleLower, -1);
-                distance = needleLen + levenshtein + 100;
-        }
-
-        // Add penalty for files (non-directories) to prioritize albums
-        if (!isDirectory) {
-                distance += 50;
-        }
-
-        g_free(needleLower);
-        g_free(haystackLower);
-
-        return distance;
-}
-
 #ifdef __GNUC__
 #ifndef __APPLE__
 #pragma GCC diagnostic pop
@@ -839,16 +702,8 @@ int calculateSearchDistance(const char *needle, const char *haystack, int isDire
 
 char *stripFileExtension(const char *filename)
 {
-        if (filename == NULL)
-                return NULL;
-
-        const char *dot = strrchr(filename, '.');
-
-        // Don't treat a leading '.' as an extension (e.g. ".bashrc")
-        if (dot == NULL || dot == filename)
-                dot = filename + strlen(filename);
-
-        size_t length = (size_t)(dot - filename);
+        const char *dot = strrchr(filename, '.'); // find last '.'
+        size_t length = (dot != NULL) ? (size_t)(dot - filename) : strlen(filename);
 
         char *result = malloc(length + 1);
         if (!result)
@@ -856,17 +711,14 @@ char *stripFileExtension(const char *filename)
                 perror("malloc");
                 return NULL;
         }
-
-        memcpy(result, filename, length);
+        c_strcpy(result, filename, length);
         result[length] = '\0';
 
         return result;
 }
 
 // Traverses the tree and applies fuzzy search on each node
-void fuzzySearchRecursive(FileSystemEntry *node, const char *searchTerm,
-                          int threshold,
-                          void (*callback)(FileSystemEntry *, int))
+void fuzzySearchRecursive(FileSystemEntry *node, const char *searchTerm, int threshold, void (*callback)(FileSystemEntry *, int))
 {
         if (node == NULL)
         {
@@ -877,13 +729,14 @@ void fuzzySearchRecursive(FileSystemEntry *node, const char *searchTerm,
         char *lowerSearchTerm = g_utf8_casefold(searchTerm, -1);
         char *lowerName = g_utf8_casefold(node->name, -1);
 
-        int nameDistance =
-            calculateSearchDistance(lowerName, lowerSearchTerm, node->isDirectory);
+        char *strippedName = stripFileExtension(lowerName);
+
+        int nameDistance = utf8_levenshteinDistance(strippedName, lowerSearchTerm);
 
         // Partial matching with lowercase strings
-        if (strstr(lowerName, lowerSearchTerm) != NULL)
+        if (strstr(strippedName, lowerSearchTerm) != NULL)
         {
-                callback(node, nameDistance);
+                callback(node, 0);
         }
         else if (nameDistance <= threshold)
         {
@@ -893,21 +746,20 @@ void fuzzySearchRecursive(FileSystemEntry *node, const char *searchTerm,
         // Free the allocated memory for lowercase strings
         g_free(lowerSearchTerm);
         g_free(lowerName);
+        free(strippedName);
 
         fuzzySearchRecursive(node->children, searchTerm, threshold, callback);
         fuzzySearchRecursive(node->next, searchTerm, threshold, callback);
 }
 
-FileSystemEntry *findCorrespondingEntry(FileSystemEntry *tmp,
-                                        const char *fullPath)
+FileSystemEntry *findCorrespondingEntry(FileSystemEntry *tmp, const char *fullPath)
 {
         if (tmp == NULL)
                 return NULL;
         if (strcmp(tmp->fullPath, fullPath) == 0)
                 return tmp;
 
-        FileSystemEntry *found =
-            findCorrespondingEntry(tmp->children, fullPath);
+        FileSystemEntry *found = findCorrespondingEntry(tmp->children, fullPath);
         if (found != NULL)
                 return found;
 
@@ -921,8 +773,7 @@ void copyIsEnqueued(FileSystemEntry *library, FileSystemEntry *tmp)
 
         if (library->isEnqueued)
         {
-                FileSystemEntry *tmpEntry =
-                    findCorrespondingEntry(tmp, library->fullPath);
+                FileSystemEntry *tmpEntry = findCorrespondingEntry(tmp, library->fullPath);
                 if (tmpEntry != NULL)
                 {
                         tmpEntry->isEnqueued = library->isEnqueued;
@@ -944,8 +795,7 @@ int compareFoldersByAgeFilesAlphabetically(const void *a, const void *b)
         {
                 struct stat statA, statB;
 
-                if (stat(entryA->fullPath, &statA) != 0 ||
-                    stat(entryB->fullPath, &statB) != 0)
+                if (stat(entryA->fullPath, &statA) != 0 || stat(entryB->fullPath, &statB) != 0)
                         return 0;
 
                 return (int)(statB.st_mtime - statA.st_mtime); // newer first
@@ -975,8 +825,7 @@ void sortFileSystemEntryChildren(FileSystemEntry *parent,
         if (count < 2)
                 return;
 
-        FileSystemEntry **entryArray =
-            malloc(count * sizeof(FileSystemEntry *));
+        FileSystemEntry **entryArray = malloc(count * sizeof(FileSystemEntry *));
 
         if (entryArray == NULL)
         {
@@ -1003,8 +852,7 @@ void sortFileSystemEntryChildren(FileSystemEntry *parent,
         free(entryArray);
 }
 
-void sortFileSystemTree(FileSystemEntry *root,
-                        int (*comparator)(const void *, const void *))
+void sortFileSystemTree(FileSystemEntry *root, int (*comparator)(const void *, const void *))
 {
         if (!root)
                 return;

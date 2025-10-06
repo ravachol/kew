@@ -39,4 +39,14 @@ char *getErrorMessage();
 
 void clearErrorMessage();
 
+typedef struct {
+    float time;      
+    char *text;      
+} LyricLine;
+
+typedef struct {
+    LyricLine *lines; 
+    int count;        
+} Lyrics;
+
 #endif

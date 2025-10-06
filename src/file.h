@@ -2,6 +2,7 @@
 #define FILE_H
 
 #include <stdbool.h>
+#include "common.h" 
 
 #define __USE_GNU
 
@@ -32,7 +33,7 @@ int isDirectory(const char *path);
 
 /* Traverse a directory tree and search for a given file or directory */
 int walker(const char *startPath, const char *searching, char *result,
-           const char *allowedExtensions, enum SearchType searchType, bool exactSearch, int depth);
+           const char *allowedExtensions, enum SearchType searchType, bool exactSearch);
 
 int expandPath(const char *inputPath, char *expandedPath);
 
@@ -45,5 +46,9 @@ void generateTempFilePath(char *filePath, const char *prefix, const char *suffix
 int isInTempDir(const char *path);
 
 int existsFile(const char *fname);
+
+Lyrics *load_lyrics(const char *music_file_path);
+void free_lyrics(Lyrics *lyrics);
+
 
 #endif

@@ -10,7 +10,7 @@
 #define _BSD_SOURCE
 #endif
 
-void setTerminalColor(int color);
+void setTextColor(int color);
 
 void setTextColorRGB(int r, int g, int b);
 
@@ -40,17 +40,9 @@ void clearRestOfScreen(void);
 
 void enableScrolling(void);
 
-void clearLine(void);
-
-void clearRestOfLine(void);
-
-void gotoFirstLineFirstRow(void);
-
 void initResize(void);
 
-void disableTerminalLineInput(void);
-
-void setRawInputMode(void);
+void disableInputBuffering(void);
 
 void enableInputBuffering(void);
 
@@ -72,8 +64,8 @@ void disableTerminalMouseButtons(void);
 
 void setTerminalWindowTitle(char *title);
 
-void saveTerminalWindowTitle(void);
+void saveTerminalWindowTitle();
 
-void restoreTerminalWindowTitle(void);
+void restoreTerminalWindowTitle();
 
 #endif

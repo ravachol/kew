@@ -1,19 +1,17 @@
-#include "playerops.h"
-#include "file.h"
-#include "player_ui.h"
-#include "search_ui.h"
-#include "settings.h"
-#include "songloader.h"
-#include "term.h"
-#include "theme.h"
-#include <ctype.h>
 #include <dirent.h>
 #include <pthread.h>
-#include <stdbool.h>
 #include <stdio.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <sys/time.h>
 #include <unistd.h>
+#include "playerops.h"
+#include "file.h"
+#include "player_ui.h"
+#include "songloader.h"
+#include "search_ui.h"
+#include "settings.h"
+#include "term.h"
 
 /*
 
@@ -29,10 +27,6 @@ playerops.c
 
 #ifndef ASK_IF_USE_CACHE_LIMIT_SECONDS
 #define ASK_IF_USE_CACHE_LIMIT_SECONDS 4
-#endif
-
-#ifndef G_USEC_PER_SEC
-#define G_USEC_PER_SEC 1000000
 #endif
 
 struct timespec current_time;
@@ -105,35 +99,27 @@ void skip(void)
                 refresh = true;
 }
 
-void resetStartTime(void) { clock_gettime(CLOCK_MONOTONIC, &start_time); }
+void resetStartTime(void)
+{
+        clock_gettime(CLOCK_MONOTONIC, &start_time);
+}
 
 void updatePlaybackPosition(double elapsedSeconds)
 {
 #ifndef __APPLE__
-        if (elapsedSeconds < 0.0)
-                elapsedSeconds = 0.0;
-
-        // Max safe seconds to avoid overflow when multiplied by 1,000,000
-        const double maxSeconds = (double)(LLONG_MAX / G_USEC_PER_SEC);
-
-        if (elapsedSeconds > maxSeconds)
-                elapsedSeconds = maxSeconds;
-
         GVariantBuilder changedPropertiesBuilder;
-        g_variant_builder_init(&changedPropertiesBuilder,
-                               G_VARIANT_TYPE_DICTIONARY);
-        g_variant_builder_add(
-            &changedPropertiesBuilder, "{sv}", "Position",
-            g_variant_new_int64(llround(elapsedSeconds * G_USEC_PER_SEC)));
+        g_variant_builder_init(&changedPropertiesBuilder, G_VARIANT_TYPE_DICTIONARY);
+        g_variant_builder_add(&changedPropertiesBuilder, "{sv}", "Position", g_variant_new_int64(llround(elapsedSeconds * G_USEC_PER_SEC)));
 
-        GVariant *parameters =
-            g_variant_new("(sa{sv}as)", "org.mpris.MediaPlayer2.Player",
-                          &changedPropertiesBuilder, NULL);
+        GVariant *parameters = g_variant_new("(sa{sv}as)", "org.mpris.MediaPlayer2.Player", &changedPropertiesBuilder, NULL);
 
-        g_dbus_connection_emit_signal(connection, NULL,
+        g_dbus_connection_emit_signal(connection,
+                                      NULL,
                                       "/org/mpris/MediaPlayer2",
                                       "org.freedesktop.DBus.Properties",
-                                      "PropertiesChanged", parameters, NULL);
+                                      "PropertiesChanged",
+                                      parameters,
+                                      NULL);
 #else
         (void)elapsedSeconds;
 #endif
@@ -142,21 +128,17 @@ void updatePlaybackPosition(double elapsedSeconds)
 void emitSeekedSignal(double newPositionSeconds)
 {
 #ifndef __APPLE__
-        if (newPositionSeconds < 0.0)
-                newPositionSeconds = 0.0;
-
-        const double maxSeconds = (double)(LLONG_MAX / G_USEC_PER_SEC);
-        if (newPositionSeconds > maxSeconds)
-                newPositionSeconds = maxSeconds;
-
-        gint64 newPositionMicroseconds =
-            llround(newPositionSeconds * G_USEC_PER_SEC);
+        gint64 newPositionMicroseconds = llround(newPositionSeconds * G_USEC_PER_SEC);
 
         GVariant *parameters = g_variant_new("(x)", newPositionMicroseconds);
 
-        g_dbus_connection_emit_signal(
-            connection, NULL, "/org/mpris/MediaPlayer2",
-            "org.mpris.MediaPlayer2.Player", "Seeked", parameters, NULL);
+        g_dbus_connection_emit_signal(connection,
+                                      NULL,
+                                      "/org/mpris/MediaPlayer2",
+                                      "org.mpris.MediaPlayer2.Player",
+                                      "Seeked",
+                                      parameters,
+                                      NULL);
 #else
         (void)newPositionSeconds;
 #endif
@@ -166,36 +148,10 @@ void emitStringPropertyChanged(const gchar *propertyName, const gchar *newValue)
 {
 #ifndef __APPLE__
         GVariantBuilder changed_properties_builder;
-        g_variant_builder_init(&changed_properties_builder,
-                               G_VARIANT_TYPE("a{sv}"));
-
-        GVariant *value_variant = g_variant_new_string(newValue);
-        if (value_variant == NULL)
-        {
-                fprintf(stderr,
-                        "Failed to allocate GVariant for string property\n");
-                return;
-        }
-
-        g_variant_builder_add(&changed_properties_builder, "{sv}", propertyName,
-                              value_variant);
-
-        GVariant *signal_variant =
-            g_variant_new("(sa{sv}as)", "org.mpris.MediaPlayer2.Player",
-                          &changed_properties_builder, NULL);
-        if (signal_variant == NULL)
-        {
-                fprintf(stderr, "Failed to allocate GVariant for "
-                                "PropertiesChanged signal\n");
-                g_variant_builder_clear(&changed_properties_builder);
-                return;
-        }
-
-        g_dbus_connection_emit_signal(
-            connection, NULL, "/org/mpris/MediaPlayer2",
-            "org.freedesktop.DBus.Properties", "PropertiesChanged",
-            signal_variant, NULL);
-
+        g_variant_builder_init(&changed_properties_builder, G_VARIANT_TYPE("a{sv}"));
+        g_variant_builder_add(&changed_properties_builder, "{sv}", propertyName, g_variant_new_string(newValue));
+        g_dbus_connection_emit_signal(connection, NULL, "/org/mpris/MediaPlayer2", "org.freedesktop.DBus.Properties", "PropertiesChanged",
+                                      g_variant_new("(sa{sv}as)", "org.mpris.MediaPlayer2.Player", &changed_properties_builder, NULL), NULL);
         g_variant_builder_clear(&changed_properties_builder);
 #else
         (void)propertyName;
@@ -207,36 +163,10 @@ void emitBooleanPropertyChanged(const gchar *propertyName, gboolean newValue)
 {
 #ifndef __APPLE__
         GVariantBuilder changed_properties_builder;
-        g_variant_builder_init(&changed_properties_builder,
-                               G_VARIANT_TYPE("a{sv}"));
-
-        GVariant *value_variant = g_variant_new_boolean(newValue);
-        if (value_variant == NULL)
-        {
-                fprintf(stderr,
-                        "Failed to allocate GVariant for boolean property\n");
-                return;
-        }
-
-        g_variant_builder_add(&changed_properties_builder, "{sv}", propertyName,
-                              value_variant);
-
-        GVariant *signal_variant =
-            g_variant_new("(sa{sv}as)", "org.mpris.MediaPlayer2.Player",
-                          &changed_properties_builder, NULL);
-        if (signal_variant == NULL)
-        {
-                fprintf(stderr, "Failed to allocate GVariant for "
-                                "PropertiesChanged signal\n");
-                g_variant_builder_clear(&changed_properties_builder);
-                return;
-        }
-
-        g_dbus_connection_emit_signal(
-            connection, NULL, "/org/mpris/MediaPlayer2",
-            "org.freedesktop.DBus.Properties", "PropertiesChanged",
-            signal_variant, NULL);
-
+        g_variant_builder_init(&changed_properties_builder, G_VARIANT_TYPE("a{sv}"));
+        g_variant_builder_add(&changed_properties_builder, "{sv}", propertyName, g_variant_new_boolean(newValue));
+        g_dbus_connection_emit_signal(connection, NULL, "/org/mpris/MediaPlayer2", "org.freedesktop.DBus.Properties", "PropertiesChanged",
+                                      g_variant_new("(sa{sv}as)", "org.mpris.MediaPlayer2.Player", &changed_properties_builder, NULL), NULL);
         g_variant_builder_clear(&changed_properties_builder);
 #else
         (void)propertyName;
@@ -254,27 +184,15 @@ void playbackPause(struct timespec *pause_time)
         pausePlayback();
 }
 
-bool isValidAudioNode(Node *node)
+// Kembalikan ke versi ini di src/playerops.c
+void play(Node *song)
 {
-        if (!node)
-                return false;
-        if (node->id < 0)
-                return false;
-        if (!node->song.filePath ||
-            strnlen(node->song.filePath, MAXPATHLEN) == 0)
-                return false;
-
-        return true;
-}
-
-void play(Node *node)
-{
-        if (!isValidAudioNode(node))
+        if (song != NULL)
+                currentSong = song;
+        else
         {
-                fprintf(stderr, "Song is invalid.\n");
                 return;
         }
-        currentSong = node;
 
         skipping = true;
         skipOutOfOrder = true;
@@ -293,8 +211,8 @@ void play(Node *node)
         }
 
         loadingdata.loadA = !usingSongDataA;
-        loadingdata.loadingFirstDecoder = true;
 
+        loadingdata.loadingFirstDecoder = true;
         loadSong(currentSong, &loadingdata);
 
         int maxNumTries = 50;
@@ -310,7 +228,6 @@ void play(Node *node)
         {
                 songHasErrors = false;
                 forceSkip = true;
-
                 if (currentSong->next != NULL)
                 {
                         skipToSong(currentSong->next->id, true);
@@ -321,7 +238,6 @@ void play(Node *node)
         resetClock();
         skip();
 }
-
 void skipToSong(int id, bool startPlaying)
 {
         if (songLoading || !loadedNextSong || skipping || clearingErrors)
@@ -393,8 +309,7 @@ void playbackPlay(double *totalPauseSeconds, double *pauseSeconds)
         }
 }
 
-void togglePause(double *totalPauseSeconds, double *pauseSeconds,
-                 struct timespec *pause_time)
+void togglePause(double *totalPauseSeconds, double *pauseSeconds, struct timespec *pause_time)
 {
         togglePausePlayback();
         if (isPaused())
@@ -450,20 +365,6 @@ void toggleRepeat(UISettings *ui)
                 refresh = true;
 }
 
-void toggleNotifications(UISettings *ui, AppSettings *settings)
-{
-        ui->allowNotifications = !ui->allowNotifications;
-        c_strcpy(settings->allowNotifications,
-                 ui->allowNotifications ? "1" : "0",
-                 sizeof(settings->allowNotifications));
-
-        if (ui->allowNotifications)
-        {
-                clearScreen();
-                refresh = true;
-        }
-}
-
 void toggleShuffle(UISettings *ui)
 {
         ui->shuffleEnabled = !isShuffleEnabled();
@@ -506,16 +407,14 @@ void toggleShuffle(UISettings *ui)
         loadedNextSong = false;
         nextSong = NULL;
 
-        if (appState.currentView == PLAYLIST_VIEW ||
-            appState.currentView == LIBRARY_VIEW)
+        if (appState.currentView == PLAYLIST_VIEW || appState.currentView == LIBRARY_VIEW)
                 refresh = true;
 }
 
 void toggleAscii(AppSettings *settings, UISettings *ui)
 {
         ui->coverAnsi = !ui->coverAnsi;
-        c_strcpy(settings->coverAnsi, ui->coverAnsi ? "1" : "0",
-                 sizeof(settings->coverAnsi));
+        c_strcpy(settings->coverAnsi, ui->coverAnsi ? "1" : "0", sizeof(settings->coverAnsi));
         if (ui->coverEnabled)
         {
                 clearScreen();
@@ -523,260 +422,35 @@ void toggleAscii(AppSettings *settings, UISettings *ui)
         }
 }
 
-void strToLower(char *str)
+void toggleColors(AppSettings *settings, UISettings *ui)
 {
-        if (str == NULL)
-                return;
-        for (; *str; ++str)
-        {
-                *str = tolower((unsigned char)*str);
-        }
-}
-
-int loadTheme(AppState *appState, AppSettings *settings, const char *themeName,
-              bool isAnsiTheme)
-{
-        if (!appState || !themeName)
-                return 0;
-
-        char *configPath = getConfigPath();
-        if (!configPath)
-                return 0;
-
-        // Check if config directory exists
-        struct stat st = {0};
-        if (stat(configPath, &st) == -1)
-        {
-                free(configPath);
-                return 0;
-        }
-
-        // Build full theme filename
-        char filename[NAME_MAX];
-        const char *extension = ".theme";
-        size_t themeNameLen = strlen(themeName);
-        size_t extLen = strlen(extension);
-
-        // Check if themeName already ends with ".theme"
-        int hasExtension =
-            (themeNameLen >= extLen &&
-             strcmp(themeName + themeNameLen - extLen, extension) == 0);
-
-        if (hasExtension)
-        {
-                if (snprintf(filename, sizeof(filename), "%s", themeName) >=
-                    (int)sizeof(filename))
-                {
-                        fprintf(stderr, "Theme filename is too long\n");
-                        setErrorMessage("Theme filename is too long");
-                        free(configPath);
-                        return 0;
-                }
-        }
-        else
-        {
-                if (snprintf(filename, sizeof(filename), "%s.theme",
-                             themeName) >= (int)sizeof(filename))
-                {
-                        fprintf(stderr, "Theme filename is too long\n");
-                        setErrorMessage("Theme filename is too long");
-                        free(configPath);
-                        return 0;
-                }
-        }
-
-        // Build full themes directory path: configDir + "/themes"
-        char themesDir[MAXPATHLEN];
-        if (snprintf(themesDir, sizeof(themesDir), "%s/themes", configPath) >=
-            (int)sizeof(themesDir))
-        {
-                fprintf(stderr, "Themes path is too long\n");
-                setErrorMessage("Themes path is too long");
-                free(configPath);
-                return 0;
-        }
-
-        strToLower(filename);
-
-        // Call the loader
-        int loaded =
-            loadThemeFromFile(themesDir, filename, &appState->uiSettings.theme);
-        if (!loaded)
-        {
-                free(configPath);
-                return 0; // failed to load
-        }
-
-        appState->uiSettings.themeIsSet = true;
-
-        if (isAnsiTheme)
-        {
-                // Default ANSI theme: store in settings->ansiTheme
-                snprintf(settings->ansiTheme, sizeof(settings->ansiTheme), "%s",
-                         themeName);
-        }
-        else
-        {
-                // Truecolor theme: store in settings->theme
-                snprintf(settings->theme, sizeof(settings->theme), "%s",
-                         themeName);
-        }
-
-        free(configPath);
-
-        return 1;
-}
-
-void cycleThemes(UISettings *ui, AppSettings *settings)
-{
+        ui->useConfigColors = !ui->useConfigColors;
+        c_strcpy(settings->useConfigColors, ui->useConfigColors ? "1" : "0", sizeof(settings->useConfigColors));
         clearScreen();
-
-        char *configPath = getConfigPath();
-        if (!configPath)
-                return;
-
-        char themesPath[MAXPATHLEN];
-        snprintf(themesPath, sizeof(themesPath), "%s/themes", configPath);
-
-        DIR *dir = opendir(themesPath);
-        if (!dir)
-        {
-                perror("Failed to open themes directory");
-                return;
-        }
-
-        struct dirent *entry;
-        char *themes[256];
-        int themeCount = 0;
-
-        // Collect all *.theme files
-        while ((entry = readdir(dir)) != NULL)
-        {
-                if (strstr(entry->d_name, ".theme"))
-                {
-                        themes[themeCount++] = strdup(entry->d_name);
-                }
-        }
-        closedir(dir);
-
-        if (themeCount == 0)
-        {
-                setErrorMessage("No themes found.");
-                free(configPath);
-                return;
-        }
-
-        // Find the index of the current theme
-        int currentIndex = -1;
-        char currentFilename[NAME_MAX];
-
-        strncpy(currentFilename, ui->themeName, sizeof(currentFilename) - 1);
-        currentFilename[sizeof(currentFilename) - 1] = '\0';
-
-        if (strlen(currentFilename) + 6 < sizeof(currentFilename))
-                strcat(currentFilename, ".theme");
-
-        for (int i = 0; i < themeCount; i++)
-        {
-                if (strcmp(themes[i], currentFilename) == 0)
-                {
-                        currentIndex = i;
-                        break;
-                }
-        }
-
-        // Get next theme (wrap around)
-        int nextIndex = (currentIndex + 1) % themeCount;
-
-        if (loadTheme(&appState, settings, themes[nextIndex], false))
-        {
-                ui->colorMode = COLOR_MODE_THEME;
-
-                snprintf(ui->themeName, sizeof(ui->themeName), "%s",
-                         themes[nextIndex]);
-                char *dot = strstr(ui->themeName, ".theme");
-                if (dot)
-                        *dot = '\0';
-        }
-
-        refresh = true;
-
-        for (int i = 0; i < themeCount; i++)
-        {
-                free(themes[i]);
-        }
-
-        free(configPath);
-}
-
-void cycleColorMode(UISettings *ui)
-{
-        clearScreen();
-
-        switch (ui->colorMode)
-        {
-        case COLOR_MODE_DEFAULT:
-                ui->colorMode = COLOR_MODE_ALBUM;
-                break;
-        case COLOR_MODE_ALBUM:
-                ui->colorMode = COLOR_MODE_THEME;
-                break;
-        case COLOR_MODE_THEME:
-                ui->colorMode = COLOR_MODE_DEFAULT;
-                break;
-        }
-
-        bool themeLoaded = false;
-
-        switch (ui->colorMode)
-        {
-        case COLOR_MODE_DEFAULT:
-                if (loadTheme(&appState, &settings, "default", true))
-                {
-                        themeLoaded = true;
-                }
-                break;
-        case COLOR_MODE_ALBUM:
-                themeLoaded = true;
-                break;
-        case COLOR_MODE_THEME:
-                if (ui->themeName[0] != '\0' &&
-                    loadTheme(&appState, &settings, ui->themeName, true))
-                {
-                        themeLoaded = true;
-                }
-        }
-
-        if (!themeLoaded)
-        {
-                cycleColorMode(ui);
-        }
-
         refresh = true;
 }
 
 void toggleVisualizer(AppSettings *settings, UISettings *ui)
 {
         ui->visualizerEnabled = !ui->visualizerEnabled;
-        c_strcpy(settings->visualizerEnabled, ui->visualizerEnabled ? "1" : "0",
-                 sizeof(settings->visualizerEnabled));
+        c_strcpy(settings->visualizerEnabled, ui->visualizerEnabled ? "1" : "0", sizeof(settings->visualizerEnabled));
         restoreCursorPosition();
         refresh = true;
 }
 
-void quit(void) { exit(0); }
+void quit(void)
+{
+        exit(0);
+}
 
 bool isCurrentSongDeleted(void)
 {
-        return (audioData.currentFileIndex == 0)
-                   ? userData.songdataADeleted == true
-                   : userData.songdataBDeleted == true;
+        return (audioData.currentFileIndex == 0) ? userData.songdataADeleted == true : userData.songdataBDeleted == true;
 }
 
 bool isValidSong(SongData *songData)
 {
-        return songData != NULL && songData->hasErrors == false &&
-               songData->metadata != NULL;
+        return songData != NULL && songData->hasErrors == false && songData->metadata != NULL;
 }
 
 SongData *getCurrentSongData(void)
@@ -818,26 +492,21 @@ void calcElapsedTime(void)
 
         clock_gettime(CLOCK_MONOTONIC, &current_time);
 
-        double timeSinceLastUpdate =
-            (double)(current_time.tv_sec - lastUpdateTime.tv_sec) +
-            (double)(current_time.tv_nsec - lastUpdateTime.tv_nsec) / 1e9;
+        double timeSinceLastUpdate = (double)(current_time.tv_sec - lastUpdateTime.tv_sec) +
+                                     (double)(current_time.tv_nsec - lastUpdateTime.tv_nsec) / 1e9;
 
         if (!isPaused())
         {
-                elapsedSeconds =
-                    (double)(current_time.tv_sec - start_time.tv_sec) +
-                    (double)(current_time.tv_nsec - start_time.tv_nsec) / 1e9;
+                elapsedSeconds = (double)(current_time.tv_sec - start_time.tv_sec) +
+                                 (double)(current_time.tv_nsec - start_time.tv_nsec) / 1e9;
                 double seekElapsed = getSeekElapsed();
-                double diff =
-                    elapsedSeconds +
-                    (seekElapsed + seekAccumulatedSeconds - totalPauseSeconds);
+                double diff = elapsedSeconds + (seekElapsed + seekAccumulatedSeconds - totalPauseSeconds);
                 double duration = getCurrentSongDuration();
 
                 if (diff < 0)
                         seekElapsed -= diff;
 
-                elapsedSeconds +=
-                    seekElapsed + seekAccumulatedSeconds - totalPauseSeconds;
+                elapsedSeconds += seekElapsed + seekAccumulatedSeconds - totalPauseSeconds;
 
                 if (elapsedSeconds > duration)
                         elapsedSeconds = duration;
@@ -856,9 +525,8 @@ void calcElapsedTime(void)
         }
         else
         {
-                pauseSeconds =
-                    (double)(current_time.tv_sec - pause_time.tv_sec) +
-                    (double)(current_time.tv_nsec - pause_time.tv_nsec) / 1e9;
+                pauseSeconds = (double)(current_time.tv_sec - pause_time.tv_sec) +
+                               (double)(current_time.tv_nsec - pause_time.tv_nsec) / 1e9;
         }
 }
 
@@ -901,8 +569,7 @@ bool setPosition(gint64 newPosition)
         if (isPaused())
                 return false;
 
-        gint64 currentPositionMicroseconds =
-            llround(elapsedSeconds * G_USEC_PER_SEC);
+        gint64 currentPositionMicroseconds = llround(elapsedSeconds * G_USEC_PER_SEC);
         double duration = getCurrentSongDuration();
 
         if (duration != 0.0)
@@ -1051,9 +718,6 @@ bool markAsEnqueued(FileSystemEntry *root, char *path)
         if (root == NULL)
                 return false;
 
-        if (path == NULL)
-                return false;
-
         if (!root->isDirectory)
         {
                 if (strcmp(root->fullPath, path) == 0)
@@ -1176,13 +840,11 @@ void enqueueSong(FileSystemEntry *child)
 
         Node *node = NULL;
         createNode(&node, child->fullPath, id);
-        if (addToList(unshuffledPlaylist, node) == -1)
-                destroyNode(node);
+        addToList(unshuffledPlaylist, node);
 
         Node *node2 = NULL;
         createNode(&node2, child->fullPath, id);
-        if (addToList(&playlist, node2) == -1)
-                destroyNode(node2);
+        addToList(&playlist, node2);
 
         child->isEnqueued = 1;
         child->parent->isEnqueued = 1;
@@ -1266,8 +928,7 @@ void moveSongUp()
 
         if (node != NULL && currentSong != NULL)
         {
-                // Rebuild if current song, the next song or the song after are
-                // affected
+                // Rebuild if current song, the next song or the song after are affected
                 if (currentSong != NULL)
                 {
                         Node *tmp = currentSong;
@@ -1338,8 +999,7 @@ void moveSongDown()
 
         if (node != NULL && currentSong != NULL)
         {
-                // Rebuild if current song, the next song or the previous song
-                // are affected
+                // Rebuild if current song, the next song or the previous song are affected
                 if (currentSong != NULL)
                 {
                         Node *tmp = currentSong;
@@ -1356,8 +1016,7 @@ void moveSongDown()
                                 tmp = tmp->next;
                         }
 
-                        if (currentSong->prev != NULL &&
-                            currentSong->prev->id == id)
+                        if (currentSong->prev != NULL && currentSong->prev->id == id)
                                 rebuild = true;
                 }
         }
@@ -1369,9 +1028,7 @@ void moveSongDown()
                 moveDownList(&playlist, plNode);
 
         chosenRow++;
-        chosenRow = (chosenRow >= unshuffledPlaylist->count)
-                        ? unshuffledPlaylist->count - 1
-                        : chosenRow;
+        chosenRow = (chosenRow >= unshuffledPlaylist->count) ? unshuffledPlaylist->count - 1 : chosenRow;
         setChosenRow(chosenRow);
 
         if (rebuild && currentSong != NULL)
@@ -1394,8 +1051,7 @@ void moveSongDown()
 
 void dequeueSong(FileSystemEntry *child)
 {
-        Node *node1 =
-            findLastPathInPlaylist(child->fullPath, unshuffledPlaylist);
+        Node *node1 = findLastPathInPlaylist(child->fullPath, unshuffledPlaylist);
 
         if (node1 == NULL)
                 return;
@@ -1466,8 +1122,7 @@ void dequeueChildren(FileSystemEntry *parent)
         }
 }
 
-void enqueueChildren(FileSystemEntry *child,
-                     FileSystemEntry **firstEnqueuedEntry)
+void enqueueChildren(FileSystemEntry *child, FileSystemEntry **firstEnqueuedEntry)
 {
         while (child != NULL)
         {
@@ -1548,8 +1203,7 @@ void autostartIfStopped(FileSystemEntry *firstEnqueuedEntry)
         waitingForNext = true;
         audioData.endOfListReached = false;
         if (firstEnqueuedEntry != NULL)
-                songToStartFrom =
-                    findPathInPlaylist(firstEnqueuedEntry->fullPath, &playlist);
+                songToStartFrom = findPathInPlaylist(firstEnqueuedEntry->fullPath, &playlist);
         lastPlayedId = -1;
 }
 
@@ -1564,22 +1218,17 @@ FileSystemEntry *enqueueSongs(FileSystemEntry *entry, UIState *uis)
         {
                 if (entry->isDirectory)
                 {
-                        if (!hasSongChildren(entry) || entry->parent == NULL ||
-                            (chosenDir != NULL &&
-                             strcmp(entry->fullPath, chosenDir->fullPath) == 0))
+                        if (!hasSongChildren(entry) || entry->parent == NULL || (chosenDir != NULL && strcmp(entry->fullPath, chosenDir->fullPath) == 0))
                         {
                                 if (hasDequeuedChildren(entry))
                                 {
-                                        if (entry->parent ==
-                                            NULL) // Shuffle playlist if it's
-                                                  // the root
+                                        if (entry->parent == NULL) // Shuffle playlist if it's the root
                                                 shuffle = true;
 
                                         entry->isEnqueued = 1;
                                         entry = entry->children;
 
-                                        enqueueChildren(entry,
-                                                        &firstEnqueuedEntry);
+                                        enqueueChildren(entry, &firstEnqueuedEntry);
 
                                         nextSongNeedsRebuilding = true;
 
@@ -1594,12 +1243,9 @@ FileSystemEntry *enqueueSongs(FileSystemEntry *entry, UIState *uis)
                                         nextSongNeedsRebuilding = true;
                                 }
                         }
-                        if (chosenDir != NULL && entry->parent != NULL &&
-                            isContainedWithin(entry, chosenDir) &&
-                            uis->allowChooseSongs == true)
+                        if (chosenDir != NULL && entry->parent != NULL && isContainedWithin(entry, chosenDir) && uis->allowChooseSongs == true)
                         {
-                                // If the chosen directory is the same as the
-                                // entry's parent and it is open
+                                // If the chosen directory is the same as the entry's parent and it is  open
                                 uis->openedSubDir = true;
 
                                 FileSystemEntry *tmpc = chosenDir->children;
@@ -1608,9 +1254,7 @@ FileSystemEntry *enqueueSongs(FileSystemEntry *entry, UIState *uis)
 
                                 while (tmpc != NULL)
                                 {
-                                        if (strcmp(entry->fullPath,
-                                                   tmpc->fullPath) == 0 ||
-                                            isContainedWithin(entry, tmpc))
+                                        if (strcmp(entry->fullPath, tmpc->fullPath) == 0 || isContainedWithin(entry, tmpc))
                                                 break;
                                         tmpc = tmpc->next;
                                         uis->numSongsAboveSubDir++;
@@ -1673,8 +1317,7 @@ void handleRemove(void)
 
                 bool rebuild = false;
 
-                Node *node =
-                    findSelectedEntry(unshuffledPlaylist, getChosenRow());
+                Node *node = findSelectedEntry(unshuffledPlaylist, getChosenRow());
 
                 if (node == NULL)
                 {
@@ -1701,10 +1344,7 @@ void handleRemove(void)
 
                 if (node != NULL && song != NULL && currentSong != NULL)
                 {
-                        if (strcmp(song->song.filePath, node->song.filePath) ==
-                                0 ||
-                            (currentSong != NULL && currentSong->next != NULL &&
-                             id == currentSong->next->id))
+                        if (strcmp(song->song.filePath, node->song.filePath) == 0 || (currentSong != NULL && currentSong->next != NULL && id == currentSong->next->id))
                                 rebuild = true;
                 }
 
@@ -1780,8 +1420,7 @@ void addToFavoritesPlaylist(void)
 
         Node *node = NULL;
 
-        if (findSelectedEntryById(favoritesPlaylist, id) !=
-            NULL) // Song is already in list
+        if (findSelectedEntryById(favoritesPlaylist, id) != NULL) // Song is already in list
                 return;
 
         createNode(&node, currentSong->song.filePath, id);
@@ -1795,23 +1434,19 @@ int loadDecoder(SongData *songData, bool *songDataDeleted)
         {
                 *songDataDeleted = false;
 
-                // This should only be done for the second song, as
-                // switchAudioImplementation() handles the first one
+                // This should only be done for the second song, as switchAudioImplementation() handles the first one
                 if (!loadingdata.loadingFirstDecoder)
                 {
                         if (hasBuiltinDecoder(songData->filePath))
                                 result = prepareNextDecoder(songData->filePath);
                         else if (pathEndsWith(songData->filePath, "opus"))
-                                result =
-                                    prepareNextOpusDecoder(songData->filePath);
+                                result = prepareNextOpusDecoder(songData->filePath);
                         else if (pathEndsWith(songData->filePath, "ogg"))
-                                result = prepareNextVorbisDecoder(
-                                    songData->filePath);
+                                result = prepareNextVorbisDecoder(songData->filePath);
                         else if (pathEndsWith(songData->filePath, "webm"))
                                 result = prepareNextWebmDecoder(songData);
 #ifdef USE_FAAD
-                        else if (pathEndsWith(songData->filePath, "m4a") ||
-                                 pathEndsWith(songData->filePath, "aac"))
+                        else if (pathEndsWith(songData->filePath, "m4a") || pathEndsWith(songData->filePath, "aac"))
                                 result = prepareNextM4aDecoder(songData);
 
 #endif
@@ -1827,14 +1462,12 @@ int assignLoadedData(void)
         if (loadingdata.loadA)
         {
                 userData.songdataA = loadingdata.songdataA;
-                result = loadDecoder(loadingdata.songdataA,
-                                     &(userData.songdataADeleted));
+                result = loadDecoder(loadingdata.songdataA, &(userData.songdataADeleted));
         }
         else
         {
                 userData.songdataB = loadingdata.songdataB;
-                result = loadDecoder(loadingdata.songdataB,
-                                     &(userData.songdataBDeleted));
+                result = loadDecoder(loadingdata.songdataB, &(userData.songdataBDeleted));
         }
 
         return result;
@@ -1924,12 +1557,10 @@ void loadSong(Node *song, LoadingThreadData *loadingdata)
                 return;
         }
 
-        c_strcpy(loadingdata->filePath, song->song.filePath,
-                 sizeof(loadingdata->filePath));
+        c_strcpy(loadingdata->filePath, song->song.filePath, sizeof(loadingdata->filePath));
 
         pthread_t loadingThread;
-        pthread_create(&loadingThread, NULL, songDataReaderThread,
-                       (void *)loadingdata);
+        pthread_create(&loadingThread, NULL, songDataReaderThread, (void *)loadingdata);
 }
 
 void rebuildNextSong(Node *song)
@@ -1972,8 +1603,7 @@ void sortLibrary(void)
 {
         if (currentSort == 0)
         {
-                sortFileSystemTree(library,
-                                   compareFoldersByAgeFilesAlphabetically);
+                sortFileSystemTree(library, compareFoldersByAgeFilesAlphabetically);
                 currentSort = 1;
         }
         else
@@ -1998,21 +1628,13 @@ void loadNextSong(void)
 
 bool determineCurrentSongData(SongData **currentSongData)
 {
-        *currentSongData = (audioData.currentFileIndex == 0)
-                               ? userData.songdataA
-                               : userData.songdataB;
-        bool isDeleted = (audioData.currentFileIndex == 0)
-                             ? userData.songdataADeleted == true
-                             : userData.songdataBDeleted == true;
+        *currentSongData = (audioData.currentFileIndex == 0) ? userData.songdataA : userData.songdataB;
+        bool isDeleted = (audioData.currentFileIndex == 0) ? userData.songdataADeleted == true : userData.songdataBDeleted == true;
 
         if (isDeleted)
         {
-                *currentSongData = (audioData.currentFileIndex != 0)
-                                       ? userData.songdataA
-                                       : userData.songdataB;
-                isDeleted = (audioData.currentFileIndex != 0)
-                                ? userData.songdataADeleted == true
-                                : userData.songdataBDeleted == true;
+                *currentSongData = (audioData.currentFileIndex != 0) ? userData.songdataA : userData.songdataB;
+                isDeleted = (audioData.currentFileIndex != 0) ? userData.songdataADeleted == true : userData.songdataBDeleted == true;
 
                 if (!isDeleted)
                 {
@@ -2085,8 +1707,7 @@ void skipToNextSong(AppState *state)
                 }
         }
 
-        if (songLoading || nextSongNeedsRebuilding || skipping ||
-            clearingErrors)
+        if (songLoading || nextSongNeedsRebuilding || skipping || clearingErrors)
                 return;
 
         if (isStopped() || isPaused())
@@ -2171,9 +1792,7 @@ void skipToPrevSong(AppState *state)
         if (song == currentSong)
         {
                 resetTimeCount();
-                updatePlaybackPosition(
-                    0); // We need to signal to mpris that the song was
-                        // reset to the beginning
+                updatePlaybackPosition(0); // We need to signal to mpris that the song was reset to the beginning
         }
 
         playbackPlay(&totalPauseSeconds, &pauseSeconds);
@@ -2308,14 +1927,8 @@ void unloadPreviousSong(AppState *state)
         pthread_mutex_lock(&(loadingdata.mutex));
 
         if (usingSongDataA &&
-            (skipping || (userData.currentSongData == NULL ||
-                          userData.songdataADeleted == false ||
-                          (loadingdata.songdataA != NULL &&
-                           userData.songdataADeleted == false &&
-                           userData.currentSongData->hasErrors == 0 &&
-                           userData.currentSongData->trackId != NULL &&
-                           strcmp(loadingdata.songdataA->trackId,
-                                  userData.currentSongData->trackId) != 0))))
+            (skipping || (userData.currentSongData == NULL || userData.songdataADeleted == false ||
+                          (loadingdata.songdataA != NULL && userData.songdataADeleted == false && userData.currentSongData->hasErrors == 0 && userData.currentSongData->trackId != NULL && strcmp(loadingdata.songdataA->trackId, userData.currentSongData->trackId) != 0))))
         {
                 unloadSongA(state);
 
@@ -2325,15 +1938,8 @@ void unloadPreviousSong(AppState *state)
                 usingSongDataA = false;
         }
         else if (!usingSongDataA &&
-                 (skipping ||
-                  (userData.currentSongData == NULL ||
-                   userData.songdataBDeleted == false ||
-                   (loadingdata.songdataB != NULL &&
-                    userData.songdataBDeleted == false &&
-                    userData.currentSongData->hasErrors == 0 &&
-                    userData.currentSongData->trackId != NULL &&
-                    strcmp(loadingdata.songdataB->trackId,
-                           userData.currentSongData->trackId) != 0))))
+                 (skipping || (userData.currentSongData == NULL || userData.songdataBDeleted == false ||
+                               (loadingdata.songdataB != NULL && userData.songdataBDeleted == false && userData.currentSongData->hasErrors == 0 && userData.currentSongData->trackId != NULL && strcmp(loadingdata.songdataB->trackId, userData.currentSongData->trackId) != 0))))
         {
                 unloadSongB(state);
 
@@ -2382,8 +1988,7 @@ void *updateLibraryThread(void *arg)
 
         setErrorMessage("Updating Library...");
 
-        FileSystemEntry *tmp =
-            createDirectoryTree(path, &tmpDirectoryTreeEntries);
+        FileSystemEntry *tmp = createDirectoryTree(path, &tmpDirectoryTreeEntries);
 
         if (!tmp)
         {
@@ -2403,8 +2008,7 @@ void *updateLibraryThread(void *arg)
 
         pthread_mutex_unlock(&switchMutex);
 
-        c_sleep(1000); // Don't refresh immediately or we risk the error message
-                       // not clearing
+        c_sleep(1000); // Don't refresh immediately or we risk the error message not clearing
         refresh = true;
 
         return NULL;
@@ -2425,8 +2029,7 @@ void updateLibrary(char *path)
 
 void askIfCacheLibrary(UISettings *ui)
 {
-        if (ui->cacheLibrary >
-            -1) // Only use this function if cacheLibrary isn't set
+        if (ui->cacheLibrary > -1) // Only use this function if cacheLibrary isn't set
                 return;
 
         char input = '\0';
@@ -2435,10 +2038,7 @@ void askIfCacheLibrary(UISettings *ui)
         enableInputBuffering();
         showCursor();
 
-        printf("Would you like to enable a (local) library cache for quicker "
-               "startup "
-               "times?\nYou can update the cache at any time by pressing 'u'. "
-               "(y/n): ");
+        printf("Would you like to enable a (local) library cache for quicker startup times?\nYou can update the cache at any time by pressing 'u'. (y/n): ");
 
         fflush(stdout);
 
@@ -2463,7 +2063,7 @@ void askIfCacheLibrary(UISettings *ui)
         }
 
         setNonblockingMode();
-        setRawInputMode();
+        disableInputBuffering();
         hideCursor();
 }
 
@@ -2472,9 +2072,7 @@ void createLibrary(AppSettings *settings, AppState *state)
         if (state->uiSettings.cacheLibrary > 0)
         {
                 char *libFilepath = getLibraryFilePath();
-                library = reconstructTreeFromFile(
-                    libFilepath, settings->path,
-                    &(state->uiState.numDirectoryTreeEntries));
+                library = reconstructTreeFromFile(libFilepath, settings->path, &(state->uiState.numDirectoryTreeEntries));
                 free(libFilepath);
                 updateLibraryIfChangedDetected();
         }
@@ -2485,16 +2083,14 @@ void createLibrary(AppSettings *settings, AppState *state)
 
                 gettimeofday(&start, NULL);
 
-                library = createDirectoryTree(
-                    settings->path, &(state->uiState.numDirectoryTreeEntries));
+                library = createDirectoryTree(settings->path, &(state->uiState.numDirectoryTreeEntries));
 
                 gettimeofday(&end, NULL);
                 long seconds = end.tv_sec - start.tv_sec;
                 long microseconds = end.tv_usec - start.tv_usec;
                 double elapsed = seconds + microseconds * 1e-6;
 
-                // If time to load the library was significant, ask to use cache
-                // instead
+                // If time to load the library was significant, ask to use cache instead
                 if (elapsed > ASK_IF_USE_CACHE_LIMIT_SECONDS)
                 {
                         askIfCacheLibrary(&(state->uiSettings));
@@ -2505,8 +2101,7 @@ void createLibrary(AppSettings *settings, AppState *state)
         {
                 char message[MAXPATHLEN + 64];
 
-                snprintf(message, MAXPATHLEN + 64, "No music found at %s.",
-                         settings->path);
+                snprintf(message, MAXPATHLEN + 64, "No music found at %s.", settings->path);
 
                 setErrorMessage(message);
         }
@@ -2531,8 +2126,7 @@ time_t getModificationTime(struct stat *path_stat)
 
 void *updateIfTopLevelFoldersMtimesChangedThread(void *arg)
 {
-        UpdateLibraryThreadArgs *args = (UpdateLibraryThreadArgs *)
-            arg; // Cast `arg` back to the structure pointer
+        UpdateLibraryThreadArgs *args = (UpdateLibraryThreadArgs *)arg; // Cast `arg` back to the structure pointer
         char *path = args->path;
         UISettings *ui = args->ui;
 
@@ -2545,8 +2139,7 @@ void *updateIfTopLevelFoldersMtimesChangedThread(void *arg)
                 pthread_exit(NULL);
         }
 
-        if (getModificationTime(&path_stat) > ui->lastTimeAppRan &&
-            ui->lastTimeAppRan > 0)
+        if (getModificationTime(&path_stat) > ui->lastTimeAppRan && ui->lastTimeAppRan > 0)
         {
                 updateLibrary(path);
                 free(args);
@@ -2565,15 +2158,13 @@ void *updateIfTopLevelFoldersMtimesChangedThread(void *arg)
         while ((entry = readdir(dir)) != NULL)
         {
 
-                if (strcmp(entry->d_name, ".") == 0 ||
-                    strcmp(entry->d_name, "..") == 0)
+                if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
                 {
                         continue;
                 }
 
                 char fullPath[1024];
-                snprintf(fullPath, sizeof(fullPath), "%s/%s", path,
-                         entry->d_name);
+                snprintf(fullPath, sizeof(fullPath), "%s/%s", path, entry->d_name);
 
                 if (stat(fullPath, &path_stat) == -1)
                 {
@@ -2584,9 +2175,7 @@ void *updateIfTopLevelFoldersMtimesChangedThread(void *arg)
                 if (S_ISDIR(path_stat.st_mode))
                 {
 
-                        if (getModificationTime(&path_stat) >
-                                ui->lastTimeAppRan &&
-                            ui->lastTimeAppRan > 0)
+                        if (getModificationTime(&path_stat) > ui->lastTimeAppRan && ui->lastTimeAppRan > 0)
                         {
                                 updateLibrary(path);
                                 break;
@@ -2616,18 +2205,15 @@ void updateLibraryIfChangedDetected(void)
         args->path = settings.path;
         args->ui = &(appState.uiSettings);
 
-        if (pthread_create(&tid, NULL,
-                           updateIfTopLevelFoldersMtimesChangedThread,
-                           (void *)args) != 0)
+        if (pthread_create(&tid, NULL, updateIfTopLevelFoldersMtimesChangedThread, (void *)args) != 0)
         {
                 perror("pthread_create");
                 free(args);
         }
 }
 
-// Go through the display playlist and the shuffle playlist to remove all songs
-// except the current one. If no active song (if stopped rather than paused for
-// example) entire playlist will be removed
+// Go through the display playlist and the shuffle playlist to remove all songs except the current one.
+// If no active song (if stopped rather than paused for example) entire playlist will be removed
 void updatePlaylistToPlayingSong(void)
 {
 
@@ -2663,13 +2249,11 @@ void updatePlaylistToPlayingSong(void)
 
                         // Update Library
                         if (songToBeRemoved != NULL)
-                                markAsDequeued(getLibrary(),
-                                               songToBeRemoved->song.filePath);
+                                markAsDequeued(getLibrary(), songToBeRemoved->song.filePath);
 
                         // Remove from Display playlist
                         if (songToBeRemoved != NULL)
-                                deleteFromList(unshuffledPlaylist,
-                                               songToBeRemoved);
+                                deleteFromList(unshuffledPlaylist, songToBeRemoved);
 
                         // Remove from Shuffle playlist
                         Node *node2 = findSelectedEntryById(&playlist, id);
@@ -2687,8 +2271,7 @@ void updatePlaylistToPlayingSong(void)
         nextSong = NULL;
 
         // Only refresh the screen if it makes sense to do so
-        if (appState.currentView == PLAYLIST_VIEW ||
-            appState.currentView == LIBRARY_VIEW)
+        if (appState.currentView == PLAYLIST_VIEW || appState.currentView == LIBRARY_VIEW)
         {
                 refresh = true;
         }

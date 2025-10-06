@@ -8,19 +8,15 @@ extern unsigned int updateCounter;
 extern const int scrollingInterval;
 extern bool isSameNameAsLastTime;
 
-void setRGB(PixelData p);
+void setTextColorRGB2(int r, int g, int b, const UISettings *ui);
 
-void setAlbumColor(PixelData color);
+void setColor(UISettings *ui);
 
-void inverseText(void);
-
-void applyColor(ColorMode mode, ColorValue themeColor, PixelData albumColor);
+void setColorAndWeight(int bold, PixelData color, int useConfigColors);
 
 void processNameScroll(const char *name, char *output, int maxWidth, bool isSameNameAsLastTime);
 
 void resetNameScroll();
-
-void resetColor();
 
 bool getIsLongName();
 
