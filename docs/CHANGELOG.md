@@ -1,6 +1,6 @@
 # CHANGELOG
 
-### 3.5.2
+### 3.5.1
 
 - Fix issue/test on homebrew.
 
