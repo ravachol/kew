@@ -21,6 +21,7 @@ kew (/kjuː/) is a terminal music player.
  * Search a music library with partial titles from the command-line.
  * Creates a playlist automatically based on matched song, album or artist.
  * Private, no data is collected by kew.
+ * Music without distractions or algorithmic manipulation.
  * Full color covers in sixel-capable terminals.
  * Visualizer with various settings.
  * Edit the playlist by adding, removing and reordering songs.
@@ -186,7 +187,7 @@ Chafa by Hans Petter Jansson - https://hpjansson.org/chafa/
 
 TagLib by TagLib Team - https://taglib.org/
 
-faad2 by fabian_deb, knik, menno - https://sourceforge.net/projects/faac/
+Faad2 by fabian_deb, knik, menno - https://sourceforge.net/projects/faac/
 
 FFTW by Matteo Frigo and Steven G. Johnson - https://www.fftw.org/
 
