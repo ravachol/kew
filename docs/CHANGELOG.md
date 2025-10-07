@@ -1,5 +1,15 @@
 # CHANGELOG
 
+### 3.5.3
+
+### Sponsors and Donations Wanted
+
+Thank you to for the generous donation @LTeder!
+
+Please support this effort:
+https://ko-fi.com/ravachol
+https://github.com/sponsors/ravachol.
+
 ### 3.5.2
 
 - Fixed line in cover being erased in landscape mode on some terminals. (@hartalex)

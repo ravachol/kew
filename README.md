@@ -204,6 +204,10 @@ Nestegg by Mozilla - https://github.com/mozilla/nestegg
 Img_To_Txt by Danny Burrows - https://github.com/danny-burrows/img_to_txt
 </details>
 
+## Authors
+
+See [AUTHORS](./docs/AUTHORS.md).
+
 ## Contact
 
 Comments? Suggestions? Send mail to kew-player@proton.me.
