@@ -171,13 +171,12 @@ To load 'kew favorites.m3u':
 kew .
 ```
 
-## Join The Development Effort
-
-Join the development of kew if you can handle writing C with camelCase. We are also looking for beta testers and bug reporters. See [Contributing](docs/CONTRIBUTING.md) and [Developers](docs/DEVELOPERS.md).
-
 ## License
 
 Licensed under GPL. [See LICENSE for more information](./LICENSE).
+
+
+## Attributions
 
 <details>
 <summary>Attributions</summary>
