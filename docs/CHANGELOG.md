@@ -2,8 +2,7 @@
 
 ### 3.5.2
 
-@hartalex
-- Fixed line in cover being erased in landscape mode on some terminals.
+- Fixed line in cover being erased in landscape mode on some terminals. (@hartalex)
 
 - Fixed long names no longer scrolling.
 
@@ -73,53 +72,38 @@ https://github.com/sponsors/ravachol.
 
 #### New Features / Improvements
 
-@ravachol
-        Theme colors, both TrueColor and 16-color palette theming. Cycle by pressing 't'.
+- Theme colors, both TrueColor and 16-color palette theming. Cycle by pressing 't'.
 
-@welpyes,
-@ravachol
-        Android compatibility! Please see ANDROID-INSTRUCTIONS.md for how to get kew on your phone.
 
-@ravachol
-        Improved the search function so that albums are shown below an artist hit.
+- Android compatibility! Please see ANDROID-INSTRUCTIONS.md for how to get kew on your phone. (@welpyes)
 
-@ravachol
-        Improved installation instructions for Fedora and openSuse in the README.
+- Improved the search function so that albums are shown below an artist hit.
 
-@ravachol
-        Enabled the detection of FAAD2 (which handles m4a) on Fedora properly in the makefile.
+- Improved installation instructions for Fedora and openSuse in the README.
 
-@ravachol
-        Made makefile compatible with openSuse Tumbleweed. The kew package has been updated on openSuse for the first time in a long time, thank you mantarimay (maintainer on openSuse).
+- Enabled the detection of FAAD2 (which handles m4a) on Fedora properly in the makefile.
 
-@ravachol
-        Added an icon indicating if the song is playing or paused before the title at the top when the logo is hidden.
+- Made makefile compatible with openSuse Tumbleweed. The kew package has been updated on openSuse for the first time in a long time, thank you mantarimay (maintainer on openSuse).
 
-@ravachol
-        Shows the playlist from the first song (if it's in view), instead of always starting from the playing song. Suggested by @affhp.
+- Added an icon indicating if the song is playing or paused before the title at the top when the logo is hidden.
 
-@ravachol
-        Improved the safety of various functions and addressed potential vulnerabilities.
+- Shows the playlist from the first song (if it's in view), instead of always starting from the playing song. Suggested by @affhp.
 
-@ravachol
-        Don't make a space for the cover if there is none on landscape view.
+- Improved the safety of various functions and addressed potential vulnerabilities.
 
-@ravachol
-        Improved the instructions in the help view.
+- Don't make a space for the cover if there is none on landscape view.
+
+- Improved the instructions in the help view.
 
 #### Bug Fixes
 
-@arcathrax
-        Fixed visualizer crashing the app on ultrawide monitors.
+- Fixed visualizer crashing the app on ultrawide monitors.
 
-@ravachol
-        Added null check for when exporting an empty playlist to .m3u.
+- Added null check for when exporting an empty playlist to .m3u.
 
-@ravachol
-        Prevent flickering when scrolling on TTY and likely on some other terminals as well.
+- Prevent flickering when scrolling on TTY and likely on some other terminals as well.
 
-@ravachol
-        Search: fixed files being reordered when scrolling on macOS/kitty.
+- Search: fixed files being reordered when scrolling on macOS/kitty.
 
 ### 3.4.1
 
