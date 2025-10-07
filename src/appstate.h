@@ -254,15 +254,7 @@ typedef struct
 
 #endif
 
-#ifndef APPSTATE
-#define APPSTATE
-
 extern AppState appState;
-
-#endif
-
-#ifndef PLAYLISTS
-#define PLAYLISTS
 
 // The (sometimes shuffled) sequence of songs that will be played
 extern PlayList playlist;
@@ -272,17 +264,5 @@ extern PlayList *unshuffledPlaylist;
 
 // The playlist from kew favorites .m3u
 extern PlayList *favoritesPlaylist;
-
-#endif
-
-#ifndef DEFAULTCOLOR
-#define DEFAULTCOLOR
-
-static const unsigned char defaultColor = 150;
-
-static const PixelData defaultColorRGB = {
-    .r = defaultColor, .g = defaultColor, .b = defaultColor};
-
-#endif
 
 #endif

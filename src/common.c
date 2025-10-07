@@ -17,6 +17,11 @@ bool hasPrintedError = true;
 
 volatile bool refresh = true; // Should the whole view be refreshed next time it redraws
 
+const unsigned char defaultColor = 150;
+
+const PixelData defaultColorRGB = {
+    .r = defaultColor, .g = defaultColor, .b = defaultColor};
+
 void setErrorMessage(const char *message)
 {
         if (message == NULL)
