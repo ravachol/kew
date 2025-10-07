@@ -25,30 +25,21 @@ visuals.c
 
 #define MAX_BARS 64
 
-int isFftInitialized = false;
-
-float *fftInput = NULL;
-fftwf_complex *fftOutput = NULL;
-
-int bufferIndex = 0;
-
-ma_format format = ma_format_unknown;
-ma_uint32 sampleRate = 0;
-
-float barHeight[MAX_BARS] = {0.0f};
-float displayMagnitudes[MAX_BARS] = {0.0f};
-float smoothed[MAX_BARS] = {0.0f};
-float magnitudes[MAX_BARS] = {0.0f};
-
-float dBFloor = -60.0f;
-float dBCeil = -18.0f;
-float emphasis = 1.3f;
-float fastAttack = 0.6f;
-float decay = 0.14f;
-float slowAttack = 0.15f;
-
-int visualizerBarWidth = 2;
-int maxThinBarsInAutoMode = 20;
+static float *fftInput = NULL;
+static fftwf_complex *fftOutput = NULL;
+static ma_format format = ma_format_unknown;
+static ma_uint32 sampleRate = 0;
+static float barHeight[MAX_BARS] = {0.0f};
+static float displayMagnitudes[MAX_BARS] = {0.0f};
+static float magnitudes[MAX_BARS] = {0.0f};
+static float dBFloor = -60.0f;
+static float dBCeil = -18.0f;
+static float emphasis = 1.3f;
+static float fastAttack = 0.6f;
+static float decay = 0.14f;
+static float slowAttack = 0.15f;
+static int visualizerBarWidth = 2;
+static int maxThinBarsInAutoMode = 20;
 
 void clearMagnitudes(int numBars, float *magnitudes)
 {

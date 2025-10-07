@@ -3,6 +3,7 @@
 #define MINIAUDIO_IMPLEMENTATION
 
 #include "sound.h"
+#include "utils.h"
 #include <miniaudio.h>
 
 /*

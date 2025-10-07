@@ -1,8 +1,10 @@
 #include "playlist_ui.h"
 #include "common_ui.h"
 #include "songloader.h"
+#include "soundcommon.h"
 #include "term.h"
 #include "utils.h"
+#include <math.h>
 #include <string.h>
 
 /*
@@ -13,10 +15,10 @@ playlist_ui.c
 
 */
 
-int startIter = 0;
-int previousChosenSong = 0;
+static const int MAX_TERM_WIDTH = 1000;
 
-#define MAX_TERM_WIDTH 1000
+static int startIter = 0;
+static int previousChosenSong = 0;
 
 Node *determineStartNode(Node *head, int *foundAt, int listSize)
 {
@@ -26,13 +28,14 @@ Node *determineStartNode(Node *head, int *foundAt, int listSize)
         }
 
         Node *node = head;
+        Node *current = getCurrentSong();
         Node *foundNode = NULL;
         int numSongs = 0;
         *foundAt = -1;
 
         while (node != NULL && numSongs <= listSize)
         {
-                if (currentSong != NULL && currentSong->id == node->id)
+                if (current != NULL && current->id == node->id)
                 {
                         *foundAt = numSongs;
                         foundNode = node;
@@ -149,32 +152,36 @@ int displayPlaylistItems(Node *startNode, int startIter, int maxListSize,
 
                                 *chosenNodeId = node->id;
 
-                                processNameScroll(buffer, filename, maxNameWidth,
+                                processNameScroll(buffer, filename,
+                                                  maxNameWidth,
                                                   isSameNameAsLastTime);
 
                                 inverseText();
                         }
                         else
                         {
-                                processName(buffer, filename, maxNameWidth, true,
-                                            true);
+                                processName(buffer, filename, maxNameWidth,
+                                            true, true);
                         }
 
-                        if (currentSong != NULL && currentSong->id == node->id)
+                        Node *current = getCurrentSong();
+
+                        if (current != NULL && current->id == node->id)
                                 applyColor(ui->colorMode,
-                                           ui->theme.playlist_playing, rowColor);
+                                           ui->theme.playlist_playing,
+                                           rowColor);
 
                         if (i + 1 < 10)
                                 printf(" ");
 
-                        if (currentSong != NULL &&
-                            currentSong->id == node->id && i == chosenSong)
+                        if (current != NULL && current->id == node->id &&
+                            i == chosenSong)
                         {
                                 inverseText();
                         }
 
-                        if (currentSong != NULL &&
-                            currentSong->id == node->id && i != chosenSong)
+                        if (current != NULL && current->id == node->id &&
+                            i != chosenSong)
                         {
                                 printf("\e[4m");
                         }
@@ -217,7 +224,8 @@ int determinePlaylistStart(int previousStartIter, int foundAt, int maxListSize,
                         ? foundAt
                         : startIter;
 
-        if (previousStartIter <= foundAt && foundAt < previousStartIter + maxListSize)
+        if (previousStartIter <= foundAt &&
+            foundAt < previousStartIter + maxListSize)
                 startIter = previousStartIter;
 
         if (*chosenSong < startIter)
@@ -273,7 +281,8 @@ int displayPlaylist(PlayList *list, int maxListSize, int indent,
 
         ensureChosenSongWithinLimits(chosenSong, list);
 
-        startIter = determinePlaylistStart(startIter, foundAt, maxListSize, chosenSong,
+        startIter =
+            determinePlaylistStart(startIter, foundAt, maxListSize, chosenSong,
                                    reset, audioData.endOfListReached);
 
         moveStartNodeIntoPosition(foundAt, &startNode);

@@ -1,5 +1,8 @@
 #include "soundcommon.h"
+#include "appstate.h"
 #include "playerops.h"
+#include <math.h>
+#include <stdlib.h>
 
 /*
 
@@ -15,65 +18,55 @@ soundcommon.c
 #define PATH_MAX 4096
 #endif
 
-bool repeatEnabled = false;
-bool repeatListEnabled = false;
-bool shuffleEnabled = false;
-bool skipToNext = false;
-bool seekRequested = false;
-bool paused = false;
-bool stopped = true;
+AudioData audioData;
 
-bool hasSilentlySwitched;
-
-int hopSize = 512;
-int fftSize = 2048;
-int prevFftSize = 0;
-int fftSizeMilliseconds = 45;
-
-float seekPercent = 0.0;
-double seekElapsed;
-
-_Atomic bool EOFReached = false;
-_Atomic bool switchReached = false;
-_Atomic bool readingFrames = false;
 pthread_mutex_t dataSourceMutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t switchMutex = PTHREAD_MUTEX_INITIALIZER;
 ma_device device = {0};
+bool bufferReady = false;
+double elapsedSeconds = 0.0;
+bool paused = false;
+bool stopped = true;
+bool hasSilentlySwitched;
+int fftSize = 2048;
+int prevFftSize = 0;
+
+static bool repeatEnabled = false;
+static bool repeatListEnabled = false;
+static bool shuffleEnabled = false;
+static bool skipToNext = false;
+static bool seekRequested = false;
+static int hopSize = 512;
+static int fftSizeMilliseconds = 45;
+static float seekPercent = 0.0;
+static double seekElapsed;
 static float audioBuffer[MAX_BUFFER_SIZE];
 static int writeHead = 0;
-bool bufferReady = false;
-AudioData audioData;
-int bufSize;
-ma_event switchAudioImpl;
-enum AudioImplementation currentImplementation = NONE;
-
-AppState appState;
-
-double elapsedSeconds = 0.0;
-
-int soundVolume = 100;
-
-ma_decoder *firstDecoder;
-ma_decoder *currentDecoder;
-
-ma_decoder *decoders[MAX_DECODERS];
-ma_libopus *opusDecoders[MAX_DECODERS];
-ma_libopus *firstOpusDecoder;
-ma_libvorbis *vorbisDecoders[MAX_DECODERS];
-ma_libvorbis *firstVorbisDecoder;
-ma_webm *webmDecoders[MAX_DECODERS];
-ma_webm *firstWebmDecoder;
+static int bufSize;
+static _Atomic bool EOFReached = false;
+static _Atomic bool switchReached = false;
+static int soundVolume = 100;
+static enum AudioImplementation currentImplementation = NONE;
+static ma_decoder *firstDecoder;
+static ma_decoder *currentDecoder;
+static ma_decoder *decoders[MAX_DECODERS];
+static ma_libopus *opusDecoders[MAX_DECODERS];
+static ma_libopus *firstOpusDecoder;
+static ma_libvorbis *vorbisDecoders[MAX_DECODERS];
+static ma_libvorbis *firstVorbisDecoder;
+static ma_webm *webmDecoders[MAX_DECODERS];
+static ma_webm *firstWebmDecoder;
 
 #ifdef USE_FAAD
-m4a_decoder *m4aDecoders[MAX_DECODERS];
-m4a_decoder *firstM4aDecoder;
+static m4a_decoder *m4aDecoders[MAX_DECODERS];
+static m4a_decoder *firstM4aDecoder;
 #endif
 
-int decoderIndex = -1;
-int m4aDecoderIndex = -1;
-int opusDecoderIndex = -1;
-int vorbisDecoderIndex = -1;
-int webmDecoderIndex = -1;
+static int decoderIndex = -1;
+static int m4aDecoderIndex = -1;
+static int opusDecoderIndex = -1;
+static int vorbisDecoderIndex = -1;
+static int webmDecoderIndex = -1;
 
 void uninitMaDecoder(void *decoder)
 {

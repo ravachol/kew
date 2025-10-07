@@ -3,23 +3,19 @@
 
 #include <fcntl.h>
 #include <glib.h>
-#include <math.h>
 #include <miniaudio.h>
 #include <miniaudio_libopus.h>
 #include <miniaudio_libvorbis.h>
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <sys/wait.h>
+
 #ifdef USE_FAAD
 #include "m4a.h"
 #endif
 
 #include <stdatomic.h>
 #include <stdbool.h>
-#include <stdlib.h>
-#include "appstate.h"
-#include "file.h"
-#include "utils.h"
 #include "webm.h"
 
 #ifndef MAXPATHLEN
@@ -119,13 +115,10 @@ enum AudioImplementation
 struct m4a_decoder;
 typedef struct m4a_decoder m4a_decoder;
 
-extern int hopSize;
 extern int fftSize;
 extern int prevFftSize;
 
 typedef void (*uninit_func)(void *decoder);
-
-extern AppState appState;
 
 extern AudioData audioData;
 

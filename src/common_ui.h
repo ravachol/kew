@@ -1,11 +1,10 @@
 #ifndef COMMON_UI_H
 #define COMMON_UI_H
+
 #include <stdbool.h>
 #include "appstate.h"
 
 extern unsigned int updateCounter;
-
-extern const int scrollingInterval;
 extern bool isSameNameAsLastTime;
 
 void setRGB(PixelData p);
