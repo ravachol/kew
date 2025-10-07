@@ -2,6 +2,7 @@
 #define WEBM_H
 
 #ifdef __cplusplus
+
 extern "C"
 {
 #endif

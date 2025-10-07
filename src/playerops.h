@@ -36,8 +36,6 @@ extern struct timespec start_time;
 extern struct timespec pause_time;
 extern volatile bool loadedNextSong;
 extern bool nextSongNeedsRebuilding;
-extern bool waitingForPlaylist;
-extern bool waitingForNext;
 extern bool usingSongDataA;
 extern Node *nextSong;
 extern Node *songToStartFrom;
@@ -55,7 +53,7 @@ SongData *getCurrentSongData(void);
 
 Node *getNextSong(void);
 
-void handleRemove(void);
+void handleRemove(UIState *uis);
 
 FileSystemEntry *enqueueSongs(FileSystemEntry *entry, UIState *uis);
 
@@ -96,7 +94,7 @@ void skipToNextSong(AppState *state);
 
 void skipToPrevSong(AppState *state);
 
-void skipToSong(int id, bool startPlaying);
+void skipToSong(int id, bool startPlaying, AppState *state);
 
 void seekForward(UIState *uis);
 
@@ -156,13 +154,13 @@ double getCurrentSongDuration(void);
 
 void updatePlaylistToPlayingSong(void);
 
-void moveSongUp();
+void moveSongUp(void);
 
-void moveSongDown();
+void moveSongDown(void);
 
-void play(Node *song);
+void play(Node *node, AppState *state);
 
-void repeatList();
+void repeatList(AppState *state);
 
 void skipToBegginningOfSong(void);
 
@@ -174,6 +172,6 @@ bool isContainedWithin(FileSystemEntry *entry, FileSystemEntry *containingEntry)
 
 void addToFavoritesPlaylist(void);
 
-void autostartIfStopped(FileSystemEntry *firstEnqueuedEntry);
+void autostartIfStopped(FileSystemEntry *firstEnqueuedEntry, UIState *uis);
 
 #endif

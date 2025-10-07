@@ -3,8 +3,8 @@
 #include "common.h"
 #include "common_ui.h"
 #include "playlist.h"
-#include "soundcommon.h"
 #include "term.h"
+#include "utils.h"
 #include <math.h>
 #include <stdbool.h>
 
@@ -18,9 +18,6 @@ search_ui.c
 
 #define MAX_SEARCH_LEN 32
 
-int numSearchLetters = 0;
-int numSearchBytes = 0;
-
 typedef struct SearchResult
 {
         FileSystemEntry *entry;
@@ -30,16 +27,16 @@ typedef struct SearchResult
 } SearchResult;
 
 // Global variables to store results
-SearchResult *results = NULL;
+static SearchResult *results = NULL;
 size_t resultsCount = 0;
 size_t resultsCapacity = 0;
-
 size_t terminalHeight = 0;
+static int numSearchLetters = 0;
+static int numSearchBytes = 0;
+static int minSearchLetters = 1;
+static FileSystemEntry *currentSearchEntry = NULL;
 
-int minSearchLetters = 1;
-FileSystemEntry *currentSearchEntry = NULL;
-
-char searchText[MAX_SEARCH_LEN * 4 + 1]; // Unicode can be 4 characters
+static char searchText[MAX_SEARCH_LEN * 4 + 1]; // Unicode can be 4 characters
 
 FileSystemEntry *getCurrentSearchEntry(void) { return currentSearchEntry; }
 
@@ -84,7 +81,6 @@ bool isDuplicate(const FileSystemEntry *entry)
         return false;
 }
 
-// Function to add a result to the global array
 void addResult(FileSystemEntry *entry, int distance)
 {
         if (numSearchLetters < minSearchLetters)
@@ -128,13 +124,11 @@ void addResult(FileSystemEntry *entry, int distance)
         }
 }
 
-// Callback function to collect results
 void collectResult(FileSystemEntry *entry, int distance)
 {
         addResult(entry, distance);
 }
 
-// Free allocated memory from previous search
 void freeSearchResults(void)
 {
         if (results != NULL)
@@ -427,8 +421,9 @@ void applyColorAndFormat(bool isChosen, FileSystemEntry *entry, UISettings *ui,
                 if (entry->isEnqueued)
                 {
                         applyColor(ui->colorMode,
-                                   isPlaying ? ui->theme.search_playing :
-                                   ui->theme.search_enqueued, ui->color);
+                                   isPlaying ? ui->theme.search_playing
+                                             : ui->theme.search_enqueued,
+                                   ui->color);
 
                         printf("\x1b[7m * ");
                 }
@@ -442,8 +437,9 @@ void applyColorAndFormat(bool isChosen, FileSystemEntry *entry, UISettings *ui,
                 if (entry->isEnqueued)
                 {
                         applyColor(ui->colorMode,
-                                   isPlaying ? ui->theme.search_playing :
-                                   ui->theme.search_enqueued, ui->color);
+                                   isPlaying ? ui->theme.search_playing
+                                             : ui->theme.search_enqueued,
+                                   ui->color);
 
                         printf(" * ");
                 }
@@ -512,10 +508,14 @@ int displaySearchResults(int maxListSize, int indent, int *chosenRow,
 
                 bool isChosen = (*chosenRow == (int)i);
 
-                bool isCurrentSong = currentSong != NULL && strcmp(currentSong->song.filePath,
-                                            results[i].entry->fullPath) == 0;
+                Node *current = getCurrentSong();
 
-                applyColorAndFormat(isChosen, results[i].entry, ui, isCurrentSong);
+                bool isCurrentSong =
+                    current != NULL && strcmp(current->song.filePath,
+                                              results[i].entry->fullPath) == 0;
+
+                applyColorAndFormat(isChosen, results[i].entry, ui,
+                                    isCurrentSong);
 
                 name[0] = '\0';
                 if (results[i].entry->isDirectory)

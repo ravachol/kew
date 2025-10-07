@@ -3,6 +3,7 @@
 #include "common_ui.h"
 #include "directorytree.h"
 #include "imgfunc.h"
+#include <math.h>
 #include "playerops.h"
 #include "playlist.h"
 #include "playlist_ui.h"
@@ -38,54 +39,50 @@ const int ABSOLUTE_MIN_WIDTH = 80;
 const int ABSOLUTE_MIN_WIDTH = 65;
 #endif
 
+FileSystemEntry *library = NULL;
+
+int footerRow = 0;
+int footer = 0;
 bool fastForwarding = false;
 bool rewinding = false;
-
-int minHeight = 0;
-int elapsedBars = 0;
-int preferredWidth = 0;
-int preferredHeight = 0;
-int textWidth = 0;
-int indent = 0;
-int maxListSize = 0;
-int maxSearchListSize = 0;
-int numTopLevelSongs = 0;
-int startLibIter = 0;
-int startSearchIter = 0;
-int maxLibListSize = 0;
-int chosenRow = 0;             // The row that is chosen in playlist view
-int chosenLibRow = 0;          // The row that is chosen in library view
-int chosenSearchResultRow = 0; // The row that is chosen in search view
-int libIter = 0;
-int libSongIter = 0;
-int libTopLevelSongIter = 0;
-int previousChosenLibRow = 0;
-int libCurrentDirSongCount = 0;
-int lastRowRow = 0;
-int lastRowCol = 0;
 int progressBarRow = 0;
 int progressBarCol = 0;
 int progressBarLength = 0;
-int draggedProgressBarCol = 0;
-double draggedPositionSeconds = 0.0;
-bool draggingProgressBar = false;
-int miniVisualizerRow = 0;
 
-PixelData lastRowColor = {120, 120, 120};
+// clang-format off
+static const char *LOGO[] = {" __\n",
+                             "|  |--.-----.--.--.--.\n",
+                             "|    <|  -__|  |  |  |\n",
+                             "|__|__|_____|________|"};
+// clang-format on
 
-const char LIBRARY_FILE[] = "kewlibrary";
-
-FileSystemEntry *currentEntry = NULL;
-FileSystemEntry *lastEntry = NULL;
-FileSystemEntry *chosenDir = NULL;
-FileSystemEntry *library = NULL;
-
+static const char LIBRARY_FILE[] = "kewlibrary";
+static const int MAX_TERM_SIZE = 10000;
+static const int scrollingInterval = 1;
 static const int LOGO_WIDTH = 22;
 
-const char *LOGO[] = {" __\n", "|  |--.-----.--.--.--.\n",
-                      "|    <|  -__|  |  |  |\n", "|__|__|_____|________|"};
-
-#define MAX_TERM_SIZE 10000 // Safety limit
+static int minHeight = 0;
+static int preferredWidth = 0;
+static int preferredHeight = 0;
+static int textWidth = 0;
+static int indent = 0;
+static int maxListSize = 0;
+static int maxSearchListSize = 0;
+static int numTopLevelSongs = 0;
+static int startLibIter = 0;
+static int startSearchIter = 0;
+static int maxLibListSize = 0;
+static int chosenRow = 0;             // The row that is chosen in playlist view
+static int chosenLibRow = 0;          // The row that is chosen in library view
+static int chosenSearchResultRow = 0; // The row that is chosen in search view
+static int libIter = 0;
+static int libSongIter = 0;
+static int previousChosenLibRow = 0;
+static int libCurrentDirSongCount = 0;
+static PixelData footerColor = {120, 120, 120};
+static FileSystemEntry *currentEntry = NULL;
+static FileSystemEntry *lastEntry = NULL;
+static FileSystemEntry *chosenDir = NULL;
 
 int calcIdealImgSize(int *width, int *height, const int visualizerHeight,
                      const int metatagHeight)
@@ -707,7 +704,7 @@ void printErrorRow(int row, int col, UISettings *ui)
 
         if (!hasPrintedError && hasErrorMessage())
         {
-                applyColor(ui->colorMode, ui->theme.footer, lastRowColor);
+                applyColor(ui->colorMode, ui->theme.footer, footerColor);
                 printf(" %s", getErrorMessage());
                 hasPrintedError = true;
         }
@@ -736,23 +733,23 @@ void printFooter(int row, int col, UISettings *ui, AppSettings *settings)
         if (preferredWidth < 0 || preferredHeight < 0) // mini view
                 return;
 
-        lastRowRow = row;
-        lastRowCol = col;
+        footerRow = row;
+        footer = col;
 
         printf("\033[%d;%dH", row, col);
 
-        PixelData footerColor;
-        footerColor.r = lastRowColor.r;
-        footerColor.g = lastRowColor.g;
-        footerColor.b = lastRowColor.b;
+        PixelData fColor;
+        fColor.r = footerColor.r;
+        fColor.g = footerColor.g;
+        fColor.b = footerColor.b;
 
-        applyColor(ui->colorMode, ui->theme.footer, footerColor);
+        applyColor(ui->colorMode, ui->theme.footer, fColor);
 
         if (ui->themeIsSet && ui->theme.footer.type == COLOR_TYPE_RGB)
         {
-                footerColor.r = ui->theme.footer.rgb.r;
-                footerColor.g = ui->theme.footer.rgb.g;
-                footerColor.b = ui->theme.footer.rgb.b;
+                fColor.r = ui->theme.footer.rgb.r;
+                fColor.g = ui->theme.footer.rgb.g;
+                fColor.b = ui->theme.footer.rgb.b;
         }
 
         char text[100];
@@ -1100,7 +1097,7 @@ void switchToNextView(void)
                 break;
         case LIBRARY_VIEW:
                 appState.currentView =
-                    (currentSong != NULL) ? TRACK_VIEW : SEARCH_VIEW;
+                    (getCurrentSong() != NULL) ? TRACK_VIEW : SEARCH_VIEW;
                 break;
         case TRACK_VIEW:
                 appState.currentView = SEARCH_VIEW;
@@ -1132,7 +1129,7 @@ void switchToPreviousView(void)
                 break;
         case SEARCH_VIEW:
                 appState.currentView =
-                    (currentSong != NULL) ? TRACK_VIEW : LIBRARY_VIEW;
+                    (getCurrentSong() != NULL) ? TRACK_VIEW : LIBRARY_VIEW;
                 break;
         case KEYBINDINGS_VIEW:
                 appState.currentView = SEARCH_VIEW;
@@ -1536,8 +1533,10 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize,
         UISettings *ui = &(state->uiSettings);
         UIState *uis = &(state->uiState);
 
-        if (currentSong != NULL &&
-            (strcmp(currentSong->song.filePath, root->fullPath) == 0))
+        Node *current = getCurrentSong();
+
+        if (current != NULL &&
+            (strcmp(current->song.filePath, root->fullPath) == 0))
         {
                 isPlaying = 1;
         }
@@ -2097,8 +2096,6 @@ int printPlayer(SongData *songdata, double elapsedSeconds,
 
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
-
-        state->uiState.miniMode = false;
 
         if (state->currentView != PLAYLIST_VIEW)
                 state->uiState.resetPlaylistDisplay = true;

@@ -7,8 +7,6 @@ extern "C"
 {
 #endif
 
-#include "utils.h"
-
 #ifndef TAGSETTINGS_STRUCT
 #define METADATA_MAX_LENGTH 256
 #define TAGSETTINGS_STRUCT

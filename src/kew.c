@@ -38,7 +38,6 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include "cache.h"
 #include "common_ui.h"
 #include "events.h"
-#include "file.h"
 #include "imgfunc.h"
 #include "mpris.h"
 #include "notifications.h"
@@ -99,6 +98,11 @@ int fuzzySearchThreshold = 100;
 int maxDigitsPressedCount = 9;
 int isNewSearchTerm = false;
 bool wasEndOfList = false;
+const int MOUSE_DRAG = 32;
+const int MOUSE_CLICK = 0;
+double draggedPositionSeconds = 0.0;
+bool draggingProgressBar = false;
+bool waitingForNext = false;
 
 void updateLastInputTime(void)
 {
@@ -237,11 +241,11 @@ bool mouseInputHandled(char *seq, int i, struct Event *event)
                 draggedPositionSeconds = 0.0;
         }
 
-        if (mouseY == lastRowRow && lastRowCol > 0 && mouseX - lastRowCol > 0 &&
-            mouseX - lastRowCol < (int)strlen(LAST_ROW) &&
+        if (mouseY == footerRow && footer > 0 && mouseX - footer > 0 &&
+            mouseX - footer < (int)strlen(LAST_ROW) &&
             mouseButton != MOUSE_DRAG)
         {
-                event->type = getMouseLastRowEvent(mouseX - lastRowCol);
+                event->type = getMouseLastRowEvent(mouseX - footer);
                 return true;
         }
 
@@ -527,11 +531,12 @@ void setEndOfListReached(AppState *state)
         loadedNextSong = false;
         audioData.endOfListReached = true;
         usingSongDataA = false;
-        currentSong = NULL;
         audioData.currentFileIndex = 0;
         audioData.restart = true;
         loadingdata.loadA = true;
         waitingForNext = true;
+
+        clearCurrentSong();
 
         pthread_mutex_lock(&dataSourceMutex);
         cleanupPlaybackDevice();
@@ -540,7 +545,7 @@ void setEndOfListReached(AppState *state)
         refresh = true;
 
         if (isRepeatListEnabled())
-                repeatList();
+                repeatList(state);
         else
         {
                 emitPlaybackStoppedMpris();
@@ -564,7 +569,7 @@ void notifyMPRISSwitch(SongData *currentSongData)
             currentSongData->metadata->title, currentSongData->metadata->artist,
             currentSongData->metadata->album, currentSongData->coverArtPath,
             currentSongData->trackId != NULL ? currentSongData->trackId : "",
-            currentSong, length);
+            getCurrentSong(), length);
 }
 
 void notifySongSwitch(SongData *currentSongData, UISettings *ui)
@@ -583,7 +588,10 @@ void notifySongSwitch(SongData *currentSongData, UISettings *ui)
 
                 notifyMPRISSwitch(currentSongData);
 
-                lastNotifiedId = currentSong->id;
+                Node *current = getCurrentSong();
+
+                if (current != NULL)
+                        lastNotifiedId = current->id;
         }
 }
 
@@ -593,10 +601,12 @@ void determineSongAndNotify(UISettings *ui)
 
         bool isDeleted = determineCurrentSongData(&currentSongData);
 
-        if (currentSongData && currentSong)
-                currentSong->song.duration = currentSongData->duration;
+        Node *current = getCurrentSong();
 
-        if (lastNotifiedId != currentSong->id)
+        if (currentSongData && current)
+                current->song.duration = currentSongData->duration;
+
+        if (lastNotifiedId != current->id)
         {
                 if (!isDeleted)
                         notifySongSwitch(currentSongData, ui);
@@ -652,7 +662,7 @@ void resetListAfterDequeuingPlayingSong(AppState *state)
 
         Node *node = findSelectedEntryById(&playlist, lastPlayedId);
 
-        if (currentSong == NULL && node == NULL)
+        if (getCurrentSong() == NULL && node == NULL)
         {
                 stopPlayback();
 
@@ -751,7 +761,7 @@ void playPreProcessing()
 
 void playPostProcessing()
 {
-        if ((songWasRemoved && currentSong != NULL))
+        if ((songWasRemoved && getCurrentSong() != NULL))
         {
                 songWasRemoved = false;
         }
@@ -766,7 +776,9 @@ void playPostProcessing()
 
 void handleGoToSong(AppState *state)
 {
-        bool canGoNext = (currentSong != NULL && currentSong->next != NULL);
+        Node *current = getCurrentSong();
+
+        bool canGoNext = (current != NULL && current->next != NULL);
 
         if (state->currentView == LIBRARY_VIEW)
         {
@@ -795,7 +807,7 @@ void handleGoToSong(AppState *state)
                                     library, playlist.head->song.filePath);
                         }
 
-                        autostartIfStopped(firstEnqueuedEntry);
+                        autostartIfStopped(firstEnqueuedEntry, &(state->uiState));
 
                         markListAsEnqueued(library, &playlist);
 
@@ -822,8 +834,10 @@ void handleGoToSong(AppState *state)
         {
                 if (digitsPressedCount == 0)
                 {
-                        if (isPaused() && currentSong != NULL &&
-                            state->uiState.chosenNodeId == currentSong->id)
+                        Node *current = getCurrentSong();
+
+                        if (isPaused() && current != NULL &&
+                            state->uiState.chosenNodeId == current->id)
                         {
                                 togglePause(&totalPauseSeconds, &pauseSeconds,
                                             &pause_time);
@@ -851,7 +865,7 @@ void handleGoToSong(AppState *state)
                                 findNodeInList(&playlist,
                                                state->uiState.chosenNodeId,
                                                &found);
-                                play(found);
+                                play(found, state);
 
                                 playPostProcessing();
 
@@ -873,7 +887,7 @@ void handleGoToSong(AppState *state)
         }
 
         // Handle MPRIS CanGoNext
-        bool couldGoNext = (currentSong != NULL && currentSong->next != NULL);
+        bool couldGoNext = (current != NULL && current->next != NULL);
         if (canGoNext != couldGoNext)
         {
                 emitBooleanPropertyChanged("CanGoNext", couldGoNext);
@@ -927,7 +941,7 @@ void enqueueAndPlay(AppState *state)
 
                 playbackPlay(&totalPauseSeconds, &pauseSeconds);
 
-                play(song);
+                play(song, state);
 
                 playPostProcessing();
 
@@ -1038,7 +1052,7 @@ void handleInput(AppState *state)
                 addToFavoritesPlaylist();
                 break;
         case EVENT_EXPORTPLAYLIST:
-                exportCurrentPlaylist(settings.path);
+                exportCurrentPlaylist(settings.path, &playlist);
                 break;
         case EVENT_UPDATELIBRARY:
                 updateLibrary(settings.path);
@@ -1063,7 +1077,7 @@ void handleInput(AppState *state)
                 flipPrevPage();
                 break;
         case EVENT_REMOVE:
-                handleRemove();
+                handleRemove(&(state->uiState));
                 resetListAfterDequeuingPlayingSong(state);
                 break;
         case EVENT_SHOWTRACK:
@@ -1142,49 +1156,61 @@ void loadAudioData(AppState *state)
         if (audioData.restart == true)
         {
                 if (playlist.head != NULL &&
-                    (waitingForPlaylist || waitingForNext))
+                    (state->uiState.waitingForPlaylist || state->uiState.waitingForNext))
                 {
                         songLoading = true;
 
-                        if (waitingForPlaylist)
+                        if (state->uiState.waitingForPlaylist)
                         {
-                                currentSong = playlist.head;
+                                setCurrentSong(playlist.head);
                         }
-                        else if (waitingForNext)
+                        else if (state->uiState.waitingForNext)
                         {
+                                Node *current = NULL;
+
                                 if (songToStartFrom != NULL)
                                 {
                                         // Make sure it still exists in the
                                         // playlist
                                         findNodeInList(&playlist,
                                                        songToStartFrom->id,
-                                                       &currentSong);
+                                                       &current);
 
+                                        if (current != NULL)
+                                        {
+                                                setCurrentSong(current);
+                                        }
                                         songToStartFrom = NULL;
                                 }
                                 else if (lastPlayedId >= 0)
                                 {
-                                        currentSong = findSelectedEntryById(
+                                        current = findSelectedEntryById(
                                             &playlist, lastPlayedId);
-                                        if (currentSong != NULL &&
-                                            currentSong->next != NULL)
-                                                currentSong = currentSong->next;
+
+                                        if (current != NULL)
+                                        {
+                                                if (current->next != NULL)
+                                                        current = current->next;
+
+                                                setCurrentSong(current);
+                                        }
                                 }
 
-                                if (currentSong == NULL)
+                                if (current == NULL)
                                 {
                                         if (startFromTop)
                                         {
-                                                currentSong = playlist.head;
+                                                setCurrentSong(playlist.head);
                                                 startFromTop = false;
                                         }
                                         else
-                                                currentSong = playlist.tail;
+                                                setCurrentSong(playlist.tail);
                                 }
                         }
+                        
                         audioData.restart = false;
-                        waitingForPlaylist = false;
-                        waitingForNext = false;
+                        state->uiState.waitingForPlaylist = false;
+                        state->uiState.waitingForNext = false;
                         songWasRemoved = false;
 
                         if (isShuffleEnabled())
@@ -1193,7 +1219,7 @@ void loadAudioData(AppState *state)
                         unloadSongA(state);
                         unloadSongB(state);
 
-                        int res = loadFirst(currentSong, state);
+                        int res = loadFirst(getCurrentSong(), state);
 
                         finishLoading();
 
@@ -1219,7 +1245,7 @@ void loadAudioData(AppState *state)
                         clock_gettime(CLOCK_MONOTONIC, &start_time);
                 }
         }
-        else if (currentSong != NULL &&
+        else if (getCurrentSong() != NULL &&
                  (nextSongNeedsRebuilding || nextSong == NULL) && !songLoading)
         {
                 loadNextSong();
@@ -1232,8 +1258,10 @@ void tryLoadNext()
         songHasErrors = false;
         clearingErrors = true;
 
-        if (tryNextSong == NULL && currentSong != NULL)
-                tryNextSong = currentSong->next;
+        Node *current = getCurrentSong();
+
+        if (tryNextSong == NULL && current != NULL)
+                tryNextSong = current->next;
         else if (tryNextSong != NULL)
                 tryNextSong = tryNextSong->next;
 
@@ -1271,12 +1299,14 @@ void prepareNextSong(AppState *state)
         nextSong = NULL;
         refresh = true;
 
-        if (!isRepeatEnabled() || currentSong == NULL)
+        Node *current = getCurrentSong();
+
+        if (!isRepeatEnabled() || current == NULL)
         {
                 unloadPreviousSong(state);
         }
 
-        if (currentSong == NULL)
+        if (current == NULL)
         {
                 if (state->uiSettings.quitAfterStopping)
                 {
@@ -1354,8 +1384,7 @@ gboolean mainloop_callback(gpointer data)
         // Different views run at different speeds to lower the impact on system
         // requirements
         if ((updateCounter % 2 == 0 && appState.currentView == SEARCH_VIEW) ||
-            (appState.currentView == TRACK_VIEW || appState.uiState.miniMode) ||
-            updateCounter % 3 == 0)
+            (appState.currentView == TRACK_VIEW || updateCounter % 3 == 0))
         {
                 processDBusEvents();
 
@@ -1408,8 +1437,8 @@ void initFirstPlay(Node *song, AppState *state)
         if (song == NULL || res < 0)
         {
                 song = NULL;
-                if (!waitingForNext)
-                        waitingForPlaylist = true;
+                if (!state->uiState.waitingForNext)
+                        state->uiState.waitingForPlaylist = true;
         }
 
         loadedNextSong = false;
@@ -1480,8 +1509,8 @@ void cleanupOnExit()
         restoreTerminalMode();
         enableInputBuffering();
         setConfig(&settings, &(appState.uiSettings));
-        saveFavoritesPlaylist(settings.path);
-        saveLastUsedPlaylist();
+        saveFavoritesPlaylist(settings.path, favoritesPlaylist);
+        saveLastUsedPlaylist(unshuffledPlaylist);
         deleteCache(appState.tmpCache);
         freeMainDirectoryTree(&appState);
         deletePlaylist(&playlist);
@@ -1536,12 +1565,10 @@ void cleanupOnExit()
         fflush(stdout);
 }
 
-void run(AppState *state, bool startPlaying)
+void run(AppState *state, bool startPlaying, PlayList **unshuffledPlaylist)
 {
-        if (unshuffledPlaylist == NULL)
+        if (*unshuffledPlaylist == NULL)
         {
-
-                unshuffledPlaylist = malloc(sizeof(PlayList));
                 *unshuffledPlaylist = deepCopyPlayList(&playlist);
         }
 
@@ -1565,12 +1592,14 @@ void run(AppState *state, bool startPlaying)
 
         initMpris();
 
+
+
         if (startPlaying)
-                currentSong = playlist.head;
+                setCurrentSong(playlist.head);
         else if (playlist.count > 0)
                 waitingForNext = true;
 
-        initFirstPlay(currentSong, state);
+        initFirstPlay(getCurrentSong(), state);
         clearScreen();
         fflush(stdout);
 }
@@ -1643,7 +1672,7 @@ void initDefaultState(AppState *state)
 {
         init(state);
 
-        loadLastUsedPlaylist();
+        loadLastUsedPlaylist(&playlist, &unshuffledPlaylist);
         markListAsEnqueued(library, &playlist);
 
         resetListAfterDequeuingPlayingSong(state);
@@ -1654,7 +1683,7 @@ void initDefaultState(AppState *state)
 
         state->currentView = LIBRARY_VIEW;
 
-        run(state, false);
+        run(state, false, &unshuffledPlaylist);
 }
 
 void playFavoritesPlaylist(AppState *state)
@@ -1670,7 +1699,7 @@ void playFavoritesPlaylist(AppState *state)
         deepCopyPlayListOntoList(favoritesPlaylist, &playlist);
         shufflePlaylist(&playlist);
         markListAsEnqueued(library, &playlist);
-        run(state, true);
+        run(state, true, &unshuffledPlaylist);
 }
 
 void playAll(AppState *state)
@@ -1684,7 +1713,7 @@ void playAll(AppState *state)
         }
         shufflePlaylist(&playlist);
         markListAsEnqueued(library, &playlist);
-        run(state, true);
+        run(state, true, &unshuffledPlaylist);
 }
 
 void playAllAlbums(AppState *state)
@@ -1697,7 +1726,7 @@ void playAllAlbums(AppState *state)
                 exit(0);
         }
         markListAsEnqueued(library, &playlist);
-        run(state, true);
+        run(state, true, &unshuffledPlaylist);
 }
 
 void removeArgElement(char *argv[], int index, int *argc)
@@ -2091,6 +2120,8 @@ void initState(AppState *state)
         state->uiState.doNotifyMPRISSwitched = false;
         state->uiState.doNotifyMPRISPlaying = false;
         state->uiState.collapseView = false;
+        state->uiState.waitingForNext = false;
+        state->uiState.waitingForPlaylist = false;
         state->tmpCache = NULL;
 }
 
@@ -2269,7 +2300,7 @@ int main(int argc, char *argv[])
         }
 
         handleOptions(&argc, argv, ui);
-        loadFavoritesPlaylist(settings.path);
+        loadFavoritesPlaylist(settings.path, &favoritesPlaylist);
 
         ensureDefaultThemes();
         initTheme(argc, argv, ui);
@@ -2294,14 +2325,14 @@ int main(int argc, char *argv[])
         else if (argc >= 2)
         {
                 init(&appState);
-                makePlaylist(argc, argv, exactSearch, settings.path);
+                makePlaylist(&playlist, argc, argv, exactSearch, settings.path);
                 if (playlist.count == 0)
                 {
                         noPlaylist = true;
                         exit(0);
                 }
                 markListAsEnqueued(library, &playlist);
-                run(&appState, true);
+                run(&appState, true, &unshuffledPlaylist);
         }
 
         return 0;

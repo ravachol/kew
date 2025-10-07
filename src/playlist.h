@@ -36,15 +36,15 @@ typedef struct
         pthread_mutex_t mutex;
 } PlayList;
 
-extern Node *currentSong;
-
 #endif
 
-extern PlayList playlist;
-extern PlayList *unshuffledPlaylist;
-extern PlayList *favoritesPlaylist;
+int incrementNodeId();
 
-extern int nodeIdCounter;
+void clearCurrentSong(void);
+
+void setCurrentSong(Node *node);
+
+Node *getCurrentSong(void);
 
 Node *getListNext(Node *node);
 
@@ -64,21 +64,25 @@ void shufflePlaylist(PlayList *playlist);
 
 void shufflePlaylistStartingFromSong(PlayList *playlist, Node *song);
 
-int makePlaylist(int argc, char *argv[], bool exactSearch, const char *path);
+int makePlaylist(PlayList *playlist, int argc, char *argv[], bool exactSearch, const char *path);
 
 void writeCurrentPlaylistToM3UFile(PlayList *playlist);
 
 void writeM3UFile(const char *filename, const PlayList *playlist);
 
+void exportCurrentPlaylist(const char *path, PlayList *playlist);
+
+void loadLastUsedPlaylist(PlayList *playlist, PlayList **unshuffledPlaylist);
+
+void loadFavoritesPlaylist(const char *directory, PlayList **favoritesPlaylist);
+
 void saveNamedPlaylist(const char *directory, const char *playlistName, const PlayList *playlist);
 
-void exportCurrentPlaylist(const char *path);
+void saveLastUsedPlaylist(PlayList *unshuffledPlaylist);
 
-void saveLastUsedPlaylist(void);
+void saveFavoritesPlaylist(const char *directory, PlayList *favoritesPlaylist);
 
-void loadLastUsedPlaylist(void);
-
-PlayList deepCopyPlayList(PlayList *originalList);
+PlayList *deepCopyPlayList(PlayList *originalList);
 
 void deepCopyPlayListOntoList(PlayList *originalList, PlayList *newList);
 
@@ -95,10 +99,6 @@ void addShuffledAlbumsToPlayList(FileSystemEntry *root, PlayList *list, int play
 void moveUpList(PlayList *list, Node *node);
 
 void moveDownList(PlayList *list, Node *node);
-
-void loadFavoritesPlaylist(const char *directory);
-
-void saveFavoritesPlaylist(const char *directory);
 
 int isMusicFile(const char *filename);
 

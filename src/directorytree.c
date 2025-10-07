@@ -1,7 +1,6 @@
 #include "directorytree.h"
 #include "file.h"
 #include "utils.h"
-#include <ctype.h>
 #include <dirent.h>
 #include <glib.h>
 #include <limits.h>

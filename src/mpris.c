@@ -1,5 +1,6 @@
 #include "mpris.h"
 #include "common.h"
+#include <math.h>
 #include "playerops.h"
 #include "sound.h"
 #include "soundcommon.h"
@@ -490,7 +491,7 @@ get_playback_status(GDBusConnection *connection, const gchar *sender,
         {
                 status = "Paused";
         }
-        else if (currentSong == NULL || isStopped())
+        else if (getCurrentSong() == NULL || isStopped())
         {
                 status = "Stopped";
         }
@@ -574,7 +575,7 @@ static gboolean get_metadata(GDBusConnection *connection, const gchar *sender,
         GVariantBuilder metadata_builder;
         g_variant_builder_init(&metadata_builder, G_VARIANT_TYPE_DICTIONARY);
 
-        if (currentSong != NULL && currentSongData != NULL &&
+        if (getCurrentSong() != NULL && currentSongData != NULL &&
             currentSongData->metadata != NULL)
         {
                 g_variant_builder_add(
@@ -741,8 +742,10 @@ static gboolean get_can_go_next(GDBusConnection *connection,
         (void)error;
         (void)user_data;
 
+        Node *current = getCurrentSong();
+
         CanGoNext =
-            (currentSong == NULL || currentSong->next != NULL) ? TRUE : FALSE;
+            (current == NULL || current->next != NULL) ? TRUE : FALSE;
         CanGoNext =
             (isRepeatListEnabled() && playlist.head != NULL) ? TRUE : CanGoNext;
 
@@ -764,8 +767,10 @@ get_can_go_previous(GDBusConnection *connection, const gchar *sender,
         (void)error;
         (void)user_data;
 
+        Node *current = getCurrentSong();
+
         CanGoPrevious =
-            (currentSong == NULL || currentSong->prev != NULL) ? TRUE : FALSE;
+            (current == NULL || current->prev != NULL) ? TRUE : FALSE;
 
         *value = g_variant_new_boolean(CanGoPrevious);
         return TRUE;
@@ -785,7 +790,7 @@ static gboolean get_can_play(GDBusConnection *connection, const gchar *sender,
         (void)error;
         (void)user_data;
 
-        if (currentSong == NULL)
+        if (getCurrentSong() == NULL)
                 CanPlay = FALSE;
         else
                 CanPlay = TRUE;
@@ -808,7 +813,7 @@ static gboolean get_can_pause(GDBusConnection *connection, const gchar *sender,
         (void)error;
         (void)user_data;
 
-        if (currentSong == NULL)
+        if (getCurrentSong() == NULL)
                 CanPause = FALSE;
         else
                 CanPause = TRUE;

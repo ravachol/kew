@@ -3,6 +3,7 @@
 
 #include <chafa.h>
 #include <chafa-canvas-config.h>
+
 #ifndef PIXELDATA_STRUCT
 #define PIXELDATA_STRUCT
 typedef struct

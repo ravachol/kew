@@ -34,13 +34,17 @@
 
 We would like to extend our gratitude to the following individuals who have contributed significantly to kew:
 
-* Xplshn @xplshn
 * David Reid @mackron <mackron@gmail.com> (author of Miniaudio, used for playing music)
 * Hans Petter Jansson @hpjansson <hpj@hpjansson.org> (author of Chafa, used for displaying images)
+* Chromium-3-Oxide <Chromium3Oxide@protonmail.com>
 * Matthias Geiger @werdahias <werdahias@riseup.net>
+* Vafone @vafone
+* Nicolas F
 * Yuri @yurivict yuri@freebsd.org
 * Joey Schaff @jaoheah <jschaff@proton.me>
-* Agustin  Ballesteros @agus-balles <arcpie@aur>
+* Agustin Ballesteros @agus-balles <arcpie@aur>
+* Saijin Naib @Saijin_Naib
+* Xplshn @xplshn
 * Mateo @malteo <mateo@aur>
 * Hampa @hampa
 * Markmark1 @markmark1
