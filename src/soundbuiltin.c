@@ -1,3 +1,4 @@
+#include <math.h>
 #include "soundbuiltin.h"
 #include <stdbool.h>
 #include <stdio.h>

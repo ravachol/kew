@@ -17,18 +17,14 @@ common_ui.c
 
 */
 
-#define MIN_CHANNEL 50 // Minimum color red green blue
-
 unsigned int updateCounter = 0;
-
-// Name scrolling
-bool finishedScrolling = false;
-int lastNamePosition = 0;
-bool isLongName = false;
-int scrollDelaySkippedCount = 0;
 bool isSameNameAsLastTime = false;
-const int startScrollingDelay = 10; // Delay before beginning to scroll
-const int scrollingInterval = 1;    // Interval between scrolling updates
+
+static const int startScrollingDelay = 10;
+static bool finishedScrolling = false;
+static int lastNamePosition = 0;
+static bool isLongName = false;
+static int scrollDelaySkippedCount = 0;
 
 void setRGB(PixelData p)
 {
@@ -54,23 +50,26 @@ void inverseText(void) { printf("\x1b[7m"); }
 
 void applyColor(ColorMode mode, ColorValue themeColor, PixelData albumColor)
 {
-    resetColor();
+        resetColor();
 
-    switch (mode)
-    {
+        switch (mode)
+        {
         case COLOR_MODE_ALBUM:
-            setAlbumColor(albumColor);
-            break;
+                setAlbumColor(albumColor);
+                break;
 
         case COLOR_MODE_THEME:
         case COLOR_MODE_DEFAULT:
-            if (themeColor.type == COLOR_TYPE_RGB) {
-                setRGB(themeColor.rgb);        // RGB field
-            } else {
-                setTerminalColor(themeColor.ansiIndex);
-            }
-            break;
-    }
+                if (themeColor.type == COLOR_TYPE_RGB)
+                {
+                        setRGB(themeColor.rgb);
+                }
+                else
+                {
+                        setTerminalColor(themeColor.ansiIndex);
+                }
+                break;
+        }
 }
 
 void resetNameScroll()
@@ -408,6 +407,8 @@ PixelData increaseLuminosity(PixelData pixel, int amount)
 
         return pixel2;
 }
+
+#define MIN_CHANNEL 50
 
 PixelData decreaseLuminosityPct(PixelData base, float pct)
 {

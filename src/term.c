@@ -23,7 +23,7 @@ possible.
 
 */
 
-const int MAX_TERMINAL_ROWS = 9999;
+static const int MAX_TERMINAL_ROWS = 9999;
 
 void setTerminalColor(int color)
 {

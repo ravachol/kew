@@ -3,9 +3,7 @@
 
 #include <stdbool.h>
 #include "appstate.h"
-#include "common.h"
 #include "directorytree.h"
-#include "soundcommon.h"
 
 
 #ifndef TAGSETTINGS_STRUCT
@@ -46,22 +44,14 @@ typedef struct
 } SongData;
 #endif
 
-
 extern int numProgressBars;
-
 extern bool fastForwarding;
 extern bool rewinding;
-
-extern int lastRowRow;
-extern int lastRowCol;
-
+extern int footerRow;
+extern int footer;
 extern int progressBarRow;
 extern int progressBarCol;
 extern int progressBarLength;
-extern int draggedProgressBarCol;
-extern double draggedPositionSeconds;
-extern bool draggingProgressBar;
-
 extern FileSystemEntry *library;
 
 int printPlayer(SongData *songdata, double elapsedSeconds, AppSettings *settings, AppState *appState);

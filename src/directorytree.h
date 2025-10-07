@@ -7,6 +7,7 @@
 #ifndef PATH_MAX
 #define PATH_MAX 4096
 #endif
+
 #ifndef FILE_SYSTEM_ENTRY
 #define FILE_SYSTEM_ENTRY
 typedef struct FileSystemEntry
