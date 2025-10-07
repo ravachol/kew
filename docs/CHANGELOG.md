@@ -1,5 +1,14 @@
 # CHANGELOG
 
+### 3.5.2
+
+@hartalex
+- Fixed line in cover being erased in landscape mode on some terminals.
+
+- Fixed long names no longer scrolling.
+
+- Fixed cover in landscape mode jumping from line 1 to line 2 and back when resizing window.
+
 ### 3.5.1
 
 - Fix issue/test on homebrew.
