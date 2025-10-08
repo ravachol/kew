@@ -6,6 +6,7 @@
 #include "search_ui.h"
 #include "songloader.h"
 #include "sound.h"
+#include "soundcommon.h"
 #include "term.h"
 #include "theme.h"
 #include "utils.h"
@@ -2280,6 +2281,9 @@ void skipToNextSong(AppState *state)
                 silentSwitchToNext(true, state);
                 return;
         }
+
+        if (isShuffleEnabled())
+                state->uiState.resetPlaylistDisplay = true;
 
         double totalPauseSeconds = getTotalPauseSeconds();
         double pauseSeconds = getTotalPauseSeconds();

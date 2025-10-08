@@ -1086,11 +1086,9 @@ void handleInput(AppState *state)
                 emitVolumeChanged();
                 break;
         case EVENT_NEXT:
-                //state->uiState.resetPlaylistDisplay = true;
                 skipToNextSong(state);
                 break;
         case EVENT_PREV:
-                //state->uiState.resetPlaylistDisplay = true;
                 skipToPrevSong(state);
                 break;
         case EVENT_SEEKBACK:
