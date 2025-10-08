@@ -3,3 +3,7 @@ IndentWidth: 8
 TabWidth: 8
 UseTab: Never
 BreakBeforeBraces: Allman
+ColumnLimit: 0
+PointerAlignment: Right
+ReflowComments: false
+SpacesBeforeTrailingComments: 1
