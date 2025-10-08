@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# play — wrapper that installs itself on first run and calls kew
+
+# Run chmod +x play
+# Then ./play
+# You can now run commands like: play nirvana and it will automatically play all your nirvana,
+# which was the original intent of kew
+
+set -euo pipefail
+
+INSTALL_DIR="$HOME/.local/bin"
+INSTALL_PATH="$INSTALL_DIR/play"
+
+# Self-install if not already in PATH
+if ! command -v play >/dev/null 2>&1 || [ "$(command -v play)" != "$INSTALL_PATH" ]; then
+    echo "Installing play to $INSTALL_PATH..."
+    mkdir -p "$INSTALL_DIR"
+    cp "$0" "$INSTALL_PATH"
+    chmod +x "$INSTALL_PATH"
+    echo "✅ Installed play. Run it again from anywhere next time."
+fi
+
+# kew should already be in PATH
+exec kew "$@"
