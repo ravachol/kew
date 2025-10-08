@@ -1,22 +1,18 @@
 #ifndef SOUND_H
 #define SOUND_H
 
+#include "appstate.h"
 #include <fcntl.h>
 #include <miniaudio.h>
 #include <pthread.h>
 #include <stdatomic.h>
 #include <stdbool.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
-#include "file.h"
 #include "songloader.h"
-#include "soundbuiltin.h"
 #include "soundcommon.h"
-#include "common.h"
 
 #ifndef USERDATA_STRUCT
 #define USERDATA_STRUCT
@@ -50,15 +46,15 @@ typedef struct
 } AudioData;
 #endif
 
-extern UserData userData;
+UserData *getUserData(void);
 
-extern bool isContextInitialized;
+bool isContextInitialized(void);
 
-int createAudioDevice();
+int createAudioDevice(AppState *state);
 
-int switchAudioImplementation(void);
+int switchAudioImplementation(AppState *state);
 
-void resumePlayback(void);
+void resumePlayback(AppState *state);
 
 void cleanupAudioContext(void);
 

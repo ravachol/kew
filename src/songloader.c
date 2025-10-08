@@ -3,7 +3,6 @@
 #include "file.h"
 #include "imgfunc.h"
 #include "sound.h"
-#include "soundcommon.h"
 #include "stb_image.h"
 #include "tagLibWrapper.h"
 #include "utils.h"
@@ -368,9 +367,9 @@ SongData *loadSongData(char *filePath, AppState *state)
         songdata->hasErrors = false;
         c_strcpy(songdata->filePath, "", sizeof(songdata->filePath));
         c_strcpy(songdata->coverArtPath, "", sizeof(songdata->coverArtPath));
-        songdata->red = defaultColor;
-        songdata->green = defaultColor;
-        songdata->blue = defaultColor;
+        songdata->red = state->uiSettings.defaultColor;
+        songdata->green = state->uiSettings.defaultColor;
+        songdata->blue = state->uiSettings.defaultColor;
         songdata->metadata = NULL;
         songdata->cover = NULL;
         songdata->duration = 0.0;

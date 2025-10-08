@@ -13,8 +13,6 @@
 #define NUM_KEY_MAPPINGS 63
 #endif
 
-extern AppSettings settings;
-
 void getConfig(AppSettings *settings, UISettings *ui);
 
 void setConfig(AppSettings *settings, UISettings *ui);

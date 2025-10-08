@@ -1,3 +1,4 @@
+#include "appstate.h"
 #define _XOPEN_SOURCE 700
 #define __USE_XOPEN_EXTENDED 1
 
@@ -50,7 +51,7 @@ int addToList(PlayList *list, Node *newNode)
         if (newNode == NULL)
                 return 0;
 
-        if (list->count >= MAX_FILES)
+        if (list == NULL || list->count >= MAX_FILES)
                 return -1;
 
         list->count++;
@@ -543,16 +544,14 @@ void readM3UFile(const char *filename, PlayList *playlist,
         g_free(contents);
 }
 
-int makePlaylist(PlayList *playlist, int argc, char *argv[], bool exactSearch,
-                 const char *path)
+int makePlaylist(PlayList **playlist, int argc, char *argv[], bool exactSearch, const char *path)
 {
+        const char *delimiter = ":";
+        const char *allowedExtensions = MUSIC_FILE_EXTENSIONS;
+
         enum SearchType searchType = SearchAny;
         int searchTypeIndex = 1;
-
-        const char *delimiter = ":";
         PlayList partialPlaylist = {NULL, NULL, 0, PTHREAD_MUTEX_INITIALIZER};
-
-        const char *allowedExtensions = MUSIC_FILE_EXTENSIONS;
 
         if (strcmp(argv[1], "all") == 0)
         {
@@ -589,6 +588,7 @@ int makePlaylist(PlayList *playlist, int argc, char *argv[], bool exactSearch,
                 else if (strcmp(argv[searchTypeIndex], "song") == 0)
                         searchType = FileOnly;
         }
+
         int start = searchTypeIndex + 1;
 
         if (searchType == FileOnly || searchType == DirOnly ||
@@ -602,6 +602,7 @@ int makePlaylist(PlayList *playlist, int argc, char *argv[], bool exactSearch,
                 size_t len = strnlen(search, MAX_SEARCH_SIZE);
                 snprintf(search + len, MAX_SEARCH_SIZE - len, " %s", argv[i]);
         }
+
         makePlaylistName(search, MAX_SEARCH_SIZE);
 
         if (strstr(search, delimiter))
@@ -611,11 +612,11 @@ int makePlaylist(PlayList *playlist, int argc, char *argv[], bool exactSearch,
 
         if (searchType == ReturnAllSongs)
         {
-                pthread_mutex_lock(&(playlist->mutex));
+                pthread_mutex_lock(&((*playlist)->mutex));
 
-                buildPlaylistRecursive(path, allowedExtensions, playlist);
+                buildPlaylistRecursive(path, allowedExtensions, *playlist);
 
-                pthread_mutex_unlock(&(playlist->mutex));
+                pthread_mutex_unlock(&((*playlist)->mutex));
         }
         else
         {
@@ -638,20 +639,20 @@ int makePlaylist(PlayList *playlist, int argc, char *argv[], bool exactSearch,
                         {
                                 if (strcmp(argv[1], "list") == 0)
                                 {
-                                        readM3UFile(buf, playlist, NULL);
+                                        readM3UFile(buf, *playlist, NULL);
                                 }
                                 else
                                 {
-                                        pthread_mutex_lock(&(playlist->mutex));
+                                        pthread_mutex_lock(&((*playlist)->mutex));
 
                                         buildPlaylistRecursive(
                                             buf, allowedExtensions,
                                             &partialPlaylist);
-                                        joinPlaylist(playlist,
+                                        joinPlaylist(*playlist,
                                                      &partialPlaylist);
 
                                         pthread_mutex_unlock(
-                                            &(playlist->mutex));
+                                            &((*playlist)->mutex));
                                 }
                         }
                         free(searching);
@@ -661,9 +662,9 @@ int makePlaylist(PlayList *playlist, int argc, char *argv[], bool exactSearch,
         if (numDirs > 1)
                 shuffle = true;
         if (shuffle)
-                shufflePlaylist(playlist);
+                shufflePlaylist(*playlist);
 
-        if (playlist->head == NULL)
+        if ((*playlist)->head == NULL)
                 printf("Music not found\n");
 
         return 0;
@@ -733,7 +734,7 @@ void writeM3UFile(const char *filename, const PlayList *playlist)
 }
 
 void loadPlaylist(const char *directory, const char *playlistName,
-                  PlayList *playlist)
+                  PlayList **playlist)
 {
         char playlistPath[MAXPATHLEN];
 
@@ -753,28 +754,26 @@ void loadPlaylist(const char *directory, const char *playlistName,
                          playlistName);
         }
 
-        if (playlist == NULL)
+        if (*playlist == NULL)
         {
-                printf("Failed to allocate memory for special playlist.\n");
-                exit(0);
+                createPlaylist(playlist);
         }
-        playlist->count = 0;
-        playlist->head = NULL;
-        playlist->tail = NULL;
-        readM3UFile(playlistPath, playlist, NULL);
+
+        readM3UFile(playlistPath, *playlist, NULL);
 }
 
 void loadFavoritesPlaylist(const char *directory, PlayList **favoritesPlaylist)
 {
-        *favoritesPlaylist = malloc(sizeof(PlayList));
-        loadPlaylist(directory, favoritesPlaylistName, *favoritesPlaylist);
+        loadPlaylist(directory, favoritesPlaylistName, favoritesPlaylist);
+        setFavoritesPlaylist(*favoritesPlaylist);
 }
 
 void loadLastUsedPlaylist(PlayList *playlist, PlayList **unshuffledPlaylist)
 {
     char *configdir = getConfigPath();
 
-    loadPlaylist(configdir, lastUsedPlaylistName, playlist);
+    loadPlaylist(configdir, lastUsedPlaylistName, &playlist);
+    setFavoritesPlaylist(playlist);
 
     if (*unshuffledPlaylist == NULL)
     {
@@ -851,7 +850,7 @@ void savePlaylist(const char *path, const PlayList *playlist)
         writeM3UFile(path, playlist);
 }
 
-void exportCurrentPlaylist(const char *path, PlayList *playlist)
+void exportCurrentPlaylist(const char *path, const PlayList *playlist)
 {
         char m3uFilename[MAXPATHLEN];
 
@@ -906,33 +905,48 @@ Node *findTail(Node *head)
         return current;
 }
 
-PlayList *deepCopyPlayList(PlayList *originalList)
+PlayList *deepCopyPlayList(const PlayList *originalList)
 {
-        // allocate a new PlayList on the heap
-        PlayList *newList = malloc(sizeof(PlayList));
-        if (!newList)
-                return NULL; // check allocation
+    if (originalList == NULL)
+        return NULL;
 
-        // initialize the structure
-        *newList = (PlayList){NULL, NULL, 0, PTHREAD_MUTEX_INITIALIZER};
+    PlayList *newList = malloc(sizeof(PlayList));
 
-        // perform the deep copy onto it
-        deepCopyPlayListOntoList(originalList, newList);
+    if (newList == NULL)
+    {
+        perror("malloc failed in deepCopyPlayList");
+        return NULL;
+    }
 
-        // return the pointer
-        return newList;
+    newList->head = NULL;
+    newList->tail = NULL;
+    newList->count = 0;
+
+    pthread_mutex_init(&newList->mutex, NULL);
+    deepCopyPlayListOntoList(originalList, &newList);
+
+    return newList;
 }
 
-void deepCopyPlayListOntoList(PlayList *originalList, PlayList *newList)
+void deepCopyPlayListOntoList(const PlayList *originalList, PlayList **newList)
 {
-        if (originalList == NULL)
-        {
-                return;
-        }
+    if (originalList == NULL || newList == NULL)
+        return;
 
-        newList->head = deepCopyNode(originalList->head);
-        newList->tail = findTail(newList->head);
-        newList->count = originalList->count;
+    if (*newList == NULL)
+    {
+        *newList = malloc(sizeof(PlayList));
+
+        if (*newList == NULL)
+        {
+            perror("malloc failed in deepCopyPlayListOntoList");
+            return;
+        }
+    }
+
+    (*newList)->head = deepCopyNode(originalList->head);
+    (*newList)->tail = findTail((*newList)->head);
+    (*newList)->count = originalList->count;
 }
 
 Node *findPathInPlaylist(const char *path, PlayList *playlist)

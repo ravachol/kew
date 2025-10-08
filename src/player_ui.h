@@ -44,27 +44,21 @@ typedef struct
 } SongData;
 #endif
 
-extern int numProgressBars;
-extern bool fastForwarding;
-extern bool rewinding;
-extern int footerRow;
-extern int footer;
-extern int progressBarRow;
-extern int progressBarCol;
-extern int progressBarLength;
-extern FileSystemEntry *library;
-
 int printPlayer(SongData *songdata, double elapsedSeconds, AppSettings *settings, AppState *appState);
 
-void flipNextPage(void);
+int getFooterRow(void);
 
-void flipPrevPage(void);
+int getFooterCol(void);
+
+void flipNextPage(AppState *state);
+
+void flipPrevPage(AppState *state);
 
 void showHelp(void);
 
 void setChosenDir(FileSystemEntry *entry);
 
-int getIndent();
+int getIndent(void);
 
 int printAbout(SongData *songdata, UISettings *ui);
 
@@ -72,17 +66,15 @@ FileSystemEntry *getCurrentLibEntry(void);
 
 FileSystemEntry *getChosenDir(void);
 
-FileSystemEntry *getLibrary(void);
+void scrollNext(AppState *state);
 
-void scrollNext(void);
-
-void scrollPrev(void);
+void scrollPrev(AppState *state);
 
 void setCurrentAsChosenDir(void);
 
-void toggleShowView(ViewState VIEW_TO_SHOW);
+void toggleShowView(ViewState VIEW_TO_SHOW, AppState *state);
 
-void showTrack(void);
+void showTrack(AppState *state);
 
 void freeMainDirectoryTree(AppState *state);
 
@@ -90,9 +82,9 @@ char *getLibraryFilePath(void);
 
 void resetChosenDir(void);
 
-void switchToNextView(void);
+void switchToNextView(AppState *state);
 
-void switchToPreviousView(void);
+void switchToPreviousView(AppState *state);
 
 void resetSearchResult(void);
 

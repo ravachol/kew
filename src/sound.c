@@ -2,9 +2,15 @@
 #define MA_NO_ENGINE
 #define MINIAUDIO_IMPLEMENTATION
 
+#include "appstate.h"
 #include "sound.h"
 #include "utils.h"
 #include <miniaudio.h>
+#include "file.h"
+#include "soundbuiltin.h"
+#include "common.h"
+#include <stdio.h>
+#include <stdlib.h>
 
 /*
 
@@ -14,21 +20,25 @@ sound.c
 
 */
 
-ma_context context;
-
-bool isContextInitialized = false;
-
-bool tryAgain = false;
+static ma_context context;
+static bool contextInitialized = false;
+static bool tryAgain = false;
 
 UserData userData;
 
-ma_result initFirstDatasource(AudioData *pAudioData, UserData *pUserData)
+UserData *getUserData() { return &userData; }
+
+bool isContextInitialized() { return contextInitialized; }
+
+ma_result initFirstDatasource(UserData **pUserData)
 {
         char *filePath = NULL;
 
-        SongData *songData = (pAudioData->currentFileIndex == 0)
-                                 ? pUserData->songdataA
-                                 : pUserData->songdataB;
+        AudioData *audioData = getAudioData();
+
+        SongData *songData = (audioData->currentFileIndex == 0)
+                                 ? (*pUserData)->songdataA
+                                 : (*pUserData)->songdataB;
 
         if (songData == NULL)
         {
@@ -42,37 +52,46 @@ ma_result initFirstDatasource(AudioData *pAudioData, UserData *pUserData)
                 return MA_ERROR;
         }
 
-        pAudioData->pUserData = pUserData;
-        pAudioData->currentPCMFrame = 0;
-        pAudioData->restart = false;
+        audioData->pUserData = *pUserData;
+        audioData->currentPCMFrame = 0;
+        audioData->restart = false;
 
         if (hasBuiltinDecoder(filePath))
         {
                 int result = prepareNextDecoder(filePath);
+
                 if (result < 0)
                         return -1;
+
                 ma_decoder *first = getFirstDecoder();
-                pAudioData->format = first->outputFormat;
-                pAudioData->channels = first->outputChannels;
-                pAudioData->sampleRate = first->outputSampleRate;
+                audioData->format = first->outputFormat;
+                audioData->channels = first->outputChannels;
+                audioData->sampleRate = first->outputSampleRate;
+
                 ma_data_source_get_length_in_pcm_frames(
-                    first, &(pAudioData->totalFrames));
+                    first, &(audioData->totalFrames));
         }
         else if (pathEndsWith(filePath, "opus"))
         {
                 int result = prepareNextOpusDecoder(filePath);
+
                 if (result < 0)
                         return -1;
+
                 ma_libopus *first = getFirstOpusDecoder();
                 ma_channel channelMap[MA_MAX_CHANNELS];
+
                 ma_libopus_ds_get_data_format(
-                    first, &(pAudioData->format), &(pAudioData->channels),
-                    &(pAudioData->sampleRate), channelMap, MA_MAX_CHANNELS);
+                    first, &(audioData->format), &(audioData->channels),
+                    &(audioData->sampleRate), channelMap, MA_MAX_CHANNELS);
+
                 ma_data_source_get_length_in_pcm_frames(
-                    first, &(pAudioData->totalFrames));
+                    first, &(audioData->totalFrames));
+
                 ma_data_source_base *base = (ma_data_source_base *)first;
+
                 base->pCurrent = first;
-                first->pReadSeekTellUserData = pAudioData;
+                first->pReadSeekTellUserData = audioData;
         }
         else if (pathEndsWith(filePath, "ogg"))
         {
@@ -82,13 +101,13 @@ ma_result initFirstDatasource(AudioData *pAudioData, UserData *pUserData)
                 ma_libvorbis *first = getFirstVorbisDecoder();
                 ma_channel channelMap[MA_MAX_CHANNELS];
                 ma_libvorbis_ds_get_data_format(
-                    first, &(pAudioData->format), &(pAudioData->channels),
-                    &(pAudioData->sampleRate), channelMap, MA_MAX_CHANNELS);
+                    first, &(audioData->format), &(audioData->channels),
+                    &(audioData->sampleRate), channelMap, MA_MAX_CHANNELS);
                 ma_data_source_get_length_in_pcm_frames(
-                    first, &(pAudioData->totalFrames));
+                    first, &(audioData->totalFrames));
                 ma_data_source_base *base = (ma_data_source_base *)first;
                 base->pCurrent = first;
-                first->pReadSeekTellUserData = pAudioData;
+                first->pReadSeekTellUserData = audioData;
         }
         else if (pathEndsWith(filePath, "webm"))
         {
@@ -98,13 +117,13 @@ ma_result initFirstDatasource(AudioData *pAudioData, UserData *pUserData)
                 ma_webm *first = getFirstWebmDecoder();
                 ma_channel channelMap[MA_MAX_CHANNELS];
                 ma_webm_ds_get_data_format(
-                    first, &(pAudioData->format), &(pAudioData->channels),
-                    &(pAudioData->sampleRate), channelMap, MA_MAX_CHANNELS);
+                    first, &(audioData->format), &(audioData->channels),
+                    &(audioData->sampleRate), channelMap, MA_MAX_CHANNELS);
                 ma_data_source_get_length_in_pcm_frames(
-                    first, &(pAudioData->totalFrames));
+                    first, &(audioData->totalFrames));
                 ma_data_source_base *base = (ma_data_source_base *)first;
                 base->pCurrent = first;
-                first->pReadSeekTellUserData = pAudioData;
+                first->pReadSeekTellUserData = audioData;
         }
         else if (pathEndsWith(filePath, "m4a") || pathEndsWith(filePath, "aac"))
         {
@@ -116,13 +135,13 @@ ma_result initFirstDatasource(AudioData *pAudioData, UserData *pUserData)
                 m4a_decoder *first = getFirstM4aDecoder();
                 ma_channel channelMap[MA_MAX_CHANNELS];
                 m4a_decoder_ds_get_data_format(
-                    first, &(pAudioData->format), &(pAudioData->channels),
-                    &(pAudioData->sampleRate), channelMap, MA_MAX_CHANNELS);
+                    first, &(audioData->format), &(audioData->channels),
+                    &(audioData->sampleRate), channelMap, MA_MAX_CHANNELS);
                 ma_data_source_get_length_in_pcm_frames(
-                    first, &(pAudioData->totalFrames));
+                    first, &(audioData->totalFrames));
                 ma_data_source_base *base = (ma_data_source_base *)first;
                 base->pCurrent = first;
-                first->pReadSeekTellUserData = pAudioData;
+                first->pReadSeekTellUserData = audioData;
 #else
                 return MA_ERROR;
 #endif
@@ -135,24 +154,26 @@ ma_result initFirstDatasource(AudioData *pAudioData, UserData *pUserData)
         return MA_SUCCESS;
 }
 
-int createDevice(UserData *userData, ma_device *device, ma_context *context,
+int createDevice(AppState *state, UserData *userData, ma_device *device, ma_context *context,
                  ma_data_source_vtable *vtable, ma_device_data_proc callback)
 {
         ma_result result;
 
-        result = initFirstDatasource(&audioData, userData);
+        result = initFirstDatasource(&userData);
         if (result != MA_SUCCESS)
                 return -1;
 
-        audioData.base.vtable = vtable;
+        AudioData *audioData = getAudioData();
+
+        audioData->base.vtable = vtable;
 
         ma_device_config deviceConfig =
             ma_device_config_init(ma_device_type_playback);
-        deviceConfig.playback.format = audioData.format;
-        deviceConfig.playback.channels = audioData.channels;
-        deviceConfig.sampleRate = audioData.sampleRate;
+        deviceConfig.playback.format = audioData->format;
+        deviceConfig.playback.channels = audioData->channels;
+        deviceConfig.sampleRate = audioData->sampleRate;
         deviceConfig.dataCallback = callback;
-        deviceConfig.pUserData = &audioData;
+        deviceConfig.pUserData = audioData;
 
         result = ma_device_init(context, &deviceConfig, device);
         if (result != MA_SUCCESS)
@@ -169,25 +190,25 @@ int createDevice(UserData *userData, ma_device *device, ma_context *context,
                 return -1;
         }
 
-        appState.uiState.doNotifyMPRISPlaying = true;
+        state->uiState.doNotifyMPRISPlaying = true;
 
         return 0;
 }
 
-int builtin_createAudioDevice(UserData *userData, ma_device *device,
+int builtin_createAudioDevice(AppState *state, UserData *userData, ma_device *device,
                               ma_context *context,
                               ma_data_source_vtable *vtable)
 {
-        return createDevice(userData, device, context, vtable,
+        return createDevice(state, userData, device, context, vtable,
                             builtin_on_audio_frames);
 }
 
-int vorbis_createAudioDevice(UserData *userData, ma_device *device,
+int vorbis_createAudioDevice(AppState *state, UserData *userData, ma_device *device,
                              ma_context *context)
 {
         ma_result result;
 
-        result = initFirstDatasource(&audioData, userData);
+        result = initFirstDatasource(&userData);
         if (result != MA_SUCCESS)
         {
                 printf("\n\nFailed to initialize ogg vorbis file.\n");
@@ -197,9 +218,11 @@ int vorbis_createAudioDevice(UserData *userData, ma_device *device,
         ma_device_config deviceConfig =
             ma_device_config_init(ma_device_type_playback);
 
+        AudioData *audioData = getAudioData();
+
         deviceConfig.playback.format = vorbis->format;
-        deviceConfig.playback.channels = audioData.channels;
-        deviceConfig.sampleRate = audioData.sampleRate;
+        deviceConfig.playback.channels = audioData->channels;
+        deviceConfig.sampleRate = audioData->sampleRate;
         deviceConfig.dataCallback = vorbis_on_audio_frames;
         deviceConfig.pUserData = vorbis;
 
@@ -219,18 +242,18 @@ int vorbis_createAudioDevice(UserData *userData, ma_device *device,
                 return -1;
         }
 
-        appState.uiState.doNotifyMPRISPlaying = true;
+        state->uiState.doNotifyMPRISPlaying = true;
 
         return 0;
 }
 
 #ifdef USE_FAAD
-int m4a_createAudioDevice(UserData *userData, ma_device *device,
+int m4a_createAudioDevice(AppState *state, UserData *userData, ma_device *device,
                           ma_context *context)
 {
         ma_result result;
 
-        result = initFirstDatasource(&audioData, userData);
+        result = initFirstDatasource(&userData);
         if (result != MA_SUCCESS)
         {
                 if (!hasErrorMessage())
@@ -241,9 +264,11 @@ int m4a_createAudioDevice(UserData *userData, ma_device *device,
         ma_device_config deviceConfig =
             ma_device_config_init(ma_device_type_playback);
 
+        AudioData *audioData = getAudioData();
+
         deviceConfig.playback.format = decoder->format;
-        deviceConfig.playback.channels = audioData.channels;
-        deviceConfig.sampleRate = audioData.sampleRate;
+        deviceConfig.playback.channels = audioData->channels;
+        deviceConfig.sampleRate = audioData->sampleRate;
         deviceConfig.dataCallback = m4a_on_audio_frames;
         deviceConfig.pUserData = decoder;
 
@@ -264,18 +289,18 @@ int m4a_createAudioDevice(UserData *userData, ma_device *device,
                 return -1;
         }
 
-        appState.uiState.doNotifyMPRISPlaying = true;
+        state->uiState.doNotifyMPRISPlaying = true;
 
         return 0;
 }
 #endif
 
-int opus_createAudioDevice(UserData *userData, ma_device *device,
+int opus_createAudioDevice(AppState *state, UserData *userData, ma_device *device,
                            ma_context *context)
 {
         ma_result result;
 
-        result = initFirstDatasource(&audioData, userData);
+        result = initFirstDatasource(&userData);
         if (result != MA_SUCCESS)
         {
                 printf("\n\nFailed to initialize opus file.\n");
@@ -286,9 +311,11 @@ int opus_createAudioDevice(UserData *userData, ma_device *device,
         ma_device_config deviceConfig =
             ma_device_config_init(ma_device_type_playback);
 
+        AudioData *audioData = getAudioData();
+
         deviceConfig.playback.format = opus->format;
-        deviceConfig.playback.channels = audioData.channels;
-        deviceConfig.sampleRate = audioData.sampleRate;
+        deviceConfig.playback.channels = audioData->channels;
+        deviceConfig.sampleRate = audioData->sampleRate;
         deviceConfig.dataCallback = opus_on_audio_frames;
         deviceConfig.pUserData = opus;
 
@@ -308,17 +335,17 @@ int opus_createAudioDevice(UserData *userData, ma_device *device,
                 return -1;
         }
 
-        appState.uiState.doNotifyMPRISPlaying = true;
+        state->uiState.doNotifyMPRISPlaying = true;
 
         return 0;
 }
 
-int webm_createAudioDevice(UserData *userData, ma_device *device,
+int webm_createAudioDevice(AppState *state, UserData *userData, ma_device *device,
                            ma_context *context)
 {
         ma_result result;
 
-        result = initFirstDatasource(&audioData, userData);
+        result = initFirstDatasource(&userData);
         if (result != MA_SUCCESS)
         {
                 printf("\n\nFailed to initialize webm file.\n");
@@ -328,9 +355,11 @@ int webm_createAudioDevice(UserData *userData, ma_device *device,
         ma_device_config deviceConfig =
             ma_device_config_init(ma_device_type_playback);
 
-        deviceConfig.playback.format = audioData.format;
-        deviceConfig.playback.channels = audioData.channels;
-        deviceConfig.sampleRate = audioData.sampleRate;
+        AudioData *audioData = getAudioData();
+
+        deviceConfig.playback.format = audioData->format;
+        deviceConfig.playback.channels = audioData->channels;
+        deviceConfig.sampleRate = audioData->sampleRate;
         deviceConfig.dataCallback = webm_on_audio_frames;
         deviceConfig.pUserData = webm;
 
@@ -350,7 +379,7 @@ int webm_createAudioDevice(UserData *userData, ma_device *device,
                 return -1;
         }
 
-        appState.uiState.doNotifyMPRISPlaying = true;
+        state->uiState.doNotifyMPRISPlaying = true;
 
         return 0;
 }
@@ -391,9 +420,11 @@ int calcAvgBitRate(double duration, const char *filePath)
         return avgBitRate;
 }
 
-int switchAudioImplementation(void)
+int switchAudioImplementation(AppState *state)
 {
-        if (audioData.endOfListReached)
+        AudioData *audioData = getAudioData();
+
+        if (audioData->endOfListReached)
         {
                 setEOFNotReached();
                 setCurrentImplementationType(NONE);
@@ -403,7 +434,7 @@ int switchAudioImplementation(void)
         enum AudioImplementation currentImplementation =
             getCurrentImplementationType();
 
-        userData.currentSongData = (audioData.currentFileIndex == 0)
+        userData.currentSongData = (audioData->currentFileIndex == 0)
                                        ? userData.songdataA
                                        : userData.songdataB;
 
@@ -421,10 +452,14 @@ int switchAudioImplementation(void)
                 {
                         if (!tryAgain)
                         {
+                                AudioData *audioData = getAudioData();
+
+                                int idx = (audioData != NULL) ? audioData->currentFileIndex : 0;
+
                                 setCurrentFileIndex(
-                                    &audioData, 1 - audioData.currentFileIndex);
+                                    audioData, 1 - idx);
                                 tryAgain = true;
-                                switchAudioImplementation();
+                                switchAudioImplementation(state);
                                 return 0;
                         }
                         else
@@ -462,17 +497,17 @@ int switchAudioImplementation(void)
                                 avgBitRate = 320;
 
                         userData.currentSongData->avgBitRate =
-                            audioData.avgBitRate = avgBitRate;
+                            audioData->avgBitRate = avgBitRate;
                 }
                 else
-                        audioData.avgBitRate = 0;
+                        audioData->avgBitRate = 0;
 
                 if (isRepeatEnabled() ||
                     !(sameFormat && currentImplementation == BUILTIN))
                 {
                         setImplSwitchReached();
 
-                        pthread_mutex_lock(&dataSourceMutex);
+                        pthread_mutex_lock(&(state->dataSourceMutex));
 
                         setCurrentImplementationType(BUILTIN);
 
@@ -481,9 +516,9 @@ int switchAudioImplementation(void)
                         resetAllDecoders();
                         resetAudioBuffer();
 
-                        audioData.sampleRate = sampleRate;
+                        audioData->sampleRate = sampleRate;
 
-                        int result = builtin_createAudioDevice(
+                        int result = builtin_createAudioDevice(state,
                             &userData, getDevice(), &context,
                             &builtin_file_data_source_vtable);
 
@@ -493,11 +528,11 @@ int switchAudioImplementation(void)
                                 setImplSwitchNotReached();
                                 setEOFReached();
                                 free(filePath);
-                                pthread_mutex_unlock(&dataSourceMutex);
+                                pthread_mutex_unlock(&(state->dataSourceMutex));
                                 return -1;
                         }
 
-                        pthread_mutex_unlock(&dataSourceMutex);
+                        pthread_mutex_unlock(&(state->dataSourceMutex));
 
                         setImplSwitchNotReached();
                 }
@@ -533,7 +568,7 @@ int switchAudioImplementation(void)
                 {
                         setImplSwitchReached();
 
-                        pthread_mutex_lock(&dataSourceMutex);
+                        pthread_mutex_lock(&(state->dataSourceMutex));
 
                         setCurrentImplementationType(OPUS);
 
@@ -542,10 +577,10 @@ int switchAudioImplementation(void)
                         resetAllDecoders();
                         resetAudioBuffer();
 
-                        audioData.sampleRate = sampleRate;
-                        audioData.avgBitRate = 0;
+                        audioData->sampleRate = sampleRate;
+                        audioData->avgBitRate = 0;
 
-                        int result = opus_createAudioDevice(
+                        int result = opus_createAudioDevice(state,
                             &userData, getDevice(), &context);
 
                         if (result < 0)
@@ -554,11 +589,11 @@ int switchAudioImplementation(void)
                                 setImplSwitchNotReached();
                                 setEOFReached();
                                 free(filePath);
-                                pthread_mutex_unlock(&dataSourceMutex);
+                                pthread_mutex_unlock(&(state->dataSourceMutex));
                                 return -1;
                         }
 
-                        pthread_mutex_unlock(&dataSourceMutex);
+                        pthread_mutex_unlock(&(state->dataSourceMutex));
 
                         setImplSwitchNotReached();
                 }
@@ -591,17 +626,17 @@ int switchAudioImplementation(void)
 
                 if (userData.currentSongData)
                         userData.currentSongData->avgBitRate =
-                            audioData.avgBitRate = calcAvgBitRate(
+                            audioData->avgBitRate = calcAvgBitRate(
                                 userData.currentSongData->duration, filePath);
                 else
-                        audioData.avgBitRate = 0;
+                        audioData->avgBitRate = 0;
 
                 if (isRepeatEnabled() ||
                     !(sameFormat && currentImplementation == VORBIS))
                 {
                         setImplSwitchReached();
 
-                        pthread_mutex_lock(&dataSourceMutex);
+                        pthread_mutex_lock(&(state->dataSourceMutex));
 
                         setCurrentImplementationType(VORBIS);
 
@@ -610,9 +645,9 @@ int switchAudioImplementation(void)
                         resetAllDecoders();
                         resetAudioBuffer();
 
-                        audioData.sampleRate = sampleRate;
+                        audioData->sampleRate = sampleRate;
 
-                        int result = vorbis_createAudioDevice(
+                        int result = vorbis_createAudioDevice(state,
                             &userData, getDevice(), &context);
 
                         if (result < 0)
@@ -621,11 +656,11 @@ int switchAudioImplementation(void)
                                 setImplSwitchNotReached();
                                 setEOFReached();
                                 free(filePath);
-                                pthread_mutex_unlock(&dataSourceMutex);
+                                pthread_mutex_unlock(&(state->dataSourceMutex));
                                 return -1;
                         }
 
-                        pthread_mutex_unlock(&dataSourceMutex);
+                        pthread_mutex_unlock(&(state->dataSourceMutex));
 
                         setImplSwitchNotReached();
                 }
@@ -660,14 +695,14 @@ int switchAudioImplementation(void)
                 //                                       && sampleRate ==
                 //                                       nSampleRate));
 
-                audioData.avgBitRate = 0;
+                audioData->avgBitRate = 0;
 
                 if (isRepeatEnabled() ||
                     !(sameFormat && currentImplementation == WEBM))
                 {
                         setImplSwitchReached();
 
-                        pthread_mutex_lock(&dataSourceMutex);
+                        pthread_mutex_lock(&(state->dataSourceMutex));
 
                         setCurrentImplementationType(WEBM);
 
@@ -676,9 +711,9 @@ int switchAudioImplementation(void)
                         resetAllDecoders();
                         resetAudioBuffer();
 
-                        audioData.sampleRate = sampleRate;
+                        audioData->sampleRate = sampleRate;
 
-                        int result = webm_createAudioDevice(
+                        int result = webm_createAudioDevice(state,
                             &userData, getDevice(), &context);
 
                         if (result < 0)
@@ -687,11 +722,11 @@ int switchAudioImplementation(void)
                                 setImplSwitchNotReached();
                                 setEOFReached();
                                 free(filePath);
-                                pthread_mutex_unlock(&dataSourceMutex);
+                                pthread_mutex_unlock(&(state->dataSourceMutex));
                                 return -1;
                         }
 
-                        pthread_mutex_unlock(&dataSourceMutex);
+                        pthread_mutex_unlock(&(state->dataSourceMutex));
 
                         setImplSwitchNotReached();
                 }
@@ -729,14 +764,14 @@ int switchAudioImplementation(void)
 
                 if (userData.currentSongData)
                         userData.currentSongData->avgBitRate =
-                            audioData.avgBitRate = avgBitRate;
+                            audioData->avgBitRate = avgBitRate;
 
                 if (isRepeatEnabled() ||
                     !(sameFormat && currentImplementation == M4A))
                 {
                         setImplSwitchReached();
 
-                        pthread_mutex_lock(&dataSourceMutex);
+                        pthread_mutex_lock(&(state->dataSourceMutex));
 
                         setCurrentImplementationType(M4A);
 
@@ -745,9 +780,9 @@ int switchAudioImplementation(void)
                         resetAllDecoders();
                         resetAudioBuffer();
 
-                        audioData.sampleRate = sampleRate;
+                        audioData->sampleRate = sampleRate;
 
-                        int result = m4a_createAudioDevice(
+                        int result = m4a_createAudioDevice(state,
                             &userData, getDevice(), &context);
 
                         if (result < 0)
@@ -756,11 +791,11 @@ int switchAudioImplementation(void)
                                 setImplSwitchNotReached();
                                 setEOFReached();
                                 free(filePath);
-                                pthread_mutex_unlock(&dataSourceMutex);
+                                pthread_mutex_unlock(&(state->dataSourceMutex));
                                 return -1;
                         }
 
-                        pthread_mutex_unlock(&dataSourceMutex);
+                        pthread_mutex_unlock(&(state->dataSourceMutex));
 
                         setImplSwitchNotReached();
                 }
@@ -788,22 +823,22 @@ int switchAudioImplementation(void)
 void cleanupAudioContext(void)
 {
         ma_context_uninit(&context);
-        isContextInitialized = false;
+        contextInitialized = false;
 }
 
-int createAudioDevice()
+int createAudioDevice(AppState *state)
 {
-        if (isContextInitialized)
+        if (contextInitialized)
         {
                 ma_context_uninit(&context);
-                isContextInitialized = false;
+                contextInitialized = false;
         }
         ma_context_init(NULL, 0, NULL, &context);
-        isContextInitialized = true;
+        contextInitialized = true;
 
-        if (switchAudioImplementation() >= 0)
+        if (switchAudioImplementation(state) >= 0)
         {
-                appState.uiState.doNotifyMPRISSwitched = true;
+                state->uiState.doNotifyMPRISSwitched = true;
         }
         else
         {
@@ -811,31 +846,4 @@ int createAudioDevice()
         }
 
         return 0;
-}
-
-void resumePlayback(void)
-{
-        // If this was unpaused with no song loaded
-        if (audioData.restart)
-        {
-                audioData.endOfListReached = false;
-        }
-
-        if (!ma_device_is_started(&device))
-        {
-                if (ma_device_start(&device) != MA_SUCCESS)
-                {
-                        createAudioDevice();
-                        ma_device_start(&device);
-                }
-        }
-
-        paused = false;
-
-        stopped = false;
-
-        if (appState.currentView != TRACK_VIEW)
-        {
-                refresh = true;
-        }
 }

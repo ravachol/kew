@@ -6,8 +6,8 @@
 #include <stdlib.h>
 #include "appstate.h"
 #include "sound.h"
+#include "soundcommon.h"
 #include "term.h"
-#include "utils.h"
 #include "common_ui.h"
 #include "visuals.h"
 
@@ -40,6 +40,7 @@ static float decay = 0.14f;
 static float slowAttack = 0.15f;
 static int visualizerBarWidth = 2;
 static int maxThinBarsInAutoMode = 20;
+static int prevFftSize = 0;
 
 void clearMagnitudes(int numBars, float *magnitudes)
 {
@@ -241,7 +242,7 @@ void calcMagnitudes(int height, int numBars, void *audioBuffer, int bitDepth,
 {
         // Only execute when we get the signal that we have enough samples
         // (fftSize)
-        if (!bufferReady)
+        if (!isBufferReady())
                 return;
 
         if (!audioBuffer)
@@ -250,7 +251,7 @@ void calcMagnitudes(int height, int numBars, void *audioBuffer, int bitDepth,
                 return;
         }
 
-        bufferReady = false;
+        setBufferReady(false);
 
         normalizeAudioSamples(audioBuffer, fftInput, fftSize, bitDepth);
 
@@ -584,6 +585,8 @@ void drawSpectrumVisualizer(int row, int col, int height, AppState *state)
 
         if (numBars > MAX_BARS)
                 numBars = MAX_BARS;
+
+        int fftSize = getFftSize();
 
         if (fftSize != prevFftSize)
         {
