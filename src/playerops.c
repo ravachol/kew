@@ -239,30 +239,15 @@ void emitStringPropertyChanged(const gchar *propertyName, const gchar *newValue)
 {
 #ifndef __APPLE__
         GVariantBuilder changed_properties_builder;
-        g_variant_builder_init(&changed_properties_builder,
-                               G_VARIANT_TYPE("a{sv}"));
+        g_variant_builder_init(&changed_properties_builder, G_VARIANT_TYPE("a{sv}"));
 
         GVariant *value_variant = g_variant_new_string(newValue);
-        if (value_variant == NULL)
-        {
-                fprintf(stderr,
-                        "Failed to allocate GVariant for string property\n");
-                return;
-        }
-
-        g_variant_builder_add(&changed_properties_builder, "{sv}", propertyName,
-                              value_variant);
+        g_variant_builder_add(&changed_properties_builder, "{sv}", propertyName, value_variant);
 
         GVariant *signal_variant =
-            g_variant_new("(sa{sv}as)", "org.mpris.MediaPlayer2.Player",
-                          &changed_properties_builder, NULL);
-        if (signal_variant == NULL)
-        {
-                fprintf(stderr, "Failed to allocate GVariant for "
-                                "PropertiesChanged signal\n");
-                g_variant_builder_clear(&changed_properties_builder);
-                return;
-        }
+            g_variant_new("(sa{sv}as)", "org.mpris.MediaPlayer2.Player", &changed_properties_builder, NULL);
+
+        g_variant_ref_sink(signal_variant);
 
         g_dbus_connection_emit_signal(
             connection, NULL, "/org/mpris/MediaPlayer2",
@@ -270,6 +255,7 @@ void emitStringPropertyChanged(const gchar *propertyName, const gchar *newValue)
             signal_variant, NULL);
 
         g_variant_builder_clear(&changed_properties_builder);
+        g_variant_unref(signal_variant);
 #else
         (void)propertyName;
         (void)newValue;
@@ -580,7 +566,8 @@ void toggleShuffle(AppState *state)
 
                 pthread_mutex_lock(&(playlist->mutex));
 
-                PlayList *playlist = getPlaylist();;
+                PlayList *playlist = getPlaylist();
+                ;
                 deepCopyPlayListOntoList(unshuffledPlaylist, &playlist);
                 setPlaylist(playlist);
 
@@ -958,7 +945,7 @@ void calcElapsedTime(void)
         else
         {
                 setPauseSeconds((double)(current_time.tv_sec - pauseTime.tv_sec) +
-                    (double)(current_time.tv_nsec - pauseTime.tv_nsec) / 1e9);
+                                (double)(current_time.tv_nsec - pauseTime.tv_nsec) / 1e9);
         }
 }
 
