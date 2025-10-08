@@ -1,383 +1,182 @@
-#ifndef _DEFAULT_SOURCE
-#define _DEFAULT_SOURCE
-#endif
-#include <dirent.h>
-#include <errno.h>
-#include <glib.h>
-#include <libgen.h>
-#include <pwd.h>
-#include <regex.h>
+#include "file.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/param.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <time.h>
 #include <unistd.h>
-#include "file.h"
-#include "utils.h"
+#include <sys/stat.h>
+#include <dirent.h>
+#include <fnmatch.h>
+#include <libgen.h>
+#include <limits.h>
+#include <time.h>
 
-/*
 
-file.c
-
- This file should contain only simple utility functions related to files and directories.
- They should work independently and be as decoupled from the rest of the application as possible.
-
-*/
-
-#define MAX_RECURSION_DEPTH 64
-
-void getDirectoryFromPath(const char *path, char *directory)
-{
-        if (!path || !directory)
-                return;
-
-        size_t len = strnlen(path, MAXPATHLEN);
-
-        char *tmp = malloc(len + 1);
-        if (!tmp)
-        {
-                fprintf(stderr, "Out of memory while processing path\n");
-                return;
-        }
-
-        memcpy(tmp, path, len + 1);
-
-        // dirname() may modify the buffer, so we keep it in tmp
-        char *dir = dirname(tmp);
-
-        // Copy the result to the caller‑supplied buffer safely
-        strncpy(directory, dir, MAXPATHLEN - 1);
-        directory[MAXPATHLEN - 1] = '\0'; // Ensure null termination
-
-        /// Ensure a trailing '/'
-        size_t dlen = strnlen(directory, MAXPATHLEN);
-
-        if (dlen > 0 && directory[dlen - 1] != '/' &&
-            dlen + 1 < MAXPATHLEN)
-        {
-                directory[dlen] = '/';
-                directory[dlen + 1] = '\0';
-        }
-
-        free(tmp);
+int existsFile(const char *fname) {
+    return access(fname, F_OK) == 0;
 }
 
-int existsFile(const char *fname)
-{
-        if (fname == NULL || fname[0] == '\0')
-                return -1;
 
-        FILE *file;
-        if ((file = fopen(fname, "r")))
-        {
-                fclose(file);
-                return 1;
+Lyrics *load_lyrics(const char *music_file_path) {
+    if (!music_file_path) return NULL;
+    char lyric_path[MAXPATHLEN];
+    strncpy(lyric_path, music_file_path, MAXPATHLEN - 1);
+    char *ext = strrchr(lyric_path, '.');
+    if (ext) {
+        strcpy(ext, ".lrc");
+    }
+    if (!existsFile(lyric_path)) {
+        ext = strrchr(lyric_path, '.');
+        if (ext) {
+            strcpy(ext, ".txt");
         }
-        return -1;
-}
+    }
 
-int isDirectory(const char *path)
-{
-        DIR *dir = opendir(path);
-        if (dir)
-        {
-                closedir(dir);
-                return 1;
-        }
-        else
-        {
-                if (errno == ENOENT)
-                {
-                        return -1;
+    FILE *fp = fopen(lyric_path, "r");
+    if (!fp) return NULL;
+
+    Lyrics *lyrics = malloc(sizeof(Lyrics));
+    lyrics->lines = NULL;
+    lyrics->count = 0;
+
+    char line[1024];
+    while (fgets(line, sizeof(line), fp)) {
+        size_t len = strlen(line);
+        if (len > 0 && line[len-1] == '\n') line[len-1] = '\0';
+        if (line[0] == '[') {
+            float time = 0.0f;
+            char *text = strchr(line, ']');
+            if (text) {
+                text++;
+                if (sscanf(line, "[%f]", &time) == 1) {
+                    lyrics->lines = realloc(lyrics->lines, (lyrics->count + 1) * sizeof(LyricLine));
+                    lyrics->lines[lyrics->count].time = time;
+                    lyrics->lines[lyrics->count].text = strdup(text);
+                    lyrics->count++;
                 }
-                return 0;
+            }
+        } else if (strlen(line) > 0) {
+            lyrics->lines = realloc(lyrics->lines, (lyrics->count + 1) * sizeof(LyricLine));
+            lyrics->lines[lyrics->count].time = 0.0f;
+            lyrics->lines[lyrics->count].text = strdup(line);
+            lyrics->count++;
         }
+    }
+
+    fclose(fp);
+    return lyrics;
 }
 
-// Traverse a directory tree and search for a given file or directory
-int walker(const char *startPath, const char *lowCaseSearching, char *result,
-           const char *allowedExtensions, enum SearchType searchType, bool exactSearch, int depth)
-{
-    if (depth > MAX_RECURSION_DEPTH)
-    {
-        fprintf(stderr, "Maximum recursion depth exceeded\n");
+void free_lyrics(Lyrics *lyrics) {
+    if (!lyrics) return;
+
+    for (int i = 0; i < lyrics->count; i++) {
+        free(lyrics->lines[i].text);
+    }
+    free(lyrics->lines);
+    free(lyrics);
+}
+
+// Implementasi fungsi-fungsi lain dari file.h
+
+void getDirectoryFromPath(const char *path, char *directory) {
+    char *copy = strdup(path);
+    char *dir = dirname(copy);
+    strncpy(directory, dir, MAXPATHLEN - 1);
+    directory[MAXPATHLEN - 1] = '\0';
+    free(copy);
+}
+
+int isDirectory(const char *path) {
+    struct stat st;
+    if (stat(path, &st) == 0 && S_ISDIR(st.st_mode)) {
         return 1;
     }
+    return 0;
+}
 
-    if (!startPath || !lowCaseSearching || !result || !allowedExtensions)
-    {
-        fprintf(stderr, "Invalid arguments to walker\n");
-        return 1;
-    }
+int walker(const char *startPath, const char *searching, char *result,
+           const char *allowedExtensions, enum SearchType searchType, bool exactSearch, int depth) {
+    if (depth < 0) return -1;
 
-    struct stat path_stat;
-    if (stat(startPath, &path_stat) != 0)
-    {
-        fprintf(stderr, "Cannot stat path '%s': %s\n", startPath, strerror(errno));
-        return 1;
-    }
+    DIR *dir = opendir(startPath);
+    if (!dir) return -1;
 
-    if (!S_ISDIR(path_stat.st_mode))
-    {
-        // Not a directory, stop here
-        return 1;
-    }
-
-    DIR *d = opendir(startPath);
-    if (!d)
-    {
-        fprintf(stderr, "Failed to open directory '%s': %s\n", startPath, strerror(errno));
-        return 1;
-    }
-
-    regex_t regex;
-    if (regcomp(&regex, allowedExtensions, REG_EXTENDED) != 0)
-    {
-        fprintf(stderr, "Failed to compile regex\n");
-        closedir(d);
-        return 1;
-    }
-
-    bool found = false;
     struct dirent *entry;
-    char ext[100] = {0};
-
-    while ((entry = readdir(d)) != NULL)
-    {
-        // Skip . and ..
+    while ((entry = readdir(dir)) != NULL) {
         if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
             continue;
 
-        // Build full path for entry
-        char entryPath[PATH_MAX];
-        if (snprintf(entryPath, sizeof(entryPath), "%s/%s", startPath, entry->d_name) >= (int)sizeof(entryPath))
-        {
-            fprintf(stderr, "Path too long: %s/%s\n", startPath, entry->d_name);
-            continue;
-        }
+        char fullpath[MAXPATHLEN];
+        snprintf(fullpath, sizeof(fullpath), "%s/%s", startPath, entry->d_name);
 
-        if (stat(entryPath, &path_stat) != 0)
-        {
-            // Can't stat, skip
-            continue;
-        }
-
-        if (S_ISDIR(path_stat.st_mode))
-        {
-            // Directory handling
-            char *foldedName = g_utf8_casefold(entry->d_name, -1);
-            if (!foldedName)
-                continue;
-
-            bool nameMatch = exactSearch
-                             ? (strcasecmp(foldedName, lowCaseSearching) == 0)
-                             : (c_strcasestr(foldedName, lowCaseSearching, PATH_MAX) != NULL);
-
-            free(foldedName);
-
-            if (nameMatch && searchType != FileOnly && searchType != SearchPlayList)
-            {
-                strncpy(result, entryPath, PATH_MAX - 1);
-                result[PATH_MAX - 1] = '\0';
-                found = true;
-                break;
+        if (entry->d_type == DT_DIR) {
+            if (searchType == DirOnly || searchType == SearchPlayList) {
+                if (strcmp(entry->d_name, searching) == 0) {
+                    strcpy(result, fullpath);
+                    closedir(dir);
+                    return 0;
+                }
             }
-
-            // Recurse into subdirectory
-            if (walker(entryPath, lowCaseSearching, result, allowedExtensions, searchType, exactSearch, depth + 1) == 0)
-            {
-                found = true;
-                break;
+            if (searchType != DirOnly) {
+                if (walker(fullpath, searching, result, allowedExtensions, searchType, exactSearch, depth - 1) == 0) {
+                    closedir(dir);
+                    return 0;
+                }
             }
-        }
-        else
-        {
-            // File handling
-            if (searchType == DirOnly)
-                continue;
-
-            if (strlen(entry->d_name) <= 4)
-                continue;
-
-            extractExtension(entry->d_name, sizeof(ext) - 1, ext);
-            if (match_regex(&regex, ext) != 0)
-                continue;
-
-            char *foldedName = g_utf8_casefold(entry->d_name, -1);
-            if (!foldedName)
-                continue;
-
-            bool nameMatch = exactSearch
-                             ? (strcasecmp(foldedName, lowCaseSearching) == 0)
-                             : (c_strcasestr(foldedName, lowCaseSearching, PATH_MAX) != NULL);
-
-            free(foldedName);
-
-            if (nameMatch)
-            {
-                strncpy(result, entryPath, PATH_MAX - 1);
-                result[PATH_MAX - 1] = '\0';
-                found = true;
-                break;
+        } else if (entry->d_type == DT_REG) {
+            if (searchType == FileOnly || searchType == SearchAny || searchType == SearchPlayList || searchType == ReturnAllSongs) {
+                if (allowedExtensions) {
+                    if (fnmatch(allowedExtensions, entry->d_name, 0) == 0) {
+                        if (strcmp(entry->d_name, searching) == 0) {
+                            strcpy(result, fullpath);
+                            closedir(dir);
+                            return 0;
+                        }
+                    }
+                }
             }
         }
     }
-
-    regfree(&regex);
-    closedir(d);
-
-    return found ? 0 : 1;
+    closedir(dir);
+    return -1;
 }
 
-int expandPath(const char *inputPath, char *expandedPath)
-{
-        if (inputPath[0] == '\0' || inputPath[0] == '\r')
-                return -1;
-
-        if (inputPath[0] == '~') // Check if inputPath starts with '~'
-        {
-                const char *homeDir;
-                if (inputPath[1] == '/' || inputPath[1] == '\0') // Handle "~/"
-                {
-                        homeDir = getenv("HOME");
-                        if (homeDir == NULL)
-                        {
-                                return -1; // Unable to retrieve home directory
-                        }
-                        inputPath++; // Skip '~' character
-                }
-                else // Handle "~username/"
-                {
-                        const char *username = inputPath + 1;
-                        const char *slash = strchr(username, '/');
-                        if (slash == NULL)
-                        {
-                                const struct passwd *pw = getpwnam(username);
-                                if (pw == NULL)
-                                {
-                                        return -1; // Unable to retrieve user directory
-                                }
-                                homeDir = pw->pw_dir;
-                                inputPath = ""; // Empty path component after '~username'
-                        }
-                        else
-                        {
-                                size_t usernameLen = slash - username;
-                                const struct passwd *pw = getpwuid(getuid());
-
-                                if (pw == NULL)
-                                {
-                                        return -1; // Unable to retrieve user directory
-                                }
-                                homeDir = pw->pw_dir;
-                                inputPath += usernameLen + 1; // Skip '~username/' component
-                        }
-                }
-
-                size_t homeDirLen = strnlen(homeDir, MAXPATHLEN);
-                size_t inputPathLen = strnlen(inputPath, MAXPATHLEN);
-
-                if (homeDirLen + inputPathLen >= MAXPATHLEN)
-                {
-                        return -1; // Expanded path exceeds maximum length
-                }
-
-                c_strcpy(expandedPath, homeDir, MAXPATHLEN);
-                snprintf(expandedPath + homeDirLen, MAXPATHLEN - homeDirLen, "%s", inputPath);
+int expandPath(const char *inputPath, char *expandedPath) {
+    if (inputPath[0] == '~') {
+        const char *home = getenv("HOME");
+        if (home) {
+            snprintf(expandedPath, MAXPATHLEN, "%s%s", home, inputPath + 1);
+            return 0;
         }
-        else // Handle if path is not prefixed with '~'
-        {
-                if (realpath(inputPath, expandedPath) == NULL)
-                {
-                        return -1; // Unable to expand the path
-                }
-        }
-        return 0; // Path expansion successful
+    }
+    strncpy(expandedPath, inputPath, MAXPATHLEN - 1);
+    expandedPath[MAXPATHLEN - 1] = '\0';
+    return 0;
 }
 
-int createDirectory(const char *path)
-{
-        struct stat st;
-
-        // Check if directory already exists
-        if (stat(path, &st) == 0)
-        {
-                if (S_ISDIR(st.st_mode))
-                        return 0; // Directory already exists
-                else
-                        return -1; // Path exists but is not a directory
+int createDirectory(const char *path) {
+    struct stat st = {0};
+    if (stat(path, &st) == -1) {
+        if (mkdir(path, 0755) != 0) {
+            return -1;
         }
-
-        // Directory does not exist, so create it
-        if (mkdir(path, 0700) == 0)
-                return 1; // Directory created successfully
-
-        return -1; // Failed to create directory
+    }
+    return 0;
 }
 
-int deleteFile(const char *filePath)
-{
-        if (remove(filePath) == 0)
-        {
-                return 0;
-        }
-        else
-        {
-                return -1;
-        }
+int deleteFile(const char *filePath) {
+    return unlink(filePath);
 }
 
-int isInTempDir(const char *path)
-{
-        const char *tmpDir = getenv("TMPDIR");
-        static char tmpdirBuf[PATH_MAX + 2];
-
-        if (tmpDir == NULL || strnlen(tmpDir, PATH_MAX) >= PATH_MAX)
-                tmpDir = "/tmp";
-
-        size_t len = strlen(tmpDir);
-        strncpy(tmpdirBuf, tmpDir, PATH_MAX);
-        tmpdirBuf[PATH_MAX] = '\0';
-
-        if (len == 0 || tmpdirBuf[len - 1] != '/')
-        {
-                tmpdirBuf[len] = '/';
-                tmpdirBuf[len + 1] = '\0';
-        }
-
-        return pathStartsWith(path, tmpdirBuf);
+void generateTempFilePath(char *filePath, const char *prefix, const char *suffix) {
+    char temp_dir[] = "/tmp/kew_temp_XXXXXX";
+    char *tmp_dir = mkdtemp(temp_dir);
+    snprintf(filePath, MAXPATHLEN, "%s/%s%s%s", tmp_dir, prefix, "temp", suffix);
 }
 
-void generateTempFilePath(char *filePath, const char *prefix, const char *suffix)
-{
-        const char *tmpDir = getenv("TMPDIR");
-        if (tmpDir == NULL || strnlen(tmpDir, PATH_MAX) >= PATH_MAX)
-        {
-                tmpDir = "/tmp";
-        }
-
-        struct passwd *pw = getpwuid(getuid());
-        const char *username = pw ? pw->pw_name : "unknown";
-
-        char dirPath[MAXPATHLEN];
-        snprintf(dirPath, sizeof(dirPath), "%s/kew", tmpDir);
-        createDirectory(dirPath);
-        snprintf(dirPath, sizeof(dirPath), "%s/kew/%s", tmpDir, username);
-        createDirectory(dirPath);
-
-        char randomString[7];
-        for (int i = 0; i < 6; ++i)
-        {
-                randomString[i] = 'a' + rand() % 26;
-        }
-        randomString[6] = '\0';
-
-        int written = snprintf(filePath, MAXPATHLEN, "%s/%s%.6s%s", dirPath, prefix, randomString, suffix);
-        if (written < 0 || written >= MAXPATHLEN)
-        {
-                filePath[0] = '\0';
-        }
+int isInTempDir(const char *path) {
+    if (strncmp(path, "/tmp/", 5) == 0) {
+        return 1;
+    }
+    return 0;
 }

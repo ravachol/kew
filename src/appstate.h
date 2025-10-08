@@ -1,6 +1,7 @@
 #ifndef APPSTATE_H
 #define APPSTATE_H
 
+#include "common.h"  
 #include "cache.h"
 #include <gio/gio.h>
 #include <glib.h>
@@ -74,6 +75,7 @@ typedef struct
         char themeName[NAME_MAX];                       // the name part of <themeName>.theme, usually lowercase first character, unlike theme.name which is taken from within the file.
         char themeAuthor[NAME_MAX];
         ColorMode colorMode;                            // Which color mode to use.
+        bool useConfigColors;                           // Tambahkan field ini
 } UISettings;
 
 typedef struct
@@ -98,6 +100,7 @@ typedef struct
         ViewState currentView;                          // The current view (playlist, library, track) that kew is on
         UIState uiState;
         UISettings uiSettings;
+        Lyrics *current_lyrics;                         
 } AppState;
 
 #ifndef DEFAULTCOLOR
@@ -134,7 +137,7 @@ typedef struct
         char colorMode[6];
         char coverEnabled[2];
         char coverAnsi[2];
-        char useConfigColors[2];
+        char useConfigColors[2];                        
         char visualizerEnabled[2];
         char visualizerHeight[6];
         char visualizerColorType[2];

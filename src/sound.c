@@ -3,6 +3,7 @@
 #define MINIAUDIO_IMPLEMENTATION
 
 #include "sound.h"
+#include "file.h"  
 #include <miniaudio.h>
 
 /*
@@ -407,6 +408,20 @@ int switchAudioImplementation(void)
                                        : userData.songdataB;
 
         char *filePath = NULL;
+
+        if (appState.current_lyrics) {
+                free_lyrics(appState.current_lyrics);
+                appState.current_lyrics = NULL;
+        }
+
+        if (userData.currentSongData && userData.currentSongData->filePath[0] != '\0') {
+                appState.current_lyrics = load_lyrics(userData.currentSongData->filePath);
+                if (appState.current_lyrics) {
+                    printf("✅ Lirik dimuat: %d baris\n", appState.current_lyrics->count);
+                } else {
+                    printf("❌ Lirik gagal dimuat\n");
+                }
+        }
 
         if (userData.currentSongData == NULL)
         {
@@ -837,4 +852,60 @@ void resumePlayback(void)
         {
                 refresh = true;
         }
+}
+
+float get_current_playback_time(void) {
+    ma_uint64 cursor = 0;
+    ma_uint32 sampleRate = audioData.sampleRate;
+
+    if (sampleRate == 0) {
+        return 0.0f;
+    }
+
+    enum AudioImplementation currentImplementation = getCurrentImplementationType();
+
+    switch (currentImplementation) {
+        case BUILTIN: {
+            ma_decoder* decoder = getCurrentBuiltinDecoder();
+            if (decoder) {
+                ma_decoder_get_cursor_in_pcm_frames(decoder, &cursor);
+            }
+            break;
+        }
+        case OPUS: {
+            ma_libopus* decoder = getCurrentOpusDecoder();
+            if (decoder) {
+                ma_data_source_get_cursor_in_pcm_frames(decoder, &cursor);
+            }
+            break;
+        }
+        case VORBIS: {
+            ma_libvorbis* decoder = getCurrentVorbisDecoder();
+            if (decoder) {
+                ma_data_source_get_cursor_in_pcm_frames(decoder, &cursor);
+            }
+            break;
+        }
+        case WEBM: {
+            ma_webm* decoder = getCurrentWebmDecoder();
+            if (decoder) {
+                ma_data_source_get_cursor_in_pcm_frames(decoder, &cursor);
+            }
+            break;
+        }
+#ifdef USE_FAAD
+        case M4A: {
+            m4a_decoder* decoder = getCurrentM4aDecoder();
+            if (decoder) {
+                ma_data_source_get_cursor_in_pcm_frames(decoder, &cursor);
+            }
+            break;
+        }
+#endif
+        default:
+            return 0.0f;
+    }
+
+    float time = (float)cursor / (float)sampleRate;
+    return time;
 }

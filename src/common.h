@@ -7,6 +7,18 @@
 #define MAXPATHLEN 4096
 #endif
 
+
+
+typedef struct {
+    float time;      
+    char *text;      
+} LyricLine;
+
+typedef struct {
+    LyricLine *lines; 
+    int count;        
+} Lyrics;
+
 typedef enum
 {
         k_unknown = 0,

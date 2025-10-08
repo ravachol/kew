@@ -2,6 +2,7 @@
 #define FILE_H
 
 #include <stdbool.h>
+#include "common.h" 
 
 #define __USE_GNU
 
@@ -16,6 +17,9 @@
 #ifndef AUDIO_EXTENSIONS
 #define AUDIO_EXTENSIONS "(m4a|aac|mp3|ogg|flac|wav|opus|webm|m3u|m3u8)$"
 #endif
+
+Lyrics *load_lyrics(const char *music_file_path);
+void free_lyrics(Lyrics *lyrics);
 
 enum SearchType
 {

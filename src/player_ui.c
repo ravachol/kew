@@ -1913,6 +1913,8 @@ int calcVisualizerWidth()
         return visualizerWidth;
 }
 
+// ... (bagian lain dari file tetap sama) ...
+
 void showTrackViewLandscape(int height, int width, float aspectRatio,
                             AppSettings *settings, SongData *songdata,
                             AppState *state, double elapsedSeconds)
@@ -1920,29 +1922,75 @@ void showTrackViewLandscape(int height, int width, float aspectRatio,
         TagSettings *metadata = NULL;
         int avgBitRate = 0;
 
-        int metadataHeight = 4;
-        int timeHeight = 1;
-
-        if (songdata)
-        {
-                metadata = songdata->metadata;
-        }
-
+        // Deklarasikan variabel sebelum digunakan
         int col = height * aspectRatio;
-
-        if (!state->uiSettings.coverEnabled ||
-            (songdata && songdata->cover == NULL))
-                col = 1;
-
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
         int visualizerWidth = term_w - col;
 
+        int metadataHeight = 4;
+        int timeHeight = 1;
         int row = height - metadataHeight - timeHeight -
                   state->uiSettings.visualizerHeight - 3;
 
         if (row < 2)
                 row = 2;
+
+        if (!state->uiSettings.coverEnabled ||
+            (songdata && songdata->cover == NULL))
+                col = 1;
+
+        int lyric_row = row + metadataHeight;       
+        int time_row = lyric_row + 1;               
+        int visualizer_row = time_row + 2;         
+
+        
+        if (appState.current_lyrics) {
+            float current_time = get_current_playback_time();
+            const char *display_lyric = "No lyric";
+            int last_index = -1;
+
+            for (int i = 0; i < appState.current_lyrics->count; i++) {
+                if (appState.current_lyrics->lines[i].time <= current_time) {
+                    last_index = i;
+                } else {
+                    break;
+                }
+            }
+
+            if (last_index >= 0) {
+                display_lyric = appState.current_lyrics->lines[last_index].text;
+            }
+
+            
+            printf("\033[1;1H[DEBUG] Now: %.2f | Lyric Time: %.2f | Lyric: %s", current_time, last_index >= 0 ? appState.current_lyrics->lines[last_index].time : -1.0f, display_lyric);
+
+            if (state->uiSettings.useConfigColors) {
+                setDefaultTextColor();
+            } else {
+                setTextColorRGB(state->uiSettings.color.r, state->uiSettings.color.g, state->uiSettings.color.b);
+            }
+            printf("\033[%d;%dH\033[K", lyric_row, col + 1);  // Clear baris
+            printf("\033[%d;%dH%s", lyric_row, col + 1, display_lyric);
+        }
+
+        if (songdata)
+        {
+                ma_uint32 sampleRate;
+                ma_format format;
+                avgBitRate = songdata->avgBitRate;
+                getCurrentFormatAndSampleRate(&format, &sampleRate);
+                if (height > metadataHeight + timeHeight)
+                        printTime(time_row, col, elapsedSeconds, sampleRate, avgBitRate, state);
+        }
+
+        if (row > 0)
+                printVisualizer(visualizer_row, col, visualizerWidth, settings, elapsedSeconds, state);
+
+        if (songdata)
+        {
+                metadata = songdata->metadata;
+        }
 
         if (refresh)
         {
@@ -1953,20 +2001,6 @@ void showTrackViewLandscape(int height, int width, float aspectRatio,
 
                 refresh = false;
         }
-        if (songdata)
-        {
-                ma_uint32 sampleRate;
-                ma_format format;
-                avgBitRate = songdata->avgBitRate;
-                getCurrentFormatAndSampleRate(&format, &sampleRate);
-                if (height > metadataHeight + timeHeight)
-                        printTime(row + 4, col, elapsedSeconds, sampleRate,
-                                  avgBitRate, state);
-        }
-
-        if (row > 0)
-                printVisualizer(row + metadataHeight + 2, col, visualizerWidth,
-                                settings, elapsedSeconds, state);
 
         if (width - col > ABSOLUTE_MIN_WIDTH)
         {
@@ -1989,9 +2023,51 @@ void showTrackViewPortrait(int height, AppSettings *settings,
         int metadataHeight = 4;
 
         int row = height + 3;
-        int col = indent;
+        int col = indent;  
 
         int visualizerWidth = calcVisualizerWidth();
+        int lyric_row = row + metadataHeight;     
+        int time_row = lyric_row + 1;             
+        int visualizer_row = time_row + 2;        
+
+        
+        if (appState.current_lyrics) {
+            float current_time = get_current_playback_time();
+            const char *display_lyric = "No lyric";
+            int last_index = -1;
+
+        
+            for (int i = 0; i < appState.current_lyrics->count; i++) {
+                if (appState.current_lyrics->lines[i].time <= current_time) {
+                    last_index = i;
+                } else {
+                    break;
+                }
+            }
+
+            if (last_index >= 0) {
+                display_lyric = appState.current_lyrics->lines[last_index].text;
+            }
+
+            if (state->uiSettings.useConfigColors) {
+                setDefaultTextColor();
+            } else {
+                setTextColorRGB(state->uiSettings.color.r, state->uiSettings.color.g, state->uiSettings.color.b);
+            }
+
+            
+            printf("\033[%d;%dH\033[K", lyric_row, col + 1);  
+            printf("\033[%d;%dH%s", lyric_row, col + 1, display_lyric);
+        }
+
+        if (songdata)
+        {
+                ma_uint32 sampleRate;
+                ma_format format;
+                avgBitRate = songdata->avgBitRate;
+                getCurrentFormatAndSampleRate(&format, &sampleRate);
+                printTime(time_row, col, elapsedSeconds, sampleRate, avgBitRate, state);
+        }
 
         if (refresh)
         {
@@ -2006,21 +2082,13 @@ void showTrackViewPortrait(int height, AppSettings *settings,
 
                 refresh = false;
         }
-        if (songdata)
-        {
-                ma_uint32 sampleRate;
-                ma_format format;
-                avgBitRate = songdata->avgBitRate;
-                getCurrentFormatAndSampleRate(&format, &sampleRate);
-                printTime(row + metadataHeight, col, elapsedSeconds, sampleRate,
-                          avgBitRate, state);
-        }
 
         printVisualizer(row + metadataHeight + 2, col, visualizerWidth,
                         settings, elapsedSeconds, state);
 
         calcAndPrintLastRowAndErrorRow(&(state)->uiSettings, settings);
 }
+
 
 void showTrackView(int width, int height, AppSettings *settings,
                    SongData *songdata, AppState *state, double elapsedSeconds)

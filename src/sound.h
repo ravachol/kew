@@ -20,6 +20,7 @@
 
 #ifndef USERDATA_STRUCT
 #define USERDATA_STRUCT
+
 typedef struct
 {
         SongData *songdataA;
@@ -61,5 +62,7 @@ int switchAudioImplementation(void);
 void resumePlayback(void);
 
 void cleanupAudioContext(void);
+
+float get_current_playback_time(void);
 
 #endif

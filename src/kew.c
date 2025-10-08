@@ -1489,6 +1489,9 @@ void cleanupOnExit()
         deletePlaylist(favoritesPlaylist);
         free(favoritesPlaylist);
         free(unshuffledPlaylist);
+        if (appState.current_lyrics) {
+                free_lyrics(appState.current_lyrics);
+        }
         setDefaultTextColor();
         pthread_mutex_destroy(&(loadingdata.mutex));
         pthread_mutex_destroy(&(playlist.mutex));
