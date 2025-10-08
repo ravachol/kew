@@ -2,8 +2,8 @@
 #define _XOPEN_SOURCE 700
 #define __USE_XOPEN_EXTENDED 1
 
-#include "playlist.h"
 #include "file.h"
+#include "playlist.h"
 #include "utils.h"
 #include <glib.h>
 #include <limits.h>
@@ -162,8 +162,9 @@ void deletePlaylist(PlayList *list)
         if (list == NULL)
                 return;
 
-        Node *current = list->head;
+        pthread_mutex_lock(&list->mutex);
 
+        Node *current = list->head;
         while (current != NULL)
         {
                 Node *next = current->next;
@@ -172,10 +173,12 @@ void deletePlaylist(PlayList *list)
                 current = next;
         }
 
-        // Reset the playlist
         list->head = NULL;
         list->tail = NULL;
         list->count = 0;
+
+        pthread_mutex_unlock(&list->mutex);
+        pthread_mutex_destroy(&list->mutex);
 }
 
 void shufflePlaylist(PlayList *playlist)
@@ -738,28 +741,25 @@ void loadPlaylist(const char *directory, const char *playlistName,
 {
         char playlistPath[MAXPATHLEN];
 
-        size_t len = strnlen(directory, MAXPATHLEN);
-
-        if (len <= 0)
+        if (!directory || !playlistName || !playlist)
                 return;
 
-        if (directory[len - 1] == '/')
-        {
-                snprintf(playlistPath, sizeof(playlistPath), "%s%s", directory,
-                         playlistName);
-        }
-        else
-        {
-                snprintf(playlistPath, sizeof(playlistPath), "%s/%s", directory,
-                         playlistName);
-        }
+        size_t len = strnlen(directory, MAXPATHLEN);
+        if (len == 0)
+                return;
+
+        snprintf(playlistPath, sizeof(playlistPath), "%s%s%s",
+                 directory,
+                 (directory[len - 1] == '/' ? "" : "/"),
+                 playlistName);
 
         if (*playlist == NULL)
         {
                 createPlaylist(playlist);
         }
 
-        readM3UFile(playlistPath, *playlist, NULL);
+        if (*playlist)
+                readM3UFile(playlistPath, *playlist, NULL);
 }
 
 void loadFavoritesPlaylist(const char *directory, PlayList **favoritesPlaylist)
@@ -770,18 +770,18 @@ void loadFavoritesPlaylist(const char *directory, PlayList **favoritesPlaylist)
 
 void loadLastUsedPlaylist(PlayList *playlist, PlayList **unshuffledPlaylist)
 {
-    char *configdir = getConfigPath();
+        char *configdir = getConfigPath();
 
-    loadPlaylist(configdir, lastUsedPlaylistName, &playlist);
-    setFavoritesPlaylist(playlist);
+        loadPlaylist(configdir, lastUsedPlaylistName, &playlist);
+        setPlaylist(playlist);
 
-    if (*unshuffledPlaylist == NULL)
-    {
-        *unshuffledPlaylist = deepCopyPlayList(playlist);
-    }
+        if (*unshuffledPlaylist == NULL)
+        {
+                *unshuffledPlaylist = deepCopyPlayList(playlist);
+        }
 
-    if (configdir)
-        free(configdir);
+        if (configdir)
+                free(configdir);
 }
 
 void saveNamedPlaylist(const char *directory, const char *playlistName,
@@ -907,46 +907,40 @@ Node *findTail(Node *head)
 
 PlayList *deepCopyPlayList(const PlayList *originalList)
 {
-    if (originalList == NULL)
-        return NULL;
+        if (originalList == NULL)
+                return NULL;
 
-    PlayList *newList = malloc(sizeof(PlayList));
+        PlayList *newList = NULL;
+        createPlaylist(&newList);
 
-    if (newList == NULL)
-    {
-        perror("malloc failed in deepCopyPlayList");
-        return NULL;
-    }
+        if (newList == NULL)
+                return NULL;
 
-    newList->head = NULL;
-    newList->tail = NULL;
-    newList->count = 0;
-
-    pthread_mutex_init(&newList->mutex, NULL);
-    deepCopyPlayListOntoList(originalList, &newList);
-
-    return newList;
+        deepCopyPlayListOntoList(originalList, &newList);
+        return newList;
 }
 
 void deepCopyPlayListOntoList(const PlayList *originalList, PlayList **newList)
 {
-    if (originalList == NULL || newList == NULL)
-        return;
-
-    if (*newList == NULL)
-    {
-        *newList = malloc(sizeof(PlayList));
+        if (originalList == NULL || newList == NULL)
+                return;
 
         if (*newList == NULL)
         {
-            perror("malloc failed in deepCopyPlayListOntoList");
-            return;
-        }
-    }
+                *newList = malloc(sizeof(PlayList));
+                if (*newList == NULL)
+                {
+                        perror("malloc failed in deepCopyPlayListOntoList");
+                        return;
+                }
 
-    (*newList)->head = deepCopyNode(originalList->head);
-    (*newList)->tail = findTail((*newList)->head);
-    (*newList)->count = originalList->count;
+                memset(*newList, 0, sizeof(PlayList));
+                pthread_mutex_init(&(*newList)->mutex, NULL);
+        }
+
+        (*newList)->head = deepCopyNode(originalList->head);
+        (*newList)->tail = findTail((*newList)->head);
+        (*newList)->count = originalList->count;
 }
 
 Node *findPathInPlaylist(const char *path, PlayList *playlist)
@@ -1047,7 +1041,7 @@ int isMusicFile(const char *filename)
         if (filename == NULL)
                 return 0;
 
-        const char *extensions[] = {".m4a",  ".aac", ".mp3",  ".ogg",
+        const char *extensions[] = {".m4a", ".aac", ".mp3", ".ogg",
                                     ".flac", ".wav", ".opus", ".webm"};
 
         size_t numExtensions = sizeof(extensions) / sizeof(extensions[0]);
