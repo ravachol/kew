@@ -38,7 +38,7 @@ typedef struct
 
 #endif
 
-int incrementNodeId();
+int incrementNodeId(void);
 
 void clearCurrentSong(void);
 
@@ -64,13 +64,11 @@ void shufflePlaylist(PlayList *playlist);
 
 void shufflePlaylistStartingFromSong(PlayList *playlist, Node *song);
 
-int makePlaylist(PlayList *playlist, int argc, char *argv[], bool exactSearch, const char *path);
-
-void writeCurrentPlaylistToM3UFile(PlayList *playlist);
+int makePlaylist(PlayList **playlist, int argc, char *argv[], bool exactSearch, const char *path);
 
 void writeM3UFile(const char *filename, const PlayList *playlist);
 
-void exportCurrentPlaylist(const char *path, PlayList *playlist);
+void exportCurrentPlaylist(const char *path, const PlayList *playlist);
 
 void loadLastUsedPlaylist(PlayList *playlist, PlayList **unshuffledPlaylist);
 
@@ -82,9 +80,9 @@ void saveLastUsedPlaylist(PlayList *unshuffledPlaylist);
 
 void saveFavoritesPlaylist(const char *directory, PlayList *favoritesPlaylist);
 
-PlayList *deepCopyPlayList(PlayList *originalList);
+PlayList *deepCopyPlayList(const PlayList *originalList);
 
-void deepCopyPlayListOntoList(PlayList *originalList, PlayList *newList);
+void deepCopyPlayListOntoList(const PlayList *originalList, PlayList **newList);
 
 Node *findPathInPlaylist(const char *path, PlayList *playlist);
 

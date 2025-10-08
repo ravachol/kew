@@ -17,7 +17,6 @@ extern "C"
 #include <miniaudio.h>
 #include "neaacdec.h"
 #include "../include/minimp4/minimp4.h"
-#include "player_ui.h"
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
@@ -72,15 +71,11 @@ extern "C"
         MA_API ma_result m4a_decoder_get_cursor_in_pcm_frames(m4a_decoder *pM4a, ma_uint64 *pCursor);
         MA_API ma_result m4a_decoder_get_length_in_pcm_frames(m4a_decoder *pM4a, ma_uint64 *pLength);
 
-        extern ma_result m4a_decoder_ds_get_data_format(ma_data_source *pDataSource, ma_format *pFormat, ma_uint32 *pChannels, ma_uint32 *pSampleRate, ma_channel *pChannelMap, size_t channelMapCap);
-
-        extern ma_result m4a_decoder_ds_read(ma_data_source *pDataSource, void *pFramesOut, ma_uint64 frameCount, ma_uint64 *pFramesRead);
-
-        extern ma_result m4a_decoder_ds_seek(ma_data_source *pDataSource, ma_uint64 frameIndex);
-
-        extern ma_result m4a_decoder_ds_get_cursor(ma_data_source *pDataSource, ma_uint64 *pCursor);
-
-        extern ma_result m4a_decoder_ds_get_length(ma_data_source *pDataSource, ma_uint64 *pLength);
+        ma_result m4a_decoder_ds_get_data_format(ma_data_source *pDataSource, ma_format *pFormat, ma_uint32 *pChannels, ma_uint32 *pSampleRate, ma_channel *pChannelMap, size_t channelMapCap);
+        ma_result m4a_decoder_ds_read(ma_data_source *pDataSource, void *pFramesOut, ma_uint64 frameCount, ma_uint64 *pFramesRead);
+        ma_result m4a_decoder_ds_seek(ma_data_source *pDataSource, ma_uint64 frameIndex);
+        ma_result m4a_decoder_ds_get_cursor(ma_data_source *pDataSource, ma_uint64 *pCursor);
+        ma_result m4a_decoder_ds_get_length(ma_data_source *pDataSource, ma_uint64 *pLength);
 
 #if defined(MINIAUDIO_IMPLEMENTATION) || defined(MA_IMPLEMENTATION)
 

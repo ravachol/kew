@@ -18,19 +18,14 @@ soundcommon.c
 #define PATH_MAX 4096
 #endif
 
-AudioData audioData;
-
 pthread_mutex_t dataSourceMutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t switchMutex = PTHREAD_MUTEX_INITIALIZER;
 ma_device device = {0};
-bool bufferReady = false;
-double elapsedSeconds = 0.0;
-bool paused = false;
-bool stopped = true;
-bool hasSilentlySwitched;
 int fftSize = 2048;
-int prevFftSize = 0;
 
+static bool bufferReady = false;
+static bool paused = false;
+static bool stopped = true;
 static bool repeatEnabled = false;
 static bool repeatListEnabled = false;
 static bool shuffleEnabled = false;
@@ -67,6 +62,12 @@ static int m4aDecoderIndex = -1;
 static int opusDecoderIndex = -1;
 static int vorbisDecoderIndex = -1;
 static int webmDecoderIndex = -1;
+
+int getFftSize(void) { return fftSize; };
+
+bool isBufferReady(void) { return bufferReady; }
+
+void setBufferReady(bool val) { bufferReady = val; }
 
 void uninitMaDecoder(void *decoder)
 {
@@ -135,7 +136,7 @@ void resetDecoders(void **decoderArray, void **firstDecoder, int arraySize,
         }
 }
 
-void resetAllDecoders()
+void resetAllDecoders(void)
 {
         resetDecoders((void **)decoders, (void **)&firstDecoder, MAX_DECODERS,
                       &decoderIndex, uninitMaDecoder);
@@ -428,7 +429,7 @@ void getCurrentFormatAndSampleRate(ma_format *format, ma_uint32 *sampleRate)
 #endif
         }
 
-        *sampleRate = audioData.sampleRate;
+        *sampleRate = getAudioData()->sampleRate;
 }
 
 void getFileInfo(const char *filename, ma_uint32 *sampleRate,
@@ -903,7 +904,7 @@ void setAudioBuffer(void *buf, int numFrames, ma_uint32 sampleRate,
                 // Process full window(s), maintain overlap (hop)
                 while (writeHead >= fftSize)
                 {
-                        bufferReady = true; // let main loop know FFT is ready
+                        setBufferReady(true); // let main loop know FFT is ready
 
                         // Shift buffer for overlap (keep last fftSize-hopSize
                         // samples)
@@ -918,7 +919,7 @@ void resetAudioBuffer(void)
 {
         memset(audioBuffer, 0, sizeof(ma_int32) * MAX_BUFFER_SIZE);
         writeHead = 0;
-        bufferReady = false;
+        setBufferReady(false);
 }
 
 void *getAudioBuffer(void) { return audioBuffer; }
@@ -984,33 +985,33 @@ void seekPercentage(float percent)
         seekRequested = true;
 }
 
-void stopPlayback(void)
+void stopPlayback(AppState *state)
 {
         if (ma_device_is_started(&device))
         {
                 ma_device_stop(&device);
         }
 
-        stopped = true;
+        setStopped(true);
 
-        if (appState.currentView != TRACK_VIEW)
+        if (state->currentView != TRACK_VIEW)
         {
-                refresh = true;
+                triggerRefresh();
         }
 }
 
-void pausePlayback(void)
+void pausePlayback(AppState *state)
 {
         if (ma_device_is_started(&device))
         {
                 ma_device_stop(&device);
         }
 
-        paused = true;
+        setPaused(true);
 
-        if (appState.currentView != TRACK_VIEW)
+        if (state->currentView != TRACK_VIEW)
         {
-                refresh = true;
+                triggerRefresh();
         }
 }
 
@@ -1038,11 +1039,11 @@ void clearCurrentTrack(void)
         resetAllDecoders();
 }
 
-void togglePausePlayback(void)
+void togglePausePlayback(AppState *state)
 {
         if (ma_device_is_started(&device))
         {
-                pausePlayback();
+                pausePlayback(state);
         }
         else if (isPaused() || isStopped())
         {
@@ -1050,9 +1051,13 @@ void togglePausePlayback(void)
                 {
                         resetClock();
                 }
-                resumePlayback();
+                resumePlayback(state);
         }
 }
+
+void setPaused(bool val) { paused = val; }
+
+void setStopped(bool val) { stopped = val; }
 
 bool isPaused(void) { return paused; }
 
@@ -1066,6 +1071,36 @@ bool hasBuiltinDecoder(char *filePath)
         return (extension != NULL && (strcasecmp(extension, ".wav") == 0 ||
                                       strcasecmp(extension, ".flac") == 0 ||
                                       strcasecmp(extension, ".mp3") == 0));
+}
+
+void resumePlayback(AppState *state)
+{
+        // If this was unpaused with no song loaded
+
+        AudioData *audioData = getAudioData();
+
+        if (audioData->restart)
+        {
+                audioData->endOfListReached = false;
+        }
+
+        if (!ma_device_is_started(&device))
+        {
+                if (ma_device_start(&device) != MA_SUCCESS)
+                {
+                        createAudioDevice(state);
+                        ma_device_start(&device);
+                }
+        }
+
+        setPaused(false);
+
+        setStopped(false);
+
+        if (state->currentView != TRACK_VIEW)
+        {
+                triggerRefresh();
+        }
 }
 
 void setCurrentFileIndex(AudioData *pAudioData, int index)
@@ -1103,6 +1138,9 @@ void executeSwitch(AudioData *pAudioData)
         switchDecoder(&m4aDecoderIndex);
         switchDecoder(&vorbisDecoderIndex);
         switchDecoder(&webmDecoderIndex);
+
+        if(pAudioData == NULL)
+                return;
 
         pAudioData->pUserData->currentSongData =
             (pAudioData->currentFileIndex == 0)

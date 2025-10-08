@@ -6,11 +6,8 @@
 #include "appstate.h"
 #include "playlist.h"
 #include "sound.h"
-#include "soundcommon.h"
+#include <gio/gio.h>
 
-#ifdef USE_FAAD
-#include "m4a.h"
-#endif
 #ifndef CLOCK_MONOTONIC
 #define CLOCK_MONOTONIC 1
 #endif
@@ -27,57 +24,84 @@ typedef struct
         bool loadA;
         bool loadingFirstDecoder;
         pthread_mutex_t mutex;
+        AppState *state;
 } LoadingThreadData;
 
-extern GDBusConnection *connection;
-extern GMainContext *global_main_context;
-extern LoadingThreadData loadingdata;
-extern struct timespec start_time;
-extern struct timespec pause_time;
-extern volatile bool loadedNextSong;
-extern bool nextSongNeedsRebuilding;
-extern bool usingSongDataA;
-extern Node *nextSong;
-extern Node *songToStartFrom;
-extern int lastPlayedId;
-extern bool songHasErrors;
-extern volatile bool clearingErrors;
-extern volatile bool songLoading;
-extern bool skipping;
-extern bool skipOutOfOrder;
-extern Node *tryNextSong;
-extern bool skipFromStopped;
-extern UserData userData;
+LoadingThreadData *getLoadingData();
+
+bool isSkipOutOfOrder(void);
+
+void setSkipOutOfOrder(bool val);
+
+bool isSongLoading(void);
+
+void setSongLoading(bool val);
+
+struct timespec getStartTime(void);
+
+struct timespec getPauseTime(void);
+
+bool hasErrorsSong(void);
+
+int getLastPlayedId(void);
+
+void setLastPlayedId(int id);
+
+void tryLoadNext(AppState *state);
+
+void setGMainContext(GMainContext *val);
+
+void  *getGMainContext(void);
+
+GDBusConnection *getGDBusConnection(void);
+
+void setGDBusConnection(GDBusConnection *val);
+
+bool shouldRefreshPlayer(void);
+
+void setIsUsingSongDataA(bool val);
+
+bool isUsingSongDataA(void);
+
+void setNextSongNeedsRebuilding(bool val);
+
+bool getNextSongNeedsRebuilding(void);
 
 SongData *getCurrentSongData(void);
 
-Node *getNextSong(void);
+bool hasSkippedFromStopped(void);
 
-void handleRemove(UIState *uis);
+Node *chooseNextSong(void);
 
-FileSystemEntry *enqueueSongs(FileSystemEntry *entry, UIState *uis);
+double getElapsedSeconds(void);
+
+void handleRemove(AppState *state);
+
+void handleSkipFromStopped(void);
+
+FileSystemEntry *enqueueSongs(FileSystemEntry *entry, AppState *state);
 
 void resetStartTime(void);
 
-void playbackPause(struct timespec *pause_time);
+void playbackPause(AppState *state, struct timespec *pause_time);
 
-void playbackPlay(double *totalPauseSeconds, double *pauseSeconds);
+void playbackPlay(AppState *state);
 
-void togglePause(double *totalPauseSeconds, double *pauseSeconds, struct timespec *pause_time);
+void togglePause(AppState *state);
 
-void stop(void);
+void stop(AppState *state);
 
-void toggleRepeat(UISettings *ui);
+void toggleRepeat(AppState *state);
 
 void toggleNotifications(UISettings *ui, AppSettings *settings);
 
-void toggleShuffle(UISettings *ui);
+void toggleShuffle(AppState *state);
 
 void toggleAscii(AppSettings *settings, UISettings *ui);
 
-void cycleColorMode(UISettings *ui);
+void cycleColorMode(AppState *state);
 
-void cycleThemes(UISettings *ui, AppSettings *settings);
+void cycleThemes(AppState *state, AppSettings *settings);
 
 void toggleVisualizer(AppSettings *settings, UISettings *ui);
 
@@ -94,17 +118,17 @@ void skipToNextSong(AppState *state);
 
 void skipToPrevSong(AppState *state);
 
+void skipToNumberedSong(int songNumber, AppState *state);
+
+void skipToLastSong(AppState *state);
+
 void skipToSong(int id, bool startPlaying, AppState *state);
 
 void seekForward(UIState *uis);
 
 void seekBack(UIState *uis);
 
-void skipToNumberedSong(int songNumber);
-
-void skipToLastSong(void);
-
-void loadSong(Node *song, LoadingThreadData *loadingdata);
+void loadSong(Node *song, LoadingThreadData *loadingdata, UIState *uis);
 
 int loadFirst(Node *song, AppState *state);
 
@@ -114,9 +138,9 @@ Node *findSelectedEntryById(PlayList *playlist, int id);
 
 void emitSeekedSignal(double newPositionSeconds);
 
-void rebuildNextSong(Node *song);
+void rebuildNextSong(Node *song, AppState *state);
 
-void updateLibrary(char *path);
+void updateLibrary(AppState *state, char *path);
 
 void askIfCacheLibrary(UISettings *ui);
 
@@ -130,11 +154,11 @@ void createLibrary(AppSettings *settings, AppState *state);
 
 void resetClock(void);
 
-void loadNextSong(void);
+void loadNextSong(AppState *state);
 
 void setCurrentSongToNext(void);
 
-void finishLoading(void);
+void finishLoading(UIState *uis);
 
 void resetTimeCount(void);
 
@@ -148,15 +172,15 @@ void reshufflePlaylist(void);
 
 bool determineCurrentSongData(SongData **currentSongData);
 
-void updateLibraryIfChangedDetected(void);
+void updateLibraryIfChangedDetected(AppState *state);
 
 double getCurrentSongDuration(void);
 
-void updatePlaylistToPlayingSong(void);
+void updatePlaylistToPlayingSong(AppState *state);
 
-void moveSongUp(void);
+void moveSongUp(AppState *state);
 
-void moveSongDown(void);
+void moveSongDown(AppState *state);
 
 void play(Node *node, AppState *state);
 

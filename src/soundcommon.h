@@ -1,6 +1,7 @@
 #ifndef SOUND_COMMON_H
 #define SOUND_COMMON_H
 
+#include "appstate.h"
 #include <fcntl.h>
 #include <glib.h>
 #include <miniaudio.h>
@@ -30,77 +31,6 @@
 #define MAX_DECODERS 2
 #endif
 
-#ifndef TAGSETTINGS_STRUCT
-#define TAGSETTINGS_STRUCT
-
-#define METADATA_MAX_LENGTH 256
-
-typedef struct
-{
-        char title[METADATA_MAX_LENGTH];
-        char artist[METADATA_MAX_LENGTH];
-        char album_artist[METADATA_MAX_LENGTH];
-        char album[METADATA_MAX_LENGTH];
-        char date[METADATA_MAX_LENGTH];
-        double replaygainTrack;
-        double replaygainAlbum;
-} TagSettings;
-
-#endif
-
-#ifndef SONGDATA_STRUCT
-#define SONGDATA_STRUCT
-typedef struct
-{
-        gchar *trackId;
-        char filePath[MAXPATHLEN];
-        char coverArtPath[MAXPATHLEN];
-        unsigned char red;
-        unsigned char green;
-        unsigned char blue;
-        TagSettings *metadata;
-        unsigned char *cover;
-        int avgBitRate;
-        int coverWidth;
-        int coverHeight;
-        double duration;
-        bool hasErrors;
-} SongData;
-#endif
-
-#ifndef USERDATA_STRUCT
-#define USERDATA_STRUCT
-typedef struct
-{
-        SongData *songdataA;
-        SongData *songdataB;
-        bool songdataADeleted;
-        bool songdataBDeleted;
-        int replayGainCheckFirst;
-        SongData *currentSongData;
-        ma_uint64 currentPCMFrame;
-} UserData;
-#endif
-
-#ifndef AUDIODATA_STRUCT
-#define AUDIODATA_STRUCT
-typedef struct
-{
-        ma_data_source_base base;
-        UserData *pUserData;
-        ma_format format;
-        ma_uint32 channels;
-        ma_uint32 sampleRate;
-        ma_uint64 currentPCMFrame;
-        ma_uint32 avgBitRate;
-        bool switchFiles;
-        int currentFileIndex;
-        ma_uint64 totalFrames;
-        bool endOfListReached;
-        bool restart;
-} AudioData;
-#endif
-
 enum AudioImplementation
 {
         PCM,
@@ -113,32 +43,18 @@ enum AudioImplementation
 };
 
 struct m4a_decoder;
-typedef struct m4a_decoder m4a_decoder;
 
-extern int fftSize;
-extern int prevFftSize;
+typedef struct m4a_decoder m4a_decoder;
 
 typedef void (*uninit_func)(void *decoder);
 
-extern AudioData audioData;
-
-extern bool bufferReady;
-
-extern double elapsedSeconds;
-
-extern bool hasSilentlySwitched;
-
-extern pthread_mutex_t dataSourceMutex;
-
-extern pthread_mutex_t switchMutex;
-
-extern bool paused;
-
-extern bool stopped;
-
-extern ma_device device;
-
 enum AudioImplementation getCurrentImplementationType();
+
+int getFftSize(void);
+
+bool isBufferReady(void);
+
+void setBufferReady(bool val);
 
 void setCurrentImplementationType(enum AudioImplementation value);
 
@@ -158,7 +74,7 @@ ma_decoder *getPreviousDecoder(void);
 
 void getCurrentFormatAndSampleRate(ma_format *format, ma_uint32 *sampleRate);
 
-void resetAllDecoders();
+void resetAllDecoders(void);
 
 ma_libopus *getCurrentOpusDecoder(void);
 
@@ -189,6 +105,8 @@ int prepareNextOpusDecoder(char *filepath);
 int prepareNextVorbisDecoder(char *filepath);
 
 int prepareNextM4aDecoder(SongData *songData);
+
+void resumePlayback(AppState *state);
 
 ma_libvorbis *getFirstVorbisDecoder(void);
 
@@ -248,17 +166,19 @@ void setSeekRequested(bool value);
 
 void seekPercentage(float percent);
 
-void resumePlayback(void);
+void stopPlayback(AppState *state);
 
-void stopPlayback(void);
-
-void pausePlayback(void);
+void pausePlayback(AppState *state);
 
 void cleanupPlaybackDevice(void);
 
-void togglePausePlayback(void);
+void togglePausePlayback(AppState *state);
+
+void setPaused(bool val);
 
 bool isPaused(void);
+
+void setStopped(bool val);
 
 bool isStopped(void);
 
@@ -290,7 +210,7 @@ void logTime(const char *message);
 
 void clearCurrentTrack(void);
 
-void cleanupDbusConnection();
+void cleanupDbusConnection(void);
 
 void getWebmFileInfo(const char *filename, ma_format *format, ma_uint32 *channels, ma_uint32 *sampleRate, ma_channel *channelMap);
 
@@ -311,7 +231,7 @@ ma_result callReadPCMFrames(
     ma_uint64 remainingFrames,
     ma_uint64 *pFramesToRead);
 
-bool doesOSallowVolumeControl();
+bool doesOSallowVolumeControl(void);
 
 void shutdownAndroid(void);
 

@@ -1,10 +1,11 @@
 #ifndef MPRIS_H
 #define MPRIS_H
 
+#include "appstate.h"
 #include <gio/gio.h>
 #include "playlist.h"
 
-void initMpris(void);
+void initMpris(AppState *state);
 
 void emitStringPropertyChanged(const gchar *propertyName, const gchar *newValue);
 
