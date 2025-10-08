@@ -32,27 +32,40 @@ ProgressBar progressBar;
 void freePlaylists(void)
 {
         deletePlaylist(&playlist);
-        deletePlaylist(unshuffledPlaylist);
-        deletePlaylist(favoritesPlaylist);
-        free(favoritesPlaylist);
-        free(unshuffledPlaylist);
+
+        PlayList *unshuffled = getUnshuffledPlaylist();
+        PlayList *favorites = getFavoritesPlaylist();
+
+        if (unshuffled != NULL)
+        {
+                deletePlaylist(unshuffled);
+                free(unshuffled);
+                unshuffledPlaylist = NULL;
+        }
+
+        if (favorites != NULL)
+        {
+                deletePlaylist(favorites);
+                free(favorites);
+                favoritesPlaylist = NULL;
+        }
 }
 
 void createPlaylist(PlayList **playlist)
 {
-    if (*playlist == NULL)
-    {
-        *playlist = malloc(sizeof(PlayList));
         if (*playlist == NULL)
         {
-                return;
-        }
+                *playlist = malloc(sizeof(PlayList));
+                if (*playlist == NULL)
+                {
+                        return;
+                }
 
-        (*playlist)->count = 0;
-        (*playlist)->head = NULL;
-        (*playlist)->tail = NULL;
-        pthread_mutex_init(&(*playlist)->mutex, NULL);
-    }
+                (*playlist)->count = 0;
+                (*playlist)->head = NULL;
+                (*playlist)->tail = NULL;
+                pthread_mutex_init(&(*playlist)->mutex, NULL);
+        }
 }
 
 // --- Getters ---
