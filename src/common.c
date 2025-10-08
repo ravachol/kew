@@ -1,26 +1,18 @@
-#include <string.h>
-#include <pthread.h>
 #include "common.h"
-
-const char VERSION[] = "3.5.2";
-
-const char LAST_ROW[] = " [F2 Playlist|F3 Library|F4 Track|F5 Search|F6 Help]";
-
-double pauseSeconds = 0.0;
-double totalPauseSeconds = 0.0;
+#include <pthread.h>
+#include <string.h>
 
 #define ERROR_MESSAGE_LENGTH 256
 
-char currentErrorMessage[ERROR_MESSAGE_LENGTH];
+static char currentErrorMessage[ERROR_MESSAGE_LENGTH];
+static bool hasPrintedError = true;
+static volatile bool refresh = true; // Trigger a full screen refresh next update (ie redraw cover)
 
-bool hasPrintedError = true;
+void triggerRefresh(void) { refresh = true; }
 
-volatile bool refresh = true; // Should the whole view be refreshed next time it redraws
+void cancelRefresh(void) { refresh = false; }
 
-const unsigned char defaultColor = 150;
-
-const PixelData defaultColorRGB = {
-    .r = defaultColor, .g = defaultColor, .b = defaultColor};
+bool refreshTriggered(void) { return (refresh == true); }
 
 void setErrorMessage(const char *message)
 {
@@ -30,20 +22,15 @@ void setErrorMessage(const char *message)
         strncpy(currentErrorMessage, message, ERROR_MESSAGE_LENGTH - 1);
         currentErrorMessage[ERROR_MESSAGE_LENGTH - 1] = '\0';
         hasPrintedError = false;
-        refresh = true;
+        triggerRefresh();
 }
 
-bool hasErrorMessage()
-{
-        return (currentErrorMessage[0] != '\0');
-}
+bool hasPrintedErrorMessage(void) { return hasPrintedError; }
 
-char *getErrorMessage()
-{
-        return currentErrorMessage;
-}
+bool hasErrorMessage(void) { return (currentErrorMessage[0] != '\0'); }
 
-void clearErrorMessage()
-{
-        currentErrorMessage[0] = '\0';
-}
+void markErrorMessageAsPrinted(void) { hasPrintedError = true; }
+
+char *getErrorMessage(void) { return currentErrorMessage; }
+
+void clearErrorMessage(void) { currentErrorMessage[0] = '\0'; }

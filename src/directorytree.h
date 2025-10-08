@@ -15,13 +15,12 @@ typedef struct FileSystemEntry
         int id;
         char *name;
         char *fullPath;
-        int isDirectory; // 1 for directory, 0 for file
+        int isDirectory;
         int isEnqueued;
         int parentId;
         struct FileSystemEntry *parent;
         struct FileSystemEntry *children;
-        struct FileSystemEntry
-            *next; // For siblings (next node in the same directory)
+        struct FileSystemEntry *next;      // For siblings (next node in the same directory)
         struct FileSystemEntry *lastChild; // TEMP: only for construction
 } FileSystemEntry;
 #endif
@@ -47,8 +46,7 @@ void fuzzySearchRecursive(FileSystemEntry *node, const char *searchTerm,
 
 void copyIsEnqueued(FileSystemEntry *library, FileSystemEntry *tmp);
 
-void sortFileSystemTree(FileSystemEntry *root,
-                        int (*comparator)(const void *, const void *));
+void sortFileSystemTree(FileSystemEntry *root, int (*comparator)(const void *, const void *));
 
 int compareFoldersByAgeFilesAlphabetically(const void *a, const void *b);
 
@@ -60,7 +58,6 @@ int compareEntryNaturalReversed(const void *a, const void *b);
 
 int compareEntryNatural(const void *a, const void *b);
 
-FileSystemEntry *findCorrespondingEntry(FileSystemEntry *tmp,
-                                        const char *fullPath);
+FileSystemEntry *findCorrespondingEntry(FileSystemEntry *tmp, const char *fullPath);
 
 #endif

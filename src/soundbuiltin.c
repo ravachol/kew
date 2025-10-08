@@ -322,6 +322,8 @@ void builtin_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut,
         AudioData *audioData = (AudioData *)pDataSource;
         ma_uint64 framesRead = 0;
 
+        AppState *state = getAppState();
+
         // Step 1: Compute gain
         double gainDb = 0.0;
         bool gainAvailable = computeReplayGain(audioData, &gainDb);
@@ -331,20 +333,20 @@ void builtin_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut,
         {
                 ma_uint64 remainingFrames = frameCount - framesRead;
 
-                if (pthread_mutex_trylock(&dataSourceMutex) != 0)
+                if (pthread_mutex_trylock(&(state->dataSourceMutex)) != 0)
                         return;
 
                 // Step 2: Handle file switching or state invalidation
-                if (audioData == NULL || isImplSwitchReached())
+                if (audioData == NULL || audioData->pUserData == NULL || isImplSwitchReached())
                 {
-                        pthread_mutex_unlock(&dataSourceMutex);
+                        pthread_mutex_unlock(&(state->dataSourceMutex));
                         return;
                 }
 
                 if (audioData->switchFiles)
                 {
                         executeSwitch(audioData);
-                        pthread_mutex_unlock(&dataSourceMutex);
+                        pthread_mutex_unlock(&(state->dataSourceMutex));
                         break;
                 }
 
@@ -353,7 +355,7 @@ void builtin_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut,
                      !isSkipToNext()) ||
                     decoder == NULL)
                 {
-                        pthread_mutex_unlock(&dataSourceMutex);
+                        pthread_mutex_unlock(&(state->dataSourceMutex));
                         return;
                 }
 
@@ -367,7 +369,7 @@ void builtin_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut,
                 // Step 4: Seek if requested
                 if (!performSeekIfRequested(decoder, audioData))
                 {
-                        pthread_mutex_unlock(&dataSourceMutex);
+                        pthread_mutex_unlock(&(state->dataSourceMutex));
                         return;
                 }
 
@@ -377,7 +379,7 @@ void builtin_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut,
                 ma_uint64 cursor = 0;
                 if (firstDecoder == NULL || isEOFReached())
                 {
-                        pthread_mutex_unlock(&dataSourceMutex);
+                        pthread_mutex_unlock(&(state->dataSourceMutex));
                         return;
                 }
 
@@ -404,7 +406,7 @@ void builtin_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut,
                 if (shouldSwitch(audioData, framesToRead, result, cursor))
                 {
                         activateSwitch(audioData);
-                        pthread_mutex_unlock(&dataSourceMutex);
+                        pthread_mutex_unlock(&(state->dataSourceMutex));
                         continue;
                 }
 
@@ -412,7 +414,7 @@ void builtin_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut,
                 framesRead += framesToRead;
                 setBufferSize(framesToRead);
 
-                pthread_mutex_unlock(&dataSourceMutex);
+                pthread_mutex_unlock(&(state->dataSourceMutex));
         }
 
         // Step 9: Finalize

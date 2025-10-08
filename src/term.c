@@ -1,9 +1,7 @@
 #include "term.h"
-#include "utils.h"
 #include <fcntl.h>
 #include <poll.h>
 #include <pwd.h>
-#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

@@ -5,7 +5,6 @@
 #include <unistd.h>
 #include "common.h"
 #include "imgfunc.h"
-#include "term.h"
 
 /*
 

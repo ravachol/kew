@@ -7,6 +7,7 @@
 #include <gio/gio.h>
 #include <glib.h>
 #include <sys/param.h>
+#include <miniaudio.h>
 
 #ifndef MAXPATHLEN
 #define MAXPATHLEN 4096
@@ -34,94 +35,105 @@ typedef enum
 
 typedef enum
 {
-        COLOR_MODE_DEFAULT = 0, // Colors from ANSI 16-color palette theme
-        COLOR_MODE_ALBUM = 1,   // Colors derived from album art
-        COLOR_MODE_THEME = 2    // Colors from truecolor theme
+        COLOR_MODE_DEFAULT = 0,         // Colors from ANSI 16-color palette theme
+        COLOR_MODE_ALBUM = 1,           // Colors derived from album art
+        COLOR_MODE_THEME = 2            // Colors from truecolor theme
 } ColorMode;
 
 typedef struct
 {
-        bool mouseEnabled;            // Accept mouse input or not
-        int mouseLeftClickAction;     // Left mouse action
-        int mouseMiddleClickAction;   // Middle mouse action
-        int mouseRightClickAction;    // Right mouse action
-        int mouseScrollUpAction;      // Mouse scroll up action
-        int mouseScrollDownAction;    // Mouse scroll down action
-        int mouseAltScrollUpAction;   // Mouse scroll up + alt action
-        int mouseAltScrollDownAction; // Mouse scroll down + alt action
-        PixelData color;   // The current color, when using album derived colors
-        bool coverEnabled; // Show covers or not
-        bool uiEnabled;    // Show ui or not
-        bool coverAnsi;    // Show chafa cover (picture perfect in the right
-                           // terminal), or ascii/ansi typ cover
-        bool visualizerEnabled;  // Show spectrum visualizer
-        bool hideLogo;           // No kew text at top
-        bool hideHelp;           // No help text at top
-        bool allowNotifications; // Send desktop notifications or not
-        int visualizerHeight; // Height in characters of the spectrum visualizer
-        int visualizerColorType;    // How colors are laid out in the spectrum
-                                    // visualizer
-        bool visualizerBrailleMode; // Display the visualizer using braille
-                                    // characteres
-        int titleDelay;             // Delay when drawing title in track view
-        int cacheLibrary;           // Cache the library or not
-        bool quitAfterStopping;     // Exit kew when the music stops or not
-        bool hideGlimmeringText;    // Glimmering text on the bottom row
-        time_t lastTimeAppRan;  // When did this app run last, used for updating
-                                // the cached library if it has been modified
-                                // since that time
-        int visualizerBarWidth; // 0=Thin bars, 1=Bars twice the width or 2=Auto
-                                // (Depends on window size, default)
+        bool mouseEnabled;              // Accept mouse input or not
+        int mouseLeftClickAction;       // Left mouse action
+        int mouseMiddleClickAction;     // Middle mouse action
+        int mouseRightClickAction;      // Right mouse action
+        int mouseScrollUpAction;        // Mouse scroll up action
+        int mouseScrollDownAction;      // Mouse scroll down action
+        int mouseAltScrollUpAction;     // Mouse scroll up + alt action
+        int mouseAltScrollDownAction;   // Mouse scroll down + alt action
+        PixelData color;                // The current color, when using album derived colors
+        bool coverEnabled;              // Show covers or not
+        bool uiEnabled;                 // Show ui or not
+        bool coverAnsi;                 // Show chafa cover (picture perfect in the right
+                                        // terminal), or ascii/ansi typ cover
+        bool visualizerEnabled;         // Show spectrum visualizer
+        bool hideLogo;                  // No kew text at top
+        bool hideHelp;                  // No help text at top
+        bool allowNotifications;        // Send desktop notifications or not
+        int visualizerHeight;           // Height in characters of the spectrum visualizer
+        int visualizerColorType;        // How colors are laid out in the spectrum
+                                        // visualizer
+        bool visualizerBrailleMode;     // Display the visualizer using braille
+                                        // characteres
+        int titleDelay;                 // Delay when drawing title in track view
+        int cacheLibrary;               // Cache the library or not
+        bool quitAfterStopping;         // Exit kew when the music stops or not
+        bool hideGlimmeringText;        // Glimmering text on the bottom row
+        time_t lastTimeAppRan;          // When did this app run last, used for updating
+                                        // the cached library if it has been modified
+                                        // since that time
+        int visualizerBarWidth;         // 0=Thin bars, 1=Bars twice the width or 2=Auto
+                                        // (Depends on window size, default)
         int replayGainCheckFirst;       // Prioritize track or album replay gain
                                         // setting
         bool saveRepeatShuffleSettings; // Save repeat and shuffle settings
                                         // between sessions. Default on.
-        int repeatState; // 0=disabled,1=repeat track ,2=repeat list
+        int repeatState;                // 0=disabled,1=repeat track ,2=repeat list
         bool shuffleEnabled;
-        bool trackTitleAsWindowTitle; // Set the window title to the title of
-                                      // the currently playing track
-        Theme theme;                  // The color theme.
-        bool themeIsSet;              // Whether a theme has been loaded;
-        char
-            themeName[NAME_MAX]; // the name part of <themeName>.theme, usually
-                                 // lowercase first character, unlike theme.name
-                                 // which is taken from within the file.
+        bool trackTitleAsWindowTitle;   // Set the window title to the title of
+                                        // the currently playing track
+        Theme theme;                    // The color theme.
+        bool themeIsSet;                // Whether a theme has been loaded;
+        char themeName[NAME_MAX];       // the name part of <themeName>.theme, usually
+                                        // lowercase first character, unlike theme.name
+                                        // which is taken from within the file.
         char themeAuthor[NAME_MAX];
-        ColorMode colorMode; // Which color mode to use.
+        ColorMode colorMode;            // Which color mode to use.
+        const char *VERSION;
+        char *LAST_ROW;
+        unsigned char defaultColor;
+        PixelData defaultColorRGB;
 } UISettings;
 
 typedef struct
 {
-        int chosenNodeId; // The id of the tree node that is chosen in library
-                          // view
-        bool allowChooseSongs; // In library view, has the user entered a folder
-                               // that contains songs
-        bool openedSubDir;     // Opening a directory in an open directory.
-        int numSongsAboveSubDir; // How many rows do we need to jump up if we
-                                 // close the parent directory and open one
-                                 // within
-        int numDirectoryTreeEntries; // The number of entries in directory tree
-                                     // in library view
-        int numProgressBars; // The number of progress dots at the bottom of
-                             // track view
+        volatile bool refresh;          // Trigger a full screen refresh next update (ie
+                                        // redraw cover)
+        int chosenNodeId;               // The id of the tree node that is chosen in library
+                                        // view
+        bool allowChooseSongs;          // In library view, has the user entered a folder
+                                        // that contains songs
+        bool openedSubDir;              // Opening a directory in an open directory.
+        int numSongsAboveSubDir;        // How many rows do we need to jump up if we
+                                        // close the parent directory and open one
+                                        // within
+        int numDirectoryTreeEntries;    // The number of entries in directory tree
+                                        // in library view
+        int numProgressBars;            // The number of progress dots at the bottom of
+                                        // track view
         volatile sig_atomic_t
-            resizeFlag;             // Is the user resizing the terminal window
-        bool resetPlaylistDisplay;  // Should the playlist be reset, ie drawn
-                                    // starting from playing song
-        bool doNotifyMPRISSwitched; // Emit mpris song switched signal
-        bool doNotifyMPRISPlaying;  // Emit mpris music is playing signal
-        bool collapseView;          // Signal that ui needs to collapse the view
-        bool waitingForNext;     // Playlist has songs but playback is stopped.
-        bool waitingForPlaylist; // Playlist is empty.
+            resizeFlag;                 // Is the user resizing the terminal window
+        bool resetPlaylistDisplay;      // Should the playlist be reset, ie drawn
+                                        // starting from playing song
+        bool doNotifyMPRISSwitched;     // Emit mpris song switched signal
+        bool doNotifyMPRISPlaying;      // Emit mpris music is playing signal
+        bool collapseView;              // Signal that ui needs to collapse the view
+        bool waitingForNext;            // Playlist has songs but playback is stopped.
+        bool waitingForPlaylist;        // Playlist is empty.
+        volatile bool loadedNextSong;
+        bool isFastForwarding;
+        bool isRewinding;
 } UIState;
 
 typedef struct
 {
-        Cache *tmpCache;       // Cache for temporary files
-        ViewState currentView; // The current view (playlist, library, track)
-                               // that kew is on
+        Cache *tmpCache;                // Cache for temporary files
+        ViewState currentView;          // The current view (playlist, library, track)
+                                        // that kew is on
         UIState uiState;
         UISettings uiSettings;
+
+        pthread_mutex_t dataSourceMutex;
+        pthread_mutex_t switchMutex;
 } AppState;
 
 #ifndef KEYVALUEPAIR_STRUCT
@@ -254,15 +266,132 @@ typedef struct
 
 #endif
 
-extern AppState appState;
+#ifndef PROGRESSBAR_STRUCT
+#define PROGRESSBAR_STRUCT
 
-// The (sometimes shuffled) sequence of songs that will be played
-extern PlayList playlist;
+typedef struct {
+    int row;
+    int col;
+    int length;
+} ProgressBar;
 
-// The playlist unshuffled as it appears in playlist view
-extern PlayList *unshuffledPlaylist;
+#endif
 
-// The playlist from kew favorites .m3u
-extern PlayList *favoritesPlaylist;
+#ifndef TAGSETTINGS_STRUCT
+#define TAGSETTINGS_STRUCT
+
+#define METADATA_MAX_LENGTH 256
+
+typedef struct
+{
+        char title[METADATA_MAX_LENGTH];
+        char artist[METADATA_MAX_LENGTH];
+        char album_artist[METADATA_MAX_LENGTH];
+        char album[METADATA_MAX_LENGTH];
+        char date[METADATA_MAX_LENGTH];
+        double replaygainTrack;
+        double replaygainAlbum;
+} TagSettings;
+
+#endif
+
+#ifndef SONGDATA_STRUCT
+#define SONGDATA_STRUCT
+typedef struct
+{
+        gchar *trackId;
+        char filePath[MAXPATHLEN];
+        char coverArtPath[MAXPATHLEN];
+        unsigned char red;
+        unsigned char green;
+        unsigned char blue;
+        TagSettings *metadata;
+        unsigned char *cover;
+        int avgBitRate;
+        int coverWidth;
+        int coverHeight;
+        double duration;
+        bool hasErrors;
+} SongData;
+#endif
+
+#ifndef USERDATA_STRUCT
+#define USERDATA_STRUCT
+typedef struct
+{
+        SongData *songdataA;
+        SongData *songdataB;
+        bool songdataADeleted;
+        bool songdataBDeleted;
+        int replayGainCheckFirst;
+        SongData *currentSongData;
+        ma_uint64 currentPCMFrame;
+} UserData;
+#endif
+
+#ifndef AUDIODATA_STRUCT
+#define AUDIODATA_STRUCT
+typedef struct
+{
+        ma_data_source_base base;
+        UserData *pUserData;
+        ma_format format;
+        ma_uint32 channels;
+        ma_uint32 sampleRate;
+        ma_uint64 currentPCMFrame;
+        ma_uint32 avgBitRate;
+        bool switchFiles;
+        int currentFileIndex;
+        ma_uint64 totalFrames;
+        bool endOfListReached;
+        bool restart;
+} AudioData;
+#endif
+
+// --- Getters ---
+
+AudioData *getAudioData(void);
+
+double getPauseSeconds(void);
+double getTotalPauseSeconds(void);
+
+void createPlaylist(PlayList **playlist);
+
+Node *getNextSong(void);
+Node *getSongToStartFrom(void);
+Node *getTryNextSong(void);
+
+PlayList *getPlaylist(void);
+PlayList *getUnshuffledPlaylist(void);
+PlayList *getFavoritesPlaylist(void);
+
+ProgressBar *getProgressBar(void);
+
+AppState *getAppState(void);
+
+AppSettings *getAppSettings(void);
+
+FileSystemEntry *getLibrary(void);
+
+// --- Setters ---
+
+void setPauseSeconds(double seconds);
+void setTotalPauseSeconds(double seconds);
+
+void setNextSong(Node *node);
+void setSongToStartFrom(Node *node);
+void setTryNextSong(Node *node);
+
+void setAudioData(AudioData *audioData);
+
+void setLibrary(FileSystemEntry *root);
+
+void freePlaylists(void);
+
+void setPlaylist(PlayList *pl);
+
+void setUnshuffledPlaylist(PlayList *pl);
+
+void setFavoritesPlaylist(PlayList *pl);
 
 #endif

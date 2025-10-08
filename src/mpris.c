@@ -1,10 +1,10 @@
 #include "mpris.h"
-#include "common.h"
-#include <math.h>
 #include "playerops.h"
 #include "sound.h"
 #include "soundcommon.h"
 #include <glib.h>
+#include <math.h>
+#include <time.h>
 
 /*
 
@@ -14,11 +14,12 @@ Functions related to mpris implementation.
 
 */
 
-guint registration_id;
-guint player_registration_id;
-guint bus_name_id;
+static guint registration_id;
+static guint player_registration_id;
+static guint bus_name_id;
 
 #ifndef __APPLE__
+
 static const gchar *LoopStatus = "None";
 static gdouble Rate = 1.0;
 static gdouble Volume = 0.5;
@@ -33,32 +34,6 @@ static gboolean CanControl = TRUE;
 
 #define MAX_STATUS_LEN 64
 
-void updatePlaybackStatus(const gchar *status)
-{
-        if (status == NULL)
-        {
-                fprintf(stderr, "updatePlaybackStatus: status is NULL\n");
-                return;
-        }
-
-        size_t len = strlen(status);
-        if (len == 0 ||
-            len > MAX_STATUS_LEN)
-        {
-                fprintf(stderr,
-                        "updatePlaybackStatus: invalid status length\n");
-                return;
-        }
-
-        GVariant *status_variant = g_variant_new_string(status);
-
-        // Emit signal with a tuple containing the string
-        g_dbus_connection_emit_signal(
-            connection, NULL, "/org/mpris/MediaPlayer2",
-            "org.mpris.MediaPlayer2.Player", "PlaybackStatus",
-            g_variant_new("(s)", status_variant), NULL);
-
-}
 const gchar *introspection_xml =
     "<!DOCTYPE node PUBLIC \"-//freedesktop//DTD D-BUS Object Introspection "
     "1.0//EN\" "
@@ -221,7 +196,9 @@ static void handle_next(GDBusConnection *connection, const gchar *sender,
         (void)parameters;
         (void)user_data;
 
-        skipToNextSong(&appState);
+        AppState *state = (AppState *)user_data;
+
+        skipToNextSong(state);
         g_dbus_method_invocation_return_value(invocation, NULL);
 }
 
@@ -240,7 +217,9 @@ static void handle_previous(GDBusConnection *connection, const gchar *sender,
         (void)parameters;
         (void)user_data;
 
-        skipToPrevSong(&appState);
+        AppState *state = (AppState *)user_data;
+
+        skipToPrevSong(state);
         g_dbus_method_invocation_return_value(invocation, NULL);
 }
 
@@ -258,7 +237,10 @@ static void handle_pause(GDBusConnection *connection, const gchar *sender,
         (void)invocation;
         (void)user_data;
 
-        playbackPause(&pause_time);
+        struct timespec pauseTime = getPauseTime();
+        AppState *state = (AppState *)user_data;
+
+        playbackPause(state, &pauseTime);
         g_dbus_method_invocation_return_value(invocation, NULL);
 }
 
@@ -277,7 +259,10 @@ static void handle_play_pause(GDBusConnection *connection, const gchar *sender,
         (void)parameters;
         (void)user_data;
 
-        togglePause(&totalPauseSeconds, &pauseSeconds, &pause_time);
+        AppState *state = (AppState *)user_data;
+
+        togglePause(state);
+
         g_dbus_method_invocation_return_value(invocation, NULL);
 }
 
@@ -294,8 +279,10 @@ static void handle_stop(GDBusConnection *connection, const gchar *sender,
         (void)parameters;
         (void)user_data;
 
+        AppState *state = (AppState *)user_data;
+
         if (!isStopped())
-                stop();
+                stop(state);
         g_dbus_method_invocation_return_value(invocation, NULL);
 }
 
@@ -313,7 +300,10 @@ static void handle_play(GDBusConnection *connection, const gchar *sender,
         (void)invocation;
         (void)user_data;
 
-        playbackPlay(&totalPauseSeconds, &pauseSeconds);
+        AppState *state = (AppState *)user_data;
+
+        playbackPlay(state);
+
         g_dbus_method_invocation_return_value(invocation, NULL);
 }
 
@@ -685,7 +675,7 @@ static gboolean get_position(GDBusConnection *connection, const gchar *sender,
         (void)user_data;
 
         // Convert elapsedSeconds from milliseconds to microseconds
-        gint64 positionMicroseconds = llround(elapsedSeconds * G_USEC_PER_SEC);
+        gint64 positionMicroseconds = llround(getElapsedSeconds() * G_USEC_PER_SEC);
 
         *value = g_variant_new_int64(positionMicroseconds);
 
@@ -743,11 +733,12 @@ static gboolean get_can_go_next(GDBusConnection *connection,
         (void)user_data;
 
         Node *current = getCurrentSong();
+        PlayList *playlist = getPlaylist();
 
         CanGoNext =
             (current == NULL || current->next != NULL) ? TRUE : FALSE;
         CanGoNext =
-            (isRepeatListEnabled() && playlist.head != NULL) ? TRUE : CanGoNext;
+            (isRepeatListEnabled() && playlist->head != NULL) ? TRUE : CanGoNext;
 
         *value = g_variant_new_boolean(CanGoNext);
         return TRUE;
@@ -995,6 +986,8 @@ set_property_callback(GDBusConnection *connection, const gchar *sender,
         (void)property_name;
         (void)user_data;
 
+        AppState *state = (AppState *)user_data;
+
         if (g_strcmp0(interface_name, "org.mpris.MediaPlayer2.Player") == 0)
         {
                 if (g_strcmp0(property_name, "PlaybackStatus") == 0)
@@ -1022,12 +1015,12 @@ set_property_callback(GDBusConnection *connection, const gchar *sender,
                 }
                 else if (g_strcmp0(property_name, "LoopStatus") == 0)
                 {
-                        toggleRepeat(&(appState.uiSettings));
+                        toggleRepeat(state);
                         return TRUE;
                 }
                 else if (g_strcmp0(property_name, "Shuffle") == 0)
                 {
-                        toggleShuffle(&(appState.uiSettings));
+                        toggleShuffle(state);
                         return TRUE;
                 }
                 else if (g_strcmp0(property_name, "Position") == 0)
@@ -1075,10 +1068,10 @@ static const GDBusInterfaceVTable player_interface_vtable = {
 void emitPlaybackStoppedMpris()
 {
 #ifndef __APPLE__
-        if (connection)
+        if (getGDBusConnection())
         {
                 g_dbus_connection_call(
-                    connection, NULL, "/org/mpris/MediaPlayer2",
+                    getGDBusConnection(), NULL, "/org/mpris/MediaPlayer2",
                     "org.freedesktop.DBus.Properties", "Set",
                     g_variant_new("(ssv)", "org.mpris.MediaPlayer2.Player",
                                   "PlaybackStatus",
@@ -1094,14 +1087,14 @@ void cleanupMpris(void)
 #ifndef __APPLE__
         if (registration_id > 0)
         {
-                g_dbus_connection_unregister_object(connection,
+                g_dbus_connection_unregister_object(getGDBusConnection(),
                                                     registration_id);
                 registration_id = -1;
         }
 
         if (player_registration_id > 0)
         {
-                g_dbus_connection_unregister_object(connection,
+                g_dbus_connection_unregister_object(getGDBusConnection(),
                                                     player_registration_id);
                 player_registration_id = -1;
         }
@@ -1112,33 +1105,33 @@ void cleanupMpris(void)
                 bus_name_id = -1;
         }
 
-        if (connection != NULL)
+        if (getGDBusConnection() != NULL)
         {
-                g_object_unref(connection);
-                connection = NULL;
+                g_object_unref(getGDBusConnection());
+                setGDBusConnection(NULL);
         }
 
-        if (global_main_context != NULL)
+        if (getGMainContext() != NULL)
         {
-                g_main_context_unref(global_main_context);
-                global_main_context = NULL;
+                g_main_context_unref(getGMainContext());
+                setGMainContext(NULL);
         }
 #endif
 }
 
-void initMpris(void)
+void initMpris(AppState *state)
 {
 #ifndef __APPLE__
-        if (global_main_context == NULL)
+        if (getGMainContext() == NULL)
         {
-                global_main_context = g_main_context_new();
+                setGMainContext(g_main_context_new());
         }
 
         GDBusNodeInfo *introspection_data =
             g_dbus_node_info_new_for_xml(introspection_xml, NULL);
-        connection = g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, NULL);
+        setGDBusConnection(g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, NULL));
 
-        if (!connection)
+        if (!getGDBusConnection())
         {
                 g_dbus_node_info_unref(introspection_data);
                 g_printerr("Failed to connect to D-Bus\n");
@@ -1149,7 +1142,7 @@ void initMpris(void)
 
         GError *error = NULL;
         bus_name_id = g_bus_own_name_on_connection(
-            connection, app_name, G_BUS_NAME_OWNER_FLAGS_NONE,
+            getGDBusConnection(), app_name, G_BUS_NAME_OWNER_FLAGS_NONE,
             on_bus_name_acquired, on_bus_name_lost, NULL, NULL);
 
         if (bus_name_id == 0)
@@ -1159,9 +1152,9 @@ void initMpris(void)
         }
 
         registration_id = g_dbus_connection_register_object(
-            connection, "/org/mpris/MediaPlayer2",
+            getGDBusConnection(), "/org/mpris/MediaPlayer2",
             introspection_data->interfaces[0], &media_player_interface_vtable,
-            NULL, NULL, &error);
+            state, NULL, &error);
 
         if (!registration_id)
         {
@@ -1173,7 +1166,7 @@ void initMpris(void)
         }
 
         player_registration_id = g_dbus_connection_register_object(
-            connection, "/org/mpris/MediaPlayer2",
+            getGDBusConnection(), "/org/mpris/MediaPlayer2",
             introspection_data->interfaces[1], &player_interface_vtable, NULL,
             NULL, &error);
 
@@ -1195,7 +1188,7 @@ void emitStartPlayingMpris()
 #ifndef __APPLE__
         GVariant *parameters = g_variant_new("(s)", "Playing");
         g_dbus_connection_emit_signal(
-            connection, NULL, "/org/mpris/MediaPlayer2",
+            getGDBusConnection(), NULL, "/org/mpris/MediaPlayer2",
             "org.mpris.MediaPlayer2.Player", "PlaybackStatusChanged",
             parameters, NULL);
 #endif
@@ -1274,7 +1267,7 @@ void emitVolumeChanged(void)
 
         // Emit the PropertiesChanged signal for the volume property
         GVariant *volume_variant = g_variant_new_double(newVolume);
-        emit_properties_changed(connection, "Volume", volume_variant);
+        emit_properties_changed(getGDBusConnection(), "Volume", volume_variant);
 #endif
 }
 
@@ -1285,7 +1278,7 @@ void emitShuffleChanged(void)
 
         // Emit the PropertiesChanged signal for the volume property
         GVariant *volume_variant = g_variant_new_boolean(shuffleEnabled);
-        emit_properties_changed(connection, "Shuffle", volume_variant);
+        emit_properties_changed(getGDBusConnection(), "Shuffle", volume_variant);
 #endif
 }
 
@@ -1371,10 +1364,12 @@ void emitMetadataChanged(const gchar *title, const gchar *artist,
             g_variant_new_boolean(
                 (currentSong != NULL && currentSong->prev != NULL)));
 
+        PlayList *playlist = getPlaylist();
+
         CanGoNext =
             (currentSong == NULL || currentSong->next != NULL) ? TRUE : FALSE;
         CanGoNext =
-            (isRepeatListEnabled() && playlist.head != NULL) ? TRUE : CanGoNext;
+            (isRepeatListEnabled() && playlist->head != NULL) ? TRUE : CanGoNext;
 
         g_variant_builder_add(&changed_properties_builder, "{sv}", "CanGoNext",
                               g_variant_new_boolean(CanGoNext));
@@ -1409,7 +1404,7 @@ void emitMetadataChanged(const gchar *title, const gchar *artist,
 
         GError *error = NULL;
         gboolean result = g_dbus_connection_emit_signal(
-            connection, NULL, "/org/mpris/MediaPlayer2",
+            getGDBusConnection(), NULL, "/org/mpris/MediaPlayer2",
             "org.freedesktop.DBus.Properties", "PropertiesChanged",
             g_variant_new("(sa{sv}as)", "org.mpris.MediaPlayer2.Player",
                           &changed_properties_builder, NULL),

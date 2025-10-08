@@ -1,3 +1,4 @@
+#include "appstate.h"
 #include "directorytree.h"
 #include "file.h"
 #include "utils.h"
@@ -27,8 +28,6 @@ directorytree.c
 
 static int lastUsedId = 0;
 
-typedef void (*TimeoutCallback)(void);
-
 FileSystemEntry *createEntry(const char *name, int isDirectory,
                              FileSystemEntry *parent)
 {
@@ -36,10 +35,12 @@ FileSystemEntry *createEntry(const char *name, int isDirectory,
                 return NULL;
 
         int newId = lastUsedId + 1;
+
         if (newId < 0) // overflow detected
                 return NULL;
 
         FileSystemEntry *newEntry = malloc(sizeof(FileSystemEntry));
+
         if (newEntry != NULL)
         {
                 newEntry->name = strdup(name);
@@ -129,6 +130,7 @@ void setFullPath(FileSystemEntry *entry, const char *parentPath,
                 fprintf(stderr,
                         "Invalid entryName (possible path traversal): '%s'\n",
                         buf);
+
                 return;
         }
 
@@ -140,6 +142,7 @@ void setFullPath(FileSystemEntry *entry, const char *parentPath,
                 fprintf(
                     stderr,
                     "Parent or entry name too long or not null-terminated.\n");
+
                 return;
         }
 
@@ -147,18 +150,22 @@ void setFullPath(FileSystemEntry *entry, const char *parentPath,
                 parentLen--; // Normalize parent path (remove trailing slash)
 
         size_t needed = parentLen + 1 + nameLen + 1; // slash + null
+
         if (needed > MAXPATHLEN)
         {
                 fprintf(stderr, "Path too long, rejecting.\n");
+
                 return;
         }
 
         entry->fullPath = malloc(needed);
+
         if (entry->fullPath == NULL)
                 return;
 
         snprintf(entry->fullPath, needed, "%.*s/%s", (int)parentLen, parentPath,
                  entryName);
+
         entry->fullPath[needed - 1] = '\0'; // Explicit null-termination
 
         // Post-check for directory traversal patterns
@@ -172,6 +179,7 @@ void setFullPath(FileSystemEntry *entry, const char *parentPath,
                         entry->fullPath);
                 free(entry->fullPath);
                 entry->fullPath = NULL;
+
                 return;
         }
 }
@@ -183,6 +191,7 @@ void freeTree(FileSystemEntry *root)
 
         size_t cap = 128, top = 0;
         FileSystemEntry **stack = malloc(cap * sizeof(*stack));
+
         if (!stack)
                 return;
 
@@ -530,6 +539,8 @@ FileSystemEntry *createDirectoryTree(const char *startPath, int *numEntries)
 {
         FileSystemEntry *root = createEntry("root", 1, NULL);
 
+        setLibrary(root);
+
         setFullPath(root, "", "");
 
         *numEntries = readDirectory(startPath, root);
@@ -671,6 +682,7 @@ FileSystemEntry *reconstructTreeFromFile(const char *filename,
                                 continue;
                         }
                         root = node;
+                        setLibrary(root);
                 }
         }
         fclose(file);
@@ -678,13 +690,6 @@ FileSystemEntry *reconstructTreeFromFile(const char *filename,
         free(nodes);
         return root;
 }
-
-#ifdef __GNUC__
-#ifndef __APPLE__
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
-#endif
-#endif
 
 // Calculates the Levenshtein distance.
 // The Levenshtein distance between two strings is the minimum number of
@@ -780,8 +785,6 @@ char* normalizeString(const char *str)
                 }
         }
 
-        // FIXME: This doesn't seem to work!
-
         g_free(normalized);
         return g_string_free(result, FALSE);
 }
@@ -829,12 +832,6 @@ int calculateSearchDistance(const char *needle, const char *haystack, int isDire
 
         return distance;
 }
-
-#ifdef __GNUC__
-#ifndef __APPLE__
-#pragma GCC diagnostic pop
-#endif
-#endif
 
 char *stripFileExtension(const char *filename)
 {

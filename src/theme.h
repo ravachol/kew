@@ -3,6 +3,7 @@
 
 #include <limits.h>
 #include <stdint.h>
+
 typedef struct
 {
         unsigned char r;

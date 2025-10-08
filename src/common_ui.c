@@ -1,10 +1,10 @@
 #define _XOPEN_SOURCE 700
+#include "appstate.h"
 #include "common_ui.h"
 #include "common.h"
 #include "term.h"
 #include "theme.h"
 #include "utils.h"
-#include <locale.h>
 #include <stdio.h>
 #include <string.h>
 #include <wchar.h>
@@ -17,9 +17,7 @@ common_ui.c
 
 */
 
-unsigned int updateCounter = 0;
-bool isSameNameAsLastTime = false;
-
+static unsigned int updateCounter = 0;
 static const int startScrollingDelay = 10;
 static bool finishedScrolling = false;
 static int lastNamePosition = 0;
@@ -36,13 +34,18 @@ void setAlbumColor(PixelData color)
 {
         if (color.r >= 210 && color.g >= 210 && color.b >= 210)
         {
-                setRGB(defaultColorRGB);
+                AppState *state = getAppState();
+                setRGB(state->uiSettings.defaultColorRGB);
         }
         else
         {
                 setRGB(color);
         }
 }
+
+int getUpdateCounter() { return updateCounter; }
+
+void incrementUpdateCounter() { updateCounter++; }
 
 void resetColor(void) { printf("\033[0m"); }
 
@@ -358,7 +361,7 @@ void processNameScroll(const char *name, char *output, int maxWidth,
         {
                 scrollableLength = maxWidth;
                 scrollDelaySkippedCount++;
-                refresh = true;
+                triggerRefresh();
                 isLongName = true;
         }
 
@@ -392,7 +395,7 @@ void processNameScroll(const char *name, char *output, int maxWidth,
 
                 lastNamePosition++;
 
-                refresh = true;
+                triggerRefresh();
         }
 }
 

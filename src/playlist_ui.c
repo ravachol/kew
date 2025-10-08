@@ -1,7 +1,6 @@
 #include "playlist_ui.h"
 #include "common_ui.h"
 #include "songloader.h"
-#include "soundcommon.h"
 #include "term.h"
 #include "utils.h"
 #include <math.h>
@@ -19,6 +18,7 @@ static const int MAX_TERM_WIDTH = 1000;
 
 static int startIter = 0;
 static int previousChosenSong = 0;
+static bool isSameNameAsLastTime = false;
 
 Node *determineStartNode(Node *head, int *foundAt, int listSize)
 {
@@ -98,6 +98,8 @@ int displayPlaylistItems(Node *startNode, int startIter, int maxListSize,
         int maxNameWidth = termWidth - indent - 12;
         if (maxNameWidth <= 0)
                 return 0;
+
+        unsigned char defaultColor = ui->defaultColor;
 
         PixelData rowColor = {defaultColor, defaultColor, defaultColor};
 
@@ -204,7 +206,11 @@ int displayPlaylistItems(Node *startNode, int startIter, int maxListSize,
 
 void ensureChosenSongWithinLimits(int *chosenSong, PlayList *list)
 {
-        if (*chosenSong >= list->count)
+        if (list == NULL)
+        {
+                *chosenSong = 0;
+        }
+        else if (*chosenSong >= list->count)
         {
                 *chosenSong = list->count - 1;
         }
@@ -233,9 +239,9 @@ int determinePlaylistStart(int previousStartIter, int foundAt, int maxListSize,
                 startIter = *chosenSong;
         }
 
-        if (*chosenSong > startIter + maxListSize - round(maxListSize / 2))
+        if (*chosenSong > startIter + maxListSize - floor(maxListSize / 2))
         {
-                startIter = *chosenSong - maxListSize + round(maxListSize / 2);
+                startIter = *chosenSong - maxListSize + floor(maxListSize / 2);
         }
 
         if (reset && !endOfListReached)
@@ -277,18 +283,20 @@ int displayPlaylist(PlayList *list, int maxListSize, int indent,
 
         int foundAt = -1;
 
-        Node *startNode = determineStartNode(list->head, &foundAt, list->count);
+        Node *startNode  = NULL;
+        if (list != NULL)
+                startNode = determineStartNode(list->head, &foundAt, list->count);
 
         ensureChosenSongWithinLimits(chosenSong, list);
 
-        startIter =
-            determinePlaylistStart(startIter, foundAt, maxListSize, chosenSong,
-                                   reset, audioData.endOfListReached);
+        AudioData *audioData = getAudioData();
+
+        startIter = determinePlaylistStart(startIter, foundAt, maxListSize, chosenSong,
+                                   reset, (audioData != NULL) ? audioData->endOfListReached : true);
 
         moveStartNodeIntoPosition(foundAt, &startNode);
 
-        int printedRows =
-            displayPlaylistItems(startNode, startIter, maxListSize, termWidth,
+        int printedRows = displayPlaylistItems(startNode, startIter, maxListSize, termWidth,
                                  indent, *chosenSong, chosenNodeId, ui);
 
         while (printedRows <= maxListSize)

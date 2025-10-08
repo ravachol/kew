@@ -2,7 +2,6 @@
 #define COMMON_H
 
 #include <stdbool.h>
-#include "appstate.h"
 
 #ifndef MAXPATHLEN
 #define MAXPATHLEN 4096
@@ -17,27 +16,22 @@ typedef enum
         k_FLAC = 4
 } k_m4adec_filetype;
 
-extern volatile bool refresh;
-
-extern double pauseSeconds;
-extern double totalPauseSeconds;
-
-extern const char VERSION[];
-
-extern const char LAST_ROW[];
-
-extern bool hasPrintedError;
-
-extern const unsigned char defaultColor;
-
-extern const PixelData defaultColorRGB;
-
 void setErrorMessage(const char *message);
 
-bool hasErrorMessage();
+bool hasErrorMessage(void);
 
-char *getErrorMessage();
+char *getErrorMessage(void);
 
-void clearErrorMessage();
+void clearErrorMessage(void);
+
+void markErrorMessageAsPrinted(void);
+
+void triggerRefresh(void);
+
+void cancelRefresh(void);
+
+bool refreshTriggered(void);
+
+bool hasPrintedErrorMessage(void);
 
 #endif

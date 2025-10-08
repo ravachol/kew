@@ -289,7 +289,7 @@ void fuzzySearch(FileSystemEntry *root, int threshold)
 
         sortSearchResults();
 
-        refresh = true;
+        triggerRefresh();
 }
 
 int displaySearchBox(int indent, UISettings *ui)
@@ -299,7 +299,7 @@ int displaySearchBox(int indent, UISettings *ui)
         clearLine();
         printBlankSpaces(indent);
         printf(" [Search]: ");
-        applyColor(ui->colorMode, ui->theme.search_query, defaultColorRGB);
+        applyColor(ui->colorMode, ui->theme.search_query, ui->defaultColorRGB);
         // Save cursor position
         printf("%s", searchText);
         printf("\033[s");
@@ -490,7 +490,7 @@ int displaySearchResults(int maxListSize, int indent, int *chosenRow,
                         break;
 
                 applyColor(ui->colorMode, ui->theme.search_result,
-                           defaultColorRGB);
+                           ui->defaultColorRGB);
 
                 clearLine();
 
@@ -532,7 +532,7 @@ int displaySearchResults(int maxListSize, int indent, int *chosenRow,
                 printedRows++;
         }
 
-        applyColor(ui->colorMode, ui->theme.help, defaultColorRGB);
+        applyColor(ui->colorMode, ui->theme.help, ui->defaultColorRGB);
 
         while (printedRows < maxListSize)
         {
