@@ -2,12 +2,13 @@
 #define APPSTATE_H
 
 #include "cache.h"
+#include "events.h"
 #include "playlist.h"
 #include "theme.h"
 #include <gio/gio.h>
 #include <glib.h>
-#include <sys/param.h>
 #include <miniaudio.h>
+#include <sys/param.h>
 
 #ifndef MAXPATHLEN
 #define MAXPATHLEN 4096
@@ -35,9 +36,9 @@ typedef enum
 
 typedef enum
 {
-        COLOR_MODE_DEFAULT = 0,         // Colors from ANSI 16-color palette theme
-        COLOR_MODE_ALBUM = 1,           // Colors derived from album art
-        COLOR_MODE_THEME = 2            // Colors from truecolor theme
+        COLOR_MODE_DEFAULT = 0, // Colors from ANSI 16-color palette theme
+        COLOR_MODE_ALBUM = 1,   // Colors derived from album art
+        COLOR_MODE_THEME = 2    // Colors from truecolor theme
 } ColorMode;
 
 typedef struct
@@ -79,15 +80,15 @@ typedef struct
                                         // between sessions. Default on.
         int repeatState;                // 0=disabled,1=repeat track ,2=repeat list
         bool shuffleEnabled;
-        bool trackTitleAsWindowTitle;   // Set the window title to the title of
-                                        // the currently playing track
-        Theme theme;                    // The color theme.
-        bool themeIsSet;                // Whether a theme has been loaded;
-        char themeName[NAME_MAX];       // the name part of <themeName>.theme, usually
-                                        // lowercase first character, unlike theme.name
-                                        // which is taken from within the file.
+        bool trackTitleAsWindowTitle; // Set the window title to the title of
+                                      // the currently playing track
+        Theme theme;                  // The color theme.
+        bool themeIsSet;              // Whether a theme has been loaded;
+        char themeName[NAME_MAX];     // the name part of <themeName>.theme, usually
+                                      // lowercase first character, unlike theme.name
+                                      // which is taken from within the file.
         char themeAuthor[NAME_MAX];
-        ColorMode colorMode;            // Which color mode to use.
+        ColorMode colorMode; // Which color mode to use.
         const char *VERSION;
         char *LAST_ROW;
         unsigned char defaultColor;
@@ -96,29 +97,29 @@ typedef struct
 
 typedef struct
 {
-        volatile bool refresh;          // Trigger a full screen refresh next update (ie
-                                        // redraw cover)
-        int chosenNodeId;               // The id of the tree node that is chosen in library
-                                        // view
-        bool allowChooseSongs;          // In library view, has the user entered a folder
-                                        // that contains songs
-        bool openedSubDir;              // Opening a directory in an open directory.
-        int numSongsAboveSubDir;        // How many rows do we need to jump up if we
-                                        // close the parent directory and open one
-                                        // within
-        int numDirectoryTreeEntries;    // The number of entries in directory tree
-                                        // in library view
-        int numProgressBars;            // The number of progress dots at the bottom of
-                                        // track view
+        volatile bool refresh;       // Trigger a full screen refresh next update (ie
+                                     // redraw cover)
+        int chosenNodeId;            // The id of the tree node that is chosen in library
+                                     // view
+        bool allowChooseSongs;       // In library view, has the user entered a folder
+                                     // that contains songs
+        bool openedSubDir;           // Opening a directory in an open directory.
+        int numSongsAboveSubDir;     // How many rows do we need to jump up if we
+                                     // close the parent directory and open one
+                                     // within
+        int numDirectoryTreeEntries; // The number of entries in directory tree
+                                     // in library view
+        int numProgressBars;         // The number of progress dots at the bottom of
+                                     // track view
         volatile sig_atomic_t
-            resizeFlag;                 // Is the user resizing the terminal window
-        bool resetPlaylistDisplay;      // Should the playlist be reset, ie drawn
-                                        // starting from playing song
-        bool doNotifyMPRISSwitched;     // Emit mpris song switched signal
-        bool doNotifyMPRISPlaying;      // Emit mpris music is playing signal
-        bool collapseView;              // Signal that ui needs to collapse the view
-        bool waitingForNext;            // Playlist has songs but playback is stopped.
-        bool waitingForPlaylist;        // Playlist is empty.
+            resizeFlag;             // Is the user resizing the terminal window
+        bool resetPlaylistDisplay;  // Should the playlist be reset, ie drawn
+                                    // starting from playing song
+        bool doNotifyMPRISSwitched; // Emit mpris song switched signal
+        bool doNotifyMPRISPlaying;  // Emit mpris music is playing signal
+        bool collapseView;          // Signal that ui needs to collapse the view
+        bool waitingForNext;        // Playlist has songs but playback is stopped.
+        bool waitingForPlaylist;    // Playlist is empty.
         volatile bool loadedNextSong;
         bool isFastForwarding;
         bool isRewinding;
@@ -126,9 +127,9 @@ typedef struct
 
 typedef struct
 {
-        Cache *tmpCache;                // Cache for temporary files
-        ViewState currentView;          // The current view (playlist, library, track)
-                                        // that kew is on
+        Cache *tmpCache;       // Cache for temporary files
+        ViewState currentView; // The current view (playlist, library, track)
+                               // that kew is on
         UIState uiState;
         UISettings uiSettings;
 
@@ -269,10 +270,11 @@ typedef struct
 #ifndef PROGRESSBAR_STRUCT
 #define PROGRESSBAR_STRUCT
 
-typedef struct {
-    int row;
-    int col;
-    int length;
+typedef struct
+{
+        int row;
+        int col;
+        int length;
 } ProgressBar;
 
 #endif

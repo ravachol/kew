@@ -6,6 +6,7 @@
 #include "search_ui.h"
 #include "songloader.h"
 #include "sound.h"
+#include "common.h"
 #include "soundcommon.h"
 #include "term.h"
 #include "theme.h"
