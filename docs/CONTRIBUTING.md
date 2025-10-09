@@ -20,7 +20,9 @@ ffprobe -i AUDIO FILE -show_streams -select_streams a:0 -v quiet -print_format j
 
 ### Create a pull request
 
-After making any changes, open a pull request on Codeberg.
+After making any changes, open a pull request on Codeberg, develop branch.
+
+https://codeberg.org/ravachol/kew
 
 - Please contact me (kew-player@proton.me) before doing a big change, or risk the whole thing getting rejected.
 
