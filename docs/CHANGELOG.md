@@ -2,9 +2,13 @@
 
 ### 3.5.3
 
-- Bumped miniaudio to version v0.11.23 which fixes a bug on some version of mp3. (@hypercunx)
+- Bumped miniaudio to version v0.11.23 which among other things, fixes a bug with some versions of mp3. By @hypercunx.
 
 - Code cleanup, improved structure and removed the remaining globals among other things.
+
+#### Bug Fixes
+
+- Don't create ~/.config/kew/themes dir if there are no themes to be copied (user hasn't done sudo make install).
 
 ### Sponsors and Donations Wanted
 
@@ -16,7 +20,7 @@ https://github.com/sponsors/ravachol.
 
 ### 3.5.2
 
-- Fixed line in cover being erased in landscape mode on some terminals. (@hartalex)
+- Fixed line in cover being erased in landscape mode on some terminals. By @hartalex.
 
 - Fixed long names no longer scrolling.
 
