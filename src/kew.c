@@ -36,6 +36,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
 #include "appstate.h"
 #include "cache.h"
+#include "common.h"
 #include "common_ui.h"
 #include "events.h"
 #include "imgfunc.h"
@@ -53,12 +54,12 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include "theme.h"
 #include "utils.h"
 #include "visuals.h"
-#include <ctype.h>
 #include <dirent.h>
 #include <fcntl.h>
 #include <gio/gio.h>
 #include <glib-unix.h>
 #include <glib.h>
+#include "input.h"
 #include <locale.h>
 #include <poll.h>
 #include <pwd.h>
@@ -72,10 +73,6 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include <time.h>
 #include <unistd.h>
 
-#define MAX_TMP_SEQ_LEN 256 // Maximum length of temporary sequence buffer
-#define COOLDOWN_MS 500
-#define COOLDOWN2_MS 100
-
 #define TMPPIDFILE "/tmp/kew_"
 
 #ifndef PREFIX
@@ -84,459 +81,16 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
 const char VERSION[] = "3.5.3";
 
+AppState *statePtr = NULL;
+
 FILE *logFile = NULL;
+
 struct winsize windowSize;
-char digitsPressed[MAX_SEQ_LEN];
-int digitsPressedCount = 0;
 bool startFromTop = false;
 int lastNotifiedId = -1;
 bool songWasRemoved = false;
 bool noPlaylist = false;
-GMainLoop *main_loop;
-EventMapping keyMappings[NUM_KEY_MAPPINGS];
-struct timespec lastInputTime;
 bool exactSearch = false;
-int fuzzySearchThreshold = 100;
-int maxDigitsPressedCount = 9;
-int isNewSearchTerm = false;
-bool wasEndOfList = false;
-const int MOUSE_DRAG = 32;
-const int MOUSE_CLICK = 0;
-double draggedPositionSeconds = 0.0;
-bool draggingProgressBar = false;
-bool waitingForNext = false;
-AppState *statePtr = NULL;
-
-void updateLastInputTime(void)
-{
-        clock_gettime(CLOCK_MONOTONIC, &lastInputTime);
-}
-
-bool isCooldownElapsed(int milliSeconds)
-{
-        struct timespec currentTime;
-        clock_gettime(CLOCK_MONOTONIC, &currentTime);
-        double elapsedMilliseconds =
-            (currentTime.tv_sec - lastInputTime.tv_sec) * 1000.0 +
-            (currentTime.tv_nsec - lastInputTime.tv_nsec) / 1000000.0;
-
-        return elapsedMilliseconds >= milliSeconds;
-}
-
-enum EventType getMouseLastRowEvent(int mouseXOnLastRow)
-{
-        enum EventType result = EVENT_NONE;
-        AppState *state = getAppState();
-
-        size_t lastRowLen = strlen(state->uiSettings.LAST_ROW);
-        if (mouseXOnLastRow < 0 || (size_t)mouseXOnLastRow > lastRowLen)
-        {
-                // Out of bounds, return default
-                return EVENT_NONE;
-        }
-
-        int viewClicked = 1;
-        for (int i = 0; i < mouseXOnLastRow; i++)
-        {
-                if (state->uiSettings.LAST_ROW[i] == '|')
-                {
-                        viewClicked++;
-                }
-        }
-
-        switch (viewClicked)
-        {
-        case 1:
-                result = EVENT_SHOWPLAYLIST;
-                break;
-        case 2:
-                result = EVENT_SHOWLIBRARY;
-                break;
-        case 3:
-                result = EVENT_SHOWTRACK;
-                break;
-        case 4:
-                result = EVENT_SHOWSEARCH;
-                break;
-        case 5:
-                result = EVENT_SHOWKEYBINDINGS;
-                break;
-        default:
-                result = EVENT_NONE;
-                break;
-        }
-
-        // Switch to library view if track view is clicked and no song is
-        // currently playing
-        if (result == EVENT_SHOWTRACK && getCurrentSongData() == NULL)
-        {
-                result = EVENT_SHOWLIBRARY;
-        }
-
-        return result;
-}
-
-bool mouseInputHandled(AppState *state, char *seq, int i, struct Event *event)
-{
-        if (!seq || !event)
-                return false;
-
-        if (i < 0 || i >= NUM_KEY_MAPPINGS || keyMappings[i].seq == NULL)
-                return false;
-
-        const char *expected = keyMappings[i].seq;
-
-        char tmpSeq[MAX_SEQ_LEN];
-        size_t src_len = strnlen(seq, MAX_SEQ_LEN - 1);
-
-        if (src_len < 4) // Must be at least ESC[ M + 3 digits
-                return false;
-
-        snprintf(tmpSeq, sizeof tmpSeq, "%.*s", (int)src_len, seq);
-
-        int mouseButton = 0, mouseX = 0, mouseY = 0;
-        const char *end = tmpSeq + src_len;
-        const char *p = tmpSeq + 3; // Skip ESC[ M
-
-        for (int field = 0; field < 3 && p && *p && p < end; ++field)
-        {
-                char *endptr;
-                long val = strtol(p, &endptr, 10);
-                if (endptr == p || endptr > end) // no progress or out of bounds
-                        break;
-                p = endptr;
-
-                if (*p == ';')
-                        ++p;
-
-                switch (field)
-                {
-                case 0:
-                        mouseButton = (int)val;
-                        break;
-                case 1:
-                        mouseX = (int)val;
-                        break;
-                case 2:
-                        mouseY = (int)val;
-                        break;
-                }
-        }
-
-        ProgressBar *progressBar = getProgressBar();
-
-        if (progressBar->length > 0)
-        {
-                long long deltaCol =
-                    (long long)mouseX - (long long)progressBar->col;
-
-                if (deltaCol >= 0 && deltaCol <= (long long)progressBar->length)
-                {
-                        double position =
-                            (double)deltaCol / (double)progressBar->length;
-                        double duration = getCurrentSongDuration();
-                        draggedPositionSeconds = duration * position;
-                }
-                else
-                {
-                        draggedPositionSeconds = 0.0;
-                }
-        }
-        else
-        {
-                draggedPositionSeconds = 0.0;
-        }
-
-        int footerRow = getFooterRow();
-        int footerCol = getFooterCol();
-
-        if (mouseY == footerRow && footerCol > 0 && mouseX - footerCol > 0 &&
-            mouseX - footerCol < (int)strlen(state->uiSettings.LAST_ROW) &&
-            mouseButton != MOUSE_DRAG)
-        {
-                event->type = getMouseLastRowEvent(mouseX - footerCol);
-                return true;
-        }
-
-        if ((mouseY == progressBar->row || draggingProgressBar) &&
-            mouseX - progressBar->col >= 0 &&
-            mouseX - progressBar->col < progressBar->length &&
-            state->currentView == TRACK_VIEW)
-        {
-                if (mouseButton == MOUSE_DRAG || mouseButton == MOUSE_CLICK)
-                {
-                        draggingProgressBar = true;
-                        gint64 newPosUs =
-                            (gint64)(draggedPositionSeconds * G_USEC_PER_SEC);
-                        setPosition(newPosUs);
-                }
-                return true;
-        }
-
-        size_t expected_len = strlen(expected);
-        if (strlen(seq) < expected_len + 1)
-                return false;
-
-        if (strncmp(seq + 1, expected, expected_len) == 0)
-        {
-                event->type = keyMappings[i].eventType;
-                return true;
-        }
-
-        return false;
-}
-
-struct Event processInput(AppState *state)
-{
-        struct Event event;
-        event.type = EVENT_NONE;
-        event.key[0] = '\0';
-        bool cooldownElapsed = false;
-        bool cooldown2Elapsed = false;
-
-        UISettings *ui = &(state->uiSettings);
-        AppSettings *settings = getAppSettings();
-
-        if (isCooldownElapsed(COOLDOWN_MS))
-                cooldownElapsed = true;
-
-        if (isCooldownElapsed(COOLDOWN2_MS))
-                cooldown2Elapsed = true;
-
-        int seqLength = 0;
-        char seq[MAX_SEQ_LEN];
-        seq[0] = '\0'; // Set initial value
-        int keyReleased = 0;
-
-        bool foundInput = false;
-
-        // Find input
-        while (isInputAvailable())
-        {
-                char tmpSeq[MAX_TMP_SEQ_LEN];
-
-                seqLength =
-                    seqLength + readInputSequence(tmpSeq, sizeof(tmpSeq));
-
-                // Release most keys directly, seekbackward and seekforward can
-                // be read continuously
-                if (seqLength <= 0 &&
-                    strcmp(seq + 1, settings->seekBackward) != 0 &&
-                    strcmp(seq + 1, settings->seekForward) != 0)
-                {
-                        keyReleased = 1;
-                        break;
-                }
-
-                foundInput = true;
-
-                size_t seq_len = strnlen(seq, MAX_SEQ_LEN);
-                size_t remaining_space = MAX_SEQ_LEN - seq_len;
-
-                if (remaining_space < 1)
-                {
-                        break;
-                }
-
-                snprintf(seq + seq_len, remaining_space, "%s", tmpSeq);
-
-                // This slows the continous reads down to not get a a too fast
-                // scrolling speed
-                if (strcmp(seq + 1, settings->hardScrollUp) == 0 ||
-                    strcmp(seq + 1, settings->hardScrollDown) == 0 ||
-                    strcmp(seq + 1, settings->scrollUpAlt) == 0 ||
-                    strcmp(seq + 1, settings->scrollDownAlt) == 0 ||
-                    strcmp(seq + 1, settings->seekBackward) == 0 ||
-                    strcmp(seq + 1, settings->seekForward) == 0 ||
-                    strcmp(seq + 1, settings->nextPage) == 0 ||
-                    strcmp(seq + 1, settings->prevPage) == 0)
-                {
-                        keyReleased = 0;
-                        readInputSequence(
-                            tmpSeq,
-                            sizeof(tmpSeq)); // Dummy read to prevent scrolling
-                                             // after key released
-                        break;
-                }
-
-                keyReleased = 0;
-        }
-
-        if (!foundInput && cooldownElapsed)
-        {
-                if (!draggingProgressBar)
-                        flushSeek();
-                return event;
-        }
-
-        if (keyReleased)
-                return event;
-
-        event.type = EVENT_NONE;
-
-        c_strcpy(event.key, seq, MAX_SEQ_LEN);
-
-        if (state->currentView == SEARCH_VIEW)
-        {
-                if (strcmp(event.key, "\x7F") == 0 ||
-                    strcmp(event.key, "\x08") == 0)
-                {
-                        removeFromSearchText();
-                        resetSearchResult();
-                        fuzzySearch(getLibrary(), fuzzySearchThreshold);
-                        event.type = EVENT_SEARCH;
-                }
-                else if (((strnlen(event.key, sizeof(event.key)) == 1 &&
-                           event.key[0] != '\033' && event.key[0] != '\n' &&
-                           event.key[0] != '\t' && event.key[0] != '\r') ||
-                          strcmp(event.key, " ") == 0 ||
-                          (unsigned char)event.key[0] >= 0xC0) &&
-                         strcmp(event.key, "Z") != 0 &&
-                         strcmp(event.key, "X") != 0 &&
-                         strcmp(event.key, "C") != 0 &&
-                         strcmp(event.key, "V") != 0 &&
-                         strcmp(event.key, "B") != 0 &&
-                         strcmp(event.key, "N") != 0)
-                {
-                        addToSearchText(event.key, ui);
-                        resetSearchResult();
-                        fuzzySearch(getLibrary(), fuzzySearchThreshold);
-                        event.type = EVENT_SEARCH;
-                }
-        }
-
-        if (seq[0] == 127)
-        {
-                seq[0] = '\b'; // Treat as Backspace
-        }
-
-        bool handledMouse = false;
-        // Set event for pressed key
-        for (int i = 0; i < NUM_KEY_MAPPINGS; i++)
-        {
-                if (keyMappings[i].seq[0] != '\0' &&
-                    ((seq[0] == '\033' && strnlen(seq, MAX_SEQ_LEN) > 1 &&
-                      strcmp(seq, "\033\n") != 0 &&
-                      strcmp(seq + 1, keyMappings[i].seq) == 0) ||
-                     strcmp(seq, keyMappings[i].seq) == 0))
-                {
-                        if (event.type == EVENT_SEARCH &&
-                            keyMappings[i].eventType != EVENT_GOTOSONG)
-                        {
-                                break;
-                        }
-
-                        event.type = keyMappings[i].eventType;
-                        break;
-                }
-
-                // Received mouse input instead of keyboard input
-                if (keyMappings[i].seq[0] != '\0' &&
-                    strncmp(seq, "\033[<", 3) == 0 &&
-                    strnlen(seq, MAX_SEQ_LEN) > 4 && strchr(seq, 'M') != NULL &&
-                    mouseInputHandled(state, seq, i, &event))
-                {
-                        handledMouse = true;
-                        break;
-                }
-        }
-
-        if (!handledMouse)
-        {
-                // Stop dragging progress bar
-                draggingProgressBar = false;
-        }
-
-        for (int i = 0; i < NUM_KEY_MAPPINGS; i++)
-        {
-                if (strcmp(seq, "\033\n") == 0 &&
-                    strcmp(keyMappings[i].seq, "^M") == 0) // ALT+ENTER
-                {
-                        event.type = keyMappings[i].eventType;
-                        break;
-                }
-
-                if (strcmp(seq, keyMappings[i].seq) == 0 &&
-                    strnlen(seq, MAX_SEQ_LEN) > 1) // ALT+something
-                {
-                        event.type = keyMappings[i].eventType;
-                        break;
-                }
-        }
-
-        // Handle numbers
-        if (isdigit(event.key[0]))
-        {
-                if (digitsPressedCount < maxDigitsPressedCount)
-                        digitsPressed[digitsPressedCount++] = event.key[0];
-        }
-        else
-        {
-                // Handle multiple digits, sometimes mixed with other keys
-                for (int i = 0; i < MAX_SEQ_LEN; i++)
-                {
-                        if (isdigit(seq[i]))
-                        {
-                                if (digitsPressedCount < maxDigitsPressedCount)
-                                        digitsPressed[digitsPressedCount++] =
-                                            seq[i];
-                        }
-                        else
-                        {
-                                if (seq[i] == '\0')
-                                        break;
-
-                                if (seq[i] != settings->switchNumberedSong[0] &&
-                                    seq[i] !=
-                                        settings->hardSwitchNumberedSong[0] &&
-                                    seq[i] != settings->hardEndOfPlaylist[0])
-                                {
-                                        memset(digitsPressed, '\0',
-                                               sizeof(digitsPressed));
-                                        digitsPressedCount = 0;
-                                        break;
-                                }
-                                else if (seq[i] ==
-                                         settings->hardEndOfPlaylist[0])
-                                {
-                                        event.type = EVENT_GOTOENDOFPLAYLIST;
-                                        break;
-                                }
-                                else
-                                {
-                                        event.type = EVENT_GOTOSONG;
-                                        break;
-                                }
-                        }
-                }
-        }
-
-        // Handle song prev/next cooldown
-        if (!cooldownElapsed &&
-            (event.type == EVENT_NEXT || event.type == EVENT_PREV))
-                event.type = EVENT_NONE;
-        else if (event.type == EVENT_NEXT || event.type == EVENT_PREV)
-                updateLastInputTime();
-
-        // Handle seek/remove cooldown
-        if (!cooldown2Elapsed &&
-            (event.type == EVENT_REMOVE || event.type == EVENT_SEEKBACK ||
-             event.type == EVENT_SEEKFORWARD))
-                event.type = EVENT_NONE;
-        else if (event.type == EVENT_REMOVE || event.type == EVENT_SEEKBACK ||
-                 event.type == EVENT_SEEKFORWARD)
-                updateLastInputTime();
-
-        // Forget Numbers
-        if (event.type != EVENT_GOTOSONG &&
-            event.type != EVENT_GOTOENDOFPLAYLIST && event.type != EVENT_NONE)
-        {
-                memset(digitsPressed, '\0', sizeof(digitsPressed));
-                digitsPressedCount = 0;
-        }
-
-        return event;
-}
 
 void setEndOfListReached(AppState *state)
 {
@@ -553,7 +107,7 @@ void setEndOfListReached(AppState *state)
         LoadingThreadData *loadingdata = getLoadingData();
 
         loadingdata->loadA = true;
-        waitingForNext = true;
+        state->uiState.waitingForNext = true;
 
         clearCurrentSong();
 
@@ -711,7 +265,7 @@ void resetListAfterDequeuingPlayingSong(AppState *state)
 
                 audioData->currentFileIndex = 0;
                 audioData->restart = true;
-                waitingForNext = true;
+                state->uiState.waitingForNext = true;
 
                 LoadingThreadData *loadingdata = getLoadingData();
 
@@ -778,17 +332,19 @@ FileSystemEntry *enqueue(AppState *state, FileSystemEntry *entry)
         return firstEnqueuedEntry;
 }
 
-void playPreProcessing()
+bool playPreProcessing()
 {
-        wasEndOfList = false;
+        bool wasEndOfList = false;
 
         AudioData *audioData = getAudioData();
 
         if (audioData->endOfListReached)
                 wasEndOfList = true;
+
+        return wasEndOfList;
 }
 
-void playPostProcessing()
+void playPostProcessing(bool wasEndOfList)
 {
         if ((songWasRemoved && getCurrentSong() != NULL))
         {
@@ -870,7 +426,7 @@ void handleGoToSong(AppState *state)
         }
         else if (state->currentView == PLAYLIST_VIEW)
         {
-                if (digitsPressedCount == 0)
+                if (isDigitsPressed())
                 {
                         Node *current = getCurrentSong();
 
@@ -899,7 +455,7 @@ void handleGoToSong(AppState *state)
 
                                 loadingdata->loadA = true;
 
-                                playPreProcessing();
+                                bool wasEndOfList = playPreProcessing();
 
                                 playbackPlay(state);
 
@@ -909,7 +465,7 @@ void handleGoToSong(AppState *state)
                                                &found);
                                 play(found, state);
 
-                                playPostProcessing();
+                                playPostProcessing(wasEndOfList);
 
                                 setSkipOutOfOrder(false);
                                 setIsUsingSongDataA(true);
@@ -918,9 +474,9 @@ void handleGoToSong(AppState *state)
                 else
                 {
                         state->uiState.resetPlaylistDisplay = true;
-                        int songNumber = getSongNumber(digitsPressed);
-                        memset(digitsPressed, '\0', sizeof(digitsPressed));
-                        digitsPressedCount = 0;
+                        int songNumber = getSongNumber(getDigitsPressed());
+
+                        resetDigitsPressed();
 
                         setNextSongNeedsRebuilding(false);
 
@@ -943,7 +499,7 @@ void enqueueAndPlay(AppState *state)
 
         bool wasEmpty = (playlist->count == 0);
 
-        playPreProcessing();
+        bool wasEndOfList = playPreProcessing();
 
         if (state->currentView == PLAYLIST_VIEW)
         {
@@ -992,7 +548,7 @@ void enqueueAndPlay(AppState *state)
 
                 play(song, state);
 
-                playPostProcessing();
+                playPostProcessing(wasEndOfList);
 
                 setSkipOutOfOrder(false);
                 setIsUsingSongDataA(true);
@@ -1001,15 +557,13 @@ void enqueueAndPlay(AppState *state)
 
 void gotoBeginningOfPlaylist(AppState *state)
 {
-        digitsPressed[0] = 1;
-        digitsPressed[1] = '\0';
-        digitsPressedCount = 1;
+        pressDigit(1);
         handleGoToSong(state);
 }
 
 void gotoEndOfPlaylist(AppState *state)
 {
-        if (digitsPressedCount > 0)
+        if (isDigitsPressed())
         {
                 handleGoToSong(state);
         }
@@ -1022,6 +576,9 @@ void gotoEndOfPlaylist(AppState *state)
 void handleInput(AppState *state)
 {
         struct Event event = processInput(state);
+
+        if (event.type == EVENT_NONE)
+                return;
 
         AppSettings *settings = getAppSettings();
         PlayList *playlist = getPlaylist();
@@ -1483,7 +1040,7 @@ void initFirstPlay(Node *song, AppState *state)
 
         clock_gettime(CLOCK_MONOTONIC, &startTime);
 
-        main_loop = g_main_loop_new(NULL, FALSE);
+        GMainLoop *main_loop = g_main_loop_new(NULL, FALSE);
 
         g_unix_signal_add(SIGINT, quitOnSignal, main_loop);
         g_unix_signal_add(SIGHUP, quitOnSignal, main_loop);
@@ -1639,7 +1196,7 @@ void run(AppState *state, bool startPlaying)
         if (startPlaying)
                 setCurrentSong(playlist->head);
         else if (playlist->count > 0)
-                waitingForNext = true;
+                state->uiState.waitingForNext = true;
 
         initFirstPlay(getCurrentSong(), state);
         clearScreen();
@@ -1756,7 +1313,6 @@ void playFavoritesPlaylist(AppState *state)
         init(state);
 
         FileSystemEntry *library = getLibrary();
-
 
         deepCopyPlayListOntoList(favoritesPlaylist, &playlist);
         shufflePlaylist(playlist);
@@ -2218,17 +1774,18 @@ void initState(AppState *state)
         statePtr = state;
 }
 
-void initSettings(AppState *appState, AppSettings *settings)
+void initSettings(AppState *state, AppSettings *settings)
 {
-        getConfig(settings, &(appState->uiSettings));
+        getConfig(settings, &(state->uiSettings));
 
         UserData *userData = getUserData();
 
         userData->replayGainCheckFirst =
-            appState->uiSettings.replayGainCheckFirst;
-        mapSettingsToKeys(settings, &(appState->uiSettings), keyMappings);
-        enableMouse(&(appState->uiSettings));
-        setTrackTitleAsWindowTitle(&(appState->uiSettings));
+            state->uiSettings.replayGainCheckFirst;
+
+        initKeyMappings(state, settings);
+        enableMouse(&(state->uiSettings));
+        setTrackTitleAsWindowTitle(&(state->uiSettings));
 }
 
 // Copies default themes to config dir if they aren't alread there
@@ -2248,44 +1805,40 @@ bool ensureDefaultThemes(void)
                 return false;
         }
 
-        // Check if user themes directory exists
+        // Check if user themes directory already exists
         struct stat st;
         if (stat(themesPath, &st) == -1)
         {
-                mkdir(themesPath, 0755);
-
                 char *systemThemes = PREFIX "/share/kew/themes";
-
-                // Copy themes from systemThemes to themesPath
                 DIR *dir = opendir(systemThemes);
                 if (dir)
                 {
                         struct dirent *entry;
+                        bool needsDir = false;
+
                         while ((entry = readdir(dir)) != NULL)
                         {
                                 if (entry->d_type == DT_REG &&
                                     (strstr(entry->d_name, ".theme") ||
                                      strstr(entry->d_name, ".txt")))
                                 {
+                                        // Found at least one theme — create dir if not yet created
+                                        if (!needsDir)
+                                        {
+                                                if (mkdir(themesPath, 0755) == 0)
+                                                        needsDir = true;
+                                                else
+                                                        break; // couldn't create directory
+                                        }
+
                                         char src[MAXPATHLEN], dst[MAXPATHLEN];
 
-                                        // Check if paths would be truncated
                                         if (snprintf(src, sizeof(src), "%s/%s",
-                                                     systemThemes,
-                                                     entry->d_name) >=
-                                            (int)sizeof(src))
-                                        {
-                                                continue; // Skip this file if
-                                                          // path too long
-                                        }
+                                                     systemThemes, entry->d_name) >= (int)sizeof(src))
+                                                continue;
                                         if (snprintf(dst, sizeof(dst), "%s/%s",
-                                                     themesPath,
-                                                     entry->d_name) >=
-                                            (int)sizeof(dst))
-                                        {
-                                                continue; // Skip this file if
-                                                          // path too long
-                                        }
+                                                     themesPath, entry->d_name) >= (int)sizeof(dst))
+                                                continue;
 
                                         copyFile(src, dst);
                                         copied = true;
@@ -2296,7 +1849,6 @@ bool ensureDefaultThemes(void)
         }
 
         free(configPath);
-
         return copied;
 }
 

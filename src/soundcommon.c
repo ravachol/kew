@@ -1,4 +1,5 @@
 #include "soundcommon.h"
+#include "common.h"
 #include "appstate.h"
 #include "playerops.h"
 #include <math.h>
