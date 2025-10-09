@@ -1301,7 +1301,6 @@ void silentSwitchToNext(bool loadSong, AppState *state)
         activateSwitch(audioData);
 
         skipOutOfOrder = true;
-
         usingSongDataA = (audioData != NULL && audioData->currentFileIndex == 0);
 
         if (loadSong)
@@ -1318,9 +1317,7 @@ void silentSwitchToNext(bool loadSong, AppState *state)
         triggerRefresh();
 
         skipping = false;
-
         hasSilentlySwitched = true;
-
         nextSongNeedsRebuilding = true;
 
         setNextSong(NULL);
