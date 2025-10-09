@@ -2,6 +2,10 @@
 
 ### 3.5.3
 
+- Bumped miniaudio to version v0.11.23 which fixes a bug on some version of mp3. (@hypercunx)
+
+- Code cleanup, improved structure and removed the remaining globals among other things.
+
 ### Sponsors and Donations Wanted
 
 Thank you to for the generous donation @LTeder!
