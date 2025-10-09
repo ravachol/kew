@@ -858,6 +858,8 @@ void handleGoToSong(AppState *state)
 
                 FileSystemEntry *entry = getCurrentSearchEntry();
 
+                state->uiState.waitingForPlaylist = false;
+
                 setChosenDir(entry);
 
                 enqueueSongs(entry, state);
