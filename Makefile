@@ -150,7 +150,7 @@ endif
 
 OBJDIR = src/obj
 
-SRCS = src/appstate.c src/common_ui.c  src/common.c src/theme.c src/sound.c \
+SRCS = src/appstate.c src/common_ui.c  src/input.c src/common.c src/theme.c src/sound.c \
        src/directorytree.c src/notifications.c \
        src/soundcommon.c src/m4a.c src/search_ui.c src/playlist_ui.c \
        src/player_ui.c src/soundbuiltin.c src/mpris.c src/playerops.c \
