@@ -9,10 +9,6 @@
 #define MAXPATHLEN 4096
 #endif
 
-#ifndef NUM_KEY_MAPPINGS
-#define NUM_KEY_MAPPINGS 63
-#endif
-
 void getConfig(AppSettings *settings, UISettings *ui);
 
 void setConfig(AppSettings *settings, UISettings *ui);

@@ -1,5 +1,6 @@
 #include "player_ui.h"
 #include "appstate.h"
+#include "common.h"
 #include "common_ui.h"
 #include "directorytree.h"
 #include "imgfunc.h"

@@ -804,7 +804,8 @@ int switchAudioImplementation(AppState *state)
                 setImplSwitchNotReached();
                 setEOFReached();
                 free(filePath);
-                pthread_mutex_unlock(&dataSourceMutex);
+                pthread_mutex_unlock(&state->dataSourceMutex);
+                setErrorMessage("Can't load m4a files. Faad library is needed at compile time.");
                 return -1;
 #endif
         }
