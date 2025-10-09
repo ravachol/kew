@@ -18,11 +18,10 @@ soundcommon.c
 #define PATH_MAX 4096
 #endif
 
-pthread_mutex_t dataSourceMutex = PTHREAD_MUTEX_INITIALIZER;
-pthread_mutex_t switchMutex = PTHREAD_MUTEX_INITIALIZER;
-ma_device device = {0};
-int fftSize = 2048;
-
+static pthread_mutex_t dataSourceMutex = PTHREAD_MUTEX_INITIALIZER;
+static pthread_mutex_t switchMutex = PTHREAD_MUTEX_INITIALIZER;
+static ma_device device = {0};
+static int fftSize = 2048;
 static bool bufferReady = false;
 static bool paused = false;
 static bool stopped = true;
