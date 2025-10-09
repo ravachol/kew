@@ -882,7 +882,6 @@ void handleGoToSong(AppState *state)
                         else
                         {
                                 cleanupPlaybackDevice();
-
                                 state->uiState.loadedNextSong = true;
 
                                 setNextSongNeedsRebuilding(false);

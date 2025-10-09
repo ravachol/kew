@@ -12,7 +12,6 @@
 #include <sys/wait.h>
 #include <unistd.h>
 #include "songloader.h"
-#include "soundcommon.h"
 
 #ifndef USERDATA_STRUCT
 #define USERDATA_STRUCT

@@ -3,16 +3,17 @@
 #include "common_ui.h"
 #include "directorytree.h"
 #include "imgfunc.h"
-#include <math.h>
 #include "playerops.h"
 #include "playlist.h"
 #include "playlist_ui.h"
 #include "search_ui.h"
 #include "songloader.h"
+#include "soundcommon.h"
 #include "term.h"
 #include "utils.h"
 #include "visuals.h"
 #include <ctype.h>
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -1999,7 +2000,7 @@ void showTrackViewLandscape(int height, int width, float aspectRatio,
                               col, &(state->uiSettings));
                 printFooter(row + metadataHeight + 2 +
                                 state->uiSettings.visualizerHeight + 1,
-                            col,state, settings);
+                            col, state, settings);
         }
 }
 
