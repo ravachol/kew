@@ -1699,6 +1699,7 @@ void autostartIfStopped(FileSystemEntry *firstEnqueuedEntry, UIState *uis)
         PlayList *playlist = getPlaylist();
         AudioData *audioData = getAudioData();
 
+        uis->waitingForPlaylist = false;
         uis->waitingForNext = true;
         audioData->endOfListReached = false;
         if (firstEnqueuedEntry != NULL)
