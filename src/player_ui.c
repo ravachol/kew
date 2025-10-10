@@ -16,6 +16,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "appstate.h"
+#include "theme.h"
 /*
 
    player_ui.c
@@ -2046,99 +2048,86 @@ void showTrackView(int width, int height, AppSettings *settings,
         }
 }
 
-int printPlayer(SongData *songdata, double elapsedSeconds,
-                AppSettings *settings, AppState *state)
+int printPlayer(SongData *songdata, double elapsedSeconds, AppSettings *settings, AppState *state)
 {
-        UISettings *ui = &(state->uiSettings);
-        UIState *uis = &(state->uiState);
+    UISettings *ui = &(state->uiSettings);
+    UIState *uis = &(state->uiState);
 
-        if (hasPrintedError && refresh)
-                clearErrorMessage();
+    if (hasPrintedError && refresh)
+        clearErrorMessage();
 
-        if (!ui->uiEnabled)
-        {
-                return 0;
-        }
-
-        if (refresh)
-        {
-                hideCursor();
-
-                if (songdata != NULL && songdata->metadata != NULL &&
-                    !songdata->hasErrors && (songdata->hasErrors < 1))
-                {
-                        ui->color.r = songdata->red;
-                        ui->color.g = songdata->green;
-                        ui->color.b = songdata->blue;
-
-                        if (ui->trackTitleAsWindowTitle)
-                                setTerminalWindowTitle(
-                                    songdata->metadata->title);
-                }
-                else
-                {
-                        if (state->currentView == TRACK_VIEW)
-                        {
-                                state->currentView = LIBRARY_VIEW;
-                                clearScreen();
-                        }
-
-                        ui->color.r = defaultColor;
-                        ui->color.g = defaultColor;
-                        ui->color.b = defaultColor;
-
-                        if (ui->trackTitleAsWindowTitle)
-                                setTerminalWindowTitle("kew");
-                }
-
-                calcPreferredSize(ui);
-                calcIndent(songdata);
-        }
-
-        int term_w, term_h;
-        getTermSize(&term_w, &term_h);
-
-        state->uiState.miniMode = false;
-
-        if (state->currentView != PLAYLIST_VIEW)
-                state->uiState.resetPlaylistDisplay = true;
-
-        if (state->currentView == KEYBINDINGS_VIEW && refresh)
-        {
-                clearScreen();
-                showKeyBindings(songdata, settings, ui);
-                saveCursorPosition();
-                refresh = false;
-                fflush(stdout);
-        }
-        else if (state->currentView == PLAYLIST_VIEW && refresh)
-        {
-                showPlaylist(songdata, unshuffledPlaylist, &chosenRow,
-                             &(uis->chosenNodeId), state, settings);
-                state->uiState.resetPlaylistDisplay = false;
-                fflush(stdout);
-        }
-        else if (state->currentView == SEARCH_VIEW && refresh)
-        {
-                showSearch(songdata, &chosenSearchResultRow, ui, settings);
-                refresh = false;
-                fflush(stdout);
-        }
-        else if (state->currentView == LIBRARY_VIEW && refresh)
-        {
-                showLibrary(songdata, state, settings);
-                fflush(stdout);
-        }
-        else if (state->currentView == TRACK_VIEW)
-        {
-                showTrackView(term_w, term_h, settings, songdata, state,
-                              elapsedSeconds);
-                fflush(stdout);
-        }
-
+    if (!ui->uiEnabled) {
         return 0;
-}
+    }
 
+    if (refresh) {
+        hideCursor();
+        if (songdata != NULL && songdata->metadata != NULL && !songdata->hasErrors) {
+            ui->color.r = songdata->red;
+            ui->color.g = songdata->green;
+            ui->color.b = songdata->blue;
+            if (ui->trackTitleAsWindowTitle)
+                setTerminalWindowTitle(songdata->metadata->title);
+        } else {
+            if (state->currentView == TRACK_VIEW) {
+                state->currentView = LIBRARY_VIEW;
+                clearScreen();
+            }
+            ui->color.r = defaultColor;
+            ui->color.g = defaultColor;
+            ui->color.b = defaultColor;
+            if (ui->trackTitleAsWindowTitle)
+                setTerminalWindowTitle("kew");
+        }
+        calcPreferredSize(ui);
+        calcIndent(songdata);
+    }
+
+    int term_w, term_h;
+    getTermSize(&term_w, &term_h);
+
+    state->uiState.miniMode = false;
+    if (state->currentView != PLAYLIST_VIEW)
+        state->uiState.resetPlaylistDisplay = true;
+
+    if (state->currentView == KEYBINDINGS_VIEW && refresh) {
+        clearScreen();
+        showKeyBindings(songdata, settings, ui);
+        saveCursorPosition();
+        refresh = false;
+        fflush(stdout);
+    } else if (state->currentView == PLAYLIST_VIEW && refresh) {
+        showPlaylist(songdata, unshuffledPlaylist, &chosenRow, &(uis->chosenNodeId), state, settings);
+        state->uiState.resetPlaylistDisplay = false;
+        fflush(stdout);
+    } else if (state->currentView == SEARCH_VIEW && refresh) {
+        showSearch(songdata, &chosenSearchResultRow, ui, settings);
+        refresh = false;
+        fflush(stdout);
+    } else if (state->currentView == LIBRARY_VIEW && refresh) {
+        showLibrary(songdata, state, settings);
+        fflush(stdout);
+    } else if (state->currentView == TRACK_VIEW) {
+        showTrackView(term_w, term_h, settings, songdata, state, elapsedSeconds);
+        char color_buffer[32];
+        const char *lyric_line = get_current_lyric_line(state->current_lyrics, elapsedSeconds);
+        if (lyric_line && lyric_line[0] != '\0') {
+            int lyric_row = preferredHeight + 9; 
+            printf("\033[%d;1H\033[K", lyric_row);
+            int lyric_start_col = (term_w / 2) - ((int)strlen(lyric_line) / 2);
+            if (lyric_start_col < 1) lyric_start_col = 1;
+            
+            printf("\033[%d;%dH", lyric_row, lyric_start_col);
+            
+            printf("%s%s", getColorString(&state->uiSettings.theme.trackview_lyrics, color_buffer, sizeof(color_buffer)), lyric_line);
+        }
+        
+        
+        fflush(stdout);
+    }
+
+    return 0;
+} 
 void showHelp(void) { printHelp(); }
 
 void freeMainDirectoryTree(AppState *state)
