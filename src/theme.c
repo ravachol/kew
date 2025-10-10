@@ -2,11 +2,18 @@
 
 #include "theme.h"
 #include "common.h"
+#include "dirent.h"
+#include "utils.h"
 #include <ctype.h>
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
+
+#ifndef PREFIX
+#define PREFIX "/usr/local" // Fallback if not set in the makefile
+#endif
 
 typedef struct
 {
@@ -276,4 +283,66 @@ int loadThemeFromFile(const char *themesDir, const char *filename, Theme *curren
         return found;
 }
 
+// Copies default themes to config dir if they aren't alread there
+bool ensureDefaultThemes(void)
+{
+        bool copied = false;
 
+        char *configPath = getConfigPath();
+        if (!configPath)
+                return false;
+
+        char themesPath[MAXPATHLEN];
+        if (snprintf(themesPath, sizeof(themesPath), "%s/themes", configPath) >=
+            (int)sizeof(themesPath))
+        {
+                free(configPath);
+                return false;
+        }
+
+        // Check if user themes directory already exists
+        struct stat st;
+        if (stat(themesPath, &st) == -1)
+        {
+                char *systemThemes = PREFIX "/share/kew/themes";
+                DIR *dir = opendir(systemThemes);
+                if (dir)
+                {
+                        struct dirent *entry;
+                        bool needsDir = false;
+
+                        while ((entry = readdir(dir)) != NULL)
+                        {
+                                if (entry->d_type == DT_REG &&
+                                    (strstr(entry->d_name, ".theme") ||
+                                     strstr(entry->d_name, ".txt")))
+                                {
+                                        // Found at least one theme — create dir if not yet created
+                                        if (!needsDir)
+                                        {
+                                                if (mkdir(themesPath, 0755) == 0)
+                                                        needsDir = true;
+                                                else
+                                                        break; // couldn't create directory
+                                        }
+
+                                        char src[MAXPATHLEN], dst[MAXPATHLEN];
+
+                                        if (snprintf(src, sizeof(src), "%s/%s",
+                                                     systemThemes, entry->d_name) >= (int)sizeof(src))
+                                                continue;
+                                        if (snprintf(dst, sizeof(dst), "%s/%s",
+                                                     themesPath, entry->d_name) >= (int)sizeof(dst))
+                                                continue;
+
+                                        copyFile(src, dst);
+                                        copied = true;
+                                }
+                        }
+                        closedir(dir);
+                }
+        }
+
+        free(configPath);
+        return copied;
+}

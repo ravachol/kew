@@ -79,19 +79,19 @@ void setTextColorRGB(int r, int g, int b)
 
 void getTermSize(int *width, int *height)
 {
-    struct winsize w;
+        struct winsize w;
 
-    if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) == -1 ||
-        w.ws_row == 0 || w.ws_col == 0)
-    {
-        // Fallback for non-interactive environments (like Homebrew tests)
-        *height = 24;  // default terminal height
-        *width = 80;   // default terminal width
-        return;
-    }
+        if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) == -1 ||
+            w.ws_row == 0 || w.ws_col == 0)
+        {
+                // Fallback for non-interactive environments (like Homebrew tests)
+                *height = 24; // default terminal height
+                *width = 80;  // default terminal width
+                return;
+        }
 
-    *height = (int)w.ws_row;
-    *width = (int)w.ws_col;
+        *height = (int)w.ws_row;
+        *width = (int)w.ws_col;
 }
 
 void setNonblockingMode(void)
