@@ -1,5 +1,3 @@
-
-
 #include "theme.h"
 #include "common.h"
 #include <ctype.h>
@@ -7,151 +5,150 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
 
+// Struct internal untuk memetakan nama kunci di file tema ke field di struct Theme
 typedef struct
 {
-        const char *key;
-        ColorValue *field;
+    const char *key;
+    ColorValue *field;
 } ThemeMapping;
 
-PixelData hexToPixel(const char *hex)
-{
-        PixelData p = {0, 0, 0};
-        if (hex[0] == '#')
-                hex++; // skip #
 
-        if (strlen(hex) == 6)
-        {
-                char r[3], g[3], b[3];
-                strncpy(r, hex, 2);
-                r[2] = '\0';
-                strncpy(g, hex + 2, 2);
-                g[2] = '\0';
-                strncpy(b, hex + 4, 2);
-                b[2] = '\0';
-
-                p.r = (unsigned char)strtol(r, NULL, 16);
-                p.g = (unsigned char)strtol(g, NULL, 16);
-                p.b = (unsigned char)strtol(b, NULL, 16);
-        }
-        return p;
+static void setDefaultColor(ColorValue *color, uint8_t r, uint8_t g, uint8_t b) {
+    color->type = COLOR_TYPE_RGB;
+    color->rgb.r = r;
+    color->rgb.g = g;
+    color->rgb.b = b;
 }
 
-void trimWhitespace(char *str)
+void initTheme(Theme *theme)
 {
-        while (isspace((unsigned char)*str))
-                str++;
+    memset(theme, 0, sizeof(Theme));
+    strcpy(theme->theme_name, "default");
+    strcpy(theme->theme_author, "kew");
 
-        char *end = str + strlen(str) - 1;
-        while (end > str && isspace((unsigned char)*end))
-                *end-- = '\0';
-
-        memmove(str, str, strlen(str) + 1);
+    // Default colors
+    setDefaultColor(&theme->accent, 255, 107, 107);
+    setDefaultColor(&theme->text, 220, 220, 220);
+    setDefaultColor(&theme->textDim, 150, 150, 150);
+    setDefaultColor(&theme->textMuted, 100, 100, 100);
+    setDefaultColor(&theme->logo, 255, 107, 107);
+    setDefaultColor(&theme->header, 120, 120, 120);
+    setDefaultColor(&theme->footer, 120, 120, 120);
+    setDefaultColor(&theme->help, 180, 180, 180);
+    setDefaultColor(&theme->link, 107, 155, 255);
+    setDefaultColor(&theme->nowplaying, 255, 107, 107);
+    setDefaultColor(&theme->playlist_rownum, 100, 100, 100);
+    setDefaultColor(&theme->playlist_title, 220, 220, 220);
+    setDefaultColor(&theme->playlist_playing, 255, 107, 107);
+    setDefaultColor(&theme->trackview_title, 255, 255, 255);
+    setDefaultColor(&theme->trackview_artist, 200, 200, 200);
+    setDefaultColor(&theme->trackview_album, 180, 180, 180);
+    setDefaultColor(&theme->trackview_year, 150, 150, 150);
+    setDefaultColor(&theme->trackview_time, 150, 150, 150);
+    setDefaultColor(&theme->trackview_visualizer, 255, 107, 107);
+    setDefaultColor(&theme->trackview_lyrics, 200, 200, 200); // Warna default untuk lirik
+    setDefaultColor(&theme->library_artist, 220, 220, 220);
+    setDefaultColor(&theme->library_album, 200, 200, 200);
+    setDefaultColor(&theme->library_track, 180, 180, 180);
+    setDefaultColor(&theme->library_enqueued, 107, 255, 155);
+    setDefaultColor(&theme->library_playing, 255, 107, 107);
+    setDefaultColor(&theme->search_label, 150, 150, 150);
+    setDefaultColor(&theme->search_query, 255, 255, 255);
+    setDefaultColor(&theme->search_result, 220, 220, 220);
+    setDefaultColor(&theme->search_enqueued, 107, 255, 155);
+    setDefaultColor(&theme->search_playing, 255, 107, 107);
+    setDefaultColor(&theme->progress_filled, 255, 107, 107);
+    setDefaultColor(&theme->progress_elapsed, 220, 220, 220);
+    setDefaultColor(&theme->progress_empty, 80, 80, 80);
+    setDefaultColor(&theme->progress_duration, 150, 150, 150);
+    setDefaultColor(&theme->status_info, 107, 155, 255);
+    setDefaultColor(&theme->status_warning, 255, 255, 107);
+    setDefaultColor(&theme->status_error, 255, 50, 50);
+    setDefaultColor(&theme->status_success, 107, 255, 155);
 }
 
-void removeComment(char *str)
-{
-        char *p = str;
-        while (*p)
-        {
-                if (*p == '#')
-                {
-                        // If previous char is whitespace, treat as comment
-                        // start
-                        if (p == str || isspace((unsigned char)*(p - 1)))
-                        {
-                                *p = '\0';
-                                break;
-                        }
-                }
-                p++;
-        }
+
+void freeTheme(Theme *theme) {
+    (void)theme; 
 }
 
-// Parse hex color safely (e.g. #aabbcc)
-int parseHexColor(const char *hex, PixelData *out)
-{
-        if (!hex || strlen(hex) != 7 || hex[0] != '#')
-                return 0;
 
+const char* getColorString(const ColorValue *color, char *buffer, size_t buf_size) {
+    if (color->type == COLOR_TYPE_RGB) {
+        snprintf(buffer, buf_size, "\033[38;2;%d;%d;%dm", color->rgb.r, color->rgb.g, color->rgb.b);
+    } else { // COLOR_TYPE_ANSI
+        snprintf(buffer, buf_size, "\033[38;5;%dm", color->ansiIndex);
+    }
+    return buffer;
+}
+
+
+void trimWhitespace(char *str) {
+    char *start = str;
+    while (isspace((unsigned char)*start)) {
+        start++;
+    }
+    char *end = start + strlen(start) - 1;
+    while (end > start && isspace((unsigned char)*end)) {
+        *end-- = '\0';
+    }
+    memmove(str, start, strlen(start) + 1);
+}
+
+void removeComment(char *str) {
+    char *p = strchr(str, '#');
+    if (p) {
+        *p = '\0';
+    }
+}
+
+int parseColorValue(const char *value, ColorValue *out) {
+    if (!value || !out) return 0;
+
+    if (value[0] == '#') {
         unsigned int r, g, b;
-        if (sscanf(hex + 1, "%02x%02x%02x", &r, &g, &b) != 3)
-                return 0;
-
-        out->r = (unsigned char)r;
-        out->g = (unsigned char)g;
-        out->b = (unsigned char)b;
+        if (sscanf(value, "#%02x%02x%02x", &r, &g, &b) != 3) {
+            return 0;
+        }
+        out->type = COLOR_TYPE_RGB;
+        out->rgb.r = (uint8_t)r;
+        out->rgb.g = (uint8_t)g;
+        out->rgb.b = (uint8_t)b;
         return 1;
+    }
+
+    char *endptr = NULL;
+    errno = 0;
+    long index = strtol(value, &endptr, 10);
+    if (errno || endptr == value || *endptr != '\0' || index < -1 || index > 255) {
+        return 0;
+    }
+    out->type = COLOR_TYPE_ANSI;
+    out->ansiIndex = (int8_t)index;
+    return 1;
 }
 
-int parseColorValue(const char *value, ColorValue *out)
-{
-        if (!value || !out)
-                return 0;
+int loadThemeFromFile(const char *themesDir, const char *filename, Theme *currentTheme) {
+    
+    initTheme(currentTheme);
 
-        // Check if it's hex (#RRGGBB)
-        if (value[0] == '#')
-        {
-                unsigned int r, g, b;
-                if (sscanf(value, "#%02x%02x%02x", &r, &g, &b) != 3)
-                {
-                        return 0; // failed to parse hex
-                }
-                out->type = COLOR_TYPE_RGB;
-                out->rgb.r = (uint8_t)r;
-                out->rgb.g = (uint8_t)g;
-                out->rgb.b = (uint8_t)b;
-                return 1;
-        }
+    if (!themesDir || !filename) {
+        setErrorMessage("Theme directory or filename is NULL.");
+        return 0;
+    }
 
-        // Otherwise, try integer for ANSI index
-        char *endptr = NULL;
-        errno = 0;
-        long index = strtol(value, &endptr, 10);
-        if (errno || endptr == value || *endptr != '\0')
-        {
-                return 0; // invalid number
-        }
+    char path[512];
+    snprintf(path, sizeof(path), "%s/%s", themesDir, filename);
 
-        if (index < -1 || index > 15)
-        {
-                return 0; // out of range for 16-color ANSI
-        }
+    FILE *file = fopen(path, "r");
+    if (!file) {
+        setErrorMessage("Failed to open theme file.");
+        return 0;
+    }
 
-        out->type = COLOR_TYPE_ANSI;
-        out->ansiIndex = (int8_t)index;
-        return 1;
-}
-
-int loadThemeFromFile(const char *themesDir, const char *filename, Theme *currentTheme)
-{
-        memset(currentTheme, 0, sizeof(Theme));
-
-        if (!themesDir || !filename)
-        {
-                fprintf(stderr, "Theme directory or filename is NULL.\n");
-                setErrorMessage("Theme directory or filename is NULL.");
-                return 0;
-        }
-
-        char path[512];
-        if (snprintf(path, sizeof(path), "%s/%s", themesDir, filename) >=
-            (int)sizeof(path))
-        {
-                fprintf(stderr, "Theme path too long.\n");
-                return 0;
-        }
-
-        FILE *file = fopen(path, "r");
-        if (!file)
-        {
-                fprintf(stderr, "Failed to open theme file.\n");
-                setErrorMessage("Failed to open theme file.");
-                return 0;
-        }
-
-        // Map of all known keys to Theme fields
-        ThemeMapping mappings[] = {
+    ThemeMapping mappings[] = {
             {"accent", &currentTheme->accent},
             {"text", &currentTheme->text},
             {"textDim", &currentTheme->textDim},
@@ -189,91 +186,52 @@ int loadThemeFromFile(const char *themesDir, const char *filename, Theme *curren
             {"status_info", &currentTheme->status_info},
             {"status_warning", &currentTheme->status_warning},
             {"status_error", &currentTheme->status_error},
-            {"status_success", &currentTheme->status_success}};
+            {"status_success", &currentTheme->status_success}
+    };
+    const size_t mappingCount = sizeof(mappings) / sizeof(ThemeMapping);
 
-        const size_t mappingCount = sizeof(mappings) / sizeof(ThemeMapping);
+    char line[512];
+    int lineNum = 0;
+    while (fgets(line, sizeof(line), file)) {
+        lineNum++;
+        removeComment(line);
+        trimWhitespace(line);
 
-        char line[512];
-        int lineNum = 0;
-        int found = 0;
+        if (strlen(line) == 0) continue;
 
-        while (fgets(line, sizeof(line), file))
-        {
-                lineNum++;
+        char *eq = strchr(line, '=');
+        if (!eq) continue;
 
-                removeComment(line);
-                trimWhitespace(line);
+        *eq = '\0';
+        char *key = line;
+        char *value = eq + 1;
+        trimWhitespace(key);
+        trimWhitespace(value);
 
-                if (strlen(line) == 0 || line[0] == '[')
-                        continue; // skip empty or section headers
-
-                char *eq = strchr(line, '=');
-                if (!eq)
-                {
-                        continue;
-                }
-
-                *eq = '\0';
-                char *key = line;
-                char *value = eq + 1;
-
-                trimWhitespace(key);
-                trimWhitespace(value);
-
-                // Replace dots with underscores
-                for (char *c = key; *c; c++)
-                {
-                        if (*c == '.')
-                                *c = '_';
-                }
-
-                for (size_t i = 0; i < mappingCount; ++i)
-                {
-                        if (strcmp(key, "name") == 0)
-                        {
-                                // Copy theme name safely
-                                strncpy(currentTheme->theme_name, value,
-                                        sizeof(currentTheme->theme_name) - 1);
-                                currentTheme->theme_name
-                                    [sizeof(currentTheme->theme_name) - 1] =
-                                    '\0';
-                                found = 1;
-                                break;
-                        }
-                        if (strcmp(key, "author") == 0)
-                        {
-                                // Copy theme name safely
-                                strncpy(currentTheme->theme_author, value,
-                                        sizeof(currentTheme->theme_author) - 1);
-                                currentTheme->theme_author
-                                    [sizeof(currentTheme->theme_author) - 1] =
-                                    '\0';
-                                found = 1;
-                                break;
-                        }
-                        else if (strcmp(key, mappings[i].key) == 0)
-                        {
-                                ColorValue color;
-
-                                if (!parseColorValue(value, &color))
-                                {
-                                        fprintf(stderr,
-                                                "Invalid color value at line "
-                                                "%d: %s\n",
-                                                lineNum, value);
-                                }
-                                else
-                                {
-                                        *(mappings[i].field) = color;
-                                        found = 1;
-                                }
-                                break;
-                        }
-                }
+        for (char *c = key; *c; c++) {
+            if (*c == '.') *c = '_';
         }
 
-        fclose(file);
-        return found;
+        bool key_found = false;
+        if (strcmp(key, "name") == 0) {
+            strncpy(currentTheme->theme_name, value, sizeof(currentTheme->theme_name) - 1);
+            key_found = true;
+        } else if (strcmp(key, "author") == 0) {
+            strncpy(currentTheme->theme_author, value, sizeof(currentTheme->theme_author) - 1);
+            key_found = true;
+        } else {
+            for (size_t i = 0; i < mappingCount; ++i) {
+                if (strcmp(key, mappings[i].key) == 0) {
+                    if (!parseColorValue(value, mappings[i].field)) {
+                        fprintf(stderr, "Invalid color value at line %d: %s\n", lineNum, value);
+                    }
+                    key_found = true;
+                    break;
+                }
+            }
+        }
+    }
+
+    fclose(file);
+    return 1;
 }
-
-

@@ -6,7 +6,7 @@
 #include <glib.h>
 #include <sys/param.h>
 #include "theme.h"
-
+#include "lyrics.h"
 #ifndef MAXPATHLEN
 #define MAXPATHLEN 4096
 #endif
@@ -98,6 +98,7 @@ typedef struct
         ViewState currentView;                          // The current view (playlist, library, track) that kew is on
         UIState uiState;
         UISettings uiSettings;
+        Lyrics *current_lyrics;
 } AppState;
 
 #ifndef DEFAULTCOLOR
