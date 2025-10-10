@@ -411,7 +411,7 @@ void handleGoToSong(AppState *state)
         }
         else if (state->currentView == PLAYLIST_VIEW)
         {
-                if (isDigitsPressed())
+                if (!isDigitsPressed())
                 {
                         Node *current = getCurrentSong();
 
