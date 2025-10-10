@@ -1008,8 +1008,7 @@ int showKeyBindings(SongData *songdata, AppSettings *settings, AppState *state)
                settings->seekForward);
 
         printBlankSpaces(indent);
-        printf(" · Export Playlist: %s (to Music folder, "
-               "named after the first song)\n",
+        printf(" · Export Playlist: %s (named after the first song)\n",
                settings->savePlaylist);
 
         printBlankSpaces(indent);

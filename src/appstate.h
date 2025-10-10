@@ -2,12 +2,13 @@
 #define APPSTATE_H
 
 #include "cache.h"
-#include "events.h"
 #include "playlist.h"
+#include "stdio.h"
 #include "theme.h"
 #include <gio/gio.h>
 #include <glib.h>
 #include <miniaudio.h>
+#include <sys/ioctl.h>
 #include <sys/param.h>
 
 #ifndef MAXPATHLEN
@@ -123,6 +124,12 @@ typedef struct
         volatile bool loadedNextSong;
         bool isFastForwarding;
         bool isRewinding;
+        bool songWasRemoved;
+        bool startFromTop;
+        int lastNotifiedId;
+        bool noPlaylist;
+        struct winsize windowSize;
+        FILE *logFile;
 } UIState;
 
 typedef struct
