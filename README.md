@@ -176,6 +176,7 @@ Licensed under GPL. [See LICENSE for more information](./LICENSE).
 
 <details>
 <summary>Attributions</summary>
+
 kew makes use of the following great open source projects:
 
 Chafa by Hans Petter Jansson - https://hpjansson.org/chafa/
@@ -197,6 +198,7 @@ Minimp4 by Lieff - https://github.com/lieff/minimp4
 Nestegg by Mozilla - https://github.com/mozilla/nestegg
 
 Img_To_Txt by Danny Burrows - https://github.com/danny-burrows/img_to_txt
+
 </details>
 
 ## Authors
