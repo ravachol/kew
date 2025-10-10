@@ -2,6 +2,7 @@
 #define PIXELDATA_STRUCT
 
 #include <limits.h>
+#include <stdbool.h>
 #include <stdint.h>
 
 typedef struct
@@ -15,17 +16,20 @@ typedef struct
 #ifndef THEME_STRUCT
 #define THEME_STRUCT
 
-typedef enum {
-    COLOR_TYPE_RGB,
-    COLOR_TYPE_ANSI
+typedef enum
+{
+        COLOR_TYPE_RGB,
+        COLOR_TYPE_ANSI
 } ColorType;
 
-typedef struct {
-    ColorType type;
-    union {
-        PixelData rgb;
-        int8_t ansiIndex;      // -1 to 15 for 16 colors + -1 = foreground
-    };
+typedef struct
+{
+        ColorType type;
+        union
+        {
+                PixelData rgb;
+                int8_t ansiIndex; // -1 to 15 for 16 colors + -1 = foreground
+        };
 } ColorValue;
 
 typedef struct
@@ -74,3 +78,5 @@ typedef struct
 #endif
 
 int loadThemeFromFile(const char *themesDir, const char *filename, Theme *currentTheme);
+
+bool ensureDefaultThemes(void);

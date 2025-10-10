@@ -40,6 +40,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include "common_ui.h"
 #include "events.h"
 #include "imgfunc.h"
+#include "input.h"
 #include "mpris.h"
 #include "notifications.h"
 #include "player_ui.h"
@@ -54,12 +55,10 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include "theme.h"
 #include "utils.h"
 #include "visuals.h"
-#include <dirent.h>
 #include <fcntl.h>
 #include <gio/gio.h>
 #include <glib-unix.h>
 #include <glib.h>
-#include "input.h"
 #include <locale.h>
 #include <poll.h>
 #include <pwd.h>
@@ -73,24 +72,9 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include <time.h>
 #include <unistd.h>
 
-#define TMPPIDFILE "/tmp/kew_"
-
-#ifndef PREFIX
-#define PREFIX "/usr/local" // Fallback if not set in the makefile
-#endif
-
 const char VERSION[] = "3.5.3";
 
 AppState *statePtr = NULL;
-
-FILE *logFile = NULL;
-
-struct winsize windowSize;
-bool startFromTop = false;
-int lastNotifiedId = -1;
-bool songWasRemoved = false;
-bool noPlaylist = false;
-bool exactSearch = false;
 
 void setEndOfListReached(AppState *state)
 {
@@ -145,8 +129,9 @@ void notifyMPRISSwitch(SongData *currentSongData)
             getCurrentSong(), length);
 }
 
-void notifySongSwitch(SongData *currentSongData, UISettings *ui)
+void notifySongSwitch(SongData *currentSongData, AppState *state)
 {
+        UISettings *ui = &(state->uiSettings);
         if (currentSongData != NULL && currentSongData->hasErrors == 0 &&
             currentSongData->metadata &&
             strnlen(currentSongData->metadata->title, 10) > 0)
@@ -164,11 +149,11 @@ void notifySongSwitch(SongData *currentSongData, UISettings *ui)
                 Node *current = getCurrentSong();
 
                 if (current != NULL)
-                        lastNotifiedId = current->id;
+                        state->uiState.lastNotifiedId = current->id;
         }
 }
 
-void determineSongAndNotify(UISettings *ui)
+void determineSongAndNotify(AppState *state)
 {
         SongData *currentSongData = NULL;
 
@@ -179,10 +164,10 @@ void determineSongAndNotify(UISettings *ui)
         if (currentSongData && current)
                 current->song.duration = currentSongData->duration;
 
-        if (lastNotifiedId != current->id)
+        if (state->uiState.lastNotifiedId != current->id)
         {
                 if (!isDeleted)
-                        notifySongSwitch(currentSongData, ui);
+                        notifySongSwitch(currentSongData, state);
         }
 }
 
@@ -225,7 +210,7 @@ void refreshPlayer(AppState *state)
 
 void resetListAfterDequeuingPlayingSong(AppState *state)
 {
-        startFromTop = true;
+        state->uiState.startFromTop = true;
 
         if (getLastPlayedId() < 0)
                 return;
@@ -257,7 +242,7 @@ void resetListAfterDequeuingPlayingSong(AppState *state)
 
                 unloadSongA(state);
                 unloadSongB(state);
-                songWasRemoved = true;
+                state->uiState.songWasRemoved = true;
 
                 UserData *userData = getUserData();
 
@@ -308,7 +293,7 @@ FileSystemEntry *enqueue(AppState *state, FileSystemEntry *entry)
         if (audioData->restart)
         {
                 Node *lastSong = findSelectedEntryById(getPlaylist(), getLastPlayedId());
-                startFromTop = false;
+                state->uiState.startFromTop = false;
 
                 if (lastSong == NULL)
                 {
@@ -317,7 +302,7 @@ FileSystemEntry *enqueue(AppState *state, FileSystemEntry *entry)
                         else
                         {
                                 setLastPlayedId(-1);
-                                startFromTop = true;
+                                state->uiState.startFromTop = true;
                         }
                 }
         }
@@ -344,11 +329,11 @@ bool playPreProcessing()
         return wasEndOfList;
 }
 
-void playPostProcessing(bool wasEndOfList)
+void playPostProcessing(bool wasEndOfList, AppState *state)
 {
-        if ((songWasRemoved && getCurrentSong() != NULL))
+        if ((state->uiState.songWasRemoved && getCurrentSong() != NULL))
         {
-                songWasRemoved = false;
+                state->uiState.songWasRemoved = false;
         }
 
         if (wasEndOfList)
@@ -465,7 +450,7 @@ void handleGoToSong(AppState *state)
                                                &found);
                                 play(found, state);
 
-                                playPostProcessing(wasEndOfList);
+                                playPostProcessing(wasEndOfList, state);
 
                                 setSkipOutOfOrder(false);
                                 setIsUsingSongDataA(true);
@@ -548,7 +533,7 @@ void enqueueAndPlay(AppState *state)
 
                 play(song, state);
 
-                playPostProcessing(wasEndOfList);
+                playPostProcessing(wasEndOfList, state);
 
                 setSkipOutOfOrder(false);
                 setIsUsingSongDataA(true);
@@ -744,10 +729,10 @@ void updatePlayer(AppState *state)
         ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws);
 
         // Check if window has changed size
-        if (ws.ws_col != windowSize.ws_col || ws.ws_row != windowSize.ws_row)
+        if (ws.ws_col != state->uiState.windowSize.ws_col || ws.ws_row != state->uiState.windowSize.ws_row)
         {
                 uis->resizeFlag = 1;
-                windowSize = ws;
+                state->uiState.windowSize = ws;
         }
 
         // resizeFlag can also be set by handleResize
@@ -813,10 +798,10 @@ void loadAudioData(AppState *state)
 
                                 if (current == NULL)
                                 {
-                                        if (startFromTop)
+                                        if (state->uiState.startFromTop)
                                         {
                                                 setCurrentSong(playlist->head);
-                                                startFromTop = false;
+                                                state->uiState.startFromTop = false;
                                         }
                                         else
                                                 setCurrentSong(playlist->tail);
@@ -826,7 +811,7 @@ void loadAudioData(AppState *state)
                         audioData->restart = false;
                         state->uiState.waitingForPlaylist = false;
                         state->uiState.waitingForNext = false;
-                        songWasRemoved = false;
+                        state->uiState.songWasRemoved = false;
 
                         if (isShuffleEnabled())
                                 reshufflePlaylist();
@@ -866,7 +851,7 @@ void loadAudioData(AppState *state)
                  (getNextSongNeedsRebuilding() || getNextSong() == NULL) && !isSongLoading())
         {
                 loadNextSong(state);
-                determineSongAndNotify(&(state->uiSettings));
+                determineSongAndNotify(state);
         }
 }
 
@@ -911,7 +896,7 @@ void prepareNextSong(AppState *state)
         }
         else
         {
-                determineSongAndNotify(&(state->uiSettings));
+                determineSongAndNotify(state);
         }
 }
 
@@ -1100,6 +1085,7 @@ void cleanupOnExit()
 #ifdef CHAFA_VERSION_1_16
         retire_passthrough_workarounds_tmux();
 #endif
+
         AppSettings *settings = getAppSettings();
         PlayList *playlist = getPlaylist();
         PlayList *unshuffledPlaylist = getUnshuffledPlaylist();
@@ -1122,13 +1108,15 @@ void cleanupOnExit()
         pthread_mutex_unlock(&(state->dataSourceMutex));
         pthread_mutex_destroy(&(state->dataSourceMutex));
         freeVisuals();
+
 #ifdef USE_DBUS
         cleanupDbusConnection();
 #endif
 
 #ifdef DEBUG
-        fclose(logFile);
+        fclose(state->uiState.logFile);
 #endif
+
         if (freopen("/dev/stderr", "w", stderr) == NULL)
         {
                 perror("freopen error");
@@ -1137,6 +1125,7 @@ void cleanupOnExit()
         printf("\n");
         showCursor();
         exitAlternateScreenBuffer();
+
         if (statePtr->uiSettings.mouseEnabled)
                 disableTerminalMouseButtons();
 
@@ -1149,7 +1138,7 @@ void cleanupOnExit()
                 printf("Please make sure the path is set correctly. \n");
                 printf("To set it type: kew path \"/path/to/Music\". \n");
         }
-        else if (noPlaylist)
+        else if (state->uiState.noPlaylist)
         {
                 printf("Music not found.\n");
         }
@@ -1231,7 +1220,7 @@ void init(AppState *state)
         disableTerminalLineInput();
         setRawInputMode();
         initResize();
-        ioctl(STDOUT_FILENO, TIOCGWINSZ, &windowSize);
+        ioctl(STDOUT_FILENO, TIOCGWINSZ, &state->uiState.windowSize);
         enableScrolling();
         setNonblockingMode();
         state->tmpCache = createCache();
@@ -1261,8 +1250,8 @@ void init(AppState *state)
 
 #ifdef DEBUG
         // g_setenv("G_MESSAGES_DEBUG", "all", TRUE);
-        logFile = freopen("error.log", "w", stderr);
-        if (logFile == NULL)
+        state->uiState.logFile = freopen("error.log", "w", stderr);
+        if (state->uiState.logFile == NULL)
         {
                 fprintf(stdout, "Failed to redirect stderr to error.log\n");
         }
@@ -1376,7 +1365,7 @@ void removeArgElement(char *argv[], int index, int *argc)
         (*argc)--;
 }
 
-void handleOptions(int *argc, char *argv[], UISettings *ui)
+void handleOptions(int *argc, char *argv[], UISettings *ui, bool *exactSearch)
 {
         const char *noUiOption = "--noui";
         const char *noCoverOption = "--nocover";
@@ -1430,7 +1419,7 @@ void handleOptions(int *argc, char *argv[], UISettings *ui)
                 if (c_strcasestr(argv[i], exactOption, maxLen) ||
                     c_strcasestr(argv[i], exactOption2, maxLen))
                 {
-                        exactSearch = true;
+                        *exactSearch = true;
                         idx = i;
                 }
         }
@@ -1758,6 +1747,11 @@ void initState(AppState *state)
         state->uiState.loadedNextSong = false;
         state->uiState.isFastForwarding = false;
         state->uiState.isRewinding = false;
+        state->uiState.songWasRemoved = false;
+        state->uiState.startFromTop = false;
+        state->uiState.lastNotifiedId = -1;
+        state->uiState.noPlaylist = false;
+        state->uiState.logFile = NULL;
         state->tmpCache = NULL;
         state->uiSettings.LAST_ROW = " [F2 Playlist|F3 Library|F4 Track|F5 Search|F6 Help]";
         state->uiSettings.defaultColor = 150;
@@ -1786,70 +1780,6 @@ void initSettings(AppState *state, AppSettings *settings)
         initKeyMappings(state, settings);
         enableMouse(&(state->uiSettings));
         setTrackTitleAsWindowTitle(&(state->uiSettings));
-}
-
-// Copies default themes to config dir if they aren't alread there
-bool ensureDefaultThemes(void)
-{
-        bool copied = false;
-
-        char *configPath = getConfigPath();
-        if (!configPath)
-                return false;
-
-        char themesPath[MAXPATHLEN];
-        if (snprintf(themesPath, sizeof(themesPath), "%s/themes", configPath) >=
-            (int)sizeof(themesPath))
-        {
-                free(configPath);
-                return false;
-        }
-
-        // Check if user themes directory already exists
-        struct stat st;
-        if (stat(themesPath, &st) == -1)
-        {
-                char *systemThemes = PREFIX "/share/kew/themes";
-                DIR *dir = opendir(systemThemes);
-                if (dir)
-                {
-                        struct dirent *entry;
-                        bool needsDir = false;
-
-                        while ((entry = readdir(dir)) != NULL)
-                        {
-                                if (entry->d_type == DT_REG &&
-                                    (strstr(entry->d_name, ".theme") ||
-                                     strstr(entry->d_name, ".txt")))
-                                {
-                                        // Found at least one theme — create dir if not yet created
-                                        if (!needsDir)
-                                        {
-                                                if (mkdir(themesPath, 0755) == 0)
-                                                        needsDir = true;
-                                                else
-                                                        break; // couldn't create directory
-                                        }
-
-                                        char src[MAXPATHLEN], dst[MAXPATHLEN];
-
-                                        if (snprintf(src, sizeof(src), "%s/%s",
-                                                     systemThemes, entry->d_name) >= (int)sizeof(src))
-                                                continue;
-                                        if (snprintf(dst, sizeof(dst), "%s/%s",
-                                                     themesPath, entry->d_name) >= (int)sizeof(dst))
-                                                continue;
-
-                                        copyFile(src, dst);
-                                        copied = true;
-                                }
-                        }
-                        closedir(dir);
-                }
-        }
-
-        free(configPath);
-        return copied;
 }
 
 void initTheme(int argc, char *argv[], AppState *state)
@@ -1954,7 +1884,8 @@ int main(int argc, char *argv[])
                 setMusicPath();
         }
 
-        handleOptions(&argc, argv, ui);
+        bool exactSearch = false;
+        handleOptions(&argc, argv, ui, &exactSearch);
         loadFavoritesPlaylist(settings->path, &favoritesPlaylist);
 
         ensureDefaultThemes();
@@ -1983,7 +1914,7 @@ int main(int argc, char *argv[])
 
                 if (playlist->count == 0)
                 {
-                        noPlaylist = true;
+                        state->uiState.noPlaylist = true;
                         exit(0);
                 }
 
