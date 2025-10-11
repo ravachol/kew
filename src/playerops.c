@@ -180,8 +180,6 @@ void skip(AppState *state)
                 triggerRefresh();
 }
 
-void resetStartTime(void) { clock_gettime(CLOCK_MONOTONIC, &startTime); }
-
 void updatePlaybackPosition(double elapsedSeconds)
 {
 #ifndef __APPLE__
@@ -430,7 +428,7 @@ void prepareIfSkippedSilent(void)
         {
                 skipping = true;
                 hasSilentlySwitched = false;
-                resetStartTime();
+                resetClock();
                 setCurrentImplementationType(NONE);
                 setRepeatEnabled(false);
 
