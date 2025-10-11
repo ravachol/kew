@@ -131,7 +131,6 @@ typedef struct
         bool noPlaylist;
         struct winsize windowSize;
         FILE *logFile;
-        Lyrics *lyrics;
 } UIState;
 
 typedef struct
@@ -323,6 +322,7 @@ typedef struct
         int coverHeight;
         double duration;
         bool hasErrors;
+        Lyrics *lyrics;
 } SongData;
 #endif
 

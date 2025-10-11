@@ -2,6 +2,7 @@
 #include "cache.h"
 #include "file.h"
 #include "imgfunc.h"
+#include "lyrics.h"
 #include "sound.h"
 #include "stb_image.h"
 #include "tagLibWrapper.h"
@@ -359,6 +360,15 @@ void loadMetaData(SongData *songdata, AppState *state)
                       &(songdata->coverHeight));
 }
 
+void unloadLyrics(SongData *songdata)
+{
+        if (songdata->lyrics)
+        {
+                freeLyrics(songdata->lyrics);
+                songdata->lyrics = NULL;
+        }
+}
+
 SongData *loadSongData(char *filePath, AppState *state)
 {
         SongData *songdata = NULL;
@@ -376,6 +386,7 @@ SongData *loadSongData(char *filePath, AppState *state)
         songdata->avgBitRate = 0;
         c_strcpy(songdata->filePath, filePath, sizeof(songdata->filePath));
         loadMetaData(songdata, state);
+        songdata->lyrics = loadLyrics(songdata->filePath);
         loadColor(songdata);
         return songdata;
 }
@@ -398,6 +409,8 @@ void unloadSongData(SongData **songdata, AppState *state)
         {
                 deleteFile(data->coverArtPath);
         }
+
+        unloadLyrics(data);
 
         free(data->metadata);
         free(data->trackId);
