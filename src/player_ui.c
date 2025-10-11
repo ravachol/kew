@@ -870,6 +870,7 @@ void printFooter(int row, int col, AppState *state, AppSettings *settings)
                 // Android.
                 printBlankSpaces(indent);
                 printf("%.*s", term_w * 2, text);
+                clearRestOfLine();
 #endif
                 return;
         }

@@ -563,9 +563,6 @@ void handleInput(AppState *state)
 {
         struct Event event = processInput(state);
 
-        if (event.type == EVENT_NONE)
-                return;
-
         AppSettings *settings = getAppSettings();
         PlayList *playlist = getPlaylist();
 
