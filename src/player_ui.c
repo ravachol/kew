@@ -1957,18 +1957,16 @@ void printAt(int row, int indent, const char *text, int maxWidth)
         printf("\033[%d;%dH%s", row, indent, buffer);
 }
 
-void printLyrics(AppState *state, int row, int col, int term_w, double elapsedSeconds)
+void printLyrics(UISettings *ui, SongData *songdata, int row, int col, int term_w, double elapsedSeconds)
 {
-        UISettings *ui = &(state->uiSettings);
-
-        const char *line = getLyricsLine(state->uiState.lyrics, elapsedSeconds);
+        const char *line = getLyricsLine(songdata->lyrics, elapsedSeconds);
 
         if (line && line[0] != '\0')
         {
 
                 printf("\033[%d;1H\033[K", row);
 
-                int length = ((int)strnlen(line, state->uiState.lyrics->maxLength - 1));
+                int length = ((int)strnlen(line, songdata->lyrics->maxLength - 1));
 
                 length -= col + length - term_w;
 
@@ -2031,7 +2029,7 @@ void showTrackViewLandscape(int height, int width, float aspectRatio,
         }
 
         if (row > 0)
-                printLyrics(state, row + metadataHeight + 1, indent + 1, term_w, elapsedSeconds);
+                printLyrics(&(state->uiSettings), songdata, row + metadataHeight + 1, indent + 1, term_w, elapsedSeconds);
 
         if (row > 0)
                 printVisualizer(row + metadataHeight + 2, col, visualizerWidth,
@@ -2086,7 +2084,7 @@ void showTrackViewPortrait(int height, AppSettings *settings,
         }
 
         if (row > 0)
-                printLyrics(state, row + metadataHeight + 1, indent + 1, term_w, elapsedSeconds);
+                printLyrics(&(state->uiSettings), songdata, row + metadataHeight + 1, indent + 1, term_w, elapsedSeconds);
 
         printVisualizer(row + metadataHeight + 2, col, visualizerWidth,
                         settings, elapsedSeconds, state);

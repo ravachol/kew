@@ -420,19 +420,6 @@ int calcAvgBitRate(double duration, const char *filePath)
 
         return avgBitRate;
 }
-void setLyrics(AppState *state, char *filePath)
-{
-        if (state->uiState.lyrics)
-        {
-                freeLyrics(state->uiState.lyrics);
-                state->uiState.lyrics = NULL;
-        }
-
-        if (filePath)
-        {
-                state->uiState.lyrics = loadLyrics(filePath);
-        }
-}
 
 int switchAudioImplementation(AppState *state)
 {
@@ -547,8 +534,6 @@ int switchAudioImplementation(AppState *state)
                                 return -1;
                         }
 
-                        setLyrics(state, filePath);
-
                         pthread_mutex_unlock(&(state->dataSourceMutex));
 
                         setImplSwitchNotReached();
@@ -609,8 +594,6 @@ int switchAudioImplementation(AppState *state)
                                 pthread_mutex_unlock(&(state->dataSourceMutex));
                                 return -1;
                         }
-
-                        setLyrics(state, filePath);
 
                         pthread_mutex_unlock(&(state->dataSourceMutex));
 
@@ -679,8 +662,6 @@ int switchAudioImplementation(AppState *state)
                                 return -1;
                         }
 
-                        setLyrics(state, filePath);
-
                         pthread_mutex_unlock(&(state->dataSourceMutex));
 
                         setImplSwitchNotReached();
@@ -746,8 +727,6 @@ int switchAudioImplementation(AppState *state)
                                 pthread_mutex_unlock(&(state->dataSourceMutex));
                                 return -1;
                         }
-
-                        setLyrics(state, filePath);
 
                         pthread_mutex_unlock(&(state->dataSourceMutex));
 
@@ -817,8 +796,6 @@ int switchAudioImplementation(AppState *state)
                                 pthread_mutex_unlock(&(state->dataSourceMutex));
                                 return -1;
                         }
-
-                        setLyrics(state, filePath);
 
                         pthread_mutex_unlock(&(state->dataSourceMutex));
 
