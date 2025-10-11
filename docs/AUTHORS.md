@@ -9,6 +9,7 @@
 * Alex Hart @hartalex <alex_codeberg@hart.gg>
 * Chromium-3-Oxide <Chromium3Oxide@protonmail.com>
 * Davis @kazemaksOG <davis.kazemaks@gmail.com>
+* @dandelion-75
 * DNEGEL3125 @DNEGEL3125
 * Hans Petter Jansson @hpjansson <hpj@hpjansson.org>
 * @hypercunx

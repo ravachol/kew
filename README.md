@@ -121,6 +121,7 @@ kew path "/home/joe/Musik/" (changes the path)
 #### Advanced
 
 * <kbd>u</kbd> to update the library.
+* <kbd>m</kbd> show full page lyrics in track view. See [Lyrics](#lyrics)
 * <kbd>v</kbd> to toggle the visualizer.
 * <kbd>b</kbd> to toggle album covers drawn in ascii or as a normal image.
 * <kbd>n</kbd> to toggle notifications.
@@ -162,6 +163,12 @@ Press <kbd>v</kbd> to turn off visualizer.
 Press <kbd>b</kbd> for ASCII covers.
 
 A terminal emulator that can handle TrueColor and sixels is recommended. See [Sixels in Terminal](https://www.arewesixelyet.com/).
+
+## Lyrics
+
+Lyrics can be read from a provided .lrc file that matches the audio file in name and content or from SYLT embedded tags on mp3 files.
+
+Timestamped lyrics will be shown automatically in track view. Press <kbd>m</kbd> show full page lyrics.
 
 ## Favorites Playlist
 
