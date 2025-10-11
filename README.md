@@ -99,31 +99,37 @@ kew path "/home/joe/Musik/" (changes the path)
 
 ### Key Bindings
 
-* <kbd>Enter</kbd> to select or replay a song.
+#### Basic
+
+* <kbd>Enter</kbd> to play or enqueue/dequeue.
+* <kbd>Space</kbd>, <kbd>p</kbd> or right mouse to play or pause.
 * Use <kbd>+</kbd> (or <kbd>=</kbd>), <kbd>-</kbd> keys to adjust the volume.
 * Use <kbd>←</kbd>, <kbd>→</kbd> or <kbd>h</kbd>, <kbd>l</kbd> keys to switch tracks.
-* <kbd>Space</kbd>, <kbd>p</kbd> or right mouse to play or pause.
 * <kbd>Alt+s</kbd> to stop.
 * <kbd>F2</kbd> or <kbd>Shift+z</kbd> (macOS/Android) to show/hide playlist view.
 * <kbd>F3</kbd> or <kbd>Shift+x</kbd> (macOS/Android) to show/hide library view.
 * <kbd>F4</kbd> or <kbd>Shift+c</kbd> (macOS/Android) to show/hide track view.
 * <kbd>F5</kbd> or <kbd>Shift+v</kbd> (macOS/Android) to show/hide search view.
 * <kbd>F6</kbd> or <kbd>Shift+b</kbd> (macOS/Android) to show/hide key bindings view.
-* <kbd>u</kbd> to update the library.
-* <kbd>v</kbd> to toggle the visualizer.
 * <kbd>i</kbd> to cycle colors derived from kewrc, theme or track cover.
 * <kbd>t</kbd> to cycle themes.
+* <kbd>Backspace</kbd> to clear the playlist.
+* <kbd>Delete</kbd> to remove a single playlist entry.
+* <kbd>r</kbd> to cycle repeat settings (repeat, repeat list, off).
+* <kbd>s</kbd> to shuffle the playlist.
+
+#### Advanced
+
+* <kbd>u</kbd> to update the library.
+* <kbd>v</kbd> to toggle the visualizer.
 * <kbd>b</kbd> to toggle album covers drawn in ascii or as a normal image.
 * <kbd>n</kbd> to toggle notifications.
-* <kbd>r</kbd> to repeat the current song after playing.
-* <kbd>s</kbd> to shuffle the playlist.
 * <kbd>a</kbd> to seek back.
 * <kbd>d</kbd> to seek forward.
 * <kbd>x</kbd> to save the currently loaded playlist to a m3u file in your music folder.
 * <kbd>Tab</kbd> to switch to next view.
 * <kbd>Shift+Tab</kbd> to switch to previous view.
-* <kbd>Backspace</kbd> to clear the playlist.
-* <kbd>Delete</kbd> to remove a single playlist entry.
+
 * <kbd>f</kbd>, <kbd>g</kbd> to move songs up or down the playlist.
 * number + <kbd>G</kbd> or <kbd>Enter</kbd> to go to specific song number in the playlist.
 * <kbd>.</kbd> to add currently playing song to kew favorites.m3u (run with "kew .").
