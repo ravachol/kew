@@ -191,74 +191,14 @@ void calcPreferredSize(UISettings *ui)
                          metadataHeight);
 }
 
-void printHelp()
+void printHelp(void)
 {
-        fputs(" kew - A terminal music player.\n"
-              "\n"
-              " \033[1;4mUsage:\033[0m   kew path \"path to music library\"\n"
-              "          (Saves the music library path. Use this the first "
-              "time. Ie: kew path \"/home/joe/Music/\")\n"
-              "          kew (no argument, opens library)\n"
-              "          kew all (loads all your songs up to 10 000)\n"
-              "          kew albums (plays all albums up to 2000 randomly one "
-              "after the other)\n"
-              "          kew <song name,directory or playlist words>\n"
-              "          kew --help, -? or -h\n"
-              "          kew --version or -v\n"
-              "          kew dir <album name> (Sometimes it's necessary to "
-              "specify it's a directory you want)\n"
-              "          kew song <song name> \n"
-              "          kew list <m3u list name> \n"
-              "          kew theme <theme name> (sets a theme)\n"
-              "          kew . (plays kew favorites.m3u file)\n"
-              "          kew shuffle <dir name> (random and rand works too)\n"
-              "          kew artistA:artistB (plays artistA and artistB "
-              "shuffled)\n"
-              "\n"
-              " \033[1;4mExample:\033[0m kew moon\n"
-              " (Plays the first song or directory it finds that has the word "
-              "moon, ie moonlight sonata)\n"
-              "\n"
-              " kew returns the first directory or file whose name partially "
-              "matches the string you provide.\n"
-              "\n"
-              " Use quotes when providing strings with single quotes in them "
-              "(') or vice versa.\n"
-              " Enter to select or replay a song.\n"
-              " Switch tracks with ←, → or h, l keys.\n"
-              " Volume is adjusted with + (or =) and -.\n"
-              " Space, p or right mouse to play or pause.\n"
-              " Shift+s to stop.\n"
-              " F2 to show/hide playlist view.\n"
-              " F3 to show/hide library view.\n"
-              " F4 to show/hide track view.\n"
-              " F5 to show/hide search view.\n"
-              " F6 to show/hide key bindings view.\n"
-              " You can also use the mouse to switch views.\n"
-              " u to update the library.\n"
-              " v to toggle the spectrum visualizer.\n"
-              " i to cycle between colors from kewrc, theme,"
-              " or from the track album cover \n"
-              " b to toggle album covers drawn in ascii or as a normal image.\n"
-              " r to repeat the current song after playing.\n"
-              " s to shuffle the playlist.\n"
-              " a to seek back.\n"
-              " d to seek forward.\n"
-              " x to save the current playlist to a .m3u in your music folder "
-              "named after the first song.\n"
-              " Tab to switch to next view.\n"
-              " Shift+Tab to switch to previous view.\n"
-              " Backspace to clear the playlist.\n"
-              " Delete to remove a single playlist entry.\n"
-              " gg to go to first song.\n"
-              " number + G or Enter to go to specific song number in the "
-              "playlist.\n"
-              " G to go to last song.\n"
-              " . to add currently playing song to \"kew favorites.m3u\" (run "
-              "with \"kew .\").\n"
-              " Esc or q to quit.\n"
-              "\n",
-              stdout);
+    int i = system("man kew");
+
+    if (i != 0)
+    {
+        printf("Run man kew for help.\n");
+    }
 }
 
 static const char *getPlayerStatusIcon(void)
@@ -2005,6 +1945,9 @@ void printLyricsPage(UISettings *ui, int row, int col, SongData *songdata, int h
 void printTimestampedLyrics(UISettings *ui, SongData *songdata, int row, int col, int term_w, double elapsedSeconds)
 {
         if (!songdata)
+                return;
+
+        if (!songdata->lyrics)
                 return;
 
         if (songdata->lyrics->isTimed != 1)
