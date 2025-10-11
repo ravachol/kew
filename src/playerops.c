@@ -588,6 +588,12 @@ void toggleShuffle(AppState *state)
                 triggerRefresh();
 }
 
+void toggleShowLyricsPage(AppState *state)
+{
+        state->uiState.showLyricsPage = !state->uiState.showLyricsPage;
+        triggerRefresh();
+}
+
 void toggleAscii(AppSettings *settings, UISettings *ui)
 {
         ui->coverAnsi = !ui->coverAnsi;

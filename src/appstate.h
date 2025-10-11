@@ -130,6 +130,7 @@ typedef struct
         int lastNotifiedId;
         bool noPlaylist;
         struct winsize windowSize;
+        bool showLyricsPage;
         FILE *logFile;
 } UIState;
 
@@ -271,6 +272,7 @@ typedef struct
         char repeatState[2];
         char shuffleEnabled[2];
         char trackTitleAsWindowTitle[2];
+        char showLyricsPage[6];
 } AppSettings;
 
 #endif

@@ -220,6 +220,8 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
         c_strcpy(settings.altQuit, "\x1B", sizeof(settings.altQuit));
         c_strcpy(settings.hardClearPlaylist, "\b",
                  sizeof(settings.hardClearPlaylist));
+        c_strcpy(settings.showLyricsPage, "m",
+                 sizeof(settings.showLyricsPage));
 
         memcpy(settings.ansiTheme, "default", 8);
 
@@ -620,6 +622,13 @@ AppSettings constructAppSettings(KeyValuePair *pairs, int count)
                                          sizeof(settings.showSearchAlt), "%s",
                                          pair->value);
                 }
+                else if (strcmp(lowercaseKey, "showlyricspage") == 0)
+                {
+                        if (strcmp(pair->value, "") != 0)
+                                snprintf(settings.showLyricsPage,
+                                         sizeof(settings.showLyricsPage), "%s",
+                                         pair->value);
+                }
                 else if (strcmp(lowercaseKey, "movesongup") == 0)
                 {
                         if (strcmp(pair->value, "") != 0)
@@ -888,6 +897,7 @@ void mapSettingsToKeys(AppSettings *settings, UISettings *ui,
         mappings[60] = (EventMapping){settings->sortLibrary, EVENT_SORTLIBRARY};
         mappings[61] = (EventMapping){settings->cycleThemes, EVENT_CYCLETHEMES};
         mappings[62] = (EventMapping){settings->toggleNotifications, EVENT_TOGGLENOTIFICATIONS};
+        mappings[63] = (EventMapping){settings->showLyricsPage, EVENT_SHOWLYRICSPAGE};
 }
 
 char *getConfigFilePath(char *configdir)
@@ -1534,6 +1544,7 @@ void setConfig(AppSettings *settings, UISettings *ui)
         fprintf(file, "showTrackAlt=%s\n", settings->showTrackAlt);
         fprintf(file, "showSearchAlt=%s\n", settings->showSearchAlt);
         fprintf(file, "showKeysAlt=%s\n\n", settings->showKeysAlt);
+        fprintf(file, "showLyricsPage=%s\n\n", settings->showLyricsPage);
 
         fprintf(file, "# Keys for scrolling page up and page down:\n");
         fprintf(file, "prevPage=%s\n", settings->prevPage);
