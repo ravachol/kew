@@ -3,10 +3,10 @@
 #define MA_NO_ENGINE
 #define MINIAUDIO_IMPLEMENTATION
 
-#include "sound.h"
 #include "appstate.h"
 #include "common.h"
 #include "file.h"
+#include "sound.h"
 #include "soundbuiltin.h"
 #include "utils.h"
 #include <miniaudio.h>
@@ -420,87 +420,17 @@ int calcAvgBitRate(double duration, const char *filePath)
 
         return avgBitRate;
 }
-
-uint64_t getCurrentPlaybacTime(void)
-{
-        AudioData *audioData = getAudioData();
-
-        ma_uint64 cursor = 0;
-        ma_uint32 sampleRate = audioData->sampleRate;
-
-        if (sampleRate == 0)
-        {
-                return 0.0f;
-        }
-
-        enum AudioImplementation currentImplementation = getCurrentImplementationType();
-
-        switch (currentImplementation)
-        {
-        case BUILTIN:
-        {
-                ma_decoder *decoder = getCurrentBuiltinDecoder();
-                if (decoder)
-                {
-                        ma_decoder_get_cursor_in_pcm_frames(decoder, &cursor);
-                }
-                break;
-        }
-        case OPUS:
-        {
-                ma_libopus *decoder = getCurrentOpusDecoder();
-                if (decoder)
-                {
-                        ma_data_source_get_cursor_in_pcm_frames(decoder, &cursor);
-                }
-                break;
-        }
-        case VORBIS:
-        {
-                ma_libvorbis *decoder = getCurrentVorbisDecoder();
-                if (decoder)
-                {
-                        ma_data_source_get_cursor_in_pcm_frames(decoder, &cursor);
-                }
-                break;
-        }
-        case WEBM:
-        {
-                ma_webm *decoder = getCurrentWebmDecoder();
-                if (decoder)
-                {
-                        ma_data_source_get_cursor_in_pcm_frames(decoder, &cursor);
-                }
-                break;
-        }
-#ifdef USE_FAAD
-        case M4A:
-        {
-                m4a_decoder *decoder = getCurrentM4aDecoder();
-                if (decoder)
-                {
-                        ma_data_source_get_cursor_in_pcm_frames(decoder, &cursor);
-                }
-                break;
-        }
-#endif
-        default:
-                return 0.0f;
-        }
-
-        uint64_t  time = (uint64_t)cursor / (uint64_t)sampleRate;
-        return time;
-}
-
 void setLyrics(AppState *state, char *filePath)
 {
-        if (state->uiState.lyrics) {
-            freeLyrics(state->uiState.lyrics);
-            state->uiState.lyrics = NULL;
+        if (state->uiState.lyrics)
+        {
+                freeLyrics(state->uiState.lyrics);
+                state->uiState.lyrics = NULL;
         }
 
-        if (filePath) {
-            state->uiState.lyrics = loadLyrics(filePath);
+        if (filePath)
+        {
+                state->uiState.lyrics = loadLyrics(filePath);
         }
 }
 
@@ -539,10 +469,12 @@ int switchAudioImplementation(AppState *state)
 
                                 int idx = (audioData != NULL) ? audioData->currentFileIndex : 0;
 
-                                setCurrentFileIndex(
-                                    audioData, 1 - idx);
+                                setCurrentFileIndex(audioData, 1 - idx);
+
                                 tryAgain = true;
+
                                 switchAudioImplementation(state);
+
                                 return 0;
                         }
                         else
@@ -554,8 +486,6 @@ int switchAudioImplementation(AppState *state)
 
                 filePath = strdup(userData.currentSongData->filePath);
         }
-
-        setLyrics(state, filePath);
 
         tryAgain = false;
 
@@ -617,6 +547,8 @@ int switchAudioImplementation(AppState *state)
                                 return -1;
                         }
 
+                        setLyrics(state, filePath);
+
                         pthread_mutex_unlock(&(state->dataSourceMutex));
 
                         setImplSwitchNotReached();
@@ -677,6 +609,8 @@ int switchAudioImplementation(AppState *state)
                                 pthread_mutex_unlock(&(state->dataSourceMutex));
                                 return -1;
                         }
+
+                        setLyrics(state, filePath);
 
                         pthread_mutex_unlock(&(state->dataSourceMutex));
 
@@ -745,6 +679,8 @@ int switchAudioImplementation(AppState *state)
                                 return -1;
                         }
 
+                        setLyrics(state, filePath);
+
                         pthread_mutex_unlock(&(state->dataSourceMutex));
 
                         setImplSwitchNotReached();
@@ -810,6 +746,8 @@ int switchAudioImplementation(AppState *state)
                                 pthread_mutex_unlock(&(state->dataSourceMutex));
                                 return -1;
                         }
+
+                        setLyrics(state, filePath);
 
                         pthread_mutex_unlock(&(state->dataSourceMutex));
 
@@ -879,6 +817,8 @@ int switchAudioImplementation(AppState *state)
                                 pthread_mutex_unlock(&(state->dataSourceMutex));
                                 return -1;
                         }
+
+                        setLyrics(state, filePath);
 
                         pthread_mutex_unlock(&(state->dataSourceMutex));
 
