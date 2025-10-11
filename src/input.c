@@ -9,7 +9,7 @@
 #include <ctype.h>
 
 #define MAX_TMP_SEQ_LEN 256
-#define NUM_KEY_MAPPINGS 63
+#define NUM_KEY_MAPPINGS 64
 
 const int COOLDOWN_MS = 500;
 const int COOLDOWN2_MS = 100;

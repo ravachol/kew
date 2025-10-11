@@ -49,7 +49,6 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include "search_ui.h"
 #include "settings.h"
 #include "songloader.h"
-#include "sound.h"
 #include "soundcommon.h"
 #include "term.h"
 #include "theme.h"
@@ -442,7 +441,7 @@ void clearAndPlay(AppState *state, Node *song)
         setIsUsingSongDataA(true);
 }
 
-void playlistEnqueue(AppState *state, PlayList *playlist)
+void playlistPlay(AppState *state, PlayList *playlist)
 {
         if (!isDigitsPressed())
         {
@@ -480,18 +479,19 @@ FileSystemEntry *viewEnqueue(AppState *state, PlayList *playlist)
 {
         FileSystemEntry *firstEnqueuedEntry = NULL;
 
-        if (state->currentView == LIBRARY_VIEW)
+        switch (state->currentView)
         {
+        case LIBRARY_VIEW:
                 firstEnqueuedEntry = libraryEnqueue(state, playlist);
-        }
-
-        else if (state->currentView == SEARCH_VIEW)
-        {
+                break;
+        case SEARCH_VIEW:
                 firstEnqueuedEntry = searchEnqueue(state, playlist);
-        }
-        else if (state->currentView == PLAYLIST_VIEW)
-        {
-                playlistEnqueue(state, playlist);
+                break;
+        case PLAYLIST_VIEW:
+                playlistPlay(state, playlist);
+                break;
+        default:
+                return NULL;
         }
 
         return firstEnqueuedEntry;
@@ -524,7 +524,7 @@ void enqueueHandler(AppState *state, bool playImmediately)
 void gotoBeginningOfPlaylist(AppState *state)
 {
         pressDigit(1);
-               enqueueHandler(state, false);
+        enqueueHandler(state, false);
 }
 
 void gotoEndOfPlaylist(AppState *state)
@@ -582,6 +582,9 @@ void handleInput(AppState *state)
         case EVENT_SHUFFLE:
                 toggleShuffle(state);
                 emitShuffleChanged();
+                break;
+        case EVENT_SHOWLYRICSPAGE:
+                toggleShowLyricsPage(state);
                 break;
         case EVENT_CYCLECOLORMODE:
                 cycleColorMode(state);
@@ -1724,6 +1727,7 @@ void initState(AppState *state)
         state->uiState.lastNotifiedId = -1;
         state->uiState.noPlaylist = false;
         state->uiState.logFile = NULL;
+        state->uiState.showLyricsPage = false;
         state->tmpCache = NULL;
         state->uiSettings.LAST_ROW = " [F2 Playlist|F3 Library|F4 Track|F5 Search|F6 Help]";
         state->uiSettings.defaultColor = 150;
