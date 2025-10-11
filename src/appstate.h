@@ -5,6 +5,7 @@
 #include "playlist.h"
 #include "stdio.h"
 #include "theme.h"
+#include "lyrics.h"
 #include <gio/gio.h>
 #include <glib.h>
 #include <miniaudio.h>
@@ -130,6 +131,7 @@ typedef struct
         bool noPlaylist;
         struct winsize windowSize;
         FILE *logFile;
+        Lyrics *lyrics;
 } UIState;
 
 typedef struct

@@ -1,14 +1,15 @@
+#include <stdint.h>
 #define MA_EXPERIMENTAL__DATA_LOOPING_AND_CHAINING
 #define MA_NO_ENGINE
 #define MINIAUDIO_IMPLEMENTATION
 
-#include "appstate.h"
 #include "sound.h"
-#include "utils.h"
-#include <miniaudio.h>
+#include "appstate.h"
+#include "common.h"
 #include "file.h"
 #include "soundbuiltin.h"
-#include "common.h"
+#include "utils.h"
+#include <miniaudio.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -420,6 +421,89 @@ int calcAvgBitRate(double duration, const char *filePath)
         return avgBitRate;
 }
 
+uint64_t getCurrentPlaybacTime(void)
+{
+        AudioData *audioData = getAudioData();
+
+        ma_uint64 cursor = 0;
+        ma_uint32 sampleRate = audioData->sampleRate;
+
+        if (sampleRate == 0)
+        {
+                return 0.0f;
+        }
+
+        enum AudioImplementation currentImplementation = getCurrentImplementationType();
+
+        switch (currentImplementation)
+        {
+        case BUILTIN:
+        {
+                ma_decoder *decoder = getCurrentBuiltinDecoder();
+                if (decoder)
+                {
+                        ma_decoder_get_cursor_in_pcm_frames(decoder, &cursor);
+                }
+                break;
+        }
+        case OPUS:
+        {
+                ma_libopus *decoder = getCurrentOpusDecoder();
+                if (decoder)
+                {
+                        ma_data_source_get_cursor_in_pcm_frames(decoder, &cursor);
+                }
+                break;
+        }
+        case VORBIS:
+        {
+                ma_libvorbis *decoder = getCurrentVorbisDecoder();
+                if (decoder)
+                {
+                        ma_data_source_get_cursor_in_pcm_frames(decoder, &cursor);
+                }
+                break;
+        }
+        case WEBM:
+        {
+                ma_webm *decoder = getCurrentWebmDecoder();
+                if (decoder)
+                {
+                        ma_data_source_get_cursor_in_pcm_frames(decoder, &cursor);
+                }
+                break;
+        }
+#ifdef USE_FAAD
+        case M4A:
+        {
+                m4a_decoder *decoder = getCurrentM4aDecoder();
+                if (decoder)
+                {
+                        ma_data_source_get_cursor_in_pcm_frames(decoder, &cursor);
+                }
+                break;
+        }
+#endif
+        default:
+                return 0.0f;
+        }
+
+        uint64_t  time = (uint64_t)cursor / (uint64_t)sampleRate;
+        return time;
+}
+
+void setLyrics(AppState *state, char *filePath)
+{
+        if (state->uiState.lyrics) {
+            freeLyrics(state->uiState.lyrics);
+            state->uiState.lyrics = NULL;
+        }
+
+        if (filePath) {
+            state->uiState.lyrics = loadLyrics(filePath);
+        }
+}
+
 int switchAudioImplementation(AppState *state)
 {
         AudioData *audioData = getAudioData();
@@ -447,7 +531,6 @@ int switchAudioImplementation(AppState *state)
         }
         else
         {
-
                 if (!validFilePath(userData.currentSongData->filePath))
                 {
                         if (!tryAgain)
@@ -471,6 +554,8 @@ int switchAudioImplementation(AppState *state)
 
                 filePath = strdup(userData.currentSongData->filePath);
         }
+
+        setLyrics(state, filePath);
 
         tryAgain = false;
 
@@ -519,8 +604,8 @@ int switchAudioImplementation(AppState *state)
                         audioData->sampleRate = sampleRate;
 
                         int result = builtin_createAudioDevice(state,
-                            &userData, getDevice(), &context,
-                            &builtin_file_data_source_vtable);
+                                                               &userData, getDevice(), &context,
+                                                               &builtin_file_data_source_vtable);
 
                         if (result < 0)
                         {
@@ -581,7 +666,7 @@ int switchAudioImplementation(AppState *state)
                         audioData->avgBitRate = 0;
 
                         int result = opus_createAudioDevice(state,
-                            &userData, getDevice(), &context);
+                                                            &userData, getDevice(), &context);
 
                         if (result < 0)
                         {
@@ -648,7 +733,7 @@ int switchAudioImplementation(AppState *state)
                         audioData->sampleRate = sampleRate;
 
                         int result = vorbis_createAudioDevice(state,
-                            &userData, getDevice(), &context);
+                                                              &userData, getDevice(), &context);
 
                         if (result < 0)
                         {
@@ -714,7 +799,7 @@ int switchAudioImplementation(AppState *state)
                         audioData->sampleRate = sampleRate;
 
                         int result = webm_createAudioDevice(state,
-                            &userData, getDevice(), &context);
+                                                            &userData, getDevice(), &context);
 
                         if (result < 0)
                         {
@@ -783,7 +868,7 @@ int switchAudioImplementation(AppState *state)
                         audioData->sampleRate = sampleRate;
 
                         int result = m4a_createAudioDevice(state,
-                            &userData, getDevice(), &context);
+                                                           &userData, getDevice(), &context);
 
                         if (result < 0)
                         {
