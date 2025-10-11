@@ -19,6 +19,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/param.h>
 
 /*
 
@@ -335,17 +336,9 @@ static void buildSongTitle(const SongData *songData, const UISettings *ui,
         }
 }
 
-int printLogo(SongData *songData, UISettings *ui)
+void printNowPlaying(SongData *songData, UISettings *ui, int row, int col, int maxWidth)
 {
-        int term_w, term_h;
-        getTermSize(&term_w, &term_h);
-
         char title[MAXPATHLEN + 1];
-        int logoWidth = ui->hideLogo ? 0 : LOGO_WIDTH;
-        int maxWidth =
-            term_w - indent - indent - (ui->hideLogo ? 2 : logoWidth + 4);
-
-        int height = printLogoArt(ui, indent);
 
         buildSongTitle(songData, ui, title, sizeof(title), indent);
 
@@ -356,10 +349,24 @@ int printLogo(SongData *songData, UISettings *ui)
                 char processed[MAXPATHLEN + 1] = {0};
                 processName(title, processed, maxWidth, false, false);
 
-                if (ui->hideLogo)
-                        printBlankSpaces(indent);
-                printf(" %s", processed);
+                printf("\033[%d;%dH", row, col);
+                printf("%s", processed);
         }
+}
+
+int printLogo(SongData *songData, UISettings *ui)
+{
+        int term_w, term_h;
+
+        getTermSize(&term_w, &term_h);
+
+        int logoWidth = ui->hideLogo ? 0 : LOGO_WIDTH;
+        int maxWidth =
+            term_w - indent - indent - (ui->hideLogo ? 2 : logoWidth + 4);
+
+        int height = printLogoArt(ui, indent);
+
+        printNowPlaying(songData, ui, height + 1, indent + logoWidth + 2, maxWidth);
 
         printf("\n");
         clearLine();
@@ -413,6 +420,8 @@ void printCover(int height, SongData *songdata, UISettings *ui)
         int imgHeight = height - 2;
 
         clearScreen();
+
+        printf("\n");
 
         if (songdata != NULL && songdata->cover != NULL && ui->coverEnabled)
         {
@@ -1958,22 +1967,58 @@ void printAt(int row, int indent, const char *text, int maxWidth)
         printf("\033[%d;%dH%s", row, indent, buffer);
 }
 
-void printLyrics(UISettings *ui, SongData *songdata, int row, int col, int term_w, double elapsedSeconds)
+void printLyricsPage(UISettings *ui, int row, int col, SongData *songdata, int height)
+{
+        clearRestOfLine();
+
+        if (!songdata)
+                return;
+
+        Lyrics *lyrics = songdata->lyrics;
+
+        if (!lyrics || lyrics->count == 0)
+                return;
+
+        char *line = "";
+
+        applyColor(ui->colorMode, ui->theme.trackview_lyrics, ui->color);
+
+        int limit = MIN((int)lyrics->count, height);
+
+        for (int i = 0; i < limit; i++)
+        {
+                line = lyrics->lines[i].text;
+
+                if (!line)
+                        continue;
+
+                int length = ((int)strnlen(line, songdata->lyrics->maxLength - 1));
+
+                length -= col + length - term_w;
+
+                printAt(row + i, col, line, length);
+
+                clearRestOfLine();
+        }
+}
+
+void printTimestampedLyrics(UISettings *ui, SongData *songdata, int row, int col, int term_w, double elapsedSeconds)
 {
         if (!songdata)
-        {
-                clearRestOfLine();
                 return;
-        }
+
+        if (songdata->lyrics->isTimed != 1)
+                return;
 
         char *line = getLyricsLine(songdata->lyrics, elapsedSeconds);
+
+        if (!line)
+                return;
 
         if (line && line[0] != '\0' && (!prevLine || strcmp(line, prevLine) != 0))
         {
 
                 prevLine = line;
-
-                printf("\033[%d;1H\033[K", row);
 
                 int length = ((int)strnlen(line, songdata->lyrics->maxLength - 1));
 
@@ -2015,14 +2060,23 @@ void showTrackViewLandscape(int height, int width, float aspectRatio,
         int row = height - metadataHeight - timeHeight - state->uiSettings.visualizerHeight - 3;
 
         if (row < 1)
-                row = 1;
+                row = 2;
 
         if (refreshTriggered())
         {
                 printCover(height, songdata, &(state->uiSettings));
-                if (height > metadataHeight)
-                        printMetadata(row, col, visualizerWidth - 1,
-                                      metadata, &(state->uiSettings));
+
+                if (state->uiState.showLyricsPage)
+                {
+                        printNowPlaying(songdata, &(state->uiSettings), 2, col, term_w - indent);
+                        printLyricsPage(&(state->uiSettings), 4, col, songdata, height - 4);
+                }
+                else
+                {
+                        if (height > metadataHeight)
+                                printMetadata(row, col, visualizerWidth - 1,
+                                              metadata, &(state->uiSettings));
+                }
 
                 cancelRefresh();
         }
@@ -2032,26 +2086,30 @@ void showTrackViewLandscape(int height, int width, float aspectRatio,
                 ma_format format;
                 avgBitRate = songdata->avgBitRate;
                 getCurrentFormatAndSampleRate(&format, &sampleRate);
-                if (height > metadataHeight + timeHeight)
-                        printTime(row + 4, col, elapsedSeconds, sampleRate,
-                                  avgBitRate, state);
 
-                if (row > 0)
-                        printLyrics(&(state->uiSettings), songdata, row + metadataHeight + 1, indent + 1, term_w, elapsedSeconds);
-        }
+                if (!state->uiState.showLyricsPage)
+                {
+                        if (height > metadataHeight + timeHeight)
+                                printTime(row + 4, col, elapsedSeconds, sampleRate,
+                                          avgBitRate, state);
 
-        if (row > 0)
-                printVisualizer(row + metadataHeight + 2, col, visualizerWidth,
-                                settings, elapsedSeconds, state);
+                        if (row > 0)
+                                printTimestampedLyrics(&(state->uiSettings), songdata, row + metadataHeight + 1, col + 1, term_w, elapsedSeconds);
 
-        if (width - col > ABSOLUTE_MIN_WIDTH)
-        {
-                printErrorRow(row + metadataHeight + 2 +
-                                  state->uiSettings.visualizerHeight,
-                              col, &(state->uiSettings));
-                printFooter(row + metadataHeight + 2 +
-                                state->uiSettings.visualizerHeight + 1,
-                            col, state, settings);
+                        if (row > 0)
+                                printVisualizer(row + metadataHeight + 2, col, visualizerWidth,
+                                                settings, elapsedSeconds, state);
+
+                        if (width - col > ABSOLUTE_MIN_WIDTH)
+                        {
+                                printErrorRow(row + metadataHeight + 2 +
+                                                  state->uiSettings.visualizerHeight,
+                                              col, &(state->uiSettings));
+                                printFooter(row + metadataHeight + 2 +
+                                                state->uiSettings.visualizerHeight + 1,
+                                            col, state, settings);
+                        }
+                }
         }
 }
 
@@ -2075,28 +2133,44 @@ void showTrackViewPortrait(int height, AppSettings *settings,
                 {
                         metadata = songdata->metadata;
                 }
+
                 clearScreen();
-                printCoverCentered(songdata, &(state->uiSettings));
-                printMetadata(row, col, visualizerWidth - 1, metadata,
-                              &(state->uiSettings));
+
+                if (state->uiState.showLyricsPage)
+                {
+                        printf("\n");
+                        printNowPlaying(songdata, &(state->uiSettings), 2, indent + 1, term_w - indent);
+                        int lyricsHeight = height + metadataHeight + state->uiSettings.visualizerHeight;
+                        printLyricsPage(&(state->uiSettings), 4, col + 1, songdata, lyricsHeight);
+                }
+                else
+                {
+                        printCoverCentered(songdata, &(state->uiSettings));
+                        printMetadata(row, col, visualizerWidth - 1, metadata,
+                                      &(state->uiSettings));
+                }
 
                 cancelRefresh();
         }
         if (songdata)
         {
-                ma_uint32 sampleRate;
-                ma_format format;
-                avgBitRate = songdata->avgBitRate;
-                getCurrentFormatAndSampleRate(&format, &sampleRate);
-                printTime(row + metadataHeight, col, elapsedSeconds, sampleRate,
-                          avgBitRate, state);
+                if (!state->uiState.showLyricsPage)
+                {
+                        ma_uint32 sampleRate;
+                        ma_format format;
+                        avgBitRate = songdata->avgBitRate;
+
+                        getCurrentFormatAndSampleRate(&format, &sampleRate);
+                        printTime(row + metadataHeight, col, elapsedSeconds, sampleRate,
+                                  avgBitRate, state);
+
+                        if (row > 0)
+                                printTimestampedLyrics(&(state->uiSettings), songdata, row + metadataHeight + 1, indent + 1, term_w, elapsedSeconds);
+
+                        printVisualizer(row + metadataHeight + 2, col, visualizerWidth,
+                                        settings, elapsedSeconds, state);
+                }
         }
-
-        if (row > 0)
-                printLyrics(&(state->uiSettings), songdata, row + metadataHeight + 1, indent + 1, term_w, elapsedSeconds);
-
-        printVisualizer(row + metadataHeight + 2, col, visualizerWidth,
-                        settings, elapsedSeconds, state);
 
         calcAndPrintLastRowAndErrorRow(state, settings);
 }

@@ -101,6 +101,8 @@ void cycleThemes(AppState *state, AppSettings *settings);
 
 void toggleVisualizer(AppSettings *settings, UISettings *ui);
 
+void toggleShowLyricsPage(AppState *state);
+
 void quit(void);
 
 int loadTheme(AppState *appState, AppSettings *settings, const char *themeName,

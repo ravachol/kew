@@ -15,6 +15,7 @@ typedef struct
         LyricsLine *lines;
         size_t count;
         int maxLength;
+        int isTimed;
 } Lyrics;
 
 Lyrics *loadLyrics(const char *music_file_path);
