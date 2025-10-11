@@ -2,7 +2,11 @@
 
 ### 3.5.3
 
-- Song lyrics support through .lrc files. By @Rioprastyo17.
+- Song lyrics support through .lrc files. By @Rioprastyo17
+
+- Song lyrics added through SYLT id3 tags. By @dandelion-75.
+
+- Watch timestamped lyrics in track view or press 'm' for full page lyrics.
 
 - Bumped miniaudio to version v0.11.23 which among other things, fixes a bug with some versions of mp3. By @hypercunx.
 
