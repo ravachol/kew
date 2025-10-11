@@ -4,6 +4,7 @@
 #include "common_ui.h"
 #include "directorytree.h"
 #include "imgfunc.h"
+#include "lyrics.h"
 #include "playerops.h"
 #include "playlist.h"
 #include "playlist_ui.h"
@@ -78,6 +79,7 @@ static FileSystemEntry *currentEntry = NULL;
 static FileSystemEntry *lastEntry = NULL;
 static FileSystemEntry *chosenDir = NULL;
 static bool isSameNameAsLastTime = false;
+static int term_w, term_h;
 
 int getFooterRow(void) { return footerRow; }
 
@@ -459,8 +461,8 @@ void printTitleWithDelay(int row, int col, const char *text, int delay,
         fflush(stdout);
 }
 
-void printBasicMetadata(int row, int col, int maxWidth,
-                        TagSettings const *metadata, UISettings *ui)
+void printMetadata(int row, int col, int maxWidth,
+                   TagSettings const *metadata, UISettings *ui)
 {
         if (row < 1)
                 row = 1;
@@ -1939,6 +1941,44 @@ int calcVisualizerWidth()
         return visualizerWidth;
 }
 
+void printAt(int row, int indent, const char *text, int maxWidth)
+{
+        char buffer[1024];
+        size_t len = strlen(text);
+
+        if (len > (size_t)maxWidth)
+                len = maxWidth;
+
+        // Safe copy of exactly len bytes
+        memcpy(buffer, text, len);
+        buffer[len] = '\0';
+
+        printf("\033[%d;%dH%s", row, indent, buffer);
+}
+
+void printLyrics(AppState *state, int row, int col, int term_w, double elapsedSeconds)
+{
+        UISettings *ui = &(state->uiSettings);
+
+        const char *line = getLyricsLine(state->uiState.lyrics, elapsedSeconds);
+
+        if (line && line[0] != '\0')
+        {
+
+                printf("\033[%d;1H\033[K", row);
+
+                int length = ((int)strnlen(line, state->uiState.lyrics->maxLength - 1));
+
+                length -= col + length - term_w;
+
+                applyColor(ui->colorMode, ui->theme.trackview_lyrics, ui->color);
+
+                printAt(row, col, line, length);
+
+                clearRestOfLine();
+        }
+}
+
 void showTrackViewLandscape(int height, int width, float aspectRatio,
                             AppSettings *settings, SongData *songdata,
                             AppState *state, double elapsedSeconds)
@@ -1973,8 +2013,8 @@ void showTrackViewLandscape(int height, int width, float aspectRatio,
         {
                 printCover(height, songdata, &(state->uiSettings));
                 if (height > metadataHeight)
-                        printBasicMetadata(row, col, visualizerWidth - 1,
-                                           metadata, &(state->uiSettings));
+                        printMetadata(row, col, visualizerWidth - 1,
+                                      metadata, &(state->uiSettings));
 
                 cancelRefresh();
         }
@@ -1988,6 +2028,9 @@ void showTrackViewLandscape(int height, int width, float aspectRatio,
                         printTime(row + 4, col, elapsedSeconds, sampleRate,
                                   avgBitRate, state);
         }
+
+        if (row > 0)
+                printLyrics(state, row + metadataHeight + 1, indent + 1, term_w, elapsedSeconds);
 
         if (row > 0)
                 printVisualizer(row + metadataHeight + 2, col, visualizerWidth,
@@ -2026,8 +2069,8 @@ void showTrackViewPortrait(int height, AppSettings *settings,
                 }
                 clearScreen();
                 printCoverCentered(songdata, &(state->uiSettings));
-                printBasicMetadata(row, col, visualizerWidth - 1, metadata,
-                                   &(state->uiSettings));
+                printMetadata(row, col, visualizerWidth - 1, metadata,
+                              &(state->uiSettings));
 
                 cancelRefresh();
         }
@@ -2040,6 +2083,9 @@ void showTrackViewPortrait(int height, AppSettings *settings,
                 printTime(row + metadataHeight, col, elapsedSeconds, sampleRate,
                           avgBitRate, state);
         }
+
+        if (row > 0)
+                printLyrics(state, row + metadataHeight + 1, indent + 1, term_w, elapsedSeconds);
 
         printVisualizer(row + metadataHeight + 2, col, visualizerWidth,
                         settings, elapsedSeconds, state);
@@ -2119,7 +2165,6 @@ int printPlayer(SongData *songdata, double elapsedSeconds,
                 calcIndent(state, songdata);
         }
 
-        int term_w, term_h;
         getTermSize(&term_w, &term_h);
 
         if (state->currentView != PLAYLIST_VIEW)

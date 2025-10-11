@@ -47,6 +47,8 @@ typedef struct
 
 UserData *getUserData(void);
 
+uint64_t getCurrentPlaybackTime(void);
+
 bool isContextInitialized(void);
 
 int createAudioDevice(AppState *state);

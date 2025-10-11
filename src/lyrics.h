@@ -1,41 +1,26 @@
 #ifndef LYRICS_H
 #define LYRICS_H
 
-#include <stddef.h>
 #include <stdbool.h>
+#include <stddef.h>
 
+typedef struct
+{
+        double timestamp;
+        char *text;
+} LyricsLine;
 
-typedef struct {
-    double timestamp;
-    char* text;
-} LyricLine;
-typedef struct {
-    LyricLine* lines;
-    size_t count;
+typedef struct
+{
+        LyricsLine *lines;
+        size_t count;
+        int maxLength;
 } Lyrics;
 
-/**
- * @brief 
- *
- * @param music_file_path 
- * @return 
- */
-Lyrics *load_lyrics(const char *music_file_path);
+Lyrics *loadLyrics(const char *music_file_path);
 
-/**
- * @brief 
- *
- * @param lyrics 
- */
-void free_lyrics(Lyrics *lyrics);
+void freeLyrics(Lyrics *lyrics);
 
-/**
- * @brief 
- *
- * @param lyrics 
- * @param elapsed_seconds 
- * @return 
- */
-const char *get_current_lyric_line(const Lyrics *lyrics, double elapsed_seconds);
+const char *getLyricsLine(const Lyrics *lyrics, double elapsedSeconds);
 
 #endif // LYRICS_H
