@@ -12,6 +12,7 @@
 #include <miniaudio.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "soundcommon.h"
 
 /*
 
@@ -161,35 +162,20 @@ int createDevice(AppState *state, UserData *userData, ma_device *device, ma_cont
         ma_result result;
 
         result = initFirstDatasource(&userData);
+
         if (result != MA_SUCCESS)
+        {
+                setErrorMessage("Failed to initialize audio file.");
                 return -1;
+        }
 
         AudioData *audioData = getAudioData();
-
         audioData->base.vtable = vtable;
 
-        ma_device_config deviceConfig =
-            ma_device_config_init(ma_device_type_playback);
-        deviceConfig.playback.format = audioData->format;
-        deviceConfig.playback.channels = audioData->channels;
-        deviceConfig.sampleRate = audioData->sampleRate;
-        deviceConfig.dataCallback = callback;
-        deviceConfig.pUserData = audioData;
-
-        result = ma_device_init(context, &deviceConfig, device);
-        if (result != MA_SUCCESS)
-        {
-                return -1;
-        }
+        result = initPlaybackDevice(context, audioData->format, audioData->channels, audioData->sampleRate,
+                       device, callback, audioData);
 
         setVolume(getCurrentVolume());
-
-        result = ma_device_start(device);
-        if (result != MA_SUCCESS)
-        {
-                ma_device_uninit(device);
-                return -1;
-        }
 
         state->uiState.doNotifyMPRISPlaying = true;
 
@@ -207,41 +193,21 @@ int builtin_createAudioDevice(AppState *state, UserData *userData, ma_device *de
 int vorbis_createAudioDevice(AppState *state, UserData *userData, ma_device *device,
                              ma_context *context)
 {
-        ma_result result;
+        ma_result result = initFirstDatasource(&userData);
 
-        result = initFirstDatasource(&userData);
         if (result != MA_SUCCESS)
         {
-                printf("\n\nFailed to initialize ogg vorbis file.\n");
+                setErrorMessage("Failed to initialize ogg vorbis file.");
                 return -1;
         }
-        ma_libvorbis *vorbis = getFirstVorbisDecoder();
-        ma_device_config deviceConfig =
-            ma_device_config_init(ma_device_type_playback);
 
+        ma_libvorbis *decoder = getFirstVorbisDecoder();
         AudioData *audioData = getAudioData();
 
-        deviceConfig.playback.format = vorbis->format;
-        deviceConfig.playback.channels = audioData->channels;
-        deviceConfig.sampleRate = audioData->sampleRate;
-        deviceConfig.dataCallback = vorbis_on_audio_frames;
-        deviceConfig.pUserData = vorbis;
-
-        result = ma_device_init(context, &deviceConfig, device);
-        if (result != MA_SUCCESS)
-        {
-                setErrorMessage("Failed to initialize miniaudio device.");
-                return -1;
-        }
+        result = initPlaybackDevice(context, decoder->format, audioData->channels, audioData->sampleRate,
+                       device, vorbis_on_audio_frames, decoder);
 
         setVolume(getCurrentVolume());
-
-        result = ma_device_start(device);
-        if (result != MA_SUCCESS)
-        {
-                setErrorMessage("Failed to start miniaudio device.");
-                return -1;
-        }
 
         state->uiState.doNotifyMPRISPlaying = true;
 
@@ -252,43 +218,22 @@ int vorbis_createAudioDevice(AppState *state, UserData *userData, ma_device *dev
 int m4a_createAudioDevice(AppState *state, UserData *userData, ma_device *device,
                           ma_context *context)
 {
-        ma_result result;
+        ma_result result = initFirstDatasource(&userData);
 
-        result = initFirstDatasource(&userData);
         if (result != MA_SUCCESS)
         {
                 if (!hasErrorMessage())
                         setErrorMessage("M4a type not supported.");
                 return -1;
         }
-        m4a_decoder *decoder = getFirstM4aDecoder();
-        ma_device_config deviceConfig =
-            ma_device_config_init(ma_device_type_playback);
 
+        m4a_decoder *decoder = getFirstM4aDecoder();
         AudioData *audioData = getAudioData();
 
-        deviceConfig.playback.format = decoder->format;
-        deviceConfig.playback.channels = audioData->channels;
-        deviceConfig.sampleRate = audioData->sampleRate;
-        deviceConfig.dataCallback = m4a_on_audio_frames;
-        deviceConfig.pUserData = decoder;
-
-        result = ma_device_init(context, &deviceConfig, device);
-        if (result != MA_SUCCESS)
-        {
-                setErrorMessage("Failed to initialize miniaudio device.");
-                return -1;
-        }
+        result = initPlaybackDevice(context, decoder->format, audioData->channels, audioData->sampleRate,
+                       device, m4a_on_audio_frames, decoder);
 
         setVolume(getCurrentVolume());
-
-        result = ma_device_start(device);
-
-        if (result != MA_SUCCESS)
-        {
-                setErrorMessage("Failed to start miniaudio device.");
-                return -1;
-        }
 
         state->uiState.doNotifyMPRISPlaying = true;
 
@@ -302,39 +247,20 @@ int opus_createAudioDevice(AppState *state, UserData *userData, ma_device *devic
         ma_result result;
 
         result = initFirstDatasource(&userData);
+
         if (result != MA_SUCCESS)
         {
                 printf("\n\nFailed to initialize opus file.\n");
                 return -1;
         }
-        ma_libopus *opus = getFirstOpusDecoder();
-
-        ma_device_config deviceConfig =
-            ma_device_config_init(ma_device_type_playback);
-
+        
+        ma_libopus *decoder = getFirstOpusDecoder();
         AudioData *audioData = getAudioData();
 
-        deviceConfig.playback.format = opus->format;
-        deviceConfig.playback.channels = audioData->channels;
-        deviceConfig.sampleRate = audioData->sampleRate;
-        deviceConfig.dataCallback = opus_on_audio_frames;
-        deviceConfig.pUserData = opus;
-
-        result = ma_device_init(context, &deviceConfig, device);
-        if (result != MA_SUCCESS)
-        {
-                setErrorMessage("Failed to initialize miniaudio device.");
-                return -1;
-        }
+        result = initPlaybackDevice(context, decoder->format, audioData->channels, audioData->sampleRate,
+                       device, opus_on_audio_frames, decoder);
 
         setVolume(getCurrentVolume());
-
-        result = ma_device_start(device);
-        if (result != MA_SUCCESS)
-        {
-                setErrorMessage("Failed to start miniaudio device.");
-                return -1;
-        }
 
         state->uiState.doNotifyMPRISPlaying = true;
 
@@ -352,33 +278,13 @@ int webm_createAudioDevice(AppState *state, UserData *userData, ma_device *devic
                 printf("\n\nFailed to initialize webm file.\n");
                 return -1;
         }
-        ma_webm *webm = getFirstWebmDecoder();
-        ma_device_config deviceConfig =
-            ma_device_config_init(ma_device_type_playback);
-
+        ma_webm *decoder = getFirstWebmDecoder();
         AudioData *audioData = getAudioData();
 
-        deviceConfig.playback.format = audioData->format;
-        deviceConfig.playback.channels = audioData->channels;
-        deviceConfig.sampleRate = audioData->sampleRate;
-        deviceConfig.dataCallback = webm_on_audio_frames;
-        deviceConfig.pUserData = webm;
-
-        result = ma_device_init(context, &deviceConfig, device);
-        if (result != MA_SUCCESS)
-        {
-                setErrorMessage("Failed to initialize miniaudio device.");
-                return -1;
-        }
+        result = initPlaybackDevice(context, decoder->format, audioData->channels, audioData->sampleRate,
+                       device, webm_on_audio_frames, decoder);
 
         setVolume(getCurrentVolume());
-
-        result = ma_device_start(device);
-        if (result != MA_SUCCESS)
-        {
-                setErrorMessage("Failed to start miniaudio device.");
-                return -1;
-        }
 
         state->uiState.doNotifyMPRISPlaying = true;
 

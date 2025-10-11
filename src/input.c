@@ -367,7 +367,7 @@ struct Event processInput(AppState *state)
                      strcmp(seq, keyMappings[i].seq) == 0))
                 {
                         if (event.type == EVENT_SEARCH &&
-                            keyMappings[i].eventType != EVENT_GOTOSONG)
+                            keyMappings[i].eventType != EVENT_ENQUEUE)
                         {
                                 break;
                         }
@@ -450,7 +450,7 @@ struct Event processInput(AppState *state)
                                 }
                                 else
                                 {
-                                        event.type = EVENT_GOTOSONG;
+                                        event.type = EVENT_ENQUEUE;
                                         break;
                                 }
                         }
@@ -474,7 +474,7 @@ struct Event processInput(AppState *state)
                 updateLastInputTime();
 
         // Forget Numbers
-        if (event.type != EVENT_GOTOSONG &&
+        if (event.type != EVENT_ENQUEUE &&
             event.type != EVENT_GOTOENDOFPLAYLIST && event.type != EVENT_NONE)
         {
                 memset(digitsPressed, '\0', sizeof(digitsPressed));

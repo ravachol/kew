@@ -283,6 +283,7 @@ static void handle_stop(GDBusConnection *connection, const gchar *sender,
 
         if (!isStopped())
                 stop(state);
+
         g_dbus_method_invocation_return_value(invocation, NULL);
 }
 

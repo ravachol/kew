@@ -1,6 +1,6 @@
 #include "soundcommon.h"
-#include "common.h"
 #include "appstate.h"
+#include "common.h"
 #include "playerops.h"
 #include <math.h>
 #include <stdlib.h>
@@ -51,6 +51,7 @@ static ma_libvorbis *vorbisDecoders[MAX_DECODERS];
 static ma_libvorbis *firstVorbisDecoder;
 static ma_webm *webmDecoders[MAX_DECODERS];
 static ma_webm *firstWebmDecoder;
+static bool deviceInitialized = false;
 
 #ifdef USE_FAAD
 static m4a_decoder *m4aDecoders[MAX_DECODERS];
@@ -1015,10 +1016,62 @@ void pausePlayback(AppState *state)
         }
 }
 
+int initPlaybackDevice(ma_context *context, ma_format format, ma_uint32 channels, ma_uint32 sampleRate,
+                       ma_device *device, ma_device_data_proc dataCallback, void *pUserData)
+{
+        ma_result result;
+
+        ma_device_config deviceConfig =
+            ma_device_config_init(ma_device_type_playback);
+
+        deviceConfig.playback.format = format;
+        deviceConfig.playback.channels = channels;
+        deviceConfig.sampleRate = sampleRate;
+        deviceConfig.dataCallback = dataCallback;
+        deviceConfig.pUserData = pUserData;
+
+        result = ma_device_init(context, &deviceConfig, device);
+        if (result != MA_SUCCESS)
+        {
+                setErrorMessage("Failed to initialize miniaudio device.");
+                return -1;
+        }
+        else
+        {
+                deviceInitialized = true;
+        }
+
+        result = ma_device_start(device);
+
+        if (result != MA_SUCCESS)
+        {
+                setErrorMessage("Failed to start miniaudio device.");
+                return -1;
+        }
+
+        return 0;
+}
+
 void cleanupPlaybackDevice(void)
 {
+        if (!deviceInitialized)
+                return;
+
+        // Stop device safely before uninitializing.
+        ma_result result = ma_device_stop(&device);
+
+        if (result != MA_SUCCESS)
+        {
+                fprintf(stderr, "Warning: ma_device_stop() failed: %d\n", result);
+        }
+
+        // Uninit the device. This will block until the audio thread stops.
         ma_device_uninit(&device);
+
+        // Clear memory so we don’t accidentally reuse it.
         memset(&device, 0, sizeof(device));
+
+        deviceInitialized = false;
 }
 
 void shutdownAndroid(void)
@@ -1139,7 +1192,7 @@ void executeSwitch(AudioData *pAudioData)
         switchDecoder(&vorbisDecoderIndex);
         switchDecoder(&webmDecoderIndex);
 
-        if(pAudioData == NULL)
+        if (pAudioData == NULL)
                 return;
 
         pAudioData->pUserData->currentSongData =
@@ -1327,6 +1380,12 @@ void m4a_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut,
                 ma_uint64 cursor = 0;
 
                 if (firstDecoder == NULL)
+                {
+                        pthread_mutex_unlock(&dataSourceMutex);
+                        return;
+                }
+
+                if (isEOFReached())
                 {
                         pthread_mutex_unlock(&dataSourceMutex);
                         return;

@@ -47,32 +47,32 @@ Lyrics *loadLyrics(const char *path)
                 return NULL;
         }
 
-        char line_buffer[1024];
+        char lineBuffer[1024];
 
-        while (fgets(line_buffer, sizeof(line_buffer), file))
+        while (fgets(lineBuffer, sizeof(lineBuffer), file))
         {
-                if (line_buffer[0] != '[' || !isdigit((unsigned char)line_buffer[1]))
+                if (lineBuffer[0] != '[' || !isdigit((unsigned char)lineBuffer[1]))
                         continue;
 
                 int min = 0, sec = 0, cs = 0;
                 char text[512] = {0};
 
-                if (sscanf(line_buffer, "[%d:%d.%d]%511[^\r\n]", &min, &sec, &cs, text) == 4)
+                if (sscanf(lineBuffer, "[%d:%d.%d]%511[^\r\n]", &min, &sec, &cs, text) == 4)
                 {
                         if (lyrics->count == capacity)
                         {
-                                size_t new_capacity = capacity * 2;
-                                LyricsLine *new_lines = realloc(lyrics->lines, sizeof(LyricsLine) * new_capacity);
+                                size_t newCapacity = capacity * 2;
+                                LyricsLine *newLines = realloc(lyrics->lines, sizeof(LyricsLine) * newCapacity);
 
-                                if (!new_lines)
+                                if (!newLines)
                                 {
                                         freeLyrics(lyrics);
                                         fclose(file);
                                         return NULL;
                                 }
 
-                                lyrics->lines = new_lines;
-                                capacity = new_capacity;
+                                lyrics->lines = newLines;
+                                capacity = newCapacity;
                         }
 
                         // Sanitize text (trim leading/trailing spaces)
@@ -118,14 +118,14 @@ void freeLyrics(Lyrics *lyrics)
         free(lyrics);
 }
 
-const char *getLyricsLine(const Lyrics *lyrics, double elapsed_seconds)
+char *getLyricsLine(Lyrics *lyrics, double elapsed_seconds)
 {
         if (!lyrics || lyrics->count == 0)
         {
                 return "";
         }
 
-        const char *line = "";
+        char *line = "";
 
         for (size_t i = 0; i < lyrics->count; i++)
         {

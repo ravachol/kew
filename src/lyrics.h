@@ -21,6 +21,6 @@ Lyrics *loadLyrics(const char *music_file_path);
 
 void freeLyrics(Lyrics *lyrics);
 
-const char *getLyricsLine(const Lyrics *lyrics, double elapsedSeconds);
+char *getLyricsLine(Lyrics *lyrics, double elapsedSeconds);
 
 #endif // LYRICS_H
