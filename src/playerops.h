@@ -81,8 +81,6 @@ void handleSkipFromStopped(void);
 
 FileSystemEntry *enqueueSongs(FileSystemEntry *entry, AppState *state);
 
-void resetStartTime(void);
-
 void playbackPause(AppState *state, struct timespec *pause_time);
 
 void playbackPlay(AppState *state);

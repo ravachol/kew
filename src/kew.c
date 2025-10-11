@@ -919,7 +919,7 @@ void updatePlayerStatus(AppState *state)
 
                 if (isPlaybackDone())
                 {
-                        resetStartTime();
+                        resetClock();
                         prepareNextSong(state);
                         switchAudioImplementation(state);
                 }
@@ -972,7 +972,7 @@ static gboolean quitOnSignal(gpointer user_data)
 void initFirstPlay(Node *song, AppState *state)
 {
         updateLastInputTime();
-        resetStartTime();
+        resetClock();
 
         UserData *userData = getUserData();
 
