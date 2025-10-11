@@ -2,6 +2,8 @@
 
 ### 3.5.3
 
+- Song lyrics support through .lrc files. By @Rioprastyo17.
+
 - Bumped miniaudio to version v0.11.23 which among other things, fixes a bug with some versions of mp3. By @hypercunx.
 
 - Code cleanup, improved structure and removed the remaining globals among other things.

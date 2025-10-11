@@ -55,6 +55,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include "theme.h"
 #include "utils.h"
 #include "visuals.h"
+#include "lyrics.h"
 #include <fcntl.h>
 #include <gio/gio.h>
 #include <glib-unix.h>
@@ -1091,6 +1092,10 @@ void cleanupOnExit()
         PlayList *unshuffledPlaylist = getUnshuffledPlaylist();
         PlayList *favoritesPlaylist = getFavoritesPlaylist();
 
+        if (state->uiState.lyrics) {
+                freeLyrics(state->uiState.lyrics);
+        }
+
         freeSearchResults();
         cleanupMpris();
         restoreTerminalMode();
@@ -1752,6 +1757,7 @@ void initState(AppState *state)
         state->uiState.lastNotifiedId = -1;
         state->uiState.noPlaylist = false;
         state->uiState.logFile = NULL;
+        state->uiState.lyrics = NULL;
         state->tmpCache = NULL;
         state->uiSettings.LAST_ROW = " [F2 Playlist|F3 Library|F4 Track|F5 Search|F6 Help]";
         state->uiSettings.defaultColor = 150;
