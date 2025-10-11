@@ -37,8 +37,6 @@ bool isSongLoading(void);
 
 void setSongLoading(bool val);
 
-struct timespec getStartTime(void);
-
 struct timespec getPauseTime(void);
 
 bool hasErrorsSong(void);
@@ -157,8 +155,6 @@ void loadNextSong(AppState *state);
 void setCurrentSongToNext(void);
 
 void finishLoading(UIState *uis);
-
-void resetTimeCount(void);
 
 bool setPosition(gint64 newPosition);
 

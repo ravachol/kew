@@ -80,8 +80,6 @@ void setSongLoading(bool val) { songLoading = val; }
 
 bool hasErrorsSong(void) { return songHasErrors; }
 
-struct timespec getStartTime(void) { return startTime; }
-
 struct timespec getPauseTime(void) { return pauseTime; }
 
 int getLastPlayedId(void) { return lastPlayedId; }
@@ -1310,8 +1308,7 @@ void silentSwitchToNext(bool loadSong, AppState *state)
                 state->uiState.doNotifyMPRISSwitched = true;
         }
 
-        resetTimeCount();
-        clock_gettime(CLOCK_MONOTONIC, &startTime);
+        resetClock();
 
         triggerRefresh();
 
@@ -2224,17 +2221,12 @@ void finishLoading(UIState *uis)
         uis->loadedNextSong = true;
 }
 
-void resetTimeCount(void)
+void resetClock(void)
 {
         elapsedSeconds = 0.0;
         setPauseSeconds(0.0);
         setTotalPauseSeconds(0.0);
         setSeekElapsed(0.0);
-}
-
-void resetClock(void)
-{
-        resetTimeCount();
         clock_gettime(CLOCK_MONOTONIC, &startTime);
 }
 
@@ -2331,8 +2323,7 @@ void silentSwitchToPrev(AppState *state)
         state->uiState.doNotifyMPRISSwitched = true;
         finishLoading(&(state->uiState));
 
-        resetTimeCount();
-        clock_gettime(CLOCK_MONOTONIC, &startTime);
+        resetClock();
 
         triggerRefresh();
         skipping = false;
@@ -2370,7 +2361,7 @@ void skipToPrevSong(AppState *state)
 
         if (song == current)
         {
-                resetTimeCount();
+                resetClock();
                 updatePlaybackPosition(
                     0); // We need to signal to mpris that the song was
                         // reset to the beginning

@@ -80,6 +80,7 @@ static FileSystemEntry *lastEntry = NULL;
 static FileSystemEntry *chosenDir = NULL;
 static bool isSameNameAsLastTime = false;
 static int term_w, term_h;
+static char *prevLine = NULL;
 
 int getFooterRow(void) { return footerRow; }
 
@@ -870,8 +871,8 @@ void printFooter(int row, int col, AppState *state, AppSettings *settings)
                 // Android.
                 printBlankSpaces(indent);
                 printf("%.*s", term_w * 2, text);
-                clearRestOfLine();
 #endif
+                clearRestOfLine();
                 return;
         }
 
@@ -1959,10 +1960,18 @@ void printAt(int row, int indent, const char *text, int maxWidth)
 
 void printLyrics(UISettings *ui, SongData *songdata, int row, int col, int term_w, double elapsedSeconds)
 {
-        const char *line = getLyricsLine(songdata->lyrics, elapsedSeconds);
-
-        if (line && line[0] != '\0')
+        if (!songdata)
         {
+                clearRestOfLine();
+                return;
+        }
+
+        char *line = getLyricsLine(songdata->lyrics, elapsedSeconds);
+
+        if (line && line[0] != '\0' && (!prevLine || strcmp(line, prevLine) != 0))
+        {
+
+                prevLine = line;
 
                 printf("\033[%d;1H\033[K", row);
 
@@ -2026,10 +2035,10 @@ void showTrackViewLandscape(int height, int width, float aspectRatio,
                 if (height > metadataHeight + timeHeight)
                         printTime(row + 4, col, elapsedSeconds, sampleRate,
                                   avgBitRate, state);
-        }
 
-        if (row > 0)
-                printLyrics(&(state->uiSettings), songdata, row + metadataHeight + 1, indent + 1, term_w, elapsedSeconds);
+                if (row > 0)
+                        printLyrics(&(state->uiSettings), songdata, row + metadataHeight + 1, indent + 1, term_w, elapsedSeconds);
+        }
 
         if (row > 0)
                 printVisualizer(row + metadataHeight + 2, col, visualizerWidth,

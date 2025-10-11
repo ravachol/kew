@@ -284,7 +284,6 @@ char *findLargestImageFile(const char *directoryPath, char *largestImageFile,
         return largestImageFile;
 }
 
-// Generate a new track ID
 gchar *generateTrackId(void)
 {
         gchar *trackId =
@@ -388,6 +387,7 @@ SongData *loadSongData(char *filePath, AppState *state)
         loadMetaData(songdata, state);
         songdata->lyrics = loadLyrics(songdata->filePath);
         loadColor(songdata);
+        
         return songdata;
 }
 

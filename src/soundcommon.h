@@ -174,6 +174,9 @@ void cleanupPlaybackDevice(void);
 
 void togglePausePlayback(AppState *state);
 
+int initPlaybackDevice(ma_context *context, ma_format format, ma_uint32 channels, ma_uint32 sampleRate,
+                       ma_device *device, ma_device_data_proc dataCallback, void *pUserData);
+
 void setPaused(bool val);
 
 bool isPaused(void);

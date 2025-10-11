@@ -838,7 +838,7 @@ void mapSettingsToKeys(AppSettings *settings, UISettings *ui,
         mappings[10] = (EventMapping){settings->toggleShuffle, EVENT_SHUFFLE};
         mappings[11] = (EventMapping){settings->toggleVisualizer, EVENT_TOGGLEVISUALIZER};
         mappings[12] = (EventMapping){settings->toggleAscii, EVENT_TOGGLEASCII};
-        mappings[13] = (EventMapping){settings->switchNumberedSong, EVENT_GOTOSONG};
+        mappings[13] = (EventMapping){settings->switchNumberedSong, EVENT_ENQUEUE};
         mappings[14] = (EventMapping){settings->seekBackward, EVENT_SEEKBACK};
         mappings[15] = (EventMapping){settings->seekForward, EVENT_SEEKFORWARD};
         mappings[16] = (EventMapping){settings->toggleRepeat, EVENT_TOGGLEREPEAT};
@@ -849,7 +849,7 @@ void mapSettingsToKeys(AppSettings *settings, UISettings *ui,
         mappings[21] = (EventMapping){settings->hardPlayPause, EVENT_PLAY_PAUSE};
         mappings[22] = (EventMapping){settings->hardPrev, EVENT_PREV};
         mappings[23] = (EventMapping){settings->hardNext, EVENT_NEXT};
-        mappings[24] = (EventMapping){settings->hardSwitchNumberedSong, EVENT_GOTOSONG};
+        mappings[24] = (EventMapping){settings->hardSwitchNumberedSong, EVENT_ENQUEUE};
         mappings[25] = (EventMapping){settings->hardScrollUp, EVENT_SCROLLPREV};
         mappings[26] = (EventMapping){settings->hardScrollDown, EVENT_SCROLLNEXT};
         mappings[27] = (EventMapping){settings->hardShowPlaylist, EVENT_SHOWPLAYLIST};
@@ -946,7 +946,7 @@ enum EventType getMouseAction(int num)
                 value = EVENT_NONE;
                 break;
         case 1:
-                value = EVENT_GOTOSONG;
+                value = EVENT_ENQUEUE;
                 break;
         case 2:
                 value = EVENT_PLAY_PAUSE;

@@ -55,7 +55,6 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include "theme.h"
 #include "utils.h"
 #include "visuals.h"
-#include "lyrics.h"
 #include <fcntl.h>
 #include <gio/gio.h>
 #include <glib-unix.h>
@@ -347,211 +346,192 @@ void playPostProcessing(bool wasEndOfList, AppState *state)
         audioData->endOfListReached = false;
 }
 
-void handleGoToSong(AppState *state)
+FileSystemEntry *libraryEnqueue(AppState *state, PlayList *playlist)
 {
-        Node *current = getCurrentSong();
-        PlayList *playlist = getPlaylist();
+        FileSystemEntry *entry = getCurrentLibEntry();
+        FileSystemEntry *firstEnqueuedEntry = NULL;
 
-        bool canGoNext = (current != NULL && current->next != NULL);
+        if (entry == NULL)
+                return NULL;
 
-        if (state->currentView == LIBRARY_VIEW)
+        // Enqueue playlist
+        if (pathEndsWith(entry->fullPath, "m3u") ||
+            pathEndsWith(entry->fullPath, "m3u8"))
         {
-                FileSystemEntry *entry = getCurrentLibEntry();
+                Node *prevTail = playlist->tail;
 
-                if (entry == NULL)
-                        return;
+                readM3UFile(entry->fullPath, playlist, getLibrary());
 
-                // Enqueue playlist
-                if (pathEndsWith(entry->fullPath, "m3u") ||
-                    pathEndsWith(entry->fullPath, "m3u8"))
+                if (prevTail != NULL && prevTail->next != NULL)
                 {
-                        FileSystemEntry *firstEnqueuedEntry = NULL;
-                        Node *prevTail = playlist->tail;
-
-                        readM3UFile(entry->fullPath, playlist, getLibrary());
-
-                        if (prevTail != NULL && prevTail->next != NULL)
-                        {
-                                firstEnqueuedEntry = findCorrespondingEntry(
-                                    getLibrary(), prevTail->next->song.filePath);
-                        }
-                        else if (playlist->head != NULL)
-                        {
-                                firstEnqueuedEntry = findCorrespondingEntry(
-                                    getLibrary(), playlist->head->song.filePath);
-                        }
-
-                        autostartIfStopped(firstEnqueuedEntry, &(state->uiState));
-
-                        markListAsEnqueued(getLibrary(), playlist);
-
-                        PlayList *unshuffledPlaylist = getUnshuffledPlaylist();
-
-                        deepCopyPlayListOntoList(playlist, &unshuffledPlaylist);
-                        shufflePlaylist(playlist);
-                        setUnshuffledPlaylist(unshuffledPlaylist);
+                        firstEnqueuedEntry = findCorrespondingEntry(
+                            getLibrary(), prevTail->next->song.filePath);
                 }
-                else
-                        enqueue(state, entry); // Enqueue song
-        }
-        else if (state->currentView == SEARCH_VIEW)
-        {
-                pthread_mutex_lock(&(playlist->mutex));
-
-                FileSystemEntry *entry = getCurrentSearchEntry();
-
-                state->uiState.waitingForPlaylist = false;
-
-                setChosenDir(entry);
-
-                enqueueSongs(entry, state);
-
-                resetListAfterDequeuingPlayingSong(state);
-
-                pthread_mutex_unlock(&(playlist->mutex));
-        }
-        else if (state->currentView == PLAYLIST_VIEW)
-        {
-                if (!isDigitsPressed())
+                else if (playlist->head != NULL)
                 {
-                        Node *current = getCurrentSong();
-
-                        if (isPaused() && current != NULL &&
-                            state->uiState.chosenNodeId == current->id)
-                        {
-                                togglePause(state);
-                        }
-                        else
-                        {
-                                cleanupPlaybackDevice();
-                                state->uiState.loadedNextSong = true;
-
-                                setNextSongNeedsRebuilding(false);
-
-                                unloadSongA(state);
-                                unloadSongB(state);
-
-                                setIsUsingSongDataA(false);
-
-                                AudioData *audioData = getAudioData();
-
-                                audioData->currentFileIndex = 0;
-
-                                LoadingThreadData *loadingdata = getLoadingData();
-
-                                loadingdata->loadA = true;
-
-                                bool wasEndOfList = playPreProcessing();
-
-                                playbackPlay(state);
-
-                                Node *found = NULL;
-                                findNodeInList(playlist,
-                                               state->uiState.chosenNodeId,
-                                               &found);
-                                play(found, state);
-
-                                playPostProcessing(wasEndOfList, state);
-
-                                setSkipOutOfOrder(false);
-                                setIsUsingSongDataA(true);
-                        }
+                        firstEnqueuedEntry = findCorrespondingEntry(
+                            getLibrary(), playlist->head->song.filePath);
                 }
-                else
-                {
-                        state->uiState.resetPlaylistDisplay = true;
-                        int songNumber = getSongNumber(getDigitsPressed());
 
-                        resetDigitsPressed();
+                autostartIfStopped(firstEnqueuedEntry, &(state->uiState));
 
-                        setNextSongNeedsRebuilding(false);
+                markListAsEnqueued(getLibrary(), playlist);
 
-                        skipToNumberedSong(songNumber, state);
-                }
+                PlayList *unshuffledPlaylist = getUnshuffledPlaylist();
+
+                deepCopyPlayListOntoList(playlist, &unshuffledPlaylist);
+                shufflePlaylist(playlist);
+                setUnshuffledPlaylist(unshuffledPlaylist);
         }
-
-        // Handle MPRIS CanGoNext
-        bool couldGoNext = (current != NULL && current->next != NULL);
-        if (canGoNext != couldGoNext)
+        else
         {
-                emitBooleanPropertyChanged("CanGoNext", couldGoNext);
+                firstEnqueuedEntry = enqueue(state, entry); // Enqueue song
         }
+
+        return firstEnqueuedEntry;
 }
 
-void enqueueAndPlay(AppState *state)
+FileSystemEntry *searchEnqueue(AppState *state, PlayList *playlist)
 {
-        FileSystemEntry *firstEnqueuedEntry = NULL;
-        PlayList *playlist = getPlaylist();
+        pthread_mutex_lock(&(playlist->mutex));
 
-        bool wasEmpty = (playlist->count == 0);
+        FileSystemEntry *entry = getCurrentSearchEntry();
+
+        state->uiState.waitingForPlaylist = false;
+
+        setChosenDir(entry);
+
+        FileSystemEntry *firstEnqueuedEntry = enqueueSongs(entry, state);
+
+        resetListAfterDequeuingPlayingSong(state);
+
+        pthread_mutex_unlock(&(playlist->mutex));
+
+        return firstEnqueuedEntry;
+}
+
+void clearAndPlay(AppState *state, Node *song)
+{
+        cleanupPlaybackDevice();
+        state->uiState.loadedNextSong = true;
+
+        setNextSongNeedsRebuilding(false);
+
+        unloadSongA(state);
+        unloadSongB(state);
+
+        setIsUsingSongDataA(false);
+
+        AudioData *audioData = getAudioData();
+
+        audioData->currentFileIndex = 0;
+
+        LoadingThreadData *loadingdata = getLoadingData();
+
+        loadingdata->loadA = true;
 
         bool wasEndOfList = playPreProcessing();
 
-        if (state->currentView == PLAYLIST_VIEW)
+        playbackPlay(state);
+
+        play(song, state);
+
+        playPostProcessing(wasEndOfList, state);
+
+        setSkipOutOfOrder(false);
+        setIsUsingSongDataA(true);
+}
+
+void playlistEnqueue(AppState *state, PlayList *playlist)
+{
+        if (!isDigitsPressed())
         {
-                handleGoToSong(state);
-                return;
+                Node *current = getCurrentSong();
+
+                if (isPaused() && current != NULL &&
+                    state->uiState.chosenNodeId == current->id)
+                {
+                        togglePause(state);
+                }
+                else
+                {
+                        Node *song = NULL;
+                        findNodeInList(playlist,
+                                       state->uiState.chosenNodeId,
+                                       &song);
+
+                        clearAndPlay(state, song);
+                }
         }
-
-        if (state->currentView == LIBRARY_VIEW)
+        else
         {
-                firstEnqueuedEntry = enqueue(state, getCurrentLibEntry());
-        }
+                state->uiState.resetPlaylistDisplay = true;
+                int songNumber = getSongNumber(getDigitsPressed());
 
-        if (state->currentView == SEARCH_VIEW)
-        {
-                FileSystemEntry *entry = getCurrentSearchEntry();
-                firstEnqueuedEntry = enqueue(state, entry);
-
-                setChosenDir(entry);
-        }
-
-        if (firstEnqueuedEntry && !wasEmpty)
-        {
-                Node *song =
-                    findPathInPlaylist(firstEnqueuedEntry->fullPath, playlist);
-
-                state->uiState.loadedNextSong = true;
+                resetDigitsPressed();
 
                 setNextSongNeedsRebuilding(false);
 
-                cleanupPlaybackDevice();
+                skipToNumberedSong(songNumber, state);
+        }
+}
 
-                unloadSongA(state);
-                unloadSongB(state);
+FileSystemEntry *viewEnqueue(AppState *state, PlayList *playlist)
+{
+        FileSystemEntry *firstEnqueuedEntry = NULL;
 
-                setIsUsingSongDataA(false);
+        if (state->currentView == LIBRARY_VIEW)
+        {
+                firstEnqueuedEntry = libraryEnqueue(state, playlist);
+        }
 
-                AudioData *audioData = getAudioData();
+        else if (state->currentView == SEARCH_VIEW)
+        {
+                firstEnqueuedEntry = searchEnqueue(state, playlist);
+        }
+        else if (state->currentView == PLAYLIST_VIEW)
+        {
+                playlistEnqueue(state, playlist);
+        }
 
-                audioData->currentFileIndex = 0;
+        return firstEnqueuedEntry;
+}
 
-                LoadingThreadData *loadingdata = getLoadingData();
+void enqueueHandler(AppState *state, bool playImmediately)
+{
+        PlayList *playlist = getPlaylist();
+        Node *current = getCurrentSong();
+        bool wasEmpty = (playlist->count == 0);
+        bool canGoNextBefore = (current != NULL && current->next != NULL);
 
-                loadingdata->loadA = true;
+        FileSystemEntry *firstEnqueuedEntry = viewEnqueue(state, playlist);
 
-                playbackPlay(state);
+        if (playImmediately && firstEnqueuedEntry && !wasEmpty)
+        {
+                Node *song = findPathInPlaylist(firstEnqueuedEntry->fullPath, playlist);
+                clearAndPlay(state, song);
+        }
 
-                play(song, state);
+        Node *currentAfter = getCurrentSong();
+        bool canGoNextAfter = (currentAfter != NULL && currentAfter->next != NULL);
 
-                playPostProcessing(wasEndOfList, state);
-
-                setSkipOutOfOrder(false);
-                setIsUsingSongDataA(true);
+        if (canGoNextBefore != canGoNextAfter)
+        {
+                emitBooleanPropertyChanged("CanGoNext", canGoNextAfter);
         }
 }
 
 void gotoBeginningOfPlaylist(AppState *state)
 {
         pressDigit(1);
-        handleGoToSong(state);
+               enqueueHandler(state, false);
 }
 
 void gotoEndOfPlaylist(AppState *state)
 {
         if (isDigitsPressed())
         {
-                handleGoToSong(state);
+                enqueueHandler(state, false);
         }
         else
         {
@@ -574,13 +554,16 @@ void handleInput(AppState *state)
         case EVENT_GOTOENDOFPLAYLIST:
                 gotoEndOfPlaylist(state);
                 break;
-        case EVENT_GOTOSONG:
-                handleGoToSong(state);
+        case EVENT_ENQUEUE:
+                enqueueHandler(state, false);
+                break;
+        case EVENT_ENQUEUEANDPLAY:
+                enqueueHandler(state, true);
                 break;
         case EVENT_PLAY_PAUSE:
                 if (isStopped())
                 {
-                        handleGoToSong(state);
+                        enqueueHandler(state, false);
                 }
                 else
                 {
@@ -688,9 +671,6 @@ void handleInput(AppState *state)
                 break;
         case EVENT_MOVESONGDOWN:
                 moveSongDown(state);
-                break;
-        case EVENT_ENQUEUEANDPLAY:
-                enqueueAndPlay(state);
                 break;
         case EVENT_STOP:
                 stop(state);
@@ -828,7 +808,6 @@ void loadAudioData(AppState *state)
 
                         if (res >= 0)
                         {
-                                resetClock();
                                 resumePlayback(state);
                         }
                         else
@@ -840,9 +819,7 @@ void loadAudioData(AppState *state)
                         setNextSong(NULL);
                         triggerRefresh();
 
-                        struct timespec startTime = getStartTime();
-
-                        clock_gettime(CLOCK_MONOTONIC, &startTime);
+                        resetClock();
                 }
         }
         else if (getCurrentSong() != NULL &&
@@ -919,7 +896,6 @@ void updatePlayerStatus(AppState *state)
 
                 if (isPlaybackDone())
                 {
-                        resetClock();
                         prepareNextSong(state);
                         switchAudioImplementation(state);
                 }
@@ -1019,9 +995,7 @@ void initFirstPlay(Node *song, AppState *state)
         setNextSong(NULL);
         triggerRefresh();
 
-        struct timespec startTime = getStartTime();
-
-        clock_gettime(CLOCK_MONOTONIC, &startTime);
+        resetClock();
 
         GMainLoop *main_loop = g_main_loop_new(NULL, FALSE);
 
