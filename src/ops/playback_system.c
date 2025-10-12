@@ -9,13 +9,15 @@
 
 #include "playback_system.h"
 
+#include "common/appstate.h"
 #include "sound/sound.h"
 #include "sound/soundcommon.h"
 
 #include "data/songloader.h"
 
-void playbackSafeCleanup(AppState *state)
+void playbackSafeCleanup(void)
 {
+        AppState *state = getAppState();
         pthread_mutex_lock(&(state->dataSourceMutex));
         cleanupPlaybackDevice();
         pthread_mutex_unlock(&(state->dataSourceMutex));
@@ -26,14 +28,14 @@ void playbackCleanup(void)
         cleanupPlaybackDevice();
 }
 
-void playbackSwitchDecoder(AppState *state)
+void playbackSwitchDecoder(void)
 {
-        switchAudioImplementation(state);
+        switchAudioImplementation();
 }
 
-int playbackCreate(AppState *state)
+int playbackCreate(void)
 {
-        return createAudioDevice(state);
+        return createAudioDevice();
 }
 
 
@@ -50,23 +52,23 @@ void playbackShutdown(void)
         }
 }
 
-void playbackUnloadSongs(AppState *state, UserData *userData)
+void playbackUnloadSongs(UserData *userData)
 {
         PlaybackState *ps = getPlaybackState();
 
         if (!userData->songdataADeleted)
         {
                 userData->songdataADeleted = true;
-                unloadSongData(&(ps->loadingdata.songdataA), state);
+                unloadSongData(&(ps->loadingdata.songdataA));
         }
         if (!userData->songdataBDeleted)
         {
                 userData->songdataBDeleted = true;
-                unloadSongData(&(ps->loadingdata.songdataB), state);
+                unloadSongData(&(ps->loadingdata.songdataB));
         }
 }
 
-void skip(AppState *state)
+void skip()
 {
         PlaybackState *ps = getPlaybackState();
 
@@ -80,7 +82,7 @@ void skip(AppState *state)
 
         if (!isPlaying())
         {
-                switchAudioImplementation(state);
+                switchAudioImplementation();
                 ps->skipFromStopped = true;
         }
         else

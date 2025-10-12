@@ -985,8 +985,10 @@ void seekPercentage(float percent)
         seekRequested = true;
 }
 
-void stopPlayback(AppState *state)
+void stopPlayback(void)
 {
+        AppState *state = getAppState();
+
         if (ma_device_is_started(&device))
         {
                 ma_device_stop(&device);
@@ -1000,8 +1002,10 @@ void stopPlayback(AppState *state)
         }
 }
 
-void pausePlayback(AppState *state)
+void pausePlayback(void)
 {
+        AppState *state = getAppState();
+
         if (ma_device_is_started(&device))
         {
                 ma_device_stop(&device);
@@ -1097,15 +1101,15 @@ void clearCurrentTrack(void)
         resetAllDecoders();
 }
 
-void togglePausePlayback(AppState *state)
+void togglePausePlayback(void)
 {
         if (ma_device_is_started(&device))
         {
-                pausePlayback(state);
+                pausePlayback();
         }
         else if (isPaused() || isStopped())
         {
-                resumePlayback(state);
+                resumePlayback();
         }
 }
 
@@ -1127,11 +1131,12 @@ bool hasBuiltinDecoder(char *filePath)
                                       strcasecmp(extension, ".mp3") == 0));
 }
 
-void resumePlayback(AppState *state)
+void resumePlayback(void)
 {
         // If this was unpaused with no song loaded
 
         AudioData *audioData = getAudioData();
+        AppState *state = getAppState();
 
         if (audioData->restart)
         {
@@ -1142,7 +1147,7 @@ void resumePlayback(AppState *state)
         {
                 if (ma_device_start(&device) != MA_SUCCESS)
                 {
-                        createAudioDevice(state);
+                        createAudioDevice();
                         ma_device_start(&device);
                 }
         }

@@ -205,9 +205,7 @@ static void handle_next(GDBusConnection *connection, const gchar *sender,
         (void)parameters;
         (void)user_data;
 
-        AppState *state = (AppState *)user_data;
-
-        skipToNextSong(state);
+        skipToNextSong();
         g_dbus_method_invocation_return_value(invocation, NULL);
 }
 
@@ -226,9 +224,7 @@ static void handle_previous(GDBusConnection *connection, const gchar *sender,
         (void)parameters;
         (void)user_data;
 
-        AppState *state = (AppState *)user_data;
-
-        skipToPrevSong(state);
+        skipToPrevSong();
         g_dbus_method_invocation_return_value(invocation, NULL);
 }
 
@@ -247,9 +243,8 @@ static void handle_pause(GDBusConnection *connection, const gchar *sender,
         (void)user_data;
 
         struct timespec pauseTime = getPauseTime();
-        AppState *state = (AppState *)user_data;
 
-        playbackPause(state, &pauseTime);
+        playbackPause(&pauseTime);
         g_dbus_method_invocation_return_value(invocation, NULL);
 }
 
@@ -268,9 +263,7 @@ static void handle_play_pause(GDBusConnection *connection, const gchar *sender,
         (void)parameters;
         (void)user_data;
 
-        AppState *state = (AppState *)user_data;
-
-        togglePause(state);
+        togglePause();
 
         g_dbus_method_invocation_return_value(invocation, NULL);
 }
@@ -288,10 +281,8 @@ static void handle_stop(GDBusConnection *connection, const gchar *sender,
         (void)parameters;
         (void)user_data;
 
-        AppState *state = (AppState *)user_data;
-
         if (!isStopped())
-                stop(state);
+                stop();
 
         g_dbus_method_invocation_return_value(invocation, NULL);
 }
@@ -310,9 +301,7 @@ static void handle_play(GDBusConnection *connection, const gchar *sender,
         (void)invocation;
         (void)user_data;
 
-        AppState *state = (AppState *)user_data;
-
-        playbackPlay(state);
+        playbackPlay();
 
         g_dbus_method_invocation_return_value(invocation, NULL);
 }
@@ -996,8 +985,6 @@ set_property_callback(GDBusConnection *connection, const gchar *sender,
         (void)property_name;
         (void)user_data;
 
-        AppState *state = (AppState *)user_data;
-
         if (g_strcmp0(interface_name, "org.mpris.MediaPlayer2.Player") == 0)
         {
                 if (g_strcmp0(property_name, "PlaybackStatus") == 0)
@@ -1025,12 +1012,12 @@ set_property_callback(GDBusConnection *connection, const gchar *sender,
                 }
                 else if (g_strcmp0(property_name, "LoopStatus") == 0)
                 {
-                        toggleRepeat(state);
+                        toggleRepeat();
                         return TRUE;
                 }
                 else if (g_strcmp0(property_name, "Shuffle") == 0)
                 {
-                        toggleShuffle(state);
+                        toggleShuffle();
                         return TRUE;
                 }
                 else if (g_strcmp0(property_name, "Position") == 0)
@@ -1129,8 +1116,10 @@ void cleanupMpris(void)
 #endif
 }
 
-void initMpris(AppState *state)
+void initMpris(void)
 {
+        AppState *state = getAppState();
+
 #ifndef __APPLE__
         if (getGMainContext() == NULL)
         {

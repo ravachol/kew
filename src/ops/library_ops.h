@@ -12,19 +12,19 @@
 
 #include "common/appstate.h"
 
-void createLibrary(AppSettings *settings, AppState *state, char *libFilepath);
-void updateLibrary(AppState *state, char *path);
+void createLibrary(AppSettings *settings, char *libFilepath);
+void updateLibrary(char *path);
 void askIfCacheLibrary(UISettings *ui);
 void sortLibrary(void);
 void markListAsEnqueued(FileSystemEntry *root, PlayList *playlist);
 bool markAsDequeued(FileSystemEntry *root, char *path);
 void enqueueSong(FileSystemEntry *child);
-void dequeueSong(FileSystemEntry *child, AppState *state);
-void dequeueChildren(FileSystemEntry *parent, AppState *state);
+void dequeueSong(FileSystemEntry *child);
+void dequeueChildren(FileSystemEntry *parent);
 void enqueueChildren(FileSystemEntry *child, FileSystemEntry **firstEnqueuedEntry);
 bool hasSongChildren(FileSystemEntry *entry);
 bool hasDequeuedChildren(FileSystemEntry *parent);
 bool isContainedWithin(FileSystemEntry *entry, FileSystemEntry *containingEntry);
-FileSystemEntry *enqueueSongs(FileSystemEntry *entry, AppState *state, FileSystemEntry **chosenDir);
+FileSystemEntry *enqueueSongs(FileSystemEntry *entry, FileSystemEntry **chosenDir);
 
 #endif

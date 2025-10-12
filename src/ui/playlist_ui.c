@@ -8,6 +8,7 @@
 
 #include "playlist_ui.h"
 
+#include "common/appstate.h"
 #include "common_ui.h"
 
 #include "data/songloader.h"
@@ -277,9 +278,9 @@ void moveStartNodeIntoPosition(int foundAt, Node **startNode)
 }
 
 int displayPlaylist(PlayList *list, int maxListSize, int indent,
-                    int *chosenSong, int *chosenNodeId, bool reset,
-                    AppState *state)
+                    int *chosenSong, int *chosenNodeId, bool reset)
 {
+        AppState *state = getAppState();
         int termWidth, termHeight;
         getTermSize(&termWidth, &termHeight);
 

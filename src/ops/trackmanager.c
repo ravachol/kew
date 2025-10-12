@@ -9,14 +9,16 @@
 
 #include "trackmanager.h"
 
+#include "common/appstate.h"
 #include "sound/sound.h"
 
 #include "data/songloader.h"
 
 #include "utils/utils.h"
 
-void loadFirstSong(Node *song, AppState *state)
+void loadFirstSong(Node *song)
 {
+        AppState *state = getAppState();
         PlaybackState *ps = getPlaybackState();
 
         if (song == NULL)
@@ -37,32 +39,33 @@ void loadFirstSong(Node *song, AppState *state)
         }
 }
 
-void unloadSongA(AppState *state)
+void unloadSongA(void)
 {
         PlaybackState *ps = getPlaybackState();
 
         if (getUserData()->songdataADeleted == false)
         {
                 getUserData()->songdataADeleted = true;
-                unloadSongData(&(ps->loadingdata.songdataA), state);
+                unloadSongData(&(ps->loadingdata.songdataA));
                 getUserData()->songdataA = NULL;
         }
 }
 
-void unloadSongB(AppState *state)
+void unloadSongB(void)
 {
         PlaybackState *ps = getPlaybackState();
 
         if (getUserData()->songdataBDeleted == false)
         {
                 getUserData()->songdataBDeleted = true;
-                unloadSongData(&(ps->loadingdata.songdataB), state);
+                unloadSongData(&(ps->loadingdata.songdataB));
                 getUserData()->songdataB = NULL;
         }
 }
 
-void unloadPreviousSong(AppState *state)
+void unloadPreviousSong(void)
 {
+        AppState *state = getAppState();
         UserData *userData = getUserData();
         AudioData *audioData = getAudioData();
         PlaybackState *ps = getPlaybackState();
@@ -79,7 +82,7 @@ void unloadPreviousSong(AppState *state)
                                strcmp(ps->loadingdata.songdataA->trackId,
                                       userData->currentSongData->trackId) != 0))))
         {
-                unloadSongA(state);
+                unloadSongA();
 
                 if (!audioData->endOfListReached)
                         state->uiState.loadedNextSong = false;
@@ -97,7 +100,7 @@ void unloadPreviousSong(AppState *state)
                     strcmp(ps->loadingdata.songdataB->trackId,
                            userData->currentSongData->trackId) != 0))))
         {
-                unloadSongB(state);
+                unloadSongB();
 
                 if (!audioData->endOfListReached)
                         state->uiState.loadedNextSong = false;
@@ -108,9 +111,10 @@ void unloadPreviousSong(AppState *state)
         pthread_mutex_unlock(&(ps->loadingdata.mutex));
 }
 
-int loadFirst(Node *song, AppState *state)
+int loadFirst(Node *song)
 {
-        loadFirstSong(song, state);
+        AppState *state = getAppState();
+        loadFirstSong(song);
         Node *current = getCurrentSong();
         PlaybackState *ps = getPlaybackState();
 
@@ -121,13 +125,13 @@ int loadFirst(Node *song, AppState *state)
                 ps->songHasErrors = false;
                 state->uiState.loadedNextSong = false;
                 current = current->next;
-                loadFirstSong(current, state);
+                loadFirstSong(current);
         }
 
         if (ps->songHasErrors)
         {
                 // Couldn't play any of the songs
-                unloadPreviousSong(state);
+                unloadPreviousSong();
                 current = NULL;
                 ps->songHasErrors = false;
                 return -1;
@@ -141,8 +145,9 @@ int loadFirst(Node *song, AppState *state)
         return 0;
 }
 
-void loadNextSong(AppState *state)
+void loadNextSong(void)
 {
+        AppState *state = getAppState();
         UIState *uis = &(state->uiState);
         PlaybackState *ps = getPlaybackState();
 
@@ -157,7 +162,7 @@ void loadNextSong(AppState *state)
         loadSong(getNextSong(), &ps->loadingdata, uis);
 }
 
-void finishLoading(UIState *uis)
+void finishLoading(UIState *uis) // FIXME UI stuff shouldn't be here
 {
         int maxNumTries = 20;
         int numtries = 0;

@@ -65,6 +65,6 @@ typedef struct
 
 #endif
 
-SongData *loadSongData(char *filePath, AppState *state);
+SongData *loadSongData(char *filePath);
 
-void unloadSongData(SongData **songdata, AppState *state);
+void unloadSongData(SongData **songdata);

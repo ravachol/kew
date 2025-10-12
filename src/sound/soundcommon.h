@@ -118,7 +118,7 @@ int prepareNextVorbisDecoder(char *filepath);
 
 int prepareNextM4aDecoder(SongData *songData);
 
-void resumePlayback(AppState *state);
+void resumePlayback(void);
 
 ma_libvorbis *getFirstVorbisDecoder(void);
 
@@ -178,13 +178,13 @@ void setSeekRequested(bool value);
 
 void seekPercentage(float percent);
 
-void stopPlayback(AppState *state);
+void stopPlayback(void);
 
-void pausePlayback(AppState *state);
+void pausePlayback(void);
 
 void cleanupPlaybackDevice(void);
 
-void togglePausePlayback(AppState *state);
+void togglePausePlayback(void);
 
 int initPlaybackDevice(ma_context *context, ma_format format, ma_uint32 channels, ma_uint32 sampleRate,
                        ma_device *device, ma_device_data_proc dataCallback, void *pUserData);

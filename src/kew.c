@@ -85,8 +85,9 @@ const char VERSION[] = "3.6.0";
 
 AppState *statePtr = NULL;
 
-void setEndOfListReached(AppState *state)
+void setEndOfListReached(void)
 {
+        AppState *state = getAppState();
         AudioData *audioData = getAudioData();
         PlaybackState *ps = getPlaybackState();
 
@@ -105,7 +106,7 @@ void setEndOfListReached(AppState *state)
         triggerRefresh();
 
         if (playbackIsRepeatListEnabled())
-                repeatList(state);
+                repeatList();
         else
         {
                 emitPlaybackStoppedMpris();
@@ -132,8 +133,9 @@ void notifyMPRISSwitch(SongData *currentSongData)
             getCurrentSong(), length);
 }
 
-void notifySongSwitch(SongData *currentSongData, AppState *state)
+void notifySongSwitch(SongData *currentSongData)
 {
+        AppState *state = getAppState();
         UISettings *ui = &(state->uiSettings);
         if (currentSongData != NULL && currentSongData->hasErrors == 0 &&
             currentSongData->metadata &&
@@ -156,8 +158,9 @@ void notifySongSwitch(SongData *currentSongData, AppState *state)
         }
 }
 
-void determineSongAndNotify(AppState *state)
+void determineSongAndNotify(void)
 {
+        AppState *state = getAppState();
         SongData *currentSongData = NULL;
 
         bool isDeleted = determineCurrentSongData(&currentSongData);
@@ -170,13 +173,14 @@ void determineSongAndNotify(AppState *state)
         if (state->uiState.lastNotifiedId != current->id)
         {
                 if (!isDeleted)
-                        notifySongSwitch(currentSongData, state);
+                        notifySongSwitch(currentSongData);
         }
 }
 
 // Refreshes the player visually if conditions are met
-void refreshPlayer(AppState *state)
+void refreshPlayer()
 {
+        AppState *state = getAppState();
         UIState *uis = &(state->uiState);
         AppSettings *settings = getAppSettings();
 
@@ -204,15 +208,15 @@ void refreshPlayer(AppState *state)
 
         if (shouldRefreshPlayer())
         {
-                printPlayer(getCurrentSongData(), getElapsedSeconds(), settings,
-                            state);
+                printPlayer(getCurrentSongData(), getElapsedSeconds(), settings);
         }
 
         pthread_mutex_unlock(&(state->switchMutex));
 }
 
-void resetListAfterDequeuingPlayingSong(AppState *state)
+void resetListAfterDequeuingPlayingSong(void)
 {
+        AppState *state = getAppState();
         PlaybackState *ps = getPlaybackState();
 
         state->uiState.startFromTop = true;
@@ -224,7 +228,7 @@ void resetListAfterDequeuingPlayingSong(AppState *state)
 
         if (getCurrentSong() == NULL && node == NULL)
         {
-                playbackStop(state);
+                playbackStop();
 
                 AudioData *audioData = getAudioData();
 
@@ -241,10 +245,10 @@ void resetListAfterDequeuingPlayingSong(AppState *state)
 
                 triggerRefresh();
 
-                playbackSwitchDecoder(state);
+                playbackSwitchDecoder();
 
-                unloadSongA(state);
-                unloadSongB(state);
+                unloadSongA();
+                unloadSongB();
                 state->uiState.songWasRemoved = true;
 
                 UserData *userData = playbackGetUserData();
@@ -287,8 +291,9 @@ int getSongNumber(const char *str)
         return (int)value;
 }
 
-FileSystemEntry *enqueue(AppState *state, FileSystemEntry *entry)
+FileSystemEntry *enqueue(FileSystemEntry *entry)
 {
+        AppState *state = getAppState();
         FileSystemEntry *firstEnqueuedEntry = NULL;
         PlaybackState *ps = getPlaybackState();
         AudioData *audioData = getAudioData();
@@ -314,11 +319,11 @@ FileSystemEntry *enqueue(AppState *state, FileSystemEntry *entry)
 
         FileSystemEntry *chosenDir = getChosenDir();
 
-        firstEnqueuedEntry = enqueueSongs(entry, state, &chosenDir);
+        firstEnqueuedEntry = enqueueSongs(entry, &chosenDir);
 
         setChosenDir(chosenDir);
 
-        resetListAfterDequeuingPlayingSong(state);
+        resetListAfterDequeuingPlayingSong();
 
         pthread_mutex_unlock(&(getPlaylist()->mutex));
 
@@ -337,8 +342,9 @@ bool playPreProcessing()
         return wasEndOfList;
 }
 
-void playPostProcessing(bool wasEndOfList, AppState *state)
+void playPostProcessing(bool wasEndOfList)
 {
+        AppState *state = getAppState();
         PlaybackState *ps = getPlaybackState();
 
         if ((state->uiState.songWasRemoved && getCurrentSong() != NULL))
@@ -356,8 +362,9 @@ void playPostProcessing(bool wasEndOfList, AppState *state)
         audioData->endOfListReached = false;
 }
 
-FileSystemEntry *libraryEnqueue(AppState *state, PlayList *playlist)
+FileSystemEntry *libraryEnqueue(PlayList *playlist)
 {
+        AppState *state = getAppState();
         FileSystemEntry *entry = state->uiState.currentLibEntry;
         FileSystemEntry *firstEnqueuedEntry = NULL;
 
@@ -395,14 +402,15 @@ FileSystemEntry *libraryEnqueue(AppState *state, PlayList *playlist)
         }
         else
         {
-                firstEnqueuedEntry = enqueue(state, entry); // Enqueue song
+                firstEnqueuedEntry = enqueue(entry); // Enqueue song
         }
 
         return firstEnqueuedEntry;
 }
 
-FileSystemEntry *searchEnqueue(AppState *state, PlayList *playlist)
+FileSystemEntry *searchEnqueue(PlayList *playlist)
 {
+        AppState *state = getAppState();
         pthread_mutex_lock(&(playlist->mutex));
 
         FileSystemEntry *entry = getCurrentSearchEntry();
@@ -413,19 +421,20 @@ FileSystemEntry *searchEnqueue(AppState *state, PlayList *playlist)
 
         FileSystemEntry *chosenDir = getChosenDir();
 
-        FileSystemEntry *firstEnqueuedEntry = enqueueSongs(entry, state, &chosenDir);
+        FileSystemEntry *firstEnqueuedEntry = enqueueSongs(entry, &chosenDir);
 
         setChosenDir(chosenDir);
 
-        resetListAfterDequeuingPlayingSong(state);
+        resetListAfterDequeuingPlayingSong();
 
         pthread_mutex_unlock(&(playlist->mutex));
 
         return firstEnqueuedEntry;
 }
 
-void clearAndPlay(AppState *state, Node *song)
+void clearAndPlay(Node *song)
 {
+        AppState *state = getAppState();
         AudioData *audioData = getAudioData();
         PlaybackState *ps = getPlaybackState();
 
@@ -435,8 +444,8 @@ void clearAndPlay(AppState *state, Node *song)
 
         ps->nextSongNeedsRebuilding = false;
 
-        unloadSongA(state);
-        unloadSongB(state);
+        unloadSongA();
+        unloadSongB();
 
         ps->usingSongDataA = false;
 
@@ -446,21 +455,22 @@ void clearAndPlay(AppState *state, Node *song)
 
         bool wasEndOfList = playPreProcessing();
 
-        playbackPlay(state);
+        playbackPlay();
 
-        if (play(song, state) < 0)
+        if (play(song) < 0)
         {
-                skipToSong(song->next->id, true, state);
+                skipToSong(song->next->id, true);
         }
 
-        playPostProcessing(wasEndOfList, state);
+        playPostProcessing(wasEndOfList);
 
         ps->skipOutOfOrder = false;
         ps->usingSongDataA = true;
 }
 
-void playlistPlay(AppState *state, PlayList *playlist)
+void playlistPlay(PlayList *playlist)
 {
+        AppState *state = getAppState();
         PlaybackState *ps = getPlaybackState();
 
         if (!isDigitsPressed())
@@ -470,7 +480,7 @@ void playlistPlay(AppState *state, PlayList *playlist)
                 if (playbackIsPaused() && current != NULL &&
                     state->uiState.chosenNodeId == current->id)
                 {
-                        togglePause(state);
+                        togglePause();
                 }
                 else
                 {
@@ -479,7 +489,7 @@ void playlistPlay(AppState *state, PlayList *playlist)
                                        state->uiState.chosenNodeId,
                                        &song);
 
-                        clearAndPlay(state, song);
+                        clearAndPlay(song);
                 }
         }
         else
@@ -491,24 +501,25 @@ void playlistPlay(AppState *state, PlayList *playlist)
 
                 ps->nextSongNeedsRebuilding = false;
 
-                skipToNumberedSong(songNumber, state);
+                skipToNumberedSong(songNumber);
         }
 }
 
-FileSystemEntry *viewEnqueue(AppState *state, PlayList *playlist)
+FileSystemEntry *viewEnqueue(PlayList *playlist)
 {
+        AppState *state = getAppState();
         FileSystemEntry *firstEnqueuedEntry = NULL;
 
         switch (state->currentView)
         {
         case LIBRARY_VIEW:
-                firstEnqueuedEntry = libraryEnqueue(state, playlist);
+                firstEnqueuedEntry = libraryEnqueue(playlist);
                 break;
         case SEARCH_VIEW:
-                firstEnqueuedEntry = searchEnqueue(state, playlist);
+                firstEnqueuedEntry = searchEnqueue(playlist);
                 break;
         case PLAYLIST_VIEW:
-                playlistPlay(state, playlist);
+                playlistPlay(playlist);
                 break;
         default:
                 return NULL;
@@ -517,19 +528,19 @@ FileSystemEntry *viewEnqueue(AppState *state, PlayList *playlist)
         return firstEnqueuedEntry;
 }
 
-void enqueueHandler(AppState *state, bool playImmediately)
+void enqueueHandler(bool playImmediately)
 {
         PlayList *playlist = getPlaylist();
         Node *current = getCurrentSong();
         bool wasEmpty = (playlist->count == 0);
         bool canGoNextBefore = (current != NULL && current->next != NULL);
 
-        FileSystemEntry *firstEnqueuedEntry = viewEnqueue(state, playlist);
+        FileSystemEntry *firstEnqueuedEntry = viewEnqueue(playlist);
 
         if (playImmediately && firstEnqueuedEntry && !wasEmpty)
         {
                 Node *song = findPathInPlaylist(firstEnqueuedEntry->fullPath, playlist);
-                clearAndPlay(state, song);
+                clearAndPlay(song);
         }
 
         Node *currentAfter = getCurrentSong();
@@ -541,8 +552,9 @@ void enqueueHandler(AppState *state, bool playImmediately)
         }
 }
 
-void handleGoToSong(AppState *state)
+void handleGoToSong(void)
 {
+        AppState *state = getAppState();
         Node *currentSong = getCurrentSong();
         PlayList *playlist = getPlaylist();
         PlayList *unshuffledPlaylist = getUnshuffledPlaylist();
@@ -590,7 +602,7 @@ void handleGoToSong(AppState *state)
                         }
                 }
                 else
-                        enqueue(state, entry); // Enqueue song
+                        enqueue(entry); // Enqueue song
         }
         else if (state->currentView == SEARCH_VIEW)
         {
@@ -602,9 +614,9 @@ void handleGoToSong(AppState *state)
 
                 FileSystemEntry *chosen = getChosenDir();
 
-                enqueueSongs(entry, state, &chosen);
+                enqueueSongs(entry, &chosen);
 
-                resetListAfterDequeuingPlayingSong(state);
+                resetListAfterDequeuingPlayingSong();
 
                 pthread_mutex_unlock(&(playlist->mutex));
         }
@@ -615,18 +627,18 @@ void handleGoToSong(AppState *state)
                         if (playbackIsPaused() && currentSong != NULL &&
                             state->uiState.chosenNodeId == currentSong->id)
                         {
-                                togglePause(state);
+                                togglePause();
                         }
                         else
                         {
-                                playbackSafeCleanup(state);
+                                playbackSafeCleanup();
 
                                 state->uiState.loadedNextSong = true;
 
                                 ps->nextSongNeedsRebuilding = false;
 
-                                unloadSongA(state);
-                                unloadSongB(state);
+                                unloadSongA();
+                                unloadSongB();
 
                                 ps->usingSongDataA = false;
                                 audioData->currentFileIndex = 0;
@@ -634,15 +646,15 @@ void handleGoToSong(AppState *state)
 
                                 bool wasEndOfList = playPreProcessing();
 
-                                playbackPlay(state);
+                                playbackPlay();
 
                                 Node *found = NULL;
                                 findNodeInList(playlist,
                                                state->uiState.chosenNodeId,
                                                &found);
-                                play(found, state);
+                                play(found);
 
-                                playPostProcessing(wasEndOfList, state);
+                                playPostProcessing(wasEndOfList);
 
                                 ps->skipOutOfOrder = false;
                                 ps->usingSongDataA = true;
@@ -656,7 +668,7 @@ void handleGoToSong(AppState *state)
 
                         ps->nextSongNeedsRebuilding = false;
 
-                        skipToNumberedSong(songNumber, state);
+                        skipToNumberedSong(songNumber);
                 }
         }
 
@@ -668,8 +680,9 @@ void handleGoToSong(AppState *state)
         }
 }
 
-void enqueueAndPlay(AppState *state)
+void enqueueAndPlay(void)
 {
+        AppState *state = getAppState();
         FileSystemEntry *firstEnqueuedEntry = NULL;
         PlayList *playlist = getPlaylist();
         PlaybackState *ps = getPlaybackState();
@@ -681,19 +694,19 @@ void enqueueAndPlay(AppState *state)
 
         if (state->currentView == PLAYLIST_VIEW)
         {
-                handleGoToSong(state);
+                handleGoToSong();
                 return;
         }
 
         if (state->currentView == LIBRARY_VIEW)
         {
-                firstEnqueuedEntry = enqueue(state, state->uiState.currentLibEntry);
+                firstEnqueuedEntry = enqueue(state->uiState.currentLibEntry);
         }
 
         if (state->currentView == SEARCH_VIEW)
         {
                 FileSystemEntry *entry = getCurrentSearchEntry();
-                firstEnqueuedEntry = enqueue(state, entry);
+                firstEnqueuedEntry = enqueue(entry);
 
                 setChosenDir(entry);
         }
@@ -707,48 +720,49 @@ void enqueueAndPlay(AppState *state)
 
                 ps->nextSongNeedsRebuilding = false;
 
-                playbackSafeCleanup(state);
+                playbackSafeCleanup();
 
-                unloadSongA(state);
-                unloadSongB(state);
+                unloadSongA();
+                unloadSongB();
 
                 ps->usingSongDataA = false;
                 audioData->currentFileIndex = 0;
                 ps->loadingdata.loadA = true;
 
-                playbackPlay(state);
+                playbackPlay();
 
-                play(song, state);
+                play(song);
 
-                playPostProcessing(wasEndOfList, state);
+                playPostProcessing(wasEndOfList);
 
                 ps->skipOutOfOrder = false;
                 ps->usingSongDataA = true;
         }
 }
 
-void gotoBeginningOfPlaylist(AppState *state)
+void gotoBeginningOfPlaylist(void)
 {
         pressDigit(1);
-        enqueueHandler(state, false);
+        enqueueHandler(false);
 }
 
-void gotoEndOfPlaylist(AppState *state)
+void gotoEndOfPlaylist()
 {
         if (isDigitsPressed())
         {
-                enqueueHandler(state, false);
+                enqueueHandler(false);
         }
         else
         {
-                skipToLastSong(state);
+                skipToLastSong();
         }
 }
 
-void handleInput(AppState *state)
+void handleInput(void)
 {
-        struct Event event = processInput(state);
+        struct Event event = processInput();
 
+        AppState *state = getAppState();
         AppSettings *settings = getAppSettings();
         PlayList *playlist = getPlaylist();
         int chosenRow = 0;
@@ -756,48 +770,48 @@ void handleInput(AppState *state)
         switch (event.type)
         {
         case EVENT_GOTOBEGINNINGOFPLAYLIST:
-                gotoBeginningOfPlaylist(state);
+                gotoBeginningOfPlaylist();
                 break;
         case EVENT_GOTOENDOFPLAYLIST:
-                gotoEndOfPlaylist(state);
+                gotoEndOfPlaylist();
                 break;
         case EVENT_ENQUEUE:
-                enqueueHandler(state, false);
+                enqueueHandler(false);
                 break;
         case EVENT_ENQUEUEANDPLAY:
-                enqueueHandler(state, true);
+                enqueueHandler(true);
                 break;
         case EVENT_PLAY_PAUSE:
                 if (playbackIsStopped())
                 {
-                        enqueueHandler(state, false);
+                        enqueueHandler(false);
                 }
                 else
                 {
-                        togglePause(state);
+                        togglePause();
                 }
                 break;
         case EVENT_TOGGLEVISUALIZER:
                 toggleVisualizer(settings, &(state->uiSettings));
                 break;
         case EVENT_TOGGLEREPEAT:
-                toggleRepeat(state);
+                toggleRepeat();
                 break;
         case EVENT_TOGGLEASCII:
                 toggleAscii(settings, &(state->uiSettings));
                 break;
         case EVENT_SHUFFLE:
-                toggleShuffle(state);
+                toggleShuffle();
                 emitShuffleChanged();
                 break;
         case EVENT_SHOWLYRICSPAGE:
-                toggleShowLyricsPage(state);
+                toggleShowLyricsPage();
                 break;
         case EVENT_CYCLECOLORMODE:
-                cycleColorMode(state);
+                cycleColorMode();
                 break;
         case EVENT_CYCLETHEMES:
-                cycleThemes(state, settings);
+                cycleThemes(settings);
                 break;
         case EVENT_TOGGLENOTIFICATIONS:
                 toggleNotifications(&(state->uiSettings), settings);
@@ -806,10 +820,10 @@ void handleInput(AppState *state)
                 quit();
                 break;
         case EVENT_SCROLLNEXT:
-                scrollNext(state);
+                scrollNext();
                 break;
         case EVENT_SCROLLPREV:
-                scrollPrev(state);
+                scrollPrev();
                 break;
         case EVENT_VOLUME_UP:
                 playbackVolumeChange(5);
@@ -820,10 +834,10 @@ void handleInput(AppState *state)
                 emitVolumeChanged();
                 break;
         case EVENT_NEXT:
-                skipToNextSong(state);
+                skipToNextSong();
                 break;
         case EVENT_PREV:
-                skipToPrevSong(state);
+                skipToPrevSong();
                 break;
         case EVENT_SEEKBACK:
                 seekBack(&(state->uiState));
@@ -839,54 +853,54 @@ void handleInput(AppState *state)
                 break;
         case EVENT_UPDATELIBRARY:
                 freeSearchResults();
-                updateLibrary(state, settings->path);
+                updateLibrary(settings->path);
                 break;
         case EVENT_SHOWKEYBINDINGS:
-                toggleShowView(KEYBINDINGS_VIEW, state);
+                toggleShowView(KEYBINDINGS_VIEW);
                 break;
         case EVENT_SHOWPLAYLIST:
-                toggleShowView(PLAYLIST_VIEW, state);
+                toggleShowView(PLAYLIST_VIEW);
                 break;
         case EVENT_SHOWSEARCH:
-                toggleShowView(SEARCH_VIEW, state);
+                toggleShowView(SEARCH_VIEW);
                 break;
                 break;
         case EVENT_SHOWLIBRARY:
-                toggleShowView(LIBRARY_VIEW, state);
+                toggleShowView(LIBRARY_VIEW);
                 break;
         case EVENT_NEXTPAGE:
-                flipNextPage(state);
+                flipNextPage();
                 break;
         case EVENT_PREVPAGE:
-                flipPrevPage(state);
+                flipPrevPage();
                 break;
         case EVENT_REMOVE:
-                handleRemove(state, getChosenRow());
-                resetListAfterDequeuingPlayingSong(state);
+                handleRemove(getChosenRow());
+                resetListAfterDequeuingPlayingSong();
                 break;
         case EVENT_SHOWTRACK:
-                showTrack(state);
+                showTrack();
                 break;
         case EVENT_NEXTVIEW:
-                switchToNextView(state);
+                switchToNextView();
                 break;
         case EVENT_PREVVIEW:
-                switchToPreviousView(state);
+                switchToPreviousView();
                 break;
         case EVENT_CLEARPLAYLIST:
-                dequeueAllExceptPlayingSong(state);
+                dequeueAllExceptPlayingSong();
                 state->uiState.resetPlaylistDisplay = true;
                 break;
         case EVENT_MOVESONGUP:
-                moveSongUp(state, &chosenRow);
+                moveSongUp(&chosenRow);
                 setChosenRow(chosenRow);
                 break;
         case EVENT_MOVESONGDOWN:
-                moveSongDown(state, &chosenRow);
+                moveSongDown(&chosenRow);
                 setChosenRow(chosenRow);
                 break;
         case EVENT_STOP:
-                stop(state);
+                stop();
                 break;
         case EVENT_SORTLIBRARY:
                 sortLibrary();
@@ -913,8 +927,9 @@ void resize(UIState *uis)
         triggerRefresh();
 }
 
-void updatePlayer(AppState *state)
+void updatePlayer(void)
 {
+        AppState *state = getAppState();
         UIState *uis = &(state->uiState);
         struct winsize ws;
         ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws);
@@ -933,12 +948,13 @@ void updatePlayer(AppState *state)
         }
         else
         {
-                refreshPlayer(state);
+                refreshPlayer();
         }
 }
 
-Node *determineNextSong(AppState *state, PlayList *playlist)
+Node *determineNextSong(PlayList *playlist)
 {
+        AppState *state = getAppState();
         Node *current = NULL;
         PlaybackState *ps = getPlaybackState();
 
@@ -979,28 +995,30 @@ Node *determineNextSong(AppState *state, PlayList *playlist)
         return NULL;
 }
 
-int prepareAndPlaySong(AppState *state, Node *song)
+int prepareAndPlaySong(Node *song)
 {
+        AppState *state = getAppState();
+
         if (!song)
                 return -1;
 
         setCurrentSong(song);
 
-        unloadSongA(state);
-        unloadSongB(state);
+        unloadSongA();
+        unloadSongB();
 
-        int res = loadFirst(getCurrentSong(), state);
+        int res = loadFirst(getCurrentSong());
 
         finishLoading(&(state->uiState));
 
         if (res >= 0)
         {
-                res = playbackCreate(state);
+                res = playbackCreate();
         }
 
         if (res >= 0)
         {
-                playbackResumePlayback(state);
+                playbackResumePlayback();
         }
 
         triggerRefresh();
@@ -1009,14 +1027,15 @@ int prepareAndPlaySong(AppState *state, Node *song)
         return res;
 }
 
-void updateNextSongIfNeeded(AppState *state)
+void updateNextSongIfNeeded(void)
 {
-        loadNextSong(state);
-        determineSongAndNotify(state);
+        loadNextSong();
+        determineSongAndNotify();
 }
 
-void checkAndLoadNextSong(AppState *state)
+void checkAndLoadNextSong(void)
 {
+        AppState *state = getAppState();
         AudioData *audioData = getAudioData();
         PlaybackState *ps = getPlaybackState();
 
@@ -1030,7 +1049,7 @@ void checkAndLoadNextSong(AppState *state)
                 {
                         ps->songLoading = true;
 
-                        Node *nextSong = determineNextSong(state, playlist);
+                        Node *nextSong = determineNextSong(playlist);
                         if (!nextSong)
                                 return;
 
@@ -1043,10 +1062,10 @@ void checkAndLoadNextSong(AppState *state)
                         if (playbackIsShuffleEnabled())
                                 reshufflePlaylist();
 
-                        int res = prepareAndPlaySong(state, nextSong);
+                        int res = prepareAndPlaySong(nextSong);
 
                         if (res < 0)
-                                setEndOfListReached(state);
+                                setEndOfListReached();
 
                         state->uiState.loadedNextSong = false;
                         setNextSong(NULL);
@@ -1056,7 +1075,7 @@ void checkAndLoadNextSong(AppState *state)
                  (ps->nextSongNeedsRebuilding || getNextSong() == NULL) &&
                  !ps->songLoading)
         {
-                updateNextSongIfNeeded(state);
+                updateNextSongIfNeeded();
         }
 }
 
@@ -1074,8 +1093,10 @@ void handleSkipOutOfOrder(void)
         }
 }
 
-void prepareNextSong(AppState *state)
+void prepareNextSong(void)
 {
+        AppState *state = getAppState();
+
         resetClock();
         handleSkipOutOfOrder();
         finishLoading(&(state->uiState));
@@ -1087,7 +1108,7 @@ void prepareNextSong(AppState *state)
 
         if (!playbackIsRepeatEnabled() || current == NULL)
         {
-                unloadPreviousSong(state);
+                unloadPreviousSong();
         }
 
         if (current == NULL)
@@ -1098,19 +1119,20 @@ void prepareNextSong(AppState *state)
                 }
                 else
                 {
-                        setEndOfListReached(state);
+                        setEndOfListReached();
                 }
         }
         else
         {
-                determineSongAndNotify(state);
+                determineSongAndNotify();
         }
 }
 
-void updatePlayerStatus(AppState *state)
+void updatePlayerStatus(void)
 {
-        updatePlayer(state);
+        updatePlayer();
 
+        AppState *state = getAppState();
         PlayList *playlist = getPlaylist();
         AudioData *audioData = getAudioData();
         PlaybackState *ps = getPlaybackState();
@@ -1121,16 +1143,16 @@ void updatePlayerStatus(AppState *state)
                      ps->nextSongNeedsRebuilding) &&
                     !audioData->endOfListReached)
                 {
-                        checkAndLoadNextSong(state);
+                        checkAndLoadNextSong();
                 }
 
                 if (ps->songHasErrors)
-                        tryLoadNext(state);
+                        tryLoadNext();
 
                 if (playbackisDone())
                 {
-                        prepareNextSong(state);
-                        playbackSwitchDecoder(state);
+                        prepareNextSong();
+                        playbackSwitchDecoder();
                 }
         }
         else
@@ -1152,7 +1174,7 @@ gboolean mainloop_callback(gpointer data)
         (void)data;
 
         calcElapsedTime(getCurrentSongDuration());
-        handleInput(statePtr);
+        handleInput();
         incrementUpdateCounter();
 
         int updateCounter = getUpdateCounter();
@@ -1164,7 +1186,7 @@ gboolean mainloop_callback(gpointer data)
         {
                 processDBusEvents();
 
-                updatePlayerStatus(statePtr);
+                updatePlayerStatus();
         }
 
         return TRUE;
@@ -1178,11 +1200,12 @@ static gboolean quitOnSignal(gpointer user_data)
         return G_SOURCE_REMOVE; // Remove the signal source
 }
 
-void initFirstPlay(Node *song, AppState *state)
+void initFirstPlay(Node *song)
 {
         updateLastInputTime();
         resetClock();
 
+        AppState *state = getAppState();
         UserData *userData = playbackGetUserData();
 
         userData->currentSongData = NULL;
@@ -1202,19 +1225,19 @@ void initFirstPlay(Node *song, AppState *state)
                 PlaybackState *ps = getPlaybackState();
                 ps->loadingdata.loadA = true;
 
-                res = loadFirst(song, state);
+                res = loadFirst(song);
 
                 if (res >= 0)
                 {
-                        res = playbackCreate(state);
+                        res = playbackCreate();
                 }
                 if (res >= 0)
                 {
-                        playbackResumePlayback(state);
+                        playbackResumePlayback();
                 }
 
                 if (res < 0)
-                        setEndOfListReached(state);
+                        setEndOfListReached();
         }
 
         if (song == NULL || res < 0)
@@ -1267,7 +1290,7 @@ void cleanupOnExit()
                 noMusicFound = true;
         }
 
-        playbackUnloadSongs(state, playbackGetUserData());
+        playbackUnloadSongs(playbackGetUserData());
 
 #ifdef CHAFA_VERSION_1_16
         retire_passthrough_workarounds_tmux();
@@ -1286,7 +1309,7 @@ void cleanupOnExit()
         saveFavoritesPlaylist(settings->path, favoritesPlaylist);
         saveLastUsedPlaylist(unshuffledPlaylist);
         deleteCache(statePtr->tmpCache);
-        freeMainDirectoryTree(statePtr);
+        freeMainDirectoryTree();
         freePlaylists();
         setDefaultTextColor();
         pthread_mutex_destroy(&(ps->loadingdata.mutex));
@@ -1339,10 +1362,10 @@ void cleanupOnExit()
         fflush(stdout);
 }
 
-void run(AppState *state, bool startPlaying)
+void run(bool startPlaying)
 {
+        AppState *state = getAppState();
         PlayList *playlist = getPlaylist();
-
         PlayList *unshuffledPlaylist = getUnshuffledPlaylist();
 
         if (unshuffledPlaylist == NULL)
@@ -1353,14 +1376,14 @@ void run(AppState *state, bool startPlaying)
         if (state->uiSettings.saveRepeatShuffleSettings)
         {
                 if (state->uiSettings.repeatState == 1)
-                        toggleRepeat(state);
+                        toggleRepeat();
                 if (state->uiSettings.repeatState == 2)
                 {
-                        toggleRepeat(state);
-                        toggleRepeat(state);
+                        toggleRepeat();
+                        toggleRepeat();
                 }
                 if (state->uiSettings.shuffleEnabled)
-                        toggleShuffle(state);
+                        toggleShuffle();
         }
 
         if (playlist->head == NULL)
@@ -1368,14 +1391,14 @@ void run(AppState *state, bool startPlaying)
                 state->currentView = LIBRARY_VIEW;
         }
 
-        initMpris(state);
+        initMpris();
 
         if (startPlaying)
                 setCurrentSong(playlist->head);
         else if (playlist->count > 0)
                 state->uiState.waitingForNext = true;
 
-        initFirstPlay(getCurrentSong(), state);
+        initFirstPlay(getCurrentSong());
         clearScreen();
         fflush(stdout);
 }
@@ -1392,7 +1415,7 @@ void resetResizeFlag(int sig)
         statePtr->uiState.resizeFlag = 0;
 }
 
-void initResize()
+void initResize(void)
 {
         signal(SIGWINCH, handleResize);
 
@@ -1403,8 +1426,9 @@ void initResize()
         sigaction(SIGALRM, &sa, NULL);
 }
 
-void init(AppState *state)
+void init(void)
 {
+        AppState *state = getAppState();
         disableTerminalLineInput();
         setRawInputMode();
         initResize();
@@ -1434,7 +1458,7 @@ void init(AppState *state)
 
         freeSearchResults();
         resetChosenDir();
-        createLibrary(settings, state, getLibraryFilePath());
+        createLibrary(settings, getLibraryFilePath());
         setlocale(LC_ALL, "");
         setlocale(LC_CTYPE, "");
         fflush(stdout);
@@ -1452,10 +1476,11 @@ void init(AppState *state)
 #endif
 }
 
-void initDefaultState(AppState *state)
+void initDefaultState(void)
 {
-        init(state);
+        init();
 
+        AppState *state = getAppState();
         FileSystemEntry *library = getLibrary();
         PlayList *playlist = getPlaylist();
         PlayList *unshuffledPlaylist = getUnshuffledPlaylist();
@@ -1465,7 +1490,7 @@ void initDefaultState(AppState *state)
 
         markListAsEnqueued(library, playlist);
 
-        resetListAfterDequeuingPlayingSong(state);
+        resetListAfterDequeuingPlayingSong();
 
         AudioData *audioData = getAudioData();
 
@@ -1475,10 +1500,10 @@ void initDefaultState(AppState *state)
 
         state->currentView = LIBRARY_VIEW;
 
-        run(state, false);
+        run(false);
 }
 
-void playFavoritesPlaylist(AppState *state)
+void playFavoritesPlaylist(void)
 {
         PlayList *playlist = getPlaylist();
         PlayList *favoritesPlaylist = getFavoritesPlaylist();
@@ -1490,7 +1515,7 @@ void playFavoritesPlaylist(AppState *state)
                 exit(0);
         }
 
-        init(state);
+        init();
 
         FileSystemEntry *library = getLibrary();
 
@@ -1499,12 +1524,12 @@ void playFavoritesPlaylist(AppState *state)
         setPlaylist(playlist);
         markListAsEnqueued(library, playlist);
 
-        run(state, true);
+        run(true);
 }
 
-void playAll(AppState *state)
+void playAll(void)
 {
-        init(state);
+        init();
 
         FileSystemEntry *library = getLibrary();
         PlayList *playlist = getPlaylist();
@@ -1518,12 +1543,12 @@ void playAll(AppState *state)
 
         shufflePlaylist(playlist);
         markListAsEnqueued(library, playlist);
-        run(state, true);
+        run(true);
 }
 
-void playAllAlbums(AppState *state)
+void playAllAlbums(void)
 {
-        init(state);
+        init();
 
         PlayList *playlist = getPlaylist();
         FileSystemEntry *library = getLibrary();
@@ -1535,7 +1560,7 @@ void playAllAlbums(AppState *state)
         }
 
         markListAsEnqueued(library, playlist);
-        run(state, true);
+        run(true);
 }
 
 void removeArgElement(char *argv[], int index, int *argc)
@@ -1934,8 +1959,9 @@ void setTrackTitleAsWindowTitle(UISettings *ui)
         }
 }
 
-void initState(AppState *state)
+void initState(void)
 {
+        AppState *state = getAppState();
         state->uiSettings.VERSION = VERSION;
         state->uiSettings.uiEnabled = true;
         state->uiSettings.color.r = 125;
@@ -2024,22 +2050,24 @@ void initState(AppState *state)
         statePtr = state;
 }
 
-void initSettings(AppState *state, AppSettings *settings)
+void initSettings(AppSettings *settings)
 {
-        getConfig(settings, &(state->uiSettings));
-
+        AppState *state = getAppState();
         UserData *userData = playbackGetUserData();
+
+        getConfig(settings, &(state->uiSettings));
 
         userData->replayGainCheckFirst =
             state->uiSettings.replayGainCheckFirst;
 
-        initKeyMappings(state, settings);
+        initKeyMappings(settings);
         enableMouse(&(state->uiSettings));
         setTrackTitleAsWindowTitle(&(state->uiSettings));
 }
 
-void initTheme(int argc, char *argv[], AppState *state)
+void initTheme(int argc, char *argv[])
 {
+        AppState *state = getAppState();
         UISettings *ui = &(state->uiSettings);
         AppSettings *settings = getAppSettings();
         bool themeLoaded = false;
@@ -2052,10 +2080,10 @@ void initTheme(int argc, char *argv[], AppState *state)
         else if (argc == 3 && strcmp(argv[1], "theme") == 0)
         {
                 // Try to load the user-specified theme
-                if (loadTheme(state, settings, argv[2], false) > 0)
+                if (loadTheme(settings, argv[2], false) > 0)
                 {
                         ui->colorMode = COLOR_MODE_THEME;
-                        initDefaultState(state);
+                        initDefaultState();
                         themeLoaded = true;
                 }
                 else
@@ -2071,7 +2099,7 @@ void initTheme(int argc, char *argv[], AppState *state)
         else if (ui->colorMode == COLOR_MODE_THEME)
         {
                 // If UI has a themeName stored, try to load it
-                if (loadTheme(state, settings, ui->themeName, false) > 0)
+                if (loadTheme(settings, ui->themeName, false) > 0)
                 {
                         ui->colorMode = COLOR_MODE_THEME;
                         themeLoaded = true;
@@ -2083,7 +2111,7 @@ void initTheme(int argc, char *argv[], AppState *state)
         {
                 // Load "default" ANSI theme, but don't overwrite
                 // settings->theme
-                if (loadTheme(state, settings, "default", true))
+                if (loadTheme(settings, "default", true))
                 {
                         themeLoaded = true;
                 }
@@ -2100,7 +2128,7 @@ int main(int argc, char *argv[])
 {
         AppState *state = getAppState();
 
-        initState(state);
+        initState();
         exitIfAlreadyRunning();
 
         UISettings *ui = &(state->uiSettings);
@@ -2123,7 +2151,7 @@ int main(int argc, char *argv[])
                 exit(0);
         }
 
-        initSettings(state, settings);
+        initSettings(settings);
 
         if (argc == 3 && (strcmp(argv[1], "path") == 0))
         {
@@ -2145,27 +2173,27 @@ int main(int argc, char *argv[])
         loadFavoritesPlaylist(settings->path, &favoritesPlaylist);
 
         ensureDefaultThemes();
-        initTheme(argc, argv, state);
+        initTheme(argc, argv);
 
         if (argc == 1)
         {
-                initDefaultState(state);
+                initDefaultState();
         }
         else if (argc == 2 && strcmp(argv[1], "all") == 0)
         {
-                playAll(state);
+                playAll();
         }
         else if (argc == 2 && strcmp(argv[1], "albums") == 0)
         {
-                playAllAlbums(state);
+                playAllAlbums();
         }
         else if (argc == 2 && strcmp(argv[1], ".") == 0 && favoritesPlaylist->count != 0)
         {
-                playFavoritesPlaylist(state);
+                playFavoritesPlaylist();
         }
         else if (argc >= 2)
         {
-                init(state);
+                init();
                 makePlaylist(&playlist, argc, argv, exactSearch, settings->path);
 
                 if (playlist->count == 0)
@@ -2177,7 +2205,7 @@ int main(int argc, char *argv[])
                 FileSystemEntry *library = getLibrary();
 
                 markListAsEnqueued(library, playlist);
-                run(state, true);
+                run(true);
         }
 
         return 0;

@@ -12,22 +12,22 @@ void seekForward(UIState *uis);
 
 void seekBack(UIState *uis);
 
-void cycleColorMode(AppState *state);
+void cycleColorMode(void);
 
-void cycleThemes(AppState *state, AppSettings *settings);
+void cycleThemes(AppSettings *settings);
 
-void toggleShowLyricsPage(AppState *state);
+void toggleShowLyricsPage(void);
 
 void toggleAscii(AppSettings *settings, UISettings *ui);
 
 void toggleVisualizer(AppSettings *settings, UISettings *ui);
 
-void toggleShuffle(AppState *state);
+void toggleShuffle(void);
 
 void toggleNotifications(UISettings *ui, AppSettings *settings);
 
-void toggleRepeat(AppState *state);
+void toggleRepeat(void);
 
-int loadTheme(AppState *appState, AppSettings *settings, const char *themeName, bool isAnsiTheme);
+int loadTheme(AppSettings *settings, const char *themeName, bool isAnsiTheme);
 
 bool shouldRefreshPlayer(void);
