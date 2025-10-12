@@ -1,26 +1,28 @@
 # CHANGELOG
 
-### 3.5.3
+### 3.6.0
 
-![kew logo](https://codeberg.org/ravachol/kew/media/branch/main/images/logo.png "a title")
+![kew logo](https://codeberg.org/ravachol/kew/media/branch/main/images/logo.png)
 
-- kew now has a real logo and a tagline "MUSIC FOR THE SHELL". It really fits perfectly.
+- kew now has a real logo and a tagline: "MUSIC FOR THE SHELL". It really fits perfectly, don't you think?
 
-- We also now have a color associated with kew, which is red: #de2b4d.
+- We now also have a color associated with kew, which is red: #de2b4d.
 
 - This color is now the default if you are not playing anything and are using album colors.
 
-- The welcome screen when the path is not set has been given much love, and also fixed a bug with supplying path.
+- The welcome screen that appears when the path is not set has been given much love.
 
-- Song lyrics support through .lrc files. By @Rioprastyo17
+- Song lyrics support through .lrc files. These need to already be on your computer. By @Rioprastyo17
 
-- Song lyrics added through SYLT id3 tags. By @dandelion-75.
+- Song lyrics support through SYLT id3 tags. By @dandelion-75.
 
-- Watch timestamped lyrics in track view or press 'm' for full page lyrics.
+- Watch timestamped lyrics in track view or press 'm' in the same view for full page lyrics. By @ravachol.
 
-- Bumped miniaudio to version v0.11.23 which among other things, fixes a bug with some versions of mp3. By @hypercunx.
+- Bumped miniaudio to version v0.11.23 which among other things fixes a bug with some versions of mp3. By @hypercunx.
 
-- Code cleanup, improved structure and removed the remaining globals among other things.
+- Code cleanup, improved internal structure by A LOT and removed all globals among other things. There are still a bunch of little inconsistencies to work on, naming conventions and so on, but for the most part, I'm very pleased with the progress.
+
+- There's now a diagram of kew's architecture included for devs who want to know how the internals are laid out.
 
 #### Bug Fixes
 
@@ -28,9 +30,11 @@
 
 - Don't create ~/.config/kew/themes dir if there are no themes to be copied (user hasn't done sudo make install).
 
+- Fixed a bug with the library cache ids that was introduced in the last version.
+
 ### Sponsors and Donations Wanted
 
-Thank you to for the generous donation @LTeder!
+Thank you to for the generous donation @LTeder! Thanks to all and especially thanks to David Reid (@mackron) for making Miniaudio and to Hans Petter Jansson (@hpjansson) for making Chafa (which displays the covers).
 
 Please support this effort:
 https://ko-fi.com/ravachol
