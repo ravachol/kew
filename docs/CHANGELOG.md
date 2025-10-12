@@ -40,6 +40,11 @@ Please support this effort:
 https://ko-fi.com/ravachol
 https://github.com/sponsors/ravachol.
 
+### 3.5.3
+
+- Fixes a bug that affects the library cache. This bug has the effect of making startup times for kew be slower on already slow HDDs.
+
+
 ### 3.5.2
 
 - Fixed line in cover being erased in landscape mode on some terminals. By @hartalex.
