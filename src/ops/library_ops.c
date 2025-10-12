@@ -10,8 +10,8 @@
 #include "common/appstate.h"
 #include "common/common.h"
 
-#include "trackmanager.h"
 #include "playlist_ops.h"
+#include "trackmanager.h"
 
 #include "data/directorytree.h"
 
@@ -277,19 +277,16 @@ void updateLibrary(AppState *state, char *path)
 
 time_t getModificationTime(struct stat *path_stat)
 {
-
-        if (path_stat->st_mtime != 0)
-        {
-                return path_stat->st_mtime;
-        }
-        else
-        {
-#ifdef __APPLE__
-                return path_stat->st_mtimespec.tv_sec; // macOS-specific member.
+#if defined(__APPLE__)
+        // macOS and BSDs use st_mtimespec.tv_sec for modification time
+        return path_stat->st_mtimespec.tv_sec;
+#elif defined(__linux__)
+        // Linux uses st_mtim.tv_sec
+        return path_stat->st_mtim.tv_sec;
 #else
-                return path_stat->st_mtim.tv_sec; // Linux-specific member.
+        // Fallback: use st_mtime (older systems)
+        return path_stat->st_mtime;
 #endif
-        }
 }
 
 void *updateIfTopLevelFoldersMtimesChangedThread(void *arg)
