@@ -2,6 +2,14 @@
 
 ### 3.5.3
 
+- The welcome screen when the path is not set has been given much love, and also fixed a bugs with supplying path.
+
+- kew now has a real logo and a tagline "MUSIC FOR THE SHELL".
+
+- We also now have a color associated with kew, which is red: #de2b4d.
+
+- This color is now the default if you are not playing anything and are using album colors.
+
 - Song lyrics support through .lrc files. By @Rioprastyo17
 
 - Song lyrics added through SYLT id3 tags. By @dandelion-75.
@@ -13,6 +21,8 @@
 - Code cleanup, improved structure and removed the remaining globals among other things.
 
 #### Bug Fixes
+
+- Path is expanded correctly when providing it through the first screen that let's you choose a path.
 
 - Don't create ~/.config/kew/themes dir if there are no themes to be copied (user hasn't done sudo make install).
 

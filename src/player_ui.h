@@ -44,6 +44,10 @@ typedef struct
 } SongData;
 #endif
 
+int printLogoArt(const UISettings *ui, int indent, bool centered, bool printTagLine, bool useGradient);
+
+int calcIndentNormal(void);
+
 int printPlayer(SongData *songdata, double elapsedSeconds, AppSettings *settings, AppState *appState);
 
 int getFooterRow(void);

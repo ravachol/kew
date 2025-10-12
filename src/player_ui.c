@@ -193,12 +193,12 @@ void calcPreferredSize(UISettings *ui)
 
 void printHelp(void)
 {
-    int i = system("man kew");
+        int i = system("man kew");
 
-    if (i != 0)
-    {
-        printf("Run man kew for help.\n");
-    }
+        if (i != 0)
+        {
+                printf("Run man kew for help.\n");
+        }
 }
 
 static const char *getPlayerStatusIcon(void)
@@ -210,7 +210,7 @@ static const char *getPlayerStatusIcon(void)
         return "▶";
 }
 
-static int printLogoArt(const UISettings *ui, int indent)
+int printLogoArt(const UISettings *ui, int indent, bool centered, bool printTagLine, bool useGradient)
 {
         if (ui->hideLogo)
         {
@@ -219,16 +219,27 @@ static int printLogoArt(const UISettings *ui, int indent)
                 return 1;
         }
 
+        int h, w;
+
+        getTermSize(&w, &h);
+
+        int centeredCol = (w - LOGO_WIDTH) / 2;
+        if (centeredCol < 0)
+                centeredCol = 0;
+
         size_t logoHeight = sizeof(LOGO) / sizeof(LOGO[0]);
+
+        int col = centered ? centeredCol : indent;
+
         for (size_t i = 0; i < logoHeight; i++)
         {
                 unsigned char defaultColor = ui->defaultColor;
 
-                PixelData rowColor = {defaultColor, defaultColor, defaultColor};
+                PixelData rowColor = {ui->color.r, ui->color.g, ui->color.b };
 
-                if (!(ui->color.r == defaultColor &&
-                      ui->color.g == defaultColor &&
-                      ui->color.b == defaultColor))
+                if (useGradient && !(ui->color.r == defaultColor &&
+                                     ui->color.g == defaultColor &&
+                                     ui->color.b == defaultColor))
                 {
                         rowColor = getGradientColor(ui->color, logoHeight - i,
                                                     logoHeight, 2, 0.8f);
@@ -237,9 +248,17 @@ static int printLogoArt(const UISettings *ui, int indent)
                 applyColor(ui->colorMode, ui->theme.logo, rowColor);
 
                 clearLine();
-                printBlankSpaces(indent);
+                printBlankSpaces(col);
                 printf("%s", LOGO[i]);
         }
+
+        if (printTagLine)
+        {
+                printf("\n");
+                printBlankSpaces(col);
+                printf("MUSIC  FOR  THE  SHELL\n");
+        }
+
         return 3; // lines used by logo
 }
 
@@ -302,9 +321,9 @@ int printLogo(SongData *songData, UISettings *ui)
 
         int logoWidth = ui->hideLogo ? 0 : LOGO_WIDTH;
         int maxWidth =
-            term_w - indent - indent - (ui->hideLogo ? 2 : logoWidth + 4);
+            term_w - indent - (ui->hideLogo ? 2 : logoWidth + 4);
 
-        int height = printLogoArt(ui, indent);
+        int height = printLogoArt(ui, indent, false, false, true);
 
         printNowPlaying(songData, ui, height + 1, indent + logoWidth + 2, maxWidth);
 
@@ -1907,7 +1926,7 @@ void printAt(int row, int indent, const char *text, int maxWidth)
         printf("\033[%d;%dH%s", row, indent, buffer);
 }
 
-void printLyricsPage(UISettings *ui, int row, int col, SongData *songdata, int height)
+void printLyricsPage(UISettings *ui, AppSettings *settings, int row, int col, SongData *songdata, int height)
 {
         clearRestOfLine();
 
@@ -1917,7 +1936,11 @@ void printLyricsPage(UISettings *ui, int row, int col, SongData *songdata, int h
         Lyrics *lyrics = songdata->lyrics;
 
         if (!lyrics || lyrics->count == 0)
+        {
+                printf("\033[%d;%dH", row, indent);
+                printf(" No lyrics available. Press %s to go back.", settings->showLyricsPage);
                 return;
+        }
 
         char *line = "";
 
@@ -1960,7 +1983,6 @@ void printTimestampedLyrics(UISettings *ui, SongData *songdata, int row, int col
 
         if (line && line[0] != '\0' && (!prevLine || strcmp(line, prevLine) != 0))
         {
-
                 prevLine = line;
 
                 int length = ((int)strnlen(line, songdata->lyrics->maxLength - 1));
@@ -2012,7 +2034,7 @@ void showTrackViewLandscape(int height, int width, float aspectRatio,
                 if (state->uiState.showLyricsPage)
                 {
                         printNowPlaying(songdata, &(state->uiSettings), 2, col, term_w - indent);
-                        printLyricsPage(&(state->uiSettings), 4, col, songdata, height - 4);
+                        printLyricsPage(&(state->uiSettings), settings, 4, col, songdata, height - 4);
                 }
                 else
                 {
@@ -2084,7 +2106,7 @@ void showTrackViewPortrait(int height, AppSettings *settings,
                         printf("\n");
                         printNowPlaying(songdata, &(state->uiSettings), 2, indent + 1, term_w - indent);
                         int lyricsHeight = height + metadataHeight + state->uiSettings.visualizerHeight;
-                        printLyricsPage(&(state->uiSettings), 4, col + 1, songdata, lyricsHeight);
+                        printLyricsPage(&(state->uiSettings), settings, 4, col + 1, songdata, lyricsHeight);
                 }
                 else
                 {
@@ -2178,9 +2200,9 @@ int printPlayer(SongData *songdata, double elapsedSeconds,
                                 clearScreen();
                         }
 
-                        ui->color.r = ui->defaultColor;
-                        ui->color.g = ui->defaultColor;
-                        ui->color.b = ui->defaultColor;
+                        ui->color.r = ui->kewColorRGB.r;
+                        ui->color.g = ui->kewColorRGB.g;
+                        ui->color.b = ui->kewColorRGB.b;
 
                         if (ui->trackTitleAsWindowTitle)
                                 setTerminalWindowTitle("kew");
