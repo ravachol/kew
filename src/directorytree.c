@@ -36,11 +36,8 @@ FileSystemEntry *createEntry(const char *name, int isDirectory,
         if (lastUsedId == INT_MAX)
                 return NULL;
 
-        int newId = lastUsedId + 1;
-        if (newId < 0) // overflow detected
-                return NULL;
-
         FileSystemEntry *newEntry = malloc(sizeof(FileSystemEntry));
+
         if (newEntry != NULL)
         {
                 newEntry->name = strdup(name);
@@ -56,7 +53,7 @@ FileSystemEntry *createEntry(const char *name, int isDirectory,
                 newEntry->parent = parent;
                 newEntry->children = NULL;
                 newEntry->next = NULL;
-                newEntry->id = newId;
+                newEntry->id = ++lastUsedId;
                 if (parent != NULL)
                 {
                         newEntry->parentId = parent->id;
