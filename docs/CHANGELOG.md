@@ -2,13 +2,7 @@
 
 ### 3.5.3
 
-### Sponsors and Donations Wanted
-
-Thank you to for the generous donation @LTeder!
-
-Please support this effort:
-https://ko-fi.com/ravachol
-https://github.com/sponsors/ravachol.
+- Fixes a bug that affects the library cache. This bug has the effect of making startup times for kew be slower on already slow HDDs.
 
 ### 3.5.2
 
