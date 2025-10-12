@@ -95,6 +95,7 @@ typedef struct
         char *LAST_ROW;
         unsigned char defaultColor;
         PixelData defaultColorRGB;
+        PixelData kewColorRGB;
 } UISettings;
 
 typedef struct

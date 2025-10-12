@@ -39,6 +39,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include "common.h"
 #include "common_ui.h"
 #include "events.h"
+#include "file.h"
 #include "imgfunc.h"
 #include "input.h"
 #include "mpris.h"
@@ -727,68 +728,102 @@ void updatePlayer(AppState *state)
         }
 }
 
-void loadAudioData(AppState *state)
+Node *determineNextSong(AppState *state, PlayList *playlist)
+{
+        Node *current = NULL;
+
+        if (state->uiState.waitingForPlaylist)
+        {
+                return playlist->head;
+        }
+        else if (state->uiState.waitingForNext)
+        {
+                Node *songToStartFrom = getSongToStartFrom();
+
+                if (songToStartFrom != NULL)
+                {
+                        findNodeInList(playlist, songToStartFrom->id, &current);
+                        return current ? current : NULL;
+                }
+                else if (getLastPlayedId() >= 0)
+                {
+                        current = findSelectedEntryById(playlist, getLastPlayedId());
+                        if (current != NULL && current->next != NULL)
+                                current = current->next;
+
+                        return current;
+                }
+
+                // fallback if nothing else
+                if (state->uiState.startFromTop)
+                {
+                        state->uiState.startFromTop = false;
+                        return playlist->head;
+                }
+                else
+                {
+                        return playlist->tail;
+                }
+        }
+
+        return NULL;
+}
+
+int prepareAndPlaySong(AppState *state, Node *song)
+{
+        if (!song)
+                return -1;
+
+        setCurrentSong(song);
+
+        unloadSongA(state);
+        unloadSongB(state);
+
+        int res = loadFirst(getCurrentSong(), state);
+
+        finishLoading(&(state->uiState));
+
+        if (res >= 0)
+        {
+                res = createAudioDevice(state);
+        }
+
+        if (res >= 0)
+        {
+                resumePlayback(state);
+        }
+
+        triggerRefresh();
+        resetClock();
+
+        return res;
+}
+
+void updateNextSongIfNeeded(AppState *state)
+{
+        loadNextSong(state);
+        determineSongAndNotify(state);
+}
+
+void checkAndLoadNextSong(AppState *state)
 {
         AudioData *audioData = getAudioData();
 
-        if (audioData->restart == true)
+        if (audioData->restart)
         {
                 PlayList *playlist = getPlaylist();
+                if (playlist->head == NULL)
+                        return;
 
-                if (playlist->head != NULL &&
-                    (state->uiState.waitingForPlaylist || state->uiState.waitingForNext))
+                if (state->uiState.waitingForPlaylist || state->uiState.waitingForNext)
                 {
                         setSongLoading(true);
 
-                        if (state->uiState.waitingForPlaylist)
-                        {
-                                setCurrentSong(playlist->head);
-                        }
-                        else if (state->uiState.waitingForNext)
-                        {
-                                Node *current = NULL;
-                                Node *songToStartFrom = getSongToStartFrom();
+                        Node *nextSong = determineNextSong(state, playlist);
+                        if (!nextSong)
+                                return;
 
-                                if (songToStartFrom != NULL)
-                                {
-                                        // Make sure it still exists in the
-                                        // playlist
-                                        findNodeInList(playlist,
-                                                       songToStartFrom->id,
-                                                       &current);
-
-                                        if (current != NULL)
-                                        {
-                                                setCurrentSong(current);
-                                        }
-                                        songToStartFrom = NULL;
-                                }
-                                else if (getLastPlayedId() >= 0)
-                                {
-                                        current = findSelectedEntryById(
-                                            playlist, getLastPlayedId());
-
-                                        if (current != NULL)
-                                        {
-                                                if (current->next != NULL)
-                                                        current = current->next;
-
-                                                setCurrentSong(current);
-                                        }
-                                }
-
-                                if (current == NULL)
-                                {
-                                        if (state->uiState.startFromTop)
-                                        {
-                                                setCurrentSong(playlist->head);
-                                                state->uiState.startFromTop = false;
-                                        }
-                                        else
-                                                setCurrentSong(playlist->tail);
-                                }
-                        }
-
+                        // Reset relevant UI state
                         audioData->restart = false;
                         state->uiState.waitingForPlaylist = false;
                         state->uiState.waitingForNext = false;
@@ -797,39 +832,20 @@ void loadAudioData(AppState *state)
                         if (isShuffleEnabled())
                                 reshufflePlaylist();
 
-                        unloadSongA(state);
-                        unloadSongB(state);
+                        int res = prepareAndPlaySong(state, nextSong);
 
-                        int res = loadFirst(getCurrentSong(), state);
-
-                        finishLoading(&(state->uiState));
-
-                        if (res >= 0)
-                        {
-                                res = createAudioDevice(state);
-                        }
-
-                        if (res >= 0)
-                        {
-                                resumePlayback(state);
-                        }
-                        else
-                        {
+                        if (res < 0)
                                 setEndOfListReached(state);
-                        }
 
                         state->uiState.loadedNextSong = false;
                         setNextSong(NULL);
-                        triggerRefresh();
-
-                        resetClock();
                 }
         }
         else if (getCurrentSong() != NULL &&
-                 (getNextSongNeedsRebuilding() || getNextSong() == NULL) && !isSongLoading())
+                 (getNextSongNeedsRebuilding() || getNextSong() == NULL) &&
+                 !isSongLoading())
         {
-                loadNextSong(state);
-                determineSongAndNotify(state);
+                updateNextSongIfNeeded(state);
         }
 }
 
@@ -891,7 +907,7 @@ void updatePlayerStatus(AppState *state)
                      getNextSongNeedsRebuilding()) &&
                     !audioData->endOfListReached)
                 {
-                        loadAudioData(state);
+                        checkAndLoadNextSong(state);
                 }
 
                 if (hasErrorsSong())
@@ -1089,7 +1105,8 @@ void cleanupOnExit()
 #endif
 
 #ifdef DEBUG
-        fclose(state->uiState.logFile);
+        if (state->uiState.logFile)
+                fclose(state->uiState.logFile);
 #endif
 
         if (freopen("/dev/stderr", "w", stderr) == NULL)
@@ -1537,13 +1554,17 @@ void exitIfAlreadyRunning()
 
 int directoryExists(const char *path)
 {
-        DIR *dir = opendir(path);
-        if (dir != NULL)
+        char expanded[MAXPATHLEN];
+
+        expandPath(path, expanded);
+
+        DIR *dir = opendir(expanded);
+
+        if (dir)
         {
                 closedir(dir);
                 return 1;
         }
-
         return 0;
 }
 
@@ -1554,7 +1575,7 @@ void clearInputBuffer()
                 ;
 }
 
-void setMusicPath()
+void setMusicPath(UISettings *ui)
 {
         struct passwd *pw = getpwuid(getuid());
         char *user = NULL;
@@ -1567,11 +1588,24 @@ void setMusicPath()
         }
         else
         {
-                printf("Error: Could not retrieve user information.\n");
                 printf("Please set a path to your music library.\n");
-                printf("To set it, type: kew path \"/path/to/Music\".\n");
+                printf("To set it, type: kew path \"~/Music\".\n");
                 exit(1);
         }
+
+        ui->color.r = ui->kewColorRGB.r;
+        ui->color.g = ui->kewColorRGB.g;
+        ui->color.b = ui->kewColorRGB.b;
+
+        printf("\n\n\n\n");
+
+        printLogoArt(ui, 0, true, true, false);
+
+        printf("\n\n\n\n");
+
+        applyColor(COLOR_MODE_ALBUM, ui->theme.text, ui->defaultColorRGB);
+
+        int indent = calcIndentNormal();
 
         // Music folder names in different languages
         const char *musicFolderNames[] = {
@@ -1580,13 +1614,11 @@ void setMusicPath()
             "Müzik", "Musikk", "Μουσική", "Muzyka", "Hudba", "Musiikki",
             "Zene", "Muzică", "เพลง", "מוזיקה"};
 
-        char path[PATH_MAX];
-        int found = 0;
-        int result = -1;
-        char choice[2];
+        char path[MAXPATHLEN];
+        int found = -1;
+        char choice[MAXPATHLEN];
 
         AppSettings *settings = getAppSettings();
-
         for (size_t i = 0;
              i < sizeof(musicFolderNames) / sizeof(musicFolderNames[0]); i++)
         {
@@ -1601,59 +1633,88 @@ void setMusicPath()
                 if (directoryExists(path))
                 {
                         found = 1;
-                        printf("Do you want to use %s as your music library "
-                               "folder?\n",
-                               path);
-                        printf("y = Yes\nn = Enter a path\n");
 
-                        result = scanf("%1s", choice);
+                        printf("\n\n");
 
-                        if (choice[0] == 'y' || choice[0] == 'Y')
+                        printBlankSpaces(indent);
+
+                        printf("Music Library: ");
+
+                        applyColor(COLOR_MODE_ALBUM, ui->theme.text, ui->kewColorRGB);
+
+                        printf("%s\n\n", path);
+
+                        applyColor(COLOR_MODE_ALBUM, ui->theme.text, ui->defaultColorRGB);
+
+                        printBlankSpaces(indent);
+
+                        printf("Is this correct? Press Enter.\n\n");
+
+                        printBlankSpaces(indent);
+
+                        printf("Or type a path (no quotes or single-quotes):\n\n");
+
+                        printBlankSpaces(indent);
+
+                        applyColor(COLOR_MODE_ALBUM, ui->theme.text, ui->kewColorRGB);
+
+                        if (fgets(choice, sizeof(choice), stdin) == NULL)
                         {
-                                c_strcpy(settings->path, path,
-                                         sizeof(settings->path));
+                                printBlankSpaces(indent);
+                                printf("Error reading input.\n");
+                                exit(1);
+                        }
+
+                        if (choice[0] == '\n' || choice[0] == '\0')
+                        {
+                                c_strcpy(settings->path, path, sizeof(settings->path));
+                                printBlankSpaces(indent);
                                 return;
                         }
-                        else if (choice[0] == 'n' || choice[0] == 'N')
-                        {
-                                break;
-                        }
-                        else
-                        {
-                                choice[0] = 'n';
+                        else {
                                 break;
                         }
                 }
         }
 
-        if (!found || (found && (choice[0] == 'n' || choice[0] == 'N')))
+        printBlankSpaces(indent);
+
+        // No standard music folder was found
+        if (found < 1)
         {
-                printf("Please enter the path to your music library "
-                       "(/path/to/Music):\n");
+                printf("Type a path (no quotes or single-quotes):\n\n");
 
-                clearInputBuffer();
+                printBlankSpaces(indent);
 
-                if (fgets(path, sizeof(path), stdin) == NULL)
+                applyColor(COLOR_MODE_ALBUM, ui->theme.text, ui->kewColorRGB);
+
+                if (fgets(choice, sizeof(choice), stdin) == NULL)
                 {
+                        printBlankSpaces(indent);
                         printf("Error reading input.\n");
                         exit(1);
                 }
-
-                path[strcspn(path, "\n")] = '\0';
-
-                if (directoryExists(path))
-                {
-                        c_strcpy(settings->path, path, sizeof(settings->path));
-                }
-                else
-                {
-                        printf("The entered path does not exist or is "
-                               "inaccessible.\n");
-                        exit(1);
-                }
         }
 
-        if (result == -1)
+        printBlankSpaces(indent);
+        choice[strcspn(choice, "\n")] = '\0';
+
+        // Set the path if the chosen directory exists
+        if (directoryExists(choice))
+        {
+                char expanded[MAXPATHLEN];
+
+                expandPath(choice, expanded);
+
+                c_strcpy(settings->path, expanded, sizeof(settings->path));
+
+                found = 1;
+        }
+        else {
+                found = -1;
+        }
+
+        if (found == -1)
                 exit(1);
 }
 
@@ -1734,6 +1795,9 @@ void initState(AppState *state)
         state->uiSettings.defaultColorRGB.r = state->uiSettings.defaultColor;
         state->uiSettings.defaultColorRGB.g = state->uiSettings.defaultColor;
         state->uiSettings.defaultColorRGB.b = state->uiSettings.defaultColor;
+        state->uiSettings.kewColorRGB.r = 222;
+        state->uiSettings.kewColorRGB.g = 43;
+        state->uiSettings.kewColorRGB.b = 77;
 
         pthread_mutex_init(&(state->dataSourceMutex), NULL);
         pthread_mutex_init(&(state->switchMutex), NULL);
@@ -1857,7 +1921,7 @@ int main(int argc, char *argv[])
 
         if (settings->path[0] == '\0')
         {
-                setMusicPath();
+                setMusicPath(ui);
         }
 
         bool exactSearch = false;
