@@ -14,7 +14,6 @@
 #include "data/playlist.h"
 
 int displayPlaylist(PlayList *list, int maxListSize, int indent,
-                    int *chosenSong, int *chosenNodeId, bool reset,
-                    AppState *state);
+                    int *chosenSong, int *chosenNodeId, bool reset);
 
 #endif

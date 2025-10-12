@@ -305,8 +305,9 @@ void loadColor(SongData *songdata)
                       &(songdata->green), &(songdata->blue));
 }
 
-void loadMetaData(SongData *songdata, AppState *state)
+void loadMetaData(SongData *songdata)
 {
+        AppState *state = getAppState();
         char path[MAXPATHLEN];
 
         songdata->metadata = malloc(sizeof(TagSettings));
@@ -374,8 +375,9 @@ void unloadLyrics(SongData *songdata)
         }
 }
 
-SongData *loadSongData(char *filePath, AppState *state)
+SongData *loadSongData(char *filePath)
 {
+        AppState *state = getAppState();
         SongData *songdata = NULL;
         songdata = malloc(sizeof(SongData));
         songdata->trackId = generateTrackId();
@@ -390,15 +392,16 @@ SongData *loadSongData(char *filePath, AppState *state)
         songdata->duration = 0.0;
         songdata->avgBitRate = 0;
         c_strcpy(songdata->filePath, filePath, sizeof(songdata->filePath));
-        loadMetaData(songdata, state);
+        loadMetaData(songdata);
         songdata->lyrics = loadLyrics(songdata->filePath);
         loadColor(songdata);
 
         return songdata;
 }
 
-void unloadSongData(SongData **songdata, AppState *state)
+void unloadSongData(SongData **songdata)
 {
+        AppState *state = getAppState();
         if (*songdata == NULL)
                 return;
 

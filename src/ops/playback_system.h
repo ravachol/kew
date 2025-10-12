@@ -9,11 +9,11 @@
 
 #include "common/appstate.h"
 
-int playbackCreate(AppState *state);
-void playbackSafeCleanup(AppState *state);
+int playbackCreate(void);
+void playbackSafeCleanup(void);
 void playbackCleanup(void);
-void skip(AppState *state);
-void playbackSwitchDecoder(AppState *state);
+void skip(void);
+void playbackSwitchDecoder(void);
 void playbackShutdown(void);
-void playbackUnloadSongs(AppState *state, UserData *userData);
+void playbackUnloadSongs(UserData *userData);
 void playbackFreeDecoders(void);

@@ -25,9 +25,9 @@ UserData *getUserData(void);
 
 bool isContextInitialized(void);
 
-int createAudioDevice(AppState *state);
+int createAudioDevice(void);
 
-int switchAudioImplementation(AppState *state);
+int switchAudioImplementation(void);
 
 void cleanupAudioContext(void);
 

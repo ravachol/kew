@@ -9,20 +9,20 @@
 
 #include "common/appstate.h"
 
-void loadSong(Node *song, LoadingThreadData *loadingdata, UIState *uis);
+void loadSong(Node *song, LoadingThreadData *loadingdata, UIState *uis); // FIXME: UI stuff shouldn't be here
 
-int loadFirst(Node *song, AppState *state);
+int loadFirst(Node *song);
 
-void loadNextSong(AppState *state);
+void loadNextSong(void);
 
-void finishLoading(UIState *uis);
+void finishLoading(UIState *uis); // FIXME: UI stuff shouldn't be here
 
-void unloadSongA(AppState *state);
+void unloadSongA(void);
 
-void unloadSongB(AppState *state);
+void unloadSongB(void);
 
-void unloadPreviousSong(AppState *state);
+void unloadPreviousSong(void);
 
-void tryLoadNext(AppState *state);
+void tryLoadNext(void);
 
-void autostartIfStopped(FileSystemEntry *firstEnqueuedEntry, UIState *uis);
+void autostartIfStopped(FileSystemEntry *firstEnqueuedEntry, UIState *uis); // FIXME: UI stuff shouldn't be here

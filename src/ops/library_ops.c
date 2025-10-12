@@ -256,8 +256,9 @@ void *updateLibraryThread(void *arg)
         return NULL;
 }
 
-void updateLibrary(AppState *state, char *path)
+void updateLibrary(char *path)
 {
+        AppState *state = getAppState();
         pthread_t threadId;
 
         UpdateLibraryArgs *args = malloc(sizeof(UpdateLibraryArgs));
@@ -309,7 +310,7 @@ void *updateIfTopLevelFoldersMtimesChangedThread(void *arg)
         if (getModificationTime(&path_stat) > ui->lastTimeAppRan &&
             ui->lastTimeAppRan > 0)
         {
-                updateLibrary(state, path);
+                updateLibrary(path);
                 free(args);
                 pthread_exit(NULL);
         }
@@ -349,7 +350,7 @@ void *updateIfTopLevelFoldersMtimesChangedThread(void *arg)
                                 ui->lastTimeAppRan &&
                             ui->lastTimeAppRan > 0)
                         {
-                                updateLibrary(state, path);
+                                updateLibrary(path);
                                 break;
                         }
                 }
@@ -363,8 +364,9 @@ void *updateIfTopLevelFoldersMtimesChangedThread(void *arg)
 }
 
 // This only checks the library mtime and toplevel subfolders mtimes
-void updateLibraryIfChangedDetected(AppState *state)
+void updateLibraryIfChangedDetected(void)
 {
+        AppState *state = getAppState();
         pthread_t tid;
 
         UpdateLibraryThreadArgs *args = malloc(sizeof(UpdateLibraryThreadArgs));
@@ -389,8 +391,9 @@ void updateLibraryIfChangedDetected(AppState *state)
         }
 }
 
-void createLibrary(AppSettings *settings, AppState *state, char *libFilepath)
+void createLibrary(AppSettings *settings, char *libFilepath)
 {
+        AppState *state = getAppState();
         FileSystemEntry *library = getLibrary();
 
         if (state->uiSettings.cacheLibrary > 0)
@@ -399,7 +402,7 @@ void createLibrary(AppSettings *settings, AppState *state, char *libFilepath)
                     libFilepath, settings->path,
                     &(state->uiState.numDirectoryTreeEntries));
                 free(libFilepath);
-                updateLibraryIfChangedDetected(state);
+                updateLibraryIfChangedDetected();
         }
 
         if (library == NULL || library->children == NULL)
@@ -456,7 +459,7 @@ void enqueueSong(FileSystemEntry *child)
         child->parent->isEnqueued = 1;
 }
 
-void dequeueSong(FileSystemEntry *child, AppState *state)
+void dequeueSong(FileSystemEntry *child)
 {
         PlayList *unshuffledPlaylist = getUnshuffledPlaylist();
         PlayList *playlist = getPlaylist();
@@ -471,7 +474,7 @@ void dequeueSong(FileSystemEntry *child, AppState *state)
 
         if (current != NULL && current->id == node1->id)
         {
-                removeCurrentlyPlayingSong(state);
+                removeCurrentlyPlayingSong();
         }
         else
         {
@@ -516,7 +519,7 @@ void dequeueSong(FileSystemEntry *child, AppState *state)
         }
 }
 
-void dequeueChildren(FileSystemEntry *parent, AppState *state)
+void dequeueChildren(FileSystemEntry *parent)
 {
         FileSystemEntry *child = parent->children;
 
@@ -524,11 +527,11 @@ void dequeueChildren(FileSystemEntry *parent, AppState *state)
         {
                 if (child->isDirectory && child->children != NULL)
                 {
-                        dequeueChildren(child, state);
+                        dequeueChildren(child);
                 }
                 else
                 {
-                        dequeueSong(child, state);
+                        dequeueSong(child);
                 }
 
                 child = child->next;
@@ -612,10 +615,12 @@ bool isContainedWithin(FileSystemEntry *entry, FileSystemEntry *containingEntry)
         return false;
 }
 
-FileSystemEntry *enqueueSongs(FileSystemEntry *entry, AppState *state, FileSystemEntry **chosenDir)
+FileSystemEntry *enqueueSongs(FileSystemEntry *entry,FileSystemEntry **chosenDir)
 {
         bool hasEnqueued = false;
         bool shuffle = false;
+
+        AppState *state = getAppState();
         FileSystemEntry *firstEnqueuedEntry = NULL;
         UIState *uis = &(state->uiState);
         PlaybackState *ps = getPlaybackState();
@@ -647,7 +652,7 @@ FileSystemEntry *enqueueSongs(FileSystemEntry *entry, AppState *state, FileSyste
                                 }
                                 else
                                 {
-                                        dequeueChildren(entry, state);
+                                        dequeueChildren(entry);
 
                                         entry->isEnqueued = 0;
 
@@ -706,7 +711,7 @@ FileSystemEntry *enqueueSongs(FileSystemEntry *entry, AppState *state, FileSyste
                                 setNextSong(NULL);
                                 ps->nextSongNeedsRebuilding = true;
 
-                                dequeueSong(entry, state);
+                                dequeueSong(entry);
                         }
                 }
                 triggerRefresh();

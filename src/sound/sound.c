@@ -162,9 +162,10 @@ ma_result initFirstDatasource(UserData **pUserData)
         return MA_SUCCESS;
 }
 
-int createDevice(AppState *state, UserData *userData, ma_device *device, ma_context *context,
+int createDevice(UserData *userData, ma_device *device, ma_context *context,
                  ma_data_source_vtable *vtable, ma_device_data_proc callback)
 {
+        AppState *state = getAppState();
         ma_result result;
 
         result = initFirstDatasource(&userData);
@@ -188,17 +189,18 @@ int createDevice(AppState *state, UserData *userData, ma_device *device, ma_cont
         return 0;
 }
 
-int builtin_createAudioDevice(AppState *state, UserData *userData, ma_device *device,
+int builtin_createAudioDevice(UserData *userData, ma_device *device,
                               ma_context *context,
                               ma_data_source_vtable *vtable)
 {
-        return createDevice(state, userData, device, context, vtable,
+        return createDevice(userData, device, context, vtable,
                             builtin_on_audio_frames);
 }
 
-int vorbis_createAudioDevice(AppState *state, UserData *userData, ma_device *device,
+int vorbis_createAudioDevice(UserData *userData, ma_device *device,
                              ma_context *context)
 {
+        AppState *state = getAppState();
         ma_result result = initFirstDatasource(&userData);
 
         if (result != MA_SUCCESS)
@@ -221,9 +223,10 @@ int vorbis_createAudioDevice(AppState *state, UserData *userData, ma_device *dev
 }
 
 #ifdef USE_FAAD
-int m4a_createAudioDevice(AppState *state, UserData *userData, ma_device *device,
+int m4a_createAudioDevice(UserData *userData, ma_device *device,
                           ma_context *context)
 {
+        AppState *state = getAppState();
         ma_result result = initFirstDatasource(&userData);
 
         if (result != MA_SUCCESS)
@@ -247,9 +250,10 @@ int m4a_createAudioDevice(AppState *state, UserData *userData, ma_device *device
 }
 #endif
 
-int opus_createAudioDevice(AppState *state, UserData *userData, ma_device *device,
+int opus_createAudioDevice(UserData *userData, ma_device *device,
                            ma_context *context)
 {
+        AppState *state = getAppState();
         ma_result result;
 
         result = initFirstDatasource(&userData);
@@ -273,9 +277,10 @@ int opus_createAudioDevice(AppState *state, UserData *userData, ma_device *devic
         return 0;
 }
 
-int webm_createAudioDevice(AppState *state, UserData *userData, ma_device *device,
+int webm_createAudioDevice(UserData *userData, ma_device *device,
                            ma_context *context)
 {
+        AppState *state = getAppState();
         ma_result result;
 
         result = initFirstDatasource(&userData);
@@ -333,8 +338,9 @@ int calcAvgBitRate(double duration, const char *filePath)
         return avgBitRate;
 }
 
-int switchAudioImplementation(AppState *state)
+int switchAudioImplementation(void)
 {
+        AppState *state = getAppState();
         AudioData *audioData = getAudioData();
 
         if (audioData->endOfListReached)
@@ -372,7 +378,7 @@ int switchAudioImplementation(AppState *state)
 
                                 tryAgain = true;
 
-                                switchAudioImplementation(state);
+                                switchAudioImplementation();
 
                                 return 0;
                         }
@@ -432,8 +438,7 @@ int switchAudioImplementation(AppState *state)
 
                         audioData->sampleRate = sampleRate;
 
-                        int result = builtin_createAudioDevice(state,
-                                                               &userData, getDevice(), &context,
+                        int result = builtin_createAudioDevice(&userData, getDevice(), &context,
                                                                &builtin_file_data_source_vtable);
 
                         if (result < 0)
@@ -494,8 +499,7 @@ int switchAudioImplementation(AppState *state)
                         audioData->sampleRate = sampleRate;
                         audioData->avgBitRate = 0;
 
-                        int result = opus_createAudioDevice(state,
-                                                            &userData, getDevice(), &context);
+                        int result = opus_createAudioDevice(&userData, getDevice(), &context);
 
                         if (result < 0)
                         {
@@ -561,8 +565,7 @@ int switchAudioImplementation(AppState *state)
 
                         audioData->sampleRate = sampleRate;
 
-                        int result = vorbis_createAudioDevice(state,
-                                                              &userData, getDevice(), &context);
+                        int result = vorbis_createAudioDevice(&userData, getDevice(), &context);
 
                         if (result < 0)
                         {
@@ -627,8 +630,7 @@ int switchAudioImplementation(AppState *state)
 
                         audioData->sampleRate = sampleRate;
 
-                        int result = webm_createAudioDevice(state,
-                                                            &userData, getDevice(), &context);
+                        int result = webm_createAudioDevice(&userData, getDevice(), &context);
 
                         if (result < 0)
                         {
@@ -696,8 +698,7 @@ int switchAudioImplementation(AppState *state)
 
                         audioData->sampleRate = sampleRate;
 
-                        int result = m4a_createAudioDevice(state,
-                                                           &userData, getDevice(), &context);
+                        int result = m4a_createAudioDevice(&userData, getDevice(), &context);
 
                         if (result < 0)
                         {
@@ -741,8 +742,10 @@ void cleanupAudioContext(void)
         contextInitialized = false;
 }
 
-int createAudioDevice(AppState *state)
+int createAudioDevice(void)
 {
+        AppState *state = getAppState();
+
         if (contextInitialized)
         {
                 ma_context_uninit(&context);
@@ -751,7 +754,7 @@ int createAudioDevice(AppState *state)
         ma_context_init(NULL, 0, NULL, &context);
         contextInitialized = true;
 
-        if (switchAudioImplementation(state) >= 0)
+        if (switchAudioImplementation() >= 0)
         {
                 state->uiState.doNotifyMPRISSwitched = true;
         }

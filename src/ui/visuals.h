@@ -23,4 +23,4 @@ void initVisuals(void);
 
 void freeVisuals(void);
 
-void drawSpectrumVisualizer(int row, int col, int height, AppState *state);
+void drawSpectrumVisualizer(int row, int col, int height);
