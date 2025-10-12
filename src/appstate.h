@@ -329,6 +329,36 @@ typedef struct
 } SongData;
 #endif
 
+#ifndef PLAYBACKSTATE_STRUCT
+#define PLAYBACKSTATE_STRUCT
+typedef struct
+{
+        char filePath[MAXPATHLEN];
+        SongData *songdataA;
+        SongData *songdataB;
+        bool loadA;
+        bool loadingFirstDecoder;
+        pthread_mutex_t mutex;
+        AppState *state;
+} LoadingThreadData;
+#endif
+
+typedef struct
+{
+        LoadingThreadData loadingdata;
+        int lastPlayedId;
+        bool skipping;
+        bool songLoading;
+        bool forceSkip;
+        bool nextSongNeedsRebuilding;
+        bool skipOutOfOrder;
+        bool hasSilentlySwitched;
+        bool usingSongDataA;
+        bool clearingErrors;
+        bool songHasErrors;
+        bool skipFromStopped;
+} PlaybackState;
+
 #ifndef USERDATA_STRUCT
 #define USERDATA_STRUCT
 typedef struct
@@ -363,6 +393,8 @@ typedef struct
 #endif
 
 // --- Getters ---
+
+PlaybackState *getPlaybackState(void);
 
 AudioData *getAudioData(void);
 

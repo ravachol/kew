@@ -2,13 +2,15 @@
 
 ### 3.5.3
 
-- The welcome screen when the path is not set has been given much love, and also fixed a bugs with supplying path.
+![kew logo](https://codeberg.org/ravachol/kew/media/branch/main/images/logo.png "a title")
 
-- kew now has a real logo and a tagline "MUSIC FOR THE SHELL".
+- kew now has a real logo and a tagline "MUSIC FOR THE SHELL". It really fits perfectly.
 
 - We also now have a color associated with kew, which is red: #de2b4d.
 
 - This color is now the default if you are not playing anything and are using album colors.
+
+- The welcome screen when the path is not set has been given much love, and also fixed a bug with supplying path.
 
 - Song lyrics support through .lrc files. By @Rioprastyo17
 
