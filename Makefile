@@ -68,7 +68,7 @@ ifeq ($(origin USE_FAAD), undefined)
 endif
 
 # Compiler flags
-COMMONFLAGS = -I/usr/include -I/opt/homebrew/include -I/usr/local/include -I/usr/lib -Iinclude/minimp4 \
+COMMONFLAGS = -Isrc -I/usr/include -I/opt/homebrew/include -I/usr/local/include -I/usr/lib -Iinclude/minimp4 \
          -I/usr/include/chafa -I/usr/lib/chafa/include -I/usr/lib64/chafa/include -I/usr/include/ogg -I/usr/include/opus \
          -I/usr/include/stb -Iinclude/stb_image -I/usr/include/glib-2.0 \
          -I/usr/lib/glib-2.0/include -I/usr/lib64/glib-2.0/include -Iinclude/miniaudio -Iinclude -Iinclude/nestegg -I/usr/include/gdk-pixbuf-2.0
@@ -150,15 +150,16 @@ endif
 
 OBJDIR = src/obj
 
-SRCS = src/appstate.c src/common_ui.c src/playback.c src/input.c src/common.c src/theme.c src/sound.c \
-       src/systemintegration.c src/library_ops.c src/directorytree.c src/lyrics.c src/notifications.c \
-       src/playlist_ops.c src/soundcommon.c src/m4a.c src/search_ui.c src/playlist_ui.c \
-       src/player_ui.c src/soundbuiltin.c src/mpris.c src/playerops.c \
-       src/utils.c src/file.c src/imgfunc.c src/cache.c src/songloader.c \
-       src/playlist.c src/term.c src/settings.c src/visuals.c src/kew.c
+SRCS = src/common/appstate.c src/ui/common_ui.c src/ui/control_ui.c src/ops/playback_ops.c src/ops/input.c \
+       src/common/common.c src/data/theme.c src/sound/sound.c src/sys/systemintegration.c \
+       src/ops/library_ops.c src/data/directorytree.c src/data/lyrics.c src/ops/playback_state.c src/sys/notifications.c \
+       src/ops/playlist_ops.c src/sound/soundcommon.c src/sound/m4a.c src/ui/search_ui.c src/ui/playlist_ui.c \
+       src/ops/trackmanager.c src/ops/playback_clock.c src/ops/playback_system.c src/ui/player_ui.c src/sound/soundbuiltin.c \
+       src/sys/mpris.c src/utils/utils.c src/utils/file.c src/data/imgfunc.c src/utils/cache.c src/data/songloader.c \
+       src/data/playlist.c src/utils/term.c src/ops/settings.c src/ui/visuals.c src/kew.c
 
 # TagLib wrapper
-WRAPPER_SRC = src/tagLibWrapper.cpp
+WRAPPER_SRC = src/data/tagLibWrapper.cpp
 WRAPPER_OBJ = $(OBJDIR)/tagLibWrapper.o
 
 MAN_PAGE = kew.1

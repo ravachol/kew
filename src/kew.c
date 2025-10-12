@@ -34,32 +34,36 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #define __BSD_VISIBLE 1
 #endif
 
-#include "appstate.h"
-#include "cache.h"
-#include "common.h"
-#include "common_ui.h"
-#include "events.h"
-#include "file.h"
-#include "imgfunc.h"
-#include "input.h"
-#include "mpris.h"
-#include "notifications.h"
-#include "player_ui.h"
-#include "playback.h"
-#include "playlist_ops.h"
-#include "library_ops.h"
-#include "playerops.h"
-#include "player_ui.h"
-#include "playlist.h"
-#include "search_ui.h"
-#include "settings.h"
-#include "songloader.h"
-#include "soundcommon.h"
-#include "sound.h"
-#include "term.h"
-#include "theme.h"
-#include "utils.h"
-#include "visuals.h"
+#include "common/appstate.h"
+#include "common/common.h"
+#include "common/events.h"
+
+#include "sys/mpris.h"
+#include "sys/notifications.h"
+
+#include "ops/input.h"
+#include "ops/library_ops.h"
+#include "ops/playback_clock.h"
+#include "ops/playback_ops.h"
+#include "ops/playback_state.h"
+#include "ops/playback_system.h"
+#include "ops/playlist_ops.h"
+#include "ops/settings.h"
+#include "ops/trackmanager.h"
+
+#include "ui/common_ui.h"
+#include "ui/control_ui.h"
+#include "ui/player_ui.h"
+#include "ui/search_ui.h"
+#include "ui/visuals.h"
+
+#include "sys/systemintegration.h"
+
+#include "utils/cache.h"
+#include "utils/file.h"
+#include "utils/term.h"
+#include "utils/utils.h"
+
 #include <fcntl.h>
 #include <gio/gio.h>
 #include <glib-unix.h>
@@ -77,7 +81,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include <time.h>
 #include <unistd.h>
 
-const char VERSION[] = "3.5.3";
+const char VERSION[] = "3.6.0";
 
 AppState *statePtr = NULL;
 
@@ -96,13 +100,11 @@ void setEndOfListReached(AppState *state)
 
         clearCurrentSong();
 
-        pthread_mutex_lock(&(state->dataSourceMutex));
-        cleanupPlaybackDevice();
-        pthread_mutex_unlock(&(state->dataSourceMutex));
-        setStopped(true);
+        playbackCleanup();
+
         triggerRefresh();
 
-        if (isRepeatListEnabled())
+        if (playbackIsRepeatListEnabled())
                 repeatList(state);
         else
         {
@@ -222,7 +224,7 @@ void resetListAfterDequeuingPlayingSong(AppState *state)
 
         if (getCurrentSong() == NULL && node == NULL)
         {
-                stopPlayback(state);
+                playbackStop(state);
 
                 AudioData *audioData = getAudioData();
 
@@ -235,19 +237,17 @@ void resetListAfterDequeuingPlayingSong(AppState *state)
                                     NULL, 0);
                 emitPlaybackStoppedMpris();
 
-                pthread_mutex_lock(&(state->dataSourceMutex));
-                cleanupPlaybackDevice();
-                pthread_mutex_unlock(&(state->dataSourceMutex));
+                playbackCleanup();
 
                 triggerRefresh();
 
-                switchAudioImplementation(state);
+                playbackSwitchDecoder(state);
 
                 unloadSongA(state);
                 unloadSongB(state);
                 state->uiState.songWasRemoved = true;
 
-                UserData *userData = getUserData();
+                UserData *userData = playbackGetUserData();
 
                 userData->currentSongData = NULL;
 
@@ -312,7 +312,12 @@ FileSystemEntry *enqueue(AppState *state, FileSystemEntry *entry)
 
         pthread_mutex_lock(&(getPlaylist()->mutex));
 
-        firstEnqueuedEntry = enqueueSongs(entry, state);
+        FileSystemEntry *chosenDir = getChosenDir();
+
+        firstEnqueuedEntry = enqueueSongs(entry, state, &chosenDir);
+
+        setChosenDir(chosenDir);
+
         resetListAfterDequeuingPlayingSong(state);
 
         pthread_mutex_unlock(&(getPlaylist()->mutex));
@@ -353,7 +358,7 @@ void playPostProcessing(bool wasEndOfList, AppState *state)
 
 FileSystemEntry *libraryEnqueue(AppState *state, PlayList *playlist)
 {
-        FileSystemEntry *entry = getCurrentLibEntry();
+        FileSystemEntry *entry = state->uiState.currentLibEntry;
         FileSystemEntry *firstEnqueuedEntry = NULL;
 
         if (entry == NULL)
@@ -406,7 +411,11 @@ FileSystemEntry *searchEnqueue(AppState *state, PlayList *playlist)
 
         setChosenDir(entry);
 
-        FileSystemEntry *firstEnqueuedEntry = enqueueSongs(entry, state);
+        FileSystemEntry *chosenDir = getChosenDir();
+
+        FileSystemEntry *firstEnqueuedEntry = enqueueSongs(entry, state, &chosenDir);
+
+        setChosenDir(chosenDir);
 
         resetListAfterDequeuingPlayingSong(state);
 
@@ -420,7 +429,8 @@ void clearAndPlay(AppState *state, Node *song)
         AudioData *audioData = getAudioData();
         PlaybackState *ps = getPlaybackState();
 
-        cleanupPlaybackDevice();
+        playbackCleanup();
+
         state->uiState.loadedNextSong = true;
 
         ps->nextSongNeedsRebuilding = false;
@@ -457,7 +467,7 @@ void playlistPlay(AppState *state, PlayList *playlist)
         {
                 Node *current = getCurrentSong();
 
-                if (isPaused() && current != NULL &&
+                if (playbackIsPaused() && current != NULL &&
                     state->uiState.chosenNodeId == current->id)
                 {
                         togglePause(state);
@@ -531,6 +541,192 @@ void enqueueHandler(AppState *state, bool playImmediately)
         }
 }
 
+void handleGoToSong(AppState *state)
+{
+        Node *currentSong = getCurrentSong();
+        PlayList *playlist = getPlaylist();
+        PlayList *unshuffledPlaylist = getUnshuffledPlaylist();
+        FileSystemEntry *library = getLibrary();
+        PlaybackState *ps = getPlaybackState();
+        AudioData *audioData = getAudioData();
+
+        bool canGoNext = (currentSong != NULL && currentSong->next != NULL);
+
+        if (state->currentView == LIBRARY_VIEW)
+        {
+                FileSystemEntry *entry = state->uiState.currentLibEntry;
+
+                if (entry == NULL)
+                        return;
+
+                // Enqueue playlist
+                if (pathEndsWith(entry->fullPath, "m3u") ||
+                    pathEndsWith(entry->fullPath, "m3u8"))
+                {
+                        FileSystemEntry *firstEnqueuedEntry = NULL;
+
+                        Node *prevTail = playlist->tail;
+
+                        if (playlist != NULL)
+                        {
+                                readM3UFile(entry->fullPath, playlist, library);
+
+                                if (prevTail != NULL && prevTail->next != NULL)
+                                {
+                                        firstEnqueuedEntry = findCorrespondingEntry(
+                                            library, prevTail->next->song.filePath);
+                                }
+                                else if (playlist->head != NULL)
+                                {
+                                        firstEnqueuedEntry = findCorrespondingEntry(
+                                            library, playlist->head->song.filePath);
+                                }
+
+                                autostartIfStopped(firstEnqueuedEntry, &(state->uiState));
+
+                                markListAsEnqueued(library, playlist);
+
+                                deepCopyPlayListOntoList(playlist, &unshuffledPlaylist);
+                        }
+                }
+                else
+                        enqueue(state, entry); // Enqueue song
+        }
+        else if (state->currentView == SEARCH_VIEW)
+        {
+                pthread_mutex_lock(&(playlist->mutex));
+
+                FileSystemEntry *entry = getCurrentSearchEntry();
+
+                setChosenDir(entry);
+
+                FileSystemEntry *chosen = getChosenDir();
+
+                enqueueSongs(entry, state, &chosen);
+
+                resetListAfterDequeuingPlayingSong(state);
+
+                pthread_mutex_unlock(&(playlist->mutex));
+        }
+        else if (state->currentView == PLAYLIST_VIEW)
+        {
+                if (getDigitsPressed() == 0)
+                {
+                        if (playbackIsPaused() && currentSong != NULL &&
+                            state->uiState.chosenNodeId == currentSong->id)
+                        {
+                                togglePause(state);
+                        }
+                        else
+                        {
+                                playbackSafeCleanup(state);
+
+                                state->uiState.loadedNextSong = true;
+
+                                ps->nextSongNeedsRebuilding = false;
+
+                                unloadSongA(state);
+                                unloadSongB(state);
+
+                                ps->usingSongDataA = false;
+                                audioData->currentFileIndex = 0;
+                                ps->loadingdata.loadA = true;
+
+                                bool wasEndOfList = playPreProcessing();
+
+                                playbackPlay(state);
+
+                                Node *found = NULL;
+                                findNodeInList(playlist,
+                                               state->uiState.chosenNodeId,
+                                               &found);
+                                play(found, state);
+
+                                playPostProcessing(wasEndOfList, state);
+
+                                ps->skipOutOfOrder = false;
+                                ps->usingSongDataA = true;
+                        }
+                }
+                else
+                {
+                        state->uiState.resetPlaylistDisplay = true;
+                        int songNumber = getSongNumber(getDigitsPressed());
+                        resetDigitsPressed();
+
+                        ps->nextSongNeedsRebuilding = false;
+
+                        skipToNumberedSong(songNumber, state);
+                }
+        }
+
+        // Handle MPRIS CanGoNext
+        bool couldGoNext = (currentSong != NULL && currentSong->next != NULL);
+        if (canGoNext != couldGoNext)
+        {
+                emitBooleanPropertyChanged("CanGoNext", couldGoNext);
+        }
+}
+
+void enqueueAndPlay(AppState *state)
+{
+        FileSystemEntry *firstEnqueuedEntry = NULL;
+        PlayList *playlist = getPlaylist();
+        PlaybackState *ps = getPlaybackState();
+        AudioData *audioData = getAudioData();
+
+        bool wasEmpty = (playlist->count == 0);
+
+        bool wasEndOfList = playPreProcessing();
+
+        if (state->currentView == PLAYLIST_VIEW)
+        {
+                handleGoToSong(state);
+                return;
+        }
+
+        if (state->currentView == LIBRARY_VIEW)
+        {
+                firstEnqueuedEntry = enqueue(state, state->uiState.currentLibEntry);
+        }
+
+        if (state->currentView == SEARCH_VIEW)
+        {
+                FileSystemEntry *entry = getCurrentSearchEntry();
+                firstEnqueuedEntry = enqueue(state, entry);
+
+                setChosenDir(entry);
+        }
+
+        if (firstEnqueuedEntry && !wasEmpty)
+        {
+                Node *song =
+                    findPathInPlaylist(firstEnqueuedEntry->fullPath, playlist);
+
+                state->uiState.loadedNextSong = true;
+
+                ps->nextSongNeedsRebuilding = false;
+
+                playbackSafeCleanup(state);
+
+                unloadSongA(state);
+                unloadSongB(state);
+
+                ps->usingSongDataA = false;
+                audioData->currentFileIndex = 0;
+                ps->loadingdata.loadA = true;
+
+                playbackPlay(state);
+
+                play(song, state);
+
+                playPostProcessing(wasEndOfList, state);
+
+                ps->skipOutOfOrder = false;
+                ps->usingSongDataA = true;
+        }
+}
+
 void gotoBeginningOfPlaylist(AppState *state)
 {
         pressDigit(1);
@@ -572,7 +768,7 @@ void handleInput(AppState *state)
                 enqueueHandler(state, true);
                 break;
         case EVENT_PLAY_PAUSE:
-                if (isStopped())
+                if (playbackIsStopped())
                 {
                         enqueueHandler(state, false);
                 }
@@ -616,11 +812,11 @@ void handleInput(AppState *state)
                 scrollPrev(state);
                 break;
         case EVENT_VOLUME_UP:
-                adjustVolumePercent(5);
+                playbackVolumeChange(5);
                 emitVolumeChanged();
                 break;
         case EVENT_VOLUME_DOWN:
-                adjustVolumePercent(-5);
+                playbackVolumeChange(-5);
                 emitVolumeChanged();
                 break;
         case EVENT_NEXT:
@@ -642,6 +838,7 @@ void handleInput(AppState *state)
                 exportCurrentPlaylist(settings->path, playlist);
                 break;
         case EVENT_UPDATELIBRARY:
+                freeSearchResults();
                 updateLibrary(state, settings->path);
                 break;
         case EVENT_SHOWKEYBINDINGS:
@@ -664,7 +861,7 @@ void handleInput(AppState *state)
                 flipPrevPage(state);
                 break;
         case EVENT_REMOVE:
-                handleRemove(state);
+                handleRemove(state, getChosenRow());
                 resetListAfterDequeuingPlayingSong(state);
                 break;
         case EVENT_SHOWTRACK:
@@ -758,7 +955,7 @@ Node *determineNextSong(AppState *state, PlayList *playlist)
                         findNodeInList(playlist, songToStartFrom->id, &current);
                         return current ? current : NULL;
                 }
-                else if (ps->lastPlayedId  >= 0)
+                else if (ps->lastPlayedId >= 0)
                 {
                         current = findSelectedEntryById(playlist, ps->lastPlayedId);
                         if (current != NULL && current->next != NULL)
@@ -798,12 +995,12 @@ int prepareAndPlaySong(AppState *state, Node *song)
 
         if (res >= 0)
         {
-                res = createAudioDevice(state);
+                res = playbackCreate(state);
         }
 
         if (res >= 0)
         {
-                resumePlayback(state);
+                playbackResumePlayback(state);
         }
 
         triggerRefresh();
@@ -843,7 +1040,7 @@ void checkAndLoadNextSong(AppState *state)
                         state->uiState.waitingForNext = false;
                         state->uiState.songWasRemoved = false;
 
-                        if (isShuffleEnabled())
+                        if (playbackIsShuffleEnabled())
                                 reshufflePlaylist();
 
                         int res = prepareAndPlaySong(state, nextSong);
@@ -867,7 +1064,7 @@ void handleSkipOutOfOrder(void)
 {
         PlaybackState *ps = getPlaybackState();
 
-        if (! ps->skipOutOfOrder  && !isRepeatEnabled())
+        if (!ps->skipOutOfOrder && !playbackIsRepeatEnabled())
         {
                 setCurrentSongToNext();
         }
@@ -888,7 +1085,7 @@ void prepareNextSong(AppState *state)
 
         Node *current = getCurrentSong();
 
-        if (!isRepeatEnabled() || current == NULL)
+        if (!playbackIsRepeatEnabled() || current == NULL)
         {
                 unloadPreviousSong(state);
         }
@@ -930,15 +1127,15 @@ void updatePlayerStatus(AppState *state)
                 if (ps->songHasErrors)
                         tryLoadNext(state);
 
-                if (isPlaybackDone())
+                if (playbackisDone())
                 {
                         prepareNextSong(state);
-                        switchAudioImplementation(state);
+                        playbackSwitchDecoder(state);
                 }
         }
         else
         {
-                setEOFNotReached();
+                playbackSetEofHandled();
         }
 }
 
@@ -954,7 +1151,7 @@ gboolean mainloop_callback(gpointer data)
 {
         (void)data;
 
-        calcElapsedTime();
+        calcElapsedTime(getCurrentSongDuration());
         handleInput(statePtr);
         incrementUpdateCounter();
 
@@ -986,7 +1183,7 @@ void initFirstPlay(Node *song, AppState *state)
         updateLastInputTime();
         resetClock();
 
-        UserData *userData = getUserData();
+        UserData *userData = playbackGetUserData();
 
         userData->currentSongData = NULL;
         userData->songdataA = NULL;
@@ -1009,11 +1206,11 @@ void initFirstPlay(Node *song, AppState *state)
 
                 if (res >= 0)
                 {
-                        res = createAudioDevice(state);
+                        res = playbackCreate(state);
                 }
                 if (res >= 0)
                 {
-                        resumePlayback(state);
+                        playbackResumePlayback(state);
                 }
 
                 if (res < 0)
@@ -1055,17 +1252,9 @@ void cleanupOnExit()
 
         pthread_mutex_lock(&(state->dataSourceMutex));
 
-        resetAllDecoders();
+        playbackFreeDecoders();
 
-        if (isContextInitialized())
-        {
-#ifdef __ANDROID__
-                shutdownAndroid();
-#else
-                cleanupPlaybackDevice();
-#endif
-                cleanupAudioContext();
-        }
+        playbackShutdown();
 
         emitPlaybackStoppedMpris();
 
@@ -1078,18 +1267,7 @@ void cleanupOnExit()
                 noMusicFound = true;
         }
 
-        UserData *userData = getUserData();
-
-        if (!userData->songdataADeleted)
-        {
-                userData->songdataADeleted = true;
-                unloadSongData(&(ps->loadingdata.songdataA), statePtr);
-        }
-        if (!userData->songdataBDeleted)
-        {
-                userData->songdataBDeleted = true;
-                unloadSongData(&(ps->loadingdata.songdataB), statePtr);
-        }
+        playbackUnloadSongs(state, playbackGetUserData());
 
 #ifdef CHAFA_VERSION_1_16
         retire_passthrough_workarounds_tmux();
@@ -1119,7 +1297,7 @@ void cleanupOnExit()
         freeVisuals();
 
 #ifdef USE_DBUS
-        cleanupDbusConnection();
+        cleanupNotifications();
 #endif
 
 #ifdef DEBUG
@@ -1236,7 +1414,7 @@ void init(AppState *state)
         state->tmpCache = createCache();
 
         PlaybackState *ps = getPlaybackState();
-        UserData *userData = getUserData();
+        UserData *userData = playbackGetUserData();
         AppSettings *settings = getAppSettings();
         PlayList *playlist = getPlaylist();
         AudioData *audioData = getAudioData();
@@ -1253,7 +1431,10 @@ void init(AppState *state)
         srand(seed);
         pthread_mutex_init(&(ps->loadingdata.mutex), NULL);
         pthread_mutex_init(&(playlist->mutex), NULL);
-        createLibrary(settings, state);
+
+        freeSearchResults();
+        resetChosenDir();
+        createLibrary(settings, state, getLibraryFilePath());
         setlocale(LC_ALL, "");
         setlocale(LC_CTYPE, "");
         fflush(stdout);
@@ -1689,7 +1870,8 @@ void setMusicPath(UISettings *ui)
                                 printBlankSpaces(indent);
                                 return;
                         }
-                        else {
+                        else
+                        {
                                 break;
                         }
                 }
@@ -1728,7 +1910,8 @@ void setMusicPath(UISettings *ui)
 
                 found = 1;
         }
-        else {
+        else
+        {
                 found = -1;
         }
 
@@ -1807,6 +1990,7 @@ void initState(AppState *state)
         state->uiState.noPlaylist = false;
         state->uiState.logFile = NULL;
         state->uiState.showLyricsPage = false;
+        state->uiState.currentLibEntry = NULL;
         state->tmpCache = NULL;
         state->uiSettings.LAST_ROW = " [F2 Playlist|F3 Library|F4 Track|F5 Search|F6 Help]";
         state->uiSettings.defaultColor = 150;
@@ -1844,7 +2028,7 @@ void initSettings(AppState *state, AppSettings *settings)
 {
         getConfig(settings, &(state->uiSettings));
 
-        UserData *userData = getUserData();
+        UserData *userData = playbackGetUserData();
 
         userData->replayGainCheckFirst =
             state->uiSettings.replayGainCheckFirst;
