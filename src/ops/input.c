@@ -79,8 +79,9 @@ void updateLastInputTime(void)
         clock_gettime(CLOCK_MONOTONIC, &lastInputTime);
 }
 
-void initKeyMappings(AppState *state, AppSettings *settings)
+void initKeyMappings(AppSettings *settings)
 {
+        AppState *state = getAppState();
         mapSettingsToKeys(settings, &(state->uiSettings), keyMappings);
 }
 
@@ -137,8 +138,10 @@ enum EventType getMouseLastRowEvent(int mouseXOnLastRow)
         return result;
 }
 
-bool mouseInputHandled(AppState *state, char *seq, int i, struct Event *event)
+bool mouseInputHandled(char *seq, int i, struct Event *event)
 {
+        AppState *state = getAppState();
+
         if (!seq || !event)
                 return false;
 
@@ -247,7 +250,7 @@ bool mouseInputHandled(AppState *state, char *seq, int i, struct Event *event)
         return false;
 }
 
-struct Event processInput(AppState *state)
+struct Event processInput(void)
 {
         struct Event event;
         event.type = EVENT_NONE;
@@ -255,6 +258,7 @@ struct Event processInput(AppState *state)
         bool cooldownElapsed = false;
         bool cooldown2Elapsed = false;
 
+        AppState *state = getAppState();
         UISettings *ui = &(state->uiSettings);
         AppSettings *settings = getAppSettings();
 
@@ -398,7 +402,7 @@ struct Event processInput(AppState *state)
                 if (keyMappings[i].seq[0] != '\0' &&
                     strncmp(seq, "\033[<", 3) == 0 &&
                     strnlen(seq, MAX_SEQ_LEN) > 4 && strchr(seq, 'M') != NULL &&
-                    mouseInputHandled(state, seq, i, &event))
+                    mouseInputHandled(seq, i, &event))
                 {
                         handledMouse = true;
                         break;

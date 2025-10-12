@@ -6,7 +6,7 @@
 #include "common/events.h"
 #include "common/appstate.h"
 
-struct Event processInput(AppState *state);
+struct Event processInput(void);
 
 bool isDigitsPressed(void);
 
@@ -16,6 +16,6 @@ void resetDigitsPressed(void);
 
 void updateLastInputTime(void);
 
-void initKeyMappings(AppState *state, AppSettings* settings);
+void initKeyMappings(AppSettings* settings);
 
 void pressDigit(int digit);

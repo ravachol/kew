@@ -102,8 +102,9 @@ Node *findSelectedEntry(PlayList *playlist, int row)
         return NULL;
 }
 
-void removeCurrentlyPlayingSong(AppState *state)
+void removeCurrentlyPlayingSong(void)
 {
+        AppState *state = getAppState();
         Node *current = getCurrentSong();
         UIState *uis = &(state->uiState);
         AudioData *audioData = getAudioData();
@@ -111,7 +112,7 @@ void removeCurrentlyPlayingSong(AppState *state)
 
         if (current != NULL)
         {
-                stopPlayback(state);
+                stopPlayback();
                 emitStringPropertyChanged("PlaybackStatus", "Stopped");
                 clearCurrentTrack();
                 clearCurrentSong();
@@ -130,11 +131,12 @@ void removeCurrentlyPlayingSong(AppState *state)
         current = NULL;
 }
 
-void rebuildNextSong(Node *song, AppState *state)
+void rebuildNextSong(Node *song)
 {
         if (song == NULL)
                 return;
 
+        AppState *state = getAppState();
         UIState *uis = &(state->uiState);
         PlaybackState *ps = getPlaybackState();
 
@@ -157,8 +159,9 @@ void rebuildNextSong(Node *song, AppState *state)
         ps->songLoading = false;
 }
 
-void handleRemove(AppState *state, int chosenRow)
+void handleRemove(int chosenRow)
 {
+        AppState *state = getAppState();
         UIState *uis = &(state->uiState);
         PlayList *playlist = getPlaylist();
         PlayList *unshuffledPlaylist = getUnshuffledPlaylist();
@@ -182,7 +185,7 @@ void handleRemove(AppState *state, int chosenRow)
 
                 if (currentId == node->id)
                 {
-                        removeCurrentlyPlayingSong(state);
+                        removeCurrentlyPlayingSong();
                 }
                 else
                 {
@@ -230,7 +233,7 @@ void handleRemove(AppState *state, int chosenRow)
                         ps->nextSongNeedsRebuilding = false;
                         setNextSong(NULL);
                         setNextSong(getListNext(current));
-                        rebuildNextSong(getNextSong(), state);
+                        rebuildNextSong(getNextSong());
                         uis->loadedNextSong = true;
                 }
 
@@ -267,7 +270,7 @@ void addToFavoritesPlaylist(void)
 // Go through the display playlist and the shuffle playlist to remove all songs
 // except the current one. If no active song (if stopped rather than paused for
 // example) entire playlist will be removed
-void dequeueAllExceptPlayingSong(AppState *state)
+void dequeueAllExceptPlayingSong(void)
 {
         bool clearAll = false;
         int currentID = -1;
@@ -275,6 +278,7 @@ void dequeueAllExceptPlayingSong(AppState *state)
         Node *current = getCurrentSong();
         PlayList *unshuffledPlaylist = getUnshuffledPlaylist();
         PlayList *playlist = getPlaylist();
+        AppState *state = getAppState();
 
         // Do we need to clear the entire playlist?
         if (current == NULL)
@@ -383,9 +387,10 @@ void setCurrentSongToPrev(void)
         }
 }
 
-void silentSwitchToNext(bool loadSong, AppState *state)
+void silentSwitchToNext(bool loadSong)
 {
         PlaybackState *ps = getPlaybackState();
+        AppState *state = getAppState();
 
         ps->skipping = true;
 
@@ -401,7 +406,7 @@ void silentSwitchToNext(bool loadSong, AppState *state)
 
         if (loadSong)
         {
-                loadNextSong(state);
+                loadNextSong();
                 finishLoading(&(state->uiState));
                 state->uiState.loadedNextSong = true;
                 state->uiState.doNotifyMPRISSwitched = true;
@@ -418,8 +423,9 @@ void silentSwitchToNext(bool loadSong, AppState *state)
         setNextSong(NULL);
 }
 
-void silentSwitchToPrev(AppState *state)
+void silentSwitchToPrev(void)
 {
+        AppState *state = getAppState();
         AudioData *audioData = getAudioData();
         PlaybackState *ps = getPlaybackState();
 
@@ -452,8 +458,9 @@ void silentSwitchToPrev(AppState *state)
         ps->hasSilentlySwitched = true;
 }
 
-void skipToNextSong(AppState *state)
+void skipToNextSong(void)
 {
+        AppState *state = getAppState();
         Node *current = getCurrentSong();
         PlaybackState *ps = getPlaybackState();
 
@@ -466,7 +473,7 @@ void skipToNextSong(AppState *state)
                 }
                 else if (!isStopped() && !isPaused())
                 {
-                        stop(state);
+                        stop();
                         return;
                 }
                 else
@@ -481,7 +488,7 @@ void skipToNextSong(AppState *state)
 
         if (isStopped() || isPaused())
         {
-                silentSwitchToNext(true, state);
+                silentSwitchToNext(true);
                 return;
         }
 
@@ -491,7 +498,7 @@ void skipToNextSong(AppState *state)
         double totalPauseSeconds = getTotalPauseSeconds();
         double pauseSeconds = getTotalPauseSeconds();
 
-        playbackPlay(state);
+        playbackPlay();
 
         setTotalPauseSeconds(totalPauseSeconds);
         setPauseSeconds(pauseSeconds);
@@ -501,18 +508,19 @@ void skipToNextSong(AppState *state)
 
         resetClock();
 
-        skip(state);
+        skip();
 }
 
-void skipToPrevSong(AppState *state)
+void skipToPrevSong(void)
 {
+        AppState *state = getAppState();
         Node *current = getCurrentSong();
         PlaybackState *ps = getPlaybackState();
 
         if (current == NULL)
         {
                 if (!isStopped() && !isPaused())
-                        stop(state);
+                        stop();
                 return;
         }
 
@@ -522,7 +530,7 @@ void skipToPrevSong(AppState *state)
 
         if (isStopped() || isPaused())
         {
-                silentSwitchToPrev(state);
+                silentSwitchToPrev();
                 return;
         }
 
@@ -541,21 +549,23 @@ void skipToPrevSong(AppState *state)
         double totalPauseSeconds = getTotalPauseSeconds();
         double pauseSeconds = getTotalPauseSeconds();
 
-        playbackPlay(state);
+        playbackPlay();
 
         setTotalPauseSeconds(totalPauseSeconds);
         setPauseSeconds(pauseSeconds);
 
         ps->skipping = true;
         ps->skipOutOfOrder = true;
-        state->uiState.loadedNextSong = false;
         ps->songLoading = true;
         ps->forceSkip = false;
-
         ps->loadingdata.state = state;
         ps->loadingdata.loadA = !ps->usingSongDataA;
         ps->loadingdata.loadingFirstDecoder = true;
+
+        state->uiState.loadedNextSong = false;
+
         loadSong(getCurrentSong(), &ps->loadingdata, &(state->uiState));
+
         int maxNumTries = 50;
         int numtries = 0;
 
@@ -569,16 +579,17 @@ void skipToPrevSong(AppState *state)
         {
                 ps->songHasErrors = false;
                 ps->forceSkip = true;
-                skipToPrevSong(state);
+                skipToPrevSong();
         }
 
         resetClock();
 
-        skip(state);
+        skip();
 }
 
-void skipToNumberedSong(int songNumber, AppState *state)
+void skipToNumberedSong(int songNumber)
 {
+        AppState *state = getAppState();
         UIState *uis = &(state->uiState);
         PlayList *unshuffledPlaylist = getUnshuffledPlaylist();
         PlayList *playlist = getPlaylist();
@@ -591,7 +602,7 @@ void skipToNumberedSong(int songNumber, AppState *state)
         double totalPauseSeconds = getTotalPauseSeconds();
         double pauseSeconds = getTotalPauseSeconds();
 
-        playbackPlay(state);
+        playbackPlay();
 
         setTotalPauseSeconds(totalPauseSeconds);
         setPauseSeconds(pauseSeconds);
@@ -622,14 +633,14 @@ void skipToNumberedSong(int songNumber, AppState *state)
                 ps->songHasErrors = false;
                 ps->forceSkip = true;
                 if (songNumber < playlist->count)
-                        skipToNumberedSong(songNumber + 1, state);
+                        skipToNumberedSong(songNumber + 1);
         }
 
         resetClock();
-        skip(state);
+        skip();
 }
 
-void skipToLastSong(AppState *state)
+void skipToLastSong(void)
 {
         PlayList *playlist = getPlaylist();
 
@@ -644,11 +655,12 @@ void skipToLastSong(AppState *state)
                 song = getListNext(song);
                 count++;
         }
-        skipToNumberedSong(count, state);
+        skipToNumberedSong(count);
 }
 
-void repeatList(AppState *state)
+void repeatList(void)
 {
+        AppState *state = getAppState();
         AudioData *audioData = getAudioData();
         PlaybackState *ps = getPlaybackState();
 
@@ -657,8 +669,9 @@ void repeatList(AppState *state)
         audioData->endOfListReached = false;
 }
 
-void moveSongUp(AppState *state, int *chosenRow)
+void moveSongUp(int *chosenRow)
 {
+        AppState *state = getAppState();
         UIState *uis = &(state->uiState);
         PlayList *unshuffledPlaylist = getUnshuffledPlaylist();
         PlayList *playlist = getPlaylist();
@@ -722,7 +735,7 @@ void moveSongUp(AppState *state, int *chosenRow)
 
                 setTryNextSong(current->next);
                 setNextSong(getListNext(current));
-                rebuildNextSong(getNextSong(), state);
+                rebuildNextSong(getNextSong());
 
                 uis->loadedNextSong = true;
         }
@@ -732,8 +745,9 @@ void moveSongUp(AppState *state, int *chosenRow)
         triggerRefresh();
 }
 
-void moveSongDown(AppState *state, int *chosenRow)
+void moveSongDown(int *chosenRow)
 {
+        AppState *state = getAppState();
         UIState *uis = &(state->uiState);
         PlayList *unshuffledPlaylist = getUnshuffledPlaylist();
         PlayList *playlist = getPlaylist();
@@ -802,7 +816,7 @@ void moveSongDown(AppState *state, int *chosenRow)
 
                 setTryNextSong(current->next);
                 setNextSong(getListNext(current));
-                rebuildNextSong(getNextSong(), state);
+                rebuildNextSong(getNextSong());
                 uis->loadedNextSong = true;
         }
 

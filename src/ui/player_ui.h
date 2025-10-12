@@ -57,15 +57,15 @@ int printLogoArt(const UISettings *ui, int indent, bool centered, bool printTagL
 
 int calcIndentNormal(void);
 
-int printPlayer(SongData *songdata, double elapsedSeconds, AppSettings *settings, AppState *appState);
+int printPlayer(SongData *songdata, double elapsedSeconds, AppSettings *settings);
 
 int getFooterRow(void);
 
 int getFooterCol(void);
 
-void flipNextPage(AppState *state);
+void flipNextPage(void);
 
-void flipPrevPage(AppState *state);
+void flipPrevPage(void);
 
 void showHelp(void);
 
@@ -79,23 +79,23 @@ FileSystemEntry *getChosenDir(void);
 
 void setCurrentAsChosenDir(void);
 
-void scrollNext(AppState *state);
+void scrollNext(void);
 
-void scrollPrev(AppState *state);
+void scrollPrev(void);
 
-void toggleShowView(ViewState VIEW_TO_SHOW, AppState *state);
+void toggleShowView(ViewState VIEW_TO_SHOW);
 
-void showTrack(AppState *state);
+void showTrack(void);
 
-void freeMainDirectoryTree(AppState *state);
+void freeMainDirectoryTree(void);
 
 char *getLibraryFilePath(void);
 
 void resetChosenDir(void);
 
-void switchToNextView(AppState *state);
+void switchToNextView(void);
 
-void switchToPreviousView(AppState *state);
+void switchToPreviousView(void);
 
 void resetSearchResult(void);
 

@@ -26,14 +26,14 @@
 
 #include "sys/systemintegration.h"
 
-void playbackStop(AppState *state)
+void playbackStop(void)
 {
-        stopPlayback(state);
+        stopPlayback();
 }
 
-void playbackResumePlayback(AppState *state)
+void playbackResumePlayback(void)
 {
-        resumePlayback(state);
+        resumePlayback();
 }
 
 int loadDecoder(SongData *songData, bool *songDataDeleted)
@@ -108,7 +108,7 @@ void *songDataReaderThread(void *arg)
                 if (!getUserData()->songdataADeleted)
                 {
                         getUserData()->songdataADeleted = true;
-                        unloadSongData(&(ps->loadingdata.songdataA), ps->loadingdata.state);
+                        unloadSongData(&(ps->loadingdata.songdataA));
                 }
         }
         else
@@ -116,13 +116,13 @@ void *songDataReaderThread(void *arg)
                 if (!getUserData()->songdataBDeleted)
                 {
                         getUserData()->songdataBDeleted = true;
-                        unloadSongData(&(ps->loadingdata.songdataB), ps->loadingdata.state);
+                        unloadSongData(&(ps->loadingdata.songdataB));
                 }
         }
 
         if (existsFile(filepath) >= 0)
         {
-                songdata = loadSongData(filepath, ps->loadingdata.state);
+                songdata = loadSongData(filepath);
         }
         else
                 songdata = NULL;
@@ -166,7 +166,7 @@ void *songDataReaderThread(void *arg)
 }
 
 void loadSong(Node *song, LoadingThreadData *loadingdata, UIState *uis)
-{
+{       // FIXME: UI (uis) stuff should be above ops and doesn't belong here
         PlaybackState *ps = getPlaybackState();
 
         if (song == NULL)
@@ -184,8 +184,9 @@ void loadSong(Node *song, LoadingThreadData *loadingdata, UIState *uis)
         pthread_create(&loadingThread, NULL, songDataReaderThread, ps);
 }
 
-void tryLoadNext(AppState *state)
+void tryLoadNext(void)
 {
+        AppState *state = getAppState();
         PlaybackState *ps = getPlaybackState();
         UIState *uis = &(state->uiState);
         Node *current = getCurrentSong();
@@ -213,14 +214,14 @@ void tryLoadNext(AppState *state)
         }
 }
 
-void playbackPause(AppState *state, struct timespec *pause_time)
+void playbackPause(struct timespec *pause_time)
 {
         if (!isPaused())
         {
                 emitStringPropertyChanged("PlaybackStatus", "Paused");
                 clock_gettime(CLOCK_MONOTONIC, pause_time);
         }
-        pausePlayback(state);
+        pausePlayback();
 }
 
 void skipToBegginningOfSong(void)
@@ -256,7 +257,7 @@ void prepareIfSkippedSilent(void)
         }
 }
 
-void playbackPlay(AppState *state)
+void playbackPlay(void)
 {
         PlaybackState *ps = getPlaybackState();
 
@@ -275,7 +276,7 @@ void playbackPlay(AppState *state)
                 skipToBegginningOfSong();
         }
 
-        resumePlayback(state);
+        resumePlayback();
 
         if (ps->hasSilentlySwitched)
         {
@@ -297,8 +298,9 @@ bool isValidAudioNode(Node *node)
         return true;
 }
 
-int play(Node *node, AppState *state)
+int play(Node *node)
 {
+        AppState *state = getAppState();
         PlaybackState *ps = getPlaybackState();
         AudioData *audioData = getAudioData();
 
@@ -354,7 +356,7 @@ int play(Node *node, AppState *state)
         }
 
         resetClock();
-        skip(state);
+        skip();
 
         return 0;
 }
@@ -364,8 +366,9 @@ void playbackVolumeChange(int changePercent)
         adjustVolumePercent(changePercent);
 }
 
-void skipToSong(int id, bool startPlaying, AppState *state)
+void skipToSong(int id, bool startPlaying)
 {
+        AppState *state = getAppState();
         PlaybackState *ps = getPlaybackState();
 
         if (ps->songLoading || !state->uiState.loadedNextSong || ps->skipping || ps->clearingErrors)
@@ -383,18 +386,18 @@ void skipToSong(int id, bool startPlaying, AppState *state)
                 double totalPauseSeconds = getTotalPauseSeconds();
                 double pauseSeconds = getTotalPauseSeconds();
 
-                playbackPlay(state);
+                playbackPlay();
 
                 setTotalPauseSeconds(totalPauseSeconds);
                 setPauseSeconds(pauseSeconds);
         }
 
-        play(found, state);
+        play(found);
 }
 
-void stop(AppState *state)
+void stop(void)
 {
-        stopPlayback(state);
+        stopPlayback();
 
         if (isStopped())
         {
@@ -403,7 +406,7 @@ void stop(AppState *state)
         }
 }
 
-void togglePause(AppState *state)
+void togglePause(void)
 {
         PlaybackState *ps = getPlaybackState();
 
@@ -412,7 +415,7 @@ void togglePause(AppState *state)
                 resetClock();
         }
 
-        togglePausePlayback(state);
+        togglePausePlayback();
 
         if (isPaused())
         {

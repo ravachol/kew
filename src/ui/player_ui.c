@@ -590,8 +590,10 @@ void printProgress(double elapsed_seconds, double total_seconds,
 }
 
 void printTime(int row, int col, double elapsedSeconds, ma_uint32 sampleRate,
-               int avgBitRate, AppState *state)
+               int avgBitRate)
 {
+        AppState *state = getAppState();
+
         applyColor(state->uiSettings.colorMode,
                    state->uiSettings.theme.trackview_time,
                    state->uiSettings.color);
@@ -641,8 +643,10 @@ int calcIndentTrackView(TagSettings *metadata)
         return getIndentation(textWidth - 1) - 1;
 }
 
-void calcIndent(AppState *state, SongData *songdata)
+void calcIndent(SongData *songdata)
 {
+        AppState *state = getAppState();
+
         if ((state->currentView == TRACK_VIEW && songdata == NULL) ||
             state->currentView != TRACK_VIEW)
         {
@@ -730,11 +734,12 @@ void formatWithShiftPlus(char *dest, size_t size, const char *src)
         }
 }
 
-void printFooter(int row, int col, AppState *state, AppSettings *settings)
+void printFooter(int row, int col, AppSettings *settings)
 {
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
 
+        AppState *state = getAppState();
         UISettings *ui = &(state->uiSettings);
         UIState *uis = &(state->uiState);
 
@@ -885,8 +890,9 @@ void printFooter(int row, int col, AppState *state, AppSettings *settings)
         clearRestOfLine();
 }
 
-void calcAndPrintLastRowAndErrorRow(AppState *state, AppSettings *settings)
+void calcAndPrintLastRowAndErrorRow(AppSettings *settings)
 {
+        AppState *state = getAppState();
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
 
@@ -899,7 +905,7 @@ void calcAndPrintLastRowAndErrorRow(AppState *state, AppSettings *settings)
                 printFooter(term_h - 1, indent, &(state->uiSettings), settings);
 #else
         printErrorRow(term_h - 1, indent, &(state->uiSettings));
-        printFooter(term_h, indent, state, settings);
+        printFooter(term_h, indent, settings);
 #endif
 }
 
@@ -920,8 +926,9 @@ int printAbout(SongData *songdata, UISettings *ui)
         return numRows;
 }
 
-int showKeyBindings(SongData *songdata, AppSettings *settings, AppState *state)
+int showKeyBindings(SongData *songdata, AppSettings *settings)
 {
+        AppState *state = getAppState();
         int numPrintedRows = 0;
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
@@ -1075,15 +1082,16 @@ int showKeyBindings(SongData *songdata, AppSettings *settings, AppState *state)
                 numPrintedRows++;
         }
 
-        calcAndPrintLastRowAndErrorRow(state, settings);
+        calcAndPrintLastRowAndErrorRow(settings);
 
         numPrintedRows++;
 
         return numPrintedRows;
 }
 
-void toggleShowView(ViewState viewToShow, AppState *state)
+void toggleShowView(ViewState viewToShow)
 {
+        AppState *state = getAppState();
         triggerRefresh();
 
         if (state->currentView == TRACK_VIEW)
@@ -1099,8 +1107,10 @@ void toggleShowView(ViewState viewToShow, AppState *state)
         }
 }
 
-void switchToNextView(AppState *state)
+void switchToNextView(void)
 {
+        AppState *state = getAppState();
+
         switch (state->currentView)
         {
         case PLAYLIST_VIEW:
@@ -1125,8 +1135,10 @@ void switchToNextView(AppState *state)
         triggerRefresh();
 }
 
-void switchToPreviousView(AppState *state)
+void switchToPreviousView(void)
 {
+        AppState *state = getAppState();
+
         switch (state->currentView)
         {
         case PLAYLIST_VIEW:
@@ -1151,15 +1163,18 @@ void switchToPreviousView(AppState *state)
         triggerRefresh();
 }
 
-void showTrack(AppState *state)
+void showTrack(void)
 {
+        AppState *state = getAppState();
+
         triggerRefresh();
 
         state->currentView = TRACK_VIEW;
 }
 
-void flipNextPage(AppState *state)
+void flipNextPage(void)
 {
+        AppState *state = getAppState();
         PlayList *unshuffledPlaylist = getUnshuffledPlaylist();
 
         if (state->currentView == LIBRARY_VIEW)
@@ -1188,8 +1203,10 @@ void flipNextPage(AppState *state)
         }
 }
 
-void flipPrevPage(AppState *state)
+void flipPrevPage(void)
 {
+        AppState *state = getAppState();
+
         if (state->currentView == LIBRARY_VIEW)
         {
                 chosenLibRow -= maxLibListSize;
@@ -1212,8 +1229,9 @@ void flipPrevPage(AppState *state)
         }
 }
 
-void scrollNext(AppState *state)
+void scrollNext(void)
 {
+        AppState *state = getAppState();
         PlayList *unshuffledPlaylist = getUnshuffledPlaylist();
 
         if (state->currentView == PLAYLIST_VIEW)
@@ -1237,8 +1255,10 @@ void scrollNext(AppState *state)
         }
 }
 
-void scrollPrev(AppState *state)
+void scrollPrev(void)
 {
+        AppState *state = getAppState();
+
         if (state->currentView == PLAYLIST_VIEW)
         {
                 chosenRow--;
@@ -1305,13 +1325,13 @@ int printLogoAndAdjustments(SongData *songData, int termWidth, UISettings *ui,
         return aboutRows;
 }
 
-void showSearch(SongData *songData, int *chosenRow, AppState *state,
-                AppSettings *settings)
+void showSearch(SongData *songData, int *chosenRow, AppSettings *settings)
 {
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
         maxSearchListSize = term_h - 3;
 
+        AppState *state = getAppState();
         UISettings *ui = &(state->uiSettings);
 
         gotoFirstLineFirstRow();
@@ -1334,16 +1354,17 @@ void showSearch(SongData *songData, int *chosenRow, AppState *state,
         displaySearch(maxSearchListSize, indent, chosenRow, startSearchIter,
                       ui);
 
-        calcAndPrintLastRowAndErrorRow(state, settings);
+        calcAndPrintLastRowAndErrorRow(settings);
 }
 
 void showPlaylist(SongData *songData, PlayList *list, int *chosenSong,
-                  int *chosenNodeId, AppState *state, AppSettings *settings)
+                  int *chosenNodeId, AppSettings *settings)
 {
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
         maxListSize = term_h - 3;
 
+        AppState *state = getAppState();
         UISettings *ui = &(state->uiSettings);
 
         int updateCounter = getUpdateCounter();
@@ -1378,9 +1399,9 @@ void showPlaylist(SongData *songData, PlayList *list, int *chosenSong,
         if (maxListSize > 0)
                 displayPlaylist(list, maxListSize, indent, chosenSong,
                                 chosenNodeId,
-                                state->uiState.resetPlaylistDisplay, state);
+                                state->uiState.resetPlaylistDisplay);
 
-        calcAndPrintLastRowAndErrorRow(state, settings);
+        calcAndPrintLastRowAndErrorRow(settings);
 }
 
 void resetSearchResult(void) { chosenSearchResultRow = 0; }
@@ -1457,9 +1478,9 @@ void printProgressBar(int row, int col, AppSettings *settings, UISettings *ui,
 }
 
 void printVisualizer(int row, int col, int visualizerWidth,
-                     AppSettings *settings, double elapsedSeconds,
-                     AppState *state)
+                     AppSettings *settings, double elapsedSeconds)
 {
+        AppState *state = getAppState();
         UISettings *ui = &(state->uiSettings);
         UIState *uis = &(state->uiState);
 
@@ -1479,7 +1500,7 @@ void printVisualizer(int row, int col, int visualizerWidth,
                 uis->numProgressBars = (int)visualizerWidth / 2;
                 double duration = getCurrentSongDuration();
 
-                drawSpectrumVisualizer(row, col, height, state);
+                drawSpectrumVisualizer(row, col, height);
 
                 int elapsedBars =
                     calcElapsedBars(elapsedSeconds, duration, visualizerWidth);
@@ -1537,7 +1558,7 @@ void applyTreeItemColor(UISettings *ui, int depth, PixelData rowColor,
 }
 
 int displayTree(FileSystemEntry *root, int depth, int maxListSize,
-                int maxNameWidth, AppState *state)
+                int maxNameWidth)
 {
         if (maxNameWidth < 0)
                 maxNameWidth = 0;
@@ -1548,6 +1569,7 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize,
         int isPlaying = 0;
         int extraIndent = 0;
 
+        AppState *state = getAppState();
         UISettings *ui = &(state->uiSettings);
         UIState *uis = &(state->uiState);
 
@@ -1777,8 +1799,7 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize,
         FileSystemEntry *child = root->children;
         while (child != NULL)
         {
-                if (displayTree(child, depth + 1, maxListSize, maxNameWidth,
-                                state))
+                if (displayTree(child, depth + 1, maxListSize, maxNameWidth))
                         foundChosen = true;
 
                 child = child->next;
@@ -1787,8 +1808,9 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize,
         return foundChosen;
 }
 
-void showLibrary(SongData *songData, AppState *state, AppSettings *settings)
+void showLibrary(SongData *songData, AppSettings *settings)
 {
+        AppState *state = getAppState();
         // For scrolling names, update every nth time
         if (getIsLongName() && isSameNameAsLastTime &&
             getUpdateCounter() % scrollingInterval != 0)
@@ -1889,7 +1911,7 @@ void showLibrary(SongData *songData, AppState *state, AppSettings *settings)
                 foundChosen = true;
         else
                 foundChosen = displayTree(library, 0, maxLibListSize,
-                                          maxNameWidth, state);
+                                          maxNameWidth);
 
         if (!foundChosen)
         {
@@ -1903,12 +1925,12 @@ void showLibrary(SongData *songData, AppState *state, AppSettings *settings)
                 printf("\n");
         }
 
-        calcAndPrintLastRowAndErrorRow(state, settings);
+        calcAndPrintLastRowAndErrorRow(settings);
 
         if (!foundChosen && isRefreshTriggered())
         {
                 gotoFirstLineFirstRow();
-                showLibrary(songData, state, settings);
+                showLibrary(songData, settings);
         }
 }
 
@@ -2033,8 +2055,9 @@ void printTimestampedLyrics(UISettings *ui, SongData *songdata, int row, int col
 
 void showTrackViewLandscape(int height, int width, float aspectRatio,
                             AppSettings *settings, SongData *songdata,
-                            AppState *state, double elapsedSeconds)
+                            double elapsedSeconds)
 {
+        AppState *state = getAppState();
         TagSettings *metadata = NULL;
         int avgBitRate = 0;
 
@@ -2090,14 +2113,14 @@ void showTrackViewLandscape(int height, int width, float aspectRatio,
                 {
                         if (height > metadataHeight + timeHeight)
                                 printTime(row + 4, col, elapsedSeconds, sampleRate,
-                                          avgBitRate, state);
+                                          avgBitRate);
 
                         if (row > 0)
                                 printTimestampedLyrics(&(state->uiSettings), songdata, row + metadataHeight + 1, col + 1, term_w, elapsedSeconds);
 
                         if (row > 0)
                                 printVisualizer(row + metadataHeight + 2, col, visualizerWidth,
-                                                settings, elapsedSeconds, state);
+                                                settings, elapsedSeconds);
 
                         if (width - col > ABSOLUTE_MIN_WIDTH)
                         {
@@ -2106,16 +2129,16 @@ void showTrackViewLandscape(int height, int width, float aspectRatio,
                                               col, &(state->uiSettings));
                                 printFooter(row + metadataHeight + 2 +
                                                 state->uiSettings.visualizerHeight + 1,
-                                            col, state, settings);
+                                            col, settings);
                         }
                 }
         }
 }
 
 void showTrackViewPortrait(int height, AppSettings *settings,
-                           SongData *songdata, AppState *state,
-                           double elapsedSeconds)
+                           SongData *songdata, double elapsedSeconds)
 {
+        AppState *state = getAppState();
         TagSettings *metadata = NULL;
         int avgBitRate = 0;
 
@@ -2161,21 +2184,21 @@ void showTrackViewPortrait(int height, AppSettings *settings,
 
                         getCurrentFormatAndSampleRate(&format, &sampleRate);
                         printTime(row + metadataHeight, col, elapsedSeconds, sampleRate,
-                                  avgBitRate, state);
+                                  avgBitRate);
 
                         if (row > 0)
                                 printTimestampedLyrics(&(state->uiSettings), songdata, row + metadataHeight + 1, indent + 1, term_w, elapsedSeconds);
 
                         printVisualizer(row + metadataHeight + 2, col, visualizerWidth,
-                                        settings, elapsedSeconds, state);
+                                        settings, elapsedSeconds);
                 }
         }
 
-        calcAndPrintLastRowAndErrorRow(state, settings);
+        calcAndPrintLastRowAndErrorRow(settings);
 }
 
 void showTrackView(int width, int height, AppSettings *settings,
-                   SongData *songdata, AppState *state, double elapsedSeconds)
+                   SongData *songdata, double elapsedSeconds)
 {
         float aspect = getAspectRatio();
 
@@ -2187,18 +2210,19 @@ void showTrackView(int width, int height, AppSettings *settings,
         if (correctedWidth > height * 2)
         {
                 showTrackViewLandscape(height, width, aspect, settings,
-                                       songdata, state, elapsedSeconds);
+                                       songdata,elapsedSeconds);
         }
         else
         {
                 showTrackViewPortrait(preferredHeight, settings, songdata,
-                                      state, elapsedSeconds);
+                                      elapsedSeconds);
         }
 }
 
 int printPlayer(SongData *songdata, double elapsedSeconds,
-                AppSettings *settings, AppState *state)
+                AppSettings *settings)
 {
+        AppState *state = getAppState();
         UISettings *ui = &(state->uiSettings);
         UIState *uis = &(state->uiState);
         PlayList *unshuffledPlaylist = getUnshuffledPlaylist();
@@ -2243,7 +2267,7 @@ int printPlayer(SongData *songdata, double elapsedSeconds,
                 }
 
                 calcPreferredSize(ui);
-                calcIndent(state, songdata);
+                calcIndent(songdata);
         }
 
         getTermSize(&term_w, &term_h);
@@ -2254,7 +2278,7 @@ int printPlayer(SongData *songdata, double elapsedSeconds,
         if (state->currentView == KEYBINDINGS_VIEW && isRefreshTriggered())
         {
                 clearScreen();
-                showKeyBindings(songdata, settings, state);
+                showKeyBindings(songdata, settings);
                 saveCursorPosition();
                 cancelRefresh();
                 fflush(stdout);
@@ -2262,25 +2286,24 @@ int printPlayer(SongData *songdata, double elapsedSeconds,
         else if (state->currentView == PLAYLIST_VIEW && isRefreshTriggered())
         {
                 showPlaylist(songdata, unshuffledPlaylist, &chosenRow,
-                             &(uis->chosenNodeId), state, settings);
+                             &(uis->chosenNodeId), settings);
                 state->uiState.resetPlaylistDisplay = false;
                 fflush(stdout);
         }
         else if (state->currentView == SEARCH_VIEW && isRefreshTriggered())
         {
-                showSearch(songdata, &chosenSearchResultRow, state, settings);
+                showSearch(songdata, &chosenSearchResultRow, settings);
                 cancelRefresh();
                 fflush(stdout);
         }
         else if (state->currentView == LIBRARY_VIEW && isRefreshTriggered())
         {
-                showLibrary(songdata, state, settings);
+                showLibrary(songdata, settings);
                 fflush(stdout);
         }
         else if (state->currentView == TRACK_VIEW)
         {
-                showTrackView(term_w, term_h, settings, songdata, state,
-                              elapsedSeconds);
+                showTrackView(term_w, term_h, settings, songdata, elapsedSeconds);
                 fflush(stdout);
         }
 
@@ -2289,8 +2312,9 @@ int printPlayer(SongData *songdata, double elapsedSeconds,
 
 void showHelp(void) { printHelp(); }
 
-void freeMainDirectoryTree(AppState *state)
+void freeMainDirectoryTree(void)
 {
+        AppState *state = getAppState();
         FileSystemEntry *library = getLibrary();
 
         if (library == NULL)

@@ -15,7 +15,7 @@
 
 #include <gio/gio.h>
 
-void initMpris(AppState *state);
+void initMpris(void);
 
 void emitStringPropertyChanged(const gchar *propertyName, const gchar *newValue);
 

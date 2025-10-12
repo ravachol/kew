@@ -65,8 +65,9 @@ void seekBack(UIState *uis)
         uis->isRewinding = true;
 }
 
-void cycleColorMode(AppState *state)
+void cycleColorMode(void)
 {
+        AppState *state = getAppState();
         UISettings *ui = &(state->uiSettings);
         AppSettings *settings = getAppSettings();
 
@@ -90,7 +91,7 @@ void cycleColorMode(AppState *state)
         switch (ui->colorMode)
         {
         case COLOR_MODE_DEFAULT:
-                if (loadTheme(state, settings, "default", true))
+                if (loadTheme(settings, "default", true))
                 {
                         themeLoaded = true;
                 }
@@ -100,7 +101,7 @@ void cycleColorMode(AppState *state)
                 break;
         case COLOR_MODE_THEME:
                 if (ui->themeName[0] != '\0' &&
-                    loadTheme(state, settings, ui->themeName, true))
+                    loadTheme(settings, ui->themeName, true))
                 {
                         themeLoaded = true;
                 }
@@ -108,16 +109,17 @@ void cycleColorMode(AppState *state)
 
         if (!themeLoaded)
         {
-                cycleColorMode(state);
+                cycleColorMode();
         }
 
         triggerRefresh();
 }
 
-void cycleThemes(AppState *state, AppSettings *settings)
+void cycleThemes(AppSettings *settings)
 {
         clearScreen();
 
+        AppState *state = getAppState();
         UISettings *ui = &(state->uiSettings);
 
         char *configPath = getConfigPath();
@@ -177,7 +179,7 @@ void cycleThemes(AppState *state, AppSettings *settings)
         // Get next theme (wrap around)
         int nextIndex = (currentIndex + 1) % themeCount;
 
-        if (loadTheme(state, settings, themes[nextIndex], false))
+        if (loadTheme(settings, themes[nextIndex], false))
         {
                 ui->colorMode = COLOR_MODE_THEME;
 
@@ -207,8 +209,9 @@ void toggleVisualizer(AppSettings *settings, UISettings *ui)
         triggerRefresh();
 }
 
-void toggleShowLyricsPage(AppState *state)
+void toggleShowLyricsPage(void)
 {
+        AppState *state = getAppState();
         state->uiState.showLyricsPage = !state->uiState.showLyricsPage;
         triggerRefresh();
 }
@@ -226,9 +229,9 @@ void toggleAscii(AppSettings *settings, UISettings *ui)
         }
 }
 
-void toggleRepeat(AppState *state)
+void toggleRepeat(void)
 {
-
+        AppState *state = getAppState();
         bool repeatEnabled = playbackIsRepeatEnabled();
         bool repeatListEnabled = playbackIsRepeatListEnabled();
 
@@ -272,8 +275,10 @@ void toggleNotifications(UISettings *ui, AppSettings *settings)
         }
 }
 
-void toggleShuffle(AppState *state)
+void toggleShuffle(void)
 {
+        AppState *state = getAppState();
+
         state->uiSettings.shuffleEnabled = !playbackIsShuffleEnabled();
         playbackSetShuffleEnabled(state->uiSettings.shuffleEnabled);
 
@@ -343,9 +348,11 @@ void strToLower(char *str)
         }
 }
 
-int loadTheme(AppState *appState, AppSettings *settings, const char *themeName,
+int loadTheme(AppSettings *settings, const char *themeName,
               bool isAnsiTheme)
 {
+        AppState *appState = getAppState();
+
         if (!appState || !themeName)
                 return 0;
 
