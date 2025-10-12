@@ -170,11 +170,17 @@ Lyrics can be read from a provided .lrc file that matches the audio file in name
 
 Timestamped lyrics will be shown automatically in track view. Press <kbd>m</kbd> show full page lyrics.
 
-## Favorites Playlist
+## Playlists
+
+To load a playlist: type kew list <name>
+
+To export a playlist, press x. This will save a file in your music path with the name of the first song in the queue.
+
+There is also a favorites playlist function:
 
 Add current song: press <kbd>.</kbd>
 
-To load 'kew favorites.m3u':
+To load 'kew list fav':
 
 ```bash
 kew .
