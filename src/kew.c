@@ -1605,7 +1605,7 @@ void setMusicPath(UISettings *ui)
 
         applyColor(COLOR_MODE_ALBUM, ui->theme.text, ui->defaultColorRGB);
 
-        int indent = calcIndentNormal();
+        int indent = calcIndentNormal() + 1;
 
         // Music folder names in different languages
         const char *musicFolderNames[] = {
