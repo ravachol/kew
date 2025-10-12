@@ -1,0 +1,38 @@
+/**
+ * @file taglibwrapper.h
+ * @brief C++ wrapper around TagLib for metadata extraction.
+ *
+ * Provides a simplified interface for reading song metadata such as
+ * title, artist, album and embedded artwork using the TagLib library.
+ * Exposes a C-compatible API for integration with the main C codebase.
+ */
+
+#ifndef TAGLIB_WRAPPER_H
+#define TAGLIB_WRAPPER_H
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
+#ifndef TAGSETTINGS_STRUCT
+#define METADATA_MAX_LENGTH 256
+#define TAGSETTINGS_STRUCT
+        typedef struct
+        {
+                char title[METADATA_MAX_LENGTH];
+                char artist[METADATA_MAX_LENGTH];
+                char album_artist[METADATA_MAX_LENGTH];
+                char album[METADATA_MAX_LENGTH];
+                char date[METADATA_MAX_LENGTH];
+                double replaygainTrack;
+                double replaygainAlbum;
+        } TagSettings;
+#endif
+        int extractTags(const char *input_file, TagSettings *tag_settings, double *duration, const char *coverFilePath);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif // TAGLIB_WRAPPER_H
