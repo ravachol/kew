@@ -1,8 +1,11 @@
 #include "appstate.h"
+#include "utils.h"
 
 AppState appState;
 
 FileSystemEntry *library = NULL;
+
+PlaybackState playbackState;
 
 AudioData audioData;
 
@@ -16,6 +19,8 @@ PlayList *unshuffledPlaylist = NULL;
 
 // The playlist from kew favorites .m3u
 PlayList *favoritesPlaylist = NULL;
+
+static const char LIBRARY_FILE[] = "kewlibrary";
 
 double pauseSeconds = 0.0;
 
@@ -88,6 +93,16 @@ AppSettings *getAppSettings()
 FileSystemEntry *getLibrary()
 {
         return library;
+}
+
+PlaybackState *getPlaybackState()
+{
+       return &playbackState;
+}
+
+char *getLibraryFilePath(void)
+{
+        return getFilePath(LIBRARY_FILE);
 }
 
 double getPauseSeconds(void)

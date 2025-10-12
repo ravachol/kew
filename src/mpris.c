@@ -1,7 +1,9 @@
 #include "mpris.h"
 #include "playerops.h"
-#include "sound.h"
 #include "soundcommon.h"
+#include "systemintegration.h"
+#include "playback.h"
+#include "playlist_ops.h"
 #include <glib.h>
 #include <math.h>
 #include <time.h>
@@ -1168,7 +1170,7 @@ void initMpris(AppState *state)
 
         player_registration_id = g_dbus_connection_register_object(
             getGDBusConnection(), "/org/mpris/MediaPlayer2",
-            introspection_data->interfaces[1], &player_interface_vtable, NULL,
+            introspection_data->interfaces[1], &player_interface_vtable, state,
             NULL, &error);
 
         if (!player_registration_id)

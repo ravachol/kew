@@ -6,6 +6,7 @@
 #include "search_ui.h"
 #include "settings.h"
 #include "player_ui.h"
+#include "playback.h"
 #include <ctype.h>
 
 #define MAX_TMP_SEQ_LEN 256

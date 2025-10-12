@@ -376,9 +376,9 @@ SongData *loadSongData(char *filePath, AppState *state)
         songdata->hasErrors = false;
         c_strcpy(songdata->filePath, "", sizeof(songdata->filePath));
         c_strcpy(songdata->coverArtPath, "", sizeof(songdata->coverArtPath));
-        songdata->red = state->uiSettings.defaultColor;
-        songdata->green = state->uiSettings.defaultColor;
-        songdata->blue = state->uiSettings.defaultColor;
+        songdata->red = state->uiSettings.kewColorRGB.r;
+        songdata->green = state->uiSettings.kewColorRGB.g;
+        songdata->blue = state->uiSettings.kewColorRGB.b;
         songdata->metadata = NULL;
         songdata->cover = NULL;
         songdata->duration = 0.0;
@@ -387,7 +387,7 @@ SongData *loadSongData(char *filePath, AppState *state)
         loadMetaData(songdata, state);
         songdata->lyrics = loadLyrics(songdata->filePath);
         loadColor(songdata);
-        
+
         return songdata;
 }
 

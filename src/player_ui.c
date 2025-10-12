@@ -52,7 +52,6 @@ static const char *LOGO[] = {" __\n",
 
 static int footerCol = 0;
 static int footerRow = 0;
-static const char LIBRARY_FILE[] = "kewlibrary";
 static const int MAX_TERM_SIZE = 10000;
 static const int scrollingInterval = 1;
 static const int LOGO_WIDTH = 22;
@@ -81,7 +80,7 @@ static FileSystemEntry *lastEntry = NULL;
 static FileSystemEntry *chosenDir = NULL;
 static bool isSameNameAsLastTime = false;
 static int term_w, term_h;
-static char *prevLine = NULL;
+static const char *prevLine = NULL;
 
 int getFooterRow(void) { return footerRow; }
 
@@ -1261,6 +1260,7 @@ int printLogoAndAdjustments(SongData *songData, int termWidth, UISettings *ui,
                 printBlankSpaces(indentation);
                 printf(" Use ↑/↓ or k/j to select. Enter=Accept. Backspace: "
                        "clear.\n");
+                clearLine();
                 printBlankSpaces(indentation);
 #ifndef __APPLE__
                 printf(" PgUp/PgDn: scroll. Del: remove. %s/%s: move songs.\n",
@@ -1766,8 +1766,6 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize,
         return foundChosen;
 }
 
-char *getLibraryFilePath(void) { return getFilePath(LIBRARY_FILE); }
-
 void showLibrary(SongData *songData, AppState *state, AppSettings *settings)
 {
         // For scrolling names, update every nth time
@@ -1976,7 +1974,7 @@ void printTimestampedLyrics(UISettings *ui, SongData *songdata, int row, int col
         if (songdata->lyrics->isTimed != 1)
                 return;
 
-        char *line = getLyricsLine(songdata->lyrics, elapsedSeconds);
+        const char *line = getLyricsLine(songdata->lyrics, elapsedSeconds);
 
         if (!line)
                 return;
