@@ -8,14 +8,13 @@
 
 #include "control_ui.h"
 
+#include "common/appstate.h"
 #include "ops/playback_ops.h"
 #include "ops/playback_state.h"
 
 #include "common/common.h"
 
 #include "sys/mpris.h"
-
-#include "data/theme.h" // FIXME: should really only be talking top ops, not data directly
 
 #include "utils/term.h"
 #include "utils/utils.h"
@@ -278,6 +277,7 @@ void toggleNotifications(UISettings *ui, AppSettings *settings)
 void toggleShuffle(void)
 {
         AppState *state = getAppState();
+        PlaybackState *ps = getPlaybackState();
 
         state->uiSettings.shuffleEnabled = !playbackIsShuffleEnabled();
         playbackSetShuffleEnabled(state->uiSettings.shuffleEnabled);
@@ -322,7 +322,7 @@ void toggleShuffle(void)
                 emitBooleanPropertyChanged("Shuffle", FALSE);
         }
 
-        state->uiState.loadedNextSong = false;
+        ps->loadedNextSong = false;
         setNextSong(NULL);
 
         if (state->currentView == PLAYLIST_VIEW ||

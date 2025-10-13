@@ -165,7 +165,7 @@ ma_result initFirstDatasource(UserData **pUserData)
 int createDevice(UserData *userData, ma_device *device, ma_context *context,
                  ma_data_source_vtable *vtable, ma_device_data_proc callback)
 {
-        AppState *state = getAppState();
+        PlaybackState *ps = getPlaybackState();
         ma_result result;
 
         result = initFirstDatasource(&userData);
@@ -184,7 +184,7 @@ int createDevice(UserData *userData, ma_device *device, ma_context *context,
 
         setVolume(getCurrentVolume());
 
-        state->uiState.doNotifyMPRISPlaying = true;
+        ps->notifyPlaying = true;
 
         return 0;
 }
@@ -200,7 +200,7 @@ int builtin_createAudioDevice(UserData *userData, ma_device *device,
 int vorbis_createAudioDevice(UserData *userData, ma_device *device,
                              ma_context *context)
 {
-        AppState *state = getAppState();
+        PlaybackState *ps = getPlaybackState();
         ma_result result = initFirstDatasource(&userData);
 
         if (result != MA_SUCCESS)
@@ -217,7 +217,7 @@ int vorbis_createAudioDevice(UserData *userData, ma_device *device,
 
         setVolume(getCurrentVolume());
 
-        state->uiState.doNotifyMPRISPlaying = true;
+        ps->notifyPlaying = true;
 
         return 0;
 }
@@ -226,7 +226,7 @@ int vorbis_createAudioDevice(UserData *userData, ma_device *device,
 int m4a_createAudioDevice(UserData *userData, ma_device *device,
                           ma_context *context)
 {
-        AppState *state = getAppState();
+        PlaybackState *ps = getPlaybackState();
         ma_result result = initFirstDatasource(&userData);
 
         if (result != MA_SUCCESS)
@@ -244,7 +244,7 @@ int m4a_createAudioDevice(UserData *userData, ma_device *device,
 
         setVolume(getCurrentVolume());
 
-        state->uiState.doNotifyMPRISPlaying = true;
+        ps->notifyPlaying = true;
 
         return 0;
 }
@@ -253,7 +253,7 @@ int m4a_createAudioDevice(UserData *userData, ma_device *device,
 int opus_createAudioDevice(UserData *userData, ma_device *device,
                            ma_context *context)
 {
-        AppState *state = getAppState();
+        PlaybackState *ps = getPlaybackState();
         ma_result result;
 
         result = initFirstDatasource(&userData);
@@ -272,7 +272,7 @@ int opus_createAudioDevice(UserData *userData, ma_device *device,
 
         setVolume(getCurrentVolume());
 
-        state->uiState.doNotifyMPRISPlaying = true;
+        ps->notifyPlaying = true;
 
         return 0;
 }
@@ -280,7 +280,7 @@ int opus_createAudioDevice(UserData *userData, ma_device *device,
 int webm_createAudioDevice(UserData *userData, ma_device *device,
                            ma_context *context)
 {
-        AppState *state = getAppState();
+        PlaybackState *ps = getPlaybackState();
         ma_result result;
 
         result = initFirstDatasource(&userData);
@@ -297,7 +297,7 @@ int webm_createAudioDevice(UserData *userData, ma_device *device,
 
         setVolume(getCurrentVolume());
 
-        state->uiState.doNotifyMPRISPlaying = true;
+        ps->notifyPlaying = true;
 
         return 0;
 }
@@ -605,12 +605,10 @@ int switchAudioImplementation(void)
 
                 bool sameFormat = false;
 
-                // FIXME: Gapless/chaining of decoders disabled for now
+                // Gapless/chaining of decoders disabled in webm
                 // bool sameFormat = (decoder != NULL && (format ==
-                // decoder->format &&
-                //                                       channels == nChannels
-                //                                       && sampleRate ==
-                //                                       nSampleRate));
+                // decoder->format && channels == nChannels
+                // && sampleRate == nSampleRate));
 
                 audioData->avgBitRate = 0;
 
@@ -744,7 +742,7 @@ void cleanupAudioContext(void)
 
 int createAudioDevice(void)
 {
-        AppState *state = getAppState();
+        PlaybackState *ps = getPlaybackState();
 
         if (contextInitialized)
         {
@@ -756,7 +754,7 @@ int createAudioDevice(void)
 
         if (switchAudioImplementation() >= 0)
         {
-                state->uiState.doNotifyMPRISSwitched = true;
+                ps->notifySwitch = true;
         }
         else
         {

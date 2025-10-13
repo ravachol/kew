@@ -296,8 +296,11 @@ void fuzzySearch(FileSystemEntry *root, int threshold)
         triggerRefresh();
 }
 
-int displaySearchBox(int indent, UISettings *ui)
+int displaySearchBox(int indent)
 {
+        AppState *state = getAppState();
+        UISettings *ui = &(state->uiSettings);
+        
         applyColor(ui->colorMode, ui->theme.search_label, ui->color);
 
         clearLine();
@@ -312,13 +315,15 @@ int displaySearchBox(int indent, UISettings *ui)
         return 0;
 }
 
-int addToSearchText(const char *str, UISettings *ui)
+int addToSearchText(const char *str)
 {
         if (str == NULL)
         {
                 return -1;
         }
 
+        AppState *state = getAppState();
+        UISettings *ui = &(state->uiSettings);
         size_t len = strnlen(str, MAX_SEARCH_LEN);
 
         // Check if the string can fit into the search text buffer
@@ -453,7 +458,7 @@ void applyColorAndFormat(bool isChosen, FileSystemEntry *entry, UISettings *ui,
 }
 
 int displaySearchResults(int maxListSize, int indent, int *chosenRow,
-                         int startSearchIter, UISettings *ui)
+                         int startSearchIter)
 {
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
@@ -487,6 +492,8 @@ int displaySearchResults(int maxListSize, int indent, int *chosenRow,
 
         int nameWidth = maxNameWidth;
         int extraIndent = 0;
+        AppState *state = getAppState();
+        UISettings *ui = &(state->uiSettings);
 
         for (size_t i = startSearchIter; i < resultsCount; i++)
         {
@@ -549,11 +556,10 @@ int displaySearchResults(int maxListSize, int indent, int *chosenRow,
 }
 
 int displaySearch(int maxListSize, int indent, int *chosenRow,
-                  int startSearchIter, UISettings *ui)
+                  int startSearchIter)
 {
-        displaySearchBox(indent, ui);
-        displaySearchResults(maxListSize, indent, chosenRow, startSearchIter,
-                             ui);
+        displaySearchBox(indent);
+        displaySearchResults(maxListSize, indent, chosenRow, startSearchIter);
 
         return 0;
 }

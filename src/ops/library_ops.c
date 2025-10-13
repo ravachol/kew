@@ -719,7 +719,7 @@ FileSystemEntry *enqueueSongs(FileSystemEntry *entry,FileSystemEntry **chosenDir
 
         if (hasEnqueued)
         {
-                autostartIfStopped(firstEnqueuedEntry, uis);
+                autostartIfStopped(firstEnqueuedEntry);
         }
 
         if (shuffle)

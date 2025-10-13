@@ -91,8 +91,8 @@ void setEndOfListReached(void)
         AudioData *audioData = getAudioData();
         PlaybackState *ps = getPlaybackState();
 
-        state->uiState.loadedNextSong = false;
-        state->uiState.waitingForNext = true;
+        ps->loadedNextSong = false;
+        ps->waitingForNext = true;
         audioData->endOfListReached = true;
         audioData->currentFileIndex = 0;
         audioData->restart = true;
@@ -181,7 +181,7 @@ void determineSongAndNotify(void)
 void refreshPlayer()
 {
         AppState *state = getAppState();
-        UIState *uis = &(state->uiState);
+        PlaybackState *ps = getPlaybackState();
         AppSettings *settings = getAppSettings();
 
         int mutexResult = pthread_mutex_trylock(&(state->switchMutex));
@@ -192,16 +192,16 @@ void refreshPlayer()
                 return;
         }
 
-        if (uis->doNotifyMPRISPlaying)
+        if (ps->notifyPlaying)
         {
-                uis->doNotifyMPRISPlaying = false;
+                ps->notifyPlaying = false;
 
                 emitStringPropertyChanged("PlaybackStatus", "Playing");
         }
 
-        if (uis->doNotifyMPRISSwitched)
+        if (ps->notifySwitch)
         {
-                uis->doNotifyMPRISSwitched = false;
+                ps->notifySwitch = false;
 
                 notifyMPRISSwitch(getCurrentSongData());
         }
@@ -232,7 +232,7 @@ void resetListAfterDequeuingPlayingSong(void)
 
                 AudioData *audioData = getAudioData();
 
-                state->uiState.loadedNextSong = false;
+                ps->loadedNextSong = false;
                 audioData->endOfListReached = true;
                 audioData->restart = true;
 
@@ -257,7 +257,7 @@ void resetListAfterDequeuingPlayingSong(void)
 
                 audioData->currentFileIndex = 0;
                 audioData->restart = true;
-                state->uiState.waitingForNext = true;
+                ps->waitingForNext = true;
 
                 PlaybackState *ps = getPlaybackState();
 
@@ -390,7 +390,7 @@ FileSystemEntry *libraryEnqueue(PlayList *playlist)
                             getLibrary(), playlist->head->song.filePath);
                 }
 
-                autostartIfStopped(firstEnqueuedEntry, &(state->uiState));
+                autostartIfStopped(firstEnqueuedEntry);
 
                 markListAsEnqueued(getLibrary(), playlist);
 
@@ -410,12 +410,13 @@ FileSystemEntry *libraryEnqueue(PlayList *playlist)
 
 FileSystemEntry *searchEnqueue(PlayList *playlist)
 {
-        AppState *state = getAppState();
+        PlaybackState *ps = getPlaybackState();
+
         pthread_mutex_lock(&(playlist->mutex));
 
         FileSystemEntry *entry = getCurrentSearchEntry();
 
-        state->uiState.waitingForPlaylist = false;
+        ps->waitingForPlaylist = false;
 
         setChosenDir(entry);
 
@@ -434,13 +435,12 @@ FileSystemEntry *searchEnqueue(PlayList *playlist)
 
 void clearAndPlay(Node *song)
 {
-        AppState *state = getAppState();
         AudioData *audioData = getAudioData();
         PlaybackState *ps = getPlaybackState();
 
         playbackCleanup();
 
-        state->uiState.loadedNextSong = true;
+        ps->loadedNextSong = true;
 
         ps->nextSongNeedsRebuilding = false;
 
@@ -594,7 +594,7 @@ void handleGoToSong(void)
                                             library, playlist->head->song.filePath);
                                 }
 
-                                autostartIfStopped(firstEnqueuedEntry, &(state->uiState));
+                                autostartIfStopped(firstEnqueuedEntry);
 
                                 markListAsEnqueued(library, playlist);
 
@@ -633,7 +633,7 @@ void handleGoToSong(void)
                         {
                                 playbackSafeCleanup();
 
-                                state->uiState.loadedNextSong = true;
+                                ps->loadedNextSong = true;
 
                                 ps->nextSongNeedsRebuilding = false;
 
@@ -716,7 +716,7 @@ void enqueueAndPlay(void)
                 Node *song =
                     findPathInPlaylist(firstEnqueuedEntry->fullPath, playlist);
 
-                state->uiState.loadedNextSong = true;
+                ps->loadedNextSong = true;
 
                 ps->nextSongNeedsRebuilding = false;
 
@@ -958,11 +958,11 @@ Node *determineNextSong(PlayList *playlist)
         Node *current = NULL;
         PlaybackState *ps = getPlaybackState();
 
-        if (state->uiState.waitingForPlaylist)
+        if (ps->waitingForPlaylist)
         {
                 return playlist->head;
         }
-        else if (state->uiState.waitingForNext)
+        else if (ps->waitingForNext)
         {
                 Node *songToStartFrom = getSongToStartFrom();
 
@@ -997,8 +997,6 @@ Node *determineNextSong(PlayList *playlist)
 
 int prepareAndPlaySong(Node *song)
 {
-        AppState *state = getAppState();
-
         if (!song)
                 return -1;
 
@@ -1009,7 +1007,7 @@ int prepareAndPlaySong(Node *song)
 
         int res = loadFirst(getCurrentSong());
 
-        finishLoading(&(state->uiState));
+        finishLoading();
 
         if (res >= 0)
         {
@@ -1045,7 +1043,7 @@ void checkAndLoadNextSong(void)
                 if (playlist->head == NULL)
                         return;
 
-                if (state->uiState.waitingForPlaylist || state->uiState.waitingForNext)
+                if (ps->waitingForPlaylist || ps->waitingForNext)
                 {
                         ps->songLoading = true;
 
@@ -1055,8 +1053,8 @@ void checkAndLoadNextSong(void)
 
                         // Reset relevant UI state
                         audioData->restart = false;
-                        state->uiState.waitingForPlaylist = false;
-                        state->uiState.waitingForNext = false;
+                        ps->waitingForPlaylist = false;
+                        ps->waitingForNext = false;
                         state->uiState.songWasRemoved = false;
 
                         if (playbackIsShuffleEnabled())
@@ -1067,7 +1065,7 @@ void checkAndLoadNextSong(void)
                         if (res < 0)
                                 setEndOfListReached();
 
-                        state->uiState.loadedNextSong = false;
+                        ps->loadedNextSong = false;
                         setNextSong(NULL);
                 }
         }
@@ -1099,7 +1097,7 @@ void prepareNextSong(void)
 
         resetClock();
         handleSkipOutOfOrder();
-        finishLoading(&(state->uiState));
+        finishLoading();
 
         setNextSong(NULL);
         triggerRefresh();
@@ -1132,14 +1130,13 @@ void updatePlayerStatus(void)
 {
         updatePlayer();
 
-        AppState *state = getAppState();
         PlayList *playlist = getPlaylist();
         AudioData *audioData = getAudioData();
         PlaybackState *ps = getPlaybackState();
 
         if (playlist->head != NULL)
         {
-                if ((ps->skipFromStopped || !state->uiState.loadedNextSong ||
+                if ((ps->skipFromStopped || !ps->loadedNextSong ||
                      ps->nextSongNeedsRebuilding) &&
                     !audioData->endOfListReached)
                 {
@@ -1205,8 +1202,8 @@ void initFirstPlay(Node *song)
         updateLastInputTime();
         resetClock();
 
-        AppState *state = getAppState();
         UserData *userData = playbackGetUserData();
+        PlaybackState *ps = getPlaybackState();
 
         userData->currentSongData = NULL;
         userData->songdataA = NULL;
@@ -1243,11 +1240,11 @@ void initFirstPlay(Node *song)
         if (song == NULL || res < 0)
         {
                 song = NULL;
-                if (!state->uiState.waitingForNext)
-                        state->uiState.waitingForPlaylist = true;
+                if (!ps->waitingForNext)
+                        ps->waitingForPlaylist = true;
         }
 
-        state->uiState.loadedNextSong = false;
+        ps->loadedNextSong = false;
         setNextSong(NULL);
         triggerRefresh();
 
@@ -1367,6 +1364,7 @@ void run(bool startPlaying)
         AppState *state = getAppState();
         PlayList *playlist = getPlaylist();
         PlayList *unshuffledPlaylist = getUnshuffledPlaylist();
+        PlaybackState *ps = getPlaybackState();
 
         if (unshuffledPlaylist == NULL)
         {
@@ -1396,7 +1394,7 @@ void run(bool startPlaying)
         if (startPlaying)
                 setCurrentSong(playlist->head);
         else if (playlist->count > 0)
-                state->uiState.waitingForNext = true;
+                ps->waitingForNext = true;
 
         initFirstPlay(getCurrentSong());
         clearScreen();
@@ -1484,6 +1482,7 @@ void initDefaultState(void)
         FileSystemEntry *library = getLibrary();
         PlayList *playlist = getPlaylist();
         PlayList *unshuffledPlaylist = getUnshuffledPlaylist();
+        PlaybackState *ps = getPlaybackState();
 
         loadLastUsedPlaylist(playlist, &unshuffledPlaylist);
         setUnshuffledPlaylist(unshuffledPlaylist);
@@ -1496,7 +1495,7 @@ void initDefaultState(void)
 
         audioData->restart = true;
         audioData->endOfListReached = true;
-        state->uiState.loadedNextSong = false;
+        ps->loadedNextSong = false;
 
         state->currentView = LIBRARY_VIEW;
 
@@ -2001,13 +2000,8 @@ void initState(void)
         state->uiState.openedSubDir = false;
         state->uiState.numSongsAboveSubDir = 0;
         state->uiState.resizeFlag = 0;
-        state->uiState.doNotifyMPRISSwitched = false;
-        state->uiState.doNotifyMPRISPlaying = false;
         state->uiState.collapseView = false;
-        state->uiState.waitingForNext = false;
-        state->uiState.waitingForPlaylist = false;
         state->uiState.refresh = true;
-        state->uiState.loadedNextSong = false;
         state->uiState.isFastForwarding = false;
         state->uiState.isRewinding = false;
         state->uiState.songWasRemoved = false;
@@ -2040,6 +2034,11 @@ void initState(void)
         ps->clearingErrors = false;
         ps->hasSilentlySwitched = false;
         ps->songLoading = false;
+        ps->loadedNextSong = false;
+        ps->waitingForNext = false;
+        ps->waitingForPlaylist = false;
+        ps->notifySwitch = false;
+        ps->notifyPlaying = false;
 
         pthread_mutex_init(&(state->dataSourceMutex), NULL);
         pthread_mutex_init(&(state->switchMutex), NULL);
@@ -2147,7 +2146,7 @@ int main(int argc, char *argv[])
         else if (argc == 2 && (strcmp(argv[1], "--version") == 0 ||
                                strcmp(argv[1], "-v") == 0))
         {
-                printAbout(NULL, ui);
+                printAbout(NULL);
                 exit(0);
         }
 

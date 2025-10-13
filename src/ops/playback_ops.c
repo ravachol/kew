@@ -158,20 +158,20 @@ void *songDataReaderThread(void *arg)
                 setTryNextSong(NULL);
         }
 
-        ps->loadingdata.state->uiState.loadedNextSong = true;
+        ps->loadedNextSong = true;
         ps->skipping = false;
         ps->songLoading = false;
 
         return NULL;
 }
 
-void loadSong(Node *song, LoadingThreadData *loadingdata, UIState *uis)
-{       // FIXME: UI (uis) stuff should be above ops and doesn't belong here
+void loadSong(Node *song, LoadingThreadData *loadingdata)
+{
         PlaybackState *ps = getPlaybackState();
 
         if (song == NULL)
         {
-                uis->loadedNextSong = true;
+                ps->loadedNextSong = true;
                 ps->skipping = false;
                 ps->songLoading = false;
                 return;
@@ -188,7 +188,6 @@ void tryLoadNext(void)
 {
         AppState *state = getAppState();
         PlaybackState *ps = getPlaybackState();
-        UIState *uis = &(state->uiState);
         Node *current = getCurrentSong();
         Node *tryNextSong = getTryNextSong();
 
@@ -206,7 +205,7 @@ void tryLoadNext(void)
                 ps->loadingdata.state = state;
                 ps->loadingdata.loadA = !ps->usingSongDataA;
                 ps->loadingdata.loadingFirstDecoder = false;
-                loadSong(tryNextSong, &ps->loadingdata, uis);
+                loadSong(tryNextSong, &ps->loadingdata);
         }
         else
         {
@@ -317,12 +316,12 @@ int play(Node *node)
         ps->songLoading = true;
         ps->forceSkip = false;
 
-        state->uiState.loadedNextSong = false;
+        ps->loadedNextSong = false;
 
         // Cancel starting from top
-        if (state->uiState.waitingForPlaylist || audioData->restart)
+        if (ps->waitingForPlaylist || audioData->restart)
         {
-                state->uiState.waitingForPlaylist = false;
+                ps->waitingForPlaylist = false;
                 audioData->restart = false;
 
                 if (isShuffleEnabled())
@@ -333,12 +332,12 @@ int play(Node *node)
         ps->loadingdata.loadA = !ps->usingSongDataA;
         ps->loadingdata.loadingFirstDecoder = true;
 
-        loadSong(node, &ps->loadingdata, &(state->uiState));
+        loadSong(node, &ps->loadingdata);
 
         int maxNumTries = 50;
         int numtries = 0;
 
-        while (!state->uiState.loadedNextSong && numtries < maxNumTries)
+        while (!ps->loadedNextSong && numtries < maxNumTries)
         {
                 c_sleep(100);
                 numtries++;
@@ -368,10 +367,9 @@ void playbackVolumeChange(int changePercent)
 
 void skipToSong(int id, bool startPlaying)
 {
-        AppState *state = getAppState();
         PlaybackState *ps = getPlaybackState();
 
-        if (ps->songLoading || !state->uiState.loadedNextSong || ps->skipping || ps->clearingErrors)
+        if (ps->songLoading || !ps->loadedNextSong || ps->skipping || ps->clearingErrors)
                 if (!ps->forceSkip)
                         return;
 
@@ -382,7 +380,6 @@ void skipToSong(int id, bool startPlaying)
 
         if (startPlaying)
         {
-                //FIXME: These code blocks are sinful
                 double totalPauseSeconds = getTotalPauseSeconds();
                 double pauseSeconds = getTotalPauseSeconds();
 
