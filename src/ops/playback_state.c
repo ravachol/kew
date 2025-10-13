@@ -79,7 +79,7 @@ void playbackSetRepeatEnabled(bool value)
 
 void playbackSetRepeatListEnabled(bool value)
 {
-        setRepeatEnabled(value);
+        setRepeatListEnabled(value);
 }
 
 void playbackSetShuffleEnabled(bool value)

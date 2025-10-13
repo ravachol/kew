@@ -39,6 +39,7 @@ int pathStartsWith(const char *str, const char *prefix);
 void trim(char *str, int maxLen);
 const char *getHomePath(void);
 char *getConfigPath(void);
+char *getPrefsPath(void);
 void removeUnneededChars(char *str, int length);
 void shortenString(char *str, size_t maxLength);
 void printBlankSpaces(int numSpaces);

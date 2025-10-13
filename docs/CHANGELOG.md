@@ -24,6 +24,10 @@
 
 - There's now a diagram of kew's architecture included for devs who want to know how the internals are laid out.
 
+- You can now finally set collaped paths such as ~/Music and they will be set that way in config. Suggested by @danielwerg.
+
+- The config file is now respected and no longer changed by kew, only if you run kew path <path>. Instead there is a kewstaterc file in ~/.local/state that keeps the variables that can change in-app, these override what's in kewrc. Suggested by @danielwerg.
+
 #### Bug Fixes
 
 - Path is expanded correctly when providing it through the first screen that let's you choose a path.
