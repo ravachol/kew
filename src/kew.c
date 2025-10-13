@@ -65,6 +65,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include "utils/cache.h"
 #include "utils/term.h"
 #include "utils/utils.h"
+#include "utils/file.h"
 
 #include <fcntl.h>
 #include <gio/gio.h>
@@ -851,7 +852,6 @@ int main(int argc, char *argv[])
 
         UISettings *ui = &(state->uiSettings);
         AppSettings *settings = getAppSettings();
-
         PlayList *playlist = getPlaylist();
         PlayList *favoritesPlaylist = getFavoritesPlaylist();
 
@@ -875,11 +875,14 @@ int main(int argc, char *argv[])
 
         if (argc == 3 && (strcmp(argv[1], "path") == 0))
         {
-                c_strcpy(settings->path, argv[2], sizeof(settings->path));
+                char deExpanded[MAXPATHLEN];
+                collapsePath(argv[2], deExpanded);
+                c_strcpy(settings->path, deExpanded, sizeof(settings->path));
                 setConfig(settings, ui);
                 exit(0);
         }
 
+        enableMouse(&(state->uiSettings));
         enterAlternateScreenBuffer();
         atexit(cleanupOnExit);
 

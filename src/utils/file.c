@@ -137,135 +137,135 @@ int directoryExists(const char *path)
 int walker(const char *startPath, const char *lowCaseSearching, char *result,
            const char *allowedExtensions, enum SearchType searchType, bool exactSearch, int depth)
 {
-    if (depth > MAX_RECURSION_DEPTH)
-    {
-        fprintf(stderr, "Maximum recursion depth exceeded\n");
-        return 1;
-    }
+        if (depth > MAX_RECURSION_DEPTH)
+        {
+                fprintf(stderr, "Maximum recursion depth exceeded\n");
+                return 1;
+        }
 
-    if (!startPath || !lowCaseSearching || !result || !allowedExtensions)
-    {
-        fprintf(stderr, "Invalid arguments to walker\n");
-        return 1;
-    }
+        if (!startPath || !lowCaseSearching || !result || !allowedExtensions)
+        {
+                fprintf(stderr, "Invalid arguments to walker\n");
+                return 1;
+        }
 
-    struct stat path_stat;
-    if (stat(startPath, &path_stat) != 0)
-    {
-        fprintf(stderr, "Cannot stat path '%s': %s\n", startPath, strerror(errno));
-        return 1;
-    }
+        struct stat path_stat;
+        if (stat(startPath, &path_stat) != 0)
+        {
+                fprintf(stderr, "Cannot stat path '%s': %s\n", startPath, strerror(errno));
+                return 1;
+        }
 
-    if (!S_ISDIR(path_stat.st_mode))
-    {
-        // Not a directory, stop here
-        return 1;
-    }
+        if (!S_ISDIR(path_stat.st_mode))
+        {
+                // Not a directory, stop here
+                return 1;
+        }
 
-    DIR *d = opendir(startPath);
-    if (!d)
-    {
-        fprintf(stderr, "Failed to open directory '%s': %s\n", startPath, strerror(errno));
-        return 1;
-    }
+        DIR *d = opendir(startPath);
+        if (!d)
+        {
+                fprintf(stderr, "Failed to open directory '%s': %s\n", startPath, strerror(errno));
+                return 1;
+        }
 
-    regex_t regex;
-    if (regcomp(&regex, allowedExtensions, REG_EXTENDED) != 0)
-    {
-        fprintf(stderr, "Failed to compile regex\n");
+        regex_t regex;
+        if (regcomp(&regex, allowedExtensions, REG_EXTENDED) != 0)
+        {
+                fprintf(stderr, "Failed to compile regex\n");
+                closedir(d);
+                return 1;
+        }
+
+        bool found = false;
+        struct dirent *entry;
+        char ext[100] = {0};
+
+        while ((entry = readdir(d)) != NULL)
+        {
+                // Skip . and ..
+                if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
+                        continue;
+
+                // Build full path for entry
+                char entryPath[PATH_MAX];
+                if (snprintf(entryPath, sizeof(entryPath), "%s/%s", startPath, entry->d_name) >= (int)sizeof(entryPath))
+                {
+                        fprintf(stderr, "Path too long: %s/%s\n", startPath, entry->d_name);
+                        continue;
+                }
+
+                if (stat(entryPath, &path_stat) != 0)
+                {
+                        // Can't stat, skip
+                        continue;
+                }
+
+                if (S_ISDIR(path_stat.st_mode))
+                {
+                        // Directory handling
+                        char *foldedName = g_utf8_casefold(entry->d_name, -1);
+                        if (!foldedName)
+                                continue;
+
+                        bool nameMatch = exactSearch
+                                             ? (strcasecmp(foldedName, lowCaseSearching) == 0)
+                                             : (c_strcasestr(foldedName, lowCaseSearching, PATH_MAX) != NULL);
+
+                        free(foldedName);
+
+                        if (nameMatch && searchType != FileOnly && searchType != SearchPlayList)
+                        {
+                                strncpy(result, entryPath, PATH_MAX - 1);
+                                result[PATH_MAX - 1] = '\0';
+                                found = true;
+                                break;
+                        }
+
+                        // Recurse into subdirectory
+                        if (walker(entryPath, lowCaseSearching, result, allowedExtensions, searchType, exactSearch, depth + 1) == 0)
+                        {
+                                found = true;
+                                break;
+                        }
+                }
+                else
+                {
+                        // File handling
+                        if (searchType == DirOnly)
+                                continue;
+
+                        if (strlen(entry->d_name) <= 4)
+                                continue;
+
+                        extractExtension(entry->d_name, sizeof(ext) - 1, ext);
+                        if (match_regex(&regex, ext) != 0)
+                                continue;
+
+                        char *foldedName = g_utf8_casefold(entry->d_name, -1);
+                        if (!foldedName)
+                                continue;
+
+                        bool nameMatch = exactSearch
+                                             ? (strcasecmp(foldedName, lowCaseSearching) == 0)
+                                             : (c_strcasestr(foldedName, lowCaseSearching, PATH_MAX) != NULL);
+
+                        free(foldedName);
+
+                        if (nameMatch)
+                        {
+                                strncpy(result, entryPath, PATH_MAX - 1);
+                                result[PATH_MAX - 1] = '\0';
+                                found = true;
+                                break;
+                        }
+                }
+        }
+
+        regfree(&regex);
         closedir(d);
-        return 1;
-    }
 
-    bool found = false;
-    struct dirent *entry;
-    char ext[100] = {0};
-
-    while ((entry = readdir(d)) != NULL)
-    {
-        // Skip . and ..
-        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
-            continue;
-
-        // Build full path for entry
-        char entryPath[PATH_MAX];
-        if (snprintf(entryPath, sizeof(entryPath), "%s/%s", startPath, entry->d_name) >= (int)sizeof(entryPath))
-        {
-            fprintf(stderr, "Path too long: %s/%s\n", startPath, entry->d_name);
-            continue;
-        }
-
-        if (stat(entryPath, &path_stat) != 0)
-        {
-            // Can't stat, skip
-            continue;
-        }
-
-        if (S_ISDIR(path_stat.st_mode))
-        {
-            // Directory handling
-            char *foldedName = g_utf8_casefold(entry->d_name, -1);
-            if (!foldedName)
-                continue;
-
-            bool nameMatch = exactSearch
-                             ? (strcasecmp(foldedName, lowCaseSearching) == 0)
-                             : (c_strcasestr(foldedName, lowCaseSearching, PATH_MAX) != NULL);
-
-            free(foldedName);
-
-            if (nameMatch && searchType != FileOnly && searchType != SearchPlayList)
-            {
-                strncpy(result, entryPath, PATH_MAX - 1);
-                result[PATH_MAX - 1] = '\0';
-                found = true;
-                break;
-            }
-
-            // Recurse into subdirectory
-            if (walker(entryPath, lowCaseSearching, result, allowedExtensions, searchType, exactSearch, depth + 1) == 0)
-            {
-                found = true;
-                break;
-            }
-        }
-        else
-        {
-            // File handling
-            if (searchType == DirOnly)
-                continue;
-
-            if (strlen(entry->d_name) <= 4)
-                continue;
-
-            extractExtension(entry->d_name, sizeof(ext) - 1, ext);
-            if (match_regex(&regex, ext) != 0)
-                continue;
-
-            char *foldedName = g_utf8_casefold(entry->d_name, -1);
-            if (!foldedName)
-                continue;
-
-            bool nameMatch = exactSearch
-                             ? (strcasecmp(foldedName, lowCaseSearching) == 0)
-                             : (c_strcasestr(foldedName, lowCaseSearching, PATH_MAX) != NULL);
-
-            free(foldedName);
-
-            if (nameMatch)
-            {
-                strncpy(result, entryPath, PATH_MAX - 1);
-                result[PATH_MAX - 1] = '\0';
-                found = true;
-                break;
-            }
-        }
-    }
-
-    regfree(&regex);
-    closedir(d);
-
-    return found ? 0 : 1;
+        return found ? 0 : 1;
 }
 
 int expandPath(const char *inputPath, char *expandedPath)
@@ -332,6 +332,68 @@ int expandPath(const char *inputPath, char *expandedPath)
                 }
         }
         return 0; // Path expansion successful
+}
+
+void collapsePath(const char *input, char *output)
+{
+    if (!input || !output) return;
+
+    size_t in_len = strlen(input);
+
+    /* Quick copy for empty input */
+    if (in_len == 0) {
+        output[0] = '\0';
+        return;
+    }
+
+    /* Resolve current user's home (prefer $HOME, fallback to getpwuid) */
+    const char *home = getenv("HOME");
+    if (!home) {
+        struct passwd *pw = getpwuid(getuid());
+        if (pw) home = pw->pw_dir;
+    }
+
+    if (home) {
+        size_t home_len = strlen(home);
+        if (in_len >= home_len &&
+            strncmp(input, home, home_len) == 0 &&
+            (input[home_len] == '/' || input[home_len] == '\0')) {
+            /* Collapse to ~ or ~/rest */
+            if (input[home_len] == '\0') {
+                snprintf(output, MAXPATHLEN, "~");
+            } else {
+                snprintf(output, MAXPATHLEN, "~%s", input + home_len);
+            }
+            return;
+        }
+    }
+
+    /* Check other users' home dirs (e.g. /home/alice -> ~alice) */
+    /* We'll iterate passwd entries and look for a pw_dir that is a prefix */
+    struct passwd *pw;
+    /* Iterate over passwd database */
+    setpwent();
+    while ((pw = getpwent()) != NULL) {
+        if (!pw->pw_dir) continue;
+        size_t dlen = strlen(pw->pw_dir);
+        if (in_len >= dlen &&
+            strncmp(input, pw->pw_dir, dlen) == 0 &&
+            (input[dlen] == '/' || input[dlen] == '\0')) {
+            /* Found a match for this user's home */
+            if (input[dlen] == '\0') {
+                /* exact match */
+                snprintf(output, MAXPATHLEN, "~%s", pw->pw_name);
+            } else {
+                snprintf(output, MAXPATHLEN, "~%s%s", pw->pw_name, input + dlen);
+            }
+            endpwent();
+            return;
+        }
+    }
+    endpwent();
+
+    /* No match — copy unchanged */
+    snprintf(output, MAXPATHLEN, "%s", input);
 }
 
 int createDirectory(const char *path)

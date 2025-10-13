@@ -51,8 +51,6 @@ void initSettings(AppSettings *settings)
 
         userData->replayGainCheckFirst =
             state->uiSettings.replayGainCheckFirst;
-
-        enableMouse(&(state->uiSettings));
 }
 
 void freeKeyValuePairs(KeyValuePair *pairs, int count)
@@ -1216,7 +1214,6 @@ void getConfig(AppSettings *settings, UISettings *ui)
         if (tmp >= 0)
                 ui->cacheLibrary = tmp;
 
-        getMusicLibraryPath(settings->path);
         snprintf(ui->themeName, sizeof(ui->themeName), "%s", settings->theme);
         free(configdir);
 }
@@ -1225,7 +1222,6 @@ void setConfig(AppSettings *settings, UISettings *ui)
 {
         // Create the file path
         char *configdir = getConfigPath();
-
         char *filepath = getConfigFilePath(configdir);
 
         setlocale(LC_ALL, "");

@@ -156,7 +156,7 @@ SRCS = src/common/appstate.c src/ui/common_ui.c src/ui/control_ui.c src/ops/play
        src/ops/playlist_ops.c src/sound/soundcommon.c src/sound/m4a.c src/ui/search_ui.c src/ui/playlist_ui.c \
        src/ops/trackmanager.c src/ops/playback_clock.c src/ops/playback_system.c src/ui/player_ui.c src/sound/soundbuiltin.c \
        src/sys/mpris.c src/utils/utils.c src/utils/file.c src/data/imgfunc.c src/utils/cache.c src/data/songloader.c \
-       src/data/playlist.c src/utils/term.c src/ops/settings.c src/ui/visuals.c src/ops/queue_ui.c src/ui/cli.c src/kew.c
+       src/data/playlist.c src/utils/term.c src/ops/settings.c src/ui/visuals.c src/ui/queue_ui.c src/ui/cli.c src/kew.c
 
 # TagLib wrapper
 WRAPPER_SRC = src/data/tagLibWrapper.cpp
