@@ -25,6 +25,5 @@ void enqueueChildren(FileSystemEntry *child, FileSystemEntry **firstEnqueuedEntr
 bool hasSongChildren(FileSystemEntry *entry);
 bool hasDequeuedChildren(FileSystemEntry *parent);
 bool isContainedWithin(FileSystemEntry *entry, FileSystemEntry *containingEntry);
-FileSystemEntry *enqueueSongs(FileSystemEntry *entry, FileSystemEntry **chosenDir);
 
 #endif

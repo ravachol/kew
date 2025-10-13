@@ -1,23 +1,24 @@
 /**
- * @file queue_ops.[c]
+ * @file queue_ui.[c]
  * @brief Handles high level enqueue
  *
  */
 
-#include "queue_ops.h"
+#include "queue_ui.h"
 
+#include "common/appstate.h"
 #include "common/common.h"
 
-#include "ui/player_ui.h"       // FIXME: ui stuff doesn't belong here
-#include "ui/search_ui.h"       // FIXME: ui stuff doesn't belong here
+#include "input.h"
+#include "player_ui.h"
+#include "search_ui.h"
 
-#include "ops/playback_ops.h"
-#include "ops/playback_clock.h"
-#include "ops/playlist_ops.h"
 #include "ops/library_ops.h"
+#include "ops/playback_clock.h"
+#include "ops/playback_ops.h"
 #include "ops/playback_state.h"
 #include "ops/playback_system.h"
-#include "ops/input.h"
+#include "ops/playlist_ops.h"
 #include "ops/trackmanager.h"
 
 #include "sys/mpris.h"
@@ -110,6 +111,129 @@ void resetListAfterDequeuingPlayingSong(void)
                 if (getPlaylist()->count == 0)
                         setSongToStartFrom(NULL);
         }
+}
+
+FileSystemEntry *enqueueSongs(FileSystemEntry *entry, FileSystemEntry **chosenDir)
+{
+        bool hasEnqueued = false;
+        bool shuffle = false;
+
+        AppState *state = getAppState();
+        FileSystemEntry *firstEnqueuedEntry = NULL;
+        UIState *uis = &(state->uiState);
+        PlaybackState *ps = getPlaybackState();
+
+        if (entry != NULL)
+        {
+                if (entry->isDirectory)
+                {
+                        if (!hasSongChildren(entry) || entry->parent == NULL ||
+                            ((*chosenDir) != NULL &&
+                             strcmp(entry->fullPath, (*chosenDir)->fullPath) == 0))
+                        {
+                                if (hasDequeuedChildren(entry))
+                                {
+                                        if (entry->parent ==
+                                            NULL) // Shuffle playlist if it's
+                                                  // the root
+                                                shuffle = true;
+
+                                        entry->isEnqueued = 1;
+                                        entry = entry->children;
+
+                                        enqueueChildren(entry,
+                                                        &firstEnqueuedEntry);
+
+                                        ps->nextSongNeedsRebuilding = true;
+
+                                        hasEnqueued = true;
+                                }
+                                else
+                                {
+                                        dequeueChildren(entry);
+
+                                        entry->isEnqueued = 0;
+
+                                        ps->nextSongNeedsRebuilding = true;
+                                }
+                        }
+                        if ((*chosenDir) != NULL && entry->parent != NULL &&
+                            isContainedWithin(entry, (*chosenDir)) &&
+                            uis->allowChooseSongs == true)
+                        {
+                                // If the chosen directory is the same as the
+                                // entry's parent and it is open
+                                uis->openedSubDir = true;
+
+                                FileSystemEntry *tmpc = (*chosenDir)->children;
+
+                                uis->numSongsAboveSubDir = 0;
+
+                                while (tmpc != NULL)
+                                {
+                                        if (strcmp(entry->fullPath,
+                                                   tmpc->fullPath) == 0 ||
+                                            isContainedWithin(entry, tmpc))
+                                                break;
+                                        tmpc = tmpc->next;
+                                        uis->numSongsAboveSubDir++;
+                                }
+                        }
+
+                        AppState *state = getAppState();
+
+                        if (state->uiState.currentLibEntry && state->uiState.currentLibEntry->isDirectory)
+                                *chosenDir = state->uiState.currentLibEntry;
+
+                        if (uis->allowChooseSongs == true)
+                        {
+                                uis->collapseView = true;
+                                triggerRefresh();
+                        }
+                        uis->allowChooseSongs = true;
+                }
+                else
+                {
+                        if (!entry->isEnqueued)
+                        {
+                                setNextSong(NULL);
+                                ps->nextSongNeedsRebuilding = true;
+                                firstEnqueuedEntry = entry;
+
+                                enqueueSong(entry);
+
+                                hasEnqueued = true;
+                        }
+                        else
+                        {
+                                setNextSong(NULL);
+                                ps->nextSongNeedsRebuilding = true;
+
+                                dequeueSong(entry);
+                        }
+                }
+                triggerRefresh();
+        }
+
+        if (hasEnqueued)
+        {
+                autostartIfStopped(firstEnqueuedEntry);
+        }
+
+        if (shuffle)
+        {
+                PlayList *playlist = getPlaylist();
+
+                shufflePlaylist(playlist);
+                setSongToStartFrom(NULL);
+        }
+
+        if (ps->nextSongNeedsRebuilding)
+        {
+                reshufflePlaylist();
+        }
+
+        return firstEnqueuedEntry;
 }
 
 FileSystemEntry *enqueue(FileSystemEntry *entry)
@@ -211,7 +335,22 @@ FileSystemEntry *viewEnqueue(PlayList *playlist)
                 firstEnqueuedEntry = searchEnqueue(playlist);
                 break;
         case PLAYLIST_VIEW:
-                playlistPlay(playlist);
+                if (!isDigitsPressed())
+                {
+                        playlistPlay(playlist);
+                }
+                else
+                {
+                        state->uiState.resetPlaylistDisplay = true;
+                        int songNumber = getNumberFromString(getDigitsPressed());
+
+                        resetDigitsPressed();
+
+                        PlaybackState *ps = getPlaybackState();
+                        ps->nextSongNeedsRebuilding = false;
+
+                        skipToNumberedSong(songNumber);
+                }
                 break;
         default:
                 return NULL;

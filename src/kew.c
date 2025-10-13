@@ -43,7 +43,16 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include "sys/systemintegration.h"
 #include "sys/process.h"
 
-#include "ops/input.h"
+#include "ui/common_ui.h"
+#include "ui/input.h"
+#include "ui/control_ui.h"
+#include "ui/player_ui.h"
+#include "ui/playlist_ui.h"
+#include "ui/search_ui.h"
+#include "ui/visuals.h"
+#include "ui/queue_ui.h"
+#include "ui/cli.h"
+
 #include "ops/library_ops.h"
 #include "ops/playback_clock.h"
 #include "ops/playback_ops.h"
@@ -52,15 +61,6 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include "ops/playlist_ops.h"
 #include "ops/settings.h"
 #include "ops/trackmanager.h"
-#include "ops/queue_ops.h"
-
-#include "ui/common_ui.h"
-#include "ui/control_ui.h"
-#include "ui/player_ui.h"
-#include "ui/playlist_ui.h"
-#include "ui/search_ui.h"
-#include "ui/visuals.h"
-#include "ui/cli.h"
 
 #include "utils/cache.h"
 #include "utils/term.h"
@@ -870,6 +870,7 @@ int main(int argc, char *argv[])
         }
 
         initSettings(settings);
+        initKeyMappings(settings);
         setTrackTitleAsWindowTitle(&(state->uiSettings));
 
         if (argc == 3 && (strcmp(argv[1], "path") == 0))

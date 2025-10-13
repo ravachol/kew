@@ -11,7 +11,6 @@
 #include "common/appstate.h"
 
 #include "playback_state.h"
-#include "input.h"
 
 #include "sound/soundcommon.h"
 
@@ -53,7 +52,6 @@ void initSettings(AppSettings *settings)
         userData->replayGainCheckFirst =
             state->uiSettings.replayGainCheckFirst;
 
-        initKeyMappings(settings);
         enableMouse(&(state->uiSettings));
 }
 

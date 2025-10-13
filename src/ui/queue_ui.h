@@ -1,5 +1,5 @@
 /**
- * @file queue_ops.[h]
+ * @file queue_ui.[h]
  * @brief Handles high level enqueue
  *
  */
@@ -14,5 +14,6 @@ void enqueueAndPlay(void);
 void handleGoToSong(void);
 void updateNextSongIfNeeded(void);
 FileSystemEntry *enqueue(FileSystemEntry *entry);
+FileSystemEntry *enqueueSongs(FileSystemEntry *entry,FileSystemEntry **chosenDir);
 FileSystemEntry *libraryEnqueue(PlayList *playlist);
 
