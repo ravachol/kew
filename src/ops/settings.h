@@ -16,10 +16,15 @@
 #define MAXPATHLEN 4096
 #endif
 
+
 void getConfig(AppSettings *settings, UISettings *ui);
+void getPrefs(AppSettings *settings, UISettings *ui);
 void setConfig(AppSettings *settings, UISettings *ui);
+void setPrefs(AppSettings *settings, UISettings *ui);
+void setPath(const char *path);
 void mapSettingsToKeys(AppSettings *settings, UISettings *ui, EventMapping *mappings);
-void initSettings(AppSettings *settings);
+AppSettings initSettings(void);
 void enableMouse(UISettings *ui);
+int updateRc(const char *path, const char *key, const char *value);
 
 #endif

@@ -672,7 +672,8 @@ void cleanupOnExit()
         cleanupMpris();
         restoreTerminalMode();
         enableInputBuffering();
-        setConfig(settings, &(statePtr->uiSettings));
+        setPath(settings->path);
+        setPrefs(settings, &(state->uiSettings));
         saveFavoritesPlaylist(settings->path, favoritesPlaylist);
         saveLastUsedPlaylist(unshuffledPlaylist);
         deleteCache(statePtr->tmpCache);
@@ -869,7 +870,7 @@ int main(int argc, char *argv[])
                 exit(0);
         }
 
-        initSettings(settings);
+        *settings = initSettings();
         initKeyMappings(settings);
         setTrackTitleAsWindowTitle(&(state->uiSettings));
 
@@ -878,7 +879,7 @@ int main(int argc, char *argv[])
                 char deExpanded[MAXPATHLEN];
                 collapsePath(argv[2], deExpanded);
                 c_strcpy(settings->path, deExpanded, sizeof(settings->path));
-                setConfig(settings, ui);
+                setPath(settings->path);
                 exit(0);
         }
 

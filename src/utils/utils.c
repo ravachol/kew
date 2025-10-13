@@ -439,6 +439,51 @@ char *getConfigPath(void)
         return configPath;
 }
 
+char *getPrefsPath(void)
+{
+    char *prefsPath = malloc(MAXPATHLEN);
+    if (!prefsPath)
+        return NULL;
+
+    const char *xdgState = getenv("XDG_STATE_HOME");
+
+    if (xdgState)
+    {
+        snprintf(prefsPath, MAXPATHLEN, "%s", xdgState);
+    }
+    else
+    {
+        const char *home = getHomePath();
+        if (home)
+        {
+#ifdef __APPLE__
+            snprintf(prefsPath, MAXPATHLEN, "%s/Library/Application Support", home);
+#else
+            snprintf(prefsPath, MAXPATHLEN, "%s/.local/state", home);
+#endif
+        }
+        else
+        {
+            struct passwd *pw = getpwuid(getuid());
+            if (pw)
+            {
+#ifdef __APPLE__
+                snprintf(prefsPath, MAXPATHLEN, "%s/Library/Application Support", pw->pw_dir);
+#else
+                snprintf(prefsPath, MAXPATHLEN, "%s/.local/state", pw->pw_dir);
+#endif
+            }
+            else
+            {
+                free(prefsPath);
+                return NULL;
+            }
+        }
+    }
+
+    return prefsPath;
+}
+
 bool isValidFilename(const char *filename)
 {
         // Check for path traversal patterns
