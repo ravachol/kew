@@ -91,7 +91,7 @@ int prepareNextDecoder(char *filepath);
 int prepareNextOpusDecoder(char *filepath);
 int prepareNextVorbisDecoder(char *filepath);
 int prepareNextM4aDecoder(SongData *songData);
-void resumePlayback(void);
+void soundResumePlayback(void);
 ma_libvorbis *getFirstVorbisDecoder(void);
 void getFileInfo(const char *filename, ma_uint32 *sampleRate, ma_uint32 *channels, ma_format *format);
 void initAudioBuffer(void);

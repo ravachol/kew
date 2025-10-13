@@ -9,8 +9,7 @@
 void init(void);
 void determineSongAndNotify(void);
 void resetListAfterDequeuingPlayingSong(void);
-void enqueueHandler(bool playImmediately);
-void enqueueAndPlay(void);
+void viewEnqueue(bool playImmediately);
 void handleGoToSong(void);
 void updateNextSongIfNeeded(void);
 FileSystemEntry *enqueue(FileSystemEntry *entry);
