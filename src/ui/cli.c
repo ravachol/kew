@@ -1,4 +1,5 @@
 #include "cli.h"
+#include "ops/settings.h"
 #include "ui/common_ui.h"
 #include "ui/player_ui.h"
 #include "utils/file.h"
@@ -204,6 +205,7 @@ void setMusicPath(UISettings *ui)
         if (directoryExists(choice))
         {
                 c_strcpy(settings->path, choice, sizeof(settings->path));
+                setPath(settings->path);
 
                 found = 1;
         }
