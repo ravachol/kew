@@ -1,10 +1,3 @@
-#ifndef _DEFAULT_SOURCE
-#define _DEFAULT_SOURCE
-#endif
-#ifndef __USE_XOPEN_EXTENDED
-#define __USE_XOPEN_EXTENDED
-#endif
-
 /**
  * @file playlist.h
  * @brief Playlist data structures and operations.
@@ -13,6 +6,13 @@
  * track lists, iterating songs, and maintaining play order. Used by both
  * playback and UI modules to coordinate current and upcoming tracks.
  */
+
+#ifndef _DEFAULT_SOURCE
+#define _DEFAULT_SOURCE
+#endif
+#ifndef __USE_XOPEN_EXTENDED
+#define __USE_XOPEN_EXTENDED
+#endif
 
 #include "directorytree.h"
 

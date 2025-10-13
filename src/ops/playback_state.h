@@ -1,5 +1,5 @@
 /**
- * @file playback_state.[h]
+ * @file playback_state.h
  * @brief Maintains playback runtime state.
  *
  * Stores and manages the current playback status, elapsed time,

@@ -1,5 +1,5 @@
 /**
- * @file playback_ops.[h]
+ * @file playback_ops.h
  * @brief Core playback control API.
  *
  * Contains functions to control playback: play, pause, stop, seek,

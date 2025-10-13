@@ -1,5 +1,5 @@
 /**
- * @file common_ui.[h]
+ * @file common_ui.h
  * @brief Shared UI utilities and layout helpers.
  *
  * Contains reusable functions for drawing text, handling resizing,

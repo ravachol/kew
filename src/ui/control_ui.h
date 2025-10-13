@@ -1,5 +1,5 @@
 /**
- * @file control_ui.[h]
+ * @file control_ui.h
  * @brief Handles playback control interface rendering and input.
  *
  * Draws the transport controls (play/pause, skip, seek) and

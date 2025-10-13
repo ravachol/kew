@@ -1,5 +1,5 @@
 /**
- * @file notifications.[h]
+ * @file notifications.h
  * @brief Desktop notifications integration.
  *
  * Sends system notifications for playback events such as

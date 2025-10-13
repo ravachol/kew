@@ -1,5 +1,5 @@
 /**
- * @file trackmanager.[h]
+ * @file trackmanager.h
  * @brief Central track indexing and metadata manager.
  *
  * Manages track objects, metadata lookup, and synchronization

@@ -1,3 +1,9 @@
+/**
+ * @file appstate.h
+ * @brief Provides globally accessible state structs, getters and setters.
+ *
+ */
+
 #ifndef APPSTATE_H
 #define APPSTATE_H
 

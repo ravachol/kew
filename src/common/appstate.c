@@ -1,3 +1,9 @@
+/**
+ * @file appstate.c
+ * @brief Provides globally accessible state structs, getters and setters.
+ *
+ */
+
 #include "common/appstate.h"
 #include "utils/utils.h"
 

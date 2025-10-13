@@ -1,6 +1,6 @@
 
 /**
- * @file lyrics.cpp
+ * @file lyrics.h
  * @brief Lyrics fetching and parsing.
  *
  * Provides functions to load, cache lyrics from local files

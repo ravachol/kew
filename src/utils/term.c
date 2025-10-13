@@ -1,5 +1,5 @@
 /**
- * @file term.[c]
+ * @file term.c
  * @brief Terminal manipulation utilities.
  *
  * Handles terminal capabilities (color, cursor movement, screen clearing),

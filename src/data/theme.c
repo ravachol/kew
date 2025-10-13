@@ -1,5 +1,12 @@
 
 
+/**
+ * @file theme.c
+ * @brief Loads themes.
+ *
+ * Loads themes, and copies the themes to config dir.
+ */
+ 
 #include "theme.h"
 
 #include "common/common.h"
