@@ -259,7 +259,6 @@ struct Event processInput(void)
         bool cooldown2Elapsed = false;
 
         AppState *state = getAppState();
-        UISettings *ui = &(state->uiSettings);
         AppSettings *settings = getAppSettings();
 
         if (isCooldownElapsed(COOLDOWN_MS))
@@ -366,7 +365,7 @@ struct Event processInput(void)
                          strcmp(event.key, "B") != 0 &&
                          strcmp(event.key, "N") != 0)
                 {
-                        addToSearchText(event.key, ui);
+                        addToSearchText(event.key);
                         resetSearchResult();
                         fuzzySearch(getLibrary(), fuzzySearchThreshold);
                         event.type = EVENT_SEARCH;

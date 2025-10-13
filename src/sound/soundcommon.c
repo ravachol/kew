@@ -1855,7 +1855,7 @@ int prepareNextWebmDecoder(SongData *songData)
 
         bool sameFormat = (currentDecoder == NULL);
 
-        // FIXME gapless playback disabled for webm
+        // Gapless playback disabled for webm
         // bool sameFormat = (currentDecoder == NULL || (format == nformat &&
         //                                              channels == nchannels &&
         //                                              sampleRate ==

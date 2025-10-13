@@ -122,12 +122,7 @@ typedef struct
             resizeFlag;             // Is the user resizing the terminal window
         bool resetPlaylistDisplay;  // Should the playlist be reset, ie drawn
                                     // starting from playing song
-        bool doNotifyMPRISSwitched; // Emit mpris song switched signal
-        bool doNotifyMPRISPlaying;  // Emit mpris music is playing signal
         bool collapseView;          // Signal that ui needs to collapse the view
-        bool waitingForNext;        // Playlist has songs but playback is stopped.
-        bool waitingForPlaylist;    // Playlist is empty.
-        volatile bool loadedNextSong;
         bool isFastForwarding;
         bool isRewinding;
         bool songWasRemoved;
@@ -362,6 +357,11 @@ typedef struct
         bool clearingErrors;
         bool songHasErrors;
         bool skipFromStopped;
+        bool waitingForNext;            // Playlist has songs but playback is stopped.
+        bool waitingForPlaylist;        // Playlist is empty.
+        bool notifySwitch;              // Emit mpris song switched signal
+        bool notifyPlaying;             // Emit mpris music is playing signal
+        volatile bool loadedNextSong;
 } PlaybackState;
 
 #ifndef USERDATA_STRUCT

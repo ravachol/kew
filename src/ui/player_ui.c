@@ -39,16 +39,6 @@
 #include <string.h>
 #include <sys/param.h>
 
-/*
-
-   player_ui.c
-
-   Functions related to printing the player to the screen.
-
-   FIXME: This file shouldn't touch sound or data modules directly, only through ops module
-
-*/
-
 #ifndef MAXPATHLEN
 #define MAXPATHLEN 4096
 #endif
@@ -909,8 +899,11 @@ void calcAndPrintLastRowAndErrorRow(AppSettings *settings)
 #endif
 }
 
-int printAbout(SongData *songdata, UISettings *ui)
+int printAbout(SongData *songdata)
 {
+        AppState *state = getAppState();
+        UISettings *ui = &(state->uiSettings);
+
         clearLine();
         int numRows = printLogo(songdata, ui);
 
@@ -938,7 +931,7 @@ int showKeyBindings(SongData *songdata, AppSettings *settings)
 
         UISettings *ui = &(state->uiSettings);
 
-        numPrintedRows += printAbout(songdata, ui);
+        numPrintedRows += printAbout(songdata);
 
         applyColor(ui->colorMode, ui->theme.text, ui->defaultColorRGB);
 
@@ -1351,8 +1344,7 @@ void showSearch(SongData *songData, int *chosenRow, AppSettings *settings)
                 maxSearchListSize -= 2;
         }
 
-        displaySearch(maxSearchListSize, indent, chosenRow, startSearchIter,
-                      ui);
+        displaySearch(maxSearchListSize, indent, chosenRow, startSearchIter);
 
         calcAndPrintLastRowAndErrorRow(settings);
 }
