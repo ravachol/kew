@@ -8,6 +8,14 @@
 
 #include "systemintegration.h"
 
+#include "common/common.h"
+
+#include "mpris.h"
+#include "notifications.h"
+
+#include "utils/term.h"
+#include "utils/utils.h"
+
 #include "math.h"
 #include <stdio.h>
 #include "gio/gio.h"
@@ -33,6 +41,28 @@ GDBusConnection *getGDBusConnection(void)
 void setGDBusConnection(GDBusConnection *val)
 {
         connection = val;
+}
+
+void processDBusEvents(void)
+{
+        while (g_main_context_pending(getGMainContext()))
+        {
+                g_main_context_iteration(getGMainContext(), FALSE);
+        }
+}
+
+void resize(UIState *uis)
+{
+        alarm(1); // Timer
+        while (uis->resizeFlag)
+        {
+                uis->resizeFlag = 0;
+                c_sleep(100);
+        }
+        alarm(0); // Cancel timer
+        printf("\033[1;1H");
+        clearScreen();
+        triggerRefresh();
 }
 
 void emitStringPropertyChanged(const gchar *propertyName, const gchar *newValue)
@@ -156,6 +186,46 @@ void emitBooleanPropertyChanged(const gchar *propertyName, gboolean newValue)
         (void)propertyName;
         (void)newValue;
 #endif
+}
+
+void notifyMPRISSwitch(SongData *currentSongData)
+{
+        if (currentSongData == NULL)
+                return;
+
+        gint64 length = getLengthInMicroSec(currentSongData->duration);
+
+        // Update mpris
+        emitMetadataChanged(
+            currentSongData->metadata->title, currentSongData->metadata->artist,
+            currentSongData->metadata->album, currentSongData->coverArtPath,
+            currentSongData->trackId != NULL ? currentSongData->trackId : "",
+            getCurrentSong(), length);
+}
+
+void notifySongSwitch(SongData *currentSongData)
+{
+        AppState *state = getAppState();
+        UISettings *ui = &(state->uiSettings);
+        if (currentSongData != NULL && currentSongData->hasErrors == 0 &&
+            currentSongData->metadata &&
+            strnlen(currentSongData->metadata->title, 10) > 0)
+        {
+#ifdef USE_DBUS
+                displaySongNotification(currentSongData->metadata->artist,
+                                        currentSongData->metadata->title,
+                                        currentSongData->coverArtPath, ui);
+#else
+                (void)ui;
+#endif
+
+                notifyMPRISSwitch(currentSongData);
+
+                Node *current = getCurrentSong();
+
+                if (current != NULL)
+                        state->uiState.lastNotifiedId = current->id;
+        }
 }
 
 void quit(void) { exit(0); }

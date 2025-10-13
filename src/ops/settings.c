@@ -10,9 +10,13 @@
 
 #include "common/appstate.h"
 
+#include "playback_state.h"
+#include "input.h"
+
 #include "sound/soundcommon.h"
 
 #include "utils/file.h"
+#include "utils/term.h"
 #include "utils/utils.h"
 
 #include <locale.h>
@@ -32,6 +36,26 @@
 const char SETTINGS_FILE[] = "kewrc";
 
 time_t lastTimeAppRan;
+
+void enableMouse(UISettings *ui)
+{
+        if (ui->mouseEnabled)
+                enableTerminalMouseButtons();
+}
+
+void initSettings(AppSettings *settings)
+{
+        AppState *state = getAppState();
+        UserData *userData = playbackGetUserData();
+
+        getConfig(settings, &(state->uiSettings));
+
+        userData->replayGainCheckFirst =
+            state->uiSettings.replayGainCheckFirst;
+
+        initKeyMappings(settings);
+        enableMouse(&(state->uiSettings));
+}
 
 void freeKeyValuePairs(KeyValuePair *pairs, int count)
 {

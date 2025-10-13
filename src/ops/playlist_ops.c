@@ -11,7 +11,9 @@
 
 #include "playback_ops.h"
 #include "playback_clock.h"
+#include "playback_state.h"
 #include "playback_system.h"
+#include "input.h"
 #include "trackmanager.h"
 #include "library_ops.h"
 
@@ -832,5 +834,166 @@ void reshufflePlaylist(void)
                         shufflePlaylist(playlist);
 
                 ps->nextSongNeedsRebuilding = true;
+        }
+}
+
+void handleSkipOutOfOrder(void)
+{
+        PlaybackState *ps = getPlaybackState();
+
+        if (!ps->skipOutOfOrder && !playbackIsRepeatEnabled())
+        {
+                setCurrentSongToNext();
+        }
+        else
+        {
+                ps->skipOutOfOrder = false;
+        }
+}
+
+Node *determineNextSong(PlayList *playlist)
+{
+        AppState *state = getAppState();
+        Node *current = NULL;
+        PlaybackState *ps = getPlaybackState();
+
+        if (ps->waitingForPlaylist)
+        {
+                return playlist->head;
+        }
+        else if (ps->waitingForNext)
+        {
+                Node *songToStartFrom = getSongToStartFrom();
+
+                if (songToStartFrom != NULL)
+                {
+                        findNodeInList(playlist, songToStartFrom->id, &current);
+                        return current ? current : NULL;
+                }
+                else if (ps->lastPlayedId >= 0)
+                {
+                        current = findSelectedEntryById(playlist, ps->lastPlayedId);
+                        if (current != NULL && current->next != NULL)
+                                current = current->next;
+
+                        return current;
+                }
+
+                // fallback if nothing else
+                if (state->uiState.startFromTop)
+                {
+                        state->uiState.startFromTop = false;
+                        return playlist->head;
+                }
+                else
+                {
+                        return playlist->tail;
+                }
+        }
+
+        return NULL;
+}
+
+bool playPreProcessing()
+{
+        bool wasEndOfList = false;
+
+        AudioData *audioData = getAudioData();
+
+        if (audioData->endOfListReached)
+                wasEndOfList = true;
+
+        return wasEndOfList;
+}
+
+void playPostProcessing(bool wasEndOfList)
+{
+        AppState *state = getAppState();
+        PlaybackState *ps = getPlaybackState();
+
+        if ((state->uiState.songWasRemoved && getCurrentSong() != NULL))
+        {
+                state->uiState.songWasRemoved = false;
+        }
+
+        if (wasEndOfList)
+        {
+                ps->skipOutOfOrder = false;
+        }
+
+        AudioData *audioData = getAudioData();
+
+        audioData->endOfListReached = false;
+}
+
+void clearAndPlay(Node *song)
+{
+        AudioData *audioData = getAudioData();
+        PlaybackState *ps = getPlaybackState();
+
+        playbackCleanup();
+
+        ps->loadedNextSong = true;
+
+        ps->nextSongNeedsRebuilding = false;
+
+        unloadSongA();
+        unloadSongB();
+
+        ps->usingSongDataA = false;
+
+        audioData->currentFileIndex = 0;
+
+        ps->loadingdata.loadA = true;
+
+        bool wasEndOfList = playPreProcessing();
+
+        playbackPlay();
+
+        if (play(song) < 0)
+        {
+                skipToSong(song->next->id, true);
+        }
+
+        playPostProcessing(wasEndOfList);
+
+        ps->skipOutOfOrder = false;
+        ps->usingSongDataA = true;
+}
+
+void playlistPlay(PlayList *playlist)
+{
+        AppState *state = getAppState();
+        PlaybackState *ps = getPlaybackState();
+
+        if (!isDigitsPressed())
+        {
+                Node *current = getCurrentSong();
+
+                if (playbackIsPaused() && current != NULL &&
+                    state->uiState.chosenNodeId == current->id)
+                {
+                        togglePause();
+                }
+                else
+                {
+                        Node *song = NULL;
+                        findNodeInList(playlist,
+                                       state->uiState.chosenNodeId,
+                                       &song);
+
+                        clearAndPlay(song);
+                }
+        }
+        else
+        {
+                state->uiState.resetPlaylistDisplay = true;
+                int songNumber = getNumberFromString(getDigitsPressed());
+
+                resetDigitsPressed();
+
+                ps->nextSongNeedsRebuilding = false;
+
+                skipToNumberedSong(songNumber);
         }
 }
