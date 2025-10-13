@@ -26,10 +26,10 @@ void loadFirstSong(Node *song)
 
         ps->loadingdata.state = state;
         ps->loadingdata.loadingFirstDecoder = true;
-        loadSong(song, &ps->loadingdata, &(state->uiState));
+        loadSong(song, &ps->loadingdata);
 
         int i = 0;
-        while (!state->uiState.loadedNextSong && i < 10000)
+        while (!ps->loadedNextSong && i < 10000)
         {
                 if (i != 0 && i % 1000 == 0 && state->uiSettings.uiEnabled)
                         printf(".");
@@ -65,7 +65,6 @@ void unloadSongB(void)
 
 void unloadPreviousSong(void)
 {
-        AppState *state = getAppState();
         UserData *userData = getUserData();
         AudioData *audioData = getAudioData();
         PlaybackState *ps = getPlaybackState();
@@ -85,7 +84,7 @@ void unloadPreviousSong(void)
                 unloadSongA();
 
                 if (!audioData->endOfListReached)
-                        state->uiState.loadedNextSong = false;
+                        ps->loadedNextSong = false;
 
                 ps->usingSongDataA = false;
         }
@@ -103,7 +102,7 @@ void unloadPreviousSong(void)
                 unloadSongB();
 
                 if (!audioData->endOfListReached)
-                        state->uiState.loadedNextSong = false;
+                        ps->loadedNextSong = false;
 
                 ps->usingSongDataA = true;
         }
@@ -113,7 +112,6 @@ void unloadPreviousSong(void)
 
 int loadFirst(Node *song)
 {
-        AppState *state = getAppState();
         loadFirstSong(song);
         Node *current = getCurrentSong();
         PlaybackState *ps = getPlaybackState();
@@ -123,7 +121,7 @@ int loadFirst(Node *song)
         while (ps->songHasErrors && current->next != NULL)
         {
                 ps->songHasErrors = false;
-                state->uiState.loadedNextSong = false;
+                ps->loadedNextSong = false;
                 current = current->next;
                 loadFirstSong(current);
         }
@@ -148,7 +146,6 @@ int loadFirst(Node *song)
 void loadNextSong(void)
 {
         AppState *state = getAppState();
-        UIState *uis = &(state->uiState);
         PlaybackState *ps = getPlaybackState();
 
         ps->songLoading = true;
@@ -159,31 +156,33 @@ void loadNextSong(void)
         setNextSong(getTryNextSong());
         ps->loadingdata.state = state;
         ps->loadingdata.loadingFirstDecoder = false;
-        loadSong(getNextSong(), &ps->loadingdata, uis);
+        loadSong(getNextSong(), &ps->loadingdata);
 }
 
-void finishLoading(UIState *uis) // FIXME UI stuff shouldn't be here
+void finishLoading(void)
 {
+        PlaybackState *ps = getPlaybackState();
+
         int maxNumTries = 20;
         int numtries = 0;
 
-        while (!uis->loadedNextSong && numtries < maxNumTries)
+        while (!ps->loadedNextSong && numtries < maxNumTries)
         {
                 c_sleep(100);
                 numtries++;
         }
 
-        uis->loadedNextSong = true;
+        ps->loadedNextSong = true;
 }
 
-void autostartIfStopped(FileSystemEntry *firstEnqueuedEntry, UIState *uis)
+void autostartIfStopped(FileSystemEntry *firstEnqueuedEntry)
 {
         PlayList *playlist = getPlaylist();
         AudioData *audioData = getAudioData();
         PlaybackState *ps = getPlaybackState();
 
-        uis->waitingForPlaylist = false;
-        uis->waitingForNext = true;
+        ps->waitingForPlaylist = false;
+        ps->waitingForNext = true;
         audioData->endOfListReached = false;
         if (firstEnqueuedEntry != NULL)
                 setSongToStartFrom(findPathInPlaylist(firstEnqueuedEntry->fullPath, playlist));

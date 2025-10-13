@@ -73,7 +73,7 @@ void setChosenDir(FileSystemEntry *entry);
 
 int getIndent(void);
 
-int printAbout(SongData *songdata, UISettings *ui);
+int printAbout(SongData *songdata);
 
 FileSystemEntry *getChosenDir(void);
 

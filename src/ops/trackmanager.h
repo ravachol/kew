@@ -9,13 +9,13 @@
 
 #include "common/appstate.h"
 
-void loadSong(Node *song, LoadingThreadData *loadingdata, UIState *uis); // FIXME: UI stuff shouldn't be here
+void loadSong(Node *song, LoadingThreadData *loadingdata);
 
 int loadFirst(Node *song);
 
 void loadNextSong(void);
 
-void finishLoading(UIState *uis); // FIXME: UI stuff shouldn't be here
+void finishLoading(void);
 
 void unloadSongA(void);
 
@@ -25,4 +25,4 @@ void unloadPreviousSong(void);
 
 void tryLoadNext(void);
 
-void autostartIfStopped(FileSystemEntry *firstEnqueuedEntry, UIState *uis); // FIXME: UI stuff shouldn't be here
+void autostartIfStopped(FileSystemEntry *firstEnqueuedEntry);
