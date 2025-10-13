@@ -23,11 +23,8 @@ typedef struct Cache
 } Cache;
 
 Cache *createCache(void);
-
 void addToCache(Cache *cache, const char *filePath);
-
 void deleteCache(Cache *cache);
-
 bool existsInCache(Cache *cache, char *filePath);
 
 #endif

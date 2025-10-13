@@ -678,7 +678,7 @@ FileSystemEntry *enqueueSongs(FileSystemEntry *entry,FileSystemEntry **chosenDir
                                             isContainedWithin(entry, tmpc))
                                                 break;
                                         tmpc = tmpc->next;
-                                        uis->numSongsAboveSubDir++;
+                                        uis->numSongsAboveSubDir++; // FIXME no ui stuff should be here
                                 }
                         }
 

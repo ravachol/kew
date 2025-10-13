@@ -34,24 +34,17 @@ enum SearchType
         ReturnAllSongs = 4
 };
 
+const char *getTempDir();
+int directoryExists(const char *path);
 void getDirectoryFromPath(const char *path, char *directory);
-
 int isDirectory(const char *path);
-
-/* Traverse a directory tree and search for a given file or directory */
 int walker(const char *startPath, const char *searching, char *result,
            const char *allowedExtensions, enum SearchType searchType, bool exactSearch, int depth);
-
 int expandPath(const char *inputPath, char *expandedPath);
-
 int createDirectory(const char *path);
-
 int deleteFile(const char *filePath);
-
 void generateTempFilePath(char *filePath, const char *prefix, const char *suffix);
-
 int isInTempDir(const char *path);
-
 int existsFile(const char *fname);
 
 #endif

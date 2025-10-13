@@ -11,9 +11,8 @@
 
 #include "common/appstate.h"
 
-#include "data/playlist.h"
-
 int displayPlaylist(PlayList *list, int maxListSize, int indent,
                     int *chosenSong, int *chosenNodeId, bool reset);
+void setEndOfListReached(void);
 
 #endif

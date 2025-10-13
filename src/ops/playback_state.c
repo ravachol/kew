@@ -134,6 +134,16 @@ bool determineCurrentSongData(SongData **currentSongData)
         return isDeleted;
 }
 
+int playbackGetVolume()
+{
+        return getCurrentVolume();
+}
+
+void getFormatAndSampleRate(ma_format *format, ma_uint32 *sampleRate)
+{
+        getCurrentFormatAndSampleRate(format, sampleRate);
+}
+
 SongData *getCurrentSongData(void)
 {
         if (getCurrentSong() == NULL)

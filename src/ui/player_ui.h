@@ -54,53 +54,32 @@ typedef struct
 #endif
 
 int printLogoArt(const UISettings *ui, int indent, bool centered, bool printTagLine, bool useGradient);
-
 int calcIndentNormal(void);
-
 int printPlayer(SongData *songdata, double elapsedSeconds, AppSettings *settings);
-
 int getFooterRow(void);
-
 int getFooterCol(void);
-
 void flipNextPage(void);
-
 void flipPrevPage(void);
-
 void showHelp(void);
-
 void setChosenDir(FileSystemEntry *entry);
-
 int getIndent(void);
-
 int printAbout(SongData *songdata);
-
 FileSystemEntry *getChosenDir(void);
-
 void setCurrentAsChosenDir(void);
-
 void scrollNext(void);
-
 void scrollPrev(void);
-
 void toggleShowView(ViewState VIEW_TO_SHOW);
-
 void showTrack(void);
-
 void freeMainDirectoryTree(void);
-
 char *getLibraryFilePath(void);
-
 void resetChosenDir(void);
-
 void switchToNextView(void);
-
 void switchToPreviousView(void);
-
 void resetSearchResult(void);
-
 int getChosenRow(void);
-
 void setChosenRow(int row);
+void refreshPlayer();
+void setTrackTitleAsWindowTitle(UISettings *ui);
+bool initTheme(int argc, char *argv[]);
 
 #endif

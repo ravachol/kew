@@ -10,12 +10,15 @@
 
 #include "playlist_ui.h"
 #include "search_ui.h"
+#include "control_ui.h"
 
 #include "common/appstate.h"
 #include "common/common.h"
 #include "common_ui.h"
 
 #include "ops/playback_state.h"
+#include "ops/playback_clock.h"
+#include "ops/library_ops.h"
 
 #include "data/directorytree.h"
 #include "data/imgfunc.h"
@@ -23,10 +26,7 @@
 #include "data/playlist.h"
 #include "data/songloader.h"
 
-#include "ops/library_ops.h"
-
-#include "sound/soundcommon.h"
-
+#include "sys/systemintegration.h"
 #include "utils/term.h"
 #include "utils/utils.h"
 
@@ -94,6 +94,75 @@ static const char *prevLine = NULL;
 int getFooterRow(void) { return footerRow; }
 
 int getFooterCol(void) { return footerCol; }
+
+bool initTheme(int argc, char *argv[])
+{
+        AppState *state = getAppState();
+        UISettings *ui = &(state->uiSettings);
+        AppSettings *settings = getAppSettings();
+        bool themeLoaded = false;
+
+        // Command-line theme handling
+        if (argc > 3 && strcmp(argv[1], "theme") == 0)
+        {
+                setErrorMessage("Couldn't load theme. Theme file names shouldn't contain space.");
+        }
+        else if (argc == 3 && strcmp(argv[1], "theme") == 0)
+        {
+                // Try to load the user-specified theme
+                if (loadTheme(settings, argv[2], false) > 0)
+                {
+                        ui->colorMode = COLOR_MODE_THEME;
+                        themeLoaded = true;
+                }
+                else
+                {
+                        // Failed to load user theme → fall back to
+                        // default/ANSI
+                        if (ui->colorMode == COLOR_MODE_THEME)
+                        {
+                                ui->colorMode = COLOR_MODE_DEFAULT;
+                        }
+                }
+        }
+        else if (ui->colorMode == COLOR_MODE_THEME)
+        {
+                // If UI has a themeName stored, try to load it
+                if (loadTheme(settings, ui->themeName, false) > 0)
+                {
+                        ui->colorMode = COLOR_MODE_THEME;
+                        themeLoaded = true;
+                }
+        }
+
+        // If still in default mode, load default ANSI theme
+        if (ui->colorMode == COLOR_MODE_DEFAULT)
+        {
+                // Load "default" ANSI theme, but don't overwrite
+                // settings->theme
+                if (loadTheme(settings, "default", true))
+                {
+                        themeLoaded = true;
+                }
+        }
+
+        if (!themeLoaded && ui->colorMode != COLOR_MODE_ALBUM)
+        {
+                setErrorMessage("Couldn't load theme. Forgot to run 'sudo make install'?");
+                ui->colorMode = COLOR_MODE_ALBUM;
+        }
+
+        return themeLoaded;
+}
+
+void setTrackTitleAsWindowTitle(UISettings *ui)
+{
+        if (ui->trackTitleAsWindowTitle)
+        {
+                saveTerminalWindowTitle();
+                setTerminalWindowTitle("kew");
+        }
+}
 
 void setCurrentAsChosenDir(void)
 {
@@ -219,9 +288,9 @@ void printHelp(void)
 
 static const char *getPlayerStatusIcon(void)
 {
-        if (isPaused())
+        if (playbackIsPaused())
                 return "⏸";
-        if (isStopped())
+        if (playbackIsStopped())
                 return "■";
         return "▶";
 }
@@ -539,7 +608,7 @@ void printProgress(double elapsed_seconds, double total_seconds,
 
         int progress_percentage =
             (int)((elapsed_seconds / total_seconds) * 100);
-        int vol = getCurrentVolume();
+        int vol = playbackGetVolume();
 
         if (total_seconds >= 3600)
         {
@@ -784,14 +853,14 @@ void printFooter(int row, int col, AppSettings *settings)
 
         if (term_w >= ABSOLUTE_MIN_WIDTH)
         {
-                if (isPaused())
+                if (playbackIsPaused())
                 {
                         char pauseText[] = " ⏸";
                         snprintf(nerdFontText + currentLength,
                                  maxLength - currentLength, "%s", pauseText);
                         currentLength += strlen(pauseText);
                 }
-                else if (isStopped())
+                else if (playbackIsStopped())
                 {
                         char pauseText[] = " ■";
                         snprintf(nerdFontText + currentLength,
@@ -807,14 +876,14 @@ void printFooter(int row, int col, AppSettings *settings)
                 }
         }
 
-        if (isRepeatEnabled())
+        if (playbackIsRepeatEnabled())
         {
                 char repeatText[] = " \u27f3";
                 snprintf(nerdFontText + currentLength,
                          maxLength - currentLength, "%s", repeatText);
                 currentLength += strlen(repeatText);
         }
-        else if (isRepeatListEnabled())
+        else if (playbackIsRepeatListEnabled())
         {
                 char repeatText[] = " \u27f3L";
                 snprintf(nerdFontText + currentLength,
@@ -822,7 +891,7 @@ void printFooter(int row, int col, AppSettings *settings)
                 currentLength += strlen(repeatText);
         }
 
-        if (isShuffleEnabled())
+        if (playbackIsShuffleEnabled())
         {
                 char shuffleText[] = " \uf074";
                 snprintf(nerdFontText + currentLength,
@@ -2099,7 +2168,7 @@ void showTrackViewLandscape(int height, int width, float aspectRatio,
                 ma_uint32 sampleRate;
                 ma_format format;
                 avgBitRate = songdata->avgBitRate;
-                getCurrentFormatAndSampleRate(&format, &sampleRate);
+                getFormatAndSampleRate(&format, &sampleRate);
 
                 if (!state->uiState.showLyricsPage)
                 {
@@ -2174,7 +2243,7 @@ void showTrackViewPortrait(int height, AppSettings *settings,
                         ma_format format;
                         avgBitRate = songdata->avgBitRate;
 
-                        getCurrentFormatAndSampleRate(&format, &sampleRate);
+                        getFormatAndSampleRate(&format, &sampleRate);
                         printTime(row + metadataHeight, col, elapsedSeconds, sampleRate,
                                   avgBitRate);
 
@@ -2325,3 +2394,39 @@ void freeMainDirectoryTree(void)
 int getChosenRow(void) { return chosenRow; }
 
 void setChosenRow(int row) { chosenRow = row; }
+
+void refreshPlayer()
+{
+        AppState *state = getAppState();
+        PlaybackState *ps = getPlaybackState();
+        AppSettings *settings = getAppSettings();
+
+        int mutexResult = pthread_mutex_trylock(&(state->switchMutex));
+
+        if (mutexResult != 0)
+        {
+                fprintf(stderr, "Failed to lock switch mutex.\n");
+                return;
+        }
+
+        if (ps->notifyPlaying)
+        {
+                ps->notifyPlaying = false;
+
+                emitStringPropertyChanged("PlaybackStatus", "Playing");
+        }
+
+        if (ps->notifySwitch)
+        {
+                ps->notifySwitch = false;
+
+                notifyMPRISSwitch(getCurrentSongData());
+        }
+
+        if (shouldRefreshPlayer())
+        {
+                printPlayer(getCurrentSongData(), getElapsedSeconds(), settings);
+        }
+
+        pthread_mutex_unlock(&(state->switchMutex));
+}

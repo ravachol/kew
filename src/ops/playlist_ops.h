@@ -32,5 +32,11 @@ void setCurrentSongToNext(void);
 void dequeueAllExceptPlayingSong(void);
 void addToFavoritesPlaylist(void);
 void reshufflePlaylist(void);
+void handleSkipOutOfOrder(void);
+Node *determineNextSong(PlayList *playlist);
+void playlistPlay(PlayList *playlist);
+void clearAndPlay(Node *song);
+bool playPreProcessing();
+void playPostProcessing(bool wasEndOfList);
 
 #endif

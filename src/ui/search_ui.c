@@ -12,8 +12,12 @@
 #include "common/common.h"
 #include "common_ui.h"
 
+#include "ops/queue_ops.h"
+#include "ops/library_ops.h"
+
 #include "data/playlist.h"
 
+#include "ui/player_ui.h"
 #include "utils/term.h"
 #include "utils/utils.h"
 
@@ -276,6 +280,29 @@ void sortSearchResults(void)
         qsort(results, resultsCount, sizeof(SearchResult), compareResults);
 }
 
+FileSystemEntry *searchEnqueue(PlayList *playlist)
+{
+        PlaybackState *ps = getPlaybackState();
+
+        pthread_mutex_lock(&(playlist->mutex));
+
+        FileSystemEntry *entry = getCurrentSearchEntry();
+        ps->waitingForPlaylist = false;
+
+        setChosenDir(entry);
+
+        FileSystemEntry *chosenDir = getChosenDir();
+        FileSystemEntry *firstEnqueuedEntry = enqueueSongs(entry, &chosenDir);
+
+        setChosenDir(chosenDir);
+
+        setChosenDir(chosenDir);
+        resetListAfterDequeuingPlayingSong();
+        pthread_mutex_unlock(&(playlist->mutex));
+
+        return firstEnqueuedEntry;
+}
+
 void fuzzySearch(FileSystemEntry *root, int threshold)
 {
         int term_w, term_h;
@@ -300,7 +327,7 @@ int displaySearchBox(int indent)
 {
         AppState *state = getAppState();
         UISettings *ui = &(state->uiSettings);
-        
+
         applyColor(ui->colorMode, ui->theme.search_label, ui->color);
 
         clearLine();

@@ -31,6 +31,24 @@
 
 #define MAX_RECURSION_DEPTH 64
 
+const char *getTempDir()
+{
+        const char *tmpdir = getenv("TMPDIR");
+        if (tmpdir != NULL)
+        {
+                return tmpdir; // Use TMPDIR if set (common on Android/Termux)
+        }
+
+        tmpdir = getenv("TEMP");
+        if (tmpdir != NULL)
+        {
+                return tmpdir;
+        }
+
+        // Fallback to /tmp on Unix-like systems
+        return "/tmp";
+}
+
 void getDirectoryFromPath(const char *path, char *directory)
 {
         if (!path || !directory)
@@ -97,6 +115,22 @@ int isDirectory(const char *path)
                 }
                 return 0;
         }
+}
+
+int directoryExists(const char *path)
+{
+        char expanded[MAXPATHLEN];
+
+        expandPath(path, expanded);
+
+        DIR *dir = opendir(expanded);
+
+        if (dir)
+        {
+                closedir(dir);
+                return 1;
+        }
+        return 0;
 }
 
 // Traverse a directory tree and search for a given file or directory
