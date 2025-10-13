@@ -41,6 +41,7 @@ int isDirectory(const char *path);
 int walker(const char *startPath, const char *searching, char *result,
            const char *allowedExtensions, enum SearchType searchType, bool exactSearch, int depth);
 int expandPath(const char *inputPath, char *expandedPath);
+void collapsePath(const char *input, char *output);
 int createDirectory(const char *path);
 int deleteFile(const char *filePath);
 void generateTempFilePath(char *filePath, const char *prefix, const char *suffix);

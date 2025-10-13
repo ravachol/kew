@@ -24,15 +24,6 @@
 #include <time.h>
 #include <unistd.h>
 
-/*
-
- utils.c
-
- Utility functions for instance for replacing some standard functions with safer
- alternatives.
-
-*/
-
 #if defined(__APPLE__) || defined(__FreeBSD__) || defined(__OpenBSD__) ||      \
     defined(__NetBSD__)
 #include <stdint.h> // For uint32_t

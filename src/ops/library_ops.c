@@ -15,6 +15,7 @@
 
 #include "data/directorytree.h"
 
+#include "utils/file.h"
 #include "utils/term.h"
 #include "utils/utils.h"
 
@@ -276,16 +277,16 @@ void updateLibrary(char *path)
         }
 }
 
-time_t getModificationTime(struct stat *path_stat)
+time_t getModificationTime(const struct stat *path_stat)
 {
-#if defined(__APPLE__)
-        // macOS and BSDs use st_mtimespec.tv_sec for modification time
+#if defined(__APPLE__) && defined(st_mtimespec)
         return path_stat->st_mtimespec.tv_sec;
+#elif defined(__APPLE__) && !defined(st_mtimespec)
+        /* Fallback if st_mtimespec hidden by POSIX macros */
+        return path_stat->st_mtime;
 #elif defined(__linux__)
-        // Linux uses st_mtim.tv_sec
         return path_stat->st_mtim.tv_sec;
 #else
-        // Fallback: use st_mtime (older systems)
         return path_stat->st_mtime;
 #endif
 }
@@ -398,8 +399,12 @@ void createLibrary(AppSettings *settings, char *libFilepath)
 
         if (state->uiSettings.cacheLibrary > 0)
         {
+                char expanded[MAXPATHLEN];
+
+                expandPath(settings->path, expanded);
+
                 library = reconstructTreeFromFile(
-                    libFilepath, settings->path,
+                    libFilepath, expanded,
                     &(state->uiState.numDirectoryTreeEntries));
                 free(libFilepath);
                 updateLibraryIfChangedDetected();
@@ -411,8 +416,12 @@ void createLibrary(AppSettings *settings, char *libFilepath)
 
                 gettimeofday(&start, NULL);
 
+                char expanded[MAXPATHLEN];
+
+                expandPath(settings->path, expanded);
+
                 library = createDirectoryTree(
-                    settings->path, &(state->uiState.numDirectoryTreeEntries));
+                    expanded, &(state->uiState.numDirectoryTreeEntries));
 
                 gettimeofday(&end, NULL);
                 long seconds = end.tv_sec - start.tv_sec;

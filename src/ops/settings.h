@@ -20,5 +20,6 @@ void getConfig(AppSettings *settings, UISettings *ui);
 void setConfig(AppSettings *settings, UISettings *ui);
 void mapSettingsToKeys(AppSettings *settings, UISettings *ui, EventMapping *mappings);
 void initSettings(AppSettings *settings);
+void enableMouse(UISettings *ui);
 
 #endif
