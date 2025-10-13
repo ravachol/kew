@@ -7,14 +7,12 @@
 
 #include "common/appstate.h"
 
-#include "ui/player_ui.h"
-#include "ui/search_ui.h"
+#include "player_ui.h"
+#include "search_ui.h"
 
-#include "playback_clock.h"
-#include "playback_state.h"
-#include "settings.h"
-
-#include "data/playlist.h"
+#include "ops/playback_clock.h"
+#include "ops/playback_state.h"
+#include "ops/settings.h"
 
 #include "sys/systemintegration.h"
 

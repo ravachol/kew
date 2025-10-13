@@ -12,12 +12,11 @@
 #include "common/common.h"
 #include "common_ui.h"
 
-#include "ops/queue_ops.h"
-#include "ops/library_ops.h"
-
 #include "data/playlist.h"
 
 #include "ui/player_ui.h"
+#include "ui/queue_ui.h"
+
 #include "utils/term.h"
 #include "utils/utils.h"
 

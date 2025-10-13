@@ -9,13 +9,13 @@
 
 #include "playlist_ops.h"
 
-#include "playback_ops.h"
 #include "playback_clock.h"
+#include "playback_ops.h"
 #include "playback_state.h"
 #include "playback_system.h"
-#include "input.h"
-#include "trackmanager.h"
+
 #include "library_ops.h"
+#include "trackmanager.h"
 
 #include "common/appstate.h"
 
@@ -800,8 +800,8 @@ void moveSongDown(int *chosenRow)
 
         *chosenRow = *chosenRow + 1;
         *chosenRow = (*chosenRow >= unshuffledPlaylist->count)
-                        ? unshuffledPlaylist->count - 1
-                        : *chosenRow;
+                         ? unshuffledPlaylist->count - 1
+                         : *chosenRow;
 
         if (rebuild && current != NULL)
         {
@@ -964,36 +964,21 @@ void clearAndPlay(Node *song)
 void playlistPlay(PlayList *playlist)
 {
         AppState *state = getAppState();
-        PlaybackState *ps = getPlaybackState();
 
-        if (!isDigitsPressed())
+        Node *current = getCurrentSong();
+
+        if (playbackIsPaused() && current != NULL &&
+            state->uiState.chosenNodeId == current->id)
         {
-                Node *current = getCurrentSong();
-
-                if (playbackIsPaused() && current != NULL &&
-                    state->uiState.chosenNodeId == current->id)
-                {
-                        togglePause();
-                }
-                else
-                {
-                        Node *song = NULL;
-                        findNodeInList(playlist,
-                                       state->uiState.chosenNodeId,
-                                       &song);
-
-                        clearAndPlay(song);
-                }
+                togglePause();
         }
         else
         {
-                state->uiState.resetPlaylistDisplay = true;
-                int songNumber = getNumberFromString(getDigitsPressed());
+                Node *song = NULL;
+                findNodeInList(playlist,
+                               state->uiState.chosenNodeId,
+                               &song);
 
-                resetDigitsPressed();
-
-                ps->nextSongNeedsRebuilding = false;
-
-                skipToNumberedSong(songNumber);
+                clearAndPlay(song);
         }
 }
