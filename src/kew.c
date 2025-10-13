@@ -94,21 +94,21 @@ void handleInput(void)
         AppState *state = getAppState();
         AppSettings *settings = getAppSettings();
         PlayList *playlist = getPlaylist();
-        int chosenRow = 0;
+        int chosenRow = getChosenRow();
 
         switch (event.type)
         {
                 break;
         case EVENT_ENQUEUE:
-                handleGoToSong();
+                viewEnqueue(false);
                 break;
         case EVENT_ENQUEUEANDPLAY:
-                enqueueAndPlay();
+                viewEnqueue(true);
                 break;
         case EVENT_PLAY_PAUSE:
                 if (playbackIsStopped())
                 {
-                        handleGoToSong();
+                        viewEnqueue(false);
                 }
                 else
                 {
@@ -150,11 +150,11 @@ void handleInput(void)
                 scrollPrev();
                 break;
         case EVENT_VOLUME_UP:
-                playbackVolumeChange(5);
+                volumeChange(5);
                 emitVolumeChanged();
                 break;
         case EVENT_VOLUME_DOWN:
-                playbackVolumeChange(-5);
+                volumeChange(-5);
                 emitVolumeChanged();
                 break;
         case EVENT_NEXT:
@@ -318,7 +318,7 @@ int prepareAndPlaySong(Node *song)
 
         if (res >= 0)
         {
-                playbackResumePlayback();
+                resumePlayback();
         }
 
         triggerRefresh();
@@ -470,7 +470,7 @@ void initFirstPlay(Node *song)
                 }
                 if (res >= 0)
                 {
-                        playbackResumePlayback();
+                        resumePlayback();
                 }
 
                 if (res < 0)

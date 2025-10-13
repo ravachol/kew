@@ -40,7 +40,7 @@ void seekForward(UIState *uis)
 
         int seconds = (int)(duration * (stepPercent / 100.0));
 
-        playbackSeekForward(seconds);
+        seek(seconds);
 
         uis->isRewinding = true;
 }
@@ -59,7 +59,7 @@ void seekBack(UIState *uis)
 
         int seconds = (int)(duration * (stepPercent / 100.0));
 
-        playbackSeekBack(seconds);
+        seek(-seconds);
 
         uis->isRewinding = true;
 }

@@ -1367,7 +1367,7 @@ int printLogoAndAdjustments(SongData *songData, int termWidth, UISettings *ui,
         if (termWidth > 52 && !ui->hideHelp)
         {
                 printBlankSpaces(indentation);
-                printf(" Use ↑/↓ or k/j to select. Enter=Accept. Backspace: "
+                printf(" Use ↑/↓ or k/j to select. Enter: Accept. Backspace: "
                        "clear.\n");
                 clearLine();
                 printBlankSpaces(indentation);
@@ -1407,7 +1407,7 @@ void showSearch(SongData *songData, int *chosenRow, AppSettings *settings)
         {
                 clearLine();
                 printBlankSpaces(indent);
-                printf(" Use ↑/↓ to select. Enter=Enqueue. Alt+Enter=Play.\n");
+                printf(" Use ↑/↓ to select. Enter: Enqueue. Alt+Enter: Play.\n");
                 clearLine();
                 printf("\n");
                 maxSearchListSize -= 2;
@@ -1937,8 +1937,8 @@ void showLibrary(SongData *songData, AppSettings *settings)
                 maxLibListSize -= 3;
                 clearLine();
                 printBlankSpaces(indent);
-                printf(" Use ↑/↓ or k/j to select. Enter=Enqueue/Dequeue. "
-                       "Alt+Enter=Play.\n");
+                printf(" Use ↑/↓ or k/j to select. Enter: Enqueue/Dequeue. "
+                       "Alt+Enter: Play.\n");
                 clearLine();
                 printBlankSpaces(indent);
 #ifndef __APPLE__

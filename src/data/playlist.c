@@ -333,23 +333,26 @@ void exitIfOverflow(int counter)
 void buildPlaylistRecursive(const char *directoryPath,
                             const char *allowedExtensions, PlayList *playlist)
 {
-        int res = isDirectory(directoryPath);
+        char expandedPath[MAXPATHLEN - NAME_MAX - 1];
+        expandPath(directoryPath, expandedPath);
+
+        int res = isDirectory(expandedPath);
         if (res != 1 && res != -1 && directoryPath != NULL)
         {
                 Node *node = NULL;
 
                 exitIfOverflow(nodeIdCounter);
-                createNode(&node, directoryPath, nodeIdCounter++);
+                createNode(&node, expandedPath, nodeIdCounter++);
                 if (addToList(playlist, node) == -1)
                         destroyNode(node);
 
                 return;
         }
 
-        DIR *dir = opendir(directoryPath);
+        DIR *dir = opendir(expandedPath);
         if (dir == NULL)
         {
-                printf("Failed to open directory: %s\n", directoryPath);
+                printf("Failed to open directory: %s\n", expandedPath);
                 return;
         }
 
@@ -365,11 +368,11 @@ void buildPlaylistRecursive(const char *directoryPath,
         char exto[100];
         struct dirent **entries;
         int numEntries =
-            scandir(directoryPath, &entries, NULL, compareLibEntries);
+            scandir(expandedPath, &entries, NULL, compareLibEntries);
 
         if (numEntries < 0)
         {
-                printf("Failed to scan directory: %s\n", directoryPath);
+                printf("Failed to scan directory: %s\n", expandedPath);
                 return;
         }
 
@@ -385,8 +388,19 @@ void buildPlaylistRecursive(const char *directoryPath,
                 }
 
                 char filePath[FILENAME_MAX];
-                snprintf(filePath, sizeof(filePath), "%s/%s", directoryPath,
+                snprintf(filePath, sizeof(filePath), "%s/%s", expandedPath,
                          entry->d_name);
+
+                size_t pathLen = strnlen(expandedPath, sizeof(expandedPath));
+                size_t nameLen = strnlen(entry->d_name, NAME_MAX);
+
+                if (pathLen + 1 + nameLen >= FILENAME_MAX)
+                {
+                        fprintf(stderr, "Path too long: %s/%s\n", expandedPath, entry->d_name);
+                        return; // or skip this entry
+                }
+
+                snprintf(filePath, sizeof(filePath), "%s/%s", expandedPath, entry->d_name);
 
                 if (isDirectory(filePath) == 1)
                 {
@@ -469,12 +483,15 @@ void makePlaylistName(const char *search, int maxSize)
         }
 }
 
-void readM3UFile(const char *filename, PlayList *playlist,
+void readM3UFile(const char *filepath, PlayList *playlist,
                  FileSystemEntry *library)
 {
         GError *error = NULL;
         gchar *contents;
         gchar **lines;
+
+        char filename[MAXPATHLEN];
+        expandPath(filepath, filename);
 
         if (!g_file_get_contents(filename, &contents, NULL, &error))
         {
@@ -561,6 +578,9 @@ int makePlaylist(PlayList **playlist, int argc, char *argv[], bool exactSearch, 
         int searchTypeIndex = 1;
         PlayList partialPlaylist = {NULL, NULL, 0, PTHREAD_MUTEX_INITIALIZER};
 
+        char expandedPath[MAXPATHLEN];
+        expandPath(path, expandedPath);
+
         if (strcmp(argv[1], "all") == 0)
         {
                 searchType = ReturnAllSongs;
@@ -622,7 +642,7 @@ int makePlaylist(PlayList **playlist, int argc, char *argv[], bool exactSearch, 
         {
                 pthread_mutex_lock(&((*playlist)->mutex));
 
-                buildPlaylistRecursive(path, allowedExtensions, *playlist);
+                buildPlaylistRecursive(expandedPath, allowedExtensions, *playlist);
 
                 pthread_mutex_unlock(&((*playlist)->mutex));
         }
@@ -642,7 +662,7 @@ int makePlaylist(PlayList **playlist, int argc, char *argv[], bool exactSearch, 
                         trim(token, MAXPATHLEN);
                         char *searching = g_utf8_casefold(token, -1);
 
-                        if (walker(path, searching, buf, allowedExtensions,
+                        if (walker(expandedPath, searching, buf, allowedExtensions,
                                    searchType, exactSearch, 0) == 0)
                         {
                                 if (strcmp(argv[1], "list") == 0)
@@ -769,6 +789,8 @@ void loadPlaylist(const char *directory, const char *playlistName,
 
 void loadFavoritesPlaylist(const char *directory, PlayList **favoritesPlaylist)
 {
+        char expandedPath[MAXPATHLEN];
+        expandPath(directory, expandedPath);
         loadPlaylist(directory, favoritesPlaylistName, favoritesPlaylist);
         setFavoritesPlaylist(*favoritesPlaylist);
 }
@@ -827,9 +849,12 @@ void saveNamedPlaylist(const char *directory, const char *playlistName,
 
 void saveFavoritesPlaylist(const char *directory, PlayList *favoritesPlaylist)
 {
+        char expandedPath[MAXPATHLEN];
+        expandPath(directory, expandedPath);
+
         if (favoritesPlaylist != NULL && favoritesPlaylist->count > 0)
         {
-                saveNamedPlaylist(directory, favoritesPlaylistName,
+                saveNamedPlaylist(expandedPath, favoritesPlaylistName,
                                   favoritesPlaylist);
         }
 }
@@ -849,20 +874,25 @@ void savePlaylist(const char *path, const PlayList *playlist)
                 return;
         }
 
+        char expandedPath[MAXPATHLEN];
+        expandPath(path, expandedPath);
+
         if (playlist->head == NULL || playlist->head->song.filePath == NULL)
                 return;
 
-        writeM3UFile(path, playlist);
+        writeM3UFile(expandedPath, playlist);
 }
 
 void exportCurrentPlaylist(const char *path, const PlayList *playlist)
 {
         char m3uFilename[MAXPATHLEN];
+        char expandedPath[MAXPATHLEN];
+        expandPath(path, expandedPath);
 
         if (path == NULL || playlist->head == NULL)
                 return;
 
-        generateM3UFilename(path, playlist->head->song.filePath, m3uFilename,
+        generateM3UFilename(expandedPath, playlist->head->song.filePath, m3uFilename,
                             sizeof(m3uFilename));
 
         savePlaylist(m3uFilename, playlist);

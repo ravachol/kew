@@ -26,14 +26,9 @@
 
 #include "sys/systemintegration.h"
 
-void playbackStop(void)
+void resumePlayback(void)
 {
-        stopPlayback();
-}
-
-void playbackResumePlayback(void)
-{
-        resumePlayback();
+        soundResumePlayback();
 }
 
 int loadDecoder(SongData *songData, bool *songDataDeleted)
@@ -213,12 +208,13 @@ void tryLoadNext(void)
         }
 }
 
-void playbackPause(struct timespec *pause_time)
+void pauseSong(void)
 {
+        struct timespec pauseTime = getPauseTime();
         if (!isPaused())
         {
                 emitStringPropertyChanged("PlaybackStatus", "Paused");
-                clock_gettime(CLOCK_MONOTONIC, pause_time);
+                clock_gettime(CLOCK_MONOTONIC, &pauseTime);
         }
         pausePlayback();
 }
@@ -256,7 +252,7 @@ void prepareIfSkippedSilent(void)
         }
 }
 
-void playbackPlay(void)
+void play(void)
 {
         PlaybackState *ps = getPlaybackState();
 
@@ -275,7 +271,7 @@ void playbackPlay(void)
                 skipToBegginningOfSong();
         }
 
-        resumePlayback();
+        soundResumePlayback();
 
         if (ps->hasSilentlySwitched)
         {
@@ -297,7 +293,7 @@ bool isValidAudioNode(Node *node)
         return true;
 }
 
-int play(Node *node)
+int playSong(Node *node)
 {
         AppState *state = getAppState();
         PlaybackState *ps = getPlaybackState();
@@ -360,7 +356,7 @@ int play(Node *node)
         return 0;
 }
 
-void playbackVolumeChange(int changePercent)
+void volumeChange(int changePercent)
 {
         adjustVolumePercent(changePercent);
 }
@@ -383,13 +379,13 @@ void skipToSong(int id, bool startPlaying)
                 double totalPauseSeconds = getTotalPauseSeconds();
                 double pauseSeconds = getTotalPauseSeconds();
 
-                playbackPlay();
+                play();
 
                 setTotalPauseSeconds(totalPauseSeconds);
                 setPauseSeconds(pauseSeconds);
         }
 
-        play(found);
+        playSong(found);
 }
 
 void stop(void)
@@ -434,32 +430,7 @@ void togglePause(void)
         }
 }
 
-void playbackSeekBack(int seconds)
-{
-        Node *current = getCurrentSong();
-        if (current == NULL)
-                return;
-
-#ifdef USE_FAAD
-        if (pathEndsWith(current->song.filePath, "aac"))
-        {
-                m4a_decoder *decoder = getCurrentM4aDecoder();
-                if (decoder != NULL && decoder->fileType == k_rawAAC)
-                        return;
-        }
-#endif
-
-        if (isPaused())
-                return;
-
-        double duration = current->song.duration;
-        if (duration <= 0.0)
-                return;
-
-        addToAccumulatedSeconds(-seconds);
-}
-
-void playbackSeekForward(int seconds)
+void seek(int seconds)
 {
         Node *current = getCurrentSong();
         if (current == NULL)

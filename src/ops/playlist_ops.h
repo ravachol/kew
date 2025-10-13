@@ -14,10 +14,10 @@
 
 #include "data/playlist.h"
 
-Node *chooseNextSong(void);
 Node *getSongByNumber(PlayList *playlist, int songNumber);
 Node *findSelectedEntryById(PlayList *playlist, int id);
 Node *findSelectedEntry(PlayList *playlist, int row);
+Node *determineNextSong(PlayList *playlist);
 void rebuildNextSong(Node *song);
 void repeatList(void);
 void moveSongUp(int *chosenRow);
@@ -33,7 +33,6 @@ void dequeueAllExceptPlayingSong(void);
 void addToFavoritesPlaylist(void);
 void reshufflePlaylist(void);
 void handleSkipOutOfOrder(void);
-Node *determineNextSong(PlayList *playlist);
 void playlistPlay(PlayList *playlist);
 void clearAndPlay(Node *song);
 bool playPreProcessing();
