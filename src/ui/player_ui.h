@@ -1,5 +1,5 @@
 /**
- * @file player_ui.[h]
+ * @file player_ui.h
  * @brief Main player screen rendering.
  *
  * Displays current track info, progress bar, and playback status.

@@ -1,5 +1,5 @@
 /**
- * @file mpris.[h]
+ * @file mpris.h
  * @brief MPRIS (Media Player Remote Interfacing Specification) integration.
  *
  * Implements D-Bus MPRIS interface support for desktop integration,

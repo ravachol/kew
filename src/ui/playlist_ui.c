@@ -1,5 +1,5 @@
 /**
- * @file playlist_ui.[c]
+ * @file playlist_ui.c
  * @brief Playlist display and interaction layer.
  *
  * Renders the list of tracks in the current playlist and handles

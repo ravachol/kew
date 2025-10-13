@@ -1,12 +1,11 @@
 /**
- * @file search_ui.[h]
+ * @file search_ui.h
  * @brief Search interface for tracks and artists.
  *
  * Provides UI and logic for querying the music library, filtering results,
  * and adding songs to playlists from search results.
  */
 
-#include "common/appstate.h"
 #include "data/directorytree.h"
 
 int displaySearch(int maxListSize, int indent, int *chosenRow, int startSearchIter);

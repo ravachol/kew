@@ -1,5 +1,5 @@
 /**
- * @file queue_ui.[h]
+ * @file queue_ui.h
  * @brief Handles high level enqueue
  *
  */

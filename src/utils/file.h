@@ -1,5 +1,5 @@
 /**
- * @file file.[h]
+ * @file file.h
  * @brief File and directory utilities.
  *
  * Provides wrappers around file I/O, path manipulation,

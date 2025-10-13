@@ -1,5 +1,5 @@
 /**
- * @file utils.[h]
+ * @file utils.h
  * @brief General-purpose utility functions and helpers.
  *
  * Provides miscellaneous helpers used across modules such as

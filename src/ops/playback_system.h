@@ -1,5 +1,5 @@
 /**
- * @file playback_system.[h]
+ * @file playback_system.h
  * @brief Low-level audio system integration.
  *
  * Manages initialization, configuration, and teardown of

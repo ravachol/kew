@@ -1,3 +1,9 @@
+/**
+ * @file common.h
+ * @brief Provides common function such as errorr message handling.
+ *
+ */
+
 #include "common/common.h"
 #include <pthread.h>
 #include <string.h>

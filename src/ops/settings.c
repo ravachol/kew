@@ -1,5 +1,5 @@
 /**
- * @file settings.[c]
+ * @file settings.c
  * @brief Application settings management.
  *
  * Loads, saves, and applies configuration settings such as
@@ -1378,7 +1378,7 @@ void setPrefs(AppSettings *settings, UISettings *ui)
                 fprintf(file, "repeatState=%s\n\n", settings->repeatState);
                 fprintf(file, "shuffleEnabled=%s\n\n", settings->shuffleEnabled);
         }
-        
+
         fprintf(file, "lastVolume=%s\n\n", settings->lastVolume);
         fprintf(file, "[track cover]\n\n");
         fprintf(file, "coverAnsi=%s\n\n", settings->coverAnsi);

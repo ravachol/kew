@@ -1,5 +1,5 @@
 /**
- * @file systemintegration.[h]
+ * @file systemintegration.h
  * @brief System-level integrations and OS interop.
  *
  * Provides hooks for platform-specific features such as
@@ -26,6 +26,7 @@ void notifyMPRISSwitch(SongData *currentSongData);
 void notifySongSwitch(SongData *currentSongData);
 void processDBusEvents(void);
 void resize(UIState *uis);
+void exitIfAlreadyRunning();
 GDBusConnection *getGDBusConnection(void);
 
 #endif
