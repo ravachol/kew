@@ -1,7 +1,7 @@
 #define _XOPEN_SOURCE 700
 
 /**
- * @file common_ui.[c]
+ * @file common_ui.c
  * @brief Shared UI utilities and layout helpers.
  *
  * Contains reusable functions for drawing text, handling resizing,

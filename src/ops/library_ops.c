@@ -1,5 +1,5 @@
 /**
- * @file library_ops.[h]
+ * @file library_ops.h
  * @brief Music library management and scanning operations.
  *
  * Responsible for reading directories, and updating the in-memory library

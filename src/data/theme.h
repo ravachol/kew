@@ -1,3 +1,10 @@
+/**
+ * @file theme.h
+ * @brief Loads themes.
+ *
+ * Loads themes, and copies the themes to config dir.
+ */
+
 #ifndef PIXELDATA_STRUCT
 #define PIXELDATA_STRUCT
 

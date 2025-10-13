@@ -1,7 +1,7 @@
 #define _XOPEN_SOURCE 700
 
 /**
- * @file cache.[c]
+ * @file cache.c
  * @brief Disk cache management for metadata and library data.
  *
  * Handles caching of song metadata, album art, and library indexes

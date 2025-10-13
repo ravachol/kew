@@ -1,5 +1,5 @@
 /**
- * @file control_ui.[c]
+ * @file control_ui.c
  * @brief Handles playback control interface rendering and input.
  *
  * Draws the transport controls (play/pause, skip, seek) and
@@ -296,7 +296,7 @@ void toggleShuffle(void)
         if (state->uiSettings.shuffleEnabled)
         {
                 pthread_mutex_lock(&(playlist->mutex));
-                
+
                 shufflePlaylistStartingFromSong(playlist, current);
 
                 pthread_mutex_unlock(&(playlist->mutex));

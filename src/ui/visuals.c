@@ -1,5 +1,5 @@
 /**
- * @file visuals.[c]
+ * @file visuals.c
  * @brief Audio visualization rendering.
  *
  * Implements ASCII or terminal-based visualizers that react

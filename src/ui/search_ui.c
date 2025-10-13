@@ -1,5 +1,5 @@
 /**
- * @file search_ui.[c]
+ * @file search_ui.c
  * @brief Search interface for tracks and artists.
  *
  * Provides UI and logic for querying the music library, filtering results,

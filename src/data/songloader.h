@@ -2,9 +2,7 @@
  * @file songloader.h
  * @brief Song loading and preparation routines.
  *
- * Responsible for preparing a song for playback, including reading metadata,
- * initializing decoders, and allocating playback buffers. Acts as the bridge
- * between playlist entries and the playback subsystem.
+ * Responsible for loading song data from file
  */
 
 #include <stdbool.h>

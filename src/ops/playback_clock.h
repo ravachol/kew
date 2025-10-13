@@ -1,5 +1,5 @@
 /**
- * @file playback_clock.[h]
+ * @file playback_clock.h
  * @brief Playback timing and synchronization utilities.
  *
  * Handles timing measurements for song progress, seek operations,

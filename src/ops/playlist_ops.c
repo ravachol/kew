@@ -1,5 +1,5 @@
 /**
- * @file playlist_ops.[c]
+ * @file playlist_ops.c
  * @brief Playlist management operations.
  *
  * Implements functionality for adding, removing, reordering,

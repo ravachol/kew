@@ -1,5 +1,5 @@
 /**
- * @file directorytree.[c]
+ * @file directorytree.c
  * @brief Filesystem scanning and in-memory tree construction.
  *
  * Provides operations for recursively traversing directories and

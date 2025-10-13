@@ -1,3 +1,10 @@
+/**
+ * @file common.h
+ * @brief Provides common function such as errorr message handling.
+ *
+ */
+
+
 #ifndef COMMON_H
 #define COMMON_H
 

@@ -1,5 +1,5 @@
 /**
- * @file cache.[h]
+ * @file cache.h
  * @brief Disk cache management for metadata and library data.
  *
  * Handles caching of song metadata, album art, and library indexes

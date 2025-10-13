@@ -1,5 +1,5 @@
 /**
- * @file input.[h]
+ * @file input.h
  * @brief Handles keyboard and terminal input events.
  */
 

@@ -41,7 +41,6 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include "sys/mpris.h"
 #include "sys/notifications.h"
 #include "sys/systemintegration.h"
-#include "sys/process.h"
 
 #include "ui/common_ui.h"
 #include "ui/input.h"

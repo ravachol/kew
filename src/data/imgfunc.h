@@ -1,5 +1,5 @@
 /**
- * @file imgfunc.[h]
+ * @file imgfunc.h
  * @brief Image rendering and conversion helpers using Chafa.
  *
  * Handles loading and displaying album art or other images in the terminal

@@ -1,5 +1,5 @@
-/**
- * @file settings.[h]
+/*
+ * @file settings.h
  * @brief Application settings management.
  *
  * Loads, saves, and applies configuration settings such as
