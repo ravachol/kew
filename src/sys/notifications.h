@@ -18,7 +18,6 @@
 #ifdef USE_DBUS
 
 int displaySongNotification(const char *artist, const char *title, const char *cover, UISettings *ui);
-
 void cleanupNotifications(void);
 
 #endif

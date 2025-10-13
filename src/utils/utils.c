@@ -714,3 +714,21 @@ int copyFile(const char *src, const char *dst)
 
         return 0;
 }
+
+int getNumberFromString(const char *str)
+{
+        char *endptr;
+        long value = strtol(str, &endptr, 10);
+
+        if (*endptr != '\0')
+        {
+                return 0;
+        }
+
+        if (value < 0 || value > INT_MAX)
+        {
+                return 0;
+        }
+
+        return (int)value;
+}

@@ -8,11 +8,17 @@
 
 #include "playlist_ui.h"
 
+#include "common/common.h"
+#include "ops/playback_state.h"
+#include "ops/playback_system.h"
+
 #include "common/appstate.h"
 #include "common_ui.h"
 
 #include "data/songloader.h"
 
+#include "ops/playlist_ops.h"
+#include "sys/mpris.h"
 #include "utils/term.h"
 #include "utils/utils.h"
 
@@ -141,7 +147,7 @@ int displayPlaylistItems(Node *startNode, int startIter, int maxListSize,
                         printf("   %d. ", i + 1);
 
                         applyColor(ui->colorMode, ui->theme.playlist_title,
-                                   rowColor);
+                                   ui->defaultColorRGB);
 
                         isSameNameAsLastTime =
                             (previousChosenSong == chosenSong);
@@ -312,4 +318,37 @@ int displayPlaylist(PlayList *list, int maxListSize, int indent,
         }
 
         return printedRows;
+}
+
+void setEndOfListReached(void)
+{
+        AppState *state = getAppState();
+        AudioData *audioData = getAudioData();
+        PlaybackState *ps = getPlaybackState();
+
+        ps->loadedNextSong = false;
+        ps->waitingForNext = true;
+        audioData->endOfListReached = true;
+        audioData->currentFileIndex = 0;
+        audioData->restart = true;
+        ps->usingSongDataA = false;
+        ps->loadingdata.loadA = true;
+
+        clearCurrentSong();
+
+        playbackCleanup();
+
+        triggerRefresh();
+
+        if (playbackIsRepeatListEnabled())
+                repeatList();
+        else
+        {
+                emitPlaybackStoppedMpris();
+                emitMetadataChanged("", "", "", "",
+                                    "/org/mpris/MediaPlayer2/TrackList/NoTrack",
+                                    NULL, 0);
+                state->currentView = LIBRARY_VIEW;
+                clearScreen();
+        }
 }

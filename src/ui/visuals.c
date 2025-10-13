@@ -6,6 +6,8 @@
  * to playback data such as amplitude or frequency spectrum.
  */
 
+ #include "common/appstate.h"
+
 #include "common_ui.h"
 
 #include "visuals.h"
@@ -571,7 +573,7 @@ void freeVisuals(void)
 void drawSpectrumVisualizer(int row, int col, int height)
 {
         AppState *state = getAppState();
-        
+
         int numBars = state->uiState.numProgressBars;
         int visualizerWidth = state->uiState.numProgressBars;
         visualizerBarWidth = state->uiSettings.visualizerBarWidth;
