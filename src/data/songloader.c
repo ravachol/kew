@@ -298,9 +298,9 @@ gchar *generateTrackId(void)
         return trackId;
 }
 
-void loadColor(SongData *songdata)
+int loadColor(SongData *songdata)
 {
-        getCoverColor(songdata->cover, songdata->coverWidth,
+        return getCoverColor(songdata->cover, songdata->coverWidth,
                       songdata->coverHeight, &(songdata->red),
                       &(songdata->green), &(songdata->blue));
 }
@@ -394,7 +394,14 @@ SongData *loadSongData(char *filePath)
         c_strcpy(songdata->filePath, filePath, sizeof(songdata->filePath));
         loadMetaData(songdata);
         songdata->lyrics = loadLyrics(songdata->filePath);
-        loadColor(songdata);
+        int res = loadColor(songdata);
+
+        if (songdata->cover && res != 0)
+        {
+                songdata->red = state->uiSettings.defaultColorRGB.r;
+                songdata->green = state->uiSettings.defaultColorRGB.g;
+                songdata->blue = state->uiSettings.defaultColorRGB.b;
+        }
 
         return songdata;
 }
