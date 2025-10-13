@@ -116,17 +116,19 @@ void handleInput(void)
                 }
                 break;
         case EVENT_TOGGLEVISUALIZER:
-                toggleVisualizer(settings, &(state->uiSettings));
+                toggleVisualizer();
                 break;
         case EVENT_TOGGLEREPEAT:
                 toggleRepeat();
                 break;
         case EVENT_TOGGLEASCII:
-                toggleAscii(settings, &(state->uiSettings));
+                toggleAscii();
+                break;
+        case EVENT_TOGGLENOTIFICATIONS:
+                toggleNotifications();
                 break;
         case EVENT_SHUFFLE:
                 toggleShuffle();
-                emitShuffleChanged();
                 break;
         case EVENT_SHOWLYRICSPAGE:
                 toggleShowLyricsPage();
@@ -135,10 +137,7 @@ void handleInput(void)
                 cycleColorMode();
                 break;
         case EVENT_CYCLETHEMES:
-                cycleThemes(settings);
-                break;
-        case EVENT_TOGGLENOTIFICATIONS:
-                toggleNotifications(&(state->uiSettings), settings);
+                cycleThemes();
                 break;
         case EVENT_QUIT:
                 quit();
@@ -164,10 +163,10 @@ void handleInput(void)
                 skipToPrevSong();
                 break;
         case EVENT_SEEKBACK:
-                seekBack(&(state->uiState));
+                seekBack();
                 break;
         case EVENT_SEEKFORWARD:
-                seekForward(&(state->uiState));
+                seekForward();
                 break;
         case EVENT_ADDTOFAVORITESPLAYLIST:
                 addToFavoritesPlaylist();

@@ -99,7 +99,6 @@ bool initTheme(int argc, char *argv[])
 {
         AppState *state = getAppState();
         UISettings *ui = &(state->uiSettings);
-        AppSettings *settings = getAppSettings();
         bool themeLoaded = false;
 
         // Command-line theme handling
@@ -110,7 +109,7 @@ bool initTheme(int argc, char *argv[])
         else if (argc == 3 && strcmp(argv[1], "theme") == 0)
         {
                 // Try to load the user-specified theme
-                if (loadTheme(settings, argv[2], false) > 0)
+                if (loadTheme(argv[2], false) > 0)
                 {
                         ui->colorMode = COLOR_MODE_THEME;
                         themeLoaded = true;
@@ -128,7 +127,7 @@ bool initTheme(int argc, char *argv[])
         else if (ui->colorMode == COLOR_MODE_THEME)
         {
                 // If UI has a themeName stored, try to load it
-                if (loadTheme(settings, ui->themeName, false) > 0)
+                if (loadTheme(ui->themeName, false) > 0)
                 {
                         ui->colorMode = COLOR_MODE_THEME;
                         themeLoaded = true;
@@ -140,7 +139,7 @@ bool initTheme(int argc, char *argv[])
         {
                 // Load "default" ANSI theme, but don't overwrite
                 // settings->theme
-                if (loadTheme(settings, "default", true))
+                if (loadTheme("default", true))
                 {
                         themeLoaded = true;
                 }
