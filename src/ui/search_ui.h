@@ -16,4 +16,3 @@ int getSearchResultsCount(void);
 void freeSearchResults(void);
 void fuzzySearch(FileSystemEntry *root, int threshold);
 FileSystemEntry *getCurrentSearchEntry(void);
-FileSystemEntry *searchEnqueue(PlayList *playlist);

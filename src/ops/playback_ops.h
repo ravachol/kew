@@ -12,16 +12,14 @@
 
 #include "common/appstate.h"
 
-int play(Node *node);
+int playSong(Node *node);
+void pauseSong(void);
+void play(void);
 void stop(void);
-void playbackPlay(void);
-void playbackResumePlayback(void);
-void playbackPause(struct timespec *pause_time);
-void playbackStop(void);
-void playbackVolumeChange(int changePercent);
-void playbackSeekForward(int seconds);
-void playbackSeekBack(int seconds);
 void togglePause(void);
+void resumePlayback(void);
+void volumeChange(int changePercent);
+void seek(int seconds);
 void skipToSong(int id, bool startPlaying);
 
 #endif

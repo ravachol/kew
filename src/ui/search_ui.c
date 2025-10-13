@@ -14,7 +14,6 @@
 
 #include "data/playlist.h"
 
-#include "ui/player_ui.h"
 #include "ui/queue_ui.h"
 
 #include "utils/term.h"
@@ -277,29 +276,6 @@ void sortSearchResults(void)
 {
         calculateGroupDistances();
         qsort(results, resultsCount, sizeof(SearchResult), compareResults);
-}
-
-FileSystemEntry *searchEnqueue(PlayList *playlist)
-{
-        PlaybackState *ps = getPlaybackState();
-
-        pthread_mutex_lock(&(playlist->mutex));
-
-        FileSystemEntry *entry = getCurrentSearchEntry();
-        ps->waitingForPlaylist = false;
-
-        setChosenDir(entry);
-
-        FileSystemEntry *chosenDir = getChosenDir();
-        FileSystemEntry *firstEnqueuedEntry = enqueueSongs(entry, &chosenDir);
-
-        setChosenDir(chosenDir);
-
-        setChosenDir(chosenDir);
-        resetListAfterDequeuingPlayingSong();
-        pthread_mutex_unlock(&(playlist->mutex));
-
-        return firstEnqueuedEntry;
 }
 
 void fuzzySearch(FileSystemEntry *root, int threshold)

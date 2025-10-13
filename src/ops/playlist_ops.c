@@ -496,7 +496,7 @@ void skipToNextSong(void)
         double totalPauseSeconds = getTotalPauseSeconds();
         double pauseSeconds = getTotalPauseSeconds();
 
-        playbackPlay();
+        play();
 
         setTotalPauseSeconds(totalPauseSeconds);
         setPauseSeconds(pauseSeconds);
@@ -547,7 +547,7 @@ void skipToPrevSong(void)
         double totalPauseSeconds = getTotalPauseSeconds();
         double pauseSeconds = getTotalPauseSeconds();
 
-        playbackPlay();
+        play();
 
         setTotalPauseSeconds(totalPauseSeconds);
         setPauseSeconds(pauseSeconds);
@@ -599,7 +599,7 @@ void skipToNumberedSong(int songNumber)
         double totalPauseSeconds = getTotalPauseSeconds();
         double pauseSeconds = getTotalPauseSeconds();
 
-        playbackPlay();
+        play();
 
         setTotalPauseSeconds(totalPauseSeconds);
         setPauseSeconds(pauseSeconds);
@@ -933,24 +933,19 @@ void clearAndPlay(Node *song)
 
         playbackCleanup();
 
-        ps->loadedNextSong = true;
-
-        ps->nextSongNeedsRebuilding = false;
-
         unloadSongA();
         unloadSongB();
 
+        ps->loadedNextSong = true;
+        ps->nextSongNeedsRebuilding = false;
         ps->usingSongDataA = false;
-
-        audioData->currentFileIndex = 0;
-
         ps->loadingdata.loadA = true;
-
+        audioData->currentFileIndex = 0;
         bool wasEndOfList = playPreProcessing();
 
-        playbackPlay();
+        play();
 
-        if (play(song) < 0)
+        if (playSong(song) < 0)
         {
                 skipToSong(song->next->id, true);
         }

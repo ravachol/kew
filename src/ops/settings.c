@@ -1349,18 +1349,22 @@ void setPrefs(AppSettings *settings, UISettings *ui)
                     : c_strcpy(settings->visualizerEnabled, "0",
                                sizeof(settings->visualizerEnabled));
 
-snprintf(settings->repeatState, sizeof(settings->repeatState), "%d",
-                 ui->repeatState);
+        if (ui->saveRepeatShuffleSettings)
+        {
+                snprintf(settings->repeatState, sizeof(settings->repeatState), "%d",
+                         ui->repeatState);
 
-        ui->shuffleEnabled ? c_strcpy(settings->shuffleEnabled, "1",
-                                      sizeof(settings->shuffleEnabled))
-                           : c_strcpy(settings->shuffleEnabled, "0",
-                                      sizeof(settings->shuffleEnabled));
+                ui->shuffleEnabled ? c_strcpy(settings->shuffleEnabled, "1",
+                                              sizeof(settings->shuffleEnabled))
+                                   : c_strcpy(settings->shuffleEnabled, "0",
+                                              sizeof(settings->shuffleEnabled));
+        }
+
         if (settings->visualizerColorType[0] == '\0')
                 snprintf(settings->visualizerColorType,
                          sizeof(settings->visualizerColorType), "%d",
                          ui->visualizerColorType);
-                         
+
         int currentVolume = getCurrentVolume();
         currentVolume = (currentVolume <= 0) ? 10 : currentVolume;
         snprintf(settings->lastVolume, sizeof(settings->lastVolume), "%d",
@@ -1368,8 +1372,13 @@ snprintf(settings->repeatState, sizeof(settings->repeatState), "%d",
 
         fprintf(file, "\n[miscellaneous]\n\n");
         fprintf(file, "allowNotifications=%s\n\n", settings->allowNotifications);
-        fprintf(file, "repeatState=%s\n\n", settings->repeatState);
-        fprintf(file, "shuffleEnabled=%s\n\n", settings->shuffleEnabled);
+
+        if (ui->saveRepeatShuffleSettings)
+        {
+                fprintf(file, "repeatState=%s\n\n", settings->repeatState);
+                fprintf(file, "shuffleEnabled=%s\n\n", settings->shuffleEnabled);
+        }
+        
         fprintf(file, "lastVolume=%s\n\n", settings->lastVolume);
         fprintf(file, "[track cover]\n\n");
         fprintf(file, "coverAnsi=%s\n\n", settings->coverAnsi);
@@ -1529,7 +1538,6 @@ void setConfig(AppSettings *settings, UISettings *ui)
 
         fprintf(file, "\n[miscellaneous]\n\n");
         fprintf(file, "path=%s\n", settings->path);
-        fprintf(file, "version=%s\n", ui->VERSION);
         fprintf(file, "allowNotifications=%s\n", settings->allowNotifications);
         fprintf(file, "hideLogo=%s\n", settings->hideLogo);
         fprintf(file, "hideHelp=%s\n", settings->hideHelp);

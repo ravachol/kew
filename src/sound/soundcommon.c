@@ -1109,7 +1109,7 @@ void togglePausePlayback(void)
         }
         else if (isPaused() || isStopped())
         {
-                resumePlayback();
+                soundResumePlayback();
         }
 }
 
@@ -1131,7 +1131,7 @@ bool hasBuiltinDecoder(char *filePath)
                                       strcasecmp(extension, ".mp3") == 0));
 }
 
-void resumePlayback(void)
+void soundResumePlayback(void)
 {
         // If this was unpaused with no song loaded
 

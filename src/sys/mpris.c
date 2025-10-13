@@ -242,9 +242,7 @@ static void handle_pause(GDBusConnection *connection, const gchar *sender,
         (void)invocation;
         (void)user_data;
 
-        struct timespec pauseTime = getPauseTime();
-
-        playbackPause(&pauseTime);
+        pauseSong();
         g_dbus_method_invocation_return_value(invocation, NULL);
 }
 
@@ -301,7 +299,7 @@ static void handle_play(GDBusConnection *connection, const gchar *sender,
         (void)invocation;
         (void)user_data;
 
-        playbackPlay();
+        play();
 
         g_dbus_method_invocation_return_value(invocation, NULL);
 }
