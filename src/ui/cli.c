@@ -148,23 +148,14 @@ void setMusicPath(UISettings *ui)
                         printf("\n\n");
 
                         printBlankSpaces(indent);
-
                         printf("Music Library: ");
-
                         applyColor(COLOR_MODE_ALBUM, ui->theme.text, ui->kewColorRGB);
-
                         printf("%s\n\n", path);
-
                         applyColor(COLOR_MODE_ALBUM, ui->theme.text, ui->defaultColorRGB);
-
                         printBlankSpaces(indent);
-
                         printf("Is this correct? Press Enter.\n\n");
-
                         printBlankSpaces(indent);
-
                         printf("Or type a path (no quotes or single-quotes):\n\n");
-
                         printBlankSpaces(indent);
 
                         applyColor(COLOR_MODE_ALBUM, ui->theme.text, ui->kewColorRGB);
@@ -195,9 +186,7 @@ void setMusicPath(UISettings *ui)
         if (found < 1)
         {
                 printf("Type a path (no quotes or single-quotes):\n\n");
-
                 printBlankSpaces(indent);
-
                 applyColor(COLOR_MODE_ALBUM, ui->theme.text, ui->kewColorRGB);
 
                 if (fgets(choice, sizeof(choice), stdin) == NULL)
@@ -214,11 +203,7 @@ void setMusicPath(UISettings *ui)
         // Set the path if the chosen directory exists
         if (directoryExists(choice))
         {
-                char expanded[MAXPATHLEN];
-
-                expandPath(choice, expanded);
-
-                c_strcpy(settings->path, expanded, sizeof(settings->path));
+                c_strcpy(settings->path, choice, sizeof(settings->path));
 
                 found = 1;
         }
