@@ -154,8 +154,11 @@ bool initTheme(int argc, char *argv[])
         return themeLoaded;
 }
 
-void setTrackTitleAsWindowTitle(UISettings *ui)
+void setTrackTitleAsWindowTitle(void)
 {
+        AppState *state = getAppState();
+        UISettings *ui = &(state->uiSettings);
+
         if (ui->trackTitleAsWindowTitle)
         {
                 saveTerminalWindowTitle();
@@ -2279,10 +2282,10 @@ void showTrackView(int width, int height, AppSettings *settings,
         }
 }
 
-int printPlayer(SongData *songdata, double elapsedSeconds,
-                AppSettings *settings)
+int printPlayer(SongData *songdata, double elapsedSeconds)
 {
         AppState *state = getAppState();
+        AppSettings *settings = getAppSettings();
         UISettings *ui = &(state->uiSettings);
         UIState *uis = &(state->uiState);
         PlayList *unshuffledPlaylist = getUnshuffledPlaylist();
@@ -2398,7 +2401,6 @@ void refreshPlayer()
 {
         AppState *state = getAppState();
         PlaybackState *ps = getPlaybackState();
-        AppSettings *settings = getAppSettings();
 
         int mutexResult = pthread_mutex_trylock(&(state->switchMutex));
 
@@ -2424,7 +2426,7 @@ void refreshPlayer()
 
         if (shouldRefreshPlayer())
         {
-                printPlayer(getCurrentSongData(), getElapsedSeconds(), settings);
+                printPlayer(getCurrentSongData(), getElapsedSeconds());
         }
 
         pthread_mutex_unlock(&(state->switchMutex));

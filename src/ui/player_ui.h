@@ -55,7 +55,7 @@ typedef struct
 
 int printLogoArt(const UISettings *ui, int indent, bool centered, bool printTagLine, bool useGradient);
 int calcIndentNormal(void);
-int printPlayer(SongData *songdata, double elapsedSeconds, AppSettings *settings);
+int printPlayer(SongData *songdata, double elapsedSeconds);
 int getFooterRow(void);
 int getFooterCol(void);
 void flipNextPage(void);
@@ -79,7 +79,7 @@ void resetSearchResult(void);
 int getChosenRow(void);
 void setChosenRow(int row);
 void refreshPlayer();
-void setTrackTitleAsWindowTitle(UISettings *ui);
+void setTrackTitleAsWindowTitle(void);
 bool initTheme(int argc, char *argv[]);
 
 #endif

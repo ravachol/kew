@@ -12,9 +12,9 @@
 
 #include "common/appstate.h"
 
-void createLibrary(AppSettings *settings, char *libFilepath);
+void createLibrary(char *libFilepath);
 void updateLibrary(char *path);
-void askIfCacheLibrary(UISettings *ui);
+void askIfCacheLibrary(void);
 void sortLibrary(void);
 void markListAsEnqueued(FileSystemEntry *root, PlayList *playlist);
 bool markAsDequeued(FileSystemEntry *root, char *path);
