@@ -19,14 +19,15 @@
 #define _BSD_SOURCE
 #endif
 
+int getIndentation(int textWidth);
+int isInputAvailable(void);
+int readInputSequence(char *seq, size_t seqSize);
 void setTerminalColor(int color);
 void setTextColorRGB(int r, int g, int b);
 void getTermSize(int *width, int *height);
-int getIndentation(int textWidth);
 void setNonblockingMode(void);
 void restoreTerminalMode(void);
 void setDefaultTextColor(void);
-int isInputAvailable(void);
 void resetConsole(void);
 void saveCursorPosition(void);
 void restoreCursorPosition(void);
@@ -44,7 +45,6 @@ void enableInputBuffering(void);
 void cursorJump(int numRows);
 void cursorJumpDown(int numRows);
 void clearScreen(void);
-int readInputSequence(char *seq, size_t seqSize);
 void enterAlternateScreenBuffer(void);
 void exitAlternateScreenBuffer(void);
 void enableTerminalMouseButtons(void);

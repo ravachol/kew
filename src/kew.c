@@ -1,4 +1,4 @@
-/* kew - A terminal music player
+/* kew - Music For The Shell
 Copyright (C) 2022 Ravachol
 
 http://codeberg.org/ravachol/kew
@@ -51,6 +51,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include "ui/visuals.h"
 #include "ui/queue_ui.h"
 #include "ui/cli.h"
+#include "ui/settings.h"
 
 #include "ops/library_ops.h"
 #include "ops/playback_clock.h"
@@ -58,7 +59,6 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include "ops/playback_state.h"
 #include "ops/playback_system.h"
 #include "ops/playlist_ops.h"
-#include "ops/settings.h"
 #include "ops/trackmanager.h"
 
 #include "utils/cache.h"
@@ -345,7 +345,6 @@ void checkAndLoadNextSong(void)
                         if (!nextSong)
                                 return;
 
-                        // Reset relevant UI state
                         audioData->restart = false;
                         ps->waitingForPlaylist = false;
                         ps->waitingForNext = false;
@@ -371,8 +370,7 @@ void checkAndLoadNextSong(void)
         }
 }
 
-
-void updatePlayerStatus(void)
+void updateAndLoad(void)
 {
         updatePlayer();
 
@@ -421,7 +419,7 @@ gboolean mainloopCallback(gpointer data)
         {
                 processDBusEvents();
 
-                updatePlayerStatus();
+                updateAndLoad();
         }
 
         return TRUE;
@@ -845,7 +843,7 @@ int main(int argc, char *argv[])
         AppState *state = getAppState();
 
         initState();
-        exitIfAlreadyRunning();
+        restartIfAlreadyRunning(argv);
 
         AppSettings *settings = getAppSettings();
         PlayList *playlist = getPlaylist();
@@ -868,6 +866,7 @@ int main(int argc, char *argv[])
         }
 
         *settings = initSettings();
+        transferSettingsToUI();
         initKeyMappings(settings);
         setTrackTitleAsWindowTitle();
 

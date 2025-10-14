@@ -24,12 +24,12 @@ typedef enum
 
 void setErrorMessage(const char *message);
 bool hasErrorMessage(void);
-char *getErrorMessage(void);
 void clearErrorMessage(void);
 void markErrorMessageAsPrinted(void);
 void triggerRefresh(void);
 void cancelRefresh(void);
 bool isRefreshTriggered(void);
 bool hasPrintedErrorMessage(void);
+char *getErrorMessage(void);
 
 #endif

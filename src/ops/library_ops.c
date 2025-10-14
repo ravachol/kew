@@ -452,6 +452,8 @@ void createLibrary(char *libFilepath)
 
                 setErrorMessage(message);
         }
+
+        setLibrary(library);
 }
 
 void enqueueSong(FileSystemEntry *child)

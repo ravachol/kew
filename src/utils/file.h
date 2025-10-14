@@ -35,16 +35,16 @@ enum SearchType
 };
 
 const char *getTempDir();
-int directoryExists(const char *path);
 void getDirectoryFromPath(const char *path, char *directory);
+void collapsePath(const char *input, char *output);
+void generateTempFilePath(char *filePath, const char *prefix, const char *suffix);
+int directoryExists(const char *path);
 int isDirectory(const char *path);
 int walker(const char *startPath, const char *searching, char *result,
            const char *allowedExtensions, enum SearchType searchType, bool exactSearch, int depth);
 int expandPath(const char *inputPath, char *expandedPath);
-void collapsePath(const char *input, char *output);
 int createDirectory(const char *path);
 int deleteFile(const char *filePath);
-void generateTempFilePath(char *filePath, const char *prefix, const char *suffix);
 int isInTempDir(const char *path);
 int existsFile(const char *fname);
 

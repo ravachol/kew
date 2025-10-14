@@ -21,12 +21,14 @@ void emitStringPropertyChanged(const gchar *propertyName, const gchar *newValue)
 void updatePlaybackPosition(double elapsedSeconds);
 void emitSeekedSignal(double newPositionSeconds);
 void emitBooleanPropertyChanged(const gchar *propertyName, gboolean newValue);
-void quit(void);
 void notifyMPRISSwitch(SongData *currentSongData);
 void notifySongSwitch(SongData *currentSongData);
 void processDBusEvents(void);
 void resize(UIState *uis);
-void exitIfAlreadyRunning();
+void restartIfAlreadyRunning(char *argv[]);
+void restartKew(char *argv[]);
+void quit(void);
 GDBusConnection *getGDBusConnection(void);
+
 
 #endif

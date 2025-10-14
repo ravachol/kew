@@ -1,3 +1,4 @@
+#include "common/events.h"
 #define _XOPEN_SOURCE 700
 
 /**
@@ -45,6 +46,211 @@ void setAlbumColor(PixelData color)
         else
         {
                 setRGB(color);
+        }
+}
+
+enum EventType getMouseAction(int num)
+{
+        enum EventType value = EVENT_NONE;
+
+        switch (num)
+        {
+        case 0:
+                value = EVENT_NONE;
+                break;
+        case 1:
+                value = EVENT_ENQUEUE;
+                break;
+        case 2:
+                value = EVENT_PLAY_PAUSE;
+                break;
+        case 3:
+                value = EVENT_SCROLLPREV;
+                break;
+        case 4:
+                value = EVENT_SCROLLNEXT;
+                break;
+        case 5:
+                value = EVENT_SEEKFORWARD;
+                break;
+        case 6:
+                value = EVENT_SEEKBACK;
+                break;
+        case 7:
+                value = EVENT_VOLUME_UP;
+                break;
+        case 8:
+                value = EVENT_VOLUME_DOWN;
+                break;
+        case 9:
+                value = EVENT_NEXTVIEW;
+                break;
+        case 10:
+                value = EVENT_PREVVIEW;
+                break;
+        default:
+                value = EVENT_NONE;
+                break;
+        }
+
+        return value;
+}
+
+int getBytesInFirstChar(const char *str)
+{
+        if (str == NULL || str[0] == '\0')
+        {
+                return 0;
+        }
+
+        mbstate_t state;
+        memset(&state, 0, sizeof(state));
+        wchar_t wc;
+        int numBytes = mbrtowc(&wc, str, MB_CUR_MAX, &state);
+
+        return numBytes;
+}
+
+void enableMouse(UISettings *ui)
+{
+        if (ui->mouseEnabled)
+                enableTerminalMouseButtons();
+}
+
+void transferSettingsToUI(void)
+{
+        AppState *state = getAppState();
+        AppSettings *settings = getAppSettings();
+        UISettings *ui = &(state->uiSettings);
+
+        ui->allowNotifications = (settings->allowNotifications[0] == '1');
+        ui->coverEnabled = (settings->coverEnabled[0] == '1');
+        ui->coverAnsi = (settings->coverAnsi[0] == '1');
+        ui->visualizerEnabled = (settings->visualizerEnabled[0] == '1');
+        ui->quitAfterStopping = (settings->quitAfterStopping[0] == '1');
+        ui->hideGlimmeringText = (settings->hideGlimmeringText[0] == '1');
+        ui->mouseEnabled = (settings->mouseEnabled[0] == '1');
+        ui->shuffleEnabled = (settings->shuffleEnabled[0] == '1');
+        ui->visualizerBrailleMode = (settings->visualizerBrailleMode[0] == '1');
+        ui->hideLogo = (settings->hideLogo[0] == '1');
+        ui->hideHelp = (settings->hideHelp[0] == '1');
+        ui->saveRepeatShuffleSettings =
+            (settings->saveRepeatShuffleSettings[0] == '1');
+        ui->trackTitleAsWindowTitle =
+            (settings->trackTitleAsWindowTitle[0] == '1');
+        ui->allowNotifications = (settings->allowNotifications[0] == '1');
+        ui->coverEnabled = (settings->coverEnabled[0] == '1');
+        ui->coverAnsi = (settings->coverAnsi[0] == '1');
+        ui->visualizerEnabled = (settings->visualizerEnabled[0] == '1');
+        ui->shuffleEnabled = (settings->shuffleEnabled[0] == '1');
+
+        int tmpNumBytes =
+            getBytesInFirstChar(settings->progressBarElapsedEvenChar);
+        if (tmpNumBytes != 0)
+                settings->progressBarElapsedEvenChar[tmpNumBytes] = '\0';
+
+        tmpNumBytes = getBytesInFirstChar(settings->progressBarElapsedOddChar);
+        if (tmpNumBytes != 0)
+                settings->progressBarElapsedOddChar[tmpNumBytes] = '\0';
+
+        tmpNumBytes =
+            getBytesInFirstChar(settings->progressBarApproachingEvenChar);
+        if (tmpNumBytes != 0)
+                settings->progressBarApproachingEvenChar[tmpNumBytes] = '\0';
+
+        tmpNumBytes =
+            getBytesInFirstChar(settings->progressBarApproachingOddChar);
+        if (tmpNumBytes != 0)
+                settings->progressBarApproachingOddChar[tmpNumBytes] = '\0';
+
+        tmpNumBytes = getBytesInFirstChar(settings->progressBarCurrentEvenChar);
+        if (tmpNumBytes != 0)
+                settings->progressBarCurrentEvenChar[tmpNumBytes] = '\0';
+
+        tmpNumBytes = getBytesInFirstChar(settings->progressBarCurrentOddChar);
+        if (tmpNumBytes != 0)
+                settings->progressBarCurrentOddChar[tmpNumBytes] = '\0';
+
+        int tmp = getNumber(settings->repeatState);
+        if (tmp >= 0)
+                ui->repeatState = tmp;
+
+        tmp = getNumber(settings->colorMode);
+        if (tmp >= 0 && tmp < 3)
+        {
+                ui->colorMode = tmp;
+        }
+
+        tmp = getNumber(settings->replayGainCheckFirst);
+        if (tmp >= 0)
+                ui->replayGainCheckFirst = tmp;
+
+        tmp = getNumber(settings->mouseLeftClickAction);
+
+        enum EventType tmpEvent = getMouseAction(tmp);
+        if (tmp >= 0)
+                ui->mouseLeftClickAction = tmpEvent;
+
+        tmp = getNumber(settings->mouseMiddleClickAction);
+        tmpEvent = getMouseAction(tmp);
+        if (tmp >= 0)
+                ui->mouseMiddleClickAction = tmpEvent;
+
+        tmp = getNumber(settings->mouseRightClickAction);
+        tmpEvent = getMouseAction(tmp);
+        if (tmp >= 0)
+                ui->mouseRightClickAction = tmpEvent;
+
+        tmp = getNumber(settings->mouseScrollUpAction);
+        tmpEvent = getMouseAction(tmp);
+        if (tmp >= 0)
+                ui->mouseScrollUpAction = tmpEvent;
+
+        tmp = getNumber(settings->mouseScrollDownAction);
+        tmpEvent = getMouseAction(tmp);
+        if (tmp >= 0)
+                ui->mouseScrollDownAction = tmpEvent;
+
+        tmp = getNumber(settings->mouseAltScrollUpAction);
+        tmpEvent = getMouseAction(tmp);
+        if (tmp >= 0)
+                ui->mouseAltScrollUpAction = tmpEvent;
+
+        tmp = getNumber(settings->mouseAltScrollDownAction);
+        tmpEvent = getMouseAction(tmp);
+        if (tmp >= 0)
+                ui->mouseAltScrollDownAction = tmpEvent;
+
+        tmp = getNumber(settings->visualizerHeight);
+        if (tmp > 0)
+                ui->visualizerHeight = tmp;
+
+        tmp = getNumber(settings->visualizerBarWidth);
+        if (tmp >= 0)
+                ui->visualizerBarWidth = tmp;
+
+        tmp = getNumber(settings->visualizerColorType);
+        if (tmp >= 0)
+                ui->visualizerColorType = tmp;
+
+        tmp = getNumber(settings->titleDelay);
+        if (tmp >= 0)
+                ui->titleDelay = tmp;
+
+        tmp = getNumber(settings->cacheLibrary);
+        if (tmp >= 0)
+                ui->cacheLibrary = tmp;
+
+        snprintf(ui->themeName, sizeof(ui->themeName), "%s", settings->theme);
+
+        if (!(ui->colorMode >= 0 && ui->colorMode < 3))
+        {
+                bool useConfigColors = (settings->useConfigColors[0] == '1');
+
+                if (useConfigColors)
+                        ui->colorMode = COLOR_MODE_DEFAULT;
+                else
+                        ui->colorMode = COLOR_MODE_ALBUM;
         }
 }
 
