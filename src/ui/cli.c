@@ -7,6 +7,7 @@
 
 
 #include "cli.h"
+#include "common/appstate.h"
 #include "ops/settings.h"
 #include "ui/common_ui.h"
 #include "ui/player_ui.h"
@@ -33,8 +34,10 @@ void removeArgElement(char *argv[], int index, int *argc)
         (*argc)--;
 }
 
-void handleOptions(int *argc, char *argv[], UISettings *ui, bool *exactSearch)
+void handleOptions(int *argc, char *argv[], bool *exactSearch)
 {
+        AppState *state = getAppState();
+        UISettings *ui = &(state->uiSettings);
         const char *noUiOption = "--noui";
         const char *noCoverOption = "--nocover";
         const char *quitOnStop = "--quitonstop";
@@ -95,8 +98,11 @@ void handleOptions(int *argc, char *argv[], UISettings *ui, bool *exactSearch)
                 removeArgElement(argv, idx, argc);
 }
 
-void setMusicPath(UISettings *ui)
+void setMusicPath(void)
 {
+        AppState *state = getAppState();
+        UISettings *ui = &(state->uiSettings);
+
         struct passwd *pw = getpwuid(getuid());
         char *user = NULL;
 

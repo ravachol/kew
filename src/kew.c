@@ -849,7 +849,6 @@ int main(int argc, char *argv[])
         initState();
         exitIfAlreadyRunning();
 
-        UISettings *ui = &(state->uiSettings);
         AppSettings *settings = getAppSettings();
         PlayList *playlist = getPlaylist();
         PlayList *favoritesPlaylist = getFavoritesPlaylist();
@@ -870,7 +869,7 @@ int main(int argc, char *argv[])
 
         *settings = initSettings();
         initKeyMappings(settings);
-        setTrackTitleAsWindowTitle(&(state->uiSettings));
+        setTrackTitleAsWindowTitle();
 
         if (argc == 3 && (strcmp(argv[1], "path") == 0))
         {
@@ -887,11 +886,11 @@ int main(int argc, char *argv[])
 
         if (settings->path[0] == '\0')
         {
-                setMusicPath(ui);
+                setMusicPath();
         }
 
         bool exactSearch = false;
-        handleOptions(&argc, argv, ui, &exactSearch);
+        handleOptions(&argc, argv, &exactSearch);
         loadFavoritesPlaylist(settings->path, &favoritesPlaylist);
 
         ensureDefaultThemes();
