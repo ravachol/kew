@@ -5,7 +5,7 @@
  * Contains the function that shows the welcome screen and sets the path for the first time.
  */
 
-#include "common/appstate.h"
+ #include <stdbool.h>
 
 void removeArgElement(char *argv[], int index, int *argc);
 void handleOptions(int *argc, char *argv[], bool *exactSearch);
