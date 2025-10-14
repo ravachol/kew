@@ -1,4 +1,3 @@
-.\" Automatically generated from an mdoc input file.  Do not edit.
 .\" DATE
 .TH "kew" "1" "9/3/23" "Linux" "General Commands Manual"
 .nh
@@ -6,8 +5,8 @@
 .SH "NAME"
 \fBkew\fR
 ,
-\fBkew music command\fR
-\- A terminal music player.
+\fBkew\fR
+\- Music For The Shell.
 .SH "SYNOPSIS"
 .HP 4n
 \fBkew\fR
@@ -47,7 +46,7 @@ Completely hides the UI.
 Exits after playing the whole playlist.
 .TP 9n
 \fB\-e,\fR \fB\--exact
-Specifies you want an exact (but not case sensitive) match, of for instance an album.
+Specifies you want an exact (but not case sensitive) match.
 .TP 9n
 shuffle
 Shuffles the playlist before starting to play it.
@@ -146,11 +145,14 @@ Toggle colors derived from album cover or from color theme.
 v
 Toggle spectrum visualizer.
 .TP 9n
+n
+Toggle desktop notifications on or off.
+.TP 9n
 b
 Switch between ascii and image album cover.
 .TP 9n
 r
-Repeat current song after playing.
+Cycles repeat mode (repeat, repeat list or off).
 .TP 9n
 s
 Shuffles the playlist.
@@ -160,7 +162,6 @@ Seek Backward.
 .TP 9n
 d
 Seek Forward.
-
 .TP 9n
 m
 Show lyrics in track view.
@@ -183,7 +184,7 @@ Clear the playlist.
 Delete
 Remove a single playlist entry.
 .TP 9n
-t,g
+f,g
 Move a song up or down the playlist.
 .TP 9n
 number + G or Enter
@@ -197,10 +198,13 @@ Quit
 \fI~/<configfolder>/kew/kewrc\fR
 Config file.
 .TP 10n
+\fI~/<statefolder>/kew/kewstaterc\fR
+Dynamic Preferences file, ~/.local/state/kewstaterc on Linux.
+.TP 10n
 \fI~/<configfolder>/kew/kewlibrary\fR
 Music library directory tree cache.
 .TP 10n
-\fI/<musicfolder>/kew.m3u\fR
+\fI/<musicfolder>/kew favorites.m3u\fR
 The
 \fBkew\fR
 playlist. Add to it by pressing '.' during playback of any song. This playlist is saved before q exits.
@@ -209,6 +213,18 @@ Copyright \[u00A9] 2023 Ravachol. License GPLv2+: GNU GPL version 2 or later <ht
 This is free software: you are free to change and redistribute it.
 There is NO WARRANTY, to the extent permitted by law.
 .SH "SEE ALSO"
-Project home page:
 .TP 10n
-\fI<https://github.com/ravachol/kew>.\fR
+Project home pages:
+.TP 10n
+\fI<https://codeberg.org/ravachol/kew>\fR
+.TP 10n
+\fI<https://github.com/ravachol/kew>\fR
+.TP 10n
+Donate here:
+.TP 10n
+\fI<https://ko-fi.com/ravachol>\fR
+.TP 10n
+\fI<https://github.com/sponsors/ravachol>\fR
+
+
+
