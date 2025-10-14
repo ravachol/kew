@@ -85,5 +85,4 @@ typedef struct
 #endif
 
 int loadThemeFromFile(const char *themesDir, const char *filename, Theme *currentTheme);
-
 bool ensureDefaultThemes(void);

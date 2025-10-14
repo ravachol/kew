@@ -4,7 +4,6 @@
  *
  */
 
-
 #ifndef COMMON_H
 #define COMMON_H
 
@@ -24,21 +23,13 @@ typedef enum
 } k_m4adec_filetype;
 
 void setErrorMessage(const char *message);
-
 bool hasErrorMessage(void);
-
 char *getErrorMessage(void);
-
 void clearErrorMessage(void);
-
 void markErrorMessageAsPrinted(void);
-
 void triggerRefresh(void);
-
 void cancelRefresh(void);
-
 bool isRefreshTriggered(void);
-
 bool hasPrintedErrorMessage(void);
 
 #endif
