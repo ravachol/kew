@@ -930,11 +930,16 @@ void clearAndPlay(Node *song)
 {
         AudioData *audioData = getAudioData();
         PlaybackState *ps = getPlaybackState();
+        AppState *state = getAppState();
 
-        playbackCleanup();
+        playbackSafeCleanup();
+
+        pthread_mutex_lock(&(state->dataSourceMutex));
 
         unloadSongA();
         unloadSongB();
+
+        pthread_mutex_unlock(&(state->dataSourceMutex));
 
         ps->loadedNextSong = true;
         ps->nextSongNeedsRebuilding = false;
@@ -945,9 +950,10 @@ void clearAndPlay(Node *song)
 
         play();
 
-        if (playSong(song) < 0)
+        if (playSong(song) == 0)
         {
-                skipToSong(song->next->id, true);
+                if (song && song->next)
+                        skipToSong(song->next->id, true);
         }
 
         playPostProcessing(wasEndOfList);
@@ -976,4 +982,54 @@ void playlistPlay(PlayList *playlist)
 
                 clearAndPlay(song);
         }
+}
+
+void playFavoritesPlaylist(void)
+{
+        PlayList *playlist = getPlaylist();
+        PlayList *favoritesPlaylist = getFavoritesPlaylist();
+
+        if (favoritesPlaylist->count == 0)
+        {
+                printf("Couldn't find any songs in the special playlist. Add a "
+                       "song by pressing '.' while it's playing. \n");
+                exit(0);
+        }
+
+        FileSystemEntry *library = getLibrary();
+
+        deepCopyPlayListOntoList(favoritesPlaylist, &playlist);
+        shufflePlaylist(playlist);
+        setPlaylist(playlist);
+        markListAsEnqueued(library, playlist);
+}
+
+void playAll(void)
+{
+        FileSystemEntry *library = getLibrary();
+        PlayList *playlist = getPlaylist();
+
+        createPlayListFromFileSystemEntry(library, playlist, MAX_FILES);
+
+        if (playlist->count == 0)
+        {
+                exit(0);
+        }
+
+        shufflePlaylist(playlist);
+        markListAsEnqueued(library, playlist);
+}
+
+void playAllAlbums(void)
+{
+        PlayList *playlist = getPlaylist();
+        FileSystemEntry *library = getLibrary();
+        addShuffledAlbumsToPlayList(library, playlist, MAX_FILES);
+
+        if (playlist->count == 0)
+        {
+                exit(0);
+        }
+
+        markListAsEnqueued(library, playlist);
 }

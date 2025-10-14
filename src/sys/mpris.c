@@ -22,12 +22,11 @@
 #include <glib.h>
 #include <math.h>
 
-static guint registration_id;
-static guint player_registration_id;
-static guint bus_name_id;
-
 #ifndef __APPLE__
 
+static guint registration_id;
+static guint bus_name_id;
+static guint player_registration_id;
 static const gchar *LoopStatus = "None";
 static gdouble Rate = 1.0;
 static gdouble Volume = 0.5;

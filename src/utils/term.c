@@ -327,3 +327,4 @@ void restoreTerminalWindowTitle(void)
         // Restore terminal window title from the stack
         printf("\033[23;0t");
 }
+
