@@ -406,28 +406,19 @@ typedef struct
 // --- Getters ---
 
 PlaybackState *getPlaybackState(void);
-
 AudioData *getAudioData(void);
-
 double getPauseSeconds(void);
 double getTotalPauseSeconds(void);
-
 void createPlaylist(PlayList **playlist);
-
 Node *getNextSong(void);
 Node *getSongToStartFrom(void);
 Node *getTryNextSong(void);
-
 PlayList *getPlaylist(void);
 PlayList *getUnshuffledPlaylist(void);
 PlayList *getFavoritesPlaylist(void);
-
 ProgressBar *getProgressBar(void);
-
 AppState *getAppState(void);
-
 AppSettings *getAppSettings(void);
-
 FileSystemEntry *getLibrary(void);
 
 char *getLibraryFilePath(void);
@@ -436,21 +427,14 @@ char *getLibraryFilePath(void);
 
 void setPauseSeconds(double seconds);
 void setTotalPauseSeconds(double seconds);
-
 void setNextSong(Node *node);
 void setSongToStartFrom(Node *node);
 void setTryNextSong(Node *node);
-
 void setAudioData(AudioData *audioData);
-
 void setLibrary(FileSystemEntry *root);
-
 void freePlaylists(void);
-
 void setPlaylist(PlayList *pl);
-
 void setUnshuffledPlaylist(PlayList *pl);
-
 void setFavoritesPlaylist(PlayList *pl);
 
 #endif

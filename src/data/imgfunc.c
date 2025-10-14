@@ -128,7 +128,7 @@ out:
 }
 
 gboolean
-retire_passthrough_workarounds_tmux(void)
+retirePassthroughWorkarounds_tmux(void)
 {
         gboolean result = FALSE;
         gchar *standard_output = NULL;

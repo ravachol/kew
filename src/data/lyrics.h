@@ -32,7 +32,6 @@ typedef struct {
 } Lyrics;
 
 Lyrics *loadLyrics(const char *music_file_path);
-
 void freeLyrics(Lyrics *lyrics);
 
 #ifdef __cplusplus
