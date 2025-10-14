@@ -32,6 +32,10 @@
 
 - kew now restarts if it's already running in a different window. This replaces the ugly message that instructs the user to run 'kill'. Suggested by @amigthea.
 
+- Gradients are now enabled when using themes, not just when using album colors. It's the little things that count.
+
+- Playlist max files limit raised to 50k songs. Suggested by: @Saijin_Naib.
+
 #### Bug Fixes
 
 - Path is expanded correctly when providing it through the first screen that let's you choose a path.

@@ -8,17 +8,17 @@
 
 #include "player_ui.h"
 
+#include "control_ui.h"
 #include "playlist_ui.h"
 #include "search_ui.h"
-#include "control_ui.h"
 
 #include "common/appstate.h"
 #include "common/common.h"
 #include "common_ui.h"
 
-#include "ops/playback_state.h"
-#include "ops/playback_clock.h"
 #include "ops/library_ops.h"
+#include "ops/playback_clock.h"
+#include "ops/playback_state.h"
 
 #include "data/directorytree.h"
 #include "data/imgfunc.h"
@@ -1592,17 +1592,22 @@ void setChosenDir(FileSystemEntry *entry)
 
 void resetChosenDir(void) { chosenDir = NULL; }
 
-void applyTreeItemColor(UISettings *ui, int depth, PixelData rowColor,
+void applyTreeItemColor(UISettings *ui, int depth,
+                        PixelData trackColor, PixelData enqueuedColor,
                         bool isEnqueued, bool isPlaying)
 {
         if (depth <= 1)
         {
-                applyColor(ui->colorMode, ui->theme.library_artist, rowColor);
+                applyColor(ui->colorMode, ui->theme.library_artist, enqueuedColor);
         }
         else
         {
-                applyColor(ui->colorMode, ui->theme.library_track,
-                           ui->defaultColorRGB);
+                if (ui->colorMode == COLOR_MODE_ALBUM || ui->colorMode == COLOR_MODE_THEME)
+                        applyColor(COLOR_MODE_ALBUM, ui->theme.library_track,
+                                   trackColor);
+                else
+                        applyColor(ui->colorMode, ui->theme.library_track,
+                                   trackColor);
         }
 
         if (isEnqueued)
@@ -1610,12 +1615,16 @@ void applyTreeItemColor(UISettings *ui, int depth, PixelData rowColor,
                 if (isPlaying)
                 {
                         applyColor(ui->colorMode, ui->theme.library_playing,
-                                   rowColor);
+                                   ui->color);
                 }
                 else
                 {
-                        applyColor(ui->colorMode, ui->theme.library_enqueued,
-                                   rowColor);
+                        if (ui->colorMode == COLOR_MODE_ALBUM || ui->colorMode == COLOR_MODE_THEME)
+                                applyColor(COLOR_MODE_ALBUM, ui->theme.library_enqueued,
+                                           enqueuedColor);
+                        else
+                                applyColor(ui->colorMode, ui->theme.library_enqueued,
+                                           enqueuedColor);
                 }
         }
 }
@@ -1664,15 +1673,35 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize,
         if (root == NULL)
                 return false;
 
-        PixelData rowColor;
-        rowColor.r = ui->defaultColor;
-        rowColor.g = ui->defaultColor;
-        rowColor.b = ui->defaultColor;
+        PixelData rowColor = {ui->defaultColor, ui->defaultColor, ui->defaultColor};
+        PixelData rowColor2 = {ui->defaultColor, ui->defaultColor, ui->defaultColor};
+        PixelData rgbTrack = {ui->defaultColor, ui->defaultColor, ui->defaultColor};
+        PixelData rgbEnqueued = {ui->defaultColor, ui->defaultColor, ui->defaultColor};
 
-        if (!(ui->color.r == ui->defaultColor && ui->color.g == ui->defaultColor &&
-              ui->color.b == ui->defaultColor))
-                rowColor = getGradientColor(ui->color, libIter - startLibIter,
-                                            maxListSize, maxListSize / 2, 0.7f);
+        if (ui->colorMode == COLOR_MODE_THEME &&
+            ui->theme.playlist_rownum.type == COLOR_TYPE_RGB)
+        {
+                rgbTrack = ui->theme.library_track.rgb;
+                rgbEnqueued = ui->theme.library_enqueued.rgb;
+        }
+        else
+        {
+                rgbEnqueued = ui->color;
+        }
+
+        if (!(rgbTrack.r == ui->defaultColor &&
+              rgbTrack.g == ui->defaultColor &&
+              rgbTrack.b == ui->defaultColor))
+                rowColor = getGradientColor(rgbTrack, libIter - startLibIter,
+                                            maxListSize,
+                                            maxListSize / 2, 0.7f);
+
+        if (!(rgbEnqueued.r == ui->defaultColor &&
+              rgbEnqueued.g == ui->defaultColor &&
+              rgbEnqueued.b == ui->defaultColor))
+                rowColor2 = getGradientColor(rgbEnqueued, libIter - startLibIter,
+                                             maxListSize,
+                                             maxListSize / 2, 0.7f);
 
         if (!(root->isDirectory || (!root->isDirectory && depth == 1) ||
               (root->isDirectory && depth == 0) ||
@@ -1707,8 +1736,7 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize,
 
                 if (libIter >= startLibIter)
                 {
-
-                        applyTreeItemColor(ui, depth, rowColor,
+                        applyTreeItemColor(ui, depth, rowColor, rowColor2,
                                            root->isEnqueued, isPlaying);
 
                         clearLine();
@@ -2071,17 +2099,18 @@ void printLyricsPage(UISettings *ui, AppSettings *settings, int row, int col, So
 
 const char *getLyricsLine(const Lyrics *lyrics, double elapsed_seconds)
 {
-    if (!lyrics || lyrics->count == 0)
-        return "";
+        if (!lyrics || lyrics->count == 0)
+                return "";
 
-    const char *line = "";
-    for (size_t i = 0; i < lyrics->count; i++) {
-        if (elapsed_seconds >= lyrics->lines[i].timestamp)
-            line = lyrics->lines[i].text;
-        else
-            break;
-    }
-    return line;
+        const char *line = "";
+        for (size_t i = 0; i < lyrics->count; i++)
+        {
+                if (elapsed_seconds >= lyrics->lines[i].timestamp)
+                        line = lyrics->lines[i].text;
+                else
+                        break;
+        }
+        return line;
 }
 
 void printTimestampedLyrics(UISettings *ui, SongData *songdata, int row, int col, int term_w, double elapsedSeconds)
@@ -2273,7 +2302,7 @@ void showTrackView(int width, int height, AppSettings *settings,
         if (correctedWidth > height * 2)
         {
                 showTrackViewLandscape(height, width, aspect, settings,
-                                       songdata,elapsedSeconds);
+                                       songdata, elapsedSeconds);
         }
         else
         {
