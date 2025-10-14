@@ -6,7 +6,7 @@
  *
  * Loads themes, and copies the themes to config dir.
  */
- 
+
 #include "theme.h"
 
 #include "common/common.h"
@@ -31,9 +31,11 @@ typedef struct
         ColorValue *field;
 } ThemeMapping;
 
-PixelData hexToPixel(const char *hex)
+int hexToPixel(const char *hex, PixelData *result)
 {
-        PixelData p = {0, 0, 0};
+        if (!hex || strlen(hex) != 7 || hex[0] != '#')
+                return -1;
+
         if (hex[0] == '#')
                 hex++; // skip #
 
@@ -47,11 +49,11 @@ PixelData hexToPixel(const char *hex)
                 strncpy(b, hex + 4, 2);
                 b[2] = '\0';
 
-                p.r = (unsigned char)strtol(r, NULL, 16);
-                p.g = (unsigned char)strtol(g, NULL, 16);
-                p.b = (unsigned char)strtol(b, NULL, 16);
+                (*result).r = (unsigned char)strtol(r, NULL, 16);
+                (*result).g = (unsigned char)strtol(g, NULL, 16);
+                (*result).b = (unsigned char)strtol(b, NULL, 16);
         }
-        return p;
+        return 0;
 }
 
 void trimWhitespace(char *str)
