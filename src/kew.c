@@ -543,66 +543,6 @@ void run(bool startPlaying)
         fflush(stdout);
 }
 
-void playFavoritesPlaylist(void)
-{
-        PlayList *playlist = getPlaylist();
-        PlayList *favoritesPlaylist = getFavoritesPlaylist();
-
-        if (favoritesPlaylist->count == 0)
-        {
-                printf("Couldn't find any songs in the special playlist. Add a "
-                       "song by pressing '.' while it's playing. \n");
-                exit(0);
-        }
-
-        init();
-
-        FileSystemEntry *library = getLibrary();
-
-        deepCopyPlayListOntoList(favoritesPlaylist, &playlist);
-        shufflePlaylist(playlist);
-        setPlaylist(playlist);
-        markListAsEnqueued(library, playlist);
-
-        run(true);
-}
-
-void playAll(void)
-{
-        init();
-
-        FileSystemEntry *library = getLibrary();
-        PlayList *playlist = getPlaylist();
-
-        createPlayListFromFileSystemEntry(library, playlist, MAX_FILES);
-
-        if (playlist->count == 0)
-        {
-                exit(0);
-        }
-
-        shufflePlaylist(playlist);
-        markListAsEnqueued(library, playlist);
-        run(true);
-}
-
-void playAllAlbums(void)
-{
-        init();
-
-        PlayList *playlist = getPlaylist();
-        FileSystemEntry *library = getLibrary();
-        addShuffledAlbumsToPlayList(library, playlist, MAX_FILES);
-
-        if (playlist->count == 0)
-        {
-                exit(0);
-        }
-
-        markListAsEnqueued(library, playlist);
-        run(true);
-}
-
 void initDefaultState(void)
 {
         init();
@@ -612,15 +552,12 @@ void initDefaultState(void)
         PlayList *playlist = getPlaylist();
         PlayList *unshuffledPlaylist = getUnshuffledPlaylist();
         PlaybackState *ps = getPlaybackState();
-
+        AudioData *audioData = getAudioData();
+        
         loadLastUsedPlaylist(playlist, &unshuffledPlaylist);
         setUnshuffledPlaylist(unshuffledPlaylist);
-
         markListAsEnqueued(library, playlist);
-
         resetListAfterDequeuingPlayingSong();
-
-        AudioData *audioData = getAudioData();
 
         audioData->restart = true;
         audioData->endOfListReached = true;
@@ -631,10 +568,15 @@ void initDefaultState(void)
         run(false);
 }
 
-void cleanupOnExit()
+void shutdown()
 {
         AppState *state = getAppState();
         PlaybackState *ps = getPlaybackState();
+        FileSystemEntry *library = getLibrary();
+        AppSettings *settings = getAppSettings();
+        PlayList *playlist = getPlaylist();
+        PlayList *unshuffledPlaylist = getUnshuffledPlaylist();
+        PlayList *favoritesPlaylist = getFavoritesPlaylist();
 
         pthread_mutex_lock(&(state->dataSourceMutex));
 
@@ -643,8 +585,6 @@ void cleanupOnExit()
         emitPlaybackStoppedMpris();
 
         bool noMusicFound = false;
-
-        FileSystemEntry *library = getLibrary();
 
         if (library == NULL || library->children == NULL)
         {
@@ -656,11 +596,6 @@ void cleanupOnExit()
 #ifdef CHAFA_VERSION_1_16
         retire_passthrough_workarounds_tmux();
 #endif
-
-        AppSettings *settings = getAppSettings();
-        PlayList *playlist = getPlaylist();
-        PlayList *unshuffledPlaylist = getUnshuffledPlaylist();
-        PlayList *favoritesPlaylist = getFavoritesPlaylist();
 
         freeSearchResults();
         cleanupMpris();
@@ -674,11 +609,13 @@ void cleanupOnExit()
         freeMainDirectoryTree();
         freePlaylists();
         setDefaultTextColor();
+
         pthread_mutex_destroy(&(ps->loadingdata.mutex));
         pthread_mutex_destroy(&(playlist->mutex));
         pthread_mutex_destroy(&(state->switchMutex));
         pthread_mutex_unlock(&(state->dataSourceMutex));
         pthread_mutex_destroy(&(state->dataSourceMutex));
+
         freeVisuals();
 
 #ifdef USE_DBUS
@@ -722,29 +659,6 @@ void cleanupOnExit()
         }
 
         fflush(stdout);
-}
-
-void handleResize(int sig)
-{
-        (void)sig;
-        statePtr->uiState.resizeFlag = 1;
-}
-
-void resetResizeFlag(int sig)
-{
-        (void)sig;
-        statePtr->uiState.resizeFlag = 0;
-}
-
-void initResize(void)
-{
-        signal(SIGWINCH, handleResize);
-
-        struct sigaction sa;
-        sa.sa_handler = resetResizeFlag;
-        sigemptyset(&(sa.sa_mask));
-        sa.sa_flags = 0;
-        sigaction(SIGALRM, &sa, NULL);
 }
 
 void initState(void)
@@ -881,7 +795,7 @@ int main(int argc, char *argv[])
 
         enableMouse(&(state->uiSettings));
         enterAlternateScreenBuffer();
-        atexit(cleanupOnExit);
+        atexit(shutdown);
 
         if (settings->path[0] == '\0')
         {
@@ -905,15 +819,21 @@ int main(int argc, char *argv[])
         }
         else if (argc == 2 && strcmp(argv[1], "all") == 0)
         {
+                init();
                 playAll();
+                run(true);
         }
         else if (argc == 2 && strcmp(argv[1], "albums") == 0)
         {
+                init();
                 playAllAlbums();
+                run(true);
         }
         else if (argc == 2 && strcmp(argv[1], ".") == 0 && favoritesPlaylist->count != 0)
         {
+                init();
                 playFavoritesPlaylist();
+                run(true);
         }
         else if (argc >= 2)
         {

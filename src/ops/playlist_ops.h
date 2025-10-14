@@ -37,5 +37,8 @@ void playlistPlay(PlayList *playlist);
 void clearAndPlay(Node *song);
 bool playPreProcessing();
 void playPostProcessing(bool wasEndOfList);
+void playFavoritesPlaylist(void);
+void playAll(void);
+void playAllAlbums(void);
 
 #endif

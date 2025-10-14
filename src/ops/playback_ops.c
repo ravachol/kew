@@ -408,6 +408,11 @@ void togglePause(void)
                 resetClock();
         }
 
+        if (getCurrentSong() == NULL && isPaused())
+        {
+                return;
+        }
+
         togglePausePlayback();
 
         if (isPaused())

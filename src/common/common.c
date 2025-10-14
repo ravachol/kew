@@ -4,7 +4,8 @@
  *
  */
 
-#include "common/common.h"
+#include "common.h"
+
 #include <pthread.h>
 #include <string.h>
 

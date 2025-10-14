@@ -27,6 +27,7 @@ void processDBusEvents(void);
 void resize(UIState *uis);
 void restartIfAlreadyRunning(char *argv[]);
 void restartKew(char *argv[]);
+void initResize(void);
 void quit(void);
 GDBusConnection *getGDBusConnection(void);
 

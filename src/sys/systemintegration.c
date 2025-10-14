@@ -421,4 +421,30 @@ void restartIfAlreadyRunning(char *argv[])
         createPidFile();
 }
 
+void handleResize(int sig)
+{
+        (void)sig;
+        AppState *state = getAppState();
+        state->uiState.resizeFlag = 1;
+}
+
+void resetResizeFlag(int sig)
+{
+        (void)sig;
+        AppState *state = getAppState();
+        state->uiState.resizeFlag = 0;
+}
+
+void initResize(void)
+{
+        signal(SIGWINCH, handleResize);
+
+        struct sigaction sa;
+        sa.sa_handler = resetResizeFlag;
+        sigemptyset(&(sa.sa_mask));
+        sa.sa_flags = 0;
+        sigaction(SIGALRM, &sa, NULL);
+}
+
+
 void quit(void) { exit(0); }

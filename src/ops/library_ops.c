@@ -579,6 +579,9 @@ void enqueueChildren(FileSystemEntry *child,
 
 bool hasSongChildren(FileSystemEntry *entry)
 {
+        if (!entry)
+                return false;
+
         FileSystemEntry *child = entry->children;
         int numSongs = 0;
 
