@@ -950,7 +950,7 @@ void clearAndPlay(Node *song)
 
         play();
 
-        if (playSong(song) == 0)
+        if (playSong(song) != 0)
         {
                 if (song && song->next)
                         skipToSong(song->next->id, true);

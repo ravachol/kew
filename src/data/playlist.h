@@ -19,7 +19,7 @@
 #include <pthread.h>
 #include <stdbool.h>
 
-#define MAX_FILES 10000
+#define MAX_FILES 50000
 
 #ifndef PLAYLIST_STRUCT
 #define PLAYLIST_STRUCT

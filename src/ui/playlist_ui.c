@@ -113,6 +113,7 @@ int displayPlaylistItems(Node *startNode, int startIter, int maxListSize,
         unsigned char defaultColor = ui->defaultColor;
 
         PixelData rowColor = {defaultColor, defaultColor, defaultColor};
+        PixelData rowColor2 = {defaultColor, defaultColor, defaultColor};
 
         char *buffer = malloc(NAME_MAX + 1);
         if (!buffer)
@@ -128,10 +129,31 @@ int displayPlaylistItems(Node *startNode, int startIter, int maxListSize,
         for (int i = startIter; node != NULL && i < startIter + maxListSize;
              i++)
         {
-                if (!(ui->color.r == defaultColor &&
-                      ui->color.g == defaultColor &&
-                      ui->color.b == defaultColor))
-                        rowColor = getGradientColor(ui->color, i - startIter,
+                PixelData rgbRowNum = {defaultColor,defaultColor,defaultColor};
+                PixelData rgbTitle = {defaultColor,defaultColor,defaultColor};
+
+                if (ui->colorMode == COLOR_MODE_THEME &&
+                        ui->theme.playlist_rownum.type == COLOR_TYPE_RGB)
+                {
+                        rgbRowNum = ui->theme.playlist_rownum.rgb;
+                        rgbTitle = ui->theme.playlist_title.rgb;
+                }
+                else
+                {
+                        rgbRowNum = ui->color;
+                }
+
+                if (!(rgbRowNum.r == defaultColor &&
+                      rgbRowNum.g == defaultColor &&
+                      rgbRowNum.b == defaultColor))
+                        rowColor = getGradientColor(rgbRowNum, i - startIter,
+                                                    maxListSize,
+                                                    maxListSize / 2, 0.7f);
+
+                if (!(rgbTitle.r == defaultColor &&
+                      rgbTitle.g == defaultColor &&
+                      rgbTitle.b == defaultColor))
+                        rowColor2 = getGradientColor(rgbTitle, i - startIter,
                                                     maxListSize,
                                                     maxListSize / 2, 0.7f);
 
@@ -139,15 +161,23 @@ int displayPlaylistItems(Node *startNode, int startIter, int maxListSize,
 
                 if (buffer[0] != '\0')
                 {
-                        applyColor(ui->colorMode, ui->theme.playlist_rownum,
-                                   rowColor);
+                        if (ui->colorMode == COLOR_MODE_ALBUM || ui->colorMode == COLOR_MODE_THEME)
+                                applyColor(COLOR_MODE_ALBUM, ui->theme.playlist_rownum,
+                                        rowColor);
+                        else
+                                applyColor(ui->colorMode, ui->theme.playlist_rownum,
+                                        rowColor);
 
                         clearLine();
                         printBlankSpaces(indent);
                         printf("   %d. ", i + 1);
 
-                        applyColor(ui->colorMode, ui->theme.playlist_title,
-                                   ui->defaultColorRGB);
+                        if (ui->colorMode == COLOR_MODE_ALBUM || ui->colorMode == COLOR_MODE_THEME)
+                                applyColor(COLOR_MODE_ALBUM, ui->theme.playlist_title,
+                                        rowColor2);
+                        else
+                                applyColor(ui->colorMode, ui->theme.playlist_title,
+                                        ui->defaultColorRGB);
 
                         isSameNameAsLastTime =
                             (previousChosenSong == chosenSong);

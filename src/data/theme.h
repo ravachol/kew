@@ -84,5 +84,6 @@ typedef struct
 } Theme;
 #endif
 
+int hexToPixel(const char *hex, PixelData *result);
 int loadThemeFromFile(const char *themesDir, const char *filename, Theme *currentTheme);
 bool ensureDefaultThemes(void);
