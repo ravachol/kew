@@ -400,7 +400,9 @@ void init(void)
         pthread_mutex_init(&(playlist->mutex), NULL);
         freeSearchResults();
         resetChosenDir();
-        createLibrary(getLibraryFilePath());
+        char *filePath = getLibraryFilePath();
+        createLibrary(filePath);
+        free(filePath);
         setlocale(LC_ALL, "");
         setlocale(LC_CTYPE, "");
         fflush(stdout);

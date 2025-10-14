@@ -420,7 +420,6 @@ ProgressBar *getProgressBar(void);
 AppState *getAppState(void);
 AppSettings *getAppSettings(void);
 FileSystemEntry *getLibrary(void);
-
 char *getLibraryFilePath(void);
 
 // --- Setters ---

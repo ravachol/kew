@@ -9,10 +9,10 @@
 
 #include "player_ui.h"
 #include "search_ui.h"
+#include "settings.h"
 
 #include "ops/playback_clock.h"
 #include "ops/playback_state.h"
-#include "ops/settings.h"
 
 #include "sys/systemintegration.h"
 

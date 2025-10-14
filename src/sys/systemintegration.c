@@ -17,9 +17,10 @@
 #include "utils/term.h"
 #include "utils/utils.h"
 
+#include "gio/gio.h"
 #include "math.h"
 #include <stdio.h>
-#include "gio/gio.h"
+#include <sys/wait.h>
 
 static GDBusConnection *connection = NULL;
 static GMainContext *globalMainContext = NULL;
@@ -288,59 +289,136 @@ int isKewProcess(pid_t pid)
         return 0; // Not kew or couldn't determine
 }
 
-// Ensures only a single instance of kew can run at a time for the current user.
-void exitIfAlreadyRunning()
+void deletePidFile()
 {
-        char pidfile_path[512]; // Increased size for longer paths
+        char pidfilePath[MAXPATHLEN];
         const char *temp_dir = getTempDir();
 
-        snprintf(pidfile_path, sizeof(pidfile_path), "%s/kew_%d.pid", temp_dir,
+        snprintf(pidfilePath, sizeof(pidfilePath), "%s/kew_%d.pid", temp_dir,
+                 getuid());
+
+        FILE *pidfile;
+
+        pidfile = fopen(pidfilePath, "r");
+
+        if (pidfile != NULL)
+        {
+                fclose(pidfile);
+                unlink(pidfilePath);
+        }
+}
+
+pid_t readPidFile()
+{
+        char pidfilePath[MAXPATHLEN];
+        const char *temp_dir = getTempDir();
+
+        snprintf(pidfilePath, sizeof(pidfilePath), "%s/kew_%d.pid", temp_dir,
                  getuid());
 
         FILE *pidfile;
         pid_t pid;
 
-        pidfile = fopen(pidfile_path, "r");
+        pidfile = fopen(pidfilePath, "r");
         if (pidfile != NULL)
         {
                 if (fscanf(pidfile, "%d", &pid) == 1)
                 {
                         fclose(pidfile);
-
-#ifdef __ANDROID__
-                        if (isProcessRunning(pid) && isKewProcess(pid))
-#else
-                        if (isProcessRunning(pid))
-#endif
-                        {
-                                fprintf(
-                                    stderr,
-                                    "An instance of kew is already running. "
-                                    "Pid: %d. Type 'kill %d' to remove it.\n",
-                                    pid, pid);
-                                exit(1);
-                        }
-                        else
-                        {
-                                unlink(pidfile_path);
-                        }
                 }
-                else
+        }
+        else
+        {
                 {
-                        fclose(pidfile);
-                        unlink(pidfile_path);
+                        pid = -1;
+                        unlink(pidfilePath);
                 }
         }
 
-        // Create a new PID file
-        pidfile = fopen(pidfile_path, "w");
+        return pid;
+}
+
+void createPidFile()
+{
+        char pidfilePath[MAXPATHLEN];
+        const char *temp_dir = getTempDir();
+
+        snprintf(pidfilePath, sizeof(pidfilePath), "%s/kew_%d.pid", temp_dir,
+                 getuid());
+
+        FILE *pidfile = fopen(pidfilePath, "w");
         if (pidfile == NULL)
         {
                 perror("Unable to create PID file");
                 exit(1);
         }
+
         fprintf(pidfile, "%d\n", getpid());
         fclose(pidfile);
+}
+
+void restartKew(char *argv[])
+{
+    pid_t oldpid = readPidFile();
+    if (oldpid > 0)
+    {
+        if (kill(oldpid, SIGUSR1) != 0)
+        {
+            if (errno == ESRCH)
+            {
+                fprintf(stderr, "No running kew process found.\n");
+                deletePidFile();
+            }
+            else
+            {
+                fprintf(stderr, "Failed to stop old kew (pid %d): %s\n",
+                        oldpid, strerror(errno));
+            }
+        }
+        else
+        {
+            int status;
+            if (waitpid(oldpid, &status, 0) == -1 && errno != ECHILD)
+            {
+                perror("waitpid");
+            }
+            deletePidFile();
+        }
+    }
+
+    execvp("kew", argv);
+
+    fprintf(stderr, "Failed to restart kew via execvp: %s\n", strerror(errno));
+    exit(1);
+}
+
+void handleShutdown(int sig)
+{
+        (void)sig;
+        exit(0); // runs all atexit handlers
+}
+
+// Ensures only a single instance of kew can run at a time for the current user.
+void restartIfAlreadyRunning(char *argv[])
+{
+        signal(SIGUSR1, handleShutdown);
+
+        pid_t pid = readPidFile();
+
+#ifdef __ANDROID__
+        if (isProcessRunning(pid) && isKewProcess(pid))
+#else
+        if (isProcessRunning(pid))
+#endif
+        {
+                restartKew(argv);
+        }
+        else
+        {
+                deletePidFile();
+        }
+
+        createPidFile();
 }
 
 void quit(void) { exit(0); }

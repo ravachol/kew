@@ -62,93 +62,95 @@ typedef void (*uninit_func)(void *decoder);
 
 enum AudioImplementation getCurrentImplementationType();
 
-int getFftSize(void);
-bool isBufferReady(void);
 void setBufferReady(bool val);
 void setCurrentImplementationType(enum AudioImplementation value);
-int getBufferSize(void);
 void setBufferSize(int value);
 void setPlayingStatus(bool playing);
-bool isPlaying(void);
-ma_decoder *getFirstDecoder(void);
-ma_decoder *getCurrentBuiltinDecoder(void);
-ma_decoder *getPreviousDecoder(void);
 void getCurrentFormatAndSampleRate(ma_format *format, ma_uint32 *sampleRate);
 void resetAllDecoders(void);
-ma_libopus *getCurrentOpusDecoder(void);
-#ifdef USE_FAAD
-m4a_decoder *getCurrentM4aDecoder(void);
-m4a_decoder *getFirstM4aDecoder(void);
 void getM4aFileInfo(const char *filename, ma_format *format, ma_uint32 *channels, ma_uint32 *sampleRate, ma_channel *channelMap, int *avgBitRate, k_m4adec_filetype *fileType);
-#endif
-ma_libopus *getFirstOpusDecoder(void);
-ma_libvorbis *getFirstVorbisDecoder(void);
 void getVorbisFileInfo(const char *filename, ma_format *format, ma_uint32 *channels, ma_uint32 *sampleRate, ma_channel *channelMap);
 void getOpusFileInfo(const char *filename, ma_format *format, ma_uint32 *channels, ma_uint32 *sampleRate, ma_channel *channelMap);
-ma_libvorbis *getCurrentVorbisDecoder(void);
 void switchVorbisDecoder(void);
-int prepareNextDecoder(char *filepath);
-int prepareNextOpusDecoder(char *filepath);
-int prepareNextVorbisDecoder(char *filepath);
-int prepareNextM4aDecoder(SongData *songData);
 void soundResumePlayback(void);
-ma_libvorbis *getFirstVorbisDecoder(void);
 void getFileInfo(const char *filename, ma_uint32 *sampleRate, ma_uint32 *channels, ma_format *format);
 void initAudioBuffer(void);
 void *getAudioBuffer(void);
 void setAudioBuffer(void *buf, int numSamples, ma_uint32 sampleRate, ma_uint32 channels, ma_format format);
-int32_t unpack_s24(const ma_uint8 *p);
 void resetAudioBuffer(void);
 void freeAudioBuffer(void);
-bool isRepeatEnabled(void);
-void setRepeatEnabled(bool value);
-bool isRepeatListEnabled(void);
-void setRepeatListEnabled(bool value);
-bool isShuffleEnabled(void);
-void setShuffleEnabled(bool value);
-bool isSkipToNext(void);
-void setSkipToNext(bool value);
-double getSeekElapsed(void);
 void setSeekElapsed(double value);
-bool isEOFReached(void);
+void setRepeatListEnabled(bool value);
+void setShuffleEnabled(bool value);
+void setSkipToNext(bool value);
 void setEOFReached(void);
 void setEOFNotReached(void);
-bool isImplSwitchReached(void);
 void setImplSwitchReached(void);
 void setImplSwitchNotReached(void);
-bool isPlaybackDone(void);
-float getSeekPercentage(void);
-bool isSeekRequested(void);
 void setSeekRequested(bool value);
 void seekPercentage(float percent);
 void stopPlayback(void);
 void pausePlayback(void);
 void cleanupPlaybackDevice(void);
 void togglePausePlayback(void);
-int initPlaybackDevice(ma_context *context, ma_format format, ma_uint32 channels, ma_uint32 sampleRate,
-                       ma_device *device, ma_device_data_proc dataCallback, void *pUserData);
 void setPaused(bool val);
-bool isPaused(void);
 void setStopped(bool val);
-bool isStopped(void);
-ma_device *getDevice(void);
-bool hasBuiltinDecoder(char *filePath);
+void setRepeatEnabled(bool value);
 void setCurrentFileIndex(AudioData *pAudioData, int index);
 void activateSwitch(AudioData *pPCMDataSource);
 void executeSwitch(AudioData *pPCMDataSource);
-int getCurrentVolume(void);
 void setVolume(int volume);
-int adjustVolumePercent(int volumeChange);
 void m4a_on_audio_frames(ma_device *pDevice, void *pFramesOut, const void *pFramesIn, ma_uint32 frameCount);
 void opus_on_audio_frames(ma_device *pDevice, void *pFramesOut, const void *pFramesIn, ma_uint32 frameCount);
 void vorbis_on_audio_frames(ma_device *pDevice, void *pFramesOut, const void *pFramesIn, ma_uint32 frameCount);
 void logTime(const char *message);
 void clearCurrentTrack(void);
 void getWebmFileInfo(const char *filename, ma_format *format, ma_uint32 *channels, ma_uint32 *sampleRate, ma_channel *channelMap);
+void webm_on_audio_frames(ma_device *pDevice, void *pFramesOut, const void *pFramesIn, ma_uint32 frameCount);
+void shutdownAndroid(void);
+bool isRepeatEnabled(void);
+bool isImplSwitchReached(void);
+bool isPlaybackDone(void);
+bool isPaused(void);
+bool isStopped(void);
+bool isSeekRequested(void);
+bool hasBuiltinDecoder(char *filePath);
+bool doesOSallowVolumeControl(void);
+bool isBufferReady(void);
+bool isPlaying(void);
+bool isEOFReached(void);
+bool isRepeatListEnabled(void);
+bool isShuffleEnabled(void);
+bool isSkipToNext(void);
+int initPlaybackDevice(ma_context *context, ma_format format, ma_uint32 channels, ma_uint32 sampleRate,
+                       ma_device *device, ma_device_data_proc dataCallback, void *pUserData);
+int getCurrentVolume(void);
+int adjustVolumePercent(int volumeChange);
 int prepareNextWebmDecoder(SongData *songData);
+int getFftSize(void);
+int getBufferSize(void);
+int prepareNextDecoder(char *filepath);
+int prepareNextOpusDecoder(char *filepath);
+int prepareNextVorbisDecoder(char *filepath);
+int prepareNextM4aDecoder(SongData *songData);
+double getSeekElapsed(void);
+float getSeekPercentage(void);
+ma_decoder *getFirstDecoder(void);
+ma_decoder *getCurrentBuiltinDecoder(void);
+ma_decoder *getPreviousDecoder(void);
+ma_libopus *getCurrentOpusDecoder(void);
+#ifdef USE_FAAD
+m4a_decoder *getCurrentM4aDecoder(void);
+m4a_decoder *getFirstM4aDecoder(void);
+#endif
+ma_libopus *getFirstOpusDecoder(void);
+ma_libvorbis *getFirstVorbisDecoder(void);
+ma_libvorbis *getCurrentVorbisDecoder(void);
+ma_libvorbis *getFirstVorbisDecoder(void);
+int32_t unpack_s24(const ma_uint8 *p);
+ma_device *getDevice(void);
 ma_webm *getCurrentWebmDecoder(void);
 ma_webm *getFirstWebmDecoder(void);
-void webm_on_audio_frames(ma_device *pDevice, void *pFramesOut, const void *pFramesIn, ma_uint32 frameCount);
 ma_result callReadPCMFrames(
     ma_data_source *pDataSource,
     ma_format format,
@@ -157,7 +159,5 @@ ma_result callReadPCMFrames(
     ma_uint32 channels,
     ma_uint64 remainingFrames,
     ma_uint64 *pFramesToRead);
-bool doesOSallowVolumeControl(void);
-void shutdownAndroid(void);
 
 #endif
