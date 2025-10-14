@@ -404,7 +404,7 @@ void updatePlayerStatus(void)
         }
 }
 
-gboolean mainloop_callback(gpointer data)
+gboolean mainloopCallback(gpointer data)
 {
         (void)data;
 
@@ -498,7 +498,7 @@ void initFirstPlay(Node *song)
         else
                 emitPlaybackStoppedMpris();
 
-        g_timeout_add(34, mainloop_callback, NULL);
+        g_timeout_add(34, mainloopCallback, NULL);
         g_main_loop_run(main_loop);
         g_main_loop_unref(main_loop);
 }
