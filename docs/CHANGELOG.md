@@ -4,7 +4,7 @@
 
 ![kew logo](https://codeberg.org/ravachol/kew/media/branch/main/images/logo.png)
 
-- kew now has a real logo and a tagline: "MUSIC FOR THE SHELL". It really fits perfectly, don't you think?
+- kew now has a real logo and a tagline: "MUSIC FOR THE SHELL". It really fits perfectly.
 
 - We now also have a color associated with kew, which is red: #de2b4d.
 
@@ -29,6 +29,8 @@
 - The config file is now respected and no longer changed by kew, only if you run kew path <path>. Instead there is a kewstaterc file in ~/.local/state that keeps the variables that can change in-app, these override what's in kewrc. Suggested by @danielwerg.
 
 - Dropped Nerd Fonts in favor of ⇉,⇇,↻,⇄ which are all unicode symbols. While Nerdfonts is neat it's too much trouble for users to install things and troubleshoot for just 4 slightly better symbols.
+
+- kew now restarts if it's already running in a different window. This replaces the ugly message that instructs the user to run 'kill'. Suggested by @amigthea.
 
 #### Bug Fixes
 
