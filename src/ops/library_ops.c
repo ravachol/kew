@@ -163,8 +163,11 @@ bool markAsDequeued(FileSystemEntry *root, char *path)
         return false;
 }
 
-void askIfCacheLibrary(UISettings *ui)
+void askIfCacheLibrary()
 {
+        AppState *state = getAppState();
+        UISettings *ui = &(state->uiSettings);
+
         if (ui->cacheLibrary >
             -1) // Only use this function if cacheLibrary isn't set
                 return;
@@ -392,8 +395,9 @@ void updateLibraryIfChangedDetected(void)
         }
 }
 
-void createLibrary(AppSettings *settings, char *libFilepath)
+void createLibrary(char *libFilepath)
 {
+        AppSettings *settings = getAppSettings();
         AppState *state = getAppState();
         FileSystemEntry *library = getLibrary();
 
@@ -432,7 +436,7 @@ void createLibrary(AppSettings *settings, char *libFilepath)
                 // instead
                 if (elapsed > ASK_IF_USE_CACHE_LIMIT_SECONDS)
                 {
-                        askIfCacheLibrary(&(state->uiSettings));
+                        askIfCacheLibrary();
                 }
         }
 

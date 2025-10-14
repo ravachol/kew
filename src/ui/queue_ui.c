@@ -452,7 +452,6 @@ void init(void)
 
         PlaybackState *ps = getPlaybackState();
         UserData *userData = playbackGetUserData();
-        AppSettings *settings = getAppSettings();
         PlayList *playlist = getPlaylist();
         AudioData *audioData = getAudioData();
         state->tmpCache = createCache();
@@ -472,7 +471,7 @@ void init(void)
         pthread_mutex_init(&(playlist->mutex), NULL);
         freeSearchResults();
         resetChosenDir();
-        createLibrary(settings, getLibraryFilePath());
+        createLibrary(getLibraryFilePath());
         setlocale(LC_ALL, "");
         setlocale(LC_CTYPE, "");
         fflush(stdout);

@@ -21,7 +21,6 @@
 
 #include <glib.h>
 #include <math.h>
-#include <time.h>
 
 static guint registration_id;
 static guint player_registration_id;
