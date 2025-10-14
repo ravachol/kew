@@ -641,9 +641,7 @@ void cleanupOnExit()
         pthread_mutex_lock(&(state->dataSourceMutex));
 
         playbackFreeDecoders();
-
         playbackShutdown();
-
         emitPlaybackStoppedMpris();
 
         bool noMusicFound = false;
