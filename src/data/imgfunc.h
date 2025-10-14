@@ -25,12 +25,13 @@ typedef struct
 
 int printInAsciiCentered(const char *pathToImgFile, int height);
 int printInAscii(int indentation, const char *pathToImgFile, int height);
+int getCoverColor(unsigned char *pixels, int width, int height, unsigned char *r, unsigned char *g, unsigned char *b);
+float getAspectRatio();
 float calcAspectRatio(void);
 unsigned char *getBitmap(const char *image_path, int *width, int *height);
 void printSquareBitmapCentered(unsigned char *pixels, int width, int height, int baseHeight);
 void printSquareBitmap(int row, int col, unsigned char *pixels, int width, int height, int baseHeight);
-int getCoverColor(unsigned char *pixels, int width, int height, unsigned char *r, unsigned char *g, unsigned char *b);
-float getAspectRatio();
+
 #ifdef CHAFA_VERSION_1_16
 gboolean retirePassthroughWorkarounds_tmux(void);
 #endif

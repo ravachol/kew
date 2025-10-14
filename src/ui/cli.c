@@ -5,15 +5,18 @@
  * Contains the function that shows the welcome screen and sets the path for the first time.
  */
 
-
 #include "cli.h"
+
 #include "common/appstate.h"
-#include "ops/settings.h"
+
+#include "ui/settings.h"
 #include "ui/common_ui.h"
 #include "ui/player_ui.h"
+
 #include "utils/file.h"
 #include "utils/term.h"
 #include "utils/utils.h"
+
 #include <pwd.h>
 
 void removeArgElement(char *argv[], int index, int *argc)
@@ -103,21 +106,7 @@ void setMusicPath(void)
         AppState *state = getAppState();
         UISettings *ui = &(state->uiSettings);
 
-        struct passwd *pw = getpwuid(getuid());
-        char *user = NULL;
-
         clearScreen();
-
-        if (pw)
-        {
-                user = pw->pw_name;
-        }
-        else
-        {
-                printf("Please set a path to your music library.\n");
-                printf("To set it, type: kew path \"~/Music\".\n");
-                exit(1);
-        }
 
         ui->color.r = ui->kewColorRGB.r;
         ui->color.g = ui->kewColorRGB.g;
@@ -148,13 +137,8 @@ void setMusicPath(void)
         for (size_t i = 0;
              i < sizeof(musicFolderNames) / sizeof(musicFolderNames[0]); i++)
         {
-#ifdef __APPLE__
-                snprintf(path, sizeof(path), "/Users/%s/%s", user,
+                snprintf(path, sizeof(path), "~/%s",
                          musicFolderNames[i]);
-#else
-                snprintf(path, sizeof(path), "/home/%s/%s", user,
-                         musicFolderNames[i]);
-#endif
 
                 if (directoryExists(path))
                 {

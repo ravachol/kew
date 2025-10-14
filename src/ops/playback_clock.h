@@ -12,13 +12,13 @@
 #include <stdbool.h>
 
 void resetClock(void);
-double getElapsedSeconds(void);
-struct timespec getPauseTime(void);
 void calcElapsedTime(double duration);
+void updatePauseTime(void);
+void addToAccumulatedSeconds(double value);
 bool setPosition(gint64 newPosition, double duration);
 bool seekPosition(gint64 offset, double duration);
 bool flushSeek(double duration);
-void updatePauseTime(void);
-void addToAccumulatedSeconds(double value);
+double getElapsedSeconds(void);
+struct timespec getPauseTime(void);
 
 

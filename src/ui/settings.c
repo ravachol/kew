@@ -10,12 +10,11 @@
 
 #include "common/appstate.h"
 
-#include "playback_state.h"
+#include "ops/playback_state.h"
 
 #include "sound/soundcommon.h"
 
 #include "utils/file.h"
-#include "utils/term.h"
 #include "utils/utils.h"
 
 #include <locale.h>
@@ -38,12 +37,6 @@ const char STATE_FILE[] = "kewstaterc";
 #define MAX_LINE 1024
 
 time_t lastTimeAppRan;
-
-void enableMouse(UISettings *ui)
-{
-        if (ui->mouseEnabled)
-                enableTerminalMouseButtons();
-}
 
 AppSettings initSettings(void)
 {
@@ -991,68 +984,6 @@ char *getPrefsFilePath(char *prefsdir)
         return filepath;
 }
 
-int getBytesInFirstChar(const char *str)
-{
-        if (str == NULL || str[0] == '\0')
-        {
-                return 0;
-        }
-
-        mbstate_t state;
-        memset(&state, 0, sizeof(state));
-        wchar_t wc;
-        int numBytes = mbrtowc(&wc, str, MB_CUR_MAX, &state);
-
-        return numBytes;
-}
-
-enum EventType getMouseAction(int num)
-{
-        enum EventType value = EVENT_NONE;
-
-        switch (num)
-        {
-        case 0:
-                value = EVENT_NONE;
-                break;
-        case 1:
-                value = EVENT_ENQUEUE;
-                break;
-        case 2:
-                value = EVENT_PLAY_PAUSE;
-                break;
-        case 3:
-                value = EVENT_SCROLLPREV;
-                break;
-        case 4:
-                value = EVENT_SCROLLNEXT;
-                break;
-        case 5:
-                value = EVENT_SEEKFORWARD;
-                break;
-        case 6:
-                value = EVENT_SEEKBACK;
-                break;
-        case 7:
-                value = EVENT_VOLUME_UP;
-                break;
-        case 8:
-                value = EVENT_VOLUME_DOWN;
-                break;
-        case 9:
-                value = EVENT_NEXTVIEW;
-                break;
-        case 10:
-                value = EVENT_PREVVIEW;
-                break;
-        default:
-                value = EVENT_NONE;
-                break;
-        }
-
-        return value;
-}
-
 int mkdir_p(const char *path, mode_t mode)
 {
         if (path == NULL)
@@ -1099,20 +1030,20 @@ int mkdir_p(const char *path, mode_t mode)
         return 0;
 }
 
-void getPrefs(AppSettings *settings, UISettings *ui) // FIXME: Ui shouldn't be here
+void getPrefs(AppSettings *settings, UISettings *ui)
 {
         int pair_count;
         char *prefsdir = getPrefsPath();
 
         setlocale(LC_ALL, "");
 
-        // Create the directory if it doesn't exist
         struct stat st = {0};
         if (stat(prefsdir, &st) == -1)
         {
                 if (mkdir_p(prefsdir, 0700) != 0)
                 {
                         perror("mkdir");
+                        free(prefsdir);
                         exit(1);
                 }
         }
@@ -1124,12 +1055,6 @@ void getPrefs(AppSettings *settings, UISettings *ui) // FIXME: Ui shouldn't be h
 
         free(filepath);
         constructAppSettings(settings, pairs, pair_count);
-
-        ui->allowNotifications = (settings->allowNotifications[0] == '1');
-        ui->coverEnabled = (settings->coverEnabled[0] == '1');
-        ui->coverAnsi = (settings->coverAnsi[0] == '1');
-        ui->visualizerEnabled = (settings->visualizerEnabled[0] == '1');
-        ui->shuffleEnabled = (settings->shuffleEnabled[0] == '1');
 
         int tmp = getNumber(settings->repeatState);
         if (tmp >= 0)
@@ -1149,14 +1074,13 @@ void getPrefs(AppSettings *settings, UISettings *ui) // FIXME: Ui shouldn't be h
         free(prefsdir);
 }
 
-void getConfig(AppSettings *settings, UISettings *ui) // FIXME: ui shouldn't be here
+void getConfig(AppSettings *settings, UISettings *ui)
 {
         int pair_count;
         char *configdir = getConfigPath();
 
         setlocale(LC_ALL, "");
 
-        // Create the directory if it doesn't exist
         struct stat st = {0};
         if (stat(configdir, &st) == -1)
         {
@@ -1184,128 +1108,6 @@ void getConfig(AppSettings *settings, UISettings *ui) // FIXME: ui shouldn't be 
 
         constructAppSettings(settings, pairs, pair_count);
 
-        int tmpNumBytes =
-            getBytesInFirstChar(settings->progressBarElapsedEvenChar);
-        if (tmpNumBytes != 0)
-                settings->progressBarElapsedEvenChar[tmpNumBytes] = '\0';
-
-        tmpNumBytes = getBytesInFirstChar(settings->progressBarElapsedOddChar);
-        if (tmpNumBytes != 0)
-                settings->progressBarElapsedOddChar[tmpNumBytes] = '\0';
-
-        tmpNumBytes =
-            getBytesInFirstChar(settings->progressBarApproachingEvenChar);
-        if (tmpNumBytes != 0)
-                settings->progressBarApproachingEvenChar[tmpNumBytes] = '\0';
-
-        tmpNumBytes =
-            getBytesInFirstChar(settings->progressBarApproachingOddChar);
-        if (tmpNumBytes != 0)
-                settings->progressBarApproachingOddChar[tmpNumBytes] = '\0';
-
-        tmpNumBytes = getBytesInFirstChar(settings->progressBarCurrentEvenChar);
-        if (tmpNumBytes != 0)
-                settings->progressBarCurrentEvenChar[tmpNumBytes] = '\0';
-
-        tmpNumBytes = getBytesInFirstChar(settings->progressBarCurrentOddChar);
-        if (tmpNumBytes != 0)
-                settings->progressBarCurrentOddChar[tmpNumBytes] = '\0';
-
-        ui->allowNotifications = (settings->allowNotifications[0] == '1');
-        ui->coverEnabled = (settings->coverEnabled[0] == '1');
-        ui->coverAnsi = (settings->coverAnsi[0] == '1');
-        ui->visualizerEnabled = (settings->visualizerEnabled[0] == '1');
-        bool useConfigColors = (settings->useConfigColors[0] == '1');
-        ui->quitAfterStopping = (settings->quitAfterStopping[0] == '1');
-        ui->hideGlimmeringText = (settings->hideGlimmeringText[0] == '1');
-        ui->mouseEnabled = (settings->mouseEnabled[0] == '1');
-        ui->shuffleEnabled = (settings->shuffleEnabled[0] == '1');
-
-        ui->visualizerBrailleMode = (settings->visualizerBrailleMode[0] == '1');
-        ui->hideLogo = (settings->hideLogo[0] == '1');
-        ui->hideHelp = (settings->hideHelp[0] == '1');
-        ui->saveRepeatShuffleSettings =
-            (settings->saveRepeatShuffleSettings[0] == '1');
-        ui->trackTitleAsWindowTitle =
-            (settings->trackTitleAsWindowTitle[0] == '1');
-
-        int tmp = getNumber(settings->repeatState);
-        if (tmp >= 0)
-                ui->repeatState = tmp;
-
-        tmp = getNumber(settings->colorMode);
-        if (tmp >= 0 && tmp < 3)
-        {
-                ui->colorMode = tmp;
-        }
-        else
-        {
-                if (useConfigColors)
-                        ui->colorMode = COLOR_MODE_DEFAULT;
-                else
-                        ui->colorMode = COLOR_MODE_ALBUM;
-        }
-
-        tmp = getNumber(settings->replayGainCheckFirst);
-        if (tmp >= 0)
-                ui->replayGainCheckFirst = tmp;
-
-        tmp = getNumber(settings->mouseLeftClickAction);
-        enum EventType tmpEvent = getMouseAction(tmp);
-        if (tmp >= 0)
-                ui->mouseLeftClickAction = tmpEvent;
-
-        tmp = getNumber(settings->mouseMiddleClickAction);
-        tmpEvent = getMouseAction(tmp);
-        if (tmp >= 0)
-                ui->mouseMiddleClickAction = tmpEvent;
-
-        tmp = getNumber(settings->mouseRightClickAction);
-        tmpEvent = getMouseAction(tmp);
-        if (tmp >= 0)
-                ui->mouseRightClickAction = tmpEvent;
-
-        tmp = getNumber(settings->mouseScrollUpAction);
-        tmpEvent = getMouseAction(tmp);
-        if (tmp >= 0)
-                ui->mouseScrollUpAction = tmpEvent;
-
-        tmp = getNumber(settings->mouseScrollDownAction);
-        tmpEvent = getMouseAction(tmp);
-        if (tmp >= 0)
-                ui->mouseScrollDownAction = tmpEvent;
-
-        tmp = getNumber(settings->mouseAltScrollUpAction);
-        tmpEvent = getMouseAction(tmp);
-        if (tmp >= 0)
-                ui->mouseAltScrollUpAction = tmpEvent;
-
-        tmp = getNumber(settings->mouseAltScrollDownAction);
-        tmpEvent = getMouseAction(tmp);
-        if (tmp >= 0)
-                ui->mouseAltScrollDownAction = tmpEvent;
-
-        tmp = getNumber(settings->visualizerHeight);
-        if (tmp > 0)
-                ui->visualizerHeight = tmp;
-
-        tmp = getNumber(settings->visualizerBarWidth);
-        if (tmp >= 0)
-                ui->visualizerBarWidth = tmp;
-
-        tmp = getNumber(settings->visualizerColorType);
-        if (tmp >= 0)
-                ui->visualizerColorType = tmp;
-
-        tmp = getNumber(settings->titleDelay);
-        if (tmp >= 0)
-                ui->titleDelay = tmp;
-
-        tmp = getNumber(settings->cacheLibrary);
-        if (tmp >= 0)
-                ui->cacheLibrary = tmp;
-
-        snprintf(ui->themeName, sizeof(ui->themeName), "%s", settings->theme);
         free(configdir);
 }
 
@@ -1386,6 +1188,10 @@ void setPrefs(AppSettings *settings, UISettings *ui)
         fprintf(file, "visualizerEnabled=%s\n\n", settings->visualizerEnabled);
         fprintf(file, "[colors]\n\n");
         fprintf(file, "colorMode=%d\n\n", ui->colorMode);
+        fprintf(file, "theme=%s\n\n", ui->themeName);
+
+        free(prefsdir);
+        free(filepath);
 }
 
 void setConfig(AppSettings *settings, UISettings *ui)
@@ -1532,10 +1338,6 @@ void setConfig(AppSettings *settings, UISettings *ui)
                          ui->mouseAltScrollDownAction);
 
         // Write the settings to the file
-        fprintf(file, "# Configuration file for kew terminal music player.\n");
-        fprintf(file, "# Make sure that kew is not running before editing this "
-                      "file in order for changes to take effect.\n\n");
-
         fprintf(file, "\n[miscellaneous]\n\n");
         fprintf(file, "path=%s\n", settings->path);
         fprintf(file, "allowNotifications=%s\n", settings->allowNotifications);
@@ -1838,5 +1640,17 @@ int updateRc(const char *path, const char *key, const char *value)
 
 void setPath(const char *path)
 {
-        updateRc(getConfigFilePath(getConfigPath()), "path", path);
+        char *configdir = NULL;
+        char *configFilePath = NULL;
+
+        configdir = getConfigPath();
+        configFilePath = getConfigFilePath(configdir);
+
+        updateRc(configFilePath, "path", path);
+
+        if (configdir != NULL)
+                free(configdir);
+
+        if (configFilePath != NULL)
+                free(configFilePath);
 }
