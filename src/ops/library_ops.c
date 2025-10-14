@@ -228,10 +228,13 @@ void *updateLibraryThread(void *arg)
         AppState *state = args->state;
         int tmpDirectoryTreeEntries = 0;
 
+        char expandedPath[MAXPATHLEN];
+        expandPath(path, expandedPath);
+
         setErrorMessage("Updating Library...");
 
         FileSystemEntry *tmp =
-            createDirectoryTree(path, &tmpDirectoryTreeEntries);
+            createDirectoryTree(expandedPath, &tmpDirectoryTreeEntries);
 
         if (!tmp)
         {
