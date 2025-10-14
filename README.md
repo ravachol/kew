@@ -186,10 +186,6 @@ To load 'kew list fav':
 kew .
 ```
 
-## Nerd Fonts
-
-kew looks better with Nerd Fonts: https://www.nerdfonts.com/.
-
 ## License
 
 Licensed under GPL. [See LICENSE for more information](./LICENSE).

@@ -880,14 +880,14 @@ void printFooter(int row, int col, AppSettings *settings)
 
         if (playbackIsRepeatEnabled())
         {
-                char repeatText[] = " \u27f3";
+                char repeatText[] = " ↻";
                 snprintf(nerdFontText + currentLength,
                          maxLength - currentLength, "%s", repeatText);
                 currentLength += strlen(repeatText);
         }
         else if (playbackIsRepeatListEnabled())
         {
-                char repeatText[] = " \u27f3L";
+                char repeatText[] = " ↻L";
                 snprintf(nerdFontText + currentLength,
                          maxLength - currentLength, "%s", repeatText);
                 currentLength += strlen(repeatText);
@@ -895,7 +895,7 @@ void printFooter(int row, int col, AppSettings *settings)
 
         if (playbackIsShuffleEnabled())
         {
-                char shuffleText[] = " \uf074";
+                char shuffleText[] = " ⇄";
                 snprintf(nerdFontText + currentLength,
                          maxLength - currentLength, "%s", shuffleText);
                 currentLength += strlen(shuffleText);
@@ -903,7 +903,7 @@ void printFooter(int row, int col, AppSettings *settings)
 
         if (uis->isFastForwarding)
         {
-                char forwardText[] = " \uf04e";
+                char forwardText[] = " ⇉";
                 snprintf(nerdFontText + currentLength,
                          maxLength - currentLength, "%s", forwardText);
                 currentLength += strlen(forwardText);
@@ -911,7 +911,7 @@ void printFooter(int row, int col, AppSettings *settings)
 
         if (uis->isRewinding)
         {
-                char rewindText[] = " \uf04a";
+                char rewindText[] = " ⇇";
                 snprintf(nerdFontText + currentLength,
                          maxLength - currentLength, "%s", rewindText);
                 currentLength += strlen(rewindText);

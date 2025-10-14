@@ -22,11 +22,11 @@ bool playbackIsEof(void);
 bool isCurrentSongDeleted(void);
 bool playbackIsImplSwitchReached(void);
 int playbackGetVolume();
-UserData *playbackGetUserData(void);
-SongData *getCurrentSongData(void);
 double getCurrentSongDuration(void);
 bool determineCurrentSongData(SongData **currentSongData);
 void getFormatAndSampleRate(ma_format *format, ma_uint32 *sampleRate);
+UserData *playbackGetUserData(void);
+SongData *getCurrentSongData(void);
 
 // Setters
 void playbackSetRepeatEnabled(bool enabled);
