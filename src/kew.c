@@ -861,6 +861,8 @@ int main(int argc, char *argv[])
         else if (argc == 2 && (strcmp(argv[1], "--version") == 0 ||
                                strcmp(argv[1], "-v") == 0))
         {
+                state->uiSettings.colorMode = COLOR_MODE_ALBUM;
+                state->uiSettings.color = state->uiSettings.defaultColorRGB;
                 printAbout(NULL);
                 exit(0);
         }
