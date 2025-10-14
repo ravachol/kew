@@ -285,15 +285,19 @@ void updateLibrary(char *path)
 
 time_t getModificationTime(const struct stat *path_stat)
 {
-#if defined(__APPLE__) && defined(st_mtimespec)
+#if defined(__APPLE__)
+    // macOS 10.13+ exposes st_mtimensec/st_mtim.tv_sec via macros
+    // st_mtimespec may not exist on newer SDKs
+#   if defined(__APPLE_USE_RFC_3542) || defined(st_mtime)
+        return path_stat->st_mtime;
+#   else
+        // For older macOS SDKs that still had st_mtimespec
         return path_stat->st_mtimespec.tv_sec;
-#elif defined(__APPLE__) && !defined(st_mtimespec)
-        /* Fallback if st_mtimespec hidden by POSIX macros */
-        return path_stat->st_mtime;
+#   endif
 #elif defined(__linux__)
-        return path_stat->st_mtim.tv_sec;
+    return path_stat->st_mtim.tv_sec;
 #else
-        return path_stat->st_mtime;
+    return path_stat->st_mtime;
 #endif
 }
 
