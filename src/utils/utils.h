@@ -32,7 +32,6 @@ char *stringToLower(const char *str);
 char *utf8_strstr(const char *haystack, const char *needle);
 char *c_strcasestr(const char *haystack, const char *needle, int maxScanLen);
 int match_regex(const regex_t *regex, const char *ext);
-gint64 getLengthInMicroSec(double duration);
 void extractExtension(const char *filename, size_t numChars, char *ext);
 int pathEndsWith(const char *str, const char *suffix);
 int pathStartsWith(const char *str, const char *prefix);
@@ -48,5 +47,6 @@ char *getFilePath(const char *filename);
 float getFloat(const char *str);
 int copyFile(const char *src, const char *dst);
 int getNumberFromString(const char *str);
+gint64 getLengthInMicroSec(double duration);
 
 #endif

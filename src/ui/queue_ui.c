@@ -33,9 +33,7 @@ void determineSongAndNotify(void)
 {
         AppState *state = getAppState();
         SongData *currentSongData = NULL;
-
         bool isDeleted = determineCurrentSongData(&currentSongData);
-
         Node *current = getCurrentSong();
 
         if (currentSongData && current)
@@ -113,13 +111,12 @@ void resetListAfterDequeuingPlayingSong(void)
 
 FileSystemEntry *enqueueSongs(FileSystemEntry *entry, FileSystemEntry **chosenDir)
 {
-        bool hasEnqueued = false;
-        bool shuffle = false;
-
         AppState *state = getAppState();
         FileSystemEntry *firstEnqueuedEntry = NULL;
         UIState *uis = &(state->uiState);
         PlaybackState *ps = getPlaybackState();
+        bool hasEnqueued = false;
+        bool shuffle = false;
 
         if (entry != NULL)
         {
@@ -270,75 +267,6 @@ FileSystemEntry *enqueue(FileSystemEntry *entry)
         return firstEnqueuedEntry;
 }
 
-FileSystemEntry *libraryEnqueue(PlayList *playlist)
-{
-        AppState *state = getAppState();
-        FileSystemEntry *entry = state->uiState.currentLibEntry;
-        FileSystemEntry *firstEnqueuedEntry = NULL;
-
-        if (entry == NULL)
-                return NULL;
-
-        // Enqueue playlist
-        if (pathEndsWith(entry->fullPath, "m3u") ||
-            pathEndsWith(entry->fullPath, "m3u8"))
-        {
-                Node *prevTail = playlist->tail;
-
-                readM3UFile(entry->fullPath, playlist, getLibrary());
-
-                if (prevTail != NULL && prevTail->next != NULL)
-                {
-                        firstEnqueuedEntry = findCorrespondingEntry(
-                            getLibrary(), prevTail->next->song.filePath);
-                }
-                else if (playlist->head != NULL)
-                {
-                        firstEnqueuedEntry = findCorrespondingEntry(
-                            getLibrary(), playlist->head->song.filePath);
-                }
-
-                autostartIfStopped(firstEnqueuedEntry);
-
-                markListAsEnqueued(getLibrary(), playlist);
-
-                PlayList *unshuffledPlaylist = getUnshuffledPlaylist();
-
-                deepCopyPlayListOntoList(playlist, &unshuffledPlaylist);
-                shufflePlaylist(playlist);
-                setUnshuffledPlaylist(unshuffledPlaylist);
-        }
-        else
-        {
-                firstEnqueuedEntry = enqueue(entry); // Enqueue song
-        }
-
-        return firstEnqueuedEntry;
-}
-
-FileSystemEntry *searchEnqueue(PlayList *playlist)
-{
-        PlaybackState *ps = getPlaybackState();
-
-        pthread_mutex_lock(&(playlist->mutex));
-
-        FileSystemEntry *entry = getCurrentSearchEntry();
-        ps->waitingForPlaylist = false;
-
-        setChosenDir(entry);
-
-        FileSystemEntry *chosenDir = getChosenDir();
-        FileSystemEntry *firstEnqueuedEntry = enqueueSongs(entry, &chosenDir);
-
-        setChosenDir(chosenDir);
-
-        setChosenDir(chosenDir);
-        resetListAfterDequeuingPlayingSong();
-        pthread_mutex_unlock(&(playlist->mutex));
-
-        return firstEnqueuedEntry;
-}
-
 void viewEnqueue(bool playImmediately)
 {
         AppState *state = getAppState();
@@ -443,6 +371,7 @@ void viewEnqueue(bool playImmediately)
 void init(void)
 {
         AppState *state = getAppState();
+
         disableTerminalLineInput();
         setRawInputMode();
         initResize();

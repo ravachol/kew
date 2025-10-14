@@ -7,6 +7,8 @@
  * and interacts directly with the playback state and audio backends.
  */
 
+#include "common/appstate.h"
+
 #include "playback_ops.h"
 
 #include "playback_clock.h"
@@ -14,17 +16,15 @@
 #include "playback_state.h"
 #include "playlist_ops.h"
 
-#include "common/appstate.h"
-
 #include "sound/sound.h"
 #include "sound/soundcommon.h"
 
-#include "utils/file.h"
-#include "utils/utils.h"
+#include "sys/systemintegration.h"
 
 #include "data/songloader.h"
 
-#include "sys/systemintegration.h"
+#include "utils/file.h"
+#include "utils/utils.h"
 
 void resumePlayback(void)
 {

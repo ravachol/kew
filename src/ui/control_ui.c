@@ -43,7 +43,7 @@ void seekForward(void)
 
         seek(seconds);
 
-        state->uiState.isRewinding = true;
+        state->uiState.isFastForwarding = true;
 }
 
 void seekBack(void)
