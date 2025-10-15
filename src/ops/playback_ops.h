@@ -16,7 +16,7 @@ int playSong(Node *node);
 void pauseSong(void);
 void play(void);
 void stop(void);
-void togglePause(void);
+void opsTogglePause(void);
 void resumePlayback(void);
 void volumeChange(int changePercent);
 void seek(int seconds);

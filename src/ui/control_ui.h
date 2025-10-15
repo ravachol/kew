@@ -18,6 +18,7 @@ void toggleVisualizer(void);
 void toggleShuffle(void);
 void toggleNotifications(void);
 void toggleRepeat(void);
+void togglePause();
 bool shouldRefreshPlayer(void);
 int loadTheme(const char *themeName, bool isAnsiTheme);
 

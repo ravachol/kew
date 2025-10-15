@@ -18,7 +18,7 @@ Before contributing, ensure you have the following tools installed on your devel
 
 1. Clone the repository:
    ```
-   git clone https://codeberg.org/ravachol/kew.git
+   git clone https://codeberg.org/ravachol/kew.git --single-branch --branch develop
    cd kew
    ```
 
@@ -38,20 +38,11 @@ There are plenty of examples of projects using other things than strict snake_ca
 
 Please refrain from using a lot of comments, and make sure that they are in English. I am not a big believer in comments and avoid commenting as much as possible. If you feel you need to add a comment, please first consider if you can make the function or variable names clearer, or if you can structure the code differently so that it is simpler and the intent is clear, or if you can make the code block into a function with a name that explains crystally clear what is going on. If you used AI make sure to remove comments that aren't strictly needed.
 
-### Building the Project
+### Architecture
 
-1. Clone the repository:
-   ```
-   git clone https://codeberg.org/ravachol/kew.git
-   cd kew
-   ```
+![](../images/kew_architecture.png)
 
-2. To enable debugging symbols, run make with DEBUG=1
-
-3. Build the project:
-   ```
-   make DEBUG=1 -j$(nproc)  # Use all available processor cores for faster builds
-   ```
+kew follows the above architecture, so that function calls only go in the direction of the arrows. For instance, functions in ops module never call functions in ui module as there is no arrow pointing from ops to ui. Please make sure your PR follows this architecture, and place your code in the correct module. If you have doubts in where to place it, just ask.
 
 ### Debugging with VSCodium
 

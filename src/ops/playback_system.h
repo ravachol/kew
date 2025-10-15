@@ -9,6 +9,8 @@
 
 #include "common/appstate.h"
 
+#include "data/theme.h"
+
 int playbackCreate(void);
 void playbackSafeCleanup(void);
 void playbackCleanup(void);
@@ -17,3 +19,4 @@ void playbackSwitchDecoder(void);
 void playbackShutdown(void);
 void playbackUnloadSongs(UserData *userData);
 void playbackFreeDecoders(void);
+void ensureDefaultThemePack();

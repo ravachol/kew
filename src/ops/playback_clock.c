@@ -11,7 +11,9 @@
 
 #include "common/appstate.h"
 
-#include "sound/soundcommon.h"
+#include "sound/decoders.h"
+#include "sound/m4a.h"
+#include "sound/playback.h"
 
 #include "utils/utils.h"
 

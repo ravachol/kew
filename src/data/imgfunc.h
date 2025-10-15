@@ -13,16 +13,6 @@
 #include <chafa.h>
 #include <chafa-canvas-config.h>
 
-#ifndef PIXELDATA_STRUCT
-#define PIXELDATA_STRUCT
-typedef struct
-{
-        unsigned char r;
-        unsigned char g;
-        unsigned char b;
-} PixelData;
-#endif
-
 int printInAsciiCentered(const char *pathToImgFile, int height);
 int printInAscii(int indentation, const char *pathToImgFile, int height);
 int getCoverColor(unsigned char *pixels, int width, int height, unsigned char *r, unsigned char *g, unsigned char *b);

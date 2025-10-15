@@ -26,10 +26,6 @@
 
 #define MAX_STACK_SIZE 1000000
 
-#ifndef MAXPATHLEN
-#define MAXPATHLEN 4096
-#endif
-
 static int lastUsedId = 0;
 
 FileSystemEntry *createEntry(const char *name, int isDirectory,

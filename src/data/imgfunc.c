@@ -7,6 +7,7 @@
  * and different rendering modes (truecolor, ASCII, etc.).
  */
 
+#include "common/appstate.h"
 #include "common/common.h"
 
 #include "imgfunc.h"

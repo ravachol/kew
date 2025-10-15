@@ -15,21 +15,9 @@ extern "C"
 {
 #endif
 
-#ifndef TAGSETTINGS_STRUCT
-#define METADATA_MAX_LENGTH 256
-#define TAGSETTINGS_STRUCT
-        typedef struct
-        {
-                char title[METADATA_MAX_LENGTH];
-                char artist[METADATA_MAX_LENGTH];
-                char album_artist[METADATA_MAX_LENGTH];
-                char album[METADATA_MAX_LENGTH];
-                char date[METADATA_MAX_LENGTH];
-                double replaygainTrack;
-                double replaygainAlbum;
-        } TagSettings;
-#endif
-        int extractTags(const char *input_file, TagSettings *tag_settings, double *duration, const char *coverFilePath);
+#include "common/appstate.h"
+
+int extractTags(const char *input_file, TagSettings *tag_settings, double *duration, const char *coverFilePath);
 
 #ifdef __cplusplus
 }

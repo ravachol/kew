@@ -9,10 +9,6 @@
 
 #include <stdbool.h>
 
-#ifndef MAXPATHLEN
-#define MAXPATHLEN 4096
-#endif
-
 typedef enum
 {
         k_unknown = 0,

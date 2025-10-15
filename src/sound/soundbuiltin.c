@@ -10,7 +10,10 @@
 
 #include "common/appstate.h"
 
-#include "sound/soundcommon.h"
+#include "sound/sound.h"
+#include "sound/audiobuffer.h"
+#include "sound/playback.h"
+#include "sound/decoders.h"
 
 #include <math.h>
 #include <stdbool.h>
