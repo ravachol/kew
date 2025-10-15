@@ -10,8 +10,11 @@
 #include "playback_system.h"
 
 #include "common/appstate.h"
+#include "common/common.h"
+#include "sound/audiotypes.h"
+#include "sound/decoders.h"
 #include "sound/sound.h"
-#include "sound/soundcommon.h"
+#include "sound/playback.h"
 
 #include "data/songloader.h"
 
@@ -99,4 +102,8 @@ void playbackFreeDecoders(void)
         resetAllDecoders();
 }
 
+void ensureDefaultThemePack()
+{
+        ensureDefaultThemes();
+}
 

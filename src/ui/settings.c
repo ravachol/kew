@@ -12,7 +12,7 @@
 
 #include "ops/playback_state.h"
 
-#include "sound/soundcommon.h"
+#include "sound/volume.h"
 
 #include "utils/file.h"
 #include "utils/utils.h"
@@ -24,12 +24,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/param.h>
+#include <sys/stat.h>
 #include <unistd.h>
 #include <wchar.h>
-
-#ifndef MAXPATHLEN
-#define MAXPATHLEN 4096
-#endif
 
 const char SETTINGS_FILE[] = "kewrc";
 const char STATE_FILE[] = "kewstaterc";
@@ -41,7 +38,7 @@ time_t lastTimeAppRan;
 AppSettings initSettings(void)
 {
         AppState *state = getAppState();
-        UserData *userData = playbackGetUserData();
+        UserData *userData = opsGetUserData();
 
         AppSettings settings;
 

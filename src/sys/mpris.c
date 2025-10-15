@@ -17,7 +17,8 @@
 #include "ops/playback_clock.h"
 #include "ops/playlist_ops.h"
 
-#include "sound/soundcommon.h"
+#include "sound/playback.h"
+#include "sound/volume.h"
 
 #include <glib.h>
 #include <math.h>
@@ -259,7 +260,7 @@ static void handle_play_pause(GDBusConnection *connection, const gchar *sender,
         (void)parameters;
         (void)user_data;
 
-        togglePause();
+        opsTogglePause();
 
         g_dbus_method_invocation_return_value(invocation, NULL);
 }

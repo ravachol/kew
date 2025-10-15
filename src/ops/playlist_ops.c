@@ -9,6 +9,7 @@
 
 #include "playlist_ops.h"
 
+#include "common/common.h"
 #include "playback_clock.h"
 #include "playback_ops.h"
 #include "playback_state.h"
@@ -19,7 +20,7 @@
 
 #include "common/appstate.h"
 
-#include "sound/soundcommon.h"
+#include "sound/playback.h"
 
 #include "data/songloader.h"
 
@@ -841,7 +842,7 @@ void handleSkipOutOfOrder(void)
 {
         PlaybackState *ps = getPlaybackState();
 
-        if (!ps->skipOutOfOrder && !playbackIsRepeatEnabled())
+        if (!ps->skipOutOfOrder && !opsIsRepeatEnabled())
         {
                 setCurrentSongToNext();
         }
@@ -968,10 +969,10 @@ void playlistPlay(PlayList *playlist)
 
         Node *current = getCurrentSong();
 
-        if (playbackIsPaused() && current != NULL &&
+        if (opsIsPaused() && current != NULL &&
             state->uiState.chosenNodeId == current->id)
         {
-                togglePause();
+                opsTogglePause();
         }
         else
         {

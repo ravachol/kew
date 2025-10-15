@@ -11,14 +11,18 @@
 
 #include "playback_ops.h"
 
+#include "common/common.h"
 #include "playback_clock.h"
 #include "playback_system.h"
 #include "playback_state.h"
 #include "playlist_ops.h"
 
+#include "sound/decoders.h"
+#include "sound/m4a.h"
 #include "sound/sound.h"
-#include "sound/soundcommon.h"
+#include "sound/playback.h"
 
+#include "sound/volume.h"
 #include "sys/systemintegration.h"
 
 #include "data/songloader.h"
@@ -399,7 +403,7 @@ void stop(void)
         }
 }
 
-void togglePause(void)
+void opsTogglePause(void)
 {
         PlaybackState *ps = getPlaybackState();
 

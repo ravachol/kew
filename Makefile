@@ -150,13 +150,17 @@ endif
 
 OBJDIR = src/obj
 
-SRCS = src/common/appstate.c src/ui/common_ui.c src/ui/control_ui.c src/ops/playback_ops.c src/ui/input.c \
-       src/common/common.c src/data/theme.c src/sound/sound.c src/sys/systemintegration.c \
-       src/ops/library_ops.c src/data/directorytree.c src/data/lyrics.c src/ops/playback_state.c src/sys/notifications.c \
-       src/ops/playlist_ops.c src/sound/soundcommon.c src/sound/m4a.c src/ui/search_ui.c src/ui/playlist_ui.c \
-       src/ops/trackmanager.c src/ops/playback_clock.c src/ops/playback_system.c src/ui/player_ui.c src/sound/soundbuiltin.c \
-       src/sys/mpris.c src/utils/utils.c src/utils/file.c src/data/imgfunc.c src/utils/cache.c src/data/songloader.c \
-       src/data/playlist.c src/utils/term.c src/ui/settings.c src/ui/visuals.c src/ui/queue_ui.c src/ui/cli.c src/kew.c
+SRCS = src/common/appstate.c src/ui/common_ui.c src/common/common.c \
+       src/utils/utils.c src/utils/file.c src/utils/cache.c src/utils/term.c \
+       src/sound/sound.c src/sound/m4a.c src/sound/soundbuiltin.c src/sound/audiobuffer.c \
+       src/sound/decoders.c src/sound/audiofileinfo.c src/sound/playback.c src/sound/volume.c \
+       src/sys/systemintegration.c src/sys/notifications.c src/sys/mpris.c \
+       src/ops/playback_ops.c src/ops/playback_clock.c src/ops/playback_system.c \
+       src/ops/playlist_ops.c src/ops/library_ops.c src/ops/trackmanager.c src/ops/playback_state.c \
+       src/ui/control_ui.c  src/ui/input.c src/ui/playlist_ui.c  src/ui/search_ui.c  src/ui/player_ui.c \
+       src/ui/visuals.c src/ui/queue_ui.c src/ui/settings.c  src/ui/cli.c \
+       src/data/theme.c src/data/directorytree.c src/data/lyrics.c src/data/imgfunc.c src/data/songloader.c  \
+       src/data/playlist.c  src/kew.c
 
 # TagLib wrapper
 WRAPPER_SRC = src/data/tagLibWrapper.cpp

@@ -370,7 +370,7 @@ void setEndOfListReached(void)
 
         triggerRefresh();
 
-        if (playbackIsRepeatListEnabled())
+        if (isRepeatListEnabled())
                 repeatList();
         else
         {

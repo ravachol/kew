@@ -8,6 +8,8 @@
 
 #include "control_ui.h"
 
+#include "ui/queue_ui.h"
+
 #include "common/appstate.h"
 #include "ops/playback_ops.h"
 #include "ops/playback_state.h"
@@ -15,6 +17,8 @@
 #include "common/common.h"
 
 #include "sys/mpris.h"
+
+#include "data/theme.h"
 
 #include "utils/term.h"
 #include "utils/utils.h"
@@ -234,33 +238,45 @@ void toggleAscii(void)
 void toggleRepeat(void)
 {
         AppState *state = getAppState();
-        bool repeatEnabled = playbackIsRepeatEnabled();
-        bool repeatListEnabled = playbackIsRepeatListEnabled();
+        bool repeatEnabled = opsIsRepeatEnabled();
+        bool repeatListEnabled = isRepeatListEnabled();
 
         if (repeatEnabled)
         {
-                playbackSetRepeatEnabled(false);
-                playbackSetRepeatListEnabled(true);
+                setRepeatEnabled(false);
+                setRepeatListEnabled(true);
                 emitStringPropertyChanged("LoopStatus", "List");
                 state->uiSettings.repeatState = 2;
         }
         else if (repeatListEnabled)
         {
-                playbackSetRepeatEnabled(false);
-                playbackSetRepeatListEnabled(false);
+                setRepeatEnabled(false);
+                setRepeatListEnabled(false);
                 emitStringPropertyChanged("LoopStatus", "None");
                 state->uiSettings.repeatState = 0;
         }
         else
         {
-                playbackSetRepeatEnabled(true);
-                playbackSetRepeatListEnabled(false);
+                setRepeatEnabled(true);
+                setRepeatListEnabled(false);
                 emitStringPropertyChanged("LoopStatus", "Track");
                 state->uiSettings.repeatState = 1;
         }
 
         if (state->currentView != TRACK_VIEW)
                 triggerRefresh();
+}
+
+void togglePause()
+{
+                if (opsIsStopped())
+                {
+                        viewEnqueue(false);
+                }
+                else
+                {
+                        opsTogglePause();
+                }
 }
 
 void toggleNotifications(void)
@@ -286,8 +302,8 @@ void toggleShuffle(void)
         AppState *state = getAppState();
         PlaybackState *ps = getPlaybackState();
 
-        state->uiSettings.shuffleEnabled = !playbackIsShuffleEnabled();
-        playbackSetShuffleEnabled(state->uiSettings.shuffleEnabled);
+        state->uiSettings.shuffleEnabled = !isShuffleEnabled();
+        setShuffleEnabled(state->uiSettings.shuffleEnabled);
 
         Node *current = getCurrentSong();
         PlayList *playlist = getPlaylist();
@@ -343,7 +359,7 @@ bool shouldRefreshPlayer(void)
 {
         PlaybackState *ps = getPlaybackState();
 
-        return !ps->skipping && !playbackIsEof() && !playbackIsImplSwitchReached();
+        return !ps->skipping && !opsIsEof() && !opsIsImplSwitchReached();
 }
 
 void strToLower(char *str)
