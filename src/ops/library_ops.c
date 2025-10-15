@@ -286,13 +286,12 @@ void updateLibrary(char *path)
 time_t getModificationTime(const struct stat *path_stat)
 {
 #if defined(__APPLE__)
-    // macOS 10.13+ exposes st_mtimensec/st_mtim.tv_sec via macros
-    // st_mtimespec may not exist on newer SDKs
-#   if defined(__APPLE_USE_RFC_3542) || defined(st_mtime)
-        return path_stat->st_mtime;
+    // Newer macOS SDKs define st_mtimespec
+    // Older ones may not — fall back to st_mtime if missing
+#   if defined(HAVE_STRUCT_STAT_ST_MTIMESPEC) || defined(_DARWIN_FEATURE_64_BIT_INODE) || defined(MAC_OS_X_VERSION_MIN_REQUIRED)
+    return path_stat->st_mtimespec.tv_sec;
 #   else
-        // For older macOS SDKs that still had st_mtimespec
-        return path_stat->st_mtimespec.tv_sec;
+    return path_stat->st_mtime;
 #   endif
 #elif defined(__linux__)
     return path_stat->st_mtim.tv_sec;
