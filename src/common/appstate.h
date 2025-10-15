@@ -11,7 +11,6 @@
 #include "data/lyrics.h"
 #include "data/playlist.h"
 #include "stdio.h"
-#include "data/theme.h"
 #include <gio/gio.h>
 #include <glib.h>
 #include <miniaudio.h>
@@ -26,8 +25,7 @@
 #define G_USEC_PER_SEC 1000000
 #endif
 
-#ifndef PIXELDATA_STRUCT
-#define PIXELDATA_STRUCT
+#define METADATA_MAX_LENGTH 256
 
 typedef struct
 {
@@ -35,7 +33,67 @@ typedef struct
         unsigned char g;
         unsigned char b;
 } PixelData;
-#endif
+
+typedef enum
+{
+        COLOR_TYPE_RGB,
+        COLOR_TYPE_ANSI
+} ColorType;
+
+typedef struct
+{
+        ColorType type;
+        union
+        {
+                PixelData rgb;
+                int8_t ansiIndex; // -1 to 15 for 16 colors + -1 = foreground
+        };
+} ColorValue;
+
+typedef struct
+{
+        char theme_name[NAME_MAX];
+        char theme_author[NAME_MAX];
+        ColorValue accent;
+        ColorValue text;
+        ColorValue textDim;
+        ColorValue textMuted;
+        ColorValue logo;
+        ColorValue header;
+        ColorValue footer;
+        ColorValue help;
+        ColorValue link;
+        ColorValue nowplaying;
+        ColorValue playlist_rownum;
+        ColorValue playlist_title;
+        ColorValue playlist_playing;
+        ColorValue trackview_title;
+        ColorValue trackview_artist;
+        ColorValue trackview_album;
+        ColorValue trackview_year;
+        ColorValue trackview_time;
+        ColorValue trackview_visualizer;
+        ColorValue trackview_lyrics;
+        ColorValue library_artist;
+        ColorValue library_album;
+        ColorValue library_track;
+        ColorValue library_enqueued;
+        ColorValue library_playing;
+        ColorValue search_label;
+        ColorValue search_query;
+        ColorValue search_result;
+        ColorValue search_enqueued;
+        ColorValue search_playing;
+        ColorValue progress_filled;
+        ColorValue progress_empty;
+        ColorValue progress_elapsed;
+        ColorValue progress_duration;
+        ColorValue status_info;
+        ColorValue status_warning;
+        ColorValue status_error;
+        ColorValue status_success;
+} Theme;
+
 
 typedef enum
 {
@@ -153,18 +211,11 @@ typedef struct
         pthread_mutex_t switchMutex;
 } AppState;
 
-#ifndef KEYVALUEPAIR_STRUCT
-#define KEYVALUEPAIR_STRUCT
-
 typedef struct
 {
         char *key;
         char *value;
 } KeyValuePair;
-
-#endif
-
-#ifndef APPSETTINGS_STRUCT
 
 typedef struct
 {
@@ -282,24 +333,12 @@ typedef struct
         char showLyricsPage[6];
 } AppSettings;
 
-#endif
-
-#ifndef PROGRESSBAR_STRUCT
-#define PROGRESSBAR_STRUCT
-
 typedef struct
 {
         int row;
         int col;
         int length;
 } ProgressBar;
-
-#endif
-
-#ifndef TAGSETTINGS_STRUCT
-#define TAGSETTINGS_STRUCT
-
-#define METADATA_MAX_LENGTH 256
 
 typedef struct
 {
@@ -312,10 +351,6 @@ typedef struct
         double replaygainAlbum;
 } TagSettings;
 
-#endif
-
-#ifndef SONGDATA_STRUCT
-#define SONGDATA_STRUCT
 typedef struct
 {
         gchar *trackId;
@@ -333,10 +368,7 @@ typedef struct
         bool hasErrors;
         Lyrics *lyrics;
 } SongData;
-#endif
 
-#ifndef PLAYBACKSTATE_STRUCT
-#define PLAYBACKSTATE_STRUCT
 typedef struct
 {
         char filePath[MAXPATHLEN];
@@ -347,7 +379,6 @@ typedef struct
         pthread_mutex_t mutex;
         AppState *state;
 } LoadingThreadData;
-#endif
 
 typedef struct
 {
@@ -370,8 +401,6 @@ typedef struct
         volatile bool loadedNextSong;
 } PlaybackState;
 
-#ifndef USERDATA_STRUCT
-#define USERDATA_STRUCT
 typedef struct
 {
         SongData *songdataA;
@@ -382,10 +411,7 @@ typedef struct
         SongData *currentSongData;
         ma_uint64 currentPCMFrame;
 } UserData;
-#endif
 
-#ifndef AUDIODATA_STRUCT
-#define AUDIODATA_STRUCT
 typedef struct
 {
         ma_data_source_base base;
@@ -401,7 +427,6 @@ typedef struct
         bool endOfListReached;
         bool restart;
 } AudioData;
-#endif
 
 // --- Getters ---
 

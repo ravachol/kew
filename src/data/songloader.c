@@ -25,10 +25,6 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-#ifndef MAXPATHLEN
-#define MAXPATHLEN 4096
-#endif
-
 #define MAX_RECURSION_DEPTH 10
 
 static guint track_counter = 0;

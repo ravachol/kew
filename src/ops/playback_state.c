@@ -10,44 +10,46 @@
 #include "playback_state.h"
 
 #include "sound/sound.h"
-#include "sound/soundcommon.h"
+#include "sound/playback.h"
+#include "sound/volume.h"
 
-bool playbackIsRepeatEnabled(void)
+static bool repeatListEnabled = false;
+static bool shuffleEnabled = false;
+
+bool isRepeatListEnabled(void) { return repeatListEnabled; }
+
+void setRepeatListEnabled(bool value) { repeatListEnabled = value; }
+
+bool isShuffleEnabled(void) { return shuffleEnabled; }
+
+void setShuffleEnabled(bool value) { shuffleEnabled = value; }
+
+bool opsIsRepeatEnabled(void)
 {
         return isRepeatEnabled();
 }
 
-bool playbackIsRepeatListEnabled(void)
-{
-        return isRepeatListEnabled();
-}
-
-bool playbackIsShuffleEnabled(void)
-{
-        return isShuffleEnabled();
-}
-
-bool playbackIsPaused(void)
+bool opsIsPaused(void)
 {
         return isPaused();
 }
 
-bool playbackIsStopped(void)
+bool opsIsStopped(void)
 {
         return isStopped();
 }
 
-bool playbackisDone(void)
+bool opsIsDone(void)
 {
         return isPlaybackDone();
 }
 
-bool playbackIsEof(void)
+bool opsIsEof(void)
 {
         return isEOFReached();
 }
 
-bool playbackIsImplSwitchReached(void)
+bool opsIsImplSwitchReached(void)
 {
         return isImplSwitchReached();
 }
@@ -67,27 +69,12 @@ bool isValidSong(SongData *songData)
                songData->metadata != NULL;
 }
 
-void playbackSetEofHandled(void)
+void opsSetEofHandled(void)
 {
-        setEOFNotReached();
+        setEofHandled();
 }
 
-void playbackSetRepeatEnabled(bool value)
-{
-        setRepeatEnabled(value);
-}
-
-void playbackSetRepeatListEnabled(bool value)
-{
-        setRepeatListEnabled(value);
-}
-
-void playbackSetShuffleEnabled(bool value)
-{
-        setShuffleEnabled(value);
-}
-
-UserData *playbackGetUserData(void)
+UserData *opsGetUserData(void)
 {
         return getUserData();
 }
@@ -134,7 +121,7 @@ bool determineCurrentSongData(SongData **currentSongData)
         return isDeleted;
 }
 
-int playbackGetVolume()
+int getVolume()
 {
         return getCurrentVolume();
 }

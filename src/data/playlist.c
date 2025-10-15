@@ -26,10 +26,6 @@
 
 #define MAX_SEARCH_SIZE 256
 
-#ifndef MAXPATHLEN
-#define MAXPATHLEN 4096
-#endif
-
 const char PLAYLIST_EXTENSIONS[] = "(m3u8?)$";
 const char favoritesPlaylistName[] = "kew favorites.m3u";
 const char lastUsedPlaylistName[] = "lastPlaylist.m3u";

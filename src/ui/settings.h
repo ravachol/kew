@@ -12,10 +12,6 @@
 #include "common/events.h"
 #include "common/appstate.h"
 
-#ifndef MAXPATHLEN
-#define MAXPATHLEN 4096
-#endif
-
 void getConfig(AppSettings *settings, UISettings *ui);
 void getPrefs(AppSettings *settings, UISettings *ui);
 void setConfig(AppSettings *settings, UISettings *ui);

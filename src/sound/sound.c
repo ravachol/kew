@@ -1,4 +1,3 @@
-#include <stdint.h>
 #define MA_EXPERIMENTAL__DATA_LOOPING_AND_CHAINING
 #define MA_NO_ENGINE
 #define MINIAUDIO_IMPLEMENTATION
@@ -18,289 +17,72 @@
 
 #include "utils/file.h"
 
-#include "soundcommon.h"
 #include "soundbuiltin.h"
+#include "playback.h"
+#include "m4a.h"
+#include "decoders.h"
+#include "volume.h"
+#include "audiobuffer.h"
+#include "audiofileinfo.h"
+#include "audiotypes.h"
 
 #include "utils/utils.h"
 
 #include <miniaudio.h>
 
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-static ma_context context;
-static bool contextInitialized = false;
-static bool tryAgain = false;
+typedef enum
+{
+        CODEC_VORBIS,
+        CODEC_WEBM
+} CodecType;
+
+typedef struct
+{
+        void *(*getDecoder)();
+
+        void (*getFileInfo)(
+            const char *filePath,
+            ma_format *pFormat,
+            ma_uint32 *pChannels,
+            ma_uint32 *pSampleRate,
+            ma_channel *pChannelMap);
+
+        ma_result (*getDecoderFormat)(
+            ma_data_source *pDataSource,
+            ma_format *pFormat,
+            ma_uint32 *pChannels,
+            ma_uint32 *pSampleRate,
+            ma_channel *pChannelMap,
+            size_t channelMapCap);
+
+        int (*createAudioDevice)(
+            UserData *userData,
+            ma_device *device,
+            ma_context *context);
+
+        enum AudioImplementation implType;
+        bool supportsGapless;
+} CodecOps;
 
 UserData userData;
 
+static ma_context context;
+static bool contextInitialized = false;
+
+int builtin_createAudioDevice(UserData *userData, ma_device *device, ma_context *context, ma_data_source_vtable *vtable);
+int builtin_createAudioDeviceWrapper(UserData *userData, ma_device *device, ma_context *context);
+int vorbis_createAudioDevice(UserData *userData, ma_device *device, ma_context *context);
+int opus_createAudioDevice(UserData *userData, ma_device *device, ma_context *context);
+int webm_createAudioDevice(UserData *userData, ma_device *device, ma_context *context);
+#ifdef USE_FAAD
+int m4a_createAudioDevice(UserData *userData, ma_device *device, ma_context *context);
+#endif
+
 UserData *getUserData(void) { return &userData; }
-
-bool isContextInitialized(void) { return contextInitialized; }
-
-ma_result initFirstDatasource(UserData **pUserData)
-{
-        char *filePath = NULL;
-
-        AudioData *audioData = getAudioData();
-
-        SongData *songData = (audioData->currentFileIndex == 0)
-                                 ? (*pUserData)->songdataA
-                                 : (*pUserData)->songdataB;
-
-        if (songData == NULL)
-        {
-                return MA_ERROR;
-        }
-
-        filePath = songData->filePath;
-
-        if (filePath == NULL)
-        {
-                return MA_ERROR;
-        }
-
-        audioData->pUserData = *pUserData;
-        audioData->currentPCMFrame = 0;
-        audioData->restart = false;
-
-        if (hasBuiltinDecoder(filePath))
-        {
-                int result = prepareNextDecoder(filePath);
-
-                if (result < 0)
-                        return -1;
-
-                ma_decoder *first = getFirstDecoder();
-                audioData->format = first->outputFormat;
-                audioData->channels = first->outputChannels;
-                audioData->sampleRate = first->outputSampleRate;
-
-                ma_data_source_get_length_in_pcm_frames(
-                    first, &(audioData->totalFrames));
-        }
-        else if (pathEndsWith(filePath, "opus"))
-        {
-                int result = prepareNextOpusDecoder(filePath);
-
-                if (result < 0)
-                        return -1;
-
-                ma_libopus *first = getFirstOpusDecoder();
-                ma_channel channelMap[MA_MAX_CHANNELS];
-
-                ma_libopus_ds_get_data_format(
-                    first, &(audioData->format), &(audioData->channels),
-                    &(audioData->sampleRate), channelMap, MA_MAX_CHANNELS);
-
-                ma_data_source_get_length_in_pcm_frames(
-                    first, &(audioData->totalFrames));
-
-                ma_data_source_base *base = (ma_data_source_base *)first;
-
-                base->pCurrent = first;
-                first->pReadSeekTellUserData = audioData;
-        }
-        else if (pathEndsWith(filePath, "ogg"))
-        {
-                int result = prepareNextVorbisDecoder(filePath);
-                if (result < 0)
-                        return -1;
-                ma_libvorbis *first = getFirstVorbisDecoder();
-                ma_channel channelMap[MA_MAX_CHANNELS];
-                ma_libvorbis_ds_get_data_format(
-                    first, &(audioData->format), &(audioData->channels),
-                    &(audioData->sampleRate), channelMap, MA_MAX_CHANNELS);
-                ma_data_source_get_length_in_pcm_frames(
-                    first, &(audioData->totalFrames));
-                ma_data_source_base *base = (ma_data_source_base *)first;
-                base->pCurrent = first;
-                first->pReadSeekTellUserData = audioData;
-        }
-        else if (pathEndsWith(filePath, "webm"))
-        {
-                int result = prepareNextWebmDecoder(songData);
-                if (result < 0)
-                        return -1;
-                ma_webm *first = getFirstWebmDecoder();
-                ma_channel channelMap[MA_MAX_CHANNELS];
-                ma_webm_ds_get_data_format(
-                    first, &(audioData->format), &(audioData->channels),
-                    &(audioData->sampleRate), channelMap, MA_MAX_CHANNELS);
-                ma_data_source_get_length_in_pcm_frames(
-                    first, &(audioData->totalFrames));
-                ma_data_source_base *base = (ma_data_source_base *)first;
-                base->pCurrent = first;
-                first->pReadSeekTellUserData = audioData;
-        }
-        else if (pathEndsWith(filePath, "m4a") || pathEndsWith(filePath, "aac"))
-        {
-#ifdef USE_FAAD
-
-                int result = prepareNextM4aDecoder(songData);
-                if (result < 0)
-                        return -1;
-                m4a_decoder *first = getFirstM4aDecoder();
-                ma_channel channelMap[MA_MAX_CHANNELS];
-                m4a_decoder_ds_get_data_format(
-                    first, &(audioData->format), &(audioData->channels),
-                    &(audioData->sampleRate), channelMap, MA_MAX_CHANNELS);
-                ma_data_source_get_length_in_pcm_frames(
-                    first, &(audioData->totalFrames));
-                ma_data_source_base *base = (ma_data_source_base *)first;
-                base->pCurrent = first;
-                first->pReadSeekTellUserData = audioData;
-#else
-                return MA_ERROR;
-#endif
-        }
-        else
-        {
-                return MA_ERROR;
-        }
-
-        return MA_SUCCESS;
-}
-
-int createDevice(UserData *userData, ma_device *device, ma_context *context,
-                 ma_data_source_vtable *vtable, ma_device_data_proc callback)
-{
-        PlaybackState *ps = getPlaybackState();
-        ma_result result;
-
-        result = initFirstDatasource(&userData);
-
-        if (result != MA_SUCCESS)
-        {
-                setErrorMessage("Failed to initialize audio file.");
-                return -1;
-        }
-
-        AudioData *audioData = getAudioData();
-        audioData->base.vtable = vtable;
-
-        result = initPlaybackDevice(context, audioData->format, audioData->channels, audioData->sampleRate,
-                       device, callback, audioData);
-
-        setVolume(getCurrentVolume());
-
-        ps->notifyPlaying = true;
-
-        return 0;
-}
-
-int builtin_createAudioDevice(UserData *userData, ma_device *device,
-                              ma_context *context,
-                              ma_data_source_vtable *vtable)
-{
-        return createDevice(userData, device, context, vtable,
-                            builtin_on_audio_frames);
-}
-
-int vorbis_createAudioDevice(UserData *userData, ma_device *device,
-                             ma_context *context)
-{
-        PlaybackState *ps = getPlaybackState();
-        ma_result result = initFirstDatasource(&userData);
-
-        if (result != MA_SUCCESS)
-        {
-                setErrorMessage("Failed to initialize ogg vorbis file.");
-                return -1;
-        }
-
-        ma_libvorbis *decoder = getFirstVorbisDecoder();
-        AudioData *audioData = getAudioData();
-
-        result = initPlaybackDevice(context, decoder->format, audioData->channels, audioData->sampleRate,
-                       device, vorbis_on_audio_frames, decoder);
-
-        setVolume(getCurrentVolume());
-
-        ps->notifyPlaying = true;
-
-        return 0;
-}
-
-#ifdef USE_FAAD
-int m4a_createAudioDevice(UserData *userData, ma_device *device,
-                          ma_context *context)
-{
-        PlaybackState *ps = getPlaybackState();
-        ma_result result = initFirstDatasource(&userData);
-
-        if (result != MA_SUCCESS)
-        {
-                if (!hasErrorMessage())
-                        setErrorMessage("M4a type not supported.");
-                return -1;
-        }
-
-        m4a_decoder *decoder = getFirstM4aDecoder();
-        AudioData *audioData = getAudioData();
-
-        result = initPlaybackDevice(context, decoder->format, audioData->channels, audioData->sampleRate,
-                       device, m4a_on_audio_frames, decoder);
-
-        setVolume(getCurrentVolume());
-
-        ps->notifyPlaying = true;
-
-        return 0;
-}
-#endif
-
-int opus_createAudioDevice(UserData *userData, ma_device *device,
-                           ma_context *context)
-{
-        PlaybackState *ps = getPlaybackState();
-        ma_result result;
-
-        result = initFirstDatasource(&userData);
-
-        if (result != MA_SUCCESS)
-        {
-                printf("\n\nFailed to initialize opus file.\n");
-                return -1;
-        }
-
-        ma_libopus *decoder = getFirstOpusDecoder();
-        AudioData *audioData = getAudioData();
-
-        result = initPlaybackDevice(context, decoder->format, audioData->channels, audioData->sampleRate,
-                       device, opus_on_audio_frames, decoder);
-
-        setVolume(getCurrentVolume());
-
-        ps->notifyPlaying = true;
-
-        return 0;
-}
-
-int webm_createAudioDevice(UserData *userData, ma_device *device,
-                           ma_context *context)
-{
-        PlaybackState *ps = getPlaybackState();
-        ma_result result;
-
-        result = initFirstDatasource(&userData);
-        if (result != MA_SUCCESS)
-        {
-                printf("\n\nFailed to initialize webm file.\n");
-                return -1;
-        }
-        ma_webm *decoder = getFirstWebmDecoder();
-        AudioData *audioData = getAudioData();
-
-        result = initPlaybackDevice(context, decoder->format, audioData->channels, audioData->sampleRate,
-                       device, webm_on_audio_frames, decoder);
-
-        setVolume(getCurrentVolume());
-
-        ps->notifyPlaying = true;
-
-        return 0;
-}
 
 bool validFilePath(char *filePath)
 {
@@ -326,6 +108,70 @@ long long getFileSize(const char *filename)
         }
 }
 
+ma_result callReadPCMFrames(ma_data_source *pDataSource, ma_format format,
+                            void *pFramesOut, ma_uint64 framesRead,
+                            ma_uint32 channels, ma_uint64 remainingFrames,
+                            ma_uint64 *pFramesToRead)
+{
+        ma_result result;
+
+        switch (format)
+        {
+        case ma_format_u8:
+        {
+                ma_uint8 *pOut = (ma_uint8 *)pFramesOut;
+                result = ma_data_source_read_pcm_frames(
+                    pDataSource, pOut + (framesRead * channels),
+                    remainingFrames, pFramesToRead);
+        }
+        break;
+
+        case ma_format_s16:
+        {
+                ma_int16 *pOut = (ma_int16 *)pFramesOut;
+                result = ma_data_source_read_pcm_frames(
+                    pDataSource, pOut + (framesRead * channels),
+                    remainingFrames, pFramesToRead);
+        }
+        break;
+
+        case ma_format_s24:
+        {
+                ma_uint8 *pOut = (ma_uint8 *)pFramesOut;
+                result = ma_data_source_read_pcm_frames(
+                    pDataSource, pOut + (framesRead * channels * 3),
+                    remainingFrames, pFramesToRead);
+        }
+        break;
+
+        case ma_format_s32:
+        {
+                ma_int32 *pOut = (ma_int32 *)pFramesOut;
+                result = ma_data_source_read_pcm_frames(
+                    pDataSource, pOut + (framesRead * channels),
+                    remainingFrames, pFramesToRead);
+        }
+        break;
+
+        case ma_format_f32:
+        {
+                float *pOut = (float *)pFramesOut;
+                result = ma_data_source_read_pcm_frames(
+                    pDataSource, pOut + (framesRead * channels),
+                    remainingFrames, pFramesToRead);
+        }
+        break;
+
+        default:
+        {
+                result = MA_INVALID_ARGS;
+        }
+        break;
+        }
+
+        return result;
+}
+
 int calcAvgBitRate(double duration, const char *filePath)
 {
         long long fileSize = getFileSize(filePath); // in bytes
@@ -338,6 +184,483 @@ int calcAvgBitRate(double duration, const char *filePath)
         return avgBitRate;
 }
 
+int handleCodec(
+    const char *filePath,
+    CodecOps ops,
+    AudioData *audioData,
+    UserData userData,
+    AppState *state,
+    ma_context *context)
+{
+        ma_uint32 sampleRate, channels, nSampleRate, nChannels;
+        ma_format format, nFormat;
+        ma_channel channelMap[MA_MAX_CHANNELS], nChannelMap[MA_MAX_CHANNELS];
+        enum AudioImplementation currentImplementation =
+            getCurrentImplementationType();
+
+        ops.getFileInfo(filePath, &format, &channels, &sampleRate, channelMap);
+
+        void *decoder = ops.getDecoder();
+        if (decoder != NULL && ops.getDecoderFormat)
+                ops.getDecoderFormat(decoder, &nFormat, &nChannels, &nSampleRate,
+                                     nChannelMap, MA_MAX_CHANNELS);
+
+        int avgBitRate = 0;
+        k_m4adec_filetype fileType = 0;
+
+        if (ops.implType == M4A)
+        {
+                getM4aExtraInfo(filePath, &avgBitRate, &fileType);
+        }
+
+        // sameFormat computation
+        bool sameFormat = false;
+        if (ops.supportsGapless && decoder != NULL)
+        {
+                sameFormat = (format == nFormat && channels == nChannels &&
+                              sampleRate == nSampleRate);
+
+                if (ops.implType == M4A && decoder != NULL)
+                {
+                        sameFormat = sameFormat &&
+                                     (((m4a_decoder *)decoder)->fileType == fileType) &&
+                                     (((m4a_decoder *)decoder)->fileType != k_rawAAC);
+                }
+        }
+
+        // Avg bitrate assignment
+        if (userData.currentSongData)
+        {
+                if (ops.implType == M4A)
+                        userData.currentSongData->avgBitRate = audioData->avgBitRate = avgBitRate;
+                else
+                        userData.currentSongData->avgBitRate =
+                            audioData->avgBitRate =
+                                calcAvgBitRate(userData.currentSongData->duration, filePath);
+        }
+        else
+        {
+                audioData->avgBitRate = 0;
+        }
+
+        // Avg bitrate handling
+        if (userData.currentSongData)
+                userData.currentSongData->avgBitRate =
+                    audioData->avgBitRate =
+                        calcAvgBitRate(userData.currentSongData->duration, filePath);
+        else
+                audioData->avgBitRate = 0;
+
+        if (isRepeatEnabled() || !(sameFormat && currentImplementation == ops.implType))
+        {
+                setImplSwitchReached();
+
+                pthread_mutex_lock(&(state->dataSourceMutex));
+
+                setCurrentImplementationType(ops.implType);
+
+                cleanupPlaybackDevice();
+                resetAllDecoders();
+                resetAudioBuffer();
+
+                audioData->sampleRate = sampleRate;
+
+                int result;
+
+                if (ops.implType == BUILTIN)
+                        result = builtin_createAudioDevice(&userData, getDevice(), context,
+                                                           &builtin_file_data_source_vtable);
+                else
+                        result = ops.createAudioDevice(&userData, getDevice(), context);
+
+                if (result < 0)
+                {
+                        setCurrentImplementationType(NONE);
+                        setImplSwitchNotReached();
+                        setEofReached();
+                        pthread_mutex_unlock(&(state->dataSourceMutex));
+                        return -1;
+                }
+
+                pthread_mutex_unlock(&(state->dataSourceMutex));
+                setImplSwitchNotReached();
+        }
+
+        return 0;
+}
+
+static void getBuiltinFileInfoWrapper(
+    const char *filePath,
+    ma_format *pFormat,
+    ma_uint32 *pChannels,
+    ma_uint32 *pSampleRate,
+    ma_channel *pChannelMap)
+{
+        (void)pChannelMap; // not used for builtin decoders
+        getFileInfo(filePath, pSampleRate, pChannels, pFormat);
+}
+
+static const struct
+{
+        const char *extension;
+        CodecOps ops;
+}
+
+codecOpsList[] = {
+    {NULL, {.getDecoder = (void *(*)(void))getCurrentBuiltinDecoder, .getFileInfo = getBuiltinFileInfoWrapper, .getDecoderFormat = (ma_result (*)(ma_data_source *, ma_format *, ma_uint32 *, ma_uint32 *, ma_channel *, size_t))ma_decoder_get_data_format, .createAudioDevice = builtin_createAudioDeviceWrapper, .implType = BUILTIN, .supportsGapless = true}},
+
+    {"opus", {.getDecoder = (void *(*)(void))getCurrentOpusDecoder, .getFileInfo = getOpusFileInfo, .getDecoderFormat = (ma_result (*)(ma_data_source *, ma_format *, ma_uint32 *, ma_uint32 *, ma_channel *, size_t))ma_libopus_ds_get_data_format, .createAudioDevice = opus_createAudioDevice, .implType = OPUS, .supportsGapless = true}},
+
+    {"ogg", {.getDecoder = (void *(*)(void))getCurrentVorbisDecoder, .getFileInfo = getVorbisFileInfo, .getDecoderFormat = (ma_result (*)(ma_data_source *, ma_format *, ma_uint32 *, ma_uint32 *, ma_channel *, size_t))ma_libvorbis_ds_get_data_format, .createAudioDevice = vorbis_createAudioDevice, .implType = VORBIS, .supportsGapless = true}},
+
+    {"webm", {.getDecoder = (void *(*)(void))getCurrentWebmDecoder, .getFileInfo = getWebmFileInfo, .getDecoderFormat = (ma_result (*)(ma_data_source *, ma_format *, ma_uint32 *, ma_uint32 *, ma_channel *, size_t))ma_webm_ds_get_data_format, .createAudioDevice = webm_createAudioDevice, .implType = WEBM, .supportsGapless = false}},
+
+    {"m4a", {.getDecoder = (void *(*)(void))getCurrentM4aDecoder, .getFileInfo = getM4aFileInfo, .getDecoderFormat = (ma_result (*)(ma_data_source *, ma_format *, ma_uint32 *, ma_uint32 *, ma_channel *, size_t))m4a_decoder_ds_get_data_format, .createAudioDevice = m4a_createAudioDevice, .implType = M4A, .supportsGapless = true}},
+};
+
+static const CodecOps *findCodecOps(const char *filePath)
+{
+        if (hasBuiltinDecoder(filePath))
+                return &codecOpsList[0].ops;
+
+        for (size_t i = 1; i < sizeof(codecOpsList) / sizeof(codecOpsList[0]); i++)
+        {
+                if (pathEndsWith(filePath, codecOpsList[i].extension))
+                        return &codecOpsList[i].ops;
+        }
+        return NULL;
+}
+
+static void handleBuiltinAvgBitRate(AudioData *audioData, SongData *songData, const char *filePath)
+{
+        if (pathEndsWith(filePath, ".mp3") && songData)
+        {
+                int avgBitRate = calcAvgBitRate(songData->duration, filePath);
+                if (avgBitRate > 320)
+                        avgBitRate = 320;
+                songData->avgBitRate = audioData->avgBitRate = avgBitRate;
+        }
+        else
+        {
+                audioData->avgBitRate = 0;
+        }
+}
+
+static int prepareNextDecoderForCodec(const char *filePath, const CodecOps *ops)
+{
+        if (!ops)
+                return -1;
+
+        switch (ops->implType)
+        {
+        case BUILTIN:
+                return prepareNextDecoder(filePath); // existing builtin prep
+        case OPUS:
+                return prepareNextOpusDecoder(filePath);
+        case VORBIS:
+                return prepareNextVorbisDecoder(filePath);
+        case WEBM:
+                return prepareNextWebmDecoder(userData.currentSongData);
+        case M4A:
+#ifdef USE_FAAD
+                return prepareNextM4aDecoder(userData.currentSongData);
+#else
+                return -1;
+#endif
+        default:
+                return -1;
+        }
+}
+
+static ma_data_source *getFirstDecoderForCodec(const CodecOps *ops)
+{
+        if (!ops)
+                return NULL;
+
+        switch (ops->implType)
+        {
+        case BUILTIN:
+                return (ma_data_source *)getFirstDecoder();
+        case OPUS:
+                return (ma_data_source *)getFirstOpusDecoder();
+        case VORBIS:
+                return (ma_data_source *)getFirstVorbisDecoder();
+        case WEBM:
+                return (ma_data_source *)getFirstWebmDecoder();
+        case M4A:
+#ifdef USE_FAAD
+                return (ma_data_source *)getFirstM4aDecoder();
+#else
+                return NULL;
+#endif
+        default:
+                return NULL;
+        }
+}
+
+static int initAudioDataFromCodecDecoder(const CodecOps *ops, void *decoder, AudioData *audioData)
+{
+        if (!ops || !decoder || !audioData)
+                return -1;
+
+        ma_channel channelMap[MA_MAX_CHANNELS];
+
+        switch (ops->implType)
+        {
+        case BUILTIN:
+        {
+                ma_decoder *d = (ma_decoder *)decoder;
+                audioData->format = d->outputFormat;
+                audioData->channels = d->outputChannels;
+                audioData->sampleRate = d->outputSampleRate;
+                ma_data_source_get_length_in_pcm_frames((ma_data_source *)d, &audioData->totalFrames);
+                break;
+        }
+
+        case OPUS:
+        {
+                ma_libopus *d = (ma_libopus *)decoder;
+                ma_libopus_ds_get_data_format(d, &audioData->format, &audioData->channels,
+                                              &audioData->sampleRate, channelMap, MA_MAX_CHANNELS);
+                ma_data_source_get_length_in_pcm_frames((ma_data_source *)d, &audioData->totalFrames);
+
+                ((ma_data_source_base *)d)->pCurrent = d;
+                d->pReadSeekTellUserData = audioData;
+                break;
+        }
+
+        case VORBIS:
+        {
+                ma_libvorbis *d = (ma_libvorbis *)decoder;
+                ma_libvorbis_ds_get_data_format(d, &audioData->format, &audioData->channels,
+                                                &audioData->sampleRate, channelMap, MA_MAX_CHANNELS);
+                ma_data_source_get_length_in_pcm_frames((ma_data_source *)d, &audioData->totalFrames);
+
+                ((ma_data_source_base *)d)->pCurrent = d;
+                d->pReadSeekTellUserData = audioData;
+                break;
+        }
+
+        case WEBM:
+        {
+                ma_webm *d = (ma_webm *)decoder;
+                ma_webm_ds_get_data_format(d, &audioData->format, &audioData->channels,
+                                           &audioData->sampleRate, channelMap, MA_MAX_CHANNELS);
+                ma_data_source_get_length_in_pcm_frames((ma_data_source *)d, &audioData->totalFrames);
+
+                ((ma_data_source_base *)d)->pCurrent = d;
+                d->pReadSeekTellUserData = audioData;
+                break;
+        }
+
+#ifdef USE_FAAD
+        case M4A:
+        {
+                m4a_decoder *d = (m4a_decoder *)decoder;
+                m4a_decoder_ds_get_data_format(d, &audioData->format, &audioData->channels,
+                                               &audioData->sampleRate, channelMap, MA_MAX_CHANNELS);
+                ma_data_source_get_length_in_pcm_frames((ma_data_source *)d, &audioData->totalFrames);
+
+                ((ma_data_source_base *)d)->pCurrent = d;
+                d->pReadSeekTellUserData = audioData;
+                break;
+        }
+#endif
+
+        default:
+                return -1;
+        }
+
+        return 0;
+}
+
+int initFirstDatasource(UserData *userData)
+{
+        if (!userData)
+                return MA_ERROR;
+
+        AudioData *audioData = getAudioData();
+        SongData *songData = (audioData->currentFileIndex == 0) ? userData->songdataA : userData->songdataB;
+        if (!songData)
+                return MA_ERROR;
+
+        const char *filePath = songData->filePath;
+        if (!filePath)
+                return MA_ERROR;
+
+        audioData->pUserData = userData;
+        audioData->currentPCMFrame = 0;
+        audioData->restart = false;
+
+        const CodecOps *ops = findCodecOps(filePath);
+        if (!ops)
+                return MA_ERROR;
+
+        int result = prepareNextDecoderForCodec(filePath, ops);
+        if (result < 0)
+                return -1;
+
+        void *decoder = getFirstDecoderForCodec(ops);
+        if (!decoder)
+                return -1;
+
+        result = initAudioDataFromCodecDecoder(ops, decoder, audioData);
+        if (result < 0)
+                return -1;
+
+        // BUILTIN MP3 special handling
+        if (ops->implType == BUILTIN)
+                handleBuiltinAvgBitRate(audioData, songData, filePath);
+
+        return MA_SUCCESS;
+}
+int createDevice(UserData *userData, ma_device *device, ma_context *context,
+                 ma_data_source_vtable *vtable, ma_device_data_proc callback)
+{
+        PlaybackState *ps = getPlaybackState();
+        ma_result result;
+
+        result = initFirstDatasource(userData);
+
+        if (result != MA_SUCCESS)
+        {
+                setErrorMessage("Failed to initialize audio file.");
+                return -1;
+        }
+
+        AudioData *audioData = getAudioData();
+        audioData->base.vtable = vtable;
+
+        result = initPlaybackDevice(context, audioData->format, audioData->channels, audioData->sampleRate,
+                                    device, callback, audioData);
+
+        setVolume(getCurrentVolume());
+
+        ps->notifyPlaying = true;
+
+        return 0;
+}
+
+int builtin_createAudioDevice(UserData *userData, ma_device *device,
+                              ma_context *context,
+                              ma_data_source_vtable *vtable)
+{
+        return createDevice(userData, device, context, vtable, builtin_on_audio_frames);
+}
+
+int builtin_createAudioDeviceWrapper(UserData *userData,
+                                     ma_device *device,
+                                     ma_context *context)
+{
+        return builtin_createAudioDevice(userData, device, context, &builtin_file_data_source_vtable);
+}
+
+int vorbis_createAudioDevice(UserData *userData, ma_device *device,
+                             ma_context *context)
+{
+        PlaybackState *ps = getPlaybackState();
+        ma_result result = initFirstDatasource(userData);
+
+        if (result != MA_SUCCESS)
+        {
+                setErrorMessage("Failed to initialize ogg vorbis file.");
+                return -1;
+        }
+
+        ma_libvorbis *decoder = getFirstVorbisDecoder();
+        AudioData *audioData = getAudioData();
+
+        result = initPlaybackDevice(context, decoder->format, audioData->channels, audioData->sampleRate,
+                                    device, vorbis_on_audio_frames, decoder);
+
+        setVolume(getCurrentVolume());
+
+        ps->notifyPlaying = true;
+
+        return 0;
+}
+
+#ifdef USE_FAAD
+int m4a_createAudioDevice(UserData *userData, ma_device *device,
+                          ma_context *context)
+{
+        PlaybackState *ps = getPlaybackState();
+        ma_result result = initFirstDatasource(userData);
+
+        if (result != MA_SUCCESS)
+        {
+                if (!hasErrorMessage())
+                        setErrorMessage("M4a type not supported.");
+                return -1;
+        }
+
+        m4a_decoder *decoder = getFirstM4aDecoder();
+        AudioData *audioData = getAudioData();
+
+        result = initPlaybackDevice(context, decoder->format, audioData->channels, audioData->sampleRate,
+                                    device, m4a_on_audio_frames, decoder);
+
+        setVolume(getCurrentVolume());
+
+        ps->notifyPlaying = true;
+
+        return 0;
+}
+#endif
+
+int opus_createAudioDevice(UserData *userData, ma_device *device,
+                           ma_context *context)
+{
+        PlaybackState *ps = getPlaybackState();
+        ma_result result;
+
+        result = initFirstDatasource(userData);
+
+        if (result != MA_SUCCESS)
+        {
+                printf("\n\nFailed to initialize opus file.\n");
+                return -1;
+        }
+
+        ma_libopus *decoder = getFirstOpusDecoder();
+        AudioData *audioData = getAudioData();
+
+        result = initPlaybackDevice(context, decoder->format, audioData->channels, audioData->sampleRate,
+                                    device, opus_on_audio_frames, decoder);
+
+        setVolume(getCurrentVolume());
+
+        ps->notifyPlaying = true;
+
+        return 0;
+}
+
+int webm_createAudioDevice(UserData *userData, ma_device *device,
+                           ma_context *context)
+{
+        PlaybackState *ps = getPlaybackState();
+        ma_result result;
+
+        result = initFirstDatasource(userData);
+        if (result != MA_SUCCESS)
+        {
+                printf("\n\nFailed to initialize webm file.\n");
+                return -1;
+        }
+        ma_webm *decoder = getFirstWebmDecoder();
+        AudioData *audioData = getAudioData();
+
+        result = initPlaybackDevice(context, decoder->format, audioData->channels, audioData->sampleRate,
+                                    device, webm_on_audio_frames, decoder);
+
+        setVolume(getCurrentVolume());
+
+        ps->notifyPlaying = true;
+
+        return 0;
+}
+
+
 int switchAudioImplementation(void)
 {
         AppState *state = getAppState();
@@ -345,394 +668,53 @@ int switchAudioImplementation(void)
 
         if (audioData->endOfListReached)
         {
-                setEOFNotReached();
+                setEofHandled();
                 setCurrentImplementationType(NONE);
                 return 0;
         }
 
-        enum AudioImplementation currentImplementation =
-            getCurrentImplementationType();
-
-        userData.currentSongData = (audioData->currentFileIndex == 0)
-                                       ? userData.songdataA
-                                       : userData.songdataB;
-
-        char *filePath = NULL;
-
-        if (userData.currentSongData == NULL)
+        userData.currentSongData = (audioData->currentFileIndex == 0) ? userData.songdataA : userData.songdataB;
+        if (!userData.currentSongData)
         {
-                setEOFNotReached();
+                setEofHandled();
                 return 0;
         }
-        else
+
+        char *filePath = strdup(userData.currentSongData->filePath);
+        if (!validFilePath(filePath))
         {
-                if (!validFilePath(userData.currentSongData->filePath))
-                {
-                        if (!tryAgain)
-                        {
-                                AudioData *audioData = getAudioData();
-
-                                int idx = (audioData != NULL) ? audioData->currentFileIndex : 0;
-
-                                setCurrentFileIndex(audioData, 1 - idx);
-
-                                tryAgain = true;
-
-                                switchAudioImplementation();
-
-                                return 0;
-                        }
-                        else
-                        {
-                                setEOFReached();
-                                return -1;
-                        }
-                }
-
-                filePath = strdup(userData.currentSongData->filePath);
+                free(filePath);
+                setEofReached();
+                return -1;
         }
 
-        tryAgain = false;
-
-        if (hasBuiltinDecoder(filePath))
+        const CodecOps *ops = findCodecOps(filePath);
+        if (!ops)
         {
-                ma_uint32 sampleRate = 0;
-                ma_uint32 channels = 0;
-                ma_format format = ma_format_unknown;
-                ma_decoder *decoder = getCurrentBuiltinDecoder();
-
-                getFileInfo(filePath, &sampleRate, &channels, &format);
-
-                bool sameFormat = (decoder != NULL &&
-                                   (sampleRate == decoder->outputSampleRate &&
-                                    channels == decoder->outputChannels &&
-                                    format == decoder->outputFormat));
-
-                if (pathEndsWith(filePath, ".mp3") && userData.currentSongData)
-                {
-                        int avgBitRate = calcAvgBitRate(
-                            userData.currentSongData->duration, filePath);
-
-                        if (avgBitRate > 320)
-                                avgBitRate = 320;
-
-                        userData.currentSongData->avgBitRate =
-                            audioData->avgBitRate = avgBitRate;
-                }
-                else
-                        audioData->avgBitRate = 0;
-
-                if (isRepeatEnabled() ||
-                    !(sameFormat && currentImplementation == BUILTIN))
-                {
-                        setImplSwitchReached();
-
-                        pthread_mutex_lock(&(state->dataSourceMutex));
-
-                        setCurrentImplementationType(BUILTIN);
-
-                        cleanupPlaybackDevice();
-
-                        resetAllDecoders();
-                        resetAudioBuffer();
-
-                        audioData->sampleRate = sampleRate;
-
-                        int result = builtin_createAudioDevice(&userData, getDevice(), &context,
-                                                               &builtin_file_data_source_vtable);
-
-                        if (result < 0)
-                        {
-                                setCurrentImplementationType(NONE);
-                                setImplSwitchNotReached();
-                                setEOFReached();
-                                free(filePath);
-                                pthread_mutex_unlock(&(state->dataSourceMutex));
-                                return -1;
-                        }
-
-                        pthread_mutex_unlock(&(state->dataSourceMutex));
-
-                        setImplSwitchNotReached();
-                }
+                free(filePath);
+                return -1;
         }
-        else if (pathEndsWith(filePath, "opus"))
+
+        if (ops->implType == BUILTIN)
+                handleBuiltinAvgBitRate(audioData, userData.currentSongData, filePath);
+
+        int result = handleCodec(filePath, *ops, audioData, userData, state, &context);
+        free(filePath);
+
+        if (result < 0)
         {
-                ma_uint32 sampleRate;
-                ma_uint32 channels;
-                ma_format format;
-                ma_channel channelMap[MA_MAX_CHANNELS];
-
-                ma_uint32 nSampleRate;
-                ma_uint32 nChannels;
-                ma_format nFormat;
-                ma_channel nChannelMap[MA_MAX_CHANNELS];
-                ma_libopus *decoder = getCurrentOpusDecoder();
-
-                getOpusFileInfo(filePath, &format, &channels, &sampleRate,
-                                channelMap);
-
-                if (decoder != NULL)
-                        ma_libopus_ds_get_data_format(
-                            decoder, &nFormat, &nChannels, &nSampleRate,
-                            nChannelMap, MA_MAX_CHANNELS);
-
-                bool sameFormat =
-                    (decoder != NULL &&
-                     (format == decoder->format && channels == nChannels &&
-                      sampleRate == nSampleRate));
-
-                if (isRepeatEnabled() ||
-                    !(sameFormat && currentImplementation == OPUS))
-                {
-                        setImplSwitchReached();
-
-                        pthread_mutex_lock(&(state->dataSourceMutex));
-
-                        setCurrentImplementationType(OPUS);
-
-                        cleanupPlaybackDevice();
-
-                        resetAllDecoders();
-                        resetAudioBuffer();
-
-                        audioData->sampleRate = sampleRate;
-                        audioData->avgBitRate = 0;
-
-                        int result = opus_createAudioDevice(&userData, getDevice(), &context);
-
-                        if (result < 0)
-                        {
-                                setCurrentImplementationType(NONE);
-                                setImplSwitchNotReached();
-                                setEOFReached();
-                                free(filePath);
-                                pthread_mutex_unlock(&(state->dataSourceMutex));
-                                return -1;
-                        }
-
-                        pthread_mutex_unlock(&(state->dataSourceMutex));
-
-                        setImplSwitchNotReached();
-                }
-        }
-        else if (pathEndsWith(filePath, "ogg"))
-        {
-                ma_uint32 sampleRate;
-                ma_uint32 channels;
-                ma_format format;
-                ma_channel channelMap[MA_MAX_CHANNELS];
-
-                ma_uint32 nSampleRate;
-                ma_uint32 nChannels;
-                ma_format nFormat;
-                ma_channel nChannelMap[MA_MAX_CHANNELS];
-                ma_libvorbis *decoder = getCurrentVorbisDecoder();
-
-                getVorbisFileInfo(filePath, &format, &channels, &sampleRate,
-                                  channelMap);
-
-                if (decoder != NULL)
-                        ma_libvorbis_ds_get_data_format(
-                            decoder, &nFormat, &nChannels, &nSampleRate,
-                            nChannelMap, MA_MAX_CHANNELS);
-
-                bool sameFormat =
-                    (decoder != NULL &&
-                     (format == decoder->format && channels == nChannels &&
-                      sampleRate == nSampleRate));
-
-                if (userData.currentSongData)
-                        userData.currentSongData->avgBitRate =
-                            audioData->avgBitRate = calcAvgBitRate(
-                                userData.currentSongData->duration, filePath);
-                else
-                        audioData->avgBitRate = 0;
-
-                if (isRepeatEnabled() ||
-                    !(sameFormat && currentImplementation == VORBIS))
-                {
-                        setImplSwitchReached();
-
-                        pthread_mutex_lock(&(state->dataSourceMutex));
-
-                        setCurrentImplementationType(VORBIS);
-
-                        cleanupPlaybackDevice();
-
-                        resetAllDecoders();
-                        resetAudioBuffer();
-
-                        audioData->sampleRate = sampleRate;
-
-                        int result = vorbis_createAudioDevice(&userData, getDevice(), &context);
-
-                        if (result < 0)
-                        {
-                                setCurrentImplementationType(NONE);
-                                setImplSwitchNotReached();
-                                setEOFReached();
-                                free(filePath);
-                                pthread_mutex_unlock(&(state->dataSourceMutex));
-                                return -1;
-                        }
-
-                        pthread_mutex_unlock(&(state->dataSourceMutex));
-
-                        setImplSwitchNotReached();
-                }
-        }
-        else if (pathEndsWith(filePath, "webm"))
-        {
-                ma_uint32 sampleRate;
-                ma_uint32 channels;
-                ma_format format;
-                ma_channel channelMap[MA_MAX_CHANNELS];
-
-                ma_uint32 nSampleRate;
-                ma_uint32 nChannels;
-                ma_format nFormat;
-                ma_channel nChannelMap[MA_MAX_CHANNELS];
-                ma_webm *decoder = getCurrentWebmDecoder();
-
-                getWebmFileInfo(filePath, &format, &channels, &sampleRate,
-                                channelMap);
-
-                if (decoder != NULL)
-                        ma_webm_ds_get_data_format(
-                            decoder, &nFormat, &nChannels, &nSampleRate,
-                            nChannelMap, MA_MAX_CHANNELS);
-
-                bool sameFormat = false;
-
-                // Gapless/chaining of decoders disabled in webm
-                // bool sameFormat = (decoder != NULL && (format ==
-                // decoder->format && channels == nChannels
-                // && sampleRate == nSampleRate));
-
-                audioData->avgBitRate = 0;
-
-                if (isRepeatEnabled() ||
-                    !(sameFormat && currentImplementation == WEBM))
-                {
-                        setImplSwitchReached();
-
-                        pthread_mutex_lock(&(state->dataSourceMutex));
-
-                        setCurrentImplementationType(WEBM);
-
-                        cleanupPlaybackDevice();
-
-                        resetAllDecoders();
-                        resetAudioBuffer();
-
-                        audioData->sampleRate = sampleRate;
-
-                        int result = webm_createAudioDevice(&userData, getDevice(), &context);
-
-                        if (result < 0)
-                        {
-                                setCurrentImplementationType(NONE);
-                                setImplSwitchNotReached();
-                                setEOFReached();
-                                free(filePath);
-                                pthread_mutex_unlock(&(state->dataSourceMutex));
-                                return -1;
-                        }
-
-                        pthread_mutex_unlock(&(state->dataSourceMutex));
-
-                        setImplSwitchNotReached();
-                }
-        }
-        else if (pathEndsWith(filePath, "m4a") || pathEndsWith(filePath, "aac"))
-        {
-#ifdef USE_FAAD
-                ma_uint32 sampleRate;
-                ma_uint32 channels;
-                ma_format format;
-                ma_channel channelMap[MA_MAX_CHANNELS];
-
-                ma_uint32 nSampleRate;
-                ma_uint32 nChannels;
-                ma_format nFormat;
-                int avgBitRate;
-                ma_channel nChannelMap[MA_MAX_CHANNELS];
-                m4a_decoder *decoder = getCurrentM4aDecoder();
-                k_m4adec_filetype fileType = k_unknown;
-
-                getM4aFileInfo(filePath, &format, &channels, &sampleRate,
-                               channelMap, &avgBitRate, &fileType);
-
-                if (decoder != NULL)
-                        m4a_decoder_ds_get_data_format(
-                            decoder, &nFormat, &nChannels, &nSampleRate,
-                            nChannelMap, MA_MAX_CHANNELS);
-
-                bool sameFormat =
-                    (decoder != NULL &&
-                     (format == decoder->format && channels == nChannels &&
-                      sampleRate == nSampleRate &&
-                      decoder->fileType == fileType &&
-                      decoder->fileType != k_rawAAC));
-
-                if (userData.currentSongData)
-                        userData.currentSongData->avgBitRate =
-                            audioData->avgBitRate = avgBitRate;
-
-                if (isRepeatEnabled() ||
-                    !(sameFormat && currentImplementation == M4A))
-                {
-                        setImplSwitchReached();
-
-                        pthread_mutex_lock(&(state->dataSourceMutex));
-
-                        setCurrentImplementationType(M4A);
-
-                        cleanupPlaybackDevice();
-
-                        resetAllDecoders();
-                        resetAudioBuffer();
-
-                        audioData->sampleRate = sampleRate;
-
-                        int result = m4a_createAudioDevice(&userData, getDevice(), &context);
-
-                        if (result < 0)
-                        {
-                                setCurrentImplementationType(NONE);
-                                setImplSwitchNotReached();
-                                setEOFReached();
-                                free(filePath);
-                                pthread_mutex_unlock(&(state->dataSourceMutex));
-                                return -1;
-                        }
-
-                        pthread_mutex_unlock(&(state->dataSourceMutex));
-
-                        setImplSwitchNotReached();
-                }
-#else
                 setCurrentImplementationType(NONE);
                 setImplSwitchNotReached();
-                setEOFReached();
-                free(filePath);
-                pthread_mutex_unlock(&state->dataSourceMutex);
-                setErrorMessage("Can't load m4a files. Faad library is needed at compile time.");
-                return -1;
-#endif
-        }
-        else
-        {
-                free(filePath);
+                setEofReached();
                 return -1;
         }
 
-        free(filePath);
-        setEOFNotReached();
-
+        setEofHandled();
         return 0;
 }
+
+
+bool isContextInitialized(void) { return contextInitialized; }
 
 void cleanupAudioContext(void)
 {

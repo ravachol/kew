@@ -12,25 +12,25 @@
 #include <stdbool.h>
 
 // Getters
-bool playbackIsRepeatEnabled(void);
-bool playbackIsRepeatListEnabled(void);
-bool playbackIsShuffleEnabled(void);
-bool playbackIsPaused(void);
-bool playbackIsStopped(void);
-bool playbackisDone(void);
-bool playbackIsEof(void);
+bool isRepeatListEnabled(void);
+bool isShuffleEnabled(void);
+bool opsIsRepeatEnabled(void);
+bool opsIsPaused(void);
+bool opsIsStopped(void);
+bool opsIsDone(void);
+bool opsIsEof(void);
 bool isCurrentSongDeleted(void);
-bool playbackIsImplSwitchReached(void);
+bool opsIsImplSwitchReached(void);
 bool determineCurrentSongData(SongData **currentSongData);
-int playbackGetVolume();
+int getVolume();
 double getCurrentSongDuration(void);
 void getFormatAndSampleRate(ma_format *format, ma_uint32 *sampleRate);
-UserData *playbackGetUserData(void);
+UserData *opsGetUserData(void);
 SongData *getCurrentSongData(void);
 
 // Setters
-void playbackSetRepeatEnabled(bool enabled);
-void playbackSetRepeatListEnabled(bool value);
-void playbackSetShuffleEnabled(bool value);
-void playbackSetEofHandled(void);
+void setRepeatEnabled(bool enabled);
+void setRepeatListEnabled(bool value);
+void setShuffleEnabled(bool value);
+void opsSetEofHandled(void);
 

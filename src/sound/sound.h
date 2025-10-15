@@ -26,5 +26,8 @@ bool isContextInitialized(void);
 int createAudioDevice(void);
 int switchAudioImplementation(void);
 void cleanupAudioContext(void);
-
+ma_result callReadPCMFrames(ma_data_source *pDataSource, ma_format format,
+                            void *pFramesOut, ma_uint64 framesRead,
+                            ma_uint32 channels, ma_uint64 remainingFrames,
+                            ma_uint64 *pFramesToRead);
 #endif

@@ -105,14 +105,7 @@ void handleInput(void)
                 viewEnqueue(true);
                 break;
         case EVENT_PLAY_PAUSE:
-                if (playbackIsStopped())
-                {
-                        viewEnqueue(false);
-                }
-                else
-                {
-                        togglePause();
-                }
+                togglePause();
                 break;
         case EVENT_TOGGLEVISUALIZER:
                 toggleVisualizer();
@@ -273,7 +266,7 @@ void prepareNextSong(void)
 
         Node *current = getCurrentSong();
 
-        if (!playbackIsRepeatEnabled() || current == NULL)
+        if (!opsIsRepeatEnabled() || current == NULL)
         {
                 unloadPreviousSong();
         }
@@ -319,6 +312,9 @@ int prepareAndPlaySong(Node *song)
                 resumePlayback();
         }
 
+        if (res < 0)
+                setEndOfListReached();
+
         triggerRefresh();
         resetClock();
 
@@ -350,7 +346,7 @@ void checkAndLoadNextSong(void)
                         ps->waitingForNext = false;
                         state->uiState.songWasRemoved = false;
 
-                        if (playbackIsShuffleEnabled())
+                        if (isShuffleEnabled())
                                 reshufflePlaylist();
 
                         int res = prepareAndPlaySong(nextSong);
@@ -390,7 +386,7 @@ void updateAndLoad(void)
                 if (ps->songHasErrors)
                         tryLoadNext();
 
-                if (playbackisDone())
+                if (opsIsDone())
                 {
                         prepareNextSong();
                         playbackSwitchDecoder();
@@ -398,7 +394,7 @@ void updateAndLoad(void)
         }
         else
         {
-                playbackSetEofHandled();
+                opsSetEofHandled();
         }
 }
 
@@ -433,69 +429,14 @@ static gboolean quitOnSignal(gpointer user_data)
         return G_SOURCE_REMOVE; // Remove the signal source
 }
 
-void initFirstPlay(Node *song)
+void createLoop(void)
 {
         updateLastInputTime();
-        resetClock();
-
-        UserData *userData = playbackGetUserData();
-        PlaybackState *ps = getPlaybackState();
-
-        userData->currentSongData = NULL;
-        userData->songdataA = NULL;
-        userData->songdataB = NULL;
-        userData->songdataADeleted = true;
-        userData->songdataBDeleted = true;
-
-        int res = 0;
-
-        if (song != NULL)
-        {
-                AudioData *audioData = getAudioData();
-
-                audioData->currentFileIndex = 0;
-
-                PlaybackState *ps = getPlaybackState();
-                ps->loadingdata.loadA = true;
-
-                res = loadFirst(song);
-
-                if (res >= 0)
-                {
-                        res = playbackCreate();
-                }
-                if (res >= 0)
-                {
-                        resumePlayback();
-                }
-
-                if (res < 0)
-                        setEndOfListReached();
-        }
-
-        if (song == NULL || res < 0)
-        {
-                song = NULL;
-                if (!ps->waitingForNext)
-                        ps->waitingForPlaylist = true;
-        }
-
-        ps->loadedNextSong = false;
-        setNextSong(NULL);
-        triggerRefresh();
-
-        resetClock();
 
         GMainLoop *main_loop = g_main_loop_new(NULL, FALSE);
 
         g_unix_signal_add(SIGINT, quitOnSignal, main_loop);
         g_unix_signal_add(SIGHUP, quitOnSignal, main_loop);
-
-        if (song != NULL)
-                emitStartPlayingMpris();
-        else
-                emitPlaybackStoppedMpris();
-
         g_timeout_add(34, mainloopCallback, NULL);
         g_main_loop_run(main_loop);
         g_main_loop_unref(main_loop);
@@ -507,6 +448,8 @@ void run(bool startPlaying)
         PlayList *playlist = getPlaylist();
         PlayList *unshuffledPlaylist = getUnshuffledPlaylist();
         PlaybackState *ps = getPlaybackState();
+        AudioData *audioData = getAudioData();
+        UserData *userData = opsGetUserData();
 
         if (unshuffledPlaylist == NULL)
         {
@@ -533,12 +476,19 @@ void run(bool startPlaying)
 
         initMpris();
 
+        ps->loadedNextSong = false;
         if (startPlaying)
-                setCurrentSong(playlist->head);
-        else if (playlist->count > 0)
-                ps->waitingForNext = true;
+                ps->waitingForPlaylist = true;
 
-        initFirstPlay(getCurrentSong());
+        audioData->currentFileIndex = 0;
+        userData->currentSongData = NULL;
+        userData->songdataA = NULL;
+        userData->songdataB = NULL;
+        userData->songdataADeleted = true;
+        userData->songdataBDeleted = true;
+
+        createLoop();
+
         clearScreen();
         fflush(stdout);
 }
@@ -553,7 +503,7 @@ void initDefaultState(void)
         PlayList *unshuffledPlaylist = getUnshuffledPlaylist();
         PlaybackState *ps = getPlaybackState();
         AudioData *audioData = getAudioData();
-        
+
         loadLastUsedPlaylist(playlist, &unshuffledPlaylist);
         setUnshuffledPlaylist(unshuffledPlaylist);
         markListAsEnqueued(library, playlist);
@@ -591,7 +541,7 @@ void shutdown()
                 noMusicFound = true;
         }
 
-        playbackUnloadSongs(playbackGetUserData());
+        playbackUnloadSongs(opsGetUserData());
 
 #ifdef CHAFA_VERSION_1_16
         retire_passthrough_workarounds_tmux();
@@ -806,12 +756,9 @@ int main(int argc, char *argv[])
         handleOptions(&argc, argv, &exactSearch);
         loadFavoritesPlaylist(settings->path, &favoritesPlaylist);
 
-        ensureDefaultThemes();
+        ensureDefaultThemePack();
 
-        bool themeLoaded = initTheme(argc, argv);
-
-        if (themeLoaded)
-                initDefaultState();
+        initTheme(argc, argv);
 
         if (argc == 1)
         {

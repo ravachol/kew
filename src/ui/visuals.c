@@ -14,7 +14,8 @@
 
 #include "common/appstate.h"
 
-#include "sound/soundcommon.h"
+#include "sound/playback.h"
+#include "sound/audiobuffer.h"
 
 #include "utils/term.h"
 

@@ -85,9 +85,10 @@ void resetListAfterDequeuingPlayingSong(void)
 
                 unloadSongA();
                 unloadSongB();
+                
                 state->uiState.songWasRemoved = true;
 
-                UserData *userData = playbackGetUserData();
+                UserData *userData = opsGetUserData();
 
                 userData->currentSongData = NULL;
 
@@ -282,10 +283,10 @@ void viewEnqueue(bool playImmediately)
         {
                 if (isDigitsPressed() == 0)
                 {
-                        if (playbackIsPaused() && currentSong != NULL &&
+                        if (opsIsPaused() && currentSong != NULL &&
                             state->uiState.chosenNodeId == currentSong->id)
                         {
-                                togglePause();
+                                opsTogglePause();
                         }
                         else
                         {
@@ -380,7 +381,7 @@ void init(void)
         setNonblockingMode();
 
         PlaybackState *ps = getPlaybackState();
-        UserData *userData = playbackGetUserData();
+        UserData *userData = opsGetUserData();
         PlayList *playlist = getPlaylist();
         AudioData *audioData = getAudioData();
         state->tmpCache = createCache();

@@ -39,14 +39,6 @@
 #include <string.h>
 #include <sys/param.h>
 
-#ifndef MAXPATHLEN
-#define MAXPATHLEN 4096
-#endif
-
-#ifndef METADATA_MAX_SIZE
-#define METADATA_MAX_SIZE 256
-#endif
-
 #ifdef __APPLE__
 const int ABSOLUTE_MIN_WIDTH = 80;
 #else
@@ -290,9 +282,9 @@ void printHelp(void)
 
 static const char *getPlayerStatusIcon(void)
 {
-        if (playbackIsPaused())
+        if (opsIsPaused())
                 return "⏸";
-        if (playbackIsStopped())
+        if (opsIsStopped())
                 return "■";
         return "▶";
 }
@@ -360,8 +352,8 @@ static void buildSongTitle(const SongData *songData, const UISettings *ui,
 
         const char *icon = getPlayerStatusIcon();
 
-        char prettyTitle[METADATA_MAX_SIZE] = {0};
-        snprintf(prettyTitle, METADATA_MAX_SIZE, "%s",
+        char prettyTitle[METADATA_MAX_LENGTH] = {0};
+        snprintf(prettyTitle, METADATA_MAX_LENGTH, "%s",
                  songData->metadata->title);
         trim(prettyTitle, strlen(prettyTitle));
 
@@ -610,7 +602,7 @@ void printProgress(double elapsed_seconds, double total_seconds,
 
         int progress_percentage =
             (int)((elapsed_seconds / total_seconds) * 100);
-        int vol = playbackGetVolume();
+        int vol = getVolume();
 
         if (total_seconds >= 3600)
         {
@@ -855,14 +847,14 @@ void printFooter(int row, int col, AppSettings *settings)
 
         if (term_w >= ABSOLUTE_MIN_WIDTH)
         {
-                if (playbackIsPaused())
+                if (opsIsPaused())
                 {
                         char pauseText[] = " ⏸";
                         snprintf(nerdFontText + currentLength,
                                  maxLength - currentLength, "%s", pauseText);
                         currentLength += strlen(pauseText);
                 }
-                else if (playbackIsStopped())
+                else if (opsIsStopped())
                 {
                         char pauseText[] = " ■";
                         snprintf(nerdFontText + currentLength,
@@ -878,14 +870,14 @@ void printFooter(int row, int col, AppSettings *settings)
                 }
         }
 
-        if (playbackIsRepeatEnabled())
+        if (opsIsRepeatEnabled())
         {
                 char repeatText[] = " ↻";
                 snprintf(nerdFontText + currentLength,
                          maxLength - currentLength, "%s", repeatText);
                 currentLength += strlen(repeatText);
         }
-        else if (playbackIsRepeatListEnabled())
+        else if (isRepeatListEnabled())
         {
                 char repeatText[] = " ↻L";
                 snprintf(nerdFontText + currentLength,
@@ -893,7 +885,7 @@ void printFooter(int row, int col, AppSettings *settings)
                 currentLength += strlen(repeatText);
         }
 
-        if (playbackIsShuffleEnabled())
+        if (isShuffleEnabled())
         {
                 char shuffleText[] = " ⇄";
                 snprintf(nerdFontText + currentLength,
