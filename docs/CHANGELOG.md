@@ -26,7 +26,7 @@
 
 - You can now finally set collaped paths such as ~/Music and they will be set that way in config. Suggested by @danielwerg.
 
-- The config file is now respected and no longer changed by kew, only if you run kew path <path>. Instead there is a kewstaterc file in ~/.local/state that keeps the variables that can change in-app, these override what's in kewrc. Suggested by @danielwerg.
+- The config file is now respected and no longer changed by kew, only if you run kew path \<path\>. Instead there is a kewstaterc file in ~/.local/state that keeps the variables that can change in-app, these override what's in kewrc. Suggested by @danielwerg.
 
 - Dropped Nerd Fonts in favor of ⇉,⇇,↻,⇄ which are all unicode symbols. While Nerdfonts is neat it's too much trouble for users to install things and troubleshoot for just 4 slightly better symbols.
 
@@ -50,6 +50,7 @@ Thank you to for the generous donation @LTeder! Thanks to all and especially tha
 
 Please support this effort:
 https://ko-fi.com/ravachol
+<br>
 https://github.com/sponsors/ravachol.
 
 ### 3.5.3

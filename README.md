@@ -14,7 +14,7 @@
 [![License](https://img.shields.io/github/license/ravachol/kew?color=333333&style=for-the-badge)](./LICENSE)
 <br>
 
-kew (/kjuː/) is a marvelous terminal music player.
+kew (/kjuː/) is a terminal music player.
 
 ## Features
 
