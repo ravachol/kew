@@ -518,7 +518,7 @@ void initDefaultState(void)
         run(false);
 }
 
-void shutdown()
+void kewShutdown()
 {
         AppState *state = getAppState();
         PlaybackState *ps = getPlaybackState();
@@ -745,7 +745,7 @@ int main(int argc, char *argv[])
 
         enableMouse(&(state->uiSettings));
         enterAlternateScreenBuffer();
-        atexit(shutdown);
+        atexit(kewShutdown);
 
         if (settings->path[0] == '\0')
         {
