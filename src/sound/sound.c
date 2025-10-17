@@ -314,8 +314,9 @@ codecOpsList[] = {
     {"ogg", {.getDecoder = (void *(*)(void))getCurrentVorbisDecoder, .getFileInfo = getVorbisFileInfo, .getDecoderFormat = (ma_result (*)(ma_data_source *, ma_format *, ma_uint32 *, ma_uint32 *, ma_channel *, size_t))ma_libvorbis_ds_get_data_format, .createAudioDevice = vorbis_createAudioDevice, .implType = VORBIS, .supportsGapless = true}},
 
     {"webm", {.getDecoder = (void *(*)(void))getCurrentWebmDecoder, .getFileInfo = getWebmFileInfo, .getDecoderFormat = (ma_result (*)(ma_data_source *, ma_format *, ma_uint32 *, ma_uint32 *, ma_channel *, size_t))ma_webm_ds_get_data_format, .createAudioDevice = webm_createAudioDevice, .implType = WEBM, .supportsGapless = false}},
-
+#ifdef USE_FAAD
     {"m4a", {.getDecoder = (void *(*)(void))getCurrentM4aDecoder, .getFileInfo = getM4aFileInfo, .getDecoderFormat = (ma_result (*)(ma_data_source *, ma_format *, ma_uint32 *, ma_uint32 *, ma_channel *, size_t))m4a_decoder_ds_get_data_format, .createAudioDevice = m4a_createAudioDevice, .implType = M4A, .supportsGapless = true}},
+#endif
 };
 
 static const CodecOps *findCodecOps(const char *filePath)
