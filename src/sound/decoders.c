@@ -114,7 +114,7 @@ ma_decoder *getCurrentBuiltinDecoder(void)
 
 #ifdef USE_FAAD
 m4a_decoder *getFirstM4aDecoder(void) { return firstM4aDecoder; }
-#endif
+
 
 m4a_decoder *getCurrentM4aDecoder(void)
 {
@@ -123,6 +123,7 @@ m4a_decoder *getCurrentM4aDecoder(void)
         else
                 return m4aDecoders[m4aDecoderIndex];
 }
+#endif
 
 void resetDecoders(void **decoderArray, void **firstDecoder, int arraySize,
                    int *decoderIndex, uninit_func uninit)
@@ -278,7 +279,7 @@ ma_webm_get_cursor_in_pcm_frames_wrapper(void *pDecoder, long long int *pCursor)
         return ma_webm_get_cursor_in_pcm_frames((ma_webm *)dec->pUserData,
                                                 (ma_uint64 *)pCursor);
 }
-
+#ifdef USE_FAAD
 MA_API ma_result m4a_read_pcm_frames_wrapper(void *pDecoder, void *pFramesOut,
                                              size_t frameCount,
                                              size_t *pFramesRead)
@@ -395,6 +396,7 @@ int prepareNextM4aDecoder(SongData *songData)
         }
         return 0;
 }
+#endif
 
 ma_libvorbis *getFirstVorbisDecoder(void) { return firstVorbisDecoder; }
 
