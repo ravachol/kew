@@ -367,7 +367,8 @@ void collapsePath(const char *input, char *output)
             return;
         }
     }
-
+    
+#if !defined(__ANDROID__)
     /* Check other users' home dirs (e.g. /home/alice -> ~alice) */
     /* We'll iterate passwd entries and look for a pw_dir that is a prefix */
     struct passwd *pw;
@@ -391,6 +392,7 @@ void collapsePath(const char *input, char *output)
         }
     }
     endpwent();
+#endif
 
     /* No match — copy unchanged */
     snprintf(output, MAXPATHLEN, "%s", input);
