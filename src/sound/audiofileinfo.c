@@ -69,7 +69,7 @@ void getWebmFileInfo(const char *filename, ma_format *format,
         }
         (void)channelMap;
 }
-
+#ifdef USE_FAAD
 void getM4aFileInfoFull(const char *filename, ma_format *format,
                     ma_uint32 *channels, ma_uint32 *sampleRate,
                     ma_channel *channelMap, int *avgBitRate,
@@ -122,3 +122,4 @@ void getM4aExtraInfo(
                    avgBitRate,
                    fileType);
 }
+#endif

@@ -19,7 +19,9 @@
 
 #include "soundbuiltin.h"
 #include "playback.h"
+#ifdef USE_FAAD
 #include "m4a.h"
+#endif
 #include "decoders.h"
 #include "volume.h"
 #include "audiobuffer.h"
@@ -206,26 +208,28 @@ int handleCodec(
                                      nChannelMap, MA_MAX_CHANNELS);
 
         int avgBitRate = 0;
+#ifdef USE_FAAD
         k_m4adec_filetype fileType = 0;
 
         if (ops.implType == M4A)
         {
                 getM4aExtraInfo(filePath, &avgBitRate, &fileType);
         }
-
+#endif
         // sameFormat computation
         bool sameFormat = false;
         if (ops.supportsGapless && decoder != NULL)
         {
                 sameFormat = (format == nFormat && channels == nChannels &&
                               sampleRate == nSampleRate);
-
+#ifdef USE_FAAD
                 if (ops.implType == M4A && decoder != NULL)
                 {
                         sameFormat = sameFormat &&
                                      (((m4a_decoder *)decoder)->fileType == fileType) &&
                                      (((m4a_decoder *)decoder)->fileType != k_rawAAC);
                 }
+#endif
         }
 
         // Avg bitrate assignment
