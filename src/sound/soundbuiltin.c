@@ -10,10 +10,10 @@
 
 #include "common/appstate.h"
 
-#include "sound/sound.h"
 #include "sound/audiobuffer.h"
-#include "sound/playback.h"
 #include "sound/decoders.h"
+#include "sound/playback.h"
+#include "sound/sound.h"
 
 #include <math.h>
 #include <stdbool.h>
@@ -158,48 +158,49 @@ bool isValidGain(double gain)
 
 static bool computeReplayGain(AudioData *audioData, double *outGainDb)
 {
-    if (audioData == NULL || audioData->pUserData == NULL)
-        return false;
+        if (audioData == NULL || audioData->pUserData == NULL)
+                return false;
 
-    UserData *ud = audioData->pUserData;
+        UserData *ud = audioData->pUserData;
 
-    bool result = false;
-    double gainDb = 0.0;
+        bool result = false;
+        double gainDb = 0.0;
 
-    if ((!ud->songdataADeleted && ud->currentSongData == ud->songdataA) ||
-        (!ud->songdataBDeleted && ud->currentSongData == ud->songdataB))
-    {
-        SongData *song = ud->currentSongData;
-        if (song != NULL && song->metadata != NULL)
+        if ((!ud->songdataADeleted && ud->currentSongData == ud->songdataA) ||
+            (!ud->songdataBDeleted && ud->currentSongData == ud->songdataB))
         {
-            double trackGain = song->metadata->replaygainTrack;
-            double albumGain = song->metadata->replaygainAlbum;
+                SongData *song = ud->currentSongData;
+                if (song != NULL && song->metadata != NULL)
+                {
+                        double trackGain = song->metadata->replaygainTrack;
+                        double albumGain = song->metadata->replaygainAlbum;
 
-            bool useTrackFirst = (ud->replayGainCheckFirst == 0);
+                        bool useTrackFirst = (ud->replayGainCheckFirst == 0);
 
-            if (useTrackFirst && isValidGain(trackGain))
-            {
-                gainDb = trackGain;
-                result = true;
-            }
-            else if (isValidGain(albumGain))
-            {
-                gainDb = albumGain;
-                result = true;
-            }
-            else if (!useTrackFirst && isValidGain(trackGain))
-            {
-                gainDb = trackGain;
-                result = true;
-            }
+                        if (useTrackFirst && isValidGain(trackGain))
+                        {
+                                gainDb = trackGain;
+                                result = true;
+                        }
+                        else if (isValidGain(albumGain))
+                        {
+                                gainDb = albumGain;
+                                result = true;
+                        }
+                        else if (!useTrackFirst && isValidGain(trackGain))
+                        {
+                                gainDb = trackGain;
+                                result = true;
+                        }
+                }
         }
-    }
 
-    if (result) {
-        *outGainDb = gainDb;
-    }
+        if (result)
+        {
+                *outGainDb = gainDb;
+        }
 
-    return result;
+        return result;
 }
 
 static void applyGainToInterleavedFrames(void *rawFrames, ma_format format,
@@ -332,10 +333,6 @@ void builtin_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut,
         AppState *state = getAppState();
 
         // Step 1: Compute gain
-        double gainDb = 0.0;
-        bool gainAvailable = computeReplayGain(audioData, &gainDb);
-        double gainFactor = gainAvailable ? dbToLinear(gainDb) : 1.0;
-
         while (framesRead < frameCount)
         {
                 ma_uint64 remainingFrames = frameCount - framesRead;
@@ -389,6 +386,10 @@ void builtin_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut,
                         pthread_mutex_unlock(&(state->dataSourceMutex));
                         return;
                 }
+
+                double gainDb = 0.0;
+                bool gainAvailable = computeReplayGain(audioData, &gainDb);
+                double gainFactor = gainAvailable ? dbToLinear(gainDb) : 1.0;
 
                 ma_result result = callReadPCMFrames(
                     firstDecoder, audioData->format, pFramesOut, framesRead,
