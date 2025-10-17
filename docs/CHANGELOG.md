@@ -4,7 +4,7 @@
 
 ![kew logo](https://codeberg.org/ravachol/kew/media/branch/main/images/logo.png)
 
-- kew now has a real logo and a tagline: "MUSIC FOR THE SHELL". It really fits perfectly.
+- kew now has a real logo and a tagline: "MUSIC FOR THE SHELL".
 
 - We now also have a color associated with kew, which is red: #de2b4d.
 
@@ -48,14 +48,9 @@
 
 - Fixed an issue with replay gain being calculated in the wrong place.
 
-### Sponsors and Donations Wanted
+### Sponsors
 
-Thank you to for the generous donation @LTeder! Thanks to all and especially thanks to David Reid (@mackron) for making Miniaudio and to Hans Petter Jansson (@hpjansson) for making Chafa (which displays the covers).
-
-Please support this effort:
-https://ko-fi.com/ravachol
-<br>
-https://github.com/sponsors/ravachol.
+Thank you to for the generous donation @LTeder!
 
 ### 3.5.3
 
