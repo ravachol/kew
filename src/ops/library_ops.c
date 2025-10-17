@@ -283,16 +283,20 @@ void updateLibrary(char *path)
         }
 }
 
-time_t getModificationTime(const struct stat *path_stat)
+time_t getModificationTime(struct stat *path_stat)
 {
-#if defined(__APPLE__)
-    // Use st_mtime — this is always defined
-    return path_stat->st_mtime;
-#elif defined(__linux__)
-    return path_stat->st_mtim.tv_sec;
+        if (path_stat->st_mtime != 0)
+        {
+                return path_stat->st_mtime;
+        }
+        else
+        {
+#ifdef __APPLE__
+                return path_stat->st_mtimespec.tv_sec; // macOS-specific member.
 #else
-    return path_stat->st_mtime;
+                return path_stat->st_mtim.tv_sec; // Linux-specific member.
 #endif
+        }
 }
 
 void *updateIfTopLevelFoldersMtimesChangedThread(void *arg)
