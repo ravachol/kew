@@ -285,18 +285,7 @@ void updateLibrary(char *path)
 
 time_t getModificationTime(struct stat *path_stat)
 {
-        if (path_stat->st_mtime != 0)
-        {
-                return path_stat->st_mtime;
-        }
-        else
-        {
-#ifdef __APPLE__
-                return path_stat->st_mtimespec.tv_sec; // macOS-specific member.
-#else
-                return path_stat->st_mtim.tv_sec; // Linux-specific member.
-#endif
-        }
+    return path_stat->st_mtime;
 }
 
 void *updateIfTopLevelFoldersMtimesChangedThread(void *arg)
