@@ -1,9 +1,5 @@
 # CHANGELOG
 
-### 3.6.1
-
-- fixes macOS build error, function name collision on certain macs.
-
 ### 3.6.0
 
 ![kew logo](https://codeberg.org/ravachol/kew/media/branch/main/images/logo.png)
