@@ -1,5 +1,9 @@
 # CHANGELOG
 
+### 3.6.1
+
+- Fixed build issue on termux.
+
 ### 3.6.0
 
 ![kew logo](https://codeberg.org/ravachol/kew/media/branch/main/images/logo.png)
