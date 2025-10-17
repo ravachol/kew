@@ -44,6 +44,10 @@
 
 - Fixed a bug with the library cache ids that was introduced in the last version.
 
+- Fixed a build issue on some versions of macOS.
+
+- Fixed an issue with replay gain being calculated in the wrong place.
+
 ### Sponsors and Donations Wanted
 
 Thank you to for the generous donation @LTeder! Thanks to all and especially thanks to David Reid (@mackron) for making Miniaudio and to Hans Petter Jansson (@hpjansson) for making Chafa (which displays the covers).
