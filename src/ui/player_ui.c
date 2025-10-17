@@ -955,7 +955,7 @@ void calcAndPrintLastRowAndErrorRow(AppSettings *settings)
         if (hasErrorMessage())
                 printErrorRow(term_h - 1, indent, &(state->uiSettings));
         else
-                printFooter(term_h - 1, indent,, settings);
+                printFooter(term_h - 1, indent, settings);
 #else
         printErrorRow(term_h - 1, indent, &(state->uiSettings));
         printFooter(term_h, indent, settings);
