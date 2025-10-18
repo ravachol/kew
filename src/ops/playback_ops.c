@@ -18,7 +18,9 @@
 #include "playlist_ops.h"
 
 #include "sound/decoders.h"
+#ifdef USE_FAAD
 #include "sound/m4a.h"
+#endif
 #include "sound/sound.h"
 #include "sound/playback.h"
 
