@@ -389,6 +389,7 @@ void printNowPlaying(SongData *songData, UISettings *ui, int row, int col, int m
 
                 printf("\033[%d;%dH", row, col);
                 printf("%s", processed);
+                clearRestOfLine();
         }
 }
 
