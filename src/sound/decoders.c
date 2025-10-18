@@ -1,7 +1,11 @@
 #include "decoders.h"
 
 #include "playback.h"
+
+#ifdef USE_FAAD
 #include "m4a.h"
+#endif
+
 #include "sound/audiofileinfo.h"
 
 #define MAX_DECODERS 2

@@ -1,6 +1,7 @@
 #include "audiofileinfo.h"
-
+#ifdef USE_FAAD
 #include "m4a.h"
+#endif
 #include "miniaudio_libopus.h"
 #include "miniaudio_libvorbis.h"
 #include "webm.h"
