@@ -12,7 +12,9 @@
 #include "common/appstate.h"
 
 #include "sound/decoders.h"
+#ifdef USE_FAAD
 #include "sound/m4a.h"
+#endif
 #include "sound/playback.h"
 
 #include "utils/utils.h"
