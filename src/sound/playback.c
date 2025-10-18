@@ -236,27 +236,14 @@ void soundShutdown()
 {
         if (isContextInitialized())
         {
-        ma_result result = ma_device_stop(&device);
-
-        if (result != MA_SUCCESS)
-        {
-                fprintf(stderr, "Warning: ma_device_stop() failed: %d\n", result);
-        }
-
-        c_sleep(300);
-
 #ifdef __ANDROID__
         shutdownAndroid();
 #else
         ma_device_uninit(&device);
         memset(&device, 0, sizeof(device));
-#endif
         cleanupAudioContext();
-        }
-
-#ifdef __ANDROID__
-    c_sleep(300);
 #endif
+        }
 }
 
 ma_device *getDevice(void) { return &device; }

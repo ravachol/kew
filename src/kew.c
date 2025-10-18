@@ -524,18 +524,15 @@ void kewShutdown()
         PlaybackState *ps = getPlaybackState();
         FileSystemEntry *library = getLibrary();
         AppSettings *settings = getAppSettings();
-        PlayList *playlist = getPlaylist();
         PlayList *unshuffledPlaylist = getUnshuffledPlaylist();
         PlayList *favoritesPlaylist = getFavoritesPlaylist();
 
         pthread_mutex_lock(&(state->dataSourceMutex));
 
-        stop();
-
         playbackFreeDecoders();
 
         playbackShutdown();
-        
+
         emitPlaybackStoppedMpris();
 
         bool noMusicFound = false;
@@ -565,7 +562,6 @@ void kewShutdown()
         setDefaultTextColor();
 
         pthread_mutex_destroy(&(ps->loadingdata.mutex));
-        pthread_mutex_destroy(&(playlist->mutex));
         pthread_mutex_destroy(&(state->switchMutex));
         pthread_mutex_unlock(&(state->dataSourceMutex));
         pthread_mutex_destroy(&(state->dataSourceMutex));
