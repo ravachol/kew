@@ -1,5 +1,11 @@
 # CHANGELOG
 
+### 3.6.2
+
+- Fix kew not exiting cleanly on android.
+
+- Fix update library from cache resulting in error.
+
 ### 3.6.1
 
 - Fixed build issue on termux.
