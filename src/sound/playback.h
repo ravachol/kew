@@ -54,5 +54,6 @@ void webm_on_audio_frames(ma_device *pDevice, void *pFramesOut, const void *pFra
 
 void clearCurrentTrack(void);
 void shutdownAndroid(void);
+void soundShutdown();
 
 #endif

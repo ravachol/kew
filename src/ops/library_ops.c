@@ -377,7 +377,11 @@ void updateLibraryIfChangedDetected(void)
 
         AppSettings *settings = getAppSettings();
 
-        args->path = settings->path;
+        char expanded[MAXPATHLEN];
+
+        expandPath(settings->path, expanded);
+
+        args->path = expanded;
         args->state = state;
 
         if (pthread_create(&tid, NULL,
@@ -389,7 +393,7 @@ void updateLibraryIfChangedDetected(void)
         }
 }
 
-void createLibrary(char *libFilepath)
+void createLibrary()
 {
         AppSettings *settings = getAppSettings();
         AppState *state = getAppState();
@@ -402,9 +406,8 @@ void createLibrary(char *libFilepath)
                 expandPath(settings->path, expanded);
 
                 library = reconstructTreeFromFile(
-                    libFilepath, expanded,
+                    expanded, expanded,
                     &(state->uiState.numDirectoryTreeEntries));
-                free(libFilepath);
                 updateLibraryIfChangedDetected();
         }
 

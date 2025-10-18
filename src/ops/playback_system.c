@@ -13,10 +13,11 @@
 #include "common/common.h"
 #include "sound/audiotypes.h"
 #include "sound/decoders.h"
-#include "sound/sound.h"
 #include "sound/playback.h"
+#include "sound/sound.h"
 
 #include "data/songloader.h"
+#include "utils/utils.h"
 
 void playbackSafeCleanup(void)
 {
@@ -41,18 +42,9 @@ int playbackCreate(void)
         return createAudioDevice();
 }
 
-
 void playbackShutdown(void)
 {
-        if (isContextInitialized())
-        {
-#ifdef __ANDROID__
-                shutdownAndroid();
-#else
-                playbackCleanup();
-#endif
-                cleanupAudioContext();
-        }
+        soundShutdown();
 }
 
 void playbackUnloadSongs(UserData *userData)
@@ -106,4 +98,3 @@ void ensureDefaultThemePack()
 {
         ensureDefaultThemes();
 }
-
