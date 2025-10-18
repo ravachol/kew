@@ -4,7 +4,9 @@
 #include "decoders.h"
 #include "audiobuffer.h"
 #include "sound.h"
+#ifdef USE_FAAD
 #include "m4a.h"
+#endif
 #include "utils/utils.h"
 
 #include <stdatomic.h>
