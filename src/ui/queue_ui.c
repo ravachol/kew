@@ -85,7 +85,7 @@ void resetListAfterDequeuingPlayingSong(void)
 
                 unloadSongA();
                 unloadSongB();
-                
+
                 state->uiState.songWasRemoved = true;
 
                 UserData *userData = opsGetUserData();
@@ -401,9 +401,7 @@ void init(void)
         pthread_mutex_init(&(playlist->mutex), NULL);
         freeSearchResults();
         resetChosenDir();
-        char *filePath = getLibraryFilePath();
-        createLibrary(filePath);
-        free(filePath);
+        createLibrary();
         setlocale(LC_ALL, "");
         setlocale(LC_CTYPE, "");
         fflush(stdout);

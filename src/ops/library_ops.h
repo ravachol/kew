@@ -12,7 +12,7 @@
 
 #include "common/appstate.h"
 
-void createLibrary(char *libFilepath);
+void createLibrary(void);
 void updateLibrary(char *path);
 void askIfCacheLibrary(void);
 void sortLibrary(void);

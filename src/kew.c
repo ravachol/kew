@@ -82,7 +82,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include <sys/stat.h>
 #include <unistd.h>
 
-const char VERSION[] = "3.6.1";
+const char VERSION[] = "3.6.0";
 
 AppState *statePtr = NULL;
 
@@ -530,8 +530,12 @@ void kewShutdown()
 
         pthread_mutex_lock(&(state->dataSourceMutex));
 
+        stop();
+
         playbackFreeDecoders();
+
         playbackShutdown();
+        
         emitPlaybackStoppedMpris();
 
         bool noMusicFound = false;
