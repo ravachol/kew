@@ -5,6 +5,7 @@
 #include "audiobuffer.h"
 #include "sound.h"
 #include "m4a.h"
+#include "utils/utils.h"
 
 #include <stdatomic.h>
 
@@ -99,7 +100,6 @@ void stopPlayback(void)
                 triggerRefresh();
         }
 }
-
 
 void soundResumePlayback(void)
 {
@@ -225,6 +225,40 @@ void cleanupPlaybackDevice(void)
         setStopped(true);
 }
 
+
+void shutdownAndroid(void)
+{
+        // Avoid race condition when shutting down
+        memset(&device, 0, sizeof(device));
+}
+
+void soundShutdown()
+{
+        if (isContextInitialized())
+        {
+        ma_result result = ma_device_stop(&device);
+
+        if (result != MA_SUCCESS)
+        {
+                fprintf(stderr, "Warning: ma_device_stop() failed: %d\n", result);
+        }
+
+        c_sleep(300);
+
+#ifdef __ANDROID__
+        shutdownAndroid();
+#else
+        ma_device_uninit(&device);
+        memset(&device, 0, sizeof(device));
+#endif
+        cleanupAudioContext();
+        }
+
+#ifdef __ANDROID__
+    c_sleep(300);
+#endif
+}
+
 ma_device *getDevice(void) { return &device; }
 
 enum AudioImplementation getCurrentImplementationType(void)
@@ -328,12 +362,6 @@ void activateSwitch(AudioData *pAudioData)
         }
 
         pAudioData->switchFiles = true;
-}
-
-void shutdownAndroid(void)
-{
-        // Avoid race condition when shutting down
-        memset(&device, 0, sizeof(device));
 }
 
 void clearCurrentTrack(void)
