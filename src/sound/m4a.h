@@ -12,7 +12,7 @@
 extern "C"
 {
 #endif
-
+#ifdef USE_FAAD
 #include "common/common.h"
 
 #include <miniaudio.h>
@@ -1212,7 +1212,7 @@ extern "C"
                 return MA_ERROR;
         }
 #endif
-
+#endif
 #ifdef __cplusplus
 }
 #endif
