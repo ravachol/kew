@@ -62,6 +62,8 @@ make -j4
 make install
 ```
 
+This step is all you will need to do later to update the version.
+
 ### **Run kew:**
 
 1. **Set kew's music library path**
@@ -70,8 +72,9 @@ This could be ~/storage/music for instance:
 ```
 kew path <music path>
 ```
-  
+
 2. **Run kew**
+
 ```
 kew
 ```
