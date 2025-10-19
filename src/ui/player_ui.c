@@ -283,7 +283,13 @@ void printHelp(void)
 static const char *getPlayerStatusIcon(void)
 {
         if (opsIsPaused())
+        {
+#ifdef __ANDROID__
+                return "∥";
+#else
                 return "⏸";
+#endif
+        }
         if (opsIsStopped())
                 return "■";
         return "▶";
@@ -846,11 +852,17 @@ void printFooter(int row, int col, AppSettings *settings)
 
         size_t currentLength = strnlen(iconsText, maxLength);
 
+#ifndef __ANDROID__
         if (term_w >= ABSOLUTE_MIN_WIDTH)
         {
+#endif
                 if (opsIsPaused())
                 {
+#ifdef __ANDROID__
+                        char pauseText[] = " ∥";
+#else
                         char pauseText[] = " ⏸";
+#endif
                         snprintf(iconsText + currentLength,
                                  maxLength - currentLength, "%s", pauseText);
                         currentLength += strlen(pauseText);
@@ -869,7 +881,9 @@ void printFooter(int row, int col, AppSettings *settings)
                                  maxLength - currentLength, "%s", pauseText);
                         currentLength += strlen(pauseText);
                 }
+#ifndef __ANDROID__
         }
+#endif
 
         if (opsIsRepeatEnabled())
         {
@@ -916,7 +930,7 @@ void printFooter(int row, int col, AppSettings *settings)
                 if (term_w > (int)currentLength + indent)
                 {
                         printf("%s", iconsText); // Print just the shuffle
-                                                    // and replay settings
+                                                 // and replay settings
                 }
 #else
                 // Always try to print the footer on Android because it will
