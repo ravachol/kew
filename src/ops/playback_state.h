@@ -25,7 +25,6 @@ bool determineCurrentSongData(SongData **currentSongData);
 int getVolume();
 double getCurrentSongDuration(void);
 void getFormatAndSampleRate(ma_format *format, ma_uint32 *sampleRate);
-UserData *opsGetUserData(void);
 SongData *getCurrentSongData(void);
 
 // Setters

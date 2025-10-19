@@ -43,11 +43,11 @@ void unloadSongA(void)
 {
         PlaybackState *ps = getPlaybackState();
 
-        if (getUserData()->songdataADeleted == false)
+        if (audioData.pUserData->songdataADeleted == false)
         {
-                getUserData()->songdataADeleted = true;
+                audioData.pUserData->songdataADeleted = true;
                 unloadSongData(&(ps->loadingdata.songdataA));
-                getUserData()->songdataA = NULL;
+                audioData.pUserData->songdataA = NULL;
         }
 }
 
@@ -55,21 +55,22 @@ void unloadSongB(void)
 {
         PlaybackState *ps = getPlaybackState();
 
-        if (getUserData()->songdataBDeleted == false)
+        if (audioData.pUserData->songdataBDeleted == false)
         {
-                getUserData()->songdataBDeleted = true;
+                audioData.pUserData->songdataBDeleted = true;
                 unloadSongData(&(ps->loadingdata.songdataB));
-                getUserData()->songdataB = NULL;
+                audioData.pUserData->songdataB = NULL;
         }
 }
 
 void unloadPreviousSong(void)
 {
-        UserData *userData = getUserData();
-        AudioData *audioData = getAudioData();
+        AppState *state = getAppState();
+        UserData *userData = audioData.pUserData;
         PlaybackState *ps = getPlaybackState();
 
         pthread_mutex_lock(&(ps->loadingdata.mutex));
+        pthread_mutex_lock(&(state->dataSourceMutex));
 
         if (ps->usingSongDataA &&
             (ps->skipping || (userData->currentSongData == NULL ||
@@ -83,7 +84,7 @@ void unloadPreviousSong(void)
         {
                 unloadSongA();
 
-                if (!audioData->endOfListReached)
+                if (!audioData.endOfListReached)
                         ps->loadedNextSong = false;
 
                 ps->usingSongDataA = false;
@@ -101,12 +102,13 @@ void unloadPreviousSong(void)
         {
                 unloadSongB();
 
-                if (!audioData->endOfListReached)
+                if (!audioData.endOfListReached)
                         ps->loadedNextSong = false;
 
                 ps->usingSongDataA = true;
         }
 
+        pthread_mutex_unlock(&(state->dataSourceMutex));
         pthread_mutex_unlock(&(ps->loadingdata.mutex));
 }
 
@@ -135,7 +137,7 @@ int loadFirst(Node *song)
                 return -1;
         }
 
-        UserData *userData = getUserData();
+        UserData *userData = audioData.pUserData;
 
         userData->currentPCMFrame = 0;
         userData->currentSongData = userData->songdataA;
@@ -178,12 +180,11 @@ void finishLoading(void)
 void autostartIfStopped(FileSystemEntry *firstEnqueuedEntry)
 {
         PlayList *playlist = getPlaylist();
-        AudioData *audioData = getAudioData();
         PlaybackState *ps = getPlaybackState();
 
         ps->waitingForPlaylist = false;
         ps->waitingForNext = true;
-        audioData->endOfListReached = false;
+        audioData.endOfListReached = false;
         if (firstEnqueuedEntry != NULL)
                 setSongToStartFrom(findPathInPlaylist(firstEnqueuedEntry->fullPath, playlist));
         ps->lastPlayedId = -1;

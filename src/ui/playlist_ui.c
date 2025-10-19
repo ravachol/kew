@@ -330,10 +330,8 @@ int displayPlaylist(PlayList *list, int maxListSize, int indent,
 
         ensureChosenSongWithinLimits(chosenSong, list);
 
-        AudioData *audioData = getAudioData();
-
         startIter = determinePlaylistStart(startIter, foundAt, maxListSize, chosenSong,
-                                           reset, (audioData != NULL) ? audioData->endOfListReached : true);
+                                           reset, audioData.endOfListReached);
 
         moveStartNodeIntoPosition(foundAt, &startNode);
 
@@ -353,14 +351,13 @@ int displayPlaylist(PlayList *list, int maxListSize, int indent,
 void setEndOfListReached(void)
 {
         AppState *state = getAppState();
-        AudioData *audioData = getAudioData();
         PlaybackState *ps = getPlaybackState();
 
         ps->loadedNextSong = false;
         ps->waitingForNext = true;
-        audioData->endOfListReached = true;
-        audioData->currentFileIndex = 0;
-        audioData->restart = true;
+        audioData.endOfListReached = true;
+        audioData.currentFileIndex = 0;
+        audioData.restart = true;
         ps->usingSongDataA = false;
         ps->loadingdata.loadA = true;
 

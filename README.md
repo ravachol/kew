@@ -154,7 +154,7 @@ kew theme <themename> (ie 'kew theme midnight')
 
 Put themes in \~/.config/kew/themes (\~/Library/Preferences/kew/themes on macOS).
 
-## If Colors Look Wrong
+## If Colors or Graphics Look Wrong
 
 Cycle <kbd>i</kbd> until they look right.
 

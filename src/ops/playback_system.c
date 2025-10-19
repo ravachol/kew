@@ -71,9 +71,7 @@ void skip()
 
         setRepeatEnabled(false);
 
-        AudioData *audioData = getAudioData();
-
-        audioData->endOfListReached = false;
+        audioData.endOfListReached = false;
 
         if (!isPlaying())
         {

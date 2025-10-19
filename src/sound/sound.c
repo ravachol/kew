@@ -70,8 +70,6 @@ typedef struct
         bool supportsGapless;
 } CodecOps;
 
-UserData userData;
-
 static ma_context context;
 static bool contextInitialized = false;
 
@@ -83,9 +81,6 @@ int webm_createAudioDevice(UserData *userData, ma_device *device, ma_context *co
 #ifdef USE_FAAD
 int m4a_createAudioDevice(UserData *userData, ma_device *device, ma_context *context);
 #endif
-
-UserData *getUserData(void) { return &userData; }
-
 bool validFilePath(char *filePath)
 {
         if (filePath == NULL || filePath[0] == '\0' || filePath[0] == '\r')
@@ -190,7 +185,6 @@ int handleCodec(
     const char *filePath,
     CodecOps ops,
     AudioData *audioData,
-    UserData userData,
     AppState *state,
     ma_context *context)
 {
@@ -233,14 +227,14 @@ int handleCodec(
         }
 
         // Avg bitrate assignment
-        if (userData.currentSongData)
+        if (audioData->pUserData->currentSongData)
         {
                 if (ops.implType == M4A)
-                        userData.currentSongData->avgBitRate = audioData->avgBitRate = avgBitRate;
+                        audioData->pUserData->currentSongData->avgBitRate = audioData->avgBitRate = avgBitRate;
                 else
-                        userData.currentSongData->avgBitRate =
+                        audioData->pUserData->currentSongData->avgBitRate =
                             audioData->avgBitRate =
-                                calcAvgBitRate(userData.currentSongData->duration, filePath);
+                                calcAvgBitRate(audioData->pUserData->currentSongData->duration, filePath);
         }
         else
         {
@@ -248,10 +242,10 @@ int handleCodec(
         }
 
         // Avg bitrate handling
-        if (userData.currentSongData)
-                userData.currentSongData->avgBitRate =
+        if (audioData->pUserData->currentSongData)
+                audioData->pUserData->currentSongData->avgBitRate =
                     audioData->avgBitRate =
-                        calcAvgBitRate(userData.currentSongData->duration, filePath);
+                        calcAvgBitRate(audioData->pUserData->currentSongData->duration, filePath);
         else
                 audioData->avgBitRate = 0;
 
@@ -272,10 +266,10 @@ int handleCodec(
                 int result;
 
                 if (ops.implType == BUILTIN)
-                        result = builtin_createAudioDevice(&userData, getDevice(), context,
+                        result = builtin_createAudioDevice(audioData->pUserData, getDevice(), context,
                                                            &builtin_file_data_source_vtable);
                 else
-                        result = ops.createAudioDevice(&userData, getDevice(), context);
+                        result = ops.createAudioDevice(audioData->pUserData, getDevice(), context);
 
                 if (result < 0)
                 {
@@ -365,10 +359,10 @@ static int prepareNextDecoderForCodec(const char *filePath, const CodecOps *ops)
         case VORBIS:
                 return prepareNextVorbisDecoder(filePath);
         case WEBM:
-                return prepareNextWebmDecoder(userData.currentSongData);
+                return prepareNextWebmDecoder(audioData.pUserData->currentSongData);
         case M4A:
 #ifdef USE_FAAD
-                return prepareNextM4aDecoder(userData.currentSongData);
+                return prepareNextM4aDecoder(audioData.pUserData->currentSongData);
 #else
                 return -1;
 #endif
@@ -484,8 +478,7 @@ int initFirstDatasource(UserData *userData)
         if (!userData)
                 return MA_ERROR;
 
-        AudioData *audioData = getAudioData();
-        SongData *songData = (audioData->currentFileIndex == 0) ? userData->songdataA : userData->songdataB;
+        SongData *songData = (audioData.currentFileIndex == 0) ? userData->songdataA : userData->songdataB;
         if (!songData)
                 return MA_ERROR;
 
@@ -493,9 +486,9 @@ int initFirstDatasource(UserData *userData)
         if (!filePath)
                 return MA_ERROR;
 
-        audioData->pUserData = userData;
-        audioData->currentPCMFrame = 0;
-        audioData->restart = false;
+        audioData.pUserData = userData;
+        audioData.currentPCMFrame = 0;
+        audioData.restart = false;
 
         const CodecOps *ops = findCodecOps(filePath);
         if (!ops)
@@ -509,13 +502,13 @@ int initFirstDatasource(UserData *userData)
         if (!decoder)
                 return -1;
 
-        result = initAudioDataFromCodecDecoder(ops, decoder, audioData);
+        result = initAudioDataFromCodecDecoder(ops, decoder, &audioData);
         if (result < 0)
                 return -1;
 
         // BUILTIN MP3 special handling
         if (ops->implType == BUILTIN)
-                handleBuiltinAvgBitRate(audioData, songData, filePath);
+                handleBuiltinAvgBitRate(&audioData, songData, filePath);
 
         return MA_SUCCESS;
 }
@@ -533,11 +526,10 @@ int createDevice(UserData *userData, ma_device *device, ma_context *context,
                 return -1;
         }
 
-        AudioData *audioData = getAudioData();
-        audioData->base.vtable = vtable;
+        audioData.base.vtable = vtable;
 
-        result = initPlaybackDevice(context, audioData->format, audioData->channels, audioData->sampleRate,
-                                    device, callback, audioData);
+        result = initPlaybackDevice(context, audioData.format, audioData.channels, audioData.sampleRate,
+                                    device, callback, &audioData);
 
         setVolume(getCurrentVolume());
 
@@ -573,9 +565,8 @@ int vorbis_createAudioDevice(UserData *userData, ma_device *device,
         }
 
         ma_libvorbis *decoder = getFirstVorbisDecoder();
-        AudioData *audioData = getAudioData();
 
-        result = initPlaybackDevice(context, decoder->format, audioData->channels, audioData->sampleRate,
+        result = initPlaybackDevice(context, decoder->format, audioData.channels, audioData.sampleRate,
                                     device, vorbis_on_audio_frames, decoder);
 
         setVolume(getCurrentVolume());
@@ -600,9 +591,8 @@ int m4a_createAudioDevice(UserData *userData, ma_device *device,
         }
 
         m4a_decoder *decoder = getFirstM4aDecoder();
-        AudioData *audioData = getAudioData();
 
-        result = initPlaybackDevice(context, decoder->format, audioData->channels, audioData->sampleRate,
+        result = initPlaybackDevice(context, decoder->format, audioData.channels, audioData.sampleRate,
                                     device, m4a_on_audio_frames, decoder);
 
         setVolume(getCurrentVolume());
@@ -628,9 +618,8 @@ int opus_createAudioDevice(UserData *userData, ma_device *device,
         }
 
         ma_libopus *decoder = getFirstOpusDecoder();
-        AudioData *audioData = getAudioData();
 
-        result = initPlaybackDevice(context, decoder->format, audioData->channels, audioData->sampleRate,
+        result = initPlaybackDevice(context, decoder->format, audioData.channels, audioData.sampleRate,
                                     device, opus_on_audio_frames, decoder);
 
         setVolume(getCurrentVolume());
@@ -653,9 +642,8 @@ int webm_createAudioDevice(UserData *userData, ma_device *device,
                 return -1;
         }
         ma_webm *decoder = getFirstWebmDecoder();
-        AudioData *audioData = getAudioData();
 
-        result = initPlaybackDevice(context, decoder->format, audioData->channels, audioData->sampleRate,
+        result = initPlaybackDevice(context, decoder->format, audioData.channels, audioData.sampleRate,
                                     device, webm_on_audio_frames, decoder);
 
         setVolume(getCurrentVolume());
@@ -669,23 +657,22 @@ int webm_createAudioDevice(UserData *userData, ma_device *device,
 int switchAudioImplementation(void)
 {
         AppState *state = getAppState();
-        AudioData *audioData = getAudioData();
 
-        if (audioData->endOfListReached)
+        if (audioData.endOfListReached)
         {
                 setEofHandled();
                 setCurrentImplementationType(NONE);
                 return 0;
         }
 
-        userData.currentSongData = (audioData->currentFileIndex == 0) ? userData.songdataA : userData.songdataB;
-        if (!userData.currentSongData)
+        audioData.pUserData->currentSongData = (audioData.currentFileIndex == 0) ? audioData.pUserData->songdataA : audioData.pUserData->songdataB;
+        if (!audioData.pUserData->currentSongData)
         {
                 setEofHandled();
                 return 0;
         }
 
-        char *filePath = strdup(userData.currentSongData->filePath);
+        char *filePath = strdup(audioData.pUserData->currentSongData->filePath);
         if (!validFilePath(filePath))
         {
                 free(filePath);
@@ -701,9 +688,9 @@ int switchAudioImplementation(void)
         }
 
         if (ops->implType == BUILTIN)
-                handleBuiltinAvgBitRate(audioData, userData.currentSongData, filePath);
+                handleBuiltinAvgBitRate(&audioData, audioData.pUserData->currentSongData, filePath);
 
-        int result = handleCodec(filePath, *ops, audioData, userData, state, &context);
+        int result = handleCodec(filePath, *ops, &audioData, state, &context);
         free(filePath);
 
         if (result < 0)
