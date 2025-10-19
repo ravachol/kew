@@ -9,7 +9,6 @@
 
 #include "playback_state.h"
 
-#include "sound/sound.h"
 #include "sound/playback.h"
 #include "sound/volume.h"
 

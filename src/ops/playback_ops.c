@@ -22,7 +22,6 @@
 #include "sound/m4a.h"
 #endif
 #include "sound/playback.h"
-#include "sound/sound.h"
 
 #include "sound/volume.h"
 #include "sys/systemintegration.h"
