@@ -797,7 +797,8 @@ int main(int argc, char *argv[])
 
                 if (playlist->count == 0)
                 {
-                        state->uiState.noPlaylist = true;
+                        if (strcmp(argv[1], "theme") != 0)
+                                state->uiState.noPlaylist = true;
                         exit(0);
                 }
 
