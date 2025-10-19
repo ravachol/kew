@@ -38,7 +38,7 @@ time_t lastTimeAppRan;
 AppSettings initSettings(void)
 {
         AppState *state = getAppState();
-        UserData *userData = opsGetUserData();
+        UserData *userData = audioData.pUserData;
 
         AppSettings settings;
 

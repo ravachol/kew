@@ -13,16 +13,16 @@
 
 #include "common/common.h"
 #include "playback_clock.h"
-#include "playback_system.h"
 #include "playback_state.h"
+#include "playback_system.h"
 #include "playlist_ops.h"
 
 #include "sound/decoders.h"
 #ifdef USE_FAAD
 #include "sound/m4a.h"
 #endif
-#include "sound/sound.h"
 #include "sound/playback.h"
+#include "sound/sound.h"
 
 #include "sound/volume.h"
 #include "sys/systemintegration.h"
@@ -78,15 +78,15 @@ int assignLoadedData(void)
 
         if (ps->loadingdata.loadA)
         {
-                getUserData()->songdataA = ps->loadingdata.songdataA;
+                audioData.pUserData->songdataA = ps->loadingdata.songdataA;
                 result = loadDecoder(ps->loadingdata.songdataA,
-                                     &(getUserData()->songdataADeleted));
+                                     &(audioData.pUserData->songdataADeleted));
         }
         else
         {
-                getUserData()->songdataB = ps->loadingdata.songdataB;
+                audioData.pUserData->songdataB = ps->loadingdata.songdataB;
                 result = loadDecoder(ps->loadingdata.songdataB,
-                                     &(getUserData()->songdataBDeleted));
+                                     &(audioData.pUserData->songdataBDeleted));
         }
 
         return result;
@@ -95,54 +95,44 @@ int assignLoadedData(void)
 void *songDataReaderThread(void *arg)
 {
         PlaybackState *ps = (PlaybackState *)arg;
+        AppState *state = getAppState();
 
-        // Acquire the mutex lock
         pthread_mutex_lock(&(ps->loadingdata.mutex));
 
         char filepath[MAXPATHLEN];
         c_strcpy(filepath, ps->loadingdata.filePath, sizeof(filepath));
 
-        SongData *songdata = NULL;
+        SongData *songdata = existsFile(filepath) >= 0 ? loadSongData(filepath) : NULL;
+
+        pthread_mutex_lock(&(state->dataSourceMutex));
 
         if (ps->loadingdata.loadA)
         {
-                if (!getUserData()->songdataADeleted)
+                if (!audioData.pUserData->songdataADeleted)
                 {
-                        getUserData()->songdataADeleted = true;
                         unloadSongData(&(ps->loadingdata.songdataA));
                 }
-        }
-        else
-        {
-                if (!getUserData()->songdataBDeleted)
-                {
-                        getUserData()->songdataBDeleted = true;
-                        unloadSongData(&(ps->loadingdata.songdataB));
-                }
-        }
-
-        if (existsFile(filepath) >= 0)
-        {
-                songdata = loadSongData(filepath);
-        }
-        else
-                songdata = NULL;
-
-        if (ps->loadingdata.loadA)
-        {
+                audioData.pUserData->songdataADeleted = false;
+                audioData.pUserData->songdataA = songdata;
                 ps->loadingdata.songdataA = songdata;
         }
         else
         {
+                if (!audioData.pUserData->songdataBDeleted)
+                {
+                        unloadSongData(&(ps->loadingdata.songdataB));
+                }
+                audioData.pUserData->songdataBDeleted = false;
+                audioData.pUserData->songdataB = songdata;
                 ps->loadingdata.songdataB = songdata;
         }
 
         int result = assignLoadedData();
 
-        if (result < 0)
-                songdata->hasErrors = true;
+        if (result < 0) songdata->hasErrors = true;
 
-        // Release the mutex lock
+        pthread_mutex_unlock(&(state->dataSourceMutex));
+
         pthread_mutex_unlock(&(ps->loadingdata.mutex));
 
         if (songdata == NULL || songdata->hasErrors)
@@ -248,9 +238,7 @@ void prepareIfSkippedSilent(void)
                 setCurrentImplementationType(NONE);
                 setRepeatEnabled(false);
 
-                AudioData *audioData = getAudioData();
-
-                audioData->endOfListReached = false;
+                audioData.endOfListReached = false;
 
                 ps->usingSongDataA = !ps->usingSongDataA;
 
@@ -303,7 +291,6 @@ int playSong(Node *node)
 {
         AppState *state = getAppState();
         PlaybackState *ps = getPlaybackState();
-        AudioData *audioData = getAudioData();
 
         if (!isValidAudioNode(node))
         {
@@ -321,10 +308,10 @@ int playSong(Node *node)
         ps->loadedNextSong = false;
 
         // Cancel starting from top
-        if (ps->waitingForPlaylist || audioData->restart)
+        if (ps->waitingForPlaylist || audioData.restart)
         {
                 ps->waitingForPlaylist = false;
-                audioData->restart = false;
+                audioData.restart = false;
 
                 if (isShuffleEnabled())
                         reshufflePlaylist();
@@ -465,4 +452,3 @@ void seek(int seconds)
 
         addToAccumulatedSeconds(seconds);
 }
-

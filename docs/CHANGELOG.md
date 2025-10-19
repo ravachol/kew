@@ -1,5 +1,13 @@
 # CHANGELOG
 
+### 3.6.3
+
+- Fixed issue on termux for people who don't have faad installed.
+
+- If run with song arguments starts in track view like it's supposed to.
+
+- Fixed song loading instability with flac and mp3.
+
 ### 3.6.2
 
 - Fix kew not exiting cleanly on android.
