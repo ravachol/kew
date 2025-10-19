@@ -21,7 +21,6 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-UserData *getUserData(void);
 bool isContextInitialized(void);
 int createAudioDevice(void);
 int switchAudioImplementation(void);

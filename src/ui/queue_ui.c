@@ -66,11 +66,9 @@ void resetListAfterDequeuingPlayingSong(void)
 
         if (getCurrentSong() == NULL && node == NULL)
         {
-                AudioData *audioData = getAudioData();
-
                 ps->loadedNextSong = false;
-                audioData->endOfListReached = true;
-                audioData->restart = true;
+                audioData.endOfListReached = true;
+                audioData.restart = true;
 
                 emitMetadataChanged("", "", "", "",
                                     "/org/mpris/MediaPlayer2/TrackList/NoTrack",
@@ -88,12 +86,12 @@ void resetListAfterDequeuingPlayingSong(void)
 
                 state->uiState.songWasRemoved = true;
 
-                UserData *userData = opsGetUserData();
+               UserData *userData = audioData.pUserData;
 
                 userData->currentSongData = NULL;
 
-                audioData->currentFileIndex = 0;
-                audioData->restart = true;
+                audioData.currentFileIndex = 0;
+                audioData.restart = true;
                 ps->waitingForNext = true;
 
                 PlaybackState *ps = getPlaybackState();
@@ -103,7 +101,7 @@ void resetListAfterDequeuingPlayingSong(void)
 
                 ma_data_source_uninit(&audioData);
 
-                audioData->switchFiles = false;
+                audioData.switchFiles = false;
 
                 if (getPlaylist()->count == 0)
                         setSongToStartFrom(NULL);
@@ -237,9 +235,8 @@ FileSystemEntry *enqueue(FileSystemEntry *entry)
         AppState *state = getAppState();
         FileSystemEntry *firstEnqueuedEntry = NULL;
         PlaybackState *ps = getPlaybackState();
-        AudioData *audioData = getAudioData();
 
-        if (audioData->restart)
+        if (audioData.restart)
         {
                 Node *lastSong = findSelectedEntryById(getPlaylist(), ps->lastPlayedId);
                 state->uiState.startFromTop = false;
@@ -381,9 +378,8 @@ void init(void)
         setNonblockingMode();
 
         PlaybackState *ps = getPlaybackState();
-        UserData *userData = opsGetUserData();
+        UserData *userData = audioData.pUserData;
         PlayList *playlist = getPlaylist();
-        AudioData *audioData = getAudioData();
         state->tmpCache = createCache();
 
         c_strcpy(ps->loadingdata.filePath, "", sizeof(ps->loadingdata.filePath));
@@ -391,7 +387,7 @@ void init(void)
         ps->loadingdata.songdataB = NULL;
         ps->loadingdata.loadA = true;
         ps->loadingdata.loadingFirstDecoder = true;
-        audioData->restart = true;
+        audioData.restart = true;
         userData->songdataADeleted = true;
         userData->songdataBDeleted = true;
         unsigned int seed = (unsigned int)time(NULL);

@@ -428,6 +428,9 @@ typedef struct
         bool restart;
 } AudioData;
 
+extern AudioData audioData;
+
+
 // --- Getters ---
 
 PlaybackState *getPlaybackState(void);

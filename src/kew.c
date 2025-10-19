@@ -82,7 +82,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include <sys/stat.h>
 #include <unistd.h>
 
-const char VERSION[] = "3.6.2";
+const char VERSION[] = "3.6.3";
 
 AppState *statePtr = NULL;
 
@@ -324,10 +324,9 @@ int prepareAndPlaySong(Node *song)
 void checkAndLoadNextSong(void)
 {
         AppState *state = getAppState();
-        AudioData *audioData = getAudioData();
         PlaybackState *ps = getPlaybackState();
 
-        if (audioData->restart)
+        if (audioData.restart)
         {
                 PlayList *playlist = getPlaylist();
                 if (playlist->head == NULL)
@@ -341,7 +340,7 @@ void checkAndLoadNextSong(void)
                         if (!nextSong)
                                 return;
 
-                        audioData->restart = false;
+                        audioData.restart = false;
                         ps->waitingForPlaylist = false;
                         ps->waitingForNext = false;
                         state->uiState.songWasRemoved = false;
@@ -448,8 +447,7 @@ void run(bool startPlaying)
         PlayList *playlist = getPlaylist();
         PlayList *unshuffledPlaylist = getUnshuffledPlaylist();
         PlaybackState *ps = getPlaybackState();
-        AudioData *audioData = getAudioData();
-        UserData *userData = opsGetUserData();
+        UserData *userData = audioData.pUserData;
 
         if (unshuffledPlaylist == NULL)
         {
@@ -480,12 +478,15 @@ void run(bool startPlaying)
         if (startPlaying)
                 ps->waitingForPlaylist = true;
 
-        audioData->currentFileIndex = 0;
+        audioData.currentFileIndex = 0;
         userData->currentSongData = NULL;
         userData->songdataA = NULL;
         userData->songdataB = NULL;
         userData->songdataADeleted = true;
         userData->songdataBDeleted = true;
+
+        if (playlist->count != 0)
+                checkAndLoadNextSong();
 
         createLoop();
 
@@ -502,15 +503,14 @@ void initDefaultState(void)
         PlayList *playlist = getPlaylist();
         PlayList *unshuffledPlaylist = getUnshuffledPlaylist();
         PlaybackState *ps = getPlaybackState();
-        AudioData *audioData = getAudioData();
 
         loadLastUsedPlaylist(playlist, &unshuffledPlaylist);
         setUnshuffledPlaylist(unshuffledPlaylist);
         markListAsEnqueued(library, playlist);
         resetListAfterDequeuingPlayingSong();
 
-        audioData->restart = true;
-        audioData->endOfListReached = true;
+        audioData.restart = true;
+        audioData.endOfListReached = true;
         ps->loadedNextSong = false;
 
         state->currentView = LIBRARY_VIEW;
@@ -542,7 +542,9 @@ void kewShutdown()
                 noMusicFound = true;
         }
 
-        playbackUnloadSongs(opsGetUserData());
+        UserData *userData = audioData.pUserData;
+
+        playbackUnloadSongs(userData);
 
 #ifdef CHAFA_VERSION_1_16
         retire_passthrough_workarounds_tmux();
@@ -560,6 +562,9 @@ void kewShutdown()
         freeMainDirectoryTree();
         freePlaylists();
         setDefaultTextColor();
+
+        if (audioData.pUserData != NULL)
+                free(audioData.pUserData);
 
         pthread_mutex_destroy(&(ps->loadingdata.mutex));
         pthread_mutex_destroy(&(state->switchMutex));
@@ -614,6 +619,7 @@ void kewShutdown()
 void initState(void)
 {
         AppState *state = getAppState();
+
         state->uiSettings.VERSION = VERSION;
         state->uiSettings.uiEnabled = true;
         state->uiSettings.color.r = 125;
@@ -698,6 +704,8 @@ void initState(void)
 
         setUnshuffledPlaylist(NULL);
         setFavoritesPlaylist(NULL);
+
+        audioData.pUserData = malloc(sizeof(UserData));
 
         statePtr = state;
 }

@@ -108,7 +108,6 @@ Node *findSelectedEntry(PlayList *playlist, int row)
 void removeCurrentlyPlayingSong(void)
 {
         Node *current = getCurrentSong();
-        AudioData *audioData = getAudioData();
         PlaybackState *ps = getPlaybackState();
 
         if (current != NULL)
@@ -120,8 +119,8 @@ void removeCurrentlyPlayingSong(void)
         }
 
         ps->loadedNextSong = false;
-        audioData->restart = true;
-        audioData->endOfListReached = true;
+        audioData.restart = true;
+        audioData.endOfListReached = true;
 
         if (current != NULL)
         {
@@ -394,13 +393,10 @@ void silentSwitchToNext(bool loadSong)
 
         setNextSong(NULL);
         setCurrentSongToNext();
-
-        AudioData *audioData = getAudioData();
-
-        activateSwitch(audioData);
+        activateSwitch(&audioData);
 
         ps->skipOutOfOrder = true;
-        ps->usingSongDataA = (audioData != NULL && audioData->currentFileIndex == 0);
+        ps->usingSongDataA = (audioData.currentFileIndex == 0);
 
         if (loadSong)
         {
@@ -424,13 +420,12 @@ void silentSwitchToNext(bool loadSong)
 void silentSwitchToPrev(void)
 {
         AppState *state = getAppState();
-        AudioData *audioData = getAudioData();
         PlaybackState *ps = getPlaybackState();
 
         ps->skipping = true;
 
         setCurrentSongToPrev();
-        activateSwitch(audioData);
+        activateSwitch(&audioData);
 
         ps->loadedNextSong = false;
         ps->songLoading = true;
@@ -658,12 +653,11 @@ void skipToLastSong(void)
 
 void repeatList(void)
 {
-        AudioData *audioData = getAudioData();
         PlaybackState *ps = getPlaybackState();
 
         ps->waitingForPlaylist = true;
         ps->nextSongNeedsRebuilding = true;
-        audioData->endOfListReached = false;
+        audioData.endOfListReached = false;
 }
 
 void moveSongUp(int *chosenRow)
@@ -899,9 +893,7 @@ bool playPreProcessing()
 {
         bool wasEndOfList = false;
 
-        AudioData *audioData = getAudioData();
-
-        if (audioData->endOfListReached)
+        if (audioData.endOfListReached)
                 wasEndOfList = true;
 
         return wasEndOfList;
@@ -922,14 +914,11 @@ void playPostProcessing(bool wasEndOfList)
                 ps->skipOutOfOrder = false;
         }
 
-        AudioData *audioData = getAudioData();
-
-        audioData->endOfListReached = false;
+        audioData.endOfListReached = false;
 }
 
 void clearAndPlay(Node *song)
 {
-        AudioData *audioData = getAudioData();
         PlaybackState *ps = getPlaybackState();
         AppState *state = getAppState();
 
@@ -946,7 +935,7 @@ void clearAndPlay(Node *song)
         ps->nextSongNeedsRebuilding = false;
         ps->usingSongDataA = false;
         ps->loadingdata.loadA = true;
-        audioData->currentFileIndex = 0;
+        audioData.currentFileIndex = 0;
         bool wasEndOfList = playPreProcessing();
 
         play();

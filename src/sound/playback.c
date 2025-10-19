@@ -7,7 +7,6 @@
 #ifdef USE_FAAD
 #include "m4a.h"
 #endif
-#include "utils/utils.h"
 
 #include <stdatomic.h>
 
@@ -107,12 +106,11 @@ void soundResumePlayback(void)
 {
         // If this was unpaused with no song loaded
 
-        AudioData *audioData = getAudioData();
         AppState *state = getAppState();
 
-        if (audioData->restart)
+        if (audioData.restart)
         {
-                audioData->endOfListReached = false;
+                audioData.endOfListReached = false;
         }
 
         if (!ma_device_is_started(&device))

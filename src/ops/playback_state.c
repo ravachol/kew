@@ -56,11 +56,10 @@ bool opsIsImplSwitchReached(void)
 
 bool isCurrentSongDeleted(void)
 {
-        AudioData *audioData = getAudioData();
 
-        return (audioData == NULL || audioData->currentFileIndex == 0)
-                   ? getUserData()->songdataADeleted == true
-                   : getUserData()->songdataBDeleted == true;
+        return (audioData.currentFileIndex == 0)
+                   ? audioData.pUserData->songdataADeleted == true
+                   : audioData.pUserData->songdataBDeleted == true;
 }
 
 bool isValidSong(SongData *songData)
@@ -74,10 +73,6 @@ void opsSetEofHandled(void)
         setEofHandled();
 }
 
-UserData *opsGetUserData(void)
-{
-        return getUserData();
-}
 
 double getCurrentSongDuration(void)
 {
@@ -92,30 +87,28 @@ double getCurrentSongDuration(void)
 
 bool determineCurrentSongData(SongData **currentSongData)
 {
-        AudioData *audioData = getAudioData();
+        *currentSongData = (audioData.currentFileIndex == 0)
+                               ? audioData.pUserData->songdataA
+                               : audioData.pUserData->songdataB;
 
-        *currentSongData = (audioData->currentFileIndex == 0)
-                               ? getUserData()->songdataA
-                               : getUserData()->songdataB;
-
-        bool isDeleted = (audioData->currentFileIndex == 0)
-                             ? getUserData()->songdataADeleted == true
-                             : getUserData()->songdataBDeleted == true;
+        bool isDeleted = (audioData.currentFileIndex == 0)
+                             ? audioData.pUserData->songdataADeleted == true
+                             : audioData.pUserData->songdataBDeleted == true;
 
         if (isDeleted)
         {
-                *currentSongData = (audioData->currentFileIndex != 0)
-                                       ? getUserData()->songdataA
-                                       : getUserData()->songdataB;
+                *currentSongData = (audioData.currentFileIndex != 0)
+                                       ? audioData.pUserData->songdataA
+                                       : audioData.pUserData->songdataB;
 
-                isDeleted = (audioData->currentFileIndex != 0)
-                                ? getUserData()->songdataADeleted == true
-                                : getUserData()->songdataBDeleted == true;
+                isDeleted = (audioData.currentFileIndex != 0)
+                                ? audioData.pUserData->songdataADeleted == true
+                                : audioData.pUserData->songdataBDeleted == true;
 
                 if (!isDeleted)
                 {
-                        activateSwitch(audioData);
-                        audioData->switchFiles = false;
+                        activateSwitch(&audioData);
+                        audioData.switchFiles = false;
                 }
         }
         return isDeleted;
