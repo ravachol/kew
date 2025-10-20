@@ -94,7 +94,6 @@ int assignLoadedData(void)
 void *songDataReaderThread(void *arg)
 {
         PlaybackState *ps = (PlaybackState *)arg;
-        AppState *state = getAppState();
 
         pthread_mutex_lock(&(ps->loadingdata.mutex));
 
@@ -102,8 +101,6 @@ void *songDataReaderThread(void *arg)
         c_strcpy(filepath, ps->loadingdata.filePath, sizeof(filepath));
 
         SongData *songdata = existsFile(filepath) >= 0 ? loadSongData(filepath) : NULL;
-
-        pthread_mutex_lock(&(state->dataSourceMutex));
 
         if (ps->loadingdata.loadA)
         {
@@ -129,8 +126,6 @@ void *songDataReaderThread(void *arg)
         int result = assignLoadedData();
 
         if (result < 0) songdata->hasErrors = true;
-
-        pthread_mutex_unlock(&(state->dataSourceMutex));
 
         pthread_mutex_unlock(&(ps->loadingdata.mutex));
 
