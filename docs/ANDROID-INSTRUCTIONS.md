@@ -78,3 +78,15 @@ kew path <music path>
 ```
 kew
 ```
+
+### To get volume buttons on your phone to work in Termux:
+
+run
+nano ~/.termux/termux.properties
+
+Uncomment this line:
+
+volume-keys = volume
+
+Save (ctrl+x)
+
