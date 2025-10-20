@@ -17,7 +17,8 @@ extern "C"
 
 #include "common/appstate.h"
 
-int extractTags(const char *input_file, TagSettings *tag_settings, double *duration, const char *coverFilePath);
+int extractTags(const char *input_file, TagSettings *tag_settings,
+                        double *duration, const char *coverFilePath, Lyrics **lyrics);
 
 #ifdef __cplusplus
 }

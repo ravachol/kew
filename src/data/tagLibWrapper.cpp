@@ -27,6 +27,7 @@
 #include <taglib/mp4file.h>
 #include <taglib/mpegfile.h>
 #include <taglib/opusfile.h>
+#include <taglib/synchronizedlyricsframe.h>
 #include <taglib/tag.h>
 #include <taglib/textidentificationframe.h>
 #include <taglib/vorbisfile.h>
@@ -200,7 +201,7 @@ getOggFieldListCaseInsensitive(const TagLib::Ogg::XiphComment *comment,
 
 extern "C"
 {
-        #include "utils/utils.h"
+#include "utils/utils.h"
 
         // Function to read a 32-bit unsigned integer from buffer in big-endian
         // format
@@ -1094,8 +1095,181 @@ extern "C"
                 return val;
         }
 
+        static bool loadLyricsVorbisFromTag(TagLib::Ogg::XiphComment *tag, Lyrics **lyricsOut)
+        {
+                if (!tag || !lyricsOut)
+                        return false;
+
+                // Try common lyric fields
+                TagLib::String lyricsStr;
+                auto fields = tag->fieldListMap();
+                if (fields.contains("LYRICS"))
+                        lyricsStr = fields["LYRICS"].toString();
+                else if (fields.contains("UNSYNCEDLYRICS"))
+                        lyricsStr = fields["UNSYNCEDLYRICS"].toString();
+                else if (fields.contains("lyrics"))
+                        lyricsStr = fields["lyrics"].toString();
+                else
+                        return false;
+
+                if (lyricsStr.isEmpty())
+                        return false;
+
+                // Split into lines
+                TagLib::StringList tagLines = lyricsStr.split("\n");
+
+                Lyrics *lyrics = (Lyrics *)calloc(1, sizeof(Lyrics));
+                if (!lyrics)
+                        return false;
+
+                size_t capacity = tagLines.size() > 64 ? tagLines.size() : 64;
+                lyrics->lines = (LyricsLine *)malloc(sizeof(LyricsLine) * capacity);
+                if (!lyrics->lines)
+                {
+                        free(lyrics);
+                        return false;
+                }
+
+                lyrics->count = 0;
+                for (size_t i = 0; i < tagLines.size(); ++i)
+                {
+                        std::string text = tagLines[i].toCString(true);
+
+                        // Trim leading/trailing whitespace
+                        size_t start = 0;
+                        while (start < text.size() && std::isspace((unsigned char)text[start]))
+                                start++;
+                        size_t end = text.size();
+                        while (end > start && std::isspace((unsigned char)text[end - 1]))
+                                end--;
+                        text = text.substr(start, end - start);
+
+                        // Grow array if needed
+                        if (lyrics->count == capacity)
+                        {
+                                capacity *= 2;
+                                LyricsLine *newLines = (LyricsLine *)realloc(lyrics->lines, sizeof(LyricsLine) * capacity);
+                                if (!newLines)
+                                {
+                                        for (size_t j = 0; j < lyrics->count; ++j)
+                                                free(lyrics->lines[j].text);
+                                        free(lyrics->lines);
+                                        free(lyrics);
+                                        return false;
+                                }
+                                lyrics->lines = newLines;
+                        }
+
+                        lyrics->lines[lyrics->count].timestamp = 0.0;
+                        lyrics->lines[lyrics->count].text = strdup(text.c_str());
+                        if (!lyrics->lines[lyrics->count].text)
+                        {
+                                for (size_t j = 0; j < lyrics->count; ++j)
+                                        free(lyrics->lines[j].text);
+                                free(lyrics->lines);
+                                free(lyrics);
+                                return false;
+                        }
+
+                        lyrics->count++;
+                }
+
+                lyrics->isTimed = 0;
+                *lyricsOut = lyrics;
+                return true;
+        }
+
+        static bool loadLyricsVorbisFLAC(TagLib::FLAC::File *file, Lyrics **lyricsOut)
+        {
+                return loadLyricsVorbisFromTag(file->xiphComment(), lyricsOut);
+        }
+
+        static bool loadLyricsVorbisOgg(TagLib::Ogg::Vorbis::File *file, Lyrics **lyricsOut)
+        {
+                return loadLyricsVorbisFromTag(file->tag(), lyricsOut);
+        }
+
+        static bool loadLyricsVorbisOpus(TagLib::Ogg::Opus::File *file, Lyrics **lyricsOut)
+        {
+                return loadLyricsVorbisFromTag(file->tag(), lyricsOut);
+        }
+
+        static bool loadLyricsFromSYLTTag(TagLib::ID3v2::Tag *id3v2Tag, Lyrics **lyricsOut)
+        {
+                if (!id3v2Tag || !lyricsOut)
+                        return false;
+
+                auto frames = id3v2Tag->frameList("SYLT");
+                if (frames.isEmpty())
+                        return false;
+
+                // Count total lines across all SYLT frames
+                size_t totalLines = 0;
+                for (auto frame : frames)
+                {
+                        auto sylt = dynamic_cast<TagLib::ID3v2::SynchronizedLyricsFrame *>(frame);
+                        if (!sylt)
+                                continue;
+                        totalLines += sylt->synchedText().size();
+                }
+
+                if (totalLines == 0)
+                        return false;
+
+                Lyrics *lyrics = (Lyrics *)calloc(1, sizeof(Lyrics));
+                if (!lyrics)
+                        return false;
+
+                lyrics->maxLength = 1024;
+                lyrics->lines = (LyricsLine *)malloc(sizeof(LyricsLine) * totalLines);
+                if (!lyrics->lines)
+                {
+                        free(lyrics);
+                        return false;
+                }
+
+                lyrics->count = 0;
+                for (auto frame : frames)
+                {
+                        auto sylt = dynamic_cast<TagLib::ID3v2::SynchronizedLyricsFrame *>(frame);
+                        if (!sylt)
+                                continue;
+
+                        for (auto lyric : sylt->synchedText())
+                        {
+                                char *text = strdup(lyric.text.toCString(true));
+                                if (!text)
+                                        continue;
+
+                                // Trim leading/trailing whitespace
+                                char *start = text;
+                                while (isspace((unsigned char)*start))
+                                        start++;
+                                char *end = start + strlen(start);
+                                while (end > start && isspace((unsigned char)*(end - 1)))
+                                        *(--end) = '\0';
+
+                                lyrics->lines[lyrics->count].timestamp = lyric.time / 1000.0; // ms → s
+                                lyrics->lines[lyrics->count].text = strdup(start);
+                                free(text);
+
+                                if (!lyrics->lines[lyrics->count].text)
+                                {
+                                        freeLyrics(lyrics);
+                                        return false;
+                                }
+
+                                lyrics->count++;
+                        }
+                }
+
+                lyrics->isTimed = 1;
+                *lyricsOut = lyrics;
+                return true;
+        }
+
         int extractTags(const char *input_file, TagSettings *tag_settings,
-                        double *duration, const char *coverFilePath)
+                        double *duration, const char *coverFilePath, Lyrics **lyrics)
         {
                 memset(tag_settings, 0,
                        sizeof(TagSettings)); // Initialize tag settings
@@ -1171,6 +1345,18 @@ extern "C"
                         {
                                 tag_settings->date[0] = '\0';
                         }
+                }
+
+                if (*lyrics == nullptr)
+                {
+                        if (auto mpegFile = dynamic_cast<TagLib::MPEG::File *>(f.file()))
+                                loadLyricsFromSYLTTag(mpegFile->ID3v2Tag(), lyrics);
+                        if (auto flacFile = dynamic_cast<TagLib::FLAC::File *>(f.file()))
+                                loadLyricsVorbisFLAC(flacFile, lyrics);
+                        else if (auto oggFile = dynamic_cast<TagLib::Ogg::Vorbis::File *>(f.file()))
+                                loadLyricsVorbisOgg(oggFile, lyrics);
+                        else if (auto opusFile = dynamic_cast<TagLib::Ogg::Opus::File *>(f.file()))
+                                loadLyricsVorbisOpus(opusFile, lyrics);
                 }
 
                 // Extract audio properties for duration.
