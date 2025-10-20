@@ -1,5 +1,9 @@
 # CHANGELOG
 
+### 3.6.4
+
+- Fixed 'kew theme' command.
+
 ### 3.6.3
 
 - Fixed issue on termux for people who don't have faad installed.

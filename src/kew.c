@@ -82,7 +82,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include <sys/stat.h>
 #include <unistd.h>
 
-const char VERSION[] = "3.6.3";
+const char VERSION[] = "3.6.4";
 
 AppState *statePtr = NULL;
 
@@ -797,7 +797,7 @@ int main(int argc, char *argv[])
 
                 if (playlist->count == 0)
                 {
-                        if (argv[1] && strcmp(argv[1], "theme") != 0)
+                        if (argc > 1 && argv[1] && strcmp(argv[1], "theme") != 0)
                                 state->uiState.noPlaylist = true;
                         exit(0);
                 }
