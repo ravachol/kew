@@ -31,7 +31,7 @@ typedef struct {
     int isTimed;
 } Lyrics;
 
-Lyrics *loadLyrics(const char *music_file_path);
+Lyrics *loadLyricsFromLRC(const char *path);
 void freeLyrics(Lyrics *lyrics);
 
 #ifdef __cplusplus

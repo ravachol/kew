@@ -316,7 +316,7 @@ void loadMetaData(SongData *songdata)
         generateTempFilePath(songdata->coverArtPath, "cover", ".jpg");
 
         int res = extractTags(songdata->filePath, songdata->metadata,
-                              &(songdata->duration), songdata->coverArtPath);
+                              &(songdata->duration), songdata->coverArtPath, &(songdata->lyrics));
 
         if (res == -2)
         {
@@ -385,9 +385,10 @@ SongData *loadSongData(char *filePath)
         songdata->cover = NULL;
         songdata->duration = 0.0;
         songdata->avgBitRate = 0;
+        songdata->lyrics = NULL;
         c_strcpy(songdata->filePath, filePath, sizeof(songdata->filePath));
+        songdata->lyrics = loadLyricsFromLRC(songdata->filePath);
         loadMetaData(songdata);
-        songdata->lyrics = loadLyrics(songdata->filePath);
         int res = loadColor(songdata);
 
         if (songdata->cover && res != 0)
