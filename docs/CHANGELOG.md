@@ -4,6 +4,8 @@
 
 - Fixed 'kew theme' command.
 
+- Add support for vorbis lyrics for FLAC/Ogg/Opus files. We now have .lrc file support, SYLT mp3 lyrics support and now these. Should cover most cases.
+
 ### 3.6.3
 
 - Fixed issue on termux for people who don't have faad installed.
