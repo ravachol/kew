@@ -999,6 +999,15 @@ int printAbout(SongData *songdata)
         return numRows;
 }
 
+#define CHECK_LIST_LIMIT() \
+    do { \
+        if (numPrintedRows >= maxListSize) { \
+            printf("\n"); \
+            calcAndPrintLastRowAndErrorRow(settings); \
+            return numPrintedRows; \
+        } \
+    } while (0)
+
 int showKeyBindings(SongData *songdata, AppSettings *settings)
 {
         AppState *state = getAppState();
@@ -1012,33 +1021,40 @@ int showKeyBindings(SongData *songdata, AppSettings *settings)
         UISettings *ui = &(state->uiSettings);
 
         numPrintedRows += printAbout(songdata);
-
+        CHECK_LIST_LIMIT();
         applyColor(ui->colorMode, ui->theme.text, ui->defaultColorRGB);
 
         printBlankSpaces(indent);
         printf(" Keybindings:\n\n");
-
+        numPrintedRows += 2;
+        CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
         printf(" · Play/Pause: SPACE, %s or right click\n",
                settings->togglePause);
-
+        numPrintedRows ++;
+        CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
         printf(" · Enqueue/Dequeue: Enter\n");
-
+        numPrintedRows ++;
+        CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
         printf(" · Quit: Esc or %s\n", settings->quit);
-
+        numPrintedRows ++;
+        CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
         printf(" · Switch tracks: ← and → or %s and %s\n",
                settings->previousTrackAlt, settings->nextTrackAlt);
-
+        numPrintedRows ++;
+        CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
         printf(" · Volume: %s (or %s) and %s\n", settings->volumeUp,
                settings->volumeUpAlt, settings->volumeDown);
-
+        numPrintedRows ++;
+        CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
         printf(" · Clear List: Backspace\n");
-
+        numPrintedRows ++;
+        CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
         printf(" · Change View: TAB or ");
 
@@ -1050,59 +1066,74 @@ int showKeyBindings(SongData *songdata, AppSettings *settings)
         printf("F2-F6");
 #endif
         printf(" or click the footer\n");
-
+        numPrintedRows ++;
+        CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
         printf(
             " · Cycle Color Mode: %s (default theme, theme or cover colors)\n",
             settings->cycleColorsDerivedFrom);
-
+        numPrintedRows ++;
+        CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
         printf(" · Cycle Themes: %s\n", settings->cycleThemes);
-
+        numPrintedRows ++;
+        CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
         printf(" · Stop: Shift+s\n");
-
+        numPrintedRows ++;
+        CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
         printf(" · Update Library: %s\n", settings->updateLibrary);
-
+        numPrintedRows ++;
+        CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
         printf(" · Toggle Visualizer: %s\n", settings->toggleVisualizer);
-
+        numPrintedRows ++;
+        CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
         printf(" · Toggle ASCII Cover: %s\n", settings->toggleAscii);
-
+        numPrintedRows ++;
+        CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
         printf(" · Toggle Lyrics Page on Track View: %s\n", settings->showLyricsPage);
-
+        numPrintedRows ++;
+        CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
         printf(" · Toggle Notifications: %s\n", settings->toggleNotifications);
-
+        numPrintedRows ++;
+        CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
         printf(" · Cycle Repeat: %s (repeat/repeat list/off)\n",
                settings->toggleRepeat);
-
+        numPrintedRows ++;
+        CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
         printf(" · Shuffle: %s\n", settings->toggleShuffle);
-
+        numPrintedRows ++;
+        CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
         printf(" · Seek: %s and %s\n", settings->seekBackward,
                settings->seekForward);
-
+        numPrintedRows ++;
+        CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
         printf(" · Export Playlist: %s (named after the first song)\n",
                settings->savePlaylist);
-
+        numPrintedRows ++;
+        CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
         printf(" · Add Song To 'kew favorites.m3u': %s (run with 'kew .')\n\n",
                settings->addToFavoritesPlaylist);
-
+        numPrintedRows += 3;
+        CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
         printf(" Manual: See");
         applyColor(ui->colorMode, ui->theme.help, ui->color);
         printf(" README");
         applyColor(ui->colorMode, ui->theme.text, ui->defaultColorRGB);
         printf(" Or man kew\n\n");
-
+        numPrintedRows += 2;
+        CHECK_LIST_LIMIT();
         applyColor(ui->colorMode, ui->theme.text, ui->defaultColorRGB);
         printBlankSpaces(indent);
         printf(" Theme: ");
@@ -1128,29 +1159,32 @@ int showKeyBindings(SongData *songdata, AppSettings *settings)
                 printf(" Author: ");
                 applyColor(ui->colorMode, ui->theme.help, ui->color);
                 printf("%s", ui->theme.theme_author);
-                numPrintedRows += 1;
         }
         printf("\n");
-        numPrintedRows += 1;
-
         printf("\n");
+        numPrintedRows += 2;
+        CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
         applyColor(ui->colorMode, ui->theme.help, ui->defaultColorRGB);
         printf(" Project URL:");
         applyColor(ui->colorMode, ui->theme.link, ui->color);
         printf(" https://codeberg.org/ravachol/kew\n");
+        numPrintedRows += 1;
+        CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
         applyColor(ui->colorMode, ui->theme.help, ui->defaultColorRGB);
         printf(" Please Donate:");
         applyColor(ui->colorMode, ui->theme.link, ui->color);
         printf(" https://ko-fi.com/ravachol\n\n");
+        numPrintedRows += 2;
+        CHECK_LIST_LIMIT();
         applyColor(ui->colorMode, ui->theme.text, ui->defaultColorRGB);
         printBlankSpaces(indent);
         printf(" Copyright © 2022-2025 Ravachol\n");
 
         printf("\n");
-
-        numPrintedRows += 31;
+        numPrintedRows += 2;
+        CHECK_LIST_LIMIT();
 
         while (numPrintedRows < maxListSize)
         {
