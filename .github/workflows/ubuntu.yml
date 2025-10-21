@@ -9,6 +9,7 @@ on:
 jobs:
   ubuntu-build-check:
     name: Ubuntu Build Check
+    if: github.server_url == 'https://github.com'
     runs-on: ubuntu-latest
 
     steps:
