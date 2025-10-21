@@ -1,0 +1,62 @@
+name: Ubuntu Build Check
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  ubuntu-build-check:
+    name: Ubuntu Build Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Install build essentials
+        run: sudo apt-get update && sudo apt-get install -y build-essential
+
+      - name: Install dependencies
+        run: sudo apt install -y libcurl4-openssl-dev libtag1-dev libfaad-dev libogg-dev libfftw3-dev libopus-dev libopusfile-dev libvorbis-dev libchafa-dev libavformat-dev libstb-dev libglib2.0-dev
+
+      - name: Build code
+        run: make
+
+      - name: Clean build artifacts
+        run: make clean
+
+      - name: Build code without FAAD
+        run: make USE_FAAD=0
+
+      - name: Run simple tests
+        run: |
+          set -e  # exit on first failure
+
+          # Set a clean config
+          export XDG_CONFIG_HOME=$PWD/.config
+          mkdir -p "$XDG_CONFIG_HOME/kew"
+          touch "$XDG_CONFIG_HOME/kew/kewrc"
+
+          # Create an empty library
+          mkdir -p tests/empty
+          kew path "$PWD/tests/empty"
+
+          # Test running a song with empty library
+          output=$(kew song 2>&1)
+          echo "$output"
+          if [[ ! "$output" =~ "No Music found" ]]; then
+            echo "❌ 'No Music found' test failed"
+            exit 1
+          fi
+          echo "✅ Empty library test passed"
+
+          # Test --version
+          version_output=$(kew --version)
+          echo "$version_output"
+          if [[ -z "$version_output" ]]; then
+            echo "❌ Version test failed"
+            exit 1
+          fi
+          echo "✅ Version test passed"

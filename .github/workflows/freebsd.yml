@@ -1,0 +1,38 @@
+name: FreeBSD Build Check
+
+on:
+  pull_request:
+  push:
+    paths:
+      - 'Makefile'
+  workflow_dispatch:
+
+jobs:
+  freebsd-build:
+    runs-on: freebsd-13
+    name: Build on FreeBSD
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Update package manager
+        run: sudo pkg update
+
+      - name: Install dependencies
+        run: sudo pkg install -y \
+          curl \
+          taglib \
+          faad2 \
+          fftw \
+          opus \
+          opusfile \
+          libogg \
+          libvorbis \
+          chafa \
+          glib2 \
+          make \
+          gcc
+
+      - name: Build code
+        run: make
