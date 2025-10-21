@@ -10,6 +10,7 @@ on:
 jobs:
   macos-build-check:
     name: macOS Build Check
+    if: github.server_url == 'https://github.com'
     runs-on: macos-latest
 
     steps:
