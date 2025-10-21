@@ -1014,7 +1014,7 @@ int showKeyBindings(SongData *songdata, AppSettings *settings)
         int numPrintedRows = 0;
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
-        maxListSize = term_h - 4;
+        maxListSize = term_h - 2;
 
         clearScreen();
 
@@ -1025,7 +1025,11 @@ int showKeyBindings(SongData *songdata, AppSettings *settings)
         applyColor(ui->colorMode, ui->theme.text, ui->defaultColorRGB);
 
         printBlankSpaces(indent);
-        printf(" Keybindings:\n\n");
+        printf(" Manual: See");
+        applyColor(ui->colorMode, ui->theme.help, ui->color);
+        printf(" README");
+        applyColor(ui->colorMode, ui->theme.text, ui->defaultColorRGB);
+        printf(" Or man kew\n\n");
         numPrintedRows += 2;
         CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
@@ -1125,14 +1129,6 @@ int showKeyBindings(SongData *songdata, AppSettings *settings)
         printf(" · Add Song To 'kew favorites.m3u': %s (run with 'kew .')\n\n",
                settings->addToFavoritesPlaylist);
         numPrintedRows += 3;
-        CHECK_LIST_LIMIT();
-        printBlankSpaces(indent);
-        printf(" Manual: See");
-        applyColor(ui->colorMode, ui->theme.help, ui->color);
-        printf(" README");
-        applyColor(ui->colorMode, ui->theme.text, ui->defaultColorRGB);
-        printf(" Or man kew\n\n");
-        numPrintedRows += 2;
         CHECK_LIST_LIMIT();
         applyColor(ui->colorMode, ui->theme.text, ui->defaultColorRGB);
         printBlankSpaces(indent);
