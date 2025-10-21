@@ -12,6 +12,7 @@
 #include "common/common.h"
 #include "common_ui.h"
 
+#include "data/directorytree.h"
 #include "data/playlist.h"
 
 #include "ui/queue_ui.h"
@@ -455,9 +456,20 @@ void applyColorAndFormat(bool isChosen, FileSystemEntry *entry, UISettings *ui,
                         printf(" * ");
                 }
                 else
+                {
+                        if (entry->parent != NULL && entry->parent->parent == NULL)
+                        {
+                           applyColor(ui->colorMode,
+                                   isPlaying ? ui->theme.search_playing
+                                             : ui->theme.library_artist,
+                                   ui->color);
+                        }
                         printf("   ");
+                }
         }
 }
+
+FileSystemEntry *lastDirectory = NULL;
 
 int displaySearchResults(int maxListSize, int indent, int *chosenRow,
                          int startSearchIter)
@@ -510,7 +522,8 @@ int displaySearchResults(int maxListSize, int indent, int *chosenRow,
                 // Indent sub dirs
                 if (results[i].parent != NULL)
                         extraIndent = 2;
-                else if (!results[i].entry->isDirectory)
+                else if (!results[i].entry->isDirectory &&
+                        (lastDirectory != NULL) && results[i].entry->parentId == lastDirectory->id)
                         extraIndent = 4;
                 else
                         extraIndent = 0;
@@ -533,13 +546,28 @@ int displaySearchResults(int maxListSize, int indent, int *chosenRow,
                 name[0] = '\0';
                 if (results[i].entry->isDirectory)
                 {
-                        snprintf(name, nameWidth + 1, "[%s]",
-                                 results[i].entry->name);
+                        lastDirectory = results[i].entry;
+
+                        if (results[i].entry->parent != NULL && results[i].entry->parent->parent == NULL)
+                        {
+                                char *upperDirName = stringToUpper(results[i].entry->name);
+
+                                snprintf(name, nameWidth + 1, "%s",
+                                        upperDirName);
+
+
+                                free(upperDirName);
+                        }
+                        else {
+                                snprintf(name, nameWidth + 1, "[%s]",
+                                        results[i].entry->name);
+                        }
                 }
                 else
                 {
-                        snprintf(name, nameWidth + 1, "%s",
-                                 results[i].entry->name);
+                        snprintf(name, nameWidth + 1, "%s [%s]",
+                                 results[i].entry->name,
+                                 (results[i].entry->parent != NULL ?  results[i].entry->parent->name : "Root"));
                 }
                 printf("%s\n", name);
                 printedRows++;
