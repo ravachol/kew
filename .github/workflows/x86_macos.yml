@@ -1,4 +1,4 @@
-name: macOS Latest Build Check
+name: macOS x86_64 Build Check
 
 on:
   pull_request:
@@ -8,25 +8,28 @@ on:
   workflow_dispatch:
 
 jobs:
-  macos-build-check:
-    name: macOS Build Check
+  macos-intel-build:
     runs-on: macos-latest
+    name: Build on Intel macOS
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Check system architecture
-        run: uname -m
+      - name: Ensure x86_64
+        run: |
+          arch
+          # Force x86_64 using Rosetta if needed
+          if [ "$(arch)" != "x86_64" ]; then
+            echo "Switching to Rosetta (x86_64)"
+            softwareupdate --install-rosetta --agree-to-license
+          fi
 
-      - name: Install Homebrew
+      - name: Install Homebrew dependencies
         run: |
           if ! command -v brew &> /dev/null; then
             /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
           fi
-
-      - name: Update Homebrew and install dependencies
-        run: |
           brew update
           brew install faad2 taglib chafa fftw opus opusfile libogg libvorbis make curl
 
