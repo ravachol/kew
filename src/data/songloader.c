@@ -374,6 +374,7 @@ SongData *loadSongData(char *filePath)
         AppState *state = getAppState();
         SongData *songdata = NULL;
         songdata = malloc(sizeof(SongData));
+        songdata->magic = SONG_MAGIC;
         songdata->trackId = generateTrackId();
         songdata->hasErrors = false;
         c_strcpy(songdata->filePath, "", sizeof(songdata->filePath));
@@ -422,6 +423,8 @@ void unloadSongData(SongData **songdata)
         }
 
         unloadLyrics(data);
+
+        data->magic = 0;
 
         free(data->metadata);
         free(data->trackId);

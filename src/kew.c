@@ -82,7 +82,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include <sys/stat.h>
 #include <unistd.h>
 
-const char VERSION[] = "3.6.4";
+const char VERSION[] = "3.6.5";
 
 AppState *statePtr = NULL;
 
@@ -365,10 +365,8 @@ void checkAndLoadNextSong(void)
         }
 }
 
-void updateAndLoad(void)
+void loadWaitingMusic(void)
 {
-        updatePlayer();
-
         PlayList *playlist = getPlaylist();
         AudioData *audioData = getAudioData();
         PlaybackState *ps = getPlaybackState();
@@ -414,7 +412,9 @@ gboolean mainloopCallback(gpointer data)
         {
                 processDBusEvents();
 
-                updateAndLoad();
+                updatePlayer();
+
+                loadWaitingMusic();
         }
 
         return TRUE;

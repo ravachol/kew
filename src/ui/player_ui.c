@@ -105,6 +105,7 @@ bool initTheme(int argc, char *argv[])
                 {
                         ui->colorMode = COLOR_MODE_THEME;
                         themeLoaded = true;
+                        snprintf(ui->themeName, sizeof(ui->themeName), "%s", argv[2]);
                 }
                 else
                 {
