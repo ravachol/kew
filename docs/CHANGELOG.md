@@ -1,5 +1,9 @@
 # CHANGELOG
 
+### 3.6.5
+
+- Handle both synchronized and unsynchronized vorbis lyrics.
+
 ### 3.6.4
 
 - Fixed 'kew theme' command.
