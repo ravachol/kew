@@ -25,6 +25,8 @@
 #define G_USEC_PER_SEC 1000000
 #endif
 
+#define SONG_MAGIC 0x534F4E47 // "SONG"
+
 #define METADATA_MAX_LENGTH 256
 
 typedef struct
@@ -353,6 +355,7 @@ typedef struct
 
 typedef struct
 {
+        int magic;
         gchar *trackId;
         char filePath[MAXPATHLEN];
         char coverArtPath[MAXPATHLEN];

@@ -156,12 +156,12 @@ bool isValidGain(double gain)
         return gain > -50.0 && gain < 50.0 && !isnan(gain) && isfinite(gain);
 }
 
-static bool computeReplayGain(double *outGainDb)
+static bool computeReplayGain(AudioData *audioData, double *outGainDb)
 {
-        if (audioData.pUserData == NULL)
+        if (audioData->pUserData == NULL)
                 return false;
 
-        UserData *ud = audioData.pUserData;
+        UserData *ud = audioData->pUserData;
 
         bool result = false;
         double gainDb = 0.0;
@@ -170,7 +170,7 @@ static bool computeReplayGain(double *outGainDb)
             (!ud->songdataBDeleted && ud->currentSongData == ud->songdataB))
         {
                 SongData *song = ud->currentSongData;
-                if (song != NULL && song->metadata != NULL)
+                if (song != NULL && song->magic == SONG_MAGIC && song->metadata != NULL)
                 {
                         double trackGain = song->metadata->replaygainTrack;
                         double albumGain = song->metadata->replaygainAlbum;
@@ -388,7 +388,7 @@ void builtin_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut,
                 }
 
                 double gainDb = 0.0;
-                bool gainAvailable = computeReplayGain(&gainDb);
+                bool gainAvailable = computeReplayGain(audioData, &gainDb);
                 double gainFactor = gainAvailable ? dbToLinear(gainDb) : 1.0;
 
                 ma_result result = callReadPCMFrames(

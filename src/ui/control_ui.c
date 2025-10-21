@@ -451,7 +451,6 @@ int loadTheme(const char *themeName,
         }
 
         appState->uiSettings.themeIsSet = true;
-        snprintf(appState->uiSettings.themeName, sizeof(appState->uiSettings.themeName), "%s", themeName);
 
         if (isAnsiTheme)
         {

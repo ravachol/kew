@@ -1095,6 +1095,110 @@ extern "C"
                 return val;
         }
 
+        static bool detectLrcFormat(const TagLib::StringList &lines)
+        {
+                for (const auto &line : lines)
+                {
+                        std::string text = line.toCString(true);
+                        if (text.size() > 3 && text[0] == '[' && std::isdigit((unsigned char)text[1]))
+                                return true;
+                }
+                return false;
+        }
+
+        static bool parseTimedLyricsFromTagLines(const TagLib::StringList &lines, Lyrics *lyrics)
+        {
+                size_t capacity = 64;
+                lyrics->lines = (LyricsLine *)malloc(sizeof(LyricsLine) * capacity);
+                if (!lyrics->lines)
+                        return false;
+
+                for (const auto &line : lines)
+                {
+                        std::string text = line.toCString(true);
+                        if (text.empty() || text[0] != '[')
+                                continue;
+
+                        int min = 0, sec = 0, cs = 0;
+                        char lyricText[512] = {0};
+
+                        if (sscanf(text.c_str(), "[%d:%d.%d]%511[^\r\n]", &min, &sec, &cs, lyricText) == 4)
+                        {
+                                if (lyrics->count == capacity)
+                                {
+                                        capacity *= 2;
+                                        LyricsLine *newLines = (LyricsLine *)realloc(lyrics->lines, sizeof(LyricsLine) * capacity);
+                                        if (!newLines)
+                                                return false;
+                                        lyrics->lines = newLines;
+                                }
+
+                                char *start = lyricText;
+                                while (isspace((unsigned char)*start))
+                                        start++;
+                                char *end = start + strlen(start);
+                                while (end > start && isspace((unsigned char)*(end - 1)))
+                                        *(--end) = '\0';
+
+                                lyrics->lines[lyrics->count].timestamp = min * 60.0 + sec + cs / 100.0;
+                                lyrics->lines[lyrics->count].text = strdup(start);
+                                if (!lyrics->lines[lyrics->count].text)
+                                        return false;
+
+                                lyrics->count++;
+                        }
+                }
+
+                lyrics->isTimed = 1;
+                return (lyrics->count > 0);
+        }
+
+        static bool parseUntimedLyricsFromTagLines(const TagLib::StringList &lines, Lyrics *lyrics)
+        {
+                size_t capacity = lines.size() > 64 ? lines.size() : 64;
+                lyrics->lines = (LyricsLine *)malloc(sizeof(LyricsLine) * capacity);
+                if (!lyrics->lines)
+                        return false;
+
+                lyrics->count = 0;
+
+                for (size_t i = 0; i < lines.size(); ++i)
+                {
+                        std::string text = lines[i].toCString(true);
+
+                        // Trim leading/trailing whitespace
+                        size_t start = 0;
+                        while (start < text.size() && std::isspace((unsigned char)text[start]))
+                                start++;
+                        size_t end = text.size();
+                        while (end > start && std::isspace((unsigned char)text[end - 1]))
+                                end--;
+                        text = text.substr(start, end - start);
+
+                        if (text.empty())
+                                continue;
+
+                        if (lyrics->count == capacity)
+                        {
+                                capacity *= 2;
+                                LyricsLine *newLines = (LyricsLine *)realloc(lyrics->lines, sizeof(LyricsLine) * capacity);
+                                if (!newLines)
+                                        return false;
+                                lyrics->lines = newLines;
+                        }
+
+                        lyrics->lines[lyrics->count].timestamp = 0.0;
+                        lyrics->lines[lyrics->count].text = strdup(text.c_str());
+                        if (!lyrics->lines[lyrics->count].text)
+                                return false;
+
+                        lyrics->count++;
+                }
+
+                lyrics->isTimed = 0;
+                return (lyrics->count > 0);
+        }
+
         static bool loadLyricsVorbisFromTag(TagLib::Ogg::XiphComment *tag, Lyrics **lyricsOut)
         {
                 if (!tag || !lyricsOut)
@@ -1115,66 +1219,26 @@ extern "C"
                 if (lyricsStr.isEmpty())
                         return false;
 
-                // Split into lines
                 TagLib::StringList tagLines = lyricsStr.split("\n");
+                if (tagLines.isEmpty())
+                        return false;
 
                 Lyrics *lyrics = (Lyrics *)calloc(1, sizeof(Lyrics));
                 if (!lyrics)
                         return false;
 
-                size_t capacity = tagLines.size() > 64 ? tagLines.size() : 64;
-                lyrics->lines = (LyricsLine *)malloc(sizeof(LyricsLine) * capacity);
-                if (!lyrics->lines)
+                lyrics->maxLength = 1024;
+
+                bool looksLikeLrc = detectLrcFormat(tagLines);
+                bool ok = looksLikeLrc ? parseTimedLyricsFromTagLines(tagLines, lyrics)
+                                       : parseUntimedLyricsFromTagLines(tagLines, lyrics);
+
+                if (!ok)
                 {
-                        free(lyrics);
+                        freeLyrics(lyrics);
                         return false;
                 }
 
-                lyrics->count = 0;
-                for (size_t i = 0; i < tagLines.size(); ++i)
-                {
-                        std::string text = tagLines[i].toCString(true);
-
-                        // Trim leading/trailing whitespace
-                        size_t start = 0;
-                        while (start < text.size() && std::isspace((unsigned char)text[start]))
-                                start++;
-                        size_t end = text.size();
-                        while (end > start && std::isspace((unsigned char)text[end - 1]))
-                                end--;
-                        text = text.substr(start, end - start);
-
-                        // Grow array if needed
-                        if (lyrics->count == capacity)
-                        {
-                                capacity *= 2;
-                                LyricsLine *newLines = (LyricsLine *)realloc(lyrics->lines, sizeof(LyricsLine) * capacity);
-                                if (!newLines)
-                                {
-                                        for (size_t j = 0; j < lyrics->count; ++j)
-                                                free(lyrics->lines[j].text);
-                                        free(lyrics->lines);
-                                        free(lyrics);
-                                        return false;
-                                }
-                                lyrics->lines = newLines;
-                        }
-
-                        lyrics->lines[lyrics->count].timestamp = 0.0;
-                        lyrics->lines[lyrics->count].text = strdup(text.c_str());
-                        if (!lyrics->lines[lyrics->count].text)
-                        {
-                                for (size_t j = 0; j < lyrics->count; ++j)
-                                        free(lyrics->lines[j].text);
-                                free(lyrics->lines);
-                                free(lyrics);
-                                return false;
-                        }
-
-                        lyrics->count++;
-                }
-
-                lyrics->isTimed = 0;
                 *lyricsOut = lyrics;
                 return true;
         }

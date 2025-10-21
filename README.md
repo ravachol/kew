@@ -30,6 +30,7 @@ kew (/kjuː/) is a terminal music player.
  * Search your music library and add to the queue.
  * Supports MP3, FLAC, MPEG-4/M4A (AAC), OPUS, OGG, Webm and WAV audio.
  * Supports desktop events through MPRIS.
+ * Supports lyrics through .lrc files, embedded SYLT (Mp3) or Vorbis comments (Flac,Ogg,Opus).
  * Use themes or colors derived from covers.
 
 ## Installing
