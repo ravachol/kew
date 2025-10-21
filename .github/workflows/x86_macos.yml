@@ -10,6 +10,7 @@ on:
 jobs:
   macos-intel-build:
     runs-on: macos-latest
+    if: github.server_url == 'https://github.com'
     name: Build on Intel macOS
 
     steps:
