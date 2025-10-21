@@ -1070,6 +1070,9 @@ int showKeyBindings(SongData *songdata, AppSettings *settings)
 
         printBlankSpaces(indent);
         printf(" · Toggle ASCII Cover: %s\n", settings->toggleAscii);
+        
+        printBlankSpaces(indent);
+        printf(" · Toggle Lyrics Page: %s\n", settings->showLyricsPage);    
 
         printBlankSpaces(indent);
         printf(" · Toggle Notifications: %s\n", settings->toggleNotifications);
