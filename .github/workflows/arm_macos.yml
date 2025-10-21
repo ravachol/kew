@@ -1,4 +1,4 @@
-name: Build Check macOS
+name: macOS Latest Build Check
 
 on:
   pull_request:
