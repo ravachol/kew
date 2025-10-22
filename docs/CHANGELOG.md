@@ -4,6 +4,10 @@
 
 - Handle both synchronized and unsynchronized vorbis lyrics.
 
+- Scroll the lyrics in the lyrics page if the lyrics are synced.
+
+- Prevent cover from jumping between first and second row on landscape view when resizing.
+
 ### 3.6.4
 
 - Fixed 'kew theme' command.
