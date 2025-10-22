@@ -300,7 +300,6 @@ void *updateIfTopLevelFoldersMtimesChangedThread(void *arg)
 
         if (stat(path, &path_stat) == -1)
         {
-                perror("stat");
                 free(args);
                 pthread_exit(NULL);
         }
@@ -337,7 +336,6 @@ void *updateIfTopLevelFoldersMtimesChangedThread(void *arg)
 
                 if (stat(fullPath, &path_stat) == -1)
                 {
-                        perror("stat");
                         continue;
                 }
 
