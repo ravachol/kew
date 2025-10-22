@@ -2112,12 +2112,10 @@ void printLyricsPage(UISettings *ui, AppSettings *settings, int row, int col, do
 
         if (!lyrics || lyrics->count == 0)
         {
-                printf("\033[%d;%dH", row, indent);
+                printf("\033[%d;%dH", row, col);
                 printf(" No lyrics available. Press %s to go back.", settings->showLyricsPage);
                 return;
         }
-
-        char *line = "";
 
         applyColor(ui->colorMode, ui->theme.trackview_lyrics, ui->color);
 
@@ -2143,18 +2141,16 @@ void printLyricsPage(UISettings *ui, AppSettings *settings, int row, int col, do
         {
                 char linebuf[1024];
                 const char *text = lyrics->lines[i].text ? lyrics->lines[i].text : "";
-
                 strncpy(linebuf, text, sizeof(linebuf) - 1);
                 linebuf[sizeof(linebuf) - 1] = '\0';
-                line = linebuf;
 
-                int length = (int)strnlen(line, songdata->lyrics->maxLength - 1);
+                int length = (int)strnlen(linebuf, songdata->lyrics->maxLength - 1);
                 if (length + col > term_w)
                         length = term_w - col;
                 if (length < 0)
                         length = 0;
 
-                printAt(row + i - startat, col, line, length);
+                printAt(row + i - startat, col, linebuf, length);
                 clearRestOfLine();
         }
 }
