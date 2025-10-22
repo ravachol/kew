@@ -2141,17 +2141,20 @@ void printLyricsPage(UISettings *ui, AppSettings *settings, int row, int col, do
 
         for (int i = startat; i < newlimit; i++)
         {
-                line = lyrics->lines[i].text;
+                char linebuf[1024];
+                const char *text = lyrics->lines[i].text ? lyrics->lines[i].text : "";
 
-                if (!line)
-                        continue;
+                strncpy(linebuf, text, sizeof(linebuf) - 1);
+                linebuf[sizeof(linebuf) - 1] = '\0';
+                line = linebuf;
 
-                int length = ((int)strnlen(line, songdata->lyrics->maxLength - 1));
-
-                length -= col + length - term_w;
+                int length = (int)strnlen(line, songdata->lyrics->maxLength - 1);
+                if (length + col > term_w)
+                        length = term_w - col;
+                if (length < 0)
+                        length = 0;
 
                 printAt(row + i - startat, col, line, length);
-
                 clearRestOfLine();
         }
 }
