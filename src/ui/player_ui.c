@@ -81,7 +81,6 @@ static FileSystemEntry *lastEntry = NULL;
 static FileSystemEntry *chosenDir = NULL;
 static bool isSameNameAsLastTime = false;
 static int term_w, term_h;
-static const char *prevLine = NULL;
 
 int getFooterRow(void) { return footerRow; }
 
@@ -463,7 +462,7 @@ void printCover(int height, SongData *songdata, UISettings *ui)
 {
         int row = 2;
         int col = 2;
-        int imgHeight = height - 2;
+        int imgHeight = height - 3;
 
         clearScreen();
 
@@ -862,7 +861,7 @@ void printFooter(int row, int col, AppSettings *settings)
 #ifdef __ANDROID__
                         char pauseText[] = " ∥";
 #else
-                        char pauseText[] = " ⏸";
+                char pauseText[] = " ⏸";
 #endif
                         snprintf(iconsText + currentLength,
                                  maxLength - currentLength, "%s", pauseText);
@@ -999,14 +998,16 @@ int printAbout(SongData *songdata)
         return numRows;
 }
 
-#define CHECK_LIST_LIMIT() \
-    do { \
-        if (numPrintedRows >= maxListSize) { \
-            printf("\n"); \
-            calcAndPrintLastRowAndErrorRow(settings); \
-            return numPrintedRows; \
-        } \
-    } while (0)
+#define CHECK_LIST_LIMIT()                                        \
+        do                                                        \
+        {                                                         \
+                if (numPrintedRows >= maxListSize)                \
+                {                                                 \
+                        printf("\n");                             \
+                        calcAndPrintLastRowAndErrorRow(settings); \
+                        return numPrintedRows;                    \
+                }                                                 \
+        } while (0)
 
 int showKeyBindings(SongData *songdata, AppSettings *settings)
 {
@@ -1035,29 +1036,29 @@ int showKeyBindings(SongData *songdata, AppSettings *settings)
         printBlankSpaces(indent);
         printf(" · Play/Pause: SPACE, %s or right click\n",
                settings->togglePause);
-        numPrintedRows ++;
+        numPrintedRows++;
         CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
         printf(" · Enqueue/Dequeue: Enter\n");
-        numPrintedRows ++;
+        numPrintedRows++;
         CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
         printf(" · Quit: Esc or %s\n", settings->quit);
-        numPrintedRows ++;
+        numPrintedRows++;
         CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
         printf(" · Switch tracks: ← and → or %s and %s\n",
                settings->previousTrackAlt, settings->nextTrackAlt);
-        numPrintedRows ++;
+        numPrintedRows++;
         CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
         printf(" · Volume: %s (or %s) and %s\n", settings->volumeUp,
                settings->volumeUpAlt, settings->volumeDown);
-        numPrintedRows ++;
+        numPrintedRows++;
         CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
         printf(" · Clear List: Backspace\n");
-        numPrintedRows ++;
+        numPrintedRows++;
         CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
         printf(" · Change View: TAB or ");
@@ -1070,60 +1071,60 @@ int showKeyBindings(SongData *songdata, AppSettings *settings)
         printf("F2-F6");
 #endif
         printf(" or click the footer\n");
-        numPrintedRows ++;
+        numPrintedRows++;
         CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
         printf(
             " · Cycle Color Mode: %s (default theme, theme or cover colors)\n",
             settings->cycleColorsDerivedFrom);
-        numPrintedRows ++;
+        numPrintedRows++;
         CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
         printf(" · Cycle Themes: %s\n", settings->cycleThemes);
-        numPrintedRows ++;
+        numPrintedRows++;
         CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
         printf(" · Stop: Shift+s\n");
-        numPrintedRows ++;
+        numPrintedRows++;
         CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
         printf(" · Update Library: %s\n", settings->updateLibrary);
-        numPrintedRows ++;
+        numPrintedRows++;
         CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
         printf(" · Toggle Visualizer: %s\n", settings->toggleVisualizer);
-        numPrintedRows ++;
+        numPrintedRows++;
         CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
         printf(" · Toggle ASCII Cover: %s\n", settings->toggleAscii);
-        numPrintedRows ++;
+        numPrintedRows++;
         CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
         printf(" · Toggle Lyrics Page on Track View: %s\n", settings->showLyricsPage);
-        numPrintedRows ++;
+        numPrintedRows++;
         CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
         printf(" · Toggle Notifications: %s\n", settings->toggleNotifications);
-        numPrintedRows ++;
+        numPrintedRows++;
         CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
         printf(" · Cycle Repeat: %s (repeat/repeat list/off)\n",
                settings->toggleRepeat);
-        numPrintedRows ++;
+        numPrintedRows++;
         CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
         printf(" · Shuffle: %s\n", settings->toggleShuffle);
-        numPrintedRows ++;
+        numPrintedRows++;
         CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
         printf(" · Seek: %s and %s\n", settings->seekBackward,
                settings->seekForward);
-        numPrintedRows ++;
+        numPrintedRows++;
         CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
         printf(" · Export Playlist: %s (named after the first song)\n",
                settings->savePlaylist);
-        numPrintedRows ++;
+        numPrintedRows++;
         CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
         printf(" · Add Song To 'kew favorites.m3u': %s (run with 'kew .')\n\n",
@@ -2100,7 +2101,7 @@ void printAt(int row, int indent, const char *text, int maxWidth)
         printf("\033[%d;%dH%s", row, indent, buffer);
 }
 
-void printLyricsPage(UISettings *ui, AppSettings *settings, int row, int col, SongData *songdata, int height)
+void printLyricsPage(UISettings *ui, AppSettings *settings, int row, int col, double seconds, SongData *songdata, int height)
 {
         clearRestOfLine();
 
@@ -2121,8 +2122,24 @@ void printLyricsPage(UISettings *ui, AppSettings *settings, int row, int col, So
         applyColor(ui->colorMode, ui->theme.trackview_lyrics, ui->color);
 
         int limit = MIN((int)lyrics->count, height);
+        int startat = 0;
 
-        for (int i = 0; i < limit; i++)
+        if (lyrics->isTimed)
+        {
+                for (int i = 0; i < (int)lyrics->count; i++)
+                {
+                        if (lyrics->lines[i].timestamp >= seconds)
+                        {
+                                if (i > limit && i > 0)
+                                        startat = i - 1; // If the current line would have fallen out of view, start at the current line - 1
+                                break;
+                        }
+                }
+        }
+
+        int newlimit = startat + limit;
+
+        for (int i = startat; i < newlimit; i++)
         {
                 line = lyrics->lines[i].text;
 
@@ -2133,7 +2150,7 @@ void printLyricsPage(UISettings *ui, AppSettings *settings, int row, int col, So
 
                 length -= col + length - term_w;
 
-                printAt(row + i, col, line, length);
+                printAt(row + i - startat, col, line, length);
 
                 clearRestOfLine();
         }
@@ -2144,14 +2161,33 @@ const char *getLyricsLine(const Lyrics *lyrics, double elapsed_seconds)
         if (!lyrics || lyrics->count == 0)
                 return "";
 
-        const char *line = "";
+        static char line[1024];
+        line[0] = '\0';
+
+        double lastTimestamp = -1.0;
+
         for (size_t i = 0; i < lyrics->count; i++)
         {
-                if (elapsed_seconds >= lyrics->lines[i].timestamp)
-                        line = lyrics->lines[i].text;
-                else
+                double ts = lyrics->lines[i].timestamp;
+                const char *text = lyrics->lines[i].text;
+
+                if (elapsed_seconds < ts)
                         break;
+
+                if (ts == lastTimestamp)
+                {
+                        // Same timestamp → append
+                        strncat(line, " | ", sizeof(line) - strlen(line) - 1);
+                        strncat(line, text, sizeof(line) - strlen(line) - 1);
+                }
+                else
+                {
+                        // New timestamp → start fresh
+                        snprintf(line, sizeof(line), "%s", text);
+                        lastTimestamp = ts;
+                }
         }
+
         return line;
 }
 
@@ -2171,9 +2207,12 @@ void printTimestampedLyrics(UISettings *ui, SongData *songdata, int row, int col
         if (!line)
                 return;
 
-        if (line && line[0] != '\0' && (!prevLine || strcmp(line, prevLine) != 0))
+        static char prevLine[1024] = "";
+
+        if (line && line[0] != '\0' && (strcmp(line, prevLine) != 0))
         {
-                prevLine = line;
+                strncpy(prevLine, line, sizeof(prevLine) - 1);
+                prevLine[sizeof(prevLine) - 1] = '\0';
 
                 int length = ((int)strnlen(line, songdata->lyrics->maxLength - 1));
 
@@ -2215,19 +2254,14 @@ void showTrackViewLandscape(int height, int width, float aspectRatio,
 
         int row = height - metadataHeight - timeHeight - state->uiSettings.visualizerHeight - 3;
 
-        if (row < 1)
+        if (row <= 1)
                 row = 2;
 
         if (isRefreshTriggered())
         {
                 printCover(height, songdata, &(state->uiSettings));
 
-                if (state->uiState.showLyricsPage)
-                {
-                        printNowPlaying(songdata, &(state->uiSettings), 2, col, term_w - indent);
-                        printLyricsPage(&(state->uiSettings), settings, 4, col, songdata, height - 4);
-                }
-                else
+                if (!state->uiState.showLyricsPage)
                 {
                         if (height > metadataHeight)
                                 printMetadata(row, col, visualizerWidth - 1,
@@ -2266,6 +2300,11 @@ void showTrackViewLandscape(int height, int width, float aspectRatio,
                                             col, settings);
                         }
                 }
+                else
+                {
+                        printNowPlaying(songdata, &(state->uiSettings), 2, col, term_w - indent);
+                        printLyricsPage(&(state->uiSettings), settings, 4, col, elapsedSeconds, songdata, height - 4);
+                }
         }
 }
 
@@ -2297,7 +2336,7 @@ void showTrackViewPortrait(int height, AppSettings *settings,
                         printf("\n");
                         printNowPlaying(songdata, &(state->uiSettings), 2, indent + 1, term_w - indent);
                         int lyricsHeight = height + metadataHeight + state->uiSettings.visualizerHeight;
-                        printLyricsPage(&(state->uiSettings), settings, 4, col + 1, songdata, lyricsHeight);
+                        printLyricsPage(&(state->uiSettings), settings, 4, col + 1, elapsedSeconds, songdata, lyricsHeight);
                 }
                 else
                 {
