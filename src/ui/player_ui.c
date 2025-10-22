@@ -2136,6 +2136,13 @@ void printLyricsPage(UISettings *ui, AppSettings *settings, int row, int col, do
         }
 
         int newlimit = startat + limit;
+        if (newlimit > (int)lyrics->count)
+                newlimit = (int)lyrics->count;
+
+        if (startat < 0)
+                startat = 0;
+        if (startat >= (int)lyrics->count)
+                startat = (int)lyrics->count - 1;
 
         for (int i = startat; i < newlimit; i++)
         {
