@@ -193,6 +193,16 @@ If you installed kew manually, simply run:
 sudo make uninstall
 ```
 
+If you want, you can also delete the settings files:
+
+Linux: ~/.config/kew/
+macOS: ~/Library/Preferences/kew/
+
+Then delete the kewstaterc file:
+
+Linux: ~/.local/state/kewstaterc
+macOS: ~/Library/Application Support/kewstaterc
+
 #### Faad2 is optional
 
 By default, the build system will automatically detect if `faad2` is available and includes it if found.
