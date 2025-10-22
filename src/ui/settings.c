@@ -771,7 +771,6 @@ KeyValuePair *readKeyValuePairs(const char *file_path, int *count,
         struct stat file_stat;
         if (stat(file_path, &file_stat) == -1)
         {
-                perror("stat");
                 return NULL;
         }
 
