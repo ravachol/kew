@@ -2337,14 +2337,7 @@ void showTrackViewPortrait(int height, AppSettings *settings,
 
                 clearScreen();
 
-                if (state->uiState.showLyricsPage)
-                {
-                        printf("\n");
-                        printNowPlaying(songdata, &(state->uiSettings), 2, indent + 1, term_w - indent);
-                        int lyricsHeight = height + metadataHeight + state->uiSettings.visualizerHeight;
-                        printLyricsPage(&(state->uiSettings), settings, 4, col + 1, elapsedSeconds, songdata, lyricsHeight);
-                }
-                else
+                if (!state->uiState.showLyricsPage)
                 {
                         printCoverCentered(songdata, &(state->uiSettings));
                         printMetadata(row, col, visualizerWidth - 1, metadata,
@@ -2370,6 +2363,17 @@ void showTrackViewPortrait(int height, AppSettings *settings,
 
                         printVisualizer(row + metadataHeight + 2, col, visualizerWidth,
                                         settings, elapsedSeconds);
+                }
+                else
+                {
+                        clearScreen();
+                        printf("\n");
+                        printNowPlaying(songdata, &(state->uiSettings), 2, indent + 1, term_w - indent);
+                        int term_w, term_h;
+                        getTermSize(&term_w, &term_h);
+                        int lyricsHeight = term_h - 5;
+                        if (lyricsHeight > 0)
+                                printLyricsPage(&(state->uiSettings), settings, 4, col + 1, elapsedSeconds, songdata, lyricsHeight);
                 }
         }
 
