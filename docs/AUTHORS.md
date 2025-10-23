@@ -15,6 +15,7 @@
 * @hypercunx
 * Joey Schaff @jaoheah / @jaoh (codeberg) <jschaff@proton.me>
 * John Lakeman @j-lakeman <le0324tb@anonaddy.me>
+* @noiamnote
 * Matthias Geiger @werdahias <werdahias@riseup.net>
 * Ravachol @ravachol <ravacholf@proton.me>
 * Rioprastyo17
