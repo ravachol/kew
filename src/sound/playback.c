@@ -404,7 +404,7 @@ void m4a_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut,
                 // Check if seeking is requested
                 if (isSeekRequested())
                 {
-                        if (decoder->fileType != k_rawAAC)
+                        if (decoder && decoder->fileType != k_rawAAC)
                         {
                                 ma_uint64 totalFrames = pAudioData->totalFrames;
                                 ma_uint64 seekPercent = getSeekPercentage();

@@ -705,7 +705,6 @@ int switchAudioImplementation(void)
         return 0;
 }
 
-
 bool isContextInitialized(void) { return contextInitialized; }
 
 void cleanupAudioContext(void)
