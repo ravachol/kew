@@ -145,7 +145,7 @@ void updatePauseTime(void)
         clock_gettime(CLOCK_MONOTONIC, &pauseTime);
 }
 
-void flushSeek(void)
+bool flushSeek(void)
 {
         if (seekAccumulatedSeconds != 0.0)
         {
@@ -158,7 +158,7 @@ void flushSeek(void)
                         {
                                 m4a_decoder *decoder = getCurrentM4aDecoder();
                                 if (decoder->fileType == k_rawAAC)
-                                        return;
+                                        return false;
                         }
 #endif
                 }
@@ -178,5 +178,9 @@ void flushSeek(void)
                 seekPercentage(percentage);
 
                 emitSeekedSignal(elapsedSeconds);
+
+                return true;
         }
+
+        return false;
 }

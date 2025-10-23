@@ -17,7 +17,6 @@
 #include "sound/sound.h"
 
 #include "data/songloader.h"
-#include "utils/utils.h"
 
 void playbackSafeCleanup(void)
 {
@@ -63,7 +62,7 @@ void playbackUnloadSongs(UserData *userData)
         }
 }
 
-void skip()
+void skip(void)
 {
         PlaybackState *ps = getPlaybackState();
 

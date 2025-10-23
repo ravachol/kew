@@ -548,25 +548,33 @@ void dequeueChildren(FileSystemEntry *parent)
         }
 }
 
-void enqueueChildren(FileSystemEntry *child,
+int enqueueChildren(FileSystemEntry *child,
                      FileSystemEntry **firstEnqueuedEntry)
 {
+        int hasEnqueued = 0;
+
         while (child != NULL)
         {
                 if (child->isDirectory && child->children != NULL)
                 {
-                        child->isEnqueued = 1;
-                        enqueueChildren(child->children, firstEnqueuedEntry);
+                        hasEnqueued = enqueueChildren(child->children, firstEnqueuedEntry);
+                        child->isEnqueued = hasEnqueued;
                 }
                 else if (!child->isEnqueued)
                 {
                         if (*firstEnqueuedEntry == NULL)
                                 *firstEnqueuedEntry = child;
-                        enqueueSong(child);
+                        if (!(pathEndsWith(child->fullPath, "m3u") ||
+                                pathEndsWith(child->fullPath, "m3u8")))
+                        {
+                                enqueueSong(child);
+                                hasEnqueued = 1;
+                        }
                 }
 
                 child = child->next;
         }
+        return hasEnqueued;
 }
 
 bool hasSongChildren(FileSystemEntry *entry)

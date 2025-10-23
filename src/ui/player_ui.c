@@ -2458,10 +2458,12 @@ int printPlayer(SongData *songdata, double elapsedSeconds)
 
         getTermSize(&term_w, &term_h);
 
+        bool shouldRefresh = isRefreshTriggered() || state->uiState.isFastForwarding || state->uiState.isRewinding;
+
         if (state->currentView != PLAYLIST_VIEW)
                 state->uiState.resetPlaylistDisplay = true;
 
-        if (state->currentView == KEYBINDINGS_VIEW && isRefreshTriggered())
+        if (state->currentView == KEYBINDINGS_VIEW && shouldRefresh)
         {
                 clearScreen();
                 showKeyBindings(songdata, settings);
@@ -2469,20 +2471,20 @@ int printPlayer(SongData *songdata, double elapsedSeconds)
                 cancelRefresh();
                 fflush(stdout);
         }
-        else if (state->currentView == PLAYLIST_VIEW && isRefreshTriggered())
+        else if (state->currentView == PLAYLIST_VIEW && shouldRefresh)
         {
                 showPlaylist(songdata, unshuffledPlaylist, &chosenRow,
                              &(uis->chosenNodeId), settings);
                 state->uiState.resetPlaylistDisplay = false;
                 fflush(stdout);
         }
-        else if (state->currentView == SEARCH_VIEW && isRefreshTriggered())
+        else if (state->currentView == SEARCH_VIEW && shouldRefresh)
         {
                 showSearch(songdata, &chosenSearchResultRow, settings);
                 cancelRefresh();
                 fflush(stdout);
         }
-        else if (state->currentView == LIBRARY_VIEW && isRefreshTriggered())
+        else if (state->currentView == LIBRARY_VIEW && shouldRefresh)
         {
                 showLibrary(songdata, settings);
                 fflush(stdout);
