@@ -24,7 +24,6 @@
 #include "sys/mpris.h"
 #include "sys/systemintegration.h"
 
-#include "utils/term.h"
 #include "utils/utils.h"
 
 #include <locale.h>
@@ -366,51 +365,3 @@ void viewEnqueue(bool playImmediately)
         }
 }
 
-void init(void)
-{
-        AppState *state = getAppState();
-
-        disableTerminalLineInput();
-        setRawInputMode();
-        initResize();
-        ioctl(STDOUT_FILENO, TIOCGWINSZ, &state->uiState.windowSize);
-        enableScrolling();
-        setNonblockingMode();
-
-        PlaybackState *ps = getPlaybackState();
-        UserData *userData = audioData.pUserData;
-        PlayList *playlist = getPlaylist();
-        state->tmpCache = createCache();
-
-        c_strcpy(ps->loadingdata.filePath, "", sizeof(ps->loadingdata.filePath));
-        ps->loadingdata.songdataA = NULL;
-        ps->loadingdata.songdataB = NULL;
-        ps->loadingdata.loadA = true;
-        ps->loadingdata.loadingFirstDecoder = true;
-        audioData.restart = true;
-        userData->songdataADeleted = true;
-        userData->songdataBDeleted = true;
-        unsigned int seed = (unsigned int)time(NULL);
-
-        srand(seed);
-        pthread_mutex_init(&(ps->loadingdata.mutex), NULL);
-        pthread_mutex_init(&(playlist->mutex), NULL);
-        freeSearchResults();
-        resetChosenDir();
-        createLibrary();
-        setlocale(LC_ALL, "");
-        setlocale(LC_CTYPE, "");
-        fflush(stdout);
-
-#ifdef DEBUG
-        // g_setenv("G_MESSAGES_DEBUG", "all", TRUE);
-        state->uiState.logFile = freopen("error.log", "w", stderr);
-        if (state->uiState.logFile == NULL)
-        {
-                fprintf(stdout, "Failed to redirect stderr to error.log\n");
-        }
-#else
-        FILE *nullStream = freopen("/dev/null", "w", stderr);
-        (void)nullStream;
-#endif
-}

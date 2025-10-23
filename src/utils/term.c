@@ -21,6 +21,8 @@
 #include <unistd.h>
 
 static const int MAX_TERMINAL_ROWS = 9999;
+static struct termios orig_termios;
+static int termiosSaved = 0;
 
 void setTerminalColor(int color)
 {
@@ -96,19 +98,27 @@ void getTermSize(int *width, int *height)
 void setNonblockingMode(void)
 {
         struct termios ttystate;
-        tcgetattr(STDIN_FILENO, &ttystate);
-        ttystate.c_lflag &= ~ICANON;
-        ttystate.c_cc[VMIN] = 0;
+        tcgetattr(STDIN_FILENO, &orig_termios); // save original
+
+        termiosSaved = 1;
+
+        ttystate = orig_termios;
+        ttystate.c_lflag &= ~(ICANON | ECHO); // non-canonical, no echo
+        // ISIG left intact to handle Ctrl-C etc.
+        ttystate.c_cc[VMIN] = 0; // return immediately
         ttystate.c_cc[VTIME] = 0;
+
         tcsetattr(STDIN_FILENO, TCSANOW, &ttystate);
+        tcflush(STDIN_FILENO, TCIFLUSH); // flush any leftover input
 }
 
 void restoreTerminalMode(void)
 {
-        struct termios ttystate;
-        tcgetattr(STDIN_FILENO, &ttystate);
-        ttystate.c_lflag |= ICANON;
-        tcsetattr(STDIN_FILENO, TCSANOW, &ttystate);
+        if (termiosSaved)
+        {
+                tcsetattr(STDIN_FILENO, TCSANOW, &orig_termios);
+                tcflush(STDIN_FILENO, TCIFLUSH);
+        }
 }
 
 void saveCursorPosition(void) { printf("\033[s"); }
@@ -117,41 +127,11 @@ void restoreCursorPosition(void) { printf("\033[u"); }
 
 void setDefaultTextColor(void) { printf("\033[0m"); }
 
-int isInputAvailable(void)
-{
-        fd_set fds;
-        FD_ZERO(&fds);
-        FD_SET(STDIN_FILENO, &fds);
-        struct timeval tv;
-        tv.tv_sec = 0;
-        tv.tv_usec = 0;
-
-        int ret = select(STDIN_FILENO + 1, &fds, NULL, NULL, &tv);
-
-        if (ret < 0)
-        {
-                return 0;
-        }
-        int result = (ret > 0) && (FD_ISSET(STDIN_FILENO, &fds));
-        return result;
-}
-
 void hideCursor(void) { printf("\033[?25l"); }
 
 void showCursor(void)
 {
         printf("\033[?25h");
-        fflush(stdout);
-}
-
-void resetConsole(void)
-{
-        // Print ANSI escape codes to reset terminal, clear screen, and move
-        // cursor to top-left
-        printf("\033\143");     // Reset to Initial State (RIS)
-        printf("\033[3J");      // Clear scrollback buffer
-        printf("\033[H\033[J"); // Move cursor to top-left and clear screen
-
         fflush(stdout);
 }
 
@@ -265,6 +245,25 @@ int readInputSequence(char *seq, size_t seqSize)
                1; // Return the total length including the null terminator
 }
 
+int isInputAvailable(void)
+{
+        fd_set fds;
+        FD_ZERO(&fds);
+        FD_SET(STDIN_FILENO, &fds);
+        struct timeval tv;
+        tv.tv_sec = 0;
+        tv.tv_usec = 0;
+
+        int ret = select(STDIN_FILENO + 1, &fds, NULL, NULL, &tv);
+
+        if (ret < 0)
+        {
+                return 0;
+        }
+        int result = (ret > 0) && (FD_ISSET(STDIN_FILENO, &fds));
+        return result;
+}
+
 int getIndentation(int textWidth)
 {
         int term_w, term_h;
@@ -327,4 +326,3 @@ void restoreTerminalWindowTitle(void)
         // Restore terminal window title from the stack
         printf("\033[23;0t");
 }
-

@@ -16,6 +16,8 @@
 #include "common/common.h"
 #include "common_ui.h"
 
+#include "input.h"
+
 #include "ops/library_ops.h"
 #include "ops/playback_clock.h"
 #include "ops/playback_state.h"

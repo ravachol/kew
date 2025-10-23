@@ -768,3 +768,14 @@ int getNumberFromString(const char *str)
 
         return (int)value;
 }
+
+void strToLower(char *str)
+{
+        if (str == NULL)
+                return;
+
+        for (; *str; ++str)
+        {
+                *str = tolower((unsigned char)*str);
+        }
+}

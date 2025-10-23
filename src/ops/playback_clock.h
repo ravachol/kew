@@ -17,8 +17,7 @@ void updatePauseTime(void);
 void addToAccumulatedSeconds(double value);
 bool setPosition(gint64 newPosition, double duration);
 bool seekPosition(gint64 offset, double duration);
-bool flushSeek(double duration);
+void flushSeek(void);
 double getElapsedSeconds(void);
 struct timespec getPauseTime(void);
-
-
+double getCurrentSongDuration(void);

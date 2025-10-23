@@ -23,7 +23,6 @@ int prepareNextWebmDecoder(SongData *songData);
 
 ma_decoder *getFirstDecoder(void);
 ma_decoder *getCurrentBuiltinDecoder(void);
-ma_decoder *getPreviousDecoder(void);
 
 ma_libopus *getCurrentOpusDecoder(void);
 ma_libopus *getFirstOpusDecoder(void);

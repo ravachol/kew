@@ -1,4 +1,3 @@
-#include "common/events.h"
 #define _XOPEN_SOURCE 700
 
 /**
@@ -13,6 +12,7 @@
 
 #include "common/appstate.h"
 #include "common/common.h"
+#include "common/events.h"
 
 #include "data/theme.h"
 
@@ -65,10 +65,10 @@ enum EventType getMouseAction(int num)
                 value = EVENT_PLAY_PAUSE;
                 break;
         case 3:
-                value = EVENT_SCROLLPREV;
+                value = EVENT_SCROLLUP;
                 break;
         case 4:
-                value = EVENT_SCROLLNEXT;
+                value = EVENT_SCROLLDOWN;
                 break;
         case 5:
                 value = EVENT_SEEKFORWARD;

@@ -11,12 +11,15 @@
 
 #include "common/appstate.h"
 
+#include "playback_state.h"
+
 #include "sound/decoders.h"
 #ifdef USE_FAAD
 #include "sound/m4a.h"
 #endif
 #include "sound/playback.h"
 
+#include "sys/systemintegration.h"
 #include "utils/utils.h"
 
 #include <math.h>
@@ -142,28 +145,28 @@ void updatePauseTime(void)
         clock_gettime(CLOCK_MONOTONIC, &pauseTime);
 }
 
-bool flushSeek(double duration)
+void flushSeek(void)
 {
         if (seekAccumulatedSeconds != 0.0)
         {
-                Node *current = getCurrentSong();
+                Node *currentSong = getCurrentSong();
 
-                if (current != NULL)
+                if (currentSong != NULL)
                 {
 #ifdef USE_FAAD
-                        if (pathEndsWith(current->song.filePath, "aac"))
+                        if (pathEndsWith(currentSong->song.filePath, "aac"))
                         {
                                 m4a_decoder *decoder = getCurrentM4aDecoder();
                                 if (decoder->fileType == k_rawAAC)
-                                        return false;
+                                        return;
                         }
 #endif
                 }
 
                 setSeekElapsed(getSeekElapsed() + seekAccumulatedSeconds);
                 seekAccumulatedSeconds = 0.0;
+                double duration = getCurrentSongDuration();
                 calcElapsedTime(duration);
-
                 float percentage = elapsedSeconds / (float)duration * 100.0;
 
                 if (percentage < 0.0)
@@ -174,8 +177,6 @@ bool flushSeek(double duration)
 
                 seekPercentage(percentage);
 
-                return true;
+                emitSeekedSignal(elapsedSeconds);
         }
-
-        return false;
 }
