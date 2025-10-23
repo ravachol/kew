@@ -2,7 +2,11 @@
 
 ## Getting started
 
-This document will help you setup your development environment.
+This document will help you setup your development environment. It is intended to be beginner friendly as we welcome and encourage people who are just starting to learn about programming in C to contribute to this project. We also welcome senior developers of course, but much of this document will be redundant if you are experienced.
+
+### Problems
+
+If you run into any problems just ask for help in an email to kew-player@protonmail.com or in the PR itself.
 
 ### Prerequisites
 

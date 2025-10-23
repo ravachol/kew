@@ -1,6 +1,8 @@
 #ifndef EVENTS_H
 #define EVENTS_H
 
+#include <stdint.h>
+
 #define MAX_SEQ_LEN 1024    // Maximum length of sequence buffer
 
 enum EventType
@@ -21,15 +23,15 @@ enum EventType
         EVENT_UPDATELIBRARY,
         EVENT_SHUFFLE,
         EVENT_KEY_PRESS,
-        EVENT_SHOWKEYBINDINGS,
+        EVENT_SHOWHELP,
         EVENT_SHOWPLAYLIST,
         EVENT_SHOWSEARCH,
         EVENT_ENQUEUE,
         EVENT_GOTOBEGINNINGOFPLAYLIST,
         EVENT_GOTOENDOFPLAYLIST,
         EVENT_CYCLECOLORMODE,
-        EVENT_SCROLLNEXT,
-        EVENT_SCROLLPREV,
+        EVENT_SCROLLDOWN,
+        EVENT_SCROLLUP,
         EVENT_SEEKBACK,
         EVENT_SEEKFORWARD,
         EVENT_SHOWLIBRARY,
@@ -55,6 +57,7 @@ struct Event
 {
         enum EventType type;
         char key[MAX_SEQ_LEN]; // To store multi-byte characters
+        char args[32];
 };
 
 typedef struct
@@ -62,5 +65,13 @@ typedef struct
         char *seq;
         enum EventType eventType;
 } EventMapping;
+
+typedef struct {
+    uint16_t key;        // TB_KEY_* constants, 0 if printable
+    uint32_t ch;         // Unicode character for printable keys, 0 otherwise
+    uint8_t mods;        // MOD_CTRL | MOD_ALT | MOD_SHIFT
+    enum EventType eventType;
+    char args[32];       // Optional arguments like "+5%"
+} TBKeyBinding;
 
 #endif

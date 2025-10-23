@@ -1115,9 +1115,9 @@ void cleanupMpris(void)
 
 void initMpris(void)
 {
-        AppState *state = getAppState();
-
 #ifndef __APPLE__
+        AppState *state = getAppState();
+        
         if (getGMainContext() == NULL)
         {
                 setGMainContext(g_main_context_new());

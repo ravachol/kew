@@ -6,7 +6,6 @@
 
  #include "common/appstate.h"
 
-void init(void);
 void determineSongAndNotify(void);
 void resetListAfterDequeuingPlayingSong(void);
 void viewEnqueue(bool playImmediately);

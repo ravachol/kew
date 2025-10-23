@@ -325,8 +325,6 @@ int addToSearchText(const char *str)
                 return -1;
         }
 
-        AppState *state = getAppState();
-        UISettings *ui = &(state->uiSettings);
         size_t len = strnlen(str, MAX_SEARCH_LEN);
 
         // Check if the string can fit into the search text buffer
@@ -334,19 +332,6 @@ int addToSearchText(const char *str)
         {
                 return 0; // Not enough space
         }
-
-        applyColor(ui->colorMode, ui->theme.search_label, ui->color);
-
-        // Restore cursor position
-        printf("\033[u");
-
-        // Print the string
-        printf("%s", str);
-
-        // Save cursor position
-        printf("\033[s");
-
-        printf("█\n");
 
         // Add the string to the search text buffer
         for (size_t i = 0; i < len; i++)
@@ -357,6 +342,8 @@ int addToSearchText(const char *str)
         searchText[numSearchBytes] = '\0'; // Null-terminate the buffer
 
         numSearchLetters++;
+
+        triggerRefresh();
 
         return 0;
 }
@@ -386,39 +373,13 @@ int removeFromSearchText(void)
         if (lastCharBytes == 0)
                 return 0;
 
-        // Restore cursor position
-        printf("\033[u");
-
-        // Move cursor back one step
-        printf("\033[D");
-
-        // Overwrite the character with spaces
-        for (int i = 0; i < lastCharBytes; i++)
-        {
-                printf(" ");
-        }
-
-        // Move cursor back again to the original position
-        for (int i = 0; i < lastCharBytes; i++)
-        {
-                printf("\033[D");
-        }
-
-        // Save cursor position
-        printf("\033[s");
-
-        // Print a block character to represent the cursor
-        printf("█");
-
-        clearRestOfLine();
-
-        fflush(stdout);
-
         // Remove the character from the buffer
         numSearchBytes -= lastCharBytes;
         searchText[numSearchBytes] = '\0';
 
         numSearchLetters--;
+
+        triggerRefresh();
 
         return 0;
 }
