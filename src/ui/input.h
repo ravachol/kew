@@ -15,3 +15,4 @@ void initKeyMappings(AppSettings* settings);
 void pressDigit(int digit);
 void initInput(void);
 void shutdownInput(void);
+void handleCooldown(void);

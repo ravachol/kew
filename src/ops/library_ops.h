@@ -20,7 +20,7 @@ void markListAsEnqueued(FileSystemEntry *root, PlayList *playlist);
 void enqueueSong(FileSystemEntry *child);
 void dequeueSong(FileSystemEntry *child);
 void dequeueChildren(FileSystemEntry *parent);
-void enqueueChildren(FileSystemEntry *child, FileSystemEntry **firstEnqueuedEntry);
+int enqueueChildren(FileSystemEntry *child, FileSystemEntry **firstEnqueuedEntry);
 bool markAsDequeued(FileSystemEntry *root, char *path);
 bool hasSongChildren(FileSystemEntry *entry);
 bool hasDequeuedChildren(FileSystemEntry *parent);

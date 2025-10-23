@@ -1,12 +1,16 @@
 # CHANGELOG
 
-### 3.6.5
+### 3.7.0
+
+- Key binding overhaul. You can now bind more keys and key combinations. You can for instance bind a key like this: bind = +, volUp, +5%. Delete your ~/.config/kewrc file to see these bindings. Suggested by: @jaoh.
 
 - Handle both synchronized and unsynchronized vorbis lyrics.
 
 - Scroll the lyrics in the lyrics page if the lyrics are synced and ability to scroll lyrics manually. By @noiamnote.
 
-- Prevent cover from jumping between first and second row on landscape view when resizing.
+#### Bug Fixes
+
+- Don't enqueue .m3u files.
 
 ### 3.6.4
 

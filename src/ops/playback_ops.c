@@ -295,7 +295,7 @@ int playSong(Node *node)
         setCurrentSong(node);
 
         ps->skipping = true;
-        ps->skipOutOfOrder = true;
+        ps->skipOutOfOrder = false;
         ps->songLoading = true;
         ps->forceSkip = false;
 

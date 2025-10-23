@@ -82,7 +82,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include <sys/stat.h>
 #include <unistd.h>
 
-const char VERSION[] = "3.6.5";
+const char VERSION[] = "3.7.0";
 
 AppState *statePtr = NULL;
 
@@ -257,6 +257,7 @@ gboolean mainloopCallback(gpointer data)
 
         calcElapsedTime(getCurrentSongDuration());
         incrementUpdateCounter();
+        handleCooldown();
 
         int updateCounter = getUpdateCounter();
 

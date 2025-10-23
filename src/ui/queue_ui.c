@@ -15,7 +15,6 @@
 
 #include "ops/library_ops.h"
 #include "ops/playback_clock.h"
-#include "ops/playback_ops.h"
 #include "ops/playback_state.h"
 #include "ops/playback_system.h"
 #include "ops/playlist_ops.h"
@@ -85,7 +84,7 @@ void resetListAfterDequeuingPlayingSong(void)
 
                 state->uiState.songWasRemoved = true;
 
-               UserData *userData = audioData.pUserData;
+                UserData *userData = audioData.pUserData;
 
                 userData->currentSongData = NULL;
 
@@ -131,15 +130,11 @@ FileSystemEntry *enqueueSongs(FileSystemEntry *entry, FileSystemEntry **chosenDi
                                                   // the root
                                                 shuffle = true;
 
-                                        entry->isEnqueued = 1;
-                                        entry = entry->children;
+                                        entry->isEnqueued = enqueueChildren(entry->children, &firstEnqueuedEntry);
 
-                                        enqueueChildren(entry,
-                                                        &firstEnqueuedEntry);
+                                        hasEnqueued = entry->isEnqueued;
 
                                         ps->nextSongNeedsRebuilding = true;
-
-                                        hasEnqueued = true;
                                 }
                                 else
                                 {
@@ -275,24 +270,19 @@ void viewEnqueue(bool playImmediately)
         Node *currentSong = getCurrentSong();
         bool canGoNext = (currentSong != NULL && currentSong->next != NULL);
 
+        if (state->currentView == TRACK_VIEW)
+        {
+                if (currentSong != NULL)
+                {
+                        clearAndPlay(currentSong);
+                }
+        }
+
         if (state->currentView == PLAYLIST_VIEW)
         {
                 if (isDigitsPressed() == 0)
                 {
-                        if (opsIsPaused() && currentSong != NULL &&
-                            state->uiState.chosenNodeId == currentSong->id)
-                        {
-                                opsTogglePause();
-                        }
-                        else
-                        {
-                                Node *song = NULL;
-                                findNodeInList(playlist,
-                                               state->uiState.chosenNodeId,
-                                               &song);
-
-                                clearAndPlay(song);
-                        }
+                        playlistPlay(playlist);
                 }
                 else
                 {

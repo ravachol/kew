@@ -21,6 +21,7 @@
 #include "common/appstate.h"
 
 #include "sound/playback.h"
+#include "sound/audiotypes.h"
 
 #include "data/songloader.h"
 
@@ -414,6 +415,9 @@ void silentSwitchToNext(bool loadSong)
         ps->hasSilentlySwitched = true;
         ps->nextSongNeedsRebuilding = true;
 
+        setPaused(true);
+        setStopped(false);
+
         setNextSong(NULL);
 }
 
@@ -444,6 +448,9 @@ void silentSwitchToPrev(void)
 
         ps->skipping = false;
         ps->nextSongNeedsRebuilding = true;
+
+        setPaused(true);
+        setStopped(false);
 
         setNextSong(NULL);
 
@@ -920,36 +927,17 @@ void playPostProcessing(bool wasEndOfList)
 void clearAndPlay(Node *song)
 {
         PlaybackState *ps = getPlaybackState();
-        AppState *state = getAppState();
-
-        playbackSafeCleanup();
-
-        pthread_mutex_lock(&(state->dataSourceMutex));
-
-        unloadSongA();
-        unloadSongB();
-
-        pthread_mutex_unlock(&(state->dataSourceMutex));
-
-        ps->loadedNextSong = true;
-        ps->nextSongNeedsRebuilding = false;
+        setSongToStartFrom(song);
+        setCurrentImplementationType(NONE);
+        audioData.restart = true;
+        audioData.endOfListReached = false;
+        audioData.currentFileIndex = 0;
+        ps->nextSongNeedsRebuilding = true;
+        ps->skipOutOfOrder = false;
         ps->usingSongDataA = false;
         ps->loadingdata.loadA = true;
-        audioData.currentFileIndex = 0;
-        bool wasEndOfList = playPreProcessing();
-
-        play();
-
-        if (playSong(song) != 0)
-        {
-                if (song && song->next)
-                        skipToSong(song->next->id, true);
-        }
-
-        playPostProcessing(wasEndOfList);
-
-        ps->skipOutOfOrder = false;
-        ps->usingSongDataA = true;
+        ps->waitingForNext = true;
+        ps->loadedNextSong = false;
 }
 
 void playlistPlay(PlayList *playlist)

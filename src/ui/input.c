@@ -1,5 +1,6 @@
 #ifndef _XOPEN_SOURCE
 #define _XOPEN_SOURCE
+#include "common/common.h"
 #endif
 
 #ifndef _DEFAULT_SOURCE
@@ -631,6 +632,30 @@ bool handleMouseEvent(struct tb_event *ev, struct Event *event)
         return false;
 }
 
+void handleCooldown(void)
+{
+        bool cooldownElapsed = false;
+
+        if (isCooldownElapsed(COOLDOWN_MS))
+                cooldownElapsed = true;
+
+        if (cooldownElapsed)
+        {
+                if (!draggingProgressBar)
+                {
+                        if (flushSeek())
+                        {
+                                AppState *state = getAppState();
+                                state->uiState.isFastForwarding = false;
+                                state->uiState.isRewinding = false;
+
+                                if (state->currentView != TRACK_VIEW)
+                                        triggerRefresh();
+                        }
+                }
+        }
+}
+
 static gboolean onTbInput(GIOChannel *source, GIOCondition cond, gpointer data)
 {
         (void)source;
@@ -650,12 +675,6 @@ static gboolean onTbInput(GIOChannel *source, GIOCondition cond, gpointer data)
 
         if (isCooldownElapsed(COOLDOWN2_MS))
                 cooldown2Elapsed = true;
-
-        if (cooldownElapsed)
-        {
-                if (!draggingProgressBar)
-                        flushSeek();
-        }
 
         // Drain all available input
         while (1)
@@ -740,8 +759,9 @@ static gboolean onTbInput(GIOChannel *source, GIOCondition cond, gpointer data)
                                         event.type = EVENT_NONE;
                                 else if (event.type == EVENT_REMOVE || event.type == EVENT_SEEKBACK ||
                                          event.type == EVENT_SEEKFORWARD)
+                                {
                                         updateLastInputTime();
-
+                                }
                                 // Forget Numbers
                                 if (event.type != EVENT_ENQUEUE &&
                                     event.type != EVENT_GOTOENDOFPLAYLIST && event.type != EVENT_NONE)
