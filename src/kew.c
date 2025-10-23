@@ -36,7 +36,6 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
 #include "common/appstate.h"
 #include "common/common.h"
-#include "common/events.h"
 
 #include "sys/mpris.h"
 #include "sys/notifications.h"
@@ -52,6 +51,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include "ui/queue_ui.h"
 #include "ui/cli.h"
 #include "ui/settings.h"
+#include "ui/termbox2input.h"
 
 #include "ops/library_ops.h"
 #include "ops/playback_clock.h"
@@ -86,148 +86,6 @@ const char VERSION[] = "3.6.5";
 
 AppState *statePtr = NULL;
 
-void handleInput(void)
-{
-        struct Event event = processInput();
-
-        AppState *state = getAppState();
-        AppSettings *settings = getAppSettings();
-        PlayList *playlist = getPlaylist();
-        int chosenRow = getChosenRow();
-
-        switch (event.type)
-        {
-                break;
-        case EVENT_ENQUEUE:
-                viewEnqueue(false);
-                break;
-        case EVENT_ENQUEUEANDPLAY:
-                viewEnqueue(true);
-                break;
-        case EVENT_PLAY_PAUSE:
-                togglePause();
-                break;
-        case EVENT_TOGGLEVISUALIZER:
-                toggleVisualizer();
-                break;
-        case EVENT_TOGGLEREPEAT:
-                toggleRepeat();
-                break;
-        case EVENT_TOGGLEASCII:
-                toggleAscii();
-                break;
-        case EVENT_TOGGLENOTIFICATIONS:
-                toggleNotifications();
-                break;
-        case EVENT_SHUFFLE:
-                toggleShuffle();
-                break;
-        case EVENT_SHOWLYRICSPAGE:
-                toggleShowLyricsPage();
-                break;
-        case EVENT_CYCLECOLORMODE:
-                cycleColorMode();
-                break;
-        case EVENT_CYCLETHEMES:
-                cycleThemes();
-                break;
-        case EVENT_QUIT:
-                quit();
-                break;
-        case EVENT_SCROLLNEXT:
-                scrollNext();
-                break;
-        case EVENT_SCROLLPREV:
-                scrollPrev();
-                break;
-        case EVENT_VOLUME_UP:
-                volumeChange(5);
-                emitVolumeChanged();
-                break;
-        case EVENT_VOLUME_DOWN:
-                volumeChange(-5);
-                emitVolumeChanged();
-                break;
-        case EVENT_NEXT:
-                skipToNextSong();
-                break;
-        case EVENT_PREV:
-                skipToPrevSong();
-                break;
-        case EVENT_SEEKBACK:
-                seekBack();
-                break;
-        case EVENT_SEEKFORWARD:
-                seekForward();
-                break;
-        case EVENT_ADDTOFAVORITESPLAYLIST:
-                addToFavoritesPlaylist();
-                break;
-        case EVENT_EXPORTPLAYLIST:
-                exportCurrentPlaylist(settings->path, playlist);
-                break;
-        case EVENT_UPDATELIBRARY:
-                freeSearchResults();
-                updateLibrary(settings->path);
-                break;
-        case EVENT_SHOWKEYBINDINGS:
-                toggleShowView(KEYBINDINGS_VIEW);
-                break;
-        case EVENT_SHOWPLAYLIST:
-                toggleShowView(PLAYLIST_VIEW);
-                break;
-        case EVENT_SHOWSEARCH:
-                toggleShowView(SEARCH_VIEW);
-                break;
-                break;
-        case EVENT_SHOWLIBRARY:
-                toggleShowView(LIBRARY_VIEW);
-                break;
-        case EVENT_NEXTPAGE:
-                flipNextPage();
-                break;
-        case EVENT_PREVPAGE:
-                flipPrevPage();
-                break;
-        case EVENT_REMOVE:
-                handleRemove(getChosenRow());
-                resetListAfterDequeuingPlayingSong();
-                break;
-        case EVENT_SHOWTRACK:
-                showTrack();
-                break;
-        case EVENT_NEXTVIEW:
-                switchToNextView();
-                break;
-        case EVENT_PREVVIEW:
-                switchToPreviousView();
-                break;
-        case EVENT_CLEARPLAYLIST:
-                dequeueAllExceptPlayingSong();
-                state->uiState.resetPlaylistDisplay = true;
-                break;
-        case EVENT_MOVESONGUP:
-                moveSongUp(&chosenRow);
-                setChosenRow(chosenRow);
-                break;
-        case EVENT_MOVESONGDOWN:
-                moveSongDown(&chosenRow);
-                setChosenRow(chosenRow);
-                break;
-        case EVENT_STOP:
-                stop();
-                break;
-        case EVENT_SORTLIBRARY:
-                sortLibrary();
-                break;
-
-        default:
-                state->uiState.isFastForwarding = false;
-                state->uiState.isRewinding = false;
-                break;
-        }
-}
-
 void updatePlayer(void)
 {
         AppState *state = getAppState();
@@ -235,14 +93,12 @@ void updatePlayer(void)
         struct winsize ws;
         ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws);
 
-        // Check if window has changed size
         if (ws.ws_col != state->uiState.windowSize.ws_col || ws.ws_row != state->uiState.windowSize.ws_row)
         {
                 uis->resizeFlag = 1;
                 state->uiState.windowSize = ws;
         }
 
-        // resizeFlag can also be set by handleResize
         if (uis->resizeFlag)
         {
                 resize(uis);
@@ -400,7 +256,6 @@ gboolean mainloopCallback(gpointer data)
         (void)data;
 
         calcElapsedTime(getCurrentSongDuration());
-        handleInput();
         incrementUpdateCounter();
 
         int updateCounter = getUpdateCounter();
@@ -494,9 +349,58 @@ void run(bool startPlaying)
         fflush(stdout);
 }
 
+void kewInit(void)
+{
+        AppState *state = getAppState();
+
+        disableTerminalLineInput();
+        initResize();
+        ioctl(STDOUT_FILENO, TIOCGWINSZ, &state->uiState.windowSize);
+        enableScrolling();
+        setNonblockingMode();
+        initInput();
+
+        PlaybackState *ps = getPlaybackState();
+        UserData *userData = audioData.pUserData;
+        PlayList *playlist = getPlaylist();
+        state->tmpCache = createCache();
+
+        c_strcpy(ps->loadingdata.filePath, "", sizeof(ps->loadingdata.filePath));
+        ps->loadingdata.songdataA = NULL;
+        ps->loadingdata.songdataB = NULL;
+        ps->loadingdata.loadA = true;
+        ps->loadingdata.loadingFirstDecoder = true;
+        audioData.restart = true;
+        userData->songdataADeleted = true;
+        userData->songdataBDeleted = true;
+        unsigned int seed = (unsigned int)time(NULL);
+
+        srand(seed);
+        pthread_mutex_init(&(ps->loadingdata.mutex), NULL);
+        pthread_mutex_init(&(playlist->mutex), NULL);
+        freeSearchResults();
+        resetChosenDir();
+        createLibrary();
+        setlocale(LC_ALL, "");
+        setlocale(LC_CTYPE, "");
+        fflush(stdout);
+
+#ifdef DEBUG
+        // g_setenv("G_MESSAGES_DEBUG", "all", TRUE);
+        state->uiState.logFile = freopen("error.log", "w", stderr);
+        if (state->uiState.logFile == NULL)
+        {
+                fprintf(stdout, "Failed to redirect stderr to error.log\n");
+        }
+#else
+        FILE *nullStream = freopen("/dev/null", "w", stderr);
+        (void)nullStream;
+#endif
+}
+
 void initDefaultState(void)
 {
-        init();
+        kewInit();
 
         AppState *state = getAppState();
         FileSystemEntry *library = getLibrary();
@@ -550,6 +454,7 @@ void kewShutdown()
         retire_passthrough_workarounds_tmux();
 #endif
 
+        shutdownInput();
         freeSearchResults();
         cleanupMpris();
         restoreTerminalMode();
@@ -774,25 +679,25 @@ int main(int argc, char *argv[])
         }
         else if (argc == 2 && strcmp(argv[1], "all") == 0)
         {
-                init();
+                kewInit();
                 playAll();
                 run(true);
         }
         else if (argc == 2 && strcmp(argv[1], "albums") == 0)
         {
-                init();
+                kewInit();
                 playAllAlbums();
                 run(true);
         }
         else if (argc == 2 && strcmp(argv[1], ".") == 0 && favoritesPlaylist->count != 0)
         {
-                init();
+                kewInit();
                 playFavoritesPlaylist();
                 run(true);
         }
         else if (argc >= 2)
         {
-                init();
+                kewInit();
                 makePlaylist(&playlist, argc, argv, exactSearch, settings->path);
 
                 if (playlist->count == 0)

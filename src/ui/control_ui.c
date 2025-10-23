@@ -25,7 +25,6 @@
 
 #include <miniaudio.h>
 
-#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h>
@@ -360,17 +359,6 @@ bool shouldRefreshPlayer(void)
         PlaybackState *ps = getPlaybackState();
 
         return !ps->skipping && !opsIsEof() && !opsIsImplSwitchReached();
-}
-
-void strToLower(char *str)
-{
-        if (str == NULL)
-                return;
-
-        for (; *str; ++str)
-        {
-                *str = tolower((unsigned char)*str);
-        }
 }
 
 int loadTheme(const char *themeName,

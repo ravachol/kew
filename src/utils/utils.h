@@ -48,5 +48,6 @@ void shortenString(char *str, size_t maxLength);
 void printBlankSpaces(int numSpaces);
 float getFloat(const char *str);
 gint64 getLengthInMicroSec(double duration);
+void strToLower(char *str);
 
 #endif

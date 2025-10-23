@@ -12,6 +12,15 @@
 #include "common/events.h"
 #include "common/appstate.h"
 
+#if defined(__ANDROID__) || defined(__APPLE__)
+#define NUM_DEFAULT_KEY_BINDINGS 56
+#else
+#define NUM_DEFAULT_KEY_BINDINGS 51
+#endif
+
+extern size_t keybindingCount;
+
+TBKeyBinding *getKeyBindings();
 void getConfig(AppSettings *settings, UISettings *ui);
 void getPrefs(AppSettings *settings, UISettings *ui);
 void setConfig(AppSettings *settings, UISettings *ui);

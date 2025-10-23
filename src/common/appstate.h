@@ -96,7 +96,6 @@ typedef struct
         ColorValue status_success;
 } Theme;
 
-
 typedef enum
 {
         TRACK_VIEW,

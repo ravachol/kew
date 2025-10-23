@@ -13,3 +13,5 @@ void resetDigitsPressed(void);
 void updateLastInputTime(void);
 void initKeyMappings(AppSettings* settings);
 void pressDigit(int digit);
+void initInput(void);
+void shutdownInput(void);

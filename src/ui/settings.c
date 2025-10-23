@@ -8,6 +8,9 @@
 
 #include "settings.h"
 
+#include "common/events.h"
+#include "termbox2input.h"
+
 #include "common/appstate.h"
 
 #include "ops/playback_state.h"
@@ -17,6 +20,7 @@
 #include "utils/file.h"
 #include "utils/utils.h"
 
+#include <ctype.h>
 #include <locale.h>
 #include <pwd.h>
 #include <stdbool.h>
@@ -33,7 +37,231 @@ const char STATE_FILE[] = "kewstaterc";
 
 #define MAX_LINE 1024
 
+#define MAX_KEY_BINDINGS 200
+
 time_t lastTimeAppRan;
+
+size_t keybindingCount = 0;
+
+typedef struct
+{
+        const char *name;
+        uint16_t code;
+} KeyMap;
+
+TBKeyBinding keyBindings[MAX_KEY_BINDINGS] = {
+    // Basic navigation
+    {TB_KEY_TAB, 0, TB_MOD_SHIFT, EVENT_PREVVIEW, ""},
+    {TB_KEY_TAB, 0, 0, EVENT_NEXTVIEW, ""},
+
+    // Volume
+    {0, '+', 0, EVENT_VOLUME_UP, "+5%"},
+    {0, '=', 0, EVENT_VOLUME_UP, "+5%"},
+    {0, '-', 0, EVENT_VOLUME_DOWN, "-5%"},
+
+    // Tracks
+    {0, 'h', 0, EVENT_PREV, ""},
+    {0, 'l', 0, EVENT_NEXT, ""},
+    {0, 'k', 0, EVENT_SCROLLUP, ""},
+    {0, 'j', 0, EVENT_SCROLLDOWN, ""},
+
+    // Controls
+    {0, 'p', 0, EVENT_PLAY_PAUSE, ""},
+    {0, 'n', 0, EVENT_TOGGLENOTIFICATIONS, ""},
+    {0, 'v', 0, EVENT_TOGGLEVISUALIZER, ""},
+    {0, 'b', 0, EVENT_TOGGLEASCII, ""},
+    {0, 'r', 0, EVENT_TOGGLEREPEAT, ""},
+    {0, 'i', 0, EVENT_CYCLECOLORMODE, ""},
+    {0, 't', 0, EVENT_CYCLETHEMES, ""},
+    {0, 's', 0, EVENT_SHUFFLE, ""},
+    {0, 'a', 0, EVENT_SEEKBACK, ""},
+    {0, 'd', 0, EVENT_SEEKFORWARD, ""},
+    {0, 'o', 0, EVENT_SORTLIBRARY, ""},
+    {0, 'm', 0, EVENT_SHOWLYRICSPAGE, ""},
+    {0, 'S', 0, EVENT_STOP, ""},
+
+    // Playlist actions
+    {0, 'x', 0, EVENT_EXPORTPLAYLIST, ""},
+    {0, '.', 0, EVENT_ADDTOFAVORITESPLAYLIST, ""},
+    {0, 'u', 0, EVENT_UPDATELIBRARY, ""},
+    {0, 'f', 0, EVENT_MOVESONGUP, ""},
+    {0, 'g', 0, EVENT_MOVESONGDOWN, ""},
+    {TB_KEY_SPACE, 0, 0, EVENT_PLAY_PAUSE, ""},
+    {TB_KEY_ENTER, 0, 0, EVENT_ENQUEUE, ""},
+    {0, 'G', 0, EVENT_ENQUEUE, ""},
+    {TB_KEY_BACKSPACE, 0, 0, EVENT_CLEARPLAYLIST, ""},
+    {TB_KEY_BACKSPACE2, 0, 0, EVENT_CLEARPLAYLIST, ""},
+    {TB_KEY_ENTER, 0, TB_MOD_ALT, EVENT_ENQUEUEANDPLAY, ""},
+
+    // Hard navigation / arrows
+    {TB_KEY_ARROW_LEFT, 0, 0, EVENT_PREV, ""},
+    {TB_KEY_ARROW_RIGHT, 0, 0, EVENT_NEXT, ""},
+    {TB_KEY_ARROW_UP, 0, 0, EVENT_SCROLLUP, ""},
+    {TB_KEY_ARROW_DOWN, 0, 0, EVENT_SCROLLDOWN, ""},
+
+#if defined(__ANDROID__) || defined(__APPLE__)
+
+    // Show Views macOS/Android
+    {0, 'Z', 0, EVENT_SHOWPLAYLIST, ""},
+    {0, 'X', 0, EVENT_SHOWLIBRARY, ""},
+    {0, 'C', 0, EVENT_SHOWTRACK, ""},
+    {0, 'V', 0, EVENT_SHOWSEARCH, ""},
+    {0, 'B', 0, EVENT_SHOWKEYBINDINGS, ""},
+
+#endif
+
+    // Show Views
+    {TB_KEY_F2, 0, 0, EVENT_SHOWPLAYLIST, ""},
+    {TB_KEY_F3, 0, 0, EVENT_SHOWLIBRARY, ""},
+    {TB_KEY_F4, 0, 0, EVENT_SHOWTRACK, ""},
+    {TB_KEY_F5, 0, 0, EVENT_SHOWSEARCH, ""},
+    {TB_KEY_F6, 0, 0, EVENT_SHOWHELP, ""},
+
+    // Page navigation
+    {TB_KEY_PGDN, 0, 0, EVENT_NEXTPAGE, ""},
+    {TB_KEY_PGUP, 0, 0, EVENT_PREVPAGE, ""},
+
+    // Remove
+    {TB_KEY_DELETE, 0, 0, EVENT_REMOVE, ""},
+
+    // Mouse events
+    {TB_KEY_MOUSE_MIDDLE, 0, 0, EVENT_ENQUEUEANDPLAY, ""},
+    {TB_KEY_MOUSE_RIGHT, 0, 0, EVENT_PLAY_PAUSE, ""},
+    {TB_KEY_MOUSE_WHEEL_DOWN, 0, 0, EVENT_SCROLLDOWN, ""},
+    {TB_KEY_MOUSE_WHEEL_UP, 0, 0, EVENT_SCROLLUP, ""},
+
+    {TB_KEY_ESC, 0, 0, EVENT_QUIT, ""},
+    {0, 'q', 0, EVENT_QUIT, ""}};
+
+static const KeyMap keyMap[] = {
+    // Arrow keys
+    {"Up", TB_KEY_ARROW_UP},
+    {"Down", TB_KEY_ARROW_DOWN},
+    {"Left", TB_KEY_ARROW_LEFT},
+    {"Right", TB_KEY_ARROW_RIGHT},
+
+    // Function keys
+    {"F1", TB_KEY_F1},
+    {"F2", TB_KEY_F2},
+    {"F3", TB_KEY_F3},
+    {"F4", TB_KEY_F4},
+    {"F5", TB_KEY_F5},
+    {"F6", TB_KEY_F6},
+    {"F7", TB_KEY_F7},
+    {"F8", TB_KEY_F8},
+    {"F9", TB_KEY_F9},
+    {"F10", TB_KEY_F10},
+    {"F11", TB_KEY_F11},
+    {"F12", TB_KEY_F12},
+
+    // Navigation / editing
+    {"Insert", TB_KEY_INSERT},
+    {"Ins", TB_KEY_INSERT},
+    {"Delete", TB_KEY_DELETE},
+    {"Del", TB_KEY_DELETE},
+    {"Home", TB_KEY_HOME},
+    {"End", TB_KEY_END},
+    {"PageUp", TB_KEY_PGUP},
+    {"PgUp", TB_KEY_PGUP},
+    {"PageDown", TB_KEY_PGDN},
+    {"PgDn", TB_KEY_PGDN},
+    {"BackTab", TB_KEY_BACK_TAB},
+    {"Tab", TB_KEY_TAB},
+    {"Backspace", TB_KEY_BACKSPACE},
+    {"Enter", TB_KEY_ENTER},
+    {"Escape", TB_KEY_ESC},
+    {"Esc", TB_KEY_ESC},
+    {"Space", TB_KEY_SPACE},
+
+    // Modifiers
+    {"Shift", TB_MOD_SHIFT},
+    {"Alt", TB_MOD_ALT},
+    {"Ctrl", TB_MOD_CTRL},
+
+    // Mouse buttons
+    {"mouseLeft", TB_KEY_MOUSE_LEFT},
+    {"mouseRight", TB_KEY_MOUSE_RIGHT},
+    {"mouseMiddle", TB_KEY_MOUSE_MIDDLE},
+    {"mouseRelease", TB_KEY_MOUSE_RELEASE},
+    {"mouseWheelUp", TB_KEY_MOUSE_WHEEL_UP},
+    {"mouseWheelDown", TB_KEY_MOUSE_WHEEL_DOWN},
+
+    // Symbols
+    {"=", '='},
+    {"+", '+'},
+    {"-", '-'},
+    {"*", '*'},
+    {"/", '/'},
+    {"\\", '\\'},
+    {";", ';'},
+    {":", ':'},
+    {",", ','},
+    {".", '.'},
+    {"'", '\''},
+    {"\"", '\"'},
+    {"`", '`'},
+    {"~", '~'},
+    {"[", '['},
+    {"]", ']'},
+    {"(", '('},
+    {")", ')'},
+    {"<", '<'},
+    {">", '>'},
+    {"!", '!'},
+    {"@", '@'},
+    {"#", '#'},
+    {"$", '$'},
+    {"%", '%'},
+    {"^", '^'},
+    {"&", '&'},
+    {"|", '|'},
+    {"?", '?'},
+
+    {NULL, 0} // Sentinel
+};
+
+static uint16_t keyNameToCode(const char *name)
+{
+        if (!name || !*name)
+                return 0;
+
+        for (int i = 0; keyMap[i].name != NULL; i++)
+        {
+                if (strcmp(name, keyMap[i].name) == 0)
+                        return keyMap[i].code;
+        }
+
+        // Single printable char fallback
+        if (strlen(name) == 1)
+                return (uint16_t)(unsigned char)name[0];
+
+        return 0;
+}
+
+static const char *keyCodeToName(uint16_t code)
+{
+        for (int i = 0; keyMap[i].name != NULL; i++)
+        {
+                if (keyMap[i].code == code)
+                        return keyMap[i].name;
+        }
+
+        // If code is printable ASCII, return it as a string
+        static char buf[2];
+        if (code >= 32 && code <= 126)
+        {
+                buf[0] = (char)code;
+                buf[1] = '\0';
+                return buf;
+        }
+
+        return "Unknown";
+}
+
+TBKeyBinding *getKeyBindings()
+{
+        return keyBindings;
+}
 
 AppSettings initSettings(void)
 {
@@ -41,6 +269,8 @@ AppSettings initSettings(void)
         UserData *userData = audioData.pUserData;
 
         AppSettings settings;
+
+        keybindingCount = NUM_DEFAULT_KEY_BINDINGS;
 
         getConfig(&settings, &(state->uiSettings));
         getPrefs(&settings, &(state->uiSettings));
@@ -65,6 +295,192 @@ void freeKeyValuePairs(KeyValuePair *pairs, int count)
         }
 
         free(pairs);
+}
+
+static int stricmp(const char *a, const char *b)
+{
+        while (*a && *b)
+        {
+                int diff = tolower(*a) - tolower(*b);
+                if (diff != 0)
+                        return diff;
+                a++;
+                b++;
+        }
+        return *a - *b;
+}
+
+typedef struct
+{
+        const char *name;
+        enum EventType event;
+} EventMap;
+
+static const EventMap eventMap[] = {
+    {"playPause", EVENT_PLAY_PAUSE},
+    {"volUp", EVENT_VOLUME_UP},
+    {"volDown", EVENT_VOLUME_DOWN},
+    {"nextSong", EVENT_NEXT},
+    {"prevSong", EVENT_PREV},
+    {"quit", EVENT_QUIT},
+    {"toggleRepeat", EVENT_TOGGLEREPEAT},
+    {"toggleVisualizer", EVENT_TOGGLEVISUALIZER},
+    {"toggleAscii", EVENT_TOGGLEASCII},
+    {"addToFavoritesPlaylist", EVENT_ADDTOFAVORITESPLAYLIST},
+    {"deleteFromMainPlaylist", EVENT_DELETEFROMMAINPLAYLIST},
+    {"exportPlaylist", EVENT_EXPORTPLAYLIST},
+    {"updateLibrary", EVENT_UPDATELIBRARY},
+    {"shuffle", EVENT_SHUFFLE},
+    {"keyPress", EVENT_KEY_PRESS},
+    {"showHelp", EVENT_SHOWHELP},
+    {"showPlaylist", EVENT_SHOWPLAYLIST},
+    {"showSearch", EVENT_SHOWSEARCH},
+    {"enqueue", EVENT_ENQUEUE},
+    {"gotoBeginningOfPlaylist", EVENT_GOTOBEGINNINGOFPLAYLIST},
+    {"gotoEndOfPlaylist", EVENT_GOTOENDOFPLAYLIST},
+    {"cycleColorMode", EVENT_CYCLECOLORMODE},
+    {"scrollDown", EVENT_SCROLLDOWN},
+    {"scrollUp", EVENT_SCROLLUP},
+    {"seekBack", EVENT_SEEKBACK},
+    {"seekForward", EVENT_SEEKFORWARD},
+    {"showLibrary", EVENT_SHOWLIBRARY},
+    {"showTrack", EVENT_SHOWTRACK},
+    {"nextPage", EVENT_NEXTPAGE},
+    {"prevPage", EVENT_PREVPAGE},
+    {"remove", EVENT_REMOVE},
+    {"search", EVENT_SEARCH},
+    {"nextView", EVENT_NEXTVIEW},
+    {"prevView", EVENT_PREVVIEW},
+    {"clearPlaylist", EVENT_CLEARPLAYLIST},
+    {"moveSongUp", EVENT_MOVESONGUP},
+    {"moveSongDown", EVENT_MOVESONGDOWN},
+    {"enqueueAndPlay", EVENT_ENQUEUEANDPLAY},
+    {"stop", EVENT_STOP},
+    {"sortLibrary", EVENT_SORTLIBRARY},
+    {"cycleThemes", EVENT_CYCLETHEMES},
+    {"toggleNotifications", EVENT_TOGGLENOTIFICATIONS},
+    {"showLyricsPage", EVENT_SHOWLYRICSPAGE},
+    {NULL, EVENT_NONE} // Sentinel
+};
+
+static enum EventType parseToEvent(const char *name)
+{
+        if (!name)
+                return EVENT_NONE;
+
+        for (int i = 0; eventMap[i].name != NULL; i++)
+        {
+                if (stricmp(name, eventMap[i].name) == 0)
+                        return eventMap[i].event;
+        }
+        return EVENT_NONE;
+}
+
+static const char *eventToString(enum EventType ev)
+{
+        for (int i = 0; eventMap[i].name != NULL; i++)
+        {
+                if (eventMap[i].event == ev)
+                        return eventMap[i].name;
+        }
+        return "EVENT_NONE";
+}
+
+TBKeyBinding parseBinding(const char *bindingStr,
+                          const char *eventStr,
+                          const char *argsStr)
+{
+        TBKeyBinding kb = {0};
+        kb.eventType = parseToEvent(eventStr);
+        kb.args[0] = '\0';
+
+        if (argsStr && *argsStr)
+                strncpy(kb.args, argsStr, sizeof(kb.args) - 1);
+
+        if (!bindingStr || !*bindingStr)
+                return kb;
+
+        char temp[64];
+        strncpy(temp, bindingStr, sizeof(temp) - 1);
+        temp[sizeof(temp) - 1] = '\0';
+
+        char *p = temp;
+        while (p && *p)
+        {
+                char *delim = strchr(p, '+'); // Next '+' or NULL
+                size_t raw_len = delim ? (size_t)(delim - p) : strlen(p);
+
+                char tokenbuf[64];
+                size_t token_len = 0;
+
+                if (raw_len == 0)
+                {
+                        // Empty between delimiters -> literal '+' token
+                        tokenbuf[0] = '+';
+                        tokenbuf[1] = '\0';
+                }
+                else
+                {
+                        // Copy substring [p .. p+raw_len) and trim whitespace
+                        size_t s = 0;
+                        while (s < raw_len && isspace((unsigned char)p[s]))
+                                s++;
+                        size_t e = raw_len;
+                        while (e > s && isspace((unsigned char)p[e - 1]))
+                                e--;
+                        token_len = e - s;
+                        if (token_len >= sizeof(tokenbuf))
+                                token_len = sizeof(tokenbuf) - 1;
+                        if (token_len > 0)
+                                memcpy(tokenbuf, p + s, token_len);
+                        tokenbuf[token_len] = '\0';
+                }
+
+                // If tokenbuf is still empty (shouldn't happen), skip it
+                if (tokenbuf[0] != '\0')
+                {
+                        // Handle modifiers
+                        if (stricmp(tokenbuf, "Ctrl") == 0 ||
+                            stricmp(tokenbuf, "LCtrl") == 0 ||
+                            stricmp(tokenbuf, "RCtrl") == 0)
+                        {
+                                kb.mods |= TB_MOD_CTRL;
+                        }
+                        else if (stricmp(tokenbuf, "Alt") == 0 ||
+                                 stricmp(tokenbuf, "LAlt") == 0 ||
+                                 stricmp(tokenbuf, "RAlt") == 0)
+                        {
+                                kb.mods |= TB_MOD_ALT;
+                        }
+                        else if (stricmp(tokenbuf, "Shift") == 0 ||
+                                 stricmp(tokenbuf, "LShift") == 0 ||
+                                 stricmp(tokenbuf, "RShift") == 0)
+                        {
+                                kb.mods |= TB_MOD_SHIFT;
+                        }
+                        else
+                        {
+                                // Normal key token (including "+" token)
+                                uint16_t code = keyNameToCode(tokenbuf);
+                                if (code >= 0x20 && code < 0x7f)
+                                {
+                                        kb.key = 0;
+                                        kb.ch = code;
+                                }
+                                else
+                                {
+                                        kb.key = code;
+                                        kb.ch = 0;
+                                }
+                        }
+                }
+
+                if (!delim)
+                        break; // Done
+                p = delim + 1; // Advance past '+'
+        }
+
+        return kb;
 }
 
 void setDefaultConfig(AppSettings *settings)
@@ -126,125 +542,162 @@ void setDefaultConfig(AppSettings *settings)
         c_strcpy(settings->visualizerColorType, "2",
                  sizeof(settings->visualizerColorType));
         c_strcpy(settings->titleDelay, "9", sizeof(settings->titleDelay));
-        c_strcpy(settings->nextView, "\t", sizeof(settings->nextView));
-        c_strcpy(settings->prevView, "[Z", sizeof(settings->prevView));
-        c_strcpy(settings->volumeUp, "+", sizeof(settings->volumeUp));
-        c_strcpy(settings->volumeUpAlt, "=", sizeof(settings->volumeUpAlt));
-        c_strcpy(settings->volumeDown, "-", sizeof(settings->volumeDown));
-        c_strcpy(settings->previousTrackAlt, "h",
-                 sizeof(settings->previousTrackAlt));
-        c_strcpy(settings->nextTrackAlt, "l", sizeof(settings->nextTrackAlt));
-        c_strcpy(settings->scrollUpAlt, "k", sizeof(settings->scrollUpAlt));
-        c_strcpy(settings->scrollDownAlt, "j", sizeof(settings->scrollDownAlt));
-        c_strcpy(settings->switchNumberedSong, "G",
-                 sizeof(settings->switchNumberedSong));
-        c_strcpy(settings->cycleColorsDerivedFrom, "i",
-                 sizeof(settings->cycleColorsDerivedFrom));
-        c_strcpy(settings->cycleThemes, "t",
-                 sizeof(settings->cycleThemes));
-        c_strcpy(settings->toggleNotifications, "n",
-                 sizeof(settings->toggleNotifications));
-        c_strcpy(settings->toggleVisualizer, "v",
-                 sizeof(settings->toggleVisualizer));
-        c_strcpy(settings->toggleAscii, "b", sizeof(settings->toggleAscii));
-        c_strcpy(settings->toggleRepeat, "r", sizeof(settings->toggleRepeat));
-        c_strcpy(settings->toggleShuffle, "s", sizeof(settings->toggleShuffle));
-        c_strcpy(settings->togglePause, "p", sizeof(settings->togglePause));
-        c_strcpy(settings->seekBackward, "a", sizeof(settings->seekBackward));
-        c_strcpy(settings->seekForward, "d", sizeof(settings->seekForward));
-        c_strcpy(settings->savePlaylist, "x", sizeof(settings->savePlaylist));
-        c_strcpy(settings->updateLibrary, "u", sizeof(settings->updateLibrary));
-        c_strcpy(settings->addToFavoritesPlaylist, ".",
-                 sizeof(settings->addToFavoritesPlaylist));
-        c_strcpy(settings->hardPlayPause, " ", sizeof(settings->hardPlayPause));
-        c_strcpy(settings->hardSwitchNumberedSong, "\n",
-                 sizeof(settings->hardSwitchNumberedSong));
-        c_strcpy(settings->hardPrev, "[D", sizeof(settings->hardPrev));
-        c_strcpy(settings->hardNext, "[C", sizeof(settings->hardNext));
-        c_strcpy(settings->hardScrollUp, "[A", sizeof(settings->hardScrollUp));
-        c_strcpy(settings->hardScrollDown, "[B",
-                 sizeof(settings->hardScrollDown));
-        c_strcpy(settings->hardShowPlaylist, "OQ",
-                 sizeof(settings->hardShowPlaylist));
-        c_strcpy(settings->hardShowPlaylistAlt, "[[B",
-                 sizeof(settings->hardShowPlaylistAlt));
 
-        c_strcpy(settings->hardShowKeys, "[17~", sizeof(settings->hardShowKeys));
-        c_strcpy(settings->hardShowKeysAlt, "[17~",
-                 sizeof(settings->hardShowKeysAlt));
-#if defined(__ANDROID__) || defined(__APPLE__)
-        c_strcpy(settings->showPlaylistAlt, "Z",
-                 sizeof(settings->showPlaylistAlt));
-        c_strcpy(settings->showTrackAlt, "C", sizeof(settings->showTrackAlt));
-        c_strcpy(settings->showLibraryAlt, "X", sizeof(settings->showLibraryAlt));
-        c_strcpy(settings->showSearchAlt, "V", sizeof(settings->showSearchAlt));
-        c_strcpy(settings->showKeysAlt, "B", sizeof(settings->showKeysAlt));
-#endif
-        c_strcpy(settings->hardShowTrack, "OS", sizeof(settings->hardShowTrack));
-        c_strcpy(settings->hardShowTrackAlt, "[[D",
-                 sizeof(settings->hardShowTrackAlt));
-
-        c_strcpy(settings->hardShowLibrary, "OR",
-                 sizeof(settings->hardShowLibrary));
-        c_strcpy(settings->hardShowLibraryAlt, "[[C",
-                 sizeof(settings->hardShowLibraryAlt));
-
-        c_strcpy(settings->hardShowSearch, "[15~",
-                 sizeof(settings->hardShowSearch));
-        c_strcpy(settings->hardShowSearchAlt, "[[E",
-                 sizeof(settings->hardShowSearchAlt));
-
-        c_strcpy(settings->nextPage, "[6~", sizeof(settings->nextPage));
-        c_strcpy(settings->prevPage, "[5~", sizeof(settings->prevPage));
-        c_strcpy(settings->hardRemove, "[3~", sizeof(settings->hardRemove));
-        c_strcpy(settings->hardRemove2, "[P", sizeof(settings->hardRemove2));
-        c_strcpy(settings->mouseLeftClick, "[<0",
-                 sizeof(settings->mouseLeftClick));
-        c_strcpy(settings->mouseMiddleClick, "[<1",
-                 sizeof(settings->mouseMiddleClick));
-        c_strcpy(settings->mouseRightClick, "[<2",
-                 sizeof(settings->mouseRightClick));
-        c_strcpy(settings->mouseScrollUp, "[<64",
-                 sizeof(settings->mouseScrollUp));
-        c_strcpy(settings->mouseScrollDown, "[<65",
-                 sizeof(settings->mouseScrollDown));
-        c_strcpy(settings->mouseAltScrollUp, "[<72",
-                 sizeof(settings->mouseAltScrollUp));
-        c_strcpy(settings->mouseAltScrollDown, "[<73",
-                 sizeof(settings->mouseAltScrollDown));
         c_strcpy(settings->lastVolume, "100", sizeof(settings->lastVolume));
         c_strcpy(settings->color, "6", sizeof(settings->color));
         c_strcpy(settings->artistColor, "6", sizeof(settings->artistColor));
         c_strcpy(settings->titleColor, "6", sizeof(settings->titleColor));
         c_strcpy(settings->enqueuedColor, "6", sizeof(settings->enqueuedColor));
-        c_strcpy(settings->mouseLeftClickAction, "0",
-                 sizeof(settings->mouseLeftClickAction));
-        c_strcpy(settings->mouseMiddleClickAction, "1",
-                 sizeof(settings->mouseMiddleClickAction));
-        c_strcpy(settings->mouseRightClickAction, "2",
-                 sizeof(settings->mouseRightClickAction));
-        c_strcpy(settings->mouseScrollUpAction, "3",
-                 sizeof(settings->mouseScrollUpAction));
-        c_strcpy(settings->mouseScrollDownAction, "4",
-                 sizeof(settings->mouseScrollDownAction));
-        c_strcpy(settings->mouseAltScrollUpAction, "7",
-                 sizeof(settings->mouseAltScrollUpAction));
-        c_strcpy(settings->mouseAltScrollDownAction, "8",
-                 sizeof(settings->mouseAltScrollDownAction));
-        c_strcpy(settings->moveSongUp, "f", sizeof(settings->moveSongUp));
-        c_strcpy(settings->moveSongDown, "g", sizeof(settings->moveSongDown));
-        c_strcpy(settings->enqueueAndPlay, "^M",
-                 sizeof(settings->enqueueAndPlay));
-        c_strcpy(settings->hardStop, "S", sizeof(settings->hardStop));
-        c_strcpy(settings->sortLibrary, "o", sizeof(settings->sortLibrary));
-        c_strcpy(settings->quit, "q", sizeof(settings->quit));
-        c_strcpy(settings->altQuit, "\x1B", sizeof(settings->altQuit));
-        c_strcpy(settings->hardClearPlaylist, "\b",
-                 sizeof(settings->hardClearPlaylist));
-        c_strcpy(settings->showLyricsPage, "m",
-                 sizeof(settings->showLyricsPage));
 
         memcpy(settings->ansiTheme, "default", 8);
+}
+
+bool isAlphanumeric(const char *value)
+{
+        if (value == NULL || *value == '\0')
+        {
+                return false; // Empty or NULL string is not alphanumeric
+        }
+
+        for (const char *p = value; *p != '\0'; p++)
+        {
+                if (!isalnum((unsigned char)*p))
+                {
+                        return false; // Found a non-alphanumeric character
+                }
+        }
+
+        return true; // All characters are alphanumeric
+}
+
+uint32_t utf8ToCodepoint(const char *s)
+{
+        const unsigned char *u = (const unsigned char *)s;
+        if (u[0] < 0x80)
+                return u[0];
+        else if ((u[0] & 0xE0) == 0xC0)
+                return ((u[0] & 0x1F) << 6) | (u[1] & 0x3F);
+        else if ((u[0] & 0xF0) == 0xE0)
+                return ((u[0] & 0x0F) << 12) | ((u[1] & 0x3F) << 6) | (u[2] & 0x3F);
+        else if ((u[0] & 0xF8) == 0xF0)
+                return ((u[0] & 0x07) << 18) | ((u[1] & 0x3F) << 12) | ((u[2] & 0x3F) << 6) | (u[3] & 0x3F);
+        else
+                return 0; // invalid
+}
+
+void removeAlphaNumericKeyBinding(char *value)
+{
+        for (size_t i = 0; i < keybindingCount; i++)
+        {
+                if (keyBindings[i].ch == utf8ToCodepoint(value))
+                {
+                        keyBindings[i].ch = 0;
+                        keyBindings[i].eventType = EVENT_NONE;
+                }
+        }
+}
+
+void addAlphaNumericKeyBinding(enum EventType event, char *value)
+{
+        if (!isAlphanumeric(value))
+                return;
+
+        if (keybindingCount >= MAX_KEY_BINDINGS)
+                return;
+
+        removeAlphaNumericKeyBinding(value);
+
+        TBKeyBinding kb = {0, 0, 0, event, ""};
+        kb.ch = utf8ToCodepoint(value);
+        keyBindings[keybindingCount++] = kb;
+}
+
+bool replaceKeyBinding(TBKeyBinding binding)
+{
+        for (size_t i = 0; i < keybindingCount; i++)
+        {
+                if (keyBindings[i].key == binding.key &&
+                    keyBindings[i].ch == binding.ch &&
+                    keyBindings[i].mods == binding.mods)
+                {
+                        keyBindings[i].eventType = binding.eventType;
+                        snprintf(keyBindings[i].args, sizeof(keyBindings[i].args), "%s", binding.args);
+
+                        return true;
+                }
+        }
+
+        return false;
+}
+
+void addKeyBinding(TBKeyBinding binding)
+{
+        if (!replaceKeyBinding(binding))
+                keyBindings[keybindingCount++] = binding;
+}
+
+static void trimStart(char **s)
+{
+        while (**s && isspace((unsigned char)**s))
+                (*s)++;
+}
+
+static char *parseField(char **s)
+{
+        trimStart(s);
+        if (!**s)
+                return NULL;
+
+        char buffer[256];
+        int idx = 0;
+        int inQuotes = 0;
+
+        if (**s == '"')
+        {
+                inQuotes = 1;
+                (*s)++;
+        }
+
+        while (**s)
+        {
+                if (inQuotes)
+                {
+                        if (**s == '"')
+                        {
+                                (*s)++;
+                                break;
+                        }
+                        if (**s == '\\')
+                        {
+                                (*s)++;
+                                if (**s)
+                                        buffer[idx++] = **s++;
+                        }
+                        else
+                                buffer[idx++] = *(*s)++;
+                }
+                else
+                {
+                        if (**s == ',')
+                        {
+                                (*s)++;
+                                break;
+                        }
+                        if (**s == '\\')
+                        {
+                                (*s)++;
+                                if (**s)
+                                        buffer[idx++] = **s++;
+                        }
+                        else
+                                buffer[idx++] = *(*s)++;
+                }
+                if (idx >= (int)(sizeof(buffer) - 1))
+                        break; // avoid overflow
+        }
+
+        buffer[idx] = '\0';
+        return strdup(buffer); // return a copy
 }
 
 void constructAppSettings(AppSettings *settings, KeyValuePair *pairs, int count)
@@ -260,6 +713,7 @@ void constructAppSettings(AppSettings *settings, KeyValuePair *pairs, int count)
         {
                 KeyValuePair *pair = &pairs[i];
 
+                trim(pair->key, strlen(pair->key));
                 char *lowercaseKey = stringToLower(pair->key);
 
                 if (strcmp(lowercaseKey, "path") == 0)
@@ -317,60 +771,70 @@ void constructAppSettings(AppSettings *settings, KeyValuePair *pairs, int count)
                 {
                         snprintf(settings->volumeUp, sizeof(settings->volumeUp),
                                  "%s", pair->value);
+                        addAlphaNumericKeyBinding(EVENT_VOLUME_UP, pair->value);
                 }
                 else if (strcmp(lowercaseKey, "volumeupalt") == 0)
                 {
                         snprintf(settings->volumeUpAlt,
                                  sizeof(settings->volumeUpAlt), "%s",
                                  pair->value);
+                        addAlphaNumericKeyBinding(EVENT_VOLUME_UP, pair->value);
                 }
                 else if (strcmp(lowercaseKey, "volumedown") == 0)
                 {
                         snprintf(settings->volumeDown,
                                  sizeof(settings->volumeDown), "%s",
                                  pair->value);
+                        addAlphaNumericKeyBinding(EVENT_VOLUME_DOWN, pair->value);
                 }
                 else if (strcmp(lowercaseKey, "previoustrackalt") == 0)
                 {
                         snprintf(settings->previousTrackAlt,
                                  sizeof(settings->previousTrackAlt), "%s",
                                  pair->value);
+                        addAlphaNumericKeyBinding(EVENT_PREV, pair->value);
                 }
                 else if (strcmp(lowercaseKey, "nexttrackalt") == 0)
                 {
                         snprintf(settings->nextTrackAlt,
                                  sizeof(settings->nextTrackAlt), "%s",
                                  pair->value);
+                        addAlphaNumericKeyBinding(EVENT_NEXT, pair->value);
                 }
                 else if (strcmp(lowercaseKey, "scrollupalt") == 0)
                 {
                         snprintf(settings->scrollUpAlt,
                                  sizeof(settings->scrollUpAlt), "%s",
                                  pair->value);
+                        addAlphaNumericKeyBinding(EVENT_SCROLLUP, pair->value);
                 }
                 else if (strcmp(lowercaseKey, "scrolldownalt") == 0)
                 {
                         snprintf(settings->scrollDownAlt,
                                  sizeof(settings->scrollDownAlt), "%s",
                                  pair->value);
+                        addAlphaNumericKeyBinding(EVENT_SCROLLDOWN, pair->value);
                 }
                 else if (strcmp(lowercaseKey, "switchnumberedsong") == 0)
                 {
                         snprintf(settings->switchNumberedSong,
                                  sizeof(settings->switchNumberedSong), "%s",
                                  pair->value);
+                        addAlphaNumericKeyBinding(EVENT_ENQUEUE, pair->value);
                 }
                 else if (strcmp(lowercaseKey, "togglepause") == 0)
                 {
                         snprintf(settings->togglePause,
                                  sizeof(settings->togglePause), "%s",
                                  pair->value);
+                        addAlphaNumericKeyBinding(EVENT_PLAY_PAUSE, pair->value);
                 }
                 else if (strcmp(lowercaseKey, "togglecolorsderivedfrom") == 0)
                 {
                         snprintf(settings->cycleColorsDerivedFrom,
                                  sizeof(settings->cycleColorsDerivedFrom), "%s",
                                  pair->value);
+                        addAlphaNumericKeyBinding(EVENT_CYCLECOLORMODE, pair->value);
                 }
                 else if (strcmp(lowercaseKey, "cyclethemes") == 0)
                 {
@@ -378,60 +842,70 @@ void constructAppSettings(AppSettings *settings, KeyValuePair *pairs, int count)
                                  sizeof(settings->cycleThemes), "%s",
                                  pair->value);
                         foundCycleThemesSetting = true;
+                        addAlphaNumericKeyBinding(EVENT_CYCLETHEMES, pair->value);
                 }
                 else if (strcmp(lowercaseKey, "togglenotifications") == 0)
                 {
                         snprintf(settings->toggleNotifications,
                                  sizeof(settings->toggleNotifications), "%s",
                                  pair->value);
+                        addAlphaNumericKeyBinding(EVENT_TOGGLENOTIFICATIONS, pair->value);
                 }
                 else if (strcmp(lowercaseKey, "togglevisualizer") == 0)
                 {
                         snprintf(settings->toggleVisualizer,
                                  sizeof(settings->toggleVisualizer), "%s",
                                  pair->value);
+                        addAlphaNumericKeyBinding(EVENT_TOGGLEVISUALIZER, pair->value);
                 }
                 else if (strcmp(lowercaseKey, "toggleascii") == 0)
                 {
                         snprintf(settings->toggleAscii,
                                  sizeof(settings->toggleAscii), "%s",
                                  pair->value);
+                        addAlphaNumericKeyBinding(EVENT_TOGGLEASCII, pair->value);
                 }
                 else if (strcmp(lowercaseKey, "togglerepeat") == 0)
                 {
                         snprintf(settings->toggleRepeat,
                                  sizeof(settings->toggleRepeat), "%s",
                                  pair->value);
+                        addAlphaNumericKeyBinding(EVENT_TOGGLEREPEAT, pair->value);
                 }
                 else if (strcmp(lowercaseKey, "toggleshuffle") == 0)
                 {
                         snprintf(settings->toggleShuffle,
                                  sizeof(settings->toggleShuffle), "%s",
                                  pair->value);
+                        addAlphaNumericKeyBinding(EVENT_SHUFFLE, pair->value);
                 }
                 else if (strcmp(lowercaseKey, "seekbackward") == 0)
                 {
                         snprintf(settings->seekBackward,
                                  sizeof(settings->seekBackward), "%s",
                                  pair->value);
+                        addAlphaNumericKeyBinding(EVENT_SEEKBACK, pair->value);
                 }
                 else if (strcmp(lowercaseKey, "seekforward") == 0)
                 {
                         snprintf(settings->seekForward,
                                  sizeof(settings->seekForward), "%s",
                                  pair->value);
+                        addAlphaNumericKeyBinding(EVENT_SEEKFORWARD, pair->value);
                 }
                 else if (strcmp(lowercaseKey, "saveplaylist") == 0)
                 {
                         snprintf(settings->savePlaylist,
                                  sizeof(settings->savePlaylist), "%s",
                                  pair->value);
+                        addAlphaNumericKeyBinding(EVENT_EXPORTPLAYLIST, pair->value);
                 }
                 else if (strcmp(lowercaseKey, "addtofavoritesplaylist") == 0)
                 {
                         snprintf(settings->addToFavoritesPlaylist,
                                  sizeof(settings->addToFavoritesPlaylist), "%s",
                                  pair->value);
+                        addAlphaNumericKeyBinding(EVENT_ADDTOFAVORITESPLAYLIST, pair->value);
                 }
                 else if (strcmp(lowercaseKey, "lastvolume") == 0)
                 {
@@ -595,27 +1069,32 @@ void constructAppSettings(AppSettings *settings, KeyValuePair *pairs, int count)
                 {
                         snprintf(settings->quit, sizeof(settings->quit), "%s",
                                  pair->value);
+                        addAlphaNumericKeyBinding(EVENT_QUIT, pair->value);
                 }
                 else if (strcmp(lowercaseKey, "altquit") == 0)
                 {
                         snprintf(settings->altQuit, sizeof(settings->altQuit),
                                  "%s", pair->value);
+                        addAlphaNumericKeyBinding(EVENT_QUIT, pair->value);
                 }
                 else if (strcmp(lowercaseKey, "prevpage") == 0)
                 {
                         snprintf(settings->prevPage, sizeof(settings->prevPage),
                                  "%s", pair->value);
+                        addAlphaNumericKeyBinding(EVENT_PREVPAGE, pair->value);
                 }
                 else if (strcmp(lowercaseKey, "nextpage") == 0)
                 {
                         snprintf(settings->nextPage, sizeof(settings->nextPage),
                                  "%s", pair->value);
+                        addAlphaNumericKeyBinding(EVENT_NEXTPAGE, pair->value);
                 }
                 else if (strcmp(lowercaseKey, "updatelibrary") == 0)
                 {
                         snprintf(settings->updateLibrary,
                                  sizeof(settings->updateLibrary), "%s",
                                  pair->value);
+                        addAlphaNumericKeyBinding(EVENT_UPDATELIBRARY, pair->value);
                 }
                 else if (strcmp(lowercaseKey, "showplaylistalt") == 0)
                 {
@@ -624,6 +1103,7 @@ void constructAppSettings(AppSettings *settings, KeyValuePair *pairs, int count)
                                 snprintf(settings->showPlaylistAlt,
                                          sizeof(settings->showPlaylistAlt), "%s",
                                          pair->value);
+                        addAlphaNumericKeyBinding(EVENT_SHOWPLAYLIST, pair->value);
                 }
                 else if (strcmp(lowercaseKey, "showlibraryalt") == 0)
                 {
@@ -631,6 +1111,7 @@ void constructAppSettings(AppSettings *settings, KeyValuePair *pairs, int count)
                                 snprintf(settings->showLibraryAlt,
                                          sizeof(settings->showLibraryAlt), "%s",
                                          pair->value);
+                        addAlphaNumericKeyBinding(EVENT_SHOWLIBRARY, pair->value);
                 }
                 else if (strcmp(lowercaseKey, "showtrackalt") == 0)
                 {
@@ -638,6 +1119,7 @@ void constructAppSettings(AppSettings *settings, KeyValuePair *pairs, int count)
                                 snprintf(settings->showTrackAlt,
                                          sizeof(settings->showTrackAlt), "%s",
                                          pair->value);
+                        addAlphaNumericKeyBinding(EVENT_SHOWTRACK, pair->value);
                 }
                 else if (strcmp(lowercaseKey, "showsearchalt") == 0)
                 {
@@ -645,6 +1127,7 @@ void constructAppSettings(AppSettings *settings, KeyValuePair *pairs, int count)
                                 snprintf(settings->showSearchAlt,
                                          sizeof(settings->showSearchAlt), "%s",
                                          pair->value);
+                        addAlphaNumericKeyBinding(EVENT_SHOWSEARCH, pair->value);
                 }
                 else if (strcmp(lowercaseKey, "showlyricspage") == 0)
                 {
@@ -652,6 +1135,7 @@ void constructAppSettings(AppSettings *settings, KeyValuePair *pairs, int count)
                                 snprintf(settings->showLyricsPage,
                                          sizeof(settings->showLyricsPage), "%s",
                                          pair->value);
+                        addAlphaNumericKeyBinding(EVENT_SHOWLYRICSPAGE, pair->value);
                 }
                 else if (strcmp(lowercaseKey, "movesongup") == 0)
                 {
@@ -659,6 +1143,7 @@ void constructAppSettings(AppSettings *settings, KeyValuePair *pairs, int count)
                                 snprintf(settings->moveSongUp,
                                          sizeof(settings->moveSongUp), "%s",
                                          pair->value);
+                        addAlphaNumericKeyBinding(EVENT_MOVESONGUP, pair->value);
                 }
                 else if (strcmp(lowercaseKey, "movesongdown") == 0)
                 {
@@ -666,6 +1151,7 @@ void constructAppSettings(AppSettings *settings, KeyValuePair *pairs, int count)
                                 snprintf(settings->moveSongDown,
                                          sizeof(settings->moveSongDown), "%s",
                                          pair->value);
+                        addAlphaNumericKeyBinding(EVENT_MOVESONGDOWN, pair->value);
                 }
                 else if (strcmp(lowercaseKey, "enqueueandplay") == 0)
                 {
@@ -673,6 +1159,7 @@ void constructAppSettings(AppSettings *settings, KeyValuePair *pairs, int count)
                                 snprintf(settings->enqueueAndPlay,
                                          sizeof(settings->enqueueAndPlay), "%s",
                                          pair->value);
+                        addAlphaNumericKeyBinding(EVENT_ENQUEUEANDPLAY, pair->value);
                 }
                 else if (strcmp(lowercaseKey, "sort") == 0)
                 {
@@ -680,6 +1167,7 @@ void constructAppSettings(AppSettings *settings, KeyValuePair *pairs, int count)
                                 snprintf(settings->sortLibrary,
                                          sizeof(settings->sortLibrary), "%s",
                                          pair->value);
+                        addAlphaNumericKeyBinding(EVENT_SORTLIBRARY, pair->value);
                 }
                 else if (strcmp(lowercaseKey, "progressbarelapsedevenchar") ==
                          0)
@@ -745,6 +1233,27 @@ void constructAppSettings(AppSettings *settings, KeyValuePair *pairs, int count)
                                 snprintf(settings->showKeysAlt,
                                          sizeof(settings->showKeysAlt), "%s",
                                          pair->value);
+                        addAlphaNumericKeyBinding(EVENT_SHOWHELP, pair->value);
+                }
+                else if (strcmp(lowercaseKey, "bind") == 0)
+                {
+                        char valueCopy[256];
+                        strncpy(valueCopy, pair->value, sizeof(valueCopy));
+                        valueCopy[sizeof(valueCopy) - 1] = '\0';
+                        char *s = valueCopy;
+
+                        char *bindingStr = parseField(&s);
+                        char *eventStr = parseField(&s);
+                        char *argsStr = parseField(&s);
+
+                        if (!bindingStr || !eventStr)
+                                return;
+
+                        if (!argsStr)
+                                argsStr = "";
+
+                        TBKeyBinding kb = parseBinding(bindingStr, eventStr, argsStr);
+                        addKeyBinding(kb);
                 }
 
                 free(lowercaseKey);
@@ -806,7 +1315,6 @@ KeyValuePair *readKeyValuePairs(const char *file_path, int *count,
                         pairs =
                             realloc(pairs, pair_count * sizeof(KeyValuePair));
                         KeyValuePair *current_pair = &pairs[pair_count - 1];
-
                         current_pair->key = strdup(line);
                         current_pair->value = strdup(value);
                 }
@@ -851,8 +1359,8 @@ int getMusicLibraryPath(char *path)
 void mapSettingsToKeys(AppSettings *settings, UISettings *ui,
                        EventMapping *mappings)
 {
-        mappings[0] = (EventMapping){settings->scrollUpAlt, EVENT_SCROLLPREV};
-        mappings[1] = (EventMapping){settings->scrollDownAlt, EVENT_SCROLLNEXT};
+        mappings[0] = (EventMapping){settings->scrollUpAlt, EVENT_SCROLLUP};
+        mappings[1] = (EventMapping){settings->scrollDownAlt, EVENT_SCROLLDOWN};
         mappings[2] = (EventMapping){settings->nextTrackAlt, EVENT_NEXT};
         mappings[3] = (EventMapping){settings->previousTrackAlt, EVENT_PREV};
         mappings[4] = (EventMapping){settings->volumeUp, EVENT_VOLUME_UP};
@@ -876,14 +1384,14 @@ void mapSettingsToKeys(AppSettings *settings, UISettings *ui,
         mappings[22] = (EventMapping){settings->hardPrev, EVENT_PREV};
         mappings[23] = (EventMapping){settings->hardNext, EVENT_NEXT};
         mappings[24] = (EventMapping){settings->hardSwitchNumberedSong, EVENT_ENQUEUE};
-        mappings[25] = (EventMapping){settings->hardScrollUp, EVENT_SCROLLPREV};
-        mappings[26] = (EventMapping){settings->hardScrollDown, EVENT_SCROLLNEXT};
+        mappings[25] = (EventMapping){settings->hardScrollUp, EVENT_SCROLLUP};
+        mappings[26] = (EventMapping){settings->hardScrollDown, EVENT_SCROLLDOWN};
         mappings[27] = (EventMapping){settings->hardShowPlaylist, EVENT_SHOWPLAYLIST};
         mappings[28] = (EventMapping){settings->hardShowPlaylistAlt, EVENT_SHOWPLAYLIST};
         mappings[29] = (EventMapping){settings->showPlaylistAlt, EVENT_SHOWPLAYLIST};
-        mappings[30] = (EventMapping){settings->hardShowKeys, EVENT_SHOWKEYBINDINGS};
-        mappings[31] = (EventMapping){settings->hardShowKeysAlt, EVENT_SHOWKEYBINDINGS};
-        mappings[32] = (EventMapping){settings->showKeysAlt, EVENT_SHOWKEYBINDINGS};
+        mappings[30] = (EventMapping){settings->hardShowKeys, EVENT_SHOWHELP};
+        mappings[31] = (EventMapping){settings->hardShowKeysAlt, EVENT_SHOWHELP};
+        mappings[32] = (EventMapping){settings->showKeysAlt, EVENT_SHOWHELP};
         mappings[33] = (EventMapping){settings->hardShowTrack, EVENT_SHOWTRACK};
         mappings[34] = (EventMapping){settings->hardShowTrackAlt, EVENT_SHOWTRACK};
         mappings[35] = (EventMapping){settings->showTrackAlt, EVENT_SHOWTRACK};
@@ -1187,6 +1695,54 @@ void setPrefs(AppSettings *settings, UISettings *ui)
         free(filepath);
 }
 
+static const char *keyBindingToStr(const TBKeyBinding kb)
+{
+        static char buf[128];
+        buf[0] = '\0';
+
+        // Modifiers
+        if (kb.mods & TB_MOD_CTRL)
+                strcat(buf, "Ctrl+");
+        if (kb.mods & TB_MOD_ALT)
+                strcat(buf, "Alt+");
+        if (kb.mods & TB_MOD_SHIFT)
+                strcat(buf, "Shift+");
+
+        // Key
+        if (kb.key != 0)
+        {
+                // Special key
+                const char *keyName = keyCodeToName(kb.key);
+                if (keyName)
+                        strcat(buf, keyName);
+                else
+                        sprintf(buf + strlen(buf), "0x%x", kb.key);
+        }
+        else if (kb.ch != 0)
+        {
+                // Printable character
+                size_t len = strlen(buf);
+                buf[len] = (char)kb.ch;
+                buf[len + 1] = '\0';
+        }
+        else
+        {
+                strcat(buf, "Unknown");
+        }
+
+        // Event
+        const char *eventName = eventToString(kb.eventType);
+
+        // Final Format
+        static char final[256];
+        if (kb.args[0])
+                snprintf(final, sizeof(final), "%s, %s, %s", buf, eventName, kb.args);
+        else
+                snprintf(final, sizeof(final), "%s, %s", buf, eventName);
+
+        return final;
+}
+
 void setConfig(AppSettings *settings, UISettings *ui)
 {
         // Create the file path
@@ -1464,80 +2020,16 @@ void setConfig(AppSettings *settings, UISettings *ui)
         fprintf(file, "progressBarCurrentOddChar=%s\n\n",
                 settings->progressBarCurrentOddChar);
 
-        fprintf(file, "# Mouse actions are 0=None, 1=Select song, 2=Toggle "
-                      "pause, 3=Scroll up, 4=Scroll down, 5=Seek forward, "
-                      "6=Seek backward, 7=Volume up, 8=Volume down, 9=Switch "
-                      "to next view, 10=Switch to previous view\n");
-        fprintf(file, "mouseLeftClickAction=%s\n",
-                settings->mouseLeftClickAction);
-        fprintf(file, "mouseMiddleClickAction=%s\n",
-                settings->mouseMiddleClickAction);
-        fprintf(file, "mouseRightClickAction=%s\n",
-                settings->mouseRightClickAction);
-        fprintf(file, "mouseScrollUpAction=%s\n",
-                settings->mouseScrollUpAction);
-        fprintf(file, "mouseScrollDownAction=%s\n\n",
-                settings->mouseScrollDownAction);
-
-        fprintf(file, "# Mouse action when using mouse scroll + alt\n");
-        fprintf(file, "mouseAltScrollUpAction=%s\n",
-                settings->mouseAltScrollUpAction);
-        fprintf(file, "mouseAltScrollDownAction=%s\n\n",
-                settings->mouseAltScrollDownAction);
-
         fprintf(file, "\n[key bindings]\n\n");
-        fprintf(file, "volumeUp=%s\n", settings->volumeUp);
-        fprintf(file, "volumeUpAlt=%s\n", settings->volumeUpAlt);
-        fprintf(file, "volumeDown=%s\n", settings->volumeDown);
-        fprintf(file, "previousTrackAlt=%s\n", settings->previousTrackAlt);
-        fprintf(file, "nextTrackAlt=%s\n", settings->nextTrackAlt);
-        fprintf(file, "scrollUpAlt=%s\n", settings->scrollUpAlt);
-        fprintf(file, "scrollDownAlt=%s\n", settings->scrollDownAlt);
-        fprintf(file, "switchNumberedSong=%s\n", settings->switchNumberedSong);
-        fprintf(file, "togglePause=%s\n", settings->togglePause);
-        fprintf(file, "toggleNotifications=%s\n", settings->toggleNotifications);
-        fprintf(file, "toggleColorsDerivedFrom=%s\n",
-                settings->cycleColorsDerivedFrom);
-        fprintf(file, "cycleThemes=%s\n",
-                settings->cycleThemes);
-        fprintf(file, "toggleVisualizer=%s\n", settings->toggleVisualizer);
-        fprintf(file, "toggleAscii=%s\n", settings->toggleAscii);
-        fprintf(file, "toggleRepeat=%s\n", settings->toggleRepeat);
-        fprintf(file, "toggleShuffle=%s\n", settings->toggleShuffle);
-        fprintf(file, "seekBackward=%s\n", settings->seekBackward);
-        fprintf(file, "seekForward=%s\n", settings->seekForward);
-        fprintf(file, "savePlaylist=%s\n", settings->savePlaylist);
-        fprintf(file, "addToFavoritesPlaylist=%s\n",
-                settings->addToFavoritesPlaylist);
-        fprintf(file, "updateLibrary=%s\n", settings->updateLibrary);
-        fprintf(file, "moveSongUp=%s\n", settings->moveSongUp);
-        fprintf(file, "moveSongDown=%s\n", settings->moveSongDown);
-        fprintf(file, "enqueueAndPlay=%s\n", settings->enqueueAndPlay);
-        fprintf(file, "sortLibrary=%s\n", settings->sortLibrary);
-        fprintf(file, "quit=%s\n", settings->quit);
-        fprintf(file, "altQuit=%s\n\n", settings->altQuit);
 
-        fprintf(file,
-                "# Alt keys for the different main views, normally F2-F7:\n");
-        fprintf(file, "showPlaylistAlt=%s\n", settings->showPlaylistAlt);
-        fprintf(file, "showLibraryAlt=%s\n", settings->showLibraryAlt);
-        fprintf(file, "showTrackAlt=%s\n", settings->showTrackAlt);
-        fprintf(file, "showSearchAlt=%s\n", settings->showSearchAlt);
-        fprintf(file, "showKeysAlt=%s\n\n", settings->showKeysAlt);
-        fprintf(file, "showLyricsPage=%s\n\n", settings->showLyricsPage);
+        for (size_t i = 0; i < keybindingCount; i++)
+        {
+                fprintf(file, "bind = ");
 
-        fprintf(file, "# Keys for scrolling page up and page down:\n");
-        fprintf(file, "prevPage=%s\n", settings->prevPage);
-        fprintf(file, "nextPage=%s\n\n", settings->nextPage);
+                fprintf(file, "%s\n", keyBindingToStr(keyBindings[i]));
+        }
 
-        fprintf(file, "# For special keys use terminal codes: OS, for F4 for "
-                      "instance. This can depend on the terminal.\n");
-        fprintf(file, "# You can find out the codes for the keys by using "
-                      "tools like showkey.\n");
-        fprintf(file, "# For special keys, see the key value after the bracket "
-                      "\"[\" after typing \"showkey -a\" in the terminal and "
-                      "then pressing a key you want info about.\n");
-
+        fprintf(file, "\n");
         fclose(file);
         free(filepath);
         free(configdir);

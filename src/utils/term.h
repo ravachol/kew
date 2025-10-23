@@ -28,7 +28,6 @@ void getTermSize(int *width, int *height);
 void setNonblockingMode(void);
 void restoreTerminalMode(void);
 void setDefaultTextColor(void);
-void resetConsole(void);
 void saveCursorPosition(void);
 void restoreCursorPosition(void);
 void hideCursor(void);
@@ -52,5 +51,7 @@ void disableTerminalMouseButtons(void);
 void setTerminalWindowTitle(char *title);
 void saveTerminalWindowTitle(void);
 void restoreTerminalWindowTitle(void);
+void saveOriginalTerminalMode(void);
+void restoreTerminalMode(void);
 
 #endif
