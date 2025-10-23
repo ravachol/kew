@@ -4,7 +4,7 @@
 
 - Handle both synchronized and unsynchronized vorbis lyrics.
 
-- Scroll the lyrics in the lyrics page if the lyrics are synced.
+- Scroll the lyrics in the lyrics page if the lyrics are synced and ability to scroll lyrics manually. By @noiamnote.
 
 - Prevent cover from jumping between first and second row on landscape view when resizing.
 
