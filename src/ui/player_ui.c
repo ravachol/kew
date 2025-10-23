@@ -462,11 +462,10 @@ void printCover(int height, SongData *songdata, UISettings *ui)
 {
         int row = 2;
         int col = 2;
-        int imgHeight = height - 3;
+        int imgHeight = height - 2;
 
         clearScreen();
 
-        printf("\n");
 
         if (songdata != NULL && songdata->cover != NULL && ui->coverEnabled)
         {
@@ -590,13 +589,11 @@ int calcElapsedBars(double elapsedSeconds, double duration, int numProgressBars)
 }
 
 void printProgress(double elapsed_seconds, double total_seconds,
-                   ma_uint32 sampleRate, int avgBitRate)
+                   ma_uint32 sampleRate, int avgBitRate, int allowedWidth)
 {
         int progressWidth = 39;
-        int term_w, term_h;
-        getTermSize(&term_w, &term_h);
 
-        if (term_w < progressWidth)
+        if (allowedWidth < progressWidth)
                 return;
 
         int elapsed_hours = (int)(elapsed_seconds / 3600);
@@ -634,7 +631,7 @@ void printProgress(double elapsed_seconds, double total_seconds,
 
         double rate = ((float)sampleRate) / 1000;
 
-        if (term_w > progressWidth + 10)
+        if (allowedWidth > progressWidth + 10)
         {
                 if (rate == (int)rate)
                         printf(" %dkHz", (int)rate);
@@ -642,7 +639,7 @@ void printProgress(double elapsed_seconds, double total_seconds,
                         printf(" %.1fkHz", rate);
         }
 
-        if (term_w > progressWidth + 19)
+        if (allowedWidth > progressWidth + 19)
         {
                 if (avgBitRate > 0)
                         printf(" %dkb/s ", avgBitRate);
@@ -650,7 +647,7 @@ void printProgress(double elapsed_seconds, double total_seconds,
 }
 
 void printTime(int row, int col, double elapsedSeconds, ma_uint32 sampleRate,
-               int avgBitRate)
+               int avgBitRate, int allowedWidth)
 {
         AppState *state = getAppState();
 
@@ -667,7 +664,7 @@ void printTime(int row, int col, double elapsedSeconds, ma_uint32 sampleRate,
                 double duration = getCurrentSongDuration();
                 double elapsed = elapsedSeconds;
 
-                printProgress(elapsed, duration, sampleRate, avgBitRate);
+                printProgress(elapsed, duration, sampleRate, avgBitRate, allowedWidth);
                 clearRestOfLine();
         }
 }
@@ -1523,7 +1520,8 @@ void printProgressBar(int row, int col, AppSettings *settings, UISettings *ui,
         progressBar->col = col + 1;
         progressBar->length = numProgressBars;
 
-        printf("\033[%d;%dH", row, col + 1);
+        printf("\033[%d;%dH", row, col);
+        printf(" ");
 
         for (int i = 0; i < numProgressBars; i++)
         {
@@ -2248,7 +2246,7 @@ void showTrackViewLandscape(int height, int width, float aspectRatio,
                 metadata = songdata->metadata;
         }
 
-        int col = height * aspectRatio + 1;
+        int col = height * aspectRatio;
 
         if (!state->uiSettings.coverEnabled ||
             (songdata && songdata->cover == NULL))
@@ -2287,7 +2285,10 @@ void showTrackViewLandscape(int height, int width, float aspectRatio,
                 {
                         if (height > metadataHeight + timeHeight)
                                 printTime(row + 4, col, elapsedSeconds, sampleRate,
-                                          avgBitRate);
+                                          avgBitRate, term_w - col);
+
+                        printf("\033[%d;%dH", row + metadataHeight + 1, col);
+                        printf(" ");
 
                         if (row > 0)
                                 printTimestampedLyrics(&(state->uiSettings), songdata, row + metadataHeight + 1, col + 1, term_w, elapsedSeconds);
@@ -2356,7 +2357,7 @@ void showTrackViewPortrait(int height, AppSettings *settings,
 
                         getFormatAndSampleRate(&format, &sampleRate);
                         printTime(row + metadataHeight, col, elapsedSeconds, sampleRate,
-                                  avgBitRate);
+                                  avgBitRate, term_w - col);
 
                         if (row > 0)
                                 printTimestampedLyrics(&(state->uiSettings), songdata, row + metadataHeight + 1, indent + 1, term_w, elapsedSeconds);
