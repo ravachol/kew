@@ -468,7 +468,6 @@ void printCover(int height, SongData *songdata, UISettings *ui)
 
         clearScreen();
 
-
         if (songdata != NULL && songdata->cover != NULL && ui->coverEnabled)
         {
                 if (!ui->coverAnsi)
@@ -947,8 +946,21 @@ void printFooter(int row, int col, AppSettings *settings)
         int randomNumber = getRandomNumber(1, 808);
 
         if (randomNumber == 808 && !ui->hideGlimmeringText)
-                printGlimmeringText(row, col, text, textLength, iconsText,
-                                    footerColor);
+        {
+                bool asciiOnly = true;
+                for (const char *p = text; *p; p++)
+                {
+                        if ((unsigned char)*p >= 128)
+                        {
+                                asciiOnly = false;
+                                break;
+                        }
+                }
+
+                if (asciiOnly)
+                        printGlimmeringText(row, col, text, textLength, iconsText,
+                                            footerColor);
+        }
         else
         {
                 printf("%s", text);
