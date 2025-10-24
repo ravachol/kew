@@ -82,11 +82,10 @@ struct Event mapTBKeyToEvent(struct tb_event *ev)
                 else if ((ev->ch > 0 && ev->ch != '\033' && ev->ch != '\n' && ev->ch != '\t' && ev->ch != '\r') ||
                          ev->ch == ' ')
                 {
-                        char keybuf[5] = {0};
-                        tb_utf8_unicode_to_char(keybuf, ev->ch);
-
-                        if (keybuf != 'Z' && keybuf != 'X' && keybuf != 'C' && keybuf != 'V' && keybuf != 'B' && keybuf != 'N')
+                        if (ev->ch != 'Z' && ev->ch != 'X' && ev->ch != 'C' && ev->ch != 'V' && ev->ch != 'B' && ev->ch != 'N')
                         {
+                                char keybuf[5] = {0};
+                                tb_utf8_unicode_to_char(keybuf, ev->ch);
                                 addToSearchText(keybuf);
                                 resetSearchResult();
                                 fuzzySearch(getLibrary(), fuzzySearchThreshold);
