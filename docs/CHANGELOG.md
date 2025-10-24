@@ -8,6 +8,8 @@
 
 - Scroll the lyrics in the lyrics page if the lyrics are synced and ability to scroll lyrics manually. By @noiamnote.
 
+- Translated into chinese.
+
 #### Bug Fixes
 
 - Don't enqueue .m3u files.
