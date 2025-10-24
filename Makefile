@@ -212,11 +212,20 @@ kew: $(OBJS) $(WRAPPER_OBJ) Makefile
 
 .PHONY: install
 install: all
+install: all
+	# Create directories
 	mkdir -p $(DESTDIR)$(MAN_DIR)/man1
 	mkdir -p $(DESTDIR)$(PREFIX)/bin
 	mkdir -p $(DESTDIR)$(THEMEDIR)
+	mkdir -p $(DESTDIR)/usr/share/locale/zh_CN/LC_MESSAGES
+
+	# Install binary and man page
 	install -m 0755 kew $(DESTDIR)$(PREFIX)/bin/kew
 	install -m 0644 docs/kew.1 $(DESTDIR)$(MAN_DIR)/man1/kew.1
+
+	# Install Chinese translation
+	install -m 0644 locale/zh_CN/LC_MESSAGES/kew.mo \
+		$(DESTDIR)/usr/share/locale/zh_CN/LC_MESSAGES/kew.mo
 	@if [ -d themes ]; then \
 		for theme in themes/*.theme; do \
 			if [ -f "$$theme" ]; then \
@@ -235,7 +244,10 @@ uninstall:
 	rm -f $(DESTDIR)$(PREFIX)/bin/kew
 	rm -f $(DESTDIR)$(MAN_DIR)/man1/kew.1
 	rm -rf $(DESTDIR)$(THEMEDIR)
+	rm -f $(DESTDIR)/usr/share/locale/zh_CN/LC_MESSAGES/kew.mo
 
 .PHONY: clean
 clean:
 	rm -rf $(OBJDIR) kew
+i18n:
+	$(MAKE) -f Makefile.i18n i18n

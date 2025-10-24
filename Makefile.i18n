@@ -1,0 +1,47 @@
+# Paths
+SRC := $(shell find src -type f \( -name "*.c" -o -name "*.h" \))
+POT := kew.pot
+PO_DIR := po
+LOCALE_DIR := locale
+LANGS := zh_CN # add other languages as needed
+
+# Default target
+.PHONY: all
+all: i18n
+	@echo "i18n ready."
+
+# Generate POT template from source
+.PHONY: pot
+pot:
+	@echo "Generating POT template..."
+	xgettext -k_ --from-code=UTF-8 -o $(POT) $(SRC)
+
+# Merge updated POT into PO files
+.PHONY: merge
+merge: pot
+	@echo "Merging POT into PO files..."
+	@for lang in $(LANGS); do \
+		msgmerge --update --backup=none $(PO_DIR)/$$lang.po $(POT); \
+	done
+
+# Compile PO files to MO
+.PHONY: mo
+mo:
+	@echo "Compiling MO files..."
+	@for lang in $(LANGS); do \
+		mkdir -p $(LOCALE_DIR)/$$lang/LC_MESSAGES; \
+		msgfmt $(PO_DIR)/$$lang.po -o $(LOCALE_DIR)/$$lang/LC_MESSAGES/kew.mo; \
+	done
+
+# Full i18n update: regenerate POT, merge PO, compile MO
+.PHONY: i18n
+i18n: pot merge mo
+	@echo "i18n updated successfully."
+
+# Clean generated files
+.PHONY: clean-i18n
+clean-i18n:
+	@echo "Cleaning MO files..."
+	@rm -rf $(LOCALE_DIR)
+	@echo "Cleaning POT template..."
+	@rm -f $(POT)

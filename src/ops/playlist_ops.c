@@ -969,8 +969,8 @@ void playFavoritesPlaylist(void)
 
         if (favoritesPlaylist->count == 0)
         {
-                printf("Couldn't find any songs in the special playlist. Add a "
-                       "song by pressing '.' while it's playing. \n");
+                printf(_("Couldn't find any songs in the special playlist. Add a "
+                       "song by pressing '.' while it's playing. \n"));
                 exit(0);
         }
 

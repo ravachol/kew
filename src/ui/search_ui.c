@@ -308,7 +308,7 @@ int displaySearchBox(int indent)
 
         clearLine();
         printBlankSpaces(indent);
-        printf(" [Search]: ");
+        printf(_(" [Search]: "));
         applyColor(ui->colorMode, ui->theme.search_query, ui->defaultColorRGB);
         // Save cursor position
         printf("%s", searchText);

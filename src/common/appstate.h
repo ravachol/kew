@@ -16,6 +16,9 @@
 #include <miniaudio.h>
 #include <sys/ioctl.h>
 #include <sys/param.h>
+#include <libintl.h>
+
+#define _(STRING) gettext(STRING)
 
 #ifndef MAXPATHLEN
 #define MAXPATHLEN 4096

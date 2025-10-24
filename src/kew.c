@@ -71,6 +71,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include <glib-unix.h>
 #include <glib.h>
 #include <locale.h>
+#include <libintl.h>
 #include <poll.h>
 #include <pwd.h>
 #include <signal.h>
@@ -384,6 +385,9 @@ void kewInit(void)
         createLibrary();
         setlocale(LC_ALL, "");
         setlocale(LC_CTYPE, "");
+        bindtextdomain("kew", "/usr/share/locale");
+        textdomain("kew");
+        state->uiSettings.LAST_ROW = _(" [F2 Playlist|F3 Library|F4 Track|F5 Search|F6 Help]");
         fflush(stdout);
 
 #ifdef DEBUG
@@ -505,18 +509,18 @@ void kewShutdown()
 
         if (noMusicFound)
         {
-                printf("No Music found.\n");
-                printf("Please make sure the path is set correctly. \n");
-                printf("To set it type: kew path \"/path/to/Music\". \n");
+                printf(_("No Music found.\n"));
+                printf(_("Please make sure the path is set correctly. \n"));
+                printf(_("To set it type: kew path \"/path/to/Music\". \n"));
         }
         else if (state->uiState.noPlaylist)
         {
-                printf("Music not found.\n");
+                printf(_("Music not found.\n"));
         }
 
         if (hasErrorMessage())
         {
-                printf("%s\n", getErrorMessage());
+                printf(_("%s\n"), getErrorMessage());
         }
 
         fflush(stdout);
@@ -577,7 +581,6 @@ void initState(void)
         state->uiState.showLyricsPage = false;
         state->uiState.currentLibEntry = NULL;
         state->tmpCache = NULL;
-        state->uiSettings.LAST_ROW = " [F2 Playlist|F3 Library|F4 Track|F5 Search|F6 Help]";
         state->uiSettings.defaultColor = 150;
         state->uiSettings.defaultColorRGB.r = state->uiSettings.defaultColor;
         state->uiSettings.defaultColorRGB.g = state->uiSettings.defaultColor;
