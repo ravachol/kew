@@ -1977,11 +1977,8 @@ static int wait_event(struct tb_event *event, int timeout_ms)
         {
                 FD_ZERO(&fds);
                 FD_SET(global.rfd, &fds);
-                FD_SET(global.resize_pipefd[0], &fds);
 
                 int maxfd = global.rfd;
-                if (global.resize_pipefd[0] > maxfd)
-                        maxfd = global.resize_pipefd[0];
 
                 int sel = select(maxfd + 1, &fds, NULL, NULL, ptv);
                 if (sel < 0)
