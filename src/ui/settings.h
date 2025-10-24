@@ -13,9 +13,9 @@
 #include "common/appstate.h"
 
 #if defined(__ANDROID__) || defined(__APPLE__)
-#define NUM_DEFAULT_KEY_BINDINGS 56
+#define NUM_DEFAULT_KEY_BINDINGS 55
 #else
-#define NUM_DEFAULT_KEY_BINDINGS 51
+#define NUM_DEFAULT_KEY_BINDINGS 50
 #endif
 
 extern size_t keybindingCount;
