@@ -557,8 +557,9 @@ int enqueueChildren(FileSystemEntry *child,
         {
                 if (child->isDirectory && child->children != NULL)
                 {
-                        hasEnqueued = enqueueChildren(child->children, firstEnqueuedEntry);
-                        child->isEnqueued = hasEnqueued;
+                        child->isEnqueued = enqueueChildren(child->children, firstEnqueuedEntry);
+                        if (child->isEnqueued == 1)
+                                hasEnqueued = 1;
                 }
                 else if (!child->isEnqueued)
                 {
@@ -610,7 +611,9 @@ bool hasDequeuedChildren(FileSystemEntry *parent)
         {
                 if (!child->isEnqueued)
                 {
-                        isDequeued = true;
+                        if (!(pathEndsWith(child->fullPath, "m3u") ||
+                                pathEndsWith(child->fullPath, "m3u8")))
+                                isDequeued = true;
                 }
                 child = child->next;
         }
