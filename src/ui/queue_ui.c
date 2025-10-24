@@ -178,7 +178,9 @@ FileSystemEntry *enqueueSongs(FileSystemEntry *entry, FileSystemEntry **chosenDi
                                 uis->collapseView = true;
                                 triggerRefresh();
                         }
-                        uis->allowChooseSongs = true;
+
+                        if (entry->parent != NULL)
+                                uis->allowChooseSongs = true;
                 }
                 else
                 {
