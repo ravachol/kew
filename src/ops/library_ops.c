@@ -178,10 +178,10 @@ void askIfCacheLibrary()
         enableInputBuffering();
         showCursor();
 
-        printf("Would you like to enable a (local) library cache for quicker "
+        printf(_("Would you like to enable a (local) library cache for quicker "
                "startup "
                "times?\nYou can update the cache at any time by pressing 'u'. "
-               "(y/n): ");
+               "(y/n): "));
 
         fflush(stdout);
 

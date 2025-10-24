@@ -278,7 +278,7 @@ void printHelp(void)
 
         if (i != 0)
         {
-                printf("Run man kew for help.\n");
+                printf(_("Run man kew for help.\n"));
         }
 }
 
@@ -837,7 +837,7 @@ void printFooter(int row, int col, AppSettings *settings)
         formatWithShiftPlus(help, sizeof(help), settings->showKeysAlt);
 
         snprintf(text, sizeof(text),
-                 "%s Playlist|%s Library|%s Track|%s Search|%s Help", playlist,
+                 _("%s Playlist|%s Library|%s Track|%s Search|%s Help"), playlist,
                  library, track, search, help);
 
 #else
@@ -987,7 +987,7 @@ int printAbout(SongData *songdata)
 
         applyColor(ui->colorMode, ui->theme.text, ui->defaultColorRGB);
         printBlankSpaces(indent);
-        printf(" kew version: ");
+        printf(_(" kew version: "));
         applyColor(ui->colorMode, ui->theme.help, ui->color);
         printf("%s\n", ui->VERSION);
         clearLine();
@@ -1025,42 +1025,42 @@ int showKeyBindings(SongData *songdata, AppSettings *settings)
         applyColor(ui->colorMode, ui->theme.text, ui->defaultColorRGB);
 
         printBlankSpaces(indent);
-        printf(" Manual: See");
+        printf(_(" Manual: See"));
         applyColor(ui->colorMode, ui->theme.help, ui->color);
-        printf(" README");
+        printf(_(" README"));
         applyColor(ui->colorMode, ui->theme.text, ui->defaultColorRGB);
-        printf(" Or man kew\n\n");
+        printf(_(" Or man kew\n\n"));
         numPrintedRows += 2;
         CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
-        printf(" · Play/Pause: SPACE, %s or right click\n",
+        printf(_(" · Play/Pause: SPACE, %s or right click\n"),
                settings->togglePause);
         numPrintedRows++;
         CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
-        printf(" · Enqueue/Dequeue: Enter\n");
+        printf(_(" · Enqueue/Dequeue: Enter\n"));
         numPrintedRows++;
         CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
-        printf(" · Quit: Esc or %s\n", settings->quit);
+        printf(_(" · Quit: Esc or %s\n"), settings->quit);
         numPrintedRows++;
         CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
-        printf(" · Switch tracks: ← and → or %s and %s\n",
+        printf(_(" · Switch tracks: ← and → or %s and %s\n"),
                settings->previousTrackAlt, settings->nextTrackAlt);
         numPrintedRows++;
         CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
-        printf(" · Volume: %s (or %s) and %s\n", settings->volumeUp,
+        printf(_(" · Volume: %s (or %s) and %s\n"), settings->volumeUp,
                settings->volumeUpAlt, settings->volumeDown);
         numPrintedRows++;
         CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
-        printf(" · Clear List: Backspace\n");
+        printf(_(" · Clear List: Backspace\n"));
         numPrintedRows++;
         CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
-        printf(" · Change View: TAB or ");
+        printf(_(" · Change View: TAB or "));
 
 #if defined(__ANDROID__) || defined(__APPLE__)
         printf("%s, %s, %s, %s, %s", settings->showPlaylistAlt,
@@ -1069,79 +1069,79 @@ int showKeyBindings(SongData *songdata, AppSettings *settings)
 #else
         printf("F2-F6");
 #endif
-        printf(" or click the footer\n");
+        printf(_(" or click the footer\n"));
         numPrintedRows++;
         CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
         printf(
-            " · Cycle Color Mode: %s (default theme, theme or cover colors)\n",
+            _(" · Cycle Color Mode: %s (default theme, theme or cover colors)\n"),
             settings->cycleColorsDerivedFrom);
         numPrintedRows++;
         CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
-        printf(" · Cycle Themes: %s\n", settings->cycleThemes);
+        printf(_(" · Cycle Themes: %s\n"), settings->cycleThemes);
         numPrintedRows++;
         CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
-        printf(" · Stop: Shift+s\n");
+        printf(_(" · Stop: Shift+s\n"));
         numPrintedRows++;
         CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
-        printf(" · Update Library: %s\n", settings->updateLibrary);
+        printf(_(" · Update Library: %s\n"), settings->updateLibrary);
         numPrintedRows++;
         CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
-        printf(" · Toggle Visualizer: %s\n", settings->toggleVisualizer);
+        printf(_(" · Toggle Visualizer: %s\n"), settings->toggleVisualizer);
         numPrintedRows++;
         CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
-        printf(" · Toggle ASCII Cover: %s\n", settings->toggleAscii);
+        printf(_(" · Toggle ASCII Cover: %s\n"), settings->toggleAscii);
         numPrintedRows++;
         CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
-        printf(" · Toggle Lyrics Page on Track View: %s\n", settings->showLyricsPage);
+        printf(_(" · Toggle Lyrics Page on Track View: %s\n"), settings->showLyricsPage);
         numPrintedRows++;
         CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
-        printf(" · Toggle Notifications: %s\n", settings->toggleNotifications);
+        printf(_(" · Toggle Notifications: %s\n"), settings->toggleNotifications);
         numPrintedRows++;
         CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
-        printf(" · Cycle Repeat: %s (repeat/repeat list/off)\n",
+        printf(_(" · Cycle Repeat: %s (repeat/repeat list/off)\n"),
                settings->toggleRepeat);
         numPrintedRows++;
         CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
-        printf(" · Shuffle: %s\n", settings->toggleShuffle);
+        printf(_(" · Shuffle: %s\n"), settings->toggleShuffle);
         numPrintedRows++;
         CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
-        printf(" · Seek: %s and %s\n", settings->seekBackward,
+        printf(_(" · Seek: %s and %s\n"), settings->seekBackward,
                settings->seekForward);
         numPrintedRows++;
         CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
-        printf(" · Export Playlist: %s (named after the first song)\n",
+        printf(_(" · Export Playlist: %s (named after the first song)\n"),
                settings->savePlaylist);
         numPrintedRows++;
         CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
-        printf(" · Add Song To 'kew favorites.m3u': %s (run with 'kew .')\n\n",
+        printf(_(" · Add Song To 'kew favorites.m3u': %s (run with 'kew .')\n\n"),
                settings->addToFavoritesPlaylist);
         numPrintedRows += 3;
         CHECK_LIST_LIMIT();
         applyColor(ui->colorMode, ui->theme.text, ui->defaultColorRGB);
         printBlankSpaces(indent);
-        printf(" Theme: ");
+        printf(_(" Theme: "));
 
         if (ui->colorMode == COLOR_MODE_ALBUM)
         {
                 applyColor(ui->colorMode, ui->theme.text, ui->defaultColorRGB);
-                printf("Using ");
+                printf(_("Using "));
                 applyColor(ui->colorMode, ui->theme.text, ui->color);
-                printf("Colors ");
+                printf(_("Colors "));
                 applyColor(ui->colorMode, ui->theme.text, ui->defaultColorRGB);
-                printf("From Track Covers");
+                printf(_("From Track Covers"));
         }
         else
         {
@@ -1152,7 +1152,7 @@ int showKeyBindings(SongData *songdata, AppSettings *settings)
         applyColor(ui->colorMode, ui->theme.text, ui->defaultColorRGB);
         if (ui->colorMode != COLOR_MODE_ALBUM)
         {
-                printf(" Author: ");
+                printf(_(" Author: "));
                 applyColor(ui->colorMode, ui->theme.help, ui->color);
                 printf("%s", ui->theme.theme_author);
         }
@@ -1162,14 +1162,14 @@ int showKeyBindings(SongData *songdata, AppSettings *settings)
         CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
         applyColor(ui->colorMode, ui->theme.help, ui->defaultColorRGB);
-        printf(" Project URL:");
+        printf(_(" Project URL:"));
         applyColor(ui->colorMode, ui->theme.link, ui->color);
         printf(" https://codeberg.org/ravachol/kew\n");
         numPrintedRows += 1;
         CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
         applyColor(ui->colorMode, ui->theme.help, ui->defaultColorRGB);
-        printf(" Please Donate:");
+        printf(_(" Please Donate:"));
         applyColor(ui->colorMode, ui->theme.link, ui->color);
         printf(" https://ko-fi.com/ravachol\n\n");
         numPrintedRows += 2;
@@ -1411,17 +1411,18 @@ int printLogoAndAdjustments(SongData *songData, int termWidth, UISettings *ui,
         if (termWidth > 52 && !ui->hideHelp)
         {
                 printBlankSpaces(indentation);
-                printf(" Use ↑/↓ or k/j to select. Enter: Accept. Backspace: "
-                       "clear.\n");
                 clearLine();
+                printf(_(" Use ↑/↓ or k/j to select. Enter: Accept. Backspace: clear.\n"));
                 printBlankSpaces(indentation);
 #ifndef __APPLE__
-                printf(" PgUp/PgDn: scroll. Del: remove. %s/%s: move songs.\n",
+                clearLine();
+                printf(_(" PgUp/PgDn: scroll. Del: remove. %s/%s: move songs.\n"),
                        settings->moveSongUp, settings->moveSongDown);
                 clearLine();
                 printf("\n");
 #else
-                printf(" Fn+↑/↓: scroll. Del: remove. %s/%s: move songs.\n",
+                clearLine();
+                printf(_(" Fn+↑/↓: scroll. Del: remove. %s/%s: move songs.\n"),
                        settings->moveSongUp, settings->moveSongDown);
                 clearLine();
                 printf("\n");
@@ -1451,7 +1452,8 @@ void showSearch(SongData *songData, int *chosenRow, AppSettings *settings)
         {
                 clearLine();
                 printBlankSpaces(indent);
-                printf(" Use ↑/↓ to select. Enter: Enqueue. Alt+Enter: Play.\n");
+                clearLine();
+                printf(_(" Use ↑/↓ to select. Enter: Enqueue. Alt+Enter: Play.\n"));
                 clearLine();
                 printf("\n");
                 maxSearchListSize -= 2;
@@ -1496,7 +1498,7 @@ void showPlaylist(SongData *songData, PlayList *list, int *chosenSong,
         {
                 clearLine();
                 printBlankSpaces(indent);
-                printf("   ─ PLAYLIST ─\n");
+                printf(_("   ─ PLAYLIST ─\n"));
         }
 
         maxListSize -= 1;
@@ -1851,7 +1853,7 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize,
                                 if (strcmp(root->name, "root") == 0)
                                         snprintf(dirName,
                                                  maxNameWidth + 1 - extraIndent,
-                                                 "%s", "─ MUSIC LIBRARY ─");
+                                                 "%s", _("─ MUSIC LIBRARY ─"));
                                 else
                                         snprintf(dirName,
                                                  maxNameWidth + 1 - extraIndent,
@@ -2010,17 +2012,16 @@ void showLibrary(SongData *songData, AppSettings *settings)
                 maxLibListSize -= 3;
                 clearLine();
                 printBlankSpaces(indent);
-                printf(" Use ↑/↓ or k/j to select. Enter: Enqueue/Dequeue. "
-                       "Alt+Enter: Play.\n");
                 clearLine();
+                printf(_(" Use ↑/↓ or k/j to select. Enter: Enqueue/Dequeue. Alt+Enter: Play.\n"));
                 printBlankSpaces(indent);
 #ifndef __APPLE__
-                printf(" PgUp/PgDn: scroll. u: update, o: sort.\n");
                 clearLine();
+                printf(_(" PgUp/PgDn: scroll. u: update, o: sort.\n"));
                 printf("\n");
 #else
-                printf(" Fn+↑/↓: scroll. u: update, o: sort.\n");
                 clearLine();
+                printf(_(" Fn+↑/↓: scroll. u: update, o: sort.\n"));
                 printf("\n");
 #endif
         }
@@ -2113,7 +2114,7 @@ void printLyricsPage(UISettings *ui, AppSettings *settings, int row, int col, do
         if (!lyrics || lyrics->count == 0)
         {
                 printf("\033[%d;%dH", row, col);
-                printf(" No lyrics available. Press %s to go back.", settings->showLyricsPage);
+                printf(_(" No lyrics available. Press %s to go back."), settings->showLyricsPage);
                 return;
         }
 

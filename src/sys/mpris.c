@@ -1117,7 +1117,7 @@ void initMpris(void)
 {
 #ifndef __APPLE__
         AppState *state = getAppState();
-        
+
         if (getGMainContext() == NULL)
         {
                 setGMainContext(g_main_context_new());
@@ -1143,7 +1143,7 @@ void initMpris(void)
 
         if (bus_name_id == 0)
         {
-                printf("Failed to own D-Bus name: %s\n", app_name);
+                printf(_("Failed to own D-Bus name: %s\n"), app_name);
                 exit(0);
         }
 
