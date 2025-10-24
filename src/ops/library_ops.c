@@ -612,7 +612,7 @@ bool hasDequeuedChildren(FileSystemEntry *parent)
                 if (!child->isEnqueued)
                 {
                         if (!(pathEndsWith(child->fullPath, "m3u") ||
-                                pathEndsWith(child->fullPath, "m3u8")))
+                                pathEndsWith(child->fullPath, "m3u8") || child->isDirectory == 1))
                                 isDequeued = true;
                 }
                 child = child->next;
