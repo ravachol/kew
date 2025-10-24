@@ -90,7 +90,6 @@ TBKeyBinding keyBindings[MAX_KEY_BINDINGS] = {
     {TB_KEY_ENTER, 0, 0, EVENT_ENQUEUE, ""},
     {0, 'G', 0, EVENT_ENQUEUE, ""},
     {TB_KEY_BACKSPACE, 0, 0, EVENT_CLEARPLAYLIST, ""},
-    {TB_KEY_BACKSPACE2, 0, 0, EVENT_CLEARPLAYLIST, ""},
     {TB_KEY_ENTER, 0, TB_MOD_ALT, EVENT_ENQUEUEANDPLAY, ""},
 
     // Hard navigation / arrows
