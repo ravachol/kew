@@ -106,7 +106,7 @@ TBKeyBinding keyBindings[MAX_KEY_BINDINGS] = {
     {0, 'X', 0, EVENT_SHOWLIBRARY, ""},
     {0, 'C', 0, EVENT_SHOWTRACK, ""},
     {0, 'V', 0, EVENT_SHOWSEARCH, ""},
-    {0, 'B', 0, EVENT_SHOWKEYBINDINGS, ""},
+    {0, 'B', 0, EVENT_SHOWHELP, ""},
 
 #endif
 
