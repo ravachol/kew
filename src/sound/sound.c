@@ -613,7 +613,7 @@ int opus_createAudioDevice(UserData *userData, ma_device *device,
 
         if (result != MA_SUCCESS)
         {
-                printf("\n\nFailed to initialize opus file.\n");
+                printf(_("\n\nFailed to initialize opus file.\n"));
                 return -1;
         }
 
@@ -638,7 +638,7 @@ int webm_createAudioDevice(UserData *userData, ma_device *device,
         result = initFirstDatasource(userData);
         if (result != MA_SUCCESS)
         {
-                printf("\n\nFailed to initialize webm file.\n");
+                printf(_("\n\nFailed to initialize webm file.\n"));
                 return -1;
         }
         ma_webm *decoder = getFirstWebmDecoder();

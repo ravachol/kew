@@ -147,14 +147,14 @@ void setMusicPath(void)
                         printf("\n\n");
 
                         printBlankSpaces(indent);
-                        printf("Music Library: ");
+                        printf(_("Music Library: "));
                         applyColor(COLOR_MODE_ALBUM, ui->theme.text, ui->kewColorRGB);
                         printf("%s\n\n", path);
                         applyColor(COLOR_MODE_ALBUM, ui->theme.text, ui->defaultColorRGB);
                         printBlankSpaces(indent);
-                        printf("Is this correct? Press Enter.\n\n");
+                        printf(_("Is this correct? Press Enter.\n\n"));
                         printBlankSpaces(indent);
-                        printf("Or type a path (no quotes or single-quotes):\n\n");
+                        printf(_("Or type a path (no quotes or single-quotes):\n\n"));
                         printBlankSpaces(indent);
 
                         applyColor(COLOR_MODE_ALBUM, ui->theme.text, ui->kewColorRGB);
@@ -162,7 +162,7 @@ void setMusicPath(void)
                         if (fgets(choice, sizeof(choice), stdin) == NULL)
                         {
                                 printBlankSpaces(indent);
-                                printf("Error reading input.\n");
+                                printf(_("Error reading input.\n"));
                                 exit(1);
                         }
 
@@ -184,14 +184,14 @@ void setMusicPath(void)
         // No standard music folder was found
         if (found < 1)
         {
-                printf("Type a path (no quotes or single-quotes):\n\n");
+                printf(_("Type a path (no quotes or single-quotes):\n\n"));
                 printBlankSpaces(indent);
                 applyColor(COLOR_MODE_ALBUM, ui->theme.text, ui->kewColorRGB);
 
                 if (fgets(choice, sizeof(choice), stdin) == NULL)
                 {
                         printBlankSpaces(indent);
-                        printf("Error reading input.\n");
+                        printf(_("Error reading input.\n"));
                         exit(1);
                 }
         }

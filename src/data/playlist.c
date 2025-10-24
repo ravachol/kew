@@ -192,7 +192,7 @@ void shufflePlaylist(PlayList *playlist)
         // Check for overflow before malloc
         if ((size_t)playlist->count > SIZE_MAX / sizeof(Node *))
         {
-                printf("Playlist too large to allocate.\n");
+                printf(_("Playlist too large to allocate.\n"));
                 // atexit() will free up resources properly
                 exit(1);
         }
@@ -201,7 +201,7 @@ void shufflePlaylist(PlayList *playlist)
         Node **nodes = (Node **)malloc(playlist->count * sizeof(Node *));
         if (nodes == NULL)
         {
-                printf("Memory allocation error.\n");
+                printf(_("Memory allocation error.\n"));
                 // atexit() will free up resources properly
                 exit(1);
         }
@@ -293,7 +293,7 @@ void createNode(Node **node, const char *directoryPath, int id)
         *node = (Node *)malloc(sizeof(Node));
         if (*node == NULL)
         {
-                printf("Failed to allocate memory.");
+                printf(_("Failed to allocate memory."));
                 free(song.filePath);
                 exit(0);
                 return;
@@ -348,7 +348,7 @@ void buildPlaylistRecursive(const char *directoryPath,
         DIR *dir = opendir(expandedPath);
         if (dir == NULL)
         {
-                printf("Failed to open directory: %s\n", expandedPath);
+                printf(_("Failed to open directory: %s\n"), expandedPath);
                 return;
         }
 
@@ -356,7 +356,7 @@ void buildPlaylistRecursive(const char *directoryPath,
         int ret = regcomp(&regex, allowedExtensions, REG_EXTENDED);
         if (ret != 0)
         {
-                printf("Failed to compile regular expression\n");
+                printf(_("Failed to compile regular expression\n"));
                 closedir(dir);
                 return;
         }
@@ -368,7 +368,7 @@ void buildPlaylistRecursive(const char *directoryPath,
 
         if (numEntries < 0)
         {
-                printf("Failed to scan directory: %s\n", expandedPath);
+                printf(_("Failed to scan directory: %s\n"), expandedPath);
                 return;
         }
 
@@ -689,7 +689,7 @@ int makePlaylist(PlayList **playlist, int argc, char *argv[], bool exactSearch, 
                 shufflePlaylist(*playlist);
 
         if ((*playlist)->head == NULL)
-                printf("Music not found\n");
+                printf(_("Music not found\n"));
 
         return 0;
 }
