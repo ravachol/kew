@@ -385,7 +385,15 @@ void kewInit(void)
         createLibrary();
         setlocale(LC_ALL, "");
         setlocale(LC_CTYPE, "");
-        bindtextdomain("kew", "/usr/share/locale");
+#ifdef __ANDROID__
+        // Termux prefix
+        const char *localeDir = "/data/data/com.termux/files/usr/share/locale";
+#elif __APPLE__
+        const char *localeDir = "/usr/local/share/locale";
+#else
+        const char *localeDir = "/usr/share/locale";
+#endif
+        bindtextdomain("kew", localeDir);
         textdomain("kew");
         state->uiSettings.LAST_ROW = _(" [F2 Playlist|F3 Library|F4 Track|F5 Search|F6 Help]");
         fflush(stdout);
