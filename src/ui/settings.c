@@ -50,6 +50,7 @@ typedef struct
 } KeyMap;
 
 TBKeyBinding keyBindings[MAX_KEY_BINDINGS] = {
+    {TB_KEY_SPACE, 0, 0, EVENT_PLAY_PAUSE, ""},
     // Basic navigation
     {TB_KEY_TAB, 0, TB_MOD_SHIFT, EVENT_PREVVIEW, ""},
     {TB_KEY_TAB, 0, 0, EVENT_NEXTVIEW, ""},
@@ -66,7 +67,6 @@ TBKeyBinding keyBindings[MAX_KEY_BINDINGS] = {
     {0, 'j', 0, EVENT_SCROLLDOWN, ""},
 
     // Controls
-    {TB_KEY_SPACE, 0, 0, EVENT_PLAY_PAUSE, ""},
     {0, 'p', 0, EVENT_PLAY_PAUSE, ""},
     {0, 'n', 0, EVENT_TOGGLENOTIFICATIONS, ""},
     {0, 'v', 0, EVENT_TOGGLEVISUALIZER, ""},
