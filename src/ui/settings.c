@@ -551,22 +551,13 @@ void setDefaultConfig(AppSettings *settings)
         memcpy(settings->ansiTheme, "default", 8);
 }
 
-bool isAlphanumeric(const char *value)
+bool isPrintableAscii(const char *value)
 {
-        if (value == NULL || *value == '\0')
-        {
-                return false; // Empty or NULL string is not alphanumeric
-        }
+    if (value == NULL || value[0] == '\0' || value[1] != '\0')
+        return false; // must be exactly one character
 
-        for (const char *p = value; *p != '\0'; p++)
-        {
-                if (!isalnum((unsigned char)*p))
-                {
-                        return false; // Found a non-alphanumeric character
-                }
-        }
-
-        return true; // All characters are alphanumeric
+    unsigned char c = (unsigned char)value[0];
+    return (c >= 32 && c <= 126); // printable ASCII range
 }
 
 uint32_t utf8ToCodepoint(const char *s)
@@ -584,27 +575,28 @@ uint32_t utf8ToCodepoint(const char *s)
                 return 0; // invalid
 }
 
-void removeAlphaNumericKeyBinding(char *value)
+void removePrintableKeyBinding(char *value)
 {
         for (size_t i = 0; i < keybindingCount; i++)
         {
-                if (keyBindings[i].ch == utf8ToCodepoint(value))
+                if (keyBindings[i].ch == utf8ToCodepoint(value) && keyBindings[i].mods == 0)
                 {
                         keyBindings[i].ch = 0;
                         keyBindings[i].eventType = EVENT_NONE;
+                        keyBindings[i].args[0] = '\0';
                 }
         }
 }
 
-void addAlphaNumericKeyBinding(enum EventType event, char *value)
+void addPrintableKeyBinding(enum EventType event, char *value)
 {
-        if (!isAlphanumeric(value))
+        if (!isPrintableAscii(value))
                 return;
 
         if (keybindingCount >= MAX_KEY_BINDINGS)
                 return;
 
-        removeAlphaNumericKeyBinding(value);
+        removePrintableKeyBinding(value);
 
         TBKeyBinding kb = {0, 0, 0, event, ""};
         kb.ch = utf8ToCodepoint(value);
@@ -770,70 +762,70 @@ void constructAppSettings(AppSettings *settings, KeyValuePair *pairs, int count)
                 {
                         snprintf(settings->volumeUp, sizeof(settings->volumeUp),
                                  "%s", pair->value);
-                        addAlphaNumericKeyBinding(EVENT_VOLUME_UP, pair->value);
+                        addPrintableKeyBinding(EVENT_VOLUME_UP, pair->value);
                 }
                 else if (strcmp(lowercaseKey, "volumeupalt") == 0)
                 {
                         snprintf(settings->volumeUpAlt,
                                  sizeof(settings->volumeUpAlt), "%s",
                                  pair->value);
-                        addAlphaNumericKeyBinding(EVENT_VOLUME_UP, pair->value);
+                        addPrintableKeyBinding(EVENT_VOLUME_UP, pair->value);
                 }
                 else if (strcmp(lowercaseKey, "volumedown") == 0)
                 {
                         snprintf(settings->volumeDown,
                                  sizeof(settings->volumeDown), "%s",
                                  pair->value);
-                        addAlphaNumericKeyBinding(EVENT_VOLUME_DOWN, pair->value);
+                        addPrintableKeyBinding(EVENT_VOLUME_DOWN, pair->value);
                 }
                 else if (strcmp(lowercaseKey, "previoustrackalt") == 0)
                 {
                         snprintf(settings->previousTrackAlt,
                                  sizeof(settings->previousTrackAlt), "%s",
                                  pair->value);
-                        addAlphaNumericKeyBinding(EVENT_PREV, pair->value);
+                        addPrintableKeyBinding(EVENT_PREV, pair->value);
                 }
                 else if (strcmp(lowercaseKey, "nexttrackalt") == 0)
                 {
                         snprintf(settings->nextTrackAlt,
                                  sizeof(settings->nextTrackAlt), "%s",
                                  pair->value);
-                        addAlphaNumericKeyBinding(EVENT_NEXT, pair->value);
+                        addPrintableKeyBinding(EVENT_NEXT, pair->value);
                 }
                 else if (strcmp(lowercaseKey, "scrollupalt") == 0)
                 {
                         snprintf(settings->scrollUpAlt,
                                  sizeof(settings->scrollUpAlt), "%s",
                                  pair->value);
-                        addAlphaNumericKeyBinding(EVENT_SCROLLUP, pair->value);
+                        addPrintableKeyBinding(EVENT_SCROLLUP, pair->value);
                 }
                 else if (strcmp(lowercaseKey, "scrolldownalt") == 0)
                 {
                         snprintf(settings->scrollDownAlt,
                                  sizeof(settings->scrollDownAlt), "%s",
                                  pair->value);
-                        addAlphaNumericKeyBinding(EVENT_SCROLLDOWN, pair->value);
+                        addPrintableKeyBinding(EVENT_SCROLLDOWN, pair->value);
                 }
                 else if (strcmp(lowercaseKey, "switchnumberedsong") == 0)
                 {
                         snprintf(settings->switchNumberedSong,
                                  sizeof(settings->switchNumberedSong), "%s",
                                  pair->value);
-                        addAlphaNumericKeyBinding(EVENT_ENQUEUE, pair->value);
+                        addPrintableKeyBinding(EVENT_ENQUEUE, pair->value);
                 }
                 else if (strcmp(lowercaseKey, "togglepause") == 0)
                 {
                         snprintf(settings->togglePause,
                                  sizeof(settings->togglePause), "%s",
                                  pair->value);
-                        addAlphaNumericKeyBinding(EVENT_PLAY_PAUSE, pair->value);
+                        addPrintableKeyBinding(EVENT_PLAY_PAUSE, pair->value);
                 }
                 else if (strcmp(lowercaseKey, "togglecolorsderivedfrom") == 0)
                 {
                         snprintf(settings->cycleColorsDerivedFrom,
                                  sizeof(settings->cycleColorsDerivedFrom), "%s",
                                  pair->value);
-                        addAlphaNumericKeyBinding(EVENT_CYCLECOLORMODE, pair->value);
+                        addPrintableKeyBinding(EVENT_CYCLECOLORMODE, pair->value);
                 }
                 else if (strcmp(lowercaseKey, "cyclethemes") == 0)
                 {
@@ -841,70 +833,70 @@ void constructAppSettings(AppSettings *settings, KeyValuePair *pairs, int count)
                                  sizeof(settings->cycleThemes), "%s",
                                  pair->value);
                         foundCycleThemesSetting = true;
-                        addAlphaNumericKeyBinding(EVENT_CYCLETHEMES, pair->value);
+                        addPrintableKeyBinding(EVENT_CYCLETHEMES, pair->value);
                 }
                 else if (strcmp(lowercaseKey, "togglenotifications") == 0)
                 {
                         snprintf(settings->toggleNotifications,
                                  sizeof(settings->toggleNotifications), "%s",
                                  pair->value);
-                        addAlphaNumericKeyBinding(EVENT_TOGGLENOTIFICATIONS, pair->value);
+                        addPrintableKeyBinding(EVENT_TOGGLENOTIFICATIONS, pair->value);
                 }
                 else if (strcmp(lowercaseKey, "togglevisualizer") == 0)
                 {
                         snprintf(settings->toggleVisualizer,
                                  sizeof(settings->toggleVisualizer), "%s",
                                  pair->value);
-                        addAlphaNumericKeyBinding(EVENT_TOGGLEVISUALIZER, pair->value);
+                        addPrintableKeyBinding(EVENT_TOGGLEVISUALIZER, pair->value);
                 }
                 else if (strcmp(lowercaseKey, "toggleascii") == 0)
                 {
                         snprintf(settings->toggleAscii,
                                  sizeof(settings->toggleAscii), "%s",
                                  pair->value);
-                        addAlphaNumericKeyBinding(EVENT_TOGGLEASCII, pair->value);
+                        addPrintableKeyBinding(EVENT_TOGGLEASCII, pair->value);
                 }
                 else if (strcmp(lowercaseKey, "togglerepeat") == 0)
                 {
                         snprintf(settings->toggleRepeat,
                                  sizeof(settings->toggleRepeat), "%s",
                                  pair->value);
-                        addAlphaNumericKeyBinding(EVENT_TOGGLEREPEAT, pair->value);
+                        addPrintableKeyBinding(EVENT_TOGGLEREPEAT, pair->value);
                 }
                 else if (strcmp(lowercaseKey, "toggleshuffle") == 0)
                 {
                         snprintf(settings->toggleShuffle,
                                  sizeof(settings->toggleShuffle), "%s",
                                  pair->value);
-                        addAlphaNumericKeyBinding(EVENT_SHUFFLE, pair->value);
+                        addPrintableKeyBinding(EVENT_SHUFFLE, pair->value);
                 }
                 else if (strcmp(lowercaseKey, "seekbackward") == 0)
                 {
                         snprintf(settings->seekBackward,
                                  sizeof(settings->seekBackward), "%s",
                                  pair->value);
-                        addAlphaNumericKeyBinding(EVENT_SEEKBACK, pair->value);
+                        addPrintableKeyBinding(EVENT_SEEKBACK, pair->value);
                 }
                 else if (strcmp(lowercaseKey, "seekforward") == 0)
                 {
                         snprintf(settings->seekForward,
                                  sizeof(settings->seekForward), "%s",
                                  pair->value);
-                        addAlphaNumericKeyBinding(EVENT_SEEKFORWARD, pair->value);
+                        addPrintableKeyBinding(EVENT_SEEKFORWARD, pair->value);
                 }
                 else if (strcmp(lowercaseKey, "saveplaylist") == 0)
                 {
                         snprintf(settings->savePlaylist,
                                  sizeof(settings->savePlaylist), "%s",
                                  pair->value);
-                        addAlphaNumericKeyBinding(EVENT_EXPORTPLAYLIST, pair->value);
+                        addPrintableKeyBinding(EVENT_EXPORTPLAYLIST, pair->value);
                 }
                 else if (strcmp(lowercaseKey, "addtofavoritesplaylist") == 0)
                 {
                         snprintf(settings->addToFavoritesPlaylist,
                                  sizeof(settings->addToFavoritesPlaylist), "%s",
                                  pair->value);
-                        addAlphaNumericKeyBinding(EVENT_ADDTOFAVORITESPLAYLIST, pair->value);
+                        addPrintableKeyBinding(EVENT_ADDTOFAVORITESPLAYLIST, pair->value);
                 }
                 else if (strcmp(lowercaseKey, "lastvolume") == 0)
                 {
@@ -1068,32 +1060,32 @@ void constructAppSettings(AppSettings *settings, KeyValuePair *pairs, int count)
                 {
                         snprintf(settings->quit, sizeof(settings->quit), "%s",
                                  pair->value);
-                        addAlphaNumericKeyBinding(EVENT_QUIT, pair->value);
+                        addPrintableKeyBinding(EVENT_QUIT, pair->value);
                 }
                 else if (strcmp(lowercaseKey, "altquit") == 0)
                 {
                         snprintf(settings->altQuit, sizeof(settings->altQuit),
                                  "%s", pair->value);
-                        addAlphaNumericKeyBinding(EVENT_QUIT, pair->value);
+                        addPrintableKeyBinding(EVENT_QUIT, pair->value);
                 }
                 else if (strcmp(lowercaseKey, "prevpage") == 0)
                 {
                         snprintf(settings->prevPage, sizeof(settings->prevPage),
                                  "%s", pair->value);
-                        addAlphaNumericKeyBinding(EVENT_PREVPAGE, pair->value);
+                        addPrintableKeyBinding(EVENT_PREVPAGE, pair->value);
                 }
                 else if (strcmp(lowercaseKey, "nextpage") == 0)
                 {
                         snprintf(settings->nextPage, sizeof(settings->nextPage),
                                  "%s", pair->value);
-                        addAlphaNumericKeyBinding(EVENT_NEXTPAGE, pair->value);
+                        addPrintableKeyBinding(EVENT_NEXTPAGE, pair->value);
                 }
                 else if (strcmp(lowercaseKey, "updatelibrary") == 0)
                 {
                         snprintf(settings->updateLibrary,
                                  sizeof(settings->updateLibrary), "%s",
                                  pair->value);
-                        addAlphaNumericKeyBinding(EVENT_UPDATELIBRARY, pair->value);
+                        addPrintableKeyBinding(EVENT_UPDATELIBRARY, pair->value);
                 }
                 else if (strcmp(lowercaseKey, "showplaylistalt") == 0)
                 {
@@ -1102,7 +1094,7 @@ void constructAppSettings(AppSettings *settings, KeyValuePair *pairs, int count)
                                 snprintf(settings->showPlaylistAlt,
                                          sizeof(settings->showPlaylistAlt), "%s",
                                          pair->value);
-                        addAlphaNumericKeyBinding(EVENT_SHOWPLAYLIST, pair->value);
+                        addPrintableKeyBinding(EVENT_SHOWPLAYLIST, pair->value);
                 }
                 else if (strcmp(lowercaseKey, "showlibraryalt") == 0)
                 {
@@ -1110,7 +1102,7 @@ void constructAppSettings(AppSettings *settings, KeyValuePair *pairs, int count)
                                 snprintf(settings->showLibraryAlt,
                                          sizeof(settings->showLibraryAlt), "%s",
                                          pair->value);
-                        addAlphaNumericKeyBinding(EVENT_SHOWLIBRARY, pair->value);
+                        addPrintableKeyBinding(EVENT_SHOWLIBRARY, pair->value);
                 }
                 else if (strcmp(lowercaseKey, "showtrackalt") == 0)
                 {
@@ -1118,7 +1110,7 @@ void constructAppSettings(AppSettings *settings, KeyValuePair *pairs, int count)
                                 snprintf(settings->showTrackAlt,
                                          sizeof(settings->showTrackAlt), "%s",
                                          pair->value);
-                        addAlphaNumericKeyBinding(EVENT_SHOWTRACK, pair->value);
+                        addPrintableKeyBinding(EVENT_SHOWTRACK, pair->value);
                 }
                 else if (strcmp(lowercaseKey, "showsearchalt") == 0)
                 {
@@ -1126,7 +1118,7 @@ void constructAppSettings(AppSettings *settings, KeyValuePair *pairs, int count)
                                 snprintf(settings->showSearchAlt,
                                          sizeof(settings->showSearchAlt), "%s",
                                          pair->value);
-                        addAlphaNumericKeyBinding(EVENT_SHOWSEARCH, pair->value);
+                        addPrintableKeyBinding(EVENT_SHOWSEARCH, pair->value);
                 }
                 else if (strcmp(lowercaseKey, "showlyricspage") == 0)
                 {
@@ -1134,7 +1126,7 @@ void constructAppSettings(AppSettings *settings, KeyValuePair *pairs, int count)
                                 snprintf(settings->showLyricsPage,
                                          sizeof(settings->showLyricsPage), "%s",
                                          pair->value);
-                        addAlphaNumericKeyBinding(EVENT_SHOWLYRICSPAGE, pair->value);
+                        addPrintableKeyBinding(EVENT_SHOWLYRICSPAGE, pair->value);
                 }
                 else if (strcmp(lowercaseKey, "movesongup") == 0)
                 {
@@ -1142,7 +1134,7 @@ void constructAppSettings(AppSettings *settings, KeyValuePair *pairs, int count)
                                 snprintf(settings->moveSongUp,
                                          sizeof(settings->moveSongUp), "%s",
                                          pair->value);
-                        addAlphaNumericKeyBinding(EVENT_MOVESONGUP, pair->value);
+                        addPrintableKeyBinding(EVENT_MOVESONGUP, pair->value);
                 }
                 else if (strcmp(lowercaseKey, "movesongdown") == 0)
                 {
@@ -1150,7 +1142,7 @@ void constructAppSettings(AppSettings *settings, KeyValuePair *pairs, int count)
                                 snprintf(settings->moveSongDown,
                                          sizeof(settings->moveSongDown), "%s",
                                          pair->value);
-                        addAlphaNumericKeyBinding(EVENT_MOVESONGDOWN, pair->value);
+                        addPrintableKeyBinding(EVENT_MOVESONGDOWN, pair->value);
                 }
                 else if (strcmp(lowercaseKey, "enqueueandplay") == 0)
                 {
@@ -1158,7 +1150,7 @@ void constructAppSettings(AppSettings *settings, KeyValuePair *pairs, int count)
                                 snprintf(settings->enqueueAndPlay,
                                          sizeof(settings->enqueueAndPlay), "%s",
                                          pair->value);
-                        addAlphaNumericKeyBinding(EVENT_ENQUEUEANDPLAY, pair->value);
+                        addPrintableKeyBinding(EVENT_ENQUEUEANDPLAY, pair->value);
                 }
                 else if (strcmp(lowercaseKey, "sort") == 0)
                 {
@@ -1166,7 +1158,7 @@ void constructAppSettings(AppSettings *settings, KeyValuePair *pairs, int count)
                                 snprintf(settings->sortLibrary,
                                          sizeof(settings->sortLibrary), "%s",
                                          pair->value);
-                        addAlphaNumericKeyBinding(EVENT_SORTLIBRARY, pair->value);
+                        addPrintableKeyBinding(EVENT_SORTLIBRARY, pair->value);
                 }
                 else if (strcmp(lowercaseKey, "progressbarelapsedevenchar") ==
                          0)
@@ -1232,7 +1224,7 @@ void constructAppSettings(AppSettings *settings, KeyValuePair *pairs, int count)
                                 snprintf(settings->showKeysAlt,
                                          sizeof(settings->showKeysAlt), "%s",
                                          pair->value);
-                        addAlphaNumericKeyBinding(EVENT_SHOWHELP, pair->value);
+                        addPrintableKeyBinding(EVENT_SHOWHELP, pair->value);
                 }
                 else if (strcmp(lowercaseKey, "bind") == 0)
                 {
