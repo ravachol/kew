@@ -51,6 +51,7 @@ ifeq ($(origin USE_FAAD), undefined)
                        [ -f "/data/data/com.termux/files/usr/lib/libfaad2.so" ] || \
                        [ -f "/data/data/com.termux/files/usr/local/lib/libfaad.so" ] || \
                        [ -f "/data/data/com.termux/files/usr/local/lib/libfaad2.so" ] && echo 1 || echo 0)
+    LANGDIRPREFIX = /data/data/com.termux/files/usr
   else
     # Non-Android build - try pkg-config first
     USE_FAAD = $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) $(PKG_CONFIG) --exists faad && echo 1 || echo 0)
@@ -63,6 +64,8 @@ ifeq ($(origin USE_FAAD), undefined)
                         [ -f /opt/homebrew/opt/faad2/lib/libfaad.dylib ] || \
                          [ -f /usr/local/lib/libfaad.dylib ] || [ -f /lib/x86_64-linux-gnu/libfaad.so.2 ] && echo 1 || echo 0)
     endif
+
+    LANGDIRPREFIX = /usr
   endif
 
 endif
@@ -81,7 +84,7 @@ endif
 
 COMMONFLAGS += $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) $(PKG_CONFIG) --cflags gio-2.0 chafa fftw3f opus opusfile vorbis ogg glib-2.0 taglib)
 COMMONFLAGS += -DMA_NO_AAUDIO
-COMMONFLAGS += -fstack-protector-strong -Wformat -Werror=format-security -fPIE -D_FORTIFY_SOURCE=2
+COMMONFLAGS += -fstack-protector-strong -Wformat -Wno-format-security -fPIE -D_FORTIFY_SOURCE=2
 COMMONFLAGS += -Wall -Wextra -Wpointer-arith
 
   # Check if we're in Termux environment
@@ -217,7 +220,7 @@ install: all
 	mkdir -p $(DESTDIR)$(MAN_DIR)/man1
 	mkdir -p $(DESTDIR)$(PREFIX)/bin
 	mkdir -p $(DESTDIR)$(THEMEDIR)
-	mkdir -p $(DESTDIR)/usr/share/locale/zh_CN/LC_MESSAGES
+	mkdir -p $(DESTDIR)$(LANGDIRPREFIX)/share/locale/zh_CN/LC_MESSAGES
 
 	# Install binary and man page
 	install -m 0755 kew $(DESTDIR)$(PREFIX)/bin/kew
@@ -225,7 +228,7 @@ install: all
 
 	# Install Chinese translation
 	install -m 0644 locale/zh_CN/LC_MESSAGES/kew.mo \
-		$(DESTDIR)/usr/share/locale/zh_CN/LC_MESSAGES/kew.mo
+		$(DESTDIR)$(LANGDIRPREFIX)/share/locale/zh_CN/LC_MESSAGES/kew.mo
 	@if [ -d themes ]; then \
 		for theme in themes/*.theme; do \
 			if [ -f "$$theme" ]; then \
