@@ -65,7 +65,11 @@ ifeq ($(origin USE_FAAD), undefined)
                          [ -f /usr/local/lib/libfaad.dylib ] || [ -f /lib/x86_64-linux-gnu/libfaad.so.2 ] && echo 1 || echo 0)
     endif
 
-    LANGDIRPREFIX = /usr
+    ifeq ($(UNAME_S), Darwin)
+        LANGDIRPREFIX = /usr/local
+    else
+        LANGDIRPREFIX = /usr
+    endif
   endif
 
 endif
