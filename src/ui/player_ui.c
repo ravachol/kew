@@ -792,6 +792,22 @@ void formatWithShiftPlus(char *dest, size_t size, const char *src)
         }
 }
 
+bool isAsciiOnly(const char *text)
+{
+    if (text == NULL)
+        return false; // or true, depending on how you want to handle NULL
+
+    for (const char *p = text; *p; p++)
+    {
+        if ((unsigned char)*p >= 128)
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 void printFooter(int row, int col, AppSettings *settings)
 {
         int term_w, term_h;
@@ -945,21 +961,10 @@ void printFooter(int row, int col, AppSettings *settings)
         int textLength = strnlen(text, 100);
         int randomNumber = getRandomNumber(1, 808);
 
-        if (randomNumber == 808 && !ui->hideGlimmeringText)
-        {
-                bool asciiOnly = true;
-                for (const char *p = text; *p; p++)
-                {
-                        if ((unsigned char)*p >= 128)
-                        {
-                                asciiOnly = false;
-                                break;
-                        }
-                }
 
-                if (asciiOnly)
-                        printGlimmeringText(row, col, text, textLength, iconsText,
-                                            footerColor);
+        if (randomNumber == 808 && !ui->hideGlimmeringText && isAsciiOnly(text))
+        {
+                printGlimmeringText(row, col, text, textLength, iconsText, footerColor);
         }
         else
         {
@@ -1439,6 +1444,7 @@ int printLogoAndAdjustments(SongData *songData, int termWidth, UISettings *ui,
                 clearLine();
                 printf("\n");
 #endif
+                clearLine();
                 return aboutRows + 3;
         }
         return aboutRows;
