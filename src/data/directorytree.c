@@ -819,7 +819,7 @@ int calculateSearchDistance(const char *needle, const char *haystack, int isDire
 
         // Add penalty for files (non-directories) to prioritize albums
         if (!isDirectory) {
-                distance += 50;
+                distance += 25;
         }
 
         g_free(needleLower);
@@ -869,7 +869,7 @@ void fuzzySearchRecursive(FileSystemEntry *node, const char *searchTerm,
         char *lowerName = g_utf8_casefold(node->name, -1);
 
         int nameDistance =
-            calculateSearchDistance(lowerName, lowerSearchTerm, node->isDirectory);
+            calculateSearchDistance(lowerSearchTerm, lowerName, node->isDirectory);
 
         // Partial matching with lowercase strings
         if (strstr(lowerName, lowerSearchTerm) != NULL)
