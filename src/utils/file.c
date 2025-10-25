@@ -273,6 +273,8 @@ int expandPath(const char *inputPath, char *expandedPath)
         if (inputPath[0] == '\0' || inputPath[0] == '\r')
                 return -1;
 
+        memset(expandedPath, 0, MAXPATHLEN);
+
         if (inputPath[0] == '~') // Check if inputPath starts with '~'
         {
                 const char *homeDir;
@@ -367,7 +369,7 @@ void collapsePath(const char *input, char *output)
             return;
         }
     }
-    
+
 #if !defined(__ANDROID__)
     /* Check other users' home dirs (e.g. /home/alice -> ~alice) */
     /* We'll iterate passwd entries and look for a pw_dir that is a prefix */
