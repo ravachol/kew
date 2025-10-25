@@ -1015,7 +1015,7 @@ int showKeyBindings(SongData *songdata)
         int numPrintedRows = 0;
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
-        maxListSize = term_h - 2;
+        maxListSize = term_h - 3;
 
         clearScreen();
 
@@ -1133,7 +1133,7 @@ int showKeyBindings(SongData *songdata)
         printBlankSpaces(indent);
         printf(_(" · Add Song To 'kew favorites.m3u': %s (run with 'kew .')\n\n"),
                getBindingString(EVENT_ADDTOFAVORITESPLAYLIST, false));
-        numPrintedRows += 3;
+        numPrintedRows += 2;
         CHECK_LIST_LIMIT();
         applyColor(ui->colorMode, ui->theme.text, ui->defaultColorRGB);
         printBlankSpaces(indent);
@@ -1195,7 +1195,7 @@ int showKeyBindings(SongData *songdata)
 
         calcAndPrintLastRowAndErrorRow();
 
-        numPrintedRows++;
+        numPrintedRows += 2;
 
         return numPrintedRows;
 }
