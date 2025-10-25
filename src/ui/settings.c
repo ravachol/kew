@@ -66,6 +66,7 @@ TBKeyBinding keyBindings[MAX_KEY_BINDINGS] = {
     {0, 'j', 0, EVENT_SCROLLDOWN, ""},
 
     // Controls
+    {TB_KEY_SPACE, 0, 0, EVENT_PLAY_PAUSE, ""},
     {0, 'p', 0, EVENT_PLAY_PAUSE, ""},
     {0, 'n', 0, EVENT_TOGGLENOTIFICATIONS, ""},
     {0, 'v', 0, EVENT_TOGGLEVISUALIZER, ""},
@@ -78,7 +79,7 @@ TBKeyBinding keyBindings[MAX_KEY_BINDINGS] = {
     {0, 'd', 0, EVENT_SEEKFORWARD, ""},
     {0, 'o', 0, EVENT_SORTLIBRARY, ""},
     {0, 'm', 0, EVENT_SHOWLYRICSPAGE, ""},
-    {0, 'S', 0, EVENT_STOP, ""},
+    {0, 's', TB_MOD_SHIFT, EVENT_STOP, ""},
 
     // Playlist actions
     {0, 'x', 0, EVENT_EXPORTPLAYLIST, ""},
@@ -86,7 +87,7 @@ TBKeyBinding keyBindings[MAX_KEY_BINDINGS] = {
     {0, 'u', 0, EVENT_UPDATELIBRARY, ""},
     {0, 'f', 0, EVENT_MOVESONGUP, ""},
     {0, 'g', 0, EVENT_MOVESONGDOWN, ""},
-    {TB_KEY_SPACE, 0, 0, EVENT_PLAY_PAUSE, ""},
+
     {TB_KEY_ENTER, 0, 0, EVENT_ENQUEUE, ""},
     {0, 'G', 0, EVENT_ENQUEUE, ""},
     {TB_KEY_BACKSPACE, 0, 0, EVENT_CLEARPLAYLIST, ""},
@@ -101,20 +102,19 @@ TBKeyBinding keyBindings[MAX_KEY_BINDINGS] = {
 #if defined(__ANDROID__) || defined(__APPLE__)
 
     // Show Views macOS/Android
-    {0, 'Z', 0, EVENT_SHOWPLAYLIST, ""},
-    {0, 'X', 0, EVENT_SHOWLIBRARY, ""},
-    {0, 'C', 0, EVENT_SHOWTRACK, ""},
-    {0, 'V', 0, EVENT_SHOWSEARCH, ""},
-    {0, 'B', 0, EVENT_SHOWHELP, ""},
-
-#endif
-
+    {0, 'z', TB_MOD_SHIFT, EVENT_SHOWPLAYLIST, ""},
+    {0, 'x', TB_MOD_SHIFT, EVENT_SHOWLIBRARY, ""},
+    {0, 'c', TB_MOD_SHIFT, EVENT_SHOWTRACK, ""},
+    {0, 'v', TB_MOD_SHIFT, EVENT_SHOWSEARCH, ""},
+    {0, 'b', TB_MOD_SHIFT, EVENT_SHOWHELP, ""},
+#else
     // Show Views
     {TB_KEY_F2, 0, 0, EVENT_SHOWPLAYLIST, ""},
     {TB_KEY_F3, 0, 0, EVENT_SHOWLIBRARY, ""},
     {TB_KEY_F4, 0, 0, EVENT_SHOWTRACK, ""},
     {TB_KEY_F5, 0, 0, EVENT_SHOWSEARCH, ""},
     {TB_KEY_F6, 0, 0, EVENT_SHOWHELP, ""},
+#endif
 
     // Page navigation
     {TB_KEY_PGDN, 0, 0, EVENT_NEXTPAGE, ""},
@@ -129,8 +129,8 @@ TBKeyBinding keyBindings[MAX_KEY_BINDINGS] = {
     {TB_KEY_MOUSE_WHEEL_DOWN, 0, 0, EVENT_SCROLLDOWN, ""},
     {TB_KEY_MOUSE_WHEEL_UP, 0, 0, EVENT_SCROLLUP, ""},
 
-    {TB_KEY_ESC, 0, 0, EVENT_QUIT, ""},
-    {0, 'q', 0, EVENT_QUIT, ""}};
+    {0, 'q', 0, EVENT_QUIT, ""},
+    {TB_KEY_ESC, 0, 0, EVENT_QUIT, ""}};
 
 static const KeyMap keyMap[] = {
     // Arrow keys
@@ -218,6 +218,109 @@ static const KeyMap keyMap[] = {
 
     {NULL, 0} // Sentinel
 };
+
+const char* getKeyName(int key) {
+    for (int i = 0; keyMap[i].name != NULL; i++) {
+        if (keyMap[i].code == key)
+            return keyMap[i].name;
+    }
+
+    // Printable ASCII fallback
+    static char buf[2];
+    if (key >= 32 && key <= 126) {
+        buf[0] = (char)key;
+        buf[1] = '\0';
+        return buf;
+    }
+
+    return "?";
+}
+
+const char* getModifierString(uint8_t mods) {
+    static char buf[64];
+    buf[0] = '\0';
+
+    int first = 1;
+    if (mods & TB_MOD_CTRL) {
+        strcat(buf, "Ctrl");
+        first = 0;
+    }
+    if (mods & TB_MOD_ALT) {
+        if (!first) strcat(buf, "+");
+        strcat(buf, "Alt");
+        first = 0;
+    }
+    if (mods & TB_MOD_SHIFT) {
+        if (!first) strcat(buf, "+");
+        strcat(buf, "Shift");
+    }
+
+    return buf;
+}
+
+static bool alreadyAdded(const char *buf, const char *token) {
+    char temp[256];
+    strncpy(temp, buf, sizeof(temp) - 1);
+    temp[sizeof(temp) - 1] = '\0';
+
+    char *part = strtok(temp, " or ");
+    while (part != NULL) {
+        if (strcmp(part, token) == 0)
+            return true;
+        part = strtok(NULL, " or ");
+    }
+    return false;
+}
+
+
+const char* getBindingString(enum EventType event) {
+    static char buf[256];
+    buf[0] = '\0';
+
+    int found = 0;
+
+    for (int i = 0; i < MAX_KEY_BINDINGS; i++) {
+        if (keyBindings[i].eventType != event)
+            continue;
+
+        const char* keyPart = "?";
+
+        // Determine key name
+        if (keyBindings[i].key != 0)
+            keyPart = getKeyName(keyBindings[i].key);
+        else if (keyBindings[i].ch != 0) {
+            static char cbuf[2];
+            cbuf[0] = (char)keyBindings[i].ch;
+            cbuf[1] = '\0';
+            keyPart = cbuf;
+        }
+
+        const char* modPart = getModifierString(keyBindings[i].mods);
+
+        // Build "Alt+Enter" style string for this binding
+        char fullKey[64];
+        if (modPart[0] != '\0')
+            snprintf(fullKey, sizeof(fullKey), "%s+%s", modPart, keyPart);
+        else
+            snprintf(fullKey, sizeof(fullKey), "%s", keyPart);
+
+        // Skip duplicate key names (e.g. "Space" vs " ")
+        if (alreadyAdded(buf, fullKey))
+            continue;
+
+        // Append to output buffer
+        if (found > 0)
+            strncat(buf, " or ", sizeof(buf) - strlen(buf) - 1);
+        strncat(buf, fullKey, sizeof(buf) - strlen(buf) - 1);
+
+        found++;
+    }
+
+    if (!found)
+        snprintf(buf, sizeof(buf), "?");
+
+    return buf;
+}
 
 static uint16_t keyNameToCode(const char *name)
 {
@@ -457,6 +560,11 @@ TBKeyBinding parseBinding(const char *bindingStr,
                         {
                                 kb.mods |= TB_MOD_SHIFT;
                         }
+                        else if (strcmp(tokenbuf, "Space") == 0)
+                        {
+                                kb.key =  TB_KEY_SPACE;
+                                kb.ch = 0;
+                        }
                         else
                         {
                                 // Normal key token (including "+" token)
@@ -516,6 +624,7 @@ void setDefaultConfig(AppSettings *settings)
                  sizeof(settings->saveRepeatShuffleSettings));
         c_strcpy(settings->trackTitleAsWindowTitle, "1",
                  sizeof(settings->trackTitleAsWindowTitle));
+        c_strcpy(settings->cacheLibrary, "-1", sizeof(settings->cacheLibrary));
 #ifdef __APPLE__
         // Visualizer looks wonky in default terminal but let's enable it
         // anyway. People need to switch
@@ -535,7 +644,6 @@ void setDefaultConfig(AppSettings *settings)
         c_strcpy(settings->hideLogo, "0", sizeof(settings->hideLogo));
 #endif
         c_strcpy(settings->hideHelp, "0", sizeof(settings->hideHelp));
-        c_strcpy(settings->cacheLibrary, "-1", sizeof(settings->cacheLibrary));
         c_strcpy(settings->visualizerHeight, "6",
                  sizeof(settings->visualizerHeight));
         c_strcpy(settings->visualizerColorType, "2",
@@ -553,11 +661,11 @@ void setDefaultConfig(AppSettings *settings)
 
 bool isPrintableAscii(const char *value)
 {
-    if (value == NULL || value[0] == '\0' || value[1] != '\0')
-        return false; // must be exactly one character
+        if (value == NULL || value[0] == '\0' || value[1] != '\0')
+                return false; // must be exactly one character
 
-    unsigned char c = (unsigned char)value[0];
-    return (c >= 32 && c <= 126); // printable ASCII range
+        unsigned char c = (unsigned char)value[0];
+        return (c >= 32 && c <= 126); // printable ASCII range
 }
 
 uint32_t utf8ToCodepoint(const char *s)
@@ -1542,6 +1650,8 @@ void getPrefs(AppSettings *settings, UISettings *ui)
 
         char *filepath = getPrefsFilePath(prefsdir);
 
+        c_strcpy(settings->cacheLibrary, "-1", sizeof(settings->cacheLibrary));
+
         KeyValuePair *pairs =
             readKeyValuePairs(filepath, &pair_count, &(ui->lastTimeAppRan));
 
@@ -1561,6 +1671,9 @@ void getPrefs(AppSettings *settings, UISettings *ui)
         tmp = getNumber(settings->lastVolume);
         if (tmp >= 0)
                 setVolume(tmp);
+
+        tmp = getNumber(settings->cacheLibrary);
+        ui->cacheLibrary = tmp;
 
         snprintf(ui->themeName, sizeof(ui->themeName), "%s", settings->theme);
         free(prefsdir);
@@ -1620,6 +1733,11 @@ void setPrefs(AppSettings *settings, UISettings *ui)
                 return;
         }
 
+        c_strcpy(settings->cacheLibrary, "-1", sizeof(settings->cacheLibrary));
+
+        snprintf(settings->cacheLibrary, sizeof(settings->cacheLibrary), "%d",
+                 ui->cacheLibrary);
+
         if (settings->allowNotifications[0] == '\0')
                 ui->allowNotifications
                     ? c_strcpy(settings->allowNotifications, "1",
@@ -1666,6 +1784,10 @@ void setPrefs(AppSettings *settings, UISettings *ui)
 
         fprintf(file, "\n[miscellaneous]\n\n");
         fprintf(file, "allowNotifications=%s\n\n", settings->allowNotifications);
+
+        fprintf(file, "# Cache: Set to 1 to use cache of the music library "
+                      "directory tree for faster startup times.\n");
+        fprintf(file, "cacheLibrary=%s\n\n", settings->cacheLibrary);
 
         if (ui->saveRepeatShuffleSettings)
         {
@@ -1840,9 +1962,6 @@ void setConfig(AppSettings *settings, UISettings *ui)
                 snprintf(settings->titleDelay, sizeof(settings->titleDelay),
                          "%d", ui->titleDelay);
 
-        snprintf(settings->cacheLibrary, sizeof(settings->cacheLibrary), "%d",
-                 ui->cacheLibrary);
-
         if (settings->replayGainCheckFirst[0] == '\0')
                 snprintf(settings->replayGainCheckFirst,
                          sizeof(settings->replayGainCheckFirst), "%d",
@@ -1883,10 +2002,6 @@ void setConfig(AppSettings *settings, UISettings *ui)
         fprintf(file, "allowNotifications=%s\n", settings->allowNotifications);
         fprintf(file, "hideLogo=%s\n", settings->hideLogo);
         fprintf(file, "hideHelp=%s\n", settings->hideHelp);
-
-        fprintf(file, "# Cache: Set to 1 to use cache of the music library "
-                      "directory tree for faster startup times.\n");
-        fprintf(file, "cacheLibrary=%s\n\n", settings->cacheLibrary);
 
         fprintf(file, "# Delay when drawing title in track view, set to 0 to "
                       "have no delay.\n");
