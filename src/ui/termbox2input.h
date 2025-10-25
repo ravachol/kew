@@ -1638,7 +1638,7 @@ int tb_get_input_fd(void)
 
 int tb_get_output_fd(void)
 {
-    return global.wfd;
+        return global.wfd;
 }
 
 static int load_builtin_caps(void)
@@ -2086,6 +2086,16 @@ static int extract_event(struct tb_event *event)
                 }
 
                 return TB_ERR;
+        }
+
+        if (in->buf[0] == ' ' || in->buf[0] == TB_KEY_SPACE)
+        {
+                event->type = TB_EVENT_KEY;
+                event->key = TB_KEY_SPACE;
+                event->ch = 0;
+                event->mod = 0;
+                bytebuf_shift(in, 1);
+                return TB_OK;
         }
 
         // Backspace
