@@ -2030,18 +2030,19 @@ void showLibrary(SongData *songData, AppSettings *settings)
                 maxLibListSize -= 3;
                 clearLine();
                 printBlankSpaces(indent);
-                clearLine();
                 printf(_(" Use ↑/↓ or k/j to select. Enter: Enqueue/Dequeue. Alt+Enter: Play.\n"));
+                clearLine();
                 printBlankSpaces(indent);
 #ifndef __APPLE__
-                clearLine();
                 printf(_(" PgUp/PgDn: scroll. u: update, o: sort.\n"));
+                clearLine();
                 printf("\n");
 #else
-                clearLine();
                 printf(_(" Fn+↑/↓: scroll. u: update, o: sort.\n"));
+                clearLine();
                 printf("\n");
 #endif
+                clearLine();
         }
 
         numTopLevelSongs = 0;
@@ -2074,8 +2075,8 @@ void showLibrary(SongData *songData, AppSettings *settings)
 
         for (int i = libIter - startLibIter; i < maxLibListSize; i++)
         {
-                clearLine();
                 printf("\n");
+                clearLine();
         }
 
         calcAndPrintLastRowAndErrorRow(settings);
