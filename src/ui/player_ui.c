@@ -971,7 +971,7 @@ void calcAndPrintLastRowAndErrorRow(void)
         if (hasErrorMessage())
                 printErrorRow(term_h - 1, indent, &(state->uiSettings));
         else
-                printFooter(term_h - 1, indent, settings);
+                printFooter(term_h - 1, indent);
 #else
         printErrorRow(term_h - 1, indent, &(state->uiSettings));
         printFooter(term_h, indent);
