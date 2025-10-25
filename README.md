@@ -146,6 +146,12 @@ Linux: ~/.config/kew/
 
 macOS: ~/Library/Preferences/kew/
 
+Key bindings can be added like this:
+
+bind = +, volUp, +5%
+
+If you have an old install of kew, delete the kewrc file to make these style of bindings appear.
+
 ## Themes
 
 Press t to cycle available themes.
@@ -221,6 +227,8 @@ Minimp4 by Lieff - https://github.com/lieff/minimp4
 Nestegg by Mozilla - https://github.com/mozilla/nestegg
 
 Img_To_Txt by Danny Burrows - https://github.com/danny-burrows/img_to_txt
+
+TermBox2 (adapted for input handling only) - By nsf and Adam Saponara https://github.com/termbox/termbox2
 
 </details>
 

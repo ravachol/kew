@@ -22,9 +22,9 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-IMPORTANT: The original source has been modified to keep only the input handling.
-It is adapted for working with the music player kew. Apologies to the original
-authors that this is not as neatly organized as the original.
+IMPORTANT: This is based on termbox2. The original source has been modified to
+keep only the input handling. It is adapted for working with the music player
+kew, which handles setting non-blocking mode itself.
 
 */
 
