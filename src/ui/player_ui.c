@@ -856,7 +856,7 @@ void printFooter(int row, int col)
 #endif
                 if (opsIsPaused())
                 {
-#ifdef __ANDROID__
+#if defined(__ANDROID__) || defined(__APPLE__)
                         char pauseText[] = " ∥";
 #else
                 char pauseText[] = " ⏸";
