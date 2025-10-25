@@ -150,7 +150,7 @@ Key bindings can be added like this:
 
 bind = +, volUp, +5%
 
-If you have an old install of kew, delete the kewrc file to make these style of bindings appear.
+If you have an old install of kew, delete the kewrc file to make this style of bindings appear.
 
 ## Themes
 
