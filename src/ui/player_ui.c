@@ -8,9 +8,11 @@
 
 #include "player_ui.h"
 
+#include "common/events.h"
 #include "control_ui.h"
 #include "playlist_ui.h"
 #include "search_ui.h"
+#include "settings.h"
 
 #include "common/appstate.h"
 #include "common/common.h"
@@ -34,7 +36,9 @@
 
 #include "visuals.h"
 
-#include <ctype.h>
+#include <wctype.h>
+#include <wchar.h>
+#include <locale.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -780,18 +784,6 @@ void printErrorRow(int row, int col, UISettings *ui)
         fflush(stdout);
 }
 
-void formatWithShiftPlus(char *dest, size_t size, const char *src)
-{
-        if (isupper((unsigned char)src[0]))
-        {
-                snprintf(dest, size, "Shft+%s", src);
-        }
-        else
-        {
-                snprintf(dest, size, "%s", src);
-        }
-}
-
 bool isAsciiOnly(const char *text)
 {
     if (text == NULL)
@@ -808,7 +800,7 @@ bool isAsciiOnly(const char *text)
     return true;
 }
 
-void printFooter(int row, int col, AppSettings *settings)
+void printFooter(int row, int col)
 {
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
@@ -840,25 +832,17 @@ void printFooter(int row, int col, AppSettings *settings)
         }
 
         char text[100];
-#if defined(__ANDROID__) || defined(__APPLE__)
         char playlist[32], library[32], track[32], search[32], help[32];
 
-        // Assume settings->showPlaylistAlt etc. are defined properly
-        formatWithShiftPlus(playlist, sizeof(playlist),
-                            settings->showPlaylistAlt);
-        formatWithShiftPlus(library, sizeof(library), settings->showLibraryAlt);
-        formatWithShiftPlus(track, sizeof(track), settings->showTrackAlt);
-        formatWithShiftPlus(search, sizeof(search), settings->showSearchAlt);
-        formatWithShiftPlus(help, sizeof(help), settings->showKeysAlt);
+        snprintf(playlist, sizeof(playlist), "%s", getBindingString(EVENT_SHOWPLAYLIST));
+        snprintf(library, sizeof(library), "%s", getBindingString(EVENT_SHOWLIBRARY));
+        snprintf(track, sizeof(track), "%s", getBindingString(EVENT_SHOWTRACK));
+        snprintf(search, sizeof(search), "%s", getBindingString(EVENT_SHOWSEARCH));
+        snprintf(help, sizeof(search), "%s", getBindingString(EVENT_SHOWHELP));
 
         snprintf(text, sizeof(text),
                  _("%s Playlist|%s Library|%s Track|%s Search|%s Help"), playlist,
                  library, track, search, help);
-
-#else
-        (void)settings;
-        strcpy(text, state->uiSettings.LAST_ROW);
-#endif
 
         char iconsText[100] = "";
 
@@ -975,7 +959,7 @@ void printFooter(int row, int col, AppSettings *settings)
         clearRestOfLine();
 }
 
-void calcAndPrintLastRowAndErrorRow(AppSettings *settings)
+void calcAndPrintLastRowAndErrorRow(void)
 {
         AppState *state = getAppState();
         int term_w, term_h;
@@ -990,7 +974,7 @@ void calcAndPrintLastRowAndErrorRow(AppSettings *settings)
                 printFooter(term_h - 1, indent, settings);
 #else
         printErrorRow(term_h - 1, indent, &(state->uiSettings));
-        printFooter(term_h, indent, settings);
+        printFooter(term_h, indent);
 #endif
 }
 
@@ -1020,12 +1004,12 @@ int printAbout(SongData *songdata)
                 if (numPrintedRows >= maxListSize)                \
                 {                                                 \
                         printf("\n");                             \
-                        calcAndPrintLastRowAndErrorRow(settings); \
+                        calcAndPrintLastRowAndErrorRow();         \
                         return numPrintedRows;                    \
                 }                                                 \
         } while (0)
 
-int showKeyBindings(SongData *songdata, AppSettings *settings)
+int showKeyBindings(SongData *songdata)
 {
         AppState *state = getAppState();
         int numPrintedRows = 0;
@@ -1050,101 +1034,105 @@ int showKeyBindings(SongData *songdata, AppSettings *settings)
         numPrintedRows += 2;
         CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
-        printf(_(" · Play/Pause: SPACE, %s or right click\n"),
-               settings->togglePause);
+        printf(_(" · Play/Pause: %s\n"), getBindingString(EVENT_PLAY_PAUSE));
         numPrintedRows++;
         CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
-        printf(_(" · Enqueue/Dequeue: Enter\n"));
+        printf(_(" · Enqueue/Dequeue: %s\n"), getBindingString(EVENT_ENQUEUE));
         numPrintedRows++;
         CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
-        printf(_(" · Quit: Esc or %s\n"), settings->quit);
+        printf(_(" · Enqueue and Play: %s\n"), getBindingString(EVENT_ENQUEUEANDPLAY));
         numPrintedRows++;
         CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
-        printf(_(" · Switch tracks: ← and → or %s and %s\n"),
-               settings->previousTrackAlt, settings->nextTrackAlt);
+        printf(_(" · Quit: %s\n"), getBindingString(EVENT_QUIT));
         numPrintedRows++;
         CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
-        printf(_(" · Volume: %s (or %s) and %s\n"), settings->volumeUp,
-               settings->volumeUpAlt, settings->volumeDown);
+        printf(_(" · Switch tracks: %s"),
+               getBindingString(EVENT_PREV));
+        printf(_(" and %s\n"),
+               getBindingString(EVENT_NEXT));
         numPrintedRows++;
         CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
-        printf(_(" · Clear List: Backspace\n"));
+        printf(_(" · Volume: %s "), getBindingString(EVENT_VOLUME_UP));
+        printf(_("and %s\n"),getBindingString(EVENT_VOLUME_DOWN));
         numPrintedRows++;
         CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
-        printf(_(" · Change View: TAB or "));
+        printf(_(" · Clear List: %s\n"), getBindingString(EVENT_CLEARPLAYLIST));
+        numPrintedRows++;
+        CHECK_LIST_LIMIT();
+        printBlankSpaces(indent);
+        printf(_(" · Change View: %s or "), getBindingString(EVENT_NEXTVIEW));
 
-#if defined(__ANDROID__) || defined(__APPLE__)
-        printf("%s, %s, %s, %s, %s", settings->showPlaylistAlt,
-               settings->showLibraryAlt, settings->showTrackAlt,
-               settings->showSearchAlt, settings->showKeysAlt);
-#else
-        printf("F2-F6");
-#endif
+        printf("%s, ", getBindingString(EVENT_SHOWPLAYLIST));
+        printf("%s, ", getBindingString(EVENT_SHOWLIBRARY));
+        printf("%s, ", getBindingString(EVENT_SHOWTRACK));
+        printf("%s, ", getBindingString(EVENT_SHOWSEARCH));
+        printf("%s", getBindingString(EVENT_SHOWHELP));
+
         printf(_(" or click the footer\n"));
         numPrintedRows++;
         CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
         printf(
             _(" · Cycle Color Mode: %s (default theme, theme or cover colors)\n"),
-            settings->cycleColorsDerivedFrom);
+            getBindingString(EVENT_CYCLECOLORMODE));
         numPrintedRows++;
         CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
-        printf(_(" · Cycle Themes: %s\n"), settings->cycleThemes);
+        printf(_(" · Cycle Themes: %s\n"), getBindingString(EVENT_CYCLETHEMES));
         numPrintedRows++;
         CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
-        printf(_(" · Stop: Shift+s\n"));
+        printf(_(" · Stop: %s\n"), getBindingString(EVENT_STOP));
         numPrintedRows++;
         CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
-        printf(_(" · Update Library: %s\n"), settings->updateLibrary);
+        printf(_(" · Update Library: %s\n"), getBindingString(EVENT_UPDATELIBRARY));
         numPrintedRows++;
         CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
-        printf(_(" · Toggle Visualizer: %s\n"), settings->toggleVisualizer);
+        printf(_(" · Toggle Visualizer: %s\n"), getBindingString(EVENT_TOGGLEVISUALIZER));
         numPrintedRows++;
         CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
-        printf(_(" · Toggle ASCII Cover: %s\n"), settings->toggleAscii);
+        printf(_(" · Toggle ASCII Cover: %s\n"), getBindingString(EVENT_TOGGLEASCII));
         numPrintedRows++;
         CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
-        printf(_(" · Toggle Lyrics Page on Track View: %s\n"), settings->showLyricsPage);
+        printf(_(" · Toggle Lyrics Page on Track View: %s\n"), getBindingString(EVENT_SHOWLYRICSPAGE));
         numPrintedRows++;
         CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
-        printf(_(" · Toggle Notifications: %s\n"), settings->toggleNotifications);
+        printf(_(" · Toggle Notifications: %s\n"), getBindingString(EVENT_TOGGLENOTIFICATIONS));
         numPrintedRows++;
         CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
         printf(_(" · Cycle Repeat: %s (repeat/repeat list/off)\n"),
-               settings->toggleRepeat);
+               getBindingString(EVENT_TOGGLEREPEAT));
         numPrintedRows++;
         CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
-        printf(_(" · Shuffle: %s\n"), settings->toggleShuffle);
+        printf(_(" · Shuffle: %s\n"), getBindingString(EVENT_SHUFFLE));
         numPrintedRows++;
         CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
-        printf(_(" · Seek: %s and %s\n"), settings->seekBackward,
-               settings->seekForward);
+        printf(_(" · Seek: %s and"), getBindingString(EVENT_SEEKBACK));
+        printf(_(" %s\n"), getBindingString(EVENT_SEEKFORWARD));
         numPrintedRows++;
         CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
         printf(_(" · Export Playlist: %s (named after the first song)\n"),
-               settings->savePlaylist);
+               getBindingString(EVENT_EXPORTPLAYLIST));
         numPrintedRows++;
         CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
         printf(_(" · Add Song To 'kew favorites.m3u': %s (run with 'kew .')\n\n"),
-               settings->addToFavoritesPlaylist);
+               getBindingString(EVENT_ADDTOFAVORITESPLAYLIST));
         numPrintedRows += 3;
         CHECK_LIST_LIMIT();
         applyColor(ui->colorMode, ui->theme.text, ui->defaultColorRGB);
@@ -1205,7 +1193,7 @@ int showKeyBindings(SongData *songdata, AppSettings *settings)
                 numPrintedRows++;
         }
 
-        calcAndPrintLastRowAndErrorRow(settings);
+        calcAndPrintLastRowAndErrorRow();
 
         numPrintedRows++;
 
@@ -1450,7 +1438,7 @@ int printLogoAndAdjustments(SongData *songData, int termWidth, UISettings *ui,
         return aboutRows;
 }
 
-void showSearch(SongData *songData, int *chosenRow, AppSettings *settings)
+void showSearch(SongData *songData, int *chosenRow)
 {
         int term_w, term_h;
         getTermSize(&term_w, &term_h);
@@ -1479,7 +1467,7 @@ void showSearch(SongData *songData, int *chosenRow, AppSettings *settings)
 
         displaySearch(maxSearchListSize, indent, chosenRow, startSearchIter);
 
-        calcAndPrintLastRowAndErrorRow(settings);
+        calcAndPrintLastRowAndErrorRow();
 }
 
 void showPlaylist(SongData *songData, PlayList *list, int *chosenSong,
@@ -1526,7 +1514,7 @@ void showPlaylist(SongData *songData, PlayList *list, int *chosenSong,
                                 chosenNodeId,
                                 state->uiState.resetPlaylistDisplay);
 
-        calcAndPrintLastRowAndErrorRow(settings);
+        calcAndPrintLastRowAndErrorRow();
 }
 
 void resetSearchResult(void) { chosenSearchResultRow = 0; }
@@ -2079,7 +2067,7 @@ void showLibrary(SongData *songData, AppSettings *settings)
                 clearLine();
         }
 
-        calcAndPrintLastRowAndErrorRow(settings);
+        calcAndPrintLastRowAndErrorRow();
 
         if (!foundChosen && isRefreshTriggered())
         {
@@ -2324,9 +2312,7 @@ void showTrackViewLandscape(int height, int width, float aspectRatio,
                                 printErrorRow(row + metadataHeight + 2 +
                                                   state->uiSettings.visualizerHeight,
                                               col, &(state->uiSettings));
-                                printFooter(row + metadataHeight + 2 +
-                                                state->uiSettings.visualizerHeight + 1,
-                                            col, settings);
+                                printFooter(row + metadataHeight + 2 + state->uiSettings.visualizerHeight + 1, col);
                         }
                 }
                 else
@@ -2400,7 +2386,7 @@ void showTrackViewPortrait(int height, AppSettings *settings,
                 }
         }
 
-        calcAndPrintLastRowAndErrorRow(settings);
+        calcAndPrintLastRowAndErrorRow();
 }
 
 void showTrackView(int width, int height, AppSettings *settings,
@@ -2486,7 +2472,7 @@ int printPlayer(SongData *songdata, double elapsedSeconds)
         if (state->currentView == KEYBINDINGS_VIEW && shouldRefresh)
         {
                 clearScreen();
-                showKeyBindings(songdata, settings);
+                showKeyBindings(songdata);
                 saveCursorPosition();
                 cancelRefresh();
                 fflush(stdout);
@@ -2500,7 +2486,7 @@ int printPlayer(SongData *songdata, double elapsedSeconds)
         }
         else if (state->currentView == SEARCH_VIEW && shouldRefresh)
         {
-                showSearch(songdata, &chosenSearchResultRow, settings);
+                showSearch(songdata, &chosenSearchResultRow);
                 cancelRefresh();
                 fflush(stdout);
         }
