@@ -405,20 +405,38 @@ enum EventType getMouseLastRowEvent(int mouseXOnLastRow)
         enum EventType result = EVENT_NONE;
         AppState *state = getAppState();
 
-        size_t lastRowLen = strlen(state->uiSettings.LAST_ROW);
-        if (mouseXOnLastRow < 0 || (size_t)mouseXOnLastRow > lastRowLen)
-        {
-                // Out of bounds, return default
+        const char *s = state->uiSettings.LAST_ROW;
+        if (!s || mouseXOnLastRow < 0)
                 return EVENT_NONE;
-        }
 
-        int viewClicked = 1;
-        for (int i = 0; i < mouseXOnLastRow; i++)
+        int viewClicked = 1; // Which section is clicked
+        int colIndex = 0;    // terminal column position
+        const char *ptr = state->uiSettings.LAST_ROW;
+        mbstate_t mbs;
+        memset(&mbs, 0, sizeof(mbs));
+
+        while (*ptr)
         {
-                if (state->uiSettings.LAST_ROW[i] == '|')
+                wchar_t wc;
+                size_t bytes = mbrtowc(&wc, ptr, MB_CUR_MAX, &mbs);
+                if (bytes == (size_t)-1 || bytes == (size_t)-2)
                 {
-                        viewClicked++;
+                        bytes = 1;
+                        wc = (unsigned char)*ptr;
                 }
+
+                int w = wcwidth(wc); // number of terminal columns this char takes
+                if (w < 0)
+                        w = 0;
+
+                if (colIndex + w > mouseXOnLastRow)
+                        break; // cursor is inside this character
+
+                if (wc == L'|')
+                        viewClicked++;
+
+                colIndex += w;
+                ptr += bytes;
         }
 
         switch (viewClicked)
@@ -443,8 +461,6 @@ enum EventType getMouseLastRowEvent(int mouseXOnLastRow)
                 break;
         }
 
-        // Switch to library view if track view is clicked and no song is
-        // currently playing
         if (result == EVENT_SHOWTRACK && getCurrentSongData() == NULL)
         {
                 result = EVENT_SHOWLIBRARY;
