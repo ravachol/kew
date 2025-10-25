@@ -295,17 +295,20 @@ const char* getBindingString(enum EventType event, bool findOne) {
             keyPart = cbuf;
         }
 
-        if (strcmp(keyPart, "Shift") == 0)
-                keyPart = "Shft";
+        char keyBuf[32];
+        snprintf(keyBuf, sizeof(keyBuf), "%s", keyPart);
+
+        if (strcmp(keyBuf, "Shift") == 0)
+                strcpy(keyBuf, "Shft");
 
         const char* modPart = getModifierString(keyBindings[i].mods);
 
         // Build "Alt+Enter" style string for this binding
         char fullKey[64];
         if (modPart[0] != '\0')
-            snprintf(fullKey, sizeof(fullKey), "%s+%s", modPart, keyPart);
+            snprintf(fullKey, sizeof(fullKey), "%s+%s", modPart, keyBuf);
         else
-            snprintf(fullKey, sizeof(fullKey), "%s", keyPart);
+            snprintf(fullKey, sizeof(fullKey), "%s", keyBuf);
 
         // Skip duplicate key names (e.g. "Space" vs " ")
         if (alreadyAdded(buf, fullKey))
