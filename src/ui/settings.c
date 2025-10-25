@@ -273,7 +273,7 @@ static bool alreadyAdded(const char *buf, const char *token) {
 }
 
 
-const char* getBindingString(enum EventType event) {
+const char* getBindingString(enum EventType event, bool findOne) {
     static char buf[256];
     buf[0] = '\0';
 
@@ -310,7 +310,11 @@ const char* getBindingString(enum EventType event) {
 
         // Append to output buffer
         if (found > 0)
+        {
+            if (findOne)
+                return buf;
             strncat(buf, " or ", sizeof(buf) - strlen(buf) - 1);
+        }
         strncat(buf, fullKey, sizeof(buf) - strlen(buf) - 1);
 
         found++;

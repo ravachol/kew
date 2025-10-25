@@ -834,11 +834,11 @@ void printFooter(int row, int col)
         char text[100];
         char playlist[32], library[32], track[32], search[32], help[32];
 
-        snprintf(playlist, sizeof(playlist), "%s", getBindingString(EVENT_SHOWPLAYLIST));
-        snprintf(library, sizeof(library), "%s", getBindingString(EVENT_SHOWLIBRARY));
-        snprintf(track, sizeof(track), "%s", getBindingString(EVENT_SHOWTRACK));
-        snprintf(search, sizeof(search), "%s", getBindingString(EVENT_SHOWSEARCH));
-        snprintf(help, sizeof(search), "%s", getBindingString(EVENT_SHOWHELP));
+        snprintf(playlist, sizeof(playlist), "%s", getBindingString(EVENT_SHOWPLAYLIST, true));
+        snprintf(library, sizeof(library), "%s", getBindingString(EVENT_SHOWLIBRARY, true));
+        snprintf(track, sizeof(track), "%s", getBindingString(EVENT_SHOWTRACK, true));
+        snprintf(search, sizeof(search), "%s", getBindingString(EVENT_SHOWSEARCH, true));
+        snprintf(help, sizeof(search), "%s", getBindingString(EVENT_SHOWHELP, true));
 
         snprintf(text, sizeof(text),
                  _("%s Playlist|%s Library|%s Track|%s Search|%s Help"), playlist,
@@ -1034,45 +1034,45 @@ int showKeyBindings(SongData *songdata)
         numPrintedRows += 2;
         CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
-        printf(_(" · Play/Pause: %s\n"), getBindingString(EVENT_PLAY_PAUSE));
+        printf(_(" · Play/Pause: %s\n"), getBindingString(EVENT_PLAY_PAUSE, false));
         numPrintedRows++;
         CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
-        printf(_(" · Enqueue/Dequeue: %s\n"), getBindingString(EVENT_ENQUEUE));
+        printf(_(" · Enqueue/Dequeue: %s\n"), getBindingString(EVENT_ENQUEUE, false));
         numPrintedRows++;
         CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
-        printf(_(" · Enqueue and Play: %s\n"), getBindingString(EVENT_ENQUEUEANDPLAY));
+        printf(_(" · Enqueue and Play: %s\n"), getBindingString(EVENT_ENQUEUEANDPLAY, false));
         numPrintedRows++;
         CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
-        printf(_(" · Quit: %s\n"), getBindingString(EVENT_QUIT));
+        printf(_(" · Quit: %s\n"), getBindingString(EVENT_QUIT, false));
         numPrintedRows++;
         CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
         printf(_(" · Switch tracks: %s"),
-               getBindingString(EVENT_PREV));
+               getBindingString(EVENT_PREV, false));
         printf(_(" and %s\n"),
-               getBindingString(EVENT_NEXT));
+               getBindingString(EVENT_NEXT, false));
         numPrintedRows++;
         CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
-        printf(_(" · Volume: %s "), getBindingString(EVENT_VOLUME_UP));
-        printf(_("and %s\n"),getBindingString(EVENT_VOLUME_DOWN));
+        printf(_(" · Volume: %s "), getBindingString(EVENT_VOLUME_UP, false));
+        printf(_("and %s\n"),getBindingString(EVENT_VOLUME_DOWN, false));
         numPrintedRows++;
         CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
-        printf(_(" · Clear List: %s\n"), getBindingString(EVENT_CLEARPLAYLIST));
+        printf(_(" · Clear List: %s\n"), getBindingString(EVENT_CLEARPLAYLIST, false));
         numPrintedRows++;
         CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
-        printf(_(" · Change View: %s or "), getBindingString(EVENT_NEXTVIEW));
+        printf(_(" · Change View: %s or "), getBindingString(EVENT_NEXTVIEW, false));
 
-        printf("%s, ", getBindingString(EVENT_SHOWPLAYLIST));
-        printf("%s, ", getBindingString(EVENT_SHOWLIBRARY));
-        printf("%s, ", getBindingString(EVENT_SHOWTRACK));
-        printf("%s, ", getBindingString(EVENT_SHOWSEARCH));
-        printf("%s", getBindingString(EVENT_SHOWHELP));
+        printf("%s, ", getBindingString(EVENT_SHOWPLAYLIST, true));
+        printf("%s, ", getBindingString(EVENT_SHOWLIBRARY, true));
+        printf("%s, ", getBindingString(EVENT_SHOWTRACK, true));
+        printf("%s, ", getBindingString(EVENT_SHOWSEARCH, true));
+        printf("%s", getBindingString(EVENT_SHOWHELP, true));
 
         printf(_(" or click the footer\n"));
         numPrintedRows++;
@@ -1080,59 +1080,59 @@ int showKeyBindings(SongData *songdata)
         printBlankSpaces(indent);
         printf(
             _(" · Cycle Color Mode: %s (default theme, theme or cover colors)\n"),
-            getBindingString(EVENT_CYCLECOLORMODE));
+            getBindingString(EVENT_CYCLECOLORMODE, false));
         numPrintedRows++;
         CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
-        printf(_(" · Cycle Themes: %s\n"), getBindingString(EVENT_CYCLETHEMES));
+        printf(_(" · Cycle Themes: %s\n"), getBindingString(EVENT_CYCLETHEMES, false));
         numPrintedRows++;
         CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
-        printf(_(" · Stop: %s\n"), getBindingString(EVENT_STOP));
+        printf(_(" · Stop: %s\n"), getBindingString(EVENT_STOP, false));
         numPrintedRows++;
         CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
-        printf(_(" · Update Library: %s\n"), getBindingString(EVENT_UPDATELIBRARY));
+        printf(_(" · Update Library: %s\n"), getBindingString(EVENT_UPDATELIBRARY, false));
         numPrintedRows++;
         CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
-        printf(_(" · Toggle Visualizer: %s\n"), getBindingString(EVENT_TOGGLEVISUALIZER));
+        printf(_(" · Toggle Visualizer: %s\n"), getBindingString(EVENT_TOGGLEVISUALIZER, false));
         numPrintedRows++;
         CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
-        printf(_(" · Toggle ASCII Cover: %s\n"), getBindingString(EVENT_TOGGLEASCII));
+        printf(_(" · Toggle ASCII Cover: %s\n"), getBindingString(EVENT_TOGGLEASCII, false));
         numPrintedRows++;
         CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
-        printf(_(" · Toggle Lyrics Page on Track View: %s\n"), getBindingString(EVENT_SHOWLYRICSPAGE));
+        printf(_(" · Toggle Lyrics Page on Track View: %s\n"), getBindingString(EVENT_SHOWLYRICSPAGE, false));
         numPrintedRows++;
         CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
-        printf(_(" · Toggle Notifications: %s\n"), getBindingString(EVENT_TOGGLENOTIFICATIONS));
+        printf(_(" · Toggle Notifications: %s\n"), getBindingString(EVENT_TOGGLENOTIFICATIONS, false));
         numPrintedRows++;
         CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
         printf(_(" · Cycle Repeat: %s (repeat/repeat list/off)\n"),
-               getBindingString(EVENT_TOGGLEREPEAT));
+               getBindingString(EVENT_TOGGLEREPEAT, false));
         numPrintedRows++;
         CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
-        printf(_(" · Shuffle: %s\n"), getBindingString(EVENT_SHUFFLE));
+        printf(_(" · Shuffle: %s\n"), getBindingString(EVENT_SHUFFLE, false));
         numPrintedRows++;
         CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
-        printf(_(" · Seek: %s and"), getBindingString(EVENT_SEEKBACK));
-        printf(_(" %s\n"), getBindingString(EVENT_SEEKFORWARD));
+        printf(_(" · Seek: %s and"), getBindingString(EVENT_SEEKBACK, false));
+        printf(_(" %s\n"), getBindingString(EVENT_SEEKFORWARD, false));
         numPrintedRows++;
         CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
         printf(_(" · Export Playlist: %s (named after the first song)\n"),
-               getBindingString(EVENT_EXPORTPLAYLIST));
+               getBindingString(EVENT_EXPORTPLAYLIST, false));
         numPrintedRows++;
         CHECK_LIST_LIMIT();
         printBlankSpaces(indent);
         printf(_(" · Add Song To 'kew favorites.m3u': %s (run with 'kew .')\n\n"),
-               getBindingString(EVENT_ADDTOFAVORITESPLAYLIST));
+               getBindingString(EVENT_ADDTOFAVORITESPLAYLIST, false));
         numPrintedRows += 3;
         CHECK_LIST_LIMIT();
         applyColor(ui->colorMode, ui->theme.text, ui->defaultColorRGB);

@@ -24,7 +24,7 @@ void setPrefs(AppSettings *settings, UISettings *ui);
 void setPath(const char *path);
 void mapSettingsToKeys(AppSettings *settings, UISettings *ui, EventMapping *mappings);
 int updateRc(const char *path, const char *key, const char *value);
-const char* getBindingString(enum EventType event);
+const char* getBindingString(enum EventType event, bool findOne);
 AppSettings initSettings(void);
 
 #endif
