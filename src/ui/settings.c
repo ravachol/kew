@@ -283,7 +283,7 @@ const char* getBindingString(enum EventType event, bool findOne) {
         if (keyBindings[i].eventType != event)
             continue;
 
-        const char* keyPart = "?";
+        char* keyPart = "?";
 
         // Determine key name
         if (keyBindings[i].key != 0)
@@ -294,6 +294,9 @@ const char* getBindingString(enum EventType event, bool findOne) {
             cbuf[1] = '\0';
             keyPart = cbuf;
         }
+
+        if (strcmp(keyPart, "Shift") == 0)
+                strcpy(keyPart, "Shft");
 
         const char* modPart = getModifierString(keyBindings[i].mods);
 
