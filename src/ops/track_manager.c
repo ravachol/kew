@@ -10,7 +10,6 @@
 #include "track_manager.h"
 
 #include "common/appstate.h"
-#include "sound/sound.h"
 
 #include "data/song_loader.h"
 

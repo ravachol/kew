@@ -186,7 +186,7 @@ void emit_boolean_property_changed(const gchar *property_name, gboolean new_valu
 #endif
 }
 
-void notify_m_p_r_i_s_switch(SongData *current_song_data)
+void notify_mpris_switch(SongData *current_song_data)
 {
         if (current_song_data == NULL)
                 return;
@@ -216,7 +216,7 @@ void notify_song_switch(SongData *current_song_data)
                 (void)ui;
 #endif
 
-                notify_m_p_r_i_s_switch(current_song_data);
+                notify_mpris_switch(current_song_data);
 
                 Node *current = get_current_song();
 
