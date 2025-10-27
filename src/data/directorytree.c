@@ -170,55 +170,51 @@ void set_full_path(FileSystemEntry *entry, const char *parent_path,
 
 void free_tree(FileSystemEntry *root)
 {
-        if (root == NULL)
-                return;
+    if (root == NULL)
+        return;
 
-        size_t cap = 128, top = 0;
-        FileSystemEntry **stack = malloc(cap * sizeof(*stack));
+    size_t cap = 128, top = 0;
+    FileSystemEntry **stack = malloc(cap * sizeof(*stack));
 
-        if (!stack)
-                return;
+    if (!stack)
+        return;
 
-        stack[top++] = root;
+    stack[top++] = root;
 
-        while (top > 0) {
-                FileSystemEntry *node = stack[top - 1];
+    while (top > 0) {
+        FileSystemEntry *node = stack[--top];
 
-                if (node->children) {
-                        if (top + 2 > cap) {
-                                if (cap > INT_MAX / 2 ||
-                                    cap * 2 > MAX_STACK_SIZE) {
-                                        fprintf(stderr,
-                                                "Stack capacity limit exceeded "
-                                                "in free_tree\n");
-                                        break;
-                                }
-
-                                size_t nc = cap * 2;
-                                FileSystemEntry **tmp =
-                                    realloc(stack, nc * sizeof(*stack));
-                                if (!tmp)
-                                        break;
-                                stack = tmp;
-                                cap = nc;
-                        }
-
-                        if (node->next)
-                                stack[top++] = node->next;
-                        stack[top++] = node->children;
-
-                        node->children = NULL;
-                        node->next = NULL;
-                        continue;
-                }
-
-                top--;
-                free(node->name);
-                free(node->full_path);
-                free(node);
+        // Push siblings first (to handle next pointers)
+        if (node->next) {
+            if (top + 1 >= cap) {
+                cap *= 2;
+                FileSystemEntry **tmp = realloc(stack, cap * sizeof(*stack));
+                if (!tmp)
+                    break;
+                stack = tmp;
+            }
+            stack[top++] = node->next;
         }
 
-        free(stack);
+        // Push children (so they get freed before the parent)
+        if (node->children) {
+            if (top + 1 >= cap) {
+                cap *= 2;
+                FileSystemEntry **tmp = realloc(stack, cap * sizeof(*stack));
+                if (!tmp)
+                    break;
+                stack = tmp;
+            }
+            stack[top++] = node->children;
+        }
+
+        // Now free this node itself
+        free(node->name);
+        free(node->full_path);
+        free(node);
+    }
+
+    free(stack);
 }
 
 int natural_compare(const char *a, const char *b)
@@ -430,7 +426,10 @@ int read_directory(const char *path, FileSystemEntry *parent)
                                 set_full_path(child, path, entry->d_name);
 
                                 if (child->full_path == NULL)
+                                {
+                                        free(child);
                                         continue;
+                                }
 
                                 add_child(parent, child);
 
@@ -453,27 +452,21 @@ int read_directory(const char *path, FileSystemEntry *parent)
 
 void write_tree_to_file(FileSystemEntry *node, FILE *file, int parent_id)
 {
-        if (node == NULL) {
-                return;
-        }
+    if (node == NULL)
+        return;
 
-        fprintf(file, "%d\t%s\t%d\t%d\n", node->id, node->name,
-                node->is_directory, parent_id);
+    fprintf(file, "%d\t%s\t%d\t%d\n",
+            node->id,
+            node->name ? node->name : "(null)",
+            node->is_directory,
+            parent_id);
 
-        FileSystemEntry *child = node->children;
-        FileSystemEntry *tmp = NULL;
-        while (child) {
-                tmp = child->next;
-                write_tree_to_file(child, file, node->id);
-                child = tmp;
-        }
-
-        free(node->name);
-        free(node->full_path);
-        free(node);
+    for (FileSystemEntry *child = node->children; child; child = child->next) {
+        write_tree_to_file(child, file, node->id);
+    }
 }
 
-void free_and_write_tree(FileSystemEntry *root, const char *filename)
+void write_tree(FileSystemEntry *root, const char *filename)
 {
         FILE *file = fopen(filename, "w");
         if (!file) {

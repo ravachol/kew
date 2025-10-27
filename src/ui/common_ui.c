@@ -565,6 +565,7 @@ PixelData decrease_luminosity_pct(PixelData base, float pct)
         c.r = (r < MIN_CHANNEL) ? MIN_CHANNEL : r;
         c.g = (g < MIN_CHANNEL) ? MIN_CHANNEL : g;
         c.b = (b < MIN_CHANNEL) ? MIN_CHANNEL : b;
+        
         return c;
 }
 
@@ -588,5 +589,6 @@ PixelData get_gradient_color(PixelData base_color, int row, int max_list_size,
                 pct = min_pct;
         if (pct > 1.0f)
                 pct = 1.0f;
+
         return decrease_luminosity_pct(base_color, pct);
 }

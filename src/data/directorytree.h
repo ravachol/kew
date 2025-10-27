@@ -40,7 +40,7 @@ typedef void (*SlowloadingCallback)(void);
 
 FileSystemEntry *create_directory_tree(const char *start_path, int *num_entries);
 void free_tree(FileSystemEntry *root);
-void free_and_write_tree(FileSystemEntry *root, const char *filename);
+void write_tree(FileSystemEntry *root, const char *filename);
 void fuzzy_search_recursive(FileSystemEntry *node, const char *search_term,
                             int threshold,
                             void (*callback)(FileSystemEntry *, int));
