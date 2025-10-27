@@ -25,8 +25,6 @@
 
 #include "utils/utils.h"
 
-#include <locale.h>
-
 void determine_song_and_notify(void)
 {
         AppState *state = get_app_state();
