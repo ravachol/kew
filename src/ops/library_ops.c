@@ -368,10 +368,11 @@ void create_library()
                 char expanded[MAXPATHLEN];
 
                 expand_path(settings->path, expanded);
-
+                char *lib_path = get_library_file_path();
                 library = reconstruct_tree_from_file(
-                    expanded, expanded,
+                    lib_path, expanded,
                     &(state->uiState.numDirectoryTreeEntries));
+                free(lib_path);
                 update_library_if_changed_detected();
         }
 
