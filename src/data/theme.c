@@ -31,7 +31,7 @@ typedef struct
         ColorValue *field;
 } ThemeMapping;
 
-int hexToPixel(const char *hex, PixelData *result)
+int hex_to_pixel(const char *hex, PixelData *result)
 {
         if (!hex || strlen(hex) != 7 || hex[0] != '#')
                 return -1;
@@ -56,7 +56,7 @@ int hexToPixel(const char *hex, PixelData *result)
         return 0;
 }
 
-void trimWhitespace(char *str)
+void trim_whitespace(char *str)
 {
         while (isspace((unsigned char)*str))
                 str++;
@@ -68,7 +68,7 @@ void trimWhitespace(char *str)
         memmove(str, str, strlen(str) + 1);
 }
 
-void removeComment(char *str)
+void remove_comment(char *str)
 {
         char *p = str;
         while (*p)
@@ -88,7 +88,7 @@ void removeComment(char *str)
 }
 
 // Parse hex color safely (e.g. #aabbcc)
-int parseHexColor(const char *hex, PixelData *out)
+int parse_hex_color(const char *hex, PixelData *out)
 {
         if (!hex || strlen(hex) != 7 || hex[0] != '#')
                 return 0;
@@ -103,7 +103,7 @@ int parseHexColor(const char *hex, PixelData *out)
         return 1;
 }
 
-int parseColorValue(const char *value, ColorValue *out)
+int parse_color_value(const char *value, ColorValue *out)
 {
         if (!value || !out)
                 return 0;
@@ -142,14 +142,14 @@ int parseColorValue(const char *value, ColorValue *out)
         return 1;
 }
 
-int loadThemeFromFile(const char *themesDir, const char *filename, Theme *currentTheme)
+int load_theme_from_file(const char *themesDir, const char *filename, Theme *currentTheme)
 {
         memset(currentTheme, 0, sizeof(Theme));
 
         if (!themesDir || !filename)
         {
                 fprintf(stderr, "Theme directory or filename is NULL.\n");
-                setErrorMessage("Theme directory or filename is NULL.");
+                set_error_message("Theme directory or filename is NULL.");
                 return 0;
         }
 
@@ -165,7 +165,7 @@ int loadThemeFromFile(const char *themesDir, const char *filename, Theme *curren
         if (!file)
         {
                 fprintf(stderr, "Failed to open theme file.\n");
-                setErrorMessage("Failed to open theme file.");
+                set_error_message("Failed to open theme file.");
                 return 0;
         }
 
@@ -220,8 +220,8 @@ int loadThemeFromFile(const char *themesDir, const char *filename, Theme *curren
         {
                 lineNum++;
 
-                removeComment(line);
-                trimWhitespace(line);
+                remove_comment(line);
+                trim_whitespace(line);
 
                 if (strlen(line) == 0 || line[0] == '[')
                         continue; // skip empty or section headers
@@ -236,8 +236,8 @@ int loadThemeFromFile(const char *themesDir, const char *filename, Theme *curren
                 char *key = line;
                 char *value = eq + 1;
 
-                trimWhitespace(key);
-                trimWhitespace(value);
+                trim_whitespace(key);
+                trim_whitespace(value);
 
                 // Replace dots with underscores
                 for (char *c = key; *c; c++)
@@ -274,7 +274,7 @@ int loadThemeFromFile(const char *themesDir, const char *filename, Theme *curren
                         {
                                 ColorValue color;
 
-                                if (!parseColorValue(value, &color))
+                                if (!parse_color_value(value, &color))
                                 {
                                         fprintf(stderr,
                                                 "Invalid color value at line "
@@ -296,11 +296,11 @@ int loadThemeFromFile(const char *themesDir, const char *filename, Theme *curren
 }
 
 // Copies default themes to config dir if they aren't alread there
-bool ensureDefaultThemes(void)
+bool ensure_default_themes(void)
 {
         bool copied = false;
 
-        char *configPath = getConfigPath();
+        char *configPath = get_config_path();
         if (!configPath)
                 return false;
 
@@ -347,7 +347,7 @@ bool ensureDefaultThemes(void)
                                                      themesPath, entry->d_name) >= (int)sizeof(dst))
                                                 continue;
 
-                                        copyFile(src, dst);
+                                        copy_file(src, dst);
                                         copied = true;
                                 }
                         }

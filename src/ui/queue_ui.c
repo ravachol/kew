@@ -18,21 +18,21 @@
 #include "ops/playback_state.h"
 #include "ops/playback_system.h"
 #include "ops/playlist_ops.h"
-#include "ops/trackmanager.h"
+#include "ops/track_manager.h"
 
 #include "sys/mpris.h"
-#include "sys/systemintegration.h"
+#include "sys/sys_integration.h"
 
 #include "utils/utils.h"
 
 #include <locale.h>
 
-void determineSongAndNotify(void)
+void determine_song_and_notify(void)
 {
-        AppState *state = getAppState();
+        AppState *state = get_app_state();
         SongData *currentSongData = NULL;
-        bool isDeleted = determineCurrentSongData(&currentSongData);
-        Node *current = getCurrentSong();
+        bool isDeleted = determine_current_song_data(&currentSongData);
+        Node *current = get_current_song();
 
         if (currentSongData && current)
                 current->song.duration = currentSongData->duration;
@@ -40,97 +40,97 @@ void determineSongAndNotify(void)
         if (state->uiState.lastNotifiedId != current->id)
         {
                 if (!isDeleted)
-                        notifySongSwitch(currentSongData);
+                        notify_song_switch(currentSongData);
         }
 }
 
-void updateNextSongIfNeeded(void)
+void update_next_song_if_needed(void)
 {
-        loadNextSong();
-        determineSongAndNotify();
+        load_next_song();
+        determine_song_and_notify();
 }
 
-void resetListAfterDequeuingPlayingSong(void)
+void reset_list_after_dequeuing_playing_song(void)
 {
-        AppState *state = getAppState();
-        PlaybackState *ps = getPlaybackState();
+        AppState *state = get_app_state();
+        PlaybackState *ps = get_playback_state();
 
         state->uiState.startFromTop = true;
 
         if (ps->lastPlayedId < 0)
                 return;
 
-        Node *node = findSelectedEntryById(getPlaylist(), ps->lastPlayedId);
+        Node *node = find_selected_entry_by_id(get_playlist(), ps->lastPlayedId);
 
-        if (getCurrentSong() == NULL && node == NULL)
+        if (get_current_song() == NULL && node == NULL)
         {
                 ps->loadedNextSong = false;
-                audioData.endOfListReached = true;
-                audioData.restart = true;
+                audio_data.endOfListReached = true;
+                audio_data.restart = true;
 
-                emitMetadataChanged("", "", "", "",
+                emit_metadata_changed("", "", "", "",
                                     "/org/mpris/MediaPlayer2/TrackList/NoTrack",
                                     NULL, 0);
-                emitPlaybackStoppedMpris();
+                emit_playback_stopped_mpris();
 
-                playbackCleanup();
+                playback_cleanup();
 
-                triggerRefresh();
+                trigger_refresh();
 
-                playbackSwitchDecoder();
+                playback_switch_decoder();
 
-                unloadSongA();
-                unloadSongB();
+                unload_song_a();
+                unload_song_b();
 
                 state->uiState.songWasRemoved = true;
 
-                UserData *userData = audioData.pUserData;
+                UserData *userData = audio_data.pUserData;
 
                 userData->currentSongData = NULL;
 
-                audioData.currentFileIndex = 0;
-                audioData.restart = true;
+                audio_data.currentFileIndex = 0;
+                audio_data.restart = true;
                 ps->waitingForNext = true;
 
-                PlaybackState *ps = getPlaybackState();
+                PlaybackState *ps = get_playback_state();
 
                 ps->loadingdata.loadA = true;
                 ps->usingSongDataA = false;
 
-                ma_data_source_uninit(&audioData);
+                ma_data_source_uninit(&audio_data);
 
-                audioData.switchFiles = false;
+                audio_data.switchFiles = false;
 
-                if (getPlaylist()->count == 0)
-                        setSongToStartFrom(NULL);
+                if (get_playlist()->count == 0)
+                        set_song_to_start_from(NULL);
         }
 }
 
-FileSystemEntry *enqueueSongs(FileSystemEntry *entry, FileSystemEntry **chosenDir)
+FileSystemEntry *enqueue_songs(FileSystemEntry *entry, FileSystemEntry **chosen_dir)
 {
-        AppState *state = getAppState();
+        AppState *state = get_app_state();
         FileSystemEntry *firstEnqueuedEntry = NULL;
         UIState *uis = &(state->uiState);
-        PlaybackState *ps = getPlaybackState();
+        PlaybackState *ps = get_playback_state();
         bool hasEnqueued = false;
         bool shuffle = false;
 
         if (entry != NULL)
         {
-                if (entry->isDirectory)
+                if (entry->is_directory)
                 {
-                        if (!hasSongChildren(entry) || entry->parent == NULL ||
-                            ((*chosenDir) != NULL &&
-                             strcmp(entry->fullPath, (*chosenDir)->fullPath) == 0))
+                        if (!has_song_children(entry) || entry->parent == NULL ||
+                            ((*chosen_dir) != NULL &&
+                             strcmp(entry->fullPath, (*chosen_dir)->fullPath) == 0))
                         {
-                                if (hasDequeuedChildren(entry))
+                                if (has_dequeued_children(entry))
                                 {
                                         if (entry->parent ==
                                             NULL) // Shuffle playlist if it's
                                                   // the root
                                                 shuffle = true;
 
-                                        entry->isEnqueued = enqueueChildren(entry->children, &firstEnqueuedEntry);
+                                        entry->isEnqueued = enqueue_children(entry->children, &firstEnqueuedEntry);
 
                                         hasEnqueued = entry->isEnqueued;
 
@@ -138,22 +138,22 @@ FileSystemEntry *enqueueSongs(FileSystemEntry *entry, FileSystemEntry **chosenDi
                                 }
                                 else
                                 {
-                                        dequeueChildren(entry);
+                                        dequeue_children(entry);
 
                                         entry->isEnqueued = 0;
 
                                         ps->nextSongNeedsRebuilding = true;
                                 }
                         }
-                        if ((*chosenDir) != NULL && entry->parent != NULL &&
-                            isContainedWithin(entry, (*chosenDir)) &&
+                        if ((*chosen_dir) != NULL && entry->parent != NULL &&
+                            is_contained_within(entry, (*chosen_dir)) &&
                             uis->allowChooseSongs == true)
                         {
                                 // If the chosen directory is the same as the
                                 // entry's parent and it is open
                                 uis->openedSubDir = true;
 
-                                FileSystemEntry *tmpc = (*chosenDir)->children;
+                                FileSystemEntry *tmpc = (*chosen_dir)->children;
 
                                 uis->numSongsAboveSubDir = 0;
 
@@ -161,22 +161,22 @@ FileSystemEntry *enqueueSongs(FileSystemEntry *entry, FileSystemEntry **chosenDi
                                 {
                                         if (strcmp(entry->fullPath,
                                                    tmpc->fullPath) == 0 ||
-                                            isContainedWithin(entry, tmpc))
+                                            is_contained_within(entry, tmpc))
                                                 break;
                                         tmpc = tmpc->next;
                                         uis->numSongsAboveSubDir++;
                                 }
                         }
 
-                        AppState *state = getAppState();
+                        AppState *state = get_app_state();
 
-                        if (state->uiState.currentLibEntry && state->uiState.currentLibEntry->isDirectory)
-                                *chosenDir = state->uiState.currentLibEntry;
+                        if (state->uiState.currentLibEntry && state->uiState.currentLibEntry->is_directory)
+                                *chosen_dir = state->uiState.currentLibEntry;
 
                         if (uis->allowChooseSongs == true)
                         {
                                 uis->collapseView = true;
-                                triggerRefresh();
+                                trigger_refresh();
                         }
 
                         if (entry->parent != NULL)
@@ -186,41 +186,41 @@ FileSystemEntry *enqueueSongs(FileSystemEntry *entry, FileSystemEntry **chosenDi
                 {
                         if (!entry->isEnqueued)
                         {
-                                setNextSong(NULL);
+                                set_next_song(NULL);
                                 ps->nextSongNeedsRebuilding = true;
                                 firstEnqueuedEntry = entry;
 
-                                enqueueSong(entry);
+                                enqueue_song(entry);
 
                                 hasEnqueued = true;
                         }
                         else
                         {
-                                setNextSong(NULL);
+                                set_next_song(NULL);
                                 ps->nextSongNeedsRebuilding = true;
 
-                                dequeueSong(entry);
+                                dequeue_song(entry);
                         }
                 }
-                triggerRefresh();
+                trigger_refresh();
         }
 
         if (hasEnqueued)
         {
-                autostartIfStopped(firstEnqueuedEntry);
+                autostart_if_stopped(firstEnqueuedEntry);
         }
 
         if (shuffle)
         {
-                PlayList *playlist = getPlaylist();
+                PlayList *playlist = get_playlist();
 
-                shufflePlaylist(playlist);
-                setSongToStartFrom(NULL);
+                shuffle_playlist(playlist);
+                set_song_to_start_from(NULL);
         }
 
         if (ps->nextSongNeedsRebuilding)
         {
-                reshufflePlaylist();
+                reshuffle_playlist();
         }
 
         return firstEnqueuedEntry;
@@ -228,19 +228,19 @@ FileSystemEntry *enqueueSongs(FileSystemEntry *entry, FileSystemEntry **chosenDi
 
 FileSystemEntry *enqueue(FileSystemEntry *entry)
 {
-        AppState *state = getAppState();
+        AppState *state = get_app_state();
         FileSystemEntry *firstEnqueuedEntry = NULL;
-        PlaybackState *ps = getPlaybackState();
+        PlaybackState *ps = get_playback_state();
 
-        if (audioData.restart)
+        if (audio_data.restart)
         {
-                Node *lastSong = findSelectedEntryById(getPlaylist(), ps->lastPlayedId);
+                Node *lastSong = find_selected_entry_by_id(get_playlist(), ps->lastPlayedId);
                 state->uiState.startFromTop = false;
 
                 if (lastSong == NULL)
                 {
-                        if (getPlaylist()->tail != NULL)
-                                ps->lastPlayedId = getPlaylist()->tail->id;
+                        if (get_playlist()->tail != NULL)
+                                ps->lastPlayedId = get_playlist()->tail->id;
                         else
                         {
                                 ps->lastPlayedId = -1;
@@ -249,52 +249,52 @@ FileSystemEntry *enqueue(FileSystemEntry *entry)
                 }
         }
 
-        pthread_mutex_lock(&(getPlaylist()->mutex));
+        pthread_mutex_lock(&(get_playlist()->mutex));
 
-        FileSystemEntry *chosenDir = getChosenDir();
-        firstEnqueuedEntry = enqueueSongs(entry, &chosenDir);
-        setChosenDir(chosenDir);
-        resetListAfterDequeuingPlayingSong();
+        FileSystemEntry *chosen_dir = get_chosen_dir();
+        firstEnqueuedEntry = enqueue_songs(entry, &chosen_dir);
+        set_chosen_dir(chosen_dir);
+        reset_list_after_dequeuing_playing_song();
 
-        pthread_mutex_unlock(&(getPlaylist()->mutex));
+        pthread_mutex_unlock(&(get_playlist()->mutex));
 
         return firstEnqueuedEntry;
 }
 
-void viewEnqueue(bool playImmediately)
+void view_enqueue(bool playImmediately)
 {
-        AppState *state = getAppState();
-        PlayList *playlist = getPlaylist();
-        PlayList *unshuffledPlaylist = getUnshuffledPlaylist();
-        PlaybackState *ps = getPlaybackState();
-        FileSystemEntry *library = getLibrary();
+        AppState *state = get_app_state();
+        PlayList *playlist = get_playlist();
+        PlayList *unshuffled_playlist = get_unshuffled_playlist();
+        PlaybackState *ps = get_playback_state();
+        FileSystemEntry *library = get_library();
         FileSystemEntry *firstEnqueuedEntry = NULL;
-        Node *currentSong = getCurrentSong();
-        bool canGoNext = (currentSong != NULL && currentSong->next != NULL);
+        Node *current_song = get_current_song();
+        bool canGoNext = (current_song != NULL && current_song->next != NULL);
 
         if (state->currentView == TRACK_VIEW)
         {
-                if (currentSong != NULL)
+                if (current_song != NULL)
                 {
-                        clearAndPlay(currentSong);
+                        clear_and_play(current_song);
                 }
         }
 
         if (state->currentView == PLAYLIST_VIEW)
         {
-                if (isDigitsPressed() == 0)
+                if (is_digits_pressed() == 0)
                 {
-                        playlistPlay(playlist);
+                        playlist_play(playlist);
                 }
                 else
                 {
                         state->uiState.resetPlaylistDisplay = true;
-                        int songNumber = getNumberFromString(getDigitsPressed());
-                        resetDigitsPressed();
+                        int songNumber = get_number_from_string(get_digits_pressed());
+                        reset_digits_pressed();
 
                         ps->nextSongNeedsRebuilding = false;
 
-                        skipToNumberedSong(songNumber);
+                        skip_to_numbered_song(songNumber);
                 }
         }
 
@@ -306,8 +306,8 @@ void viewEnqueue(bool playImmediately)
                         return;
 
                 // Enqueue playlist
-                if (pathEndsWith(entry->fullPath, "m3u") ||
-                    pathEndsWith(entry->fullPath, "m3u8"))
+                if (path_ends_with(entry->fullPath, "m3u") ||
+                    path_ends_with(entry->fullPath, "m3u8"))
                 {
                         FileSystemEntry *firstEnqueuedEntry = NULL;
 
@@ -315,22 +315,22 @@ void viewEnqueue(bool playImmediately)
 
                         if (playlist != NULL)
                         {
-                                readM3UFile(entry->fullPath, playlist, library);
+                                read_m3_u_file(entry->fullPath, playlist, library);
 
                                 if (prevTail != NULL && prevTail->next != NULL)
                                 {
-                                        firstEnqueuedEntry = findCorrespondingEntry(
+                                        firstEnqueuedEntry = find_corresponding_entry(
                                             library, prevTail->next->song.filePath);
                                 }
                                 else if (playlist->head != NULL)
                                 {
-                                        firstEnqueuedEntry = findCorrespondingEntry(
+                                        firstEnqueuedEntry = find_corresponding_entry(
                                             library, playlist->head->song.filePath);
                                 }
 
-                                autostartIfStopped(firstEnqueuedEntry);
-                                markListAsEnqueued(library, playlist);
-                                deepCopyPlayListOntoList(playlist, &unshuffledPlaylist);
+                                autostart_if_stopped(firstEnqueuedEntry);
+                                mark_list_as_enqueued(library, playlist);
+                                deep_copy_play_list_onto_list(playlist, &unshuffled_playlist);
                         }
                 }
                 else
@@ -339,21 +339,21 @@ void viewEnqueue(bool playImmediately)
 
         if (state->currentView == SEARCH_VIEW)
         {
-                setChosenDir(getCurrentSearchEntry());
-                firstEnqueuedEntry = enqueue(getCurrentSearchEntry());
+                set_chosen_dir(get_current_search_entry());
+                firstEnqueuedEntry = enqueue(get_current_search_entry());
         }
 
         if (firstEnqueuedEntry && playImmediately && playlist->count != 0)
         {
-                Node *song = findPathInPlaylist(firstEnqueuedEntry->fullPath, playlist);
-                clearAndPlay(song);
+                Node *song = find_path_in_playlist(firstEnqueuedEntry->fullPath, playlist);
+                clear_and_play(song);
         }
 
-        // Handle MPRIS CanGoNext
-        bool couldGoNext = (currentSong != NULL && currentSong->next != NULL);
+        // Handle MPRIS can_go_next
+        bool couldGoNext = (current_song != NULL && current_song->next != NULL);
         if (canGoNext != couldGoNext)
         {
-                emitBooleanPropertyChanged("CanGoNext", couldGoNext);
+                emit_boolean_property_changed("can_go_next", couldGoNext);
         }
 }
 

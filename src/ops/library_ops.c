@@ -11,7 +11,7 @@
 #include "common/common.h"
 
 #include "playlist_ops.h"
-#include "trackmanager.h"
+#include "track_manager.h"
 
 #include "data/directorytree.h"
 
@@ -32,28 +32,28 @@ typedef struct
         AppState *state;
 } UpdateLibraryThreadArgs;
 
-int currentSort = 0;
+int current_sort = 0;
 
-void sortLibrary(void)
+void sort_library(void)
 {
-        FileSystemEntry *library = getLibrary();
+        FileSystemEntry *library = get_library();
 
-        if (currentSort == 0)
+        if (current_sort == 0)
         {
-                sortFileSystemTree(library,
-                                   compareFoldersByAgeFilesAlphabetically);
-                currentSort = 1;
+                sort_file_system_tree(library,
+                                   compare_folders_by_age_files_alphabetically);
+                current_sort = 1;
         }
         else
         {
-                sortFileSystemTree(library, compareEntryNatural);
-                currentSort = 0;
+                sort_file_system_tree(library, compare_entry_natural);
+                current_sort = 0;
         }
 
-        triggerRefresh();
+        trigger_refresh();
 }
 
-bool markAsEnqueued(FileSystemEntry *root, char *path)
+bool mark_as_enqueued(FileSystemEntry *root, char *path)
 {
         if (root == NULL)
                 return false;
@@ -61,7 +61,7 @@ bool markAsEnqueued(FileSystemEntry *root, char *path)
         if (path == NULL)
                 return false;
 
-        if (!root->isDirectory)
+        if (!root->is_directory)
         {
                 if (strcmp(root->fullPath, path) == 0)
                 {
@@ -75,7 +75,7 @@ bool markAsEnqueued(FileSystemEntry *root, char *path)
                 bool found = false;
                 while (child != NULL)
                 {
-                        found = markAsEnqueued(child, path);
+                        found = mark_as_enqueued(child, path);
                         child = child->next;
 
                         if (found)
@@ -93,7 +93,7 @@ bool markAsEnqueued(FileSystemEntry *root, char *path)
         return false;
 }
 
-void markListAsEnqueued(FileSystemEntry *root, PlayList *playlist)
+void mark_list_as_enqueued(FileSystemEntry *root, PlayList *playlist)
 {
         Node *node = playlist->head;
 
@@ -105,7 +105,7 @@ void markListAsEnqueued(FileSystemEntry *root, PlayList *playlist)
                 if (node->song.filePath == NULL)
                         break;
 
-                markAsEnqueued(root, node->song.filePath);
+                mark_as_enqueued(root, node->song.filePath);
 
                 node = node->next;
         }
@@ -113,14 +113,14 @@ void markListAsEnqueued(FileSystemEntry *root, PlayList *playlist)
         root->isEnqueued = false; // Don't mark the absolute root
 }
 
-bool markAsDequeued(FileSystemEntry *root, char *path)
+bool mark_as_dequeued(FileSystemEntry *root, char *path)
 {
         int numChildrenEnqueued = 0;
 
         if (root == NULL)
                 return false;
 
-        if (!root->isDirectory)
+        if (!root->is_directory)
         {
                 if (strcmp(root->fullPath, path) == 0)
                 {
@@ -134,7 +134,7 @@ bool markAsDequeued(FileSystemEntry *root, char *path)
                 bool found = false;
                 while (child != NULL)
                 {
-                        found = markAsDequeued(child, path);
+                        found = mark_as_dequeued(child, path);
                         child = child->next;
 
                         if (found)
@@ -163,9 +163,9 @@ bool markAsDequeued(FileSystemEntry *root, char *path)
         return false;
 }
 
-void askIfCacheLibrary()
+void ask_if_cache_library()
 {
-        AppState *state = getAppState();
+        AppState *state = get_app_state();
         UISettings *ui = &(state->uiSettings);
 
         if (ui->cacheLibrary >
@@ -174,9 +174,9 @@ void askIfCacheLibrary()
 
         char input = '\0';
 
-        restoreTerminalMode();
-        enableInputBuffering();
-        showCursor();
+        restore_terminal_mode();
+        enable_input_buffering();
+        show_cursor();
 
         printf(_("Would you like to enable a (local) library cache for quicker "
                "startup "
@@ -205,9 +205,9 @@ void askIfCacheLibrary()
                 ui->cacheLibrary = 0;
         }
 
-        setNonblockingMode();
-        setRawInputMode();
-        hideCursor();
+        set_nonblocking_mode();
+        set_raw_input_mode();
+        hide_cursor();
 }
 
 typedef struct
@@ -216,46 +216,46 @@ typedef struct
         AppState *state;
 } UpdateLibraryArgs;
 
-void *updateLibraryThread(void *arg)
+void *update_library_thread(void *arg)
 {
         if (arg == NULL)
                 return NULL;
 
         UpdateLibraryArgs *args = arg;
-        FileSystemEntry *library = getLibrary();
+        FileSystemEntry *library = get_library();
 
         char *path = args->path;
         AppState *state = args->state;
         int tmpDirectoryTreeEntries = 0;
 
         char expandedPath[MAXPATHLEN];
-        expandPath(path, expandedPath);
+        expand_path(path, expandedPath);
 
-        setErrorMessage("Updating Library...");
+        set_error_message("Updating Library...");
 
         FileSystemEntry *tmp =
-            createDirectoryTree(expandedPath, &tmpDirectoryTreeEntries);
+            create_directory_tree(expandedPath, &tmpDirectoryTreeEntries);
 
         if (!tmp)
         {
-                perror("createDirectoryTree");
-                pthread_mutex_unlock(&(state->switchMutex));
+                perror("create_directory_tree");
+                pthread_mutex_unlock(&(state->switch_mutex));
                 return NULL;
         }
 
-        pthread_mutex_lock(&(state->switchMutex));
+        pthread_mutex_lock(&(state->switch_mutex));
 
-        copyIsEnqueued(library, tmp);
+        copy_is_enqueued(library, tmp);
 
-        freeTree(library);
+        free_tree(library);
         library = tmp;
         state->uiState.numDirectoryTreeEntries = tmpDirectoryTreeEntries;
 
-        pthread_mutex_unlock(&(state->switchMutex));
+        pthread_mutex_unlock(&(state->switch_mutex));
 
         c_sleep(1000); // Don't refresh immediately or we risk the error message
                        // not clearing
-        triggerRefresh();
+        trigger_refresh();
 
         free(args->path);
         free(args);
@@ -263,9 +263,9 @@ void *updateLibraryThread(void *arg)
         return NULL;
 }
 
-void updateLibrary(char *path)
+void update_library(char *path)
 {
-        AppState *state = getAppState();
+        AppState *state = get_app_state();
         pthread_t threadId;
 
         UpdateLibraryArgs *args = malloc(sizeof(UpdateLibraryArgs));
@@ -276,19 +276,19 @@ void updateLibrary(char *path)
         args->path = strdup(path);
         args->state = state;
 
-        if (pthread_create(&threadId, NULL, updateLibraryThread, args) != 0)
+        if (pthread_create(&threadId, NULL, update_library_thread, args) != 0)
         {
                 perror("Failed to create thread");
                 return;
         }
 }
 
-time_t getModificationTime(struct stat *path_stat)
+time_t get_modification_time(struct stat *path_stat)
 {
     return path_stat->st_mtime;
 }
 
-void *updateIfTopLevelFoldersMtimesChangedThread(void *arg)
+void *update_if_top_level_folders_mtimes_changed_thread(void *arg)
 {
         UpdateLibraryThreadArgs *args = (UpdateLibraryThreadArgs *)
             arg; // Cast `arg` back to the structure pointer
@@ -304,10 +304,10 @@ void *updateIfTopLevelFoldersMtimesChangedThread(void *arg)
                 pthread_exit(NULL);
         }
 
-        if (getModificationTime(&path_stat) > ui->lastTimeAppRan &&
-            ui->lastTimeAppRan > 0)
+        if (get_modification_time(&path_stat) > ui->last_time_app_ran &&
+            ui->last_time_app_ran > 0)
         {
-                updateLibrary(path);
+                update_library(path);
                 free(args);
                 pthread_exit(NULL);
         }
@@ -342,11 +342,11 @@ void *updateIfTopLevelFoldersMtimesChangedThread(void *arg)
                 if (S_ISDIR(path_stat.st_mode))
                 {
 
-                        if (getModificationTime(&path_stat) >
-                                ui->lastTimeAppRan &&
-                            ui->lastTimeAppRan > 0)
+                        if (get_modification_time(&path_stat) >
+                                ui->last_time_app_ran &&
+                            ui->last_time_app_ran > 0)
                         {
-                                updateLibrary(path);
+                                update_library(path);
                                 break;
                         }
                 }
@@ -360,9 +360,9 @@ void *updateIfTopLevelFoldersMtimesChangedThread(void *arg)
 }
 
 // This only checks the library mtime and toplevel subfolders mtimes
-void updateLibraryIfChangedDetected(void)
+void update_library_if_changed_detected(void)
 {
-        AppState *state = getAppState();
+        AppState *state = get_app_state();
         pthread_t tid;
 
         UpdateLibraryThreadArgs *args = malloc(sizeof(UpdateLibraryThreadArgs));
@@ -373,17 +373,17 @@ void updateLibraryIfChangedDetected(void)
                 return;
         }
 
-        AppSettings *settings = getAppSettings();
+        AppSettings *settings = get_app_settings();
 
         char expanded[MAXPATHLEN];
 
-        expandPath(settings->path, expanded);
+        expand_path(settings->path, expanded);
 
         args->path = expanded;
         args->state = state;
 
         if (pthread_create(&tid, NULL,
-                           updateIfTopLevelFoldersMtimesChangedThread,
+                           update_if_top_level_folders_mtimes_changed_thread,
                            (void *)args) != 0)
         {
                 perror("pthread_create");
@@ -391,22 +391,22 @@ void updateLibraryIfChangedDetected(void)
         }
 }
 
-void createLibrary()
+void create_library()
 {
-        AppSettings *settings = getAppSettings();
-        AppState *state = getAppState();
-        FileSystemEntry *library = getLibrary();
+        AppSettings *settings = get_app_settings();
+        AppState *state = get_app_state();
+        FileSystemEntry *library = get_library();
 
         if (state->uiSettings.cacheLibrary > 0)
         {
                 char expanded[MAXPATHLEN];
 
-                expandPath(settings->path, expanded);
+                expand_path(settings->path, expanded);
 
-                library = reconstructTreeFromFile(
+                library = reconstruct_tree_from_file(
                     expanded, expanded,
                     &(state->uiState.numDirectoryTreeEntries));
-                updateLibraryIfChangedDetected();
+                update_library_if_changed_detected();
         }
 
         if (library == NULL || library->children == NULL)
@@ -417,9 +417,9 @@ void createLibrary()
 
                 char expanded[MAXPATHLEN];
 
-                expandPath(settings->path, expanded);
+                expand_path(settings->path, expanded);
 
-                library = createDirectoryTree(
+                library = create_directory_tree(
                     expanded, &(state->uiState.numDirectoryTreeEntries));
 
                 gettimeofday(&end, NULL);
@@ -431,7 +431,7 @@ void createLibrary()
                 // instead
                 if (elapsed > ASK_IF_USE_CACHE_LIMIT_SECONDS)
                 {
-                        askIfCacheLibrary();
+                        ask_if_cache_library();
                 }
         }
 
@@ -442,67 +442,67 @@ void createLibrary()
                 snprintf(message, MAXPATHLEN + 64, "No music found at %s.",
                          settings->path);
 
-                setErrorMessage(message);
+                set_error_message(message);
         }
 
-        setLibrary(library);
+        set_library(library);
 }
 
-void enqueueSong(FileSystemEntry *child)
+void enqueue_song(FileSystemEntry *child)
 {
-        int id = incrementNodeId();
+        int id = increment_node_id();
 
-        PlayList *unshuffledPlaylist = getUnshuffledPlaylist();
-        PlayList *playlist = getPlaylist();
+        PlayList *unshuffled_playlist = get_unshuffled_playlist();
+        PlayList *playlist = get_playlist();
 
         Node *node = NULL;
-        createNode(&node, child->fullPath, id);
-        if (addToList(unshuffledPlaylist, node) == -1)
-                destroyNode(node);
+        create_node(&node, child->fullPath, id);
+        if (add_to_list(unshuffled_playlist, node) == -1)
+                destroy_node(node);
 
         Node *node2 = NULL;
-        createNode(&node2, child->fullPath, id);
-        if (addToList(playlist, node2) == -1)
-                destroyNode(node2);
+        create_node(&node2, child->fullPath, id);
+        if (add_to_list(playlist, node2) == -1)
+                destroy_node(node2);
 
         child->isEnqueued = 1;
         child->parent->isEnqueued = 1;
 }
 
-void dequeueSong(FileSystemEntry *child)
+void dequeue_song(FileSystemEntry *child)
 {
-        PlayList *unshuffledPlaylist = getUnshuffledPlaylist();
-        PlayList *playlist = getPlaylist();
+        PlayList *unshuffled_playlist = get_unshuffled_playlist();
+        PlayList *playlist = get_playlist();
 
         Node *node1 =
-            findLastPathInPlaylist(child->fullPath, unshuffledPlaylist);
+            find_last_path_in_playlist(child->fullPath, unshuffled_playlist);
 
-        Node *current = getCurrentSong();
+        Node *current = get_current_song();
 
         if (node1 == NULL)
                 return;
 
         if (current != NULL && current->id == node1->id)
         {
-                removeCurrentlyPlayingSong();
+                remove_currently_playing_song();
         }
         else
         {
-                if (getSongToStartFrom() != NULL)
+                if (get_song_to_start_from() != NULL)
                 {
-                        setSongToStartFrom(getListNext(node1));
+                        set_song_to_start_from(get_list_next(node1));
                 }
         }
 
         int id = node1->id;
 
-        Node *node2 = findSelectedEntryById(playlist, id);
+        Node *node2 = find_selected_entry_by_id(playlist, id);
 
         if (node1 != NULL)
-                deleteFromList(unshuffledPlaylist, node1);
+                delete_from_list(unshuffled_playlist, node1);
 
         if (node2 != NULL)
-                deleteFromList(playlist, node2);
+                delete_from_list(playlist, node2);
 
         child->isEnqueued = 0;
 
@@ -529,35 +529,35 @@ void dequeueSong(FileSystemEntry *child)
         }
 }
 
-void dequeueChildren(FileSystemEntry *parent)
+void dequeue_children(FileSystemEntry *parent)
 {
         FileSystemEntry *child = parent->children;
 
         while (child != NULL)
         {
-                if (child->isDirectory && child->children != NULL)
+                if (child->is_directory && child->children != NULL)
                 {
-                        dequeueChildren(child);
+                        dequeue_children(child);
                 }
                 else
                 {
-                        dequeueSong(child);
+                        dequeue_song(child);
                 }
 
                 child = child->next;
         }
 }
 
-int enqueueChildren(FileSystemEntry *child,
+int enqueue_children(FileSystemEntry *child,
                      FileSystemEntry **firstEnqueuedEntry)
 {
         int hasEnqueued = 0;
 
         while (child != NULL)
         {
-                if (child->isDirectory && child->children != NULL)
+                if (child->is_directory && child->children != NULL)
                 {
-                        child->isEnqueued = enqueueChildren(child->children, firstEnqueuedEntry);
+                        child->isEnqueued = enqueue_children(child->children, firstEnqueuedEntry);
 
                         if (child->isEnqueued == 1)
                                 hasEnqueued = 1;
@@ -567,10 +567,10 @@ int enqueueChildren(FileSystemEntry *child,
                         if (*firstEnqueuedEntry == NULL)
                                 *firstEnqueuedEntry = child;
 
-                        if (!(pathEndsWith(child->fullPath, "m3u") ||
-                                pathEndsWith(child->fullPath, "m3u8")))
+                        if (!(path_ends_with(child->fullPath, "m3u") ||
+                                path_ends_with(child->fullPath, "m3u8")))
                         {
-                                enqueueSong(child);
+                                enqueue_song(child);
                                 hasEnqueued = 1;
                         }
                 }
@@ -580,7 +580,7 @@ int enqueueChildren(FileSystemEntry *child,
         return hasEnqueued;
 }
 
-bool hasSongChildren(FileSystemEntry *entry)
+bool has_song_children(FileSystemEntry *entry)
 {
         if (!entry)
                 return false;
@@ -590,7 +590,7 @@ bool hasSongChildren(FileSystemEntry *entry)
 
         while (child != NULL)
         {
-                if (!child->isDirectory)
+                if (!child->is_directory)
                         numSongs++;
 
                 child = child->next;
@@ -604,7 +604,7 @@ bool hasSongChildren(FileSystemEntry *entry)
         return true;
 }
 
-bool hasDequeuedChildren(FileSystemEntry *parent)
+bool has_dequeued_children(FileSystemEntry *parent)
 {
         FileSystemEntry *child = parent->children;
 
@@ -613,8 +613,8 @@ bool hasDequeuedChildren(FileSystemEntry *parent)
         {
                 if (!child->isEnqueued)
                 {
-                        if ((child->isDirectory != 1 && !(pathEndsWith(child->fullPath, "m3u") ||
-                                pathEndsWith(child->fullPath, "m3u8"))) || hasDequeuedChildren(child))
+                        if ((child->is_directory != 1 && !(path_ends_with(child->fullPath, "m3u") ||
+                                path_ends_with(child->fullPath, "m3u8"))) || has_dequeued_children(child))
                                 isDequeued = true;
                 }
                 child = child->next;
@@ -623,7 +623,7 @@ bool hasDequeuedChildren(FileSystemEntry *parent)
         return isDequeued;
 }
 
-bool isContainedWithin(FileSystemEntry *entry, FileSystemEntry *containingEntry)
+bool is_contained_within(FileSystemEntry *entry, FileSystemEntry *containingEntry)
 {
         if (entry == NULL || containingEntry == NULL)
                 return false;

@@ -29,10 +29,10 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 
-void seekForward(void)
+void seek_forward(void)
 {
-        AppState *state = getAppState();
-        Node *current = getCurrentSong();
+        AppState *state = get_app_state();
+        Node *current = get_current_song();
         if (current == NULL)
                 return;
 
@@ -49,10 +49,10 @@ void seekForward(void)
         state->uiState.isFastForwarding = true;
 }
 
-void seekBack(void)
+void seek_back(void)
 {
-        AppState *state = getAppState();
-        Node *current = getCurrentSong();
+        AppState *state = get_app_state();
+        Node *current = get_current_song();
 
         if (current == NULL)
                 return;
@@ -70,12 +70,12 @@ void seekBack(void)
         state->uiState.isRewinding = true;
 }
 
-void cycleColorMode(void)
+void cycle_color_mode(void)
 {
-        AppState *state = getAppState();
+        AppState *state = get_app_state();
         UISettings *ui = &(state->uiSettings);
 
-        clearScreen();
+        clear_screen();
 
         switch (ui->colorMode)
         {
@@ -95,7 +95,7 @@ void cycleColorMode(void)
         switch (ui->colorMode)
         {
         case COLOR_MODE_DEFAULT:
-                if (loadTheme("default", true))
+                if (load_theme("default", true))
                 {
                         themeLoaded = true;
                 }
@@ -105,7 +105,7 @@ void cycleColorMode(void)
                 break;
         case COLOR_MODE_THEME:
                 if (ui->themeName[0] != '\0' &&
-                    loadTheme(ui->themeName, true))
+                    load_theme(ui->themeName, true))
                 {
                         themeLoaded = true;
                 }
@@ -113,20 +113,20 @@ void cycleColorMode(void)
 
         if (!themeLoaded)
         {
-                cycleColorMode();
+                cycle_color_mode();
         }
 
-        triggerRefresh();
+        trigger_refresh();
 }
 
-void cycleThemes(void)
+void cycle_themes(void)
 {
-        clearScreen();
+        clear_screen();
 
-        AppState *state = getAppState();
+        AppState *state = get_app_state();
         UISettings *ui = &(state->uiSettings);
 
-        char *configPath = getConfigPath();
+        char *configPath = get_config_path();
         if (!configPath)
                 return;
 
@@ -156,7 +156,7 @@ void cycleThemes(void)
 
         if (themeCount == 0)
         {
-                setErrorMessage("No themes found.");
+                set_error_message("No themes found.");
                 free(configPath);
                 return;
         }
@@ -183,7 +183,7 @@ void cycleThemes(void)
         // Get next theme (wrap around)
         int nextIndex = (currentIndex + 1) % themeCount;
 
-        if (loadTheme(themes[nextIndex], false))
+        if (load_theme(themes[nextIndex], false))
         {
                 ui->colorMode = COLOR_MODE_THEME;
 
@@ -194,7 +194,7 @@ void cycleThemes(void)
                         *dot = '\0';
         }
 
-        triggerRefresh();
+        trigger_refresh();
 
         for (int i = 0; i < themeCount; i++)
         {
@@ -204,84 +204,84 @@ void cycleThemes(void)
         free(configPath);
 }
 
-void toggleVisualizer(void)
+void toggle_visualizer(void)
 {
-        AppSettings *settings = getAppSettings();
-        AppState *state = getAppState();
+        AppSettings *settings = get_app_settings();
+        AppState *state = get_app_state();
 
         state->uiSettings.visualizerEnabled = !state->uiSettings.visualizerEnabled;
         c_strcpy(settings->visualizerEnabled, state->uiSettings.visualizerEnabled ? "1" : "0",
                  sizeof(settings->visualizerEnabled));
-        restoreCursorPosition();
-        triggerRefresh();
+        restore_cursor_position();
+        trigger_refresh();
 }
 
-void toggleShowLyricsPage(void)
+void toggle_show_lyrics_page(void)
 {
-        AppState *state = getAppState();
+        AppState *state = get_app_state();
         state->uiState.showLyricsPage = !state->uiState.showLyricsPage;
-        triggerRefresh();
+        trigger_refresh();
 }
 
-void toggleAscii(void)
+void toggle_ascii(void)
 {
-        AppSettings *settings = getAppSettings();
-        AppState *state = getAppState();
+        AppSettings *settings = get_app_settings();
+        AppState *state = get_app_state();
 
         state->uiSettings.coverAnsi = !state->uiSettings.coverAnsi;
         c_strcpy(settings->coverAnsi, state->uiSettings.coverAnsi ? "1" : "0",
                  sizeof(settings->coverAnsi));
-        triggerRefresh();
+        trigger_refresh();
 }
 
-void toggleRepeat(void)
+void toggle_repeat(void)
 {
-        AppState *state = getAppState();
-        bool repeatEnabled = opsIsRepeatEnabled();
-        bool repeatListEnabled = isRepeatListEnabled();
+        AppState *state = get_app_state();
+        bool repeat_enabled = ops_is_repeat_enabled();
+        bool repeat_list_enabled = is_repeat_list_enabled();
 
-        if (repeatEnabled)
+        if (repeat_enabled)
         {
-                setRepeatEnabled(false);
-                setRepeatListEnabled(true);
-                emitStringPropertyChanged("LoopStatus", "List");
+                set_repeat_enabled(false);
+                set_repeat_list_enabled(true);
+                emit_string_property_changed("loop_status", "List");
                 state->uiSettings.repeatState = 2;
         }
-        else if (repeatListEnabled)
+        else if (repeat_list_enabled)
         {
-                setRepeatEnabled(false);
-                setRepeatListEnabled(false);
-                emitStringPropertyChanged("LoopStatus", "None");
+                set_repeat_enabled(false);
+                set_repeat_list_enabled(false);
+                emit_string_property_changed("loop_status", "None");
                 state->uiSettings.repeatState = 0;
         }
         else
         {
-                setRepeatEnabled(true);
-                setRepeatListEnabled(false);
-                emitStringPropertyChanged("LoopStatus", "Track");
+                set_repeat_enabled(true);
+                set_repeat_list_enabled(false);
+                emit_string_property_changed("loop_status", "Track");
                 state->uiSettings.repeatState = 1;
         }
 
         if (state->currentView != TRACK_VIEW)
-                triggerRefresh();
+                trigger_refresh();
 }
 
-void togglePause()
+void toggle_pause()
 {
-                if (opsIsStopped())
+                if (ops_is_stopped())
                 {
-                        viewEnqueue(false);
+                        view_enqueue(false);
                 }
                 else
                 {
-                        opsTogglePause();
+                        ops_toggle_pause();
                 }
 }
 
-void toggleNotifications(void)
+void toggle_notifications(void)
 {
-        AppState *state = getAppState();
-        AppSettings *settings = getAppSettings();
+        AppState *state = get_app_state();
+        AppSettings *settings = get_app_settings();
         UISettings *ui = &(state->uiSettings);
 
         ui->allowNotifications = !ui->allowNotifications;
@@ -291,32 +291,32 @@ void toggleNotifications(void)
 
         if (ui->allowNotifications)
         {
-                clearScreen();
-                triggerRefresh();
+                clear_screen();
+                trigger_refresh();
         }
 }
 
-void toggleShuffle(void)
+void toggle_shuffle(void)
 {
-        AppState *state = getAppState();
-        PlaybackState *ps = getPlaybackState();
+        AppState *state = get_app_state();
+        PlaybackState *ps = get_playback_state();
 
-        state->uiSettings.shuffleEnabled = !isShuffleEnabled();
-        setShuffleEnabled(state->uiSettings.shuffleEnabled);
+        state->uiSettings.shuffle_enabled = !is_shuffle_enabled();
+        set_shuffle_enabled(state->uiSettings.shuffle_enabled);
 
-        Node *current = getCurrentSong();
-        PlayList *playlist = getPlaylist();
-        PlayList *unshuffledPlaylist = getUnshuffledPlaylist();
+        Node *current = get_current_song();
+        PlayList *playlist = get_playlist();
+        PlayList *unshuffled_playlist = get_unshuffled_playlist();
 
-        if (state->uiSettings.shuffleEnabled)
+        if (state->uiSettings.shuffle_enabled)
         {
                 pthread_mutex_lock(&(playlist->mutex));
 
-                shufflePlaylistStartingFromSong(playlist, current);
+                shuffle_playlist_starting_from_song(playlist, current);
 
                 pthread_mutex_unlock(&(playlist->mutex));
 
-                emitBooleanPropertyChanged("Shuffle", TRUE);
+                emit_boolean_property_changed("Shuffle", TRUE);
         }
         else
         {
@@ -328,49 +328,49 @@ void toggleShuffle(void)
 
                 pthread_mutex_lock(&(playlist->mutex));
 
-                PlayList *playlist = getPlaylist();
+                PlayList *playlist = get_playlist();
                 ;
-                deepCopyPlayListOntoList(unshuffledPlaylist, &playlist);
-                setPlaylist(playlist);
+                deep_copy_play_list_onto_list(unshuffled_playlist, &playlist);
+                set_playlist(playlist);
 
                 if (path != NULL)
                 {
-                        setCurrentSong(findPathInPlaylist(path, playlist));
+                        set_current_song(find_path_in_playlist(path, playlist));
                         free(path);
                 }
 
                 pthread_mutex_unlock(&(playlist->mutex));
 
-                emitBooleanPropertyChanged("Shuffle", FALSE);
+                emit_boolean_property_changed("Shuffle", FALSE);
         }
 
         ps->loadedNextSong = false;
-        setNextSong(NULL);
+        set_next_song(NULL);
 
         if (state->currentView == PLAYLIST_VIEW ||
             state->currentView == LIBRARY_VIEW)
-                triggerRefresh();
+                trigger_refresh();
 
-        emitShuffleChanged();
+        emit_shuffle_changed();
 }
 
-bool shouldRefreshPlayer(void)
+bool should_refresh_player(void)
 {
-        PlaybackState *ps = getPlaybackState();
+        PlaybackState *ps = get_playback_state();
 
-        return !ps->skipping && !opsIsEof() && !opsIsImplSwitchReached();
+        return !ps->skipping && !ops_is_EOF() && !ops_is_impl_switch_reached();
 }
 
-int loadTheme(const char *themeName,
+int load_theme(const char *themeName,
               bool isAnsiTheme)
 {
-        AppState *appState = getAppState();
-        AppSettings *settings = getAppSettings();
+        AppState *app_state = get_app_state();
+        AppSettings *settings = get_app_settings();
 
-        if (!appState || !themeName)
+        if (!app_state || !themeName)
                 return 0;
 
-        char *configPath = getConfigPath();
+        char *configPath = get_config_path();
         if (!configPath)
                 return 0;
 
@@ -399,7 +399,7 @@ int loadTheme(const char *themeName,
                     (int)sizeof(filename))
                 {
                         fprintf(stderr, "Theme filename is too long\n");
-                        setErrorMessage("Theme filename is too long");
+                        set_error_message("Theme filename is too long");
                         free(configPath);
                         return 0;
                 }
@@ -410,7 +410,7 @@ int loadTheme(const char *themeName,
                              themeName) >= (int)sizeof(filename))
                 {
                         fprintf(stderr, "Theme filename is too long\n");
-                        setErrorMessage("Theme filename is too long");
+                        set_error_message("Theme filename is too long");
                         free(configPath);
                         return 0;
                 }
@@ -422,23 +422,23 @@ int loadTheme(const char *themeName,
             (int)sizeof(themesDir))
         {
                 fprintf(stderr, "Themes path is too long\n");
-                setErrorMessage("Themes path is too long");
+                set_error_message("Themes path is too long");
                 free(configPath);
                 return 0;
         }
 
-        strToLower(filename);
+        str_to_lower(filename);
 
         // Call the loader
         int loaded =
-            loadThemeFromFile(themesDir, filename, &appState->uiSettings.theme);
+            load_theme_from_file(themesDir, filename, &app_state->uiSettings.theme);
         if (!loaded)
         {
                 free(configPath);
                 return 0; // failed to load
         }
 
-        appState->uiSettings.themeIsSet = true;
+        app_state->uiSettings.themeIsSet = true;
 
         if (isAnsiTheme)
         {

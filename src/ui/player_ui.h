@@ -15,33 +15,33 @@
 
 #include <stdbool.h>
 
-int printLogoArt(const UISettings *ui, int indent, bool centered, bool printTagLine, bool useGradient);
-int calcIndentNormal(void);
-int printPlayer(SongData *songdata, double elapsedSeconds);
-int getFooterRow(void);
-int getFooterCol(void);
-int getIndent(void);
-int printAbout(SongData *songdata);
-int getChosenRow(void);
-void flipNextPage(void);
-void flipPrevPage(void);
-void showHelp(void);
-void setChosenDir(FileSystemEntry *entry);
-void setCurrentAsChosenDir(void);
-void scrollNext(void);
-void scrollPrev(void);
-void toggleShowView(ViewState VIEW_TO_SHOW);
-void showTrack(void);
-void freeMainDirectoryTree(void);
-void resetChosenDir(void);
-void switchToNextView(void);
-void switchToPreviousView(void);
-void resetSearchResult(void);
-void setChosenRow(int row);
-void refreshPlayer();
-void setTrackTitleAsWindowTitle(void);
-char *getLibraryFilePath(void);
-bool initTheme(int argc, char *argv[]);
-FileSystemEntry *getChosenDir(void);
+int print_logo_art(const UISettings *ui, int indent, bool centered, bool printTagLine, bool useGradient);
+int calc_indent_normal(void);
+int print_player(SongData *songdata, double elapsed_seconds);
+int get_footer_row(void);
+int get_footer_col(void);
+int get_indent(void);
+int print_about(SongData *songdata);
+int get_chosen_row(void);
+void flip_next_page(void);
+void flip_prev_page(void);
+void show_help(void);
+void set_chosen_dir(FileSystemEntry *entry);
+void set_current_as_chosen_dir(void);
+void scroll_next(void);
+void scroll_prev(void);
+void toggle_show_view(ViewState VIEW_TO_SHOW);
+void show_track(void);
+void free_main_directory_tree(void);
+void reset_chosen_dir(void);
+void switch_to_next_view(void);
+void switch_to_previous_view(void);
+void reset_search_result(void);
+void set_chosen_row(int row);
+void refresh_player();
+void set_track_title_as_window_title(void);
+char *get_library_file_path(void);
+bool init_theme(int argc, char *argv[]);
+FileSystemEntry *get_chosen_dir(void);
 
 #endif

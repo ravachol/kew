@@ -7,12 +7,12 @@
 #include "common/appstate.h"
 
 struct Event processInput(void);
-bool isDigitsPressed(void);
-char *getDigitsPressed(void);
-void resetDigitsPressed(void);
-void updateLastInputTime(void);
-void initKeyMappings(AppSettings* settings);
-void pressDigit(int digit);
-void initInput(void);
-void shutdownInput(void);
-void handleCooldown(void);
+bool is_digits_pressed(void);
+char *get_digits_pressed(void);
+void reset_digits_pressed(void);
+void update_last_input_time(void);
+void init_key_mappings(AppSettings* settings);
+void press_digit(int digit);
+void init_input(void);
+void shutdown_input(void);
+void handle_cooldown(void);

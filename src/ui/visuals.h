@@ -8,5 +8,5 @@
  */
 
 void initVisuals(void);
-void freeVisuals(void);
-void drawSpectrumVisualizer(int row, int col, int height);
+void free_visuals(void);
+void draw_spectrum_visualizer(int row, int col, int height);

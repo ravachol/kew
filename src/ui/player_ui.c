@@ -25,20 +25,18 @@
 #include "ops/playback_state.h"
 
 #include "data/directorytree.h"
-#include "data/imgfunc.h"
+#include "data/img_func.h"
 #include "data/lyrics.h"
 #include "data/playlist.h"
-#include "data/songloader.h"
+#include "data/song_loader.h"
 
-#include "sys/systemintegration.h"
+#include "sys/sys_integration.h"
 #include "utils/term.h"
 #include "utils/utils.h"
 
 #include "visuals.h"
 
-#include <wctype.h>
 #include <wchar.h>
-#include <locale.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -58,55 +56,55 @@ static const char *LOGO[] = {" __\n",
                              "|__|__|_____|________|"};
 // clang-format on
 
-static int footerCol = 0;
-static int footerRow = 0;
+static int footer_col = 0;
+static int footer_row = 0;
 static const int MAX_TERM_SIZE = 10000;
-static const int scrollingInterval = 1;
+static const int scrolling_interval = 1;
 static const int LOGO_WIDTH = 22;
 
-static int minHeight = 0;
-static int preferredWidth = 0;
-static int preferredHeight = 0;
-static int textWidth = 0;
+static int min_height = 0;
+static int preferred_width = 0;
+static int preferred_height = 0;
+static int text_width = 0;
 static int indent = 0;
-static int maxListSize = 0;
-static int maxSearchListSize = 0;
-static int numTopLevelSongs = 0;
-static int startLibIter = 0;
-static int startSearchIter = 0;
-static int maxLibListSize = 0;
-static int chosenRow = 0;             // The row that is chosen in playlist view
-static int chosenLibRow = 0;          // The row that is chosen in library view
-static int chosenSearchResultRow = 0; // The row that is chosen in search view
-static int libIter = 0;
-static int libSongIter = 0;
-static int previousChosenLibRow = 0;
-static int libCurrentDirSongCount = 0;
-static PixelData footerColor = {120, 120, 120};
-static FileSystemEntry *lastEntry = NULL;
-static FileSystemEntry *chosenDir = NULL;
-static bool isSameNameAsLastTime = false;
+static int max_list_size = 0;
+static int max_search_list_size = 0;
+static int num_top_level_songs = 0;
+static int start_lib_iter = 0;
+static int start_search_iter = 0;
+static int max_lib_list_size = 0;
+static int chosen_row = 0;             // The row that is chosen in playlist view
+static int chosen_lib_row = 0;          // The row that is chosen in library view
+static int chosen_search_result_row = 0; // The row that is chosen in search view
+static int lib_iter = 0;
+static int lib_song_iter = 0;
+static int previous_chosen_lib_row = 0;
+static int lib_current_dir_song_count = 0;
+static PixelData footer_color = {120, 120, 120};
+static FileSystemEntry *last_entry = NULL;
+static FileSystemEntry *chosen_dir = NULL;
+static bool is_same_name_as_last_time = false;
 static int term_w, term_h;
 
-int getFooterRow(void) { return footerRow; }
+int get_footer_row(void) { return footer_row; }
 
-int getFooterCol(void) { return footerCol; }
+int get_footer_col(void) { return footer_col; }
 
-bool initTheme(int argc, char *argv[])
+bool init_theme(int argc, char *argv[])
 {
-        AppState *state = getAppState();
+        AppState *state = get_app_state();
         UISettings *ui = &(state->uiSettings);
         bool themeLoaded = false;
 
         // Command-line theme handling
         if (argc > 3 && strcmp(argv[1], "theme") == 0)
         {
-                setErrorMessage("Couldn't load theme. Theme file names shouldn't contain space.");
+                set_error_message("Couldn't load theme. Theme file names shouldn't contain space.");
         }
         else if (argc == 3 && strcmp(argv[1], "theme") == 0)
         {
                 // Try to load the user-specified theme
-                if (loadTheme(argv[2], false) > 0)
+                if (load_theme(argv[2], false) > 0)
                 {
                         ui->colorMode = COLOR_MODE_THEME;
                         themeLoaded = true;
@@ -125,7 +123,7 @@ bool initTheme(int argc, char *argv[])
         else if (ui->colorMode == COLOR_MODE_THEME)
         {
                 // If UI has a themeName stored, try to load it
-                if (loadTheme(ui->themeName, false) > 0)
+                if (load_theme(ui->themeName, false) > 0)
                 {
                         ui->colorMode = COLOR_MODE_THEME;
                         themeLoaded = true;
@@ -137,7 +135,7 @@ bool initTheme(int argc, char *argv[])
         {
                 // Load "default" ANSI theme, but don't overwrite
                 // settings->theme
-                if (loadTheme("default", true))
+                if (load_theme("default", true))
                 {
                         themeLoaded = true;
                 }
@@ -145,47 +143,47 @@ bool initTheme(int argc, char *argv[])
 
         if (!themeLoaded && ui->colorMode != COLOR_MODE_ALBUM)
         {
-                setErrorMessage("Couldn't load theme. Forgot to run 'sudo make install'?");
+                set_error_message("Couldn't load theme. Forgot to run 'sudo make install'?");
                 ui->colorMode = COLOR_MODE_ALBUM;
         }
 
         return themeLoaded;
 }
 
-void setTrackTitleAsWindowTitle(void)
+void set_track_title_as_window_title(void)
 {
-        AppState *state = getAppState();
+        AppState *state = get_app_state();
         UISettings *ui = &(state->uiSettings);
 
         if (ui->trackTitleAsWindowTitle)
         {
-                saveTerminalWindowTitle();
-                setTerminalWindowTitle("kew");
+                save_terminal_window_title();
+                set_terminal_window_title("kew");
         }
 }
 
-void setCurrentAsChosenDir(void)
+void set_current_as_chosen_dir(void)
 {
-        AppState *state = getAppState();
+        AppState *state = get_app_state();
 
-        if (state->uiState.currentLibEntry && state->uiState.currentLibEntry->isDirectory)
-                chosenDir = state->uiState.currentLibEntry;
+        if (state->uiState.currentLibEntry && state->uiState.currentLibEntry->is_directory)
+                chosen_dir = state->uiState.currentLibEntry;
 }
 
-int calcIdealImgSize(int *width, int *height, const int visualizerHeight,
+int calc_ideal_img_size(int *width, int *height, const int visualizerHeight,
                      const int metatagHeight)
 {
         if (!width || !height)
                 return -1;
 
-        float aspectRatio = calcAspectRatio();
+        float aspectRatio = calc_aspect_ratio();
 
         if (!isfinite(aspectRatio) || aspectRatio <= 0.0f ||
             aspectRatio > 100.0f)
                 aspectRatio = 1.0f; // fallback to square
 
         int term_w = 0, term_h = 0;
-        getTermSize(&term_w, &term_h);
+        get_term_size(&term_w, &term_h);
 
         if (term_w <= 0 || term_h <= 0 || term_w > MAX_TERM_SIZE ||
             term_h > MAX_TERM_SIZE)
@@ -197,17 +195,17 @@ int calcIdealImgSize(int *width, int *height, const int visualizerHeight,
 
         const int timeDisplayHeight = 1;
         const int heightMargin = 4;
-        const int minHeight = visualizerHeight + metatagHeight +
+        const int min_height = visualizerHeight + metatagHeight +
                               timeDisplayHeight + heightMargin + 1;
 
-        if (minHeight < 0 || minHeight > term_h)
+        if (min_height < 0 || min_height > term_h)
         {
                 *width = 1;
                 *height = 1;
                 return -1;
         }
 
-        int availableHeight = term_h - minHeight;
+        int availableHeight = term_h - min_height;
         if (availableHeight <= 0)
         {
                 *width = 1;
@@ -267,16 +265,16 @@ int calcIdealImgSize(int *width, int *height, const int visualizerHeight,
         return 0;
 }
 
-void calcPreferredSize(UISettings *ui)
+void calc_preferred_size(UISettings *ui)
 {
-        minHeight = 2 + (ui->visualizerEnabled ? ui->visualizerHeight : 0);
+        min_height = 2 + (ui->visualizerEnabled ? ui->visualizerHeight : 0);
         int metadataHeight = 4;
-        calcIdealImgSize(&preferredWidth, &preferredHeight,
+        calc_ideal_img_size(&preferred_width, &preferred_height,
                          (ui->visualizerEnabled ? ui->visualizerHeight : 0),
                          metadataHeight);
 }
 
-void printHelp(void)
+void print_help(void)
 {
         int i = system("man kew");
 
@@ -286,9 +284,9 @@ void printHelp(void)
         }
 }
 
-static const char *getPlayerStatusIcon(void)
+static const char *get_player_status_icon(void)
 {
-        if (opsIsPaused())
+        if (ops_is_paused())
         {
 #ifdef __ANDROID__
                 return "∥";
@@ -296,23 +294,23 @@ static const char *getPlayerStatusIcon(void)
                 return "⏸";
 #endif
         }
-        if (opsIsStopped())
+        if (ops_is_stopped())
                 return "■";
         return "▶";
 }
 
-int printLogoArt(const UISettings *ui, int indent, bool centered, bool printTagLine, bool useGradient)
+int print_logo_art(const UISettings *ui, int indent, bool centered, bool printTagLine, bool useGradient)
 {
         if (ui->hideLogo)
         {
-                clearLine();
+                clear_line();
                 printf("\n");
                 return 1;
         }
 
         int h, w;
 
-        getTermSize(&w, &h);
+        get_term_size(&w, &h);
 
         int centeredCol = (w - LOGO_WIDTH) / 2;
         if (centeredCol < 0)
@@ -332,28 +330,28 @@ int printLogoArt(const UISettings *ui, int indent, bool centered, bool printTagL
                                      ui->color.g == defaultColor &&
                                      ui->color.b == defaultColor))
                 {
-                        rowColor = getGradientColor(ui->color, logoHeight - i,
+                        rowColor = get_gradient_color(ui->color, logoHeight - i,
                                                     logoHeight, 2, 0.8f);
                 }
 
-                applyColor(ui->colorMode, ui->theme.logo, rowColor);
+                apply_color(ui->colorMode, ui->theme.logo, rowColor);
 
-                clearLine();
-                printBlankSpaces(col);
+                clear_line();
+                print_blank_spaces(col);
                 printf("%s", LOGO[i]);
         }
 
         if (printTagLine)
         {
                 printf("\n");
-                printBlankSpaces(col);
+                print_blank_spaces(col);
                 printf("MUSIC  FOR  THE  SHELL\n");
         }
 
         return 3; // lines used by logo
 }
 
-static void buildSongTitle(const SongData *songData, const UISettings *ui,
+static void build_song_title(const SongData *songData, const UISettings *ui,
                            char *out, size_t outSize, int indent)
 {
         if (!songData || !songData->metadata)
@@ -362,7 +360,7 @@ static void buildSongTitle(const SongData *songData, const UISettings *ui,
                 return;
         }
 
-        const char *icon = getPlayerStatusIcon();
+        const char *icon = get_player_status_icon();
 
         char prettyTitle[METADATA_MAX_LENGTH] = {0};
         snprintf(prettyTitle, METADATA_MAX_LENGTH, "%s",
@@ -386,47 +384,47 @@ static void buildSongTitle(const SongData *songData, const UISettings *ui,
         }
 }
 
-void printNowPlaying(SongData *songData, UISettings *ui, int row, int col, int maxWidth)
+void print_now_playing(SongData *songData, UISettings *ui, int row, int col, int maxWidth)
 {
         char title[MAXPATHLEN + 1];
 
-        buildSongTitle(songData, ui, title, sizeof(title), indent);
+        build_song_title(songData, ui, title, sizeof(title), indent);
 
-        applyColor(ui->colorMode, ui->theme.nowplaying, ui->color);
+        apply_color(ui->colorMode, ui->theme.nowplaying, ui->color);
 
         if (title[0] != '\0')
         {
                 char processed[MAXPATHLEN + 1] = {0};
-                processName(title, processed, maxWidth, false, false);
+                process_name(title, processed, maxWidth, false, false);
 
                 printf("\033[%d;%dH", row, col);
                 printf("%s", processed);
-                clearRestOfLine();
+                clear_rest_of_line();
         }
 }
 
-int printLogo(SongData *songData, UISettings *ui)
+int print_logo(SongData *songData, UISettings *ui)
 {
         int term_w, term_h;
 
-        getTermSize(&term_w, &term_h);
+        get_term_size(&term_w, &term_h);
 
         int logoWidth = ui->hideLogo ? 0 : LOGO_WIDTH;
         int maxWidth =
             term_w - indent - (ui->hideLogo ? 2 : logoWidth + 4);
 
-        int height = printLogoArt(ui, indent, false, false, true);
+        int height = print_logo_art(ui, indent, false, false, true);
 
-        printNowPlaying(songData, ui, height + 1, indent + logoWidth + 2, maxWidth);
+        print_now_playing(songData, ui, height + 1, indent + logoWidth + 2, maxWidth);
 
         printf("\n");
-        clearLine();
+        clear_line();
         printf("\n");
 
         return height + 2;
 }
 
-int getYear(const char *dateString)
+int get_year(const char *dateString)
 {
         int year;
 
@@ -437,25 +435,25 @@ int getYear(const char *dateString)
         return year;
 }
 
-void printCoverCentered(SongData *songdata, UISettings *ui)
+void print_cover_centered(SongData *songdata, UISettings *ui)
 {
         if (songdata != NULL && songdata->cover != NULL && ui->coverEnabled)
         {
                 if (!ui->coverAnsi)
                 {
-                        printSquareBitmapCentered(
+                        print_square_bitmap_centered(
                             songdata->cover, songdata->coverWidth,
-                            songdata->coverHeight, preferredHeight);
+                            songdata->coverHeight, preferred_height);
                 }
                 else
                 {
-                        printInAsciiCentered(songdata->coverArtPath,
-                                             preferredHeight);
+                        print_in_ascii_centered(songdata->coverArtPath,
+                                             preferred_height);
                 }
         }
         else
         {
-                for (int i = 0; i <= preferredHeight; ++i)
+                for (int i = 0; i <= preferred_height; ++i)
                 {
                         printf("\n");
                 }
@@ -464,30 +462,30 @@ void printCoverCentered(SongData *songdata, UISettings *ui)
         printf("\n\n");
 }
 
-void printCover(int height, SongData *songdata, UISettings *ui)
+void print_cover(int height, SongData *songdata, UISettings *ui)
 {
         int row = 2;
         int col = 2;
         int imgHeight = height - 2;
 
-        clearScreen();
+        clear_screen();
 
         if (songdata != NULL && songdata->cover != NULL && ui->coverEnabled)
         {
                 if (!ui->coverAnsi)
                 {
-                        printSquareBitmap(row, col, songdata->cover,
+                        print_square_bitmap(row, col, songdata->cover,
                                           songdata->coverWidth,
                                           songdata->coverHeight, imgHeight);
                 }
                 else
                 {
-                        printInAscii(col, songdata->coverArtPath, imgHeight);
+                        print_in_ascii(col, songdata->coverArtPath, imgHeight);
                 }
         }
 }
 
-void printTitleWithDelay(int row, int col, const char *text, int delay,
+void print_title_with_delay(int row, int col, const char *text, int delay,
                          int maxWidth)
 {
         int max = strnlen(text, maxWidth);
@@ -499,7 +497,7 @@ void printTitleWithDelay(int row, int col, const char *text, int delay,
         for (int i = 0; i <= max && delay; i++)
         {
                 printf("\033[%d;%dH", row, col);
-                clearRestOfLine();
+                clear_rest_of_line();
 
                 for (int j = 0; j < i; j++)
                 {
@@ -514,13 +512,13 @@ void printTitleWithDelay(int row, int col, const char *text, int delay,
                 c_sleep(delay * 20);
 
         printf("\033[%d;%dH", row, col);
-        clearRestOfLine();
+        clear_rest_of_line();
         printf("%s", text);
         printf("\n");
         fflush(stdout);
 }
 
-void printMetadata(int row, int col, int maxWidth,
+void print_metadata(int row, int col, int maxWidth,
                    TagSettings const *metadata, UISettings *ui)
 {
         if (row < 1)
@@ -531,34 +529,34 @@ void printMetadata(int row, int col, int maxWidth,
 
         if (strnlen(metadata->artist, METADATA_MAX_LENGTH) > 0)
         {
-                applyColor(ui->colorMode, ui->theme.trackview_artist,
+                apply_color(ui->colorMode, ui->theme.trackview_artist,
                            ui->color);
                 printf("\033[%d;%dH", row + 1, col);
-                clearRestOfLine();
+                clear_rest_of_line();
                 printf(" %.*s", maxWidth, metadata->artist);
         }
 
         if (strnlen(metadata->album, METADATA_MAX_LENGTH) > 0)
         {
-                applyColor(ui->colorMode, ui->theme.trackview_album, ui->color);
+                apply_color(ui->colorMode, ui->theme.trackview_album, ui->color);
                 printf("\033[%d;%dH", row + 2, col);
-                clearRestOfLine();
+                clear_rest_of_line();
                 printf(" %.*s", maxWidth, metadata->album);
         }
 
         if (strnlen(metadata->date, METADATA_MAX_LENGTH) > 0)
         {
-                applyColor(ui->colorMode, ui->theme.trackview_year, ui->color);
+                apply_color(ui->colorMode, ui->theme.trackview_year, ui->color);
                 printf("\033[%d;%dH", row + 3, col);
-                clearRestOfLine();
-                int year = getYear(metadata->date);
+                clear_rest_of_line();
+                int year = get_year(metadata->date);
                 if (year == -1)
                         printf(" %s", metadata->date);
                 else
                         printf(" %d", year);
         }
 
-        PixelData pixel = increaseLuminosity(ui->color, 20);
+        PixelData pixel = increase_luminosity(ui->color, 20);
 
         if (pixel.r == 255 && pixel.g == 255 && pixel.b == 255)
         {
@@ -569,7 +567,7 @@ void printMetadata(int row, int col, int maxWidth,
                 pixel.b = defaultColor;
         }
 
-        applyColor(ui->colorMode, ui->theme.trackview_title, pixel);
+        apply_color(ui->colorMode, ui->theme.trackview_title, pixel);
 
         if (strnlen(metadata->title, METADATA_MAX_LENGTH) > 0)
         {
@@ -577,24 +575,24 @@ void printMetadata(int row, int col, int maxWidth,
                 char prettyTitle[MAXPATHLEN + 1];
                 prettyTitle[0] = '\0';
 
-                processName(metadata->title, prettyTitle, maxWidth, false,
+                process_name(metadata->title, prettyTitle, maxWidth, false,
                             false);
 
-                printTitleWithDelay(row, col + 1, prettyTitle, ui->titleDelay,
+                print_title_with_delay(row, col + 1, prettyTitle, ui->titleDelay,
                                     maxWidth);
         }
 }
 
-int calcElapsedBars(double elapsedSeconds, double duration, int numProgressBars)
+int calc_elapsed_bars(double elapsed_seconds, double duration, int numProgressBars)
 {
-        if (elapsedSeconds == 0)
+        if (elapsed_seconds == 0)
                 return 0;
 
-        return (int)((elapsedSeconds / duration) * numProgressBars);
+        return (int)((elapsed_seconds / duration) * numProgressBars);
 }
 
-void printProgress(double elapsed_seconds, double total_seconds,
-                   ma_uint32 sampleRate, int avgBitRate, int allowedWidth)
+void print_progress(double elapsed_seconds, double total_seconds,
+                   ma_uint32 sample_rate, int avgBitRate, int allowedWidth)
 {
         int progressWidth = 39;
 
@@ -611,7 +609,7 @@ void printProgress(double elapsed_seconds, double total_seconds,
 
         int progress_percentage =
             (int)((elapsed_seconds / total_seconds) * 100);
-        int vol = getVolume();
+        int vol = get_volume();
 
         if (total_seconds >= 3600)
         {
@@ -634,7 +632,7 @@ void printProgress(double elapsed_seconds, double total_seconds,
                        total_secs, progress_percentage, vol);
         }
 
-        double rate = ((float)sampleRate) / 1000;
+        double rate = ((float)sample_rate) / 1000;
 
         if (allowedWidth > progressWidth + 10)
         {
@@ -651,87 +649,87 @@ void printProgress(double elapsed_seconds, double total_seconds,
         }
 }
 
-void printTime(int row, int col, double elapsedSeconds, ma_uint32 sampleRate,
+void print_time(int row, int col, double elapsed_seconds, ma_uint32 sample_rate,
                int avgBitRate, int allowedWidth)
 {
-        AppState *state = getAppState();
+        AppState *state = get_app_state();
 
-        applyColor(state->uiSettings.colorMode,
+        apply_color(state->uiSettings.colorMode,
                    state->uiSettings.theme.trackview_time,
                    state->uiSettings.color);
 
         int term_w, term_h;
-        getTermSize(&term_w, &term_h);
+        get_term_size(&term_w, &term_h);
         printf("\033[%d;%dH", row, col);
 
-        if (term_h > minHeight)
+        if (term_h > min_height)
         {
-                double duration = getCurrentSongDuration();
-                double elapsed = elapsedSeconds;
+                double duration = get_current_song_duration();
+                double elapsed = elapsed_seconds;
 
-                printProgress(elapsed, duration, sampleRate, avgBitRate, allowedWidth);
-                clearRestOfLine();
+                print_progress(elapsed, duration, sample_rate, avgBitRate, allowedWidth);
+                clear_rest_of_line();
         }
 }
 
-int calcIndentNormal(void)
+int calc_indent_normal(void)
 {
-        int textWidth = (ABSOLUTE_MIN_WIDTH > preferredWidth)
+        int text_width = (ABSOLUTE_MIN_WIDTH > preferred_width)
                             ? ABSOLUTE_MIN_WIDTH
-                            : preferredWidth;
-        return getIndentation(textWidth - 1) - 1;
+                            : preferred_width;
+        return get_indentation(text_width - 1) - 1;
 }
 
-int calcIndentTrackView(TagSettings *metadata)
+int calc_indent_track_view(TagSettings *metadata)
 {
         if (metadata == NULL)
-                return calcIndentNormal();
+                return calc_indent_normal();
 
         int titleLength = strnlen(metadata->title, METADATA_MAX_LENGTH);
         int albumLength = strnlen(metadata->album, METADATA_MAX_LENGTH);
         int maxTextLength =
             (albumLength > titleLength) ? albumLength : titleLength;
-        textWidth = (ABSOLUTE_MIN_WIDTH > preferredWidth) ? ABSOLUTE_MIN_WIDTH
-                                                          : preferredWidth;
+        text_width = (ABSOLUTE_MIN_WIDTH > preferred_width) ? ABSOLUTE_MIN_WIDTH
+                                                          : preferred_width;
         int term_w, term_h;
-        getTermSize(&term_w, &term_h);
+        get_term_size(&term_w, &term_h);
         int maxSize = term_w - 2;
         if (maxTextLength > 0 && maxTextLength < maxSize &&
-            maxTextLength > textWidth)
-                textWidth = maxTextLength;
-        if (textWidth > maxSize)
-                textWidth = maxSize;
+            maxTextLength > text_width)
+                text_width = maxTextLength;
+        if (text_width > maxSize)
+                text_width = maxSize;
 
-        return getIndentation(textWidth - 1) - 1;
+        return get_indentation(text_width - 1) - 1;
 }
 
-void calcIndent(SongData *songdata)
+void calc_indent(SongData *songdata)
 {
-        AppState *state = getAppState();
+        AppState *state = get_app_state();
 
         if ((state->currentView == TRACK_VIEW && songdata == NULL) ||
             state->currentView != TRACK_VIEW)
         {
-                indent = calcIndentNormal();
+                indent = calc_indent_normal();
         }
         else
         {
-                indent = calcIndentTrackView(songdata->metadata);
+                indent = calc_indent_track_view(songdata->metadata);
         }
 }
 
-int getIndent() { return indent; }
+int get_indent() { return indent; }
 
-void printGlimmeringText(int row, int col, char *text, int textLength,
+void print_glimmering_text(int row, int col, char *text, int textLength,
                          char *nerdFontText, PixelData color)
 {
         int brightIndex = 0;
-        PixelData vbright = increaseLuminosity(color, 120);
-        PixelData bright = increaseLuminosity(color, 60);
+        PixelData vbright = increase_luminosity(color, 120);
+        PixelData bright = increase_luminosity(color, 60);
 
         printf("\033[%d;%dH", row, col);
 
-        clearRestOfLine();
+        clear_rest_of_line();
 
         while (brightIndex < textLength)
         {
@@ -739,18 +737,18 @@ void printGlimmeringText(int row, int col, char *text, int textLength,
                 {
                         if (i == brightIndex)
                         {
-                                setTextColorRGB(vbright.r, vbright.g,
+                                set_text_color_RGB(vbright.r, vbright.g,
                                                 vbright.b);
                                 printf("%c", text[i]);
                         }
                         else if (i == brightIndex - 1 || i == brightIndex + 1)
                         {
-                                setTextColorRGB(bright.r, bright.g, bright.b);
+                                set_text_color_RGB(bright.r, bright.g, bright.b);
                                 printf("%c", text[i]);
                         }
                         else
                         {
-                                setTextColorRGB(color.r, color.g, color.b);
+                                set_text_color_RGB(color.r, color.g, color.b);
                                 printf("%c", text[i]);
                         }
 
@@ -766,25 +764,25 @@ void printGlimmeringText(int row, int col, char *text, int textLength,
         }
 }
 
-void printErrorRow(int row, int col, UISettings *ui)
+void print_error_row(int row, int col, UISettings *ui)
 {
         int term_w, term_h;
-        getTermSize(&term_w, &term_h);
+        get_term_size(&term_w, &term_h);
 
         printf("\033[%d;%dH", row, col);
 
-        if (!hasPrintedErrorMessage() && hasErrorMessage())
+        if (!has_printed_error_message() && has_error_message())
         {
-                applyColor(ui->colorMode, ui->theme.footer, footerColor);
-                printf(" %s", getErrorMessage());
-                markErrorMessageAsPrinted();
+                apply_color(ui->colorMode, ui->theme.footer, footer_color);
+                printf(" %s", get_error_message());
+                mark_error_message_as_printed();
         }
 
-        clearRestOfLine();
+        clear_rest_of_line();
         fflush(stdout);
 }
 
-bool isAsciiOnly(const char *text)
+bool is_ascii_only(const char *text)
 {
     if (text == NULL)
         return false; // or true, depending on how you want to handle NULL
@@ -800,29 +798,29 @@ bool isAsciiOnly(const char *text)
     return true;
 }
 
-void printFooter(int row, int col)
+void print_footer(int row, int col)
 {
         int term_w, term_h;
-        getTermSize(&term_w, &term_h);
+        get_term_size(&term_w, &term_h);
 
-        AppState *state = getAppState();
+        AppState *state = get_app_state();
         UISettings *ui = &(state->uiSettings);
         UIState *uis = &(state->uiState);
 
-        if (preferredWidth < 0 || preferredHeight < 0) // mini view
+        if (preferred_width < 0 || preferred_height < 0) // mini view
                 return;
 
-        footerRow = row;
-        footerCol = col;
+        footer_row = row;
+        footer_col = col;
 
         printf("\033[%d;%dH", row, col);
 
         PixelData fColor;
-        fColor.r = footerColor.r;
-        fColor.g = footerColor.g;
-        fColor.b = footerColor.b;
+        fColor.r = footer_color.r;
+        fColor.g = footer_color.g;
+        fColor.b = footer_color.b;
 
-        applyColor(ui->colorMode, ui->theme.footer, fColor);
+        apply_color(ui->colorMode, ui->theme.footer, fColor);
 
         if (ui->themeIsSet && ui->theme.footer.type == COLOR_TYPE_RGB)
         {
@@ -834,11 +832,11 @@ void printFooter(int row, int col)
         char text[100];
         char playlist[32], library[32], track[32], search[32], help[32];
 
-        snprintf(playlist, sizeof(playlist), "%s", getBindingString(EVENT_SHOWPLAYLIST, true));
-        snprintf(library, sizeof(library), "%s", getBindingString(EVENT_SHOWLIBRARY, true));
-        snprintf(track, sizeof(track), "%s", getBindingString(EVENT_SHOWTRACK, true));
-        snprintf(search, sizeof(search), "%s", getBindingString(EVENT_SHOWSEARCH, true));
-        snprintf(help, sizeof(search), "%s", getBindingString(EVENT_SHOWHELP, true));
+        snprintf(playlist, sizeof(playlist), "%s", get_binding_string(EVENT_SHOWPLAYLIST, true));
+        snprintf(library, sizeof(library), "%s", get_binding_string(EVENT_SHOWLIBRARY, true));
+        snprintf(track, sizeof(track), "%s", get_binding_string(EVENT_SHOWTRACK, true));
+        snprintf(search, sizeof(search), "%s", get_binding_string(EVENT_SHOWSEARCH, true));
+        snprintf(help, sizeof(search), "%s", get_binding_string(EVENT_SHOWHELP, true));
 
         snprintf(text, sizeof(text),
                  _("%s Playlist|%s Library|%s Track|%s Search|%s Help"), playlist,
@@ -854,7 +852,7 @@ void printFooter(int row, int col)
         if (term_w >= ABSOLUTE_MIN_WIDTH)
         {
 #endif
-                if (opsIsPaused())
+                if (ops_is_paused())
                 {
 #if defined(__ANDROID__) || defined(__APPLE__)
                         char pauseText[] = " ∥";
@@ -865,7 +863,7 @@ void printFooter(int row, int col)
                                  maxLength - currentLength, "%s", pauseText);
                         currentLength += strlen(pauseText);
                 }
-                else if (opsIsStopped())
+                else if (ops_is_stopped())
                 {
                         char pauseText[] = " ■";
                         snprintf(iconsText + currentLength,
@@ -883,14 +881,14 @@ void printFooter(int row, int col)
         }
 #endif
 
-        if (opsIsRepeatEnabled())
+        if (ops_is_repeat_enabled())
         {
                 char repeatText[] = " ↻";
                 snprintf(iconsText + currentLength,
                          maxLength - currentLength, "%s", repeatText);
                 currentLength += strlen(repeatText);
         }
-        else if (isRepeatListEnabled())
+        else if (is_repeat_list_enabled())
         {
                 char repeatText[] = " ↻L";
                 snprintf(iconsText + currentLength,
@@ -898,7 +896,7 @@ void printFooter(int row, int col)
                 currentLength += strlen(repeatText);
         }
 
-        if (isShuffleEnabled())
+        if (is_shuffle_enabled())
         {
                 char shuffleText[] = " ⇄";
                 snprintf(iconsText + currentLength,
@@ -934,21 +932,21 @@ void printFooter(int row, int col)
                 // Always try to print the footer on Android because it will
                 // most likely be too narrow. We use two rows for the footer on
                 // Android.
-                printBlankSpaces(indent);
+                print_blank_spaces(indent);
                 printf("%.*s", term_w * 2, text);
                 printf("%s", iconsText);
 #endif
-                clearRestOfLine();
+                clear_rest_of_line();
                 return;
         }
 
         int textLength = strnlen(text, 100);
-        int randomNumber = getRandomNumber(1, 808);
+        int randomNumber = get_random_number(1, 808);
 
 
-        if (randomNumber == 808 && !ui->hideGlimmeringText && isAsciiOnly(text))
+        if (randomNumber == 808 && !ui->hideGlimmeringText && is_ascii_only(text))
         {
-                printGlimmeringText(row, col, text, textLength, iconsText, footerColor);
+                print_glimmering_text(row, col, text, textLength, iconsText, footer_color);
         }
         else
         {
@@ -956,42 +954,42 @@ void printFooter(int row, int col)
                 printf("%s", iconsText);
         }
 
-        clearRestOfLine();
+        clear_rest_of_line();
 }
 
-void calcAndPrintLastRowAndErrorRow(void)
+void calc_and_print_last_row_and_error_row(void)
 {
-        AppState *state = getAppState();
+        AppState *state = get_app_state();
         int term_w, term_h;
-        getTermSize(&term_w, &term_h);
+        get_term_size(&term_w, &term_h);
 
 #if defined(__ANDROID__)
         // Use two rows for the footer on Android. It makes everything
         // fit even with narrow terminal widths.
-        if (hasErrorMessage())
-                printErrorRow(term_h - 1, indent, &(state->uiSettings));
+        if (has_error_message())
+                print_error_row(term_h - 1, indent, &(state->uiSettings));
         else
-                printFooter(term_h - 1, indent);
+                print_footer(term_h - 1, indent);
 #else
-        printErrorRow(term_h - 1, indent, &(state->uiSettings));
-        printFooter(term_h, indent);
+        print_error_row(term_h - 1, indent, &(state->uiSettings));
+        print_footer(term_h, indent);
 #endif
 }
 
-int printAbout(SongData *songdata)
+int print_about(SongData *songdata)
 {
-        AppState *state = getAppState();
+        AppState *state = get_app_state();
         UISettings *ui = &(state->uiSettings);
 
-        clearLine();
-        int numRows = printLogo(songdata, ui);
+        clear_line();
+        int numRows = print_logo(songdata, ui);
 
-        applyColor(ui->colorMode, ui->theme.text, ui->defaultColorRGB);
-        printBlankSpaces(indent);
+        apply_color(ui->colorMode, ui->theme.text, ui->defaultColorRGB);
+        print_blank_spaces(indent);
         printf(_(" kew version: "));
-        applyColor(ui->colorMode, ui->theme.help, ui->color);
+        apply_color(ui->colorMode, ui->theme.help, ui->color);
         printf("%s\n", ui->VERSION);
-        clearLine();
+        clear_line();
         printf("\n");
         numRows += 2;
 
@@ -1001,212 +999,212 @@ int printAbout(SongData *songdata)
 #define CHECK_LIST_LIMIT()                                        \
         do                                                        \
         {                                                         \
-                if (numPrintedRows >= maxListSize)                \
+                if (numPrintedRows >= max_list_size)                \
                 {                                                 \
                         printf("\n");                             \
-                        calcAndPrintLastRowAndErrorRow();         \
+                        calc_and_print_last_row_and_error_row();         \
                         return numPrintedRows;                    \
                 }                                                 \
         } while (0)
 
-int showKeyBindings(SongData *songdata)
+int show_key_bindings(SongData *songdata)
 {
-        AppState *state = getAppState();
+        AppState *state = get_app_state();
         int numPrintedRows = 0;
         int term_w, term_h;
-        getTermSize(&term_w, &term_h);
-        maxListSize = term_h - 3;
+        get_term_size(&term_w, &term_h);
+        max_list_size = term_h - 3;
 
-        clearScreen();
+        clear_screen();
 
         UISettings *ui = &(state->uiSettings);
 
-        numPrintedRows += printAbout(songdata);
+        numPrintedRows += print_about(songdata);
         CHECK_LIST_LIMIT();
-        applyColor(ui->colorMode, ui->theme.text, ui->defaultColorRGB);
+        apply_color(ui->colorMode, ui->theme.text, ui->defaultColorRGB);
 
-        printBlankSpaces(indent);
+        print_blank_spaces(indent);
         printf(_(" Manual: See"));
-        applyColor(ui->colorMode, ui->theme.help, ui->color);
+        apply_color(ui->colorMode, ui->theme.help, ui->color);
         printf(_(" README"));
-        applyColor(ui->colorMode, ui->theme.text, ui->defaultColorRGB);
+        apply_color(ui->colorMode, ui->theme.text, ui->defaultColorRGB);
         printf(_(" Or man kew\n\n"));
         numPrintedRows += 2;
         CHECK_LIST_LIMIT();
-        printBlankSpaces(indent);
-        printf(_(" · Play/Pause: %s\n"), getBindingString(EVENT_PLAY_PAUSE, false));
+        print_blank_spaces(indent);
+        printf(_(" · Play/Pause: %s\n"), get_binding_string(EVENT_PLAY_PAUSE, false));
         numPrintedRows++;
         CHECK_LIST_LIMIT();
-        printBlankSpaces(indent);
-        printf(_(" · Enqueue/Dequeue: %s\n"), getBindingString(EVENT_ENQUEUE, false));
+        print_blank_spaces(indent);
+        printf(_(" · Enqueue/Dequeue: %s\n"), get_binding_string(EVENT_ENQUEUE, false));
         numPrintedRows++;
         CHECK_LIST_LIMIT();
-        printBlankSpaces(indent);
-        printf(_(" · Enqueue and Play: %s\n"), getBindingString(EVENT_ENQUEUEANDPLAY, false));
+        print_blank_spaces(indent);
+        printf(_(" · Enqueue and Play: %s\n"), get_binding_string(EVENT_ENQUEUEANDPLAY, false));
         numPrintedRows++;
         CHECK_LIST_LIMIT();
-        printBlankSpaces(indent);
-        printf(_(" · Quit: %s\n"), getBindingString(EVENT_QUIT, false));
+        print_blank_spaces(indent);
+        printf(_(" · Quit: %s\n"), get_binding_string(EVENT_QUIT, false));
         numPrintedRows++;
         CHECK_LIST_LIMIT();
-        printBlankSpaces(indent);
+        print_blank_spaces(indent);
         printf(_(" · Switch tracks: %s"),
-               getBindingString(EVENT_PREV, false));
+               get_binding_string(EVENT_PREV, false));
         printf(_(" and %s\n"),
-               getBindingString(EVENT_NEXT, false));
+               get_binding_string(EVENT_NEXT, false));
         numPrintedRows++;
         CHECK_LIST_LIMIT();
-        printBlankSpaces(indent);
-        printf(_(" · Volume: %s "), getBindingString(EVENT_VOLUME_UP, false));
-        printf(_("and %s\n"),getBindingString(EVENT_VOLUME_DOWN, false));
+        print_blank_spaces(indent);
+        printf(_(" · volume: %s "), get_binding_string(EVENT_VOLUME_UP, false));
+        printf(_("and %s\n"),get_binding_string(EVENT_VOLUME_DOWN, false));
         numPrintedRows++;
         CHECK_LIST_LIMIT();
-        printBlankSpaces(indent);
-        printf(_(" · Clear List: %s\n"), getBindingString(EVENT_CLEARPLAYLIST, false));
+        print_blank_spaces(indent);
+        printf(_(" · Clear List: %s\n"), get_binding_string(EVENT_CLEARPLAYLIST, false));
         numPrintedRows++;
         CHECK_LIST_LIMIT();
-        printBlankSpaces(indent);
-        printf(_(" · Change View: %s or "), getBindingString(EVENT_NEXTVIEW, false));
+        print_blank_spaces(indent);
+        printf(_(" · Change View: %s or "), get_binding_string(EVENT_NEXTVIEW, false));
 
-        printf("%s, ", getBindingString(EVENT_SHOWPLAYLIST, true));
-        printf("%s, ", getBindingString(EVENT_SHOWLIBRARY, true));
-        printf("%s, ", getBindingString(EVENT_SHOWTRACK, true));
-        printf("%s, ", getBindingString(EVENT_SHOWSEARCH, true));
-        printf("%s", getBindingString(EVENT_SHOWHELP, true));
+        printf("%s, ", get_binding_string(EVENT_SHOWPLAYLIST, true));
+        printf("%s, ", get_binding_string(EVENT_SHOWLIBRARY, true));
+        printf("%s, ", get_binding_string(EVENT_SHOWTRACK, true));
+        printf("%s, ", get_binding_string(EVENT_SHOWSEARCH, true));
+        printf("%s", get_binding_string(EVENT_SHOWHELP, true));
 
         printf(_(" or click the footer\n"));
         numPrintedRows++;
         CHECK_LIST_LIMIT();
-        printBlankSpaces(indent);
+        print_blank_spaces(indent);
         printf(
             _(" · Cycle Color Mode: %s (default theme, theme or cover colors)\n"),
-            getBindingString(EVENT_CYCLECOLORMODE, false));
+            get_binding_string(EVENT_CYCLECOLORMODE, false));
         numPrintedRows++;
         CHECK_LIST_LIMIT();
-        printBlankSpaces(indent);
-        printf(_(" · Cycle Themes: %s\n"), getBindingString(EVENT_CYCLETHEMES, false));
+        print_blank_spaces(indent);
+        printf(_(" · Cycle Themes: %s\n"), get_binding_string(EVENT_CYCLETHEMES, false));
         numPrintedRows++;
         CHECK_LIST_LIMIT();
-        printBlankSpaces(indent);
-        printf(_(" · Stop: %s\n"), getBindingString(EVENT_STOP, false));
+        print_blank_spaces(indent);
+        printf(_(" · Stop: %s\n"), get_binding_string(EVENT_STOP, false));
         numPrintedRows++;
         CHECK_LIST_LIMIT();
-        printBlankSpaces(indent);
-        printf(_(" · Update Library: %s\n"), getBindingString(EVENT_UPDATELIBRARY, false));
+        print_blank_spaces(indent);
+        printf(_(" · Update Library: %s\n"), get_binding_string(EVENT_UPDATELIBRARY, false));
         numPrintedRows++;
         CHECK_LIST_LIMIT();
-        printBlankSpaces(indent);
-        printf(_(" · Toggle Visualizer: %s\n"), getBindingString(EVENT_TOGGLEVISUALIZER, false));
+        print_blank_spaces(indent);
+        printf(_(" · Toggle Visualizer: %s\n"), get_binding_string(EVENT_TOGGLEVISUALIZER, false));
         numPrintedRows++;
         CHECK_LIST_LIMIT();
-        printBlankSpaces(indent);
-        printf(_(" · Toggle ASCII Cover: %s\n"), getBindingString(EVENT_TOGGLEASCII, false));
+        print_blank_spaces(indent);
+        printf(_(" · Toggle ASCII Cover: %s\n"), get_binding_string(EVENT_TOGGLEASCII, false));
         numPrintedRows++;
         CHECK_LIST_LIMIT();
-        printBlankSpaces(indent);
-        printf(_(" · Toggle Lyrics Page on Track View: %s\n"), getBindingString(EVENT_SHOWLYRICSPAGE, false));
+        print_blank_spaces(indent);
+        printf(_(" · Toggle Lyrics Page on Track View: %s\n"), get_binding_string(EVENT_SHOWLYRICSPAGE, false));
         numPrintedRows++;
         CHECK_LIST_LIMIT();
-        printBlankSpaces(indent);
-        printf(_(" · Toggle Notifications: %s\n"), getBindingString(EVENT_TOGGLENOTIFICATIONS, false));
+        print_blank_spaces(indent);
+        printf(_(" · Toggle Notifications: %s\n"), get_binding_string(EVENT_TOGGLENOTIFICATIONS, false));
         numPrintedRows++;
         CHECK_LIST_LIMIT();
-        printBlankSpaces(indent);
+        print_blank_spaces(indent);
         printf(_(" · Cycle Repeat: %s (repeat/repeat list/off)\n"),
-               getBindingString(EVENT_TOGGLEREPEAT, false));
+               get_binding_string(EVENT_TOGGLEREPEAT, false));
         numPrintedRows++;
         CHECK_LIST_LIMIT();
-        printBlankSpaces(indent);
-        printf(_(" · Shuffle: %s\n"), getBindingString(EVENT_SHUFFLE, false));
+        print_blank_spaces(indent);
+        printf(_(" · Shuffle: %s\n"), get_binding_string(EVENT_SHUFFLE, false));
         numPrintedRows++;
         CHECK_LIST_LIMIT();
-        printBlankSpaces(indent);
-        printf(_(" · Seek: %s and"), getBindingString(EVENT_SEEKBACK, false));
-        printf(_(" %s\n"), getBindingString(EVENT_SEEKFORWARD, false));
+        print_blank_spaces(indent);
+        printf(_(" · Seek: %s and"), get_binding_string(EVENT_SEEKBACK, false));
+        printf(_(" %s\n"), get_binding_string(EVENT_SEEKFORWARD, false));
         numPrintedRows++;
         CHECK_LIST_LIMIT();
-        printBlankSpaces(indent);
+        print_blank_spaces(indent);
         printf(_(" · Export Playlist: %s (named after the first song)\n"),
-               getBindingString(EVENT_EXPORTPLAYLIST, false));
+               get_binding_string(EVENT_EXPORTPLAYLIST, false));
         numPrintedRows++;
         CHECK_LIST_LIMIT();
-        printBlankSpaces(indent);
+        print_blank_spaces(indent);
         printf(_(" · Add Song To 'kew favorites.m3u': %s (run with 'kew .')\n\n"),
-               getBindingString(EVENT_ADDTOFAVORITESPLAYLIST, false));
+               get_binding_string(EVENT_ADDTOFAVORITESPLAYLIST, false));
         numPrintedRows += 2;
         CHECK_LIST_LIMIT();
-        applyColor(ui->colorMode, ui->theme.text, ui->defaultColorRGB);
-        printBlankSpaces(indent);
+        apply_color(ui->colorMode, ui->theme.text, ui->defaultColorRGB);
+        print_blank_spaces(indent);
         printf(_(" Theme: "));
 
         if (ui->colorMode == COLOR_MODE_ALBUM)
         {
-                applyColor(ui->colorMode, ui->theme.text, ui->defaultColorRGB);
+                apply_color(ui->colorMode, ui->theme.text, ui->defaultColorRGB);
                 printf(_("Using "));
-                applyColor(ui->colorMode, ui->theme.text, ui->color);
+                apply_color(ui->colorMode, ui->theme.text, ui->color);
                 printf(_("Colors "));
-                applyColor(ui->colorMode, ui->theme.text, ui->defaultColorRGB);
+                apply_color(ui->colorMode, ui->theme.text, ui->defaultColorRGB);
                 printf(_("From Track Covers"));
         }
         else
         {
-                applyColor(ui->colorMode, ui->theme.help, ui->color);
+                apply_color(ui->colorMode, ui->theme.help, ui->color);
                 printf("%s", ui->theme.theme_name);
         }
 
-        applyColor(ui->colorMode, ui->theme.text, ui->defaultColorRGB);
+        apply_color(ui->colorMode, ui->theme.text, ui->defaultColorRGB);
         if (ui->colorMode != COLOR_MODE_ALBUM)
         {
                 printf(_(" Author: "));
-                applyColor(ui->colorMode, ui->theme.help, ui->color);
+                apply_color(ui->colorMode, ui->theme.help, ui->color);
                 printf("%s", ui->theme.theme_author);
         }
         printf("\n");
         printf("\n");
         numPrintedRows += 2;
         CHECK_LIST_LIMIT();
-        printBlankSpaces(indent);
-        applyColor(ui->colorMode, ui->theme.help, ui->defaultColorRGB);
+        print_blank_spaces(indent);
+        apply_color(ui->colorMode, ui->theme.help, ui->defaultColorRGB);
         printf(_(" Project URL:"));
-        applyColor(ui->colorMode, ui->theme.link, ui->color);
+        apply_color(ui->colorMode, ui->theme.link, ui->color);
         printf(" https://codeberg.org/ravachol/kew\n");
         numPrintedRows += 1;
         CHECK_LIST_LIMIT();
-        printBlankSpaces(indent);
-        applyColor(ui->colorMode, ui->theme.help, ui->defaultColorRGB);
+        print_blank_spaces(indent);
+        apply_color(ui->colorMode, ui->theme.help, ui->defaultColorRGB);
         printf(_(" Please Donate:"));
-        applyColor(ui->colorMode, ui->theme.link, ui->color);
+        apply_color(ui->colorMode, ui->theme.link, ui->color);
         printf(" https://ko-fi.com/ravachol\n\n");
         numPrintedRows += 2;
         CHECK_LIST_LIMIT();
-        applyColor(ui->colorMode, ui->theme.text, ui->defaultColorRGB);
-        printBlankSpaces(indent);
+        apply_color(ui->colorMode, ui->theme.text, ui->defaultColorRGB);
+        print_blank_spaces(indent);
         printf(" Copyright © 2022-2025 Ravachol\n");
 
         printf("\n");
         numPrintedRows += 2;
         CHECK_LIST_LIMIT();
 
-        while (numPrintedRows < maxListSize)
+        while (numPrintedRows < max_list_size)
         {
                 printf("\n");
                 numPrintedRows++;
         }
 
-        calcAndPrintLastRowAndErrorRow();
+        calc_and_print_last_row_and_error_row();
 
         numPrintedRows += 2;
 
         return numPrintedRows;
 }
 
-void toggleShowView(ViewState viewToShow)
+void toggle_show_view(ViewState viewToShow)
 {
-        AppState *state = getAppState();
-        triggerRefresh();
+        AppState *state = get_app_state();
+        trigger_refresh();
 
         if (state->currentView == TRACK_VIEW)
-                clearScreen();
+                clear_screen();
 
         if (state->currentView == viewToShow)
         {
@@ -1218,9 +1216,9 @@ void toggleShowView(ViewState viewToShow)
         }
 }
 
-void switchToNextView(void)
+void switch_to_next_view(void)
 {
-        AppState *state = getAppState();
+        AppState *state = get_app_state();
 
         switch (state->currentView)
         {
@@ -1229,11 +1227,11 @@ void switchToNextView(void)
                 break;
         case LIBRARY_VIEW:
                 state->currentView =
-                    (getCurrentSong() != NULL) ? TRACK_VIEW : SEARCH_VIEW;
+                    (get_current_song() != NULL) ? TRACK_VIEW : SEARCH_VIEW;
                 break;
         case TRACK_VIEW:
                 state->currentView = SEARCH_VIEW;
-                clearScreen();
+                clear_screen();
                 break;
         case SEARCH_VIEW:
                 state->currentView = KEYBINDINGS_VIEW;
@@ -1243,12 +1241,12 @@ void switchToNextView(void)
                 break;
         }
 
-        triggerRefresh();
+        trigger_refresh();
 }
 
-void switchToPreviousView(void)
+void switch_to_previous_view(void)
 {
-        AppState *state = getAppState();
+        AppState *state = get_app_state();
 
         switch (state->currentView)
         {
@@ -1260,144 +1258,144 @@ void switchToPreviousView(void)
                 break;
         case TRACK_VIEW:
                 state->currentView = LIBRARY_VIEW;
-                clearScreen();
+                clear_screen();
                 break;
         case SEARCH_VIEW:
                 state->currentView =
-                    (getCurrentSong() != NULL) ? TRACK_VIEW : LIBRARY_VIEW;
+                    (get_current_song() != NULL) ? TRACK_VIEW : LIBRARY_VIEW;
                 break;
         case KEYBINDINGS_VIEW:
                 state->currentView = SEARCH_VIEW;
                 break;
         }
 
-        triggerRefresh();
+        trigger_refresh();
 }
 
-void showTrack(void)
+void show_track(void)
 {
-        AppState *state = getAppState();
+        AppState *state = get_app_state();
 
-        triggerRefresh();
+        trigger_refresh();
 
         state->currentView = TRACK_VIEW;
 }
 
-void flipNextPage(void)
+void flip_next_page(void)
 {
-        AppState *state = getAppState();
-        PlayList *unshuffledPlaylist = getUnshuffledPlaylist();
+        AppState *state = get_app_state();
+        PlayList *unshuffled_playlist = get_unshuffled_playlist();
 
         if (state->currentView == LIBRARY_VIEW)
         {
-                chosenLibRow += maxLibListSize - 1;
-                startLibIter += maxLibListSize - 1;
-                triggerRefresh();
+                chosen_lib_row += max_lib_list_size - 1;
+                start_lib_iter += max_lib_list_size - 1;
+                trigger_refresh();
         }
         else if (state->currentView == PLAYLIST_VIEW)
         {
-                chosenRow += maxListSize - 1;
-                chosenRow = (chosenRow >= unshuffledPlaylist->count)
-                                ? unshuffledPlaylist->count - 1
-                                : chosenRow;
-                triggerRefresh();
+                chosen_row += max_list_size - 1;
+                chosen_row = (chosen_row >= unshuffled_playlist->count)
+                                ? unshuffled_playlist->count - 1
+                                : chosen_row;
+                trigger_refresh();
         }
         else if (state->currentView == SEARCH_VIEW)
         {
-                chosenSearchResultRow += maxSearchListSize - 1;
-                chosenSearchResultRow =
-                    (chosenSearchResultRow >= getSearchResultsCount())
-                        ? getSearchResultsCount() - 1
-                        : chosenSearchResultRow;
-                startSearchIter += maxSearchListSize - 1;
-                triggerRefresh();
+                chosen_search_result_row += max_search_list_size - 1;
+                chosen_search_result_row =
+                    (chosen_search_result_row >= get_search_results_count())
+                        ? get_search_results_count() - 1
+                        : chosen_search_result_row;
+                start_search_iter += max_search_list_size - 1;
+                trigger_refresh();
         }
 }
 
-void flipPrevPage(void)
+void flip_prev_page(void)
 {
-        AppState *state = getAppState();
+        AppState *state = get_app_state();
 
         if (state->currentView == LIBRARY_VIEW)
         {
-                chosenLibRow -= maxLibListSize;
-                startLibIter -= maxLibListSize;
-                triggerRefresh();
+                chosen_lib_row -= max_lib_list_size;
+                start_lib_iter -= max_lib_list_size;
+                trigger_refresh();
         }
         else if (state->currentView == PLAYLIST_VIEW)
         {
-                chosenRow -= maxListSize;
-                chosenRow = (chosenRow > 0) ? chosenRow : 0;
-                triggerRefresh();
+                chosen_row -= max_list_size;
+                chosen_row = (chosen_row > 0) ? chosen_row : 0;
+                trigger_refresh();
         }
         else if (state->currentView == SEARCH_VIEW)
         {
-                chosenSearchResultRow -= maxSearchListSize;
-                chosenSearchResultRow =
-                    (chosenSearchResultRow > 0) ? chosenSearchResultRow : 0;
-                startSearchIter -= maxSearchListSize;
-                triggerRefresh();
+                chosen_search_result_row -= max_search_list_size;
+                chosen_search_result_row =
+                    (chosen_search_result_row > 0) ? chosen_search_result_row : 0;
+                start_search_iter -= max_search_list_size;
+                trigger_refresh();
         }
 }
 
-void scrollNext(void)
+void scroll_next(void)
 {
-        AppState *state = getAppState();
-        PlayList *unshuffledPlaylist = getUnshuffledPlaylist();
+        AppState *state = get_app_state();
+        PlayList *unshuffled_playlist = get_unshuffled_playlist();
 
         if (state->currentView == PLAYLIST_VIEW)
         {
-                chosenRow++;
-                chosenRow = (chosenRow >= unshuffledPlaylist->count)
-                                ? unshuffledPlaylist->count - 1
-                                : chosenRow;
-                triggerRefresh();
+                chosen_row++;
+                chosen_row = (chosen_row >= unshuffled_playlist->count)
+                                ? unshuffled_playlist->count - 1
+                                : chosen_row;
+                trigger_refresh();
         }
         else if (state->currentView == LIBRARY_VIEW)
         {
-                previousChosenLibRow = chosenLibRow;
-                chosenLibRow++;
-                triggerRefresh();
+                previous_chosen_lib_row = chosen_lib_row;
+                chosen_lib_row++;
+                trigger_refresh();
         }
         else if (state->currentView == SEARCH_VIEW)
         {
-                chosenSearchResultRow++;
-                triggerRefresh();
+                chosen_search_result_row++;
+                trigger_refresh();
         }
 }
 
-void scrollPrev(void)
+void scroll_prev(void)
 {
-        AppState *state = getAppState();
+        AppState *state = get_app_state();
 
         if (state->currentView == PLAYLIST_VIEW)
         {
-                chosenRow--;
-                chosenRow = (chosenRow > 0) ? chosenRow : 0;
-                triggerRefresh();
+                chosen_row--;
+                chosen_row = (chosen_row > 0) ? chosen_row : 0;
+                trigger_refresh();
         }
         else if (state->currentView == LIBRARY_VIEW)
         {
-                previousChosenLibRow = chosenLibRow;
-                chosenLibRow--;
-                triggerRefresh();
+                previous_chosen_lib_row = chosen_lib_row;
+                chosen_lib_row--;
+                trigger_refresh();
         }
         else if (state->currentView == SEARCH_VIEW)
         {
-                chosenSearchResultRow--;
-                chosenSearchResultRow =
-                    (chosenSearchResultRow > 0) ? chosenSearchResultRow : 0;
-                triggerRefresh();
+                chosen_search_result_row--;
+                chosen_search_result_row =
+                    (chosen_search_result_row > 0) ? chosen_search_result_row : 0;
+                trigger_refresh();
         }
 }
 
-int getRowWithinBounds(int row)
+int get_row_within_bounds(int row)
 {
-        PlayList *unshuffledPlaylist = getUnshuffledPlaylist();
+        PlayList *unshuffled_playlist = get_unshuffled_playlist();
 
-        if (row >= unshuffledPlaylist->count)
+        if (row >= unshuffled_playlist->count)
         {
-                row = unshuffledPlaylist->count - 1;
+                row = unshuffled_playlist->count - 1;
         }
 
         if (row < 0)
@@ -1406,129 +1404,129 @@ int getRowWithinBounds(int row)
         return row;
 }
 
-int printLogoAndAdjustments(SongData *songData, int termWidth, UISettings *ui,
+int print_logo_and_adjustments(SongData *songData, int termWidth, UISettings *ui,
                             int indentation, AppSettings *settings)
 {
-        int aboutRows = printLogo(songData, ui);
+        int aboutRows = print_logo(songData, ui);
 
-        applyColor(ui->colorMode, ui->theme.help, ui->defaultColorRGB);
+        apply_color(ui->colorMode, ui->theme.help, ui->defaultColorRGB);
 
         if (termWidth > 52 && !ui->hideHelp)
         {
-                printBlankSpaces(indentation);
-                clearLine();
+                print_blank_spaces(indentation);
+                clear_line();
                 printf(_(" Use ↑/↓ or k/j to select. Enter: Accept. Backspace: clear.\n"));
-                printBlankSpaces(indentation);
+                print_blank_spaces(indentation);
 #ifndef __APPLE__
-                clearLine();
+                clear_line();
                 printf(_(" PgUp/PgDn: scroll. Del: remove. %s/%s: move songs.\n"),
-                       settings->moveSongUp, settings->moveSongDown);
-                clearLine();
+                       settings->move_song_up, settings->move_song_down);
+                clear_line();
                 printf("\n");
 #else
-                clearLine();
+                clear_line();
                 printf(_(" Fn+↑/↓: scroll. Del: remove. %s/%s: move songs.\n"),
-                       settings->moveSongUp, settings->moveSongDown);
-                clearLine();
+                       settings->move_song_up, settings->move_song_down);
+                clear_line();
                 printf("\n");
 #endif
-                clearLine();
+                clear_line();
                 return aboutRows + 3;
         }
         return aboutRows;
 }
 
-void showSearch(SongData *songData, int *chosenRow)
+void show_search(SongData *songData, int *chosen_row)
 {
         int term_w, term_h;
-        getTermSize(&term_w, &term_h);
-        maxSearchListSize = term_h - 3;
+        get_term_size(&term_w, &term_h);
+        max_search_list_size = term_h - 3;
 
-        AppState *state = getAppState();
+        AppState *state = get_app_state();
         UISettings *ui = &(state->uiSettings);
 
-        gotoFirstLineFirstRow();
+        goto_first_line_first_row();
 
-        int aboutRows = printLogo(songData, ui);
-        maxSearchListSize -= aboutRows;
+        int aboutRows = print_logo(songData, ui);
+        max_search_list_size -= aboutRows;
 
-        applyColor(ui->colorMode, ui->theme.help, ui->defaultColorRGB);
+        apply_color(ui->colorMode, ui->theme.help, ui->defaultColorRGB);
 
         if (term_w > indent + 38 && !ui->hideHelp)
         {
-                clearLine();
-                printBlankSpaces(indent);
-                clearLine();
+                clear_line();
+                print_blank_spaces(indent);
+                clear_line();
                 printf(_(" Use ↑/↓ to select. Enter: Enqueue. Alt+Enter: Play.\n"));
-                clearLine();
+                clear_line();
                 printf("\n");
-                maxSearchListSize -= 2;
+                max_search_list_size -= 2;
         }
 
-        displaySearch(maxSearchListSize, indent, chosenRow, startSearchIter);
+        display_search(max_search_list_size, indent, chosen_row, start_search_iter);
 
-        calcAndPrintLastRowAndErrorRow();
+        calc_and_print_last_row_and_error_row();
 }
 
-void showPlaylist(SongData *songData, PlayList *list, int *chosenSong,
+void show_playlist(SongData *songData, PlayList *list, int *chosenSong,
                   int *chosenNodeId, AppSettings *settings)
 {
         int term_w, term_h;
-        getTermSize(&term_w, &term_h);
-        maxListSize = term_h - 3;
+        get_term_size(&term_w, &term_h);
+        max_list_size = term_h - 3;
 
-        AppState *state = getAppState();
+        AppState *state = get_app_state();
         UISettings *ui = &(state->uiSettings);
 
-        int updateCounter = getUpdateCounter();
+        int update_counter = get_update_counter();
 
-        if (getIsLongName() && isSameNameAsLastTime &&
-            updateCounter % scrollingInterval != 0)
+        if (get_is_long_name() && is_same_name_as_last_time &&
+            update_counter % scrolling_interval != 0)
         {
-                incrementUpdateCounter();
-                triggerRefresh();
+                increment_update_counter();
+                trigger_refresh();
                 return;
         }
         else
-                cancelRefresh();
+                cancel_refresh();
 
-        gotoFirstLineFirstRow();
+        goto_first_line_first_row();
 
         int aboutRows =
-            printLogoAndAdjustments(songData, term_w, ui, indent, settings);
-        maxListSize -= aboutRows;
+            print_logo_and_adjustments(songData, term_w, ui, indent, settings);
+        max_list_size -= aboutRows;
 
-        applyColor(ui->colorMode, ui->theme.header, ui->color);
+        apply_color(ui->colorMode, ui->theme.header, ui->color);
 
-        if (maxListSize > 0)
+        if (max_list_size > 0)
         {
-                clearLine();
-                printBlankSpaces(indent);
+                clear_line();
+                print_blank_spaces(indent);
                 printf(_("   ─ PLAYLIST ─\n"));
         }
 
-        maxListSize -= 1;
+        max_list_size -= 1;
 
-        if (maxListSize > 0)
-                displayPlaylist(list, maxListSize, indent, chosenSong,
+        if (max_list_size > 0)
+                display_playlist(list, max_list_size, indent, chosenSong,
                                 chosenNodeId,
                                 state->uiState.resetPlaylistDisplay);
 
-        calcAndPrintLastRowAndErrorRow();
+        calc_and_print_last_row_and_error_row();
 }
 
-void resetSearchResult(void) { chosenSearchResultRow = 0; }
+void reset_search_result(void) { chosen_search_result_row = 0; }
 
-void printProgressBar(int row, int col, AppSettings *settings, UISettings *ui,
+void print_progress_bar(int row, int col, AppSettings *settings, UISettings *ui,
                       int elapsedBars, int numProgressBars)
 {
         PixelData color = ui->color;
 
-        ProgressBar *progressBar = getProgressBar();
+        ProgressBar *progress_bar = get_progress_bar();
 
-        progressBar->row = row;
-        progressBar->col = col + 1;
-        progressBar->length = numProgressBars;
+        progress_bar->row = row;
+        progress_bar->col = col + 1;
+        progress_bar->length = numProgressBars;
 
         printf("\033[%d;%dH", row, col);
         printf(" ");
@@ -1539,16 +1537,16 @@ void printProgressBar(int row, int col, AppSettings *settings, UISettings *ui,
                 {
                         if (ui->colorMode == COLOR_MODE_ALBUM)
                         {
-                                PixelData tmp = increaseLuminosity(color, 50);
+                                PixelData tmp = increase_luminosity(color, 50);
                                 printf("\033[38;2;%d;%d;%dm", tmp.r, tmp.g,
                                        tmp.b);
 
-                                applyColor(ui->colorMode,
+                                apply_color(ui->colorMode,
                                            ui->theme.progress_empty, tmp);
                         }
                         else
                         {
-                                applyColor(ui->colorMode,
+                                apply_color(ui->colorMode,
                                            ui->theme.progress_empty, color);
                         }
 
@@ -1565,7 +1563,7 @@ void printProgressBar(int row, int col, AppSettings *settings, UISettings *ui,
 
                 if (i < elapsedBars)
                 {
-                        applyColor(ui->colorMode, ui->theme.progress_filled,
+                        apply_color(ui->colorMode, ui->theme.progress_filled,
                                    color);
 
                         if (i % 2 == 0)
@@ -1577,7 +1575,7 @@ void printProgressBar(int row, int col, AppSettings *settings, UISettings *ui,
                 }
                 else if (i == elapsedBars)
                 {
-                        applyColor(ui->colorMode, ui->theme.progress_elapsed,
+                        apply_color(ui->colorMode, ui->theme.progress_elapsed,
                                    color);
 
                         if (i % 2 == 0)
@@ -1588,20 +1586,20 @@ void printProgressBar(int row, int col, AppSettings *settings, UISettings *ui,
                                        settings->progressBarCurrentOddChar);
                 }
         }
-        clearRestOfLine();
+        clear_rest_of_line();
 }
 
-void printVisualizer(int row, int col, int visualizerWidth,
-                     AppSettings *settings, double elapsedSeconds)
+void print_visualizer(int row, int col, int visualizerWidth,
+                     AppSettings *settings, double elapsed_seconds)
 {
-        AppState *state = getAppState();
+        AppState *state = get_app_state();
         UISettings *ui = &(state->uiSettings);
         UIState *uis = &(state->uiState);
 
         int height = state->uiSettings.visualizerHeight;
 
         int term_w, term_h;
-        getTermSize(&term_w, &term_h);
+        get_term_size(&term_w, &term_h);
 
         if (row + height + 2 > term_h)
                 height -= (row + height + 1 - term_h);
@@ -1612,75 +1610,75 @@ void printVisualizer(int row, int col, int visualizerWidth,
         if (ui->visualizerEnabled)
         {
                 uis->numProgressBars = (int)visualizerWidth / 2;
-                double duration = getCurrentSongDuration();
+                double duration = get_current_song_duration();
 
-                drawSpectrumVisualizer(row, col, height);
+                draw_spectrum_visualizer(row, col, height);
 
                 int elapsedBars =
-                    calcElapsedBars(elapsedSeconds, duration, visualizerWidth);
+                    calc_elapsed_bars(elapsed_seconds, duration, visualizerWidth);
 
-                printProgressBar(row + height - 1, col, settings, ui,
+                print_progress_bar(row + height - 1, col, settings, ui,
                                  elapsedBars, visualizerWidth - 1);
         }
 }
 
-FileSystemEntry *getChosenDir(void) { return chosenDir; }
+FileSystemEntry *get_chosen_dir(void) { return chosen_dir; }
 
-void setChosenDir(FileSystemEntry *entry)
+void set_chosen_dir(FileSystemEntry *entry)
 {
-        AppState *state = getAppState();
+        AppState *state = get_app_state();
 
         if (entry == NULL)
         {
                 return;
         }
 
-        if (entry->isDirectory)
+        if (entry->is_directory)
         {
-                state->uiState.currentLibEntry = chosenDir = entry;
+                state->uiState.currentLibEntry = chosen_dir = entry;
         }
 }
 
-void resetChosenDir(void) { chosenDir = NULL; }
+void reset_chosen_dir(void) { chosen_dir = NULL; }
 
-void applyTreeItemColor(UISettings *ui, int depth,
+void apply_tree_item_color(UISettings *ui, int depth,
                         PixelData trackColor, PixelData enqueuedColor,
-                        bool isEnqueued, bool isPlaying)
+                        bool isEnqueued, bool is_playing)
 {
         if (depth <= 1)
         {
-                applyColor(ui->colorMode, ui->theme.library_artist, enqueuedColor);
+                apply_color(ui->colorMode, ui->theme.library_artist, enqueuedColor);
         }
         else
         {
                 if (ui->colorMode == COLOR_MODE_ALBUM || ui->colorMode == COLOR_MODE_THEME)
-                        applyColor(COLOR_MODE_ALBUM, ui->theme.library_track,
+                        apply_color(COLOR_MODE_ALBUM, ui->theme.library_track,
                                    trackColor);
                 else
-                        applyColor(ui->colorMode, ui->theme.library_track,
+                        apply_color(ui->colorMode, ui->theme.library_track,
                                    trackColor);
         }
 
         if (isEnqueued)
         {
-                if (isPlaying)
+                if (is_playing)
                 {
-                        applyColor(ui->colorMode, ui->theme.library_playing,
+                        apply_color(ui->colorMode, ui->theme.library_playing,
                                    ui->color);
                 }
                 else
                 {
                         if (ui->colorMode == COLOR_MODE_ALBUM || ui->colorMode == COLOR_MODE_THEME)
-                                applyColor(COLOR_MODE_ALBUM, ui->theme.library_enqueued,
+                                apply_color(COLOR_MODE_ALBUM, ui->theme.library_enqueued,
                                            enqueuedColor);
                         else
-                                applyColor(ui->colorMode, ui->theme.library_enqueued,
+                                apply_color(ui->colorMode, ui->theme.library_enqueued,
                                            enqueuedColor);
                 }
         }
 }
 
-int displayTree(FileSystemEntry *root, int depth, int maxListSize,
+int display_tree(FileSystemEntry *root, int depth, int max_list_size,
                 int maxNameWidth)
 {
         if (maxNameWidth < 0)
@@ -1689,37 +1687,37 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize,
         char dirName[maxNameWidth + 1];
         char filename[MAXPATHLEN + 1];
         bool foundChosen = false;
-        int isPlaying = 0;
+        int is_playing = 0;
         int extraIndent = 0;
 
-        AppState *state = getAppState();
+        AppState *state = get_app_state();
         UISettings *ui = &(state->uiSettings);
         UIState *uis = &(state->uiState);
 
-        Node *current = getCurrentSong();
+        Node *current = get_current_song();
 
         if (current != NULL &&
             (strcmp(current->song.filePath, root->fullPath) == 0))
         {
-                isPlaying = 1;
+                is_playing = 1;
         }
 
-        if (startLibIter < 0)
-                startLibIter = 0;
+        if (start_lib_iter < 0)
+                start_lib_iter = 0;
 
-        if (libIter >= startLibIter + maxListSize)
+        if (lib_iter >= start_lib_iter + max_list_size)
         {
                 return false;
         }
 
-        int threshold = startLibIter + (maxListSize + 1) / 2;
-        if (chosenLibRow > threshold)
+        int threshold = start_lib_iter + (max_list_size + 1) / 2;
+        if (chosen_lib_row > threshold)
         {
-                startLibIter = chosenLibRow - maxListSize / 2 + 1;
+                start_lib_iter = chosen_lib_row - max_list_size / 2 + 1;
         }
 
-        if (chosenLibRow < 0)
-                startLibIter = chosenLibRow = libIter = 0;
+        if (chosen_lib_row < 0)
+                start_lib_iter = chosen_lib_row = lib_iter = 0;
 
         if (root == NULL)
                 return false;
@@ -1743,54 +1741,54 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize,
         if (!(rgbTrack.r == ui->defaultColor &&
               rgbTrack.g == ui->defaultColor &&
               rgbTrack.b == ui->defaultColor))
-                rowColor = getGradientColor(rgbTrack, libIter - startLibIter,
-                                            maxListSize,
-                                            maxListSize / 2, 0.7f);
+                rowColor = get_gradient_color(rgbTrack, lib_iter - start_lib_iter,
+                                            max_list_size,
+                                            max_list_size / 2, 0.7f);
 
         if (!(rgbEnqueued.r == ui->defaultColor &&
               rgbEnqueued.g == ui->defaultColor &&
               rgbEnqueued.b == ui->defaultColor))
-                rowColor2 = getGradientColor(rgbEnqueued, libIter - startLibIter,
-                                             maxListSize,
-                                             maxListSize / 2, 0.7f);
+                rowColor2 = get_gradient_color(rgbEnqueued, lib_iter - start_lib_iter,
+                                             max_list_size,
+                                             max_list_size / 2, 0.7f);
 
-        if (!(root->isDirectory || (!root->isDirectory && depth == 1) ||
-              (root->isDirectory && depth == 0) ||
-              (chosenDir != NULL && uis->allowChooseSongs &&
+        if (!(root->is_directory || (!root->is_directory && depth == 1) ||
+              (root->is_directory && depth == 0) ||
+              (chosen_dir != NULL && uis->allowChooseSongs &&
                root->parent != NULL &&
-               (strcmp(root->parent->fullPath, chosenDir->fullPath) == 0 ||
-                strcmp(root->fullPath, chosenDir->fullPath) == 0))))
+               (strcmp(root->parent->fullPath, chosen_dir->fullPath) == 0 ||
+                strcmp(root->fullPath, chosen_dir->fullPath) == 0))))
         {
                 return foundChosen;
         }
 
         if (depth >= 0)
         {
-                if (state->uiState.currentLibEntry != NULL && state->uiState.currentLibEntry != lastEntry &&
-                    !state->uiState.currentLibEntry->isDirectory &&
+                if (state->uiState.currentLibEntry != NULL && state->uiState.currentLibEntry != last_entry &&
+                    !state->uiState.currentLibEntry->is_directory &&
                     state->uiState.currentLibEntry->parent != NULL &&
-                    state->uiState.currentLibEntry->parent == chosenDir)
+                    state->uiState.currentLibEntry->parent == chosen_dir)
                 {
                         FileSystemEntry *tmpc = state->uiState.currentLibEntry->parent->children;
 
-                        libCurrentDirSongCount = 0;
+                        lib_current_dir_song_count = 0;
 
                         while (tmpc != NULL)
                         {
-                                if (!tmpc->isDirectory)
-                                        libCurrentDirSongCount++;
+                                if (!tmpc->is_directory)
+                                        lib_current_dir_song_count++;
                                 tmpc = tmpc->next;
                         }
 
-                        lastEntry = state->uiState.currentLibEntry;
+                        last_entry = state->uiState.currentLibEntry;
                 }
 
-                if (libIter >= startLibIter)
+                if (lib_iter >= start_lib_iter)
                 {
-                        applyTreeItemColor(ui, depth, rowColor, rowColor2,
-                                           root->isEnqueued, isPlaying);
+                        apply_tree_item_color(ui, depth, rowColor, rowColor2,
+                                           root->isEnqueued, is_playing);
 
-                        clearLine();
+                        clear_line();
 
                         if (depth >= 2)
                                 printf("  ");
@@ -1799,9 +1797,9 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize,
                         // indentation
                         extraIndent = (depth - 2 <= 0) ? 0 : depth - 2;
 
-                        printBlankSpaces(indent + extraIndent);
+                        print_blank_spaces(indent + extraIndent);
 
-                        if (chosenLibRow == libIter)
+                        if (chosen_lib_row == lib_iter)
                         {
                                 if (root->isEnqueued)
                                 {
@@ -1815,23 +1813,23 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize,
                                 state->uiState.currentLibEntry = root;
 
                                 if (uis->allowChooseSongs == true &&
-                                    (chosenDir == NULL ||
+                                    (chosen_dir == NULL ||
                                      (state->uiState.currentLibEntry != NULL &&
                                       state->uiState.currentLibEntry->parent != NULL &&
-                                      chosenDir != NULL &&
-                                      !isContainedWithin(state->uiState.currentLibEntry,
-                                                         chosenDir) &&
+                                      chosen_dir != NULL &&
+                                      !is_contained_within(state->uiState.currentLibEntry,
+                                                         chosen_dir) &&
                                       strcmp(root->fullPath,
-                                             chosenDir->fullPath) != 0)))
+                                             chosen_dir->fullPath) != 0)))
                                 {
                                         uis->collapseView = true;
-                                        triggerRefresh();
+                                        trigger_refresh();
 
                                         if (!uis->openedSubDir)
                                         {
 
                                                 uis->allowChooseSongs = false;
-                                                chosenDir = NULL;
+                                                chosen_dir = NULL;
                                         }
                                 }
 
@@ -1852,7 +1850,7 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize,
                         if (maxNameWidth < extraIndent)
                                 maxNameWidth = extraIndent;
 
-                        if (root->isDirectory)
+                        if (root->is_directory)
                         {
                                 dirName[0] = '\0';
 
@@ -1865,7 +1863,7 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize,
                                                  maxNameWidth + 1 - extraIndent,
                                                  "%s", root->name);
 
-                                char *upperDirName = stringToUpper(dirName);
+                                char *upperDirName = string_to_upper(dirName);
 
                                 if (depth == 1)
                                         printf("%s \n", upperDirName);
@@ -1879,36 +1877,36 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize,
                         {
                                 filename[0] = '\0';
 
-                                isSameNameAsLastTime =
-                                    (previousChosenLibRow == chosenLibRow);
+                                is_same_name_as_last_time =
+                                    (previous_chosen_lib_row == chosen_lib_row);
 
                                 if (foundChosen)
                                 {
-                                        previousChosenLibRow = chosenLibRow;
+                                        previous_chosen_lib_row = chosen_lib_row;
                                 }
 
-                                if (!isSameNameAsLastTime)
+                                if (!is_same_name_as_last_time)
                                 {
-                                        resetNameScroll();
+                                        reset_name_scroll();
                                 }
 
                                 if (foundChosen)
                                 {
-                                        processNameScroll(root->name, filename,
+                                        process_name_scroll(root->name, filename,
                                                           maxNameWidth -
                                                               extraIndent,
-                                                          isSameNameAsLastTime);
+                                                          is_same_name_as_last_time);
                                 }
                                 else
                                 {
-                                        processName(root->name, filename,
+                                        process_name(root->name, filename,
                                                     maxNameWidth - extraIndent,
                                                     true, true);
                                 }
 
-                                if (isPlaying)
+                                if (is_playing)
                                 {
-                                        if (chosenLibRow == libIter)
+                                        if (chosen_lib_row == lib_iter)
                                         {
                                                 printf("\x1b[7m");
                                         }
@@ -1917,31 +1915,31 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize,
                                 printf("└─ ");
 
                                 // Playlist
-                                if (pathEndsWith(root->fullPath, "m3u") ||
-                                    pathEndsWith(root->fullPath, "m3u8"))
+                                if (path_ends_with(root->fullPath, "m3u") ||
+                                    path_ends_with(root->fullPath, "m3u8"))
                                 {
                                         printf("♫ ");
                                         maxNameWidth = maxNameWidth - 2;
                                 }
 
-                                if (isPlaying && chosenLibRow != libIter)
+                                if (is_playing && chosen_lib_row != lib_iter)
                                 {
                                         printf("\e[4m");
                                 }
 
                                 printf("%s\n", filename);
 
-                                libSongIter++;
+                                lib_song_iter++;
                         }
                 }
 
-                libIter++;
+                lib_iter++;
         }
 
         FileSystemEntry *child = root->children;
         while (child != NULL)
         {
-                if (displayTree(child, depth + 1, maxListSize, maxNameWidth))
+                if (display_tree(child, depth + 1, max_list_size, maxNameWidth))
                         foundChosen = true;
 
                 child = child->next;
@@ -1950,33 +1948,33 @@ int displayTree(FileSystemEntry *root, int depth, int maxListSize,
         return foundChosen;
 }
 
-void showLibrary(SongData *songData, AppSettings *settings)
+void show_library(SongData *songData, AppSettings *settings)
 {
-        AppState *state = getAppState();
+        AppState *state = get_app_state();
         // For scrolling names, update every nth time
-        if (getIsLongName() && isSameNameAsLastTime &&
-            getUpdateCounter() % scrollingInterval != 0)
+        if (get_is_long_name() && is_same_name_as_last_time &&
+            get_update_counter() % scrolling_interval != 0)
         {
-                triggerRefresh();
+                trigger_refresh();
                 return;
         }
         else
-                cancelRefresh();
+                cancel_refresh();
 
-        gotoFirstLineFirstRow();
+        goto_first_line_first_row();
 
         if (state->uiState.collapseView)
         {
-                if (previousChosenLibRow < chosenLibRow)
+                if (previous_chosen_lib_row < chosen_lib_row)
                 {
                         if (!state->uiState.openedSubDir)
                         {
-                                chosenLibRow -= libCurrentDirSongCount;
-                                libCurrentDirSongCount = 0;
+                                chosen_lib_row -= lib_current_dir_song_count;
+                                lib_current_dir_song_count = 0;
                         }
                         else
                         {
-                                chosenLibRow -=
+                                chosen_lib_row -=
                                     state->uiState.numSongsAboveSubDir;
                                 state->uiState.openedSubDir = false;
                                 state->uiState.numSongsAboveSubDir = 0;
@@ -1987,10 +1985,10 @@ void showLibrary(SongData *songData, AppSettings *settings)
                 {
                         if (state->uiState.openedSubDir)
                         {
-                                chosenLibRow -=
+                                chosen_lib_row -=
                                     state->uiState.numSongsAboveSubDir;
                         }
-                        libCurrentDirSongCount = 0;
+                        lib_current_dir_song_count = 0;
                         state->uiState.openedSubDir = false;
                         state->uiState.numSongsAboveSubDir = 0;
                 }
@@ -1999,93 +1997,93 @@ void showLibrary(SongData *songData, AppSettings *settings)
 
         UISettings *ui = &(state->uiSettings);
 
-        libIter = 0;
-        libSongIter = 0;
-        startLibIter = 0;
+        lib_iter = 0;
+        lib_song_iter = 0;
+        start_lib_iter = 0;
 
         int term_w, term_h;
-        getTermSize(&term_w, &term_h);
+        get_term_size(&term_w, &term_h);
         int totalHeight = term_h;
-        maxLibListSize = totalHeight;
-        int aboutSize = printLogo(songData, ui);
+        max_lib_list_size = totalHeight;
+        int aboutSize = print_logo(songData, ui);
         int maxNameWidth = term_w - 10 - indent;
-        maxLibListSize -= aboutSize + 2;
+        max_lib_list_size -= aboutSize + 2;
 
-        applyColor(ui->colorMode, ui->theme.help, ui->defaultColorRGB);
+        apply_color(ui->colorMode, ui->theme.help, ui->defaultColorRGB);
 
         if (term_w > 67 && !ui->hideHelp)
         {
-                maxLibListSize -= 3;
-                clearLine();
-                printBlankSpaces(indent);
+                max_lib_list_size -= 3;
+                clear_line();
+                print_blank_spaces(indent);
                 printf(_(" Use ↑/↓ or k/j to select. Enter: Enqueue/Dequeue. Alt+Enter: Play.\n"));
-                clearLine();
-                printBlankSpaces(indent);
+                clear_line();
+                print_blank_spaces(indent);
 #ifndef __APPLE__
                 printf(_(" PgUp/PgDn: scroll. u: update, o: sort.\n"));
-                clearLine();
+                clear_line();
                 printf("\n");
 #else
                 printf(_(" Fn+↑/↓: scroll. u: update, o: sort.\n"));
-                clearLine();
+                clear_line();
                 printf("\n");
 #endif
-                clearLine();
+                clear_line();
         }
 
-        numTopLevelSongs = 0;
+        num_top_level_songs = 0;
 
-        FileSystemEntry *library = getLibrary();
+        FileSystemEntry *library = get_library();
 
         FileSystemEntry *tmp = library->children;
 
         while (tmp != NULL)
         {
-                if (!tmp->isDirectory)
-                        numTopLevelSongs++;
+                if (!tmp->is_directory)
+                        num_top_level_songs++;
 
                 tmp = tmp->next;
         }
 
         bool foundChosen = false;
 
-        if (maxLibListSize <= 0)
+        if (max_lib_list_size <= 0)
                 foundChosen = true;
         else
-                foundChosen = displayTree(library, 0, maxLibListSize,
+                foundChosen = display_tree(library, 0, max_lib_list_size,
                                           maxNameWidth);
 
         if (!foundChosen)
         {
-                chosenLibRow--;
-                triggerRefresh();
+                chosen_lib_row--;
+                trigger_refresh();
         }
 
-        for (int i = libIter - startLibIter; i < maxLibListSize; i++)
+        for (int i = lib_iter - start_lib_iter; i < max_lib_list_size; i++)
         {
                 printf("\n");
-                clearLine();
+                clear_line();
         }
 
-        calcAndPrintLastRowAndErrorRow();
+        calc_and_print_last_row_and_error_row();
 
-        if (!foundChosen && isRefreshTriggered())
+        if (!foundChosen && is_refresh_triggered())
         {
-                gotoFirstLineFirstRow();
-                showLibrary(songData, settings);
+                goto_first_line_first_row();
+                show_library(songData, settings);
         }
 }
 
-int calcVisualizerWidth()
+int calc_visualizer_width()
 {
         int term_w, term_h;
-        getTermSize(&term_w, &term_h);
-        int visualizerWidth = (ABSOLUTE_MIN_WIDTH > preferredWidth)
+        get_term_size(&term_w, &term_h);
+        int visualizerWidth = (ABSOLUTE_MIN_WIDTH > preferred_width)
                                   ? ABSOLUTE_MIN_WIDTH
-                                  : preferredWidth;
+                                  : preferred_width;
         visualizerWidth =
-            (visualizerWidth < textWidth && textWidth < term_w - 2)
-                ? textWidth
+            (visualizerWidth < text_width && text_width < term_w - 2)
+                ? text_width
                 : visualizerWidth;
         visualizerWidth =
             (visualizerWidth > term_w - 2) ? term_w - 2 : visualizerWidth;
@@ -2094,7 +2092,7 @@ int calcVisualizerWidth()
         return visualizerWidth;
 }
 
-void printAt(int row, int indent, const char *text, int maxWidth)
+void print_at(int row, int indent, const char *text, int maxWidth)
 {
         char buffer[1024];
         size_t len = strlen(text);
@@ -2109,9 +2107,9 @@ void printAt(int row, int indent, const char *text, int maxWidth)
         printf("\033[%d;%dH%s", row, indent, buffer);
 }
 
-void printLyricsPage(UISettings *ui, AppSettings *settings, int row, int col, double seconds, SongData *songdata, int height)
+void print_lyrics_page(UISettings *ui, AppSettings *settings, int row, int col, double seconds, SongData *songdata, int height)
 {
-        clearRestOfLine();
+        clear_rest_of_line();
 
         if (!songdata)
                 return;
@@ -2125,7 +2123,7 @@ void printLyricsPage(UISettings *ui, AppSettings *settings, int row, int col, do
                 return;
         }
 
-        applyColor(ui->colorMode, ui->theme.trackview_lyrics, ui->color);
+        apply_color(ui->colorMode, ui->theme.trackview_lyrics, ui->color);
 
         int limit = MIN((int)lyrics->count, height);
         int startat = 0;
@@ -2165,12 +2163,12 @@ void printLyricsPage(UISettings *ui, AppSettings *settings, int row, int col, do
                 if (length < 0)
                         length = 0;
 
-                printAt(row + i - startat, col, linebuf, length);
-                clearRestOfLine();
+                print_at(row + i - startat, col, linebuf, length);
+                clear_rest_of_line();
         }
 }
 
-const char *getLyricsLine(const Lyrics *lyrics, double elapsed_seconds)
+const char *get_lyrics_line(const Lyrics *lyrics, double elapsed_seconds)
 {
         if (!lyrics || lyrics->count == 0)
                 return "";
@@ -2205,7 +2203,7 @@ const char *getLyricsLine(const Lyrics *lyrics, double elapsed_seconds)
         return line;
 }
 
-void printTimestampedLyrics(UISettings *ui, SongData *songdata, int row, int col, int term_w, double elapsedSeconds)
+void print_timestamped_lyrics(UISettings *ui, SongData *songdata, int row, int col, int term_w, double elapsed_seconds)
 {
         if (!songdata)
                 return;
@@ -2216,7 +2214,7 @@ void printTimestampedLyrics(UISettings *ui, SongData *songdata, int row, int col
         if (songdata->lyrics->isTimed != 1)
                 return;
 
-        const char *line = getLyricsLine(songdata->lyrics, elapsedSeconds);
+        const char *line = get_lyrics_line(songdata->lyrics, elapsed_seconds);
 
         if (!line)
                 return;
@@ -2232,19 +2230,19 @@ void printTimestampedLyrics(UISettings *ui, SongData *songdata, int row, int col
 
                 length -= col + length - term_w;
 
-                applyColor(ui->colorMode, ui->theme.trackview_lyrics, ui->color);
+                apply_color(ui->colorMode, ui->theme.trackview_lyrics, ui->color);
 
-                printAt(row, col, line, length);
+                print_at(row, col, line, length);
 
-                clearRestOfLine();
+                clear_rest_of_line();
         }
 }
 
-void showTrackViewLandscape(int height, int width, float aspectRatio,
+void show_track_view_landscape(int height, int width, float aspectRatio,
                             AppSettings *settings, SongData *songdata,
-                            double elapsedSeconds)
+                            double elapsed_seconds)
 {
-        AppState *state = getAppState();
+        AppState *state = get_app_state();
         TagSettings *metadata = NULL;
         int avgBitRate = 0;
 
@@ -2263,7 +2261,7 @@ void showTrackViewLandscape(int height, int width, float aspectRatio,
                 col = 1;
 
         int term_w, term_h;
-        getTermSize(&term_w, &term_h);
+        get_term_size(&term_w, &term_h);
         int visualizerWidth = term_w - col;
 
         int row = height - metadataHeight - timeHeight - state->uiSettings.visualizerHeight - 3;
@@ -2271,62 +2269,62 @@ void showTrackViewLandscape(int height, int width, float aspectRatio,
         if (row <= 1)
                 row = 2;
 
-        if (isRefreshTriggered())
+        if (is_refresh_triggered())
         {
-                printCover(height, songdata, &(state->uiSettings));
+                print_cover(height, songdata, &(state->uiSettings));
 
                 if (!state->uiState.showLyricsPage)
                 {
                         if (height > metadataHeight)
-                                printMetadata(row, col, visualizerWidth - 1,
+                                print_metadata(row, col, visualizerWidth - 1,
                                               metadata, &(state->uiSettings));
                 }
 
-                cancelRefresh();
+                cancel_refresh();
         }
         if (songdata)
         {
-                ma_uint32 sampleRate;
+                ma_uint32 sample_rate;
                 ma_format format;
                 avgBitRate = songdata->avgBitRate;
-                getFormatAndSampleRate(&format, &sampleRate);
+                get_format_and_sample_rate(&format, &sample_rate);
 
                 if (!state->uiState.showLyricsPage)
                 {
                         if (height > metadataHeight + timeHeight)
-                                printTime(row + 4, col, elapsedSeconds, sampleRate,
+                                print_time(row + 4, col, elapsed_seconds, sample_rate,
                                           avgBitRate, term_w - col);
 
                         printf("\033[%d;%dH", row + metadataHeight + 1, col);
                         printf(" ");
 
                         if (row > 0)
-                                printTimestampedLyrics(&(state->uiSettings), songdata, row + metadataHeight + 1, col + 1, term_w, elapsedSeconds);
+                                print_timestamped_lyrics(&(state->uiSettings), songdata, row + metadataHeight + 1, col + 1, term_w, elapsed_seconds);
 
                         if (row > 0)
-                                printVisualizer(row + metadataHeight + 2, col, visualizerWidth,
-                                                settings, elapsedSeconds);
+                                print_visualizer(row + metadataHeight + 2, col, visualizerWidth,
+                                                settings, elapsed_seconds);
 
                         if (width - col > ABSOLUTE_MIN_WIDTH)
                         {
-                                printErrorRow(row + metadataHeight + 2 +
+                                print_error_row(row + metadataHeight + 2 +
                                                   state->uiSettings.visualizerHeight,
                                               col, &(state->uiSettings));
-                                printFooter(row + metadataHeight + 2 + state->uiSettings.visualizerHeight + 1, col);
+                                print_footer(row + metadataHeight + 2 + state->uiSettings.visualizerHeight + 1, col);
                         }
                 }
                 else
                 {
-                        printNowPlaying(songdata, &(state->uiSettings), 2, col, term_w - indent);
-                        printLyricsPage(&(state->uiSettings), settings, 4, col, elapsedSeconds, songdata, height - 4);
+                        print_now_playing(songdata, &(state->uiSettings), 2, col, term_w - indent);
+                        print_lyrics_page(&(state->uiSettings), settings, 4, col, elapsed_seconds, songdata, height - 4);
                 }
         }
 }
 
-void showTrackViewPortrait(int height, AppSettings *settings,
-                           SongData *songdata, double elapsedSeconds)
+void show_track_view_portrait(int height, AppSettings *settings,
+                           SongData *songdata, double elapsed_seconds)
 {
-        AppState *state = getAppState();
+        AppState *state = get_app_state();
         TagSettings *metadata = NULL;
         int avgBitRate = 0;
 
@@ -2335,64 +2333,64 @@ void showTrackViewPortrait(int height, AppSettings *settings,
         int row = height + 3;
         int col = indent;
 
-        int visualizerWidth = calcVisualizerWidth();
+        int visualizerWidth = calc_visualizer_width();
 
-        if (isRefreshTriggered())
+        if (is_refresh_triggered())
         {
                 if (songdata)
                 {
                         metadata = songdata->metadata;
                 }
 
-                clearScreen();
+                clear_screen();
 
                 if (!state->uiState.showLyricsPage)
                 {
-                        printCoverCentered(songdata, &(state->uiSettings));
-                        printMetadata(row, col, visualizerWidth - 1, metadata,
+                        print_cover_centered(songdata, &(state->uiSettings));
+                        print_metadata(row, col, visualizerWidth - 1, metadata,
                                       &(state->uiSettings));
                 }
 
-                cancelRefresh();
+                cancel_refresh();
         }
         if (songdata)
         {
                 if (!state->uiState.showLyricsPage)
                 {
-                        ma_uint32 sampleRate;
+                        ma_uint32 sample_rate;
                         ma_format format;
                         avgBitRate = songdata->avgBitRate;
 
-                        getFormatAndSampleRate(&format, &sampleRate);
-                        printTime(row + metadataHeight, col, elapsedSeconds, sampleRate,
+                        get_format_and_sample_rate(&format, &sample_rate);
+                        print_time(row + metadataHeight, col, elapsed_seconds, sample_rate,
                                   avgBitRate, term_w - col);
 
                         if (row > 0)
-                                printTimestampedLyrics(&(state->uiSettings), songdata, row + metadataHeight + 1, indent + 1, term_w, elapsedSeconds);
+                                print_timestamped_lyrics(&(state->uiSettings), songdata, row + metadataHeight + 1, indent + 1, term_w, elapsed_seconds);
 
-                        printVisualizer(row + metadataHeight + 2, col, visualizerWidth,
-                                        settings, elapsedSeconds);
+                        print_visualizer(row + metadataHeight + 2, col, visualizerWidth,
+                                        settings, elapsed_seconds);
                 }
                 else
                 {
-                        clearScreen();
+                        clear_screen();
                         printf("\n");
-                        printNowPlaying(songdata, &(state->uiSettings), 2, indent + 1, term_w - indent);
+                        print_now_playing(songdata, &(state->uiSettings), 2, indent + 1, term_w - indent);
                         int term_w, term_h;
-                        getTermSize(&term_w, &term_h);
+                        get_term_size(&term_w, &term_h);
                         int lyricsHeight = term_h - 5;
                         if (lyricsHeight > 0)
-                                printLyricsPage(&(state->uiSettings), settings, 4, col + 1, elapsedSeconds, songdata, lyricsHeight);
+                                print_lyrics_page(&(state->uiSettings), settings, 4, col + 1, elapsed_seconds, songdata, lyricsHeight);
                 }
         }
 
-        calcAndPrintLastRowAndErrorRow();
+        calc_and_print_last_row_and_error_row();
 }
 
-void showTrackView(int width, int height, AppSettings *settings,
-                   SongData *songdata, double elapsedSeconds)
+void show_track_view(int width, int height, AppSettings *settings,
+                   SongData *songdata, double elapsed_seconds)
 {
-        float aspect = getAspectRatio();
+        float aspect = get_aspect_ratio();
 
         if (aspect == 0.0f)
                 aspect = 1.0f;
@@ -2401,35 +2399,35 @@ void showTrackView(int width, int height, AppSettings *settings,
 
         if (correctedWidth > height * 2)
         {
-                showTrackViewLandscape(height, width, aspect, settings,
-                                       songdata, elapsedSeconds);
+                show_track_view_landscape(height, width, aspect, settings,
+                                       songdata, elapsed_seconds);
         }
         else
         {
-                showTrackViewPortrait(preferredHeight, settings, songdata,
-                                      elapsedSeconds);
+                show_track_view_portrait(preferred_height, settings, songdata,
+                                      elapsed_seconds);
         }
 }
 
-int printPlayer(SongData *songdata, double elapsedSeconds)
+int print_player(SongData *songdata, double elapsed_seconds)
 {
-        AppState *state = getAppState();
-        AppSettings *settings = getAppSettings();
+        AppState *state = get_app_state();
+        AppSettings *settings = get_app_settings();
         UISettings *ui = &(state->uiSettings);
         UIState *uis = &(state->uiState);
-        PlayList *unshuffledPlaylist = getUnshuffledPlaylist();
+        PlayList *unshuffled_playlist = get_unshuffled_playlist();
 
-        if (hasPrintedErrorMessage() && isRefreshTriggered())
-                clearErrorMessage();
+        if (has_printed_error_message() && is_refresh_triggered())
+                clear_error_message();
 
         if (!ui->uiEnabled)
         {
                 return 0;
         }
 
-        if (isRefreshTriggered())
+        if (is_refresh_triggered())
         {
-                hideCursor();
+                hide_cursor();
 
                 if (songdata != NULL && songdata->metadata != NULL &&
                     !songdata->hasErrors && (songdata->hasErrors < 1))
@@ -2439,7 +2437,7 @@ int printPlayer(SongData *songdata, double elapsedSeconds)
                         ui->color.b = songdata->blue;
 
                         if (ui->trackTitleAsWindowTitle)
-                                setTerminalWindowTitle(
+                                set_terminal_window_title(
                                     songdata->metadata->title);
                 }
                 else
@@ -2447,7 +2445,7 @@ int printPlayer(SongData *songdata, double elapsedSeconds)
                         if (state->currentView == TRACK_VIEW)
                         {
                                 state->currentView = LIBRARY_VIEW;
-                                clearScreen();
+                                clear_screen();
                         }
 
                         ui->color.r = ui->kewColorRGB.r;
@@ -2455,85 +2453,85 @@ int printPlayer(SongData *songdata, double elapsedSeconds)
                         ui->color.b = ui->kewColorRGB.b;
 
                         if (ui->trackTitleAsWindowTitle)
-                                setTerminalWindowTitle("kew");
+                                set_terminal_window_title("kew");
                 }
 
-                calcPreferredSize(ui);
-                calcIndent(songdata);
+                calc_preferred_size(ui);
+                calc_indent(songdata);
         }
 
-        getTermSize(&term_w, &term_h);
+        get_term_size(&term_w, &term_h);
 
-        bool shouldRefresh = isRefreshTriggered() || state->uiState.isFastForwarding || state->uiState.isRewinding;
+        bool shouldRefresh = is_refresh_triggered() || state->uiState.isFastForwarding || state->uiState.isRewinding;
 
         if (state->currentView != PLAYLIST_VIEW)
                 state->uiState.resetPlaylistDisplay = true;
 
         if (state->currentView == KEYBINDINGS_VIEW && shouldRefresh)
         {
-                clearScreen();
-                showKeyBindings(songdata);
-                saveCursorPosition();
-                cancelRefresh();
+                clear_screen();
+                show_key_bindings(songdata);
+                save_cursor_position();
+                cancel_refresh();
                 fflush(stdout);
         }
         else if (state->currentView == PLAYLIST_VIEW && shouldRefresh)
         {
-                showPlaylist(songdata, unshuffledPlaylist, &chosenRow,
+                show_playlist(songdata, unshuffled_playlist, &chosen_row,
                              &(uis->chosenNodeId), settings);
                 state->uiState.resetPlaylistDisplay = false;
                 fflush(stdout);
         }
         else if (state->currentView == SEARCH_VIEW && shouldRefresh)
         {
-                showSearch(songdata, &chosenSearchResultRow);
-                cancelRefresh();
+                show_search(songdata, &chosen_search_result_row);
+                cancel_refresh();
                 fflush(stdout);
         }
         else if (state->currentView == LIBRARY_VIEW && shouldRefresh)
         {
-                showLibrary(songdata, settings);
+                show_library(songdata, settings);
                 fflush(stdout);
         }
         else if (state->currentView == TRACK_VIEW)
         {
-                showTrackView(term_w, term_h, settings, songdata, elapsedSeconds);
+                show_track_view(term_w, term_h, settings, songdata, elapsed_seconds);
                 fflush(stdout);
         }
 
         return 0;
 }
 
-void showHelp(void) { printHelp(); }
+void show_help(void) { print_help(); }
 
-void freeMainDirectoryTree(void)
+void free_main_directory_tree(void)
 {
-        AppState *state = getAppState();
-        FileSystemEntry *library = getLibrary();
+        AppState *state = get_app_state();
+        FileSystemEntry *library = get_library();
 
         if (library == NULL)
                 return;
 
-        char *filepath = getLibraryFilePath();
+        char *filepath = get_library_file_path();
 
         if (state->uiSettings.cacheLibrary)
-                freeAndWriteTree(library, filepath);
+                free_and_write_tree(library, filepath);
         else
-                freeTree(library);
+                free_tree(library);
 
         free(filepath);
 }
 
-int getChosenRow(void) { return chosenRow; }
+int get_chosen_row(void) { return chosen_row; }
 
-void setChosenRow(int row) { chosenRow = row; }
+void set_chosen_row(int row) { chosen_row = row; }
 
-void refreshPlayer()
+void refresh_player()
 {
-        AppState *state = getAppState();
-        PlaybackState *ps = getPlaybackState();
+        AppState *state = get_app_state();
+        PlaybackState *ps = get_playback_state();
 
-        int mutexResult = pthread_mutex_trylock(&(state->switchMutex));
+        int mutexResult = pthread_mutex_trylock(&(state->switch_mutex));
 
         if (mutexResult != 0)
         {
@@ -2545,20 +2543,20 @@ void refreshPlayer()
         {
                 ps->notifyPlaying = false;
 
-                emitStringPropertyChanged("PlaybackStatus", "Playing");
+                emit_string_property_changed("PlaybackStatus", "Playing");
         }
 
         if (ps->notifySwitch)
         {
                 ps->notifySwitch = false;
 
-                notifyMPRISSwitch(getCurrentSongData());
+                notify_m_p_r_i_s_switch(get_current_song_data());
         }
 
-        if (shouldRefreshPlayer())
+        if (should_refresh_player())
         {
-                printPlayer(getCurrentSongData(), getElapsedSeconds());
+                print_player(get_current_song_data(), get_elapsed_seconds());
         }
 
-        pthread_mutex_unlock(&(state->switchMutex));
+        pthread_mutex_unlock(&(state->switch_mutex));
 }

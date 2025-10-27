@@ -6,76 +6,76 @@
 #include "m4a.h"
 #endif
 
-#include "sound/audiofileinfo.h"
+#include "sound/audio_file_info.h"
 
 #define MAX_DECODERS 2
 
-static ma_decoder *firstDecoder;
-static ma_decoder *currentDecoder;
+static ma_decoder *first_decoder;
+static ma_decoder *current_decoder;
 static ma_decoder *decoders[MAX_DECODERS];
-static ma_libopus *opusDecoders[MAX_DECODERS];
-static ma_libopus *firstOpusDecoder;
-static ma_libvorbis *vorbisDecoders[MAX_DECODERS];
-static ma_libvorbis *firstVorbisDecoder;
-static ma_webm *webmDecoders[MAX_DECODERS];
-static ma_webm *firstWebmDecoder;
+static ma_libopus *opus_decoders[MAX_DECODERS];
+static ma_libopus *first_opus_decoder;
+static ma_libvorbis *vorbis_decoders[MAX_DECODERS];
+static ma_libvorbis *first_vorbis_decoder;
+static ma_webm *webm_decoders[MAX_DECODERS];
+static ma_webm *first_webm_decoder;
 
 #ifdef USE_FAAD
-static m4a_decoder *m4aDecoders[MAX_DECODERS];
-static m4a_decoder *firstM4aDecoder;
+static m4a_decoder *m4a_decoders[MAX_DECODERS];
+static m4a_decoder *first_m4a_decoder;
 #endif
 
-static int decoderIndex = -1;
-static int m4aDecoderIndex = -1;
-static int opusDecoderIndex = -1;
-static int vorbisDecoderIndex = -1;
-static int webmDecoderIndex = -1;
+static int decoder_index = -1;
+static int m4a_decoder_index = -1;
+static int opus_decoder_index = -1;
+static int vorbis_decoder_index = -1;
+static int webm_decoder_index = -1;
 
-void switchSpecificDecoder(int *decoderIndex)
+void switch_specific_decoder(int *decoder_index)
 {
-        if (*decoderIndex == -1)
-                *decoderIndex = 0;
+        if (*decoder_index == -1)
+                *decoder_index = 0;
         else
-                *decoderIndex = 1 - *decoderIndex;
+                *decoder_index = 1 - *decoder_index;
 }
 
-void switchDecoder(void)
+void switch_decoder(void)
 {
-        switchSpecificDecoder(&decoderIndex);
-        switchSpecificDecoder(&opusDecoderIndex);
-        switchSpecificDecoder(&m4aDecoderIndex);
-        switchSpecificDecoder(&vorbisDecoderIndex);
-        switchSpecificDecoder(&webmDecoderIndex);
+        switch_specific_decoder(&decoder_index);
+        switch_specific_decoder(&opus_decoder_index);
+        switch_specific_decoder(&m4a_decoder_index);
+        switch_specific_decoder(&vorbis_decoder_index);
+        switch_specific_decoder(&webm_decoder_index);
 }
 
-void uninitMaDecoder(void *decoder)
+void uninit_ma_decoder(void *decoder)
 {
         ma_decoder_uninit((ma_decoder *)decoder);
 }
 
-void uninitOpusDecoder(void *decoder)
+void uninit_opus_decoder(void *decoder)
 {
         ma_libopus_uninit((ma_libopus *)decoder, NULL);
 }
 
-void uninitVorbisDecoder(void *decoder)
+void uninit_vorbis_decoder(void *decoder)
 {
         ma_libvorbis_uninit((ma_libvorbis *)decoder, NULL);
 }
 
-void uninitWebmDecoder(void *decoder)
+void uninit_webm_decoder(void *decoder)
 {
         ma_webm_uninit((ma_webm *)decoder, NULL);
 }
 
 #ifdef USE_FAAD
-void uninitM4aDecoder(void *decoder)
+void uninit_m4a_decoder(void *decoder)
 {
         m4a_decoder_uninit((m4a_decoder *)decoder, NULL);
 }
 #endif
 
-void uninitPreviousDecoder(void **decoderArray, int index, uninit_func uninit)
+void uninit_previous_decoder(void **decoderArray, int index, uninit_func uninit)
 {
         if (index == -1)
         {
@@ -92,7 +92,7 @@ void uninitPreviousDecoder(void **decoderArray, int index, uninit_func uninit)
         }
 }
 
-bool hasBuiltinDecoder(const char *filePath)
+bool has_builtin_decoder(const char *filePath)
 {
         char *extension = strrchr(filePath, '.');
         return (extension != NULL && (strcasecmp(extension, ".wav") == 0 ||
@@ -101,44 +101,44 @@ bool hasBuiltinDecoder(const char *filePath)
 }
 
 
-void clearDecoderChain()
+void clear_decoder_chain()
 {
-        ma_data_source_set_next(currentDecoder, NULL);
+        ma_data_source_set_next(current_decoder, NULL);
 }
 
-ma_decoder *getFirstDecoder(void) { return firstDecoder; }
+ma_decoder *get_first_decoder(void) { return first_decoder; }
 
-ma_decoder *getCurrentBuiltinDecoder(void)
+ma_decoder *get_current_builtin_decoder(void)
 {
-        if (decoderIndex == -1)
-                return getFirstDecoder();
+        if (decoder_index == -1)
+                return get_first_decoder();
         else
-                return decoders[decoderIndex];
+                return decoders[decoder_index];
 }
 
 #ifdef USE_FAAD
-m4a_decoder *getFirstM4aDecoder(void) { return firstM4aDecoder; }
+m4a_decoder *get_first_m4a_decoder(void) { return first_m4a_decoder; }
 
 
-m4a_decoder *getCurrentM4aDecoder(void)
+m4a_decoder *get_current_m4a_decoder(void)
 {
-        if (m4aDecoderIndex == -1)
-                return getFirstM4aDecoder();
+        if (m4a_decoder_index == -1)
+                return get_first_m4a_decoder();
         else
-                return m4aDecoders[m4aDecoderIndex];
+                return m4a_decoders[m4a_decoder_index];
 }
 #endif
 
-void resetDecoders(void **decoderArray, void **firstDecoder, int arraySize,
-                   int *decoderIndex, uninit_func uninit)
+void reset_decoders(void **decoderArray, void **first_decoder, int arraySize,
+                   int *decoder_index, uninit_func uninit)
 {
-        *decoderIndex = -1;
+        *decoder_index = -1;
 
-        if (*firstDecoder != NULL)
+        if (*first_decoder != NULL)
         {
-                uninit(*firstDecoder);
-                free(*firstDecoder);
-                *firstDecoder = NULL;
+                uninit(*first_decoder);
+                free(*first_decoder);
+                *first_decoder = NULL;
         }
 
         for (int i = 0; i < arraySize; i++)
@@ -152,30 +152,30 @@ void resetDecoders(void **decoderArray, void **firstDecoder, int arraySize,
         }
 }
 
-void resetAllDecoders(void)
+void reset_all_decoders(void)
 {
-        resetDecoders((void **)decoders, (void **)&firstDecoder, MAX_DECODERS,
-                      &decoderIndex, uninitMaDecoder);
-        resetDecoders((void **)vorbisDecoders, (void **)&firstVorbisDecoder,
-                      MAX_DECODERS, &vorbisDecoderIndex, uninitVorbisDecoder);
-        resetDecoders((void **)opusDecoders, (void **)&firstOpusDecoder,
-                      MAX_DECODERS, &opusDecoderIndex, uninitOpusDecoder);
-        resetDecoders((void **)webmDecoders, (void **)&firstWebmDecoder,
-                      MAX_DECODERS, &webmDecoderIndex, uninitWebmDecoder);
+        reset_decoders((void **)decoders, (void **)&first_decoder, MAX_DECODERS,
+                      &decoder_index, uninit_ma_decoder);
+        reset_decoders((void **)vorbis_decoders, (void **)&first_vorbis_decoder,
+                      MAX_DECODERS, &vorbis_decoder_index, uninit_vorbis_decoder);
+        reset_decoders((void **)opus_decoders, (void **)&first_opus_decoder,
+                      MAX_DECODERS, &opus_decoder_index, uninit_opus_decoder);
+        reset_decoders((void **)webm_decoders, (void **)&first_webm_decoder,
+                      MAX_DECODERS, &webm_decoder_index, uninit_webm_decoder);
 #ifdef USE_FAAD
-        resetDecoders((void **)m4aDecoders, (void **)&firstM4aDecoder,
-                      MAX_DECODERS, &m4aDecoderIndex, uninitM4aDecoder);
+        reset_decoders((void **)m4a_decoders, (void **)&first_m4a_decoder,
+                      MAX_DECODERS, &m4a_decoder_index, uninit_m4a_decoder);
 #endif
 }
 
-void setNextDecoder(void **decoderArray, void **decoder, void **firstDecoder,
-                    int *decoderIndex, uninit_func uninit)
+void set_next_decoder(void **decoderArray, void **decoder, void **first_decoder,
+                    int *decoder_index, uninit_func uninit)
 {
-        if (*decoderIndex == -1 && *firstDecoder == NULL)
+        if (*decoder_index == -1 && *first_decoder == NULL)
         {
-                *firstDecoder = *decoder;
+                *first_decoder = *decoder;
         }
-        else if (*decoderIndex == -1) // Array hasn't been used yet
+        else if (*decoder_index == -1) // Array hasn't been used yet
         {
                 if (decoderArray[0] != NULL)
                 {
@@ -188,7 +188,7 @@ void setNextDecoder(void **decoderArray, void **decoder, void **firstDecoder,
         }
         else
         {
-                int nextIndex = 1 - *decoderIndex;
+                int nextIndex = 1 - *decoder_index;
                 if (decoderArray[nextIndex] != NULL)
                 {
                         uninit(decoderArray[nextIndex]);
@@ -313,33 +313,33 @@ MA_API ma_result m4a_get_cursor_in_pcm_frames_wrapper(void *pDecoder,
 }
 
 
-int prepareNextM4aDecoder(SongData *songData)
+int prepare_next_m4a_decoder(SongData *songData)
 {
-        m4a_decoder *currentDecoder;
+        m4a_decoder *current_decoder;
 
         if (songData == NULL)
                 return -1;
 
         char *filepath = songData->filePath;
 
-        if (m4aDecoderIndex == -1)
+        if (m4a_decoder_index == -1)
         {
-                currentDecoder = getFirstM4aDecoder();
+                current_decoder = get_first_m4a_decoder();
         }
         else
         {
-                currentDecoder = m4aDecoders[m4aDecoderIndex];
+                current_decoder = m4a_decoders[m4a_decoder_index];
         }
 
-        ma_uint32 sampleRate;
+        ma_uint32 sample_rate;
         ma_uint32 channels;
         ma_format format;
         ma_channel channelMap[MA_MAX_CHANNELS];
-        m4a_decoder_get_data_format(currentDecoder, &format, &channels,
-                                    &sampleRate, channelMap, MA_MAX_CHANNELS);
+        m4a_decoder_get_data_format(current_decoder, &format, &channels,
+                                    &sample_rate, channelMap, MA_MAX_CHANNELS);
 
-        uninitPreviousDecoder((void **)m4aDecoders, m4aDecoderIndex,
-                              (uninit_func)uninitM4aDecoder);
+        uninit_previous_decoder((void **)m4a_decoders, m4a_decoder_index,
+                              (uninit_func)uninit_m4a_decoder);
 
         m4a_decoder *decoder = (m4a_decoder *)malloc(sizeof(m4a_decoder));
         ma_result result = m4a_decoder_init_file(filepath, NULL, NULL, decoder);
@@ -354,11 +354,11 @@ int prepareNextM4aDecoder(SongData *songData)
 
         m4a_decoder_get_data_format(decoder, &nformat, &nchannels, &nsampleRate,
                                     nchannelMap, MA_MAX_CHANNELS);
-        bool sameFormat = (currentDecoder == NULL ||
+        bool sameFormat = (current_decoder == NULL ||
                            (format == nformat && channels == nchannels &&
-                            sampleRate == nsampleRate &&
-                            currentDecoder->fileType == decoder->fileType &&
-                            currentDecoder->fileType != k_rawAAC));
+                            sample_rate == nsampleRate &&
+                            current_decoder->fileType == decoder->fileType &&
+                            current_decoder->fileType != k_rawAAC));
 
         if (!sameFormat)
         {
@@ -367,7 +367,7 @@ int prepareNextM4aDecoder(SongData *songData)
                 return 0;
         }
 
-        m4a_decoder *first = getFirstM4aDecoder();
+        m4a_decoder *first = get_first_m4a_decoder();
         if (first != NULL)
         {
                 decoder->pReadSeekTellUserData =
@@ -380,9 +380,9 @@ int prepareNextM4aDecoder(SongData *songData)
         decoder->onTell = m4a_get_cursor_in_pcm_frames_wrapper;
         decoder->cursor = 0;
 
-        setNextDecoder((void **)m4aDecoders, (void **)&decoder,
-                       (void **)&firstM4aDecoder, &m4aDecoderIndex,
-                       (uninit_func)uninitM4aDecoder);
+        set_next_decoder((void **)m4a_decoders, (void **)&decoder,
+                       (void **)&first_m4a_decoder, &m4a_decoder_index,
+                       (uninit_func)uninit_m4a_decoder);
 
         if (songData != NULL)
         {
@@ -392,58 +392,58 @@ int prepareNextM4aDecoder(SongData *songData)
                 }
         }
 
-        if (currentDecoder != NULL && decoder != NULL &&
+        if (current_decoder != NULL && decoder != NULL &&
             decoder->fileType != k_rawAAC)
         {
-                if (!isEOFReached())
-                        ma_data_source_set_next(currentDecoder, decoder);
+                if (!is_EOF_reached())
+                        ma_data_source_set_next(current_decoder, decoder);
         }
         return 0;
 }
 #endif
 
-ma_libvorbis *getFirstVorbisDecoder(void) { return firstVorbisDecoder; }
+ma_libvorbis *get_first_vorbis_decoder(void) { return first_vorbis_decoder; }
 
-ma_libopus *getFirstOpusDecoder(void) { return firstOpusDecoder; }
+ma_libopus *get_first_opus_decoder(void) { return first_opus_decoder; }
 
-ma_libvorbis *getCurrentVorbisDecoder(void)
+ma_libvorbis *get_current_vorbis_decoder(void)
 {
-        if (vorbisDecoderIndex == -1)
-                return getFirstVorbisDecoder();
+        if (vorbis_decoder_index == -1)
+                return get_first_vorbis_decoder();
         else
-                return vorbisDecoders[vorbisDecoderIndex];
+                return vorbis_decoders[vorbis_decoder_index];
 }
 
-ma_libopus *getCurrentOpusDecoder(void)
+ma_libopus *get_current_opus_decoder(void)
 {
-        if (opusDecoderIndex == -1)
-                return getFirstOpusDecoder();
+        if (opus_decoder_index == -1)
+                return get_first_opus_decoder();
         else
-                return opusDecoders[opusDecoderIndex];
+                return opus_decoders[opus_decoder_index];
 }
 
-int prepareNextVorbisDecoder(const char *filepath)
+int prepare_next_vorbis_decoder(const char *filepath)
 {
-        ma_libvorbis *currentDecoder;
+        ma_libvorbis *current_decoder;
 
-        if (vorbisDecoderIndex == -1)
+        if (vorbis_decoder_index == -1)
         {
-                currentDecoder = getFirstVorbisDecoder();
+                current_decoder = get_first_vorbis_decoder();
         }
         else
         {
-                currentDecoder = vorbisDecoders[vorbisDecoderIndex];
+                current_decoder = vorbis_decoders[vorbis_decoder_index];
         }
 
-        ma_uint32 sampleRate;
+        ma_uint32 sample_rate;
         ma_uint32 channels;
         ma_format format;
         ma_channel channelMap[MA_MAX_CHANNELS];
-        ma_libvorbis_get_data_format(currentDecoder, &format, &channels,
-                                     &sampleRate, channelMap, MA_MAX_CHANNELS);
+        ma_libvorbis_get_data_format(current_decoder, &format, &channels,
+                                     &sample_rate, channelMap, MA_MAX_CHANNELS);
 
-        uninitPreviousDecoder((void **)vorbisDecoders, vorbisDecoderIndex,
-                              (uninit_func)uninitVorbisDecoder);
+        uninit_previous_decoder((void **)vorbis_decoders, vorbis_decoder_index,
+                              (uninit_func)uninit_vorbis_decoder);
 
         ma_libvorbis *decoder = (ma_libvorbis *)malloc(sizeof(ma_libvorbis));
         ma_result result =
@@ -460,9 +460,9 @@ int prepareNextVorbisDecoder(const char *filepath)
         ma_libvorbis_get_data_format(decoder, &nformat, &nchannels,
                                      &nsampleRate, nchannelMap,
                                      MA_MAX_CHANNELS);
-        bool sameFormat = (currentDecoder == NULL ||
+        bool sameFormat = (current_decoder == NULL ||
                            (format == nformat && channels == nchannels &&
-                            sampleRate == nsampleRate));
+                            sample_rate == nsampleRate));
 
         if (!sameFormat)
         {
@@ -471,7 +471,7 @@ int prepareNextVorbisDecoder(const char *filepath)
                 return 0;
         }
 
-        ma_libvorbis *first = getFirstVorbisDecoder();
+        ma_libvorbis *first = get_first_vorbis_decoder();
         if (first != NULL)
         {
                 decoder->pReadSeekTellUserData =
@@ -483,49 +483,49 @@ int prepareNextVorbisDecoder(const char *filepath)
         decoder->onSeek = ma_libvorbis_seek_to_pcm_frame_wrapper;
         decoder->onTell = ma_libvorbis_get_cursor_in_pcm_frames_wrapper;
 
-        setNextDecoder((void **)vorbisDecoders, (void **)&decoder,
-                       (void **)&firstVorbisDecoder, &vorbisDecoderIndex,
-                       (uninit_func)uninitVorbisDecoder);
+        set_next_decoder((void **)vorbis_decoders, (void **)&decoder,
+                       (void **)&first_vorbis_decoder, &vorbis_decoder_index,
+                       (uninit_func)uninit_vorbis_decoder);
 
-        if (currentDecoder != NULL && decoder != NULL)
+        if (current_decoder != NULL && decoder != NULL)
         {
-                if (!isEOFReached())
-                        ma_data_source_set_next(currentDecoder, decoder);
+                if (!is_EOF_reached())
+                        ma_data_source_set_next(current_decoder, decoder);
         }
 
         return 0;
 }
 
-int prepareNextDecoder(const char *filepath)
+int prepare_next_decoder(const char *filepath)
 {
-        ma_decoder *currentDecoder;
+        ma_decoder *current_decoder;
 
-        if (decoderIndex == -1)
+        if (decoder_index == -1)
         {
-                currentDecoder = getFirstDecoder();
+                current_decoder = get_first_decoder();
         }
         else
         {
-                currentDecoder = decoders[decoderIndex];
+                current_decoder = decoders[decoder_index];
         }
 
-        ma_uint32 sampleRate;
+        ma_uint32 sample_rate;
         ma_uint32 channels;
         ma_format format;
-        getFileInfo(filepath, &sampleRate, &channels, &format);
+        get_file_info(filepath, &sample_rate, &channels, &format);
 
-        bool sameFormat = (currentDecoder == NULL ||
-                           (format == currentDecoder->outputFormat &&
-                            channels == currentDecoder->outputChannels &&
-                            sampleRate == currentDecoder->outputSampleRate));
+        bool sameFormat = (current_decoder == NULL ||
+                           (format == current_decoder->outputFormat &&
+                            channels == current_decoder->outputChannels &&
+                            sample_rate == current_decoder->outputSampleRate));
 
         if (!sameFormat)
         {
                 return 0;
         }
 
-        uninitPreviousDecoder((void **)decoders, decoderIndex,
-                              (uninit_func)uninitMaDecoder);
+        uninit_previous_decoder((void **)decoders, decoder_index,
+                              (uninit_func)uninit_ma_decoder);
 
         ma_decoder *decoder = (ma_decoder *)malloc(sizeof(ma_decoder));
         ma_result result = ma_decoder_init_file(filepath, NULL, decoder);
@@ -535,40 +535,40 @@ int prepareNextDecoder(const char *filepath)
                 free(decoder);
                 return -1;
         }
-        setNextDecoder((void **)decoders, (void **)&decoder,
-                       (void **)&firstDecoder, &decoderIndex,
-                       (uninit_func)uninitMaDecoder);
+        set_next_decoder((void **)decoders, (void **)&decoder,
+                       (void **)&first_decoder, &decoder_index,
+                       (uninit_func)uninit_ma_decoder);
 
-        if (currentDecoder != NULL && decoder != NULL)
+        if (current_decoder != NULL && decoder != NULL)
         {
-                if (!isEOFReached())
-                        ma_data_source_set_next(currentDecoder, decoder);
+                if (!is_EOF_reached())
+                        ma_data_source_set_next(current_decoder, decoder);
         }
         return 0;
 }
 
-int prepareNextOpusDecoder(const char *filepath)
+int prepare_next_opus_decoder(const char *filepath)
 {
-        ma_libopus *currentDecoder;
+        ma_libopus *current_decoder;
 
-        if (opusDecoderIndex == -1)
+        if (opus_decoder_index == -1)
         {
-                currentDecoder = getFirstOpusDecoder();
+                current_decoder = get_first_opus_decoder();
         }
         else
         {
-                currentDecoder = opusDecoders[opusDecoderIndex];
+                current_decoder = opus_decoders[opus_decoder_index];
         }
 
-        ma_uint32 sampleRate;
+        ma_uint32 sample_rate;
         ma_uint32 channels;
         ma_format format;
         ma_channel channelMap[MA_MAX_CHANNELS];
-        ma_libopus_get_data_format(currentDecoder, &format, &channels,
-                                   &sampleRate, channelMap, MA_MAX_CHANNELS);
+        ma_libopus_get_data_format(current_decoder, &format, &channels,
+                                   &sample_rate, channelMap, MA_MAX_CHANNELS);
 
-        uninitPreviousDecoder((void **)opusDecoders, opusDecoderIndex,
-                              (uninit_func)uninitOpusDecoder);
+        uninit_previous_decoder((void **)opus_decoders, opus_decoder_index,
+                              (uninit_func)uninit_opus_decoder);
 
         ma_libopus *decoder = (ma_libopus *)malloc(sizeof(ma_libopus));
         ma_result result = ma_libopus_init_file(filepath, NULL, NULL, decoder);
@@ -583,9 +583,9 @@ int prepareNextOpusDecoder(const char *filepath)
 
         ma_libopus_get_data_format(decoder, &nformat, &nchannels, &nsampleRate,
                                    nchannelMap, MA_MAX_CHANNELS);
-        bool sameFormat = (currentDecoder == NULL ||
+        bool sameFormat = (current_decoder == NULL ||
                            (format == nformat && channels == nchannels &&
-                            sampleRate == nsampleRate));
+                            sample_rate == nsampleRate));
 
         if (!sameFormat)
         {
@@ -594,10 +594,10 @@ int prepareNextOpusDecoder(const char *filepath)
                 return 0;
         }
 
-        if (firstOpusDecoder != NULL)
+        if (first_opus_decoder != NULL)
         {
                 decoder->pReadSeekTellUserData =
-                    (AudioData *)firstOpusDecoder->pReadSeekTellUserData;
+                    (AudioData *)first_opus_decoder->pReadSeekTellUserData;
         }
 
         decoder->format = nformat;
@@ -605,45 +605,45 @@ int prepareNextOpusDecoder(const char *filepath)
         decoder->onSeek = ma_libopus_seek_to_pcm_frame_wrapper;
         decoder->onTell = ma_libopus_get_cursor_in_pcm_frames_wrapper;
 
-        setNextDecoder((void **)opusDecoders, (void **)&decoder,
-                       (void **)&firstOpusDecoder, &opusDecoderIndex,
-                       (uninit_func)uninitOpusDecoder);
+        set_next_decoder((void **)opus_decoders, (void **)&decoder,
+                       (void **)&first_opus_decoder, &opus_decoder_index,
+                       (uninit_func)uninit_opus_decoder);
 
-        if (currentDecoder != NULL && decoder != NULL)
+        if (current_decoder != NULL && decoder != NULL)
         {
-                if (!isEOFReached())
-                        ma_data_source_set_next(currentDecoder, decoder);
+                if (!is_EOF_reached())
+                        ma_data_source_set_next(current_decoder, decoder);
         }
         return 0;
 }
 
-int prepareNextWebmDecoder(SongData *songData)
+int prepare_next_webm_decoder(SongData *songData)
 {
-        ma_webm *currentDecoder;
+        ma_webm *current_decoder;
 
         if (songData == NULL)
                 return -1;
 
         char *filepath = songData->filePath;
 
-        if (webmDecoderIndex == -1)
+        if (webm_decoder_index == -1)
         {
-                currentDecoder = getFirstWebmDecoder();
+                current_decoder = get_first_webm_decoder();
         }
         else
         {
-                currentDecoder = webmDecoders[webmDecoderIndex];
+                current_decoder = webm_decoders[webm_decoder_index];
         }
 
-        ma_uint32 sampleRate;
+        ma_uint32 sample_rate;
         ma_uint32 channels;
         ma_format format;
         ma_channel channelMap[MA_MAX_CHANNELS];
-        ma_webm_get_data_format(currentDecoder, &format, &channels, &sampleRate,
+        ma_webm_get_data_format(current_decoder, &format, &channels, &sample_rate,
                                 channelMap, MA_MAX_CHANNELS);
 
-        uninitPreviousDecoder((void **)webmDecoders, webmDecoderIndex,
-                              (uninit_func)uninitWebmDecoder);
+        uninit_previous_decoder((void **)webm_decoders, webm_decoder_index,
+                              (uninit_func)uninit_webm_decoder);
 
         ma_webm *decoder = (ma_webm *)malloc(sizeof(ma_webm));
         ma_result result = ma_webm_init_file(filepath, NULL, NULL, decoder);
@@ -659,12 +659,12 @@ int prepareNextWebmDecoder(SongData *songData)
         ma_webm_get_data_format(decoder, &nformat, &nchannels, &nsampleRate,
                                 nchannelMap, MA_MAX_CHANNELS);
 
-        bool sameFormat = (currentDecoder == NULL);
+        bool sameFormat = (current_decoder == NULL);
 
         // Gapless playback disabled for webm
-        // bool sameFormat = (currentDecoder == NULL || (format == nformat &&
+        // bool sameFormat = (current_decoder == NULL || (format == nformat &&
         //                                              channels == nchannels &&
-        //                                              sampleRate ==
+        //                                              sample_rate ==
         //                                              nsampleRate));
 
         if (!sameFormat)
@@ -674,10 +674,10 @@ int prepareNextWebmDecoder(SongData *songData)
                 return 0;
         }
 
-        if (firstWebmDecoder != NULL)
+        if (first_webm_decoder != NULL)
         {
                 decoder->pReadSeekTellUserData =
-                    (AudioData *)firstWebmDecoder->pReadSeekTellUserData;
+                    (AudioData *)first_webm_decoder->pReadSeekTellUserData;
         }
 
         decoder->format = nformat;
@@ -685,9 +685,9 @@ int prepareNextWebmDecoder(SongData *songData)
         decoder->onSeek = ma_webm_seek_to_pcm_frame_wrapper;
         decoder->onTell = ma_webm_get_cursor_in_pcm_frames_wrapper;
 
-        setNextDecoder((void **)webmDecoders, (void **)&decoder,
-                       (void **)&firstWebmDecoder, &webmDecoderIndex,
-                       (uninit_func)uninitWebmDecoder);
+        set_next_decoder((void **)webm_decoders, (void **)&decoder,
+                       (void **)&first_webm_decoder, &webm_decoder_index,
+                       (uninit_func)uninit_webm_decoder);
 
         if (songData != NULL)
         {
@@ -697,21 +697,21 @@ int prepareNextWebmDecoder(SongData *songData)
                 }
         }
 
-        if (currentDecoder != NULL && decoder != NULL)
+        if (current_decoder != NULL && decoder != NULL)
         {
-                if (!isEOFReached())
-                        ma_data_source_set_next(currentDecoder, decoder);
+                if (!is_EOF_reached())
+                        ma_data_source_set_next(current_decoder, decoder);
         }
 
         return 0;
 }
 
-ma_webm *getFirstWebmDecoder(void) { return firstWebmDecoder; }
+ma_webm *get_first_webm_decoder(void) { return first_webm_decoder; }
 
-ma_webm *getCurrentWebmDecoder(void)
+ma_webm *get_current_webm_decoder(void)
 {
-        if (webmDecoderIndex == -1)
-                return getFirstWebmDecoder();
+        if (webm_decoder_index == -1)
+                return get_first_webm_decoder();
         else
-                return webmDecoders[webmDecoderIndex];
+                return webm_decoders[webm_decoder_index];
 }

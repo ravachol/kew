@@ -1,13 +1,13 @@
 /**
- * @file soundbuiltin.[h]
+ * @file sound_builtin.[h]
  * @brief Built-in audio backend implementation.
  *
  * Implements a simple internal audio output backend used when no
  * external library is available. Useful for portability and testing.
  */
 
-#ifndef SOUNDBUILTIN_H
-#define SOUNDBUILTIN_H
+#ifndef sound_builtin_H
+#define sound_builtin_H
 
 #include <miniaudio.h>
 

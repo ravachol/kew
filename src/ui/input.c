@@ -19,7 +19,7 @@
 #include "common/appstate.h"
 
 #define TB_IMPL
-#include "termbox2input.h"
+#include "termbox2_input.h"
 
 #include "control_ui.h"
 #include "player_ui.h"
@@ -34,7 +34,7 @@
 #include "ops/playlist_ops.h"
 
 #include "sys/mpris.h"
-#include "sys/systemintegration.h"
+#include "sys/sys_integration.h"
 
 #include "utils/term.h"
 
@@ -49,32 +49,32 @@ const int COOLDOWN_MS = 500;
 const int COOLDOWN2_MS = 100;
 const int MOUSE_DRAG = 32;
 const int MOUSE_CLICK = 0;
-const int maxDigitsPressedCount = 9;
-const int fuzzySearchThreshold = 100;
+const int max_digits_pressed_count = 9;
+const int fuzzy_search_threshold = 100;
 
-EventMapping keyMappings[NUM_KEY_MAPPINGS];
-struct timespec lastInputTime;
-char digitsPressed[MAX_SEQ_LEN];
-int digitsPressedCount;
-double draggedPositionSeconds = 0.0;
-bool draggingProgressBar = false;
+EventMapping key_mappings[NUM_KEY_MAPPINGS];
+struct timespec last_input_time;
+char digits_pressed[MAX_SEQ_LEN];
+int digits_pressed_count;
+double dragged_position_seconds = 0.0;
+bool dragging_progress_bar = false;
 
-struct Event mapTBKeyToEvent(struct tb_event *ev)
+struct Event map_t_b_key_to_event(struct tb_event *ev)
 {
         struct Event event = {0};
         event.type = EVENT_NONE;
 
-        TBKeyBinding *keyBindings = getKeyBindings();
+        TBKeyBinding *key_bindings = get_key_bindings();
 
-        AppState *state = getAppState();
+        AppState *state = get_app_state();
         if (state->currentView == SEARCH_VIEW)
         {
                 // Backspace
                 if (ev->key == TB_KEY_BACKSPACE || ev->key == TB_KEY_BACKSPACE2)
                 {
-                        removeFromSearchText();
-                        resetSearchResult();
-                        fuzzySearch(getLibrary(), fuzzySearchThreshold);
+                        remove_from_search_text();
+                        reset_search_result();
+                        fuzzy_search(get_library(), fuzzy_search_threshold);
                         event.type = EVENT_SEARCH;
                 }
                 // Printable character (not escape, enter, tab, carriage return)
@@ -86,9 +86,9 @@ struct Event mapTBKeyToEvent(struct tb_event *ev)
                         {
                                 char keybuf[5] = {0};
                                 tb_utf8_unicode_to_char(keybuf, ev->ch);
-                                addToSearchText(keybuf);
-                                resetSearchResult();
-                                fuzzySearch(getLibrary(), fuzzySearchThreshold);
+                                add_to_search_text(keybuf);
+                                reset_search_result();
+                                fuzzy_search(get_library(), fuzzy_search_threshold);
                                 event.type = EVENT_SEARCH;
                         }
                 }
@@ -98,9 +98,9 @@ struct Event mapTBKeyToEvent(struct tb_event *ev)
                 {
                         char keybuf[5] = {0};
                         tb_utf8_unicode_to_char(keybuf, ev->ch);
-                        addToSearchText(keybuf);
-                        resetSearchResult();
-                        fuzzySearch(getLibrary(), fuzzySearchThreshold);
+                        add_to_search_text(keybuf);
+                        reset_search_result();
+                        fuzzy_search(get_library(), fuzzy_search_threshold);
                         event.type = EVENT_SEARCH;
                 }
 #endif
@@ -108,9 +108,9 @@ struct Event mapTBKeyToEvent(struct tb_event *ev)
 
         if (event.type == EVENT_NONE)
         {
-                for (size_t i = 0; i < keybindingCount; i++)
+                for (size_t i = 0; i < keybinding_count; i++)
                 {
-                        TBKeyBinding *b = &keyBindings[i];
+                        TBKeyBinding *b = &key_bindings[i];
 
                         bool keyMatch = (b->key && ev->key == b->key) || (b->ch && ev->ch == b->ch);
                         bool modsMatch = (b->mods == ev->mod);
@@ -128,52 +128,52 @@ struct Event mapTBKeyToEvent(struct tb_event *ev)
         return event;
 }
 
-bool isDigitsPressed(void)
+bool is_digits_pressed(void)
 {
-        return (digitsPressedCount != 0);
+        return (digits_pressed_count != 0);
 }
 
-char *getDigitsPressed(void)
+char *get_digits_pressed(void)
 {
-        return digitsPressed;
+        return digits_pressed;
 }
 
-void pressDigit(int digit)
+void press_digit(int digit)
 {
-        digitsPressed[0] = digit;
-        digitsPressed[1] = '\0';
-        digitsPressedCount = 1;
+        digits_pressed[0] = digit;
+        digits_pressed[1] = '\0';
+        digits_pressed_count = 1;
 }
 
-void resetDigitsPressed(void)
+void reset_digits_pressed(void)
 {
-        memset(digitsPressed, '\0', sizeof(digitsPressed));
-        digitsPressedCount = 0;
+        memset(digits_pressed, '\0', sizeof(digits_pressed));
+        digits_pressed_count = 0;
 }
 
-void updateLastInputTime(void)
+void update_last_input_time(void)
 {
-        clock_gettime(CLOCK_MONOTONIC, &lastInputTime);
+        clock_gettime(CLOCK_MONOTONIC, &last_input_time);
 }
 
-bool isCooldownElapsed(int milliSeconds)
+bool is_cooldown_elapsed(int milliSeconds)
 {
         struct timespec currentTime;
         clock_gettime(CLOCK_MONOTONIC, &currentTime);
         double elapsedMilliseconds =
-            (currentTime.tv_sec - lastInputTime.tv_sec) * 1000.0 +
-            (currentTime.tv_nsec - lastInputTime.tv_nsec) / 1000000.0;
+            (currentTime.tv_sec - last_input_time.tv_sec) * 1000.0 +
+            (currentTime.tv_nsec - last_input_time.tv_nsec) / 1000000.0;
 
         return elapsedMilliseconds >= milliSeconds;
 }
 
-void initKeyMappings(AppSettings *settings)
+void init_key_mappings(AppSettings *settings)
 {
-        AppState *state = getAppState();
-        mapSettingsToKeys(settings, &(state->uiSettings), keyMappings);
+        AppState *state = get_app_state();
+        map_settings_to_keys(settings, &(state->uiSettings), key_mappings);
 }
 
-int parseVolumeArg(const char *argStr)
+int parse_volume_arg(const char *argStr)
 {
         if (!argStr || !*argStr)
                 return 0;
@@ -209,143 +209,143 @@ int parseVolumeArg(const char *argStr)
         return atoi(buf);
 }
 
-void handleEvent(struct Event *event)
+void handle_event(struct Event *event)
 {
-        AppState *state = getAppState();
-        AppSettings *settings = getAppSettings();
-        PlayList *playlist = getPlaylist();
-        int chosenRow = getChosenRow();
+        AppState *state = get_app_state();
+        AppSettings *settings = get_app_settings();
+        PlayList *playlist = get_playlist();
+        int chosen_row = get_chosen_row();
 
         switch (event->type)
         {
                 break;
         case EVENT_ENQUEUE:
-                viewEnqueue(false);
+                view_enqueue(false);
                 break;
         case EVENT_ENQUEUEANDPLAY:
-                viewEnqueue(true);
+                view_enqueue(true);
                 break;
         case EVENT_PLAY_PAUSE:
-                togglePause();
+                toggle_pause();
                 break;
         case EVENT_TOGGLEVISUALIZER:
-                toggleVisualizer();
+                toggle_visualizer();
                 break;
         case EVENT_TOGGLEREPEAT:
-                toggleRepeat();
+                toggle_repeat();
                 break;
         case EVENT_TOGGLEASCII:
-                toggleAscii();
+                toggle_ascii();
                 break;
         case EVENT_TOGGLENOTIFICATIONS:
-                toggleNotifications();
+                toggle_notifications();
                 break;
         case EVENT_SHUFFLE:
-                toggleShuffle();
+                toggle_shuffle();
                 break;
         case EVENT_SHOWLYRICSPAGE:
-                toggleShowLyricsPage();
+                toggle_show_lyrics_page();
                 break;
         case EVENT_CYCLECOLORMODE:
-                cycleColorMode();
+                cycle_color_mode();
                 break;
         case EVENT_CYCLETHEMES:
-                cycleThemes();
+                cycle_themes();
                 break;
         case EVENT_QUIT:
                 quit();
                 break;
         case EVENT_SCROLLDOWN:
-                scrollNext();
+                scroll_next();
                 break;
         case EVENT_SCROLLUP:
-                scrollPrev();
+                scroll_prev();
                 break;
         case EVENT_VOLUME_UP:
                 if (event->args[0] != '\0')
-                        volumeChange(parseVolumeArg(event->args));
+                        volume_change(parse_volume_arg(event->args));
                 else
-                        volumeChange(5);
-                emitVolumeChanged();
+                        volume_change(5);
+                emit_volume_changed();
                 break;
         case EVENT_VOLUME_DOWN:
                 if (event->args[0] != '\0')
-                        volumeChange(parseVolumeArg(event->args));
+                        volume_change(parse_volume_arg(event->args));
                 else
-                        volumeChange(-5);
-                emitVolumeChanged();
+                        volume_change(-5);
+                emit_volume_changed();
                 break;
         case EVENT_NEXT:
-                skipToNextSong();
+                skip_to_next_song();
                 break;
         case EVENT_PREV:
-                skipToPrevSong();
+                skip_to_prev_song();
                 break;
         case EVENT_SEEKBACK:
-                seekBack();
+                seek_back();
                 break;
         case EVENT_SEEKFORWARD:
-                seekForward();
+                seek_forward();
                 break;
         case EVENT_ADDTOFAVORITESPLAYLIST:
-                addToFavoritesPlaylist();
+                add_to_favorites_playlist();
                 break;
         case EVENT_EXPORTPLAYLIST:
-                exportCurrentPlaylist(settings->path, playlist);
+                export_current_playlist(settings->path, playlist);
                 break;
         case EVENT_UPDATELIBRARY:
-                freeSearchResults();
-                updateLibrary(settings->path);
+                free_search_results();
+                update_library(settings->path);
                 break;
         case EVENT_SHOWHELP:
-                toggleShowView(KEYBINDINGS_VIEW);
+                toggle_show_view(KEYBINDINGS_VIEW);
                 break;
         case EVENT_SHOWPLAYLIST:
-                toggleShowView(PLAYLIST_VIEW);
+                toggle_show_view(PLAYLIST_VIEW);
                 break;
         case EVENT_SHOWSEARCH:
-                toggleShowView(SEARCH_VIEW);
+                toggle_show_view(SEARCH_VIEW);
                 break;
                 break;
         case EVENT_SHOWLIBRARY:
-                toggleShowView(LIBRARY_VIEW);
+                toggle_show_view(LIBRARY_VIEW);
                 break;
         case EVENT_NEXTPAGE:
-                flipNextPage();
+                flip_next_page();
                 break;
         case EVENT_PREVPAGE:
-                flipPrevPage();
+                flip_prev_page();
                 break;
         case EVENT_REMOVE:
-                handleRemove(getChosenRow());
-                resetListAfterDequeuingPlayingSong();
+                handle_remove(get_chosen_row());
+                reset_list_after_dequeuing_playing_song();
                 break;
         case EVENT_SHOWTRACK:
-                showTrack();
+                show_track();
                 break;
         case EVENT_NEXTVIEW:
-                switchToNextView();
+                switch_to_next_view();
                 break;
         case EVENT_PREVVIEW:
-                switchToPreviousView();
+                switch_to_previous_view();
                 break;
         case EVENT_CLEARPLAYLIST:
-                dequeueAllExceptPlayingSong();
+                dequeue_all_except_playing_song();
                 state->uiState.resetPlaylistDisplay = true;
                 break;
         case EVENT_MOVESONGUP:
-                moveSongUp(&chosenRow);
-                setChosenRow(chosenRow);
+                move_song_up(&chosen_row);
+                set_chosen_row(chosen_row);
                 break;
         case EVENT_MOVESONGDOWN:
-                moveSongDown(&chosenRow);
-                setChosenRow(chosenRow);
+                move_song_down(&chosen_row);
+                set_chosen_row(chosen_row);
                 break;
         case EVENT_STOP:
                 stop();
                 break;
         case EVENT_SORTLIBRARY:
-                sortLibrary();
+                sort_library();
                 break;
 
         default:
@@ -355,11 +355,11 @@ void handleEvent(struct Event *event)
         }
 }
 
-static gint64 lastScrollEventTime = 0;
-static gint64 lastSeekEventTime = 0;
-static gint64 lastPageEventTime = 0;
+static gint64 last_scroll_event_time = 0;
+static gint64 last_seek_event_time = 0;
+static gint64 last_page_event_time = 0;
 
-static gboolean shouldThrottle(struct Event *event)
+static gboolean should_throttle(struct Event *event)
 {
         gint64 now = g_get_real_time(); // microseconds since Epoch
         gint64 delta;
@@ -368,26 +368,26 @@ static gboolean shouldThrottle(struct Event *event)
         {
         case EVENT_SCROLLUP:
         case EVENT_SCROLLDOWN:
-                delta = now - lastScrollEventTime;
+                delta = now - last_scroll_event_time;
                 if (delta < 20 * 1000) // 20ms
                         return TRUE;
-                lastScrollEventTime = now;
+                last_scroll_event_time = now;
                 break;
 
         case EVENT_SEEKBACK:
         case EVENT_SEEKFORWARD:
-                delta = now - lastSeekEventTime;
+                delta = now - last_seek_event_time;
                 if (delta < 20 * 1000)
                         return TRUE;
-                lastSeekEventTime = now;
+                last_seek_event_time = now;
                 break;
 
         case EVENT_NEXTPAGE:
         case EVENT_PREVPAGE:
-                delta = now - lastPageEventTime;
+                delta = now - last_page_event_time;
                 if (delta < 20 * 1000)
                         return TRUE;
-                lastPageEventTime = now;
+                last_page_event_time = now;
                 break;
 
         default:
@@ -400,10 +400,10 @@ static gboolean shouldThrottle(struct Event *event)
 #define MAX_SEQ_LEN 1024 // Maximum length of sequence buffer
 #define MAX_TMP_SEQ_LEN 256
 
-enum EventType getMouseLastRowEvent(int mouseXOnLastRow)
+enum EventType get_mouse_last_row_event(int mouseXOnLastRow)
 {
         enum EventType result = EVENT_NONE;
-        AppState *state = getAppState();
+        AppState *state = get_app_state();
 
         const char *s = state->uiSettings.LAST_ROW;
         if (!s || mouseXOnLastRow < 0)
@@ -461,7 +461,7 @@ enum EventType getMouseLastRowEvent(int mouseXOnLastRow)
                 break;
         }
 
-        if (result == EVENT_SHOWTRACK && getCurrentSongData() == NULL)
+        if (result == EVENT_SHOWTRACK && get_current_song_data() == NULL)
         {
                 result = EVENT_SHOWLIBRARY;
         }
@@ -469,17 +469,17 @@ enum EventType getMouseLastRowEvent(int mouseXOnLastRow)
         return result;
 }
 
-bool mouseInputHandled(char *seq, int i, struct Event *event)
+bool mouse_input_handled(char *seq, int i, struct Event *event)
 {
-        AppState *state = getAppState();
+        AppState *state = get_app_state();
 
         if (!seq || !event)
                 return false;
 
-        if (i < 0 || i >= NUM_KEY_MAPPINGS || keyMappings[i].seq == NULL)
+        if (i < 0 || i >= NUM_KEY_MAPPINGS || key_mappings[i].seq == NULL)
                 return false;
 
-        const char *expected = keyMappings[i].seq;
+        const char *expected = key_mappings[i].seq;
 
         char tmpSeq[MAX_SEQ_LEN];
         size_t src_len = strnlen(seq, MAX_SEQ_LEN - 1);
@@ -518,52 +518,52 @@ bool mouseInputHandled(char *seq, int i, struct Event *event)
                 }
         }
 
-        ProgressBar *progressBar = getProgressBar();
+        ProgressBar *progress_bar = get_progress_bar();
 
-        if (progressBar->length > 0)
+        if (progress_bar->length > 0)
         {
                 long long deltaCol =
-                    (long long)mouseX - (long long)progressBar->col;
+                    (long long)mouseX - (long long)progress_bar->col;
 
-                if (deltaCol >= 0 && deltaCol <= (long long)progressBar->length)
+                if (deltaCol >= 0 && deltaCol <= (long long)progress_bar->length)
                 {
                         double position =
-                            (double)deltaCol / (double)progressBar->length;
-                        double duration = getCurrentSongDuration();
-                        draggedPositionSeconds = duration * position;
+                            (double)deltaCol / (double)progress_bar->length;
+                        double duration = get_current_song_duration();
+                        dragged_position_seconds = duration * position;
                 }
                 else
                 {
-                        draggedPositionSeconds = 0.0;
+                        dragged_position_seconds = 0.0;
                 }
         }
         else
         {
-                draggedPositionSeconds = 0.0;
+                dragged_position_seconds = 0.0;
         }
 
-        int footerRow = getFooterRow();
-        int footerCol = getFooterCol();
+        int footer_row = get_footer_row();
+        int footer_col = get_footer_col();
 
-        if (mouseY == footerRow && footerCol > 0 && mouseX - footerCol > 0 &&
-            mouseX - footerCol < (int)strlen(state->uiSettings.LAST_ROW) &&
+        if (mouseY == footer_row && footer_col > 0 && mouseX - footer_col > 0 &&
+            mouseX - footer_col < (int)strlen(state->uiSettings.LAST_ROW) &&
             mouseButton != MOUSE_DRAG)
         {
-                event->type = getMouseLastRowEvent(mouseX - footerCol);
+                event->type = get_mouse_last_row_event(mouseX - footer_col);
                 return true;
         }
 
-        if ((mouseY == progressBar->row || draggingProgressBar) &&
-            mouseX - progressBar->col >= 0 &&
-            mouseX - progressBar->col < progressBar->length &&
+        if ((mouseY == progress_bar->row || dragging_progress_bar) &&
+            mouseX - progress_bar->col >= 0 &&
+            mouseX - progress_bar->col < progress_bar->length &&
             state->currentView == TRACK_VIEW)
         {
                 if (mouseButton == MOUSE_DRAG || mouseButton == MOUSE_CLICK)
                 {
-                        draggingProgressBar = true;
+                        dragging_progress_bar = true;
                         gint64 newPosUs =
-                            (gint64)(draggedPositionSeconds * G_USEC_PER_SEC);
-                        setPosition(newPosUs, getCurrentSongDuration());
+                            (gint64)(dragged_position_seconds * G_USEC_PER_SEC);
+                        set_position(newPosUs, get_current_song_duration());
                 }
                 return true;
         }
@@ -574,14 +574,14 @@ bool mouseInputHandled(char *seq, int i, struct Event *event)
 
         if (strncmp(seq + 1, expected, expected_len) == 0)
         {
-                event->type = keyMappings[i].eventType;
+                event->type = key_mappings[i].eventType;
                 return true;
         }
 
         return false;
 }
 
-bool handleMouseEvent(struct tb_event *ev, struct Event *event)
+bool handle_mouse_event(struct tb_event *ev, struct Event *event)
 {
         if (ev->type != TB_EVENT_MOUSE)
                 return false;
@@ -589,57 +589,57 @@ bool handleMouseEvent(struct tb_event *ev, struct Event *event)
         int mouseX = ev->x + 1;
         int mouseY = ev->y + 1;
         uint16_t mouseKey = ev->key;
-        ProgressBar *progressBar = getProgressBar();
-        AppState *state = getAppState();
+        ProgressBar *progress_bar = get_progress_bar();
+        AppState *state = get_app_state();
 
         // Calculate where the user clicked on the progress bar
-        if (progressBar->length > 0)
+        if (progress_bar->length > 0)
         {
-                long long deltaCol = (long long)mouseX - (long long)progressBar->col;
+                long long deltaCol = (long long)mouseX - (long long)progress_bar->col;
 
-                if (deltaCol >= 0 && deltaCol <= (long long)progressBar->length)
+                if (deltaCol >= 0 && deltaCol <= (long long)progress_bar->length)
                 {
-                        double position = (double)deltaCol / (double)progressBar->length;
-                        double duration = getCurrentSongDuration();
-                        draggedPositionSeconds = duration * position;
+                        double position = (double)deltaCol / (double)progress_bar->length;
+                        double duration = get_current_song_duration();
+                        dragged_position_seconds = duration * position;
                 }
         }
 
-        int footerRow = getFooterRow();
-        int footerCol = getFooterCol();
+        int footer_row = get_footer_row();
+        int footer_col = get_footer_col();
 
         // Footer click (e.g., buttons or indicators on last row)
-        if ((mouseY == footerRow && footerCol > 0 &&
-             mouseX - footerCol >= 0 &&
-             mouseX - footerCol < (int)strlen(state->uiSettings.LAST_ROW)) &&
+        if ((mouseY == footer_row && footer_col > 0 &&
+             mouseX - footer_col >= 0 &&
+             mouseX - footer_col < (int)strlen(state->uiSettings.LAST_ROW)) &&
             mouseKey != TB_KEY_MOUSE_RELEASE)
         {
-                event->type = getMouseLastRowEvent(mouseX - footerCol);
+                event->type = get_mouse_last_row_event(mouseX - footer_col);
                 return true;
         }
 
         if (mouseKey == TB_KEY_MOUSE_RELEASE)
         {
                 // Mouse moved outside progress bar area → stop dragging
-                draggingProgressBar = false;
+                dragging_progress_bar = false;
                 return true;
         }
 
         // Progress bar click or hold-drag movement
         bool inProgressBar =
-            (mouseY == progressBar->row) &&
-            (mouseX >= progressBar->col) &&
-            (mouseX < progressBar->col + progressBar->length);
+            (mouseY == progress_bar->row) &&
+            (mouseX >= progress_bar->col) &&
+            (mouseX < progress_bar->col + progress_bar->length);
 
         if (inProgressBar && state->currentView == TRACK_VIEW)
         {
                 // Any left press or movement within bar = update
-                if (mouseKey == TB_KEY_MOUSE_LEFT || draggingProgressBar)
+                if (mouseKey == TB_KEY_MOUSE_LEFT || dragging_progress_bar)
                 {
-                        draggingProgressBar = true;
+                        dragging_progress_bar = true;
 
-                        gint64 newPosUs = (gint64)(draggedPositionSeconds * G_USEC_PER_SEC);
-                        setPosition(newPosUs, getCurrentSongDuration());
+                        gint64 newPosUs = (gint64)(dragged_position_seconds * G_USEC_PER_SEC);
+                        set_position(newPosUs, get_current_song_duration());
                         return true;
                 }
         }
@@ -647,31 +647,31 @@ bool handleMouseEvent(struct tb_event *ev, struct Event *event)
         return false;
 }
 
-void handleCooldown(void)
+void handle_cooldown(void)
 {
         bool cooldownElapsed = false;
 
-        if (isCooldownElapsed(COOLDOWN_MS))
+        if (is_cooldown_elapsed(COOLDOWN_MS))
                 cooldownElapsed = true;
 
         if (cooldownElapsed)
         {
-                if (!draggingProgressBar)
+                if (!dragging_progress_bar)
                 {
-                        if (flushSeek())
+                        if (flush_seek())
                         {
-                                AppState *state = getAppState();
+                                AppState *state = get_app_state();
                                 state->uiState.isFastForwarding = false;
                                 state->uiState.isRewinding = false;
 
                                 if (state->currentView != TRACK_VIEW)
-                                        triggerRefresh();
+                                        trigger_refresh();
                         }
                 }
         }
 }
 
-static gboolean onTbInput(GIOChannel *source, GIOCondition cond, gpointer data)
+static gboolean on_tb_input(GIOChannel *source, GIOCondition cond, gpointer data)
 {
         (void)source;
         (void)cond;
@@ -685,20 +685,20 @@ static gboolean onTbInput(GIOChannel *source, GIOCondition cond, gpointer data)
         bool cooldownElapsed = false;
         bool cooldown2Elapsed = false;
 
-        if (isCooldownElapsed(COOLDOWN_MS))
+        if (is_cooldown_elapsed(COOLDOWN_MS))
                 cooldownElapsed = true;
 
-        if (isCooldownElapsed(COOLDOWN2_MS))
+        if (is_cooldown_elapsed(COOLDOWN2_MS))
                 cooldown2Elapsed = true;
 
         // Drain all available input
         while (1)
         {
-                if (!isInputAvailable())
+                if (!is_input_available())
                         break;
 
                 char tmpSeq[MAX_TMP_SEQ_LEN];
-                int len = readInputSequence(tmpSeq, sizeof(tmpSeq));
+                int len = read_input_sequence(tmpSeq, sizeof(tmpSeq));
                 if (len <= 0)
                         break;
 
@@ -729,17 +729,17 @@ static gboolean onTbInput(GIOChannel *source, GIOCondition cond, gpointer data)
                 // Extract all events in the buffer
                 while (tb_peek_event(&ev, 0) == 0)
                 {
-                        bool isMouseEvent = handleMouseEvent(&ev, &event);
+                        bool isMouseEvent = handle_mouse_event(&ev, &event);
 
                         if (!isMouseEvent)
                         {
-                                event = mapTBKeyToEvent(&ev);
+                                event = map_t_b_key_to_event(&ev);
                         }
 
                         if (isdigit(ev.ch) && event.type == EVENT_NONE)
                         {
-                                if (digitsPressedCount < maxDigitsPressedCount)
-                                        digitsPressed[digitsPressedCount++] = ev.ch;
+                                if (digits_pressed_count < max_digits_pressed_count)
+                                        digits_pressed[digits_pressed_count++] = ev.ch;
                         }
 
                         if (event.type != EVENT_NONE)
@@ -753,7 +753,7 @@ static gboolean onTbInput(GIOChannel *source, GIOCondition cond, gpointer data)
                                 case EVENT_SEEKFORWARD:
                                 case EVENT_NEXTPAGE:
                                 case EVENT_PREVPAGE:
-                                        if (shouldThrottle(&event))
+                                        if (should_throttle(&event))
                                                 continue;
                                         break;
                                 default:
@@ -765,7 +765,7 @@ static gboolean onTbInput(GIOChannel *source, GIOCondition cond, gpointer data)
                                     (event.type == EVENT_NEXT || event.type == EVENT_PREV))
                                         event.type = EVENT_NONE;
                                 else if (event.type == EVENT_NEXT || event.type == EVENT_PREV)
-                                        updateLastInputTime();
+                                        update_last_input_time();
 
                                 // Handle seek/remove cooldown
                                 if (!cooldown2Elapsed &&
@@ -775,17 +775,17 @@ static gboolean onTbInput(GIOChannel *source, GIOCondition cond, gpointer data)
                                 else if (event.type == EVENT_REMOVE || event.type == EVENT_SEEKBACK ||
                                          event.type == EVENT_SEEKFORWARD)
                                 {
-                                        updateLastInputTime();
+                                        update_last_input_time();
                                 }
                                 // Forget Numbers
                                 if (event.type != EVENT_ENQUEUE &&
                                     event.type != EVENT_GOTOENDOFPLAYLIST && event.type != EVENT_NONE)
                                 {
-                                        memset(digitsPressed, '\0', sizeof(digitsPressed));
-                                        digitsPressedCount = 0;
+                                        memset(digits_pressed, '\0', sizeof(digits_pressed));
+                                        digits_pressed_count = 0;
                                 }
 
-                                handleEvent(&event);
+                                handle_event(&event);
                         }
                 }
         }
@@ -793,7 +793,7 @@ static gboolean onTbInput(GIOChannel *source, GIOCondition cond, gpointer data)
         return TRUE;
 }
 
-void initInput(void)
+void init_input(void)
 {
         tb_init();
         // Enable SGR (1006) + drag-motion (1002)
@@ -806,10 +806,10 @@ void initInput(void)
         int fd = tb_get_input_fd();
         GIOChannel *chan = g_io_channel_unix_new(fd);
         g_io_channel_set_encoding(chan, NULL, NULL); // binary
-        g_io_add_watch(chan, G_IO_IN, (GIOFunc)onTbInput, NULL);
+        g_io_add_watch(chan, G_IO_IN, (GIOFunc)on_tb_input, NULL);
 }
 
-void shutdownInput(void)
+void shutdown_input(void)
 {
         tb_shutdown();
 }

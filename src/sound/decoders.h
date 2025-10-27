@@ -11,33 +11,33 @@
 #include <miniaudio_libvorbis.h>
 #include <stdbool.h>
 
-void resetAllDecoders(void);
-bool hasBuiltinDecoder(const char *filePath);
-void switchDecoder(void);
+void reset_all_decoders(void);
+bool has_builtin_decoder(const char *filePath);
+void switch_decoder(void);
 
-int prepareNextDecoder(const char *filepath);
-int prepareNextOpusDecoder(const char *filepath);
-int prepareNextVorbisDecoder(const char *filepath);
-int prepareNextM4aDecoder(SongData *songData);
-int prepareNextWebmDecoder(SongData *songData);
+int prepare_next_decoder(const char *filepath);
+int prepare_next_opus_decoder(const char *filepath);
+int prepare_next_vorbis_decoder(const char *filepath);
+int prepare_next_m4a_decoder(SongData *songData);
+int prepare_next_webm_decoder(SongData *songData);
 
-ma_decoder *getFirstDecoder(void);
-ma_decoder *getCurrentBuiltinDecoder(void);
+ma_decoder *get_first_decoder(void);
+ma_decoder *get_current_builtin_decoder(void);
 
-ma_libopus *getCurrentOpusDecoder(void);
-ma_libopus *getFirstOpusDecoder(void);
+ma_libopus *get_current_opus_decoder(void);
+ma_libopus *get_first_opus_decoder(void);
 
-ma_libvorbis *getCurrentVorbisDecoder(void);
-ma_libvorbis *getFirstVorbisDecoder(void);
+ma_libvorbis *get_current_vorbis_decoder(void);
+ma_libvorbis *get_first_vorbis_decoder(void);
 
-ma_webm *getCurrentWebmDecoder(void);
-ma_webm *getFirstWebmDecoder(void);
+ma_webm *get_current_webm_decoder(void);
+ma_webm *get_first_webm_decoder(void);
 
-void clearDecoderChain();
+void clear_decoder_chain();
 
 #ifdef USE_FAAD
-m4a_decoder *getCurrentM4aDecoder(void);
-m4a_decoder *getFirstM4aDecoder(void);
+m4a_decoder *get_current_m4a_decoder(void);
+m4a_decoder *get_first_m4a_decoder(void);
 #endif
 
 #endif

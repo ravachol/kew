@@ -16,28 +16,28 @@
 #include "playback_system.h"
 
 #include "library_ops.h"
-#include "trackmanager.h"
+#include "track_manager.h"
 
 #include "common/appstate.h"
 
 #include "sound/playback.h"
 #include "sound/audiotypes.h"
 
-#include "data/songloader.h"
+#include "data/song_loader.h"
 
-#include "sys/systemintegration.h"
+#include "sys/sys_integration.h"
 
 #include "utils/utils.h"
 
-Node *chooseNextSong(void)
+Node *choose_next_song(void)
 {
 
-        Node *current = getCurrentSong();
+        Node *current = get_current_song();
 
-        Node *nextSong = getNextSong();
+        Node *next_song = get_next_song();
 
-        if (nextSong != NULL)
-                return nextSong;
+        if (next_song != NULL)
+                return next_song;
         else if (current != NULL && current->next != NULL)
         {
                 return current->next;
@@ -48,7 +48,7 @@ Node *chooseNextSong(void)
         }
 }
 
-Node *findSelectedEntryById(PlayList *playlist, int id)
+Node *find_selected_entry_by_id(PlayList *playlist, int id)
 {
         Node *node = playlist->head;
 
@@ -79,7 +79,7 @@ Node *findSelectedEntryById(PlayList *playlist, int id)
         return NULL;
 }
 
-Node *findSelectedEntry(PlayList *playlist, int row)
+Node *find_selected_entry(PlayList *playlist, int row)
 {
         Node *node = playlist->head;
 
@@ -106,39 +106,39 @@ Node *findSelectedEntry(PlayList *playlist, int row)
         return NULL;
 }
 
-void removeCurrentlyPlayingSong(void)
+void remove_currently_playing_song(void)
 {
-        Node *current = getCurrentSong();
-        PlaybackState *ps = getPlaybackState();
+        Node *current = get_current_song();
+        PlaybackState *ps = get_playback_state();
 
         if (current != NULL)
         {
-                stopPlayback();
-                emitStringPropertyChanged("PlaybackStatus", "Stopped");
-                clearCurrentTrack();
-                clearCurrentSong();
+                stop_playback();
+                emit_string_property_changed("PlaybackStatus", "Stopped");
+                clear_current_track();
+                clear_current_song();
         }
 
         ps->loadedNextSong = false;
-        audioData.restart = true;
-        audioData.endOfListReached = true;
+        audio_data.restart = true;
+        audio_data.endOfListReached = true;
 
         if (current != NULL)
         {
                 ps->lastPlayedId = current->id;
-                setSongToStartFrom(getListNext(current));
+                set_song_to_start_from(get_list_next(current));
         }
         ps->waitingForNext = true;
         current = NULL;
 }
 
-void rebuildNextSong(Node *song)
+void rebuild_next_song(Node *song)
 {
         if (song == NULL)
                 return;
 
-        AppState *state = getAppState();
-        PlaybackState *ps = getPlaybackState();
+        AppState *state = get_app_state();
+        PlaybackState *ps = get_playback_state();
 
         ps->loadingdata.state = state;
         ps->loadingdata.loadA = !ps->usingSongDataA;
@@ -146,7 +146,7 @@ void rebuildNextSong(Node *song)
 
         ps->songLoading = true;
 
-        loadSong(song, &ps->loadingdata);
+        load_song(song, &ps->loadingdata);
 
         int maxNumTries = 50;
         int numtries = 0;
@@ -159,38 +159,38 @@ void rebuildNextSong(Node *song)
         ps->songLoading = false;
 }
 
-void handleRemove(int chosenRow)
+void handle_remove(int chosen_row)
 {
-        AppState *state = getAppState();
-        PlayList *playlist = getPlaylist();
-        PlayList *unshuffledPlaylist = getUnshuffledPlaylist();
+        AppState *state = get_app_state();
+        PlayList *playlist = get_playlist();
+        PlayList *unshuffled_playlist = get_unshuffled_playlist();
 
         if (state->currentView == PLAYLIST_VIEW)
         {
 
                 bool rebuild = false;
 
-                Node *node = findSelectedEntry(unshuffledPlaylist, chosenRow);
+                Node *node = find_selected_entry(unshuffled_playlist, chosen_row);
 
                 if (node == NULL)
                 {
                         return;
                 }
 
-                Node *current = getCurrentSong();
-                Node *song = chooseNextSong();
+                Node *current = get_current_song();
+                Node *song = choose_next_song();
                 int id = node->id;
                 int currentId = (current != NULL) ? current->id : -1;
 
                 if (currentId == node->id)
                 {
-                        removeCurrentlyPlayingSong();
+                        remove_currently_playing_song();
                 }
                 else
                 {
-                        if (getSongToStartFrom() != NULL)
+                        if (get_song_to_start_from() != NULL)
                         {
-                                setSongToStartFrom(getListNext(node));
+                                set_song_to_start_from(get_list_next(node));
                         }
                 }
 
@@ -206,33 +206,33 @@ void handleRemove(int chosenRow)
                 }
 
                 if (node != NULL)
-                        markAsDequeued(getLibrary(), node->song.filePath);
+                        mark_as_dequeued(get_library(), node->song.filePath);
 
-                Node *node2 = findSelectedEntryById(playlist, id);
+                Node *node2 = find_selected_entry_by_id(playlist, id);
 
                 if (node != NULL)
-                        deleteFromList(unshuffledPlaylist, node);
+                        delete_from_list(unshuffled_playlist, node);
 
                 if (node2 != NULL)
-                        deleteFromList(playlist, node2);
+                        delete_from_list(playlist, node2);
 
-                if (isShuffleEnabled())
+                if (is_shuffle_enabled())
                         rebuild = true;
 
-                current = findSelectedEntryById(playlist, currentId);
+                current = find_selected_entry_by_id(playlist, currentId);
 
                 if (rebuild && current != NULL)
                 {
                         node = NULL;
-                        setNextSong(NULL);
-                        reshufflePlaylist();
+                        set_next_song(NULL);
+                        reshuffle_playlist();
 
-                        setTryNextSong(current->next);
-                        PlaybackState *ps = getPlaybackState();
+                        set_try_next_song(current->next);
+                        PlaybackState *ps = get_playback_state();
                         ps->nextSongNeedsRebuilding = false;
-                        setNextSong(NULL);
-                        setNextSong(getListNext(current));
-                        rebuildNextSong(getNextSong());
+                        set_next_song(NULL);
+                        set_next_song(get_list_next(current));
+                        rebuild_next_song(get_next_song());
                         ps->loadedNextSong = true;
                 }
 
@@ -243,13 +243,13 @@ void handleRemove(int chosenRow)
                 return;
         }
 
-        triggerRefresh();
+        trigger_refresh();
 }
 
-void addToFavoritesPlaylist(void)
+void add_to_favorites_playlist(void)
 {
-        Node *current = getCurrentSong();
-        PlayList *favoritesPlaylist = getFavoritesPlaylist();
+        Node *current = get_current_song();
+        PlayList *favorites_playlist = get_favorites_playlist();
 
         if (current == NULL)
                 return;
@@ -258,26 +258,26 @@ void addToFavoritesPlaylist(void)
 
         Node *node = NULL;
 
-        if (findSelectedEntryById(favoritesPlaylist, id) !=
+        if (find_selected_entry_by_id(favorites_playlist, id) !=
             NULL) // Song is already in list
                 return;
 
-        createNode(&node, current->song.filePath, id);
-        addToList(favoritesPlaylist, node);
+        create_node(&node, current->song.filePath, id);
+        add_to_list(favorites_playlist, node);
 }
 
 // Go through the display playlist and the shuffle playlist to remove all songs
 // except the current one. If no active song (if stopped rather than paused for
 // example) entire playlist will be removed
-void dequeueAllExceptPlayingSong(void)
+void dequeue_all_except_playing_song(void)
 {
         bool clearAll = false;
         int currentID = -1;
 
-        Node *current = getCurrentSong();
-        PlayList *unshuffledPlaylist = getUnshuffledPlaylist();
-        PlayList *playlist = getPlaylist();
-        AppState *state = getAppState();
+        Node *current = get_current_song();
+        PlayList *unshuffled_playlist = get_unshuffled_playlist();
+        PlayList *playlist = get_playlist();
+        AppState *state = get_app_state();
 
         // Do we need to clear the entire playlist?
         if (current == NULL)
@@ -292,7 +292,7 @@ void dequeueAllExceptPlayingSong(void)
         int nextInPlaylistID;
         pthread_mutex_lock(&(playlist->mutex));
         Node *songToBeRemoved;
-        Node *nextInPlaylist = unshuffledPlaylist->head;
+        Node *nextInPlaylist = unshuffled_playlist->head;
 
         while (nextInPlaylist != NULL)
         {
@@ -308,18 +308,18 @@ void dequeueAllExceptPlayingSong(void)
 
                         // Update Library
                         if (songToBeRemoved != NULL)
-                                markAsDequeued(getLibrary(),
+                                mark_as_dequeued(get_library(),
                                                songToBeRemoved->song.filePath);
 
                         // Remove from Display playlist
                         if (songToBeRemoved != NULL)
-                                deleteFromList(unshuffledPlaylist,
+                                delete_from_list(unshuffled_playlist,
                                                songToBeRemoved);
 
                         // Remove from Shuffle playlist
-                        Node *node2 = findSelectedEntryById(playlist, id);
+                        Node *node2 = find_selected_entry_by_id(playlist, id);
                         if (node2 != NULL)
-                                deleteFromList(playlist, node2);
+                                delete_from_list(playlist, node2);
                 }
                 else
                 {
@@ -328,24 +328,24 @@ void dequeueAllExceptPlayingSong(void)
         }
         pthread_mutex_unlock(&(playlist->mutex));
 
-        PlaybackState *ps = getPlaybackState();
+        PlaybackState *ps = get_playback_state();
         ps->nextSongNeedsRebuilding = true;
-        setNextSong(NULL);
+        set_next_song(NULL);
 
         // Only refresh the screen if it makes sense to do so
         if (state->currentView == PLAYLIST_VIEW ||
             state->currentView == LIBRARY_VIEW)
         {
-                triggerRefresh();
+                trigger_refresh();
         }
 }
 
-Node *getSongByNumber(PlayList *playlist, int songNumber)
+Node *get_song_by_number(PlayList *playlist, int songNumber)
 {
         Node *song = playlist->head;
 
         if (!song)
-                return getCurrentSong();
+                return get_current_song();
 
         if (songNumber <= 0)
         {
@@ -356,80 +356,80 @@ Node *getSongByNumber(PlayList *playlist, int songNumber)
 
         while (song->next != NULL && count != songNumber)
         {
-                song = getListNext(song);
+                song = get_list_next(song);
                 count++;
         }
 
         return song;
 }
 
-void setCurrentSongToNext(void)
+void set_current_song_to_next(void)
 {
-        Node *current = getCurrentSong();
-        PlaybackState *ps = getPlaybackState();
+        Node *current = get_current_song();
+        PlaybackState *ps = get_playback_state();
 
         if (current != NULL)
                 ps->lastPlayedId = current->id;
 
-        setCurrentSong(chooseNextSong());
+        set_current_song(choose_next_song());
 }
 
-void setCurrentSongToPrev(void)
+void set_current_song_to_prev(void)
 {
-        Node *current = getCurrentSong();
-        PlaybackState *ps = getPlaybackState();
+        Node *current = get_current_song();
+        PlaybackState *ps = get_playback_state();
 
         if (current != NULL && current->prev != NULL)
         {
                 ps->lastPlayedId = current->id;
-                setCurrentSong(current->prev);
+                set_current_song(current->prev);
         }
 }
 
-void silentSwitchToNext(bool loadSong)
+void silent_switch_to_next(bool load_song)
 {
-        PlaybackState *ps = getPlaybackState();
+        PlaybackState *ps = get_playback_state();
 
         ps->skipping = true;
 
-        setNextSong(NULL);
-        setCurrentSongToNext();
-        activateSwitch(&audioData);
+        set_next_song(NULL);
+        set_current_song_to_next();
+        activate_switch(&audio_data);
 
         ps->skipOutOfOrder = true;
-        ps->usingSongDataA = (audioData.currentFileIndex == 0);
+        ps->usingSongDataA = (audio_data.currentFileIndex == 0);
 
-        if (loadSong)
+        if (load_song)
         {
-                loadNextSong();
-                finishLoading();
+                load_next_song();
+                finish_loading();
                 ps->loadedNextSong = true;
                 ps->notifySwitch = true;
         }
 
-        resetClock();
+        reset_clock();
 
-        triggerRefresh();
+        trigger_refresh();
 
         ps->skipping = false;
         ps->hasSilentlySwitched = true;
         ps->nextSongNeedsRebuilding = true;
 
-        setPaused(true);
-        setStopped(false);
+        set_paused(true);
+        set_stopped(false);
 
-        setNextSong(NULL);
+        set_next_song(NULL);
 }
 
-void silentSwitchToPrev(void)
+void silent_switch_to_prev(void)
 {
-        AppState *state = getAppState();
-        PlaybackState *ps = getPlaybackState();
+        AppState *state = get_app_state();
+        PlaybackState *ps = get_playback_state();
 
         ps->skipping = true;
 
-        setCurrentSongToPrev();
-        activateSwitch(&audioData);
+        set_current_song_to_prev();
+        activate_switch(&audio_data);
 
         ps->loadedNextSong = false;
         ps->songLoading = true;
@@ -441,38 +441,38 @@ void silentSwitchToPrev(void)
         ps->loadingdata.loadA = ps->usingSongDataA;
         ps->loadingdata.loadingFirstDecoder = true;
 
-        loadSong(getCurrentSong(), &ps->loadingdata);
-        finishLoading();
-        resetClock();
-        triggerRefresh();
+        load_song(get_current_song(), &ps->loadingdata);
+        finish_loading();
+        reset_clock();
+        trigger_refresh();
 
         ps->skipping = false;
         ps->nextSongNeedsRebuilding = true;
 
-        setPaused(true);
-        setStopped(false);
+        set_paused(true);
+        set_stopped(false);
 
-        setNextSong(NULL);
+        set_next_song(NULL);
 
         ps->notifySwitch = true;
         ps->skipOutOfOrder = true;
         ps->hasSilentlySwitched = true;
 }
 
-void skipToNextSong(void)
+void skip_to_next_song(void)
 {
-        AppState *state = getAppState();
-        Node *current = getCurrentSong();
-        PlaybackState *ps = getPlaybackState();
+        AppState *state = get_app_state();
+        Node *current = get_current_song();
+        PlaybackState *ps = get_playback_state();
 
         // Stop if there is no song or no next song
         if (current == NULL || current->next == NULL)
         {
-                if (isRepeatListEnabled())
+                if (is_repeat_list_enabled())
                 {
-                        clearCurrentSong();
+                        clear_current_song();
                 }
-                else if (!isStopped() && !isPaused())
+                else if (!is_stopped() && !is_paused())
                 {
                         stop();
                         return;
@@ -487,40 +487,40 @@ void skipToNextSong(void)
             ps->clearingErrors)
                 return;
 
-        if (isStopped() || isPaused())
+        if (is_stopped() || is_paused())
         {
-                silentSwitchToNext(true);
+                silent_switch_to_next(true);
                 return;
         }
 
-        if (isShuffleEnabled())
+        if (is_shuffle_enabled())
                 state->uiState.resetPlaylistDisplay = true;
 
-        double totalPauseSeconds = getTotalPauseSeconds();
-        double pauseSeconds = getTotalPauseSeconds();
+        double total_pause_seconds = get_total_pause_seconds();
+        double pause_seconds = get_total_pause_seconds();
 
         play();
 
-        setTotalPauseSeconds(totalPauseSeconds);
-        setPauseSeconds(pauseSeconds);
+        set_total_pause_seconds(total_pause_seconds);
+        set_pause_seconds(pause_seconds);
 
         ps->skipping = true;
         ps->skipOutOfOrder = false;
 
-        resetClock();
+        reset_clock();
 
         skip();
 }
 
-void skipToPrevSong(void)
+void skip_to_prev_song(void)
 {
-        AppState *state = getAppState();
-        Node *current = getCurrentSong();
-        PlaybackState *ps = getPlaybackState();
+        AppState *state = get_app_state();
+        Node *current = get_current_song();
+        PlaybackState *ps = get_playback_state();
 
         if (current == NULL)
         {
-                if (!isStopped() && !isPaused())
+                if (!is_stopped() && !is_paused())
                         stop();
                 return;
         }
@@ -529,31 +529,31 @@ void skipToPrevSong(void)
                 if (!ps->forceSkip)
                         return;
 
-        if (isStopped() || isPaused())
+        if (is_stopped() || is_paused())
         {
-                silentSwitchToPrev();
+                silent_switch_to_prev();
                 return;
         }
 
         Node *song = current;
 
-        setCurrentSongToPrev();
+        set_current_song_to_prev();
 
         if (song == current)
         {
-                resetClock();
-                updatePlaybackPosition(
+                reset_clock();
+                update_playback_position(
                     0); // We need to signal to mpris that the song was
                         // reset to the beginning
         }
 
-        double totalPauseSeconds = getTotalPauseSeconds();
-        double pauseSeconds = getTotalPauseSeconds();
+        double total_pause_seconds = get_total_pause_seconds();
+        double pause_seconds = get_total_pause_seconds();
 
         play();
 
-        setTotalPauseSeconds(totalPauseSeconds);
-        setPauseSeconds(pauseSeconds);
+        set_total_pause_seconds(total_pause_seconds);
+        set_pause_seconds(pause_seconds);
 
         ps->skipping = true;
         ps->skipOutOfOrder = true;
@@ -565,7 +565,7 @@ void skipToPrevSong(void)
 
         ps->loadedNextSong = false;
 
-        loadSong(getCurrentSong(), &ps->loadingdata);
+        load_song(get_current_song(), &ps->loadingdata);
 
         int maxNumTries = 50;
         int numtries = 0;
@@ -580,32 +580,32 @@ void skipToPrevSong(void)
         {
                 ps->songHasErrors = false;
                 ps->forceSkip = true;
-                skipToPrevSong();
+                skip_to_prev_song();
         }
 
-        resetClock();
+        reset_clock();
 
         skip();
 }
 
-void skipToNumberedSong(int songNumber)
+void skip_to_numbered_song(int songNumber)
 {
-        AppState *state = getAppState();
-        PlayList *unshuffledPlaylist = getUnshuffledPlaylist();
-        PlayList *playlist = getPlaylist();
-        PlaybackState *ps = getPlaybackState();
+        AppState *state = get_app_state();
+        PlayList *unshuffled_playlist = get_unshuffled_playlist();
+        PlayList *playlist = get_playlist();
+        PlaybackState *ps = get_playback_state();
 
         if (ps->songLoading || !ps->loadedNextSong || ps->skipping || ps->clearingErrors)
                 if (!ps->forceSkip)
                         return;
 
-        double totalPauseSeconds = getTotalPauseSeconds();
-        double pauseSeconds = getTotalPauseSeconds();
+        double total_pause_seconds = get_total_pause_seconds();
+        double pause_seconds = get_total_pause_seconds();
 
         play();
 
-        setTotalPauseSeconds(totalPauseSeconds);
-        setPauseSeconds(pauseSeconds);
+        set_total_pause_seconds(total_pause_seconds);
+        set_pause_seconds(pause_seconds);
 
         ps->skipping = true;
         ps->skipOutOfOrder = true;
@@ -613,12 +613,12 @@ void skipToNumberedSong(int songNumber)
         ps->songLoading = true;
         ps->forceSkip = false;
 
-        setCurrentSong(getSongByNumber(unshuffledPlaylist, songNumber));
+        set_current_song(get_song_by_number(unshuffled_playlist, songNumber));
 
         ps->loadingdata.state = state;
         ps->loadingdata.loadA = !ps->usingSongDataA;
         ps->loadingdata.loadingFirstDecoder = true;
-        loadSong(getCurrentSong(), &ps->loadingdata);
+        load_song(get_current_song(), &ps->loadingdata);
         int maxNumTries = 50;
         int numtries = 0;
 
@@ -633,16 +633,16 @@ void skipToNumberedSong(int songNumber)
                 ps->songHasErrors = false;
                 ps->forceSkip = true;
                 if (songNumber < playlist->count)
-                        skipToNumberedSong(songNumber + 1);
+                        skip_to_numbered_song(songNumber + 1);
         }
 
-        resetClock();
+        reset_clock();
         skip();
 }
 
-void skipToLastSong(void)
+void skip_to_last_song(void)
 {
-        PlayList *playlist = getPlaylist();
+        PlayList *playlist = get_playlist();
 
         Node *song = playlist->head;
 
@@ -652,27 +652,27 @@ void skipToLastSong(void)
         int count = 1;
         while (song->next != NULL)
         {
-                song = getListNext(song);
+                song = get_list_next(song);
                 count++;
         }
-        skipToNumberedSong(count);
+        skip_to_numbered_song(count);
 }
 
-void repeatList(void)
+void repeat_list(void)
 {
-        PlaybackState *ps = getPlaybackState();
+        PlaybackState *ps = get_playback_state();
 
         ps->waitingForPlaylist = true;
         ps->nextSongNeedsRebuilding = true;
-        audioData.endOfListReached = false;
+        audio_data.endOfListReached = false;
 }
 
-void moveSongUp(int *chosenRow)
+void move_song_up(int *chosen_row)
 {
-        AppState *state = getAppState();
-        PlayList *unshuffledPlaylist = getUnshuffledPlaylist();
-        PlayList *playlist = getPlaylist();
-        PlaybackState *ps = getPlaybackState();
+        AppState *state = get_app_state();
+        PlayList *unshuffled_playlist = get_unshuffled_playlist();
+        PlayList *playlist = get_playlist();
+        PlaybackState *ps = get_playback_state();
 
         if (state->currentView != PLAYLIST_VIEW)
         {
@@ -681,7 +681,7 @@ void moveSongUp(int *chosenRow)
 
         bool rebuild = false;
 
-        Node *node = findSelectedEntry(unshuffledPlaylist, *chosenRow);
+        Node *node = find_selected_entry(unshuffled_playlist, *chosen_row);
 
         if (node == NULL)
         {
@@ -692,7 +692,7 @@ void moveSongUp(int *chosenRow)
 
         pthread_mutex_lock(&(playlist->mutex));
 
-        Node *current = getCurrentSong();
+        Node *current = get_current_song();
 
         if (node != NULL && current != NULL)
         {
@@ -716,38 +716,38 @@ void moveSongUp(int *chosenRow)
                 }
         }
 
-        moveUpList(unshuffledPlaylist, node);
-        Node *plNode = findSelectedEntryById(playlist, node->id);
+        move_up_list(unshuffled_playlist, node);
+        Node *plNode = find_selected_entry_by_id(playlist, node->id);
 
-        if (!isShuffleEnabled())
-                moveUpList(playlist, plNode);
+        if (!is_shuffle_enabled())
+                move_up_list(playlist, plNode);
 
-        *chosenRow = *chosenRow - 1;
-        *chosenRow = (*chosenRow > 0) ? *chosenRow : 0;
+        *chosen_row = *chosen_row - 1;
+        *chosen_row = (*chosen_row > 0) ? *chosen_row : 0;
 
         if (rebuild && current != NULL)
         {
                 node = NULL;
                 ps->nextSongNeedsRebuilding = false;
 
-                setTryNextSong(current->next);
-                setNextSong(getListNext(current));
-                rebuildNextSong(getNextSong());
+                set_try_next_song(current->next);
+                set_next_song(get_list_next(current));
+                rebuild_next_song(get_next_song());
 
                 ps->loadedNextSong = true;
         }
 
         pthread_mutex_unlock(&(playlist->mutex));
 
-        triggerRefresh();
+        trigger_refresh();
 }
 
-void moveSongDown(int *chosenRow)
+void move_song_down(int *chosen_row)
 {
-        AppState *state = getAppState();
-        PlayList *unshuffledPlaylist = getUnshuffledPlaylist();
-        PlayList *playlist = getPlaylist();
-        PlaybackState *ps = getPlaybackState();
+        AppState *state = get_app_state();
+        PlayList *unshuffled_playlist = get_unshuffled_playlist();
+        PlayList *playlist = get_playlist();
+        PlaybackState *ps = get_playback_state();
 
         if (state->currentView != PLAYLIST_VIEW)
         {
@@ -756,9 +756,9 @@ void moveSongDown(int *chosenRow)
 
         bool rebuild = false;
 
-        Node *node = findSelectedEntry(unshuffledPlaylist, *chosenRow);
+        Node *node = find_selected_entry(unshuffled_playlist, *chosen_row);
 
-        Node *current = getCurrentSong();
+        Node *current = get_current_song();
 
         if (node == NULL)
         {
@@ -794,58 +794,58 @@ void moveSongDown(int *chosenRow)
                 }
         }
 
-        moveDownList(unshuffledPlaylist, node);
-        Node *plNode = findSelectedEntryById(playlist, node->id);
+        move_down_list(unshuffled_playlist, node);
+        Node *plNode = find_selected_entry_by_id(playlist, node->id);
 
-        if (!isShuffleEnabled())
-                moveDownList(playlist, plNode);
+        if (!is_shuffle_enabled())
+                move_down_list(playlist, plNode);
 
-        *chosenRow = *chosenRow + 1;
-        *chosenRow = (*chosenRow >= unshuffledPlaylist->count)
-                         ? unshuffledPlaylist->count - 1
-                         : *chosenRow;
+        *chosen_row = *chosen_row + 1;
+        *chosen_row = (*chosen_row >= unshuffled_playlist->count)
+                         ? unshuffled_playlist->count - 1
+                         : *chosen_row;
 
         if (rebuild && current != NULL)
         {
                 node = NULL;
                 ps->nextSongNeedsRebuilding = false;
 
-                setTryNextSong(current->next);
-                setNextSong(getListNext(current));
-                rebuildNextSong(getNextSong());
+                set_try_next_song(current->next);
+                set_next_song(get_list_next(current));
+                rebuild_next_song(get_next_song());
                 ps->loadedNextSong = true;
         }
 
         pthread_mutex_unlock(&(playlist->mutex));
 
-        triggerRefresh();
+        trigger_refresh();
 }
 
-void reshufflePlaylist(void)
+void reshuffle_playlist(void)
 {
-        PlayList *playlist = getPlaylist();
-        PlaybackState *ps = getPlaybackState();
+        PlayList *playlist = get_playlist();
+        PlaybackState *ps = get_playback_state();
 
-        if (isShuffleEnabled())
+        if (is_shuffle_enabled())
         {
-                Node *current = getCurrentSong();
+                Node *current = get_current_song();
 
                 if (current != NULL)
-                        shufflePlaylistStartingFromSong(playlist, current);
+                        shuffle_playlist_starting_from_song(playlist, current);
                 else
-                        shufflePlaylist(playlist);
+                        shuffle_playlist(playlist);
 
                 ps->nextSongNeedsRebuilding = true;
         }
 }
 
-void handleSkipOutOfOrder(void)
+void handle_skip_out_of_order(void)
 {
-        PlaybackState *ps = getPlaybackState();
+        PlaybackState *ps = get_playback_state();
 
-        if (!ps->skipOutOfOrder && !opsIsRepeatEnabled())
+        if (!ps->skipOutOfOrder && !ops_is_repeat_enabled())
         {
-                setCurrentSongToNext();
+                set_current_song_to_next();
         }
         else
         {
@@ -853,11 +853,11 @@ void handleSkipOutOfOrder(void)
         }
 }
 
-Node *determineNextSong(PlayList *playlist)
+Node *determine_next_song(PlayList *playlist)
 {
-        AppState *state = getAppState();
+        AppState *state = get_app_state();
         Node *current = NULL;
-        PlaybackState *ps = getPlaybackState();
+        PlaybackState *ps = get_playback_state();
 
         if (ps->waitingForPlaylist)
         {
@@ -865,16 +865,16 @@ Node *determineNextSong(PlayList *playlist)
         }
         else if (ps->waitingForNext)
         {
-                Node *songToStartFrom = getSongToStartFrom();
+                Node *song_to_start_from = get_song_to_start_from();
 
-                if (songToStartFrom != NULL)
+                if (song_to_start_from != NULL)
                 {
-                        findNodeInList(playlist, songToStartFrom->id, &current);
+                        find_node_in_list(playlist, song_to_start_from->id, &current);
                         return current ? current : NULL;
                 }
                 else if (ps->lastPlayedId >= 0)
                 {
-                        current = findSelectedEntryById(playlist, ps->lastPlayedId);
+                        current = find_selected_entry_by_id(playlist, ps->lastPlayedId);
                         if (current != NULL && current->next != NULL)
                                 current = current->next;
 
@@ -896,22 +896,22 @@ Node *determineNextSong(PlayList *playlist)
         return NULL;
 }
 
-bool playPreProcessing()
+bool play_pre_processing()
 {
         bool wasEndOfList = false;
 
-        if (audioData.endOfListReached)
+        if (audio_data.endOfListReached)
                 wasEndOfList = true;
 
         return wasEndOfList;
 }
 
-void playPostProcessing(bool wasEndOfList)
+void play_post_processing(bool wasEndOfList)
 {
-        AppState *state = getAppState();
-        PlaybackState *ps = getPlaybackState();
+        AppState *state = get_app_state();
+        PlaybackState *ps = get_playback_state();
 
-        if ((state->uiState.songWasRemoved && getCurrentSong() != NULL))
+        if ((state->uiState.songWasRemoved && get_current_song() != NULL))
         {
                 state->uiState.songWasRemoved = false;
         }
@@ -921,17 +921,17 @@ void playPostProcessing(bool wasEndOfList)
                 ps->skipOutOfOrder = false;
         }
 
-        audioData.endOfListReached = false;
+        audio_data.endOfListReached = false;
 }
 
-void clearAndPlay(Node *song)
+void clear_and_play(Node *song)
 {
-        PlaybackState *ps = getPlaybackState();
-        setSongToStartFrom(song);
-        setCurrentImplementationType(NONE);
-        audioData.restart = true;
-        audioData.endOfListReached = false;
-        audioData.currentFileIndex = 0;
+        PlaybackState *ps = get_playback_state();
+        set_song_to_start_from(song);
+        set_current_implementation_type(NONE);
+        audio_data.restart = true;
+        audio_data.endOfListReached = false;
+        audio_data.currentFileIndex = 0;
         ps->nextSongNeedsRebuilding = true;
         ps->skipOutOfOrder = false;
         ps->usingSongDataA = false;
@@ -940,74 +940,74 @@ void clearAndPlay(Node *song)
         ps->loadedNextSong = false;
 }
 
-void playlistPlay(PlayList *playlist)
+void playlist_play(PlayList *playlist)
 {
-        AppState *state = getAppState();
+        AppState *state = get_app_state();
 
-        Node *current = getCurrentSong();
+        Node *current = get_current_song();
 
-        if (opsIsPaused() && current != NULL &&
+        if (ops_is_paused() && current != NULL &&
             state->uiState.chosenNodeId == current->id)
         {
-                opsTogglePause();
+                ops_toggle_pause();
         }
         else
         {
                 Node *song = NULL;
-                findNodeInList(playlist,
+                find_node_in_list(playlist,
                                state->uiState.chosenNodeId,
                                &song);
 
-                clearAndPlay(song);
+                clear_and_play(song);
         }
 }
 
-void playFavoritesPlaylist(void)
+void play_favorites_playlist(void)
 {
-        PlayList *playlist = getPlaylist();
-        PlayList *favoritesPlaylist = getFavoritesPlaylist();
+        PlayList *playlist = get_playlist();
+        PlayList *favorites_playlist = get_favorites_playlist();
 
-        if (favoritesPlaylist->count == 0)
+        if (favorites_playlist->count == 0)
         {
                 printf(_("Couldn't find any songs in the special playlist. Add a "
                        "song by pressing '.' while it's playing. \n"));
                 exit(0);
         }
 
-        FileSystemEntry *library = getLibrary();
+        FileSystemEntry *library = get_library();
 
-        deepCopyPlayListOntoList(favoritesPlaylist, &playlist);
-        shufflePlaylist(playlist);
-        setPlaylist(playlist);
-        markListAsEnqueued(library, playlist);
+        deep_copy_play_list_onto_list(favorites_playlist, &playlist);
+        shuffle_playlist(playlist);
+        set_playlist(playlist);
+        mark_list_as_enqueued(library, playlist);
 }
 
-void playAll(void)
+void play_all(void)
 {
-        FileSystemEntry *library = getLibrary();
-        PlayList *playlist = getPlaylist();
+        FileSystemEntry *library = get_library();
+        PlayList *playlist = get_playlist();
 
-        createPlayListFromFileSystemEntry(library, playlist, MAX_FILES);
+        create_play_list_from_file_system_entry(library, playlist, MAX_FILES);
 
         if (playlist->count == 0)
         {
                 exit(0);
         }
 
-        shufflePlaylist(playlist);
-        markListAsEnqueued(library, playlist);
+        shuffle_playlist(playlist);
+        mark_list_as_enqueued(library, playlist);
 }
 
-void playAllAlbums(void)
+void play_all_albums(void)
 {
-        PlayList *playlist = getPlaylist();
-        FileSystemEntry *library = getLibrary();
-        addShuffledAlbumsToPlayList(library, playlist, MAX_FILES);
+        PlayList *playlist = get_playlist();
+        FileSystemEntry *library = get_library();
+        add_shuffled_albums_to_play_list(library, playlist, MAX_FILES);
 
         if (playlist->count == 0)
         {
                 exit(0);
         }
 
-        markListAsEnqueued(library, playlist);
+        mark_list_as_enqueued(library, playlist);
 }

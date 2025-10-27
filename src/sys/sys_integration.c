@@ -1,12 +1,12 @@
 /**
- * @file systemintegration.c
+ * @file sys_integration.c
  * @brief System-level integrations and OS interop.
  *
  * Provides hooks for platform-specific features such as
  * power management, clipboard access, or system event handling.
  */
 
-#include "systemintegration.h"
+#include "sys_integration.h"
 
 #include "common/common.h"
 
@@ -23,33 +23,33 @@
 #include <sys/wait.h>
 
 static GDBusConnection *connection = NULL;
-static GMainContext *globalMainContext = NULL;
+static GMainContext *global_main_context = NULL;
 
-void setGMainContext(GMainContext *val)
+void set_g_main_context(GMainContext *val)
 {
-        globalMainContext = val;
+        global_main_context = val;
 }
 
-void *getGMainContext(void)
+void *get_g_main_context(void)
 {
-        return globalMainContext;
+        return global_main_context;
 }
 
-GDBusConnection *getGDBusConnection(void)
+GDBusConnection *get_g_d_bus_connection(void)
 {
         return connection;
 }
 
-void setGDBusConnection(GDBusConnection *val)
+void set_g_d_bus_connection(GDBusConnection *val)
 {
         connection = val;
 }
 
-void processDBusEvents(void)
+void process_d_bus_events(void)
 {
-        while (g_main_context_pending(getGMainContext()))
+        while (g_main_context_pending(get_g_main_context()))
         {
-                g_main_context_iteration(getGMainContext(), FALSE);
+                g_main_context_iteration(get_g_main_context(), FALSE);
         }
 }
 
@@ -63,11 +63,11 @@ void resize(UIState *uis)
         }
         alarm(0); // Cancel timer
         printf("\033[1;1H");
-        clearScreen();
-        triggerRefresh();
+        clear_screen();
+        trigger_refresh();
 }
 
-void emitStringPropertyChanged(const gchar *propertyName, const gchar *newValue)
+void emit_string_property_changed(const gchar *propertyName, const gchar *newValue)
 {
 #ifndef __APPLE__
         GVariantBuilder changed_properties_builder;
@@ -94,24 +94,24 @@ void emitStringPropertyChanged(const gchar *propertyName, const gchar *newValue)
 #endif
 }
 
-void updatePlaybackPosition(double elapsedSeconds)
+void update_playback_position(double elapsed_seconds)
 {
 #ifndef __APPLE__
-        if (elapsedSeconds < 0.0)
-                elapsedSeconds = 0.0;
+        if (elapsed_seconds < 0.0)
+                elapsed_seconds = 0.0;
 
         // Max safe seconds to avoid overflow when multiplied by 1,000,000
         const double maxSeconds = (double)(LLONG_MAX / G_USEC_PER_SEC);
 
-        if (elapsedSeconds > maxSeconds)
-                elapsedSeconds = maxSeconds;
+        if (elapsed_seconds > maxSeconds)
+                elapsed_seconds = maxSeconds;
 
         GVariantBuilder changedPropertiesBuilder;
         g_variant_builder_init(&changedPropertiesBuilder,
                                G_VARIANT_TYPE_DICTIONARY);
         g_variant_builder_add(
             &changedPropertiesBuilder, "{sv}", "Position",
-            g_variant_new_int64(llround(elapsedSeconds * G_USEC_PER_SEC)));
+            g_variant_new_int64(llround(elapsed_seconds * G_USEC_PER_SEC)));
 
         GVariant *parameters =
             g_variant_new("(sa{sv}as)", "org.mpris.MediaPlayer2.Player",
@@ -122,11 +122,11 @@ void updatePlaybackPosition(double elapsedSeconds)
                                       "org.freedesktop.DBus.Properties",
                                       "PropertiesChanged", parameters, NULL);
 #else
-        (void)elapsedSeconds;
+        (void)elapsed_seconds;
 #endif
 }
 
-void emitSeekedSignal(double newPositionSeconds)
+void emit_seeked_signal(double newPositionSeconds)
 {
 #ifndef __APPLE__
         if (newPositionSeconds < 0.0)
@@ -149,7 +149,7 @@ void emitSeekedSignal(double newPositionSeconds)
 #endif
 }
 
-void emitBooleanPropertyChanged(const gchar *propertyName, gboolean newValue)
+void emit_boolean_property_changed(const gchar *propertyName, gboolean newValue)
 {
 #ifndef __APPLE__
         GVariantBuilder changed_properties_builder;
@@ -190,47 +190,47 @@ void emitBooleanPropertyChanged(const gchar *propertyName, gboolean newValue)
 #endif
 }
 
-void notifyMPRISSwitch(SongData *currentSongData)
+void notify_m_p_r_i_s_switch(SongData *currentSongData)
 {
         if (currentSongData == NULL)
                 return;
 
-        gint64 length = getLengthInMicroSec(currentSongData->duration);
+        gint64 length = get_length_in_micro_sec(currentSongData->duration);
 
         // Update mpris
-        emitMetadataChanged(
+        emit_metadata_changed(
             currentSongData->metadata->title, currentSongData->metadata->artist,
             currentSongData->metadata->album, currentSongData->coverArtPath,
             currentSongData->trackId != NULL ? currentSongData->trackId : "",
-            getCurrentSong(), length);
+            get_current_song(), length);
 }
 
-void notifySongSwitch(SongData *currentSongData)
+void notify_song_switch(SongData *currentSongData)
 {
-        AppState *state = getAppState();
+        AppState *state = get_app_state();
         UISettings *ui = &(state->uiSettings);
         if (currentSongData != NULL && currentSongData->hasErrors == 0 &&
             currentSongData->metadata &&
             strnlen(currentSongData->metadata->title, 10) > 0)
         {
 #ifdef USE_DBUS
-                displaySongNotification(currentSongData->metadata->artist,
+                display_song_notification(currentSongData->metadata->artist,
                                         currentSongData->metadata->title,
                                         currentSongData->coverArtPath, ui);
 #else
                 (void)ui;
 #endif
 
-                notifyMPRISSwitch(currentSongData);
+                notify_m_p_r_i_s_switch(currentSongData);
 
-                Node *current = getCurrentSong();
+                Node *current = get_current_song();
 
                 if (current != NULL)
                         state->uiState.lastNotifiedId = current->id;
         }
 }
 
-int isProcessRunning(pid_t pid)
+int is_process_running(pid_t pid)
 {
         if (pid <= 0)
         {
@@ -256,7 +256,7 @@ int isProcessRunning(pid_t pid)
         return 0; // Other errors
 }
 
-int isKewProcess(pid_t pid)
+int is_kew_process(pid_t pid)
 {
         char comm_path[64];
         char process_name[256];
@@ -289,10 +289,10 @@ int isKewProcess(pid_t pid)
         return 0; // Not kew or couldn't determine
 }
 
-void deletePidFile()
+void delete_pid_file()
 {
         char pidfilePath[MAXPATHLEN];
-        const char *temp_dir = getTempDir();
+        const char *temp_dir = get_temp_dir();
 
         snprintf(pidfilePath, sizeof(pidfilePath), "%s/kew_%d.pid", temp_dir,
                  getuid());
@@ -308,10 +308,10 @@ void deletePidFile()
         }
 }
 
-pid_t readPidFile()
+pid_t read_pid_file()
 {
         char pidfilePath[MAXPATHLEN];
-        const char *temp_dir = getTempDir();
+        const char *temp_dir = get_temp_dir();
 
         snprintf(pidfilePath, sizeof(pidfilePath), "%s/kew_%d.pid", temp_dir,
                  getuid());
@@ -338,10 +338,10 @@ pid_t readPidFile()
         return pid;
 }
 
-void createPidFile()
+void create_pid_file()
 {
         char pidfilePath[MAXPATHLEN];
-        const char *temp_dir = getTempDir();
+        const char *temp_dir = get_temp_dir();
 
         snprintf(pidfilePath, sizeof(pidfilePath), "%s/kew_%d.pid", temp_dir,
                  getuid());
@@ -357,9 +357,9 @@ void createPidFile()
         fclose(pidfile);
 }
 
-void restartKew(char *argv[])
+void restart_kew(char *argv[])
 {
-    pid_t oldpid = readPidFile();
+    pid_t oldpid = read_pid_file();
     if (oldpid > 0)
     {
         if (kill(oldpid, SIGUSR1) != 0)
@@ -367,7 +367,7 @@ void restartKew(char *argv[])
             if (errno == ESRCH)
             {
                 fprintf(stderr, "No running kew process found.\n");
-                deletePidFile();
+                delete_pid_file();
             }
             else
             {
@@ -382,7 +382,7 @@ void restartKew(char *argv[])
             {
                 perror("waitpid");
             }
-            deletePidFile();
+            delete_pid_file();
         }
     }
 
@@ -392,55 +392,55 @@ void restartKew(char *argv[])
     exit(1);
 }
 
-void handleShutdown(int sig)
+void handle_shutdown(int sig)
 {
         (void)sig;
         exit(0); // runs all atexit handlers
 }
 
 // Ensures only a single instance of kew can run at a time for the current user.
-void restartIfAlreadyRunning(char *argv[])
+void restart_if_already_running(char *argv[])
 {
-        signal(SIGUSR1, handleShutdown);
+        signal(SIGUSR1, handle_shutdown);
 
-        pid_t pid = readPidFile();
+        pid_t pid = read_pid_file();
 
 #ifdef __ANDROID__
-        if (isProcessRunning(pid) && isKewProcess(pid))
+        if (is_process_running(pid) && is_kew_process(pid))
 #else
-        if (isProcessRunning(pid))
+        if (is_process_running(pid))
 #endif
         {
-                restartKew(argv);
+                restart_kew(argv);
         }
         else
         {
-                deletePidFile();
+                delete_pid_file();
         }
 
-        createPidFile();
+        create_pid_file();
 }
 
-void handleResize(int sig)
+void handle_resize(int sig)
 {
         (void)sig;
-        AppState *state = getAppState();
+        AppState *state = get_app_state();
         state->uiState.resizeFlag = 1;
 }
 
-void resetResizeFlag(int sig)
+void reset_resize_flag(int sig)
 {
         (void)sig;
-        AppState *state = getAppState();
+        AppState *state = get_app_state();
         state->uiState.resizeFlag = 0;
 }
 
-void initResize(void)
+void init_resize(void)
 {
-        signal(SIGWINCH, handleResize);
+        signal(SIGWINCH, handle_resize);
 
         struct sigaction sa;
-        sa.sa_handler = resetResizeFlag;
+        sa.sa_handler = reset_resize_flag;
         sigemptyset(&(sa.sa_mask));
         sa.sa_flags = 0;
         sigaction(SIGALRM, &sa, NULL);

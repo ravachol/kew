@@ -2,17 +2,17 @@
 #include <stdio.h>
 #include <string.h>
 
-static int fftSize = 2048;
-static int hopSize = 512;
-static int fftSizeMilliseconds = 45;
-static int writeHead = 0;
-static int bufSize;
+static int fft_size = 2048;
+static int hop_size = 512;
+static int fft_size_milliseconds = 45;
+static int write_head = 0;
+static int buf_size;
 
-static bool bufferReady = false;
+static bool buffer_ready = false;
 
-static float audioBuffer[MAX_BUFFER_SIZE];
+static float audio_buffer[MAX_BUFFER_SIZE];
 
-int closestPowerOfTwo(int x)
+int closest_power_of_two(int x)
 {
         int n = 1;
         while (n < x)
@@ -20,14 +20,14 @@ int closestPowerOfTwo(int x)
         return n;
 }
 
-bool isBufferReady(void) { return bufferReady; }
+bool is_buffer_ready(void) { return buffer_ready; }
 
-void setBufferReady(bool val) { bufferReady = val; }
+void set_buffer_ready(bool val) { buffer_ready = val; }
 
 
-int getBufferSize(void) { return bufSize; }
+int get_buffer_size(void) { return buf_size; }
 
-void setBufferSize(int value) { bufSize = value; }
+void set_buffer_size(int value) { buf_size = value; }
 
 // Sign-extend s24
 ma_int32 unpack_s24(const ma_uint8 *p)
@@ -38,7 +38,7 @@ ma_int32 unpack_s24(const ma_uint8 *p)
         return sample;
 }
 
-void setAudioBuffer(void *buf, int numFrames, ma_uint32 sampleRate,
+void set_audio_buffer(void *buf, int numFrames, ma_uint32 sample_rate,
                     ma_uint32 channels, ma_format format)
 {
         int bufIndex = 0;
@@ -47,27 +47,27 @@ void setAudioBuffer(void *buf, int numFrames, ma_uint32 sampleRate,
         float hopFraction = 0.25f; // 25% hop (75% overlap)
 
         // Compute power-of-two window/hop sizes in samples
-        int wantFFTSamples = (int)(fftSizeMilliseconds * sampleRate / 1000.0f);
-        fftSize = closestPowerOfTwo(wantFFTSamples); // 2048 or 4096
+        int wantFFTSamples = (int)(fft_size_milliseconds * sample_rate / 1000.0f);
+        fft_size = closest_power_of_two(wantFFTSamples); // 2048 or 4096
         int wantHopSamples =
-            (int)(fftSize * hopFraction);            // 25% of window length
-        hopSize = closestPowerOfTwo(wantHopSamples); // 256, 512, 1024
+            (int)(fft_size * hopFraction);            // 25% of window length
+        hop_size = closest_power_of_two(wantHopSamples); // 256, 512, 1024
 
-        if (fftSize > MAX_BUFFER_SIZE)
-                fftSize = MAX_BUFFER_SIZE;
+        if (fft_size > MAX_BUFFER_SIZE)
+                fft_size = MAX_BUFFER_SIZE;
 
         // Ensure hop is never >= window
-        if (hopSize >= fftSize)
-                hopSize = fftSize / 2; // fallback minimum overlap
+        if (hop_size >= fft_size)
+                hop_size = fft_size / 2; // fallback minimum overlap
 
         while (bufIndex < numFrames)
         {
 
-                if (writeHead >= fftSize)
+                if (write_head >= fft_size)
                         break;
 
                 int framesLeft = numFrames - bufIndex;
-                int spaceLeft = fftSize - writeHead;
+                int spaceLeft = fft_size - write_head;
                 int framesToCopy =
                     framesLeft < spaceLeft ? framesLeft : spaceLeft;
 
@@ -86,7 +86,7 @@ void setAudioBuffer(void *buf, int numFrames, ma_uint32 sampleRate,
                                                 128.0f) /
                                                128.0f;
                                 }
-                                audioBuffer[writeHead++] = sum / channels;
+                                audio_buffer[write_head++] = sum / channels;
                         }
                         break;
                 }
@@ -101,7 +101,7 @@ void setAudioBuffer(void *buf, int numFrames, ma_uint32 sampleRate,
                                         sum += (float)src[i * channels + ch] /
                                                32768.0f;
                                 }
-                                audioBuffer[writeHead++] = sum / channels;
+                                audio_buffer[write_head++] = sum / channels;
                         }
                         break;
                 }
@@ -118,7 +118,7 @@ void setAudioBuffer(void *buf, int numFrames, ma_uint32 sampleRate,
                                         int32_t s = unpack_s24(&src[idx]);
                                         sum += (float)s / 8388608.0f;
                                 }
-                                audioBuffer[writeHead++] = sum / channels;
+                                audio_buffer[write_head++] = sum / channels;
                         }
                         break;
                 }
@@ -133,7 +133,7 @@ void setAudioBuffer(void *buf, int numFrames, ma_uint32 sampleRate,
                                         sum += (float)src[i * channels + ch] /
                                                2147483648.0f;
                                 }
-                                audioBuffer[writeHead++] = sum / channels;
+                                audio_buffer[write_head++] = sum / channels;
                         }
                         break;
                 }
@@ -147,38 +147,38 @@ void setAudioBuffer(void *buf, int numFrames, ma_uint32 sampleRate,
                                 {
                                         sum += src[i * channels + ch];
                                 }
-                                audioBuffer[writeHead++] = sum / channels;
+                                audio_buffer[write_head++] = sum / channels;
                         }
                         break;
                 }
                 default:
                         fprintf(stderr,
-                                "Unsupported format in setAudioBuffer!\n");
+                                "Unsupported format in set_audio_buffer!\n");
                         return;
                 }
                 bufIndex += framesToCopy;
 
                 // Process full window(s), maintain overlap (hop)
-                while (writeHead >= fftSize)
+                while (write_head >= fft_size)
                 {
-                        setBufferReady(true); // let main loop know FFT is ready
+                        set_buffer_ready(true); // let main loop know FFT is ready
 
-                        // Shift buffer for overlap (keep last fftSize-hopSize
+                        // Shift buffer for overlap (keep last fft_size-hop_size
                         // samples)
-                        memmove(audioBuffer, audioBuffer + hopSize,
-                                sizeof(float) * (fftSize - hopSize));
-                        writeHead -= hopSize;
+                        memmove(audio_buffer, audio_buffer + hop_size,
+                                sizeof(float) * (fft_size - hop_size));
+                        write_head -= hop_size;
                 }
         }
 }
 
-void resetAudioBuffer(void)
+void reset_audio_buffer(void)
 {
-        memset(audioBuffer, 0, sizeof(ma_int32) * MAX_BUFFER_SIZE);
-        writeHead = 0;
-        setBufferReady(false);
+        memset(audio_buffer, 0, sizeof(ma_int32) * MAX_BUFFER_SIZE);
+        write_head = 0;
+        set_buffer_ready(false);
 }
 
-void *getAudioBuffer(void) { return audioBuffer; }
+void *get_audio_buffer(void) { return audio_buffer; }
 
-int getFftSize(void) { return fftSize; };
+int get_fft_size(void) { return fft_size; };

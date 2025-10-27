@@ -11,70 +11,70 @@
 #include <stdatomic.h>
 
 static ma_device device = {0};
-static bool deviceInitialized = false;
+static bool device_initialized = false;
 
 static bool paused = false;
 static bool stopped = true;
-static bool repeatEnabled = false;
+static bool repeat_enabled = false;
 
-static bool seekRequested = false;
-static float seekPercent = 0.0;
-static double seekElapsed;
+static bool seek_requested = false;
+static float seek_percent = 0.0;
+static double seek_elapsed;
 
-static bool skipToNext = false;
+static bool skip_to_next = false;
 
-static _Atomic bool EOFReached = false;
-static _Atomic bool switchReached = false;
+static _Atomic bool EOF_reached = false;
+static _Atomic bool switch_reached = false;
 
-static pthread_mutex_t dataSourceMutex = PTHREAD_MUTEX_INITIALIZER;
+static pthread_mutex_t data_source_mutex = PTHREAD_MUTEX_INITIALIZER;
 
-static enum AudioImplementation currentImplementation = NONE;
+static enum AudioImplementation current_implementation = NONE;
 
-static double seekElapsed;
+static double seek_elapsed;
 
-ma_uint64 lastCursor = 0;
+ma_uint64 last_cursor = 0;
 
-static pthread_mutex_t switchMutex = PTHREAD_MUTEX_INITIALIZER;
+static pthread_mutex_t switch_mutex = PTHREAD_MUTEX_INITIALIZER;
 
-double getSeekElapsed(void) { return seekElapsed; }
+double get_seek_elapsed(void) { return seek_elapsed; }
 
-void setSeekElapsed(double value) { seekElapsed = value; }
+void set_seek_elapsed(double value) { seek_elapsed = value; }
 
-float getSeekPercentage(void) { return seekPercent; }
+float get_seek_percentage(void) { return seek_percent; }
 
-bool isSeekRequested(void) { return seekRequested; }
+bool is_seek_requested(void) { return seek_requested; }
 
-void setSeekRequested(bool value) { seekRequested = value; }
+void set_seek_requested(bool value) { seek_requested = value; }
 
-void seekPercentage(float percent)
+void seek_percentage(float percent)
 {
-        seekPercent = percent;
-        seekRequested = true;
+        seek_percent = percent;
+        seek_requested = true;
 }
 
-bool isEOFReached(void) { return atomic_load(&EOFReached); }
+bool is_EOF_reached(void) { return atomic_load(&EOF_reached); }
 
-void setEofReached(void) { atomic_store(&EOFReached, true); }
+void set_EOF_reached(void) { atomic_store(&EOF_reached, true); }
 
-void setEofHandled(void) { atomic_store(&EOFReached, false); }
+void set_EOF_handled(void) { atomic_store(&EOF_reached, false); }
 
-bool isPaused(void) { return paused; }
+bool is_paused(void) { return paused; }
 
-void setPaused(bool val) { paused = val; }
+void set_paused(bool val) { paused = val; }
 
-bool isStopped(void) { return stopped; }
+bool is_stopped(void) { return stopped; }
 
-void setStopped(bool val) { stopped = val; }
+void set_stopped(bool val) { stopped = val; }
 
-bool isRepeatEnabled(void) { return repeatEnabled; }
+bool is_repeat_enabled(void) { return repeat_enabled; }
 
-void setRepeatEnabled(bool value) { repeatEnabled = value; }
+void set_repeat_enabled(bool value) { repeat_enabled = value; }
 
-bool isPlaying(void) { return ma_device_is_started(&device); }
+bool is_playing(void) { return ma_device_is_started(&device); }
 
-bool isPlaybackDone(void)
+bool is_playback_done(void)
 {
-        if (isEOFReached())
+        if (is_EOF_reached())
         {
                 return true;
         }
@@ -84,84 +84,84 @@ bool isPlaybackDone(void)
         }
 }
 
-void stopPlayback(void)
+void stop_playback(void)
 {
-        AppState *state = getAppState();
+        AppState *state = get_app_state();
 
         if (ma_device_is_started(&device))
         {
                 ma_device_stop(&device);
         }
 
-        setPaused(false);
-        setStopped(true);
+        set_paused(false);
+        set_stopped(true);
 
         if (state->currentView != TRACK_VIEW)
         {
-                triggerRefresh();
+                trigger_refresh();
         }
 }
 
-void soundResumePlayback(void)
+void sound_resume_playback(void)
 {
         // If this was unpaused with no song loaded
 
-        AppState *state = getAppState();
+        AppState *state = get_app_state();
 
-        if (audioData.restart)
+        if (audio_data.restart)
         {
-                audioData.endOfListReached = false;
+                audio_data.endOfListReached = false;
         }
 
         if (!ma_device_is_started(&device))
         {
                 if (ma_device_start(&device) != MA_SUCCESS)
                 {
-                        createAudioDevice();
+                        create_audio_device();
                         ma_device_start(&device);
                 }
         }
 
-        setPaused(false);
+        set_paused(false);
 
-        setStopped(false);
+        set_stopped(false);
 
         if (state->currentView != TRACK_VIEW)
         {
-                triggerRefresh();
+                trigger_refresh();
         }
 }
 
-void pausePlayback(void)
+void pause_playback(void)
 {
-        AppState *state = getAppState();
+        AppState *state = get_app_state();
 
         if (ma_device_is_started(&device))
         {
                 ma_device_stop(&device);
         }
 
-        setPaused(true);
+        set_paused(true);
 
         if (state->currentView != TRACK_VIEW)
         {
-                triggerRefresh();
+                trigger_refresh();
         }
 }
 
-void togglePausePlayback(void)
+void toggle_pause_playback(void)
 {
         if (ma_device_is_started(&device))
         {
-                pausePlayback();
+                pause_playback();
         }
-        else if (isPaused() || isStopped())
+        else if (is_paused() || is_stopped())
         {
-                soundResumePlayback();
+                sound_resume_playback();
         }
 }
 
-int initPlaybackDevice(ma_context *context, ma_format format, ma_uint32 channels, ma_uint32 sampleRate,
+int init_playback_device(ma_context *context, ma_format format, ma_uint32 channels, ma_uint32 sample_rate,
                        ma_device *device, ma_device_data_proc dataCallback, void *pUserData)
 {
         ma_result result;
@@ -171,39 +171,39 @@ int initPlaybackDevice(ma_context *context, ma_format format, ma_uint32 channels
 
         deviceConfig.playback.format = format;
         deviceConfig.playback.channels = channels;
-        deviceConfig.sampleRate = sampleRate;
+        deviceConfig.sampleRate = sample_rate;
         deviceConfig.dataCallback = dataCallback;
         deviceConfig.pUserData = pUserData;
 
         result = ma_device_init(context, &deviceConfig, device);
         if (result != MA_SUCCESS)
         {
-                setErrorMessage("Failed to initialize miniaudio device.");
+                set_error_message("Failed to initialize miniaudio device.");
                 return -1;
         }
         else
         {
-                deviceInitialized = true;
+                device_initialized = true;
         }
 
         result = ma_device_start(device);
 
         if (result != MA_SUCCESS)
         {
-                setErrorMessage("Failed to start miniaudio device.");
+                set_error_message("Failed to start miniaudio device.");
                 return -1;
         }
 
-        setPaused(false);
+        set_paused(false);
 
-        setStopped(false);
+        set_stopped(false);
 
         return 0;
 }
 
-void cleanupPlaybackDevice(void)
+void cleanup_playback_device(void)
 {
-        if (!deviceInitialized)
+        if (!device_initialized)
                 return;
 
         // Stop device safely before uninitializing.
@@ -220,88 +220,88 @@ void cleanupPlaybackDevice(void)
         // Clear memory so we don’t accidentally reuse it.
         memset(&device, 0, sizeof(device));
 
-        deviceInitialized = false;
+        device_initialized = false;
 
-        setStopped(true);
+        set_stopped(true);
 }
 
 
-void shutdownAndroid(void)
+void shutdown_android(void)
 {
         // Avoid race condition when shutting down
         memset(&device, 0, sizeof(device));
 }
 
-void soundShutdown()
+void sound_shutdown()
 {
-        if (isContextInitialized())
+        if (is_context_initialized())
         {
 #ifdef __ANDROID__
-        shutdownAndroid();
+        shutdown_android();
 #else
         ma_device_uninit(&device);
         memset(&device, 0, sizeof(device));
-        cleanupAudioContext();
+        cleanup_audio_context();
 #endif
         }
 }
 
-ma_device *getDevice(void) { return &device; }
+ma_device *get_device(void) { return &device; }
 
-enum AudioImplementation getCurrentImplementationType(void)
+enum AudioImplementation get_current_implementation_type(void)
 {
-        return currentImplementation;
+        return current_implementation;
 }
 
-void getCurrentFormatAndSampleRate(ma_format *format, ma_uint32 *sampleRate)
+void get_current_format_and_sample_rate(ma_format *format, ma_uint32 *sample_rate)
 {
         *format = ma_format_unknown;
 
-        if (getCurrentImplementationType() == BUILTIN)
+        if (get_current_implementation_type() == BUILTIN)
         {
-                ma_decoder *decoder = getCurrentBuiltinDecoder();
+                ma_decoder *decoder = get_current_builtin_decoder();
 
                 if (decoder != NULL)
                         *format = decoder->outputFormat;
         }
-        else if (getCurrentImplementationType() == OPUS)
+        else if (get_current_implementation_type() == OPUS)
         {
-                ma_libopus *decoder = getCurrentOpusDecoder();
+                ma_libopus *decoder = get_current_opus_decoder();
 
                 if (decoder != NULL)
                         *format = decoder->format;
         }
-        else if (getCurrentImplementationType() == VORBIS)
+        else if (get_current_implementation_type() == VORBIS)
         {
-                ma_libvorbis *decoder = getCurrentVorbisDecoder();
+                ma_libvorbis *decoder = get_current_vorbis_decoder();
 
                 if (decoder != NULL)
                         *format = decoder->format;
         }
-        else if (getCurrentImplementationType() == WEBM)
+        else if (get_current_implementation_type() == WEBM)
         {
-                ma_webm *decoder = getCurrentWebmDecoder();
+                ma_webm *decoder = get_current_webm_decoder();
 
                 if (decoder != NULL)
                         *format = decoder->format;
         }
-        else if (getCurrentImplementationType() == M4A)
+        else if (get_current_implementation_type() == M4A)
         {
 #ifdef USE_FAAD
-                m4a_decoder *decoder = getCurrentM4aDecoder();
+                m4a_decoder *decoder = get_current_m4a_decoder();
 
                 if (decoder != NULL)
                         *format = decoder->format;
 #endif
         }
 
-        *sampleRate = getAudioData()->sampleRate;
+        *sample_rate = get_audio_data()->sample_rate;
 }
 
-void executeSwitch(AudioData *pAudioData)
+void execute_switch(AudioData *pAudioData)
 {
         pAudioData->switchFiles = false;
-        switchDecoder();
+        switch_decoder();
 
         if (pAudioData == NULL)
                 return;
@@ -313,45 +313,45 @@ void executeSwitch(AudioData *pAudioData)
         pAudioData->totalFrames = 0;
         pAudioData->currentPCMFrame = 0;
 
-        setSeekElapsed(0.0);
+        set_seek_elapsed(0.0);
 
-        setEofReached();
+        set_EOF_reached();
 }
 
-bool isImplSwitchReached(void)
+bool is_impl_switch_reached(void)
 {
-        return atomic_load(&switchReached) ? true : false;
+        return atomic_load(&switch_reached) ? true : false;
 }
 
-void setImplSwitchReached(void) { atomic_store(&switchReached, true); }
+void set_impl_switch_reached(void) { atomic_store(&switch_reached, true); }
 
-void setImplSwitchNotReached(void) { atomic_store(&switchReached, false); }
+void set_impl_switch_not_reached(void) { atomic_store(&switch_reached, false); }
 
-void setCurrentImplementationType(enum AudioImplementation value)
+void set_current_implementation_type(enum AudioImplementation value)
 {
-        currentImplementation = value;
+        current_implementation = value;
 }
 
-bool isSkipToNext(void) { return skipToNext; }
+bool is_skip_to_next(void) { return skip_to_next; }
 
-void setSkipToNext(bool value) { skipToNext = value; }
+void set_skip_to_next(bool value) { skip_to_next = value; }
 
-void activateSwitch(AudioData *pAudioData)
+void activate_switch(AudioData *pAudioData)
 {
-        setSkipToNext(false);
+        set_skip_to_next(false);
 
-        if (!isRepeatEnabled())
+        if (!is_repeat_enabled())
         {
-                pthread_mutex_lock(&switchMutex);
+                pthread_mutex_lock(&switch_mutex);
                 pAudioData->currentFileIndex =
                     1 - pAudioData->currentFileIndex; // Toggle between 0 and 1
-                pthread_mutex_unlock(&switchMutex);
+                pthread_mutex_unlock(&switch_mutex);
         }
 
         pAudioData->switchFiles = true;
 }
 
-void clearCurrentTrack(void)
+void clear_current_track(void)
 {
         if (ma_device_is_started(&device))
         {
@@ -359,8 +359,8 @@ void clearCurrentTrack(void)
                 ma_device_stop(&device);
         }
 
-        clearDecoderChain();
-        resetAllDecoders();
+        clear_decoder_chain();
+        reset_all_decoders();
 }
 
 #ifdef USE_FAAD
@@ -373,10 +373,10 @@ void m4a_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut,
 
         while (framesRead < frameCount)
         {
-                if (isImplSwitchReached())
+                if (is_impl_switch_reached())
                         return;
 
-                if (pthread_mutex_trylock(&dataSourceMutex) != 0)
+                if (pthread_mutex_trylock(&data_source_mutex) != 0)
                 {
                         return;
                 }
@@ -384,37 +384,37 @@ void m4a_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut,
                 // Check if a file switch is required
                 if (pAudioData->switchFiles)
                 {
-                        executeSwitch(pAudioData);
-                        pthread_mutex_unlock(&dataSourceMutex);
+                        execute_switch(pAudioData);
+                        pthread_mutex_unlock(&data_source_mutex);
                         break; // Exit the loop after the file switch
                 }
 
-                if (getCurrentImplementationType() != M4A && !isSkipToNext())
+                if (get_current_implementation_type() != M4A && !is_skip_to_next())
                 {
-                        pthread_mutex_unlock(&dataSourceMutex);
+                        pthread_mutex_unlock(&data_source_mutex);
                         return;
                 }
 
-                m4a_decoder *decoder = getCurrentM4aDecoder();
+                m4a_decoder *decoder = get_current_m4a_decoder();
 
                 if (pAudioData->totalFrames == 0)
                         ma_data_source_get_length_in_pcm_frames(
                             decoder, &(pAudioData->totalFrames));
 
                 // Check if seeking is requested
-                if (isSeekRequested())
+                if (is_seek_requested())
                 {
                         if (decoder && decoder->fileType != k_rawAAC)
                         {
                                 ma_uint64 totalFrames = pAudioData->totalFrames;
-                                ma_uint64 seekPercent = getSeekPercentage();
+                                ma_uint64 seek_percent = get_seek_percentage();
 
-                                if (seekPercent >= 100.0)
-                                        seekPercent = 100.0;
+                                if (seek_percent >= 100.0)
+                                        seek_percent = 100.0;
 
                                 ma_uint64 targetFrame =
                                     (ma_uint64)((totalFrames - 1) *
-                                                seekPercent / 100.0);
+                                                seek_percent / 100.0);
 
                                 if (targetFrame >= totalFrames)
                                         targetFrame = totalFrames - 1;
@@ -426,59 +426,59 @@ void m4a_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut,
                                 if (seekResult != MA_SUCCESS)
                                 {
                                         // Handle seek error
-                                        setSeekRequested(false);
-                                        pthread_mutex_unlock(&dataSourceMutex);
+                                        set_seek_requested(false);
+                                        pthread_mutex_unlock(&data_source_mutex);
                                         return;
                                 }
                         }
 
-                        setSeekRequested(false); // Reset seek flag
+                        set_seek_requested(false); // Reset seek flag
                 }
 
                 // Read from the current decoder
                 ma_uint64 framesToRead = 0;
                 ma_result result;
                 ma_uint64 remainingFrames = frameCount - framesRead;
-                m4a_decoder *firstDecoder = getFirstM4aDecoder();
+                m4a_decoder *first_decoder = get_first_m4a_decoder();
                 ma_uint64 cursor = 0;
 
-                if (firstDecoder == NULL)
+                if (first_decoder == NULL)
                 {
-                        pthread_mutex_unlock(&dataSourceMutex);
+                        pthread_mutex_unlock(&data_source_mutex);
                         return;
                 }
 
-                if (isEOFReached())
+                if (is_EOF_reached())
                 {
-                        pthread_mutex_unlock(&dataSourceMutex);
+                        pthread_mutex_unlock(&data_source_mutex);
                         return;
                 }
 
-                result = callReadPCMFrames(
-                    firstDecoder, m4a->format, pFramesOut, framesRead,
+                result = call_read_PCM_frames(
+                    first_decoder, m4a->format, pFramesOut, framesRead,
                     pAudioData->channels, remainingFrames, &framesToRead);
 
                 ma_data_source_get_cursor_in_pcm_frames(decoder, &cursor);
 
-                if (((cursor != 0 && cursor == lastCursor) ||
-                     framesToRead == 0 || isSkipToNext() ||
+                if (((cursor != 0 && cursor == last_cursor) ||
+                     framesToRead == 0 || is_skip_to_next() ||
                      result != MA_SUCCESS) &&
-                    !isEOFReached())
+                    !is_EOF_reached())
                 {
-                        activateSwitch(pAudioData);
-                        pthread_mutex_unlock(&dataSourceMutex);
+                        activate_switch(pAudioData);
+                        pthread_mutex_unlock(&data_source_mutex);
                         continue;
                 }
 
-                lastCursor = cursor;
+                last_cursor = cursor;
 
                 framesRead += framesToRead;
-                setBufferSize(framesToRead);
+                set_buffer_size(framesToRead);
 
-                pthread_mutex_unlock(&dataSourceMutex);
+                pthread_mutex_unlock(&data_source_mutex);
         }
 
-        setAudioBuffer(pFramesOut, framesRead, pAudioData->sampleRate,
+        set_audio_buffer(pFramesOut, framesRead, pAudioData->sample_rate,
                        pAudioData->channels, pAudioData->format);
 
         if (pFramesRead != NULL)
@@ -508,10 +508,10 @@ void opus_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut,
 
         while (framesRead < frameCount)
         {
-                if (isImplSwitchReached())
+                if (is_impl_switch_reached())
                         return;
 
-                if (pthread_mutex_trylock(&dataSourceMutex) != 0)
+                if (pthread_mutex_trylock(&data_source_mutex) != 0)
                 {
                         return;
                 }
@@ -519,34 +519,34 @@ void opus_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut,
                 // Check if a file switch is required
                 if (pAudioData->switchFiles)
                 {
-                        executeSwitch(pAudioData);
-                        pthread_mutex_unlock(&dataSourceMutex);
+                        execute_switch(pAudioData);
+                        pthread_mutex_unlock(&data_source_mutex);
                         break; // Exit the loop after the file switch
                 }
 
-                if (getCurrentImplementationType() != OPUS && !isSkipToNext())
+                if (get_current_implementation_type() != OPUS && !is_skip_to_next())
                 {
-                        pthread_mutex_unlock(&dataSourceMutex);
+                        pthread_mutex_unlock(&data_source_mutex);
                         return;
                 }
 
-                ma_libopus *decoder = getCurrentOpusDecoder();
+                ma_libopus *decoder = get_current_opus_decoder();
 
                 if (pAudioData->totalFrames == 0)
                         ma_data_source_get_length_in_pcm_frames(
                             decoder, &(pAudioData->totalFrames));
 
                 // Check if seeking is requested
-                if (isSeekRequested())
+                if (is_seek_requested())
                 {
                         ma_uint64 totalFrames = 0;
                         ma_libopus_get_length_in_pcm_frames(decoder,
                                                             &totalFrames);
-                        ma_uint64 seekPercent = getSeekPercentage();
-                        if (seekPercent >= 100.0)
-                                seekPercent = 100.0;
+                        ma_uint64 seek_percent = get_seek_percentage();
+                        if (seek_percent >= 100.0)
+                                seek_percent = 100.0;
                         ma_uint64 targetFrame =
-                            (ma_uint64)((totalFrames - 1) * seekPercent /
+                            (ma_uint64)((totalFrames - 1) * seek_percent /
                                         100.0);
 
                         if (targetFrame >= totalFrames)
@@ -558,56 +558,56 @@ void opus_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut,
                         if (seekResult != MA_SUCCESS)
                         {
                                 // Handle seek error
-                                setSeekRequested(false);
-                                pthread_mutex_unlock(&dataSourceMutex);
+                                set_seek_requested(false);
+                                pthread_mutex_unlock(&data_source_mutex);
                                 return;
                         }
 
-                        setSeekRequested(false); // Reset seek flag
+                        set_seek_requested(false); // Reset seek flag
                 }
 
                 // Read from the current decoder
                 ma_uint64 framesToRead = 0;
                 ma_result result;
                 ma_uint64 remainingFrames = frameCount - framesRead;
-                ma_libopus *firstDecoder = getFirstOpusDecoder();
+                ma_libopus *first_decoder = get_first_opus_decoder();
                 ma_uint64 cursor = 0;
 
-                if (firstDecoder == NULL)
+                if (first_decoder == NULL)
                 {
-                        pthread_mutex_unlock(&dataSourceMutex);
+                        pthread_mutex_unlock(&data_source_mutex);
                         return;
                 }
 
-                if (isEOFReached())
+                if (is_EOF_reached())
                 {
-                        pthread_mutex_unlock(&dataSourceMutex);
+                        pthread_mutex_unlock(&data_source_mutex);
                         return;
                 }
 
-                result = callReadPCMFrames(
-                    firstDecoder, opus->format, pFramesOut, framesRead,
+                result = call_read_PCM_frames(
+                    first_decoder, opus->format, pFramesOut, framesRead,
                     pAudioData->channels, remainingFrames, &framesToRead);
 
                 ma_data_source_get_cursor_in_pcm_frames(decoder, &cursor);
 
                 if (((cursor != 0 && cursor >= pAudioData->totalFrames) ||
-                     framesToRead == 0 || isSkipToNext() ||
+                     framesToRead == 0 || is_skip_to_next() ||
                      result != MA_SUCCESS) &&
-                    !isEOFReached())
+                    !is_EOF_reached())
                 {
-                        activateSwitch(pAudioData);
-                        pthread_mutex_unlock(&dataSourceMutex);
+                        activate_switch(pAudioData);
+                        pthread_mutex_unlock(&data_source_mutex);
                         continue;
                 }
 
                 framesRead += framesToRead;
-                setBufferSize(framesToRead);
+                set_buffer_size(framesToRead);
 
-                pthread_mutex_unlock(&dataSourceMutex);
+                pthread_mutex_unlock(&data_source_mutex);
         }
 
-        setAudioBuffer(pFramesOut, framesRead, pAudioData->sampleRate,
+        set_audio_buffer(pFramesOut, framesRead, pAudioData->sample_rate,
                        pAudioData->channels, pAudioData->format);
 
         if (pFramesRead != NULL)
@@ -636,10 +636,10 @@ void vorbis_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut,
 
         while (framesRead < frameCount)
         {
-                if (isImplSwitchReached())
+                if (is_impl_switch_reached())
                         return;
 
-                if (pthread_mutex_trylock(&dataSourceMutex) != 0)
+                if (pthread_mutex_trylock(&data_source_mutex) != 0)
                 {
                         return;
                 }
@@ -647,36 +647,36 @@ void vorbis_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut,
                 // Check if a file switch is required
                 if (pAudioData->switchFiles)
                 {
-                        executeSwitch(pAudioData);
-                        pthread_mutex_unlock(&dataSourceMutex);
+                        execute_switch(pAudioData);
+                        pthread_mutex_unlock(&data_source_mutex);
                         break;
                 }
 
-                ma_libvorbis *decoder = getCurrentVorbisDecoder();
+                ma_libvorbis *decoder = get_current_vorbis_decoder();
 
                 if (pAudioData->totalFrames == 0)
                         ma_data_source_get_length_in_pcm_frames(
                             decoder, &(pAudioData->totalFrames));
 
-                if ((getCurrentImplementationType() != VORBIS &&
-                     !isSkipToNext()) ||
+                if ((get_current_implementation_type() != VORBIS &&
+                     !is_skip_to_next()) ||
                     (decoder == NULL))
                 {
-                        pthread_mutex_unlock(&dataSourceMutex);
+                        pthread_mutex_unlock(&data_source_mutex);
                         return;
                 }
 
                 // Check if seeking is requested
-                if (isSeekRequested())
+                if (is_seek_requested())
                 {
                         ma_uint64 totalFrames = 0;
                         ma_libvorbis_get_length_in_pcm_frames(decoder,
                                                               &totalFrames);
-                        ma_uint64 seekPercent = getSeekPercentage();
-                        if (seekPercent >= 100.0)
-                                seekPercent = 100.0;
+                        ma_uint64 seek_percent = get_seek_percentage();
+                        if (seek_percent >= 100.0)
+                                seek_percent = 100.0;
                         ma_uint64 targetFrame =
-                            (ma_uint64)((totalFrames - 1) * seekPercent /
+                            (ma_uint64)((totalFrames - 1) * seek_percent /
                                         100.0);
 
                         if (targetFrame >= totalFrames)
@@ -688,55 +688,55 @@ void vorbis_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut,
                         if (seekResult != MA_SUCCESS)
                         {
                                 // Handle seek error
-                                setSeekRequested(false);
-                                pthread_mutex_unlock(&dataSourceMutex);
+                                set_seek_requested(false);
+                                pthread_mutex_unlock(&data_source_mutex);
                                 return;
                         }
 
-                        setSeekRequested(false); // Reset seek flag
+                        set_seek_requested(false); // Reset seek flag
                 }
 
                 // Read from the current decoder
                 ma_uint64 framesToRead = 0;
                 ma_result result;
                 ma_uint64 framesRequested = frameCount - framesRead;
-                ma_libvorbis *firstDecoder = getFirstVorbisDecoder();
+                ma_libvorbis *first_decoder = get_first_vorbis_decoder();
                 ma_uint64 cursor = 0;
 
-                if (firstDecoder == NULL)
+                if (first_decoder == NULL)
                 {
-                        pthread_mutex_unlock(&dataSourceMutex);
+                        pthread_mutex_unlock(&data_source_mutex);
                         return;
                 }
 
-                if (isEOFReached())
+                if (is_EOF_reached())
                 {
-                        pthread_mutex_unlock(&dataSourceMutex);
+                        pthread_mutex_unlock(&data_source_mutex);
                         return;
                 }
 
-                result = callReadPCMFrames(
-                    firstDecoder, vorbis->format, pFramesOut, framesRead,
+                result = call_read_PCM_frames(
+                    first_decoder, vorbis->format, pFramesOut, framesRead,
                     pAudioData->channels, framesRequested, &framesToRead);
 
                 ma_data_source_get_cursor_in_pcm_frames(decoder, &cursor);
 
                 if (((cursor != 0 && cursor >= pAudioData->totalFrames) ||
-                     isSkipToNext() || result != MA_SUCCESS) &&
-                    !isEOFReached())
+                     is_skip_to_next() || result != MA_SUCCESS) &&
+                    !is_EOF_reached())
                 {
-                        activateSwitch(pAudioData);
-                        pthread_mutex_unlock(&dataSourceMutex);
+                        activate_switch(pAudioData);
+                        pthread_mutex_unlock(&data_source_mutex);
                         continue;
                 }
 
                 framesRead += framesToRead;
-                setBufferSize(framesToRead);
+                set_buffer_size(framesToRead);
 
-                pthread_mutex_unlock(&dataSourceMutex);
+                pthread_mutex_unlock(&data_source_mutex);
         }
 
-        setAudioBuffer(pFramesOut, framesRead, pAudioData->sampleRate,
+        set_audio_buffer(pFramesOut, framesRead, pAudioData->sample_rate,
                        pAudioData->channels, pAudioData->format);
 
         if (pFramesRead != NULL)
@@ -765,10 +765,10 @@ void webm_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut,
 
         while (framesRead < frameCount)
         {
-                if (isImplSwitchReached())
+                if (is_impl_switch_reached())
                         return;
 
-                if (pthread_mutex_trylock(&dataSourceMutex) != 0)
+                if (pthread_mutex_trylock(&data_source_mutex) != 0)
                 {
                         return;
                 }
@@ -776,35 +776,35 @@ void webm_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut,
                 // Check if a file switch is required
                 if (pAudioData->switchFiles)
                 {
-                        executeSwitch(pAudioData);
-                        pthread_mutex_unlock(&dataSourceMutex);
+                        execute_switch(pAudioData);
+                        pthread_mutex_unlock(&data_source_mutex);
                         break;
                 }
 
-                ma_webm *decoder = getCurrentWebmDecoder();
+                ma_webm *decoder = get_current_webm_decoder();
 
                 if (pAudioData->totalFrames == 0)
                         ma_data_source_get_length_in_pcm_frames(
                             decoder, &(pAudioData->totalFrames));
 
-                if ((getCurrentImplementationType() != WEBM &&
-                     !isSkipToNext()) ||
+                if ((get_current_implementation_type() != WEBM &&
+                     !is_skip_to_next()) ||
                     (decoder == NULL))
                 {
-                        pthread_mutex_unlock(&dataSourceMutex);
+                        pthread_mutex_unlock(&data_source_mutex);
                         return;
                 }
 
                 // Check if seeking is requested
-                if (isSeekRequested())
+                if (is_seek_requested())
                 {
                         ma_uint64 totalFrames = 0;
                         ma_webm_get_length_in_pcm_frames(decoder, &totalFrames);
-                        ma_uint64 seekPercent = getSeekPercentage();
-                        if (seekPercent >= 100.0)
-                                seekPercent = 100.0;
+                        ma_uint64 seek_percent = get_seek_percentage();
+                        if (seek_percent >= 100.0)
+                                seek_percent = 100.0;
                         ma_uint64 targetFrame =
-                            (ma_uint64)((totalFrames - 1) * seekPercent /
+                            (ma_uint64)((totalFrames - 1) * seek_percent /
                                         100.0);
 
                         if (targetFrame >= totalFrames)
@@ -816,55 +816,55 @@ void webm_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut,
                         if (seekResult != MA_SUCCESS)
                         {
                                 // Handle seek error
-                                setSeekRequested(false);
-                                pthread_mutex_unlock(&dataSourceMutex);
+                                set_seek_requested(false);
+                                pthread_mutex_unlock(&data_source_mutex);
                                 return;
                         }
 
-                        setSeekRequested(false); // Reset seek flag
+                        set_seek_requested(false); // Reset seek flag
                 }
 
                 // Read from the current decoder
                 ma_uint64 framesToRead = 0;
                 ma_result result;
                 ma_uint64 framesRequested = frameCount - framesRead;
-                ma_webm *firstDecoder = getFirstWebmDecoder();
+                ma_webm *first_decoder = get_first_webm_decoder();
                 ma_uint64 cursor = 0;
 
-                if (firstDecoder == NULL)
+                if (first_decoder == NULL)
                 {
-                        pthread_mutex_unlock(&dataSourceMutex);
+                        pthread_mutex_unlock(&data_source_mutex);
                         return;
                 }
 
-                if (isEOFReached())
+                if (is_EOF_reached())
                 {
-                        pthread_mutex_unlock(&dataSourceMutex);
+                        pthread_mutex_unlock(&data_source_mutex);
                         return;
                 }
 
-                result = callReadPCMFrames(
-                    firstDecoder, webm->format, pFramesOut, framesRead,
+                result = call_read_PCM_frames(
+                    first_decoder, webm->format, pFramesOut, framesRead,
                     pAudioData->channels, framesRequested, &framesToRead);
 
                 ma_data_source_get_cursor_in_pcm_frames(decoder, &cursor);
 
                 if (((cursor != 0 && cursor >= pAudioData->totalFrames) ||
-                     isSkipToNext() || result != MA_SUCCESS) &&
-                    !isEOFReached())
+                     is_skip_to_next() || result != MA_SUCCESS) &&
+                    !is_EOF_reached())
                 {
-                        activateSwitch(pAudioData);
-                        pthread_mutex_unlock(&dataSourceMutex);
+                        activate_switch(pAudioData);
+                        pthread_mutex_unlock(&data_source_mutex);
                         continue;
                 }
 
                 framesRead += framesToRead;
-                setBufferSize(framesToRead);
+                set_buffer_size(framesToRead);
 
-                pthread_mutex_unlock(&dataSourceMutex);
+                pthread_mutex_unlock(&data_source_mutex);
         }
 
-        setAudioBuffer(pFramesOut, framesRead, pAudioData->sampleRate,
+        set_audio_buffer(pFramesOut, framesRead, pAudioData->sample_rate,
                        pAudioData->channels, pAudioData->format);
 
         if (pFramesRead != NULL)
