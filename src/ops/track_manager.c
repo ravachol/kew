@@ -16,7 +16,8 @@
 
 #include "utils/utils.h"
 
-void load_first_song(Node *song) {
+void load_first_song(Node *song)
+{
         AppState *state = get_app_state();
         PlaybackState *ps = get_playback_state();
 
@@ -37,7 +38,8 @@ void load_first_song(Node *song) {
         }
 }
 
-void unload_song_a(void) {
+void unload_song_a(void)
+{
         PlaybackState *ps = get_playback_state();
 
         if (audio_data.pUserData->songdataADeleted == false) {
@@ -47,7 +49,8 @@ void unload_song_a(void) {
         }
 }
 
-void unload_song_b(void) {
+void unload_song_b(void)
+{
         PlaybackState *ps = get_playback_state();
 
         if (audio_data.pUserData->songdataBDeleted == false) {
@@ -57,7 +60,8 @@ void unload_song_b(void) {
         }
 }
 
-void unload_previous_song(void) {
+void unload_previous_song(void)
+{
         AppState *state = get_app_state();
         UserData *user_data = audio_data.pUserData;
         PlaybackState *ps = get_playback_state();
@@ -102,7 +106,8 @@ void unload_previous_song(void) {
         pthread_mutex_unlock(&(ps->loadingdata.mutex));
 }
 
-int load_first(Node *song) {
+int load_first(Node *song)
+{
         load_first_song(song);
         Node *current = get_current_song();
         PlaybackState *ps = get_playback_state();
@@ -132,7 +137,8 @@ int load_first(Node *song) {
         return 0;
 }
 
-void load_next_song(void) {
+void load_next_song(void)
+{
         AppState *state = get_app_state();
         PlaybackState *ps = get_playback_state();
 
@@ -147,7 +153,8 @@ void load_next_song(void) {
         load_song(get_next_song(), &ps->loadingdata);
 }
 
-void finish_loading(void) {
+void finish_loading(void)
+{
         PlaybackState *ps = get_playback_state();
 
         int max_num_tries = 20;
@@ -161,7 +168,8 @@ void finish_loading(void) {
         ps->loadedNextSong = true;
 }
 
-void autostart_if_stopped(FileSystemEntry *first_enqueued_entry) {
+void autostart_if_stopped(FileSystemEntry *first_enqueued_entry)
+{
         PlayList *playlist = get_playlist();
         PlaybackState *ps = get_playback_state();
 

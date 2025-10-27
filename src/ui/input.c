@@ -59,7 +59,8 @@ int digits_pressed_count;
 double dragged_position_seconds = 0.0;
 bool dragging_progress_bar = false;
 
-struct Event map_t_b_key_to_event(struct tb_event *ev) {
+struct Event map_t_b_key_to_event(struct tb_event *ev)
+{
         struct Event event = {0};
         event.type = EVENT_NONE;
 
@@ -119,30 +120,36 @@ struct Event map_t_b_key_to_event(struct tb_event *ev) {
         return event;
 }
 
-bool is_digits_pressed(void) {
+bool is_digits_pressed(void)
+{
         return (digits_pressed_count != 0);
 }
 
-char *get_digits_pressed(void) {
+char *get_digits_pressed(void)
+{
         return digits_pressed;
 }
 
-void press_digit(int digit) {
+void press_digit(int digit)
+{
         digits_pressed[0] = digit;
         digits_pressed[1] = '\0';
         digits_pressed_count = 1;
 }
 
-void reset_digits_pressed(void) {
+void reset_digits_pressed(void)
+{
         memset(digits_pressed, '\0', sizeof(digits_pressed));
         digits_pressed_count = 0;
 }
 
-void update_last_input_time(void) {
+void update_last_input_time(void)
+{
         clock_gettime(CLOCK_MONOTONIC, &last_input_time);
 }
 
-bool is_cooldown_elapsed(int milli_seconds) {
+bool is_cooldown_elapsed(int milli_seconds)
+{
         struct timespec current_time;
         clock_gettime(CLOCK_MONOTONIC, &current_time);
         double elapsed_milliseconds =
@@ -152,12 +159,14 @@ bool is_cooldown_elapsed(int milli_seconds) {
         return elapsed_milliseconds >= milli_seconds;
 }
 
-void init_key_mappings(AppSettings *settings) {
+void init_key_mappings(AppSettings *settings)
+{
         AppState *state = get_app_state();
         map_settings_to_keys(settings, &(state->uiSettings), key_mappings);
 }
 
-int parse_volume_arg(const char *arg_str) {
+int parse_volume_arg(const char *arg_str)
+{
         if (!arg_str || !*arg_str)
                 return 0;
 
@@ -191,7 +200,8 @@ int parse_volume_arg(const char *arg_str) {
         return atoi(buf);
 }
 
-void handle_event(struct Event *event) {
+void handle_event(struct Event *event)
+{
         AppState *state = get_app_state();
         AppSettings *settings = get_app_settings();
         PlayList *playlist = get_playlist();
@@ -339,7 +349,8 @@ static gint64 last_scroll_event_time = 0;
 static gint64 last_seek_event_time = 0;
 static gint64 last_page_event_time = 0;
 
-static gboolean should_throttle(struct Event *event) {
+static gboolean should_throttle(struct Event *event)
+{
         gint64 now = g_get_real_time(); // microseconds since Epoch
         gint64 delta;
 
@@ -378,7 +389,8 @@ static gboolean should_throttle(struct Event *event) {
 #define MAX_SEQ_LEN 1024 // Maximum length of sequence buffer
 #define MAX_TMP_SEQ_LEN 256
 
-enum EventType get_mouse_last_row_event(int mouse_x_on_last_row) {
+enum EventType get_mouse_last_row_event(int mouse_x_on_last_row)
+{
         enum EventType result = EVENT_NONE;
         AppState *state = get_app_state();
 
@@ -442,7 +454,8 @@ enum EventType get_mouse_last_row_event(int mouse_x_on_last_row) {
         return result;
 }
 
-bool mouse_input_handled(char *seq, int i, struct Event *event) {
+bool mouse_input_handled(char *seq, int i, struct Event *event)
+{
         AppState *state = get_app_state();
 
         if (!seq || !event)
@@ -541,7 +554,8 @@ bool mouse_input_handled(char *seq, int i, struct Event *event) {
         return false;
 }
 
-bool handle_mouse_event(struct tb_event *ev, struct Event *event) {
+bool handle_mouse_event(struct tb_event *ev, struct Event *event)
+{
         if (ev->type != TB_EVENT_MOUSE)
                 return false;
 
@@ -600,7 +614,8 @@ bool handle_mouse_event(struct tb_event *ev, struct Event *event) {
         return false;
 }
 
-void handle_cooldown(void) {
+void handle_cooldown(void)
+{
         bool cooldownElapsed = false;
 
         if (is_cooldown_elapsed(COOLDOWN_MS))
@@ -620,7 +635,8 @@ void handle_cooldown(void) {
         }
 }
 
-static gboolean on_tb_input(GIOChannel *source, GIOCondition cond, gpointer data) {
+static gboolean on_tb_input(GIOChannel *source, GIOCondition cond, gpointer data)
+{
         (void)source;
         (void)cond;
         (void)data;
@@ -731,7 +747,8 @@ static gboolean on_tb_input(GIOChannel *source, GIOCondition cond, gpointer data
         return TRUE;
 }
 
-void init_input(void) {
+void init_input(void)
+{
         tb_init();
         // Enable SGR (1006) + drag-motion (1002)
         const char *enable_mouse = "\033[?1000h\033[?1002h\033[?1006h";
@@ -746,6 +763,7 @@ void init_input(void) {
         g_io_add_watch(chan, G_IO_IN, (GIOFunc)on_tb_input, NULL);
 }
 
-void shutdown_input(void) {
+void shutdown_input(void)
+{
         tb_shutdown();
 }

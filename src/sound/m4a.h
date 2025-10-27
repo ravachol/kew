@@ -86,23 +86,28 @@ static uint8_t leftoverBuffer[MAX_SAMPLES * MAX_CHANNELS * MAX_SAMPLE_SIZE];
 
 static ma_uint64 leftoverSampleCount = 0;
 
-ma_result m4a_decoder_ds_read(ma_data_source *p_data_source, void *p_frames_out, ma_uint64 frame_count, ma_uint64 *p_frames_read) {
+ma_result m4a_decoder_ds_read(ma_data_source *p_data_source, void *p_frames_out, ma_uint64 frame_count, ma_uint64 *p_frames_read)
+{
         return m4a_decoder_read_pcm_frames((m4a_decoder *)p_data_source, p_frames_out, frame_count, p_frames_read);
 }
 
-ma_result m4a_decoder_ds_seek(ma_data_source *p_data_source, ma_uint64 frame_index) {
+ma_result m4a_decoder_ds_seek(ma_data_source *p_data_source, ma_uint64 frame_index)
+{
         return m4a_decoder_seek_to_pcm_frame((m4a_decoder *)p_data_source, frame_index);
 }
 
-ma_result m4a_decoder_ds_get_data_format(ma_data_source *p_data_source, ma_format *p_format, ma_uint32 *p_channels, ma_uint32 *p_sample_rate, ma_channel *p_channel_map, size_t channel_map_cap) {
+ma_result m4a_decoder_ds_get_data_format(ma_data_source *p_data_source, ma_format *p_format, ma_uint32 *p_channels, ma_uint32 *p_sample_rate, ma_channel *p_channel_map, size_t channel_map_cap)
+{
         return m4a_decoder_get_data_format((m4a_decoder *)p_data_source, p_format, p_channels, p_sample_rate, p_channel_map, channel_map_cap);
 }
 
-ma_result m4a_decoder_ds_get_cursor(ma_data_source *p_data_source, ma_uint64 *p_cursor) {
+ma_result m4a_decoder_ds_get_cursor(ma_data_source *p_data_source, ma_uint64 *p_cursor)
+{
         return m4a_decoder_get_cursor_in_pcm_frames((m4a_decoder *)p_data_source, p_cursor);
 }
 
-ma_result m4a_decoder_ds_get_length(ma_data_source *p_data_source, ma_uint64 *p_length) {
+ma_result m4a_decoder_ds_get_length(ma_data_source *p_data_source, ma_uint64 *p_length)
+{
         return m4a_decoder_get_length_in_pcm_frames((m4a_decoder *)p_data_source, p_length);
 }
 
@@ -116,7 +121,8 @@ ma_data_source_vtable g_m4a_decoder_ds_vtable =
         NULL,
         (ma_uint64)0};
 
-static ma_result file_on_read(void *pUserData, void *pBufferOut, size_t bytesToRead, size_t *pBytesRead) {
+static ma_result file_on_read(void *pUserData, void *pBufferOut, size_t bytesToRead, size_t *pBytesRead)
+{
         FILE *fp = (FILE *)pUserData;
         size_t bytes_read = fread(pBufferOut, 1, bytesToRead, fp);
         if (bytes_read < bytesToRead && ferror(fp)) {
@@ -128,7 +134,8 @@ static ma_result file_on_read(void *pUserData, void *pBufferOut, size_t bytesToR
         return MA_SUCCESS;
 }
 
-static ma_result file_on_seek(void *pUserData, ma_int64 offset, ma_seek_origin origin) {
+static ma_result file_on_seek(void *pUserData, ma_int64 offset, ma_seek_origin origin)
+{
         FILE *fp = (FILE *)pUserData;
         int whence = (origin == ma_seek_origin_start) ? SEEK_SET : SEEK_CUR;
         if (fseeko(fp, offset, whence) != 0) {
@@ -137,7 +144,8 @@ static ma_result file_on_seek(void *pUserData, ma_int64 offset, ma_seek_origin o
         return MA_SUCCESS;
 }
 
-static int minimp4_read_callback(int64_t offset, void *buffer, size_t size, void *token) {
+static int minimp4_read_callback(int64_t offset, void *buffer, size_t size, void *token)
+{
         m4a_decoder *pM4a = (m4a_decoder *)token;
 
         // Cast int64_t to ma_int64 for onSeek
@@ -154,7 +162,8 @@ static int minimp4_read_callback(int64_t offset, void *buffer, size_t size, void
         return 0; // Success
 }
 
-int64_t minimp4_seek_callback(void *user_data, int64_t offset) {
+int64_t minimp4_seek_callback(void *user_data, int64_t offset)
+{
         m4a_decoder *pM4a = (m4a_decoder *)user_data;
         ma_result result = file_on_seek(pM4a->file, offset, ma_seek_origin_start);
         if (result != MA_SUCCESS) {
@@ -163,7 +172,8 @@ int64_t minimp4_seek_callback(void *user_data, int64_t offset) {
         return offset; // Return the new position if possible
 }
 
-static ma_result m4a_decoder_init_internal(const ma_decoding_backend_config *p_config, m4a_decoder *pM4a) {
+static ma_result m4a_decoder_init_internal(const ma_decoding_backend_config *p_config, m4a_decoder *pM4a)
+{
         if (pM4a == NULL) {
                 return MA_INVALID_ARGS;
         }
@@ -195,7 +205,8 @@ MA_API ma_result m4a_decoder_init(
     void *pReadSeekTellUserData,
     const ma_decoding_backend_config *p_config,
     const ma_allocation_callbacks *p_allocation_callbacks,
-    m4a_decoder *pM4a) {
+    m4a_decoder *pM4a)
+{
         (void)p_allocation_callbacks;
 
         if (pM4a == NULL || onRead == NULL || onSeek == NULL || onTell == NULL) {
@@ -297,7 +308,8 @@ MA_API ma_result m4a_decoder_init(
         return MA_SUCCESS;
 }
 
-double calculate_aac_duration(FILE *fp, unsigned long sample_rate, unsigned long *totalFrames) {
+double calculate_aac_duration(FILE *fp, unsigned long sample_rate, unsigned long *totalFrames)
+{
         if (fp == NULL || sample_rate == 0 || totalFrames == NULL) {
                 return -1.0;
         }
@@ -338,14 +350,16 @@ double calculate_aac_duration(FILE *fp, unsigned long sample_rate, unsigned long
         return duration;
 }
 
-uint32_t read_u32be(FILE *fp) {
+uint32_t read_u32be(FILE *fp)
+{
         unsigned char b[4];
         if (fread(b, 1, 4, fp) != 4)
                 return 0;
         return ((uint32_t)b[0] << 24) | ((uint32_t)b[1] << 16) | ((uint32_t)b[2] << 8) | ((uint32_t)b[3]);
 }
 
-int find_atom(FILE *fp, uint32_t atom_name, long max_search_length, uint32_t *atom_size_out) {
+int find_atom(FILE *fp, uint32_t atom_name, long max_search_length, uint32_t *atom_size_out)
+{
         long start_pos = ftell(fp);
         while ((ftell(fp) - start_pos) < max_search_length) {
                 unsigned char header[8];
@@ -371,7 +385,8 @@ int find_atom(FILE *fp, uint32_t atom_name, long max_search_length, uint32_t *at
         return 0; // Not found
 }
 
-int is_alac(FILE *fp, uint8_t *dsi_out, size_t *dsi_size_out) {
+int is_alac(FILE *fp, uint8_t *dsi_out, size_t *dsi_size_out)
+{
         fseek(fp, 0, SEEK_SET);
         uint32_t atom_size;
 
@@ -419,7 +434,8 @@ MA_API ma_result m4a_decoder_init_file(
     const char *pFilePath,
     const ma_decoding_backend_config *p_config,
     const ma_allocation_callbacks *p_allocation_callbacks,
-    m4a_decoder *pM4a) {
+    m4a_decoder *pM4a)
+{
         (void)p_allocation_callbacks;
 
         if (pFilePath == NULL || pM4a == NULL) {
@@ -680,7 +696,8 @@ MA_API ma_result m4a_decoder_init_file(
         }
 }
 
-MA_API void m4a_decoder_uninit(m4a_decoder *pM4a, const ma_allocation_callbacks *p_allocation_callbacks) {
+MA_API void m4a_decoder_uninit(m4a_decoder *pM4a, const ma_allocation_callbacks *p_allocation_callbacks)
+{
         (void)p_allocation_callbacks;
 
         if (pM4a == NULL) {
@@ -706,7 +723,8 @@ MA_API ma_result m4a_decoder_read_pcm_frames(
     m4a_decoder *pM4a,
     void *p_frames_out,
     ma_uint64 frame_count,
-    ma_uint64 *p_frames_read) {
+    ma_uint64 *p_frames_read)
+{
         if (pM4a == NULL || p_frames_out == NULL || frame_count == 0) {
                 return MA_INVALID_ARGS;
         }
@@ -911,7 +929,8 @@ MA_API ma_result m4a_decoder_read_pcm_frames(
         return (totalFramesProcessed > 0) ? MA_SUCCESS : result;
 }
 
-MA_API ma_result m4a_decoder_seek_to_pcm_frame(m4a_decoder *pM4a, ma_uint64 frame_index) {
+MA_API ma_result m4a_decoder_seek_to_pcm_frame(m4a_decoder *pM4a, ma_uint64 frame_index)
+{
         if (pM4a == NULL)
                 return MA_INVALID_ARGS;
 
@@ -984,7 +1003,8 @@ MA_API ma_result m4a_decoder_get_data_format(
     ma_uint32 *p_channels,
     ma_uint32 *p_sample_rate,
     ma_channel *p_channel_map,
-    size_t channel_map_cap) {
+    size_t channel_map_cap)
+{
         // Initialize output variables
         if (p_format != NULL) {
                 *p_format = ma_format_unknown;
@@ -1029,7 +1049,8 @@ MA_API ma_result m4a_decoder_get_data_format(
         return MA_SUCCESS;
 }
 
-MA_API ma_result m4a_decoder_get_cursor_in_pcm_frames(m4a_decoder *pM4a, ma_uint64 *p_cursor) {
+MA_API ma_result m4a_decoder_get_cursor_in_pcm_frames(m4a_decoder *pM4a, ma_uint64 *p_cursor)
+{
         if (p_cursor == NULL) {
                 return MA_INVALID_ARGS;
         }
@@ -1045,7 +1066,8 @@ MA_API ma_result m4a_decoder_get_cursor_in_pcm_frames(m4a_decoder *pM4a, ma_uint
         return MA_SUCCESS;
 }
 
-MA_API ma_result m4a_decoder_get_length_in_pcm_frames(m4a_decoder *pM4a, ma_uint64 *p_length) {
+MA_API ma_result m4a_decoder_get_length_in_pcm_frames(m4a_decoder *pM4a, ma_uint64 *p_length)
+{
         if (p_length == NULL) {
                 return MA_INVALID_ARGS;
         }

@@ -20,7 +20,8 @@
 #include <sys/stat.h>
 #include <sys/time.h>
 
-bool is_valid_filepath(const char *path) {
+bool is_valid_filepath(const char *path)
+{
         if (path == NULL || *path == '\0' || strnlen(path, PATH_MAX) >= PATH_MAX)
                 return false;
 
@@ -31,7 +32,8 @@ bool is_valid_filepath(const char *path) {
 void remove_blacklisted_chars(const char *input,
                               const char *blacklist,
                               char *output,
-                              size_t output_size) {
+                              size_t output_size)
+{
         if (!input || !blacklist || !output || output_size < 2) {
                 if (output && output_size > 0)
                         output[0] = '\0';
@@ -56,7 +58,8 @@ void remove_blacklisted_chars(const char *input,
         *out_ptr = '\0';
 }
 
-void ensure_non_empty(char *str, size_t buffer_size) {
+void ensure_non_empty(char *str, size_t buffer_size)
+{
         if (str == NULL || buffer_size < 2) {
                 return;
         }
@@ -76,7 +79,8 @@ static char sanitized_title[512];
 
 static pthread_mutex_t notification_mutex = PTHREAD_MUTEX_INITIALIZER;
 
-int can_show_notification(void) {
+int can_show_notification(void)
+{
         struct timeval now;
         gettimeofday(&now, NULL);
 
@@ -103,7 +107,8 @@ int can_show_notification(void) {
         return 0;
 }
 
-void on_notification_closed(void) {
+void on_notification_closed(void)
+{
 }
 
 static GDBusConnection *connection = NULL;
@@ -112,7 +117,8 @@ static guint signal_subscription_id = 0;
 
 static void on_dbus_call_complete(GObject *source_object,
                                   GAsyncResult *res,
-                                  gpointer user_data) {
+                                  gpointer user_data)
+{
         GError *error = NULL;
         GVariant *result = g_dbus_connection_call_finish(G_DBUS_CONNECTION(source_object), res, &error);
 
@@ -134,7 +140,8 @@ static void on_notification_closed_signal(GDBusConnection *connection,
                                           const gchar *interface_name,
                                           const gchar *signal_name,
                                           GVariant *parameters,
-                                          gpointer user_data) {
+                                          gpointer user_data)
+{
         (void)connection;
         (void)sender_name;
         (void)object_path;
@@ -152,7 +159,8 @@ static void on_notification_closed_signal(GDBusConnection *connection,
 
 static void on_close_notification_complete(GObject *source_object,
                                            GAsyncResult *res,
-                                           gpointer user_data) {
+                                           gpointer user_data)
+{
         (void)user_data;
         GError *error = NULL;
         GVariant *result = g_dbus_connection_call_finish(G_DBUS_CONNECTION(source_object), res, &error);
@@ -176,18 +184,21 @@ typedef struct
         int ref_count;
 } BusConnectionData;
 
-static void bus_connection_data_ref(BusConnectionData *data) {
+static void bus_connection_data_ref(BusConnectionData *data)
+{
         g_atomic_int_inc(&(data->ref_count));
 }
 
-static void bus_connection_data_unref(BusConnectionData *data) {
+static void bus_connection_data_unref(BusConnectionData *data)
+{
         if (g_atomic_int_dec_and_test(&(data->ref_count))) {
                 g_main_loop_unref(data->loop);
                 g_free(data);
         }
 }
 
-static gboolean on_timeout(gpointer user_data) {
+static gboolean on_timeout(gpointer user_data)
+{
         BusConnectionData *data = (BusConnectionData *)user_data;
 
         if (!data->connected) {
@@ -202,7 +213,8 @@ static gboolean on_timeout(gpointer user_data) {
         return FALSE; // Stop the timeout callback from repeating
 }
 
-static void on_bus_get_complete(GObject *source_object, GAsyncResult *res, gpointer user_data) {
+static void on_bus_get_complete(GObject *source_object, GAsyncResult *res, gpointer user_data)
+{
         (void)source_object;
         BusConnectionData *data = (BusConnectionData *)user_data;
         GError *error = NULL;
@@ -223,7 +235,8 @@ static void on_bus_get_complete(GObject *source_object, GAsyncResult *res, gpoin
         bus_connection_data_unref(data);
 }
 
-GDBusConnection *get_dbus_connection_with_timeout(GBusType bus_type, guint timeout_ms) {
+GDBusConnection *get_dbus_connection_with_timeout(GBusType bus_type, guint timeout_ms)
+{
         // Allocate and initialize the data structure
         BusConnectionData *data = g_new0(BusConnectionData, 1);
         data->loop = g_main_loop_new(NULL, FALSE);
@@ -254,7 +267,8 @@ GDBusConnection *get_dbus_connection_with_timeout(GBusType bus_type, guint timeo
         return connection;
 }
 
-void cleanup_previous_notification() {
+void cleanup_previous_notification()
+{
         if (last_notification_id != 0) {
                 // Send CloseNotification call for the active notification
                 g_dbus_connection_call(
@@ -273,7 +287,8 @@ void cleanup_previous_notification() {
         }
 }
 
-int display_song_notification(const char *artist, const char *title, const char *cover, UISettings *ui) {
+int display_song_notification(const char *artist, const char *title, const char *cover, UISettings *ui)
+{
         if (!ui->allowNotifications || !can_show_notification()) {
                 return 0;
         }
@@ -350,7 +365,8 @@ int display_song_notification(const char *artist, const char *title, const char 
         return 0;
 }
 
-void cleanup_notifications() {
+void cleanup_notifications()
+{
         cleanup_previous_notification();
 
         // Unsubscribe from signals

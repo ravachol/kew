@@ -24,7 +24,8 @@ static const int MAX_TERMINAL_ROWS = 9999;
 static struct termios orig_termios;
 static int termios_saved = 0;
 
-void set_terminal_color(int color) {
+void set_terminal_color(int color)
+{
         /*
         - 0: Black
         - 1: Red
@@ -59,7 +60,8 @@ void set_terminal_color(int color) {
         }
 }
 
-void set_text_color_RGB(int r, int g, int b) {
+void set_text_color_RGB(int r, int g, int b)
+{
         if (r < 0 || r > 255)
                 r = 255;
         if (g < 0 || g > 255)
@@ -71,7 +73,8 @@ void set_text_color_RGB(int r, int g, int b) {
                (unsigned int)b);
 }
 
-void get_term_size(int *width, int *height) {
+void get_term_size(int *width, int *height)
+{
         struct winsize w;
 
         if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) == -1 ||
@@ -86,7 +89,8 @@ void get_term_size(int *width, int *height) {
         *width = (int)w.ws_col;
 }
 
-void set_nonblocking_mode(void) {
+void set_nonblocking_mode(void)
+{
         struct termios ttystate;
         tcgetattr(STDIN_FILENO, &orig_termios); // save original
 
@@ -102,79 +106,95 @@ void set_nonblocking_mode(void) {
         tcflush(STDIN_FILENO, TCIFLUSH); // flush any leftover input
 }
 
-void restore_terminal_mode(void) {
+void restore_terminal_mode(void)
+{
         if (termios_saved) {
                 tcsetattr(STDIN_FILENO, TCSANOW, &orig_termios);
                 tcflush(STDIN_FILENO, TCIFLUSH);
         }
 }
 
-void save_cursor_position(void) {
+void save_cursor_position(void)
+{
         printf("\033[s");
 }
 
-void restore_cursor_position(void) {
+void restore_cursor_position(void)
+{
         printf("\033[u");
 }
 
-void set_default_text_color(void) {
+void set_default_text_color(void)
+{
         printf("\033[0m");
 }
 
-void hide_cursor(void) {
+void hide_cursor(void)
+{
         printf("\033[?25l");
 }
 
-void show_cursor(void) {
+void show_cursor(void)
+{
         printf("\033[?25h");
         fflush(stdout);
 }
 
-void clear_rest_of_screen(void) {
+void clear_rest_of_screen(void)
+{
         printf("\033[J");
 }
 
-void clear_line(void) {
+void clear_line(void)
+{
         printf("\033[2K");
 }
 
-void clear_rest_of_line(void) {
+void clear_rest_of_line(void)
+{
         printf("\033[K");
 }
 
-void clear_screen(void) {
+void clear_screen(void)
+{
         printf("\033[3J");              // Clear scrollback buffer
         printf("\033[2J\033[3J\033[H"); // Move cursor to top-left and clear
                                         // screen and scrollback buffer
 }
 
-void goto_first_line_first_row(void) {
+void goto_first_line_first_row(void)
+{
         printf("\033[H");
 }
 
-void enable_scrolling(void) {
+void enable_scrolling(void)
+{
         printf("\033[?7h");
 }
 
-void disable_terminal_line_input(void) {
+void disable_terminal_line_input(void)
+{
         setvbuf(stdout, NULL, _IOFBF, BUFSIZ);
 }
 
-void set_raw_input_mode(void) {
+void set_raw_input_mode(void)
+{
         struct termios term;
         tcgetattr(STDIN_FILENO, &term);
         term.c_lflag &= ~(ICANON | ECHO);
         tcsetattr(STDIN_FILENO, TCSAFLUSH, &term);
 }
 
-void enable_input_buffering() {
+void enable_input_buffering()
+{
         struct termios term;
         tcgetattr(STDIN_FILENO, &term);
         term.c_lflag |= ICANON | ECHO;
         tcsetattr(STDIN_FILENO, TCSAFLUSH, &term);
 }
 
-void cursor_jump(int num_rows) {
+void cursor_jump(int num_rows)
+{
         if (num_rows < 0 || num_rows > MAX_TERMINAL_ROWS)
                 return;
 
@@ -182,14 +202,16 @@ void cursor_jump(int num_rows) {
         printf("\033[0m");
 }
 
-void cursor_jump_down(int num_rows) {
+void cursor_jump_down(int num_rows)
+{
         if (num_rows < 0 || num_rows > MAX_TERMINAL_ROWS)
                 return;
 
         printf("\033[%dB", num_rows);
 }
 
-int read_input_sequence(char *seq, size_t seq_size) {
+int read_input_sequence(char *seq, size_t seq_size)
+{
         if (seq == NULL ||
             seq_size < 2) // Buffer needs at least 1 byte + null terminator
                 return 0;
@@ -244,7 +266,8 @@ int read_input_sequence(char *seq, size_t seq_size) {
                1; // Return the total length including the null terminator
 }
 
-int is_input_available(void) {
+int is_input_available(void)
+{
         fd_set fds;
         FD_ZERO(&fds);
         FD_SET(STDIN_FILENO, &fds);
@@ -261,7 +284,8 @@ int is_input_available(void) {
         return result;
 }
 
-int get_indentation(int text_width) {
+int get_indentation(int text_width)
+{
         int term_w, term_h;
         get_term_size(&term_w, &term_h);
 
@@ -279,37 +303,44 @@ int get_indentation(int text_width) {
         return indent;
 }
 
-void enter_alternate_screen_buffer(void) {
+void enter_alternate_screen_buffer(void)
+{
         // Enter alternate screen buffer
         printf("\033[?1049h");
 }
 
-void exit_alternate_screen_buffer(void) {
+void exit_alternate_screen_buffer(void)
+{
         // Exit alternate screen buffer
         printf("\033[?1049l");
 }
 
-void enable_terminal_mouse_buttons(void) {
+void enable_terminal_mouse_buttons(void)
+{
         // Enable program to accept mouse input as codes
         printf("\033[?1002h\033[?1006h");
 }
 
-void disable_terminal_mouse_buttons(void) {
+void disable_terminal_mouse_buttons(void)
+{
         // Disable program to accept mouse input as codes
         printf("\033[?1002l\033[?1006l");
 }
 
-void set_terminal_window_title(char *title) {
+void set_terminal_window_title(char *title)
+{
         // Only change window title, no icon
         printf("\033]2;%s\007", title);
 }
 
-void save_terminal_window_title(void) {
+void save_terminal_window_title(void)
+{
         // Save terminal window title on the stack
         printf("\033[22;0t");
 }
 
-void restore_terminal_window_title(void) {
+void restore_terminal_window_title(void)
+{
         // Restore terminal window title from the stack
         printf("\033[23;0t");
 }

@@ -31,7 +31,8 @@
 
 uint32_t arc4random_uniform(uint32_t upper_bound);
 
-int get_random_number(int min, int max) {
+int get_random_number(int min, int max)
+{
         return min + arc4random_uniform(max - min + 1);
 }
 
@@ -39,7 +40,8 @@ int get_random_number(int min, int max) {
 #include <stdlib.h>
 #include <time.h>
 
-int get_random_number(int min, int max) {
+int get_random_number(int min, int max)
+{
         static int seeded = 0;
         if (!seeded) {
                 srand(time(
@@ -53,7 +55,8 @@ int get_random_number(int min, int max) {
 
 #endif
 
-void c_sleep(int milliseconds) {
+void c_sleep(int milliseconds)
+{
         struct timespec ts;
         ts.tv_sec = milliseconds / 1000; // Seconds part
         // Ensure that the nanoseconds part is computed safely, and no overflow
@@ -69,7 +72,8 @@ void c_sleep(int milliseconds) {
         nanosleep(&ts, NULL);
 }
 
-void c_usleep(int microseconds) {
+void c_usleep(int microseconds)
+{
         if (microseconds < 0 || microseconds > 100000000) // Max 100 seconds
         {
                 return;
@@ -83,7 +87,8 @@ void c_usleep(int microseconds) {
         nanosleep(&ts, NULL);
 }
 
-void c_strcpy(char *dest, const char *src, size_t dest_size) {
+void c_strcpy(char *dest, const char *src, size_t dest_size)
+{
         // Ensure the destination and source are valid, and dest_size is large
         // enough to hold at least one byte
         if (dest && src && dest_size > 0) {
@@ -108,11 +113,13 @@ void c_strcpy(char *dest, const char *src, size_t dest_size) {
         }
 }
 
-gint64 get_length_in_micro_sec(double duration) {
+gint64 get_length_in_micro_sec(double duration)
+{
         return floor(llround(duration * G_USEC_PER_SEC));
 }
 
-char *string_to_lower(const char *str) {
+char *string_to_lower(const char *str)
+{
         if (str == NULL) {
                 return NULL;
         }
@@ -122,7 +129,8 @@ char *string_to_lower(const char *str) {
         return g_utf8_strdown(str, length);
 }
 
-char *string_to_upper(const char *str) {
+char *string_to_upper(const char *str)
+{
         if (str == NULL) {
                 return NULL;
         }
@@ -132,7 +140,8 @@ char *string_to_upper(const char *str) {
         return g_utf8_strup(str, length);
 }
 
-char *c_strcasestr(const char *haystack, const char *needle, int max_scan_len) {
+char *c_strcasestr(const char *haystack, const char *needle, int max_scan_len)
+{
         if (!haystack || !needle || max_scan_len <= 0)
                 return NULL;
 
@@ -155,7 +164,8 @@ char *c_strcasestr(const char *haystack, const char *needle, int max_scan_len) {
         return NULL;
 }
 
-int match_regex(const regex_t *regex, const char *ext) {
+int match_regex(const regex_t *regex, const char *ext)
+{
         if (regex == NULL || ext == NULL) {
                 fprintf(stderr, "Invalid arguments\n");
                 return 1;
@@ -175,7 +185,8 @@ int match_regex(const regex_t *regex, const char *ext) {
         }
 }
 
-bool is_valid_utf8(const char *str, size_t len) {
+bool is_valid_utf8(const char *str, size_t len)
+{
         size_t i = 0;
         while (i < len) {
                 unsigned char c = str[i];
@@ -207,7 +218,8 @@ bool is_valid_utf8(const char *str, size_t len) {
         return true;
 }
 
-void extract_extension(const char *filename, size_t ext_size, char *ext) {
+void extract_extension(const char *filename, size_t ext_size, char *ext)
+{
         if (!filename || !ext || ext_size == 0) {
                 if (ext && ext_size > 0)
                         ext[0] = '\0';
@@ -271,7 +283,8 @@ void extract_extension(const char *filename, size_t ext_size, char *ext) {
         ext[j] = '\0';
 }
 
-int path_ends_with(const char *str, const char *suffix) {
+int path_ends_with(const char *str, const char *suffix)
+{
         size_t length = strnlen(str, MAXPATHLEN);
         size_t suffixLength = strnlen(suffix, MAXPATHLEN);
 
@@ -283,7 +296,8 @@ int path_ends_with(const char *str, const char *suffix) {
         return strcmp(str_suffix, suffix) == 0;
 }
 
-int path_starts_with(const char *str, const char *prefix) {
+int path_starts_with(const char *str, const char *prefix)
+{
         size_t length = strnlen(str, MAXPATHLEN);
         size_t prefixLength = strnlen(prefix, MAXPATHLEN);
 
@@ -294,7 +308,8 @@ int path_starts_with(const char *str, const char *prefix) {
         return strncmp(str, prefix, prefixLength) == 0;
 }
 
-void trim(char *str, int max_len) {
+void trim(char *str, int max_len)
+{
         if (!str || max_len <= 0) {
                 return;
         }
@@ -328,7 +343,8 @@ void trim(char *str, int max_len) {
         }
 }
 
-const char *get_home_path(void) {
+const char *get_home_path(void)
+{
         struct passwd *pw = getpwuid(getuid());
         if (pw && pw->pw_dir) {
                 return pw->pw_dir;
@@ -336,7 +352,8 @@ const char *get_home_path(void) {
         return NULL;
 }
 
-char *get_config_path(void) {
+char *get_config_path(void)
+{
         char *config_path = malloc(MAXPATHLEN);
         if (!config_path)
                 return NULL;
@@ -376,7 +393,8 @@ char *get_config_path(void) {
         return config_path;
 }
 
-char *get_prefs_path(void) {
+char *get_prefs_path(void)
+{
         char *prefs_path = malloc(MAXPATHLEN);
         if (!prefs_path)
                 return NULL;
@@ -411,7 +429,8 @@ char *get_prefs_path(void) {
         return prefs_path;
 }
 
-bool is_valid_filename(const char *filename) {
+bool is_valid_filename(const char *filename)
+{
         // Check for path traversal patterns
         if (strstr(filename, "..") != NULL) {
                 return false;
@@ -431,7 +450,8 @@ bool is_valid_filename(const char *filename) {
         return true;
 }
 
-char *get_file_path(const char *filename) {
+char *get_file_path(const char *filename)
+{
         if (filename == NULL || !is_valid_filename(filename)) {
                 return NULL;
         }
@@ -468,7 +488,8 @@ char *get_file_path(const char *filename) {
         return filepath;
 }
 
-void remove_unneeded_chars(char *str, int length) {
+void remove_unneeded_chars(char *str, int length)
+{
         // Do not remove characters if filename only contains digits
         bool stringContainsLetters = false;
         for (int i = 0; str[i] != '\0'; i++) {
@@ -504,7 +525,8 @@ void remove_unneeded_chars(char *str, int length) {
         }
 }
 
-void shorten_string(char *str, size_t max_length) {
+void shorten_string(char *str, size_t max_length)
+{
         size_t length = strnlen(str, max_length + 2);
 
         if (length > max_length) {
@@ -512,13 +534,15 @@ void shorten_string(char *str, size_t max_length) {
         }
 }
 
-void print_blank_spaces(int num_spaces) {
+void print_blank_spaces(int num_spaces)
+{
         if (num_spaces < 1)
                 return;
         printf("%*s", num_spaces, " ");
 }
 
-int get_number(const char *str) {
+int get_number(const char *str)
+{
         char *endptr;
         long value = strtol(str, &endptr, 10);
 
@@ -529,7 +553,8 @@ int get_number(const char *str) {
         return (int)value;
 }
 
-float get_float(const char *str) {
+float get_float(const char *str)
+{
         char *endptr;
         float value = strtof(str, &endptr);
 
@@ -544,7 +569,8 @@ float get_float(const char *str) {
         return value;
 }
 
-int copy_file(const char *src, const char *dst) {
+int copy_file(const char *src, const char *dst)
+{
         // Validate inputs
         if (!src || !dst) {
                 return -1;
@@ -636,7 +662,8 @@ int copy_file(const char *src, const char *dst) {
         return 0;
 }
 
-int get_number_from_string(const char *str) {
+int get_number_from_string(const char *str)
+{
         char *endptr;
         long value = strtol(str, &endptr, 10);
 
@@ -651,7 +678,8 @@ int get_number_from_string(const char *str) {
         return (int)value;
 }
 
-void str_to_lower(char *str) {
+void str_to_lower(char *str)
+{
         if (str == NULL)
                 return;
 

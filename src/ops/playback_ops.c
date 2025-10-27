@@ -31,11 +31,13 @@
 #include "utils/file.h"
 #include "utils/utils.h"
 
-void resume_playback(void) {
+void resume_playback(void)
+{
         sound_resume_playback();
 }
 
-int load_decoder(SongData *song_data, bool *song_data_deleted) {
+int load_decoder(SongData *song_data, bool *song_data_deleted)
+{
         PlaybackState *ps = get_playback_state();
         int result = 0;
 
@@ -66,7 +68,8 @@ int load_decoder(SongData *song_data, bool *song_data_deleted) {
         return result;
 }
 
-int assign_loaded_data(void) {
+int assign_loaded_data(void)
+{
         PlaybackState *ps = get_playback_state();
         int result = 0;
 
@@ -83,7 +86,8 @@ int assign_loaded_data(void) {
         return result;
 }
 
-void *song_data_reader_thread(void *arg) {
+void *song_data_reader_thread(void *arg)
+{
         PlaybackState *ps = (PlaybackState *)arg;
 
         pthread_mutex_lock(&(ps->loadingdata.mutex));
@@ -134,7 +138,8 @@ void *song_data_reader_thread(void *arg) {
         return NULL;
 }
 
-void load_song(Node *song, LoadingThreadData *loadingdata) {
+void load_song(Node *song, LoadingThreadData *loadingdata)
+{
         PlaybackState *ps = get_playback_state();
 
         if (song == NULL) {
@@ -151,7 +156,8 @@ void load_song(Node *song, LoadingThreadData *loadingdata) {
         pthread_create(&loading_thread, NULL, song_data_reader_thread, ps);
 }
 
-void try_load_next(void) {
+void try_load_next(void)
+{
         AppState *state = get_app_state();
         PlaybackState *ps = get_playback_state();
         Node *current = get_current_song();
@@ -176,7 +182,8 @@ void try_load_next(void) {
         }
 }
 
-void pause_song(void) {
+void pause_song(void)
+{
         struct timespec pause_time = get_pause_time();
         if (!is_paused()) {
                 emit_string_property_changed("PlaybackStatus", "Paused");
@@ -185,7 +192,8 @@ void pause_song(void) {
         pause_playback();
 }
 
-void skip_to_begginning_of_song(void) {
+void skip_to_begginning_of_song(void)
+{
         reset_clock();
 
         if (get_current_song() != NULL) {
@@ -194,7 +202,8 @@ void skip_to_begginning_of_song(void) {
         }
 }
 
-void prepare_if_skipped_silent(void) {
+void prepare_if_skipped_silent(void)
+{
         PlaybackState *ps = get_playback_state();
 
         if (ps->hasSilentlySwitched) {
@@ -212,7 +221,8 @@ void prepare_if_skipped_silent(void) {
         }
 }
 
-void play(void) {
+void play(void)
+{
         PlaybackState *ps = get_playback_state();
 
         if (is_paused()) {
@@ -234,7 +244,8 @@ void play(void) {
         }
 }
 
-bool is_valid_audio_node(Node *node) {
+bool is_valid_audio_node(Node *node)
+{
         if (!node)
                 return false;
         if (node->id < 0)
@@ -246,7 +257,8 @@ bool is_valid_audio_node(Node *node) {
         return true;
 }
 
-int play_song(Node *node) {
+int play_song(Node *node)
+{
         AppState *state = get_app_state();
         PlaybackState *ps = get_playback_state();
 
@@ -302,11 +314,13 @@ int play_song(Node *node) {
         return 0;
 }
 
-void volume_change(int change_percent) {
+void volume_change(int change_percent)
+{
         adjust_volume_percent(change_percent);
 }
 
-void skip_to_song(int id, bool start_playing) {
+void skip_to_song(int id, bool start_playing)
+{
         PlaybackState *ps = get_playback_state();
 
         if (ps->songLoading || !ps->loadedNextSong || ps->skipping || ps->clearingErrors)
@@ -331,7 +345,8 @@ void skip_to_song(int id, bool start_playing) {
         play_song(found);
 }
 
-void stop(void) {
+void stop(void)
+{
         stop_playback();
 
         if (is_stopped()) {
@@ -340,7 +355,8 @@ void stop(void) {
         }
 }
 
-void ops_toggle_pause(void) {
+void ops_toggle_pause(void)
+{
         PlaybackState *ps = get_playback_state();
 
         if (is_stopped()) {
@@ -367,7 +383,8 @@ void ops_toggle_pause(void) {
         }
 }
 
-void seek(int seconds) {
+void seek(int seconds)
+{
         Node *current = get_current_song();
         if (current == NULL)
                 return;

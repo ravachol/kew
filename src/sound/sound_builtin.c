@@ -23,7 +23,8 @@
 static ma_result builtin_file_data_source_read(ma_data_source *p_data_source,
                                                void *p_frames_out,
                                                ma_uint64 frame_count,
-                                               ma_uint64 *p_frames_read) {
+                                               ma_uint64 *p_frames_read)
+{
         // Dummy implementation
         (void)p_data_source;
         (void)p_frames_out;
@@ -33,7 +34,8 @@ static ma_result builtin_file_data_source_read(ma_data_source *p_data_source,
 }
 
 static ma_result builtin_file_data_source_seek(ma_data_source *p_data_source,
-                                               ma_uint64 frame_index) {
+                                               ma_uint64 frame_index)
+{
         if (p_data_source == NULL) {
                 return MA_INVALID_ARGS;
         }
@@ -57,7 +59,8 @@ static ma_result builtin_file_data_source_seek(ma_data_source *p_data_source,
 
 static ma_result builtin_file_data_source_get_data_format(
     ma_data_source *p_data_source, ma_format *p_format, ma_uint32 *p_channels,
-    ma_uint32 *p_sample_rate, ma_channel *p_channel_map, size_t channel_map_cap) {
+    ma_uint32 *p_sample_rate, ma_channel *p_channel_map, size_t channel_map_cap)
+{
         (void)p_channel_map;
         (void)channel_map_cap;
 
@@ -80,7 +83,8 @@ static ma_result builtin_file_data_source_get_data_format(
 
 static ma_result
 builtin_file_data_source_get_cursor(ma_data_source *p_data_source,
-                                    ma_uint64 *p_cursor) {
+                                    ma_uint64 *p_cursor)
+{
         if (p_data_source == NULL) {
                 return MA_INVALID_ARGS;
         }
@@ -93,7 +97,8 @@ builtin_file_data_source_get_cursor(ma_data_source *p_data_source,
 
 static ma_result
 builtin_file_data_source_get_length(ma_data_source *p_data_source,
-                                    ma_uint64 *p_length) {
+                                    ma_uint64 *p_length)
+{
         (void)p_data_source;
         ma_uint64 totalFrames = 0;
 
@@ -115,7 +120,8 @@ builtin_file_data_source_get_length(ma_data_source *p_data_source,
 
 static ma_result
 builtin_file_data_source_set_looping(ma_data_source *p_data_source,
-                                     ma_bool32 is_looping) {
+                                     ma_bool32 is_looping)
+{
         // Dummy implementation
         (void)p_data_source;
         (void)is_looping;
@@ -133,15 +139,18 @@ ma_data_source_vtable builtin_file_data_source_vtable = {
     0 // Flags
 };
 
-double db_to_linear(double db) {
+double db_to_linear(double db)
+{
         return pow(10.0, db / 20.0);
 }
 
-bool is_valid_gain(double gain) {
+bool is_valid_gain(double gain)
+{
         return gain > -50.0 && gain < 50.0 && !isnan(gain) && isfinite(gain);
 }
 
-static bool compute_replay_gain(AudioData *audio_data, double *out_gain_db) {
+static bool compute_replay_gain(AudioData *audio_data, double *out_gain_db)
+{
         if (audio_data->pUserData == NULL)
                 return false;
 
@@ -181,7 +190,8 @@ static bool compute_replay_gain(AudioData *audio_data, double *out_gain_db) {
 
 static void apply_gain_to_interleaved_frames(void *raw_frames, ma_format format,
                                              ma_uint64 frames_to_read, int channels,
-                                             double gain) {
+                                             double gain)
+{
         if (gain == 1.0) {
                 return; // No gain to apply
         }
@@ -257,7 +267,8 @@ static void apply_gain_to_interleaved_frames(void *raw_frames, ma_format format,
         }
 }
 
-static bool perform_seek_if_requested(ma_decoder *decoder, AudioData *audio_data) {
+static bool perform_seek_if_requested(ma_decoder *decoder, AudioData *audio_data)
+{
         if (!is_seek_requested())
                 return true;
 
@@ -278,7 +289,8 @@ static bool perform_seek_if_requested(ma_decoder *decoder, AudioData *audio_data
 }
 
 static bool should_switch(AudioData *audio_data, ma_uint64 frames_to_read,
-                          ma_result result, ma_uint64 cursor) {
+                          ma_result result, ma_uint64 cursor)
+{
         return (((audio_data->totalFrames != 0 &&
                   cursor >= audio_data->totalFrames) ||
                  frames_to_read == 0 || is_skip_to_next() || result != MA_SUCCESS) &&
@@ -286,7 +298,8 @@ static bool should_switch(AudioData *audio_data, ma_uint64 frames_to_read,
 }
 
 void builtin_read_pcm_frames(ma_data_source *p_data_source, void *p_frames_out,
-                             ma_uint64 frame_count, ma_uint64 *p_frames_read) {
+                             ma_uint64 frame_count, ma_uint64 *p_frames_read)
+{
         AudioData *audio_data = (AudioData *)p_data_source;
         ma_uint64 frames_read = 0;
 
@@ -385,7 +398,8 @@ void builtin_read_pcm_frames(ma_data_source *p_data_source, void *p_frames_out,
 }
 
 void builtin_on_audio_frames(ma_device *p_device, void *p_frames_out,
-                             const void *p_frames_in, ma_uint32 frame_count) {
+                             const void *p_frames_in, ma_uint32 frame_count)
+{
         AudioData *p_data_source = (AudioData *)p_device->pUserData;
         ma_uint64 frames_read = 0;
         builtin_read_pcm_frames(&(p_data_source->base), p_frames_out, frame_count,

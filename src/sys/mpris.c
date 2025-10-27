@@ -106,7 +106,8 @@ static const gchar *desktop_entry = "";     // The name of your .desktop file
 static void handle_raise(GDBusConnection *connection, const gchar *sender,
                          const gchar *object_path, const gchar *interface_name,
                          const gchar *method_name, GVariant *parameters,
-                         GDBusMethodInvocation *invocation, gpointer user_data) {
+                         GDBusMethodInvocation *invocation, gpointer user_data)
+{
         (void)connection;
         (void)sender;
         (void)object_path;
@@ -122,7 +123,8 @@ static void handle_raise(GDBusConnection *connection, const gchar *sender,
 static void handle_quit(GDBusConnection *connection, const gchar *sender,
                         const gchar *object_path, const gchar *interface_name,
                         const gchar *method_name, GVariant *parameters,
-                        GDBusMethodInvocation *invocation, gpointer user_data) {
+                        GDBusMethodInvocation *invocation, gpointer user_data)
+{
         (void)connection;
         (void)sender;
         (void)object_path;
@@ -139,7 +141,8 @@ static gboolean get_identity(GDBusConnection *connection, const gchar *sender,
                              const gchar *object_path,
                              const gchar *interface_name,
                              const gchar *property_name, GVariant **value,
-                             GError **error, gpointer user_data) {
+                             GError **error, gpointer user_data)
+{
         (void)connection;
         (void)sender;
         (void)object_path;
@@ -156,7 +159,8 @@ static gboolean get_desktop_entry(GDBusConnection *connection,
                                   const gchar *sender, const gchar *object_path,
                                   const gchar *interface_name,
                                   const gchar *property_name, GVariant **value,
-                                  GError **error, gpointer user_data) {
+                                  GError **error, gpointer user_data)
+{
         (void)connection;
         (void)sender;
         (void)object_path;
@@ -173,7 +177,8 @@ static gboolean
 get_desktop_icon_name(GDBusConnection *connection, const gchar *sender,
                       const gchar *object_path, const gchar *interface_name,
                       const gchar *property_name, GVariant **value,
-                      GError **error, gpointer user_data) {
+                      GError **error, gpointer user_data)
+{
         (void)connection;
         (void)sender;
         (void)object_path;
@@ -189,7 +194,8 @@ get_desktop_icon_name(GDBusConnection *connection, const gchar *sender,
 static void handle_next(GDBusConnection *connection, const gchar *sender,
                         const gchar *object_path, const gchar *interface_name,
                         const gchar *method_name, GVariant *parameters,
-                        GDBusMethodInvocation *invocation, gpointer user_data) {
+                        GDBusMethodInvocation *invocation, gpointer user_data)
+{
         (void)connection;
         (void)sender;
         (void)object_path;
@@ -207,7 +213,8 @@ static void handle_previous(GDBusConnection *connection, const gchar *sender,
                             const gchar *interface_name,
                             const gchar *method_name, GVariant *parameters,
                             GDBusMethodInvocation *invocation,
-                            gpointer user_data) {
+                            gpointer user_data)
+{
         (void)connection;
         (void)sender;
         (void)object_path;
@@ -223,7 +230,8 @@ static void handle_previous(GDBusConnection *connection, const gchar *sender,
 static void handle_pause(GDBusConnection *connection, const gchar *sender,
                          const gchar *object_path, const gchar *interface_name,
                          const gchar *method_name, GVariant *parameters,
-                         GDBusMethodInvocation *invocation, gpointer user_data) {
+                         GDBusMethodInvocation *invocation, gpointer user_data)
+{
         (void)connection;
         (void)sender;
         (void)object_path;
@@ -242,7 +250,8 @@ static void handle_play_pause(GDBusConnection *connection, const gchar *sender,
                               const gchar *interface_name,
                               const gchar *method_name, GVariant *parameters,
                               GDBusMethodInvocation *invocation,
-                              gpointer user_data) {
+                              gpointer user_data)
+{
         (void)connection;
         (void)sender;
         (void)object_path;
@@ -259,7 +268,8 @@ static void handle_play_pause(GDBusConnection *connection, const gchar *sender,
 static void handle_stop(GDBusConnection *connection, const gchar *sender,
                         const gchar *object_path, const gchar *interface_name,
                         const gchar *method_name, GVariant *parameters,
-                        GDBusMethodInvocation *invocation, gpointer user_data) {
+                        GDBusMethodInvocation *invocation, gpointer user_data)
+{
         (void)connection;
         (void)sender;
         (void)object_path;
@@ -277,7 +287,8 @@ static void handle_stop(GDBusConnection *connection, const gchar *sender,
 static void handle_play(GDBusConnection *connection, const gchar *sender,
                         const gchar *object_path, const gchar *interface_name,
                         const gchar *method_name, GVariant *parameters,
-                        GDBusMethodInvocation *invocation, gpointer user_data) {
+                        GDBusMethodInvocation *invocation, gpointer user_data)
+{
         (void)connection;
         (void)sender;
         (void)object_path;
@@ -295,7 +306,8 @@ static void handle_play(GDBusConnection *connection, const gchar *sender,
 static void handle_seek(GDBusConnection *connection, const gchar *sender,
                         const gchar *object_path, const gchar *interface_name,
                         const gchar *method_name, GVariant *parameters,
-                        GDBusMethodInvocation *invocation, gpointer user_data) {
+                        GDBusMethodInvocation *invocation, gpointer user_data)
+{
         (void)connection;
         (void)sender;
         (void)object_path;
@@ -322,7 +334,8 @@ static void handle_set_position(GDBusConnection *connection,
                                 const gchar *interface_name,
                                 const gchar *method_name, GVariant *parameters,
                                 GDBusMethodInvocation *invocation,
-                                gpointer user_data) {
+                                gpointer user_data)
+{
         (void)connection;
         (void)sender;
         (void)object_path;
@@ -358,7 +371,8 @@ static void handle_method_call(GDBusConnection *connection, const gchar *sender,
                                const gchar *interface_name,
                                const gchar *method_name, GVariant *parameters,
                                GDBusMethodInvocation *invocation,
-                               gpointer user_data) {
+                               gpointer user_data)
+{
         if (g_strcmp0(method_name, "PlayPause") == 0) {
                 handle_play_pause(connection, sender, object_path,
                                   interface_name, method_name, parameters,
@@ -401,14 +415,16 @@ static void handle_method_call(GDBusConnection *connection, const gchar *sender,
 
 #ifndef __APPLE__
 static void on_bus_name_acquired(GDBusConnection *connection, const gchar *name,
-                                 gpointer user_data) {
+                                 gpointer user_data)
+{
         (void)connection;
         (void)name;
         (void)user_data;
 }
 
 static void on_bus_name_lost(GDBusConnection *connection, const gchar *name,
-                             gpointer user_data) {
+                             gpointer user_data)
+{
         (void)connection;
         (void)name;
         (void)user_data;
@@ -418,7 +434,8 @@ static gboolean
 get_playback_status(GDBusConnection *connection, const gchar *sender,
                     const gchar *object_path, const gchar *interface_name,
                     const gchar *property_name, GVariant **value,
-                    GError **error, gpointer user_data) {
+                    GError **error, gpointer user_data)
+{
         (void)connection;
         (void)sender;
         (void)object_path;
@@ -444,7 +461,8 @@ static gboolean get_loop_status(GDBusConnection *connection,
                                 const gchar *sender, const gchar *object_path,
                                 const gchar *interface_name,
                                 const gchar *property_name, GVariant **value,
-                                GError **error, gpointer user_data) {
+                                GError **error, gpointer user_data)
+{
         (void)connection;
         (void)sender;
         (void)object_path;
@@ -460,7 +478,8 @@ static gboolean get_loop_status(GDBusConnection *connection,
 static gboolean get_rate(GDBusConnection *connection, const gchar *sender,
                          const gchar *object_path, const gchar *interface_name,
                          const gchar *property_name, GVariant **value,
-                         GError **error, gpointer user_data) {
+                         GError **error, gpointer user_data)
+{
         (void)connection;
         (void)sender;
         (void)object_path;
@@ -477,7 +496,8 @@ static gboolean get_shuffle(GDBusConnection *connection, const gchar *sender,
                             const gchar *object_path,
                             const gchar *interface_name,
                             const gchar *property_name, GVariant **value,
-                            GError **error, gpointer user_data) {
+                            GError **error, gpointer user_data)
+{
         (void)connection;
         (void)sender;
         (void)object_path;
@@ -494,7 +514,8 @@ static gboolean get_metadata(GDBusConnection *connection, const gchar *sender,
                              const gchar *object_path,
                              const gchar *interface_name,
                              const gchar *property_name, GVariant **value,
-                             GError **error, gpointer user_data) {
+                             GError **error, gpointer user_data)
+{
         (void)connection;
         (void)sender;
         (void)object_path;
@@ -578,7 +599,8 @@ static gboolean get_volume_mpris(GDBusConnection *connection, const gchar *sende
                                  const gchar *object_path,
                                  const gchar *interface_name,
                                  const gchar *property_name, GVariant **value,
-                                 GError **error, gpointer user_data) {
+                                 GError **error, gpointer user_data)
+{
         (void)connection;
         (void)sender;
         (void)object_path;
@@ -600,7 +622,8 @@ static gboolean get_position(GDBusConnection *connection, const gchar *sender,
                              const gchar *object_path,
                              const gchar *interface_name,
                              const gchar *property_name, GVariant **value,
-                             GError **error, gpointer user_data) {
+                             GError **error, gpointer user_data)
+{
         (void)connection;
         (void)sender;
         (void)object_path;
@@ -621,7 +644,8 @@ static gboolean get_minimum_rate(GDBusConnection *connection,
                                  const gchar *sender, const gchar *object_path,
                                  const gchar *interface_name,
                                  const gchar *property_name, GVariant **value,
-                                 GError **error, gpointer user_data) {
+                                 GError **error, gpointer user_data)
+{
         (void)connection;
         (void)sender;
         (void)object_path;
@@ -638,7 +662,8 @@ static gboolean get_maximum_rate(GDBusConnection *connection,
                                  const gchar *sender, const gchar *object_path,
                                  const gchar *interface_name,
                                  const gchar *property_name, GVariant **value,
-                                 GError **error, gpointer user_data) {
+                                 GError **error, gpointer user_data)
+{
         (void)connection;
         (void)sender;
         (void)object_path;
@@ -655,7 +680,8 @@ static gboolean get_can_go_next(GDBusConnection *connection,
                                 const gchar *sender, const gchar *object_path,
                                 const gchar *interface_name,
                                 const gchar *property_name, GVariant **value,
-                                GError **error, gpointer user_data) {
+                                GError **error, gpointer user_data)
+{
         (void)connection;
         (void)sender;
         (void)object_path;
@@ -680,7 +706,8 @@ static gboolean
 get_can_go_previous(GDBusConnection *connection, const gchar *sender,
                     const gchar *object_path, const gchar *interface_name,
                     const gchar *property_name, GVariant **value,
-                    GError **error, gpointer user_data) {
+                    GError **error, gpointer user_data)
+{
         (void)connection;
         (void)sender;
         (void)object_path;
@@ -702,7 +729,8 @@ static gboolean get_can_play(GDBusConnection *connection, const gchar *sender,
                              const gchar *object_path,
                              const gchar *interface_name,
                              const gchar *property_name, GVariant **value,
-                             GError **error, gpointer user_data) {
+                             GError **error, gpointer user_data)
+{
         (void)connection;
         (void)sender;
         (void)object_path;
@@ -724,7 +752,8 @@ static gboolean get_can_pause(GDBusConnection *connection, const gchar *sender,
                               const gchar *object_path,
                               const gchar *interface_name,
                               const gchar *property_name, GVariant **value,
-                              GError **error, gpointer user_data) {
+                              GError **error, gpointer user_data)
+{
         (void)connection;
         (void)sender;
         (void)object_path;
@@ -746,7 +775,8 @@ static gboolean get_can_seek(GDBusConnection *connection, const gchar *sender,
                              const gchar *object_path,
                              const gchar *interface_name,
                              const gchar *property_name, GVariant **value,
-                             GError **error, gpointer user_data) {
+                             GError **error, gpointer user_data)
+{
         (void)connection;
         (void)sender;
         (void)object_path;
@@ -763,7 +793,8 @@ static gboolean get_can_control(GDBusConnection *connection,
                                 const gchar *sender, const gchar *object_path,
                                 const gchar *interface_name,
                                 const gchar *property_name, GVariant **value,
-                                GError **error, gpointer user_data) {
+                                GError **error, gpointer user_data)
+{
         (void)connection;
         (void)sender;
         (void)object_path;
@@ -783,7 +814,8 @@ static GVariant *get_property_callback(GDBusConnection *connection,
                                        const gchar *object_path,
                                        const gchar *interface_name,
                                        const gchar *property_name,
-                                       GError **error, gpointer user_data) {
+                                       GError **error, gpointer user_data)
+{
 
         GVariant *value = NULL;
 
@@ -865,7 +897,8 @@ static gboolean
 set_property_callback(GDBusConnection *connection, const gchar *sender,
                       const gchar *object_path, const gchar *interface_name,
                       const gchar *property_name, GVariant *value,
-                      GError **error, gpointer user_data) {
+                      GError **error, gpointer user_data)
+{
         (void)connection;
         (void)sender;
         (void)object_path;
@@ -936,7 +969,8 @@ static const GDBusInterfaceVTable player_interface_vtable = {
                 handle_stop, handle_play, handle_seek, handle_set_position}};
 #endif
 
-void emit_playback_stopped_mpris() {
+void emit_playback_stopped_mpris()
+{
 #ifndef __APPLE__
         if (get_g_d_bus_connection()) {
                 g_dbus_connection_call(
@@ -951,7 +985,8 @@ void emit_playback_stopped_mpris() {
 #endif
 }
 
-void cleanup_mpris(void) {
+void cleanup_mpris(void)
+{
 #ifndef __APPLE__
         if (registration_id > 0) {
                 g_dbus_connection_unregister_object(get_g_d_bus_connection(),
@@ -982,7 +1017,8 @@ void cleanup_mpris(void) {
 #endif
 }
 
-void init_mpris(void) {
+void init_mpris(void)
+{
 #ifndef __APPLE__
         AppState *state = get_app_state();
 
@@ -1042,7 +1078,8 @@ void init_mpris(void) {
 #endif
 }
 
-void emit_start_playing_mpris() {
+void emit_start_playing_mpris()
+{
 #ifndef __APPLE__
         GVariant *parameters = g_variant_new("(s)", "Playing");
         g_dbus_connection_emit_signal(
@@ -1052,7 +1089,8 @@ void emit_start_playing_mpris() {
 #endif
 }
 
-gchar *sanitize_title(const gchar *title) {
+gchar *sanitize_title(const gchar *title)
+{
         gchar *sanitized = g_strdup(title);
 
         // Replace underscores with hyphens, otherwise some widgets have a
@@ -1073,7 +1111,8 @@ static guint64 last_emit_time = 0;
 #endif
 
 void emit_properties_changed(GDBusConnection *connection,
-                             const gchar *property_name, GVariant *new_value) {
+                             const gchar *property_name, GVariant *new_value)
+{
 #ifndef __APPLE__
         GVariantBuilder changed_properties_builder;
 
@@ -1110,7 +1149,8 @@ void emit_properties_changed(GDBusConnection *connection,
 #endif
 }
 
-void emit_volume_changed(void) {
+void emit_volume_changed(void)
+{
 #ifndef __APPLE__
         gdouble newVolume = (gdouble)get_current_volume() / 100;
 
@@ -1123,7 +1163,8 @@ void emit_volume_changed(void) {
 #endif
 }
 
-void emit_shuffle_changed(void) {
+void emit_shuffle_changed(void)
+{
 #ifndef __APPLE__
         gboolean shuffle_enabled = is_shuffle_enabled();
 
@@ -1135,7 +1176,8 @@ void emit_shuffle_changed(void) {
 
 void emit_metadata_changed(const gchar *title, const gchar *artist,
                            const gchar *album, const gchar *cover_art_path,
-                           const gchar *track_id, Node *current_song, gint64 length) {
+                           const gchar *track_id, Node *current_song, gint64 length)
+{
 #ifndef __APPLE__
         guint64 current_time = g_get_monotonic_time();
         if (current_time - last_emit_time < 500000) // 0.5 seconds

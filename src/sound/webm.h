@@ -90,23 +90,28 @@ static float opusLeftoverBuffer[MAX_OPUS_SAMPLES * MAX_OPUS_CHANNELS];
 
 float vorbisLeftoverBuffer[MAX_VORBIS_PACKET_FRAMES * MAX_VORBIS_CHANNELS];
 
-static ma_result ma_webm_ds_read(ma_data_source *p_data_source, void *p_frames_out, ma_uint64 frame_count, ma_uint64 *p_frames_read) {
+static ma_result ma_webm_ds_read(ma_data_source *p_data_source, void *p_frames_out, ma_uint64 frame_count, ma_uint64 *p_frames_read)
+{
         return ma_webm_read_pcm_frames((ma_webm *)p_data_source, p_frames_out, frame_count, p_frames_read);
 }
 
-static ma_result ma_webm_ds_seek(ma_data_source *p_data_source, ma_uint64 frame_index) {
+static ma_result ma_webm_ds_seek(ma_data_source *p_data_source, ma_uint64 frame_index)
+{
         return ma_webm_seek_to_pcm_frame((ma_webm *)p_data_source, frame_index);
 }
 
-static ma_result ma_webm_ds_get_data_format(ma_data_source *p_data_source, ma_format *p_format, ma_uint32 *p_channels, ma_uint32 *p_sample_rate, ma_channel *p_channel_map, size_t channel_map_cap) {
+static ma_result ma_webm_ds_get_data_format(ma_data_source *p_data_source, ma_format *p_format, ma_uint32 *p_channels, ma_uint32 *p_sample_rate, ma_channel *p_channel_map, size_t channel_map_cap)
+{
         return ma_webm_get_data_format((ma_webm *)p_data_source, p_format, p_channels, p_sample_rate, p_channel_map, channel_map_cap);
 }
 
-static ma_result ma_webm_ds_get_cursor(ma_data_source *p_data_source, ma_uint64 *p_cursor) {
+static ma_result ma_webm_ds_get_cursor(ma_data_source *p_data_source, ma_uint64 *p_cursor)
+{
         return ma_webm_get_cursor_in_pcm_frames((ma_webm *)p_data_source, p_cursor);
 }
 
-static ma_result ma_webm_ds_get_length(ma_data_source *p_data_source, ma_uint64 *p_length) {
+static ma_result ma_webm_ds_get_length(ma_data_source *p_data_source, ma_uint64 *p_length)
+{
         return ma_webm_get_length_in_pcm_frames((ma_webm *)p_data_source, p_length);
 }
 
@@ -120,7 +125,8 @@ static ma_data_source_vtable g_ma_webm_ds_vtable =
         NULL,
         (ma_uint64)0};
 
-static ma_result ma_webm_init_internal(const ma_decoding_backend_config *p_config, ma_webm *p_webm) {
+static ma_result ma_webm_init_internal(const ma_decoding_backend_config *p_config, ma_webm *p_webm)
+{
         ma_result result;
         ma_data_source_config dataSourceConfig;
 
@@ -153,7 +159,8 @@ static ma_result ma_webm_init_internal(const ma_decoding_backend_config *p_confi
         return MA_SUCCESS;
 }
 
-static int nestegg_io_read(void *buffer, size_t length, void *userdata) {
+static int nestegg_io_read(void *buffer, size_t length, void *userdata)
+{
         ma_webm *webm = (ma_webm *)userdata;
         size_t bytes_read = 0;
         if (webm->onRead(webm->pReadSeekTellUserData, buffer, length, &bytes_read) == MA_SUCCESS)
@@ -161,7 +168,8 @@ static int nestegg_io_read(void *buffer, size_t length, void *userdata) {
         return -1;
 }
 
-static int nestegg_io_seek(int64_t offset, int whence, void *userdata) {
+static int nestegg_io_seek(int64_t offset, int whence, void *userdata)
+{
         ma_webm *webm = (ma_webm *)userdata;
         ma_seek_origin origin;
         switch (whence) {
@@ -180,13 +188,15 @@ static int nestegg_io_seek(int64_t offset, int whence, void *userdata) {
         return (webm->onSeek(webm->pReadSeekTellUserData, offset, origin) == MA_SUCCESS) ? 0 : -1;
 }
 
-static int64_t nestegg_io_tell(void *userdata) {
+static int64_t nestegg_io_tell(void *userdata)
+{
         ma_webm *webm = (ma_webm *)userdata;
         ma_int64 pos = 0;
         return (webm->onTell(webm->pReadSeekTellUserData, &pos) == MA_SUCCESS) ? pos : -1;
 }
 
-double calcWebmDuration(nestegg *ctx) {
+double calcWebmDuration(nestegg *ctx)
+{
         double duration = 0.0f;
 
         uint64_t duration_ns = 0;
@@ -199,7 +209,8 @@ double calcWebmDuration(nestegg *ctx) {
 static int ma_webm_init_vorbis_decoder(
     nestegg *ctx,
     unsigned int audio_track,
-    ma_webm *p_webm) {
+    ma_webm *p_webm)
+{
         unsigned char *id = NULL, *comment = NULL, *setup = NULL;
         size_t id_size = 0, comment_size = 0, setup_size = 0;
         ogg_packet header_packet;
@@ -266,7 +277,8 @@ MA_API ma_result ma_webm_init(
     void *pReadSeekTellUserData,
     const ma_decoding_backend_config *p_config,
     const ma_allocation_callbacks *p_allocation_callbacks,
-    ma_webm *p_webm) {
+    ma_webm *p_webm)
+{
         ma_result result;
 
         (void)p_allocation_callbacks;
@@ -371,7 +383,8 @@ MA_API ma_result ma_webm_init(
 #endif
 }
 
-int nread(void *buf, size_t len, void *ud) {
+int nread(void *buf, size_t len, void *ud)
+{
         FILE *f = (FILE *)ud;
         size_t r = fread(buf, 1, len, f);
         if (r == len)
@@ -381,7 +394,8 @@ int nread(void *buf, size_t len, void *ud) {
         return -1;
 }
 
-int nseek(int64_t o, int w, void *ud) {
+int nseek(int64_t o, int w, void *ud)
+{
         FILE *f = (FILE *)ud;
         int wh;
         switch (w) {
@@ -400,12 +414,14 @@ int nseek(int64_t o, int w, void *ud) {
         return fseek(f, (long)o, wh);
 }
 
-int64_t ntell(void *ud) {
+int64_t ntell(void *ud)
+{
         FILE *f = (FILE *)ud;
         return ftell(f);
 }
 
-MA_API ma_result ma_webm_init_file(const char *pFilePath, const ma_decoding_backend_config *p_config, const ma_allocation_callbacks *p_allocation_callbacks, ma_webm *p_webm) {
+MA_API ma_result ma_webm_init_file(const char *pFilePath, const ma_decoding_backend_config *p_config, const ma_allocation_callbacks *p_allocation_callbacks, ma_webm *p_webm)
+{
         ma_result result;
 
         (void)p_allocation_callbacks;
@@ -498,7 +514,8 @@ MA_API ma_result ma_webm_init_file(const char *pFilePath, const ma_decoding_back
 #endif
 }
 
-MA_API void ma_webm_uninit(ma_webm *p_webm, const ma_allocation_callbacks *p_allocation_callbacks) {
+MA_API void ma_webm_uninit(ma_webm *p_webm, const ma_allocation_callbacks *p_allocation_callbacks)
+{
         if (p_webm == NULL) {
                 return;
         }
@@ -532,7 +549,8 @@ MA_API void ma_webm_uninit(ma_webm *p_webm, const ma_allocation_callbacks *p_all
         ma_data_source_uninit(&p_webm->ds);
 }
 
-MA_API ma_result ma_webm_read_pcm_frames(ma_webm *p_webm, void *p_frames_out, ma_uint64 frame_count, ma_uint64 *p_frames_read) {
+MA_API ma_result ma_webm_read_pcm_frames(ma_webm *p_webm, void *p_frames_out, ma_uint64 frame_count, ma_uint64 *p_frames_read)
+{
         if (p_frames_read)
                 *p_frames_read = 0;
         if (frame_count == 0 || p_webm == NULL)
@@ -782,7 +800,8 @@ MA_API ma_result ma_webm_read_pcm_frames(ma_webm *p_webm, void *p_frames_out, ma
 #endif
 }
 
-MA_API ma_result ma_webm_seek_to_pcm_frame(ma_webm *p_webm, ma_uint64 frame_index) {
+MA_API ma_result ma_webm_seek_to_pcm_frame(ma_webm *p_webm, ma_uint64 frame_index)
+{
         if (!p_webm)
                 return MA_INVALID_ARGS;
 
@@ -840,7 +859,8 @@ MA_API ma_result ma_webm_get_data_format(
     ma_uint32 *p_channels,
     ma_uint32 *p_sample_rate,
     ma_channel *p_channel_map,
-    size_t channel_map_cap) {
+    size_t channel_map_cap)
+{
         /* Defaults for safety. */
         if (p_format != NULL)
                 *p_format = ma_format_unknown;
@@ -886,7 +906,8 @@ MA_API ma_result ma_webm_get_data_format(
 #endif
 }
 
-MA_API ma_result ma_webm_get_cursor_in_pcm_frames(ma_webm *p_webm, ma_uint64 *p_cursor) {
+MA_API ma_result ma_webm_get_cursor_in_pcm_frames(ma_webm *p_webm, ma_uint64 *p_cursor)
+{
         if (p_cursor == NULL || p_webm == NULL) {
                 return MA_INVALID_ARGS;
         }
@@ -904,7 +925,8 @@ MA_API ma_result ma_webm_get_cursor_in_pcm_frames(ma_webm *p_webm, ma_uint64 *p_
 #endif
 }
 
-ma_uint64 calculate_length_in_pcm_frames(ma_webm *p_webm) {
+ma_uint64 calculate_length_in_pcm_frames(ma_webm *p_webm)
+{
         uint64_t duration_ns = 0;
         if (nestegg_duration(p_webm->ctx, &duration_ns) == 0 && duration_ns > 0) {
                 // For Opus, duration_ns is always in 48kHz timebase per WebM spec
@@ -927,7 +949,8 @@ ma_uint64 calculate_length_in_pcm_frames(ma_webm *p_webm) {
         return 0;
 }
 
-MA_API ma_result ma_webm_get_length_in_pcm_frames(ma_webm *p_webm, ma_uint64 *p_length) {
+MA_API ma_result ma_webm_get_length_in_pcm_frames(ma_webm *p_webm, ma_uint64 *p_length)
+{
         if (p_length == NULL || p_webm == NULL) {
                 return MA_INVALID_ARGS;
         }
