@@ -11,33 +11,33 @@
 
 #define ERROR_MESSAGE_LENGTH 256
 
-static char currentErrorMessage[ERROR_MESSAGE_LENGTH];
-static bool hasPrintedError = true;
-static volatile bool refreshTriggered = true;
+static char current_error_message[ERROR_MESSAGE_LENGTH];
+static bool has_printed_error = true;
+static volatile bool refresh_triggered = true;
 
-void triggerRefresh(void) { refreshTriggered = true; }
+void trigger_refresh(void) { refresh_triggered = true; }
 
-void cancelRefresh(void) { refreshTriggered = false; }
+void cancel_refresh(void) { refresh_triggered = false; }
 
-bool isRefreshTriggered(void) { return (refreshTriggered == true); }
+bool is_refresh_triggered(void) { return (refresh_triggered == true); }
 
-void setErrorMessage(const char *message)
+void set_error_message(const char *message)
 {
         if (message == NULL)
                 return;
 
-        strncpy(currentErrorMessage, message, ERROR_MESSAGE_LENGTH - 1);
-        currentErrorMessage[ERROR_MESSAGE_LENGTH - 1] = '\0';
-        hasPrintedError = false;
-        triggerRefresh();
+        strncpy(current_error_message, message, ERROR_MESSAGE_LENGTH - 1);
+        current_error_message[ERROR_MESSAGE_LENGTH - 1] = '\0';
+        has_printed_error = false;
+        trigger_refresh();
 }
 
-bool hasPrintedErrorMessage(void) { return hasPrintedError; }
+bool has_printed_error_message(void) { return has_printed_error; }
 
-bool hasErrorMessage(void) { return (currentErrorMessage[0] != '\0'); }
+bool has_error_message(void) { return (current_error_message[0] != '\0'); }
 
-void markErrorMessageAsPrinted(void) { hasPrintedError = true; }
+void mark_error_message_as_printed(void) { has_printed_error = true; }
 
-char *getErrorMessage(void) { return currentErrorMessage; }
+char *get_error_message(void) { return current_error_message; }
 
-void clearErrorMessage(void) { currentErrorMessage[0] = '\0'; }
+void clear_error_message(void) { current_error_message[0] = '\0'; }

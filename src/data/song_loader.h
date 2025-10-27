@@ -1,5 +1,5 @@
 /**
- * @file songloader.h
+ * @file song_loader.h
  * @brief Song loading and preparation routines.
  *
  * Responsible for loading song data from file
@@ -9,5 +9,5 @@
 
 #include <stdbool.h>
 
-SongData *loadSongData(char *filePath);
-void unloadSongData(SongData **songdata);
+SongData *load_song_data(char *filePath);
+void unload_song_data(SongData **songdata);

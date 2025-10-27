@@ -11,12 +11,12 @@
 
 #include "data/theme.h"
 
-int playbackCreate(void);
-void playbackSafeCleanup(void);
-void playbackCleanup(void);
+int playback_create(void);
+void playback_safe_cleanup(void);
+void playback_cleanup(void);
 void skip(void);
-void playbackSwitchDecoder(void);
-void playbackShutdown(void);
-void playbackUnloadSongs(UserData *userData);
-void playbackFreeDecoders(void);
-void ensureDefaultThemePack();
+void playback_switch_decoder(void);
+void playback_shutdown(void);
+void playback_unload_songs(UserData *userData);
+void playback_free_decoders(void);
+void ensure_default_theme_pack();

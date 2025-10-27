@@ -39,7 +39,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
 #include "sys/mpris.h"
 #include "sys/notifications.h"
-#include "sys/systemintegration.h"
+#include "sys/sys_integration.h"
 
 #include "ui/common_ui.h"
 #include "ui/input.h"
@@ -51,7 +51,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include "ui/queue_ui.h"
 #include "ui/cli.h"
 #include "ui/settings.h"
-#include "ui/termbox2input.h"
+#include "ui/termbox2_input.h"
 
 #include "ops/library_ops.h"
 #include "ops/playback_clock.h"
@@ -59,7 +59,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include "ops/playback_state.h"
 #include "ops/playback_system.h"
 #include "ops/playlist_ops.h"
-#include "ops/trackmanager.h"
+#include "ops/track_manager.h"
 
 #include "utils/cache.h"
 #include "utils/term.h"
@@ -85,11 +85,11 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
 const char VERSION[] = "3.7.0";
 
-AppState *statePtr = NULL;
+AppState *state_ptr = NULL;
 
-void updatePlayer(void)
+void update_player(void)
 {
-        AppState *state = getAppState();
+        AppState *state = get_app_state();
         UIState *uis = &(state->uiState);
         struct winsize ws;
         ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws);
@@ -106,26 +106,26 @@ void updatePlayer(void)
         }
         else
         {
-                refreshPlayer();
+                refresh_player();
         }
 }
 
-void prepareNextSong(void)
+void prepare_next_song(void)
 {
-        AppState *state = getAppState();
+        AppState *state = get_app_state();
 
-        resetClock();
-        handleSkipOutOfOrder();
-        finishLoading();
+        reset_clock();
+        handle_skip_out_of_order();
+        finish_loading();
 
-        setNextSong(NULL);
-        triggerRefresh();
+        set_next_song(NULL);
+        trigger_refresh();
 
-        Node *current = getCurrentSong();
+        Node *current = get_current_song();
 
-        if (!opsIsRepeatEnabled() || current == NULL)
+        if (!ops_is_repeat_enabled() || current == NULL)
         {
-                unloadPreviousSong();
+                unload_previous_song();
         }
 
         if (current == NULL)
@@ -136,56 +136,56 @@ void prepareNextSong(void)
                 }
                 else
                 {
-                        setEndOfListReached();
+                        set_end_of_list_reached();
                 }
         }
         else
         {
-                determineSongAndNotify();
+                determine_song_and_notify();
         }
 }
 
-int prepareAndPlaySong(Node *song)
+int prepare_and_play_song(Node *song)
 {
         if (!song)
                 return -1;
 
-        setCurrentSong(song);
+        set_current_song(song);
 
-        unloadSongA();
-        unloadSongB();
+        unload_song_a();
+        unload_song_b();
 
-        int res = loadFirst(getCurrentSong());
+        int res = load_first(get_current_song());
 
-        finishLoading();
+        finish_loading();
 
         if (res >= 0)
         {
-                res = playbackCreate();
+                res = playback_create();
         }
 
         if (res >= 0)
         {
-                resumePlayback();
+                resume_playback();
         }
 
         if (res < 0)
-                setEndOfListReached();
+                set_end_of_list_reached();
 
-        triggerRefresh();
-        resetClock();
+        trigger_refresh();
+        reset_clock();
 
         return res;
 }
 
-void checkAndLoadNextSong(void)
+void check_and_load_next_song(void)
 {
-        AppState *state = getAppState();
-        PlaybackState *ps = getPlaybackState();
+        AppState *state = get_app_state();
+        PlaybackState *ps = get_playback_state();
 
-        if (audioData.restart)
+        if (audio_data.restart)
         {
-                PlayList *playlist = getPlaylist();
+                PlayList *playlist = get_playlist();
                 if (playlist->head == NULL)
                         return;
 
@@ -193,91 +193,91 @@ void checkAndLoadNextSong(void)
                 {
                         ps->songLoading = true;
 
-                        Node *nextSong = determineNextSong(playlist);
-                        if (!nextSong)
+                        Node *next_song = determine_next_song(playlist);
+                        if (!next_song)
                                 return;
 
-                        audioData.restart = false;
+                        audio_data.restart = false;
                         ps->waitingForPlaylist = false;
                         ps->waitingForNext = false;
                         state->uiState.songWasRemoved = false;
 
-                        if (isShuffleEnabled())
-                                reshufflePlaylist();
+                        if (is_shuffle_enabled())
+                                reshuffle_playlist();
 
-                        int res = prepareAndPlaySong(nextSong);
+                        int res = prepare_and_play_song(next_song);
 
                         if (res < 0)
-                                setEndOfListReached();
+                                set_end_of_list_reached();
 
                         ps->loadedNextSong = false;
-                        setNextSong(NULL);
+                        set_next_song(NULL);
                 }
         }
-        else if (getCurrentSong() != NULL &&
-                 (ps->nextSongNeedsRebuilding || getNextSong() == NULL) &&
+        else if (get_current_song() != NULL &&
+                 (ps->nextSongNeedsRebuilding || get_next_song() == NULL) &&
                  !ps->songLoading)
         {
-                updateNextSongIfNeeded();
+                update_next_song_if_needed();
         }
 }
 
-void loadWaitingMusic(void)
+void load_waiting_music(void)
 {
-        PlayList *playlist = getPlaylist();
-        AudioData *audioData = getAudioData();
-        PlaybackState *ps = getPlaybackState();
+        PlayList *playlist = get_playlist();
+        AudioData *audio_data = get_audio_data();
+        PlaybackState *ps = get_playback_state();
 
         if (playlist->head != NULL)
         {
                 if ((ps->skipFromStopped || !ps->loadedNextSong ||
                      ps->nextSongNeedsRebuilding) &&
-                    !audioData->endOfListReached)
+                    !audio_data->endOfListReached)
                 {
-                        checkAndLoadNextSong();
+                        check_and_load_next_song();
                 }
 
                 if (ps->songHasErrors)
-                        tryLoadNext();
+                        try_load_next();
 
-                if (opsIsDone())
+                if (ops_is_done())
                 {
-                        prepareNextSong();
-                        playbackSwitchDecoder();
+                        prepare_next_song();
+                        playback_switch_decoder();
                 }
         }
         else
         {
-                opsSetEofHandled();
+                ops_set_EOF_handled();
         }
 }
 
-gboolean mainloopCallback(gpointer data)
+gboolean mainloop_callback(gpointer data)
 {
         (void)data;
 
-        calcElapsedTime(getCurrentSongDuration());
-        incrementUpdateCounter();
-        handleCooldown();
+        calc_elapsed_time(get_current_song_duration());
+        increment_update_counter();
+        handle_cooldown();
 
-        int updateCounter = getUpdateCounter();
+        int update_counter = get_update_counter();
 
         // Different views run at different speeds to lower the impact on system
         // requirements
-        if ((updateCounter % 2 == 0 && statePtr->currentView == SEARCH_VIEW) ||
-            (statePtr->currentView == TRACK_VIEW || updateCounter % 3 == 0))
+        if ((update_counter % 2 == 0 && state_ptr->currentView == SEARCH_VIEW) ||
+            (state_ptr->currentView == TRACK_VIEW || update_counter % 3 == 0))
         {
-                processDBusEvents();
+                process_d_bus_events();
 
-                updatePlayer();
+                update_player();
 
-                loadWaitingMusic();
+                load_waiting_music();
         }
 
         return TRUE;
 }
 
-static gboolean quitOnSignal(gpointer user_data)
+static gboolean quit_on_signal(gpointer user_data)
 {
         GMainLoop *loop = (GMainLoop *)user_data;
         g_main_loop_quit(loop);
@@ -285,43 +285,43 @@ static gboolean quitOnSignal(gpointer user_data)
         return G_SOURCE_REMOVE; // Remove the signal source
 }
 
-void createLoop(void)
+void create_loop(void)
 {
-        updateLastInputTime();
+        update_last_input_time();
 
         GMainLoop *main_loop = g_main_loop_new(NULL, FALSE);
 
-        g_unix_signal_add(SIGINT, quitOnSignal, main_loop);
-        g_unix_signal_add(SIGHUP, quitOnSignal, main_loop);
-        g_timeout_add(34, mainloopCallback, NULL);
+        g_unix_signal_add(SIGINT, quit_on_signal, main_loop);
+        g_unix_signal_add(SIGHUP, quit_on_signal, main_loop);
+        g_timeout_add(34, mainloop_callback, NULL);
         g_main_loop_run(main_loop);
         g_main_loop_unref(main_loop);
 }
 
 void run(bool startPlaying)
 {
-        AppState *state = getAppState();
-        PlayList *playlist = getPlaylist();
-        PlayList *unshuffledPlaylist = getUnshuffledPlaylist();
-        PlaybackState *ps = getPlaybackState();
-        UserData *userData = audioData.pUserData;
+        AppState *state = get_app_state();
+        PlayList *playlist = get_playlist();
+        PlayList *unshuffled_playlist = get_unshuffled_playlist();
+        PlaybackState *ps = get_playback_state();
+        UserData *userData = audio_data.pUserData;
 
-        if (unshuffledPlaylist == NULL)
+        if (unshuffled_playlist == NULL)
         {
-                setUnshuffledPlaylist(deepCopyPlayList(playlist));
+                set_unshuffled_playlist(deep_copy_play_list(playlist));
         }
 
         if (state->uiSettings.saveRepeatShuffleSettings)
         {
                 if (state->uiSettings.repeatState == 1)
-                        toggleRepeat();
+                        toggle_repeat();
                 if (state->uiSettings.repeatState == 2)
                 {
-                        toggleRepeat();
-                        toggleRepeat();
+                        toggle_repeat();
+                        toggle_repeat();
                 }
-                if (state->uiSettings.shuffleEnabled)
-                        toggleShuffle();
+                if (state->uiSettings.shuffle_enabled)
+                        toggle_shuffle();
         }
 
         if (playlist->head == NULL)
@@ -329,13 +329,13 @@ void run(bool startPlaying)
                 state->currentView = LIBRARY_VIEW;
         }
 
-        initMpris();
+        init_mpris();
 
         ps->loadedNextSong = false;
         if (startPlaying)
                 ps->waitingForPlaylist = true;
 
-        audioData.currentFileIndex = 0;
+        audio_data.currentFileIndex = 0;
         userData->currentSongData = NULL;
         userData->songdataA = NULL;
         userData->songdataB = NULL;
@@ -343,36 +343,36 @@ void run(bool startPlaying)
         userData->songdataBDeleted = true;
 
         if (playlist->count != 0)
-                checkAndLoadNextSong();
+                check_and_load_next_song();
 
-        createLoop();
+        create_loop();
 
-        clearScreen();
+        clear_screen();
         fflush(stdout);
 }
 
-void kewInit(void)
+void kew_init(void)
 {
-        AppState *state = getAppState();
+        AppState *state = get_app_state();
 
-        disableTerminalLineInput();
-        initResize();
+        disable_terminal_line_input();
+        init_resize();
         ioctl(STDOUT_FILENO, TIOCGWINSZ, &state->uiState.windowSize);
-        enableScrolling();
-        setNonblockingMode();
-        initInput();
+        enable_scrolling();
+        set_nonblocking_mode();
+        init_input();
 
-        PlaybackState *ps = getPlaybackState();
-        UserData *userData = audioData.pUserData;
-        PlayList *playlist = getPlaylist();
-        state->tmpCache = createCache();
+        PlaybackState *ps = get_playback_state();
+        UserData *userData = audio_data.pUserData;
+        PlayList *playlist = get_playlist();
+        state->tmpCache = create_cache();
 
         c_strcpy(ps->loadingdata.filePath, "", sizeof(ps->loadingdata.filePath));
         ps->loadingdata.songdataA = NULL;
         ps->loadingdata.songdataB = NULL;
         ps->loadingdata.loadA = true;
         ps->loadingdata.loadingFirstDecoder = true;
-        audioData.restart = true;
+        audio_data.restart = true;
         userData->songdataADeleted = true;
         userData->songdataBDeleted = true;
         unsigned int seed = (unsigned int)time(NULL);
@@ -380,9 +380,9 @@ void kewInit(void)
         srand(seed);
         pthread_mutex_init(&(ps->loadingdata.mutex), NULL);
         pthread_mutex_init(&(playlist->mutex), NULL);
-        freeSearchResults();
-        resetChosenDir();
-        createLibrary();
+        free_search_results();
+        reset_chosen_dir();
+        create_library();
         setlocale(LC_ALL, "");
         setlocale(LC_CTYPE, "");
 #ifdef __ANDROID__
@@ -411,23 +411,23 @@ void kewInit(void)
 #endif
 }
 
-void initDefaultState(void)
+void init_default_state(void)
 {
-        kewInit();
+        kew_init();
 
-        AppState *state = getAppState();
-        FileSystemEntry *library = getLibrary();
-        PlayList *playlist = getPlaylist();
-        PlayList *unshuffledPlaylist = getUnshuffledPlaylist();
-        PlaybackState *ps = getPlaybackState();
+        AppState *state = get_app_state();
+        FileSystemEntry *library = get_library();
+        PlayList *playlist = get_playlist();
+        PlayList *unshuffled_playlist = get_unshuffled_playlist();
+        PlaybackState *ps = get_playback_state();
 
-        loadLastUsedPlaylist(playlist, &unshuffledPlaylist);
-        setUnshuffledPlaylist(unshuffledPlaylist);
-        markListAsEnqueued(library, playlist);
-        resetListAfterDequeuingPlayingSong();
+        load_last_used_playlist(playlist, &unshuffled_playlist);
+        set_unshuffled_playlist(unshuffled_playlist);
+        mark_list_as_enqueued(library, playlist);
+        reset_list_after_dequeuing_playing_song();
 
-        audioData.restart = true;
-        audioData.endOfListReached = true;
+        audio_data.restart = true;
+        audio_data.endOfListReached = true;
         ps->loadedNextSong = false;
 
         state->currentView = LIBRARY_VIEW;
@@ -435,22 +435,22 @@ void initDefaultState(void)
         run(false);
 }
 
-void kewShutdown()
+void kew_shutdown()
 {
-        AppState *state = getAppState();
-        PlaybackState *ps = getPlaybackState();
-        FileSystemEntry *library = getLibrary();
-        AppSettings *settings = getAppSettings();
-        PlayList *unshuffledPlaylist = getUnshuffledPlaylist();
-        PlayList *favoritesPlaylist = getFavoritesPlaylist();
+        AppState *state = get_app_state();
+        PlaybackState *ps = get_playback_state();
+        FileSystemEntry *library = get_library();
+        AppSettings *settings = get_app_settings();
+        PlayList *unshuffled_playlist = get_unshuffled_playlist();
+        PlayList *favorites_playlist = get_favorites_playlist();
 
-        pthread_mutex_lock(&(state->dataSourceMutex));
+        pthread_mutex_lock(&(state->data_source_mutex));
 
-        playbackFreeDecoders();
+        playback_free_decoders();
 
-        playbackShutdown();
+        playback_shutdown();
 
-        emitPlaybackStoppedMpris();
+        emit_playback_stopped_mpris();
 
         bool noMusicFound = false;
 
@@ -459,40 +459,40 @@ void kewShutdown()
                 noMusicFound = true;
         }
 
-        UserData *userData = audioData.pUserData;
+        UserData *userData = audio_data.pUserData;
 
-        playbackUnloadSongs(userData);
+        playback_unload_songs(userData);
 
 #ifdef CHAFA_VERSION_1_16
         retire_passthrough_workarounds_tmux();
 #endif
 
-        shutdownInput();
-        freeSearchResults();
-        cleanupMpris();
-        restoreTerminalMode();
-        enableInputBuffering();
-        setPath(settings->path);
-        setPrefs(settings, &(state->uiSettings));
-        saveFavoritesPlaylist(settings->path, favoritesPlaylist);
-        saveLastUsedPlaylist(unshuffledPlaylist);
-        deleteCache(statePtr->tmpCache);
-        freeMainDirectoryTree();
-        freePlaylists();
-        setDefaultTextColor();
+        shutdown_input();
+        free_search_results();
+        cleanup_mpris();
+        restore_terminal_mode();
+        enable_input_buffering();
+        set_path(settings->path);
+        set_prefs(settings, &(state->uiSettings));
+        save_favorites_playlist(settings->path, favorites_playlist);
+        save_last_used_playlist(unshuffled_playlist);
+        delete_cache(state_ptr->tmpCache);
+        free_main_directory_tree();
+        free_playlists();
+        set_default_text_color();
 
-        if (audioData.pUserData != NULL)
-                free(audioData.pUserData);
+        if (audio_data.pUserData != NULL)
+                free(audio_data.pUserData);
 
         pthread_mutex_destroy(&(ps->loadingdata.mutex));
-        pthread_mutex_destroy(&(state->switchMutex));
-        pthread_mutex_unlock(&(state->dataSourceMutex));
-        pthread_mutex_destroy(&(state->dataSourceMutex));
+        pthread_mutex_destroy(&(state->switch_mutex));
+        pthread_mutex_unlock(&(state->data_source_mutex));
+        pthread_mutex_destroy(&(state->data_source_mutex));
 
-        freeVisuals();
+        free_visuals();
 
 #ifdef USE_DBUS
-        cleanupNotifications();
+        cleanup_notifications();
 #endif
 
 #ifdef DEBUG
@@ -506,14 +506,14 @@ void kewShutdown()
         }
 
         printf("\n");
-        showCursor();
-        exitAlternateScreenBuffer();
+        show_cursor();
+        exit_alternate_screen_buffer();
 
-        if (statePtr->uiSettings.mouseEnabled)
-                disableTerminalMouseButtons();
+        if (state_ptr->uiSettings.mouseEnabled)
+                disable_terminal_mouse_buttons();
 
-        if (statePtr->uiSettings.trackTitleAsWindowTitle)
-                restoreTerminalWindowTitle();
+        if (state_ptr->uiSettings.trackTitleAsWindowTitle)
+                restore_terminal_window_title();
 
         if (noMusicFound)
         {
@@ -526,17 +526,17 @@ void kewShutdown()
                 printf(_("Music not found.\n"));
         }
 
-        if (hasErrorMessage())
+        if (has_error_message())
         {
-                printf(_("%s\n"), getErrorMessage());
+                printf(_("%s\n"), get_error_message());
         }
 
         fflush(stdout);
 }
 
-void initState(void)
+void init_state(void)
 {
-        AppState *state = getAppState();
+        AppState *state = get_app_state();
 
         state->uiSettings.VERSION = VERSION;
         state->uiSettings.uiEnabled = true;
@@ -553,7 +553,7 @@ void initState(void)
         state->uiSettings.visualizerHeight = 5;
         state->uiSettings.visualizerColorType = 0;
         state->uiSettings.visualizerBrailleMode = false;
-        state->uiSettings.visualizerBarWidth = 2;
+        state->uiSettings.visualizer_bar_width = 2;
         state->uiSettings.titleDelay = 9;
         state->uiSettings.cacheLibrary = -1;
         state->uiSettings.mouseEnabled = true;
@@ -567,7 +567,7 @@ void initState(void)
         state->uiSettings.replayGainCheckFirst = 0;
         state->uiSettings.saveRepeatShuffleSettings = 1;
         state->uiSettings.repeatState = 0;
-        state->uiSettings.shuffleEnabled = 0;
+        state->uiSettings.shuffle_enabled = 0;
         state->uiSettings.trackTitleAsWindowTitle = 1;
         state->uiState.numDirectoryTreeEntries = 0;
         state->uiState.numProgressBars = 35;
@@ -597,7 +597,7 @@ void initState(void)
         state->uiSettings.kewColorRGB.g = 43;
         state->uiSettings.kewColorRGB.b = 77;
 
-        PlaybackState *ps = getPlaybackState();
+        PlaybackState *ps = get_playback_state();
 
         ps->lastPlayedId = -1;
         ps->usingSongDataA = true;
@@ -616,33 +616,33 @@ void initState(void)
         ps->notifySwitch = false;
         ps->notifyPlaying = false;
 
-        pthread_mutex_init(&(state->dataSourceMutex), NULL);
-        pthread_mutex_init(&(state->switchMutex), NULL);
+        pthread_mutex_init(&(state->data_source_mutex), NULL);
+        pthread_mutex_init(&(state->switch_mutex), NULL);
 
-        setUnshuffledPlaylist(NULL);
-        setFavoritesPlaylist(NULL);
+        set_unshuffled_playlist(NULL);
+        set_favorites_playlist(NULL);
 
-        audioData.pUserData = malloc(sizeof(UserData));
+        audio_data.pUserData = malloc(sizeof(UserData));
 
-        statePtr = state;
+        state_ptr = state;
 }
 
 int main(int argc, char *argv[])
 {
-        AppState *state = getAppState();
+        AppState *state = get_app_state();
 
-        initState();
-        restartIfAlreadyRunning(argv);
+        init_state();
+        restart_if_already_running(argv);
 
-        AppSettings *settings = getAppSettings();
-        PlayList *playlist = getPlaylist();
-        PlayList *favoritesPlaylist = getFavoritesPlaylist();
+        AppSettings *settings = get_app_settings();
+        PlayList *playlist = get_playlist();
+        PlayList *favorites_playlist = get_favorites_playlist();
 
         if ((argc == 2 &&
              ((strcmp(argv[1], "--help") == 0) ||
               (strcmp(argv[1], "-h") == 0) || (strcmp(argv[1], "-?") == 0))))
         {
-                showHelp();
+                show_help();
                 exit(0);
         }
         else if (argc == 2 && (strcmp(argv[1], "--version") == 0 ||
@@ -650,67 +650,67 @@ int main(int argc, char *argv[])
         {
                 state->uiSettings.colorMode = COLOR_MODE_ALBUM;
                 state->uiSettings.color = state->uiSettings.defaultColorRGB;
-                printAbout(NULL);
+                print_about(NULL);
                 exit(0);
         }
 
-        *settings = initSettings();
-        transferSettingsToUI();
-        initKeyMappings(settings);
-        setTrackTitleAsWindowTitle();
+        *settings = init_settings();
+        transfer_settings_to_u_i();
+        init_key_mappings(settings);
+        set_track_title_as_window_title();
 
         if (argc == 3 && (strcmp(argv[1], "path") == 0))
         {
                 char deExpanded[MAXPATHLEN];
-                collapsePath(argv[2], deExpanded);
+                collapse_path(argv[2], deExpanded);
                 c_strcpy(settings->path, deExpanded, sizeof(settings->path));
-                setPath(settings->path);
+                set_path(settings->path);
                 exit(0);
         }
 
-        enableMouse(&(state->uiSettings));
-        enterAlternateScreenBuffer();
-        atexit(kewShutdown);
+        enable_mouse(&(state->uiSettings));
+        enter_alternate_screen_buffer();
+        atexit(kew_shutdown);
 
         if (settings->path[0] == '\0')
         {
-                setMusicPath();
+                set_music_path();
         }
 
         bool exactSearch = false;
-        handleOptions(&argc, argv, &exactSearch);
-        loadFavoritesPlaylist(settings->path, &favoritesPlaylist);
+        handle_options(&argc, argv, &exactSearch);
+        load_favorites_playlist(settings->path, &favorites_playlist);
 
-        ensureDefaultThemePack();
+        ensure_default_theme_pack();
 
-        initTheme(argc, argv);
+        init_theme(argc, argv);
 
         if (argc == 1)
         {
-                initDefaultState();
+                init_default_state();
         }
         else if (argc == 2 && strcmp(argv[1], "all") == 0)
         {
-                kewInit();
-                playAll();
+                kew_init();
+                play_all();
                 run(true);
         }
         else if (argc == 2 && strcmp(argv[1], "albums") == 0)
         {
-                kewInit();
-                playAllAlbums();
+                kew_init();
+                play_all_albums();
                 run(true);
         }
-        else if (argc == 2 && strcmp(argv[1], ".") == 0 && favoritesPlaylist->count != 0)
+        else if (argc == 2 && strcmp(argv[1], ".") == 0 && favorites_playlist->count != 0)
         {
-                kewInit();
-                playFavoritesPlaylist();
+                kew_init();
+                play_favorites_playlist();
                 run(true);
         }
         else if (argc >= 2)
         {
-                kewInit();
-                makePlaylist(&playlist, argc, argv, exactSearch, settings->path);
+                kew_init();
+                make_playlist(&playlist, argc, argv, exactSearch, settings->path);
 
                 if (playlist->count == 0)
                 {
@@ -719,9 +719,9 @@ int main(int argc, char *argv[])
                         exit(0);
                 }
 
-                FileSystemEntry *library = getLibrary();
+                FileSystemEntry *library = get_library();
 
-                markListAsEnqueued(library, playlist);
+                mark_list_as_enqueued(library, playlist);
                 run(true);
         }
 

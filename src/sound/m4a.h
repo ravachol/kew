@@ -40,7 +40,7 @@ extern "C"
                 unsigned int buffer_size;
                 ma_uint32 sampleSize;
                 int bitDepth;
-                ma_uint32 sampleRate;
+                ma_uint32 sample_rate;
                 ma_uint32 channels;
                 ma_uint32 avgBitRate;
                 double duration;
@@ -294,10 +294,10 @@ extern "C"
                 const uint8_t *decoder_config = pM4a->track->dsi;
                 uint32_t decoder_config_len = pM4a->track->dsi_bytes;
 
-                unsigned long sampleRate;
+                unsigned long sample_rate;
                 unsigned char channels;
 
-                if (NeAACDecInit2(pM4a->hDecoder, (unsigned char *)decoder_config, decoder_config_len, &sampleRate, &channels) < 0)
+                if (NeAACDecInit2(pM4a->hDecoder, (unsigned char *)decoder_config, decoder_config_len, &sample_rate, &channels) < 0)
                 {
                         // Error initializing decoder
                         NeAACDecClose(pM4a->hDecoder);
@@ -335,9 +335,9 @@ extern "C"
                 return MA_SUCCESS;
         }
 
-        double calculate_aac_duration(FILE *fp, unsigned long sampleRate, unsigned long *totalFrames)
+        double calculate_aac_duration(FILE *fp, unsigned long sample_rate, unsigned long *totalFrames)
         {
-                if (fp == NULL || sampleRate == 0 || totalFrames == NULL)
+                if (fp == NULL || sample_rate == 0 || totalFrames == NULL)
                 {
                         return -1.0;
                 }
@@ -370,8 +370,8 @@ extern "C"
                         (*totalFrames)++;
                 }
 
-                // Compute duration using: duration = (totalFrames * 1024) / sampleRate
-                double duration = (double)(*totalFrames * 1024) / sampleRate;
+                // Compute duration using: duration = (totalFrames * 1024) / sample_rate
+                double duration = (double)(*totalFrames * 1024) / sample_rate;
 
                 fseek(fp, 0, SEEK_SET);
 
@@ -576,25 +576,25 @@ extern "C"
                         decoder_config[0] = ((buffer[2] & 0xC0) >> 6) + 1; // Object type
                         decoder_config[0] |= ((buffer[2] & 0x3C) >> 2) << 2;
 
-                        decoder_config[1] = ((buffer[2] & 0x07) << 1) | ((buffer[3] & 0x80) >> 7); // Channels and sampleRate
+                        decoder_config[1] = ((buffer[2] & 0x07) << 1) | ((buffer[3] & 0x80) >> 7); // Channels and sample_rate
                         decoder_config[1] <<= 4;                                                   // Shift to upper 4 bits
 
                         unsigned char objectType = decoder_config[0];
                         if (objectType == 5 || objectType >= 29)
                         {
-                                setErrorMessage("File is encoded with HE-AAC which is not supported");
+                                set_error_message("File is encoded with HE-AAC which is not supported");
                                 free(frameData);
                                 free(decoder_config);
                                 fclose(fp);
                                 return MA_ERROR;
                         }
 
-                        unsigned long sampleRate = 0;
+                        unsigned long sample_rate = 0;
                         unsigned char channels = 0;
 
                         pM4a->hDecoder = NeAACDecOpen();
 
-                        int initResult = NeAACDecInit2(pM4a->hDecoder, (unsigned char *)decoder_config, decoder_config_size, &sampleRate, &channels);
+                        int initResult = NeAACDecInit2(pM4a->hDecoder, (unsigned char *)decoder_config, decoder_config_size, &sample_rate, &channels);
                         if (initResult < 0)
                         {
                                 printf("Error initializing decoder. Code: %d\n", initResult);
@@ -607,8 +607,8 @@ extern "C"
 
                         free(decoder_config);
 
-                        // Check if the sampleRate and channels are correctly initialized
-                        if (sampleRate == 0 || channels == 0)
+                        // Check if the sample_rate and channels are correctly initialized
+                        if (sample_rate == 0 || channels == 0)
                         {
                                 printf("Error: Invalid sample rate or channel count.\n");
                                 free(frameData);
@@ -617,10 +617,10 @@ extern "C"
                                 return MA_ERROR;
                         }
 
-                        pM4a->sampleRate = (ma_uint32)sampleRate;
+                        pM4a->sample_rate = (ma_uint32)sample_rate;
                         pM4a->channels = (ma_uint32)channels;
 
-                        pM4a->duration = calculate_aac_duration(fp, pM4a->sampleRate, &pM4a->totalFrames);
+                        pM4a->duration = calculate_aac_duration(fp, pM4a->sample_rate, &pM4a->totalFrames);
 
                         // Clean up the frame data after processing
                         free(frameData);
@@ -691,7 +691,7 @@ extern "C"
                         if (is_alac(fp, alac_dsi, &alac_dsi_size))
                         {
                                 // This is an alac file and is currently unsupported.
-                                setErrorMessage("M4a files that use the ALAC encoder are not supported.");
+                                set_error_message("M4a files that use the ALAC encoder are not supported.");
                                 return MA_ERROR;
                         }
                         else // AAC
@@ -707,19 +707,19 @@ extern "C"
                                 const uint8_t *decoder_config = pM4a->track->dsi;
                                 uint32_t decoder_config_len = pM4a->track->dsi_bytes;
 
-                                unsigned long sampleRate;
+                                unsigned long sample_rate;
                                 unsigned char channels;
 
                                 if (decoder_config_len >= 2) {
                                         uint8_t object_type = (decoder_config[0] >> 3) & 0x1F;
 
                                         if (object_type == 5 || object_type == 29) {
-                                            setErrorMessage("Unsupported AAC object type: (HE-AAC or PS)");
+                                            set_error_message("Unsupported AAC object type: (HE-AAC or PS)");
                                             return MA_ERROR;
                                         }
                                     }
 
-                                if (NeAACDecInit2(pM4a->hDecoder, (unsigned char *)decoder_config, decoder_config_len, &sampleRate, &channels) < 0)
+                                if (NeAACDecInit2(pM4a->hDecoder, (unsigned char *)decoder_config, decoder_config_len, &sample_rate, &channels) < 0)
                                 {
                                         // Error initializing decoder
                                         NeAACDecClose(pM4a->hDecoder);
@@ -728,7 +728,7 @@ extern "C"
                                         return MA_ERROR;
                                 }
 
-                                pM4a->sampleRate = (ma_uint32)sampleRate;
+                                pM4a->sample_rate = (ma_uint32)sample_rate;
                                 pM4a->channels = (ma_uint32)channels;
 
                                 // Configure output format
@@ -973,7 +973,7 @@ extern "C"
 
                                 if (pM4a->frameInfo.error > 0)
                                 {
-                                        setErrorMessage("Decoding Error: could be mislabeled and unsupported HE-AAC or PS file");
+                                        set_error_message("Decoding Error: could be mislabeled and unsupported HE-AAC or PS file");
                                         // Error in decoding, skip to the next frame.
                                         continue;
                                 }
@@ -1157,7 +1157,7 @@ extern "C"
 
                 if (pSampleRate != NULL)
                 {
-                        *pSampleRate = pM4a->sampleRate;
+                        *pSampleRate = pM4a->sample_rate;
                 }
 
                 // Set a standard channel map if requested
@@ -1203,7 +1203,7 @@ extern "C"
                 }
 
                 // Calculate the length in PCM frames using the total number of samples and the sample rate.
-                if (pM4a->total_samples > 0 && pM4a->sampleRate > 0)
+                if (pM4a->total_samples > 0 && pM4a->sample_rate > 0)
                 {
                         *pLength = (ma_uint64)pM4a->total_samples;
                         return MA_SUCCESS;

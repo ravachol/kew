@@ -19,7 +19,7 @@
 
 #include <pwd.h>
 
-void removeArgElement(char *argv[], int index, int *argc)
+void remove_arg_element(char *argv[], int index, int *argc)
 {
         if (index < 0 || index >= *argc)
         {
@@ -37,9 +37,9 @@ void removeArgElement(char *argv[], int index, int *argc)
         (*argc)--;
 }
 
-void handleOptions(int *argc, char *argv[], bool *exactSearch)
+void handle_options(int *argc, char *argv[], bool *exactSearch)
 {
-        AppState *state = getAppState();
+        AppState *state = get_app_state();
         UISettings *ui = &(state->uiSettings);
         const char *noUiOption = "--noui";
         const char *noCoverOption = "--nocover";
@@ -60,7 +60,7 @@ void handleOptions(int *argc, char *argv[], bool *exactSearch)
                 }
         }
         if (idx >= 0)
-                removeArgElement(argv, idx, argc);
+                remove_arg_element(argv, idx, argc);
 
         idx = -1;
         for (int i = 0; i < *argc; i++)
@@ -72,7 +72,7 @@ void handleOptions(int *argc, char *argv[], bool *exactSearch)
                 }
         }
         if (idx >= 0)
-                removeArgElement(argv, idx, argc);
+                remove_arg_element(argv, idx, argc);
 
         idx = -1;
         for (int i = 0; i < *argc; i++)
@@ -85,7 +85,7 @@ void handleOptions(int *argc, char *argv[], bool *exactSearch)
                 }
         }
         if (idx >= 0)
-                removeArgElement(argv, idx, argc);
+                remove_arg_element(argv, idx, argc);
 
         idx = -1;
         for (int i = 0; i < *argc; i++)
@@ -98,15 +98,15 @@ void handleOptions(int *argc, char *argv[], bool *exactSearch)
                 }
         }
         if (idx >= 0)
-                removeArgElement(argv, idx, argc);
+                remove_arg_element(argv, idx, argc);
 }
 
-void setMusicPath(void)
+void set_music_path(void)
 {
-        AppState *state = getAppState();
+        AppState *state = get_app_state();
         UISettings *ui = &(state->uiSettings);
 
-        clearScreen();
+        clear_screen();
 
         ui->color.r = ui->kewColorRGB.r;
         ui->color.g = ui->kewColorRGB.g;
@@ -114,13 +114,13 @@ void setMusicPath(void)
 
         printf("\n\n\n\n");
 
-        printLogoArt(ui, 0, true, true, false);
+        print_logo_art(ui, 0, true, true, false);
 
         printf("\n\n\n\n");
 
-        applyColor(COLOR_MODE_ALBUM, ui->theme.text, ui->defaultColorRGB);
+        apply_color(COLOR_MODE_ALBUM, ui->theme.text, ui->defaultColorRGB);
 
-        int indent = calcIndentNormal() + 1;
+        int indent = calc_indent_normal() + 1;
 
         // Music folder names in different languages
         const char *musicFolderNames[] = {
@@ -133,35 +133,35 @@ void setMusicPath(void)
         int found = -1;
         char choice[MAXPATHLEN];
 
-        AppSettings *settings = getAppSettings();
+        AppSettings *settings = get_app_settings();
         for (size_t i = 0;
              i < sizeof(musicFolderNames) / sizeof(musicFolderNames[0]); i++)
         {
                 snprintf(path, sizeof(path), "~/%s",
                          musicFolderNames[i]);
 
-                if (directoryExists(path))
+                if (directory_exists(path))
                 {
                         found = 1;
 
                         printf("\n\n");
 
-                        printBlankSpaces(indent);
+                        print_blank_spaces(indent);
                         printf(_("Music Library: "));
-                        applyColor(COLOR_MODE_ALBUM, ui->theme.text, ui->kewColorRGB);
+                        apply_color(COLOR_MODE_ALBUM, ui->theme.text, ui->kewColorRGB);
                         printf("%s\n\n", path);
-                        applyColor(COLOR_MODE_ALBUM, ui->theme.text, ui->defaultColorRGB);
-                        printBlankSpaces(indent);
+                        apply_color(COLOR_MODE_ALBUM, ui->theme.text, ui->defaultColorRGB);
+                        print_blank_spaces(indent);
                         printf(_("Is this correct? Press Enter.\n\n"));
-                        printBlankSpaces(indent);
+                        print_blank_spaces(indent);
                         printf(_("Or type a path (no quotes or single-quotes):\n\n"));
-                        printBlankSpaces(indent);
+                        print_blank_spaces(indent);
 
-                        applyColor(COLOR_MODE_ALBUM, ui->theme.text, ui->kewColorRGB);
+                        apply_color(COLOR_MODE_ALBUM, ui->theme.text, ui->kewColorRGB);
 
                         if (fgets(choice, sizeof(choice), stdin) == NULL)
                         {
-                                printBlankSpaces(indent);
+                                print_blank_spaces(indent);
                                 printf(_("Error reading input.\n"));
                                 exit(1);
                         }
@@ -169,7 +169,7 @@ void setMusicPath(void)
                         if (choice[0] == '\n' || choice[0] == '\0')
                         {
                                 c_strcpy(settings->path, path, sizeof(settings->path));
-                                printBlankSpaces(indent);
+                                print_blank_spaces(indent);
                                 return;
                         }
                         else
@@ -179,31 +179,31 @@ void setMusicPath(void)
                 }
         }
 
-        printBlankSpaces(indent);
+        print_blank_spaces(indent);
 
         // No standard music folder was found
         if (found < 1)
         {
                 printf(_("Type a path (no quotes or single-quotes):\n\n"));
-                printBlankSpaces(indent);
-                applyColor(COLOR_MODE_ALBUM, ui->theme.text, ui->kewColorRGB);
+                print_blank_spaces(indent);
+                apply_color(COLOR_MODE_ALBUM, ui->theme.text, ui->kewColorRGB);
 
                 if (fgets(choice, sizeof(choice), stdin) == NULL)
                 {
-                        printBlankSpaces(indent);
+                        print_blank_spaces(indent);
                         printf(_("Error reading input.\n"));
                         exit(1);
                 }
         }
 
-        printBlankSpaces(indent);
+        print_blank_spaces(indent);
         choice[strcspn(choice, "\n")] = '\0';
 
         // Set the path if the chosen directory exists
-        if (directoryExists(choice))
+        if (directory_exists(choice))
         {
                 c_strcpy(settings->path, choice, sizeof(settings->path));
-                setPath(settings->path);
+                set_path(settings->path);
 
                 found = 1;
         }

@@ -34,18 +34,18 @@ enum SearchType
         ReturnAllSongs = 4
 };
 
-const char *getTempDir();
-void getDirectoryFromPath(const char *path, char *directory);
-void collapsePath(const char *input, char *output);
-void generateTempFilePath(char *filePath, const char *prefix, const char *suffix);
-int directoryExists(const char *path);
-int isDirectory(const char *path);
+const char *get_temp_dir();
+void get_directory_from_path(const char *path, char *directory);
+void collapse_path(const char *input, char *output);
+void generate_temp_file_path(char *filePath, const char *prefix, const char *suffix);
+int directory_exists(const char *path);
+int is_directory(const char *path);
 int walker(const char *startPath, const char *searching, char *result,
            const char *allowedExtensions, enum SearchType searchType, bool exactSearch, int depth);
-int expandPath(const char *inputPath, char *expandedPath);
-int createDirectory(const char *path);
-int deleteFile(const char *filePath);
-int isInTempDir(const char *path);
-int existsFile(const char *fname);
+int expand_path(const char *inputPath, char *expandedPath);
+int create_directory(const char *path);
+int delete_file(const char *filePath);
+int is_in_temp_dir(const char *path);
+int exists_file(const char *fname);
 
 #endif

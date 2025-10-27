@@ -4,11 +4,11 @@
 
 #include <miniaudio.h>
 
-static int soundVolume = 100;
+static int sound_volume = 100;
 
-int getCurrentVolume(void) { return soundVolume; }
+int get_current_volume(void) { return sound_volume; }
 
-void setVolume(int volume)
+void set_volume(int volume)
 {
         if (volume > 100)
         {
@@ -19,16 +19,16 @@ void setVolume(int volume)
                 volume = 0;
         }
 
-        soundVolume = volume;
+        sound_volume = volume;
 
-        ma_device_set_master_volume(getDevice(), (float)volume / 100);
+        ma_device_set_master_volume(get_device(), (float)volume / 100);
 }
 
-int adjustVolumePercent(int volumeChange)
+int adjust_volume_percent(int volume_change)
 {
-        soundVolume += volumeChange;
+        sound_volume += volume_change;
 
-        setVolume(soundVolume);
+        set_volume(sound_volume);
 
         return 0;
 }

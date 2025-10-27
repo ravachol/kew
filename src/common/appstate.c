@@ -7,13 +7,13 @@
 #include "common/appstate.h"
 #include "utils/utils.h"
 
-AppState appState;
+AppState app_state;
 
 FileSystemEntry *library = NULL;
 
-PlaybackState playbackState;
+PlaybackState playback_state;
 
-AudioData audioData;
+AudioData audio_data;
 
 AppSettings settings;
 
@@ -21,48 +21,48 @@ AppSettings settings;
 PlayList playlist = {NULL, NULL, 0, PTHREAD_MUTEX_INITIALIZER};
 
 // The playlist unshuffled as it appears in playlist view
-PlayList *unshuffledPlaylist = NULL;
+PlayList *unshuffled_playlist = NULL;
 
 // The playlist from kew favorites .m3u
-PlayList *favoritesPlaylist = NULL;
+PlayList *favorites_playlist = NULL;
 
 static const char LIBRARY_FILE[] = "kewlibrary";
 
-double pauseSeconds = 0.0;
+double pause_seconds = 0.0;
 
-double totalPauseSeconds = 0.0;
+double total_pause_seconds = 0.0;
 
-Node *nextSong = NULL;
+Node *next_song = NULL;
 
-Node *tryNextSong = NULL;
+Node *try_next_song = NULL;
 
-Node *songToStartFrom = NULL;
+Node *song_to_start_from = NULL;
 
-ProgressBar progressBar;
+ProgressBar progress_bar;
 
-void freePlaylists(void)
+void free_playlists(void)
 {
-        deletePlaylist(&playlist);
+        delete_playlist(&playlist);
 
-        PlayList *unshuffled = getUnshuffledPlaylist();
-        PlayList *favorites = getFavoritesPlaylist();
+        PlayList *unshuffled = get_unshuffled_playlist();
+        PlayList *favorites = get_favorites_playlist();
 
         if (unshuffled != NULL)
         {
-                deletePlaylist(unshuffled);
+                delete_playlist(unshuffled);
                 free(unshuffled);
-                unshuffledPlaylist = NULL;
+                unshuffled_playlist = NULL;
         }
 
         if (favorites != NULL)
         {
-                deletePlaylist(favorites);
+                delete_playlist(favorites);
                 free(favorites);
-                favoritesPlaylist = NULL;
+                favorites_playlist = NULL;
         }
 }
 
-void createPlaylist(PlayList **playlist)
+void create_playlist(PlayList **playlist)
 {
         if (*playlist == NULL)
         {
@@ -81,131 +81,131 @@ void createPlaylist(PlayList **playlist)
 
 // --- Getters ---
 
-AudioData *getAudioData(void)
+AudioData *get_audio_data(void)
 {
-        return &audioData;
+        return &audio_data;
 }
 
-AppState *getAppState()
+AppState *get_app_state()
 {
-        return &appState;
+        return &app_state;
 }
 
-AppSettings *getAppSettings()
+AppSettings *get_app_settings()
 {
         return &settings;
 }
 
-FileSystemEntry *getLibrary()
+FileSystemEntry *get_library()
 {
         return library;
 }
 
-PlaybackState *getPlaybackState()
+PlaybackState *get_playback_state()
 {
-       return &playbackState;
+       return &playback_state;
 }
 
-char *getLibraryFilePath(void)
+char *get_library_file_path(void)
 {
-        return getFilePath(LIBRARY_FILE);
+        return get_file_path(LIBRARY_FILE);
 }
 
-double getPauseSeconds(void)
+double get_pause_seconds(void)
 {
-        return pauseSeconds;
+        return pause_seconds;
 }
 
-double getTotalPauseSeconds(void)
+double get_total_pause_seconds(void)
 {
-        return totalPauseSeconds;
+        return total_pause_seconds;
 }
 
-Node *getNextSong(void)
+Node *get_next_song(void)
 {
-        return nextSong;
+        return next_song;
 }
 
-Node *getSongToStartFrom(void)
+Node *get_song_to_start_from(void)
 {
-        return songToStartFrom;
+        return song_to_start_from;
 }
 
-Node *getTryNextSong(void)
+Node *get_try_next_song(void)
 {
-        return tryNextSong;
+        return try_next_song;
 }
 
-ProgressBar *getProgressBar(void)
+ProgressBar *get_progress_bar(void)
 {
-        return &progressBar;
+        return &progress_bar;
 }
 
-PlayList *getPlaylist(void)
+PlayList *get_playlist(void)
 {
         return &playlist;
 }
 
-PlayList *getUnshuffledPlaylist(void)
+PlayList *get_unshuffled_playlist(void)
 {
-        return unshuffledPlaylist;
+        return unshuffled_playlist;
 }
 
-PlayList *getFavoritesPlaylist(void)
+PlayList *get_favorites_playlist(void)
 {
-        return favoritesPlaylist;
+        return favorites_playlist;
 }
 
 // --- Setters ---
 
-void setAudioData(AudioData *ad)
+void set_audio_data(AudioData *ad)
 {
         if (ad)
-                audioData = *ad;
+                audio_data = *ad;
 }
 
-void setLibrary(FileSystemEntry *root)
+void set_library(FileSystemEntry *root)
 {
         library = root;
 }
 
-void setPlaylist(PlayList *pl)
+void set_playlist(PlayList *pl)
 {
         if (pl)
                 playlist = *pl;
 }
 
-void setUnshuffledPlaylist(PlayList *pl)
+void set_unshuffled_playlist(PlayList *pl)
 {
-        unshuffledPlaylist = pl;
+        unshuffled_playlist = pl;
 }
 
-void setFavoritesPlaylist(PlayList *pl)
+void set_favorites_playlist(PlayList *pl)
 {
-        favoritesPlaylist = pl;
+        favorites_playlist = pl;
 }
 
-void setPauseSeconds(double seconds)
+void set_pause_seconds(double seconds)
 {
-        pauseSeconds = seconds;
+        pause_seconds = seconds;
 }
 
-void setTotalPauseSeconds(double seconds)
+void set_total_pause_seconds(double seconds)
 {
-        totalPauseSeconds = seconds;
+        total_pause_seconds = seconds;
 }
 
-void setNextSong(Node *node)
+void set_next_song(Node *node)
 {
-        nextSong = node;
+        next_song = node;
 }
 
-void setSongToStartFrom(Node *node)
+void set_song_to_start_from(Node *node)
 {
-        songToStartFrom = node;
+        song_to_start_from = node;
 }
 
-void setTryNextSong(Node *node)
+void set_try_next_song(Node *node)
 {
-        tryNextSong = node;
+        try_next_song = node;
 }

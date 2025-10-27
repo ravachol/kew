@@ -23,31 +23,31 @@
 #define MAXPATHLEN 4096
 #endif
 
-int getRandomNumber(int min, int max);
-int getNumber(const char *str);
-int copyFile(const char *src, const char *dst);
-int getNumberFromString(const char *str);
+int get_random_number(int min, int max);
+int get_number(const char *str);
+int copy_file(const char *src, const char *dst);
+int get_number_from_string(const char *str);
 int match_regex(const regex_t *regex, const char *ext);
-int pathEndsWith(const char *str, const char *suffix);
-int pathStartsWith(const char *str, const char *prefix);
-char *getFilePath(const char *filename);
-char *stringToUpper(const char *str);
-char *stringToLower(const char *str);
+int path_ends_with(const char *str, const char *suffix);
+int path_starts_with(const char *str, const char *prefix);
+char *get_file_path(const char *filename);
+char *string_to_upper(const char *str);
+char *string_to_lower(const char *str);
 char *utf8_strstr(const char *haystack, const char *needle);
 char *c_strcasestr(const char *haystack, const char *needle, int maxScanLen);
-char *getConfigPath(void);
-char *getPrefsPath(void);
-const char *getHomePath(void);
+char *get_config_path(void);
+char *get_prefs_path(void);
+const char *get_home_path(void);
 void c_sleep(int milliseconds);
 void c_usleep(int microseconds);
 void c_strcpy(char *dest, const char *src, size_t dest_size);
-void extractExtension(const char *filename, size_t numChars, char *ext);
+void extract_extension(const char *filename, size_t numChars, char *ext);
 void trim(char *str, int maxLen);
-void removeUnneededChars(char *str, int length);
-void shortenString(char *str, size_t maxLength);
-void printBlankSpaces(int numSpaces);
-float getFloat(const char *str);
-gint64 getLengthInMicroSec(double duration);
-void strToLower(char *str);
+void remove_unneeded_chars(char *str, int length);
+void shorten_string(char *str, size_t maxLength);
+void print_blank_spaces(int numSpaces);
+float get_float(const char *str);
+gint64 get_length_in_micro_sec(double duration);
+void str_to_lower(char *str);
 
 #endif

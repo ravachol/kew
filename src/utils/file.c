@@ -31,7 +31,7 @@
 
 #define MAX_RECURSION_DEPTH 64
 
-const char *getTempDir()
+const char *get_temp_dir()
 {
         const char *tmpdir = getenv("TMPDIR");
         if (tmpdir != NULL)
@@ -49,7 +49,7 @@ const char *getTempDir()
         return "/tmp";
 }
 
-void getDirectoryFromPath(const char *path, char *directory)
+void get_directory_from_path(const char *path, char *directory)
 {
         if (!path || !directory)
                 return;
@@ -85,7 +85,7 @@ void getDirectoryFromPath(const char *path, char *directory)
         free(tmp);
 }
 
-int existsFile(const char *fname)
+int exists_file(const char *fname)
 {
         if (fname == NULL || fname[0] == '\0')
                 return -1;
@@ -99,7 +99,7 @@ int existsFile(const char *fname)
         return -1;
 }
 
-int isDirectory(const char *path)
+int is_directory(const char *path)
 {
         DIR *dir = opendir(path);
         if (dir)
@@ -117,11 +117,11 @@ int isDirectory(const char *path)
         }
 }
 
-int directoryExists(const char *path)
+int directory_exists(const char *path)
 {
         char expanded[MAXPATHLEN];
 
-        expandPath(path, expanded);
+        expand_path(path, expanded);
 
         DIR *dir = opendir(expanded);
 
@@ -238,7 +238,7 @@ int walker(const char *startPath, const char *lowCaseSearching, char *result,
                         if (strlen(entry->d_name) <= 4)
                                 continue;
 
-                        extractExtension(entry->d_name, sizeof(ext) - 1, ext);
+                        extract_extension(entry->d_name, sizeof(ext) - 1, ext);
                         if (match_regex(&regex, ext) != 0)
                                 continue;
 
@@ -268,7 +268,7 @@ int walker(const char *startPath, const char *lowCaseSearching, char *result,
         return found ? 0 : 1;
 }
 
-int expandPath(const char *inputPath, char *expandedPath)
+int expand_path(const char *inputPath, char *expandedPath)
 {
         if (inputPath[0] == '\0' || inputPath[0] == '\r')
                 return -1;
@@ -336,7 +336,7 @@ int expandPath(const char *inputPath, char *expandedPath)
         return 0; // Path expansion successful
 }
 
-void collapsePath(const char *input, char *output)
+void collapse_path(const char *input, char *output)
 {
     if (!input || !output) return;
 
@@ -400,7 +400,7 @@ void collapsePath(const char *input, char *output)
     snprintf(output, MAXPATHLEN, "%s", input);
 }
 
-int createDirectory(const char *path)
+int create_directory(const char *path)
 {
         struct stat st;
 
@@ -420,7 +420,7 @@ int createDirectory(const char *path)
         return -1; // Failed to create directory
 }
 
-int deleteFile(const char *filePath)
+int delete_file(const char *filePath)
 {
         if (remove(filePath) == 0)
         {
@@ -432,7 +432,7 @@ int deleteFile(const char *filePath)
         }
 }
 
-int isInTempDir(const char *path)
+int is_in_temp_dir(const char *path)
 {
         const char *tmpDir = getenv("TMPDIR");
         static char tmpdirBuf[PATH_MAX + 2];
@@ -450,10 +450,10 @@ int isInTempDir(const char *path)
                 tmpdirBuf[len + 1] = '\0';
         }
 
-        return pathStartsWith(path, tmpdirBuf);
+        return path_starts_with(path, tmpdirBuf);
 }
 
-void generateTempFilePath(char *filePath, const char *prefix, const char *suffix)
+void generate_temp_file_path(char *filePath, const char *prefix, const char *suffix)
 {
         const char *tmpDir = getenv("TMPDIR");
         if (tmpDir == NULL || strnlen(tmpDir, PATH_MAX) >= PATH_MAX)
@@ -466,9 +466,9 @@ void generateTempFilePath(char *filePath, const char *prefix, const char *suffix
 
         char dirPath[MAXPATHLEN];
         snprintf(dirPath, sizeof(dirPath), "%s/kew", tmpDir);
-        createDirectory(dirPath);
+        create_directory(dirPath);
         snprintf(dirPath, sizeof(dirPath), "%s/kew/%s", tmpDir, username);
-        createDirectory(dirPath);
+        create_directory(dirPath);
 
         char randomString[7];
         for (int i = 0; i < 6; ++i)

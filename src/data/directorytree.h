@@ -24,7 +24,7 @@ typedef struct FileSystemEntry
         int id;
         char *name;
         char *fullPath;
-        int isDirectory;
+        int is_directory;
         int isEnqueued;
         int parentId;
         struct FileSystemEntry *parent;
@@ -39,21 +39,21 @@ typedef struct FileSystemEntry
 typedef void (*SlowloadingCallback)(void);
 #endif
 
-FileSystemEntry *createDirectoryTree(const char *startPath, int *numEntries);
-void freeTree(FileSystemEntry *root);
-void freeAndWriteTree(FileSystemEntry *root, const char *filename);
-void fuzzySearchRecursive(FileSystemEntry *node, const char *searchTerm,
+FileSystemEntry *create_directory_tree(const char *startPath, int *numEntries);
+void free_tree(FileSystemEntry *root);
+void free_and_write_tree(FileSystemEntry *root, const char *filename);
+void fuzzy_search_recursive(FileSystemEntry *node, const char *searchTerm,
                           int threshold,
                           void (*callback)(FileSystemEntry *, int));
-void copyIsEnqueued(FileSystemEntry *library, FileSystemEntry *tmp);
-void sortFileSystemTree(FileSystemEntry *root, int (*comparator)(const void *, const void *));
-int compareFoldersByAgeFilesAlphabetically(const void *a, const void *b);
-int compareLibEntries(const struct dirent **a, const struct dirent **b);
-int compareLibEntriesReversed(const struct dirent **a, const struct dirent **b);
-int compareEntryNaturalReversed(const void *a, const void *b);
-int compareEntryNatural(const void *a, const void *b);
-FileSystemEntry *findCorrespondingEntry(FileSystemEntry *tmp, const char *fullPath);
-FileSystemEntry *reconstructTreeFromFile(const char *filename,
+void copy_is_enqueued(FileSystemEntry *library, FileSystemEntry *tmp);
+void sort_file_system_tree(FileSystemEntry *root, int (*comparator)(const void *, const void *));
+int compare_folders_by_age_files_alphabetically(const void *a, const void *b);
+int compare_lib_entries(const struct dirent **a, const struct dirent **b);
+int compare_lib_entries_reversed(const struct dirent **a, const struct dirent **b);
+int compare_entry_natural_reversed(const void *a, const void *b);
+int compare_entry_natural(const void *a, const void *b);
+FileSystemEntry *find_corresponding_entry(FileSystemEntry *tmp, const char *fullPath);
+FileSystemEntry *reconstruct_tree_from_file(const char *filename,
                                          const char *startMusicPath,
                                          int *numDirectoryEntries);
 

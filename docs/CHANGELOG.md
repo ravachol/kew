@@ -6,7 +6,7 @@
 
 - The help page will now fully reflect the keys you have bound.
 
-- Handle both synchronized and unsynchronized vorbis lyrics.
+- Handle both synchronized and unsynchronized vorbis lyrics. Suggested by @hiruocha.
 
 - Auto-scrolling lyrics in the lyrics page for synced lyrics. Also added the ability to scroll lyrics manually. By @noiamnote.
 

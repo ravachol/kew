@@ -8,10 +8,10 @@
 
 #include "data/directorytree.h"
 
-int displaySearch(int maxListSize, int indent, int *chosenRow, int startSearchIter);
-int addToSearchText(const char *str);
-int removeFromSearchText(void);
-int getSearchResultsCount(void);
-void freeSearchResults(void);
-void fuzzySearch(FileSystemEntry *root, int threshold);
-FileSystemEntry *getCurrentSearchEntry(void);
+int display_search(int max_list_size, int indent, int *chosen_row, int start_search_iter);
+int add_to_search_text(const char *str);
+int remove_from_search_text(void);
+int get_search_results_count(void);
+void free_search_results(void);
+void fuzzy_search(FileSystemEntry *root, int threshold);
+FileSystemEntry *get_current_search_entry(void);

@@ -1,5 +1,5 @@
 /**
- * @file trackmanager.c
+ * @file track_manager.c
  * @brief Central track indexing and metadata manager.
  *
  * Manages track objects, metadata lookup, and synchronization
@@ -7,26 +7,26 @@
  * functions for finding and referencing track data.
  */
 
-#include "trackmanager.h"
+#include "track_manager.h"
 
 #include "common/appstate.h"
 #include "sound/sound.h"
 
-#include "data/songloader.h"
+#include "data/song_loader.h"
 
 #include "utils/utils.h"
 
-void loadFirstSong(Node *song)
+void load_first_song(Node *song)
 {
-        AppState *state = getAppState();
-        PlaybackState *ps = getPlaybackState();
+        AppState *state = get_app_state();
+        PlaybackState *ps = get_playback_state();
 
         if (song == NULL)
                 return;
 
         ps->loadingdata.state = state;
         ps->loadingdata.loadingFirstDecoder = true;
-        loadSong(song, &ps->loadingdata);
+        load_song(song, &ps->loadingdata);
 
         int i = 0;
         while (!ps->loadedNextSong && i < 10000)
@@ -39,38 +39,38 @@ void loadFirstSong(Node *song)
         }
 }
 
-void unloadSongA(void)
+void unload_song_a(void)
 {
-        PlaybackState *ps = getPlaybackState();
+        PlaybackState *ps = get_playback_state();
 
-        if (audioData.pUserData->songdataADeleted == false)
+        if (audio_data.pUserData->songdataADeleted == false)
         {
-                audioData.pUserData->songdataADeleted = true;
-                unloadSongData(&(ps->loadingdata.songdataA));
-                audioData.pUserData->songdataA = NULL;
+                audio_data.pUserData->songdataADeleted = true;
+                unload_song_data(&(ps->loadingdata.songdataA));
+                audio_data.pUserData->songdataA = NULL;
         }
 }
 
-void unloadSongB(void)
+void unload_song_b(void)
 {
-        PlaybackState *ps = getPlaybackState();
+        PlaybackState *ps = get_playback_state();
 
-        if (audioData.pUserData->songdataBDeleted == false)
+        if (audio_data.pUserData->songdataBDeleted == false)
         {
-                audioData.pUserData->songdataBDeleted = true;
-                unloadSongData(&(ps->loadingdata.songdataB));
-                audioData.pUserData->songdataB = NULL;
+                audio_data.pUserData->songdataBDeleted = true;
+                unload_song_data(&(ps->loadingdata.songdataB));
+                audio_data.pUserData->songdataB = NULL;
         }
 }
 
-void unloadPreviousSong(void)
+void unload_previous_song(void)
 {
-        AppState *state = getAppState();
-        UserData *userData = audioData.pUserData;
-        PlaybackState *ps = getPlaybackState();
+        AppState *state = get_app_state();
+        UserData *userData = audio_data.pUserData;
+        PlaybackState *ps = get_playback_state();
 
         pthread_mutex_lock(&(ps->loadingdata.mutex));
-        pthread_mutex_lock(&(state->dataSourceMutex));
+        pthread_mutex_lock(&(state->data_source_mutex));
 
         if (ps->usingSongDataA &&
             (ps->skipping || (userData->currentSongData == NULL ||
@@ -82,9 +82,9 @@ void unloadPreviousSong(void)
                                strcmp(ps->loadingdata.songdataA->trackId,
                                       userData->currentSongData->trackId) != 0))))
         {
-                unloadSongA();
+                unload_song_a();
 
-                if (!audioData.endOfListReached)
+                if (!audio_data.endOfListReached)
                         ps->loadedNextSong = false;
 
                 ps->usingSongDataA = false;
@@ -100,23 +100,23 @@ void unloadPreviousSong(void)
                     strcmp(ps->loadingdata.songdataB->trackId,
                            userData->currentSongData->trackId) != 0))))
         {
-                unloadSongB();
+                unload_song_b();
 
-                if (!audioData.endOfListReached)
+                if (!audio_data.endOfListReached)
                         ps->loadedNextSong = false;
 
                 ps->usingSongDataA = true;
         }
 
-        pthread_mutex_unlock(&(state->dataSourceMutex));
+        pthread_mutex_unlock(&(state->data_source_mutex));
         pthread_mutex_unlock(&(ps->loadingdata.mutex));
 }
 
-int loadFirst(Node *song)
+int load_first(Node *song)
 {
-        loadFirstSong(song);
-        Node *current = getCurrentSong();
-        PlaybackState *ps = getPlaybackState();
+        load_first_song(song);
+        Node *current = get_current_song();
+        PlaybackState *ps = get_playback_state();
 
         ps->usingSongDataA = true;
 
@@ -125,19 +125,19 @@ int loadFirst(Node *song)
                 ps->songHasErrors = false;
                 ps->loadedNextSong = false;
                 current = current->next;
-                loadFirstSong(current);
+                load_first_song(current);
         }
 
         if (ps->songHasErrors)
         {
                 // Couldn't play any of the songs
-                unloadPreviousSong();
+                unload_previous_song();
                 current = NULL;
                 ps->songHasErrors = false;
                 return -1;
         }
 
-        UserData *userData = audioData.pUserData;
+        UserData *userData = audio_data.pUserData;
 
         userData->currentPCMFrame = 0;
         userData->currentSongData = userData->songdataA;
@@ -145,25 +145,25 @@ int loadFirst(Node *song)
         return 0;
 }
 
-void loadNextSong(void)
+void load_next_song(void)
 {
-        AppState *state = getAppState();
-        PlaybackState *ps = getPlaybackState();
+        AppState *state = get_app_state();
+        PlaybackState *ps = get_playback_state();
 
         ps->songLoading = true;
         ps->nextSongNeedsRebuilding = false;
         ps->skipFromStopped = false;
         ps->loadingdata.loadA = !ps->usingSongDataA;
-        setTryNextSong(getListNext(getCurrentSong()));
-        setNextSong(getTryNextSong());
+        set_try_next_song(get_list_next(get_current_song()));
+        set_next_song(get_try_next_song());
         ps->loadingdata.state = state;
         ps->loadingdata.loadingFirstDecoder = false;
-        loadSong(getNextSong(), &ps->loadingdata);
+        load_song(get_next_song(), &ps->loadingdata);
 }
 
-void finishLoading(void)
+void finish_loading(void)
 {
-        PlaybackState *ps = getPlaybackState();
+        PlaybackState *ps = get_playback_state();
 
         int maxNumTries = 20;
         int numtries = 0;
@@ -177,15 +177,15 @@ void finishLoading(void)
         ps->loadedNextSong = true;
 }
 
-void autostartIfStopped(FileSystemEntry *firstEnqueuedEntry)
+void autostart_if_stopped(FileSystemEntry *firstEnqueuedEntry)
 {
-        PlayList *playlist = getPlaylist();
-        PlaybackState *ps = getPlaybackState();
+        PlayList *playlist = get_playlist();
+        PlaybackState *ps = get_playback_state();
 
         ps->waitingForPlaylist = false;
         ps->waitingForNext = true;
-        audioData.endOfListReached = false;
+        audio_data.endOfListReached = false;
         if (firstEnqueuedEntry != NULL)
-                setSongToStartFrom(findPathInPlaylist(firstEnqueuedEntry->fullPath, playlist));
+                set_song_to_start_from(find_path_in_playlist(firstEnqueuedEntry->fullPath, playlist));
         ps->lastPlayedId = -1;
 }

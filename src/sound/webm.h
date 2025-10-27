@@ -36,7 +36,7 @@ extern "C"
                 ma_uint64 audioTrack;
                 ma_uint64 cursorInPCMFrames;
                 ma_uint64 seekTargetPCMFrame;
-                ma_uint32 sampleRate;
+                ma_uint32 sample_rate;
                 ma_uint32 channels;
                 ma_uint64 lengthInPCMFrames;
                 double duration;
@@ -266,7 +266,7 @@ static int ma_webm_init_vorbis_decoder(
                 goto fail;
 
         pWebm->channels = pWebm->vorbisInfo.channels;
-        pWebm->sampleRate = pWebm->vorbisInfo.rate;
+        pWebm->sample_rate = pWebm->vorbisInfo.rate;
         pWebm->format = ma_format_f32;
 
         return 0; // success
@@ -365,13 +365,13 @@ MA_API ma_result ma_webm_init(
                         nestegg_destroy(ctx);
                         return MA_INVALID_FILE;
                 }
-                pWebm->sampleRate = 48000;
+                pWebm->sample_rate = 48000;
                 pWebm->channels = header[9];
                 ma_uint16 preSkip = header[10] | (header[11] << 8); // Little-endian
                 pWebm->opusPreSkip = preSkip;
                 pWebm->preSkipLeft = preSkip;
                 int opusErr = 0;
-                pWebm->opusDecoder = opus_decoder_create(pWebm->sampleRate, pWebm->channels, &opusErr);
+                pWebm->opusDecoder = opus_decoder_create(pWebm->sample_rate, pWebm->channels, &opusErr);
                 if (!pWebm->opusDecoder)
                 {
                         nestegg_destroy(ctx);
@@ -522,7 +522,7 @@ MA_API ma_result ma_webm_init_file(const char *pFilePath, const ma_decoding_back
                 }
 
                 pWebm->format = ma_format_f32;
-                pWebm->sampleRate = 48000;
+                pWebm->sample_rate = 48000;
         }
         else if (pWebm->codec_id == NESTEGG_CODEC_VORBIS)
         {
@@ -895,7 +895,7 @@ MA_API ma_result ma_webm_seek_to_pcm_frame(ma_webm *pWebm, ma_uint64 frameIndex)
         else
         {
                 prerollFrame = frameIndex;
-                tstamp_ns = (prerollFrame * 1000000000ULL) / pWebm->sampleRate;
+                tstamp_ns = (prerollFrame * 1000000000ULL) / pWebm->sample_rate;
         }
 
         if (nestegg_track_seek(pWebm->ctx, pWebm->audioTrack, tstamp_ns) != 0)
@@ -966,7 +966,7 @@ MA_API ma_result ma_webm_get_data_format(
 
                 if (pSampleRate != NULL)
                 {
-                        *pSampleRate = pWebm->sampleRate;
+                        *pSampleRate = pWebm->sample_rate;
                 }
 
                 if (pChannelMap != NULL)
@@ -1032,8 +1032,8 @@ ma_uint64 calculate_length_in_pcm_frames(ma_webm *pWebm)
                 }
                 else
                 {
-                        // For Vorbis and others, just use sampleRate
-                        return (ma_uint64)((duration_ns * (uint64_t)pWebm->sampleRate) / 1000000000ull);
+                        // For Vorbis and others, just use sample_rate
+                        return (ma_uint64)((duration_ns * (uint64_t)pWebm->sample_rate) / 1000000000ull);
                 }
         }
         return 0;

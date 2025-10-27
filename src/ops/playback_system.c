@@ -16,82 +16,82 @@
 #include "sound/playback.h"
 #include "sound/sound.h"
 
-#include "data/songloader.h"
+#include "data/song_loader.h"
 
-void playbackSafeCleanup(void)
+void playback_safe_cleanup(void)
 {
-        AppState *state = getAppState();
-        pthread_mutex_lock(&(state->dataSourceMutex));
-        cleanupPlaybackDevice();
-        pthread_mutex_unlock(&(state->dataSourceMutex));
+        AppState *state = get_app_state();
+        pthread_mutex_lock(&(state->data_source_mutex));
+        cleanup_playback_device();
+        pthread_mutex_unlock(&(state->data_source_mutex));
 }
 
-void playbackCleanup(void)
+void playback_cleanup(void)
 {
-        cleanupPlaybackDevice();
+        cleanup_playback_device();
 }
 
-void playbackSwitchDecoder(void)
+void playback_switch_decoder(void)
 {
-        switchAudioImplementation();
+        switch_audio_implementation();
 }
 
-int playbackCreate(void)
+int playback_create(void)
 {
-        return createAudioDevice();
+        return create_audio_device();
 }
 
-void playbackShutdown(void)
+void playback_shutdown(void)
 {
-        soundShutdown();
+        sound_shutdown();
 }
 
-void playbackUnloadSongs(UserData *userData)
+void playback_unload_songs(UserData *userData)
 {
-        PlaybackState *ps = getPlaybackState();
+        PlaybackState *ps = get_playback_state();
 
         if (!userData->songdataADeleted)
         {
                 userData->songdataADeleted = true;
-                unloadSongData(&(ps->loadingdata.songdataA));
+                unload_song_data(&(ps->loadingdata.songdataA));
         }
         if (!userData->songdataBDeleted)
         {
                 userData->songdataBDeleted = true;
-                unloadSongData(&(ps->loadingdata.songdataB));
+                unload_song_data(&(ps->loadingdata.songdataB));
         }
 }
 
 void skip(void)
 {
-        PlaybackState *ps = getPlaybackState();
+        PlaybackState *ps = get_playback_state();
 
-        setCurrentImplementationType(NONE);
+        set_current_implementation_type(NONE);
 
-        setRepeatEnabled(false);
+        set_repeat_enabled(false);
 
-        audioData.endOfListReached = false;
+        audio_data.endOfListReached = false;
 
-        if (!isPlaying())
+        if (!is_playing())
         {
-                switchAudioImplementation();
+                switch_audio_implementation();
                 ps->skipFromStopped = true;
         }
         else
         {
-                setSkipToNext(true);
+                set_skip_to_next(true);
         }
 
         if (!ps->skipOutOfOrder)
-                triggerRefresh();
+                trigger_refresh();
 }
 
-void playbackFreeDecoders(void)
+void playback_free_decoders(void)
 {
-        resetAllDecoders();
+        reset_all_decoders();
 }
 
-void ensureDefaultThemePack()
+void ensure_default_theme_pack()
 {
-        ensureDefaultThemes();
+        ensure_default_themes();
 }

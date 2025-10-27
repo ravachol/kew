@@ -1,12 +1,12 @@
 /**
- * @file soundbuiltin.[c]
+ * @file sound_builtin.[c]
  * @brief Built-in audio backend implementation.
  *
  * Functions related to miniaudio implementation for miniaudio built-in decoders
  * (flac, wav and mp3).
  */
 
-#include "soundbuiltin.h"
+#include "sound_builtin.h"
 
 #include "common/appstate.h"
 
@@ -41,19 +41,19 @@ static ma_result builtin_file_data_source_seek(ma_data_source *pDataSource,
                 return MA_INVALID_ARGS;
         }
 
-        AudioData *audioData = (AudioData *)pDataSource;
+        AudioData *audio_data = (AudioData *)pDataSource;
 
-        if (getCurrentBuiltinDecoder() == NULL)
+        if (get_current_builtin_decoder() == NULL)
         {
                 return MA_INVALID_ARGS;
         }
 
         ma_result result = ma_decoder_seek_to_pcm_frame(
-            getCurrentBuiltinDecoder(), frameIndex);
+            get_current_builtin_decoder(), frameIndex);
 
         if (result == MA_SUCCESS)
         {
-                audioData->currentPCMFrame = frameIndex;
+                audio_data->currentPCMFrame = frameIndex;
                 return MA_SUCCESS;
         }
         else
@@ -74,16 +74,16 @@ static ma_result builtin_file_data_source_get_data_format(
                 return MA_INVALID_ARGS;
         }
 
-        AudioData *audioData = (AudioData *)pDataSource;
+        AudioData *audio_data = (AudioData *)pDataSource;
 
         if (pFormat == NULL || pChannels == NULL || pSampleRate == NULL)
         {
                 return MA_INVALID_ARGS;
         }
 
-        *pFormat = audioData->format;
-        *pChannels = audioData->channels;
-        *pSampleRate = audioData->sampleRate;
+        *pFormat = audio_data->format;
+        *pChannels = audio_data->channels;
+        *pSampleRate = audio_data->sample_rate;
 
         return MA_SUCCESS;
 }
@@ -97,8 +97,8 @@ builtin_file_data_source_get_cursor(ma_data_source *pDataSource,
                 return MA_INVALID_ARGS;
         }
 
-        AudioData *audioData = (AudioData *)pDataSource;
-        *pCursor = audioData->currentPCMFrame;
+        AudioData *audio_data = (AudioData *)pDataSource;
+        *pCursor = audio_data->currentPCMFrame;
 
         return MA_SUCCESS;
 }
@@ -110,13 +110,13 @@ builtin_file_data_source_get_length(ma_data_source *pDataSource,
         (void)pDataSource;
         ma_uint64 totalFrames = 0;
 
-        if (getCurrentBuiltinDecoder() == NULL)
+        if (get_current_builtin_decoder() == NULL)
         {
                 return MA_INVALID_ARGS;
         }
 
         ma_result result = ma_decoder_get_length_in_pcm_frames(
-            getCurrentBuiltinDecoder(), &totalFrames);
+            get_current_builtin_decoder(), &totalFrames);
 
         if (result != MA_SUCCESS)
         {
@@ -149,19 +149,19 @@ ma_data_source_vtable builtin_file_data_source_vtable = {
     0 // Flags
 };
 
-double dbToLinear(double db) { return pow(10.0, db / 20.0); }
+double db_to_linear(double db) { return pow(10.0, db / 20.0); }
 
-bool isValidGain(double gain)
+bool is_valid_gain(double gain)
 {
         return gain > -50.0 && gain < 50.0 && !isnan(gain) && isfinite(gain);
 }
 
-static bool computeReplayGain(AudioData *audioData, double *outGainDb)
+static bool compute_replay_gain(AudioData *audio_data, double *outGainDb)
 {
-        if (audioData->pUserData == NULL)
+        if (audio_data->pUserData == NULL)
                 return false;
 
-        UserData *ud = audioData->pUserData;
+        UserData *ud = audio_data->pUserData;
 
         bool result = false;
         double gainDb = 0.0;
@@ -177,17 +177,17 @@ static bool computeReplayGain(AudioData *audioData, double *outGainDb)
 
                         bool useTrackFirst = (ud->replayGainCheckFirst == 0);
 
-                        if (useTrackFirst && isValidGain(trackGain))
+                        if (useTrackFirst && is_valid_gain(trackGain))
                         {
                                 gainDb = trackGain;
                                 result = true;
                         }
-                        else if (isValidGain(albumGain))
+                        else if (is_valid_gain(albumGain))
                         {
                                 gainDb = albumGain;
                                 result = true;
                         }
-                        else if (!useTrackFirst && isValidGain(trackGain))
+                        else if (!useTrackFirst && is_valid_gain(trackGain))
                         {
                                 gainDb = trackGain;
                                 result = true;
@@ -203,7 +203,7 @@ static bool computeReplayGain(AudioData *audioData, double *outGainDb)
         return result;
 }
 
-static void applyGainToInterleavedFrames(void *rawFrames, ma_format format,
+static void apply_gain_to_interleaved_frames(void *rawFrames, ma_format format,
                                          ma_uint64 framesToRead, int channels,
                                          double gain)
 {
@@ -294,140 +294,140 @@ static void applyGainToInterleavedFrames(void *rawFrames, ma_format format,
         }
 }
 
-static bool performSeekIfRequested(ma_decoder *decoder, AudioData *audioData)
+static bool perform_seek_if_requested(ma_decoder *decoder, AudioData *audio_data)
 {
-        if (!isSeekRequested())
+        if (!is_seek_requested())
                 return true;
 
-        ma_uint64 totalFrames = audioData->totalFrames;
-        double seekPercent = getSeekPercentage();
-        if (seekPercent > 100.0)
-                seekPercent = 100.0;
+        ma_uint64 totalFrames = audio_data->totalFrames;
+        double seek_percent = get_seek_percentage();
+        if (seek_percent > 100.0)
+                seek_percent = 100.0;
 
         ma_uint64 targetFrame =
-            (ma_uint64)((totalFrames - 1) * seekPercent / 100.0);
+            (ma_uint64)((totalFrames - 1) * seek_percent / 100.0);
         if (targetFrame >= totalFrames)
                 targetFrame = totalFrames - 1;
 
         ma_result result = ma_decoder_seek_to_pcm_frame(decoder, targetFrame);
-        setSeekRequested(false);
+        set_seek_requested(false);
 
         return result == MA_SUCCESS;
 }
 
-static bool shouldSwitch(AudioData *audioData, ma_uint64 framesToRead,
+static bool should_switch(AudioData *audio_data, ma_uint64 framesToRead,
                          ma_result result, ma_uint64 cursor)
 {
-        return (((audioData->totalFrames != 0 &&
-                  cursor >= audioData->totalFrames) ||
-                 framesToRead == 0 || isSkipToNext() || result != MA_SUCCESS) &&
-                !isEOFReached());
+        return (((audio_data->totalFrames != 0 &&
+                  cursor >= audio_data->totalFrames) ||
+                 framesToRead == 0 || is_skip_to_next() || result != MA_SUCCESS) &&
+                !is_EOF_reached());
 }
 
 void builtin_read_pcm_frames(ma_data_source *pDataSource, void *pFramesOut,
                              ma_uint64 frameCount, ma_uint64 *pFramesRead)
 {
-        AudioData *audioData = (AudioData *)pDataSource;
+        AudioData *audio_data = (AudioData *)pDataSource;
         ma_uint64 framesRead = 0;
 
-        AppState *state = getAppState();
+        AppState *state = get_app_state();
 
         // Step 1: Compute gain
         while (framesRead < frameCount)
         {
                 ma_uint64 remainingFrames = frameCount - framesRead;
 
-                if (pthread_mutex_trylock(&(state->dataSourceMutex)) != 0)
+                if (pthread_mutex_trylock(&(state->data_source_mutex)) != 0)
                         return;
 
                 // Step 2: Handle file switching or state invalidation
-                if (audioData == NULL || audioData->pUserData == NULL || isImplSwitchReached())
+                if (audio_data == NULL || audio_data->pUserData == NULL || is_impl_switch_reached())
                 {
-                        pthread_mutex_unlock(&(state->dataSourceMutex));
+                        pthread_mutex_unlock(&(state->data_source_mutex));
                         return;
                 }
 
-                if (audioData->switchFiles)
+                if (audio_data->switchFiles)
                 {
-                        executeSwitch(audioData);
-                        pthread_mutex_unlock(&(state->dataSourceMutex));
+                        execute_switch(audio_data);
+                        pthread_mutex_unlock(&(state->data_source_mutex));
                         break;
                 }
 
-                ma_decoder *decoder = getCurrentBuiltinDecoder();
-                if ((getCurrentImplementationType() != BUILTIN &&
-                     !isSkipToNext()) ||
+                ma_decoder *decoder = get_current_builtin_decoder();
+                if ((get_current_implementation_type() != BUILTIN &&
+                     !is_skip_to_next()) ||
                     decoder == NULL)
                 {
-                        pthread_mutex_unlock(&(state->dataSourceMutex));
+                        pthread_mutex_unlock(&(state->data_source_mutex));
                         return;
                 }
 
                 // Step 3: Get total frames if needed
-                if (audioData->totalFrames == 0)
+                if (audio_data->totalFrames == 0)
                 {
                         ma_data_source_get_length_in_pcm_frames(
-                            decoder, &(audioData->totalFrames));
+                            decoder, &(audio_data->totalFrames));
                 }
 
                 // Step 4: Seek if requested
-                if (!performSeekIfRequested(decoder, audioData))
+                if (!perform_seek_if_requested(decoder, audio_data))
                 {
-                        pthread_mutex_unlock(&(state->dataSourceMutex));
+                        pthread_mutex_unlock(&(state->data_source_mutex));
                         return;
                 }
 
                 // Step 5: Read frames
                 ma_uint64 framesToRead = 0;
-                ma_decoder *firstDecoder = getFirstDecoder();
+                ma_decoder *first_decoder = get_first_decoder();
                 ma_uint64 cursor = 0;
-                if (firstDecoder == NULL || isEOFReached())
+                if (first_decoder == NULL || is_EOF_reached())
                 {
-                        pthread_mutex_unlock(&(state->dataSourceMutex));
+                        pthread_mutex_unlock(&(state->data_source_mutex));
                         return;
                 }
 
                 double gainDb = 0.0;
-                bool gainAvailable = computeReplayGain(audioData, &gainDb);
-                double gainFactor = gainAvailable ? dbToLinear(gainDb) : 1.0;
+                bool gainAvailable = compute_replay_gain(audio_data, &gainDb);
+                double gainFactor = gainAvailable ? db_to_linear(gainDb) : 1.0;
 
-                ma_result result = callReadPCMFrames(
-                    firstDecoder, audioData->format, pFramesOut, framesRead,
-                    audioData->channels, remainingFrames, &framesToRead);
+                ma_result result = call_read_PCM_frames(
+                    first_decoder, audio_data->format, pFramesOut, framesRead,
+                    audio_data->channels, remainingFrames, &framesToRead);
 
                 ma_data_source_get_cursor_in_pcm_frames(decoder, &cursor);
 
                 void *frameStart =
                     (void *)((float *)pFramesOut +
                              framesRead *
-                                 audioData->channels); // Cast matches format
+                                 audio_data->channels); // Cast matches format
 
                 // Step 6: Apply gain
                 if (gainFactor != 1.0)
                 {
-                        applyGainToInterleavedFrames(
-                            frameStart, audioData->format, framesToRead,
-                            audioData->channels, gainFactor);
+                        apply_gain_to_interleaved_frames(
+                            frameStart, audio_data->format, framesToRead,
+                            audio_data->channels, gainFactor);
                 }
 
                 // Step 7: Check for switch
-                if (shouldSwitch(audioData, framesToRead, result, cursor))
+                if (should_switch(audio_data, framesToRead, result, cursor))
                 {
-                        activateSwitch(audioData);
-                        pthread_mutex_unlock(&(state->dataSourceMutex));
+                        activate_switch(audio_data);
+                        pthread_mutex_unlock(&(state->data_source_mutex));
                         continue;
                 }
 
                 // Step 8: Update state
                 framesRead += framesToRead;
-                setBufferSize(framesToRead);
+                set_buffer_size(framesToRead);
 
-                pthread_mutex_unlock(&(state->dataSourceMutex));
+                pthread_mutex_unlock(&(state->data_source_mutex));
         }
 
         // Step 9: Finalize
-        setAudioBuffer(pFramesOut, framesRead, audioData->sampleRate,
-                       audioData->channels, audioData->format);
+        set_audio_buffer(pFramesOut, framesRead, audio_data->sample_rate,
+                       audio_data->channels, audio_data->format);
 
         if (pFramesRead != NULL)
                 *pFramesRead = framesRead;

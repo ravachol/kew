@@ -32,24 +32,24 @@
 
 #define MAX_BARS 64
 
-static float *fftInput = NULL;
-static fftwf_complex *fftOutput = NULL;
+static float *fft_input = NULL;
+static fftwf_complex *fft_output = NULL;
 static ma_format format = ma_format_unknown;
-static ma_uint32 sampleRate = 0;
-static float barHeight[MAX_BARS] = {0.0f};
-static float displayMagnitudes[MAX_BARS] = {0.0f};
+static ma_uint32 sample_rate = 0;
+static float bar_height[MAX_BARS] = {0.0f};
+static float display_magnitudes[MAX_BARS] = {0.0f};
 static float magnitudes[MAX_BARS] = {0.0f};
 static float dBFloor = -60.0f;
 static float dBCeil = -18.0f;
 static float emphasis = 1.3f;
-static float fastAttack = 0.6f;
+static float fast_attack = 0.6f;
 static float decay = 0.14f;
-static float slowAttack = 0.15f;
-static int visualizerBarWidth = 2;
-static int maxThinBarsInAutoMode = 20;
-static int prevFftSize = 0;
+static float slow_attack = 0.15f;
+static int visualizer_bar_width = 2;
+static int max_thin_bars_in_auto_mode = 20;
+static int prev_fft_size = 0;
 
-void clearMagnitudes(int numBars, float *magnitudes)
+void clear_magnitudes(int numBars, float *magnitudes)
 {
         for (int i = 0; i < numBars; i++)
         {
@@ -57,9 +57,9 @@ void clearMagnitudes(int numBars, float *magnitudes)
         }
 }
 
-void applyBlackmanHarris(float *fftInput, int bufferSize)
+void apply_blackman_harris(float *fft_input, int bufferSize)
 {
-        if (!fftInput ||
+        if (!fft_input ||
             bufferSize < 2) // Must be at least 2 to avoid division by zero
                 return;
 
@@ -77,18 +77,18 @@ void applyBlackmanHarris(float *fftInput, int bufferSize)
                                alpha2 * cosf(4.0f * M_PI * fraction) -
                                alpha3 * cosf(6.0f * M_PI * fraction);
 
-                fftInput[i] *= window;
+                fft_input[i] *= window;
         }
 }
 
 // Fill center freqs for 1/3-octave bands, given min/max freq and numBands
-void computeBandCenters(float minFreq, float sampleRate, int numBands,
+void compute_band_centers(float minFreq, float sample_rate, int numBands,
                         float *centerFreqs)
 {
-        if (!centerFreqs || numBands <= 0 || minFreq <= 0 || sampleRate <= 0)
+        if (!centerFreqs || numBands <= 0 || minFreq <= 0 || sample_rate <= 0)
                 return;
 
-        float nyquist = sampleRate * 0.5f;
+        float nyquist = sample_rate * 0.5f;
         float octaveFraction = 1.0f / 3.0f; // 1/3 octave
         float factor = powf(2.0f, octaveFraction);
         float f = minFreq;
@@ -116,13 +116,13 @@ void computeBandCenters(float minFreq, float sampleRate, int numBands,
         }
 }
 
-void fillEQBands(const fftwf_complex *fftOutput, int bufferSize,
-                 float sampleRate, float *bandDb, int numBands,
+void fill_eq_bands(const fftwf_complex *fft_output, int bufferSize,
+                 float sample_rate, float *bandDb, int numBands,
                  const float *centerFreqs)
 {
         // Basic input checks
-        if (!fftOutput || !bandDb || !centerFreqs || bufferSize <= 0 ||
-            numBands <= 0 || sampleRate <= 0.0f)
+        if (!fft_output || !bandDb || !centerFreqs || bufferSize <= 0 ||
+            numBands <= 0 || sample_rate <= 0.0f)
                 return;
 
         // Guard against potential overflow in bin count computation
@@ -132,7 +132,7 @@ void fillEQBands(const fftwf_complex *fftOutput, int bufferSize,
         int numBins = bufferSize / 2 + 1;
 
         // Safe binSpacing computation
-        float binSpacing = sampleRate / (float)bufferSize;
+        float binSpacing = sample_rate / (float)bufferSize;
         if (binSpacing <= 0.0f || !isfinite(binSpacing))
                 return;
 
@@ -147,7 +147,7 @@ void fillEQBands(const fftwf_complex *fftOutput, int bufferSize,
         // Pink noise correction
         const float correctionPerOctave = 3.0f;
         const float maxFreqForCorrection = 10000.0f;
-        const float nyquist = sampleRate * 0.5f;
+        const float nyquist = sample_rate * 0.5f;
 
         // Make sure referenceFreq is safe
         float referenceFreq = fmaxf(centerFreqs[0], 1.0f);
@@ -183,8 +183,8 @@ void fillEQBands(const fftwf_complex *fftOutput, int bufferSize,
                         if (k < 0 || k >= numBins)
                                 continue;
 
-                        float real = fftOutput[k][0] / normFactor;
-                        float imag = fftOutput[k][1] / normFactor;
+                        float real = fft_output[k][0] / normFactor;
+                        float imag = fft_output[k][1] / normFactor;
                         float mag = sqrtf(real * real + imag * imag);
                         sumSq += mag * mag;
                         count++;
@@ -203,35 +203,35 @@ void fillEQBands(const fftwf_complex *fftOutput, int bufferSize,
         }
 }
 
-int normalizeAudioSamples(const void *audioBuffer, float *fftInput,
+int normalize_audio_samples(const void *audio_buffer, float *fft_input,
                           int bufferSize, int bitDepth)
 {
         if (bitDepth == 8)
         {
-                const uint8_t *buf = (const uint8_t *)audioBuffer;
+                const uint8_t *buf = (const uint8_t *)audio_buffer;
                 for (int i = 0; i < bufferSize; ++i)
-                        fftInput[i] = ((float)buf[i] - 127.0f) / 128.0f;
+                        fft_input[i] = ((float)buf[i] - 127.0f) / 128.0f;
         }
         else if (bitDepth == 16)
         {
-                const int16_t *buf = (const int16_t *)audioBuffer;
+                const int16_t *buf = (const int16_t *)audio_buffer;
                 for (int i = 0; i < bufferSize; ++i)
-                        fftInput[i] = (float)buf[i] / 32768.0f;
+                        fft_input[i] = (float)buf[i] / 32768.0f;
         }
         else if (bitDepth == 24)
         {
-                const uint8_t *buf = (const uint8_t *)audioBuffer;
+                const uint8_t *buf = (const uint8_t *)audio_buffer;
                 for (int i = 0; i < bufferSize; ++i)
                 {
                         int32_t sample = unpack_s24(buf + i * 3);
-                        fftInput[i] = (float)sample / 8388608.0f;
+                        fft_input[i] = (float)sample / 8388608.0f;
                 }
         }
         else if (bitDepth == 32)
         {
-                const float *buf = (const float *)audioBuffer;
+                const float *buf = (const float *)audio_buffer;
                 for (int i = 0; i < bufferSize; ++i)
-                        fftInput[i] = buf[i];
+                        fft_input[i] = buf[i];
         }
         else
         {
@@ -242,50 +242,50 @@ int normalizeAudioSamples(const void *audioBuffer, float *fftInput,
         return 0;
 }
 
-void calcMagnitudes(int height, int numBars, void *audioBuffer, int bitDepth,
-                    float *fftInput, fftwf_complex *fftOutput, int fftSize,
+void calc_magnitudes(int height, int numBars, void *audio_buffer, int bitDepth,
+                    float *fft_input, fftwf_complex *fft_output, int fft_size,
                     float *magnitudes, fftwf_plan plan,
-                    float *displayMagnitudes)
+                    float *display_magnitudes)
 {
         // Only execute when we get the signal that we have enough samples
-        // (fftSize)
-        if (!isBufferReady())
+        // (fft_size)
+        if (!is_buffer_ready())
                 return;
 
-        if (!audioBuffer)
+        if (!audio_buffer)
         {
                 fprintf(stderr, "Audio buffer is NULL.\n");
                 return;
         }
 
-        setBufferReady(false);
+        set_buffer_ready(false);
 
-        normalizeAudioSamples(audioBuffer, fftInput, fftSize, bitDepth);
+        normalize_audio_samples(audio_buffer, fft_input, fft_size, bitDepth);
 
         // Apply Blackman Harris window function
-        applyBlackmanHarris(fftInput, fftSize);
+        apply_blackman_harris(fft_input, fft_size);
 
         // Compute fast fourier transform
         fftwf_execute(plan);
 
         // Clear previous magnitudes
-        clearMagnitudes(MAX_BARS, magnitudes);
+        clear_magnitudes(MAX_BARS, magnitudes);
 
         float centerFreqs[numBars];
 
         float minFreq = 25.0f;
         float audibleHalf = 10000.0f;
-        float maxFreq = fmin(audibleHalf, 0.5f * sampleRate);
+        float maxFreq = fmin(audibleHalf, 0.5f * sample_rate);
         float octaveFraction = 1.0f / 3.0f;
         int usedBars = floor(log2(maxFreq / minFreq) / octaveFraction) +
                        1; // How many bars are actually in use, given we
                           // increase with 1/3 octave per bar
 
         // Compute center frequencies for EQ bands
-        computeBandCenters(minFreq, maxFreq, numBars, centerFreqs);
+        compute_band_centers(minFreq, maxFreq, numBars, centerFreqs);
 
         // Fill magnitudes for EQ bands from FFT output
-        fillEQBands(fftOutput, fftSize, sampleRate, magnitudes, numBars,
+        fill_eq_bands(fft_output, fft_size, sample_rate, magnitudes, numBars,
                     centerFreqs);
 
         // Map magnitudes (in dB) to bar heights with gating and emphasis
@@ -300,9 +300,9 @@ void calcMagnitudes(int height, int numBars, void *audioBuffer, int bitDepth,
                 float ratio = (db - dBFloor) / (dBCeil - dBFloor);
                 ratio = powf(ratio, emphasis);
                 if (ratio < 0.1f)
-                        barHeight[i] = 0.0f; // Gate out tiny bars
+                        bar_height[i] = 0.0f; // Gate out tiny bars
                 else
-                        barHeight[i] = ratio * height;
+                        bar_height[i] = ratio * height;
         }
 
         float snapThreshold = 0.2f * height;
@@ -311,41 +311,41 @@ void calcMagnitudes(int height, int numBars, void *audioBuffer, int bitDepth,
         // threshold
         for (int i = 0; i < usedBars; ++i)
         {
-                float current = displayMagnitudes[i];
-                float target = barHeight[i];
+                float current = display_magnitudes[i];
+                float target = bar_height[i];
                 float delta = target - current;
                 if (delta > snapThreshold)
-                        displayMagnitudes[i] +=
-                            delta * fastAttack; // SNAP on big hits
+                        display_magnitudes[i] +=
+                            delta * fast_attack; // SNAP on big hits
                 else if (delta > 0)
-                        displayMagnitudes[i] += delta * slowAttack;
+                        display_magnitudes[i] += delta * slow_attack;
                 else
-                        displayMagnitudes[i] += delta * decay;
+                        display_magnitudes[i] += delta * decay;
         }
 }
 
-char *upwardMotionCharsBlock[] = {" ", "▁", "▂", "▃", "▄", "▅", "▆", "▇", "█"};
+char *upward_motion_chars_block[] = {" ", "▁", "▂", "▃", "▄", "▅", "▆", "▇", "█"};
 
-char *upwardMotionCharsBraille[] = {" ", "⣀", "⣀", "⣤", "⣤",
+char *upward_motion_chars_braille[] = {" ", "⣀", "⣀", "⣤", "⣤",
                                     "⣶", "⣶", "⣿", "⣿"};
 
-char *inbetweenCharsRising[] = {" ", "⣠", "⣠", "⣴", "⣴", "⣾", "⣾", "⣿", "⣿"};
+char *inbetween_chars_rising[] = {" ", "⣠", "⣠", "⣴", "⣴", "⣾", "⣾", "⣿", "⣿"};
 
-char *inbetweenCharsFalling[] = {" ", "⡀", "⡀", "⣄", "⣄", "⣦", "⣦", "⣷", "⣷"};
+char *inbetween_chars_falling[] = {" ", "⡀", "⡀", "⣄", "⣄", "⣦", "⣦", "⣷", "⣷"};
 
-char *getUpwardMotionChar(int level, bool braille)
+char *get_upward_motion_char(int level, bool braille)
 {
         if (level < 0 || level > 8)
         {
                 level = 8;
         }
         if (braille)
-                return upwardMotionCharsBraille[level];
+                return upward_motion_chars_braille[level];
         else
-                return upwardMotionCharsBlock[level];
+                return upward_motion_chars_block[level];
 }
 
-char *getInbetweendMotionChar(float magnitudePrev, float magnitudeNext,
+char *get_inbetweend_motion_char(float magnitudePrev, float magnitudeNext,
                               int prev, int next)
 {
         if (prev < 0)
@@ -358,23 +358,23 @@ char *getInbetweendMotionChar(float magnitudePrev, float magnitudeNext,
                 next = 8;
 
         if (magnitudeNext > magnitudePrev)
-                return inbetweenCharsRising[prev];
+                return inbetween_chars_rising[prev];
         else if (magnitudeNext < magnitudePrev)
-                return inbetweenCharsFalling[prev];
+                return inbetween_chars_falling[prev];
         else
-                return upwardMotionCharsBraille[prev];
+                return upward_motion_chars_braille[prev];
 }
 
-char *getInbetweenChar(float prev, float next)
+char *get_inbetween_char(float prev, float next)
 {
         int firstDecimalDigit = (int)(fmod(prev * 10, 10));
         int secondDecimalDigit = (int)(fmod(next * 10, 10));
 
-        return getInbetweendMotionChar(prev, next, firstDecimalDigit,
+        return get_inbetweend_motion_char(prev, next, firstDecimalDigit,
                                        secondDecimalDigit);
 }
 
-int getBitDepth(ma_format format)
+int get_bit_depth(ma_format format)
 {
 
         if (format == ma_format_unknown)
@@ -407,7 +407,7 @@ int getBitDepth(ma_format format)
         return bitDepth;
 }
 
-void printSpectrum(int row, int col, UISettings *ui, int height, int numBars,
+void print_spectrum(int row, int col, UISettings *ui, int height, int numBars,
                    int visualizerWidth, float *magnitudes)
 {
         PixelData color;
@@ -430,15 +430,15 @@ void printSpectrum(int row, int col, UISettings *ui, int height, int numBars,
 
         PixelData tmp;
 
-        bool isPlaying = !(isPaused() || isStopped());
+        bool is_playing = !(is_paused() || is_stopped());
 
-        for (int j = height; j > 0 && !isPlaying; j--)
+        for (int j = height; j > 0 && !is_playing; j--)
         {
                 printf("\033[%d;%dH", row, col);
-                clearRestOfLine();
+                clear_rest_of_line();
         }
 
-        for (int j = height; j > 0 && isPlaying; j--)
+        for (int j = height; j > 0 && is_playing; j--)
         {
                 printf("\033[%d;%dH", row + height - j, col);
 
@@ -450,18 +450,18 @@ void printSpectrum(int row, int col, UISettings *ui, int height, int numBars,
                         {
                                 if (visualizerColorType == 0)
                                 {
-                                        tmp = increaseLuminosity(
+                                        tmp = increase_luminosity(
                                             color, round(j * height * 4));
                                 }
                                 else if (visualizerColorType == 2)
                                 {
-                                        tmp = increaseLuminosity(
+                                        tmp = increase_luminosity(
                                             color,
                                             round((height - j) * height * 4));
                                 }
                                 else if (visualizerColorType == 3)
                                 {
-                                        tmp = getGradientColor(color, j, height,
+                                        tmp = get_gradient_color(color, j, height,
                                                                1, 0.6f);
                                 }
                         }
@@ -474,7 +474,7 @@ void printSpectrum(int row, int col, UISettings *ui, int height, int numBars,
                         printf("\033[38;2;%d;%d;%dm", tmp.r, tmp.g, tmp.b);
                 }
                 else
-                        applyColor(ui->colorMode, ui->theme.trackview_visualizer, tmp);
+                        apply_color(ui->colorMode, ui->theme.trackview_visualizer, tmp);
 
                 for (int i = 0; i < numBars; i++)
                 {
@@ -485,7 +485,7 @@ void printSpectrum(int row, int col, UISettings *ui, int height, int numBars,
                                     color.b /
                                         2}; // Make colors half as bright before
                                             // increasing brightness
-                                tmp = increaseLuminosity(
+                                tmp = increase_luminosity(
                                     tmp, round(magnitudes[i] * 10 * 4));
 
                                 printf("\033[38;2;%d;%d;%dm", tmp.r, tmp.g,
@@ -500,12 +500,12 @@ void printSpectrum(int row, int col, UISettings *ui, int height, int numBars,
                         {
                                 if (magnitudes[i - 1] >= j)
                                 {
-                                        printf("%s", getUpwardMotionChar(
+                                        printf("%s", get_upward_motion_char(
                                                          10, brailleMode));
                                 }
                                 else if (magnitudes[i - 1] + 1 >= j)
                                 {
-                                        printf("%s", getInbetweenChar(
+                                        printf("%s", get_inbetween_char(
                                                          magnitudes[i - 1],
                                                          magnitudes[i]));
                                 }
@@ -523,11 +523,11 @@ void printSpectrum(int row, int col, UISettings *ui, int height, int numBars,
                         if (magnitudes[i] >= j)
                         {
                                 printf("%s",
-                                       getUpwardMotionChar(10, brailleMode));
-                                if (visualizerBarWidth == 1 ||
-                                    (visualizerBarWidth == 2 &&
-                                     visualizerWidth > maxThinBarsInAutoMode))
-                                        printf("%s", getUpwardMotionChar(
+                                       get_upward_motion_char(10, brailleMode));
+                                if (visualizer_bar_width == 1 ||
+                                    (visualizer_bar_width == 2 &&
+                                     visualizerWidth > max_thin_bars_in_auto_mode))
+                                        printf("%s", get_upward_motion_char(
                                                          10, brailleMode));
                         }
                         else if (magnitudes[i] + 1 >= j)
@@ -535,21 +535,21 @@ void printSpectrum(int row, int col, UISettings *ui, int height, int numBars,
                                 int firstDecimalDigit =
                                     (int)(fmod(magnitudes[i] * 10, 10));
                                 printf("%s",
-                                       getUpwardMotionChar(firstDecimalDigit,
+                                       get_upward_motion_char(firstDecimalDigit,
                                                            brailleMode));
-                                if (visualizerBarWidth == 1 ||
-                                    (visualizerBarWidth == 2 &&
-                                     visualizerWidth > maxThinBarsInAutoMode))
-                                        printf("%s", getUpwardMotionChar(
+                                if (visualizer_bar_width == 1 ||
+                                    (visualizer_bar_width == 2 &&
+                                     visualizerWidth > max_thin_bars_in_auto_mode))
+                                        printf("%s", get_upward_motion_char(
                                                          firstDecimalDigit,
                                                          brailleMode));
                         }
                         else
                         {
                                 printf(" ");
-                                if (visualizerBarWidth == 1 ||
-                                    (visualizerBarWidth == 2 &&
-                                     visualizerWidth > maxThinBarsInAutoMode))
+                                if (visualizer_bar_width == 1 ||
+                                    (visualizer_bar_width == 2 &&
+                                     visualizerWidth > max_thin_bars_in_auto_mode))
                                         printf(" ");
                         }
                 }
@@ -557,31 +557,31 @@ void printSpectrum(int row, int col, UISettings *ui, int height, int numBars,
         fflush(stdout);
 }
 
-void freeVisuals(void)
+void free_visuals(void)
 {
-        if (fftInput != NULL)
+        if (fft_input != NULL)
         {
-                free(fftInput);
-                fftInput = NULL;
+                free(fft_input);
+                fft_input = NULL;
         }
-        if (fftOutput != NULL)
+        if (fft_output != NULL)
         {
-                fftwf_free(fftOutput);
-                fftOutput = NULL;
+                fftwf_free(fft_output);
+                fft_output = NULL;
         }
 }
 
-void drawSpectrumVisualizer(int row, int col, int height)
+void draw_spectrum_visualizer(int row, int col, int height)
 {
-        AppState *state = getAppState();
+        AppState *state = get_app_state();
 
         int numBars = state->uiState.numProgressBars;
         int visualizerWidth = state->uiState.numProgressBars;
-        visualizerBarWidth = state->uiSettings.visualizerBarWidth;
+        visualizer_bar_width = state->uiSettings.visualizer_bar_width;
 
-        if (visualizerBarWidth == 1 ||
-            (visualizerBarWidth == 2 &&
-             visualizerWidth > maxThinBarsInAutoMode))
+        if (visualizer_bar_width == 1 ||
+            (visualizer_bar_width == 2 &&
+             visualizerWidth > max_thin_bars_in_auto_mode))
                 numBars *= 0.67f;
 
         height -= 1;
@@ -594,16 +594,16 @@ void drawSpectrumVisualizer(int row, int col, int height)
         if (numBars > MAX_BARS)
                 numBars = MAX_BARS;
 
-        int fftSize = getFftSize();
+        int fft_size = get_fft_size();
 
-        if (fftSize != prevFftSize)
+        if (fft_size != prev_fft_size)
         {
-                freeVisuals();
+                free_visuals();
 
-                memset(displayMagnitudes, 0, sizeof(displayMagnitudes));
+                memset(display_magnitudes, 0, sizeof(display_magnitudes));
 
-                fftInput = (float *)malloc(sizeof(float) * fftSize);
-                if (fftInput == NULL)
+                fft_input = (float *)malloc(sizeof(float) * fft_size);
+                if (fft_input == NULL)
                 {
                         for (int i = 0; i <= height; i++)
                         {
@@ -612,33 +612,33 @@ void drawSpectrumVisualizer(int row, int col, int height)
                         return;
                 }
 
-                fftOutput = (fftwf_complex *)fftwf_malloc(
-                    sizeof(fftwf_complex) * fftSize);
-                if (fftOutput == NULL)
+                fft_output = (fftwf_complex *)fftwf_malloc(
+                    sizeof(fftwf_complex) * fft_size);
+                if (fft_output == NULL)
                 {
-                        fftwf_free(fftInput);
-                        fftInput = NULL;
+                        fftwf_free(fft_input);
+                        fft_input = NULL;
                         for (int i = 0; i <= height; i++)
                         {
                                 printf("\n");
                         }
                         return;
                 }
-                prevFftSize = fftSize;
+                prev_fft_size = fft_size;
         }
 
         fftwf_plan plan =
-            fftwf_plan_dft_r2c_1d(fftSize, fftInput, fftOutput, FFTW_ESTIMATE);
+            fftwf_plan_dft_r2c_1d(fft_size, fft_input, fft_output, FFTW_ESTIMATE);
 
-        getCurrentFormatAndSampleRate(&format, &sampleRate);
+        get_current_format_and_sample_rate(&format, &sample_rate);
 
-        int bitDepth = getBitDepth(format);
+        int bitDepth = get_bit_depth(format);
 
-        calcMagnitudes(height, numBars, getAudioBuffer(), bitDepth, fftInput,
-                       fftOutput, fftSize, magnitudes, plan, displayMagnitudes);
+        calc_magnitudes(height, numBars, get_audio_buffer(), bitDepth, fft_input,
+                       fft_output, fft_size, magnitudes, plan, display_magnitudes);
 
-        printSpectrum(row, col, &(state->uiSettings), height, numBars,
-                      visualizerWidth, displayMagnitudes);
+        print_spectrum(row, col, &(state->uiSettings), height, numBars,
+                      visualizerWidth, display_magnitudes);
 
         fftwf_destroy_plan(plan);
 }

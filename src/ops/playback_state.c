@@ -12,71 +12,71 @@
 #include "sound/playback.h"
 #include "sound/volume.h"
 
-static bool repeatListEnabled = false;
-static bool shuffleEnabled = false;
+static bool repeat_list_enabled = false;
+static bool shuffle_enabled = false;
 
-bool isRepeatListEnabled(void) { return repeatListEnabled; }
+bool is_repeat_list_enabled(void) { return repeat_list_enabled; }
 
-void setRepeatListEnabled(bool value) { repeatListEnabled = value; }
+void set_repeat_list_enabled(bool value) { repeat_list_enabled = value; }
 
-bool isShuffleEnabled(void) { return shuffleEnabled; }
+bool is_shuffle_enabled(void) { return shuffle_enabled; }
 
-void setShuffleEnabled(bool value) { shuffleEnabled = value; }
+void set_shuffle_enabled(bool value) { shuffle_enabled = value; }
 
-bool opsIsRepeatEnabled(void)
+bool ops_is_repeat_enabled(void)
 {
-        return isRepeatEnabled();
+        return is_repeat_enabled();
 }
 
-bool opsIsPaused(void)
+bool ops_is_paused(void)
 {
-        return isPaused();
+        return is_paused();
 }
 
-bool opsIsStopped(void)
+bool ops_is_stopped(void)
 {
-        return isStopped();
+        return is_stopped();
 }
 
-bool opsIsDone(void)
+bool ops_is_done(void)
 {
-        return isPlaybackDone();
+        return is_playback_done();
 }
 
-bool opsIsEof(void)
+bool ops_is_EOF(void)
 {
-        return isEOFReached();
+        return is_EOF_reached();
 }
 
-bool opsIsImplSwitchReached(void)
+bool ops_is_impl_switch_reached(void)
 {
-        return isImplSwitchReached();
+        return is_impl_switch_reached();
 }
 
-bool isCurrentSongDeleted(void)
+bool is_current_song_deleted(void)
 {
 
-        return (audioData.currentFileIndex == 0)
-                   ? audioData.pUserData->songdataADeleted == true
-                   : audioData.pUserData->songdataBDeleted == true;
+        return (audio_data.currentFileIndex == 0)
+                   ? audio_data.pUserData->songdataADeleted == true
+                   : audio_data.pUserData->songdataBDeleted == true;
 }
 
-bool isValidSong(SongData *songData)
+bool is_valid_song(SongData *songData)
 {
         return songData != NULL && songData->hasErrors == false &&
                songData->metadata != NULL;
 }
 
-void opsSetEofHandled(void)
+void ops_set_EOF_handled(void)
 {
-        setEofHandled();
+        set_EOF_handled();
 }
 
 
-double getCurrentSongDuration(void)
+double get_current_song_duration(void)
 {
         double duration = 0.0;
-        SongData *currentSongData = getCurrentSongData();
+        SongData *currentSongData = get_current_song_data();
 
         if (currentSongData != NULL)
                 duration = currentSongData->duration;
@@ -84,61 +84,61 @@ double getCurrentSongDuration(void)
         return duration;
 }
 
-bool determineCurrentSongData(SongData **currentSongData)
+bool determine_current_song_data(SongData **currentSongData)
 {
-        *currentSongData = (audioData.currentFileIndex == 0)
-                               ? audioData.pUserData->songdataA
-                               : audioData.pUserData->songdataB;
+        *currentSongData = (audio_data.currentFileIndex == 0)
+                               ? audio_data.pUserData->songdataA
+                               : audio_data.pUserData->songdataB;
 
-        bool isDeleted = (audioData.currentFileIndex == 0)
-                             ? audioData.pUserData->songdataADeleted == true
-                             : audioData.pUserData->songdataBDeleted == true;
+        bool isDeleted = (audio_data.currentFileIndex == 0)
+                             ? audio_data.pUserData->songdataADeleted == true
+                             : audio_data.pUserData->songdataBDeleted == true;
 
         if (isDeleted)
         {
-                *currentSongData = (audioData.currentFileIndex != 0)
-                                       ? audioData.pUserData->songdataA
-                                       : audioData.pUserData->songdataB;
+                *currentSongData = (audio_data.currentFileIndex != 0)
+                                       ? audio_data.pUserData->songdataA
+                                       : audio_data.pUserData->songdataB;
 
-                isDeleted = (audioData.currentFileIndex != 0)
-                                ? audioData.pUserData->songdataADeleted == true
-                                : audioData.pUserData->songdataBDeleted == true;
+                isDeleted = (audio_data.currentFileIndex != 0)
+                                ? audio_data.pUserData->songdataADeleted == true
+                                : audio_data.pUserData->songdataBDeleted == true;
 
                 if (!isDeleted)
                 {
-                        activateSwitch(&audioData);
-                        audioData.switchFiles = false;
+                        activate_switch(&audio_data);
+                        audio_data.switchFiles = false;
                 }
         }
         return isDeleted;
 }
 
-int getVolume()
+int get_volume()
 {
-        return getCurrentVolume();
+        return get_current_volume();
 }
 
-void getFormatAndSampleRate(ma_format *format, ma_uint32 *sampleRate)
+void get_format_and_sample_rate(ma_format *format, ma_uint32 *sample_rate)
 {
-        getCurrentFormatAndSampleRate(format, sampleRate);
+        get_current_format_and_sample_rate(format, sample_rate);
 }
 
-SongData *getCurrentSongData(void)
+SongData *get_current_song_data(void)
 {
-        if (getCurrentSong() == NULL)
+        if (get_current_song() == NULL)
                 return NULL;
 
-        if (isCurrentSongDeleted())
+        if (is_current_song_deleted())
                 return NULL;
 
         SongData *songData = NULL;
 
-        bool isDeleted = determineCurrentSongData(&songData);
+        bool isDeleted = determine_current_song_data(&songData);
 
         if (isDeleted)
                 return NULL;
 
-        if (!isValidSong(songData))
+        if (!is_valid_song(songData))
                 return NULL;
 
         return songData;
