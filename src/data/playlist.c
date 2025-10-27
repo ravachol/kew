@@ -27,27 +27,27 @@
 #define MAX_SEARCH_SIZE 256
 
 const char PLAYLIST_EXTENSIONS[] = "(m3u8?)$";
-const char favoritesPlaylistName[] = "kew favorites.m3u";
-const char lastUsedPlaylistName[] = "lastPlaylist.m3u";
+const char favorites_playlist_name[] = "kew favorites.m3u";
+const char last_used_playlist_name[] = "lastPlaylist.m3u";
 
 static char search[MAX_SEARCH_SIZE];
-static char playlistName[MAX_SEARCH_SIZE];
+static char playlist_name[MAX_SEARCH_SIZE];
 static bool shuffle = false;
-static int numDirs = 0;
-static Node *currentSong = NULL;
-static int nodeIdCounter = 0;
+static int num_dirs = 0;
+static Node *current_song = NULL;
+static int node_id_counter = 0;
 
-void clearCurrentSong(void) { currentSong = NULL; }
+void clear_current_song(void) { current_song = NULL; }
 
-void setCurrentSong(Node *node) { currentSong = node; }
+void set_current_song(Node *node) { current_song = node; }
 
-Node *getCurrentSong(void) { return currentSong; }
+Node *get_current_song(void) { return current_song; }
 
-Node *getListNext(Node *node) { return (node == NULL) ? NULL : node->next; }
+Node *get_list_next(Node *node) { return (node == NULL) ? NULL : node->next; }
 
-Node *getListPrev(Node *node) { return (node == NULL) ? NULL : node->prev; }
+Node *get_list_prev(Node *node) { return (node == NULL) ? NULL : node->prev; }
 
-int addToList(PlayList *list, Node *newNode)
+int add_to_list(PlayList *list, Node *newNode)
 {
         if (newNode == NULL)
                 return 0;
@@ -73,7 +73,7 @@ int addToList(PlayList *list, Node *newNode)
         return 0;
 }
 
-void moveUpList(PlayList *list, Node *node)
+void move_up_list(PlayList *list, Node *node)
 {
         if (node == list->head || node == NULL || node->prev == NULL)
                 return;
@@ -98,7 +98,7 @@ void moveUpList(PlayList *list, Node *node)
                 list->tail = prevNode;
 }
 
-void moveDownList(PlayList *list, Node *node)
+void move_down_list(PlayList *list, Node *node)
 {
         if (node == list->tail || node == NULL || node->next == NULL)
                 return;
@@ -124,7 +124,7 @@ void moveDownList(PlayList *list, Node *node)
                 list->tail = node;
 }
 
-Node *deleteFromList(PlayList *list, Node *node)
+Node *delete_from_list(PlayList *list, Node *node)
 {
         if (list == NULL || node == NULL || list->head == NULL)
                 return NULL;
@@ -158,7 +158,7 @@ Node *deleteFromList(PlayList *list, Node *node)
         return nextNode;
 }
 
-void deletePlaylist(PlayList *list)
+void delete_playlist(PlayList *list)
 {
         if (list == NULL)
                 return;
@@ -182,7 +182,7 @@ void deletePlaylist(PlayList *list)
         pthread_mutex_destroy(&list->mutex);
 }
 
-void shufflePlaylist(PlayList *playlist)
+void shuffle_playlist(PlayList *playlist)
 {
         if (playlist == NULL || playlist->count <= 1)
         {
@@ -234,57 +234,57 @@ void shufflePlaylist(PlayList *playlist)
         free(nodes);
 }
 
-void insertAsFirst(Node *currentSong, PlayList *playlist)
+void insert_as_first(Node *current_song, PlayList *playlist)
 {
-        if (currentSong == NULL || playlist == NULL)
+        if (current_song == NULL || playlist == NULL)
         {
                 return;
         }
 
         if (playlist->head == NULL)
         {
-                currentSong->next = NULL;
-                currentSong->prev = NULL;
-                playlist->head = currentSong;
-                playlist->tail = currentSong;
+                current_song->next = NULL;
+                current_song->prev = NULL;
+                playlist->head = current_song;
+                playlist->tail = current_song;
         }
         else
         {
-                if (currentSong != playlist->head)
+                if (current_song != playlist->head)
                 {
-                        if (currentSong->next != NULL)
+                        if (current_song->next != NULL)
                         {
-                                currentSong->next->prev = currentSong->prev;
+                                current_song->next->prev = current_song->prev;
                         }
                         else
                         {
-                                playlist->tail = currentSong->prev;
+                                playlist->tail = current_song->prev;
                         }
 
-                        if (currentSong->prev != NULL)
+                        if (current_song->prev != NULL)
                         {
-                                currentSong->prev->next = currentSong->next;
+                                current_song->prev->next = current_song->next;
                         }
 
-                        // Add the currentSong as the new head
-                        currentSong->next = playlist->head;
-                        currentSong->prev = NULL;
-                        playlist->head->prev = currentSong;
-                        playlist->head = currentSong;
+                        // Add the current_song as the new head
+                        current_song->next = playlist->head;
+                        current_song->prev = NULL;
+                        playlist->head->prev = current_song;
+                        playlist->head = current_song;
                 }
         }
 }
 
-void shufflePlaylistStartingFromSong(PlayList *playlist, Node *song)
+void shuffle_playlist_starting_from_song(PlayList *playlist, Node *song)
 {
-        shufflePlaylist(playlist);
+        shuffle_playlist(playlist);
         if (song != NULL && playlist->count > 1)
         {
-                insertAsFirst(song, playlist);
+                insert_as_first(song, playlist);
         }
 }
 
-void createNode(Node **node, const char *directoryPath, int id)
+void create_node(Node **node, const char *directoryPath, int id)
 {
         SongInfo song;
         song.filePath = strdup(directoryPath);
@@ -305,7 +305,7 @@ void createNode(Node **node, const char *directoryPath, int id)
         (*node)->id = id;
 }
 
-void destroyNode(Node *node)
+void destroy_node(Node *node)
 {
         if (node == NULL)
                 return;
@@ -316,7 +316,7 @@ void destroyNode(Node *node)
         free(node);
 }
 
-void exitIfOverflow(int counter)
+void exit_if_overflow(int counter)
 {
         if (counter == INT_MAX)
         {
@@ -326,21 +326,21 @@ void exitIfOverflow(int counter)
         }
 }
 
-void buildPlaylistRecursive(const char *directoryPath,
+void build_playlist_recursive(const char *directoryPath,
                             const char *allowedExtensions, PlayList *playlist)
 {
         char expandedPath[MAXPATHLEN - NAME_MAX - 1];
-        expandPath(directoryPath, expandedPath);
+        expand_path(directoryPath, expandedPath);
 
-        int res = isDirectory(expandedPath);
+        int res = is_directory(expandedPath);
         if (res != 1 && res != -1 && directoryPath != NULL)
         {
                 Node *node = NULL;
 
-                exitIfOverflow(nodeIdCounter);
-                createNode(&node, expandedPath, nodeIdCounter++);
-                if (addToList(playlist, node) == -1)
-                        destroyNode(node);
+                exit_if_overflow(node_id_counter);
+                create_node(&node, expandedPath, node_id_counter++);
+                if (add_to_list(playlist, node) == -1)
+                        destroy_node(node);
 
                 return;
         }
@@ -364,7 +364,7 @@ void buildPlaylistRecursive(const char *directoryPath,
         char exto[100];
         struct dirent **entries;
         int numEntries =
-            scandir(expandedPath, &entries, NULL, compareLibEntries);
+            scandir(expandedPath, &entries, NULL, compare_lib_entries);
 
         if (numEntries < 0)
         {
@@ -398,17 +398,17 @@ void buildPlaylistRecursive(const char *directoryPath,
 
                 snprintf(filePath, sizeof(filePath), "%s/%s", expandedPath, entry->d_name);
 
-                if (isDirectory(filePath) == 1)
+                if (is_directory(filePath) == 1)
                 {
                         int songCount = playlist->count;
-                        buildPlaylistRecursive(filePath, allowedExtensions,
+                        build_playlist_recursive(filePath, allowedExtensions,
                                                playlist);
                         if (playlist->count > songCount)
-                                numDirs++;
+                                num_dirs++;
                 }
                 else
                 {
-                        extractExtension(entry->d_name, sizeof(exto) - 1, exto);
+                        extract_extension(entry->d_name, sizeof(exto) - 1, exto);
                         if (match_regex(&regex, exto) == 0)
                         {
                                 snprintf(filePath, sizeof(filePath), "%s/%s",
@@ -416,10 +416,10 @@ void buildPlaylistRecursive(const char *directoryPath,
 
                                 Node *node = NULL;
 
-                                exitIfOverflow(nodeIdCounter);
-                                createNode(&node, filePath, nodeIdCounter++);
-                                if (addToList(playlist, node) == -1)
-                                        destroyNode(node);
+                                exit_if_overflow(node_id_counter);
+                                create_node(&node, filePath, node_id_counter++);
+                                if (add_to_list(playlist, node) == -1)
+                                        destroy_node(node);
                         }
                 }
         }
@@ -434,7 +434,7 @@ void buildPlaylistRecursive(const char *directoryPath,
         regfree(&regex);
 }
 
-int joinPlaylist(PlayList *dest, PlayList *src)
+int join_playlist(PlayList *dest, PlayList *src)
 {
         if (src->count == 0)
         {
@@ -461,25 +461,25 @@ int joinPlaylist(PlayList *dest, PlayList *src)
         return 1;
 }
 
-void makePlaylistName(const char *search, int maxSize)
+void make_playlist_name(const char *search, int maxSize)
 {
-        playlistName[0] = '\0';
+        playlist_name[0] = '\0';
 
-        snprintf(playlistName, maxSize, "%s", search);
+        snprintf(playlist_name, maxSize, "%s", search);
 
-        snprintf(playlistName + strnlen(playlistName, maxSize),
-                 maxSize - strnlen(playlistName, maxSize), ".m3u");
+        snprintf(playlist_name + strnlen(playlist_name, maxSize),
+                 maxSize - strnlen(playlist_name, maxSize), ".m3u");
 
-        for (int i = 0; playlistName[i] != '\0'; i++)
+        for (int i = 0; playlist_name[i] != '\0'; i++)
         {
-                if (playlistName[i] == ':')
+                if (playlist_name[i] == ':')
                 {
-                        playlistName[i] = '-';
+                        playlist_name[i] = '-';
                 }
         }
 }
 
-void readM3UFile(const char *filepath, PlayList *playlist,
+void read_m3_u_file(const char *filepath, PlayList *playlist,
                  FileSystemEntry *library)
 {
         GError *error = NULL;
@@ -487,7 +487,7 @@ void readM3UFile(const char *filepath, PlayList *playlist,
         gchar **lines;
 
         char filename[MAXPATHLEN];
-        expandPath(filepath, filename);
+        expand_path(filepath, filename);
 
         if (!g_file_get_contents(filename, &contents, NULL, &error))
         {
@@ -523,14 +523,14 @@ void readM3UFile(const char *filepath, PlayList *playlist,
                         if (songPath == NULL)
                                 continue;
 
-                        if (existsFile(songPath) < 0)
+                        if (exists_file(songPath) < 0)
                                 continue;
 
                         // Don't add songs that are already enqueued
                         if (library != NULL)
                         {
                                 FileSystemEntry *entry =
-                                    findCorrespondingEntry(library, songPath);
+                                    find_corresponding_entry(library, songPath);
 
                                 if (entry != NULL && entry->isEnqueued)
                                 {
@@ -540,7 +540,7 @@ void readM3UFile(const char *filepath, PlayList *playlist,
                         }
 
                         Node *newNode = NULL;
-                        createNode(&newNode, songPath, nodeIdCounter++);
+                        create_node(&newNode, songPath, node_id_counter++);
 
                         if (playlist->head == NULL)
                         {
@@ -565,7 +565,7 @@ void readM3UFile(const char *filepath, PlayList *playlist,
         g_free(contents);
 }
 
-int makePlaylist(PlayList **playlist, int argc, char *argv[], bool exactSearch, const char *path)
+int make_playlist(PlayList **playlist, int argc, char *argv[], bool exactSearch, const char *path)
 {
         const char *delimiter = ":";
         const char *allowedExtensions = MUSIC_FILE_EXTENSIONS;
@@ -575,7 +575,7 @@ int makePlaylist(PlayList **playlist, int argc, char *argv[], bool exactSearch, 
         PlayList partialPlaylist = {NULL, NULL, 0, PTHREAD_MUTEX_INITIALIZER};
 
         char expandedPath[MAXPATHLEN];
-        expandPath(path, expandedPath);
+        expand_path(path, expandedPath);
 
         if (strcmp(argv[1], "all") == 0)
         {
@@ -627,7 +627,7 @@ int makePlaylist(PlayList **playlist, int argc, char *argv[], bool exactSearch, 
                 snprintf(search + len, MAX_SEARCH_SIZE - len, " %s", argv[i]);
         }
 
-        makePlaylistName(search, MAX_SEARCH_SIZE);
+        make_playlist_name(search, MAX_SEARCH_SIZE);
 
         if (strstr(search, delimiter))
         {
@@ -638,7 +638,7 @@ int makePlaylist(PlayList **playlist, int argc, char *argv[], bool exactSearch, 
         {
                 pthread_mutex_lock(&((*playlist)->mutex));
 
-                buildPlaylistRecursive(expandedPath, allowedExtensions, *playlist);
+                build_playlist_recursive(expandedPath, allowedExtensions, *playlist);
 
                 pthread_mutex_unlock(&((*playlist)->mutex));
         }
@@ -663,16 +663,16 @@ int makePlaylist(PlayList **playlist, int argc, char *argv[], bool exactSearch, 
                         {
                                 if (strcmp(argv[1], "list") == 0)
                                 {
-                                        readM3UFile(buf, *playlist, NULL);
+                                        read_m3_u_file(buf, *playlist, NULL);
                                 }
                                 else
                                 {
                                         pthread_mutex_lock(&((*playlist)->mutex));
 
-                                        buildPlaylistRecursive(
+                                        build_playlist_recursive(
                                             buf, allowedExtensions,
                                             &partialPlaylist);
-                                        joinPlaylist(*playlist,
+                                        join_playlist(*playlist,
                                                      &partialPlaylist);
 
                                         pthread_mutex_unlock(
@@ -683,10 +683,10 @@ int makePlaylist(PlayList **playlist, int argc, char *argv[], bool exactSearch, 
                         token = strtok(NULL, delimiter);
                 }
         }
-        if (numDirs > 1)
+        if (num_dirs > 1)
                 shuffle = true;
         if (shuffle)
-                shufflePlaylist(*playlist);
+                shuffle_playlist(*playlist);
 
         if ((*playlist)->head == NULL)
                 printf(_("Music not found\n"));
@@ -694,7 +694,7 @@ int makePlaylist(PlayList **playlist, int argc, char *argv[], bool exactSearch, 
         return 0;
 }
 
-void generateM3UFilename(const char *basePath, const char *filePath,
+void generate_m3_u_filename(const char *basePath, const char *filePath,
                          char *m3uFilename, size_t size)
 {
 
@@ -740,7 +740,7 @@ void generateM3UFilename(const char *basePath, const char *filePath,
         }
 }
 
-void writeM3UFile(const char *filename, const PlayList *playlist)
+void write_m3u_file(const char *filename, const PlayList *playlist)
 {
         FILE *file = fopen(filename, "w");
         if (file == NULL)
@@ -757,12 +757,12 @@ void writeM3UFile(const char *filename, const PlayList *playlist)
         fclose(file);
 }
 
-void loadPlaylist(const char *directory, const char *playlistName,
+void load_playlist(const char *directory, const char *playlist_name,
                   PlayList **playlist)
 {
         char playlistPath[MAXPATHLEN];
 
-        if (!directory || !playlistName || !playlist)
+        if (!directory || !playlist_name || !playlist)
                 return;
 
         size_t len = strnlen(directory, MAXPATHLEN);
@@ -772,42 +772,42 @@ void loadPlaylist(const char *directory, const char *playlistName,
         snprintf(playlistPath, sizeof(playlistPath), "%s%s%s",
                  directory,
                  (directory[len - 1] == '/' ? "" : "/"),
-                 playlistName);
+                 playlist_name);
 
         if (*playlist == NULL)
         {
-                createPlaylist(playlist);
+                create_playlist(playlist);
         }
 
         if (*playlist)
-                readM3UFile(playlistPath, *playlist, NULL);
+                read_m3_u_file(playlistPath, *playlist, NULL);
 }
 
-void loadFavoritesPlaylist(const char *directory, PlayList **favoritesPlaylist)
+void load_favorites_playlist(const char *directory, PlayList **favorites_playlist)
 {
         char expandedPath[MAXPATHLEN];
-        expandPath(directory, expandedPath);
-        loadPlaylist(directory, favoritesPlaylistName, favoritesPlaylist);
-        setFavoritesPlaylist(*favoritesPlaylist);
+        expand_path(directory, expandedPath);
+        load_playlist(directory, favorites_playlist_name, favorites_playlist);
+        set_favorites_playlist(*favorites_playlist);
 }
 
-void loadLastUsedPlaylist(PlayList *playlist, PlayList **unshuffledPlaylist)
+void load_last_used_playlist(PlayList *playlist, PlayList **unshuffled_playlist)
 {
-        char *configdir = getConfigPath();
+        char *configdir = get_config_path();
 
-        loadPlaylist(configdir, lastUsedPlaylistName, &playlist);
-        setPlaylist(playlist);
+        load_playlist(configdir, last_used_playlist_name, &playlist);
+        set_playlist(playlist);
 
-        if (*unshuffledPlaylist == NULL)
+        if (*unshuffled_playlist == NULL)
         {
-                *unshuffledPlaylist = deepCopyPlayList(playlist);
+                *unshuffled_playlist = deep_copy_play_list(playlist);
         }
 
         if (configdir)
                 free(configdir);
 }
 
-void saveNamedPlaylist(const char *directory, const char *playlistName,
+void save_named_playlist(const char *directory, const char *playlist_name,
                        const PlayList *playlist)
 {
         if (directory == NULL)
@@ -829,41 +829,41 @@ void saveNamedPlaylist(const char *directory, const char *playlistName,
         if (playlistPath[length - 1] != '/')
         {
                 snprintf(playlistPath + length, sizeof(playlistPath) - length,
-                         "/%s", playlistName);
+                         "/%s", playlist_name);
         }
         else
         {
                 snprintf(playlistPath + length, sizeof(playlistPath) - length,
-                         "%s", playlistName);
+                         "%s", playlist_name);
         }
 
         if (playlist != NULL)
         {
-                writeM3UFile(playlistPath, playlist);
+                write_m3u_file(playlistPath, playlist);
         }
 }
 
-void saveFavoritesPlaylist(const char *directory, PlayList *favoritesPlaylist)
+void save_favorites_playlist(const char *directory, PlayList *favorites_playlist)
 {
         char expandedPath[MAXPATHLEN];
-        expandPath(directory, expandedPath);
+        expand_path(directory, expandedPath);
 
-        if (favoritesPlaylist != NULL && favoritesPlaylist->count > 0)
+        if (favorites_playlist != NULL && favorites_playlist->count > 0)
         {
-                saveNamedPlaylist(expandedPath, favoritesPlaylistName,
-                                  favoritesPlaylist);
+                save_named_playlist(expandedPath, favorites_playlist_name,
+                                  favorites_playlist);
         }
 }
 
-void saveLastUsedPlaylist(PlayList *unshuffledPlaylist)
+void save_last_used_playlist(PlayList *unshuffled_playlist)
 {
-        char *configdir = getConfigPath();
-        saveNamedPlaylist(configdir, lastUsedPlaylistName, unshuffledPlaylist);
+        char *configdir = get_config_path();
+        save_named_playlist(configdir, last_used_playlist_name, unshuffled_playlist);
         if (configdir)
                 free(configdir);
 }
 
-void savePlaylist(const char *path, const PlayList *playlist)
+void save_playlist(const char *path, const PlayList *playlist)
 {
         if (path == NULL)
         {
@@ -871,30 +871,30 @@ void savePlaylist(const char *path, const PlayList *playlist)
         }
 
         char expandedPath[MAXPATHLEN];
-        expandPath(path, expandedPath);
+        expand_path(path, expandedPath);
 
         if (playlist->head == NULL || playlist->head->song.filePath == NULL)
                 return;
 
-        writeM3UFile(expandedPath, playlist);
+        write_m3u_file(expandedPath, playlist);
 }
 
-void exportCurrentPlaylist(const char *path, const PlayList *playlist)
+void export_current_playlist(const char *path, const PlayList *playlist)
 {
         char m3uFilename[MAXPATHLEN];
         char expandedPath[MAXPATHLEN];
-        expandPath(path, expandedPath);
+        expand_path(path, expandedPath);
 
         if (path == NULL || playlist->head == NULL)
                 return;
 
-        generateM3UFilename(expandedPath, playlist->head->song.filePath, m3uFilename,
+        generate_m3_u_filename(expandedPath, playlist->head->song.filePath, m3uFilename,
                             sizeof(m3uFilename));
 
-        savePlaylist(m3uFilename, playlist);
+        save_playlist(m3uFilename, playlist);
 }
 
-Node *deepCopyNode(Node *originalNode)
+Node *deep_copy_node(Node *originalNode)
 {
         if (originalNode == NULL)
         {
@@ -912,7 +912,7 @@ Node *deepCopyNode(Node *originalNode)
         newNode->song.duration = originalNode->song.duration;
         newNode->prev = NULL;
         newNode->id = originalNode->id;
-        newNode->next = deepCopyNode(originalNode->next);
+        newNode->next = deep_copy_node(originalNode->next);
 
         if (newNode->next != NULL)
         {
@@ -922,7 +922,7 @@ Node *deepCopyNode(Node *originalNode)
         return newNode;
 }
 
-Node *findTail(Node *head)
+Node *find_tail(Node *head)
 {
         if (head == NULL)
                 return NULL;
@@ -936,22 +936,22 @@ Node *findTail(Node *head)
         return current;
 }
 
-PlayList *deepCopyPlayList(const PlayList *originalList)
+PlayList *deep_copy_play_list(const PlayList *originalList)
 {
         if (originalList == NULL)
                 return NULL;
 
         PlayList *newList = NULL;
-        createPlaylist(&newList);
+        create_playlist(&newList);
 
         if (newList == NULL)
                 return NULL;
 
-        deepCopyPlayListOntoList(originalList, &newList);
+        deep_copy_play_list_onto_list(originalList, &newList);
         return newList;
 }
 
-void deepCopyPlayListOntoList(const PlayList *originalList, PlayList **newList)
+void deep_copy_play_list_onto_list(const PlayList *originalList, PlayList **newList)
 {
         if (originalList == NULL || newList == NULL)
                 return;
@@ -961,7 +961,7 @@ void deepCopyPlayListOntoList(const PlayList *originalList, PlayList **newList)
                 *newList = malloc(sizeof(PlayList));
                 if (*newList == NULL)
                 {
-                        perror("malloc failed in deepCopyPlayListOntoList");
+                        perror("malloc failed in deep_copy_play_list_onto_list");
                         return;
                 }
 
@@ -969,12 +969,12 @@ void deepCopyPlayListOntoList(const PlayList *originalList, PlayList **newList)
                 pthread_mutex_init(&(*newList)->mutex, NULL);
         }
 
-        (*newList)->head = deepCopyNode(originalList->head);
-        (*newList)->tail = findTail((*newList)->head);
+        (*newList)->head = deep_copy_node(originalList->head);
+        (*newList)->tail = find_tail((*newList)->head);
         (*newList)->count = originalList->count;
 }
 
-Node *findPathInPlaylist(const char *path, PlayList *playlist)
+Node *find_path_in_playlist(const char *path, PlayList *playlist)
 {
         Node *currentNode = playlist->head;
 
@@ -990,7 +990,7 @@ Node *findPathInPlaylist(const char *path, PlayList *playlist)
         return NULL;
 }
 
-Node *findLastPathInPlaylist(const char *path, PlayList *playlist)
+Node *find_last_path_in_playlist(const char *path, PlayList *playlist)
 {
         Node *currentNode = playlist->tail;
 
@@ -1006,7 +1006,7 @@ Node *findLastPathInPlaylist(const char *path, PlayList *playlist)
         return NULL;
 }
 
-int findNodeInList(PlayList *list, int id, Node **foundNode)
+int find_node_in_list(PlayList *list, int id, Node **foundNode)
 {
         Node *node = list->head;
         int row = 0;
@@ -1028,46 +1028,46 @@ int findNodeInList(PlayList *list, int id, Node **foundNode)
         return -1;
 }
 
-void addSongToPlayList(PlayList *list, const char *filePath, int playlistMax)
+void add_song_to_play_list(PlayList *list, const char *filePath, int playlistMax)
 {
         if (list->count >= playlistMax)
                 return;
 
         Node *newNode = NULL;
-        createNode(&newNode, filePath, list->count);
-        if (addToList(list, newNode) == -1)
-                destroyNode(newNode);
+        create_node(&newNode, filePath, list->count);
+        if (add_to_list(list, newNode) == -1)
+                destroy_node(newNode);
 }
 
-void traverseFileSystemEntry(FileSystemEntry *entry, PlayList *list,
+void traverse_file_system_entry(FileSystemEntry *entry, PlayList *list,
                              int playlistMax)
 {
         if (entry == NULL || list->count >= playlistMax)
                 return;
 
-        if (entry->isDirectory == 0)
+        if (entry->is_directory == 0)
         {
-                addSongToPlayList(list, entry->fullPath, playlistMax);
+                add_song_to_play_list(list, entry->fullPath, playlistMax);
         }
 
-        if (entry->isDirectory == 1 && entry->children != NULL)
+        if (entry->is_directory == 1 && entry->children != NULL)
         {
-                traverseFileSystemEntry(entry->children, list, playlistMax);
+                traverse_file_system_entry(entry->children, list, playlistMax);
         }
 
         if (entry->next != NULL)
         {
-                traverseFileSystemEntry(entry->next, list, playlistMax);
+                traverse_file_system_entry(entry->next, list, playlistMax);
         }
 }
 
-void createPlayListFromFileSystemEntry(FileSystemEntry *root, PlayList *list,
+void create_play_list_from_file_system_entry(FileSystemEntry *root, PlayList *list,
                                        int playlistMax)
 {
-        traverseFileSystemEntry(root, list, playlistMax);
+        traverse_file_system_entry(root, list, playlistMax);
 }
 
-int isMusicFile(const char *filename)
+int is_music_file(const char *filename)
 {
         if (filename == NULL)
                 return 0;
@@ -1088,7 +1088,7 @@ int isMusicFile(const char *filename)
         return 0;
 }
 
-int containsMusicFiles(FileSystemEntry *entry)
+int contains_music_files(FileSystemEntry *entry)
 {
         if (entry == NULL)
                 return 0;
@@ -1097,7 +1097,7 @@ int containsMusicFiles(FileSystemEntry *entry)
 
         while (child != NULL)
         {
-                if (!child->isDirectory && isMusicFile(child->name))
+                if (!child->is_directory && is_music_file(child->name))
                 {
                         return 1;
                 }
@@ -1107,49 +1107,49 @@ int containsMusicFiles(FileSystemEntry *entry)
         return 0;
 }
 
-void addAlbumToPlayList(PlayList *list, FileSystemEntry *album, int playlistMax)
+void add_album_to_play_list(PlayList *list, FileSystemEntry *album, int playlistMax)
 {
         FileSystemEntry *entry = album->children;
 
         while (entry != NULL && list->count < playlistMax)
         {
-                if (!entry->isDirectory && isMusicFile(entry->name))
+                if (!entry->is_directory && is_music_file(entry->name))
                 {
-                        addSongToPlayList(list, entry->fullPath, playlistMax);
+                        add_song_to_play_list(list, entry->fullPath, playlistMax);
                 }
                 entry = entry->next;
         }
 }
 
-void addAlbumsToPlayList(FileSystemEntry *entry, PlayList *list,
+void add_albums_to_play_list(FileSystemEntry *entry, PlayList *list,
                          int playlistMax)
 {
         if (entry == NULL || list->count >= playlistMax)
                 return;
 
-        if (entry->isDirectory && containsMusicFiles(entry))
+        if (entry->is_directory && contains_music_files(entry))
         {
-                addAlbumToPlayList(list, entry, playlistMax);
+                add_album_to_play_list(list, entry, playlistMax);
         }
 
-        if (entry->isDirectory && entry->children != NULL)
+        if (entry->is_directory && entry->children != NULL)
         {
-                addAlbumsToPlayList(entry->children, list, playlistMax);
+                add_albums_to_play_list(entry->children, list, playlistMax);
         }
 
         if (entry->next != NULL)
         {
-                addAlbumsToPlayList(entry->next, list, playlistMax);
+                add_albums_to_play_list(entry->next, list, playlistMax);
         }
 }
 
-void shuffleEntries(FileSystemEntry **array, size_t n)
+void shuffle_entries(FileSystemEntry **array, size_t n)
 {
         if (n > 1)
         {
                 for (size_t i = 0; i < n - 1; i++)
                 {
-                        size_t j = getRandomNumber(i, n - 1);
+                        size_t j = get_random_number(i, n - 1);
 
                         // Swap entries at i and j
                         FileSystemEntry *tmp = array[i];
@@ -1159,44 +1159,44 @@ void shuffleEntries(FileSystemEntry **array, size_t n)
         }
 }
 
-void collectAlbums(FileSystemEntry *entry, FileSystemEntry **albums,
+void collect_albums(FileSystemEntry *entry, FileSystemEntry **albums,
                    size_t *count)
 {
         if (entry == NULL)
                 return;
 
-        if (entry->isDirectory && containsMusicFiles(entry))
+        if (entry->is_directory && contains_music_files(entry))
         {
                 albums[*count] = entry;
                 (*count)++;
         }
 
-        if (entry->isDirectory && entry->children != NULL)
+        if (entry->is_directory && entry->children != NULL)
         {
-                collectAlbums(entry->children, albums, count);
+                collect_albums(entry->children, albums, count);
         }
 
         if (entry->next != NULL)
         {
-                collectAlbums(entry->next, albums, count);
+                collect_albums(entry->next, albums, count);
         }
 }
 
-void addShuffledAlbumsToPlayList(FileSystemEntry *root, PlayList *list,
+void add_shuffled_albums_to_play_list(FileSystemEntry *root, PlayList *list,
                                  int playlistMax)
 {
         size_t maxAlbums = 2000;
         FileSystemEntry *albums[maxAlbums];
         size_t albumCount = 0;
 
-        collectAlbums(root, albums, &albumCount);
+        collect_albums(root, albums, &albumCount);
 
-        shuffleEntries(albums, albumCount);
+        shuffle_entries(albums, albumCount);
 
         for (size_t i = 0; i < albumCount && list->count < playlistMax; i++)
         {
-                addAlbumToPlayList(list, albums[i], playlistMax);
+                add_album_to_play_list(list, albums[i], playlistMax);
         }
 }
 
-int incrementNodeId() { return ++nodeIdCounter; }
+int increment_node_id() { return ++node_id_counter; }

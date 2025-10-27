@@ -15,7 +15,7 @@
 #include "common/appstate.h"
 #include "common_ui.h"
 
-#include "data/songloader.h"
+#include "data/song_loader.h"
 
 #include "ops/playlist_ops.h"
 #include "sys/mpris.h"
@@ -27,11 +27,11 @@
 
 static const int MAX_TERM_WIDTH = 1000;
 
-static int startIter = 0;
-static int previousChosenSong = 0;
-static bool isSameNameAsLastTime = false;
+static int start_iter = 0;
+static int previous_chosen_song = 0;
+static bool is_same_name_as_last_time = false;
 
-Node *determineStartNode(Node *head, int *foundAt, int listSize)
+Node *determine_start_node(Node *head, int *foundAt, int listSize)
 {
         if (foundAt == NULL)
         {
@@ -39,7 +39,7 @@ Node *determineStartNode(Node *head, int *foundAt, int listSize)
         }
 
         Node *node = head;
-        Node *current = getCurrentSong();
+        Node *current = get_current_song();
         Node *foundNode = NULL;
         int numSongs = 0;
         *foundAt = -1;
@@ -59,7 +59,7 @@ Node *determineStartNode(Node *head, int *foundAt, int listSize)
         return foundNode ? foundNode : head;
 }
 
-void preparePlaylistString(Node *node, char *buffer, int bufferSize)
+void prepare_playlist_string(Node *node, char *buffer, int bufferSize)
 {
         if (node == NULL || buffer == NULL || node->song.filePath == NULL ||
             bufferSize <= 0)
@@ -95,7 +95,7 @@ void preparePlaylistString(Node *node, char *buffer, int bufferSize)
         }
 }
 
-int displayPlaylistItems(Node *startNode, int startIter, int maxListSize,
+int display_playlist_items(Node *startNode, int start_iter, int max_list_size,
                          int termWidth, int indent, int chosenSong,
                          int *chosenNodeId, UISettings *ui)
 {
@@ -126,7 +126,7 @@ int displayPlaylistItems(Node *startNode, int startIter, int maxListSize,
                 return 0;
         }
 
-        for (int i = startIter; node != NULL && i < startIter + maxListSize;
+        for (int i = start_iter; node != NULL && i < start_iter + max_list_size;
              i++)
         {
                 PixelData rgbRowNum = {defaultColor,defaultColor,defaultColor};
@@ -146,71 +146,71 @@ int displayPlaylistItems(Node *startNode, int startIter, int maxListSize,
                 if (!(rgbRowNum.r == defaultColor &&
                       rgbRowNum.g == defaultColor &&
                       rgbRowNum.b == defaultColor))
-                        rowColor = getGradientColor(rgbRowNum, i - startIter,
-                                                    maxListSize,
-                                                    maxListSize / 2, 0.7f);
+                        rowColor = get_gradient_color(rgbRowNum, i - start_iter,
+                                                    max_list_size,
+                                                    max_list_size / 2, 0.7f);
 
                 if (!(rgbTitle.r == defaultColor &&
                       rgbTitle.g == defaultColor &&
                       rgbTitle.b == defaultColor))
-                        rowColor2 = getGradientColor(rgbTitle, i - startIter,
-                                                    maxListSize,
-                                                    maxListSize / 2, 0.7f);
+                        rowColor2 = get_gradient_color(rgbTitle, i - start_iter,
+                                                    max_list_size,
+                                                    max_list_size / 2, 0.7f);
 
-                preparePlaylistString(node, buffer, NAME_MAX);
+                prepare_playlist_string(node, buffer, NAME_MAX);
 
                 if (buffer[0] != '\0')
                 {
                         if (ui->colorMode == COLOR_MODE_ALBUM || ui->colorMode == COLOR_MODE_THEME)
-                                applyColor(COLOR_MODE_ALBUM, ui->theme.playlist_rownum,
+                                apply_color(COLOR_MODE_ALBUM, ui->theme.playlist_rownum,
                                         rowColor);
                         else
-                                applyColor(ui->colorMode, ui->theme.playlist_rownum,
+                                apply_color(ui->colorMode, ui->theme.playlist_rownum,
                                         rowColor);
 
-                        clearLine();
-                        printBlankSpaces(indent);
+                        clear_line();
+                        print_blank_spaces(indent);
                         printf("   %d. ", i + 1);
 
                         if (ui->colorMode == COLOR_MODE_ALBUM || ui->colorMode == COLOR_MODE_THEME)
-                                applyColor(COLOR_MODE_ALBUM, ui->theme.playlist_title,
+                                apply_color(COLOR_MODE_ALBUM, ui->theme.playlist_title,
                                         rowColor2);
                         else
-                                applyColor(ui->colorMode, ui->theme.playlist_title,
+                                apply_color(ui->colorMode, ui->theme.playlist_title,
                                         ui->defaultColorRGB);
 
-                        isSameNameAsLastTime =
-                            (previousChosenSong == chosenSong);
+                        is_same_name_as_last_time =
+                            (previous_chosen_song == chosenSong);
 
-                        if (!isSameNameAsLastTime)
+                        if (!is_same_name_as_last_time)
                         {
-                                resetNameScroll();
+                                reset_name_scroll();
                         }
 
                         filename[0] = '\0';
 
                         if (i == chosenSong)
                         {
-                                previousChosenSong = chosenSong;
+                                previous_chosen_song = chosenSong;
 
                                 *chosenNodeId = node->id;
 
-                                processNameScroll(buffer, filename,
+                                process_name_scroll(buffer, filename,
                                                   maxNameWidth,
-                                                  isSameNameAsLastTime);
+                                                  is_same_name_as_last_time);
 
-                                inverseText();
+                                inverse_text();
                         }
                         else
                         {
-                                processName(buffer, filename, maxNameWidth,
+                                process_name(buffer, filename, maxNameWidth,
                                             true, true);
                         }
 
-                        Node *current = getCurrentSong();
+                        Node *current = get_current_song();
 
                         if (current != NULL && current->id == node->id)
-                                applyColor(ui->colorMode,
+                                apply_color(ui->colorMode,
                                            ui->theme.playlist_playing,
                                            rowColor);
 
@@ -220,7 +220,7 @@ int displayPlaylistItems(Node *startNode, int startIter, int maxListSize,
                         if (current != NULL && current->id == node->id &&
                             i == chosenSong)
                         {
-                                inverseText();
+                                inverse_text();
                         }
 
                         if (current != NULL && current->id == node->id &&
@@ -236,7 +236,7 @@ int displayPlaylistItems(Node *startNode, int startIter, int maxListSize,
 
                 node = node->next;
 
-                resetColor();
+                reset_color();
         }
 
         free(buffer);
@@ -245,7 +245,7 @@ int displayPlaylistItems(Node *startNode, int startIter, int maxListSize,
         return numPrintedRows;
 }
 
-void ensureChosenSongWithinLimits(int *chosenSong, PlayList *list)
+void ensure_chosen_song_within_limits(int *chosenSong, PlayList *list)
 {
         if (list == NULL)
         {
@@ -262,63 +262,63 @@ void ensureChosenSongWithinLimits(int *chosenSong, PlayList *list)
         }
 }
 
-int determinePlaylistStart(int previousStartIter, int foundAt, int maxListSize,
+int determine_playlist_start(int previousStartIter, int foundAt, int max_list_size,
                            int *chosenSong, bool reset, bool endOfListReached)
 {
-        int startIter = 0;
+        int start_iter = 0;
 
-        startIter = (foundAt > -1 && (foundAt > startIter + maxListSize))
+        start_iter = (foundAt > -1 && (foundAt > start_iter + max_list_size))
                         ? foundAt
-                        : startIter;
+                        : start_iter;
 
         if (previousStartIter <= foundAt &&
-            foundAt < previousStartIter + maxListSize)
-                startIter = previousStartIter;
+            foundAt < previousStartIter + max_list_size)
+                start_iter = previousStartIter;
 
-        if (*chosenSong < startIter)
+        if (*chosenSong < start_iter)
         {
-                startIter = *chosenSong;
+                start_iter = *chosenSong;
         }
 
-        if (*chosenSong > startIter + maxListSize - floor(maxListSize / 2))
+        if (*chosenSong > start_iter + max_list_size - floor(max_list_size / 2))
         {
-                startIter = *chosenSong - maxListSize + floor(maxListSize / 2);
+                start_iter = *chosenSong - max_list_size + floor(max_list_size / 2);
         }
 
         if (reset && !endOfListReached)
         {
-                if (foundAt > maxListSize)
-                        startIter = previousStartIter = *chosenSong = foundAt;
+                if (foundAt > max_list_size)
+                        start_iter = previousStartIter = *chosenSong = foundAt;
                 else
-                        startIter = *chosenSong = 0;
+                        start_iter = *chosenSong = 0;
         }
 
-        return startIter;
+        return start_iter;
 }
 
-void moveStartNodeIntoPosition(int foundAt, Node **startNode)
+void move_start_node_into_position(int foundAt, Node **startNode)
 {
         // Go up to adjust the startNode
-        for (int i = foundAt; i > startIter; i--)
+        for (int i = foundAt; i > start_iter; i--)
         {
                 if (i > 0 && (*startNode)->prev != NULL)
                         *startNode = (*startNode)->prev;
         }
 
         // Go down to adjust the startNode
-        for (int i = (foundAt == -1) ? 0 : foundAt; i < startIter; i++)
+        for (int i = (foundAt == -1) ? 0 : foundAt; i < start_iter; i++)
         {
                 if ((*startNode)->next != NULL)
                         *startNode = (*startNode)->next;
         }
 }
 
-int displayPlaylist(PlayList *list, int maxListSize, int indent,
+int display_playlist(PlayList *list, int max_list_size, int indent,
                     int *chosenSong, int *chosenNodeId, bool reset)
 {
-        AppState *state = getAppState();
+        AppState *state = get_app_state();
         int termWidth, termHeight;
-        getTermSize(&termWidth, &termHeight);
+        get_term_size(&termWidth, &termHeight);
 
         UISettings *ui = &(state->uiSettings);
 
@@ -326,21 +326,21 @@ int displayPlaylist(PlayList *list, int maxListSize, int indent,
 
         Node *startNode = NULL;
         if (list != NULL)
-                startNode = determineStartNode(list->head, &foundAt, list->count);
+                startNode = determine_start_node(list->head, &foundAt, list->count);
 
-        ensureChosenSongWithinLimits(chosenSong, list);
+        ensure_chosen_song_within_limits(chosenSong, list);
 
-        startIter = determinePlaylistStart(startIter, foundAt, maxListSize, chosenSong,
-                                           reset, audioData.endOfListReached);
+        start_iter = determine_playlist_start(start_iter, foundAt, max_list_size, chosenSong,
+                                           reset, audio_data.endOfListReached);
 
-        moveStartNodeIntoPosition(foundAt, &startNode);
+        move_start_node_into_position(foundAt, &startNode);
 
-        int printedRows = displayPlaylistItems(startNode, startIter, maxListSize, termWidth,
+        int printedRows = display_playlist_items(startNode, start_iter, max_list_size, termWidth,
                                                indent, *chosenSong, chosenNodeId, ui);
 
-        while (printedRows <= maxListSize)
+        while (printedRows <= max_list_size)
         {
-                clearLine();
+                clear_line();
                 printf("\n");
                 printedRows++;
         }
@@ -348,34 +348,34 @@ int displayPlaylist(PlayList *list, int maxListSize, int indent,
         return printedRows;
 }
 
-void setEndOfListReached(void)
+void set_end_of_list_reached(void)
 {
-        AppState *state = getAppState();
-        PlaybackState *ps = getPlaybackState();
+        AppState *state = get_app_state();
+        PlaybackState *ps = get_playback_state();
 
         ps->loadedNextSong = false;
         ps->waitingForNext = true;
-        audioData.endOfListReached = true;
-        audioData.currentFileIndex = 0;
-        audioData.restart = true;
+        audio_data.endOfListReached = true;
+        audio_data.currentFileIndex = 0;
+        audio_data.restart = true;
         ps->usingSongDataA = false;
         ps->loadingdata.loadA = true;
 
-        clearCurrentSong();
+        clear_current_song();
 
-        playbackCleanup();
+        playback_cleanup();
 
-        triggerRefresh();
+        trigger_refresh();
 
-        if (isRepeatListEnabled())
-                repeatList();
+        if (is_repeat_list_enabled())
+                repeat_list();
         else
         {
-                emitPlaybackStoppedMpris();
-                emitMetadataChanged("", "", "", "",
+                emit_playback_stopped_mpris();
+                emit_metadata_changed("", "", "", "",
                                     "/org/mpris/MediaPlayer2/TrackList/NoTrack",
                                     NULL, 0);
                 state->currentView = LIBRARY_VIEW;
-                clearScreen();
+                clear_screen();
         }
 }

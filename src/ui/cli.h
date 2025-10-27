@@ -7,6 +7,6 @@
 
  #include <stdbool.h>
 
-void removeArgElement(char *argv[], int index, int *argc);
-void handleOptions(int *argc, char *argv[], bool *exactSearch);
-void setMusicPath(void);
+void remove_arg_element(char *argv[], int index, int *argc);
+void handle_options(int *argc, char *argv[], bool *exactSearch);
+void set_music_path(void);

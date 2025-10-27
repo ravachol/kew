@@ -12,18 +12,18 @@
 
 #include "common/appstate.h"
 
-void createLibrary(void);
-void updateLibrary(char *path);
-void askIfCacheLibrary(void);
-void sortLibrary(void);
-void markListAsEnqueued(FileSystemEntry *root, PlayList *playlist);
-void enqueueSong(FileSystemEntry *child);
-void dequeueSong(FileSystemEntry *child);
-void dequeueChildren(FileSystemEntry *parent);
-int enqueueChildren(FileSystemEntry *child, FileSystemEntry **firstEnqueuedEntry);
-bool markAsDequeued(FileSystemEntry *root, char *path);
-bool hasSongChildren(FileSystemEntry *entry);
-bool hasDequeuedChildren(FileSystemEntry *parent);
-bool isContainedWithin(FileSystemEntry *entry, FileSystemEntry *containingEntry);
+void create_library(void);
+void update_library(char *path);
+void ask_if_cache_library(void);
+void sort_library(void);
+void mark_list_as_enqueued(FileSystemEntry *root, PlayList *playlist);
+void enqueue_song(FileSystemEntry *child);
+void dequeue_song(FileSystemEntry *child);
+void dequeue_children(FileSystemEntry *parent);
+int enqueue_children(FileSystemEntry *child, FileSystemEntry **firstEnqueuedEntry);
+bool mark_as_dequeued(FileSystemEntry *root, char *path);
+bool has_song_children(FileSystemEntry *entry);
+bool has_dequeued_children(FileSystemEntry *parent);
+bool is_contained_within(FileSystemEntry *entry, FileSystemEntry *containingEntry);
 
 #endif

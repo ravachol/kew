@@ -14,17 +14,17 @@
 
 #define NUM_DEFAULT_KEY_BINDINGS 50
 
-extern size_t keybindingCount;
+extern size_t keybinding_count;
 
-TBKeyBinding *getKeyBindings();
-void getConfig(AppSettings *settings, UISettings *ui);
-void getPrefs(AppSettings *settings, UISettings *ui);
-void setConfig(AppSettings *settings, UISettings *ui);
-void setPrefs(AppSettings *settings, UISettings *ui);
-void setPath(const char *path);
-void mapSettingsToKeys(AppSettings *settings, UISettings *ui, EventMapping *mappings);
-int updateRc(const char *path, const char *key, const char *value);
-const char* getBindingString(enum EventType event, bool findOne);
-AppSettings initSettings(void);
+TBKeyBinding *get_key_bindings();
+void get_config(AppSettings *settings, UISettings *ui);
+void get_prefs(AppSettings *settings, UISettings *ui);
+void set_config(AppSettings *settings, UISettings *ui);
+void set_prefs(AppSettings *settings, UISettings *ui);
+void set_path(const char *path);
+void map_settings_to_keys(AppSettings *settings, UISettings *ui, EventMapping *mappings);
+int update_rc(const char *path, const char *key, const char *value);
+const char* get_binding_string(enum EventType event, bool findOne);
+AppSettings init_settings(void);
 
 #endif

@@ -21,11 +21,11 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-bool isContextInitialized(void);
-int createAudioDevice(void);
-int switchAudioImplementation(void);
-void cleanupAudioContext(void);
-ma_result callReadPCMFrames(ma_data_source *pDataSource, ma_format format,
+bool is_context_initialized(void);
+int create_audio_device(void);
+int switch_audio_implementation(void);
+void cleanup_audio_context(void);
+ma_result call_read_PCM_frames(ma_data_source *pDataSource, ma_format format,
                             void *pFramesOut, ma_uint64 framesRead,
                             ma_uint32 channels, ma_uint64 remainingFrames,
                             ma_uint64 *pFramesToRead);

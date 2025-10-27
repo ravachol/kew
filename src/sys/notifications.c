@@ -20,7 +20,7 @@
 #include <stdio.h>
 #include <string.h>
 
-bool isValidFilepath(const char *path)
+bool is_valid_filepath(const char *path)
 {
     if (path == NULL || *path == '\0' || strnlen(path, PATH_MAX) >= PATH_MAX)
         return false;
@@ -29,7 +29,7 @@ bool isValidFilepath(const char *path)
     return stat(path, &st) == 0 && S_ISREG(st.st_mode);
 }
 
-void removeBlacklistedChars(const char *input,
+void remove_blacklisted_chars(const char *input,
                             const char *blacklist,
                             char *output,
                             size_t output_size)
@@ -60,7 +60,7 @@ void removeBlacklistedChars(const char *input,
     *out_ptr = '\0';
 }
 
-void ensureNonEmpty(char *str, size_t bufferSize)
+void ensure_non_empty(char *str, size_t bufferSize)
 {
         if (str == NULL|| bufferSize < 2)
         {
@@ -77,22 +77,22 @@ void ensureNonEmpty(char *str, size_t bufferSize)
 
 #define NOTIFICATION_INTERVAL_MICROSECONDS 500000 // 0.5 seconds
 
-struct timeval lastNotificationTime = {0, 0};
-static char sanitizedArtist[512];
-static char sanitizedTitle[512];
+struct timeval last_notification_time = {0, 0};
+static char sanitized_artist[512];
+static char sanitized_title[512];
 
-static pthread_mutex_t notificationMutex = PTHREAD_MUTEX_INITIALIZER;
+static pthread_mutex_t notification_mutex = PTHREAD_MUTEX_INITIALIZER;
 
-int canShowNotification(void)
+int can_show_notification(void)
 {
     struct timeval now;
     gettimeofday(&now, NULL);
 
-    pthread_mutex_lock(&notificationMutex);
+    pthread_mutex_lock(&notification_mutex);
 
     // Calculate elapsed time in microseconds using 64-bit unsigned math
-    int64_t sec_diff = (int64_t)(now.tv_sec - lastNotificationTime.tv_sec);
-    int64_t usec_diff = (int64_t)(now.tv_usec - lastNotificationTime.tv_usec);
+    int64_t sec_diff = (int64_t)(now.tv_sec - last_notification_time.tv_sec);
+    int64_t usec_diff = (int64_t)(now.tv_usec - last_notification_time.tv_usec);
 
     if (usec_diff < 0)
     {
@@ -104,16 +104,16 @@ int canShowNotification(void)
 
     if (elapsed >= NOTIFICATION_INTERVAL_MICROSECONDS)
     {
-        lastNotificationTime = now;
-        pthread_mutex_unlock(&notificationMutex);
+        last_notification_time = now;
+        pthread_mutex_unlock(&notification_mutex);
         return 1;
     }
 
-    pthread_mutex_unlock(&notificationMutex);
+    pthread_mutex_unlock(&notification_mutex);
     return 0;
 }
 
-void onNotificationClosed(void)
+void on_notification_closed(void)
 {
 }
 
@@ -284,7 +284,7 @@ GDBusConnection *get_dbus_connection_with_timeout(GBusType bus_type, guint timeo
         return connection;
 }
 
-void cleanupPreviousNotification()
+void cleanup_previous_notification()
 {
         if (last_notification_id != 0)
         {
@@ -305,9 +305,9 @@ void cleanupPreviousNotification()
         }
 }
 
-int displaySongNotification(const char *artist, const char *title, const char *cover, UISettings *ui)
+int display_song_notification(const char *artist, const char *title, const char *cover, UISettings *ui)
 {
-        if (!ui->allowNotifications || !canShowNotification())
+        if (!ui->allowNotifications || !can_show_notification())
         {
                 return 0;
         }
@@ -337,21 +337,21 @@ int displaySongNotification(const char *artist, const char *title, const char *c
 
         const char *blacklist = "&;|*~<>^()[]{}$\\\"";
 
-        removeBlacklistedChars(artist, blacklist, sanitizedArtist, sizeof(sanitizedArtist));
-        removeBlacklistedChars(title, blacklist, sanitizedTitle, sizeof(sanitizedTitle));
+        remove_blacklisted_chars(artist, blacklist, sanitized_artist, sizeof(sanitized_artist));
+        remove_blacklisted_chars(title, blacklist, sanitized_title, sizeof(sanitized_title));
 
-        ensureNonEmpty(sanitizedArtist, sizeof(sanitizedTitle));
-        ensureNonEmpty(sanitizedTitle, sizeof(sanitizedTitle));
+        ensure_non_empty(sanitized_artist, sizeof(sanitized_title));
+        ensure_non_empty(sanitized_title, sizeof(sanitized_title));
 
-        int coverExists = isValidFilepath(cover);
+        int coverExists = is_valid_filepath(cover);
 
-        cleanupPreviousNotification();
+        cleanup_previous_notification();
 
         // Create a new notification
         const gchar *app_name = "kew";
         const gchar *app_icon = (coverExists && cover) ? cover : "";
-        const gchar *summary = sanitizedArtist;
-        const gchar *body = sanitizedTitle;
+        const gchar *summary = sanitized_artist;
+        const gchar *body = sanitized_title;
 
         GVariantBuilder actions_builder;
         g_variant_builder_init(&actions_builder, G_VARIANT_TYPE("as"));
@@ -386,9 +386,9 @@ int displaySongNotification(const char *artist, const char *title, const char *c
         return 0;
 }
 
-void cleanupNotifications()
+void cleanup_notifications()
 {
-        cleanupPreviousNotification();
+        cleanup_previous_notification();
 
         // Unsubscribe from signals
         if (signal_subscription_id != 0)

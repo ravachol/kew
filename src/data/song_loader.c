@@ -1,13 +1,13 @@
 /**
- * @file songloader.c
+ * @file song_loader.c
  * @brief Song loading and preparation routines.
  *
  * Responsible for loading song data from file
  */
 
-#include "songloader.h"
+#include "song_loader.h"
 
-#include "imgfunc.h"
+#include "img_func.h"
 #include "lyrics.h"
 
 #include "utils/cache.h"
@@ -29,7 +29,7 @@
 
 static guint track_counter = 0;
 
-void makeFilePath(const char *dirPath, char *filePath, size_t filePathSize,
+void make_file_path(const char *dirPath, char *filePath, size_t filePathSize,
                   const struct dirent *entry)
 {
         if (dirPath == NULL || filePath == NULL || entry == NULL ||
@@ -72,7 +72,7 @@ void makeFilePath(const char *dirPath, char *filePath, size_t filePathSize,
         // snprintf guarantees null termination if filePathSize > 0
 }
 
-char *chooseAlbumArt(const char *dirPath, char **customFileNameArr, int size,
+char *choose_album_art(const char *dirPath, char **customFileNameArr, int size,
                      int depth)
 {
         if (!dirPath || !customFileNameArr || size <= 0 ||
@@ -170,7 +170,7 @@ char *chooseAlbumArt(const char *dirPath, char **customFileNameArr, int size,
                                 }
                                 if (S_ISDIR(linkStat.st_mode))
                                 {
-                                        result = chooseAlbumArt(
+                                        result = choose_album_art(
                                             resolvedPath, customFileNameArr,
                                             size, depth + 1);
                                 }
@@ -182,7 +182,7 @@ char *chooseAlbumArt(const char *dirPath, char **customFileNameArr, int size,
         return result;
 }
 
-char *findLargestImageFile(const char *directoryPath, char *largestImageFile,
+char *find_largest_image_file(const char *directoryPath, char *largestImageFile,
                            off_t *largestFileSize)
 {
         DIR *directory = opendir(directoryPath);
@@ -284,7 +284,7 @@ char *findLargestImageFile(const char *directoryPath, char *largestImageFile,
         return largestImageFile;
 }
 
-gchar *generateTrackId(void)
+gchar *generate_track_id(void)
 {
         gchar *trackId =
             g_strdup_printf("/org/kew/tracklist/track%d", track_counter);
@@ -292,16 +292,16 @@ gchar *generateTrackId(void)
         return trackId;
 }
 
-int loadColor(SongData *songdata)
+int load_color(SongData *songdata)
 {
-        return getCoverColor(songdata->cover, songdata->coverWidth,
+        return get_cover_color(songdata->cover, songdata->coverWidth,
                       songdata->coverHeight, &(songdata->red),
                       &(songdata->green), &(songdata->blue));
 }
 
-void loadMetaData(SongData *songdata)
+void load_meta_data(SongData *songdata)
 {
-        AppState *state = getAppState();
+        AppState *state = get_app_state();
         char path[MAXPATHLEN];
 
         songdata->metadata = malloc(sizeof(TagSettings));
@@ -313,7 +313,7 @@ void loadMetaData(SongData *songdata)
         songdata->metadata->replaygainTrack = 0.0;
         songdata->metadata->replaygainAlbum = 0.0;
 
-        generateTempFilePath(songdata->coverArtPath, "cover", ".jpg");
+        generate_temp_file_path(songdata->coverArtPath, "cover", ".jpg");
 
         int res = extractTags(songdata->filePath, songdata->metadata,
                               &(songdata->duration), songdata->coverArtPath, &(songdata->lyrics));
@@ -325,7 +325,7 @@ void loadMetaData(SongData *songdata)
         }
         else if (res == -1)
         {
-                getDirectoryFromPath(songdata->filePath, path);
+                get_directory_from_path(songdata->filePath, path);
                 char *tmp = NULL;
                 off_t size = 0;
                 char *fileArr[12] = {
@@ -333,10 +333,10 @@ void loadMetaData(SongData *songdata)
                     "folder.jpg", "folder.jpeg", "cover.png",  "cover.jpg",
                     "cover.jpeg", "f.png",       "f.jpg",      "f.jpeg",
                 };
-                tmp = chooseAlbumArt(path, fileArr, 12, 0);
+                tmp = choose_album_art(path, fileArr, 12, 0);
                 if (tmp == NULL)
                 {
-                        tmp = findLargestImageFile(path, tmp, &size);
+                        tmp = find_largest_image_file(path, tmp, &size);
                 }
 
                 if (tmp != NULL)
@@ -352,15 +352,15 @@ void loadMetaData(SongData *songdata)
         }
         else
         {
-                addToCache(state->tmpCache, songdata->coverArtPath);
+                add_to_cache(state->tmpCache, songdata->coverArtPath);
         }
 
         songdata->cover =
-            getBitmap(songdata->coverArtPath, &(songdata->coverWidth),
+            get_bitmap(songdata->coverArtPath, &(songdata->coverWidth),
                       &(songdata->coverHeight));
 }
 
-void unloadLyrics(SongData *songdata)
+void unload_lyrics(SongData *songdata)
 {
         if (songdata->lyrics)
         {
@@ -369,13 +369,13 @@ void unloadLyrics(SongData *songdata)
         }
 }
 
-SongData *loadSongData(char *filePath)
+SongData *load_song_data(char *filePath)
 {
-        AppState *state = getAppState();
+        AppState *state = get_app_state();
         SongData *songdata = NULL;
         songdata = malloc(sizeof(SongData));
         songdata->magic = SONG_MAGIC;
-        songdata->trackId = generateTrackId();
+        songdata->trackId = generate_track_id();
         songdata->hasErrors = false;
         c_strcpy(songdata->filePath, "", sizeof(songdata->filePath));
         c_strcpy(songdata->coverArtPath, "", sizeof(songdata->coverArtPath));
@@ -389,8 +389,8 @@ SongData *loadSongData(char *filePath)
         songdata->lyrics = NULL;
         c_strcpy(songdata->filePath, filePath, sizeof(songdata->filePath));
         songdata->lyrics = loadLyricsFromLRC(songdata->filePath);
-        loadMetaData(songdata);
-        int res = loadColor(songdata);
+        load_meta_data(songdata);
+        int res = load_color(songdata);
 
         if (songdata->cover && res != 0)
         {
@@ -402,9 +402,9 @@ SongData *loadSongData(char *filePath)
         return songdata;
 }
 
-void unloadSongData(SongData **songdata)
+void unload_song_data(SongData **songdata)
 {
-        AppState *state = getAppState();
+        AppState *state = get_app_state();
         if (*songdata == NULL)
                 return;
 
@@ -416,13 +416,13 @@ void unloadSongData(SongData **songdata)
                 data->cover = NULL;
         }
 
-        if (existsInCache(state->tmpCache, data->coverArtPath) &&
-            isInTempDir(data->coverArtPath))
+        if (exists_in_cache(state->tmpCache, data->coverArtPath) &&
+            is_in_temp_dir(data->coverArtPath))
         {
-                deleteFile(data->coverArtPath);
+                delete_file(data->coverArtPath);
         }
 
-        unloadLyrics(data);
+        unload_lyrics(data);
 
         data->magic = 0;
 

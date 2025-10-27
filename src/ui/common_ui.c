@@ -23,33 +23,33 @@
 #include <string.h>
 #include <wchar.h>
 
-static unsigned int updateCounter = 0;
-static const int startScrollingDelay = 10;
-static bool finishedScrolling = false;
-static int lastNamePosition = 0;
-static bool isLongName = false;
-static int scrollDelaySkippedCount = 0;
+static unsigned int update_counter = 0;
+static const int start_scrolling_delay = 10;
+static bool finished_scrolling = false;
+static int last_name_position = 0;
+static bool is_long_name = false;
+static int scroll_delay_skipped_count = 0;
 
-void setRGB(PixelData p)
+void set_RGB(PixelData p)
 {
         // ANSI escape code for setting RGB foreground
         printf("\033[38;2;%d;%d;%dm", p.r, p.g, p.b);
 }
 
-void setAlbumColor(PixelData color)
+void set_album_color(PixelData color)
 {
         if (color.r >= 210 && color.g >= 210 && color.b >= 210)
         {
-                AppState *state = getAppState();
-                setRGB(state->uiSettings.defaultColorRGB);
+                AppState *state = get_app_state();
+                set_RGB(state->uiSettings.defaultColorRGB);
         }
         else
         {
-                setRGB(color);
+                set_RGB(color);
         }
 }
 
-enum EventType getMouseAction(int num)
+enum EventType get_mouse_action(int num)
 {
         enum EventType value = EVENT_NONE;
 
@@ -96,7 +96,7 @@ enum EventType getMouseAction(int num)
         return value;
 }
 
-int getBytesInFirstChar(const char *str)
+int get_bytes_in_first_char(const char *str)
 {
         if (str == NULL || str[0] == '\0')
         {
@@ -111,16 +111,16 @@ int getBytesInFirstChar(const char *str)
         return numBytes;
 }
 
-void enableMouse(UISettings *ui)
+void enable_mouse(UISettings *ui)
 {
         if (ui->mouseEnabled)
-                enableTerminalMouseButtons();
+                enable_terminal_mouse_buttons();
 }
 
-void transferSettingsToUI(void)
+void transfer_settings_to_u_i(void)
 {
-        AppState *state = getAppState();
-        AppSettings *settings = getAppSettings();
+        AppState *state = get_app_state();
+        AppSettings *settings = get_app_settings();
         UISettings *ui = &(state->uiSettings);
 
         ui->allowNotifications = (settings->allowNotifications[0] == '1');
@@ -130,7 +130,7 @@ void transferSettingsToUI(void)
         ui->quitAfterStopping = (settings->quitAfterStopping[0] == '1');
         ui->hideGlimmeringText = (settings->hideGlimmeringText[0] == '1');
         ui->mouseEnabled = (settings->mouseEnabled[0] == '1');
-        ui->shuffleEnabled = (settings->shuffleEnabled[0] == '1');
+        ui->shuffle_enabled = (settings->shuffle_enabled[0] == '1');
         ui->visualizerBrailleMode = (settings->visualizerBrailleMode[0] == '1');
         ui->hideLogo = (settings->hideLogo[0] == '1');
         ui->hideHelp = (settings->hideHelp[0] == '1');
@@ -142,102 +142,102 @@ void transferSettingsToUI(void)
         ui->coverEnabled = (settings->coverEnabled[0] == '1');
         ui->coverAnsi = (settings->coverAnsi[0] == '1');
         ui->visualizerEnabled = (settings->visualizerEnabled[0] == '1');
-        ui->shuffleEnabled = (settings->shuffleEnabled[0] == '1');
+        ui->shuffle_enabled = (settings->shuffle_enabled[0] == '1');
 
         int tmpNumBytes =
-            getBytesInFirstChar(settings->progressBarElapsedEvenChar);
+            get_bytes_in_first_char(settings->progressBarElapsedEvenChar);
         if (tmpNumBytes != 0)
                 settings->progressBarElapsedEvenChar[tmpNumBytes] = '\0';
 
-        tmpNumBytes = getBytesInFirstChar(settings->progressBarElapsedOddChar);
+        tmpNumBytes = get_bytes_in_first_char(settings->progressBarElapsedOddChar);
         if (tmpNumBytes != 0)
                 settings->progressBarElapsedOddChar[tmpNumBytes] = '\0';
 
         tmpNumBytes =
-            getBytesInFirstChar(settings->progressBarApproachingEvenChar);
+            get_bytes_in_first_char(settings->progressBarApproachingEvenChar);
         if (tmpNumBytes != 0)
                 settings->progressBarApproachingEvenChar[tmpNumBytes] = '\0';
 
         tmpNumBytes =
-            getBytesInFirstChar(settings->progressBarApproachingOddChar);
+            get_bytes_in_first_char(settings->progressBarApproachingOddChar);
         if (tmpNumBytes != 0)
                 settings->progressBarApproachingOddChar[tmpNumBytes] = '\0';
 
-        tmpNumBytes = getBytesInFirstChar(settings->progressBarCurrentEvenChar);
+        tmpNumBytes = get_bytes_in_first_char(settings->progressBarCurrentEvenChar);
         if (tmpNumBytes != 0)
                 settings->progressBarCurrentEvenChar[tmpNumBytes] = '\0';
 
-        tmpNumBytes = getBytesInFirstChar(settings->progressBarCurrentOddChar);
+        tmpNumBytes = get_bytes_in_first_char(settings->progressBarCurrentOddChar);
         if (tmpNumBytes != 0)
                 settings->progressBarCurrentOddChar[tmpNumBytes] = '\0';
 
-        int tmp = getNumber(settings->repeatState);
+        int tmp = get_number(settings->repeatState);
         if (tmp >= 0)
                 ui->repeatState = tmp;
 
-        tmp = getNumber(settings->colorMode);
+        tmp = get_number(settings->colorMode);
         if (tmp >= 0 && tmp < 3)
         {
                 ui->colorMode = tmp;
         }
 
-        tmp = getNumber(settings->replayGainCheckFirst);
+        tmp = get_number(settings->replayGainCheckFirst);
         if (tmp >= 0)
                 ui->replayGainCheckFirst = tmp;
 
-        tmp = getNumber(settings->mouseLeftClickAction);
+        tmp = get_number(settings->mouseLeftClickAction);
 
-        enum EventType tmpEvent = getMouseAction(tmp);
+        enum EventType tmpEvent = get_mouse_action(tmp);
         if (tmp >= 0)
                 ui->mouseLeftClickAction = tmpEvent;
 
-        tmp = getNumber(settings->mouseMiddleClickAction);
-        tmpEvent = getMouseAction(tmp);
+        tmp = get_number(settings->mouseMiddleClickAction);
+        tmpEvent = get_mouse_action(tmp);
         if (tmp >= 0)
                 ui->mouseMiddleClickAction = tmpEvent;
 
-        tmp = getNumber(settings->mouseRightClickAction);
-        tmpEvent = getMouseAction(tmp);
+        tmp = get_number(settings->mouseRightClickAction);
+        tmpEvent = get_mouse_action(tmp);
         if (tmp >= 0)
                 ui->mouseRightClickAction = tmpEvent;
 
-        tmp = getNumber(settings->mouseScrollUpAction);
-        tmpEvent = getMouseAction(tmp);
+        tmp = get_number(settings->mouseScrollUpAction);
+        tmpEvent = get_mouse_action(tmp);
         if (tmp >= 0)
                 ui->mouseScrollUpAction = tmpEvent;
 
-        tmp = getNumber(settings->mouseScrollDownAction);
-        tmpEvent = getMouseAction(tmp);
+        tmp = get_number(settings->mouseScrollDownAction);
+        tmpEvent = get_mouse_action(tmp);
         if (tmp >= 0)
                 ui->mouseScrollDownAction = tmpEvent;
 
-        tmp = getNumber(settings->mouseAltScrollUpAction);
-        tmpEvent = getMouseAction(tmp);
+        tmp = get_number(settings->mouseAltScrollUpAction);
+        tmpEvent = get_mouse_action(tmp);
         if (tmp >= 0)
                 ui->mouseAltScrollUpAction = tmpEvent;
 
-        tmp = getNumber(settings->mouseAltScrollDownAction);
-        tmpEvent = getMouseAction(tmp);
+        tmp = get_number(settings->mouseAltScrollDownAction);
+        tmpEvent = get_mouse_action(tmp);
         if (tmp >= 0)
                 ui->mouseAltScrollDownAction = tmpEvent;
 
-        tmp = getNumber(settings->visualizerHeight);
+        tmp = get_number(settings->visualizerHeight);
         if (tmp > 0)
                 ui->visualizerHeight = tmp;
 
-        tmp = getNumber(settings->visualizerBarWidth);
+        tmp = get_number(settings->visualizer_bar_width);
         if (tmp >= 0)
-                ui->visualizerBarWidth = tmp;
+                ui->visualizer_bar_width = tmp;
 
-        tmp = getNumber(settings->visualizerColorType);
+        tmp = get_number(settings->visualizerColorType);
         if (tmp >= 0)
                 ui->visualizerColorType = tmp;
 
-        tmp = getNumber(settings->titleDelay);
+        tmp = get_number(settings->titleDelay);
         if (tmp >= 0)
                 ui->titleDelay = tmp;
 
-        tmp = getNumber(settings->cacheLibrary);
+        tmp = get_number(settings->cacheLibrary);
         if (tmp >= 0)
                 ui->cacheLibrary = tmp;
 
@@ -254,44 +254,44 @@ void transferSettingsToUI(void)
         }
 }
 
-int getUpdateCounter() { return updateCounter; }
+int get_update_counter() { return update_counter; }
 
-void incrementUpdateCounter() { updateCounter++; }
+void increment_update_counter() { update_counter++; }
 
-void resetColor(void) { printf("\033[0m"); }
+void reset_color(void) { printf("\033[0m"); }
 
-void inverseText(void) { printf("\x1b[7m"); }
+void inverse_text(void) { printf("\x1b[7m"); }
 
-void applyColor(ColorMode mode, ColorValue themeColor, PixelData albumColor)
+void apply_color(ColorMode mode, ColorValue themeColor, PixelData albumColor)
 {
-        resetColor();
+        reset_color();
 
         switch (mode)
         {
         case COLOR_MODE_ALBUM:
-                setAlbumColor(albumColor);
+                set_album_color(albumColor);
                 break;
 
         case COLOR_MODE_THEME:
         case COLOR_MODE_DEFAULT:
                 if (themeColor.type == COLOR_TYPE_RGB)
                 {
-                        setRGB(themeColor.rgb);
+                        set_RGB(themeColor.rgb);
                 }
                 else
                 {
-                        setTerminalColor(themeColor.ansiIndex);
+                        set_terminal_color(themeColor.ansiIndex);
                 }
                 break;
         }
 }
 
-void resetNameScroll()
+void reset_name_scroll()
 {
-        lastNamePosition = 0;
-        isLongName = false;
-        finishedScrolling = false;
-        scrollDelaySkippedCount = 0;
+        last_name_position = 0;
+        is_long_name = false;
+        finished_scrolling = false;
+        scroll_delay_skipped_count = 0;
 }
 
 /*
@@ -402,7 +402,7 @@ int mk_wcswidth(const wchar_t *pwcs, size_t n)
 
 /* End Markus Kuhn code */
 
-void copyHalfOrFullWidthCharsWithMaxWidth(const char *src, char *dst,
+void copy_half_or_full_width_chars_with_max_width(const char *src, char *dst,
                                           int maxDisplayWidth)
 {
         mbstate_t state;
@@ -454,7 +454,7 @@ void copyHalfOrFullWidthCharsWithMaxWidth(const char *src, char *dst,
         *o = '\0';
 }
 
-static bool hasFullwidthChars(const char *str)
+static bool has_fullwidth_chars(const char *str)
 {
         mbstate_t state;
         memset(&state, 0, sizeof(state));
@@ -482,7 +482,7 @@ static bool hasFullwidthChars(const char *str)
         return false;
 }
 
-void processName(const char *name, char *output, int maxWidth,
+void process_name(const char *name, char *output, int maxWidth,
                  bool stripUnneededChars, bool stripSuffix)
 {
         if (!name)
@@ -501,71 +501,71 @@ void processName(const char *name, char *output, int maxWidth,
                         len = sizeof(tmp) - 1;
                 c_strcpy(tmp, name, len);
                 tmp[len] = '\0';
-                copyHalfOrFullWidthCharsWithMaxWidth(tmp, output, maxWidth);
+                copy_half_or_full_width_chars_with_max_width(tmp, output, maxWidth);
         }
         else
         {
-                copyHalfOrFullWidthCharsWithMaxWidth(name, output, maxWidth);
+                copy_half_or_full_width_chars_with_max_width(name, output, maxWidth);
         }
 
         if (stripUnneededChars)
-                removeUnneededChars(output, strnlen(output, maxWidth));
+                remove_unneeded_chars(output, strnlen(output, maxWidth));
 
         trim(output, strlen(output));
 }
 
-void processNameScroll(const char *name, char *output, int maxWidth,
-                       bool isSameNameAsLastTime)
+void process_name_scroll(const char *name, char *output, int maxWidth,
+                       bool is_same_name_as_last_time)
 {
         size_t scrollableLength = strnlen(name, maxWidth);
         size_t nameLength = strlen(name);
 
-        if (scrollDelaySkippedCount <= startScrollingDelay &&
+        if (scroll_delay_skipped_count <= start_scrolling_delay &&
             nameLength > (size_t)maxWidth)
         {
                 scrollableLength = maxWidth;
-                scrollDelaySkippedCount++;
-                triggerRefresh();
-                isLongName = true;
+                scroll_delay_skipped_count++;
+                trigger_refresh();
+                is_long_name = true;
         }
 
-        int start = (isSameNameAsLastTime) ? lastNamePosition : 0;
+        int start = (is_same_name_as_last_time) ? last_name_position : 0;
 
-        if (finishedScrolling)
+        if (finished_scrolling)
                 scrollableLength = maxWidth;
 
-        if (hasFullwidthChars(name))
+        if (has_fullwidth_chars(name))
         {
-                processName(name, output, maxWidth, true, true);
+                process_name(name, output, maxWidth, true, true);
         }
-        else if (nameLength <= (size_t)maxWidth || finishedScrolling)
+        else if (nameLength <= (size_t)maxWidth || finished_scrolling)
         {
-                processName(name, output, scrollableLength, true, true);
+                process_name(name, output, scrollableLength, true, true);
         }
         else
         {
-                isLongName = true;
+                is_long_name = true;
 
                 if ((size_t)(start + maxWidth) > nameLength)
                 {
                         start = 0;
-                        finishedScrolling = true;
+                        finished_scrolling = true;
                 }
 
                 c_strcpy(output, name + start, maxWidth + 1);
 
-                removeUnneededChars(output, maxWidth);
+                remove_unneeded_chars(output, maxWidth);
                 trim(output, maxWidth);
 
-                lastNamePosition++;
+                last_name_position++;
 
-                triggerRefresh();
+                trigger_refresh();
         }
 }
 
-bool getIsLongName() { return isLongName; }
+bool get_is_long_name() { return is_long_name; }
 
-PixelData increaseLuminosity(PixelData pixel, int amount)
+PixelData increase_luminosity(PixelData pixel, int amount)
 {
         PixelData pixel2;
         pixel2.r = pixel.r + amount <= 255 ? pixel.r + amount : 255;
@@ -577,7 +577,7 @@ PixelData increaseLuminosity(PixelData pixel, int amount)
 
 #define MIN_CHANNEL 50
 
-PixelData decreaseLuminosityPct(PixelData base, float pct)
+PixelData decrease_luminosity_pct(PixelData base, float pct)
 {
         PixelData c;
 
@@ -591,13 +591,13 @@ PixelData decreaseLuminosityPct(PixelData base, float pct)
         return c;
 }
 
-PixelData getGradientColor(PixelData baseColor, int row, int maxListSize,
+PixelData get_gradient_color(PixelData baseColor, int row, int max_list_size,
                            int startGradient, float minPct)
 {
         if (row < startGradient)
                 return baseColor;
 
-        int steps = maxListSize - startGradient;
+        int steps = max_list_size - startGradient;
 
         float pct;
 
@@ -611,5 +611,5 @@ PixelData getGradientColor(PixelData baseColor, int row, int maxListSize,
                 pct = minPct;
         if (pct > 1.0f)
                 pct = 1.0f;
-        return decreaseLuminosityPct(baseColor, pct);
+        return decrease_luminosity_pct(baseColor, pct);
 }

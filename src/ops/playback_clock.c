@@ -19,96 +19,96 @@
 #endif
 #include "sound/playback.h"
 
-#include "sys/systemintegration.h"
+#include "sys/sys_integration.h"
 #include "utils/utils.h"
 
 #include <math.h>
 
-static struct timespec startTime;
-static struct timespec pauseTime;
+static struct timespec start_time;
+static struct timespec pause_time;
 static struct timespec current_time;
-static double seekAccumulatedSeconds = 0.0;
-static struct timespec lastUpdateTime = {0, 0};
+static double seek_accumulated_seconds = 0.0;
+static struct timespec last_update_time = {0, 0};
 
-static double elapsedSeconds = 0.0;
+static double elapsed_seconds = 0.0;
 
-struct timespec getPauseTime(void) { return pauseTime; }
+struct timespec get_pause_time(void) { return pause_time; }
 
-double getElapsedSeconds(void) { return elapsedSeconds; }
+double get_elapsed_seconds(void) { return elapsed_seconds; }
 
-void resetClock(void)
+void reset_clock(void)
 {
-        elapsedSeconds = 0.0;
-        setPauseSeconds(0.0);
-        setTotalPauseSeconds(0.0);
-        setSeekElapsed(0.0);
-        clock_gettime(CLOCK_MONOTONIC, &startTime);
+        elapsed_seconds = 0.0;
+        set_pause_seconds(0.0);
+        set_total_pause_seconds(0.0);
+        set_seek_elapsed(0.0);
+        clock_gettime(CLOCK_MONOTONIC, &start_time);
 }
 
-void calcElapsedTime(double duration)
+void calc_elapsed_time(double duration)
 {
-        if (isStopped())
+        if (is_stopped())
                 return;
 
         clock_gettime(CLOCK_MONOTONIC, &current_time);
 
         double timeSinceLastUpdate =
-            (double)(current_time.tv_sec - lastUpdateTime.tv_sec) +
-            (double)(current_time.tv_nsec - lastUpdateTime.tv_nsec) / 1e9;
+            (double)(current_time.tv_sec - last_update_time.tv_sec) +
+            (double)(current_time.tv_nsec - last_update_time.tv_nsec) / 1e9;
 
-        if (!isPaused())
+        if (!is_paused())
         {
-                elapsedSeconds =
-                    (double)(current_time.tv_sec - startTime.tv_sec) +
-                    (double)(current_time.tv_nsec - startTime.tv_nsec) / 1e9;
-                double seekElapsed = getSeekElapsed();
+                elapsed_seconds =
+                    (double)(current_time.tv_sec - start_time.tv_sec) +
+                    (double)(current_time.tv_nsec - start_time.tv_nsec) / 1e9;
+                double seek_elapsed = get_seek_elapsed();
                 double diff =
-                    elapsedSeconds +
-                    (seekElapsed + seekAccumulatedSeconds - getTotalPauseSeconds());
+                    elapsed_seconds +
+                    (seek_elapsed + seek_accumulated_seconds - get_total_pause_seconds());
 
 
                 if (diff < 0)
-                        seekElapsed -= diff;
+                        seek_elapsed -= diff;
 
-                elapsedSeconds +=
-                    seekElapsed + seekAccumulatedSeconds - getTotalPauseSeconds();
+                elapsed_seconds +=
+                    seek_elapsed + seek_accumulated_seconds - get_total_pause_seconds();
 
-                if (elapsedSeconds > duration)
-                        elapsedSeconds = duration;
+                if (elapsed_seconds > duration)
+                        elapsed_seconds = duration;
 
-                setSeekElapsed(seekElapsed);
+                set_seek_elapsed(seek_elapsed);
 
-                if (elapsedSeconds < 0.0)
+                if (elapsed_seconds < 0.0)
                 {
-                        elapsedSeconds = 0.0;
+                        elapsed_seconds = 0.0;
                 }
 
-                if (getCurrentSong() != NULL && timeSinceLastUpdate >= 1.0)
+                if (get_current_song() != NULL && timeSinceLastUpdate >= 1.0)
                 {
-                        lastUpdateTime = current_time;
+                        last_update_time = current_time;
                 }
         }
         else
         {
-                setPauseSeconds((double)(current_time.tv_sec - pauseTime.tv_sec) +
-                                (double)(current_time.tv_nsec - pauseTime.tv_nsec) / 1e9);
+                set_pause_seconds((double)(current_time.tv_sec - pause_time.tv_sec) +
+                                (double)(current_time.tv_nsec - pause_time.tv_nsec) / 1e9);
         }
 }
 
-bool setPosition(gint64 newPosition, double duration)
+bool set_position(gint64 newPosition, double duration)
 {
-        if (isPaused())
+        if (is_paused())
                 return false;
 
         gint64 currentPositionMicroseconds =
-            llround(getElapsedSeconds() * G_USEC_PER_SEC);
+            llround(get_elapsed_seconds() * G_USEC_PER_SEC);
 
         if (duration != 0.0)
         {
                 gint64 step = newPosition - currentPositionMicroseconds;
                 step = step / G_USEC_PER_SEC;
 
-                seekAccumulatedSeconds += step;
+                seek_accumulated_seconds += step;
                 return true;
         }
         else
@@ -117,16 +117,16 @@ bool setPosition(gint64 newPosition, double duration)
         }
 }
 
-bool seekPosition(gint64 offset, double duration)
+bool seek_position(gint64 offset, double duration)
 {
-        if (isPaused())
+        if (is_paused())
                 return false;
 
         if (duration != 0.0)
         {
                 gint64 step = offset;
                 step = step / G_USEC_PER_SEC;
-                seekAccumulatedSeconds += step;
+                seek_accumulated_seconds += step;
                 return true;
         }
         else
@@ -135,49 +135,49 @@ bool seekPosition(gint64 offset, double duration)
         }
 }
 
-void addToAccumulatedSeconds(double value)
+void add_to_accumulated_seconds(double value)
 {
-        seekAccumulatedSeconds += value;
+        seek_accumulated_seconds += value;
 }
 
-void updatePauseTime(void)
+void update_pause_time(void)
 {
-        clock_gettime(CLOCK_MONOTONIC, &pauseTime);
+        clock_gettime(CLOCK_MONOTONIC, &pause_time);
 }
 
-bool flushSeek(void)
+bool flush_seek(void)
 {
-        if (seekAccumulatedSeconds != 0.0)
+        if (seek_accumulated_seconds != 0.0)
         {
-                Node *currentSong = getCurrentSong();
+                Node *current_song = get_current_song();
 
-                if (currentSong != NULL)
+                if (current_song != NULL)
                 {
 #ifdef USE_FAAD
-                        if (pathEndsWith(currentSong->song.filePath, "aac"))
+                        if (path_ends_with(current_song->song.filePath, "aac"))
                         {
-                                m4a_decoder *decoder = getCurrentM4aDecoder();
+                                m4a_decoder *decoder = get_current_m4a_decoder();
                                 if (decoder->fileType == k_rawAAC)
                                         return false;
                         }
 #endif
                 }
 
-                setSeekElapsed(getSeekElapsed() + seekAccumulatedSeconds);
-                seekAccumulatedSeconds = 0.0;
-                double duration = getCurrentSongDuration();
-                calcElapsedTime(duration);
-                float percentage = elapsedSeconds / (float)duration * 100.0;
+                set_seek_elapsed(get_seek_elapsed() + seek_accumulated_seconds);
+                seek_accumulated_seconds = 0.0;
+                double duration = get_current_song_duration();
+                calc_elapsed_time(duration);
+                float percentage = elapsed_seconds / (float)duration * 100.0;
 
                 if (percentage < 0.0)
                 {
-                        setSeekElapsed(0.0);
+                        set_seek_elapsed(0.0);
                         percentage = 0.0;
                 }
 
-                seekPercentage(percentage);
+                seek_percentage(percentage);
 
-                emitSeekedSignal(elapsedSeconds);
+                emit_seeked_signal(elapsed_seconds);
 
                 return true;
         }

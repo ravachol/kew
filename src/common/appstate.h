@@ -143,17 +143,17 @@ typedef struct
         int cacheLibrary;               // Cache the library or not
         bool quitAfterStopping;         // Exit kew when the music stops or not
         bool hideGlimmeringText;        // Glimmering text on the bottom row
-        time_t lastTimeAppRan;          // When did this app run last, used for updating
+        time_t last_time_app_ran;          // When did this app run last, used for updating
                                         // the cached library if it has been modified
                                         // since that time
-        int visualizerBarWidth;         // 0=Thin bars, 1=Bars twice the width or 2=Auto
+        int visualizer_bar_width;         // 0=Thin bars, 1=Bars twice the width or 2=Auto
                                         // (Depends on window size, default)
         int replayGainCheckFirst;       // Prioritize track or album replay gain
                                         // setting
         bool saveRepeatShuffleSettings; // Save repeat and shuffle settings
                                         // between sessions. Default on.
         int repeatState;                // 0=disabled,1=repeat track ,2=repeat list
-        bool shuffleEnabled;
+        bool shuffle_enabled;
         bool trackTitleAsWindowTitle; // Set the window title to the title of
                                       // the currently playing track
         Theme theme;                  // The color theme.
@@ -211,8 +211,8 @@ typedef struct
         UIState uiState;
         UISettings uiSettings;
 
-        pthread_mutex_t dataSourceMutex;
-        pthread_mutex_t switchMutex;
+        pthread_mutex_t data_source_mutex;
+        pthread_mutex_t switch_mutex;
 } AppState;
 
 typedef struct
@@ -246,19 +246,19 @@ typedef struct
         char switchNumberedSong[6];
         char switchNumberedSongAlt[6];
         char switchNumberedSongAlt2[6];
-        char togglePause[6];
-        char toggleNotifications[6];
+        char toggle_pause[6];
+        char toggle_notifications[6];
         char cycleColorsDerivedFrom[6];
-        char cycleThemes[6];
-        char toggleVisualizer[6];
-        char toggleAscii[6];
-        char toggleRepeat[6];
-        char toggleShuffle[6];
+        char cycle_themes[6];
+        char toggle_visualizer[6];
+        char toggle_ascii[6];
+        char toggle_repeat[6];
+        char toggle_shuffle[6];
         char seekBackward[6];
-        char seekForward[6];
-        char savePlaylist[6];
-        char addToFavoritesPlaylist[6];
-        char updateLibrary[6];
+        char seek_forward[6];
+        char save_playlist[6];
+        char add_to_favorites_playlist[6];
+        char update_library[6];
         char quit[6];
         char altQuit[6];
         char hardSwitchNumberedSong[6];
@@ -316,11 +316,11 @@ typedef struct
         char nextView[6];
         char prevView[6];
         char hardClearPlaylist[6];
-        char moveSongUp[6];
-        char moveSongDown[6];
+        char move_song_up[6];
+        char move_song_down[6];
         char enqueueAndPlay[6];
         char hardStop[6];
-        char sortLibrary[6];
+        char sort_library[6];
         char visualizerBrailleMode[2];
         char progressBarElapsedEvenChar[12];
         char progressBarElapsedOddChar[12];
@@ -328,11 +328,11 @@ typedef struct
         char progressBarApproachingOddChar[12];
         char progressBarCurrentEvenChar[12];
         char progressBarCurrentOddChar[12];
-        char visualizerBarWidth[2];
+        char visualizer_bar_width[2];
         char replayGainCheckFirst[2];
         char saveRepeatShuffleSettings[2];
         char repeatState[2];
-        char shuffleEnabled[2];
+        char shuffle_enabled[2];
         char trackTitleAsWindowTitle[2];
         char showLyricsPage[6];
 } AppSettings;
@@ -423,7 +423,7 @@ typedef struct
         UserData *pUserData;
         ma_format format;
         ma_uint32 channels;
-        ma_uint32 sampleRate;
+        ma_uint32 sample_rate;
         ma_uint64 currentPCMFrame;
         ma_uint32 avgBitRate;
         bool switchFiles;
@@ -433,40 +433,40 @@ typedef struct
         bool restart;
 } AudioData;
 
-extern AudioData audioData;
+extern AudioData audio_data;
 
 
 // --- Getters ---
 
-PlaybackState *getPlaybackState(void);
-AudioData *getAudioData(void);
-double getPauseSeconds(void);
-double getTotalPauseSeconds(void);
-void createPlaylist(PlayList **playlist);
-Node *getNextSong(void);
-Node *getSongToStartFrom(void);
-Node *getTryNextSong(void);
-PlayList *getPlaylist(void);
-PlayList *getUnshuffledPlaylist(void);
-PlayList *getFavoritesPlaylist(void);
-ProgressBar *getProgressBar(void);
-AppState *getAppState(void);
-AppSettings *getAppSettings(void);
-FileSystemEntry *getLibrary(void);
-char *getLibraryFilePath(void);
+PlaybackState *get_playback_state(void);
+AudioData *get_audio_data(void);
+double get_pause_seconds(void);
+double get_total_pause_seconds(void);
+void create_playlist(PlayList **playlist);
+Node *get_next_song(void);
+Node *get_song_to_start_from(void);
+Node *get_try_next_song(void);
+PlayList *get_playlist(void);
+PlayList *get_unshuffled_playlist(void);
+PlayList *get_favorites_playlist(void);
+ProgressBar *get_progress_bar(void);
+AppState *get_app_state(void);
+AppSettings *get_app_settings(void);
+FileSystemEntry *get_library(void);
+char *get_library_file_path(void);
 
 // --- Setters ---
 
-void setPauseSeconds(double seconds);
-void setTotalPauseSeconds(double seconds);
-void setNextSong(Node *node);
-void setSongToStartFrom(Node *node);
-void setTryNextSong(Node *node);
-void setAudioData(AudioData *audioData);
-void setLibrary(FileSystemEntry *root);
-void freePlaylists(void);
-void setPlaylist(PlayList *pl);
-void setUnshuffledPlaylist(PlayList *pl);
-void setFavoritesPlaylist(PlayList *pl);
+void set_pause_seconds(double seconds);
+void set_total_pause_seconds(double seconds);
+void set_next_song(Node *node);
+void set_song_to_start_from(Node *node);
+void set_try_next_song(Node *node);
+void set_audio_data(AudioData *audio_data);
+void set_library(FileSystemEntry *root);
+void free_playlists(void);
+void set_playlist(PlayList *pl);
+void set_unshuffled_playlist(PlayList *pl);
+void set_favorites_playlist(PlayList *pl);
 
 #endif

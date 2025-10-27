@@ -14,31 +14,31 @@
 
 #include "data/playlist.h"
 
-Node *getSongByNumber(PlayList *playlist, int songNumber);
-Node *findSelectedEntryById(PlayList *playlist, int id);
-Node *findSelectedEntry(PlayList *playlist, int row);
-Node *determineNextSong(PlayList *playlist);
-void rebuildNextSong(Node *song);
-void repeatList(void);
-void moveSongUp(int *chosenRow);
-void moveSongDown(int *chosenRow);
-void handleRemove(int chosenRow);
-void skipToNumberedSong(int songNumber);
-void removeCurrentlyPlayingSong(void);
-void skipToLastSong(void);
-void skipToPrevSong(void);
-void skipToNextSong(void);
-void setCurrentSongToNext(void);
-void dequeueAllExceptPlayingSong(void);
-void addToFavoritesPlaylist(void);
-void reshufflePlaylist(void);
-void handleSkipOutOfOrder(void);
-void playlistPlay(PlayList *playlist);
-void clearAndPlay(Node *song);
-bool playPreProcessing();
-void playPostProcessing(bool wasEndOfList);
-void playFavoritesPlaylist(void);
-void playAll(void);
-void playAllAlbums(void);
+Node *get_song_by_number(PlayList *playlist, int songNumber);
+Node *find_selected_entry_by_id(PlayList *playlist, int id);
+Node *find_selected_entry(PlayList *playlist, int row);
+Node *determine_next_song(PlayList *playlist);
+void rebuild_next_song(Node *song);
+void repeat_list(void);
+void move_song_up(int *chosen_row);
+void move_song_down(int *chosen_row);
+void handle_remove(int chosen_row);
+void skip_to_numbered_song(int songNumber);
+void remove_currently_playing_song(void);
+void skip_to_last_song(void);
+void skip_to_prev_song(void);
+void skip_to_next_song(void);
+void set_current_song_to_next(void);
+void dequeue_all_except_playing_song(void);
+void add_to_favorites_playlist(void);
+void reshuffle_playlist(void);
+void handle_skip_out_of_order(void);
+void playlist_play(PlayList *playlist);
+void clear_and_play(Node *song);
+bool play_pre_processing();
+void play_post_processing(bool wasEndOfList);
+void play_favorites_playlist(void);
+void play_all(void);
+void play_all_albums(void);
 
 #endif

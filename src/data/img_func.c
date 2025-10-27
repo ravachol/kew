@@ -1,5 +1,5 @@
 /**
- * @file imgfunc.c
+ * @file img_func.c
  * @brief Image rendering and conversion helpers using Chafa.
  *
  * Handles loading and displaying album art or other images in the terminal
@@ -10,7 +10,7 @@
 #include "common/appstate.h"
 #include "common/common.h"
 
-#include "imgfunc.h"
+#include "img_func.h"
 
 #include <stdbool.h>
 #include <stdio.h>
@@ -493,7 +493,7 @@ convert_image(const void *pixels, gint pix_width, gint pix_height,
 }
 
 // The function to load and return image data
-unsigned char *getBitmap(const char *image_path, int *width, int *height)
+unsigned char *get_bitmap(const char *image_path, int *width, int *height)
 {
         if (image_path == NULL)
                 return NULL;
@@ -510,7 +510,7 @@ unsigned char *getBitmap(const char *image_path, int *width, int *height)
         return image;
 }
 
-float calcAspectRatio(void)
+float calc_aspect_ratio(void)
 {
         TermSize term_size;
         gint cell_width = -1, cell_height = -1;
@@ -534,7 +534,7 @@ float calcAspectRatio(void)
         return (float)cell_height / (float)cell_width;
 }
 
-float getAspectRatio()
+float get_aspect_ratio()
 {
         TermSize term_size;
         gint cell_width = -1, cell_height = -1;
@@ -560,11 +560,11 @@ float getAspectRatio()
         return (float)cell_height / (float)cell_width;
 }
 
-void printSquareBitmap(int row, int col, unsigned char *pixels, int width, int height, int baseHeight)
+void print_square_bitmap(int row, int col, unsigned char *pixels, int width, int height, int baseHeight)
 {
         if (pixels == NULL)
         {
-                setErrorMessage("Invalid pixel data.\n");
+                set_error_message("Invalid pixel data.\n");
                 return;
         }
 
@@ -576,7 +576,7 @@ void printSquareBitmap(int row, int col, unsigned char *pixels, int width, int h
         // Validate the image dimensions
         if (pix_width == 0 || pix_height == 0)
         {
-                setErrorMessage("Invalid image dimensions.\n");
+                set_error_message("Invalid image dimensions.\n");
                 return;
         }
 
@@ -603,7 +603,7 @@ void printSquareBitmap(int row, int col, unsigned char *pixels, int width, int h
 
         if (cell_width == 0 || cell_height == 0)
         {
-                setErrorMessage("Invalid image cell width dimensions.\n");
+                set_error_message("Invalid image cell width dimensions.\n");
                 return;
         }
 
@@ -613,13 +613,13 @@ void printSquareBitmap(int row, int col, unsigned char *pixels, int width, int h
 
         if (term_size.width_cells > 0 && correctedWidth > term_size.width_cells)
         {
-                setErrorMessage("Invalid terminal dimensions.\n");
+                set_error_message("Invalid terminal dimensions.\n");
                 return;
         }
 
         if (term_size.height_cells > 0 && baseHeight > term_size.height_cells)
         {
-                setErrorMessage("Invalid terminal dimensions.\n");
+                set_error_message("Invalid terminal dimensions.\n");
                 return;
         }
 
@@ -655,11 +655,11 @@ void printSquareBitmap(int row, int col, unsigned char *pixels, int width, int h
         g_string_free(printable, TRUE);
 }
 
-void printSquareBitmapCentered(unsigned char *pixels, int width, int height, int baseHeight)
+void print_square_bitmap_centered(unsigned char *pixels, int width, int height, int baseHeight)
 {
         if (pixels == NULL)
         {
-                setErrorMessage("Error: Invalid pixel data.\n");
+                set_error_message("Error: Invalid pixel data.\n");
                 return;
         }
 
@@ -671,7 +671,7 @@ void printSquareBitmapCentered(unsigned char *pixels, int width, int height, int
         // Validate the image dimensions
         if (pix_width == 0 || pix_height == 0)
         {
-                setErrorMessage("Invalid image dimensions.\n");
+                set_error_message("Invalid image dimensions.\n");
                 return;
         }
 
@@ -698,7 +698,7 @@ void printSquareBitmapCentered(unsigned char *pixels, int width, int height, int
 
         if (cell_width == 0 || cell_height == 0)
         {
-                setErrorMessage("Invalid image cell width dimensions.\n");
+                set_error_message("Invalid image cell width dimensions.\n");
                 return;
         }
 
@@ -708,13 +708,13 @@ void printSquareBitmapCentered(unsigned char *pixels, int width, int height, int
 
         if (term_size.width_cells > 0 && correctedWidth > term_size.width_cells)
         {
-                setErrorMessage("Invalid terminal dimensions.\n");
+                set_error_message("Invalid terminal dimensions.\n");
                 return;
         }
 
         if (term_size.height_cells > 0 && baseHeight > term_size.height_cells)
         {
-                setErrorMessage("Invalid terminal dimensions.\n");
+                set_error_message("Invalid terminal dimensions.\n");
                 return;
         }
 
@@ -751,15 +751,15 @@ void printSquareBitmapCentered(unsigned char *pixels, int width, int height, int
         g_string_free(printable, TRUE);
 }
 
-unsigned char luminanceFromRGB(unsigned char r, unsigned char g, unsigned char b)
+unsigned char luminance_from_r_g_b(unsigned char r, unsigned char g, unsigned char b)
 {
         return (unsigned char)(0.2126 * r + 0.7152 * g + 0.0722 * b);
 }
 
-void checkIfBrightPixel(unsigned char r, unsigned char g, unsigned char b, bool *found)
+void check_if_bright_pixel(unsigned char r, unsigned char g, unsigned char b, bool *found)
 {
         // Calc luminace and use to find Ascii char.
-        unsigned char ch = luminanceFromRGB(r, g, b);
+        unsigned char ch = luminance_from_r_g_b(r, g, b);
 
         if (ch > 80 && !(r < g + 20 && r > g - 20 && g < b + 20 && g > b - 20) && !(r > 150 && g > 150 && b > 150))
         {
@@ -767,7 +767,7 @@ void checkIfBrightPixel(unsigned char r, unsigned char g, unsigned char b, bool 
         }
 }
 
-int getCoverColor(unsigned char *pixels, int width, int height, unsigned char *r, unsigned char *g, unsigned char *b)
+int get_cover_color(unsigned char *pixels, int width, int height, unsigned char *r, unsigned char *g, unsigned char *b)
 {
         if (pixels == NULL || width <= 0 || height <= 0)
         {
@@ -786,7 +786,7 @@ int getCoverColor(unsigned char *pixels, int width, int height, unsigned char *r
                 unsigned char green = pixels[index + 1];
                 unsigned char blue = pixels[index + 2];
 
-                checkIfBrightPixel(red, green, blue, &found);
+                check_if_bright_pixel(red, green, blue, &found);
 
                 if (found)
                 {
@@ -800,15 +800,15 @@ int getCoverColor(unsigned char *pixels, int width, int height, unsigned char *r
         return found ? 0 : -1;
 }
 
-unsigned char calcAsciiChar(PixelData *p)
+unsigned char calc_ascii_char(PixelData *p)
 {
-        unsigned char ch = luminanceFromRGB(p->r, p->g, p->b);
+        unsigned char ch = luminance_from_r_g_b(p->r, p->g, p->b);
         int rescaled = ch * brightness_levels / 256;
 
         return scale[brightness_levels - rescaled];
 }
 
-int convertToAsciiCentered(const char *filepath, unsigned int height)
+int convert_to_ascii_centered(const char *filepath, unsigned int height)
 {
         /*
         Modified, originally by Danny Burrows:
@@ -901,7 +901,7 @@ int convertToAsciiCentered(const char *filepath, unsigned int height)
 
                 PixelData *c = data + d;
 
-                printf("\033[1;38;2;%03u;%03u;%03um%c", c->r, c->g, c->b, calcAsciiChar(c));
+                printf("\033[1;38;2;%03u;%03u;%03um%c", c->r, c->g, c->b, calc_ascii_char(c));
         }
 
         printf("\n");
@@ -910,7 +910,7 @@ int convertToAsciiCentered(const char *filepath, unsigned int height)
         return 0;
 }
 
-int convertToAscii(int indentation, const char *filepath, unsigned int height)
+int convert_to_ascii(int indentation, const char *filepath, unsigned int height)
 {
         /*
         Modified, originally by Danny Burrows:
@@ -1000,7 +1000,7 @@ int convertToAscii(int indentation, const char *filepath, unsigned int height)
 
                 PixelData *c = data + d;
 
-                printf("\033[1;38;2;%03u;%03u;%03um%c", c->r, c->g, c->b, calcAsciiChar(c));
+                printf("\033[1;38;2;%03u;%03u;%03um%c", c->r, c->g, c->b, calc_ascii_char(c));
         }
 
         printf("\n");
@@ -1009,21 +1009,21 @@ int convertToAscii(int indentation, const char *filepath, unsigned int height)
         return 0;
 }
 
-int printInAscii(int indentation, const char *pathToImgFile, int height)
+int print_in_ascii(int indentation, const char *pathToImgFile, int height)
 {
         printf("\r");
 
-        int ret = convertToAscii(indentation, pathToImgFile, (unsigned)height);
+        int ret = convert_to_ascii(indentation, pathToImgFile, (unsigned)height);
         if (ret == -1)
                 printf("\033[0m");
         return 0;
 }
 
-int printInAsciiCentered(const char *pathToImgFile, int height)
+int print_in_ascii_centered(const char *pathToImgFile, int height)
 {
         printf("\r");
 
-        int ret = convertToAsciiCentered(pathToImgFile, (unsigned)height);
+        int ret = convert_to_ascii_centered(pathToImgFile, (unsigned)height);
         if (ret == -1)
                 printf("\033[0m");
         return 0;

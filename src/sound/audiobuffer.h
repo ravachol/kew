@@ -9,15 +9,15 @@
 #define MAX_BUFFER_SIZE 32768
 #endif
 
-void *getAudioBuffer(void);
-void resetAudioBuffer(void);
+void *get_audio_buffer(void);
+void reset_audio_buffer(void);
 void freeAudioBuffer(void);
-void setAudioBuffer(void *buf, int numSamples, ma_uint32 sampleRate, ma_uint32 channels, ma_format format);
+void set_audio_buffer(void *buf, int numSamples, ma_uint32 sample_rate, ma_uint32 channels, ma_format format);
 
-void setBufferReady(bool val);
-void setBufferSize(int value);
-int getFftSize(void);
-bool isBufferReady(void);
+void set_buffer_ready(bool val);
+void set_buffer_size(int value);
+int get_fft_size(void);
+bool is_buffer_ready(void);
 
 int32_t unpack_s24(const ma_uint8 *p);
 

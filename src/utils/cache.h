@@ -22,9 +22,9 @@ typedef struct Cache
         CacheNode *head;
 } Cache;
 
-Cache *createCache(void);
-void addToCache(Cache *cache, const char *filePath);
-void deleteCache(Cache *cache);
-bool existsInCache(Cache *cache, char *filePath);
+Cache *create_cache(void);
+void add_to_cache(Cache *cache, const char *filePath);
+void delete_cache(Cache *cache);
+bool exists_in_cache(Cache *cache, char *filePath);
 
 #endif

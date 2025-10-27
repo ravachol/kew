@@ -12,14 +12,14 @@
 
 #include "common/appstate.h"
 
-int playSong(Node *node);
-void pauseSong(void);
+int play_song(Node *node);
+void pause_song(void);
 void play(void);
 void stop(void);
-void opsTogglePause(void);
-void resumePlayback(void);
-void volumeChange(int changePercent);
+void ops_toggle_pause(void);
+void resume_playback(void);
+void volume_change(int changePercent);
 void seek(int seconds);
-void skipToSong(int id, bool startPlaying);
+void skip_to_song(int id, bool startPlaying);
 
 #endif

@@ -11,13 +11,13 @@
 #include <glib.h>
 #include <stdbool.h>
 
-void resetClock(void);
-void calcElapsedTime(double duration);
-void updatePauseTime(void);
-void addToAccumulatedSeconds(double value);
-bool setPosition(gint64 newPosition, double duration);
-bool seekPosition(gint64 offset, double duration);
-bool flushSeek(void);
-double getElapsedSeconds(void);
-struct timespec getPauseTime(void);
-double getCurrentSongDuration(void);
+void reset_clock(void);
+void calc_elapsed_time(double duration);
+void update_pause_time(void);
+void add_to_accumulated_seconds(double value);
+bool set_position(gint64 newPosition, double duration);
+bool seek_position(gint64 offset, double duration);
+bool flush_seek(void);
+double get_elapsed_seconds(void);
+struct timespec get_pause_time(void);
+double get_current_song_duration(void);

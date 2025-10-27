@@ -31,7 +31,7 @@
 
 uint32_t arc4random_uniform(uint32_t upper_bound);
 
-int getRandomNumber(int min, int max)
+int get_random_number(int min, int max)
 {
         return min + arc4random_uniform(max - min + 1);
 }
@@ -40,7 +40,7 @@ int getRandomNumber(int min, int max)
 #include <stdlib.h>
 #include <time.h>
 
-int getRandomNumber(int min, int max)
+int get_random_number(int min, int max)
 {
         static int seeded = 0;
         if (!seeded)
@@ -117,12 +117,12 @@ void c_strcpy(char *dest, const char *src, size_t dest_size)
         }
 }
 
-gint64 getLengthInMicroSec(double duration)
+gint64 get_length_in_micro_sec(double duration)
 {
         return floor(llround(duration * G_USEC_PER_SEC));
 }
 
-char *stringToLower(const char *str)
+char *string_to_lower(const char *str)
 {
         if (str == NULL)
         {
@@ -134,7 +134,7 @@ char *stringToLower(const char *str)
         return g_utf8_strdown(str, length);
 }
 
-char *stringToUpper(const char *str)
+char *string_to_upper(const char *str)
 {
         if (str == NULL)
         {
@@ -199,7 +199,7 @@ int match_regex(const regex_t *regex, const char *ext)
         }
 }
 
-bool isValidUTF8(const char *str, size_t len)
+bool is_valid_utf8(const char *str, size_t len)
 {
         size_t i = 0;
         while (i < len)
@@ -238,7 +238,7 @@ bool isValidUTF8(const char *str, size_t len)
         return true;
 }
 
-void extractExtension(const char *filename, size_t ext_size, char *ext)
+void extract_extension(const char *filename, size_t ext_size, char *ext)
 {
         if (!filename || !ext || ext_size == 0)
         {
@@ -295,7 +295,7 @@ void extractExtension(const char *filename, size_t ext_size, char *ext)
                         break;
 
                 // Check if the character is valid UTF-8
-                if (isValidUTF8(&filename[dot_pos + i], char_size))
+                if (is_valid_utf8(&filename[dot_pos + i], char_size))
                 {
                         // Copy the character to the extension buffer
                         memcpy(ext + j, filename + dot_pos + i, char_size);
@@ -312,7 +312,7 @@ void extractExtension(const char *filename, size_t ext_size, char *ext)
         ext[j] = '\0';
 }
 
-int pathEndsWith(const char *str, const char *suffix)
+int path_ends_with(const char *str, const char *suffix)
 {
         size_t length = strnlen(str, MAXPATHLEN);
         size_t suffixLength = strnlen(suffix, MAXPATHLEN);
@@ -326,7 +326,7 @@ int pathEndsWith(const char *str, const char *suffix)
         return strcmp(strSuffix, suffix) == 0;
 }
 
-int pathStartsWith(const char *str, const char *prefix)
+int path_starts_with(const char *str, const char *prefix)
 {
         size_t length = strnlen(str, MAXPATHLEN);
         size_t prefixLength = strnlen(prefix, MAXPATHLEN);
@@ -379,7 +379,7 @@ void trim(char *str, int maxLen)
         }
 }
 
-const char *getHomePath(void)
+const char *get_home_path(void)
 {
         struct passwd *pw = getpwuid(getuid());
         if (pw && pw->pw_dir)
@@ -389,7 +389,7 @@ const char *getHomePath(void)
         return NULL;
 }
 
-char *getConfigPath(void)
+char *get_config_path(void)
 {
         char *configPath = malloc(MAXPATHLEN);
         if (!configPath)
@@ -403,7 +403,7 @@ char *getConfigPath(void)
         }
         else
         {
-                const char *home = getHomePath();
+                const char *home = get_home_path();
                 if (home)
                 {
 #ifdef __APPLE__
@@ -439,7 +439,7 @@ char *getConfigPath(void)
         return configPath;
 }
 
-char *getPrefsPath(void)
+char *get_prefs_path(void)
 {
     char *prefsPath = malloc(MAXPATHLEN);
     if (!prefsPath)
@@ -453,7 +453,7 @@ char *getPrefsPath(void)
     }
     else
     {
-        const char *home = getHomePath();
+        const char *home = get_home_path();
         if (home)
         {
 #ifdef __APPLE__
@@ -484,7 +484,7 @@ char *getPrefsPath(void)
     return prefsPath;
 }
 
-bool isValidFilename(const char *filename)
+bool is_valid_filename(const char *filename)
 {
         // Check for path traversal patterns
         if (strstr(filename, "..") != NULL)
@@ -508,9 +508,9 @@ bool isValidFilename(const char *filename)
         return true;
 }
 
-char *getFilePath(const char *filename)
+char *get_file_path(const char *filename)
 {
-        if (filename == NULL || !isValidFilename(filename))
+        if (filename == NULL || !is_valid_filename(filename))
         {
                 return NULL;
         }
@@ -521,7 +521,7 @@ char *getFilePath(const char *filename)
                 return NULL;
         }
 
-        char *configdir = getConfigPath();
+        char *configdir = get_config_path();
         if (configdir == NULL)
         {
                 return NULL;
@@ -551,7 +551,7 @@ char *getFilePath(const char *filename)
         return filepath;
 }
 
-void removeUnneededChars(char *str, int length)
+void remove_unneeded_chars(char *str, int length)
 {
         // Do not remove characters if filename only contains digits
         bool stringContainsLetters = false;
@@ -596,7 +596,7 @@ void removeUnneededChars(char *str, int length)
         }
 }
 
-void shortenString(char *str, size_t maxLength)
+void shorten_string(char *str, size_t maxLength)
 {
         size_t length = strnlen(str, maxLength + 2);
 
@@ -606,14 +606,14 @@ void shortenString(char *str, size_t maxLength)
         }
 }
 
-void printBlankSpaces(int numSpaces)
+void print_blank_spaces(int numSpaces)
 {
         if (numSpaces < 1)
                 return;
         printf("%*s", numSpaces, " ");
 }
 
-int getNumber(const char *str)
+int get_number(const char *str)
 {
         char *endptr;
         long value = strtol(str, &endptr, 10);
@@ -626,7 +626,7 @@ int getNumber(const char *str)
         return (int)value;
 }
 
-float getFloat(const char *str)
+float get_float(const char *str)
 {
         char *endptr;
         float value = strtof(str, &endptr);
@@ -644,7 +644,7 @@ float getFloat(const char *str)
         return value;
 }
 
-int copyFile(const char *src, const char *dst)
+int copy_file(const char *src, const char *dst)
 {
         // Validate inputs
         if (!src || !dst)
@@ -751,7 +751,7 @@ int copyFile(const char *src, const char *dst)
         return 0;
 }
 
-int getNumberFromString(const char *str)
+int get_number_from_string(const char *str)
 {
         char *endptr;
         long value = strtol(str, &endptr, 10);
@@ -769,7 +769,7 @@ int getNumberFromString(const char *str)
         return (int)value;
 }
 
-void strToLower(char *str)
+void str_to_lower(char *str)
 {
         if (str == NULL)
                 return;
