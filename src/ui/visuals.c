@@ -6,7 +6,7 @@
  * to playback data such as amplitude or frequency spectrum.
  */
 
-#include "common/appstate.h"
+ #include "common/appstate.h"
 
 #include "common_ui.h"
 
@@ -14,15 +14,15 @@
 
 #include "common/appstate.h"
 
-#include "sound/audiobuffer.h"
 #include "sound/playback.h"
+#include "sound/audiobuffer.h"
 
 #include "utils/term.h"
 
-#include <complex.h>
-#include <fftw3.h>
 #include <float.h>
+#include <fftw3.h>
 #include <math.h>
+#include <complex.h>
 #include <stdio.h>
 #include <stdlib.h>
 
