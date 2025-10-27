@@ -25,8 +25,7 @@
 #define AUDIO_EXTENSIONS "(m4a|aac|mp3|ogg|flac|wav|opus|webm|m3u|m3u8)$"
 #endif
 
-enum SearchType
-{
+enum SearchType {
         SearchAny = 0,
         DirOnly = 1,
         FileOnly = 2,
@@ -37,14 +36,14 @@ enum SearchType
 const char *get_temp_dir();
 void get_directory_from_path(const char *path, char *directory);
 void collapse_path(const char *input, char *output);
-void generate_temp_file_path(char *filePath, const char *prefix, const char *suffix);
+void generate_temp_file_path(char *file_path, const char *prefix, const char *suffix);
 int directory_exists(const char *path);
 int is_directory(const char *path);
-int walker(const char *startPath, const char *searching, char *result,
-           const char *allowedExtensions, enum SearchType searchType, bool exactSearch, int depth);
-int expand_path(const char *inputPath, char *expandedPath);
+int walker(const char *start_path, const char *searching, char *result,
+           const char *allowed_extensions, enum SearchType search_type, bool exact_search, int depth);
+int expand_path(const char *input_path, char *expanded_path);
 int create_directory(const char *path);
-int delete_file(const char *filePath);
+int delete_file(const char *file_path);
 int is_in_temp_dir(const char *path);
 int exists_file(const char *fname);
 

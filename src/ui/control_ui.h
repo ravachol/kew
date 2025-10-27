@@ -20,5 +20,4 @@ void toggle_notifications(void);
 void toggle_repeat(void);
 void toggle_pause();
 bool should_refresh_player(void);
-int load_theme(const char *themeName, bool isAnsiTheme);
-
+int load_theme(const char *theme_name, bool is_ansi_theme);

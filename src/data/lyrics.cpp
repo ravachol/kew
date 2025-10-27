@@ -143,7 +143,7 @@ Lyrics *loadLyricsFromLRC(const char *path)
                 return nullptr;
         }
 
-        lyrics->maxLength = 1024;
+        lyrics->max_length = 1024;
 
         // Detect if there are timestamps
         char lineBuffer[1024];

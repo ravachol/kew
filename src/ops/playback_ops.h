@@ -18,8 +18,8 @@ void play(void);
 void stop(void);
 void ops_toggle_pause(void);
 void resume_playback(void);
-void volume_change(int changePercent);
+void volume_change(int change_percent);
 void seek(int seconds);
-void skip_to_song(int id, bool startPlaying);
+void skip_to_song(int id, bool start_playing);
 
 #endif

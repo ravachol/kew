@@ -6,13 +6,13 @@
 #include <stdint.h>
 
 enum AudioImplementation {
-    PCM,
-    BUILTIN,
-    VORBIS,
-    OPUS,
-    M4A,
-    WEBM,
-    NONE
+        PCM,
+        BUILTIN,
+        VORBIS,
+        OPUS,
+        M4A,
+        WEBM,
+        NONE
 };
 
 struct m4a_decoder;

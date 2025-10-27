@@ -219,120 +219,118 @@ static const KeyMap key_map[] = {
     {NULL, 0} // Sentinel
 };
 
-const char* get_key_name(int key) {
-    for (int i = 0; key_map[i].name != NULL; i++) {
-        if (key_map[i].code == key)
-            return key_map[i].name;
-    }
+const char *get_key_name(int key) {
+        for (int i = 0; key_map[i].name != NULL; i++) {
+                if (key_map[i].code == key)
+                        return key_map[i].name;
+        }
 
-    // Printable ASCII fallback
-    static char buf[2];
-    if (key >= 32 && key <= 126) {
-        buf[0] = (char)key;
-        buf[1] = '\0';
-        return buf;
-    }
+        // Printable ASCII fallback
+        static char buf[2];
+        if (key >= 32 && key <= 126) {
+                buf[0] = (char)key;
+                buf[1] = '\0';
+                return buf;
+        }
 
-    return "?";
+        return "?";
 }
 
-const char* get_modifier_string(uint8_t mods) {
-    static char buf[64];
-    buf[0] = '\0';
+const char *get_modifier_string(uint8_t mods) {
+        static char buf[64];
+        buf[0] = '\0';
 
-    int first = 1;
-    if (mods & TB_MOD_CTRL) {
-        strcat(buf, "Ctrl");
-        first = 0;
-    }
-    if (mods & TB_MOD_ALT) {
-        if (!first) strcat(buf, "+");
-        strcat(buf, "Alt");
-        first = 0;
-    }
-    if (mods & TB_MOD_SHIFT) {
-        if (!first) strcat(buf, "+");
-        strcat(buf, "Shft");
-    }
+        int first = 1;
+        if (mods & TB_MOD_CTRL) {
+                strcat(buf, "Ctrl");
+                first = 0;
+        }
+        if (mods & TB_MOD_ALT) {
+                if (!first)
+                        strcat(buf, "+");
+                strcat(buf, "Alt");
+                first = 0;
+        }
+        if (mods & TB_MOD_SHIFT) {
+                if (!first)
+                        strcat(buf, "+");
+                strcat(buf, "Shft");
+        }
 
-    return buf;
+        return buf;
 }
 
 static bool already_added(const char *buf, const char *token) {
-    char temp[256];
-    strncpy(temp, buf, sizeof(temp) - 1);
-    temp[sizeof(temp) - 1] = '\0';
+        char temp[256];
+        strncpy(temp, buf, sizeof(temp) - 1);
+        temp[sizeof(temp) - 1] = '\0';
 
-    char *part = strtok(temp, " or ");
-    while (part != NULL) {
-        if (strcmp(part, token) == 0)
-            return true;
-        part = strtok(NULL, " or ");
-    }
-    return false;
+        char *part = strtok(temp, " or ");
+        while (part != NULL) {
+                if (strcmp(part, token) == 0)
+                        return true;
+                part = strtok(NULL, " or ");
+        }
+        return false;
 }
 
+const char *get_binding_string(enum EventType event, bool find_one) {
+        static char buf[256];
+        buf[0] = '\0';
 
-const char* get_binding_string(enum EventType event, bool findOne) {
-    static char buf[256];
-    buf[0] = '\0';
+        int found = 0;
 
-    int found = 0;
+        for (int i = 0; i < MAX_KEY_BINDINGS; i++) {
+                if (key_bindings[i].eventType != event)
+                        continue;
 
-    for (int i = 0; i < MAX_KEY_BINDINGS; i++) {
-        if (key_bindings[i].eventType != event)
-            continue;
+                const char *key_part = "?";
 
-        const char* keyPart = "?";
+                // Determine key name
+                if (key_bindings[i].key != 0)
+                        key_part = get_key_name(key_bindings[i].key);
+                else if (key_bindings[i].ch != 0) {
+                        static char cbuf[2];
+                        cbuf[0] = (char)key_bindings[i].ch;
+                        cbuf[1] = '\0';
+                        key_part = cbuf;
+                }
 
-        // Determine key name
-        if (key_bindings[i].key != 0)
-            keyPart = get_key_name(key_bindings[i].key);
-        else if (key_bindings[i].ch != 0) {
-            static char cbuf[2];
-            cbuf[0] = (char)key_bindings[i].ch;
-            cbuf[1] = '\0';
-            keyPart = cbuf;
+                const char *mod_part = get_modifier_string(key_bindings[i].mods);
+
+                // Build "Alt+Enter" style string for this binding
+                char full_key[64];
+                if (mod_part[0] != '\0')
+                        snprintf(full_key, sizeof(full_key), "%s+%s", mod_part, key_part);
+                else
+                        snprintf(full_key, sizeof(full_key), "%s", key_part);
+
+                // Skip duplicate key names (e.g. "Space" vs " ")
+                if (already_added(buf, full_key))
+                        continue;
+
+                // Append to output buffer
+                if (found > 0) {
+                        if (find_one)
+                                return buf;
+                        strncat(buf, " or ", sizeof(buf) - strlen(buf) - 1);
+                }
+                strncat(buf, full_key, sizeof(buf) - strlen(buf) - 1);
+
+                found++;
         }
 
-        const char* modPart = get_modifier_string(key_bindings[i].mods);
+        if (!found)
+                snprintf(buf, sizeof(buf), "?");
 
-        // Build "Alt+Enter" style string for this binding
-        char fullKey[64];
-        if (modPart[0] != '\0')
-            snprintf(fullKey, sizeof(fullKey), "%s+%s", modPart, keyPart);
-        else
-            snprintf(fullKey, sizeof(fullKey), "%s", keyPart);
-
-        // Skip duplicate key names (e.g. "Space" vs " ")
-        if (already_added(buf, fullKey))
-            continue;
-
-        // Append to output buffer
-        if (found > 0)
-        {
-            if (findOne)
-                return buf;
-            strncat(buf, " or ", sizeof(buf) - strlen(buf) - 1);
-        }
-        strncat(buf, fullKey, sizeof(buf) - strlen(buf) - 1);
-
-        found++;
-    }
-
-    if (!found)
-        snprintf(buf, sizeof(buf), "?");
-
-    return buf;
+        return buf;
 }
 
-static uint16_t key_name_to_code(const char *name)
-{
+static uint16_t key_name_to_code(const char *name) {
         if (!name || !*name)
                 return 0;
 
-        for (int i = 0; key_map[i].name != NULL; i++)
-        {
+        for (int i = 0; key_map[i].name != NULL; i++) {
                 if (strcmp(name, key_map[i].name) == 0)
                         return key_map[i].code;
         }
@@ -344,18 +342,15 @@ static uint16_t key_name_to_code(const char *name)
         return 0;
 }
 
-static const char *key_code_to_name(uint16_t code)
-{
-        for (int i = 0; key_map[i].name != NULL; i++)
-        {
+static const char *key_code_to_name(uint16_t code) {
+        for (int i = 0; key_map[i].name != NULL; i++) {
                 if (key_map[i].code == code)
                         return key_map[i].name;
         }
 
         // If code is printable ASCII, return it as a string
         static char buf[2];
-        if (code >= 32 && code <= 126)
-        {
+        if (code >= 32 && code <= 126) {
                 buf[0] = (char)code;
                 buf[1] = '\0';
                 return buf;
@@ -364,15 +359,13 @@ static const char *key_code_to_name(uint16_t code)
         return "Unknown";
 }
 
-TBKeyBinding *get_key_bindings()
-{
+TBKeyBinding *get_key_bindings() {
         return key_bindings;
 }
 
-AppSettings init_settings(void)
-{
+AppSettings init_settings(void) {
         AppState *state = get_app_state();
-        UserData *userData = audio_data.pUserData;
+        UserData *user_data = audio_data.pUserData;
 
         AppSettings settings;
 
@@ -381,21 +374,18 @@ AppSettings init_settings(void)
         get_config(&settings, &(state->uiSettings));
         get_prefs(&settings, &(state->uiSettings));
 
-        userData->replayGainCheckFirst =
+        user_data->replayGainCheckFirst =
             state->uiSettings.replayGainCheckFirst;
 
         return settings;
 }
 
-void free_key_value_pairs(KeyValuePair *pairs, int count)
-{
-        if (pairs == NULL || count <= 0)
-        {
+void free_key_value_pairs(KeyValuePair *pairs, int count) {
+        if (pairs == NULL || count <= 0) {
                 return;
         }
 
-        for (size_t i = 0; i < (size_t)count; i++)
-        {
+        for (size_t i = 0; i < (size_t)count; i++) {
                 free(pairs[i].key);
                 free(pairs[i].value);
         }
@@ -403,10 +393,8 @@ void free_key_value_pairs(KeyValuePair *pairs, int count)
         free(pairs);
 }
 
-static int stricmp(const char *a, const char *b)
-{
-        while (*a && *b)
-        {
+static int stricmp(const char *a, const char *b) {
+        while (*a && *b) {
                 int diff = tolower(*a) - tolower(*b);
                 if (diff != 0)
                         return diff;
@@ -469,64 +457,55 @@ static const EventMap event_map[] = {
     {NULL, EVENT_NONE} // Sentinel
 };
 
-static enum EventType parse_to_event(const char *name)
-{
+static enum EventType parse_to_event(const char *name) {
         if (!name)
                 return EVENT_NONE;
 
-        for (int i = 0; event_map[i].name != NULL; i++)
-        {
+        for (int i = 0; event_map[i].name != NULL; i++) {
                 if (stricmp(name, event_map[i].name) == 0)
                         return event_map[i].event;
         }
         return EVENT_NONE;
 }
 
-static const char *event_to_string(enum EventType ev)
-{
-        for (int i = 0; event_map[i].name != NULL; i++)
-        {
+static const char *event_to_string(enum EventType ev) {
+        for (int i = 0; event_map[i].name != NULL; i++) {
                 if (event_map[i].event == ev)
                         return event_map[i].name;
         }
         return "EVENT_NONE";
 }
 
-TBKeyBinding parse_binding(const char *bindingStr,
-                          const char *eventStr,
-                          const char *argsStr)
-{
+TBKeyBinding parse_binding(const char *binding_str,
+                           const char *event_str,
+                           const char *args_str) {
         TBKeyBinding kb = {0};
-        kb.eventType = parse_to_event(eventStr);
+        kb.eventType = parse_to_event(event_str);
         kb.args[0] = '\0';
 
-        if (argsStr && *argsStr)
-                strncpy(kb.args, argsStr, sizeof(kb.args) - 1);
+        if (args_str && *args_str)
+                strncpy(kb.args, args_str, sizeof(kb.args) - 1);
 
-        if (!bindingStr || !*bindingStr)
+        if (!binding_str || !*binding_str)
                 return kb;
 
         char temp[64];
-        strncpy(temp, bindingStr, sizeof(temp) - 1);
+        strncpy(temp, binding_str, sizeof(temp) - 1);
         temp[sizeof(temp) - 1] = '\0';
 
         char *p = temp;
-        while (p && *p)
-        {
+        while (p && *p) {
                 char *delim = strchr(p, '+'); // Next '+' or NULL
                 size_t raw_len = delim ? (size_t)(delim - p) : strlen(p);
 
                 char tokenbuf[64];
                 size_t token_len = 0;
 
-                if (raw_len == 0)
-                {
+                if (raw_len == 0) {
                         // Empty between delimiters -> literal '+' token
                         tokenbuf[0] = '+';
                         tokenbuf[1] = '\0';
-                }
-                else
-                {
+                } else {
                         // Copy substring [p .. p+raw_len) and trim whitespace
                         size_t s = 0;
                         while (s < raw_len && isspace((unsigned char)p[s]))
@@ -543,43 +522,30 @@ TBKeyBinding parse_binding(const char *bindingStr,
                 }
 
                 // If tokenbuf is still empty (shouldn't happen), skip it
-                if (tokenbuf[0] != '\0')
-                {
+                if (tokenbuf[0] != '\0') {
                         // Handle modifiers
                         if (stricmp(tokenbuf, "Ctrl") == 0 ||
                             stricmp(tokenbuf, "LCtrl") == 0 ||
-                            stricmp(tokenbuf, "RCtrl") == 0)
-                        {
+                            stricmp(tokenbuf, "RCtrl") == 0) {
                                 kb.mods |= TB_MOD_CTRL;
-                        }
-                        else if (stricmp(tokenbuf, "Alt") == 0 ||
-                                 stricmp(tokenbuf, "LAlt") == 0 ||
-                                 stricmp(tokenbuf, "RAlt") == 0)
-                        {
+                        } else if (stricmp(tokenbuf, "Alt") == 0 ||
+                                   stricmp(tokenbuf, "LAlt") == 0 ||
+                                   stricmp(tokenbuf, "RAlt") == 0) {
                                 kb.mods |= TB_MOD_ALT;
-                        }
-                        else if (stricmp(tokenbuf, "Shift") == 0 ||
-                                 stricmp(tokenbuf, "LShift") == 0 ||
-                                 stricmp(tokenbuf, "RShift") == 0)
-                        {
+                        } else if (stricmp(tokenbuf, "Shift") == 0 ||
+                                   stricmp(tokenbuf, "LShift") == 0 ||
+                                   stricmp(tokenbuf, "RShift") == 0) {
                                 kb.mods |= TB_MOD_SHIFT;
-                        }
-                        else if (strcmp(tokenbuf, "Space") == 0)
-                        {
-                                kb.key =  TB_KEY_SPACE;
+                        } else if (strcmp(tokenbuf, "Space") == 0) {
+                                kb.key = TB_KEY_SPACE;
                                 kb.ch = 0;
-                        }
-                        else
-                        {
+                        } else {
                                 // Normal key token (including "+" token)
                                 uint16_t code = key_name_to_code(tokenbuf);
-                                if (code >= 0x20 && code < 0x7f)
-                                {
+                                if (code >= 0x20 && code < 0x7f) {
                                         kb.key = 0;
                                         kb.ch = code;
-                                }
-                                else
-                                {
+                                } else {
                                         kb.key = code;
                                         kb.ch = 0;
                                 }
@@ -594,8 +560,7 @@ TBKeyBinding parse_binding(const char *bindingStr,
         return kb;
 }
 
-void set_default_config(AppSettings *settings)
-{
+void set_default_config(AppSettings *settings) {
         memset(settings, 0, sizeof(AppSettings));
         c_strcpy(settings->coverEnabled, "1", sizeof(settings->coverEnabled));
         c_strcpy(settings->allowNotifications, "1",
@@ -648,23 +613,22 @@ void set_default_config(AppSettings *settings)
         c_strcpy(settings->hideLogo, "0", sizeof(settings->hideLogo));
 #endif
         c_strcpy(settings->hideHelp, "0", sizeof(settings->hideHelp));
-        c_strcpy(settings->visualizerHeight, "6",
-                 sizeof(settings->visualizerHeight));
-        c_strcpy(settings->visualizerColorType, "2",
-                 sizeof(settings->visualizerColorType));
+        c_strcpy(settings->visualizer_height, "6",
+                 sizeof(settings->visualizer_height));
+        c_strcpy(settings->visualizer_color_type, "2",
+                 sizeof(settings->visualizer_color_type));
         c_strcpy(settings->titleDelay, "9", sizeof(settings->titleDelay));
 
         c_strcpy(settings->lastVolume, "100", sizeof(settings->lastVolume));
         c_strcpy(settings->color, "6", sizeof(settings->color));
         c_strcpy(settings->artistColor, "6", sizeof(settings->artistColor));
         c_strcpy(settings->titleColor, "6", sizeof(settings->titleColor));
-        c_strcpy(settings->enqueuedColor, "6", sizeof(settings->enqueuedColor));
+        c_strcpy(settings->enqueued_color, "6", sizeof(settings->enqueued_color));
 
         memcpy(settings->ansiTheme, "default", 8);
 }
 
-bool is_printable_ascii(const char *value)
-{
+bool is_printable_ascii(const char *value) {
         if (value == NULL || value[0] == '\0' || value[1] != '\0')
                 return false; // must be exactly one character
 
@@ -672,8 +636,7 @@ bool is_printable_ascii(const char *value)
         return (c >= 32 && c <= 126); // printable ASCII range
 }
 
-uint32_t utf8_to_codepoint(const char *s)
-{
+uint32_t utf8_to_codepoint(const char *s) {
         const unsigned char *u = (const unsigned char *)s;
         if (u[0] < 0x80)
                 return u[0];
@@ -687,12 +650,9 @@ uint32_t utf8_to_codepoint(const char *s)
                 return 0; // invalid
 }
 
-void remove_printable_key_binding(char *value)
-{
-        for (size_t i = 0; i < keybinding_count; i++)
-        {
-                if (key_bindings[i].ch == utf8_to_codepoint(value) && key_bindings[i].mods == 0)
-                {
+void remove_printable_key_binding(char *value) {
+        for (size_t i = 0; i < keybinding_count; i++) {
+                if (key_bindings[i].ch == utf8_to_codepoint(value) && key_bindings[i].mods == 0) {
                         key_bindings[i].ch = 0;
                         key_bindings[i].eventType = EVENT_NONE;
                         key_bindings[i].args[0] = '\0';
@@ -700,8 +660,7 @@ void remove_printable_key_binding(char *value)
         }
 }
 
-void add_printable_key_binding(enum EventType event, char *value)
-{
+void add_printable_key_binding(enum EventType event, char *value) {
         if (!is_printable_ascii(value))
                 return;
 
@@ -715,14 +674,11 @@ void add_printable_key_binding(enum EventType event, char *value)
         key_bindings[keybinding_count++] = kb;
 }
 
-bool replace_key_binding(TBKeyBinding binding)
-{
-        for (size_t i = 0; i < keybinding_count; i++)
-        {
+bool replace_key_binding(TBKeyBinding binding) {
+        for (size_t i = 0; i < keybinding_count; i++) {
                 if (key_bindings[i].key == binding.key &&
                     key_bindings[i].ch == binding.ch &&
-                    key_bindings[i].mods == binding.mods)
-                {
+                    key_bindings[i].mods == binding.mods) {
                         key_bindings[i].eventType = binding.eventType;
                         snprintf(key_bindings[i].args, sizeof(key_bindings[i].args), "%s", binding.args);
 
@@ -733,66 +689,52 @@ bool replace_key_binding(TBKeyBinding binding)
         return false;
 }
 
-void add_key_binding(TBKeyBinding binding)
-{
+void add_key_binding(TBKeyBinding binding) {
         if (!replace_key_binding(binding))
                 key_bindings[keybinding_count++] = binding;
 }
 
-static void trim_start(char **s)
-{
+static void trim_start(char **s) {
         while (**s && isspace((unsigned char)**s))
                 (*s)++;
 }
 
-static char *parse_field(char **s)
-{
+static char *parse_field(char **s) {
         trim_start(s);
         if (!**s)
                 return NULL;
 
         char buffer[256];
         int idx = 0;
-        int inQuotes = 0;
+        int in_quotes = 0;
 
-        if (**s == '"')
-        {
-                inQuotes = 1;
+        if (**s == '"') {
+                in_quotes = 1;
                 (*s)++;
         }
 
-        while (**s)
-        {
-                if (inQuotes)
-                {
-                        if (**s == '"')
-                        {
+        while (**s) {
+                if (in_quotes) {
+                        if (**s == '"') {
                                 (*s)++;
                                 break;
                         }
-                        if (**s == '\\')
-                        {
+                        if (**s == '\\') {
                                 (*s)++;
                                 if (**s)
                                         buffer[idx++] = **s++;
-                        }
-                        else
+                        } else
                                 buffer[idx++] = *(*s)++;
-                }
-                else
-                {
-                        if (**s == ',')
-                        {
+                } else {
+                        if (**s == ',') {
                                 (*s)++;
                                 break;
                         }
-                        if (**s == '\\')
-                        {
+                        if (**s == '\\') {
                                 (*s)++;
                                 if (**s)
                                         buffer[idx++] = **s++;
-                        }
-                        else
+                        } else
                                 buffer[idx++] = *(*s)++;
                 }
                 if (idx >= (int)(sizeof(buffer) - 1))
@@ -803,531 +745,375 @@ static char *parse_field(char **s)
         return strdup(buffer); // return a copy
 }
 
-void construct_app_settings(AppSettings *settings, KeyValuePair *pairs, int count)
-{
-        if (pairs == NULL)
-        {
+void construct_app_settings(AppSettings *settings, KeyValuePair *pairs, int count) {
+        if (pairs == NULL) {
                 return;
         }
 
         bool foundCycleThemesSetting = false;
 
-        for (int i = 0; i < count; i++)
-        {
+        for (int i = 0; i < count; i++) {
                 KeyValuePair *pair = &pairs[i];
 
                 trim(pair->key, strlen(pair->key));
-                char *lowercaseKey = string_to_lower(pair->key);
+                char *lowercase_key = string_to_lower(pair->key);
 
-                if (strcmp(lowercaseKey, "path") == 0)
-                {
+                if (strcmp(lowercase_key, "path") == 0) {
                         snprintf(settings->path, sizeof(settings->path), "%s",
                                  pair->value);
-                }
-                else if (strcmp(lowercaseKey, "theme") == 0)
-                {
+                } else if (strcmp(lowercase_key, "theme") == 0) {
                         snprintf(settings->theme, sizeof(settings->theme), "%s",
                                  pair->value);
-                }
-                else if (strcmp(lowercaseKey, "coverenabled") == 0)
-                {
+                } else if (strcmp(lowercase_key, "coverenabled") == 0) {
                         snprintf(settings->coverEnabled,
                                  sizeof(settings->coverEnabled), "%s",
                                  pair->value);
-                }
-                else if (strcmp(lowercaseKey, "coveransi") == 0)
-                {
+                } else if (strcmp(lowercase_key, "coveransi") == 0) {
                         snprintf(settings->coverAnsi, sizeof(settings->coverAnsi),
                                  "%s", pair->value);
-                }
-                else if (strcmp(lowercaseKey, "visualizerenabled") == 0)
-                {
+                } else if (strcmp(lowercase_key, "visualizerenabled") == 0) {
                         snprintf(settings->visualizerEnabled,
                                  sizeof(settings->visualizerEnabled), "%s",
                                  pair->value);
-                }
-                else if (strcmp(lowercaseKey, "useconfigcolors") == 0)
-                {
+                } else if (strcmp(lowercase_key, "useconfigcolors") == 0) {
                         snprintf(settings->useConfigColors,
                                  sizeof(settings->useConfigColors), "%s",
                                  pair->value);
-                }
-                else if (strcmp(lowercaseKey, "visualizerheight") == 0)
-                {
-                        snprintf(settings->visualizerHeight,
-                                 sizeof(settings->visualizerHeight), "%s",
+                } else if (strcmp(lowercase_key, "visualizerheight") == 0) {
+                        snprintf(settings->visualizer_height,
+                                 sizeof(settings->visualizer_height), "%s",
                                  pair->value);
-                }
-                else if (strcmp(lowercaseKey, "visualizercolortype") == 0)
-                {
-                        snprintf(settings->visualizerColorType,
-                                 sizeof(settings->visualizerColorType), "%s",
+                } else if (strcmp(lowercase_key, "visualizercolortype") == 0) {
+                        snprintf(settings->visualizer_color_type,
+                                 sizeof(settings->visualizer_color_type), "%s",
                                  pair->value);
-                }
-                else if (strcmp(lowercaseKey, "titledelay") == 0)
-                {
+                } else if (strcmp(lowercase_key, "titledelay") == 0) {
                         snprintf(settings->titleDelay,
                                  sizeof(settings->titleDelay), "%s",
                                  pair->value);
-                }
-                else if (strcmp(lowercaseKey, "volumeup") == 0)
-                {
+                } else if (strcmp(lowercase_key, "volumeup") == 0) {
                         snprintf(settings->volumeUp, sizeof(settings->volumeUp),
                                  "%s", pair->value);
                         add_printable_key_binding(EVENT_VOLUME_UP, pair->value);
-                }
-                else if (strcmp(lowercaseKey, "volumeupalt") == 0)
-                {
+                } else if (strcmp(lowercase_key, "volumeupalt") == 0) {
                         snprintf(settings->volumeUpAlt,
                                  sizeof(settings->volumeUpAlt), "%s",
                                  pair->value);
                         add_printable_key_binding(EVENT_VOLUME_UP, pair->value);
-                }
-                else if (strcmp(lowercaseKey, "volumedown") == 0)
-                {
+                } else if (strcmp(lowercase_key, "volumedown") == 0) {
                         snprintf(settings->volumeDown,
                                  sizeof(settings->volumeDown), "%s",
                                  pair->value);
                         add_printable_key_binding(EVENT_VOLUME_DOWN, pair->value);
-                }
-                else if (strcmp(lowercaseKey, "previoustrackalt") == 0)
-                {
+                } else if (strcmp(lowercase_key, "previoustrackalt") == 0) {
                         snprintf(settings->previousTrackAlt,
                                  sizeof(settings->previousTrackAlt), "%s",
                                  pair->value);
                         add_printable_key_binding(EVENT_PREV, pair->value);
-                }
-                else if (strcmp(lowercaseKey, "nexttrackalt") == 0)
-                {
+                } else if (strcmp(lowercase_key, "nexttrackalt") == 0) {
                         snprintf(settings->nextTrackAlt,
                                  sizeof(settings->nextTrackAlt), "%s",
                                  pair->value);
                         add_printable_key_binding(EVENT_NEXT, pair->value);
-                }
-                else if (strcmp(lowercaseKey, "scrollupalt") == 0)
-                {
+                } else if (strcmp(lowercase_key, "scrollupalt") == 0) {
                         snprintf(settings->scrollUpAlt,
                                  sizeof(settings->scrollUpAlt), "%s",
                                  pair->value);
                         add_printable_key_binding(EVENT_SCROLLUP, pair->value);
-                }
-                else if (strcmp(lowercaseKey, "scrolldownalt") == 0)
-                {
+                } else if (strcmp(lowercase_key, "scrolldownalt") == 0) {
                         snprintf(settings->scrollDownAlt,
                                  sizeof(settings->scrollDownAlt), "%s",
                                  pair->value);
                         add_printable_key_binding(EVENT_SCROLLDOWN, pair->value);
-                }
-                else if (strcmp(lowercaseKey, "switchnumberedsong") == 0)
-                {
+                } else if (strcmp(lowercase_key, "switchnumberedsong") == 0) {
                         snprintf(settings->switchNumberedSong,
                                  sizeof(settings->switchNumberedSong), "%s",
                                  pair->value);
                         add_printable_key_binding(EVENT_ENQUEUE, pair->value);
-                }
-                else if (strcmp(lowercaseKey, "togglepause") == 0)
-                {
+                } else if (strcmp(lowercase_key, "togglepause") == 0) {
                         snprintf(settings->toggle_pause,
                                  sizeof(settings->toggle_pause), "%s",
                                  pair->value);
                         add_printable_key_binding(EVENT_PLAY_PAUSE, pair->value);
-                }
-                else if (strcmp(lowercaseKey, "togglecolorsderivedfrom") == 0)
-                {
+                } else if (strcmp(lowercase_key, "togglecolorsderivedfrom") == 0) {
                         snprintf(settings->cycleColorsDerivedFrom,
                                  sizeof(settings->cycleColorsDerivedFrom), "%s",
                                  pair->value);
                         add_printable_key_binding(EVENT_CYCLECOLORMODE, pair->value);
-                }
-                else if (strcmp(lowercaseKey, "cyclethemes") == 0)
-                {
+                } else if (strcmp(lowercase_key, "cyclethemes") == 0) {
                         snprintf(settings->cycle_themes,
                                  sizeof(settings->cycle_themes), "%s",
                                  pair->value);
                         foundCycleThemesSetting = true;
                         add_printable_key_binding(EVENT_CYCLETHEMES, pair->value);
-                }
-                else if (strcmp(lowercaseKey, "togglenotifications") == 0)
-                {
+                } else if (strcmp(lowercase_key, "togglenotifications") == 0) {
                         snprintf(settings->toggle_notifications,
                                  sizeof(settings->toggle_notifications), "%s",
                                  pair->value);
                         add_printable_key_binding(EVENT_TOGGLENOTIFICATIONS, pair->value);
-                }
-                else if (strcmp(lowercaseKey, "togglevisualizer") == 0)
-                {
+                } else if (strcmp(lowercase_key, "togglevisualizer") == 0) {
                         snprintf(settings->toggle_visualizer,
                                  sizeof(settings->toggle_visualizer), "%s",
                                  pair->value);
                         add_printable_key_binding(EVENT_TOGGLEVISUALIZER, pair->value);
-                }
-                else if (strcmp(lowercaseKey, "toggleascii") == 0)
-                {
+                } else if (strcmp(lowercase_key, "toggleascii") == 0) {
                         snprintf(settings->toggle_ascii,
                                  sizeof(settings->toggle_ascii), "%s",
                                  pair->value);
                         add_printable_key_binding(EVENT_TOGGLEASCII, pair->value);
-                }
-                else if (strcmp(lowercaseKey, "togglerepeat") == 0)
-                {
+                } else if (strcmp(lowercase_key, "togglerepeat") == 0) {
                         snprintf(settings->toggle_repeat,
                                  sizeof(settings->toggle_repeat), "%s",
                                  pair->value);
                         add_printable_key_binding(EVENT_TOGGLEREPEAT, pair->value);
-                }
-                else if (strcmp(lowercaseKey, "toggleshuffle") == 0)
-                {
+                } else if (strcmp(lowercase_key, "toggleshuffle") == 0) {
                         snprintf(settings->toggle_shuffle,
                                  sizeof(settings->toggle_shuffle), "%s",
                                  pair->value);
                         add_printable_key_binding(EVENT_SHUFFLE, pair->value);
-                }
-                else if (strcmp(lowercaseKey, "seekbackward") == 0)
-                {
+                } else if (strcmp(lowercase_key, "seekbackward") == 0) {
                         snprintf(settings->seekBackward,
                                  sizeof(settings->seekBackward), "%s",
                                  pair->value);
                         add_printable_key_binding(EVENT_SEEKBACK, pair->value);
-                }
-                else if (strcmp(lowercaseKey, "seekforward") == 0)
-                {
+                } else if (strcmp(lowercase_key, "seekforward") == 0) {
                         snprintf(settings->seek_forward,
                                  sizeof(settings->seek_forward), "%s",
                                  pair->value);
                         add_printable_key_binding(EVENT_SEEKFORWARD, pair->value);
-                }
-                else if (strcmp(lowercaseKey, "saveplaylist") == 0)
-                {
+                } else if (strcmp(lowercase_key, "saveplaylist") == 0) {
                         snprintf(settings->save_playlist,
                                  sizeof(settings->save_playlist), "%s",
                                  pair->value);
                         add_printable_key_binding(EVENT_EXPORTPLAYLIST, pair->value);
-                }
-                else if (strcmp(lowercaseKey, "addtofavoritesplaylist") == 0)
-                {
+                } else if (strcmp(lowercase_key, "addtofavoritesplaylist") == 0) {
                         snprintf(settings->add_to_favorites_playlist,
                                  sizeof(settings->add_to_favorites_playlist), "%s",
                                  pair->value);
                         add_printable_key_binding(EVENT_ADDTOFAVORITESPLAYLIST, pair->value);
-                }
-                else if (strcmp(lowercaseKey, "lastvolume") == 0)
-                {
+                } else if (strcmp(lowercase_key, "lastvolume") == 0) {
                         snprintf(settings->lastVolume,
                                  sizeof(settings->lastVolume), "%s",
                                  pair->value);
-                }
-                else if (strcmp(lowercaseKey, "allownotifications") == 0)
-                {
+                } else if (strcmp(lowercase_key, "allownotifications") == 0) {
                         snprintf(settings->allowNotifications,
                                  sizeof(settings->allowNotifications), "%s",
                                  pair->value);
-                }
-                else if (strcmp(lowercaseKey, "colormode") == 0)
-                {
+                } else if (strcmp(lowercase_key, "colormode") == 0) {
                         snprintf(settings->colorMode, sizeof(settings->colorMode), "%s",
                                  pair->value);
-                }
-                else if (strcmp(lowercaseKey, "color") == 0)
-                {
+                } else if (strcmp(lowercase_key, "color") == 0) {
                         snprintf(settings->color, sizeof(settings->color), "%s",
                                  pair->value);
-                }
-                else if (strcmp(lowercaseKey, "artistcolor") == 0)
-                {
+                } else if (strcmp(lowercase_key, "artistcolor") == 0) {
                         snprintf(settings->artistColor,
                                  sizeof(settings->artistColor), "%s",
                                  pair->value);
-                }
-                else if (strcmp(lowercaseKey, "enqueuedcolor") == 0)
-                {
-                        snprintf(settings->enqueuedColor,
-                                 sizeof(settings->enqueuedColor), "%s",
+                } else if (strcmp(lowercase_key, "enqueuedcolor") == 0) {
+                        snprintf(settings->enqueued_color,
+                                 sizeof(settings->enqueued_color), "%s",
                                  pair->value);
-                }
-                else if (strcmp(lowercaseKey, "titlecolor") == 0)
-                {
+                } else if (strcmp(lowercase_key, "titlecolor") == 0) {
                         snprintf(settings->titleColor,
                                  sizeof(settings->titleColor), "%s",
                                  pair->value);
-                }
-                else if (strcmp(lowercaseKey, "mouseenabled") == 0)
-                {
+                } else if (strcmp(lowercase_key, "mouseenabled") == 0) {
                         snprintf(settings->mouseEnabled,
                                  sizeof(settings->mouseEnabled), "%s",
                                  pair->value);
-                }
-                else if (strcmp(lowercaseKey, "repeatstate") == 0)
-                {
+                } else if (strcmp(lowercase_key, "repeatstate") == 0) {
                         snprintf(settings->repeatState,
                                  sizeof(settings->repeatState), "%s",
                                  pair->value);
-                }
-                else if (strcmp(lowercaseKey, "shuffleenabled") == 0)
-                {
+                } else if (strcmp(lowercase_key, "shuffleenabled") == 0) {
                         snprintf(settings->shuffle_enabled,
                                  sizeof(settings->shuffle_enabled), "%s",
                                  pair->value);
-                }
-                else if (strcmp(lowercaseKey, "saverepeatshufflesettings") == 0)
-                {
+                } else if (strcmp(lowercase_key, "saverepeatshufflesettings") == 0) {
                         snprintf(settings->saveRepeatShuffleSettings,
                                  sizeof(settings->saveRepeatShuffleSettings),
                                  "%s", pair->value);
-                }
-                else if (strcmp(lowercaseKey, "tracktitleaswindowtitle") == 0)
-                {
+                } else if (strcmp(lowercase_key, "tracktitleaswindowtitle") == 0) {
                         snprintf(settings->trackTitleAsWindowTitle,
                                  sizeof(settings->trackTitleAsWindowTitle), "%s",
                                  pair->value);
-                }
-                else if (strcmp(lowercaseKey, "replaygaincheckfirst") == 0)
-                {
+                } else if (strcmp(lowercase_key, "replaygaincheckfirst") == 0) {
                         snprintf(settings->replayGainCheckFirst,
                                  sizeof(settings->replayGainCheckFirst), "%s",
                                  pair->value);
-                }
-                else if (strcmp(lowercaseKey, "visualizerbarwidth") == 0)
-                {
+                } else if (strcmp(lowercase_key, "visualizerbarwidth") == 0) {
                         snprintf(settings->visualizer_bar_width,
                                  sizeof(settings->visualizer_bar_width), "%s",
                                  pair->value);
-                }
-                else if (strcmp(lowercaseKey, "visualizerbraillemode") == 0)
-                {
+                } else if (strcmp(lowercase_key, "visualizerbraillemode") == 0) {
                         snprintf(settings->visualizerBrailleMode,
                                  sizeof(settings->visualizerBrailleMode), "%s",
                                  pair->value);
-                }
-                else if (strcmp(lowercaseKey, "mouseleftclickaction") == 0)
-                {
+                } else if (strcmp(lowercase_key, "mouseleftclickaction") == 0) {
                         snprintf(settings->mouseLeftClickAction,
                                  sizeof(settings->mouseLeftClickAction), "%s",
                                  pair->value);
-                }
-                else if (strcmp(lowercaseKey, "mousemiddleclickaction") == 0)
-                {
+                } else if (strcmp(lowercase_key, "mousemiddleclickaction") == 0) {
                         snprintf(settings->mouseMiddleClickAction,
                                  sizeof(settings->mouseMiddleClickAction), "%s",
                                  pair->value);
-                }
-                else if (strcmp(lowercaseKey, "mouserightclickaction") == 0)
-                {
+                } else if (strcmp(lowercase_key, "mouserightclickaction") == 0) {
                         snprintf(settings->mouseRightClickAction,
                                  sizeof(settings->mouseRightClickAction), "%s",
                                  pair->value);
-                }
-                else if (strcmp(lowercaseKey, "mousescrollupaction") == 0)
-                {
+                } else if (strcmp(lowercase_key, "mousescrollupaction") == 0) {
                         snprintf(settings->mouseScrollUpAction,
                                  sizeof(settings->mouseScrollUpAction), "%s",
                                  pair->value);
-                }
-                else if (strcmp(lowercaseKey, "mousescrolldownaction") == 0)
-                {
+                } else if (strcmp(lowercase_key, "mousescrolldownaction") == 0) {
                         snprintf(settings->mouseScrollDownAction,
                                  sizeof(settings->mouseScrollDownAction), "%s",
                                  pair->value);
-                }
-                else if (strcmp(lowercaseKey, "mousealtscrollupaction") == 0)
-                {
+                } else if (strcmp(lowercase_key, "mousealtscrollupaction") == 0) {
                         snprintf(settings->mouseAltScrollUpAction,
                                  sizeof(settings->mouseAltScrollUpAction), "%s",
                                  pair->value);
-                }
-                else if (strcmp(lowercaseKey, "mousealtscrolldownaction") == 0)
-                {
+                } else if (strcmp(lowercase_key, "mousealtscrolldownaction") == 0) {
                         snprintf(settings->mouseAltScrollDownAction,
                                  sizeof(settings->mouseAltScrollDownAction),
                                  "%s", pair->value);
-                }
-                else if (strcmp(lowercaseKey, "hidelogo") == 0)
-                {
+                } else if (strcmp(lowercase_key, "hidelogo") == 0) {
                         snprintf(settings->hideLogo, sizeof(settings->hideLogo),
                                  "%s", pair->value);
-                }
-                else if (strcmp(lowercaseKey, "hidehelp") == 0)
-                {
+                } else if (strcmp(lowercase_key, "hidehelp") == 0) {
                         snprintf(settings->hideHelp, sizeof(settings->hideHelp),
                                  "%s", pair->value);
-                }
-                else if (strcmp(lowercaseKey, "cachelibrary") == 0)
-                {
+                } else if (strcmp(lowercase_key, "cachelibrary") == 0) {
                         snprintf(settings->cacheLibrary,
                                  sizeof(settings->cacheLibrary), "%s",
                                  pair->value);
-                }
-                else if (strcmp(lowercaseKey, "quitonstop") == 0)
-                {
+                } else if (strcmp(lowercase_key, "quitonstop") == 0) {
                         snprintf(settings->quitAfterStopping,
                                  sizeof(settings->quitAfterStopping), "%s",
                                  pair->value);
-                }
-                else if (strcmp(lowercaseKey, "hideglimmeringtext") == 0)
-                {
+                } else if (strcmp(lowercase_key, "hideglimmeringtext") == 0) {
                         snprintf(settings->hideGlimmeringText,
                                  sizeof(settings->hideGlimmeringText), "%s",
                                  pair->value);
-                }
-                else if (strcmp(lowercaseKey, "quit") == 0)
-                {
+                } else if (strcmp(lowercase_key, "quit") == 0) {
                         snprintf(settings->quit, sizeof(settings->quit), "%s",
                                  pair->value);
                         add_printable_key_binding(EVENT_QUIT, pair->value);
-                }
-                else if (strcmp(lowercaseKey, "altquit") == 0)
-                {
+                } else if (strcmp(lowercase_key, "altquit") == 0) {
                         snprintf(settings->altQuit, sizeof(settings->altQuit),
                                  "%s", pair->value);
                         add_printable_key_binding(EVENT_QUIT, pair->value);
-                }
-                else if (strcmp(lowercaseKey, "prevpage") == 0)
-                {
+                } else if (strcmp(lowercase_key, "prevpage") == 0) {
                         snprintf(settings->prevPage, sizeof(settings->prevPage),
                                  "%s", pair->value);
                         add_printable_key_binding(EVENT_PREVPAGE, pair->value);
-                }
-                else if (strcmp(lowercaseKey, "nextpage") == 0)
-                {
+                } else if (strcmp(lowercase_key, "nextpage") == 0) {
                         snprintf(settings->nextPage, sizeof(settings->nextPage),
                                  "%s", pair->value);
                         add_printable_key_binding(EVENT_NEXTPAGE, pair->value);
-                }
-                else if (strcmp(lowercaseKey, "updatelibrary") == 0)
-                {
+                } else if (strcmp(lowercase_key, "updatelibrary") == 0) {
                         snprintf(settings->update_library,
                                  sizeof(settings->update_library), "%s",
                                  pair->value);
                         add_printable_key_binding(EVENT_UPDATELIBRARY, pair->value);
-                }
-                else if (strcmp(lowercaseKey, "showplaylistalt") == 0)
-                {
+                } else if (strcmp(lowercase_key, "showplaylistalt") == 0) {
                         if (strcmp(pair->value, "") !=
                             0) // Don't set these to nothing
                                 snprintf(settings->showPlaylistAlt,
                                          sizeof(settings->showPlaylistAlt), "%s",
                                          pair->value);
                         add_printable_key_binding(EVENT_SHOWPLAYLIST, pair->value);
-                }
-                else if (strcmp(lowercaseKey, "showlibraryalt") == 0)
-                {
+                } else if (strcmp(lowercase_key, "showlibraryalt") == 0) {
                         if (strcmp(pair->value, "") != 0)
                                 snprintf(settings->showLibraryAlt,
                                          sizeof(settings->showLibraryAlt), "%s",
                                          pair->value);
                         add_printable_key_binding(EVENT_SHOWLIBRARY, pair->value);
-                }
-                else if (strcmp(lowercaseKey, "showtrackalt") == 0)
-                {
+                } else if (strcmp(lowercase_key, "showtrackalt") == 0) {
                         if (strcmp(pair->value, "") != 0)
                                 snprintf(settings->showTrackAlt,
                                          sizeof(settings->showTrackAlt), "%s",
                                          pair->value);
                         add_printable_key_binding(EVENT_SHOWTRACK, pair->value);
-                }
-                else if (strcmp(lowercaseKey, "showsearchalt") == 0)
-                {
+                } else if (strcmp(lowercase_key, "showsearchalt") == 0) {
                         if (strcmp(pair->value, "") != 0)
                                 snprintf(settings->showSearchAlt,
                                          sizeof(settings->showSearchAlt), "%s",
                                          pair->value);
                         add_printable_key_binding(EVENT_SHOWSEARCH, pair->value);
-                }
-                else if (strcmp(lowercaseKey, "showlyricspage") == 0)
-                {
+                } else if (strcmp(lowercase_key, "showlyricspage") == 0) {
                         if (strcmp(pair->value, "") != 0)
                                 snprintf(settings->showLyricsPage,
                                          sizeof(settings->showLyricsPage), "%s",
                                          pair->value);
                         add_printable_key_binding(EVENT_SHOWLYRICSPAGE, pair->value);
-                }
-                else if (strcmp(lowercaseKey, "movesongup") == 0)
-                {
+                } else if (strcmp(lowercase_key, "movesongup") == 0) {
                         if (strcmp(pair->value, "") != 0)
                                 snprintf(settings->move_song_up,
                                          sizeof(settings->move_song_up), "%s",
                                          pair->value);
                         add_printable_key_binding(EVENT_MOVESONGUP, pair->value);
-                }
-                else if (strcmp(lowercaseKey, "movesongdown") == 0)
-                {
+                } else if (strcmp(lowercase_key, "movesongdown") == 0) {
                         if (strcmp(pair->value, "") != 0)
                                 snprintf(settings->move_song_down,
                                          sizeof(settings->move_song_down), "%s",
                                          pair->value);
                         add_printable_key_binding(EVENT_MOVESONGDOWN, pair->value);
-                }
-                else if (strcmp(lowercaseKey, "enqueueandplay") == 0)
-                {
+                } else if (strcmp(lowercase_key, "enqueueandplay") == 0) {
                         if (strcmp(pair->value, "") != 0)
                                 snprintf(settings->enqueueAndPlay,
                                          sizeof(settings->enqueueAndPlay), "%s",
                                          pair->value);
                         add_printable_key_binding(EVENT_ENQUEUEANDPLAY, pair->value);
-                }
-                else if (strcmp(lowercaseKey, "sort") == 0)
-                {
+                } else if (strcmp(lowercase_key, "sort") == 0) {
                         if (strcmp(pair->value, "") != 0)
                                 snprintf(settings->sort_library,
                                          sizeof(settings->sort_library), "%s",
                                          pair->value);
                         add_printable_key_binding(EVENT_SORTLIBRARY, pair->value);
-                }
-                else if (strcmp(lowercaseKey, "progressbarelapsedevenchar") ==
-                         0)
-                {
+                } else if (strcmp(lowercase_key, "progressbarelapsedevenchar") ==
+                           0) {
                         if (strcmp(pair->value, "") != 0)
                                 snprintf(
                                     settings->progressBarElapsedEvenChar,
                                     sizeof(settings->progressBarElapsedEvenChar),
                                     "%s", pair->value);
-                }
-                else if (strcmp(lowercaseKey, "progressbarelapsedoddchar") == 0)
-                {
+                } else if (strcmp(lowercase_key, "progressbarelapsedoddchar") == 0) {
                         if (strcmp(pair->value, "") != 0)
                                 snprintf(
                                     settings->progressBarElapsedOddChar,
                                     sizeof(settings->progressBarElapsedOddChar),
                                     "%s", pair->value);
-                }
-                else if (strcmp(lowercaseKey,
-                                "progressbarapproachingevenchar") == 0)
-                {
+                } else if (strcmp(lowercase_key,
+                                  "progressbarapproachingevenchar") == 0) {
                         if (strcmp(pair->value, "") != 0)
                                 snprintf(
                                     settings->progressBarApproachingEvenChar,
                                     sizeof(settings->progressBarApproachingEvenChar),
                                     "%s", pair->value);
-                }
-                else if (strcmp(lowercaseKey,
-                                "progressbarapproachingoddchar") == 0)
-                {
+                } else if (strcmp(lowercase_key,
+                                  "progressbarapproachingoddchar") == 0) {
                         if (strcmp(pair->value, "") != 0)
                                 snprintf(
                                     settings->progressBarApproachingOddChar,
                                     sizeof(
                                         settings->progressBarApproachingOddChar),
                                     "%s", pair->value);
-                }
-                else if (strcmp(lowercaseKey, "progressbarcurrentevenchar") ==
-                         0)
-                {
+                } else if (strcmp(lowercase_key, "progressbarcurrentevenchar") ==
+                           0) {
                         if (strcmp(pair->value, "") != 0)
                                 snprintf(
                                     settings->progressBarCurrentEvenChar,
                                     sizeof(settings->progressBarCurrentEvenChar),
                                     "%s", pair->value);
-                }
-                else if (strcmp(lowercaseKey, "progressbarcurrentoddchar") == 0)
-                {
+                } else if (strcmp(lowercase_key, "progressbarcurrentoddchar") == 0) {
                         if (strcmp(pair->value, "") != 0)
                                 snprintf(
                                     settings->progressBarCurrentOddChar,
                                     sizeof(settings->progressBarCurrentOddChar),
                                     "%s", pair->value);
-                }
-                else if (strcmp(lowercaseKey, "showkeysalt") == 0 &&
-                         strcmp(pair->value, "N") != 0)
-                {
+                } else if (strcmp(lowercase_key, "showkeysalt") == 0 &&
+                           strcmp(pair->value, "N") != 0) {
                         // We need to prevent the previous key B or else config
                         // files wont get updated to the new key N and B for
                         // radio search on macOS
@@ -1337,52 +1123,46 @@ void construct_app_settings(AppSettings *settings, KeyValuePair *pairs, int coun
                                          sizeof(settings->showKeysAlt), "%s",
                                          pair->value);
                         add_printable_key_binding(EVENT_SHOWHELP, pair->value);
-                }
-                else if (strcmp(lowercaseKey, "bind") == 0)
-                {
-                        char valueCopy[256];
-                        strncpy(valueCopy, pair->value, sizeof(valueCopy));
-                        valueCopy[sizeof(valueCopy) - 1] = '\0';
-                        char *s = valueCopy;
+                } else if (strcmp(lowercase_key, "bind") == 0) {
+                        char value_copy[256];
+                        strncpy(value_copy, pair->value, sizeof(value_copy));
+                        value_copy[sizeof(value_copy) - 1] = '\0';
+                        char *s = value_copy;
 
-                        char *bindingStr = parse_field(&s);
-                        char *eventStr = parse_field(&s);
-                        char *argsStr = parse_field(&s);
+                        char *binding_str = parse_field(&s);
+                        char *event_str = parse_field(&s);
+                        char *args_str = parse_field(&s);
 
-                        if (!bindingStr || !eventStr)
+                        if (!binding_str || !event_str)
                                 return;
 
-                        if (!argsStr)
-                                argsStr = "";
+                        if (!args_str)
+                                args_str = "";
 
-                        TBKeyBinding kb = parse_binding(bindingStr, eventStr, argsStr);
+                        TBKeyBinding kb = parse_binding(binding_str, event_str, args_str);
                         add_key_binding(kb);
                 }
 
-                free(lowercaseKey);
+                free(lowercase_key);
         }
 
         free_key_value_pairs(pairs, count);
 
-        if (!foundCycleThemesSetting)
-        {
+        if (!foundCycleThemesSetting) {
                 // move_song_up is no longer t, it needs to be changed
                 c_strcpy(settings->move_song_up, "f", sizeof(settings->move_song_up));
         }
 }
 
 KeyValuePair *read_key_value_pairs(const char *file_path, int *count,
-                                time_t *last_time_app_ran)
-{
+                                   time_t *last_time_app_ran) {
         FILE *file = fopen(file_path, "r");
-        if (file == NULL)
-        {
+        if (file == NULL) {
                 return NULL;
         }
 
         struct stat file_stat;
-        if (stat(file_path, &file_stat) == -1)
-        {
+        if (stat(file_path, &file_stat) == -1) {
                 return NULL;
         }
 
@@ -1396,8 +1176,7 @@ KeyValuePair *read_key_value_pairs(const char *file_path, int *count,
         int pair_count = 0;
 
         char line[256];
-        while (fgets(line, sizeof(line), file))
-        {
+        while (fgets(line, sizeof(line), file)) {
                 // Remove trailing newline character if present
                 line[strcspn(line, "\n")] = '\0';
 
@@ -1409,8 +1188,7 @@ KeyValuePair *read_key_value_pairs(const char *file_path, int *count,
 
                 char *delimiter = strchr(line, '=');
 
-                if (delimiter != NULL)
-                {
+                if (delimiter != NULL) {
                         *delimiter = '\0';
                         char *value = delimiter + 1;
 
@@ -1429,30 +1207,23 @@ KeyValuePair *read_key_value_pairs(const char *file_path, int *count,
         return pairs;
 }
 
-const char *get_default_music_folder(void)
-{
+const char *get_default_music_folder(void) {
         const char *home = get_home_path();
-        if (home != NULL)
-        {
-                static char musicPath[MAXPATHLEN];
-                snprintf(musicPath, sizeof(musicPath), "%s/Music", home);
-                return musicPath;
-        }
-        else
-        {
+        if (home != NULL) {
+                static char music_path[MAXPATHLEN];
+                snprintf(music_path, sizeof(music_path), "%s/Music", home);
+                return music_path;
+        } else {
                 return NULL; // Return NULL if XDG home is not found.
         }
 }
 
-int get_music_library_path(char *path)
-{
-        char expandedPath[MAXPATHLEN];
+int get_music_library_path(char *path) {
+        char expanded_path[MAXPATHLEN];
 
-        if (path[0] != '\0' && path[0] != '\r')
-        {
-                if (expand_path(path, expandedPath) >= 0)
-                {
-                        c_strcpy(path, expandedPath, sizeof(expandedPath));
+        if (path[0] != '\0' && path[0] != '\r') {
+                if (expand_path(path, expanded_path) >= 0) {
+                        c_strcpy(path, expanded_path, sizeof(expanded_path));
                 }
         }
 
@@ -1460,8 +1231,7 @@ int get_music_library_path(char *path)
 }
 
 void map_settings_to_keys(AppSettings *settings, UISettings *ui,
-                       EventMapping *mappings)
-{
+                          EventMapping *mappings) {
         mappings[0] = (EventMapping){settings->scrollUpAlt, EVENT_SCROLLUP};
         mappings[1] = (EventMapping){settings->scrollDownAlt, EVENT_SCROLLDOWN};
         mappings[2] = (EventMapping){settings->nextTrackAlt, EVENT_NEXT};
@@ -1528,29 +1298,25 @@ void map_settings_to_keys(AppSettings *settings, UISettings *ui,
         mappings[63] = (EventMapping){settings->showLyricsPage, EVENT_SHOWLYRICSPAGE};
 }
 
-char *get_config_file_path(char *configdir)
-{
+char *get_config_file_path(char *configdir) {
         size_t configdir_length = strnlen(configdir, MAXPATHLEN - 1);
         size_t settings_file_length =
             strnlen(SETTINGS_FILE, sizeof(SETTINGS_FILE) - 1);
 
-        if (configdir_length + 1 + settings_file_length + 1 > MAXPATHLEN)
-        {
+        if (configdir_length + 1 + settings_file_length + 1 > MAXPATHLEN) {
                 fprintf(stderr, "Error: File path exceeds maximum length.\n");
                 exit(1);
         }
 
         char *filepath = (char *)malloc(MAXPATHLEN);
-        if (filepath == NULL)
-        {
+        if (filepath == NULL) {
                 perror("malloc");
                 exit(1);
         }
 
         int written =
             snprintf(filepath, MAXPATHLEN, "%s/%s", configdir, SETTINGS_FILE);
-        if (written < 0 || written >= MAXPATHLEN)
-        {
+        if (written < 0 || written >= MAXPATHLEN) {
                 fprintf(stderr,
                         "Error: snprintf failed or filepath truncated.\n");
                 free(filepath);
@@ -1559,27 +1325,23 @@ char *get_config_file_path(char *configdir)
         return filepath;
 }
 
-char *get_prefs_file_path(char *prefsdir)
-{
+char *get_prefs_file_path(char *prefsdir) {
         size_t dir_length = strnlen(prefsdir, MAXPATHLEN - 1);
         size_t file_length = strnlen(STATE_FILE, sizeof(STATE_FILE) - 1);
 
-        if (dir_length + 1 + file_length + 1 > MAXPATHLEN)
-        {
+        if (dir_length + 1 + file_length + 1 > MAXPATHLEN) {
                 fprintf(stderr, "Error: File path exceeds maximum length.\n");
                 exit(1);
         }
 
         char *filepath = (char *)malloc(MAXPATHLEN);
-        if (filepath == NULL)
-        {
+        if (filepath == NULL) {
                 perror("malloc");
                 exit(1);
         }
 
         int written = snprintf(filepath, MAXPATHLEN, "%s/%s", prefsdir, STATE_FILE);
-        if (written < 0 || written >= MAXPATHLEN)
-        {
+        if (written < 0 || written >= MAXPATHLEN) {
                 fprintf(stderr, "Error: snprintf failed or filepath truncated.\n");
                 free(filepath);
                 exit(1);
@@ -1588,16 +1350,13 @@ char *get_prefs_file_path(char *prefsdir)
         return filepath;
 }
 
-int mkdir_p(const char *path, mode_t mode)
-{
+int mkdir_p(const char *path, mode_t mode) {
         if (path == NULL)
                 return -1;
 
-        if (path[0] == '~')
-        {
+        if (path[0] == '~') {
                 // Just try a plain mkdir if there's a tilde
-                if (mkdir(path, mode) == -1)
-                {
+                if (mkdir(path, mode) == -1) {
                         if (errno != EEXIST)
                                 return -1;
                 }
@@ -1613,39 +1372,32 @@ int mkdir_p(const char *path, mode_t mode)
         if (len > 0 && tmp[len - 1] == '/')
                 tmp[len - 1] = 0;
 
-        for (p = tmp + 1; *p; p++)
-        {
-                if (*p == '/')
-                {
+        for (p = tmp + 1; *p; p++) {
+                if (*p == '/') {
                         *p = 0;
-                        if (mkdir(tmp, mode) == -1)
-                        {
+                        if (mkdir(tmp, mode) == -1) {
                                 if (errno != EEXIST)
                                         return -1;
                         }
                         *p = '/';
                 }
         }
-        if (mkdir(tmp, mode) == -1)
-        {
+        if (mkdir(tmp, mode) == -1) {
                 if (errno != EEXIST)
                         return -1;
         }
         return 0;
 }
 
-void get_prefs(AppSettings *settings, UISettings *ui)
-{
+void get_prefs(AppSettings *settings, UISettings *ui) {
         int pair_count;
         char *prefsdir = get_prefs_path();
 
         setlocale(LC_ALL, "");
 
         struct stat st = {0};
-        if (stat(prefsdir, &st) == -1)
-        {
-                if (mkdir_p(prefsdir, 0700) != 0)
-                {
+        if (stat(prefsdir, &st) == -1) {
+                if (mkdir_p(prefsdir, 0700) != 0) {
                         perror("mkdir");
                         free(prefsdir);
                         exit(1);
@@ -1667,8 +1419,7 @@ void get_prefs(AppSettings *settings, UISettings *ui)
                 ui->repeatState = tmp;
 
         tmp = get_number(settings->colorMode);
-        if (tmp >= 0 && tmp < 3)
-        {
+        if (tmp >= 0 && tmp < 3) {
                 ui->colorMode = tmp;
         }
 
@@ -1679,22 +1430,19 @@ void get_prefs(AppSettings *settings, UISettings *ui)
         tmp = get_number(settings->cacheLibrary);
         ui->cacheLibrary = tmp;
 
-        snprintf(ui->themeName, sizeof(ui->themeName), "%s", settings->theme);
+        snprintf(ui->theme_name, sizeof(ui->theme_name), "%s", settings->theme);
         free(prefsdir);
 }
 
-void get_config(AppSettings *settings, UISettings *ui)
-{
+void get_config(AppSettings *settings, UISettings *ui) {
         int pair_count;
         char *configdir = get_config_path();
 
         setlocale(LC_ALL, "");
 
         struct stat st = {0};
-        if (stat(configdir, &st) == -1)
-        {
-                if (mkdir_p(configdir, 0700) != 0)
-                {
+        if (stat(configdir, &st) == -1) {
+                if (mkdir_p(configdir, 0700) != 0) {
                         perror("mkdir");
                         exit(1);
                 }
@@ -1705,8 +1453,7 @@ void get_config(AppSettings *settings, UISettings *ui)
         char *filepath = get_config_file_path(configdir);
 
         FILE *file = fopen(filepath, "r");
-        if (file == NULL)
-        {
+        if (file == NULL) {
                 set_config(settings, ui);
         }
 
@@ -1720,8 +1467,7 @@ void get_config(AppSettings *settings, UISettings *ui)
         free(configdir);
 }
 
-void set_prefs(AppSettings *settings, UISettings *ui)
-{
+void set_prefs(AppSettings *settings, UISettings *ui) {
         // Create the file path
         char *prefsdir = get_prefs_path();
         char *filepath = get_prefs_file_path(prefsdir);
@@ -1729,8 +1475,7 @@ void set_prefs(AppSettings *settings, UISettings *ui)
         setlocale(LC_ALL, "");
 
         FILE *file = fopen(filepath, "w");
-        if (file == NULL)
-        {
+        if (file == NULL) {
                 fprintf(stderr, "Error opening file: %s\n", filepath);
                 free(filepath);
                 free(prefsdir);
@@ -1765,26 +1510,25 @@ void set_prefs(AppSettings *settings, UISettings *ui)
                     : c_strcpy(settings->visualizerEnabled, "0",
                                sizeof(settings->visualizerEnabled));
 
-        if (ui->saveRepeatShuffleSettings)
-        {
+        if (ui->saveRepeatShuffleSettings) {
                 snprintf(settings->repeatState, sizeof(settings->repeatState), "%d",
                          ui->repeatState);
 
                 ui->shuffle_enabled ? c_strcpy(settings->shuffle_enabled, "1",
-                                              sizeof(settings->shuffle_enabled))
-                                   : c_strcpy(settings->shuffle_enabled, "0",
-                                              sizeof(settings->shuffle_enabled));
+                                               sizeof(settings->shuffle_enabled))
+                                    : c_strcpy(settings->shuffle_enabled, "0",
+                                               sizeof(settings->shuffle_enabled));
         }
 
-        if (settings->visualizerColorType[0] == '\0')
-                snprintf(settings->visualizerColorType,
-                         sizeof(settings->visualizerColorType), "%d",
-                         ui->visualizerColorType);
+        if (settings->visualizer_color_type[0] == '\0')
+                snprintf(settings->visualizer_color_type,
+                         sizeof(settings->visualizer_color_type), "%d",
+                         ui->visualizer_color_type);
 
-        int currentVolume = get_current_volume();
-        currentVolume = (currentVolume <= 0) ? 10 : currentVolume;
+        int current_volume = get_current_volume();
+        current_volume = (current_volume <= 0) ? 10 : current_volume;
         snprintf(settings->lastVolume, sizeof(settings->lastVolume), "%d",
-                 currentVolume);
+                 current_volume);
 
         fprintf(file, "\n[miscellaneous]\n\n");
         fprintf(file, "allowNotifications=%s\n\n", settings->allowNotifications);
@@ -1793,8 +1537,7 @@ void set_prefs(AppSettings *settings, UISettings *ui)
                       "directory tree for faster startup times.\n");
         fprintf(file, "cacheLibrary=%s\n\n", settings->cacheLibrary);
 
-        if (ui->saveRepeatShuffleSettings)
-        {
+        if (ui->saveRepeatShuffleSettings) {
                 fprintf(file, "repeatState=%s\n\n", settings->repeatState);
                 fprintf(file, "shuffle_enabled=%s\n\n", settings->shuffle_enabled);
         }
@@ -1806,14 +1549,13 @@ void set_prefs(AppSettings *settings, UISettings *ui)
         fprintf(file, "visualizerEnabled=%s\n\n", settings->visualizerEnabled);
         fprintf(file, "[colors]\n\n");
         fprintf(file, "colorMode=%d\n\n", ui->colorMode);
-        fprintf(file, "theme=%s\n\n", ui->themeName);
+        fprintf(file, "theme=%s\n\n", ui->theme_name);
 
         free(prefsdir);
         free(filepath);
 }
 
-static const char *key_binding_to_str(const TBKeyBinding kb)
-{
+static const char *key_binding_to_str(const TBKeyBinding kb) {
         static char buf[128];
         buf[0] = '\0';
 
@@ -1826,42 +1568,36 @@ static const char *key_binding_to_str(const TBKeyBinding kb)
                 strcat(buf, "Shift+");
 
         // Key
-        if (kb.key != 0)
-        {
+        if (kb.key != 0) {
                 // Special key
-                const char *keyName = key_code_to_name(kb.key);
-                if (keyName)
-                        strcat(buf, keyName);
+                const char *key_name = key_code_to_name(kb.key);
+                if (key_name)
+                        strcat(buf, key_name);
                 else
                         sprintf(buf + strlen(buf), "0x%x", kb.key);
-        }
-        else if (kb.ch != 0)
-        {
+        } else if (kb.ch != 0) {
                 // Printable character
                 size_t len = strlen(buf);
                 buf[len] = (char)kb.ch;
                 buf[len + 1] = '\0';
-        }
-        else
-        {
+        } else {
                 strcat(buf, "Unknown");
         }
 
         // Event
-        const char *eventName = event_to_string(kb.eventType);
+        const char *event_name = event_to_string(kb.eventType);
 
         // Final Format
         static char final[256];
         if (kb.args[0])
-                snprintf(final, sizeof(final), "%s, %s, %s", buf, eventName, kb.args);
+                snprintf(final, sizeof(final), "%s, %s, %s", buf, event_name, kb.args);
         else
-                snprintf(final, sizeof(final), "%s, %s", buf, eventName);
+                snprintf(final, sizeof(final), "%s, %s", buf, event_name);
 
         return final;
 }
 
-void set_config(AppSettings *settings, UISettings *ui)
-{
+void set_config(AppSettings *settings, UISettings *ui) {
         // Create the file path
         char *configdir = get_config_path();
         char *filepath = get_config_file_path(configdir);
@@ -1869,8 +1605,7 @@ void set_config(AppSettings *settings, UISettings *ui)
         setlocale(LC_ALL, "");
 
         FILE *file = fopen(filepath, "w");
-        if (file == NULL)
-        {
+        if (file == NULL) {
                 fprintf(stderr, "Error opening file: %s\n", filepath);
                 free(filepath);
                 free(configdir);
@@ -1928,9 +1663,9 @@ void set_config(AppSettings *settings, UISettings *ui)
                  ui->repeatState);
 
         ui->shuffle_enabled ? c_strcpy(settings->shuffle_enabled, "1",
-                                      sizeof(settings->shuffle_enabled))
-                           : c_strcpy(settings->shuffle_enabled, "0",
-                                      sizeof(settings->shuffle_enabled));
+                                       sizeof(settings->shuffle_enabled))
+                            : c_strcpy(settings->shuffle_enabled, "0",
+                                       sizeof(settings->shuffle_enabled));
 
         if (settings->visualizer_bar_width[0] == '\0')
                 snprintf(settings->visualizer_bar_width,
@@ -1954,14 +1689,14 @@ void set_config(AppSettings *settings, UISettings *ui)
                              : c_strcpy(settings->hideHelp, "0",
                                         sizeof(settings->hideHelp));
 
-        if (settings->visualizerHeight[0] == '\0')
-                snprintf(settings->visualizerHeight,
-                         sizeof(settings->visualizerHeight), "%d",
-                         ui->visualizerHeight);
-        if (settings->visualizerColorType[0] == '\0')
-                snprintf(settings->visualizerColorType,
-                         sizeof(settings->visualizerColorType), "%d",
-                         ui->visualizerColorType);
+        if (settings->visualizer_height[0] == '\0')
+                snprintf(settings->visualizer_height,
+                         sizeof(settings->visualizer_height), "%d",
+                         ui->visualizer_height);
+        if (settings->visualizer_color_type[0] == '\0')
+                snprintf(settings->visualizer_color_type,
+                         sizeof(settings->visualizer_color_type), "%d",
+                         ui->visualizer_color_type);
         if (settings->titleDelay[0] == '\0')
                 snprintf(settings->titleDelay, sizeof(settings->titleDelay),
                          "%d", ui->titleDelay);
@@ -2013,7 +1748,7 @@ void set_config(AppSettings *settings, UISettings *ui)
 
         fprintf(file, "# Same as '--quitonstop' flag, exits after playing the "
                       "whole playlist.\n");
-        fprintf(file, "quitOnStop=%s\n\n", settings->quitAfterStopping);
+        fprintf(file, "quit_on_stop=%s\n\n", settings->quitAfterStopping);
 
         fprintf(file, "# Glimmering text on the bottom row.\n");
         fprintf(file, "hideGlimmeringText=%s\n\n",
@@ -2062,15 +1797,15 @@ void set_config(AppSettings *settings, UISettings *ui)
 
         fprintf(file, "\n[visualizer]\n\n");
         fprintf(file, "visualizerEnabled=%s\n", settings->visualizerEnabled);
-        fprintf(file, "visualizerHeight=%s\n", settings->visualizerHeight);
+        fprintf(file, "visualizer_height=%s\n", settings->visualizer_height);
         fprintf(file, "visualizerBrailleMode=%s\n\n",
                 settings->visualizerBrailleMode);
 
         fprintf(file, "# How colors are laid out in the spectrum visualizer. "
                       "0=lighten, 1=brightness depending on bar height, "
                       "2=reversed, 3=reversed darken.\n");
-        fprintf(file, "visualizerColorType=%s\n\n",
-                settings->visualizerColorType);
+        fprintf(file, "visualizer_color_type=%s\n\n",
+                settings->visualizer_color_type);
 
         fprintf(file, "# 0=Thin bars, 1=Bars twice the width, 2=Auto (depends "
                       "on window size).\n");
@@ -2132,8 +1867,7 @@ void set_config(AppSettings *settings, UISettings *ui)
 
         fprintf(file, "\n[key bindings]\n\n");
 
-        for (size_t i = 0; i < keybinding_count; i++)
-        {
+        for (size_t i = 0; i < keybinding_count; i++) {
                 fprintf(file, "bind = ");
 
                 fprintf(file, "%s\n", key_binding_to_str(key_bindings[i]));
@@ -2145,11 +1879,9 @@ void set_config(AppSettings *settings, UISettings *ui)
         free(configdir);
 }
 
-int update_rc(const char *path, const char *key, const char *value)
-{
+int update_rc(const char *path, const char *key, const char *value) {
         FILE *file = fopen(path, "r");
-        if (!file)
-        {
+        if (!file) {
                 perror("fopen");
                 return -1;
         }
@@ -2159,41 +1891,33 @@ int update_rc(const char *path, const char *key, const char *value)
         char line[MAX_LINE];
         int found = 0;
 
-        while (fgets(line, sizeof(line), file))
-        {
+        while (fgets(line, sizeof(line), file)) {
                 // Remove trailing newline
                 line[strcspn(line, "\n")] = '\0';
 
                 char *eq = strchr(line, '=');
                 char *newline;
-                if (eq)
-                {
+                if (eq) {
                         *eq = '\0';
                         char *existing_key = line;
                         char *existing_value = eq + 1;
 
-                        if (strcmp(existing_key, key) == 0)
-                        {
+                        if (strcmp(existing_key, key) == 0) {
                                 // Replace value
                                 size_t needed = strlen(key) + strlen(value) + 2;
                                 newline = malloc(needed);
-                                if (!newline)
-                                {
+                                if (!newline) {
                                         fclose(file);
                                         return -1;
                                 }
                                 snprintf(newline, needed, "%s=%s", key, value);
                                 found = 1;
-                        }
-                        else
-                        {
+                        } else {
                                 // Keep original line
                                 newline = malloc(strlen(line) + strlen(existing_value) + 2);
                                 snprintf(newline, strlen(line) + strlen(existing_value) + 2, "%s=%s", existing_key, existing_value);
                         }
-                }
-                else
-                {
+                } else {
                         // Line without '=' or empty line
                         newline = strdup(line);
                 }
@@ -2204,8 +1928,7 @@ int update_rc(const char *path, const char *key, const char *value)
 
         fclose(file);
 
-        if (!found)
-        {
+        if (!found) {
                 // Append new key=value
                 size_t needed = strlen(key) + strlen(value) + 2;
                 char *newline = malloc(needed);
@@ -2216,14 +1939,12 @@ int update_rc(const char *path, const char *key, const char *value)
 
         // Write back
         file = fopen(path, "w");
-        if (!file)
-        {
+        if (!file) {
                 perror("fopen");
                 return -1;
         }
 
-        for (size_t i = 0; i < num_lines; i++)
-        {
+        for (size_t i = 0; i < num_lines; i++) {
                 fprintf(file, "%s\n", lines[i]);
                 free(lines[i]);
         }
@@ -2233,19 +1954,18 @@ int update_rc(const char *path, const char *key, const char *value)
         return 0;
 }
 
-void set_path(const char *path)
-{
+void set_path(const char *path) {
         char *configdir = NULL;
-        char *configFilePath = NULL;
+        char *config_file_path = NULL;
 
         configdir = get_config_path();
-        configFilePath = get_config_file_path(configdir);
+        config_file_path = get_config_file_path(configdir);
 
-        update_rc(configFilePath, "path", path);
+        update_rc(config_file_path, "path", path);
 
         if (configdir != NULL)
                 free(configdir);
 
-        if (configFilePath != NULL)
-                free(configFilePath);
+        if (config_file_path != NULL)
+                free(config_file_path);
 }

@@ -25,8 +25,8 @@ bool is_context_initialized(void);
 int create_audio_device(void);
 int switch_audio_implementation(void);
 void cleanup_audio_context(void);
-ma_result call_read_PCM_frames(ma_data_source *pDataSource, ma_format format,
-                            void *pFramesOut, ma_uint64 framesRead,
-                            ma_uint32 channels, ma_uint64 remainingFrames,
-                            ma_uint64 *pFramesToRead);
+ma_result call_read_PCM_frames(ma_data_source *p_data_source, ma_format format,
+                               void *p_frames_out, ma_uint64 frames_read,
+                               ma_uint32 channels, ma_uint64 remaining_frames,
+                               ma_uint64 *p_frames_to_read);
 #endif

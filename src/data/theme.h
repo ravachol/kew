@@ -12,5 +12,5 @@
 #include <stdint.h>
 
 int hex_to_pixel(const char *hex, PixelData *result);
-int load_theme_from_file(const char *themesDir, const char *filename, Theme *currentTheme);
+int load_theme_from_file(const char *themes_dir, const char *filename, Theme *current_theme);
 bool ensure_default_themes(void);

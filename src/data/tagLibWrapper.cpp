@@ -1227,7 +1227,7 @@ extern "C"
                 if (!lyrics)
                         return false;
 
-                lyrics->maxLength = 1024;
+                lyrics->max_length = 1024;
 
                 bool looksLikeLrc = detectLrcFormat(tagLines);
                 bool ok = looksLikeLrc ? parseTimedLyricsFromTagLines(tagLines, lyrics)
@@ -1284,7 +1284,7 @@ extern "C"
                 if (!lyrics)
                         return false;
 
-                lyrics->maxLength = 1024;
+                lyrics->max_length = 1024;
                 lyrics->lines = (LyricsLine *)malloc(sizeof(LyricsLine) * totalLines);
                 if (!lyrics->lines)
                 {

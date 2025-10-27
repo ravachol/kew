@@ -41,17 +41,17 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include "sys/notifications.h"
 #include "sys/sys_integration.h"
 
+#include "ui/cli.h"
 #include "ui/common_ui.h"
-#include "ui/input.h"
 #include "ui/control_ui.h"
+#include "ui/input.h"
 #include "ui/player_ui.h"
 #include "ui/playlist_ui.h"
-#include "ui/search_ui.h"
-#include "ui/visuals.h"
 #include "ui/queue_ui.h"
-#include "ui/cli.h"
+#include "ui/search_ui.h"
 #include "ui/settings.h"
 #include "ui/termbox2_input.h"
+#include "ui/visuals.h"
 
 #include "ops/library_ops.h"
 #include "ops/playback_clock.h"
@@ -62,16 +62,16 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include "ops/track_manager.h"
 
 #include "utils/cache.h"
+#include "utils/file.h"
 #include "utils/term.h"
 #include "utils/utils.h"
-#include "utils/file.h"
 
 #include <fcntl.h>
 #include <gio/gio.h>
 #include <glib-unix.h>
 #include <glib.h>
-#include <locale.h>
 #include <libintl.h>
+#include <locale.h>
 #include <poll.h>
 #include <pwd.h>
 #include <signal.h>
@@ -87,31 +87,25 @@ const char VERSION[] = "3.7.0";
 
 AppState *state_ptr = NULL;
 
-void update_player(void)
-{
+void update_player(void) {
         AppState *state = get_app_state();
         UIState *uis = &(state->uiState);
         struct winsize ws;
         ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws);
 
-        if (ws.ws_col != state->uiState.windowSize.ws_col || ws.ws_row != state->uiState.windowSize.ws_row)
-        {
+        if (ws.ws_col != state->uiState.windowSize.ws_col || ws.ws_row != state->uiState.windowSize.ws_row) {
                 uis->resizeFlag = 1;
                 state->uiState.windowSize = ws;
         }
 
-        if (uis->resizeFlag)
-        {
+        if (uis->resizeFlag) {
                 resize(uis);
-        }
-        else
-        {
+        } else {
                 refresh_player();
         }
 }
 
-void prepare_next_song(void)
-{
+void prepare_next_song(void) {
         AppState *state = get_app_state();
 
         reset_clock();
@@ -123,30 +117,22 @@ void prepare_next_song(void)
 
         Node *current = get_current_song();
 
-        if (!ops_is_repeat_enabled() || current == NULL)
-        {
+        if (!ops_is_repeat_enabled() || current == NULL) {
                 unload_previous_song();
         }
 
-        if (current == NULL)
-        {
-                if (state->uiSettings.quitAfterStopping)
-                {
+        if (current == NULL) {
+                if (state->uiSettings.quitAfterStopping) {
                         quit();
-                }
-                else
-                {
+                } else {
                         set_end_of_list_reached();
                 }
-        }
-        else
-        {
+        } else {
                 determine_song_and_notify();
         }
 }
 
-int prepare_and_play_song(Node *song)
-{
+int prepare_and_play_song(Node *song) {
         if (!song)
                 return -1;
 
@@ -159,13 +145,11 @@ int prepare_and_play_song(Node *song)
 
         finish_loading();
 
-        if (res >= 0)
-        {
+        if (res >= 0) {
                 res = playback_create();
         }
 
-        if (res >= 0)
-        {
+        if (res >= 0) {
                 resume_playback();
         }
 
@@ -178,19 +162,16 @@ int prepare_and_play_song(Node *song)
         return res;
 }
 
-void check_and_load_next_song(void)
-{
+void check_and_load_next_song(void) {
         AppState *state = get_app_state();
         PlaybackState *ps = get_playback_state();
 
-        if (audio_data.restart)
-        {
+        if (audio_data.restart) {
                 PlayList *playlist = get_playlist();
                 if (playlist->head == NULL)
                         return;
 
-                if (ps->waitingForPlaylist || ps->waitingForNext)
-                {
+                if (ps->waitingForPlaylist || ps->waitingForNext) {
                         ps->songLoading = true;
 
                         Node *next_song = determine_next_song(playlist);
@@ -213,47 +194,38 @@ void check_and_load_next_song(void)
                         ps->loadedNextSong = false;
                         set_next_song(NULL);
                 }
-        }
-        else if (get_current_song() != NULL &&
-                 (ps->nextSongNeedsRebuilding || get_next_song() == NULL) &&
-                 !ps->songLoading)
-        {
+        } else if (get_current_song() != NULL &&
+                   (ps->nextSongNeedsRebuilding || get_next_song() == NULL) &&
+                   !ps->songLoading) {
                 update_next_song_if_needed();
         }
 }
 
-void load_waiting_music(void)
-{
+void load_waiting_music(void) {
         PlayList *playlist = get_playlist();
         AudioData *audio_data = get_audio_data();
         PlaybackState *ps = get_playback_state();
 
-        if (playlist->head != NULL)
-        {
+        if (playlist->head != NULL) {
                 if ((ps->skipFromStopped || !ps->loadedNextSong ||
                      ps->nextSongNeedsRebuilding) &&
-                    !audio_data->endOfListReached)
-                {
+                    !audio_data->end_of_list_reached) {
                         check_and_load_next_song();
                 }
 
                 if (ps->songHasErrors)
                         try_load_next();
 
-                if (ops_is_done())
-                {
+                if (ops_is_done()) {
                         prepare_next_song();
                         playback_switch_decoder();
                 }
-        }
-        else
-        {
+        } else {
                 ops_set_EOF_handled();
         }
 }
 
-gboolean mainloop_callback(gpointer data)
-{
+gboolean mainloop_callback(gpointer data) {
         (void)data;
 
         calc_elapsed_time(get_current_song_duration());
@@ -265,8 +237,7 @@ gboolean mainloop_callback(gpointer data)
         // Different views run at different speeds to lower the impact on system
         // requirements
         if ((update_counter % 2 == 0 && state_ptr->currentView == SEARCH_VIEW) ||
-            (state_ptr->currentView == TRACK_VIEW || update_counter % 3 == 0))
-        {
+            (state_ptr->currentView == TRACK_VIEW || update_counter % 3 == 0)) {
                 process_d_bus_events();
 
                 update_player();
@@ -277,16 +248,14 @@ gboolean mainloop_callback(gpointer data)
         return TRUE;
 }
 
-static gboolean quit_on_signal(gpointer user_data)
-{
+static gboolean quit_on_signal(gpointer user_data) {
         GMainLoop *loop = (GMainLoop *)user_data;
         g_main_loop_quit(loop);
         quit();
         return G_SOURCE_REMOVE; // Remove the signal source
 }
 
-void create_loop(void)
-{
+void create_loop(void) {
         update_last_input_time();
 
         GMainLoop *main_loop = g_main_loop_new(NULL, FALSE);
@@ -298,25 +267,21 @@ void create_loop(void)
         g_main_loop_unref(main_loop);
 }
 
-void run(bool startPlaying)
-{
+void run(bool start_playing) {
         AppState *state = get_app_state();
         PlayList *playlist = get_playlist();
         PlayList *unshuffled_playlist = get_unshuffled_playlist();
         PlaybackState *ps = get_playback_state();
-        UserData *userData = audio_data.pUserData;
+        UserData *user_data = audio_data.pUserData;
 
-        if (unshuffled_playlist == NULL)
-        {
+        if (unshuffled_playlist == NULL) {
                 set_unshuffled_playlist(deep_copy_play_list(playlist));
         }
 
-        if (state->uiSettings.saveRepeatShuffleSettings)
-        {
+        if (state->uiSettings.saveRepeatShuffleSettings) {
                 if (state->uiSettings.repeatState == 1)
                         toggle_repeat();
-                if (state->uiSettings.repeatState == 2)
-                {
+                if (state->uiSettings.repeatState == 2) {
                         toggle_repeat();
                         toggle_repeat();
                 }
@@ -324,23 +289,22 @@ void run(bool startPlaying)
                         toggle_shuffle();
         }
 
-        if (playlist->head == NULL)
-        {
+        if (playlist->head == NULL) {
                 state->currentView = LIBRARY_VIEW;
         }
 
         init_mpris();
 
         ps->loadedNextSong = false;
-        if (startPlaying)
+        if (start_playing)
                 ps->waitingForPlaylist = true;
 
         audio_data.currentFileIndex = 0;
-        userData->currentSongData = NULL;
-        userData->songdataA = NULL;
-        userData->songdataB = NULL;
-        userData->songdataADeleted = true;
-        userData->songdataBDeleted = true;
+        user_data->current_song_data = NULL;
+        user_data->songdataA = NULL;
+        user_data->songdataB = NULL;
+        user_data->songdataADeleted = true;
+        user_data->songdataBDeleted = true;
 
         if (playlist->count != 0)
                 check_and_load_next_song();
@@ -351,8 +315,7 @@ void run(bool startPlaying)
         fflush(stdout);
 }
 
-void kew_init(void)
-{
+void kew_init(void) {
         AppState *state = get_app_state();
 
         disable_terminal_line_input();
@@ -363,18 +326,18 @@ void kew_init(void)
         init_input();
 
         PlaybackState *ps = get_playback_state();
-        UserData *userData = audio_data.pUserData;
+        UserData *user_data = audio_data.pUserData;
         PlayList *playlist = get_playlist();
         state->tmpCache = create_cache();
 
-        c_strcpy(ps->loadingdata.filePath, "", sizeof(ps->loadingdata.filePath));
+        c_strcpy(ps->loadingdata.file_path, "", sizeof(ps->loadingdata.file_path));
         ps->loadingdata.songdataA = NULL;
         ps->loadingdata.songdataB = NULL;
         ps->loadingdata.loadA = true;
         ps->loadingdata.loadingFirstDecoder = true;
         audio_data.restart = true;
-        userData->songdataADeleted = true;
-        userData->songdataBDeleted = true;
+        user_data->songdataADeleted = true;
+        user_data->songdataBDeleted = true;
         unsigned int seed = (unsigned int)time(NULL);
 
         srand(seed);
@@ -387,13 +350,13 @@ void kew_init(void)
         setlocale(LC_CTYPE, "");
 #ifdef __ANDROID__
         // Termux prefix
-        const char *localeDir = "/data/data/com.termux/files/usr/share/locale";
+        const char *locale_dir = "/data/data/com.termux/files/usr/share/locale";
 #elif __APPLE__
-        const char *localeDir = "/usr/local/share/locale";
+        const char *locale_dir = "/usr/local/share/locale";
 #else
-        const char *localeDir = "/usr/share/locale";
+        const char *locale_dir = "/usr/share/locale";
 #endif
-        bindtextdomain("kew", localeDir);
+        bindtextdomain("kew", locale_dir);
         textdomain("kew");
         state->uiSettings.LAST_ROW = _(" [F2 Playlist|F3 Library|F4 Track|F5 Search|F6 Help]");
         fflush(stdout);
@@ -401,18 +364,16 @@ void kew_init(void)
 #ifdef DEBUG
         // g_setenv("G_MESSAGES_DEBUG", "all", TRUE);
         state->uiState.logFile = freopen("error.log", "w", stderr);
-        if (state->uiState.logFile == NULL)
-        {
+        if (state->uiState.logFile == NULL) {
                 fprintf(stdout, "Failed to redirect stderr to error.log\n");
         }
 #else
-        FILE *nullStream = freopen("/dev/null", "w", stderr);
-        (void)nullStream;
+        FILE *null_stream = freopen("/dev/null", "w", stderr);
+        (void)null_stream;
 #endif
 }
 
-void init_default_state(void)
-{
+void init_default_state(void) {
         kew_init();
 
         AppState *state = get_app_state();
@@ -427,7 +388,7 @@ void init_default_state(void)
         reset_list_after_dequeuing_playing_song();
 
         audio_data.restart = true;
-        audio_data.endOfListReached = true;
+        audio_data.end_of_list_reached = true;
         ps->loadedNextSong = false;
 
         state->currentView = LIBRARY_VIEW;
@@ -435,8 +396,7 @@ void init_default_state(void)
         run(false);
 }
 
-void kew_shutdown()
-{
+void kew_shutdown() {
         AppState *state = get_app_state();
         PlaybackState *ps = get_playback_state();
         FileSystemEntry *library = get_library();
@@ -454,14 +414,13 @@ void kew_shutdown()
 
         bool noMusicFound = false;
 
-        if (library == NULL || library->children == NULL)
-        {
+        if (library == NULL || library->children == NULL) {
                 noMusicFound = true;
         }
 
-        UserData *userData = audio_data.pUserData;
+        UserData *user_data = audio_data.pUserData;
 
-        playback_unload_songs(userData);
+        playback_unload_songs(user_data);
 
 #ifdef CHAFA_VERSION_1_16
         retire_passthrough_workarounds_tmux();
@@ -500,8 +459,7 @@ void kew_shutdown()
                 fclose(state->uiState.logFile);
 #endif
 
-        if (freopen("/dev/stderr", "w", stderr) == NULL)
-        {
+        if (freopen("/dev/stderr", "w", stderr) == NULL) {
                 perror("freopen error");
         }
 
@@ -515,27 +473,22 @@ void kew_shutdown()
         if (state_ptr->uiSettings.trackTitleAsWindowTitle)
                 restore_terminal_window_title();
 
-        if (noMusicFound)
-        {
+        if (noMusicFound) {
                 printf(_("No Music found.\n"));
                 printf(_("Please make sure the path is set correctly. \n"));
                 printf(_("To set it type: kew path \"/path/to/Music\". \n"));
-        }
-        else if (state->uiState.noPlaylist)
-        {
+        } else if (state->uiState.noPlaylist) {
                 printf(_("Music not found.\n"));
         }
 
-        if (has_error_message())
-        {
+        if (has_error_message()) {
                 printf(_("%s\n"), get_error_message());
         }
 
         fflush(stdout);
 }
 
-void init_state(void)
-{
+void init_state(void) {
         AppState *state = get_app_state();
 
         state->uiSettings.VERSION = VERSION;
@@ -550,8 +503,8 @@ void init_state(void)
         state->uiSettings.hideGlimmeringText = false;
         state->uiSettings.coverAnsi = false;
         state->uiSettings.visualizerEnabled = true;
-        state->uiSettings.visualizerHeight = 5;
-        state->uiSettings.visualizerColorType = 0;
+        state->uiSettings.visualizer_height = 5;
+        state->uiSettings.visualizer_color_type = 0;
         state->uiSettings.visualizerBrailleMode = false;
         state->uiSettings.visualizer_bar_width = 2;
         state->uiSettings.titleDelay = 9;
@@ -570,8 +523,8 @@ void init_state(void)
         state->uiSettings.shuffle_enabled = 0;
         state->uiSettings.trackTitleAsWindowTitle = 1;
         state->uiState.numDirectoryTreeEntries = 0;
-        state->uiState.numProgressBars = 35;
-        state->uiState.chosenNodeId = 0;
+        state->uiState.num_progress_bars = 35;
+        state->uiState.chosen_node_id = 0;
         state->uiState.resetPlaylistDisplay = true;
         state->uiState.allowChooseSongs = false;
         state->uiState.openedSubDir = false;
@@ -589,10 +542,10 @@ void init_state(void)
         state->uiState.showLyricsPage = false;
         state->uiState.currentLibEntry = NULL;
         state->tmpCache = NULL;
-        state->uiSettings.defaultColor = 150;
-        state->uiSettings.defaultColorRGB.r = state->uiSettings.defaultColor;
-        state->uiSettings.defaultColorRGB.g = state->uiSettings.defaultColor;
-        state->uiSettings.defaultColorRGB.b = state->uiSettings.defaultColor;
+        state->uiSettings.default_color = 150;
+        state->uiSettings.defaultColorRGB.r = state->uiSettings.default_color;
+        state->uiSettings.defaultColorRGB.g = state->uiSettings.default_color;
+        state->uiSettings.defaultColorRGB.b = state->uiSettings.default_color;
         state->uiSettings.kewColorRGB.r = 222;
         state->uiSettings.kewColorRGB.g = 43;
         state->uiSettings.kewColorRGB.b = 77;
@@ -627,8 +580,7 @@ void init_state(void)
         state_ptr = state;
 }
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
         AppState *state = get_app_state();
 
         init_state();
@@ -640,14 +592,11 @@ int main(int argc, char *argv[])
 
         if ((argc == 2 &&
              ((strcmp(argv[1], "--help") == 0) ||
-              (strcmp(argv[1], "-h") == 0) || (strcmp(argv[1], "-?") == 0))))
-        {
+              (strcmp(argv[1], "-h") == 0) || (strcmp(argv[1], "-?") == 0)))) {
                 show_help();
                 exit(0);
-        }
-        else if (argc == 2 && (strcmp(argv[1], "--version") == 0 ||
-                               strcmp(argv[1], "-v") == 0))
-        {
+        } else if (argc == 2 && (strcmp(argv[1], "--version") == 0 ||
+                                 strcmp(argv[1], "-v") == 0)) {
                 state->uiSettings.colorMode = COLOR_MODE_ALBUM;
                 state->uiSettings.color = state->uiSettings.defaultColorRGB;
                 print_about(NULL);
@@ -659,11 +608,10 @@ int main(int argc, char *argv[])
         init_key_mappings(settings);
         set_track_title_as_window_title();
 
-        if (argc == 3 && (strcmp(argv[1], "path") == 0))
-        {
-                char deExpanded[MAXPATHLEN];
-                collapse_path(argv[2], deExpanded);
-                c_strcpy(settings->path, deExpanded, sizeof(settings->path));
+        if (argc == 3 && (strcmp(argv[1], "path") == 0)) {
+                char de_expanded[MAXPATHLEN];
+                collapse_path(argv[2], de_expanded);
+                c_strcpy(settings->path, de_expanded, sizeof(settings->path));
                 set_path(settings->path);
                 exit(0);
         }
@@ -672,48 +620,37 @@ int main(int argc, char *argv[])
         enter_alternate_screen_buffer();
         atexit(kew_shutdown);
 
-        if (settings->path[0] == '\0')
-        {
+        if (settings->path[0] == '\0') {
                 set_music_path();
         }
 
-        bool exactSearch = false;
-        handle_options(&argc, argv, &exactSearch);
+        bool exact_search = false;
+        handle_options(&argc, argv, &exact_search);
         load_favorites_playlist(settings->path, &favorites_playlist);
 
         ensure_default_theme_pack();
 
         init_theme(argc, argv);
 
-        if (argc == 1)
-        {
+        if (argc == 1) {
                 init_default_state();
-        }
-        else if (argc == 2 && strcmp(argv[1], "all") == 0)
-        {
+        } else if (argc == 2 && strcmp(argv[1], "all") == 0) {
                 kew_init();
                 play_all();
                 run(true);
-        }
-        else if (argc == 2 && strcmp(argv[1], "albums") == 0)
-        {
+        } else if (argc == 2 && strcmp(argv[1], "albums") == 0) {
                 kew_init();
                 play_all_albums();
                 run(true);
-        }
-        else if (argc == 2 && strcmp(argv[1], ".") == 0 && favorites_playlist->count != 0)
-        {
+        } else if (argc == 2 && strcmp(argv[1], ".") == 0 && favorites_playlist->count != 0) {
                 kew_init();
                 play_favorites_playlist();
                 run(true);
-        }
-        else if (argc >= 2)
-        {
+        } else if (argc >= 2) {
                 kew_init();
-                make_playlist(&playlist, argc, argv, exactSearch, settings->path);
+                make_playlist(&playlist, argc, argv, exact_search, settings->path);
 
-                if (playlist->count == 0)
-                {
+                if (playlist->count == 0) {
                         if (argc > 1 && argv[1] && strcmp(argv[1], "theme") != 0)
                                 state->uiState.noPlaylist = true;
                         exit(0);

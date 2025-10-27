@@ -21,7 +21,7 @@ bool ops_is_done(void);
 bool ops_is_EOF(void);
 bool is_current_song_deleted(void);
 bool ops_is_impl_switch_reached(void);
-bool determine_current_song_data(SongData **currentSongData);
+bool determine_current_song_data(SongData **current_song_data);
 int get_volume();
 double get_current_song_duration(void);
 void get_format_and_sample_rate(ma_format *format, ma_uint32 *sample_rate);
@@ -32,4 +32,3 @@ void set_repeat_enabled(bool enabled);
 void set_repeat_list_enabled(bool value);
 void set_shuffle_enabled(bool value);
 void ops_set_EOF_handled(void);
-

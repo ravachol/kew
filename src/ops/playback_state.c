@@ -15,97 +15,91 @@
 static bool repeat_list_enabled = false;
 static bool shuffle_enabled = false;
 
-bool is_repeat_list_enabled(void) { return repeat_list_enabled; }
+bool is_repeat_list_enabled(void) {
+        return repeat_list_enabled;
+}
 
-void set_repeat_list_enabled(bool value) { repeat_list_enabled = value; }
+void set_repeat_list_enabled(bool value) {
+        repeat_list_enabled = value;
+}
 
-bool is_shuffle_enabled(void) { return shuffle_enabled; }
+bool is_shuffle_enabled(void) {
+        return shuffle_enabled;
+}
 
-void set_shuffle_enabled(bool value) { shuffle_enabled = value; }
+void set_shuffle_enabled(bool value) {
+        shuffle_enabled = value;
+}
 
-bool ops_is_repeat_enabled(void)
-{
+bool ops_is_repeat_enabled(void) {
         return is_repeat_enabled();
 }
 
-bool ops_is_paused(void)
-{
+bool ops_is_paused(void) {
         return is_paused();
 }
 
-bool ops_is_stopped(void)
-{
+bool ops_is_stopped(void) {
         return is_stopped();
 }
 
-bool ops_is_done(void)
-{
+bool ops_is_done(void) {
         return is_playback_done();
 }
 
-bool ops_is_EOF(void)
-{
+bool ops_is_EOF(void) {
         return is_EOF_reached();
 }
 
-bool ops_is_impl_switch_reached(void)
-{
+bool ops_is_impl_switch_reached(void) {
         return is_impl_switch_reached();
 }
 
-bool is_current_song_deleted(void)
-{
+bool is_current_song_deleted(void) {
 
         return (audio_data.currentFileIndex == 0)
                    ? audio_data.pUserData->songdataADeleted == true
                    : audio_data.pUserData->songdataBDeleted == true;
 }
 
-bool is_valid_song(SongData *songData)
-{
-        return songData != NULL && songData->hasErrors == false &&
-               songData->metadata != NULL;
+bool is_valid_song(SongData *song_data) {
+        return song_data != NULL && song_data->hasErrors == false &&
+               song_data->metadata != NULL;
 }
 
-void ops_set_EOF_handled(void)
-{
+void ops_set_EOF_handled(void) {
         set_EOF_handled();
 }
 
-
-double get_current_song_duration(void)
-{
+double get_current_song_duration(void) {
         double duration = 0.0;
-        SongData *currentSongData = get_current_song_data();
+        SongData *current_song_data = get_current_song_data();
 
-        if (currentSongData != NULL)
-                duration = currentSongData->duration;
+        if (current_song_data != NULL)
+                duration = current_song_data->duration;
 
         return duration;
 }
 
-bool determine_current_song_data(SongData **currentSongData)
-{
-        *currentSongData = (audio_data.currentFileIndex == 0)
-                               ? audio_data.pUserData->songdataA
-                               : audio_data.pUserData->songdataB;
+bool determine_current_song_data(SongData **current_song_data) {
+        *current_song_data = (audio_data.currentFileIndex == 0)
+                                 ? audio_data.pUserData->songdataA
+                                 : audio_data.pUserData->songdataB;
 
         bool isDeleted = (audio_data.currentFileIndex == 0)
                              ? audio_data.pUserData->songdataADeleted == true
                              : audio_data.pUserData->songdataBDeleted == true;
 
-        if (isDeleted)
-        {
-                *currentSongData = (audio_data.currentFileIndex != 0)
-                                       ? audio_data.pUserData->songdataA
-                                       : audio_data.pUserData->songdataB;
+        if (isDeleted) {
+                *current_song_data = (audio_data.currentFileIndex != 0)
+                                         ? audio_data.pUserData->songdataA
+                                         : audio_data.pUserData->songdataB;
 
                 isDeleted = (audio_data.currentFileIndex != 0)
                                 ? audio_data.pUserData->songdataADeleted == true
                                 : audio_data.pUserData->songdataBDeleted == true;
 
-                if (!isDeleted)
-                {
+                if (!isDeleted) {
                         activate_switch(&audio_data);
                         audio_data.switchFiles = false;
                 }
@@ -113,35 +107,30 @@ bool determine_current_song_data(SongData **currentSongData)
         return isDeleted;
 }
 
-int get_volume()
-{
+int get_volume() {
         return get_current_volume();
 }
 
-void get_format_and_sample_rate(ma_format *format, ma_uint32 *sample_rate)
-{
+void get_format_and_sample_rate(ma_format *format, ma_uint32 *sample_rate) {
         get_current_format_and_sample_rate(format, sample_rate);
 }
 
-SongData *get_current_song_data(void)
-{
+SongData *get_current_song_data(void) {
         if (get_current_song() == NULL)
                 return NULL;
 
         if (is_current_song_deleted())
                 return NULL;
 
-        SongData *songData = NULL;
+        SongData *song_data = NULL;
 
-        bool isDeleted = determine_current_song_data(&songData);
+        bool isDeleted = determine_current_song_data(&song_data);
 
         if (isDeleted)
                 return NULL;
 
-        if (!is_valid_song(songData))
+        if (!is_valid_song(song_data))
                 return NULL;
 
-        return songData;
+        return song_data;
 }
-
-

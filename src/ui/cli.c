@@ -9,9 +9,9 @@
 
 #include "common/appstate.h"
 
-#include "ui/settings.h"
 #include "ui/common_ui.h"
 #include "ui/player_ui.h"
+#include "ui/settings.h"
 
 #include "utils/file.h"
 #include "utils/term.h"
@@ -19,17 +19,14 @@
 
 #include <pwd.h>
 
-void remove_arg_element(char *argv[], int index, int *argc)
-{
-        if (index < 0 || index >= *argc)
-        {
+void remove_arg_element(char *argv[], int index, int *argc) {
+        if (index < 0 || index >= *argc) {
                 // Invalid index
                 return;
         }
 
         // Shift elements after the index
-        for (int i = index; i < *argc - 1; i++)
-        {
+        for (int i = index; i < *argc - 1; i++) {
                 argv[i] = argv[i + 1];
         }
 
@@ -37,24 +34,21 @@ void remove_arg_element(char *argv[], int index, int *argc)
         (*argc)--;
 }
 
-void handle_options(int *argc, char *argv[], bool *exactSearch)
-{
+void handle_options(int *argc, char *argv[], bool *exact_search) {
         AppState *state = get_app_state();
         UISettings *ui = &(state->uiSettings);
-        const char *noUiOption = "--noui";
-        const char *noCoverOption = "--nocover";
-        const char *quitOnStop = "--quitonstop";
-        const char *quitOnStop2 = "-q";
-        const char *exactOption = "--exact";
-        const char *exactOption2 = "-e";
+        const char *no_ui_option = "--noui";
+        const char *no_cover_option = "--nocover";
+        const char *quit_on_stop = "--quitonstop";
+        const char *quit_on_stop2 = "-q";
+        const char *exact_option = "--exact";
+        const char *exact_option2 = "-e";
 
-        int maxLen = 1000;
+        int max_len = 1000;
 
         int idx = -1;
-        for (int i = 0; i < *argc; i++)
-        {
-                if (c_strcasestr(argv[i], noUiOption, maxLen))
-                {
+        for (int i = 0; i < *argc; i++) {
+                if (c_strcasestr(argv[i], no_ui_option, max_len)) {
                         ui->uiEnabled = false;
                         idx = i;
                 }
@@ -63,10 +57,8 @@ void handle_options(int *argc, char *argv[], bool *exactSearch)
                 remove_arg_element(argv, idx, argc);
 
         idx = -1;
-        for (int i = 0; i < *argc; i++)
-        {
-                if (c_strcasestr(argv[i], noCoverOption, maxLen))
-                {
+        for (int i = 0; i < *argc; i++) {
+                if (c_strcasestr(argv[i], no_cover_option, max_len)) {
                         ui->coverEnabled = false;
                         idx = i;
                 }
@@ -75,11 +67,9 @@ void handle_options(int *argc, char *argv[], bool *exactSearch)
                 remove_arg_element(argv, idx, argc);
 
         idx = -1;
-        for (int i = 0; i < *argc; i++)
-        {
-                if (c_strcasestr(argv[i], quitOnStop, maxLen) ||
-                    c_strcasestr(argv[i], quitOnStop2, maxLen))
-                {
+        for (int i = 0; i < *argc; i++) {
+                if (c_strcasestr(argv[i], quit_on_stop, max_len) ||
+                    c_strcasestr(argv[i], quit_on_stop2, max_len)) {
                         ui->quitAfterStopping = true;
                         idx = i;
                 }
@@ -88,12 +78,10 @@ void handle_options(int *argc, char *argv[], bool *exactSearch)
                 remove_arg_element(argv, idx, argc);
 
         idx = -1;
-        for (int i = 0; i < *argc; i++)
-        {
-                if (c_strcasestr(argv[i], exactOption, maxLen) ||
-                    c_strcasestr(argv[i], exactOption2, maxLen))
-                {
-                        *exactSearch = true;
+        for (int i = 0; i < *argc; i++) {
+                if (c_strcasestr(argv[i], exact_option, max_len) ||
+                    c_strcasestr(argv[i], exact_option2, max_len)) {
+                        *exact_search = true;
                         idx = i;
                 }
         }
@@ -101,8 +89,7 @@ void handle_options(int *argc, char *argv[], bool *exactSearch)
                 remove_arg_element(argv, idx, argc);
 }
 
-void set_music_path(void)
-{
+void set_music_path(void) {
         AppState *state = get_app_state();
         UISettings *ui = &(state->uiSettings);
 
@@ -123,7 +110,7 @@ void set_music_path(void)
         int indent = calc_indent_normal() + 1;
 
         // Music folder names in different languages
-        const char *musicFolderNames[] = {
+        const char *music_folder_names[] = {
             "Music", "Música", "Musique", "Musik", "Musica", "Muziek",
             "Музыка", "音乐", "音楽", "음악", "موسيقى", "संगीत",
             "Müzik", "Musikk", "Μουσική", "Muzyka", "Hudba", "Musiikki",
@@ -135,13 +122,11 @@ void set_music_path(void)
 
         AppSettings *settings = get_app_settings();
         for (size_t i = 0;
-             i < sizeof(musicFolderNames) / sizeof(musicFolderNames[0]); i++)
-        {
+             i < sizeof(music_folder_names) / sizeof(music_folder_names[0]); i++) {
                 snprintf(path, sizeof(path), "~/%s",
-                         musicFolderNames[i]);
+                         music_folder_names[i]);
 
-                if (directory_exists(path))
-                {
+                if (directory_exists(path)) {
                         found = 1;
 
                         printf("\n\n");
@@ -159,21 +144,17 @@ void set_music_path(void)
 
                         apply_color(COLOR_MODE_ALBUM, ui->theme.text, ui->kewColorRGB);
 
-                        if (fgets(choice, sizeof(choice), stdin) == NULL)
-                        {
+                        if (fgets(choice, sizeof(choice), stdin) == NULL) {
                                 print_blank_spaces(indent);
                                 printf(_("Error reading input.\n"));
                                 exit(1);
                         }
 
-                        if (choice[0] == '\n' || choice[0] == '\0')
-                        {
+                        if (choice[0] == '\n' || choice[0] == '\0') {
                                 c_strcpy(settings->path, path, sizeof(settings->path));
                                 print_blank_spaces(indent);
                                 return;
-                        }
-                        else
-                        {
+                        } else {
                                 break;
                         }
                 }
@@ -182,14 +163,12 @@ void set_music_path(void)
         print_blank_spaces(indent);
 
         // No standard music folder was found
-        if (found < 1)
-        {
+        if (found < 1) {
                 printf(_("Type a path (no quotes or single-quotes):\n\n"));
                 print_blank_spaces(indent);
                 apply_color(COLOR_MODE_ALBUM, ui->theme.text, ui->kewColorRGB);
 
-                if (fgets(choice, sizeof(choice), stdin) == NULL)
-                {
+                if (fgets(choice, sizeof(choice), stdin) == NULL) {
                         print_blank_spaces(indent);
                         printf(_("Error reading input.\n"));
                         exit(1);
@@ -200,15 +179,12 @@ void set_music_path(void)
         choice[strcspn(choice, "\n")] = '\0';
 
         // Set the path if the chosen directory exists
-        if (directory_exists(choice))
-        {
+        if (directory_exists(choice)) {
                 c_strcpy(settings->path, choice, sizeof(settings->path));
                 set_path(settings->path);
 
                 found = 1;
-        }
-        else
-        {
+        } else {
                 found = -1;
         }
 

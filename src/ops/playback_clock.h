@@ -7,15 +7,15 @@
  * monotonic clocks to maintain precise playback timing.
  */
 
-#include <time.h>
 #include <glib.h>
 #include <stdbool.h>
+#include <time.h>
 
 void reset_clock(void);
 void calc_elapsed_time(double duration);
 void update_pause_time(void);
 void add_to_accumulated_seconds(double value);
-bool set_position(gint64 newPosition, double duration);
+bool set_position(gint64 new_position, double duration);
 bool seek_position(gint64 offset, double duration);
 bool flush_seek(void);
 double get_elapsed_seconds(void);
