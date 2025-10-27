@@ -262,7 +262,7 @@ const char *get_modifier_string(uint8_t mods)
         return buf;
 }
 
-static bool already_added(const char *buf, const char *token)
+static bool key_str_already_added(const char *buf, const char *token)
 {
         char temp[256];
         strncpy(temp, buf, sizeof(temp) - 1);
@@ -277,7 +277,7 @@ static bool already_added(const char *buf, const char *token)
         return false;
 }
 
-const char *get_binding_string(enum EventType event, bool find_one)
+const char *get_binding_string(enum EventType event, bool find_only_one)
 {
         static char buf[256];
         buf[0] = '\0';
@@ -310,12 +310,12 @@ const char *get_binding_string(enum EventType event, bool find_one)
                         snprintf(full_key, sizeof(full_key), "%s", key_part);
 
                 // Skip duplicate key names (e.g. "Space" vs " ")
-                if (already_added(buf, full_key))
+                if (key_str_already_added(buf, full_key))
                         continue;
 
                 // Append to output buffer
                 if (found > 0) {
-                        if (find_one)
+                        if (find_only_one)
                                 return buf;
                         strncat(buf, " or ", sizeof(buf) - strlen(buf) - 1);
                 }
@@ -669,7 +669,24 @@ uint32_t utf8_to_codepoint(const char *s)
 void remove_printable_key_binding(char *value)
 {
         for (size_t i = 0; i < keybinding_count; i++) {
-                if (key_bindings[i].ch == utf8_to_codepoint(value) && key_bindings[i].mods == 0) {
+                if (key_bindings[i].ch == utf8_to_codepoint(value) &&
+                    key_bindings[i].mods == 0 &&
+                    key_bindings[i].key == 0) {
+                        key_bindings[i].ch = 0;
+                        key_bindings[i].key = 0;
+                        key_bindings[i].eventType = EVENT_NONE;
+                        key_bindings[i].args[0] = '\0';
+                }
+        }
+}
+
+void remove_special_key_binding(uint16_t value)
+{
+        for (size_t i = 0; i < keybinding_count; i++) {
+                if (key_bindings[i].key == value &&
+                    key_bindings[i].mods == 0 &&
+                    key_bindings[i].ch == 0) {
+                        key_bindings[i].key = 0;
                         key_bindings[i].ch = 0;
                         key_bindings[i].eventType = EVENT_NONE;
                         key_bindings[i].args[0] = '\0';
@@ -677,19 +694,86 @@ void remove_printable_key_binding(char *value)
         }
 }
 
-void add_printable_key_binding(enum EventType event, char *value)
+int convert_legacy_key(const char *s)
 {
-        if (!is_printable_ascii(value))
-                return;
+        if (!s || !*s)
+                return 0;
 
+        if (strcmp(s, "[A") == 0)
+                return TB_KEY_ARROW_UP;
+        if (strcmp(s, "[B") == 0)
+                return TB_KEY_ARROW_DOWN;
+        if (strcmp(s, "[C") == 0)
+                return TB_KEY_ARROW_RIGHT;
+        if (strcmp(s, "[D") == 0)
+                return TB_KEY_ARROW_LEFT;
+
+        if (strcmp(s, "[H") == 0)
+                return TB_KEY_HOME;
+        if (strcmp(s, "[F") == 0)
+                return TB_KEY_END;
+
+        if (strcmp(s, "OP") == 0)
+                return TB_KEY_F1;
+        if (strcmp(s, "OQ") == 0)
+                return TB_KEY_F2;
+        if (strcmp(s, "OR") == 0)
+                return TB_KEY_F3;
+        if (strcmp(s, "OS") == 0)
+                return TB_KEY_F4;
+        if (strcmp(s, "[15~") == 0)
+                return TB_KEY_F5;
+        if (strcmp(s, "[17~") == 0)
+                return TB_KEY_F6;
+        if (strcmp(s, "[18~") == 0)
+                return TB_KEY_F7;
+        if (strcmp(s, "[19~") == 0)
+                return TB_KEY_F8;
+        if (strcmp(s, "[20~") == 0)
+                return TB_KEY_F9;
+        if (strcmp(s, "[21~") == 0)
+                return TB_KEY_F10;
+        if (strcmp(s, "[23~") == 0)
+                return TB_KEY_F11;
+        if (strcmp(s, "[24~") == 0)
+                return TB_KEY_F12;
+
+        if (strcmp(s, "[5~") == 0)
+                return TB_KEY_PGUP;
+        if (strcmp(s, "[6~") == 0)
+                return TB_KEY_PGDN;
+        if (strcmp(s, "[2~") == 0)
+                return TB_KEY_INSERT;
+        if (strcmp(s, "[3~") == 0)
+                return TB_KEY_DELETE;
+
+        return 0;
+}
+
+void add_legacy_key_binding(enum EventType event, char *value)
+{
         if (keybinding_count >= MAX_KEY_BINDINGS)
                 return;
 
-        remove_printable_key_binding(value);
+        TBKeyBinding kb = {0};
+        kb.eventType = event;
 
-        TBKeyBinding kb = {0, 0, 0, event, ""};
-        kb.ch = utf8_to_codepoint(value);
-        key_bindings[keybinding_count++] = kb;
+        // Printable single-char key
+        if (is_printable_ascii(value)) {
+                remove_printable_key_binding(value);
+                kb.ch = utf8_to_codepoint(value);
+                key_bindings[keybinding_count++] = kb;
+        }
+        // Escape sequence (starts with 0x1b)
+        else {
+                int tb_key = convert_legacy_key(value);
+                if (tb_key == 0) {
+                        return;
+                }
+                remove_special_key_binding(tb_key);
+                kb.key = tb_key;
+                key_bindings[keybinding_count++] = kb;
+        }
 }
 
 bool replace_key_binding(TBKeyBinding binding)
@@ -817,103 +901,103 @@ void construct_app_settings(AppSettings *settings, KeyValuePair *pairs, int coun
                 } else if (strcmp(lowercase_key, "volumeup") == 0) {
                         snprintf(settings->volumeUp, sizeof(settings->volumeUp),
                                  "%s", pair->value);
-                        add_printable_key_binding(EVENT_VOLUME_UP, pair->value);
+                        add_legacy_key_binding(EVENT_VOLUME_UP, pair->value);
                 } else if (strcmp(lowercase_key, "volumeupalt") == 0) {
                         snprintf(settings->volumeUpAlt,
                                  sizeof(settings->volumeUpAlt), "%s",
                                  pair->value);
-                        add_printable_key_binding(EVENT_VOLUME_UP, pair->value);
+                        add_legacy_key_binding(EVENT_VOLUME_UP, pair->value);
                 } else if (strcmp(lowercase_key, "volumedown") == 0) {
                         snprintf(settings->volumeDown,
                                  sizeof(settings->volumeDown), "%s",
                                  pair->value);
-                        add_printable_key_binding(EVENT_VOLUME_DOWN, pair->value);
+                        add_legacy_key_binding(EVENT_VOLUME_DOWN, pair->value);
                 } else if (strcmp(lowercase_key, "previoustrackalt") == 0) {
                         snprintf(settings->previousTrackAlt,
                                  sizeof(settings->previousTrackAlt), "%s",
                                  pair->value);
-                        add_printable_key_binding(EVENT_PREV, pair->value);
+                        add_legacy_key_binding(EVENT_PREV, pair->value);
                 } else if (strcmp(lowercase_key, "nexttrackalt") == 0) {
                         snprintf(settings->nextTrackAlt,
                                  sizeof(settings->nextTrackAlt), "%s",
                                  pair->value);
-                        add_printable_key_binding(EVENT_NEXT, pair->value);
+                        add_legacy_key_binding(EVENT_NEXT, pair->value);
                 } else if (strcmp(lowercase_key, "scrollupalt") == 0) {
                         snprintf(settings->scrollUpAlt,
                                  sizeof(settings->scrollUpAlt), "%s",
                                  pair->value);
-                        add_printable_key_binding(EVENT_SCROLLUP, pair->value);
+                        add_legacy_key_binding(EVENT_SCROLLUP, pair->value);
                 } else if (strcmp(lowercase_key, "scrolldownalt") == 0) {
                         snprintf(settings->scrollDownAlt,
                                  sizeof(settings->scrollDownAlt), "%s",
                                  pair->value);
-                        add_printable_key_binding(EVENT_SCROLLDOWN, pair->value);
+                        add_legacy_key_binding(EVENT_SCROLLDOWN, pair->value);
                 } else if (strcmp(lowercase_key, "switchnumberedsong") == 0) {
                         snprintf(settings->switchNumberedSong,
                                  sizeof(settings->switchNumberedSong), "%s",
                                  pair->value);
-                        add_printable_key_binding(EVENT_ENQUEUE, pair->value);
+                        add_legacy_key_binding(EVENT_ENQUEUE, pair->value);
                 } else if (strcmp(lowercase_key, "togglepause") == 0) {
                         snprintf(settings->toggle_pause,
                                  sizeof(settings->toggle_pause), "%s",
                                  pair->value);
-                        add_printable_key_binding(EVENT_PLAY_PAUSE, pair->value);
+                        add_legacy_key_binding(EVENT_PLAY_PAUSE, pair->value);
                 } else if (strcmp(lowercase_key, "togglecolorsderivedfrom") == 0) {
                         snprintf(settings->cycleColorsDerivedFrom,
                                  sizeof(settings->cycleColorsDerivedFrom), "%s",
                                  pair->value);
-                        add_printable_key_binding(EVENT_CYCLECOLORMODE, pair->value);
+                        add_legacy_key_binding(EVENT_CYCLECOLORMODE, pair->value);
                 } else if (strcmp(lowercase_key, "cyclethemes") == 0) {
                         snprintf(settings->cycle_themes,
                                  sizeof(settings->cycle_themes), "%s",
                                  pair->value);
                         foundCycleThemesSetting = true;
-                        add_printable_key_binding(EVENT_CYCLETHEMES, pair->value);
+                        add_legacy_key_binding(EVENT_CYCLETHEMES, pair->value);
                 } else if (strcmp(lowercase_key, "togglenotifications") == 0) {
                         snprintf(settings->toggle_notifications,
                                  sizeof(settings->toggle_notifications), "%s",
                                  pair->value);
-                        add_printable_key_binding(EVENT_TOGGLENOTIFICATIONS, pair->value);
+                        add_legacy_key_binding(EVENT_TOGGLENOTIFICATIONS, pair->value);
                 } else if (strcmp(lowercase_key, "togglevisualizer") == 0) {
                         snprintf(settings->toggle_visualizer,
                                  sizeof(settings->toggle_visualizer), "%s",
                                  pair->value);
-                        add_printable_key_binding(EVENT_TOGGLEVISUALIZER, pair->value);
+                        add_legacy_key_binding(EVENT_TOGGLEVISUALIZER, pair->value);
                 } else if (strcmp(lowercase_key, "toggleascii") == 0) {
                         snprintf(settings->toggle_ascii,
                                  sizeof(settings->toggle_ascii), "%s",
                                  pair->value);
-                        add_printable_key_binding(EVENT_TOGGLEASCII, pair->value);
+                        add_legacy_key_binding(EVENT_TOGGLEASCII, pair->value);
                 } else if (strcmp(lowercase_key, "togglerepeat") == 0) {
                         snprintf(settings->toggle_repeat,
                                  sizeof(settings->toggle_repeat), "%s",
                                  pair->value);
-                        add_printable_key_binding(EVENT_TOGGLEREPEAT, pair->value);
+                        add_legacy_key_binding(EVENT_TOGGLEREPEAT, pair->value);
                 } else if (strcmp(lowercase_key, "toggleshuffle") == 0) {
                         snprintf(settings->toggle_shuffle,
                                  sizeof(settings->toggle_shuffle), "%s",
                                  pair->value);
-                        add_printable_key_binding(EVENT_SHUFFLE, pair->value);
+                        add_legacy_key_binding(EVENT_SHUFFLE, pair->value);
                 } else if (strcmp(lowercase_key, "seekbackward") == 0) {
                         snprintf(settings->seekBackward,
                                  sizeof(settings->seekBackward), "%s",
                                  pair->value);
-                        add_printable_key_binding(EVENT_SEEKBACK, pair->value);
+                        add_legacy_key_binding(EVENT_SEEKBACK, pair->value);
                 } else if (strcmp(lowercase_key, "seekforward") == 0) {
                         snprintf(settings->seek_forward,
                                  sizeof(settings->seek_forward), "%s",
                                  pair->value);
-                        add_printable_key_binding(EVENT_SEEKFORWARD, pair->value);
+                        add_legacy_key_binding(EVENT_SEEKFORWARD, pair->value);
                 } else if (strcmp(lowercase_key, "saveplaylist") == 0) {
                         snprintf(settings->save_playlist,
                                  sizeof(settings->save_playlist), "%s",
                                  pair->value);
-                        add_printable_key_binding(EVENT_EXPORTPLAYLIST, pair->value);
+                        add_legacy_key_binding(EVENT_EXPORTPLAYLIST, pair->value);
                 } else if (strcmp(lowercase_key, "addtofavoritesplaylist") == 0) {
                         snprintf(settings->add_to_favorites_playlist,
                                  sizeof(settings->add_to_favorites_playlist), "%s",
                                  pair->value);
-                        add_printable_key_binding(EVENT_ADDTOFAVORITESPLAYLIST, pair->value);
+                        add_legacy_key_binding(EVENT_ADDTOFAVORITESPLAYLIST, pair->value);
                 } else if (strcmp(lowercase_key, "lastvolume") == 0) {
                         snprintf(settings->lastVolume,
                                  sizeof(settings->lastVolume), "%s",
@@ -1021,79 +1105,79 @@ void construct_app_settings(AppSettings *settings, KeyValuePair *pairs, int coun
                 } else if (strcmp(lowercase_key, "quit") == 0) {
                         snprintf(settings->quit, sizeof(settings->quit), "%s",
                                  pair->value);
-                        add_printable_key_binding(EVENT_QUIT, pair->value);
+                        add_legacy_key_binding(EVENT_QUIT, pair->value);
                 } else if (strcmp(lowercase_key, "altquit") == 0) {
                         snprintf(settings->altQuit, sizeof(settings->altQuit),
                                  "%s", pair->value);
-                        add_printable_key_binding(EVENT_QUIT, pair->value);
+                        add_legacy_key_binding(EVENT_QUIT, pair->value);
                 } else if (strcmp(lowercase_key, "prevpage") == 0) {
                         snprintf(settings->prevPage, sizeof(settings->prevPage),
                                  "%s", pair->value);
-                        add_printable_key_binding(EVENT_PREVPAGE, pair->value);
+                        add_legacy_key_binding(EVENT_PREVPAGE, pair->value);
                 } else if (strcmp(lowercase_key, "nextpage") == 0) {
                         snprintf(settings->nextPage, sizeof(settings->nextPage),
                                  "%s", pair->value);
-                        add_printable_key_binding(EVENT_NEXTPAGE, pair->value);
+                        add_legacy_key_binding(EVENT_NEXTPAGE, pair->value);
                 } else if (strcmp(lowercase_key, "updatelibrary") == 0) {
                         snprintf(settings->update_library,
                                  sizeof(settings->update_library), "%s",
                                  pair->value);
-                        add_printable_key_binding(EVENT_UPDATELIBRARY, pair->value);
+                        add_legacy_key_binding(EVENT_UPDATELIBRARY, pair->value);
                 } else if (strcmp(lowercase_key, "showplaylistalt") == 0) {
                         if (strcmp(pair->value, "") !=
                             0) // Don't set these to nothing
                                 snprintf(settings->showPlaylistAlt,
                                          sizeof(settings->showPlaylistAlt), "%s",
                                          pair->value);
-                        add_printable_key_binding(EVENT_SHOWPLAYLIST, pair->value);
+                        add_legacy_key_binding(EVENT_SHOWPLAYLIST, pair->value);
                 } else if (strcmp(lowercase_key, "showlibraryalt") == 0) {
                         if (strcmp(pair->value, "") != 0)
                                 snprintf(settings->showLibraryAlt,
                                          sizeof(settings->showLibraryAlt), "%s",
                                          pair->value);
-                        add_printable_key_binding(EVENT_SHOWLIBRARY, pair->value);
+                        add_legacy_key_binding(EVENT_SHOWLIBRARY, pair->value);
                 } else if (strcmp(lowercase_key, "showtrackalt") == 0) {
                         if (strcmp(pair->value, "") != 0)
                                 snprintf(settings->showTrackAlt,
                                          sizeof(settings->showTrackAlt), "%s",
                                          pair->value);
-                        add_printable_key_binding(EVENT_SHOWTRACK, pair->value);
+                        add_legacy_key_binding(EVENT_SHOWTRACK, pair->value);
                 } else if (strcmp(lowercase_key, "showsearchalt") == 0) {
                         if (strcmp(pair->value, "") != 0)
                                 snprintf(settings->showSearchAlt,
                                          sizeof(settings->showSearchAlt), "%s",
                                          pair->value);
-                        add_printable_key_binding(EVENT_SHOWSEARCH, pair->value);
+                        add_legacy_key_binding(EVENT_SHOWSEARCH, pair->value);
                 } else if (strcmp(lowercase_key, "showlyricspage") == 0) {
                         if (strcmp(pair->value, "") != 0)
                                 snprintf(settings->showLyricsPage,
                                          sizeof(settings->showLyricsPage), "%s",
                                          pair->value);
-                        add_printable_key_binding(EVENT_SHOWLYRICSPAGE, pair->value);
+                        add_legacy_key_binding(EVENT_SHOWLYRICSPAGE, pair->value);
                 } else if (strcmp(lowercase_key, "movesongup") == 0) {
                         if (strcmp(pair->value, "") != 0)
                                 snprintf(settings->move_song_up,
                                          sizeof(settings->move_song_up), "%s",
                                          pair->value);
-                        add_printable_key_binding(EVENT_MOVESONGUP, pair->value);
+                        add_legacy_key_binding(EVENT_MOVESONGUP, pair->value);
                 } else if (strcmp(lowercase_key, "movesongdown") == 0) {
                         if (strcmp(pair->value, "") != 0)
                                 snprintf(settings->move_song_down,
                                          sizeof(settings->move_song_down), "%s",
                                          pair->value);
-                        add_printable_key_binding(EVENT_MOVESONGDOWN, pair->value);
+                        add_legacy_key_binding(EVENT_MOVESONGDOWN, pair->value);
                 } else if (strcmp(lowercase_key, "enqueueandplay") == 0) {
                         if (strcmp(pair->value, "") != 0)
                                 snprintf(settings->enqueueAndPlay,
                                          sizeof(settings->enqueueAndPlay), "%s",
                                          pair->value);
-                        add_printable_key_binding(EVENT_ENQUEUEANDPLAY, pair->value);
+                        add_legacy_key_binding(EVENT_ENQUEUEANDPLAY, pair->value);
                 } else if (strcmp(lowercase_key, "sort") == 0) {
                         if (strcmp(pair->value, "") != 0)
                                 snprintf(settings->sort_library,
                                          sizeof(settings->sort_library), "%s",
                                          pair->value);
-                        add_printable_key_binding(EVENT_SORTLIBRARY, pair->value);
+                        add_legacy_key_binding(EVENT_SORTLIBRARY, pair->value);
                 } else if (strcmp(lowercase_key, "progressbarelapsedevenchar") ==
                            0) {
                         if (strcmp(pair->value, "") != 0)
@@ -1145,7 +1229,7 @@ void construct_app_settings(AppSettings *settings, KeyValuePair *pairs, int coun
                                 snprintf(settings->showKeysAlt,
                                          sizeof(settings->showKeysAlt), "%s",
                                          pair->value);
-                        add_printable_key_binding(EVENT_SHOWHELP, pair->value);
+                        add_legacy_key_binding(EVENT_SHOWHELP, pair->value);
                 } else if (strcmp(lowercase_key, "bind") == 0) {
                         char value_copy[256];
                         strncpy(value_copy, pair->value, sizeof(value_copy));
