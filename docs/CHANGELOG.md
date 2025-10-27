@@ -14,7 +14,7 @@
 
 #### Bug Fixes
 
-- Don't enqueue .m3u files when mass enqueueing.
+- Don't enqueue the .m3u files themselves when mass enqueueing.
 
 ### 3.6.4
 
