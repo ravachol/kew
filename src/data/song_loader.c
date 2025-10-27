@@ -30,7 +30,8 @@
 static guint track_counter = 0;
 
 void make_file_path(const char *dir_path, char *file_path, size_t file_path_size,
-                    const struct dirent *entry) {
+                    const struct dirent *entry)
+{
         if (dir_path == NULL || file_path == NULL || entry == NULL ||
             file_path_size == 0)
                 return;
@@ -66,7 +67,8 @@ void make_file_path(const char *dir_path, char *file_path, size_t file_path_size
 }
 
 char *choose_album_art(const char *dir_path, char **custom_file_name_arr, int size,
-                       int depth) {
+                       int depth)
+{
         if (!dir_path || !custom_file_name_arr || size <= 0 ||
             depth > MAX_RECURSION_DEPTH) {
                 return NULL;
@@ -158,7 +160,8 @@ char *choose_album_art(const char *dir_path, char **custom_file_name_arr, int si
 }
 
 char *find_largest_image_file(const char *directory_path, char *largest_image_file,
-                              off_t *largest_file_size) {
+                              off_t *largest_file_size)
+{
         DIR *directory = opendir(directory_path);
         if (directory == NULL) {
                 fprintf(stderr, "Failed to open directory: %s\n",
@@ -247,20 +250,23 @@ char *find_largest_image_file(const char *directory_path, char *largest_image_fi
         return largest_image_file;
 }
 
-gchar *generate_track_id(void) {
+gchar *generate_track_id(void)
+{
         gchar *track_id =
             g_strdup_printf("/org/kew/tracklist/track%d", track_counter);
         track_counter++;
         return track_id;
 }
 
-int load_color(SongData *songdata) {
+int load_color(SongData *songdata)
+{
         return get_cover_color(songdata->cover, songdata->coverWidth,
                                songdata->coverHeight, &(songdata->red),
                                &(songdata->green), &(songdata->blue));
 }
 
-void load_meta_data(SongData *songdata) {
+void load_meta_data(SongData *songdata)
+{
         AppState *state = get_app_state();
         char path[MAXPATHLEN];
 
@@ -320,14 +326,16 @@ void load_meta_data(SongData *songdata) {
                        &(songdata->coverHeight));
 }
 
-void unload_lyrics(SongData *songdata) {
+void unload_lyrics(SongData *songdata)
+{
         if (songdata->lyrics) {
                 freeLyrics(songdata->lyrics);
                 songdata->lyrics = NULL;
         }
 }
 
-SongData *load_song_data(char *file_path) {
+SongData *load_song_data(char *file_path)
+{
         AppState *state = get_app_state();
         SongData *songdata = NULL;
         songdata = malloc(sizeof(SongData));
@@ -358,7 +366,8 @@ SongData *load_song_data(char *file_path) {
         return songdata;
 }
 
-void unload_song_data(SongData **songdata) {
+void unload_song_data(SongData **songdata)
+{
         AppState *state = get_app_state();
         if (*songdata == NULL)
                 return;

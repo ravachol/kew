@@ -27,7 +27,8 @@
 
 #include <locale.h>
 
-void determine_song_and_notify(void) {
+void determine_song_and_notify(void)
+{
         AppState *state = get_app_state();
         SongData *current_song_data = NULL;
         bool isDeleted = determine_current_song_data(&current_song_data);
@@ -42,12 +43,14 @@ void determine_song_and_notify(void) {
         }
 }
 
-void update_next_song_if_needed(void) {
+void update_next_song_if_needed(void)
+{
         load_next_song();
         determine_song_and_notify();
 }
 
-void reset_list_after_dequeuing_playing_song(void) {
+void reset_list_after_dequeuing_playing_song(void)
+{
         AppState *state = get_app_state();
         PlaybackState *ps = get_playback_state();
 
@@ -101,7 +104,8 @@ void reset_list_after_dequeuing_playing_song(void) {
         }
 }
 
-FileSystemEntry *enqueue_songs(FileSystemEntry *entry, FileSystemEntry **chosen_dir) {
+FileSystemEntry *enqueue_songs(FileSystemEntry *entry, FileSystemEntry **chosen_dir)
+{
         AppState *state = get_app_state();
         FileSystemEntry *first_enqueued_entry = NULL;
         UIState *uis = &(state->uiState);
@@ -203,7 +207,8 @@ FileSystemEntry *enqueue_songs(FileSystemEntry *entry, FileSystemEntry **chosen_
         return first_enqueued_entry;
 }
 
-FileSystemEntry *enqueue(FileSystemEntry *entry) {
+FileSystemEntry *enqueue(FileSystemEntry *entry)
+{
         AppState *state = get_app_state();
         FileSystemEntry *first_enqueued_entry = NULL;
         PlaybackState *ps = get_playback_state();
@@ -234,7 +239,8 @@ FileSystemEntry *enqueue(FileSystemEntry *entry) {
         return first_enqueued_entry;
 }
 
-void view_enqueue(bool play_immediately) {
+void view_enqueue(bool play_immediately)
+{
         AppState *state = get_app_state();
         PlayList *playlist = get_playlist();
         PlayList *unshuffled_playlist = get_unshuffled_playlist();

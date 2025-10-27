@@ -1550,11 +1550,13 @@ static const char *get_terminfo_string(int16_t str_offsets_pos,
                                        int16_t str_offsets_len, int16_t str_table_pos, int16_t str_table_len,
                                        int16_t str_index);
 
-int tb_init(void) {
+int tb_init(void)
+{
         return tb_init_file("/dev/tty");
 }
 
-int tb_init_file(const char *path) {
+int tb_init_file(const char *path)
+{
         if (global.initialized)
                 return TB_ERR_INIT_ALREADY;
 
@@ -1576,17 +1578,20 @@ int tb_init_file(const char *path) {
         return tb_init_fd(ttyfd);
 }
 
-int tb_shutdown(void) {
+int tb_shutdown(void)
+{
         if_not_init_return();
         tb_deinit();
         return TB_OK;
 }
 
-int tb_init_fd(int ttyfd) {
+int tb_init_fd(int ttyfd)
+{
         return tb_init_rwfd(ttyfd, ttyfd);
 }
 
-int tb_init_rwfd(int rfd, int wfd) {
+int tb_init_rwfd(int rfd, int wfd)
+{
         int rv;
 
         tb_reset();
@@ -1612,15 +1617,18 @@ int tb_init_rwfd(int rfd, int wfd) {
 
         return rv;
 }
-int tb_get_input_fd(void) {
+int tb_get_input_fd(void)
+{
         return global.rfd;
 }
 
-int tb_get_output_fd(void) {
+int tb_get_output_fd(void)
+{
         return global.wfd;
 }
 
-static int load_builtin_caps(void) {
+static int load_builtin_caps(void)
+{
         int i, j;
         const char *term = getenv("TERM");
 
@@ -1653,7 +1661,8 @@ static int load_builtin_caps(void) {
         return TB_ERR_UNSUPPORTED_TERM;
 }
 
-static int tb_deinit(void) {
+static int tb_deinit(void)
+{
         // Remove all cursor / screen reset / mouse / SGR codes
         // Remove SIGWINCH handler
 
@@ -1672,7 +1681,8 @@ static int tb_deinit(void) {
         return TB_OK;
 }
 
-int tb_set_input_mode(int mode) {
+int tb_set_input_mode(int mode)
+{
         if (!global.initialized)
                 return -1;
         if (mode == TB_INPUT_CURRENT)
@@ -1681,19 +1691,22 @@ int tb_set_input_mode(int mode) {
         return 0;
 }
 
-int tb_peek_event(struct tb_event *event, int timeout_ms) {
+int tb_peek_event(struct tb_event *event, int timeout_ms)
+{
         if (!global.initialized)
                 return TB_ERR_NOT_INIT;
         return wait_event(event, timeout_ms);
 }
 
-int tb_poll_event(struct tb_event *event) {
+int tb_poll_event(struct tb_event *event)
+{
         if (!global.initialized)
                 return TB_ERR_NOT_INIT;
         return wait_event(event, -1);
 }
 
-static int tb_reset(void) {
+static int tb_reset(void)
+{
         int ttyfd_open = global.ttyfd_open;
         memset(&global, 0, sizeof(global));
         global.ttyfd = -1;
@@ -1717,7 +1730,8 @@ static int tb_reset(void) {
         return TB_OK;
 }
 
-static int bytebuf_flush(struct bytebuf_t *b, int fd) {
+static int bytebuf_flush(struct bytebuf_t *b, int fd)
+{
         if (b->len <= 0) {
                 return TB_OK;
         }
@@ -1731,7 +1745,8 @@ static int bytebuf_flush(struct bytebuf_t *b, int fd) {
         return TB_OK;
 }
 
-static int bytebuf_free(struct bytebuf_t *b) {
+static int bytebuf_free(struct bytebuf_t *b)
+{
         if (b->buf) {
                 tb_free(b->buf);
         }
@@ -1739,7 +1754,8 @@ static int bytebuf_free(struct bytebuf_t *b) {
         return TB_OK;
 }
 
-static int cap_trie_deinit(struct cap_trie_t *node) {
+static int cap_trie_deinit(struct cap_trie_t *node)
+{
         size_t j;
         for (j = 0; j < node->nchildren; j++) {
                 cap_trie_deinit(&node->children[j]);
@@ -1751,7 +1767,8 @@ static int cap_trie_deinit(struct cap_trie_t *node) {
         return TB_OK;
 }
 
-static int cap_trie_add(const char *cap, uint16_t key, uint8_t mod) {
+static int cap_trie_add(const char *cap, uint16_t key, uint8_t mod)
+{
         struct cap_trie_t *next, *node = &global.cap_trie;
         size_t i, j;
 
@@ -1797,7 +1814,8 @@ static int cap_trie_add(const char *cap, uint16_t key, uint8_t mod) {
         return TB_OK;
 }
 
-static int bytebuf_reserve(struct bytebuf_t *b, size_t sz) {
+static int bytebuf_reserve(struct bytebuf_t *b, size_t sz)
+{
         if (b->cap >= sz) {
                 return TB_OK;
         }
@@ -1819,11 +1837,13 @@ static int bytebuf_reserve(struct bytebuf_t *b, size_t sz) {
         return TB_OK;
 }
 
-int tb_utf8_char_length(char c) {
+int tb_utf8_char_length(char c)
+{
         return utf8_length[(unsigned char)c];
 }
 
-int tb_utf8_char_to_unicode(uint32_t *out, const char *c) {
+int tb_utf8_char_to_unicode(uint32_t *out, const char *c)
+{
         if (*c == '\0')
                 return 0;
 
@@ -1842,7 +1862,8 @@ int tb_utf8_char_to_unicode(uint32_t *out, const char *c) {
         return (int)len;
 }
 
-int tb_utf8_unicode_to_char(char *out, uint32_t c) {
+int tb_utf8_unicode_to_char(char *out, uint32_t c)
+{
         int len = 0;
         int first;
         if (c < 0x80) {
@@ -1878,7 +1899,8 @@ int tb_utf8_unicode_to_char(char *out, uint32_t c) {
 // Core event reading
 // -----------------------------------------------------------------------------
 
-static int wait_event(struct tb_event *event, int timeout_ms) {
+static int wait_event(struct tb_event *event, int timeout_ms)
+{
         int rv;
         char buf[TB_OPT_READ_BUF];
 
@@ -1938,7 +1960,8 @@ static int wait_event(struct tb_event *event, int timeout_ms) {
         }
 }
 
-static int extract_event(struct tb_event *event) {
+static int extract_event(struct tb_event *event)
+{
         struct bytebuf_t *in = &global.in;
 
         if (in->len == 0) {
@@ -2064,7 +2087,8 @@ static int extract_event(struct tb_event *event) {
 }
 
 static int cap_trie_find(const char *buf, size_t nbuf, struct cap_trie_t **last,
-                         size_t *depth) {
+                         size_t *depth)
+{
         struct cap_trie_t *next, *node = &global.cap_trie;
         size_t i, j;
         *last = node;
@@ -2094,7 +2118,8 @@ static int cap_trie_find(const char *buf, size_t nbuf, struct cap_trie_t **last,
         return TB_OK;
 }
 
-static int init_term_caps(void) {
+static int init_term_caps(void)
+{
         cap_trie_add("\033[A", TB_KEY_ARROW_UP, 0);
         cap_trie_add("\033[B", TB_KEY_ARROW_DOWN, 0);
         cap_trie_add("\033[C", TB_KEY_ARROW_RIGHT, 0);
@@ -2112,7 +2137,8 @@ static int init_term_caps(void) {
         return load_builtin_caps();
 }
 
-static int init_cap_trie(void) {
+static int init_cap_trie(void)
+{
         int rv, i;
 
         // Add caps from terminfo or built-in
@@ -2143,7 +2169,8 @@ static int init_cap_trie(void) {
         return TB_OK;
 }
 
-static int update_term_size(void) {
+static int update_term_size(void)
+{
         int rv, ioctl_errno;
 
         if (global.ttyfd < 0) {
@@ -2168,7 +2195,8 @@ static int update_term_size(void) {
         return TB_ERR_RESIZE_IOCTL;
 }
 
-static int update_term_size_via_esc(void) {
+static int update_term_size_via_esc(void)
+{
 #ifndef TB_RESIZE_FALLBACK_MS
 #define TB_RESIZE_FALLBACK_MS 1000
 #endif
@@ -2213,7 +2241,8 @@ static int update_term_size_via_esc(void) {
         return TB_OK;
 }
 
-static int bytebuf_shift(struct bytebuf_t *b, size_t n) {
+static int bytebuf_shift(struct bytebuf_t *b, size_t n)
+{
         if (n > b->len) {
                 n = b->len;
         }
@@ -2223,13 +2252,15 @@ static int bytebuf_shift(struct bytebuf_t *b, size_t n) {
         return TB_OK;
 }
 
-static int bytebuf_puts(struct bytebuf_t *b, const char *str) {
+static int bytebuf_puts(struct bytebuf_t *b, const char *str)
+{
         if (!str || strlen(str) <= 0)
                 return TB_OK; // Nothing to do for empty caps
         return bytebuf_nputs(b, str, (size_t)strlen(str));
 }
 
-static int bytebuf_nputs(struct bytebuf_t *b, const char *str, size_t nstr) {
+static int bytebuf_nputs(struct bytebuf_t *b, const char *str, size_t nstr)
+{
         int rv;
         if_err_return(rv, bytebuf_reserve(b, b->len + nstr + 1));
         memcpy(b->buf + b->len, str, nstr);
@@ -2238,7 +2269,8 @@ static int bytebuf_nputs(struct bytebuf_t *b, const char *str, size_t nstr) {
         return TB_OK;
 }
 
-static int extract_esc_cap(struct tb_event *event) {
+static int extract_esc_cap(struct tb_event *event)
+{
         int rv;
         struct bytebuf_t *in = &global.in;
         struct cap_trie_t *node;
@@ -2261,7 +2293,8 @@ static int extract_esc_cap(struct tb_event *event) {
         return TB_ERR;
 }
 
-static int extract_esc_user(struct tb_event *event, int is_post) {
+static int extract_esc_user(struct tb_event *event, int is_post)
+{
         int rv;
         size_t consumed = 0;
         struct bytebuf_t *in = &global.in;
@@ -2282,7 +2315,8 @@ static int extract_esc_user(struct tb_event *event, int is_post) {
         return TB_ERR;
 }
 
-static int extract_esc_mouse(struct tb_event *event) {
+static int extract_esc_mouse(struct tb_event *event)
+{
         struct bytebuf_t *in = &global.in;
 
         enum {
@@ -2470,7 +2504,8 @@ static int extract_esc_mouse(struct tb_event *event) {
 
 static const char *get_terminfo_string(int16_t str_offsets_pos,
                                        int16_t str_offsets_len, int16_t str_table_pos, int16_t str_table_len,
-                                       int16_t str_index) {
+                                       int16_t str_index)
+{
         const int str_byte_index = (int)str_index * (int)sizeof(int16_t);
         if (str_byte_index >= (int)str_offsets_len * (int)sizeof(int16_t)) {
                 // An offset beyond the table indicates absent
@@ -2499,7 +2534,8 @@ static const char *get_terminfo_string(int16_t str_offsets_pos,
             const char *)(global.terminfo + (int)str_table_pos + (int)*str_offset);
 }
 
-static int cellbuf_free(struct cellbuf_t *c) {
+static int cellbuf_free(struct cellbuf_t *c)
+{
         if (c->cells) {
                 int i;
                 for (i = 0; i < c->width * c->height; i++) {
@@ -2511,7 +2547,8 @@ static int cellbuf_free(struct cellbuf_t *c) {
         return TB_OK;
 }
 
-static int load_terminfo(void) {
+static int load_terminfo(void)
+{
         int rv;
         char tmp[TB_PATH_MAX];
 
@@ -2571,7 +2608,8 @@ static int load_terminfo(void) {
         return TB_ERR;
 }
 
-static int load_terminfo_from_path(const char *path, const char *term) {
+static int load_terminfo_from_path(const char *path, const char *term)
+{
         int rv;
         char tmp[TB_PATH_MAX];
 
@@ -2588,7 +2626,8 @@ static int load_terminfo_from_path(const char *path, const char *term) {
         return TB_ERR;
 }
 
-static int read_terminfo_path(const char *path) {
+static int read_terminfo_path(const char *path)
+{
         FILE *fp = fopen(path, "rb");
         if (!fp) {
                 return TB_ERR;
@@ -2620,7 +2659,8 @@ static int read_terminfo_path(const char *path) {
         return TB_OK;
 }
 
-static int parse_terminfo_caps(void) {
+static int parse_terminfo_caps(void)
+{
         // See term(5) "LEGACY STORAGE FORMAT" and "EXTENDED STORAGE FORMAT" for a
         // description of this behavior.
 
@@ -2672,7 +2712,8 @@ static int parse_terminfo_caps(void) {
         return TB_OK;
 }
 
-static int cell_free(struct tb_cell *cell) {
+static int cell_free(struct tb_cell *cell)
+{
 #ifdef TB_OPT_EGC
         if (cell->ech) {
                 tb_free(cell->ech);
@@ -2683,7 +2724,8 @@ static int cell_free(struct tb_cell *cell) {
 }
 
 // ESC/mouse parsing (simplified, does not use bytebuf)
-static int extract_esc(struct tb_event *event) {
+static int extract_esc(struct tb_event *event)
+{
         int rv;
         if_ok_or_need_more_return(rv, extract_esc_user(event, 0));
         if_ok_or_need_more_return(rv, extract_esc_cap(event));   // handles arrows/F-keys

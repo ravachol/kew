@@ -86,15 +86,18 @@ static FileSystemEntry *chosen_dir = NULL;
 static bool is_same_name_as_last_time = false;
 static int term_w, term_h;
 
-int get_footer_row(void) {
+int get_footer_row(void)
+{
         return footer_row;
 }
 
-int get_footer_col(void) {
+int get_footer_col(void)
+{
         return footer_col;
 }
 
-bool init_theme(int argc, char *argv[]) {
+bool init_theme(int argc, char *argv[])
+{
         AppState *state = get_app_state();
         UISettings *ui = &(state->uiSettings);
         bool themeLoaded = false;
@@ -140,7 +143,8 @@ bool init_theme(int argc, char *argv[]) {
         return themeLoaded;
 }
 
-void set_track_title_as_window_title(void) {
+void set_track_title_as_window_title(void)
+{
         AppState *state = get_app_state();
         UISettings *ui = &(state->uiSettings);
 
@@ -150,7 +154,8 @@ void set_track_title_as_window_title(void) {
         }
 }
 
-void set_current_as_chosen_dir(void) {
+void set_current_as_chosen_dir(void)
+{
         AppState *state = get_app_state();
 
         if (state->uiState.currentLibEntry && state->uiState.currentLibEntry->is_directory)
@@ -158,7 +163,8 @@ void set_current_as_chosen_dir(void) {
 }
 
 int calc_ideal_img_size(int *width, int *height, const int visualizer_height,
-                        const int metatag_height) {
+                        const int metatag_height)
+{
         if (!width || !height)
                 return -1;
 
@@ -246,7 +252,8 @@ int calc_ideal_img_size(int *width, int *height, const int visualizer_height,
         return 0;
 }
 
-void calc_preferred_size(UISettings *ui) {
+void calc_preferred_size(UISettings *ui)
+{
         min_height = 2 + (ui->visualizerEnabled ? ui->visualizer_height : 0);
         int metadata_height = 4;
         calc_ideal_img_size(&preferred_width, &preferred_height,
@@ -254,7 +261,8 @@ void calc_preferred_size(UISettings *ui) {
                             metadata_height);
 }
 
-void print_help(void) {
+void print_help(void)
+{
         int i = system("man kew");
 
         if (i != 0) {
@@ -262,7 +270,8 @@ void print_help(void) {
         }
 }
 
-static const char *get_player_status_icon(void) {
+static const char *get_player_status_icon(void)
+{
         if (ops_is_paused()) {
 #ifdef __ANDROID__
                 return "∥";
@@ -275,7 +284,8 @@ static const char *get_player_status_icon(void) {
         return "▶";
 }
 
-int print_logo_art(const UISettings *ui, int indent, bool centered, bool print_tag_line, bool use_gradient) {
+int print_logo_art(const UISettings *ui, int indent, bool centered, bool print_tag_line, bool use_gradient)
+{
         if (ui->hideLogo) {
                 clear_line();
                 printf("\n");
@@ -323,7 +333,8 @@ int print_logo_art(const UISettings *ui, int indent, bool centered, bool print_t
 }
 
 static void build_song_title(const SongData *song_data, const UISettings *ui,
-                             char *out, size_t out_size, int indent) {
+                             char *out, size_t out_size, int indent)
+{
         if (!song_data || !song_data->metadata) {
                 out[0] = '\0';
                 return;
@@ -348,7 +359,8 @@ static void build_song_title(const SongData *song_data, const UISettings *ui,
         }
 }
 
-void print_now_playing(SongData *song_data, UISettings *ui, int row, int col, int max_width) {
+void print_now_playing(SongData *song_data, UISettings *ui, int row, int col, int max_width)
+{
         char title[MAXPATHLEN + 1];
 
         build_song_title(song_data, ui, title, sizeof(title), indent);
@@ -365,7 +377,8 @@ void print_now_playing(SongData *song_data, UISettings *ui, int row, int col, in
         }
 }
 
-int print_logo(SongData *song_data, UISettings *ui) {
+int print_logo(SongData *song_data, UISettings *ui)
+{
         int term_w, term_h;
 
         get_term_size(&term_w, &term_h);
@@ -385,7 +398,8 @@ int print_logo(SongData *song_data, UISettings *ui) {
         return height + 2;
 }
 
-int get_year(const char *date_string) {
+int get_year(const char *date_string)
+{
         int year;
 
         if (sscanf(date_string, "%d", &year) != 1) {
@@ -394,7 +408,8 @@ int get_year(const char *date_string) {
         return year;
 }
 
-void print_cover_centered(SongData *songdata, UISettings *ui) {
+void print_cover_centered(SongData *songdata, UISettings *ui)
+{
         if (songdata != NULL && songdata->cover != NULL && ui->coverEnabled) {
                 if (!ui->coverAnsi) {
                         print_square_bitmap_centered(
@@ -413,7 +428,8 @@ void print_cover_centered(SongData *songdata, UISettings *ui) {
         printf("\n\n");
 }
 
-void print_cover(int height, SongData *songdata, UISettings *ui) {
+void print_cover(int height, SongData *songdata, UISettings *ui)
+{
         int row = 2;
         int col = 2;
         int img_height = height - 2;
@@ -432,7 +448,8 @@ void print_cover(int height, SongData *songdata, UISettings *ui) {
 }
 
 void print_title_with_delay(int row, int col, const char *text, int delay,
-                            int max_width) {
+                            int max_width)
+{
         int max = strnlen(text, max_width);
 
         if (max == max_width) // For long names
@@ -462,7 +479,8 @@ void print_title_with_delay(int row, int col, const char *text, int delay,
 }
 
 void print_metadata(int row, int col, int max_width,
-                    TagSettings const *metadata, UISettings *ui) {
+                    TagSettings const *metadata, UISettings *ui)
+{
         if (row < 1)
                 row = 1;
 
@@ -520,7 +538,8 @@ void print_metadata(int row, int col, int max_width,
         }
 }
 
-int calc_elapsed_bars(double elapsed_seconds, double duration, int num_progress_bars) {
+int calc_elapsed_bars(double elapsed_seconds, double duration, int num_progress_bars)
+{
         if (elapsed_seconds == 0)
                 return 0;
 
@@ -528,7 +547,8 @@ int calc_elapsed_bars(double elapsed_seconds, double duration, int num_progress_
 }
 
 void print_progress(double elapsed_seconds, double total_seconds,
-                    ma_uint32 sample_rate, int avg_bit_rate, int allowed_width) {
+                    ma_uint32 sample_rate, int avg_bit_rate, int allowed_width)
+{
         int progress_width = 39;
 
         if (allowed_width < progress_width)
@@ -580,7 +600,8 @@ void print_progress(double elapsed_seconds, double total_seconds,
 }
 
 void print_time(int row, int col, double elapsed_seconds, ma_uint32 sample_rate,
-                int avg_bit_rate, int allowed_width) {
+                int avg_bit_rate, int allowed_width)
+{
         AppState *state = get_app_state();
 
         apply_color(state->uiSettings.colorMode,
@@ -600,14 +621,16 @@ void print_time(int row, int col, double elapsed_seconds, ma_uint32 sample_rate,
         }
 }
 
-int calc_indent_normal(void) {
+int calc_indent_normal(void)
+{
         int text_width = (ABSOLUTE_MIN_WIDTH > preferred_width)
                              ? ABSOLUTE_MIN_WIDTH
                              : preferred_width;
         return get_indentation(text_width - 1) - 1;
 }
 
-int calc_indent_track_view(TagSettings *metadata) {
+int calc_indent_track_view(TagSettings *metadata)
+{
         if (metadata == NULL)
                 return calc_indent_normal();
 
@@ -629,7 +652,8 @@ int calc_indent_track_view(TagSettings *metadata) {
         return get_indentation(text_width - 1) - 1;
 }
 
-void calc_indent(SongData *songdata) {
+void calc_indent(SongData *songdata)
+{
         AppState *state = get_app_state();
 
         if ((state->currentView == TRACK_VIEW && songdata == NULL) ||
@@ -640,12 +664,14 @@ void calc_indent(SongData *songdata) {
         }
 }
 
-int get_indent() {
+int get_indent()
+{
         return indent;
 }
 
 void print_glimmering_text(int row, int col, char *text, int text_length,
-                           char *nerd_font_text, PixelData color) {
+                           char *nerd_font_text, PixelData color)
+{
         int bright_index = 0;
         PixelData vbright = increase_luminosity(color, 120);
         PixelData bright = increase_luminosity(color, 60);
@@ -680,7 +706,8 @@ void print_glimmering_text(int row, int col, char *text, int text_length,
         }
 }
 
-void print_error_row(int row, int col, UISettings *ui) {
+void print_error_row(int row, int col, UISettings *ui)
+{
         int term_w, term_h;
         get_term_size(&term_w, &term_h);
 
@@ -696,7 +723,8 @@ void print_error_row(int row, int col, UISettings *ui) {
         fflush(stdout);
 }
 
-bool is_ascii_only(const char *text) {
+bool is_ascii_only(const char *text)
+{
         if (text == NULL)
                 return false; // or true, depending on how you want to handle NULL
 
@@ -709,7 +737,8 @@ bool is_ascii_only(const char *text) {
         return true;
 }
 
-void print_footer(int row, int col) {
+void print_footer(int row, int col)
+{
         int term_w, term_h;
         get_term_size(&term_w, &term_h);
 
@@ -848,7 +877,8 @@ void print_footer(int row, int col) {
         clear_rest_of_line();
 }
 
-void calc_and_print_last_row_and_error_row(void) {
+void calc_and_print_last_row_and_error_row(void)
+{
         AppState *state = get_app_state();
         int term_w, term_h;
         get_term_size(&term_w, &term_h);
@@ -866,7 +896,8 @@ void calc_and_print_last_row_and_error_row(void) {
 #endif
 }
 
-int print_about(SongData *songdata) {
+int print_about(SongData *songdata)
+{
         AppState *state = get_app_state();
         UISettings *ui = &(state->uiSettings);
 
@@ -894,7 +925,8 @@ int print_about(SongData *songdata) {
                 }                                                \
         } while (0)
 
-int show_key_bindings(SongData *songdata) {
+int show_key_bindings(SongData *songdata)
+{
         AppState *state = get_app_state();
         int num_printed_rows = 0;
         int term_w, term_h;
@@ -1079,7 +1111,8 @@ int show_key_bindings(SongData *songdata) {
         return num_printed_rows;
 }
 
-void toggle_show_view(ViewState view_to_show) {
+void toggle_show_view(ViewState view_to_show)
+{
         AppState *state = get_app_state();
         trigger_refresh();
 
@@ -1093,7 +1126,8 @@ void toggle_show_view(ViewState view_to_show) {
         }
 }
 
-void switch_to_next_view(void) {
+void switch_to_next_view(void)
+{
         AppState *state = get_app_state();
 
         switch (state->currentView) {
@@ -1119,7 +1153,8 @@ void switch_to_next_view(void) {
         trigger_refresh();
 }
 
-void switch_to_previous_view(void) {
+void switch_to_previous_view(void)
+{
         AppState *state = get_app_state();
 
         switch (state->currentView) {
@@ -1145,7 +1180,8 @@ void switch_to_previous_view(void) {
         trigger_refresh();
 }
 
-void show_track(void) {
+void show_track(void)
+{
         AppState *state = get_app_state();
 
         trigger_refresh();
@@ -1153,7 +1189,8 @@ void show_track(void) {
         state->currentView = TRACK_VIEW;
 }
 
-void flip_next_page(void) {
+void flip_next_page(void)
+{
         AppState *state = get_app_state();
         PlayList *unshuffled_playlist = get_unshuffled_playlist();
 
@@ -1178,7 +1215,8 @@ void flip_next_page(void) {
         }
 }
 
-void flip_prev_page(void) {
+void flip_prev_page(void)
+{
         AppState *state = get_app_state();
 
         if (state->currentView == LIBRARY_VIEW) {
@@ -1198,7 +1236,8 @@ void flip_prev_page(void) {
         }
 }
 
-void scroll_next(void) {
+void scroll_next(void)
+{
         AppState *state = get_app_state();
         PlayList *unshuffled_playlist = get_unshuffled_playlist();
 
@@ -1218,7 +1257,8 @@ void scroll_next(void) {
         }
 }
 
-void scroll_prev(void) {
+void scroll_prev(void)
+{
         AppState *state = get_app_state();
 
         if (state->currentView == PLAYLIST_VIEW) {
@@ -1237,7 +1277,8 @@ void scroll_prev(void) {
         }
 }
 
-int get_row_within_bounds(int row) {
+int get_row_within_bounds(int row)
+{
         PlayList *unshuffled_playlist = get_unshuffled_playlist();
 
         if (row >= unshuffled_playlist->count) {
@@ -1251,7 +1292,8 @@ int get_row_within_bounds(int row) {
 }
 
 int print_logo_and_adjustments(SongData *song_data, int term_width, UISettings *ui,
-                               int indentation, AppSettings *settings) {
+                               int indentation, AppSettings *settings)
+{
         int about_rows = print_logo(song_data, ui);
 
         apply_color(ui->colorMode, ui->theme.help, ui->defaultColorRGB);
@@ -1280,7 +1322,8 @@ int print_logo_and_adjustments(SongData *song_data, int term_width, UISettings *
         return about_rows;
 }
 
-void show_search(SongData *song_data, int *chosen_row) {
+void show_search(SongData *song_data, int *chosen_row)
+{
         int term_w, term_h;
         get_term_size(&term_w, &term_h);
         max_search_list_size = term_h - 3;
@@ -1311,7 +1354,8 @@ void show_search(SongData *song_data, int *chosen_row) {
 }
 
 void show_playlist(SongData *song_data, PlayList *list, int *chosen_song,
-                   int *chosen_node_id, AppSettings *settings) {
+                   int *chosen_node_id, AppSettings *settings)
+{
         int term_w, term_h;
         get_term_size(&term_w, &term_h);
         max_list_size = term_h - 3;
@@ -1353,12 +1397,14 @@ void show_playlist(SongData *song_data, PlayList *list, int *chosen_song,
         calc_and_print_last_row_and_error_row();
 }
 
-void reset_search_result(void) {
+void reset_search_result(void)
+{
         chosen_search_result_row = 0;
 }
 
 void print_progress_bar(int row, int col, AppSettings *settings, UISettings *ui,
-                        int elapsed_bars, int num_progress_bars) {
+                        int elapsed_bars, int num_progress_bars)
+{
         PixelData color = ui->color;
 
         ProgressBar *progress_bar = get_progress_bar();
@@ -1421,7 +1467,8 @@ void print_progress_bar(int row, int col, AppSettings *settings, UISettings *ui,
 }
 
 void print_visualizer(int row, int col, int visualizer_width,
-                      AppSettings *settings, double elapsed_seconds) {
+                      AppSettings *settings, double elapsed_seconds)
+{
         AppState *state = get_app_state();
         UISettings *ui = &(state->uiSettings);
         UIState *uis = &(state->uiState);
@@ -1451,11 +1498,13 @@ void print_visualizer(int row, int col, int visualizer_width,
         }
 }
 
-FileSystemEntry *get_chosen_dir(void) {
+FileSystemEntry *get_chosen_dir(void)
+{
         return chosen_dir;
 }
 
-void set_chosen_dir(FileSystemEntry *entry) {
+void set_chosen_dir(FileSystemEntry *entry)
+{
         AppState *state = get_app_state();
 
         if (entry == NULL) {
@@ -1467,13 +1516,15 @@ void set_chosen_dir(FileSystemEntry *entry) {
         }
 }
 
-void reset_chosen_dir(void) {
+void reset_chosen_dir(void)
+{
         chosen_dir = NULL;
 }
 
 void apply_tree_item_color(UISettings *ui, int depth,
                            PixelData track_color, PixelData enqueued_color,
-                           bool is_enqueued, bool is_playing) {
+                           bool is_enqueued, bool is_playing)
+{
         if (depth <= 1) {
                 apply_color(ui->colorMode, ui->theme.library_artist, enqueued_color);
         } else {
@@ -1501,7 +1552,8 @@ void apply_tree_item_color(UISettings *ui, int depth,
 }
 
 int display_tree(FileSystemEntry *root, int depth, int max_list_size,
-                 int max_name_width) {
+                 int max_name_width)
+{
         if (max_name_width < 0)
                 max_name_width = 0;
 
@@ -1733,7 +1785,8 @@ int display_tree(FileSystemEntry *root, int depth, int max_list_size,
         return foundChosen;
 }
 
-void show_library(SongData *song_data, AppSettings *settings) {
+void show_library(SongData *song_data, AppSettings *settings)
+{
         AppState *state = get_app_state();
         // For scrolling names, update every nth time
         if (get_is_long_name() && is_same_name_as_last_time &&
@@ -1843,7 +1896,8 @@ void show_library(SongData *song_data, AppSettings *settings) {
         }
 }
 
-int calc_visualizer_width() {
+int calc_visualizer_width()
+{
         int term_w, term_h;
         get_term_size(&term_w, &term_h);
         int visualizer_width = (ABSOLUTE_MIN_WIDTH > preferred_width)
@@ -1860,7 +1914,8 @@ int calc_visualizer_width() {
         return visualizer_width;
 }
 
-void print_at(int row, int indent, const char *text, int max_width) {
+void print_at(int row, int indent, const char *text, int max_width)
+{
         char buffer[1024];
         size_t len = strlen(text);
 
@@ -1874,7 +1929,8 @@ void print_at(int row, int indent, const char *text, int max_width) {
         printf("\033[%d;%dH%s", row, indent, buffer);
 }
 
-void print_lyrics_page(UISettings *ui, AppSettings *settings, int row, int col, double seconds, SongData *songdata, int height) {
+void print_lyrics_page(UISettings *ui, AppSettings *settings, int row, int col, double seconds, SongData *songdata, int height)
+{
         clear_rest_of_line();
 
         if (!songdata)
@@ -1929,7 +1985,8 @@ void print_lyrics_page(UISettings *ui, AppSettings *settings, int row, int col, 
         }
 }
 
-const char *get_lyrics_line(const Lyrics *lyrics, double elapsed_seconds) {
+const char *get_lyrics_line(const Lyrics *lyrics, double elapsed_seconds)
+{
         if (!lyrics || lyrics->count == 0)
                 return "";
 
@@ -1959,7 +2016,8 @@ const char *get_lyrics_line(const Lyrics *lyrics, double elapsed_seconds) {
         return line;
 }
 
-void print_timestamped_lyrics(UISettings *ui, SongData *songdata, int row, int col, int term_w, double elapsed_seconds) {
+void print_timestamped_lyrics(UISettings *ui, SongData *songdata, int row, int col, int term_w, double elapsed_seconds)
+{
         if (!songdata)
                 return;
 
@@ -1994,7 +2052,8 @@ void print_timestamped_lyrics(UISettings *ui, SongData *songdata, int row, int c
 
 void show_track_view_landscape(int height, int width, float aspect_ratio,
                                AppSettings *settings, SongData *songdata,
-                               double elapsed_seconds) {
+                               double elapsed_seconds)
+{
         AppState *state = get_app_state();
         TagSettings *metadata = NULL;
         int avg_bit_rate = 0;
@@ -2067,7 +2126,8 @@ void show_track_view_landscape(int height, int width, float aspect_ratio,
 }
 
 void show_track_view_portrait(int height, AppSettings *settings,
-                              SongData *songdata, double elapsed_seconds) {
+                              SongData *songdata, double elapsed_seconds)
+{
         AppState *state = get_app_state();
         TagSettings *metadata = NULL;
         int avg_bit_rate = 0;
@@ -2125,7 +2185,8 @@ void show_track_view_portrait(int height, AppSettings *settings,
 }
 
 void show_track_view(int width, int height, AppSettings *settings,
-                     SongData *songdata, double elapsed_seconds) {
+                     SongData *songdata, double elapsed_seconds)
+{
         float aspect = get_aspect_ratio();
 
         if (aspect == 0.0f)
@@ -2142,7 +2203,8 @@ void show_track_view(int width, int height, AppSettings *settings,
         }
 }
 
-int print_player(SongData *songdata, double elapsed_seconds) {
+int print_player(SongData *songdata, double elapsed_seconds)
+{
         AppState *state = get_app_state();
         AppSettings *settings = get_app_settings();
         UISettings *ui = &(state->uiSettings);
@@ -2219,11 +2281,13 @@ int print_player(SongData *songdata, double elapsed_seconds) {
         return 0;
 }
 
-void show_help(void) {
+void show_help(void)
+{
         print_help();
 }
 
-void free_main_directory_tree(void) {
+void free_main_directory_tree(void)
+{
         AppState *state = get_app_state();
         FileSystemEntry *library = get_library();
 
@@ -2240,15 +2304,18 @@ void free_main_directory_tree(void) {
         free(filepath);
 }
 
-int get_chosen_row(void) {
+int get_chosen_row(void)
+{
         return chosen_row;
 }
 
-void set_chosen_row(int row) {
+void set_chosen_row(int row)
+{
         chosen_row = row;
 }
 
-void refresh_player() {
+void refresh_player()
+{
         AppState *state = get_app_state();
         PlaybackState *ps = get_playback_state();
 

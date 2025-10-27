@@ -32,15 +32,18 @@ static struct timespec last_update_time = {0, 0};
 
 static double elapsed_seconds = 0.0;
 
-struct timespec get_pause_time(void) {
+struct timespec get_pause_time(void)
+{
         return pause_time;
 }
 
-double get_elapsed_seconds(void) {
+double get_elapsed_seconds(void)
+{
         return elapsed_seconds;
 }
 
-void reset_clock(void) {
+void reset_clock(void)
+{
         elapsed_seconds = 0.0;
         set_pause_seconds(0.0);
         set_total_pause_seconds(0.0);
@@ -48,7 +51,8 @@ void reset_clock(void) {
         clock_gettime(CLOCK_MONOTONIC, &start_time);
 }
 
-void calc_elapsed_time(double duration) {
+void calc_elapsed_time(double duration)
+{
         if (is_stopped())
                 return;
 
@@ -91,7 +95,8 @@ void calc_elapsed_time(double duration) {
         }
 }
 
-bool set_position(gint64 new_position, double duration) {
+bool set_position(gint64 new_position, double duration)
+{
         if (is_paused())
                 return false;
 
@@ -109,7 +114,8 @@ bool set_position(gint64 new_position, double duration) {
         }
 }
 
-bool seek_position(gint64 offset, double duration) {
+bool seek_position(gint64 offset, double duration)
+{
         if (is_paused())
                 return false;
 
@@ -123,15 +129,18 @@ bool seek_position(gint64 offset, double duration) {
         }
 }
 
-void add_to_accumulated_seconds(double value) {
+void add_to_accumulated_seconds(double value)
+{
         seek_accumulated_seconds += value;
 }
 
-void update_pause_time(void) {
+void update_pause_time(void)
+{
         clock_gettime(CLOCK_MONOTONIC, &pause_time);
 }
 
-bool flush_seek(void) {
+bool flush_seek(void)
+{
         if (seek_accumulated_seconds != 0.0) {
                 Node *current_song = get_current_song();
 

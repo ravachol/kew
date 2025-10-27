@@ -7,7 +7,8 @@
 #include "webm.h"
 
 void get_file_info(const char *filename, ma_uint32 *sample_rate,
-                   ma_uint32 *channels, ma_format *format) {
+                   ma_uint32 *channels, ma_format *format)
+{
         ma_decoder tmp;
         if (ma_decoder_init_file(filename, NULL, &tmp) == MA_SUCCESS) {
                 *sample_rate = tmp.outputSampleRate;
@@ -21,7 +22,8 @@ void get_file_info(const char *filename, ma_uint32 *sample_rate,
 
 void get_vorbis_file_info(const char *filename, ma_format *format,
                           ma_uint32 *channels, ma_uint32 *sample_rate,
-                          ma_channel *channel_map) {
+                          ma_channel *channel_map)
+{
         ma_libvorbis decoder;
         if (ma_libvorbis_init_file(filename, NULL, NULL, &decoder) ==
             MA_SUCCESS) {
@@ -35,7 +37,8 @@ void get_vorbis_file_info(const char *filename, ma_format *format,
 
 void get_opus_file_info(const char *filename, ma_format *format,
                         ma_uint32 *channels, ma_uint32 *sample_rate,
-                        ma_channel *channel_map) {
+                        ma_channel *channel_map)
+{
         ma_libopus decoder;
 
         if (ma_libopus_init_file(filename, NULL, NULL, &decoder) == MA_SUCCESS) {
@@ -49,7 +52,8 @@ void get_opus_file_info(const char *filename, ma_format *format,
 
 void get_webm_file_info(const char *filename, ma_format *format,
                         ma_uint32 *channels, ma_uint32 *sample_rate,
-                        ma_channel *channel_map) {
+                        ma_channel *channel_map)
+{
         ma_webm tmp;
         if (ma_webm_init_file(filename, NULL, NULL, &tmp) == MA_SUCCESS) {
                 *sample_rate = tmp.sample_rate;
@@ -63,7 +67,8 @@ void get_webm_file_info(const char *filename, ma_format *format,
 void get_m4a_file_info_full(const char *filename, ma_format *format,
                             ma_uint32 *channels, ma_uint32 *sample_rate,
                             ma_channel *channel_map, int *avg_bit_rate,
-                            k_m4adec_filetype *file_type) {
+                            k_m4adec_filetype *file_type)
+{
         m4a_decoder decoder;
         if (m4a_decoder_init_file(filename, NULL, NULL, &decoder) == MA_SUCCESS) {
                 *format = decoder.format;
@@ -81,7 +86,8 @@ void get_m4a_file_info(
     ma_format *format,
     ma_uint32 *channels,
     ma_uint32 *sample_rate,
-    ma_channel *channel_map) {
+    ma_channel *channel_map)
+{
         int unusedBitRate;
         k_m4adec_filetype unusedFileType;
 
@@ -93,7 +99,8 @@ void get_m4a_file_info(
 void get_m4a_extra_info(
     const char *filename,
     int *avg_bit_rate,
-    k_m4adec_filetype *file_type) {
+    k_m4adec_filetype *file_type)
+{
         ma_format dummyFormat;
         ma_uint32 dummyChannels, dummySampleRate;
         ma_channel dummyChannelMap[MA_MAX_CHANNELS];

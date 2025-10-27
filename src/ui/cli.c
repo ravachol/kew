@@ -19,7 +19,8 @@
 
 #include <pwd.h>
 
-void remove_arg_element(char *argv[], int index, int *argc) {
+void remove_arg_element(char *argv[], int index, int *argc)
+{
         if (index < 0 || index >= *argc) {
                 // Invalid index
                 return;
@@ -34,7 +35,8 @@ void remove_arg_element(char *argv[], int index, int *argc) {
         (*argc)--;
 }
 
-void handle_options(int *argc, char *argv[], bool *exact_search) {
+void handle_options(int *argc, char *argv[], bool *exact_search)
+{
         AppState *state = get_app_state();
         UISettings *ui = &(state->uiSettings);
         const char *no_ui_option = "--noui";
@@ -89,7 +91,8 @@ void handle_options(int *argc, char *argv[], bool *exact_search) {
                 remove_arg_element(argv, idx, argc);
 }
 
-void set_music_path(void) {
+void set_music_path(void)
+{
         AppState *state = get_app_state();
         UISettings *ui = &(state->uiSettings);
 

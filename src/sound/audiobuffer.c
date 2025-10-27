@@ -12,31 +12,37 @@ static bool buffer_ready = false;
 
 static float audio_buffer[MAX_BUFFER_SIZE];
 
-int closest_power_of_two(int x) {
+int closest_power_of_two(int x)
+{
         int n = 1;
         while (n < x)
                 n <<= 1;
         return n;
 }
 
-bool is_buffer_ready(void) {
+bool is_buffer_ready(void)
+{
         return buffer_ready;
 }
 
-void set_buffer_ready(bool val) {
+void set_buffer_ready(bool val)
+{
         buffer_ready = val;
 }
 
-int get_buffer_size(void) {
+int get_buffer_size(void)
+{
         return buf_size;
 }
 
-void set_buffer_size(int value) {
+void set_buffer_size(int value)
+{
         buf_size = value;
 }
 
 // Sign-extend s24
-ma_int32 unpack_s24(const ma_uint8 *p) {
+ma_int32 unpack_s24(const ma_uint8 *p)
+{
         ma_int32 sample = p[0] | (p[1] << 8) | (p[2] << 16);
         if (sample & 0x800000)
                 sample |= ~0xFFFFFF;
@@ -44,7 +50,8 @@ ma_int32 unpack_s24(const ma_uint8 *p) {
 }
 
 void set_audio_buffer(void *buf, int num_frames, ma_uint32 sample_rate,
-                      ma_uint32 channels, ma_format format) {
+                      ma_uint32 channels, ma_format format)
+{
         int buf_index = 0;
 
         // Dynamically determine FFT and hop size
@@ -158,16 +165,19 @@ void set_audio_buffer(void *buf, int num_frames, ma_uint32 sample_rate,
         }
 }
 
-void reset_audio_buffer(void) {
+void reset_audio_buffer(void)
+{
         memset(audio_buffer, 0, sizeof(ma_int32) * MAX_BUFFER_SIZE);
         write_head = 0;
         set_buffer_ready(false);
 }
 
-void *get_audio_buffer(void) {
+void *get_audio_buffer(void)
+{
         return audio_buffer;
 }
 
-int get_fft_size(void) {
+int get_fft_size(void)
+{
         return fft_size;
 };

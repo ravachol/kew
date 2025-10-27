@@ -36,72 +36,89 @@ ma_uint64 last_cursor = 0;
 
 static pthread_mutex_t switch_mutex = PTHREAD_MUTEX_INITIALIZER;
 
-double get_seek_elapsed(void) {
+double get_seek_elapsed(void)
+{
         return seek_elapsed;
 }
 
-void set_seek_elapsed(double value) {
+void set_seek_elapsed(double value)
+{
         seek_elapsed = value;
 }
 
-float get_seek_percentage(void) {
+float get_seek_percentage(void)
+{
         return seek_percent;
 }
 
-bool is_seek_requested(void) {
+bool is_seek_requested(void)
+{
         return seek_requested;
 }
 
-void set_seek_requested(bool value) {
+void set_seek_requested(bool value)
+{
         seek_requested = value;
 }
 
-void seek_percentage(float percent) {
+void seek_percentage(float percent)
+{
         seek_percent = percent;
         seek_requested = true;
 }
 
-bool is_EOF_reached(void) {
+bool is_EOF_reached(void)
+{
         return atomic_load(&EOF_reached);
 }
 
-void set_EOF_reached(void) {
+void set_EOF_reached(void)
+{
         atomic_store(&EOF_reached, true);
 }
 
-void set_EOF_handled(void) {
+void set_EOF_handled(void)
+{
         atomic_store(&EOF_reached, false);
 }
 
-bool is_paused(void) {
+bool is_paused(void)
+{
         return paused;
 }
 
-void set_paused(bool val) {
+void set_paused(bool val)
+{
         paused = val;
 }
 
-bool is_stopped(void) {
+bool is_stopped(void)
+{
         return stopped;
 }
 
-void set_stopped(bool val) {
+void set_stopped(bool val)
+{
         stopped = val;
 }
 
-bool is_repeat_enabled(void) {
+bool is_repeat_enabled(void)
+{
         return repeat_enabled;
 }
 
-void set_repeat_enabled(bool value) {
+void set_repeat_enabled(bool value)
+{
         repeat_enabled = value;
 }
 
-bool is_playing(void) {
+bool is_playing(void)
+{
         return ma_device_is_started(&device);
 }
 
-bool is_playback_done(void) {
+bool is_playback_done(void)
+{
         if (is_EOF_reached()) {
                 return true;
         } else {
@@ -109,7 +126,8 @@ bool is_playback_done(void) {
         }
 }
 
-void stop_playback(void) {
+void stop_playback(void)
+{
         AppState *state = get_app_state();
 
         if (ma_device_is_started(&device)) {
@@ -124,7 +142,8 @@ void stop_playback(void) {
         }
 }
 
-void sound_resume_playback(void) {
+void sound_resume_playback(void)
+{
         // If this was unpaused with no song loaded
 
         AppState *state = get_app_state();
@@ -149,7 +168,8 @@ void sound_resume_playback(void) {
         }
 }
 
-void pause_playback(void) {
+void pause_playback(void)
+{
         AppState *state = get_app_state();
 
         if (ma_device_is_started(&device)) {
@@ -163,7 +183,8 @@ void pause_playback(void) {
         }
 }
 
-void toggle_pause_playback(void) {
+void toggle_pause_playback(void)
+{
         if (ma_device_is_started(&device)) {
                 pause_playback();
         } else if (is_paused() || is_stopped()) {
@@ -172,7 +193,8 @@ void toggle_pause_playback(void) {
 }
 
 int init_playback_device(ma_context *context, ma_format format, ma_uint32 channels, ma_uint32 sample_rate,
-                         ma_device *device, ma_device_data_proc data_callback, void *pUserData) {
+                         ma_device *device, ma_device_data_proc data_callback, void *pUserData)
+{
         ma_result result;
 
         ma_device_config deviceConfig =
@@ -206,7 +228,8 @@ int init_playback_device(ma_context *context, ma_format format, ma_uint32 channe
         return 0;
 }
 
-void cleanup_playback_device(void) {
+void cleanup_playback_device(void)
+{
         if (!device_initialized)
                 return;
 
@@ -228,12 +251,14 @@ void cleanup_playback_device(void) {
         set_stopped(true);
 }
 
-void shutdown_android(void) {
+void shutdown_android(void)
+{
         // Avoid race condition when shutting down
         memset(&device, 0, sizeof(device));
 }
 
-void sound_shutdown() {
+void sound_shutdown()
+{
         if (is_context_initialized()) {
 #ifdef __ANDROID__
                 shutdown_android();
@@ -245,15 +270,18 @@ void sound_shutdown() {
         }
 }
 
-ma_device *get_device(void) {
+ma_device *get_device(void)
+{
         return &device;
 }
 
-enum AudioImplementation get_current_implementation_type(void) {
+enum AudioImplementation get_current_implementation_type(void)
+{
         return current_implementation;
 }
 
-void get_current_format_and_sample_rate(ma_format *format, ma_uint32 *sample_rate) {
+void get_current_format_and_sample_rate(ma_format *format, ma_uint32 *sample_rate)
+{
         *format = ma_format_unknown;
 
         if (get_current_implementation_type() == BUILTIN) {
@@ -288,7 +316,8 @@ void get_current_format_and_sample_rate(ma_format *format, ma_uint32 *sample_rat
         *sample_rate = get_audio_data()->sample_rate;
 }
 
-void execute_switch(AudioData *p_audio_data) {
+void execute_switch(AudioData *p_audio_data)
+{
         p_audio_data->switchFiles = false;
         switch_decoder();
 
@@ -307,31 +336,38 @@ void execute_switch(AudioData *p_audio_data) {
         set_EOF_reached();
 }
 
-bool is_impl_switch_reached(void) {
+bool is_impl_switch_reached(void)
+{
         return atomic_load(&switch_reached) ? true : false;
 }
 
-void set_impl_switch_reached(void) {
+void set_impl_switch_reached(void)
+{
         atomic_store(&switch_reached, true);
 }
 
-void set_impl_switch_not_reached(void) {
+void set_impl_switch_not_reached(void)
+{
         atomic_store(&switch_reached, false);
 }
 
-void set_current_implementation_type(enum AudioImplementation value) {
+void set_current_implementation_type(enum AudioImplementation value)
+{
         current_implementation = value;
 }
 
-bool is_skip_to_next(void) {
+bool is_skip_to_next(void)
+{
         return skip_to_next;
 }
 
-void set_skip_to_next(bool value) {
+void set_skip_to_next(bool value)
+{
         skip_to_next = value;
 }
 
-void activate_switch(AudioData *p_audio_data) {
+void activate_switch(AudioData *p_audio_data)
+{
         set_skip_to_next(false);
 
         if (!is_repeat_enabled()) {
@@ -344,7 +380,8 @@ void activate_switch(AudioData *p_audio_data) {
         p_audio_data->switchFiles = true;
 }
 
-void clear_current_track(void) {
+void clear_current_track(void)
+{
         if (ma_device_is_started(&device)) {
                 // Stop the device (which stops playback)
                 ma_device_stop(&device);
@@ -356,7 +393,8 @@ void clear_current_track(void) {
 
 #ifdef USE_FAAD
 void m4a_read_pcm_frames(ma_data_source *p_data_source, void *p_frames_out,
-                         ma_uint64 frame_count, ma_uint64 *p_frames_read) {
+                         ma_uint64 frame_count, ma_uint64 *p_frames_read)
+{
         m4a_decoder *m4a = (m4a_decoder *)p_data_source;
         AudioData *p_audio_data = (AudioData *)m4a->pReadSeekTellUserData;
         ma_uint64 frames_read = 0;
@@ -467,7 +505,8 @@ void m4a_read_pcm_frames(ma_data_source *p_data_source, void *p_frames_out,
 }
 
 void m4a_on_audio_frames(ma_device *p_device, void *p_frames_out,
-                         const void *p_frames_in, ma_uint32 frame_count) {
+                         const void *p_frames_in, ma_uint32 frame_count)
+{
         AudioData *p_data_source = (AudioData *)p_device->pUserData;
         ma_uint64 frames_read = 0;
         m4a_read_pcm_frames(&(p_data_source->base), p_frames_out, frame_count,
@@ -477,7 +516,8 @@ void m4a_on_audio_frames(ma_device *p_device, void *p_frames_out,
 #endif
 
 void opus_read_pcm_frames(ma_data_source *p_data_source, void *p_frames_out,
-                          ma_uint64 frame_count, ma_uint64 *p_frames_read) {
+                          ma_uint64 frame_count, ma_uint64 *p_frames_read)
+{
         ma_libopus *opus = (ma_libopus *)p_data_source;
         AudioData *p_audio_data = (AudioData *)opus->pReadSeekTellUserData;
 
@@ -584,7 +624,8 @@ void opus_read_pcm_frames(ma_data_source *p_data_source, void *p_frames_out,
 }
 
 void opus_on_audio_frames(ma_device *p_device, void *p_frames_out,
-                          const void *p_frames_in, ma_uint32 frame_count) {
+                          const void *p_frames_in, ma_uint32 frame_count)
+{
         AudioData *p_data_source = (AudioData *)p_device->pUserData;
         ma_uint64 frames_read = 0;
         opus_read_pcm_frames(&(p_data_source->base), p_frames_out, frame_count,
@@ -593,7 +634,8 @@ void opus_on_audio_frames(ma_device *p_device, void *p_frames_out,
 }
 
 void vorbis_read_pcm_frames(ma_data_source *p_data_source, void *p_frames_out,
-                            ma_uint64 frame_count, ma_uint64 *p_frames_read) {
+                            ma_uint64 frame_count, ma_uint64 *p_frames_read)
+{
         ma_libvorbis *vorbis = (ma_libvorbis *)p_data_source;
         AudioData *p_audio_data = (AudioData *)vorbis->pReadSeekTellUserData;
 
@@ -701,7 +743,8 @@ void vorbis_read_pcm_frames(ma_data_source *p_data_source, void *p_frames_out,
 }
 
 void vorbis_on_audio_frames(ma_device *p_device, void *p_frames_out,
-                            const void *p_frames_in, ma_uint32 frame_count) {
+                            const void *p_frames_in, ma_uint32 frame_count)
+{
         AudioData *p_data_source = (AudioData *)p_device->pUserData;
         ma_uint64 frames_read = 0;
         vorbis_read_pcm_frames(&(p_data_source->base), p_frames_out, frame_count,
@@ -710,7 +753,8 @@ void vorbis_on_audio_frames(ma_device *p_device, void *p_frames_out,
 }
 
 void webm_read_pcm_frames(ma_data_source *p_data_source, void *p_frames_out,
-                          ma_uint64 frame_count, ma_uint64 *p_frames_read) {
+                          ma_uint64 frame_count, ma_uint64 *p_frames_read)
+{
         ma_webm *webm = (ma_webm *)p_data_source;
         AudioData *p_audio_data = (AudioData *)webm->pReadSeekTellUserData;
 
@@ -817,7 +861,8 @@ void webm_read_pcm_frames(ma_data_source *p_data_source, void *p_frames_out,
 }
 
 void webm_on_audio_frames(ma_device *p_device, void *p_frames_out,
-                          const void *p_frames_in, ma_uint32 frame_count) {
+                          const void *p_frames_in, ma_uint32 frame_count)
+{
         AudioData *p_data_source = (AudioData *)p_device->pUserData;
         ma_uint64 frames_read = 0;
         webm_read_pcm_frames(&(p_data_source->base), p_frames_out, frame_count,
