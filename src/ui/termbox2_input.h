@@ -62,15 +62,14 @@ kew, which handles setting non-blocking mode itself.
 #endif
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
-        // __ffi_start
+// __ffi_start
 
 #define TB_VERSION_STR "2.5.0"
 
-        /* The following compile-time options are supported:
+/* The following compile-time options are supported:
  *
  *     TB_OPT_ATTR_W: Integer width of fg and bg attributes. Valid values
  *                    (assuming system support) are 16, 32, and 64. (See
@@ -387,14 +386,14 @@ extern "C"
 #endif
 
 #if TB_OPT_ATTR_W == 64
-        typedef uint64_t uintattr_t;
+typedef uint64_t uintattr_t;
 #elif TB_OPT_ATTR_W == 32
 typedef uint32_t uintattr_t;
 #else // 16
 typedef uint16_t uintattr_t;
 #endif
 
-        /* A cell in a 2d grid representing the terminal screen.
+/* A cell in a 2d grid representing the terminal screen.
  *
  * The terminal screen is represented as 2d array of cells. The structure is
  * optimized for dealing with single-width (`wcwidth==1`) Unicode codepoints,
@@ -419,19 +418,18 @@ typedef uint16_t uintattr_t;
  *
  * See `tb_present` for implementation.
  */
-        struct tb_cell
-        {
-                uint32_t ch;   // a Unicode codepoint
-                uintattr_t fg; // bitwise foreground attributes
-                uintattr_t bg; // bitwise background attributes
+struct tb_cell {
+        uint32_t ch;   // a Unicode codepoint
+        uintattr_t fg; // bitwise foreground attributes
+        uintattr_t bg; // bitwise background attributes
 #ifdef TB_OPT_EGC
-                uint32_t *ech; // a grapheme cluster of Unicode codepoints, 0-terminated
-                size_t nech;   // num elements in ech, 0 means use ch instead of ech
-                size_t cech;   // num elements allocated for ech
+        uint32_t *ech; // a grapheme cluster of Unicode codepoints, 0-terminated
+        size_t nech;   // num elements in ech, 0 means use ch instead of ech
+        size_t cech;   // num elements allocated for ech
 #endif
-        };
+};
 
-        /* An incoming event from the tty.
+/* An incoming event from the tty.
  *
  * Given the event type, the following fields are relevant:
  *
@@ -444,54 +442,53 @@ typedef uint16_t uintattr_t;
  *
  *  when `TB_EVENT_MOUSE`: `key` (`TB_KEY_MOUSE_*`), `x`, and `y`
  */
-        struct tb_event
-        {
-                uint8_t type; // one of `TB_EVENT_*` constants
-                uint8_t mod;  // bitwise `TB_MOD_*` constants
-                uint16_t key; // one of `TB_KEY_*` constants
-                uint32_t ch;  // a Unicode codepoint
-                int32_t w;    // resize width
-                int32_t h;    // resize height
-                int32_t x;    // mouse x
-                int32_t y;    // mouse y
-        };
+struct tb_event {
+        uint8_t type; // one of `TB_EVENT_*` constants
+        uint8_t mod;  // bitwise `TB_MOD_*` constants
+        uint16_t key; // one of `TB_KEY_*` constants
+        uint32_t ch;  // a Unicode codepoint
+        int32_t w;    // resize width
+        int32_t h;    // resize height
+        int32_t x;    // mouse x
+        int32_t y;    // mouse y
+};
 
-        /* Initialize the termbox library. This function should be called before any
+/* Initialize the termbox library. This function should be called before any
  * other functions. `tb_init` is equivalent to `tb_init_file("/dev/tty")`. After
  * successful initialization, the library must be finalized using `tb_shutdown`.
  */
-        int tb_init(void);
-        int tb_init_file(const char *path);
-        int tb_init_fd(int ttyfd);
-        int tb_init_rwfd(int rfd, int wfd);
-        int tb_shutdown(void);
-        int tb_get_input_fd(void);
-        int tb_get_output_fd(void);
+int tb_init(void);
+int tb_init_file(const char *path);
+int tb_init_fd(int ttyfd);
+int tb_init_rwfd(int rfd, int wfd);
+int tb_shutdown(void);
+int tb_get_input_fd(void);
+int tb_get_output_fd(void);
 
-        /* Return the size of the internal back buffer (which is the same as terminal's
+/* Return the size of the internal back buffer (which is the same as terminal's
  * window size in rows and columns). The internal buffer can be resized after
  * `tb_clear` or `tb_present` calls. Both dimensions have an unspecified
  * negative value when called before `tb_init` or after `tb_shutdown`.
  */
 
-        /* Clear the internal back buffer using `TB_DEFAULT` or the attributes set by
+/* Clear the internal back buffer using `TB_DEFAULT` or the attributes set by
  * `tb_set_clear_attrs`.
  */
-        int tb_clear(void);
+int tb_clear(void);
 
-        /* Synchronize the internal back buffer with the terminal by writing to tty. */
-        //int tb_present(void);
+/* Synchronize the internal back buffer with the terminal by writing to tty. */
+//int tb_present(void);
 
-        /* Clear the internal front buffer effectively forcing a complete re-render of
+/* Clear the internal front buffer effectively forcing a complete re-render of
  * the back buffer to the tty. It is not necessary to call this under normal
  * circumstances. */
-        int tb_invalidate(void);
+int tb_invalidate(void);
 
-        /* Set the position of the cursor. Upper-left cell is (0, 0). */
-        int tb_set_cursor(int cx, int cy);
-        int tb_hide_cursor(void);
+/* Set the position of the cursor. Upper-left cell is (0, 0). */
+int tb_set_cursor(int cx, int cy);
+int tb_hide_cursor(void);
 
-        /* Set cell contents in the internal back buffer at the specified position.
+/* Set cell contents in the internal back buffer at the specified position.
  *
  * Use `tb_set_cell_ex` for rendering grapheme clusters (e.g., combining
  * diacritical marks).
@@ -504,12 +501,12 @@ typedef uint16_t uintattr_t;
  * Non-printable (`iswprint(3)`) codepoints are replaced with `U+FFFD` at render
  * time.
  */
-        int tb_set_cell(int x, int y, uint32_t ch, uintattr_t fg, uintattr_t bg);
-        int tb_set_cell_ex(int x, int y, uint32_t *ch, size_t nch, uintattr_t fg,
-                           uintattr_t bg);
-        int tb_extend_cell(int x, int y, uint32_t ch);
+int tb_set_cell(int x, int y, uint32_t ch, uintattr_t fg, uintattr_t bg);
+int tb_set_cell_ex(int x, int y, uint32_t *ch, size_t nch, uintattr_t fg,
+                   uintattr_t bg);
+int tb_extend_cell(int x, int y, uint32_t ch);
 
-        /* Set the input mode. Termbox has two input modes:
+/* Set the input mode. Termbox has two input modes:
  *
  * 1. `TB_INPUT_ESC`
  *    When escape (`\x1b`) is in the buffer and there's no match for an escape
@@ -531,9 +528,9 @@ typedef uint16_t uintattr_t;
  *
  * The default input mode is `TB_INPUT_ESC`.
  */
-        int tb_set_input_mode(int mode);
+int tb_set_input_mode(int mode);
 
-        /* Set the output mode. Termbox has multiple output modes:
+/* Set the output mode. Termbox has multiple output modes:
  *
  * 1. `TB_OUTPUT_NORMAL`     => [0..8]
  *
@@ -623,26 +620,26 @@ typedef uint16_t uintattr_t;
  *
  * The default output mode is `TB_OUTPUT_NORMAL`.
  */
-        int tb_set_output_mode(int mode);
+int tb_set_output_mode(int mode);
 
-        /* Wait for an event up to `timeout_ms` milliseconds and populate `event` with
+/* Wait for an event up to `timeout_ms` milliseconds and populate `event` with
  * it. If no event is available within the timeout period, `TB_ERR_NO_EVENT`
  * is returned. On a resize event, the underlying `select(2)` call may be
  * interrupted, yielding a return code of `TB_ERR_POLL`. In this case, you may
  * check `errno` via `tb_last_errno`. If it's `EINTR`, you may elect to ignore
  * that and call `tb_peek_event` again.
  */
-        int tb_peek_event(struct tb_event *event, int timeout_ms);
+int tb_peek_event(struct tb_event *event, int timeout_ms);
 
-        /* Same as `tb_peek_event` except no timeout. */
-        int tb_poll_event(struct tb_event *event);
+/* Same as `tb_peek_event` except no timeout. */
+int tb_poll_event(struct tb_event *event);
 
-        /* Internal termbox fds that can be used with `poll(2)`, `select(2)`, etc.
+/* Internal termbox fds that can be used with `poll(2)`, `select(2)`, etc.
  * externally. Callers must invoke `tb_poll_event` or `tb_peek_event` if
  * fds become readable. */
-        int tb_get_fds(int *ttyfd, int *resizefd);
+int tb_get_fds(int *ttyfd, int *resizefd);
 
-        /* Print and printf functions. Specify param `out_w` to determine width of
+/* Print and printf functions. Specify param `out_w` to determine width of
  * printed string. Strings are interpreted as UTF-8.
  *
  * Non-printable characters (`iswprint(3)`) and truncated UTF-8 byte sequences
@@ -657,18 +654,18 @@ typedef uint16_t uintattr_t;
  *
  * For finer control, use `tb_set_cell`.
  */
-        int tb_print(int x, int y, uintattr_t fg, uintattr_t bg, const char *str);
-        int tb_printf(int x, int y, uintattr_t fg, uintattr_t bg, const char *fmt, ...);
-        int tb_print_ex(int x, int y, uintattr_t fg, uintattr_t bg, size_t *out_w,
-                        const char *str);
-        int tb_printf_ex(int x, int y, uintattr_t fg, uintattr_t bg, size_t *out_w,
-                         const char *fmt, ...);
+int tb_print(int x, int y, uintattr_t fg, uintattr_t bg, const char *str);
+int tb_printf(int x, int y, uintattr_t fg, uintattr_t bg, const char *fmt, ...);
+int tb_print_ex(int x, int y, uintattr_t fg, uintattr_t bg, size_t *out_w,
+                const char *str);
+int tb_printf_ex(int x, int y, uintattr_t fg, uintattr_t bg, size_t *out_w,
+                 const char *fmt, ...);
 
-        /* Send raw bytes to terminal. */
-        int tb_send(const char *buf, size_t nbuf);
-        int tb_sendf(const char *fmt, ...);
+/* Send raw bytes to terminal. */
+int tb_send(const char *buf, size_t nbuf);
+int tb_sendf(const char *fmt, ...);
 
-        /* Deprecated. Set custom callbacks. `fn_type` is one of `TB_FUNC_*` constants,
+/* Deprecated. Set custom callbacks. `fn_type` is one of `TB_FUNC_*` constants,
  * `fn` is a compatible function pointer, or NULL to clear.
  *
  * `TB_FUNC_EXTRACT_PRE`:
@@ -679,12 +676,12 @@ typedef uint16_t uintattr_t;
  *   If specified, invoke this function AFTER termbox tries (and fails) to
  *   extract any escape sequences from the input buffer.
  */
-        int tb_set_func(int fn_type, int (*fn)(struct tb_event *, size_t *));
+int tb_set_func(int fn_type, int (*fn)(struct tb_event *, size_t *));
 
-        /* Return byte length of codepoint given first byte of UTF-8 sequence (1-6). */
-        int tb_utf8_char_length(char c);
+/* Return byte length of codepoint given first byte of UTF-8 sequence (1-6). */
+int tb_utf8_char_length(char c);
 
-        /* Convert UTF-8 null-terminated byte sequence to UTF-32 codepoint.
+/* Convert UTF-8 null-terminated byte sequence to UTF-32 codepoint.
  *
  * If `c` is an empty C string, return 0. `out` is left unchanged.
  *
@@ -694,24 +691,24 @@ typedef uint16_t uintattr_t;
  *
  * Otherwise, return byte length of codepoint (1-6).
  */
-        int tb_utf8_char_to_unicode(uint32_t *out, const char *c);
+int tb_utf8_char_to_unicode(uint32_t *out, const char *c);
 
-        /* Convert UTF-32 codepoint to UTF-8 null-terminated byte sequence.
+/* Convert UTF-32 codepoint to UTF-8 null-terminated byte sequence.
  *
  * `out` must be char[7] or greater. Return byte length of codepoint (1-6).
  */
-        int tb_utf8_unicode_to_char(char *out, uint32_t c);
+int tb_utf8_unicode_to_char(char *out, uint32_t c);
 
-        /* Library utility functions */
-        int tb_last_errno(void);
-        const char *tb_strerror(int err);
-        struct tb_cell *tb_cell_buffer(void); // Deprecated
-        int tb_has_truecolor(void);
-        int tb_has_egc(void);
-        int tb_attr_width(void);
-        const char *tb_version(void);
+/* Library utility functions */
+int tb_last_errno(void);
+const char *tb_strerror(int err);
+struct tb_cell *tb_cell_buffer(void); // Deprecated
+int tb_has_truecolor(void);
+int tb_has_egc(void);
+int tb_attr_width(void);
+const char *tb_version(void);
 
-        /* Deprecation notice!
+/* Deprecation notice!
  *
  * The following will be removed in version 3.x (ABI version 3):
  *
@@ -755,29 +752,25 @@ typedef uint16_t uintattr_t;
         return TB_ERR_NOT_INIT
 
 #define snprintf_or_return(rv, str, sz, fmt, ...)                 \
-        do                                                        \
-        {                                                         \
+        do {                                                      \
                 (rv) = snprintf((str), (sz), (fmt), __VA_ARGS__); \
                 if ((rv) < 0 || (rv) >= (int)(sz))                \
                         return TB_ERR;                            \
         } while (0)
 
-struct bytebuf_t
-{
+struct bytebuf_t {
         char *buf;
         size_t len;
         size_t cap;
 };
 
-struct cellbuf_t
-{
+struct cellbuf_t {
         int width;
         int height;
         struct tb_cell *cells;
 };
 
-struct cap_trie_t
-{
+struct cap_trie_t {
         char c;
         struct cap_trie_t *children;
         size_t nchildren;
@@ -786,8 +779,7 @@ struct cap_trie_t
         uint8_t mod;
 };
 
-struct tb_global_t
-{
+struct tb_global_t {
         int ttyfd;
         int rfd;
         int wfd;
@@ -1558,30 +1550,24 @@ static const char *get_terminfo_string(int16_t str_offsets_pos,
                                        int16_t str_offsets_len, int16_t str_table_pos, int16_t str_table_len,
                                        int16_t str_index);
 
-int tb_init(void)
-{
+int tb_init(void) {
         return tb_init_file("/dev/tty");
 }
 
-int tb_init_file(const char *path)
-{
+int tb_init_file(const char *path) {
         if (global.initialized)
                 return TB_ERR_INIT_ALREADY;
 
         int ttyfd = open(path, O_RDWR);
-        if (ttyfd < 0)
-        {
+        if (ttyfd < 0) {
                 // Fallback: use stdin/stdout if /dev/tty fails
                 ttyfd = STDIN_FILENO;
-                if (!isatty(ttyfd))
-                {
+                if (!isatty(ttyfd)) {
                         global.last_errno = errno;
                         return TB_ERR_INIT_OPEN;
                 }
                 global.ttyfd_open = 0; // we didn’t open a new fd
-        }
-        else
-        {
+        } else {
                 global.ttyfd_open = 1;
         }
 
@@ -1590,20 +1576,17 @@ int tb_init_file(const char *path)
         return tb_init_fd(ttyfd);
 }
 
-int tb_shutdown(void)
-{
+int tb_shutdown(void) {
         if_not_init_return();
         tb_deinit();
         return TB_OK;
 }
 
-int tb_init_fd(int ttyfd)
-{
+int tb_init_fd(int ttyfd) {
         return tb_init_rwfd(ttyfd, ttyfd);
 }
 
-int tb_init_rwfd(int rfd, int wfd)
-{
+int tb_init_rwfd(int rfd, int wfd) {
         int rv;
 
         tb_reset();
@@ -1611,8 +1594,7 @@ int tb_init_rwfd(int rfd, int wfd)
         global.rfd = rfd;
         global.wfd = wfd;
 
-        do
-        {
+        do {
                 // Skip termios setup; we manage raw/nonblocking mode ourselves
                 // if_err_break(rv, init_term_attrs());
 
@@ -1624,40 +1606,32 @@ int tb_init_rwfd(int rfd, int wfd)
                 global.initialized = 1;
         } while (0);
 
-        if (rv != TB_OK)
-        {
+        if (rv != TB_OK) {
                 tb_deinit();
         }
 
         return rv;
 }
-int tb_get_input_fd(void)
-{
+int tb_get_input_fd(void) {
         return global.rfd;
 }
 
-int tb_get_output_fd(void)
-{
+int tb_get_output_fd(void) {
         return global.wfd;
 }
 
-static int load_builtin_caps(void)
-{
+static int load_builtin_caps(void) {
         int i, j;
         const char *term = getenv("TERM");
 
-        if (!term)
-        {
+        if (!term) {
                 return TB_ERR_NO_TERM;
         }
 
         // Check for exact TERM match
-        for (i = 0; builtin_terms[i].name != NULL; i++)
-        {
-                if (strcmp(term, builtin_terms[i].name) == 0)
-                {
-                        for (j = 0; j < TB_CAP__COUNT; j++)
-                        {
+        for (i = 0; builtin_terms[i].name != NULL; i++) {
+                if (strcmp(term, builtin_terms[i].name) == 0) {
+                        for (j = 0; j < TB_CAP__COUNT; j++) {
                                 global.caps[j] = builtin_terms[i].caps[j];
                         }
                         return TB_OK;
@@ -1665,14 +1639,11 @@ static int load_builtin_caps(void)
         }
 
         // Check for partial TERM or alias match
-        for (i = 0; builtin_terms[i].name != NULL; i++)
-        {
+        for (i = 0; builtin_terms[i].name != NULL; i++) {
                 if (strstr(term, builtin_terms[i].name) != NULL ||
                     (*(builtin_terms[i].alias) != '\0' &&
-                     strstr(term, builtin_terms[i].alias) != NULL))
-                {
-                        for (j = 0; j < TB_CAP__COUNT; j++)
-                        {
+                     strstr(term, builtin_terms[i].alias) != NULL)) {
+                        for (j = 0; j < TB_CAP__COUNT; j++) {
                                 global.caps[j] = builtin_terms[i].caps[j];
                         }
                         return TB_OK;
@@ -1682,8 +1653,7 @@ static int load_builtin_caps(void)
         return TB_ERR_UNSUPPORTED_TERM;
 }
 
-static int tb_deinit(void)
-{
+static int tb_deinit(void) {
         // Remove all cursor / screen reset / mouse / SGR codes
         // Remove SIGWINCH handler
 
@@ -1702,8 +1672,7 @@ static int tb_deinit(void)
         return TB_OK;
 }
 
-int tb_set_input_mode(int mode)
-{
+int tb_set_input_mode(int mode) {
         if (!global.initialized)
                 return -1;
         if (mode == TB_INPUT_CURRENT)
@@ -1712,22 +1681,19 @@ int tb_set_input_mode(int mode)
         return 0;
 }
 
-int tb_peek_event(struct tb_event *event, int timeout_ms)
-{
+int tb_peek_event(struct tb_event *event, int timeout_ms) {
         if (!global.initialized)
                 return TB_ERR_NOT_INIT;
         return wait_event(event, timeout_ms);
 }
 
-int tb_poll_event(struct tb_event *event)
-{
+int tb_poll_event(struct tb_event *event) {
         if (!global.initialized)
                 return TB_ERR_NOT_INIT;
         return wait_event(event, -1);
 }
 
-static int tb_reset(void)
-{
+static int tb_reset(void) {
         int ttyfd_open = global.ttyfd_open;
         memset(&global, 0, sizeof(global));
         global.ttyfd = -1;
@@ -1751,15 +1717,12 @@ static int tb_reset(void)
         return TB_OK;
 }
 
-static int bytebuf_flush(struct bytebuf_t *b, int fd)
-{
-        if (b->len <= 0)
-        {
+static int bytebuf_flush(struct bytebuf_t *b, int fd) {
+        if (b->len <= 0) {
                 return TB_OK;
         }
         ssize_t write_rv = write(fd, b->buf, b->len);
-        if (write_rv < 0 || (size_t)write_rv != b->len)
-        {
+        if (write_rv < 0 || (size_t)write_rv != b->len) {
                 // Note, errno will be 0 on partial write
                 global.last_errno = errno;
                 return TB_ERR;
@@ -1768,61 +1731,50 @@ static int bytebuf_flush(struct bytebuf_t *b, int fd)
         return TB_OK;
 }
 
-static int bytebuf_free(struct bytebuf_t *b)
-{
-        if (b->buf)
-        {
+static int bytebuf_free(struct bytebuf_t *b) {
+        if (b->buf) {
                 tb_free(b->buf);
         }
         memset(b, 0, sizeof(*b));
         return TB_OK;
 }
 
-static int cap_trie_deinit(struct cap_trie_t *node)
-{
+static int cap_trie_deinit(struct cap_trie_t *node) {
         size_t j;
-        for (j = 0; j < node->nchildren; j++)
-        {
+        for (j = 0; j < node->nchildren; j++) {
                 cap_trie_deinit(&node->children[j]);
         }
-        if (node->children)
-        {
+        if (node->children) {
                 tb_free(node->children);
         }
         memset(node, 0, sizeof(*node));
         return TB_OK;
 }
 
-static int cap_trie_add(const char *cap, uint16_t key, uint8_t mod)
-{
+static int cap_trie_add(const char *cap, uint16_t key, uint8_t mod) {
         struct cap_trie_t *next, *node = &global.cap_trie;
         size_t i, j;
 
         if (!cap || strlen(cap) <= 0)
                 return TB_OK; // Nothing to do for empty caps
 
-        for (i = 0; cap[i] != '\0'; i++)
-        {
+        for (i = 0; cap[i] != '\0'; i++) {
                 char c = cap[i];
                 next = NULL;
 
                 // Check if c is already a child of node
-                for (j = 0; j < node->nchildren; j++)
-                {
-                        if (node->children[j].c == c)
-                        {
+                for (j = 0; j < node->nchildren; j++) {
+                        if (node->children[j].c == c) {
                                 next = &node->children[j];
                                 break;
                         }
                 }
-                if (!next)
-                {
+                if (!next) {
                         // We need to add a new child to node
                         node->nchildren += 1;
                         node->children = (struct cap_trie_t *)tb_realloc(node->children,
                                                                          sizeof(*node) * node->nchildren);
-                        if (!node->children)
-                        {
+                        if (!node->children) {
                                 return TB_ERR_MEM;
                         }
                         next = &node->children[node->nchildren - 1];
@@ -1834,8 +1786,7 @@ static int cap_trie_add(const char *cap, uint16_t key, uint8_t mod)
                 node = next;
         }
 
-        if (node->is_leaf)
-        {
+        if (node->is_leaf) {
                 // Already a leaf here
                 return TB_ERR_CAP_COLLISION;
         }
@@ -1846,28 +1797,21 @@ static int cap_trie_add(const char *cap, uint16_t key, uint8_t mod)
         return TB_OK;
 }
 
-static int bytebuf_reserve(struct bytebuf_t *b, size_t sz)
-{
-        if (b->cap >= sz)
-        {
+static int bytebuf_reserve(struct bytebuf_t *b, size_t sz) {
+        if (b->cap >= sz) {
                 return TB_OK;
         }
         size_t newcap = b->cap > 0 ? b->cap : 1;
-        while (newcap < sz)
-        {
+        while (newcap < sz) {
                 newcap *= 2;
         }
         char *newbuf;
-        if (b->buf)
-        {
+        if (b->buf) {
                 newbuf = (char *)tb_realloc(b->buf, newcap);
-        }
-        else
-        {
+        } else {
                 newbuf = (char *)tb_malloc(newcap);
         }
-        if (!newbuf)
-        {
+        if (!newbuf) {
                 return TB_ERR_MEM;
         }
         b->buf = newbuf;
@@ -1875,13 +1819,11 @@ static int bytebuf_reserve(struct bytebuf_t *b, size_t sz)
         return TB_OK;
 }
 
-int tb_utf8_char_length(char c)
-{
+int tb_utf8_char_length(char c) {
         return utf8_length[(unsigned char)c];
 }
 
-int tb_utf8_char_to_unicode(uint32_t *out, const char *c)
-{
+int tb_utf8_char_to_unicode(uint32_t *out, const char *c) {
         if (*c == '\0')
                 return 0;
 
@@ -1889,8 +1831,7 @@ int tb_utf8_char_to_unicode(uint32_t *out, const char *c)
         unsigned char len = tb_utf8_char_length(*c);
         unsigned char mask = utf8_mask[len - 1];
         uint32_t result = c[0] & mask;
-        for (i = 1; i < len && c[i] != '\0'; ++i)
-        {
+        for (i = 1; i < len && c[i] != '\0'; ++i) {
                 result <<= 6;
                 result |= c[i] & 0x3f;
         }
@@ -1901,43 +1842,30 @@ int tb_utf8_char_to_unicode(uint32_t *out, const char *c)
         return (int)len;
 }
 
-int tb_utf8_unicode_to_char(char *out, uint32_t c)
-{
+int tb_utf8_unicode_to_char(char *out, uint32_t c) {
         int len = 0;
         int first;
-        if (c < 0x80)
-        {
+        if (c < 0x80) {
                 first = 0;
                 len = 1;
-        }
-        else if (c < 0x800)
-        {
+        } else if (c < 0x800) {
                 first = 0xc0;
                 len = 2;
-        }
-        else if (c < 0x10000)
-        {
+        } else if (c < 0x10000) {
                 first = 0xe0;
                 len = 3;
-        }
-        else if (c < 0x200000)
-        {
+        } else if (c < 0x200000) {
                 first = 0xf0;
                 len = 4;
-        }
-        else if (c < 0x4000000)
-        {
+        } else if (c < 0x4000000) {
                 first = 0xf8;
                 len = 5;
-        }
-        else
-        {
+        } else {
                 first = 0xfc;
                 len = 6;
         }
 
-        for (int i = len - 1; i > 0; --i)
-        {
+        for (int i = len - 1; i > 0; --i) {
                 out[i] = (c & 0x3f) | 0x80;
                 c >>= 6;
         }
@@ -1950,8 +1878,7 @@ int tb_utf8_unicode_to_char(char *out, uint32_t c)
 // Core event reading
 // -----------------------------------------------------------------------------
 
-static int wait_event(struct tb_event *event, int timeout_ms)
-{
+static int wait_event(struct tb_event *event, int timeout_ms) {
         int rv;
         char buf[TB_OPT_READ_BUF];
 
@@ -1966,23 +1893,20 @@ static int wait_event(struct tb_event *event, int timeout_ms)
         fd_set fds;
         struct timeval tv;
         struct timeval *ptv = NULL;
-        if (timeout_ms >= 0)
-        {
+        if (timeout_ms >= 0) {
                 tv.tv_sec = timeout_ms / 1000;
                 tv.tv_usec = (timeout_ms % 1000) * 1000;
                 ptv = &tv;
         }
 
-        while (1)
-        {
+        while (1) {
                 FD_ZERO(&fds);
                 FD_SET(global.rfd, &fds);
 
                 int maxfd = global.rfd;
 
                 int sel = select(maxfd + 1, &fds, NULL, NULL, ptv);
-                if (sel < 0)
-                {
+                if (sel < 0) {
                         if (errno == EINTR)
                                 continue;
                         global.last_errno = errno;
@@ -1992,16 +1916,13 @@ static int wait_event(struct tb_event *event, int timeout_ms)
                         return TB_ERR_NO_EVENT;
 
                 // Read terminal input if ready
-                if (FD_ISSET(global.rfd, &fds))
-                {
+                if (FD_ISSET(global.rfd, &fds)) {
                         ssize_t n = read(global.rfd, buf, sizeof(buf));
-                        if (n < 0)
-                        {
+                        if (n < 0) {
                                 global.last_errno = errno;
                                 return TB_ERR_READ;
                         }
-                        if (n > 0)
-                        {
+                        if (n > 0) {
                                 bytebuf_nputs(&global.in, buf, n);
                         }
                 }
@@ -2017,15 +1938,12 @@ static int wait_event(struct tb_event *event, int timeout_ms)
         }
 }
 
-static int extract_event(struct tb_event *event)
-{
+static int extract_event(struct tb_event *event) {
         struct bytebuf_t *in = &global.in;
 
-        if (in->len == 0)
-        {
+        if (in->len == 0) {
                 // Handle pending ESC from previous incomplete sequence
-                if (global.esc_pending)
-                {
+                if (global.esc_pending) {
                         event->type = TB_EVENT_KEY;
                         event->key = TB_KEY_ESC;
                         event->ch = 0;
@@ -2040,19 +1958,16 @@ static int extract_event(struct tb_event *event)
                 in->buf[0] = '\r';
 
         // Handle ESC sequences
-        if (in->buf[0] == '\x1b')
-        {
+        if (in->buf[0] == '\x1b') {
                 // Try to parse full escape sequence
                 int rv = extract_esc(event);
-                if (rv == TB_OK)
-                {
+                if (rv == TB_OK) {
                         global.esc_pending = 0;
                         return TB_OK;
                 }
 
                 // If not recognized, treat as ESC key
-                if ((global.input_mode & TB_INPUT_ESC) && rv == TB_ERR_NEED_MORE)
-                {
+                if ((global.input_mode & TB_INPUT_ESC) && rv == TB_ERR_NEED_MORE) {
                         event->type = TB_EVENT_KEY;
                         event->key = TB_KEY_ESC;
                         event->ch = 0;
@@ -2062,19 +1977,16 @@ static int extract_event(struct tb_event *event)
                 }
 
                 // Possibly Alt + key if more bytes follow
-                if (in->len > 1)
-                {
+                if (in->len > 1) {
                         event->mod |= TB_MOD_ALT;
                         bytebuf_shift(in, 1);
                         return extract_event(event);
                 }
 
-                if (in->len >= 6 && in->buf[0] == '\x1b' && in->buf[1] == '[' && in->buf[2] == '<')
-                {
+                if (in->len >= 6 && in->buf[0] == '\x1b' && in->buf[1] == '[' && in->buf[2] == '<') {
                         int btn, x, y;
                         char type;
-                        if (sscanf(in->buf, "\x1b[<%d;%d;%d%c", &btn, &x, &y, &type) == 4)
-                        {
+                        if (sscanf(in->buf, "\x1b[<%d;%d;%d%c", &btn, &x, &y, &type) == 4) {
                                 event->type = TB_EVENT_MOUSE;
                                 event->key = btn; // button code
                                 event->x = x - 1; // terminal coordinates are 1-based
@@ -2088,8 +2000,7 @@ static int extract_event(struct tb_event *event)
                 return TB_ERR;
         }
 
-        if (in->buf[0] == ' ' || in->buf[0] == TB_KEY_SPACE)
-        {
+        if (in->buf[0] == ' ' || in->buf[0] == TB_KEY_SPACE) {
                 event->type = TB_EVENT_KEY;
                 event->key = TB_KEY_SPACE;
                 event->ch = 0;
@@ -2099,8 +2010,7 @@ static int extract_event(struct tb_event *event)
         }
 
         // Backspace
-        if (in->buf[0] == 0x7f || in->buf[0] == TB_KEY_BACKSPACE2)
-        {
+        if (in->buf[0] == 0x7f || in->buf[0] == TB_KEY_BACKSPACE2) {
                 event->type = TB_EVENT_KEY;
                 event->key = TB_KEY_BACKSPACE;
                 event->ch = 0;
@@ -2110,8 +2020,7 @@ static int extract_event(struct tb_event *event)
         }
 
         // Enter \n
-        if (((uint8_t)in->buf[0] == '\n' || (uint8_t)in->buf[0] == '\r') && event->mod == 0)
-        {
+        if (((uint8_t)in->buf[0] == '\n' || (uint8_t)in->buf[0] == '\r') && event->mod == 0) {
                 event->type = TB_EVENT_KEY;
                 event->key = TB_KEY_ENTER;
                 event->ch = 0;
@@ -2122,16 +2031,14 @@ static int extract_event(struct tb_event *event)
 
         // Control keys (Ctrl + key)
         uint8_t c = in->buf[0];
-        if (c < 0x20)
-        {
+        if (c < 0x20) {
                 event->type = TB_EVENT_KEY;
                 event->key = c;
                 event->ch = 0;
 
                 // Only set CTRL if it's not an Alt combo and not a special key like Enter/Tab/ESC
                 if (!(event->mod & TB_MOD_ALT) &&
-                    c != '\t' && c != '\n' && c != '\r' && c != '\033')
-                {
+                    c != '\t' && c != '\n' && c != '\r' && c != '\033') {
                         event->mod |= TB_MOD_CTRL;
                 }
 
@@ -2141,11 +2048,9 @@ static int extract_event(struct tb_event *event)
 
         // UTF-8 printable keys
         int len = tb_utf8_char_length(in->buf[0]);
-        if ((size_t)len <= in->len)
-        {
+        if ((size_t)len <= in->len) {
                 int ulen = tb_utf8_char_to_unicode(&event->ch, in->buf);
-                if (ulen < 0)
-                {
+                if (ulen < 0) {
                         bytebuf_shift(in, 1);
                         return TB_ERR;
                 }
@@ -2159,44 +2064,37 @@ static int extract_event(struct tb_event *event)
 }
 
 static int cap_trie_find(const char *buf, size_t nbuf, struct cap_trie_t **last,
-                         size_t *depth)
-{
+                         size_t *depth) {
         struct cap_trie_t *next, *node = &global.cap_trie;
         size_t i, j;
         *last = node;
         *depth = 0;
-        for (i = 0; i < nbuf; i++)
-        {
+        for (i = 0; i < nbuf; i++) {
                 char c = buf[i];
                 next = NULL;
 
                 // Find c in node.children
-                for (j = 0; j < node->nchildren; j++)
-                {
-                        if (node->children[j].c == c)
-                        {
+                for (j = 0; j < node->nchildren; j++) {
+                        if (node->children[j].c == c) {
                                 next = &node->children[j];
                                 break;
                         }
                 }
-                if (!next)
-                {
+                if (!next) {
                         // Not found
                         return TB_OK;
                 }
                 node = next;
                 *last = node;
                 *depth += 1;
-                if (node->is_leaf && node->nchildren < 1)
-                {
+                if (node->is_leaf && node->nchildren < 1) {
                         break;
                 }
         }
         return TB_OK;
 }
 
-static int init_term_caps(void)
-{
+static int init_term_caps(void) {
         cap_trie_add("\033[A", TB_KEY_ARROW_UP, 0);
         cap_trie_add("\033[B", TB_KEY_ARROW_DOWN, 0);
         cap_trie_add("\033[C", TB_KEY_ARROW_RIGHT, 0);
@@ -2208,15 +2106,13 @@ static int init_term_caps(void)
         bytebuf_puts(&global.out, "\033[?1006h"); // SGR mode
         bytebuf_flush(&global.out, global.wfd);
 
-        if (load_terminfo() == TB_OK)
-        {
+        if (load_terminfo() == TB_OK) {
                 return parse_terminfo_caps();
         }
         return load_builtin_caps();
 }
 
-static int init_cap_trie(void)
-{
+static int init_cap_trie(void) {
         int rv, i;
 
         // Add caps from terminfo or built-in
@@ -2226,8 +2122,7 @@ static int init_cap_trie(void)
         // in TB_CAP_* index order will win.
         //
         // TODO: Reorder TB_CAP_* so more critical caps come first.
-        for (i = 0; i < TB_CAP__COUNT_KEYS; i++)
-        {
+        for (i = 0; i < TB_CAP__COUNT_KEYS; i++) {
                 rv = cap_trie_add(global.caps[i], tb_key_i(i), 0);
                 if (rv != TB_OK && rv != TB_ERR_CAP_COLLISION)
                         return rv;
@@ -2238,8 +2133,7 @@ static int init_cap_trie(void)
         // Collisions are OK here as well. This can happen if global.caps collides
         // with builtin_mod_caps. It is desirable to give precedence to global.caps
         // here.
-        for (i = 0; builtin_mod_caps[i].cap != NULL; i++)
-        {
+        for (i = 0; builtin_mod_caps[i].cap != NULL; i++) {
                 rv = cap_trie_add(builtin_mod_caps[i].cap, builtin_mod_caps[i].key,
                                   builtin_mod_caps[i].mod);
                 if (rv != TB_OK && rv != TB_ERR_CAP_COLLISION)
@@ -2249,12 +2143,10 @@ static int init_cap_trie(void)
         return TB_OK;
 }
 
-static int update_term_size(void)
-{
+static int update_term_size(void) {
         int rv, ioctl_errno;
 
-        if (global.ttyfd < 0)
-        {
+        if (global.ttyfd < 0) {
                 return TB_OK;
         }
 
@@ -2262,8 +2154,7 @@ static int update_term_size(void)
         memset(&sz, 0, sizeof(sz));
 
         // Try ioctl TIOCGWINSZ
-        if (ioctl(global.ttyfd, TIOCGWINSZ, &sz) == 0)
-        {
+        if (ioctl(global.ttyfd, TIOCGWINSZ, &sz) == 0) {
                 global.width = sz.ws_col;
                 global.height = sz.ws_row;
                 return TB_OK;
@@ -2277,8 +2168,7 @@ static int update_term_size(void)
         return TB_ERR_RESIZE_IOCTL;
 }
 
-static int update_term_size_via_esc(void)
-{
+static int update_term_size_via_esc(void) {
 #ifndef TB_RESIZE_FALLBACK_MS
 #define TB_RESIZE_FALLBACK_MS 1000
 #endif
@@ -2286,8 +2176,7 @@ static int update_term_size_via_esc(void)
         char move_and_report[] = "\x1b[9999;9999H\x1b[6n";
         ssize_t write_rv =
             write(global.wfd, move_and_report, strlen(move_and_report));
-        if (write_rv != (ssize_t)strlen(move_and_report))
-        {
+        if (write_rv != (ssize_t)strlen(move_and_report)) {
                 return TB_ERR_RESIZE_WRITE;
         }
 
@@ -2301,24 +2190,21 @@ static int update_term_size_via_esc(void)
 
         int select_rv = select(global.rfd + 1, &fds, NULL, NULL, &timeout);
 
-        if (select_rv != 1)
-        {
+        if (select_rv != 1) {
                 global.last_errno = errno;
                 return TB_ERR_RESIZE_POLL;
         }
 
         char buf[TB_OPT_READ_BUF];
         ssize_t read_rv = read(global.rfd, buf, sizeof(buf) - 1);
-        if (read_rv < 1)
-        {
+        if (read_rv < 1) {
                 global.last_errno = errno;
                 return TB_ERR_RESIZE_READ;
         }
         buf[read_rv] = '\0';
 
         int rw, rh;
-        if (sscanf(buf, "\x1b[%d;%dR", &rh, &rw) != 2)
-        {
+        if (sscanf(buf, "\x1b[%d;%dR", &rh, &rw) != 2) {
                 return TB_ERR_RESIZE_SSCANF;
         }
 
@@ -2327,10 +2213,8 @@ static int update_term_size_via_esc(void)
         return TB_OK;
 }
 
-static int bytebuf_shift(struct bytebuf_t *b, size_t n)
-{
-        if (n > b->len)
-        {
+static int bytebuf_shift(struct bytebuf_t *b, size_t n) {
+        if (n > b->len) {
                 n = b->len;
         }
         size_t nmove = b->len - n;
@@ -2339,15 +2223,13 @@ static int bytebuf_shift(struct bytebuf_t *b, size_t n)
         return TB_OK;
 }
 
-static int bytebuf_puts(struct bytebuf_t *b, const char *str)
-{
+static int bytebuf_puts(struct bytebuf_t *b, const char *str) {
         if (!str || strlen(str) <= 0)
                 return TB_OK; // Nothing to do for empty caps
         return bytebuf_nputs(b, str, (size_t)strlen(str));
 }
 
-static int bytebuf_nputs(struct bytebuf_t *b, const char *str, size_t nstr)
-{
+static int bytebuf_nputs(struct bytebuf_t *b, const char *str, size_t nstr) {
         int rv;
         if_err_return(rv, bytebuf_reserve(b, b->len + nstr + 1));
         memcpy(b->buf + b->len, str, nstr);
@@ -2356,16 +2238,14 @@ static int bytebuf_nputs(struct bytebuf_t *b, const char *str, size_t nstr)
         return TB_OK;
 }
 
-static int extract_esc_cap(struct tb_event *event)
-{
+static int extract_esc_cap(struct tb_event *event) {
         int rv;
         struct bytebuf_t *in = &global.in;
         struct cap_trie_t *node;
         size_t depth;
 
         if_err_return(rv, cap_trie_find(in->buf, in->len, &node, &depth));
-        if (node->is_leaf)
-        {
+        if (node->is_leaf) {
                 // Found a leaf node
                 event->type = TB_EVENT_KEY;
                 event->ch = 0;
@@ -2373,9 +2253,7 @@ static int extract_esc_cap(struct tb_event *event)
                 event->mod = node->mod;
                 bytebuf_shift(in, depth);
                 return TB_OK;
-        }
-        else if (node->nchildren > 0 && in->len <= depth)
-        {
+        } else if (node->nchildren > 0 && in->len <= depth) {
                 // Found a branch node (not enough input)
                 return TB_ERR_NEED_MORE;
         }
@@ -2383,8 +2261,7 @@ static int extract_esc_cap(struct tb_event *event)
         return TB_ERR;
 }
 
-static int extract_esc_user(struct tb_event *event, int is_post)
-{
+static int extract_esc_user(struct tb_event *event, int is_post) {
         int rv;
         size_t consumed = 0;
         struct bytebuf_t *in = &global.in;
@@ -2392,14 +2269,12 @@ static int extract_esc_user(struct tb_event *event, int is_post)
 
         fn = is_post ? global.fn_extract_esc_post : global.fn_extract_esc_pre;
 
-        if (!fn)
-        {
+        if (!fn) {
                 return TB_ERR;
         }
 
         rv = fn(event, &consumed);
-        if (rv == TB_OK)
-        {
+        if (rv == TB_OK) {
                 bytebuf_shift(in, consumed);
         }
 
@@ -2407,12 +2282,10 @@ static int extract_esc_user(struct tb_event *event, int is_post)
         return TB_ERR;
 }
 
-static int extract_esc_mouse(struct tb_event *event)
-{
+static int extract_esc_mouse(struct tb_event *event) {
         struct bytebuf_t *in = &global.in;
 
-        enum
-        {
+        enum {
                 TYPE_VT200 = 0,
                 TYPE_1006,
                 TYPE_1015,
@@ -2433,34 +2306,28 @@ static int extract_esc_mouse(struct tb_event *event)
         int ret = TB_ERR;
 
         // Unrolled at compile-time (probably)
-        for (; type < TYPE_MAX; type++)
-        {
+        for (; type < TYPE_MAX; type++) {
                 size_t size = strlen(cmp[type]);
 
-                if (in->len >= size && (strncmp(cmp[type], in->buf, size)) == 0)
-                {
+                if (in->len >= size && (strncmp(cmp[type], in->buf, size)) == 0) {
                         break;
                 }
         }
 
-        if (type == TYPE_MAX)
-        {
+        if (type == TYPE_MAX) {
                 ret = TB_ERR; // No match
                 return ret;
         }
 
         size_t buf_shift = 0;
 
-        switch (type)
-        {
+        switch (type) {
         case TYPE_VT200:
-                if (in->len >= 6)
-                {
+                if (in->len >= 6) {
                         int b = in->buf[3] - 0x20;
                         int fail = 0;
 
-                        switch (b & 3)
-                        {
+                        switch (b & 3) {
                         case 0:
                                 event->key = ((b & 64) != 0) ? TB_KEY_MOUSE_WHEEL_UP
                                                              : TB_KEY_MOUSE_LEFT;
@@ -2481,10 +2348,8 @@ static int extract_esc_mouse(struct tb_event *event)
                                 break;
                         }
 
-                        if (!fail)
-                        {
-                                if ((b & 32) != 0)
-                                {
+                        if (!fail) {
+                                if ((b & 32) != 0) {
                                         event->mod |= TB_MOD_MOTION;
                                 }
 
@@ -2500,12 +2365,10 @@ static int extract_esc_mouse(struct tb_event *event)
                 break;
         case TYPE_1006:
                 // fallthrough
-        case TYPE_1015:
-        {
+        case TYPE_1015: {
                 size_t index_fail = (size_t)-1;
 
-                enum
-                {
+                enum {
                         FIRST_M = 0,
                         FIRST_SEMICOLON,
                         LAST_SEMICOLON,
@@ -2516,23 +2379,15 @@ static int extract_esc_mouse(struct tb_event *event)
                                                   index_fail};
                 int m_is_capital = 0;
 
-                for (size_t i = 0; i < in->len; i++)
-                {
-                        if (in->buf[i] == ';')
-                        {
-                                if (indices[FIRST_SEMICOLON] == index_fail)
-                                {
+                for (size_t i = 0; i < in->len; i++) {
+                        if (in->buf[i] == ';') {
+                                if (indices[FIRST_SEMICOLON] == index_fail) {
                                         indices[FIRST_SEMICOLON] = i;
-                                }
-                                else
-                                {
+                                } else {
                                         indices[LAST_SEMICOLON] = i;
                                 }
-                        }
-                        else if (indices[FIRST_M] == index_fail)
-                        {
-                                if (in->buf[i] == 'm' || in->buf[i] == 'M')
-                                {
+                        } else if (indices[FIRST_M] == index_fail) {
+                                if (in->buf[i] == 'm' || in->buf[i] == 'M') {
                                         m_is_capital = (in->buf[i] == 'M');
                                         indices[FIRST_M] = i;
                                 }
@@ -2541,12 +2396,9 @@ static int extract_esc_mouse(struct tb_event *event)
 
                 if (indices[FIRST_M] == index_fail ||
                     indices[FIRST_SEMICOLON] == index_fail ||
-                    indices[LAST_SEMICOLON] == index_fail)
-                {
+                    indices[LAST_SEMICOLON] == index_fail) {
                         ret = TB_ERR;
-                }
-                else
-                {
+                } else {
                         int start = (type == TYPE_1015 ? 2 : 3);
 
                         unsigned n1 = strtoul(&in->buf[start], NULL, 10);
@@ -2555,15 +2407,13 @@ static int extract_esc_mouse(struct tb_event *event)
                         unsigned n3 =
                             strtoul(&in->buf[indices[LAST_SEMICOLON] + 1], NULL, 10);
 
-                        if (type == TYPE_1015)
-                        {
+                        if (type == TYPE_1015) {
                                 n1 -= 0x20;
                         }
 
                         int fail = 0;
 
-                        switch (n1 & 3)
-                        {
+                        switch (n1 & 3) {
                         case 0:
                                 event->key = ((n1 & 64) != 0) ? TB_KEY_MOUSE_WHEEL_UP
                                                               : TB_KEY_MOUSE_LEFT;
@@ -2586,16 +2436,13 @@ static int extract_esc_mouse(struct tb_event *event)
 
                         buf_shift = in->len;
 
-                        if (!fail)
-                        {
-                                if (!m_is_capital)
-                                {
+                        if (!fail) {
+                                if (!m_is_capital) {
                                         // on xterm mouse release is signaled by lowercase m
                                         event->key = TB_KEY_MOUSE_RELEASE;
                                 }
 
-                                if ((n1 & 32) != 0)
-                                {
+                                if ((n1 & 32) != 0) {
                                         event->mod |= TB_MOD_MOTION;
                                 }
 
@@ -2605,19 +2452,16 @@ static int extract_esc_mouse(struct tb_event *event)
                                 ret = TB_OK;
                         }
                 }
-        }
-        break;
+        } break;
         case TYPE_MAX:
                 ret = TB_ERR;
         }
 
-        if (buf_shift > 0)
-        {
+        if (buf_shift > 0) {
                 bytebuf_shift(in, buf_shift);
         }
 
-        if (ret == TB_OK)
-        {
+        if (ret == TB_OK) {
                 event->type = TB_EVENT_MOUSE;
         }
 
@@ -2626,32 +2470,27 @@ static int extract_esc_mouse(struct tb_event *event)
 
 static const char *get_terminfo_string(int16_t str_offsets_pos,
                                        int16_t str_offsets_len, int16_t str_table_pos, int16_t str_table_len,
-                                       int16_t str_index)
-{
+                                       int16_t str_index) {
         const int str_byte_index = (int)str_index * (int)sizeof(int16_t);
-        if (str_byte_index >= (int)str_offsets_len * (int)sizeof(int16_t))
-        {
+        if (str_byte_index >= (int)str_offsets_len * (int)sizeof(int16_t)) {
                 // An offset beyond the table indicates absent
                 // See `convert_strings` in tinfo `read_entry.c`
                 return "";
         }
         const int16_t *str_offset =
             (int16_t *)(global.terminfo + (int)str_offsets_pos + str_byte_index);
-        if ((char *)str_offset >= global.terminfo + global.nterminfo)
-        {
+        if ((char *)str_offset >= global.terminfo + global.nterminfo) {
                 // str_offset points beyond end of entry
                 // Truncated/corrupt terminfo entry?
                 return NULL;
         }
-        if (*str_offset < 0 || *str_offset >= str_table_len)
-        {
+        if (*str_offset < 0 || *str_offset >= str_table_len) {
                 // A negative offset indicates absent
                 // An offset beyond the table indicates absent
                 // See `convert_strings` in tinfo `read_entry.c`
                 return "";
         }
-        if (((size_t)((int)str_table_pos + (int)*str_offset)) >= global.nterminfo)
-        {
+        if (((size_t)((int)str_table_pos + (int)*str_offset)) >= global.nterminfo) {
                 // string points beyond end of entry
                 // Truncated/corrupt terminfo entry?
                 return NULL;
@@ -2660,13 +2499,10 @@ static const char *get_terminfo_string(int16_t str_offsets_pos,
             const char *)(global.terminfo + (int)str_table_pos + (int)*str_offset);
 }
 
-static int cellbuf_free(struct cellbuf_t *c)
-{
-        if (c->cells)
-        {
+static int cellbuf_free(struct cellbuf_t *c) {
+        if (c->cells) {
                 int i;
-                for (i = 0; i < c->width * c->height; i++)
-                {
+                for (i = 0; i < c->width * c->height; i++) {
                         cell_free(&c->cells[i]);
                 }
                 tb_free(c->cells);
@@ -2675,8 +2511,7 @@ static int cellbuf_free(struct cellbuf_t *c)
         return TB_OK;
 }
 
-static int load_terminfo(void)
-{
+static int load_terminfo(void) {
         int rv;
         char tmp[TB_PATH_MAX];
 
@@ -2684,22 +2519,19 @@ static int load_terminfo(void)
         // this behavior. Some of these paths are compile-time ncurses options, so
         // best guesses are used here.
         const char *term = getenv("TERM");
-        if (!term)
-        {
+        if (!term) {
                 return TB_ERR;
         }
 
         // If TERMINFO is set, try that directory and stop
         const char *terminfo = getenv("TERMINFO");
-        if (terminfo)
-        {
+        if (terminfo) {
                 return load_terminfo_from_path(terminfo, term);
         }
 
         // Next try ~/.terminfo
         const char *home = getenv("HOME");
-        if (home)
-        {
+        if (home) {
                 snprintf_or_return(rv, tmp, sizeof(tmp), "%s/.terminfo", home);
                 if_ok_return(rv, load_terminfo_from_path(tmp, term));
         }
@@ -2711,15 +2543,12 @@ static int load_terminfo(void)
         // was used here. Let's skip empty entries altogether rather than give
         // precedence to a guess, and check common paths after this loop.
         const char *dirs = getenv("TERMINFO_DIRS");
-        if (dirs)
-        {
+        if (dirs) {
                 snprintf_or_return(rv, tmp, sizeof(tmp), "%s", dirs);
                 char *dir = strtok(tmp, ":");
-                while (dir)
-                {
+                while (dir) {
                         const char *cdir = dir;
-                        if (*cdir != '\0')
-                        {
+                        if (*cdir != '\0') {
                                 if_ok_return(rv, load_terminfo_from_path(cdir, term));
                         }
                         dir = strtok(NULL, ":");
@@ -2742,8 +2571,7 @@ static int load_terminfo(void)
         return TB_ERR;
 }
 
-static int load_terminfo_from_path(const char *path, const char *term)
-{
+static int load_terminfo_from_path(const char *path, const char *term) {
         int rv;
         char tmp[TB_PATH_MAX];
 
@@ -2760,31 +2588,26 @@ static int load_terminfo_from_path(const char *path, const char *term)
         return TB_ERR;
 }
 
-static int read_terminfo_path(const char *path)
-{
+static int read_terminfo_path(const char *path) {
         FILE *fp = fopen(path, "rb");
-        if (!fp)
-        {
+        if (!fp) {
                 return TB_ERR;
         }
 
         struct stat st;
-        if (fstat(fileno(fp), &st) != 0)
-        {
+        if (fstat(fileno(fp), &st) != 0) {
                 fclose(fp);
                 return TB_ERR;
         }
 
         size_t fsize = st.st_size;
         char *data = (char *)tb_malloc(fsize);
-        if (!data)
-        {
+        if (!data) {
                 fclose(fp);
                 return TB_ERR;
         }
 
-        if (fread(data, 1, fsize, fp) != fsize)
-        {
+        if (fread(data, 1, fsize, fp) != fsize) {
                 fclose(fp);
                 tb_free(data);
                 return TB_ERR;
@@ -2797,14 +2620,12 @@ static int read_terminfo_path(const char *path)
         return TB_OK;
 }
 
-static int parse_terminfo_caps(void)
-{
+static int parse_terminfo_caps(void) {
         // See term(5) "LEGACY STORAGE FORMAT" and "EXTENDED STORAGE FORMAT" for a
         // description of this behavior.
 
         // Ensure there's at least a header's worth of data
-        if (global.nterminfo < 6)
-        {
+        if (global.nterminfo < 6) {
                 return TB_ERR;
         }
 
@@ -2838,12 +2659,10 @@ static int parse_terminfo_caps(void)
 
         // Load caps
         int i;
-        for (i = 0; i < TB_CAP__COUNT; i++)
-        {
+        for (i = 0; i < TB_CAP__COUNT; i++) {
                 const char *cap = get_terminfo_string(pos_str_offsets, header[4],
                                                       pos_str_table, header[5], terminfo_cap_indexes[i]);
-                if (!cap)
-                {
+                if (!cap) {
                         // Something is not right
                         return TB_ERR;
                 }
@@ -2853,11 +2672,9 @@ static int parse_terminfo_caps(void)
         return TB_OK;
 }
 
-static int cell_free(struct tb_cell *cell)
-{
+static int cell_free(struct tb_cell *cell) {
 #ifdef TB_OPT_EGC
-        if (cell->ech)
-        {
+        if (cell->ech) {
                 tb_free(cell->ech);
         }
 #endif
@@ -2866,8 +2683,7 @@ static int cell_free(struct tb_cell *cell)
 }
 
 // ESC/mouse parsing (simplified, does not use bytebuf)
-static int extract_esc(struct tb_event *event)
-{
+static int extract_esc(struct tb_event *event) {
         int rv;
         if_ok_or_need_more_return(rv, extract_esc_user(event, 0));
         if_ok_or_need_more_return(rv, extract_esc_cap(event));   // handles arrows/F-keys

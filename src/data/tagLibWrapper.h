@@ -11,14 +11,13 @@
 #define TAGLIB_WRAPPER_H
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 #include "common/appstate.h"
 
 int extractTags(const char *input_file, TagSettings *tag_settings,
-                        double *duration, const char *coverFilePath, Lyrics **lyrics);
+                double *duration, const char *cover_file_path, Lyrics **lyrics);
 
 #ifdef __cplusplus
 }

@@ -29,104 +29,87 @@
 
 static guint track_counter = 0;
 
-void make_file_path(const char *dirPath, char *filePath, size_t filePathSize,
-                  const struct dirent *entry)
-{
-        if (dirPath == NULL || filePath == NULL || entry == NULL ||
-            filePathSize == 0)
+void make_file_path(const char *dir_path, char *file_path, size_t file_path_size,
+                    const struct dirent *entry) {
+        if (dir_path == NULL || file_path == NULL || entry == NULL ||
+            file_path_size == 0)
                 return;
 
-        size_t dirLen = strnlen(dirPath, filePathSize);
-        size_t nameLen = strnlen(entry->d_name, filePathSize);
+        size_t dirLen = strnlen(dir_path, file_path_size);
+        size_t nameLen = strnlen(entry->d_name, file_path_size);
 
-        if (dirLen == filePathSize)
-        {
-                filePath[0] = '\0';
+        if (dirLen == file_path_size) {
+                file_path[0] = '\0';
                 return;
         }
 
         size_t neededSize = dirLen + nameLen + 1; // +1 for '\0'
-        if (dirPath[dirLen - 1] != '/')
-        {
+        if (dir_path[dirLen - 1] != '/') {
                 neededSize += 1; // for the added '/'
         }
 
-        if (neededSize > filePathSize)
-        {
-                filePath[0] = '\0';
+        if (neededSize > file_path_size) {
+                file_path[0] = '\0';
                 return;
         }
 
         // Compose the path safely
-        if (dirPath[dirLen - 1] == '/')
-        {
-                snprintf(filePath, filePathSize, "%s%s", dirPath,
+        if (dir_path[dirLen - 1] == '/') {
+                snprintf(file_path, file_path_size, "%s%s", dir_path,
                          entry->d_name);
-        }
-        else
-        {
-                snprintf(filePath, filePathSize, "%s/%s", dirPath,
+        } else {
+                snprintf(file_path, file_path_size, "%s/%s", dir_path,
                          entry->d_name);
         }
 
-        // snprintf guarantees null termination if filePathSize > 0
+        // snprintf guarantees null termination if file_path_size > 0
 }
 
-char *choose_album_art(const char *dirPath, char **customFileNameArr, int size,
-                     int depth)
-{
-        if (!dirPath || !customFileNameArr || size <= 0 ||
-            depth > MAX_RECURSION_DEPTH)
-        {
+char *choose_album_art(const char *dir_path, char **custom_file_name_arr, int size,
+                       int depth) {
+        if (!dir_path || !custom_file_name_arr || size <= 0 ||
+            depth > MAX_RECURSION_DEPTH) {
                 return NULL;
         }
 
-        DIR *directory = opendir(dirPath);
-        if (!directory)
-        {
+        DIR *directory = opendir(dir_path);
+        if (!directory) {
                 return NULL;
         }
 
         struct dirent *entry;
-        struct stat fileStat;
-        char filePath[MAXPATHLEN];
-        char resolvedPath[MAXPATHLEN];
+        struct stat file_stat;
+        char file_path[MAXPATHLEN];
+        char resolved_path[MAXPATHLEN];
         char *result = NULL;
 
-        for (int i = 0; i < size && !result; i++)
-        {
+        for (int i = 0; i < size && !result; i++) {
                 rewinddir(directory);
-                while ((entry = readdir(directory)) != NULL)
-                {
+                while ((entry = readdir(directory)) != NULL) {
                         if (strcmp(entry->d_name, ".") == 0 ||
                             strcmp(entry->d_name, "..") == 0)
                                 continue;
 
-                        int written = snprintf(filePath, sizeof(filePath),
-                                               "%s/%s", dirPath, entry->d_name);
-                        if (written < 0 || written >= (int)sizeof(filePath))
-                        {
+                        int written = snprintf(file_path, sizeof(file_path),
+                                               "%s/%s", dir_path, entry->d_name);
+                        if (written < 0 || written >= (int)sizeof(file_path)) {
                                 continue; // path too long
                         }
 
-                        if (realpath(filePath, resolvedPath) == NULL)
-                        {
+                        if (realpath(file_path, resolved_path) == NULL) {
                                 continue;
                         }
 
-                        if (strncmp(resolvedPath, dirPath, strlen(dirPath)) !=
-                            0)
-                        {
+                        if (strncmp(resolved_path, dir_path, strlen(dir_path)) !=
+                            0) {
                                 continue; // outside allowed directory
                         }
 
-                        if (stat(resolvedPath, &fileStat) == 0 &&
-                            S_ISREG(fileStat.st_mode))
-                        {
+                        if (stat(resolved_path, &file_stat) == 0 &&
+                            S_ISREG(file_stat.st_mode)) {
                                 if (strcmp(entry->d_name,
-                                           customFileNameArr[i]) == 0)
-                                {
-                                        result = strdup(resolvedPath);
+                                           custom_file_name_arr[i]) == 0) {
+                                        result = strdup(resolved_path);
                                         break;
                                 }
                         }
@@ -134,44 +117,36 @@ char *choose_album_art(const char *dirPath, char **customFileNameArr, int size,
         }
 
         // Recursive search for directories
-        if (!result)
-        {
+        if (!result) {
                 rewinddir(directory);
-                while ((entry = readdir(directory)) != NULL && !result)
-                {
+                while ((entry = readdir(directory)) != NULL && !result) {
                         if (strcmp(entry->d_name, ".") == 0 ||
                             strcmp(entry->d_name, "..") == 0)
                                 continue;
 
-                        int written = snprintf(filePath, sizeof(filePath),
-                                               "%s/%s", dirPath, entry->d_name);
-                        if (written < 0 || written >= (int)sizeof(filePath))
-                        {
+                        int written = snprintf(file_path, sizeof(file_path),
+                                               "%s/%s", dir_path, entry->d_name);
+                        if (written < 0 || written >= (int)sizeof(file_path)) {
                                 continue;
                         }
 
-                        if (realpath(filePath, resolvedPath) == NULL)
-                        {
+                        if (realpath(file_path, resolved_path) == NULL) {
                                 continue;
                         }
 
-                        if (strncmp(resolvedPath, dirPath, strlen(dirPath)) !=
-                            0)
-                        {
+                        if (strncmp(resolved_path, dir_path, strlen(dir_path)) !=
+                            0) {
                                 continue;
                         }
 
-                        struct stat linkStat;
-                        if (lstat(resolvedPath, &linkStat) == 0)
-                        {
-                                if (S_ISLNK(linkStat.st_mode))
-                                {
+                        struct stat link_stat;
+                        if (lstat(resolved_path, &link_stat) == 0) {
+                                if (S_ISLNK(link_stat.st_mode)) {
                                         continue; // skip symlink
                                 }
-                                if (S_ISDIR(linkStat.st_mode))
-                                {
+                                if (S_ISDIR(link_stat.st_mode)) {
                                         result = choose_album_art(
-                                            resolvedPath, customFileNameArr,
+                                            resolved_path, custom_file_name_arr,
                                             size, depth + 1);
                                 }
                         }
@@ -182,92 +157,80 @@ char *choose_album_art(const char *dirPath, char **customFileNameArr, int size,
         return result;
 }
 
-char *find_largest_image_file(const char *directoryPath, char *largestImageFile,
-                           off_t *largestFileSize)
-{
-        DIR *directory = opendir(directoryPath);
-        if (directory == NULL)
-        {
+char *find_largest_image_file(const char *directory_path, char *largest_image_file,
+                              off_t *largest_file_size) {
+        DIR *directory = opendir(directory_path);
+        if (directory == NULL) {
                 fprintf(stderr, "Failed to open directory: %s\n",
-                        directoryPath);
-                return largestImageFile;
+                        directory_path);
+                return largest_image_file;
         }
 
         struct dirent *entry;
-        struct stat fileStats;
-        char filePath[MAXPATHLEN];
-        char resolvedPath[MAXPATHLEN];
+        struct stat file_stats;
+        char file_path[MAXPATHLEN];
+        char resolved_path[MAXPATHLEN];
 
-        while ((entry = readdir(directory)) != NULL)
-        {
+        while ((entry = readdir(directory)) != NULL) {
                 // Skip "." and ".."
                 if (strcmp(entry->d_name, ".") == 0 ||
                     strcmp(entry->d_name, "..") == 0)
                         continue;
 
                 // Construct file path safely
-                int len = snprintf(filePath, sizeof(filePath), "%s/%s",
-                                   directoryPath, entry->d_name);
-                if (len < 0 || len >= (int)sizeof(filePath))
-                {
+                int len = snprintf(file_path, sizeof(file_path), "%s/%s",
+                                   directory_path, entry->d_name);
+                if (len < 0 || len >= (int)sizeof(file_path)) {
                         // Path too long, skip
                         continue;
                 }
 
                 // Resolve the real path
-                if (realpath(filePath, resolvedPath) == NULL)
-                {
+                if (realpath(file_path, resolved_path) == NULL) {
                         // Could not resolve, skip
                         continue;
                 }
 
                 // Use lstat to avoid following symlinks
-                if (lstat(resolvedPath, &fileStats) == -1)
-                {
+                if (lstat(resolved_path, &file_stats) == -1) {
                         continue;
                 }
 
-                if (S_ISLNK(fileStats.st_mode))
-                {
+                if (S_ISLNK(file_stats.st_mode)) {
                         // Ignore symlinks
                         continue;
                 }
 
-                if (S_ISREG(fileStats.st_mode))
-                {
+                if (S_ISREG(file_stats.st_mode)) {
                         // Validate extension
                         char *extension = strrchr(entry->d_name, '.');
                         if (extension != NULL &&
                             (strcasecmp(extension, ".jpg") == 0 ||
                              strcasecmp(extension, ".jpeg") == 0 ||
                              strcasecmp(extension, ".png") == 0 ||
-                             strcasecmp(extension, ".gif") == 0))
-                        {
+                             strcasecmp(extension, ".gif") == 0)) {
                                 // Ensure non-negative file size and prevent
                                 // integer overflow
-                                if (fileStats.st_size < 0)
+                                if (file_stats.st_size < 0)
                                         continue;
 
                                 // Optional: impose max file size limit, e.g.,
                                 // 100 MB
                                 const off_t MAX_FILE_SIZE = 100 * 1024 * 1024;
-                                if (fileStats.st_size > MAX_FILE_SIZE)
+                                if (file_stats.st_size > MAX_FILE_SIZE)
                                         continue;
 
-                                if (fileStats.st_size > *largestFileSize)
-                                {
-                                        *largestFileSize = fileStats.st_size;
+                                if (file_stats.st_size > *largest_file_size) {
+                                        *largest_file_size = file_stats.st_size;
 
                                         // Free previous allocation if owned
-                                        if (largestImageFile != NULL)
-                                        {
-                                                free(largestImageFile);
-                                                largestImageFile = NULL;
+                                        if (largest_image_file != NULL) {
+                                                free(largest_image_file);
+                                                largest_image_file = NULL;
                                         }
 
-                                        largestImageFile = strdup(resolvedPath);
-                                        if (largestImageFile == NULL)
-                                        {
+                                        largest_image_file = strdup(resolved_path);
+                                        if (largest_image_file == NULL) {
                                                 fprintf(stderr,
                                                         "Memory allocation "
                                                         "failure\n");
@@ -281,119 +244,112 @@ char *find_largest_image_file(const char *directoryPath, char *largestImageFile,
         }
 
         closedir(directory);
-        return largestImageFile;
+        return largest_image_file;
 }
 
-gchar *generate_track_id(void)
-{
-        gchar *trackId =
+gchar *generate_track_id(void) {
+        gchar *track_id =
             g_strdup_printf("/org/kew/tracklist/track%d", track_counter);
         track_counter++;
-        return trackId;
+        return track_id;
 }
 
-int load_color(SongData *songdata)
-{
+int load_color(SongData *songdata) {
         return get_cover_color(songdata->cover, songdata->coverWidth,
-                      songdata->coverHeight, &(songdata->red),
-                      &(songdata->green), &(songdata->blue));
+                               songdata->coverHeight, &(songdata->red),
+                               &(songdata->green), &(songdata->blue));
 }
 
-void load_meta_data(SongData *songdata)
-{
+void load_meta_data(SongData *songdata) {
         AppState *state = get_app_state();
         char path[MAXPATHLEN];
 
         songdata->metadata = malloc(sizeof(TagSettings));
-        if (songdata->metadata == NULL)
-        {
+        if (songdata->metadata == NULL) {
                 songdata->hasErrors = true;
                 return;
         }
         songdata->metadata->replaygainTrack = 0.0;
         songdata->metadata->replaygainAlbum = 0.0;
 
-        generate_temp_file_path(songdata->coverArtPath, "cover", ".jpg");
+        generate_temp_file_path(songdata->cover_art_path, "cover", ".jpg");
 
-        int res = extractTags(songdata->filePath, songdata->metadata,
-                              &(songdata->duration), songdata->coverArtPath, &(songdata->lyrics));
+        int res = extractTags(songdata->file_path, songdata->metadata,
+                              &(songdata->duration), songdata->cover_art_path, &(songdata->lyrics));
 
-        if (res == -2)
-        {
+        if (res == -2) {
                 songdata->hasErrors = true;
                 return;
-        }
-        else if (res == -1)
-        {
-                get_directory_from_path(songdata->filePath, path);
+        } else if (res == -1) {
+                get_directory_from_path(songdata->file_path, path);
                 char *tmp = NULL;
                 off_t size = 0;
-                char *fileArr[12] = {
-                    "front.png",  "front.jpg",   "front.jpeg", "folder.png",
-                    "folder.jpg", "folder.jpeg", "cover.png",  "cover.jpg",
-                    "cover.jpeg", "f.png",       "f.jpg",      "f.jpeg",
+                char *file_arr[12] = {
+                    "front.png",
+                    "front.jpg",
+                    "front.jpeg",
+                    "folder.png",
+                    "folder.jpg",
+                    "folder.jpeg",
+                    "cover.png",
+                    "cover.jpg",
+                    "cover.jpeg",
+                    "f.png",
+                    "f.jpg",
+                    "f.jpeg",
                 };
-                tmp = choose_album_art(path, fileArr, 12, 0);
-                if (tmp == NULL)
-                {
+                tmp = choose_album_art(path, file_arr, 12, 0);
+                if (tmp == NULL) {
                         tmp = find_largest_image_file(path, tmp, &size);
                 }
 
-                if (tmp != NULL)
-                {
-                        c_strcpy(songdata->coverArtPath, tmp,
-                                 sizeof(songdata->coverArtPath));
+                if (tmp != NULL) {
+                        c_strcpy(songdata->cover_art_path, tmp,
+                                 sizeof(songdata->cover_art_path));
                         free(tmp);
                         tmp = NULL;
-                }
-                else
-                        c_strcpy(songdata->coverArtPath, "",
-                                 sizeof(songdata->coverArtPath));
-        }
-        else
-        {
-                add_to_cache(state->tmpCache, songdata->coverArtPath);
+                } else
+                        c_strcpy(songdata->cover_art_path, "",
+                                 sizeof(songdata->cover_art_path));
+        } else {
+                add_to_cache(state->tmpCache, songdata->cover_art_path);
         }
 
         songdata->cover =
-            get_bitmap(songdata->coverArtPath, &(songdata->coverWidth),
-                      &(songdata->coverHeight));
+            get_bitmap(songdata->cover_art_path, &(songdata->coverWidth),
+                       &(songdata->coverHeight));
 }
 
-void unload_lyrics(SongData *songdata)
-{
-        if (songdata->lyrics)
-        {
+void unload_lyrics(SongData *songdata) {
+        if (songdata->lyrics) {
                 freeLyrics(songdata->lyrics);
                 songdata->lyrics = NULL;
         }
 }
 
-SongData *load_song_data(char *filePath)
-{
+SongData *load_song_data(char *file_path) {
         AppState *state = get_app_state();
         SongData *songdata = NULL;
         songdata = malloc(sizeof(SongData));
         songdata->magic = SONG_MAGIC;
-        songdata->trackId = generate_track_id();
+        songdata->track_id = generate_track_id();
         songdata->hasErrors = false;
-        c_strcpy(songdata->filePath, "", sizeof(songdata->filePath));
-        c_strcpy(songdata->coverArtPath, "", sizeof(songdata->coverArtPath));
+        c_strcpy(songdata->file_path, "", sizeof(songdata->file_path));
+        c_strcpy(songdata->cover_art_path, "", sizeof(songdata->cover_art_path));
         songdata->red = state->uiSettings.kewColorRGB.r;
         songdata->green = state->uiSettings.kewColorRGB.g;
         songdata->blue = state->uiSettings.kewColorRGB.b;
         songdata->metadata = NULL;
         songdata->cover = NULL;
         songdata->duration = 0.0;
-        songdata->avgBitRate = 0;
+        songdata->avg_bit_rate = 0;
         songdata->lyrics = NULL;
-        c_strcpy(songdata->filePath, filePath, sizeof(songdata->filePath));
-        songdata->lyrics = loadLyricsFromLRC(songdata->filePath);
+        c_strcpy(songdata->file_path, file_path, sizeof(songdata->file_path));
+        songdata->lyrics = loadLyricsFromLRC(songdata->file_path);
         load_meta_data(songdata);
         int res = load_color(songdata);
 
-        if (songdata->cover && res != 0)
-        {
+        if (songdata->cover && res != 0) {
                 songdata->red = state->uiSettings.defaultColorRGB.r;
                 songdata->green = state->uiSettings.defaultColorRGB.g;
                 songdata->blue = state->uiSettings.defaultColorRGB.b;
@@ -402,24 +358,21 @@ SongData *load_song_data(char *filePath)
         return songdata;
 }
 
-void unload_song_data(SongData **songdata)
-{
+void unload_song_data(SongData **songdata) {
         AppState *state = get_app_state();
         if (*songdata == NULL)
                 return;
 
         SongData *data = *songdata;
 
-        if (data->cover != NULL)
-        {
+        if (data->cover != NULL) {
                 stbi_image_free(data->cover);
                 data->cover = NULL;
         }
 
-        if (exists_in_cache(state->tmpCache, data->coverArtPath) &&
-            is_in_temp_dir(data->coverArtPath))
-        {
-                delete_file(data->coverArtPath);
+        if (exists_in_cache(state->tmpCache, data->cover_art_path) &&
+            is_in_temp_dir(data->cover_art_path)) {
+                delete_file(data->cover_art_path);
         }
 
         unload_lyrics(data);
@@ -427,12 +380,12 @@ void unload_song_data(SongData **songdata)
         data->magic = 0;
 
         free(data->metadata);
-        free(data->trackId);
+        free(data->track_id);
 
         data->cover = NULL;
         data->metadata = NULL;
 
-        data->trackId = NULL;
+        data->track_id = NULL;
 
         free(*songdata);
         *songdata = NULL;

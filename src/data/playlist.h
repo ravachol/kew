@@ -26,12 +26,11 @@
 
 typedef struct
 {
-        char *filePath;
+        char *file_path;
         double duration;
 } SongInfo;
 
-typedef struct Node
-{
+typedef struct Node {
         int id;
         SongInfo song;
         struct Node *next;
@@ -54,15 +53,15 @@ Node *get_list_prev(Node *node);
 Node *delete_from_list(PlayList *list, Node *node);
 Node *find_path_in_playlist(const char *path, PlayList *playlist);
 Node *find_last_path_in_playlist(const char *path, PlayList *playlist);
-PlayList *deep_copy_play_list(const PlayList *originalList);
+PlayList *deep_copy_play_list(const PlayList *original_list);
 int increment_node_id(void);
-int add_to_list(PlayList *list, Node *newNode);
-int make_playlist(PlayList **playlist, int argc, char *argv[], bool exactSearch, const char *path);
-int find_node_in_list(PlayList *list, int id, Node **foundNode);
+int add_to_list(PlayList *list, Node *new_node);
+int make_playlist(PlayList **playlist, int argc, char *argv[], bool exact_search, const char *path);
+int find_node_in_list(PlayList *list, int id, Node **found_node);
 int is_music_file(const char *filename);
 void clear_current_song(void);
 void set_current_song(Node *node);
-void create_node(Node **node, const char *directoryPath, int id);
+void create_node(Node **node, const char *directory_path, int id);
 void delete_playlist(PlayList *playlist);
 void destroy_node(Node *node);
 void shuffle_playlist(PlayList *playlist);
@@ -74,9 +73,9 @@ void load_favorites_playlist(const char *directory, PlayList **favorites_playlis
 void save_named_playlist(const char *directory, const char *playlist_name, const PlayList *playlist);
 void save_last_used_playlist(PlayList *unshuffled_playlist);
 void save_favorites_playlist(const char *directory, PlayList *favorites_playlist);
-void deep_copy_play_list_onto_list(const PlayList *originalList, PlayList **newList);
-void create_play_list_from_file_system_entry(FileSystemEntry *root, PlayList *list, int playlistMax);
-void add_shuffled_albums_to_play_list(FileSystemEntry *root, PlayList *list, int playlistMax);
+void deep_copy_play_list_onto_list(const PlayList *original_list, PlayList **new_list);
+void create_play_list_from_file_system_entry(FileSystemEntry *root, PlayList *list, int playlist_max);
+void add_shuffled_albums_to_play_list(FileSystemEntry *root, PlayList *list, int playlist_max);
 void move_up_list(PlayList *list, Node *node);
 void move_down_list(PlayList *list, Node *node);
 void read_m3_u_file(const char *filename, PlayList *playlist, FileSystemEntry *library);

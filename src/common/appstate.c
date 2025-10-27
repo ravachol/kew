@@ -40,35 +40,29 @@ Node *song_to_start_from = NULL;
 
 ProgressBar progress_bar;
 
-void free_playlists(void)
-{
+void free_playlists(void) {
         delete_playlist(&playlist);
 
         PlayList *unshuffled = get_unshuffled_playlist();
         PlayList *favorites = get_favorites_playlist();
 
-        if (unshuffled != NULL)
-        {
+        if (unshuffled != NULL) {
                 delete_playlist(unshuffled);
                 free(unshuffled);
                 unshuffled_playlist = NULL;
         }
 
-        if (favorites != NULL)
-        {
+        if (favorites != NULL) {
                 delete_playlist(favorites);
                 free(favorites);
                 favorites_playlist = NULL;
         }
 }
 
-void create_playlist(PlayList **playlist)
-{
-        if (*playlist == NULL)
-        {
+void create_playlist(PlayList **playlist) {
+        if (*playlist == NULL) {
                 *playlist = malloc(sizeof(PlayList));
-                if (*playlist == NULL)
-                {
+                if (*playlist == NULL) {
                         return;
                 }
 
@@ -81,131 +75,106 @@ void create_playlist(PlayList **playlist)
 
 // --- Getters ---
 
-AudioData *get_audio_data(void)
-{
+AudioData *get_audio_data(void) {
         return &audio_data;
 }
 
-AppState *get_app_state()
-{
+AppState *get_app_state() {
         return &app_state;
 }
 
-AppSettings *get_app_settings()
-{
+AppSettings *get_app_settings() {
         return &settings;
 }
 
-FileSystemEntry *get_library()
-{
+FileSystemEntry *get_library() {
         return library;
 }
 
-PlaybackState *get_playback_state()
-{
-       return &playback_state;
+PlaybackState *get_playback_state() {
+        return &playback_state;
 }
 
-char *get_library_file_path(void)
-{
+char *get_library_file_path(void) {
         return get_file_path(LIBRARY_FILE);
 }
 
-double get_pause_seconds(void)
-{
+double get_pause_seconds(void) {
         return pause_seconds;
 }
 
-double get_total_pause_seconds(void)
-{
+double get_total_pause_seconds(void) {
         return total_pause_seconds;
 }
 
-Node *get_next_song(void)
-{
+Node *get_next_song(void) {
         return next_song;
 }
 
-Node *get_song_to_start_from(void)
-{
+Node *get_song_to_start_from(void) {
         return song_to_start_from;
 }
 
-Node *get_try_next_song(void)
-{
+Node *get_try_next_song(void) {
         return try_next_song;
 }
 
-ProgressBar *get_progress_bar(void)
-{
+ProgressBar *get_progress_bar(void) {
         return &progress_bar;
 }
 
-PlayList *get_playlist(void)
-{
+PlayList *get_playlist(void) {
         return &playlist;
 }
 
-PlayList *get_unshuffled_playlist(void)
-{
+PlayList *get_unshuffled_playlist(void) {
         return unshuffled_playlist;
 }
 
-PlayList *get_favorites_playlist(void)
-{
+PlayList *get_favorites_playlist(void) {
         return favorites_playlist;
 }
 
 // --- Setters ---
 
-void set_audio_data(AudioData *ad)
-{
+void set_audio_data(AudioData *ad) {
         if (ad)
                 audio_data = *ad;
 }
 
-void set_library(FileSystemEntry *root)
-{
+void set_library(FileSystemEntry *root) {
         library = root;
 }
 
-void set_playlist(PlayList *pl)
-{
+void set_playlist(PlayList *pl) {
         if (pl)
                 playlist = *pl;
 }
 
-void set_unshuffled_playlist(PlayList *pl)
-{
+void set_unshuffled_playlist(PlayList *pl) {
         unshuffled_playlist = pl;
 }
 
-void set_favorites_playlist(PlayList *pl)
-{
+void set_favorites_playlist(PlayList *pl) {
         favorites_playlist = pl;
 }
 
-void set_pause_seconds(double seconds)
-{
+void set_pause_seconds(double seconds) {
         pause_seconds = seconds;
 }
 
-void set_total_pause_seconds(double seconds)
-{
+void set_total_pause_seconds(double seconds) {
         total_pause_seconds = seconds;
 }
 
-void set_next_song(Node *node)
-{
+void set_next_song(Node *node) {
         next_song = node;
 }
 
-void set_song_to_start_from(Node *node)
-{
+void set_song_to_start_from(Node *node) {
         song_to_start_from = node;
 }
 
-void set_try_next_song(Node *node)
-{
+void set_try_next_song(Node *node) {
         try_next_song = node;
 }

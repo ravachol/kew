@@ -11,20 +11,18 @@
 
 #include <stdbool.h>
 
-typedef struct CacheNode
-{
-        char *filePath;
+typedef struct CacheNode {
+        char *file_path;
         struct CacheNode *next;
 } CacheNode;
 
-typedef struct Cache
-{
+typedef struct Cache {
         CacheNode *head;
 } Cache;
 
 Cache *create_cache(void);
-void add_to_cache(Cache *cache, const char *filePath);
+void add_to_cache(Cache *cache, const char *file_path);
 void delete_cache(Cache *cache);
-bool exists_in_cache(Cache *cache, char *filePath);
+bool exists_in_cache(Cache *cache, char *file_path);
 
 #endif

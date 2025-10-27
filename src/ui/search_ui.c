@@ -25,8 +25,7 @@
 
 #define MAX_SEARCH_LEN 32
 
-typedef struct SearchResult
-{
+typedef struct SearchResult {
         FileSystemEntry *entry;
         struct FileSystemEntry *parent;
         int distance;
@@ -45,19 +44,21 @@ static FileSystemEntry *current_search_entry = NULL;
 
 static char search_text[MAX_SEARCH_LEN * 4 + 1]; // Unicode can be 4 characters
 
-FileSystemEntry *get_current_search_entry(void) { return current_search_entry; }
+FileSystemEntry *get_current_search_entry(void) {
+        return current_search_entry;
+}
 
-int get_search_results_count(void) { return results_count; }
+int get_search_results_count(void) {
+        return results_count;
+}
 
 #define GROW_MARGIN 50
 
-void realloc_results()
-{
-        if (results_count >= results_capacity)
-        {
+void realloc_results() {
+        if (results_count >= results_capacity) {
                 results_capacity = results_capacity == 0
-                                      ? 10 + GROW_MARGIN
-                                      : results_capacity + GROW_MARGIN;
+                                       ? 10 + GROW_MARGIN
+                                       : results_capacity + GROW_MARGIN;
 
                 results =
                     realloc(results, results_capacity * sizeof(SearchResult));
@@ -65,17 +66,14 @@ void realloc_results()
 }
 
 void set_result_fields(FileSystemEntry *entry, int distance,
-                     FileSystemEntry *parent)
-{
+                       FileSystemEntry *parent) {
         results[results_count].distance = distance;
         results[results_count].entry = entry;
         results[results_count].parent = parent;
 }
 
-bool is_duplicate(const FileSystemEntry *entry)
-{
-        for (size_t i = 0; i < results_count; i++)
-        {
+bool is_duplicate(const FileSystemEntry *entry) {
+        for (size_t i = 0; i < results_count; i++) {
                 const FileSystemEntry *other = results[i].entry;
 
                 if (!entry->is_directory)
@@ -88,8 +86,7 @@ bool is_duplicate(const FileSystemEntry *entry)
         return false;
 }
 
-void add_result(FileSystemEntry *entry, int distance)
-{
+void add_result(FileSystemEntry *entry, int distance) {
         if (num_search_letters < min_search_letters)
                 return;
 
@@ -106,17 +103,13 @@ void add_result(FileSystemEntry *entry, int distance)
         set_result_fields(entry, distance, NULL);
         results_count++;
 
-        if (entry->is_directory)
-        {
+        if (entry->is_directory) {
                 if (entry->children && entry->parent != NULL &&
-                    entry->parent->parent == NULL)
-                {
+                    entry->parent->parent == NULL) {
                         FileSystemEntry *child = entry->children;
 
-                        while (child)
-                        {
-                                if (child->is_directory)
-                                {
+                        while (child) {
+                                if (child->is_directory) {
                                         if (results_count > terminal_height * 10)
                                                 break;
 
@@ -131,15 +124,12 @@ void add_result(FileSystemEntry *entry, int distance)
         }
 }
 
-void collect_result(FileSystemEntry *entry, int distance)
-{
+void collect_result(FileSystemEntry *entry, int distance) {
         add_result(entry, distance);
 }
 
-void free_search_results(void)
-{
-        if (results != NULL)
-        {
+void free_search_results(void) {
+        if (results != NULL) {
                 free(results);
                 results = NULL;
         }
@@ -151,14 +141,11 @@ void free_search_results(void)
         results_count = 0;
 }
 
-void calculate_group_distances(void)
-{
-        for (size_t i = 0; i < results_count; i++)
-        {
+void calculate_group_distances(void) {
+        for (size_t i = 0; i < results_count; i++) {
                 // Find top-level parent (entry with no parent, or root)
                 FileSystemEntry *root = results[i].entry;
-                while (root->parent != NULL)
-                {
+                while (root->parent != NULL) {
                         root = root->parent;
                 }
 
@@ -166,25 +153,20 @@ void calculate_group_distances(void)
                 // Otherwise use minimum distance among descendants
                 int minDist = results[i].distance;
 
-                for (size_t j = 0; j < results_count; j++)
-                {
+                for (size_t j = 0; j < results_count; j++) {
                         FileSystemEntry *otherRoot = results[j].entry;
-                        while (otherRoot->parent != NULL)
-                        {
+                        while (otherRoot->parent != NULL) {
                                 otherRoot = otherRoot->parent;
                         }
 
-                        if (otherRoot == root)
-                        {
-                                if (results[j].entry == root)
-                                {
+                        if (otherRoot == root) {
+                                if (results[j].entry == root) {
                                         // The root itself is in results - use
                                         // its distance
                                         minDist = results[j].distance;
                                         break;
                                 }
-                                if (results[j].distance < minDist)
-                                {
+                                if (results[j].distance < minDist) {
                                         minDist = results[j].distance + 1;
                                 }
                         }
@@ -196,8 +178,7 @@ void calculate_group_distances(void)
         }
 }
 
-static int ancestor_compare(const FileSystemEntry *A, const FileSystemEntry *B)
-{
+static int ancestor_compare(const FileSystemEntry *A, const FileSystemEntry *B) {
         for (const FileSystemEntry *p = B->parent; p; p = p->parent)
                 if (p == A)
                         return -1;
@@ -207,8 +188,7 @@ static int ancestor_compare(const FileSystemEntry *A, const FileSystemEntry *B)
         return 0;
 }
 
-int compare_results(const void *a, const void *b)
-{
+int compare_results(const void *a, const void *b) {
         const SearchResult *A = a;
         const SearchResult *B = b;
 
@@ -221,38 +201,34 @@ int compare_results(const void *a, const void *b)
                 return (A->groupDistance < B->groupDistance) ? -1 : 1;
 
         // If different parents, compare by hierarchy (path)
-        if (A->entry->parent != B->entry->parent)
-        {
-                const FileSystemEntry *pA = A->entry;
-                const FileSystemEntry *pB = B->entry;
+        if (A->entry->parent != B->entry->parent) {
+                const FileSystemEntry *p_a = A->entry;
+                const FileSystemEntry *p_b = B->entry;
 
                 // Walk up to same depth
-                int depthA = 0, depthB = 0;
-                for (const FileSystemEntry *p = pA; p->parent; p = p->parent)
-                        depthA++;
-                for (const FileSystemEntry *p = pB; p->parent; p = p->parent)
+                int depth_a = 0, depthB = 0;
+                for (const FileSystemEntry *p = p_a; p->parent; p = p->parent)
+                        depth_a++;
+                for (const FileSystemEntry *p = p_b; p->parent; p = p->parent)
                         depthB++;
 
-                while (depthA > depthB)
-                {
-                        pA = pA->parent;
-                        depthA--;
+                while (depth_a > depthB) {
+                        p_a = p_a->parent;
+                        depth_a--;
                 }
-                while (depthB > depthA)
-                {
-                        pB = pB->parent;
+                while (depthB > depth_a) {
+                        p_b = p_b->parent;
                         depthB--;
                 }
 
                 // Walk up together to find where they diverge
-                while (pA->parent != pB->parent)
-                {
-                        pA = pA->parent;
-                        pB = pB->parent;
+                while (p_a->parent != p_b->parent) {
+                        p_a = p_a->parent;
+                        p_b = p_b->parent;
                 }
 
                 // Compare by name at divergence point
-                int cmp = strcmp(pA->name, pB->name);
+                int cmp = strcmp(p_a->name, p_b->name);
                 if (cmp != 0)
                         return cmp;
         }
@@ -273,14 +249,12 @@ int compare_results(const void *a, const void *b)
         return (A->entry < B->entry) ? -1 : (A->entry > B->entry);
 }
 
-void sort_search_results(void)
-{
+void sort_search_results(void) {
         calculate_group_distances();
         qsort(results, results_count, sizeof(SearchResult), compare_results);
 }
 
-void fuzzy_search(FileSystemEntry *root, int threshold)
-{
+void fuzzy_search(FileSystemEntry *root, int threshold) {
         int term_w, term_h;
         get_term_size(&term_w, &term_h);
 
@@ -288,10 +262,9 @@ void fuzzy_search(FileSystemEntry *root, int threshold)
 
         free_search_results();
 
-        if (num_search_letters > min_search_letters)
-        {
+        if (num_search_letters > min_search_letters) {
                 fuzzy_search_recursive(root, search_text, threshold,
-                                     collect_result);
+                                       collect_result);
         }
 
         sort_search_results();
@@ -299,8 +272,7 @@ void fuzzy_search(FileSystemEntry *root, int threshold)
         trigger_refresh();
 }
 
-int display_search_box(int indent)
-{
+int display_search_box(int indent) {
         AppState *state = get_app_state();
         UISettings *ui = &(state->uiSettings);
 
@@ -318,24 +290,20 @@ int display_search_box(int indent)
         return 0;
 }
 
-int add_to_search_text(const char *str)
-{
-        if (str == NULL)
-        {
+int add_to_search_text(const char *str) {
+        if (str == NULL) {
                 return -1;
         }
 
         size_t len = strnlen(str, MAX_SEARCH_LEN);
 
         // Check if the string can fit into the search text buffer
-        if (num_search_letters + len > MAX_SEARCH_LEN)
-        {
+        if (num_search_letters + len > MAX_SEARCH_LEN) {
                 return 0; // Not enough space
         }
 
         // Add the string to the search text buffer
-        for (size_t i = 0; i < len; i++)
-        {
+        for (size_t i = 0; i < len; i++) {
                 search_text[num_search_bytes++] = str[i];
         }
 
@@ -349,32 +317,29 @@ int add_to_search_text(const char *str)
 }
 
 // Determine the number of bytes in the last UTF-8 character
-int get_last_char_bytes(const char *str, int len)
-{
+int get_last_char_bytes(const char *str, int len) {
         if (len == 0)
                 return 0;
 
         int i = len - 1;
-        while (i >= 0 && (str[i] & 0xC0) == 0x80)
-        {
+        while (i >= 0 && (str[i] & 0xC0) == 0x80) {
                 i--;
         }
         return len - i;
 }
 
 // Remove the preceding character from the search text
-int remove_from_search_text(void)
-{
+int remove_from_search_text(void) {
         if (num_search_letters == 0)
                 return 0;
 
         // Determine the number of bytes to remove for the last character
-        int lastCharBytes = get_last_char_bytes(search_text, num_search_bytes);
-        if (lastCharBytes == 0)
+        int last_char_bytes = get_last_char_bytes(search_text, num_search_bytes);
+        if (last_char_bytes == 0)
                 return 0;
 
         // Remove the character from the buffer
-        num_search_bytes -= lastCharBytes;
+        num_search_bytes -= last_char_bytes;
         search_text[num_search_bytes] = '\0';
 
         num_search_letters--;
@@ -384,46 +349,35 @@ int remove_from_search_text(void)
         return 0;
 }
 
-void apply_color_and_format(bool isChosen, FileSystemEntry *entry, UISettings *ui,
-                         bool is_playing)
-{
-        if (isChosen)
-        {
+void apply_color_and_format(bool is_chosen, FileSystemEntry *entry, UISettings *ui,
+                            bool is_playing) {
+        if (is_chosen) {
                 current_search_entry = entry;
 
-                if (entry->isEnqueued)
-                {
+                if (entry->is_enqueued) {
                         apply_color(ui->colorMode,
-                                   is_playing ? ui->theme.search_playing
-                                             : ui->theme.search_enqueued,
-                                   ui->color);
+                                    is_playing ? ui->theme.search_playing
+                                               : ui->theme.search_enqueued,
+                                    ui->color);
 
                         printf("\x1b[7m * ");
-                }
-                else
-                {
+                } else {
                         printf("  \x1b[7m ");
                 }
-        }
-        else
-        {
-                if (entry->isEnqueued)
-                {
+        } else {
+                if (entry->is_enqueued) {
                         apply_color(ui->colorMode,
-                                   is_playing ? ui->theme.search_playing
-                                             : ui->theme.search_enqueued,
-                                   ui->color);
+                                    is_playing ? ui->theme.search_playing
+                                               : ui->theme.search_enqueued,
+                                    ui->color);
 
                         printf(" * ");
-                }
-                else
-                {
-                        if (entry->parent != NULL && entry->parent->parent == NULL)
-                        {
-                           apply_color(ui->colorMode,
-                                   is_playing ? ui->theme.search_playing
-                                             : ui->theme.library_artist,
-                                   ui->color);
+                } else {
+                        if (entry->parent != NULL && entry->parent->parent == NULL) {
+                                apply_color(ui->colorMode,
+                                            is_playing ? ui->theme.search_playing
+                                                       : ui->theme.library_artist,
+                                            ui->color);
                         }
                         printf("   ");
                 }
@@ -433,25 +387,22 @@ void apply_color_and_format(bool isChosen, FileSystemEntry *entry, UISettings *u
 FileSystemEntry *last_directory = NULL;
 
 int display_search_results(int max_list_size, int indent, int *chosen_row,
-                         int start_search_iter)
-{
+                           int start_search_iter) {
         int term_w, term_h;
         get_term_size(&term_w, &term_h);
 
-        int maxNameWidth = term_w - indent - 5;
-        char name[maxNameWidth + 1];
-        int printedRows = 0;
+        int max_name_width = term_w - indent - 5;
+        char name[max_name_width + 1];
+        int printed_rows = 0;
 
-        if (*chosen_row >= (int)results_count - 1)
-        {
+        if (*chosen_row >= (int)results_count - 1) {
                 *chosen_row = results_count - 1;
         }
 
         if (start_search_iter < 0)
                 start_search_iter = 0;
 
-        if (*chosen_row > start_search_iter + round(max_list_size / 2))
-        {
+        if (*chosen_row > start_search_iter + round(max_list_size / 2)) {
                 start_search_iter = *chosen_row - round(max_list_size / 2) + 1;
         }
 
@@ -463,92 +414,83 @@ int display_search_results(int max_list_size, int indent, int *chosen_row,
 
         clear_line();
         printf("\n");
-        printedRows++;
+        printed_rows++;
 
-        int nameWidth = maxNameWidth;
-        int extraIndent = 0;
+        int name_width = max_name_width;
+        int extra_indent = 0;
         AppState *state = get_app_state();
         UISettings *ui = &(state->uiSettings);
 
-        for (size_t i = start_search_iter; i < results_count; i++)
-        {
+        for (size_t i = start_search_iter; i < results_count; i++) {
                 if ((int)i >= max_list_size + start_search_iter - 1)
                         break;
 
                 apply_color(ui->colorMode, ui->theme.search_result,
-                           ui->defaultColorRGB);
+                            ui->defaultColorRGB);
 
                 clear_line();
 
                 // Indent sub dirs
                 if (results[i].parent != NULL)
-                        extraIndent = 2;
+                        extra_indent = 2;
                 else if (!results[i].entry->is_directory &&
-                        (last_directory != NULL) && results[i].entry->parentId == last_directory->id)
-                        extraIndent = 4;
+                         (last_directory != NULL) && results[i].entry->parent_id == last_directory->id)
+                        extra_indent = 4;
                 else
-                        extraIndent = 0;
+                        extra_indent = 0;
 
-                nameWidth = maxNameWidth - extraIndent;
+                name_width = max_name_width - extra_indent;
 
-                print_blank_spaces(indent + extraIndent);
+                print_blank_spaces(indent + extra_indent);
 
-                bool isChosen = (*chosen_row == (int)i);
+                bool is_chosen = (*chosen_row == (int)i);
 
                 Node *current = get_current_song();
 
                 bool isCurrentSong =
-                    current != NULL && strcmp(current->song.filePath,
-                                              results[i].entry->fullPath) == 0;
+                    current != NULL && strcmp(current->song.file_path,
+                                              results[i].entry->full_path) == 0;
 
-                apply_color_and_format(isChosen, results[i].entry, ui,
-                                    isCurrentSong);
+                apply_color_and_format(is_chosen, results[i].entry, ui,
+                                       isCurrentSong);
 
                 name[0] = '\0';
-                if (results[i].entry->is_directory)
-                {
+                if (results[i].entry->is_directory) {
                         last_directory = results[i].entry;
 
-                        if (results[i].entry->parent != NULL && results[i].entry->parent->parent == NULL)
-                        {
-                                char *upperDirName = string_to_upper(results[i].entry->name);
+                        if (results[i].entry->parent != NULL && results[i].entry->parent->parent == NULL) {
+                                char *upper_dir_name = string_to_upper(results[i].entry->name);
 
-                                snprintf(name, nameWidth + 1, "%s",
-                                        upperDirName);
+                                snprintf(name, name_width + 1, "%s",
+                                         upper_dir_name);
 
-
-                                free(upperDirName);
+                                free(upper_dir_name);
+                        } else {
+                                snprintf(name, name_width + 1, "[%s]",
+                                         results[i].entry->name);
                         }
-                        else {
-                                snprintf(name, nameWidth + 1, "[%s]",
-                                        results[i].entry->name);
-                        }
-                }
-                else
-                {
-                        snprintf(name, nameWidth + 1, "%s [%s]",
+                } else {
+                        snprintf(name, name_width + 1, "%s [%s]",
                                  results[i].entry->name,
-                                 (results[i].entry->parent != NULL ?  results[i].entry->parent->name : "Root"));
+                                 (results[i].entry->parent != NULL ? results[i].entry->parent->name : "Root"));
                 }
                 printf("%s\n", name);
-                printedRows++;
+                printed_rows++;
         }
 
         apply_color(ui->colorMode, ui->theme.help, ui->defaultColorRGB);
 
-        while (printedRows < max_list_size)
-        {
+        while (printed_rows < max_list_size) {
                 clear_line();
                 printf("\n");
-                printedRows++;
+                printed_rows++;
         }
 
         return 0;
 }
 
 int display_search(int max_list_size, int indent, int *chosen_row,
-                  int start_search_iter)
-{
+                   int start_search_iter) {
         display_search_box(indent);
         display_search_results(max_list_size, indent, chosen_row, start_search_iter);
 

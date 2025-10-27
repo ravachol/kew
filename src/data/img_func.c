@@ -55,82 +55,72 @@ static gchar *tmux_allow_passthrough_original;
 static gboolean tmux_allow_passthrough_is_changed;
 
 static gboolean
-apply_passthrough_workarounds_tmux(void)
-{
-    gboolean result = FALSE;
-    gchar *standard_output = NULL;
-    gchar *standard_error = NULL;
-    gchar **argv = NULL;
-    gint wait_status = -1;
-    gchar *mode = NULL;
+apply_passthrough_workarounds_tmux(void) {
+        gboolean result = FALSE;
+        gchar *standard_output = NULL;
+        gchar *standard_error = NULL;
+        gchar **argv = NULL;
+        gint wait_status = -1;
+        gchar *mode = NULL;
 
-    /* Use g_spawn_sync with explicit argv to avoid shell injection */
-    argv = g_new0(gchar*, 4);
-    argv[0] = g_strdup("tmux");
-    argv[1] = g_strdup("show");
-    argv[2] = g_strdup("allow-passthrough");
-    argv[3] = NULL;
-
-    if (!g_spawn_sync(NULL, argv, NULL, G_SPAWN_SEARCH_PATH,
-                      NULL, NULL, &standard_output, &standard_error,
-                      &wait_status, NULL))
-    {
-        g_strfreev(argv);
-        goto out;
-    }
-    g_strfreev(argv);
-
-    /* Parse output safely */
-    if (standard_output && *standard_output)
-    {
-        gchar **lines = g_strsplit(standard_output, "\n", 2);
-        if (lines[0])
-        {
-            gchar **parts = g_strsplit(lines[0], " ", 3);
-            if (parts[0] && parts[1])
-            {
-                mode = g_ascii_strdown(parts[1], -1);
-                g_strstrip(mode);
-            }
-            g_strfreev(parts);
-        }
-        g_strfreev(lines);
-    }
-
-    if (!mode || (strcmp(mode, "on") && strcmp(mode, "all")))
-    {
-        argv = g_new0(gchar*, 4);
+        /* Use g_spawn_sync with explicit argv to avoid shell injection */
+        argv = g_new0(gchar *, 4);
         argv[0] = g_strdup("tmux");
-        argv[1] = g_strdup("set-option");
-        argv[2] = g_strdup("allow-passthrough on");
+        argv[1] = g_strdup("show");
+        argv[2] = g_strdup("allow-passthrough");
         argv[3] = NULL;
 
-        result = g_spawn_sync(NULL, argv, NULL, G_SPAWN_SEARCH_PATH,
-                             NULL, NULL, &standard_output, &standard_error,
-                             &wait_status, NULL);
+        if (!g_spawn_sync(NULL, argv, NULL, G_SPAWN_SEARCH_PATH,
+                          NULL, NULL, &standard_output, &standard_error,
+                          &wait_status, NULL)) {
+                g_strfreev(argv);
+                goto out;
+        }
         g_strfreev(argv);
 
-        if (result)
-        {
-            tmux_allow_passthrough_original = mode;
-            tmux_allow_passthrough_is_changed = TRUE;
+        /* Parse output safely */
+        if (standard_output && *standard_output) {
+                gchar **lines = g_strsplit(standard_output, "\n", 2);
+                if (lines[0]) {
+                        gchar **parts = g_strsplit(lines[0], " ", 3);
+                        if (parts[0] && parts[1]) {
+                                mode = g_ascii_strdown(parts[1], -1);
+                                g_strstrip(mode);
+                        }
+                        g_strfreev(parts);
+                }
+                g_strfreev(lines);
         }
-    }
-    else
-    {
-        g_free(mode);
-    }
+
+        if (!mode || (strcmp(mode, "on") && strcmp(mode, "all"))) {
+                argv = g_new0(gchar *, 4);
+                argv[0] = g_strdup("tmux");
+                argv[1] = g_strdup("set-option");
+                argv[2] = g_strdup("allow-passthrough on");
+                argv[3] = NULL;
+
+                result = g_spawn_sync(NULL, argv, NULL, G_SPAWN_SEARCH_PATH,
+                                      NULL, NULL, &standard_output, &standard_error,
+                                      &wait_status, NULL);
+                g_strfreev(argv);
+
+                if (result) {
+                        tmux_allow_passthrough_original = mode;
+                        tmux_allow_passthrough_is_changed = TRUE;
+                }
+        } else {
+                g_free(mode);
+        }
 
 out:
-    g_free(standard_output);
-    g_free(standard_error);
-    g_free(mode);
-    return result;
+        g_free(standard_output);
+        g_free(standard_error);
+        g_free(mode);
+        return result;
 }
 
 gboolean
-retirePassthroughWorkarounds_tmux(void)
-{
+retirePassthroughWorkarounds_tmux(void) {
         gboolean result = FALSE;
         gchar *standard_output = NULL;
         gchar *standard_error = NULL;
@@ -140,8 +130,7 @@ retirePassthroughWorkarounds_tmux(void)
         if (!tmux_allow_passthrough_is_changed)
                 return TRUE;
 
-        if (tmux_allow_passthrough_original)
-        {
+        if (tmux_allow_passthrough_original) {
                 // Use argument array to avoid shell injection
                 argv = g_new0(gchar *, 5);
                 argv[0] = g_strdup("tmux");
@@ -149,9 +138,7 @@ retirePassthroughWorkarounds_tmux(void)
                 argv[2] = g_strdup("allow-passthrough");
                 argv[3] = g_strdup(tmux_allow_passthrough_original);
                 argv[4] = NULL;
-        }
-        else
-        {
+        } else {
                 // Use argument array for unsetting the option
                 argv = g_new0(gchar *, 4);
                 argv[0] = g_strdup("tmux");
@@ -172,8 +159,7 @@ retirePassthroughWorkarounds_tmux(void)
                 g_free(argv[i]);
         g_free(argv);
 
-        if (result)
-        {
+        if (result) {
                 g_free(tmux_allow_passthrough_original);
                 tmux_allow_passthrough_original = NULL;
                 tmux_allow_passthrough_is_changed = FALSE;
@@ -185,8 +171,7 @@ retirePassthroughWorkarounds_tmux(void)
 }
 
 static void detect_terminal(ChafaTermInfo **term_info_out, ChafaCanvasMode *mode_out, ChafaPixelMode *pixel_mode_out,
-                            ChafaPassthrough *passthrough_out, ChafaSymbolMap **symbol_map_out)
-{
+                            ChafaPassthrough *passthrough_out, ChafaSymbolMap **symbol_map_out) {
         ChafaCanvasMode mode;
         ChafaPixelMode pixel_mode;
         ChafaPassthrough passthrough;
@@ -208,8 +193,7 @@ static void detect_terminal(ChafaTermInfo **term_info_out, ChafaCanvasMode *mode
 
         const gchar *term_name = chafa_term_info_get_name(term_info);
 
-        if (strstr(term_name, "tmux") != NULL && pixel_mode != CHAFA_PIXEL_MODE_KITTY)
-        {
+        if (strstr(term_name, "tmux") != NULL && pixel_mode != CHAFA_PIXEL_MODE_KITTY) {
                 /* Always use sixels in tmux */
                 pixel_mode = CHAFA_PIXEL_MODE_SIXELS;
                 mode = CHAFA_CANVAS_MODE_TRUECOLOR;
@@ -233,8 +217,7 @@ static void detect_terminal(ChafaTermInfo **term_info_out, ChafaCanvasMode *mode
 
 #else
 
-static void detect_terminal(ChafaTermInfo **term_info_out, ChafaCanvasMode *mode_out, ChafaPixelMode *pixel_mode_out)
-{
+static void detect_terminal(ChafaTermInfo **term_info_out, ChafaCanvasMode *mode_out, ChafaPixelMode *pixel_mode_out) {
         ChafaCanvasMode mode;
         ChafaPixelMode pixel_mode;
         ChafaTermInfo *term_info;
@@ -248,18 +231,13 @@ static void detect_terminal(ChafaTermInfo **term_info_out, ChafaCanvasMode *mode
         /* See which control sequences were defined, and use that to pick the most
          * high-quality rendering possible */
 
-        if (chafa_term_info_have_seq(term_info, CHAFA_TERM_SEQ_BEGIN_KITTY_IMMEDIATE_IMAGE_V1))
-        {
+        if (chafa_term_info_have_seq(term_info, CHAFA_TERM_SEQ_BEGIN_KITTY_IMMEDIATE_IMAGE_V1)) {
                 pixel_mode = CHAFA_PIXEL_MODE_KITTY;
                 mode = CHAFA_CANVAS_MODE_TRUECOLOR;
-        }
-        else if (chafa_term_info_have_seq(term_info, CHAFA_TERM_SEQ_BEGIN_SIXELS))
-        {
+        } else if (chafa_term_info_have_seq(term_info, CHAFA_TERM_SEQ_BEGIN_SIXELS)) {
                 pixel_mode = CHAFA_PIXEL_MODE_SIXELS;
                 mode = CHAFA_CANVAS_MODE_TRUECOLOR;
-        }
-        else
-        {
+        } else {
                 pixel_mode = CHAFA_PIXEL_MODE_SYMBOLS;
 
                 if (chafa_term_info_have_seq(term_info, CHAFA_TERM_SEQ_SET_COLOR_FGBG_DIRECT) && chafa_term_info_have_seq(term_info, CHAFA_TERM_SEQ_SET_COLOR_FG_DIRECT) && chafa_term_info_have_seq(term_info, CHAFA_TERM_SEQ_SET_COLOR_BG_DIRECT))
@@ -287,8 +265,7 @@ static void detect_terminal(ChafaTermInfo **term_info_out, ChafaCanvasMode *mode
 #endif
 
 static void
-get_tty_size(TermSize *term_size_out)
-{
+get_tty_size(TermSize *term_size_out) {
         TermSize term_size;
 
         term_size.width_cells = term_size.height_cells = term_size.width_pixels = term_size.height_pixels = -1;
@@ -298,8 +275,7 @@ get_tty_size(TermSize *term_size_out)
                 HANDLE chd = GetStdHandle(STD_OUTPUT_HANDLE);
                 CONSOLE_SCREEN_BUFFER_INFO csb_info;
 
-                if (chd != INVALID_HANDLE_VALUE && GetConsoleScreenBufferInfo(chd, &csb_info))
-                {
+                if (chd != INVALID_HANDLE_VALUE && GetConsoleScreenBufferInfo(chd, &csb_info)) {
                         term_size.width_cells = csb_info.srWindow.Right - csb_info.srWindow.Left + 1;
                         term_size.height_cells = csb_info.srWindow.Bottom - csb_info.srWindow.Top + 1;
                 }
@@ -312,8 +288,7 @@ get_tty_size(TermSize *term_size_out)
                 if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) >= 0 || ioctl(STDERR_FILENO, TIOCGWINSZ, &w) >= 0 || ioctl(STDIN_FILENO, TIOCGWINSZ, &w) >= 0)
                         have_winsz = TRUE;
 
-                if (have_winsz)
-                {
+                if (have_winsz) {
                         term_size.width_cells = w.ws_col;
                         term_size.height_cells = w.ws_row;
                         term_size.width_pixels = w.ws_xpixel;
@@ -331,8 +306,7 @@ get_tty_size(TermSize *term_size_out)
          * aspect information for the font used. Sixel-capable terminals
          * like mlterm set these fields, but most others do not. */
 
-        if (term_size.width_pixels <= 0 || term_size.height_pixels <= 0)
-        {
+        if (term_size.width_pixels <= 0 || term_size.height_pixels <= 0) {
                 term_size.width_pixels = -1;
                 term_size.height_pixels = -1;
         }
@@ -341,8 +315,7 @@ get_tty_size(TermSize *term_size_out)
 }
 
 static void
-tty_init(void)
-{
+tty_init(void) {
 #ifdef G_OS_WIN32
         {
                 HANDLE chd = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -352,8 +325,7 @@ tty_init(void)
 
                 /* Enable ANSI escape sequence parsing etc. on MS Windows command prompt */
 
-                if (chd != INVALID_HANDLE_VALUE)
-                {
+                if (chd != INVALID_HANDLE_VALUE) {
                         if (!SetConsoleMode(chd,
                                             ENABLE_PROCESSED_OUTPUT | ENABLE_WRAP_AT_EOL_OUTPUT | ENABLE_VIRTUAL_TERMINAL_PROCESSING | DISABLE_NEWLINE_AUTO_RETURN))
                                 win32_stdout_is_file = TRUE;
@@ -371,8 +343,7 @@ static GString *
 convert_image(const void *pixels, gint pix_width, gint pix_height,
               gint pix_rowstride, ChafaPixelType pixel_type,
               gint width_cells, gint height_cells,
-              gint cell_width, gint cell_height)
-{
+              gint cell_width, gint cell_height) {
         ChafaTermInfo *term_info;
         ChafaCanvasMode mode;
         ChafaPixelMode pixel_mode;
@@ -399,8 +370,7 @@ convert_image(const void *pixels, gint pix_width, gint pix_height,
         chafa_canvas_config_set_pixel_mode(config, pixel_mode);
         chafa_canvas_config_set_geometry(config, width_cells, height_cells);
 
-        if (cell_width > 0 && cell_height > 0)
-        {
+        if (cell_width > 0 && cell_height > 0) {
                 /* We know the pixel dimensions of each cell. Store it in the config. */
 
                 chafa_canvas_config_set_cell_geometry(config, cell_width, cell_height);
@@ -454,8 +424,7 @@ convert_image(const void *pixels, gint pix_width, gint pix_height,
         chafa_canvas_config_set_geometry(config, width_cells, height_cells);
         chafa_canvas_config_set_symbol_map(config, symbol_map);
 
-        if (cell_width > 0 && cell_height > 0)
-        {
+        if (cell_width > 0 && cell_height > 0) {
                 /* We know the pixel dimensions of each cell. Store it in the config. */
 
                 chafa_canvas_config_set_cell_geometry(config, cell_width, cell_height);
@@ -493,16 +462,14 @@ convert_image(const void *pixels, gint pix_width, gint pix_height,
 }
 
 // The function to load and return image data
-unsigned char *get_bitmap(const char *image_path, int *width, int *height)
-{
+unsigned char *get_bitmap(const char *image_path, int *width, int *height) {
         if (image_path == NULL)
                 return NULL;
 
         int channels;
 
         unsigned char *image = stbi_load(image_path, width, height, &channels, 4); // Force 4 channels (RGBA)
-        if (!image)
-        {
+        if (!image) {
                 fprintf(stderr, "Failed to load image: %s\n", image_path);
                 return NULL;
         }
@@ -510,23 +477,20 @@ unsigned char *get_bitmap(const char *image_path, int *width, int *height)
         return image;
 }
 
-float calc_aspect_ratio(void)
-{
+float calc_aspect_ratio(void) {
         TermSize term_size;
         gint cell_width = -1, cell_height = -1;
 
         tty_init();
         get_tty_size(&term_size);
 
-        if (term_size.width_cells > 0 && term_size.height_cells > 0 && term_size.width_pixels > 0 && term_size.height_pixels > 0)
-        {
+        if (term_size.width_cells > 0 && term_size.height_cells > 0 && term_size.width_pixels > 0 && term_size.height_pixels > 0) {
                 cell_width = term_size.width_pixels / term_size.width_cells;
                 cell_height = term_size.height_pixels / term_size.height_cells;
         }
 
         // Set default for some terminals
-        if (cell_width == -1 && cell_height == -1)
-        {
+        if (cell_width == -1 && cell_height == -1) {
                 cell_width = 8;
                 cell_height = 16;
         }
@@ -534,8 +498,7 @@ float calc_aspect_ratio(void)
         return (float)cell_height / (float)cell_width;
 }
 
-float get_aspect_ratio()
-{
+float get_aspect_ratio() {
         TermSize term_size;
         gint cell_width = -1, cell_height = -1;
 
@@ -543,15 +506,13 @@ float get_aspect_ratio()
         get_tty_size(&term_size);
 
         if (term_size.width_cells > 0 && term_size.height_cells > 0 &&
-            term_size.width_pixels > 0 && term_size.height_pixels > 0)
-        {
+            term_size.width_pixels > 0 && term_size.height_pixels > 0) {
                 cell_width = term_size.width_pixels / term_size.width_cells;
                 cell_height = term_size.height_pixels / term_size.height_cells;
         }
 
         // Set default cell size for some terminals
-        if (cell_width == -1 || cell_height == -1)
-        {
+        if (cell_width == -1 || cell_height == -1) {
                 cell_width = 8;
                 cell_height = 16;
         }
@@ -560,10 +521,8 @@ float get_aspect_ratio()
         return (float)cell_height / (float)cell_width;
 }
 
-void print_square_bitmap(int row, int col, unsigned char *pixels, int width, int height, int baseHeight)
-{
-        if (pixels == NULL)
-        {
+void print_square_bitmap(int row, int col, unsigned char *pixels, int width, int height, int base_height) {
+        if (pixels == NULL) {
                 set_error_message("Invalid pixel data.\n");
                 return;
         }
@@ -574,8 +533,7 @@ void print_square_bitmap(int row, int col, unsigned char *pixels, int width, int
         int n_channels = 4; // Assuming RGBA format
 
         // Validate the image dimensions
-        if (pix_width == 0 || pix_height == 0)
-        {
+        if (pix_width == 0 || pix_height == 0) {
                 set_error_message("Invalid image dimensions.\n");
                 return;
         }
@@ -588,37 +546,32 @@ void print_square_bitmap(int row, int col, unsigned char *pixels, int width, int
         get_tty_size(&term_size);
 
         if (term_size.width_cells > 0 && term_size.height_cells > 0 &&
-            term_size.width_pixels > 0 && term_size.height_pixels > 0)
-        {
+            term_size.width_pixels > 0 && term_size.height_pixels > 0) {
                 cell_width = term_size.width_pixels / term_size.width_cells;
                 cell_height = term_size.height_pixels / term_size.height_cells;
         }
 
         // Set default cell size for some terminals
-        if (cell_width <= -1 || cell_height <= -1)
-        {
+        if (cell_width <= -1 || cell_height <= -1) {
                 cell_width = 8;
                 cell_height = 16;
         }
 
-        if (cell_width == 0 || cell_height == 0)
-        {
+        if (cell_width == 0 || cell_height == 0) {
                 set_error_message("Invalid image cell width dimensions.\n");
                 return;
         }
 
         // Calculate corrected width based on aspect ratio correction
         float aspect_ratio_correction = (float)cell_height / (float)cell_width;
-        int correctedWidth = (int)(baseHeight * aspect_ratio_correction);
+        int corrected_width = (int)(base_height * aspect_ratio_correction);
 
-        if (term_size.width_cells > 0 && correctedWidth > term_size.width_cells)
-        {
+        if (term_size.width_cells > 0 && corrected_width > term_size.width_cells) {
                 set_error_message("Invalid terminal dimensions.\n");
                 return;
         }
 
-        if (term_size.height_cells > 0 && baseHeight > term_size.height_cells)
-        {
+        if (term_size.height_cells > 0 && base_height > term_size.height_cells) {
                 set_error_message("Invalid terminal dimensions.\n");
                 return;
         }
@@ -630,8 +583,8 @@ void print_square_bitmap(int row, int col, unsigned char *pixels, int width, int
             pix_height,
             pix_width * n_channels,         // Row stride
             CHAFA_PIXEL_RGBA8_UNASSOCIATED, // Correct pixel format
-            correctedWidth,
-            baseHeight,
+            corrected_width,
+            base_height,
             cell_width,
             cell_height);
 
@@ -643,8 +596,7 @@ void print_square_bitmap(int row, int col, unsigned char *pixels, int width, int
         gchar **lines = g_strsplit(printable->str, delimiters, -1);
 
         // Print each line with indentation
-        for (int i = 0; lines[i] != NULL; i++)
-        {
+        for (int i = 0; lines[i] != NULL; i++) {
                 printf("\033[%d;%dH", row + i, col);
                 printf("%s", lines[i]);
                 fflush(stdout);
@@ -655,10 +607,8 @@ void print_square_bitmap(int row, int col, unsigned char *pixels, int width, int
         g_string_free(printable, TRUE);
 }
 
-void print_square_bitmap_centered(unsigned char *pixels, int width, int height, int baseHeight)
-{
-        if (pixels == NULL)
-        {
+void print_square_bitmap_centered(unsigned char *pixels, int width, int height, int base_height) {
+        if (pixels == NULL) {
                 set_error_message("Error: Invalid pixel data.\n");
                 return;
         }
@@ -669,8 +619,7 @@ void print_square_bitmap_centered(unsigned char *pixels, int width, int height, 
         int n_channels = 4; // Assuming RGBA format
 
         // Validate the image dimensions
-        if (pix_width == 0 || pix_height == 0)
-        {
+        if (pix_width == 0 || pix_height == 0) {
                 set_error_message("Invalid image dimensions.\n");
                 return;
         }
@@ -683,43 +632,38 @@ void print_square_bitmap_centered(unsigned char *pixels, int width, int height, 
         get_tty_size(&term_size);
 
         if (term_size.width_cells > 0 && term_size.height_cells > 0 &&
-            term_size.width_pixels > 0 && term_size.height_pixels > 0)
-        {
+            term_size.width_pixels > 0 && term_size.height_pixels > 0) {
                 cell_width = term_size.width_pixels / term_size.width_cells;
                 cell_height = term_size.height_pixels / term_size.height_cells;
         }
 
         // Set default cell size for some terminals
-        if (cell_width <= -1 || cell_height <= -1)
-        {
+        if (cell_width <= -1 || cell_height <= -1) {
                 cell_width = 8;
                 cell_height = 16;
         }
 
-        if (cell_width == 0 || cell_height == 0)
-        {
+        if (cell_width == 0 || cell_height == 0) {
                 set_error_message("Invalid image cell width dimensions.\n");
                 return;
         }
 
         // Calculate corrected width based on aspect ratio correction
         float aspect_ratio_correction = (float)cell_height / (float)cell_width;
-        int correctedWidth = (int)(baseHeight * aspect_ratio_correction);
+        int corrected_width = (int)(base_height * aspect_ratio_correction);
 
-        if (term_size.width_cells > 0 && correctedWidth > term_size.width_cells)
-        {
+        if (term_size.width_cells > 0 && corrected_width > term_size.width_cells) {
                 set_error_message("Invalid terminal dimensions.\n");
                 return;
         }
 
-        if (term_size.height_cells > 0 && baseHeight > term_size.height_cells)
-        {
+        if (term_size.height_cells > 0 && base_height > term_size.height_cells) {
                 set_error_message("Invalid terminal dimensions.\n");
                 return;
         }
 
         // Calculate indentation to center the image
-        int indentation = ((term_size.width_cells - correctedWidth) / 2);
+        int indentation = ((term_size.width_cells - corrected_width) / 2);
 
         // Convert image to a printable string using Chafa
         printable = convert_image(
@@ -728,8 +672,8 @@ void print_square_bitmap_centered(unsigned char *pixels, int width, int height, 
             pix_height,
             pix_width * n_channels,         // Row stride
             CHAFA_PIXEL_RGBA8_UNASSOCIATED, // Correct pixel format
-            correctedWidth,
-            baseHeight,
+            corrected_width,
+            base_height,
             cell_width,
             cell_height);
 
@@ -741,8 +685,7 @@ void print_square_bitmap_centered(unsigned char *pixels, int width, int height, 
         gchar **lines = g_strsplit(printable->str, delimiters, -1);
 
         // Print each line with indentation
-        for (int i = 0; lines[i] != NULL; i++)
-        {
+        for (int i = 0; lines[i] != NULL; i++) {
                 printf("\n\033[%dC%s", indentation, lines[i]);
         }
 
@@ -751,36 +694,30 @@ void print_square_bitmap_centered(unsigned char *pixels, int width, int height, 
         g_string_free(printable, TRUE);
 }
 
-unsigned char luminance_from_r_g_b(unsigned char r, unsigned char g, unsigned char b)
-{
+unsigned char luminance_from_r_g_b(unsigned char r, unsigned char g, unsigned char b) {
         return (unsigned char)(0.2126 * r + 0.7152 * g + 0.0722 * b);
 }
 
-void check_if_bright_pixel(unsigned char r, unsigned char g, unsigned char b, bool *found)
-{
+void check_if_bright_pixel(unsigned char r, unsigned char g, unsigned char b, bool *found) {
         // Calc luminace and use to find Ascii char.
         unsigned char ch = luminance_from_r_g_b(r, g, b);
 
-        if (ch > 80 && !(r < g + 20 && r > g - 20 && g < b + 20 && g > b - 20) && !(r > 150 && g > 150 && b > 150))
-        {
+        if (ch > 80 && !(r < g + 20 && r > g - 20 && g < b + 20 && g > b - 20) && !(r > 150 && g > 150 && b > 150)) {
                 *found = true;
         }
 }
 
-int get_cover_color(unsigned char *pixels, int width, int height, unsigned char *r, unsigned char *g, unsigned char *b)
-{
-        if (pixels == NULL || width <= 0 || height <= 0)
-        {
+int get_cover_color(unsigned char *pixels, int width, int height, unsigned char *r, unsigned char *g, unsigned char *b) {
+        if (pixels == NULL || width <= 0 || height <= 0) {
                 return -1;
         }
 
         int channels = 4; // RGBA format
 
         bool found = false;
-        int numPixels = width * height;
+        int num_pixels = width * height;
 
-        for (int i = 0; i < numPixels; i++)
-        {
+        for (int i = 0; i < num_pixels; i++) {
                 int index = i * channels;
                 unsigned char red = pixels[index + 0];
                 unsigned char green = pixels[index + 1];
@@ -788,8 +725,7 @@ int get_cover_color(unsigned char *pixels, int width, int height, unsigned char 
 
                 check_if_bright_pixel(red, green, blue, &found);
 
-                if (found)
-                {
+                if (found) {
                         *r = red;
                         *g = green;
                         *b = blue;
@@ -800,16 +736,14 @@ int get_cover_color(unsigned char *pixels, int width, int height, unsigned char 
         return found ? 0 : -1;
 }
 
-unsigned char calc_ascii_char(PixelData *p)
-{
+unsigned char calc_ascii_char(PixelData *p) {
         unsigned char ch = luminance_from_r_g_b(p->r, p->g, p->b);
         int rescaled = ch * brightness_levels / 256;
 
         return scale[brightness_levels - rescaled];
 }
 
-int convert_to_ascii_centered(const char *filepath, unsigned int height)
-{
+int convert_to_ascii_centered(const char *filepath, unsigned int height) {
         /*
         Modified, originally by Danny Burrows:
         https://github.com/danny-burrows/img_to_txt
@@ -844,57 +778,49 @@ int convert_to_ascii_centered(const char *filepath, unsigned int height)
         get_tty_size(&term_size);
 
         if (term_size.width_cells > 0 && term_size.height_cells > 0 &&
-            term_size.width_pixels > 0 && term_size.height_pixels > 0)
-        {
+            term_size.width_pixels > 0 && term_size.height_pixels > 0) {
                 cell_width = term_size.width_pixels / term_size.width_cells;
                 cell_height = term_size.height_pixels / term_size.height_cells;
         }
 
         // Set default cell size for some terminals
-        if (cell_width == -1 || cell_height == -1)
-        {
+        if (cell_width == -1 || cell_height == -1) {
                 cell_width = 8;
                 cell_height = 16;
         }
 
         float aspect_ratio_correction = (float)cell_height / (float)cell_width;
-        unsigned int correctedWidth = (int)(height * aspect_ratio_correction) - 1;
+        unsigned int corrected_width = (int)(height * aspect_ratio_correction) - 1;
 
         // Calculate indentation to center the image
-        int indent = ((term_size.width_cells - correctedWidth) / 2);
+        int indent = ((term_size.width_cells - corrected_width) / 2);
 
         int rwidth, rheight, rchannels;
         unsigned char *read_data = stbi_load(filepath, &rwidth, &rheight, &rchannels, 3);
 
-        if (read_data == NULL)
-        {
+        if (read_data == NULL) {
                 return -1;
         }
 
         PixelData *data;
-        if (correctedWidth != (unsigned)rwidth || height != (unsigned)rheight)
-        {
+        if (corrected_width != (unsigned)rwidth || height != (unsigned)rheight) {
                 // 3 * uint8 for RGB!
-                unsigned char *new_data = malloc(3 * sizeof(unsigned char) * correctedWidth * height);
+                unsigned char *new_data = malloc(3 * sizeof(unsigned char) * corrected_width * height);
                 stbir_resize_uint8_srgb(
                     read_data, rwidth, rheight, 0,
-                    new_data, correctedWidth, height, 0, 3);
+                    new_data, corrected_width, height, 0, 3);
 
                 stbi_image_free(read_data);
                 data = (PixelData *)new_data;
-        }
-        else
-        {
+        } else {
                 data = (PixelData *)read_data;
         }
 
         printf("\n");
         printf("%*s", indent, "");
 
-        for (unsigned int d = 0; d < correctedWidth * height; d++)
-        {
-                if (d % correctedWidth == 0 && d != 0)
-                {
+        for (unsigned int d = 0; d < corrected_width * height; d++) {
+                if (d % corrected_width == 0 && d != 0) {
                         printf("\n");
                         printf("%*s", indent, "");
                 }
@@ -910,8 +836,7 @@ int convert_to_ascii_centered(const char *filepath, unsigned int height)
         return 0;
 }
 
-int convert_to_ascii(int indentation, const char *filepath, unsigned int height)
-{
+int convert_to_ascii(int indentation, const char *filepath, unsigned int height) {
         /*
         Modified, originally by Danny Burrows:
         https://github.com/danny-burrows/img_to_txt
@@ -946,54 +871,46 @@ int convert_to_ascii(int indentation, const char *filepath, unsigned int height)
         get_tty_size(&term_size);
 
         if (term_size.width_cells > 0 && term_size.height_cells > 0 &&
-            term_size.width_pixels > 0 && term_size.height_pixels > 0)
-        {
+            term_size.width_pixels > 0 && term_size.height_pixels > 0) {
                 cell_width = term_size.width_pixels / term_size.width_cells;
                 cell_height = term_size.height_pixels / term_size.height_cells;
         }
 
         // Set default cell size for some terminals
-        if (cell_width == -1 || cell_height == -1)
-        {
+        if (cell_width == -1 || cell_height == -1) {
                 cell_width = 8;
                 cell_height = 16;
         }
 
         float aspect_ratio_correction = (float)cell_height / (float)cell_width;
-        unsigned int correctedWidth = (int)(height * aspect_ratio_correction) - 1;
+        unsigned int corrected_width = (int)(height * aspect_ratio_correction) - 1;
 
         int rwidth, rheight, rchannels;
         unsigned char *read_data = stbi_load(filepath, &rwidth, &rheight, &rchannels, 3);
 
-        if (read_data == NULL)
-        {
+        if (read_data == NULL) {
                 return -1;
         }
 
         PixelData *data;
-        if (correctedWidth != (unsigned)rwidth || height != (unsigned)rheight)
-        {
+        if (corrected_width != (unsigned)rwidth || height != (unsigned)rheight) {
                 // 3 * uint8 for RGB!
-                unsigned char *new_data = malloc(3 * sizeof(unsigned char) * correctedWidth * height);
+                unsigned char *new_data = malloc(3 * sizeof(unsigned char) * corrected_width * height);
                 stbir_resize_uint8_srgb(
                     read_data, rwidth, rheight, 0,
-                    new_data, correctedWidth, height, 0, 3);
+                    new_data, corrected_width, height, 0, 3);
 
                 stbi_image_free(read_data);
                 data = (PixelData *)new_data;
-        }
-        else
-        {
+        } else {
                 data = (PixelData *)read_data;
         }
 
         printf("\n");
         printf("%*s", indentation, "");
 
-        for (unsigned int d = 0; d < correctedWidth * height; d++)
-        {
-                if (d % correctedWidth == 0 && d != 0)
-                {
+        for (unsigned int d = 0; d < corrected_width * height; d++) {
+                if (d % corrected_width == 0 && d != 0) {
                         printf("\n");
                         printf("%*s", indentation, "");
                 }
@@ -1009,21 +926,19 @@ int convert_to_ascii(int indentation, const char *filepath, unsigned int height)
         return 0;
 }
 
-int print_in_ascii(int indentation, const char *pathToImgFile, int height)
-{
+int print_in_ascii(int indentation, const char *path_to_img_file, int height) {
         printf("\r");
 
-        int ret = convert_to_ascii(indentation, pathToImgFile, (unsigned)height);
+        int ret = convert_to_ascii(indentation, path_to_img_file, (unsigned)height);
         if (ret == -1)
                 printf("\033[0m");
         return 0;
 }
 
-int print_in_ascii_centered(const char *pathToImgFile, int height)
-{
+int print_in_ascii_centered(const char *path_to_img_file, int height) {
         printf("\r");
 
-        int ret = convert_to_ascii_centered(pathToImgFile, (unsigned)height);
+        int ret = convert_to_ascii_centered(path_to_img_file, (unsigned)height);
         if (ret == -1)
                 printf("\033[0m");
         return 0;

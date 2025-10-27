@@ -3,10 +3,9 @@
 
 #include <stdint.h>
 
-#define MAX_SEQ_LEN 1024    // Maximum length of sequence buffer
+#define MAX_SEQ_LEN 1024 // Maximum length of sequence buffer
 
-enum EventType
-{
+enum EventType {
         EVENT_NONE,
         EVENT_PLAY_PAUSE,
         EVENT_VOLUME_UP,
@@ -53,8 +52,7 @@ enum EventType
         EVENT_SHOWLYRICSPAGE
 };
 
-struct Event
-{
+struct Event {
         enum EventType type;
         char key[MAX_SEQ_LEN]; // To store multi-byte characters
         char args[32];
@@ -67,11 +65,11 @@ typedef struct
 } EventMapping;
 
 typedef struct {
-    uint16_t key;        // TB_KEY_* constants, 0 if printable
-    uint32_t ch;         // Unicode character for printable keys, 0 otherwise
-    uint8_t mods;        // MOD_CTRL | MOD_ALT | MOD_SHIFT
-    enum EventType eventType;
-    char args[32];       // Optional arguments like "+5%"
+        uint16_t key; // TB_KEY_* constants, 0 if printable
+        uint32_t ch;  // Unicode character for printable keys, 0 otherwise
+        uint8_t mods; // MOD_CTRL | MOD_ALT | MOD_SHIFT
+        enum EventType eventType;
+        char args[32]; // Optional arguments like "+5%"
 } TBKeyBinding;
 
 #endif

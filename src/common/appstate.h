@@ -7,16 +7,16 @@
 #ifndef APPSTATE_H
 #define APPSTATE_H
 
-#include "utils/cache.h"
 #include "data/lyrics.h"
 #include "data/playlist.h"
 #include "stdio.h"
+#include "utils/cache.h"
 #include <gio/gio.h>
 #include <glib.h>
+#include <libintl.h>
 #include <miniaudio.h>
 #include <sys/ioctl.h>
 #include <sys/param.h>
-#include <libintl.h>
 
 #define _(STRING) gettext(STRING)
 
@@ -39,8 +39,7 @@ typedef struct
         unsigned char b;
 } PixelData;
 
-typedef enum
-{
+typedef enum {
         COLOR_TYPE_RGB,
         COLOR_TYPE_ANSI
 } ColorType;
@@ -48,8 +47,7 @@ typedef enum
 typedef struct
 {
         ColorType type;
-        union
-        {
+        union {
                 PixelData rgb;
                 int8_t ansiIndex; // -1 to 15 for 16 colors + -1 = foreground
         };
@@ -99,8 +97,7 @@ typedef struct
         ColorValue status_success;
 } Theme;
 
-typedef enum
-{
+typedef enum {
         TRACK_VIEW,
         KEYBINDINGS_VIEW,
         PLAYLIST_VIEW,
@@ -108,8 +105,7 @@ typedef enum
         SEARCH_VIEW
 } ViewState;
 
-typedef enum
-{
+typedef enum {
         COLOR_MODE_DEFAULT = 0, // Colors from ANSI 16-color palette theme
         COLOR_MODE_ALBUM = 1,   // Colors derived from album art
         COLOR_MODE_THEME = 2    // Colors from truecolor theme
@@ -134,8 +130,8 @@ typedef struct
         bool hideLogo;                  // No kew text at top
         bool hideHelp;                  // No help text at top
         bool allowNotifications;        // Send desktop notifications or not
-        int visualizerHeight;           // Height in characters of the spectrum visualizer
-        int visualizerColorType;        // How colors are laid out in the spectrum
+        int visualizer_height;          // Height in characters of the spectrum visualizer
+        int visualizer_color_type;      // How colors are laid out in the spectrum
                                         // visualizer
         bool visualizerBrailleMode;     // Display the visualizer using braille
                                         // characteres
@@ -143,10 +139,10 @@ typedef struct
         int cacheLibrary;               // Cache the library or not
         bool quitAfterStopping;         // Exit kew when the music stops or not
         bool hideGlimmeringText;        // Glimmering text on the bottom row
-        time_t last_time_app_ran;          // When did this app run last, used for updating
+        time_t last_time_app_ran;       // When did this app run last, used for updating
                                         // the cached library if it has been modified
                                         // since that time
-        int visualizer_bar_width;         // 0=Thin bars, 1=Bars twice the width or 2=Auto
+        int visualizer_bar_width;       // 0=Thin bars, 1=Bars twice the width or 2=Auto
                                         // (Depends on window size, default)
         int replayGainCheckFirst;       // Prioritize track or album replay gain
                                         // setting
@@ -158,14 +154,14 @@ typedef struct
                                       // the currently playing track
         Theme theme;                  // The color theme.
         bool themeIsSet;              // Whether a theme has been loaded;
-        char themeName[NAME_MAX];     // the name part of <themeName>.theme, usually
+        char theme_name[NAME_MAX];    // the name part of <theme_name>.theme, usually
                                       // lowercase first character, unlike theme.name
                                       // which is taken from within the file.
         char themeAuthor[NAME_MAX];
         ColorMode colorMode; // Which color mode to use.
         const char *VERSION;
         char *LAST_ROW;
-        unsigned char defaultColor;
+        unsigned char default_color;
         PixelData defaultColorRGB;
         PixelData kewColorRGB;
 } UISettings;
@@ -174,7 +170,7 @@ typedef struct
 {
         volatile bool refresh;       // Trigger a full screen refresh next update (ie
                                      // redraw cover)
-        int chosenNodeId;            // The id of the tree node that is chosen in library
+        int chosen_node_id;          // The id of the tree node that is chosen in library
                                      // view
         bool allowChooseSongs;       // In library view, has the user entered a folder
                                      // that contains songs
@@ -184,13 +180,13 @@ typedef struct
                                      // within
         int numDirectoryTreeEntries; // The number of entries in directory tree
                                      // in library view
-        int numProgressBars;         // The number of progress dots at the bottom of
+        int num_progress_bars;       // The number of progress dots at the bottom of
                                      // track view
         volatile sig_atomic_t
-            resizeFlag;             // Is the user resizing the terminal window
-        bool resetPlaylistDisplay;  // Should the playlist be reset, ie drawn
-                                    // starting from playing song
-        bool collapseView;          // Signal that ui needs to collapse the view
+            resizeFlag;            // Is the user resizing the terminal window
+        bool resetPlaylistDisplay; // Should the playlist be reset, ie drawn
+                                   // starting from playing song
+        bool collapseView;         // Signal that ui needs to collapse the view
         bool isFastForwarding;
         bool isRewinding;
         bool songWasRemoved;
@@ -231,8 +227,8 @@ typedef struct
         char coverAnsi[2];
         char useConfigColors[2];
         char visualizerEnabled[2];
-        char visualizerHeight[6];
-        char visualizerColorType[2];
+        char visualizer_height[6];
+        char visualizer_color_type[2];
         char titleDelay[6];
         char togglePlaylist[6];
         char toggleBindings[6];
@@ -298,7 +294,7 @@ typedef struct
         char allowNotifications[2];
         char color[2];
         char artistColor[2];
-        char enqueuedColor[2];
+        char enqueued_color[2];
         char titleColor[2];
         char mouseEnabled[2];
         char mouseLeftClickAction[3];
@@ -358,15 +354,15 @@ typedef struct
 typedef struct
 {
         int magic;
-        gchar *trackId;
-        char filePath[MAXPATHLEN];
-        char coverArtPath[MAXPATHLEN];
+        gchar *track_id;
+        char file_path[MAXPATHLEN];
+        char cover_art_path[MAXPATHLEN];
         unsigned char red;
         unsigned char green;
         unsigned char blue;
         TagSettings *metadata;
         unsigned char *cover;
-        int avgBitRate;
+        int avg_bit_rate;
         int coverWidth;
         int coverHeight;
         double duration;
@@ -376,7 +372,7 @@ typedef struct
 
 typedef struct
 {
-        char filePath[MAXPATHLEN];
+        char file_path[MAXPATHLEN];
         SongData *songdataA;
         SongData *songdataB;
         bool loadA;
@@ -399,10 +395,10 @@ typedef struct
         bool clearingErrors;
         bool songHasErrors;
         bool skipFromStopped;
-        bool waitingForNext;            // Playlist has songs but playback is stopped.
-        bool waitingForPlaylist;        // Playlist is empty.
-        bool notifySwitch;              // Emit mpris song switched signal
-        bool notifyPlaying;             // Emit mpris music is playing signal
+        bool waitingForNext;     // Playlist has songs but playback is stopped.
+        bool waitingForPlaylist; // Playlist is empty.
+        bool notifySwitch;       // Emit mpris song switched signal
+        bool notifyPlaying;      // Emit mpris music is playing signal
         volatile bool loadedNextSong;
 } PlaybackState;
 
@@ -413,7 +409,7 @@ typedef struct
         bool songdataADeleted;
         bool songdataBDeleted;
         int replayGainCheckFirst;
-        SongData *currentSongData;
+        SongData *current_song_data;
         ma_uint64 currentPCMFrame;
 } UserData;
 
@@ -425,16 +421,15 @@ typedef struct
         ma_uint32 channels;
         ma_uint32 sample_rate;
         ma_uint64 currentPCMFrame;
-        ma_uint32 avgBitRate;
+        ma_uint32 avg_bit_rate;
         bool switchFiles;
         int currentFileIndex;
         ma_uint64 totalFrames;
-        bool endOfListReached;
+        bool end_of_list_reached;
         bool restart;
 } AudioData;
 
 extern AudioData audio_data;
-
 
 // --- Getters ---
 

@@ -9,8 +9,7 @@
 
 #include <stdbool.h>
 
-typedef enum
-{
+typedef enum {
         k_unknown = 0,
         k_aac = 1,
         k_rawAAC = 2, // Raw aac (.aac file) decoding is included here for convenience although they are not .m4a files

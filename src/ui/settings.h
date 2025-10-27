@@ -9,8 +9,8 @@
 #ifndef SETTINGS_H
 #define SETTINGS_H
 
-#include "common/events.h"
 #include "common/appstate.h"
+#include "common/events.h"
 
 #define NUM_DEFAULT_KEY_BINDINGS 50
 
@@ -24,7 +24,7 @@ void set_prefs(AppSettings *settings, UISettings *ui);
 void set_path(const char *path);
 void map_settings_to_keys(AppSettings *settings, UISettings *ui, EventMapping *mappings);
 int update_rc(const char *path, const char *key, const char *value);
-const char* get_binding_string(enum EventType event, bool findOne);
+const char *get_binding_string(enum EventType event, bool find_one);
 AppSettings init_settings(void);
 
 #endif

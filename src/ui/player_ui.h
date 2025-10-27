@@ -15,7 +15,7 @@
 
 #include <stdbool.h>
 
-int print_logo_art(const UISettings *ui, int indent, bool centered, bool printTagLine, bool useGradient);
+int print_logo_art(const UISettings *ui, int indent, bool centered, bool print_tag_line, bool use_gradient);
 int calc_indent_normal(void);
 int print_player(SongData *songdata, double elapsed_seconds);
 int get_footer_row(void);

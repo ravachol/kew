@@ -8,7 +8,6 @@
  * when metadata or network access is unavailable.
  */
 
-
 #ifndef LYRICS_H
 #define LYRICS_H
 
@@ -20,15 +19,15 @@ extern "C" {
 #endif
 
 typedef struct {
-    double timestamp;
-    char *text;
+        double timestamp;
+        char *text;
 } LyricsLine;
 
 typedef struct {
-    LyricsLine *lines;
-    size_t count;
-    int maxLength;
-    int isTimed;
+        LyricsLine *lines;
+        size_t count;
+        int max_length;
+        int isTimed;
 } Lyrics;
 
 Lyrics *loadLyricsFromLRC(const char *path);
@@ -39,4 +38,3 @@ void freeLyrics(Lyrics *lyrics);
 #endif
 
 #endif // LYRICS_H
-

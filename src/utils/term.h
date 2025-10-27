@@ -21,7 +21,7 @@
 
 int get_indentation(int text_width);
 int is_input_available(void);
-int read_input_sequence(char *seq, size_t seqSize);
+int read_input_sequence(char *seq, size_t seq_size);
 void set_terminal_color(int color);
 void set_text_color_RGB(int r, int g, int b);
 void get_term_size(int *width, int *height);
@@ -41,8 +41,8 @@ void init_resize(void);
 void disable_terminal_line_input(void);
 void set_raw_input_mode(void);
 void enable_input_buffering(void);
-void cursor_jump(int numRows);
-void cursor_jump_down(int numRows);
+void cursor_jump(int num_rows);
+void cursor_jump_down(int num_rows);
 void clear_screen(void);
 void enter_alternate_screen_buffer(void);
 void exit_alternate_screen_buffer(void);
