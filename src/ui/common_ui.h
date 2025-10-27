@@ -22,7 +22,7 @@ void process_name_scroll(const char *name, char *output, int max_width, bool is_
 void reset_name_scroll(void);
 void reset_color(void);
 void process_name(const char *name, char *output, int max_width, bool strip_unneeded_chars, bool strip_suffix);
-void transfer_settings_to_u_i(void);
+void transfer_settings_to_ui(void);
 void enable_mouse(UISettings *ui);
 int get_update_counter(void);
 bool get_is_long_name(void);

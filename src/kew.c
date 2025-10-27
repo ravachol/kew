@@ -618,7 +618,7 @@ int main(int argc, char *argv[])
         }
 
         *settings = init_settings();
-        transfer_settings_to_u_i();
+        transfer_settings_to_ui();
         init_key_mappings(settings);
         set_track_title_as_window_title();
 
