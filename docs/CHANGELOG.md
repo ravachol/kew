@@ -2,7 +2,7 @@
 
 ### 3.7.0
 
-- Allows for more advanced key bindings. You can now bind more keys and key combinations. For instance, you can bind a key like this: bind = +, volUp, +5%. Old format config files will still work, but to see examples of the new style, delete your kewrc file. Suggested by: @jaoh.
+- Key binding overhaul. This allows for more advanced key bindings. You can now bind more keys and key combinations. For instance, you can bind a key like this: bind = +, volUp, +5%. Old format config files will still work, but to see examples of the new style, delete your kewrc file. Suggested by: @jaoh.
 
 - The help page will now fully reflect the keys you have bound.
 
