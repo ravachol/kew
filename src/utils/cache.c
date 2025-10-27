@@ -18,11 +18,9 @@
 #define MAXPATHLEN 4096
 #endif
 
-Cache *create_cache()
-{
+Cache *create_cache() {
         Cache *cache = malloc(sizeof(Cache));
-        if (cache == NULL)
-        {
+        if (cache == NULL) {
                 fprintf(stderr, "create_cache: malloc\n");
                 return NULL;
         }
@@ -30,83 +28,70 @@ Cache *create_cache()
         return cache;
 }
 
-void add_to_cache(Cache *cache, const char *filePath)
-{
-        if (cache == NULL)
-        {
+void add_to_cache(Cache *cache, const char *file_path) {
+        if (cache == NULL) {
                 fprintf(stderr, "Cache is null.\n");
                 return;
         }
 
-        if (filePath == NULL || *filePath == '\0')
-        {
-                fprintf(stderr, "Invalid filePath.\n");
+        if (file_path == NULL || *file_path == '\0') {
+                fprintf(stderr, "Invalid file_path.\n");
                 return;
         }
 
-        if (strnlen(filePath, MAXPATHLEN + 1) >= MAXPATHLEN)
-        {
+        if (strnlen(file_path, MAXPATHLEN + 1) >= MAXPATHLEN) {
                 fprintf(stderr, "File path too long.\n");
                 return;
         }
 
-        CacheNode *newNode = malloc(sizeof(CacheNode));
-        if (newNode == NULL)
-        {
+        CacheNode *new_node = malloc(sizeof(CacheNode));
+        if (new_node == NULL) {
                 fprintf(stderr, "add_to_cache: malloc\n");
                 return;
         }
 
-        newNode->filePath = strdup(filePath);
-        if (newNode->filePath == NULL)
-        {
+        new_node->file_path = strdup(file_path);
+        if (new_node->file_path == NULL) {
                 fprintf(stderr, "add_to_cache: strdup\n");
-                free(newNode); // prevent memory leak
+                free(new_node); // prevent memory leak
                 return;
         }
 
-        newNode->next = cache->head;
-        cache->head = newNode;
+        new_node->next = cache->head;
+        cache->head = new_node;
 }
 
-void delete_cache(Cache *cache)
-{
-        if (cache == NULL)
-        {
+void delete_cache(Cache *cache) {
+        if (cache == NULL) {
                 fprintf(stderr, "delete_cache: Cache is null.\n");
                 return;
         }
 
         CacheNode *current = cache->head;
 
-        while (current != NULL)
-        {
+        while (current != NULL) {
                 CacheNode *tmp = current;
                 current = current->next;
-                free(tmp->filePath);
+                free(tmp->file_path);
                 free(tmp);
         }
 
         free(cache);
 }
 
-bool exists_in_cache(Cache *cache, char *filePath)
-{
-        if (filePath == NULL)
+bool exists_in_cache(Cache *cache, char *file_path) {
+        if (file_path == NULL)
                 return false;
 
-        if (cache == NULL)
-        {
+        if (cache == NULL) {
                 fprintf(stderr, "exists_in_cache: Cache is null.\n");
                 return false;
         }
 
         CacheNode *current = cache->head;
 
-        while (current != NULL)
-        {
-                if (strcmp(filePath, current->filePath) == 0)
-                {
+        while (current != NULL) {
+                if (strcmp(file_path, current->file_path) == 0) {
                         return true;
                 }
 

@@ -9,5 +9,5 @@
 
 #include <stdbool.h>
 
-SongData *load_song_data(char *filePath);
+SongData *load_song_data(char *file_path);
 void unload_song_data(SongData **songdata);

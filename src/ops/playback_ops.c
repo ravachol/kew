@@ -31,38 +31,34 @@
 #include "utils/file.h"
 #include "utils/utils.h"
 
-void resume_playback(void)
-{
+void resume_playback(void) {
         sound_resume_playback();
 }
 
-int load_decoder(SongData *songData, bool *songDataDeleted)
-{
+int load_decoder(SongData *song_data, bool *song_data_deleted) {
         PlaybackState *ps = get_playback_state();
         int result = 0;
 
-        if (songData != NULL)
-        {
-                *songDataDeleted = false;
+        if (song_data != NULL) {
+                *song_data_deleted = false;
 
                 // This should only be done for the second song, as
                 // switch_audio_implementation() handles the first one
-                if (!ps->loadingdata.loadingFirstDecoder)
-                {
-                        if (has_builtin_decoder(songData->filePath))
-                                result = prepare_next_decoder(songData->filePath);
-                        else if (path_ends_with(songData->filePath, "opus"))
+                if (!ps->loadingdata.loadingFirstDecoder) {
+                        if (has_builtin_decoder(song_data->file_path))
+                                result = prepare_next_decoder(song_data->file_path);
+                        else if (path_ends_with(song_data->file_path, "opus"))
                                 result =
-                                    prepare_next_opus_decoder(songData->filePath);
-                        else if (path_ends_with(songData->filePath, "ogg"))
+                                    prepare_next_opus_decoder(song_data->file_path);
+                        else if (path_ends_with(song_data->file_path, "ogg"))
                                 result = prepare_next_vorbis_decoder(
-                                    songData->filePath);
-                        else if (path_ends_with(songData->filePath, "webm"))
-                                result = prepare_next_webm_decoder(songData);
+                                    song_data->file_path);
+                        else if (path_ends_with(song_data->file_path, "webm"))
+                                result = prepare_next_webm_decoder(song_data);
 #ifdef USE_FAAD
-                        else if (path_ends_with(songData->filePath, "m4a") ||
-                                 path_ends_with(songData->filePath, "aac"))
-                                result = prepare_next_m4a_decoder(songData);
+                        else if (path_ends_with(song_data->file_path, "m4a") ||
+                                 path_ends_with(song_data->file_path, "aac"))
+                                result = prepare_next_m4a_decoder(song_data);
 
 #endif
                 }
@@ -70,52 +66,42 @@ int load_decoder(SongData *songData, bool *songDataDeleted)
         return result;
 }
 
-int assign_loaded_data(void)
-{
+int assign_loaded_data(void) {
         PlaybackState *ps = get_playback_state();
         int result = 0;
 
-        if (ps->loadingdata.loadA)
-        {
+        if (ps->loadingdata.loadA) {
                 audio_data.pUserData->songdataA = ps->loadingdata.songdataA;
                 result = load_decoder(ps->loadingdata.songdataA,
-                                     &(audio_data.pUserData->songdataADeleted));
-        }
-        else
-        {
+                                      &(audio_data.pUserData->songdataADeleted));
+        } else {
                 audio_data.pUserData->songdataB = ps->loadingdata.songdataB;
                 result = load_decoder(ps->loadingdata.songdataB,
-                                     &(audio_data.pUserData->songdataBDeleted));
+                                      &(audio_data.pUserData->songdataBDeleted));
         }
 
         return result;
 }
 
-void *song_data_reader_thread(void *arg)
-{
+void *song_data_reader_thread(void *arg) {
         PlaybackState *ps = (PlaybackState *)arg;
 
         pthread_mutex_lock(&(ps->loadingdata.mutex));
 
         char filepath[MAXPATHLEN];
-        c_strcpy(filepath, ps->loadingdata.filePath, sizeof(filepath));
+        c_strcpy(filepath, ps->loadingdata.file_path, sizeof(filepath));
 
         SongData *songdata = exists_file(filepath) >= 0 ? load_song_data(filepath) : NULL;
 
-        if (ps->loadingdata.loadA)
-        {
-                if (!audio_data.pUserData->songdataADeleted)
-                {
+        if (ps->loadingdata.loadA) {
+                if (!audio_data.pUserData->songdataADeleted) {
                         unload_song_data(&(ps->loadingdata.songdataA));
                 }
                 audio_data.pUserData->songdataADeleted = false;
                 audio_data.pUserData->songdataA = songdata;
                 ps->loadingdata.songdataA = songdata;
-        }
-        else
-        {
-                if (!audio_data.pUserData->songdataBDeleted)
-                {
+        } else {
+                if (!audio_data.pUserData->songdataBDeleted) {
                         unload_song_data(&(ps->loadingdata.songdataB));
                 }
                 audio_data.pUserData->songdataBDeleted = false;
@@ -125,18 +111,16 @@ void *song_data_reader_thread(void *arg)
 
         int result = assign_loaded_data();
 
-        if (result < 0) songdata->hasErrors = true;
+        if (result < 0)
+                songdata->hasErrors = true;
 
         pthread_mutex_unlock(&(ps->loadingdata.mutex));
 
-        if (songdata == NULL || songdata->hasErrors)
-        {
+        if (songdata == NULL || songdata->hasErrors) {
                 ps->songHasErrors = true;
                 ps->clearingErrors = true;
                 set_next_song(NULL);
-        }
-        else
-        {
+        } else {
                 ps->songHasErrors = false;
                 ps->clearingErrors = false;
                 set_next_song(get_try_next_song());
@@ -150,27 +134,24 @@ void *song_data_reader_thread(void *arg)
         return NULL;
 }
 
-void load_song(Node *song, LoadingThreadData *loadingdata)
-{
+void load_song(Node *song, LoadingThreadData *loadingdata) {
         PlaybackState *ps = get_playback_state();
 
-        if (song == NULL)
-        {
+        if (song == NULL) {
                 ps->loadedNextSong = true;
                 ps->skipping = false;
                 ps->songLoading = false;
                 return;
         }
 
-        c_strcpy(loadingdata->filePath, song->song.filePath,
-                 sizeof(loadingdata->filePath));
+        c_strcpy(loadingdata->file_path, song->song.file_path,
+                 sizeof(loadingdata->file_path));
 
-        pthread_t loadingThread;
-        pthread_create(&loadingThread, NULL, song_data_reader_thread, ps);
+        pthread_t loading_thread;
+        pthread_create(&loading_thread, NULL, song_data_reader_thread, ps);
 }
 
-void try_load_next(void)
-{
+void try_load_next(void) {
         AppState *state = get_app_state();
         PlaybackState *ps = get_playback_state();
         Node *current = get_current_song();
@@ -184,55 +165,46 @@ void try_load_next(void)
         else if (try_next_song != NULL)
                 try_next_song = try_next_song->next;
 
-        if (try_next_song != NULL)
-        {
+        if (try_next_song != NULL) {
                 ps->songLoading = true;
                 ps->loadingdata.state = state;
                 ps->loadingdata.loadA = !ps->usingSongDataA;
                 ps->loadingdata.loadingFirstDecoder = false;
                 load_song(try_next_song, &ps->loadingdata);
-        }
-        else
-        {
+        } else {
                 ps->clearingErrors = false;
         }
 }
 
-void pause_song(void)
-{
+void pause_song(void) {
         struct timespec pause_time = get_pause_time();
-        if (!is_paused())
-        {
+        if (!is_paused()) {
                 emit_string_property_changed("PlaybackStatus", "Paused");
                 clock_gettime(CLOCK_MONOTONIC, &pause_time);
         }
         pause_playback();
 }
 
-void skip_to_begginning_of_song(void)
-{
+void skip_to_begginning_of_song(void) {
         reset_clock();
 
-        if (get_current_song() != NULL)
-        {
+        if (get_current_song() != NULL) {
                 seek_percentage(0);
                 emit_seeked_signal(0.0);
         }
 }
 
-void prepare_if_skipped_silent(void)
-{
+void prepare_if_skipped_silent(void) {
         PlaybackState *ps = get_playback_state();
 
-        if (ps->hasSilentlySwitched)
-        {
+        if (ps->hasSilentlySwitched) {
                 ps->skipping = true;
                 ps->hasSilentlySwitched = false;
                 reset_clock();
                 set_current_implementation_type(NONE);
                 set_repeat_enabled(false);
 
-                audio_data.endOfListReached = false;
+                audio_data.end_of_list_reached = false;
 
                 ps->usingSongDataA = !ps->usingSongDataA;
 
@@ -240,54 +212,45 @@ void prepare_if_skipped_silent(void)
         }
 }
 
-void play(void)
-{
+void play(void) {
         PlaybackState *ps = get_playback_state();
 
-        if (is_paused())
-        {
+        if (is_paused()) {
                 set_total_pause_seconds(get_total_pause_seconds() + get_pause_seconds());
                 emit_string_property_changed("PlaybackStatus", "Playing");
-        }
-        else if (is_stopped())
-        {
+        } else if (is_stopped()) {
                 emit_string_property_changed("PlaybackStatus", "Playing");
         }
 
-        if (is_stopped() && !ps->hasSilentlySwitched)
-        {
+        if (is_stopped() && !ps->hasSilentlySwitched) {
                 skip_to_begginning_of_song();
         }
 
         sound_resume_playback();
 
-        if (ps->hasSilentlySwitched)
-        {
+        if (ps->hasSilentlySwitched) {
                 set_total_pause_seconds(0);
                 prepare_if_skipped_silent();
         }
 }
 
-bool is_valid_audio_node(Node *node)
-{
+bool is_valid_audio_node(Node *node) {
         if (!node)
                 return false;
         if (node->id < 0)
                 return false;
-        if (!node->song.filePath ||
-            strnlen(node->song.filePath, MAXPATHLEN) == 0)
+        if (!node->song.file_path ||
+            strnlen(node->song.file_path, MAXPATHLEN) == 0)
                 return false;
 
         return true;
 }
 
-int play_song(Node *node)
-{
+int play_song(Node *node) {
         AppState *state = get_app_state();
         PlaybackState *ps = get_playback_state();
 
-        if (!is_valid_audio_node(node))
-        {
+        if (!is_valid_audio_node(node)) {
                 fprintf(stderr, "Song is invalid.\n");
                 return -1;
         }
@@ -302,8 +265,7 @@ int play_song(Node *node)
         ps->loadedNextSong = false;
 
         // Cancel starting from top
-        if (ps->waitingForPlaylist || audio_data.restart)
-        {
+        if (ps->waitingForPlaylist || audio_data.restart) {
                 ps->waitingForPlaylist = false;
                 audio_data.restart = false;
 
@@ -317,22 +279,19 @@ int play_song(Node *node)
 
         load_song(node, &ps->loadingdata);
 
-        int maxNumTries = 50;
+        int max_num_tries = 50;
         int numtries = 0;
 
-        while (!ps->loadedNextSong && numtries < maxNumTries)
-        {
+        while (!ps->loadedNextSong && numtries < max_num_tries) {
                 c_sleep(100);
                 numtries++;
         }
 
-        if (ps->songHasErrors)
-        {
+        if (ps->songHasErrors) {
                 ps->songHasErrors = false;
                 ps->forceSkip = true;
 
-                if (node->next != NULL)
-                {
+                if (node->next != NULL) {
                         return -1;
                 }
         }
@@ -343,13 +302,11 @@ int play_song(Node *node)
         return 0;
 }
 
-void volume_change(int changePercent)
-{
-        adjust_volume_percent(changePercent);
+void volume_change(int change_percent) {
+        adjust_volume_percent(change_percent);
 }
 
-void skip_to_song(int id, bool startPlaying)
-{
+void skip_to_song(int id, bool start_playing) {
         PlaybackState *ps = get_playback_state();
 
         if (ps->songLoading || !ps->loadedNextSong || ps->skipping || ps->clearingErrors)
@@ -361,8 +318,7 @@ void skip_to_song(int id, bool startPlaying)
 
         find_node_in_list(playlist, id, &found);
 
-        if (startPlaying)
-        {
+        if (start_playing) {
                 double total_pause_seconds = get_total_pause_seconds();
                 double pause_seconds = get_total_pause_seconds();
 
@@ -375,64 +331,51 @@ void skip_to_song(int id, bool startPlaying)
         play_song(found);
 }
 
-void stop(void)
-{
+void stop(void) {
         stop_playback();
 
-        if (is_stopped())
-        {
+        if (is_stopped()) {
                 skip_to_begginning_of_song();
                 emit_string_property_changed("PlaybackStatus", "Stopped");
         }
 }
 
-void ops_toggle_pause(void)
-{
+void ops_toggle_pause(void) {
         PlaybackState *ps = get_playback_state();
 
-        if (is_stopped())
-        {
+        if (is_stopped()) {
                 reset_clock();
         }
 
-        if (get_current_song() == NULL && is_paused())
-        {
+        if (get_current_song() == NULL && is_paused()) {
                 return;
         }
 
         toggle_pause_playback();
 
-        if (is_paused())
-        {
+        if (is_paused()) {
                 emit_string_property_changed("PlaybackStatus", "Paused");
                 update_pause_time();
-        }
-        else
-        {
-                if (ps->hasSilentlySwitched && !ps->skipping)
-                {
+        } else {
+                if (ps->hasSilentlySwitched && !ps->skipping) {
                         set_total_pause_seconds(0);
                         prepare_if_skipped_silent();
-                }
-                else
-                {
+                } else {
                         set_total_pause_seconds(get_total_pause_seconds() + get_pause_seconds());
                 }
                 emit_string_property_changed("PlaybackStatus", "Playing");
         }
 }
 
-void seek(int seconds)
-{
+void seek(int seconds) {
         Node *current = get_current_song();
         if (current == NULL)
                 return;
 
 #ifdef USE_FAAD
-        if (path_ends_with(current->song.filePath, "aac"))
-        {
+        if (path_ends_with(current->song.file_path, "aac")) {
                 m4a_decoder *decoder = get_current_m4a_decoder();
-                if (decoder != NULL && decoder->fileType == k_rawAAC)
+                if (decoder != NULL && decoder->file_type == k_rawAAC)
                         return;
         }
 #endif

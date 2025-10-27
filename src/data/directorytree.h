@@ -19,14 +19,13 @@
 
 #ifndef FILE_SYSTEM_ENTRY
 #define FILE_SYSTEM_ENTRY
-typedef struct FileSystemEntry
-{
+typedef struct FileSystemEntry {
         int id;
         char *name;
-        char *fullPath;
+        char *full_path;
         int is_directory;
-        int isEnqueued;
-        int parentId;
+        int is_enqueued;
+        int parent_id;
         struct FileSystemEntry *parent;
         struct FileSystemEntry *children;
         struct FileSystemEntry *next;      // For siblings (next node in the same directory)
@@ -39,12 +38,12 @@ typedef struct FileSystemEntry
 typedef void (*SlowloadingCallback)(void);
 #endif
 
-FileSystemEntry *create_directory_tree(const char *startPath, int *numEntries);
+FileSystemEntry *create_directory_tree(const char *start_path, int *num_entries);
 void free_tree(FileSystemEntry *root);
 void free_and_write_tree(FileSystemEntry *root, const char *filename);
-void fuzzy_search_recursive(FileSystemEntry *node, const char *searchTerm,
-                          int threshold,
-                          void (*callback)(FileSystemEntry *, int));
+void fuzzy_search_recursive(FileSystemEntry *node, const char *search_term,
+                            int threshold,
+                            void (*callback)(FileSystemEntry *, int));
 void copy_is_enqueued(FileSystemEntry *library, FileSystemEntry *tmp);
 void sort_file_system_tree(FileSystemEntry *root, int (*comparator)(const void *, const void *));
 int compare_folders_by_age_files_alphabetically(const void *a, const void *b);
@@ -52,9 +51,9 @@ int compare_lib_entries(const struct dirent **a, const struct dirent **b);
 int compare_lib_entries_reversed(const struct dirent **a, const struct dirent **b);
 int compare_entry_natural_reversed(const void *a, const void *b);
 int compare_entry_natural(const void *a, const void *b);
-FileSystemEntry *find_corresponding_entry(FileSystemEntry *tmp, const char *fullPath);
+FileSystemEntry *find_corresponding_entry(FileSystemEntry *tmp, const char *full_path);
 FileSystemEntry *reconstruct_tree_from_file(const char *filename,
-                                         const char *startMusicPath,
-                                         int *numDirectoryEntries);
+                                            const char *start_music_path,
+                                            int *num_directory_entries);
 
 #endif

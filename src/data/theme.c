@@ -31,16 +31,14 @@ typedef struct
         ColorValue *field;
 } ThemeMapping;
 
-int hex_to_pixel(const char *hex, PixelData *result)
-{
+int hex_to_pixel(const char *hex, PixelData *result) {
         if (!hex || strlen(hex) != 7 || hex[0] != '#')
                 return -1;
 
         if (hex[0] == '#')
                 hex++; // skip #
 
-        if (strlen(hex) == 6)
-        {
+        if (strlen(hex) == 6) {
                 char r[3], g[3], b[3];
                 strncpy(r, hex, 2);
                 r[2] = '\0';
@@ -56,8 +54,7 @@ int hex_to_pixel(const char *hex, PixelData *result)
         return 0;
 }
 
-void trim_whitespace(char *str)
-{
+void trim_whitespace(char *str) {
         while (isspace((unsigned char)*str))
                 str++;
 
@@ -68,17 +65,13 @@ void trim_whitespace(char *str)
         memmove(str, str, strlen(str) + 1);
 }
 
-void remove_comment(char *str)
-{
+void remove_comment(char *str) {
         char *p = str;
-        while (*p)
-        {
-                if (*p == '#')
-                {
+        while (*p) {
+                if (*p == '#') {
                         // If previous char is whitespace, treat as comment
                         // start
-                        if (p == str || isspace((unsigned char)*(p - 1)))
-                        {
+                        if (p == str || isspace((unsigned char)*(p - 1))) {
                                 *p = '\0';
                                 break;
                         }
@@ -88,8 +81,7 @@ void remove_comment(char *str)
 }
 
 // Parse hex color safely (e.g. #aabbcc)
-int parse_hex_color(const char *hex, PixelData *out)
-{
+int parse_hex_color(const char *hex, PixelData *out) {
         if (!hex || strlen(hex) != 7 || hex[0] != '#')
                 return 0;
 
@@ -103,17 +95,14 @@ int parse_hex_color(const char *hex, PixelData *out)
         return 1;
 }
 
-int parse_color_value(const char *value, ColorValue *out)
-{
+int parse_color_value(const char *value, ColorValue *out) {
         if (!value || !out)
                 return 0;
 
         // Check if it's hex (#RRGGBB)
-        if (value[0] == '#')
-        {
+        if (value[0] == '#') {
                 unsigned int r, g, b;
-                if (sscanf(value, "#%02x%02x%02x", &r, &g, &b) != 3)
-                {
+                if (sscanf(value, "#%02x%02x%02x", &r, &g, &b) != 3) {
                         return 0; // failed to parse hex
                 }
                 out->type = COLOR_TYPE_RGB;
@@ -127,13 +116,11 @@ int parse_color_value(const char *value, ColorValue *out)
         char *endptr = NULL;
         errno = 0;
         long index = strtol(value, &endptr, 10);
-        if (errno || endptr == value || *endptr != '\0')
-        {
+        if (errno || endptr == value || *endptr != '\0') {
                 return 0; // invalid number
         }
 
-        if (index < -1 || index > 15)
-        {
+        if (index < -1 || index > 15) {
                 return 0; // out of range for 16-color ANSI
         }
 
@@ -142,28 +129,24 @@ int parse_color_value(const char *value, ColorValue *out)
         return 1;
 }
 
-int load_theme_from_file(const char *themesDir, const char *filename, Theme *currentTheme)
-{
-        memset(currentTheme, 0, sizeof(Theme));
+int load_theme_from_file(const char *themes_dir, const char *filename, Theme *current_theme) {
+        memset(current_theme, 0, sizeof(Theme));
 
-        if (!themesDir || !filename)
-        {
+        if (!themes_dir || !filename) {
                 fprintf(stderr, "Theme directory or filename is NULL.\n");
                 set_error_message("Theme directory or filename is NULL.");
                 return 0;
         }
 
         char path[512];
-        if (snprintf(path, sizeof(path), "%s/%s", themesDir, filename) >=
-            (int)sizeof(path))
-        {
+        if (snprintf(path, sizeof(path), "%s/%s", themes_dir, filename) >=
+            (int)sizeof(path)) {
                 fprintf(stderr, "Theme path too long.\n");
                 return 0;
         }
 
         FILE *file = fopen(path, "r");
-        if (!file)
-        {
+        if (!file) {
                 fprintf(stderr, "Failed to open theme file.\n");
                 set_error_message("Failed to open theme file.");
                 return 0;
@@ -171,54 +154,53 @@ int load_theme_from_file(const char *themesDir, const char *filename, Theme *cur
 
         // Map of all known keys to Theme fields
         ThemeMapping mappings[] = {
-            {"accent", &currentTheme->accent},
-            {"text", &currentTheme->text},
-            {"textDim", &currentTheme->textDim},
-            {"textMuted", &currentTheme->textMuted},
-            {"logo", &currentTheme->logo},
-            {"header", &currentTheme->header},
-            {"footer", &currentTheme->footer},
-            {"help", &currentTheme->help},
-            {"link", &currentTheme->link},
-            {"nowplaying", &currentTheme->nowplaying},
-            {"playlist_rownum", &currentTheme->playlist_rownum},
-            {"playlist_title", &currentTheme->playlist_title},
-            {"playlist_playing", &currentTheme->playlist_playing},
-            {"trackview_title", &currentTheme->trackview_title},
-            {"trackview_artist", &currentTheme->trackview_artist},
-            {"trackview_album", &currentTheme->trackview_album},
-            {"trackview_year", &currentTheme->trackview_year},
-            {"trackview_time", &currentTheme->trackview_time},
-            {"trackview_visualizer", &currentTheme->trackview_visualizer},
-            {"trackview_lyrics", &currentTheme->trackview_lyrics},
-            {"library_artist", &currentTheme->library_artist},
-            {"library_album", &currentTheme->library_album},
-            {"library_track", &currentTheme->library_track},
-            {"library_enqueued", &currentTheme->library_enqueued},
-            {"library_playing", &currentTheme->library_playing},
-            {"search_label", &currentTheme->search_label},
-            {"search_query", &currentTheme->search_query},
-            {"search_result", &currentTheme->search_result},
-            {"search_enqueued", &currentTheme->search_enqueued},
-            {"search_playing", &currentTheme->search_playing},
-            {"progress_filled", &currentTheme->progress_filled},
-            {"progress_elapsed", &currentTheme->progress_elapsed},
-            {"progress_empty", &currentTheme->progress_empty},
-            {"progress_duration", &currentTheme->progress_duration},
-            {"status_info", &currentTheme->status_info},
-            {"status_warning", &currentTheme->status_warning},
-            {"status_error", &currentTheme->status_error},
-            {"status_success", &currentTheme->status_success}};
+            {"accent", &current_theme->accent},
+            {"text", &current_theme->text},
+            {"textDim", &current_theme->textDim},
+            {"textMuted", &current_theme->textMuted},
+            {"logo", &current_theme->logo},
+            {"header", &current_theme->header},
+            {"footer", &current_theme->footer},
+            {"help", &current_theme->help},
+            {"link", &current_theme->link},
+            {"nowplaying", &current_theme->nowplaying},
+            {"playlist_rownum", &current_theme->playlist_rownum},
+            {"playlist_title", &current_theme->playlist_title},
+            {"playlist_playing", &current_theme->playlist_playing},
+            {"trackview_title", &current_theme->trackview_title},
+            {"trackview_artist", &current_theme->trackview_artist},
+            {"trackview_album", &current_theme->trackview_album},
+            {"trackview_year", &current_theme->trackview_year},
+            {"trackview_time", &current_theme->trackview_time},
+            {"trackview_visualizer", &current_theme->trackview_visualizer},
+            {"trackview_lyrics", &current_theme->trackview_lyrics},
+            {"library_artist", &current_theme->library_artist},
+            {"library_album", &current_theme->library_album},
+            {"library_track", &current_theme->library_track},
+            {"library_enqueued", &current_theme->library_enqueued},
+            {"library_playing", &current_theme->library_playing},
+            {"search_label", &current_theme->search_label},
+            {"search_query", &current_theme->search_query},
+            {"search_result", &current_theme->search_result},
+            {"search_enqueued", &current_theme->search_enqueued},
+            {"search_playing", &current_theme->search_playing},
+            {"progress_filled", &current_theme->progress_filled},
+            {"progress_elapsed", &current_theme->progress_elapsed},
+            {"progress_empty", &current_theme->progress_empty},
+            {"progress_duration", &current_theme->progress_duration},
+            {"status_info", &current_theme->status_info},
+            {"status_warning", &current_theme->status_warning},
+            {"status_error", &current_theme->status_error},
+            {"status_success", &current_theme->status_success}};
 
-        const size_t mappingCount = sizeof(mappings) / sizeof(ThemeMapping);
+        const size_t mapping_count = sizeof(mappings) / sizeof(ThemeMapping);
 
         char line[512];
-        int lineNum = 0;
+        int line_num = 0;
         int found = 0;
 
-        while (fgets(line, sizeof(line), file))
-        {
-                lineNum++;
+        while (fgets(line, sizeof(line), file)) {
+                line_num++;
 
                 remove_comment(line);
                 trim_whitespace(line);
@@ -227,8 +209,7 @@ int load_theme_from_file(const char *themesDir, const char *filename, Theme *cur
                         continue; // skip empty or section headers
 
                 char *eq = strchr(line, '=');
-                if (!eq)
-                {
+                if (!eq) {
                         continue;
                 }
 
@@ -240,49 +221,40 @@ int load_theme_from_file(const char *themesDir, const char *filename, Theme *cur
                 trim_whitespace(value);
 
                 // Replace dots with underscores
-                for (char *c = key; *c; c++)
-                {
+                for (char *c = key; *c; c++) {
                         if (*c == '.')
                                 *c = '_';
                 }
 
-                for (size_t i = 0; i < mappingCount; ++i)
-                {
-                        if (strcmp(key, "name") == 0)
-                        {
+                for (size_t i = 0; i < mapping_count; ++i) {
+                        if (strcmp(key, "name") == 0) {
                                 // Copy theme name safely
-                                strncpy(currentTheme->theme_name, value,
-                                        sizeof(currentTheme->theme_name) - 1);
-                                currentTheme->theme_name
-                                    [sizeof(currentTheme->theme_name) - 1] =
+                                strncpy(current_theme->theme_name, value,
+                                        sizeof(current_theme->theme_name) - 1);
+                                current_theme->theme_name
+                                    [sizeof(current_theme->theme_name) - 1] =
                                     '\0';
                                 found = 1;
                                 break;
                         }
-                        if (strcmp(key, "author") == 0)
-                        {
+                        if (strcmp(key, "author") == 0) {
                                 // Copy theme name safely
-                                strncpy(currentTheme->theme_author, value,
-                                        sizeof(currentTheme->theme_author) - 1);
-                                currentTheme->theme_author
-                                    [sizeof(currentTheme->theme_author) - 1] =
+                                strncpy(current_theme->theme_author, value,
+                                        sizeof(current_theme->theme_author) - 1);
+                                current_theme->theme_author
+                                    [sizeof(current_theme->theme_author) - 1] =
                                     '\0';
                                 found = 1;
                                 break;
-                        }
-                        else if (strcmp(key, mappings[i].key) == 0)
-                        {
+                        } else if (strcmp(key, mappings[i].key) == 0) {
                                 ColorValue color;
 
-                                if (!parse_color_value(value, &color))
-                                {
+                                if (!parse_color_value(value, &color)) {
                                         fprintf(stderr,
                                                 "Invalid color value at line "
                                                 "%d: %s\n",
-                                                lineNum, value);
-                                }
-                                else
-                                {
+                                                line_num, value);
+                                } else {
                                         *(mappings[i].field) = color;
                                         found = 1;
                                 }
@@ -296,43 +268,36 @@ int load_theme_from_file(const char *themesDir, const char *filename, Theme *cur
 }
 
 // Copies default themes to config dir if they aren't alread there
-bool ensure_default_themes(void)
-{
+bool ensure_default_themes(void) {
         bool copied = false;
 
-        char *configPath = get_config_path();
-        if (!configPath)
+        char *config_path = get_config_path();
+        if (!config_path)
                 return false;
 
-        char themesPath[MAXPATHLEN];
-        if (snprintf(themesPath, sizeof(themesPath), "%s/themes", configPath) >=
-            (int)sizeof(themesPath))
-        {
-                free(configPath);
+        char themes_path[MAXPATHLEN];
+        if (snprintf(themes_path, sizeof(themes_path), "%s/themes", config_path) >=
+            (int)sizeof(themes_path)) {
+                free(config_path);
                 return false;
         }
 
         // Check if user themes directory already exists
         struct stat st;
-        if (stat(themesPath, &st) == -1)
-        {
-                char *systemThemes = PREFIX "/share/kew/themes";
-                DIR *dir = opendir(systemThemes);
-                if (dir)
-                {
+        if (stat(themes_path, &st) == -1) {
+                char *system_themes = PREFIX "/share/kew/themes";
+                DIR *dir = opendir(system_themes);
+                if (dir) {
                         struct dirent *entry;
                         bool needsDir = false;
 
-                        while ((entry = readdir(dir)) != NULL)
-                        {
+                        while ((entry = readdir(dir)) != NULL) {
                                 if (entry->d_type == DT_REG &&
                                     (strstr(entry->d_name, ".theme") ||
-                                     strstr(entry->d_name, ".txt")))
-                                {
+                                     strstr(entry->d_name, ".txt"))) {
                                         // Found at least one theme — create dir if not yet created
-                                        if (!needsDir)
-                                        {
-                                                if (mkdir(themesPath, 0755) == 0)
+                                        if (!needsDir) {
+                                                if (mkdir(themes_path, 0755) == 0)
                                                         needsDir = true;
                                                 else
                                                         break; // couldn't create directory
@@ -341,10 +306,10 @@ bool ensure_default_themes(void)
                                         char src[MAXPATHLEN], dst[MAXPATHLEN];
 
                                         if (snprintf(src, sizeof(src), "%s/%s",
-                                                     systemThemes, entry->d_name) >= (int)sizeof(src))
+                                                     system_themes, entry->d_name) >= (int)sizeof(src))
                                                 continue;
                                         if (snprintf(dst, sizeof(dst), "%s/%s",
-                                                     themesPath, entry->d_name) >= (int)sizeof(dst))
+                                                     themes_path, entry->d_name) >= (int)sizeof(dst))
                                                 continue;
 
                                         copy_file(src, dst);
@@ -355,6 +320,6 @@ bool ensure_default_themes(void)
                 }
         }
 
-        free(configPath);
+        free(config_path);
         return copied;
 }

@@ -17,17 +17,17 @@ void set_RGB(PixelData p);
 void set_album_color(PixelData color);
 void increment_update_counter(void);
 void inverse_text(void);
-void apply_color(ColorMode mode, ColorValue themeColor, PixelData albumColor);
-void process_name_scroll(const char *name, char *output, int maxWidth, bool is_same_name_as_last_time);
+void apply_color(ColorMode mode, ColorValue theme_color, PixelData album_color);
+void process_name_scroll(const char *name, char *output, int max_width, bool is_same_name_as_last_time);
 void reset_name_scroll(void);
 void reset_color(void);
-void process_name(const char *name, char *output, int maxWidth, bool stripUnneededChars, bool stripSuffix);
+void process_name(const char *name, char *output, int max_width, bool strip_unneeded_chars, bool strip_suffix);
 void transfer_settings_to_u_i(void);
 void enable_mouse(UISettings *ui);
 int get_update_counter(void);
 bool get_is_long_name(void);
 PixelData increase_luminosity(PixelData pixel, int amount);
 PixelData decrease_luminosity_pct(PixelData base, float pct);
-PixelData get_gradient_color(PixelData baseColor, int row, int max_list_size, int startGradient, float minPct);
+PixelData get_gradient_color(PixelData base_color, int row, int max_list_size, int start_gradient, float min_pct);
 
 #endif

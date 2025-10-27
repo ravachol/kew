@@ -17,6 +17,6 @@ void playback_cleanup(void);
 void skip(void);
 void playback_switch_decoder(void);
 void playback_shutdown(void);
-void playback_unload_songs(UserData *userData);
+void playback_unload_songs(UserData *user_data);
 void playback_free_decoders(void);
 void ensure_default_theme_pack();

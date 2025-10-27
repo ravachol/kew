@@ -10,69 +10,68 @@
 
 #ifdef __cplusplus
 
-extern "C"
-{
+extern "C" {
 #endif
 
 #include "miniaudio.h"
 
 #if !defined(MA_NO_WEBM)
 
+#include <nestegg/nestegg.h>
 #include <opusfile.h>
 #include <vorbis/codec.h>
-#include <nestegg/nestegg.h>
 
 #endif
 
-        typedef struct
-        {
-                ma_data_source_base ds; /* The webm decoder can be used independently as a data source. */
-                ma_read_proc onRead;
-                ma_seek_proc onSeek;
-                ma_tell_proc onTell;
-                void *pReadSeekTellUserData;
-                ma_format format; /* Will be f32 */
+typedef struct
+{
+        ma_data_source_base ds; /* The webm decoder can be used independently as a data source. */
+        ma_read_proc onRead;
+        ma_seek_proc onSeek;
+        ma_tell_proc onTell;
+        void *pReadSeekTellUserData;
+        ma_format format; /* Will be f32 */
 #if !defined(MA_NO_WEBM)
-                ma_uint64 audioTrack;
-                ma_uint64 cursorInPCMFrames;
-                ma_uint64 seekTargetPCMFrame;
-                ma_uint32 sample_rate;
-                ma_uint32 channels;
-                ma_uint64 lengthInPCMFrames;
-                double duration;
+        ma_uint64 audio_track;
+        ma_uint64 cursorInPCMFrames;
+        ma_uint64 seekTargetPCMFrame;
+        ma_uint32 sample_rate;
+        ma_uint32 channels;
+        ma_uint64 lengthInPCMFrames;
+        double duration;
 
-                // Nestegg fields
-                nestegg *ctx;
-                unsigned int codec_id;
-                nestegg_packet *currentPacket;
-                unsigned int numFramesInPacket;
-                unsigned int currentPacketFrame;
-                ma_bool32 hasPacket;
+        // Nestegg fields
+        nestegg *ctx;
+        unsigned int codec_id;
+        nestegg_packet *currentPacket;
+        unsigned int numFramesInPacket;
+        unsigned int currentPacketFrame;
+        ma_bool32 hasPacket;
 
-                // Opus fields
-                OpusDecoder *opusDecoder;
-                // Vorbis fields
-                vorbis_block vorbisBlock;
-                vorbis_dsp_state vorbisDSP;
-                vorbis_comment vorbisComment;
-                vorbis_info vorbisInfo;
-                ma_uint16 opusPreSkip;
-                ma_uint16 preSkipLeft;
+        // Opus fields
+        OpusDecoder *opusDecoder;
+        // Vorbis fields
+        vorbis_block vorbisBlock;
+        vorbis_dsp_state vorbisDSP;
+        vorbis_comment vorbisComment;
+        vorbis_info vorbisInfo;
+        ma_uint16 opusPreSkip;
+        ma_uint16 preSkipLeft;
 
-                ma_uint64 bufferLeftoverFrameCount;
-                ma_uint64 bufferLeftoverFrameOffset;
+        ma_uint64 bufferLeftoverFrameCount;
+        ma_uint64 bufferLeftoverFrameOffset;
 
 #endif
-        } ma_webm;
+} ma_webm;
 
-        MA_API ma_result ma_webm_init(ma_read_proc onRead, ma_seek_proc onSeek, ma_tell_proc onTell, void *pReadSeekTellUserData, const ma_decoding_backend_config *pConfig, const ma_allocation_callbacks *pAllocationCallbacks, ma_webm *pWebm);
-        MA_API ma_result ma_webm_init_file(const char *pFilePath, const ma_decoding_backend_config *pConfig, const ma_allocation_callbacks *pAllocationCallbacks, ma_webm *pWebm);
-        MA_API void ma_webm_uninit(ma_webm *pOpus, const ma_allocation_callbacks *pAllocationCallbacks);
-        MA_API ma_result ma_webm_read_pcm_frames(ma_webm *pWebm, void *pFramesOut, ma_uint64 frameCount, ma_uint64 *pFramesRead);
-        MA_API ma_result ma_webm_seek_to_pcm_frame(ma_webm *pWebm, ma_uint64 frameIndex);
-        MA_API ma_result ma_webm_get_data_format(ma_webm *pOpus, ma_format *pFormat, ma_uint32 *pChannels, ma_uint32 *pSampleRate, ma_channel *pChannelMap, size_t channelMapCap);
-        MA_API ma_result ma_webm_get_cursor_in_pcm_frames(ma_webm *pWebm, ma_uint64 *pCursor);
-        MA_API ma_result ma_webm_get_length_in_pcm_frames(ma_webm *pWebm, ma_uint64 *pLength);
+MA_API ma_result ma_webm_init(ma_read_proc onRead, ma_seek_proc onSeek, ma_tell_proc onTell, void *pReadSeekTellUserData, const ma_decoding_backend_config *p_config, const ma_allocation_callbacks *p_allocation_callbacks, ma_webm *p_webm);
+MA_API ma_result ma_webm_init_file(const char *pFilePath, const ma_decoding_backend_config *p_config, const ma_allocation_callbacks *p_allocation_callbacks, ma_webm *p_webm);
+MA_API void ma_webm_uninit(ma_webm *p_opus, const ma_allocation_callbacks *p_allocation_callbacks);
+MA_API ma_result ma_webm_read_pcm_frames(ma_webm *p_webm, void *p_frames_out, ma_uint64 frame_count, ma_uint64 *p_frames_read);
+MA_API ma_result ma_webm_seek_to_pcm_frame(ma_webm *p_webm, ma_uint64 frame_index);
+MA_API ma_result ma_webm_get_data_format(ma_webm *p_opus, ma_format *p_format, ma_uint32 *p_channels, ma_uint32 *p_sample_rate, ma_channel *p_channel_map, size_t channel_map_cap);
+MA_API ma_result ma_webm_get_cursor_in_pcm_frames(ma_webm *p_webm, ma_uint64 *p_cursor);
+MA_API ma_result ma_webm_get_length_in_pcm_frames(ma_webm *p_webm, ma_uint64 *p_length);
 
 #ifdef __cplusplus
 }
@@ -91,29 +90,24 @@ static float opusLeftoverBuffer[MAX_OPUS_SAMPLES * MAX_OPUS_CHANNELS];
 
 float vorbisLeftoverBuffer[MAX_VORBIS_PACKET_FRAMES * MAX_VORBIS_CHANNELS];
 
-static ma_result ma_webm_ds_read(ma_data_source *pDataSource, void *pFramesOut, ma_uint64 frameCount, ma_uint64 *pFramesRead)
-{
-        return ma_webm_read_pcm_frames((ma_webm *)pDataSource, pFramesOut, frameCount, pFramesRead);
+static ma_result ma_webm_ds_read(ma_data_source *p_data_source, void *p_frames_out, ma_uint64 frame_count, ma_uint64 *p_frames_read) {
+        return ma_webm_read_pcm_frames((ma_webm *)p_data_source, p_frames_out, frame_count, p_frames_read);
 }
 
-static ma_result ma_webm_ds_seek(ma_data_source *pDataSource, ma_uint64 frameIndex)
-{
-        return ma_webm_seek_to_pcm_frame((ma_webm *)pDataSource, frameIndex);
+static ma_result ma_webm_ds_seek(ma_data_source *p_data_source, ma_uint64 frame_index) {
+        return ma_webm_seek_to_pcm_frame((ma_webm *)p_data_source, frame_index);
 }
 
-static ma_result ma_webm_ds_get_data_format(ma_data_source *pDataSource, ma_format *pFormat, ma_uint32 *pChannels, ma_uint32 *pSampleRate, ma_channel *pChannelMap, size_t channelMapCap)
-{
-        return ma_webm_get_data_format((ma_webm *)pDataSource, pFormat, pChannels, pSampleRate, pChannelMap, channelMapCap);
+static ma_result ma_webm_ds_get_data_format(ma_data_source *p_data_source, ma_format *p_format, ma_uint32 *p_channels, ma_uint32 *p_sample_rate, ma_channel *p_channel_map, size_t channel_map_cap) {
+        return ma_webm_get_data_format((ma_webm *)p_data_source, p_format, p_channels, p_sample_rate, p_channel_map, channel_map_cap);
 }
 
-static ma_result ma_webm_ds_get_cursor(ma_data_source *pDataSource, ma_uint64 *pCursor)
-{
-        return ma_webm_get_cursor_in_pcm_frames((ma_webm *)pDataSource, pCursor);
+static ma_result ma_webm_ds_get_cursor(ma_data_source *p_data_source, ma_uint64 *p_cursor) {
+        return ma_webm_get_cursor_in_pcm_frames((ma_webm *)p_data_source, p_cursor);
 }
 
-static ma_result ma_webm_ds_get_length(ma_data_source *pDataSource, ma_uint64 *pLength)
-{
-        return ma_webm_get_length_in_pcm_frames((ma_webm *)pDataSource, pLength);
+static ma_result ma_webm_ds_get_length(ma_data_source *p_data_source, ma_uint64 *p_length) {
+        return ma_webm_get_length_in_pcm_frames((ma_webm *)p_data_source, p_length);
 }
 
 static ma_data_source_vtable g_ma_webm_ds_vtable =
@@ -126,60 +120,51 @@ static ma_data_source_vtable g_ma_webm_ds_vtable =
         NULL,
         (ma_uint64)0};
 
-static ma_result ma_webm_init_internal(const ma_decoding_backend_config *pConfig, ma_webm *pWebm)
-{
+static ma_result ma_webm_init_internal(const ma_decoding_backend_config *p_config, ma_webm *p_webm) {
         ma_result result;
         ma_data_source_config dataSourceConfig;
 
-        if (pWebm == NULL)
-        {
+        if (p_webm == NULL) {
                 return MA_INVALID_ARGS;
         }
 
-        MA_ZERO_OBJECT(pWebm);
-        pWebm->format = ma_format_f32; // f32 by default.
-        pWebm->seekTargetPCMFrame = (ma_uint64)-1;
+        MA_ZERO_OBJECT(p_webm);
+        p_webm->format = ma_format_f32; // f32 by default.
+        p_webm->seekTargetPCMFrame = (ma_uint64)-1;
 
         // Clear leftover buffer
-        pWebm->bufferLeftoverFrameCount = 0;
-        pWebm->bufferLeftoverFrameOffset = 0;
+        p_webm->bufferLeftoverFrameCount = 0;
+        p_webm->bufferLeftoverFrameOffset = 0;
 
-        if (pConfig != NULL && (pConfig->preferredFormat == ma_format_f32 || pConfig->preferredFormat == ma_format_s16))
-        {
-                pWebm->format = pConfig->preferredFormat;
-        }
-        else
-        {
+        if (p_config != NULL && (p_config->preferredFormat == ma_format_f32 || p_config->preferredFormat == ma_format_s16)) {
+                p_webm->format = p_config->preferredFormat;
+        } else {
                 /* Getting here means something other than f32 and s16 was specified. Just leave this unset to use the default format. */
         }
 
         dataSourceConfig = ma_data_source_config_init();
         dataSourceConfig.vtable = &g_ma_webm_ds_vtable;
 
-        result = ma_data_source_init(&dataSourceConfig, &pWebm->ds);
-        if (result != MA_SUCCESS)
-        {
+        result = ma_data_source_init(&dataSourceConfig, &p_webm->ds);
+        if (result != MA_SUCCESS) {
                 return result; /* Failed to initialize the base data source. */
         }
 
         return MA_SUCCESS;
 }
 
-static int nestegg_io_read(void *buffer, size_t length, void *userdata)
-{
+static int nestegg_io_read(void *buffer, size_t length, void *userdata) {
         ma_webm *webm = (ma_webm *)userdata;
-        size_t bytesRead = 0;
-        if (webm->onRead(webm->pReadSeekTellUserData, buffer, length, &bytesRead) == MA_SUCCESS)
-                return (bytesRead == length) ? 1 : 0;
+        size_t bytes_read = 0;
+        if (webm->onRead(webm->pReadSeekTellUserData, buffer, length, &bytes_read) == MA_SUCCESS)
+                return (bytes_read == length) ? 1 : 0;
         return -1;
 }
 
-static int nestegg_io_seek(int64_t offset, int whence, void *userdata)
-{
+static int nestegg_io_seek(int64_t offset, int whence, void *userdata) {
         ma_webm *webm = (ma_webm *)userdata;
         ma_seek_origin origin;
-        switch (whence)
-        {
+        switch (whence) {
         case NESTEGG_SEEK_SET:
                 origin = ma_seek_origin_start;
                 break;
@@ -195,20 +180,17 @@ static int nestegg_io_seek(int64_t offset, int whence, void *userdata)
         return (webm->onSeek(webm->pReadSeekTellUserData, offset, origin) == MA_SUCCESS) ? 0 : -1;
 }
 
-static int64_t nestegg_io_tell(void *userdata)
-{
+static int64_t nestegg_io_tell(void *userdata) {
         ma_webm *webm = (ma_webm *)userdata;
         ma_int64 pos = 0;
         return (webm->onTell(webm->pReadSeekTellUserData, &pos) == MA_SUCCESS) ? pos : -1;
 }
 
-double calcWebmDuration(nestegg *ctx)
-{
+double calcWebmDuration(nestegg *ctx) {
         double duration = 0.0f;
 
         uint64_t duration_ns = 0;
-        if (nestegg_duration(ctx, &duration_ns) == 0)
-        {
+        if (nestegg_duration(ctx, &duration_ns) == 0) {
                 duration = (double)duration_ns / 1e9;
         }
         return duration;
@@ -216,24 +198,22 @@ double calcWebmDuration(nestegg *ctx)
 
 static int ma_webm_init_vorbis_decoder(
     nestegg *ctx,
-    unsigned int audioTrack,
-    ma_webm *pWebm)
-{
+    unsigned int audio_track,
+    ma_webm *p_webm) {
         unsigned char *id = NULL, *comment = NULL, *setup = NULL;
         size_t id_size = 0, comment_size = 0, setup_size = 0;
         ogg_packet header_packet;
 
         // Fetch header packets as delivered by WebM/Matroska.
-        if (nestegg_track_codec_data(ctx, audioTrack, 0, &id, &id_size) != 0 ||
-            nestegg_track_codec_data(ctx, audioTrack, 1, &comment, &comment_size) != 0 ||
-            nestegg_track_codec_data(ctx, audioTrack, 2, &setup, &setup_size) != 0)
-        {
+        if (nestegg_track_codec_data(ctx, audio_track, 0, &id, &id_size) != 0 ||
+            nestegg_track_codec_data(ctx, audio_track, 1, &comment, &comment_size) != 0 ||
+            nestegg_track_codec_data(ctx, audio_track, 2, &setup, &setup_size) != 0) {
                 return -1; // invalid file or track
         }
 
         // Setup libvorbis structures.
-        vorbis_info_init(&pWebm->vorbisInfo);
-        vorbis_comment_init(&pWebm->vorbisComment);
+        vorbis_info_init(&p_webm->vorbisInfo);
+        vorbis_comment_init(&p_webm->vorbisComment);
 
         memset(&header_packet, 0, sizeof(header_packet));
         // Header 1: ID
@@ -241,7 +221,7 @@ static int ma_webm_init_vorbis_decoder(
         header_packet.bytes = id_size;
         header_packet.b_o_s = 1;
         header_packet.e_o_s = 0;
-        if (vorbis_synthesis_headerin(&pWebm->vorbisInfo, &pWebm->vorbisComment, &header_packet) != 0)
+        if (vorbis_synthesis_headerin(&p_webm->vorbisInfo, &p_webm->vorbisComment, &header_packet) != 0)
                 goto fail;
 
         // Header 2: COMMENT
@@ -249,33 +229,33 @@ static int ma_webm_init_vorbis_decoder(
         header_packet.bytes = comment_size;
         header_packet.b_o_s = 0;
         // header_packet.e_o_s remains 0
-        if (vorbis_synthesis_headerin(&pWebm->vorbisInfo, &pWebm->vorbisComment, &header_packet) != 0)
+        if (vorbis_synthesis_headerin(&p_webm->vorbisInfo, &p_webm->vorbisComment, &header_packet) != 0)
                 goto fail;
 
         // Header 3: SETUP
         header_packet.packet = setup;
         header_packet.bytes = setup_size;
         // header_packet.b_o_s remains 0
-        if (vorbis_synthesis_headerin(&pWebm->vorbisInfo, &pWebm->vorbisComment, &header_packet) != 0)
+        if (vorbis_synthesis_headerin(&p_webm->vorbisInfo, &p_webm->vorbisComment, &header_packet) != 0)
                 goto fail;
 
         // Setup decoder
-        if (vorbis_synthesis_init(&pWebm->vorbisDSP, &pWebm->vorbisInfo) != 0)
+        if (vorbis_synthesis_init(&p_webm->vorbisDSP, &p_webm->vorbisInfo) != 0)
                 goto fail;
-        if (vorbis_block_init(&pWebm->vorbisDSP, &pWebm->vorbisBlock) != 0)
+        if (vorbis_block_init(&p_webm->vorbisDSP, &p_webm->vorbisBlock) != 0)
                 goto fail;
 
-        pWebm->channels = pWebm->vorbisInfo.channels;
-        pWebm->sample_rate = pWebm->vorbisInfo.rate;
-        pWebm->format = ma_format_f32;
+        p_webm->channels = p_webm->vorbisInfo.channels;
+        p_webm->sample_rate = p_webm->vorbisInfo.rate;
+        p_webm->format = ma_format_f32;
 
         return 0; // success
 
 fail:
-        vorbis_block_clear(&pWebm->vorbisBlock);
-        vorbis_dsp_clear(&pWebm->vorbisDSP);
-        vorbis_comment_clear(&pWebm->vorbisComment);
-        vorbis_info_clear(&pWebm->vorbisInfo);
+        vorbis_block_clear(&p_webm->vorbisBlock);
+        vorbis_dsp_clear(&p_webm->vorbisDSP);
+        vorbis_comment_clear(&p_webm->vorbisComment);
+        vorbis_info_clear(&p_webm->vorbisInfo);
         return -2; // error
 }
 
@@ -284,29 +264,26 @@ MA_API ma_result ma_webm_init(
     ma_seek_proc onSeek,
     ma_tell_proc onTell,
     void *pReadSeekTellUserData,
-    const ma_decoding_backend_config *pConfig,
-    const ma_allocation_callbacks *pAllocationCallbacks,
-    ma_webm *pWebm)
-{
+    const ma_decoding_backend_config *p_config,
+    const ma_allocation_callbacks *p_allocation_callbacks,
+    ma_webm *p_webm) {
         ma_result result;
 
-        (void)pAllocationCallbacks;
+        (void)p_allocation_callbacks;
 
-        result = ma_webm_init_internal(pConfig, pWebm);
-        if (result != MA_SUCCESS)
-        {
+        result = ma_webm_init_internal(p_config, p_webm);
+        if (result != MA_SUCCESS) {
                 return result;
         }
 
-        if (onRead == NULL || onSeek == NULL)
-        {
+        if (onRead == NULL || onSeek == NULL) {
                 return MA_INVALID_ARGS; /* onRead and onSeek are mandatory. */
         }
 
-        pWebm->onRead = onRead;
-        pWebm->onSeek = onSeek;
-        pWebm->onTell = onTell;
-        pWebm->pReadSeekTellUserData = pReadSeekTellUserData;
+        p_webm->onRead = onRead;
+        p_webm->onSeek = onSeek;
+        p_webm->onTell = onTell;
+        p_webm->pReadSeekTellUserData = pReadSeekTellUserData;
 
 #if !defined(MA_NO_WEBM)
         nestegg_io io = {0};
@@ -315,101 +292,86 @@ MA_API ma_result ma_webm_init(
         io.read = nestegg_io_read;
         io.seek = nestegg_io_seek;
         io.tell = nestegg_io_tell;
-        io.userdata = pWebm;
+        io.userdata = p_webm;
 
         nestegg *ctx = NULL;
-        if (nestegg_init(&ctx, io, NULL, -1) < 0)
-        {
+        if (nestegg_init(&ctx, io, NULL, -1) < 0) {
                 return MA_INVALID_FILE;
         }
 
         // Find Audio Track
         unsigned int num_tracks = 0;
-        if (nestegg_track_count(ctx, &num_tracks) != 0)
-        {
+        if (nestegg_track_count(ctx, &num_tracks) != 0) {
                 nestegg_destroy(ctx);
                 return MA_INVALID_FILE;
         }
 
-        pWebm->audioTrack = (unsigned int)-1;
-        pWebm->codec_id = -1;
-        for (unsigned int i = 0; i < num_tracks; ++i)
-        {
+        p_webm->audio_track = (unsigned int)-1;
+        p_webm->codec_id = -1;
+        for (unsigned int i = 0; i < num_tracks; ++i) {
                 unsigned int type = 0;
                 type = nestegg_track_type(ctx, i);
-                if (type == NESTEGG_TRACK_AUDIO)
-                {
-                        pWebm->audioTrack = i;
-                        pWebm->codec_id = nestegg_track_codec_id(ctx, i);
-                        if (pWebm->codec_id == 0)
-                        {
+                if (type == NESTEGG_TRACK_AUDIO) {
+                        p_webm->audio_track = i;
+                        p_webm->codec_id = nestegg_track_codec_id(ctx, i);
+                        if (p_webm->codec_id == 0) {
                                 break; // first audio
                         }
                 }
         }
 
-        if (pWebm->audioTrack == (unsigned int)-1)
-        {
+        if (p_webm->audio_track == (unsigned int)-1) {
                 nestegg_destroy(ctx);
                 return MA_INVALID_FILE;
         }
 
         // Prepare decoder
-        if (pWebm->codec_id == NESTEGG_CODEC_OPUS)
-        {
+        if (p_webm->codec_id == NESTEGG_CODEC_OPUS) {
                 unsigned char *header = NULL;
                 size_t header_size = 0;
-                if (nestegg_track_codec_data(ctx, pWebm->audioTrack, 0, &header, &header_size) != 0 ||
-                    header_size < 19 || memcmp(header, "OpusHead", 8) != 0)
-                {
+                if (nestegg_track_codec_data(ctx, p_webm->audio_track, 0, &header, &header_size) != 0 ||
+                    header_size < 19 || memcmp(header, "OpusHead", 8) != 0) {
                         nestegg_destroy(ctx);
                         return MA_INVALID_FILE;
                 }
-                pWebm->sample_rate = 48000;
-                pWebm->channels = header[9];
+                p_webm->sample_rate = 48000;
+                p_webm->channels = header[9];
                 ma_uint16 preSkip = header[10] | (header[11] << 8); // Little-endian
-                pWebm->opusPreSkip = preSkip;
-                pWebm->preSkipLeft = preSkip;
+                p_webm->opusPreSkip = preSkip;
+                p_webm->preSkipLeft = preSkip;
                 int opusErr = 0;
-                pWebm->opusDecoder = opus_decoder_create(pWebm->sample_rate, pWebm->channels, &opusErr);
-                if (!pWebm->opusDecoder)
-                {
+                p_webm->opusDecoder = opus_decoder_create(p_webm->sample_rate, p_webm->channels, &opusErr);
+                if (!p_webm->opusDecoder) {
                         nestegg_destroy(ctx);
                         return MA_INVALID_FILE;
                 }
-                pWebm->format = ma_format_f32;
-        }
-        else if (pWebm->codec_id == NESTEGG_CODEC_VORBIS)
-        {
-                if (ma_webm_init_vorbis_decoder(ctx, pWebm->audioTrack, pWebm) != 0)
-                {
+                p_webm->format = ma_format_f32;
+        } else if (p_webm->codec_id == NESTEGG_CODEC_VORBIS) {
+                if (ma_webm_init_vorbis_decoder(ctx, p_webm->audio_track, p_webm) != 0) {
                         nestegg_destroy(ctx);
                         return MA_INVALID_FILE;
                 }
-        }
-        else
-        {
+        } else {
                 nestegg_destroy(ctx);
                 return MA_NOT_IMPLEMENTED;
         }
 
-        pWebm->ctx = ctx;
+        p_webm->ctx = ctx;
 
-        pWebm->duration = calcWebmDuration(ctx);
-        pWebm->seekTargetPCMFrame = (ma_uint64)(-1);
+        p_webm->duration = calcWebmDuration(ctx);
+        p_webm->seekTargetPCMFrame = (ma_uint64)(-1);
 
         return MA_SUCCESS;
 
 #else
         (void)pReadSeekTellUserData;
-        (void)pConfig;
-        (void)pWebm;
+        (void)p_config;
+        (void)p_webm;
         return MA_NOT_IMPLEMENTED;
 #endif
 }
 
-int nread(void *buf, size_t len, void *ud)
-{
+int nread(void *buf, size_t len, void *ud) {
         FILE *f = (FILE *)ud;
         size_t r = fread(buf, 1, len, f);
         if (r == len)
@@ -419,12 +381,10 @@ int nread(void *buf, size_t len, void *ud)
         return -1;
 }
 
-int nseek(int64_t o, int w, void *ud)
-{
+int nseek(int64_t o, int w, void *ud) {
         FILE *f = (FILE *)ud;
         int wh;
-        switch (w)
-        {
+        switch (w) {
         case NESTEGG_SEEK_SET:
                 wh = SEEK_SET;
                 break;
@@ -440,21 +400,18 @@ int nseek(int64_t o, int w, void *ud)
         return fseek(f, (long)o, wh);
 }
 
-int64_t ntell(void *ud)
-{
+int64_t ntell(void *ud) {
         FILE *f = (FILE *)ud;
         return ftell(f);
 }
 
-MA_API ma_result ma_webm_init_file(const char *pFilePath, const ma_decoding_backend_config *pConfig, const ma_allocation_callbacks *pAllocationCallbacks, ma_webm *pWebm)
-{
+MA_API ma_result ma_webm_init_file(const char *pFilePath, const ma_decoding_backend_config *p_config, const ma_allocation_callbacks *p_allocation_callbacks, ma_webm *p_webm) {
         ma_result result;
 
-        (void)pAllocationCallbacks;
+        (void)p_allocation_callbacks;
 
-        result = ma_webm_init_internal(pConfig, pWebm);
-        if (result != MA_SUCCESS)
-        {
+        result = ma_webm_init_internal(p_config, p_webm);
+        if (result != MA_SUCCESS) {
                 return result;
         }
 
@@ -466,83 +423,71 @@ MA_API ma_result ma_webm_init_file(const char *pFilePath, const ma_decoding_back
         nestegg_io io = {nread, nseek, ntell, fp};
         nestegg *ctx = NULL;
 
-        if (nestegg_init(&ctx, io, NULL, -1) < 0)
-        {
+        if (nestegg_init(&ctx, io, NULL, -1) < 0) {
                 fclose(fp);
                 return MA_INVALID_FILE;
         }
 
         unsigned int num_tracks = 0;
         nestegg_track_count(ctx, &num_tracks);
-        pWebm->audioTrack = (unsigned int)(-1);
-        pWebm->codec_id = -1;
-        for (unsigned int i = 0; i < num_tracks; ++i)
-        {
+        p_webm->audio_track = (unsigned int)(-1);
+        p_webm->codec_id = -1;
+        for (unsigned int i = 0; i < num_tracks; ++i) {
                 unsigned int type = 0;
                 type = nestegg_track_type(ctx, i);
-                if (type == NESTEGG_TRACK_AUDIO)
-                {
-                        pWebm->audioTrack = i;
-                        pWebm->codec_id = nestegg_track_codec_id(ctx, i);
+                if (type == NESTEGG_TRACK_AUDIO) {
+                        p_webm->audio_track = i;
+                        p_webm->codec_id = nestegg_track_codec_id(ctx, i);
                         break;
                 }
         }
-        if (pWebm->audioTrack == (unsigned int)(-1))
-        {
+        if (p_webm->audio_track == (unsigned int)(-1)) {
                 nestegg_destroy(ctx);
                 fclose(fp);
                 return MA_ERROR;
         }
 
         // Fetch and handle header
-        if (pWebm->codec_id == NESTEGG_CODEC_OPUS)
-        {
+        if (p_webm->codec_id == NESTEGG_CODEC_OPUS) {
                 unsigned char *header = NULL;
                 size_t header_size = 0;
-                nestegg_track_codec_data(ctx, pWebm->audioTrack, 0, &header, &header_size);
-                if (header_size < 19 || memcmp(header, "OpusHead", 8) != 0)
-                {
+                nestegg_track_codec_data(ctx, p_webm->audio_track, 0, &header, &header_size);
+                if (header_size < 19 || memcmp(header, "OpusHead", 8) != 0) {
                         nestegg_destroy(ctx);
                         fclose(fp);
                         return MA_ERROR;
                 }
-                pWebm->channels = header[9];
+                p_webm->channels = header[9];
                 ma_uint16 preSkip = header[10] | (header[11] << 8); // Little-endian
 
-                pWebm->opusPreSkip = preSkip;
-                pWebm->preSkipLeft = preSkip;
+                p_webm->opusPreSkip = preSkip;
+                p_webm->preSkipLeft = preSkip;
                 int opusErr = 0;
 
-                pWebm->opusDecoder = opus_decoder_create(48000, pWebm->channels, &opusErr);
-                if (!pWebm->opusDecoder)
-                {
+                p_webm->opusDecoder = opus_decoder_create(48000, p_webm->channels, &opusErr);
+                if (!p_webm->opusDecoder) {
                         nestegg_destroy(ctx);
                         fclose(fp);
                         return MA_ERROR;
                 }
 
-                pWebm->format = ma_format_f32;
-                pWebm->sample_rate = 48000;
-        }
-        else if (pWebm->codec_id == NESTEGG_CODEC_VORBIS)
-        {
-                if (ma_webm_init_vorbis_decoder(ctx, pWebm->audioTrack, pWebm) != 0)
-                {
+                p_webm->format = ma_format_f32;
+                p_webm->sample_rate = 48000;
+        } else if (p_webm->codec_id == NESTEGG_CODEC_VORBIS) {
+                if (ma_webm_init_vorbis_decoder(ctx, p_webm->audio_track, p_webm) != 0) {
                         nestegg_destroy(ctx);
                         return MA_INVALID_FILE;
                 }
-        }
-        else
-        {
+        } else {
                 nestegg_destroy(ctx);
                 fclose(fp);
                 return MA_NOT_IMPLEMENTED;
         }
 
-        pWebm->ctx = ctx;
+        p_webm->ctx = ctx;
 
-        pWebm->duration = calcWebmDuration(ctx);
-        pWebm->seekTargetPCMFrame = (ma_uint64)(-1);
+        p_webm->duration = calcWebmDuration(ctx);
+        p_webm->seekTargetPCMFrame = (ma_uint64)(-1);
 
         return MA_SUCCESS;
 
@@ -553,34 +498,28 @@ MA_API ma_result ma_webm_init_file(const char *pFilePath, const ma_decoding_back
 #endif
 }
 
-MA_API void ma_webm_uninit(ma_webm *pWebm, const ma_allocation_callbacks *pAllocationCallbacks)
-{
-        if (pWebm == NULL)
-        {
+MA_API void ma_webm_uninit(ma_webm *p_webm, const ma_allocation_callbacks *p_allocation_callbacks) {
+        if (p_webm == NULL) {
                 return;
         }
 
-        (void)pAllocationCallbacks;
+        (void)p_allocation_callbacks;
 
 #if !defined(MA_NO_WEBM)
         {
-                if (pWebm->codec_id == NESTEGG_CODEC_OPUS)
-                {
-                        opus_decoder_destroy(pWebm->opusDecoder);
-                        pWebm->opusDecoder = NULL;
-                }
-                else if (pWebm->codec_id == NESTEGG_CODEC_VORBIS)
-                {
-                        vorbis_block_clear(&pWebm->vorbisBlock);
-                        vorbis_dsp_clear(&pWebm->vorbisDSP);
-                        vorbis_comment_clear(&pWebm->vorbisComment);
-                        vorbis_info_clear(&pWebm->vorbisInfo);
+                if (p_webm->codec_id == NESTEGG_CODEC_OPUS) {
+                        opus_decoder_destroy(p_webm->opusDecoder);
+                        p_webm->opusDecoder = NULL;
+                } else if (p_webm->codec_id == NESTEGG_CODEC_VORBIS) {
+                        vorbis_block_clear(&p_webm->vorbisBlock);
+                        vorbis_dsp_clear(&p_webm->vorbisDSP);
+                        vorbis_comment_clear(&p_webm->vorbisComment);
+                        vorbis_info_clear(&p_webm->vorbisInfo);
                 }
 
-                if (pWebm->ctx)
-                {
-                        nestegg_destroy(pWebm->ctx);
-                        pWebm->ctx = NULL;
+                if (p_webm->ctx) {
+                        nestegg_destroy(p_webm->ctx);
+                        p_webm->ctx = NULL;
                 }
         }
 #else
@@ -590,95 +529,85 @@ MA_API void ma_webm_uninit(ma_webm *pWebm, const ma_allocation_callbacks *pAlloc
         }
 #endif
 
-        ma_data_source_uninit(&pWebm->ds);
+        ma_data_source_uninit(&p_webm->ds);
 }
 
-MA_API ma_result ma_webm_read_pcm_frames(ma_webm *pWebm, void *pFramesOut, ma_uint64 frameCount, ma_uint64 *pFramesRead)
-{
-        if (pFramesRead)
-                *pFramesRead = 0;
-        if (frameCount == 0 || pWebm == NULL)
+MA_API ma_result ma_webm_read_pcm_frames(ma_webm *p_webm, void *p_frames_out, ma_uint64 frame_count, ma_uint64 *p_frames_read) {
+        if (p_frames_read)
+                *p_frames_read = 0;
+        if (frame_count == 0 || p_webm == NULL)
                 return MA_INVALID_ARGS;
 
 #if !defined(MA_NO_WEBM)
         ma_result result = MA_SUCCESS;
         ma_uint64 totalFramesRead = 0;
-        ma_uint32 channels = pWebm->channels;
+        ma_uint32 channels = p_webm->channels;
 
-        float *f32Out = (float *)pFramesOut;
+        float *f32Out = (float *)p_frames_out;
 
         float decodeBuf[MAX_OPUS_SAMPLES * MAX_OPUS_CHANNELS]; // Support up to 8 channels
 
-        ma_uint64 seekTarget = (pWebm->seekTargetPCMFrame != (ma_uint64)-1) ? pWebm->seekTargetPCMFrame : 0;
+        ma_uint64 seekTarget = (p_webm->seekTargetPCMFrame != (ma_uint64)-1) ? p_webm->seekTargetPCMFrame : 0;
 
-        while (totalFramesRead < frameCount)
-        {
-                ma_uint64 framesNeeded = frameCount - totalFramesRead;
+        while (totalFramesRead < frame_count) {
+                ma_uint64 framesNeeded = frame_count - totalFramesRead;
 
                 // If there's a cached packet/frame in progress, decode that
-                if (!pWebm->hasPacket)
-                {
+                if (!p_webm->hasPacket) {
                         nestegg_packet *pkt = NULL;
                         // Next audio packet...
 
-                        while (nestegg_read_packet(pWebm->ctx, &pkt) > 0)
-                        {
+                        while (nestegg_read_packet(p_webm->ctx, &pkt) > 0) {
                                 unsigned int track;
                                 nestegg_packet_track(pkt, &track);
-                                if (track == pWebm->audioTrack)
-                                {
-                                        pWebm->currentPacket = pkt;
-                                        pWebm->currentPacketFrame = 0;
-                                        pWebm->numFramesInPacket = 0;
-                                        nestegg_packet_count(pkt, &pWebm->numFramesInPacket);
-                                        pWebm->hasPacket = MA_TRUE;
+                                if (track == p_webm->audio_track) {
+                                        p_webm->currentPacket = pkt;
+                                        p_webm->currentPacketFrame = 0;
+                                        p_webm->numFramesInPacket = 0;
+                                        nestegg_packet_count(pkt, &p_webm->numFramesInPacket);
+                                        p_webm->hasPacket = MA_TRUE;
                                         break;
                                 }
                                 nestegg_free_packet(pkt); // not audio, discard
                         }
-                        if (!pWebm->hasPacket)
-                        {
+                        if (!p_webm->hasPacket) {
                                 result = MA_AT_END; // no more data
                                 break;
                         }
                 }
 
                 // Decode remaining frames in this packet/frame
-                nestegg_packet *pkt = pWebm->currentPacket;
-                while (pWebm->currentPacketFrame < pWebm->numFramesInPacket && totalFramesRead < frameCount)
-                {
+                nestegg_packet *pkt = p_webm->currentPacket;
+                while (p_webm->currentPacketFrame < p_webm->numFramesInPacket && totalFramesRead < frame_count) {
                         unsigned char *data = NULL;
                         size_t dataSize = 0;
-                        nestegg_packet_data(pkt, pWebm->currentPacketFrame, &data, &dataSize);
+                        nestegg_packet_data(pkt, p_webm->currentPacketFrame, &data, &dataSize);
 
                         int nframes = 0;
 
-                        if (pWebm->codec_id == NESTEGG_CODEC_OPUS)
-                        {
-                                if (pWebm->bufferLeftoverFrameCount > 0)
-                                {
-                                        ma_uint64 framesToCopy = pWebm->bufferLeftoverFrameCount < framesNeeded ? pWebm->bufferLeftoverFrameCount : framesNeeded;
+                        if (p_webm->codec_id == NESTEGG_CODEC_OPUS) {
+                                if (p_webm->bufferLeftoverFrameCount > 0) {
+                                        ma_uint64 frames_to_copy = p_webm->bufferLeftoverFrameCount < framesNeeded ? p_webm->bufferLeftoverFrameCount : framesNeeded;
 
                                         memcpy(f32Out + totalFramesRead * channels,
-                                               opusLeftoverBuffer + pWebm->bufferLeftoverFrameOffset * channels,
-                                               framesToCopy * channels * sizeof(float));
+                                               opusLeftoverBuffer + p_webm->bufferLeftoverFrameOffset * channels,
+                                               frames_to_copy * channels * sizeof(float));
 
-                                        pWebm->bufferLeftoverFrameOffset += framesToCopy;
-                                        totalFramesRead += framesToCopy;
-                                        framesNeeded -= framesToCopy;
-                                        pWebm->bufferLeftoverFrameCount -= framesToCopy;
+                                        p_webm->bufferLeftoverFrameOffset += frames_to_copy;
+                                        totalFramesRead += frames_to_copy;
+                                        framesNeeded -= frames_to_copy;
+                                        p_webm->bufferLeftoverFrameCount -= frames_to_copy;
 
-                                        if (pWebm->bufferLeftoverFrameCount == 0)
-                                                pWebm->bufferLeftoverFrameOffset = 0;
+                                        if (p_webm->bufferLeftoverFrameCount == 0)
+                                                p_webm->bufferLeftoverFrameOffset = 0;
 
                                         if (framesNeeded == 0)
                                                 break;
                                 }
 
-                                nframes = opus_decode_float(pWebm->opusDecoder, data, (opus_int32)dataSize, decodeBuf, 5760, 0);
+                                nframes = opus_decode_float(p_webm->opusDecoder, data, (opus_int32)dataSize, decodeBuf, 5760, 0);
 
-                                if (nframes < 0)
-                                {
+                                if (nframes < 0) {
                                         result = MA_ERROR;
                                         break;
                                 }
@@ -687,37 +616,30 @@ MA_API ma_result ma_webm_read_pcm_frames(ma_webm *pWebm, void *pFramesOut, ma_ui
                                 ma_uint64 usableFrames = 0;
 
                                 // On first packets, discard enough to fulfill pre-skip value
-                                if (pWebm->preSkipLeft > 0)
-                                {
-                                        if ((ma_uint64)nframes <= pWebm->preSkipLeft)
-                                        {
+                                if (p_webm->preSkipLeft > 0) {
+                                        if ((ma_uint64)nframes <= p_webm->preSkipLeft) {
                                                 // All output is to be skipped
-                                                pWebm->preSkipLeft -= (ma_uint16)nframes;
-                                                pWebm->cursorInPCMFrames += nframes;
+                                                p_webm->preSkipLeft -= (ma_uint16)nframes;
+                                                p_webm->cursorInPCMFrames += nframes;
                                                 // Don't copy anything to output buffer
                                                 goto NextFrame;
-                                        }
-                                        else
-                                        {
+                                        } else {
                                                 // Skip part, keep rest
-                                                skipFrames = pWebm->preSkipLeft;
-                                                pWebm->preSkipLeft = 0;
+                                                skipFrames = p_webm->preSkipLeft;
+                                                p_webm->preSkipLeft = 0;
                                         }
-                                }
-                                else if (seekTarget != (ma_uint64)-1 && pWebm->cursorInPCMFrames < seekTarget)
-                                {
-                                        skipFrames = seekTarget - pWebm->cursorInPCMFrames;
+                                } else if (seekTarget != (ma_uint64)-1 && p_webm->cursorInPCMFrames < seekTarget) {
+                                        skipFrames = seekTarget - p_webm->cursorInPCMFrames;
                                         if (skipFrames > (ma_uint64)nframes)
                                                 skipFrames = nframes;
                                 }
 
                                 usableFrames = (ma_uint64)nframes - skipFrames;
-                                if (usableFrames > frameCount - totalFramesRead)
-                                        usableFrames = frameCount - totalFramesRead;
+                                if (usableFrames > frame_count - totalFramesRead)
+                                        usableFrames = frame_count - totalFramesRead;
 
                                 // Only copy if there are any usable frames left
-                                if (usableFrames > 0)
-                                {
+                                if (usableFrames > 0) {
                                         memcpy(
                                             f32Out + totalFramesRead * channels,
                                             decodeBuf + skipFrames * channels,
@@ -726,141 +648,125 @@ MA_API ma_result ma_webm_read_pcm_frames(ma_webm *pWebm, void *pFramesOut, ma_ui
                                 }
 
                                 ma_uint64 framesUsed = skipFrames + usableFrames;
-                                ma_uint64 framesLeft = nframes - framesUsed;
-                                if (framesLeft > 0)
-                                {
+                                ma_uint64 frames_left = nframes - framesUsed;
+                                if (frames_left > 0) {
                                         memcpy(opusLeftoverBuffer,
                                                decodeBuf + framesUsed * channels,
-                                               framesLeft * channels * sizeof(float));
-                                        pWebm->bufferLeftoverFrameCount = framesLeft;
-                                        pWebm->bufferLeftoverFrameOffset = 0;
-                                }
-                                else
-                                {
-                                        pWebm->bufferLeftoverFrameCount = 0;
-                                        pWebm->bufferLeftoverFrameOffset = 0;
+                                               frames_left * channels * sizeof(float));
+                                        p_webm->bufferLeftoverFrameCount = frames_left;
+                                        p_webm->bufferLeftoverFrameOffset = 0;
+                                } else {
+                                        p_webm->bufferLeftoverFrameCount = 0;
+                                        p_webm->bufferLeftoverFrameOffset = 0;
                                 }
 
                                 // Always advance the PCM cursor by all decoded frames (skipped + copied)
-                                pWebm->cursorInPCMFrames += (ma_uint64)nframes;
+                                p_webm->cursorInPCMFrames += (ma_uint64)nframes;
 
                                 // If we've finished discarding, clear seek mode ("not discarding anymore")
-                                if (seekTarget != (ma_uint64)-1 && pWebm->cursorInPCMFrames >= seekTarget)
-                                {
-                                        pWebm->seekTargetPCMFrame = (ma_uint64)-1;
+                                if (seekTarget != (ma_uint64)-1 && p_webm->cursorInPCMFrames >= seekTarget) {
+                                        p_webm->seekTargetPCMFrame = (ma_uint64)-1;
                                 }
 
                         NextFrame:;
-                        }
-                        else if (pWebm->codec_id == NESTEGG_CODEC_VORBIS)
-                        {
+                        } else if (p_webm->codec_id == NESTEGG_CODEC_VORBIS) {
                                 ogg_packet oggPkt = {0};
                                 oggPkt.packet = data;
                                 oggPkt.bytes = (long)dataSize;
-                                oggPkt.b_o_s = (pWebm->currentPacketFrame == 0) ? 1 : 0;
+                                oggPkt.b_o_s = (p_webm->currentPacketFrame == 0) ? 1 : 0;
                                 oggPkt.e_o_s = 0;
                                 oggPkt.granulepos = -1;
 
-                                if (pWebm->bufferLeftoverFrameCount > 0)
-                                {
-                                        ma_uint32 avail = pWebm->bufferLeftoverFrameCount - pWebm->bufferLeftoverFrameOffset;
-                                        ma_uint32 toCopy = (frameCount - totalFramesRead) < avail ? (frameCount - totalFramesRead) : avail;
+                                if (p_webm->bufferLeftoverFrameCount > 0) {
+                                        ma_uint32 avail = p_webm->bufferLeftoverFrameCount - p_webm->bufferLeftoverFrameOffset;
+                                        ma_uint32 toCopy = (frame_count - totalFramesRead) < avail ? (frame_count - totalFramesRead) : avail;
                                         memcpy(
                                             f32Out + totalFramesRead * channels,
-                                            vorbisLeftoverBuffer + pWebm->bufferLeftoverFrameOffset * channels,
+                                            vorbisLeftoverBuffer + p_webm->bufferLeftoverFrameOffset * channels,
                                             toCopy * channels * sizeof(float));
-                                        pWebm->bufferLeftoverFrameOffset += toCopy;
+                                        p_webm->bufferLeftoverFrameOffset += toCopy;
                                         totalFramesRead += toCopy;
-                                        if (pWebm->bufferLeftoverFrameOffset == pWebm->bufferLeftoverFrameCount)
-                                        {
-                                                pWebm->bufferLeftoverFrameCount = 0;
-                                                pWebm->bufferLeftoverFrameOffset = 0;
+                                        if (p_webm->bufferLeftoverFrameOffset == p_webm->bufferLeftoverFrameCount) {
+                                                p_webm->bufferLeftoverFrameCount = 0;
+                                                p_webm->bufferLeftoverFrameOffset = 0;
                                         }
-                                        if (totalFramesRead >= frameCount)
+                                        if (totalFramesRead >= frame_count)
                                                 break; // Buffer full
                                 }
 
-                                int ret = vorbis_synthesis(&pWebm->vorbisBlock, &oggPkt);
-                                if (ret == 0)
-                                {
-                                        vorbis_synthesis_blockin(&pWebm->vorbisDSP, &pWebm->vorbisBlock);
+                                int ret = vorbis_synthesis(&p_webm->vorbisBlock, &oggPkt);
+                                if (ret == 0) {
+                                        vorbis_synthesis_blockin(&p_webm->vorbisDSP, &p_webm->vorbisBlock);
                                         float **pcm;
-                                        int framesAvail = vorbis_synthesis_pcmout(&pWebm->vorbisDSP, &pcm);
-                                        if (framesAvail > 0)
-                                        {
+                                        int framesAvail = vorbis_synthesis_pcmout(&p_webm->vorbisDSP, &pcm);
+                                        if (framesAvail > 0) {
                                                 ma_uint64 skipFrames = 0;
-                                                if (seekTarget != (ma_uint64)-1 && pWebm->cursorInPCMFrames < seekTarget)
-                                                {
-                                                        skipFrames = seekTarget - pWebm->cursorInPCMFrames;
+                                                if (seekTarget != (ma_uint64)-1 && p_webm->cursorInPCMFrames < seekTarget) {
+                                                        skipFrames = seekTarget - p_webm->cursorInPCMFrames;
                                                         if (skipFrames > (ma_uint64)framesAvail)
                                                                 skipFrames = framesAvail;
                                                 }
                                                 ma_uint64 usableFrames = (ma_uint64)framesAvail - skipFrames;
-                                                if (usableFrames > frameCount - totalFramesRead)
-                                                        usableFrames = frameCount - totalFramesRead;
+                                                if (usableFrames > frame_count - totalFramesRead)
+                                                        usableFrames = frame_count - totalFramesRead;
 
-                                                while (framesAvail > 0 && totalFramesRead < frameCount)
-                                                {
-                                                        ma_uint64 framesToCopy = (frameCount - totalFramesRead) < (ma_uint64)framesAvail ? (frameCount - totalFramesRead) : (ma_uint64)framesAvail;
+                                                while (framesAvail > 0 && totalFramesRead < frame_count) {
+                                                        ma_uint64 frames_to_copy = (frame_count - totalFramesRead) < (ma_uint64)framesAvail ? (frame_count - totalFramesRead) : (ma_uint64)framesAvail;
 
-                                                        // Interleave framesToCopy to output buffer directly
-                                                        for (ma_uint64 f = 0; f < framesToCopy; ++f)
+                                                        // Interleave frames_to_copy to output buffer directly
+                                                        for (ma_uint64 f = 0; f < frames_to_copy; ++f)
                                                                 for (ma_uint32 c = 0; c < channels; ++c)
                                                                         f32Out[(totalFramesRead + f) * channels + c] = pcm[c][f];
 
-                                                        totalFramesRead += framesToCopy;
-                                                        framesAvail -= framesToCopy;
+                                                        totalFramesRead += frames_to_copy;
+                                                        framesAvail -= frames_to_copy;
 
                                                         // If left-over decoded frames after output buffer fills, write to leftover
-                                                        if (framesAvail > 0)
-                                                        {
+                                                        if (framesAvail > 0) {
                                                                 for (ma_uint32 f = 0; f < (ma_uint64)framesAvail; ++f)
                                                                         for (ma_uint32 c = 0; c < channels; ++c)
-                                                                                vorbisLeftoverBuffer[f * channels + c] = pcm[c][framesToCopy + f];
-                                                                pWebm->bufferLeftoverFrameCount = (ma_uint64)framesAvail;
-                                                                pWebm->bufferLeftoverFrameOffset = 0;
+                                                                                vorbisLeftoverBuffer[f * channels + c] = pcm[c][frames_to_copy + f];
+                                                                p_webm->bufferLeftoverFrameCount = (ma_uint64)framesAvail;
+                                                                p_webm->bufferLeftoverFrameOffset = 0;
                                                                 framesAvail = 0;
                                                                 // Don't call vorbis_synthesis_read or increment cursor yet, do after finished with all available data!
                                                         }
 
                                                         // Consume these frames, even if we buffered them
-                                                        vorbis_synthesis_read(&pWebm->vorbisDSP, framesToCopy + pWebm->bufferLeftoverFrameCount); // or just all at once depending on your loop
-                                                        pWebm->cursorInPCMFrames += (ma_uint64)(framesToCopy + pWebm->bufferLeftoverFrameCount);
+                                                        vorbis_synthesis_read(&p_webm->vorbisDSP, frames_to_copy + p_webm->bufferLeftoverFrameCount); // or just all at once depending on your loop
+                                                        p_webm->cursorInPCMFrames += (ma_uint64)(frames_to_copy + p_webm->bufferLeftoverFrameCount);
                                                         break; // Output full, let next call handle leftovers
                                                 }
 
                                                 // Always read/consume all frames we got (even those discarded)
-                                                vorbis_synthesis_read(&pWebm->vorbisDSP, (int)framesAvail);
-                                                pWebm->cursorInPCMFrames += (ma_uint64)framesAvail;
+                                                vorbis_synthesis_read(&p_webm->vorbisDSP, (int)framesAvail);
+                                                p_webm->cursorInPCMFrames += (ma_uint64)framesAvail;
 
                                                 // Done seeking?
-                                                if (seekTarget != (ma_uint64)-1 && pWebm->cursorInPCMFrames >= seekTarget)
-                                                {
-                                                        pWebm->seekTargetPCMFrame = (ma_uint64)-1;
+                                                if (seekTarget != (ma_uint64)-1 && p_webm->cursorInPCMFrames >= seekTarget) {
+                                                        p_webm->seekTargetPCMFrame = (ma_uint64)-1;
                                                 }
                                         }
                                 }
                         }
 
-                        ++pWebm->currentPacketFrame;
+                        ++p_webm->currentPacketFrame;
                 }
 
-                if (pWebm->currentPacketFrame >= pWebm->numFramesInPacket)
-                {
-                        if (pWebm->currentPacket)
-                                nestegg_free_packet(pWebm->currentPacket);
-                        pWebm->currentPacket = NULL;
-                        pWebm->hasPacket = MA_FALSE;
+                if (p_webm->currentPacketFrame >= p_webm->numFramesInPacket) {
+                        if (p_webm->currentPacket)
+                                nestegg_free_packet(p_webm->currentPacket);
+                        p_webm->currentPacket = NULL;
+                        p_webm->hasPacket = MA_FALSE;
                 }
         }
 
-        if (totalFramesRead < frameCount)
-        {
-                memset(f32Out + totalFramesRead * channels, 0, (frameCount - totalFramesRead) * channels * sizeof(float));
+        if (totalFramesRead < frame_count) {
+                memset(f32Out + totalFramesRead * channels, 0, (frame_count - totalFramesRead) * channels * sizeof(float));
         }
 
-        if (pFramesRead)
-                *pFramesRead = totalFramesRead;
+        if (p_frames_read)
+                *p_frames_read = totalFramesRead;
         if (result == MA_SUCCESS && totalFramesRead == 0)
                 result = MA_AT_END;
         return result;
@@ -868,116 +774,105 @@ MA_API ma_result ma_webm_read_pcm_frames(ma_webm *pWebm, void *pFramesOut, ma_ui
 #else
         {
                 MA_ASSERT(MA_FALSE);
-                (void)pFramesOut;
-                (void)frameCount;
-                (void)pFramesRead;
+                (void)p_frames_out;
+                (void)frame_count;
+                (void)p_frames_read;
                 return MA_NOT_IMPLEMENTED;
         }
 #endif
 }
 
-MA_API ma_result ma_webm_seek_to_pcm_frame(ma_webm *pWebm, ma_uint64 frameIndex)
-{
-        if (!pWebm)
+MA_API ma_result ma_webm_seek_to_pcm_frame(ma_webm *p_webm, ma_uint64 frame_index) {
+        if (!p_webm)
                 return MA_INVALID_ARGS;
 
         // For Opus: 80ms preroll = 3840 @ 48000Hz
         ma_uint64 preroll = 0;
-        ma_uint64 prerollFrame = frameIndex;
+        ma_uint64 prerollFrame = frame_index;
         ma_uint64 tstamp_ns = 0;
 
-        if (pWebm->codec_id == NESTEGG_CODEC_OPUS)
-        {
-                preroll = (frameIndex > 3840) ? 3840 : frameIndex;
-                prerollFrame = (frameIndex > preroll) ? (frameIndex - preroll) : 0;
+        if (p_webm->codec_id == NESTEGG_CODEC_OPUS) {
+                preroll = (frame_index > 3840) ? 3840 : frame_index;
+                prerollFrame = (frame_index > preroll) ? (frame_index - preroll) : 0;
                 tstamp_ns = (prerollFrame * 1000000000ULL) / 48000;
-        }
-        else
-        {
-                prerollFrame = frameIndex;
-                tstamp_ns = (prerollFrame * 1000000000ULL) / pWebm->sample_rate;
+        } else {
+                prerollFrame = frame_index;
+                tstamp_ns = (prerollFrame * 1000000000ULL) / p_webm->sample_rate;
         }
 
-        if (nestegg_track_seek(pWebm->ctx, pWebm->audioTrack, tstamp_ns) != 0)
+        if (nestegg_track_seek(p_webm->ctx, p_webm->audio_track, tstamp_ns) != 0)
                 return MA_INVALID_OPERATION;
 
         // Reset packet and decoder state
-        pWebm->hasPacket = MA_FALSE;
-        if (pWebm->currentPacket)
-        {
-                nestegg_free_packet(pWebm->currentPacket);
-                pWebm->currentPacket = NULL;
+        p_webm->hasPacket = MA_FALSE;
+        if (p_webm->currentPacket) {
+                nestegg_free_packet(p_webm->currentPacket);
+                p_webm->currentPacket = NULL;
         }
-        pWebm->currentPacketFrame = 0;
-        pWebm->numFramesInPacket = 0;
+        p_webm->currentPacketFrame = 0;
+        p_webm->numFramesInPacket = 0;
 
-        if (pWebm->codec_id == NESTEGG_CODEC_OPUS)
-                opus_decoder_ctl(pWebm->opusDecoder, OPUS_RESET_STATE);
-        else if (pWebm->codec_id == NESTEGG_CODEC_VORBIS)
-        {
-                vorbis_dsp_clear(&pWebm->vorbisDSP);
-                vorbis_block_clear(&pWebm->vorbisBlock);
-                vorbis_synthesis_init(&pWebm->vorbisDSP, &pWebm->vorbisInfo);
-                vorbis_block_init(&pWebm->vorbisDSP, &pWebm->vorbisBlock);
+        if (p_webm->codec_id == NESTEGG_CODEC_OPUS)
+                opus_decoder_ctl(p_webm->opusDecoder, OPUS_RESET_STATE);
+        else if (p_webm->codec_id == NESTEGG_CODEC_VORBIS) {
+                vorbis_dsp_clear(&p_webm->vorbisDSP);
+                vorbis_block_clear(&p_webm->vorbisBlock);
+                vorbis_synthesis_init(&p_webm->vorbisDSP, &p_webm->vorbisInfo);
+                vorbis_block_init(&p_webm->vorbisDSP, &p_webm->vorbisBlock);
         }
 
-        pWebm->bufferLeftoverFrameCount = 0;
-        pWebm->bufferLeftoverFrameOffset = 0;
+        p_webm->bufferLeftoverFrameCount = 0;
+        p_webm->bufferLeftoverFrameOffset = 0;
 
-        pWebm->cursorInPCMFrames = prerollFrame;
-        pWebm->seekTargetPCMFrame = frameIndex;
+        p_webm->cursorInPCMFrames = prerollFrame;
+        p_webm->seekTargetPCMFrame = frame_index;
 
-        if (pWebm->seekTargetPCMFrame == 0)
-                pWebm->preSkipLeft = pWebm->opusPreSkip;
+        if (p_webm->seekTargetPCMFrame == 0)
+                p_webm->preSkipLeft = p_webm->opusPreSkip;
         else
-                pWebm->preSkipLeft = 0;
+                p_webm->preSkipLeft = 0;
 
         return MA_SUCCESS;
 }
 MA_API ma_result ma_webm_get_data_format(
-    ma_webm *pWebm,
-    ma_format *pFormat,
-    ma_uint32 *pChannels,
-    ma_uint32 *pSampleRate,
-    ma_channel *pChannelMap,
-    size_t channelMapCap)
-{
+    ma_webm *p_webm,
+    ma_format *p_format,
+    ma_uint32 *p_channels,
+    ma_uint32 *p_sample_rate,
+    ma_channel *p_channel_map,
+    size_t channel_map_cap) {
         /* Defaults for safety. */
-        if (pFormat != NULL)
-                *pFormat = ma_format_unknown;
-        if (pChannels != NULL)
-                *pChannels = 0;
-        if (pSampleRate != NULL)
-                *pSampleRate = 0;
-        if (pChannelMap != NULL)
-                MA_ZERO_MEMORY(pChannelMap, sizeof(*pChannelMap) * channelMapCap);
-        if (pWebm == NULL)
+        if (p_format != NULL)
+                *p_format = ma_format_unknown;
+        if (p_channels != NULL)
+                *p_channels = 0;
+        if (p_sample_rate != NULL)
+                *p_sample_rate = 0;
+        if (p_channel_map != NULL)
+                MA_ZERO_MEMORY(p_channel_map, sizeof(*p_channel_map) * channel_map_cap);
+        if (p_webm == NULL)
                 return MA_INVALID_OPERATION;
 
-        if (pFormat != NULL)
-                *pFormat = pWebm->format;
+        if (p_format != NULL)
+                *p_format = p_webm->format;
 
 #if !defined(MA_NO_WEBM)
         {
-                if (pChannels != NULL)
-                {
-                        *pChannels = pWebm->channels;
+                if (p_channels != NULL) {
+                        *p_channels = p_webm->channels;
                 }
 
-                if (pSampleRate != NULL)
-                {
-                        *pSampleRate = pWebm->sample_rate;
+                if (p_sample_rate != NULL) {
+                        *p_sample_rate = p_webm->sample_rate;
                 }
 
-                if (pChannelMap != NULL)
-                {
-                        if (pChannelMap != NULL)
-                        {
+                if (p_channel_map != NULL) {
+                        if (p_channel_map != NULL) {
                                 ma_channel_map_init_standard(
                                     ma_standard_channel_map_vorbis,
-                                    pChannelMap,
-                                    channelMapCap,
-                                    pWebm->channels);
+                                    p_channel_map,
+                                    channel_map_cap,
+                                    p_webm->channels);
                         }
                 }
 
@@ -991,16 +886,14 @@ MA_API ma_result ma_webm_get_data_format(
 #endif
 }
 
-MA_API ma_result ma_webm_get_cursor_in_pcm_frames(ma_webm *pWebm, ma_uint64 *pCursor)
-{
-        if (pCursor == NULL || pWebm == NULL)
-        {
+MA_API ma_result ma_webm_get_cursor_in_pcm_frames(ma_webm *p_webm, ma_uint64 *p_cursor) {
+        if (p_cursor == NULL || p_webm == NULL) {
                 return MA_INVALID_ARGS;
         }
 
 #if !defined(MA_NO_WEBM)
         {
-                *pCursor = pWebm->cursorInPCMFrames;
+                *p_cursor = p_webm->cursorInPCMFrames;
                 return MA_SUCCESS;
         }
 #else
@@ -1011,48 +904,40 @@ MA_API ma_result ma_webm_get_cursor_in_pcm_frames(ma_webm *pWebm, ma_uint64 *pCu
 #endif
 }
 
-ma_uint64 calculate_length_in_pcm_frames(ma_webm *pWebm)
-{
+ma_uint64 calculate_length_in_pcm_frames(ma_webm *p_webm) {
         uint64_t duration_ns = 0;
-        if (nestegg_duration(pWebm->ctx, &duration_ns) == 0 && duration_ns > 0)
-        {
+        if (nestegg_duration(p_webm->ctx, &duration_ns) == 0 && duration_ns > 0) {
                 // For Opus, duration_ns is always in 48kHz timebase per WebM spec
-                if (pWebm->codec_id == NESTEGG_CODEC_OPUS)
-                {
+                if (p_webm->codec_id == NESTEGG_CODEC_OPUS) {
                         // Convert nanoseconds to 48kHz PCM frames
                         uint64_t total_frames_48k = (duration_ns * 48000ull) / 1000000000ull;
 
                         // Subtract pre-skip and trimming (if known)
-                        uint64_t pre_skip = pWebm->opusPreSkip;
+                        uint64_t pre_skip = p_webm->opusPreSkip;
 
                         if (total_frames_48k > pre_skip)
                                 total_frames_48k -= pre_skip;
 
                         return total_frames_48k;
-                }
-                else
-                {
+                } else {
                         // For Vorbis and others, just use sample_rate
-                        return (ma_uint64)((duration_ns * (uint64_t)pWebm->sample_rate) / 1000000000ull);
+                        return (ma_uint64)((duration_ns * (uint64_t)p_webm->sample_rate) / 1000000000ull);
                 }
         }
         return 0;
 }
 
-MA_API ma_result ma_webm_get_length_in_pcm_frames(ma_webm *pWebm, ma_uint64 *pLength)
-{
-        if (pLength == NULL || pWebm == NULL)
-        {
+MA_API ma_result ma_webm_get_length_in_pcm_frames(ma_webm *p_webm, ma_uint64 *p_length) {
+        if (p_length == NULL || p_webm == NULL) {
                 return MA_INVALID_ARGS;
         }
 
 #if !defined(MA_NO_WEBM)
         {
-                if (pWebm->lengthInPCMFrames == 0)
-                {
-                        pWebm->lengthInPCMFrames = calculate_length_in_pcm_frames(pWebm);
+                if (p_webm->lengthInPCMFrames == 0) {
+                        p_webm->lengthInPCMFrames = calculate_length_in_pcm_frames(p_webm);
                 }
-                *pLength = pWebm->lengthInPCMFrames;
+                *p_length = p_webm->lengthInPCMFrames;
                 return MA_SUCCESS;
         }
 #else

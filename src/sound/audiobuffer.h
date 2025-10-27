@@ -12,7 +12,7 @@
 void *get_audio_buffer(void);
 void reset_audio_buffer(void);
 void freeAudioBuffer(void);
-void set_audio_buffer(void *buf, int numSamples, ma_uint32 sample_rate, ma_uint32 channels, ma_format format);
+void set_audio_buffer(void *buf, int num_samples, ma_uint32 sample_rate, ma_uint32 channels, ma_format format);
 
 void set_buffer_ready(bool val);
 void set_buffer_size(int value);

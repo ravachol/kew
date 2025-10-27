@@ -30,31 +30,24 @@ static int last_name_position = 0;
 static bool is_long_name = false;
 static int scroll_delay_skipped_count = 0;
 
-void set_RGB(PixelData p)
-{
+void set_RGB(PixelData p) {
         // ANSI escape code for setting RGB foreground
         printf("\033[38;2;%d;%d;%dm", p.r, p.g, p.b);
 }
 
-void set_album_color(PixelData color)
-{
-        if (color.r >= 210 && color.g >= 210 && color.b >= 210)
-        {
+void set_album_color(PixelData color) {
+        if (color.r >= 210 && color.g >= 210 && color.b >= 210) {
                 AppState *state = get_app_state();
                 set_RGB(state->uiSettings.defaultColorRGB);
-        }
-        else
-        {
+        } else {
                 set_RGB(color);
         }
 }
 
-enum EventType get_mouse_action(int num)
-{
+enum EventType get_mouse_action(int num) {
         enum EventType value = EVENT_NONE;
 
-        switch (num)
-        {
+        switch (num) {
         case 0:
                 value = EVENT_NONE;
                 break;
@@ -96,29 +89,25 @@ enum EventType get_mouse_action(int num)
         return value;
 }
 
-int get_bytes_in_first_char(const char *str)
-{
-        if (str == NULL || str[0] == '\0')
-        {
+int get_bytes_in_first_char(const char *str) {
+        if (str == NULL || str[0] == '\0') {
                 return 0;
         }
 
         mbstate_t state;
         memset(&state, 0, sizeof(state));
         wchar_t wc;
-        int numBytes = mbrtowc(&wc, str, MB_CUR_MAX, &state);
+        int num_bytes = mbrtowc(&wc, str, MB_CUR_MAX, &state);
 
-        return numBytes;
+        return num_bytes;
 }
 
-void enable_mouse(UISettings *ui)
-{
+void enable_mouse(UISettings *ui) {
         if (ui->mouseEnabled)
                 enable_terminal_mouse_buttons();
 }
 
-void transfer_settings_to_u_i(void)
-{
+void transfer_settings_to_u_i(void) {
         AppState *state = get_app_state();
         AppSettings *settings = get_app_settings();
         UISettings *ui = &(state->uiSettings);
@@ -144,40 +133,39 @@ void transfer_settings_to_u_i(void)
         ui->visualizerEnabled = (settings->visualizerEnabled[0] == '1');
         ui->shuffle_enabled = (settings->shuffle_enabled[0] == '1');
 
-        int tmpNumBytes =
+        int tmp_num_bytes =
             get_bytes_in_first_char(settings->progressBarElapsedEvenChar);
-        if (tmpNumBytes != 0)
-                settings->progressBarElapsedEvenChar[tmpNumBytes] = '\0';
+        if (tmp_num_bytes != 0)
+                settings->progressBarElapsedEvenChar[tmp_num_bytes] = '\0';
 
-        tmpNumBytes = get_bytes_in_first_char(settings->progressBarElapsedOddChar);
-        if (tmpNumBytes != 0)
-                settings->progressBarElapsedOddChar[tmpNumBytes] = '\0';
+        tmp_num_bytes = get_bytes_in_first_char(settings->progressBarElapsedOddChar);
+        if (tmp_num_bytes != 0)
+                settings->progressBarElapsedOddChar[tmp_num_bytes] = '\0';
 
-        tmpNumBytes =
+        tmp_num_bytes =
             get_bytes_in_first_char(settings->progressBarApproachingEvenChar);
-        if (tmpNumBytes != 0)
-                settings->progressBarApproachingEvenChar[tmpNumBytes] = '\0';
+        if (tmp_num_bytes != 0)
+                settings->progressBarApproachingEvenChar[tmp_num_bytes] = '\0';
 
-        tmpNumBytes =
+        tmp_num_bytes =
             get_bytes_in_first_char(settings->progressBarApproachingOddChar);
-        if (tmpNumBytes != 0)
-                settings->progressBarApproachingOddChar[tmpNumBytes] = '\0';
+        if (tmp_num_bytes != 0)
+                settings->progressBarApproachingOddChar[tmp_num_bytes] = '\0';
 
-        tmpNumBytes = get_bytes_in_first_char(settings->progressBarCurrentEvenChar);
-        if (tmpNumBytes != 0)
-                settings->progressBarCurrentEvenChar[tmpNumBytes] = '\0';
+        tmp_num_bytes = get_bytes_in_first_char(settings->progressBarCurrentEvenChar);
+        if (tmp_num_bytes != 0)
+                settings->progressBarCurrentEvenChar[tmp_num_bytes] = '\0';
 
-        tmpNumBytes = get_bytes_in_first_char(settings->progressBarCurrentOddChar);
-        if (tmpNumBytes != 0)
-                settings->progressBarCurrentOddChar[tmpNumBytes] = '\0';
+        tmp_num_bytes = get_bytes_in_first_char(settings->progressBarCurrentOddChar);
+        if (tmp_num_bytes != 0)
+                settings->progressBarCurrentOddChar[tmp_num_bytes] = '\0';
 
         int tmp = get_number(settings->repeatState);
         if (tmp >= 0)
                 ui->repeatState = tmp;
 
         tmp = get_number(settings->colorMode);
-        if (tmp >= 0 && tmp < 3)
-        {
+        if (tmp >= 0 && tmp < 3) {
                 ui->colorMode = tmp;
         }
 
@@ -187,51 +175,51 @@ void transfer_settings_to_u_i(void)
 
         tmp = get_number(settings->mouseLeftClickAction);
 
-        enum EventType tmpEvent = get_mouse_action(tmp);
+        enum EventType tmp_event = get_mouse_action(tmp);
         if (tmp >= 0)
-                ui->mouseLeftClickAction = tmpEvent;
+                ui->mouseLeftClickAction = tmp_event;
 
         tmp = get_number(settings->mouseMiddleClickAction);
-        tmpEvent = get_mouse_action(tmp);
+        tmp_event = get_mouse_action(tmp);
         if (tmp >= 0)
-                ui->mouseMiddleClickAction = tmpEvent;
+                ui->mouseMiddleClickAction = tmp_event;
 
         tmp = get_number(settings->mouseRightClickAction);
-        tmpEvent = get_mouse_action(tmp);
+        tmp_event = get_mouse_action(tmp);
         if (tmp >= 0)
-                ui->mouseRightClickAction = tmpEvent;
+                ui->mouseRightClickAction = tmp_event;
 
         tmp = get_number(settings->mouseScrollUpAction);
-        tmpEvent = get_mouse_action(tmp);
+        tmp_event = get_mouse_action(tmp);
         if (tmp >= 0)
-                ui->mouseScrollUpAction = tmpEvent;
+                ui->mouseScrollUpAction = tmp_event;
 
         tmp = get_number(settings->mouseScrollDownAction);
-        tmpEvent = get_mouse_action(tmp);
+        tmp_event = get_mouse_action(tmp);
         if (tmp >= 0)
-                ui->mouseScrollDownAction = tmpEvent;
+                ui->mouseScrollDownAction = tmp_event;
 
         tmp = get_number(settings->mouseAltScrollUpAction);
-        tmpEvent = get_mouse_action(tmp);
+        tmp_event = get_mouse_action(tmp);
         if (tmp >= 0)
-                ui->mouseAltScrollUpAction = tmpEvent;
+                ui->mouseAltScrollUpAction = tmp_event;
 
         tmp = get_number(settings->mouseAltScrollDownAction);
-        tmpEvent = get_mouse_action(tmp);
+        tmp_event = get_mouse_action(tmp);
         if (tmp >= 0)
-                ui->mouseAltScrollDownAction = tmpEvent;
+                ui->mouseAltScrollDownAction = tmp_event;
 
-        tmp = get_number(settings->visualizerHeight);
+        tmp = get_number(settings->visualizer_height);
         if (tmp > 0)
-                ui->visualizerHeight = tmp;
+                ui->visualizer_height = tmp;
 
         tmp = get_number(settings->visualizer_bar_width);
         if (tmp >= 0)
                 ui->visualizer_bar_width = tmp;
 
-        tmp = get_number(settings->visualizerColorType);
+        tmp = get_number(settings->visualizer_color_type);
         if (tmp >= 0)
-                ui->visualizerColorType = tmp;
+                ui->visualizer_color_type = tmp;
 
         tmp = get_number(settings->titleDelay);
         if (tmp >= 0)
@@ -241,10 +229,9 @@ void transfer_settings_to_u_i(void)
         if (tmp >= 0)
                 ui->cacheLibrary = tmp;
 
-        snprintf(ui->themeName, sizeof(ui->themeName), "%s", settings->theme);
+        snprintf(ui->theme_name, sizeof(ui->theme_name), "%s", settings->theme);
 
-        if (!(ui->colorMode >= 0 && ui->colorMode < 3))
-        {
+        if (!(ui->colorMode >= 0 && ui->colorMode < 3)) {
                 bool useConfigColors = (settings->useConfigColors[0] == '1');
 
                 if (useConfigColors)
@@ -254,40 +241,42 @@ void transfer_settings_to_u_i(void)
         }
 }
 
-int get_update_counter() { return update_counter; }
+int get_update_counter() {
+        return update_counter;
+}
 
-void increment_update_counter() { update_counter++; }
+void increment_update_counter() {
+        update_counter++;
+}
 
-void reset_color(void) { printf("\033[0m"); }
+void reset_color(void) {
+        printf("\033[0m");
+}
 
-void inverse_text(void) { printf("\x1b[7m"); }
+void inverse_text(void) {
+        printf("\x1b[7m");
+}
 
-void apply_color(ColorMode mode, ColorValue themeColor, PixelData albumColor)
-{
+void apply_color(ColorMode mode, ColorValue theme_color, PixelData album_color) {
         reset_color();
 
-        switch (mode)
-        {
+        switch (mode) {
         case COLOR_MODE_ALBUM:
-                set_album_color(albumColor);
+                set_album_color(album_color);
                 break;
 
         case COLOR_MODE_THEME:
         case COLOR_MODE_DEFAULT:
-                if (themeColor.type == COLOR_TYPE_RGB)
-                {
-                        set_RGB(themeColor.rgb);
-                }
-                else
-                {
-                        set_terminal_color(themeColor.ansiIndex);
+                if (theme_color.type == COLOR_TYPE_RGB) {
+                        set_RGB(theme_color.rgb);
+                } else {
+                        set_terminal_color(theme_color.ansiIndex);
                 }
                 break;
         }
 }
 
-void reset_name_scroll()
-{
+void reset_name_scroll() {
         last_name_position = 0;
         is_long_name = false;
         finished_scrolling = false;
@@ -304,15 +293,13 @@ void reset_name_scroll()
  * Latest version: http://www.cl.cam.ac.uk/~mgk25/ucs/wcwidth.c
  */
 
-struct interval
-{
+struct interval {
         int first;
         int last;
 };
 
 // Auxiliary function for binary search in interval table
-static int bisearch(wchar_t ucs, const struct interval *table, int max)
-{
+static int bisearch(wchar_t ucs, const struct interval *table, int max) {
         if (table == NULL || max < 0)
                 return 0;
 
@@ -323,22 +310,16 @@ static int bisearch(wchar_t ucs, const struct interval *table, int max)
         size_t min = 0;
         size_t maxIndex = (size_t)max;
 
-        while (min <= maxIndex)
-        {
+        while (min <= maxIndex) {
                 size_t mid = min + ((maxIndex - min) >> 1);
 
-                if (ucs > table[mid].last)
-                {
+                if (ucs > table[mid].last) {
                         min = mid + 1;
-                }
-                else if (ucs < table[mid].first)
-                {
+                } else if (ucs < table[mid].first) {
                         if (mid == 0)
                                 return 0;
                         maxIndex = mid - 1;
-                }
-                else
-                {
+                } else {
                         return 1;
                 }
         }
@@ -346,8 +327,7 @@ static int bisearch(wchar_t ucs, const struct interval *table, int max)
         return 0;
 }
 
-int mk_wcwidth(wchar_t ucs)
-{
+int mk_wcwidth(wchar_t ucs) {
         /* sorted list of non-overlapping intervals of non-spacing characters */
         /* generated by "uniset +cat=Me +cat=Mn +cat=Cf -00AD +1160-11FF +200B
          * c" */
@@ -385,12 +365,10 @@ int mk_wcwidth(wchar_t ucs)
                      (ucs >= 0x30000 && ucs <= 0x3fffd)));
 }
 
-int mk_wcswidth(const wchar_t *pwcs, size_t n)
-{
+int mk_wcswidth(const wchar_t *pwcs, size_t n) {
         int width = 0;
 
-        for (; *pwcs && n-- > 0; pwcs++)
-        {
+        for (; *pwcs && n-- > 0; pwcs++) {
                 int w;
                 if ((w = mk_wcwidth(*pwcs)) < 0)
                         return -1;
@@ -403,78 +381,68 @@ int mk_wcswidth(const wchar_t *pwcs, size_t n)
 /* End Markus Kuhn code */
 
 void copy_half_or_full_width_chars_with_max_width(const char *src, char *dst,
-                                          int maxDisplayWidth)
-{
+                                                  int max_display_width) {
         mbstate_t state;
         memset(&state, 0, sizeof(state));
 
         const char *p = src;
         char *o = dst;
         wchar_t wc;
-        int widthSum = 0;
+        int width_sum = 0;
 
-        while (*p)
-        {
+        while (*p) {
                 size_t len = mbrtowc(&wc, p, MB_CUR_MAX, &state);
 
-                if (len == (size_t)-1)
-                { // Invalid UTF-8/locale error
+                if (len == (size_t)-1) { // Invalid UTF-8/locale error
                         // Skip one byte, reinit state
                         p++;
                         memset(&state, 0, sizeof(state));
                         continue;
                 }
-                if (len == (size_t)-2)
-                { // Incomplete sequence
+                if (len == (size_t)-2) { // Incomplete sequence
                         break;
                 }
-                if (len == 0)
-                { // Null terminator
+                if (len == 0) { // Null terminator
                         break;
                 }
 
                 int w = wcwidth(wc);
-                if (w < 0)
-                {
+                if (w < 0) {
                         // Non-printable character; skip it
                         p += len;
                         continue;
                 }
 
-                if (widthSum + w > maxDisplayWidth)
+                if (width_sum + w > max_display_width)
                         break;
 
                 // Copy valid multibyte sequence
                 memcpy(o, p, len);
                 o += len;
                 p += len;
-                widthSum += w;
+                width_sum += w;
         }
 
         *o = '\0';
 }
 
-static bool has_fullwidth_chars(const char *str)
-{
+static bool has_fullwidth_chars(const char *str) {
         mbstate_t state;
         memset(&state, 0, sizeof(state));
 
         const char *p = str;
         wchar_t wc;
 
-        while (*p)
-        {
+        while (*p) {
                 size_t len = mbrtowc(&wc, p, MB_CUR_MAX, &state);
                 if (len == (size_t)-1 || len == (size_t)-2 || len == 0)
                         break;
 
                 int w = mk_wcwidth(wc);
-                if (w < 0)
-                {
+                if (w < 0) {
                         break;
                 }
-                if (w > 1)
-                {
+                if (w > 1) {
                         return true;
                 }
                 p += len;
@@ -482,48 +450,41 @@ static bool has_fullwidth_chars(const char *str)
         return false;
 }
 
-void process_name(const char *name, char *output, int maxWidth,
-                 bool stripUnneededChars, bool stripSuffix)
-{
-        if (!name)
-        {
+void process_name(const char *name, char *output, int max_width,
+                  bool strip_unneeded_chars, bool strip_suffix) {
+        if (!name) {
                 output[0] = '\0';
                 return;
         }
 
-        const char *lastDot = strrchr(name, '.');
+        const char *last_dot = strrchr(name, '.');
 
-        if (lastDot != NULL && stripSuffix)
-        {
+        if (last_dot != NULL && strip_suffix) {
                 char tmp[MAXPATHLEN];
-                size_t len = lastDot - name + 1;
+                size_t len = last_dot - name + 1;
                 if (len >= sizeof(tmp))
                         len = sizeof(tmp) - 1;
                 c_strcpy(tmp, name, len);
                 tmp[len] = '\0';
-                copy_half_or_full_width_chars_with_max_width(tmp, output, maxWidth);
-        }
-        else
-        {
-                copy_half_or_full_width_chars_with_max_width(name, output, maxWidth);
+                copy_half_or_full_width_chars_with_max_width(tmp, output, max_width);
+        } else {
+                copy_half_or_full_width_chars_with_max_width(name, output, max_width);
         }
 
-        if (stripUnneededChars)
-                remove_unneeded_chars(output, strnlen(output, maxWidth));
+        if (strip_unneeded_chars)
+                remove_unneeded_chars(output, strnlen(output, max_width));
 
         trim(output, strlen(output));
 }
 
-void process_name_scroll(const char *name, char *output, int maxWidth,
-                       bool is_same_name_as_last_time)
-{
-        size_t scrollableLength = strnlen(name, maxWidth);
+void process_name_scroll(const char *name, char *output, int max_width,
+                         bool is_same_name_as_last_time) {
+        size_t scrollableLength = strnlen(name, max_width);
         size_t nameLength = strlen(name);
 
         if (scroll_delay_skipped_count <= start_scrolling_delay &&
-            nameLength > (size_t)maxWidth)
-        {
-                scrollableLength = maxWidth;
+            nameLength > (size_t)max_width) {
+                scrollableLength = max_width;
                 scroll_delay_skipped_count++;
                 trigger_refresh();
                 is_long_name = true;
@@ -532,30 +493,24 @@ void process_name_scroll(const char *name, char *output, int maxWidth,
         int start = (is_same_name_as_last_time) ? last_name_position : 0;
 
         if (finished_scrolling)
-                scrollableLength = maxWidth;
+                scrollableLength = max_width;
 
-        if (has_fullwidth_chars(name))
-        {
-                process_name(name, output, maxWidth, true, true);
-        }
-        else if (nameLength <= (size_t)maxWidth || finished_scrolling)
-        {
+        if (has_fullwidth_chars(name)) {
+                process_name(name, output, max_width, true, true);
+        } else if (nameLength <= (size_t)max_width || finished_scrolling) {
                 process_name(name, output, scrollableLength, true, true);
-        }
-        else
-        {
+        } else {
                 is_long_name = true;
 
-                if ((size_t)(start + maxWidth) > nameLength)
-                {
+                if ((size_t)(start + max_width) > nameLength) {
                         start = 0;
                         finished_scrolling = true;
                 }
 
-                c_strcpy(output, name + start, maxWidth + 1);
+                c_strcpy(output, name + start, max_width + 1);
 
-                remove_unneeded_chars(output, maxWidth);
-                trim(output, maxWidth);
+                remove_unneeded_chars(output, max_width);
+                trim(output, max_width);
 
                 last_name_position++;
 
@@ -563,10 +518,11 @@ void process_name_scroll(const char *name, char *output, int maxWidth,
         }
 }
 
-bool get_is_long_name() { return is_long_name; }
+bool get_is_long_name() {
+        return is_long_name;
+}
 
-PixelData increase_luminosity(PixelData pixel, int amount)
-{
+PixelData increase_luminosity(PixelData pixel, int amount) {
         PixelData pixel2;
         pixel2.r = pixel.r + amount <= 255 ? pixel.r + amount : 255;
         pixel2.g = pixel.g + amount <= 255 ? pixel.g + amount : 255;
@@ -577,8 +533,7 @@ PixelData increase_luminosity(PixelData pixel, int amount)
 
 #define MIN_CHANNEL 50
 
-PixelData decrease_luminosity_pct(PixelData base, float pct)
-{
+PixelData decrease_luminosity_pct(PixelData base, float pct) {
         PixelData c;
 
         int r = (int)((float)base.r * pct);
@@ -591,25 +546,24 @@ PixelData decrease_luminosity_pct(PixelData base, float pct)
         return c;
 }
 
-PixelData get_gradient_color(PixelData baseColor, int row, int max_list_size,
-                           int startGradient, float minPct)
-{
-        if (row < startGradient)
-                return baseColor;
+PixelData get_gradient_color(PixelData base_color, int row, int max_list_size,
+                             int start_gradient, float min_pct) {
+        if (row < start_gradient)
+                return base_color;
 
-        int steps = max_list_size - startGradient;
+        int steps = max_list_size - start_gradient;
 
         float pct;
 
         if (steps <= 1)
-                pct = minPct;
+                pct = min_pct;
         else
                 pct = 1.0f -
-                      ((row - startGradient) * (1.0f - minPct) / (steps - 1));
+                      ((row - start_gradient) * (1.0f - min_pct) / (steps - 1));
 
-        if (pct < minPct)
-                pct = minPct;
+        if (pct < min_pct)
+                pct = min_pct;
         if (pct > 1.0f)
                 pct = 1.0f;
-        return decrease_luminosity_pct(baseColor, pct);
+        return decrease_luminosity_pct(base_color, pct);
 }

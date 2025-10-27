@@ -38,19 +38,19 @@ bool is_skip_to_next(void);
 bool is_EOF_reached(void);
 bool is_impl_switch_reached(void);
 
-void activate_switch(AudioData *pPCMDataSource);
-void execute_switch(AudioData *pPCMDataSource);
+void activate_switch(AudioData *p_pcm_data_source);
+void execute_switch(AudioData *p_pcm_data_source);
 ma_device *get_device(void);
 void get_current_format_and_sample_rate(ma_format *format, ma_uint32 *sample_rate);
 
 void cleanup_playback_device(void);
 int init_playback_device(ma_context *context, ma_format format, ma_uint32 channels, ma_uint32 sample_rate,
-                       ma_device *device, ma_device_data_proc dataCallback, void *pUserData);
+                         ma_device *device, ma_device_data_proc data_callback, void *pUserData);
 
-void m4a_on_audio_frames(ma_device *pDevice, void *pFramesOut, const void *pFramesIn, ma_uint32 frameCount);
-void opus_on_audio_frames(ma_device *pDevice, void *pFramesOut, const void *pFramesIn, ma_uint32 frameCount);
-void vorbis_on_audio_frames(ma_device *pDevice, void *pFramesOut, const void *pFramesIn, ma_uint32 frameCount);
-void webm_on_audio_frames(ma_device *pDevice, void *pFramesOut, const void *pFramesIn, ma_uint32 frameCount);
+void m4a_on_audio_frames(ma_device *p_device, void *p_frames_out, const void *p_frames_in, ma_uint32 frame_count);
+void opus_on_audio_frames(ma_device *p_device, void *p_frames_out, const void *p_frames_in, ma_uint32 frame_count);
+void vorbis_on_audio_frames(ma_device *p_device, void *p_frames_out, const void *p_frames_in, ma_uint32 frame_count);
+void webm_on_audio_frames(ma_device *p_device, void *p_frames_out, const void *p_frames_in, ma_uint32 frame_count);
 
 void clear_current_track(void);
 void shutdown_android(void);

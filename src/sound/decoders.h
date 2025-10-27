@@ -12,14 +12,14 @@
 #include <stdbool.h>
 
 void reset_all_decoders(void);
-bool has_builtin_decoder(const char *filePath);
+bool has_builtin_decoder(const char *file_path);
 void switch_decoder(void);
 
 int prepare_next_decoder(const char *filepath);
 int prepare_next_opus_decoder(const char *filepath);
 int prepare_next_vorbis_decoder(const char *filepath);
-int prepare_next_m4a_decoder(SongData *songData);
-int prepare_next_webm_decoder(SongData *songData);
+int prepare_next_m4a_decoder(SongData *song_data);
+int prepare_next_webm_decoder(SongData *song_data);
 
 ma_decoder *get_first_decoder(void);
 ma_decoder *get_current_builtin_decoder(void);

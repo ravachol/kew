@@ -29,8 +29,7 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 
-void seek_forward(void)
-{
+void seek_forward(void) {
         AppState *state = get_app_state();
         Node *current = get_current_song();
         if (current == NULL)
@@ -40,17 +39,16 @@ void seek_forward(void)
         if (duration <= 0.0)
                 return;
 
-        double stepPercent = 100.0 / state->uiState.numProgressBars;
+        double step_percent = 100.0 / state->uiState.num_progress_bars;
 
-        int seconds = (int)(duration * (stepPercent / 100.0));
+        int seconds = (int)(duration * (step_percent / 100.0));
 
         seek(seconds);
 
         state->uiState.isFastForwarding = true;
 }
 
-void seek_back(void)
-{
+void seek_back(void) {
         AppState *state = get_app_state();
         Node *current = get_current_song();
 
@@ -61,24 +59,22 @@ void seek_back(void)
         if (duration <= 0.0)
                 return;
 
-        double stepPercent = 100.0 / state->uiState.numProgressBars;
+        double step_percent = 100.0 / state->uiState.num_progress_bars;
 
-        int seconds = (int)(duration * (stepPercent / 100.0));
+        int seconds = (int)(duration * (step_percent / 100.0));
 
         seek(-seconds);
 
         state->uiState.isRewinding = true;
 }
 
-void cycle_color_mode(void)
-{
+void cycle_color_mode(void) {
         AppState *state = get_app_state();
         UISettings *ui = &(state->uiSettings);
 
         clear_screen();
 
-        switch (ui->colorMode)
-        {
+        switch (ui->colorMode) {
         case COLOR_MODE_DEFAULT:
                 ui->colorMode = COLOR_MODE_ALBUM;
                 break;
@@ -92,11 +88,9 @@ void cycle_color_mode(void)
 
         bool themeLoaded = false;
 
-        switch (ui->colorMode)
-        {
+        switch (ui->colorMode) {
         case COLOR_MODE_DEFAULT:
-                if (load_theme("default", true))
-                {
+                if (load_theme("default", true)) {
                         themeLoaded = true;
                 }
                 break;
@@ -104,108 +98,96 @@ void cycle_color_mode(void)
                 themeLoaded = true;
                 break;
         case COLOR_MODE_THEME:
-                if (ui->themeName[0] != '\0' &&
-                    load_theme(ui->themeName, true))
-                {
+                if (ui->theme_name[0] != '\0' &&
+                    load_theme(ui->theme_name, true)) {
                         themeLoaded = true;
                 }
         }
 
-        if (!themeLoaded)
-        {
+        if (!themeLoaded) {
                 cycle_color_mode();
         }
 
         trigger_refresh();
 }
 
-void cycle_themes(void)
-{
+void cycle_themes(void) {
         clear_screen();
 
         AppState *state = get_app_state();
         UISettings *ui = &(state->uiSettings);
 
-        char *configPath = get_config_path();
-        if (!configPath)
+        char *config_path = get_config_path();
+        if (!config_path)
                 return;
 
-        char themesPath[MAXPATHLEN];
-        snprintf(themesPath, sizeof(themesPath), "%s/themes", configPath);
+        char themes_path[MAXPATHLEN];
+        snprintf(themes_path, sizeof(themes_path), "%s/themes", config_path);
 
-        DIR *dir = opendir(themesPath);
-        if (!dir)
-        {
+        DIR *dir = opendir(themes_path);
+        if (!dir) {
                 perror("Failed to open themes directory");
                 return;
         }
 
         struct dirent *entry;
         char *themes[256];
-        int themeCount = 0;
+        int theme_count = 0;
 
         // Collect all *.theme files
-        while ((entry = readdir(dir)) != NULL)
-        {
-                if (strstr(entry->d_name, ".theme"))
-                {
-                        themes[themeCount++] = strdup(entry->d_name);
+        while ((entry = readdir(dir)) != NULL) {
+                if (strstr(entry->d_name, ".theme")) {
+                        themes[theme_count++] = strdup(entry->d_name);
                 }
         }
         closedir(dir);
 
-        if (themeCount == 0)
-        {
+        if (theme_count == 0) {
                 set_error_message("No themes found.");
-                free(configPath);
+                free(config_path);
                 return;
         }
 
         // Find the index of the current theme
-        int currentIndex = -1;
-        char currentFilename[NAME_MAX];
+        int current_index = -1;
+        char current_filename[NAME_MAX];
 
-        strncpy(currentFilename, ui->themeName, sizeof(currentFilename) - 1);
-        currentFilename[sizeof(currentFilename) - 1] = '\0';
+        strncpy(current_filename, ui->theme_name, sizeof(current_filename) - 1);
+        current_filename[sizeof(current_filename) - 1] = '\0';
 
-        if (strlen(currentFilename) + 6 < sizeof(currentFilename))
-                strcat(currentFilename, ".theme");
+        if (strlen(current_filename) + 6 < sizeof(current_filename))
+                strcat(current_filename, ".theme");
 
-        for (int i = 0; i < themeCount; i++)
-        {
-                if (strcmp(themes[i], currentFilename) == 0)
-                {
-                        currentIndex = i;
+        for (int i = 0; i < theme_count; i++) {
+                if (strcmp(themes[i], current_filename) == 0) {
+                        current_index = i;
                         break;
                 }
         }
 
         // Get next theme (wrap around)
-        int nextIndex = (currentIndex + 1) % themeCount;
+        int next_index = (current_index + 1) % theme_count;
 
-        if (load_theme(themes[nextIndex], false))
-        {
+        if (load_theme(themes[next_index], false)) {
                 ui->colorMode = COLOR_MODE_THEME;
 
-                snprintf(ui->themeName, sizeof(ui->themeName), "%s",
-                         themes[nextIndex]);
-                char *dot = strstr(ui->themeName, ".theme");
+                snprintf(ui->theme_name, sizeof(ui->theme_name), "%s",
+                         themes[next_index]);
+                char *dot = strstr(ui->theme_name, ".theme");
                 if (dot)
                         *dot = '\0';
         }
 
         trigger_refresh();
 
-        for (int i = 0; i < themeCount; i++)
-        {
+        for (int i = 0; i < theme_count; i++) {
                 free(themes[i]);
         }
 
-        free(configPath);
+        free(config_path);
 }
 
-void toggle_visualizer(void)
-{
+void toggle_visualizer(void) {
         AppSettings *settings = get_app_settings();
         AppState *state = get_app_state();
 
@@ -216,15 +198,13 @@ void toggle_visualizer(void)
         trigger_refresh();
 }
 
-void toggle_show_lyrics_page(void)
-{
+void toggle_show_lyrics_page(void) {
         AppState *state = get_app_state();
         state->uiState.showLyricsPage = !state->uiState.showLyricsPage;
         trigger_refresh();
 }
 
-void toggle_ascii(void)
-{
+void toggle_ascii(void) {
         AppSettings *settings = get_app_settings();
         AppState *state = get_app_state();
 
@@ -234,28 +214,22 @@ void toggle_ascii(void)
         trigger_refresh();
 }
 
-void toggle_repeat(void)
-{
+void toggle_repeat(void) {
         AppState *state = get_app_state();
         bool repeat_enabled = ops_is_repeat_enabled();
         bool repeat_list_enabled = is_repeat_list_enabled();
 
-        if (repeat_enabled)
-        {
+        if (repeat_enabled) {
                 set_repeat_enabled(false);
                 set_repeat_list_enabled(true);
                 emit_string_property_changed("loop_status", "List");
                 state->uiSettings.repeatState = 2;
-        }
-        else if (repeat_list_enabled)
-        {
+        } else if (repeat_list_enabled) {
                 set_repeat_enabled(false);
                 set_repeat_list_enabled(false);
                 emit_string_property_changed("loop_status", "None");
                 state->uiSettings.repeatState = 0;
-        }
-        else
-        {
+        } else {
                 set_repeat_enabled(true);
                 set_repeat_list_enabled(false);
                 emit_string_property_changed("loop_status", "Track");
@@ -266,20 +240,15 @@ void toggle_repeat(void)
                 trigger_refresh();
 }
 
-void toggle_pause()
-{
-                if (ops_is_stopped())
-                {
-                        view_enqueue(false);
-                }
-                else
-                {
-                        ops_toggle_pause();
-                }
+void toggle_pause() {
+        if (ops_is_stopped()) {
+                view_enqueue(false);
+        } else {
+                ops_toggle_pause();
+        }
 }
 
-void toggle_notifications(void)
-{
+void toggle_notifications(void) {
         AppState *state = get_app_state();
         AppSettings *settings = get_app_settings();
         UISettings *ui = &(state->uiSettings);
@@ -289,15 +258,13 @@ void toggle_notifications(void)
                  ui->allowNotifications ? "1" : "0",
                  sizeof(settings->allowNotifications));
 
-        if (ui->allowNotifications)
-        {
+        if (ui->allowNotifications) {
                 clear_screen();
                 trigger_refresh();
         }
 }
 
-void toggle_shuffle(void)
-{
+void toggle_shuffle(void) {
         AppState *state = get_app_state();
         PlaybackState *ps = get_playback_state();
 
@@ -308,8 +275,7 @@ void toggle_shuffle(void)
         PlayList *playlist = get_playlist();
         PlayList *unshuffled_playlist = get_unshuffled_playlist();
 
-        if (state->uiSettings.shuffle_enabled)
-        {
+        if (state->uiSettings.shuffle_enabled) {
                 pthread_mutex_lock(&(playlist->mutex));
 
                 shuffle_playlist_starting_from_song(playlist, current);
@@ -317,13 +283,10 @@ void toggle_shuffle(void)
                 pthread_mutex_unlock(&(playlist->mutex));
 
                 emit_boolean_property_changed("Shuffle", TRUE);
-        }
-        else
-        {
+        } else {
                 char *path = NULL;
-                if (current != NULL)
-                {
-                        path = strdup(current->song.filePath);
+                if (current != NULL) {
+                        path = strdup(current->song.file_path);
                 }
 
                 pthread_mutex_lock(&(playlist->mutex));
@@ -333,8 +296,7 @@ void toggle_shuffle(void)
                 deep_copy_play_list_onto_list(unshuffled_playlist, &playlist);
                 set_playlist(playlist);
 
-                if (path != NULL)
-                {
+                if (path != NULL) {
                         set_current_song(find_path_in_playlist(path, playlist));
                         free(path);
                 }
@@ -354,76 +316,67 @@ void toggle_shuffle(void)
         emit_shuffle_changed();
 }
 
-bool should_refresh_player(void)
-{
+bool should_refresh_player(void) {
         PlaybackState *ps = get_playback_state();
 
         return !ps->skipping && !ops_is_EOF() && !ops_is_impl_switch_reached();
 }
 
-int load_theme(const char *themeName,
-              bool isAnsiTheme)
-{
+int load_theme(const char *theme_name,
+               bool is_ansi_theme) {
         AppState *app_state = get_app_state();
         AppSettings *settings = get_app_settings();
 
-        if (!app_state || !themeName)
+        if (!app_state || !theme_name)
                 return 0;
 
-        char *configPath = get_config_path();
-        if (!configPath)
+        char *config_path = get_config_path();
+        if (!config_path)
                 return 0;
 
         // Check if config directory exists
         struct stat st = {0};
-        if (stat(configPath, &st) == -1)
-        {
-                free(configPath);
+        if (stat(config_path, &st) == -1) {
+                free(config_path);
                 return 0;
         }
 
         // Build full theme filename
         char filename[NAME_MAX];
         const char *extension = ".theme";
-        size_t themeNameLen = strlen(themeName);
+        size_t themeNameLen = strlen(theme_name);
         size_t extLen = strlen(extension);
 
-        // Check if themeName already ends with ".theme"
-        int hasExtension =
+        // Check if theme_name already ends with ".theme"
+        int has_extension =
             (themeNameLen >= extLen &&
-             strcmp(themeName + themeNameLen - extLen, extension) == 0);
+             strcmp(theme_name + themeNameLen - extLen, extension) == 0);
 
-        if (hasExtension)
-        {
-                if (snprintf(filename, sizeof(filename), "%s", themeName) >=
-                    (int)sizeof(filename))
-                {
+        if (has_extension) {
+                if (snprintf(filename, sizeof(filename), "%s", theme_name) >=
+                    (int)sizeof(filename)) {
                         fprintf(stderr, "Theme filename is too long\n");
                         set_error_message("Theme filename is too long");
-                        free(configPath);
+                        free(config_path);
                         return 0;
                 }
-        }
-        else
-        {
+        } else {
                 if (snprintf(filename, sizeof(filename), "%s.theme",
-                             themeName) >= (int)sizeof(filename))
-                {
+                             theme_name) >= (int)sizeof(filename)) {
                         fprintf(stderr, "Theme filename is too long\n");
                         set_error_message("Theme filename is too long");
-                        free(configPath);
+                        free(config_path);
                         return 0;
                 }
         }
 
         // Build full themes directory path: configDir + "/themes"
-        char themesDir[MAXPATHLEN];
-        if (snprintf(themesDir, sizeof(themesDir), "%s/themes", configPath) >=
-            (int)sizeof(themesDir))
-        {
+        char themes_dir[MAXPATHLEN];
+        if (snprintf(themes_dir, sizeof(themes_dir), "%s/themes", config_path) >=
+            (int)sizeof(themes_dir)) {
                 fprintf(stderr, "Themes path is too long\n");
                 set_error_message("Themes path is too long");
-                free(configPath);
+                free(config_path);
                 return 0;
         }
 
@@ -431,29 +384,25 @@ int load_theme(const char *themeName,
 
         // Call the loader
         int loaded =
-            load_theme_from_file(themesDir, filename, &app_state->uiSettings.theme);
-        if (!loaded)
-        {
-                free(configPath);
+            load_theme_from_file(themes_dir, filename, &app_state->uiSettings.theme);
+        if (!loaded) {
+                free(config_path);
                 return 0; // failed to load
         }
 
         app_state->uiSettings.themeIsSet = true;
 
-        if (isAnsiTheme)
-        {
+        if (is_ansi_theme) {
                 // Default ANSI theme: store in settings->ansiTheme
                 snprintf(settings->ansiTheme, sizeof(settings->ansiTheme), "%s",
-                         themeName);
-        }
-        else
-        {
+                         theme_name);
+        } else {
                 // Truecolor theme: store in settings->theme
                 snprintf(settings->theme, sizeof(settings->theme), "%s",
-                         themeName);
+                         theme_name);
         }
 
-        free(configPath);
+        free(config_path);
 
         return 1;
 }

@@ -59,19 +59,16 @@ int digits_pressed_count;
 double dragged_position_seconds = 0.0;
 bool dragging_progress_bar = false;
 
-struct Event map_t_b_key_to_event(struct tb_event *ev)
-{
+struct Event map_t_b_key_to_event(struct tb_event *ev) {
         struct Event event = {0};
         event.type = EVENT_NONE;
 
         TBKeyBinding *key_bindings = get_key_bindings();
 
         AppState *state = get_app_state();
-        if (state->currentView == SEARCH_VIEW)
-        {
+        if (state->currentView == SEARCH_VIEW) {
                 // Backspace
-                if (ev->key == TB_KEY_BACKSPACE || ev->key == TB_KEY_BACKSPACE2)
-                {
+                if (ev->key == TB_KEY_BACKSPACE || ev->key == TB_KEY_BACKSPACE2) {
                         remove_from_search_text();
                         reset_search_result();
                         fuzzy_search(get_library(), fuzzy_search_threshold);
@@ -80,10 +77,8 @@ struct Event map_t_b_key_to_event(struct tb_event *ev)
                 // Printable character (not escape, enter, tab, carriage return)
 #if defined(__ANDROID__) || defined(__APPLE__)
                 else if ((ev->ch > 0 && ev->ch != '\033' && ev->ch != '\n' && ev->ch != '\t' && ev->ch != '\r') ||
-                         ev->ch == ' ')
-                {
-                        if (ev->ch != 'Z' && ev->ch != 'X' && ev->ch != 'C' && ev->ch != 'V' && ev->ch != 'B' && ev->ch != 'N')
-                        {
+                         ev->ch == ' ') {
+                        if (ev->ch != 'Z' && ev->ch != 'X' && ev->ch != 'C' && ev->ch != 'V' && ev->ch != 'B' && ev->ch != 'N') {
                                 char keybuf[5] = {0};
                                 tb_utf8_unicode_to_char(keybuf, ev->ch);
                                 add_to_search_text(keybuf);
@@ -94,8 +89,7 @@ struct Event map_t_b_key_to_event(struct tb_event *ev)
                 }
 #else
                 else if ((ev->ch > 0 && ev->ch != '\033' && ev->ch != '\n' && ev->ch != '\t' && ev->ch != '\r') ||
-                         ev->ch == ' ')
-                {
+                         ev->ch == ' ') {
                         char keybuf[5] = {0};
                         tb_utf8_unicode_to_char(keybuf, ev->ch);
                         add_to_search_text(keybuf);
@@ -106,17 +100,14 @@ struct Event map_t_b_key_to_event(struct tb_event *ev)
 #endif
         }
 
-        if (event.type == EVENT_NONE)
-        {
-                for (size_t i = 0; i < keybinding_count; i++)
-                {
+        if (event.type == EVENT_NONE) {
+                for (size_t i = 0; i < keybinding_count; i++) {
                         TBKeyBinding *b = &key_bindings[i];
 
                         bool keyMatch = (b->key && ev->key == b->key) || (b->ch && ev->ch == b->ch);
                         bool modsMatch = (b->mods == ev->mod);
 
-                        if (keyMatch && modsMatch)
-                        {
+                        if (keyMatch && modsMatch) {
                                 event.type = b->eventType;
                                 strncpy(event.args, b->args, sizeof(event.args));
                                 event.args[sizeof(event.args) - 1] = '\0';
@@ -128,54 +119,46 @@ struct Event map_t_b_key_to_event(struct tb_event *ev)
         return event;
 }
 
-bool is_digits_pressed(void)
-{
+bool is_digits_pressed(void) {
         return (digits_pressed_count != 0);
 }
 
-char *get_digits_pressed(void)
-{
+char *get_digits_pressed(void) {
         return digits_pressed;
 }
 
-void press_digit(int digit)
-{
+void press_digit(int digit) {
         digits_pressed[0] = digit;
         digits_pressed[1] = '\0';
         digits_pressed_count = 1;
 }
 
-void reset_digits_pressed(void)
-{
+void reset_digits_pressed(void) {
         memset(digits_pressed, '\0', sizeof(digits_pressed));
         digits_pressed_count = 0;
 }
 
-void update_last_input_time(void)
-{
+void update_last_input_time(void) {
         clock_gettime(CLOCK_MONOTONIC, &last_input_time);
 }
 
-bool is_cooldown_elapsed(int milliSeconds)
-{
-        struct timespec currentTime;
-        clock_gettime(CLOCK_MONOTONIC, &currentTime);
-        double elapsedMilliseconds =
-            (currentTime.tv_sec - last_input_time.tv_sec) * 1000.0 +
-            (currentTime.tv_nsec - last_input_time.tv_nsec) / 1000000.0;
+bool is_cooldown_elapsed(int milli_seconds) {
+        struct timespec current_time;
+        clock_gettime(CLOCK_MONOTONIC, &current_time);
+        double elapsed_milliseconds =
+            (current_time.tv_sec - last_input_time.tv_sec) * 1000.0 +
+            (current_time.tv_nsec - last_input_time.tv_nsec) / 1000000.0;
 
-        return elapsedMilliseconds >= milliSeconds;
+        return elapsed_milliseconds >= milli_seconds;
 }
 
-void init_key_mappings(AppSettings *settings)
-{
+void init_key_mappings(AppSettings *settings) {
         AppState *state = get_app_state();
         map_settings_to_keys(settings, &(state->uiSettings), key_mappings);
 }
 
-int parse_volume_arg(const char *argStr)
-{
-        if (!argStr || !*argStr)
+int parse_volume_arg(const char *arg_str) {
+        if (!arg_str || !*arg_str)
                 return 0;
 
         // Make a copy so we can strip characters like '%'
@@ -183,21 +166,20 @@ int parse_volume_arg(const char *argStr)
         size_t len = 0;
 
         // Skip leading spaces
-        while (*argStr && isspace((unsigned char)*argStr))
-                argStr++;
+        while (*arg_str && isspace((unsigned char)*arg_str))
+                arg_str++;
 
         // Copy allowed characters (+, -, digits)
-        while (*argStr && len < sizeof(buf) - 1)
-        {
-                if (*argStr == '+' || *argStr == '-' || isdigit((unsigned char)*argStr))
-                        buf[len++] = *argStr;
-                else if (*argStr == '%')
+        while (*arg_str && len < sizeof(buf) - 1) {
+                if (*arg_str == '+' || *arg_str == '-' || isdigit((unsigned char)*arg_str))
+                        buf[len++] = *arg_str;
+                else if (*arg_str == '%')
                         break; // stop at %
-                else if (isspace((unsigned char)*argStr))
+                else if (isspace((unsigned char)*arg_str))
                         break; // stop at space
                 else
                         break; // stop on anything unexpected
-                argStr++;
+                arg_str++;
         }
 
         buf[len] = '\0';
@@ -209,15 +191,13 @@ int parse_volume_arg(const char *argStr)
         return atoi(buf);
 }
 
-void handle_event(struct Event *event)
-{
+void handle_event(struct Event *event) {
         AppState *state = get_app_state();
         AppSettings *settings = get_app_settings();
         PlayList *playlist = get_playlist();
         int chosen_row = get_chosen_row();
 
-        switch (event->type)
-        {
+        switch (event->type) {
                 break;
         case EVENT_ENQUEUE:
                 view_enqueue(false);
@@ -359,13 +339,11 @@ static gint64 last_scroll_event_time = 0;
 static gint64 last_seek_event_time = 0;
 static gint64 last_page_event_time = 0;
 
-static gboolean should_throttle(struct Event *event)
-{
+static gboolean should_throttle(struct Event *event) {
         gint64 now = g_get_real_time(); // microseconds since Epoch
         gint64 delta;
 
-        switch (event->type)
-        {
+        switch (event->type) {
         case EVENT_SCROLLUP:
         case EVENT_SCROLLDOWN:
                 delta = now - last_scroll_event_time;
@@ -400,27 +378,24 @@ static gboolean should_throttle(struct Event *event)
 #define MAX_SEQ_LEN 1024 // Maximum length of sequence buffer
 #define MAX_TMP_SEQ_LEN 256
 
-enum EventType get_mouse_last_row_event(int mouseXOnLastRow)
-{
+enum EventType get_mouse_last_row_event(int mouse_x_on_last_row) {
         enum EventType result = EVENT_NONE;
         AppState *state = get_app_state();
 
         const char *s = state->uiSettings.LAST_ROW;
-        if (!s || mouseXOnLastRow < 0)
+        if (!s || mouse_x_on_last_row < 0)
                 return EVENT_NONE;
 
-        int viewClicked = 1; // Which section is clicked
-        int colIndex = 0;    // terminal column position
+        int view_clicked = 1; // Which section is clicked
+        int col_index = 0;    // terminal column position
         const char *ptr = state->uiSettings.LAST_ROW;
         mbstate_t mbs;
         memset(&mbs, 0, sizeof(mbs));
 
-        while (*ptr)
-        {
+        while (*ptr) {
                 wchar_t wc;
                 size_t bytes = mbrtowc(&wc, ptr, MB_CUR_MAX, &mbs);
-                if (bytes == (size_t)-1 || bytes == (size_t)-2)
-                {
+                if (bytes == (size_t)-1 || bytes == (size_t)-2) {
                         bytes = 1;
                         wc = (unsigned char)*ptr;
                 }
@@ -429,18 +404,17 @@ enum EventType get_mouse_last_row_event(int mouseXOnLastRow)
                 if (w < 0)
                         w = 0;
 
-                if (colIndex + w > mouseXOnLastRow)
+                if (col_index + w > mouse_x_on_last_row)
                         break; // cursor is inside this character
 
                 if (wc == L'|')
-                        viewClicked++;
+                        view_clicked++;
 
-                colIndex += w;
+                col_index += w;
                 ptr += bytes;
         }
 
-        switch (viewClicked)
-        {
+        switch (view_clicked) {
         case 1:
                 result = EVENT_SHOWPLAYLIST;
                 break;
@@ -461,16 +435,14 @@ enum EventType get_mouse_last_row_event(int mouseXOnLastRow)
                 break;
         }
 
-        if (result == EVENT_SHOWTRACK && get_current_song_data() == NULL)
-        {
+        if (result == EVENT_SHOWTRACK && get_current_song_data() == NULL) {
                 result = EVENT_SHOWLIBRARY;
         }
 
         return result;
 }
 
-bool mouse_input_handled(char *seq, int i, struct Event *event)
-{
+bool mouse_input_handled(char *seq, int i, struct Event *event) {
         AppState *state = get_app_state();
 
         if (!seq || !event)
@@ -481,20 +453,19 @@ bool mouse_input_handled(char *seq, int i, struct Event *event)
 
         const char *expected = key_mappings[i].seq;
 
-        char tmpSeq[MAX_SEQ_LEN];
+        char tmp_seq[MAX_SEQ_LEN];
         size_t src_len = strnlen(seq, MAX_SEQ_LEN - 1);
 
         if (src_len < 4) // Must be at least ESC[ M + 3 digits
                 return false;
 
-        snprintf(tmpSeq, sizeof tmpSeq, "%.*s", (int)src_len, seq);
+        snprintf(tmp_seq, sizeof tmp_seq, "%.*s", (int)src_len, seq);
 
-        int mouseButton = 0, mouseX = 0, mouseY = 0;
-        const char *end = tmpSeq + src_len;
-        const char *p = tmpSeq + 3; // Skip ESC[ M
+        int mouse_button = 0, mouse_x = 0, mouse_y = 0;
+        const char *end = tmp_seq + src_len;
+        const char *p = tmp_seq + 3; // Skip ESC[ M
 
-        for (int field = 0; field < 3 && p && *p && p < end; ++field)
-        {
+        for (int field = 0; field < 3 && p && *p && p < end; ++field) {
                 char *endptr;
                 long val = strtol(p, &endptr, 10);
                 if (endptr == p || endptr > end) // no progress or out of bounds
@@ -504,62 +475,52 @@ bool mouse_input_handled(char *seq, int i, struct Event *event)
                 if (*p == ';')
                         ++p;
 
-                switch (field)
-                {
+                switch (field) {
                 case 0:
-                        mouseButton = (int)val;
+                        mouse_button = (int)val;
                         break;
                 case 1:
-                        mouseX = (int)val;
+                        mouse_x = (int)val;
                         break;
                 case 2:
-                        mouseY = (int)val;
+                        mouse_y = (int)val;
                         break;
                 }
         }
 
         ProgressBar *progress_bar = get_progress_bar();
 
-        if (progress_bar->length > 0)
-        {
-                long long deltaCol =
-                    (long long)mouseX - (long long)progress_bar->col;
+        if (progress_bar->length > 0) {
+                long long delta_col =
+                    (long long)mouse_x - (long long)progress_bar->col;
 
-                if (deltaCol >= 0 && deltaCol <= (long long)progress_bar->length)
-                {
+                if (delta_col >= 0 && delta_col <= (long long)progress_bar->length) {
                         double position =
-                            (double)deltaCol / (double)progress_bar->length;
+                            (double)delta_col / (double)progress_bar->length;
                         double duration = get_current_song_duration();
                         dragged_position_seconds = duration * position;
-                }
-                else
-                {
+                } else {
                         dragged_position_seconds = 0.0;
                 }
-        }
-        else
-        {
+        } else {
                 dragged_position_seconds = 0.0;
         }
 
         int footer_row = get_footer_row();
         int footer_col = get_footer_col();
 
-        if (mouseY == footer_row && footer_col > 0 && mouseX - footer_col > 0 &&
-            mouseX - footer_col < (int)strlen(state->uiSettings.LAST_ROW) &&
-            mouseButton != MOUSE_DRAG)
-        {
-                event->type = get_mouse_last_row_event(mouseX - footer_col);
+        if (mouse_y == footer_row && footer_col > 0 && mouse_x - footer_col > 0 &&
+            mouse_x - footer_col < (int)strlen(state->uiSettings.LAST_ROW) &&
+            mouse_button != MOUSE_DRAG) {
+                event->type = get_mouse_last_row_event(mouse_x - footer_col);
                 return true;
         }
 
-        if ((mouseY == progress_bar->row || dragging_progress_bar) &&
-            mouseX - progress_bar->col >= 0 &&
-            mouseX - progress_bar->col < progress_bar->length &&
-            state->currentView == TRACK_VIEW)
-        {
-                if (mouseButton == MOUSE_DRAG || mouseButton == MOUSE_CLICK)
-                {
+        if ((mouse_y == progress_bar->row || dragging_progress_bar) &&
+            mouse_x - progress_bar->col >= 0 &&
+            mouse_x - progress_bar->col < progress_bar->length &&
+            state->currentView == TRACK_VIEW) {
+                if (mouse_button == MOUSE_DRAG || mouse_button == MOUSE_CLICK) {
                         dragging_progress_bar = true;
                         gint64 newPosUs =
                             (gint64)(dragged_position_seconds * G_USEC_PER_SEC);
@@ -572,8 +533,7 @@ bool mouse_input_handled(char *seq, int i, struct Event *event)
         if (strlen(seq) < expected_len + 1)
                 return false;
 
-        if (strncmp(seq + 1, expected, expected_len) == 0)
-        {
+        if (strncmp(seq + 1, expected, expected_len) == 0) {
                 event->type = key_mappings[i].eventType;
                 return true;
         }
@@ -581,25 +541,22 @@ bool mouse_input_handled(char *seq, int i, struct Event *event)
         return false;
 }
 
-bool handle_mouse_event(struct tb_event *ev, struct Event *event)
-{
+bool handle_mouse_event(struct tb_event *ev, struct Event *event) {
         if (ev->type != TB_EVENT_MOUSE)
                 return false;
 
-        int mouseX = ev->x + 1;
-        int mouseY = ev->y + 1;
-        uint16_t mouseKey = ev->key;
+        int mouse_x = ev->x + 1;
+        int mouse_y = ev->y + 1;
+        uint16_t mouse_key = ev->key;
         ProgressBar *progress_bar = get_progress_bar();
         AppState *state = get_app_state();
 
         // Calculate where the user clicked on the progress bar
-        if (progress_bar->length > 0)
-        {
-                long long deltaCol = (long long)mouseX - (long long)progress_bar->col;
+        if (progress_bar->length > 0) {
+                long long delta_col = (long long)mouse_x - (long long)progress_bar->col;
 
-                if (deltaCol >= 0 && deltaCol <= (long long)progress_bar->length)
-                {
-                        double position = (double)deltaCol / (double)progress_bar->length;
+                if (delta_col >= 0 && delta_col <= (long long)progress_bar->length) {
+                        double position = (double)delta_col / (double)progress_bar->length;
                         double duration = get_current_song_duration();
                         dragged_position_seconds = duration * position;
                 }
@@ -609,17 +566,15 @@ bool handle_mouse_event(struct tb_event *ev, struct Event *event)
         int footer_col = get_footer_col();
 
         // Footer click (e.g., buttons or indicators on last row)
-        if ((mouseY == footer_row && footer_col > 0 &&
-             mouseX - footer_col >= 0 &&
-             mouseX - footer_col < (int)strlen(state->uiSettings.LAST_ROW)) &&
-            mouseKey != TB_KEY_MOUSE_RELEASE)
-        {
-                event->type = get_mouse_last_row_event(mouseX - footer_col);
+        if ((mouse_y == footer_row && footer_col > 0 &&
+             mouse_x - footer_col >= 0 &&
+             mouse_x - footer_col < (int)strlen(state->uiSettings.LAST_ROW)) &&
+            mouse_key != TB_KEY_MOUSE_RELEASE) {
+                event->type = get_mouse_last_row_event(mouse_x - footer_col);
                 return true;
         }
 
-        if (mouseKey == TB_KEY_MOUSE_RELEASE)
-        {
+        if (mouse_key == TB_KEY_MOUSE_RELEASE) {
                 // Mouse moved outside progress bar area → stop dragging
                 dragging_progress_bar = false;
                 return true;
@@ -627,15 +582,13 @@ bool handle_mouse_event(struct tb_event *ev, struct Event *event)
 
         // Progress bar click or hold-drag movement
         bool inProgressBar =
-            (mouseY == progress_bar->row) &&
-            (mouseX >= progress_bar->col) &&
-            (mouseX < progress_bar->col + progress_bar->length);
+            (mouse_y == progress_bar->row) &&
+            (mouse_x >= progress_bar->col) &&
+            (mouse_x < progress_bar->col + progress_bar->length);
 
-        if (inProgressBar && state->currentView == TRACK_VIEW)
-        {
+        if (inProgressBar && state->currentView == TRACK_VIEW) {
                 // Any left press or movement within bar = update
-                if (mouseKey == TB_KEY_MOUSE_LEFT || dragging_progress_bar)
-                {
+                if (mouse_key == TB_KEY_MOUSE_LEFT || dragging_progress_bar) {
                         dragging_progress_bar = true;
 
                         gint64 newPosUs = (gint64)(dragged_position_seconds * G_USEC_PER_SEC);
@@ -647,19 +600,15 @@ bool handle_mouse_event(struct tb_event *ev, struct Event *event)
         return false;
 }
 
-void handle_cooldown(void)
-{
+void handle_cooldown(void) {
         bool cooldownElapsed = false;
 
         if (is_cooldown_elapsed(COOLDOWN_MS))
                 cooldownElapsed = true;
 
-        if (cooldownElapsed)
-        {
-                if (!dragging_progress_bar)
-                {
-                        if (flush_seek())
-                        {
+        if (cooldownElapsed) {
+                if (!dragging_progress_bar) {
+                        if (flush_seek()) {
                                 AppState *state = get_app_state();
                                 state->uiState.isFastForwarding = false;
                                 state->uiState.isRewinding = false;
@@ -671,14 +620,13 @@ void handle_cooldown(void)
         }
 }
 
-static gboolean on_tb_input(GIOChannel *source, GIOCondition cond, gpointer data)
-{
+static gboolean on_tb_input(GIOChannel *source, GIOCondition cond, gpointer data) {
         (void)source;
         (void)cond;
         (void)data;
 
         char seq[MAX_SEQ_LEN];
-        int seqLength = 0;
+        int seq_length = 0;
 
         seq[0] = '\0';
 
@@ -692,13 +640,12 @@ static gboolean on_tb_input(GIOChannel *source, GIOCondition cond, gpointer data
                 cooldown2Elapsed = true;
 
         // Drain all available input
-        while (1)
-        {
+        while (1) {
                 if (!is_input_available())
                         break;
 
-                char tmpSeq[MAX_TMP_SEQ_LEN];
-                int len = read_input_sequence(tmpSeq, sizeof(tmpSeq));
+                char tmp_seq[MAX_TMP_SEQ_LEN];
+                int len = read_input_sequence(tmp_seq, sizeof(tmp_seq));
                 if (len <= 0)
                         break;
 
@@ -707,46 +654,39 @@ static gboolean on_tb_input(GIOChannel *source, GIOCondition cond, gpointer data
                 if (remaining_space < (size_t)len)
                         len = remaining_space;
 
-                memcpy(seq + seq_len, tmpSeq, len);
+                memcpy(seq + seq_len, tmp_seq, len);
                 seq[seq_len + len] = '\0';
-                seqLength += len;
+                seq_length += len;
         }
 
         // If we got a sequence, convert to tb_event and handle
-        if (seqLength > 0)
-        {
+        if (seq_length > 0) {
                 struct tb_event ev;
                 memset(&ev, 0, sizeof(ev));
 
                 // Feed the sequence into Termbox internal buffer
-                if (seqLength > 0)
-                {
-                        bytebuf_nputs(&global.in, seq, seqLength); // feed entire sequence at once
+                if (seq_length > 0) {
+                        bytebuf_nputs(&global.in, seq, seq_length); // feed entire sequence at once
                 }
 
                 struct Event event;
 
                 // Extract all events in the buffer
-                while (tb_peek_event(&ev, 0) == 0)
-                {
+                while (tb_peek_event(&ev, 0) == 0) {
                         bool isMouseEvent = handle_mouse_event(&ev, &event);
 
-                        if (!isMouseEvent)
-                        {
+                        if (!isMouseEvent) {
                                 event = map_t_b_key_to_event(&ev);
                         }
 
-                        if (isdigit(ev.ch) && event.type == EVENT_NONE)
-                        {
+                        if (isdigit(ev.ch) && event.type == EVENT_NONE) {
                                 if (digits_pressed_count < max_digits_pressed_count)
                                         digits_pressed[digits_pressed_count++] = ev.ch;
                         }
 
-                        if (event.type != EVENT_NONE)
-                        {
+                        if (event.type != EVENT_NONE) {
                                 // Throttle scroll/seek/page events
-                                switch (event.type)
-                                {
+                                switch (event.type) {
                                 case EVENT_SCROLLUP:
                                 case EVENT_SCROLLDOWN:
                                 case EVENT_SEEKBACK:
@@ -773,14 +713,12 @@ static gboolean on_tb_input(GIOChannel *source, GIOCondition cond, gpointer data
                                      event.type == EVENT_SEEKFORWARD))
                                         event.type = EVENT_NONE;
                                 else if (event.type == EVENT_REMOVE || event.type == EVENT_SEEKBACK ||
-                                         event.type == EVENT_SEEKFORWARD)
-                                {
+                                         event.type == EVENT_SEEKFORWARD) {
                                         update_last_input_time();
                                 }
                                 // Forget Numbers
                                 if (event.type != EVENT_ENQUEUE &&
-                                    event.type != EVENT_GOTOENDOFPLAYLIST && event.type != EVENT_NONE)
-                                {
+                                    event.type != EVENT_GOTOENDOFPLAYLIST && event.type != EVENT_NONE) {
                                         memset(digits_pressed, '\0', sizeof(digits_pressed));
                                         digits_pressed_count = 0;
                                 }
@@ -793,8 +731,7 @@ static gboolean on_tb_input(GIOChannel *source, GIOCondition cond, gpointer data
         return TRUE;
 }
 
-void init_input(void)
-{
+void init_input(void) {
         tb_init();
         // Enable SGR (1006) + drag-motion (1002)
         const char *enable_mouse = "\033[?1000h\033[?1002h\033[?1006h";
@@ -809,7 +746,6 @@ void init_input(void)
         g_io_add_watch(chan, G_IO_IN, (GIOFunc)on_tb_input, NULL);
 }
 
-void shutdown_input(void)
-{
+void shutdown_input(void) {
         tb_shutdown();
 }
