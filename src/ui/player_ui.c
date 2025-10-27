@@ -2297,9 +2297,9 @@ void free_main_directory_tree(void)
         char *filepath = get_library_file_path();
 
         if (state->uiSettings.cacheLibrary)
-                free_and_write_tree(library, filepath);
-        else
-                free_tree(library);
+                write_tree(library, filepath);
+
+        free_tree(library);
 
         free(filepath);
 }
