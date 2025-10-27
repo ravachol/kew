@@ -892,7 +892,7 @@ void calc_and_print_last_row_and_error_row(void)
                 print_footer(term_h - 1, indent);
 #else
         print_error_row(term_h - 1, indent, &(state->uiSettings));
-        print_footer(term_h, indent);
+        print_footer(term_h, indent + 1);
 #endif
 }
 
