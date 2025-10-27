@@ -87,7 +87,8 @@ const char VERSION[] = "3.7.0";
 
 AppState *state_ptr = NULL;
 
-void update_player(void) {
+void update_player(void)
+{
         AppState *state = get_app_state();
         UIState *uis = &(state->uiState);
         struct winsize ws;
@@ -105,7 +106,8 @@ void update_player(void) {
         }
 }
 
-void prepare_next_song(void) {
+void prepare_next_song(void)
+{
         AppState *state = get_app_state();
 
         reset_clock();
@@ -132,7 +134,8 @@ void prepare_next_song(void) {
         }
 }
 
-int prepare_and_play_song(Node *song) {
+int prepare_and_play_song(Node *song)
+{
         if (!song)
                 return -1;
 
@@ -162,7 +165,8 @@ int prepare_and_play_song(Node *song) {
         return res;
 }
 
-void check_and_load_next_song(void) {
+void check_and_load_next_song(void)
+{
         AppState *state = get_app_state();
         PlaybackState *ps = get_playback_state();
 
@@ -201,7 +205,8 @@ void check_and_load_next_song(void) {
         }
 }
 
-void load_waiting_music(void) {
+void load_waiting_music(void)
+{
         PlayList *playlist = get_playlist();
         AudioData *audio_data = get_audio_data();
         PlaybackState *ps = get_playback_state();
@@ -225,7 +230,8 @@ void load_waiting_music(void) {
         }
 }
 
-gboolean mainloop_callback(gpointer data) {
+gboolean mainloop_callback(gpointer data)
+{
         (void)data;
 
         calc_elapsed_time(get_current_song_duration());
@@ -248,14 +254,16 @@ gboolean mainloop_callback(gpointer data) {
         return TRUE;
 }
 
-static gboolean quit_on_signal(gpointer user_data) {
+static gboolean quit_on_signal(gpointer user_data)
+{
         GMainLoop *loop = (GMainLoop *)user_data;
         g_main_loop_quit(loop);
         quit();
         return G_SOURCE_REMOVE; // Remove the signal source
 }
 
-void create_loop(void) {
+void create_loop(void)
+{
         update_last_input_time();
 
         GMainLoop *main_loop = g_main_loop_new(NULL, FALSE);
@@ -267,7 +275,8 @@ void create_loop(void) {
         g_main_loop_unref(main_loop);
 }
 
-void run(bool start_playing) {
+void run(bool start_playing)
+{
         AppState *state = get_app_state();
         PlayList *playlist = get_playlist();
         PlayList *unshuffled_playlist = get_unshuffled_playlist();
@@ -315,7 +324,8 @@ void run(bool start_playing) {
         fflush(stdout);
 }
 
-void kew_init(void) {
+void kew_init(void)
+{
         AppState *state = get_app_state();
 
         disable_terminal_line_input();
@@ -373,7 +383,8 @@ void kew_init(void) {
 #endif
 }
 
-void init_default_state(void) {
+void init_default_state(void)
+{
         kew_init();
 
         AppState *state = get_app_state();
@@ -396,7 +407,8 @@ void init_default_state(void) {
         run(false);
 }
 
-void kew_shutdown() {
+void kew_shutdown()
+{
         AppState *state = get_app_state();
         PlaybackState *ps = get_playback_state();
         FileSystemEntry *library = get_library();
@@ -488,7 +500,8 @@ void kew_shutdown() {
         fflush(stdout);
 }
 
-void init_state(void) {
+void init_state(void)
+{
         AppState *state = get_app_state();
 
         state->uiSettings.VERSION = VERSION;
@@ -580,7 +593,8 @@ void init_state(void) {
         state_ptr = state;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
         AppState *state = get_app_state();
 
         init_state();
