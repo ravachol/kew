@@ -112,7 +112,7 @@ void enable_mouse(UISettings *ui)
                 enable_terminal_mouse_buttons();
 }
 
-void transfer_settings_to_u_i(void)
+void transfer_settings_to_ui(void)
 {
         AppState *state = get_app_state();
         AppSettings *settings = get_app_settings();
@@ -565,7 +565,7 @@ PixelData decrease_luminosity_pct(PixelData base, float pct)
         c.r = (r < MIN_CHANNEL) ? MIN_CHANNEL : r;
         c.g = (g < MIN_CHANNEL) ? MIN_CHANNEL : g;
         c.b = (b < MIN_CHANNEL) ? MIN_CHANNEL : b;
-        
+
         return c;
 }
 
