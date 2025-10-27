@@ -219,7 +219,8 @@ static const KeyMap key_map[] = {
     {NULL, 0} // Sentinel
 };
 
-const char *get_key_name(int key) {
+const char *get_key_name(int key)
+{
         for (int i = 0; key_map[i].name != NULL; i++) {
                 if (key_map[i].code == key)
                         return key_map[i].name;
@@ -236,7 +237,8 @@ const char *get_key_name(int key) {
         return "?";
 }
 
-const char *get_modifier_string(uint8_t mods) {
+const char *get_modifier_string(uint8_t mods)
+{
         static char buf[64];
         buf[0] = '\0';
 
@@ -260,7 +262,8 @@ const char *get_modifier_string(uint8_t mods) {
         return buf;
 }
 
-static bool already_added(const char *buf, const char *token) {
+static bool already_added(const char *buf, const char *token)
+{
         char temp[256];
         strncpy(temp, buf, sizeof(temp) - 1);
         temp[sizeof(temp) - 1] = '\0';
@@ -274,7 +277,8 @@ static bool already_added(const char *buf, const char *token) {
         return false;
 }
 
-const char *get_binding_string(enum EventType event, bool find_one) {
+const char *get_binding_string(enum EventType event, bool find_one)
+{
         static char buf[256];
         buf[0] = '\0';
 
@@ -326,7 +330,8 @@ const char *get_binding_string(enum EventType event, bool find_one) {
         return buf;
 }
 
-static uint16_t key_name_to_code(const char *name) {
+static uint16_t key_name_to_code(const char *name)
+{
         if (!name || !*name)
                 return 0;
 
@@ -342,7 +347,8 @@ static uint16_t key_name_to_code(const char *name) {
         return 0;
 }
 
-static const char *key_code_to_name(uint16_t code) {
+static const char *key_code_to_name(uint16_t code)
+{
         for (int i = 0; key_map[i].name != NULL; i++) {
                 if (key_map[i].code == code)
                         return key_map[i].name;
@@ -359,11 +365,13 @@ static const char *key_code_to_name(uint16_t code) {
         return "Unknown";
 }
 
-TBKeyBinding *get_key_bindings() {
+TBKeyBinding *get_key_bindings()
+{
         return key_bindings;
 }
 
-AppSettings init_settings(void) {
+AppSettings init_settings(void)
+{
         AppState *state = get_app_state();
         UserData *user_data = audio_data.pUserData;
 
@@ -380,7 +388,8 @@ AppSettings init_settings(void) {
         return settings;
 }
 
-void free_key_value_pairs(KeyValuePair *pairs, int count) {
+void free_key_value_pairs(KeyValuePair *pairs, int count)
+{
         if (pairs == NULL || count <= 0) {
                 return;
         }
@@ -393,7 +402,8 @@ void free_key_value_pairs(KeyValuePair *pairs, int count) {
         free(pairs);
 }
 
-static int stricmp(const char *a, const char *b) {
+static int stricmp(const char *a, const char *b)
+{
         while (*a && *b) {
                 int diff = tolower(*a) - tolower(*b);
                 if (diff != 0)
@@ -457,7 +467,8 @@ static const EventMap event_map[] = {
     {NULL, EVENT_NONE} // Sentinel
 };
 
-static enum EventType parse_to_event(const char *name) {
+static enum EventType parse_to_event(const char *name)
+{
         if (!name)
                 return EVENT_NONE;
 
@@ -468,7 +479,8 @@ static enum EventType parse_to_event(const char *name) {
         return EVENT_NONE;
 }
 
-static const char *event_to_string(enum EventType ev) {
+static const char *event_to_string(enum EventType ev)
+{
         for (int i = 0; event_map[i].name != NULL; i++) {
                 if (event_map[i].event == ev)
                         return event_map[i].name;
@@ -478,7 +490,8 @@ static const char *event_to_string(enum EventType ev) {
 
 TBKeyBinding parse_binding(const char *binding_str,
                            const char *event_str,
-                           const char *args_str) {
+                           const char *args_str)
+{
         TBKeyBinding kb = {0};
         kb.eventType = parse_to_event(event_str);
         kb.args[0] = '\0';
@@ -560,7 +573,8 @@ TBKeyBinding parse_binding(const char *binding_str,
         return kb;
 }
 
-void set_default_config(AppSettings *settings) {
+void set_default_config(AppSettings *settings)
+{
         memset(settings, 0, sizeof(AppSettings));
         c_strcpy(settings->coverEnabled, "1", sizeof(settings->coverEnabled));
         c_strcpy(settings->allowNotifications, "1",
@@ -628,7 +642,8 @@ void set_default_config(AppSettings *settings) {
         memcpy(settings->ansiTheme, "default", 8);
 }
 
-bool is_printable_ascii(const char *value) {
+bool is_printable_ascii(const char *value)
+{
         if (value == NULL || value[0] == '\0' || value[1] != '\0')
                 return false; // must be exactly one character
 
@@ -636,7 +651,8 @@ bool is_printable_ascii(const char *value) {
         return (c >= 32 && c <= 126); // printable ASCII range
 }
 
-uint32_t utf8_to_codepoint(const char *s) {
+uint32_t utf8_to_codepoint(const char *s)
+{
         const unsigned char *u = (const unsigned char *)s;
         if (u[0] < 0x80)
                 return u[0];
@@ -650,7 +666,8 @@ uint32_t utf8_to_codepoint(const char *s) {
                 return 0; // invalid
 }
 
-void remove_printable_key_binding(char *value) {
+void remove_printable_key_binding(char *value)
+{
         for (size_t i = 0; i < keybinding_count; i++) {
                 if (key_bindings[i].ch == utf8_to_codepoint(value) && key_bindings[i].mods == 0) {
                         key_bindings[i].ch = 0;
@@ -660,7 +677,8 @@ void remove_printable_key_binding(char *value) {
         }
 }
 
-void add_printable_key_binding(enum EventType event, char *value) {
+void add_printable_key_binding(enum EventType event, char *value)
+{
         if (!is_printable_ascii(value))
                 return;
 
@@ -674,7 +692,8 @@ void add_printable_key_binding(enum EventType event, char *value) {
         key_bindings[keybinding_count++] = kb;
 }
 
-bool replace_key_binding(TBKeyBinding binding) {
+bool replace_key_binding(TBKeyBinding binding)
+{
         for (size_t i = 0; i < keybinding_count; i++) {
                 if (key_bindings[i].key == binding.key &&
                     key_bindings[i].ch == binding.ch &&
@@ -689,17 +708,20 @@ bool replace_key_binding(TBKeyBinding binding) {
         return false;
 }
 
-void add_key_binding(TBKeyBinding binding) {
+void add_key_binding(TBKeyBinding binding)
+{
         if (!replace_key_binding(binding))
                 key_bindings[keybinding_count++] = binding;
 }
 
-static void trim_start(char **s) {
+static void trim_start(char **s)
+{
         while (**s && isspace((unsigned char)**s))
                 (*s)++;
 }
 
-static char *parse_field(char **s) {
+static char *parse_field(char **s)
+{
         trim_start(s);
         if (!**s)
                 return NULL;
@@ -745,7 +767,8 @@ static char *parse_field(char **s) {
         return strdup(buffer); // return a copy
 }
 
-void construct_app_settings(AppSettings *settings, KeyValuePair *pairs, int count) {
+void construct_app_settings(AppSettings *settings, KeyValuePair *pairs, int count)
+{
         if (pairs == NULL) {
                 return;
         }
@@ -1155,7 +1178,8 @@ void construct_app_settings(AppSettings *settings, KeyValuePair *pairs, int coun
 }
 
 KeyValuePair *read_key_value_pairs(const char *file_path, int *count,
-                                   time_t *last_time_app_ran) {
+                                   time_t *last_time_app_ran)
+{
         FILE *file = fopen(file_path, "r");
         if (file == NULL) {
                 return NULL;
@@ -1207,7 +1231,8 @@ KeyValuePair *read_key_value_pairs(const char *file_path, int *count,
         return pairs;
 }
 
-const char *get_default_music_folder(void) {
+const char *get_default_music_folder(void)
+{
         const char *home = get_home_path();
         if (home != NULL) {
                 static char music_path[MAXPATHLEN];
@@ -1218,7 +1243,8 @@ const char *get_default_music_folder(void) {
         }
 }
 
-int get_music_library_path(char *path) {
+int get_music_library_path(char *path)
+{
         char expanded_path[MAXPATHLEN];
 
         if (path[0] != '\0' && path[0] != '\r') {
@@ -1231,7 +1257,8 @@ int get_music_library_path(char *path) {
 }
 
 void map_settings_to_keys(AppSettings *settings, UISettings *ui,
-                          EventMapping *mappings) {
+                          EventMapping *mappings)
+{
         mappings[0] = (EventMapping){settings->scrollUpAlt, EVENT_SCROLLUP};
         mappings[1] = (EventMapping){settings->scrollDownAlt, EVENT_SCROLLDOWN};
         mappings[2] = (EventMapping){settings->nextTrackAlt, EVENT_NEXT};
@@ -1298,7 +1325,8 @@ void map_settings_to_keys(AppSettings *settings, UISettings *ui,
         mappings[63] = (EventMapping){settings->showLyricsPage, EVENT_SHOWLYRICSPAGE};
 }
 
-char *get_config_file_path(char *configdir) {
+char *get_config_file_path(char *configdir)
+{
         size_t configdir_length = strnlen(configdir, MAXPATHLEN - 1);
         size_t settings_file_length =
             strnlen(SETTINGS_FILE, sizeof(SETTINGS_FILE) - 1);
@@ -1325,7 +1353,8 @@ char *get_config_file_path(char *configdir) {
         return filepath;
 }
 
-char *get_prefs_file_path(char *prefsdir) {
+char *get_prefs_file_path(char *prefsdir)
+{
         size_t dir_length = strnlen(prefsdir, MAXPATHLEN - 1);
         size_t file_length = strnlen(STATE_FILE, sizeof(STATE_FILE) - 1);
 
@@ -1350,7 +1379,8 @@ char *get_prefs_file_path(char *prefsdir) {
         return filepath;
 }
 
-int mkdir_p(const char *path, mode_t mode) {
+int mkdir_p(const char *path, mode_t mode)
+{
         if (path == NULL)
                 return -1;
 
@@ -1389,7 +1419,8 @@ int mkdir_p(const char *path, mode_t mode) {
         return 0;
 }
 
-void get_prefs(AppSettings *settings, UISettings *ui) {
+void get_prefs(AppSettings *settings, UISettings *ui)
+{
         int pair_count;
         char *prefsdir = get_prefs_path();
 
@@ -1434,7 +1465,8 @@ void get_prefs(AppSettings *settings, UISettings *ui) {
         free(prefsdir);
 }
 
-void get_config(AppSettings *settings, UISettings *ui) {
+void get_config(AppSettings *settings, UISettings *ui)
+{
         int pair_count;
         char *configdir = get_config_path();
 
@@ -1467,7 +1499,8 @@ void get_config(AppSettings *settings, UISettings *ui) {
         free(configdir);
 }
 
-void set_prefs(AppSettings *settings, UISettings *ui) {
+void set_prefs(AppSettings *settings, UISettings *ui)
+{
         // Create the file path
         char *prefsdir = get_prefs_path();
         char *filepath = get_prefs_file_path(prefsdir);
@@ -1555,7 +1588,8 @@ void set_prefs(AppSettings *settings, UISettings *ui) {
         free(filepath);
 }
 
-static const char *key_binding_to_str(const TBKeyBinding kb) {
+static const char *key_binding_to_str(const TBKeyBinding kb)
+{
         static char buf[128];
         buf[0] = '\0';
 
@@ -1597,7 +1631,8 @@ static const char *key_binding_to_str(const TBKeyBinding kb) {
         return final;
 }
 
-void set_config(AppSettings *settings, UISettings *ui) {
+void set_config(AppSettings *settings, UISettings *ui)
+{
         // Create the file path
         char *configdir = get_config_path();
         char *filepath = get_config_file_path(configdir);
@@ -1879,7 +1914,8 @@ void set_config(AppSettings *settings, UISettings *ui) {
         free(configdir);
 }
 
-int update_rc(const char *path, const char *key, const char *value) {
+int update_rc(const char *path, const char *key, const char *value)
+{
         FILE *file = fopen(path, "r");
         if (!file) {
                 perror("fopen");
@@ -1954,7 +1990,8 @@ int update_rc(const char *path, const char *key, const char *value) {
         return 0;
 }
 
-void set_path(const char *path) {
+void set_path(const char *path)
+{
         char *configdir = NULL;
         char *config_file_path = NULL;
 

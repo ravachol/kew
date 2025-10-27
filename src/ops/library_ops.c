@@ -34,7 +34,8 @@ typedef struct
 
 int current_sort = 0;
 
-void sort_library(void) {
+void sort_library(void)
+{
         FileSystemEntry *library = get_library();
 
         if (current_sort == 0) {
@@ -49,7 +50,8 @@ void sort_library(void) {
         trigger_refresh();
 }
 
-bool mark_as_enqueued(FileSystemEntry *root, char *path) {
+bool mark_as_enqueued(FileSystemEntry *root, char *path)
+{
         if (root == NULL)
                 return false;
 
@@ -82,7 +84,8 @@ bool mark_as_enqueued(FileSystemEntry *root, char *path) {
         return false;
 }
 
-void mark_list_as_enqueued(FileSystemEntry *root, PlayList *playlist) {
+void mark_list_as_enqueued(FileSystemEntry *root, PlayList *playlist)
+{
         Node *node = playlist->head;
 
         for (int i = 0; i < playlist->count; i++) {
@@ -100,7 +103,8 @@ void mark_list_as_enqueued(FileSystemEntry *root, PlayList *playlist) {
         root->is_enqueued = false; // Don't mark the absolute root
 }
 
-bool mark_as_dequeued(FileSystemEntry *root, char *path) {
+bool mark_as_dequeued(FileSystemEntry *root, char *path)
+{
         int num_children_enqueued = 0;
 
         if (root == NULL)
@@ -142,7 +146,8 @@ bool mark_as_dequeued(FileSystemEntry *root, char *path) {
         return false;
 }
 
-void ask_if_cache_library() {
+void ask_if_cache_library()
+{
         AppState *state = get_app_state();
         UISettings *ui = &(state->uiSettings);
 
@@ -190,7 +195,8 @@ typedef struct
         AppState *state;
 } UpdateLibraryArgs;
 
-void *update_library_thread(void *arg) {
+void *update_library_thread(void *arg)
+{
         if (arg == NULL)
                 return NULL;
 
@@ -235,7 +241,8 @@ void *update_library_thread(void *arg) {
         return NULL;
 }
 
-void update_library(char *path) {
+void update_library(char *path)
+{
         AppState *state = get_app_state();
         pthread_t thread_id;
 
@@ -253,11 +260,13 @@ void update_library(char *path) {
         }
 }
 
-time_t get_modification_time(struct stat *path_stat) {
+time_t get_modification_time(struct stat *path_stat)
+{
         return path_stat->st_mtime;
 }
 
-void *update_if_top_level_folders_mtimes_changed_thread(void *arg) {
+void *update_if_top_level_folders_mtimes_changed_thread(void *arg)
+{
         UpdateLibraryThreadArgs *args = (UpdateLibraryThreadArgs *)
             arg; // Cast `arg` back to the structure pointer
         char *path = args->path;
@@ -320,7 +329,8 @@ void *update_if_top_level_folders_mtimes_changed_thread(void *arg) {
 }
 
 // This only checks the library mtime and toplevel subfolders mtimes
-void update_library_if_changed_detected(void) {
+void update_library_if_changed_detected(void)
+{
         AppState *state = get_app_state();
         pthread_t tid;
 
@@ -348,7 +358,8 @@ void update_library_if_changed_detected(void) {
         }
 }
 
-void create_library() {
+void create_library()
+{
         AppSettings *settings = get_app_settings();
         AppState *state = get_app_state();
         FileSystemEntry *library = get_library();
@@ -400,7 +411,8 @@ void create_library() {
         set_library(library);
 }
 
-void enqueue_song(FileSystemEntry *child) {
+void enqueue_song(FileSystemEntry *child)
+{
         int id = increment_node_id();
 
         PlayList *unshuffled_playlist = get_unshuffled_playlist();
@@ -420,7 +432,8 @@ void enqueue_song(FileSystemEntry *child) {
         child->parent->is_enqueued = 1;
 }
 
-void dequeue_song(FileSystemEntry *child) {
+void dequeue_song(FileSystemEntry *child)
+{
         PlayList *unshuffled_playlist = get_unshuffled_playlist();
         PlayList *playlist = get_playlist();
 
@@ -472,7 +485,8 @@ void dequeue_song(FileSystemEntry *child) {
         }
 }
 
-void dequeue_children(FileSystemEntry *parent) {
+void dequeue_children(FileSystemEntry *parent)
+{
         FileSystemEntry *child = parent->children;
 
         while (child != NULL) {
@@ -487,7 +501,8 @@ void dequeue_children(FileSystemEntry *parent) {
 }
 
 int enqueue_children(FileSystemEntry *child,
-                     FileSystemEntry **first_enqueued_entry) {
+                     FileSystemEntry **first_enqueued_entry)
+{
         int has_enqueued = 0;
 
         while (child != NULL) {
@@ -512,7 +527,8 @@ int enqueue_children(FileSystemEntry *child,
         return has_enqueued;
 }
 
-bool has_song_children(FileSystemEntry *entry) {
+bool has_song_children(FileSystemEntry *entry)
+{
         if (!entry)
                 return false;
 
@@ -533,7 +549,8 @@ bool has_song_children(FileSystemEntry *entry) {
         return true;
 }
 
-bool has_dequeued_children(FileSystemEntry *parent) {
+bool has_dequeued_children(FileSystemEntry *parent)
+{
         FileSystemEntry *child = parent->children;
 
         bool isDequeued = false;
@@ -550,7 +567,8 @@ bool has_dequeued_children(FileSystemEntry *parent) {
         return isDequeued;
 }
 
-bool is_contained_within(FileSystemEntry *entry, FileSystemEntry *containing_entry) {
+bool is_contained_within(FileSystemEntry *entry, FileSystemEntry *containing_entry)
+{
         if (entry == NULL || containing_entry == NULL)
                 return false;
 

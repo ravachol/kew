@@ -55,7 +55,8 @@ static gchar *tmux_allow_passthrough_original;
 static gboolean tmux_allow_passthrough_is_changed;
 
 static gboolean
-apply_passthrough_workarounds_tmux(void) {
+apply_passthrough_workarounds_tmux(void)
+{
         gboolean result = FALSE;
         gchar *standard_output = NULL;
         gchar *standard_error = NULL;
@@ -120,7 +121,8 @@ out:
 }
 
 gboolean
-retirePassthroughWorkarounds_tmux(void) {
+retirePassthroughWorkarounds_tmux(void)
+{
         gboolean result = FALSE;
         gchar *standard_output = NULL;
         gchar *standard_error = NULL;
@@ -171,7 +173,8 @@ retirePassthroughWorkarounds_tmux(void) {
 }
 
 static void detect_terminal(ChafaTermInfo **term_info_out, ChafaCanvasMode *mode_out, ChafaPixelMode *pixel_mode_out,
-                            ChafaPassthrough *passthrough_out, ChafaSymbolMap **symbol_map_out) {
+                            ChafaPassthrough *passthrough_out, ChafaSymbolMap **symbol_map_out)
+{
         ChafaCanvasMode mode;
         ChafaPixelMode pixel_mode;
         ChafaPassthrough passthrough;
@@ -217,7 +220,8 @@ static void detect_terminal(ChafaTermInfo **term_info_out, ChafaCanvasMode *mode
 
 #else
 
-static void detect_terminal(ChafaTermInfo **term_info_out, ChafaCanvasMode *mode_out, ChafaPixelMode *pixel_mode_out) {
+static void detect_terminal(ChafaTermInfo **term_info_out, ChafaCanvasMode *mode_out, ChafaPixelMode *pixel_mode_out)
+{
         ChafaCanvasMode mode;
         ChafaPixelMode pixel_mode;
         ChafaTermInfo *term_info;
@@ -265,7 +269,8 @@ static void detect_terminal(ChafaTermInfo **term_info_out, ChafaCanvasMode *mode
 #endif
 
 static void
-get_tty_size(TermSize *term_size_out) {
+get_tty_size(TermSize *term_size_out)
+{
         TermSize term_size;
 
         term_size.width_cells = term_size.height_cells = term_size.width_pixels = term_size.height_pixels = -1;
@@ -315,7 +320,8 @@ get_tty_size(TermSize *term_size_out) {
 }
 
 static void
-tty_init(void) {
+tty_init(void)
+{
 #ifdef G_OS_WIN32
         {
                 HANDLE chd = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -343,7 +349,8 @@ static GString *
 convert_image(const void *pixels, gint pix_width, gint pix_height,
               gint pix_rowstride, ChafaPixelType pixel_type,
               gint width_cells, gint height_cells,
-              gint cell_width, gint cell_height) {
+              gint cell_width, gint cell_height)
+{
         ChafaTermInfo *term_info;
         ChafaCanvasMode mode;
         ChafaPixelMode pixel_mode;
@@ -462,7 +469,8 @@ convert_image(const void *pixels, gint pix_width, gint pix_height,
 }
 
 // The function to load and return image data
-unsigned char *get_bitmap(const char *image_path, int *width, int *height) {
+unsigned char *get_bitmap(const char *image_path, int *width, int *height)
+{
         if (image_path == NULL)
                 return NULL;
 
@@ -477,7 +485,8 @@ unsigned char *get_bitmap(const char *image_path, int *width, int *height) {
         return image;
 }
 
-float calc_aspect_ratio(void) {
+float calc_aspect_ratio(void)
+{
         TermSize term_size;
         gint cell_width = -1, cell_height = -1;
 
@@ -498,7 +507,8 @@ float calc_aspect_ratio(void) {
         return (float)cell_height / (float)cell_width;
 }
 
-float get_aspect_ratio() {
+float get_aspect_ratio()
+{
         TermSize term_size;
         gint cell_width = -1, cell_height = -1;
 
@@ -521,7 +531,8 @@ float get_aspect_ratio() {
         return (float)cell_height / (float)cell_width;
 }
 
-void print_square_bitmap(int row, int col, unsigned char *pixels, int width, int height, int base_height) {
+void print_square_bitmap(int row, int col, unsigned char *pixels, int width, int height, int base_height)
+{
         if (pixels == NULL) {
                 set_error_message("Invalid pixel data.\n");
                 return;
@@ -607,7 +618,8 @@ void print_square_bitmap(int row, int col, unsigned char *pixels, int width, int
         g_string_free(printable, TRUE);
 }
 
-void print_square_bitmap_centered(unsigned char *pixels, int width, int height, int base_height) {
+void print_square_bitmap_centered(unsigned char *pixels, int width, int height, int base_height)
+{
         if (pixels == NULL) {
                 set_error_message("Error: Invalid pixel data.\n");
                 return;
@@ -694,11 +706,13 @@ void print_square_bitmap_centered(unsigned char *pixels, int width, int height, 
         g_string_free(printable, TRUE);
 }
 
-unsigned char luminance_from_r_g_b(unsigned char r, unsigned char g, unsigned char b) {
+unsigned char luminance_from_r_g_b(unsigned char r, unsigned char g, unsigned char b)
+{
         return (unsigned char)(0.2126 * r + 0.7152 * g + 0.0722 * b);
 }
 
-void check_if_bright_pixel(unsigned char r, unsigned char g, unsigned char b, bool *found) {
+void check_if_bright_pixel(unsigned char r, unsigned char g, unsigned char b, bool *found)
+{
         // Calc luminace and use to find Ascii char.
         unsigned char ch = luminance_from_r_g_b(r, g, b);
 
@@ -707,7 +721,8 @@ void check_if_bright_pixel(unsigned char r, unsigned char g, unsigned char b, bo
         }
 }
 
-int get_cover_color(unsigned char *pixels, int width, int height, unsigned char *r, unsigned char *g, unsigned char *b) {
+int get_cover_color(unsigned char *pixels, int width, int height, unsigned char *r, unsigned char *g, unsigned char *b)
+{
         if (pixels == NULL || width <= 0 || height <= 0) {
                 return -1;
         }
@@ -736,14 +751,16 @@ int get_cover_color(unsigned char *pixels, int width, int height, unsigned char 
         return found ? 0 : -1;
 }
 
-unsigned char calc_ascii_char(PixelData *p) {
+unsigned char calc_ascii_char(PixelData *p)
+{
         unsigned char ch = luminance_from_r_g_b(p->r, p->g, p->b);
         int rescaled = ch * brightness_levels / 256;
 
         return scale[brightness_levels - rescaled];
 }
 
-int convert_to_ascii_centered(const char *filepath, unsigned int height) {
+int convert_to_ascii_centered(const char *filepath, unsigned int height)
+{
         /*
         Modified, originally by Danny Burrows:
         https://github.com/danny-burrows/img_to_txt
@@ -836,7 +853,8 @@ int convert_to_ascii_centered(const char *filepath, unsigned int height) {
         return 0;
 }
 
-int convert_to_ascii(int indentation, const char *filepath, unsigned int height) {
+int convert_to_ascii(int indentation, const char *filepath, unsigned int height)
+{
         /*
         Modified, originally by Danny Burrows:
         https://github.com/danny-burrows/img_to_txt
@@ -926,7 +944,8 @@ int convert_to_ascii(int indentation, const char *filepath, unsigned int height)
         return 0;
 }
 
-int print_in_ascii(int indentation, const char *path_to_img_file, int height) {
+int print_in_ascii(int indentation, const char *path_to_img_file, int height)
+{
         printf("\r");
 
         int ret = convert_to_ascii(indentation, path_to_img_file, (unsigned)height);
@@ -935,7 +954,8 @@ int print_in_ascii(int indentation, const char *path_to_img_file, int height) {
         return 0;
 }
 
-int print_in_ascii_centered(const char *path_to_img_file, int height) {
+int print_in_ascii_centered(const char *path_to_img_file, int height)
+{
         printf("\r");
 
         int ret = convert_to_ascii_centered(path_to_img_file, (unsigned)height);

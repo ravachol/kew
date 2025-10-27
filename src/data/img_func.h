@@ -10,7 +10,6 @@
 #ifndef IMG_FUNC_H
 #define IMG_FUNC_H
 
-#include <chafa-canvas-config.h>
 #include <chafa.h>
 
 int print_in_ascii_centered(const char *path_to_img_file, int height);

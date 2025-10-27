@@ -80,7 +80,8 @@ int webm_createAudioDevice(UserData *user_data, ma_device *device, ma_context *c
 #ifdef USE_FAAD
 int m4a_createAudioDevice(UserData *user_data, ma_device *device, ma_context *context);
 #endif
-bool valid_file_path(char *file_path) {
+bool valid_file_path(char *file_path)
+{
         if (file_path == NULL || file_path[0] == '\0' || file_path[0] == '\r')
                 return false;
 
@@ -90,7 +91,8 @@ bool valid_file_path(char *file_path) {
         return true;
 }
 
-long long get_file_size(const char *filename) {
+long long get_file_size(const char *filename)
+{
         struct stat st;
         if (stat(filename, &st) == 0) {
                 return (long long)st.st_size;
@@ -102,7 +104,8 @@ long long get_file_size(const char *filename) {
 ma_result call_read_PCM_frames(ma_data_source *p_data_source, ma_format format,
                                void *p_frames_out, ma_uint64 frames_read,
                                ma_uint32 channels, ma_uint64 remaining_frames,
-                               ma_uint64 *p_frames_to_read) {
+                               ma_uint64 *p_frames_to_read)
+{
         ma_result result;
 
         switch (format) {
@@ -149,7 +152,8 @@ ma_result call_read_PCM_frames(ma_data_source *p_data_source, ma_format format,
         return result;
 }
 
-int calc_avg_bit_rate(double duration, const char *file_path) {
+int calc_avg_bit_rate(double duration, const char *file_path)
+{
         long long file_size = get_file_size(file_path); // in bytes
         int avg_bit_rate = 0;
 
@@ -165,7 +169,8 @@ int handle_codec(
     CodecOps ops,
     AudioData *audio_data,
     AppState *state,
-    ma_context *context) {
+    ma_context *context)
+{
         ma_uint32 sample_rate, channels, nSampleRate, nChannels;
         ma_format format, nFormat;
         ma_channel channel_map[MA_MAX_CHANNELS], nChannelMap[MA_MAX_CHANNELS];
@@ -262,7 +267,8 @@ static void get_builtin_file_info_wrapper(
     ma_format *p_format,
     ma_uint32 *p_channels,
     ma_uint32 *p_sample_rate,
-    ma_channel *p_channel_map) {
+    ma_channel *p_channel_map)
+{
         (void)p_channel_map; // not used for builtin decoders
         get_file_info(file_path, p_sample_rate, p_channels, p_format);
 }
@@ -286,7 +292,8 @@ codec_ops_list[] = {
 #endif
 };
 
-static const CodecOps *find_codec_ops(const char *file_path) {
+static const CodecOps *find_codec_ops(const char *file_path)
+{
         if (has_builtin_decoder(file_path))
                 return &codec_ops_list[0].ops;
 
@@ -297,7 +304,8 @@ static const CodecOps *find_codec_ops(const char *file_path) {
         return NULL;
 }
 
-static void handle_builtin_avg_bit_rate(AudioData *audio_data, SongData *song_data, const char *file_path) {
+static void handle_builtin_avg_bit_rate(AudioData *audio_data, SongData *song_data, const char *file_path)
+{
         if (path_ends_with(file_path, ".mp3") && song_data) {
                 int avg_bit_rate = calc_avg_bit_rate(song_data->duration, file_path);
                 if (avg_bit_rate > 320)
@@ -308,7 +316,8 @@ static void handle_builtin_avg_bit_rate(AudioData *audio_data, SongData *song_da
         }
 }
 
-static int prepare_next_decoder_for_codec(const char *file_path, const CodecOps *ops) {
+static int prepare_next_decoder_for_codec(const char *file_path, const CodecOps *ops)
+{
         if (!ops)
                 return -1;
 
@@ -332,7 +341,8 @@ static int prepare_next_decoder_for_codec(const char *file_path, const CodecOps 
         }
 }
 
-static ma_data_source *get_first_decoder_for_codec(const CodecOps *ops) {
+static ma_data_source *get_first_decoder_for_codec(const CodecOps *ops)
+{
         if (!ops)
                 return NULL;
 
@@ -356,7 +366,8 @@ static ma_data_source *get_first_decoder_for_codec(const CodecOps *ops) {
         }
 }
 
-static int init_audio_data_from_codec_decoder(const CodecOps *ops, void *decoder, AudioData *audio_data) {
+static int init_audio_data_from_codec_decoder(const CodecOps *ops, void *decoder, AudioData *audio_data)
+{
         if (!ops || !decoder || !audio_data)
                 return -1;
 
@@ -425,7 +436,8 @@ static int init_audio_data_from_codec_decoder(const CodecOps *ops, void *decoder
         return 0;
 }
 
-int init_first_datasource(UserData *user_data) {
+int init_first_datasource(UserData *user_data)
+{
         if (!user_data)
                 return MA_ERROR;
 
@@ -464,7 +476,8 @@ int init_first_datasource(UserData *user_data) {
         return MA_SUCCESS;
 }
 int create_device(UserData *user_data, ma_device *device, ma_context *context,
-                  ma_data_source_vtable *vtable, ma_device_data_proc callback) {
+                  ma_data_source_vtable *vtable, ma_device_data_proc callback)
+{
         PlaybackState *ps = get_playback_state();
         ma_result result;
 
@@ -489,18 +502,21 @@ int create_device(UserData *user_data, ma_device *device, ma_context *context,
 
 int builtin_createAudioDevice(UserData *user_data, ma_device *device,
                               ma_context *context,
-                              ma_data_source_vtable *vtable) {
+                              ma_data_source_vtable *vtable)
+{
         return create_device(user_data, device, context, vtable, builtin_on_audio_frames);
 }
 
 int builtin_createAudioDeviceWrapper(UserData *user_data,
                                      ma_device *device,
-                                     ma_context *context) {
+                                     ma_context *context)
+{
         return builtin_createAudioDevice(user_data, device, context, &builtin_file_data_source_vtable);
 }
 
 int vorbis_createAudioDevice(UserData *user_data, ma_device *device,
-                             ma_context *context) {
+                             ma_context *context)
+{
         PlaybackState *ps = get_playback_state();
         ma_result result = init_first_datasource(user_data);
 
@@ -523,7 +539,8 @@ int vorbis_createAudioDevice(UserData *user_data, ma_device *device,
 
 #ifdef USE_FAAD
 int m4a_createAudioDevice(UserData *user_data, ma_device *device,
-                          ma_context *context) {
+                          ma_context *context)
+{
         PlaybackState *ps = get_playback_state();
         ma_result result = init_first_datasource(user_data);
 
@@ -547,7 +564,8 @@ int m4a_createAudioDevice(UserData *user_data, ma_device *device,
 #endif
 
 int opus_createAudioDevice(UserData *user_data, ma_device *device,
-                           ma_context *context) {
+                           ma_context *context)
+{
         PlaybackState *ps = get_playback_state();
         ma_result result;
 
@@ -571,7 +589,8 @@ int opus_createAudioDevice(UserData *user_data, ma_device *device,
 }
 
 int webm_createAudioDevice(UserData *user_data, ma_device *device,
-                           ma_context *context) {
+                           ma_context *context)
+{
         PlaybackState *ps = get_playback_state();
         ma_result result;
 
@@ -592,7 +611,8 @@ int webm_createAudioDevice(UserData *user_data, ma_device *device,
         return 0;
 }
 
-int switch_audio_implementation(void) {
+int switch_audio_implementation(void)
+{
         AppState *state = get_app_state();
 
         if (audio_data.end_of_list_reached) {
@@ -637,16 +657,19 @@ int switch_audio_implementation(void) {
         return 0;
 }
 
-bool is_context_initialized(void) {
+bool is_context_initialized(void)
+{
         return context_initialized;
 }
 
-void cleanup_audio_context(void) {
+void cleanup_audio_context(void)
+{
         ma_context_uninit(&context);
         context_initialized = false;
 }
 
-int create_audio_device(void) {
+int create_audio_device(void)
+{
         PlaybackState *ps = get_playback_state();
 
         if (context_initialized) {

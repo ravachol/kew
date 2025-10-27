@@ -31,7 +31,8 @@ static int start_iter = 0;
 static int previous_chosen_song = 0;
 static bool is_same_name_as_last_time = false;
 
-Node *determine_start_node(Node *head, int *found_at, int list_size) {
+Node *determine_start_node(Node *head, int *found_at, int list_size)
+{
         if (found_at == NULL) {
                 return head;
         }
@@ -55,7 +56,8 @@ Node *determine_start_node(Node *head, int *found_at, int list_size) {
         return found_node ? found_node : head;
 }
 
-void prepare_playlist_string(Node *node, char *buffer, int buffer_size) {
+void prepare_playlist_string(Node *node, char *buffer, int buffer_size)
+{
         if (node == NULL || buffer == NULL || node->song.file_path == NULL ||
             buffer_size <= 0) {
                 if (buffer && buffer_size > 0)
@@ -87,7 +89,8 @@ void prepare_playlist_string(Node *node, char *buffer, int buffer_size) {
 
 int display_playlist_items(Node *start_node, int start_iter, int max_list_size,
                            int term_width, int indent, int chosen_song,
-                           int *chosen_node_id, UISettings *ui) {
+                           int *chosen_node_id, UISettings *ui)
+{
         int num_printed_rows = 0;
         Node *node = start_node;
 
@@ -222,7 +225,8 @@ int display_playlist_items(Node *start_node, int start_iter, int max_list_size,
         return num_printed_rows;
 }
 
-void ensure_chosen_song_within_limits(int *chosen_song, PlayList *list) {
+void ensure_chosen_song_within_limits(int *chosen_song, PlayList *list)
+{
         if (list == NULL) {
                 *chosen_song = 0;
         } else if (*chosen_song >= list->count) {
@@ -235,7 +239,8 @@ void ensure_chosen_song_within_limits(int *chosen_song, PlayList *list) {
 }
 
 int determine_playlist_start(int previous_start_iter, int found_at, int max_list_size,
-                             int *chosen_song, bool reset, bool end_of_list_reached) {
+                             int *chosen_song, bool reset, bool end_of_list_reached)
+{
         int start_iter = 0;
 
         start_iter = (found_at > -1 && (found_at > start_iter + max_list_size))
@@ -264,7 +269,8 @@ int determine_playlist_start(int previous_start_iter, int found_at, int max_list
         return start_iter;
 }
 
-void move_start_node_into_position(int found_at, Node **start_node) {
+void move_start_node_into_position(int found_at, Node **start_node)
+{
         // Go up to adjust the start_node
         for (int i = found_at; i > start_iter; i--) {
                 if (i > 0 && (*start_node)->prev != NULL)
@@ -279,7 +285,8 @@ void move_start_node_into_position(int found_at, Node **start_node) {
 }
 
 int display_playlist(PlayList *list, int max_list_size, int indent,
-                     int *chosen_song, int *chosen_node_id, bool reset) {
+                     int *chosen_song, int *chosen_node_id, bool reset)
+{
         AppState *state = get_app_state();
         int term_width, termHeight;
         get_term_size(&term_width, &termHeight);
@@ -311,7 +318,8 @@ int display_playlist(PlayList *list, int max_list_size, int indent,
         return printed_rows;
 }
 
-void set_end_of_list_reached(void) {
+void set_end_of_list_reached(void)
+{
         AppState *state = get_app_state();
         PlaybackState *ps = get_playback_state();
 

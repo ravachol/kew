@@ -18,7 +18,8 @@
 #define MAXPATHLEN 4096
 #endif
 
-Cache *create_cache() {
+Cache *create_cache()
+{
         Cache *cache = malloc(sizeof(Cache));
         if (cache == NULL) {
                 fprintf(stderr, "create_cache: malloc\n");
@@ -28,7 +29,8 @@ Cache *create_cache() {
         return cache;
 }
 
-void add_to_cache(Cache *cache, const char *file_path) {
+void add_to_cache(Cache *cache, const char *file_path)
+{
         if (cache == NULL) {
                 fprintf(stderr, "Cache is null.\n");
                 return;
@@ -61,7 +63,8 @@ void add_to_cache(Cache *cache, const char *file_path) {
         cache->head = new_node;
 }
 
-void delete_cache(Cache *cache) {
+void delete_cache(Cache *cache)
+{
         if (cache == NULL) {
                 fprintf(stderr, "delete_cache: Cache is null.\n");
                 return;
@@ -79,7 +82,8 @@ void delete_cache(Cache *cache) {
         free(cache);
 }
 
-bool exists_in_cache(Cache *cache, char *file_path) {
+bool exists_in_cache(Cache *cache, char *file_path)
+{
         if (file_path == NULL)
                 return false;
 

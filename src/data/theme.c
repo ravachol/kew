@@ -31,7 +31,8 @@ typedef struct
         ColorValue *field;
 } ThemeMapping;
 
-int hex_to_pixel(const char *hex, PixelData *result) {
+int hex_to_pixel(const char *hex, PixelData *result)
+{
         if (!hex || strlen(hex) != 7 || hex[0] != '#')
                 return -1;
 
@@ -54,7 +55,8 @@ int hex_to_pixel(const char *hex, PixelData *result) {
         return 0;
 }
 
-void trim_whitespace(char *str) {
+void trim_whitespace(char *str)
+{
         while (isspace((unsigned char)*str))
                 str++;
 
@@ -65,7 +67,8 @@ void trim_whitespace(char *str) {
         memmove(str, str, strlen(str) + 1);
 }
 
-void remove_comment(char *str) {
+void remove_comment(char *str)
+{
         char *p = str;
         while (*p) {
                 if (*p == '#') {
@@ -81,7 +84,8 @@ void remove_comment(char *str) {
 }
 
 // Parse hex color safely (e.g. #aabbcc)
-int parse_hex_color(const char *hex, PixelData *out) {
+int parse_hex_color(const char *hex, PixelData *out)
+{
         if (!hex || strlen(hex) != 7 || hex[0] != '#')
                 return 0;
 
@@ -95,7 +99,8 @@ int parse_hex_color(const char *hex, PixelData *out) {
         return 1;
 }
 
-int parse_color_value(const char *value, ColorValue *out) {
+int parse_color_value(const char *value, ColorValue *out)
+{
         if (!value || !out)
                 return 0;
 
@@ -129,7 +134,8 @@ int parse_color_value(const char *value, ColorValue *out) {
         return 1;
 }
 
-int load_theme_from_file(const char *themes_dir, const char *filename, Theme *current_theme) {
+int load_theme_from_file(const char *themes_dir, const char *filename, Theme *current_theme)
+{
         memset(current_theme, 0, sizeof(Theme));
 
         if (!themes_dir || !filename) {
@@ -268,7 +274,8 @@ int load_theme_from_file(const char *themes_dir, const char *filename, Theme *cu
 }
 
 // Copies default themes to config dir if they aren't alread there
-bool ensure_default_themes(void) {
+bool ensure_default_themes(void)
+{
         bool copied = false;
 
         char *config_path = get_config_path();

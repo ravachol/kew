@@ -31,7 +31,8 @@
 
 #define MAX_RECURSION_DEPTH 64
 
-const char *get_temp_dir() {
+const char *get_temp_dir()
+{
         const char *tmpdir = getenv("TMPDIR");
         if (tmpdir != NULL) {
                 return tmpdir; // Use TMPDIR if set (common on Android/Termux)
@@ -46,7 +47,8 @@ const char *get_temp_dir() {
         return "/tmp";
 }
 
-void get_directory_from_path(const char *path, char *directory) {
+void get_directory_from_path(const char *path, char *directory)
+{
         if (!path || !directory)
                 return;
 
@@ -79,7 +81,8 @@ void get_directory_from_path(const char *path, char *directory) {
         free(tmp);
 }
 
-int exists_file(const char *fname) {
+int exists_file(const char *fname)
+{
         if (fname == NULL || fname[0] == '\0')
                 return -1;
 
@@ -91,7 +94,8 @@ int exists_file(const char *fname) {
         return -1;
 }
 
-int is_directory(const char *path) {
+int is_directory(const char *path)
+{
         DIR *dir = opendir(path);
         if (dir) {
                 closedir(dir);
@@ -104,7 +108,8 @@ int is_directory(const char *path) {
         }
 }
 
-int directory_exists(const char *path) {
+int directory_exists(const char *path)
+{
         char expanded[MAXPATHLEN];
 
         expand_path(path, expanded);
@@ -120,7 +125,8 @@ int directory_exists(const char *path) {
 
 // Traverse a directory tree and search for a given file or directory
 int walker(const char *start_path, const char *low_case_searching, char *result,
-           const char *allowed_extensions, enum SearchType search_type, bool exact_search, int depth) {
+           const char *allowed_extensions, enum SearchType search_type, bool exact_search, int depth)
+{
         if (depth > MAX_RECURSION_DEPTH) {
                 fprintf(stderr, "Maximum recursion depth exceeded\n");
                 return 1;
@@ -237,7 +243,8 @@ int walker(const char *start_path, const char *low_case_searching, char *result,
         return found ? 0 : 1;
 }
 
-int expand_path(const char *input_path, char *expanded_path) {
+int expand_path(const char *input_path, char *expanded_path)
+{
         if (input_path[0] == '\0' || input_path[0] == '\r')
                 return -1;
 
@@ -294,7 +301,8 @@ int expand_path(const char *input_path, char *expanded_path) {
         return 0; // Path expansion successful
 }
 
-void collapse_path(const char *input, char *output) {
+void collapse_path(const char *input, char *output)
+{
         if (!input || !output)
                 return;
 
@@ -360,7 +368,8 @@ void collapse_path(const char *input, char *output) {
         snprintf(output, MAXPATHLEN, "%s", input);
 }
 
-int create_directory(const char *path) {
+int create_directory(const char *path)
+{
         struct stat st;
 
         // Check if directory already exists
@@ -378,7 +387,8 @@ int create_directory(const char *path) {
         return -1; // Failed to create directory
 }
 
-int delete_file(const char *file_path) {
+int delete_file(const char *file_path)
+{
         if (remove(file_path) == 0) {
                 return 0;
         } else {
@@ -386,7 +396,8 @@ int delete_file(const char *file_path) {
         }
 }
 
-int is_in_temp_dir(const char *path) {
+int is_in_temp_dir(const char *path)
+{
         const char *tmp_dir = getenv("TMPDIR");
         static char tmpdir_buf[PATH_MAX + 2];
 
@@ -405,7 +416,8 @@ int is_in_temp_dir(const char *path) {
         return path_starts_with(path, tmpdir_buf);
 }
 
-void generate_temp_file_path(char *file_path, const char *prefix, const char *suffix) {
+void generate_temp_file_path(char *file_path, const char *prefix, const char *suffix)
+{
         const char *tmp_dir = getenv("TMPDIR");
         if (tmp_dir == NULL || strnlen(tmp_dir, PATH_MAX) >= PATH_MAX) {
                 tmp_dir = "/tmp";

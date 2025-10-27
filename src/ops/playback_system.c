@@ -18,30 +18,36 @@
 
 #include "data/song_loader.h"
 
-void playback_safe_cleanup(void) {
+void playback_safe_cleanup(void)
+{
         AppState *state = get_app_state();
         pthread_mutex_lock(&(state->data_source_mutex));
         cleanup_playback_device();
         pthread_mutex_unlock(&(state->data_source_mutex));
 }
 
-void playback_cleanup(void) {
+void playback_cleanup(void)
+{
         cleanup_playback_device();
 }
 
-void playback_switch_decoder(void) {
+void playback_switch_decoder(void)
+{
         switch_audio_implementation();
 }
 
-int playback_create(void) {
+int playback_create(void)
+{
         return create_audio_device();
 }
 
-void playback_shutdown(void) {
+void playback_shutdown(void)
+{
         sound_shutdown();
 }
 
-void playback_unload_songs(UserData *user_data) {
+void playback_unload_songs(UserData *user_data)
+{
         PlaybackState *ps = get_playback_state();
 
         if (!user_data->songdataADeleted) {
@@ -54,7 +60,8 @@ void playback_unload_songs(UserData *user_data) {
         }
 }
 
-void skip(void) {
+void skip(void)
+{
         PlaybackState *ps = get_playback_state();
 
         set_current_implementation_type(NONE);
@@ -74,10 +81,12 @@ void skip(void) {
                 trigger_refresh();
 }
 
-void playback_free_decoders(void) {
+void playback_free_decoders(void)
+{
         reset_all_decoders();
 }
 
-void ensure_default_theme_pack() {
+void ensure_default_theme_pack()
+{
         ensure_default_themes();
 }

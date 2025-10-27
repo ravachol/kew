@@ -44,17 +44,20 @@ static FileSystemEntry *current_search_entry = NULL;
 
 static char search_text[MAX_SEARCH_LEN * 4 + 1]; // Unicode can be 4 characters
 
-FileSystemEntry *get_current_search_entry(void) {
+FileSystemEntry *get_current_search_entry(void)
+{
         return current_search_entry;
 }
 
-int get_search_results_count(void) {
+int get_search_results_count(void)
+{
         return results_count;
 }
 
 #define GROW_MARGIN 50
 
-void realloc_results() {
+void realloc_results()
+{
         if (results_count >= results_capacity) {
                 results_capacity = results_capacity == 0
                                        ? 10 + GROW_MARGIN
@@ -66,13 +69,15 @@ void realloc_results() {
 }
 
 void set_result_fields(FileSystemEntry *entry, int distance,
-                       FileSystemEntry *parent) {
+                       FileSystemEntry *parent)
+{
         results[results_count].distance = distance;
         results[results_count].entry = entry;
         results[results_count].parent = parent;
 }
 
-bool is_duplicate(const FileSystemEntry *entry) {
+bool is_duplicate(const FileSystemEntry *entry)
+{
         for (size_t i = 0; i < results_count; i++) {
                 const FileSystemEntry *other = results[i].entry;
 
@@ -86,7 +91,8 @@ bool is_duplicate(const FileSystemEntry *entry) {
         return false;
 }
 
-void add_result(FileSystemEntry *entry, int distance) {
+void add_result(FileSystemEntry *entry, int distance)
+{
         if (num_search_letters < min_search_letters)
                 return;
 
@@ -124,11 +130,13 @@ void add_result(FileSystemEntry *entry, int distance) {
         }
 }
 
-void collect_result(FileSystemEntry *entry, int distance) {
+void collect_result(FileSystemEntry *entry, int distance)
+{
         add_result(entry, distance);
 }
 
-void free_search_results(void) {
+void free_search_results(void)
+{
         if (results != NULL) {
                 free(results);
                 results = NULL;
@@ -141,7 +149,8 @@ void free_search_results(void) {
         results_count = 0;
 }
 
-void calculate_group_distances(void) {
+void calculate_group_distances(void)
+{
         for (size_t i = 0; i < results_count; i++) {
                 // Find top-level parent (entry with no parent, or root)
                 FileSystemEntry *root = results[i].entry;
@@ -178,7 +187,8 @@ void calculate_group_distances(void) {
         }
 }
 
-static int ancestor_compare(const FileSystemEntry *A, const FileSystemEntry *B) {
+static int ancestor_compare(const FileSystemEntry *A, const FileSystemEntry *B)
+{
         for (const FileSystemEntry *p = B->parent; p; p = p->parent)
                 if (p == A)
                         return -1;
@@ -188,7 +198,8 @@ static int ancestor_compare(const FileSystemEntry *A, const FileSystemEntry *B) 
         return 0;
 }
 
-int compare_results(const void *a, const void *b) {
+int compare_results(const void *a, const void *b)
+{
         const SearchResult *A = a;
         const SearchResult *B = b;
 
@@ -249,12 +260,14 @@ int compare_results(const void *a, const void *b) {
         return (A->entry < B->entry) ? -1 : (A->entry > B->entry);
 }
 
-void sort_search_results(void) {
+void sort_search_results(void)
+{
         calculate_group_distances();
         qsort(results, results_count, sizeof(SearchResult), compare_results);
 }
 
-void fuzzy_search(FileSystemEntry *root, int threshold) {
+void fuzzy_search(FileSystemEntry *root, int threshold)
+{
         int term_w, term_h;
         get_term_size(&term_w, &term_h);
 
@@ -272,7 +285,8 @@ void fuzzy_search(FileSystemEntry *root, int threshold) {
         trigger_refresh();
 }
 
-int display_search_box(int indent) {
+int display_search_box(int indent)
+{
         AppState *state = get_app_state();
         UISettings *ui = &(state->uiSettings);
 
@@ -290,7 +304,8 @@ int display_search_box(int indent) {
         return 0;
 }
 
-int add_to_search_text(const char *str) {
+int add_to_search_text(const char *str)
+{
         if (str == NULL) {
                 return -1;
         }
@@ -317,7 +332,8 @@ int add_to_search_text(const char *str) {
 }
 
 // Determine the number of bytes in the last UTF-8 character
-int get_last_char_bytes(const char *str, int len) {
+int get_last_char_bytes(const char *str, int len)
+{
         if (len == 0)
                 return 0;
 
@@ -329,7 +345,8 @@ int get_last_char_bytes(const char *str, int len) {
 }
 
 // Remove the preceding character from the search text
-int remove_from_search_text(void) {
+int remove_from_search_text(void)
+{
         if (num_search_letters == 0)
                 return 0;
 
@@ -350,7 +367,8 @@ int remove_from_search_text(void) {
 }
 
 void apply_color_and_format(bool is_chosen, FileSystemEntry *entry, UISettings *ui,
-                            bool is_playing) {
+                            bool is_playing)
+{
         if (is_chosen) {
                 current_search_entry = entry;
 
@@ -387,7 +405,8 @@ void apply_color_and_format(bool is_chosen, FileSystemEntry *entry, UISettings *
 FileSystemEntry *last_directory = NULL;
 
 int display_search_results(int max_list_size, int indent, int *chosen_row,
-                           int start_search_iter) {
+                           int start_search_iter)
+{
         int term_w, term_h;
         get_term_size(&term_w, &term_h);
 
@@ -490,7 +509,8 @@ int display_search_results(int max_list_size, int indent, int *chosen_row,
 }
 
 int display_search(int max_list_size, int indent, int *chosen_row,
-                   int start_search_iter) {
+                   int start_search_iter)
+{
         display_search_box(indent);
         display_search_results(max_list_size, indent, chosen_row, start_search_iter);
 

@@ -49,13 +49,15 @@ static int visualizer_bar_width = 2;
 static int max_thin_bars_in_auto_mode = 20;
 static int prev_fft_size = 0;
 
-void clear_magnitudes(int num_bars, float *magnitudes) {
+void clear_magnitudes(int num_bars, float *magnitudes)
+{
         for (int i = 0; i < num_bars; i++) {
                 magnitudes[i] = 0.0f;
         }
 }
 
-void apply_blackman_harris(float *fft_input, int buffer_size) {
+void apply_blackman_harris(float *fft_input, int buffer_size)
+{
         if (!fft_input ||
             buffer_size < 2) // Must be at least 2 to avoid division by zero
                 return;
@@ -79,7 +81,8 @@ void apply_blackman_harris(float *fft_input, int buffer_size) {
 
 // Fill center freqs for 1/3-octave bands, given min/max freq and num_bands
 void compute_band_centers(float min_freq, float sample_rate, int num_bands,
-                          float *center_freqs) {
+                          float *center_freqs)
+{
         if (!center_freqs || num_bands <= 0 || min_freq <= 0 || sample_rate <= 0)
                 return;
 
@@ -108,7 +111,8 @@ void compute_band_centers(float min_freq, float sample_rate, int num_bands,
 
 void fill_eq_bands(const fftwf_complex *fft_output, int buffer_size,
                    float sample_rate, float *band_db, int num_bands,
-                   const float *center_freqs) {
+                   const float *center_freqs)
+{
         // Basic input checks
         if (!fft_output || !band_db || !center_freqs || buffer_size <= 0 ||
             num_bands <= 0 || sample_rate <= 0.0f)
@@ -190,7 +194,8 @@ void fill_eq_bands(const fftwf_complex *fft_output, int buffer_size,
 }
 
 int normalize_audio_samples(const void *audio_buffer, float *fft_input,
-                            int buffer_size, int bit_depth) {
+                            int buffer_size, int bit_depth)
+{
         if (bit_depth == 8) {
                 const uint8_t *buf = (const uint8_t *)audio_buffer;
                 for (int i = 0; i < buffer_size; ++i)
@@ -220,7 +225,8 @@ int normalize_audio_samples(const void *audio_buffer, float *fft_input,
 void calc_magnitudes(int height, int num_bars, void *audio_buffer, int bit_depth,
                      float *fft_input, fftwf_complex *fft_output, int fft_size,
                      float *magnitudes, fftwf_plan plan,
-                     float *display_magnitudes) {
+                     float *display_magnitudes)
+{
         // Only execute when we get the signal that we have enough samples
         // (fft_size)
         if (!is_buffer_ready())
@@ -304,7 +310,8 @@ char *inbetween_chars_rising[] = {" ", "⣠", "⣠", "⣴", "⣴", "⣾", "⣾",
 
 char *inbetween_chars_falling[] = {" ", "⡀", "⡀", "⣄", "⣄", "⣦", "⣦", "⣷", "⣷"};
 
-char *get_upward_motion_char(int level, bool braille) {
+char *get_upward_motion_char(int level, bool braille)
+{
         if (level < 0 || level > 8) {
                 level = 8;
         }
@@ -315,7 +322,8 @@ char *get_upward_motion_char(int level, bool braille) {
 }
 
 char *get_inbetweend_motion_char(float magnitude_prev, float magnitude_next,
-                                 int prev, int next) {
+                                 int prev, int next)
+{
         if (prev < 0)
                 prev = 0;
         if (prev > 8)
@@ -333,7 +341,8 @@ char *get_inbetweend_motion_char(float magnitude_prev, float magnitude_next,
                 return upward_motion_chars_braille[prev];
 }
 
-char *get_inbetween_char(float prev, float next) {
+char *get_inbetween_char(float prev, float next)
+{
         int first_decimal_digit = (int)(fmod(prev * 10, 10));
         int second_decimal_digit = (int)(fmod(next * 10, 10));
 
@@ -341,7 +350,8 @@ char *get_inbetween_char(float prev, float next) {
                                           second_decimal_digit);
 }
 
-int get_bit_depth(ma_format format) {
+int get_bit_depth(ma_format format)
+{
 
         if (format == ma_format_unknown)
                 return -1;
@@ -373,7 +383,8 @@ int get_bit_depth(ma_format format) {
 }
 
 void print_spectrum(int row, int col, UISettings *ui, int height, int num_bars,
-                    int visualizer_width, float *magnitudes) {
+                    int visualizer_width, float *magnitudes)
+{
         PixelData color;
 
         if (ui->colorMode == COLOR_MODE_ALBUM) {
@@ -491,7 +502,8 @@ void print_spectrum(int row, int col, UISettings *ui, int height, int num_bars,
         fflush(stdout);
 }
 
-void free_visuals(void) {
+void free_visuals(void)
+{
         if (fft_input != NULL) {
                 free(fft_input);
                 fft_input = NULL;
@@ -502,7 +514,8 @@ void free_visuals(void) {
         }
 }
 
-void draw_spectrum_visualizer(int row, int col, int height) {
+void draw_spectrum_visualizer(int row, int col, int height)
+{
         AppState *state = get_app_state();
 
         int num_bars = state->uiState.num_progress_bars;

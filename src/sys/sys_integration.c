@@ -25,29 +25,35 @@
 static GDBusConnection *connection = NULL;
 static GMainContext *global_main_context = NULL;
 
-void set_g_main_context(GMainContext *val) {
+void set_g_main_context(GMainContext *val)
+{
         global_main_context = val;
 }
 
-void *get_g_main_context(void) {
+void *get_g_main_context(void)
+{
         return global_main_context;
 }
 
-GDBusConnection *get_g_d_bus_connection(void) {
+GDBusConnection *get_g_d_bus_connection(void)
+{
         return connection;
 }
 
-void set_g_d_bus_connection(GDBusConnection *val) {
+void set_g_d_bus_connection(GDBusConnection *val)
+{
         connection = val;
 }
 
-void process_d_bus_events(void) {
+void process_d_bus_events(void)
+{
         while (g_main_context_pending(get_g_main_context())) {
                 g_main_context_iteration(get_g_main_context(), FALSE);
         }
 }
 
-void resize(UIState *uis) {
+void resize(UIState *uis)
+{
         alarm(1); // Timer
         while (uis->resizeFlag) {
                 uis->resizeFlag = 0;
@@ -59,7 +65,8 @@ void resize(UIState *uis) {
         trigger_refresh();
 }
 
-void emit_string_property_changed(const gchar *property_name, const gchar *new_value) {
+void emit_string_property_changed(const gchar *property_name, const gchar *new_value)
+{
 #ifndef __APPLE__
         GVariantBuilder changed_properties_builder;
         g_variant_builder_init(&changed_properties_builder, G_VARIANT_TYPE("a{sv}"));
@@ -85,7 +92,8 @@ void emit_string_property_changed(const gchar *property_name, const gchar *new_v
 #endif
 }
 
-void update_playback_position(double elapsed_seconds) {
+void update_playback_position(double elapsed_seconds)
+{
 #ifndef __APPLE__
         if (elapsed_seconds < 0.0)
                 elapsed_seconds = 0.0;
@@ -116,7 +124,8 @@ void update_playback_position(double elapsed_seconds) {
 #endif
 }
 
-void emit_seeked_signal(double new_position_seconds) {
+void emit_seeked_signal(double new_position_seconds)
+{
 #ifndef __APPLE__
         if (new_position_seconds < 0.0)
                 new_position_seconds = 0.0;
@@ -138,7 +147,8 @@ void emit_seeked_signal(double new_position_seconds) {
 #endif
 }
 
-void emit_boolean_property_changed(const gchar *property_name, gboolean new_value) {
+void emit_boolean_property_changed(const gchar *property_name, gboolean new_value)
+{
 #ifndef __APPLE__
         GVariantBuilder changed_properties_builder;
         g_variant_builder_init(&changed_properties_builder,
@@ -176,7 +186,8 @@ void emit_boolean_property_changed(const gchar *property_name, gboolean new_valu
 #endif
 }
 
-void notify_m_p_r_i_s_switch(SongData *current_song_data) {
+void notify_m_p_r_i_s_switch(SongData *current_song_data)
+{
         if (current_song_data == NULL)
                 return;
 
@@ -190,7 +201,8 @@ void notify_m_p_r_i_s_switch(SongData *current_song_data) {
             get_current_song(), length);
 }
 
-void notify_song_switch(SongData *current_song_data) {
+void notify_song_switch(SongData *current_song_data)
+{
         AppState *state = get_app_state();
         UISettings *ui = &(state->uiSettings);
         if (current_song_data != NULL && current_song_data->hasErrors == 0 &&
@@ -213,7 +225,8 @@ void notify_song_switch(SongData *current_song_data) {
         }
 }
 
-int is_process_running(pid_t pid) {
+int is_process_running(pid_t pid)
+{
         if (pid <= 0) {
                 return 0; // Invalid PID
         }
@@ -233,7 +246,8 @@ int is_process_running(pid_t pid) {
         return 0; // Other errors
 }
 
-int is_kew_process(pid_t pid) {
+int is_kew_process(pid_t pid)
+{
         char comm_path[64];
         char process_name[256];
         FILE *file;
@@ -260,7 +274,8 @@ int is_kew_process(pid_t pid) {
         return 0; // Not kew or couldn't determine
 }
 
-void delete_pid_file() {
+void delete_pid_file()
+{
         char pidfile_path[MAXPATHLEN];
         const char *temp_dir = get_temp_dir();
 
@@ -277,7 +292,8 @@ void delete_pid_file() {
         }
 }
 
-pid_t read_pid_file() {
+pid_t read_pid_file()
+{
         char pidfile_path[MAXPATHLEN];
         const char *temp_dir = get_temp_dir();
 
@@ -302,7 +318,8 @@ pid_t read_pid_file() {
         return pid;
 }
 
-void create_pid_file() {
+void create_pid_file()
+{
         char pidfile_path[MAXPATHLEN];
         const char *temp_dir = get_temp_dir();
 
@@ -319,7 +336,8 @@ void create_pid_file() {
         fclose(pidfile);
 }
 
-void restart_kew(char *argv[]) {
+void restart_kew(char *argv[])
+{
         pid_t oldpid = read_pid_file();
         if (oldpid > 0) {
                 if (kill(oldpid, SIGUSR1) != 0) {
@@ -345,13 +363,15 @@ void restart_kew(char *argv[]) {
         exit(1);
 }
 
-void handle_shutdown(int sig) {
+void handle_shutdown(int sig)
+{
         (void)sig;
         exit(0); // runs all atexit handlers
 }
 
 // Ensures only a single instance of kew can run at a time for the current user.
-void restart_if_already_running(char *argv[]) {
+void restart_if_already_running(char *argv[])
+{
         signal(SIGUSR1, handle_shutdown);
 
         pid_t pid = read_pid_file();
@@ -370,19 +390,22 @@ void restart_if_already_running(char *argv[]) {
         create_pid_file();
 }
 
-void handle_resize(int sig) {
+void handle_resize(int sig)
+{
         (void)sig;
         AppState *state = get_app_state();
         state->uiState.resizeFlag = 1;
 }
 
-void reset_resize_flag(int sig) {
+void reset_resize_flag(int sig)
+{
         (void)sig;
         AppState *state = get_app_state();
         state->uiState.resizeFlag = 0;
 }
 
-void init_resize(void) {
+void init_resize(void)
+{
         signal(SIGWINCH, handle_resize);
 
         struct sigaction sa;
@@ -392,6 +415,7 @@ void init_resize(void) {
         sigaction(SIGALRM, &sa, NULL);
 }
 
-void quit(void) {
+void quit(void)
+{
         exit(0);
 }

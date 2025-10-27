@@ -29,7 +29,8 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 
-void seek_forward(void) {
+void seek_forward(void)
+{
         AppState *state = get_app_state();
         Node *current = get_current_song();
         if (current == NULL)
@@ -48,7 +49,8 @@ void seek_forward(void) {
         state->uiState.isFastForwarding = true;
 }
 
-void seek_back(void) {
+void seek_back(void)
+{
         AppState *state = get_app_state();
         Node *current = get_current_song();
 
@@ -68,7 +70,8 @@ void seek_back(void) {
         state->uiState.isRewinding = true;
 }
 
-void cycle_color_mode(void) {
+void cycle_color_mode(void)
+{
         AppState *state = get_app_state();
         UISettings *ui = &(state->uiSettings);
 
@@ -111,7 +114,8 @@ void cycle_color_mode(void) {
         trigger_refresh();
 }
 
-void cycle_themes(void) {
+void cycle_themes(void)
+{
         clear_screen();
 
         AppState *state = get_app_state();
@@ -187,7 +191,8 @@ void cycle_themes(void) {
         free(config_path);
 }
 
-void toggle_visualizer(void) {
+void toggle_visualizer(void)
+{
         AppSettings *settings = get_app_settings();
         AppState *state = get_app_state();
 
@@ -198,13 +203,15 @@ void toggle_visualizer(void) {
         trigger_refresh();
 }
 
-void toggle_show_lyrics_page(void) {
+void toggle_show_lyrics_page(void)
+{
         AppState *state = get_app_state();
         state->uiState.showLyricsPage = !state->uiState.showLyricsPage;
         trigger_refresh();
 }
 
-void toggle_ascii(void) {
+void toggle_ascii(void)
+{
         AppSettings *settings = get_app_settings();
         AppState *state = get_app_state();
 
@@ -214,7 +221,8 @@ void toggle_ascii(void) {
         trigger_refresh();
 }
 
-void toggle_repeat(void) {
+void toggle_repeat(void)
+{
         AppState *state = get_app_state();
         bool repeat_enabled = ops_is_repeat_enabled();
         bool repeat_list_enabled = is_repeat_list_enabled();
@@ -240,7 +248,8 @@ void toggle_repeat(void) {
                 trigger_refresh();
 }
 
-void toggle_pause() {
+void toggle_pause()
+{
         if (ops_is_stopped()) {
                 view_enqueue(false);
         } else {
@@ -248,7 +257,8 @@ void toggle_pause() {
         }
 }
 
-void toggle_notifications(void) {
+void toggle_notifications(void)
+{
         AppState *state = get_app_state();
         AppSettings *settings = get_app_settings();
         UISettings *ui = &(state->uiSettings);
@@ -264,7 +274,8 @@ void toggle_notifications(void) {
         }
 }
 
-void toggle_shuffle(void) {
+void toggle_shuffle(void)
+{
         AppState *state = get_app_state();
         PlaybackState *ps = get_playback_state();
 
@@ -316,14 +327,16 @@ void toggle_shuffle(void) {
         emit_shuffle_changed();
 }
 
-bool should_refresh_player(void) {
+bool should_refresh_player(void)
+{
         PlaybackState *ps = get_playback_state();
 
         return !ps->skipping && !ops_is_EOF() && !ops_is_impl_switch_reached();
 }
 
 int load_theme(const char *theme_name,
-               bool is_ansi_theme) {
+               bool is_ansi_theme)
+{
         AppState *app_state = get_app_state();
         AppSettings *settings = get_app_settings();
 
