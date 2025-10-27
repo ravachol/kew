@@ -2335,7 +2335,7 @@ void refresh_player()
         if (ps->notifySwitch) {
                 ps->notifySwitch = false;
 
-                notify_m_p_r_i_s_switch(get_current_song_data());
+                notify_mpris_switch(get_current_song_data());
         }
 
         if (should_refresh_player()) {

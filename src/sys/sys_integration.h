@@ -21,7 +21,7 @@ void emit_string_property_changed(const gchar *property_name, const gchar *new_v
 void update_playback_position(double elapsed_seconds);
 void emit_seeked_signal(double new_position_seconds);
 void emit_boolean_property_changed(const gchar *property_name, gboolean new_value);
-void notify_m_p_r_i_s_switch(SongData *current_song_data);
+void notify_mpris_switch(SongData *current_song_data);
 void notify_song_switch(SongData *current_song_data);
 void process_d_bus_events(void);
 void resize(UIState *uis);
