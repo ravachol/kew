@@ -607,7 +607,6 @@ void set_default_config(AppSettings *settings)
                  sizeof(settings->saveRepeatShuffleSettings));
         c_strcpy(settings->trackTitleAsWindowTitle, "1",
                  sizeof(settings->trackTitleAsWindowTitle));
-        c_strcpy(settings->cacheLibrary, "-1", sizeof(settings->cacheLibrary));
 #ifdef __APPLE__
         // Visualizer looks wonky in default terminal but let's enable it
         // anyway. People need to switch
@@ -1090,10 +1089,6 @@ void construct_app_settings(AppSettings *settings, KeyValuePair *pairs, int coun
                 } else if (strcmp(lowercase_key, "hidehelp") == 0) {
                         snprintf(settings->hideHelp, sizeof(settings->hideHelp),
                                  "%s", pair->value);
-                } else if (strcmp(lowercase_key, "cachelibrary") == 0) {
-                        snprintf(settings->cacheLibrary,
-                                 sizeof(settings->cacheLibrary), "%s",
-                                 pair->value);
                 } else if (strcmp(lowercase_key, "quitonstop") == 0) {
                         snprintf(settings->quitAfterStopping,
                                  sizeof(settings->quitAfterStopping), "%s",
@@ -1528,8 +1523,6 @@ void get_prefs(AppSettings *settings, UISettings *ui)
 
         char *filepath = get_prefs_file_path(prefsdir);
 
-        c_strcpy(settings->cacheLibrary, "-1", sizeof(settings->cacheLibrary));
-
         KeyValuePair *pairs =
             read_key_value_pairs(filepath, &pair_count, &(ui->last_time_app_ran));
 
@@ -1548,9 +1541,6 @@ void get_prefs(AppSettings *settings, UISettings *ui)
         tmp = get_number(settings->lastVolume);
         if (tmp >= 0)
                 set_volume(tmp);
-
-        tmp = get_number(settings->cacheLibrary);
-        ui->cacheLibrary = tmp;
 
         snprintf(ui->theme_name, sizeof(ui->theme_name), "%s", settings->theme);
         free(prefsdir);
@@ -1606,11 +1596,6 @@ void set_prefs(AppSettings *settings, UISettings *ui)
                 return;
         }
 
-        c_strcpy(settings->cacheLibrary, "-1", sizeof(settings->cacheLibrary));
-
-        snprintf(settings->cacheLibrary, sizeof(settings->cacheLibrary), "%d",
-                 ui->cacheLibrary);
-
         if (settings->allowNotifications[0] == '\0')
                 ui->allowNotifications
                     ? c_strcpy(settings->allowNotifications, "1",
@@ -1656,10 +1641,6 @@ void set_prefs(AppSettings *settings, UISettings *ui)
 
         fprintf(file, "\n[miscellaneous]\n\n");
         fprintf(file, "allowNotifications=%s\n\n", settings->allowNotifications);
-
-        fprintf(file, "# Cache: Set to 1 to use cache of the music library "
-                      "directory tree for faster startup times.\n");
-        fprintf(file, "cacheLibrary=%s\n\n", settings->cacheLibrary);
 
         if (ui->saveRepeatShuffleSettings) {
                 fprintf(file, "repeatState=%s\n\n", settings->repeatState);
