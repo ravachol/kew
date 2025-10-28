@@ -424,31 +424,31 @@ static const EventMap event_map[] = {
     {"playPause", EVENT_PLAY_PAUSE},
     {"volUp", EVENT_VOLUME_UP},
     {"volDown", EVENT_VOLUME_DOWN},
-    {"next_song", EVENT_NEXT},
+    {"nextSong", EVENT_NEXT},
     {"prevSong", EVENT_PREV},
     {"quit", EVENT_QUIT},
-    {"toggle_repeat", EVENT_TOGGLEREPEAT},
-    {"toggle_visualizer", EVENT_TOGGLEVISUALIZER},
-    {"toggle_ascii", EVENT_TOGGLEASCII},
-    {"add_to_favorites_playlist", EVENT_ADDTOFAVORITESPLAYLIST},
+    {"toggleRepeat", EVENT_TOGGLEREPEAT},
+    {"toggleVisualizer", EVENT_TOGGLEVISUALIZER},
+    {"toggleAscii", EVENT_TOGGLEASCII},
+    {"addToFavorites_playlist", EVENT_ADDTOFAVORITESPLAYLIST},
     {"deleteFromMainPlaylist", EVENT_DELETEFROMMAINPLAYLIST},
     {"exportPlaylist", EVENT_EXPORTPLAYLIST},
-    {"update_library", EVENT_UPDATELIBRARY},
+    {"updateLibrary", EVENT_UPDATELIBRARY},
     {"shuffle", EVENT_SHUFFLE},
     {"keyPress", EVENT_KEY_PRESS},
-    {"show_help", EVENT_SHOWHELP},
-    {"show_playlist", EVENT_SHOWPLAYLIST},
-    {"show_search", EVENT_SHOWSEARCH},
+    {"showHelp", EVENT_SHOWHELP},
+    {"showPlaylist", EVENT_SHOWPLAYLIST},
+    {"showSearch", EVENT_SHOWSEARCH},
     {"enqueue", EVENT_ENQUEUE},
     {"gotoBeginningOfPlaylist", EVENT_GOTOBEGINNINGOFPLAYLIST},
     {"gotoEndOfPlaylist", EVENT_GOTOENDOFPLAYLIST},
-    {"cycle_color_mode", EVENT_CYCLECOLORMODE},
+    {"cycleColorMode", EVENT_CYCLECOLORMODE},
     {"scrollDown", EVENT_SCROLLDOWN},
     {"scrollUp", EVENT_SCROLLUP},
-    {"seek_back", EVENT_SEEKBACK},
-    {"seek_forward", EVENT_SEEKFORWARD},
-    {"show_library", EVENT_SHOWLIBRARY},
-    {"show_track", EVENT_SHOWTRACK},
+    {"seekBack", EVENT_SEEKBACK},
+    {"seekForward", EVENT_SEEKFORWARD},
+    {"showLibrary", EVENT_SHOWLIBRARY},
+    {"showTrack", EVENT_SHOWTRACK},
     {"nextPage", EVENT_NEXTPAGE},
     {"prevPage", EVENT_PREVPAGE},
     {"remove", EVENT_REMOVE},
@@ -456,13 +456,13 @@ static const EventMap event_map[] = {
     {"nextView", EVENT_NEXTVIEW},
     {"prevView", EVENT_PREVVIEW},
     {"clearPlaylist", EVENT_CLEARPLAYLIST},
-    {"move_song_up", EVENT_MOVESONGUP},
-    {"move_song_down", EVENT_MOVESONGDOWN},
+    {"moveSongUp", EVENT_MOVESONGUP},
+    {"moveSongDown", EVENT_MOVESONGDOWN},
     {"enqueueAndPlay", EVENT_ENQUEUEANDPLAY},
     {"stop", EVENT_STOP},
-    {"sort_library", EVENT_SORTLIBRARY},
-    {"cycle_themes", EVENT_CYCLETHEMES},
-    {"toggle_notifications", EVENT_TOGGLENOTIFICATIONS},
+    {"sortLibrary", EVENT_SORTLIBRARY},
+    {"cycleThemes", EVENT_CYCLETHEMES},
+    {"toggleNotifications", EVENT_TOGGLENOTIFICATIONS},
     {"showLyricsPage", EVENT_SHOWLYRICSPAGE},
     {NULL, EVENT_NONE} // Sentinel
 };
@@ -1644,7 +1644,7 @@ void set_prefs(AppSettings *settings, UISettings *ui)
 
         if (ui->saveRepeatShuffleSettings) {
                 fprintf(file, "repeatState=%s\n\n", settings->repeatState);
-                fprintf(file, "shuffle_enabled=%s\n\n", settings->shuffle_enabled);
+                fprintf(file, "shuffleEnabled=%s\n\n", settings->shuffle_enabled);
         }
 
         fprintf(file, "lastVolume=%s\n\n", settings->lastVolume);
@@ -1855,7 +1855,7 @@ void set_config(AppSettings *settings, UISettings *ui)
 
         fprintf(file, "# Same as '--quitonstop' flag, exits after playing the "
                       "whole playlist.\n");
-        fprintf(file, "quit_on_stop=%s\n\n", settings->quitAfterStopping);
+        fprintf(file, "quitOnStop=%s\n\n", settings->quitAfterStopping);
 
         fprintf(file, "# Glimmering text on the bottom row.\n");
         fprintf(file, "hideGlimmeringText=%s\n\n",
@@ -1871,7 +1871,7 @@ void set_config(AppSettings *settings, UISettings *ui)
                 settings->saveRepeatShuffleSettings);
 
         fprintf(file, "repeatState=%s\n\n", settings->repeatState);
-        fprintf(file, "shuffle_enabled=%s\n\n", settings->shuffle_enabled);
+        fprintf(file, "shuffleEnabled=%s\n\n", settings->shuffle_enabled);
 
         fprintf(file, "# Set the window title to the title of the currently "
                       "playing track\n");
@@ -1904,19 +1904,19 @@ void set_config(AppSettings *settings, UISettings *ui)
 
         fprintf(file, "\n[visualizer]\n\n");
         fprintf(file, "visualizerEnabled=%s\n", settings->visualizerEnabled);
-        fprintf(file, "visualizer_height=%s\n", settings->visualizer_height);
+        fprintf(file, "visualizerHeight=%s\n", settings->visualizer_height);
         fprintf(file, "visualizerBrailleMode=%s\n\n",
                 settings->visualizerBrailleMode);
 
         fprintf(file, "# How colors are laid out in the spectrum visualizer. "
                       "0=lighten, 1=brightness depending on bar height, "
                       "2=reversed, 3=reversed darken.\n");
-        fprintf(file, "visualizer_color_type=%s\n\n",
+        fprintf(file, "visualizerColorType=%s\n\n",
                 settings->visualizer_color_type);
 
         fprintf(file, "# 0=Thin bars, 1=Bars twice the width, 2=Auto (depends "
                       "on window size).\n");
-        fprintf(file, "visualizer_bar_width=%s\n\n",
+        fprintf(file, "visualizerBarWidth=%s\n\n",
                 settings->visualizer_bar_width);
 
         fprintf(file, "\n[progress bar]\n\n");

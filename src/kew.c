@@ -416,7 +416,9 @@ void kew_shutdown()
         PlayList *unshuffled_playlist = get_unshuffled_playlist();
         PlayList *favorites_playlist = get_favorites_playlist();
 
+#ifndef __ANDROID__
         stop_at_shutdown();
+#endif
 
         pthread_mutex_lock(&(state->data_source_mutex));
 

@@ -59,7 +59,7 @@ int digits_pressed_count;
 double dragged_position_seconds = 0.0;
 bool dragging_progress_bar = false;
 
-struct Event map_t_b_key_to_event(struct tb_event *ev)
+struct Event map_tb_key_to_event(struct tb_event *ev)
 {
         struct Event event = {0};
         event.type = EVENT_NONE;
@@ -695,7 +695,7 @@ static gboolean on_tb_input(GIOChannel *source, GIOCondition cond, gpointer data
                         bool isMouseEvent = handle_mouse_event(&ev, &event);
 
                         if (!isMouseEvent) {
-                                event = map_t_b_key_to_event(&ev);
+                                event = map_tb_key_to_event(&ev);
                         }
 
                         if (isdigit(ev.ch) && event.type == EVENT_NONE) {
