@@ -1767,6 +1767,10 @@ int display_tree(FileSystemEntry *root, int depth, int max_list_size,
 
                                 printf("%s\n", filename);
 
+                                apply_color(COLOR_MODE_ALBUM, ui->theme.text,
+                                    ui->defaultColorRGB);
+                                clear_rest_of_line();
+
                                 lib_song_iter++;
                         }
                 }
@@ -1883,10 +1887,17 @@ void show_library(SongData *song_data, AppSettings *settings)
                 trigger_refresh();
         }
 
+        printf("\e[0m");
+        apply_color(COLOR_MODE_ALBUM, ui->theme.text,
+                                    ui->defaultColorRGB);
+
         for (int i = lib_iter - start_lib_iter; i < max_lib_list_size; i++) {
-                printf("\n");
                 clear_line();
+                printf("\n");
+
         }
+
+        clear_line();
 
         calc_and_print_last_row_and_error_row();
 
