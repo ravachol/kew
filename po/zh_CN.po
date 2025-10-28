@@ -34,7 +34,7 @@ msgstr "内存分配失败。"
 #: src/data/playlist.c:351
 #, c-format
 msgid "Failed to open directory: %s\n"
-msgstr "无法打开目录：%s\n"
+msgstr "打开目录失败：%s\n"
 
 #: src/data/playlist.c:359
 #, c-format
@@ -92,7 +92,7 @@ msgstr ""
 #: src/sys/mpris.c:1146
 #, c-format
 msgid "Failed to own D-Bus name: %s\n"
-msgstr "无法拥有 D-Bus 名称：%s\n"
+msgstr "获取 D-Bus 名称失败：%s\n"
 
 #: src/ui/cli.c:150
 #, c-format
@@ -114,7 +114,7 @@ msgid ""
 "Or type a path (no quotes or single-quotes):\n"
 "\n"
 msgstr ""
-"或者输入路径（不使用引号或单引号）：\n"
+"或者输入路径（不使用引号）：\n"
 "\n"
 
 #: src/ui/cli.c:165 src/ui/cli.c:194
@@ -128,7 +128,7 @@ msgid ""
 "Type a path (no quotes or single-quotes):\n"
 "\n"
 msgstr ""
-"输入路径（不使用引号或单引号）：\n"
+"输入路径（不使用引号）：\n"
 "\n"
 
 #: src/ui/player_ui.c:283
@@ -173,12 +173,12 @@ msgstr " · 播放/暂停：%s\n"
 #: src/ui/player_ui.c:1059
 #, c-format
 msgid " · Enqueue/Dequeue: %s\n"
-msgstr " · 入队/出队：%s\n"
+msgstr " · 加入/移出播放列表：%s\n"
 
 #: src/ui/player_ui.c:1063
 #, c-format
 msgid " · Enqueue and Play: %s\n"
-msgstr " · 排队并播放：%s\n"
+msgstr " · 加入播放列表并播放：%s\n"
 
 #: src/ui/player_ui.c:1067
 #, c-format
@@ -198,7 +198,7 @@ msgstr "和 %s\n"
 #: src/ui/player_ui.c:1078
 #, c-format
 msgid " · Volume: %s "
-msgstr " · 卷：%s "
+msgstr " · 音量：%s "
 
 #: src/ui/player_ui.c:1079
 #, c-format
@@ -208,7 +208,7 @@ msgstr "和 %s\n"
 #: src/ui/player_ui.c:1083
 #, c-format
 msgid " · Clear List: %s\n"
-msgstr " · 清空列表：%s\n"
+msgstr " · 清空播放列表：%s\n"
 
 #: src/ui/player_ui.c:1087
 #, c-format
@@ -243,7 +243,7 @@ msgstr " · 更新音乐库：%s\n"
 #: src/ui/player_ui.c:1117
 #, c-format
 msgid " · Toggle Visualizer: %s\n"
-msgstr " · 切换可视化：%s\n"
+msgstr " · 开关可视化效果：%s\n"
 
 #: src/ui/player_ui.c:1121
 #, c-format
@@ -258,7 +258,7 @@ msgstr " · 切换歌词页面：%s\n"
 #: src/ui/player_ui.c:1129
 #, c-format
 msgid " · Toggle Notifications: %s\n"
-msgstr " · 切换通知：%s\n"
+msgstr " · 开关通知：%s\n"
 
 #: src/ui/player_ui.c:1133
 #, c-format
@@ -273,7 +273,7 @@ msgstr " · 随机播放：%s\n"
 #: src/ui/player_ui.c:1142
 #, c-format
 msgid " · Seek: %s and"
-msgstr " · 搜索：%s 和"
+msgstr " · 快进/快退：%s 和"
 
 #: src/ui/player_ui.c:1143
 #, c-format
@@ -312,7 +312,7 @@ msgstr "颜色 "
 #: src/ui/player_ui.c:1167
 #, c-format
 msgid "From Track Covers"
-msgstr "来自专辑封面"
+msgstr "（来自专辑封面）"
 
 #: src/ui/player_ui.c:1178
 #, c-format
@@ -327,7 +327,7 @@ msgstr " 项目网址："
 #: src/ui/player_ui.c:1195
 #, c-format
 msgid " Please Donate:"
-msgstr " 请捐助  ："
+msgstr " 捐助支持："
 
 #: src/ui/player_ui.c:1438
 #, c-format
@@ -347,7 +347,7 @@ msgstr " Fn+↑/↓：滚动。Del：删除。%s/%s：移动歌曲。\n"
 #: src/ui/player_ui.c:1480
 #, c-format
 msgid " Use ↑/↓ to select. Enter: Enqueue. Alt+Enter: Play.\n"
-msgstr " 使用 ↑/↓ 选择。回车：入队。Alt+回车：播放。\n"
+msgstr " 使用 ↑/↓ 选择。回车：加入播放列表。Alt+回车：播放。\n"
 
 #: src/ui/player_ui.c:1525
 #, c-format
@@ -361,7 +361,7 @@ msgstr "─ 音乐库 ─"
 #: src/ui/player_ui.c:2039
 #, c-format
 msgid " Use ↑/↓ or k/j to select. Enter: Enqueue/Dequeue. Alt+Enter: Play.\n"
-msgstr " 使用 ↑/↓ 选择。回车：入队。Alt+回车：播放。\n"
+msgstr " 使用 ↑/↓ 选择。回车：加入播放列表。Alt+回车：播放。\n"
 
 #: src/ui/player_ui.c:2043
 #, c-format
