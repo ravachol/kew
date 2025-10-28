@@ -36,14 +36,14 @@ textMuted=7     # White (dim)
 logo=6          # Cyan
 header=6        # Cyan
 footer=#787878  # The old school gray, this works on most terminals
-help=11         # Bright Yellow
+help=6          # Cyan
 link=14         # Bright Cyan
 nowplaying=-1   # Default foreground
 
 # Playlist View
 playlist.rownum=8   # Bright Black / Gray
 playlist.title=-1    # Default foreground
-playlist.playing=11 # Bright Yellow
+playlist.playing=6  # Cyan
 
 # Track View
 trackview.title=-1      # Default foreground
@@ -58,15 +58,15 @@ trackview.lyrics=-1     # Default foreground
 library.artist=6    # Cyan
 library.album=6     # Cyan
 library.track=-1    # Default foreground
-library.enqueued=11 # Bright Yellow
-library.playing=11 # Bright Yellow
+library.enqueued=6  # Cyan
+library.playing=6   # Cyan
 
 # Search
-search.label=11     # Bright Yellow
+search.label=6      # Cyan
 search.query=-1     # Default foreground
 search.result=-1    # Default foreground
 search.enqueued=14  # Bright Cyan
-search.playing=11   # Bright Yellow
+search.playing=6    # Cyan
 
 # Progress
 progress.filled=8   # Bright Black / Gray
