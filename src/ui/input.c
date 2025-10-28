@@ -686,6 +686,9 @@ static gboolean on_tb_input(GIOChannel *source, GIOCondition cond, gpointer data
                 }
 
                 struct Event event;
+                event.type = EVENT_NONE;
+                event.args[0] = '\0';
+                event.key[0] = '\0';
 
                 // Extract all events in the buffer
                 while (tb_peek_event(&ev, 0) == 0) {

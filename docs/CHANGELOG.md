@@ -2,7 +2,21 @@
 
 ### 3.7.0
 
-- Key binding overhaul. This allows for more advanced key bindings. You can now bind more keys and key combinations. For instance, you can bind a key like this: bind = +, volUp, +5%. Old format config files will still work, but to see examples of the new style, delete your kewrc file. Suggested by: @jaoh.
+Biggest news in this release: Optimisations for large music collections/slow disks and a key binding/input handling overhaul. Both were very much needed.
+
+- Optimisations: Much faster loading of previous playlist. So if you are used to running kew all for instance this will be significantly faster, especially for people with large collections. The new method should be up to 20 times faster.
+
+- The library is now always cached. This means no more fiddling with cachelibrary settings. It scans the library only if the files have changed, which it checks at the top level. This will be much faster if you have music on a slow disk. But it's all still very simple, no database dependencies or anything, just a flat binary file with the bare essentials. This file is read in it's entirety and populates a tree of linked lists that resides in memory. It's not a lot of data: 1k songs = 60KiB on disk.
+
+- Key binding overhaul: This allows for more advanced key bindings. You can now bind more keys and key combinations. The new format was suggested by @jaoh.
+
+Som examples:
+
+bind = +, volUp, +5%
+bind = Shift+s, stop
+bind = mouseMiddle, enqueueAndPlay
+
+The old format config files will still work, but to see examples of the new style, delete your kewrc file.
 
 - The help page will now fully reflect the keys you have bound.
 
@@ -10,7 +24,9 @@
 
 - Auto-scrolling lyrics in the lyrics page for synced lyrics. Also added the ability to scroll lyrics manually. By @noiamnote.
 
-- App translated into chinese.
+- The app and readme has been translated into chinese. Thank you for the help @hiruocha.
+
+- kew now follows standard C naming conventions and formatting, actually Linux-style. This means no more camelCase funny business.
 
 #### Bug Fixes
 

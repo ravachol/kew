@@ -345,6 +345,11 @@ void skip_to_song(int id, bool start_playing)
         play_song(found);
 }
 
+void stop_at_shutdown(void)
+{
+        stop_playback();
+}
+
 void stop(void)
 {
         stop_playback();
