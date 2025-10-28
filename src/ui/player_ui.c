@@ -2167,7 +2167,7 @@ void show_track_view_portrait(int height, AppSettings *settings,
                         if (row > 0)
                                 print_timestamped_lyrics(&(state->uiSettings), songdata, row + metadata_height + 1, indent + 1, term_w, elapsed_seconds);
 
-                        print_visualizer(row + metadata_height + 2, col, visualizer_width,
+                        print_visualizer(row + metadata_height + 2, col, visualizer_width + 1,
                                          settings, elapsed_seconds);
                 } else {
                         clear_screen();
@@ -2286,22 +2286,26 @@ void show_help(void)
         print_help();
 }
 
-void free_main_directory_tree(void)
+void save_library(void)
 {
-        AppState *state = get_app_state();
+        FileSystemEntry *library = get_library();
+        char *filepath = get_library_file_path();
+
+        reset_sort_library();
+
+        write_tree_to_binary(library, filepath);
+
+        free(filepath);
+}
+
+void free_library(void)
+{
         FileSystemEntry *library = get_library();
 
         if (library == NULL)
                 return;
 
-        char *filepath = get_library_file_path();
-
-        if (state->uiSettings.cacheLibrary)
-                write_tree(library, filepath);
-
         free_tree(library);
-
-        free(filepath);
 }
 
 int get_chosen_row(void)

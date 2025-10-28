@@ -1240,14 +1240,21 @@ void construct_app_settings(AppSettings *settings, KeyValuePair *pairs, int coun
                         char *event_str = parse_field(&s);
                         char *args_str = parse_field(&s);
 
-                        if (!binding_str || !event_str)
-                                return;
+                        if (binding_str && event_str)
+                        {
+                                if (!args_str)
+                                        args_str = "";
 
-                        if (!args_str)
-                                args_str = "";
+                                TBKeyBinding kb = parse_binding(binding_str, event_str, args_str);
+                                add_key_binding(kb);
+                        }
 
-                        TBKeyBinding kb = parse_binding(binding_str, event_str, args_str);
-                        add_key_binding(kb);
+                        if (binding_str)
+                                free(binding_str);
+                        if (event_str)
+                                free(event_str);
+                        if (args_str && args_str[0] != '\0')
+                                free(args_str);
                 }
 
                 free(lowercase_key);

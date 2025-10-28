@@ -393,9 +393,9 @@ void init_default_state(void)
         PlayList *unshuffled_playlist = get_unshuffled_playlist();
         PlaybackState *ps = get_playback_state();
 
-        load_last_used_playlist(playlist, &unshuffled_playlist);
+        load_last_used_playlist(playlist, &unshuffled_playlist, library);
         set_unshuffled_playlist(unshuffled_playlist);
-        mark_list_as_enqueued(library, playlist);
+
         reset_list_after_dequeuing_playing_song();
 
         audio_data.restart = true;
@@ -416,11 +416,13 @@ void kew_shutdown()
         PlayList *unshuffled_playlist = get_unshuffled_playlist();
         PlayList *favorites_playlist = get_favorites_playlist();
 
+        stop_at_shutdown();
+
         pthread_mutex_lock(&(state->data_source_mutex));
 
-        playback_free_decoders();
-
         playback_shutdown();
+
+        playback_free_decoders();
 
         emit_playback_stopped_mpris();
 
@@ -448,7 +450,8 @@ void kew_shutdown()
         save_favorites_playlist(settings->path, favorites_playlist);
         save_last_used_playlist(unshuffled_playlist);
         delete_cache(state_ptr->tmpCache);
-        free_main_directory_tree();
+        save_library();
+        free_library();
         free_playlists();
         set_default_text_color();
 
@@ -589,6 +592,8 @@ void init_state(void)
         set_favorites_playlist(NULL);
 
         audio_data.pUserData = malloc(sizeof(UserData));
+
+        reset_digits_pressed();
 
         state_ptr = state;
 }

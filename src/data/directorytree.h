@@ -40,7 +40,10 @@ typedef void (*SlowloadingCallback)(void);
 
 FileSystemEntry *create_directory_tree(const char *start_path, int *num_entries);
 void free_tree(FileSystemEntry *root);
-void write_tree(FileSystemEntry *root, const char *filename);
+FileSystemEntry *read_tree_from_binary(const char *filename,
+                                            const char *start_music_path,
+                                            int *num_directory_entries);
+int write_tree_to_binary(FileSystemEntry *root, const char *filename);
 void fuzzy_search_recursive(FileSystemEntry *node, const char *search_term,
                             int threshold,
                             void (*callback)(FileSystemEntry *, int));
@@ -52,8 +55,6 @@ int compare_lib_entries_reversed(const struct dirent **a, const struct dirent **
 int compare_entry_natural_reversed(const void *a, const void *b);
 int compare_entry_natural(const void *a, const void *b);
 FileSystemEntry *find_corresponding_entry(FileSystemEntry *tmp, const char *full_path);
-FileSystemEntry *reconstruct_tree_from_file(const char *filename,
-                                            const char *start_music_path,
-                                            int *num_directory_entries);
+
 
 #endif
