@@ -231,10 +231,6 @@ void transfer_settings_to_ui(void)
         if (tmp >= 0)
                 ui->titleDelay = tmp;
 
-        tmp = get_number(settings->cacheLibrary);
-        if (tmp >= 0)
-                ui->cacheLibrary = tmp;
-
         snprintf(ui->theme_name, sizeof(ui->theme_name), "%s", settings->theme);
 
         if (!(ui->colorMode >= 0 && ui->colorMode < 3)) {
