@@ -16,7 +16,6 @@
 #include "data/directorytree.h"
 
 #include "utils/file.h"
-#include "utils/term.h"
 #include "utils/utils.h"
 
 #include <sys/stat.h>
