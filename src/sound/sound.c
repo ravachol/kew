@@ -218,14 +218,6 @@ int handle_codec(
                 audio_data->avg_bit_rate = 0;
         }
 
-        // Avg bitrate handling
-        if (audio_data->pUserData->current_song_data)
-                audio_data->pUserData->current_song_data->avg_bit_rate =
-                    audio_data->avg_bit_rate =
-                        calc_avg_bit_rate(audio_data->pUserData->current_song_data->duration, file_path);
-        else
-                audio_data->avg_bit_rate = 0;
-
         if (is_repeat_enabled() || !(sameFormat && current_implementation == ops.implType)) {
                 set_impl_switch_reached();
 
