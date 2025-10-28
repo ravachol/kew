@@ -68,7 +68,7 @@ void shuffle_playlist(PlayList *playlist);
 void shuffle_playlist_starting_from_song(PlayList *playlist, Node *song);
 void write_m3u_file(const char *filename, const PlayList *playlist);
 void export_current_playlist(const char *path, const PlayList *playlist);
-void load_last_used_playlist(PlayList *playlist, PlayList **unshuffled_playlist);
+void load_last_used_playlist(PlayList *playlist, PlayList **unshuffled_playlist, FileSystemEntry *root);
 void load_favorites_playlist(const char *directory, PlayList **favorites_playlist);
 void save_named_playlist(const char *directory, const char *playlist_name, const PlayList *playlist);
 void save_last_used_playlist(PlayList *unshuffled_playlist);
@@ -78,4 +78,4 @@ void create_play_list_from_file_system_entry(FileSystemEntry *root, PlayList *li
 void add_shuffled_albums_to_play_list(FileSystemEntry *root, PlayList *list, int playlist_max);
 void move_up_list(PlayList *list, Node *node);
 void move_down_list(PlayList *list, Node *node);
-void read_m3_u_file(const char *filename, PlayList *playlist, FileSystemEntry *library);
+void read_m3u_file(const char *filename, PlayList *playlist, FileSystemEntry *library);

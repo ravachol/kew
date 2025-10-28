@@ -26,7 +26,7 @@ PlayList *unshuffled_playlist = NULL;
 // The playlist from kew favorites .m3u
 PlayList *favorites_playlist = NULL;
 
-static const char LIBRARY_FILE[] = "kewlibrary";
+static const char LIBRARY_FILE[] = "library.dat";
 
 double pause_seconds = 0.0;
 

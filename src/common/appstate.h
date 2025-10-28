@@ -306,7 +306,6 @@ typedef struct
         char mouseAltScrollDownAction[3];
         char hideLogo[2];
         char hideHelp[2];
-        char cacheLibrary[6];
         char quitAfterStopping[2];
         char hideGlimmeringText[2];
         char nextView[6];

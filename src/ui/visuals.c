@@ -385,7 +385,7 @@ int get_bit_depth(ma_format format)
 void print_spectrum(int row, int col, UISettings *ui, int height, int num_bars,
                     int visualizer_width, float *magnitudes)
 {
-        PixelData color;
+        PixelData color = {0, 0, 0};
 
         if (ui->colorMode == COLOR_MODE_ALBUM) {
                 color.r = ui->color.r;

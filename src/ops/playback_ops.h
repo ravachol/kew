@@ -16,6 +16,7 @@ int play_song(Node *node);
 void pause_song(void);
 void play(void);
 void stop(void);
+void stop_at_shutdown(void);
 void ops_toggle_pause(void);
 void resume_playback(void);
 void volume_change(int change_percent);

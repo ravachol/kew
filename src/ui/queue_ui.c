@@ -282,7 +282,7 @@ void view_enqueue(bool play_immediately)
                         Node *prev_tail = playlist->tail;
 
                         if (playlist != NULL) {
-                                read_m3_u_file(entry->full_path, playlist, library);
+                                read_m3u_file(entry->full_path, playlist, library);
 
                                 if (prev_tail != NULL && prev_tail->next != NULL) {
                                         first_enqueued_entry = find_corresponding_entry(
@@ -311,6 +311,7 @@ void view_enqueue(bool play_immediately)
         }
 
         // Handle MPRIS can_go_next
+        current_song = get_current_song();
         bool couldGoNext = (current_song != NULL && current_song->next != NULL);
         if (canGoNext != couldGoNext) {
                 emit_boolean_property_changed("can_go_next", couldGoNext);

@@ -18,6 +18,7 @@
 #include <glib.h>
 #include <limits.h>
 #include <regex.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -26,7 +27,156 @@
 
 #define MAX_STACK_SIZE 1000000
 
+#define FSDB_MAGIC 0x46534442 // "FSDB"
+
 static int last_used_id = 0;
+
+// Header for the DB
+typedef struct {
+        uint32_t magic;
+        uint32_t version;
+        uint32_t entry_count;
+        uint32_t string_table_size;
+        uint32_t max_id;
+} FileSystemHeader;
+
+// Per-entry on disk (fixed-size fields + offsets into string table)
+typedef struct {
+        int32_t id;
+        int32_t parent_id;
+        int32_t is_directory;
+        int32_t is_enqueued;
+        uint32_t name_offset;
+} FileSystemEntryDisk;
+
+typedef struct {
+        FileSystemEntry **data;
+        size_t size;
+        size_t capacity;
+} EntryArray;
+
+static void entry_array_init(EntryArray *arr)
+{
+        arr->size = 0;
+        arr->capacity = 1024;
+        arr->data = malloc(sizeof(FileSystemEntry *) * arr->capacity);
+}
+
+static void entry_array_push(EntryArray *arr, FileSystemEntry *entry)
+{
+        if (arr->size >= arr->capacity) {
+                arr->capacity *= 2;
+                arr->data = realloc(arr->data, sizeof(FileSystemEntry *) * arr->capacity);
+        }
+        arr->data[arr->size++] = entry;
+}
+
+static void collect_entries(FileSystemEntry *node, EntryArray *arr)
+{
+        if (!node)
+                return;
+
+        entry_array_push(arr, node);
+
+        for (FileSystemEntry *child = node->children; child; child = child->next)
+                collect_entries(child, arr);
+}
+
+int write_tree_to_binary(FileSystemEntry *root, const char *filename)
+{
+        if (!root || !filename)
+                return -1;
+
+        // Flatten tree
+        EntryArray arr;
+        entry_array_init(&arr);
+        collect_entries(root, &arr);
+        if (arr.size == 0) {
+                free(arr.data);
+                return -1; // nothing to write
+        }
+
+        // Compute max ID (for loader safety)
+        uint32_t max_id = 0;
+        for (size_t i = 0; i < arr.size; i++) {
+                if ((uint32_t)arr.data[i]->id > max_id)
+                        max_id = arr.data[i]->id;
+        }
+
+        // Build string table (names only)
+        size_t total_name_size = 0;
+        for (size_t i = 0; i < arr.size; i++) {
+                if (!arr.data[i]->name)
+                        continue;
+                total_name_size += strlen(arr.data[i]->name) + 1;
+        }
+
+        char *string_table = malloc(total_name_size);
+        if (!string_table) {
+                free(arr.data);
+                return -1;
+        }
+
+        FileSystemEntryDisk *disk_entries = malloc(sizeof(FileSystemEntryDisk) * arr.size);
+        if (!disk_entries) {
+                free(arr.data);
+                free(string_table);
+                return -1;
+        }
+
+        // Populate disk entries and string table
+        size_t offset = 0;
+        for (size_t i = 0; i < arr.size; i++) {
+                FileSystemEntry *n = arr.data[i];
+                FileSystemEntryDisk *d = &disk_entries[i];
+
+                d->id = n->id;
+                d->parent_id = n->parent_id;
+                d->is_directory = n->is_directory;
+                d->is_enqueued = n->is_enqueued;
+
+                if (n->name) {
+                        d->name_offset = (uint32_t)offset;
+                        strcpy(&string_table[offset], n->name);
+                        offset += strlen(n->name) + 1;
+                } else {
+                        d->name_offset = 0; // fallback if name is NULL
+                        string_table[offset++] = '\0';
+                }
+        }
+
+        FileSystemHeader header = {
+            .magic = FSDB_MAGIC,
+            .version = 1,
+            .entry_count = (uint32_t)arr.size,
+            .max_id = max_id,
+            .string_table_size = (uint32_t)total_name_size};
+
+        FILE *f = fopen(filename, "wb");
+        if (!f) {
+                free(arr.data);
+                free(disk_entries);
+                free(string_table);
+                return -1;
+        }
+
+        if (fwrite(&header, sizeof(header), 1, f) != 1 ||
+            fwrite(disk_entries, sizeof(FileSystemEntryDisk), arr.size, f) != arr.size ||
+            fwrite(string_table, 1, total_name_size, f) != total_name_size) {
+                fclose(f);
+                free(arr.data);
+                free(disk_entries);
+                free(string_table);
+                return -1;
+        }
+
+        fclose(f);
+        free(arr.data);
+        free(disk_entries);
+        free(string_table);
+
+        return 0;
+}
 
 FileSystemEntry *create_entry(const char *name, int is_directory,
                               FileSystemEntry *parent)
@@ -38,6 +188,7 @@ FileSystemEntry *create_entry(const char *name, int is_directory,
 
         if (new_entry != NULL) {
                 new_entry->name = strdup(name);
+
                 if (new_entry->name == NULL) {
                         fprintf(stderr, "create_entry: name is null\n");
                         free(new_entry);
@@ -50,6 +201,7 @@ FileSystemEntry *create_entry(const char *name, int is_directory,
                 new_entry->children = NULL;
                 new_entry->next = NULL;
                 new_entry->id = ++last_used_id;
+
                 if (parent != NULL) {
                         new_entry->parent_id = parent->id;
                 } else {
@@ -170,51 +322,51 @@ void set_full_path(FileSystemEntry *entry, const char *parent_path,
 
 void free_tree(FileSystemEntry *root)
 {
-    if (root == NULL)
-        return;
+        if (root == NULL)
+                return;
 
-    size_t cap = 128, top = 0;
-    FileSystemEntry **stack = malloc(cap * sizeof(*stack));
+        size_t cap = 128, top = 0;
+        FileSystemEntry **stack = malloc(cap * sizeof(*stack));
 
-    if (!stack)
-        return;
+        if (!stack)
+                return;
 
-    stack[top++] = root;
+        stack[top++] = root;
 
-    while (top > 0) {
-        FileSystemEntry *node = stack[--top];
+        while (top > 0) {
+                FileSystemEntry *node = stack[--top];
 
-        // Push siblings first (to handle next pointers)
-        if (node->next) {
-            if (top + 1 >= cap) {
-                cap *= 2;
-                FileSystemEntry **tmp = realloc(stack, cap * sizeof(*stack));
-                if (!tmp)
-                    break;
-                stack = tmp;
-            }
-            stack[top++] = node->next;
+                // Push siblings first (to handle next pointers)
+                if (node->next) {
+                        if (top + 1 >= cap) {
+                                cap *= 2;
+                                FileSystemEntry **tmp = realloc(stack, cap * sizeof(*stack));
+                                if (!tmp)
+                                        break;
+                                stack = tmp;
+                        }
+                        stack[top++] = node->next;
+                }
+
+                // Push children (so they get freed before the parent)
+                if (node->children) {
+                        if (top + 1 >= cap) {
+                                cap *= 2;
+                                FileSystemEntry **tmp = realloc(stack, cap * sizeof(*stack));
+                                if (!tmp)
+                                        break;
+                                stack = tmp;
+                        }
+                        stack[top++] = node->children;
+                }
+
+                // Now free this node itself
+                free(node->name);
+                free(node->full_path);
+                free(node);
         }
 
-        // Push children (so they get freed before the parent)
-        if (node->children) {
-            if (top + 1 >= cap) {
-                cap *= 2;
-                FileSystemEntry **tmp = realloc(stack, cap * sizeof(*stack));
-                if (!tmp)
-                    break;
-                stack = tmp;
-            }
-            stack[top++] = node->children;
-        }
-
-        // Now free this node itself
-        free(node->name);
-        free(node->full_path);
-        free(node);
-    }
-
-    free(stack);
+        free(stack);
 }
 
 int natural_compare(const char *a, const char *b)
@@ -425,8 +577,7 @@ int read_directory(const char *path, FileSystemEntry *parent)
 
                                 set_full_path(child, path, entry->d_name);
 
-                                if (child->full_path == NULL)
-                                {
+                                if (child->full_path == NULL) {
                                         free(child);
                                         continue;
                                 }
@@ -448,34 +599,6 @@ int read_directory(const char *path, FileSystemEntry *parent)
         regfree(&regex);
 
         return num_entries;
-}
-
-void write_tree_to_file(FileSystemEntry *node, FILE *file, int parent_id)
-{
-    if (node == NULL)
-        return;
-
-    fprintf(file, "%d\t%s\t%d\t%d\n",
-            node->id,
-            node->name ? node->name : "(null)",
-            node->is_directory,
-            parent_id);
-
-    for (FileSystemEntry *child = node->children; child; child = child->next) {
-        write_tree_to_file(child, file, node->id);
-    }
-}
-
-void write_tree(FileSystemEntry *root, const char *filename)
-{
-        FILE *file = fopen(filename, "w");
-        if (!file) {
-                perror("Failed to open file");
-                return;
-        }
-
-        write_tree_to_file(root, file, -1);
-        fclose(file);
 }
 
 FileSystemEntry *create_directory_tree(const char *start_path, int *num_entries)
@@ -533,90 +656,128 @@ int count_lines_and_max_id(const char *filename, int *max_id_out)
         return lines;
 }
 
-FileSystemEntry *reconstruct_tree_from_file(const char *filename,
-                                            const char *start_music_path,
-                                            int *num_directory_entries)
+FileSystemEntry *read_tree_from_binary(
+    const char *filename,
+    const char *start_music_path,
+    int *num_directory_entries)
 {
-        int max_id = -1;
-        int node_count = count_lines_and_max_id(filename, &max_id);
-        if (node_count <= 0 || max_id < 0)
+        if (!filename || !start_music_path)
                 return NULL;
-
-        FILE *file = fopen(filename, "r");
-        if (!file)
-                return NULL;
-
-        // Allocate memory for maxid + 1 nodes
-        FileSystemEntry **nodes =
-            calloc((size_t)(max_id + 1), sizeof(FileSystemEntry *));
-        if (!nodes) {
-                fclose(file);
-                return NULL;
-        }
-        char line[1024];
-        FileSystemEntry *root = NULL;
         if (num_directory_entries)
                 *num_directory_entries = 0;
 
-        while (fgets(line, sizeof(line), file)) {
-                int id, parent_id, is_dir;
-                char name[256];
-                if (sscanf(line, "%d\t%255[^\t]\t%d\t%d", &id, name, &is_dir,
-                           &parent_id) != 4)
-                        continue;
-                FileSystemEntry *node = malloc(sizeof(FileSystemEntry));
-                node->id = id;
-                node->name = strdup(name);
-                if (node->name == NULL) {
-                        fprintf(stderr,
-                                "reconstruct_tree_from_file:name is null\n");
-                        free(node);
-                        continue;
-                }
-                node->is_directory = is_dir;
-                node->is_enqueued = 0;
-                node->parent_id = parent_id;
-                node->parent = NULL;
-                node->children = NULL;
-                node->next = NULL;
-                node->lastChild = NULL;
-                nodes[id] = node;
+        FILE *f = fopen(filename, "rb");
+        if (!f)
+                return NULL;
 
-                if (parent_id >= 0 && parent_id <= max_id && nodes[parent_id]) {
-                        node->parent = nodes[parent_id];
-                        FileSystemEntry *parent = nodes[parent_id];
-                        if (!parent->children) {
-                                parent->children = parent->lastChild = node;
+        FileSystemHeader header;
+        if (fread(&header, sizeof(header), 1, f) != 1 || header.magic != FSDB_MAGIC) {
+                fclose(f);
+                return NULL;
+        }
+
+        // Read disk entries
+        FileSystemEntryDisk *disk_entries = malloc(sizeof(FileSystemEntryDisk) * header.entry_count);
+        if (!disk_entries) {
+                fclose(f);
+                return NULL;
+        }
+        if (fread(disk_entries, sizeof(FileSystemEntryDisk), header.entry_count, f) != header.entry_count) {
+                free(disk_entries);
+                fclose(f);
+                return NULL;
+        }
+
+        // Read string table
+        char *string_table = malloc(header.string_table_size);
+        if (!string_table) {
+                free(disk_entries);
+                fclose(f);
+                return NULL;
+        }
+        if (fread(string_table, 1, header.string_table_size, f) != header.string_table_size) {
+                free(disk_entries);
+                free(string_table);
+                fclose(f);
+                return NULL;
+        }
+
+        fclose(f);
+
+        // Determine max ID to safely allocate array
+        int max_id = -1;
+        for (uint32_t i = 0; i < header.entry_count; i++)
+                if (disk_entries[i].id > max_id)
+                        max_id = disk_entries[i].id;
+
+        FileSystemEntry **nodes = calloc((size_t)max_id + 1, sizeof(FileSystemEntry *));
+        if (!nodes) {
+                free(disk_entries);
+                free(string_table);
+                return NULL;
+        }
+
+        FileSystemEntry *root = NULL;
+
+        for (uint32_t i = 0; i < header.entry_count; i++) {
+                FileSystemEntryDisk *d = &disk_entries[i];
+
+                if (d->id < 0 || d->id > max_id)
+                        continue;
+
+                FileSystemEntry *n = malloc(sizeof(FileSystemEntry));
+                if (!n)
+                        continue;
+
+                n->id = d->id;
+                n->parent_id = d->parent_id;
+                n->is_directory = d->is_directory;
+                n->is_enqueued = d->is_enqueued;
+                n->name = strdup(string_table + d->name_offset);
+                n->parent = n->children = n->next = n->lastChild = NULL;
+                n->full_path = NULL;
+
+                nodes[n->id] = n;
+
+                // Link to parent if exists
+                if (n->parent_id >= 0 && n->parent_id <= max_id && nodes[n->parent_id]) {
+                        FileSystemEntry *p = nodes[n->parent_id];
+                        n->parent = p;
+                        if (!p->children)
+                                p->children = p->lastChild = n;
+                        else {
+                                p->lastChild->next = n;
+                                p->lastChild = n;
+                        }
+
+                        // full_path = parent/full_name
+                        size_t plen = strlen(p->full_path);
+                        size_t nlen = strlen(n->name);
+                        n->full_path = malloc(plen + 1 + nlen + 1);
+                        if (n->full_path) {
+                                memcpy(n->full_path, p->full_path, plen);
+                                n->full_path[plen] = '/';
+                                memcpy(n->full_path + plen + 1, n->name, nlen);
+                                n->full_path[plen + 1 + nlen] = '\0';
                         } else {
-                                parent->lastChild->next = node;
-                                parent->lastChild = node;
+                                n->full_path = strdup(n->name);
                         }
-                        // full_path = parent/fullName
-                        size_t plen = strlen(parent->full_path);
-                        size_t nlen = strlen(name);
-                        node->full_path = malloc(plen + 1 + nlen + 1);
-                        memcpy(node->full_path, parent->full_path, plen);
-                        node->full_path[plen] = '/';
-                        memcpy(node->full_path + plen + 1, name, nlen);
-                        node->full_path[plen + 1 + nlen] = 0;
-                        if (is_dir && num_directory_entries)
+
+                        if (n->is_directory && num_directory_entries)
                                 (*num_directory_entries)++;
+
                 } else {
-                        node->parent = NULL;
-                        node->full_path = strdup(start_music_path);
-                        if (node->full_path == NULL) {
-                                fprintf(stderr, "reconstructTreeFromFiley: "
-                                                "full_path is null\n");
-                                free(node);
-                                continue;
-                        }
-                        root = node;
-                        set_library(root);
+                        // Root node
+                        root = n;
+                        n->parent = NULL;
+                        n->full_path = strdup(start_music_path);
                 }
         }
-        fclose(file);
 
         free(nodes);
+        free(disk_entries);
+        free(string_table);
+
         return root;
 }
 

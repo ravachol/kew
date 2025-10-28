@@ -22,10 +22,6 @@
 #include <sys/stat.h>
 #include <sys/time.h>
 
-#ifndef ASK_IF_USE_CACHE_LIMIT_SECONDS
-#define ASK_IF_USE_CACHE_LIMIT_SECONDS 4
-#endif
-
 typedef struct
 {
         char *path;
@@ -33,6 +29,16 @@ typedef struct
 } UpdateLibraryThreadArgs;
 
 int current_sort = 0;
+
+void reset_sort_library(void)
+{
+        FileSystemEntry *library = get_library();
+
+        if (current_sort == 1) {
+                sort_file_system_tree(library, compare_entry_natural);
+                current_sort = 0;
+        }
+}
 
 void sort_library(void)
 {
@@ -146,49 +152,6 @@ bool mark_as_dequeued(FileSystemEntry *root, char *path)
         return false;
 }
 
-void ask_if_cache_library()
-{
-        AppState *state = get_app_state();
-        UISettings *ui = &(state->uiSettings);
-
-        if (ui->cacheLibrary >
-            -1) // Only use this function if cacheLibrary isn't set
-                return;
-
-        char input = '\0';
-
-        restore_terminal_mode();
-        enable_input_buffering();
-        show_cursor();
-
-        printf(_("Would you like to enable a (local) library cache for quicker "
-                 "startup "
-                 "times?\nYou can update the cache at any time by pressing 'u'. "
-                 "(y/n): "));
-
-        fflush(stdout);
-
-        do {
-                int res = scanf(" %c", &input);
-
-                if (res < 0)
-                        break;
-
-        } while (input != 'Y' && input != 'y' && input != 'N' && input != 'n');
-
-        if (input == 'Y' || input == 'y') {
-                printf("Y\n");
-                ui->cacheLibrary = 1;
-        } else {
-                printf("N\n");
-                ui->cacheLibrary = 0;
-        }
-
-        set_nonblocking_mode();
-        set_raw_input_mode();
-        hide_cursor();
-}
-
 typedef struct
 {
         char *path;
@@ -276,6 +239,8 @@ void *update_if_top_level_folders_mtimes_changed_thread(void *arg)
         struct stat path_stat;
 
         if (stat(path, &path_stat) == -1) {
+                if (args->path)
+                        free(args->path);
                 free(args);
                 pthread_exit(NULL);
         }
@@ -283,6 +248,8 @@ void *update_if_top_level_folders_mtimes_changed_thread(void *arg)
         if (get_modification_time(&path_stat) > ui->last_time_app_ran &&
             ui->last_time_app_ran > 0) {
                 update_library(path);
+                if (args->path)
+                        free(args->path);
                 free(args);
                 pthread_exit(NULL);
         }
@@ -290,7 +257,8 @@ void *update_if_top_level_folders_mtimes_changed_thread(void *arg)
         DIR *dir = opendir(path);
         if (!dir) {
                 perror("opendir");
-                free(args);
+                if (args->path)
+                        free(args->path);
                 pthread_exit(NULL);
         }
 
@@ -323,6 +291,8 @@ void *update_if_top_level_folders_mtimes_changed_thread(void *arg)
 
         closedir(dir);
 
+        if (args->path)
+                free(args->path);
         free(args);
 
         pthread_exit(NULL);
@@ -335,7 +305,6 @@ void update_library_if_changed_detected(void)
         pthread_t tid;
 
         UpdateLibraryThreadArgs *args = malloc(sizeof(UpdateLibraryThreadArgs));
-
         if (args == NULL) {
                 perror("malloc");
                 return;
@@ -344,16 +313,22 @@ void update_library_if_changed_detected(void)
         AppSettings *settings = get_app_settings();
 
         char expanded[MAXPATHLEN];
-
         expand_path(settings->path, expanded);
 
-        args->path = expanded;
+        args->path = strdup(expanded); // ✅ Make a heap copy of the string
+        if (args->path == NULL) {
+                perror("strdup");
+                free(args);
+                return;
+        }
+
         args->state = state;
 
         if (pthread_create(&tid, NULL,
                            update_if_top_level_folders_mtimes_changed_thread,
                            (void *)args) != 0) {
                 perror("pthread_create");
+                free(args->path);
                 free(args);
         }
 }
@@ -364,22 +339,21 @@ void create_library()
         AppState *state = get_app_state();
         FileSystemEntry *library = get_library();
 
-        if (state->uiSettings.cacheLibrary > 0) {
-                char expanded[MAXPATHLEN];
+        char expanded[MAXPATHLEN];
 
-                expand_path(settings->path, expanded);
-                char *lib_path = get_library_file_path();
-                library = reconstruct_tree_from_file(
-                    lib_path, expanded,
-                    &(state->uiState.numDirectoryTreeEntries));
-                free(lib_path);
-                update_library_if_changed_detected();
-        }
+        expand_path(settings->path, expanded);
+
+        char *lib_path = get_library_file_path();
+
+        library = read_tree_from_binary(
+            lib_path, expanded,
+            &(state->uiState.numDirectoryTreeEntries));
+
+        free(lib_path);
+
+        update_library_if_changed_detected();
 
         if (library == NULL || library->children == NULL) {
-                struct timeval start, end;
-
-                gettimeofday(&start, NULL);
 
                 char expanded[MAXPATHLEN];
 
@@ -387,17 +361,6 @@ void create_library()
 
                 library = create_directory_tree(
                     expanded, &(state->uiState.numDirectoryTreeEntries));
-
-                gettimeofday(&end, NULL);
-                long seconds = end.tv_sec - start.tv_sec;
-                long microseconds = end.tv_usec - start.tv_usec;
-                double elapsed = seconds + microseconds * 1e-6;
-
-                // If time to load the library was significant, ask to use cache
-                // instead
-                if (elapsed > ASK_IF_USE_CACHE_LIMIT_SECONDS) {
-                        ask_if_cache_library();
-                }
         }
 
         if (library == NULL || library->children == NULL) {
