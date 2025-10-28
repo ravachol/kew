@@ -26,8 +26,6 @@ The old format config files will still work, but to see examples of the new styl
 
 - The app and readme has been translated into chinese. Thank you for the help @hiruocha.
 
-- kew now follows standard C naming conventions and formatting, actually Linux-style. This means no more camelCase funny business.
-
 #### Bug Fixes
 
 - Don't enqueue the .m3u files themselves when mass enqueueing.
