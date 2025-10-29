@@ -26,6 +26,7 @@ void transfer_settings_to_ui(void);
 void enable_mouse(UISettings *ui);
 int get_update_counter(void);
 bool get_is_long_name(void);
+enum EventType get_mouse_action(int num);
 PixelData increase_luminosity(PixelData pixel, int amount);
 PixelData decrease_luminosity_pct(PixelData base, float pct);
 PixelData get_gradient_color(PixelData base_color, int row, int max_list_size, int start_gradient, float min_pct);

@@ -22,7 +22,7 @@ void get_prefs(AppSettings *settings, UISettings *ui);
 void set_config(AppSettings *settings, UISettings *ui);
 void set_prefs(AppSettings *settings, UISettings *ui);
 void set_path(const char *path);
-void map_settings_to_keys(AppSettings *settings, UISettings *ui, EventMapping *mappings);
+void map_settings_to_keys(AppSettings *settings, EventMapping *mappings);
 int update_rc(const char *path, const char *key, const char *value);
 const char *get_binding_string(enum EventType event, bool find_only_one);
 AppSettings init_settings(void);
