@@ -8,6 +8,8 @@
 
 #include "settings.h"
 
+#include "common_ui.h"
+
 #include "common/events.h"
 #include "termbox2_input.h"
 
@@ -797,6 +799,15 @@ void add_key_binding(TBKeyBinding binding)
                 key_bindings[keybinding_count++] = binding;
 }
 
+void add_legacy_mouse_binding(int mouseInputType, int mod, int action)
+{
+        enum EventType event = get_mouse_action(action);
+
+        TBKeyBinding kb = {mouseInputType, 0, mod, event, ""};
+
+        add_key_binding(kb);
+}
+
 static void trim_start(char **s)
 {
         while (**s && isspace((unsigned char)**s))
@@ -1059,30 +1070,37 @@ void construct_app_settings(AppSettings *settings, KeyValuePair *pairs, int coun
                         snprintf(settings->mouseLeftClickAction,
                                  sizeof(settings->mouseLeftClickAction), "%s",
                                  pair->value);
+                        add_legacy_mouse_binding(TB_KEY_MOUSE_LEFT, 0, get_number(pair->value));
                 } else if (strcmp(lowercase_key, "mousemiddleclickaction") == 0) {
                         snprintf(settings->mouseMiddleClickAction,
                                  sizeof(settings->mouseMiddleClickAction), "%s",
                                  pair->value);
+                        add_legacy_mouse_binding(TB_KEY_MOUSE_MIDDLE, 0, get_number(pair->value));
                 } else if (strcmp(lowercase_key, "mouserightclickaction") == 0) {
                         snprintf(settings->mouseRightClickAction,
                                  sizeof(settings->mouseRightClickAction), "%s",
                                  pair->value);
+                        add_legacy_mouse_binding(TB_KEY_MOUSE_RIGHT, 0, get_number(pair->value));
                 } else if (strcmp(lowercase_key, "mousescrollupaction") == 0) {
                         snprintf(settings->mouseScrollUpAction,
                                  sizeof(settings->mouseScrollUpAction), "%s",
                                  pair->value);
+                        add_legacy_mouse_binding(TB_KEY_MOUSE_WHEEL_UP, 0, get_number(pair->value));
                 } else if (strcmp(lowercase_key, "mousescrolldownaction") == 0) {
                         snprintf(settings->mouseScrollDownAction,
                                  sizeof(settings->mouseScrollDownAction), "%s",
                                  pair->value);
+                        add_legacy_mouse_binding(TB_KEY_MOUSE_WHEEL_DOWN, 0, get_number(pair->value));
                 } else if (strcmp(lowercase_key, "mousealtscrollupaction") == 0) {
                         snprintf(settings->mouseAltScrollUpAction,
                                  sizeof(settings->mouseAltScrollUpAction), "%s",
                                  pair->value);
+                        add_legacy_mouse_binding(TB_KEY_MOUSE_WHEEL_UP, TB_MOD_ALT, get_number(pair->value));
                 } else if (strcmp(lowercase_key, "mousealtscrolldownaction") == 0) {
                         snprintf(settings->mouseAltScrollDownAction,
                                  sizeof(settings->mouseAltScrollDownAction),
                                  "%s", pair->value);
+                        add_legacy_mouse_binding(TB_KEY_MOUSE_WHEEL_DOWN, TB_MOD_ALT, get_number(pair->value));
                 } else if (strcmp(lowercase_key, "hidelogo") == 0) {
                         snprintf(settings->hideLogo, sizeof(settings->hideLogo),
                                  "%s", pair->value);
@@ -1235,8 +1253,7 @@ void construct_app_settings(AppSettings *settings, KeyValuePair *pairs, int coun
                         char *event_str = parse_field(&s);
                         char *args_str = parse_field(&s);
 
-                        if (binding_str && event_str)
-                        {
+                        if (binding_str && event_str) {
                                 if (!args_str)
                                         args_str = "";
 
@@ -1342,8 +1359,7 @@ int get_music_library_path(char *path)
         return 0;
 }
 
-void map_settings_to_keys(AppSettings *settings, UISettings *ui,
-                          EventMapping *mappings)
+void map_settings_to_keys(AppSettings *settings, EventMapping *mappings)
 {
         mappings[0] = (EventMapping){settings->scrollUpAlt, EVENT_SCROLLUP};
         mappings[1] = (EventMapping){settings->scrollDownAlt, EVENT_SCROLLDOWN};
@@ -1393,13 +1409,6 @@ void map_settings_to_keys(AppSettings *settings, UISettings *ui,
         mappings[45] = (EventMapping){settings->hardRemove2, EVENT_REMOVE};
         mappings[46] = (EventMapping){settings->nextView, EVENT_NEXTVIEW};
         mappings[47] = (EventMapping){settings->prevView, EVENT_PREVVIEW};
-        mappings[48] = (EventMapping){settings->mouseLeftClick, ui->mouseLeftClickAction};
-        mappings[49] = (EventMapping){settings->mouseMiddleClick, ui->mouseMiddleClickAction};
-        mappings[50] = (EventMapping){settings->mouseRightClick, ui->mouseRightClickAction};
-        mappings[51] = (EventMapping){settings->mouseScrollUp, ui->mouseScrollUpAction};
-        mappings[52] = (EventMapping){settings->mouseScrollDown, ui->mouseScrollDownAction};
-        mappings[53] = (EventMapping){settings->mouseAltScrollUp, ui->mouseAltScrollUpAction};
-        mappings[54] = (EventMapping){settings->mouseAltScrollDown, ui->mouseAltScrollDownAction};
         mappings[55] = (EventMapping){settings->hardClearPlaylist, EVENT_CLEARPLAYLIST};
         mappings[56] = (EventMapping){settings->move_song_up, EVENT_MOVESONGUP};
         mappings[57] = (EventMapping){settings->move_song_down, EVENT_MOVESONGDOWN};
@@ -1812,35 +1821,6 @@ void set_config(AppSettings *settings, UISettings *ui)
                 snprintf(settings->replayGainCheckFirst,
                          sizeof(settings->replayGainCheckFirst), "%d",
                          ui->replayGainCheckFirst);
-
-        if (settings->mouseLeftClickAction[0] == '\0')
-                snprintf(settings->mouseLeftClickAction,
-                         sizeof(settings->mouseLeftClickAction), "%d",
-                         ui->mouseLeftClickAction);
-        if (settings->mouseMiddleClickAction[0] == '\0')
-                snprintf(settings->mouseMiddleClickAction,
-                         sizeof(settings->mouseMiddleClickAction), "%d",
-                         ui->mouseMiddleClickAction);
-        if (settings->mouseRightClickAction[0] == '\0')
-                snprintf(settings->mouseRightClickAction,
-                         sizeof(settings->mouseRightClickAction), "%d",
-                         ui->mouseRightClickAction);
-        if (settings->mouseScrollUpAction[0] == '\0')
-                snprintf(settings->mouseScrollUpAction,
-                         sizeof(settings->mouseScrollUpAction), "%d",
-                         ui->mouseScrollUpAction);
-        if (settings->mouseScrollDownAction[0] == '\0')
-                snprintf(settings->mouseScrollDownAction,
-                         sizeof(settings->mouseScrollDownAction), "%d",
-                         ui->mouseScrollDownAction);
-        if (settings->mouseAltScrollUpAction[0] == '\0')
-                snprintf(settings->mouseAltScrollUpAction,
-                         sizeof(settings->mouseAltScrollUpAction), "%d",
-                         ui->mouseAltScrollUpAction);
-        if (settings->mouseAltScrollDownAction[0] == '\0')
-                snprintf(settings->mouseAltScrollDownAction,
-                         sizeof(settings->mouseAltScrollDownAction), "%d",
-                         ui->mouseAltScrollDownAction);
 
         // Write the settings to the file
         fprintf(file, "\n[miscellaneous]\n\n");
