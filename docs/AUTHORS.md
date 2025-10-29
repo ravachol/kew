@@ -12,6 +12,7 @@
 * @dandelion-75
 * DNEGEL3125 @DNEGEL3125
 * Hans Petter Jansson @hpjansson <hpj@hpjansson.org>
+* @hiruocha
 * @hypercunx
 * Joey Schaff @jaoheah / @jaoh (codeberg) <jschaff@proton.me>
 * John Lakeman @j-lakeman <le0324tb@anonaddy.me>
@@ -34,6 +35,10 @@
 * Vafone @vafone
 * Nicolas F
 * Ravachol @ravachol <ravacholf@proton.me>
+
+## Translations
+
+* @hiruocha (Simplified Chinese)
 
 ## Special Thanks
 
