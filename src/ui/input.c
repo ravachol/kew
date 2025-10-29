@@ -162,7 +162,7 @@ bool is_cooldown_elapsed(int milli_seconds)
 void init_key_mappings(AppSettings *settings)
 {
         AppState *state = get_app_state();
-        map_settings_to_keys(settings, &(state->uiSettings), key_mappings);
+        map_settings_to_keys(settings, key_mappings);
 }
 
 int parse_volume_arg(const char *arg_str)
