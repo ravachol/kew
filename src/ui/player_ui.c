@@ -1068,7 +1068,7 @@ int show_key_bindings(SongData *songdata)
         }
 
         apply_color(ui->colorMode, ui->theme.text, ui->defaultColorRGB);
-        if (ui->colorMode != COLOR_MODE_ALBUM) {
+        if (ui->colorMode != COLOR_MODE_ALBUM && strcmp(ui->theme.theme_author, "Ravachol") != 0) {
                 printf(_(" Author: "));
                 apply_color(ui->colorMode, ui->theme.help, ui->color);
                 printf("%s", ui->theme.theme_author);
