@@ -35,12 +35,12 @@ void *get_g_main_context(void)
         return global_main_context;
 }
 
-GDBusConnection *get_g_d_bus_connection(void)
+GDBusConnection *get_gd_bus_connection(void)
 {
         return connection;
 }
 
-void set_g_d_bus_connection(GDBusConnection *val)
+void set_gd_bus_connection(GDBusConnection *val)
 {
         connection = val;
 }

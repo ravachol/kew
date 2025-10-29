@@ -16,7 +16,7 @@
 
 void set_g_main_context(GMainContext *val);
 void *get_g_main_context(void);
-void set_g_d_bus_connection(GDBusConnection *val);
+void set_gd_bus_connection(GDBusConnection *val);
 void emit_string_property_changed(const gchar *property_name, const gchar *new_value);
 void update_playback_position(double elapsed_seconds);
 void emit_seeked_signal(double new_position_seconds);
@@ -29,6 +29,6 @@ void restart_if_already_running(char *argv[]);
 void restart_kew(char *argv[]);
 void init_resize(void);
 void quit(void);
-GDBusConnection *get_g_d_bus_connection(void);
+GDBusConnection *get_gd_bus_connection(void);
 
 #endif
