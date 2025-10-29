@@ -172,8 +172,6 @@ void *update_library_thread(void *arg)
         char expanded_path[MAXPATHLEN];
         expand_path(path, expanded_path);
 
-        set_error_message("Updating Library...");
-
         FileSystemEntry *tmp =
             create_directory_tree(expanded_path, &tmp_directory_tree_entries);
 
