@@ -184,10 +184,9 @@ void try_load_next(void)
 
 void pause_song(void)
 {
-        struct timespec pause_time = get_pause_time();
         if (!is_paused()) {
                 emit_string_property_changed("PlaybackStatus", "Paused");
-                clock_gettime(CLOCK_MONOTONIC, &pause_time);
+                update_pause_time();
         }
         pause_playback();
 }
