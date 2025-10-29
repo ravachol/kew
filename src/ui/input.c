@@ -285,6 +285,7 @@ void handle_event(struct Event *event)
                 break;
         case EVENT_UPDATELIBRARY:
                 free_search_results();
+                set_error_message("Updating Library...");
                 update_library(settings->path);
                 break;
         case EVENT_SHOWHELP:
