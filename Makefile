@@ -177,6 +177,7 @@ MAN_PAGE = kew.1
 MAN_DIR ?= $(PREFIX)/share/man
 DATADIR ?= $(PREFIX)/share
 THEMEDIR = $(DATADIR)/kew/themes
+THEMESRCDIR := $(CURDIR)/themes
 
 all: kew
 
@@ -219,7 +220,6 @@ kew: $(OBJS) $(WRAPPER_OBJ) Makefile
 
 .PHONY: install
 install: all
-install: all
 	# Create directories
 	mkdir -p $(DESTDIR)$(MAN_DIR)/man1
 	mkdir -p $(DESTDIR)$(PREFIX)/bin
@@ -233,13 +233,14 @@ install: all
 	# Install Chinese translation
 	install -m 0644 locale/zh_CN/LC_MESSAGES/kew.mo \
 		$(DESTDIR)$(LANGDIRPREFIX)/share/locale/zh_CN/LC_MESSAGES/kew.mo
-	@if [ -d themes ]; then \
-		for theme in themes/*.theme; do \
+
+	@if [ -d $(THEMESRCDIR) ]; then \
+	for theme in $(THEMESRCDIR)/*.theme; do \
 			if [ -f "$$theme" ]; then \
 				install -m 0644 "$$theme" $(DESTDIR)$(THEMEDIR)/; \
 			fi; \
 		done; \
-		for theme in themes/*.txt; do \
+		for theme in $(THEMESRCDIR)/*.txt; do \
 			if [ -f "$$theme" ]; then \
 				install -m 0644 "$$theme" $(DESTDIR)$(THEMEDIR)/; \
 			fi; \
