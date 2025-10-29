@@ -1,0 +1,59 @@
+# ============================================
+# 2. CATPPUCCIN MOCHA (Warm & Cozy)
+# ============================================
+[theme]
+name=Catppuccin Mocha
+author=pixel-peeper
+
+# Core colors (Catppuccin Mocha palette)
+accent=#b4befe  # Lavender
+text=#cdd6f4    # Text
+textDim=#a6adc8 # Subtext1
+textMuted=#6c7086 # Subtext0
+
+# General Colors
+logo=#b4befe    # Lavender
+header=#1e1e2e  # Base
+footer=#1e1e2e  # Base
+help=#a6adc8    # Subtext1
+link=#89b4fa    # Blue
+nowplaying=#b4befe # Lavender
+
+# Playlist View
+playlist.rownum=#6c7086  # Subtext0
+playlist.title=#cdd6f4   # Text
+playlist.playing=#b4befe # Lavender
+
+# Track View
+trackview.title=#cdd6f4  # Text
+trackview.artist=#a6adc8 # Subtext1
+trackview.album=#89b4fa  # Blue
+trackview.year=#6c7086   # Subtext0
+trackview.time=#b4befe   # Lavender
+trackview.visualizer=#a6adc8 # Subtext1
+trackview.lyrics=#cdd6f4 # Text
+
+# Library View
+library.artist=#b4befe   # Lavender
+library.album=#a6adc8    # Subtext1
+library.track=#cdd6f4    # Text
+library.enqueued=#a6adc8 # Subtext1
+library.playing=#b4befe  # Lavender
+
+# Search
+search.label=#89b4fa     # Blue
+search.query=#cdd6f4     # Text
+search.result=#cdd6f4    # Text
+search.enqueued=#a6adc8  # Subtext1
+search.playing=#b4befe   # Lavender
+
+# Progress
+progress.filled=#b4befe  # Lavender
+progress.empty=#313244   # Surface1
+progress.elapsed=#b4befe # Lavender
+
+# Status
+status.info=-1           # Default foreground
+status.warning=#f9e2af  # Yellow
+status.error=#f38ba8    # Red
+status.success=#a6e3a1  # Green
