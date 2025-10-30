@@ -141,8 +141,19 @@ int prepare_and_play_song(Node *song)
 
         set_current_song(song);
 
+        AppState *state = get_app_state();
+        PlaybackState *ps = get_playback_state();
+
+        stop();
+
+        pthread_mutex_lock(&(ps->loadingdata.mutex));
+        pthread_mutex_lock(&(state->data_source_mutex));
+
         unload_song_a();
         unload_song_b();
+
+        pthread_mutex_unlock(&(ps->loadingdata.mutex));
+        pthread_mutex_unlock(&(state->data_source_mutex));
 
         int res = load_first(get_current_song());
 
