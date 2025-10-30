@@ -288,9 +288,17 @@ static bool perform_seek_if_requested(ma_decoder *decoder, AudioData *audio_data
         return result == MA_SUCCESS;
 }
 
+int lastCursor = 0;
+
 static bool should_switch(AudioData *audio_data, ma_uint64 frames_to_read,
                           ma_result result, ma_uint64 cursor)
 {
+        if (cursor != 0 && lastCursor == cursor)
+        {
+                lastCursor = 0;
+                return true;
+        }
+
         return (((audio_data->totalFrames != 0 &&
                   cursor >= audio_data->totalFrames) ||
                  frames_to_read == 0 || is_skip_to_next() || result != MA_SUCCESS) &&
@@ -379,8 +387,11 @@ void builtin_read_pcm_frames(ma_data_source *p_data_source, void *p_frames_out,
                 if (should_switch(audio_data, frames_to_read, result, cursor)) {
                         activate_switch(audio_data);
                         pthread_mutex_unlock(&(state->data_source_mutex));
+                        lastCursor = 0;
                         continue;
                 }
+
+                lastCursor = cursor;
 
                 // Step 8: Update state
                 frames_read += frames_to_read;
