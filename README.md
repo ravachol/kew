@@ -176,7 +176,7 @@ A terminal emulator that can handle TrueColor and sixels is recommended. See [Si
 
 ## Lyrics
 
-Lyrics can be read from a provided .lrc file that matches the audio file in name and content or from SYLT embedded tags on mp3 files.
+Lyrics can be read from a provided .lrc file that matches the audio file in name and content, from Vorbis comment metadata or from SYLT embedded tags on mp3 files.
 
 Timestamped lyrics will be shown automatically in track view. Press <kbd>m</kbd> show full page lyrics.
 

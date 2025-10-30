@@ -26,6 +26,8 @@ The old format config files will still work for the most part, but to see exampl
 
 - The app and readme has been translated into chinese. Thank you for the help @hiruocha.
 
+- One more theme: catpuccin mocha by @pixel-peeper.
+
 #### Bug Fixes
 
 - Don't enqueue the .m3u files themselves when mass enqueueing.
