@@ -2118,7 +2118,7 @@ void show_track_view_landscape(int height, int width, float aspect_ratio,
                 if (!state->uiState.showLyricsPage) {
 
                         if (chroma_started) {
-                                print_chroma_frame(2, 2);
+                                print_chroma_frame(2, 2, false);
                         }
 
                         if (height > metadata_height + time_height)
@@ -2186,7 +2186,7 @@ void show_track_view_portrait(int height, AppSettings *settings,
                         avg_bit_rate = songdata->avg_bit_rate;
 
                         if (chroma_started) {
-                                print_chroma_frame(2, col + 1);
+                                print_chroma_frame(2, col + 1, true);
                         }
 
                         get_format_and_sample_rate(&format, &sample_rate);
