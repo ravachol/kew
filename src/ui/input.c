@@ -1,6 +1,5 @@
 #ifndef _XOPEN_SOURCE
 #define _XOPEN_SOURCE
-#include "common/common.h"
 #endif
 
 #ifndef _DEFAULT_SOURCE
@@ -17,10 +16,12 @@
 #include "input.h"
 
 #include "common/appstate.h"
+#include "common/common.h"
 
 #define TB_IMPL
 #include "termbox2_input.h"
 
+#include "chroma.h"
 #include "control_ui.h"
 #include "player_ui.h"
 #include "queue_ui.h"
@@ -199,6 +200,11 @@ int parse_volume_arg(const char *arg_str)
         return atoi(buf);
 }
 
+void cycle_visualization(void)
+{
+        // FIXME: implement this
+}
+
 void handle_event(struct Event *event)
 {
         AppState *state = get_app_state();
@@ -240,6 +246,9 @@ void handle_event(struct Event *event)
                 break;
         case EVENT_CYCLETHEMES:
                 cycle_themes();
+                break;
+        case EVENT_CYCLEVISUALIZATION:
+                cycle_visualization();
                 break;
         case EVENT_QUIT:
                 quit();

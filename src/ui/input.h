@@ -16,3 +16,4 @@ void press_digit(int digit);
 void init_input(void);
 void shutdown_input(void);
 void handle_cooldown(void);
+void cycle_visualization(void);

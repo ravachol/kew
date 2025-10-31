@@ -12,6 +12,13 @@
 
 #include <chafa.h>
 
+typedef struct
+{
+        gint width_cells, height_cells;
+        gint width_pixels, height_pixels;
+} TermSize;
+
+void tty_init(void);
 int print_in_ascii_centered(const char *path_to_img_file, int height);
 int print_in_ascii(int indentation, const char *path_to_img_file, int height);
 int get_cover_color(unsigned char *pixels, int width, int height, unsigned char *r, unsigned char *g, unsigned char *b);
@@ -20,6 +27,7 @@ float calc_aspect_ratio(void);
 unsigned char *get_bitmap(const char *image_path, int *width, int *height);
 void print_square_bitmap_centered(unsigned char *pixels, int width, int height, int base_height);
 void print_square_bitmap(int row, int col, unsigned char *pixels, int width, int height, int base_height);
+void get_tty_size(TermSize *term_size_out);
 
 #ifdef CHAFA_VERSION_1_16
 gboolean retirePassthroughWorkarounds_tmux(void);

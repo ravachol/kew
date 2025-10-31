@@ -165,7 +165,7 @@ SRCS = src/common/appstate.c src/ui/common_ui.c src/common/common.c \
        src/ops/playback_ops.c src/ops/playback_clock.c src/ops/playback_system.c \
        src/ops/playlist_ops.c src/ops/library_ops.c src/ops/track_manager.c src/ops/playback_state.c \
        src/ui/control_ui.c  src/ui/input.c src/ui/playlist_ui.c  src/ui/search_ui.c  src/ui/player_ui.c \
-       src/ui/visuals.c src/ui/queue_ui.c src/ui/settings.c  src/ui/cli.c \
+       src/ui/visuals.c src/ui/chroma.c src/ui/queue_ui.c src/ui/settings.c  src/ui/cli.c \
        src/data/theme.c src/data/directorytree.c src/data/lyrics.c src/data/img_func.c src/data/song_loader.c  \
        src/data/playlist.c  src/kew.c
 
