@@ -27,7 +27,6 @@ static void *chroma_thread(void *arg)
 
     while (g_viz.running) {
 
-        // ---- determine width and height based on terminal aspect ----
         TermSize ts;
         tty_init();
         get_tty_size(&ts);
@@ -40,9 +39,8 @@ static void *chroma_thread(void *arg)
         int width = (int)(height * aspect);
         if (width < 1) width = 1;
 
-        // ---- prepare command ----
         char cmd[128];
-        snprintf(cmd, sizeof(cmd), "chroma --stream %dx%d --config /home/ravachol/Documents/chroma/examples/2.toml --fps 30", width, height);
+        snprintf(cmd, sizeof(cmd), "chroma --stream %dx%d --fps 30", width, height);
 
         FILE *fp = popen(cmd, "r");
         if (!fp) {
@@ -50,8 +48,7 @@ static void *chroma_thread(void *arg)
             continue;
         }
 
-        // ---- single growing buffer for frames ----
-        size_t cap = 128 * 1024;        // start small
+        size_t cap = 128 * 1024;
         size_t pos = 0;
         char *buf = malloc(cap);
         if (!buf) {
@@ -66,12 +63,12 @@ static void *chroma_thread(void *arg)
             int c = fgetc(fp);
             if (c == EOF) break;
 
-            // grow buffer if needed
+            // Grow buffer if needed
             if (pos + 1 >= cap) {
                 cap *= 2;
                 char *tmp = realloc(buf, cap);
                 if (!tmp) {
-                    // abort this stream, drop frame
+                    // Abort this stream, drop frame
                     free(buf);
                     buf = NULL;
                     break;
@@ -82,19 +79,19 @@ static void *chroma_thread(void *arg)
             buf[pos++] = (char)c;
             buf[pos] = '\0';
 
-            // ---- detect end-of-frame: "\n\n" ----
+            // Detect end-of-frame
             if (c == '\n') {
                 nl_streak++;
                 if (nl_streak == 2) {
                     if (!synced) {
-                        // swallow first frame (sync)
+                        // Swallow first frame (sync)
                         pos = 0;
                         nl_streak = 0;
                         synced = 1;
                         continue;
                     }
 
-                    // ---- FULL FRAME READY ----
+                    // FULL FRAME READY
                     pthread_mutex_lock(&g_viz.lock);
 
                     if (!g_viz.frame || g_viz.frame_capacity < pos + 1) {
@@ -108,7 +105,7 @@ static void *chroma_thread(void *arg)
 
                     pthread_mutex_unlock(&g_viz.lock);
 
-                    // reset for next frame
+                    // Reset for next frame
                     pos = 0;
                     nl_streak = 0;
                 }
@@ -139,11 +136,11 @@ void chroma_stop()
 {
     if (!g_viz.running) return;
 
-    g_viz.running = 0;                  // tell thread to exit
-    pthread_join(g_viz.thread, NULL);   // wait until it finishes
+    g_viz.running = 0;                  // Tell thread to exit
+    pthread_join(g_viz.thread, NULL);   // Wait until it finishes
 
     pthread_mutex_lock(&g_viz.lock);
-    if (g_viz.frame) {                  // free dynamic frame buffer
+    if (g_viz.frame) {                  // Free dynamic frame buffer
         free(g_viz.frame);
         g_viz.frame = NULL;
     }
