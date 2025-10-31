@@ -52,6 +52,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include "ui/settings.h"
 #include "ui/termbox2_input.h"
 #include "ui/visuals.h"
+#include "ui/chroma.h"
 
 #include "ops/library_ops.h"
 #include "ops/playback_clock.h"
@@ -438,6 +439,8 @@ void kew_shutdown()
         playback_free_decoders();
 
         emit_playback_stopped_mpris();
+
+        chroma_stop();
 
         bool noMusicFound = false;
 

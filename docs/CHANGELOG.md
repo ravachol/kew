@@ -32,6 +32,12 @@ The old format config files will still work for the most part, but to see exampl
 
 - Don't enqueue the .m3u files themselves when mass enqueueing.
 
+- Fixes a bug related to certain types of mp3 files, where the song metadata wasn't switching in the UI. Found by: @Chromium-3-Oxide.
+
+#### Sponsors
+
+Thank you to Christian Mummelthey for his donation.
+
 ### 3.6.4
 
 - Fixed 'kew theme' command.

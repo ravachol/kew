@@ -40,12 +40,6 @@
 
 #define MACRO_STRLEN(s) (sizeof(s) / sizeof(s[0]))
 
-typedef struct
-{
-        gint width_cells, height_cells;
-        gint width_pixels, height_pixels;
-} TermSize;
-
 char scale[] = "$@&B%8WM#ZO0QoahkbdpqwmLCJUYXIjft/\\|()1{}[]l?zcvunxr!<>i;:*-+~_,\"^`'. ";
 unsigned int brightness_levels = MACRO_STRLEN(scale) - 2;
 
@@ -268,8 +262,7 @@ static void detect_terminal(ChafaTermInfo **term_info_out, ChafaCanvasMode *mode
 }
 #endif
 
-static void
-get_tty_size(TermSize *term_size_out)
+void get_tty_size(TermSize *term_size_out)
 {
         TermSize term_size;
 
@@ -319,8 +312,7 @@ get_tty_size(TermSize *term_size_out)
         *term_size_out = term_size;
 }
 
-static void
-tty_init(void)
+void tty_init(void)
 {
 #ifdef G_OS_WIN32
         {

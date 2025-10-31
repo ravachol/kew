@@ -288,7 +288,7 @@ static bool perform_seek_if_requested(ma_decoder *decoder, AudioData *audio_data
         return result == MA_SUCCESS;
 }
 
-int lastCursor = 0;
+ma_uint64 lastCursor = 0;
 
 static bool should_switch(AudioData *audio_data, ma_uint64 frames_to_read,
                           ma_result result, ma_uint64 cursor)

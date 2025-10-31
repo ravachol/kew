@@ -76,6 +76,7 @@ TBKeyBinding key_bindings[MAX_KEY_BINDINGS] = {
     {0, 'r', 0, EVENT_TOGGLEREPEAT, ""},
     {0, 'i', 0, EVENT_CYCLECOLORMODE, ""},
     {0, 't', 0, EVENT_CYCLETHEMES, ""},
+    {0, 'c', 0, EVENT_CYCLEVISUALIZATION, ""},
     {0, 's', 0, EVENT_SHUFFLE, ""},
     {0, 'a', 0, EVENT_SEEKBACK, ""},
     {0, 'd', 0, EVENT_SEEKFORWARD, ""},
