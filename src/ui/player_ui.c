@@ -18,6 +18,7 @@
 #include "common/common.h"
 #include "common_ui.h"
 
+#include "chroma.h"
 #include "input.h"
 
 #include "ops/library_ops.h"
@@ -41,6 +42,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/param.h>
+#include <time.h>
 #include <wchar.h>
 
 #ifdef __APPLE__
@@ -85,6 +87,8 @@ static FileSystemEntry *last_entry = NULL;
 static FileSystemEntry *chosen_dir = NULL;
 static bool is_same_name_as_last_time = false;
 static int term_w, term_h;
+static int has_chroma = -1;
+static bool chroma_started = false;
 
 int get_footer_row(void)
 {
@@ -1004,6 +1008,10 @@ int show_key_bindings(SongData *songdata)
         num_printed_rows++;
         CHECK_LIST_LIMIT();
         print_blank_spaces(indent);
+        printf(_(" · Cycle Chroma Visualization: %s\n"), get_binding_string(EVENT_CYCLEVISUALIZATION, false));
+        num_printed_rows++;
+        CHECK_LIST_LIMIT();
+        print_blank_spaces(indent);
         printf(_(" · Stop: %s\n"), get_binding_string(EVENT_STOP, false));
         num_printed_rows++;
         CHECK_LIST_LIMIT();
@@ -1768,7 +1776,7 @@ int display_tree(FileSystemEntry *root, int depth, int max_list_size,
                                 printf("%s\n", filename);
 
                                 apply_color(COLOR_MODE_ALBUM, ui->theme.text,
-                                    ui->defaultColorRGB);
+                                            ui->defaultColorRGB);
                                 clear_rest_of_line();
 
                                 lib_song_iter++;
@@ -1889,12 +1897,11 @@ void show_library(SongData *song_data, AppSettings *settings)
 
         printf("\e[0m");
         apply_color(COLOR_MODE_ALBUM, ui->theme.text,
-                                    ui->defaultColorRGB);
+                    ui->defaultColorRGB);
 
         for (int i = lib_iter - start_lib_iter; i < max_lib_list_size; i++) {
                 clear_line();
                 printf("\n");
-
         }
 
         clear_line();
@@ -2078,8 +2085,7 @@ void show_track_view_landscape(int height, int width, float aspect_ratio,
 
         int col = height * aspect_ratio;
 
-        if (!state->uiSettings.coverEnabled ||
-            (songdata && songdata->cover == NULL))
+        if (!state->uiSettings.coverEnabled)
                 col = 1;
 
         int term_w, term_h;
@@ -2092,7 +2098,8 @@ void show_track_view_landscape(int height, int width, float aspect_ratio,
                 row = 2;
 
         if (is_refresh_triggered()) {
-                print_cover(height, songdata, &(state->uiSettings));
+                if (!chroma_started)
+                        print_cover(height, songdata, &(state->uiSettings));
 
                 if (!state->uiState.showLyricsPage) {
                         if (height > metadata_height)
@@ -2109,6 +2116,11 @@ void show_track_view_landscape(int height, int width, float aspect_ratio,
                 get_format_and_sample_rate(&format, &sample_rate);
 
                 if (!state->uiState.showLyricsPage) {
+
+                        if (chroma_started) {
+                                print_chroma_frame(2, 2);
+                        }
+
                         if (height > metadata_height + time_height)
                                 print_time(row + 4, col, elapsed_seconds, sample_rate,
                                            avg_bit_rate, term_w - col);
@@ -2158,7 +2170,9 @@ void show_track_view_portrait(int height, AppSettings *settings,
                 clear_screen();
 
                 if (!state->uiState.showLyricsPage) {
-                        print_cover_centered(songdata, &(state->uiSettings));
+
+                        if (!chroma_started)
+                                print_cover_centered(songdata, &(state->uiSettings));
                         print_metadata(row, col, visualizer_width - 1, metadata,
                                        &(state->uiSettings));
                 }
@@ -2170,6 +2184,10 @@ void show_track_view_portrait(int height, AppSettings *settings,
                         ma_uint32 sample_rate;
                         ma_format format;
                         avg_bit_rate = songdata->avg_bit_rate;
+
+                        if (chroma_started) {
+                                print_chroma_frame(2, col + 1);
+                        }
 
                         get_format_and_sample_rate(&format, &sample_rate);
                         print_time(row + metadata_height, col, elapsed_seconds, sample_rate,
@@ -2195,17 +2213,47 @@ void show_track_view_portrait(int height, AppSettings *settings,
         calc_and_print_last_row_and_error_row();
 }
 
+static int lastHeight = 0;
+static time_t last_restart = 0;
+
 void show_track_view(int width, int height, AppSettings *settings,
-                     SongData *songdata, double elapsed_seconds)
+                     SongData *songdata, double elapsed_seconds, UISettings *ui)
 {
+        time_t now = time(NULL);
+
+        bool landscape_layout = false;
         float aspect = get_aspect_ratio();
 
         if (aspect == 0.0f)
                 aspect = 1.0f;
 
         int corrected_width = width / aspect;
+        int cover_height = preferred_height;
 
         if (corrected_width > height * 2) {
+                landscape_layout = true;
+                cover_height = height - 2;
+        }
+
+        if (height != lastHeight && chroma_started && now != last_restart) {
+                last_restart = now;
+                lastHeight = height;
+                chroma_stop();
+                chroma_start(cover_height);
+        }
+
+        if (songdata && songdata->cover == NULL && !chroma_started && ui->coverEnabled) {
+                if (has_chroma == -1)
+                        has_chroma = chroma_is_installed();
+
+                if (has_chroma == 1) {
+                        chroma_started = true;
+                        lastHeight = height;
+                        chroma_start(cover_height);
+                }
+        }
+
+        if (landscape_layout) {
                 show_track_view_landscape(height, width, aspect, settings,
                                           songdata, elapsed_seconds);
         } else {
@@ -2266,6 +2314,11 @@ int print_player(SongData *songdata, double elapsed_seconds)
         if (state->currentView != PLAYLIST_VIEW)
                 state->uiState.resetPlaylistDisplay = true;
 
+        if (state->currentView != TRACK_VIEW && chroma_started) {
+                chroma_started = false;
+                chroma_stop();
+        }
+
         if (state->currentView == KEYBINDINGS_VIEW && shouldRefresh) {
                 clear_screen();
                 show_key_bindings(songdata);
@@ -2285,7 +2338,7 @@ int print_player(SongData *songdata, double elapsed_seconds)
                 show_library(songdata, settings);
                 fflush(stdout);
         } else if (state->currentView == TRACK_VIEW) {
-                show_track_view(term_w, term_h, settings, songdata, elapsed_seconds);
+                show_track_view(term_w, term_h, settings, songdata, elapsed_seconds, ui);
                 fflush(stdout);
         }
 
