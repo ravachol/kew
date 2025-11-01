@@ -8,6 +8,8 @@
 
 #include "control_ui.h"
 
+#include "ui/chroma.h"
+#include "ui/player_ui.h"
 #include "ui/queue_ui.h"
 
 #include "common/appstate.h"
@@ -112,6 +114,14 @@ void cycle_color_mode(void)
         }
 
         trigger_refresh();
+}
+
+void cycle_visualization(void)
+{
+        if (is_chroma_started())
+                request_stop_visualization();
+
+        request_next_visualization();
 }
 
 void cycle_themes(void)
