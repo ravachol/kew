@@ -164,6 +164,16 @@ kew theme <themename> (ie 'kew theme midnight')
 
 Put themes in \~/.config/kew/themes (\~/Library/Preferences/kew/themes on macOS).
 
+## Visulizations / Chroma
+
+You can add visualizations to kew by installing Chroma:
+
+https://github.com/yuri-xyz/chroma
+
+These are enabled when a song doesn't have a cover.
+
+You can also enable and cycle through them by pressing 'c'.
+
 ## If Colors or Graphics Look Wrong
 
 Cycle <kbd>i</kbd> until they look right.
