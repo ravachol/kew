@@ -202,7 +202,12 @@ int parse_volume_arg(const char *arg_str)
 
 void cycle_visualization(void)
 {
-        // FIXME: implement this
+        if (is_chroma_started())
+                request_stop_visualization();
+        else
+                request_next_visualization();
+
+        trigger_refresh();
 }
 
 void handle_event(struct Event *event)

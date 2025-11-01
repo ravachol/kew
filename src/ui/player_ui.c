@@ -88,7 +88,20 @@ static FileSystemEntry *chosen_dir = NULL;
 static bool is_same_name_as_last_time = false;
 static int term_w, term_h;
 static int has_chroma = -1;
-static bool chroma_started = false;
+static bool next_visualization_requested = false;
+static bool visualizations_instead_of_cover = false;
+
+void request_next_visualization(void)
+{
+        next_visualization_requested = true;
+        visualizations_instead_of_cover = true;
+}
+
+void request_stop_visualization(void)
+{
+        next_visualization_requested = false;
+        visualizations_instead_of_cover = false;
+}
 
 int get_footer_row(void)
 {
@@ -977,7 +990,7 @@ int show_key_bindings(SongData *songdata)
         num_printed_rows++;
         CHECK_LIST_LIMIT();
         print_blank_spaces(indent);
-        printf(_(" · volume: %s "), get_binding_string(EVENT_VOLUME_UP, false));
+        printf(_(" · Volume: %s "), get_binding_string(EVENT_VOLUME_UP, false));
         printf(_("and %s\n"), get_binding_string(EVENT_VOLUME_DOWN, false));
         num_printed_rows++;
         CHECK_LIST_LIMIT();
@@ -1008,7 +1021,7 @@ int show_key_bindings(SongData *songdata)
         num_printed_rows++;
         CHECK_LIST_LIMIT();
         print_blank_spaces(indent);
-        printf(_(" · Cycle Chroma Visualization: %s\n"), get_binding_string(EVENT_CYCLEVISUALIZATION, false));
+        printf(_(" · Cycle Chroma Visualization: %s (requires Chroma)\n"), get_binding_string(EVENT_CYCLEVISUALIZATION, false));
         num_printed_rows++;
         CHECK_LIST_LIMIT();
         print_blank_spaces(indent);
@@ -2098,7 +2111,7 @@ void show_track_view_landscape(int height, int width, float aspect_ratio,
                 row = 2;
 
         if (is_refresh_triggered()) {
-                if (!chroma_started)
+                if (!is_chroma_started())
                         print_cover(height, songdata, &(state->uiSettings));
 
                 if (!state->uiState.showLyricsPage) {
@@ -2117,7 +2130,7 @@ void show_track_view_landscape(int height, int width, float aspect_ratio,
 
                 if (!state->uiState.showLyricsPage) {
 
-                        if (chroma_started) {
+                        if (is_chroma_started()) {
                                 print_chroma_frame(2, 2, false);
                         }
 
@@ -2171,7 +2184,7 @@ void show_track_view_portrait(int height, AppSettings *settings,
 
                 if (!state->uiState.showLyricsPage) {
 
-                        if (!chroma_started)
+                        if (!is_chroma_started())
                                 print_cover_centered(songdata, &(state->uiSettings));
                         print_metadata(row, col, visualizer_width - 1, metadata,
                                        &(state->uiSettings));
@@ -2185,7 +2198,7 @@ void show_track_view_portrait(int height, AppSettings *settings,
                         ma_format format;
                         avg_bit_rate = songdata->avg_bit_rate;
 
-                        if (chroma_started) {
+                        if (is_chroma_started()) {
                                 print_chroma_frame(2, col + 1, true);
                         }
 
@@ -2235,22 +2248,23 @@ void show_track_view(int width, int height, AppSettings *settings,
                 cover_height = height - 2;
         }
 
-        if (height != lastHeight && chroma_started && now != last_restart) {
+        if (height != lastHeight && is_chroma_started() && now != last_restart) {
                 last_restart = now;
                 lastHeight = height;
                 chroma_stop();
                 chroma_start(cover_height);
         }
 
-        if (songdata && songdata->cover == NULL && !chroma_started && ui->coverEnabled) {
+        if (songdata && (songdata->cover == NULL  || next_visualization_requested || visualizations_instead_of_cover) && !is_chroma_started() && ui->coverEnabled) {
                 if (has_chroma == -1)
                         has_chroma = chroma_is_installed();
 
                 if (has_chroma == 1) {
-                        chroma_started = true;
                         lastHeight = height;
                         chroma_start(cover_height);
                 }
+
+                next_visualization_requested = false;
         }
 
         if (landscape_layout) {
@@ -2314,10 +2328,8 @@ int print_player(SongData *songdata, double elapsed_seconds)
         if (state->currentView != PLAYLIST_VIEW)
                 state->uiState.resetPlaylistDisplay = true;
 
-        if (state->currentView != TRACK_VIEW && chroma_started) {
-                chroma_started = false;
+        if ((state->currentView != TRACK_VIEW || is_refresh_triggered()) && is_chroma_started())
                 chroma_stop();
-        }
 
         if (state->currentView == KEYBINDINGS_VIEW && shouldRefresh) {
                 clear_screen();
