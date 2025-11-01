@@ -21,7 +21,6 @@
 #define TB_IMPL
 #include "termbox2_input.h"
 
-#include "chroma.h"
 #include "control_ui.h"
 #include "player_ui.h"
 #include "queue_ui.h"
@@ -69,6 +68,10 @@ struct Event map_tb_key_to_event(struct tb_event *ev)
 
         AppState *state = get_app_state();
         if (state->currentView == SEARCH_VIEW) {
+
+                if (ev->key == TB_KEY_SPACE && ev->mod == 0)
+                        ev->ch =  ' ';
+
                 // Backspace
                 if (ev->key == TB_KEY_BACKSPACE || ev->key == TB_KEY_BACKSPACE2) {
                         remove_from_search_text();
@@ -198,16 +201,6 @@ int parse_volume_arg(const char *arg_str)
 
         // Convert to integer
         return atoi(buf);
-}
-
-void cycle_visualization(void)
-{
-        if (is_chroma_started())
-                request_stop_visualization();
-        else
-                request_next_visualization();
-
-        trigger_refresh();
 }
 
 void handle_event(struct Event *event)
