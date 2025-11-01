@@ -2,7 +2,6 @@
 
 #include "data/img_func.h" // your terminal size functions
 #include "utils/term.h"
-#include "utils/utils.h"
 
 #include <pthread.h>
 #include <stdbool.h>
@@ -27,6 +26,8 @@ Chroma g_viz = {
 volatile int chroma_new_frame = 0;
 
 static int centered_indent = 0;
+
+static bool chroma_started;
 
 static void *chroma_thread(void *arg)
 {
@@ -146,6 +147,8 @@ void chroma_start(int height)
     *arg = height;
 
     pthread_create(&g_viz.thread, NULL, chroma_thread, arg);
+
+    chroma_started = true;
 }
 
 void chroma_stop()
@@ -161,6 +164,8 @@ void chroma_stop()
         g_viz.frame = NULL;
     }
     pthread_mutex_unlock(&g_viz.lock);
+
+    chroma_started = false;
 }
 
 const char *chroma_get_frame()
@@ -226,4 +231,9 @@ bool chroma_is_installed(void)
 
         free(p);
         return false;
+}
+
+bool is_chroma_started(void)
+{
+        return chroma_started;
 }

@@ -44,5 +44,7 @@ void set_track_title_as_window_title(void);
 char *get_library_file_path(void);
 bool init_theme(int argc, char *argv[]);
 FileSystemEntry *get_chosen_dir(void);
+void request_next_visualization(void);
+void request_stop_visualization(void);
 
 #endif
