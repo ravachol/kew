@@ -2255,13 +2255,26 @@ void show_track_view(int width, int height, AppSettings *settings,
                 chroma_start(cover_height);
         }
 
-        if (songdata && (songdata->cover == NULL  || next_visualization_requested || visualizations_instead_of_cover) && !is_chroma_started() && ui->coverEnabled) {
+        if (songdata && (songdata->cover == NULL || visualizations_instead_of_cover)
+        && (!is_chroma_started() || next_visualization_requested)  && ui->coverEnabled) {
                 if (has_chroma == -1)
                         has_chroma = chroma_is_installed();
 
                 if (has_chroma == 1) {
                         lastHeight = height;
-                        chroma_start(cover_height);
+
+                        if (next_visualization_requested)
+                        {
+                                chroma_set_next_preset(cover_height);
+                        }
+                        else
+                                chroma_start(cover_height);
+
+                        if (!is_chroma_started())
+                        {
+                                visualizations_instead_of_cover = false;
+                                trigger_refresh();
+                        }
                 }
 
                 next_visualization_requested = false;
