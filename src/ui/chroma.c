@@ -14,6 +14,8 @@
 typedef struct {
         char *frame;
         pthread_mutex_t lock;
+        int height;
+        int width;
         bool running;
         pthread_t thread;
         int preset;
@@ -22,6 +24,8 @@ typedef struct {
 
 Chroma g_viz = {
     .lock = PTHREAD_MUTEX_INITIALIZER,
+    .height = 0,
+    .width = 0,
     .running = false,
     .preset = 0,
 };
@@ -74,6 +78,9 @@ static void *chroma_thread(void *arg)
                 int width = (int)(height * aspect);
                 if (width < 1)
                         width = 1;
+
+                g_viz.height = height;
+                g_viz.width = width;
 
                 char cmd[128];
                 snprintf(cmd, sizeof(cmd), "chroma --stream %dx%d --fps 30", width, height);
@@ -191,43 +198,62 @@ void chroma_stop()
         chroma_started = false;
 }
 
-const char *chroma_get_frame()
-{
-        return g_viz.frame;
-}
-
 void print_chroma_frame(int row, int col, bool centered)
 {
-    if (!chroma_new_frame)
-        return;
+        if (!chroma_new_frame)
+                return;
 
-    const char *p = chroma_get_frame();
-    if (!p)
-        return;
+        char *tmp_buf = NULL;
+        size_t frame_len = 0;
 
-    if (centered)
-        col = centered_indent;
+        pthread_mutex_lock(&g_viz.lock);
+        if (g_viz.frame) {
+                frame_len = strlen(g_viz.frame);
+                tmp_buf = malloc(frame_len + 1);
+                if (tmp_buf) {
+                        memcpy(tmp_buf, g_viz.frame, frame_len + 1);
+                        chroma_new_frame = 0; // mark as consumed
+                }
+        }
+        pthread_mutex_unlock(&g_viz.lock);
 
-    printf("\033[%d;%dH", row, col);
+        char *p = tmp_buf;
 
-    while (*p) {
+        if (!p)
+                return;
 
-        const char *start = p;
+        if (centered)
+                col = centered_indent;
 
-        while (*p && *p != '\n')
-                p++;
+        printf("\033[%d;%dH", row, col);
 
-        p++;
+        while (*p) {
 
-        fwrite(start, 1, p - start, stdout);
+                const char *start = p;
 
-        clear_line();
+                while (*p && *p != '\n')
+                        p++;
 
-        print_blank_spaces(col);
-    }
+                if (*p == '\n')
+                        p++;
 
-    fflush(stdout);
-    chroma_new_frame = 0;
+                if (*p == '\n')
+                        p++;
+
+                fwrite(start, 1, p - start, stdout);
+
+                if (*p) {
+                        clear_line();
+                        print_blank_spaces(col);
+                }
+        }
+
+        fflush(stdout);
+
+        if (tmp_buf) {
+                free(tmp_buf);
+                tmp_buf = NULL;
+        }
 }
 
 bool chroma_is_installed(void)
