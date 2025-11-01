@@ -82,7 +82,7 @@ TBKeyBinding key_bindings[MAX_KEY_BINDINGS] = {
     {0, 'd', 0, EVENT_SEEKFORWARD, ""},
     {0, 'o', 0, EVENT_SORTLIBRARY, ""},
     {0, 'm', 0, EVENT_SHOWLYRICSPAGE, ""},
-    {0, 's', TB_MOD_SHIFT, EVENT_STOP, ""},
+    {0, 'S', 0, EVENT_STOP, ""},
 
     // Playlist actions
     {0, 'x', 0, EVENT_EXPORTPLAYLIST, ""},

@@ -175,37 +175,50 @@ const char *chroma_get_frame()
 
 void print_chroma_frame(int row, int col, bool centered)
 {
-        if (!chroma_new_frame)
-                return;
+    if (!chroma_new_frame)
+        return;
 
-        const char *frame = chroma_get_frame();
-        if (!frame)
-                return;
+    const char *frame = chroma_get_frame();
+    if (!frame)
+        return;
 
-        int current_row = row;
-        const char *ptr = frame;
+    if (centered)
+        col = centered_indent;
 
-        if (centered)
-                col = centered_indent;
+    int current_row = row;
+    const char *ptr = frame;
 
-        while (*ptr) {
+    while (*ptr)
+    {
+        printf("\033[%d;%dH", current_row, col);
+        clear_line();
 
-                printf("\033[%d;%dH", current_row, col);
-                clear_line();
+        const char *line_start = ptr;
+        const char *newline = strchr(ptr, '\n');
 
-                while (*ptr && *ptr != '\n') {
-                        putchar(*ptr++);
-                }
+        size_t len;
+        if (newline)
+            len = (size_t)(newline - ptr);
+        else
+            len = strlen(ptr);
 
-                if (*ptr == '\n')
-                        ptr++;
+        // Print the whole line at once, no escape sequences cut in half
+        if (len > 0)
+            fwrite(line_start, 1, len, stdout);
 
-                current_row++;
-        }
+        // Advance ptr
+        if (newline)
+            ptr = newline + 1;
+        else
+            break;
 
-        fflush(stdout);
-        chroma_new_frame = 0;
+        current_row++;
+    }
+
+    fflush(stdout);
+    chroma_new_frame = 0;
 }
+
 
 bool chroma_is_installed(void)
 {
