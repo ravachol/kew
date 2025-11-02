@@ -455,7 +455,8 @@ void kew_shutdown()
 #ifdef CHAFA_VERSION_1_16
         retire_passthrough_workarounds_tmux();
 #endif
-
+        bool wait_until_complete = true;
+        update_library_if_changed_detected(wait_until_complete);
         shutdown_input();
         free_search_results();
         cleanup_mpris();

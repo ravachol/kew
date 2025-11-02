@@ -1295,11 +1295,8 @@ KeyValuePair *read_key_value_pairs(const char *file_path, int *count,
         }
 
         // Save the modification time (mtime) of the file
-#ifdef __APPLE__
         *last_time_app_ran = file_stat.st_mtime;
-#else
-        *last_time_app_ran = file_stat.st_mtime;
-#endif
+
         KeyValuePair *pairs = NULL;
         int pair_count = 0;
 
