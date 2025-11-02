@@ -1,11 +1,19 @@
+/**
+ * @file chroma.c
+ * @brief To handle running Chroma in a thread and printing its output
+ *
+ * Contains functions to start, stop and print a chroma frame.
+ */
+
 #include "chroma.h"
 
-#include "data/img_func.h" // your terminal size functions
+#include "data/img_func.h"
 #include "utils/term.h"
 #include "utils/utils.h"
 
 #include <pthread.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -30,6 +38,12 @@ Chroma g_viz = {
     .preset = 0,
 };
 
+#define MAX_FRAME_BYTES (4 * 1024 * 1024) // 4 MiB
+
+#define MAX_HEIGHT 4000
+
+#define MAX_PRESET 11
+
 volatile int chroma_new_frame = 0;
 
 static int centered_indent = 0;
@@ -40,8 +54,10 @@ void chroma_set_next_preset(int height)
 {
         g_viz.preset++;
 
-        if (g_viz.preset == MAX_PRESET) {
+        if (g_viz.preset == 22)
                 g_viz.preset = 0;
+
+        if (g_viz.preset % MAX_PRESET == 0) {
                 chroma_stop();
         } else {
                 chroma_stop();
@@ -51,119 +67,126 @@ void chroma_set_next_preset(int height)
 
 static void *chroma_thread(void *arg)
 {
-        int height = *(int *)arg;
+    int height = *(int *)arg;
+    free(arg); // Caller must malloc the int
 
-        free(arg);
+    if (height <= 0) height = 1;
+    if (height > MAX_HEIGHT) height = MAX_HEIGHT;
 
-        int synced = 0;
+    int synced = 0;
 
-        while (g_viz.running) {
+    while (g_viz.running) {
+        TermSize ts;
+        tty_init();
+        get_tty_size(&ts);
 
-                TermSize ts;
-                tty_init();
-                get_tty_size(&ts);
+        int cell_w = (ts.width_pixels > 0 && ts.width_cells > 0) ? ts.width_pixels / ts.width_cells : 8;
+        int cell_h = (ts.height_pixels > 0 && ts.height_cells > 0) ? ts.height_pixels / ts.height_cells : 16;
+        float aspect = (float)cell_h / (float)cell_w;
 
-                int cell_w = (ts.width_pixels > 0 && ts.width_cells > 0) ? ts.width_pixels / ts.width_cells : 8;
-                int cell_h = (ts.height_pixels > 0 && ts.height_cells > 0) ? ts.height_pixels / ts.height_cells : 16;
-                float aspect = (float)cell_h / (float)cell_w;
+        float aspect_ratio_correction = aspect;
+        int corrected_width = (int)(height * aspect_ratio_correction) - 1;
+        if (corrected_width < 0) corrected_width = 0;
+        if (corrected_width > ts.width_cells) corrected_width = ts.width_cells;
 
-                float aspect_ratio_correction = (float)cell_h / (float)cell_w;
-                unsigned int corrected_width = (int)(height * aspect_ratio_correction) - 1;
+        centered_indent = (ts.width_cells - corrected_width) / 2;
 
-                // Calculate indentation to center the image
-                centered_indent = ((ts.width_cells - corrected_width) / 2);
+        int width = (int)(height * aspect);
+        if (width < 1) width = 1;
 
-                if (height > MAX_HEIGHT)
-                        height = MAX_HEIGHT;
-                int width = (int)(height * aspect);
-                if (width < 1)
-                        width = 1;
+        pthread_mutex_lock(&g_viz.lock);
+        g_viz.height = height;
+        g_viz.width = width;
+        pthread_mutex_unlock(&g_viz.lock);
 
-                g_viz.height = height;
-                g_viz.width = width;
+        char cmd[256];
+        int n = snprintf(cmd, sizeof(cmd),
+                         //"chroma --stream %dx%d --config /home/ravachol/Documents/chroma/examples/%d.toml --fps 30",
+                         "chroma --stream %dx%d --fps 30",
+                         width, height, g_viz.preset);
 
-                char cmd[128];
-                snprintf(cmd, sizeof(cmd), "chroma --stream %dx%d --fps 30", width, height);
-
-                FILE *fp = popen(cmd, "r");
-                if (!fp) {
-                        usleep(100000);
-                        continue;
-                }
-
-                size_t cap = 128 * 1024;
-                size_t pos = 0;
-                char *buf = malloc(cap);
-                if (!buf) {
-                        pclose(fp);
-                        usleep(100000);
-                        continue;
-                }
-
-                int nl_streak = 0;
-
-                while (g_viz.running) {
-                        int c = fgetc(fp);
-                        if (c == EOF)
-                                break;
-
-                        // Grow buffer if needed
-                        if (pos + 1 >= cap) {
-                                cap *= 2;
-                                char *tmp = realloc(buf, cap);
-                                if (!tmp) {
-                                        // Abort this stream, drop frame
-                                        free(buf);
-                                        buf = NULL;
-                                        break;
-                                }
-                                buf = tmp;
-                        }
-
-                        buf[pos++] = (char)c;
-                        buf[pos] = '\0';
-
-                        // Detect end-of-frame
-                        if (c == '\n') {
-                                nl_streak++;
-                                if (nl_streak == 2) {
-                                        if (!synced) {
-                                                // Swallow first frame (sync)
-                                                pos = 0;
-                                                nl_streak = 0;
-                                                synced = 1;
-                                                continue;
-                                        }
-
-                                        // Full Frame ready
-                                        pthread_mutex_lock(&g_viz.lock);
-
-                                        if (!g_viz.frame || g_viz.frame_capacity < pos + 1) {
-                                                g_viz.frame = realloc(g_viz.frame, pos + 1);
-                                                g_viz.frame_capacity = pos + 1;
-                                        }
-
-                                        memcpy(g_viz.frame, buf, pos);
-                                        g_viz.frame[pos] = '\0';
-                                        chroma_new_frame = 1;
-
-                                        pthread_mutex_unlock(&g_viz.lock);
-
-                                        // Reset for next frame
-                                        pos = 0;
-                                        nl_streak = 0;
-                                }
-                        } else {
-                                nl_streak = 0;
-                        }
-                }
-
-                if (buf)
-                        free(buf);
-                pclose(fp);
+        if (n < 0 || n >= (int)sizeof(cmd)) {
+            // Truncated or error; skip this iteration
+            usleep(100000);
+            continue;
         }
 
-        return NULL;
+        FILE *fp = popen(cmd, "r");
+        if (!fp) {
+            usleep(100000);
+            continue;
+        }
+
+        size_t cap = 128 * 1024;
+        size_t pos = 0;
+        char *buf = malloc(cap);
+        if (!buf) {
+            pclose(fp);
+            usleep(100000);
+            continue;
+        }
+
+        int nl_streak = 0;
+
+        while (g_viz.running) {
+            int c = fgetc(fp);
+            if (c == EOF) break;
+
+            // Grow buffer if needed with overflow and max checks
+            if (pos + 1 >= cap) {
+                if (cap > SIZE_MAX / 2) { free(buf); buf = NULL; break; }
+                cap *= 2;
+                if (cap > MAX_FRAME_BYTES) cap = MAX_FRAME_BYTES;
+                if (pos + 1 >= cap) { free(buf); buf = NULL; break; }
+
+                char *tmp = realloc(buf, cap);
+                if (!tmp) { free(buf); buf = NULL; break; }
+                buf = tmp;
+            }
+
+            buf[pos++] = (char)c;
+            buf[pos] = '\0';
+
+            if (c == '\n') {
+                nl_streak++;
+                if (nl_streak == 2) {
+                    if (!synced) {
+                        pos = 0; nl_streak = 0; synced = 1;
+                        continue;
+                    }
+
+                    // Full frame ready
+                    pthread_mutex_lock(&g_viz.lock);
+                    if (!g_viz.frame || g_viz.frame_capacity < pos + 1) {
+                        void *tmpf = realloc(g_viz.frame, pos + 1);
+                        if (!tmpf) {
+                            pthread_mutex_unlock(&g_viz.lock);
+                            pos = 0; nl_streak = 0;
+                            continue;
+                        }
+                        g_viz.frame = tmpf;
+                        g_viz.frame_capacity = pos + 1;
+                    }
+                    memcpy(g_viz.frame, buf, pos);
+                    g_viz.frame[pos] = '\0';
+                    chroma_new_frame = 1;
+                    pthread_mutex_unlock(&g_viz.lock);
+
+                    pos = 0;
+                    nl_streak = 0;
+                }
+            } else {
+                nl_streak = 0;
+            }
+
+            if (pos >= MAX_FRAME_BYTES) { pos = 0; nl_streak = 0; synced = 0; }
+        }
+
+        if (buf) free(buf);
+        pclose(fp);
+    }
+
+    return NULL;
 }
 
 void chroma_start(int height)
@@ -189,7 +212,7 @@ void chroma_stop()
         pthread_join(g_viz.thread, NULL); // Wait until it finishes
 
         pthread_mutex_lock(&g_viz.lock);
-        if (g_viz.frame) { // Free dynamic frame buffer
+        if (g_viz.frame) {
                 free(g_viz.frame);
                 g_viz.frame = NULL;
         }
@@ -198,7 +221,7 @@ void chroma_stop()
         chroma_started = false;
 }
 
-void print_chroma_frame(int row, int col, bool centered)
+void chroma_print_frame(int row, int col, bool centered)
 {
         if (!chroma_new_frame)
                 return;
@@ -212,7 +235,7 @@ void print_chroma_frame(int row, int col, bool centered)
                 tmp_buf = malloc(frame_len + 1);
                 if (tmp_buf) {
                         memcpy(tmp_buf, g_viz.frame, frame_len + 1);
-                        chroma_new_frame = 0; // mark as consumed
+                        chroma_new_frame = 0; // Mark as consumed
                 }
         }
         pthread_mutex_unlock(&g_viz.lock);
@@ -225,7 +248,7 @@ void print_chroma_frame(int row, int col, bool centered)
         if (centered)
                 col = centered_indent;
 
-        printf("\033[%d;%dH", row, col);
+        printf("\033[%d;%dH", row, col+1);
 
         while (*p) {
 
@@ -282,7 +305,7 @@ bool chroma_is_installed(void)
         return false;
 }
 
-bool is_chroma_started(void)
+bool chroma_is_started(void)
 {
         return chroma_started;
 }

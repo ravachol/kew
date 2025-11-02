@@ -118,7 +118,7 @@ void cycle_color_mode(void)
 
 void cycle_visualization(void)
 {
-        if (is_chroma_started())
+        if (chroma_is_started())
                 request_stop_visualization();
 
         request_next_visualization();
@@ -222,6 +222,13 @@ void toggle_show_lyrics_page(void)
 
 void toggle_ascii(void)
 {
+        if (chroma_is_started())
+        {
+                request_stop_visualization();
+                trigger_refresh();
+                return;
+        }
+
         AppSettings *settings = get_app_settings();
         AppState *state = get_app_state();
 
