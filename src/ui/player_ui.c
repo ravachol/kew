@@ -101,6 +101,7 @@ void request_stop_visualization(void)
 {
         next_visualization_requested = false;
         visualizations_instead_of_cover = false;
+        chroma_stop();
 }
 
 int get_footer_row(void)
@@ -1037,7 +1038,7 @@ int show_key_bindings(SongData *songdata)
         num_printed_rows++;
         CHECK_LIST_LIMIT();
         print_blank_spaces(indent);
-        printf(_(" · Toggle ASCII Cover: %s\n"), get_binding_string(EVENT_TOGGLEASCII, false));
+        printf(_(" · Toggle ASCII Cover: %s (disables Chroma)\n"), get_binding_string(EVENT_TOGGLEASCII, false));
         num_printed_rows++;
         CHECK_LIST_LIMIT();
         print_blank_spaces(indent);
@@ -2111,7 +2112,7 @@ void show_track_view_landscape(int height, int width, float aspect_ratio,
                 row = 2;
 
         if (is_refresh_triggered()) {
-                if (!is_chroma_started())
+                if (!chroma_is_started())
                         print_cover(height, songdata, &(state->uiSettings));
 
                 if (!state->uiState.showLyricsPage) {
@@ -2130,8 +2131,8 @@ void show_track_view_landscape(int height, int width, float aspect_ratio,
 
                 if (!state->uiState.showLyricsPage) {
 
-                        if (is_chroma_started()) {
-                                print_chroma_frame(2, 2, false);
+                        if (chroma_is_started()) {
+                                chroma_print_frame(2, 2, false);
                         }
 
                         if (height > metadata_height + time_height)
@@ -2184,7 +2185,7 @@ void show_track_view_portrait(int height, AppSettings *settings,
 
                 if (!state->uiState.showLyricsPage) {
 
-                        if (!is_chroma_started())
+                        if (!chroma_is_started())
                                 print_cover_centered(songdata, &(state->uiSettings));
                         print_metadata(row, col, visualizer_width - 1, metadata,
                                        &(state->uiSettings));
@@ -2198,8 +2199,8 @@ void show_track_view_portrait(int height, AppSettings *settings,
                         ma_format format;
                         avg_bit_rate = songdata->avg_bit_rate;
 
-                        if (is_chroma_started()) {
-                                print_chroma_frame(2, col + 1, true);
+                        if (chroma_is_started()) {
+                                chroma_print_frame(2, col + 1, true);
                         }
 
                         get_format_and_sample_rate(&format, &sample_rate);
@@ -2248,15 +2249,16 @@ void show_track_view(int width, int height, AppSettings *settings,
                 cover_height = height - 2;
         }
 
-        if (height != lastHeight && is_chroma_started() && now != last_restart) {
+        if (height != lastHeight && chroma_is_started() && now != last_restart) {
                 last_restart = now;
                 lastHeight = height;
                 chroma_stop();
+                clear_screen();
                 chroma_start(cover_height);
         }
 
         if (songdata && (songdata->cover == NULL || visualizations_instead_of_cover)
-        && (!is_chroma_started() || next_visualization_requested)  && ui->coverEnabled) {
+        && (!chroma_is_started() || next_visualization_requested)  && ui->coverEnabled) {
                 if (has_chroma == -1)
                         has_chroma = chroma_is_installed();
 
@@ -2265,12 +2267,18 @@ void show_track_view(int width, int height, AppSettings *settings,
 
                         if (next_visualization_requested)
                         {
+                                clear_screen();
                                 chroma_set_next_preset(cover_height);
+                                trigger_refresh();
                         }
                         else
+                        {
+                                clear_screen();
                                 chroma_start(cover_height);
+                                trigger_refresh();
+                        }
 
-                        if (!is_chroma_started())
+                        if (!chroma_is_started())
                         {
                                 visualizations_instead_of_cover = false;
                                 trigger_refresh();
@@ -2341,7 +2349,7 @@ int print_player(SongData *songdata, double elapsed_seconds)
         if (state->currentView != PLAYLIST_VIEW)
                 state->uiState.resetPlaylistDisplay = true;
 
-        if ((state->currentView != TRACK_VIEW || is_refresh_triggered()) && is_chroma_started())
+        if ((state->currentView != TRACK_VIEW || is_refresh_triggered()) && chroma_is_started())
                 chroma_stop();
 
         if (state->currentView == KEYBINDINGS_VIEW && shouldRefresh) {
