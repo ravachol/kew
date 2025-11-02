@@ -281,6 +281,7 @@ codec_ops_list[] = {
     {"webm", {.getDecoder = (void *(*)(void))get_current_webm_decoder, .get_file_info = get_webm_file_info, .get_decoder_format = (ma_result (*)(ma_data_source *, ma_format *, ma_uint32 *, ma_uint32 *, ma_channel *, size_t))ma_webm_ds_get_data_format, .create_audio_device = webm_createAudioDevice, .implType = WEBM, .supportsGapless = false}},
 #ifdef USE_FAAD
     {"m4a", {.getDecoder = (void *(*)(void))get_current_m4a_decoder, .get_file_info = get_m4a_file_info, .get_decoder_format = (ma_result (*)(ma_data_source *, ma_format *, ma_uint32 *, ma_uint32 *, ma_channel *, size_t))m4a_decoder_ds_get_data_format, .create_audio_device = m4a_createAudioDevice, .implType = M4A, .supportsGapless = true}},
+    {"aac", {.getDecoder = (void *(*)(void))get_current_m4a_decoder, .get_file_info = get_m4a_file_info, .get_decoder_format = (ma_result (*)(ma_data_source *, ma_format *, ma_uint32 *, ma_uint32 *, ma_channel *, size_t))m4a_decoder_ds_get_data_format, .create_audio_device = m4a_createAudioDevice, .implType = M4A, .supportsGapless = true}},
 #endif
 };
 
