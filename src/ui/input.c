@@ -292,7 +292,8 @@ void handle_event(struct Event *event)
         case EVENT_UPDATELIBRARY:
                 free_search_results();
                 set_error_message("Updating Library...");
-                update_library(settings->path);
+                bool wait_until_complete = false;
+                update_library(settings->path, wait_until_complete);
                 break;
         case EVENT_SHOWHELP:
                 toggle_show_view(KEYBINDINGS_VIEW);

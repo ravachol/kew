@@ -13,7 +13,7 @@
 #include "common/appstate.h"
 
 void create_library(void);
-void update_library(char *path);
+void update_library(char *path, bool wait_until_complete);
 void ask_if_cache_library(void);
 void sort_library(void);
 void reset_sort_library(void);
@@ -26,5 +26,5 @@ bool mark_as_dequeued(FileSystemEntry *root, char *path);
 bool has_song_children(FileSystemEntry *entry);
 bool has_dequeued_children(FileSystemEntry *parent);
 bool is_contained_within(FileSystemEntry *entry, FileSystemEntry *containing_entry);
-
+void update_library_if_changed_detected(bool wait_until_complete);
 #endif
