@@ -159,20 +159,20 @@ static const KeyMap key_map[] = {
     // Navigation / editing
     {"Insert", TB_KEY_INSERT},
     {"Ins", TB_KEY_INSERT},
-    {"Delete", TB_KEY_DELETE},
     {"Del", TB_KEY_DELETE},
+    {"Delete", TB_KEY_DELETE},
     {"Home", TB_KEY_HOME},
     {"End", TB_KEY_END},
-    {"PageUp", TB_KEY_PGUP},
     {"PgUp", TB_KEY_PGUP},
-    {"PageDown", TB_KEY_PGDN},
+    {"PageUp", TB_KEY_PGUP},
     {"PgDn", TB_KEY_PGDN},
+    {"PageDown", TB_KEY_PGDN},
     {"BackTab", TB_KEY_BACK_TAB},
     {"Tab", TB_KEY_TAB},
     {"Backspace", TB_KEY_BACKSPACE},
     {"Enter", TB_KEY_ENTER},
-    {"Escape", TB_KEY_ESC},
     {"Esc", TB_KEY_ESC},
+    {"Escape", TB_KEY_ESC},
     {"Space", TB_KEY_SPACE},
 
     // Modifiers
@@ -446,6 +446,7 @@ static const EventMap event_map[] = {
     {"gotoBeginningOfPlaylist", EVENT_GOTOBEGINNINGOFPLAYLIST},
     {"gotoEndOfPlaylist", EVENT_GOTOENDOFPLAYLIST},
     {"cycleColorMode", EVENT_CYCLECOLORMODE},
+    {"cycleVisualization", EVENT_CYCLEVISUALIZATION},
     {"scrollDown", EVENT_SCROLLDOWN},
     {"scrollUp", EVENT_SCROLLUP},
     {"seekBack", EVENT_SEEKBACK},
@@ -881,6 +882,9 @@ void construct_app_settings(AppSettings *settings, KeyValuePair *pairs, int coun
                                  pair->value);
                 } else if (strcmp(lowercase_key, "theme") == 0) {
                         snprintf(settings->theme, sizeof(settings->theme), "%s",
+                                 pair->value);
+                } else if (strcmp(lowercase_key, "chromapreset") == 0) {
+                        snprintf(settings->chromaPreset, sizeof(settings->chromaPreset), "%s",
                                  pair->value);
                 } else if (strcmp(lowercase_key, "coverenabled") == 0) {
                         snprintf(settings->coverEnabled,
@@ -1540,6 +1544,14 @@ void get_prefs(AppSettings *settings, UISettings *ui)
         if (tmp >= 0)
                 ui->repeatState = tmp;
 
+        if (settings->chromaPreset[0] != '\0')
+        {
+                tmp = get_number(settings->chromaPreset);
+
+                if (tmp >= 0)
+                        ui->chromaPreset = tmp;
+        }
+
         tmp = get_number(settings->colorMode);
         if (tmp >= 0 && tmp < 3) {
                 ui->colorMode = tmp;
@@ -1659,6 +1671,8 @@ void set_prefs(AppSettings *settings, UISettings *ui)
         fprintf(file, "coverAnsi=%s\n\n", settings->coverAnsi);
         fprintf(file, "[visualizer]\n\n");
         fprintf(file, "visualizerEnabled=%s\n\n", settings->visualizerEnabled);
+        fprintf(file, "[chroma]\n\n");
+        fprintf(file, "chromaPreset=%d\n\n", ui->chromaPreset);
         fprintf(file, "[colors]\n\n");
         fprintf(file, "colorMode=%d\n\n", ui->colorMode);
         fprintf(file, "theme=%s\n\n", ui->theme_name);

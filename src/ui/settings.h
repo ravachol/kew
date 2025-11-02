@@ -12,7 +12,7 @@
 #include "common/appstate.h"
 #include "common/events.h"
 
-#define NUM_DEFAULT_KEY_BINDINGS 51
+#define NUM_DEFAULT_KEY_BINDINGS 52
 
 extern size_t keybinding_count;
 

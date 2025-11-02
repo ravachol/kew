@@ -309,3 +309,13 @@ bool chroma_is_started(void)
 {
         return chroma_started;
 }
+
+int chroma_get_current_preset(void)
+{
+        return g_viz.preset;
+}
+
+int chroma_set_current_preset(int preset)
+{
+        g_viz.preset = preset;
+}

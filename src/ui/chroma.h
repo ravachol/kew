@@ -16,5 +16,7 @@ void chroma_print_frame(int row, int col, bool centered);
 void chroma_set_next_preset(int height);
 bool chroma_is_installed(void);
 bool chroma_is_started(void);
+int chroma_get_current_preset(void);
+int chroma_set_current_preset(int preset);
 
 #endif
