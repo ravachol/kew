@@ -96,21 +96,4 @@ void get_m4a_file_info(
                                &unusedBitRate, &unusedFileType);
 }
 
-void get_m4a_extra_info(
-    const char *filename,
-    int *avg_bit_rate,
-    k_m4adec_filetype *file_type)
-{
-        ma_format dummyFormat;
-        ma_uint32 dummyChannels, dummySampleRate;
-        ma_channel dummyChannelMap[MA_MAX_CHANNELS];
-
-        get_m4a_file_info_full(filename,
-                               &dummyFormat,
-                               &dummyChannels,
-                               &dummySampleRate,
-                               dummyChannelMap,
-                               avg_bit_rate,
-                               file_type);
-}
 #endif

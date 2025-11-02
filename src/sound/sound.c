@@ -177,21 +177,28 @@ int handle_codec(
         enum AudioImplementation current_implementation =
             get_current_implementation_type();
 
+        int avg_bit_rate = 0;
+
+#ifdef USE_FAAD
+        k_m4adec_filetype file_type = 0;
+
+        if (ops.implType == M4A) {
+                get_m4a_file_info_full(file_path, &format, &channels, &sample_rate, channel_map, &avg_bit_rate, &file_type);
+        }
+        else {
+                ops.get_file_info(file_path, &format, &channels, &sample_rate, channel_map);
+        }
+#else
         ops.get_file_info(file_path, &format, &channels, &sample_rate, channel_map);
+#endif
 
         void *decoder = ops.getDecoder();
         if (decoder != NULL && ops.get_decoder_format)
                 ops.get_decoder_format(decoder, &nFormat, &nChannels, &nSampleRate,
                                        nChannelMap, MA_MAX_CHANNELS);
 
-        int avg_bit_rate = 0;
-#ifdef USE_FAAD
-        k_m4adec_filetype file_type = 0;
 
-        if (ops.implType == M4A) {
-                get_m4a_extra_info(file_path, &avg_bit_rate, &file_type);
-        }
-#endif
+
         // sameFormat computation
         bool sameFormat = false;
         if (ops.supportsGapless && decoder != NULL) {
