@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-01 18:14+0100\n"
+"POT-Creation-Date: 2025-11-02 18:54+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <kew-player@proton-me>\n"
 "Language-Team: Simplified Chinese <zh_CN@li.org>\n"
@@ -58,7 +58,7 @@ msgid ""
 "while it's playing. \n"
 msgstr "在特殊播放列表中未找到任何歌曲。播放时按 '.' 添加歌曲。\n"
 
-#: src/sound/sound.c:567
+#: src/sound/sound.c:575
 #, c-format
 msgid ""
 "\n"
@@ -69,7 +69,7 @@ msgstr ""
 "\n"
 "Opus 文件初始化失败。\n"
 
-#: src/sound/sound.c:591
+#: src/sound/sound.c:599
 #, c-format
 msgid ""
 "\n"
@@ -247,7 +247,7 @@ msgid " · Toggle Visualizer: %s\n"
 msgstr " · 开关可视化效果：%s\n"
 
 #: src/ui/player_ui.c:1041
-#, fuzzy, c-format
+#, c-format
 msgid " · Toggle ASCII Cover: %s (disables Chroma)\n"
 msgstr " · 切换 ASCII 封面：%s (禁用 Chroma) \n"
 
@@ -332,49 +332,84 @@ msgstr " 捐助支持："
 
 #: src/ui/player_ui.c:1326
 #, c-format
-msgid " Use ↑/↓ or k/j to select. Enter: Accept. Backspace: clear.\n"
-msgstr " 使用 ↑/↓ 或 k/j 选择。回车：确认。退格键：清空。\n"
+msgid " Select:↑/↓ or k/j."
+msgstr " 选择：↑/↓ 或 k/j"
 
-#: src/ui/player_ui.c:1330
+#: src/ui/player_ui.c:1327
 #, c-format
-msgid " PgUp/PgDn: scroll. Del: remove. %s/%s: move songs.\n"
-msgstr " PgUp/PgDn：滚动。Del：删除。%s/%s：移动歌曲。\n"
+msgid " Accept:%s."
+msgstr " 接受：%s"
+
+#: src/ui/player_ui.c:1328
+#, c-format
+msgid " Clear:%s.\n"
+msgstr " 清除：%s\n"
+
+#: src/ui/player_ui.c:1332 src/ui/player_ui.c:1880
+#, c-format
+msgid " Scroll:PgUp/PgDn."
+msgstr " 滚动：PgUp/PgDn"
+
+#: src/ui/player_ui.c:1334 src/ui/player_ui.c:1882
+#, c-format
+msgid " Scroll:Fn+↑/↓."
+msgstr " 滚动：Fn+↑/↓"
 
 #: src/ui/player_ui.c:1336
 #, c-format
-msgid " Fn+↑/↓: scroll. Del: remove. %s/%s: move songs.\n"
-msgstr " Fn+↑/↓：滚动。Del：删除。%s/%s：移动歌曲。\n"
+msgid " Remove:%s."
+msgstr " 移除：%s"
 
-#: src/ui/player_ui.c:1367
+#: src/ui/player_ui.c:1337
 #, c-format
-msgid " Use ↑/↓ to select. Enter: Enqueue. Alt+Enter: Play.\n"
-msgstr " 使用 ↑/↓ 选择。回车：加入播放列表。Alt+回车：播放。\n"
+msgid " Move songs:%s"
+msgstr " 移动歌曲：%s"
 
-#: src/ui/player_ui.c:1409
+#: src/ui/player_ui.c:1338
+#, c-format
+msgid "/%s.\n"
+msgstr "/%s\n"
+
+#: src/ui/player_ui.c:1368 src/ui/player_ui.c:1874
+#, c-format
+msgid " Select:↑/↓."
+msgstr " 选择：↑/↓"
+
+#: src/ui/player_ui.c:1369
+#, c-format
+msgid " Enqueue:%s."
+msgstr " 加入/移出播放列表：%s"
+
+#: src/ui/player_ui.c:1370 src/ui/player_ui.c:1876
+#, c-format
+msgid " Play:%s.\n"
+msgstr " 清除：%s\n"
+
+#: src/ui/player_ui.c:1412
 #, c-format
 msgid "   ─ PLAYLIST ─\n"
 msgstr "   ─ 播放列表 ─\n"
 
-#: src/ui/player_ui.c:1732
+#: src/ui/player_ui.c:1735
 msgid "─ MUSIC LIBRARY ─"
 msgstr "─ 音乐库 ─"
 
-#: src/ui/player_ui.c:1871
-#, c-format
-msgid " Use ↑/↓ or k/j to select. Enter: Enqueue/Dequeue. Alt+Enter: Play.\n"
-msgstr " 使用 ↑/↓ 选择。回车：加入播放列表。Alt+回车：播放。\n"
-
 #: src/ui/player_ui.c:1875
 #, c-format
-msgid " PgUp/PgDn: scroll. u: update, o: sort.\n"
-msgstr " PgUp/PgDn：滚动。u：更新，o：排序。\n"
+msgid " Enqueue/Dequeue:%s."
+msgstr " 加入/移出播放列表：%s"
 
-#: src/ui/player_ui.c:1879
+#: src/ui/player_ui.c:1884
 #, c-format
-msgid " Fn+↑/↓: scroll. u: update, o: sort.\n"
-msgstr " Fn+↑/↓：滚动。u：更新，o：排序。\n"
+msgid " Update:%s."
+msgstr " 更新：%s"
 
-#: src/ui/player_ui.c:1975
+#: src/ui/player_ui.c:1885
+#, c-format
+msgid " Sort:%s.\n"
+msgstr " 排序：%s\n"
+
+#: src/ui/player_ui.c:1980
 #, c-format
 msgid " No lyrics available. Press %s to go back."
 msgstr " 没有歌词可用。按 %s 返回。"
@@ -383,30 +418,38 @@ msgstr " 没有歌词可用。按 %s 返回。"
 msgid " [F2 Playlist|F3 Library|F4 Track|F5 Search|F6 Help]"
 msgstr " [F2 播放列表|F3 音乐库|F4 曲目|F5 搜索|F6 帮助]"
 
-#: src/kew.c:508
+#: src/kew.c:509
 #, c-format
 msgid "No Music found.\n"
 msgstr "未找到音乐。\n"
 
-#: src/kew.c:509
+#: src/kew.c:510
 #, c-format
 msgid "Please make sure the path is set correctly. \n"
 msgstr "请确保路径设置正确。\n"
 
-#: src/kew.c:510
+#: src/kew.c:511
 #, c-format
 msgid "To set it type: kew path \"/path/to/Music\". \n"
 msgstr "设置方法：键入：kew path \"/path/to/Music\"。\n"
 
-#: src/kew.c:512
+#: src/kew.c:513
 #, c-format
 msgid "Music not found.\n"
 msgstr "未找到音乐。\n"
 
-#: src/kew.c:516
+#: src/kew.c:517
 #, c-format
 msgid "%s\n"
 msgstr "%s\n"
+
+#, c-format
+#~ msgid " Select:↑/↓"
+#~ msgstr " 选择：↑/↓"
+
+#, c-format
+#~ msgid " Play:%s\n"
+#~ msgstr " 清除：%s\n"
 
 #, c-format
 #~ msgid ""

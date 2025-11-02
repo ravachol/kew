@@ -316,6 +316,11 @@ void run(bool start_playing)
 
         init_mpris();
 
+        if (state->uiSettings.chromaPreset >= 0)
+        {
+                chroma_set_current_preset(state->uiSettings.chromaPreset);
+                state->uiSettings.visualizations_instead_of_cover = true;
+        }
         ps->loadedNextSong = false;
         if (start_playing)
                 ps->waitingForPlaylist = true;
@@ -440,6 +445,10 @@ void kew_shutdown()
 
         emit_playback_stopped_mpris();
 
+        if (chroma_is_started())
+                state->uiSettings.chromaPreset = chroma_get_current_preset();
+        else
+                state->uiSettings.chromaPreset = -1;
         chroma_stop();
 
         bool noMusicFound = false;
@@ -582,6 +591,8 @@ void init_state(void)
         state->uiSettings.kewColorRGB.r = 222;
         state->uiSettings.kewColorRGB.g = 43;
         state->uiSettings.kewColorRGB.b = 77;
+        state->uiSettings.chromaPreset = -1;
+        state->uiSettings.visualizations_instead_of_cover = false;
 
         PlaybackState *ps = get_playback_state();
 
