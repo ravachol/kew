@@ -24,6 +24,7 @@
 typedef struct
 {
         char *path;
+        bool wait_until_complete;
         AppState *state;
 } UpdateLibraryThreadArgs;
 
@@ -186,7 +187,7 @@ void *update_library_thread(void *arg)
         copy_is_enqueued(library, tmp);
 
         free_tree(library);
-        library = tmp;
+        set_library(tmp);
         state->uiState.numDirectoryTreeEntries = tmp_directory_tree_entries;
 
         pthread_mutex_unlock(&(state->switch_mutex));
@@ -201,7 +202,7 @@ void *update_library_thread(void *arg)
         return NULL;
 }
 
-void update_library(char *path)
+void update_library(char *path, bool wait_until_complete)
 {
         AppState *state = get_app_state();
         pthread_t thread_id;
@@ -218,6 +219,11 @@ void update_library(char *path)
                 perror("Failed to create thread");
                 return;
         }
+
+        if (wait_until_complete)
+                pthread_join(thread_id, NULL);
+
+        state->uiSettings.last_time_app_ran = time(NULL);
 }
 
 time_t get_modification_time(struct stat *path_stat)
@@ -230,6 +236,7 @@ void *update_if_top_level_folders_mtimes_changed_thread(void *arg)
         UpdateLibraryThreadArgs *args = (UpdateLibraryThreadArgs *)
             arg; // Cast `arg` back to the structure pointer
         char *path = args->path;
+
         AppState *state = args->state;
         UISettings *ui = &(state->uiSettings);
 
@@ -244,7 +251,7 @@ void *update_if_top_level_folders_mtimes_changed_thread(void *arg)
 
         if (get_modification_time(&path_stat) > ui->last_time_app_ran &&
             ui->last_time_app_ran > 0) {
-                update_library(path);
+                update_library(path, args->wait_until_complete);
                 if (args->path)
                         free(args->path);
                 free(args);
@@ -280,7 +287,7 @@ void *update_if_top_level_folders_mtimes_changed_thread(void *arg)
                         if (get_modification_time(&path_stat) >
                                 ui->last_time_app_ran &&
                             ui->last_time_app_ran > 0) {
-                                update_library(path);
+                                update_library(path, args->wait_until_complete);
                                 break;
                         }
                 }
@@ -296,7 +303,7 @@ void *update_if_top_level_folders_mtimes_changed_thread(void *arg)
 }
 
 // This only checks the library mtime and toplevel subfolders mtimes
-void update_library_if_changed_detected(void)
+void update_library_if_changed_detected(bool wait_until_complete)
 {
         AppState *state = get_app_state();
         pthread_t tid;
@@ -312,13 +319,14 @@ void update_library_if_changed_detected(void)
         char expanded[MAXPATHLEN];
         expand_path(settings->path, expanded);
 
-        args->path = strdup(expanded); // ✅ Make a heap copy of the string
+        args->path = strdup(expanded);
         if (args->path == NULL) {
                 perror("strdup");
                 free(args);
                 return;
         }
 
+        args->wait_until_complete = wait_until_complete;
         args->state = state;
 
         if (pthread_create(&tid, NULL,
@@ -328,6 +336,9 @@ void update_library_if_changed_detected(void)
                 free(args->path);
                 free(args);
         }
+
+        if (wait_until_complete)
+                pthread_join(tid, NULL);
 }
 
 void create_library()
@@ -348,7 +359,8 @@ void create_library()
 
         free(lib_path);
 
-        update_library_if_changed_detected();
+        bool wait_until_complete = false;
+        update_library_if_changed_detected(wait_until_complete);
 
         if (library == NULL || library->children == NULL) {
 
