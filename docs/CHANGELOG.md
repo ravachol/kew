@@ -2,11 +2,13 @@
 
 ### 3.7.0
 
-Biggest news in this release: Optimisations for large music collections/slow disks and a key binding/input handling overhaul. Both were very much needed.
+Biggest news in this release: Chroma visualizations, Optimisations for large music collections/slow disks and a key binding/input handling overhaul.
+
+- Chroma visualizations. This works by users separately installing a new app called Chroma. then pressing 'c' in kew to cycle through them. This will be shown instead of the cover or if an audio file doesn't have a cover. Disable by pressing 'b'. Chroma was created by @yuri-xyz and can be found here: https://github.com/yuri-xyz/chroma.
 
 - Optimisations: Much faster loading of previous playlist. So if you are used to running kew all for instance this will be significantly faster, especially for people with large collections. The new method should be up to 20 times faster.
 
-- The library is now always cached. This means no more fiddling with cachelibrary settings. It scans the library only if the files have changed, which it checks at the top level. This will be much faster if you have music on a slow disk. But it's all still very simple, no database dependencies or anything, just a flat binary file with the bare essentials. It's not a lot of data: 1k songs = 60KiB on disk.
+- The library is now always cached. It scans the library only if the files have changed, which it checks at the top level. This will be much faster if you have music on a slow disk. But it's all still very simple, no database dependencies or anything, just a flat binary file with the bare essentials. It's not a lot of data: 1k songs = 60KiB on disk.
 
 - Key binding overhaul: This allows for more advanced key bindings. You can now bind more keys and key combinations. The new format was suggested by @jaoh.
 
@@ -33,6 +35,8 @@ The old format config files will still work for the most part, but to see exampl
 - Don't enqueue the .m3u files themselves when mass enqueueing.
 
 - Fixes a bug related to certain types of mp3 files, where the song metadata wasn't switching in the UI. Found by: @Chromium-3-Oxide.
+
+- Fixes a bug in library view where under some conditions, the position of the selected row could jump upwards.
 
 #### Sponsors
 
