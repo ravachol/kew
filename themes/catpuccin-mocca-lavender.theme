@@ -13,7 +13,7 @@ textMuted=#6c7086 # Subtext0
 
 # General Colors
 logo=#b4befe    # Lavender
-header=#1e1e2e  # Base
+header=#b4befe  # Lavender
 footer=#1e1e2e  # Base
 help=#a6adc8    # Subtext1
 link=#89b4fa    # Blue

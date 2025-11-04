@@ -349,18 +349,22 @@ int print_logo_art(const UISettings *ui, int indent, bool centered, bool print_t
                 printf("MUSIC  FOR  THE  SHELL\n");
         }
 
-        return 3; // lines used by logo
+        printf("\n");
+        printf("\n");
+
+        return 5; // lines used by logo
 }
 
 static void build_song_title(const SongData *song_data, const UISettings *ui,
-                             char *out, size_t out_size, int indent)
+                             char *out, size_t out_size, bool show_play_icon)
 {
-        if (!song_data || !song_data->metadata) {
-                out[0] = '\0';
+        const char *icon = get_player_status_icon();
+
+        if (!song_data || !song_data->metadata)
+        {
+                snprintf(out, out_size, "%*s%s", indent, "", icon);
                 return;
         }
-
-        const char *icon = get_player_status_icon();
 
         char pretty_title[METADATA_MAX_LENGTH] = {0};
         snprintf(pretty_title, METADATA_MAX_LENGTH, "%s",
@@ -368,11 +372,10 @@ static void build_song_title(const SongData *song_data, const UISettings *ui,
         trim(pretty_title, strlen(pretty_title));
 
         if (ui->hideLogo && song_data->metadata->artist[0] != '\0') {
-                snprintf(out, out_size, "%*s%s %s - %s", indent, "", icon,
+                snprintf(out, out_size, "%s %s - %s", icon,
                          song_data->metadata->artist, pretty_title);
-        } else if (ui->hideLogo) {
-                snprintf(out, out_size, "%*s%s %s", indent, "", icon,
-                         pretty_title);
+        } else if (ui->hideLogo || show_play_icon) {
+                snprintf(out, out_size, "%s %s", icon, pretty_title);
         } else {
                 strncpy(out, pretty_title, out_size - 1);
                 out[out_size - 1] = '\0';
@@ -383,7 +386,7 @@ void print_now_playing(SongData *song_data, UISettings *ui, int row, int col, in
 {
         char title[MAXPATHLEN + 1];
 
-        build_song_title(song_data, ui, title, sizeof(title), indent);
+        build_song_title(song_data, ui, title, sizeof(title), true);
 
         apply_color(ui->colorMode, ui->theme.nowplaying, ui->color);
 
@@ -403,17 +406,15 @@ int print_logo(SongData *song_data, UISettings *ui)
 
         get_term_size(&term_w, &term_h);
 
-        int logo_width = ui->hideLogo ? 0 : LOGO_WIDTH;
-        int max_width =
-            term_w - indent - (ui->hideLogo ? 2 : logo_width + 4);
+        int max_width = term_w - indent - 4 - indent;
 
-        int height = print_logo_art(ui, indent, false, false, true);
+        int height = print_logo_art(ui, indent+2, false, false, true);
 
-        print_now_playing(song_data, ui, height + 1, indent + logo_width + 2, max_width);
-
+        print_now_playing(song_data, ui, height + 1, indent + 4, max_width);
         printf("\n");
         clear_line();
         printf("\n");
+        clear_line();
 
         return height + 2;
 }
@@ -917,7 +918,7 @@ int print_about(SongData *songdata)
 
         apply_color(ui->colorMode, ui->theme.text, ui->defaultColorRGB);
         print_blank_spaces(indent);
-        printf(_(" kew version: "));
+        printf(_("   kew version: "));
         apply_color(ui->colorMode, ui->theme.help, ui->color);
         printf("%s\n", ui->VERSION);
         clear_line();
@@ -929,8 +930,7 @@ int print_about(SongData *songdata)
 
 #define CHECK_LIST_LIMIT()                                       \
         do {                                                     \
-                if (num_printed_rows >= max_list_size) {         \
-                        printf("\n");                            \
+                if (num_printed_rows > max_list_size) {         \
                         calc_and_print_last_row_and_error_row(); \
                         return num_printed_rows;                 \
                 }                                                \
@@ -952,7 +952,9 @@ int show_key_bindings(SongData *songdata)
         CHECK_LIST_LIMIT();
         apply_color(ui->colorMode, ui->theme.text, ui->defaultColorRGB);
 
-        print_blank_spaces(indent);
+        int indentation = indent + 2;
+
+        print_blank_spaces(indentation);
         printf(_(" Manual: See"));
         apply_color(ui->colorMode, ui->theme.help, ui->color);
         printf(_(" README"));
@@ -960,39 +962,48 @@ int show_key_bindings(SongData *songdata)
         printf(_(" Or man kew\n\n"));
         num_printed_rows += 2;
         CHECK_LIST_LIMIT();
-        print_blank_spaces(indent);
+        print_blank_spaces(indentation);
         printf(_(" · Play/Pause: %s\n"), get_binding_string(EVENT_PLAY_PAUSE, false));
         num_printed_rows++;
         CHECK_LIST_LIMIT();
-        print_blank_spaces(indent);
+        print_blank_spaces(indentation);
         printf(_(" · Enqueue/Dequeue: %s\n"), get_binding_string(EVENT_ENQUEUE, false));
         num_printed_rows++;
         CHECK_LIST_LIMIT();
-        print_blank_spaces(indent);
+        print_blank_spaces(indentation);
         printf(_(" · Enqueue and Play: %s\n"), get_binding_string(EVENT_ENQUEUEANDPLAY, false));
         num_printed_rows++;
         CHECK_LIST_LIMIT();
-        print_blank_spaces(indent);
+        print_blank_spaces(indentation);
         printf(_(" · Quit: %s\n"), get_binding_string(EVENT_QUIT, false));
         num_printed_rows++;
         CHECK_LIST_LIMIT();
-        print_blank_spaces(indent);
+        print_blank_spaces(indentation);
         printf(_(" · Switch tracks: %s"),
                get_binding_string(EVENT_PREV, false));
         printf(_(" and %s\n"),
                get_binding_string(EVENT_NEXT, false));
         num_printed_rows++;
         CHECK_LIST_LIMIT();
-        print_blank_spaces(indent);
+        print_blank_spaces(indentation);
         printf(_(" · Volume: %s "), get_binding_string(EVENT_VOLUME_UP, false));
         printf(_("and %s\n"), get_binding_string(EVENT_VOLUME_DOWN, false));
         num_printed_rows++;
         CHECK_LIST_LIMIT();
-        print_blank_spaces(indent);
+        print_blank_spaces(indentation);
         printf(_(" · Clear List: %s\n"), get_binding_string(EVENT_CLEARPLAYLIST, false));
         num_printed_rows++;
         CHECK_LIST_LIMIT();
-        print_blank_spaces(indent);
+        print_blank_spaces(indentation);
+        printf(_(" · Remove songs: %s\n"), get_binding_string(EVENT_REMOVE, true));
+        num_printed_rows++;
+        CHECK_LIST_LIMIT();
+        print_blank_spaces(indentation);
+        printf(_(" · Move songs: %s"), get_binding_string(EVENT_MOVESONGUP, true));
+        printf(_("/%s\n"), get_binding_string(EVENT_MOVESONGDOWN, true));
+        num_printed_rows++;
+        CHECK_LIST_LIMIT();
+        print_blank_spaces(indentation);
         printf(_(" · Change View: %s or "), get_binding_string(EVENT_NEXTVIEW, false));
 
         printf("%s, ", get_binding_string(EVENT_SHOWPLAYLIST, true));
@@ -1004,70 +1015,74 @@ int show_key_bindings(SongData *songdata)
         printf(_(" or click the footer\n"));
         num_printed_rows++;
         CHECK_LIST_LIMIT();
-        print_blank_spaces(indent);
+        print_blank_spaces(indentation);
         printf(
             _(" · Cycle Color Mode: %s (default theme, theme or cover colors)\n"),
             get_binding_string(EVENT_CYCLECOLORMODE, false));
         num_printed_rows++;
         CHECK_LIST_LIMIT();
-        print_blank_spaces(indent);
+        print_blank_spaces(indentation);
         printf(_(" · Cycle Themes: %s\n"), get_binding_string(EVENT_CYCLETHEMES, false));
         num_printed_rows++;
         CHECK_LIST_LIMIT();
-        print_blank_spaces(indent);
+        print_blank_spaces(indentation);
         printf(_(" · Cycle Chroma Visualization: %s (requires Chroma)\n"), get_binding_string(EVENT_CYCLEVISUALIZATION, false));
         num_printed_rows++;
         CHECK_LIST_LIMIT();
-        print_blank_spaces(indent);
+        print_blank_spaces(indentation);
         printf(_(" · Stop: %s\n"), get_binding_string(EVENT_STOP, false));
         num_printed_rows++;
         CHECK_LIST_LIMIT();
-        print_blank_spaces(indent);
+        print_blank_spaces(indentation);
         printf(_(" · Update Library: %s\n"), get_binding_string(EVENT_UPDATELIBRARY, false));
         num_printed_rows++;
         CHECK_LIST_LIMIT();
-        print_blank_spaces(indent);
+        print_blank_spaces(indentation);
+        printf(_(" · Sort Library: %s\n"), get_binding_string(EVENT_SORTLIBRARY, true));
+        num_printed_rows++;
+        CHECK_LIST_LIMIT();
+        print_blank_spaces(indentation);
         printf(_(" · Toggle Visualizer: %s\n"), get_binding_string(EVENT_TOGGLEVISUALIZER, false));
         num_printed_rows++;
         CHECK_LIST_LIMIT();
-        print_blank_spaces(indent);
+        print_blank_spaces(indentation);
         printf(_(" · Toggle ASCII Cover: %s (disables Chroma)\n"), get_binding_string(EVENT_TOGGLEASCII, false));
         num_printed_rows++;
         CHECK_LIST_LIMIT();
-        print_blank_spaces(indent);
+        print_blank_spaces(indentation);
         printf(_(" · Toggle Lyrics Page on Track View: %s\n"), get_binding_string(EVENT_SHOWLYRICSPAGE, false));
         num_printed_rows++;
         CHECK_LIST_LIMIT();
-        print_blank_spaces(indent);
+        print_blank_spaces(indentation);
         printf(_(" · Toggle Notifications: %s\n"), get_binding_string(EVENT_TOGGLENOTIFICATIONS, false));
         num_printed_rows++;
         CHECK_LIST_LIMIT();
-        print_blank_spaces(indent);
+        print_blank_spaces(indentation);
         printf(_(" · Cycle Repeat: %s (repeat/repeat list/off)\n"),
                get_binding_string(EVENT_TOGGLEREPEAT, false));
         num_printed_rows++;
         CHECK_LIST_LIMIT();
-        print_blank_spaces(indent);
+        print_blank_spaces(indentation);
         printf(_(" · Shuffle: %s\n"), get_binding_string(EVENT_SHUFFLE, false));
         num_printed_rows++;
         CHECK_LIST_LIMIT();
-        print_blank_spaces(indent);
+        print_blank_spaces(indentation);
         printf(_(" · Seek: %s and"), get_binding_string(EVENT_SEEKBACK, false));
         printf(_(" %s\n"), get_binding_string(EVENT_SEEKFORWARD, false));
         num_printed_rows++;
         CHECK_LIST_LIMIT();
-        print_blank_spaces(indent);
+        print_blank_spaces(indentation);
         printf(_(" · Export Playlist: %s (named after the first song)\n"),
                get_binding_string(EVENT_EXPORTPLAYLIST, false));
         num_printed_rows++;
         CHECK_LIST_LIMIT();
-        print_blank_spaces(indent);
+        print_blank_spaces(indentation);
         printf(_(" · Add Song To 'kew favorites.m3u': %s (run with 'kew .')\n\n"),
                get_binding_string(EVENT_ADDTOFAVORITESPLAYLIST, false));
         num_printed_rows += 2;
         CHECK_LIST_LIMIT();
         apply_color(ui->colorMode, ui->theme.text, ui->defaultColorRGB);
-        print_blank_spaces(indent);
+        print_blank_spaces(indentation);
         printf(_(" Theme: "));
 
         if (ui->colorMode == COLOR_MODE_ALBUM) {
@@ -1092,14 +1107,14 @@ int show_key_bindings(SongData *songdata)
         printf("\n");
         num_printed_rows += 2;
         CHECK_LIST_LIMIT();
-        print_blank_spaces(indent);
+        print_blank_spaces(indentation);
         apply_color(ui->colorMode, ui->theme.help, ui->defaultColorRGB);
         printf(_(" Project URL:"));
         apply_color(ui->colorMode, ui->theme.link, ui->color);
         printf(" https://codeberg.org/ravachol/kew\n");
         num_printed_rows += 1;
         CHECK_LIST_LIMIT();
-        print_blank_spaces(indent);
+        print_blank_spaces(indentation);
         apply_color(ui->colorMode, ui->theme.help, ui->defaultColorRGB);
         printf(_(" Please Donate:"));
         apply_color(ui->colorMode, ui->theme.link, ui->color);
@@ -1107,11 +1122,10 @@ int show_key_bindings(SongData *songdata)
         num_printed_rows += 2;
         CHECK_LIST_LIMIT();
         apply_color(ui->colorMode, ui->theme.text, ui->defaultColorRGB);
-        print_blank_spaces(indent);
+        print_blank_spaces(indentation);
         printf(" Copyright © 2022-2025 Ravachol\n");
 
-        printf("\n");
-        num_printed_rows += 2;
+        num_printed_rows += 1;
         CHECK_LIST_LIMIT();
 
         while (num_printed_rows < max_list_size) {
@@ -1158,9 +1172,9 @@ void switch_to_next_view(void)
                 clear_screen();
                 break;
         case SEARCH_VIEW:
-                state->currentView = KEYBINDINGS_VIEW;
+                state->currentView = HELP_VIEW;
                 break;
-        case KEYBINDINGS_VIEW:
+        case HELP_VIEW:
                 state->currentView = PLAYLIST_VIEW;
                 break;
         }
@@ -1174,7 +1188,7 @@ void switch_to_previous_view(void)
 
         switch (state->currentView) {
         case PLAYLIST_VIEW:
-                state->currentView = KEYBINDINGS_VIEW;
+                state->currentView = HELP_VIEW;
                 break;
         case LIBRARY_VIEW:
                 state->currentView = PLAYLIST_VIEW;
@@ -1187,7 +1201,7 @@ void switch_to_previous_view(void)
                 state->currentView =
                     (get_current_song() != NULL) ? TRACK_VIEW : LIBRARY_VIEW;
                 break;
-        case KEYBINDINGS_VIEW:
+        case HELP_VIEW:
                 state->currentView = SEARCH_VIEW;
                 break;
         }
@@ -1306,38 +1320,6 @@ int get_row_within_bounds(int row)
         return row;
 }
 
-int print_logo_and_adjustments(SongData *song_data, int term_width, UISettings *ui,
-                               int indentation)
-{
-        int about_rows = print_logo(song_data, ui);
-
-        apply_color(ui->colorMode, ui->theme.help, ui->defaultColorRGB);
-
-        if (term_width > 52 && !ui->hideHelp) {
-                print_blank_spaces(indentation);
-                clear_line();
-                printf(_(" Select:↑/↓ or k/j."));
-                printf(_(" Accept:%s."), get_binding_string(EVENT_ENQUEUE, true));
-                printf(_(" Clear:%s.\n"), get_binding_string(EVENT_CLEARPLAYLIST, true));
-                print_blank_spaces(indentation);
-                clear_line();
-#ifndef __APPLE__
-                printf(_(" Scroll:PgUp/PgDn."));
-#else
-                printf(_(" Scroll:Fn+↑/↓."));
-#endif
-                printf(_(" Remove:%s."), get_binding_string(EVENT_REMOVE, true));
-                printf(_(" Move songs:%s"), get_binding_string(EVENT_MOVESONGUP, true));
-                printf(_("/%s.\n"), get_binding_string(EVENT_MOVESONGDOWN, true));
-                clear_line();
-                printf("\n");
-
-                clear_line();
-                return about_rows + 3;
-        }
-        return about_rows;
-}
-
 void show_search(SongData *song_data, int *chosen_row)
 {
         int term_w, term_h;
@@ -1354,18 +1336,6 @@ void show_search(SongData *song_data, int *chosen_row)
 
         apply_color(ui->colorMode, ui->theme.help, ui->defaultColorRGB);
 
-        if (term_w > indent + 38 && !ui->hideHelp) {
-                clear_line();
-                print_blank_spaces(indent);
-                clear_line();
-                printf(_(" Select:↑/↓."));
-                printf(_(" Enqueue:%s."), get_binding_string(EVENT_ENQUEUE, true));
-                printf(_(" Play:%s.\n"), get_binding_string(EVENT_ENQUEUEANDPLAY, true));
-                clear_line();
-                printf("\n");
-                max_search_list_size -= 2;
-        }
-
         display_search(max_search_list_size, indent, chosen_row, start_search_iter);
 
         calc_and_print_last_row_and_error_row();
@@ -1376,7 +1346,7 @@ void show_playlist(SongData *song_data, PlayList *list, int *chosen_song,
 {
         int term_w, term_h;
         get_term_size(&term_w, &term_h);
-        max_list_size = term_h - 3;
+        max_list_size = term_h - 2;
 
         AppState *state = get_app_state();
         UISettings *ui = &(state->uiSettings);
@@ -1393,8 +1363,7 @@ void show_playlist(SongData *song_data, PlayList *list, int *chosen_song,
 
         goto_first_line_first_row();
 
-        int about_rows =
-            print_logo_and_adjustments(song_data, term_w, ui, indent);
+        int about_rows = print_logo(song_data, ui);
         max_list_size -= about_rows;
 
         apply_color(ui->colorMode, ui->theme.header, ui->color);
@@ -1403,9 +1372,11 @@ void show_playlist(SongData *song_data, PlayList *list, int *chosen_song,
                 clear_line();
                 print_blank_spaces(indent);
                 printf(_("   ─ PLAYLIST ─\n"));
+                clear_line();
+
         }
 
-        max_list_size -= 1;
+        max_list_size -= 2;
 
         if (max_list_size > 0)
                 display_playlist(list, max_list_size, indent, chosen_song,
@@ -1735,7 +1706,9 @@ int display_tree(FileSystemEntry *root, int depth, int max_list_size,
                                 char *upper_dir_name = string_to_upper(dir_name);
 
                                 if (depth == 1)
+                                {
                                         printf("%s \n", upper_dir_name);
+                                }
                                 else {
                                         printf("%s \n", dir_name);
                                 }
@@ -1860,27 +1833,6 @@ void show_library(SongData *song_data, AppSettings *settings)
         max_lib_list_size -= about_size + 2;
 
         apply_color(ui->colorMode, ui->theme.help, ui->defaultColorRGB);
-
-        if (term_w > 67 && !ui->hideHelp) {
-                max_lib_list_size -= 3;
-                clear_line();
-                print_blank_spaces(indent);
-                printf(_(" Select:↑/↓."));
-                printf(_(" Enqueue/Dequeue:%s."), get_binding_string(EVENT_ENQUEUE, true));
-                printf(_(" Play:%s.\n"), get_binding_string(EVENT_ENQUEUEANDPLAY, true));
-                clear_line();
-                print_blank_spaces(indent);
-#ifndef __APPLE__
-                printf(_(" Scroll:PgUp/PgDn."));
-#else
-                printf(_(" Scroll:Fn+↑/↓."));
-#endif
-                printf(_(" Update:%s."), get_binding_string(EVENT_UPDATELIBRARY, true));
-                printf(_(" Sort:%s.\n"), get_binding_string(EVENT_SORTLIBRARY, true));
-                clear_line();
-                printf("\n");
-                clear_line();
-        }
 
         num_top_level_songs = 0;
 
@@ -2357,7 +2309,7 @@ int print_player(SongData *songdata, double elapsed_seconds)
         if ((state->currentView != TRACK_VIEW || is_refresh_triggered()) && chroma_is_started())
                 chroma_stop();
 
-        if (state->currentView == KEYBINDINGS_VIEW && shouldRefresh) {
+        if (state->currentView == HELP_VIEW && shouldRefresh) {
                 clear_screen();
                 show_key_bindings(songdata);
                 save_cursor_position();

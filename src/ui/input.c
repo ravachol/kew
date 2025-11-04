@@ -111,7 +111,7 @@ struct Event map_tb_key_to_event(struct tb_event *ev)
 
                         if (isupper((unsigned char)ev->ch))
                         {
-                                ev->mod &= TB_MOD_SHIFT;
+                                ev->mod |= TB_MOD_SHIFT;
                                 ev->ch = tolower(ev->ch);
                         }
 
@@ -302,7 +302,7 @@ void handle_event(struct Event *event)
                 update_library(settings->path, wait_until_complete);
                 break;
         case EVENT_SHOWHELP:
-                toggle_show_view(KEYBINDINGS_VIEW);
+                toggle_show_view(HELP_VIEW);
                 break;
         case EVENT_SHOWPLAYLIST:
                 toggle_show_view(PLAYLIST_VIEW);
