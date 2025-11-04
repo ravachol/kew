@@ -285,7 +285,6 @@ void view_enqueue(bool play_immediately)
                                 first_enqueued_entry = find_corresponding_entry(
                                             library, entry->full_path);
 
-                                autostart_if_stopped(first_enqueued_entry);
                                 deep_copy_play_list_onto_list(playlist, &unshuffled_playlist);
                         }
                 } else
@@ -297,7 +296,9 @@ void view_enqueue(bool play_immediately)
                 first_enqueued_entry = enqueue(get_current_search_entry());
         }
 
-        if (first_enqueued_entry && play_immediately && playlist->count != 0) {
+        autostart_if_stopped(first_enqueued_entry);
+
+        if (first_enqueued_entry && (play_immediately || ops_is_stopped()) && playlist->count != 0) {
                 if (first_enqueued_node == NULL)
                         first_enqueued_node = find_path_in_playlist(first_enqueued_entry->full_path, playlist);
                 clear_and_play(first_enqueued_node);
