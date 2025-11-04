@@ -62,7 +62,7 @@ int is_music_file(const char *filename);
 void clear_current_song(void);
 void set_current_song(Node *node);
 void create_node(Node **node, const char *directory_path, int id);
-void delete_playlist(PlayList *playlist);
+void empty_playlist(PlayList *list);
 void destroy_node(Node *node);
 void shuffle_playlist(PlayList *playlist);
 void shuffle_playlist_starting_from_song(PlayList *playlist, Node *song);
@@ -78,4 +78,4 @@ void create_play_list_from_file_system_entry(FileSystemEntry *root, PlayList *li
 void add_shuffled_albums_to_play_list(FileSystemEntry *root, PlayList *list, int playlist_max);
 void move_up_list(PlayList *list, Node *node);
 void move_down_list(PlayList *list, Node *node);
-void read_m3u_file(const char *filename, PlayList *playlist, FileSystemEntry *library);
+Node *read_m3u_file(const char *filename, PlayList *playlist);

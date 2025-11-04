@@ -410,7 +410,7 @@ int load_theme(const char *theme_name,
                 return 0;
         }
 
-        str_to_lower(filename);
+        snprintf(filename, sizeof(filename), string_to_lower(filename));
 
         // Call the loader
         int loaded =

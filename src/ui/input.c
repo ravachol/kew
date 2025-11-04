@@ -109,6 +109,12 @@ struct Event map_tb_key_to_event(struct tb_event *ev)
                 for (size_t i = 0; i < keybinding_count; i++) {
                         TBKeyBinding *b = &key_bindings[i];
 
+                        if (isupper((unsigned char)ev->ch))
+                        {
+                                ev->mod &= TB_MOD_SHIFT;
+                                ev->ch = tolower(ev->ch);
+                        }
+
                         bool keyMatch = (b->key && ev->key == b->key) || (b->ch && ev->ch == b->ch);
                         bool modsMatch = (b->mods == ev->mod);
 

@@ -428,43 +428,34 @@ int get_year(const char *date_string)
         return year;
 }
 
-void print_cover_centered(SongData *songdata, UISettings *ui)
+void print_cover(int row, int col, int target_height,
+                  bool centered,
+                  SongData *songdata)
 {
-        if (songdata != NULL && songdata->cover != NULL && ui->coverEnabled) {
-                if (!ui->coverAnsi) {
-                        print_square_bitmap_centered(
-                            songdata->cover, songdata->coverWidth,
-                            songdata->coverHeight, preferred_height);
-                } else {
-                        print_in_ascii_centered(songdata->cover_art_path,
-                                                preferred_height);
-                }
+    AppState *state = get_app_state();
+
+    clear_screen();
+
+    if (songdata != NULL && songdata->cover != NULL && state->uiSettings.coverEnabled) {
+
+        if (!state->uiSettings.coverAnsi) {
+            print_square_bitmap(row, col,
+                songdata->cover,
+                songdata->coverWidth,
+                songdata->coverHeight,
+                target_height,
+                centered);
         } else {
-                for (int i = 0; i <= preferred_height; ++i) {
-                        printf("\n");
-                }
+            print_in_ascii(col, songdata->cover_art_path,
+                           target_height, centered);
         }
 
-        printf("\n\n");
-}
-
-void print_cover(int height, SongData *songdata, UISettings *ui)
-{
-        int row = 2;
-        int col = 2;
-        int img_height = height - 2;
-
-        clear_screen();
-
-        if (songdata != NULL && songdata->cover != NULL && ui->coverEnabled) {
-                if (!ui->coverAnsi) {
-                        print_square_bitmap(row, col, songdata->cover,
-                                            songdata->coverWidth,
-                                            songdata->coverHeight, img_height);
-                } else {
-                        print_in_ascii(col, songdata->cover_art_path, img_height);
-                }
+    } else {
+        if (centered) {
+            for (int i = 0; i <= target_height; ++i)
+                printf("\n");
         }
+    }
 }
 
 void print_title_with_delay(int row, int col, const char *text, int delay,
@@ -1659,6 +1650,7 @@ int display_tree(FileSystemEntry *root, int depth, int max_list_size,
                 if (state->uiState.currentLibEntry != NULL && state->uiState.currentLibEntry != last_entry &&
                     !state->uiState.currentLibEntry->is_directory &&
                     state->uiState.currentLibEntry->parent != NULL &&
+                    state->uiState.currentLibEntry->parent->parent != NULL &&
                     state->uiState.currentLibEntry->parent == chosen_dir) {
                         FileSystemEntry *tmpc = state->uiState.currentLibEntry->parent->children;
 
@@ -2120,7 +2112,7 @@ void show_track_view_landscape(int height, int width, float aspect_ratio,
 
         if (is_refresh_triggered()) {
                 if (!chroma_is_started())
-                        print_cover(height, songdata, &(state->uiSettings));
+                        print_cover(2, 2, height-2, false, songdata);
 
                 if (!state->uiState.showLyricsPage) {
                         if (height > metadata_height)
@@ -2178,6 +2170,7 @@ void show_track_view_portrait(int height, AppSettings *settings,
 
         int metadata_height = 4;
 
+        int cover_row = 2;
         int row = height + 3;
         int col = indent;
 
@@ -2193,7 +2186,10 @@ void show_track_view_portrait(int height, AppSettings *settings,
                 if (!state->uiState.showLyricsPage) {
 
                         if (!chroma_is_started())
-                                print_cover_centered(songdata, &(state->uiSettings));
+                        {
+                                print_cover(cover_row, indent, preferred_height, true, songdata);
+                                printf("\n\n");
+                        }
                         print_metadata(row, col, visualizer_width - 1, metadata,
                                        &(state->uiSettings));
                 }
