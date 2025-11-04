@@ -42,19 +42,22 @@ ProgressBar progress_bar;
 
 void free_playlists(void)
 {
-        delete_playlist(&playlist);
+        empty_playlist(&playlist);
+        pthread_mutex_destroy(&playlist.mutex);
 
         PlayList *unshuffled = get_unshuffled_playlist();
         PlayList *favorites = get_favorites_playlist();
 
         if (unshuffled != NULL) {
-                delete_playlist(unshuffled);
+                empty_playlist(unshuffled);
+                pthread_mutex_destroy(&unshuffled->mutex);
                 free(unshuffled);
                 unshuffled_playlist = NULL;
         }
 
         if (favorites != NULL) {
-                delete_playlist(favorites);
+                empty_playlist(favorites);
+                pthread_mutex_destroy(&favorites->mutex);
                 free(favorites);
                 favorites_playlist = NULL;
         }

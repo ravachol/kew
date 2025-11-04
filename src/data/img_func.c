@@ -523,7 +523,7 @@ float get_aspect_ratio()
         return (float)cell_height / (float)cell_width;
 }
 
-void print_square_bitmap(int row, int col, unsigned char *pixels, int width, int height, int base_height)
+void print_square_bitmap(int row, int col, unsigned char *pixels, int width, int height, int base_height, bool centered)
 {
         if (pixels == NULL) {
                 set_error_message("Invalid pixel data.\n");
@@ -597,6 +597,9 @@ void print_square_bitmap(int row, int col, unsigned char *pixels, int width, int
         // Split the printable string into lines
         const gchar *delimiters = "\n";
         gchar **lines = g_strsplit(printable->str, delimiters, -1);
+
+        if (centered)
+        col = ((term_size.width_cells - corrected_width) / 2);
 
         // Print each line with indentation
         for (int i = 0; lines[i] != NULL; i++) {
@@ -751,7 +754,7 @@ unsigned char calc_ascii_char(PixelData *p)
         return scale[brightness_levels - rescaled];
 }
 
-int convert_to_ascii_centered(const char *filepath, unsigned int height)
+int convert_to_ascii(int indentation, const char *filepath, unsigned int height, bool centered)
 {
         /*
         Modified, originally by Danny Burrows:
@@ -800,121 +803,31 @@ int convert_to_ascii_centered(const char *filepath, unsigned int height)
 
         float aspect_ratio_correction = (float)cell_height / (float)cell_width;
         unsigned int corrected_width = (int)(height * aspect_ratio_correction) - 1;
+
+        int rwidth, rheight, rchannels;
+        unsigned char *read_data = stbi_load(filepath, &rwidth, &rheight, &rchannels, 3);
+
+        if (read_data == NULL) {
+                return -1;
+        }
+
+        PixelData *data;
+        if (corrected_width != (unsigned)rwidth || height != (unsigned)rheight) {
+                // 3 * uint8 for RGB!
+                unsigned char *new_data = malloc(3 * sizeof(unsigned char) * corrected_width * height);
+                stbir_resize_uint8_srgb(
+                    read_data, rwidth, rheight, 0,
+                    new_data, corrected_width, height, 0, 3);
+
+                stbi_image_free(read_data);
+                data = (PixelData *)new_data;
+        } else {
+                data = (PixelData *)read_data;
+        }
 
         // Calculate indentation to center the image
-        int indent = ((term_size.width_cells - corrected_width) / 2);
-
-        int rwidth, rheight, rchannels;
-        unsigned char *read_data = stbi_load(filepath, &rwidth, &rheight, &rchannels, 3);
-
-        if (read_data == NULL) {
-                return -1;
-        }
-
-        PixelData *data;
-        if (corrected_width != (unsigned)rwidth || height != (unsigned)rheight) {
-                // 3 * uint8 for RGB!
-                unsigned char *new_data = malloc(3 * sizeof(unsigned char) * corrected_width * height);
-                stbir_resize_uint8_srgb(
-                    read_data, rwidth, rheight, 0,
-                    new_data, corrected_width, height, 0, 3);
-
-                stbi_image_free(read_data);
-                data = (PixelData *)new_data;
-        } else {
-                data = (PixelData *)read_data;
-        }
-
-        printf("\n");
-        printf("%*s", indent, "");
-
-        for (unsigned int d = 0; d < corrected_width * height; d++) {
-                if (d % corrected_width == 0 && d != 0) {
-                        printf("\n");
-                        printf("%*s", indent, "");
-                }
-
-                PixelData *c = data + d;
-
-                printf("\033[1;38;2;%03u;%03u;%03um%c", c->r, c->g, c->b, calc_ascii_char(c));
-        }
-
-        printf("\n");
-
-        stbi_image_free(data);
-        return 0;
-}
-
-int convert_to_ascii(int indentation, const char *filepath, unsigned int height)
-{
-        /*
-        Modified, originally by Danny Burrows:
-        https://github.com/danny-burrows/img_to_txt
-
-        MIT License
-
-        Copyright (c) 2021 Danny Burrows
-
-        Permission is hereby granted, free of charge, to any person obtaining a copy
-        of this software and associated documentation files (the "Software"), to deal
-        in the Software without restriction, including without limitation the rights
-        to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-        copies of the Software, and to permit persons to whom the Software is
-        furnished to do so, subject to the following conditions:
-
-        The above copyright notice and this permission notice shall be included in all
-        copies or substantial portions of the Software.
-
-        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-        IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-        FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-        AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-        LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-        OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-        SOFTWARE.
-        */
-
-        TermSize term_size;
-        gint cell_width = -1, cell_height = -1;
-
-        tty_init();
-        get_tty_size(&term_size);
-
-        if (term_size.width_cells > 0 && term_size.height_cells > 0 &&
-            term_size.width_pixels > 0 && term_size.height_pixels > 0) {
-                cell_width = term_size.width_pixels / term_size.width_cells;
-                cell_height = term_size.height_pixels / term_size.height_cells;
-        }
-
-        // Set default cell size for some terminals
-        if (cell_width == -1 || cell_height == -1) {
-                cell_width = 8;
-                cell_height = 16;
-        }
-
-        float aspect_ratio_correction = (float)cell_height / (float)cell_width;
-        unsigned int corrected_width = (int)(height * aspect_ratio_correction) - 1;
-
-        int rwidth, rheight, rchannels;
-        unsigned char *read_data = stbi_load(filepath, &rwidth, &rheight, &rchannels, 3);
-
-        if (read_data == NULL) {
-                return -1;
-        }
-
-        PixelData *data;
-        if (corrected_width != (unsigned)rwidth || height != (unsigned)rheight) {
-                // 3 * uint8 for RGB!
-                unsigned char *new_data = malloc(3 * sizeof(unsigned char) * corrected_width * height);
-                stbir_resize_uint8_srgb(
-                    read_data, rwidth, rheight, 0,
-                    new_data, corrected_width, height, 0, 3);
-
-                stbi_image_free(read_data);
-                data = (PixelData *)new_data;
-        } else {
-                data = (PixelData *)read_data;
-        }
+        if (centered)
+                indentation = ((term_size.width_cells - corrected_width) / 2);
 
         printf("\n");
         printf("%*s", indentation, "");
@@ -936,21 +849,11 @@ int convert_to_ascii(int indentation, const char *filepath, unsigned int height)
         return 0;
 }
 
-int print_in_ascii(int indentation, const char *path_to_img_file, int height)
+int print_in_ascii(int indentation, const char *path_to_img_file, int height, bool centered)
 {
         printf("\r");
 
-        int ret = convert_to_ascii(indentation, path_to_img_file, (unsigned)height);
-        if (ret == -1)
-                printf("\033[0m");
-        return 0;
-}
-
-int print_in_ascii_centered(const char *path_to_img_file, int height)
-{
-        printf("\r");
-
-        int ret = convert_to_ascii_centered(path_to_img_file, (unsigned)height);
+        int ret = convert_to_ascii(indentation, path_to_img_file, (unsigned)height, centered);
         if (ret == -1)
                 printf("\033[0m");
         return 0;

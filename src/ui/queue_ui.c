@@ -246,6 +246,7 @@ void view_enqueue(bool play_immediately)
         FileSystemEntry *library = get_library();
         FileSystemEntry *first_enqueued_entry = NULL;
         Node *current_song = get_current_song();
+        Node *first_enqueued_node = NULL;
         bool canGoNext = (current_song != NULL && current_song->next != NULL);
 
         if (state->currentView == TRACK_VIEW) {
@@ -277,23 +278,14 @@ void view_enqueue(bool play_immediately)
                 // Enqueue playlist
                 if (path_ends_with(entry->full_path, "m3u") ||
                     path_ends_with(entry->full_path, "m3u8")) {
-                        FileSystemEntry *first_enqueued_entry = NULL;
-
-                        Node *prev_tail = playlist->tail;
 
                         if (playlist != NULL) {
-                                read_m3u_file(entry->full_path, playlist, library);
+                                first_enqueued_node = read_m3u_file(entry->full_path, playlist);
 
-                                if (prev_tail != NULL && prev_tail->next != NULL) {
-                                        first_enqueued_entry = find_corresponding_entry(
-                                            library, prev_tail->next->song.file_path);
-                                } else if (playlist->head != NULL) {
-                                        first_enqueued_entry = find_corresponding_entry(
-                                            library, playlist->head->song.file_path);
-                                }
+                                first_enqueued_entry = find_corresponding_entry(
+                                            library, entry->full_path);
 
                                 autostart_if_stopped(first_enqueued_entry);
-                                mark_list_as_enqueued(library, playlist);
                                 deep_copy_play_list_onto_list(playlist, &unshuffled_playlist);
                         }
                 } else
@@ -306,8 +298,9 @@ void view_enqueue(bool play_immediately)
         }
 
         if (first_enqueued_entry && play_immediately && playlist->count != 0) {
-                Node *song = find_path_in_playlist(first_enqueued_entry->full_path, playlist);
-                clear_and_play(song);
+                if (first_enqueued_node == NULL)
+                        first_enqueued_node = find_path_in_playlist(first_enqueued_entry->full_path, playlist);
+                clear_and_play(first_enqueued_node);
         }
 
         // Handle MPRIS can_go_next
