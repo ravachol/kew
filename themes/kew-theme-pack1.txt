@@ -15,7 +15,7 @@ bunker
 army
 purple
 pewter
-ravachol
+kew
 cyberpunk
 
 Light Themes

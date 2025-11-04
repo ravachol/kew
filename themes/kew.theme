@@ -1,9 +1,9 @@
 # ============================================
-# RAVACHOL'S THEME (Red & Black)
+# KEW THEME
 # ============================================
 
 [theme]
-name=Ravachol's Theme
+name=kew Theme
 author=Ravachol
 
 # Core colors
@@ -26,11 +26,11 @@ playlist.title=#e0e0e0
 playlist.playing=#e6607a
 
 # Track View
-trackview.title=#e0e0e0
-trackview.artist=#e6607a
-trackview.album=#d82953
-trackview.year=#d82953
-trackview.time=#9b1831
+trackview.title=#de2b4d
+trackview.artist=-1
+trackview.album=-1
+trackview.year=-1
+trackview.time=-1
 trackview.visualizer=#de2b4d
 trackview.lyrics=#e0e0e0
 
