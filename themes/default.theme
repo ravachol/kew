@@ -23,7 +23,7 @@
 #   15: Bright White
 #   -1: Default terminal foreground
 
-name=Default
+name=Default 16-color
 author=Ravachol
 
 # Core Colors

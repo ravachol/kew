@@ -128,7 +128,6 @@ void transfer_settings_to_ui(void)
         ui->shuffle_enabled = (settings->shuffle_enabled[0] == '1');
         ui->visualizerBrailleMode = (settings->visualizerBrailleMode[0] == '1');
         ui->hideLogo = (settings->hideLogo[0] == '1');
-        ui->hideHelp = (settings->hideHelp[0] == '1');
         ui->saveRepeatShuffleSettings =
             (settings->saveRepeatShuffleSettings[0] == '1');
         ui->trackTitleAsWindowTitle =
