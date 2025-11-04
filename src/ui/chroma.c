@@ -101,9 +101,8 @@ static void *chroma_thread(void *arg)
 
         char cmd[256];
         int n = snprintf(cmd, sizeof(cmd),
-                         //"chroma --stream %dx%d --config /home/ravachol/Documents/chroma/examples/%d.toml --fps 30",
-                         "chroma --stream %dx%d --fps 30",
-                         width, height, g_viz.preset);
+                         //"chroma --stream %dx%d --config /home/ravachol/Documents/chroma/examples/%d.toml --fps 30", width, height, g_viz.preset);
+                         "chroma --stream %dx%d --fps 30", width, height);
 
         if (n < 0 || n >= (int)sizeof(cmd)) {
             // Truncated or error; skip this iteration
@@ -315,7 +314,7 @@ int chroma_get_current_preset(void)
         return g_viz.preset;
 }
 
-int chroma_set_current_preset(int preset)
+void chroma_set_current_preset(int preset)
 {
         g_viz.preset = preset;
 }

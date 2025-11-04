@@ -45,12 +45,12 @@ int get_random_number(int min, int max)
         static int seeded = 0;
         if (!seeded) {
                 srand(time(
-                    NULL)); // Use srandom() to seed the random number generator
+                    NULL));
                 seeded = 1;
         }
 
         return min +
-               (rand() % (max - min + 1)); // Use random() instead of rand()
+               (rand() % (max - min + 1));
 }
 
 #endif
@@ -58,12 +58,9 @@ int get_random_number(int min, int max)
 void c_sleep(int milliseconds)
 {
         struct timespec ts;
-        ts.tv_sec = milliseconds / 1000; // Seconds part
-        // Ensure that the nanoseconds part is computed safely, and no overflow
-        // happens
+        ts.tv_sec = milliseconds / 1000;
         ts.tv_nsec = (milliseconds % 1000) * 1000000;
 
-        // Make sure that nanoseconds is within valid range
         if (ts.tv_nsec >= 1000000000) {
                 ts.tv_sec += ts.tv_nsec / 1000000000;
                 ts.tv_nsec %= 1000000000;
@@ -74,40 +71,29 @@ void c_sleep(int milliseconds)
 
 void c_usleep(int microseconds)
 {
-        if (microseconds < 0 || microseconds > 100000000) // Max 100 seconds
+        if (microseconds < 0 || microseconds > 100000000)
         {
                 return;
         }
 
         struct timespec ts;
         ts.tv_sec = microseconds / 1000000;
-        ts.tv_nsec = (microseconds % 1000000) *
-                     1000; // Convert remaining microseconds to nanoseconds
+        ts.tv_nsec = (microseconds % 1000000) * 1000;
 
         nanosleep(&ts, NULL);
 }
 
 void c_strcpy(char *dest, const char *src, size_t dest_size)
 {
-        // Ensure the destination and source are valid, and dest_size is large
-        // enough to hold at least one byte
         if (dest && src && dest_size > 0) {
-                // Calculate the length of the source string, limited by
-                // dest_size - 1 (for the null terminator)
                 size_t src_length = strnlen(src, dest_size - 1);
-
-                // Ensure we do not write beyond dest_size - 1
                 if (src_length >= dest_size)
                         src_length = dest_size - 1;
 
-                // Safely copy up to src_length bytes from src to dest
                 memcpy(dest, src, src_length);
 
-                // Null-terminate the destination string
                 dest[src_length] = '\0';
-        } else if (dest &&
-                   dest_size >
-                       0) // If source is NULL, we clear the destination buffer
+        } else if (dest && dest_size > 0)
         {
                 dest[0] = '\0';
         }
@@ -456,7 +442,6 @@ char *get_file_path(const char *filename)
                 return NULL;
         }
 
-        // Also check it doesn't start with a dot (hidden files)
         if (filename[0] == '.') {
                 return NULL;
         }
@@ -676,14 +661,4 @@ int get_number_from_string(const char *str)
         }
 
         return (int)value;
-}
-
-void str_to_lower(char *str)
-{
-        if (str == NULL)
-                return;
-
-        for (; *str; ++str) {
-                *str = tolower((unsigned char)*str);
-        }
 }
