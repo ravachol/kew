@@ -433,7 +433,7 @@ void skip_to_next_song(void)
         if (current == NULL || current->next == NULL) {
                 if (is_repeat_list_enabled()) {
                         clear_current_song();
-                } else if (!is_stopped() && !is_paused()) {
+                } else if (!pb_is_stopped() && !pb_is_paused()) {
                         stop();
                         return;
                 } else {
@@ -445,7 +445,7 @@ void skip_to_next_song(void)
             ps->clearingErrors)
                 return;
 
-        if (is_stopped() || is_paused()) {
+        if (pb_is_stopped() || pb_is_paused()) {
                 silent_switch_to_next(true);
                 return;
         }
@@ -476,7 +476,7 @@ void skip_to_prev_song(void)
         PlaybackState *ps = get_playback_state();
 
         if (current == NULL) {
-                if (!is_stopped() && !is_paused())
+                if (!pb_is_stopped() && !pb_is_paused())
                         stop();
                 return;
         }
@@ -485,7 +485,7 @@ void skip_to_prev_song(void)
                 if (!ps->forceSkip)
                         return;
 
-        if (is_stopped() || is_paused()) {
+        if (pb_is_stopped() || pb_is_paused()) {
                 silent_switch_to_prev();
                 return;
         }
@@ -777,7 +777,7 @@ void handle_skip_out_of_order(void)
 {
         PlaybackState *ps = get_playback_state();
 
-        if (!ps->skipOutOfOrder && !ops_is_repeat_enabled()) {
+        if (!ps->skipOutOfOrder && !is_repeat_enabled()) {
                 set_current_song_to_next();
         } else {
                 ps->skipOutOfOrder = false;
@@ -866,7 +866,7 @@ void playlist_play(PlayList *playlist)
 
         Node *current = get_current_song();
 
-        if (ops_is_paused() && current != NULL &&
+        if (is_paused() && current != NULL &&
             state->uiState.chosen_node_id == current->id) {
                 ops_toggle_pause();
         } else {

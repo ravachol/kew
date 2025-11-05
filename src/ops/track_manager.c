@@ -169,6 +169,9 @@ void finish_loading(void)
 
 void autostart_if_stopped(FileSystemEntry *first_enqueued_entry)
 {
+        if (first_enqueued_entry == NULL)
+                return;
+
         PlayList *playlist = get_playlist();
         PlaybackState *ps = get_playback_state();
 

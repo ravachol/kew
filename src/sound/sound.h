@@ -22,8 +22,8 @@
 #include <unistd.h>
 
 bool is_context_initialized(void);
-int create_audio_device(void);
-int switch_audio_implementation(void);
+int pb_create_audio_device(void);
+int pb_switch_audio_implementation(void);
 void cleanup_audio_context(void);
 ma_result call_read_PCM_frames(ma_data_source *p_data_source, ma_format format,
                                void *p_frames_out, ma_uint64 frames_read,

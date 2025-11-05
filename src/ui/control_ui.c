@@ -241,7 +241,7 @@ void toggle_ascii(void)
 void toggle_repeat(void)
 {
         AppState *state = get_app_state();
-        bool repeat_enabled = ops_is_repeat_enabled();
+        bool repeat_enabled = is_repeat_enabled();
         bool repeat_list_enabled = is_repeat_list_enabled();
 
         if (repeat_enabled) {
@@ -267,7 +267,7 @@ void toggle_repeat(void)
 
 void toggle_pause()
 {
-        if (ops_is_stopped()) {
+        if (is_stopped()) {
                 view_enqueue(false);
         } else {
                 ops_toggle_pause();
@@ -348,7 +348,7 @@ bool should_refresh_player(void)
 {
         PlaybackState *ps = get_playback_state();
 
-        return !ps->skipping && !ops_is_EOF() && !ops_is_impl_switch_reached();
+        return !ps->skipping && !is_EOF_reached() && !is_impl_switch_reached();
 }
 
 int load_theme(const char *theme_name,
@@ -410,13 +410,14 @@ int load_theme(const char *theme_name,
                 return 0;
         }
 
-        snprintf(filename, sizeof(filename), string_to_lower(filename));
+        char *lower_filename = string_to_lower(filename);
 
         // Call the loader
         int loaded =
-            load_theme_from_file(themes_dir, filename, &app_state->uiSettings.theme);
+            load_theme_from_file(themes_dir, lower_filename, &app_state->uiSettings.theme);
         if (!loaded) {
                 free(config_path);
+                free(lower_filename);
                 return 0; // failed to load
         }
 
@@ -433,6 +434,7 @@ int load_theme(const char *theme_name,
         }
 
         free(config_path);
+        free(lower_filename);
 
         return 1;
 }

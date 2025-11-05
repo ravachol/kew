@@ -278,7 +278,7 @@ static void handle_stop(GDBusConnection *connection, const gchar *sender,
         (void)parameters;
         (void)user_data;
 
-        if (!is_stopped())
+        if (!pb_is_stopped())
                 stop();
 
         g_dbus_method_invocation_return_value(invocation, NULL);
@@ -446,9 +446,9 @@ get_playback_status(GDBusConnection *connection, const gchar *sender,
 
         const gchar *status = "Stopped";
 
-        if (is_paused()) {
+        if (pb_is_paused()) {
                 status = "Paused";
-        } else if (get_current_song() == NULL || is_stopped()) {
+        } else if (get_current_song() == NULL || pb_is_stopped()) {
                 status = "Stopped";
         } else {
                 status = "Playing";

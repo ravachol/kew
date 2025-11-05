@@ -3,8 +3,8 @@
  * @file visuals.h
  * @brief Audio visualization rendering.
  *
- * Implements ASCII or terminal-based visualizers that react
- * to playback data such as amplitude or frequency spectrum.
+ * Implements a spectrum visualizer that react
+ * to playback data.
  */
 
 void init_visuals(void);

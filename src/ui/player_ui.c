@@ -292,14 +292,14 @@ void print_help(void)
 
 static const char *get_player_status_icon(void)
 {
-        if (ops_is_paused()) {
+        if (is_paused()) {
 #ifdef __ANDROID__
                 return "∥";
 #else
                 return "⏸";
 #endif
         }
-        if (ops_is_stopped())
+        if (is_stopped())
                 return "■";
         return "▶";
 }
@@ -307,8 +307,8 @@ static const char *get_player_status_icon(void)
 int print_logo_art(const UISettings *ui, int indent, bool centered, bool print_tag_line, bool use_gradient)
 {
         if (ui->hideLogo) {
-                clear_line();
                 printf("\n");
+                clear_line();
                 return 1;
         }
 
@@ -343,16 +343,15 @@ int print_logo_art(const UISettings *ui, int indent, bool centered, bool print_t
                 printf("%s", LOGO[i]);
         }
 
+        printf("\n");
+        clear_line();
+
         if (print_tag_line) {
-                printf("\n");
                 print_blank_spaces(col);
                 printf("MUSIC  FOR  THE  SHELL\n");
         }
 
-        printf("\n");
-        printf("\n");
-
-        return 5; // lines used by logo
+        return logoHeight; // lines used by logo
 }
 
 static void build_song_title(const SongData *song_data, const UISettings *ui,
@@ -362,7 +361,7 @@ static void build_song_title(const SongData *song_data, const UISettings *ui,
 
         if (!song_data || !song_data->metadata)
         {
-                snprintf(out, out_size, "%*s%s", indent, "", icon);
+                out[0] = '\0';//snprintf(out, out_size, "%*s%s", indent, "", icon);
                 return;
         }
 
@@ -390,13 +389,14 @@ void print_now_playing(SongData *song_data, UISettings *ui, int row, int col, in
 
         apply_color(ui->colorMode, ui->theme.nowplaying, ui->color);
 
+        clear_rest_of_line();
+
         if (title[0] != '\0') {
                 char processed[MAXPATHLEN + 1] = {0};
                 process_name(title, processed, max_width, false, false);
 
                 printf("\033[%d;%dH", row, col);
                 printf("%s", processed);
-                clear_rest_of_line();
         }
 }
 
@@ -801,7 +801,7 @@ void print_footer(int row, int col)
 #ifndef __ANDROID__
         if (term_w >= ABSOLUTE_MIN_WIDTH) {
 #endif
-                if (ops_is_paused()) {
+                if (is_paused()) {
 #if defined(__ANDROID__) || defined(__APPLE__)
                         char pause_text[] = " ∥";
 #else
@@ -810,7 +810,7 @@ void print_footer(int row, int col)
                         snprintf(icons_text + currentLength,
                                  max_length - currentLength, "%s", pause_text);
                         currentLength += strlen(pause_text);
-                } else if (ops_is_stopped()) {
+                } else if (is_stopped()) {
                         char pause_text[] = " ■";
                         snprintf(icons_text + currentLength,
                                  max_length - currentLength, "%s", pause_text);
@@ -825,7 +825,7 @@ void print_footer(int row, int col)
         }
 #endif
 
-        if (ops_is_repeat_enabled()) {
+        if (is_repeat_enabled()) {
                 char repeat_text[] = " ↻";
                 snprintf(icons_text + currentLength,
                          max_length - currentLength, "%s", repeat_text);
@@ -1324,7 +1324,7 @@ void show_search(SongData *song_data, int *chosen_row)
 {
         int term_w, term_h;
         get_term_size(&term_w, &term_h);
-        max_search_list_size = term_h - 3;
+        max_search_list_size = term_h - 2;
 
         AppState *state = get_app_state();
         UISettings *ui = &(state->uiSettings);
@@ -1346,7 +1346,7 @@ void show_playlist(SongData *song_data, PlayList *list, int *chosen_song,
 {
         int term_w, term_h;
         get_term_size(&term_w, &term_h);
-        max_list_size = term_h - 2;
+        max_list_size = term_h - 1;
 
         AppState *state = get_app_state();
         UISettings *ui = &(state->uiSettings);
