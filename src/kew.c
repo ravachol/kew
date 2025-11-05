@@ -41,6 +41,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include "sys/notifications.h"
 #include "sys/sys_integration.h"
 
+#include "ui/chroma.h"
 #include "ui/cli.h"
 #include "ui/common_ui.h"
 #include "ui/control_ui.h"
@@ -52,7 +53,6 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include "ui/settings.h"
 #include "ui/termbox2_input.h"
 #include "ui/visuals.h"
-#include "ui/chroma.h"
 
 #include "ops/library_ops.h"
 #include "ops/playback_clock.h"
@@ -316,8 +316,7 @@ void run(bool start_playing)
 
         init_mpris();
 
-        if (state->uiSettings.chromaPreset >= 0)
-        {
+        if (state->uiSettings.chromaPreset >= 0) {
                 chroma_set_current_preset(state->uiSettings.chromaPreset);
                 state->uiSettings.visualizations_instead_of_cover = true;
         }
@@ -361,11 +360,13 @@ void kew_init(void)
 {
         AppState *state = get_app_state();
 
+        set_nonblocking_mode();
+
         disable_terminal_line_input();
         init_resize();
         ioctl(STDOUT_FILENO, TIOCGWINSZ, &state->uiState.windowSize);
         enable_scrolling();
-        set_nonblocking_mode();
+
         init_input();
 
         // This is to not stop Chroma when we can't keep up with it, instead just return an error
@@ -477,8 +478,8 @@ void kew_shutdown()
         shutdown_input();
         free_search_results();
         cleanup_mpris();
-        restore_terminal_mode();
         enable_input_buffering();
+        restore_terminal_mode();
         set_path(settings->path);
         set_prefs(settings, &(state->uiSettings));
         save_favorites_playlist(settings->path, favorites_playlist);
@@ -633,11 +634,19 @@ void init_state(void)
         state_ptr = state;
 }
 
-void cleanup(int sig) {
-    // Disable mouse reporting
-    printf("\033[?1000l");
-    fflush(stdout);
-    _exit(1);
+void force_terminal_restore(int sig)
+{
+    // Show cursor
+    write(STDOUT_FILENO, "\033[?25h", 7);
+
+    // Leave alternate screen
+    write(STDOUT_FILENO, "\033[?1049l", 8);
+
+    // Disable mouse
+    write(STDOUT_FILENO, "\033[?1000l", 9);
+
+    // Exit immediately (async-signal-safe)
+    _exit(128 + sig);
 }
 
 int main(int argc, char *argv[])
@@ -682,10 +691,10 @@ int main(int argc, char *argv[])
         enter_alternate_screen_buffer();
         atexit(kew_shutdown);
 
-        signal(SIGINT, cleanup);
-        signal(SIGTERM, cleanup);
-        signal(SIGSEGV, cleanup);
-        signal(SIGABRT, cleanup);
+        signal(SIGINT, force_terminal_restore);
+        signal(SIGTERM, force_terminal_restore);
+        signal(SIGSEGV, force_terminal_restore);
+        signal(SIGABRT, force_terminal_restore);
 
         if (settings->path[0] == '\0') {
                 set_music_path();
