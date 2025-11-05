@@ -9,6 +9,7 @@
 #include "common/appstate.h"
 #include "common/common.h"
 
+#include "data/directorytree.h"
 #include "input.h"
 #include "player_ui.h"
 #include "search_ui.h"
@@ -240,11 +241,12 @@ FileSystemEntry *enqueue(FileSystemEntry *entry)
 void view_enqueue(bool play_immediately)
 {
         AppState *state = get_app_state();
-        PlayList *playlist = get_playlist();
-        PlayList *unshuffled_playlist = get_unshuffled_playlist();
-        PlaybackState *ps = get_playback_state();
         FileSystemEntry *library = get_library();
+        PlayList *playlist = get_playlist();
+        PlaybackState *ps = get_playback_state();
+        PlayList *unshuffled_playlist = get_unshuffled_playlist();
         FileSystemEntry *first_enqueued_entry = NULL;
+        FileSystemEntry *entry = NULL;
         Node *current_song = get_current_song();
         Node *first_enqueued_node = NULL;
         bool canGoNext = (current_song != NULL && current_song->next != NULL);
@@ -269,31 +271,32 @@ void view_enqueue(bool play_immediately)
                 }
         }
 
-        if (state->currentView == LIBRARY_VIEW) {
-                FileSystemEntry *entry = state->uiState.currentLibEntry;
+        if (state->currentView == LIBRARY_VIEW || state->currentView == SEARCH_VIEW) {
+                if (state->currentView == LIBRARY_VIEW)
+                        entry = state->uiState.currentLibEntry;
+                else
+                {
+                        entry = get_current_search_entry();
+                        set_chosen_dir(get_current_search_entry());
+                }
 
                 if (entry == NULL)
                         return;
 
-                // Enqueue playlist
-                if (path_ends_with(entry->full_path, "m3u") ||
-                    path_ends_with(entry->full_path, "m3u8")) {
+        // Enqueue playlist
+        if (path_ends_with(entry->full_path, "m3u") ||
+            path_ends_with(entry->full_path, "m3u8")) {
 
-                        if (playlist != NULL) {
-                                first_enqueued_node = read_m3u_file(entry->full_path, playlist);
+                if (playlist != NULL) {
+                        first_enqueued_node = read_m3u_file(entry->full_path, playlist);
 
-                                first_enqueued_entry = find_corresponding_entry(
-                                            library, entry->full_path);
+                        first_enqueued_entry = find_corresponding_entry(
+                            library, entry->full_path);
 
-                                deep_copy_play_list_onto_list(playlist, &unshuffled_playlist);
-                        }
-                } else
-                        first_enqueued_entry = enqueue(entry); // Enqueue song
-        }
-
-        if (state->currentView == SEARCH_VIEW) {
-                set_chosen_dir(get_current_search_entry());
-                first_enqueued_entry = enqueue(get_current_search_entry());
+                        deep_copy_play_list_onto_list(playlist, &unshuffled_playlist);
+                }
+        } else
+                first_enqueued_entry = enqueue(entry); // Enqueue song
         }
 
         autostart_if_stopped(first_enqueued_entry);
