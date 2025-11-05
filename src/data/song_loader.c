@@ -344,9 +344,9 @@ SongData *load_song_data(char *file_path)
         songdata->hasErrors = false;
         c_strcpy(songdata->file_path, "", sizeof(songdata->file_path));
         c_strcpy(songdata->cover_art_path, "", sizeof(songdata->cover_art_path));
-        songdata->red = state->uiSettings.kewColorRGB.r;
-        songdata->green = state->uiSettings.kewColorRGB.g;
-        songdata->blue = state->uiSettings.kewColorRGB.b;
+        songdata->red = state->uiSettings.defaultColorRGB.r;
+        songdata->green = state->uiSettings.defaultColorRGB.g;
+        songdata->blue = state->uiSettings.defaultColorRGB.b;
         songdata->metadata = NULL;
         songdata->cover = NULL;
         songdata->duration = 0.0;
