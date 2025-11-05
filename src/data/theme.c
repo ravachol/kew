@@ -289,44 +289,43 @@ bool ensure_default_themes(void)
                 return false;
         }
 
-        // Check if user themes directory already exists
         struct stat st;
         if (stat(themes_path, &st) == -1) {
-                char *system_themes = PREFIX "/share/kew/themes";
-                DIR *dir = opendir(system_themes);
-                if (dir) {
-                        struct dirent *entry;
-                        bool needsDir = false;
-
-                        while ((entry = readdir(dir)) != NULL) {
-                                if (entry->d_type == DT_REG &&
-                                    (strstr(entry->d_name, ".theme") ||
-                                     strstr(entry->d_name, ".txt"))) {
-                                        // Found at least one theme — create dir if not yet created
-                                        if (!needsDir) {
-                                                if (mkdir(themes_path, 0755) == 0)
-                                                        needsDir = true;
-                                                else
-                                                        break; // couldn't create directory
-                                        }
-
-                                        char src[MAXPATHLEN], dst[MAXPATHLEN];
-
-                                        if (snprintf(src, sizeof(src), "%s/%s",
-                                                     system_themes, entry->d_name) >= (int)sizeof(src))
-                                                continue;
-                                        if (snprintf(dst, sizeof(dst), "%s/%s",
-                                                     themes_path, entry->d_name) >= (int)sizeof(dst))
-                                                continue;
-
-                                        copy_file(src, dst);
-                                        copied = true;
-                                }
-                        }
-                        closedir(dir);
+                // Directory doesn't exist → create it
+                if (mkdir(themes_path, 0755) == -1) {
+                        free(config_path);
+                        return false;
                 }
         }
 
+        const char *system_themes = PREFIX "/share/kew/themes";
+        DIR *dir = opendir(system_themes);
+        if (!dir) {
+                free(config_path);
+                return false;
+        }
+
+        struct dirent *entry;
+        while ((entry = readdir(dir)) != NULL) {
+                // Only copy real files that look like themes
+                if (entry->d_type == DT_REG &&
+                    (strstr(entry->d_name, ".theme") || strstr(entry->d_name, ".txt"))) {
+                        char src[MAXPATHLEN], dst[MAXPATHLEN];
+
+                        if (snprintf(src, sizeof(src), "%s/%s",
+                                     system_themes, entry->d_name) >= (int)sizeof(src))
+                                continue;
+                        if (snprintf(dst, sizeof(dst), "%s/%s",
+                                     themes_path, entry->d_name) >= (int)sizeof(dst))
+                                continue;
+
+                        // Always overwrite – if it exists, replace it, if not, create it
+                        if (copy_file(src, dst))
+                                copied = true;
+                }
+        }
+
+        closedir(dir);
         free(config_path);
         return copied;
 }
