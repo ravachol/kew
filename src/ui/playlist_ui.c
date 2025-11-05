@@ -147,7 +147,8 @@ int display_playlist_items(Node *start_node, int start_iter, int max_list_size,
                 prepare_playlist_string(node, buffer, NAME_MAX);
 
                 if (buffer[0] != '\0') {
-                        if (ui->colorMode == COLOR_MODE_ALBUM || ui->colorMode == COLOR_MODE_THEME)
+                        if (ui->colorMode == COLOR_MODE_ALBUM || (ui->colorMode == COLOR_MODE_THEME &&
+                            ui->theme.playlist_rownum.type == COLOR_TYPE_RGB))
                                 apply_color(COLOR_MODE_ALBUM, ui->theme.playlist_rownum,
                                             row_color);
                         else
@@ -158,7 +159,8 @@ int display_playlist_items(Node *start_node, int start_iter, int max_list_size,
                         print_blank_spaces(indent);
                         printf("   %d. ", i + 1);
 
-                        if (ui->colorMode == COLOR_MODE_ALBUM || ui->colorMode == COLOR_MODE_THEME)
+                        if (ui->colorMode == COLOR_MODE_ALBUM || (ui->colorMode == COLOR_MODE_THEME &&
+                            ui->theme.playlist_rownum.type == COLOR_TYPE_RGB))
                                 apply_color(COLOR_MODE_ALBUM, ui->theme.playlist_title,
                                             row_color2);
                         else
