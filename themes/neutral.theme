@@ -1,0 +1,60 @@
+# Neutral kew Theme
+#
+# This theme uses only the default text color
+#
+
+name=Neutral
+author=Ravachol
+
+# Core Colors
+accent=-1
+text=-1
+textDim=-1
+textMuted=-1
+
+# General Colors
+logo=-1
+header=-1
+footer=-1
+help=-1
+link=-1
+nowplaying=-1
+
+# Playlist View
+playlist.rownum=-1
+playlist.title=-1
+playlist.playing=-1
+
+# Track View
+trackview.title=-1
+trackview.artist=-1
+trackview.album=-1
+trackview.year=-1
+trackview.time=-1
+trackview.visualizer=-1
+trackview.lyrics=-1
+
+# Library View
+library.artist=-1
+library.album=-1
+library.track=-1
+library.enqueued=-1
+library.playing=-1
+
+# Search
+search.label=-1
+search.query=-1
+search.result=-1
+search.enqueued=-1
+search.playing=-1
+
+# Progress
+progress.filled=-1
+progress.empty=-1
+progress.elapsed=-1
+
+# Status
+status.info=-1
+status.warning=-1
+status.error=-1
+status.success=-1
