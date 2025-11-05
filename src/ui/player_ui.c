@@ -1927,14 +1927,16 @@ void print_lyrics_page(UISettings *ui, int row, int col, double seconds, SongDat
                 return;
         }
 
-        apply_color(ui->colorMode, ui->theme.trackview_lyrics, ui->color);
-
         int limit = MIN((int)lyrics->count, height);
         int startat = 0;
+        int current = 0;
 
         if (lyrics->isTimed) {
                 for (int i = 0; i < (int)lyrics->count; i++) {
                         if (lyrics->lines[i].timestamp >= seconds) {
+
+                                current = i - 1;
+
                                 if (i > limit && i > 0)
                                         startat = i - 1; // If the current line would have fallen out of view, start at the current line - 1
                                 break;
@@ -1963,6 +1965,10 @@ void print_lyrics_page(UISettings *ui, int row, int col, double seconds, SongDat
                 if (length < 0)
                         length = 0;
 
+                if (i == current && lyrics->isTimed)
+                        apply_color(ui->colorMode, ui->theme.nowplaying, ui->defaultColorRGB);
+                else
+                        apply_color(ui->colorMode, ui->theme.trackview_lyrics, ui->color);
                 print_at(row + i - startat, col, linebuf, length);
                 clear_rest_of_line();
         }
