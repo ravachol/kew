@@ -225,6 +225,7 @@ install: all
 	mkdir -p $(DESTDIR)$(PREFIX)/bin
 	mkdir -p $(DESTDIR)$(THEMEDIR)
 	mkdir -p $(DESTDIR)$(LANGDIRPREFIX)/share/locale/zh_CN/LC_MESSAGES
+	mkdir -p $(DESTDIR)$(LANGDIRPREFIX)/share/locale/ja/LC_MESSAGES
 
 	# Install binary and man page
 	install -m 0755 kew $(DESTDIR)$(PREFIX)/bin/kew
@@ -233,6 +234,11 @@ install: all
 	# Install Chinese translation
 	install -m 0644 locale/zh_CN/LC_MESSAGES/kew.mo \
 		$(DESTDIR)$(LANGDIRPREFIX)/share/locale/zh_CN/LC_MESSAGES/kew.mo
+
+	# Install Japanese translation
+	install -m 0644 locale/ja/LC_MESSAGES/kew.mo \
+		$(DESTDIR)$(LANGDIRPREFIX)/share/locale/ja/LC_MESSAGES/kew.mo
+
 
 	@if [ -d $(THEMESRCDIR) ]; then \
 	for theme in $(THEMESRCDIR)/*.theme; do \
@@ -253,6 +259,7 @@ uninstall:
 	rm -f $(DESTDIR)$(MAN_DIR)/man1/kew.1
 	rm -rf $(DESTDIR)$(THEMEDIR)
 	rm -f $(DESTDIR)/usr/share/locale/zh_CN/LC_MESSAGES/kew.mo
+	rm -f $(DESTDIR)/usr/share/locale/ja/LC_MESSAGES/kew.mo
 
 .PHONY: clean
 clean:
