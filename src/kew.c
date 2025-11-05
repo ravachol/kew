@@ -120,7 +120,7 @@ void prepare_next_song(void)
 
         Node *current = get_current_song();
 
-        if (!ops_is_repeat_enabled() || current == NULL) {
+        if (!is_repeat_enabled() || current == NULL) {
                 unload_previous_song();
         }
 
@@ -161,7 +161,7 @@ int prepare_and_play_song(Node *song)
         finish_loading();
 
         if (res >= 0) {
-                res = playback_create();
+                res = create_playback_device();
         }
 
         if (res >= 0) {
@@ -233,12 +233,12 @@ void load_waiting_music(void)
                 if (ps->songHasErrors)
                         try_load_next();
 
-                if (ops_is_done()) {
+                if (is_EOF_reached()) {
                         prepare_next_song();
-                        playback_switch_decoder();
+                        switch_audio_implementation();
                 }
         } else {
-                ops_set_EOF_handled();
+                set_EOF_handled();
         }
 }
 
@@ -341,6 +341,22 @@ void run(bool start_playing)
         fflush(stdout);
 }
 
+void init_locale(void)
+{
+        setlocale(LC_ALL, "");
+        setlocale(LC_CTYPE, "");
+#ifdef __ANDROID__
+        // Termux prefix
+        const char *locale_dir = "/data/data/com.termux/files/usr/share/locale";
+#elif __APPLE__
+        const char *locale_dir = "/usr/local/share/locale";
+#else
+        const char *locale_dir = "/usr/share/locale";
+#endif
+        bindtextdomain("kew", locale_dir);
+        textdomain("kew");
+}
+
 void kew_init(void)
 {
         AppState *state = get_app_state();
@@ -373,18 +389,6 @@ void kew_init(void)
         free_search_results();
         reset_chosen_dir();
         create_library();
-        setlocale(LC_ALL, "");
-        setlocale(LC_CTYPE, "");
-#ifdef __ANDROID__
-        // Termux prefix
-        const char *locale_dir = "/data/data/com.termux/files/usr/share/locale";
-#elif __APPLE__
-        const char *locale_dir = "/usr/local/share/locale";
-#else
-        const char *locale_dir = "/usr/share/locale";
-#endif
-        bindtextdomain("kew", locale_dir);
-        textdomain("kew");
         state->uiSettings.LAST_ROW = _(" [F2 Playlist|F3 Library|F4 Track|F5 Search|F6 Help]");
         fflush(stdout);
 
@@ -439,9 +443,9 @@ void kew_shutdown()
 
         pthread_mutex_lock(&(state->data_source_mutex));
 
-        playback_shutdown();
+        sound_shutdown();
 
-        playback_free_decoders();
+        free_decoders();
 
         emit_playback_stopped_mpris();
 
@@ -459,7 +463,7 @@ void kew_shutdown()
 
         UserData *user_data = audio_data.pUserData;
 
-        playback_unload_songs(user_data);
+        unload_songs(user_data);
 
 #ifdef CHAFA_VERSION_1_16
         retire_passthrough_workarounds_tmux();
@@ -630,6 +634,7 @@ int main(int argc, char *argv[])
         AppState *state = get_app_state();
 
         init_state();
+        init_locale();
         restart_if_already_running(argv);
 
         AppSettings *settings = get_app_settings();

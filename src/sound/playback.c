@@ -67,7 +67,7 @@ void seek_percentage(float percent)
         seek_requested = true;
 }
 
-bool is_EOF_reached(void)
+bool pb_is_EOF_reached(void)
 {
         return atomic_load(&EOF_reached);
 }
@@ -77,12 +77,12 @@ void set_EOF_reached(void)
         atomic_store(&EOF_reached, true);
 }
 
-void set_EOF_handled(void)
+void pb_set_EOF_handled(void)
 {
         atomic_store(&EOF_reached, false);
 }
 
-bool is_paused(void)
+bool pb_is_paused(void)
 {
         return paused;
 }
@@ -92,7 +92,7 @@ void set_paused(bool val)
         paused = val;
 }
 
-bool is_stopped(void)
+bool pb_is_stopped(void)
 {
         return stopped;
 }
@@ -102,7 +102,7 @@ void set_stopped(bool val)
         stopped = val;
 }
 
-bool is_repeat_enabled(void)
+bool pb_is_repeat_enabled(void)
 {
         return repeat_enabled;
 }
@@ -115,15 +115,6 @@ void set_repeat_enabled(bool value)
 bool is_playing(void)
 {
         return ma_device_is_started(&device);
-}
-
-bool is_playback_done(void)
-{
-        if (is_EOF_reached()) {
-                return true;
-        } else {
-                return false;
-        }
 }
 
 void stop_playback(void)
@@ -154,7 +145,7 @@ void sound_resume_playback(void)
 
         if (!ma_device_is_started(&device)) {
                 if (ma_device_start(&device) != MA_SUCCESS) {
-                        create_audio_device();
+                        pb_create_audio_device();
                         ma_device_start(&device);
                 }
         }
@@ -187,7 +178,7 @@ void toggle_pause_playback(void)
 {
         if (ma_device_is_started(&device)) {
                 pause_playback();
-        } else if (is_paused() || is_stopped()) {
+        } else if (pb_is_paused() || pb_is_stopped()) {
                 sound_resume_playback();
         }
 }
@@ -228,7 +219,7 @@ int init_playback_device(ma_context *context, ma_format format, ma_uint32 channe
         return 0;
 }
 
-void cleanup_playback_device(void)
+void pb_cleanup_playback_device(void)
 {
         if (!device_initialized)
                 return;
@@ -257,7 +248,7 @@ void shutdown_android(void)
         memset(&device, 0, sizeof(device));
 }
 
-void sound_shutdown()
+void pb_sound_shutdown()
 {
         if (is_context_initialized()) {
 #ifdef __ANDROID__
@@ -336,7 +327,7 @@ void execute_switch(AudioData *p_audio_data)
         set_EOF_reached();
 }
 
-bool is_impl_switch_reached(void)
+bool pb_is_impl_switch_reached(void)
 {
         return atomic_load(&switch_reached) ? true : false;
 }
@@ -370,7 +361,7 @@ void activate_switch(AudioData *p_audio_data)
 {
         set_skip_to_next(false);
 
-        if (!is_repeat_enabled()) {
+        if (!pb_is_repeat_enabled()) {
                 pthread_mutex_lock(&switch_mutex);
                 p_audio_data->currentFileIndex =
                     1 - p_audio_data->currentFileIndex; // Toggle between 0 and 1
@@ -400,7 +391,7 @@ void m4a_read_pcm_frames(ma_data_source *p_data_source, void *p_frames_out,
         ma_uint64 frames_read = 0;
 
         while (frames_read < frame_count) {
-                if (is_impl_switch_reached())
+                if (pb_is_impl_switch_reached())
                         return;
 
                 if (pthread_mutex_trylock(&data_source_mutex) != 0) {
@@ -468,7 +459,7 @@ void m4a_read_pcm_frames(ma_data_source *p_data_source, void *p_frames_out,
                         return;
                 }
 
-                if (is_EOF_reached()) {
+                if (pb_is_EOF_reached()) {
                         pthread_mutex_unlock(&data_source_mutex);
                         return;
                 }
@@ -482,7 +473,7 @@ void m4a_read_pcm_frames(ma_data_source *p_data_source, void *p_frames_out,
                 if (((cursor != 0 && cursor == last_cursor) ||
                      frames_to_read == 0 || is_skip_to_next() ||
                      result != MA_SUCCESS) &&
-                    !is_EOF_reached()) {
+                    !pb_is_EOF_reached()) {
                         activate_switch(p_audio_data);
                         pthread_mutex_unlock(&data_source_mutex);
                         continue;
@@ -524,7 +515,7 @@ void opus_read_pcm_frames(ma_data_source *p_data_source, void *p_frames_out,
         ma_uint64 frames_read = 0;
 
         while (frames_read < frame_count) {
-                if (is_impl_switch_reached())
+                if (pb_is_impl_switch_reached())
                         return;
 
                 if (pthread_mutex_trylock(&data_source_mutex) != 0) {
@@ -589,7 +580,7 @@ void opus_read_pcm_frames(ma_data_source *p_data_source, void *p_frames_out,
                         return;
                 }
 
-                if (is_EOF_reached()) {
+                if (pb_is_EOF_reached()) {
                         pthread_mutex_unlock(&data_source_mutex);
                         return;
                 }
@@ -603,7 +594,7 @@ void opus_read_pcm_frames(ma_data_source *p_data_source, void *p_frames_out,
                 if (((cursor != 0 && cursor >= p_audio_data->totalFrames) ||
                      frames_to_read == 0 || is_skip_to_next() ||
                      result != MA_SUCCESS) &&
-                    !is_EOF_reached()) {
+                    !pb_is_EOF_reached()) {
                         activate_switch(p_audio_data);
                         pthread_mutex_unlock(&data_source_mutex);
                         continue;
@@ -642,7 +633,7 @@ void vorbis_read_pcm_frames(ma_data_source *p_data_source, void *p_frames_out,
         ma_uint64 frames_read = 0;
 
         while (frames_read < frame_count) {
-                if (is_impl_switch_reached())
+                if (pb_is_impl_switch_reached())
                         return;
 
                 if (pthread_mutex_trylock(&data_source_mutex) != 0) {
@@ -709,7 +700,7 @@ void vorbis_read_pcm_frames(ma_data_source *p_data_source, void *p_frames_out,
                         return;
                 }
 
-                if (is_EOF_reached()) {
+                if (pb_is_EOF_reached()) {
                         pthread_mutex_unlock(&data_source_mutex);
                         return;
                 }
@@ -722,7 +713,7 @@ void vorbis_read_pcm_frames(ma_data_source *p_data_source, void *p_frames_out,
 
                 if (((cursor != 0 && cursor >= p_audio_data->totalFrames) ||
                      is_skip_to_next() || result != MA_SUCCESS) &&
-                    !is_EOF_reached()) {
+                    !pb_is_EOF_reached()) {
                         activate_switch(p_audio_data);
                         pthread_mutex_unlock(&data_source_mutex);
                         continue;
@@ -761,7 +752,7 @@ void webm_read_pcm_frames(ma_data_source *p_data_source, void *p_frames_out,
         ma_uint64 frames_read = 0;
 
         while (frames_read < frame_count) {
-                if (is_impl_switch_reached())
+                if (pb_is_impl_switch_reached())
                         return;
 
                 if (pthread_mutex_trylock(&data_source_mutex) != 0) {
@@ -827,7 +818,7 @@ void webm_read_pcm_frames(ma_data_source *p_data_source, void *p_frames_out,
                         return;
                 }
 
-                if (is_EOF_reached()) {
+                if (pb_is_EOF_reached()) {
                         pthread_mutex_unlock(&data_source_mutex);
                         return;
                 }
@@ -840,7 +831,7 @@ void webm_read_pcm_frames(ma_data_source *p_data_source, void *p_frames_out,
 
                 if (((cursor != 0 && cursor >= p_audio_data->totalFrames) ||
                      is_skip_to_next() || result != MA_SUCCESS) &&
-                    !is_EOF_reached()) {
+                    !pb_is_EOF_reached()) {
                         activate_switch(p_audio_data);
                         pthread_mutex_unlock(&data_source_mutex);
                         continue;

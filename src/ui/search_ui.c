@@ -512,7 +512,7 @@ int display_search(int max_list_size, int indent, int *chosen_row,
                    int start_search_iter)
 {
         display_search_box(indent);
-        display_search_results(max_list_size, indent+2, chosen_row, start_search_iter);
+        display_search_results(max_list_size, indent, chosen_row, start_search_iter);
 
         return 0;
 }

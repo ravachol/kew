@@ -73,7 +73,7 @@ void reset_list_after_dequeuing_playing_song(void)
 
                 trigger_refresh();
 
-                playback_switch_decoder();
+                switch_audio_implementation();
 
                 unload_song_a();
                 unload_song_b();
@@ -298,7 +298,7 @@ void view_enqueue(bool play_immediately)
 
         autostart_if_stopped(first_enqueued_entry);
 
-        if (first_enqueued_entry && (play_immediately || ops_is_stopped()) && playlist->count != 0) {
+        if (first_enqueued_entry && (play_immediately || is_stopped()) && playlist->count != 0) {
                 if (first_enqueued_node == NULL)
                         first_enqueued_node = find_path_in_playlist(first_enqueued_entry->full_path, playlist);
                 clear_and_play(first_enqueued_node);

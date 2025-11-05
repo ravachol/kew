@@ -22,31 +22,31 @@ void playback_safe_cleanup(void)
 {
         AppState *state = get_app_state();
         pthread_mutex_lock(&(state->data_source_mutex));
-        cleanup_playback_device();
+        pb_cleanup_playback_device();
         pthread_mutex_unlock(&(state->data_source_mutex));
 }
 
 void playback_cleanup(void)
 {
-        cleanup_playback_device();
+        pb_cleanup_playback_device();
 }
 
-void playback_switch_decoder(void)
+void switch_audio_implementation(void)
 {
-        switch_audio_implementation();
+        pb_switch_audio_implementation();
 }
 
-int playback_create(void)
+int create_playback_device(void)
 {
-        return create_audio_device();
+        return pb_create_audio_device();
 }
 
-void playback_shutdown(void)
+void sound_shutdown(void)
 {
-        sound_shutdown();
+        pb_sound_shutdown();
 }
 
-void playback_unload_songs(UserData *user_data)
+void unload_songs(UserData *user_data)
 {
         PlaybackState *ps = get_playback_state();
 
@@ -71,7 +71,7 @@ void skip(void)
         audio_data.end_of_list_reached = false;
 
         if (!is_playing()) {
-                switch_audio_implementation();
+                pb_switch_audio_implementation();
                 ps->skipFromStopped = true;
         } else {
                 set_skip_to_next(true);
@@ -81,7 +81,7 @@ void skip(void)
                 trigger_refresh();
 }
 
-void playback_free_decoders(void)
+void free_decoders(void)
 {
         reset_all_decoders();
 }

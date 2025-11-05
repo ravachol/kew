@@ -28,7 +28,9 @@ typedef struct
         AppState *state;
 } UpdateLibraryThreadArgs;
 
-int current_sort = 0;
+static int current_sort = 0;
+
+static bool updating_library = false;
 
 void reset_sort_library(void)
 {
@@ -160,8 +162,10 @@ typedef struct
 
 void *update_library_thread(void *arg)
 {
-        if (arg == NULL)
+        if (arg == NULL || updating_library)
                 return NULL;
+
+        updating_library = true;
 
         UpdateLibraryArgs *args = arg;
         FileSystemEntry *library = get_library();
@@ -179,6 +183,9 @@ void *update_library_thread(void *arg)
         if (!tmp) {
                 perror("create_directory_tree");
                 pthread_mutex_unlock(&(state->switch_mutex));
+                free(args->path);
+                free(args);
+                updating_library = false;
                 return NULL;
         }
 
@@ -198,6 +205,7 @@ void *update_library_thread(void *arg)
 
         free(args->path);
         free(args);
+        updating_library = false;
 
         return NULL;
 }

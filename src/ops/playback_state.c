@@ -35,34 +35,29 @@ void set_shuffle_enabled(bool value)
         shuffle_enabled = value;
 }
 
-bool ops_is_repeat_enabled(void)
+bool is_repeat_enabled(void)
 {
-        return is_repeat_enabled();
+        return pb_is_repeat_enabled();
 }
 
-bool ops_is_paused(void)
+bool is_paused(void)
 {
-        return is_paused();
+        return pb_is_paused();
 }
 
-bool ops_is_stopped(void)
+bool is_stopped(void)
 {
-        return is_stopped();
+        return pb_is_stopped();
 }
 
-bool ops_is_done(void)
+bool is_EOF_reached(void)
 {
-        return is_playback_done();
+        return pb_is_EOF_reached();
 }
 
-bool ops_is_EOF(void)
+bool is_impl_switch_reached(void)
 {
-        return is_EOF_reached();
-}
-
-bool ops_is_impl_switch_reached(void)
-{
-        return is_impl_switch_reached();
+        return pb_is_impl_switch_reached();
 }
 
 bool is_current_song_deleted(void)
@@ -79,9 +74,9 @@ bool is_valid_song(SongData *song_data)
                song_data->metadata != NULL;
 }
 
-void ops_set_EOF_handled(void)
+void set_EOF_handled(void)
 {
-        set_EOF_handled();
+        pb_set_EOF_handled();
 }
 
 double get_current_song_duration(void)
