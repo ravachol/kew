@@ -368,6 +368,9 @@ void kew_init(void)
         set_nonblocking_mode();
         init_input();
 
+        // This is to not stop Chroma when we can't keep up with it, instead just return an error
+        signal(SIGPIPE, SIG_IGN);
+
         PlaybackState *ps = get_playback_state();
         UserData *user_data = audio_data.pUserData;
         PlayList *playlist = get_playlist();
