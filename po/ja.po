@@ -8,55 +8,58 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-11-05 18:59+0100\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"PO-Revision-Date: 2025-11-05 15:05+0100\n"
 "Last-Translator: FULL NAME <kew-player@proton-me>\n"
-"Language-Team: Simplified Chinese <zh_CN@li.org>\n"
-"Language: zh_CN\n"
+"Language-Team: Japanese <ja@li.org>\n"
+"Language: ja\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
 
 #: src/data/playlist.c:202
 #, c-format
 msgid "Playlist too large to allocate.\n"
-msgstr "播放列表太大，无法分配内存。\n"
+msgstr "プレイリストが大きすぎて割り当てできません。\n"
 
 #: src/data/playlist.c:210
 #, c-format
 msgid "Memory allocation error.\n"
-msgstr "内存分配错误。\n"
+msgstr "メモリ割り当てエラー。\n"
 
 #: src/data/playlist.c:288
 #, c-format
 msgid "Failed to allocate memory."
-msgstr "内存分配失败。"
+msgstr "メモリの割り当てに失敗しました。"
 
 #: src/data/playlist.c:340
 #, c-format
 msgid "Failed to open directory: %s\n"
-msgstr "打开目录失败：%s\n"
+msgstr "ディレクトリを開けませんでした：%s\n"
 
 #: src/data/playlist.c:347
 #, c-format
 msgid "Failed to compile regular expression\n"
-msgstr "正则表达式编译失败\n"
+msgstr "正規表現のコンパイルに失敗しました\n"
 
 #: src/data/playlist.c:358
 #, c-format
 msgid "Failed to scan directory: %s\n"
-msgstr "扫描目录失败：%s\n"
+msgstr "ディレクトリのスキャンに失敗しました：%s\n"
 
 #: src/data/playlist.c:642
 #, c-format
 msgid "Music not found\n"
-msgstr "未找到音乐\n"
+msgstr "音楽が見つかりません\n"
 
 #: src/ops/playlist_ops.c:888
 #, c-format
 msgid ""
 "Couldn't find any songs in the special playlist. Add a song by pressing '.' "
 "while it's playing. \n"
-msgstr "在特殊播放列表中未找到任何歌曲。播放时按 '.' 添加歌曲。\n"
+msgstr ""
+"特殊なプレイリストに曲が見つかりませんでした。再生中に '.' を押して曲を追加し"
+"てください。\n"
 
 #: src/sound/sound.c:575
 #, c-format
@@ -67,7 +70,7 @@ msgid ""
 msgstr ""
 "\n"
 "\n"
-"Opus 文件初始化失败。\n"
+"Opus ファイルの初期化に失敗しました。\n"
 
 #: src/sound/sound.c:599
 #, c-format
@@ -78,17 +81,17 @@ msgid ""
 msgstr ""
 "\n"
 "\n"
-"WebM 文件初始化失败。\n"
+"WebM ファイルの初期化に失敗しました。\n"
 
 #: src/sys/mpris.c:1047
 #, c-format
 msgid "Failed to own D-Bus name: %s\n"
-msgstr "获取 D-Bus 名称失败：%s\n"
+msgstr "D-Bus 名の取得に失敗しました：%s\n"
 
 #: src/ui/cli.c:138
 #, c-format
 msgid "Music Library: "
-msgstr "音乐库："
+msgstr "音楽ライブラリ："
 
 #: src/ui/cli.c:143
 #, c-format
@@ -96,7 +99,7 @@ msgid ""
 "Is this correct? Press Enter.\n"
 "\n"
 msgstr ""
-"是否正确？按回车确认。\n"
+"これでよろしいですか？Enter を押してください。\n"
 "\n"
 
 #: src/ui/cli.c:145
@@ -105,50 +108,50 @@ msgid ""
 "Or type a path:\n"
 "\n"
 msgstr ""
-"或者输入路径：\n"
+"またはパスを入力してください：\n"
 "\n"
 
 #: src/ui/cli.c:152 src/ui/cli.c:176
 #, c-format
 msgid "Error reading input.\n"
-msgstr "读取输入时出错。\n"
+msgstr "入力の読み取り中にエラーが発生しました。\n"
 
 #: src/ui/cli.c:170
 #, c-format
 msgid ""
 "Type a path:\n"
 "\n"
-msgstr ""
+msgstr "パスを入力してください：\n"
 
 #: src/ui/search_ui.c:297
 #, c-format
 msgid "   Search: "
-msgstr "   [搜索]："
+msgstr "   [検索]："
 
 #: src/ui/player_ui.c:289
 #, c-format
 msgid "Run man kew for help.\n"
-msgstr "运行 man kew 获取帮助。\n"
+msgstr "ヘルプを見るには man kew を実行してください。\n"
 
 #: src/ui/player_ui.c:791
 #, c-format
 msgid "%s Playlist|%s Library|%s Track|%s Search|%s Help"
-msgstr "%s 播放列表|%s 音乐库|%s 曲目|%s 搜索|%s 帮助"
+msgstr "%s プレイリスト|%s ライブラリ|%s トラック|%s 検索|%s ヘルプ"
 
 #: src/ui/player_ui.c:920
 #, c-format
 msgid "   kew version: "
-msgstr "   kew 版本："
+msgstr "   kew バージョン："
 
 #: src/ui/player_ui.c:957
 #, c-format
 msgid " Manual: See"
-msgstr " 使用手册：见"
+msgstr " マニュアル：参照"
 
 #: src/ui/player_ui.c:959
 #, c-format
 msgid " README"
-msgstr " README 文件"
+msgstr " README ファイル"
 
 #: src/ui/player_ui.c:961
 #, c-format
@@ -156,38 +159,38 @@ msgid ""
 " Or man kew\n"
 "\n"
 msgstr ""
-" 或 man kew\n"
+" または man kew\n"
 "\n"
 
 #: src/ui/player_ui.c:965
 #, c-format
 msgid " · Play/Pause: %s\n"
-msgstr " · 播放/暂停：%s\n"
+msgstr " · 再生/一時停止：%s\n"
 
 #: src/ui/player_ui.c:969
 #, c-format
 msgid " · Enqueue/Dequeue: %s\n"
-msgstr " · 加入/移出播放列表：%s\n"
+msgstr " · プレイリストに追加/削除：%s\n"
 
 #: src/ui/player_ui.c:973
 #, c-format
 msgid " · Enqueue and Play: %s\n"
-msgstr " · 加入播放列表并播放：%s\n"
+msgstr " · プレイリストに追加して再生：%s\n"
 
 #: src/ui/player_ui.c:977
 #, c-format
 msgid " · Quit: %s\n"
-msgstr " · 退出：%s\n"
+msgstr " · 終了：%s\n"
 
 #: src/ui/player_ui.c:981
 #, c-format
 msgid " · Switch tracks: %s"
-msgstr " · 切换曲目：%s"
+msgstr " · トラック切り替え：%s"
 
 #: src/ui/player_ui.c:983
 #, c-format
 msgid " and %s\n"
-msgstr "和 %s\n"
+msgstr "と %s\n"
 
 #: src/ui/player_ui.c:988
 #, c-format
@@ -197,52 +200,52 @@ msgstr " · 音量：%s "
 #: src/ui/player_ui.c:989
 #, c-format
 msgid "and %s\n"
-msgstr "和 %s\n"
+msgstr "と %s\n"
 
 #: src/ui/player_ui.c:993
 #, c-format
 msgid " · Clear List: %s\n"
-msgstr " · 清空播放列表：%s\n"
+msgstr " · プレイリストをクリア：%s\n"
 
 #: src/ui/player_ui.c:997
 #, c-format
 msgid " · Remove from playlist: %s\n"
-msgstr " · 从播放列表中移除：%s\n"
+msgstr " · プレイリストから削除：%s\n"
 
 #: src/ui/player_ui.c:1001
 #, c-format
 msgid " · Move songs: %s"
-msgstr " · 移动歌曲：%s"
+msgstr " · 曲を移動：%s"
 
 #: src/ui/player_ui.c:1002
 #, c-format
 msgid "/%s\n"
-msgstr ""
+msgstr "/%s\n"
 
 #: src/ui/player_ui.c:1006
 #, c-format
 msgid " · Change View: %s or "
-msgstr " · 切换视图：%s 或 "
+msgstr " · 表示切替：%s または "
 
 #: src/ui/player_ui.c:1014
 #, c-format
 msgid " or click the footer\n"
-msgstr " 或点击页脚\n"
+msgstr " またはフッターをクリック\n"
 
 #: src/ui/player_ui.c:1019
 #, c-format
 msgid " · Cycle Color Mode: %s (default theme, theme or cover colors)\n"
-msgstr " · 切换颜色模式：%s（默认主题、主题或封面颜色）\n"
+msgstr " · カラーモード切替：%s（デフォルトテーマ、テーマ、カバー色）\n"
 
 #: src/ui/player_ui.c:1024
 #, c-format
 msgid " · Cycle Themes: %s\n"
-msgstr " · 切换主题：%s\n"
+msgstr " · テーマ切替：%s\n"
 
 #: src/ui/player_ui.c:1028
 #, c-format
 msgid " · Cycle Chroma Visualization: %s (requires Chroma)\n"
-msgstr " · 循环色度可视化：%s（需要 chroma)\n"
+msgstr " · クロマ可視化切替：%s（Chroma 必須）\n"
 
 #: src/ui/player_ui.c:1032
 #, c-format
@@ -252,47 +255,47 @@ msgstr " · 停止：%s\n"
 #: src/ui/player_ui.c:1036
 #, c-format
 msgid " · Update Library: %s\n"
-msgstr " · 更新音乐库：%s\n"
+msgstr " · ライブラリ更新：%s\n"
 
 #: src/ui/player_ui.c:1040
 #, c-format
 msgid " · Sort Library: %s\n"
-msgstr " · 排序：%s\n"
+msgstr " · ライブラリを並べ替え：%s\n"
 
 #: src/ui/player_ui.c:1044
 #, c-format
 msgid " · Toggle Visualizer: %s\n"
-msgstr " · 开关可视化效果：%s\n"
+msgstr " · ビジュアライザー切替：%s\n"
 
 #: src/ui/player_ui.c:1048
 #, c-format
 msgid " · Toggle ASCII Cover: %s (disables Chroma)\n"
-msgstr " · 切换 ASCII 封面：%s (禁用 Chroma) \n"
+msgstr " · ASCII カバー切替：%s（Chroma 無効）\n"
 
 #: src/ui/player_ui.c:1052
 #, c-format
 msgid " · Toggle Lyrics Page on Track View: %s\n"
-msgstr " · 切换歌词页面：%s\n"
+msgstr " · 歌詞ページ切替：%s\n"
 
 #: src/ui/player_ui.c:1056
 #, c-format
 msgid " · Toggle Notifications: %s\n"
-msgstr " · 开关通知：%s\n"
+msgstr " · 通知切替：%s\n"
 
 #: src/ui/player_ui.c:1060
 #, c-format
 msgid " · Cycle Repeat: %s (repeat/repeat list/off)\n"
-msgstr " · 循环模式：%s（循环/循环列表/关闭）\n"
+msgstr " · リピートモード：%s（繰り返し/リスト繰り返し/オフ）\n"
 
 #: src/ui/player_ui.c:1065
 #, c-format
 msgid " · Shuffle: %s\n"
-msgstr " · 随机播放：%s\n"
+msgstr " · シャッフル再生：%s\n"
 
 #: src/ui/player_ui.c:1069
 #, c-format
 msgid " · Seek: %s and"
-msgstr " · 快进/快退：%s 和"
+msgstr " · シーク：%s と"
 
 #: src/ui/player_ui.c:1070
 #, c-format
@@ -302,7 +305,7 @@ msgstr " %s\n"
 #: src/ui/player_ui.c:1074
 #, c-format
 msgid " · Export Playlist: %s (named after the first song)\n"
-msgstr " · 导出播放列表：%s（以第一首歌命名）\n"
+msgstr " · プレイリストをエクスポート：%s（最初の曲名を使用）\n"
 
 #: src/ui/player_ui.c:1079
 #, c-format
@@ -310,28 +313,28 @@ msgid ""
 " · Add Song To 'kew favorites.m3u': %s (run with 'kew .')\n"
 "\n"
 msgstr ""
-" · 添加歌曲到 'kew favorites.m3u'：%s（使用 'kew .' 运行）\n"
+" · 曲を 'kew favorites.m3u' に追加：%s（'kew .' で実行）\n"
 "\n"
 
 #: src/ui/player_ui.c:1085
 #, c-format
 msgid " Theme: "
-msgstr " 主题："
+msgstr " テーマ："
 
 #: src/ui/player_ui.c:1089
 #, c-format
 msgid "Using "
-msgstr "使用 "
+msgstr "使用中："
 
 #: src/ui/player_ui.c:1091
 #, c-format
 msgid "Colors "
-msgstr "颜色 "
+msgstr "色："
 
 #: src/ui/player_ui.c:1093
 #, c-format
 msgid "From Track Covers"
-msgstr "（来自专辑封面）"
+msgstr "（トラックカバーから）"
 
 #: src/ui/player_ui.c:1101
 #, c-format
@@ -341,50 +344,50 @@ msgstr " 作者："
 #: src/ui/player_ui.c:1111
 #, c-format
 msgid " Project URL: "
-msgstr " 项目网址："
+msgstr " プロジェクト URL："
 
 #: src/ui/player_ui.c:1118
 #, c-format
 msgid " Please Donate: "
-msgstr " 捐助支持："
+msgstr " 寄付のお願い："
 
 #: src/ui/player_ui.c:1373
 #, c-format
 msgid "   ─ PLAYLIST ─\n"
-msgstr "   ─ 播放列表 ─\n"
+msgstr "   ─ プレイリスト ─\n"
 
 #: src/ui/player_ui.c:1700
 msgid "─ MUSIC LIBRARY ─"
-msgstr "─ 音乐库 ─"
+msgstr "─ 音楽ライブラリ ─"
 
 #: src/ui/player_ui.c:1926
 #, c-format
 msgid " No lyrics available. Press %s to go back."
-msgstr " 没有歌词可用。按 %s 返回。"
+msgstr " 歌詞はありません。%s を押して戻ります。"
 
 #: src/kew.c:395
 msgid " [F2 Playlist|F3 Library|F4 Track|F5 Search|F6 Help]"
-msgstr " [F2 播放列表|F3 音乐库|F4 曲目|F5 搜索|F6 帮助]"
+msgstr " [F2 プレイリスト|F3 ライブラリ|F4 トラック|F5 検索|F6 ヘルプ]"
 
 #: src/kew.c:525
 #, c-format
 msgid "No Music found.\n"
-msgstr "未找到音乐。\n"
+msgstr "音楽が見つかりません。\n"
 
 #: src/kew.c:526
 #, c-format
 msgid "Please make sure the path is set correctly. \n"
-msgstr "请确保路径设置正确。\n"
+msgstr "パスが正しく設定されていることを確認してください。\n"
 
 #: src/kew.c:527
 #, c-format
 msgid "To set it type: kew path \"/path/to/Music\". \n"
-msgstr "设置方法：键入：kew path \"/path/to/Music\"。\n"
+msgstr "設定するには次を入力してください：kew path \"/path/to/Music\"。\n"
 
 #: src/kew.c:529
 #, c-format
 msgid "Music not found.\n"
-msgstr "未找到音乐。\n"
+msgstr "音楽が見つかりません。\n"
 
 #: src/kew.c:533
 #, c-format

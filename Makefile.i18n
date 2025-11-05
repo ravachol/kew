@@ -3,7 +3,7 @@ SRC := $(shell find src -type f \( -name "*.c" -o -name "*.h" \))
 POT := kew.pot
 PO_DIR := po
 LOCALE_DIR := locale
-LANGS := zh_CN # add other languages as needed
+LANGS := zh_CN ja # add other languages as needed
 
 # Default target
 .PHONY: all
