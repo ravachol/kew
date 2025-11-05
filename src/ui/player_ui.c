@@ -343,9 +343,6 @@ int print_logo_art(const UISettings *ui, int indent, bool centered, bool print_t
                 printf("%s", LOGO[i]);
         }
 
-        printf("\n");
-        clear_line();
-
         if (print_tag_line) {
                 print_blank_spaces(col);
                 printf("MUSIC  FOR  THE  SHELL\n");
@@ -406,17 +403,19 @@ int print_logo(SongData *song_data, UISettings *ui)
 
         get_term_size(&term_w, &term_h);
 
-        int max_width = term_w - indent - 4 - indent;
+        int max_width = term_w - indent - 4 - LOGO_WIDTH - indent;
 
         int height = print_logo_art(ui, indent+2, false, false, true);
 
-        print_now_playing(song_data, ui, height + 1, indent + 4, max_width);
-        printf("\n");
-        clear_line();
+        print_now_playing(song_data, ui, height, indent + LOGO_WIDTH + 4, max_width);
+
         printf("\n");
         clear_line();
 
-        return height + 2;
+        printf("\n");
+        clear_line();
+
+        return height + 1;
 }
 
 int get_year(const char *date_string)
@@ -995,7 +994,7 @@ int show_key_bindings(SongData *songdata)
         num_printed_rows++;
         CHECK_LIST_LIMIT();
         print_blank_spaces(indentation);
-        printf(_(" · Remove songs: %s\n"), get_binding_string(EVENT_REMOVE, true));
+        printf(_(" · Remove from playlist: %s\n"), get_binding_string(EVENT_REMOVE, true));
         num_printed_rows++;
         CHECK_LIST_LIMIT();
         print_blank_spaces(indentation);
@@ -1109,16 +1108,16 @@ int show_key_bindings(SongData *songdata)
         CHECK_LIST_LIMIT();
         print_blank_spaces(indentation);
         apply_color(ui->colorMode, ui->theme.help, ui->defaultColorRGB);
-        printf(_(" Project URL:"));
+        printf(_(" Project URL: "));
         apply_color(ui->colorMode, ui->theme.link, ui->color);
-        printf(" https://codeberg.org/ravachol/kew\n");
+        printf("https://codeberg.org/ravachol/kew\n");
         num_printed_rows += 1;
         CHECK_LIST_LIMIT();
         print_blank_spaces(indentation);
         apply_color(ui->colorMode, ui->theme.help, ui->defaultColorRGB);
-        printf(_(" Please Donate:"));
+        printf(_(" Please Donate: "));
         apply_color(ui->colorMode, ui->theme.link, ui->color);
-        printf(" https://ko-fi.com/ravachol\n\n");
+        printf("https://ko-fi.com/ravachol\n\n");
         num_printed_rows += 2;
         CHECK_LIST_LIMIT();
         apply_color(ui->colorMode, ui->theme.text, ui->defaultColorRGB);
@@ -1530,7 +1529,8 @@ void apply_tree_item_color(UISettings *ui, int depth,
                         apply_color(ui->colorMode, ui->theme.library_playing,
                                     ui->color);
                 } else {
-                        if (ui->colorMode == COLOR_MODE_ALBUM || ui->colorMode == COLOR_MODE_THEME)
+                        if (ui->colorMode == COLOR_MODE_ALBUM || (ui->colorMode == COLOR_MODE_THEME
+                        && ui->theme.library_enqueued.type == COLOR_TYPE_RGB))
                                 apply_color(COLOR_MODE_ALBUM, ui->theme.library_enqueued,
                                             enqueued_color);
                         else
@@ -2287,9 +2287,9 @@ int print_player(SongData *songdata, double elapsed_seconds)
                                 clear_screen();
                         }
 
-                        ui->color.r = ui->kewColorRGB.r;
-                        ui->color.g = ui->kewColorRGB.g;
-                        ui->color.b = ui->kewColorRGB.b;
+                        ui->color.r = ui->defaultColorRGB.r;
+                        ui->color.g = ui->defaultColorRGB.g;
+                        ui->color.b = ui->defaultColorRGB.b;
 
                         if (ui->trackTitleAsWindowTitle)
                                 set_terminal_window_title("kew");
