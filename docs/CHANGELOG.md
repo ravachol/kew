@@ -28,7 +28,11 @@ The old format config files will still work for the most part, but to see exampl
 
 - The app and readme has been translated into chinese. Thank you for the help @hiruocha.
 
-- One more theme: catpuccin mocha by @pixel-peeper.
+- New theme: catpuccin mocha by @pixel-peeper.
+
+- New theme: neutral, uses only the default foreground color.
+
+- Reverted to being neutral in album color mode when no music is playing.
 
 #### Bug Fixes
 
