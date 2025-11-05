@@ -456,6 +456,7 @@ void kew_shutdown()
                 state->uiSettings.chromaPreset = chroma_get_current_preset();
         else
                 state->uiSettings.chromaPreset = -1;
+
         chroma_stop();
 
         bool noMusicFound = false;
@@ -632,6 +633,13 @@ void init_state(void)
         state_ptr = state;
 }
 
+void cleanup(int sig) {
+    // Disable mouse reporting
+    printf("\033[?1000l");
+    fflush(stdout);
+    _exit(1);
+}
+
 int main(int argc, char *argv[])
 {
         AppState *state = get_app_state();
@@ -673,6 +681,11 @@ int main(int argc, char *argv[])
         enable_mouse(&(state->uiSettings));
         enter_alternate_screen_buffer();
         atexit(kew_shutdown);
+
+        signal(SIGINT, cleanup);
+        signal(SIGTERM, cleanup);
+        signal(SIGSEGV, cleanup);
+        signal(SIGABRT, cleanup);
 
         if (settings->path[0] == '\0') {
                 set_music_path();
