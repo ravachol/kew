@@ -142,7 +142,7 @@ void set_music_path(void)
                         print_blank_spaces(indent);
                         printf(_("Is this correct? Press Enter.\n\n"));
                         print_blank_spaces(indent);
-                        printf(_("Or type a path (no quotes or single-quotes):\n\n"));
+                        printf(_("Or type a path:\n\n"));
                         print_blank_spaces(indent);
 
                         apply_color(COLOR_MODE_ALBUM, ui->theme.text, ui->kewColorRGB);
@@ -167,7 +167,7 @@ void set_music_path(void)
 
         // No standard music folder was found
         if (found < 1) {
-                printf(_("Type a path (no quotes or single-quotes):\n\n"));
+                printf(_("Type a path:\n\n"));
                 print_blank_spaces(indent);
                 apply_color(COLOR_MODE_ALBUM, ui->theme.text, ui->kewColorRGB);
 
@@ -180,6 +180,12 @@ void set_music_path(void)
 
         print_blank_spaces(indent);
         choice[strcspn(choice, "\n")] = '\0';
+
+        size_t len = strlen(choice);
+        if (len > 1 && choice[0] == '"' && choice[len - 1] == '"') {
+                memmove(choice, choice + 1, len - 2);
+                choice[len - 2] = '\0';
+        }
 
         // Set the path if the chosen directory exists
         if (directory_exists(choice)) {

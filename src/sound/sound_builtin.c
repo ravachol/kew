@@ -302,7 +302,7 @@ static bool should_switch(AudioData *audio_data, ma_uint64 frames_to_read,
         return (((audio_data->totalFrames != 0 &&
                   cursor >= audio_data->totalFrames) ||
                  frames_to_read == 0 || is_skip_to_next() || result != MA_SUCCESS) &&
-                !is_EOF_reached());
+                !pb_is_EOF_reached());
 }
 
 void builtin_read_pcm_frames(ma_data_source *p_data_source, void *p_frames_out,
@@ -321,7 +321,7 @@ void builtin_read_pcm_frames(ma_data_source *p_data_source, void *p_frames_out,
                         return;
 
                 // Step 2: Handle file switching or state invalidation
-                if (audio_data == NULL || audio_data->pUserData == NULL || is_impl_switch_reached()) {
+                if (audio_data == NULL || audio_data->pUserData == NULL || pb_is_impl_switch_reached()) {
                         pthread_mutex_unlock(&(state->data_source_mutex));
                         return;
                 }
@@ -356,7 +356,7 @@ void builtin_read_pcm_frames(ma_data_source *p_data_source, void *p_frames_out,
                 ma_uint64 frames_to_read = 0;
                 ma_decoder *first_decoder = get_first_decoder();
                 ma_uint64 cursor = 0;
-                if (first_decoder == NULL || is_EOF_reached()) {
+                if (first_decoder == NULL || pb_is_EOF_reached()) {
                         pthread_mutex_unlock(&(state->data_source_mutex));
                         return;
                 }

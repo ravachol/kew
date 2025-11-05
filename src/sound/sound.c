@@ -225,14 +225,14 @@ int handle_codec(
                 audio_data->avg_bit_rate = 0;
         }
 
-        if (is_repeat_enabled() || !(sameFormat && current_implementation == ops.implType)) {
+        if (pb_is_repeat_enabled() || !(sameFormat && current_implementation == ops.implType)) {
                 set_impl_switch_reached();
 
                 pthread_mutex_lock(&(state->data_source_mutex));
 
                 set_current_implementation_type(ops.implType);
 
-                cleanup_playback_device();
+                pb_cleanup_playback_device();
                 reset_all_decoders();
                 reset_audio_buffer();
 
@@ -611,19 +611,19 @@ int webm_createAudioDevice(UserData *user_data, ma_device *device,
         return 0;
 }
 
-int switch_audio_implementation(void)
+int pb_switch_audio_implementation(void)
 {
         AppState *state = get_app_state();
 
         if (audio_data.end_of_list_reached) {
-                set_EOF_handled();
+                pb_set_EOF_handled();
                 set_current_implementation_type(NONE);
                 return 0;
         }
 
         audio_data.pUserData->current_song_data = (audio_data.currentFileIndex == 0) ? audio_data.pUserData->songdataA : audio_data.pUserData->songdataB;
         if (!audio_data.pUserData->current_song_data) {
-                set_EOF_handled();
+                pb_set_EOF_handled();
                 return 0;
         }
 
@@ -653,7 +653,7 @@ int switch_audio_implementation(void)
                 return -1;
         }
 
-        set_EOF_handled();
+        pb_set_EOF_handled();
         return 0;
 }
 
@@ -668,7 +668,7 @@ void cleanup_audio_context(void)
         context_initialized = false;
 }
 
-int create_audio_device(void)
+int pb_create_audio_device(void)
 {
         PlaybackState *ps = get_playback_state();
 
@@ -679,7 +679,7 @@ int create_audio_device(void)
         ma_context_init(NULL, 0, NULL, &context);
         context_initialized = true;
 
-        if (switch_audio_implementation() >= 0) {
+        if (pb_switch_audio_implementation() >= 0) {
                 ps->notifySwitch = true;
         } else {
                 return -1;

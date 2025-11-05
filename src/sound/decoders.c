@@ -379,7 +379,7 @@ int prepare_next_m4a_decoder(SongData *song_data)
 
         if (current_decoder != NULL && decoder != NULL &&
             decoder->file_type != k_rawAAC) {
-                if (!is_EOF_reached())
+                if (!pb_is_EOF_reached())
                         ma_data_source_set_next(current_decoder, decoder);
         }
         return 0;
@@ -473,7 +473,7 @@ int prepare_next_vorbis_decoder(const char *filepath)
                          (uninit_func)uninit_vorbis_decoder);
 
         if (current_decoder != NULL && decoder != NULL) {
-                if (!is_EOF_reached())
+                if (!pb_is_EOF_reached())
                         ma_data_source_set_next(current_decoder, decoder);
         }
 
@@ -519,7 +519,7 @@ int prepare_next_decoder(const char *filepath)
                          (uninit_func)uninit_ma_decoder);
 
         if (current_decoder != NULL && decoder != NULL) {
-                if (!is_EOF_reached())
+                if (!pb_is_EOF_reached())
                         ma_data_source_set_next(current_decoder, decoder);
         }
         return 0;
@@ -583,7 +583,7 @@ int prepare_next_opus_decoder(const char *filepath)
                          (uninit_func)uninit_opus_decoder);
 
         if (current_decoder != NULL && decoder != NULL) {
-                if (!is_EOF_reached())
+                if (!pb_is_EOF_reached())
                         ma_data_source_set_next(current_decoder, decoder);
         }
         return 0;
@@ -663,7 +663,7 @@ int prepare_next_webm_decoder(SongData *song_data)
         }
 
         if (current_decoder != NULL && decoder != NULL) {
-                if (!is_EOF_reached())
+                if (!pb_is_EOF_reached())
                         ma_data_source_set_next(current_decoder, decoder);
         }
 

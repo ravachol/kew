@@ -2,8 +2,8 @@
  * @file visuals.c
  * @brief Audio visualization rendering.
  *
- * Implements ASCII or terminal-based visualizers that react
- * to playback data such as amplitude or frequency spectrum.
+ * Implements a spectrum visualizer that react
+ * to playback data.
  */
 
  #include "common/appstate.h"
@@ -402,7 +402,7 @@ void print_spectrum(int row, int col, UISettings *ui, int height, int num_bars,
 
         PixelData tmp;
 
-        bool is_playing = !(is_paused() || is_stopped());
+        bool is_playing = !(pb_is_paused() || pb_is_stopped());
 
         for (int j = height; j > 0 && !is_playing; j--) {
                 printf("\033[%d;%dH", row, col);

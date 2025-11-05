@@ -53,7 +53,7 @@ void reset_clock(void)
 
 void calc_elapsed_time(double duration)
 {
-        if (is_stopped())
+        if (pb_is_stopped())
                 return;
 
         clock_gettime(CLOCK_MONOTONIC, &current_time);
@@ -62,7 +62,7 @@ void calc_elapsed_time(double duration)
             (double)(current_time.tv_sec - last_update_time.tv_sec) +
             (double)(current_time.tv_nsec - last_update_time.tv_nsec) / 1e9;
 
-        if (!is_paused()) {
+        if (!pb_is_paused()) {
                 elapsed_seconds =
                     (double)(current_time.tv_sec - start_time.tv_sec) +
                     (double)(current_time.tv_nsec - start_time.tv_nsec) / 1e9;
@@ -97,7 +97,7 @@ void calc_elapsed_time(double duration)
 
 bool set_position(gint64 new_position, double duration)
 {
-        if (is_paused())
+        if (pb_is_paused())
                 return false;
 
         gint64 currentPositionMicroseconds =
@@ -116,7 +116,7 @@ bool set_position(gint64 new_position, double duration)
 
 bool seek_position(gint64 offset, double duration)
 {
-        if (is_paused())
+        if (pb_is_paused())
                 return false;
 
         if (duration != 0.0) {
