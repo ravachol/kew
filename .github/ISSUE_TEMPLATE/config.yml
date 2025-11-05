@@ -3,6 +3,8 @@ contact_links:
   - name: 💬 Support or Questions
     url: https://chatgpt.com/
     about: |
+      Please check if this issue has already been posted here: https://codeberg.org/ravachol/kew/issues
+      Also, report it there if you can.
       For support or general questions (like installation help, etc.),
       please consider reading the readme, or asking ChatGPT or Mistral.ai **before** opening an issue here.
       This issue tracker is for **bug reports and feature requests primarily**.
