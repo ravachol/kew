@@ -306,12 +306,6 @@ static const char *get_player_status_icon(void)
 
 int print_logo_art(const UISettings *ui, int indent, bool centered, bool print_tag_line, bool use_gradient)
 {
-        if (ui->hideLogo) {
-                printf("\n");
-                clear_line();
-                return 1;
-        }
-
         int h, w;
 
         get_term_size(&w, &h);
@@ -403,11 +397,20 @@ int print_logo(SongData *song_data, UISettings *ui)
 
         get_term_size(&term_w, &term_h);
 
-        int max_width = term_w - indent - 4 - LOGO_WIDTH - indent;
+        int logo_width = (ui->hideLogo == false) ? LOGO_WIDTH : 0;
+        int max_width = term_w - indent - 4 - logo_width - indent;
+        int height = 2;
 
-        int height = print_logo_art(ui, indent+2, false, false, true);
+        if (ui->hideLogo)
+        {
+                printf("\n");
+                clear_line();
+        }
+        else {
+                height = print_logo_art(ui, indent+2, false, false, true);
+        }
 
-        print_now_playing(song_data, ui, height, indent + LOGO_WIDTH + 4, max_width);
+        print_now_playing(song_data, ui, height, indent + logo_width + 4, max_width);
 
         printf("\n");
         clear_line();
