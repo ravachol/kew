@@ -164,6 +164,8 @@ kew theme <themename> (ie 'kew theme midnight')
 
 Put themes in \~/.config/kew/themes (\~/Library/Preferences/kew/themes on macOS).
 
+Do not edit the included themes as they are managed by kew. Instead make a copy with a different name and edit that.
+
 ## Visulizations / Chroma
 
 You can add visualizations to kew by installing Chroma:
