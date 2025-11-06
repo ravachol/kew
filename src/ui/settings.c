@@ -1828,7 +1828,7 @@ void set_config(AppSettings *settings, UISettings *ui)
         fprintf(file, "\n[miscellaneous]\n\n");
         fprintf(file, "path=%s\n", settings->path);
         fprintf(file, "allowNotifications=%s\n", settings->allowNotifications);
-        fprintf(file, "hideLogo=%s\n", settings->hideLogo);
+        fprintf(file, "hideLogo=%s\n\n", settings->hideLogo);
 
         fprintf(file, "# Delay when drawing title in track view, set to 0 to "
                       "have no delay.\n");
