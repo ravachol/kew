@@ -44,7 +44,7 @@ The old format config files will still work for the most part, but to see exampl
 
 #### Sponsors
 
-Thank you to Christian Mummelthey for his donation.
+Thank you to Christian Mummelthey and imalee.sk for their donations.
 
 ### 3.6.4
 
