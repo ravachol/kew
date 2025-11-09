@@ -533,7 +533,7 @@ int read_directory(const char *path, FileSystemEntry *parent)
         }
 
         regex_t regex;
-        regcomp(&regex, AUDIO_EXTENSIONS, REG_EXTENDED);
+        regcomp(&regex, AUDIO_EXTENSIONS, REG_EXTENDED | REG_ICASE);
 
         int num_entries = 0;
 
