@@ -50,7 +50,7 @@ search.playing=-1
 
 # Progress
 progress.filled=-1
-progress.empty=-1
+progress.empty=0
 progress.elapsed=-1
 
 # Status
