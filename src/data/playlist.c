@@ -342,7 +342,7 @@ void build_playlist_recursive(const char *directory_path,
         }
 
         regex_t regex;
-        int ret = regcomp(&regex, allowed_extensions, REG_EXTENDED);
+        int ret = regcomp(&regex, allowed_extensions, REG_EXTENDED | REG_ICASE);
         if (ret != 0) {
                 printf(_("Failed to compile regular expression\n"));
                 closedir(dir);
