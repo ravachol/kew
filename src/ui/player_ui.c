@@ -2221,7 +2221,7 @@ void show_track_view(int width, int height, AppSettings *settings,
                 chroma_start(cover_height);
         }
 
-        if (songdata && (songdata->cover == NULL || ui->visualizations_instead_of_cover)
+        if (songdata && ui->visualizations_instead_of_cover
         && (!chroma_is_started() || next_visualization_requested)  && ui->coverEnabled) {
                 if (has_chroma == -1)
                         has_chroma = chroma_is_installed();
