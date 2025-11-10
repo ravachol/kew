@@ -317,10 +317,8 @@ void toggle_shuffle(void)
                         path = strdup(current->song.file_path);
                 }
 
-                pthread_mutex_lock(&(playlist->mutex));
-
                 PlayList *playlist = get_playlist();
-                ;
+
                 deep_copy_play_list_onto_list(unshuffled_playlist, &playlist);
                 set_playlist(playlist);
 
@@ -328,8 +326,6 @@ void toggle_shuffle(void)
                         set_current_song(find_path_in_playlist(path, playlist));
                         free(path);
                 }
-
-                pthread_mutex_unlock(&(playlist->mutex));
 
                 emit_boolean_property_changed("Shuffle", FALSE);
         }
