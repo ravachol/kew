@@ -12,6 +12,7 @@
 
 #include "playlist_ops.h"
 #include "track_manager.h"
+#include "playback_state.h"
 
 #include "data/directorytree.h"
 
@@ -53,6 +54,66 @@ void sort_library(void)
         }
 
         trigger_refresh();
+}
+
+void highlight_current_song_in_folder(void)
+{
+        SongData *current_song_data = get_current_song_data();
+        
+        if (current_song_data == NULL || current_song_data->file_path[0] == '\0')
+                return;
+
+        gchar *file_path = current_song_data->file_path;
+        gchar **argv = NULL;
+
+#ifdef __APPLE__
+        argv = g_new0(gchar *, 4);
+        argv[0] = g_strdup("open");
+        argv[1] = g_strdup("-R");
+        argv[2] = g_strdup(file_path);
+        argv[3] = NULL;
+        
+        g_spawn_async(NULL, argv, NULL, G_SPAWN_SEARCH_PATH,
+                     NULL, NULL, NULL, NULL);
+        g_strfreev(argv);
+#else
+        gchar *file_uri = g_filename_to_uri(file_path, NULL, NULL);
+        gboolean revealed = FALSE;
+        
+        if (file_uri) {
+                argv = g_new0(gchar *, 9);
+                argv[0] = g_strdup("dbus-send");
+                argv[1] = g_strdup("--session");
+                argv[2] = g_strdup("--type=method_call");
+                argv[3] = g_strdup("--dest=org.freedesktop.FileManager1");
+                argv[4] = g_strdup("/org/freedesktop/FileManager1");
+                argv[5] = g_strdup("org.freedesktop.FileManager1.ShowItems");
+                argv[6] = g_strdup_printf("array:string:%s", file_uri);
+                argv[7] = g_strdup("string:");
+                argv[8] = NULL;
+                
+                revealed = g_spawn_async(NULL, argv, NULL,
+                                        G_SPAWN_SEARCH_PATH | G_SPAWN_STDOUT_TO_DEV_NULL,
+                                        NULL, NULL, NULL, NULL);
+                
+                g_strfreev(argv);
+                g_free(file_uri);
+        }
+        
+        if (!revealed) {
+                gchar *dir_path = g_path_get_dirname(file_path);
+                argv = g_new0(gchar *, 3);
+                argv[0] = g_strdup("xdg-open");
+                argv[1] = g_strdup(dir_path);
+                argv[2] = NULL;
+                
+                g_spawn_async(NULL, argv, NULL, G_SPAWN_SEARCH_PATH,
+                             NULL, NULL, NULL, NULL);
+                
+                g_strfreev(argv);
+                g_free(dir_path);
+        }
+#endif
 }
 
 bool mark_as_enqueued(FileSystemEntry *root, char *path)

@@ -49,7 +49,8 @@ enum EventType {
         EVENT_SORTLIBRARY,
         EVENT_CYCLETHEMES,
         EVENT_TOGGLENOTIFICATIONS,
-        EVENT_SHOWLYRICSPAGE
+        EVENT_SHOWLYRICSPAGE,
+        EVENT_OPENFOLDER
 };
 
 struct Event {

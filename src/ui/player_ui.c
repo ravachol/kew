@@ -1047,8 +1047,19 @@ int show_key_bindings(SongData *songdata)
         num_printed_rows++;
         CHECK_LIST_LIMIT();
         print_blank_spaces(indent);
-        printf(_(" · Add Song To 'kew favorites.m3u': %s (run with 'kew .')\n\n"),
+        printf(_(" · Add Song To 'kew favorites.m3u': %s (run with 'kew .')\n"),
                get_binding_string(EVENT_ADDTOFAVORITESPLAYLIST, false));
+        num_printed_rows++;
+        CHECK_LIST_LIMIT();
+        print_blank_spaces(indent);
+        printf(_(" · Open Current Song's Folder: %s\n"),
+               get_binding_string(EVENT_OPENFOLDER, false));
+        num_printed_rows++;
+        CHECK_LIST_LIMIT();
+        print_blank_spaces(indent);
+        printf(_(" · Move Songs in Playlist: %s and %s\n"),
+               get_binding_string(EVENT_MOVESONGUP, false),
+               get_binding_string(EVENT_MOVESONGDOWN, false));
         num_printed_rows += 2;
         CHECK_LIST_LIMIT();
         apply_color(ui->colorMode, ui->theme.text, ui->defaultColorRGB);

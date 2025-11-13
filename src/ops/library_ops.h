@@ -17,6 +17,7 @@ void update_library(char *path);
 void ask_if_cache_library(void);
 void sort_library(void);
 void reset_sort_library(void);
+void highlight_current_song_in_folder(void);
 void mark_list_as_enqueued(FileSystemEntry *root, PlayList *playlist);
 void enqueue_song(FileSystemEntry *child);
 void dequeue_song(FileSystemEntry *child);

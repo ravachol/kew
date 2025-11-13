@@ -89,6 +89,7 @@ TBKeyBinding key_bindings[MAX_KEY_BINDINGS] = {
     {0, 'u', 0, EVENT_UPDATELIBRARY, ""},
     {0, 'f', 0, EVENT_MOVESONGUP, ""},
     {0, 'g', 0, EVENT_MOVESONGDOWN, ""},
+    {0, 'e', 0, EVENT_OPENFOLDER, ""},
 
     {TB_KEY_ENTER, 0, 0, EVENT_ENQUEUE, ""},
     {0, 'G', 0, EVENT_ENQUEUE, ""},
@@ -466,6 +467,7 @@ static const EventMap event_map[] = {
     {"cycleThemes", EVENT_CYCLETHEMES},
     {"toggleNotifications", EVENT_TOGGLENOTIFICATIONS},
     {"showLyricsPage", EVENT_SHOWLYRICSPAGE},
+    {"openFolder", EVENT_OPENFOLDER},
     {NULL, EVENT_NONE} // Sentinel
 };
 

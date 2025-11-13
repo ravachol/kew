@@ -134,7 +134,7 @@ kew path "/home/joe/Musik/" (changes the path)
 * <kbd>x</kbd> to save the currently loaded playlist to a m3u file in your music folder.
 * <kbd>Tab</kbd> to switch to next view.
 * <kbd>Shift+Tab</kbd> to switch to previous view.
-
+* <kbd>e</kbd> to open the current song's folder in your file manager.
 * <kbd>f</kbd>, <kbd>g</kbd> to move songs up or down the playlist.
 * number + <kbd>G</kbd> or <kbd>Enter</kbd> to go to specific song number in the playlist.
 * <kbd>.</kbd> to add currently playing song to kew favorites.m3u (run with "kew .").

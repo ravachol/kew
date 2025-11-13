@@ -337,6 +337,9 @@ void handle_event(struct Event *event)
         case EVENT_SORTLIBRARY:
                 sort_library();
                 break;
+        case EVENT_OPENFOLDER:
+                highlight_current_song_in_folder();
+                break;
 
         default:
                 state->uiState.isFastForwarding = false;

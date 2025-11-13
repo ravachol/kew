@@ -131,6 +131,7 @@ kew path "/home/joe/Musik/"    更改音乐库路径
 * <kbd>x</kbd> 将当前播放列表保存为 .m3u 文件
 * <kbd>Tab</kbd> 切换至下一个视图
 * <kbd>Shift+Tab</kbd> 切换至上一个视图
+* <kbd>e</kbd> 在文件管理器中打开当前歌曲所在文件夹
 * <kbd>f</kbd>、<kbd>g</kbd> 移动歌曲在播放列表中的位置
 * 数字 + <kbd>G</kbd> 或 <kbd>Enter</kbd> 跳转至指定歌曲编号
 * <kbd>.</kbd> 将当前播放歌曲添加至 kew favorites.m3u（运行 `kew .`）
