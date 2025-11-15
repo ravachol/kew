@@ -993,6 +993,11 @@ int show_key_bindings(SongData *songdata)
         num_printed_rows++;
         CHECK_LIST_LIMIT();
         print_blank_spaces(indentation);
+        printf(_(" · Scroll: %s"), get_binding_string(EVENT_PREVPAGE, false));
+        printf(_(", %s\n"), get_binding_string(EVENT_NEXTPAGE, false));
+        num_printed_rows++;
+        CHECK_LIST_LIMIT();
+        print_blank_spaces(indentation);
         printf(_(" · Clear List: %s\n"), get_binding_string(EVENT_CLEARPLAYLIST, false));
         num_printed_rows++;
         CHECK_LIST_LIMIT();
