@@ -636,16 +636,20 @@ void init_state(void)
 
 void force_terminal_restore(int sig)
 {
+    ssize_t res;
+
     // Show cursor
-    write(STDOUT_FILENO, "\033[?25h", 7);
+    res = write(STDOUT_FILENO, "\033[?25h", 7);
+    (void)res;
 
     // Leave alternate screen
-    write(STDOUT_FILENO, "\033[?1049l", 8);
+    res = write(STDOUT_FILENO, "\033[?1049l", 8);
+    (void)res;
 
     // Disable mouse
-    write(STDOUT_FILENO, "\033[?1000l", 9);
+    res = write(STDOUT_FILENO, "\033[?1000l", 9);
+    (void)res;
 
-    // Exit immediately (async-signal-safe)
     _exit(128 + sig);
 }
 
