@@ -478,8 +478,6 @@ void kew_shutdown()
         shutdown_input();
         free_search_results();
         cleanup_mpris();
-        enable_input_buffering();
-        restore_terminal_mode();
         set_path(settings->path);
         set_prefs(settings, &(state->uiSettings));
         save_favorites_playlist(settings->path, favorites_playlist);
@@ -513,12 +511,13 @@ void kew_shutdown()
                 perror("freopen error");
         }
 
+        if (state_ptr->uiSettings.mouseEnabled)
+                disable_terminal_mouse_buttons();
+
         printf("\n");
         show_cursor();
         exit_alternate_screen_buffer();
-
-        if (state_ptr->uiSettings.mouseEnabled)
-                disable_terminal_mouse_buttons();
+        restore_terminal_mode();
 
         if (state_ptr->uiSettings.trackTitleAsWindowTitle)
                 restore_terminal_window_title();
@@ -696,7 +695,6 @@ int main(int argc, char *argv[])
         atexit(kew_shutdown);
 
         signal(SIGINT, force_terminal_restore);
-        signal(SIGTERM, force_terminal_restore);
         signal(SIGSEGV, force_terminal_restore);
         signal(SIGABRT, force_terminal_restore);
 
