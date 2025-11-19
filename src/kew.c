@@ -649,7 +649,11 @@ void force_terminal_restore(int sig)
     res = write(STDOUT_FILENO, "\033[?1000l", 9);
     (void)res;
 
-    _exit(128 + sig);
+    // Restore default handler for this signal
+    signal(sig, SIG_DFL);
+
+    // Re-raise the signal so the kernel prints the crash message
+    raise(sig);
 }
 
 int main(int argc, char *argv[])
