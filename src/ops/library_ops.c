@@ -367,7 +367,7 @@ void create_library()
 
         free(lib_path);
 
-        bool wait_until_complete = false;
+        bool wait_until_complete = true;
         update_library_if_changed_detected(wait_until_complete);
 
         if (library == NULL || library->children == NULL) {
