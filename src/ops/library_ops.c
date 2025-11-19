@@ -193,8 +193,9 @@ void *update_library_thread(void *arg)
 
         copy_is_enqueued(library, tmp);
 
-        free_tree(library);
         set_library(tmp);
+        free_tree(library);
+
         state->uiState.numDirectoryTreeEntries = tmp_directory_tree_entries;
 
         pthread_mutex_unlock(&(state->switch_mutex));
