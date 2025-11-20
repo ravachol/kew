@@ -536,19 +536,18 @@ static gboolean get_metadata(GDBusConnection *connection, const gchar *sender,
                     g_variant_new_string(current_song_data->metadata->title));
 
                 // Build list of strings for artist
-                const gchar *artist_list[2];
-                if (g_strcmp0(current_song_data->metadata->artist, "") == 0) {
-                        artist_list[0] = "";
-                } else {
-                        artist_list[0] = current_song_data->metadata->artist;
-                }
-                artist_list[1] = NULL;
+                const gchar *artist_list_storage[2];
+                artist_list_storage[0] = (g_strcmp0(current_song_data->metadata->artist, "")  == 0) ? "" : current_song_data->metadata->artist;
+                artist_list_storage[1] = NULL;
+
+                g_variant_builder_add(&metadata_builder, "{sv}", "xesam:artist",
+                      g_variant_new_strv(artist_list_storage, -1));
 
                 gchar *coverArtUrl =
                     g_strdup_printf("file://%s", current_song_data->cover_art_path);
 
                 g_variant_builder_add(&metadata_builder, "{sv}", "xesam:artist",
-                                      g_variant_new_strv(artist_list, -1));
+                                      g_variant_new_strv(artist_list_storage, -1));
                 g_variant_builder_add(
                     &metadata_builder, "{sv}", "xesam:album",
                     g_variant_new_string(current_song_data->metadata->album));
@@ -570,9 +569,12 @@ static gboolean get_metadata(GDBusConnection *connection, const gchar *sender,
         } else {
                 g_variant_builder_add(&metadata_builder, "{sv}", "xesam:title",
                                       g_variant_new_string(""));
+
+                static const gchar *empty_artist_list[] = { "", NULL };
                 g_variant_builder_add(
                     &metadata_builder, "{sv}", "xesam:artist",
-                    g_variant_new_strv((const gchar *[]){"", NULL}, -1));
+                    g_variant_new_strv(empty_artist_list, -1));
+
                 g_variant_builder_add(&metadata_builder, "{sv}", "xesam:album",
                                       g_variant_new_string(""));
                 g_variant_builder_add(&metadata_builder, "{sv}",
