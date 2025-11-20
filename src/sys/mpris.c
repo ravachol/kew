@@ -546,8 +546,6 @@ static gboolean get_metadata(GDBusConnection *connection, const gchar *sender,
                 gchar *coverArtUrl =
                     g_strdup_printf("file://%s", current_song_data->cover_art_path);
 
-                g_variant_builder_add(&metadata_builder, "{sv}", "xesam:artist",
-                                      g_variant_new_strv(artist_list_storage, -1));
                 g_variant_builder_add(
                     &metadata_builder, "{sv}", "xesam:album",
                     g_variant_new_string(current_song_data->metadata->album));
