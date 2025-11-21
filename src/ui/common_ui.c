@@ -473,7 +473,7 @@ void process_name(const char *name, char *output, int max_width,
         const char *last_dot = strrchr(name, '.');
 
         if (last_dot != NULL && strip_suffix) {
-                char tmp[MAXPATHLEN];
+                char tmp[PATH_MAX];
                 size_t len = last_dot - name + 1;
                 if (len >= sizeof(tmp))
                         len = sizeof(tmp) - 1;

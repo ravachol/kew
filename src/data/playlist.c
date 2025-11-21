@@ -320,7 +320,7 @@ void exit_if_overflow(int counter)
 void build_playlist_recursive(const char *directory_path,
                               const char *allowed_extensions, PlayList *playlist)
 {
-        char expanded_path[MAXPATHLEN - NAME_MAX - 1];
+        char expanded_path[PATH_MAX - NAME_MAX - 1];
         expand_path(directory_path, expanded_path);
 
         int res = is_directory(expanded_path);
@@ -368,14 +368,14 @@ void build_playlist_recursive(const char *directory_path,
                         continue;
                 }
 
-                char file_path[FILENAME_MAX];
+                char file_path[PATH_MAX];
                 snprintf(file_path, sizeof(file_path), "%s/%s", expanded_path,
                          entry->d_name);
 
                 size_t pathLen = strnlen(expanded_path, sizeof(expanded_path));
                 size_t nameLen = strnlen(entry->d_name, NAME_MAX);
 
-                if (pathLen + 1 + nameLen >= FILENAME_MAX) {
+                if (pathLen + 1 + nameLen >= PATH_MAX) {
                         fprintf(stderr, "Path too long: %s/%s\n", expanded_path, entry->d_name);
                         return; // or skip this entry
                 }
@@ -459,7 +459,7 @@ Node *read_m3u_file(const char *filepath, PlayList *playlist)
         gchar **lines;
         Node *first_in_list = NULL;
 
-        char filename[MAXPATHLEN];
+        char filename[PATH_MAX];
         expand_path(filepath, filename);
 
         if (!g_file_get_contents(filename, &contents, NULL, &error)) {
@@ -543,7 +543,7 @@ int make_playlist(PlayList **playlist, int argc, char *argv[], bool exact_search
         int search_type_index = 1;
         PlayList partial_playlist = {NULL, NULL, 0, PTHREAD_MUTEX_INITIALIZER};
 
-        char expanded_path[MAXPATHLEN];
+        char expanded_path[PATH_MAX];
         expand_path(path, expanded_path);
 
         if (strcmp(argv[1], "all") == 0) {
@@ -605,13 +605,13 @@ int make_playlist(PlayList **playlist, int argc, char *argv[], bool exact_search
                 char *token = strtok(search, delimiter);
 
                 while (token != NULL) {
-                        char buf[MAXPATHLEN] = {0};
+                        char buf[PATH_MAX] = {0};
                         if (strncmp(token, "song", 4) == 0) {
                                 memmove(token, token + 4,
-                                        strnlen(token + 4, MAXPATHLEN) + 1);
+                                        strnlen(token + 4, PATH_MAX) + 1);
                                 search_type = FileOnly;
                         }
-                        trim(token, MAXPATHLEN);
+                        trim(token, PATH_MAX);
                         char *searching = g_utf8_casefold(token, -1);
 
                         if (walker(expanded_path, searching, buf, allowed_extensions,
@@ -658,7 +658,7 @@ void generate_m3_u_filename(const char *base_path, const char *file_path,
         const char *dot = strrchr(base_name, '.');
         if (dot == NULL) {
                 // No '.' found, copy the base name and append ".m3u"
-                if (base_path[strnlen(base_path, MAXPATHLEN) - 1] == '/') {
+                if (base_path[strnlen(base_path, PATH_MAX) - 1] == '/') {
                         snprintf(m3u_filename, size, "%s%s.m3u", base_path, base_name);
                 } else {
                         snprintf(m3u_filename, size, "%s/%s.m3u", base_path, base_name);
@@ -666,7 +666,7 @@ void generate_m3_u_filename(const char *base_path, const char *file_path,
         } else {
                 // Copy the base name up to the dot and append ".m3u"
                 size_t baseNameLen = dot - base_name;
-                if (base_path[strnlen(base_path, MAXPATHLEN) - 1] == '/') {
+                if (base_path[strnlen(base_path, PATH_MAX) - 1] == '/') {
                         snprintf(m3u_filename, size, "%s%.*s.m3u", base_path,
                                  (int)baseNameLen, base_name);
                 } else {
@@ -694,12 +694,12 @@ void write_m3u_file(const char *filename, const PlayList *playlist)
 void load_playlist(const char *directory, const char *playlist_name,
                    PlayList **playlist)
 {
-        char playlist_path[MAXPATHLEN];
+        char playlist_path[PATH_MAX];
 
         if (!directory || !playlist_name || !playlist)
                 return;
 
-        size_t len = strnlen(directory, MAXPATHLEN);
+        size_t len = strnlen(directory, PATH_MAX);
         if (len == 0)
                 return;
 
@@ -718,7 +718,7 @@ void load_playlist(const char *directory, const char *playlist_name,
 
 void load_favorites_playlist(const char *directory, PlayList **favorites_playlist)
 {
-        char expanded_path[MAXPATHLEN];
+        char expanded_path[PATH_MAX];
         expand_path(directory, expanded_path);
         load_playlist(directory, favorites_playlist_name, favorites_playlist);
         set_favorites_playlist(*favorites_playlist);
@@ -772,7 +772,7 @@ void save_named_playlist(const char *directory, const char *playlist_name,
                 return;
         }
 
-        char playlist_path[MAXPATHLEN];
+        char playlist_path[PATH_MAX];
 
         int length =
             snprintf(playlist_path, sizeof(playlist_path), "%s", directory);
@@ -797,7 +797,7 @@ void save_named_playlist(const char *directory, const char *playlist_name,
 
 void save_favorites_playlist(const char *directory, PlayList *favorites_playlist)
 {
-        char expanded_path[MAXPATHLEN];
+        char expanded_path[PATH_MAX];
         expand_path(directory, expanded_path);
 
         if (favorites_playlist != NULL && favorites_playlist->count > 0) {
@@ -820,7 +820,7 @@ void save_playlist(const char *path, const PlayList *playlist)
                 return;
         }
 
-        char expanded_path[MAXPATHLEN];
+        char expanded_path[PATH_MAX];
         expand_path(path, expanded_path);
 
         if (playlist->head == NULL || playlist->head->song.file_path == NULL)
@@ -831,8 +831,8 @@ void save_playlist(const char *path, const PlayList *playlist)
 
 void export_current_playlist(const char *path, const PlayList *playlist)
 {
-        char m3u_filename[MAXPATHLEN];
-        char expanded_path[MAXPATHLEN];
+        char m3u_filename[PATH_MAX];
+        char expanded_path[PATH_MAX];
         expand_path(path, expanded_path);
 
         if (path == NULL || playlist->head == NULL)
