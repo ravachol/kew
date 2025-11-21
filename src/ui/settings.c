@@ -1336,7 +1336,7 @@ const char *get_default_music_folder(void)
 {
         const char *home = get_home_path();
         if (home != NULL) {
-                static char music_path[MAXPATHLEN];
+                static char music_path[PATH_MAX];
                 snprintf(music_path, sizeof(music_path), "%s/Music", home);
                 return music_path;
         } else {
@@ -1346,7 +1346,7 @@ const char *get_default_music_folder(void)
 
 int get_music_library_path(char *path)
 {
-        char expanded_path[MAXPATHLEN];
+        char expanded_path[PATH_MAX];
 
         if (path[0] != '\0' && path[0] != '\r') {
                 if (expand_path(path, expanded_path) >= 0) {
@@ -1420,24 +1420,24 @@ void map_settings_to_keys(AppSettings *settings, EventMapping *mappings)
 
 char *get_config_file_path(char *configdir)
 {
-        size_t configdir_length = strnlen(configdir, MAXPATHLEN - 1);
+        size_t configdir_length = strnlen(configdir, PATH_MAX - 1);
         size_t settings_file_length =
             strnlen(SETTINGS_FILE, sizeof(SETTINGS_FILE) - 1);
 
-        if (configdir_length + 1 + settings_file_length + 1 > MAXPATHLEN) {
+        if (configdir_length + 1 + settings_file_length + 1 > PATH_MAX) {
                 fprintf(stderr, "Error: File path exceeds maximum length.\n");
                 exit(1);
         }
 
-        char *filepath = (char *)malloc(MAXPATHLEN);
+        char *filepath = (char *)malloc(PATH_MAX);
         if (filepath == NULL) {
                 perror("malloc");
                 exit(1);
         }
 
         int written =
-            snprintf(filepath, MAXPATHLEN, "%s/%s", configdir, SETTINGS_FILE);
-        if (written < 0 || written >= MAXPATHLEN) {
+            snprintf(filepath, PATH_MAX, "%s/%s", configdir, SETTINGS_FILE);
+        if (written < 0 || written >= PATH_MAX) {
                 fprintf(stderr,
                         "Error: snprintf failed or filepath truncated.\n");
                 free(filepath);
@@ -1448,22 +1448,22 @@ char *get_config_file_path(char *configdir)
 
 char *get_prefs_file_path(char *prefsdir)
 {
-        size_t dir_length = strnlen(prefsdir, MAXPATHLEN - 1);
+        size_t dir_length = strnlen(prefsdir, PATH_MAX - 1);
         size_t file_length = strnlen(STATE_FILE, sizeof(STATE_FILE) - 1);
 
-        if (dir_length + 1 + file_length + 1 > MAXPATHLEN) {
+        if (dir_length + 1 + file_length + 1 > PATH_MAX) {
                 fprintf(stderr, "Error: File path exceeds maximum length.\n");
                 exit(1);
         }
 
-        char *filepath = (char *)malloc(MAXPATHLEN);
+        char *filepath = (char *)malloc(PATH_MAX);
         if (filepath == NULL) {
                 perror("malloc");
                 exit(1);
         }
 
-        int written = snprintf(filepath, MAXPATHLEN, "%s/%s", prefsdir, STATE_FILE);
-        if (written < 0 || written >= MAXPATHLEN) {
+        int written = snprintf(filepath, PATH_MAX, "%s/%s", prefsdir, STATE_FILE);
+        if (written < 0 || written >= PATH_MAX) {
                 fprintf(stderr, "Error: snprintf failed or filepath truncated.\n");
                 free(filepath);
                 exit(1);
@@ -1491,7 +1491,7 @@ int mkdir_p(const char *path, mode_t mode)
         size_t len;
 
         snprintf(tmp, sizeof(tmp), "%s", path);
-        len = strnlen(tmp, MAXPATHLEN);
+        len = strnlen(tmp, PATH_MAX);
         if (len > 0 && tmp[len - 1] == '/')
                 tmp[len - 1] = 0;
 

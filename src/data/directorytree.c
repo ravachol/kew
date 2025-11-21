@@ -219,17 +219,13 @@ void add_child(FileSystemEntry *parent, FileSystemEntry *child)
         }
 }
 
-#ifndef MAX_NAME
-#define MAX_NAME 255
-#endif
-
 int is_valid_entry_name(const char *name)
 {
         if (name == NULL)
                 return 0;
 
-        size_t len = strnlen(name, MAXPATHLEN + 1);
-        if (len > MAX_NAME || len > MAXPATHLEN)
+        size_t len = strnlen(name, PATH_MAX + 1);
+        if (len > NAME_MAX || len > PATH_MAX)
                 return 0;
 
         if (len == 0)
@@ -273,10 +269,10 @@ void set_full_path(FileSystemEntry *entry, const char *parent_path,
                 return;
         }
 
-        size_t parentLen = strnlen(parent_path, MAXPATHLEN + 1);
-        size_t nameLen = strnlen(entry_name, MAXPATHLEN + 1);
+        size_t parentLen = strnlen(parent_path, PATH_MAX + 1);
+        size_t nameLen = strnlen(entry_name, PATH_MAX + 1);
 
-        if (parentLen > MAXPATHLEN || nameLen > MAXPATHLEN) {
+        if (parentLen > PATH_MAX || nameLen > PATH_MAX) {
                 fprintf(
                     stderr,
                     "Parent or entry name too long or not null-terminated.\n");
@@ -289,7 +285,7 @@ void set_full_path(FileSystemEntry *entry, const char *parent_path,
 
         size_t needed = parentLen + 1 + nameLen + 1; // slash + null
 
-        if (needed > MAXPATHLEN) {
+        if (needed > PATH_MAX) {
                 fprintf(stderr, "Path too long, rejecting.\n");
 
                 return;
@@ -547,7 +543,7 @@ int read_directory(const char *path, FileSystemEntry *parent)
                 if (entry->d_name[0] != '.' &&
                     strcmp(entry->d_name, ".") != 0 &&
                     strcmp(entry->d_name, "..") != 0) {
-                        char child_path[MAXPATHLEN];
+                        char child_path[PATH_MAX];
                         snprintf(child_path, sizeof(child_path), "%s/%s", path,
                                  entry->d_name);
 

@@ -282,7 +282,7 @@ bool ensure_default_themes(void)
         if (!config_path)
                 return false;
 
-        char themes_path[MAXPATHLEN];
+        char themes_path[PATH_MAX];
         if (snprintf(themes_path, sizeof(themes_path), "%s/themes", config_path) >=
             (int)sizeof(themes_path)) {
                 free(config_path);
@@ -310,7 +310,7 @@ bool ensure_default_themes(void)
                 // Only copy real files that look like themes
                 if (entry->d_type == DT_REG &&
                     (strstr(entry->d_name, ".theme") || strstr(entry->d_name, ".txt"))) {
-                        char src[MAXPATHLEN], dst[MAXPATHLEN];
+                        char src[PATH_MAX], dst[PATH_MAX];
 
                         if (snprintf(src, sizeof(src), "%s/%s",
                                      system_themes, entry->d_name) >= (int)sizeof(src))

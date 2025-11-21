@@ -92,7 +92,7 @@ void *song_data_reader_thread(void *arg)
 
         pthread_mutex_lock(&(ps->loadingdata.mutex));
 
-        char filepath[MAXPATHLEN];
+        char filepath[PATH_MAX];
         c_strcpy(filepath, ps->loadingdata.file_path, sizeof(filepath));
 
         SongData *songdata = exists_file(filepath) >= 0 ? load_song_data(filepath) : NULL;
@@ -250,7 +250,7 @@ bool is_valid_audio_node(Node *node)
         if (node->id < 0)
                 return false;
         if (!node->song.file_path ||
-            strnlen(node->song.file_path, MAXPATHLEN) == 0)
+            strnlen(node->song.file_path, PATH_MAX) == 0)
                 return false;
 
         return true;

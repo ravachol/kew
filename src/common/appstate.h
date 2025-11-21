@@ -20,8 +20,8 @@
 
 #define _(STRING) gettext(STRING)
 
-#ifndef MAXPATHLEN
-#define MAXPATHLEN 4096
+#ifndef PATH_MAX
+#define PATH_MAX 4096
 #endif
 
 #ifndef G_USEC_PER_SEC
@@ -220,7 +220,7 @@ typedef struct
 
 typedef struct
 {
-        char path[MAXPATHLEN];
+        char path[PATH_MAX];
         char theme[NAME_MAX];
         char ansiTheme[NAME_MAX];
         char colorMode[6];
@@ -355,8 +355,8 @@ typedef struct
 {
         int magic;
         gchar *track_id;
-        char file_path[MAXPATHLEN];
-        char cover_art_path[MAXPATHLEN];
+        char file_path[PATH_MAX];
+        char cover_art_path[PATH_MAX];
         unsigned char red;
         unsigned char green;
         unsigned char blue;
@@ -372,7 +372,7 @@ typedef struct
 
 typedef struct
 {
-        char file_path[MAXPATHLEN];
+        char file_path[PATH_MAX];
         SongData *songdataA;
         SongData *songdataB;
         bool loadA;

@@ -81,8 +81,8 @@ char *choose_album_art(const char *dir_path, char **custom_file_name_arr, int si
 
         struct dirent *entry;
         struct stat file_stat;
-        char file_path[MAXPATHLEN];
-        char resolved_path[MAXPATHLEN];
+        char file_path[PATH_MAX];
+        char resolved_path[PATH_MAX];
         char *result = NULL;
 
         for (int i = 0; i < size && !result; i++) {
@@ -171,8 +171,8 @@ char *find_largest_image_file(const char *directory_path, char *largest_image_fi
 
         struct dirent *entry;
         struct stat file_stats;
-        char file_path[MAXPATHLEN];
-        char resolved_path[MAXPATHLEN];
+        char file_path[PATH_MAX];
+        char resolved_path[PATH_MAX];
 
         while ((entry = readdir(directory)) != NULL) {
                 // Skip "." and ".."
@@ -268,7 +268,7 @@ int load_color(SongData *songdata)
 void load_meta_data(SongData *songdata)
 {
         AppState *state = get_app_state();
-        char path[MAXPATHLEN];
+        char path[PATH_MAX];
 
         songdata->metadata = malloc(sizeof(TagSettings));
         if (songdata->metadata == NULL) {

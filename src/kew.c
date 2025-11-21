@@ -687,7 +687,7 @@ int main(int argc, char *argv[])
         set_track_title_as_window_title();
 
         if (argc == 3 && (strcmp(argv[1], "path") == 0)) {
-                char de_expanded[MAXPATHLEN];
+                char de_expanded[PATH_MAX];
                 collapse_path(argv[2], de_expanded);
                 c_strcpy(settings->path, de_expanded, sizeof(settings->path));
                 set_path(settings->path);

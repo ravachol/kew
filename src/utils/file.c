@@ -52,7 +52,7 @@ void get_directory_from_path(const char *path, char *directory)
         if (!path || !directory)
                 return;
 
-        size_t len = strnlen(path, MAXPATHLEN);
+        size_t len = strnlen(path, PATH_MAX);
 
         char *tmp = malloc(len + 1);
         if (!tmp) {
@@ -66,14 +66,14 @@ void get_directory_from_path(const char *path, char *directory)
         char *dir = dirname(tmp);
 
         // Copy the result to the caller‑supplied buffer safely
-        strncpy(directory, dir, MAXPATHLEN - 1);
-        directory[MAXPATHLEN - 1] = '\0'; // Ensure null termination
+        strncpy(directory, dir, PATH_MAX - 1);
+        directory[PATH_MAX - 1] = '\0'; // Ensure null termination
 
         /// Ensure a trailing '/'
-        size_t dlen = strnlen(directory, MAXPATHLEN);
+        size_t dlen = strnlen(directory, PATH_MAX);
 
         if (dlen > 0 && directory[dlen - 1] != '/' &&
-            dlen + 1 < MAXPATHLEN) {
+            dlen + 1 < PATH_MAX) {
                 directory[dlen] = '/';
                 directory[dlen + 1] = '\0';
         }
@@ -110,7 +110,7 @@ int is_directory(const char *path)
 
 int directory_exists(const char *path)
 {
-        char expanded[MAXPATHLEN];
+        char expanded[PATH_MAX];
 
         expand_path(path, expanded);
 
@@ -248,7 +248,7 @@ int expand_path(const char *input_path, char *expanded_path)
         if (input_path[0] == '\0' || input_path[0] == '\r')
                 return -1;
 
-        memset(expanded_path, 0, MAXPATHLEN);
+        memset(expanded_path, 0, PATH_MAX);
 
         if (input_path[0] == '~') // Check if input_path starts with '~'
         {
@@ -283,15 +283,15 @@ int expand_path(const char *input_path, char *expanded_path)
                         }
                 }
 
-                size_t homeDirLen = strnlen(home_dir, MAXPATHLEN);
-                size_t inputPathLen = strnlen(input_path, MAXPATHLEN);
+                size_t homeDirLen = strnlen(home_dir, PATH_MAX);
+                size_t inputPathLen = strnlen(input_path, PATH_MAX);
 
-                if (homeDirLen + inputPathLen >= MAXPATHLEN) {
+                if (homeDirLen + inputPathLen >= PATH_MAX) {
                         return -1; // Expanded path exceeds maximum length
                 }
 
-                c_strcpy(expanded_path, home_dir, MAXPATHLEN);
-                snprintf(expanded_path + homeDirLen, MAXPATHLEN - homeDirLen, "%s", input_path);
+                c_strcpy(expanded_path, home_dir, PATH_MAX);
+                snprintf(expanded_path + homeDirLen, PATH_MAX - homeDirLen, "%s", input_path);
         } else // Handle if path is not prefixed with '~'
         {
                 if (realpath(input_path, expanded_path) == NULL) {
@@ -329,9 +329,9 @@ void collapse_path(const char *input, char *output)
                     (input[home_len] == '/' || input[home_len] == '\0')) {
                         /* Collapse to ~ or ~/rest */
                         if (input[home_len] == '\0') {
-                                snprintf(output, MAXPATHLEN, "~");
+                                snprintf(output, PATH_MAX, "~");
                         } else {
-                                snprintf(output, MAXPATHLEN, "~%s", input + home_len);
+                                snprintf(output, PATH_MAX, "~%s", input + home_len);
                         }
                         return;
                 }
@@ -353,9 +353,9 @@ void collapse_path(const char *input, char *output)
                         /* Found a match for this user's home */
                         if (input[dlen] == '\0') {
                                 /* exact match */
-                                snprintf(output, MAXPATHLEN, "~%s", pw->pw_name);
+                                snprintf(output, PATH_MAX, "~%s", pw->pw_name);
                         } else {
-                                snprintf(output, MAXPATHLEN, "~%s%s", pw->pw_name, input + dlen);
+                                snprintf(output, PATH_MAX, "~%s%s", pw->pw_name, input + dlen);
                         }
                         endpwent();
                         return;
@@ -365,7 +365,7 @@ void collapse_path(const char *input, char *output)
 #endif
 
         /* No match — copy unchanged */
-        snprintf(output, MAXPATHLEN, "%s", input);
+        snprintf(output, PATH_MAX, "%s", input);
 }
 
 int create_directory(const char *path)
@@ -426,7 +426,7 @@ void generate_temp_file_path(char *file_path, const char *prefix, const char *su
         struct passwd *pw = getpwuid(getuid());
         const char *username = pw ? pw->pw_name : "unknown";
 
-        char dir_path[MAXPATHLEN];
+        char dir_path[PATH_MAX];
         snprintf(dir_path, sizeof(dir_path), "%s/kew", tmp_dir);
         create_directory(dir_path);
         snprintf(dir_path, sizeof(dir_path), "%s/kew/%s", tmp_dir, username);
@@ -438,8 +438,8 @@ void generate_temp_file_path(char *file_path, const char *prefix, const char *su
         }
         random_string[6] = '\0';
 
-        int written = snprintf(file_path, MAXPATHLEN, "%s/%s%.6s%s", dir_path, prefix, random_string, suffix);
-        if (written < 0 || written >= MAXPATHLEN) {
+        int written = snprintf(file_path, PATH_MAX, "%s/%s%.6s%s", dir_path, prefix, random_string, suffix);
+        if (written < 0 || written >= PATH_MAX) {
                 file_path[0] = '\0';
         }
 }

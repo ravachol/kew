@@ -374,7 +374,7 @@ static void build_song_title(const SongData *song_data, const UISettings *ui,
 
 void print_now_playing(SongData *song_data, UISettings *ui, int row, int col, int max_width)
 {
-        char title[MAXPATHLEN + 1];
+        char title[PATH_MAX + 1];
 
         build_song_title(song_data, ui, title, sizeof(title), true);
 
@@ -383,7 +383,7 @@ void print_now_playing(SongData *song_data, UISettings *ui, int row, int col, in
         clear_rest_of_line();
 
         if (title[0] != '\0') {
-                char processed[MAXPATHLEN + 1] = {0};
+                char processed[PATH_MAX + 1] = {0};
                 process_name(title, processed, max_width, false, false);
 
                 printf("\033[%d;%dH", row, col);
@@ -541,7 +541,7 @@ void print_metadata(int row, int col, int max_width,
 
         if (strnlen(metadata->title, METADATA_MAX_LENGTH) > 0) {
                 // Clean up title before printing
-                char pretty_title[MAXPATHLEN + 1];
+                char pretty_title[PATH_MAX + 1];
                 pretty_title[0] = '\0';
 
                 process_name(metadata->title, pretty_title, max_width, false,
@@ -1555,7 +1555,7 @@ int display_tree(FileSystemEntry *root, int depth, int max_list_size,
                 max_name_width = 0;
 
         char dir_name[max_name_width + 1];
-        char filename[MAXPATHLEN + 1];
+        char filename[PATH_MAX + 1];
         bool foundChosen = false;
         int is_playing = 0;
         int extra_indent = 0;

@@ -65,12 +65,12 @@ void prepare_playlist_string(Node *node, char *buffer, int buffer_size)
                 return;
         }
 
-        if (strnlen(node->song.file_path, MAXPATHLEN) >= MAXPATHLEN) {
+        if (strnlen(node->song.file_path, PATH_MAX) >= PATH_MAX) {
                 buffer[0] = '\0';
                 return;
         }
 
-        char file_path[MAXPATHLEN];
+        char file_path[PATH_MAX];
         c_strcpy(file_path, node->song.file_path, sizeof(file_path));
 
         char *last_slash = strrchr(file_path, '/');

@@ -13,8 +13,8 @@
 
 #define __USE_GNU
 
-#ifndef MAXPATHLEN
-#define MAXPATHLEN 4096
+#ifndef PATH_MAX
+#define PATH_MAX 4096
 #endif
 
 #define MUSIC_FILE_EXTENSIONS "(m4a|aac|mp3|ogg|flac|wav|opus|webm)$"
