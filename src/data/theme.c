@@ -9,6 +9,7 @@
 
 #include "theme.h"
 
+#include "common/appstate.h"
 #include "common/common.h"
 
 #include "utils/utils.h"
@@ -200,6 +201,16 @@ int load_theme_from_file(const char *themes_dir, const char *filename, Theme *cu
             {"status_success", &current_theme->status_success}};
 
         const size_t mapping_count = sizeof(mappings) / sizeof(ThemeMapping);
+
+        AppState *state = get_app_state();
+
+        ColorValue default_color;
+        default_color.type = COLOR_TYPE_RGB;
+        default_color.rgb = state->uiSettings.defaultColorRGB;
+
+        for (size_t i = 0; i < mapping_count; ++i) {
+                *(mappings[i].field) = default_color;
+        }
 
         char line[512];
         int line_num = 0;
