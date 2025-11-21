@@ -14,8 +14,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#ifndef MAXPATHLEN
-#define MAXPATHLEN 4096
+#ifndef PATH_MAX
+#define PATH_MAX 4096
 #endif
 
 Cache *create_cache()
@@ -41,7 +41,7 @@ void add_to_cache(Cache *cache, const char *file_path)
                 return;
         }
 
-        if (strnlen(file_path, MAXPATHLEN + 1) >= MAXPATHLEN) {
+        if (strnlen(file_path, PATH_MAX + 1) >= PATH_MAX) {
                 fprintf(stderr, "File path too long.\n");
                 return;
         }

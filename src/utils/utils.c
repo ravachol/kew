@@ -110,7 +110,7 @@ char *string_to_lower(const char *str)
                 return NULL;
         }
 
-        size_t length = strnlen(str, MAXPATHLEN);
+        size_t length = strnlen(str, PATH_MAX);
 
         return g_utf8_strdown(str, length);
 }
@@ -121,7 +121,7 @@ char *string_to_upper(const char *str)
                 return NULL;
         }
 
-        size_t length = strnlen(str, MAXPATHLEN);
+        size_t length = strnlen(str, PATH_MAX);
 
         return g_utf8_strup(str, length);
 }
@@ -212,7 +212,7 @@ void extract_extension(const char *filename, size_t ext_size, char *ext)
                 return;
         }
 
-        size_t length = strnlen(filename, MAXPATHLEN);
+        size_t length = strnlen(filename, PATH_MAX);
 
         // Find the last '.' character in the filename
         const char *dot = NULL;
@@ -271,8 +271,8 @@ void extract_extension(const char *filename, size_t ext_size, char *ext)
 
 int path_ends_with(const char *str, const char *suffix)
 {
-        size_t length = strnlen(str, MAXPATHLEN);
-        size_t suffixLength = strnlen(suffix, MAXPATHLEN);
+        size_t length = strnlen(str, PATH_MAX);
+        size_t suffixLength = strnlen(suffix, PATH_MAX);
 
         if (suffixLength > length) {
                 return 0;
@@ -284,8 +284,8 @@ int path_ends_with(const char *str, const char *suffix)
 
 int path_starts_with(const char *str, const char *prefix)
 {
-        size_t length = strnlen(str, MAXPATHLEN);
-        size_t prefixLength = strnlen(prefix, MAXPATHLEN);
+        size_t length = strnlen(str, PATH_MAX);
+        size_t prefixLength = strnlen(prefix, PATH_MAX);
 
         if (prefixLength > length) {
                 return 0;
@@ -340,33 +340,33 @@ const char *get_home_path(void)
 
 char *get_config_path(void)
 {
-        char *config_path = malloc(MAXPATHLEN);
+        char *config_path = malloc(PATH_MAX);
         if (!config_path)
                 return NULL;
 
         const char *xdg_config = getenv("XDG_CONFIG_HOME");
 
         if (xdg_config) {
-                snprintf(config_path, MAXPATHLEN, "%s/kew", xdg_config);
+                snprintf(config_path, PATH_MAX, "%s/kew", xdg_config);
         } else {
                 const char *home = get_home_path();
                 if (home) {
 #ifdef __APPLE__
-                        snprintf(config_path, MAXPATHLEN,
+                        snprintf(config_path, PATH_MAX,
                                  "%s/Library/Preferences/kew", home);
 #else
-                        snprintf(config_path, MAXPATHLEN, "%s/.config/kew",
+                        snprintf(config_path, PATH_MAX, "%s/.config/kew",
                                  home);
 #endif
                 } else {
                         struct passwd *pw = getpwuid(getuid());
                         if (pw) {
 #ifdef __APPLE__
-                                snprintf(config_path, MAXPATHLEN,
+                                snprintf(config_path, PATH_MAX,
                                          "%s/Library/Preferences/kew",
                                          pw->pw_dir);
 #else
-                                snprintf(config_path, MAXPATHLEN,
+                                snprintf(config_path, PATH_MAX,
                                          "%s/.config/kew", pw->pw_dir);
 #endif
                         } else {
@@ -381,29 +381,29 @@ char *get_config_path(void)
 
 char *get_prefs_path(void)
 {
-        char *prefs_path = malloc(MAXPATHLEN);
+        char *prefs_path = malloc(PATH_MAX);
         if (!prefs_path)
                 return NULL;
 
         const char *xdg_state = getenv("XDG_STATE_HOME");
 
         if (xdg_state) {
-                snprintf(prefs_path, MAXPATHLEN, "%s", xdg_state);
+                snprintf(prefs_path, PATH_MAX, "%s", xdg_state);
         } else {
                 const char *home = get_home_path();
                 if (home) {
 #ifdef __APPLE__
-                        snprintf(prefs_path, MAXPATHLEN, "%s/Library/Application Support", home);
+                        snprintf(prefs_path, PATH_MAX, "%s/Library/Application Support", home);
 #else
-                        snprintf(prefs_path, MAXPATHLEN, "%s/.local/state", home);
+                        snprintf(prefs_path, PATH_MAX, "%s/.local/state", home);
 #endif
                 } else {
                         struct passwd *pw = getpwuid(getuid());
                         if (pw) {
 #ifdef __APPLE__
-                                snprintf(prefs_path, MAXPATHLEN, "%s/Library/Application Support", pw->pw_dir);
+                                snprintf(prefs_path, PATH_MAX, "%s/Library/Application Support", pw->pw_dir);
 #else
-                                snprintf(prefs_path, MAXPATHLEN, "%s/.local/state", pw->pw_dir);
+                                snprintf(prefs_path, PATH_MAX, "%s/.local/state", pw->pw_dir);
 #endif
                         } else {
                                 free(prefs_path);
@@ -451,12 +451,12 @@ char *get_file_path(const char *filename)
                 return NULL;
         }
 
-        size_t configdir_length = strnlen(configdir, MAXPATHLEN);
-        size_t filename_length = strnlen(filename, MAXPATHLEN);
+        size_t configdir_length = strnlen(configdir, PATH_MAX);
+        size_t filename_length = strnlen(filename, PATH_MAX);
 
         size_t filepath_length = configdir_length + 1 + filename_length + 1;
 
-        if (filepath_length > MAXPATHLEN) {
+        if (filepath_length > PATH_MAX) {
                 free(configdir);
                 return NULL;
         }

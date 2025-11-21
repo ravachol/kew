@@ -276,7 +276,7 @@ int is_kew_process(pid_t pid)
 
 void delete_pid_file()
 {
-        char pidfile_path[MAXPATHLEN];
+        char pidfile_path[PATH_MAX];
         const char *temp_dir = get_temp_dir();
 
         snprintf(pidfile_path, sizeof(pidfile_path), "%s/kew_%d.pid", temp_dir,
@@ -294,7 +294,7 @@ void delete_pid_file()
 
 pid_t read_pid_file()
 {
-        char pidfile_path[MAXPATHLEN];
+        char pidfile_path[PATH_MAX];
         const char *temp_dir = get_temp_dir();
 
         snprintf(pidfile_path, sizeof(pidfile_path), "%s/kew_%d.pid", temp_dir,
@@ -320,7 +320,7 @@ pid_t read_pid_file()
 
 void create_pid_file()
 {
-        char pidfile_path[MAXPATHLEN];
+        char pidfile_path[PATH_MAX];
         const char *temp_dir = get_temp_dir();
 
         snprintf(pidfile_path, sizeof(pidfile_path), "%s/kew_%d.pid", temp_dir,

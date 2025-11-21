@@ -174,7 +174,7 @@ void *update_library_thread(void *arg)
         AppState *state = args->state;
         int tmp_directory_tree_entries = 0;
 
-        char expanded_path[MAXPATHLEN];
+        char expanded_path[PATH_MAX];
         expand_path(path, expanded_path);
 
         FileSystemEntry *tmp =
@@ -325,7 +325,7 @@ void update_library_if_changed_detected(bool wait_until_complete)
 
         AppSettings *settings = get_app_settings();
 
-        char expanded[MAXPATHLEN];
+        char expanded[PATH_MAX];
         expand_path(settings->path, expanded);
 
         args->path = strdup(expanded);
@@ -356,7 +356,7 @@ void create_library()
         AppState *state = get_app_state();
         FileSystemEntry *library = get_library();
 
-        char expanded[MAXPATHLEN];
+        char expanded[PATH_MAX];
 
         expand_path(settings->path, expanded);
 
@@ -373,7 +373,7 @@ void create_library()
 
         if (library == NULL || library->children == NULL) {
 
-                char expanded[MAXPATHLEN];
+                char expanded[PATH_MAX];
 
                 expand_path(settings->path, expanded);
 
@@ -382,9 +382,9 @@ void create_library()
         }
 
         if (library == NULL || library->children == NULL) {
-                char message[MAXPATHLEN + 64];
+                char message[PATH_MAX + 64];
 
-                snprintf(message, MAXPATHLEN + 64, "No music found at %s.",
+                snprintf(message, PATH_MAX + 64, "No music found at %s.",
                          settings->path);
 
                 set_error_message(message);
