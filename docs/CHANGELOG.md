@@ -42,6 +42,8 @@ The old format config files will still work for the most part, but to see exampl
 
 - Fixes a bug in library view where under some conditions, the position of the selected row could jump upwards.
 
+- Made the path validation function less strict to avoid false positives. Reported by: DimaFyodorov.
+
 #### Sponsors
 
 Thank you to Christian Mummelthey and imalee.sk for their donations.
