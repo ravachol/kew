@@ -320,7 +320,6 @@ void toggle_shuffle(void)
                 PlayList *playlist = get_playlist();
 
                 deep_copy_play_list_onto_list(unshuffled_playlist, &playlist);
-                set_playlist(playlist);
 
                 if (path != NULL) {
                         set_current_song(find_path_in_playlist(path, playlist));

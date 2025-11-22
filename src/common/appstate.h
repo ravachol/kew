@@ -460,7 +460,6 @@ void set_try_next_song(Node *node);
 void set_audio_data(AudioData *audio_data);
 void set_library(FileSystemEntry *root);
 void free_playlists(void);
-void set_playlist(PlayList *pl);
 void set_unshuffled_playlist(PlayList *pl);
 void set_favorites_playlist(PlayList *pl);
 

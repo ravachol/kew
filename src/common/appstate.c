@@ -168,19 +168,31 @@ void set_library(FileSystemEntry *root)
         library = root;
 }
 
-void set_playlist(PlayList *pl)
-{
-        if (pl)
-                playlist = *pl;
-}
-
 void set_unshuffled_playlist(PlayList *pl)
 {
+        if (pl == unshuffled_playlist) {
+                return;
+        }
+
+        if (unshuffled_playlist != NULL) {
+                empty_playlist(unshuffled_playlist);
+                pthread_mutex_destroy(&unshuffled_playlist->mutex);
+                free(unshuffled_playlist);
+        }
         unshuffled_playlist = pl;
 }
 
 void set_favorites_playlist(PlayList *pl)
 {
+        if (pl == favorites_playlist) {
+                return;
+        }
+
+        if (favorites_playlist != NULL) {
+                empty_playlist(favorites_playlist);
+                pthread_mutex_destroy(&favorites_playlist->mutex);
+                free(favorites_playlist);
+        }
         favorites_playlist = pl;
 }
 

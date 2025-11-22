@@ -53,7 +53,7 @@ Node *get_list_prev(Node *node);
 Node *delete_from_list(PlayList *list, Node *node);
 Node *find_path_in_playlist(const char *path, PlayList *playlist);
 Node *find_last_path_in_playlist(const char *path, PlayList *playlist);
-PlayList *deep_copy_play_list(const PlayList *original_list);
+PlayList *deep_copy_playlist(const PlayList *original_list);
 int increment_node_id(void);
 int add_to_list(PlayList *list, Node *new_node);
 int make_playlist(PlayList **playlist, int argc, char *argv[], bool exact_search, const char *path);
