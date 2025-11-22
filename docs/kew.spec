@@ -39,6 +39,7 @@ make install DESTDIR=%{buildroot} PREFIX=%{_prefix}
 %files
 %{_bindir}/kew
 %{_datadir}/kew/
+%{_datadir}/locale/zh_CN/LC_MESSAGES/
 %{_mandir}/man1/kew.1.gz
 
 %changelog
