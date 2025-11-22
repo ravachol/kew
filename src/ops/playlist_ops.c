@@ -894,7 +894,7 @@ void play_favorites_playlist(void)
 
         deep_copy_play_list_onto_list(favorites_playlist, &playlist);
         shuffle_playlist(playlist);
-        set_playlist(playlist);
+
         mark_list_as_enqueued(library, playlist);
 }
 
