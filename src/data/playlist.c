@@ -755,10 +755,9 @@ void load_last_used_playlist(PlayList *playlist, PlayList **unshuffled_playlist,
         char *configdir = get_config_path();
 
         populate_playlist_from_library(root, playlist);
-        set_playlist(playlist);
 
         if (*unshuffled_playlist == NULL) {
-                *unshuffled_playlist = deep_copy_play_list(playlist);
+                *unshuffled_playlist = deep_copy_playlist(playlist);
         }
 
         if (configdir)
@@ -882,7 +881,7 @@ Node *find_tail(Node *head)
         return current;
 }
 
-PlayList *deep_copy_play_list(const PlayList *original_list)
+PlayList *deep_copy_playlist(const PlayList *original_list)
 {
         if (original_list == NULL)
                 return NULL;

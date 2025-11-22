@@ -296,7 +296,7 @@ void run(bool start_playing)
         UserData *user_data = audio_data.pUserData;
 
         if (unshuffled_playlist == NULL) {
-                set_unshuffled_playlist(deep_copy_play_list(playlist));
+                set_unshuffled_playlist(deep_copy_playlist(playlist));
         }
 
         if (state->uiSettings.saveRepeatShuffleSettings) {
