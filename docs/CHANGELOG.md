@@ -6,7 +6,7 @@ Biggest news in this release: Chroma visualizations, Optimisations for large mus
 
 - Chroma visualizations. This works by users separately installing a new app called Chroma. then pressing 'c' in kew to cycle through them. This will be shown instead of the cover or if an audio file doesn't have a cover. Disable by pressing 'b'. Chroma was created by @yuri-xyz and can be found here: https://github.com/yuri-xyz/chroma.
 
-- Optimisations: Much faster loading of previous playlist. So if you are used to running kew all for instance this will be significantly faster, especially for people with large collections. The new method should be up to 20 times faster.
+- Optimisations: Faster loading of previous playlist. So if you are used to running kew all for instance this will be significantly faster, especially for people with large collections. The new method should be up to 20 times faster for loading a big last used playlist.
 
 - The library is now always cached. It scans the library only if the files have changed, which it checks at the top level. This will be much faster if you have music on a slow disk. But it's all still very simple, no database dependencies or anything, just a flat binary file with the bare essentials. It's not a lot of data: 1k songs = 60KiB on disk.
 
