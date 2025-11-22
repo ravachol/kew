@@ -221,35 +221,57 @@ void add_child(FileSystemEntry *parent, FileSystemEntry *child)
 
 int is_valid_entry_name(const char *name)
 {
-        if (name == NULL)
-                return 0;
+    if (!name) return 0;
 
-        size_t len = strnlen(name, PATH_MAX + 1);
-        if (len > NAME_MAX || len > PATH_MAX)
-                return 0;
+    size_t len = strnlen(name, PATH_MAX + 1);
+    if (len == 0 || len > NAME_MAX || len > PATH_MAX) return 0;
 
-        if (len == 0)
-                return 1;
+    // "." or ".." are invalid entry names
+    if ((len == 1 && name[0] == '.') ||
+        (len == 2 && name[0] == '.' && name[1] == '.'))
+        return 0;
 
-        // Reject "." and ".." exactly
-        if (len == 1 && name[0] == '.')
-                return 0;
-        if (len == 2 && name[0] == '.' && name[1] == '.')
-                return 0;
+    const unsigned char *p = (const unsigned char *)name;
+    const unsigned char *end = p + len;
 
-        for (size_t i = 0; i < len; ++i) {
-                unsigned char c = (unsigned char)name[i];
+    while (p < end) {
+        unsigned char c = *p;
 
-                // Reject path separators
-                if (c == '/' || c == '\\')
-                        return 0;
+        // Reject control chars
+        if (c <= 0x1F || c == 0x7F)
+            return 0;
 
-                // Reject ASCII control chars and DEL
-                if (c <= 0x1F || c == 0x7F)
-                        return 0;
+        // Reject UNIX path separator
+        if (c == '/')
+            return 0;
+
+        // Validate UTF-8 byte sequences
+        if (c < 0x80) {
+            // ASCII OK
+            p++;
+        } else if ((c >> 5) == 0x06 && p + 1 < end &&
+                   (p[1] >> 6) == 0x02) {
+            // 2-byte UTF-8
+            p += 2;
+        } else if ((c >> 4) == 0x0E && p + 2 < end &&
+                   (p[1] >> 6) == 0x02 &&
+                   (p[2] >> 6) == 0x02) {
+            // 3-byte UTF-8
+            p += 3;
+        } else if ((c >> 3) == 0x1E && p + 3 < end &&
+                   (p[1] >> 6) == 0x02 &&
+                   (p[2] >> 6) == 0x02 &&
+                   (p[3] >> 6) == 0x02) {
+            // 4-byte UTF-8
+            p += 4;
+        } else {
+            // invalid UTF-8 sequence
+            return 0;
         }
+    }
 
-        return 1;
+    // Fully valid
+    return 1;
 }
 
 void set_full_path(FileSystemEntry *entry, const char *parent_path,
@@ -263,8 +285,7 @@ void set_full_path(FileSystemEntry *entry, const char *parent_path,
                 snprintf(buf, sizeof(buf), "%s", entry_name);
                 buf[sizeof(buf) - 1] = '\0'; // ensure null-termination
                 fprintf(stderr,
-                        "Invalid entry_name (possible path traversal): '%s'\n",
-                        buf);
+                        "Invalid entry_name (possible path traversal)\n");
 
                 return;
         }
