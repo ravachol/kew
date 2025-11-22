@@ -724,7 +724,7 @@ void load_favorites_playlist(const char *directory, PlayList **favorites_playlis
         set_favorites_playlist(*favorites_playlist);
 }
 
-void populate_playlist_from_library(FileSystemEntry *root, PlayList *playlist)
+void add_enqueued_songs_to_playlist(FileSystemEntry *root, PlayList *playlist)
 {
         if (!root)
                 return;
@@ -747,21 +747,7 @@ void populate_playlist_from_library(FileSystemEntry *root, PlayList *playlist)
         }
 
         for (FileSystemEntry *child = root->children; child; child = child->next)
-                populate_playlist_from_library(child, playlist);
-}
-
-void load_last_used_playlist(PlayList *playlist, PlayList **unshuffled_playlist, FileSystemEntry *root)
-{
-        char *configdir = get_config_path();
-
-        populate_playlist_from_library(root, playlist);
-
-        if (*unshuffled_playlist == NULL) {
-                *unshuffled_playlist = deep_copy_playlist(playlist);
-        }
-
-        if (configdir)
-                free(configdir);
+                add_enqueued_songs_to_playlist(child, playlist);
 }
 
 void save_named_playlist(const char *directory, const char *playlist_name,

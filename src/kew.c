@@ -415,11 +415,11 @@ void init_default_state(void)
         AppState *state = get_app_state();
         FileSystemEntry *library = get_library();
         PlayList *playlist = get_playlist();
-        PlayList *unshuffled_playlist = get_unshuffled_playlist();
         PlaybackState *ps = get_playback_state();
 
-        load_last_used_playlist(playlist, &unshuffled_playlist, library);
-        set_unshuffled_playlist(unshuffled_playlist);
+        add_enqueued_songs_to_playlist(library, playlist);
+
+        set_unshuffled_playlist(deep_copy_playlist(playlist));
 
         reset_list_after_dequeuing_playing_song();
 
