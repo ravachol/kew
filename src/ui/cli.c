@@ -102,6 +102,8 @@ void set_music_path(void)
         ui->color.g = ui->kewColorRGB.g;
         ui->color.b = ui->kewColorRGB.b;
 
+        ui->colorMode = COLOR_MODE_ALBUM;
+
         printf("\n\n\n\n");
 
         print_logo_art(ui, 0, true, true, false);
