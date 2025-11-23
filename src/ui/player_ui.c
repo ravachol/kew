@@ -338,6 +338,7 @@ int print_logo_art(const UISettings *ui, int indent, bool centered, bool print_t
         }
 
         if (print_tag_line) {
+                printf("\n");
                 print_blank_spaces(col);
                 printf("MUSIC  FOR  THE  SHELL\n");
         }
