@@ -263,10 +263,6 @@ void set_full_path(FileSystemEntry *entry, const char *parent_path,
                 return;
 
         if (!is_valid_entry_name(entry_name)) {
-                char buf[257];
-                snprintf(buf, sizeof(buf), "%s", entry_name);
-                buf[sizeof(buf) - 1] = '\0'; // ensure null-termination
-
                 return;
         }
 
