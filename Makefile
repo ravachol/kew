@@ -83,9 +83,9 @@ LOCAL_INC = \
     -Iinclude/nestegg
 
 ifeq ($(UNAME_S),Darwin)
-    PKG_LIBS = gio-2.0 chafa fftw3f opus opusfile vorbis ogg glib-2.0 taglib gdk-pixbuf-2.0
+    PKG_LIBS = gio-2.0 chafa fftw3f opus opusfile vorbis vorbisfile ogg glib-2.0 taglib gdk-pixbuf-2.0
 else
-    PKG_LIBS = gio-2.0 chafa fftw3f opus opusfile vorbis ogg glib-2.0 taglib
+    PKG_LIBS = gio-2.0 chafa fftw3f opus opusfile vorbis vorbisfile ogg glib-2.0 taglib
 endif
 
 PKG_CFLAGS  = $(shell $(PKG_CONFIG) --cflags $(PKG_LIBS))
