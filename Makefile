@@ -22,18 +22,16 @@ ifeq ($(origin USE_DBUS), undefined)
   endif
 endif
 
-# Adjust the PREFIX for macOS and Linux
+PREFIX ?= /usr/local
+
 ifeq ($(UNAME_S), Darwin)
     ifeq ($(ARCH), arm64)
-        PREFIX ?= /usr/local
-        PKG_CONFIG_PATH := /opt/homebrew/lib/pkgconfig:/opt/homebrew/share/pkgconfig:$(PKG_CONFIG_PATH)
+        PKG_CONFIG_PATH := $(PKG_CONFIG_PATH):/opt/homebrew/lib/pkgconfig:/opt/homebrew/share/pkgconfig
     else
-        PREFIX ?= /usr/local
-        PKG_CONFIG_PATH := /usr/local/lib/pkgconfig:/usr/local/share/pkgconfig:$(PKG_CONFIG_PATH)
+        PKG_CONFIG_PATH := $(PKG_CONFIG_PATH):/usr/local/lib/pkgconfig:/usr/local/share/pkgconfig
     endif
 else
-    PREFIX ?= /usr/local
-    PKG_CONFIG_PATH := /usr/lib/x86_64-linux-gnu/pkgconfig:/usr/lib/pkgconfig:/usr/share/pkgconfig:$(PKG_CONFIG_PATH)
+    PKG_CONFIG_PATH := $(PKG_CONFIG_PATH):/usr/lib/x86_64-linux-gnu/pkgconfig:/usr/lib/pkgconfig:/usr/share/pkgconfig
 endif
 
 # Default USE_FAAD to auto-detect if not set by user
@@ -51,7 +49,6 @@ ifeq ($(origin USE_FAAD), undefined)
                        [ -f "/data/data/com.termux/files/usr/lib/libfaad2.so" ] || \
                        [ -f "/data/data/com.termux/files/usr/local/lib/libfaad.so" ] || \
                        [ -f "/data/data/com.termux/files/usr/local/lib/libfaad2.so" ] && echo 1 || echo 0)
-    LANGDIRPREFIX = /data/data/com.termux/files/usr
   else
     # Non-Android build - try pkg-config first
     USE_FAAD = $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) $(PKG_CONFIG) --exists faad && echo 1 || echo 0)
@@ -64,14 +61,17 @@ ifeq ($(origin USE_FAAD), undefined)
                         [ -f /opt/homebrew/opt/faad2/lib/libfaad.dylib ] || \
                          [ -f /usr/local/lib/libfaad.dylib ] || [ -f /lib/x86_64-linux-gnu/libfaad.so.2 ] && echo 1 || echo 0)
     endif
-
-    ifeq ($(UNAME_S), Darwin)
-        LANGDIRPREFIX = /usr/local
-    else
-        LANGDIRPREFIX = /usr
-    endif
   endif
+endif
 
+ifneq ($(wildcard /data/data/com.termux/files/usr),)
+  LANGDIRPREFIX = /data/data/com.termux/files/usr
+else
+  ifeq ($(UNAME_S), Darwin)
+      LANGDIRPREFIX = /usr/local
+  else
+      LANGDIRPREFIX = /usr
+  endif
 endif
 
 LOCAL_INC = \
@@ -110,7 +110,7 @@ CFLAGS = $(COMMONFLAGS)
 CXXFLAGS = $(COMMONFLAGS) -std=c++11
 
 # Libraries
-LIBS = -L/usr/lib -lm -lopusfile -lglib-2.0 -lpthread $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) $(PKG_CONFIG) --libs gio-2.0 chafa fftw3f opus opusfile ogg vorbis vorbisfile glib-2.0 taglib)
+LIBS = -lm -lopusfile -lglib-2.0 -lpthread $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) $(PKG_CONFIG) --libs gio-2.0 chafa fftw3f opus opusfile ogg vorbis vorbisfile glib-2.0 taglib)
 LIBS += -lstdc++
 
 LDFLAGS = -logg -lz
