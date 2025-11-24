@@ -1033,10 +1033,11 @@ int show_key_bindings(SongData *songdata)
         printf(_(" · Cycle Themes: %s\n"), get_binding_string(EVENT_CYCLETHEMES, false));
         num_printed_rows++;
         CHECK_LIST_LIMIT();
-        print_blank_spaces(indentation);
-        printf(_(" · Cycle Chroma Visualization: %s (requires Chroma)\n"), get_binding_string(EVENT_CYCLEVISUALIZATION, false));
-        num_printed_rows++;
-        CHECK_LIST_LIMIT();
+        // FIXME: Enable Chroma
+        // print_blank_spaces(indentation);
+        // printf(_(" · Cycle Chroma Visualization: %s (requires Chroma)\n"), get_binding_string(EVENT_CYCLEVISUALIZATION, false));
+        // num_printed_rows++;
+        // CHECK_LIST_LIMIT();
         print_blank_spaces(indentation);
         printf(_(" · Stop: %s\n"), get_binding_string(EVENT_STOP, false));
         num_printed_rows++;
@@ -1054,7 +1055,9 @@ int show_key_bindings(SongData *songdata)
         num_printed_rows++;
         CHECK_LIST_LIMIT();
         print_blank_spaces(indentation);
-        printf(_(" · Toggle ASCII Cover: %s (disables Chroma)\n"), get_binding_string(EVENT_TOGGLEASCII, false));
+        // FIXME: Enable Chroma
+        //printf(_(" · Toggle ASCII Cover: %s (disables Chroma)\n"), get_binding_string(EVENT_TOGGLEASCII, false));
+        printf(_(" · Toggle ASCII Cover: %s\n"), get_binding_string(EVENT_TOGGLEASCII, false));
         num_printed_rows++;
         CHECK_LIST_LIMIT();
         print_blank_spaces(indentation);
