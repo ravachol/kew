@@ -1,6 +1,6 @@
 CC ?= gcc
 CXX ?= g++
-PKG_CONFIG ?= $(shell command -v pkg-config 2>/dev/null)
+PKG_CONFIG ?= pkg-config
 
 # To enable debugging, run:
 # make DEBUG=1
