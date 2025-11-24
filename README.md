@@ -166,6 +166,7 @@ Put themes in \~/.config/kew/themes (\~/Library/Preferences/kew/themes on macOS)
 
 Do not edit the included themes as they are managed by kew. Instead make a copy with a different name and edit that.
 
+<!--FIXME: Enable Chroma
 ## Visulizations / Chroma
 
 You can add visualizations to kew by installing Chroma:
@@ -183,7 +184,7 @@ Disable by pressing <kbd>b</kbd>.
     <img src="images/chroma.gif" alt="Chroma">
   </a>
 </div>
-<br><br>
+<br><br>-->
 
 ## If Colors or Graphics Look Wrong
 
