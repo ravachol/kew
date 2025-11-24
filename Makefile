@@ -1,6 +1,6 @@
 CC ?= gcc
 CXX ?= g++
-PKG_CONFIG ?= pkg-config
+PKG_CONFIG ?= $(shell command -v pkg-config 2>/dev/null)
 
 # To enable debugging, run:
 # make DEBUG=1
@@ -24,14 +24,14 @@ endif
 
 PREFIX ?= /usr/local
 
-ifeq ($(UNAME_S), Darwin)
-    ifeq ($(ARCH), arm64)
-        PKG_CONFIG_PATH := $(PKG_CONFIG_PATH):/opt/homebrew/lib/pkgconfig:/opt/homebrew/share/pkgconfig
+ifeq ($(UNAME_S),Darwin)
+    ifeq ($(ARCH),arm64)
+        PKG_CONFIG_PATH := /opt/homebrew/lib/pkgconfig:/opt/homebrew/share/pkgconfig:$(PKG_CONFIG_PATH)
     else
-        PKG_CONFIG_PATH := $(PKG_CONFIG_PATH):/usr/local/lib/pkgconfig:/usr/local/share/pkgconfig
+        PKG_CONFIG_PATH := /usr/local/lib/pkgconfig:/usr/local/share/pkgconfig:$(PKG_CONFIG_PATH)
     endif
-else
-    PKG_CONFIG_PATH := $(PKG_CONFIG_PATH):/usr/lib/x86_64-linux-gnu/pkgconfig:/usr/lib/pkgconfig:/usr/share/pkgconfig
+
+    export PKG_CONFIG_PATH
 endif
 
 # Default USE_FAAD to auto-detect if not set by user
@@ -51,7 +51,7 @@ ifeq ($(origin USE_FAAD), undefined)
                        [ -f "/data/data/com.termux/files/usr/local/lib/libfaad2.so" ] && echo 1 || echo 0)
   else
     # Non-Android build - try pkg-config first
-    USE_FAAD = $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) $(PKG_CONFIG) --exists faad && echo 1 || echo 0)
+    USE_FAAD = $(shell $(PKG_CONFIG) --exists faad && echo 1 || echo 0)
 
     ifeq ($(USE_FAAD), 0)
         # If pkg-config fails, try to find libfaad dynamically in common paths
@@ -110,7 +110,7 @@ CFLAGS = $(COMMONFLAGS)
 CXXFLAGS = $(COMMONFLAGS) -std=c++11
 
 # Libraries
-LIBS = -lm -lopusfile -lglib-2.0 -lpthread $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) $(PKG_CONFIG) --libs gio-2.0 chafa fftw3f opus opusfile ogg vorbis vorbisfile glib-2.0 taglib)
+LIBS = -lm -lopusfile -lglib-2.0 -lpthread $(shell $(PKG_CONFIG) --libs gio-2.0 chafa fftw3f opus opusfile ogg vorbis vorbisfile glib-2.0 taglib)
 LIBS += -lstdc++
 
 LDFLAGS = -logg -lz
