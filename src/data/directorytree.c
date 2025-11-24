@@ -25,8 +25,6 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-#define MAX_STACK_SIZE 1000000
-
 #define FSDB_MAGIC 0x46534442 // "FSDB"
 
 static int last_used_id = 0;

@@ -2,9 +2,7 @@
 
 ### 3.7.0
 
-Biggest news in this release: Chroma visualizations, Optimisations for large music collections/slow disks and a key binding/input handling overhaul.
-
-- Chroma visualizations. This works by users separately installing a new app called Chroma. then pressing 'c' in kew to cycle through them. This will be shown instead of the cover or if an audio file doesn't have a cover. Disable by pressing 'b'. Chroma was created by @yuri-xyz and can be found here: https://github.com/yuri-xyz/chroma.
+Biggest news in this release: Optimisations for large music collections/slow disks and a key binding/input handling overhaul.
 
 - Optimisations: Faster loading of previous playlist. So if you are used to running kew all for instance this will be significantly faster, especially for people with large collections. The new method should be up to 20 times faster for loading a big last used playlist.
 
