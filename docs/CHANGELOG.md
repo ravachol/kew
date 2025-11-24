@@ -42,6 +42,8 @@ The old format config files will still work for the most part, but to see exampl
 
 - Made the path validation function less strict to avoid false positives. Reported by: DimaFyodorov.
 
+- Removed hardcoded paths in Makefile to avoid conflicting paths. Found by @hpjansson.
+
 #### Sponsors
 
 Thank you to Christian Mummelthey and imalee.sk for their donations.
