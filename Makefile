@@ -85,6 +85,7 @@ LOCAL_INC = \
 PKG_LIBS = gio-2.0 chafa fftw3f opus opusfile vorbis ogg glib-2.0 taglib gdk-pixbuf-2.0
 
 PKG_CFLAGS  = $(shell $(PKG_CONFIG) --cflags $(PKG_LIBS))
+PKG_LDFLAGS = $(shell $(PKG_CONFIG) --libs $(PKG_LIBS))
 
 COMMONFLAGS = $(LOCAL_INC) $(PKG_CFLAGS)
 
@@ -110,7 +111,7 @@ CFLAGS = $(COMMONFLAGS)
 CXXFLAGS = $(COMMONFLAGS) -std=c++11
 
 # Libraries
-LIBS = -lm -lopusfile -lglib-2.0 -lpthread $(shell $(PKG_CONFIG) --libs gio-2.0 chafa fftw3f opus opusfile ogg vorbis vorbisfile glib-2.0 taglib)
+LIBS = -lm -lopusfile -lglib-2.0 -lpthread $(PKG_LDFLAGS)
 LIBS += -lstdc++
 
 LDFLAGS = -logg -lz
