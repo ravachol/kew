@@ -24,7 +24,7 @@ The old format config files will still work for the most part, but to see exampl
 
 - Auto-scrolling lyrics in the lyrics page for synced lyrics. Also added the ability to scroll lyrics manually. By @noiamnote.
 
-- The app and readme has been translated into chinese. Thank you for the help @hiruocha.
+- The app and readme has been translated into japanese and chinese. Thank you for help with the chinese translation @hiruocha.
 
 - New theme: catpuccin mocha by @pixel-peeper.
 
