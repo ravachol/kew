@@ -21,7 +21,7 @@ Install the necessary dependencies using your distro's package manager and then 
 Install dependencies:
 
 ```bash
-sudo apt install -y pkg-config libfaad-dev libtag1-dev libfftw3-dev libopus-dev libopusfile-dev libvorbis-dev libogg-dev git gcc make libchafa-dev libglib2.0-dev
+sudo apt install -y pkg-config libfaad-dev libtag1-dev libfftw3-dev libopus-dev libopusfile-dev libvorbis-dev libogg-dev git gcc make libchafa-dev libglib2.0-dev libgdk-pixbuf-2.0-dev
 ```
 
 [Install kew](#install-kew)
