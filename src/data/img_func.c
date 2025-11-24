@@ -43,7 +43,7 @@
 char scale[] = "$@&B%8WM#ZO0QoahkbdpqwmLCJUYXIjft/\\|()1{}[]l?zcvunxr!<>i;:*-+~_,\"^`'. ";
 unsigned int brightness_levels = MACRO_STRLEN(scale) - 2;
 
-#ifdef CHAFA_VERSION_1_16
+#if CHAFA_VERSION_CUR_STABLE >= G_ENCODE_VERSION(1, 16)
 
 static gchar *tmux_allow_passthrough_original;
 static gboolean tmux_allow_passthrough_is_changed;
@@ -351,7 +351,7 @@ convert_image(const void *pixels, gint pix_width, gint pix_height,
         ChafaCanvas *canvas;
         GString *printable;
 
-#ifdef CHAFA_VERSION_1_16
+#if CHAFA_VERSION_CUR_STABLE >= G_ENCODE_VERSION(1, 16)
 
         ChafaPassthrough passthrough;
         ChafaFrame *frame;
