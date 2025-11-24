@@ -301,8 +301,8 @@ void reset_name_scroll()
  */
 
 struct interval {
-        int first;
-        int last;
+        wchar_t first;
+        wchar_t last;
 };
 
 // Auxiliary function for binary search in interval table
