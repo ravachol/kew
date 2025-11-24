@@ -354,7 +354,7 @@ void create_library()
 {
         AppSettings *settings = get_app_settings();
         AppState *state = get_app_state();
-        FileSystemEntry *library = get_library();
+        FileSystemEntry *library = NULL;
 
         char expanded[PATH_MAX];
 
@@ -368,8 +368,12 @@ void create_library()
 
         free(lib_path);
 
+        set_library(library);
+
         bool wait_until_complete = true;
         update_library_if_changed_detected(wait_until_complete);
+
+        library = get_library();
 
         if (library == NULL || library->children == NULL) {
 
