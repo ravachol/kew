@@ -1118,8 +1118,11 @@ static struct
         const char *name;
         const char **caps;
         const char *alias;
-} builtin_terms[] = {
+}
+
+builtin_terms[] = {
     {"xterm", xterm_caps, ""},
+    {"xterm-256color", xterm_caps, ""},
     {"linux", linux_caps, ""},
     {"screen", screen_caps, "tmux"},
     {"rxvt-256color", rxvt_256color_caps, ""},
@@ -2125,6 +2128,11 @@ static int init_term_caps(void)
         cap_trie_add("\033[C", TB_KEY_ARROW_RIGHT, 0);
         cap_trie_add("\033[D", TB_KEY_ARROW_LEFT, 0);
         cap_trie_add("\033[Z", TB_KEY_TAB, TB_MOD_SHIFT);
+        cap_trie_add("\033[[B", TB_KEY_F2, 0);
+        cap_trie_add("\033[[C", TB_KEY_F3, 0);
+        cap_trie_add("\033[[D", TB_KEY_F4, 0);
+        cap_trie_add("\033[[E", TB_KEY_F5, 0);
+        cap_trie_add("\033[17~", TB_KEY_F6, 0);
 
         // enable mouse click + SGR reporting
         bytebuf_puts(&global.out, "\033[?1000h"); // mouse clicks
