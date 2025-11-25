@@ -1173,7 +1173,8 @@ void construct_app_settings(AppSettings *settings, KeyValuePair *pairs, int coun
                                 snprintf(settings->move_song_up,
                                          sizeof(settings->move_song_up), "%s",
                                          pair->value);
-                        add_legacy_key_binding(EVENT_MOVESONGUP, pair->value);
+                        // Don't add this since this key 't' should be used for themes
+                        //add_legacy_key_binding(EVENT_MOVESONGUP, pair->value);
                 } else if (strcmp(lowercase_key, "movesongdown") == 0) {
                         if (strcmp(pair->value, "") != 0)
                                 snprintf(settings->move_song_down,
