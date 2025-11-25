@@ -138,8 +138,7 @@ int write_tree_to_binary(FileSystemEntry *root, const char *filename)
                         strcpy(&string_table[offset], n->name);
                         offset += strlen(n->name) + 1;
                 } else {
-                        d->name_offset = 0; // fallback if name is NULL
-                        string_table[offset++] = '\0';
+                        d->name_offset = UINT32_MAX; // fallback if name is NULL
                 }
         }
 
@@ -720,7 +719,10 @@ FileSystemEntry *read_tree_from_binary(
                 n->parent_id = d->parent_id;
                 n->is_directory = d->is_directory;
                 n->is_enqueued = d->is_enqueued;
-                n->name = strdup(string_table + d->name_offset);
+                if (d->name_offset == UINT32_MAX)
+                        n->name = strdup(""); // empty name
+                else
+                        n->name = strdup(string_table + d->name_offset);
                 n->parent = n->children = n->next = n->lastChild = NULL;
                 n->full_path = NULL;
 
