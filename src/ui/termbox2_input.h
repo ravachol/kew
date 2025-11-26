@@ -1138,7 +1138,9 @@ static struct
         const char *cap;
         const uint16_t key;
         const uint8_t mod;
-} builtin_mod_caps[] = {
+}
+
+builtin_mod_caps[] = {
     // xterm arrows
     {"\x1b[1;2A", TB_KEY_ARROW_UP, TB_MOD_SHIFT},
     {"\x1b[1;3A", TB_KEY_ARROW_UP, TB_MOD_ALT},
