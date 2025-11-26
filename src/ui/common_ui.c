@@ -121,6 +121,7 @@ void transfer_settings_to_ui(void)
         ui->allowNotifications = (settings->allowNotifications[0] == '1');
         ui->coverEnabled = (settings->coverEnabled[0] == '1');
         ui->coverAnsi = (settings->coverAnsi[0] == '1');
+        ui->hideHelp = (settings->hideHelp[0] == '1');
         ui->visualizerEnabled = (settings->visualizerEnabled[0] == '1');
         ui->quitAfterStopping = (settings->quitAfterStopping[0] == '1');
         ui->hideGlimmeringText = (settings->hideGlimmeringText[0] == '1');
