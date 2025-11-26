@@ -2247,7 +2247,7 @@ void show_track_view_portrait(int height, AppSettings *settings,
                                 print_timestamped_lyrics(&(state->uiSettings), songdata, row + metadata_height + 1, indent + 1, term_w, elapsed_seconds);
 
                         print_visualizer(row + metadata_height + 2, col, visualizer_width + 1,
-                                         settings, elapsed_seconds, false);
+                                         settings, elapsed_seconds, true);
                 } else {
                         clear_screen();
                         printf("\n");
