@@ -548,6 +548,7 @@ void init_state(void)
         state->uiSettings.color.b = 125;
         state->uiSettings.coverEnabled = true;
         state->uiSettings.hideLogo = false;
+        state->uiSettings.hideHelp = false;
         state->uiSettings.quitAfterStopping = false;
         state->uiSettings.hideGlimmeringText = false;
         state->uiSettings.coverAnsi = false;

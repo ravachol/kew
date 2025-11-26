@@ -957,12 +957,30 @@ int show_key_bindings(SongData *songdata)
 
         int indentation = indent + 2;
 
-        print_blank_spaces(indentation);
-        printf(_(" Manual: See"));
-        apply_color(ui->colorMode, ui->theme.help, ui->color);
-        printf(_(" README"));
         apply_color(ui->colorMode, ui->theme.text, ui->defaultColorRGB);
-        printf(_(" Or man kew\n\n"));
+        print_blank_spaces(indentation);
+        printf(_(" Theme: "));
+
+        if (ui->colorMode == COLOR_MODE_ALBUM) {
+                apply_color(ui->colorMode, ui->theme.text, ui->defaultColorRGB);
+                printf(_("Using "));
+                apply_color(ui->colorMode, ui->theme.text, ui->color);
+                printf(_("Colors "));
+                apply_color(ui->colorMode, ui->theme.text, ui->defaultColorRGB);
+                printf(_("From Track Covers"));
+        } else {
+                apply_color(ui->colorMode, ui->theme.help, ui->color);
+                printf("%s", ui->theme.theme_name);
+        }
+
+        apply_color(ui->colorMode, ui->theme.text, ui->defaultColorRGB);
+        if (ui->colorMode != COLOR_MODE_ALBUM && strcmp(ui->theme.theme_author, "Ravachol") != 0) {
+                printf(_(" Author: "));
+                apply_color(ui->colorMode, ui->theme.help, ui->color);
+                printf("%s", ui->theme.theme_author);
+        }
+        printf("\n");
+        printf("\n");
         num_printed_rows += 2;
         CHECK_LIST_LIMIT();
         print_blank_spaces(indentation);
@@ -1090,32 +1108,6 @@ int show_key_bindings(SongData *songdata)
         print_blank_spaces(indentation);
         printf(_(" · Add Song To 'kew favorites.m3u': %s (run with 'kew .')\n\n"),
                get_binding_string(EVENT_ADDTOFAVORITESPLAYLIST, false));
-        num_printed_rows += 2;
-        CHECK_LIST_LIMIT();
-        apply_color(ui->colorMode, ui->theme.text, ui->defaultColorRGB);
-        print_blank_spaces(indentation);
-        printf(_(" Theme: "));
-
-        if (ui->colorMode == COLOR_MODE_ALBUM) {
-                apply_color(ui->colorMode, ui->theme.text, ui->defaultColorRGB);
-                printf(_("Using "));
-                apply_color(ui->colorMode, ui->theme.text, ui->color);
-                printf(_("Colors "));
-                apply_color(ui->colorMode, ui->theme.text, ui->defaultColorRGB);
-                printf(_("From Track Covers"));
-        } else {
-                apply_color(ui->colorMode, ui->theme.help, ui->color);
-                printf("%s", ui->theme.theme_name);
-        }
-
-        apply_color(ui->colorMode, ui->theme.text, ui->defaultColorRGB);
-        if (ui->colorMode != COLOR_MODE_ALBUM && strcmp(ui->theme.theme_author, "Ravachol") != 0) {
-                printf(_(" Author: "));
-                apply_color(ui->colorMode, ui->theme.help, ui->color);
-                printf("%s", ui->theme.theme_author);
-        }
-        printf("\n");
-        printf("\n");
         num_printed_rows += 2;
         CHECK_LIST_LIMIT();
         print_blank_spaces(indentation);
@@ -1331,6 +1323,38 @@ int get_row_within_bounds(int row)
         return row;
 }
 
+int print_logo_and_adjustments(SongData *song_data, int term_width, UISettings *ui,
+                               int indentation)
+{
+        int about_rows = print_logo(song_data, ui);
+
+        apply_color(ui->colorMode, ui->theme.help, ui->defaultColorRGB);
+
+        if (term_width > 52 && !ui->hideHelp) {
+                print_blank_spaces(indentation+2);
+                clear_line();
+                printf(_(" Select:↑/↓ or k/j."));
+                printf(_(" Accept:%s."), get_binding_string(EVENT_ENQUEUE, true));
+                printf(_(" Clear:%s.\n"), get_binding_string(EVENT_CLEARPLAYLIST, true));
+                print_blank_spaces(indentation+2);
+                clear_line();
+#ifndef __APPLE__
+                printf(_(" Scroll:PgUp/PgDn."));
+#else
+                printf(_(" Scroll:Fn+↑/↓."));
+#endif
+                printf(_(" Remove:%s."), get_binding_string(EVENT_REMOVE, true));
+                printf(_(" Move songs:%s"), get_binding_string(EVENT_MOVESONGUP, true));
+                printf(_("/%s.\n"), get_binding_string(EVENT_MOVESONGDOWN, true));
+                clear_line();
+                printf("\n");
+
+                clear_line();
+                return about_rows + 3;
+        }
+        return about_rows;
+}
+
 void show_search(SongData *song_data, int *chosen_row)
 {
         int term_w, term_h;
@@ -1346,6 +1370,17 @@ void show_search(SongData *song_data, int *chosen_row)
         max_search_list_size -= about_rows;
 
         apply_color(ui->colorMode, ui->theme.help, ui->defaultColorRGB);
+
+        if (term_w > indent + 38 && !ui->hideHelp) {
+                clear_line();
+                print_blank_spaces(indent+2);
+                printf(_(" Select:↑/↓."));
+                printf(_(" Enqueue:%s."), get_binding_string(EVENT_ENQUEUE, true));
+                printf(_(" Play:%s.\n"), get_binding_string(EVENT_ENQUEUEANDPLAY, true));
+                clear_line();
+                printf("\n");
+                max_search_list_size -= 2;
+        }
 
         display_search(max_search_list_size, indent, chosen_row, start_search_iter);
 
@@ -1374,7 +1409,7 @@ void show_playlist(SongData *song_data, PlayList *list, int *chosen_song,
 
         goto_first_line_first_row();
 
-        int about_rows = print_logo(song_data, ui);
+        int about_rows = print_logo_and_adjustments(song_data, term_w, ui, indent);
         max_list_size -= about_rows;
 
         apply_color(ui->colorMode, ui->theme.header, ui->color);
@@ -1845,6 +1880,28 @@ void show_library(SongData *song_data, AppSettings *settings)
         max_lib_list_size -= about_size + 2;
 
         apply_color(ui->colorMode, ui->theme.help, ui->defaultColorRGB);
+
+        if (term_w > 67 && !ui->hideHelp) {
+                max_lib_list_size -= 3;
+                clear_line();
+                print_blank_spaces(indent+2);
+                printf(_(" Select:↑/↓."));
+                printf(_(" Enqueue/Dequeue:%s."), get_binding_string(EVENT_ENQUEUE, true));
+                printf(_(" Play:%s.\n"), get_binding_string(EVENT_ENQUEUEANDPLAY, true));
+                clear_line();
+                print_blank_spaces(indent+2);
+#ifndef __APPLE__
+                printf(_(" Scroll:PgUp/PgDn."));
+#else
+                printf(_(" Scroll:Fn+↑/↓."));
+#endif
+                printf(_(" Update:%s."), get_binding_string(EVENT_UPDATELIBRARY, true));
+                printf(_(" Sort:%s.\n"), get_binding_string(EVENT_SORTLIBRARY, true));
+                clear_line();
+                printf("\n");
+                clear_line();
+        }
+
 
         num_top_level_songs = 0;
 
