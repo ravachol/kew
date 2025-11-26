@@ -188,8 +188,8 @@ FileSystemEntry *enqueue_songs(FileSystemEntry *entry, FileSystemEntry **chosen_
                 trigger_refresh();
         }
 
-        if (has_enqueued) {
-                autostart_if_stopped(first_enqueued_entry);
+        if (has_enqueued && first_enqueued_entry) {
+                autostart_if_stopped(first_enqueued_entry->full_path);
         }
 
         if (shuffle) {
@@ -198,8 +198,7 @@ FileSystemEntry *enqueue_songs(FileSystemEntry *entry, FileSystemEntry **chosen_
                 shuffle_playlist(playlist);
                 set_song_to_start_from(NULL);
         }
-
-        if (ps->nextSongNeedsRebuilding) {
+        else if (ps->nextSongNeedsRebuilding) {
                 reshuffle_playlist();
         }
 
@@ -238,14 +237,31 @@ FileSystemEntry *enqueue(FileSystemEntry *entry)
         return first_enqueued_entry;
 }
 
+Node* pick_random_node(Node* first) {
+    int count = 0;
+    Node* n = first;
+
+    while (n) {
+        count++;
+        n = n->next;
+    }
+
+    int idx = rand() % count;
+
+    n = first;
+    while (idx--)
+        n = n->next;
+
+    return n;
+}
+
 void view_enqueue(bool play_immediately)
 {
         AppState *state = get_app_state();
-        FileSystemEntry *library = get_library();
         PlayList *playlist = get_playlist();
         PlaybackState *ps = get_playback_state();
         PlayList *unshuffled_playlist = get_unshuffled_playlist();
-        FileSystemEntry *first_enqueued_entry = NULL;
+
         FileSystemEntry *entry = NULL;
         Node *current_song = get_current_song();
         Node *first_enqueued_node = NULL;
@@ -288,21 +304,33 @@ void view_enqueue(bool play_immediately)
 
                         if (playlist != NULL) {
                                 first_enqueued_node = read_m3u_file(entry->full_path, playlist);
-
-                                first_enqueued_entry = find_corresponding_entry(
-                                    library, entry->full_path);
-
                                 deep_copy_play_list_onto_list(playlist, &unshuffled_playlist);
+
+                                if (state->uiSettings.shuffle_enabled)
+                                        reshuffle_playlist();
                         }
                 } else
-                        first_enqueued_entry = enqueue(entry); // Enqueue song
+                {
+                        FileSystemEntry *first_enqueued_entry = enqueue(entry); // Enqueue song
+                        if (first_enqueued_entry)
+                                first_enqueued_node = find_path_in_playlist(first_enqueued_entry->full_path, playlist);
+                }
         }
 
-        autostart_if_stopped(first_enqueued_entry);
+        if (first_enqueued_node && state->uiSettings.shuffle_enabled)
+        {
+                Node *unshuffled_node = find_path_in_playlist(first_enqueued_node->song.file_path, unshuffled_playlist);
+                if (unshuffled_node && unshuffled_node->next)
+                {
+                        Node *rand = pick_random_node(unshuffled_node);
+                        first_enqueued_node = find_path_in_playlist(rand->song.file_path, playlist);
+                }
+        }
 
-        if (first_enqueued_entry && (play_immediately || is_stopped()) && playlist->count != 0) {
-                if (first_enqueued_node == NULL)
-                        first_enqueued_node = find_path_in_playlist(first_enqueued_entry->full_path, playlist);
+        if (first_enqueued_node)
+                autostart_if_stopped(first_enqueued_node->song.file_path);
+
+        if (first_enqueued_node && (play_immediately || is_stopped()) && playlist->count != 0) {
                 clear_and_play(first_enqueued_node);
         }
 
