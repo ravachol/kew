@@ -599,7 +599,7 @@ void print_square_bitmap(int row, int col, unsigned char *pixels, int width, int
         gchar **lines = g_strsplit(printable->str, delimiters, -1);
 
         if (centered)
-        col = ((term_size.width_cells - corrected_width) / 2);
+        col = ((term_size.width_cells - corrected_width) / 2) + 1;
 
         // Print each line with indentation
         for (int i = 0; lines[i] != NULL; i++) {
@@ -612,95 +612,6 @@ void print_square_bitmap(int row, int col, unsigned char *pixels, int width, int
         g_strfreev(lines);
         g_string_free(printable, TRUE);
 }
-
-void print_square_bitmap_centered(unsigned char *pixels, int width, int height, int base_height)
-{
-        if (pixels == NULL) {
-                set_error_message("Error: Invalid pixel data.\n");
-                return;
-        }
-
-        // Use the provided width and height
-        int pix_width = width;
-        int pix_height = height;
-        int n_channels = 4; // Assuming RGBA format
-
-        // Validate the image dimensions
-        if (pix_width == 0 || pix_height == 0) {
-                set_error_message("Invalid image dimensions.\n");
-                return;
-        }
-
-        TermSize term_size;
-        GString *printable;
-        gint cell_width = -1, cell_height = -1;
-
-        tty_init();
-        get_tty_size(&term_size);
-
-        if (term_size.width_cells > 0 && term_size.height_cells > 0 &&
-            term_size.width_pixels > 0 && term_size.height_pixels > 0) {
-                cell_width = term_size.width_pixels / term_size.width_cells;
-                cell_height = term_size.height_pixels / term_size.height_cells;
-        }
-
-        // Set default cell size for some terminals
-        if (cell_width <= -1 || cell_height <= -1) {
-                cell_width = 8;
-                cell_height = 16;
-        }
-
-        if (cell_width == 0 || cell_height == 0) {
-                set_error_message("Invalid image cell width dimensions.\n");
-                return;
-        }
-
-        // Calculate corrected width based on aspect ratio correction
-        float aspect_ratio_correction = (float)cell_height / (float)cell_width;
-        int corrected_width = (int)(base_height * aspect_ratio_correction);
-
-        if (term_size.width_cells > 0 && corrected_width > term_size.width_cells) {
-                set_error_message("Invalid terminal dimensions.\n");
-                return;
-        }
-
-        if (term_size.height_cells > 0 && base_height > term_size.height_cells) {
-                set_error_message("Invalid terminal dimensions.\n");
-                return;
-        }
-
-        // Calculate indentation to center the image
-        int indentation = ((term_size.width_cells - corrected_width) / 2);
-
-        // Convert image to a printable string using Chafa
-        printable = convert_image(
-            pixels,
-            pix_width,
-            pix_height,
-            pix_width * n_channels,         // Row stride
-            CHAFA_PIXEL_RGBA8_UNASSOCIATED, // Correct pixel format
-            corrected_width,
-            base_height,
-            cell_width,
-            cell_height);
-
-        // Ensure the string is null-terminated
-        g_string_append_c(printable, '\0');
-
-        // Split the printable string into lines
-        const gchar *delimiters = "\n";
-        gchar **lines = g_strsplit(printable->str, delimiters, -1);
-
-        // Print each line with indentation
-        for (int i = 0; lines[i] != NULL; i++) {
-                printf("\n\033[%dC%s", indentation, lines[i]);
-        }
-
-        // Free allocated memory
-        g_strfreev(lines);
-        g_string_free(printable, TRUE);
-}
-
 unsigned char luminance_from_r_g_b(unsigned char r, unsigned char g, unsigned char b)
 {
         return (unsigned char)(0.2126 * r + 0.7152 * g + 0.0722 * b);
