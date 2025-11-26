@@ -1502,7 +1502,7 @@ void print_progress_bar(int row, int col, AppSettings *settings, UISettings *ui,
 }
 
 void print_visualizer(int row, int col, int visualizer_width,
-                      AppSettings *settings, double elapsed_seconds)
+                      AppSettings *settings, double elapsed_seconds, bool centered)
 {
         AppState *state = get_app_state();
         UISettings *ui = &(state->uiSettings);
@@ -1523,7 +1523,13 @@ void print_visualizer(int row, int col, int visualizer_width,
                 uis->num_progress_bars = (int)visualizer_width / 2;
                 double duration = get_current_song_duration();
 
-                draw_spectrum_visualizer(row, col, height);
+                int extra_cols = visualizer_width - (26 * state->uiSettings.visualizer_bar_width) - 26;
+                int vis_col = col;
+
+                if (centered && extra_cols > 0)
+                        vis_col += extra_cols / 2;
+
+                draw_spectrum_visualizer(row, vis_col, height);
 
                 int elapsed_bars =
                     calc_elapsed_bars(elapsed_seconds, duration, visualizer_width);
@@ -2173,7 +2179,7 @@ void show_track_view_landscape(int height, int width, float aspect_ratio,
 
                         if (row > 0)
                                 print_visualizer(row + metadata_height + 2, col, visualizer_width,
-                                                 settings, elapsed_seconds);
+                                                 settings, elapsed_seconds, true);
 
                         if (width - col > ABSOLUTE_MIN_WIDTH) {
                                 print_error_row(row + metadata_height + 2 +
@@ -2241,7 +2247,7 @@ void show_track_view_portrait(int height, AppSettings *settings,
                                 print_timestamped_lyrics(&(state->uiSettings), songdata, row + metadata_height + 1, indent + 1, term_w, elapsed_seconds);
 
                         print_visualizer(row + metadata_height + 2, col, visualizer_width + 1,
-                                         settings, elapsed_seconds);
+                                         settings, elapsed_seconds, false);
                 } else {
                         clear_screen();
                         printf("\n");
