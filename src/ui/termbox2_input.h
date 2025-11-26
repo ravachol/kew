@@ -2129,7 +2129,8 @@ static int init_term_caps(void)
         cap_trie_add("\033[B", TB_KEY_ARROW_DOWN, 0);
         cap_trie_add("\033[C", TB_KEY_ARROW_RIGHT, 0);
         cap_trie_add("\033[D", TB_KEY_ARROW_LEFT, 0);
-        cap_trie_add("\033[Z", TB_KEY_TAB, TB_MOD_SHIFT);
+        cap_trie_add("\033[Z", TB_KEY_TAB, TB_MOD_SHIFT); // shift+tab
+        cap_trie_add("\033\t", TB_KEY_TAB, TB_MOD_SHIFT);
 
         cap_trie_add("\033[H", TB_KEY_HOME, 0);
         cap_trie_add("\033[F", TB_KEY_END, 0);
@@ -2153,7 +2154,7 @@ static int init_term_caps(void)
         cap_trie_add("\033[12~", TB_KEY_F2, 0);
         cap_trie_add("\033[13~", TB_KEY_F3, 0);
         cap_trie_add("\033[14~", TB_KEY_F4, 0);
-        
+
         cap_trie_add("\033[15~", TB_KEY_F5, 0);
         cap_trie_add("\033[17~", TB_KEY_F6, 0);
         cap_trie_add("\033[18~", TB_KEY_F7, 0);
