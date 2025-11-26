@@ -167,9 +167,9 @@ void finish_loading(void)
         ps->loadedNextSong = true;
 }
 
-void autostart_if_stopped(FileSystemEntry *first_enqueued_entry)
+void autostart_if_stopped(const char *path)
 {
-        if (first_enqueued_entry == NULL)
+        if (path == NULL)
                 return;
 
         PlayList *playlist = get_playlist();
@@ -178,7 +178,6 @@ void autostart_if_stopped(FileSystemEntry *first_enqueued_entry)
         ps->waitingForPlaylist = false;
         ps->waitingForNext = true;
         audio_data.end_of_list_reached = false;
-        if (first_enqueued_entry != NULL)
-                set_song_to_start_from(find_path_in_playlist(first_enqueued_entry->full_path, playlist));
+        set_song_to_start_from(find_path_in_playlist(path, playlist));
         ps->lastPlayedId = -1;
 }

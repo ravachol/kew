@@ -16,5 +16,5 @@ void unload_song_a(void);
 void unload_song_b(void);
 void unload_previous_song(void);
 void try_load_next(void);
-void autostart_if_stopped(FileSystemEntry *first_enqueued_entry);
+void autostart_if_stopped(const char *path);
 int load_first(Node *song);
