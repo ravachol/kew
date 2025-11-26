@@ -2130,15 +2130,43 @@ static int init_term_caps(void)
         cap_trie_add("\033[C", TB_KEY_ARROW_RIGHT, 0);
         cap_trie_add("\033[D", TB_KEY_ARROW_LEFT, 0);
         cap_trie_add("\033[Z", TB_KEY_TAB, TB_MOD_SHIFT);
+
+        cap_trie_add("\033[H", TB_KEY_HOME, 0);
+        cap_trie_add("\033[F", TB_KEY_END, 0);
+        cap_trie_add("\033[2~", TB_KEY_INSERT, 0);
+        cap_trie_add("\033[3~", TB_KEY_DELETE, 0);
+        cap_trie_add("\033[5~", TB_KEY_PGUP, 0);
+        cap_trie_add("\033[6~", TB_KEY_PGDN, 0);
+
+        cap_trie_add("\033OP", TB_KEY_F1, 0); // xterm
+        cap_trie_add("\033OQ", TB_KEY_F2, 0);
+        cap_trie_add("\033OR", TB_KEY_F3, 0);
+        cap_trie_add("\033OS", TB_KEY_F4, 0);
+
+        cap_trie_add("\033[[A", TB_KEY_F1, 0); // linux
         cap_trie_add("\033[[B", TB_KEY_F2, 0);
         cap_trie_add("\033[[C", TB_KEY_F3, 0);
         cap_trie_add("\033[[D", TB_KEY_F4, 0);
         cap_trie_add("\033[[E", TB_KEY_F5, 0);
+
+        cap_trie_add("\033[11~", TB_KEY_F1, 0); // rxvt / urxvt
+        cap_trie_add("\033[12~", TB_KEY_F2, 0);
+        cap_trie_add("\033[13~", TB_KEY_F3, 0);
+        cap_trie_add("\033[14~", TB_KEY_F4, 0);
+        
+        cap_trie_add("\033[15~", TB_KEY_F5, 0);
         cap_trie_add("\033[17~", TB_KEY_F6, 0);
+        cap_trie_add("\033[18~", TB_KEY_F7, 0);
+        cap_trie_add("\033[19~", TB_KEY_F8, 0);
+        cap_trie_add("\033[20~", TB_KEY_F9, 0);
+        cap_trie_add("\033[21~", TB_KEY_F10, 0);
+        cap_trie_add("\033[23~", TB_KEY_F11, 0);
+        cap_trie_add("\033[24~", TB_KEY_F12, 0);
 
         // enable mouse click + SGR reporting
-        bytebuf_puts(&global.out, "\033[?1000h"); // mouse clicks
+        bytebuf_puts(&global.out, "\033[?1002h"); // button tracking (press+release+drag)
         bytebuf_puts(&global.out, "\033[?1006h"); // SGR mode
+        bytebuf_puts(&global.out, "\033[?1000l"); // turn OFF X10 (buggy on many terms)
         bytebuf_flush(&global.out, global.wfd);
 
         if (load_terminfo() == TB_OK) {
