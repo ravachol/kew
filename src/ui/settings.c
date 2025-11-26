@@ -629,6 +629,7 @@ void set_default_config(AppSettings *settings)
 #else
         c_strcpy(settings->hideLogo, "0", sizeof(settings->hideLogo));
 #endif
+        c_strcpy(settings->hideHelp, "0", sizeof(settings->hideHelp));
         c_strcpy(settings->visualizer_height, "6",
                  sizeof(settings->visualizer_height));
         c_strcpy(settings->visualizer_color_type, "2",
@@ -1107,6 +1108,9 @@ void construct_app_settings(AppSettings *settings, KeyValuePair *pairs, int coun
                         add_legacy_mouse_binding(TB_KEY_MOUSE_WHEEL_DOWN, TB_MOD_ALT, get_number(pair->value));
                 } else if (strcmp(lowercase_key, "hidelogo") == 0) {
                         snprintf(settings->hideLogo, sizeof(settings->hideLogo),
+                                 "%s", pair->value);
+                } else if (strcmp(lowercase_key, "hidehelp") == 0) {
+                        snprintf(settings->hideHelp, sizeof(settings->hideHelp),
                                  "%s", pair->value);
                 } else if (strcmp(lowercase_key, "quitonstop") == 0) {
                         snprintf(settings->quitAfterStopping,
@@ -1808,6 +1812,11 @@ void set_config(AppSettings *settings, UISettings *ui)
                                         sizeof(settings->hideLogo))
                              : c_strcpy(settings->hideLogo, "0",
                                         sizeof(settings->hideLogo));
+        if (settings->hideHelp[0] == '\0')
+                ui->hideHelp ? c_strcpy(settings->hideHelp, "1",
+                                        sizeof(settings->hideHelp))
+                             : c_strcpy(settings->hideHelp, "0",
+                                        sizeof(settings->hideHelp));
         if (settings->visualizer_height[0] == '\0')
                 snprintf(settings->visualizer_height,
                          sizeof(settings->visualizer_height), "%d",
@@ -1829,7 +1838,8 @@ void set_config(AppSettings *settings, UISettings *ui)
         fprintf(file, "\n[miscellaneous]\n\n");
         fprintf(file, "path=%s\n", settings->path);
         fprintf(file, "allowNotifications=%s\n", settings->allowNotifications);
-        fprintf(file, "hideLogo=%s\n\n", settings->hideLogo);
+        fprintf(file, "hideLogo=%s\n", settings->hideLogo);
+        fprintf(file, "hideHelp=%s\n\n", settings->hideHelp);
 
         fprintf(file, "# Delay when drawing title in track view, set to 0 to "
                       "have no delay.\n");
