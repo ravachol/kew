@@ -218,7 +218,7 @@ void handle_remove(int chosen_row)
 
                 pthread_mutex_unlock(&(playlist->mutex));
         } else {
-                return;
+                skip_to_next_song();
         }
 
         trigger_refresh();
@@ -485,7 +485,7 @@ retry:
         if (current == NULL) {
                 if (!pb_is_stopped() && !pb_is_paused())
                         stop();
-                
+
                 skip_in_progress = false;
                 return;
         }
