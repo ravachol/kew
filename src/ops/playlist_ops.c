@@ -29,6 +29,8 @@
 
 #include "utils/utils.h"
 
+static bool skip_in_progress = false;
+
 Node *choose_next_song(void)
 {
 
@@ -471,22 +473,33 @@ void skip_to_next_song(void)
 
 void skip_to_prev_song(void)
 {
+
+        if (skip_in_progress)
+                return;
+        skip_in_progress = true;
+
         AppState *state = get_app_state();
         Node *current = get_current_song();
         PlaybackState *ps = get_playback_state();
-
+retry:
         if (current == NULL) {
                 if (!pb_is_stopped() && !pb_is_paused())
                         stop();
+                
+                skip_in_progress = false;
                 return;
         }
 
         if (ps->songLoading || ps->skipping || ps->clearingErrors)
                 if (!ps->forceSkip)
+                {
+                        skip_in_progress = false;
                         return;
+                }
 
         if (pb_is_stopped() || pb_is_paused()) {
                 silent_switch_to_prev();
+                skip_in_progress = false;
                 return;
         }
 
@@ -532,12 +545,14 @@ void skip_to_prev_song(void)
         if (ps->songHasErrors) {
                 ps->songHasErrors = false;
                 ps->forceSkip = true;
-                skip_to_prev_song();
+                goto retry;
         }
 
         reset_clock();
 
         skip();
+
+        skip_in_progress = false;
 }
 
 void skip_to_numbered_song(int song_number)
