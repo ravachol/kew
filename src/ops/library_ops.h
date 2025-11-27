@@ -21,6 +21,7 @@ void mark_list_as_enqueued(FileSystemEntry *root, PlayList *playlist);
 void enqueue_song(FileSystemEntry *child);
 void dequeue_song(FileSystemEntry *child);
 void dequeue_children(FileSystemEntry *parent);
+void dequeue_parent_if_no_enqueued_children(FileSystemEntry *parent);
 int enqueue_children(FileSystemEntry *child, FileSystemEntry **first_enqueued_entry);
 bool mark_as_dequeued(FileSystemEntry *root, char *path);
 bool has_song_children(FileSystemEntry *entry);

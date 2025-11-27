@@ -418,6 +418,28 @@ void enqueue_song(FileSystemEntry *child)
         child->parent->is_enqueued = 1;
 }
 
+void dequeue_parent_if_no_enqueued_children(FileSystemEntry *parent)
+{
+        if (parent == NULL)
+                return;
+
+        bool is_enqueued = false;
+
+        FileSystemEntry *ch = parent->children;
+
+        while (ch != NULL) {
+                if (ch->is_enqueued) {
+                        is_enqueued = true;
+                        break;
+                }
+                ch = ch->next;
+        }
+
+        if (!is_enqueued) {
+                parent->is_enqueued = 0;
+        }
+}
+
 void dequeue_song(FileSystemEntry *child)
 {
         PlayList *unshuffled_playlist = get_unshuffled_playlist();
@@ -451,24 +473,6 @@ void dequeue_song(FileSystemEntry *child)
 
         child->is_enqueued = 0;
 
-        // Check if parent needs to be dequeued as well
-        bool is_enqueued = false;
-
-        FileSystemEntry *ch = child->parent->children;
-
-        while (ch != NULL) {
-                if (ch->is_enqueued) {
-                        is_enqueued = true;
-                        break;
-                }
-                ch = ch->next;
-        }
-
-        if (!is_enqueued) {
-                child->parent->is_enqueued = 0;
-                if (child->parent->parent != NULL)
-                        child->parent->parent->is_enqueued = 0;
-        }
 }
 
 void dequeue_children(FileSystemEntry *parent)
@@ -484,6 +488,8 @@ void dequeue_children(FileSystemEntry *parent)
 
                 child = child->next;
         }
+
+        dequeue_parent_if_no_enqueued_children(parent);
 }
 
 int enqueue_children(FileSystemEntry *child,
@@ -506,6 +512,10 @@ int enqueue_children(FileSystemEntry *child,
                                 enqueue_song(child);
                                 has_enqueued = 1;
                         }
+                }
+                else if (child->is_directory == 0 && child->is_enqueued)
+                {
+                        has_enqueued = 1;
                 }
 
                 child = child->next;
