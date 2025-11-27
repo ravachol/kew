@@ -363,6 +363,7 @@ void handle_event(struct Event *event)
 static gint64 last_scroll_event_time = 0;
 static gint64 last_seek_event_time = 0;
 static gint64 last_page_event_time = 0;
+static gint64 last_switch_time = 0;
 
 static gboolean should_throttle(struct Event *event)
 {
@@ -370,6 +371,13 @@ static gboolean should_throttle(struct Event *event)
         gint64 delta;
 
         switch (event->type) {
+        case EVENT_NEXT:
+        case EVENT_PREV:
+                delta = now - last_switch_time;
+                if (delta < 400 * 1000) // 400ms
+                        return TRUE;
+                last_switch_time = now;
+                break;
         case EVENT_SCROLLUP:
         case EVENT_SCROLLDOWN:
                 delta = now - last_scroll_event_time;
@@ -661,11 +669,7 @@ static gboolean on_tb_input(GIOChannel *source, GIOCondition cond, gpointer data
 
         seq[0] = '\0';
 
-        bool cooldownElapsed = false;
         bool cooldown2Elapsed = false;
-
-        if (is_cooldown_elapsed(COOLDOWN_MS))
-                cooldownElapsed = true;
 
         if (is_cooldown_elapsed(COOLDOWN2_MS))
                 cooldown2Elapsed = true;
@@ -727,19 +731,14 @@ static gboolean on_tb_input(GIOChannel *source, GIOCondition cond, gpointer data
                                 case EVENT_SEEKFORWARD:
                                 case EVENT_NEXTPAGE:
                                 case EVENT_PREVPAGE:
+                                case EVENT_NEXT:
+                                case EVENT_PREV:
                                         if (should_throttle(&event))
                                                 continue;
                                         break;
                                 default:
                                         break;
                                 }
-
-                                // Handle song prev/next cooldown
-                                if (!cooldownElapsed &&
-                                    (event.type == EVENT_NEXT || event.type == EVENT_PREV))
-                                        event.type = EVENT_NONE;
-                                else if (event.type == EVENT_NEXT || event.type == EVENT_PREV)
-                                        update_last_input_time();
 
                                 // Handle seek/remove cooldown
                                 if (!cooldown2Elapsed &&
