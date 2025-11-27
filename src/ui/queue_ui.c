@@ -118,8 +118,7 @@ FileSystemEntry *enqueue_songs(FileSystemEntry *entry, FileSystemEntry **chosen_
                             ((*chosen_dir) != NULL &&
                              strcmp(entry->full_path, (*chosen_dir)->full_path) == 0)) {
                                 if (has_dequeued_children(entry)) {
-                                        if (entry->parent ==
-                                            NULL) // Shuffle playlist if it's
+                                        if (entry->parent == NULL) // Shuffle playlist if it's
                                                   // the root
                                                 shuffle = true;
 
@@ -130,6 +129,9 @@ FileSystemEntry *enqueue_songs(FileSystemEntry *entry, FileSystemEntry **chosen_
                                         ps->nextSongNeedsRebuilding = true;
                                 } else {
                                         dequeue_children(entry);
+
+                                        if (entry->parent && entry->parent->parent != NULL)
+                                                dequeue_parent_if_no_enqueued_children(entry->parent);
 
                                         entry->is_enqueued = 0;
 
@@ -152,8 +154,10 @@ FileSystemEntry *enqueue_songs(FileSystemEntry *entry, FileSystemEntry **chosen_
                                                    tmpc->full_path) == 0 ||
                                             is_contained_within(entry, tmpc))
                                                 break;
+                                        if (tmpc->is_directory == 0)
+                                                uis->numSongsAboveSubDir++;
+
                                         tmpc = tmpc->next;
-                                        uis->numSongsAboveSubDir++;
                                 }
                         }
 
