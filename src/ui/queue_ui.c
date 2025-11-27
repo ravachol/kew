@@ -327,9 +327,6 @@ void view_enqueue(bool play_immediately)
                 }
         }
 
-        if (first_enqueued_node)
-                autostart_if_stopped(first_enqueued_node->song.file_path);
-
         if (first_enqueued_node && (play_immediately || is_stopped()) && playlist->count != 0) {
                 clear_and_play(first_enqueued_node);
         }
