@@ -222,6 +222,7 @@ void handle_remove(int chosen_row)
         if (state->currentView == PLAYLIST_VIEW) {
                 node = find_selected_entry(unshuffled_playlist, chosen_row);
                 remove_song(node);
+                trigger_refresh();
         } else {
                 Node *current = get_current_song();
                 if (current)
@@ -235,8 +236,6 @@ void handle_remove(int chosen_row)
                         clear_and_play(next);
                 }
         }
-
-        trigger_refresh();
 }
 
 void add_to_favorites_playlist(void)
