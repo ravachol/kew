@@ -418,7 +418,7 @@ void enqueue_song(FileSystemEntry *child)
         child->parent->is_enqueued = 1;
 }
 
-void dequeue_parent_if_no_enqueued_children(FileSystemEntry *parent)
+void set_childrens_queued_status_on_parents(FileSystemEntry *parent, bool wanted_status)
 {
         if (parent == NULL)
                 return;
@@ -435,9 +435,14 @@ void dequeue_parent_if_no_enqueued_children(FileSystemEntry *parent)
                 ch = ch->next;
         }
 
-        if (!is_enqueued) {
-                parent->is_enqueued = 0;
+        if (is_enqueued == wanted_status) {
+                parent->is_enqueued = wanted_status;
         }
+
+        parent = parent->parent;
+
+        if (parent && parent->parent != NULL)
+                set_childrens_queued_status_on_parents(parent, wanted_status);
 }
 
 void dequeue_song(FileSystemEntry *child)
@@ -489,13 +494,18 @@ void dequeue_children(FileSystemEntry *parent)
                 child = child->next;
         }
 
-        dequeue_parent_if_no_enqueued_children(parent);
+        set_childrens_queued_status_on_parents(parent, false);
 }
 
 int enqueue_children(FileSystemEntry *child,
                      FileSystemEntry **first_enqueued_entry)
 {
         int has_enqueued = 0;
+
+        if (!child)
+                return has_enqueued;
+
+        FileSystemEntry *parent = child->parent;
 
         while (child != NULL) {
                 if (child->is_directory && child->children != NULL) {
@@ -520,6 +530,9 @@ int enqueue_children(FileSystemEntry *child,
 
                 child = child->next;
         }
+
+        set_childrens_queued_status_on_parents(parent, true);
+
         return has_enqueued;
 }
 

@@ -122,18 +122,11 @@ FileSystemEntry *enqueue_songs(FileSystemEntry *entry, FileSystemEntry **chosen_
                                                   // the root
                                                 shuffle = true;
 
-                                        entry->is_enqueued = enqueue_children(entry->children, &first_enqueued_entry);
-
-                                        has_enqueued = entry->is_enqueued;
+                                        has_enqueued = enqueue_children(entry->children, &first_enqueued_entry);
 
                                         ps->nextSongNeedsRebuilding = true;
                                 } else {
                                         dequeue_children(entry);
-
-                                        if (entry->parent && entry->parent->parent != NULL)
-                                                dequeue_parent_if_no_enqueued_children(entry->parent);
-
-                                        entry->is_enqueued = 0;
 
                                         ps->nextSongNeedsRebuilding = true;
                                 }
@@ -180,6 +173,7 @@ FileSystemEntry *enqueue_songs(FileSystemEntry *entry, FileSystemEntry **chosen_
                                 first_enqueued_entry = entry;
 
                                 enqueue_song(entry);
+                                set_childrens_queued_status_on_parents(entry->parent, true);
 
                                 has_enqueued = true;
                         } else {
@@ -187,6 +181,7 @@ FileSystemEntry *enqueue_songs(FileSystemEntry *entry, FileSystemEntry **chosen_
                                 ps->nextSongNeedsRebuilding = true;
 
                                 dequeue_song(entry);
+                                set_childrens_queued_status_on_parents(entry->parent, false);
                         }
                 }
                 trigger_refresh();
