@@ -147,78 +147,93 @@ void rebuild_next_song(Node *song)
         ps->songLoading = false;
 }
 
+void remove_song(Node *node)
+{
+        PlayList *playlist = get_playlist();
+        PlayList *unshuffled_playlist = get_unshuffled_playlist();
+        Node *current = get_current_song();
+        bool rebuild = false;
+
+        if (node == NULL) {
+                return;
+        }
+
+        Node *song = choose_next_song();
+        int id = node->id;
+        int current_id = (current != NULL) ? current->id : -1;
+
+        if (current_id == node->id) {
+                remove_currently_playing_song();
+        } else {
+                if (get_song_to_start_from() != NULL) {
+                        set_song_to_start_from(get_list_next(node));
+                }
+        }
+
+        pthread_mutex_lock(&(playlist->mutex));
+
+        if (node != NULL && song != NULL && current != NULL) {
+                if (strcmp(song->song.file_path, node->song.file_path) ==
+                        0 ||
+                    (current != NULL && current->next != NULL &&
+                     id == current->next->id))
+                        rebuild = true;
+        }
+
+        if (node != NULL)
+                mark_as_dequeued(get_library(), node->song.file_path);
+
+        Node *node2 = find_selected_entry_by_id(playlist, id);
+
+        if (node != NULL)
+                delete_from_list(unshuffled_playlist, node);
+
+        if (node2 != NULL)
+                delete_from_list(playlist, node2);
+
+        if (is_shuffle_enabled())
+                rebuild = true;
+
+        current = find_selected_entry_by_id(playlist, current_id);
+
+        if (rebuild && current != NULL) {
+                node = NULL;
+                set_next_song(NULL);
+                reshuffle_playlist();
+
+                set_try_next_song(current->next);
+                PlaybackState *ps = get_playback_state();
+                ps->nextSongNeedsRebuilding = false;
+                set_next_song(NULL);
+                set_next_song(get_list_next(current));
+                rebuild_next_song(get_next_song());
+                ps->loadedNextSong = true;
+        }
+
+        pthread_mutex_unlock(&(playlist->mutex));
+}
+
 void handle_remove(int chosen_row)
 {
         AppState *state = get_app_state();
-        PlayList *playlist = get_playlist();
         PlayList *unshuffled_playlist = get_unshuffled_playlist();
+        Node *node = NULL;
 
         if (state->currentView == PLAYLIST_VIEW) {
-
-                bool rebuild = false;
-
-                Node *node = find_selected_entry(unshuffled_playlist, chosen_row);
-
-                if (node == NULL) {
-                        return;
-                }
-
-                Node *current = get_current_song();
-                Node *song = choose_next_song();
-                int id = node->id;
-                int current_id = (current != NULL) ? current->id : -1;
-
-                if (current_id == node->id) {
-                        remove_currently_playing_song();
-                } else {
-                        if (get_song_to_start_from() != NULL) {
-                                set_song_to_start_from(get_list_next(node));
-                        }
-                }
-
-                pthread_mutex_lock(&(playlist->mutex));
-
-                if (node != NULL && song != NULL && current != NULL) {
-                        if (strcmp(song->song.file_path, node->song.file_path) ==
-                                0 ||
-                            (current != NULL && current->next != NULL &&
-                             id == current->next->id))
-                                rebuild = true;
-                }
-
-                if (node != NULL)
-                        mark_as_dequeued(get_library(), node->song.file_path);
-
-                Node *node2 = find_selected_entry_by_id(playlist, id);
-
-                if (node != NULL)
-                        delete_from_list(unshuffled_playlist, node);
-
-                if (node2 != NULL)
-                        delete_from_list(playlist, node2);
-
-                if (is_shuffle_enabled())
-                        rebuild = true;
-
-                current = find_selected_entry_by_id(playlist, current_id);
-
-                if (rebuild && current != NULL) {
-                        node = NULL;
-                        set_next_song(NULL);
-                        reshuffle_playlist();
-
-                        set_try_next_song(current->next);
-                        PlaybackState *ps = get_playback_state();
-                        ps->nextSongNeedsRebuilding = false;
-                        set_next_song(NULL);
-                        set_next_song(get_list_next(current));
-                        rebuild_next_song(get_next_song());
-                        ps->loadedNextSong = true;
-                }
-
-                pthread_mutex_unlock(&(playlist->mutex));
+                node = find_selected_entry(unshuffled_playlist, chosen_row);
+                remove_song(node);
         } else {
-                skip_to_next_song();
+                Node *current = get_current_song();
+                if (current)
+                        node = find_selected_entry_by_id(unshuffled_playlist, current->id);
+
+                remove_song(node);
+
+                Node *next = get_next_song();
+                if (next)
+                {
+                        clear_and_play(next);
+                }
         }
 
         trigger_refresh();
@@ -491,8 +506,7 @@ retry:
         }
 
         if (ps->songLoading || ps->skipping || ps->clearingErrors)
-                if (!ps->forceSkip)
-                {
+                if (!ps->forceSkip) {
                         skip_in_progress = false;
                         return;
                 }
@@ -873,6 +887,7 @@ void clear_and_play(Node *song)
         ps->loadingdata.loadA = true;
         ps->waitingForNext = true;
         ps->loadedNextSong = false;
+        ps->lastPlayedId = -1;
 }
 
 void playlist_play(PlayList *playlist)
