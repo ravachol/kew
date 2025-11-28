@@ -294,7 +294,7 @@ static const char *get_player_status_icon(void)
 {
         if (is_paused()) {
 #if defined(__ANDROID__) || defined(__APPLE__)
-                return "𝄓";
+                return "။";
 #else
                 return "⏸";
 #endif
@@ -806,7 +806,7 @@ void print_footer(int row, int col)
 #endif
                 if (is_paused()) {
 #if defined(__ANDROID__) || defined(__APPLE__)
-                        char pause_text[] = " 𝄓";
+                        char pause_text[] = " ။";
 #else
                 char pause_text[] = " ⏸";
 #endif
