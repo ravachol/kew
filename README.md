@@ -8,6 +8,10 @@
   <a href="https://jenova7.bandcamp.com/album/lost-sci-fi-movie-themes">
     <img src="images/kew.gif" alt="Screenshot">
   </a>
+  <br>
+  Screenshot showing <a href="https://jenova7.bandcamp.com/album/lost-sci-fi-movie-themes">
+    Jenova 7: Lost Sci-Fi Movie Themes
+  </a>.
 </div>
 <br><br>
 
