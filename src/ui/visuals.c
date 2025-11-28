@@ -30,7 +30,7 @@
 #define M_PI 3.14159265358979323846
 #endif
 
-#define MAX_BARS 64
+#define MAX_BARS 26  // Counting 1/3 octave per bar, 50hz-10000hz range
 
 static float *fft_input = NULL;
 static fftwf_complex *fft_output = NULL;
@@ -45,7 +45,7 @@ static float emphasis = 1.3f;
 static float fast_attack = 0.6f;
 static float decay = 0.14f;
 static float slow_attack = 0.15f;
-static int visualizer_bar_width = 2;
+static int visualizer_bar_mode = 2;
 static int max_thin_bars_in_auto_mode = 20;
 static int prev_fft_size = 0;
 
@@ -473,8 +473,8 @@ void print_spectrum(int row, int col, UISettings *ui, int height, int num_bars,
                         if (magnitudes[i] >= j) {
                                 printf("%s",
                                        get_upward_motion_char(10, brailleMode));
-                                if (visualizer_bar_width == 1 ||
-                                    (visualizer_bar_width == 2 &&
+                                if (visualizer_bar_mode == 1 ||
+                                    (visualizer_bar_mode == 2 &&
                                      visualizer_width > max_thin_bars_in_auto_mode))
                                         printf("%s", get_upward_motion_char(
                                                          10, brailleMode));
@@ -484,16 +484,16 @@ void print_spectrum(int row, int col, UISettings *ui, int height, int num_bars,
                                 printf("%s",
                                        get_upward_motion_char(first_decimal_digit,
                                                               brailleMode));
-                                if (visualizer_bar_width == 1 ||
-                                    (visualizer_bar_width == 2 &&
+                                if (visualizer_bar_mode == 1 ||
+                                    (visualizer_bar_mode == 2 &&
                                      visualizer_width > max_thin_bars_in_auto_mode))
                                         printf("%s", get_upward_motion_char(
                                                          first_decimal_digit,
                                                          brailleMode));
                         } else {
                                 printf(" ");
-                                if (visualizer_bar_width == 1 ||
-                                    (visualizer_bar_width == 2 &&
+                                if (visualizer_bar_mode == 1 ||
+                                    (visualizer_bar_mode == 2 &&
                                      visualizer_width > max_thin_bars_in_auto_mode))
                                         printf(" ");
                         }
@@ -514,27 +514,35 @@ void free_visuals(void)
         }
 }
 
-void draw_spectrum_visualizer(int row, int col, int height)
+void draw_spectrum_visualizer(int row, int col, int height, int width)
 {
         AppState *state = get_app_state();
 
         int num_bars = state->uiState.num_progress_bars;
         int visualizer_width = state->uiState.num_progress_bars;
-        visualizer_bar_width = state->uiSettings.visualizer_bar_width;
+        visualizer_bar_mode = state->uiSettings.visualizer_bar_mode;
 
-        if (visualizer_bar_width == 1 ||
-            (visualizer_bar_width == 2 &&
-             visualizer_width > max_thin_bars_in_auto_mode))
+        int bar_width = 2;
+
+        if (visualizer_bar_mode == 1 ||
+            (visualizer_bar_mode == 2 &&
+             num_bars > max_thin_bars_in_auto_mode)) {
                 num_bars *= 0.67f;
+                bar_width = 3;
+        }
+
+        if (num_bars > MAX_BARS)
+                num_bars = MAX_BARS;
+
+        // Center the visualizer
+        int extra_cols = width - (num_bars * bar_width);
+        col += extra_cols / 2;
 
         height -= 1;
 
         if (height <= 0 || num_bars <= 0) {
                 return;
         }
-
-        if (num_bars > MAX_BARS)
-                num_bars = MAX_BARS;
 
         int fft_size = get_fft_size();
 
