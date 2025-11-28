@@ -28,6 +28,8 @@ To apply, run:
 
 kew theme <theme>
 
+Or cycle by pressing 't'.
+
 These should be available under /themes here, in case you need to restore them to defaults:
 https://codeberg.org/ravachol/kew
 https://github.com/ravachol/kew
