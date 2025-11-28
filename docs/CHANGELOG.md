@@ -44,6 +44,13 @@ The old format config files will still work for the most part, but to see exampl
 
 - Removed hardcoded paths in Makefile to avoid conflicting paths. Found by @hpjansson.
 
+- Fixed a few minor bugs with the library UI. Found by @bholroyd.
+
+#### Contributors
+Thank you also especially to contributors @jaoh, @bholroyd, @LeahTheSlug, @Chromium-3-Oxide and @hpjansson for reporting many issues and helping out.
+
+Thank you to @bholroyd for making the kew theme editor: https://bholroyd.github.io/Kew-tip/
+
 #### Sponsors
 
 Thank you to Christian Mummelthey and imalee.sk for their donations.
