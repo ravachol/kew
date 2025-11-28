@@ -1569,7 +1569,8 @@ void apply_tree_item_color(UISettings *ui, int depth,
         if (depth <= 1) {
                 apply_color(ui->colorMode, ui->theme.library_artist, enqueued_color);
         } else {
-                if (ui->colorMode == COLOR_MODE_ALBUM || ui->colorMode == COLOR_MODE_THEME)
+                if (ui->colorMode == COLOR_MODE_ALBUM || (ui->colorMode == COLOR_MODE_THEME
+                && ui->theme.library_track.type == COLOR_TYPE_RGB))
                         apply_color(COLOR_MODE_ALBUM, ui->theme.library_track,
                                     track_color);
                 else
@@ -1640,7 +1641,7 @@ int display_tree(FileSystemEntry *root, int depth, int max_list_size,
         PixelData rgb_enqueued = {ui->default_color, ui->default_color, ui->default_color};
 
         if (ui->colorMode == COLOR_MODE_THEME &&
-            ui->theme.playlist_rownum.type == COLOR_TYPE_RGB) {
+            ui->theme.library_track.type == COLOR_TYPE_RGB) {
                 rgb_track = ui->theme.library_track.rgb;
                 rgb_enqueued = ui->theme.library_enqueued.rgb;
         } else {
