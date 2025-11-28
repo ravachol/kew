@@ -556,7 +556,7 @@ void init_state(void)
         state->uiSettings.visualizer_height = 5;
         state->uiSettings.visualizer_color_type = 0;
         state->uiSettings.visualizerBrailleMode = false;
-        state->uiSettings.visualizer_bar_width = 2;
+        state->uiSettings.visualizer_bar_mode = 2;
         state->uiSettings.titleDelay = 9;
         state->uiSettings.cacheLibrary = -1;
         state->uiSettings.mouseEnabled = true;

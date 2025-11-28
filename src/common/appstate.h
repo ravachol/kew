@@ -142,7 +142,7 @@ typedef struct
         time_t last_time_app_ran;       // When did this app run last, used for updating
                                         // the cached library if it has been modified
                                         // since that time
-        int visualizer_bar_width;       // 0=Thin bars, 1=Bars twice the width or 2=Auto
+        int visualizer_bar_mode;       // 0=Thin bars, 1=Bars twice the width or 2=Auto
                                         // (Depends on window size, default)
         int replayGainCheckFirst;       // Prioritize track or album replay gain
                                         // setting

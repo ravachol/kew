@@ -9,4 +9,4 @@
 
 void init_visuals(void);
 void free_visuals(void);
-void draw_spectrum_visualizer(int row, int col, int height);
+void draw_spectrum_visualizer(int row, int col, int height, int width);

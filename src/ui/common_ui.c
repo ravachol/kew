@@ -221,7 +221,7 @@ void transfer_settings_to_ui(void)
 
         tmp = get_number(settings->visualizer_bar_width);
         if (tmp >= 0)
-                ui->visualizer_bar_width = tmp;
+                ui->visualizer_bar_mode = tmp;
 
         tmp = get_number(settings->visualizer_color_type);
         if (tmp >= 0)

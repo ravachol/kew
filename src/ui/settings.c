@@ -1799,7 +1799,7 @@ void set_config(AppSettings *settings, UISettings *ui)
         if (settings->visualizer_bar_width[0] == '\0')
                 snprintf(settings->visualizer_bar_width,
                          sizeof(settings->visualizer_bar_width), "%d",
-                         ui->visualizer_bar_width);
+                         ui->visualizer_bar_mode);
 
         if (settings->visualizerBrailleMode[0] == '\0')
                 ui->visualizerBrailleMode
