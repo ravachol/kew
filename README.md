@@ -166,7 +166,7 @@ Put themes in \~/.config/kew/themes (\~/Library/Preferences/kew/themes on macOS)
 
 Do not edit the included themes as they are managed by kew. Instead make a copy with a different name and edit that.
 
-Try the theme editor (by @bholroyd): [https://bholroyd.github.io/Kew-tip/](https://bholroyd.github.io/Kew-tip/)
+Try the theme editor (by @bholroyd): [https://bholroyd.github.io/Kew-tip/](https://bholroyd.github.io/Kew-tip/).
 
 <!--FIXME: Enable Chroma
 ## Visulizations / Chroma
