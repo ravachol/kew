@@ -394,6 +394,7 @@ void kew_init(void)
         reset_chosen_dir();
         create_library();
         state->uiSettings.LAST_ROW = _(" [F2 Playlist|F3 Library|F4 Track|F5 Search|F6 Help]");
+        clear_screen();
         fflush(stdout);
 
 #ifdef DEBUG
@@ -678,7 +679,7 @@ int main(int argc, char *argv[])
                                  strcmp(argv[1], "-v") == 0)) {
                 state->uiSettings.colorMode = COLOR_MODE_ALBUM;
                 state->uiSettings.color = state->uiSettings.defaultColorRGB;
-                print_about(NULL);
+                print_about_for_version(NULL);
                 exit(0);
         }
 
