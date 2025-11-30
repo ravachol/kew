@@ -30,6 +30,8 @@ The old format config files will still work for the most part, but to see exampl
 
 - New theme: neutral, uses only the default foreground color.
 
+- The cover is now visible on the left side on most views. Can be disabled by setting hideSideCover=1 in the config file.
+
 - Reverted to being neutral in album color mode when no music is playing.
 
 #### Bug Fixes
@@ -46,7 +48,10 @@ The old format config files will still work for the most part, but to see exampl
 
 - Fixed a few minor bugs with the library UI. Found by @bholroyd.
 
+- Fixed full width characters not displayed in notifications. Found by @Chromium-3-Oxide.
+
 #### Contributors
+
 Thank you also especially to contributors @jaoh, @bholroyd, @LeahTheSlug, @Chromium-3-Oxide and @hpjansson for reporting many issues and helping out.
 
 Thank you to @bholroyd for making the kew theme editor: https://bholroyd.github.io/Kew-tip/

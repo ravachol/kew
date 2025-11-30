@@ -285,21 +285,22 @@ void fuzzy_search(FileSystemEntry *root, int threshold)
         trigger_refresh();
 }
 
-int display_search_box(int indent)
+int display_search_box(int row, int col)
 {
         AppState *state = get_app_state();
         UISettings *ui = &(state->uiSettings);
 
         apply_color(ui->colorMode, ui->theme.search_label, ui->color);
 
-        clear_line();
-        print_blank_spaces(indent);
+        printf("\033[%d;%dH", row, col);
+
         printf(_("   Search: "));
         apply_color(ui->colorMode, ui->theme.search_query, ui->defaultColorRGB);
         // Save cursor position
         printf("%s", search_text);
         printf("\033[s");
-        printf("█\n");
+        printf("█");
+        clear_rest_of_line();
 
         return 0;
 }
@@ -390,6 +391,10 @@ void apply_color_and_format(bool is_chosen, FileSystemEntry *entry, UISettings *
                                     ui->color);
 
                         printf(" * ");
+
+                        if (is_playing) {
+                                printf("\e[4m");
+                        }
                 } else {
                         if (entry->parent != NULL && entry->parent->parent == NULL) {
                                 apply_color(ui->colorMode,
@@ -404,13 +409,17 @@ void apply_color_and_format(bool is_chosen, FileSystemEntry *entry, UISettings *
 
 FileSystemEntry *last_directory = NULL;
 
-int display_search_results(int max_list_size, int indent, int *chosen_row,
+int display_search_results(int row, int col, int max_list_size, int *chosen_row,
                            int start_search_iter)
 {
+        AppState *state = get_app_state();
+
         int term_w, term_h;
         get_term_size(&term_w, &term_h);
 
-        int max_name_width = term_w - indent - 5;
+        int max_name_width = term_w - col - 5;
+        if (!state->uiSettings.hideSideCover)
+                max_name_width -= col /4;
         char name[max_name_width + 1];
         int printed_rows = 0;
 
@@ -431,13 +440,8 @@ int display_search_results(int max_list_size, int indent, int *chosen_row,
         if (*chosen_row < 0)
                 start_search_iter = *chosen_row = 0;
 
-        clear_line();
-        printf("\n");
-        printed_rows++;
-
         int name_width = max_name_width;
         int extra_indent = 0;
-        AppState *state = get_app_state();
         UISettings *ui = &(state->uiSettings);
 
         for (size_t i = start_search_iter; i < results_count; i++) {
@@ -446,8 +450,6 @@ int display_search_results(int max_list_size, int indent, int *chosen_row,
 
                 apply_color(ui->colorMode, ui->theme.search_result,
                             ui->defaultColorRGB);
-
-                clear_line();
 
                 // Indent sub dirs
                 if (results[i].parent != NULL)
@@ -460,7 +462,10 @@ int display_search_results(int max_list_size, int indent, int *chosen_row,
 
                 name_width = max_name_width - extra_indent;
 
-                print_blank_spaces(indent + extra_indent);
+                printf("\033[%d;%dH", row, col);
+                clear_rest_of_line();
+
+                printf("\033[%d;%dH", row, col + extra_indent);
 
                 bool is_chosen = (*chosen_row == (int)i);
 
@@ -493,26 +498,28 @@ int display_search_results(int max_list_size, int indent, int *chosen_row,
                                  results[i].entry->name,
                                  (results[i].entry->parent != NULL ? results[i].entry->parent->name : "Root"));
                 }
-                printf("%s\n", name);
+                printf("%s", name);
+                row++;
                 printed_rows++;
         }
 
         apply_color(ui->colorMode, ui->theme.help, ui->defaultColorRGB);
 
         while (printed_rows < max_list_size) {
-                clear_line();
-                printf("\n");
-                printed_rows++;
+                printf("\033[%d;%dH", row++, col);
+                clear_rest_of_line(),
+                    printed_rows++;
         }
 
         return 0;
 }
 
-int display_search(int max_list_size, int indent, int *chosen_row,
-                   int start_search_iter)
+int display_search(int row, int col, int max_list_size, int *chosen_row, int start_search_iter)
 {
-        display_search_box(indent);
-        display_search_results(max_list_size, indent, chosen_row, start_search_iter);
+        display_search_box(row, col);
+        printf("\033[%d;%dH", row+1, col);
+        clear_rest_of_line();
+        display_search_results(row + 2, col, max_list_size, chosen_row, start_search_iter);
 
         return 0;
 }

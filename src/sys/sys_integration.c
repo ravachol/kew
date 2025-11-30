@@ -13,6 +13,7 @@
 #include "mpris.h"
 #include "notifications.h"
 
+#include "ui/player_ui.h"
 #include "utils/file.h"
 #include "utils/term.h"
 #include "utils/utils.h"
@@ -62,6 +63,7 @@ void resize(UIState *uis)
         alarm(0); // Cancel timer
         printf("\033[1;1H");
         clear_screen();
+        trigger_redraw_side_cover();
         trigger_refresh();
 }
 

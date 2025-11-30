@@ -15,13 +15,13 @@
 
 #include <stdbool.h>
 
-int print_logo_art(const UISettings *ui, int indent, bool centered, bool print_tag_line, bool use_gradient);
+int print_logo_art(int row, int col, const UISettings *ui, bool centered, bool print_tag_line, bool use_gradient);
 int calc_indent_normal(void);
 int print_player(SongData *songdata, double elapsed_seconds);
 int get_footer_row(void);
 int get_footer_col(void);
 int get_indent(void);
-int print_about(SongData *songdata);
+int print_about_for_version(SongData *songdata);
 int get_chosen_row(void);
 void flip_next_page(void);
 void flip_prev_page(void);
@@ -39,6 +39,7 @@ void switch_to_next_view(void);
 void switch_to_previous_view(void);
 void reset_search_result(void);
 void set_chosen_row(int row);
+void trigger_redraw_side_cover(void);
 void refresh_player();
 void set_track_title_as_window_title(void);
 char *get_library_file_path(void);

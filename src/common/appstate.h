@@ -129,6 +129,7 @@ typedef struct
         bool visualizerEnabled;         // Show spectrum visualizer
         bool hideLogo;                  // No kew text at top
         bool hideHelp;                  // No help text at top
+        bool hideSideCover;
         bool allowNotifications;        // Send desktop notifications or not
         int visualizer_height;          // Height in characters of the spectrum visualizer
         int visualizer_color_type;      // How colors are laid out in the spectrum
@@ -308,6 +309,7 @@ typedef struct
         char mouseAltScrollDownAction[3];
         char hideLogo[2];
         char hideHelp[2];
+        char hideSideCover[2];
         char quitAfterStopping[2];
         char hideGlimmeringText[2];
         char nextView[6];

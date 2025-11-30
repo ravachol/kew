@@ -20,7 +20,7 @@ typedef struct
 } TermSize;
 
 void tty_init(void);
-int print_in_ascii(int indentation, const char *path_to_img_file, int height, bool centered);
+int print_in_ascii(int row, int col, const char *path_to_img_file, int height, bool centered);
 int get_cover_color(unsigned char *pixels, int width, int height, unsigned char *r, unsigned char *g, unsigned char *b);
 float get_aspect_ratio();
 float calc_aspect_ratio(void);
