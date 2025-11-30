@@ -29,10 +29,11 @@ bool is_valid_filepath(const char *path)
         return stat(path, &st) == 0 && S_ISREG(st.st_mode);
 }
 
-void remove_blacklisted_chars(const char *input,
-                              const char *blacklist,
-                              char *output,
-                              size_t output_size)
+void remove_blacklisted_chars(
+    const char *input,
+    const char *blacklist,
+    char *output,
+    size_t output_size)
 {
         if (!input || !blacklist || !output || output_size < 2) {
                 if (output && output_size > 0)
@@ -45,14 +46,54 @@ void remove_blacklisted_chars(const char *input,
         size_t chars_copied = 0;
 
         while (*in_ptr && chars_copied < output_size - 1) {
+                const char *start = in_ptr;
                 unsigned char c = (unsigned char)*in_ptr;
+                int len = 1;
 
-                // Skip non-printable characters and blacklist
-                if (isprint(c) && !strchr(blacklist, c)) {
-                        *out_ptr++ = c;
-                        chars_copied++;
+                // Determine UTF-8 character length
+                if ((c & 0x80) == 0x00) {
+                        len = 1;
+                } else if ((c & 0xe0) == 0xc0) {
+                        len = 2;
+                } else if ((c & 0xf0) == 0xe0) {
+                        len = 3;
+                } else if ((c & 0xf8) == 0xf0) {
+                        len = 4;
                 }
-                in_ptr++;
+
+                // Check if the character is blacklisted
+                bool blacklisted = false;
+                const char *bl_ptr = blacklist;
+                while (*bl_ptr) {
+                        const char *bl_start = bl_ptr;
+                        unsigned char bc = (unsigned char)*bl_ptr;
+                        int bl_len = 1;
+                        if ((bc & 0x80) == 0x00) {
+                                bl_len = 1;
+                        } else if ((bc & 0xe0) == 0xc0) {
+                                bl_len = 2;
+                        } else if ((bc & 0xf0) == 0xe0) {
+                                bl_len = 3;
+                        } else if ((bc & 0xf8) == 0xf0) {
+                                bl_len = 4;
+                        }
+                        if (len == bl_len && memcmp(start, bl_start, len) == 0) {
+                                blacklisted = true;
+                                break;
+                        }
+                        bl_ptr += bl_len;
+                }
+
+                if (!blacklisted) {
+                        for (int i = 0; i < len; i++) {
+                                if (chars_copied >= output_size - 1)
+                                        break;
+                                *out_ptr++ = *in_ptr++;
+                                chars_copied++;
+                        }
+                } else {
+                        in_ptr += len;
+                }
         }
 
         *out_ptr = '\0';
