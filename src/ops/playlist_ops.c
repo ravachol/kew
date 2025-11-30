@@ -27,6 +27,7 @@
 
 #include "sys/sys_integration.h"
 
+#include "ui/player_ui.h"
 #include "utils/utils.h"
 
 static bool skip_in_progress = false;
@@ -222,6 +223,7 @@ void handle_remove(int chosen_row)
         if (state->currentView == PLAYLIST_VIEW) {
                 node = find_selected_entry(unshuffled_playlist, chosen_row);
                 remove_song(node);
+                trigger_redraw_side_cover();
                 trigger_refresh();
         } else {
                 Node *current = get_current_song();
@@ -709,6 +711,7 @@ void move_song_up(int *chosen_row)
 
         pthread_mutex_unlock(&(playlist->mutex));
 
+        trigger_redraw_side_cover();
         trigger_refresh();
 }
 
@@ -781,6 +784,7 @@ void move_song_down(int *chosen_row)
 
         pthread_mutex_unlock(&(playlist->mutex));
 
+        trigger_redraw_side_cover();
         trigger_refresh();
 }
 

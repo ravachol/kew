@@ -113,6 +113,7 @@ void cycle_color_mode(void)
                 cycle_color_mode();
         }
 
+        trigger_redraw_side_cover();
         trigger_refresh();
 }
 
@@ -192,6 +193,7 @@ void cycle_themes(void)
                         *dot = '\0';
         }
 
+        trigger_redraw_side_cover();
         trigger_refresh();
 
         for (int i = 0; i < theme_count; i++) {
@@ -235,6 +237,7 @@ void toggle_ascii(void)
         state->uiSettings.coverAnsi = !state->uiSettings.coverAnsi;
         c_strcpy(settings->coverAnsi, state->uiSettings.coverAnsi ? "1" : "0",
                  sizeof(settings->coverAnsi));
+        trigger_redraw_side_cover();
         trigger_refresh();
 }
 

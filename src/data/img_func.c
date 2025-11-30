@@ -665,7 +665,7 @@ unsigned char calc_ascii_char(PixelData *p)
         return scale[brightness_levels - rescaled];
 }
 
-int convert_to_ascii(int indentation, const char *filepath, unsigned int height, bool centered)
+int convert_to_ascii(int row, int col, const char *filepath, unsigned int height, bool centered)
 {
         /*
         Modified, originally by Danny Burrows:
@@ -713,7 +713,7 @@ int convert_to_ascii(int indentation, const char *filepath, unsigned int height,
         }
 
         float aspect_ratio_correction = (float)cell_height / (float)cell_width;
-        unsigned int corrected_width = (int)(height * aspect_ratio_correction) - 1;
+        unsigned int corrected_width = (int)(height * aspect_ratio_correction);
 
         int rwidth, rheight, rchannels;
         unsigned char *read_data = stbi_load(filepath, &rwidth, &rheight, &rchannels, 3);
@@ -738,15 +738,14 @@ int convert_to_ascii(int indentation, const char *filepath, unsigned int height,
 
         // Calculate indentation to center the image
         if (centered)
-                indentation = ((term_size.width_cells - corrected_width) / 2);
+                col = ((term_size.width_cells - corrected_width) / 2) + 1;
 
-        printf("\n");
-        printf("%*s", indentation, "");
+        printf("\033[%d;%dH", row, col);
 
         for (unsigned int d = 0; d < corrected_width * height; d++) {
                 if (d % corrected_width == 0 && d != 0) {
-                        printf("\n");
-                        printf("%*s", indentation, "");
+                        row++;
+                        printf("\033[%d;%dH", row, col);
                 }
 
                 PixelData *c = data + d;
@@ -754,17 +753,13 @@ int convert_to_ascii(int indentation, const char *filepath, unsigned int height,
                 printf("\033[1;38;2;%03u;%03u;%03um%c", c->r, c->g, c->b, calc_ascii_char(c));
         }
 
-        printf("\n");
-
         stbi_image_free(data);
         return 0;
 }
 
-int print_in_ascii(int indentation, const char *path_to_img_file, int height, bool centered)
+int print_in_ascii(int row, int col, const char *path_to_img_file, int height, bool centered)
 {
-        printf("\r");
-
-        int ret = convert_to_ascii(indentation, path_to_img_file, (unsigned)height, centered);
+        int ret = convert_to_ascii(row, col, path_to_img_file, (unsigned)height, centered);
         if (ret == -1)
                 printf("\033[0m");
         return 0;

@@ -630,6 +630,7 @@ void set_default_config(AppSettings *settings)
         c_strcpy(settings->hideLogo, "0", sizeof(settings->hideLogo));
 #endif
         c_strcpy(settings->hideHelp, "0", sizeof(settings->hideHelp));
+        c_strcpy(settings->hideSideCover, "0", sizeof(settings->hideSideCover));
         c_strcpy(settings->visualizer_height, "6",
                  sizeof(settings->visualizer_height));
         c_strcpy(settings->visualizer_color_type, "2",
@@ -1111,6 +1112,9 @@ void construct_app_settings(AppSettings *settings, KeyValuePair *pairs, int coun
                                  "%s", pair->value);
                 } else if (strcmp(lowercase_key, "hidehelp") == 0) {
                         snprintf(settings->hideHelp, sizeof(settings->hideHelp),
+                                 "%s", pair->value);
+                } else if (strcmp(lowercase_key, "hidesidecover") == 0) {
+                        snprintf(settings->hideSideCover, sizeof(settings->hideSideCover),
                                  "%s", pair->value);
                 } else if (strcmp(lowercase_key, "quitonstop") == 0) {
                         snprintf(settings->quitAfterStopping,
@@ -1817,6 +1821,11 @@ void set_config(AppSettings *settings, UISettings *ui)
                                         sizeof(settings->hideHelp))
                              : c_strcpy(settings->hideHelp, "0",
                                         sizeof(settings->hideHelp));
+        if (settings->hideSideCover[0] == '\0')
+                ui->hideSideCover ? c_strcpy(settings->hideSideCover, "1",
+                                        sizeof(settings->hideSideCover))
+                             : c_strcpy(settings->hideSideCover, "0",
+                                        sizeof(settings->hideSideCover));
         if (settings->visualizer_height[0] == '\0')
                 snprintf(settings->visualizer_height,
                          sizeof(settings->visualizer_height), "%d",
@@ -1839,7 +1848,8 @@ void set_config(AppSettings *settings, UISettings *ui)
         fprintf(file, "path=%s\n", settings->path);
         fprintf(file, "allowNotifications=%s\n", settings->allowNotifications);
         fprintf(file, "hideLogo=%s\n", settings->hideLogo);
-        fprintf(file, "hideHelp=%s\n\n", settings->hideHelp);
+        fprintf(file, "hideHelp=%s\n", settings->hideHelp);
+        fprintf(file, "hideSideCover=%s\n\n", settings->hideSideCover);
 
         fprintf(file, "# Delay when drawing title in track view, set to 0 to "
                       "have no delay.\n");

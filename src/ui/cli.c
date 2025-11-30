@@ -104,11 +104,12 @@ void set_music_path(void)
 
         ui->colorMode = COLOR_MODE_ALBUM;
 
-        printf("\n\n\n\n");
+        int row = 4;
+        int col = 1;
 
-        print_logo_art(ui, 0, true, true, false);
+        print_logo_art(row, col, ui, true, true, false);
 
-        printf("\n\n\n\n");
+        printf("\033[%d;%dH", row + 4, col);
 
         apply_color(COLOR_MODE_ALBUM, ui->theme.text, ui->defaultColorRGB);
 
