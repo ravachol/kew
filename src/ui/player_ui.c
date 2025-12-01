@@ -1056,8 +1056,6 @@ int show_key_bindings(SongData *songdata)
         get_term_size(&term_w, &term_h);
         max_list_size = term_h - 3;
 
-        clear_screen();
-
         UISettings *ui = &(state->uiSettings);
 
         num_printed_rows += print_about(songdata);
@@ -1069,8 +1067,7 @@ int show_key_bindings(SongData *songdata)
         if (ui->hideSideCover)
                 indentation = indent + 1;
 
-        printf("\033[%d;%dH", num_printed_rows + 1, indentation + 1);
-        clear_rest_of_line();
+        printf("\033[%d;%dH", ++num_printed_rows, indentation + 1);
 
         apply_color(ui->colorMode, ui->theme.text, ui->defaultColorRGB);
         printf(_(" Theme: "));
@@ -1093,57 +1090,45 @@ int show_key_bindings(SongData *songdata)
                 apply_color(ui->colorMode, ui->theme.help, ui->color);
                 printf("%s", ui->theme.theme_author);
         }
-        printf("\n");
-        printf("\n");
         num_printed_rows += 2;
         CHECK_LIST_LIMIT();
-        print_blank_spaces(indentation);
-        printf(_(" · Play/Pause: %s\n"), get_binding_string(EVENT_PLAY_PAUSE, false));
-        num_printed_rows++;
+        printf("\033[%d;%dH", num_printed_rows, indentation + 1);
+        printf(_(" · Play/Pause: %s"), get_binding_string(EVENT_PLAY_PAUSE, false));
         CHECK_LIST_LIMIT();
-        print_blank_spaces(indentation);
-        printf(_(" · Enqueue/Dequeue: %s\n"), get_binding_string(EVENT_ENQUEUE, false));
-        num_printed_rows++;
+        printf("\033[%d;%dH", ++num_printed_rows, indentation + 1);
+        printf(_(" · Enqueue/Dequeue: %s"), get_binding_string(EVENT_ENQUEUE, false));
         CHECK_LIST_LIMIT();
-        print_blank_spaces(indentation);
-        printf(_(" · Enqueue and Play: %s\n"), get_binding_string(EVENT_ENQUEUEANDPLAY, false));
-        num_printed_rows++;
+        printf("\033[%d;%dH", ++num_printed_rows, indentation + 1);
+        printf(_(" · Enqueue and Play: %s"), get_binding_string(EVENT_ENQUEUEANDPLAY, false));
         CHECK_LIST_LIMIT();
-        print_blank_spaces(indentation);
-        printf(_(" · Quit: %s\n"), get_binding_string(EVENT_QUIT, false));
-        num_printed_rows++;
+        printf("\033[%d;%dH", ++num_printed_rows, indentation + 1);
+        printf(_(" · Quit: %s"), get_binding_string(EVENT_QUIT, false));
         CHECK_LIST_LIMIT();
-        print_blank_spaces(indentation);
+        printf("\033[%d;%dH", ++num_printed_rows, indentation + 1);
         printf(_(" · Switch tracks: %s"),
                get_binding_string(EVENT_PREV, false));
-        printf(_(" and %s\n"),
+        printf(_(" and %s"),
                get_binding_string(EVENT_NEXT, false));
-        num_printed_rows++;
         CHECK_LIST_LIMIT();
-        print_blank_spaces(indentation);
+        printf("\033[%d;%dH", ++num_printed_rows, indentation + 1);
         printf(_(" · Volume: %s "), get_binding_string(EVENT_VOLUME_UP, false));
-        printf(_("and %s\n"), get_binding_string(EVENT_VOLUME_DOWN, false));
-        num_printed_rows++;
+        printf(_("and %s"), get_binding_string(EVENT_VOLUME_DOWN, false));
         CHECK_LIST_LIMIT();
-        print_blank_spaces(indentation);
+        printf("\033[%d;%dH", ++num_printed_rows, indentation + 1);
         printf(_(" · Scroll: %s"), get_binding_string(EVENT_PREVPAGE, false));
-        printf(_(", %s\n"), get_binding_string(EVENT_NEXTPAGE, false));
-        num_printed_rows++;
+        printf(_(", %s"), get_binding_string(EVENT_NEXTPAGE, false));
         CHECK_LIST_LIMIT();
-        print_blank_spaces(indentation);
-        printf(_(" · Clear List: %s\n"), get_binding_string(EVENT_CLEARPLAYLIST, false));
-        num_printed_rows++;
+        printf("\033[%d;%dH", ++num_printed_rows, indentation + 1);
+        printf(_(" · Clear List: %s"), get_binding_string(EVENT_CLEARPLAYLIST, false));
         CHECK_LIST_LIMIT();
-        print_blank_spaces(indentation);
-        printf(_(" · Remove from playlist: %s\n"), get_binding_string(EVENT_REMOVE, true));
-        num_printed_rows++;
+        printf("\033[%d;%dH", ++num_printed_rows, indentation + 1);
+        printf(_(" · Remove from playlist: %s"), get_binding_string(EVENT_REMOVE, true));
         CHECK_LIST_LIMIT();
-        print_blank_spaces(indentation);
+        printf("\033[%d;%dH", ++num_printed_rows, indentation + 1);
         printf(_(" · Move songs: %s"), get_binding_string(EVENT_MOVESONGUP, true));
-        printf(_("/%s\n"), get_binding_string(EVENT_MOVESONGDOWN, true));
-        num_printed_rows++;
+        printf(_("/%s"), get_binding_string(EVENT_MOVESONGDOWN, true));
         CHECK_LIST_LIMIT();
-        print_blank_spaces(indentation);
+        printf("\033[%d;%dH", ++num_printed_rows, indentation + 1);
         printf(_(" · Change View: %s or "), get_binding_string(EVENT_NEXTVIEW, false));
 
         printf("%s, ", get_binding_string(EVENT_SHOWPLAYLIST, true));
@@ -1152,103 +1137,83 @@ int show_key_bindings(SongData *songdata)
         printf("%s, ", get_binding_string(EVENT_SHOWSEARCH, true));
         printf("%s", get_binding_string(EVENT_SHOWHELP, true));
 
-        printf(_(" or click the footer\n"));
-        num_printed_rows++;
+        printf(_(" or click the footer"));
         CHECK_LIST_LIMIT();
-        print_blank_spaces(indentation);
+        printf("\033[%d;%dH", ++num_printed_rows, indentation + 1);
         printf(
-            _(" · Cycle Color Mode: %s (default theme, theme or cover colors)\n"),
+            _(" · Cycle Color Mode: %s (default theme, theme or cover colors)"),
             get_binding_string(EVENT_CYCLECOLORMODE, false));
-        num_printed_rows++;
         CHECK_LIST_LIMIT();
-        print_blank_spaces(indentation);
-        printf(_(" · Cycle Themes: %s\n"), get_binding_string(EVENT_CYCLETHEMES, false));
-        num_printed_rows++;
+        printf("\033[%d;%dH", ++num_printed_rows, indentation + 1);
+        printf(_(" · Cycle Themes: %s"), get_binding_string(EVENT_CYCLETHEMES, false));
         CHECK_LIST_LIMIT();
         // FIXME: Enable Chroma
         // print_blank_spaces(indentation);
         // printf(_(" · Cycle Chroma Visualization: %s (requires Chroma)\n"), get_binding_string(EVENT_CYCLEVISUALIZATION, false));
         // num_printed_rows++;
         // CHECK_LIST_LIMIT();
-        print_blank_spaces(indentation);
-        printf(_(" · Stop: %s\n"), get_binding_string(EVENT_STOP, false));
-        num_printed_rows++;
+        printf("\033[%d;%dH", ++num_printed_rows, indentation + 1);
+        printf(_(" · Stop: %s"), get_binding_string(EVENT_STOP, false));
         CHECK_LIST_LIMIT();
-        print_blank_spaces(indentation);
-        printf(_(" · Update Library: %s\n"), get_binding_string(EVENT_UPDATELIBRARY, false));
-        num_printed_rows++;
+        printf("\033[%d;%dH", ++num_printed_rows, indentation + 1);
+        printf(_(" · Update Library: %s"), get_binding_string(EVENT_UPDATELIBRARY, false));
         CHECK_LIST_LIMIT();
-        print_blank_spaces(indentation);
-        printf(_(" · Sort Library: %s\n"), get_binding_string(EVENT_SORTLIBRARY, true));
-        num_printed_rows++;
+        printf("\033[%d;%dH", ++num_printed_rows, indentation + 1);
+        printf(_(" · Sort Library: %s"), get_binding_string(EVENT_SORTLIBRARY, true));
         CHECK_LIST_LIMIT();
-        print_blank_spaces(indentation);
-        printf(_(" · Toggle Visualizer: %s\n"), get_binding_string(EVENT_TOGGLEVISUALIZER, false));
-        num_printed_rows++;
+        printf("\033[%d;%dH", ++num_printed_rows, indentation + 1);
+        printf(_(" · Toggle Visualizer: %s"), get_binding_string(EVENT_TOGGLEVISUALIZER, false));
         CHECK_LIST_LIMIT();
-        print_blank_spaces(indentation);
+        printf("\033[%d;%dH", ++num_printed_rows, indentation + 1);
         // FIXME: Enable Chroma
         //printf(_(" · Toggle ASCII Cover: %s (disables Chroma)\n"), get_binding_string(EVENT_TOGGLEASCII, false));
-        printf(_(" · Toggle ASCII Cover: %s\n"), get_binding_string(EVENT_TOGGLEASCII, false));
-        num_printed_rows++;
+        printf(_(" · Toggle ASCII Cover: %s"), get_binding_string(EVENT_TOGGLEASCII, false));
         CHECK_LIST_LIMIT();
-        print_blank_spaces(indentation);
-        printf(_(" · Toggle Lyrics Page on Track View: %s\n"), get_binding_string(EVENT_SHOWLYRICSPAGE, false));
-        num_printed_rows++;
+        printf("\033[%d;%dH", ++num_printed_rows, indentation + 1);
+        printf(_(" · Toggle Lyrics Page on Track View: %s"), get_binding_string(EVENT_SHOWLYRICSPAGE, false));
         CHECK_LIST_LIMIT();
-        print_blank_spaces(indentation);
-        printf(_(" · Toggle Notifications: %s\n"), get_binding_string(EVENT_TOGGLENOTIFICATIONS, false));
-        num_printed_rows++;
+        printf("\033[%d;%dH", ++num_printed_rows, indentation + 1);
+        printf(_(" · Toggle Notifications: %s"), get_binding_string(EVENT_TOGGLENOTIFICATIONS, false));
         CHECK_LIST_LIMIT();
-        print_blank_spaces(indentation);
-        printf(_(" · Cycle Repeat: %s (repeat/repeat list/off)\n"),
+        printf("\033[%d;%dH", ++num_printed_rows, indentation + 1);
+        printf(_(" · Cycle Repeat: %s (repeat/repeat list/off)"),
                get_binding_string(EVENT_TOGGLEREPEAT, false));
-        num_printed_rows++;
         CHECK_LIST_LIMIT();
-        print_blank_spaces(indentation);
-        printf(_(" · Shuffle: %s\n"), get_binding_string(EVENT_SHUFFLE, false));
-        num_printed_rows++;
+        printf("\033[%d;%dH", ++num_printed_rows, indentation + 1);
+        printf(_(" · Shuffle: %s"), get_binding_string(EVENT_SHUFFLE, false));
         CHECK_LIST_LIMIT();
-        print_blank_spaces(indentation);
+        printf("\033[%d;%dH", ++num_printed_rows, indentation + 1);
         printf(_(" · Seek: %s and"), get_binding_string(EVENT_SEEKBACK, false));
-        printf(_(" %s\n"), get_binding_string(EVENT_SEEKFORWARD, false));
-        num_printed_rows++;
+        printf(_(" %s"), get_binding_string(EVENT_SEEKFORWARD, false));
         CHECK_LIST_LIMIT();
-        print_blank_spaces(indentation);
-        printf(_(" · Export Playlist: %s (named after the first song)\n"),
+        printf("\033[%d;%dH", ++num_printed_rows, indentation + 1);
+        printf(_(" · Export Playlist: %s (named after the first song)"),
                get_binding_string(EVENT_EXPORTPLAYLIST, false));
-        num_printed_rows++;
         CHECK_LIST_LIMIT();
-        print_blank_spaces(indentation);
-        printf(_(" · Add Song To 'kew favorites.m3u': %s (run with 'kew .')\n\n"),
+        printf("\033[%d;%dH", ++num_printed_rows, indentation + 1);
+        printf(_(" · Add Song To 'kew favorites.m3u': %s (run with 'kew .')"),
                get_binding_string(EVENT_ADDTOFAVORITESPLAYLIST, false));
         num_printed_rows += 2;
         CHECK_LIST_LIMIT();
-        print_blank_spaces(indentation);
+        printf("\033[%d;%dH", num_printed_rows, indentation + 1);
         apply_color(ui->colorMode, ui->theme.help, ui->defaultColorRGB);
         printf(_(" Project URL: "));
         apply_color(ui->colorMode, ui->theme.link, ui->color);
-        printf("https://codeberg.org/ravachol/kew\n");
-        num_printed_rows += 1;
+        printf("https://codeberg.org/ravachol/kew");
         CHECK_LIST_LIMIT();
-        print_blank_spaces(indentation);
+        printf("\033[%d;%dH", ++num_printed_rows, indentation + 1);
         apply_color(ui->colorMode, ui->theme.help, ui->defaultColorRGB);
         printf(_(" Please Donate: "));
         apply_color(ui->colorMode, ui->theme.link, ui->color);
-        printf("https://ko-fi.com/ravachol\n\n");
+        printf("https://ko-fi.com/ravachol");
         num_printed_rows += 2;
         CHECK_LIST_LIMIT();
         apply_color(ui->colorMode, ui->theme.text, ui->defaultColorRGB);
-        print_blank_spaces(indentation);
+        printf("\033[%d;%dH", num_printed_rows, indentation + 1);
         printf(" Copyright © 2022-2025 Ravachol\n");
 
         num_printed_rows += 1;
         CHECK_LIST_LIMIT();
-
-        while (num_printed_rows < max_list_size) {
-                printf("\n");
-                num_printed_rows++;
-        }
 
         calc_and_print_last_row_and_error_row();
 
@@ -2630,7 +2595,6 @@ int print_player(SongData *songdata, double elapsed_seconds)
         print_side_cover(songdata);
 
         if (state->currentView == HELP_VIEW && shouldRefresh) {
-                clear_screen();
                 show_key_bindings(songdata);
                 save_cursor_position();
                 cancel_refresh();
