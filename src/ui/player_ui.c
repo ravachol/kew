@@ -1611,8 +1611,7 @@ void print_progress_bar(int row, int col, AppSettings *settings, UISettings *ui,
                 }
 
                 if (i < elapsed_bars) {
-                        apply_color(ui->colorMode, ui->theme.progress_filled,
-                                    color);
+                        apply_color(ui->colorMode, ui->theme.progress_filled, color);
 
                         if (i % 2 == 0)
                                 printf("%s",
@@ -1621,8 +1620,7 @@ void print_progress_bar(int row, int col, AppSettings *settings, UISettings *ui,
                                 printf("%s",
                                        settings->progressBarElapsedOddChar);
                 } else if (i == elapsed_bars) {
-                        apply_color(ui->colorMode, ui->theme.progress_elapsed,
-                                    color);
+                        apply_color(ui->colorMode, ui->theme.progress_elapsed, color);
 
                         if (i % 2 == 0)
                                 printf("%s",
@@ -2012,6 +2010,7 @@ void print_side_cover(SongData *songdata)
         if (redraw_side_cover && ui->coverEnabled && term_w - 4 > indent / 2) {
 
                 clear_screen();
+                redraw_side_cover = false;
 
                 if (row < 2)
                         row = 2;
@@ -2055,7 +2054,6 @@ void print_side_cover(SongData *songdata)
                 if (target_height > MIN_COVER_SIZE)
                 {
                         print_cover(row, col, target_height, false, songdata);
-                        redraw_side_cover = false;
                 }
         }
 }
