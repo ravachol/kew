@@ -287,11 +287,6 @@ void toggle_notifications(void)
         c_strcpy(settings->allowNotifications,
                  ui->allowNotifications ? "1" : "0",
                  sizeof(settings->allowNotifications));
-
-        if (ui->allowNotifications) {
-                clear_screen();
-                trigger_refresh();
-        }
 }
 
 void toggle_shuffle(void)
