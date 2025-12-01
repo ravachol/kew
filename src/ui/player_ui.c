@@ -91,11 +91,10 @@ static bool is_same_name_as_last_time = false;
 static int term_w, term_h;
 static int has_chroma = -1;
 static bool next_visualization_requested = false;
-static bool song_switched = false;
-static bool view_switched = false;
 static bool redraw_side_cover = true;
 static ViewState last_view = LIBRARY_VIEW;
-static Node *last_song = NULL;
+static const char *last_cover_path_ptr = NULL;
+static size_t last_cover_path_hash = (size_t)-1;
 
 void request_next_visualization(void)
 {
@@ -1962,9 +1961,15 @@ int display_tree(FileSystemEntry *root, int depth, int max_list_size,
         return foundChosen;
 }
 
-bool should_redraw_side_cover()
+size_t string_hash(const char *str)
 {
-        return (song_switched || view_switched || redraw_side_cover);
+        if (str == NULL)
+                return 0;
+        size_t hash = 5381;
+        int c;
+        while ((c = *str++))
+                hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
+        return hash;
 }
 
 void print_side_cover(SongData *songdata)
@@ -1978,11 +1983,23 @@ void print_side_cover(SongData *songdata)
         int term_w, term_h;
         get_term_size(&term_w, &term_h);
 
-        view_switched = (state->currentView != last_view);
+        if (state->currentView != last_view)
+                redraw_side_cover = true;
+
         last_view = state->currentView;
 
-        song_switched = get_current_song() != last_song;
-        last_song = get_current_song();
+        const char *current_ptr = songdata ? songdata->cover_art_path : NULL;
+        if (current_ptr != last_cover_path_ptr) {
+                last_cover_path_ptr = current_ptr;
+                last_cover_path_hash = current_ptr ? string_hash(current_ptr) : (size_t)-1;
+                redraw_side_cover = true;
+        } else if (current_ptr != NULL) {
+                size_t current_hash = string_hash(current_ptr);
+                if (current_hash != last_cover_path_hash) {
+                        last_cover_path_hash = current_hash;
+                        redraw_side_cover = true;
+                }
+        }
 
         if (state->currentView == TRACK_VIEW)
                 return;
@@ -1992,7 +2009,7 @@ void print_side_cover(SongData *songdata)
         int col = cover_indent + 3;
         int target_height = indent - cover_indent;
 
-        if (should_redraw_side_cover() && ui->coverEnabled && term_w - 4 > indent / 2) {
+        if (redraw_side_cover && ui->coverEnabled && term_w - 4 > indent / 2) {
 
                 clear_screen();
 
@@ -2036,10 +2053,11 @@ void print_side_cover(SongData *songdata)
                 }
 
                 if (target_height > MIN_COVER_SIZE)
+                {
                         print_cover(row, col, target_height, false, songdata);
+                        redraw_side_cover = false;
+                }
         }
-
-        redraw_side_cover = false;
 }
 
 void show_library(SongData *song_data, AppSettings *settings)

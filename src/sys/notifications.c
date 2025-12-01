@@ -8,7 +8,6 @@
 
 #include "notifications.h"
 
-#include <ctype.h>
 #include <fcntl.h>
 #include <glib.h>
 #include <pthread.h>
