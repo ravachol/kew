@@ -5,11 +5,10 @@
 <br>
 
 <div align="center">
-  <a href="https://jenova7.bandcamp.com/album/lost-sci-fi-movie-themes">
-    <img src="images/kew.gif" alt="Screenshot">
-  </a>
+  <video src="images/intro.webm" width="600" controls>
+  </video>
   <br>
-  Screenshot showing <a href="https://jenova7.bandcamp.com/album/lost-sci-fi-movie-themes">
+  Clip showing <a href="https://jenova7.bandcamp.com/album/lost-sci-fi-movie-themes">
     Jenova 7: Lost Sci-Fi Movie Themes
   </a>.
 </div>
