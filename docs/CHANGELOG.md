@@ -52,9 +52,11 @@ The old format config files will still work for the most part, but to see exampl
 
 #### Contributors
 
-Thank you also especially to contributors @jaoh, @bholroyd, @LeahTheSlug, @Chromium-3-Oxide and @hpjansson for reporting many issues and helping out.
+Thank you also especially to contributors @jaoh, @bholroyd, @LeahTheSlug, @Chromium-3-Oxide and @hpjansson, @Vafone for reporting many issues and helping out.
 
 Thank you to @bholroyd for making the kew theme editor: https://bholroyd.github.io/Kew-tip/
+
+Thank you to all the beta testers!
 
 #### Sponsors
 
