@@ -71,7 +71,6 @@ void export_current_playlist(const char *path, const PlayList *playlist);
 void load_favorites_playlist(const char *directory, PlayList **favorites_playlist);
 void add_enqueued_songs_to_playlist(FileSystemEntry *root, PlayList *playlist);
 void save_named_playlist(const char *directory, const char *playlist_name, const PlayList *playlist);
-void save_last_used_playlist(PlayList *unshuffled_playlist);
 void save_favorites_playlist(const char *directory, PlayList *favorites_playlist);
 void deep_copy_play_list_onto_list(const PlayList *original_list, PlayList **new_list);
 void create_play_list_from_file_system_entry(FileSystemEntry *root, PlayList *list, int playlist_max);

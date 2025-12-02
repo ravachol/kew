@@ -28,7 +28,6 @@
 
 const char PLAYLIST_EXTENSIONS[] = "(m3u8?)$";
 const char favorites_playlist_name[] = "kew favorites.m3u";
-const char last_used_playlist_name[] = "lastPlaylist.m3u";
 
 static char search[MAX_SEARCH_SIZE];
 static char playlist_name[MAX_SEARCH_SIZE];
@@ -789,14 +788,6 @@ void save_favorites_playlist(const char *directory, PlayList *favorites_playlist
                 save_named_playlist(expanded_path, favorites_playlist_name,
                                     favorites_playlist);
         }
-}
-
-void save_last_used_playlist(PlayList *unshuffled_playlist)
-{
-        char *configdir = get_config_path();
-        save_named_playlist(configdir, last_used_playlist_name, unshuffled_playlist);
-        if (configdir)
-                free(configdir);
 }
 
 void save_playlist(const char *path, const PlayList *playlist)

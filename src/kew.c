@@ -439,7 +439,6 @@ void kew_shutdown()
         PlaybackState *ps = get_playback_state();
         FileSystemEntry *library = get_library();
         AppSettings *settings = get_app_settings();
-        PlayList *unshuffled_playlist = get_unshuffled_playlist();
         PlayList *favorites_playlist = get_favorites_playlist();
 
 #ifndef __ANDROID__
@@ -482,7 +481,6 @@ void kew_shutdown()
         set_path(settings->path);
         set_prefs(settings, &(state->uiSettings));
         save_favorites_playlist(settings->path, favorites_playlist);
-        save_last_used_playlist(unshuffled_playlist);
         delete_cache(state_ptr->tmpCache);
         save_library();
         free_library();
