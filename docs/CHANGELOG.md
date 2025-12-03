@@ -60,7 +60,7 @@ Thank you to all the beta testers!
 
 #### Sponsors
 
-Thank you to Christian Mummelthey and imalee.sk for their donations.
+Thank you to Christian Mummelthey, imalee.sk and @sandrock. for their donations.
 
 ### 3.6.4
 
