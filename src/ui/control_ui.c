@@ -211,7 +211,9 @@ void toggle_visualizer(void)
         state->uiSettings.visualizerEnabled = !state->uiSettings.visualizerEnabled;
         c_strcpy(settings->visualizerEnabled, state->uiSettings.visualizerEnabled ? "1" : "0",
                  sizeof(settings->visualizerEnabled));
+
         restore_cursor_position();
+        trigger_redraw_side_cover();
         trigger_refresh();
 }
 
@@ -224,8 +226,7 @@ void toggle_show_lyrics_page(void)
 
 void toggle_ascii(void)
 {
-        if (chroma_is_started())
-        {
+        if (chroma_is_started()) {
                 request_stop_visualization();
                 trigger_refresh();
                 return;
