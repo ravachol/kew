@@ -645,7 +645,7 @@ int count_lines_and_max_id(const char *filename, int *max_id_out)
 FileSystemEntry *read_tree_from_binary(
     const char *filename,
     const char *start_music_path,
-    int *num_directory_entries)
+    int *num_directory_entries, bool set_enqueued_status)
 {
         if (!filename || !start_music_path)
                 return NULL;
@@ -718,7 +718,10 @@ FileSystemEntry *read_tree_from_binary(
                 n->id = d->id;
                 n->parent_id = d->parent_id;
                 n->is_directory = d->is_directory;
-                n->is_enqueued = d->is_enqueued;
+                if (set_enqueued_status)
+                        n->is_enqueued = d->is_enqueued;
+                else
+                        n->is_enqueued = 0;
                 if (d->name_offset == UINT32_MAX)
                         n->name = strdup(""); // empty name
                 else
