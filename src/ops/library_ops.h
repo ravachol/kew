@@ -12,7 +12,7 @@
 
 #include "common/appstate.h"
 
-void create_library(void);
+void create_library(bool set_enqueued_status);
 void update_library(char *path, bool wait_until_complete);
 void ask_if_cache_library(void);
 void sort_library(void);

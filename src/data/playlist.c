@@ -899,6 +899,9 @@ void deep_copy_play_list_onto_list(const PlayList *original_list, PlayList **new
 
 Node *find_path_in_playlist(const char *path, PlayList *playlist)
 {
+        if (!playlist)
+                return NULL;
+
         Node *current_node = playlist->head;
 
         while (current_node != NULL) {
@@ -913,6 +916,9 @@ Node *find_path_in_playlist(const char *path, PlayList *playlist)
 
 Node *find_last_path_in_playlist(const char *path, PlayList *playlist)
 {
+        if (!playlist)
+                return NULL;
+
         Node *current_node = playlist->tail;
 
         while (current_node != NULL) {
