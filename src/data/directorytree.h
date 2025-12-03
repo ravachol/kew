@@ -40,9 +40,10 @@ typedef void (*SlowloadingCallback)(void);
 
 FileSystemEntry *create_directory_tree(const char *start_path, int *num_entries);
 void free_tree(FileSystemEntry *root);
-FileSystemEntry *read_tree_from_binary(const char *filename,
-                                            const char *start_music_path,
-                                            int *num_directory_entries);
+FileSystemEntry *read_tree_from_binary(
+    const char *filename,
+    const char *start_music_path,
+    int *num_directory_entries, bool set_enqueued_status);
 int write_tree_to_binary(FileSystemEntry *root, const char *filename);
 void fuzzy_search_recursive(FileSystemEntry *node, const char *search_term,
                             int threshold,

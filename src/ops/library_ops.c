@@ -350,7 +350,7 @@ void update_library_if_changed_detected(bool wait_until_complete)
                 pthread_join(tid, NULL);
 }
 
-void create_library()
+void create_library(bool set_enqueued_status)
 {
         AppSettings *settings = get_app_settings();
         AppState *state = get_app_state();
@@ -364,7 +364,7 @@ void create_library()
 
         library = read_tree_from_binary(
             lib_path, expanded,
-            &(state->uiState.numDirectoryTreeEntries));
+            &(state->uiState.numDirectoryTreeEntries), set_enqueued_status);
 
         free(lib_path);
 

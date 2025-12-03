@@ -356,7 +356,7 @@ void init_locale(void)
         textdomain("kew");
 }
 
-void kew_init(void)
+void kew_init(bool set_library_enqueued_status)
 {
         AppState *state = get_app_state();
 
@@ -392,7 +392,7 @@ void kew_init(void)
         pthread_mutex_init(&(playlist->mutex), NULL);
         free_search_results();
         reset_chosen_dir();
-        create_library();
+        create_library(set_library_enqueued_status);
         state->uiSettings.LAST_ROW = _(" [F2 Playlist|F3 Library|F4 Track|F5 Search|F6 Help]");
         clear_screen();
         fflush(stdout);
@@ -411,7 +411,8 @@ void kew_init(void)
 
 void init_default_state(void)
 {
-        kew_init();
+        bool set_library_enqueued_status = true;
+        kew_init(set_library_enqueued_status);
 
         AppState *state = get_app_state();
         FileSystemEntry *library = get_library();
@@ -717,19 +718,19 @@ int main(int argc, char *argv[])
         if (argc == 1) {
                 init_default_state();
         } else if (argc == 2 && strcmp(argv[1], "all") == 0) {
-                kew_init();
+                kew_init(false);
                 play_all();
                 run(true);
         } else if (argc == 2 && strcmp(argv[1], "albums") == 0) {
-                kew_init();
+                kew_init(false);
                 play_all_albums();
                 run(true);
         } else if (argc == 2 && strcmp(argv[1], ".") == 0 && favorites_playlist->count != 0) {
-                kew_init();
+                kew_init(false);
                 play_favorites_playlist();
                 run(true);
         } else if (argc >= 2) {
-                kew_init();
+                kew_init(false);
                 make_playlist(&playlist, argc, argv, exact_search, settings->path);
 
                 if (playlist->count == 0) {
