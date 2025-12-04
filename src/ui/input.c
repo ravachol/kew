@@ -439,11 +439,11 @@ enum EventType get_mouse_last_row_event(int mouse_x_on_last_row)
                 if (w < 0)
                         w = 0;
 
-                if (col_index + w > mouse_x_on_last_row)
-                        break; // cursor is inside this character
-
                 if (wc == L'|')
                         view_clicked++;
+
+                if (col_index + w > mouse_x_on_last_row)
+                        break; // cursor is inside this character
 
                 col_index += w;
                 ptr += bytes;
@@ -477,106 +477,6 @@ enum EventType get_mouse_last_row_event(int mouse_x_on_last_row)
         return result;
 }
 
-bool mouse_input_handled(char *seq, int i, struct Event *event)
-{
-        AppState *state = get_app_state();
-
-        if (!seq || !event)
-                return false;
-
-        if (i < 0 || i >= NUM_KEY_MAPPINGS || key_mappings[i].seq == NULL)
-                return false;
-
-        const char *expected = key_mappings[i].seq;
-
-        char tmp_seq[MAX_SEQ_LEN];
-        size_t src_len = strnlen(seq, MAX_SEQ_LEN - 1);
-
-        if (src_len < 4) // Must be at least ESC[ M + 3 digits
-                return false;
-
-        snprintf(tmp_seq, sizeof tmp_seq, "%.*s", (int)src_len, seq);
-
-        int mouse_button = 0, mouse_x = 0, mouse_y = 0;
-        const char *end = tmp_seq + src_len;
-        const char *p = tmp_seq + 3; // Skip ESC[ M
-
-        for (int field = 0; field < 3 && p && *p && p < end; ++field) {
-                char *endptr;
-                long val = strtol(p, &endptr, 10);
-                if (endptr == p || endptr > end) // no progress or out of bounds
-                        break;
-                p = endptr;
-
-                if (*p == ';')
-                        ++p;
-
-                switch (field) {
-                case 0:
-                        mouse_button = (int)val;
-                        break;
-                case 1:
-                        mouse_x = (int)val;
-                        break;
-                case 2:
-                        mouse_y = (int)val;
-                        break;
-                }
-        }
-
-        ProgressBar *progress_bar = get_progress_bar();
-
-        if (progress_bar->length > 0) {
-                long long delta_col =
-                    (long long)mouse_x - (long long)progress_bar->col;
-
-                if (delta_col >= 0 && delta_col <= (long long)progress_bar->length) {
-                        double position =
-                            (double)delta_col / (double)progress_bar->length;
-                        double duration = get_current_song_duration();
-                        dragged_position_seconds = duration * position;
-                } else {
-                        dragged_position_seconds = 0.0;
-                }
-        } else {
-                dragged_position_seconds = 0.0;
-        }
-
-        int footer_row = get_footer_row();
-        int footer_col = get_footer_col();
-
-        if (mouse_y == footer_row && footer_col > 0 && mouse_x - footer_col > 0 &&
-            mouse_x - footer_col < (int)strlen(state->uiSettings.LAST_ROW) &&
-            mouse_button != MOUSE_DRAG) {
-                event->type = get_mouse_last_row_event(mouse_x - footer_col);
-                return true;
-        }
-
-        if ((mouse_y == progress_bar->row || dragging_progress_bar) &&
-            mouse_x - progress_bar->col >= 0 &&
-            mouse_x - progress_bar->col < progress_bar->length &&
-            state->currentView == TRACK_VIEW) {
-                if (mouse_button == MOUSE_DRAG || mouse_button == MOUSE_CLICK) {
-                        dragging_progress_bar = true;
-                        gint64 newPosUs =
-                            (gint64)(dragged_position_seconds * G_USEC_PER_SEC);
-                        set_position(newPosUs, get_current_song_duration());
-                }
-                return true;
-        }
-
-        size_t expected_len = strlen(expected);
-        if (strlen(seq) < expected_len + 1)
-                return false;
-
-        if (strncmp(seq + 1, expected, expected_len) == 0) {
-                event->type = key_mappings[i].eventType;
-                return true;
-        }
-
-        return false;
-}
-
 bool handle_mouse_event(struct tb_event *ev, struct Event *event)
 {
         if (ev->type != TB_EVENT_MOUSE)
@@ -607,7 +507,7 @@ bool handle_mouse_event(struct tb_event *ev, struct Event *event)
              mouse_x - footer_col >= 0 &&
              mouse_x - footer_col < (int)strlen(state->uiSettings.LAST_ROW)) &&
             mouse_key != TB_KEY_MOUSE_RELEASE) {
-                event->type = get_mouse_last_row_event(mouse_x - footer_col);
+                event->type = get_mouse_last_row_event(mouse_x - footer_col + 1);
                 return true;
         }
 
