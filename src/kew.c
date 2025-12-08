@@ -434,6 +434,20 @@ void init_default_state(void)
         run(false);
 }
 
+void restore_music_path(){
+    AppSettings *settings = get_app_settings();
+
+    if (settings->original_music_path[0] != '\0') {
+        c_strcpy(settings->path, settings->original_music_path, sizeof(settings->path));
+        set_path(settings->path);
+
+
+        settings->original_music_path[0] = '\0';
+    }
+
+
+}
+
 void kew_shutdown()
 {
         AppState *state = get_app_state();
@@ -441,6 +455,7 @@ void kew_shutdown()
         FileSystemEntry *library = get_library();
         AppSettings *settings = get_app_settings();
         PlayList *favorites_playlist = get_favorites_playlist();
+        restore_music_path();
 
 #ifndef __ANDROID__
         stop_at_shutdown();
@@ -687,6 +702,7 @@ int main(int argc, char *argv[])
         init_key_mappings(settings);
         set_track_title_as_window_title();
 
+        bool run_for_temporary_path = false;
         if (argc == 3 && (strcmp(argv[1], "path") == 0)) {
                 char de_expanded[PATH_MAX];
                 collapse_path(argv[2], de_expanded);
@@ -694,6 +710,33 @@ int main(int argc, char *argv[])
                 set_path(settings->path);
                 exit(0);
         }
+
+        else if (argc == 3 && (strcmp(argv[1], "play") == 0)){
+                char de_expanded[PATH_MAX];
+                collapse_path(argv[2], de_expanded);
+
+                if (!exists_file(de_expanded)) {
+                        fprintf(stderr, "Error: Path does not exist: %s\n", de_expanded);
+                        exit(1);
+                }
+                strcpy(settings->original_music_path, settings->path);
+
+                if ((is_directory(de_expanded) || directory_exists(de_expanded)) && !exists_file(de_expanded)) {
+                        c_strcpy(settings->path, de_expanded, sizeof(settings->path));
+                        set_path(settings->path);
+                        run_for_temporary_path = true;
+                }
+                else{
+                        char directory[PATH_MAX];
+                        get_directory_from_path(de_expanded, directory);
+
+                        c_strcpy(settings->path, directory, sizeof(settings->path));//we overwrite the path anyways, but we need the song name
+
+                        argc = 2;
+                        argv[1] = strrchr(de_expanded, '/') ? strrchr(de_expanded, '/') + 1 : de_expanded; //we get the song and put it in argv and aargc. Normally this wouldn't be the cleanest way to go about this but in this case I think it's probably best
+                }
+}
+
 
         enable_mouse(&(state->uiSettings));
         enter_alternate_screen_buffer();
@@ -715,7 +758,7 @@ int main(int argc, char *argv[])
 
         init_theme(argc, argv);
 
-        if (argc == 1) {
+        if ((argc == 1) || (run_for_temporary_path == true)) {
                 init_default_state();
         } else if (argc == 2 && strcmp(argv[1], "all") == 0) {
                 kew_init(false);
