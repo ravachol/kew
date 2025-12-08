@@ -375,21 +375,23 @@ void create_library(bool set_enqueued_status)
 
         library = get_library();
 
-        if (library == NULL || library->children == NULL) {
+        bool library_path_changed = false;
+        if (library && strcmp(library->full_path, expanded) != 0)
+                library_path_changed = true;
+
+        if (library == NULL || library->children == NULL || library_path_changed) {
 
                 char expanded[PATH_MAX];
 
                 expand_path(settings->path, expanded);
 
-                library = create_directory_tree(
-                    expanded, &(state->uiState.numDirectoryTreeEntries));
+                library = create_directory_tree(expanded, &(state->uiState.numDirectoryTreeEntries));
         }
 
         if (library == NULL || library->children == NULL) {
                 char message[PATH_MAX + 64];
 
-                snprintf(message, PATH_MAX + 64, "No music found at %s.",
-                         settings->path);
+                snprintf(message, PATH_MAX + 64, "No music found at %s.", settings->path);
 
                 set_error_message(message);
         }
