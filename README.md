@@ -79,6 +79,10 @@ kew dir <album name> (sometimes, if names collide, it's necessary to specify it'
 
 kew song <song> (or a song)
 
+kew play "/home/joe/Musik/Fridge - (2007) The Sun/" (Plays this album, location can be anywhere)
+
+kew play "/home/joe/Musik/moonlight sonata.flac" (Plays moonlight sonata, location can be anywhere)
+
 kew list <playlist> (or a playlist)
 
 kew theme midnight (sets the 'midnight.theme' theme).
