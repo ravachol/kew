@@ -436,18 +436,12 @@ void init_default_state(void)
 
 void restore_music_path(){
     AppSettings *settings = get_app_settings();
-
-    if (settings->original_music_path[0] != '\0') {
+    if (settings->original_music_path[0] != '\0' && strcmp(settings->original_music_path, "default") != 0) {
         c_strcpy(settings->path, settings->original_music_path, sizeof(settings->path));
         set_path(settings->path);
-
-
         settings->original_music_path[0] = '\0';
     }
-
-
 }
-
 void kew_shutdown()
 {
         AppState *state = get_app_state();
@@ -711,21 +705,28 @@ int main(int argc, char *argv[])
                 exit(0);
         }
 
-        else if (argc == 3 && (strcmp(argv[1], "play") == 0)){
+        else if (argc == 3 && (strcmp(argv[1], "play") == 0)) {
                 char de_expanded[PATH_MAX];
-                collapse_path(argv[2], de_expanded);
 
-                if (!exists_file(de_expanded)) {
-                        fprintf(stderr, "Error: Path does not exist: %s\n", de_expanded);
+                if (expand_path(argv[2], de_expanded) != 0) {
+                        fprintf(stderr, "Error: Could not expand path: %s\n", argv[2]);
                         exit(1);
                 }
+                if (exists_file(de_expanded) != 1) {
+                        fprintf(stderr, "Error: Path does not exist: %s\n", argv[2]);
+                        exit(1);
+                }
+
                 strcpy(settings->original_music_path, settings->path);
 
-                if ((is_directory(de_expanded) || directory_exists(de_expanded)) && !exists_file(de_expanded)) {
+                // Check if it's a directory
+                struct stat path_stat;
+                if (stat(de_expanded, &path_stat) == 0 && S_ISDIR(path_stat.st_mode)) {
                         c_strcpy(settings->path, de_expanded, sizeof(settings->path));
                         set_path(settings->path);
                         run_for_temporary_path = true;
                 }
+
                 else{
                         char directory[PATH_MAX];
                         get_directory_from_path(de_expanded, directory);
