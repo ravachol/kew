@@ -436,7 +436,7 @@ void init_default_state(void)
 
 void restore_music_path(){
     AppSettings *settings = get_app_settings();
-    if (settings->original_music_path[0] != '\0' && strcmp(settings->original_music_path, "default") != 0) {
+    if (settings->original_music_path[0] != '\0') {
         c_strcpy(settings->path, settings->original_music_path, sizeof(settings->path));
         set_path(settings->path);
         settings->original_music_path[0] = '\0';
@@ -699,7 +699,6 @@ int main(int argc, char *argv[])
         bool run_for_temporary_path = false;
         if (argc == 3 && (strcmp(argv[1], "path") == 0)) {
                 char de_expanded[PATH_MAX];
-                collapse_path(argv[2], de_expanded);
                 c_strcpy(settings->path, de_expanded, sizeof(settings->path));
                 set_path(settings->path);
                 exit(0);
@@ -719,9 +718,11 @@ int main(int argc, char *argv[])
 
                 strcpy(settings->original_music_path, settings->path);
 
+                printf(" \n \n original_music_path: %s\n \n", settings->original_music_path);
+
                 // Check if it's a directory
-                struct stat path_stat;
-                if (stat(de_expanded, &path_stat) == 0 && S_ISDIR(path_stat.st_mode)) {
+                if (is_directory(de_expanded)) {
+
                         c_strcpy(settings->path, de_expanded, sizeof(settings->path));
                         set_path(settings->path);
                         run_for_temporary_path = true;
