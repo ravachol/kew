@@ -715,14 +715,9 @@ int main(int argc, char *argv[])
                         fprintf(stderr, "Error: Path does not exist: %s\n", argv[2]);
                         exit(1);
                 }
-
                 strcpy(settings->original_music_path, settings->path);
-
-                printf(" \n \n original_music_path: %s\n \n", settings->original_music_path);
-
                 // Check if it's a directory
                 if (is_directory(de_expanded)) {
-
                         c_strcpy(settings->path, de_expanded, sizeof(settings->path));
                         set_path(settings->path);
                         run_for_temporary_path = true;
