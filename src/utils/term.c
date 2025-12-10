@@ -160,6 +160,7 @@ void clear_screen(void)
         printf("\033[3J");              // Clear scrollback buffer
         printf("\033[2J\033[3J\033[H"); // Move cursor to top-left and clear
                                         // screen and scrollback buffer
+        fflush(stdout);
 }
 
 void goto_first_line_first_row(void)
