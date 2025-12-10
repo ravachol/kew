@@ -1972,10 +1972,13 @@ void print_side_cover(SongData *songdata)
         int col = cover_indent + 3;
         int target_height = indent - cover_indent;
 
-        if (redraw_side_cover && ui->coverEnabled && term_w - 4 > indent / 2) {
-
+        if (redraw_side_cover)
+        {
                 clear_screen();
                 redraw_side_cover = false;
+        }
+
+        if (redraw_side_cover && ui->coverEnabled && term_w - 4 > indent / 2) {
 
                 if (row < 2)
                         row = 2;
