@@ -1969,59 +1969,55 @@ void print_side_cover(SongData *songdata)
         int col = cover_indent + 3;
         int target_height = indent - cover_indent;
 
-        if (redraw_side_cover)
-        {
+        if (redraw_side_cover) {
+
                 clear_screen();
+
                 redraw_side_cover = false;
-        }
 
-        if (ui->hideSideCover)
-                return;
+                if (ui->coverEnabled && term_w - 4 > indent / 2) {
+                        if (row < 2)
+                                row = 2;
 
-        if (redraw_side_cover && ui->coverEnabled && term_w - 4 > indent / 2) {
+                        if (col < 1)
+                                col = 1;
 
-                if (row < 2)
-                        row = 2;
+                        TermSize term_size;
+                        gint cell_width = -1, cell_height = -1;
 
-                if (col < 1)
-                        col = 1;
+                        tty_init();
+                        get_tty_size(&term_size);
 
-                TermSize term_size;
-                gint cell_width = -1, cell_height = -1;
+                        int max_height = term_h - 4;
 
-                tty_init();
-                get_tty_size(&term_size);
+                        if (target_height > max_height)
+                                target_height = max_height;
 
-                int max_height = term_h - 4;
+                        if (term_size.width_cells > 0 && term_size.height_cells > 0 &&
+                            term_size.width_pixels > 0 && term_size.height_pixels > 0) {
+                                cell_width = term_size.width_pixels / term_size.width_cells;
+                                cell_height = term_size.height_pixels / term_size.height_cells;
+                        }
 
-                if (target_height > max_height)
-                        target_height = max_height;
+                        // Set default cell size for some terminals
+                        if (cell_width == -1 || cell_height == -1) {
+                                cell_width = 8;
+                                cell_height = 16;
+                        }
 
-                if (term_size.width_cells > 0 && term_size.height_cells > 0 &&
-                    term_size.width_pixels > 0 && term_size.height_pixels > 0) {
-                        cell_width = term_size.width_pixels / term_size.width_cells;
-                        cell_height = term_size.height_pixels / term_size.height_cells;
-                }
+                        float aspect_ratio_correction = (float)cell_height / (float)cell_width;
+                        int corrected_width = (int)(target_height * aspect_ratio_correction);
 
-                // Set default cell size for some terminals
-                if (cell_width == -1 || cell_height == -1) {
-                        cell_width = 8;
-                        cell_height = 16;
-                }
+                        row = term_h / 2 - (target_height / aspect_ratio_correction / 2);
 
-                float aspect_ratio_correction = (float)cell_height / (float)cell_width;
-                int corrected_width = (int)(target_height * aspect_ratio_correction);
+                        while (corrected_width > indent - cover_indent) {
+                                target_height--;
+                                corrected_width = (int)(target_height * aspect_ratio_correction);
+                        }
 
-                row = term_h / 2 - (target_height / aspect_ratio_correction / 2);
-
-                while (corrected_width > indent - cover_indent) {
-                        target_height--;
-                        corrected_width = (int)(target_height * aspect_ratio_correction);
-                }
-
-                if (target_height > MIN_COVER_SIZE)
-                {
-                        print_cover(row, col, target_height, false, songdata);
+                        if (target_height > MIN_COVER_SIZE && ui->hideSideCover != 1) {
+                                print_cover(row, col, target_height, false, songdata);
+                        }
                 }
         }
 }
