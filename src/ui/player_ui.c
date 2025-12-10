@@ -1940,9 +1940,6 @@ void print_side_cover(SongData *songdata)
         AppState *state = get_app_state();
         UISettings *ui = &(state->uiSettings);
 
-        if (ui->hideSideCover)
-                return;
-
         int term_w, term_h;
         get_term_size(&term_w, &term_h);
 
@@ -1977,6 +1974,9 @@ void print_side_cover(SongData *songdata)
                 clear_screen();
                 redraw_side_cover = false;
         }
+
+        if (ui->hideSideCover)
+                return;
 
         if (redraw_side_cover && ui->coverEnabled && term_w - 4 > indent / 2) {
 
