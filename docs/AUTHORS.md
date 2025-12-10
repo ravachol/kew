@@ -35,6 +35,7 @@
 * Vafone @vafone
 * Nicolas F
 * Ravachol @ravachol <ravacholf@proton.me>
+* LeahTheSlug
 
 ## Translations
 
