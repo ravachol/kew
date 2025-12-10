@@ -84,7 +84,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include <sys/stat.h>
 #include <unistd.h>
 
-const char VERSION[] = "3.7.0";
+const char VERSION[] = "3.7.1";
 
 AppState *state_ptr = NULL;
 
