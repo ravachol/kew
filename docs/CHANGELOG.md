@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 3.7.1
+
+#### Bug Fixes
+
+- Fix screen was not getting cleared when switching views if hidesidecover was set to 1. Found by @bholroyd.
+
 ### 3.7.0
 
 Biggest news in this release: Optimisations for large music collections/slow disks and a key binding/input handling overhaul.
