@@ -156,6 +156,8 @@ bind = +, volUp, +5%
 
 If you have an old install of kew, delete the kewrc file to make this style of bindings appear.
 
+kew state is kept in ~/.local/state/kewstaterc.
+
 ## Themes
 
 Press t to cycle available themes.
