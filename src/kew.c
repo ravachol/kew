@@ -457,19 +457,21 @@ static bool handle_play_command(int *argc, char **argv, AppSettings *settings) {
                 strcpy(settings->original_music_path, settings->path);
                 // Check if it's a directory
                 if ( is_directory(de_expanded)) {
+                        // It's a directory, return true (path should change)
                         c_strcpy(settings->path, de_expanded, sizeof(settings->path));
                         set_path(settings->path);
                         return true;
                 }
 
                 else{
+                        // It's a file, change argv[1] to the song name
                         char directory[PATH_MAX];
                         get_directory_from_path(de_expanded, directory);
 
-                        c_strcpy(settings->path, directory, sizeof(settings->path));//we overwrite the path anyways, but we need the song name
+                        c_strcpy(settings->path, directory, sizeof(settings->path));
 
                         *argc = 2;
-                        argv[1] = strrchr(de_expanded, '/') ? strrchr(de_expanded, '/') + 1 : de_expanded; //we get the song and put it in argv and aargc. Normally this wouldn't be the cleanest way to go about this but in this case I think it's probably best
+                        argv[1] = strrchr(de_expanded, '/') ? strrchr(de_expanded, '/') + 1 : de_expanded;
                         return false;
                 }
 }
@@ -729,6 +731,7 @@ int main(int argc, char *argv[])
         set_track_title_as_window_title();
 
         bool run_for_temporary_path = false;
+        
         if (argc == 3 && (strcmp(argv[1], "path") == 0)) {
                 char de_expanded[PATH_MAX];
                 collapse_path(argv[2], de_expanded);
@@ -736,7 +739,6 @@ int main(int argc, char *argv[])
                 set_path(settings->path);
                 exit(0);
         }
-
         else if (argc == 3 && (strcmp(argv[1], "play") == 0)) {
                 run_for_temporary_path = handle_play_command(&argc, argv, settings);
         }
