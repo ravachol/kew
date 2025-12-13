@@ -446,7 +446,7 @@ void restore_music_path(){
 static bool handle_play_command(int *argc, char **argv, AppSettings *settings) {
             char de_expanded[PATH_MAX];
 
-            if (expand_path((*argv)[2], de_expanded) != 0) {
+            if (expand_path(argv[2], de_expanded) != 0) {
                 return false;
             }
 
@@ -469,7 +469,7 @@ static bool handle_play_command(int *argc, char **argv, AppSettings *settings) {
                         c_strcpy(settings->path, directory, sizeof(settings->path));//we overwrite the path anyways, but we need the song name
 
                         *argc = 2;
-                        (*argv)[1] = strrchr(de_expanded, '/') ? strrchr(de_expanded, '/') + 1 : de_expanded; //we get the song and put it in argv and aargc. Normally this wouldn't be the cleanest way to go about this but in this case I think it's probably best
+                        argv[1] = strrchr(de_expanded, '/') ? strrchr(de_expanded, '/') + 1 : de_expanded; //we get the song and put it in argv and aargc. Normally this wouldn't be the cleanest way to go about this but in this case I think it's probably best
                         return false;
                 }
 }
