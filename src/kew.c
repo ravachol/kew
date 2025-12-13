@@ -443,7 +443,7 @@ void restore_music_path(){
     }
 }
 
-static bool handle_play_command(int *argc, char ***argv, AppSettings *settings) {
+static bool handle_play_command(int *argc, char **argv, AppSettings *settings) {
             char de_expanded[PATH_MAX];
 
             if (expand_path((*argv)[2], de_expanded) != 0) {
@@ -723,7 +723,6 @@ int main(int argc, char *argv[])
                 print_about_for_version(NULL);
                 exit(0);
         }
-
         *settings = init_settings();
         transfer_settings_to_ui();
         init_key_mappings(settings);
@@ -739,7 +738,7 @@ int main(int argc, char *argv[])
         }
 
         else if (argc == 3 && (strcmp(argv[1], "play") == 0)) {
-                run_for_temporary_path = handle_play_command(&argc, &argv, settings);
+                run_for_temporary_path = handle_play_command(&argc, argv, settings);
         }
 
 
