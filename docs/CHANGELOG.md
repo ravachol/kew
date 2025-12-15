@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 3.7.2
+
+#### Bug Fixes
+
+- Fix bug with running 'kew song' on macOS. Reported by @spacetime-labs.
+
 ## 3.7.1
 
 #### Bug Fixes

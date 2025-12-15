@@ -84,7 +84,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include <sys/stat.h>
 #include <unistd.h>
 
-const char VERSION[] = "3.7.1";
+const char VERSION[] = "3.7.2";
 
 AppState *state_ptr = NULL;
 
@@ -731,7 +731,7 @@ int main(int argc, char *argv[])
         set_track_title_as_window_title();
 
         bool run_for_temporary_path = false;
-        
+
         if (argc == 3 && (strcmp(argv[1], "path") == 0)) {
                 char de_expanded[PATH_MAX];
                 collapse_path(argv[2], de_expanded);
