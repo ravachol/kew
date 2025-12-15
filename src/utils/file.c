@@ -248,7 +248,7 @@ int expand_path(const char *input_path, char *expanded_path)
         if (input_path[0] == '\0' || input_path[0] == '\r')
                 return -1;
 
-        memset(expanded_path, 0, PATH_MAX);
+        expanded_path[0] = '\0';
 
         if (input_path[0] == '~') // Check if input_path starts with '~'
         {
