@@ -2,6 +2,10 @@
 
 ## 3.7.2
 
+#### New Features
+
+- kew play \<filepath\> , plays a file or a the contents of a directory. By @Overionised.
+
 #### Bug Fixes
 
 - Fix bug with running 'kew song' on macOS. Reported by @spacetime-labs.
