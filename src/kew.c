@@ -342,18 +342,11 @@ void run(bool start_playing)
 
 void init_locale(void)
 {
-        setlocale(LC_ALL, "");
-        setlocale(LC_CTYPE, "");
-#ifdef __ANDROID__
-        // Termux prefix
-        const char *locale_dir = "/data/data/com.termux/files/usr/share/locale";
-#elif __APPLE__
-        const char *locale_dir = "/usr/local/share/locale";
-#else
-        const char *locale_dir = "/usr/share/locale";
-#endif
-        bindtextdomain("kew", locale_dir);
-        textdomain("kew");
+    setlocale(LC_ALL, "");
+    setlocale(LC_CTYPE, "");
+
+    bindtextdomain("kew", LOCALEDIR);
+    textdomain("kew");
 }
 
 void kew_init(bool set_library_enqueued_status)

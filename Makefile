@@ -22,7 +22,7 @@ ifeq ($(origin USE_DBUS), undefined)
   endif
 endif
 
-PREFIX ?= /usr/local
+PREFIX    ?= /usr/local
 
 ifeq ($(UNAME_S),Darwin)
     ifeq ($(ARCH),arm64)
@@ -61,16 +61,6 @@ ifeq ($(origin USE_FAAD), undefined)
                         [ -f /opt/homebrew/opt/faad2/lib/libfaad.dylib ] || \
                          [ -f /usr/local/lib/libfaad.dylib ] || [ -f /lib/x86_64-linux-gnu/libfaad.so.2 ] && echo 1 || echo 0)
     endif
-  endif
-endif
-
-ifneq ($(wildcard /data/data/com.termux/files/usr),)
-  LANGDIRPREFIX = /data/data/com.termux/files/usr
-else
-  ifeq ($(UNAME_S), Darwin)
-      LANGDIRPREFIX = /usr/local
-  else
-      LANGDIRPREFIX = /usr
   endif
 endif
 
@@ -188,8 +178,11 @@ WRAPPER_OBJ = $(OBJDIR)/tagLibWrapper.o
 MAN_PAGE = kew.1
 MAN_DIR ?= $(PREFIX)/share/man
 DATADIR ?= $(PREFIX)/share
+LOCALEDIR ?= $(DATADIR)/locale
 THEMEDIR = $(DATADIR)/kew/themes
 THEMESRCDIR := $(CURDIR)/themes
+
+DEFINES += -DLOCALEDIR=\"$(LOCALEDIR)\"
 
 all: kew
 
@@ -236,8 +229,8 @@ install: all
 	mkdir -p $(DESTDIR)$(MAN_DIR)/man1
 	mkdir -p $(DESTDIR)$(PREFIX)/bin
 	mkdir -p $(DESTDIR)$(THEMEDIR)
-	mkdir -p $(DESTDIR)$(LANGDIRPREFIX)/share/locale/zh_CN/LC_MESSAGES
-	mkdir -p $(DESTDIR)$(LANGDIRPREFIX)/share/locale/ja/LC_MESSAGES
+	mkdir -p $(DESTDIR)$(LOCALEDIR)/ja/LC_MESSAGES
+	mkdir -p $(DESTDIR)$(LOCALEDIR)/zh_CN/LC_MESSAGES
 
 	# Install binary and man page
 	install -m 0755 kew $(DESTDIR)$(PREFIX)/bin/kew
@@ -245,12 +238,11 @@ install: all
 
 	# Install Chinese translation
 	install -m 0644 locale/zh_CN/LC_MESSAGES/kew.mo \
-		$(DESTDIR)$(LANGDIRPREFIX)/share/locale/zh_CN/LC_MESSAGES/kew.mo
+	$(DESTDIR)$(LOCALEDIR)/zh_CN/LC_MESSAGES/kew.mo
 
 	# Install Japanese translation
 	install -m 0644 locale/ja/LC_MESSAGES/kew.mo \
-		$(DESTDIR)$(LANGDIRPREFIX)/share/locale/ja/LC_MESSAGES/kew.mo
-
+	$(DESTDIR)$(LOCALEDIR)/ja/LC_MESSAGES/kew.mo
 
 	@if [ -d $(THEMESRCDIR) ]; then \
 	for theme in $(THEMESRCDIR)/*.theme; do \
@@ -270,8 +262,8 @@ uninstall:
 	rm -f $(DESTDIR)$(PREFIX)/bin/kew
 	rm -f $(DESTDIR)$(MAN_DIR)/man1/kew.1
 	rm -rf $(DESTDIR)$(THEMEDIR)
-	rm -f $(DESTDIR)/usr/share/locale/zh_CN/LC_MESSAGES/kew.mo
-	rm -f $(DESTDIR)/usr/share/locale/ja/LC_MESSAGES/kew.mo
+	rm -f $(DESTDIR)$(LOCALEDIR)/ja/LC_MESSAGES/kew.mo
+	rm -f $(DESTDIR)$(LOCALEDIR)/zh_CN/LC_MESSAGES/kew.mo
 
 .PHONY: clean
 clean:
