@@ -1098,65 +1098,60 @@ static bool parseUntimedLyricsFromTagLines(const TagLib::StringList &lines, Lyri
 
 static bool loadLyricsVorbisFromTag(TagLib::Ogg::XiphComment *tag, Lyrics **lyricsOut)
 {
-    if (!tag || !lyricsOut)
-        return false;
+        if (!tag || !lyricsOut)
+                return false;
 
-    auto fields = tag->fieldListMap();
+        auto fields = tag->fieldListMap();
 
-    const char *keys[] = {"LYRICS", "UNSYNCEDLYRICS", "lyrics"};
-    const TagLib::StringList *entry = nullptr;
+        const char *keys[] = {"LYRICS", "UNSYNCEDLYRICS", "lyrics"};
+        const TagLib::StringList *entry = nullptr;
 
-    for (auto key : keys)
-    {
-        if (fields.contains(key))
-        {
-            entry = &fields[key];
-            break;
+        for (auto key : keys) {
+                if (fields.contains(key)) {
+                        entry = &fields[key];
+                        break;
+                }
         }
-    }
 
-    if (!entry || entry->isEmpty())
-        return false;
+        if (!entry || entry->isEmpty())
+                return false;
 
-    // Build final line list
-    TagLib::StringList lines;
+        // Build final line list
+        TagLib::StringList lines;
 
-    for (const auto &val : *entry)
-    {
-        TagLib::StringList split = val.split("\n");
-        for (const auto &ln : split)
-            lines.append(ln);
-    }
+        for (const auto &val : *entry) {
+                TagLib::StringList split = val.split("\n");
+                for (const auto &ln : split)
+                        lines.append(ln);
+        }
 
-    // Remove trailing blanks
-    while (!lines.isEmpty() && lines.back().stripWhiteSpace().isEmpty())
-    {
-        auto it = lines.end();
-        --it;
-        lines.erase(it);
-    }
+        // Remove trailing blanks
+        while (!lines.isEmpty() && lines.back().stripWhiteSpace().isEmpty()) {
+                auto it = lines.end();
+                --it;
+                lines.erase(it);
+        }
 
-    if (lines.isEmpty())
-        return false;
+        if (lines.isEmpty())
+                return false;
 
-    Lyrics *lyrics = (Lyrics *)calloc(1, sizeof(Lyrics));
-    if (!lyrics)
-        return false;
+        Lyrics *lyrics = (Lyrics *)calloc(1, sizeof(Lyrics));
+        if (!lyrics)
+                return false;
 
-    lyrics->max_length = 1024;
+        lyrics->max_length = 1024;
 
-    bool looksLikeLrc = detectLrcFormat(lines);
-    bool ok = looksLikeLrc ? parseTimedLyricsFromTagLines(lines, lyrics)
-                           : parseUntimedLyricsFromTagLines(lines, lyrics);
+        bool looksLikeLrc = detectLrcFormat(lines);
+        bool ok = looksLikeLrc ? parseTimedLyricsFromTagLines(lines, lyrics)
+                               : parseUntimedLyricsFromTagLines(lines, lyrics);
 
-    if (!ok)
-    {
-        freeLyrics(lyrics);
-        return false;
-    }
+        if (!ok) {
+                freeLyrics(lyrics);
+                return false;
+        }
 
-    *lyricsOut = lyrics;
-    return true;
+        *lyricsOut = lyrics;
+        return true;
 }
 
 static bool loadLyricsVorbisFLAC(TagLib::FLAC::File *file, Lyrics **lyricsOut)
@@ -1243,6 +1238,97 @@ static bool loadLyricsFromSYLTTag(TagLib::ID3v2::Tag *id3v2Tag, Lyrics **lyricsO
         return true;
 }
 
+static bool loadLyricsFromUSLTTag(TagLib::ID3v2::Tag *id3v2Tag,
+                                  Lyrics **lyricsOut)
+{
+        if (!id3v2Tag || !lyricsOut)
+                return false;
+
+        auto frames = id3v2Tag->frameList("USLT");
+        if (frames.isEmpty())
+                return false;
+
+        TagLib::ID3v2::Frame *best = nullptr;
+        size_t bestLen = 0;
+
+        // Pick the largest USLT payload
+        for (auto frame : frames) {
+                TagLib::String text = frame->toString();
+                if (text.isEmpty())
+                        continue;
+
+                size_t len = text.size();
+                if (len > bestLen) {
+                        best = frame;
+                        bestLen = len;
+                }
+        }
+
+        if (!best)
+                return false;
+
+        // Convert once to UTF-8
+        std::string utf8 = best->toString().to8Bit(true);
+        if (utf8.empty())
+                return false;
+
+        // Normalize line endings
+        std::string normalized;
+        normalized.reserve(utf8.size());
+
+        for (size_t i = 0; i < utf8.size(); ++i) {
+                if (utf8[i] == '\r') {
+                        if (i + 1 < utf8.size() && utf8[i + 1] == '\n')
+                                ++i;
+                        normalized.push_back('\n');
+                } else {
+                        normalized.push_back(utf8[i]);
+                }
+        }
+
+        // Split into TagLib::StringList
+        TagLib::StringList lines;
+        size_t start = 0;
+
+        while (start < normalized.size()) {
+                size_t end = normalized.find('\n', start);
+                if (end == std::string::npos)
+                        end = normalized.size();
+
+                lines.append(TagLib::String(
+                    normalized.substr(start, end - start),
+                    TagLib::String::UTF8));
+
+                start = end + 1;
+        }
+
+        // Trim trailing blanks
+        while (!lines.isEmpty() && lines.back().stripWhiteSpace().isEmpty())
+                lines.erase(--lines.end());
+
+        if (lines.isEmpty())
+                return false;
+
+        Lyrics *lyrics = (Lyrics *)calloc(1, sizeof(Lyrics));
+        if (!lyrics)
+                return false;
+
+        lyrics->max_length = 1024;
+
+        bool looksLikeLrc = detectLrcFormat(lines);
+        bool ok = looksLikeLrc
+                      ? parseTimedLyricsFromTagLines(lines, lyrics)
+                      : parseUntimedLyricsFromTagLines(lines, lyrics);
+
+        if (!ok) {
+                freeLyrics(lyrics);
+                return false;
+        }
+
+        *lyricsOut = lyrics;
+        return true;
+}
+
 int extractTags(const char *input_file, TagSettings *tag_settings,
                 double *duration, const char *coverFilePath, Lyrics **lyrics)
 {
@@ -1315,10 +1401,17 @@ int extractTags(const char *input_file, TagSettings *tag_settings,
                         tag_settings->date[0] = '\0';
                 }
         }
-
+        
         if (*lyrics == nullptr) {
-                if (auto mpegFile = dynamic_cast<TagLib::MPEG::File *>(f.file()))
+                if (auto mpegFile = dynamic_cast<TagLib::MPEG::File *>(f.file())) {
+                        // 1) True synchronized lyrics (SYLT)
                         loadLyricsFromSYLTTag(mpegFile->ID3v2Tag(), lyrics);
+
+                        // 2) USLT fallback (may contain LRC timestamps)
+                        if (*lyrics == nullptr)
+                                loadLyricsFromUSLTTag(mpegFile->ID3v2Tag(), lyrics);
+                }
+
                 if (auto flacFile = dynamic_cast<TagLib::FLAC::File *>(f.file()))
                         loadLyricsVorbisFLAC(flacFile, lyrics);
                 else if (auto oggFile = dynamic_cast<TagLib::Ogg::Vorbis::File *>(f.file()))
