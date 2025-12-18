@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## 3.7.3
+
+#### New Features
+
+- Added support for USLT lyrics tag including USLT with embedded synchronized lrc content. Suggested by @gzemlevskiy17.
+
+#### Bugfixes
+
+- Change makefile and kew.c so that locale install dir derives from PREFIX. Found by @yurivict.
+
 ## 3.7.2
 
 #### New Features
