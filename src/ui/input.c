@@ -252,8 +252,7 @@ void handle_event(struct Event *event)
                 cycle_themes();
                 break;
         case EVENT_CYCLEVISUALIZATION:
-                // FIXME: Enable Chroma
-                // cycle_visualization();
+                cycle_visualization();
                 break;
         case EVENT_QUIT:
                 quit();
