@@ -184,9 +184,7 @@ You can add visualizations to kew by installing Chroma:
 
 https://github.com/yuri-xyz/chroma
 
-These are enabled when a song doesn't have a cover.
-
-You can also enable and cycle through them by pressing <kbd>c</kbd>.
+Enable and cycle through them by pressing <kbd>c</kbd>.
 
 Disable by pressing <kbd>b</kbd>.
 
