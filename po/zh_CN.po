@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-17 17:57+0100\n"
+"POT-Creation-Date: 2025-12-25 15:17+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <kew-player@proton-me>\n"
 "Language-Team: Simplified Chinese <zh_CN@li.org>\n"
@@ -255,166 +255,167 @@ msgstr " · 切换颜色模式：%s（默认主题、主题或封面颜色）"
 msgid " · Cycle Themes: %s"
 msgstr " · 切换主题：%s"
 
-# FIXME: Enable Chroma
-# msgid " · Cycle Chroma Visualization: %s (requires Chroma)\n"
-# msgstr " · 循环色度可视化：%s（需要 chroma)\n"
-#: src/ui/player_ui.c:1156
+#: src/ui/player_ui.c:1151
+#, c-format
+msgid " · Cycle Chroma Visualization: %s (requires Chroma)"
+msgstr " · 循环色度可视化：%s（需要 chroma)"
+
+#: src/ui/player_ui.c:1154
 #, c-format
 msgid " · Stop: %s"
 msgstr " · 停止：%s"
 
-#: src/ui/player_ui.c:1159
+#: src/ui/player_ui.c:1157
 #, c-format
 msgid " · Update Library: %s"
 msgstr " · 更新音乐库：%s"
 
-#: src/ui/player_ui.c:1162
+#: src/ui/player_ui.c:1160
 #, c-format
 msgid " · Sort Library: %s"
 msgstr " · 排序：%s"
 
-#: src/ui/player_ui.c:1165
+#: src/ui/player_ui.c:1163
 #, c-format
 msgid " · Toggle Visualizer: %s"
 msgstr " · 开关可视化效果：%s"
 
-#: src/ui/player_ui.c:1170
+#: src/ui/player_ui.c:1166
 #, c-format
-msgid " · Toggle ASCII Cover: %s"
-msgstr " · 切换 ASCII 封面：%s"
+msgid " · Toggle ASCII Cover: %s (disables Chroma)"
+msgstr " · 切换 ASCII 封面：%s (禁用 Chroma)"
 
-# FIXME: Enable Chroma
-# msgstr " · 切换 ASCII 封面：%s (禁用 Chroma) \n"
-#: src/ui/player_ui.c:1173
+
+#: src/ui/player_ui.c:1169
 #, c-format
 msgid " · Toggle Lyrics Page on Track View: %s"
 msgstr " · 切换歌词页面：%s"
 
-#: src/ui/player_ui.c:1176
+#: src/ui/player_ui.c:1172
 #, c-format
 msgid " · Toggle Notifications: %s"
 msgstr " · 开关通知：%s"
 
-#: src/ui/player_ui.c:1179
+#: src/ui/player_ui.c:1175
 #, c-format
 msgid " · Cycle Repeat: %s (repeat/repeat list/off)"
 msgstr " · 循环模式：%s（循环/循环列表/关闭）"
 
-#: src/ui/player_ui.c:1183
+#: src/ui/player_ui.c:1179
 #, c-format
 msgid " · Shuffle: %s"
 msgstr " · 随机播放：%s"
 
-#: src/ui/player_ui.c:1186
+#: src/ui/player_ui.c:1182
 #, c-format
 msgid " · Seek: %s and"
 msgstr " · 快进/快退：%s 和"
 
-#: src/ui/player_ui.c:1187
+#: src/ui/player_ui.c:1183
 #, c-format
 msgid " %s"
 msgstr " %s"
 
-#: src/ui/player_ui.c:1190
+#: src/ui/player_ui.c:1186
 #, c-format
 msgid " · Export Playlist: %s (named after the first song)"
 msgstr " · 导出播放列表：%s（以第一首歌命名）"
 
-#: src/ui/player_ui.c:1194
+#: src/ui/player_ui.c:1190
 #, c-format
 msgid " · Add Song To 'kew favorites.m3u': %s (run with 'kew .')"
 msgstr " · 添加歌曲到 'kew favorites.m3u'：%s（使用 'kew .' 运行）"
 
-#: src/ui/player_ui.c:1200
+#: src/ui/player_ui.c:1196
 #, c-format
 msgid " Project URL: "
 msgstr " 项目网址："
 
-#: src/ui/player_ui.c:1206
+#: src/ui/player_ui.c:1202
 #, c-format
 msgid " Please Donate: "
 msgstr " 捐助支持："
 
-#: src/ui/player_ui.c:1419
+#: src/ui/player_ui.c:1415
 #, c-format
 msgid " Select:↑/↓ or k/j."
 msgstr " 选择：↑/↓ 或 k/j"
 
-#: src/ui/player_ui.c:1420
+#: src/ui/player_ui.c:1416
 #, c-format
 msgid " Accept:%s."
 msgstr " 接受：%s"
 
-#: src/ui/player_ui.c:1421
+#: src/ui/player_ui.c:1417
 #, c-format
 msgid " Clear:%s."
 msgstr " 清除：%s"
 
-#: src/ui/player_ui.c:1426 src/ui/player_ui.c:2103
+#: src/ui/player_ui.c:1422 src/ui/player_ui.c:2099
 #, c-format
 msgid " Scroll:PgUp/PgDn."
 msgstr " 滚动：PgUp/PgDn"
 
-#: src/ui/player_ui.c:1428 src/ui/player_ui.c:2105
+#: src/ui/player_ui.c:1424 src/ui/player_ui.c:2101
 #, c-format
 msgid " Scroll:Fn+↑/↓."
 msgstr " 滚动：Fn+↑/↓"
 
-#: src/ui/player_ui.c:1430
+#: src/ui/player_ui.c:1426
 #, c-format
 msgid " Remove:%s."
 msgstr " 移除：%s"
 
-#: src/ui/player_ui.c:1431
+#: src/ui/player_ui.c:1427
 #, c-format
 msgid " Move songs:%s"
 msgstr " 移动歌曲：%s"
 
-#: src/ui/player_ui.c:1432
+#: src/ui/player_ui.c:1428
 #, c-format
 msgid "/%s."
 msgstr "/%s"
 
-#: src/ui/player_ui.c:1469 src/ui/player_ui.c:2096
+#: src/ui/player_ui.c:1465 src/ui/player_ui.c:2092
 #, c-format
 msgid " Select:↑/↓."
 msgstr " 选择：↑/↓"
 
-#: src/ui/player_ui.c:1470
+#: src/ui/player_ui.c:1466
 #, c-format
 msgid " Enqueue:%s."
 msgstr " 加入/移出播放列表：%s"
 
-#: src/ui/player_ui.c:1471 src/ui/player_ui.c:2098
+#: src/ui/player_ui.c:1467 src/ui/player_ui.c:2094
 #, c-format
 msgid " Play:%s."
 msgstr " 清除：%s"
 
-#: src/ui/player_ui.c:1521
+#: src/ui/player_ui.c:1517
 #, c-format
 msgid "   ─ PLAYLIST ─"
 msgstr "   ─ 播放列表 ─"
 
-#: src/ui/player_ui.c:1845
+#: src/ui/player_ui.c:1841
 msgid "─ MUSIC LIBRARY ─"
 msgstr "─ 音乐库 ─"
 
-#: src/ui/player_ui.c:2097
+#: src/ui/player_ui.c:2093
 #, c-format
 msgid " Enqueue/Dequeue:%s."
 msgstr " 加入/移出播放列表：%s"
 
-#: src/ui/player_ui.c:2107
+#: src/ui/player_ui.c:2103
 #, c-format
 msgid " Update:%s."
 msgstr " 更新：%s"
 
-#: src/ui/player_ui.c:2108
+#: src/ui/player_ui.c:2104
 #, c-format
 msgid " Sort:%s."
 msgstr " 排序：%s"
 
-#: src/ui/player_ui.c:2206
+#: src/ui/player_ui.c:2202
 #, c-format
 msgid " No lyrics available. Press %s to go back."
 msgstr " 没有歌词可用。按 %s 返回。"
@@ -463,7 +464,3 @@ msgstr "%s\n"
 #~ msgstr ""
 #~ " 或 man kew\n"
 #~ "\n"
-
-#, c-format
-#~ msgid " · Cycle Chroma Visualization: %s (requires Chroma)\n"
-#~ msgstr " · 循环色度可视化：%s（需要 chroma)\n"
