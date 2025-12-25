@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-17 17:57+0100\n"
+"POT-Creation-Date: 2025-12-25 15:17+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -246,161 +246,166 @@ msgstr ""
 msgid " · Cycle Themes: %s"
 msgstr ""
 
-#: src/ui/player_ui.c:1156
+#: src/ui/player_ui.c:1151
+#, c-format
+msgid " · Cycle Chroma Visualization: %s (requires Chroma)"
+msgstr ""
+
+#: src/ui/player_ui.c:1154
 #, c-format
 msgid " · Stop: %s"
 msgstr ""
 
-#: src/ui/player_ui.c:1159
+#: src/ui/player_ui.c:1157
 #, c-format
 msgid " · Update Library: %s"
 msgstr ""
 
-#: src/ui/player_ui.c:1162
+#: src/ui/player_ui.c:1160
 #, c-format
 msgid " · Sort Library: %s"
 msgstr ""
 
-#: src/ui/player_ui.c:1165
+#: src/ui/player_ui.c:1163
 #, c-format
 msgid " · Toggle Visualizer: %s"
 msgstr ""
 
-#: src/ui/player_ui.c:1170
+#: src/ui/player_ui.c:1166
 #, c-format
-msgid " · Toggle ASCII Cover: %s"
+msgid " · Toggle ASCII Cover: %s (disables Chroma)"
 msgstr ""
 
-#: src/ui/player_ui.c:1173
+#: src/ui/player_ui.c:1169
 #, c-format
 msgid " · Toggle Lyrics Page on Track View: %s"
 msgstr ""
 
-#: src/ui/player_ui.c:1176
+#: src/ui/player_ui.c:1172
 #, c-format
 msgid " · Toggle Notifications: %s"
 msgstr ""
 
-#: src/ui/player_ui.c:1179
+#: src/ui/player_ui.c:1175
 #, c-format
 msgid " · Cycle Repeat: %s (repeat/repeat list/off)"
 msgstr ""
 
-#: src/ui/player_ui.c:1183
+#: src/ui/player_ui.c:1179
 #, c-format
 msgid " · Shuffle: %s"
 msgstr ""
 
-#: src/ui/player_ui.c:1186
+#: src/ui/player_ui.c:1182
 #, c-format
 msgid " · Seek: %s and"
 msgstr ""
 
-#: src/ui/player_ui.c:1187
+#: src/ui/player_ui.c:1183
 #, c-format
 msgid " %s"
 msgstr ""
 
-#: src/ui/player_ui.c:1190
+#: src/ui/player_ui.c:1186
 #, c-format
 msgid " · Export Playlist: %s (named after the first song)"
 msgstr ""
 
-#: src/ui/player_ui.c:1194
+#: src/ui/player_ui.c:1190
 #, c-format
 msgid " · Add Song To 'kew favorites.m3u': %s (run with 'kew .')"
 msgstr ""
 
-#: src/ui/player_ui.c:1200
+#: src/ui/player_ui.c:1196
 #, c-format
 msgid " Project URL: "
 msgstr ""
 
-#: src/ui/player_ui.c:1206
+#: src/ui/player_ui.c:1202
 #, c-format
 msgid " Please Donate: "
 msgstr ""
 
-#: src/ui/player_ui.c:1419
+#: src/ui/player_ui.c:1415
 #, c-format
 msgid " Select:↑/↓ or k/j."
 msgstr ""
 
-#: src/ui/player_ui.c:1420
+#: src/ui/player_ui.c:1416
 #, c-format
 msgid " Accept:%s."
 msgstr ""
 
-#: src/ui/player_ui.c:1421
+#: src/ui/player_ui.c:1417
 #, c-format
 msgid " Clear:%s."
 msgstr ""
 
-#: src/ui/player_ui.c:1426 src/ui/player_ui.c:2103
+#: src/ui/player_ui.c:1422 src/ui/player_ui.c:2099
 #, c-format
 msgid " Scroll:PgUp/PgDn."
 msgstr ""
 
-#: src/ui/player_ui.c:1428 src/ui/player_ui.c:2105
+#: src/ui/player_ui.c:1424 src/ui/player_ui.c:2101
 #, c-format
 msgid " Scroll:Fn+↑/↓."
 msgstr ""
 
-#: src/ui/player_ui.c:1430
+#: src/ui/player_ui.c:1426
 #, c-format
 msgid " Remove:%s."
 msgstr ""
 
-#: src/ui/player_ui.c:1431
+#: src/ui/player_ui.c:1427
 #, c-format
 msgid " Move songs:%s"
 msgstr ""
 
-#: src/ui/player_ui.c:1432
+#: src/ui/player_ui.c:1428
 #, c-format
 msgid "/%s."
 msgstr ""
 
-#: src/ui/player_ui.c:1469 src/ui/player_ui.c:2096
+#: src/ui/player_ui.c:1465 src/ui/player_ui.c:2092
 #, c-format
 msgid " Select:↑/↓."
 msgstr ""
 
-#: src/ui/player_ui.c:1470
+#: src/ui/player_ui.c:1466
 #, c-format
 msgid " Enqueue:%s."
 msgstr ""
 
-#: src/ui/player_ui.c:1471 src/ui/player_ui.c:2098
+#: src/ui/player_ui.c:1467 src/ui/player_ui.c:2094
 #, c-format
 msgid " Play:%s."
 msgstr ""
 
-#: src/ui/player_ui.c:1521
+#: src/ui/player_ui.c:1517
 #, c-format
 msgid "   ─ PLAYLIST ─"
 msgstr ""
 
-#: src/ui/player_ui.c:1845
+#: src/ui/player_ui.c:1841
 msgid "─ MUSIC LIBRARY ─"
 msgstr ""
 
-#: src/ui/player_ui.c:2097
+#: src/ui/player_ui.c:2093
 #, c-format
 msgid " Enqueue/Dequeue:%s."
 msgstr ""
 
-#: src/ui/player_ui.c:2107
+#: src/ui/player_ui.c:2103
 #, c-format
 msgid " Update:%s."
 msgstr ""
 
-#: src/ui/player_ui.c:2108
+#: src/ui/player_ui.c:2104
 #, c-format
 msgid " Sort:%s."
 msgstr ""
 
-#: src/ui/player_ui.c:2206
+#: src/ui/player_ui.c:2202
 #, c-format
 msgid " No lyrics available. Press %s to go back."
 msgstr ""

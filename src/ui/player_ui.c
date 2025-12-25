@@ -1147,11 +1147,9 @@ int show_key_bindings(SongData *songdata)
         printf("\033[%d;%dH", ++num_printed_rows, indentation + 1);
         printf(_(" · Cycle Themes: %s"), get_binding_string(EVENT_CYCLETHEMES, false));
         CHECK_LIST_LIMIT();
-        // FIXME: Enable Chroma
-        // print_blank_spaces(indentation);
-        // printf(_(" · Cycle Chroma Visualization: %s (requires Chroma)\n"), get_binding_string(EVENT_CYCLEVISUALIZATION, false));
-        // num_printed_rows++;
-        // CHECK_LIST_LIMIT();
+        printf("\033[%d;%dH", ++num_printed_rows, indentation + 1);
+        printf(_(" · Cycle Chroma Visualization: %s (requires Chroma)"), get_binding_string(EVENT_CYCLEVISUALIZATION, false));
+        CHECK_LIST_LIMIT();
         printf("\033[%d;%dH", ++num_printed_rows, indentation + 1);
         printf(_(" · Stop: %s"), get_binding_string(EVENT_STOP, false));
         CHECK_LIST_LIMIT();
@@ -1165,9 +1163,7 @@ int show_key_bindings(SongData *songdata)
         printf(_(" · Toggle Visualizer: %s"), get_binding_string(EVENT_TOGGLEVISUALIZER, false));
         CHECK_LIST_LIMIT();
         printf("\033[%d;%dH", ++num_printed_rows, indentation + 1);
-        // FIXME: Enable Chroma
-        //printf(_(" · Toggle ASCII Cover: %s (disables Chroma)\n"), get_binding_string(EVENT_TOGGLEASCII, false));
-        printf(_(" · Toggle ASCII Cover: %s"), get_binding_string(EVENT_TOGGLEASCII, false));
+        printf(_(" · Toggle ASCII Cover: %s (disables Chroma)"), get_binding_string(EVENT_TOGGLEASCII, false));
         CHECK_LIST_LIMIT();
         printf("\033[%d;%dH", ++num_printed_rows, indentation + 1);
         printf(_(" · Toggle Lyrics Page on Track View: %s"), get_binding_string(EVENT_SHOWLYRICSPAGE, false));
