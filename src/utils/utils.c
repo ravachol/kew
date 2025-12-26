@@ -501,8 +501,8 @@ void format_filename(char *str)
             break;
         }
 
-        if (i > 5)
-                i = 5; // Blocks such as 01-01 is the maximum that should be removed
+        if (i > 6)
+                i = 6; // Blocks such as 01-100 is the maximum that should be removed
 
         // If current char is not a digit, reset last_digit_start
         if (!isdigit((unsigned char)str[i])) {
