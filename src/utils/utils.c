@@ -471,7 +471,7 @@ char *get_file_path(const char *filename)
         return filepath;
 }
 
-void remove_unneeded_chars(char *str)
+void format_filename(char *str)
 {
         int i = 0;
 
