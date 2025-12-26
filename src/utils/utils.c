@@ -71,8 +71,7 @@ void c_sleep(int milliseconds)
 
 void c_usleep(int microseconds)
 {
-        if (microseconds < 0 || microseconds > 100000000)
-        {
+        if (microseconds < 0 || microseconds > 100000000) {
                 return;
         }
 
@@ -93,8 +92,7 @@ void c_strcpy(char *dest, const char *src, size_t dest_size)
                 memcpy(dest, src, src_length);
 
                 dest[src_length] = '\0';
-        } else if (dest && dest_size > 0)
-        {
+        } else if (dest && dest_size > 0) {
                 dest[0] = '\0';
         }
 }
@@ -473,40 +471,49 @@ char *get_file_path(const char *filename)
         return filepath;
 }
 
-void remove_unneeded_chars(char *str, int length)
+void remove_unneeded_chars(char *str)
 {
-        // Do not remove characters if filename only contains digits
+        int i = 0;
+
+        if (!isdigit((unsigned char)str[0])) {
+                return; // Rule only applies if it starts with a digit
+        }
+
         bool stringContainsLetters = false;
         for (int i = 0; str[i] != '\0'; i++) {
                 if (!isdigit(str[i])) {
                         stringContainsLetters = true;
                 }
         }
+
         if (!stringContainsLetters) {
                 return;
         }
 
-        for (int i = 0; i < 3 && str[i] != '\0' && str[i] != ' '; i++) {
-                if (isdigit(str[i]) || str[i] == '.' || str[i] == '-' ||
-                    str[i] == ' ') {
-                        int j;
-                        for (j = i; str[j] != '\0'; j++) {
-                                str[j] = str[j + 1];
-                        }
-                        str[j] = '\0';
-                        i--; // Decrement i to re-check the current index
-                        length--;
-                }
+        // If the first digit is directly connected to an alpha character,
+        // we consider it part of the name and do nothing
+        if (isalpha((unsigned char)str[1])) {
+                return;
         }
 
-        // Remove hyphens and underscores from filename
-        for (int i = 0; str[i] != '\0'; i++) {
-                // Only remove if there are no spaces around
-                if ((str[i] == '-' || str[i] == '_') &&
-                    (i > 0 && i < length && str[i - 1] != ' ' &&
-                     str[i + 1] != ' ')) {
-                        str[i] = ' ';
+        // Otherwise, remove everything up to the first valid start
+        while (str[i] != '\0') {
+                if (isalpha((unsigned char)str[i])) {
+                        break;
                 }
+
+                // Allow numbers only if they are connected to an alpha
+                if (isdigit((unsigned char)str[i]) &&
+                    i > 0 &&
+                    isalpha((unsigned char)str[i - 1])) {
+                        break;
+                }
+
+                i++;
+        }
+
+        if (i > 0) {
+                memmove(str, str + i, strlen(str + i) + 1);
         }
 }
 
