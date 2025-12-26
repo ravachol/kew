@@ -487,7 +487,7 @@ void process_name(const char *name, char *output, int max_width,
         }
 
         if (strip_unneeded_chars)
-                remove_unneeded_chars(output, strnlen(output, max_width));
+                remove_unneeded_chars(output);
 
         trim(output, strlen(output));
 }
@@ -525,7 +525,7 @@ void process_name_scroll(const char *name, char *output, int max_width,
 
                 c_strcpy(output, name + start, max_width + 1);
 
-                remove_unneeded_chars(output, max_width);
+                remove_unneeded_chars(output);
                 trim(output, max_width);
 
                 last_name_position++;

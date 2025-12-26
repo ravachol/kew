@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 3.8.0
+
+#### Bug Fixes
+
+- Do not strip the number from a song title if it's connected to an alphanumeric character, like '10th song.flac'. Suggested by @bholroyd.
+
 ## 3.7.3
 
 #### New Features
