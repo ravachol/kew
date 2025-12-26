@@ -475,45 +475,25 @@ void remove_unneeded_chars(char *str)
 {
         int i = 0;
 
-        if (!isdigit((unsigned char)str[0])) {
-                return; // Rule only applies if it starts with a digit
-        }
+        if (isdigit((unsigned char)str[0]) &&
+            !isalpha((unsigned char)str[1])) {
 
-        bool stringContainsLetters = false;
-        for (int i = 0; str[i] != '\0'; i++) {
-                if (!isdigit(str[i])) {
-                        stringContainsLetters = true;
+                // Skip digits and common separators
+                while (str[i] != '\0' &&
+                       !isalpha((unsigned char)str[i])) {
+                        i++;
+                }
+
+                if (str[i] != '\0') {
+                        memmove(str, str + i, strlen(str + i) + 1);
                 }
         }
 
-        if (!stringContainsLetters) {
-                return;
-        }
-
-        // If the first digit is directly connected to an alpha character,
-        // we consider it part of the name and do nothing
-        if (isalpha((unsigned char)str[1])) {
-                return;
-        }
-
-        // Otherwise, remove everything up to the first valid start
-        while (str[i] != '\0') {
-                if (isalpha((unsigned char)str[i])) {
-                        break;
+        // Replace underscore with blank space
+        for (i = 0; str[i] != '\0'; i++) {
+                if (str[i] == '_') {
+                        str[i] = ' ';
                 }
-
-                // Allow numbers only if they are connected to an alpha
-                if (isdigit((unsigned char)str[i]) &&
-                    i > 0 &&
-                    isalpha((unsigned char)str[i - 1])) {
-                        break;
-                }
-
-                i++;
-        }
-
-        if (i > 0) {
-                memmove(str, str + i, strlen(str + i) + 1);
         }
 }
 
