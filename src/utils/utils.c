@@ -473,28 +473,53 @@ char *get_file_path(const char *filename)
 
 void format_filename(char *str)
 {
-        int i = 0;
+    int i = 0;
+    int last_digit_start = -1;
 
-        if (isdigit((unsigned char)str[0]) &&
-            !isalpha((unsigned char)str[1])) {
+    // Scan through the prefix
+    while (str[i] != '\0') {
 
-                // Skip digits and common separators
-                while (str[i] != '\0' &&
-                       !isalpha((unsigned char)str[i])) {
-                        i++;
-                }
+        if (isdigit((unsigned char)str[i])) {
+            // Mark start of numeric block
+            if (last_digit_start == -1) {
+                last_digit_start = i;
+            }
 
-                if (str[i] != '\0') {
-                        memmove(str, str + i, strlen(str + i) + 1);
-                }
+            // Check if next character is a letter, then rollback
+            if (isalpha((unsigned char)str[i + 1])) {
+                // Roll back to before this numeric block
+                i = last_digit_start;
+                break;
+            }
+        } else if (str[i] == '-' || str[i] == '_' || str[i] == '.' || str[i] == ' ') {
+            // Separator, continue
+        } else if (isalpha((unsigned char)str[i])) {
+            // Letter reached, stop
+            break;
+        } else {
+            // Other characters, stop
+            break;
         }
 
-        // Replace underscore with blank space
-        for (i = 0; str[i] != '\0'; i++) {
-                if (str[i] == '_') {
-                        str[i] = ' ';
-                }
+        // If current char is not a digit, reset last_digit_start
+        if (!isdigit((unsigned char)str[i])) {
+            last_digit_start = -1;
         }
+
+        i++;
+    }
+
+    // Step 2: Remove the prefix
+    if (i > 0) {
+        memmove(str, str + i, strlen(str + i) + 1);
+    }
+
+    // Step 3: Replace underscores with spaces
+    for (int j = 0; str[j] != '\0'; j++) {
+        if (str[j] == '_') {
+            str[j] = ' ';
+        }
+    }
 }
 
 void shorten_string(char *str, size_t max_length)
