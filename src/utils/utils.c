@@ -508,8 +508,11 @@ void format_filename(char *str)
 
         i++;
 
-        if (i > 6)
-                i = 6; // Blocks such as 01-100 is the maximum that should be removed
+        // Remove blocks such as 01-100 at the max
+        if (i > 6) {
+            i = 6;
+            break; // Exit the loop since we've hit the maximum
+        }
     }
 
     // Step 2: Remove the prefix
