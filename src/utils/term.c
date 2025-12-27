@@ -24,6 +24,8 @@ static const int MAX_TERMINAL_ROWS = 9999;
 static struct termios orig_termios;
 static int termios_saved = 0;
 
+struct winsize w;
+
 void set_terminal_color(int color)
 {
         /*
@@ -73,18 +75,20 @@ void set_text_color_RGB(int r, int g, int b)
                (unsigned int)b);
 }
 
-void get_term_size(int *width, int *height)
+void update_term_size()
 {
-        struct winsize w;
-
         if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) == -1 ||
             w.ws_row == 0 || w.ws_col == 0) {
                 // Fallback for non-interactive environments (like Homebrew tests)
-                *height = 24; // default terminal height
-                *width = 80;  // default terminal width
+                w.ws_row = 24; // default terminal height
+                w.ws_col = 80;  // default terminal width
                 return;
         }
+}
 
+
+void get_term_size(int *width, int *height)
+{
         *height = (int)w.ws_row;
         *width = (int)w.ws_col;
 }
