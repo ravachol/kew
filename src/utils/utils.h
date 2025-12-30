@@ -42,7 +42,7 @@ void c_sleep(int milliseconds);
 void c_usleep(int microseconds);
 void c_strcpy(char *dest, const char *src, size_t dest_size);
 void extract_extension(const char *filename, size_t num_chars, char *ext);
-void trim(char *str, int max_len);
+void trim(char *str, size_t max_len);
 void format_filename(char *str);
 void shorten_string(char *str, size_t max_length);
 void print_blank_spaces(int num_spaces);
