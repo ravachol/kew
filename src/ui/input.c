@@ -41,6 +41,7 @@
 #include <ctype.h>
 #include <gio/gio.h>
 #include <glib.h>
+#include <wchar.h> // Needed for netbsd
 
 #define MAX_TMP_SEQ_LEN 256
 #define NUM_KEY_MAPPINGS 64

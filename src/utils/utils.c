@@ -292,39 +292,41 @@ int path_starts_with(const char *str, const char *prefix)
         return strncmp(str, prefix, prefixLength) == 0;
 }
 
-void trim(char *str, int max_len)
+void trim(char *str, size_t max_len)
 {
-        if (!str || max_len <= 0) {
-                return;
-        }
+    if (!str || max_len == 0) {
+        return;
+    }
 
-        // Find start (skip leading whitespace)
-        char *start = str;
-        while (*start && isspace(*start)) {
-                start++;
-        }
+    char *start = str;
+    char *limit = str + max_len;
 
-        // Handle case where string is all whitespace or empty
-        size_t len = strnlen(start, max_len - (start - str));
-        if (len == 0) {
-                str[0] = '\0';
-                return;
-        }
+    // Skip leading whitespace
+    while (start < limit && *start && isspace((unsigned char)*start)) {
+        start++;
+    }
 
-        // Find end (skip trailing whitespace)
-        char *end = start + len - 1;
-        while (end >= start && isspace(*end)) {
-                end--;
-        }
+    if (start == limit || *start == '\0') {
+        str[0] = '\0';
+        return;
+    }
 
-        // Null terminate
-        *(end + 1) = '\0';
+    // Find end
+    char *end = start;
+    while (end < limit && *end) {
+        end++;
+    }
+    end--; // last character
 
-        // Move trimmed string to beginning if needed
-        if (start != str) {
-                size_t trimmed_len = end - start + 1;
-                memmove(str, start, trimmed_len + 1); // +1 for null terminator
-        }
+    while (end >= start && isspace((unsigned char)*end)) {
+        end--;
+    }
+
+    *(end + 1) = '\0';
+
+    if (start != str) {
+        memmove(str, start, (end - start) + 2);
+    }
 }
 
 const char *get_home_path(void)

@@ -75,7 +75,7 @@ void set_text_color_RGB(int r, int g, int b)
                (unsigned int)b);
 }
 
-void update_term_size()
+void set_term_size()
 {
         if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) == -1 ||
             w.ws_row == 0 || w.ws_col == 0) {
