@@ -390,7 +390,7 @@ void kew_init(bool set_library_enqueued_status)
         clear_screen();
         fflush(stdout);
 
-        update_term_size();
+        set_term_size();
 
 #ifdef DEBUG
         // g_setenv("G_MESSAGES_DEBUG", "all", TRUE);
