@@ -1,8 +1,21 @@
 # CHANGELOG
 
-## 3.8.0
+## 4.0.0
+
+#### New Features
+
+- Chroma Visualizations.
+
+This adds cool new visualizations to kew. It is not baked into kew and doesn't add bloat, but runs alongside it. So it requires that you install chroma separately if you want this, which can be found here:
+https://github.com/yuri-xyz/chroma.
+
+Chroma is started from within kew. Just switch to track view and press c to cycle through visualizations. Press b to disable.
+
+Thank you @yuri-xyz for helping out with this.
 
 #### Bug Fixes
+
+- Fixed trim seg faults on NetBSD 11 (sometimes). Reported by @ktnb-netbsd.
 
 - Do not strip the number from a song title if it's connected to an alphanumeric character, like '10th song.flac'. Suggested by @bholroyd.
 
