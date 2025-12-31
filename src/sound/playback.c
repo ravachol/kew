@@ -196,7 +196,6 @@ int init_playback_device(ma_context *context, ma_format format, ma_uint32 channe
         deviceConfig.sampleRate = sample_rate;
         deviceConfig.dataCallback = data_callback;
         deviceConfig.pUserData = pUserData;
-        deviceConfig.periodSizeInMilliseconds = 400;
 
         result = ma_device_init(context, &deviceConfig, device);
         if (result != MA_SUCCESS) {
