@@ -70,7 +70,7 @@ struct Event map_tb_key_to_event(struct tb_event *ev)
         if (state->currentView == SEARCH_VIEW) {
 
                 if (ev->key == TB_KEY_SPACE && ev->mod == 0)
-                        ev->ch =  ' ';
+                        ev->ch = ' ';
 
                 // Backspace
                 if (ev->key == TB_KEY_BACKSPACE || ev->key == TB_KEY_BACKSPACE2) {
@@ -109,8 +109,7 @@ struct Event map_tb_key_to_event(struct tb_event *ev)
                 for (size_t i = 0; i < keybinding_count; i++) {
                         TBKeyBinding *b = &key_bindings[i];
 
-                        if (isupper((unsigned char)ev->ch))
-                        {
+                        if (isupper((unsigned char)ev->ch)) {
                                 ev->mod |= TB_MOD_SHIFT;
                                 ev->ch = tolower(ev->ch);
                         }
@@ -412,41 +411,38 @@ static gboolean should_throttle(struct Event *event)
 #define MAX_SEQ_LEN 1024 // Maximum length of sequence buffer
 #define MAX_TMP_SEQ_LEN 256
 
-enum EventType get_mouse_last_row_event(int mouse_x_on_last_row)
+enum EventType get_mouse_last_row_event(int mouse_x_on_last_row, const char *footer_text)
 {
         enum EventType result = EVENT_NONE;
-        AppState *state = get_app_state();
 
-        const char *s = state->uiSettings.LAST_ROW;
-        if (!s || mouse_x_on_last_row < 0)
+        if (!footer_text || mouse_x_on_last_row < 0)
                 return EVENT_NONE;
 
         int view_clicked = 1; // Which section is clicked
         int col_index = 0;    // terminal column position
-        const char *ptr = state->uiSettings.LAST_ROW;
         mbstate_t mbs;
         memset(&mbs, 0, sizeof(mbs));
 
-        while (*ptr) {
+        while (*footer_text) {
                 wchar_t wc;
-                size_t bytes = mbrtowc(&wc, ptr, MB_CUR_MAX, &mbs);
+                size_t bytes = mbrtowc(&wc, footer_text, MB_CUR_MAX, &mbs);
                 if (bytes == (size_t)-1 || bytes == (size_t)-2) {
                         bytes = 1;
-                        wc = (unsigned char)*ptr;
+                        wc = (unsigned char)*footer_text;
                 }
 
                 int w = wcwidth(wc); // number of terminal columns this char takes
                 if (w < 0)
                         w = 0;
 
-                if (wc == L'|')
-                        view_clicked++;
-
                 if (col_index + w > mouse_x_on_last_row)
                         break; // cursor is inside this character
 
+                if (wc == L'|')
+                        view_clicked++;
+
                 col_index += w;
-                ptr += bytes;
+                footer_text += bytes;
         }
 
         switch (view_clicked) {
@@ -502,12 +498,15 @@ bool handle_mouse_event(struct tb_event *ev, struct Event *event)
         int footer_row = get_footer_row();
         int footer_col = get_footer_col();
 
+        char footer_text[100];
+        get_footer_text(footer_text, sizeof(footer_text));
+
         // Footer click (e.g., buttons or indicators on last row)
         if ((mouse_y == footer_row && footer_col > 0 &&
              mouse_x - footer_col >= 0 &&
-             mouse_x - footer_col < (int)strlen(state->uiSettings.LAST_ROW)) &&
+             mouse_x - footer_col < (int)strlen(footer_text)) &&
             mouse_key != TB_KEY_MOUSE_RELEASE) {
-                event->type = get_mouse_last_row_event(mouse_x - footer_col + 1);
+                event->type = get_mouse_last_row_event(mouse_x - footer_col + 1, footer_text);
                 return true;
         }
 
