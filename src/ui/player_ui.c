@@ -889,17 +889,7 @@ void print_footer(int row, int col)
         }
 
         char text[100];
-        char playlist[32], library[32], track[32], search[32], help[32];
-
-        snprintf(playlist, sizeof(playlist), "%s", get_binding_string(EVENT_SHOWPLAYLIST, true));
-        snprintf(library, sizeof(library), "%s", get_binding_string(EVENT_SHOWLIBRARY, true));
-        snprintf(track, sizeof(track), "%s", get_binding_string(EVENT_SHOWTRACK, true));
-        snprintf(search, sizeof(search), "%s", get_binding_string(EVENT_SHOWSEARCH, true));
-        snprintf(help, sizeof(search), "%s", get_binding_string(EVENT_SHOWHELP, true));
-
-        snprintf(text, sizeof(text),
-                 _("%s Playlist|%s Library|%s Track|%s Search|%s Help"), playlist,
-                 library, track, search, help);
+        get_footer_text(text, sizeof(text));
 
         char icons_text[100] = "";
 
@@ -2680,4 +2670,19 @@ void refresh_player()
         }
 
         pthread_mutex_unlock(&(state->switch_mutex));
+}
+
+int get_footer_text(char *restrict text, size_t size)
+{
+        char playlist[32], library[32], track[32], search[32], help[32];
+
+        snprintf(playlist, sizeof(playlist), "%s", get_binding_string(EVENT_SHOWPLAYLIST, true));
+        snprintf(library, sizeof(library), "%s", get_binding_string(EVENT_SHOWLIBRARY, true));
+        snprintf(track, sizeof(track), "%s", get_binding_string(EVENT_SHOWTRACK, true));
+        snprintf(search, sizeof(search), "%s", get_binding_string(EVENT_SHOWSEARCH, true));
+        snprintf(help, sizeof(search), "%s", get_binding_string(EVENT_SHOWHELP, true));
+
+        return snprintf(text, size,
+                        _("%s Playlist|%s Library|%s Track|%s Search|%s Help"), playlist,
+                        library, track, search, help);
 }
