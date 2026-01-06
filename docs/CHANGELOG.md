@@ -19,6 +19,8 @@ Thank you @yuri-xyz for helping out with this.
 
 - Do not strip the number from a song title if it's connected to an alphanumeric character, like '10th song.flac'. Suggested by @bholroyd.
 
+- Fix switching view via mouse leads to wrong view or no view is changed on macOS. By @petoem.
+
 ## 3.7.3
 
 #### New Features
