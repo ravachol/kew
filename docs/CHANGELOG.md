@@ -21,6 +21,10 @@ Thank you @yuri-xyz for helping out with this.
 
 - Fix switching view via mouse leads to wrong view or no view is changed on macOS. By @petoem.
 
+- Fix finishing a repeated playlist while in track view puts you back in library view. By @petoem.
+
+- Fixed trim() segfaults on NetBSD 11 (sometimes). Reported by @ktnb-netbsd.
+
 ## 3.7.3
 
 #### New Features
