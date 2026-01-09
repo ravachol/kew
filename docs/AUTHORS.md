@@ -19,6 +19,7 @@
 * @noiamnote
 * Matthias Geiger @werdahias <werdahias@riseup.net>
 * Michael Petö @petoem
+* @Moksh-Parikh
 * @Overionised
 * Ravachol @ravachol <ravacholf@proton.me>
 * Rioprastyo17
