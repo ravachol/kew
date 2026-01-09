@@ -2203,8 +2203,10 @@ void print_lyrics_page(UISettings *ui, int row, int col, double seconds, SongDat
 
                                 current = i - 1;
 
-                                if (i > limit && i > 0)
-                                        startat = i - 1; // If the current line would have fallen out of view, start at the current line - 1
+                                if (i > height / 2 && i > 0)
+                                        // If the current line would have been in the second half of the screen,
+                                        // place it dead in the middle
+                                        startat = i - (height / 2);
                                 break;
                         }
                 }
