@@ -57,6 +57,7 @@ We would like to extend our gratitude to the following individuals who have cont
 * Yuri @yurivict yuri@freebsd.org
 * Joey Schaff @jaoheah <jschaff@proton.me>
 * Agustin Ballesteros @agus-balles <arcpie@aur>
+* LeahTheSlug
 * Saijin Naib @Saijin_Naib
 * Xplshn @xplshn
 * Mateo @malteo <mateo@aur>
