@@ -18,6 +18,7 @@
 * John Lakeman @j-lakeman <le0324tb@anonaddy.me>
 * @noiamnote
 * Matthias Geiger @werdahias <werdahias@riseup.net>
+* Michael Petö @petoem
 * @Overionised
 * Ravachol @ravachol <ravacholf@proton.me>
 * Rioprastyo17
