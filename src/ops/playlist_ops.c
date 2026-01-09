@@ -233,8 +233,7 @@ void handle_remove(int chosen_row)
                 remove_song(node);
 
                 Node *next = get_next_song();
-                if (next)
-                {
+                if (next) {
                         clear_and_play(next);
                 }
         }
@@ -643,6 +642,7 @@ void repeat_list(void)
 
         ps->waitingForPlaylist = true;
         ps->nextSongNeedsRebuilding = true;
+        ps->skipping = true;
         audio_data.end_of_list_reached = false;
 }
 
