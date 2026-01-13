@@ -5,7 +5,6 @@
 # Then ./play
 # You can now run commands like: play nirvana and it will automatically play all your nirvana,
 # which was the original intent of kew
-
 set -euo pipefail
 
 INSTALL_DIR="$HOME/.local/bin"
