@@ -2,7 +2,7 @@
 
 ## 4.0.0
 
-#### New Features
+#### Enhancements
 
 - Chroma Visualizations.
 
@@ -15,6 +15,8 @@ Thank you @yuri-xyz for helping out with this.
 
 - Lyrics page now centers the current lyric once it reaches the center of the screen. Suggested by @flashfire1001. Implemented by @Moksh-Parikh.
 
+- Smoother gradient for non default sized spectrum visualizers. By @ravachol. Suggested by @Saijin_Naib.
+
 #### Bug Fixes
 
 - Fixed trim seg faults on NetBSD 11 (sometimes). Reported by @ktnb-netbsd.
@@ -25,7 +27,12 @@ Thank you @yuri-xyz for helping out with this.
 
 - Fix finishing a repeated playlist while in track view puts you back in library view. By @petoem.
 
-- Fixed trim() segfaults on NetBSD 11 (sometimes). Reported by @ktnb-netbsd.
+- Last line of lyrics duplicated in landscape mode. By @petoem. Reported by @LeahTheSlug.
+
+- Fixed lyrics page not staying at the last line but jumping to the top. By @petoem. Reported by @LeahTheSlug.
+
+- Fixed trim() segfaults on NetBSD 11 (sometimes). By @ravachol. Reported by @ktnb-netbsd.
+
 
 ## 3.7.3
 
