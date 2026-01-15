@@ -2193,35 +2193,23 @@ void print_lyrics_page(UISettings *ui, int row, int col, double seconds, SongDat
                 return;
         }
 
-        int limit = MIN((int)lyrics->count, height);
-        int startat = 0;
-        int current = 0;
-
+        int offset = 0;     // start index of the visible lines
+        int highlight = -1; // current highlighted line index
         if (lyrics->isTimed) {
                 for (int i = 0; i < (int)lyrics->count; i++) {
-                        if (lyrics->lines[i].timestamp >= seconds) {
-
-                                current = i - 1;
-
-                                if (i > height / 2 && i > 0)
-                                        // If the current line would have been in the second half of the screen,
-                                        // place it dead in the middle
-                                        startat = i - (height / 2);
+                        if (lyrics->lines[i].timestamp <= seconds) {
+                                highlight = i;
+                        } else {
                                 break;
                         }
                 }
+                if (highlight > height / 2) {
+                        // text scrolls and highlighted line stays in the middle
+                        offset = highlight - (height / 2);
+                }
         }
 
-        int newlimit = startat + limit;
-        if (newlimit > (int)lyrics->count)
-                newlimit = (int)lyrics->count;
-
-        if (startat < 0)
-                startat = 0;
-        if (startat >= (int)lyrics->count)
-                startat = (int)lyrics->count - 1;
-
-        for (int i = startat; i < newlimit; i++) {
+        for (int i = offset; i < MIN((int)lyrics->count, height + offset); i++) {
                 char linebuf[1024];
                 const char *text = lyrics->lines[i].text ? lyrics->lines[i].text : "";
                 strncpy(linebuf, text, sizeof(linebuf) - 1);
@@ -2233,11 +2221,11 @@ void print_lyrics_page(UISettings *ui, int row, int col, double seconds, SongDat
                 if (length < 0)
                         length = 0;
 
-                if (i == current && lyrics->isTimed)
+                if (highlight == i && lyrics->isTimed)
                         apply_color(ui->colorMode, ui->theme.nowplaying, ui->defaultColorRGB);
                 else
                         apply_color(ui->colorMode, ui->theme.trackview_lyrics, ui->color);
-                print_at(row + i - startat, col, linebuf, length);
+                print_at(row + i - offset, col, linebuf, length);
                 clear_rest_of_line();
         }
 }
