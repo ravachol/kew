@@ -2372,6 +2372,7 @@ void show_track_view_landscape(int height, int width, float aspect_ratio,
                 } else {
                         print_now_playing(songdata, &(state->uiSettings), 2, col, term_w - indent);
                         print_lyrics_page(&(state->uiSettings), 4, col, elapsed_seconds, songdata, height - 4);
+                        clear_rest_of_screen();
                 }
         }
 }
