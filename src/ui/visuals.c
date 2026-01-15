@@ -417,12 +417,11 @@ void print_spectrum(int row, int col, UISettings *ui, int height, int num_bars,
                              visualizer_color_type == 2 ||
                              visualizer_color_type == 3)) {
                                 if (visualizer_color_type == 0) {
-                                        tmp = increase_luminosity(
-                                            color, round(j * height * 4));
+                                        tmp = increase_luminosity_for_height(
+                                            color, height, j, false);
                                 } else if (visualizer_color_type == 2) {
-                                        tmp = increase_luminosity(
-                                            color,
-                                            round((height - j) * height * 4));
+                                        tmp = increase_luminosity_for_height(
+                                            color, height, j, true);
                                 } else if (visualizer_color_type == 3) {
                                         tmp = get_gradient_color(color, j, height,
                                                                  1, 0.6f);
