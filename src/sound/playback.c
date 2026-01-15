@@ -716,6 +716,7 @@ void vorbis_read_pcm_frames(ma_data_source *p_data_source, void *p_frames_out,
                     !pb_is_EOF_reached()) {
                         activate_switch(p_audio_data);
                         pthread_mutex_unlock(&data_source_mutex);
+                        fprintf(stderr, "ogg file switched to next, cursor=%llu totalframes=%llu\n", cursor, p_audio_data->totalFrames);
                         continue;
                 }
 
