@@ -1,5 +1,39 @@
 # CHANGELOG
 
+## 4.0.0
+
+#### Enhancements
+
+- Chroma Visualizations.
+
+This adds cool new visualizations to kew. It is not baked into kew and doesn't add bloat, but runs alongside it. So it requires that you install chroma separately if you want this, which can be found here:
+https://github.com/yuri-xyz/chroma.
+
+Chroma is started from within kew. Just switch to track view and press c to cycle through visualizations. Press b to disable.
+
+Thank you @yuri-xyz for helping out with this.
+
+- Lyrics page now centers the current lyric once it reaches the center of the screen. Suggested by @flashfire1001. Implemented by @Moksh-Parikh.
+
+- Smoother gradient for non default sized spectrum visualizers. By @ravachol. Suggested by @Saijin_Naib.
+
+#### Bug Fixes
+
+- Fixed trim seg faults on NetBSD 11 (sometimes). Reported by @ktnb-netbsd.
+
+- Do not strip the number from a song title if it's connected to an alphanumeric character, like '10th song.flac'. Suggested by @bholroyd.
+
+- Fix switching view via mouse leads to wrong view or no view is changed on macOS. By @petoem.
+
+- Fix finishing a repeated playlist while in track view puts you back in library view. By @petoem.
+
+- Last line of lyrics duplicated in landscape mode. By @petoem. Reported by @LeahTheSlug.
+
+- Fixed lyrics page not staying at the last line but jumping to the top. By @petoem. Reported by @LeahTheSlug.
+
+- Fixed trim() segfaults on NetBSD 11 (sometimes). By @ravachol. Reported by @ktnb-netbsd.
+
+
 ## 3.7.3
 
 #### New Features

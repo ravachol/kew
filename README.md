@@ -40,6 +40,11 @@ kew (/kjuː/) is a terminal music player.
  * Supports lyrics through .lrc files, embedded SYLT (Mp3) or Vorbis comments (Flac,Ogg,Opus).
  * Use themes or colors derived from covers.
 
+
+ ## ⚠️ This repository has moved to Codeberg!
+Active development and issue tracking now happens at [Codeberg](https://codeberg.org/ravachol/kew).
+Please open new issues and pull requests there.
+
 ## Installing
 
 <a href="https://repology.org/project/kew/versions"><img src="https://repology.org/badge/vertical-allrepos/kew.svg" alt="Packaging status" align="right"></a>
@@ -160,7 +165,11 @@ bind = +, volUp, +5%
 
 If you have an old install of kew, delete the kewrc file to make this style of bindings appear.
 
-kew state is kept in ~/.local/state/kewstaterc.
+kew state (for settings that can be changed in-app) is kept in ~/.local/state/kewstaterc.
+
+If you change a setting in-app it will be tracked by kewstaterc and not kewrc.
+
+kewrc is never changed by kew with the exception of when you run kew path. If you delete your kewrc a new default one will be generated.
 
 ## Themes
 
@@ -184,9 +193,7 @@ You can add visualizations to kew by installing Chroma:
 
 https://github.com/yuri-xyz/chroma
 
-These are enabled when a song doesn't have a cover.
-
-You can also enable and cycle through them by pressing <kbd>c</kbd>.
+Enable and cycle through them by pressing <kbd>c</kbd>.
 
 Disable by pressing <kbd>b</kbd>.
 

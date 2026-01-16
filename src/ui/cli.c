@@ -97,6 +97,7 @@ void set_music_path(void)
         UISettings *ui = &(state->uiSettings);
 
         clear_screen();
+        set_term_size();
 
         ui->color.r = ui->kewColorRGB.r;
         ui->color.g = ui->kewColorRGB.g;
