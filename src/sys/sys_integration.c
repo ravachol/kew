@@ -65,6 +65,7 @@ void resize(UIState *uis)
         clear_screen();
         trigger_redraw_side_cover();
         trigger_refresh();
+        set_term_size();
 }
 
 void emit_string_property_changed(const gchar *property_name, const gchar *new_value)

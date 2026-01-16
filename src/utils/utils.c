@@ -71,8 +71,7 @@ void c_sleep(int milliseconds)
 
 void c_usleep(int microseconds)
 {
-        if (microseconds < 0 || microseconds > 100000000)
-        {
+        if (microseconds < 0 || microseconds > 100000000) {
                 return;
         }
 
@@ -93,8 +92,7 @@ void c_strcpy(char *dest, const char *src, size_t dest_size)
                 memcpy(dest, src, src_length);
 
                 dest[src_length] = '\0';
-        } else if (dest && dest_size > 0)
-        {
+        } else if (dest && dest_size > 0) {
                 dest[0] = '\0';
         }
 }
@@ -294,39 +292,41 @@ int path_starts_with(const char *str, const char *prefix)
         return strncmp(str, prefix, prefixLength) == 0;
 }
 
-void trim(char *str, int max_len)
+void trim(char *str, size_t max_len)
 {
-        if (!str || max_len <= 0) {
-                return;
-        }
+    if (!str || max_len == 0) {
+        return;
+    }
 
-        // Find start (skip leading whitespace)
-        char *start = str;
-        while (*start && isspace(*start)) {
-                start++;
-        }
+    char *start = str;
+    char *limit = str + max_len;
 
-        // Handle case where string is all whitespace or empty
-        size_t len = strnlen(start, max_len - (start - str));
-        if (len == 0) {
-                str[0] = '\0';
-                return;
-        }
+    // Skip leading whitespace
+    while (start < limit && *start && isspace((unsigned char)*start)) {
+        start++;
+    }
 
-        // Find end (skip trailing whitespace)
-        char *end = start + len - 1;
-        while (end >= start && isspace(*end)) {
-                end--;
-        }
+    if (start == limit || *start == '\0') {
+        str[0] = '\0';
+        return;
+    }
 
-        // Null terminate
-        *(end + 1) = '\0';
+    // Find end
+    char *end = start;
+    while (end < limit && *end) {
+        end++;
+    }
+    end--; // last character
 
-        // Move trimmed string to beginning if needed
-        if (start != str) {
-                size_t trimmed_len = end - start + 1;
-                memmove(str, start, trimmed_len + 1); // +1 for null terminator
-        }
+    while (end >= start && isspace((unsigned char)*end)) {
+        end--;
+    }
+
+    *(end + 1) = '\0';
+
+    if (start != str) {
+        memmove(str, start, (end - start) + 2);
+    }
 }
 
 const char *get_home_path(void)
@@ -473,41 +473,61 @@ char *get_file_path(const char *filename)
         return filepath;
 }
 
-void remove_unneeded_chars(char *str, int length)
+void format_filename(char *str)
 {
-        // Do not remove characters if filename only contains digits
-        bool stringContainsLetters = false;
-        for (int i = 0; str[i] != '\0'; i++) {
-                if (!isdigit(str[i])) {
-                        stringContainsLetters = true;
-                }
-        }
-        if (!stringContainsLetters) {
-                return;
+    int i = 0;
+    int last_digit_start = -1;
+
+    // Scan through the prefix
+    while (str[i] != '\0') {
+
+        if (isdigit((unsigned char)str[i])) {
+            // Mark start of numeric block
+            if (last_digit_start == -1) {
+                last_digit_start = i;
+            }
+
+            // Check if next character is a letter, then rollback
+            if (isalpha((unsigned char)str[i + 1])) {
+                // Roll back to before this numeric block
+                i = last_digit_start;
+                break;
+            }
+        } else if (str[i] == '-' || str[i] == '_' || str[i] == '.' || str[i] == ' ') {
+            // Separator, continue
+        } else if (isalpha((unsigned char)str[i])) {
+            // Letter reached, stop
+            break;
+        } else {
+            // Other characters, stop
+            break;
         }
 
-        for (int i = 0; i < 3 && str[i] != '\0' && str[i] != ' '; i++) {
-                if (isdigit(str[i]) || str[i] == '.' || str[i] == '-' ||
-                    str[i] == ' ') {
-                        int j;
-                        for (j = i; str[j] != '\0'; j++) {
-                                str[j] = str[j + 1];
-                        }
-                        str[j] = '\0';
-                        i--; // Decrement i to re-check the current index
-                        length--;
-                }
+        // If current char is not a digit, reset last_digit_start
+        if (!isdigit((unsigned char)str[i])) {
+            last_digit_start = -1;
         }
 
-        // Remove hyphens and underscores from filename
-        for (int i = 0; str[i] != '\0'; i++) {
-                // Only remove if there are no spaces around
-                if ((str[i] == '-' || str[i] == '_') &&
-                    (i > 0 && i < length && str[i - 1] != ' ' &&
-                     str[i + 1] != ' ')) {
-                        str[i] = ' ';
-                }
+        i++;
+
+        // Remove blocks such as 01-100 at the max
+        if (i > 6) {
+            i = 6;
+            break; // Exit the loop since we've hit the maximum
         }
+    }
+
+    // Step 2: Remove the prefix
+    if (i > 0) {
+        memmove(str, str + i, strlen(str + i) + 1);
+    }
+
+    // Step 3: Replace underscores with spaces
+    for (int j = 0; str[j] != '\0'; j++) {
+        if (str[j] == '_') {
+            str[j] = ' ';
+        }
+    }
 }
 
 void shorten_string(char *str, size_t max_length)
