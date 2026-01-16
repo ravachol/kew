@@ -47,5 +47,6 @@ bool init_theme(int argc, char *argv[]);
 FileSystemEntry *get_chosen_dir(void);
 void request_next_visualization(void);
 void request_stop_visualization(void);
+int get_footer_text(char *restrict text, size_t size);
 
 #endif

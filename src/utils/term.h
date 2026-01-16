@@ -24,6 +24,7 @@ int is_input_available(void);
 int read_input_sequence(char *seq, size_t seq_size);
 void set_terminal_color(int color);
 void set_text_color_RGB(int r, int g, int b);
+void set_term_size();
 void get_term_size(int *width, int *height);
 void set_nonblocking_mode(void);
 void restore_terminal_mode(void);

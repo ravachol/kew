@@ -18,6 +18,8 @@
 * John Lakeman @j-lakeman <le0324tb@anonaddy.me>
 * @noiamnote
 * Matthias Geiger @werdahias <werdahias@riseup.net>
+* Michael Petö @petoem
+* @Moksh-Parikh
 * @Overionised
 * Ravachol @ravachol <ravacholf@proton.me>
 * Rioprastyo17
@@ -55,6 +57,7 @@ We would like to extend our gratitude to the following individuals who have cont
 * Yuri @yurivict yuri@freebsd.org
 * Joey Schaff @jaoheah <jschaff@proton.me>
 * Agustin Ballesteros @agus-balles <arcpie@aur>
+* LeahTheSlug
 * Saijin Naib @Saijin_Naib
 * Xplshn @xplshn
 * Mateo @malteo <mateo@aur>

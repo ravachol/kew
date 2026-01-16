@@ -84,7 +84,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include <sys/stat.h>
 #include <unistd.h>
 
-const char VERSION[] = "3.7.3";
+const char VERSION[] = "4.0.0";
 
 AppState *state_ptr = NULL;
 
@@ -389,6 +389,8 @@ void kew_init(bool set_library_enqueued_status)
         state->uiSettings.LAST_ROW = _(" [F2 Playlist|F3 Library|F4 Track|F5 Search|F6 Help]");
         clear_screen();
         fflush(stdout);
+
+        set_term_size();
 
 #ifdef DEBUG
         // g_setenv("G_MESSAGES_DEBUG", "all", TRUE);
