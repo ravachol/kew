@@ -204,6 +204,8 @@ Disable by pressing <kbd>b</kbd>.
 </div>
 <br><br>
 
+This works by kew being fed frames from Chroma and does not add bloat to kew.
+
 ## If Colors or Graphics Look Wrong
 
 Cycle <kbd>i</kbd> until they look right.
