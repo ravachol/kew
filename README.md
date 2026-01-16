@@ -40,6 +40,11 @@ kew (/kjuː/) is a terminal music player.
  * Supports lyrics through .lrc files, embedded SYLT (Mp3) or Vorbis comments (Flac,Ogg,Opus).
  * Use themes or colors derived from covers.
 
+
+ ## ⚠️ This repository has moved to Codeberg!
+Active development and issue tracking now happens at [Codeberg](https://codeberg.org/ravachol/kew).
+Please open new issues and pull requests there.
+
 ## Installing
 
 <a href="https://repology.org/project/kew/versions"><img src="https://repology.org/badge/vertical-allrepos/kew.svg" alt="Packaging status" align="right"></a>
