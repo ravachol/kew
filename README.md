@@ -189,7 +189,7 @@ Try the theme editor (by @bholroyd): [https://bholroyd.github.io/Kew-tip/](https
 
 ## Visulizations / Chroma
 
-You can add visualizations to kew by installing Chroma:
+Starting with kew 4.0, you can add visualizations to kew by installing Chroma:
 
 https://github.com/yuri-xyz/chroma
 
