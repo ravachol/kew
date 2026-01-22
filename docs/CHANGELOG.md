@@ -33,6 +33,7 @@ Thank you @yuri-xyz for helping out with this.
 
 - Fixed trim() segfaults on NetBSD 11 (sometimes). By @ravachol. Reported by @ktnb-netbsd.
 
+- Fixed side cover on library view sometimes appearing at the bottom and not centered. Reported by @LeahTheSlug. By @petoem.
 
 ## 3.7.3
 
