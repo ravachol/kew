@@ -2013,7 +2013,7 @@ void print_side_cover(SongData *songdata)
                                 corrected_width = (int)(target_height * aspect_ratio_correction);
                         }
 
-                        row = term_h / 2 - (target_height / 2);
+                        row = lroundf((float)term_h / 2.0 - ((float)target_height / 2.0));
 
                         if (target_height > MIN_COVER_SIZE && ui->hideSideCover != 1) {
                                 print_cover(row, col, target_height, false, songdata);
