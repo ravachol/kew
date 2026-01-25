@@ -74,6 +74,8 @@ void save_named_playlist(const char *directory, const char *playlist_name, const
 void save_favorites_playlist(const char *directory, PlayList *favorites_playlist);
 void deep_copy_play_list_onto_list(const PlayList *original_list, PlayList **new_list);
 void create_play_list_from_file_system_entry(FileSystemEntry *root, PlayList *list, int playlist_max);
+void build_playlist_recursive(const char *directory_path,
+                              const char *allowed_extensions, PlayList *playlist);
 void add_shuffled_albums_to_play_list(FileSystemEntry *root, PlayList *list, int playlist_max);
 void move_up_list(PlayList *list, Node *node);
 void move_down_list(PlayList *list, Node *node);

@@ -429,46 +429,20 @@ void init_default_state(void)
         run(false);
 }
 
-void restore_music_path(){
-    AppSettings *settings = get_app_settings();
-    if (settings->original_music_path[0] != '\0') {
-        c_strcpy(settings->path, settings->original_music_path, sizeof(settings->path));
-        set_path(settings->path);
-        settings->original_music_path[0] = '\0';
-    }
-}
 
-static bool handle_play_command(int *argc, char **argv, AppSettings *settings) {
-            char de_expanded[PATH_MAX];
+static bool handle_play_command_playlist(int *argc, char **argv) {
+        char de_expanded[PATH_MAX];
+        // Working with multiple files
+        //validate all paths
 
-            if (expand_path(argv[2], de_expanded) != 0) {
-                return false;
-            }
-
-            else if (!exists_file(de_expanded)) {
-                return false;
-            }
-
-                strcpy(settings->original_music_path, settings->path);
-                // Check if it's a directory
-                if ( is_directory(de_expanded)) {
-                        // It's a directory, return true (path should change)
-                        c_strcpy(settings->path, de_expanded, sizeof(settings->path));
-                        set_path(settings->path);
-                        return true;
-                }
-
-                else{
-                        // It's a file, change argv[1] to the song name
-                        char directory[PATH_MAX];
-                        get_directory_from_path(de_expanded, directory);
-
-                        c_strcpy(settings->path, directory, sizeof(settings->path));
-
-                        *argc = 2;
-                        argv[1] = strrchr(de_expanded, '/') ? strrchr(de_expanded, '/') + 1 : de_expanded;
+        for(int i = 2; i < *argc; i++){
+                if ((expand_path(argv[i], de_expanded) != 0) || !exists_file(de_expanded)) {
                         return false;
                 }
+        }
+        play_command_with_playlist(argc, argv, de_expanded);
+
+        return true;
 }
 
 
@@ -479,7 +453,6 @@ void kew_shutdown()
         FileSystemEntry *library = get_library();
         AppSettings *settings = get_app_settings();
         PlayList *favorites_playlist = get_favorites_playlist();
-        restore_music_path();
 
 #ifndef __ANDROID__
         stop_at_shutdown();
@@ -725,7 +698,7 @@ int main(int argc, char *argv[])
         init_key_mappings(settings);
         set_track_title_as_window_title();
 
-        bool run_for_temporary_path = false;
+        bool run_for_play_command_with_playlist = false;
 
         if (argc == 3 && (strcmp(argv[1], "path") == 0)) {
                 char de_expanded[PATH_MAX];
@@ -734,9 +707,10 @@ int main(int argc, char *argv[])
                 set_path(settings->path);
                 exit(0);
         }
-        else if (argc == 3 && (strcmp(argv[1], "play") == 0)) {
-                run_for_temporary_path = handle_play_command(&argc, argv, settings);
+        else if (argc >= 3 && (strcmp(argv[1], "play") == 0)) {
+                run_for_play_command_with_playlist = handle_play_command_playlist(&argc, argv);
         }
+
 
 
         enable_mouse(&(state->uiSettings));
@@ -759,7 +733,7 @@ int main(int argc, char *argv[])
 
         init_theme(argc, argv);
 
-        if ((argc == 1) || (run_for_temporary_path == true)) {
+        if (argc == 1) {
                 init_default_state();
         } else if (argc == 2 && strcmp(argv[1], "all") == 0) {
                 kew_init(false);
@@ -773,7 +747,12 @@ int main(int argc, char *argv[])
                 kew_init(false);
                 play_favorites_playlist();
                 run(true);
-        } else if (argc >= 2) {
+        } else if(run_for_play_command_with_playlist){
+                kew_init(false);
+                FileSystemEntry *library = get_library();
+                mark_list_as_enqueued(library, playlist);
+                run(true);
+        }else if (argc >= 2) {
                 kew_init(false);
                 make_playlist(&playlist, argc, argv, exact_search, settings->path);
 
