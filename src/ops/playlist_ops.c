@@ -29,6 +29,7 @@
 
 #include "ui/player_ui.h"
 #include "utils/utils.h"
+#include "utils/file.h"
 
 static bool skip_in_progress = false;
 
@@ -958,3 +959,21 @@ void play_all_albums(void)
 
         mark_list_as_enqueued(library, playlist);
 }
+
+
+void play_command_with_playlist(int *argc, char **argv,char *de_expanded)
+{
+        PlayList *playlist = get_playlist();
+        const char *allowed_extensions = MUSIC_FILE_EXTENSIONS;
+
+        for(int i = 2; i < *argc; i++){
+                expand_path(argv[i], de_expanded);
+
+                build_playlist_recursive(de_expanded, allowed_extensions, playlist);
+        }
+
+        if (playlist->count == 0) {
+                exit(0);
+        }
+}
+
