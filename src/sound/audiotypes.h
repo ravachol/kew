@@ -1,3 +1,10 @@
+/**
+ * @file sound.[h]
+ * @brief Decoders.
+ *
+ * Supported Audio types. Built-in are miniaudios supported audio types flac, mp3 and wav.
+ */
+
 #ifndef AUDIOTYPES_H
 #define AUDIOTYPES_H
 

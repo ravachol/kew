@@ -1,3 +1,11 @@
+/**
+ * @file sound.[h]
+ * @brief Decoders.
+ *
+ * Get audio file info.
+ */
+
+
 #ifndef AUDIO_FILEINFO_H
 #define AUDIO_FILEINFO_H
 
