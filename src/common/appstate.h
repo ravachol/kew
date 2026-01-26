@@ -223,7 +223,6 @@ typedef struct
 typedef struct
 {
         char path[PATH_MAX];
-        char original_music_path[PATH_MAX];
         char theme[NAME_MAX];
         char ansiTheme[NAME_MAX];
         char colorMode[6];
