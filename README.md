@@ -88,6 +88,8 @@ kew play "/home/joe/Musik/Fridge - (2007) The Sun/" (Plays this album, location 
 
 kew play "/home/joe/Musik/moonlight sonata.flac" (Plays moonlight sonata, location can be anywhere)
 
+kew play <album path> <album path> <song path> (play can take multiple album paths or song paths and add them all into temporary playlist)
+
 kew list <playlist> (or a playlist)
 
 kew theme midnight (sets the 'midnight.theme' theme).
