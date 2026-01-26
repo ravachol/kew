@@ -40,5 +40,7 @@ void play_post_processing(bool was_end_of_list);
 void play_favorites_playlist(void);
 void play_all(void);
 void play_all_albums(void);
+void play_command_with_playlist(int *argc, char **argv);
+
 
 #endif
