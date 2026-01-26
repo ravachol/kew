@@ -1,3 +1,10 @@
+/**
+ * @file sound.[h]
+ * @brief Decoders.
+ *
+ * Decoder related functions.
+ */
+
 #ifndef DECODERS_H
 #define DECODERS_H
 

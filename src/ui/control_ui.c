@@ -37,8 +37,8 @@ void seek_forward(void)
         Node *current = get_current_song();
         if (current == NULL)
                 return;
-
         double duration = current->song.duration;
+
         if (duration <= 0.0)
                 return;
 
@@ -133,6 +133,7 @@ void cycle_themes(void)
         UISettings *ui = &(state->uiSettings);
 
         char *config_path = get_config_path();
+
         if (!config_path)
                 return;
 
@@ -140,6 +141,7 @@ void cycle_themes(void)
         snprintf(themes_path, sizeof(themes_path), "%s/themes", config_path);
 
         DIR *dir = opendir(themes_path);
+
         if (!dir) {
                 perror("Failed to open themes directory");
                 return;
