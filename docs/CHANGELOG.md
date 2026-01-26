@@ -19,8 +19,6 @@ Thank you @yuri-xyz for helping out with this.
 
 #### Bug Fixes
 
-- Fixed trim seg faults on NetBSD 11 (sometimes). Reported by @ktnb-netbsd.
-
 - Do not strip the number from a song title if it's connected to an alphanumeric character, like '10th song.flac'. Suggested by @bholroyd.
 
 - Fix switching view via mouse leads to wrong view or no view is changed on macOS. By @petoem.
