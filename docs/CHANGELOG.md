@@ -33,6 +33,10 @@ Thank you @yuri-xyz for helping out with this.
 
 - Fixed side cover on library view sometimes appearing at the bottom and not centered. Reported by @LeahTheSlug. By @petoem.
 
+#### Special Thanks
+
+Special thanks to @petoem who has been very active. Also @LeahTheSlug and @Overionised.
+
 ## 3.7.3
 
 #### New Features
