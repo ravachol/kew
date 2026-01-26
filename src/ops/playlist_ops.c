@@ -31,6 +31,7 @@
 #include "utils/utils.h"
 #include "utils/file.h"
 
+
 static bool skip_in_progress = false;
 
 Node *choose_next_song(void)
@@ -961,15 +962,13 @@ void play_all_albums(void)
 }
 
 
-void play_command_with_playlist(int *argc, char **argv,char *de_expanded)
+void play_command_with_playlist(int *argc, char **argv)
 {
         PlayList *playlist = get_playlist();
         const char *allowed_extensions = MUSIC_FILE_EXTENSIONS;
 
         for(int i = 2; i < *argc; i++){
-                expand_path(argv[i], de_expanded);
-
-                build_playlist_recursive(de_expanded, allowed_extensions, playlist);
+                build_playlist_recursive(argv[i], allowed_extensions, playlist);
         }
 
         if (playlist->count == 0) {
