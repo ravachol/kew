@@ -4,6 +4,10 @@
 * **Ravachol** @ravachol <ravacholf@proton.me>
   * Founder and Main Author
 
+## Advisors
+* @LeahtheSlug (Advisor)
+* @petoem Michael Petö (Technical advisor)
+
 ## Contributors (in alphabetical order)
 
 * Alex Hart @hartalex <alex_codeberg@hart.gg>
