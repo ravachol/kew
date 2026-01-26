@@ -436,11 +436,11 @@ static bool handle_play_command_playlist(int *argc, char **argv) {
         //validate all paths
 
         for(int i = 2; i < *argc; i++){
-                if ((expand_path(argv[i], de_expanded) != 0) || !exists_file(de_expanded)) {
+                if ((expand_path(argv[i], de_expanded) != 0) || (exists_file(de_expanded) == -1)) {
                         return false;
                 }
         }
-        play_command_with_playlist(argc, argv, de_expanded);
+        play_command_with_playlist(argc, argv);
 
         return true;
 }
