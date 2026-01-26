@@ -1,3 +1,11 @@
+/**
+ * @file sound.[h]
+ * @brief Playback related functions.
+ *
+ * Provides an api for stopping, starting and so on.
+ * and switching decoders.
+ */
+
 #ifndef PLAYBACK_H
 #define PLAYBACK_H
 
