@@ -13,6 +13,8 @@ Chroma is started from within kew. Just switch to track view and press c to cycl
 
 Thank you @yuri-xyz for helping out with this.
 
+- kew play \<path\> \<path2\> command. by @Overionised. Suggested by @amigthea.
+
 - Lyrics page now centers the current lyric once it reaches the center of the screen. Suggested by @flashfire1001. Implemented by @Moksh-Parikh.
 
 - Smoother gradient for non default sized spectrum visualizers. By @ravachol. Suggested by @Saijin_Naib.
