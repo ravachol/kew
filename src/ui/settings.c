@@ -581,6 +581,8 @@ void set_default_config(AppSettings *settings)
 {
         memset(settings, 0, sizeof(AppSettings));
         c_strcpy(settings->coverEnabled, "1", sizeof(settings->coverEnabled));
+        c_strcpy(settings->stripTrackNumbers, "1",
+                 sizeof(settings->stripTrackNumbers));
         c_strcpy(settings->allowNotifications, "1",
                  sizeof(settings->allowNotifications));
         c_strcpy(settings->coverAnsi, "0", sizeof(settings->coverAnsi));
@@ -1021,6 +1023,10 @@ void construct_app_settings(AppSettings *settings, KeyValuePair *pairs, int coun
                 } else if (strcmp(lowercase_key, "allownotifications") == 0) {
                         snprintf(settings->allowNotifications,
                                  sizeof(settings->allowNotifications), "%s",
+                                 pair->value);
+                } else if (strcmp(lowercase_key, "striptracknumbers") == 0) {
+                        snprintf(settings->stripTrackNumbers,
+                                 sizeof(settings->stripTrackNumbers), "%s",
                                  pair->value);
                 } else if (strcmp(lowercase_key, "colormode") == 0) {
                         snprintf(settings->colorMode, sizeof(settings->colorMode), "%s",
@@ -1626,6 +1632,14 @@ void set_prefs(AppSettings *settings, UISettings *ui)
                                sizeof(settings->allowNotifications))
                     : c_strcpy(settings->allowNotifications, "0",
                                sizeof(settings->allowNotifications));
+
+        if (settings->stripTrackNumbers[0] == '\0')
+                ui->stripTrackNumbers
+                    ? c_strcpy(settings->stripTrackNumbers, "1",
+                               sizeof(settings->stripTrackNumbers))
+                    : c_strcpy(settings->stripTrackNumbers, "0",
+                               sizeof(settings->stripTrackNumbers));
+
         if (settings->coverEnabled[0] == '\0')
                 ui->coverEnabled ? c_strcpy(settings->coverEnabled, "1",
                                             sizeof(settings->coverEnabled))
@@ -1665,6 +1679,7 @@ void set_prefs(AppSettings *settings, UISettings *ui)
 
         fprintf(file, "\n[miscellaneous]\n\n");
         fprintf(file, "allowNotifications=%s\n\n", settings->allowNotifications);
+        fprintf(file, "stripTrackNumbers=%s\n\n", settings->stripTrackNumbers);
 
         if (ui->saveRepeatShuffleSettings) {
                 fprintf(file, "repeatState=%s\n\n", settings->repeatState);
@@ -1752,6 +1767,13 @@ void set_config(AppSettings *settings, UISettings *ui)
                                sizeof(settings->allowNotifications))
                     : c_strcpy(settings->allowNotifications, "0",
                                sizeof(settings->allowNotifications));
+
+        if (settings->stripTrackNumbers[0] == '\0')
+                ui->stripTrackNumbers
+                    ? c_strcpy(settings->stripTrackNumbers, "1",
+                               sizeof(settings->stripTrackNumbers))
+                    : c_strcpy(settings->stripTrackNumbers, "0",
+                               sizeof(settings->stripTrackNumbers));
         if (settings->coverEnabled[0] == '\0')
                 ui->coverEnabled ? c_strcpy(settings->coverEnabled, "1",
                                             sizeof(settings->coverEnabled))
@@ -1847,6 +1869,7 @@ void set_config(AppSettings *settings, UISettings *ui)
         fprintf(file, "\n[miscellaneous]\n\n");
         fprintf(file, "path=%s\n", settings->path);
         fprintf(file, "allowNotifications=%s\n", settings->allowNotifications);
+        fprintf(file, "stripTrackNumbers=%s\n", settings->stripTrackNumbers);
         fprintf(file, "hideLogo=%s\n", settings->hideLogo);
         fprintf(file, "hideHelp=%s\n", settings->hideHelp);
         fprintf(file, "hideSideCover=%s\n\n", settings->hideSideCover);
