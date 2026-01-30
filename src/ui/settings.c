@@ -581,7 +581,7 @@ void set_default_config(AppSettings *settings)
 {
         memset(settings, 0, sizeof(AppSettings));
         c_strcpy(settings->coverEnabled, "1", sizeof(settings->coverEnabled));
-        c_strcpy(settings->stripTrackNumbers, "1",
+        c_strcpy(settings->stripTrackNumbers, "0",
                  sizeof(settings->stripTrackNumbers));
         c_strcpy(settings->allowNotifications, "1",
                  sizeof(settings->allowNotifications));
@@ -866,7 +866,7 @@ static char *parse_field(char **s)
         return strdup(buffer); // return a copy
 }
 
-void construct_app_settings(AppSettings *settings, KeyValuePair *pairs, int count)
+void construct_app_settings(AppSettings *settings, KeyValuePair *pairs, int count, bool is_prefs)
 {
         if (pairs == NULL) {
                 return;
@@ -1025,9 +1025,10 @@ void construct_app_settings(AppSettings *settings, KeyValuePair *pairs, int coun
                                  sizeof(settings->allowNotifications), "%s",
                                  pair->value);
                 } else if (strcmp(lowercase_key, "striptracknumbers") == 0) {
-                        snprintf(settings->stripTrackNumbers,
-                                 sizeof(settings->stripTrackNumbers), "%s",
-                                 pair->value);
+                        if (!is_prefs)
+                                snprintf(settings->stripTrackNumbers,
+                                         sizeof(settings->stripTrackNumbers),
+                                         "%s", pair->value);
                 } else if (strcmp(lowercase_key, "colormode") == 0) {
                         snprintf(settings->colorMode, sizeof(settings->colorMode), "%s",
                                  pair->value);
@@ -1549,14 +1550,13 @@ void get_prefs(AppSettings *settings, UISettings *ui)
             read_key_value_pairs(filepath, &pair_count, &(ui->last_time_app_ran));
 
         free(filepath);
-        construct_app_settings(settings, pairs, pair_count);
+        construct_app_settings(settings, pairs, pair_count, true);
 
         int tmp = get_number(settings->repeatState);
         if (tmp >= 0)
                 ui->repeatState = tmp;
 
-        if (settings->chromaPreset[0] != '\0')
-        {
+        if (settings->chromaPreset[0] != '\0') {
                 tmp = get_number(settings->chromaPreset);
 
                 if (tmp >= 0)
@@ -1605,7 +1605,7 @@ void get_config(AppSettings *settings, UISettings *ui)
 
         free(filepath);
 
-        construct_app_settings(settings, pairs, pair_count);
+        construct_app_settings(settings, pairs, pair_count, false);
 
         free(configdir);
 }
@@ -1632,13 +1632,6 @@ void set_prefs(AppSettings *settings, UISettings *ui)
                                sizeof(settings->allowNotifications))
                     : c_strcpy(settings->allowNotifications, "0",
                                sizeof(settings->allowNotifications));
-
-        if (settings->stripTrackNumbers[0] == '\0')
-                ui->stripTrackNumbers
-                    ? c_strcpy(settings->stripTrackNumbers, "1",
-                               sizeof(settings->stripTrackNumbers))
-                    : c_strcpy(settings->stripTrackNumbers, "0",
-                               sizeof(settings->stripTrackNumbers));
 
         if (settings->coverEnabled[0] == '\0')
                 ui->coverEnabled ? c_strcpy(settings->coverEnabled, "1",
@@ -1679,7 +1672,6 @@ void set_prefs(AppSettings *settings, UISettings *ui)
 
         fprintf(file, "\n[miscellaneous]\n\n");
         fprintf(file, "allowNotifications=%s\n\n", settings->allowNotifications);
-        fprintf(file, "stripTrackNumbers=%s\n\n", settings->stripTrackNumbers);
 
         if (ui->saveRepeatShuffleSettings) {
                 fprintf(file, "repeatState=%s\n\n", settings->repeatState);
@@ -1845,9 +1837,9 @@ void set_config(AppSettings *settings, UISettings *ui)
                                         sizeof(settings->hideHelp));
         if (settings->hideSideCover[0] == '\0')
                 ui->hideSideCover ? c_strcpy(settings->hideSideCover, "1",
-                                        sizeof(settings->hideSideCover))
-                             : c_strcpy(settings->hideSideCover, "0",
-                                        sizeof(settings->hideSideCover));
+                                             sizeof(settings->hideSideCover))
+                                  : c_strcpy(settings->hideSideCover, "0",
+                                             sizeof(settings->hideSideCover));
         if (settings->visualizer_height[0] == '\0')
                 snprintf(settings->visualizer_height,
                          sizeof(settings->visualizer_height), "%d",
