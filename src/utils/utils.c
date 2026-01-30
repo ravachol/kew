@@ -476,6 +476,7 @@ char *get_file_path(const char *filename)
 
 void format_filename(char *str)
 {
+        // TODO: Logic for stripping track numbers needs review, temporary disable it to avoid issues.
         if (get_app_state()->uiSettings.stripTrackNumbers) {
                 int i = 0;
                 int last_digit_start = -1;
