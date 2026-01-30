@@ -8,8 +8,6 @@
 #include "chroma.h"
 
 #include "data/img_func.h"
-#include "utils/term.h"
-#include "utils/utils.h"
 
 #include <pthread.h>
 #include <stdbool.h>
@@ -210,7 +208,6 @@ static void *chroma_thread(void *arg)
 
 void chroma_start(int height)
 {
-        (void)height;
         if (g_viz.running)
                 return;
         g_viz.running = 1;
