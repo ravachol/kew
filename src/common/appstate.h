@@ -166,6 +166,7 @@ typedef struct
         PixelData defaultColorRGB;
         PixelData kewColorRGB;
         int chromaPreset;
+        bool stripTrackNumbers;
         bool visualizations_instead_of_cover;
 } UISettings;
 
@@ -334,6 +335,7 @@ typedef struct
         char shuffle_enabled[2];
         char trackTitleAsWindowTitle[2];
         char showLyricsPage[6];
+        char stripTrackNumbers[2];
         char chromaPreset[6];
 } AppSettings;
 
