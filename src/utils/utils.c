@@ -522,7 +522,25 @@ void format_filename(char *str)
 
                 // Step 2: Remove the prefix
                 if (i > 0) {
-                        memmove(str, str + i, strlen(str + i) + 1);
+                        // Check if removing would leave invalid filename
+                        char *dot = strrchr(str, '.');
+                        bool would_leave_invalid = false;
+                        if (dot) {
+                                int last_dot = dot - str;
+                                if (i >= last_dot) {
+                                        would_leave_invalid = true;
+                                }
+                        } else {
+                                // No extension, check if removing leaves empty string
+                                if (strlen(str + i) == 0) {
+                                        would_leave_invalid = true;
+                                }
+                        }
+                        if (would_leave_invalid) {
+                                // Keep the original string
+                        } else {
+                                memmove(str, str + i, strlen(str + i) + 1);
+                        }
                 }
         }
 
