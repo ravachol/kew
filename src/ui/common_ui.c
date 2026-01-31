@@ -488,7 +488,7 @@ void process_name(const char *name, char *output, int max_width,
                 copy_half_or_full_width_chars_with_max_width(name, output, max_width);
         }
 
-        if (strip_unneeded_chars)
+        if (strip_unneeded_chars && get_app_state()->uiSettings.stripTrackNumbers)
                 format_filename(output);
 
         trim(output, strlen(output));
@@ -527,7 +527,9 @@ void process_name_scroll(const char *name, char *output, int max_width,
 
                 c_strcpy(output, name + start, max_width + 1);
 
-                format_filename(output);
+                if (get_app_state()->uiSettings.stripTrackNumbers)
+                        format_filename(output);
+
                 trim(output, max_width);
 
                 last_name_position++;
