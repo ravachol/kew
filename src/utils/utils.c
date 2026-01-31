@@ -7,6 +7,7 @@
  */
 
 #include "utils.h"
+#include "common/appstate.h"
 
 #include <ctype.h>
 #include <fcntl.h>
@@ -475,59 +476,80 @@ char *get_file_path(const char *filename)
 
 void format_filename(char *str)
 {
-    int i = 0;
-    int last_digit_start = -1;
+        // TODO: Logic for stripping track numbers needs review, temporary disable it to avoid issues.
+        if (get_app_state()->uiSettings.stripTrackNumbers) {
+                int i = 0;
+                int last_digit_start = -1;
 
-    // Scan through the prefix
-    while (str[i] != '\0') {
+                // Scan through the prefix
+                while (str[i] != '\0') {
 
-        if (isdigit((unsigned char)str[i])) {
-            // Mark start of numeric block
-            if (last_digit_start == -1) {
-                last_digit_start = i;
-            }
+                        if (isdigit((unsigned char)str[i])) {
+                                // Mark start of numeric block
+                                if (last_digit_start == -1) {
+                                        last_digit_start = i;
+                                }
 
-            // Check if next character is a letter, then rollback
-            if (isalpha((unsigned char)str[i + 1])) {
-                // Roll back to before this numeric block
-                i = last_digit_start;
-                break;
-            }
-        } else if (str[i] == '-' || str[i] == '_' || str[i] == '.' || str[i] == ' ') {
-            // Separator, continue
-        } else if (isalpha((unsigned char)str[i])) {
-            // Letter reached, stop
-            break;
-        } else {
-            // Other characters, stop
-            break;
+                                // Check if next character is a letter, then rollback
+                                if (isalpha((unsigned char)str[i + 1])) {
+                                        // Roll back to before this numeric block
+                                        i = last_digit_start;
+                                        break;
+                                }
+                        } else if (str[i] == '-' || str[i] == '_' || str[i] == '.' || str[i] == ' ') {
+                                // Separator, continue
+                        } else if (isalpha((unsigned char)str[i])) {
+                                // Letter reached, stop
+                                break;
+                        } else {
+                                // Other characters, stop
+                                break;
+                        }
+
+                        // If current char is not a digit, reset last_digit_start
+                        if (!isdigit((unsigned char)str[i])) {
+                                last_digit_start = -1;
+                        }
+
+                        i++;
+
+                        // Remove blocks such as 01-100 at the max
+                        if (i > 6) {
+                                i = 6;
+                                break; // Exit the loop since we've hit the maximum
+                        }
+                }
+
+                // Step 2: Remove the prefix
+                if (i > 0) {
+                        // Check if removing would leave invalid filename
+                        char *dot = strrchr(str, '.');
+                        bool would_leave_invalid = false;
+                        if (dot) {
+                                int last_dot = dot - str;
+                                if (i >= last_dot) {
+                                        would_leave_invalid = true;
+                                }
+                        } else {
+                                // No extension, check if removing leaves empty string
+                                if (strlen(str + i) == 0) {
+                                        would_leave_invalid = true;
+                                }
+                        }
+                        if (would_leave_invalid) {
+                                // Keep the original string
+                        } else {
+                                memmove(str, str + i, strlen(str + i) + 1);
+                        }
+                }
         }
 
-        // If current char is not a digit, reset last_digit_start
-        if (!isdigit((unsigned char)str[i])) {
-            last_digit_start = -1;
+        // Step 3: Replace underscores with spaces
+        for (int j = 0; str[j] != '\0'; j++) {
+                if (str[j] == '_') {
+                        str[j] = ' ';
+                }
         }
-
-        i++;
-
-        // Remove blocks such as 01-100 at the max
-        if (i > 6) {
-            i = 6;
-            break; // Exit the loop since we've hit the maximum
-        }
-    }
-
-    // Step 2: Remove the prefix
-    if (i > 0) {
-        memmove(str, str + i, strlen(str + i) + 1);
-    }
-
-    // Step 3: Replace underscores with spaces
-    for (int j = 0; str[j] != '\0'; j++) {
-        if (str[j] == '_') {
-            str[j] = ' ';
-        }
-    }
 }
 
 void shorten_string(char *str, size_t max_length)
