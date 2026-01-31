@@ -581,7 +581,7 @@ void set_default_config(AppSettings *settings)
 {
         memset(settings, 0, sizeof(AppSettings));
         c_strcpy(settings->coverEnabled, "1", sizeof(settings->coverEnabled));
-        c_strcpy(settings->stripTrackNumbers, "0",
+        c_strcpy(settings->stripTrackNumbers, "1",
                  sizeof(settings->stripTrackNumbers));
         c_strcpy(settings->allowNotifications, "1",
                  sizeof(settings->allowNotifications));
