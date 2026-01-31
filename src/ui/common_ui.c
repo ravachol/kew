@@ -120,6 +120,7 @@ void transfer_settings_to_ui(void)
         UISettings *ui = &(state->uiSettings);
 
         ui->allowNotifications = (settings->allowNotifications[0] == '1');
+        ui->stripTrackNumbers = (settings->stripTrackNumbers[0] == '1');
         ui->coverEnabled = (settings->coverEnabled[0] == '1');
         ui->coverAnsi = (settings->coverAnsi[0] == '1');
         ui->hideHelp = (settings->hideHelp[0] == '1');
