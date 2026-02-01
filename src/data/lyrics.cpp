@@ -9,6 +9,7 @@
 
 #include "lyrics.h"
 
+#include <algorithm>
 #include <cctype>
 #include <cstdlib>
 #include <cstring>
@@ -30,6 +31,12 @@
 #include <taglib/vorbisfile.h>
 #include <taglib/xiphcomment.h>
 
+// LRC Compare function
+static bool compareLyricsLine(const LyricsLine &a, const LyricsLine &b)
+{
+        return a.timestamp < b.timestamp;
+}
+
 // LRC Loader
 static int loadTimedLyrics(FILE *file, Lyrics *lyrics)
 {
@@ -40,40 +47,51 @@ static int loadTimedLyrics(FILE *file, Lyrics *lyrics)
 
         char lineBuffer[1024];
 
-        while (fgets(lineBuffer, sizeof(lineBuffer), file))
-        {
+        while (fgets(lineBuffer, sizeof(lineBuffer), file)) {
                 if (lineBuffer[0] != '[' || !isdigit((unsigned char)lineBuffer[1]))
                         continue;
 
-                int min = 0, sec = 0, cs = 0;
-                char text[512] = {0};
-
-                if (sscanf(lineBuffer, "[%d:%d.%d]%511[^\r\n]", &min, &sec, &cs, text) == 4)
-                {
-                        if (lyrics->count == capacity)
-                        {
-                                capacity *= 2;
-                                LyricsLine *newLines = (LyricsLine *)realloc(lyrics->lines, sizeof(LyricsLine) * capacity);
-                                if (!newLines)
-                                        return 0;
-                                lyrics->lines = newLines;
+                int min = 0, sec = 0, n = 0;
+                if (sscanf(lineBuffer, "[%d:%d%n", &min, &sec, &n) == 2) {
+                        char *ptr = lineBuffer + n;
+                        double frac = 0.0;
+                        if (*ptr == '.') {
+                                ptr++;
+                                double pad = 0.1;
+                                while (isdigit((unsigned char)*ptr)) {
+                                        frac += (*ptr - '0') * pad;
+                                        pad /= 10.0;
+                                        ptr++;
+                                }
                         }
 
-                        char *start = text;
-                        while (isspace((unsigned char)*start))
-                                start++;
-                        char *end = start + strlen(start);
-                        while (end > start && isspace((unsigned char)*(end - 1)))
-                                *(--end) = '\0';
+                        if (*ptr == ']') {
+                                ptr++;
+                                if (lyrics->count == capacity) {
+                                        capacity *= 2;
+                                        LyricsLine *newLines = (LyricsLine *)realloc(lyrics->lines, sizeof(LyricsLine) * capacity);
+                                        if (!newLines)
+                                                return 0;
+                                        lyrics->lines = newLines;
+                                }
 
-                        lyrics->lines[lyrics->count].timestamp = min * 60.0 + sec + cs / 100.0;
-                        lyrics->lines[lyrics->count].text = strdup(start);
-                        if (!lyrics->lines[lyrics->count].text)
-                                return 0;
+                                char *start = ptr;
+                                while (isspace((unsigned char)*start))
+                                        start++;
+                                char *end = start + strlen(start);
+                                while (end > start && isspace((unsigned char)*(end - 1)))
+                                        *(--end) = '\0';
 
-                        lyrics->count++;
+                                lyrics->lines[lyrics->count].timestamp = min * 60.0 + sec + frac;
+                                lyrics->lines[lyrics->count].text = strdup(start);
+                                if (!lyrics->lines[lyrics->count].text)
+                                        return 0;
+
+                                lyrics->count++;
+                        }
                 }
         }
+        std::stable_sort(lyrics->lines, lyrics->lines + lyrics->count, compareLyricsLine);
 
         lyrics->isTimed = 1;
         return 1;
@@ -89,8 +107,7 @@ static int loadUntimedLyrics(FILE *file, Lyrics *lyrics)
         char lineBuffer[1024];
         lyrics->count = 0;
 
-        while (fgets(lineBuffer, sizeof(lineBuffer), file))
-        {
+        while (fgets(lineBuffer, sizeof(lineBuffer), file)) {
                 char *newline = strpbrk(lineBuffer, "\r\n");
                 if (newline)
                         *newline = '\0';
@@ -98,8 +115,7 @@ static int loadUntimedLyrics(FILE *file, Lyrics *lyrics)
                 if (lineBuffer[0] == '\0')
                         continue;
 
-                if (lyrics->count == capacity)
-                {
+                if (lyrics->count == capacity) {
                         capacity *= 2;
                         LyricsLine *newLines = (LyricsLine *)realloc(lyrics->lines, sizeof(LyricsLine) * capacity);
                         if (!newLines)
@@ -137,8 +153,7 @@ Lyrics *loadLyricsFromLRC(const char *path)
                 return nullptr;
         Lyrics *lyrics = (Lyrics *)calloc(1, sizeof(Lyrics));
 
-        if (!lyrics)
-        {
+        if (!lyrics) {
                 fclose(file);
                 return nullptr;
         }
@@ -148,10 +163,8 @@ Lyrics *loadLyricsFromLRC(const char *path)
         // Detect if there are timestamps
         char lineBuffer[1024];
         int foundTimestamp = 0;
-        while (fgets(lineBuffer, sizeof(lineBuffer), file))
-        {
-                if (lineBuffer[0] == '[' && isdigit((unsigned char)lineBuffer[1]))
-                {
+        while (fgets(lineBuffer, sizeof(lineBuffer), file)) {
+                if (lineBuffer[0] == '[' && isdigit((unsigned char)lineBuffer[1])) {
                         foundTimestamp = 1;
                         break;
                 }
@@ -163,8 +176,7 @@ Lyrics *loadLyricsFromLRC(const char *path)
 
         fclose(file);
 
-        if (!ok)
-        {
+        if (!ok) {
                 freeLyrics(lyrics);
                 return nullptr;
         }
