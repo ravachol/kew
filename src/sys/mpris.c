@@ -537,11 +537,11 @@ static gboolean get_metadata(GDBusConnection *connection, const gchar *sender,
 
                 // Build list of strings for artist
                 const gchar *artist_list_storage[2];
-                artist_list_storage[0] = (g_strcmp0(current_song_data->metadata->artist, "")  == 0) ? "" : current_song_data->metadata->artist;
+                artist_list_storage[0] = (g_strcmp0(current_song_data->metadata->artist, "") == 0) ? "" : current_song_data->metadata->artist;
                 artist_list_storage[1] = NULL;
 
                 g_variant_builder_add(&metadata_builder, "{sv}", "xesam:artist",
-                      g_variant_new_strv(artist_list_storage, -1));
+                                      g_variant_new_strv(artist_list_storage, -1));
 
                 gchar *coverArtUrl =
                     g_strdup_printf("file://%s", current_song_data->cover_art_path);
@@ -568,7 +568,7 @@ static gboolean get_metadata(GDBusConnection *connection, const gchar *sender,
                 g_variant_builder_add(&metadata_builder, "{sv}", "xesam:title",
                                       g_variant_new_string(""));
 
-                static const gchar *empty_artist_list[] = { "", NULL };
+                static const gchar *empty_artist_list[] = {"", NULL};
                 g_variant_builder_add(
                     &metadata_builder, "{sv}", "xesam:artist",
                     g_variant_new_strv(empty_artist_list, -1));
