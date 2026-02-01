@@ -184,8 +184,7 @@ int handle_codec(
 
         if (ops.implType == M4A) {
                 get_m4a_file_info_full(file_path, &format, &channels, &sample_rate, channel_map, &avg_bit_rate, &file_type);
-        }
-        else {
+        } else {
                 ops.get_file_info(file_path, &format, &channels, &sample_rate, channel_map);
         }
 #else
@@ -196,8 +195,6 @@ int handle_codec(
         if (decoder != NULL && ops.get_decoder_format)
                 ops.get_decoder_format(decoder, &nFormat, &nChannels, &nSampleRate,
                                        nChannelMap, MA_MAX_CHANNELS);
-
-
 
         // sameFormat computation
         bool sameFormat = false;

@@ -42,5 +42,4 @@ void play_all(void);
 void play_all_albums(void);
 void play_command_with_playlist(int *argc, char **argv);
 
-
 #endif

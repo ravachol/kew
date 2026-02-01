@@ -342,11 +342,11 @@ void run(bool start_playing)
 
 void init_locale(void)
 {
-    setlocale(LC_ALL, "");
-    setlocale(LC_CTYPE, "");
+        setlocale(LC_ALL, "");
+        setlocale(LC_CTYPE, "");
 
-    bindtextdomain("kew", LOCALEDIR);
-    textdomain("kew");
+        bindtextdomain("kew", LOCALEDIR);
+        textdomain("kew");
 }
 
 void kew_init(bool set_library_enqueued_status)
@@ -429,13 +429,13 @@ void init_default_state(void)
         run(false);
 }
 
-
-static bool handle_play_command_playlist(int *argc, char **argv) {
+static bool handle_play_command_playlist(int *argc, char **argv)
+{
         char de_expanded[PATH_MAX];
         // Working with multiple files
         //validate all paths
 
-        for(int i = 2; i < *argc; i++){
+        for (int i = 2; i < *argc; i++) {
                 if ((expand_path(argv[i], de_expanded) != 0) || (exists_file(de_expanded) == -1)) {
                         return false;
                 }
@@ -444,7 +444,6 @@ static bool handle_play_command_playlist(int *argc, char **argv) {
 
         return true;
 }
-
 
 void kew_shutdown()
 {
@@ -648,25 +647,25 @@ void init_state(void)
 
 void force_terminal_restore(int sig)
 {
-    ssize_t res;
+        ssize_t res;
 
-    // Show cursor
-    res = write(STDOUT_FILENO, "\033[?25h", 7);
-    (void)res;
+        // Show cursor
+        res = write(STDOUT_FILENO, "\033[?25h", 7);
+        (void)res;
 
-    // Leave alternate screen
-    res = write(STDOUT_FILENO, "\033[?1049l", 8);
-    (void)res;
+        // Leave alternate screen
+        res = write(STDOUT_FILENO, "\033[?1049l", 8);
+        (void)res;
 
-    // Disable mouse
-    res = write(STDOUT_FILENO, "\033[?1000l", 9);
-    (void)res;
+        // Disable mouse
+        res = write(STDOUT_FILENO, "\033[?1000l", 9);
+        (void)res;
 
-    // Restore default handler for this signal
-    signal(sig, SIG_DFL);
+        // Restore default handler for this signal
+        signal(sig, SIG_DFL);
 
-    // Re-raise the signal so the kernel prints the crash message
-    raise(sig);
+        // Re-raise the signal so the kernel prints the crash message
+        raise(sig);
 }
 
 int main(int argc, char *argv[])
@@ -706,12 +705,9 @@ int main(int argc, char *argv[])
                 c_strcpy(settings->path, de_expanded, sizeof(settings->path));
                 set_path(settings->path);
                 exit(0);
-        }
-        else if (argc >= 3 && (strcmp(argv[1], "play") == 0)) {
+        } else if (argc >= 3 && (strcmp(argv[1], "play") == 0)) {
                 run_for_play_command_with_playlist = handle_play_command_playlist(&argc, argv);
         }
-
-
 
         enable_mouse(&(state->uiSettings));
         enter_alternate_screen_buffer();
@@ -747,12 +743,12 @@ int main(int argc, char *argv[])
                 kew_init(false);
                 play_favorites_playlist();
                 run(true);
-        } else if(run_for_play_command_with_playlist){
+        } else if (run_for_play_command_with_playlist) {
                 kew_init(false);
                 FileSystemEntry *library = get_library();
                 mark_list_as_enqueued(library, playlist);
                 run(true);
-        }else if (argc >= 2) {
+        } else if (argc >= 2) {
                 kew_init(false);
                 make_playlist(&playlist, argc, argv, exact_search, settings->path);
 
