@@ -119,7 +119,7 @@ FileSystemEntry *enqueue_songs(FileSystemEntry *entry, FileSystemEntry **chosen_
                              strcmp(entry->full_path, (*chosen_dir)->full_path) == 0)) {
                                 if (has_dequeued_children(entry)) {
                                         if (entry->parent == NULL) // Shuffle playlist if it's
-                                                  // the root
+                                                                   // the root
                                                 shuffle = true;
 
                                         has_enqueued = enqueue_children(entry->children, &first_enqueued_entry);
@@ -196,8 +196,7 @@ FileSystemEntry *enqueue_songs(FileSystemEntry *entry, FileSystemEntry **chosen_
 
                 shuffle_playlist(playlist);
                 set_song_to_start_from(NULL);
-        }
-        else if (ps->nextSongNeedsRebuilding) {
+        } else if (ps->nextSongNeedsRebuilding) {
                 reshuffle_playlist();
         }
 
@@ -236,22 +235,23 @@ FileSystemEntry *enqueue(FileSystemEntry *entry)
         return first_enqueued_entry;
 }
 
-Node* pick_random_node(Node* first) {
-    int count = 0;
-    Node* n = first;
+Node *pick_random_node(Node *first)
+{
+        int count = 0;
+        Node *n = first;
 
-    while (n) {
-        count++;
-        n = n->next;
-    }
+        while (n) {
+                count++;
+                n = n->next;
+        }
 
-    int idx = rand() % count;
+        int idx = rand() % count;
 
-    n = first;
-    while (idx--)
-        n = n->next;
+        n = first;
+        while (idx--)
+                n = n->next;
 
-    return n;
+        return n;
 }
 
 void view_enqueue(bool play_immediately)
@@ -308,19 +308,16 @@ void view_enqueue(bool play_immediately)
                                 if (state->uiSettings.shuffle_enabled)
                                         reshuffle_playlist();
                         }
-                } else
-                {
+                } else {
                         FileSystemEntry *first_enqueued_entry = enqueue(entry); // Enqueue song
                         if (first_enqueued_entry)
                                 first_enqueued_node = find_path_in_playlist(first_enqueued_entry->full_path, playlist);
                 }
         }
 
-        if (first_enqueued_node && state->uiSettings.shuffle_enabled)
-        {
+        if (first_enqueued_node && state->uiSettings.shuffle_enabled) {
                 Node *unshuffled_node = find_path_in_playlist(first_enqueued_node->song.file_path, unshuffled_playlist);
-                if (unshuffled_node && unshuffled_node->next)
-                {
+                if (unshuffled_node && unshuffled_node->next) {
                         Node *rand = pick_random_node(unshuffled_node);
                         first_enqueued_node = find_path_in_playlist(rand->song.file_path, playlist);
                 }

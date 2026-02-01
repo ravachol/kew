@@ -419,7 +419,7 @@ int display_search_results(int row, int col, int max_list_size, int *chosen_row,
 
         int max_name_width = term_w - col - 5;
         if (!state->uiSettings.hideSideCover)
-                max_name_width -= col /4;
+                max_name_width -= col / 4;
         char name[max_name_width + 1];
         int printed_rows = 0;
 
@@ -517,7 +517,7 @@ int display_search_results(int row, int col, int max_list_size, int *chosen_row,
 int display_search(int row, int col, int max_list_size, int *chosen_row, int start_search_iter)
 {
         display_search_box(row, col);
-        printf("\033[%d;%dH", row+1, col);
+        printf("\033[%d;%dH", row + 1, col);
         clear_rest_of_line();
         display_search_results(row + 2, col, max_list_size, chosen_row, start_search_iter);
 
