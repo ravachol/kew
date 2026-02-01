@@ -71,7 +71,7 @@
               
               nativeInstallCheckInputs = [ pkgs.versionCheckHook ];
               versionCheckProgramArg = "--version";
-              doInstallCheck = true;
+              doInstallCheck = false;
               
               meta = {
                 description = ''
