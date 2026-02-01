@@ -1401,7 +1401,7 @@ int extractTags(const char *input_file, TagSettings *tag_settings,
                         tag_settings->date[0] = '\0';
                 }
         }
-        
+
         if (*lyrics == nullptr) {
                 if (auto mpegFile = dynamic_cast<TagLib::MPEG::File *>(f.file())) {
                         // 1) True synchronized lyrics (SYLT)

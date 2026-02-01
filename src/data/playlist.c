@@ -887,8 +887,7 @@ void deep_copy_play_list_onto_list(const PlayList *original_list, PlayList **new
 
                 memset(*new_list, 0, sizeof(PlayList));
                 pthread_mutex_init(&(*new_list)->mutex, NULL);
-        }
-        else if ((*new_list)->count > 0) {
+        } else if ((*new_list)->count > 0) {
                 empty_playlist(*new_list);
         }
 

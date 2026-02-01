@@ -113,22 +113,22 @@ typedef enum {
 
 typedef struct
 {
-        bool mouseEnabled;              // Accept mouse input or not
-        int mouseLeftClickAction;       // Left mouse action
-        int mouseMiddleClickAction;     // Middle mouse action
-        int mouseRightClickAction;      // Right mouse action
-        int mouseScrollUpAction;        // Mouse scroll up action
-        int mouseScrollDownAction;      // Mouse scroll down action
-        int mouseAltScrollUpAction;     // Mouse scroll up + alt action
-        int mouseAltScrollDownAction;   // Mouse scroll down + alt action
-        PixelData color;                // The current color, when using album derived colors
-        bool coverEnabled;              // Show covers or not
-        bool uiEnabled;                 // Show ui or not
-        bool coverAnsi;                 // Show chafa cover (picture perfect in the right
-                                        // terminal), or ascii/ansi typ cover
-        bool visualizerEnabled;         // Show spectrum visualizer
-        bool hideLogo;                  // No kew text at top
-        bool hideHelp;                  // No help text at top
+        bool mouseEnabled;            // Accept mouse input or not
+        int mouseLeftClickAction;     // Left mouse action
+        int mouseMiddleClickAction;   // Middle mouse action
+        int mouseRightClickAction;    // Right mouse action
+        int mouseScrollUpAction;      // Mouse scroll up action
+        int mouseScrollDownAction;    // Mouse scroll down action
+        int mouseAltScrollUpAction;   // Mouse scroll up + alt action
+        int mouseAltScrollDownAction; // Mouse scroll down + alt action
+        PixelData color;              // The current color, when using album derived colors
+        bool coverEnabled;            // Show covers or not
+        bool uiEnabled;               // Show ui or not
+        bool coverAnsi;               // Show chafa cover (picture perfect in the right
+                                      // terminal), or ascii/ansi typ cover
+        bool visualizerEnabled;       // Show spectrum visualizer
+        bool hideLogo;                // No kew text at top
+        bool hideHelp;                // No help text at top
         bool hideSideCover;
         bool allowNotifications;        // Send desktop notifications or not
         int visualizer_height;          // Height in characters of the spectrum visualizer
@@ -143,7 +143,7 @@ typedef struct
         time_t last_time_app_ran;       // When did this app run last, used for updating
                                         // the cached library if it has been modified
                                         // since that time
-        int visualizer_bar_mode;       // 0=Thin bars, 1=Bars twice the width or 2=Auto
+        int visualizer_bar_mode;        // 0=Thin bars, 1=Bars twice the width or 2=Auto
                                         // (Depends on window size, default)
         int replayGainCheckFirst;       // Prioritize track or album replay gain
                                         // setting
