@@ -57,5 +57,4 @@ int compare_entry_natural_reversed(const void *a, const void *b);
 int compare_entry_natural(const void *a, const void *b);
 FileSystemEntry *find_corresponding_entry(FileSystemEntry *tmp, const char *full_path);
 
-
 #endif

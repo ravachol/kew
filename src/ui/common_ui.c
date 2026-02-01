@@ -120,6 +120,7 @@ void transfer_settings_to_ui(void)
         UISettings *ui = &(state->uiSettings);
 
         ui->allowNotifications = (settings->allowNotifications[0] == '1');
+        ui->stripTrackNumbers = (settings->stripTrackNumbers[0] == '1');
         ui->coverEnabled = (settings->coverEnabled[0] == '1');
         ui->coverAnsi = (settings->coverAnsi[0] == '1');
         ui->hideHelp = (settings->hideHelp[0] == '1');
@@ -487,7 +488,7 @@ void process_name(const char *name, char *output, int max_width,
                 copy_half_or_full_width_chars_with_max_width(name, output, max_width);
         }
 
-        if (strip_unneeded_chars)
+        if (strip_unneeded_chars && get_app_state()->uiSettings.stripTrackNumbers)
                 format_filename(output);
 
         trim(output, strlen(output));
@@ -526,7 +527,9 @@ void process_name_scroll(const char *name, char *output, int max_width,
 
                 c_strcpy(output, name + start, max_width + 1);
 
-                format_filename(output);
+                if (get_app_state()->uiSettings.stripTrackNumbers)
+                        format_filename(output);
+
                 trim(output, max_width);
 
                 last_name_position++;
@@ -542,43 +545,46 @@ bool get_is_long_name()
 
 PixelData increase_luminosity_for_height(PixelData pixel, int height, int idx, bool reversed)
 {
-    PixelData pixel2;
+        PixelData pixel2;
 
-    // Calculate how much each color can be lightened, based on how far the color is from white (255)
-    float lightening_factor_r = (255 - pixel.r) / 255.0f;
-    float lightening_factor_g = (255 - pixel.g) / 255.0f;
-    float lightening_factor_b = (255 - pixel.b) / 255.0f;
+        // Calculate how much each color can be lightened, based on how far the color is from white (255)
+        float lightening_factor_r = (255 - pixel.r) / 255.0f;
+        float lightening_factor_g = (255 - pixel.g) / 255.0f;
+        float lightening_factor_b = (255 - pixel.b) / 255.0f;
 
-    // Use a "luminosity factor" that scales with height but prevents going too quickly to white
-    float factor_r = lightening_factor_r * 0.55f;  // Adjust this factor to control how much to lighten
-    float factor_g = lightening_factor_g * 0.55f;
-    float factor_b = lightening_factor_b * 0.55f;
+        // Use a "luminosity factor" that scales with height but prevents going too quickly to white
+        float factor_r = lightening_factor_r * 0.55f; // Adjust this factor to control how much to lighten
+        float factor_g = lightening_factor_g * 0.55f;
+        float factor_b = lightening_factor_b * 0.55f;
 
-    // Adjust the amount of lightening by using the height. Larger heights should light up more gradually.
-    // We scale the factor based on `height` but ensure it doesn't get too small.
-    float increment_r = factor_r * (255.0f / height);
-    float increment_g = factor_g * (255.0f / height);
-    float increment_b = factor_b * (255.0f / height);
+        // Adjust the amount of lightening by using the height. Larger heights should light up more gradually.
+        // We scale the factor based on `height` but ensure it doesn't get too small.
+        float increment_r = factor_r * (255.0f / height);
+        float increment_g = factor_g * (255.0f / height);
+        float increment_b = factor_b * (255.0f / height);
 
-    // Calculate the new colors based on whether we're lightening or darkening
-    float current_r, current_g, current_b;
+        // Calculate the new colors based on whether we're lightening or darkening
+        float current_r, current_g, current_b;
 
-    if (!reversed) { // Lighten mode (increase luminosity)
-        current_r = pixel.r + (increment_r * idx);
-        current_g = pixel.g + (increment_g * idx);
-        current_b = pixel.b + (increment_b * idx);
-    } else { // Reversed mode (lighten from bottom to top)
-        current_r = pixel.r + (increment_r * (height - idx));
-        current_g = pixel.g + (increment_g * (height - idx));
-        current_b = pixel.b + (increment_b * (height - idx));
-    }
+        if (!reversed) { // Lighten mode (increase luminosity)
+                current_r = pixel.r + (increment_r * idx);
+                current_g = pixel.g + (increment_g * idx);
+                current_b = pixel.b + (increment_b * idx);
+        } else { // Reversed mode (lighten from bottom to top)
+                current_r = pixel.r + (increment_r * (height - idx));
+                current_g = pixel.g + (increment_g * (height - idx));
+                current_b = pixel.b + (increment_b * (height - idx));
+        }
 
-    // Clamp values to the valid range [0, 255]
-    pixel2.r = (current_r > 255) ? 255 : (current_r < 0) ? 0 : current_r;
-    pixel2.g = (current_g > 255) ? 255 : (current_g < 0) ? 0 : current_g;
-    pixel2.b = (current_b > 255) ? 255 : (current_b < 0) ? 0 : current_b;
+        // Clamp values to the valid range [0, 255]
+        pixel2.r = (current_r > 255) ? 255 : (current_r < 0) ? 0
+                                                             : current_r;
+        pixel2.g = (current_g > 255) ? 255 : (current_g < 0) ? 0
+                                                             : current_g;
+        pixel2.b = (current_b > 255) ? 255 : (current_b < 0) ? 0
+                                                             : current_b;
 
-    return pixel2;
+        return pixel2;
 }
 
 PixelData increase_luminosity(PixelData pixel, int amount)
