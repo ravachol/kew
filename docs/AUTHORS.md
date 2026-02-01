@@ -21,6 +21,7 @@
 * Joey Schaff @jaoheah / @jaoh (codeberg) <jschaff@proton.me>
 * John Lakeman @j-lakeman <le0324tb@anonaddy.me>
 * @noiamnote
+* Martin Kollár @Kolby11
 * Matthias Geiger @werdahias <werdahias@riseup.net>
 * Michael Petö @petoem
 * @Moksh-Parikh
