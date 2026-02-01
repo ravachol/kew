@@ -173,8 +173,8 @@ void fill_eq_bands(const fftwf_complex *fft_output, int buffer_size,
                         if (k < 0 || k >= num_bins)
                                 continue;
 
-                        float real = fft_output[k][0] / norm_factor;
-                        float imag = fft_output[k][1] / norm_factor;
+                        float real = crealf(fft_output[k]) / norm_factor;
+                        float imag = cimagf(fft_output[k]) / norm_factor;
                         float mag = sqrtf(real * real + imag * imag);
                         sum_sq += mag * mag;
                         count++;
