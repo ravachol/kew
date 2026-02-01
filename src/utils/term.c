@@ -81,11 +81,10 @@ void set_term_size()
             w.ws_row == 0 || w.ws_col == 0) {
                 // Fallback for non-interactive environments (like Homebrew tests)
                 w.ws_row = 24; // default terminal height
-                w.ws_col = 80;  // default terminal width
+                w.ws_col = 80; // default terminal width
                 return;
         }
 }
-
 
 void get_term_size(int *width, int *height)
 {
@@ -331,13 +330,13 @@ void disable_terminal_mouse_buttons(void)
         // Disable ALL mouse modes that might have been enabled
         // Some terminals auto-enable 1004 when SGR mouse mode is on.
         // VTE (Guake) will not clear it unless explicitly disabled.
-        printf("\033[?1000l");  // X10 mouse
-        printf("\033[?1001l");  // Highlight tracking
-        printf("\033[?1002l");  // Button tracking
-        printf("\033[?1003l");  // Any-motion tracking
-        printf("\033[?1004l");  // Focus events (VTE uses this!)
-        printf("\033[?1006l");  // SGR mouse mode
-        printf("\033[?1015l");  // urxvt mouse mode (rare but harmless)
+        printf("\033[?1000l"); // X10 mouse
+        printf("\033[?1001l"); // Highlight tracking
+        printf("\033[?1002l"); // Button tracking
+        printf("\033[?1003l"); // Any-motion tracking
+        printf("\033[?1004l"); // Focus events (VTE uses this!)
+        printf("\033[?1006l"); // SGR mouse mode
+        printf("\033[?1015l"); // urxvt mouse mode (rare but harmless)
         fflush(stdout);
 }
 

@@ -120,7 +120,7 @@ static void *chroma_thread(void *arg)
                 char cmd[256];
                 int n = snprintf(cmd, sizeof(cmd),
                                  "chroma --stream %dx%d --random --bass-influence 1.0", g_viz.width, g_viz.height);
-                                 //"chroma --stream %dx%d --fps 30", g_viz.width, g_viz.height);
+                //"chroma --stream %dx%d --fps 30", g_viz.width, g_viz.height);
 
                 if (n < 0 || n >= (int)sizeof(cmd)) {
                         // Truncated or error; skip this iteration
@@ -276,19 +276,16 @@ void chroma_print_frame(int row, int col, bool centered)
                 while (*p && *p != '\n')
                         p++;
 
-                if (*p == '\n')
-                {
+                if (*p == '\n') {
                         printf("\033[%d;%dH", row_pos, col + 1);
                         fwrite(start, 1, p - start, stdout);
                         p++;
                         row_pos++;
                 }
-                if (*p == '\n')
-                {
+                if (*p == '\n') {
                         row_pos = row;
                         p++;
                 }
-
         }
 
         fflush(stdout);
