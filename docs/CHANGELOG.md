@@ -19,6 +19,8 @@ Thank you @yuri-xyz for helping out with this.
 
 - Smoother gradient for non default sized spectrum visualizers. By @ravachol. Suggested by @Saijin_Naib.
 
+- Added a Nix Flake. By @Kolby11. Suggested by @Ultrasquid9.
+
 #### Bug Fixes
 
 - Do not strip the number from a song title if it's connected to an alphanumeric character, like '10th song.flac'. Suggested by @bholroyd.

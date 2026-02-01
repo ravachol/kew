@@ -49,7 +49,7 @@ Please open new issues and pull requests there.
 
 <a href="https://repology.org/project/kew/versions"><img src="https://repology.org/badge/vertical-allrepos/kew.svg" alt="Packaging status" align="right"></a>
 
-Install through your package manager or homebrew (macOS). If you can't find it on your distro, or you want the bleeding edge, follow the [Manual Installation Instructions](docs/MANUAL-INSTALL-INSTRUCTIONS.md).
+Install through your package manager or homebrew (macOS). If you can't find it on your distro, or you want the bleeding edge, follow the [Manual Installation Instructions](docs/MANUAL-INSTALL-INSTRUCTIONS.md). For NixOS, there is a [Nix Flake](flake.nix).
 
 ## Usage
 
