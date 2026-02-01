@@ -6,7 +6,7 @@
  * to playback data.
  */
 
- #include "common/appstate.h"
+#include "common/appstate.h"
 
 #include "common_ui.h"
 
@@ -14,15 +14,15 @@
 
 #include "common/appstate.h"
 
-#include "sound/playback.h"
 #include "sound/audiobuffer.h"
+#include "sound/playback.h"
 
 #include "utils/term.h"
 
-#include <float.h>
-#include <fftw3.h>
-#include <math.h>
 #include <complex.h>
+#include <fftw3.h>
+#include <float.h>
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -30,7 +30,7 @@
 #define M_PI 3.14159265358979323846
 #endif
 
-#define MAX_BARS 26  // Counting 1/3 octave per bar, 50hz-10000hz range
+#define MAX_BARS 26 // Counting 1/3 octave per bar, 50hz-10000hz range
 
 static float *fft_input = NULL;
 static fftwf_complex *fft_output = NULL;
