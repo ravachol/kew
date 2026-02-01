@@ -47,8 +47,7 @@ static int loadTimedLyrics(FILE *file, Lyrics *lyrics)
 
         char lineBuffer[1024];
 
-        while (fgets(lineBuffer, sizeof(lineBuffer), file))
-        {
+        while (fgets(lineBuffer, sizeof(lineBuffer), file)) {
                 if (lineBuffer[0] != '[' || !isdigit((unsigned char)lineBuffer[1]))
                         continue;
 
@@ -108,8 +107,7 @@ static int loadUntimedLyrics(FILE *file, Lyrics *lyrics)
         char lineBuffer[1024];
         lyrics->count = 0;
 
-        while (fgets(lineBuffer, sizeof(lineBuffer), file))
-        {
+        while (fgets(lineBuffer, sizeof(lineBuffer), file)) {
                 char *newline = strpbrk(lineBuffer, "\r\n");
                 if (newline)
                         *newline = '\0';
@@ -117,8 +115,7 @@ static int loadUntimedLyrics(FILE *file, Lyrics *lyrics)
                 if (lineBuffer[0] == '\0')
                         continue;
 
-                if (lyrics->count == capacity)
-                {
+                if (lyrics->count == capacity) {
                         capacity *= 2;
                         LyricsLine *newLines = (LyricsLine *)realloc(lyrics->lines, sizeof(LyricsLine) * capacity);
                         if (!newLines)
@@ -156,8 +153,7 @@ Lyrics *loadLyricsFromLRC(const char *path)
                 return nullptr;
         Lyrics *lyrics = (Lyrics *)calloc(1, sizeof(Lyrics));
 
-        if (!lyrics)
-        {
+        if (!lyrics) {
                 fclose(file);
                 return nullptr;
         }
@@ -167,10 +163,8 @@ Lyrics *loadLyricsFromLRC(const char *path)
         // Detect if there are timestamps
         char lineBuffer[1024];
         int foundTimestamp = 0;
-        while (fgets(lineBuffer, sizeof(lineBuffer), file))
-        {
-                if (lineBuffer[0] == '[' && isdigit((unsigned char)lineBuffer[1]))
-                {
+        while (fgets(lineBuffer, sizeof(lineBuffer), file)) {
+                if (lineBuffer[0] == '[' && isdigit((unsigned char)lineBuffer[1])) {
                         foundTimestamp = 1;
                         break;
                 }
@@ -182,8 +176,7 @@ Lyrics *loadLyricsFromLRC(const char *path)
 
         fclose(file);
 
-        if (!ok)
-        {
+        if (!ok) {
                 freeLyrics(lyrics);
                 return nullptr;
         }

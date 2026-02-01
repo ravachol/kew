@@ -479,7 +479,6 @@ void dequeue_song(FileSystemEntry *child)
                 delete_from_list(playlist, node2);
 
         child->is_enqueued = 0;
-
 }
 
 void dequeue_children(FileSystemEntry *parent)
@@ -524,9 +523,7 @@ int enqueue_children(FileSystemEntry *child,
                                 enqueue_song(child);
                                 has_enqueued = 1;
                         }
-                }
-                else if (child->is_directory == 0 && child->is_enqueued)
-                {
+                } else if (child->is_directory == 0 && child->is_enqueued) {
                         has_enqueued = 1;
                 }
 
