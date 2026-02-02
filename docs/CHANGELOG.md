@@ -21,6 +21,8 @@ Thank you @yuri-xyz for helping out with this.
 
 - Added a Nix Flake. By @Kolby11. Suggested by @Ultrasquid9.
 
+- Expandable directories in search view. By @ravachol. Suggested by @BIZZARE6.
+
 #### Bug Fixes
 
 - Do not strip the number from a song title if it's connected to an alphanumeric character, like '10th song.flac'. Suggested by @bholroyd.
@@ -36,6 +38,8 @@ Thank you @yuri-xyz for helping out with this.
 - Fixed trim() segfaults on NetBSD 11 (sometimes). By @ravachol. Reported by @ktnb-netbsd.
 
 - Fixed side cover on library view sometimes appearing at the bottom and not centered. Reported by @LeahTheSlug. By @petoem.
+
+- Fix cover not being fetched from files with uppercase extension (.MP3). By @ravachol.
 
 #### Special Thanks
 

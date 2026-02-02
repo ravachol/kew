@@ -17,6 +17,8 @@
 
 #include "ui/queue_ui.h"
 
+#include "ops/library_ops.h"
+
 #include "utils/term.h"
 #include "utils/utils.h"
 
@@ -30,6 +32,7 @@ typedef struct SearchResult {
         struct FileSystemEntry *parent;
         int distance;
         int groupDistance;
+        int num_children;
 } SearchResult;
 
 // Global variables to store results
@@ -40,6 +43,8 @@ size_t terminal_height = 0;
 static int num_search_letters = 0;
 static int num_search_bytes = 0;
 static int min_search_letters = 1;
+static int search_current_dir_song_count = 0;
+static FileSystemEntry *chosen_dir = NULL;
 static FileSystemEntry *current_search_entry = NULL;
 
 static char search_text[MAX_SEARCH_LEN * 4 + 1]; // Unicode can be 4 characters
@@ -47,6 +52,20 @@ static char search_text[MAX_SEARCH_LEN * 4 + 1]; // Unicode can be 4 characters
 FileSystemEntry *get_current_search_entry(void)
 {
         return current_search_entry;
+}
+
+void set_chosen_search_dir(FileSystemEntry *entry)
+{
+        if (entry == NULL) {
+                return;
+        }
+
+        chosen_dir = entry;
+}
+
+FileSystemEntry *get_chosen_search_dir(void)
+{
+        return chosen_dir;
 }
 
 int get_search_results_count(void)
@@ -74,6 +93,7 @@ void set_result_fields(FileSystemEntry *entry, int distance,
         results[results_count].distance = distance;
         results[results_count].entry = entry;
         results[results_count].parent = parent;
+        results[results_count].num_children = 0;
 }
 
 bool is_duplicate(const FileSystemEntry *entry)
@@ -89,6 +109,38 @@ bool is_duplicate(const FileSystemEntry *entry)
         }
 
         return false;
+}
+
+int add_result_dir_contents(FileSystemEntry *entry, int distance)
+{
+        int num_children = 0;
+        int id = results_count;
+
+        if (entry->is_directory) {
+                if (entry->children && entry->parent != NULL) {
+                        FileSystemEntry *child = entry->children;
+
+                        while (child) {
+                                if (results_count > terminal_height * 10)
+                                        break;
+
+                                results_count++;
+                                realloc_results();
+                                set_result_fields(child, distance, entry);
+
+                                if (!child->is_directory)
+                                        num_children++;
+
+                                num_children += add_result_dir_contents(child, distance);
+
+                                child = child->next;
+                        }
+                }
+
+                results[id].num_children = num_children;
+        }
+
+        return num_children;
 }
 
 void add_result(FileSystemEntry *entry, int distance)
@@ -107,27 +159,8 @@ void add_result(FileSystemEntry *entry, int distance)
 
         realloc_results();
         set_result_fields(entry, distance, NULL);
+        add_result_dir_contents(entry, distance);
         results_count++;
-
-        if (entry->is_directory) {
-                if (entry->children && entry->parent != NULL &&
-                    entry->parent->parent == NULL) {
-                        FileSystemEntry *child = entry->children;
-
-                        while (child) {
-                                if (child->is_directory) {
-                                        if (results_count > terminal_height * 10)
-                                                break;
-
-                                        realloc_results();
-                                        set_result_fields(child, distance, entry);
-                                        results_count++;
-                                }
-
-                                child = child->next;
-                        }
-                }
-        }
 }
 
 void collect_result(FileSystemEntry *entry, int distance)
@@ -245,8 +278,8 @@ int compare_results(const void *a, const void *b)
         }
 
         // Within same parent: directories first
-        if (A->entry->is_directory != B->entry->is_directory)
-                return A->entry->is_directory ? -1 : 1;
+        // if (A->entry->is_directory != B->entry->is_directory)
+        //         return A->entry->is_directory ? -1 : 1;
 
         // Then by individual distance
         if (A->distance != B->distance)
@@ -371,8 +404,6 @@ void apply_color_and_format(bool is_chosen, FileSystemEntry *entry, UISettings *
                             bool is_playing)
 {
         if (is_chosen) {
-                current_search_entry = entry;
-
                 if (entry->is_enqueued) {
                         apply_color(ui->colorMode,
                                     is_playing ? ui->theme.search_playing
@@ -408,11 +439,69 @@ void apply_color_and_format(bool is_chosen, FileSystemEntry *entry, UISettings *
 }
 
 FileSystemEntry *last_directory = NULL;
+FileSystemEntry *last_parent = NULL;
+bool found_last_parent = false;
+
+int determine_depth(FileSystemEntry *entry)
+{
+        int depth = 0;
+        bool found_parent = false;
+
+        if (entry->parent && last_parent && entry->parent->id == last_parent->id) {
+                found_parent = found_last_parent;
+        } else {
+                for (size_t i = 0; i < results_count; i++) {
+                        if (entry->parent && results[i].entry->id == entry->parent->id) {
+                                found_parent = true;
+                                last_parent = entry->parent;
+                        }
+                }
+        }
+
+        if (found_parent) {
+                found_last_parent = true;
+
+                while (entry->parent != NULL) {
+                        entry = entry->parent;
+                        depth++;
+                }
+        }
+
+        return depth;
+}
+
+int calc_indentation(int depth)
+{
+        return depth * 2;
+}
 
 int display_search_results(int row, int col, int max_list_size, int *chosen_row,
                            int start_search_iter)
 {
         AppState *state = get_app_state();
+
+        if (state->uiState.collapseSearchView) {
+                if (state->uiState.previous_chosen_search_row < *chosen_row) {
+                        if (!state->uiState.openedSearchSubDir) {
+                                *chosen_row -= search_current_dir_song_count;
+                                search_current_dir_song_count = 0;
+                        } else {
+                                *chosen_row -=
+                                    state->uiState.numSongsAboveSubDir;
+                                state->uiState.openedSearchSubDir = false;
+                                state->uiState.numSongsAboveSearchSubDir = 0;
+                                state->uiState.collapseSearchView = false;
+                        }
+                } else {
+                        if (state->uiState.openedSearchSubDir) {
+                                *chosen_row -= state->uiState.numSongsAboveSearchSubDir;
+                        }
+                        search_current_dir_song_count = 0;
+                        state->uiState.openedSearchSubDir = false;
+                        state->uiState.numSongsAboveSearchSubDir = 0;
+                }
+                state->uiState.collapseSearchView = false;
+        }
 
         int term_w, term_h;
         get_term_size(&term_w, &term_h);
@@ -442,23 +531,45 @@ int display_search_results(int row, int col, int max_list_size, int *chosen_row,
 
         int name_width = max_name_width;
         int extra_indent = 0;
+        int iter = start_search_iter;
+        int depth = 0;
         UISettings *ui = &(state->uiSettings);
+        UIState *uis = &(state->uiState);
+
+        // Skip directory entries if dir not open
+        for (size_t i = 0; i < (size_t)start_search_iter; i++) {
+                if (results[i].entry->is_directory && (results[i].entry->parent != NULL && results[i].entry->parent->parent != NULL)) {
+
+                        int num = results[i].num_children;
+
+                        last_directory = results[i].entry;
+
+                        if (!uis->allowChooseSearchSongs || (chosen_dir != NULL && results[i].entry->id != chosen_dir->id &&
+                                                             !is_contained_within(chosen_dir, results[i].entry))) {
+                                start_search_iter += num;
+                                i += num;
+                        }
+
+                        search_current_dir_song_count = num;
+                }
+        }
+
+        bool is_chosen = false;
 
         for (size_t i = start_search_iter; i < results_count; i++) {
-                if ((int)i >= max_list_size + start_search_iter - 1)
+                if ((int)printed_rows >= max_list_size - 1)
                         break;
+
+                is_chosen = (*chosen_row == iter);
+
+                if (results[i].entry->is_directory && !is_chosen)
+                        search_current_dir_song_count = results[i].num_children;
 
                 apply_color(ui->colorMode, ui->theme.search_result,
                             ui->defaultColorRGB);
 
-                // Indent sub dirs
-                if (results[i].parent != NULL)
-                        extra_indent = 2;
-                else if (!results[i].entry->is_directory &&
-                         (last_directory != NULL) && results[i].entry->parent_id == last_directory->id)
-                        extra_indent = 4;
-                else
-                        extra_indent = 0;
+                depth = determine_depth(results[i].entry);
+                extra_indent = calc_indentation(depth);
 
                 name_width = max_name_width - extra_indent;
 
@@ -467,7 +578,8 @@ int display_search_results(int row, int col, int max_list_size, int *chosen_row,
 
                 printf("\033[%d;%dH", row, col + extra_indent);
 
-                bool is_chosen = (*chosen_row == (int)i);
+                if (is_chosen)
+                        uis->currentSearchEntry = results[i].entry;
 
                 Node *current = get_current_song();
 
@@ -498,9 +610,53 @@ int display_search_results(int row, int col, int max_list_size, int *chosen_row,
                                  results[i].entry->name,
                                  (results[i].entry->parent != NULL ? results[i].entry->parent->name : "Root"));
                 }
+
                 printf("%s", name);
                 row++;
                 printed_rows++;
+
+                // Close sub dir when it's passed
+                if (uis->allowChooseSearchSongs == true &&
+                    (chosen_dir == NULL ||
+                     (state->uiState.currentSearchEntry != NULL &&
+                      state->uiState.currentSearchEntry->parent != NULL &&
+                      chosen_dir != NULL &&
+                      (!is_contained_within(state->uiState.currentSearchEntry,
+                                            chosen_dir) &&
+                       state->uiState.currentSearchEntry->id != chosen_dir->id)))) {
+                        uis->collapseSearchView = true;
+
+                        if (!uis->openedSearchSubDir) {
+
+                                uis->allowChooseSearchSongs = false;
+                                chosen_dir = NULL;
+                        }
+
+                        trigger_refresh();
+
+                        return 0;
+                }
+
+                // Skip directory entries if dir not open
+                if (results[i].entry->is_directory && (results[i].entry->parent != NULL && results[i].entry->parent->parent != NULL) &&
+                    (!uis->allowChooseSearchSongs || results[i].entry->id != chosen_dir->id)) {
+
+                        FileSystemEntry *child = results[i].entry->children;
+
+                        while (child != NULL) {
+                                if (!child->is_directory)
+                                        i++;
+
+                                if (child->is_directory)
+                                        break;
+
+                                child = child->next;
+                        }
+
+                        search_current_dir_song_count = results[i].num_children;
+                }
+
+                iter++;
         }
 
         apply_color(ui->colorMode, ui->theme.help, ui->defaultColorRGB);

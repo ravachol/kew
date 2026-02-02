@@ -590,8 +590,13 @@ void init_state(void)
         state->uiState.chosen_node_id = 0;
         state->uiState.resetPlaylistDisplay = true;
         state->uiState.allowChooseSongs = false;
+        state->uiState.allowChooseSearchSongs = false;
         state->uiState.openedSubDir = false;
         state->uiState.numSongsAboveSubDir = 0;
+        state->uiState.numSongsAboveSearchSubDir = 0;
+        state->uiState.openedSearchSubDir = 0;
+        state->uiState.collapseSearchView = 0;
+        state->uiState.previous_chosen_search_row = 0;
         state->uiState.resizeFlag = 0;
         state->uiState.collapseView = false;
         state->uiState.refresh = true;

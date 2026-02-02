@@ -131,7 +131,8 @@ FileSystemEntry *enqueue_songs(FileSystemEntry *entry, FileSystemEntry **chosen_
                                         ps->nextSongNeedsRebuilding = true;
                                 }
                         }
-                        if ((*chosen_dir) != NULL && entry->parent != NULL &&
+
+                        if (state->currentView == LIBRARY_VIEW && (*chosen_dir) != NULL && entry->parent != NULL &&
                             is_contained_within(entry, (*chosen_dir)) &&
                             uis->allowChooseSongs == true) {
                                 // If the chosen directory is the same as the
@@ -154,18 +155,52 @@ FileSystemEntry *enqueue_songs(FileSystemEntry *entry, FileSystemEntry **chosen_
                                 }
                         }
 
+                        if (state->currentView == SEARCH_VIEW && (*chosen_dir) != NULL && entry->parent != NULL &&
+                            is_contained_within(entry, (*chosen_dir)) &&
+                            uis->allowChooseSongs == true) {
+                                // If the chosen directory is the same as the
+                                // entry's parent and it is open
+                                uis->openedSearchSubDir = true;
+
+                                FileSystemEntry *tmpc = (*chosen_dir)->children;
+
+                                uis->numSongsAboveSearchSubDir = 0;
+
+                                while (tmpc != NULL) {
+                                        if (strcmp(entry->full_path,
+                                                   tmpc->full_path) == 0 ||
+                                            is_contained_within(entry, tmpc))
+                                                break;
+                                        if (tmpc->is_directory == 0)
+                                                uis->numSongsAboveSearchSubDir++;
+
+                                        tmpc = tmpc->next;
+                                }
+                        }
+
                         AppState *state = get_app_state();
 
-                        if (state->uiState.currentLibEntry && state->uiState.currentLibEntry->is_directory)
+                        if (state->currentView == LIBRARY_VIEW && state->uiState.currentLibEntry && state->uiState.currentLibEntry->is_directory)
                                 *chosen_dir = state->uiState.currentLibEntry;
 
-                        if (uis->allowChooseSongs == true) {
+                        if (state->currentView == SEARCH_VIEW && state->uiState.currentSearchEntry && state->uiState.currentSearchEntry->is_directory)
+                                *chosen_dir = state->uiState.currentSearchEntry;
+
+                        if (state->currentView == LIBRARY_VIEW && uis->allowChooseSongs == true) {
                                 uis->collapseView = true;
                                 trigger_refresh();
                         }
 
-                        if (entry->parent != NULL)
+                        if (state->currentView == SEARCH_VIEW && uis->allowChooseSearchSongs == true) {
+                                uis->collapseView = true;
+                                trigger_refresh();
+                        }
+
+                        if (state->currentView == LIBRARY_VIEW && entry->parent != NULL)
                                 uis->allowChooseSongs = true;
+
+                        if (state->currentView == SEARCH_VIEW && entry->parent != NULL)
+                                uis->allowChooseSearchSongs = true;
                 } else {
                         if (!entry->is_enqueued) {
                                 set_next_song(NULL);
@@ -225,9 +260,22 @@ FileSystemEntry *enqueue(FileSystemEntry *entry)
 
         pthread_mutex_lock(&(get_playlist()->mutex));
 
-        FileSystemEntry *chosen_dir = get_chosen_dir();
+        FileSystemEntry *chosen_dir = NULL;
+
+        if (state->currentView == LIBRARY_VIEW)
+                chosen_dir = get_chosen_dir();
+
+        if (state->currentView == SEARCH_VIEW)
+                chosen_dir = get_chosen_search_dir();
+
         first_enqueued_entry = enqueue_songs(entry, &chosen_dir);
-        set_chosen_dir(chosen_dir);
+
+        if (state->currentView == LIBRARY_VIEW)
+                set_chosen_dir(chosen_dir);
+
+        if (state->currentView == SEARCH_VIEW)
+                set_chosen_search_dir(chosen_dir);
+
         reset_list_after_dequeuing_playing_song();
 
         pthread_mutex_unlock(&(get_playlist()->mutex));
@@ -290,8 +338,7 @@ void view_enqueue(bool play_immediately)
                 if (state->currentView == LIBRARY_VIEW)
                         entry = state->uiState.currentLibEntry;
                 else {
-                        entry = get_current_search_entry();
-                        set_chosen_dir(get_current_search_entry());
+                        entry = state->uiState.currentSearchEntry;
                 }
 
                 if (entry == NULL)

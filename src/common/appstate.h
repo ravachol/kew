@@ -178,10 +178,15 @@ typedef struct
                                      // view
         bool allowChooseSongs;       // In library view, has the user entered a folder
                                      // that contains songs
+        bool allowChooseSearchSongs; // In library view, has the user entered a folder
+                                     // that contains songs
+
         bool openedSubDir;           // Opening a directory in an open directory.
         int numSongsAboveSubDir;     // How many rows do we need to jump up if we
                                      // close the parent directory and open one
                                      // within
+        bool openedSearchSubDir;
+        int numSongsAboveSearchSubDir;
         int numDirectoryTreeEntries; // The number of entries in directory tree
                                      // in library view
         int num_progress_bars;       // The number of progress dots at the bottom of
@@ -191,6 +196,8 @@ typedef struct
         bool resetPlaylistDisplay; // Should the playlist be reset, ie drawn
                                    // starting from playing song
         bool collapseView;         // Signal that ui needs to collapse the view
+        bool collapseSearchView;
+        int previous_chosen_search_row;
         bool isFastForwarding;
         bool isRewinding;
         bool songWasRemoved;
@@ -201,6 +208,7 @@ typedef struct
         bool showLyricsPage;
         FILE *logFile;
         FileSystemEntry *currentLibEntry;
+        FileSystemEntry *currentSearchEntry;
 } UIState;
 
 typedef struct

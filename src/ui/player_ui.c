@@ -1349,6 +1349,7 @@ void scroll_next(void)
                 chosen_lib_row++;
                 trigger_refresh();
         } else if (state->currentView == SEARCH_VIEW) {
+                state->uiState.previous_chosen_search_row = chosen_search_result_row;
                 chosen_search_result_row++;
                 trigger_refresh();
         }
@@ -1841,8 +1842,10 @@ int display_tree(FileSystemEntry *root, int depth, int max_list_size,
                                 } else {
                                         printf("%s", dir_name);
                                 }
+
                                 if (strcmp(dir_name, "Warlord") == 0)
                                         fflush(stdout);
+
                                 free(upper_dir_name);
                         } else {
                                 filename[0] = '\0';
@@ -2581,8 +2584,8 @@ int print_player(SongData *songdata, double elapsed_seconds)
                 state->uiState.resetPlaylistDisplay = false;
                 fflush(stdout);
         } else if (state->currentView == SEARCH_VIEW && shouldRefresh) {
-                show_search(songdata, &chosen_search_result_row);
                 cancel_refresh();
+                show_search(songdata, &chosen_search_result_row);
                 fflush(stdout);
         } else if (state->currentView == LIBRARY_VIEW && shouldRefresh) {
                 show_library(songdata, settings);
