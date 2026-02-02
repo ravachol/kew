@@ -74,7 +74,6 @@ static int max_list_size = 0;
 static int max_search_list_size = 0;
 static int num_top_level_songs = 0;
 static int start_lib_iter = 0;
-static int start_search_iter = 0;
 static int max_lib_list_size = 0;
 static int chosen_row = 0;               // The row that is chosen in playlist view
 static int chosen_lib_row = 0;           // The row that is chosen in library view
@@ -1307,7 +1306,6 @@ void flip_next_page(void)
                     (chosen_search_result_row >= get_search_results_count())
                         ? get_search_results_count() - 1
                         : chosen_search_result_row;
-                start_search_iter += max_search_list_size - 1;
                 trigger_refresh();
         }
 }
@@ -1328,7 +1326,6 @@ void flip_prev_page(void)
                 chosen_search_result_row -= max_search_list_size;
                 chosen_search_result_row =
                     (chosen_search_result_row > 0) ? chosen_search_result_row : 0;
-                start_search_iter -= max_search_list_size;
                 trigger_refresh();
         }
 }
@@ -1465,7 +1462,7 @@ void show_search(SongData *song_data, int *chosen_row)
         printf("\033[%d;%dH", ++row, col);
         clear_rest_of_line();
 
-        display_search(row, col, max_search_list_size, chosen_row, start_search_iter);
+        display_search(row, col, max_search_list_size, chosen_row);
         calc_and_print_last_row_and_error_row();
 }
 
