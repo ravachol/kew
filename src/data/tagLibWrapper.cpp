@@ -184,6 +184,17 @@ getOggFieldListCaseInsensitive(const TagLib::Ogg::XiphComment *comment,
         return TagLib::StringList();
 }
 
+std::string toLower(const std::string& str) {
+    std::string lowerStr = str;
+    std::transform(
+        lowerStr.begin(),
+        lowerStr.end(),
+        lowerStr.begin(),
+        [](unsigned char c) { return std::tolower(c); }
+    );
+    return lowerStr;
+}
+
 extern "C" {
 #include "utils/utils.h"
 
@@ -1535,8 +1546,7 @@ int extractTags(const char *input_file, TagSettings *tag_settings,
         }
 
         std::string filename(input_file);
-        std::string extension =
-            filename.substr(filename.find_last_of('.') + 1);
+        std::string extension = toLower(filename.substr(filename.find_last_of('.') + 1));
         bool coverArtExtracted = false;
 
         if (extension == "mp3") {
