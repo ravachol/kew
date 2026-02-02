@@ -13,6 +13,9 @@ PKG_CONFIG ?= pkg-config
 UNAME_S := $(shell uname -s)
 ARCH := $(shell uname -m)
 
+# Set kew version
+KEW_VERSION ?= $(shell git describe --tags --dirty --always)
+
 # Default USE_DBUS to auto-detect if not set by user
 ifeq ($(origin USE_DBUS), undefined)
   ifeq ($(UNAME_S), Darwin)
@@ -87,6 +90,10 @@ ifeq ($(DEBUG), 1)
 COMMONFLAGS += -g -DDEBUG
 else
 COMMONFLAGS += -O2
+endif
+
+ifneq ($(strip $(KEW_VERSION)),)
+  COMMONFLAGS += -DKEW_VERSION=\"$(KEW_VERSION)\"
 endif
 
 COMMONFLAGS += -DMA_NO_AAUDIO
