@@ -34,6 +34,10 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #define __BSD_VISIBLE 1
 #endif
 
+#ifndef KEW_VERSION
+#define KEW_VERSION "unknown"
+#endif
+
 #include "common/appstate.h"
 #include "common/common.h"
 
@@ -83,8 +87,6 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include <sys/param.h>
 #include <sys/stat.h>
 #include <unistd.h>
-
-const char VERSION[] = "4.0.0";
 
 AppState *state_ptr = NULL;
 
@@ -552,7 +554,7 @@ void init_state(void)
 {
         AppState *state = get_app_state();
 
-        state->uiSettings.VERSION = VERSION;
+        state->uiSettings.VERSION = KEW_VERSION;
         state->uiSettings.uiEnabled = true;
         state->uiSettings.color.r = 125;
         state->uiSettings.color.g = 125;
