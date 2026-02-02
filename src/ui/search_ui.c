@@ -475,8 +475,7 @@ int calc_indentation(int depth)
         return depth * 2;
 }
 
-int display_search_results(int row, int col, int max_list_size, int *chosen_row,
-                           int start_search_iter)
+int display_search_results(int row, int col, int max_list_size, int *chosen_row)
 {
         AppState *state = get_app_state();
 
@@ -516,14 +515,13 @@ int display_search_results(int row, int col, int max_list_size, int *chosen_row,
                 *chosen_row = results_count - 1;
         }
 
-        if (start_search_iter < 0)
-                start_search_iter = 0;
+        size_t start_search_iter = 0;
 
         if (*chosen_row > start_search_iter + round(max_list_size / 2)) {
                 start_search_iter = *chosen_row - round(max_list_size / 2) + 1;
         }
 
-        if (*chosen_row < start_search_iter)
+        if ((size_t)*chosen_row < start_search_iter)
                 start_search_iter = *chosen_row;
 
         if (*chosen_row < 0)
@@ -538,6 +536,12 @@ int display_search_results(int row, int col, int max_list_size, int *chosen_row,
 
         // Skip directory entries if dir not open
         for (size_t i = 0; i < (size_t)start_search_iter; i++) {
+                if ((size_t)start_search_iter >= results_count)
+                {
+                        start_search_iter = results_count - 1;
+                        break;
+                }
+
                 if (results[i].entry->is_directory && (results[i].entry->parent != NULL && results[i].entry->parent->parent != NULL)) {
 
                         int num = results[i].num_children;
@@ -559,6 +563,12 @@ int display_search_results(int row, int col, int max_list_size, int *chosen_row,
         for (size_t i = start_search_iter; i < results_count; i++) {
                 if ((int)printed_rows >= max_list_size - 1)
                         break;
+
+                if (((results_count == i + 1) ||
+                     (results[i].entry->is_directory && !uis->allowChooseSearchSongs &&
+                        results_count == i + 1 + results[i].num_children)) &&
+                    *chosen_row > iter)
+                        *chosen_row = iter;
 
                 is_chosen = (*chosen_row == iter);
 
@@ -670,12 +680,12 @@ int display_search_results(int row, int col, int max_list_size, int *chosen_row,
         return 0;
 }
 
-int display_search(int row, int col, int max_list_size, int *chosen_row, int start_search_iter)
+int display_search(int row, int col, int max_list_size, int *chosen_row)
 {
         display_search_box(row, col);
         printf("\033[%d;%dH", row + 1, col);
         clear_rest_of_line();
-        display_search_results(row + 2, col, max_list_size, chosen_row, start_search_iter);
+        display_search_results(row + 2, col, max_list_size, chosen_row);
 
         return 0;
 }
