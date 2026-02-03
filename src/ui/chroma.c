@@ -52,15 +52,11 @@ void chroma_set_next_preset(int height)
 {
         g_viz.preset++;
 
-        if (g_viz.preset == 22)
+        if (g_viz.preset == 25)
                 g_viz.preset = 0;
 
-        if (g_viz.preset % MAX_PRESET == 0) {
-                chroma_stop();
-        } else {
-                chroma_stop();
-                chroma_start(height);
-        }
+        chroma_stop();
+        chroma_start(height);
 }
 
 int calc_chroma_width(int height)
