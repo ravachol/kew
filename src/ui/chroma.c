@@ -119,7 +119,7 @@ static void *chroma_thread(void *arg)
 
                 char cmd[256];
                 int n = snprintf(cmd, sizeof(cmd),
-                                 "chroma --stream %dx%d --random --bass-influence 1.0", g_viz.width, g_viz.height);
+                                 "chroma --stream %dx%d --preset %d --bass-influence 1.0", g_viz.width, g_viz.height, g_viz.preset);
                 //"chroma --stream %dx%d --fps 30", g_viz.width, g_viz.height);
 
                 if (n < 0 || n >= (int)sizeof(cmd)) {
