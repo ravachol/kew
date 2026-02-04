@@ -1,12 +1,12 @@
 # AUTHORS
 
 ## Maintainers
-* **Ravachol** @ravachol <ravacholf@proton.me>
+* **Ravachol** @ravachol <kew-player@proton.me>
   * Founder and Main Author
 
 ## Advisors
 * @LeahtheSlug (Advisor)
-* @petoem Michael Petö (Technical advisor)
+* Michael Petö @petoem (Technical advisor)
 
 ## Contributors (in alphabetical order)
 
@@ -26,7 +26,7 @@
 * Michael Petö @petoem
 * @Moksh-Parikh
 * @Overionised
-* Ravachol @ravachol <ravacholf@proton.me>
+* Ravachol @ravachol <kew-player@proton.me>
 * Rioprastyo17
 * Robertson D. Torress @Welpyes
 * Rowan Shi @rowanxshi
