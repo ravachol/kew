@@ -195,16 +195,6 @@ Starting with kew 4.0, you can add visualizations to kew by installing Chroma:
 
 https://github.com/yuri-xyz/chroma
 
-For the time being you need to install from the develop branch:
-
-1. git clone https://github.com/yuri-xyz/chroma.git --single-branch --branch develop
-
-2. cd chroma
-
-3. cargo build --release --features audio
-
-That's it!
-
 Enable and cycle through them by pressing <kbd>c</kbd> in track view.
 
 Disable by pressing <kbd>b</kbd>.
