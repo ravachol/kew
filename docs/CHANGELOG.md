@@ -4,9 +4,9 @@
 
 #### Enhancements
 
-- Chroma Visualizations.
+- Chroma ASCII Visualizations.
 
-This adds cool new visualizations to kew. It is not baked into kew and doesn't add bloat, but runs alongside it. So it requires that you install chroma separately if you want this, which can be found here:
+This adds cool new ASCII visualizations to kew. It is not baked into kew and doesn't add bloat, but runs alongside it. So it requires that you install chroma separately if you want this, which can be found here:
 https://github.com/yuri-xyz/chroma.
 
 Chroma is started from within kew. Just switch to track view and press c to cycle through visualizations. Press b to disable.
@@ -22,6 +22,8 @@ Thank you @yuri-xyz for helping out with this.
 - Added a Nix Flake. By @Kolby11. Suggested by @Ultrasquid9.
 
 - Expandable directories in search view. By @ravachol. Suggested by @BIZZARE6.
+
+- miniaudio bumped to version 0.11.24.
 
 #### Bug Fixes
 
