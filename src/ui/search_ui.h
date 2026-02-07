@@ -12,6 +12,7 @@ int display_search(int row, int col, int max_list_size, int *chosen_row);
 int add_to_search_text(const char *str);
 int remove_from_search_text(void);
 int get_search_results_count(void);
+bool is_at_last_row(void);
 void set_chosen_search_dir(FileSystemEntry *entry);
 void free_search_results(void);
 void fuzzy_search(FileSystemEntry *root, int threshold);
