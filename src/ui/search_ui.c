@@ -46,7 +46,8 @@ static int min_search_letters = 1;
 static int search_current_dir_song_count = 0;
 static FileSystemEntry *chosen_dir = NULL;
 static FileSystemEntry *current_search_entry = NULL;
-
+static int total_rows = 0;
+bool last_row_hit = false;
 static char search_text[MAX_SEARCH_LEN * 4 + 1]; // Unicode can be 4 characters
 
 FileSystemEntry *get_current_search_entry(void)
@@ -66,6 +67,11 @@ void set_chosen_search_dir(FileSystemEntry *entry)
 FileSystemEntry *get_chosen_search_dir(void)
 {
         return chosen_dir;
+}
+
+bool is_at_last_row(void)
+{
+        return last_row_hit;
 }
 
 int get_search_results_count(void)
@@ -121,9 +127,6 @@ int add_result_dir_contents(FileSystemEntry *entry, int distance)
                         FileSystemEntry *child = entry->children;
 
                         while (child) {
-                                if (results_count > terminal_height * 10)
-                                        break;
-
                                 results_count++;
                                 realloc_results();
                                 set_result_fields(child, distance, entry);
@@ -479,6 +482,8 @@ int display_search_results(int row, int col, int max_list_size, int *chosen_row)
 {
         AppState *state = get_app_state();
 
+        total_rows = 0;
+
         if (state->uiState.collapseSearchView) {
                 if (state->uiState.previous_chosen_search_row < *chosen_row) {
                         if (!state->uiState.openedSearchSubDir) {
@@ -534,15 +539,14 @@ int display_search_results(int row, int col, int max_list_size, int *chosen_row)
         UISettings *ui = &(state->uiSettings);
         UIState *uis = &(state->uiState);
 
-        // Skip directory entries if dir not open
-        for (size_t i = 0; i < (size_t)start_search_iter; i++) {
-                if ((size_t)start_search_iter >= results_count)
-                {
+        // Count total rows, skip directory entries if dir not open
+        for (size_t i = 0; i < results_count; i++) {
+
+                if ((size_t)start_search_iter >= results_count) {
                         start_search_iter = results_count - 1;
-                        break;
                 }
 
-                if (results[i].entry->is_directory && (results[i].entry->parent != NULL && results[i].entry->parent->parent != NULL)) {
+                if (i < (size_t)start_search_iter && results[i].entry->is_directory && (results[i].entry->parent != NULL && results[i].entry->parent->parent != NULL)) {
 
                         int num = results[i].num_children;
 
@@ -550,26 +554,32 @@ int display_search_results(int row, int col, int max_list_size, int *chosen_row)
 
                         if (!uis->allowChooseSearchSongs || (chosen_dir != NULL && results[i].entry->id != chosen_dir->id &&
                                                              !is_contained_within(chosen_dir, results[i].entry))) {
-                                start_search_iter += num;
-                                i += num;
+                                if (i < (size_t)start_search_iter)
+                                {
+                                        start_search_iter += num;
+                                        i += num;
+                                }
+                                total_rows += num;
                         }
 
                         search_current_dir_song_count = num;
                 }
+
+                total_rows++;
         }
 
         bool is_chosen = false;
 
-        for (size_t i = start_search_iter; i < results_count; i++) {
+        for (size_t i = start_search_iter; i < (size_t)total_rows; i++) {
                 if ((int)printed_rows >= max_list_size - 1)
                         break;
 
-                if (((results_count == i + 1) ||
+                if (((results_count <= i + 1) ||
                      (results[i].entry->is_directory && !uis->allowChooseSearchSongs &&
-                        results_count == i + 1 + results[i].num_children)) &&
-                    *chosen_row > iter)
+                      results_count == i + 1 + results[i].num_children)) &&
+                    *chosen_row > iter) {
                         *chosen_row = iter;
-
+                }
                 is_chosen = (*chosen_row == iter);
 
                 if (results[i].entry->is_directory && !is_chosen)
@@ -652,6 +662,7 @@ int display_search_results(int row, int col, int max_list_size, int *chosen_row)
                     (!uis->allowChooseSearchSongs || results[i].entry->id != chosen_dir->id)) {
 
                         FileSystemEntry *child = results[i].entry->children;
+                        search_current_dir_song_count = results[i].num_children;
 
                         while (child != NULL) {
                                 if (!child->is_directory)
@@ -662,9 +673,9 @@ int display_search_results(int row, int col, int max_list_size, int *chosen_row)
 
                                 child = child->next;
                         }
-
-                        search_current_dir_song_count = results[i].num_children;
                 }
+
+                last_row_hit = (is_chosen && i == (size_t)total_rows - 1);
 
                 iter++;
         }
