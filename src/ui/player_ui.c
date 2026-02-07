@@ -1301,12 +1301,14 @@ void flip_next_page(void)
                                  : chosen_row;
                 trigger_refresh();
         } else if (state->currentView == SEARCH_VIEW) {
-                chosen_search_result_row += max_search_list_size - 1;
-                chosen_search_result_row =
-                    (chosen_search_result_row >= get_search_results_count())
-                        ? get_search_results_count() - 1
-                        : chosen_search_result_row;
-                trigger_refresh();
+                if (!is_at_last_row()) {
+                        chosen_search_result_row += max_search_list_size - 1;
+                        chosen_search_result_row =
+                            (chosen_search_result_row >= get_search_results_count())
+                                ? get_search_results_count() - 1
+                                : chosen_search_result_row;
+                        trigger_refresh();
+                }
         }
 }
 
@@ -1347,8 +1349,11 @@ void scroll_next(void)
                 trigger_refresh();
         } else if (state->currentView == SEARCH_VIEW) {
                 state->uiState.previous_chosen_search_row = chosen_search_result_row;
-                chosen_search_result_row++;
-                trigger_refresh();
+
+                if (!is_at_last_row()) {
+                        chosen_search_result_row++;
+                        trigger_refresh();
+                }
         }
 }
 
