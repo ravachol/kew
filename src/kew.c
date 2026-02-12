@@ -90,6 +90,13 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
 AppState *state_ptr = NULL;
 
+/**
+ * @brief Updates the player state based on window size changes.
+ *
+ * This function checks if the terminal window size has changed. If it has, it sets
+ * the resize flag and adjusts the UI state. If the resize flag is set, it will resize
+ * the UI; otherwise, it refreshes the player.
+ */
 void update_player(void)
 {
         AppState *state = get_app_state();
@@ -109,6 +116,12 @@ void update_player(void)
         }
 }
 
+/**
+ * @brief Prepares the next song for playback.
+ *
+ * This function performs actions like resetting the clock, finishing loading,
+ * and preparing the next song to be played. It handles playlist and repeat logic.
+ */
 void prepare_next_song(void)
 {
         AppState *state = get_app_state();
@@ -137,6 +150,16 @@ void prepare_next_song(void)
         }
 }
 
+/**
+ * @brief Prepares and plays the specified song.
+ *
+ * This function sets up the player to play the specified song, unloads previous songs,
+ * and loads the new song. It then resumes playback, creating a playback device if needed.
+ *
+ * @param song Pointer to the song (Node) to be played.
+ *
+ * @return int Status of the operation: 0 on success, negative value on error.
+ */
 int prepare_and_play_song(Node *song)
 {
         if (!song)
@@ -179,6 +202,12 @@ int prepare_and_play_song(Node *song)
         return res;
 }
 
+/**
+ * @brief Checks and loads the next song if necessary.
+ *
+ * This function checks if a song needs to be loaded, either due to a restart or if the
+ * playlist is in shuffle mode. It prepares and loads the next song in the playlist if needed.
+ */
 void check_and_load_next_song(void)
 {
         AppState *state = get_app_state();
@@ -219,6 +248,14 @@ void check_and_load_next_song(void)
         }
 }
 
+
+/**
+ * @brief Loads the next song if needed, considering the current state of the playlist and player.
+ *
+ * This function loads the next song from the playlist if the current song has finished or
+ * if the player is waiting for the next song. It handles various conditions, including
+ * handling end-of-list behavior and errors.
+ */
 void load_waiting_music(void)
 {
         PlayList *playlist = get_playlist();
@@ -244,6 +281,16 @@ void load_waiting_music(void)
         }
 }
 
+/**
+ * @brief Main callback for the event loop, runs periodically.
+ *
+ * This function handles actions such as updating elapsed time, processing events, and
+ * updating the player UI. It runs at different speeds based on the current view.
+ *
+ * @param data Additional data passed to the callback (unused in this case).
+ *
+ * @return gboolean Returns TRUE to keep the callback running.
+ */
 gboolean mainloop_callback(gpointer data)
 {
         (void)data;
@@ -268,6 +315,15 @@ gboolean mainloop_callback(gpointer data)
         return TRUE;
 }
 
+/**
+ * @brief Quits the application upon receiving a signal.
+ *
+ * This function terminates the main loop and cleans up resources upon receiving a termination signal.
+ *
+ * @param user_data User data (GMainLoop) passed to the signal handler.
+ *
+ * @return gboolean Returns G_SOURCE_REMOVE to remove the signal source.
+ */
 static gboolean quit_on_signal(gpointer user_data)
 {
         GMainLoop *loop = (GMainLoop *)user_data;
@@ -276,6 +332,13 @@ static gboolean quit_on_signal(gpointer user_data)
         return G_SOURCE_REMOVE; // Remove the signal source
 }
 
+
+/**
+ * @brief Creates and runs the main event loop.
+ *
+ * This function sets up the main event loop and signals for quitting. It uses
+ * `g_main_loop_run()` to run the loop and handles updates at regular intervals.
+ */
 void create_loop(void)
 {
         update_last_input_time();
@@ -289,6 +352,14 @@ void create_loop(void)
         g_main_loop_unref(main_loop);
 }
 
+/**
+ * @brief Runs the application with the specified settings.
+ *
+ * This function initializes various settings and begins playing music, depending on the
+ * provided `start_playing` parameter. It also handles the playlist and UI settings.
+ *
+ * @param start_playing Boolean flag to indicate whether to start playing immediately.
+ */
 void run(bool start_playing)
 {
         AppState *state = get_app_state();
@@ -342,6 +413,11 @@ void run(bool start_playing)
         fflush(stdout);
 }
 
+/**
+ * @brief Initializes the locale settings for the application.
+ *
+ * This function sets up the locale settings and binds text domains for translations.
+ */
 void init_locale(void)
 {
         setlocale(LC_ALL, "");
@@ -351,6 +427,14 @@ void init_locale(void)
         textdomain("kew");
 }
 
+/**
+ * @brief Initializes the application and sets up necessary states.
+ *
+ * This function sets the initial state of the application, initializes resources, and prepares
+ * the environment for playback. It handles various settings, file paths, and library initialization.
+ *
+ * @param set_library_enqueued_status Flag indicating whether to set the library's enqueued status.
+ */
 void kew_init(bool set_library_enqueued_status)
 {
         AppState *state = get_app_state();
@@ -406,6 +490,12 @@ void kew_init(bool set_library_enqueued_status)
 #endif
 }
 
+/**
+ * @brief Initializes the default state for the application.
+ *
+ * This function initializes the default UI settings, playback state, and other system resources.
+ * It sets up the playlist, resets various flags, and prepares the system for playback.
+ */
 void init_default_state(void)
 {
         bool set_library_enqueued_status = true;
@@ -431,6 +521,18 @@ void init_default_state(void)
         run(false);
 }
 
+
+/**
+ * @brief Handles the "play" command from the playlist.
+ *
+ * This function validates paths and processes the playlist for playback. It checks if the
+ * provided paths exist and are valid, then initiates the playback with the playlist.
+ *
+ * @param argc Pointer to the argument count.
+ * @param argv Array of argument strings.
+ *
+ * @return bool Returns true if the command is valid, false otherwise.
+ */
 static bool handle_play_command_playlist(int *argc, char **argv)
 {
         char de_expanded[PATH_MAX];
@@ -447,6 +549,12 @@ static bool handle_play_command_playlist(int *argc, char **argv)
         return true;
 }
 
+/**
+ * @brief Shuts down the application and cleans up resources.
+ *
+ * This function stops playback, frees resources, and shuts down the application. It handles
+ * cleanup tasks like saving settings, stopping playback, and freeing memory.
+ */
 void kew_shutdown()
 {
         AppState *state = get_app_state();
@@ -550,6 +658,13 @@ void kew_shutdown()
         fflush(stdout);
 }
 
+
+/**
+ * @brief Initializes the state for the application.
+ *
+ * This function sets the application state, initializes variables, and prepares the system for
+ * running. It sets up playback, UI settings, and various other application states.
+ */
 void init_state(void)
 {
         AppState *state = get_app_state();
@@ -652,6 +767,14 @@ void init_state(void)
         state_ptr = state;
 }
 
+/**
+ * @brief Restores the terminal state when a signal is received.
+ *
+ * This function handles restoring the terminal state, such as showing the cursor, leaving
+ * the alternate screen buffer, and disabling mouse input when a signal is received (e.g., SIGINT).
+ *
+ * @param sig The signal number.
+ */
 void force_terminal_restore(int sig)
 {
         ssize_t res;
@@ -675,6 +798,18 @@ void force_terminal_restore(int sig)
         raise(sig);
 }
 
+
+/**
+ * @brief Main entry point of the application.
+ *
+ * This function processes command-line arguments, initializes the application, and runs the main event loop.
+ * It handles various cases for displaying help, version, and running the application based on user input.
+ *
+ * @param argc The number of command-line arguments.
+ * @param argv The array of command-line argument strings.
+ *
+ * @return int The exit status of the program.
+ */
 int main(int argc, char *argv[])
 {
         AppState *state = get_app_state();
