@@ -70,7 +70,7 @@ void resize(UIState *uis)
 
 void emit_string_property_changed(const gchar *property_name, const gchar *new_value)
 {
-#ifndef __APPLE__
+#ifdef USE_DBUS
         GVariantBuilder changed_properties_builder;
         g_variant_builder_init(&changed_properties_builder, G_VARIANT_TYPE("a{sv}"));
 
@@ -97,7 +97,7 @@ void emit_string_property_changed(const gchar *property_name, const gchar *new_v
 
 void update_playback_position(double elapsed_seconds)
 {
-#ifndef __APPLE__
+#ifdef USE_DBUS
         if (elapsed_seconds < 0.0)
                 elapsed_seconds = 0.0;
 
@@ -129,7 +129,7 @@ void update_playback_position(double elapsed_seconds)
 
 void emit_seeked_signal(double new_position_seconds)
 {
-#ifndef __APPLE__
+#ifdef USE_DBUS
         if (new_position_seconds < 0.0)
                 new_position_seconds = 0.0;
 
@@ -152,7 +152,7 @@ void emit_seeked_signal(double new_position_seconds)
 
 void emit_boolean_property_changed(const gchar *property_name, gboolean new_value)
 {
-#ifndef __APPLE__
+#ifdef USE_DBUS
         GVariantBuilder changed_properties_builder;
         g_variant_builder_init(&changed_properties_builder,
                                G_VARIANT_TYPE("a{sv}"));
