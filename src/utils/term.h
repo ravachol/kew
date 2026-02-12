@@ -104,6 +104,7 @@ int get_indentation(int text_width);
 void set_nonblocking_mode(void);
 
 
+
 /**
  * @brief Restores the terminal to its original mode.
  *
@@ -128,6 +129,18 @@ void restore_terminal_mode(void);
  *         Returns 1 for a single-byte ASCII character, or more for multi-byte UTF-8 characters.
  */
 int read_input_sequence(char *seq, size_t seq_size);
+
+/**
+ * @brief Checks if input is available on the standard input (stdin).
+ *
+ * This function uses the `select()` system call to check if there is any input
+ * available for reading from the standard input. It returns a boolean value
+ * indicating whether data is ready to be read.
+ *
+ * @return 1 if input is available on stdin, 0 if no input is available or
+ *         if there was an error while checking the input availability.
+ */
+int is_input_available(void);
 
 /**
  * @brief Saves the current cursor position.
@@ -238,6 +251,19 @@ void set_raw_input_mode(void);
  */
 void enable_input_buffering(void);
 
+/**
+ * @brief Enables terminal scrolling.
+ *
+ * This function sends an ANSI escape sequence to the terminal to enable
+ * scrolling, allowing content to scroll past the terminal's viewport instead
+ * of being clipped. It is typically used when the terminal has been configured
+ * to prevent scrolling.
+ *
+ * @note This is useful when the terminal has been manually configured to
+ *       disable scrolling, and you want to restore the default scrolling
+ *       behavior.
+ */
+ void enable_scrolling(void);
 
 /**
  * @brief Jumps the cursor up by a specified number of rows.
