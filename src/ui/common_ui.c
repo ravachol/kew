@@ -19,7 +19,6 @@
 #include "utils/term.h"
 #include "utils/utils.h"
 
-#include <math.h>
 #include <stdio.h>
 #include <string.h>
 #include <wchar.h>
