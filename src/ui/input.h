@@ -4,7 +4,6 @@
  */
 
 #include "common/appstate.h"
-#include "common/events.h"
 
 /**
  * @brief Checks if any digits have been pressed.
