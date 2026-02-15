@@ -22,6 +22,10 @@
 #include "sound/playback.h"
 #include "sound/volume.h"
 
+#ifdef USE_MACOS_MEDIA
+#include "macos_nowplaying.h"
+#endif
+
 #include <glib.h>
 #include <math.h>
 
@@ -984,6 +988,8 @@ void emit_playback_stopped_mpris()
                     G_VARIANT_TYPE("(v)"), G_DBUS_CALL_FLAGS_NONE, -1, NULL,
                     NULL, NULL);
         }
+#elif defined(USE_MACOS_MEDIA)
+        macos_set_playback_state_stopped();
 #endif
 }
 
@@ -1016,6 +1022,8 @@ void cleanup_mpris(void)
                 g_main_context_unref(get_g_main_context());
                 set_g_main_context(NULL);
         }
+#elif defined(USE_MACOS_MEDIA)
+        cleanup_macos_nowplaying();
 #endif
 }
 
@@ -1077,6 +1085,8 @@ void init_mpris(void)
         }
 
         g_dbus_node_info_unref(introspection_data);
+#elif defined(USE_MACOS_MEDIA)
+        init_macos_nowplaying();
 #endif
 }
 
@@ -1308,6 +1318,12 @@ void emit_metadata_changed(const gchar *title, const gchar *artist,
 
         g_variant_builder_clear(&changed_properties_builder);
         g_variant_builder_clear(&metadata_builder);
+#elif defined(USE_MACOS_MEDIA)
+        (void)track_id;
+        (void)current_song;
+        macos_set_now_playing_info(title, artist, album, cover_art_path,
+                                   (double)length / G_USEC_PER_SEC);
+        macos_set_playback_state_playing();
 #else
         (void)title;
         (void)artist;

@@ -34,6 +34,15 @@ ifeq ($(origin USE_DBUS), undefined)
   endif
 endif
 
+# Default USE_MACOS_MEDIA to auto-detect if not set by user
+ifeq ($(origin USE_MACOS_MEDIA), undefined)
+  ifeq ($(UNAME_S), Darwin)
+    USE_MACOS_MEDIA = 1
+  else
+    USE_MACOS_MEDIA = 0
+  endif
+endif
+
 PREFIX    ?= /usr/local
 
 ifeq ($(UNAME_S),Darwin)
@@ -133,11 +142,19 @@ ifeq ($(UNAME_S), Linux)
   endif
 else ifeq ($(UNAME_S), Darwin)
   LIBS += -framework CoreAudio -framework CoreFoundation
+  ifeq ($(USE_MACOS_MEDIA), 1)
+    LIBS += -framework MediaPlayer -framework AppKit
+  endif
 endif
 
 # Conditionally add  USE_DBUS is enabled
 ifeq ($(USE_DBUS), 1)
   DEFINES += -DUSE_DBUS
+endif
+
+# Conditionally add macOS media integration
+ifeq ($(USE_MACOS_MEDIA), 1)
+  DEFINES += -DUSE_MACOS_MEDIA
 endif
 
 DEFINES += -DPREFIX=\"$(PREFIX)\"
@@ -185,6 +202,12 @@ SRCS = src/common/appstate.c src/ui/common_ui.c src/common/common.c \
 WRAPPER_SRC = src/data/tagLibWrapper.cpp
 WRAPPER_OBJ = $(OBJDIR)/tagLibWrapper.o
 
+# macOS Now Playing bridge (Objective-C)
+ifeq ($(USE_MACOS_MEDIA), 1)
+MACOS_MEDIA_SRC = src/sys/macos_nowplaying.m
+MACOS_MEDIA_OBJ = $(OBJDIR)/sys/macos_nowplaying.o
+endif
+
 MAN_PAGE = kew.1
 MAN_DIR ?= $(PREFIX)/share/man
 DATADIR ?= $(PREFIX)/share
@@ -214,6 +237,11 @@ $(OBJDIR)/%.o: src/%.c Makefile | $(OBJDIR)
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) $(DEFINES) -c -o $@ $<
 
+# Compile Objective-C sources in src/ (macOS only)
+$(OBJDIR)/%.o: src/%.m Makefile | $(OBJDIR)
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) $(DEFINES) -fobjc-arc -c -o $@ $<
+
 # Compile explicit C++ sources in src/
 $(OBJDIR)/%.o: src/%.cpp Makefile | $(OBJDIR)
 	@mkdir -p $(dir $@)
@@ -229,9 +257,15 @@ $(OBJDIR)/nestegg/%.o: include/nestegg/%.c Makefile | $(OBJDIR)
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) $(DEFINES) -c -o $@ $<
 
+# Collect optional objects
+EXTRA_OBJS =
+ifeq ($(USE_MACOS_MEDIA), 1)
+  EXTRA_OBJS += $(MACOS_MEDIA_OBJ)
+endif
+
 # Link all objects safely together using C++ linker
-kew: $(OBJS) $(WRAPPER_OBJ) Makefile
-	$(CXX) -o kew $(OBJS) $(WRAPPER_OBJ) $(LIBS) $(LDFLAGS)
+kew: $(OBJS) $(WRAPPER_OBJ) $(EXTRA_OBJS) Makefile
+	$(CXX) -o kew $(OBJS) $(WRAPPER_OBJ) $(EXTRA_OBJS) $(LIBS) $(LDFLAGS)
 
 .PHONY: install
 install: all

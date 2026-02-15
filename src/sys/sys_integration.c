@@ -12,6 +12,9 @@
 
 #include "discord_rpc.h"
 #include "mpris.h"
+#ifdef USE_MACOS_MEDIA
+#include "macos_nowplaying.h"
+#endif
 #include "notifications.h"
 
 #include "ui/player_ui.h"
@@ -50,6 +53,9 @@ void set_gd_bus_connection(GDBusConnection *val)
 
 void process_d_bus_events(void)
 {
+#ifdef USE_MACOS_MEDIA
+        macos_process_events();
+#endif
         while (g_main_context_pending(get_g_main_context())) {
                 g_main_context_iteration(get_g_main_context(), FALSE);
         }
@@ -91,6 +97,15 @@ void emit_string_property_changed(const gchar *property_name, const gchar *new_v
 
         g_variant_builder_clear(&changed_properties_builder);
         g_variant_unref(signal_variant);
+#elif defined(USE_MACOS_MEDIA)
+        if (strcmp(property_name, "PlaybackStatus") == 0) {
+                if (strcmp(new_value, "Playing") == 0)
+                        macos_set_playback_state_playing();
+                else if (strcmp(new_value, "Paused") == 0)
+                        macos_set_playback_state_paused();
+                else if (strcmp(new_value, "Stopped") == 0)
+                        macos_set_playback_state_stopped();
+        }
 #else
         (void)property_name;
         (void)new_value;
@@ -124,6 +139,10 @@ void update_playback_position(double elapsed_seconds)
                                       "/org/mpris/MediaPlayer2",
                                       "org.freedesktop.DBus.Properties",
                                       "PropertiesChanged", parameters, NULL);
+#elif defined(USE_MACOS_MEDIA)
+        if (elapsed_seconds < 0.0)
+                elapsed_seconds = 0.0;
+        macos_update_playback_position(elapsed_seconds);
 #else
         (void)elapsed_seconds;
 #endif
