@@ -44,6 +44,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include "sys/mpris.h"
 #include "sys/notifications.h"
 #include "sys/sys_integration.h"
+#include "sys/discord_rpc.h"
 
 #include "ui/chroma.h"
 #include "ui/cli.h"
@@ -448,6 +449,9 @@ void kew_init(bool set_library_enqueued_status)
 
         init_input();
 
+        if (state->uiSettings.discordRPCEnabled)
+                discord_rpc_init();
+
         // This is to not stop Chroma when we can't keep up with it, instead just return an error
         signal(SIGPIPE, SIG_IGN);
 
@@ -598,6 +602,9 @@ void kew_shutdown()
         bool wait_until_complete = true;
         update_library_if_changed_detected(wait_until_complete);
         shutdown_input();
+
+        if (state->uiSettings.discordRPCEnabled)
+                discord_rpc_shutdown();
         free_search_results();
         cleanup_mpris();
         set_path(settings->path);
@@ -682,6 +689,7 @@ void init_state(void)
         state->uiSettings.hideGlimmeringText = false;
         state->uiSettings.coverAnsi = false;
         state->uiSettings.visualizerEnabled = true;
+        state->uiSettings.discordRPCEnabled = true;
         state->uiSettings.visualizer_height = 5;
         state->uiSettings.visualizer_color_type = 0;
         state->uiSettings.visualizerBrailleMode = false;

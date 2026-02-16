@@ -613,6 +613,8 @@ void set_default_config(AppSettings *settings)
                  sizeof(settings->saveRepeatShuffleSettings));
         c_strcpy(settings->trackTitleAsWindowTitle, "1",
                  sizeof(settings->trackTitleAsWindowTitle));
+        c_strcpy(settings->discordRPCEnabled, "1",
+                 sizeof(settings->discordRPCEnabled));
 #ifdef __APPLE__
         // Visualizer looks wonky in default terminal but let's enable it
         // anyway. People need to switch
@@ -900,6 +902,10 @@ void construct_app_settings(AppSettings *settings, KeyValuePair *pairs, int coun
                 } else if (strcmp(lowercase_key, "visualizerenabled") == 0) {
                         snprintf(settings->visualizerEnabled,
                                  sizeof(settings->visualizerEnabled), "%s",
+                                 pair->value);
+                } else if (strcmp(lowercase_key, "discordrpcenabled") == 0) {
+                        snprintf(settings->discordRPCEnabled,
+                                 sizeof(settings->discordRPCEnabled), "%s",
                                  pair->value);
                 } else if (strcmp(lowercase_key, "useconfigcolors") == 0) {
                         snprintf(settings->useConfigColors,
@@ -1786,6 +1792,14 @@ void set_config(AppSettings *settings, UISettings *ui)
                                sizeof(settings->visualizerEnabled))
                     : c_strcpy(settings->visualizerEnabled, "0",
                                sizeof(settings->visualizerEnabled));
+
+        if (settings->discordRPCEnabled[0] == '\0')
+                ui->discordRPCEnabled
+                    ? c_strcpy(settings->discordRPCEnabled, "1",
+                               sizeof(settings->discordRPCEnabled))
+                    : c_strcpy(settings->discordRPCEnabled, "0",
+                               sizeof(settings->discordRPCEnabled));
+
         if (settings->quitAfterStopping[0] == '\0')
                 ui->quitAfterStopping
                     ? c_strcpy(settings->quitAfterStopping, "1",
@@ -1928,6 +1942,9 @@ void set_config(AppSettings *settings, UISettings *ui)
 
         fprintf(file, "\n[mouse]\n\n");
         fprintf(file, "mouseEnabled=%s\n\n", settings->mouseEnabled);
+
+        fprintf(file, "\n[discord]\n\n");
+        fprintf(file, "discordRPCEnabled=%s\n\n”", settings->discordRPCEnabled);
 
         fprintf(file, "\n[visualizer]\n\n");
         fprintf(file, "visualizerEnabled=%s\n", settings->visualizerEnabled);
