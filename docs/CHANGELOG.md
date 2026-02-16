@@ -13,6 +13,8 @@ Chroma is started from within kew. Just switch to track view and press c to cycl
 
 Thank you @yuri-xyz for helping out with this.
 
+- Discord RPC integration. by @ravachol. Suggested by @Chmosha.
+
 - kew play \<path\> \<path2\> command. by @Overionised. Suggested by @amigthea.
 
 - Lyrics page now centers the current lyric once it reaches the center of the screen. Suggested by @flashfire1001. Implemented by @Moksh-Parikh.

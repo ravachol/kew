@@ -31,7 +31,9 @@
 #include "data/playlist.h"
 #include "data/song_loader.h"
 
+#include "sys/discord_rpc.h"
 #include "sys/sys_integration.h"
+
 #include "utils/term.h"
 #include "utils/utils.h"
 
@@ -87,6 +89,7 @@ static PixelData footer_color = {120, 120, 120};
 static FileSystemEntry *last_entry = NULL;
 static FileSystemEntry *chosen_dir = NULL;
 static bool is_same_name_as_last_time = false;
+static bool last_paused_state;
 static int term_w, term_h;
 static int has_chroma = -1;
 static bool next_visualization_requested = false;
@@ -2662,6 +2665,19 @@ void refresh_player()
                 ps->notifySwitch = false;
 
                 notify_mpris_switch(get_current_song_data());
+
+                if (state->uiSettings.discordRPCEnabled)
+                        notify_discord_switch(get_current_song_data());
+        }
+
+        if (state->uiSettings.discordRPCEnabled) {
+                if (is_paused() && !last_paused_state) {
+                        notify_discord_pause();
+                } else if (!is_paused() && last_paused_state) {
+                        notify_discord_resume(get_current_song_data());
+                }
+
+                last_paused_state = is_paused();
         }
 
         if (should_refresh_player()) {
