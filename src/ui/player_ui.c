@@ -869,6 +869,9 @@ void print_footer(int row, int col)
         if (preferred_width < 0 || preferred_height < 0) // mini view
                 return;
 
+        if (ui->hideFooter)
+                return;
+
         footer_row = row;
         footer_col = col;
 
