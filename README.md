@@ -27,7 +27,7 @@ kew (/kjuː/) is a terminal music player.
 
  * Search a music library with partial titles from the command-line.
  * Creates a playlist automatically based on matched song, album or artist.
- * Private, no data is collected by kew.
+ * Private, no data is collected by kew*.
  * Music without distractions or algorithmic manipulation.
  * Full color covers in sixel-capable terminals.
  * Visualizer with various settings.
@@ -40,6 +40,7 @@ kew (/kjuː/) is a terminal music player.
  * Supports lyrics through .lrc files, embedded SYLT (Mp3) or Vorbis comments (Flac,Ogg,Opus).
  * Use themes or colors derived from covers.
 
+ *kew displays it's status in Discord by default, but this can be disabled both in Discord and in the kew config file kewrc.
 
  ## ⚠️ This repository has moved to Codeberg!
 Active development and issue tracking now happens at [Codeberg](https://codeberg.org/ravachol/kew).
