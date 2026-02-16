@@ -127,6 +127,7 @@ typedef struct
         bool coverAnsi;               // Show chafa cover (picture perfect in the right
                                       // terminal), or ascii/ansi typ cover
         bool visualizerEnabled;       // Show spectrum visualizer
+        bool discordRPCEnabled;       // Show kew status in Discord
         bool hideLogo;                // No kew text at top
         bool hideHelp;                // No help text at top
         bool hideFooter;              // No footer
@@ -240,6 +241,7 @@ typedef struct
         char coverAnsi[2];
         char useConfigColors[2];
         char visualizerEnabled[2];
+        char discordRPCEnabled[2];
         char visualizer_height[6];
         char visualizer_color_type[2];
         char titleDelay[6];

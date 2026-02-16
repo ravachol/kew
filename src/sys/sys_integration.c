@@ -12,6 +12,7 @@
 
 #include "mpris.h"
 #include "notifications.h"
+#include "discord_rpc.h"
 
 #include "ui/player_ui.h"
 #include "utils/file.h"
@@ -220,6 +221,9 @@ void notify_song_switch(SongData *current_song_data)
 #endif
 
                 notify_mpris_switch(current_song_data);
+
+                if (ui->discordRPCEnabled)
+                        notify_discord_switch(current_song_data);
 
                 Node *current = get_current_song();
 
