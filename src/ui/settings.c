@@ -631,6 +631,7 @@ void set_default_config(AppSettings *settings)
 #else
         c_strcpy(settings->hideLogo, "0", sizeof(settings->hideLogo));
 #endif
+        c_strcpy(settings->hideFooter, "0", sizeof(settings->hideFooter));
         c_strcpy(settings->hideHelp, "0", sizeof(settings->hideHelp));
         c_strcpy(settings->hideSideCover, "0", sizeof(settings->hideSideCover));
         c_strcpy(settings->visualizer_height, "6",
@@ -1119,6 +1120,9 @@ void construct_app_settings(AppSettings *settings, KeyValuePair *pairs, int coun
                                  "%s", pair->value);
                 } else if (strcmp(lowercase_key, "hidehelp") == 0) {
                         snprintf(settings->hideHelp, sizeof(settings->hideHelp),
+                                 "%s", pair->value);
+                } else if (strcmp(lowercase_key, "hidefooter") == 0) {
+                        snprintf(settings->hideFooter, sizeof(settings->hideFooter),
                                  "%s", pair->value);
                 } else if (strcmp(lowercase_key, "hidesidecover") == 0) {
                         snprintf(settings->hideSideCover, sizeof(settings->hideSideCover),
@@ -1835,6 +1839,11 @@ void set_config(AppSettings *settings, UISettings *ui)
                                         sizeof(settings->hideHelp))
                              : c_strcpy(settings->hideHelp, "0",
                                         sizeof(settings->hideHelp));
+        if (settings->hideFooter[0] == '\0')
+                ui->hideFooter ? c_strcpy(settings->hideFooter, "1",
+                                        sizeof(settings->hideFooter))
+                             : c_strcpy(settings->hideFooter, "0",
+                                        sizeof(settings->hideFooter));
         if (settings->hideSideCover[0] == '\0')
                 ui->hideSideCover ? c_strcpy(settings->hideSideCover, "1",
                                              sizeof(settings->hideSideCover))
@@ -1864,6 +1873,7 @@ void set_config(AppSettings *settings, UISettings *ui)
         fprintf(file, "stripTrackNumbers=%s\n", settings->stripTrackNumbers);
         fprintf(file, "hideLogo=%s\n", settings->hideLogo);
         fprintf(file, "hideHelp=%s\n", settings->hideHelp);
+        fprintf(file, "hideFooter=%s\n", settings->hideFooter);
         fprintf(file, "hideSideCover=%s\n\n", settings->hideSideCover);
 
         fprintf(file, "# Delay when drawing title in track view, set to 0 to "
