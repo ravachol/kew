@@ -42,7 +42,7 @@
 
 * Vafone @vafone
 * Nicolas F
-* Ravachol @ravachol <ravacholf@proton.me>
+* Ravachol @ravachol <kew-player@proton.me>
 * LeahTheSlug
 
 ## Translations
