@@ -16,11 +16,18 @@ ARCH := $(shell uname -m)
 # Set kew version
 KEW_VERSION ?= $(shell git describe --tags --dirty --always)
 
+  # Check if we're in Termux environment
+ifneq ($(wildcard /data/data/com.termux/files/usr),)
+  # Termux environment
+  COMMONFLAGS += -D__ANDROID__
+  IS_ANDROID := 1
+endif
+
 # Default USE_DBUS to auto-detect if not set by user
 ifeq ($(origin USE_DBUS), undefined)
   ifeq ($(UNAME_S), Darwin)
     USE_DBUS = 0
-  else ifeq ($(UNAME_O),Android)
+  else ifeq ($(IS_ANDROID),1)
     USE_DBUS = 0
   else
     USE_DBUS = 1
@@ -101,12 +108,6 @@ endif
 COMMONFLAGS += -DMA_NO_AAUDIO
 COMMONFLAGS += -fstack-protector-strong -Wformat -Wno-format-security -fPIE -D_FORTIFY_SOURCE=2
 COMMONFLAGS += -Wall -Wextra -Wpointer-arith
-
-  # Check if we're in Termux environment
-ifneq ($(wildcard /data/data/com.termux/files/usr),)
-  # Termux environment
-  COMMONFLAGS += -D__ANDROID__
-endif
 
 CFLAGS = $(COMMONFLAGS)
 
