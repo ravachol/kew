@@ -40,19 +40,6 @@ termux-setup-storage
 ```
 Tap allow for the setup to finish
 
-4. **Setup dbus for kew**
-* edit/create `~/.bashrc`
-```
-nano ~/.bashrc
-```
-
-* In nano, add this line and save it (ctrl+x):
-```bash
-alias kew="dbus-launch kew"
-```
-
-* Restart the shell: `exec $SHELL
-
 ### **Compiling Kew:**
 
 ```sh
