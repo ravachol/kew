@@ -7,8 +7,8 @@
  * monotonic clocks to maintain precise playback timing.
  */
 
-#ifndef LIBRARY_OPS_H
-#define LIBRARY_OPS_H
+#ifndef PLAYBACK_CLOCK_H
+#define PLAYBACK_CLOCK_H
 
 #include <glib.h>
 #include <stdbool.h>

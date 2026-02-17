@@ -7,6 +7,8 @@
  * and the UI browser.
  */
 
+#include "library_ops.h"
+
 #include "common/appstate.h"
 #include "common/common.h"
 
