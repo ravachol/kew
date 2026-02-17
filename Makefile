@@ -20,7 +20,7 @@ KEW_VERSION ?= $(shell git describe --tags --dirty --always)
 ifeq ($(origin USE_DBUS), undefined)
   ifeq ($(UNAME_S), Darwin)
     USE_DBUS = 0
-  else ifeq ($(ANDROID), 1)
+  else ifeq ($(UNAME_O),Android)
     USE_DBUS = 0
   else
     USE_DBUS = 1
