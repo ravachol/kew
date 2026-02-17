@@ -92,7 +92,7 @@ void uninit_previous_decoder(void **decoder_array, int index, uninit_func uninit
 
 bool has_builtin_decoder(const char *file_path)
 {
-        char *extension = strrchr(file_path, '.');
+        const char *extension = strrchr(file_path, '.');
         return (extension != NULL && (strcasecmp(extension, ".wav") == 0 ||
                                       strcasecmp(extension, ".flac") == 0 ||
                                       strcasecmp(extension, ".mp3") == 0));
