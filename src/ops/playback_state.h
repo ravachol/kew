@@ -11,9 +11,7 @@
 
 #include <stdbool.h>
 
-/* =========================
- * Getters
- * ========================= */
+/* ========================= GETTERS ========================= */
 
 /**
  * @brief Check whether repeat-list mode is enabled.
@@ -139,9 +137,7 @@ void get_format_and_sample_rate(ma_format *format, ma_uint32 *sample_rate);
 SongData *get_current_song_data(void);
 
 
-/* =========================
- * Setters
- * ========================= */
+/* ========================= SETTERS ========================= */
 
 /**
  * @brief Enable or disable single-track repeat mode.
