@@ -61,20 +61,191 @@ typedef struct m4a_decoder {
 
 #define FOUR_CHAR_INT(a, b, c, d) (((uint32_t)(a) << 24) | ((b) << 16) | ((c) << 8) | (d))
 
-MA_API ma_result m4a_decoder_init(ma_read_proc onRead, ma_seek_proc onSeek, ma_tell_proc onTell, void *pReadSeekTellUserData, const ma_decoding_backend_config *p_config, const ma_allocation_callbacks *p_allocation_callbacks, m4a_decoder *pM4a);
-MA_API ma_result m4a_decoder_init_file(const char *pFilePath, const ma_decoding_backend_config *p_config, const ma_allocation_callbacks *p_allocation_callbacks, m4a_decoder *pM4a);
-MA_API void m4a_decoder_uninit(m4a_decoder *pM4a, const ma_allocation_callbacks *p_allocation_callbacks);
-MA_API ma_result m4a_decoder_read_pcm_frames(m4a_decoder *pM4a, void *p_frames_out, ma_uint64 frame_count, ma_uint64 *p_frames_read);
-MA_API ma_result m4a_decoder_seek_to_pcm_frame(m4a_decoder *pM4a, ma_uint64 frame_index);
-MA_API ma_result m4a_decoder_get_data_format(m4a_decoder *pM4a, ma_format *p_format, ma_uint32 *p_channels, ma_uint32 *p_sample_rate, ma_channel *p_channel_map, size_t channel_map_cap);
-MA_API ma_result m4a_decoder_get_cursor_in_pcm_frames(m4a_decoder *pM4a, ma_uint64 *p_cursor);
-MA_API ma_result m4a_decoder_get_length_in_pcm_frames(m4a_decoder *pM4a, ma_uint64 *p_length);
+/**
+ * @brief Initializes an M4A decoder using custom I/O callbacks.
+ *
+ * Sets up an M4A decoding context using user-provided read, seek, and
+ * optional tell callbacks. Supports reading PCM frames from the
+ * M4A/ALAC container format.
+ *
+ * @param onRead                    Callback for reading data from the source.
+ * @param onSeek                    Callback for seeking within the source.
+ * @param onTell                    Callback for retrieving the current position (optional).
+ * @param pReadSeekTellUserData     User data passed to I/O callbacks.
+ * @param p_config                  Optional decoding backend configuration.
+ * @param p_allocation_callbacks    Optional allocation callbacks (currently unused).
+ * @param pM4a                      Pointer to the M4A decoder to initialize.
+ *
+ * @return MA_SUCCESS on success.
+ * @return MA_INVALID_ARGS if required arguments are NULL.
+ * @return MA_INVALID_FILE if the input data cannot be parsed as M4A.
+ */
+MA_API ma_result m4a_decoder_init(ma_read_proc onRead,
+                                  ma_seek_proc onSeek,
+                                  ma_tell_proc onTell,
+                                  void *pReadSeekTellUserData,
+                                  const ma_decoding_backend_config *p_config,
+                                  const ma_allocation_callbacks *p_allocation_callbacks,
+                                  m4a_decoder *pM4a);
 
-ma_result m4a_decoder_ds_get_data_format(ma_data_source *p_data_source, ma_format *p_format, ma_uint32 *p_channels, ma_uint32 *p_sample_rate, ma_channel *p_channel_map, size_t channel_map_cap);
-ma_result m4a_decoder_ds_read(ma_data_source *p_data_source, void *p_frames_out, ma_uint64 frame_count, ma_uint64 *p_frames_read);
-ma_result m4a_decoder_ds_seek(ma_data_source *p_data_source, ma_uint64 frame_index);
-ma_result m4a_decoder_ds_get_cursor(ma_data_source *p_data_source, ma_uint64 *p_cursor);
-ma_result m4a_decoder_ds_get_length(ma_data_source *p_data_source, ma_uint64 *p_length);
+/**
+ * @brief Initializes an M4A decoder from a file on disk.
+ *
+ * Opens the specified file path and initializes decoding for the first
+ * audio track (ALAC).
+ *
+ * @param pFilePath                 Path to the M4A file.
+ * @param p_config                  Optional decoding backend configuration.
+ * @param p_allocation_callbacks    Optional allocation callbacks (currently unused).
+ * @param pM4a                      Pointer to the M4A decoder to initialize.
+ *
+ * @return MA_SUCCESS on success.
+ * @return MA_INVALID_FILE if the file cannot be opened or parsed.
+ */
+MA_API ma_result m4a_decoder_init_file(const char *pFilePath,
+                                       const ma_decoding_backend_config *p_config,
+                                       const ma_allocation_callbacks *p_allocation_callbacks,
+                                       m4a_decoder *pM4a);
+
+/**
+ * @brief Uninitializes an M4A decoder and releases associated resources.
+ *
+ * Frees decoder state and cleans up the underlying data source.
+ *
+ * @param pM4a                     Pointer to the M4A decoder.
+ * @param p_allocation_callbacks    Optional allocation callbacks (currently unused).
+ */
+MA_API void m4a_decoder_uninit(m4a_decoder *pM4a,
+                               const ma_allocation_callbacks *p_allocation_callbacks);
+
+/**
+ * @brief Reads decoded PCM frames from the M4A stream.
+ *
+ * Decodes audio packets and writes interleaved PCM frames to the
+ * output buffer. Handles internal buffering and maintains a cursor
+ * for subsequent reads.
+ *
+ * @param pM4a         Pointer to the M4A decoder.
+ * @param p_frames_out Output buffer for decoded PCM frames.
+ * @param frame_count  Number of PCM frames to read.
+ * @param p_frames_read Optional pointer to receive the actual number of frames read.
+ *
+ * @return MA_SUCCESS on success.
+ * @return MA_AT_END if the end of stream is reached.
+ * @return MA_INVALID_ARGS if arguments are invalid.
+ * @return MA_ERROR on decoding failure.
+ */
+MA_API ma_result m4a_decoder_read_pcm_frames(m4a_decoder *pM4a,
+                                             void *p_frames_out,
+                                             ma_uint64 frame_count,
+                                             ma_uint64 *p_frames_read);
+
+/**
+ * @brief Seeks to a specific PCM frame in the M4A stream.
+ *
+ * Performs a container-level seek and resets internal decoder state.
+ *
+ * @param pM4a         Pointer to the M4A decoder.
+ * @param frame_index  Target PCM frame index.
+ *
+ * @return MA_SUCCESS on success.
+ * @return MA_INVALID_ARGS if arguments are invalid.
+ * @return MA_INVALID_OPERATION if seeking fails.
+ */
+MA_API ma_result m4a_decoder_seek_to_pcm_frame(m4a_decoder *pM4a,
+                                               ma_uint64 frame_index);
+
+/**
+ * @brief Retrieves the audio format of the decoded stream.
+ *
+ * Returns the sample format, channel count, sample rate, and optionally
+ * fills a standard channel map.
+ *
+ * @param pM4a           Pointer to the M4A decoder.
+ * @param p_format       Pointer to receive the sample format.
+ * @param p_channels     Pointer to receive the number of channels.
+ * @param p_sample_rate  Pointer to receive the sample rate.
+ * @param p_channel_map  Optional buffer to receive the channel map.
+ * @param channel_map_cap Capacity of the channel map buffer.
+ *
+ * @return MA_SUCCESS on success.
+ * @return MA_INVALID_OPERATION if decoder is invalid.
+ */
+MA_API ma_result m4a_decoder_get_data_format(m4a_decoder *pM4a,
+                                             ma_format *p_format,
+                                             ma_uint32 *p_channels,
+                                             ma_uint32 *p_sample_rate,
+                                             ma_channel *p_channel_map,
+                                             size_t channel_map_cap);
+
+/**
+ * @brief Retrieves the current playback cursor position in PCM frames.
+ *
+ * @param pM4a     Pointer to the M4A decoder.
+ * @param p_cursor Pointer to receive the current PCM frame index.
+ *
+ * @return MA_SUCCESS on success.
+ * @return MA_INVALID_ARGS if arguments are invalid.
+ */
+MA_API ma_result m4a_decoder_get_cursor_in_pcm_frames(m4a_decoder *pM4a,
+                                                      ma_uint64 *p_cursor);
+
+/**
+ * @brief Retrieves the total length of the M4A stream in PCM frames.
+ *
+ * Computes and caches the total frame count based on container duration.
+ *
+ * @param pM4a    Pointer to the M4A decoder.
+ * @param p_length Pointer to receive the total PCM frame length.
+ *
+ * @return MA_SUCCESS on success.
+ * @return MA_INVALID_ARGS if arguments are invalid.
+ */
+MA_API ma_result m4a_decoder_get_length_in_pcm_frames(m4a_decoder *pM4a,
+                                                      ma_uint64 *p_length);
+
+/********************************************************************
+ * Internal Data Source Adapter Functions
+ * These wrap the M4A decoder API to implement the ma_data_source
+ * interface.
+ ********************************************************************/
+
+/**
+ * @brief Data source wrapper: retrieves the audio format from an M4A decoder.
+ */
+ma_result m4a_decoder_ds_get_data_format(ma_data_source *p_data_source,
+                                         ma_format *p_format,
+                                         ma_uint32 *p_channels,
+                                         ma_uint32 *p_sample_rate,
+                                         ma_channel *p_channel_map,
+                                         size_t channel_map_cap);
+
+/**
+ * @brief Data source wrapper: reads PCM frames from an M4A decoder.
+ */
+ma_result m4a_decoder_ds_read(ma_data_source *p_data_source,
+                              void *p_frames_out,
+                              ma_uint64 frame_count,
+                              ma_uint64 *p_frames_read);
+
+/**
+ * @brief Data source wrapper: seeks to a PCM frame in an M4A decoder.
+ */
+ma_result m4a_decoder_ds_seek(ma_data_source *p_data_source,
+                              ma_uint64 frame_index);
+
+/**
+ * @brief Data source wrapper: retrieves the current cursor position in an M4A decoder.
+ */
+ma_result m4a_decoder_ds_get_cursor(ma_data_source *p_data_source,
+                                    ma_uint64 *p_cursor);
+
+/**
+ * @brief Data source wrapper: retrieves the total length of the M4A decoder in PCM frames.
+ */
+ma_result m4a_decoder_ds_get_length(ma_data_source *p_data_source,
+                                    ma_uint64 *p_length);
+
 
 #if defined(MINIAUDIO_IMPLEMENTATION) || defined(MA_IMPLEMENTATION)
 

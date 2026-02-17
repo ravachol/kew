@@ -64,14 +64,154 @@ typedef struct
 #endif
 } ma_webm;
 
-MA_API ma_result ma_webm_init(ma_read_proc onRead, ma_seek_proc onSeek, ma_tell_proc onTell, void *pReadSeekTellUserData, const ma_decoding_backend_config *p_config, const ma_allocation_callbacks *p_allocation_callbacks, ma_webm *p_webm);
-MA_API ma_result ma_webm_init_file(const char *pFilePath, const ma_decoding_backend_config *p_config, const ma_allocation_callbacks *p_allocation_callbacks, ma_webm *p_webm);
-MA_API void ma_webm_uninit(ma_webm *p_opus, const ma_allocation_callbacks *p_allocation_callbacks);
-MA_API ma_result ma_webm_read_pcm_frames(ma_webm *p_webm, void *p_frames_out, ma_uint64 frame_count, ma_uint64 *p_frames_read);
-MA_API ma_result ma_webm_seek_to_pcm_frame(ma_webm *p_webm, ma_uint64 frame_index);
-MA_API ma_result ma_webm_get_data_format(ma_webm *p_opus, ma_format *p_format, ma_uint32 *p_channels, ma_uint32 *p_sample_rate, ma_channel *p_channel_map, size_t channel_map_cap);
-MA_API ma_result ma_webm_get_cursor_in_pcm_frames(ma_webm *p_webm, ma_uint64 *p_cursor);
-MA_API ma_result ma_webm_get_length_in_pcm_frames(ma_webm *p_webm, ma_uint64 *p_length);
+/**
+ * @brief Initializes a WebM decoder using custom I/O callbacks.
+ *
+ * Creates and initializes a WebM decoding context using user-provided
+ * read/seek/tell callbacks. Supports Opus and Vorbis audio tracks.
+ *
+ * @param onRead                    Callback for reading data.
+ * @param onSeek                    Callback for seeking within the stream.
+ * @param onTell                    Callback for retrieving the current position (optional).
+ * @param pReadSeekTellUserData     User data passed to I/O callbacks.
+ * @param p_config                  Optional decoding backend configuration.
+ * @param p_allocation_callbacks    Optional allocation callbacks (currently unused).
+ * @param p_webm                    Pointer to the WebM decoder to initialize.
+ *
+ * @return MA_SUCCESS on success.
+ * @return MA_INVALID_ARGS if required arguments are NULL.
+ * @return MA_INVALID_FILE if the file is not a valid WebM audio file.
+ * @return MA_NOT_IMPLEMENTED if WebM support is disabled or codec unsupported.
+ */
+MA_API ma_result ma_webm_init(ma_read_proc onRead,
+                              ma_seek_proc onSeek,
+                              ma_tell_proc onTell,
+                              void *pReadSeekTellUserData,
+                              const ma_decoding_backend_config *p_config,
+                              const ma_allocation_callbacks *p_allocation_callbacks,
+                              ma_webm *p_webm);
+
+/**
+ * @brief Initializes a WebM decoder from a file on disk.
+ *
+ * Opens the specified file path and initializes decoding for the first
+ * audio track found (Opus or Vorbis).
+ *
+ * @param pFilePath                 Path to the WebM file.
+ * @param p_config                  Optional decoding backend configuration.
+ * @param p_allocation_callbacks    Optional allocation callbacks (currently unused).
+ * @param p_webm                    Pointer to the WebM decoder to initialize.
+ *
+ * @return MA_SUCCESS on success.
+ * @return MA_INVALID_FILE if the file cannot be opened or parsed.
+ * @return MA_NOT_IMPLEMENTED if WebM support is disabled or codec unsupported.
+ */
+MA_API ma_result ma_webm_init_file(const char *pFilePath,
+                                   const ma_decoding_backend_config *p_config,
+                                   const ma_allocation_callbacks *p_allocation_callbacks,
+                                   ma_webm *p_webm);
+
+/**
+ * @brief Uninitializes a WebM decoder and releases associated resources.
+ *
+ * Frees codec-specific decoder state (Opus/Vorbis), destroys the
+ * underlying container context, and uninitializes the data source.
+ *
+ * @param p_webm                 Pointer to the WebM decoder.
+ * @param p_allocation_callbacks Optional allocation callbacks (currently unused).
+ */
+MA_API void ma_webm_uninit(ma_webm *p_webm,
+                           const ma_allocation_callbacks *p_allocation_callbacks);
+
+/**
+ * @brief Reads decoded PCM frames from the WebM stream.
+ *
+ * Decodes audio packets and writes interleaved floating-point PCM frames
+ * to the output buffer. Handles internal buffering, pre-skip (Opus),
+ * and seek discard logic.
+ *
+ * @param p_webm        Pointer to the WebM decoder.
+ * @param p_frames_out  Output buffer for decoded PCM frames (f32 format).
+ * @param frame_count   Number of PCM frames to read.
+ * @param p_frames_read Optional pointer to receive the number of frames read.
+ *
+ * @return MA_SUCCESS on success.
+ * @return MA_AT_END if the end of stream is reached.
+ * @return MA_INVALID_ARGS if arguments are invalid.
+ * @return MA_ERROR on decoding failure.
+ */
+MA_API ma_result ma_webm_read_pcm_frames(ma_webm *p_webm,
+                                         void *p_frames_out,
+                                         ma_uint64 frame_count,
+                                         ma_uint64 *p_frames_read);
+
+/**
+ * @brief Seeks to a specific PCM frame in the stream.
+ *
+ * Performs a container-level seek and resets decoder state.
+ * For Opus streams, applies preroll and pre-skip handling
+ * as required by the specification.
+ *
+ * @param p_webm       Pointer to the WebM decoder.
+ * @param frame_index  Target PCM frame index.
+ *
+ * @return MA_SUCCESS on success.
+ * @return MA_INVALID_ARGS if arguments are invalid.
+ * @return MA_INVALID_OPERATION if seeking fails.
+ */
+MA_API ma_result ma_webm_seek_to_pcm_frame(ma_webm *p_webm,
+                                           ma_uint64 frame_index);
+
+/**
+ * @brief Retrieves the audio format of the decoded stream.
+ *
+ * Returns the sample format, channel count, sample rate,
+ * and optionally fills a standard channel map.
+ *
+ * @param p_webm          Pointer to the WebM decoder.
+ * @param p_format        Pointer to receive the sample format.
+ * @param p_channels      Pointer to receive the number of channels.
+ * @param p_sample_rate   Pointer to receive the sample rate.
+ * @param p_channel_map   Optional buffer to receive the channel map.
+ * @param channel_map_cap Capacity of the channel map buffer.
+ *
+ * @return MA_SUCCESS on success.
+ * @return MA_INVALID_OPERATION if decoder is invalid.
+ */
+MA_API ma_result ma_webm_get_data_format(ma_webm *p_webm,
+                                         ma_format *p_format,
+                                         ma_uint32 *p_channels,
+                                         ma_uint32 *p_sample_rate,
+                                         ma_channel *p_channel_map,
+                                         size_t channel_map_cap);
+
+/**
+ * @brief Retrieves the current playback cursor position in PCM frames.
+ *
+ * @param p_webm    Pointer to the WebM decoder.
+ * @param p_cursor  Pointer to receive the current PCM frame index.
+ *
+ * @return MA_SUCCESS on success.
+ * @return MA_INVALID_ARGS if arguments are invalid.
+ */
+MA_API ma_result ma_webm_get_cursor_in_pcm_frames(ma_webm *p_webm,
+                                                  ma_uint64 *p_cursor);
+
+/**
+ * @brief Retrieves the total length of the stream in PCM frames.
+ *
+ * Computes and caches the total frame count based on container duration.
+ * For Opus streams, pre-skip is subtracted from the total frame count.
+ *
+ * @param p_webm    Pointer to the WebM decoder.
+ * @param p_length  Pointer to receive the total PCM frame length.
+ *
+ * @return MA_SUCCESS on success.
+ * @return MA_INVALID_ARGS if arguments are invalid.
+ */
+MA_API ma_result ma_webm_get_length_in_pcm_frames(ma_webm *p_webm,
+                                                  ma_uint64 *p_length);
+
 
 #ifdef __cplusplus
 }
