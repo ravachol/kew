@@ -1201,7 +1201,7 @@ int show_key_bindings(SongData *songdata)
         CHECK_LIST_LIMIT();
         apply_color(ui->colorMode, ui->theme.text, ui->defaultColorRGB);
         printf("\033[%d;%dH", num_printed_rows, indentation + 1);
-        printf(" Copyright © 2022-2025 Ravachol\n");
+        printf(" Copyright © 2022-2026 Ravachol\n");
 
         num_printed_rows += 1;
         CHECK_LIST_LIMIT();

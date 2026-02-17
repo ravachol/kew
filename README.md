@@ -235,15 +235,29 @@ There is also a favorites playlist function:
 
 Add current song: press <kbd>.</kbd>
 
-To load 'kew list fav':
+To load 'kew list fav': kew .
 
-```bash
-kew .
-```
+## Scrobbling
+
+kew's private and offline nature means we don't support Scrobbling/last.fm directly. Instead tools such as PanoScrobbler are recommended. See: https://github.com/kawaiiDango/pano-scrobbler.
 
 ## License
 
 Licensed under GPL. [See LICENSE for more information](./LICENSE).
+
+## Star History
+
+<a href="https://www.star-history.com/#ravachol/kew&mierak/rmpc&type=date&legend=top-left">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=ravachol/kew&type=date&theme=dark&legend=top-left" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=ravachol/kew,mierak/rmpc&type=date&legend=top-left" />
+   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=ravachol/kew,mierak/rmpc&type=date&legend=top-left" />
+ </picture>
+</a>
+
+Github Stars: [![GitHub stars](https://img.shields.io/github/stars/ravachol/kew?style=social)](https://github.com/ravachol/kew/stargazers)
+
+Codeberg Stars: [![Codeberg stars](https://img.shields.io/gitea/stars/ravachol/kew?gitea_url=https://codeberg.org)](https://codeberg.org/ravachol/kew/stars)
 
 
 ## Attributions
