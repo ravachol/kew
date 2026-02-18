@@ -29,6 +29,8 @@ Thank you @yuri-xyz for helping out with this.
 
 - Hide footer option. By @ravachol. Suggested by @gizzmoguy.
 
+- Add option to disable the stripping of track numbers from file names in the library: stripTrackNumbers=0. By @episvr.
+
 #### Bug Fixes
 
 - Do not strip the number from a song title if it's connected to an alphanumeric character, like '10th song.flac'. Suggested by @bholroyd.
