@@ -33,9 +33,9 @@ Thank you @yuri-xyz for helping out with this.
 
 - Do not strip the number from a song title if it's connected to an alphanumeric character, like '10th song.flac'. Suggested by @bholroyd.
 
-- Fix switching view via mouse leads to wrong view or no view is changed on macOS. By @petoem.
+- Fixed switching view via mouse leads to wrong view or no view is changed on macOS. By @petoem.
 
-- Fix finishing a repeated playlist while in track view puts you back in library view. By @petoem.
+- Fixed finishing a repeated playlist while in track view puts you back in library view. By @petoem.
 
 - Last line of lyrics duplicated in landscape mode. By @petoem. Reported by @LeahTheSlug.
 
@@ -45,7 +45,9 @@ Thank you @yuri-xyz for helping out with this.
 
 - Fixed side cover on library view sometimes appearing at the bottom and not centered. Reported by @LeahTheSlug. By @petoem.
 
-- Fix cover not being fetched from files with uppercase extension (.MP3). By @ravachol.
+- Fixed cover not being fetched from files with uppercase extension (.MP3). By @ravachol.
+
+- Fixed crash when pressing enter on a different song while audio is playing on Termux. Found by @robertkirkman. By @ravachol.
 
 #### Special Thanks
 
