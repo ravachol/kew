@@ -1,9 +1,12 @@
 
 #include "common/common.h"
 
+#include "utils/utils.h"
+
 #include "audiobuffer.h"
 #include "decoders.h"
 #include "sound.h"
+
 #ifdef USE_FAAD
 #include "m4a.h"
 #endif
