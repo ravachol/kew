@@ -59,6 +59,16 @@ bool is_seek_requested(void)
         return seek_requested;
 }
 
+bool is_device_initialized(void)
+{
+        return device_initialized;
+}
+
+void set_device_initialized(bool value)
+{
+        device_initialized = value;
+}
+
 void set_seek_requested(bool value)
 {
         seek_requested = value;

@@ -687,6 +687,12 @@ int pb_create_audio_device(void)
 {
         PlaybackState *ps = get_playback_state();
 
+        // Always uninitialize device before context
+        if (is_device_initialized()) {
+                ma_device_uninit(get_device());
+                set_device_initialized(false);
+        }
+
         if (context_initialized) {
                 ma_context_uninit(&context);
                 context_initialized = false;
