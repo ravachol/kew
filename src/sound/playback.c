@@ -14,7 +14,6 @@ static ma_device device = {0};
 static bool device_initialized = false;
 
 static bool paused = false;
-static bool stopped = true;
 static bool repeat_enabled = false;
 
 static bool seek_requested = false;
@@ -23,6 +22,7 @@ static double seek_elapsed;
 
 static bool skip_to_next = false;
 
+static _Atomic bool stopped = true;
 static _Atomic bool EOF_reached = false;
 static _Atomic bool switch_reached = false;
 
@@ -94,12 +94,12 @@ void set_paused(bool val)
 
 bool pb_is_stopped(void)
 {
-        return stopped;
+        return atomic_load(&stopped);
 }
 
 void set_stopped(bool val)
 {
-        stopped = val;
+        atomic_store(&stopped, val);
 }
 
 bool pb_is_repeat_enabled(void)
@@ -224,6 +224,8 @@ void pb_cleanup_playback_device(void)
         if (!device_initialized)
                 return;
 
+        set_stopped(true);
+
         // Stop device safely before uninitializing.
         ma_result result = ma_device_stop(&device);
 
@@ -231,15 +233,16 @@ void pb_cleanup_playback_device(void)
                 fprintf(stderr, "Warning: ma_device_stop() failed: %d\n", result);
         }
 
+#ifdef __ANDROID__
+        c_sleep(20); // OpenSL safety delay
+#endif
+
         // Uninit the device. This will block until the audio thread stops.
         ma_device_uninit(&device);
 
         // Clear memory so we don’t accidentally reuse it.
         memset(&device, 0, sizeof(device));
-
         device_initialized = false;
-
-        set_stopped(true);
 }
 
 void shutdown_android(void)
@@ -498,7 +501,14 @@ void m4a_read_pcm_frames(ma_data_source *p_data_source, void *p_frames_out,
 void m4a_on_audio_frames(ma_device *p_device, void *p_frames_out,
                          const void *p_frames_in, ma_uint32 frame_count)
 {
+        (void)p_frames_in;
+
+        // Check for shutdown / NULL user data
+        if (should_output_silence(p_device, p_frames_out, frame_count))
+                return;
+
         AudioData *p_data_source = (AudioData *)p_device->pUserData;
+
         ma_uint64 frames_read = 0;
         m4a_read_pcm_frames(&(p_data_source->base), p_frames_out, frame_count,
                             &frames_read);
@@ -617,7 +627,14 @@ void opus_read_pcm_frames(ma_data_source *p_data_source, void *p_frames_out,
 void opus_on_audio_frames(ma_device *p_device, void *p_frames_out,
                           const void *p_frames_in, ma_uint32 frame_count)
 {
+        (void)p_frames_in;
+
+        // Check for shutdown / NULL user data
+        if (should_output_silence(p_device, p_frames_out, frame_count))
+                return;
+
         AudioData *p_data_source = (AudioData *)p_device->pUserData;
+
         ma_uint64 frames_read = 0;
         opus_read_pcm_frames(&(p_data_source->base), p_frames_out, frame_count,
                              &frames_read);
@@ -737,7 +754,14 @@ void vorbis_read_pcm_frames(ma_data_source *p_data_source, void *p_frames_out,
 void vorbis_on_audio_frames(ma_device *p_device, void *p_frames_out,
                             const void *p_frames_in, ma_uint32 frame_count)
 {
+        (void)p_frames_in;
+
+        // Check for shutdown / NULL user data
+        if (should_output_silence(p_device, p_frames_out, frame_count))
+                return;
+
         AudioData *p_data_source = (AudioData *)p_device->pUserData;
+
         ma_uint64 frames_read = 0;
         vorbis_read_pcm_frames(&(p_data_source->base), p_frames_out, frame_count,
                                &frames_read);
@@ -855,7 +879,14 @@ void webm_read_pcm_frames(ma_data_source *p_data_source, void *p_frames_out,
 void webm_on_audio_frames(ma_device *p_device, void *p_frames_out,
                           const void *p_frames_in, ma_uint32 frame_count)
 {
+        (void)p_frames_in;
+
+        // Check for shutdown / NULL user data
+        if (should_output_silence(p_device, p_frames_out, frame_count))
+                return;
+
         AudioData *p_data_source = (AudioData *)p_device->pUserData;
+
         ma_uint64 frames_read = 0;
         webm_read_pcm_frames(&(p_data_source->base), p_frames_out, frame_count,
                              &frames_read);
