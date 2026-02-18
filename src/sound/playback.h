@@ -49,6 +49,21 @@ void toggle_pause_playback(void);
  */
 void set_paused(bool val);
 
+/**
+ * @brief Checks if device is initialied
+ *
+ * @return `true` if device is initialized, otherwise `false`.
+ */
+bool is_device_initialized(void);
+
+/**
+ * @brief Sets the initialized state of the device.
+ *
+ * @param val Boolean indicating whether the device is initialized.
+ */
+void set_device_initialized(bool value);
+
+
 
 /**
  * @brief Sets the stopped state of the playback.
