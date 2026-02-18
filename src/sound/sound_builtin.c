@@ -410,9 +410,14 @@ void builtin_read_pcm_frames(ma_data_source *p_data_source, void *p_frames_out,
 void builtin_on_audio_frames(ma_device *p_device, void *p_frames_out,
                              const void *p_frames_in, ma_uint32 frame_count)
 {
+        (void)p_frames_in;
+
+        // Check for shutdown / NULL user data
+        if (should_output_silence(p_device, p_frames_out, frame_count))
+                return;
+
         AudioData *p_data_source = (AudioData *)p_device->pUserData;
         ma_uint64 frames_read = 0;
         builtin_read_pcm_frames(&(p_data_source->base), p_frames_out, frame_count,
                                 &frames_read);
-        (void)p_frames_in;
 }

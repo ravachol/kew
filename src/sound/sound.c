@@ -101,6 +101,24 @@ long long get_file_size(const char *filename)
         }
 }
 
+// Returns true if the audio callback should output silence due to shutdown or missing data.
+ma_bool32 should_output_silence(ma_device *p_device,
+                                     void *p_frames_out,
+                                     ma_uint32 frame_count)
+{
+    ma_uint32 bytesPerFrame =
+        ma_get_bytes_per_frame(p_device->playback.format,
+                               p_device->playback.channels);
+
+    // Shutdown or missing user data
+    if (pb_is_stopped() || p_device->pUserData == NULL) {
+        memset(p_frames_out, 0, frame_count * bytesPerFrame);
+        return MA_TRUE;
+    }
+
+    return MA_FALSE;
+}
+
 ma_result call_read_PCM_frames(ma_data_source *p_data_source, ma_format format,
                                void *p_frames_out, ma_uint64 frames_read,
                                ma_uint32 channels, ma_uint64 remaining_frames,
@@ -684,3 +702,5 @@ int pb_create_audio_device(void)
 
         return 0;
 }
+
+

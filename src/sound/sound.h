@@ -86,4 +86,24 @@ ma_result call_read_PCM_frames(ma_data_source *p_data_source, ma_format format,
                                void *p_frames_out, ma_uint64 frames_read,
                                ma_uint32 channels, ma_uint64 remaining_frames,
                                ma_uint64 *p_frames_to_read);
+
+/**
+ * @brief Checks whether the audio callback should output silence due to shutdown or missing data.
+ *
+ * This function is intended to be called at the top of an audio callback.
+ * It handles real-time safe shutdown by zero-filling the output buffer if the playback
+ * system has been stopped (`pb_is_stopped() == true`) or if the device's user data
+ * is NULL. This prevents the audio backend (e.g., OpenSL or AAudio) from reading
+ * invalid memory during teardown.
+ *
+ * @param p_device Pointer to the miniaudio device invoking the callback.
+ * @param p_frames_out Pointer to the output audio buffer to fill with silence if needed.
+ * @param frame_count The number of PCM frames requested by the audio callback.
+ *
+ * @return MA_TRUE if the output buffer has been filled with silence and the caller
+ *         should skip further processing, or MA_FALSE if normal processing should continue.
+ */
+ma_bool32 should_output_silence(ma_device *p_device,
+                                     void *p_frames_out,
+                                     ma_uint32 frame_count);
 #endif
