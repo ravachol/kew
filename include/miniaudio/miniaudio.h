@@ -41292,14 +41292,7 @@ static ma_result ma_device_stop__opensl(ma_device* pDevice)
     if (pDevice->type == ma_device_type_playback || pDevice->type == ma_device_type_duplex) {
         ma_device_drain__opensl(pDevice, ma_device_type_playback);
 
-if (pDevice->opensl.pAudioPlayer == NULL || !ma_device_is_started(pDevice)) {
-    resultSL = SL_RESULT_PRECONDITIONS_VIOLATED;
-} else {
-    resultSL = MA_OPENSL_PLAY(pDevice->opensl.pAudioPlayer)->SetPlayState(
-        (SLPlayItf)pDevice->opensl.pAudioPlayer, SL_PLAYSTATE_STOPPED
-    );
-}
-
+        resultSL = MA_OPENSL_PLAY(pDevice->opensl.pAudioPlayer)->SetPlayState((SLPlayItf)pDevice->opensl.pAudioPlayer, SL_PLAYSTATE_STOPPED);
         if (resultSL != SL_RESULT_SUCCESS) {
             ma_log_post(ma_device_get_log(pDevice), MA_LOG_LEVEL_ERROR, "[OpenSL] Failed to stop internal playback device.");
             return ma_result_from_OpenSL(resultSL);
