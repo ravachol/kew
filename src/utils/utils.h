@@ -23,6 +23,8 @@
 #define PATH_MAX 4096
 #endif
 
+#define STRIP_TRACK_NUMBER "^[[:space:]]*[[:digit:]]+\\.?[[:digit:]]*[[:space:]]*[-.,][[:space:]]*"
+
 /**
  * @brief Generates a random number between the given range.
  *
@@ -300,6 +302,5 @@ float get_float(const char *str);
  * @return The equivalent duration in microseconds.
  */
 gint64 get_length_in_micro_sec(double duration);
-
 
 #endif
