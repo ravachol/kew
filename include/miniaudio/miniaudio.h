@@ -41292,7 +41292,7 @@ static ma_result ma_device_stop__opensl(ma_device* pDevice)
     if (pDevice->type == ma_device_type_playback || pDevice->type == ma_device_type_duplex) {
         ma_device_drain__opensl(pDevice, ma_device_type_playback);
 
-if (pDevice->opensl.pAudioPlayer == NULL) {
+if (pDevice->opensl.pAudioPlayer == NULL || !ma_device_is_started(pDevice)) {
     resultSL = SL_RESULT_PRECONDITIONS_VIOLATED;
 } else {
     resultSL = MA_OPENSL_PLAY(pDevice->opensl.pAudioPlayer)->SetPlayState(
