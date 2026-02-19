@@ -53,14 +53,6 @@ void play(void);
 void stop(void);
 
 /**
- * @brief Stop playback during application shutdown.
- *
- * Immediately stops the audio backend without resetting playback state
- * or emitting additional playback signals.
- */
-void stop_at_shutdown(void);
-
-/**
  * @brief Toggle between paused and playing states.
  *
  * If stopped, resets the playback clock. Toggles the pause state in the

@@ -567,10 +567,6 @@ void kew_shutdown()
         AppSettings *settings = get_app_settings();
         PlayList *favorites_playlist = get_favorites_playlist();
 
-#ifndef __ANDROID__
-        stop_at_shutdown();
-#endif
-
         pthread_mutex_lock(&(state->data_source_mutex));
 
         sound_shutdown();
