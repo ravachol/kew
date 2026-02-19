@@ -258,7 +258,7 @@ void cleanup_playback_device(void)
         }
 
 #ifdef __ANDROID__
-        c_sleep(20);        // OpenSL safety delay
+        c_sleep(300);        // OpenSL safety delay
         shutdown_android(); // Prevent race condition
 #endif
 
