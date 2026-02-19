@@ -232,7 +232,15 @@ int init_playback_device(ma_context *context, ma_format format, ma_uint32 channe
         return 0;
 }
 
-void pb_cleanup_playback_device(void)
+// Avoid race condition when shutting down, needed to prevent crash on exiting on Termux/Android
+void shutdown_android(void)
+{
+#ifdef __ANDROID__
+        memset(&device, 0, sizeof(device));
+#endif
+}
+
+void cleanup_playback_device(void)
 {
         if (!device_initialized)
                 return;
@@ -248,6 +256,7 @@ void pb_cleanup_playback_device(void)
 
 #ifdef __ANDROID__
         c_sleep(20); // OpenSL safety delay
+        shutdown_android(); // Prevent race condition
 #endif
 
         // Uninit the device. This will block until the audio thread stops.
@@ -258,22 +267,11 @@ void pb_cleanup_playback_device(void)
         device_initialized = false;
 }
 
-void shutdown_android(void)
-{
-        // Avoid race condition when shutting down
-        memset(&device, 0, sizeof(device));
-}
-
 void pb_sound_shutdown()
 {
         if (is_context_initialized()) {
-#ifdef __ANDROID__
-                shutdown_android();
-#else
-                ma_device_uninit(&device);
-                memset(&device, 0, sizeof(device));
+                cleanup_playback_device();
                 cleanup_audio_context();
-#endif
         }
 }
 
