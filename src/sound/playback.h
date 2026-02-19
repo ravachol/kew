@@ -294,7 +294,7 @@ void get_current_format_and_sample_rate(ma_format *format, ma_uint32 *sample_rat
  * This function frees any resources associated with the playback device,
  * ensuring the device is properly cleaned up and ready for shutdown.
  */
-void pb_cleanup_playback_device(void);
+void cleanup_playback_device(void);
 
 
 /**
