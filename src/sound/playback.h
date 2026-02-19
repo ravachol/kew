@@ -377,16 +377,6 @@ void webm_on_audio_frames(ma_device *p_device, void *p_frames_out, const void *p
  */
 void clear_current_track(void);
 
-
-/**
- * @brief Shuts down the Android-specific audio components.
- *
- * This function is responsible for shutting down any Android-specific audio
- * resources or state when the application is terminating or pausing.
- */
-void shutdown_android(void);
-
-
 /**
  * @brief Shuts down the audio system.
  *
