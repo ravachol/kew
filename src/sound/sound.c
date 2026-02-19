@@ -1,9 +1,5 @@
 #define MA_EXPERIMENTAL__DATA_LOOPING_AND_CHAINING
 #define MA_NO_ENGINE
-#if defined(__ANDROID__)
-#define MA_ENABLE_ALSA
-#define MA_NO_OPENSL
-#endif
 #define MINIAUDIO_IMPLEMENTATION
 
 /**
