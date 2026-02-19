@@ -246,16 +246,19 @@ void cleanup_playback_device(void)
                 return;
 
         set_stopped(true);
+        set_paused(false);
 
         // Stop device safely before uninitializing.
-        ma_result result = ma_device_stop(&device);
+        if (ma_device_is_started(&device)) {
+                ma_result result = ma_device_stop(&device);
 
-        if (result != MA_SUCCESS) {
-                fprintf(stderr, "Warning: ma_device_stop() failed: %d\n", result);
+                if (result != MA_SUCCESS) {
+                        fprintf(stderr, "Warning: ma_device_stop() failed: %d\n", result);
+                }
         }
 
 #ifdef __ANDROID__
-        c_sleep(20); // OpenSL safety delay
+        c_sleep(20);        // OpenSL safety delay
         shutdown_android(); // Prevent race condition
 #endif
 
