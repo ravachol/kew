@@ -247,7 +247,7 @@ int handle_codec(
 
                 set_current_implementation_type(ops.implType);
 
-                pb_cleanup_playback_device();
+                cleanup_playback_device();
                 reset_all_decoders();
                 reset_audio_buffer();
 
