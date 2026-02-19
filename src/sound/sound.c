@@ -679,24 +679,18 @@ bool is_context_initialized(void)
 
 void cleanup_audio_context(void)
 {
-        ma_context_uninit(&context);
-        context_initialized = false;
+        if (context_initialized) {
+                ma_context_uninit(&context);
+                context_initialized = false;
+        }
 }
 
 int pb_create_audio_device(void)
 {
         PlaybackState *ps = get_playback_state();
 
-        // Always uninitialize device before context
-        if (is_device_initialized()) {
-                ma_device_uninit(get_device());
-                set_device_initialized(false);
-        }
+        pb_sound_shutdown();
 
-        if (context_initialized) {
-                ma_context_uninit(&context);
-                context_initialized = false;
-        }
         ma_context_init(NULL, 0, NULL, &context);
         context_initialized = true;
 
