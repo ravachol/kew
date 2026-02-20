@@ -8,6 +8,7 @@
 #define COMMON_H
 
 #include <stdbool.h>
+#include <signal.h>
 
 typedef enum {
         k_unknown = 0,
@@ -92,5 +93,25 @@ bool has_printed_error_message(void);
  *         The returned pointer must not be freed or modified.
  */
 char *get_error_message(void);
+
+/**
+ * @brief Returns 1 if program should exit.
+ *
+ * ®return A sig_atomic_t that is 1 if it should exit and 0 if it shouldn't.
+ */
+sig_atomic_t should_exit(void);
+
+/**
+ * @brief Sets g_should_exit to 1.
+ *
+ */
+void handle_exit_signal(int sig);
+
+/**
+ * @brief Exits the program gracefully.
+ *
+ * This function terminates the application by setting g_should_exit to 1.
+ */
+void quit(void);
 
 #endif
