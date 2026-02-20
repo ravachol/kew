@@ -401,17 +401,6 @@ void restart_kew(char *argv[])
     _exit(1);
 }
 
-sig_atomic_t should_exit(void)
-{
-        return g_should_exit;
-}
-
-void handle_exit_signal(int sig)
-{
-        (void)sig;
-        g_should_exit = 1;
-}
-
 // Ensures only a single instance of kew can run at a time for the current user.
 void restart_if_already_running(char *argv[])
 {
@@ -456,9 +445,4 @@ void init_resize(void)
         sigemptyset(&(sa.sa_mask));
         sa.sa_flags = 0;
         sigaction(SIGALRM, &sa, NULL);
-}
-
-void quit(void)
-{
-        g_should_exit = 1;
 }

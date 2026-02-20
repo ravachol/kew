@@ -8,12 +8,14 @@
 
 #include <pthread.h>
 #include <string.h>
+#include <signal.h>
 
 #define ERROR_MESSAGE_LENGTH 256
 
 static char current_error_message[ERROR_MESSAGE_LENGTH];
 static bool has_printed_error = true;
 static volatile bool refresh_triggered = true;
+static volatile sig_atomic_t g_should_exit = 0;
 
 void trigger_refresh(void)
 {
@@ -64,4 +66,20 @@ char *get_error_message(void)
 void clear_error_message(void)
 {
         current_error_message[0] = '\0';
+}
+
+sig_atomic_t should_exit(void)
+{
+        return g_should_exit;
+}
+
+void quit(void)
+{
+        g_should_exit = 1;
+}
+
+void handle_exit_signal(int sig)
+{
+        (void)sig;
+        g_should_exit = 1;
 }

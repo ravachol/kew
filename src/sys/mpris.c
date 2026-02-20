@@ -8,6 +8,8 @@
 
 #include "mpris.h"
 
+#include "common/common.h"
+
 #include "sys_integration.h"
 
 #include "ui/control_ui.h"
@@ -1033,7 +1035,7 @@ void init_mpris(void)
         if (!get_gd_bus_connection()) {
                 g_dbus_node_info_unref(introspection_data);
                 g_printerr("Failed to connect to D-Bus\n");
-                exit(0);
+                quit();
         }
 
         const char *app_name = "org.mpris.MediaPlayer2.kew";
@@ -1045,7 +1047,7 @@ void init_mpris(void)
 
         if (bus_name_id == 0) {
                 printf(_("Failed to own D-Bus name: %s\n"), app_name);
-                exit(0);
+                quit();
         }
 
         registration_id = g_dbus_connection_register_object(
@@ -1058,7 +1060,7 @@ void init_mpris(void)
                 g_printerr("Failed to register media player object: %s\n",
                            error->message);
                 g_error_free(error);
-                exit(0);
+                quit();
         }
 
         player_registration_id = g_dbus_connection_register_object(
@@ -1071,7 +1073,7 @@ void init_mpris(void)
                 g_printerr("Failed to register media player object: %s\n",
                            error->message);
                 g_error_free(error);
-                exit(0);
+                quit();
         }
 
         g_dbus_node_info_unref(introspection_data);
