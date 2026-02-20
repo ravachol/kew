@@ -23,7 +23,7 @@
 #define PATH_MAX 4096
 #endif
 
-#define STRIP_TRACK_NUMBER "^[[:space:]]*[[:digit:]]+\\.?[[:digit:]]*[[:space:]]*[-.,][[:space:]]*"
+#define STRIP_TRACK_NUMBER "^([[:space:][:punct:]]*)([[:digit:]]+)([-.][[:digit:]]+)?([[:space:]]*[-.,][[:space:]]*|[[:space:]]+)"
 
 /**
  * @brief Generates a random number between the given range.
