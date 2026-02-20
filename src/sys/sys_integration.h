@@ -175,6 +175,13 @@ void init_resize(void);
 GDBusConnection *get_gd_bus_connection(void);
 
 /**
+ * @brief Returns 1 if program should exit.
+ *
+ * ®return A sig_atomic_t that is 1 if it should exit and 0 if it shouldn't.
+ */
+sig_atomic_t should_exit(void);
+
+/**
  * @brief Exits the program gracefully.
  *
  * This function terminates the application by calling `exit(0)`. It ensures
