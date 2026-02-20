@@ -921,7 +921,7 @@ void play_favorites_playlist(void)
         if (favorites_playlist->count == 0) {
                 printf(_("Couldn't find any songs in the special playlist. Add a "
                          "song by pressing '.' while it's playing. \n"));
-                exit(0);
+                quit();
         }
 
         FileSystemEntry *library = get_library();
@@ -940,7 +940,7 @@ void play_all(void)
         create_play_list_from_file_system_entry(library, playlist, MAX_FILES);
 
         if (playlist->count == 0) {
-                exit(0);
+                quit();
         }
 
         shuffle_playlist(playlist);
@@ -954,7 +954,7 @@ void play_all_albums(void)
         add_shuffled_albums_to_play_list(library, playlist, MAX_FILES);
 
         if (playlist->count == 0) {
-                exit(0);
+                quit();
         }
 
         mark_list_as_enqueued(library, playlist);
@@ -970,6 +970,6 @@ void play_command_with_playlist(int *argc, char **argv)
         }
 
         if (playlist->count == 0) {
-                exit(0);
+                quit();
         }
 }

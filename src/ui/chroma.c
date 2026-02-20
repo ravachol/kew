@@ -7,6 +7,8 @@
 
 #include "chroma.h"
 
+#include "common/common.h"
+
 #include "data/img_func.h"
 
 #include <pthread.h>
@@ -101,7 +103,7 @@ static void *chroma_thread(void *arg)
         g_viz.frame_capacity = CHROMA_MAX_BUF;
         g_viz.frame = malloc(g_viz.frame_capacity);
         if (!g_viz.frame) {
-                exit(1);
+               quit();
         }
 
         g_viz.frame[0] = '\0';

@@ -901,7 +901,7 @@ int main(int argc, char *argv[])
                 if (playlist->count == 0) {
                         if (argc > 1 && argv[1] && strcmp(argv[1], "theme") != 0)
                                 state->uiState.noPlaylist = true;
-                        exit(0);
+                        kew_shutdown();
                 }
 
                 FileSystemEntry *library = get_library();

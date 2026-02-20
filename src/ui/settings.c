@@ -10,7 +10,9 @@
 
 #include "common_ui.h"
 
+#include "common/common.h"
 #include "common/events.h"
+
 #include "termbox2_input.h"
 
 #include "common/appstate.h"
@@ -1452,13 +1454,13 @@ char *get_config_file_path(char *configdir)
 
         if (configdir_length + 1 + settings_file_length + 1 > PATH_MAX) {
                 fprintf(stderr, "Error: File path exceeds maximum length.\n");
-                exit(1);
+                quit();
         }
 
         char *filepath = (char *)malloc(PATH_MAX);
         if (filepath == NULL) {
                 perror("malloc");
-                exit(1);
+                quit();
         }
 
         int written =
@@ -1467,7 +1469,7 @@ char *get_config_file_path(char *configdir)
                 fprintf(stderr,
                         "Error: snprintf failed or filepath truncated.\n");
                 free(filepath);
-                exit(1);
+                quit();
         }
         return filepath;
 }
@@ -1479,20 +1481,20 @@ char *get_prefs_file_path(char *prefsdir)
 
         if (dir_length + 1 + file_length + 1 > PATH_MAX) {
                 fprintf(stderr, "Error: File path exceeds maximum length.\n");
-                exit(1);
+                quit();
         }
 
         char *filepath = (char *)malloc(PATH_MAX);
         if (filepath == NULL) {
                 perror("malloc");
-                exit(1);
+                quit();
         }
 
         int written = snprintf(filepath, PATH_MAX, "%s/%s", prefsdir, STATE_FILE);
         if (written < 0 || written >= PATH_MAX) {
                 fprintf(stderr, "Error: snprintf failed or filepath truncated.\n");
                 free(filepath);
-                exit(1);
+                quit();
         }
 
         return filepath;
@@ -1550,7 +1552,7 @@ void get_prefs(AppSettings *settings, UISettings *ui)
                 if (mkdir_p(prefsdir, 0700) != 0) {
                         perror("mkdir");
                         free(prefsdir);
-                        exit(1);
+                        quit();
                 }
         }
 
@@ -1597,7 +1599,7 @@ void get_config(AppSettings *settings, UISettings *ui)
         if (stat(configdir, &st) == -1) {
                 if (mkdir_p(configdir, 0700) != 0) {
                         perror("mkdir");
-                        exit(1);
+                        quit();
                 }
         }
 

@@ -13,6 +13,7 @@
 #include "playlist.h"
 
 #include "common/appstate.h"
+#include "common/common.h"
 
 #include "utils/file.h"
 #include "utils/utils.h"
@@ -199,16 +200,14 @@ void shuffle_playlist(PlayList *playlist)
         // Check for overflow before malloc
         if ((size_t)playlist->count > SIZE_MAX / sizeof(Node *)) {
                 printf(_("Playlist too large to allocate.\n"));
-                // atexit() will free up resources properly
-                exit(1);
+                quit();
         }
 
         // Convert the linked list to an array
         Node **nodes = (Node **)malloc(playlist->count * sizeof(Node *));
         if (nodes == NULL) {
                 printf(_("Memory allocation error.\n"));
-                // atexit() will free up resources properly
-                exit(1);
+                quit();
         }
 
         Node *current = playlist->head;
@@ -286,7 +285,7 @@ void create_node(Node **node, const char *directory_path, int id)
         if (*node == NULL) {
                 printf(_("Failed to allocate memory."));
                 free(song.file_path);
-                exit(0);
+                quit();
                 return;
         }
 
@@ -312,7 +311,7 @@ void exit_if_overflow(int counter)
         if (counter == INT_MAX) {
                 fprintf(stderr,
                         "Error: Node ID overflow. Max node limit reached.\n");
-                exit(1);
+                quit();
         }
 }
 
