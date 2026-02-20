@@ -41,10 +41,10 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include "common/appstate.h"
 #include "common/common.h"
 
+#include "sys/discord_rpc.h"
 #include "sys/mpris.h"
 #include "sys/notifications.h"
 #include "sys/sys_integration.h"
-#include "sys/discord_rpc.h"
 
 #include "ui/chroma.h"
 #include "ui/cli.h"
@@ -249,7 +249,6 @@ void check_and_load_next_song(void)
         }
 }
 
-
 /**
  * @brief Loads the next song if needed, considering the current state of the playlist and player.
  *
@@ -283,6 +282,116 @@ void load_waiting_music(void)
 }
 
 /**
+ * @brief Shuts down the application and cleans up resources.
+ *
+ * This function stops playback, frees resources, and shuts down the application. It handles
+ * cleanup tasks like saving settings, stopping playback, and freeing memory.
+ */
+void kew_shutdown()
+{
+        AppState *state = get_app_state();
+        PlaybackState *ps = get_playback_state();
+        FileSystemEntry *library = get_library();
+        AppSettings *settings = get_app_settings();
+        PlayList *favorites_playlist = get_favorites_playlist();
+
+        pthread_mutex_lock(&(state->data_source_mutex));
+
+        sound_shutdown();
+
+        free_decoders();
+
+        emit_playback_stopped_mpris();
+
+        if (chroma_is_started())
+                state->uiSettings.chromaPreset = chroma_get_current_preset();
+        else
+                state->uiSettings.chromaPreset = -1;
+
+        chroma_stop();
+
+        bool noMusicFound = false;
+
+        if (library == NULL || library->children == NULL) {
+                noMusicFound = true;
+        }
+
+        UserData *user_data = audio_data.pUserData;
+
+        unload_songs(user_data);
+
+#ifdef CHAFA_VERSION_1_16
+        retire_passthrough_workarounds_tmux();
+#endif
+        bool wait_until_complete = true;
+        update_library_if_changed_detected(wait_until_complete);
+        shutdown_input();
+
+        if (state->uiSettings.discordRPCEnabled)
+                discord_rpc_shutdown();
+        free_search_results();
+        cleanup_mpris();
+        set_path(settings->path);
+        set_prefs(settings, &(state->uiSettings));
+        save_favorites_playlist(settings->path, favorites_playlist);
+        delete_cache(state_ptr->tmpCache);
+        save_library();
+        free_library();
+        free_playlists();
+        set_default_text_color();
+
+        if (audio_data.pUserData != NULL)
+                free(audio_data.pUserData);
+
+        pthread_mutex_destroy(&(ps->loadingdata.mutex));
+        pthread_mutex_destroy(&(state->switch_mutex));
+        pthread_mutex_unlock(&(state->data_source_mutex));
+        pthread_mutex_destroy(&(state->data_source_mutex));
+
+        free_visuals();
+
+#ifdef USE_DBUS
+        cleanup_notifications();
+#endif
+
+#ifdef DEBUG
+        if (state->uiState.logFile)
+                fclose(state->uiState.logFile);
+#endif
+
+        if (freopen("/dev/stderr", "w", stderr) == NULL) {
+                perror("freopen error");
+        }
+
+        if (state_ptr->uiSettings.mouseEnabled)
+                disable_terminal_mouse_buttons();
+
+        printf("\n");
+        show_cursor();
+        exit_alternate_screen_buffer();
+        restore_terminal_mode();
+
+        if (state_ptr->uiSettings.trackTitleAsWindowTitle)
+                restore_terminal_window_title();
+
+        if (noMusicFound) {
+                printf(_("No Music found.\n"));
+                printf(_("Please make sure the path is set correctly. \n"));
+                printf(_("To set it type: kew path \"/path/to/Music\". \n"));
+        } else if (state->uiState.noPlaylist) {
+                printf(_("Music not found.\n"));
+        }
+
+        if (has_error_message()) {
+                printf(_("%s\n"), get_error_message());
+        }
+
+        printf("\n");
+        fflush(stdout);
+        exit(0);
+}
+
+/**
  * @brief Main callback for the event loop, runs periodically.
  *
  * This function handles actions such as updating elapsed time, processing events, and
@@ -299,6 +408,11 @@ gboolean mainloop_callback(gpointer data)
         calc_elapsed_time(get_current_song_duration());
         increment_update_counter();
         handle_cooldown();
+
+        if (should_exit()) {
+                g_main_loop_quit((GMainLoop *) data);
+                return FALSE;
+        }
 
         int update_counter = get_update_counter();
 
@@ -329,10 +443,8 @@ static gboolean quit_on_signal(gpointer user_data)
 {
         GMainLoop *loop = (GMainLoop *)user_data;
         g_main_loop_quit(loop);
-        quit();
         return G_SOURCE_REMOVE; // Remove the signal source
 }
-
 
 /**
  * @brief Creates and runs the main event loop.
@@ -348,9 +460,11 @@ void create_loop(void)
 
         g_unix_signal_add(SIGINT, quit_on_signal, main_loop);
         g_unix_signal_add(SIGHUP, quit_on_signal, main_loop);
-        g_timeout_add(34, mainloop_callback, NULL);
+        g_unix_signal_add(SIGTERM, quit_on_signal, main_loop);
+        g_timeout_add(34, mainloop_callback, main_loop);
         g_main_loop_run(main_loop);
         g_main_loop_unref(main_loop);
+        kew_shutdown();
 }
 
 /**
@@ -409,9 +523,6 @@ void run(bool start_playing)
                 check_and_load_next_song();
 
         create_loop();
-
-        clear_screen();
-        fflush(stdout);
 }
 
 /**
@@ -525,7 +636,6 @@ void init_default_state(void)
         run(false);
 }
 
-
 /**
  * @brief Handles the "play" command from the playlist.
  *
@@ -552,115 +662,6 @@ static bool handle_play_command_playlist(int *argc, char **argv)
 
         return true;
 }
-
-/**
- * @brief Shuts down the application and cleans up resources.
- *
- * This function stops playback, frees resources, and shuts down the application. It handles
- * cleanup tasks like saving settings, stopping playback, and freeing memory.
- */
-void kew_shutdown()
-{
-        AppState *state = get_app_state();
-        PlaybackState *ps = get_playback_state();
-        FileSystemEntry *library = get_library();
-        AppSettings *settings = get_app_settings();
-        PlayList *favorites_playlist = get_favorites_playlist();
-
-        pthread_mutex_lock(&(state->data_source_mutex));
-
-        sound_shutdown();
-
-        free_decoders();
-
-        emit_playback_stopped_mpris();
-
-        if (chroma_is_started())
-                state->uiSettings.chromaPreset = chroma_get_current_preset();
-        else
-                state->uiSettings.chromaPreset = -1;
-
-        chroma_stop();
-
-        bool noMusicFound = false;
-
-        if (library == NULL || library->children == NULL) {
-                noMusicFound = true;
-        }
-
-        UserData *user_data = audio_data.pUserData;
-
-        unload_songs(user_data);
-
-#ifdef CHAFA_VERSION_1_16
-        retire_passthrough_workarounds_tmux();
-#endif
-        bool wait_until_complete = true;
-        update_library_if_changed_detected(wait_until_complete);
-        shutdown_input();
-
-        if (state->uiSettings.discordRPCEnabled)
-                discord_rpc_shutdown();
-        free_search_results();
-        cleanup_mpris();
-        set_path(settings->path);
-        set_prefs(settings, &(state->uiSettings));
-        save_favorites_playlist(settings->path, favorites_playlist);
-        delete_cache(state_ptr->tmpCache);
-        save_library();
-        free_library();
-        free_playlists();
-        set_default_text_color();
-
-        if (audio_data.pUserData != NULL)
-                free(audio_data.pUserData);
-
-        pthread_mutex_destroy(&(ps->loadingdata.mutex));
-        pthread_mutex_destroy(&(state->switch_mutex));
-        pthread_mutex_unlock(&(state->data_source_mutex));
-        pthread_mutex_destroy(&(state->data_source_mutex));
-
-        free_visuals();
-
-#ifdef USE_DBUS
-        cleanup_notifications();
-#endif
-
-#ifdef DEBUG
-        if (state->uiState.logFile)
-                fclose(state->uiState.logFile);
-#endif
-
-        if (freopen("/dev/stderr", "w", stderr) == NULL) {
-                perror("freopen error");
-        }
-
-        if (state_ptr->uiSettings.mouseEnabled)
-                disable_terminal_mouse_buttons();
-
-        printf("\n");
-        show_cursor();
-        exit_alternate_screen_buffer();
-        restore_terminal_mode();
-
-        if (state_ptr->uiSettings.trackTitleAsWindowTitle)
-                restore_terminal_window_title();
-
-        if (noMusicFound) {
-                printf(_("No Music found.\n"));
-                printf(_("Please make sure the path is set correctly. \n"));
-                printf(_("To set it type: kew path \"/path/to/Music\". \n"));
-        } else if (state->uiState.noPlaylist) {
-                printf(_("Music not found.\n"));
-        }
-
-        if (has_error_message()) {
-                printf(_("%s\n"), get_error_message());
-        }
-
-        fflush(stdout);
-}
-
 
 /**
  * @brief Initializes the state for the application.
@@ -803,7 +804,6 @@ void force_terminal_restore(int sig)
         raise(sig);
 }
 
-
 /**
  * @brief Main entry point of the application.
  *
@@ -858,7 +858,6 @@ int main(int argc, char *argv[])
 
         enable_mouse(&(state->uiSettings));
         enter_alternate_screen_buffer();
-        atexit(kew_shutdown);
 
         signal(SIGINT, force_terminal_restore);
         signal(SIGSEGV, force_terminal_restore);
