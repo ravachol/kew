@@ -237,22 +237,7 @@ void cleanup_playback_device(void)
         if (!device_initialized)
                 return;
 
-        set_stopped(true);
-        set_paused(false);
-
-#ifdef __ANDROID__
-        // On Android, skip explicit stop entirely.
-        // Let uninit handle teardown.
-#else
-        // Stop device safely before uninitializing.
-        if (ma_device_is_started(&device)) {
-                ma_result result = ma_device_stop(&device);
-
-                if (result != MA_SUCCESS) {
-                        fprintf(stderr, "Warning: ma_device_stop() failed: %d\n", result);
-                }
-        }
-#endif
+        stop_playback();
 
         // Uninit the device. This will block until the audio thread stops.
         ma_device_uninit(&device);
