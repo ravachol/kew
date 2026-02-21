@@ -95,6 +95,7 @@ void get_term_size(int *width, int *height);
  */
 int get_indentation(int text_width);
 
+
 /**
  * @brief Sets the terminal to non-blocking mode.
  *
@@ -102,7 +103,6 @@ int get_indentation(int text_width);
  * reading of input without waiting for the user to press Enter.
  */
 void set_nonblocking_mode(void);
-
 
 
 /**
@@ -130,6 +130,7 @@ void restore_terminal_mode(void);
  */
 int read_input_sequence(char *seq, size_t seq_size);
 
+
 /**
  * @brief Checks if input is available on the standard input (stdin).
  *
@@ -141,6 +142,7 @@ int read_input_sequence(char *seq, size_t seq_size);
  *         if there was an error while checking the input availability.
  */
 int is_input_available(void);
+
 
 /**
  * @brief Saves the current cursor position.
@@ -250,6 +252,7 @@ void set_raw_input_mode(void);
  * the user presses Enter.
  */
 void enable_input_buffering(void);
+
 
 /**
  * @brief Enables terminal scrolling.
