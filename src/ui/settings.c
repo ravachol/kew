@@ -1540,23 +1540,47 @@ int mkdir_p(const char *path, mode_t mode)
         return 0;
 }
 
-void get_prefs(AppSettings *settings, UISettings *ui)
+void migrate_prefs_file(char *new_filepath)
 {
-        int pair_count;
-        char *prefsdir = get_prefs_path();
+        char *prefs_dir = get_prefs_path();
+        char *prefs_file_old = get_prefs_file_path(prefs_dir);
 
-        setlocale(LC_ALL, "");
-
-        struct stat st = {0};
-        if (stat(prefsdir, &st) == -1) {
-                if (mkdir_p(prefsdir, 0700) != 0) {
-                        perror("mkdir");
-                        free(prefsdir);
+        struct stat nfile = {0};
+        struct stat ofile = {0};
+        if (stat(new_filepath, &nfile) == -1 && stat(prefs_file_old, &ofile) == 0) {
+                if (rename(prefs_file_old, new_filepath) != 0) {
+                        perror("rename");
+                        free(prefs_file_old);
+                        free(prefs_dir);
                         quit();
                 }
         }
 
-        char *filepath = get_prefs_file_path(prefsdir);
+        free(prefs_file_old);
+        free(prefs_dir);
+        return;
+}
+
+void get_prefs(AppSettings *settings, UISettings *ui)
+{
+        int pair_count;
+        char *configdir = get_config_path();
+
+        setlocale(LC_ALL, "");
+
+        struct stat st = {0};
+        if (stat(configdir, &st) == -1) {
+                if (mkdir_p(configdir, 0700) != 0) {
+                        perror("mkdir");
+                        free(configdir);
+                        quit();
+                }
+        }
+
+        char *filepath = get_prefs_file_path(configdir);
+
+        // Move legacy state file to new location
+        migrate_prefs_file(filepath);
 
         KeyValuePair *pairs =
             read_key_value_pairs(filepath, &pair_count, &(ui->last_time_app_ran));
@@ -1585,7 +1609,7 @@ void get_prefs(AppSettings *settings, UISettings *ui)
                 set_volume(tmp);
 
         snprintf(ui->theme_name, sizeof(ui->theme_name), "%s", settings->theme);
-        free(prefsdir);
+        free(configdir);
 }
 
 void get_config(AppSettings *settings, UISettings *ui)
@@ -1625,8 +1649,8 @@ void get_config(AppSettings *settings, UISettings *ui)
 void set_prefs(AppSettings *settings, UISettings *ui)
 {
         // Create the file path
-        char *prefsdir = get_prefs_path();
-        char *filepath = get_prefs_file_path(prefsdir);
+        char *configdir = get_config_path();
+        char *filepath = get_prefs_file_path(configdir);
 
         setlocale(LC_ALL, "");
 
@@ -1634,7 +1658,7 @@ void set_prefs(AppSettings *settings, UISettings *ui)
         if (file == NULL) {
                 fprintf(stderr, "Error opening file: %s\n", filepath);
                 free(filepath);
-                free(prefsdir);
+                free(configdir);
                 return;
         }
 
@@ -1701,7 +1725,7 @@ void set_prefs(AppSettings *settings, UISettings *ui)
         fprintf(file, "colorMode=%d\n\n", ui->colorMode);
         fprintf(file, "theme=%s\n\n", ui->theme_name);
 
-        free(prefsdir);
+        free(configdir);
         free(filepath);
 }
 
@@ -1857,9 +1881,9 @@ void set_config(AppSettings *settings, UISettings *ui)
                                         sizeof(settings->hideHelp));
         if (settings->hideFooter[0] == '\0')
                 ui->hideFooter ? c_strcpy(settings->hideFooter, "1",
-                                        sizeof(settings->hideFooter))
-                             : c_strcpy(settings->hideFooter, "0",
-                                        sizeof(settings->hideFooter));
+                                          sizeof(settings->hideFooter))
+                               : c_strcpy(settings->hideFooter, "0",
+                                          sizeof(settings->hideFooter));
         if (settings->hideSideCover[0] == '\0')
                 ui->hideSideCover ? c_strcpy(settings->hideSideCover, "1",
                                              sizeof(settings->hideSideCover))
