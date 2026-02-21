@@ -168,7 +168,7 @@ bind = +, volUp, +5%
 
 If you have an old install of kew, delete the kewrc file to make this style of bindings appear.
 
-kew state (for settings that can be changed in-app) is kept in ~/.local/state/kewstaterc.
+kew state (for settings that can be changed in-app) is kept in ~/.config/kew/kewstaterc.
 
 If you change a setting in-app it will be tracked by kewstaterc and not kewrc.
 

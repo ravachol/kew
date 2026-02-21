@@ -200,8 +200,8 @@ macOS: ~/Library/Preferences/kew/
 
 Then delete the kewstaterc file:
 
-Linux: ~/.local/state/kewstaterc
-macOS: ~/Library/Application Support/kewstaterc
+Linux: ~/.config/kew/kewstaterc
+macOS: ~/Library/Preferences/kew/kewstaterc
 
 #### Faad2 is optional
 
