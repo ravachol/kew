@@ -2,11 +2,11 @@
 %define _hardened_build 1
 
 Name:           kew
-Version:        3.5.0
+Version:        3.7.3
 Release:        1%{?dist}
 Summary:        Terminal music player
 
-License:        GPLv3
+License:        GPLv2
 URL:            https://codeberg.org/ravachol/kew
 Source0:        kew-%{version}.tar.gz
 
@@ -46,3 +46,4 @@ make install DESTDIR=%{buildroot} PREFIX=%{_prefix}
 %changelog
 * Sun Oct 05 2025 Jules - 3.5.0-1
 - Initial RPM release.
+* Sat Feb 21 2026 Ravachol - 3.7.3-1
