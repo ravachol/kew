@@ -34,7 +34,6 @@
 #include "ops/playlist_ops.h"
 
 #include "sys/mpris.h"
-#include "sys/sys_integration.h"
 
 #include "utils/term.h"
 
