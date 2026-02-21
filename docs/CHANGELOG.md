@@ -51,6 +51,10 @@ Thank you @yuri-xyz for helping out with this.
 
 - Fixed crash when pressing enter on a different song while audio is playing on Termux. Found by @robertkirkman. By @ravachol.
 
+- Fixed crash on exit in Termux/Android. Found by @welpyes. By @ravachol.
+
+- Improved and more efficient stripping of numbers on filenames. By @petoem.
+
 #### Special Thanks
 
 Special thanks to @petoem who has been very active. Also @LeahTheSlug and @Overionised.
