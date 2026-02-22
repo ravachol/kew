@@ -202,12 +202,6 @@ SRCS = src/common/appstate.c src/ui/common_ui.c src/common/common.c \
 WRAPPER_SRC = src/data/tagLibWrapper.cpp
 WRAPPER_OBJ = $(OBJDIR)/tagLibWrapper.o
 
-# macOS Now Playing bridge (Objective-C)
-ifeq ($(USE_MACOS_MEDIA), 1)
-MACOS_MEDIA_SRC = src/sys/macos_nowplaying.m
-MACOS_MEDIA_OBJ = $(OBJDIR)/sys/macos_nowplaying.o
-endif
-
 MAN_PAGE = kew.1
 MAN_DIR ?= $(PREFIX)/share/man
 DATADIR ?= $(PREFIX)/share
@@ -225,8 +219,14 @@ OBJS_C = $(SRCS:src/%.c=$(OBJDIR)/%.o)
 NESTEGG_SRCS = include/nestegg/nestegg.c
 NESTEGG_OBJS = $(NESTEGG_SRCS:include/nestegg/%.c=$(OBJDIR)/nestegg/%.o)
 
+# macOS Now Playing (Objective-C)
+ifeq ($(USE_MACOS_MEDIA), 1)
+  MACOS_MEDIA_SRC = src/sys/macos_nowplaying.m
+  MACOS_MEDIA_OBJ = $(MACOS_MEDIA_SRC:src/sys/%.m=$(OBJDIR)/sys/%.o)
+endif
+
 # All objects together
-OBJS = $(OBJS_C) $(NESTEGG_OBJS)
+OBJS = $(OBJS_C) $(NESTEGG_OBJS) $(MACOS_MEDIA_OBJ)
 
 # Create object directories
 $(OBJDIR):
@@ -257,15 +257,9 @@ $(OBJDIR)/nestegg/%.o: include/nestegg/%.c Makefile | $(OBJDIR)
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) $(DEFINES) -c -o $@ $<
 
-# Collect optional objects
-EXTRA_OBJS =
-ifeq ($(USE_MACOS_MEDIA), 1)
-  EXTRA_OBJS += $(MACOS_MEDIA_OBJ)
-endif
-
 # Link all objects safely together using C++ linker
-kew: $(OBJS) $(WRAPPER_OBJ) $(EXTRA_OBJS) Makefile
-	$(CXX) -o kew $(OBJS) $(WRAPPER_OBJ) $(EXTRA_OBJS) $(LIBS) $(LDFLAGS)
+kew: $(OBJS) $(WRAPPER_OBJ) Makefile
+	$(CXX) -o kew $(OBJS) $(WRAPPER_OBJ) $(LIBS) $(LDFLAGS)
 
 .PHONY: install
 install: all
