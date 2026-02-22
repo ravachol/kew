@@ -34,6 +34,15 @@ ifeq ($(origin USE_DBUS), undefined)
   endif
 endif
 
+# Default USE_MACOS_MEDIA to auto-detect if not set by user
+ifeq ($(origin USE_MACOS_MEDIA), undefined)
+  ifeq ($(UNAME_S), Darwin)
+    USE_MACOS_MEDIA = 1
+  else
+    USE_MACOS_MEDIA = 0
+  endif
+endif
+
 PREFIX    ?= /usr/local
 
 ifeq ($(UNAME_S),Darwin)
@@ -133,11 +142,19 @@ ifeq ($(UNAME_S), Linux)
   endif
 else ifeq ($(UNAME_S), Darwin)
   LIBS += -framework CoreAudio -framework CoreFoundation
+  ifeq ($(USE_MACOS_MEDIA), 1)
+    LIBS += -framework MediaPlayer -framework AppKit
+  endif
 endif
 
 # Conditionally add  USE_DBUS is enabled
 ifeq ($(USE_DBUS), 1)
   DEFINES += -DUSE_DBUS
+endif
+
+# Conditionally add macOS media integration
+ifeq ($(USE_MACOS_MEDIA), 1)
+  DEFINES += -DUSE_MACOS_MEDIA
 endif
 
 DEFINES += -DPREFIX=\"$(PREFIX)\"
@@ -202,8 +219,14 @@ OBJS_C = $(SRCS:src/%.c=$(OBJDIR)/%.o)
 NESTEGG_SRCS = include/nestegg/nestegg.c
 NESTEGG_OBJS = $(NESTEGG_SRCS:include/nestegg/%.c=$(OBJDIR)/nestegg/%.o)
 
+# macOS Now Playing (Objective-C)
+ifeq ($(USE_MACOS_MEDIA), 1)
+  MACOS_MEDIA_SRC = src/sys/macos_nowplaying.m
+  MACOS_MEDIA_OBJ = $(MACOS_MEDIA_SRC:src/sys/%.m=$(OBJDIR)/sys/%.o)
+endif
+
 # All objects together
-OBJS = $(OBJS_C) $(NESTEGG_OBJS)
+OBJS = $(OBJS_C) $(NESTEGG_OBJS) $(MACOS_MEDIA_OBJ)
 
 # Create object directories
 $(OBJDIR):
@@ -213,6 +236,11 @@ $(OBJDIR):
 $(OBJDIR)/%.o: src/%.c Makefile | $(OBJDIR)
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) $(DEFINES) -c -o $@ $<
+
+# Compile Objective-C sources in src/ (macOS only)
+$(OBJDIR)/%.o: src/%.m Makefile | $(OBJDIR)
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) $(DEFINES) -fobjc-arc -c -o $@ $<
 
 # Compile explicit C++ sources in src/
 $(OBJDIR)/%.o: src/%.cpp Makefile | $(OBJDIR)
