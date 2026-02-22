@@ -29,7 +29,6 @@
 
 static GDBusConnection *connection = NULL;
 static GMainContext *global_main_context = NULL;
-static volatile sig_atomic_t g_should_exit = 0;
 
 void set_g_main_context(GMainContext *val)
 {
