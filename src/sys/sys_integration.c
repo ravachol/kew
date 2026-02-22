@@ -166,6 +166,8 @@ void emit_seeked_signal(double new_position_seconds)
         g_dbus_connection_emit_signal(
             connection, NULL, "/org/mpris/MediaPlayer2",
             "org.mpris.MediaPlayer2.Player", "Seeked", parameters, NULL);
+#elif defined(USE_MACOS_MEDIA)
+        macos_update_playback_position(new_position_seconds);
 #else
         (void)new_position_seconds;
 #endif
@@ -365,59 +367,59 @@ void create_pid_file()
 
 void restart_kew(char *argv[])
 {
-    pid_t oldpid = read_pid_file();
+        pid_t oldpid = read_pid_file();
 
-    if (oldpid > 0) {
-        // Check if process exists
-        if (kill(oldpid, 0) == 0) {
-
-            // Ask old instance to shut down cleanly
-            if (kill(oldpid, SIGUSR1) != 0) {
-                fprintf(stderr,
-                        "Failed to signal old kew (pid %d): %s\n",
-                        oldpid, strerror(errno));
-            } else {
-                // Wait up to 5 seconds for it to exit
-                int retries = 50;  // 50 × 100ms = 5s
-
-                while (retries-- > 0) {
-                    if (kill(oldpid, 0) == -1 && errno == ESRCH) {
-                        break;  // Process is gone
-                    }
-                    usleep(100000); // 100ms
-                }
-
-                // If still running, force kill
+        if (oldpid > 0) {
+                // Check if process exists
                 if (kill(oldpid, 0) == 0) {
-                    fprintf(stderr,
-                            "Old kew (pid %d) did not exit in time. Forcing termination.\n",
-                            oldpid);
 
-                    kill(oldpid, SIGKILL);
+                        // Ask old instance to shut down cleanly
+                        if (kill(oldpid, SIGUSR1) != 0) {
+                                fprintf(stderr,
+                                        "Failed to signal old kew (pid %d): %s\n",
+                                        oldpid, strerror(errno));
+                        } else {
+                                // Wait up to 5 seconds for it to exit
+                                int retries = 50; // 50 × 100ms = 5s
 
-                    // Give it a moment to die
-                    usleep(200000);
+                                while (retries-- > 0) {
+                                        if (kill(oldpid, 0) == -1 && errno == ESRCH) {
+                                                break; // Process is gone
+                                        }
+                                        usleep(100000); // 100ms
+                                }
+
+                                // If still running, force kill
+                                if (kill(oldpid, 0) == 0) {
+                                        fprintf(stderr,
+                                                "Old kew (pid %d) did not exit in time. Forcing termination.\n",
+                                                oldpid);
+
+                                        kill(oldpid, SIGKILL);
+
+                                        // Give it a moment to die
+                                        usleep(200000);
+                                }
+                        }
+                } else if (errno == ESRCH) {
+                        fprintf(stderr, "No running kew process found.\n");
+                } else {
+                        fprintf(stderr,
+                                "Error checking old kew (pid %d): %s\n",
+                                oldpid, strerror(errno));
                 }
-            }
-        } else if (errno == ESRCH) {
-            fprintf(stderr, "No running kew process found.\n");
-        } else {
-            fprintf(stderr,
-                    "Error checking old kew (pid %d): %s\n",
-                    oldpid, strerror(errno));
+
+                delete_pid_file();
         }
 
-        delete_pid_file();
-    }
+        // Replace current process with new kew instance
+        execvp("kew", argv);
 
-    // Replace current process with new kew instance
-    execvp("kew", argv);
-
-    // Only reached if exec fails
-    fprintf(stderr,
-            "Failed to restart kew via execvp: %s\n",
-            strerror(errno));
-    _exit(1);
+        // Only reached if exec fails
+        fprintf(stderr,
+                "Failed to restart kew via execvp: %s\n",
+                strerror(errno));
+        _exit(1);
 }
 
 // Ensures only a single instance of kew can run at a time for the current user.
