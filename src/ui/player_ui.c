@@ -1430,9 +1430,11 @@ int print_logo_and_adjustments(SongData *song_data, int term_width, UISettings *
                 printf(_("/%s."), get_binding_string(EVENT_MOVESONGDOWN, true));
                 printf("\033[%d;%dH", ++row, col);
                 clear_rest_of_line();
-                printf("\033[%d;%dH", ++row, col);
-                clear_rest_of_line();
         }
+
+        printf("\033[%d;%dH", ++row, col);
+        clear_rest_of_line();
+
         return row;
 }
 

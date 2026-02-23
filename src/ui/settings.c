@@ -1920,9 +1920,9 @@ void set_config(AppSettings *settings, UISettings *ui)
         fprintf(file, "stripTrackNumbers=%s\n", settings->stripTrackNumbers);
         fprintf(file, "hideLogo=%s\n", settings->hideLogo);
         fprintf(file, "hideHelp=%s\n", settings->hideHelp);
+        fprintf(file, "hideTimeStatus=%s\n", settings->hideTimeStatus);
         fprintf(file, "hideFooter=%s\n", settings->hideFooter);
-        fprintf(file, "hideSideCover=%s\n", settings->hideSideCover);
-        fprintf(file, "hideTimeStatus=%s\n\n", settings->hideTimeStatus);
+        fprintf(file, "hideSideCover=%s\n\n", settings->hideSideCover);
 
         fprintf(file, "# Delay when drawing title in track view, set to 0 to "
                       "have no delay.\n");
