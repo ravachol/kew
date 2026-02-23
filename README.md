@@ -172,7 +172,9 @@ kew state (for settings that can be changed in-app) is kept in ~/.config/kew/kew
 
 If you change a setting in-app it will be tracked by kewstaterc and not kewrc.
 
-kewrc is never changed by kew with the exception of when you run kew path. If you delete your kewrc a new default one will be generated.
+kewrc is never changed by kew with the exception of when you run kew path.
+
+If you delete your kewrc a new default one will be generated. You wont get newer config options listed in your config file unless you do this.
 
 ## Themes
 

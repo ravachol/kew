@@ -162,6 +162,7 @@ typedef struct
         bool hideLogo;           /**< Hide application logo at the top. */
         bool hideHelp;           /**< Hide help text at the top. */
         bool hideFooter;         /**< Hide footer section. */
+        bool hideTimeStatus;     /**< Hide elapsed, song length, vol, bitrate. */
         bool hideSideCover;      /**< Hide side cover panel. */
         bool allowNotifications; /**< Enable desktop notifications. */
 
@@ -363,6 +364,7 @@ typedef struct
         char hideHelp[2];
         char hideFooter[2];
         char hideSideCover[2];
+        char hideTimeStatus[2];
         char quitAfterStopping[2];
         char hideGlimmeringText[2];
         char nextView[6];

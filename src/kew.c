@@ -682,6 +682,7 @@ void init_state(void)
         state->uiSettings.hideLogo = false;
         state->uiSettings.hideHelp = false;
         state->uiSettings.hideFooter = false;
+        state->uiSettings.hideTimeStatus = true;
         state->uiSettings.quitAfterStopping = false;
         state->uiSettings.hideGlimmeringText = false;
         state->uiSettings.coverAnsi = false;

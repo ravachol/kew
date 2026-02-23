@@ -727,6 +727,9 @@ void print_time(int row, int col, double elapsed_seconds, ma_uint32 sample_rate,
 {
         AppState *state = get_app_state();
 
+        if (state->uiSettings.hideTimeStatus)
+                return;
+
         apply_color(state->uiSettings.colorMode,
                     state->uiSettings.theme.trackview_time,
                     state->uiSettings.color);

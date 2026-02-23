@@ -617,19 +617,16 @@ void set_default_config(AppSettings *settings)
                  sizeof(settings->trackTitleAsWindowTitle));
         c_strcpy(settings->discordRPCEnabled, "1",
                  sizeof(settings->discordRPCEnabled));
-#ifdef __APPLE__
-        // Visualizer looks wonky in default terminal but let's enable it
-        // anyway. People need to switch
         c_strcpy(settings->visualizerEnabled, "1",
                  sizeof(settings->visualizerEnabled));
+#ifdef __APPLE__
         c_strcpy(settings->colorMode, "0",
                  sizeof(settings->colorMode));
 #else
-        c_strcpy(settings->visualizerEnabled, "1",
-                 sizeof(settings->visualizerEnabled));
         c_strcpy(settings->colorMode, "1",
                  sizeof(settings->colorMode));
 #endif
+
 #ifdef __ANDROID__
         c_strcpy(settings->hideLogo, "1", sizeof(settings->hideLogo));
 #else
@@ -638,6 +635,7 @@ void set_default_config(AppSettings *settings)
         c_strcpy(settings->hideFooter, "0", sizeof(settings->hideFooter));
         c_strcpy(settings->hideHelp, "0", sizeof(settings->hideHelp));
         c_strcpy(settings->hideSideCover, "0", sizeof(settings->hideSideCover));
+        c_strcpy(settings->hideTimeStatus, "0", sizeof(settings->hideTimeStatus));
         c_strcpy(settings->visualizer_height, "6",
                  sizeof(settings->visualizer_height));
         c_strcpy(settings->visualizer_color_type, "2",
@@ -904,6 +902,10 @@ void construct_app_settings(AppSettings *settings, KeyValuePair *pairs, int coun
                 } else if (strcmp(lowercase_key, "visualizerenabled") == 0) {
                         snprintf(settings->visualizerEnabled,
                                  sizeof(settings->visualizerEnabled), "%s",
+                                 pair->value);
+                } else if (strcmp(lowercase_key, "hidetimestatus") == 0) {
+                        snprintf(settings->hideTimeStatus,
+                                 sizeof(settings->hideTimeStatus), "%s",
                                  pair->value);
                 } else if (strcmp(lowercase_key, "discordrpcenabled") == 0) {
                         snprintf(settings->discordRPCEnabled,
@@ -1818,7 +1820,12 @@ void set_config(AppSettings *settings, UISettings *ui)
                                sizeof(settings->visualizerEnabled))
                     : c_strcpy(settings->visualizerEnabled, "0",
                                sizeof(settings->visualizerEnabled));
-
+        if (settings->hideTimeStatus[0] == '\0')
+                ui->hideTimeStatus
+                    ? c_strcpy(settings->hideTimeStatus, "1",
+                               sizeof(settings->hideTimeStatus))
+                    : c_strcpy(settings->hideTimeStatus, "0",
+                               sizeof(settings->hideTimeStatus));
         if (settings->discordRPCEnabled[0] == '\0')
                 ui->discordRPCEnabled
                     ? c_strcpy(settings->discordRPCEnabled, "1",
@@ -1914,7 +1921,8 @@ void set_config(AppSettings *settings, UISettings *ui)
         fprintf(file, "hideLogo=%s\n", settings->hideLogo);
         fprintf(file, "hideHelp=%s\n", settings->hideHelp);
         fprintf(file, "hideFooter=%s\n", settings->hideFooter);
-        fprintf(file, "hideSideCover=%s\n\n", settings->hideSideCover);
+        fprintf(file, "hideSideCover=%s\n", settings->hideSideCover);
+        fprintf(file, "hideTimeStatus=%s\n\n", settings->hideTimeStatus);
 
         fprintf(file, "# Delay when drawing title in track view, set to 0 to "
                       "have no delay.\n");
