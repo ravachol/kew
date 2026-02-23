@@ -17,6 +17,8 @@ Thank you @yuri-xyz for helping out with this.
 
 - kew play \<path\> \<path2\> command. by @Overionised. Suggested by @amigthea.
 
+- Support for macOS media keys. By @Rohyme and @petoem.
+
 - Lyrics page now centers the current lyric once it reaches the center of the screen. Suggested by @flashfire1001. Implemented by @Moksh-Parikh.
 
 - Smoother gradient for non default sized spectrum visualizers. By @ravachol. Suggested by @Saijin_Naib.
@@ -27,7 +29,9 @@ Thank you @yuri-xyz for helping out with this.
 
 - miniaudio bumped to version 0.11.24.
 
-- Hide footer option. By @ravachol. Suggested by @gizzmoguy.
+- Hide footer option, hideFooter=1. By @ravachol. Suggested by @gizzmoguy.
+
+- Hide time status (elapsed seconds, song length and so on) option, hideTimeStatus=1. By @ravachol. Suggested By: Found a guy on reddit (u/haikuosextremist) who had this hidden in his kew.
 
 - Add option to disable the stripping of track numbers from file names in the library: stripTrackNumbers=0. By @episvr.
 
