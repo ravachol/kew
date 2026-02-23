@@ -1,12 +1,12 @@
 #define _XOPEN_SOURCE 700
 
 /**
- * @file common_ui.c
- * @brief Shared UI utilities and layout helpers.
- *
- * Contains reusable functions for drawing text, handling resizing,
- * and rendering shared UI components across multiple screens.
- */
+* @file common_ui.c
+* @brief Shared UI utilities and layout helpers.
+*
+* Contains reusable functions for drawing text, handling resizing,
+* and rendering shared UI components across multiple screens.
+*/
 
 #include "common_ui.h"
 
@@ -19,6 +19,7 @@
 #include "utils/term.h"
 #include "utils/utils.h"
 
+#include "glib.h"
 #include <stdio.h>
 #include <string.h>
 #include <wchar.h>
@@ -442,31 +443,6 @@ void copy_half_or_full_width_chars_with_max_width(const char *src, char *dst,
         *o = '\0';
 }
 
-static bool has_fullwidth_chars(const char *str)
-{
-        mbstate_t state;
-        memset(&state, 0, sizeof(state));
-
-        const char *p = str;
-        wchar_t wc;
-
-        while (*p) {
-                size_t len = mbrtowc(&wc, p, MB_CUR_MAX, &state);
-                if (len == (size_t)-1 || len == (size_t)-2 || len == 0)
-                        break;
-
-                int w = mk_wcwidth(wc);
-                if (w < 0) {
-                        break;
-                }
-                if (w > 1) {
-                        return true;
-                }
-                p += len;
-        }
-        return false;
-}
-
 void process_name(const char *name, char *output, int max_width,
                   bool strip_unneeded_chars, bool strip_suffix)
 {
@@ -475,35 +451,29 @@ void process_name(const char *name, char *output, int max_width,
                 return;
         }
 
-        const char *last_dot = strrchr(name, '.');
+        const gchar *last_dot = g_utf8_strrchr(name, -1, '.');
 
         if (last_dot != NULL && strip_suffix) {
-                char tmp[PATH_MAX];
-                size_t len = last_dot - name + 1;
-                if (len >= sizeof(tmp))
-                        len = sizeof(tmp) - 1;
-                c_strcpy(tmp, name, len);
-                tmp[len] = '\0';
-                copy_half_or_full_width_chars_with_max_width(tmp, output, max_width);
+                gchar *tmp = g_utf8_substring(name, 0, g_utf8_pointer_to_offset(name, last_dot));
+                g_utf8_strncpy(output, tmp, max_width);
+                g_free(tmp);
         } else {
-                copy_half_or_full_width_chars_with_max_width(name, output, max_width);
+                g_utf8_strncpy(output, name, max_width);
         }
 
         if (strip_unneeded_chars && get_app_state()->uiSettings.stripTrackNumbers)
                 format_filename(output);
 
-        trim(output, strlen(output));
+        g_strstrip(output);
 }
 
 void process_name_scroll(const char *name, char *output, int max_width,
                          bool is_same_name_as_last_time)
 {
-        size_t scrollableLength = strnlen(name, max_width);
-        size_t nameLength = strlen(name);
+        size_t nameLength = g_utf8_strlen(name, -1);
 
         if (scroll_delay_skipped_count <= start_scrolling_delay &&
             nameLength > (size_t)max_width) {
-                scrollableLength = max_width;
                 scroll_delay_skipped_count++;
                 trigger_refresh();
                 is_long_name = true;
@@ -511,30 +481,19 @@ void process_name_scroll(const char *name, char *output, int max_width,
 
         int start = (is_same_name_as_last_time) ? last_name_position : 0;
 
-        if (finished_scrolling)
-                scrollableLength = max_width;
-
-        if (has_fullwidth_chars(name)) {
+        if (finished_scrolling || nameLength <= (size_t)max_width) {
                 process_name(name, output, max_width, true, true);
-        } else if (nameLength <= (size_t)max_width || finished_scrolling) {
-                process_name(name, output, scrollableLength, true, true);
         } else {
                 is_long_name = true;
-
-                if ((size_t)(start + max_width) > nameLength) {
-                        start = 0;
+                if ((size_t)start >= (nameLength - max_width)) {
                         finished_scrolling = true;
                 }
 
-                c_strcpy(output, name + start, max_width + 1);
-
-                if (get_app_state()->uiSettings.stripTrackNumbers)
-                        format_filename(output);
-
-                trim(output, max_width);
+                gchar temp[4 * nameLength + 1];
+                process_name(name, temp, nameLength, true, true);
+                g_utf8_strncpy(output, g_utf8_offset_to_pointer(temp, start), max_width);
 
                 last_name_position++;
-
                 trigger_refresh();
         }
 }
