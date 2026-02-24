@@ -19,7 +19,7 @@
 #include "utils/term.h"
 #include "utils/utils.h"
 
-#include "glib.h"
+#include <glib.h>
 #include <stdio.h>
 #include <string.h>
 #include <wchar.h>
@@ -396,51 +396,23 @@ int mk_wcswidth(const wchar_t *pwcs, size_t n)
 
 /* End Markus Kuhn code */
 
-void copy_half_or_full_width_chars_with_max_width(const char *src, char *dst,
-                                                  int max_display_width)
+void process_name_strip_suffix(const char *name, char *output)
 {
-        mbstate_t state;
-        memset(&state, 0, sizeof(state));
+        const gchar *last_dot = g_utf8_strrchr(name, -1, '.');
 
-        const char *p = src;
-        char *o = dst;
-        wchar_t wc;
-        int width_sum = 0;
-
-        while (*p) {
-                size_t len = mbrtowc(&wc, p, MB_CUR_MAX, &state);
-
-                if (len == (size_t)-1) { // Invalid UTF-8/locale error
-                        // Skip one byte, reinit state
-                        p++;
-                        memset(&state, 0, sizeof(state));
-                        continue;
-                }
-                if (len == (size_t)-2) { // Incomplete sequence
-                        break;
-                }
-                if (len == 0) { // Null terminator
-                        break;
-                }
-
-                int w = wcwidth(wc);
-                if (w < 0) {
-                        // Non-printable character; skip it
-                        p += len;
-                        continue;
-                }
-
-                if (width_sum + w > max_display_width)
-                        break;
-
-                // Copy valid multibyte sequence
-                memcpy(o, p, len);
-                o += len;
-                p += len;
-                width_sum += w;
+        if (last_dot != NULL) {
+                gchar *tmp = g_utf8_substring(name, 0, g_utf8_pointer_to_offset(name, last_dot));
+                g_utf8_strncpy(output, tmp, g_utf8_strlen(tmp, -1));
+                g_free(tmp);
         }
+}
 
-        *o = '\0';
+void process_name_strip_unneeded_chars(char *str)
+{
+        if (get_app_state()->uiSettings.stripTrackNumbers)
+                format_filename(str);
+
+        g_strstrip(str);
 }
 
 void process_name(const char *name, char *output, int max_width,
@@ -451,29 +423,26 @@ void process_name(const char *name, char *output, int max_width,
                 return;
         }
 
-        const gchar *last_dot = g_utf8_strrchr(name, -1, '.');
+        if (strip_suffix)
+                process_name_strip_suffix(name, output);
 
-        if (last_dot != NULL && strip_suffix) {
-                gchar *tmp = g_utf8_substring(name, 0, g_utf8_pointer_to_offset(name, last_dot));
-                g_utf8_strncpy(output, tmp, max_width);
-                g_free(tmp);
-        } else {
-                g_utf8_strncpy(output, name, max_width);
-        }
-
-        if (strip_unneeded_chars && get_app_state()->uiSettings.stripTrackNumbers)
-                format_filename(output);
+        if (strip_unneeded_chars)
+                process_name_strip_unneeded_chars(output);
 
         g_strstrip(output);
+
+        str_truncate_display_width(output, output, max_width);
 }
 
 void process_name_scroll(const char *name, char *output, int max_width,
                          bool is_same_name_as_last_time)
 {
-        size_t nameLength = g_utf8_strlen(name, -1);
+        process_name_strip_suffix(name, output);
+        process_name_strip_unneeded_chars(output);
+        int name_width = str_calculate_display_width(output);
 
         if (scroll_delay_skipped_count <= start_scrolling_delay &&
-            nameLength > (size_t)max_width) {
+            name_width > max_width) {
                 scroll_delay_skipped_count++;
                 trigger_refresh();
                 is_long_name = true;
@@ -481,17 +450,17 @@ void process_name_scroll(const char *name, char *output, int max_width,
 
         int start = (is_same_name_as_last_time) ? last_name_position : 0;
 
-        if (finished_scrolling || nameLength <= (size_t)max_width) {
+        if (finished_scrolling || name_width <= max_width) {
                 process_name(name, output, max_width, true, true);
         } else {
                 is_long_name = true;
-                if ((size_t)start >= (nameLength - max_width)) {
+                if (str_calculate_display_width(g_utf8_offset_to_pointer(output, start)) < max_width) {
                         finished_scrolling = true;
                 }
 
-                gchar temp[4 * nameLength + 1];
-                process_name(name, temp, nameLength, true, true);
-                g_utf8_strncpy(output, g_utf8_offset_to_pointer(temp, start), max_width);
+                gchar *tmp = g_utf8_substring(output, start, -1);
+                str_truncate_display_width(tmp, output, max_width);
+                g_free(tmp);
 
                 last_name_position++;
                 trigger_refresh();
