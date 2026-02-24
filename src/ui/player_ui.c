@@ -10,7 +10,6 @@
 
 #include "common/events.h"
 #include "control_ui.h"
-#include "glib.h"
 #include "playlist_ui.h"
 #include "search_ui.h"
 #include "settings.h"
@@ -40,6 +39,7 @@
 
 #include "visuals.h"
 
+#include <glib.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>

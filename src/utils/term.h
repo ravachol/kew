@@ -47,7 +47,6 @@
  */
 void set_terminal_color(int color);
 
-
 /**
  * @brief Sets the terminal text color using RGB values.
  *
@@ -60,7 +59,6 @@ void set_terminal_color(int color);
  */
 void set_text_color_RGB(int r, int g, int b);
 
-
 /**
  * @brief Sets the terminal size to the current terminal dimensions.
  *
@@ -68,7 +66,6 @@ void set_text_color_RGB(int r, int g, int b);
  * If the terminal size is unavailable (in non-interactive environments), it sets defaults.
  */
 void set_term_size(void);
-
 
 /**
  * @brief Retrieves the current terminal size.
@@ -95,7 +92,6 @@ void get_term_size(int *width, int *height);
  */
 int get_indentation(int text_width);
 
-
 /**
  * @brief Sets the terminal to non-blocking mode.
  *
@@ -103,7 +99,6 @@ int get_indentation(int text_width);
  * reading of input without waiting for the user to press Enter.
  */
 void set_nonblocking_mode(void);
-
 
 /**
  * @brief Restores the terminal to its original mode.
@@ -130,7 +125,6 @@ void restore_terminal_mode(void);
  */
 int read_input_sequence(char *seq, size_t seq_size);
 
-
 /**
  * @brief Checks if input is available on the standard input (stdin).
  *
@@ -143,7 +137,6 @@ int read_input_sequence(char *seq, size_t seq_size);
  */
 int is_input_available(void);
 
-
 /**
  * @brief Saves the current cursor position.
  *
@@ -152,7 +145,6 @@ int is_input_available(void);
  */
 void save_cursor_position(void);
 
-
 /**
  * @brief Restores the cursor to its previously saved position.
  *
@@ -160,14 +152,12 @@ void save_cursor_position(void);
  */
 void restore_cursor_position(void);
 
-
 /**
  * @brief Sets the terminal text color to the default color.
  *
  * This function resets the terminal's text color to the default color, typically black or white.
  */
 void set_default_text_color(void);
-
 
 /**
  * @brief Hides the terminal cursor.
@@ -177,14 +167,12 @@ void set_default_text_color(void);
  */
 void hide_cursor(void);
 
-
 /**
  * @brief Shows the terminal cursor.
  *
  * This function makes the terminal cursor visible again after being hidden using `hide_cursor()`.
  */
 void show_cursor(void);
-
 
 /**
  * @brief Clears the rest of the screen from the current cursor position.
@@ -193,14 +181,12 @@ void show_cursor(void);
  */
 void clear_rest_of_screen(void);
 
-
 /**
  * @brief Clears the current line in the terminal.
  *
  * This function clears the entire current line, including the text and any additional formatting.
  */
 void clear_line(void);
-
 
 /**
  * @brief Clears the rest of the line from the current cursor position.
@@ -209,14 +195,12 @@ void clear_line(void);
  */
 void clear_rest_of_line(void);
 
-
 /**
  * @brief Moves the cursor to the first row and first column.
  *
  * This function moves the terminal cursor to the very top-left corner of the terminal.
  */
 void goto_first_line_first_row(void);
-
 
 /**
  * @brief Initializes terminal resizing settings.
@@ -226,7 +210,6 @@ void goto_first_line_first_row(void);
  */
 void init_resize(void);
 
-
 /**
  * @brief Disables terminal line input buffering.
  *
@@ -234,7 +217,6 @@ void init_resize(void);
  * waiting for the Enter key.
  */
 void disable_terminal_line_input(void);
-
 
 /**
  * @brief Sets the terminal to raw input mode.
@@ -244,7 +226,6 @@ void disable_terminal_line_input(void);
  */
 void set_raw_input_mode(void);
 
-
 /**
  * @brief Enables input buffering in the terminal.
  *
@@ -252,7 +233,6 @@ void set_raw_input_mode(void);
  * the user presses Enter.
  */
 void enable_input_buffering(void);
-
 
 /**
  * @brief Enables terminal scrolling.
@@ -266,7 +246,7 @@ void enable_input_buffering(void);
  *       disable scrolling, and you want to restore the default scrolling
  *       behavior.
  */
- void enable_scrolling(void);
+void enable_scrolling(void);
 
 /**
  * @brief Jumps the cursor up by a specified number of rows.
@@ -278,7 +258,6 @@ void enable_input_buffering(void);
  */
 void cursor_jump(int num_rows);
 
-
 /**
  * @brief Jumps the cursor down by a specified number of rows.
  *
@@ -289,7 +268,6 @@ void cursor_jump(int num_rows);
  */
 void cursor_jump_down(int num_rows);
 
-
 /**
  * @brief Clears the entire screen and scrollback buffer.
  *
@@ -297,7 +275,6 @@ void cursor_jump_down(int num_rows);
  * display.
  */
 void clear_screen(void);
-
 
 /**
  * @brief Enters the alternate screen buffer.
@@ -307,7 +284,6 @@ void clear_screen(void);
  */
 void enter_alternate_screen_buffer(void);
 
-
 /**
  * @brief Exits the alternate screen buffer.
  *
@@ -315,7 +291,6 @@ void enter_alternate_screen_buffer(void);
  * buffer with `enter_alternate_screen_buffer()`.
  */
 void exit_alternate_screen_buffer(void);
-
 
 /**
  * @brief Enables terminal mouse input for button tracking.
@@ -325,14 +300,12 @@ void exit_alternate_screen_buffer(void);
  */
 void enable_terminal_mouse_buttons(void);
 
-
 /**
  * @brief Disables terminal mouse input.
  *
  * This function disables all mouse input tracking in the terminal.
  */
 void disable_terminal_mouse_buttons(void);
-
 
 /**
  * @brief Sets the terminal window title.
@@ -344,7 +317,6 @@ void disable_terminal_mouse_buttons(void);
  */
 void set_terminal_window_title(char *title);
 
-
 /**
  * @brief Saves the current terminal window title.
  *
@@ -352,12 +324,32 @@ void set_terminal_window_title(char *title);
  */
 void save_terminal_window_title(void);
 
-
 /**
  * @brief Restores the terminal window title to the saved title.
  *
  * This function restores the terminal window title to the one saved previously using `save_terminal_window_title()`.
  */
 void restore_terminal_window_title(void);
+
+/**
+ * Calculate string display width accounting for zero-width and wide chars
+ * @param str UTF-8 string
+ * @return display width in character cells (for terminals)
+ */
+int str_calculate_display_width(const char *str);
+
+/**
+ * Truncates a string to fit within a maximum display width.
+ *
+ * Copies characters from @str to @dst, ensuring the resulting string
+ * does not exceed @max_width characters in display width. 
+ *
+ * @param str       Source string to truncate (null-terminated).
+ * @param dst       Destination buffer where truncated string is written.
+ * @param max_width Maximum display width in characters.
+ *
+ * @note Caller must ensure @dst is large enough to hold the result.
+ */
+void str_truncate_display_width(const char *str, char *dst, int max_width);
 
 #endif
