@@ -1690,8 +1690,8 @@ int display_tree(FileSystemEntry *root, int depth, int max_list_size,
         if (max_name_width < 0)
                 max_name_width = 0;
 
-        gchar dir_name[4 * max_name_width + 1];
-        gchar filename[4 * max_name_width + 1];
+        gchar dir_name[4 * g_utf8_strlen(root->name, -1) + 1];
+        gchar filename[4 * g_utf8_strlen(root->name, -1) + 1];
         bool foundChosen = false;
         int is_playing = 0;
         int extra_indent = 0;
