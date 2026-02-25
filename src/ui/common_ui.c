@@ -425,6 +425,8 @@ void process_name(const char *name, char *output, int max_width,
 
         if (strip_suffix)
                 process_name_strip_suffix(name, output);
+        else
+                g_utf8_strncpy(output, name, g_utf8_strlen(name, -1));
 
         if (strip_unneeded_chars)
                 process_name_strip_unneeded_chars(output);
