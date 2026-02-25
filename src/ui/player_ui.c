@@ -39,6 +39,7 @@
 
 #include "visuals.h"
 
+#include <glib.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -1689,8 +1690,8 @@ int display_tree(FileSystemEntry *root, int depth, int max_list_size,
         if (max_name_width < 0)
                 max_name_width = 0;
 
-        char dir_name[max_name_width + 1];
-        char filename[PATH_MAX + 1];
+        gchar dir_name[4 * g_utf8_strlen(root->name, -1) + 1];
+        gchar filename[4 * g_utf8_strlen(root->name, -1) + 1];
         bool foundChosen = false;
         int is_playing = 0;
         int extra_indent = 0;
@@ -1843,11 +1844,11 @@ int display_tree(FileSystemEntry *root, int depth, int max_list_size,
                                         snprintf(dir_name,
                                                  max_name_width + 1 - extra_indent,
                                                  "%s", _("─ MUSIC LIBRARY ─"));
-                                else
-                                        snprintf(dir_name,
-                                                 max_name_width + 1 - extra_indent,
-                                                 "%s", root->name);
-
+                                else {
+                                        gchar *uname = g_utf8_substring(root->name, 0, max_name_width - extra_indent);
+                                        sprintf(dir_name, "%s", uname);
+                                        g_free(uname);
+                                }
                                 char *upper_dir_name = string_to_upper(dir_name);
 
                                 if (depth == 1) {

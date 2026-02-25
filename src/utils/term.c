@@ -9,6 +9,7 @@
 #include "term.h"
 
 #include <fcntl.h>
+#include <glib.h>
 #include <poll.h>
 #include <pwd.h>
 #include <stdio.h>
@@ -356,4 +357,44 @@ void restore_terminal_window_title(void)
 {
         // Restore terminal window title from the stack
         printf("\033[23;0t");
+}
+
+int str_calculate_display_width(const char *str)
+{
+        int width = 0;
+        for (gunichar c = g_utf8_get_char(str); c; str = g_utf8_next_char(str), c = g_utf8_get_char(str)) {
+                if (g_unichar_iszerowidth(c)) {
+                        continue;
+                } else if (g_unichar_iswide(c) || g_unichar_iswide_cjk(c)) {
+                        width += 2;
+                } else {
+                        width += 1;
+                }
+        }
+        return width;
+}
+
+void str_truncate_display_width(const char *str, char *dst, int max_width)
+{
+        const char *end = str;
+        int width = 0;
+        for (gunichar c = g_utf8_get_char(end); c; end = g_utf8_next_char(end), c = g_utf8_get_char(end)) {
+                int char_width = 0;
+                if (g_unichar_iszerowidth(c)) {
+                        continue;
+                } else if (g_unichar_iswide(c) || g_unichar_iswide_cjk(c)) {
+                        char_width = 2;
+                } else {
+                        char_width = 1;
+                }
+                if (width + char_width > max_width) {
+                        end = g_utf8_prev_char(end);
+                        break;
+                }
+                width += char_width;
+        }
+
+        gchar *tmp = g_utf8_substring(str, 0, g_utf8_pointer_to_offset(str, end));
+        g_utf8_strncpy(dst, tmp, g_utf8_strlen(tmp, -1));
+        g_free(tmp);
 }
