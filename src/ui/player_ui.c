@@ -1652,6 +1652,7 @@ void set_chosen_dir(FileSystemEntry *entry)
 void reset_chosen_dir(void)
 {
         chosen_dir = NULL;
+        chosen_lib_row = 0;
 }
 
 void apply_tree_item_color(UISettings *ui, int depth,
