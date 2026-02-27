@@ -23,8 +23,6 @@ enum AudioImplementation {
 };
 
 struct m4a_decoder;
-typedef struct m4a_decoder m4a_decoder;
-
-typedef void (*uninit_func)(void *decoder);
+typedef struct m4a_decoder ma_m4a;
 
 #endif

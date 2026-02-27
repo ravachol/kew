@@ -147,7 +147,7 @@ bool flush_seek(void)
                 if (current_song != NULL) {
 #ifdef USE_FAAD
                         if (path_ends_with(current_song->song.file_path, "aac")) {
-                                m4a_decoder *decoder = get_current_m4a_decoder();
+                                ma_m4a *decoder = (ma_m4a*)get_current_decoder();
                                 if (decoder->file_type == k_rawAAC)
                                         return false;
                         }

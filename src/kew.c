@@ -295,8 +295,6 @@ void kew_shutdown()
         AppSettings *settings = get_app_settings();
         PlayList *favorites_playlist = get_favorites_playlist();
 
-        pthread_mutex_lock(&(state->data_source_mutex));
-
         sound_shutdown();
 
         free_decoders();
@@ -345,7 +343,7 @@ void kew_shutdown()
 
         pthread_mutex_destroy(&(ps->loadingdata.mutex));
         pthread_mutex_destroy(&(state->switch_mutex));
-        pthread_mutex_unlock(&(state->data_source_mutex));
+
         pthread_mutex_destroy(&(state->data_source_mutex));
 
         free_visuals();
@@ -768,6 +766,7 @@ void init_state(void)
         set_favorites_playlist(NULL);
 
         audio_data.pUserData = malloc(sizeof(UserData));
+        memset(&audio_data.pcm_rb, 0, sizeof(audio_data.pcm_rb));
 
         reset_digits_pressed();
 

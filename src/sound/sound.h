@@ -1,5 +1,5 @@
 /**
- * @file sound.[h]
+ * @file sound.h
  * @brief High-level audio playback interface.
  *
  * Provides a unified API for creating an audio device
@@ -9,17 +9,8 @@
 #ifndef SOUND_H
 #define SOUND_H
 
-#include "common/appstate.h"
-
-#include <fcntl.h>
-#include <miniaudio.h>
-#include <pthread.h>
-#include <stdatomic.h>
 #include <stdbool.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <sys/wait.h>
-#include <unistd.h>
+
 
 /**
  * @brief Checks if the audio context has been initialized.
@@ -30,7 +21,6 @@
  * @return True if the context is initialized, otherwise false.
  */
 bool is_context_initialized(void);
-
 
 /**
  * @brief Creates and initializes the audio playback device.
@@ -43,7 +33,6 @@ bool is_context_initialized(void);
  */
 int pb_create_audio_device(void);
 
-
 /**
  * @brief Switches the audio implementation for playback.
  *
@@ -55,7 +44,6 @@ int pb_create_audio_device(void);
  */
 int pb_switch_audio_implementation(void);
 
-
 /**
  * @brief Cleans up and uninitializes the audio context.
  *
@@ -64,46 +52,4 @@ int pb_switch_audio_implementation(void);
  */
 void cleanup_audio_context(void);
 
-
-/**
- * @brief Reads PCM frames from a data source into the provided output buffer.
- *
- * This function reads a specified number of PCM frames from a given audio data source,
- * processing them according to the specified audio format (e.g., u8, s16, s24, s32, or f32).
- * It updates the remaining frames and the number of frames to read.
- *
- * @param p_data_source A pointer to the data source from which PCM frames are to be read.
- * @param format The audio format (e.g., ma_format_u8, ma_format_s16, etc.).
- * @param p_frames_out A pointer to the output buffer where the PCM frames will be stored.
- * @param frames_read The number of frames that have already been read.
- * @param channels The number of channels in the audio data (e.g., 2 for stereo).
- * @param remaining_frames The remaining frames to be read.
- * @param p_frames_to_read A pointer to the number of frames to read in the current operation.
- *
- * @return A result code indicating success or failure (e.g., MA_SUCCESS, MA_INVALID_ARGS).
- */
-ma_result call_read_PCM_frames(ma_data_source *p_data_source, ma_format format,
-                               void *p_frames_out, ma_uint64 frames_read,
-                               ma_uint32 channels, ma_uint64 remaining_frames,
-                               ma_uint64 *p_frames_to_read);
-
-/**
- * @brief Checks whether the audio callback should output silence due to shutdown or missing data.
- *
- * This function is intended to be called at the top of an audio callback.
- * It handles real-time safe shutdown by zero-filling the output buffer if the playback
- * system has been stopped (`pb_is_stopped() == true`) or if the device's user data
- * is NULL. This prevents the audio backend (e.g., OpenSL or AAudio) from reading
- * invalid memory during teardown.
- *
- * @param p_device Pointer to the miniaudio device invoking the callback.
- * @param p_frames_out Pointer to the output audio buffer to fill with silence if needed.
- * @param frame_count The number of PCM frames requested by the audio callback.
- *
- * @return MA_TRUE if the output buffer has been filled with silence and the caller
- *         should skip further processing, or MA_FALSE if normal processing should continue.
- */
-ma_bool32 should_output_silence(ma_device *p_device,
-                                     void *p_frames_out,
-                                     ma_uint32 frame_count);
 #endif

@@ -1,3 +1,10 @@
+/**
+ * @file audio_file_info.h
+ * @brief File info getters.
+ *
+ * Get audio file info.
+ */
+ 
 #include "audio_file_info.h"
 #ifdef USE_FAAD
 #include "m4a.h"

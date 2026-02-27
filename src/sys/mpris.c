@@ -597,7 +597,7 @@ static gboolean get_metadata(GDBusConnection *connection, const gchar *sender,
         }
 
         GVariant *metadata_variant = g_variant_builder_end(&metadata_builder);
-        *value = g_variant_ref_sink(metadata_variant);
+        *value = metadata_variant;
         return TRUE;
 }
 
@@ -996,34 +996,32 @@ void emit_playback_stopped_mpris()
 void cleanup_mpris(void)
 {
 #ifdef USE_DBUS
-        if (registration_id > 0) {
-                g_dbus_connection_unregister_object(get_gd_bus_connection(),
-                                                    registration_id);
-                registration_id = -1;
-        }
+    if (registration_id != 0) {
+        g_dbus_connection_unregister_object(get_gd_bus_connection(), registration_id);
+        registration_id = 0;
+    }
 
-        if (player_registration_id > 0) {
-                g_dbus_connection_unregister_object(get_gd_bus_connection(),
-                                                    player_registration_id);
-                player_registration_id = -1;
-        }
+    if (player_registration_id != 0) {
+        g_dbus_connection_unregister_object(get_gd_bus_connection(), player_registration_id);
+        player_registration_id = 0;
+    }
 
-        if (bus_name_id > 0) {
-                g_bus_unown_name(bus_name_id);
-                bus_name_id = -1;
-        }
+    if (bus_name_id != 0) {
+        g_bus_unown_name(bus_name_id);
+        bus_name_id = 0;
+    }
 
-        if (get_gd_bus_connection() != NULL) {
-                g_object_unref(get_gd_bus_connection());
-                set_gd_bus_connection(NULL);
-        }
+    if (get_gd_bus_connection() != NULL) {
+        g_object_unref(get_gd_bus_connection());
+        set_gd_bus_connection(NULL);
+    }
 
-        if (get_g_main_context() != NULL) {
-                g_main_context_unref(get_g_main_context());
-                set_g_main_context(NULL);
-        }
+    if (get_g_main_context() != NULL) {
+        g_main_context_unref(get_g_main_context());
+        set_g_main_context(NULL);
+    }
 #elif defined(USE_MACOS_MEDIA)
-        cleanup_macos_nowplaying();
+    cleanup_macos_nowplaying();
 #endif
 }
 

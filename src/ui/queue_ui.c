@@ -15,7 +15,6 @@
 #include "search_ui.h"
 
 #include "ops/library_ops.h"
-#include "ops/playback_clock.h"
 #include "ops/playback_state.h"
 #include "ops/playback_system.h"
 #include "ops/playlist_ops.h"
@@ -96,7 +95,7 @@ void reset_list_after_dequeuing_playing_song(void)
 
                 ma_data_source_uninit(&audio_data);
 
-                audio_data.switchFiles = false;
+                audio_data.switch_files = false;
 
                 if (get_playlist()->count == 0)
                         set_song_to_start_from(NULL);

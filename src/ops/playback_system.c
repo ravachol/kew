@@ -18,14 +18,6 @@
 
 #include "data/song_loader.h"
 
-void playback_safe_cleanup(void)
-{
-        AppState *state = get_app_state();
-        pthread_mutex_lock(&(state->data_source_mutex));
-        cleanup_playback_device();
-        pthread_mutex_unlock(&(state->data_source_mutex));
-}
-
 void playback_cleanup(void)
 {
         cleanup_playback_device();
@@ -83,7 +75,7 @@ void skip(void)
 
 void free_decoders(void)
 {
-        reset_all_decoders();
+        reset_decoders();
 }
 
 void ensure_default_theme_pack()
