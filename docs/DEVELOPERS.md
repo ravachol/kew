@@ -195,7 +195,7 @@ To use Valgrind for memory debugging and profiling:
 
 2. Run Valgrind on your binary:
    ```
-   valgrind --leak-check=full --track-origins=yes --show-leak-kinds=all --log-file=valgrind-out.txt ./kew
+   valgrind --leak-check=full --track-origins=yes --show-leak-kinds=all --log-file=valgrind-out.txt --show-reachable=no -s ./kew
    ```
 
 ### Editorconfig

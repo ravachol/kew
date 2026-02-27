@@ -145,8 +145,8 @@ kew path "/home/joe/Musik/" (changes the path)
 * <kbd>v</kbd> to toggle the visualizer.
 * <kbd>b</kbd> to toggle album covers drawn in ascii or as a normal image.
 * <kbd>n</kbd> to toggle notifications.
-* <kbd>a</kbd> to seek back.
-* <kbd>d</kbd> to seek forward.
+* <kbd>a</kbd> to seek back. keep pressed for a longer duration, it executes the seek when you release the key.
+* <kbd>d</kbd> to seek forward. keep pressed for a longer duration, it executes the seek when you release the key.
 * <kbd>x</kbd> to save the currently loaded playlist to a m3u file in your music folder.
 * <kbd>Tab</kbd> to switch to next view.
 * <kbd>Shift+Tab</kbd> to switch to previous view.
