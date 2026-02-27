@@ -46,23 +46,10 @@ int load_decoder(SongData *song_data, bool *song_data_deleted)
 
                 // This should only be done for the second song, as
                 // switch_audio_implementation() handles the first one
-                if (!ps->loadingdata.loadingFirstDecoder) {
-                        if (has_builtin_decoder(song_data->file_path))
-                                result = prepare_next_decoder(song_data->file_path);
-                        else if (path_ends_with(song_data->file_path, "opus"))
-                                result =
-                                    prepare_next_opus_decoder(song_data->file_path);
-                        else if (path_ends_with(song_data->file_path, "ogg"))
-                                result = prepare_next_vorbis_decoder(
-                                    song_data->file_path);
-                        else if (path_ends_with(song_data->file_path, "webm"))
-                                result = prepare_next_webm_decoder(song_data);
-#ifdef USE_FAAD
-                        else if (path_ends_with(song_data->file_path, "m4a") ||
-                                 path_ends_with(song_data->file_path, "aac"))
-                                result = prepare_next_m4a_decoder(song_data);
-
-#endif
+                if (!ps->loadingdata.loadingFirstDecoder)
+                {
+                        const CodecOps *ops = find_codec_ops(song_data->file_path);
+                        result = prepare_next_decoder(song_data->file_path, song_data, ops);
                 }
         }
         return result;
@@ -389,12 +376,16 @@ void seek(int seconds)
                 return;
 
 #ifdef USE_FAAD
-        if (path_ends_with(current->song.file_path, "aac")) {
-                m4a_decoder *decoder = get_current_m4a_decoder();
+        if (audio_data.implType == M4A) {
+                ma_m4a *decoder = (ma_m4a*)get_current_decoder();
                 if (decoder != NULL && decoder->file_type == k_rawAAC)
                         return;
         }
 #endif
+
+        if (audio_data.implType == WEBM) {
+                return;
+        }
 
         if (pb_is_paused())
                 return;

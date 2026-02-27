@@ -1,6 +1,6 @@
 /**
- * @file sound.[h]
- * @brief Decoders.
+ * @file audio_file_info.h
+ * @brief File info getters.
  *
  * Get audio file info.
  */
@@ -26,7 +26,6 @@
  */
 void get_file_info(const char *filename, ma_uint32 *sample_rate, ma_uint32 *channels, ma_format *format);
 
-
 /**
  * @brief Gets detailed information about a Vorbis encoded audio file.
  *
@@ -40,7 +39,6 @@ void get_file_info(const char *filename, ma_uint32 *sample_rate, ma_uint32 *chan
  * @param channel_map Pointer to a variable where the channel map will be stored.
  */
 void get_vorbis_file_info(const char *filename, ma_format *format, ma_uint32 *channels, ma_uint32 *sample_rate, ma_channel *channel_map);
-
 
 /**
  * @brief Gets detailed information about an Opus encoded audio file.
@@ -56,7 +54,6 @@ void get_vorbis_file_info(const char *filename, ma_format *format, ma_uint32 *ch
  */
 void get_opus_file_info(const char *filename, ma_format *format, ma_uint32 *channels, ma_uint32 *sample_rate, ma_channel *channel_map);
 
-
 /**
  * @brief Gets detailed information about a WebM audio file.
  *
@@ -71,7 +68,6 @@ void get_opus_file_info(const char *filename, ma_format *format, ma_uint32 *chan
  * @param channel_map Pointer to a variable where the channel map will be stored (not used).
  */
 void get_webm_file_info(const char *filename, ma_format *format, ma_uint32 *channels, ma_uint32 *sample_rate, ma_channel *channel_map);
-
 
 /**
  * @brief Gets detailed information about an M4A audio file (Full Information).
@@ -89,7 +85,6 @@ void get_webm_file_info(const char *filename, ma_format *format, ma_uint32 *chan
  * @param file_type Pointer to a variable where the file type will be stored.
  */
 void get_m4a_file_info_full(const char *filename, ma_format *format, ma_uint32 *channels, ma_uint32 *sample_rate, ma_channel *channel_map, int *avg_bit_rate, k_m4adec_filetype *file_type);
-
 
 /**
  * @brief Gets basic M4A file information (Sample Rate, Channels, and Format).

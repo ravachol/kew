@@ -9,12 +9,14 @@
 
 #include "data/lyrics.h"
 #include "data/playlist.h"
+#include "sound/audiotypes.h"
 #include "stdio.h"
 #include "utils/cache.h"
 #include <gio/gio.h>
 #include <glib.h>
 #include <libintl.h>
 #include <miniaudio.h>
+#include <stdatomic.h>
 #include <sys/ioctl.h>
 #include <sys/param.h>
 
@@ -48,8 +50,8 @@ typedef struct
  * @brief Defines the type of color representation.
  */
 typedef enum {
-        COLOR_TYPE_RGB,  /**< 24-bit RGB color. */
-        COLOR_TYPE_ANSI  /**< 16-color ANSI palette index. */
+        COLOR_TYPE_RGB, /**< 24-bit RGB color. */
+        COLOR_TYPE_ANSI /**< 16-color ANSI palette index. */
 } ColorType;
 
 /**
@@ -59,7 +61,7 @@ typedef struct
 {
         ColorType type; /**< The underlying color representation type. */
         union {
-                PixelData rgb;   /**< RGB color value. */
+                PixelData rgb;    /**< RGB color value. */
                 int8_t ansiIndex; /**< ANSI index (-1 to 15). -1 = default foreground. */
         };
 } ColorValue;
@@ -71,8 +73,8 @@ typedef struct
  */
 typedef struct
 {
-        char theme_name[NAME_MAX];     /**< Theme display name. */
-        char theme_author[NAME_MAX];   /**< Theme author name. */
+        char theme_name[NAME_MAX];   /**< Theme display name. */
+        char theme_author[NAME_MAX]; /**< Theme author name. */
 
         ColorValue accent;
         ColorValue text;
@@ -183,12 +185,12 @@ typedef struct
         bool shuffle_enabled;           /**< Whether shuffle mode is enabled. */
         bool trackTitleAsWindowTitle;   /**< Set terminal window title to current track title. */
 
-        Theme theme;          /**< Active theme. */
-        bool themeIsSet;      /**< Whether a theme has been loaded. */
-        char theme_name[NAME_MAX]; /**< Theme filename (without extension). */
+        Theme theme;                /**< Active theme. */
+        bool themeIsSet;            /**< Whether a theme has been loaded. */
+        char theme_name[NAME_MAX];  /**< Theme filename (without extension). */
         char themeAuthor[NAME_MAX]; /**< Author name stored from theme file. */
 
-        ColorMode colorMode;  /**< Current color mode. */
+        ColorMode colorMode; /**< Current color mode. */
 
         const char *VERSION; /**< Application version string. */
         char *LAST_ROW;      /**< Cached content of the terminal's last row. */
@@ -197,8 +199,8 @@ typedef struct
         PixelData defaultColorRGB;   /**< Default RGB color value. */
         PixelData kewColorRGB;       /**< Primary application accent RGB color. */
 
-        int chromaPreset;                  /**< Preset index for chroma-based coloring. */
-        bool stripTrackNumbers;            /**< Remove track numbers from displayed titles. */
+        int chromaPreset;                     /**< Preset index for chroma-based coloring. */
+        bool stripTrackNumbers;               /**< Remove track numbers from displayed titles. */
         bool visualizations_instead_of_cover; /**< Show visualizer instead of album cover. */
 } UISettings;
 
@@ -518,10 +520,30 @@ typedef struct
         ma_uint64 currentPCMFrame;
         ma_uint32 avg_bit_rate;
 
-        bool switchFiles;
+        enum AudioImplementation implType;
+
+        bool decode_thread_active;
+
+        ma_uint32 chunk_frames;
+        ma_pcm_rb pcm_rb;
+        pthread_t decode_thread;
+
+#ifndef __cplusplus
+        atomic_int buffer_ready;
+        atomic_int track_frames_sent;
+        atomic_int track_end_frame;
+        atomic_bool decode_thread_running;
+        atomic_bool decode_finished;
+        atomic_bool pending_switch;
+#endif
+
+        bool switch_files;
         int currentFileIndex;
 
         ma_uint64 totalFrames;
+
+        pthread_mutex_t rb_mutex;
+        pthread_cond_t rb_cond;
 
         bool end_of_list_reached;
         bool restart;
@@ -613,6 +635,5 @@ void set_unshuffled_playlist(PlayList *pl);
 
 /** @brief Set the favorites playlist instance. */
 void set_favorites_playlist(PlayList *pl);
-
 
 #endif

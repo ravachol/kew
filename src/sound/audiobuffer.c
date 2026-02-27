@@ -1,4 +1,12 @@
+/**
+ * @file audiobuffer.h
+ * @brief Related to the buffer used by the visualizer.
+ *
+ * Provides an api for stopping, starting and so on.
+ * and switching decoders.
+ */
 #include "audiobuffer.h"
+
 #include <stdio.h>
 #include <string.h>
 
@@ -6,8 +14,6 @@ static int fft_size = 2048;
 static int hop_size = 512;
 static int fft_size_milliseconds = 45;
 static int write_head = 0;
-static int buf_size;
-
 static bool buffer_ready = false;
 
 static float audio_buffer[MAX_BUFFER_SIZE];
@@ -28,16 +34,6 @@ bool is_buffer_ready(void)
 void set_buffer_ready(bool val)
 {
         buffer_ready = val;
-}
-
-int get_buffer_size(void)
-{
-        return buf_size;
-}
-
-void set_buffer_size(int value)
-{
-        buf_size = value;
 }
 
 // Sign-extend s24

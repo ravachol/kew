@@ -1636,6 +1636,8 @@ void get_config(AppSettings *settings, UISettings *ui)
         FILE *file = fopen(filepath, "r");
         if (file == NULL) {
                 set_config(settings, ui);
+        } else {
+               fclose(file);
         }
 
         KeyValuePair *pairs =
@@ -1727,6 +1729,7 @@ void set_prefs(AppSettings *settings, UISettings *ui)
         fprintf(file, "colorMode=%d\n\n", ui->colorMode);
         fprintf(file, "theme=%s\n\n", ui->theme_name);
 
+        fclose(file);
         free(configdir);
         free(filepath);
 }

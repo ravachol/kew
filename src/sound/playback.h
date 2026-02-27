@@ -1,5 +1,5 @@
 /**
- * @file sound.[h]
+ * @file playback.h
  * @brief Playback related functions.
  *
  * Provides an api for stopping, starting and so on.
@@ -298,6 +298,24 @@ void cleanup_playback_device(void);
 
 
 /**
+ * @brief Safely resets a PCM ring buffer.
+ *
+ * This function ensures that any previously allocated buffer within the
+ * PCM ring buffer is uninitialized exactly once, preventing double-free
+ * or invalid memory access. After uninitialization, all fields of the
+ * PCM ring buffer are cleared, making the structure safe to reuse or
+ * reinitialize.
+ *
+ * @param pcm_rb Pointer to the ma_pcm_rb structure to reset.
+ *
+ * @note After calling this function, the PCM ring buffer is in a clean
+ *       state and may be reinitialized with ma_pcm_rb_init().
+ * @note Thread-safety: Ensure no other thread is accessing the PCM ring
+ *       buffer while this function is called.
+ */
+void safe_ringbuffer_reset(ma_pcm_rb* pcm_rb);
+
+/**
  * @brief Initializes the playback device.
  *
  * @param context Pointer to the `ma_context` object.
@@ -310,63 +328,8 @@ void cleanup_playback_device(void);
  *
  * @return A status code indicating success or failure.
  */
-int init_playback_device(ma_context *context, ma_format format, ma_uint32 channels, ma_uint32 sample_rate,
+int init_playback_device(ma_context *context, AudioData *audio_data,
                          ma_device *device, ma_device_data_proc data_callback, void *pUserData);
-
-
-/**
- * @brief Handles audio frames for M4A playback.
- *
- * This callback function processes audio frames for M4A file playback. It is
- * used to provide data to the audio device during the playback of an M4A file.
- *
- * @param p_device Pointer to the audio device.
- * @param p_frames_out Pointer to the output audio frames buffer.
- * @param p_frames_in Pointer to the input audio frames buffer.
- * @param frame_count The number of frames to process.
- */
-void m4a_on_audio_frames(ma_device *p_device, void *p_frames_out, const void *p_frames_in, ma_uint32 frame_count);
-
-
-/**
- * @brief Handles audio frames for Opus playback.
- *
- * This callback function processes audio frames for Opus file playback. It is
- * used to provide data to the audio device during the playback of an Opus file.
- *
- * @param p_device Pointer to the audio device.
- * @param p_frames_out Pointer to the output audio frames buffer.
- * @param p_frames_in Pointer to the input audio frames buffer.
- * @param frame_count The number of frames to process.
- */
-void opus_on_audio_frames(ma_device *p_device, void *p_frames_out, const void *p_frames_in, ma_uint32 frame_count);
-
-
-/**
- * @brief Handles audio frames for Vorbis playback.
- *
- * This callback function processes audio frames for Vorbis file playback. It is
- * used to provide data to the audio device during the playback of a Vorbis file.
- *
- * @param p_device Pointer to the audio device.
- * @param p_frames_out Pointer to the output audio frames buffer.
- * @param p_frames_in Pointer to the input audio frames buffer.
- * @param frame_count The number of frames to process.
- */
-void vorbis_on_audio_frames(ma_device *p_device, void *p_frames_out, const void *p_frames_in, ma_uint32 frame_count);
-
-/**
- * @brief Handles audio frames for WebM playback.
- *
- * This callback function processes audio frames for WebM file playback. It is
- * used to provide data to the audio device during the playback of a WebM file.
- *
- * @param p_device Pointer to the audio device.
- * @param p_frames_out Pointer to the output audio frames buffer.
- * @param p_frames_in Pointer to the input audio frames buffer.
- * @param frame_count The number of frames to process.
- */
-void webm_on_audio_frames(ma_device *p_device, void *p_frames_out, const void *p_frames_in, ma_uint32 frame_count);
 
 
 /**

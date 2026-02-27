@@ -246,7 +246,6 @@ ma_result m4a_decoder_ds_get_cursor(ma_data_source *p_data_source,
 ma_result m4a_decoder_ds_get_length(ma_data_source *p_data_source,
                                     ma_uint64 *p_length);
 
-
 #if defined(MINIAUDIO_IMPLEMENTATION) || defined(MA_IMPLEMENTATION)
 
 #define MAX_CHANNELS 2
@@ -1036,6 +1035,7 @@ MA_API ma_result m4a_decoder_read_pcm_frames(
 
                         // Read the sample data directly from the file
                         size_t bytes_read = 0;
+
                         if (file_on_read(pM4a->file, sample_data, frame_bytes, &bytes_read) != MA_SUCCESS || bytes_read != frame_bytes) {
                                 free(sample_data);
                                 result = MA_ERROR;
@@ -1097,7 +1097,10 @@ MA_API ma_result m4a_decoder_read_pcm_frames(
                 *p_frames_read = totalFramesProcessed;
         }
 
-        return (totalFramesProcessed > 0) ? MA_SUCCESS : result;
+        if (totalFramesProcessed > 0 && result != MA_AT_END)
+                return MA_SUCCESS;
+
+        return result;
 }
 
 MA_API ma_result m4a_decoder_seek_to_pcm_frame(m4a_decoder *pM4a, ma_uint64 frame_index)
@@ -1105,10 +1108,10 @@ MA_API ma_result m4a_decoder_seek_to_pcm_frame(m4a_decoder *pM4a, ma_uint64 fram
         if (pM4a == NULL)
                 return MA_INVALID_ARGS;
 
-        if (frame_index >= pM4a->total_samples)
+        if (frame_index >= pM4a->total_samples * 1024)
                 return MA_INVALID_ARGS;
 
-        pM4a->current_sample = (uint32_t)frame_index;
+        pM4a->current_sample = (ma_uint32)(frame_index / 1024);
 
         if (pM4a->file_type == k_rawAAC) {
                 return MA_ERROR;
@@ -1134,8 +1137,7 @@ MA_API ma_result m4a_decoder_seek_to_pcm_frame(m4a_decoder *pM4a, ma_uint64 fram
                 }
 
                 leftoverSampleCount = 0;
-
-                pM4a->cursor = frame_index;
+                pM4a->cursor = pM4a->current_sample * 1024;
 
                 return MA_SUCCESS;
         } else {
@@ -1162,7 +1164,7 @@ MA_API ma_result m4a_decoder_seek_to_pcm_frame(m4a_decoder *pM4a, ma_uint64 fram
                 NeAACDecPostSeekReset(pM4a->hDecoder, (long)pM4a->current_sample);
 
                 leftoverSampleCount = 0;
-                pM4a->cursor = frame_index;
+                pM4a->cursor = pM4a->current_sample * 1024;
 
                 return MA_SUCCESS;
         }
@@ -1251,7 +1253,23 @@ MA_API ma_result m4a_decoder_get_length_in_pcm_frames(m4a_decoder *pM4a, ma_uint
 
         // Calculate the length in PCM frames using the total number of samples and the sample rate.
         if (pM4a->total_samples > 0 && pM4a->sample_rate > 0) {
-                *p_length = (ma_uint64)pM4a->total_samples;
+                ma_uint64 totalFrames = 0;
+
+                for (ma_uint32 i = 0; i < pM4a->track->sample_count; i++) {
+                        unsigned frame_bytes, timestamp, duration;
+
+                        MP4D_frame_offset(&pM4a->mp4,
+                                          pM4a->audio_track_index,
+                                          i,
+                                          &frame_bytes,
+                                          &timestamp,
+                                          &duration);
+
+                        totalFrames += duration;
+                }
+
+                *p_length = totalFrames;
+
                 return MA_SUCCESS;
         }
 

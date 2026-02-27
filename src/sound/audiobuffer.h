@@ -1,7 +1,16 @@
+/**
+ * @file audiobuffer.h
+ * @brief Related to the buffer used by the visualizer.
+ *
+ * Provides an api for stopping, starting and so on.
+ * and switching decoders.
+ */
+
 #ifndef AUDIOBUFFER_H
 #define AUDIOBUFFER_H
 
-#include "audiotypes.h"
+#include "common/appstate.h"
+
 #include <miniaudio.h>
 #include <stdbool.h>
 
@@ -63,16 +72,6 @@ void set_audio_buffer(void *buf, int num_samples, ma_uint32 sample_rate, ma_uint
  * @param val The value to set the buffer ready state to (true or false).
  */
 void set_buffer_ready(bool val);
-
-
-/**
- * @brief Sets the buffer size.
- *
- * This function sets the size of the buffer used for audio processing.
- *
- * @param value The size of the buffer in samples.
- */
-void set_buffer_size(int value);
 
 
 /**
