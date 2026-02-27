@@ -1,5 +1,5 @@
 /**
- * @file m4a.[h]
+ * @file m4a.h
  * @brief M4A/AAC decoder interface.
  *
  * Provides decoding support for M4A and AAC-encoded audio files,

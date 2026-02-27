@@ -1,6 +1,6 @@
 
 /**
- * @file playback.h
+ * @file playback.c
  * @brief Playback related functions.
  *
  * Provides an api for stopping, starting and so on.
