@@ -278,7 +278,7 @@ int path_ends_with(const char *str, const char *suffix)
         }
 
         const char *str_suffix = str + (length - suffixLength);
-        return strcmp(str_suffix, suffix) == 0;
+        return strcasecmp(str_suffix, suffix) == 0;
 }
 
 int path_starts_with(const char *str, const char *prefix)

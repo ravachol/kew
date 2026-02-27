@@ -22,14 +22,6 @@
 int create_playback_device(void);
 
 /**
- * @brief Safely clean up the playback device.
- *
- * Performs playback device cleanup while holding the application's
- * data source mutex to ensure thread safety.
- */
-void playback_safe_cleanup(void);
-
-/**
  * @brief Clean up the playback device.
  *
  * Releases resources associated with the audio playback device.

@@ -326,7 +326,6 @@ void update_library_if_changed_detected(bool wait_until_complete)
         }
 
         AppSettings *settings = get_app_settings();
-
         char expanded[PATH_MAX];
         expand_path(settings->path, expanded);
 
@@ -340,16 +339,18 @@ void update_library_if_changed_detected(bool wait_until_complete)
         args->wait_until_complete = wait_until_complete;
         args->state = state;
 
-        if (pthread_create(&tid, NULL,
-                           update_if_top_level_folders_mtimes_changed_thread,
-                           (void *)args) != 0) {
+        if (pthread_create(&tid, NULL, update_if_top_level_folders_mtimes_changed_thread, (void *)args) != 0) {
                 perror("pthread_create");
                 free(args->path);
                 free(args);
+                return;
         }
 
-        if (wait_until_complete)
+        if (wait_until_complete) {
                 pthread_join(tid, NULL);
+        } else {
+                pthread_detach(tid); // Let the thread clean up itself
+        }
 }
 
 void create_library(bool set_enqueued_status)

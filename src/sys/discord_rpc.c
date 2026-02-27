@@ -101,6 +101,9 @@ static gboolean try_connect_socket(void)
                 g_object_unref(client);
                 g_object_unref(address);
 
+                if (error)
+                        g_error_free(error);
+
                 if (conn) {
                         discord_conn = conn;
                         discord_out = g_io_stream_get_output_stream(G_IO_STREAM(conn));
@@ -116,9 +119,6 @@ static gboolean try_connect_socket(void)
 
                         return TRUE;
                 }
-
-                if (error)
-                        g_error_free(error);
         }
 #endif
 

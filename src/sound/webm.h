@@ -212,6 +212,7 @@ MA_API ma_result ma_webm_get_cursor_in_pcm_frames(ma_webm *p_webm,
 MA_API ma_result ma_webm_get_length_in_pcm_frames(ma_webm *p_webm,
                                                   ma_uint64 *p_length);
 
+ma_result ma_webm_ds_get_cursor(ma_data_source *p_data_source, ma_uint64 *p_cursor);
 
 #ifdef __cplusplus
 }
@@ -245,7 +246,7 @@ static ma_result ma_webm_ds_get_data_format(ma_data_source *p_data_source, ma_fo
         return ma_webm_get_data_format((ma_webm *)p_data_source, p_format, p_channels, p_sample_rate, p_channel_map, channel_map_cap);
 }
 
-static ma_result ma_webm_ds_get_cursor(ma_data_source *p_data_source, ma_uint64 *p_cursor)
+ma_result ma_webm_ds_get_cursor(ma_data_source *p_data_source, ma_uint64 *p_cursor)
 {
         return ma_webm_get_cursor_in_pcm_frames((ma_webm *)p_data_source, p_cursor);
 }

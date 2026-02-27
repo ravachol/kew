@@ -111,7 +111,7 @@ bool determine_current_song_data(SongData **current_song_data)
 
                 if (!isDeleted) {
                         activate_switch(&audio_data);
-                        audio_data.switchFiles = false;
+                        audio_data.switch_files = false;
                 }
         }
         return isDeleted;
