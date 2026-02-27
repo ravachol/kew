@@ -35,6 +35,8 @@ Thank you @yuri-xyz for helping out with this.
 
 - Add option to disable the stripping of track numbers from file names in the library: stripTrackNumbers=0. By @episvr.
 
+- Audio subsystem has been reworked which should make the audio smooth when the computer is under heavy load. Lots of functions were removed/unified, and some issues fixed. This should make the flow of the program easier to understand for other coders as well. by @ravachol.
+
 #### Bug Fixes
 
 - Do not strip the number from a song title if it's connected to an alphanumeric character, like '10th song.flac'. Suggested by @bholroyd.
@@ -58,6 +60,8 @@ Thank you @yuri-xyz for helping out with this.
 - Fixed crash on exit in Termux/Android. Found by @welpyes. By @ravachol.
 
 - Improved and more efficient stripping of numbers on filenames. By @petoem.
+
+- Fixed segfault sometimes when pressing u for update. Found by @petoem. By @petoem.
 
 #### Special Thanks
 
