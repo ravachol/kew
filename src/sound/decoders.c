@@ -1,5 +1,5 @@
 /**
- * @file decoders.h
+ * @file decoders.c
  * @brief Decoders.
  *
  * Decoder related functions.
