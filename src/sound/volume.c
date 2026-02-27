@@ -1,3 +1,8 @@
+/**
+ * @file volume.c
+ * @brief Get and set volume.
+ *
+ */
 #include "volume.h"
 
 #include "playback.h"

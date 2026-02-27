@@ -1,3 +1,9 @@
+/**
+ * @file volume.h
+ * @brief Get and set volume.
+ *
+ */
+
 #ifndef VOLUME_H
 #define VOLUME_H
 

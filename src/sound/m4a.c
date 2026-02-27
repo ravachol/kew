@@ -4,7 +4,7 @@
 #include <miniaudio.h>
 
 /**
- * @file m4a.[c]
+ * @file m4a.c
  * @brief M4A/AAC decoder interface.
  *
  * Provides decoding support for M4A and AAC-encoded audio files,

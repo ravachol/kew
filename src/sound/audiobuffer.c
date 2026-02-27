@@ -1,5 +1,5 @@
 /**
- * @file audiobuffer.h
+ * @file audiobuffer.c
  * @brief Related to the buffer used by the visualizer.
  *
  * Provides an api for stopping, starting and so on.
