@@ -9,6 +9,7 @@
  */
 
 #import <AppKit/AppKit.h>
+#import <Foundation/Foundation.h>
 #import <MediaPlayer/MediaPlayer.h>
 
 #include "macos_nowplaying.h"
@@ -229,7 +230,8 @@ void macos_set_playback_state_stopped(void)
                                 @(0.0);
                         nowPlayingInfo
                             [MPNowPlayingInfoPropertyElapsedPlaybackTime] =
-                                @(get_elapsed_seconds());
+                                @(0.0);
+                        nowPlayingInfo[MPNowPlayingInfoPropertyCurrentPlaybackDate] = [NSDate date];
                         [MPNowPlayingInfoCenter defaultCenter].nowPlayingInfo =
                             nowPlayingInfo;
                 }
