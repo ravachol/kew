@@ -7,11 +7,12 @@
 
 #include "song_loader.h"
 
-#include "img_func.h"
 #include "lyrics.h"
 
-#include "utils/cache.h"
+#include "data/cache.h"
+
 #include "utils/file.h"
+#include "utils/img_utils.h"
 #include "utils/utils.h"
 
 #include "stb_image.h"
@@ -26,6 +27,134 @@
 #include <unistd.h>
 
 #define MAX_RECURSION_DEPTH 10
+
+/**
+ * @brief Data passed to the loading thread for asynchronous decoding.
+ */
+
+LoaderData loader_data;
+
+Cache *tmpCache;
+
+LoaderData *get_loader_data(void)
+{
+        return &loader_data;
+}
+
+int defaultColorRed;
+int defaultColorGreen;
+int defaultColorBlue;
+
+int song_loader_init(void)
+{
+        c_strcpy(loader_data.file_path, "", sizeof(loader_data.file_path));
+
+        loader_data.loadInSlotA = true;
+        loader_data.loadingFirstDecoder = true;
+        loader_data.replaceNextSong = false;
+
+        loader_data.songdataA = NULL;
+        loader_data.songdataB = NULL;
+
+        loader_data.songdataADeleted = true;
+        loader_data.songdataBDeleted = true;
+
+        tmpCache = create_cache();
+
+        pthread_mutex_init(&(loader_data.mutex), NULL);
+
+        return (tmpCache != NULL);
+}
+
+void unload_lyrics(SongData *songdata)
+{
+        if (songdata->lyrics) {
+                freeLyrics(songdata->lyrics);
+                songdata->lyrics = NULL;
+        }
+}
+
+void unload_song_data(SongData **songdata)
+{
+        if (*songdata == NULL)
+                return;
+
+        SongData *data = *songdata;
+
+        pthread_mutex_lock(&(loader_data.mutex));
+
+        if (data->cover != NULL) {
+                stbi_image_free(data->cover);
+                data->cover = NULL;
+        }
+
+        if (exists_in_cache(tmpCache, data->cover_art_path) &&
+            is_in_temp_dir(data->cover_art_path)) {
+                delete_file(data->cover_art_path);
+        }
+
+        unload_lyrics(data);
+
+        data->magic = 0;
+
+        free(data->metadata);
+        free(data->track_id);
+
+        data->cover = NULL;
+        data->metadata = NULL;
+
+        data->track_id = NULL;
+
+        free(*songdata);
+        *songdata = NULL;
+
+        pthread_mutex_unlock(&(loader_data.mutex));
+}
+
+void song_loader_unload_song_A(void)
+{
+        if (!loader_data.songdataADeleted) {
+
+                unload_song_data(&(loader_data.songdataA));
+
+                loader_data.songdataADeleted = true;
+        }
+}
+
+void song_loader_unload_song_B(void)
+{
+        if (!loader_data.songdataBDeleted) {
+
+                unload_song_data(&(loader_data.songdataB));
+
+                loader_data.songdataBDeleted = true;
+        }
+}
+
+void song_loader_assign_slot_A(SongData *songdata)
+{
+        song_loader_unload_song_A();
+        loader_data.songdataA = songdata;
+}
+
+void song_loader_assign_slot_B(SongData *songdata)
+{
+        song_loader_unload_song_B();
+        loader_data.songdataB = songdata;
+}
+
+void song_loader_unload_songs(void)
+{
+        song_loader_unload_song_A();
+        song_loader_unload_song_B();
+}
+
+void song_loader_destroy()
+{
+        song_loader_unload_songs();
+        delete_cache(tmpCache);
+        pthread_mutex_destroy(&(loader_data.mutex));
+}
 
 static guint track_counter = 0;
 
@@ -267,7 +396,6 @@ int load_color(SongData *songdata)
 
 void load_meta_data(SongData *songdata)
 {
-        AppState *state = get_app_state();
         char path[PATH_MAX];
 
         songdata->metadata = malloc(sizeof(TagSettings));
@@ -318,7 +446,7 @@ void load_meta_data(SongData *songdata)
                         c_strcpy(songdata->cover_art_path, "",
                                  sizeof(songdata->cover_art_path));
         } else {
-                add_to_cache(state->tmpCache, songdata->cover_art_path);
+                add_to_cache(tmpCache, songdata->cover_art_path);
         }
 
         songdata->cover =
@@ -326,17 +454,8 @@ void load_meta_data(SongData *songdata)
                        &(songdata->coverHeight));
 }
 
-void unload_lyrics(SongData *songdata)
-{
-        if (songdata->lyrics) {
-                freeLyrics(songdata->lyrics);
-                songdata->lyrics = NULL;
-        }
-}
-
 SongData *load_song_data(char *file_path)
 {
-        AppState *state = get_app_state();
         SongData *songdata = NULL;
         songdata = malloc(sizeof(SongData));
         songdata->magic = SONG_MAGIC;
@@ -344,9 +463,9 @@ SongData *load_song_data(char *file_path)
         songdata->hasErrors = false;
         c_strcpy(songdata->file_path, "", sizeof(songdata->file_path));
         c_strcpy(songdata->cover_art_path, "", sizeof(songdata->cover_art_path));
-        songdata->red = state->uiSettings.defaultColorRGB.r;
-        songdata->green = state->uiSettings.defaultColorRGB.g;
-        songdata->blue = state->uiSettings.defaultColorRGB.b;
+        songdata->red = -1;
+        songdata->green = -1;
+        songdata->blue = -1;
         songdata->metadata = NULL;
         songdata->cover = NULL;
         songdata->duration = 0.0;
@@ -355,47 +474,8 @@ SongData *load_song_data(char *file_path)
         c_strcpy(songdata->file_path, file_path, sizeof(songdata->file_path));
         songdata->lyrics = loadLyricsFromLRC(songdata->file_path);
         load_meta_data(songdata);
-        int res = load_color(songdata);
-
-        if (songdata->cover && res != 0) {
-                songdata->red = state->uiSettings.defaultColorRGB.r;
-                songdata->green = state->uiSettings.defaultColorRGB.g;
-                songdata->blue = state->uiSettings.defaultColorRGB.b;
-        }
+        load_color(songdata);
 
         return songdata;
 }
 
-void unload_song_data(SongData **songdata)
-{
-        AppState *state = get_app_state();
-        if (*songdata == NULL)
-                return;
-
-        SongData *data = *songdata;
-
-        if (data->cover != NULL) {
-                stbi_image_free(data->cover);
-                data->cover = NULL;
-        }
-
-        if (exists_in_cache(state->tmpCache, data->cover_art_path) &&
-            is_in_temp_dir(data->cover_art_path)) {
-                delete_file(data->cover_art_path);
-        }
-
-        unload_lyrics(data);
-
-        data->magic = 0;
-
-        free(data->metadata);
-        free(data->track_id);
-
-        data->cover = NULL;
-        data->metadata = NULL;
-
-        data->track_id = NULL;
-
-        free(*songdata);
-        *songdata = NULL;
-}

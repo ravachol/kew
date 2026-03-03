@@ -13,14 +13,9 @@
 
 #include "playback_state.h"
 
-#include "sound/decoders.h"
-#ifdef USE_FAAD
-#include "sound/m4a.h"
-#endif
-#include "sound/playback.h"
+#include "sound/sound_facade.h"
 
 #include "sys/sys_integration.h"
-#include "utils/utils.h"
 
 #include <math.h>
 
@@ -47,13 +42,13 @@ void reset_clock(void)
         elapsed_seconds = 0.0;
         set_pause_seconds(0.0);
         set_total_pause_seconds(0.0);
-        set_seek_elapsed(0.0);
+        sound_system_set_seek_elapsed(0.0);
         clock_gettime(CLOCK_MONOTONIC, &start_time);
 }
 
 void calc_elapsed_time(double duration)
 {
-        if (pb_is_stopped())
+        if (sound_system_get_state(sound_sys) == SOUND_STATE_STOPPED)
                 return;
 
         clock_gettime(CLOCK_MONOTONIC, &current_time);
@@ -62,11 +57,11 @@ void calc_elapsed_time(double duration)
             (double)(current_time.tv_sec - last_update_time.tv_sec) +
             (double)(current_time.tv_nsec - last_update_time.tv_nsec) / 1e9;
 
-        if (!pb_is_paused()) {
+        if (sound_system_get_state(sound_sys) != SOUND_STATE_PAUSED) {
                 elapsed_seconds =
                     (double)(current_time.tv_sec - start_time.tv_sec) +
                     (double)(current_time.tv_nsec - start_time.tv_nsec) / 1e9;
-                double seek_elapsed = get_seek_elapsed();
+                double seek_elapsed = sound_system_get_seek_elapsed();
                 double diff =
                     elapsed_seconds +
                     (seek_elapsed + seek_accumulated_seconds - get_total_pause_seconds());
@@ -80,7 +75,7 @@ void calc_elapsed_time(double duration)
                 if (elapsed_seconds > duration)
                         elapsed_seconds = duration;
 
-                set_seek_elapsed(seek_elapsed);
+                sound_system_set_seek_elapsed(seek_elapsed);
 
                 if (elapsed_seconds < 0.0) {
                         elapsed_seconds = 0.0;
@@ -97,7 +92,7 @@ void calc_elapsed_time(double duration)
 
 bool set_position(gint64 new_position, double duration)
 {
-        if (pb_is_paused())
+        if (sound_system_get_state(sound_sys) == SOUND_STATE_PAUSED)
                 return false;
 
         gint64 currentPositionMicroseconds =
@@ -116,7 +111,7 @@ bool set_position(gint64 new_position, double duration)
 
 bool seek_position(gint64 offset, double duration)
 {
-        if (pb_is_paused())
+        if (sound_system_get_state(sound_sys) == SOUND_STATE_PAUSED)
                 return false;
 
         if (duration != 0.0) {
@@ -142,30 +137,19 @@ void update_pause_time(void)
 bool flush_seek(void)
 {
         if (seek_accumulated_seconds != 0.0) {
-                Node *current_song = get_current_song();
 
-                if (current_song != NULL) {
-#ifdef USE_FAAD
-                        if (path_ends_with(current_song->song.file_path, "aac")) {
-                                ma_m4a *decoder = (ma_m4a*)get_current_decoder();
-                                if (decoder->file_type == k_rawAAC)
-                                        return false;
-                        }
-#endif
-                }
-
-                set_seek_elapsed(get_seek_elapsed() + seek_accumulated_seconds);
+                sound_system_set_seek_elapsed(sound_system_get_seek_elapsed() + seek_accumulated_seconds);
                 seek_accumulated_seconds = 0.0;
                 double duration = get_current_song_duration();
                 calc_elapsed_time(duration);
                 float percentage = elapsed_seconds / (float)duration * 100.0;
 
                 if (percentage < 0.0) {
-                        set_seek_elapsed(0.0);
+                        sound_system_set_seek_elapsed(0.0);
                         percentage = 0.0;
                 }
 
-                seek_percentage(percentage);
+                sound_system_seek_percentage(sound_sys, percentage);
 
                 emit_seeked_signal(elapsed_seconds);
 

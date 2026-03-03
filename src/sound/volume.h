@@ -10,27 +10,11 @@
 /**
  * @brief Retrieves the current volume level.
  *
- * This function returns the current sound volume as an integer value. The volume
- * is represented as a percentage (0 to 100).
+ * This function returns the current sound volume as an integer value.
  *
- * @return The current volume level as a percentage (0 to 100).
+ * @return The current volume level as a float (0.0f to 1.0f).
  */
-int get_current_volume(void);
-
-
-/**
- * @brief Adjusts the volume by a specified percentage change.
- *
- * This function modifies the current volume by the given change in percentage.
- * Positive values will increase the volume, while negative values will decrease it.
- * It automatically clamps the volume within the valid range of 0 to 100.
- *
- * @param volume_change The percentage change in volume (positive to increase, negative to decrease).
- *
- * @return 0 on success.
- */
-int adjust_volume_percent(int volume_change);
-
+float get_current_volume(void);
 
 /**
  * @brief Sets the volume to a specific level.
@@ -39,8 +23,8 @@ int adjust_volume_percent(int volume_change);
  * the range of 0 to 100. It also updates the audio device's master volume based on
  * the specified volume.
  *
- * @param volume The desired volume level, expressed as a percentage (0 to 100).
+ * @param volume The desired volume level, expressed as a float (0.0f to 1.0f).
  */
-void set_volume(int volume);
+void set_current_volume(float volume);
 
 #endif

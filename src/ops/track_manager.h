@@ -16,11 +16,11 @@
  * context. Depending on the loading flags, this may load either the
  * primary or secondary decoder buffer.
  *
- * @param song         Pointer to the song node to load.
- * @param loadingdata  Pointer to the loading thread data structure
- *                     containing decoder and state information.
+ * @param song          Pointer to the song node to load.
+ * @param is_first_decoder Whether to start a new decoder chain.
+ * @param replace_next_song Whether to replace the song in the next slot.
  */
-void load_song(Node *song, LoadingThreadData *loadingdata);
+void load_song(Node *song, bool is_first_decoder, bool replace_next_song);
 
 /**
  * @brief Load the next song in the playlist.
@@ -28,8 +28,9 @@ void load_song(Node *song, LoadingThreadData *loadingdata);
  * Prepares and initiates loading of the next song relative to the
  * current playback position. Selects the alternate decoder buffer
  * and updates playback state accordingly.
+ * @param replace_next_song Whether to replace the song in the next slot.
  */
-void load_next_song(void);
+void load_next_song(bool replace_next_song);
 
 /**
  * @brief Finalize loading of the next song.
@@ -55,15 +56,6 @@ void unload_song_a(void);
  * been deleted and clears its corresponding user data pointer.
  */
 void unload_song_b(void);
-
-/**
- * @brief Unload the previously used song buffer.
- *
- * Determines which decoder buffer (A or B) is no longer needed and
- * safely unloads it while holding the required synchronization locks.
- * Updates playback state to reflect buffer switching.
- */
-void unload_previous_song(void);
 
 /**
  * @brief Attempt to load the next song if required.

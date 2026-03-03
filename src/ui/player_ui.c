@@ -27,9 +27,8 @@
 
 #include "data/directorytree.h"
 #include "data/img_func.h"
-#include "data/lyrics.h"
+
 #include "data/playlist.h"
-#include "data/song_loader.h"
 
 #include "sys/discord_rpc.h"
 #include "sys/sys_integration.h"
@@ -1621,7 +1620,7 @@ void print_visualizer(int row, int col, int visualizer_width,
                 uis->num_progress_bars = (int)visualizer_width / 2;
                 double duration = get_current_song_duration();
 
-                draw_spectrum_visualizer(row, col, height, visualizer_width);
+                draw_spectrum_visualizer(sound_sys, row, col, height, visualizer_width);
 
                 int elapsed_bars =
                     calc_elapsed_bars(elapsed_seconds, duration, visualizer_width);
@@ -1846,9 +1845,7 @@ int display_tree(FileSystemEntry *root, int depth, int max_list_size,
                                                  max_name_width + 1 - extra_indent,
                                                  "%s", _("─ MUSIC LIBRARY ─"));
                                 else {
-                                        gchar *uname = g_utf8_substring(root->name, 0, max_name_width - extra_indent);
-                                        sprintf(dir_name, "%s", uname);
-                                        g_free(uname);
+                                        str_truncate_display_width(root->name, dir_name, max_name_width - extra_indent);
                                 }
                                 char *upper_dir_name = string_to_upper(dir_name);
 
@@ -1857,9 +1854,6 @@ int display_tree(FileSystemEntry *root, int depth, int max_list_size,
                                 } else {
                                         printf("%s", dir_name);
                                 }
-
-                                if (strcmp(dir_name, "Warlord") == 0)
-                                        fflush(stdout);
 
                                 free(upper_dir_name);
                         } else {
@@ -1952,13 +1946,25 @@ void print_side_cover(SongData *songdata)
 
         last_view = state->currentView;
 
-        const char *current_ptr = songdata ? songdata->cover_art_path : NULL;
-        if (current_ptr != last_cover_path_ptr) {
-                last_cover_path_ptr = current_ptr;
-                last_cover_path_hash = current_ptr ? string_hash(current_ptr) : (size_t)-1;
+        const char *current_path = songdata ? songdata->cover_art_path : NULL;
+
+        if (current_path == NULL && last_cover_path_ptr == NULL) {
+                // Both NULL, nothing changed
+        } else if (current_path == NULL || last_cover_path_ptr == NULL || strcmp(current_path, last_cover_path_ptr) != 0) {
+
+                // Update last path
+                if (last_cover_path_ptr != current_path) {
+                        last_cover_path_ptr = current_path;
+                }
+
+                // Update hash
+                last_cover_path_hash = current_path ? string_hash(current_path) : (size_t)-1;
+
+                // Mark for redraw
                 redraw_side_cover = true;
-        } else if (current_ptr != NULL) {
-                size_t current_hash = string_hash(current_ptr);
+        } else {
+                // Paths are the same, optional: check hash if desired
+                size_t current_hash = string_hash(current_path);
                 if (current_hash != last_cover_path_hash) {
                         last_cover_path_hash = current_hash;
                         redraw_side_cover = true;
@@ -2317,6 +2323,7 @@ void show_track_view_landscape(int height, int width, float aspect_ratio,
                                AppSettings *settings, SongData *songdata,
                                double elapsed_seconds)
 {
+        int sample_rate = get_current_sample_rate();
         AppState *state = get_app_state();
         TagSettings *metadata = NULL;
         int avg_bit_rate = 0;
@@ -2356,10 +2363,8 @@ void show_track_view_landscape(int height, int width, float aspect_ratio,
                 cancel_refresh();
         }
         if (songdata) {
-                ma_uint32 sample_rate;
-                ma_format format;
+
                 avg_bit_rate = songdata->avg_bit_rate;
-                get_format_and_sample_rate(&format, &sample_rate);
 
                 if (!state->uiState.showLyricsPage) {
 
@@ -2398,6 +2403,7 @@ void show_track_view_landscape(int height, int width, float aspect_ratio,
 void show_track_view_portrait(int height, AppSettings *settings,
                               SongData *songdata, double elapsed_seconds)
 {
+        int sample_rate = get_current_sample_rate();
         AppState *state = get_app_state();
         TagSettings *metadata = NULL;
         int avg_bit_rate = 0;
@@ -2432,15 +2438,12 @@ void show_track_view_portrait(int height, AppSettings *settings,
         }
         if (songdata) {
                 if (!state->uiState.showLyricsPage) {
-                        ma_uint32 sample_rate;
-                        ma_format format;
                         avg_bit_rate = songdata->avg_bit_rate;
 
                         if (chroma_is_started()) {
                                 chroma_print_frame(2, col + 1, true);
                         }
 
-                        get_format_and_sample_rate(&format, &sample_rate);
                         print_time(row + metadata_height, col, elapsed_seconds, sample_rate,
                                    avg_bit_rate, term_w - col);
 
@@ -2551,9 +2554,19 @@ int print_player(SongData *songdata, double elapsed_seconds)
 
                 if (songdata != NULL && songdata->metadata != NULL &&
                     !songdata->hasErrors && (songdata->hasErrors < 1)) {
-                        ui->color.r = songdata->red;
-                        ui->color.g = songdata->green;
-                        ui->color.b = songdata->blue;
+
+                        if (songdata->red < 0)
+                                songdata->red = ui->defaultColorRGB.b;
+
+                        if (songdata->green < 0)
+                                songdata->green = ui->defaultColorRGB.b;
+
+                        if (songdata->blue < 0)
+                                songdata->blue = ui->defaultColorRGB.b;
+
+                        ui->color.r = (char)songdata->red;
+                        ui->color.g = (char)songdata->green;
+                        ui->color.b = (char)songdata->blue;
 
                         if (ui->trackTitleAsWindowTitle)
                                 set_terminal_window_title(

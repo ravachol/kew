@@ -15,8 +15,6 @@
 #include "common/appstate.h"
 #include "common_ui.h"
 
-#include "data/song_loader.h"
-
 #include "ops/playlist_ops.h"
 #include "sys/mpris.h"
 #include "utils/term.h"
@@ -306,7 +304,7 @@ int display_playlist(int row, int col, PlayList *list, int max_list_size,
         ensure_chosen_song_within_limits(chosen_song, list);
 
         start_iter = determine_playlist_start(start_iter, found_at, max_list_size, chosen_song,
-                                              reset, audio_data.end_of_list_reached);
+                                              reset, sound_system_is_end_of_list_reached(sound_sys));
 
         move_start_node_into_position(found_at, &start_node);
 
@@ -325,19 +323,12 @@ int display_playlist(int row, int col, PlayList *list, int max_list_size,
 void set_end_of_list_reached(void)
 {
         AppState *state = get_app_state();
-        PlaybackState *ps = get_playback_state();
-
-        ps->loadedNextSong = false;
-        ps->waitingForNext = true;
-        audio_data.end_of_list_reached = true;
-        audio_data.currentFileIndex = 0;
-        audio_data.restart = true;
-        ps->usingSongDataA = false;
-        ps->loadingdata.loadA = true;
+        sound_system_set_end_of_list_reached(sound_sys, true);
+        sound_system_set_restart_audio(sound_sys, true);
 
         clear_current_song();
 
-        playback_cleanup();
+        uninit_device();
 
         trigger_refresh();
 

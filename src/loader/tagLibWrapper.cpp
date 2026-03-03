@@ -6,6 +6,9 @@
  * title, artist, album and embedded artwork using the TagLib library.
  * Exposes a C-compatible API for integration with the main C codebase.
  */
+
+#include "lyrics.h"
+
 #include <algorithm>
 #include <cctype>
 #include <cstdio>
@@ -184,15 +187,15 @@ getOggFieldListCaseInsensitive(const TagLib::Ogg::XiphComment *comment,
         return TagLib::StringList();
 }
 
-std::string toLower(const std::string& str) {
-    std::string lowerStr = str;
-    std::transform(
-        lowerStr.begin(),
-        lowerStr.end(),
-        lowerStr.begin(),
-        [](unsigned char c) { return std::tolower(c); }
-    );
-    return lowerStr;
+std::string toLower(const std::string &str)
+{
+        std::string lowerStr = str;
+        std::transform(
+            lowerStr.begin(),
+            lowerStr.end(),
+            lowerStr.begin(),
+            [](unsigned char c) { return std::tolower(c); });
+        return lowerStr;
 }
 
 extern "C" {

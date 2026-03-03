@@ -66,9 +66,9 @@ int print_in_ascii(int row, int col,
 int get_cover_color(unsigned char *pixels,
                     int width,
                     int height,
-                    unsigned char *r,
-                    unsigned char *g,
-                    unsigned char *b);
+                    int *r,
+                    int *g,
+                    int *b);
 
 /**
  * Returns the terminal cell aspect ratio.

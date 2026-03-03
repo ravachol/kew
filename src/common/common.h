@@ -7,16 +7,8 @@
 #ifndef COMMON_H
 #define COMMON_H
 
-#include <stdbool.h>
 #include <signal.h>
-
-typedef enum {
-        k_unknown = 0,
-        k_aac = 1,
-        k_rawAAC = 2, // Raw aac (.aac file) decoding is included here for convenience although they are not .m4a files
-        k_ALAC = 3,
-        k_FLAC = 4
-} k_m4adec_filetype;
+#include <stdbool.h>
 
 /**
  * Sets the current error message.
@@ -60,7 +52,6 @@ void mark_error_message_as_printed(void);
  */
 void trigger_refresh(void);
 
-
 /**
  * Cancels a pending screen refresh.
  *
@@ -84,7 +75,6 @@ bool is_refresh_triggered(void);
  *         false otherwise
  */
 bool has_printed_error_message(void);
-
 
 /**
  * Returns the current error message.

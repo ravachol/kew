@@ -9,10 +9,10 @@
 #ifndef AUDIOBUFFER_H
 #define AUDIOBUFFER_H
 
-#include "common/appstate.h"
-
 #include <miniaudio.h>
+
 #include <stdbool.h>
+#include <stdint.h>
 
 #ifndef MAX_BUFFER_SIZE
 #define MAX_BUFFER_SIZE 32768
@@ -28,7 +28,6 @@
  */
 void *get_audio_buffer(void);
 
-
 /**
  * @brief Resets the audio buffer.
  *
@@ -37,7 +36,6 @@ void *get_audio_buffer(void);
  */
 void reset_audio_buffer(void);
 
-
 /**
  * @brief Frees the audio buffer.
  *
@@ -45,7 +43,6 @@ void reset_audio_buffer(void);
  * the associated state.
  */
 void freeAudioBuffer(void);
-
 
 /**
  * @brief Sets the audio buffer with the given data.
@@ -62,7 +59,6 @@ void freeAudioBuffer(void);
  */
 void set_audio_buffer(void *buf, int num_samples, ma_uint32 sample_rate, ma_uint32 channels, ma_format format);
 
-
 /**
  * @brief Sets the buffer ready flag.
  *
@@ -73,7 +69,6 @@ void set_audio_buffer(void *buf, int num_samples, ma_uint32 sample_rate, ma_uint
  */
 void set_buffer_ready(bool val);
 
-
 /**
  * @brief Gets the FFT size.
  *
@@ -82,7 +77,6 @@ void set_buffer_ready(bool val);
  * @return The current FFT size in samples.
  */
 int get_fft_size(void);
-
 
 /**
  * @brief Checks if the buffer is ready.
@@ -93,7 +87,6 @@ int get_fft_size(void);
  * @return `true` if the buffer is ready, `false` otherwise.
  */
 bool is_buffer_ready(void);
-
 
 /**
  * @brief Unpacks a 24-bit signed sample from 3 bytes to a 32-bit signed integer.

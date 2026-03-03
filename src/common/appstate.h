@@ -7,11 +7,15 @@
 #ifndef APPSTATE_H
 #define APPSTATE_H
 
-#include "data/lyrics.h"
+#include "loader/songdatatype.h"
+
 #include "data/playlist.h"
-#include "sound/audiotypes.h"
+
+#include "sound/sound_facade.h"
+
+#include "utils/img_utils.h"
+
 #include "stdio.h"
-#include "utils/cache.h"
 #include <gio/gio.h>
 #include <glib.h>
 #include <libintl.h>
@@ -30,21 +34,7 @@
 #define G_USEC_PER_SEC 1000000
 #endif
 
-#define SONG_MAGIC 0x534F4E47 // "SONG"
-
-#define METADATA_MAX_LENGTH 256
-
-/**
- * @brief Represents an RGB pixel color.
- *
- * Stores red, green, and blue components as 8-bit unsigned values.
- */
-typedef struct
-{
-        unsigned char r; /**< Red component (0–255). */
-        unsigned char g; /**< Green component (0–255). */
-        unsigned char b; /**< Blue component (0–255). */
-} PixelData;
+extern sound_system_t *sound_sys;
 
 /**
  * @brief Defines the type of color representation.
@@ -190,6 +180,8 @@ typedef struct
         char theme_name[NAME_MAX];  /**< Theme filename (without extension). */
         char themeAuthor[NAME_MAX]; /**< Author name stored from theme file. */
 
+        int lastVolume; /* volume the last time kew was run, int between 0 and 100. */
+
         ColorMode colorMode; /**< Current color mode. */
 
         const char *VERSION; /**< Application version string. */
@@ -253,7 +245,6 @@ typedef struct
  */
 typedef struct
 {
-        Cache *tmpCache;
         ViewState currentView;
         UIState uiState;
         UISettings uiSettings;
@@ -406,67 +397,10 @@ typedef struct
 } ProgressBar;
 
 /**
- * @brief Stores metadata tags extracted from audio files.
- */
-typedef struct
-{
-        char title[METADATA_MAX_LENGTH];
-        char artist[METADATA_MAX_LENGTH];
-        char album_artist[METADATA_MAX_LENGTH];
-        char album[METADATA_MAX_LENGTH];
-        char date[METADATA_MAX_LENGTH];
-        double replaygainTrack;
-        double replaygainAlbum;
-} TagSettings;
-
-/**
- * @brief Holds decoded audio track data and metadata.
- */
-typedef struct
-{
-        int magic;
-        gchar *track_id;
-        char file_path[PATH_MAX];
-        char cover_art_path[PATH_MAX];
-
-        unsigned char red;
-        unsigned char green;
-        unsigned char blue;
-
-        TagSettings *metadata;
-
-        unsigned char *cover;
-        int avg_bit_rate;
-        int coverWidth;
-        int coverHeight;
-        double duration;
-
-        bool hasErrors;
-
-        Lyrics *lyrics;
-} SongData;
-
-/**
- * @brief Data passed to the loading thread for asynchronous decoding.
- */
-typedef struct
-{
-        char file_path[PATH_MAX];
-        SongData *songdataA;
-        SongData *songdataB;
-        bool loadA;
-        bool loadingFirstDecoder;
-        pthread_mutex_t mutex;
-        AppState *state;
-} LoadingThreadData;
-
-/**
  * @brief Runtime playback state.
  */
 typedef struct
 {
-        LoadingThreadData loadingdata;
-
         int lastPlayedId;
 
         bool skipping;
@@ -475,7 +409,6 @@ typedef struct
         bool nextSongNeedsRebuilding;
         bool skipOutOfOrder;
         bool hasSilentlySwitched;
-        bool usingSongDataA;
         bool clearingErrors;
         bool songHasErrors;
         bool skipFromStopped;
@@ -489,78 +422,10 @@ typedef struct
         volatile bool loadedNextSong;
 } PlaybackState;
 
-/**
- * @brief Per-audio-device user data for decoding and playback.
- */
-typedef struct
-{
-        SongData *songdataA;
-        SongData *songdataB;
-        bool songdataADeleted;
-        bool songdataBDeleted;
-
-        int replayGainCheckFirst;
-
-        SongData *current_song_data;
-        ma_uint64 currentPCMFrame;
-} UserData;
-
-/**
- * @brief Audio device state and streaming data.
- */
-typedef struct
-{
-        ma_data_source_base base;
-        UserData *pUserData;
-
-        ma_format format;
-        ma_uint32 channels;
-        ma_uint32 sample_rate;
-
-        ma_uint64 currentPCMFrame;
-        ma_uint32 avg_bit_rate;
-
-        enum AudioImplementation implType;
-
-        bool decode_thread_active;
-
-        ma_uint32 chunk_frames;
-        ma_pcm_rb pcm_rb;
-        pthread_t decode_thread;
-
-#ifndef __cplusplus
-        atomic_int buffer_ready;
-        atomic_int track_frames_sent;
-        atomic_int track_end_frame;
-        atomic_bool decode_thread_running;
-        atomic_bool decode_finished;
-        atomic_bool pending_switch;
-#endif
-
-        bool switch_files;
-        int currentFileIndex;
-
-        ma_uint64 totalFrames;
-
-        pthread_mutex_t rb_mutex;
-        pthread_cond_t rb_cond;
-
-        bool end_of_list_reached;
-        bool restart;
-} AudioData;
-
-/**
- * @brief Global audio data instance.
- */
-extern AudioData audio_data;
-
 /* ========================= GETTERS ========================= */
 
 /** @brief Get the global playback state. */
 PlaybackState *get_playback_state(void);
-
-/** @brief Get the global audio data structure. */
-AudioData *get_audio_data(void);
 
 /** @brief Get current pause duration in seconds. */
 double get_pause_seconds(void);
@@ -621,9 +486,6 @@ void set_song_to_start_from(Node *node);
 /** @brief Set a temporary next-song candidate. */
 void set_try_next_song(Node *node);
 
-/** @brief Replace the global audio data pointer. */
-void set_audio_data(AudioData *audio_data);
-
 /** @brief Set the library root entry. */
 void set_library(FileSystemEntry *root);
 
@@ -635,5 +497,8 @@ void set_unshuffled_playlist(PlayList *pl);
 
 /** @brief Set the favorites playlist instance. */
 void set_favorites_playlist(PlayList *pl);
+
+/** @brief Set current song data. */
+void set_current_song_data(SongData *song_data);
 
 #endif

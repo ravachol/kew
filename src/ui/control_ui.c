@@ -8,6 +8,7 @@
 
 #include "control_ui.h"
 
+#include "sound/sound.h"
 #include "ui/chroma.h"
 #include "ui/player_ui.h"
 #include "ui/queue_ui.h"
@@ -37,7 +38,9 @@ void seek_forward(void)
         Node *current = get_current_song();
         if (current == NULL)
                 return;
-        double duration = current->song.duration;
+
+        SongData *songdata = sound_get_current_song_data();
+        double duration = songdata->duration;
 
         if (duration <= 0.0)
                 return;
@@ -59,7 +62,9 @@ void seek_back(void)
         if (current == NULL)
                 return;
 
-        double duration = current->song.duration;
+        SongData *songdata = sound_get_current_song_data();
+        double duration = songdata->duration;
+
         if (duration <= 0.0)
                 return;
 
@@ -247,24 +252,27 @@ void toggle_ascii(void)
 void toggle_repeat(void)
 {
         AppState *state = get_app_state();
-        bool repeat_enabled = is_repeat_enabled();
-        bool repeat_list_enabled = is_repeat_list_enabled();
 
-        if (repeat_enabled) {
-                set_repeat_enabled(false);
-                set_repeat_list_enabled(true);
-                emit_string_property_changed("loop_status", "List");
-                state->uiSettings.repeatState = 2;
-        } else if (repeat_list_enabled) {
-                set_repeat_enabled(false);
-                set_repeat_list_enabled(false);
+        int repeat_state = get_repeat_state();
+
+        repeat_state++;
+
+        if (repeat_state >= 3)
+                repeat_state = 0;
+
+        set_repeat_state(repeat_state);
+
+        if (repeat_state == 0) {
                 emit_string_property_changed("loop_status", "None");
+
                 state->uiSettings.repeatState = 0;
-        } else {
-                set_repeat_enabled(true);
-                set_repeat_list_enabled(false);
+        } else if (repeat_state == 1) {
+
                 emit_string_property_changed("loop_status", "Track");
                 state->uiSettings.repeatState = 1;
+        } else {
+                emit_string_property_changed("loop_status", "List");
+                state->uiSettings.repeatState = 2;
         }
 
         if (state->currentView != TRACK_VIEW)
@@ -344,7 +352,7 @@ bool should_refresh_player(void)
 {
         PlaybackState *ps = get_playback_state();
 
-        return !ps->skipping && !is_EOF_reached() && !is_impl_switch_reached();
+        return !ps->skipping && !is_EOF_reached() && !is_switching_track();
 }
 
 int load_theme(const char *theme_name,
@@ -418,6 +426,7 @@ int load_theme(const char *theme_name,
         }
 
         app_state->uiSettings.themeIsSet = true;
+
 
         if (is_ansi_theme) {
                 // Default ANSI theme: store in settings->ansiTheme

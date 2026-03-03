@@ -1,3 +1,6 @@
 Diagnostics:
   ClangTidy:
     Remove: bugprone-unchecked-optional-access
+Documentation:
+  CommentFormat: Doxygen
+  
