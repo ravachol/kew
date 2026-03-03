@@ -1320,7 +1320,6 @@ void emit_metadata_changed(const gchar *title, const gchar *artist,
         (void)current_song;
         macos_set_now_playing_info(title, artist, album, cover_art_path,
                                    (double)length / G_USEC_PER_SEC);
-        macos_set_playback_state_playing();
 #else
         (void)title;
         (void)artist;
