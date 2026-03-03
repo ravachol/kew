@@ -11,9 +11,25 @@
 
 #include "common/appstate.h"
 
-#include "data/song_loader.h"
+#include "playback_system.h"
+
+#include "sound/sound_facade.h"
 
 #include "utils/utils.h"
+
+void load_song(Node *song, bool is_first_decoder, bool replace_next_song)
+{
+        PlaybackState *ps = get_playback_state();
+
+        if (song == NULL) {
+                ps->loadedNextSong = true;
+                ps->skipping = false;
+                ps->songLoading = false;
+                return;
+        }
+
+        sound_system_load(sound_sys, song->song.file_path, is_first_decoder, replace_next_song);
+}
 
 void load_first_song(Node *song)
 {
@@ -23,9 +39,9 @@ void load_first_song(Node *song)
         if (song == NULL)
                 return;
 
-        ps->loadingdata.state = state;
-        ps->loadingdata.loadingFirstDecoder = true;
-        load_song(song, &ps->loadingdata);
+        uninit_device();
+
+        load_song(song, true, false);
 
         int i = 0;
         while (!ps->loadedNextSong && i < 10000) {
@@ -37,72 +53,17 @@ void load_first_song(Node *song)
         }
 }
 
-void unload_song_a(void)
+void load_next_song(bool replace_next_song)
 {
         PlaybackState *ps = get_playback_state();
 
-        if (audio_data.pUserData->songdataADeleted == false) {
-                audio_data.pUserData->songdataADeleted = true;
-                unload_song_data(&(ps->loadingdata.songdataA));
-                audio_data.pUserData->songdataA = NULL;
-        }
-}
+        ps->songLoading = true;
+        ps->nextSongNeedsRebuilding = false;
+        ps->skipFromStopped = false;
 
-void unload_song_b(void)
-{
-        PlaybackState *ps = get_playback_state();
-
-        if (audio_data.pUserData->songdataBDeleted == false) {
-                audio_data.pUserData->songdataBDeleted = true;
-                unload_song_data(&(ps->loadingdata.songdataB));
-                audio_data.pUserData->songdataB = NULL;
-        }
-}
-
-void unload_previous_song(void)
-{
-        AppState *state = get_app_state();
-        UserData *user_data = audio_data.pUserData;
-        PlaybackState *ps = get_playback_state();
-
-        pthread_mutex_lock(&(ps->loadingdata.mutex));
-        pthread_mutex_lock(&(state->data_source_mutex));
-
-        if (ps->usingSongDataA &&
-            (ps->skipping || (user_data->current_song_data == NULL ||
-                              user_data->songdataADeleted == false ||
-                              (ps->loadingdata.songdataA != NULL &&
-                               user_data->songdataADeleted == false &&
-                               user_data->current_song_data->hasErrors == 0 &&
-                               user_data->current_song_data->track_id != NULL &&
-                               strcmp(ps->loadingdata.songdataA->track_id,
-                                      user_data->current_song_data->track_id) != 0)))) {
-                unload_song_a();
-
-                if (!audio_data.end_of_list_reached)
-                        ps->loadedNextSong = false;
-
-                ps->usingSongDataA = false;
-        } else if (!ps->usingSongDataA &&
-                   (ps->skipping ||
-                    (user_data->current_song_data == NULL ||
-                     user_data->songdataBDeleted == false ||
-                     (ps->loadingdata.songdataB != NULL &&
-                      user_data->songdataBDeleted == false &&
-                      user_data->current_song_data->hasErrors == 0 &&
-                      user_data->current_song_data->track_id != NULL &&
-                      strcmp(ps->loadingdata.songdataB->track_id,
-                             user_data->current_song_data->track_id) != 0)))) {
-                unload_song_b();
-
-                if (!audio_data.end_of_list_reached)
-                        ps->loadedNextSong = false;
-
-                ps->usingSongDataA = true;
-        }
-
-        pthread_mutex_unlock(&(state->data_source_mutex));
-        pthread_mutex_unlock(&(ps->loadingdata.mutex));
+        set_try_next_song(get_list_next(get_current_song()));
+        set_next_song(get_try_next_song());
+        load_song(get_next_song(), false, replace_next_song);
 }
 
 int load_first(Node *song)
@@ -110,8 +71,6 @@ int load_first(Node *song)
         load_first_song(song);
         Node *current = get_current_song();
         PlaybackState *ps = get_playback_state();
-
-        ps->usingSongDataA = true;
 
         while (ps->songHasErrors && current->next != NULL) {
                 ps->songHasErrors = false;
@@ -122,34 +81,13 @@ int load_first(Node *song)
 
         if (ps->songHasErrors) {
                 // Couldn't play any of the songs
-                unload_previous_song();
+                sound_system_unload_songs(sound_sys);
                 current = NULL;
                 ps->songHasErrors = false;
                 return -1;
         }
 
-        UserData *user_data = audio_data.pUserData;
-
-        user_data->currentPCMFrame = 0;
-        user_data->current_song_data = user_data->songdataA;
-
         return 0;
-}
-
-void load_next_song(void)
-{
-        AppState *state = get_app_state();
-        PlaybackState *ps = get_playback_state();
-
-        ps->songLoading = true;
-        ps->nextSongNeedsRebuilding = false;
-        ps->skipFromStopped = false;
-        ps->loadingdata.loadA = !ps->usingSongDataA;
-        set_try_next_song(get_list_next(get_current_song()));
-        set_next_song(get_try_next_song());
-        ps->loadingdata.state = state;
-        ps->loadingdata.loadingFirstDecoder = false;
-        load_song(get_next_song(), &ps->loadingdata);
 }
 
 void finish_loading(void)
@@ -177,7 +115,7 @@ void autostart_if_stopped(const char *path)
 
         ps->waitingForPlaylist = false;
         ps->waitingForNext = true;
-        audio_data.end_of_list_reached = false;
+        sound_system_set_end_of_list_reached(sound_sys, false);
         set_song_to_start_from(find_path_in_playlist(path, playlist));
         ps->lastPlayedId = -1;
 }

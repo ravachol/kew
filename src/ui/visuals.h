@@ -7,6 +7,8 @@
  * to playback data.
  */
 
+#include "sound/sound_facade.h"
+
 /**
  * @brief Frees allocated memory for the visualizer resources.
  *
@@ -22,9 +24,10 @@ void free_visuals(void);
  * It calculates the frequency magnitudes and displays the visual representation of the audio data
  * in the specified position and size.
  *
+ * @param system Pointer to the sound system instance.
  * @param row The row position (top-left corner) where the visualizer should be drawn.
  * @param col The column position (top-left corner) where the visualizer should be drawn.
  * @param height The height of the visualizer in rows.
  * @param width The width of the visualizer in columns.
  */
-void draw_spectrum_visualizer(int row, int col, int height, int width);
+void draw_spectrum_visualizer(sound_system_t *system, int row, int col, int height, int width);

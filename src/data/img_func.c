@@ -7,8 +7,9 @@
  * and different rendering modes (truecolor, ASCII, etc.).
  */
 
-#include "common/appstate.h"
 #include "common/common.h"
+
+#include "utils/img_utils.h"
 
 #include "img_func.h"
 
@@ -17,16 +18,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-
-// Disable some warnings for stb headers.
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wcast-qual"
-#pragma GCC diagnostic ignored "-Wstrict-overflow"
-#define STB_IMAGE_IMPLEMENTATION
-#include <stb_image.h>
-#define STB_IMAGE_RESIZE_IMPLEMENTATION
-#include <stb_image_resize2.h>
-#pragma GCC diagnostic pop
 
 /* Include after chafa.h for G_OS_WIN32 */
 #ifdef G_OS_WIN32
@@ -37,11 +28,6 @@
 #else
 #include <sys/ioctl.h> /* ioctl */
 #endif
-
-#define MACRO_STRLEN(s) (sizeof(s) / sizeof(s[0]))
-
-char scale[] = "$@&B%8WM#ZO0QoahkbdpqwmLCJUYXIjft/\\|()1{}[]l?zcvunxr!<>i;:*-+~_,\"^`'. ";
-unsigned int brightness_levels = MACRO_STRLEN(scale) - 2;
 
 #if CHAFA_VERSION_CUR_STABLE >= G_ENCODE_VERSION(1, 16)
 
@@ -460,23 +446,6 @@ convert_image(const void *pixels, gint pix_width, gint pix_height,
 #endif
 }
 
-// The function to load and return image data
-unsigned char *get_bitmap(const char *image_path, int *width, int *height)
-{
-        if (image_path == NULL)
-                return NULL;
-
-        int channels;
-
-        unsigned char *image = stbi_load(image_path, width, height, &channels, 4); // Force 4 channels (RGBA)
-        if (!image) {
-                fprintf(stderr, "Failed to load image: %s\n", image_path);
-                return NULL;
-        }
-
-        return image;
-}
-
 float calc_aspect_ratio(void)
 {
         TermSize term_size;
@@ -612,58 +581,6 @@ void print_square_bitmap(int row, int col, unsigned char *pixels, int width, int
         g_strfreev(lines);
         g_string_free(printable, TRUE);
 }
-unsigned char luminance_from_r_g_b(unsigned char r, unsigned char g, unsigned char b)
-{
-        return (unsigned char)(0.2126 * r + 0.7152 * g + 0.0722 * b);
-}
-
-void check_if_bright_pixel(unsigned char r, unsigned char g, unsigned char b, bool *found)
-{
-        // Calc luminace and use to find Ascii char.
-        unsigned char ch = luminance_from_r_g_b(r, g, b);
-
-        if (ch > 80 && !(r < g + 20 && r > g - 20 && g < b + 20 && g > b - 20) && !(r > 150 && g > 150 && b > 150)) {
-                *found = true;
-        }
-}
-
-int get_cover_color(unsigned char *pixels, int width, int height, unsigned char *r, unsigned char *g, unsigned char *b)
-{
-        if (pixels == NULL || width <= 0 || height <= 0) {
-                return -1;
-        }
-
-        int channels = 4; // RGBA format
-
-        bool found = false;
-        int num_pixels = width * height;
-
-        for (int i = 0; i < num_pixels; i++) {
-                int index = i * channels;
-                unsigned char red = pixels[index + 0];
-                unsigned char green = pixels[index + 1];
-                unsigned char blue = pixels[index + 2];
-
-                check_if_bright_pixel(red, green, blue, &found);
-
-                if (found) {
-                        *r = red;
-                        *g = green;
-                        *b = blue;
-                        break;
-                }
-        }
-
-        return found ? 0 : -1;
-}
-
-unsigned char calc_ascii_char(PixelData *p)
-{
-        unsigned char ch = luminance_from_r_g_b(p->r, p->g, p->b);
-        int rescaled = ch * brightness_levels / 256;
-
-        return scale[brightness_levels - rescaled];
-}
 
 int convert_to_ascii(int row, int col, const char *filepath, unsigned int height, bool centered)
 {
@@ -716,7 +633,7 @@ int convert_to_ascii(int row, int col, const char *filepath, unsigned int height
         unsigned int corrected_width = (int)(height * aspect_ratio_correction);
 
         int rwidth, rheight, rchannels;
-        unsigned char *read_data = stbi_load(filepath, &rwidth, &rheight, &rchannels, 3);
+        unsigned char *read_data = image_load_rgb(filepath, &rwidth, &rheight, &rchannels);
 
         if (read_data == NULL) {
                 return -1;
@@ -726,11 +643,11 @@ int convert_to_ascii(int row, int col, const char *filepath, unsigned int height
         if (corrected_width != (unsigned)rwidth || height != (unsigned)rheight) {
                 // 3 * uint8 for RGB!
                 unsigned char *new_data = malloc(3 * sizeof(unsigned char) * corrected_width * height);
-                stbir_resize_uint8_srgb(
-                    read_data, rwidth, rheight, 0,
-                    new_data, corrected_width, height, 0, 3);
+                image_resize_uint8_srgb(
+                    read_data, rwidth, rheight,
+                    new_data, corrected_width, height, 3);
 
-                stbi_image_free(read_data);
+                image_free(read_data);
                 data = (PixelData *)new_data;
         } else {
                 data = (PixelData *)read_data;
@@ -753,7 +670,7 @@ int convert_to_ascii(int row, int col, const char *filepath, unsigned int height
                 printf("\033[1;38;2;%03u;%03u;%03um%c", c->r, c->g, c->b, calc_ascii_char(c));
         }
 
-        stbi_image_free(data);
+        image_free(data);
         return 0;
 }
 

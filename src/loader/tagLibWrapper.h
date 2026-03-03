@@ -14,7 +14,7 @@
 extern "C" {
 #endif
 
-#include "common/appstate.h"
+#include "songdatatype.h"
 
 /**
  * @brief Extracts metadata tags, duration, and cover art from an audio file.

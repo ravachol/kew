@@ -14,8 +14,7 @@
 
 #include "common/appstate.h"
 
-#include "sound/audiobuffer.h"
-#include "sound/playback.h"
+#include "sound/sound_facade.h"
 
 #include "utils/term.h"
 
@@ -33,9 +32,10 @@
 
 #define MAX_BARS 26 // Counting 1/3 octave per bar, 50hz-10000hz range
 
+static sound_system_t *sound_s;
+
 static float *fft_input = NULL;
 static fftwf_complex *fft_output = NULL;
-static ma_format format = ma_format_unknown;
 static ma_uint32 sample_rate = 0;
 static float bar_height[MAX_BARS] = {0.0f};
 static float display_magnitudes[MAX_BARS] = {0.0f};
@@ -194,6 +194,15 @@ void fill_eq_bands(const fftwf_complex *fft_output, int buffer_size,
         }
 }
 
+// Sign-extend s24
+ma_int32 unpack_s24_format(const ma_uint8 *p)
+{
+        ma_int32 sample = p[0] | (p[1] << 8) | (p[2] << 16);
+        if (sample & 0x800000)
+                sample |= ~0xFFFFFF;
+        return sample;
+}
+
 int normalize_audio_samples(const void *audio_buffer, float *fft_input,
                             int buffer_size, int bit_depth)
 {
@@ -208,7 +217,7 @@ int normalize_audio_samples(const void *audio_buffer, float *fft_input,
         } else if (bit_depth == 24) {
                 const uint8_t *buf = (const uint8_t *)audio_buffer;
                 for (int i = 0; i < buffer_size; ++i) {
-                        int32_t sample = unpack_s24(buf + i * 3);
+                        int32_t sample = unpack_s24_format(buf + i * 3);
                         fft_input[i] = (float)sample / 8388608.0f;
                 }
         } else if (bit_depth == 32) {
@@ -230,7 +239,7 @@ void calc_magnitudes(int height, int num_bars, void *audio_buffer, int bit_depth
 {
         // Only execute when we get the signal that we have enough samples
         // (fft_size)
-        if (!is_buffer_ready())
+        if (!sound_system_is_buffer_ready(sound_s))
                 return;
 
         if (!audio_buffer) {
@@ -238,7 +247,7 @@ void calc_magnitudes(int height, int num_bars, void *audio_buffer, int bit_depth
                 return;
         }
 
-        set_buffer_ready(false);
+        sound_system_set_buffer_ready(sound_s, false);
 
         normalize_audio_samples(audio_buffer, fft_input, fft_size, bit_depth);
 
@@ -351,38 +360,6 @@ char *get_inbetween_char(float prev, float next)
                                           second_decimal_digit);
 }
 
-int get_bit_depth(ma_format format)
-{
-
-        if (format == ma_format_unknown)
-                return -1;
-
-        int bit_depth = 32;
-
-        switch (format) {
-        case ma_format_u8:
-                bit_depth = 8;
-                break;
-
-        case ma_format_s16:
-                bit_depth = 16;
-                break;
-
-        case ma_format_s24:
-                bit_depth = 24;
-                break;
-
-        case ma_format_f32:
-        case ma_format_s32:
-                bit_depth = 32;
-                break;
-        default:
-                break;
-        }
-
-        return bit_depth;
-}
-
 void print_spectrum(int row, int col, UISettings *ui, int height, int num_bars,
                     int visualizer_width, float *magnitudes)
 {
@@ -403,7 +380,7 @@ void print_spectrum(int row, int col, UISettings *ui, int height, int num_bars,
 
         PixelData tmp;
 
-        bool is_playing = !(pb_is_paused() || pb_is_stopped());
+        bool is_playing = (sound_system_get_state(sound_s) == SOUND_STATE_PLAYING);
 
         for (int j = height; j > 0 && !is_playing; j--) {
                 printf("\033[%d;%dH", row, col);
@@ -514,9 +491,10 @@ void free_visuals(void)
         }
 }
 
-void draw_spectrum_visualizer(int row, int col, int height, int width)
+void draw_spectrum_visualizer(sound_system_t *system, int row, int col, int height, int width)
 {
         AppState *state = get_app_state();
+        sound_s = system;
 
         int num_bars = state->uiState.num_progress_bars;
         int visualizer_width = state->uiState.num_progress_bars;
@@ -544,7 +522,7 @@ void draw_spectrum_visualizer(int row, int col, int height, int width)
                 return;
         }
 
-        int fft_size = get_fft_size();
+        int fft_size = sound_system_get_fft_size(sound_s);
 
         if (fft_size != prev_fft_size) {
                 free_visuals();
@@ -575,11 +553,10 @@ void draw_spectrum_visualizer(int row, int col, int height, int width)
         fftwf_plan plan =
             fftwf_plan_dft_r2c_1d(fft_size, fft_input, fft_output, FFTW_ESTIMATE);
 
-        get_current_format_and_sample_rate(&format, &sample_rate);
+        int bit_depth = sound_system_get_bit_depth(sound_s);
+        sample_rate = sound_system_get_sample_rate(sound_s);
 
-        int bit_depth = get_bit_depth(format);
-
-        calc_magnitudes(height, num_bars, get_audio_buffer(), bit_depth, fft_input,
+        calc_magnitudes(height, num_bars, sound_system_get_audio_buffer(sound_s), bit_depth, fft_input,
                         fft_output, fft_size, magnitudes, plan, display_magnitudes);
 
         print_spectrum(row, col, &(state->uiSettings), height, num_bars,

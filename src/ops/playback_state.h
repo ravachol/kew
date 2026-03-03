@@ -7,11 +7,22 @@
  * Provides accessors and mutators for playback state data.
  */
 
-#include "common/appstate.h"
+#include "loader/songdatatype.h"
 
 #include <stdbool.h>
 
 /* ========================= GETTERS ========================= */
+
+/**
+ * @brief Returns the repeat state.
+ *
+ * When enabled, reaching the end of the playlist causes playback
+ * to restart from the beginning of the list.
+ *
+ * @return a number corresponding to a repeat state 0 = Off, 1 = Repeat, 2 = Repeat list
+ *
+ */
+int get_repeat_state(void);
 
 /**
  * @brief Check whether repeat-list mode is enabled.
@@ -85,27 +96,21 @@ bool is_current_song_deleted(void);
  *
  * @return true if an implementation switch has been reached, false otherwise.
  */
-bool is_impl_switch_reached(void);
-
-/**
- * @brief Determine the currently active SongData pointer.
- *
- * Selects the active SongData buffer (A or B) depending on the current file
- * index. If the active buffer is deleted, attempts to switch to the alternate
- * buffer when possible.
- *
- * @param[out] current_song_data Pointer that receives the active SongData.
- *
- * @return true if the selected SongData is deleted, false otherwise.
- */
-bool determine_current_song_data(SongData **current_song_data);
+bool is_switching_track(void);
 
 /**
  * @brief Get the current playback volume.
  *
- * @return Current volume level as an integer percentage or backend-defined scale.
+ * @return Current volume level as an integer percentage 0-100 of the current volume.
  */
 int get_volume(void);
+
+/**
+ * @brief Sets the current playback volume.
+ *
+ * @param vol an integer percentage 0-100 of the current volume.
+ */
+void set_volume(int vol);
 
 /**
  * @brief Get the duration of the currently loaded song.
@@ -117,16 +122,6 @@ int get_volume(void);
 double get_current_song_duration(void);
 
 /**
- * @brief Retrieve the current audio output format and sample rate.
- *
- * Queries the audio backend for the active output format and sample rate.
- *
- * @param[out] format Pointer that receives the current sample format.
- * @param[out] sample_rate Pointer that receives the current sample rate (Hz).
- */
-void get_format_and_sample_rate(ma_format *format, ma_uint32 *sample_rate);
-
-/**
  * @brief Get the currently active SongData structure.
  *
  * Returns the validated SongData associated with the current playlist entry.
@@ -136,30 +131,31 @@ void get_format_and_sample_rate(ma_format *format, ma_uint32 *sample_rate);
  */
 SongData *get_current_song_data(void);
 
+int get_current_sample_rate(void);
 
 /* ========================= SETTERS ========================= */
 
 /**
- * @brief Enable or disable single-track repeat mode.
+ * @brief sets the repeate state 0=Off, 1=Repeat, 2=Repeat List
  *
- * @param enabled true to enable repeat of the current track, false to disable.
+ * @param state the repeat state.
  */
-void set_repeat_enabled(bool enabled);
+void set_repeat_state(int state);
 
 /**
  * @brief Enable or disable repeat-list mode.
  *
- * @param value true to enable repeating the entire playlist,
- *              false to disable.
+ * @param value 1 to enable repeating the entire playlist,
+ *              0 to disable.
  */
 void set_repeat_list_enabled(bool value);
 
 /**
  * @brief Enable or disable shuffle mode.
  *
- * @param value true to enable shuffle playback, false to disable.
+ * @param value 1 to enable shuffle playback, 0 to disable.
  */
-void set_shuffle_enabled(bool value);
+void set_shuffle_enabled(int value);
 
 /**
  * @brief Mark the EOF condition as handled.
@@ -168,4 +164,3 @@ void set_shuffle_enabled(bool value);
  * preventing repeated handling of the same EOF event.
  */
 void set_EOF_handled(void);
-

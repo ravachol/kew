@@ -47,6 +47,7 @@
 
 const int COOLDOWN_MS = 500;
 const int COOLDOWN2_MS = 100;
+const int COOLDOWNDIGITS_MS = 1500;
 const int MOUSE_DRAG = 32;
 const int MOUSE_CLICK = 0;
 const int max_digits_pressed_count = 9;
@@ -539,9 +540,23 @@ bool handle_mouse_event(struct tb_event *ev, struct Event *event)
 void handle_cooldown(void)
 {
         bool cooldownElapsed = false;
+        bool cooldownDigitsElapsed = false;
 
         if (is_cooldown_elapsed(COOLDOWN_MS))
                 cooldownElapsed = true;
+
+        if (is_cooldown_elapsed(COOLDOWNDIGITS_MS))
+                cooldownDigitsElapsed = true;
+
+        if (digits_pressed_count > 0 && cooldownDigitsElapsed) {
+                struct Event event;
+                event.type = EVENT_NONE;
+                event.args[0] = '\0';
+                event.key[0] = '\0';
+                event.type = EVENT_ENQUEUEANDPLAY;
+                handle_event(&event);
+                reset_digits_pressed();
+        }
 
         if (cooldownElapsed) {
                 if (!dragging_progress_bar) {
@@ -617,6 +632,11 @@ static gboolean on_tb_input(GIOChannel *source, GIOCondition cond, gpointer data
                         }
 
                         if (isdigit(ev.ch) && event.type == EVENT_NONE) {
+
+                                if (digits_pressed_count == 0) {
+                                        update_last_input_time();
+                                }
+
                                 if (digits_pressed_count < max_digits_pressed_count)
                                         digits_pressed[digits_pressed_count++] = ev.ch;
                         }
@@ -651,11 +671,12 @@ static gboolean on_tb_input(GIOChannel *source, GIOCondition cond, gpointer data
                                 // Forget Numbers
                                 if (event.type != EVENT_ENQUEUE &&
                                     event.type != EVENT_GOTOENDOFPLAYLIST && event.type != EVENT_NONE) {
-                                        memset(digits_pressed, '\0', sizeof(digits_pressed));
-                                        digits_pressed_count = 0;
+                                        reset_digits_pressed();
                                 }
 
                                 handle_event(&event);
+
+                                return TRUE;
                         }
                 }
         }

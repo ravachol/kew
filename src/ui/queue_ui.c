@@ -20,6 +20,7 @@
 #include "ops/playlist_ops.h"
 #include "ops/track_manager.h"
 
+#include "sound/sound_facade.h"
 #include "sys/mpris.h"
 #include "sys/sys_integration.h"
 
@@ -29,7 +30,7 @@ void determine_song_and_notify(void)
 {
         AppState *state = get_app_state();
         SongData *current_song_data = NULL;
-        bool isDeleted = determine_current_song_data(&current_song_data);
+        bool isDeleted = sound_system_is_current_song_deleted(sound_sys);
         Node *current = get_current_song();
 
         if (current_song_data && current)
@@ -43,7 +44,7 @@ void determine_song_and_notify(void)
 
 void update_next_song_if_needed(void)
 {
-        load_next_song();
+        load_next_song(true);
         determine_song_and_notify();
 }
 
@@ -61,41 +62,24 @@ void reset_list_after_dequeuing_playing_song(void)
 
         if (get_current_song() == NULL && node == NULL) {
                 ps->loadedNextSong = false;
-                audio_data.end_of_list_reached = true;
-                audio_data.restart = true;
+                sound_system_set_end_of_list_reached(sound_sys, true);
+                sound_system_set_restart_audio(sound_sys, true);
 
                 emit_metadata_changed("", "", "", "",
                                       "/org/mpris/MediaPlayer2/TrackList/NoTrack",
                                       NULL, 0);
                 emit_playback_stopped_mpris();
 
-                playback_cleanup();
+                sound_system_uninit_device(sound_sys);
 
                 trigger_refresh();
 
-                switch_audio_implementation();
-
-                unload_song_a();
-                unload_song_b();
+                switch_decoder();
 
                 state->uiState.songWasRemoved = true;
 
-                UserData *user_data = audio_data.pUserData;
-
-                user_data->current_song_data = NULL;
-
-                audio_data.currentFileIndex = 0;
-                audio_data.restart = true;
+                sound_system_set_restart_audio(sound_sys, true);
                 ps->waitingForNext = true;
-
-                PlaybackState *ps = get_playback_state();
-
-                ps->loadingdata.loadA = true;
-                ps->usingSongDataA = false;
-
-                ma_data_source_uninit(&audio_data);
-
-                audio_data.switch_files = false;
 
                 if (get_playlist()->count == 0)
                         set_song_to_start_from(NULL);
@@ -243,7 +227,7 @@ FileSystemEntry *enqueue(FileSystemEntry *entry)
         FileSystemEntry *first_enqueued_entry = NULL;
         PlaybackState *ps = get_playback_state();
 
-        if (audio_data.restart) {
+        if (sound_system_get_restart_audio(sound_sys)) {
                 Node *last_song = find_selected_entry_by_id(get_playlist(), ps->lastPlayedId);
                 state->uiState.startFromTop = false;
 
@@ -319,7 +303,7 @@ void view_enqueue(bool play_immediately)
                 }
         }
 
-        if (state->currentView == PLAYLIST_VIEW) {
+        if (state->currentView == PLAYLIST_VIEW || is_digits_pressed() > 0) {
                 if (is_digits_pressed() == 0) {
                         playlist_play(playlist);
                 } else {
@@ -329,7 +313,8 @@ void view_enqueue(bool play_immediately)
 
                         ps->nextSongNeedsRebuilding = false;
 
-                        skip_to_numbered_song(song_number);
+                        if (song_number <= playlist->count)
+                                skip_to_numbered_song(song_number);
                 }
         }
 

@@ -1,4 +1,5 @@
 #include "ops/playback_ops.h"
+#include "sound/sound_facade.h"
 #define MA_EXPERIMENTAL__DATA_LOOPING_AND_CHAINING
 #define MA_NO_ENGINE
 #define MINIAUDIO_IMPLEMENTATION
@@ -13,10 +14,7 @@
 
 #include "sound.h"
 
-#include "common/appstate.h"
-#include "common/common.h"
-
-#include "utils/file.h"
+#include "loader/song_loader.h"
 
 #include "playback.h"
 #ifdef USE_FAAD
@@ -28,12 +26,12 @@
 #include "decoders.h"
 #include "volume.h"
 
+#include "utils/file.h"
 #include "utils/utils.h"
 
 #include <miniaudio.h>
 
 #include <fcntl.h>
-#include <miniaudio.h>
 #include <pthread.h>
 #include <stdatomic.h>
 #include <stdint.h>
@@ -49,10 +47,19 @@
 static ma_context context;
 static bool context_initialized = false;
 long long lastCursor = 0;
+static pthread_mutex_t switch_mutex = PTHREAD_MUTEX_INITIALIZER;
+
+sound_system_t *sound_s = NULL;
+
+sound_playback_repeat_state_t repeat_state = SOUND_STATE_REPEAT_OFF;
+
+ma_pcm_rb pcm_rb;
+pthread_mutex_t rb_mutex;
+pthread_cond_t rb_cond;
 
 int create_audio_device(
-    UserData *user_data,
-    AudioData *audio_data,
+    void *user_data,
+    sound_system_t *sound,
     ma_device *device,
     ma_context *context,
     decoder_getter_func get_decoder,
@@ -109,9 +116,9 @@ static bool execute_seek(ma_decoder *decoder, ma_uint64 targetFrame, const Codec
         ma_result result = ops->seek_to_pcm_frame(decoder, targetFrame, 0);
 
         if (result == MA_SUCCESS) {
-                ma_pcm_rb_reset(&audio_data.pcm_rb);
-                atomic_store(&audio_data.buffer_ready, 0);
-                atomic_store(&audio_data.decode_finished, false);
+                ma_pcm_rb_reset(&pcm_rb);
+                atomic_store(&sound_s->buffer_ready, 0);
+                atomic_store(&sound_s->decode_finished, false);
         }
 
         resume_playback();
@@ -119,14 +126,14 @@ static bool execute_seek(ma_decoder *decoder, ma_uint64 targetFrame, const Codec
         return result;
 }
 
-static bool perform_seek_if_requested(ma_decoder *decoder, AudioData *audio_data)
+static bool perform_seek_if_requested(ma_decoder *decoder)
 {
         if (!is_seek_requested())
                 return true;
 
         set_seek_requested(false);
 
-        ma_uint64 totalFrames = audio_data->totalFrames;
+        ma_uint64 totalFrames = sound_s->totalFrames;
         double seek_percent = get_seek_percentage();
         if (seek_percent > 100.0)
                 seek_percent = 100.0;
@@ -136,7 +143,7 @@ static bool perform_seek_if_requested(ma_decoder *decoder, AudioData *audio_data
         if (targetFrame >= totalFrames)
                 targetFrame = totalFrames - 1;
 
-        const CodecOps *ops = get_codec_ops(audio_data->implType);
+        const CodecOps *ops = get_codec_ops(get_current_decoder_implementation_type());
 
         return execute_seek(decoder, targetFrame, ops);
 }
@@ -151,35 +158,28 @@ bool is_valid_gain(double gain)
         return gain > -50.0 && gain < 50.0 && !isnan(gain) && isfinite(gain);
 }
 
-static bool compute_replay_gain(AudioData *audio_data, double *out_gain_db)
+static bool compute_replay_gain(double *out_gain_db)
 {
-        if (audio_data->pUserData == NULL)
-                return false;
-
-        UserData *ud = audio_data->pUserData;
-
         bool result = false;
         double gain_db = 0.0;
 
-        if ((!ud->songdataADeleted && ud->current_song_data == ud->songdataA) ||
-            (!ud->songdataBDeleted && ud->current_song_data == ud->songdataB)) {
-                SongData *song = ud->current_song_data;
-                if (song != NULL && song->magic == SONG_MAGIC && song->metadata != NULL) {
-                        double track_gain = song->metadata->replaygainTrack;
-                        double album_gain = song->metadata->replaygainAlbum;
+        SongData *song = sound_get_current_song_data();
 
-                        bool useTrackFirst = (ud->replayGainCheckFirst == 0);
+        if (song != NULL && song->magic == SONG_MAGIC && song->metadata != NULL) {
+                double track_gain = song->metadata->replaygainTrack;
+                double album_gain = song->metadata->replaygainAlbum;
 
-                        if (useTrackFirst && is_valid_gain(track_gain)) {
-                                gain_db = track_gain;
-                                result = true;
-                        } else if (is_valid_gain(album_gain)) {
-                                gain_db = album_gain;
-                                result = true;
-                        } else if (!useTrackFirst && is_valid_gain(track_gain)) {
-                                gain_db = track_gain;
-                                result = true;
-                        }
+                bool useTrackFirst = sound_s->replay_gain_check_track_first;
+
+                if (useTrackFirst && is_valid_gain(track_gain)) {
+                        gain_db = track_gain;
+                        result = true;
+                } else if (is_valid_gain(album_gain)) {
+                        gain_db = album_gain;
+                        result = true;
+                } else if (!useTrackFirst && is_valid_gain(track_gain)) {
+                        gain_db = track_gain;
+                        result = true;
                 }
         }
 
@@ -269,63 +269,109 @@ static void apply_gain_to_interleaved_frames(void *raw_frames, ma_format format,
         }
 }
 
+void reset_ring_buffer(void)
+{
+        stop_playback();
+
+        ma_pcm_rb_reset(&pcm_rb);
+
+        resume_playback();
+}
+
+void set_switch_files(bool value)
+{
+        atomic_store(&sound_s->switch_files, value);
+}
+
+void activate_switch(void)
+{
+        set_skip_to_next(false);
+
+        if (!pb_is_repeat_enabled()) {
+                pthread_mutex_lock(&switch_mutex);
+
+                bool using_slot_A = atomic_load(&sound_s->using_song_slot_A); // fetch
+
+                using_slot_A = !using_slot_A; // invert
+
+                atomic_store(&sound_s->using_song_slot_A, using_slot_A); // store
+
+                pthread_mutex_unlock(&switch_mutex);
+        }
+
+        set_switch_files(true);
+}
+
+void execute_switch(void)
+{
+        set_switch_files(false);
+        switch_decoder_index();
+
+        sound_s->totalFrames = 0;
+        sound_s->currentPCMFrame = 0;
+
+        set_seek_elapsed(0.0);
+
+        set_EOF_reached();
+}
+
+// Main decoding loop, produces data to the miniaudio ringbuffer
 void *decode_loop(void *arg)
 {
-        AudioData *audio_data = (AudioData *)arg;
+        sound_system_t *sound = (sound_system_t *)arg;
 
-        float temp[audio_data->chunk_frames * audio_data->channels];
+        float temp[sound->chunk_frames * sound->channels];
 
         AppState *state = get_app_state();
         if (!state)
                 goto done;
 
-        while (atomic_load(&audio_data->decode_thread_running)) {
+        while (atomic_load(&sound->decode_thread_running)) {
 
                 // Activate switch
-                if (atomic_load(&audio_data->pending_switch)) {
+                if (atomic_load(&sound->pending_switch)) {
 
-                        atomic_store(&audio_data->pending_switch, false);
+                        atomic_store(&sound->pending_switch, false);
 
                         while (pthread_mutex_trylock(&state->data_source_mutex) != 0) {
-                                if (!atomic_load(&audio_data->decode_thread_running))
+                                if (!atomic_load(&sound->decode_thread_running))
                                         goto done;
                                 c_sleep(1);
                         }
 
-                        atomic_store(&audio_data->decode_finished, false);
+                        atomic_store(&sound->decode_finished, false);
 
-                        activate_switch(audio_data);
+                        activate_switch();
 
                         pthread_mutex_unlock(&state->data_source_mutex);
                         continue;
                 }
 
                 // Execute switch
-                if (audio_data->switch_files) {
+                if (atomic_load(&sound->switch_files)) {
 
                         pthread_mutex_lock(&state->data_source_mutex);
 
-                        atomic_store(&audio_data->buffer_ready, 0);
-                        atomic_store(&audio_data->decode_finished, false);
+                        atomic_store(&sound->buffer_ready, 0);
+                        atomic_store(&sound->decode_finished, false);
 
-                        execute_switch(audio_data);
+                        execute_switch();
 
                         pthread_mutex_unlock(&state->data_source_mutex);
                         continue;
                 }
 
-                // Pause
-                if (pb_is_paused()) {
-                        c_sleep(10);
-                        continue;
+                if (get_current_implementation_type() != get_current_decoder_implementation_type()) {
+                        pthread_mutex_unlock(&state->data_source_mutex);
+                        goto done;
                 }
 
                 // Wait for ring buffer to have enough space to fill
-                pthread_mutex_lock(&audio_data->rb_mutex);
-                while (ma_pcm_rb_available_write(&audio_data->pcm_rb) < audio_data->chunk_frames / 4 &&
-                       atomic_load(&audio_data->decode_thread_running) &&
-                       !audio_data->switch_files &&
-                       !atomic_load(&audio_data->pending_switch)) {
+                pthread_mutex_lock(&rb_mutex);
+                while (ma_pcm_rb_available_write(&pcm_rb) < sound->chunk_frames / 4 &&
+                       atomic_load(&sound->decode_thread_running) &&
+                       !atomic_load(&sound->switch_files) &&
+                       !atomic_load(&sound->pending_switch)) {
 
                         struct timespec ts;
                         clock_gettime(CLOCK_REALTIME, &ts);
@@ -335,38 +381,44 @@ void *decode_loop(void *arg)
                                 ts.tv_nsec -= 1000000000;
                         }
 
-                        atomic_store(&audio_data->buffer_ready, 1);
+                        atomic_store(&sound->buffer_ready, 1);
 
-                        pthread_cond_timedwait(&audio_data->rb_cond, &audio_data->rb_mutex, &ts);
+                        pthread_cond_timedwait(&rb_cond, &rb_mutex, &ts);
                 }
 
                 // Get a writable chunk
-                ma_uint32 writable = ma_pcm_rb_available_write(&audio_data->pcm_rb);
-                pthread_mutex_unlock(&audio_data->rb_mutex);
+                ma_uint32 writable = ma_pcm_rb_available_write(&pcm_rb);
+                pthread_mutex_unlock(&rb_mutex);
 
-                if (!atomic_load(&audio_data->decode_thread_running))
+                // Pause
+                while (pb_is_paused()) {
+                        c_sleep(10);
+                        continue;
+                }
+
+                if (!atomic_load(&sound->decode_thread_running))
                         goto done;
 
                 if (writable == 0)
                         continue;
 
                 ma_uint32 frames_to_decode = writable;
-                if (frames_to_decode > audio_data->chunk_frames)
-                        frames_to_decode = audio_data->chunk_frames;
+                if (frames_to_decode > sound->chunk_frames)
+                        frames_to_decode = sound->chunk_frames;
 
                 // Lock decoder
                 while (pthread_mutex_trylock(&state->data_source_mutex) != 0) {
-                        if (!atomic_load(&audio_data->decode_thread_running))
+                        if (!atomic_load(&sound->decode_thread_running))
                                 goto done;
                         c_sleep(1);
                 }
 
-                if (audio_data->pUserData == NULL || pb_is_impl_switch_reached()) {
+                if (pb_is_impl_switch_reached()) {
                         pthread_mutex_unlock(&state->data_source_mutex);
                         goto done;
                 }
 
-                const CodecOps *ops = get_codec_ops(audio_data->implType);
+                const CodecOps *ops = get_codec_ops(get_current_decoder_implementation_type());
                 void *decoder = get_current_decoder();
 
                 if (!decoder || pb_is_EOF_reached()) {
@@ -375,10 +427,10 @@ void *decode_loop(void *arg)
                         continue;
                 }
 
-                if (audio_data->totalFrames == 0)
-                        ma_data_source_get_length_in_pcm_frames(decoder, &audio_data->totalFrames);
+                if (sound_s->totalFrames == 0)
+                        ma_data_source_get_length_in_pcm_frames(decoder, &sound_s->totalFrames);
 
-                if (!perform_seek_if_requested(decoder, audio_data)) {
+                if (!perform_seek_if_requested(decoder)) {
                         pthread_mutex_unlock(&state->data_source_mutex);
                         continue;
                 }
@@ -395,27 +447,30 @@ void *decode_loop(void *arg)
                 ops->get_cursor(decoder, &cursor);
 
                 double gain_db = 0.0;
-                if (audio_data->implType == BUILTIN &&
-                    compute_replay_gain(audio_data, &gain_db)) {
+                if (get_current_decoder_implementation_type() == BUILTIN &&
+                    compute_replay_gain(&gain_db)) {
 
                         apply_gain_to_interleaved_frames(
                             temp,
-                            audio_data->format,
+                            sound->format,
                             frames_to_read,
-                            audio_data->channels,
+                            sound->channels,
                             db_to_linear(gain_db));
                 }
 
-                if (!atomic_load(&audio_data->pending_switch) &&
-                    !atomic_load(&audio_data->decode_finished) &&
+                if (!atomic_load(&sound_s->pending_switch) &&
+                    !atomic_load(&sound_s->decode_finished) &&
                     should_switch(frames_to_read, result, (ma_uint64)cursor)) {
 
-                        if (cursor != lastCursor)
-                                atomic_store(&audio_data->pending_switch, true);
-                        else {
-                                atomic_store(&audio_data->decode_finished, true);
-                                audio_data->track_end_frame =
-                                    atomic_load(&audio_data->track_frames_sent) + ma_pcm_rb_available_read(&audio_data->pcm_rb);
+                        if (cursor != lastCursor) {
+                                atomic_store(&sound_s->pending_switch, true);
+                                reset_ring_buffer();
+                        } else {
+                                atomic_store(&sound_s->decode_finished, true);
+
+                                int sent = atomic_load(&sound_s->track_frames_sent) + ma_pcm_rb_available_read(&pcm_rb);
+
+                                atomic_fetch_add(&sound_s->track_end_frame, sent);
                         }
                         pthread_mutex_unlock(&state->data_source_mutex);
                         continue;
@@ -433,14 +488,14 @@ void *decode_loop(void *arg)
 
                         while (framesRemaining > 0) {
 
-                                if (!atomic_load(&audio_data->decode_thread_running))
+                                if (!atomic_load(&sound_s->decode_thread_running))
                                         goto done;
 
                                 ma_uint32 framesToWrite = framesRemaining;
                                 void *pWriteBuffer = NULL;
 
                                 ma_result wr = ma_pcm_rb_acquire_write(
-                                    &audio_data->pcm_rb,
+                                    &pcm_rb,
                                     &framesToWrite,
                                     &pWriteBuffer);
 
@@ -449,27 +504,28 @@ void *decode_loop(void *arg)
 
                                 MA_COPY_MEMORY(
                                     pWriteBuffer,
-                                    (float *)temp + framesWritten * audio_data->channels,
-                                    framesToWrite * audio_data->channels * sizeof(float));
+                                    (float *)temp + framesWritten * sound->channels,
+                                    framesToWrite * sound->channels * sizeof(float));
 
-                                ma_pcm_rb_commit_write(&audio_data->pcm_rb, framesToWrite);
+                                ma_pcm_rb_commit_write(&pcm_rb, framesToWrite);
 
                                 framesWritten += framesToWrite;
                                 framesRemaining -= framesToWrite;
 
-                                if (!atomic_load(&audio_data->buffer_ready))
-                                        atomic_store(&audio_data->buffer_ready, 1);
+                                if (!atomic_load(&sound_s->buffer_ready))
+                                        atomic_store(&sound_s->buffer_ready, 1);
                         }
                 }
         }
 
 done:
-        audio_data->decode_thread_active = false;
+        sound_s->decode_thread_active = false;
         return NULL;
 }
 
 int underrun_count = 0;
 
+// Audio callback, consumes data from the miniaudio ringbuffer, and feeds the output device
 void on_audio_frames(ma_device *device,
                      void *pOutput,
                      const void *input,
@@ -478,12 +534,12 @@ void on_audio_frames(ma_device *device,
         (void)device;
         (void)input;
 
-        if (!atomic_load(&audio_data.buffer_ready)) {
-                memset(pOutput, 0, frameCount * audio_data.channels * sizeof(float));
+        if (!atomic_load(&sound_s->buffer_ready)) {
+                memset(pOutput, 0, frameCount * sound_s->channels * sizeof(float));
                 return;
         }
 
-        const ma_uint32 frameSize = audio_data.channels * sizeof(float);
+        const ma_uint32 frameSize = sound_s->channels * sizeof(float);
         ma_uint32 framesRemaining = frameCount;
         ma_uint32 totalFramesRead = 0;
 
@@ -493,7 +549,7 @@ void on_audio_frames(ma_device *device,
                 void *pReadBuffer = NULL;
 
                 ma_result result =
-                    ma_pcm_rb_acquire_read(&audio_data.pcm_rb,
+                    ma_pcm_rb_acquire_read(&pcm_rb,
                                            &framesToRead,
                                            &pReadBuffer);
 
@@ -511,54 +567,53 @@ void on_audio_frames(ma_device *device,
                        pReadBuffer,
                        framesToRead * frameSize);
 
-                ma_pcm_rb_commit_read(&audio_data.pcm_rb, framesToRead);
+                ma_pcm_rb_commit_read(&pcm_rb, framesToRead);
 
                 totalFramesRead += framesToRead;
                 framesRemaining -= framesToRead;
 
-                atomic_fetch_add(&audio_data.track_frames_sent, framesToRead);
+                atomic_fetch_add(&sound_s->track_frames_sent, framesToRead);
 
-                if (atomic_load(&audio_data.decode_finished)) {
+                if (atomic_load(&sound_s->decode_finished)) {
                         uint64_t played =
-                            atomic_load(&audio_data.track_frames_sent);
+                            atomic_load(&sound_s->track_frames_sent);
 
                         uint64_t boundary =
-                            atomic_load(&audio_data.track_end_frame);
+                            atomic_load(&sound_s->track_end_frame);
 
                         if (played >= boundary) {
-                                atomic_store(&audio_data.pending_switch, true);
+                                atomic_store(&sound_s->pending_switch, true);
                         }
                 }
 
                 /* Wake decode thread when ring buffer has meaningful space available. */
-                ma_uint32 spaceAvailable = ma_pcm_rb_available_write(&audio_data.pcm_rb);
+                ma_uint32 spaceAvailable = ma_pcm_rb_available_write(&pcm_rb);
 
-                if (spaceAvailable >= audio_data.chunk_frames / 4) {
-                        pthread_mutex_lock(&audio_data.rb_mutex);
-                        pthread_cond_signal(&audio_data.rb_cond);
-                        pthread_mutex_unlock(&audio_data.rb_mutex);
+                if (spaceAvailable >= sound_s->chunk_frames / 4) {
+                        pthread_mutex_lock(&rb_mutex);
+                        pthread_cond_signal(&rb_cond);
+                        pthread_mutex_unlock(&rb_mutex);
                 }
         }
 
         set_audio_buffer(pOutput,
                          totalFramesRead,
-                         audio_data.sample_rate,
-                         audio_data.channels,
-                         audio_data.format);
+                         sound_s->sample_rate,
+                         sound_s->channels,
+                         sound_s->format);
 }
 
 int handle_codec(
     const char *file_path,
     CodecOps ops,
-    AudioData *audio_data,
+    sound_system_t *sound,
     AppState *state,
     ma_context *context)
 {
         ma_uint32 sample_rate, channels, nSampleRate, nChannels;
         ma_format format, nFormat;
         ma_channel channel_map[MA_MAX_CHANNELS], nChannelMap[MA_MAX_CHANNELS];
-        enum AudioImplementation current_implementation =
-            get_current_implementation_type();
+        enum decoder_type current_implementation = get_current_implementation_type();
 
         int avg_bit_rate = 0;
 
@@ -584,7 +639,7 @@ int handle_codec(
         // sameFormat computation
         bool sameFormat = false;
         if (ops.supportsGapless && decoder != NULL) {
-                sameFormat = (ops.implType == get_current_decoder_implType() && format == nFormat && channels == nChannels &&
+                sameFormat = (ops.implType == get_current_decoder_implementation_type() && format == nFormat && channels == nChannels &&
                               sample_rate == nSampleRate);
 #ifdef USE_FAAD
                 if (ops.implType == M4A && decoder != NULL) {
@@ -595,43 +650,40 @@ int handle_codec(
 #endif
         }
 
+        SongData *songdata = sound_get_current_song_data();
+
         // Avg bitrate assignment
-        if (audio_data->pUserData->current_song_data) {
+        if (songdata) {
                 if (ops.implType == M4A)
-                        audio_data->pUserData->current_song_data->avg_bit_rate = audio_data->avg_bit_rate = avg_bit_rate;
+                        songdata->avg_bit_rate = sound_s->avg_bit_rate = avg_bit_rate;
                 else
-                        audio_data->pUserData->current_song_data->avg_bit_rate =
-                            audio_data->avg_bit_rate =
-                                calc_avg_bit_rate(audio_data->pUserData->current_song_data->duration, file_path);
+                        songdata->avg_bit_rate =
+                            sound_s->avg_bit_rate =
+                                calc_avg_bit_rate(songdata->duration, file_path);
         } else {
-                audio_data->avg_bit_rate = 0;
+                sound_s->avg_bit_rate = 0;
         }
 
-        audio_data->implType = ops.implType;
-
-        if (pb_is_repeat_enabled() || !(sameFormat && current_implementation == ops.implType)) {
+        if (repeat_state == SOUND_STATE_REPEAT ||
+            !(sameFormat && current_implementation == ops.implType)) {
                 set_impl_switch_reached();
-
-                cleanup_playback_device();
 
                 pthread_mutex_lock(&(state->data_source_mutex));
 
                 set_current_implementation_type(ops.implType);
 
+                cleanup_playback_device(); // FIXME should be after lock?
+
                 reset_decoders();
                 reset_audio_buffer();
 
-                audio_data->sample_rate = sample_rate;
+                sound->sample_rate = sample_rate;
 
                 int result;
 
-                if (ops.implType == BUILTIN) {
-                        audio_data->base.vtable = &builtin_file_data_source_vtable;
-                }
-
                 result = create_audio_device(
-                    audio_data->pUserData,
-                    audio_data,
+                    NULL,
+                    sound,
                     get_device(),
                     context,
                     get_current_decoder,
@@ -646,13 +698,13 @@ int handle_codec(
                 }
 
                 // Reset buffer state for new song
-                atomic_store(&audio_data->buffer_ready, 0);
-                atomic_store(&audio_data->decode_thread_running, true);
-                audio_data->decode_thread_active = true;
-                pthread_create(&audio_data->decode_thread,
+                atomic_store(&sound_s->buffer_ready, 0);
+                atomic_store(&sound_s->decode_thread_running, true);
+                sound_s->decode_thread_active = true;
+                pthread_create(&sound_s->decode_thread,
                                NULL,
                                decode_loop,
-                               audio_data);
+                               sound_s);
 
                 pthread_mutex_unlock(&(state->data_source_mutex));
                 set_impl_switch_not_reached();
@@ -661,21 +713,21 @@ int handle_codec(
         return 0;
 }
 
-static void handle_builtin_avg_bit_rate(AudioData *audio_data, SongData *song_data, const char *file_path)
+static void handle_builtin_avg_bit_rate(SongData *song_data, const char *file_path)
 {
         if (path_ends_with(file_path, ".mp3") && song_data) {
                 int avg_bit_rate = calc_avg_bit_rate(song_data->duration, file_path);
                 if (avg_bit_rate > 320)
                         avg_bit_rate = 320;
-                song_data->avg_bit_rate = audio_data->avg_bit_rate = avg_bit_rate;
+                song_data->avg_bit_rate = sound_s->avg_bit_rate = avg_bit_rate;
         } else {
-                audio_data->avg_bit_rate = 0;
+                sound_s->avg_bit_rate = 0;
         }
 }
 
-static int init_audio_data_from_codec_decoder(const CodecOps *ops, void *decoder, AudioData *audio_data)
+static int init_audio_data_from_codec_decoder(const CodecOps *ops, void *decoder, sound_system_t *sound)
 {
-        if (!ops || !decoder || !audio_data)
+        if (!ops || !decoder || !sound_s)
                 return -1;
 
         ma_channel channel_map[MA_MAX_CHANNELS];
@@ -683,54 +735,55 @@ static int init_audio_data_from_codec_decoder(const CodecOps *ops, void *decoder
         switch (ops->implType) {
         case BUILTIN: {
                 ma_decoder *d = (ma_decoder *)decoder;
-                audio_data->channels = d->outputChannels;
-                audio_data->sample_rate = d->outputSampleRate;
-                ma_data_source_get_length_in_pcm_frames((ma_data_source *)d, &audio_data->totalFrames);
+                sound->format = ma_format_f32;
+                sound->channels = d->outputChannels;
+                sound->sample_rate = d->outputSampleRate;
+                ma_data_source_get_length_in_pcm_frames((ma_data_source *)d, &sound->totalFrames);
                 break;
         }
 
         case OPUS: {
                 ma_libopus *d = (ma_libopus *)decoder;
-                ma_libopus_ds_get_data_format(d, &audio_data->format, &audio_data->channels,
-                                              &audio_data->sample_rate, channel_map, MA_MAX_CHANNELS);
-                ma_data_source_get_length_in_pcm_frames((ma_data_source *)d, &audio_data->totalFrames);
+                ma_libopus_ds_get_data_format(d, &sound->format, &sound->channels,
+                                              &sound->sample_rate, channel_map, MA_MAX_CHANNELS);
+                ma_data_source_get_length_in_pcm_frames((ma_data_source *)d, &sound->totalFrames);
 
                 ((ma_data_source_base *)d)->pCurrent = d;
-                d->pReadSeekTellUserData = audio_data;
+                d->pReadSeekTellUserData = sound;
                 break;
         }
 
         case VORBIS: {
                 ma_libvorbis *d = (ma_libvorbis *)decoder;
-                ma_libvorbis_ds_get_data_format(d, &audio_data->format, &audio_data->channels,
-                                                &audio_data->sample_rate, channel_map, MA_MAX_CHANNELS);
-                ma_data_source_get_length_in_pcm_frames((ma_data_source *)d, &audio_data->totalFrames);
+                ma_libvorbis_ds_get_data_format(d, &sound->format, &sound->channels,
+                                                &sound->sample_rate, channel_map, MA_MAX_CHANNELS);
+                ma_data_source_get_length_in_pcm_frames((ma_data_source *)d, &sound->totalFrames);
 
                 ((ma_data_source_base *)d)->pCurrent = d;
-                d->pReadSeekTellUserData = audio_data;
+                d->pReadSeekTellUserData = sound;
                 break;
         }
 
         case WEBM: {
                 ma_webm *d = (ma_webm *)decoder;
-                ma_webm_ds_get_data_format(d, &audio_data->format, &audio_data->channels,
-                                           &audio_data->sample_rate, channel_map, MA_MAX_CHANNELS);
-                ma_data_source_get_length_in_pcm_frames((ma_data_source *)d, &audio_data->totalFrames);
+                ma_webm_ds_get_data_format(d, &sound->format, &sound->channels,
+                                           &sound->sample_rate, channel_map, MA_MAX_CHANNELS);
+                ma_data_source_get_length_in_pcm_frames((ma_data_source *)d, &sound->totalFrames);
 
                 ((ma_data_source_base *)d)->pCurrent = d;
-                d->pReadSeekTellUserData = audio_data;
+                d->pReadSeekTellUserData = sound;
                 break;
         }
 
 #ifdef USE_FAAD
         case M4A: {
                 ma_m4a *d = (ma_m4a *)decoder;
-                m4a_decoder_ds_get_data_format(d, &audio_data->format, &audio_data->channels,
-                                               &audio_data->sample_rate, channel_map, MA_MAX_CHANNELS);
-                ma_data_source_get_length_in_pcm_frames((ma_data_source *)d, &audio_data->totalFrames);
+                m4a_decoder_ds_get_data_format(d, &sound->format, &sound->channels,
+                                               &sound->sample_rate, channel_map, MA_MAX_CHANNELS);
+                ma_data_source_get_length_in_pcm_frames((ma_data_source *)d, &sound->totalFrames);
 
                 ((ma_data_source_base *)d)->pCurrent = d;
-                d->pReadSeekTellUserData = audio_data;
+                d->pReadSeekTellUserData = sound;
                 break;
         }
 #endif
@@ -739,17 +792,18 @@ static int init_audio_data_from_codec_decoder(const CodecOps *ops, void *decoder
                 return -1;
         }
 
-        audio_data->format = ma_format_f32; // hard-coded. float is used throughout
+        sound->format = ma_format_f32; // hard-coded. float is used throughout
 
         return 0;
 }
 
-int init_first_datasource(UserData *user_data)
+int init_first_datasource(sound_system_t *sound)
 {
-        if (!user_data)
+        if (!sound)
                 return MA_ERROR;
 
-        SongData *song_data = (audio_data.currentFileIndex == 0) ? user_data->songdataA : user_data->songdataB;
+        SongData *song_data = (sound->using_song_slot_A) ? sound->songdataA : sound->songdataB;
+
         if (!song_data)
                 return MA_ERROR;
 
@@ -757,9 +811,7 @@ int init_first_datasource(UserData *user_data)
         if (!file_path)
                 return MA_ERROR;
 
-        audio_data.pUserData = user_data;
-        audio_data.currentPCMFrame = 0;
-        audio_data.restart = false;
+        sound_system_set_restart_audio(sound, false);
 
         const CodecOps *ops = find_codec_ops(file_path);
         if (!ops)
@@ -773,37 +825,46 @@ int init_first_datasource(UserData *user_data)
         if (!decoder)
                 return -1;
 
-        result = init_audio_data_from_codec_decoder(ops, decoder, &audio_data);
+        result = init_audio_data_from_codec_decoder(ops, decoder, sound);
         if (result < 0)
                 return -1;
 
         // BUILTIN MP3 special handling
-        if (ops->implType == BUILTIN)
-                handle_builtin_avg_bit_rate(&audio_data, song_data, file_path);
+        if (ops->implType == BUILTIN) {
+                handle_builtin_avg_bit_rate(song_data, file_path);
+        }
 
         return MA_SUCCESS;
 }
 
-int init_ring_buffer(AudioData *audio_data)
+void safe_ringbuffer_reset(ma_pcm_rb *pcm_rb)
+{
+        if (pcm_rb->rb.ownsBuffer) {
+                ma_pcm_rb_uninit(pcm_rb);
+        }
+        memset(pcm_rb, 0, sizeof(*pcm_rb)); // reset the entire struct safely
+}
+
+int init_ring_buffer(sound_system_t *sound)
 {
         // 3 seconds of buffer regardless of sample rate
-        ma_uint32 rbFrames = audio_data->sample_rate * 3;
+        ma_uint32 rbFrames = sound->sample_rate * 3;
 
-        atomic_store(&audio_data->buffer_ready, 0);
-        atomic_store(&audio_data->decode_finished, false);
-        atomic_store(&audio_data->pending_switch, false);
+        atomic_store(&sound->buffer_ready, 0);
+        atomic_store(&sound->decode_finished, false);
+        atomic_store(&sound->pending_switch, false);
 
-        safe_ringbuffer_reset(&audio_data->pcm_rb);
+        safe_ringbuffer_reset(&pcm_rb);
 
-        audio_data->pcm_rb.rb.pBuffer = NULL;
-        audio_data->pcm_rb.rb.ownsBuffer = false;
+        pcm_rb.rb.pBuffer = NULL;
+        pcm_rb.rb.ownsBuffer = false;
 
-        ma_result rbResult = ma_pcm_rb_init(audio_data->format,
-                                            audio_data->channels,
+        ma_result rbResult = ma_pcm_rb_init(sound->format,
+                                            sound->channels,
                                             rbFrames,
                                             NULL,
                                             NULL,
-                                            &audio_data->pcm_rb);
+                                            &pcm_rb);
         if (rbResult != MA_SUCCESS) {
                 fprintf(stderr, "Failed to initialize PCM ring buffer: %d\n", rbResult);
                 return -1;
@@ -813,8 +874,8 @@ int init_ring_buffer(AudioData *audio_data)
 }
 
 int create_audio_device(
-    UserData *user_data,
-    AudioData *audio_data,
+    void *user_data,
+    sound_system_t *sound,
     ma_device *device,
     ma_context *context,
     decoder_getter_func get_decoder,
@@ -822,52 +883,49 @@ int create_audio_device(
 {
         PlaybackState *ps = get_playback_state();
 
-        ma_result result = init_first_datasource(user_data);
+        ma_result result = init_first_datasource(sound_s);
 
-        audio_data->chunk_frames = audio_data->sample_rate / 10;
+        sound_s->chunk_frames = sound_s->sample_rate / 10;
 
-        if (result != MA_SUCCESS) {
-                if (!has_error_message())
-                        set_error_message("Failed to initialize file.");
+        if (result != MA_SUCCESS)
                 return -1;
-        }
 
         void *decoder = get_decoder();
         if (!decoder)
                 return -1;
 
-        init_ring_buffer(audio_data);
+        init_ring_buffer(sound_s);
 
         result = init_playback_device(
             context,
-            audio_data,
+            sound,
             device,
             callback,
-            decoder);
-
-        set_volume(get_current_volume());
+            user_data);
+        set_current_volume(get_current_volume());
         ps->notifyPlaying = true;
 
         return result;
 }
 
-int pb_switch_audio_implementation(void)
+int sound_switch_audio_implementation(void)
 {
         AppState *state = get_app_state();
 
-        if (audio_data.end_of_list_reached) {
+        if (sound_system_is_end_of_list_reached(sound_s)) {
                 pb_set_EOF_handled();
                 set_current_implementation_type(NONE);
                 return 0;
         }
 
-        audio_data.pUserData->current_song_data = (audio_data.currentFileIndex == 0) ? audio_data.pUserData->songdataA : audio_data.pUserData->songdataB;
-        if (!audio_data.pUserData->current_song_data) {
+        SongData *current_song = sound_get_current_song_data();
+
+        if (!current_song) {
                 pb_set_EOF_handled();
                 return 0;
         }
 
-        char *file_path = strdup(audio_data.pUserData->current_song_data->file_path);
+        char *file_path = strdup(current_song->file_path);
         if (!valid_file_path(file_path)) {
                 free(file_path);
                 set_EOF_reached();
@@ -881,9 +939,9 @@ int pb_switch_audio_implementation(void)
         }
 
         if (ops->implType == BUILTIN)
-                handle_builtin_avg_bit_rate(&audio_data, audio_data.pUserData->current_song_data, file_path);
+                handle_builtin_avg_bit_rate(current_song, file_path);
 
-        int result = handle_codec(file_path, *ops, &audio_data, state, &context);
+        int result = handle_codec(file_path, *ops, sound_s, state, &context);
         free(file_path);
 
         if (result < 0) {
@@ -910,20 +968,223 @@ void cleanup_audio_context(void)
         }
 }
 
-int pb_create_audio_device(void)
+int sound_create_audio_device(void)
 {
         PlaybackState *ps = get_playback_state();
 
-        pb_sound_shutdown();
+        cleanup_playback_device();
 
-        ma_context_init(NULL, 0, NULL, &context);
-        context_initialized = true;
+        if (!is_context_initialized()) {
+                ma_context_init(NULL, 0, NULL, &context);
+                context_initialized = true;
+        }
 
-        if (pb_switch_audio_implementation() >= 0) {
+        if (sound_switch_audio_implementation() >= 0) {
                 ps->notifySwitch = true;
         } else {
                 return -1;
         }
 
         return 0;
+}
+
+SongData *sound_get_current_song_data(void)
+{
+        return (atomic_load(&sound_s->using_song_slot_A)) ? sound_s->songdataA : sound_s->songdataB;
+}
+
+int load_decoder(SongData *song_data, bool *song_data_deleted)
+{
+        LoaderData *loader_data = get_loader_data();
+
+        int result = 0;
+
+        if (song_data != NULL) {
+                *song_data_deleted = false;
+
+                // This should only be done for the second song, as
+                // switch_audio_implementation() handles the first one
+                if (!loader_data->loadingFirstDecoder) {
+                        const CodecOps *ops = find_codec_ops(song_data->file_path);
+                        result = prepare_next_decoder(song_data->file_path, song_data, ops);
+                }
+        }
+        return result;
+}
+
+void set_song_data(bool slotA, SongData *songdata)
+{
+        if (!sound_s)
+                return;
+
+        if (slotA)
+                sound_s->songdataA = songdata;
+        else
+                sound_s->songdataB = songdata;
+}
+
+int assign_loaded_data(void)
+{
+        LoaderData *loader_data = get_loader_data();
+
+        int result = 0;
+
+        if (loader_data->loadInSlotA) {
+
+                set_song_data(loader_data->loadInSlotA, loader_data->songdataA);
+
+                result = load_decoder(loader_data->songdataA,
+                                      &(loader_data->songdataADeleted));
+        } else {
+                set_song_data(loader_data->loadInSlotA, loader_data->songdataB);
+
+                result = load_decoder(loader_data->songdataB,
+                                      &(loader_data->songdataBDeleted));
+        }
+
+        return result;
+}
+
+bool sound_is_using_slot_A()
+{
+        if (!sound_s)
+                return true;
+
+        return atomic_load(&sound_s->using_song_slot_A);
+}
+
+void sound_set_using_slot_A(bool value)
+{
+        if (!sound_s)
+                return;
+
+        atomic_store(&sound_s->using_song_slot_A, value);
+}
+
+int sound_get_bit_depth(ma_format format)
+{
+
+        if (format == ma_format_unknown)
+                return -1;
+
+        int bit_depth = 32;
+
+        switch (format) {
+        case ma_format_u8:
+                bit_depth = 8;
+                break;
+
+        case ma_format_s16:
+                bit_depth = 16;
+                break;
+
+        case ma_format_s24:
+                bit_depth = 24;
+                break;
+
+        case ma_format_f32:
+        case ma_format_s32:
+                bit_depth = 32;
+                break;
+        default:
+                break;
+        }
+
+        return bit_depth;
+}
+
+void *song_data_reader_thread(void *arg)
+{
+        PlaybackState *ps = (PlaybackState *)arg;
+        LoaderData *loader_data = get_loader_data();
+
+        char filepath[PATH_MAX];
+        c_strcpy(filepath, loader_data->file_path, sizeof(filepath));
+
+        SongData *songdata = exists_file(filepath) >= 0 ? load_song_data(filepath) : NULL;
+
+        if (loader_data->replaceNextSong) {
+                loader_data->loadInSlotA = !sound_is_using_slot_A();
+        }
+
+        if (loader_data->loadingFirstDecoder) {
+                loader_data->loadInSlotA = true;
+                sound_set_using_slot_A(true);
+        }
+
+        if (loader_data->loadInSlotA) {
+
+                song_loader_assign_slot_A(songdata);
+
+        } else {
+
+                song_loader_assign_slot_B(songdata);
+        }
+
+        int result = assign_loaded_data();
+
+        loader_data->loadInSlotA = !loader_data->loadInSlotA;
+
+        if (result < 0)
+                songdata->hasErrors = true;
+
+        if (songdata == NULL || songdata->hasErrors) {
+                ps->songHasErrors = true;
+                ps->clearingErrors = true;
+                set_next_song(NULL);
+        } else {
+                ps->songHasErrors = false;
+                ps->clearingErrors = false;
+                set_next_song(get_try_next_song());
+                set_try_next_song(NULL);
+        }
+
+        ps->loadedNextSong = true;
+        ps->skipping = false;
+        ps->songLoading = false;
+
+        return NULL;
+}
+
+void sound_load_song(const char *file_path, int is_first_decoder, int replace_next_song)
+{
+        PlaybackState *ps = get_playback_state();
+        LoaderData *loader_data = get_loader_data();
+
+        c_strcpy(loader_data->file_path, file_path,
+                 sizeof(loader_data->file_path));
+
+        loader_data->loadingFirstDecoder = is_first_decoder;
+        loader_data->replaceNextSong = replace_next_song;
+
+        pthread_t loading_thread;
+        pthread_create(&loading_thread, NULL, song_data_reader_thread, ps);
+}
+
+void sound_switch_track_immediate(void)
+{
+        activate_switch();
+}
+
+void sound_shutdown(void)
+{
+        if (is_context_initialized()) {
+                cleanup_playback_device();
+                cleanup_audio_context();
+        }
+}
+
+void sound_ringbuffer_cleanup(void)
+{
+        if (pcm_rb.rb.ownsBuffer) {
+                ma_pcm_rb_uninit(&pcm_rb);
+        }
+        memset(&pcm_rb, 0, sizeof(pcm_rb));
+}
+
+void sound_wake_up(void)
+{
+        pthread_mutex_lock(&rb_mutex);
+        pthread_cond_broadcast(&rb_cond);
+        pthread_mutex_unlock(&rb_mutex);
 }

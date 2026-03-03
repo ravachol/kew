@@ -67,7 +67,6 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 #include "ops/playlist_ops.h"
 #include "ops/track_manager.h"
 
-#include "utils/cache.h"
 #include "utils/file.h"
 #include "utils/term.h"
 #include "utils/utils.h"
@@ -137,7 +136,11 @@ void prepare_next_song(void)
         Node *current = get_current_song();
 
         if (!is_repeat_enabled() || current == NULL) {
-                unload_previous_song();
+
+                if (!sound_system_is_end_of_list_reached(sound_sys)) {
+                        PlaybackState *ps = get_playback_state();
+                        ps->loadedNextSong = false;
+                }
         }
 
         if (current == NULL) {
@@ -168,27 +171,11 @@ int prepare_and_play_song(Node *song)
 
         set_current_song(song);
 
-        AppState *state = get_app_state();
-        PlaybackState *ps = get_playback_state();
-
         stop();
-
-        pthread_mutex_lock(&(ps->loadingdata.mutex));
-        pthread_mutex_lock(&(state->data_source_mutex));
-
-        unload_song_a();
-        unload_song_b();
-
-        pthread_mutex_unlock(&(ps->loadingdata.mutex));
-        pthread_mutex_unlock(&(state->data_source_mutex));
 
         int res = load_first(get_current_song());
 
         finish_loading();
-
-        if (res >= 0) {
-                res = create_playback_device();
-        }
 
         if (res >= 0) {
                 resume_playback();
@@ -214,7 +201,7 @@ void check_and_load_next_song(void)
         AppState *state = get_app_state();
         PlaybackState *ps = get_playback_state();
 
-        if (audio_data.restart) {
+        if (sound_system_get_restart_audio(sound_sys)) {
                 PlayList *playlist = get_playlist();
                 if (playlist->head == NULL)
                         return;
@@ -226,7 +213,7 @@ void check_and_load_next_song(void)
                         if (!next_song)
                                 return;
 
-                        audio_data.restart = false;
+                        sound_system_set_restart_audio(sound_sys, false);
                         ps->waitingForPlaylist = false;
                         ps->waitingForNext = false;
                         state->uiState.songWasRemoved = false;
@@ -259,13 +246,12 @@ void check_and_load_next_song(void)
 void load_waiting_music(void)
 {
         PlayList *playlist = get_playlist();
-        AudioData *audio_data = get_audio_data();
         PlaybackState *ps = get_playback_state();
 
         if (playlist->head != NULL) {
                 if ((ps->skipFromStopped || !ps->loadedNextSong ||
                      ps->nextSongNeedsRebuilding) &&
-                    !audio_data->end_of_list_reached) {
+                    !sound_system_is_end_of_list_reached(sound_sys)) {
                         check_and_load_next_song();
                 }
 
@@ -274,7 +260,7 @@ void load_waiting_music(void)
 
                 if (is_EOF_reached()) {
                         prepare_next_song();
-                        switch_audio_implementation();
+                        switch_decoder();
                 }
         } else {
                 set_EOF_handled();
@@ -290,14 +276,11 @@ void load_waiting_music(void)
 void kew_shutdown()
 {
         AppState *state = get_app_state();
-        PlaybackState *ps = get_playback_state();
         FileSystemEntry *library = get_library();
         AppSettings *settings = get_app_settings();
         PlayList *favorites_playlist = get_favorites_playlist();
 
-        sound_shutdown();
-
-        free_decoders();
+        shutdown_sound_system();
 
         emit_playback_stopped_mpris();
 
@@ -314,10 +297,6 @@ void kew_shutdown()
                 noMusicFound = true;
         }
 
-        UserData *user_data = audio_data.pUserData;
-
-        unload_songs(user_data);
-
 #ifdef CHAFA_VERSION_1_16
         retire_passthrough_workarounds_tmux();
 #endif
@@ -332,16 +311,11 @@ void kew_shutdown()
         set_path(settings->path);
         set_prefs(settings, &(state->uiSettings));
         save_favorites_playlist(settings->path, favorites_playlist);
-        delete_cache(state_ptr->tmpCache);
         save_library();
         free_library();
         free_playlists();
         set_default_text_color();
 
-        if (audio_data.pUserData != NULL)
-                free(audio_data.pUserData);
-
-        pthread_mutex_destroy(&(ps->loadingdata.mutex));
         pthread_mutex_destroy(&(state->switch_mutex));
 
         pthread_mutex_destroy(&(state->data_source_mutex));
@@ -408,7 +382,7 @@ gboolean mainloop_callback(gpointer data)
         handle_cooldown();
 
         if (should_exit()) {
-                g_main_loop_quit((GMainLoop *) data);
+                g_main_loop_quit((GMainLoop *)data);
                 return FALSE;
         }
 
@@ -479,19 +453,13 @@ void run(bool start_playing)
         PlayList *playlist = get_playlist();
         PlayList *unshuffled_playlist = get_unshuffled_playlist();
         PlaybackState *ps = get_playback_state();
-        UserData *user_data = audio_data.pUserData;
 
         if (unshuffled_playlist == NULL) {
                 set_unshuffled_playlist(deep_copy_playlist(playlist));
         }
 
         if (state->uiSettings.saveRepeatShuffleSettings) {
-                if (state->uiSettings.repeatState == 1)
-                        toggle_repeat();
-                if (state->uiSettings.repeatState == 2) {
-                        toggle_repeat();
-                        toggle_repeat();
-                }
+
                 if (state->uiSettings.shuffle_enabled)
                         toggle_shuffle();
         }
@@ -509,13 +477,6 @@ void run(bool start_playing)
         ps->loadedNextSong = false;
         if (start_playing)
                 ps->waitingForPlaylist = true;
-
-        audio_data.currentFileIndex = 0;
-        user_data->current_song_data = NULL;
-        user_data->songdataA = NULL;
-        user_data->songdataB = NULL;
-        user_data->songdataADeleted = true;
-        user_data->songdataBDeleted = true;
 
         if (playlist->count != 0)
                 check_and_load_next_song();
@@ -564,23 +525,14 @@ void kew_init(bool set_library_enqueued_status)
         // This is to not stop Chroma when we can't keep up with it, instead just return an error
         signal(SIGPIPE, SIG_IGN);
 
-        PlaybackState *ps = get_playback_state();
-        UserData *user_data = audio_data.pUserData;
         PlayList *playlist = get_playlist();
-        state->tmpCache = create_cache();
 
-        c_strcpy(ps->loadingdata.file_path, "", sizeof(ps->loadingdata.file_path));
-        ps->loadingdata.songdataA = NULL;
-        ps->loadingdata.songdataB = NULL;
-        ps->loadingdata.loadA = true;
-        ps->loadingdata.loadingFirstDecoder = true;
-        audio_data.restart = true;
-        user_data->songdataADeleted = true;
-        user_data->songdataBDeleted = true;
+        sound_system_set_restart_audio(sound_sys, true);
+
         unsigned int seed = (unsigned int)time(NULL);
 
         srand(seed);
-        pthread_mutex_init(&(ps->loadingdata.mutex), NULL);
+
         pthread_mutex_init(&(playlist->mutex), NULL);
         free_search_results();
         reset_chosen_dir();
@@ -601,6 +553,9 @@ void kew_init(bool set_library_enqueued_status)
         FILE *null_stream = freopen("/dev/null", "w", stderr);
         (void)null_stream;
 #endif
+
+        if (!create_sound_system())
+                quit();
 }
 
 /**
@@ -625,8 +580,8 @@ void init_default_state(void)
 
         reset_list_after_dequeuing_playing_song();
 
-        audio_data.restart = true;
-        audio_data.end_of_list_reached = true;
+        sound_system_set_restart_audio(sound_sys, true);
+        sound_system_set_end_of_list_reached(sound_sys, true);
         ps->loadedNextSong = false;
 
         state->currentView = LIBRARY_VIEW;
@@ -729,7 +684,6 @@ void init_state(void)
         state->uiState.logFile = NULL;
         state->uiState.showLyricsPage = false;
         state->uiState.currentLibEntry = NULL;
-        state->tmpCache = NULL;
         state->uiSettings.default_color = 150;
         state->uiSettings.defaultColorRGB.r = state->uiSettings.default_color;
         state->uiSettings.defaultColorRGB.g = state->uiSettings.default_color;
@@ -739,11 +693,11 @@ void init_state(void)
         state->uiSettings.kewColorRGB.b = 77;
         state->uiSettings.chromaPreset = -1;
         state->uiSettings.visualizations_instead_of_cover = false;
+        state->uiSettings.lastVolume = 100;
 
         PlaybackState *ps = get_playback_state();
 
         ps->lastPlayedId = -1;
-        ps->usingSongDataA = true;
         ps->nextSongNeedsRebuilding = false;
         ps->songHasErrors = false;
         ps->forceSkip = false;
@@ -764,9 +718,6 @@ void init_state(void)
 
         set_unshuffled_playlist(NULL);
         set_favorites_playlist(NULL);
-
-        audio_data.pUserData = malloc(sizeof(UserData));
-        memset(&audio_data.pcm_rb, 0, sizeof(audio_data.pcm_rb));
 
         reset_digits_pressed();
 

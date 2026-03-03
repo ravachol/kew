@@ -8,74 +8,66 @@
  */
 
 #include "playback_system.h"
+#include "playback_state.h"
 
 #include "common/appstate.h"
 #include "common/common.h"
-#include "sound/audiotypes.h"
-#include "sound/decoders.h"
-#include "sound/playback.h"
-#include "sound/sound.h"
 
-#include "data/song_loader.h"
+#include "data/theme.h"
 
-void playback_cleanup(void)
+#include "sound/sound_facade.h"
+
+int create_sound_system(void)
 {
-        cleanup_playback_device();
+        AppState *state = get_app_state();
+
+        bool success = sound_system_create(&sound_sys) == SOUND_OK;
+
+        if (success)
+                sound_system_set_replay_gain_check_track_first(sound_sys, state->uiSettings.replayGainCheckFirst);
+
+        return success;
 }
 
-void switch_audio_implementation(void)
+void shutdown_sound_system(void)
 {
-        pb_switch_audio_implementation();
+        sound_system_destroy(&sound_sys);
 }
 
-int create_playback_device(void)
+void uninit_device(void)
 {
-        return pb_create_audio_device();
-}
+        sound_system_uninit_device(sound_sys);
 
-void sound_shutdown(void)
-{
-        pb_sound_shutdown();
-}
-
-void unload_songs(UserData *user_data)
-{
         PlaybackState *ps = get_playback_state();
+        ps->loadedNextSong = false;
+        ps->waitingForNext = true;
+}
 
-        if (!user_data->songdataADeleted) {
-                user_data->songdataADeleted = true;
-                unload_song_data(&(ps->loadingdata.songdataA));
-        }
-        if (!user_data->songdataBDeleted) {
-                user_data->songdataBDeleted = true;
-                unload_song_data(&(ps->loadingdata.songdataB));
-        }
+void switch_decoder(void)
+{
+        sound_system_switch_decoder(sound_sys);
 }
 
 void skip(void)
 {
         PlaybackState *ps = get_playback_state();
 
-        set_current_implementation_type(NONE);
+        sound_system_stop_decoding(sound_sys);
 
-        set_repeat_enabled(false);
+        if (is_repeat_enabled())
+                set_repeat_state(0);
 
-        audio_data.end_of_list_reached = false;
+        sound_system_set_end_of_list_reached(sound_sys, false);
 
-        if (!is_playing()) {
-                pb_switch_audio_implementation();
+        if (sound_system_get_state(sound_sys) != SOUND_STATE_PLAYING) {
+                switch_decoder();
                 ps->skipFromStopped = true;
         } else {
-                set_skip_to_next(true);
+                sound_system_skip_to_next(sound_sys);
         }
 
         if (!ps->skipOutOfOrder)
                 trigger_refresh();
-}
-
-void free_decoders(void)
-{
-        reset_decoders();
 }
 
 void ensure_default_theme_pack()

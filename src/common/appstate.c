@@ -13,7 +13,7 @@ FileSystemEntry *library = NULL;
 
 PlaybackState playback_state;
 
-AudioData audio_data;
+sound_system_t *sound_sys = NULL;
 
 AppSettings settings;
 
@@ -79,11 +79,6 @@ void create_playlist(PlayList **playlist)
 }
 
 // --- Getters ---
-
-AudioData *get_audio_data(void)
-{
-        return &audio_data;
-}
 
 AppState *get_app_state()
 {
@@ -156,12 +151,6 @@ PlayList *get_favorites_playlist(void)
 }
 
 // --- Setters ---
-
-void set_audio_data(AudioData *ad)
-{
-        if (ad)
-                audio_data = *ad;
-}
 
 void set_library(FileSystemEntry *root)
 {

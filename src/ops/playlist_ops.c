@@ -20,10 +20,7 @@
 
 #include "common/appstate.h"
 
-#include "sound/audiotypes.h"
-#include "sound/playback.h"
-
-#include "data/song_loader.h"
+#include "sound/sound_facade.h"
 
 #include "sys/sys_integration.h"
 
@@ -105,15 +102,15 @@ void remove_currently_playing_song(void)
         PlaybackState *ps = get_playback_state();
 
         if (current != NULL) {
-                stop_playback();
+                sound_system_stop(sound_sys);
                 emit_string_property_changed("PlaybackStatus", "Stopped");
-                clear_current_track();
+                sound_system_clear_current_track(sound_sys);
                 clear_current_song();
         }
 
         ps->loadedNextSong = false;
-        audio_data.restart = true;
-        audio_data.end_of_list_reached = true;
+        sound_system_set_restart_audio(sound_sys, true);
+        sound_system_set_end_of_list_reached(sound_sys, true);
 
         if (current != NULL) {
                 ps->lastPlayedId = current->id;
@@ -128,16 +125,10 @@ void rebuild_next_song(Node *song)
         if (song == NULL)
                 return;
 
-        AppState *state = get_app_state();
         PlaybackState *ps = get_playback_state();
-
-        ps->loadingdata.state = state;
-        ps->loadingdata.loadA = !ps->usingSongDataA;
-        ps->loadingdata.loadingFirstDecoder = false;
-
         ps->songLoading = true;
 
-        load_song(song, &ps->loadingdata);
+        load_song(song, false, true);
 
         int max_num_tries = 50;
         int numtries = 0;
@@ -377,13 +368,12 @@ void silent_switch_to_next(bool load_song)
 
         set_next_song(NULL);
         set_current_song_to_next();
-        activate_switch(&audio_data);
+        sound_system_switch_song_immediate(sound_sys);
 
         ps->skipOutOfOrder = true;
-        ps->usingSongDataA = (audio_data.currentFileIndex == 0);
 
         if (load_song) {
-                load_next_song();
+                load_next_song(false);
                 finish_loading();
                 ps->loadedNextSong = true;
                 ps->notifySwitch = true;
@@ -395,35 +385,27 @@ void silent_switch_to_next(bool load_song)
 
         ps->skipping = false;
         ps->hasSilentlySwitched = true;
-        ps->nextSongNeedsRebuilding = true;
+        ps->nextSongNeedsRebuilding = false;
 
-        set_paused(true);
-        set_stopped(false);
+        pause_song();
 
         set_next_song(NULL);
 }
 
 void silent_switch_to_prev(void)
 {
-        AppState *state = get_app_state();
         PlaybackState *ps = get_playback_state();
 
         ps->skipping = true;
 
         set_current_song_to_prev();
-        activate_switch(&audio_data);
+        sound_system_switch_song_immediate(sound_sys);
 
         ps->loadedNextSong = false;
         ps->songLoading = true;
         ps->forceSkip = false;
 
-        ps->usingSongDataA = !ps->usingSongDataA;
-
-        ps->loadingdata.state = state;
-        ps->loadingdata.loadA = ps->usingSongDataA;
-        ps->loadingdata.loadingFirstDecoder = true;
-
-        load_song(get_current_song(), &ps->loadingdata);
+        load_song(get_current_song(), true, false);
         finish_loading();
         reset_clock();
         trigger_refresh();
@@ -431,8 +413,7 @@ void silent_switch_to_prev(void)
         ps->skipping = false;
         ps->nextSongNeedsRebuilding = true;
 
-        set_paused(true);
-        set_stopped(false);
+        pause_song();
 
         set_next_song(NULL);
 
@@ -451,7 +432,7 @@ void skip_to_next_song(void)
         if (current == NULL || current->next == NULL) {
                 if (is_repeat_list_enabled()) {
                         clear_current_song();
-                } else if (!pb_is_stopped() && !pb_is_paused()) {
+                } else if (sound_system_get_state(sound_sys) == SOUND_STATE_PLAYING) {
                         stop();
                         return;
                 } else {
@@ -463,7 +444,7 @@ void skip_to_next_song(void)
             ps->clearingErrors)
                 return;
 
-        if (pb_is_stopped() || pb_is_paused()) {
+        if (sound_system_get_state(sound_sys) != SOUND_STATE_PLAYING) {
                 silent_switch_to_next(true);
                 return;
         }
@@ -494,12 +475,12 @@ void skip_to_prev_song(void)
                 return;
         skip_in_progress = true;
 
-        AppState *state = get_app_state();
         Node *current = get_current_song();
         PlaybackState *ps = get_playback_state();
 retry:
         if (current == NULL) {
-                if (!pb_is_stopped() && !pb_is_paused())
+
+                if (sound_system_get_state(sound_sys) == SOUND_STATE_PLAYING)
                         stop();
 
                 skip_in_progress = false;
@@ -512,7 +493,7 @@ retry:
                         return;
                 }
 
-        if (pb_is_stopped() || pb_is_paused()) {
+        if (sound_system_get_state(sound_sys) != SOUND_STATE_PLAYING) {
                 silent_switch_to_prev();
                 skip_in_progress = false;
                 return;
@@ -532,8 +513,6 @@ retry:
         double total_pause_seconds = get_total_pause_seconds();
         double pause_seconds = get_total_pause_seconds();
 
-        play();
-
         set_total_pause_seconds(total_pause_seconds);
         set_pause_seconds(pause_seconds);
 
@@ -541,13 +520,11 @@ retry:
         ps->skipOutOfOrder = true;
         ps->songLoading = true;
         ps->forceSkip = false;
-        ps->loadingdata.state = state;
-        ps->loadingdata.loadA = !ps->usingSongDataA;
-        ps->loadingdata.loadingFirstDecoder = true;
-
         ps->loadedNextSong = false;
 
-        load_song(get_current_song(), &ps->loadingdata);
+        play();
+
+        load_song(get_current_song(), false, true);
 
         int max_num_tries = 50;
         int numtries = 0;
@@ -572,19 +549,16 @@ retry:
 
 void skip_to_numbered_song(int song_number)
 {
-        AppState *state = get_app_state();
         PlayList *unshuffled_playlist = get_unshuffled_playlist();
         PlayList *playlist = get_playlist();
         PlaybackState *ps = get_playback_state();
 
-        if (ps->songLoading || !ps->loadedNextSong || ps->skipping || ps->clearingErrors)
+        if (ps->songLoading || ps->skipping || ps->clearingErrors)
                 if (!ps->forceSkip)
                         return;
 
         double total_pause_seconds = get_total_pause_seconds();
         double pause_seconds = get_total_pause_seconds();
-
-        play();
 
         set_total_pause_seconds(total_pause_seconds);
         set_pause_seconds(pause_seconds);
@@ -597,10 +571,10 @@ void skip_to_numbered_song(int song_number)
 
         set_current_song(get_song_by_number(unshuffled_playlist, song_number));
 
-        ps->loadingdata.state = state;
-        ps->loadingdata.loadA = !ps->usingSongDataA;
-        ps->loadingdata.loadingFirstDecoder = true;
-        load_song(get_current_song(), &ps->loadingdata);
+        sound_system_stop(sound_sys);
+
+        load_song(get_current_song(), true, false);
+
         int max_num_tries = 50;
         int numtries = 0;
 
@@ -617,6 +591,7 @@ void skip_to_numbered_song(int song_number)
         }
 
         reset_clock();
+
         skip();
 }
 
@@ -639,12 +614,8 @@ void skip_to_last_song(void)
 
 void repeat_list(void)
 {
-        PlaybackState *ps = get_playback_state();
-
-        ps->waitingForPlaylist = true;
-        ps->nextSongNeedsRebuilding = true;
-        ps->skipping = true;
-        audio_data.end_of_list_reached = false;
+        sound_system_set_end_of_list_reached(sound_sys, false);
+        skip_to_numbered_song(1);
 }
 
 void move_song_up(int *chosen_row)
@@ -855,7 +826,7 @@ bool play_pre_processing()
 {
         bool was_end_of_list = false;
 
-        if (audio_data.end_of_list_reached)
+        if (sound_system_is_end_of_list_reached(sound_sys))
                 was_end_of_list = true;
 
         return was_end_of_list;
@@ -874,21 +845,18 @@ void play_post_processing(bool was_end_of_list)
                 ps->skipOutOfOrder = false;
         }
 
-        audio_data.end_of_list_reached = false;
+        sound_system_set_end_of_list_reached(sound_sys, false);
 }
 
 void clear_and_play(Node *song)
 {
         PlaybackState *ps = get_playback_state();
         set_song_to_start_from(song);
-        set_current_implementation_type(NONE);
-        audio_data.restart = true;
-        audio_data.end_of_list_reached = false;
-        audio_data.currentFileIndex = 0;
+        sound_system_stop_decoding(sound_sys);
+        sound_system_set_restart_audio(sound_sys, true);
+        sound_system_set_end_of_list_reached(sound_sys, false);
         ps->nextSongNeedsRebuilding = true;
         ps->skipOutOfOrder = false;
-        ps->usingSongDataA = false;
-        ps->loadingdata.loadA = true;
         ps->waitingForNext = true;
         ps->loadedNextSong = false;
         ps->lastPlayedId = -1;

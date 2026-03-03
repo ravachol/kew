@@ -187,19 +187,19 @@ endif
 OBJDIR = src/obj
 
 SRCS = src/common/appstate.c src/ui/common_ui.c src/common/common.c \
-       src/utils/utils.c src/utils/file.c src/utils/cache.c src/utils/term.c \
-       src/sound/sound.c src/sound/m4a.c src/sound/audiobuffer.c \
+       src/utils/utils.c src/utils/file.c src/utils/img_utils.c src/utils/term.c \
+       src/sound/sound_facade.c src/sound/sound.c src/sound/m4a.c src/sound/audiobuffer.c \
        src/sound/decoders.c src/sound/audio_file_info.c src/sound/playback.c src/sound/volume.c \
        src/sys/sys_integration.c src/sys/notifications.c src/sys/mpris.c src/sys/discord_rpc.c \
        src/ops/playback_ops.c src/ops/playback_clock.c src/ops/playback_system.c \
        src/ops/playlist_ops.c src/ops/library_ops.c src/ops/track_manager.c src/ops/playback_state.c \
        src/ui/control_ui.c  src/ui/input.c src/ui/playlist_ui.c  src/ui/search_ui.c  src/ui/player_ui.c \
        src/ui/visuals.c src/ui/chroma.c src/ui/queue_ui.c src/ui/settings.c  src/ui/cli.c \
-       src/data/theme.c src/data/directorytree.c src/data/lyrics.c src/data/img_func.c src/data/song_loader.c  \
-       src/data/playlist.c  src/kew.c
+       src/data/theme.c src/data/directorytree.c src/loader/lyrics.c src/data/img_func.c   \
+       src/data/playlist.c src/data/cache.c src/loader/song_loader.c src/kew.c
 
 # TagLib wrapper
-WRAPPER_SRC = src/data/tagLibWrapper.cpp
+WRAPPER_SRC = src/loader/tagLibWrapper.cpp
 WRAPPER_OBJ = $(OBJDIR)/tagLibWrapper.o
 
 MAN_PAGE = kew.1

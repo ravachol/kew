@@ -19,8 +19,6 @@
 
 #include "ops/playback_state.h"
 
-#include "sound/volume.h"
-
 #include "utils/file.h"
 #include "utils/utils.h"
 
@@ -378,7 +376,6 @@ TBKeyBinding *get_key_bindings()
 AppSettings init_settings(void)
 {
         AppState *state = get_app_state();
-        UserData *user_data = audio_data.pUserData;
 
         AppSettings settings;
 
@@ -386,9 +383,6 @@ AppSettings init_settings(void)
 
         get_config(&settings, &(state->uiSettings));
         get_prefs(&settings, &(state->uiSettings));
-
-        user_data->replayGainCheckFirst =
-            state->uiSettings.replayGainCheckFirst;
 
         return settings;
 }
@@ -1592,7 +1586,7 @@ void get_prefs(AppSettings *settings, UISettings *ui)
 
         int tmp = get_number(settings->repeatState);
         if (tmp >= 0)
-                ui->repeatState = tmp;
+                set_repeat_state(tmp);
 
         if (settings->chromaPreset[0] != '\0') {
                 tmp = get_number(settings->chromaPreset);
@@ -1637,7 +1631,7 @@ void get_config(AppSettings *settings, UISettings *ui)
         if (file == NULL) {
                 set_config(settings, ui);
         } else {
-               fclose(file);
+                fclose(file);
         }
 
         KeyValuePair *pairs =
@@ -1705,7 +1699,7 @@ void set_prefs(AppSettings *settings, UISettings *ui)
                          sizeof(settings->visualizer_color_type), "%d",
                          ui->visualizer_color_type);
 
-        int current_volume = get_current_volume();
+        int current_volume = get_volume();
         current_volume = (current_volume <= 0) ? 10 : current_volume;
         snprintf(settings->lastVolume, sizeof(settings->lastVolume), "%d",
                  current_volume);
