@@ -35,8 +35,7 @@ Thank you @yuri-xyz for helping out with this.
 
 - Add option to disable the stripping of track numbers from file names in the library: stripTrackNumbers=0. By @episvr.
 
-- Audio subsystem has been reworked which should make the audio smooth when the computer is under heavy load. Gaming with kew
-playing should be silky smooth now. Lots of functions were removed/unified, and some issues fixed. This should make the flow of the program easier to understand for other coders as well. by @ravachol.
+- Audio subsystem has been reworked and improved structurally, which among other things should make the audio smooth when the computer is under heavy load. Gaming with kew playing should be silky smooth now. Lots of functions were removed/unified, and some issues fixed. This should make the flow of the program easier to understand for other coders as well. by @ravachol.
 
 #### Bug Fixes
 

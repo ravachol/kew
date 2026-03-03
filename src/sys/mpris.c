@@ -20,7 +20,6 @@
 #include "ops/playlist_ops.h"
 
 #include "sound/playback.h"
-#include "sound/volume.h"
 
 #ifdef USE_MACOS_MEDIA
 #include "macos_nowplaying.h"
@@ -615,7 +614,7 @@ static gboolean get_volume_mpris(GDBusConnection *connection, const gchar *sende
         (void)error;
         (void)user_data;
 
-        volume = (gdouble)get_current_volume();
+        volume = (gdouble)get_volume();
 
         if (volume >= 1)
                 volume = volume / 100;
@@ -996,32 +995,32 @@ void emit_playback_stopped_mpris()
 void cleanup_mpris(void)
 {
 #ifdef USE_DBUS
-    if (registration_id != 0) {
-        g_dbus_connection_unregister_object(get_gd_bus_connection(), registration_id);
-        registration_id = 0;
-    }
+        if (registration_id != 0) {
+                g_dbus_connection_unregister_object(get_gd_bus_connection(), registration_id);
+                registration_id = 0;
+        }
 
-    if (player_registration_id != 0) {
-        g_dbus_connection_unregister_object(get_gd_bus_connection(), player_registration_id);
-        player_registration_id = 0;
-    }
+        if (player_registration_id != 0) {
+                g_dbus_connection_unregister_object(get_gd_bus_connection(), player_registration_id);
+                player_registration_id = 0;
+        }
 
-    if (bus_name_id != 0) {
-        g_bus_unown_name(bus_name_id);
-        bus_name_id = 0;
-    }
+        if (bus_name_id != 0) {
+                g_bus_unown_name(bus_name_id);
+                bus_name_id = 0;
+        }
 
-    if (get_gd_bus_connection() != NULL) {
-        g_object_unref(get_gd_bus_connection());
-        set_gd_bus_connection(NULL);
-    }
+        if (get_gd_bus_connection() != NULL) {
+                g_object_unref(get_gd_bus_connection());
+                set_gd_bus_connection(NULL);
+        }
 
-    if (get_g_main_context() != NULL) {
-        g_main_context_unref(get_g_main_context());
-        set_g_main_context(NULL);
-    }
+        if (get_g_main_context() != NULL) {
+                g_main_context_unref(get_g_main_context());
+                set_g_main_context(NULL);
+        }
 #elif defined(USE_MACOS_MEDIA)
-    cleanup_macos_nowplaying();
+        cleanup_macos_nowplaying();
 #endif
 }
 
@@ -1162,7 +1161,7 @@ void emit_properties_changed(GDBusConnection *connection,
 void emit_volume_changed(void)
 {
 #ifdef USE_DBUS
-        gdouble newVolume = (gdouble)get_current_volume() / 100;
+        gdouble newVolume = (gdouble)get_volume() / 100;
 
         if (newVolume > 1.0)
                 return;

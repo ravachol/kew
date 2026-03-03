@@ -8,7 +8,8 @@
 #include "decoders.h"
 
 #include "playback.h"
-#include "sound/audiotypes.h"
+
+#include "audiotypes.h"
 #include "utils/utils.h"
 
 #ifdef USE_FAAD
@@ -55,27 +56,27 @@ static ma_result init_ma_decoder_wrapper(
 }
 
 static ma_result init_vorbis_decoder(const char *pFilePath, const ma_decoding_backend_config *p_config,
-                              ma_libvorbis *decoder)
+                                     ma_libvorbis *decoder)
 {
         return ma_libvorbis_init_file(pFilePath, p_config, NULL, decoder);
 }
 
 static ma_result init_opus_decoder(const char *pFilePath, const ma_decoding_backend_config *p_config,
-                            ma_libopus *decoder)
+                                   ma_libopus *decoder)
 {
         return ma_libopus_init_file(pFilePath, p_config, NULL, decoder);
 }
 
 #ifdef USE_FAAD
 static ma_result init_m4a_decoder(const char *pFilePath, const ma_decoding_backend_config *p_config,
-                           ma_m4a *pM4a)
+                                  ma_m4a *pM4a)
 {
         return m4a_decoder_init_file(pFilePath, p_config, NULL, pM4a);
 }
 #endif
 
 static ma_result init_webm_decoder(const char *pFilePath, const ma_decoding_backend_config *p_config,
-                            ma_webm *decoder)
+                                   ma_webm *decoder)
 {
         return ma_webm_init_file(pFilePath, p_config, NULL, decoder);
 }
@@ -193,7 +194,7 @@ static ma_result ma_webm_read_pcm_frames_wrapper(void *pDecoder,
 static ma_result ma_decoder_seek_to_pcm_frame_wrapper(
     void *pDecoder, long long int frame_index, ma_seek_origin origin)
 {
-    (void)origin;
+        (void)origin;
         return ma_decoder_seek_to_pcm_frame((ma_decoder *)pDecoder, frame_index);
 }
 
@@ -407,7 +408,7 @@ static const CodecEntry codec_ops_list[] = {
 
 /* CodecOps finder functions */
 
-const CodecOps *get_codec_ops(enum AudioImplementation type)
+const CodecOps *get_codec_ops(enum decoder_type type)
 {
         for (size_t i = 0; i < sizeof(codec_ops_list) / sizeof(codec_ops_list[0]); i++) {
                 if (codec_ops_list[i].ops.implType == type)
@@ -443,14 +444,31 @@ void *get_current_decoder(void)
                 return decoders[decoder_index];
 }
 
-enum AudioImplementation get_current_decoder_implType(void)
+enum decoder_type get_current_decoder_implementation_type(void)
 {
         return atomic_load(&decoder_implType);
 }
 
-/* Decoder switch */
+int can_decoder_seek(void *decoder)
+{
+#ifdef USE_FAAD
+        if (get_current_decoder_implementation_type() == M4A) {
+                ma_m4a *dec = (ma_m4a *)decoder;
+                if (dec != NULL && dec->file_type == k_rawAAC)
+                        return 0;
+        }
+#endif
 
-void switch_decoder(void)
+        if (get_current_decoder_implementation_type() == WEBM) {
+                return 0;
+        }
+
+        return 1; // All the others can seek
+}
+
+/* Decoder index switch */
+
+void switch_decoder_index(void)
 {
         if (decoder_index == -1)
                 decoder_index = 0;
@@ -487,7 +505,7 @@ bool is_decoder_native(const char *file_path)
 
 /* Clear decoder chain*/
 
-void clear_decoder_chain()
+void clear_decoder_chain(void)
 {
         void *current =
             (decoder_index == -1)
@@ -503,7 +521,7 @@ void reset_decoders(void)
 {
         clear_decoder_chain();
 
-        int cur_implType = get_current_decoder_implType();
+        int cur_implType = get_current_decoder_implementation_type();
 
         if (cur_implType == NONE)
                 return;
@@ -533,22 +551,22 @@ void reset_decoders(void)
 
 /* Set current decoder AudioImplementation */
 
-void set_current_decoder_implType(enum AudioImplementation new_implType)
+void set_current_decoder_implType(enum decoder_type new_implType)
 {
         atomic_store(&decoder_implType, new_implType);
 }
 
 /* Set next decoder */
 
-void set_next_decoder(void *decoder, const enum AudioImplementation new_implType)
+void set_next_decoder(void *decoder, const enum decoder_type new_implType)
 {
-        enum AudioImplementation cur_implType = atomic_load(&decoder_implType);
+        enum decoder_type cur_implType = atomic_load(&decoder_implType);
 
         if (cur_implType != new_implType && cur_implType != NONE) // All decoders must be the same type
                 return;
 
         const CodecOps *cur_ops = get_codec_ops(cur_implType);
-        atomic_store(&decoder_implType, new_implType);
+        set_current_decoder_implType(new_implType);
 
         if (decoder_index == -1 && first_decoder == NULL) {
                 first_decoder = decoder;
@@ -591,7 +609,7 @@ int prepare_next_decoder(const char *filepath, SongData *song, const CodecOps *o
         ma_uint32 sampleRate = 0;
         ma_channel channel_map[MA_MAX_CHANNELS];
 
-        enum AudioImplementation cur_implType = atomic_load(&decoder_implType);
+        enum decoder_type cur_implType = atomic_load(&decoder_implType);
 
         bool same_impl_type = (cur_implType == ops->implType);
 
@@ -650,116 +668,7 @@ int prepare_next_decoder(const char *filepath, SongData *song, const CodecOps *o
 #ifdef USE_FAAD
                 if (ops->implType != M4A || (current && ((ma_m4a *)current)->file_type != k_rawAAC))
 #endif
-                ma_data_source_set_next(current, decoder);
+                        ma_data_source_set_next(current, decoder);
 
         return 0;
 }
-
-/* Helpers for the built-in decoders */
-// FIXME Remove not needed...
-
-static ma_result builtin_file_data_source_read(ma_data_source *p_data_source,
-                                               void *p_frames_out,
-                                               ma_uint64 frame_count,
-                                               ma_uint64 *p_frames_read)
-{
-        // Dummy implementation
-        (void)p_data_source;
-        (void)p_frames_out;
-        (void)frame_count;
-        (void)p_frames_read;
-        return MA_SUCCESS;
-}
-
-static ma_result builtin_file_data_source_seek(ma_data_source *p_data_source,
-                                               ma_uint64 frame_index)
-{
-        if (p_data_source == NULL) {
-                return MA_INVALID_ARGS;
-        }
-
-        AudioData *audio_data = (AudioData *)p_data_source;
-
-        if (get_current_decoder() == NULL) {
-                return MA_INVALID_ARGS;
-        }
-
-        ma_result result = ma_decoder_seek_to_pcm_frame(
-            (ma_decoder *)get_current_decoder(), frame_index);
-
-        if (result == MA_SUCCESS) {
-                audio_data->currentPCMFrame = frame_index;
-                return MA_SUCCESS;
-        } else {
-                return result;
-        }
-}
-
-static ma_result builtin_file_data_source_get_data_format(
-    ma_data_source *p_data_source, ma_format *p_format, ma_uint32 *p_channels,
-    ma_uint32 *p_sample_rate, ma_channel *p_channel_map, size_t channel_map_cap)
-{
-        (void)p_channel_map;
-        (void)channel_map_cap;
-
-        if (p_data_source == NULL) {
-                return MA_INVALID_ARGS;
-        }
-
-        AudioData *audio_data = (AudioData *)p_data_source;
-
-        if (p_format == NULL || p_channels == NULL || p_sample_rate == NULL) {
-                return MA_INVALID_ARGS;
-        }
-
-        *p_format = audio_data->format;
-        *p_channels = audio_data->channels;
-        *p_sample_rate = audio_data->sample_rate;
-
-        return MA_SUCCESS;
-}
-
-static ma_result
-builtin_file_data_source_get_cursor(ma_data_source *p_data_source,
-                                    ma_uint64 *p_cursor)
-{
-        if (p_data_source == NULL) {
-                return MA_INVALID_ARGS;
-        }
-
-        AudioData *audio_data = (AudioData *)p_data_source;
-        *p_cursor = audio_data->currentPCMFrame;
-
-        return MA_SUCCESS;
-}
-
-static ma_result
-builtin_file_data_source_get_length(ma_data_source *p_data_source,
-                                    ma_uint64 *p_length)
-{
-        (void)p_data_source;
-
-        return ma_decoder_get_length_in_pcm_frames(
-            (ma_decoder *)get_current_decoder(), p_length);
-}
-
-static ma_result
-builtin_file_data_source_set_looping(ma_data_source *p_data_source,
-                                     ma_bool32 is_looping)
-{
-        // Dummy implementation
-        (void)p_data_source;
-        (void)is_looping;
-
-        return MA_SUCCESS;
-}
-
-ma_data_source_vtable builtin_file_data_source_vtable = {
-    builtin_file_data_source_read,
-    builtin_file_data_source_seek,
-    builtin_file_data_source_get_data_format,
-    builtin_file_data_source_get_cursor,
-    builtin_file_data_source_get_length,
-    builtin_file_data_source_set_looping,
-    0 // Flags
-};

@@ -11,24 +11,14 @@
 #ifndef LYRICS_H
 #define LYRICS_H
 
+#include "songdatatype.h"
+
 #include <stdbool.h>
 #include <stddef.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-typedef struct {
-        double timestamp;
-        char *text;
-} LyricsLine;
-
-typedef struct {
-        LyricsLine *lines;
-        size_t count;
-        int max_length;
-        int isTimed;
-} Lyrics;
 
 /**
  * Loads lyrics from an LRC file corresponding to the given path.

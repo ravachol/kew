@@ -9,63 +9,78 @@
 
 #include "playback_state.h"
 
-#include "sound/playback.h"
-#include "sound/volume.h"
+#include "common/appstate.h"
 
-static bool repeat_list_enabled = false;
-static bool shuffle_enabled = false;
+#include "common/appstate.h"
 
-bool is_repeat_list_enabled(void)
-{
-        return repeat_list_enabled;
-}
+#include "sound/sound_facade.h"
 
-void set_repeat_list_enabled(bool value)
-{
-        repeat_list_enabled = value;
-}
+int shuffle_enabled;
 
 bool is_shuffle_enabled(void)
 {
         return shuffle_enabled;
 }
 
-void set_shuffle_enabled(bool value)
+void set_shuffle_enabled(int value)
 {
-        shuffle_enabled = value;
+        AppState *state = get_app_state();
+
+        shuffle_enabled = value == 1 ? 1 : 0;
+        state->uiSettings.shuffle_enabled = value;
+}
+
+bool is_repeat_list_enabled(void)
+{
+        return (sound_system_get_repeat_state() == SOUND_STATE_REPEAT_LIST);
+}
+
+void set_repeat_state(int repeat_state)
+{
+        AppState *state = get_app_state();
+
+        state->uiSettings.repeatState = repeat_state;
+        sound_system_set_repeat_state(repeat_state);
+}
+
+int get_repeat_state(void)
+{
+        return sound_system_get_repeat_state();
+}
+
+int get_current_sample_rate(void)
+{
+        return sound_system_get_sample_rate(sound_sys);
 }
 
 bool is_repeat_enabled(void)
 {
-        return pb_is_repeat_enabled();
+        return (sound_system_get_repeat_state() == SOUND_STATE_REPEAT);
 }
 
 bool is_paused(void)
 {
-        return pb_is_paused();
+        return (sound_system_get_state(sound_sys) == SOUND_STATE_PAUSED);
 }
 
 bool is_stopped(void)
 {
-        return pb_is_stopped();
+        return (sound_system_get_state(sound_sys) == SOUND_STATE_STOPPED);
 }
 
 bool is_EOF_reached(void)
 {
-        return pb_is_EOF_reached();
+        return sound_system_is_EOF_reached();
 }
 
-bool is_impl_switch_reached(void)
+bool is_switching_track(void)
 {
-        return pb_is_impl_switch_reached();
+        return sound_system_is_switching_track(sound_sys);
 }
 
 bool is_current_song_deleted(void)
 {
-
-        return (audio_data.currentFileIndex == 0)
-                   ? audio_data.pUserData->songdataADeleted == true
-                   : audio_data.pUserData->songdataBDeleted == true;
+        return sound_system_is_current_song_deleted(sound_sys);
 }
 
 bool is_valid_song(SongData *song_data)
@@ -76,7 +91,7 @@ bool is_valid_song(SongData *song_data)
 
 void set_EOF_handled(void)
 {
-        pb_set_EOF_handled();
+        sound_system_set_EOF_handled(sound_sys);
 }
 
 double get_current_song_duration(void)
@@ -90,41 +105,14 @@ double get_current_song_duration(void)
         return duration;
 }
 
-bool determine_current_song_data(SongData **current_song_data)
-{
-        *current_song_data = (audio_data.currentFileIndex == 0)
-                                 ? audio_data.pUserData->songdataA
-                                 : audio_data.pUserData->songdataB;
-
-        bool isDeleted = (audio_data.currentFileIndex == 0)
-                             ? audio_data.pUserData->songdataADeleted == true
-                             : audio_data.pUserData->songdataBDeleted == true;
-
-        if (isDeleted) {
-                *current_song_data = (audio_data.currentFileIndex != 0)
-                                         ? audio_data.pUserData->songdataA
-                                         : audio_data.pUserData->songdataB;
-
-                isDeleted = (audio_data.currentFileIndex != 0)
-                                ? audio_data.pUserData->songdataADeleted == true
-                                : audio_data.pUserData->songdataBDeleted == true;
-
-                if (!isDeleted) {
-                        activate_switch(&audio_data);
-                        audio_data.switch_files = false;
-                }
-        }
-        return isDeleted;
-}
-
 int get_volume()
 {
-        return get_current_volume();
+        return (int)(sound_system_get_volume(sound_sys) * 100);
 }
 
-void get_format_and_sample_rate(ma_format *format, ma_uint32 *sample_rate)
+void set_volume(int vol)
 {
-        get_current_format_and_sample_rate(format, sample_rate);
+        sound_system_set_volume(sound_sys, ((float)vol / 100));
 }
 
 SongData *get_current_song_data(void)
@@ -137,7 +125,12 @@ SongData *get_current_song_data(void)
 
         SongData *song_data = NULL;
 
-        bool isDeleted = determine_current_song_data(&song_data);
+        song_data = sound_system_get_current_song(sound_sys);
+
+        bool isDeleted = sound_system_is_current_song_deleted(sound_sys);
+
+        if (isDeleted && !sound_system_no_song_loaded(sound_sys))
+                sound_system_switch_song_immediate(sound_sys);
 
         if (isDeleted)
                 return NULL;

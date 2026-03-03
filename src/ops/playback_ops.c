@@ -16,136 +16,21 @@
 #include "playback_state.h"
 #include "playback_system.h"
 #include "playlist_ops.h"
+#include "track_manager.h"
 
-#include "sound/decoders.h"
-#ifdef USE_FAAD
-#include "sound/m4a.h"
-#endif
-#include "sound/playback.h"
+#include "sound/sound_facade.h"
 
-#include "sound/volume.h"
 #include "sys/sys_integration.h"
 
-#include "data/song_loader.h"
-
-#include "utils/file.h"
 #include "utils/utils.h"
 
 void resume_playback(void)
 {
-        sound_resume_playback();
-}
-
-int load_decoder(SongData *song_data, bool *song_data_deleted)
-{
-        PlaybackState *ps = get_playback_state();
-        int result = 0;
-
-        if (song_data != NULL) {
-                *song_data_deleted = false;
-
-                // This should only be done for the second song, as
-                // switch_audio_implementation() handles the first one
-                if (!ps->loadingdata.loadingFirstDecoder)
-                {
-                        const CodecOps *ops = find_codec_ops(song_data->file_path);
-                        result = prepare_next_decoder(song_data->file_path, song_data, ops);
-                }
-        }
-        return result;
-}
-
-int assign_loaded_data(void)
-{
-        PlaybackState *ps = get_playback_state();
-        int result = 0;
-
-        if (ps->loadingdata.loadA) {
-                audio_data.pUserData->songdataA = ps->loadingdata.songdataA;
-                result = load_decoder(ps->loadingdata.songdataA,
-                                      &(audio_data.pUserData->songdataADeleted));
-        } else {
-                audio_data.pUserData->songdataB = ps->loadingdata.songdataB;
-                result = load_decoder(ps->loadingdata.songdataB,
-                                      &(audio_data.pUserData->songdataBDeleted));
-        }
-
-        return result;
-}
-
-void *song_data_reader_thread(void *arg)
-{
-        PlaybackState *ps = (PlaybackState *)arg;
-
-        pthread_mutex_lock(&(ps->loadingdata.mutex));
-
-        char filepath[PATH_MAX];
-        c_strcpy(filepath, ps->loadingdata.file_path, sizeof(filepath));
-
-        SongData *songdata = exists_file(filepath) >= 0 ? load_song_data(filepath) : NULL;
-
-        if (ps->loadingdata.loadA) {
-                if (!audio_data.pUserData->songdataADeleted) {
-                        unload_song_data(&(ps->loadingdata.songdataA));
-                }
-                audio_data.pUserData->songdataADeleted = false;
-                audio_data.pUserData->songdataA = songdata;
-                ps->loadingdata.songdataA = songdata;
-        } else {
-                if (!audio_data.pUserData->songdataBDeleted) {
-                        unload_song_data(&(ps->loadingdata.songdataB));
-                }
-                audio_data.pUserData->songdataBDeleted = false;
-                audio_data.pUserData->songdataB = songdata;
-                ps->loadingdata.songdataB = songdata;
-        }
-
-        int result = assign_loaded_data();
-
-        if (result < 0)
-                songdata->hasErrors = true;
-
-        pthread_mutex_unlock(&(ps->loadingdata.mutex));
-
-        if (songdata == NULL || songdata->hasErrors) {
-                ps->songHasErrors = true;
-                ps->clearingErrors = true;
-                set_next_song(NULL);
-        } else {
-                ps->songHasErrors = false;
-                ps->clearingErrors = false;
-                set_next_song(get_try_next_song());
-                set_try_next_song(NULL);
-        }
-
-        ps->loadedNextSong = true;
-        ps->skipping = false;
-        ps->songLoading = false;
-
-        return NULL;
-}
-
-void load_song(Node *song, LoadingThreadData *loadingdata)
-{
-        PlaybackState *ps = get_playback_state();
-
-        if (song == NULL) {
-                ps->loadedNextSong = true;
-                ps->skipping = false;
-                ps->songLoading = false;
-                return;
-        }
-
-        c_strcpy(loadingdata->file_path, song->song.file_path,
-                 sizeof(loadingdata->file_path));
-
-        pthread_t loading_thread;
-        pthread_create(&loading_thread, NULL, song_data_reader_thread, ps);
+        sound_system_play(sound_sys);
 }
 
 void try_load_next(void)
 {
-        AppState *state = get_app_state();
         PlaybackState *ps = get_playback_state();
         Node *current = get_current_song();
         Node *try_next_song = get_try_next_song();
@@ -160,10 +45,7 @@ void try_load_next(void)
 
         if (try_next_song != NULL) {
                 ps->songLoading = true;
-                ps->loadingdata.state = state;
-                ps->loadingdata.loadA = !ps->usingSongDataA;
-                ps->loadingdata.loadingFirstDecoder = false;
-                load_song(try_next_song, &ps->loadingdata);
+                load_song(try_next_song, false, false);
         } else {
                 ps->clearingErrors = false;
         }
@@ -171,11 +53,18 @@ void try_load_next(void)
 
 void pause_song(void)
 {
-        if (!pb_is_paused()) {
+        if (sound_system_get_state(sound_sys) != SOUND_STATE_PAUSED) {
                 emit_string_property_changed("PlaybackStatus", "Paused");
                 update_pause_time();
         }
-        pause_playback();
+
+        AppState *state = get_app_state();
+
+        if (state->currentView != TRACK_VIEW) {
+                trigger_refresh();
+        }
+
+        sound_system_pause(sound_sys);
 }
 
 void skip_to_begginning_of_song(void)
@@ -183,7 +72,7 @@ void skip_to_begginning_of_song(void)
         reset_clock();
 
         if (get_current_song() != NULL) {
-                seek_percentage(0);
+                sound_system_seek_percentage(sound_sys, 0);
                 emit_seeked_signal(0.0);
         }
 }
@@ -195,13 +84,15 @@ void prepare_if_skipped_silent(void)
         if (ps->hasSilentlySwitched) {
                 ps->skipping = true;
                 ps->hasSilentlySwitched = false;
+
                 reset_clock();
-                set_current_implementation_type(NONE);
-                set_repeat_enabled(false);
 
-                audio_data.end_of_list_reached = false;
+                sound_system_stop_decoding(sound_sys);
 
-                ps->usingSongDataA = !ps->usingSongDataA;
+                if (get_repeat_state() == 1)
+                        set_repeat_state(0);
+
+                sound_system_set_end_of_list_reached(sound_sys, false);
 
                 ps->skipping = false;
         }
@@ -211,18 +102,20 @@ void play(void)
 {
         PlaybackState *ps = get_playback_state();
 
-        if (pb_is_paused()) {
+        int state = sound_system_get_state(sound_sys);
+
+        if (state == SOUND_STATE_PAUSED) {
                 set_total_pause_seconds(get_total_pause_seconds() + get_pause_seconds());
                 emit_string_property_changed("PlaybackStatus", "Playing");
-        } else if (pb_is_stopped()) {
+        } else if (state == SOUND_STATE_STOPPED) {
                 emit_string_property_changed("PlaybackStatus", "Playing");
         }
 
-        if (pb_is_stopped() && !ps->hasSilentlySwitched) {
+        if (state == SOUND_STATE_STOPPED && !ps->hasSilentlySwitched) {
                 skip_to_begginning_of_song();
         }
 
-        sound_resume_playback();
+        resume_playback();
 
         if (ps->hasSilentlySwitched) {
                 set_total_pause_seconds(0);
@@ -245,7 +138,6 @@ bool is_valid_audio_node(Node *node)
 
 int play_song(Node *node)
 {
-        AppState *state = get_app_state();
         PlaybackState *ps = get_playback_state();
 
         if (!is_valid_audio_node(node)) {
@@ -263,19 +155,15 @@ int play_song(Node *node)
         ps->loadedNextSong = false;
 
         // Cancel starting from top
-        if (ps->waitingForPlaylist || audio_data.restart) {
+        if (ps->waitingForPlaylist || sound_system_get_restart_audio(sound_sys)) {
                 ps->waitingForPlaylist = false;
-                audio_data.restart = false;
+                sound_system_set_restart_audio(sound_sys, false);
 
                 if (is_shuffle_enabled())
                         reshuffle_playlist();
         }
 
-        ps->loadingdata.state = state;
-        ps->loadingdata.loadA = !ps->usingSongDataA;
-        ps->loadingdata.loadingFirstDecoder = true;
-
-        load_song(node, &ps->loadingdata);
+        load_song(node, true, false);
 
         int max_num_tries = 50;
         int numtries = 0;
@@ -302,7 +190,10 @@ int play_song(Node *node)
 
 void volume_change(int change_percent)
 {
-        adjust_volume_percent(change_percent);
+        int sound_volume = get_volume();
+        sound_volume += change_percent;
+
+        set_volume(sound_volume);
 }
 
 void skip_to_song(int id, bool start_playing)
@@ -333,9 +224,9 @@ void skip_to_song(int id, bool start_playing)
 
 void stop(void)
 {
-        stop_playback();
+        sound_system_stop(sound_sys);
 
-        if (pb_is_stopped()) {
+        if (sound_system_get_state(sound_sys) == SOUND_STATE_STOPPED) {
                 skip_to_begginning_of_song();
                 emit_string_property_changed("PlaybackStatus", "Stopped");
         }
@@ -343,19 +234,28 @@ void stop(void)
 
 void ops_toggle_pause(void)
 {
+        AppState *state = get_app_state();
         PlaybackState *ps = get_playback_state();
 
-        if (pb_is_stopped()) {
+        if (sound_system_get_state(sound_sys) == SOUND_STATE_STOPPED) {
                 reset_clock();
         }
 
-        if (get_current_song() == NULL && pb_is_paused()) {
+        if (get_current_song() == NULL && sound_system_get_state(sound_sys) == SOUND_STATE_PAUSED) {
                 return;
         }
 
-        toggle_pause_playback();
+        sound_system_toggle_pause(sound_sys);
 
-        if (pb_is_paused()) {
+        if (sound_system_get_state(sound_sys) == SOUND_STATE_PLAYING && sound_system_get_restart_audio(sound_sys)) {
+                sound_system_set_end_of_list_reached(sound_sys, false);
+        }
+
+        if (state->currentView != TRACK_VIEW) {
+                trigger_refresh();
+        }
+
+        if (sound_system_get_state(sound_sys) == SOUND_STATE_STOPPED) {
                 emit_string_property_changed("PlaybackStatus", "Paused");
                 update_pause_time();
         } else {
@@ -375,23 +275,7 @@ void seek(int seconds)
         if (current == NULL)
                 return;
 
-#ifdef USE_FAAD
-        if (audio_data.implType == M4A) {
-                ma_m4a *decoder = (ma_m4a*)get_current_decoder();
-                if (decoder != NULL && decoder->file_type == k_rawAAC)
-                        return;
-        }
-#endif
-
-        if (audio_data.implType == WEBM) {
-                return;
-        }
-
-        if (pb_is_paused())
-                return;
-
-        double duration = current->song.duration;
-        if (duration <= 0.0)
+        if (sound_system_get_state(sound_sys) == SOUND_STATE_STOPPED)
                 return;
 
         add_to_accumulated_seconds(seconds);

@@ -8,9 +8,8 @@
 #ifndef DECODERS_H
 #define DECODERS_H
 
-#include "common/appstate.h"
-
 #include "audiotypes.h"
+#include "sound/sound_facade.h"
 #include "webm.h"
 
 #include <miniaudio.h>
@@ -47,8 +46,8 @@ typedef int (*get_cursor_func)(
     long long *p_cursor);
 
 typedef int (*create_audio_device_func)(
-    UserData *user_data,
-    AudioData *audio_data,
+    void *user_data,
+    sound_system_t *sound,
     ma_device *device,
     ma_context *context,
     decoder_getter_func get_decoder,
@@ -83,7 +82,7 @@ typedef struct
         create_audio_device_func create_audio_device;
 
         /* Which implementation this is (VORBIS, OPUS, WEBM, BUILTIN, etc.) */
-        enum AudioImplementation implType;
+        enum decoder_type implType;
 
         /* Supports gapless playback? (WebM is false) */
         bool supportsGapless;
@@ -103,7 +102,7 @@ typedef struct
 
 } CodecOps;
 
-const CodecOps *get_codec_ops(enum AudioImplementation type);
+const CodecOps *get_codec_ops(enum decoder_type type);
 
 typedef struct
 {
@@ -138,7 +137,7 @@ void switch_specific_decoder(int *decoder_index);
  *
  * @see switch_specific_decoder
  */
-void switch_decoder(void);
+void switch_decoder_index(void);
 
 /**
  * @brief Retrieves codec operations for a given implementation type.
@@ -151,7 +150,7 @@ void switch_decoder(void);
  * @return Pointer to the corresponding CodecOps structure,
  *         or NULL if the implementation is not supported.
  */
-const CodecOps *get_codec_ops(enum AudioImplementation type);
+const CodecOps *get_codec_ops(enum decoder_type type);
 
 /**
  * @brief Determines the appropriate codec implementation for a file.
@@ -214,11 +213,18 @@ void *get_first_decoder(void);
 void *get_current_decoder(void);
 
 /**
+ * @brief Is the decoder capable of seeking.
+ *
+ * @return an int indicating 0 for seeking disabled and 1 for seeking allowed.
+ */
+int can_decoder_seek(void *decoder);
+
+/**
  * @brief Gets the current decoder AudioImplementation.
  *
  * @return An AudioImplementation.
  */
-enum AudioImplementation get_current_decoder_implType(void);
+enum decoder_type get_current_decoder_implementation_type(void);
 
 /**
  * @brief Resets the decoders in the system.
@@ -234,7 +240,7 @@ void reset_decoders();
  *
  * @param new_implType The type of audio implementation.
  */
-void set_current_decoder_implType(enum AudioImplementation new_implType);
+void set_current_decoder_implType(enum decoder_type new_implType);
 
 /**
  * @brief Sets the next decoder in the decoder chain.
@@ -245,7 +251,7 @@ void set_current_decoder_implType(enum AudioImplementation new_implType);
  * @param decoder A pointer to the next decoder to set.
  * @param new_implType The type of audio implementation.
  */
-void set_next_decoder(void *decoder, const enum AudioImplementation new_implType);
+void set_next_decoder(void *decoder, const enum decoder_type new_implType);
 
 /**
  * @brief Prepares the next decoder for any supported format.

@@ -7,28 +7,44 @@
  * playback operations and sound output subsystems.
  */
 
-#include "common/appstate.h"
-
-#include "data/theme.h"
-
 /**
- * @brief Create and initialize the audio playback device.
+ * @brief Create the sound system.
  *
  * Initializes the underlying audio backend and prepares the playback
  * device for audio output.
  *
  * @return 0 on success, or a negative value if device creation fails.
  */
-int create_playback_device(void);
+int create_sound_system(void);
 
 /**
- * @brief Clean up the playback device.
+ * @brief Shutdown the sound system.
  *
  * Releases resources associated with the audio playback device.
  * This version does not acquire any synchronization locks and
  * must only be called when it is safe to do so.
  */
-void playback_cleanup(void);
+void shutdown_sound_system(void);
+
+/**
+ * @brief Uninitializes the audio output device and resets playback state.
+ *
+ * Shuts down the underlying sound system device and updates the global
+ * playback state to reflect that no next song is currently loaded and
+ * that the system is waiting for the next track.
+ *
+ * Specifically:
+ * - Calls sound_system_uninit_device() to release audio hardware resources.
+ * - Sets PlaybackState::loadedNextSong to false.
+ * - Sets PlaybackState::waitingForNext to true.
+ *
+ * @note After calling this function, audio playback cannot resume until
+ *       the device is reinitialized.
+ *
+ * @warning This function should not be called while audio callbacks or
+ *          playback threads are actively using the device.
+ */
+void uninit_device(void);
 
 /**
  * @brief Skip to the next track or audio implementation.
@@ -45,34 +61,7 @@ void skip(void);
  * Requests the playback backend to switch between audio buffers or
  * decoder implementations (e.g., in a double-buffered setup).
  */
-void switch_audio_implementation(void);
-
-/**
- * @brief Shut down the audio subsystem.
- *
- * Performs final cleanup of the playback backend and releases
- * audio-related resources prior to application termination.
- */
-void sound_shutdown(void);
-
-/**
- * @brief Unload song data from both playback buffers.
- *
- * Marks both SongData buffers as deleted and frees their associated
- * resources if they have not already been unloaded.
- *
- * @param user_data Pointer to the UserData structure containing
- *                  song buffer state.
- */
-void unload_songs(UserData *user_data);
-
-/**
- * @brief Free all allocated decoder instances.
- *
- * Resets and releases all audio decoders currently managed by
- * the playback system.
- */
-void free_decoders(void);
+void switch_decoder(void);
 
 /**
  * @brief Ensure that the default theme pack is available.
@@ -81,4 +70,3 @@ void free_decoders(void);
  * installs or restores them if necessary.
  */
 void ensure_default_theme_pack(void);
-

@@ -30,7 +30,6 @@ typedef struct Cache {
  */
 Cache *create_cache(void);
 
-
 /**
  * @brief Adds a file path to the cache.
  *
@@ -42,7 +41,6 @@ Cache *create_cache(void);
  */
 void add_to_cache(Cache *cache, const char *file_path);
 
-
 /**
  * @brief Deletes the cache and frees allocated memory.
  *
@@ -52,7 +50,6 @@ void add_to_cache(Cache *cache, const char *file_path);
  * @param cache A pointer to the cache that should be deleted.
  */
 void delete_cache(Cache *cache);
-
 
 /**
  * @brief Checks if a file path exists in the cache.

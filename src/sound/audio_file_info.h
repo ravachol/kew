@@ -8,7 +8,7 @@
 #ifndef AUDIO_FILEINFO_H
 #define AUDIO_FILEINFO_H
 
-#include "common/common.h"
+#include "audiotypes.h"
 
 #include <miniaudio.h>
 
