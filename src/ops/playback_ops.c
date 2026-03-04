@@ -155,9 +155,9 @@ int play_song(Node *node)
         ps->loadedNextSong = false;
 
         // Cancel starting from top
-        if (ps->waitingForPlaylist || sound_system_get_restart_audio(sound_sys)) {
+        if (ps->waitingForPlaylist || should_start_playing()) {
                 ps->waitingForPlaylist = false;
-                sound_system_set_restart_audio(sound_sys, false);
+                start_playing(true);
 
                 if (is_shuffle_enabled())
                         reshuffle_playlist();
@@ -247,7 +247,7 @@ void ops_toggle_pause(void)
 
         sound_system_toggle_pause(sound_sys);
 
-        if (sound_system_get_state(sound_sys) == SOUND_STATE_PLAYING && sound_system_get_restart_audio(sound_sys)) {
+        if (sound_system_get_state(sound_sys) == SOUND_STATE_PLAYING && should_start_playing()) {
                 sound_system_set_end_of_list_reached(sound_sys, false);
         }
 

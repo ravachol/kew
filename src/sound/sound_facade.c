@@ -258,24 +258,6 @@ sound_result_t sound_system_set_seek_elapsed(double seek_elapsed)
         return SOUND_OK;
 }
 
-int sound_system_get_restart_audio(const sound_system_t *system)
-{
-        if (!system)
-                return 0;
-
-        return atomic_load(&system->restart_audio);
-}
-
-sound_result_t sound_system_set_restart_audio(sound_system_t *system, int value)
-{
-        if (!system)
-                return SOUND_ERROR_NOT_INITIALIZED;
-
-        atomic_store(&system->restart_audio, value);
-
-        return SOUND_OK;
-}
-
 int sound_system_is_end_of_list_reached(const sound_system_t *system)
 {
         if (!system)

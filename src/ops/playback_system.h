@@ -15,6 +15,7 @@
  *
  * @return 0 on success, or a negative value if device creation fails.
  */
+#include <stdbool.h>
 int create_sound_system(void);
 
 /**
@@ -70,3 +71,23 @@ void switch_decoder(void);
  * installs or restores them if necessary.
  */
 void ensure_default_theme_pack(void);
+
+/**
+ * @brief Returns whether audio should start playing.
+ *
+ * Retrieves the internal flag that indicates whether the audio
+ * device or playback pipeline should be started.
+ *
+ *
+ * @return Non-zero if audio start is requested, 0 otherwise.
+ *
+ * @note This flag is typically set via start_playing().
+ */
+int should_start_playing(void);
+
+/**
+ * @brief Signals that the audio should be started.
+ *
+ * @param value indicating if sound should start playing.
+ */
+void start_playing(bool value);

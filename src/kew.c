@@ -201,7 +201,7 @@ void check_and_load_next_song(void)
         AppState *state = get_app_state();
         PlaybackState *ps = get_playback_state();
 
-        if (sound_system_get_restart_audio(sound_sys)) {
+        if (should_start_playing()) {
                 PlayList *playlist = get_playlist();
                 if (playlist->head == NULL)
                         return;
@@ -213,7 +213,7 @@ void check_and_load_next_song(void)
                         if (!next_song)
                                 return;
 
-                        sound_system_set_restart_audio(sound_sys, false);
+                        start_playing(false);
                         ps->waitingForPlaylist = false;
                         ps->waitingForNext = false;
                         state->uiState.songWasRemoved = false;
@@ -527,7 +527,7 @@ void kew_init(bool set_library_enqueued_status)
 
         PlayList *playlist = get_playlist();
 
-        sound_system_set_restart_audio(sound_sys, true);
+        start_playing(true);
 
         unsigned int seed = (unsigned int)time(NULL);
 
@@ -580,7 +580,7 @@ void init_default_state(void)
 
         reset_list_after_dequeuing_playing_song();
 
-        sound_system_set_restart_audio(sound_sys, true);
+        start_playing(true);
         sound_system_set_end_of_list_reached(sound_sys, true);
         ps->loadedNextSong = false;
 

@@ -63,7 +63,7 @@ void reset_list_after_dequeuing_playing_song(void)
         if (get_current_song() == NULL && node == NULL) {
                 ps->loadedNextSong = false;
                 sound_system_set_end_of_list_reached(sound_sys, true);
-                sound_system_set_restart_audio(sound_sys, true);
+                start_playing(true);
 
                 emit_metadata_changed("", "", "", "",
                                       "/org/mpris/MediaPlayer2/TrackList/NoTrack",
@@ -78,7 +78,7 @@ void reset_list_after_dequeuing_playing_song(void)
 
                 state->uiState.songWasRemoved = true;
 
-                sound_system_set_restart_audio(sound_sys, true);
+                start_playing(true);
                 ps->waitingForNext = true;
 
                 if (get_playlist()->count == 0)
@@ -227,7 +227,7 @@ FileSystemEntry *enqueue(FileSystemEntry *entry)
         FileSystemEntry *first_enqueued_entry = NULL;
         PlaybackState *ps = get_playback_state();
 
-        if (sound_system_get_restart_audio(sound_sys)) {
+        if (should_start_playing()) {
                 Node *last_song = find_selected_entry_by_id(get_playlist(), ps->lastPlayedId);
                 state->uiState.startFromTop = false;
 

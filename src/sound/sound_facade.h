@@ -292,14 +292,6 @@ sound_result_t sound_system_set_repeat_state(int value);
 sound_result_t sound_system_set_EOF_handled(const sound_system_t *system);
 
 /**
- * @brief Signals that the audio should be restarted.
- *
- * @param system Pointer to the sound system instance.
- * @return sound_result_t Result code indicating success or failure.
- */
-sound_result_t sound_system_set_restart_audio(sound_system_t *system, int value);
-
-/**
  * @brief Sets whether the end of the playlist has been reached.
  *
  * Updates the internal flag indicating that playback has reached
@@ -364,20 +356,6 @@ sound_playback_state_t sound_system_get_state(
  */
 uint64_t sound_system_get_duration_ms(
     const sound_system_t *system);
-
-/**
- * @brief Returns whether audio restart is requested.
- *
- * Retrieves the internal flag that indicates whether the audio
- * device or playback pipeline should be restarted.
- *
- * @param system Pointer to the sound system instance.
- *
- * @return Non-zero if audio restart is requested, 0 otherwise.
- *
- * @note This flag is typically set via sound_system_set_restart_audio().
- */
-int sound_system_get_restart_audio(const sound_system_t *system);
 
 /**
  * @brief Retrieves the current repeat state.
