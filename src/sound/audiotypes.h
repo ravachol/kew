@@ -65,7 +65,7 @@ struct sound_system {
         sound_playback_state_t state;
 };
 
-enum decoder_type {
+enum decoder_type_t {
         PCM,
         BUILTIN,
         VORBIS,

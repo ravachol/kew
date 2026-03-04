@@ -34,7 +34,7 @@ static _Atomic bool EOF_reached = false;
 static _Atomic bool switch_reached = false;
 static _Atomic bool skip_to_next = false;
 
-static enum decoder_type current_implementation = NONE;
+static enum decoder_type_t current_implementation = NONE;
 
 static double seek_elapsed;
 
@@ -272,27 +272,27 @@ void get_current_format_and_sample_rate(ma_format *format, ma_uint32 *sample_rat
         *sample_rate = sound_s->sample_rate;
 }
 
-bool pb_is_impl_switch_reached(void)
+bool is_decoder_type_switch_reached(void)
 {
         return atomic_load(&switch_reached) ? true : false;
 }
 
-void set_impl_switch_reached(void)
+void set_decoder_type_switch_reached(void)
 {
         atomic_store(&switch_reached, true);
 }
 
-void set_impl_switch_not_reached(void)
+void set_decoder_type_switch_not_reached(void)
 {
         atomic_store(&switch_reached, false);
 }
 
-enum decoder_type get_current_implementation_type(void)
+enum decoder_type_t get_current_implementation_type(void)
 {
         return current_implementation;
 }
 
-void set_current_implementation_type(enum decoder_type value)
+void set_current_decoder_type(enum decoder_type_t value)
 {
         current_implementation = value;
 }
