@@ -95,7 +95,6 @@ static int has_chroma = -1;
 static bool next_visualization_requested = false;
 static bool redraw_side_cover = true;
 static ViewState last_view = LIBRARY_VIEW;
-static const char *last_cover_path_ptr = NULL;
 static size_t last_cover_path_hash = (size_t)-1;
 
 void request_next_visualization(void)
@@ -1690,8 +1689,8 @@ int display_tree(FileSystemEntry *root, int depth, int max_list_size,
         if (max_name_width < 0)
                 max_name_width = 0;
 
-        gchar dir_name[4 * g_utf8_strlen(root->name, -1) + 1];
-        gchar filename[4 * g_utf8_strlen(root->name, -1) + 1];
+        gchar dir_name[max_name_width * 4 + 1];
+        gchar filename[max_name_width * 4 + 1];
         bool foundChosen = false;
         int is_playing = 0;
         int extra_indent = 0;
@@ -1840,11 +1839,13 @@ int display_tree(FileSystemEntry *root, int depth, int max_list_size,
                         if (root->is_directory) {
                                 dir_name[0] = '\0';
 
-                                if (strcmp(root->name, "root") == 0)
+                                if (strcmp(root->name, "root") == 0) {
+
+                                        size_t copy_bytes = sizeof(dir_name);
                                         snprintf(dir_name,
-                                                 max_name_width + 1 - extra_indent,
-                                                 "%s", _("─ MUSIC LIBRARY ─"));
-                                else {
+                                                copy_bytes,
+                                                "%s", _("─ MUSIC LIBRARY ─"));
+                                } else {
                                         str_truncate_display_width(root->name, dir_name, max_name_width - extra_indent);
                                 }
                                 char *upper_dir_name = string_to_upper(dir_name);
@@ -1948,27 +1949,13 @@ void print_side_cover(SongData *songdata)
 
         const char *current_path = songdata ? songdata->cover_art_path : NULL;
 
-        if (current_path == NULL && last_cover_path_ptr == NULL) {
-                // Both NULL, nothing changed
-        } else if (current_path == NULL || last_cover_path_ptr == NULL || strcmp(current_path, last_cover_path_ptr) != 0) {
+        // Compute hash of current path
+        size_t current_hash = current_path ? string_hash(current_path) : (size_t)-1;
 
-                // Update last path
-                if (last_cover_path_ptr != current_path) {
-                        last_cover_path_ptr = current_path;
-                }
-
-                // Update hash
-                last_cover_path_hash = current_path ? string_hash(current_path) : (size_t)-1;
-
-                // Mark for redraw
+        // Determine if redraw is needed
+        if (current_hash != last_cover_path_hash) {
+                last_cover_path_hash = current_hash;
                 redraw_side_cover = true;
-        } else {
-                // Paths are the same, optional: check hash if desired
-                size_t current_hash = string_hash(current_path);
-                if (current_hash != last_cover_path_hash) {
-                        last_cover_path_hash = current_hash;
-                        redraw_side_cover = true;
-                }
         }
 
         if (state->currentView == TRACK_VIEW)
