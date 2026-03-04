@@ -121,7 +121,15 @@ endif
 
 COMMONFLAGS += -DMA_NO_AAUDIO
 COMMONFLAGS += -Wall -Wextra -Wpointer-arith
-LDFLAGS += -Wl,--gc-sections
+
+GC_SECTIONS_FLAG :=
+
+# Try to compile a dummy object with --gc-sections
+ifeq ($(shell echo "int main(){}" | $(CC) -x c - -c -Wl,--gc-sections >/dev/null 2>&1 && echo yes),yes)
+    GC_SECTIONS_FLAG := -Wl,--gc-sections
+endif
+
+LDFLAGS += $(GC_SECTIONS_FLAG)
 
 CFLAGS = $(COMMONFLAGS)
 
