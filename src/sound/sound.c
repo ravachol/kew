@@ -143,7 +143,7 @@ static bool perform_seek_if_requested(ma_decoder *decoder)
         if (targetFrame >= totalFrames)
                 targetFrame = totalFrames - 1;
 
-        const CodecOps *ops = get_codec_ops(get_current_decoder_implementation_type());
+        const CodecOps *ops = get_codec_ops(get_current_decoder_decoder_type());
 
         return execute_seek(decoder, targetFrame, ops);
 }
@@ -361,7 +361,7 @@ void *decode_loop(void *arg)
                         continue;
                 }
 
-                if (get_current_decoder_type() != get_current_decoder_implementation_type()) {
+                if (get_current_decoder_type() != get_current_decoder_decoder_type()) {
                         pthread_mutex_unlock(&state->data_source_mutex);
                         goto done;
                 }
@@ -418,7 +418,7 @@ void *decode_loop(void *arg)
                         goto done;
                 }
 
-                const CodecOps *ops = get_codec_ops(get_current_decoder_implementation_type());
+                const CodecOps *ops = get_codec_ops(get_current_decoder_decoder_type());
                 void *decoder = get_current_decoder();
 
                 if (!decoder || pb_is_EOF_reached()) {
@@ -447,7 +447,7 @@ void *decode_loop(void *arg)
                 ops->get_cursor(decoder, &cursor);
 
                 double gain_db = 0.0;
-                if (get_current_decoder_implementation_type() == BUILTIN &&
+                if (get_current_decoder_decoder_type() == BUILTIN &&
                     compute_replay_gain(&gain_db)) {
 
                         apply_gain_to_interleaved_frames(
@@ -470,7 +470,7 @@ void *decode_loop(void *arg)
 
                                 int sent = atomic_load(&sound_s->track_frames_sent) + ma_pcm_rb_available_read(&pcm_rb);
 
-                                atomic_fetch_add(&sound_s->track_end_frame, sent);
+                                atomic_store(&sound_s->track_end_frame, sent);
                         }
                         pthread_mutex_unlock(&state->data_source_mutex);
                         continue;
@@ -639,7 +639,7 @@ int handle_codec(
         // sameFormat computation
         bool sameFormat = false;
         if (ops.supportsGapless && decoder != NULL) {
-                sameFormat = (ops.decoder_type == get_current_decoder_implementation_type() && format == nFormat && channels == nChannels &&
+                sameFormat = (ops.decoder_type == get_current_decoder_decoder_type() && format == nFormat && channels == nChannels &&
                               sample_rate == nSampleRate);
 #ifdef USE_FAAD
                 if (ops.decoder_type == M4A && decoder != NULL) {

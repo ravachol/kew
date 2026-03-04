@@ -224,7 +224,7 @@ int can_decoder_seek(void *decoder);
  *
  * @return A decoder type
  */
-enum decoder_type_t get_current_decoder_implementation_type(void);
+enum decoder_type_t get_current_decoder_decoder_type(void);
 
 /**
  * @brief Resets the decoders in the system.
