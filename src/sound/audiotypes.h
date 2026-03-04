@@ -53,7 +53,6 @@ struct sound_system {
         atomic_long track_frames_sent;
         atomic_long track_end_frame;
         atomic_bool buffer_ready;
-        atomic_bool restart_audio;
         atomic_bool end_of_list_reached;
         atomic_bool decode_thread_running;
         atomic_bool decode_finished;

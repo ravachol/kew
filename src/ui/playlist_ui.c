@@ -324,7 +324,7 @@ void set_end_of_list_reached(void)
 {
         AppState *state = get_app_state();
         sound_system_set_end_of_list_reached(sound_sys, true);
-        sound_system_set_restart_audio(sound_sys, true);
+        start_playing(true);
 
         clear_current_song();
 
