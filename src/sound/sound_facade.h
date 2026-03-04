@@ -97,7 +97,7 @@ sound_result_t sound_system_uninit_device(sound_system_t *system);
 /**
  * @brief Starts a new decoder chain.
  *
- * Sets the audio implementation type to NONE.
+ * Sets the decoder type to NONE.
  * This prepares the sound system for initializing a new decoder chain.
  * Needed for instance when switch track prematurely.
  */
@@ -531,9 +531,7 @@ int sound_system_is_buffer_ready(const sound_system_t *system);
  * @param volume Master volume level in the range 0.0f (silent) to 1.0f (maximum).
  * @return sound_result_t Result code indicating success or failure.
  */
-sound_result_t sound_system_set_volume(
-    sound_system_t *system,
-    float volume);
+sound_result_t sound_system_set_volume(sound_system_t *system, float volume);
 
 /**
  * @brief Retrieves the master volume.
@@ -543,8 +541,7 @@ sound_result_t sound_system_set_volume(
  * @param system Pointer to the sound system instance.
  * @return float Current master volume in the range 0.0f to 1.0f.
  */
-float sound_system_get_volume(
-    const sound_system_t *system);
+float sound_system_get_volume(const sound_system_t *system);
 
 #ifdef __cplusplus
 }

@@ -34,22 +34,22 @@ bool is_context_initialized(void);
  *
  * This function initializes the audio context and creates a new playback device.
  * If an audio context already exists, it is uninitialized before reinitializing it.
- * The function also attempts to switch to a new audio implementation.
+ * The function also attempts to switch to a new decoder type.
  *
- * @return 0 on success, or -1 if an error occurs while switching the audio implementation.
+ * @return 0 on success, or -1 if an error occurs while switching the decoder type.
  */
 int sound_create_audio_device(void);
 
 /**
- * @brief Switches the audio implementation for playback.
+ * @brief Switches the decoder type for playback.
  *
- * This function handles the process of switching to a different audio implementation,
+ * This function handles the process of switching to a different decoder type,
  * including loading the necessary song data and handling codec operations. It checks
  * whether the end of the audio list has been reached and attempts to switch to the appropriate codec.
  *
- * @return 0 if successful, or -1 if there is an error in switching the implementation.
+ * @return 0 if successful, or -1 if there is an error in switching the type.
  */
-int sound_switch_audio_implementation(void);
+int sound_switch_decoder_type(void);
 
 /**
  * @brief Cleans up and uninitializes the audio context.

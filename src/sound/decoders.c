@@ -26,7 +26,7 @@
 // The first one is the start of the chain and is stored separately.
 // You need it to access the chain.
 // The others alternate between pos 0 and 1 in the array.
-// They must all belong to the same AudioImplementation.
+// They must all belong to the same decoder type.
 
 static void *first_decoder;
 static void *decoders[MAX_DECODERS];
@@ -408,7 +408,7 @@ static const CodecEntry codec_ops_list[] = {
 
 /* CodecOps finder functions */
 
-const CodecOps *get_codec_ops(enum decoder_type type)
+const CodecOps *get_codec_ops(enum decoder_type_t type)
 {
         for (size_t i = 0; i < sizeof(codec_ops_list) / sizeof(codec_ops_list[0]); i++) {
                 if (codec_ops_list[i].ops.implType == type)
@@ -444,7 +444,7 @@ void *get_current_decoder(void)
                 return decoders[decoder_index];
 }
 
-enum decoder_type get_current_decoder_implementation_type(void)
+enum decoder_type_t get_current_decoder_implementation_type(void)
 {
         return atomic_load(&decoder_implType);
 }
@@ -527,7 +527,7 @@ void reset_decoders(void)
                 return;
 
         const CodecOps *ops = get_codec_ops(cur_implType);
-        set_current_decoder_implType(NONE);
+        set_current_decoder_type(NONE);
         decoder_index = -1;
 
         if (first_decoder != NULL) {
@@ -549,24 +549,24 @@ void reset_decoders(void)
         }
 }
 
-/* Set current decoder AudioImplementation */
+/* Set current decoder decoder type */
 
-void set_current_decoder_implType(enum decoder_type new_implType)
+void set_current_decoder_type(enum decoder_type_t new_implType)
 {
         atomic_store(&decoder_implType, new_implType);
 }
 
 /* Set next decoder */
 
-void set_next_decoder(void *decoder, const enum decoder_type new_implType)
+void set_next_decoder(void *decoder, const enum decoder_type_t new_implType)
 {
-        enum decoder_type cur_implType = atomic_load(&decoder_implType);
+        enum decoder_type_t cur_implType = atomic_load(&decoder_implType);
 
         if (cur_implType != new_implType && cur_implType != NONE) // All decoders must be the same type
                 return;
 
         const CodecOps *cur_ops = get_codec_ops(cur_implType);
-        set_current_decoder_implType(new_implType);
+        set_current_decoder_type(new_implType);
 
         if (decoder_index == -1 && first_decoder == NULL) {
                 first_decoder = decoder;
@@ -609,7 +609,7 @@ int prepare_next_decoder(const char *filepath, SongData *song, const CodecOps *o
         ma_uint32 sampleRate = 0;
         ma_channel channel_map[MA_MAX_CHANNELS];
 
-        enum decoder_type cur_implType = atomic_load(&decoder_implType);
+        enum decoder_type_t cur_implType = atomic_load(&decoder_implType);
 
         bool same_impl_type = (cur_implType == ops->implType);
 

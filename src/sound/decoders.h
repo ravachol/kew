@@ -82,7 +82,7 @@ typedef struct
         create_audio_device_func create_audio_device;
 
         /* Which implementation this is (VORBIS, OPUS, WEBM, BUILTIN, etc.) */
-        enum decoder_type implType;
+        enum decoder_type_t implType;
 
         /* Supports gapless playback? (WebM is false) */
         bool supportsGapless;
@@ -102,7 +102,7 @@ typedef struct
 
 } CodecOps;
 
-const CodecOps *get_codec_ops(enum decoder_type type);
+const CodecOps *get_codec_ops(enum decoder_type_t type);
 
 typedef struct
 {
@@ -140,17 +140,17 @@ void switch_specific_decoder(int *decoder_index);
 void switch_decoder_index(void);
 
 /**
- * @brief Retrieves codec operations for a given implementation type.
+ * @brief Retrieves codec operations for a given decoder type.
  *
  * Returns the CodecOps structure describing the function pointers
- * and metadata associated with the specified audio implementation.
+ * and metadata associated with the specified decoder type.
  *
- * @param type  Audio implementation identifier.
+ * @param type  decoder type identifier.
  *
  * @return Pointer to the corresponding CodecOps structure,
- *         or NULL if the implementation is not supported.
+ *         or NULL if the decoder type is not supported.
  */
-const CodecOps *get_codec_ops(enum decoder_type type);
+const CodecOps *get_codec_ops(enum decoder_type_t type);
 
 /**
  * @brief Determines the appropriate codec implementation for a file.
@@ -220,11 +220,11 @@ void *get_current_decoder(void);
 int can_decoder_seek(void *decoder);
 
 /**
- * @brief Gets the current decoder AudioImplementation.
+ * @brief Gets the current decoder type.
  *
- * @return An AudioImplementation.
+ * @return A decoder type
  */
-enum decoder_type get_current_decoder_implementation_type(void);
+enum decoder_type_t get_current_decoder_implementation_type(void);
 
 /**
  * @brief Resets the decoders in the system.
@@ -236,11 +236,11 @@ enum decoder_type get_current_decoder_implementation_type(void);
 void reset_decoders();
 
 /**
- * @brief Sets the current decoder AudioImplementation
+ * @brief Sets the current decoder tyoe
  *
- * @param new_implType The type of audio implementation.
+ * @param decoder_type The type of decoder.
  */
-void set_current_decoder_implType(enum decoder_type new_implType);
+void set_current_decoder_type(enum decoder_type_t decoder_type);
 
 /**
  * @brief Sets the next decoder in the decoder chain.
@@ -249,9 +249,9 @@ void set_current_decoder_implType(enum decoder_type new_implType);
  * decoder as necessary. It is used to set the next decoder for playback.
  *
  * @param decoder A pointer to the next decoder to set.
- * @param new_implType The type of audio implementation.
+ * @param decoder_type The type of decoder.
  */
-void set_next_decoder(void *decoder, const enum decoder_type new_implType);
+void set_next_decoder(void *decoder, const enum decoder_type_t decoder_type);
 
 /**
  * @brief Prepares the next decoder for any supported format.

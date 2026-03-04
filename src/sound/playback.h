@@ -129,7 +129,7 @@ float get_seek_percentage(void);
  *
  * @return The decoder type.
  */
-enum decoder_type get_current_implementation_type(void);
+enum decoder_type_t get_current_implementation_type(void);
 
 /**
  * @brief Checks if a seek request has been made.
@@ -168,25 +168,25 @@ void set_EOF_reached(void);
 void pb_set_EOF_handled(void);
 
 /**
- * @brief Sets whether the implementation switch has been reached.
+ * @brief Sets whether the decoder type switch has been reached.
  *
- * This function marks the point where the audio implementation switch is complete.
+ * This function marks the point where the decoder type switch is complete.
  */
-void set_impl_switch_reached(void);
+void set_decoder_type_switch_reached(void);
 
 /**
- * @brief Sets whether the implementation switch has not been reached.
+ * @brief Sets whether the decoder type switch has not been reached.
  *
- * This function marks the point where the audio implementation switch has not been completed.
+ * This function marks the point where the decoder type switch has not been completed.
  */
-void set_impl_switch_not_reached(void);
+void set_decoder_type_switch_not_reached(void);
 
 /**
- * @brief Sets the current audio implementation type.
+ * @brief Sets the current decoder type.
  *
- * @param value The new audio implementation type to set.
+ * @param value The new decoder type to set.
  */
-void set_current_implementation_type(enum decoder_type value);
+void set_current_decoder_type(enum decoder_type_t value);
 
 /**
  * @brief Checks whether skip to next is enabled.
@@ -200,7 +200,7 @@ bool is_skip_to_next(void);
  *
  * @return `true` if the implementation switch is reached, otherwise `false`.
  */
-bool pb_is_impl_switch_reached(void);
+bool is_decoder_type_switch_reached(void);
 
 /**
  * @brief Retrieves the current audio device.

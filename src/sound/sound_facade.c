@@ -87,7 +87,7 @@ sound_result_t sound_system_switch_decoder(sound_system_t *system)
         if (!system)
                 return SOUND_ERROR_NOT_INITIALIZED;
 
-        int result = sound_switch_audio_implementation();
+        int result = sound_switch_decoder_type();
 
         if (result < 0)
                 return SOUND_ERROR_BACKEND_FAILURE;
@@ -186,7 +186,7 @@ sound_result_t sound_system_stop_decoding(sound_system_t *system)
         if (!system)
                 return SOUND_ERROR_NOT_INITIALIZED;
 
-        set_current_implementation_type(NONE);
+        set_current_decoder_type(NONE);
 
         return SOUND_OK;
 }
@@ -275,6 +275,7 @@ sound_result_t sound_system_set_end_of_list_reached(sound_system_t *system, int 
 
         return SOUND_OK;
 }
+
 double sound_system_get_seek_elapsed(void)
 {
         return get_seek_elapsed();
@@ -285,7 +286,7 @@ int sound_system_is_switching_track(const sound_system_t *system)
         if (!system)
                 return 0;
 
-        return pb_is_impl_switch_reached();
+        return is_decoder_type_switch_reached();
 }
 
 int sound_system_is_EOF_reached(void)
@@ -293,8 +294,7 @@ int sound_system_is_EOF_reached(void)
         return pb_is_EOF_reached();
 }
 
-sound_playback_state_t sound_system_get_state(
-    const sound_system_t *system)
+sound_playback_state_t sound_system_get_state(const sound_system_t *system)
 {
         if (!system)
                 return SOUND_STATE_STOPPED;
@@ -367,7 +367,6 @@ uint64_t sound_system_get_duration_ms(
 
 int sound_system_get_repeat_state(void)
 {
-
         return repeat_state;
 }
 
