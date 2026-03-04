@@ -105,18 +105,23 @@ PKG_LDFLAGS = $(shell $(PKG_CONFIG) --libs $(PKG_LIBS))
 COMMONFLAGS = $(LOCAL_INC) $(PKG_CFLAGS)
 
 ifeq ($(DEBUG), 1)
-COMMONFLAGS += -g -DDEBUG
+    COMMONFLAGS += -O1 -g -DDEBUG
+else ifeq ($(DEBUG), 2)
+    COMMONFLAGS += -O1 -g -DDEBUG -fsanitize=address,undefined \
+          -fno-omit-frame-pointer \
+          -fno-optimize-sibling-calls
+    LDFLAGS += -fsanitize=address,undefined
 else
-COMMONFLAGS += -O2
+    COMMONFLAGS += -Os -fstack-protector-strong -Wformat -ffunction-sections -fdata-sections -Wno-format-security -D_FORTIFY_SOURCE=2
 endif
 
 ifneq ($(strip $(KEW_VERSION)),)
-  COMMONFLAGS += -DKEW_VERSION=\"$(KEW_VERSION)\"
+    COMMONFLAGS += -DKEW_VERSION=\"$(KEW_VERSION)\"
 endif
 
 COMMONFLAGS += -DMA_NO_AAUDIO
-COMMONFLAGS += -fstack-protector-strong -Wformat -Wno-format-security -fPIE -D_FORTIFY_SOURCE=2
 COMMONFLAGS += -Wall -Wextra -Wpointer-arith
+LDFLAGS += -Wl,--gc-sections
 
 CFLAGS = $(COMMONFLAGS)
 
@@ -127,7 +132,7 @@ CXXFLAGS = $(COMMONFLAGS) -std=c++11
 LIBS = -lm -lopusfile -lglib-2.0 -lpthread $(PKG_LDFLAGS)
 LIBS += -lstdc++
 
-LDFLAGS = -logg -lz
+LDFLAGS += -logg -lz
 
 ifeq ($(UNAME_S), Linux)
   CFLAGS += -fPIE -fstack-clash-protection
@@ -137,9 +142,9 @@ ifeq ($(UNAME_S), Linux)
         CFLAGS += -fcf-protection
         CXXFLAGS += -fcf-protection
   endif
-  ifneq ($(DEBUG), 1)
-  LDFLAGS += -s
-  endif
+  ifeq ($(DEBUG), 0)
+        LDFLAGS += -s
+endif
 else ifeq ($(UNAME_S), Darwin)
   LIBS += -framework CoreAudio -framework CoreFoundation
   ifeq ($(USE_MACOS_MEDIA), 1)
