@@ -361,7 +361,7 @@ void *decode_loop(void *arg)
                         continue;
                 }
 
-                if (get_current_implementation_type() != get_current_decoder_implementation_type()) {
+                if (get_current_decoder_type() != get_current_decoder_implementation_type()) {
                         pthread_mutex_unlock(&state->data_source_mutex);
                         goto done;
                 }
@@ -613,14 +613,14 @@ int handle_codec(
         ma_uint32 sample_rate, channels, nSampleRate, nChannels;
         ma_format format, nFormat;
         ma_channel channel_map[MA_MAX_CHANNELS], nChannelMap[MA_MAX_CHANNELS];
-        enum decoder_type_t current_implementation = get_current_implementation_type();
+        enum decoder_type_t current_implementation = get_current_decoder_type();
 
         int avg_bit_rate = 0;
 
 #ifdef USE_FAAD
         k_m4adec_filetype file_type = 0;
 
-        if (ops.implType == M4A) {
+        if (ops.decoder_type == M4A) {
                 get_m4a_file_info_full(file_path, &format, &channels, &sample_rate, channel_map, &avg_bit_rate, &file_type);
         } else {
                 ops.get_file_info(file_path, &format, &channels, &sample_rate, channel_map);
@@ -639,10 +639,10 @@ int handle_codec(
         // sameFormat computation
         bool sameFormat = false;
         if (ops.supportsGapless && decoder != NULL) {
-                sameFormat = (ops.implType == get_current_decoder_implementation_type() && format == nFormat && channels == nChannels &&
+                sameFormat = (ops.decoder_type == get_current_decoder_implementation_type() && format == nFormat && channels == nChannels &&
                               sample_rate == nSampleRate);
 #ifdef USE_FAAD
-                if (ops.implType == M4A && decoder != NULL) {
+                if (ops.decoder_type == M4A && decoder != NULL) {
                         sameFormat = sameFormat &&
                                      (((ma_m4a *)decoder)->file_type == file_type) &&
                                      (((ma_m4a *)decoder)->file_type != k_rawAAC);
@@ -654,7 +654,7 @@ int handle_codec(
 
         // Avg bitrate assignment
         if (songdata) {
-                if (ops.implType == M4A)
+                if (ops.decoder_type == M4A)
                         songdata->avg_bit_rate = sound_s->avg_bit_rate = avg_bit_rate;
                 else
                         songdata->avg_bit_rate =
@@ -665,12 +665,12 @@ int handle_codec(
         }
 
         if (repeat_state == SOUND_STATE_REPEAT ||
-            !(sameFormat && current_implementation == ops.implType)) {
+            !(sameFormat && current_implementation == ops.decoder_type)) {
                 set_decoder_type_switch_reached();
 
                 pthread_mutex_lock(&(state->data_source_mutex));
 
-                set_current_decoder_type(ops.implType);
+                set_current_decoder_type(ops.decoder_type);
 
                 cleanup_playback_device(); // FIXME should be after lock?
 
@@ -732,7 +732,7 @@ static int init_audio_data_from_codec_decoder(const CodecOps *ops, void *decoder
 
         ma_channel channel_map[MA_MAX_CHANNELS];
 
-        switch (ops->implType) {
+        switch (ops->decoder_type) {
         case BUILTIN: {
                 ma_decoder *d = (ma_decoder *)decoder;
                 sound->format = ma_format_f32;
@@ -828,7 +828,7 @@ int init_first_datasource(sound_system_t *sound)
                 return -1;
 
         // BUILTIN MP3 special handling
-        if (ops->implType == BUILTIN) {
+        if (ops->decoder_type == BUILTIN) {
                 handle_builtin_avg_bit_rate(song_data, file_path);
         }
 
@@ -936,7 +936,7 @@ int sound_switch_decoder_type(void)
                 return -1;
         }
 
-        if (ops->implType == BUILTIN)
+        if (ops->decoder_type == BUILTIN)
                 handle_builtin_avg_bit_rate(current_song, file_path);
 
         int result = handle_codec(file_path, *ops, sound_s, state, &context);

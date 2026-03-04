@@ -34,7 +34,7 @@ static _Atomic bool EOF_reached = false;
 static _Atomic bool switch_reached = false;
 static _Atomic bool skip_to_next = false;
 
-static enum decoder_type_t current_implementation = NONE;
+static enum decoder_type_t current_decoder_type = NONE;
 
 static double seek_elapsed;
 
@@ -287,14 +287,14 @@ void set_decoder_type_switch_not_reached(void)
         atomic_store(&switch_reached, false);
 }
 
-enum decoder_type_t get_current_implementation_type(void)
+enum decoder_type_t get_current_decoder_type(void)
 {
-        return current_implementation;
+        return current_decoder_type;
 }
 
 void set_current_decoder_type(enum decoder_type_t value)
 {
-        current_implementation = value;
+        current_decoder_type = value;
 }
 
 bool is_skip_to_next(void)

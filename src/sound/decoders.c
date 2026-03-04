@@ -31,7 +31,7 @@
 static void *first_decoder;
 static void *decoders[MAX_DECODERS];
 static int decoder_index = -1;
-static atomic_int decoder_implType = NONE;
+static atomic_int decoder_decoder_type = NONE;
 
 /* Init decoder wrappers */
 
@@ -330,7 +330,7 @@ static const CodecEntry codec_ops_list[] = {
         .get_decoder_format = (decoder_format_func)ma_decoder_get_data_format,
         .seek_to_pcm_frame  = ma_decoder_seek_to_pcm_frame_wrapper,
         .get_cursor       = ma_decoder_get_cursor_in_pcm_frames_wrapper,
-        .implType         = BUILTIN,
+        .decoder_type         = BUILTIN,
         .supportsGapless  = true,
         .setup_decoder    = setup_ma_decoder,
         .decoderSize      = sizeof(ma_decoder),
@@ -343,7 +343,7 @@ static const CodecEntry codec_ops_list[] = {
         .get_decoder_format = (decoder_format_func)opus_get_data_format_wrapper,
         .seek_to_pcm_frame  = ma_libopus_seek_to_pcm_frame_wrapper,
         .get_cursor       = ma_libopus_get_cursor_in_pcm_frames_wrapper,
-        .implType         = OPUS,
+        .decoder_type         = OPUS,
         .supportsGapless  = true,
         .setup_decoder    = setup_libopus,
         .decoderSize      = sizeof(ma_libopus),
@@ -356,7 +356,7 @@ static const CodecEntry codec_ops_list[] = {
         .get_decoder_format = (decoder_format_func)vorbis_get_data_format_wrapper,
         .seek_to_pcm_frame  = ma_libvorbis_seek_to_pcm_frame_wrapper,
         .get_cursor       = ma_libvorbis_get_cursor_in_pcm_frames_wrapper,
-        .implType         = VORBIS,
+        .decoder_type         = VORBIS,
         .supportsGapless  = true,
         .setup_decoder    = setup_libvorbis,
         .decoderSize      = sizeof(ma_libvorbis),
@@ -369,7 +369,7 @@ static const CodecEntry codec_ops_list[] = {
         .get_decoder_format = (decoder_format_func)webm_get_data_format_wrapper,
         .seek_to_pcm_frame  = ma_webm_seek_to_pcm_frame_wrapper,
         .get_cursor       = ma_webm_get_cursor_in_pcm_frames_wrapper,
-        .implType         = WEBM,
+        .decoder_type         = WEBM,
         .supportsGapless  = false,
         .setup_decoder    = setup_webm,
         .decoderSize      = sizeof(ma_webm),
@@ -382,7 +382,7 @@ static const CodecEntry codec_ops_list[] = {
         .get_decoder_format = (decoder_format_func)m4a_decoder_ds_get_data_format,
         .seek_to_pcm_frame  = m4a_seek_to_pcm_frame_wrapper,
         .get_cursor       = m4a_get_cursor_in_pcm_frames_wrapper,
-        .implType         = M4A,
+        .decoder_type         = M4A,
         .supportsGapless  = true,
         .setup_decoder    = setup_m4a,
         .decoderSize      = sizeof(m4a_decoder),
@@ -394,7 +394,7 @@ static const CodecEntry codec_ops_list[] = {
         .get_decoder_format = (decoder_format_func)m4a_decoder_ds_get_data_format,
         .seek_to_pcm_frame  = m4a_seek_to_pcm_frame_wrapper,
         .get_cursor       = m4a_get_cursor_in_pcm_frames_wrapper,
-        .implType         = M4A,
+        .decoder_type         = M4A,
         .supportsGapless  = true,
         .setup_decoder    = setup_m4a,
         .decoderSize      = sizeof(m4a_decoder),
@@ -411,7 +411,7 @@ static const CodecEntry codec_ops_list[] = {
 const CodecOps *get_codec_ops(enum decoder_type_t type)
 {
         for (size_t i = 0; i < sizeof(codec_ops_list) / sizeof(codec_ops_list[0]); i++) {
-                if (codec_ops_list[i].ops.implType == type)
+                if (codec_ops_list[i].ops.decoder_type == type)
                         return &codec_ops_list[i].ops;
         }
         return NULL;
@@ -446,7 +446,7 @@ void *get_current_decoder(void)
 
 enum decoder_type_t get_current_decoder_implementation_type(void)
 {
-        return atomic_load(&decoder_implType);
+        return atomic_load(&decoder_decoder_type);
 }
 
 int can_decoder_seek(void *decoder)
@@ -527,7 +527,7 @@ void reset_decoders(void)
                 return;
 
         const CodecOps *ops = get_codec_ops(cur_implType);
-        set_current_decoder_type(NONE);
+        set_current_decoder_decoder_type(NONE);
         decoder_index = -1;
 
         if (first_decoder != NULL) {
@@ -551,22 +551,22 @@ void reset_decoders(void)
 
 /* Set current decoder decoder type */
 
-void set_current_decoder_type(enum decoder_type_t new_implType)
+void set_current_decoder_decoder_type(enum decoder_type_t new_decoder_type)
 {
-        atomic_store(&decoder_implType, new_implType);
+        atomic_store(&decoder_decoder_type, new_decoder_type);
 }
 
 /* Set next decoder */
 
-void set_next_decoder(void *decoder, const enum decoder_type_t new_implType)
+void set_next_decoder(void *decoder, const enum decoder_type_t new_decoder_type)
 {
-        enum decoder_type_t cur_implType = atomic_load(&decoder_implType);
+        enum decoder_type_t cur_decoder_type = atomic_load(&decoder_decoder_type);
 
-        if (cur_implType != new_implType && cur_implType != NONE) // All decoders must be the same type
+        if (cur_decoder_type != new_decoder_type && cur_decoder_type != NONE) // All decoders must be the same type
                 return;
 
-        const CodecOps *cur_ops = get_codec_ops(cur_implType);
-        set_current_decoder_type(new_implType);
+        const CodecOps *cur_ops = get_codec_ops(cur_decoder_type);
+        set_current_decoder_decoder_type(new_decoder_type);
 
         if (decoder_index == -1 && first_decoder == NULL) {
                 first_decoder = decoder;
@@ -609,9 +609,9 @@ int prepare_next_decoder(const char *filepath, SongData *song, const CodecOps *o
         ma_uint32 sampleRate = 0;
         ma_channel channel_map[MA_MAX_CHANNELS];
 
-        enum decoder_type_t cur_implType = atomic_load(&decoder_implType);
+        enum decoder_type_t cur_implType = atomic_load(&decoder_decoder_type);
 
-        bool same_impl_type = (cur_implType == ops->implType);
+        bool same_impl_type = (cur_implType == ops->decoder_type);
 
         if (current) {
                 const CodecOps *cur_ops = get_codec_ops(cur_implType);
@@ -638,13 +638,13 @@ int prepare_next_decoder(const char *filepath, SongData *song, const CodecOps *o
         ops->get_decoder_format(decoder, &nformat, &nchannels, &nsampleRate, nchannelMap, MA_MAX_CHANNELS);
 
         bool sameFormat = (current == NULL || !ops->supportsGapless ||
-                           (ops->implType == cur_implType &&
+                           (ops->decoder_type == cur_implType &&
                             format == nformat &&
                             channels == nchannels &&
                             sampleRate == nsampleRate));
 
 #ifdef USE_FAAD
-        if (ops->implType == M4A && current) {
+        if (ops->decoder_type == M4A && current) {
                 sameFormat = sameFormat && (((ma_m4a *)current)->file_type == ((ma_m4a *)decoder)->file_type &&
                                             ((ma_m4a *)current)->file_type != k_rawAAC);
         }
@@ -659,14 +659,14 @@ int prepare_next_decoder(const char *filepath, SongData *song, const CodecOps *o
         if (ops->setup_decoder)
                 ops->setup_decoder(decoder, first_decoder);
 
-        if (ops->implType == WEBM)
+        if (ops->decoder_type == WEBM)
                 song->duration = ((ma_webm *)decoder)->duration;
 
-        set_next_decoder(decoder, ops->implType);
+        set_next_decoder(decoder, ops->decoder_type);
 
         if (same_impl_type && current && decoder && !pb_is_EOF_reached())
 #ifdef USE_FAAD
-                if (ops->implType != M4A || (current && ((ma_m4a *)current)->file_type != k_rawAAC))
+                if (ops->decoder_type != M4A || (current && ((ma_m4a *)current)->file_type != k_rawAAC))
 #endif
                         ma_data_source_set_next(current, decoder);
 

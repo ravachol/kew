@@ -129,7 +129,7 @@ float get_seek_percentage(void);
  *
  * @return The decoder type.
  */
-enum decoder_type_t get_current_implementation_type(void);
+enum decoder_type_t get_current_decoder_type(void);
 
 /**
  * @brief Checks if a seek request has been made.

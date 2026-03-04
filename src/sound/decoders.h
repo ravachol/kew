@@ -82,7 +82,7 @@ typedef struct
         create_audio_device_func create_audio_device;
 
         /* Which implementation this is (VORBIS, OPUS, WEBM, BUILTIN, etc.) */
-        enum decoder_type_t implType;
+        enum decoder_type_t decoder_type;
 
         /* Supports gapless playback? (WebM is false) */
         bool supportsGapless;
@@ -236,11 +236,11 @@ enum decoder_type_t get_current_decoder_implementation_type(void);
 void reset_decoders();
 
 /**
- * @brief Sets the current decoder tyoe
+ * @brief Sets the current decoder decoder type
  *
  * @param decoder_type The type of decoder.
  */
-void set_current_decoder_type(enum decoder_type_t decoder_type);
+void set_current_decoder_decoder_type(enum decoder_type_t decoder_type);
 
 /**
  * @brief Sets the next decoder in the decoder chain.
