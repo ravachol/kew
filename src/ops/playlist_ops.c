@@ -109,7 +109,7 @@ void remove_currently_playing_song(void)
         }
 
         ps->loadedNextSong = false;
-        sound_system_set_restart_audio(sound_sys, true);
+        start_playing(true);
         sound_system_set_end_of_list_reached(sound_sys, true);
 
         if (current != NULL) {
@@ -853,7 +853,7 @@ void clear_and_play(Node *song)
         PlaybackState *ps = get_playback_state();
         set_song_to_start_from(song);
         sound_system_stop_decoding(sound_sys);
-        sound_system_set_restart_audio(sound_sys, true);
+        start_playing(true);
         sound_system_set_end_of_list_reached(sound_sys, false);
         ps->nextSongNeedsRebuilding = true;
         ps->skipOutOfOrder = false;

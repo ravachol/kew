@@ -811,8 +811,6 @@ int init_first_datasource(sound_system_t *sound)
         if (!file_path)
                 return MA_ERROR;
 
-        sound_system_set_restart_audio(sound, false);
-
         const CodecOps *ops = find_codec_ops(file_path);
         if (!ops)
                 return MA_ERROR;

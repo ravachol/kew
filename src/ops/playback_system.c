@@ -17,14 +17,28 @@
 
 #include "sound/sound_facade.h"
 
+atomic_bool start_audio;
+
+int should_start_playing(void)
+{
+        return atomic_load(&start_audio);
+}
+
+void start_playing(bool value)
+{
+        atomic_store(&start_audio, value);
+}
+
 int create_sound_system(void)
 {
         AppState *state = get_app_state();
 
         bool success = sound_system_create(&sound_sys) == SOUND_OK;
 
-        if (success)
+        if (success) {
                 sound_system_set_replay_gain_check_track_first(sound_sys, state->uiSettings.replayGainCheckFirst);
+                start_playing(true);
+        }
 
         return success;
 }
