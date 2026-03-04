@@ -444,7 +444,7 @@ void *get_current_decoder(void)
                 return decoders[decoder_index];
 }
 
-enum decoder_type_t get_current_decoder_implementation_type(void)
+enum decoder_type_t get_current_decoder_decoder_type(void)
 {
         return atomic_load(&decoder_decoder_type);
 }
@@ -452,14 +452,14 @@ enum decoder_type_t get_current_decoder_implementation_type(void)
 int can_decoder_seek(void *decoder)
 {
 #ifdef USE_FAAD
-        if (get_current_decoder_implementation_type() == M4A) {
+        if (get_current_decoder_decoder_type() == M4A) {
                 ma_m4a *dec = (ma_m4a *)decoder;
                 if (dec != NULL && dec->file_type == k_rawAAC)
                         return 0;
         }
 #endif
 
-        if (get_current_decoder_implementation_type() == WEBM) {
+        if (get_current_decoder_decoder_type() == WEBM) {
                 return 0;
         }
 
@@ -521,7 +521,7 @@ void reset_decoders(void)
 {
         clear_decoder_chain();
 
-        int cur_implType = get_current_decoder_implementation_type();
+        int cur_implType = get_current_decoder_decoder_type();
 
         if (cur_implType == NONE)
                 return;

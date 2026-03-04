@@ -240,27 +240,27 @@ void get_current_format_and_sample_rate(ma_format *format, ma_uint32 *sample_rat
 {
         *format = ma_format_unknown;
 
-        if (get_current_decoder_implementation_type() == BUILTIN) {
+        if (get_current_decoder_decoder_type() == BUILTIN) {
                 ma_decoder *decoder = (ma_decoder *)get_current_decoder();
 
                 if (decoder != NULL)
                         *format = decoder->outputFormat;
-        } else if (get_current_decoder_implementation_type() == OPUS) {
+        } else if (get_current_decoder_decoder_type() == OPUS) {
                 ma_libopus *decoder = (ma_libopus *)get_current_decoder();
 
                 if (decoder != NULL)
                         *format = decoder->format;
-        } else if (get_current_decoder_implementation_type() == VORBIS) {
+        } else if (get_current_decoder_decoder_type() == VORBIS) {
                 ma_libvorbis *decoder = (ma_libvorbis *)get_current_decoder();
 
                 if (decoder != NULL)
                         *format = decoder->format;
-        } else if (get_current_decoder_implementation_type() == WEBM) {
+        } else if (get_current_decoder_decoder_type() == WEBM) {
                 ma_webm *decoder = (ma_webm *)get_current_decoder();
 
                 if (decoder != NULL)
                         *format = decoder->format;
-        } else if (get_current_decoder_implementation_type() == M4A) {
+        } else if (get_current_decoder_decoder_type() == M4A) {
 #ifdef USE_FAAD
                 m4a_decoder *decoder = (m4a_decoder *)get_current_decoder();
 
