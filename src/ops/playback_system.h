@@ -48,7 +48,7 @@ void shutdown_sound_system(void);
 void uninit_device(void);
 
 /**
- * @brief Skip to the next track or audio implementation.
+ * @brief Skip to the next track.
  *
  * Resets relevant playback state, clears repeat flags, and triggers
  * switching to the next buffered audio stream. If playback is stopped,
@@ -57,7 +57,7 @@ void uninit_device(void);
 void skip(void);
 
 /**
- * @brief Switch the active audio implementation.
+ * @brief Switch the active decoder.
  *
  * Requests the playback backend to switch between audio buffers or
  * decoder implementations (e.g., in a double-buffered setup).

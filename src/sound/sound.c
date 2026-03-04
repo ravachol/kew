@@ -413,7 +413,7 @@ void *decode_loop(void *arg)
                         c_sleep(1);
                 }
 
-                if (pb_is_impl_switch_reached()) {
+                if (is_decoder_type_switch_reached()) {
                         pthread_mutex_unlock(&state->data_source_mutex);
                         goto done;
                 }
@@ -613,7 +613,7 @@ int handle_codec(
         ma_uint32 sample_rate, channels, nSampleRate, nChannels;
         ma_format format, nFormat;
         ma_channel channel_map[MA_MAX_CHANNELS], nChannelMap[MA_MAX_CHANNELS];
-        enum decoder_type current_implementation = get_current_implementation_type();
+        enum decoder_type_t current_implementation = get_current_implementation_type();
 
         int avg_bit_rate = 0;
 
@@ -666,11 +666,11 @@ int handle_codec(
 
         if (repeat_state == SOUND_STATE_REPEAT ||
             !(sameFormat && current_implementation == ops.implType)) {
-                set_impl_switch_reached();
+                set_decoder_type_switch_reached();
 
                 pthread_mutex_lock(&(state->data_source_mutex));
 
-                set_current_implementation_type(ops.implType);
+                set_current_decoder_type(ops.implType);
 
                 cleanup_playback_device(); // FIXME should be after lock?
 
@@ -690,8 +690,8 @@ int handle_codec(
                     on_audio_frames);
 
                 if (result < 0) {
-                        set_current_implementation_type(NONE);
-                        set_impl_switch_not_reached();
+                        set_current_decoder_type(NONE);
+                        set_decoder_type_switch_not_reached();
                         set_EOF_reached();
                         pthread_mutex_unlock(&(state->data_source_mutex));
                         return -1;
@@ -707,7 +707,7 @@ int handle_codec(
                                sound_s);
 
                 pthread_mutex_unlock(&(state->data_source_mutex));
-                set_impl_switch_not_reached();
+                set_decoder_type_switch_not_reached();
         }
 
         return 0;
@@ -906,13 +906,13 @@ int create_audio_device(
         return result;
 }
 
-int sound_switch_audio_implementation(void)
+int sound_switch_decoder_type(void)
 {
         AppState *state = get_app_state();
 
         if (sound_system_is_end_of_list_reached(sound_s)) {
                 pb_set_EOF_handled();
-                set_current_implementation_type(NONE);
+                set_current_decoder_type(NONE);
                 return 0;
         }
 
@@ -943,8 +943,8 @@ int sound_switch_audio_implementation(void)
         free(file_path);
 
         if (result < 0) {
-                set_current_implementation_type(NONE);
-                set_impl_switch_not_reached();
+                set_current_decoder_type(NONE);
+                set_decoder_type_switch_not_reached();
                 set_EOF_reached();
                 return -1;
         }
@@ -977,7 +977,7 @@ int sound_create_audio_device(void)
                 context_initialized = true;
         }
 
-        if (sound_switch_audio_implementation() >= 0) {
+        if (sound_switch_decoder_type() >= 0) {
                 ps->notifySwitch = true;
         } else {
                 return -1;
