@@ -124,8 +124,8 @@ COMMONFLAGS += -Wall -Wextra -Wpointer-arith
 
 GC_SECTIONS_FLAG :=
 
-# Try to compile a dummy object with --gc-sections
-ifeq ($(shell echo "int main(){}" | $(CC) -x c - -c -Wl,--gc-sections >/dev/null 2>&1 && echo yes),yes)
+# Test linking a dummy program with --gc-sections
+ifeq ($(shell echo "int main(){}" | $(CC) -x c - -o /dev/null -Wl,--gc-sections >/dev/null 2>&1 && echo yes),yes)
     GC_SECTIONS_FLAG := -Wl,--gc-sections
 endif
 
