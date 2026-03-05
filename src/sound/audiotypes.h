@@ -50,8 +50,8 @@ struct sound_system {
         pthread_t decode_thread;
 
 #ifndef __cplusplus
-        atomic_long track_frames_sent;
-        atomic_long track_end_frame;
+        atomic_llong track_frames_sent;
+        atomic_llong track_end_frame;
         atomic_bool buffer_ready;
         atomic_bool end_of_list_reached;
         atomic_bool decode_thread_running;
