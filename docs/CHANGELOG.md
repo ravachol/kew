@@ -37,6 +37,8 @@ Thank you @yuri-xyz for helping out with this.
 
 - Audio subsystem has been reworked and improved structurally, which among other things should make the audio smooth when the computer is under heavy load. Gaming with kew playing should be silky smooth now. Lots of functions were removed/unified, and some issues fixed. This should make the flow of the program easier to understand for other coders as well. by @ravachol.
 
+- Add AIFF support. Suggested by @brikk42. By @ravachol.
+
 #### Bug Fixes
 
 - Do not strip the number from a song title if it's connected to an alphanumeric character, like '10th song.flac'. Suggested by @bholroyd.
