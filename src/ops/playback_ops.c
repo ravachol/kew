@@ -41,8 +41,10 @@ void try_load_next(void)
         if (try_next_song == NULL && current != NULL)
                 try_next_song = current->next;
         else if (try_next_song != NULL)
+        {
                 try_next_song = try_next_song->next;
-
+                set_try_next_song(try_next_song);
+        }
         if (try_next_song != NULL) {
                 ps->songLoading = true;
                 load_song(try_next_song, false, false);
