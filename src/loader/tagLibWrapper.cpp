@@ -1573,7 +1573,7 @@ int extractTags(const char *input_file, TagSettings *tag_settings,
                         coverArtExtracted = extractCoverArtFromOggVideo(
                             input_file, coverFilePath);
                 }
-        } else if (extension == "wav") {
+        } else if (extension == "wav" || extension == "aiff") {
                 coverArtExtracted =
                     extractCoverArtFromWav(input_file, coverFilePath);
         }
