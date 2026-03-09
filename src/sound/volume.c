@@ -9,7 +9,7 @@
 
 #include <miniaudio.h>
 
-static float sound_volume = 1.0f;
+float sound_volume = 1.0f;
 
 float get_current_volume(void)
 {
