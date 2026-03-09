@@ -499,6 +499,7 @@ bool is_decoder_native(const char *file_path)
 {
         const char *extension = strrchr(file_path, '.');
         return (extension != NULL && (strcasecmp(extension, ".wav") == 0 ||
+                                      strcasecmp(extension, ".aiff") == 0 ||
                                       strcasecmp(extension, ".flac") == 0 ||
                                       strcasecmp(extension, ".mp3") == 0));
 }
