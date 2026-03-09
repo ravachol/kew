@@ -33,24 +33,12 @@ void load_song(Node *song, bool is_first_decoder, bool replace_next_song)
 
 void load_first_song(Node *song)
 {
-        AppState *state = get_app_state();
-        PlaybackState *ps = get_playback_state();
-
         if (song == NULL)
                 return;
 
         uninit_device();
 
         load_song(song, true, false);
-
-        int i = 0;
-        while (!ps->loadedNextSong && i < 10000) {
-                if (i != 0 && i % 1000 == 0 && state->uiSettings.uiEnabled)
-                        printf(".");
-                c_sleep(10);
-                fflush(stdout);
-                i++;
-        }
 }
 
 void load_next_song(bool replace_next_song)

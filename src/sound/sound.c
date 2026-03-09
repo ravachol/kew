@@ -1004,7 +1004,10 @@ int load_decoder(SongData *song_data, bool *song_data_deleted)
                 // switch_audio_implementation() handles the first one
                 if (!loader_data->loadingFirstDecoder) {
                         const CodecOps *ops = find_codec_ops(song_data->file_path);
-                        result = prepare_next_decoder(song_data->file_path, song_data, ops);
+                        if (!ops)
+                                result = -1;
+                        else
+                                result = prepare_next_decoder(song_data->file_path, song_data, ops);
                 }
         }
         return result;
@@ -1148,6 +1151,12 @@ void sound_load_song(const char *file_path, int is_first_decoder, int replace_ne
 {
         PlaybackState *ps = get_playback_state();
         LoaderData *loader_data = get_loader_data();
+
+        if (find_codec_ops(file_path) == NULL)
+        {
+                ps->songHasErrors = 1;
+                return;
+        }
 
         c_strcpy(loader_data->file_path, file_path,
                  sizeof(loader_data->file_path));
