@@ -596,7 +596,7 @@ static gboolean get_metadata(GDBusConnection *connection, const gchar *sender,
         }
 
         GVariant *metadata_variant = g_variant_builder_end(&metadata_builder);
-        *value = metadata_variant;
+        *value = g_variant_ref_sink(metadata_variant);
         return TRUE;
 }
 

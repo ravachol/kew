@@ -32,6 +32,7 @@ void determine_song_and_notify(void)
         SongData *current_song_data = NULL;
         bool isDeleted = sound_system_is_current_song_deleted(sound_sys);
         Node *current = get_current_song();
+        current_song_data = get_current_song_data();
 
         if (current_song_data && current)
                 current->song.duration = current_song_data->duration;
