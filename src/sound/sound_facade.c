@@ -136,10 +136,9 @@ sound_result_t sound_system_set_volume(
 
 float sound_system_get_volume(const sound_system_t *system)
 {
-        if (!system)
-                return 0.0f;
+        (void)system;
 
-        return system->volume;
+        return get_current_volume();
 }
 
 sound_result_t sound_system_play(sound_system_t *system)
