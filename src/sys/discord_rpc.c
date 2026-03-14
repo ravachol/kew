@@ -20,7 +20,7 @@
 static GSocketConnection *discord_conn = NULL;
 static GOutputStream *discord_out = NULL;
 static gboolean discord_available = FALSE;
-static gint64 track_start_time = 0;
+static time_t track_start_time = 0;
 
 void json_escape(const char *src, char *dst, size_t size)
 {
@@ -174,20 +174,8 @@ void notify_discord_pause(void)
         discord_rpc_clear();
 }
 
-// Notify Discord of resume
-void notify_discord_resume(SongData *song)
-{
-        if (!discord_available) {
-                try_connect_socket();
-                if (!discord_available || !song)
-                        return;
-        }
-
-        notify_discord_switch(song);
-}
-
-// Notify Discord of song change or progress
-void notify_discord_switch(SongData *song)
+// Notify Discord of player state changes
+void notify_discord_update(SongData *song, time_t elapsed_seconds, time_t song_duration)
 {
         if (!song || !song->metadata)
                 return;
@@ -198,18 +186,21 @@ void notify_discord_switch(SongData *song)
                         return;
         }
 
-        track_start_time = time(NULL);
+        track_start_time = time(NULL) - elapsed_seconds;
 
         char escaped_title[512];
         char escaped_artist[512];
+        char escaped_album[512];
         char nonce[32];
         char payload[2048];
 
         const char *title = song->metadata->title;
         const char *artist = song->metadata->artist;
+        const char *album = song->metadata->album;
 
         json_escape(title, escaped_title, sizeof(escaped_title));
         json_escape(artist, escaped_artist, sizeof(escaped_artist));
+        json_escape(album, escaped_album, sizeof(escaped_album));
 
         snprintf(nonce, sizeof(nonce), "%lld", (long long)g_get_monotonic_time());
 
@@ -219,10 +210,13 @@ void notify_discord_switch(SongData *song)
                  "\"args\":{"
                  "\"pid\":%d,"
                  "\"activity\":{"
+                 "\"type\":2,"
+                 "\"name\":\"%s\","
                  "\"details\":\"%s\","
                  "\"state\":\"%s\","
                  "\"timestamps\":{"
-                 "\"start\":%lld"
+                 "\"start\":%lld,"
+                 "\"end\":%lld"
                  "},"
                  "\"assets\":{"
                  "\"large_image\":\"kew_logo\","
@@ -233,9 +227,11 @@ void notify_discord_switch(SongData *song)
                  "\"nonce\":\"%s\""
                  "}",
                  getpid(),
-                 escaped_title,
                  escaped_artist,
+                 escaped_title,
+                 escaped_album,
                  (long long)track_start_time,
+                 (long long)(track_start_time + song_duration),
                  nonce);
 
         send_frame(DISCORD_OP_FRAME, payload);

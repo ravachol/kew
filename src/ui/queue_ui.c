@@ -40,7 +40,8 @@ void determine_song_and_notify(void)
         if (state->uiState.lastNotifiedId != current->id) {
                 if (!isDeleted)
                         notify_song_switch(current_song_data);
-        }
+        } else
+                get_playback_state()->notifySwitch = true;
 }
 
 void update_next_song_if_needed(void)
