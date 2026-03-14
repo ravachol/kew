@@ -12,6 +12,7 @@
 
 #include "discord_rpc.h"
 #include "mpris.h"
+#include "ops/playback_clock.h"
 #ifdef USE_MACOS_MEDIA
 #include "macos_nowplaying.h"
 #endif
@@ -244,7 +245,7 @@ void notify_song_switch(SongData *current_song_data)
                 notify_mpris_switch(current_song_data);
 
                 if (ui->discordRPCEnabled)
-                        notify_discord_switch(current_song_data);
+                        notify_discord_update(current_song_data, get_elapsed_seconds(), get_current_song_duration());
 
                 Node *current = get_current_song();
 

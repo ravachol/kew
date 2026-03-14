@@ -15,6 +15,7 @@
 #define DISCORD_RPC_H
 
 #include "common/appstate.h"
+#include <time.h>
 
 /**
  * @brief Initialize the Discord RPC connection.
@@ -40,35 +41,25 @@ void discord_rpc_init(void);
 void discord_rpc_shutdown(void);
 
 /**
- * @brief Notify Discord of a track change or playback start.
+ * @brief Notify Discord of a player state change.
  *
  * Updates the Rich Presence activity with the provided song metadata,
  * including:
  * - Track title (shown as "details")
- * - Artist (shown as "state")
- * - Playback start timestamp
+ * - Artist (shown as "name")
+ * - Album title (shown as "state")
+ * - Playback start and end timestamps
  *
  * If no connection to Discord exists, this function attempts to
  * reconnect automatically.
  *
  * @param song Pointer to the currently playing SongData structure.
  *             Must not be NULL and must contain valid metadata.
+ *
+ * @param elapsed_seconds Seconds since the song started playing.
+ * @param song_duration Duration of the current song in seconds.
  */
-void notify_discord_switch(SongData *song);
-
-/**
- * @brief Notify Discord that playback has resumed.
- *
- * Resumes Rich Presence display using the provided song metadata.
- * Internally delegates to notify_discord_switch().
- *
- * If Discord is not currently connected, a reconnection attempt
- * will be made.
- *
- * @param song Pointer to the currently playing SongData structure.
- *             Must not be NULL.
- */
-void notify_discord_resume(SongData *song);
+void notify_discord_update(SongData *song, time_t elapsed_seconds, time_t song_duration);
 
 /**
  * @brief Notify Discord that playback has paused.
