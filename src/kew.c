@@ -712,6 +712,7 @@ void init_state(void)
         ps->waitingForPlaylist = false;
         ps->notifySwitch = false;
         ps->notifyPlaying = false;
+        ps->notifySeek = false;
 
         pthread_mutex_init(&(state->data_source_mutex), NULL);
         pthread_mutex_init(&(state->switch_mutex), NULL);
