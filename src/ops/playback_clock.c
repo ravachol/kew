@@ -153,6 +153,8 @@ bool flush_seek(void)
 
                 emit_seeked_signal(elapsed_seconds);
 
+                get_playback_state()->notifySeek = true;
+
                 return true;
         }
 
