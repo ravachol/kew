@@ -2674,14 +2674,21 @@ void refresh_player()
                 notify_mpris_switch(get_current_song_data());
 
                 if (state->uiSettings.discordRPCEnabled)
-                        notify_discord_switch(get_current_song_data());
+                        notify_discord_update(get_current_song_data(), get_elapsed_seconds(), get_current_song_duration());
+        }
+
+        if (ps->notifySeek) {
+                ps->notifySeek = false;
+
+                if (state->uiSettings.discordRPCEnabled)
+                        notify_discord_update(get_current_song_data(), get_elapsed_seconds(), get_current_song_duration());
         }
 
         if (state->uiSettings.discordRPCEnabled) {
                 if (is_paused() && !last_paused_state) {
                         notify_discord_pause();
                 } else if (!is_paused() && last_paused_state) {
-                        notify_discord_resume(get_current_song_data());
+                        notify_discord_update(get_current_song_data(), get_elapsed_seconds(), get_current_song_duration());
                 }
 
                 last_paused_state = is_paused();

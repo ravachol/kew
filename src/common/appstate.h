@@ -418,6 +418,7 @@ typedef struct
 
         bool notifySwitch;
         bool notifyPlaying;
+        bool notifySeek;
 
         volatile bool loadedNextSong;
 } PlaybackState;
