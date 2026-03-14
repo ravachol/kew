@@ -391,7 +391,7 @@ void *decode_loop(void *arg)
                 pthread_mutex_unlock(&rb_mutex);
 
                 // Pause
-                while (pb_is_paused()) {
+                while (pb_is_paused() && atomic_load(&sound->decode_thread_running)) {
                         c_sleep(10);
                         continue;
                 }
