@@ -257,7 +257,7 @@ void ops_toggle_pause(void)
                 trigger_refresh();
         }
 
-        if (sound_system_get_state(sound_sys) == SOUND_STATE_STOPPED) {
+        if (sound_system_get_state(sound_sys) == SOUND_STATE_PAUSED) {
                 emit_string_property_changed("PlaybackStatus", "Paused");
                 update_pause_time();
         } else {
