@@ -316,7 +316,7 @@ sound_result_t sound_system_set_end_of_list_reached(sound_system_t *system, int 
  *
  * @return sound_result_t Status code indicating success or failure.
  */
-sound_result_t sound_system_set_replay_gain_check_track_first(sound_system_t *system, int value);
+sound_result_t sound_system_set_replay_gain_check_first(sound_system_t *system, int value);
 
 /**
  * @brief Sets whether the output audio buffer is ready.
@@ -454,16 +454,15 @@ int sound_system_is_end_of_list_reached(const sound_system_t *system);
 SongData *sound_system_get_current_song(const sound_system_t *system);
 
 /**
- * @brief Returns whether replay gain checks track gain first.
+ * @brief Returns which form of replay gain to check first. 0 = track, 1 = album, 2 = disabled.
  *
  * Retrieves the current configuration for replay gain priority.
  *
  * @param system Pointer to the sound system instance.
  *
- * @return Non-zero if track gain is prioritized, 0 if album gain
- *         is prioritized.
+ * @return returns 0 = track, 1 = album, 2 = disabled.
  */
-int sound_system_get_replay_gain_check_track_first(const sound_system_t *system);
+int sound_system_get_replay_gain_check_first(const sound_system_t *system);
 
 /**
  * @brief Returns the output sample rate of the sound system.

@@ -155,7 +155,7 @@ double db_to_linear(double db)
 
 bool is_valid_gain(double gain)
 {
-        return gain > -50.0 && gain < 50.0 && !isnan(gain) && isfinite(gain);
+        return gain > -50.0 && gain < 50.0 && !isnan(gain) && isfinite(gain) && gain != 0;
 }
 
 static bool compute_replay_gain(double *out_gain_db)
@@ -169,15 +169,18 @@ static bool compute_replay_gain(double *out_gain_db)
                 double track_gain = song->metadata->replaygainTrack;
                 double album_gain = song->metadata->replaygainAlbum;
 
-                bool useTrackFirst = sound_s->replay_gain_check_track_first;
+                int checkFirst = sound_s->replay_gain_check_first;
 
-                if (useTrackFirst && is_valid_gain(track_gain)) {
+                if (checkFirst == 0 && is_valid_gain(track_gain)) {
                         gain_db = track_gain;
                         result = true;
-                } else if (is_valid_gain(album_gain)) {
+                } else if (checkFirst == 1 && is_valid_gain(album_gain)) {
                         gain_db = album_gain;
                         result = true;
-                } else if (!useTrackFirst && is_valid_gain(track_gain)) {
+                } else if (checkFirst == 1 && is_valid_gain(track_gain)) {
+                        gain_db = track_gain;
+                        result = true;
+                } else if (checkFirst == 0 && is_valid_gain(album_gain)) {
                         gain_db = track_gain;
                         result = true;
                 }
