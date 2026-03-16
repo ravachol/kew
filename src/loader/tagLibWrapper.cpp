@@ -1446,11 +1446,12 @@ int extractTags(const char *input_file, TagSettings *tag_settings,
         }
 
         // Extract replay gain information
-        if (std::string(input_file).find(".mp3") != std::string::npos) {
-                TagLib::MPEG::File mp3File(input_file);
-                TagLib::ID3v2::Tag *id3v2Tag = mp3File.ID3v2Tag();
+        if (auto mp3File = dynamic_cast<TagLib::MPEG::File *>(f.file())) {
+
+                TagLib::ID3v2::Tag *id3v2Tag = mp3File->ID3v2Tag();
 
                 if (id3v2Tag) {
+
                         // Retrieve all TXXX frames
                         TagLib::ID3v2::FrameList frames =
                             id3v2Tag->frameList("TXXX");
@@ -1491,7 +1492,7 @@ int extractTags(const char *input_file, TagSettings *tag_settings,
                         }
                 }
 
-                TagLib::APE::Tag *apeTag = mp3File.APETag();
+                TagLib::APE::Tag *apeTag = mp3File->APETag();
 
                 if (apeTag) {
                         TagLib::APE::ItemListMap items =
@@ -1512,42 +1513,39 @@ int extractTags(const char *input_file, TagSettings *tag_settings,
                                 }
                         }
                 }
-        } else if (std::string(input_file).find(".flac") !=
-                   std::string::npos) {
-                TagLib::FLAC::File flacFile(input_file);
-                TagLib::Ogg::XiphComment *xiphComment =
-                    flacFile.xiphComment();
+        }
 
-                if (xiphComment) {
-                        const TagLib::Ogg::FieldListMap &fieldMap =
-                            xiphComment->fieldListMap();
+        // extract replay gain for flac, opus, ogg
+        TagLib::Ogg::XiphComment *xiphComment = nullptr;
 
-                        auto trackGainIt =
-                            fieldMap.find("REPLAYGAIN_TRACK_GAIN");
-                        if (trackGainIt != fieldMap.end()) {
-                                const TagLib::StringList &
-                                    trackGainList = trackGainIt->second;
-                                if (!trackGainList.isEmpty()) {
-                                        tag_settings->replaygainTrack =
-                                            parseDecibelValue(
-                                                trackGainList.front());
-                                }
-                        }
+        if (auto flacFile = dynamic_cast<TagLib::FLAC::File *>(f.file())) {
+                xiphComment = flacFile->xiphComment();
+        } else if (auto oggFile = dynamic_cast<TagLib::Ogg::Vorbis::File *>(f.file())) {
+                xiphComment = oggFile->tag();
+        } else if (auto opusFile = dynamic_cast<TagLib::Ogg::Opus::File *>(f.file())) {
+                xiphComment = opusFile->tag();
+        }
 
-                        auto albumGainIt =
-                            fieldMap.find("REPLAYGAIN_ALBUM_GAIN");
-                        if (albumGainIt != fieldMap.end()) {
-                                const TagLib::StringList &
-                                    albumGainList = albumGainIt->second;
-                                if (!albumGainList.isEmpty()) {
-                                        tag_settings->replaygainAlbum =
-                                            parseDecibelValue(
-                                                albumGainList.front());
-                                }
-                        }
+        if (xiphComment) {
+                const TagLib::Ogg::FieldListMap &fieldMap =
+                    xiphComment->fieldListMap();
+
+                auto trackGainIt = fieldMap.find("REPLAYGAIN_TRACK_GAIN");
+                if (trackGainIt != fieldMap.end() &&
+                    !trackGainIt->second.isEmpty()) {
+                        tag_settings->replaygainTrack =
+                            parseDecibelValue(trackGainIt->second.front());
+                }
+
+                auto albumGainIt = fieldMap.find("REPLAYGAIN_ALBUM_GAIN");
+                if (albumGainIt != fieldMap.end() &&
+                    !albumGainIt->second.isEmpty()) {
+                        tag_settings->replaygainAlbum =
+                            parseDecibelValue(albumGainIt->second.front());
                 }
         }
 
+        // extract cover art
         std::string filename(input_file);
         std::string extension = toLower(filename.substr(filename.find_last_of('.') + 1));
         bool coverArtExtracted = false;
