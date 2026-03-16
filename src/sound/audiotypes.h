@@ -32,7 +32,7 @@ struct sound_system {
         ma_device *device;
 
         bool decode_thread_active; // FIXME should be atomic
-        bool replay_gain_check_track_first;
+        int replay_gain_check_first; // 0 = track, 1 = album, 2 = disabled
 
         ma_uint32 channels;
         ma_uint32 sample_rate;

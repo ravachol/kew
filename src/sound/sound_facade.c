@@ -402,19 +402,19 @@ SongData *sound_system_get_current_song(const sound_system_t *system)
         return sound_get_current_song_data();
 }
 
-sound_result_t sound_system_set_replay_gain_check_track_first(sound_system_t *system, int value)
+sound_result_t sound_system_set_replay_gain_check_first(sound_system_t *system, int value)
 {
         if (!system)
                 return SOUND_ERROR_NOT_INITIALIZED;
 
-        system->replay_gain_check_track_first = value;
+        system->replay_gain_check_first = value;
 
         return SOUND_OK;
 }
 
-int sound_system_get_replay_gain_check_track_first(const sound_system_t *system)
+int sound_system_get_replay_gain_check_first(const sound_system_t *system)
 {
-        return system->replay_gain_check_track_first;
+        return system->replay_gain_check_first;
 }
 
 int sound_system_get_sample_rate(const sound_system_t *system)
