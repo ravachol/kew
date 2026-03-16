@@ -36,7 +36,7 @@ int create_sound_system(void)
         bool success = sound_system_create(&sound_sys) == SOUND_OK;
 
         if (success) {
-                sound_system_set_replay_gain_check_track_first(sound_sys, state->uiSettings.replayGainCheckFirst);
+                sound_system_set_replay_gain_check_first(sound_sys, state->uiSettings.replayGainCheckFirst);
                 start_playing(true);
         }
 
