@@ -181,7 +181,7 @@ static bool compute_replay_gain(double *out_gain_db)
                         gain_db = track_gain;
                         result = true;
                 } else if (checkFirst == 0 && is_valid_gain(album_gain)) {
-                        gain_db = track_gain;
+                        gain_db = album_gain;
                         result = true;
                 }
         }
