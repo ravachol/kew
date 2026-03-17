@@ -259,7 +259,7 @@ const char *get_modifier_string(uint8_t mods)
         if (mods & TB_MOD_SHIFT) {
                 if (!first)
                         strcat(buf, "+");
-                strcat(buf, "Shft");
+                strcat(buf, "Shift");
         }
 
         return buf;
