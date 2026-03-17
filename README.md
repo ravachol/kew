@@ -38,6 +38,7 @@ kew (/kjuː/) is a terminal music player.
  * Supports MP3, FLAC, MPEG-4/M4A (AAC), OPUS, OGG, Webm, WAV and AIFF audio.
  * Supports desktop events through MPRIS.
  * Supports lyrics through .lrc files, embedded SYLT (Mp3) or Vorbis comments (Flac,Ogg,Opus).
+ * Supports replay gain.
  * Use themes or colors derived from covers.
 
  *kew displays it's status in Discord by default, but this can be disabled both in Discord and in the kew config file kewrc.
