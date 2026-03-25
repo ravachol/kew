@@ -26,6 +26,8 @@
 
 #include "utils/utils.h"
 
+static bool enqueueing = false;
+
 void determine_song_and_notify(void)
 {
         AppState *state = get_app_state();
@@ -216,6 +218,7 @@ FileSystemEntry *enqueue_songs(FileSystemEntry *entry, FileSystemEntry **chosen_
 
                 shuffle_playlist(playlist);
                 set_song_to_start_from(NULL);
+                first_enqueued_entry = NULL;
         } else if (ps->nextSongNeedsRebuilding) {
                 reshuffle_playlist();
         }
@@ -289,6 +292,11 @@ Node *pick_random_node(Node *first)
 
 void view_enqueue(bool play_immediately)
 {
+        if (enqueueing)
+                return;
+
+        enqueueing = true;
+
         AppState *state = get_app_state();
         PlayList *playlist = get_playlist();
         PlaybackState *ps = get_playback_state();
@@ -328,7 +336,10 @@ void view_enqueue(bool play_immediately)
                 }
 
                 if (entry == NULL)
+                {
+                        enqueueing = false;
                         return;
+                }
 
                 // Enqueue playlist
                 if (path_ends_with(entry->full_path, "m3u") ||
@@ -366,4 +377,6 @@ void view_enqueue(bool play_immediately)
         if (canGoNext != couldGoNext) {
                 emit_boolean_property_changed("can_go_next", couldGoNext);
         }
+
+        enqueueing = false;
 }

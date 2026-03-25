@@ -330,6 +330,15 @@ sound_result_t sound_system_set_replay_gain_check_first(sound_system_t *system, 
  */
 sound_result_t sound_system_set_buffer_ready(const sound_system_t *system, int value);
 
+/**
+ * @brief Updates the audio buffer that can be used for effects and visualizations.
+ *
+ * @param system Pointer to the sound system instance.
+ *
+ * @return sound_result_t Status code indicating success or failure.
+ */
+sound_result_t sound_system_update_audio_buffer(const sound_system_t *system);
+
 /*=========================================================
   State Queries
 =========================================================*/

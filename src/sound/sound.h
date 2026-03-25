@@ -126,15 +126,6 @@ void sound_switch_track_immediate(void);
 void sound_ringbuffer_cleanup(void);
 
 /**
- * @brief Wakes up the audio processing thread.
- *
- * Signals any waiting audio or decoding thread to resume processing.
- * Typically used when new data becomes available or when playback
- * state changes.
- */
-void sound_wake_up(void);
-
-/**
  * @brief Enables or disables file switching.
  *
  * Controls whether the system is allowed to switch between
