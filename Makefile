@@ -308,6 +308,12 @@ install: all
 		done; \
 	fi
 
+	@if [ "$$(uname)" = "Linux" ]; then \
+		if command -v setcap >/dev/null 2>&1; then \
+			setcap cap_sys_nice+ep $(DESTDIR)$(PREFIX)/bin/kew; \
+		fi; \
+	fi
+
 .PHONY: uninstall
 uninstall:
 	rm -f $(DESTDIR)$(PREFIX)/bin/kew

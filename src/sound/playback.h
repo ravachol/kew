@@ -170,16 +170,11 @@ void pb_set_EOF_handled(void);
 /**
  * @brief Sets whether the decoder type switch has been reached.
  *
+ * @param value Either true or false.
+ *
  * This function marks the point where the decoder type switch is complete.
  */
-void set_decoder_type_switch_reached(void);
-
-/**
- * @brief Sets whether the decoder type switch has not been reached.
- *
- * This function marks the point where the decoder type switch has not been completed.
- */
-void set_decoder_type_switch_not_reached(void);
+void set_decoder_type_switch_reached(bool value);
 
 /**
  * @brief Sets the current decoder type.

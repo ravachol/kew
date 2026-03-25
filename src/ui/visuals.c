@@ -35,6 +35,7 @@
 static sound_system_t *sound_s;
 
 static float *fft_input = NULL;
+static fftwf_plan fft_plan = NULL;
 static fftwf_complex *fft_output = NULL;
 static ma_uint32 sample_rate = 0;
 static float bar_height[MAX_BARS] = {0.0f};
@@ -489,6 +490,10 @@ void free_visuals(void)
                 fftwf_free(fft_output);
                 fft_output = NULL;
         }
+        if (fft_plan != NULL) {
+                fftwf_free(fft_plan);
+                fft_plan = NULL;
+        }
 }
 
 void draw_spectrum_visualizer(sound_system_t *system, int row, int col, int height, int width)
@@ -522,6 +527,8 @@ void draw_spectrum_visualizer(sound_system_t *system, int row, int col, int heig
                 return;
         }
 
+        sound_system_update_audio_buffer(sound_s);
+
         int fft_size = sound_system_get_fft_size(sound_s);
 
         if (fft_size != prev_fft_size) {
@@ -547,20 +554,22 @@ void draw_spectrum_visualizer(sound_system_t *system, int row, int col, int heig
                         }
                         return;
                 }
+
+                if (fft_plan != NULL) {
+                        fftwf_destroy_plan(fft_plan);
+                        fft_plan = NULL;
+                }
+
+                fft_plan = fftwf_plan_dft_r2c_1d(fft_size, fft_input, fft_output, FFTW_ESTIMATE);
                 prev_fft_size = fft_size;
         }
-
-        fftwf_plan plan =
-            fftwf_plan_dft_r2c_1d(fft_size, fft_input, fft_output, FFTW_ESTIMATE);
 
         int bit_depth = sound_system_get_bit_depth(sound_s);
         sample_rate = sound_system_get_sample_rate(sound_s);
 
         calc_magnitudes(height, num_bars, sound_system_get_audio_buffer(sound_s), bit_depth, fft_input,
-                        fft_output, fft_size, magnitudes, plan, display_magnitudes);
+                        fft_output, fft_size, magnitudes, fft_plan, display_magnitudes);
 
         print_spectrum(row, col, &(state->uiSettings), height, num_bars,
                        visualizer_width, display_magnitudes);
-
-        fftwf_destroy_plan(plan);
 }

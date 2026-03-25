@@ -45,21 +45,6 @@ void reset_audio_buffer(void);
 void freeAudioBuffer(void);
 
 /**
- * @brief Sets the audio buffer with the given data.
- *
- * This function initializes the audio buffer with the specified parameters,
- * including the number of samples, sample rate, channels, and format. It
- * dynamically calculates FFT and hop sizes based on the sample rate.
- *
- * @param buf Pointer to the buffer that contains audio data.
- * @param num_samples The number of audio samples in the buffer.
- * @param sample_rate The sample rate of the audio data.
- * @param channels The number of channels in the audio data.
- * @param format The format of the audio data (e.g., `ma_format_u8`, `ma_format_s16`).
- */
-void set_audio_buffer(void *buf, int num_samples, ma_uint32 sample_rate, ma_uint32 channels, ma_format format);
-
-/**
  * @brief Sets the buffer ready flag.
  *
  * This function sets the buffer ready state, which is used to signal
@@ -99,5 +84,25 @@ bool is_buffer_ready(void);
  * @return The unpacked 32-bit signed sample.
  */
 int32_t unpack_s24(const ma_uint8 *p);
+
+/**
+ * @brief Pushes audiodata to the ringbuffer used by spectrum visualizer
+ *
+ *
+ * @param src Pointer to the audio frames.
+ * @param frames The number of frames.
+ * @param channels The number of channels.
+ *
+ */
+void visualizer_ringbuffer_push(const float *src, ma_uint32 frames, ma_uint32 channels);
+
+/**
+ * @brief Prepares the audio buffer for the spectrum visualizer
+ *
+ * @param sample_rate The sample rate of the current audio.
+ * @param channels The number of channels.
+ *
+ */
+void prepare_visualizer_audiobuffer(ma_uint32 sample_rate, ma_uint32 channels);
 
 #endif
