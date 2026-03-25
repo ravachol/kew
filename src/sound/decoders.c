@@ -29,6 +29,7 @@
 // They must all belong to the same decoder type.
 
 static void *first_decoder;
+static _Atomic(void *) current_decoder = NULL;
 static void *decoders[MAX_DECODERS];
 static int decoder_index = -1;
 static atomic_int decoder_decoder_type = NONE;
@@ -438,10 +439,7 @@ void *get_first_decoder(void)
 
 void *get_current_decoder(void)
 {
-        if (decoder_index == -1)
-                return get_first_decoder();
-        else
-                return decoders[decoder_index];
+        return atomic_load_explicit(&current_decoder, memory_order_acquire);
 }
 
 enum decoder_type_t get_current_decoder_decoder_type(void)
@@ -474,6 +472,8 @@ void switch_decoder_index(void)
                 decoder_index = 0;
         else
                 decoder_index = 1 - decoder_index;
+
+        atomic_store_explicit(&current_decoder, decoders[decoder_index], memory_order_release);
 }
 
 /* Decoder uninit previous */
@@ -548,6 +548,8 @@ void reset_decoders(void)
                         }
                 }
         }
+
+        atomic_store_explicit(&current_decoder, NULL, memory_order_release);
 }
 
 /* Set current decoder decoder type */
@@ -571,6 +573,7 @@ void set_next_decoder(void *decoder, const enum decoder_type_t new_decoder_type)
 
         if (decoder_index == -1 && first_decoder == NULL) {
                 first_decoder = decoder;
+                atomic_store_explicit(&current_decoder, first_decoder, memory_order_release);
         } else if (decoder_index == -1) // Array hasn't been used yet
         {
                 if (decoders[0] != NULL) {
@@ -600,10 +603,7 @@ void set_next_decoder(void *decoder, const enum decoder_type_t new_decoder_type)
 
 int prepare_next_decoder(const char *filepath, SongData *song, const CodecOps *ops)
 {
-        void *current =
-            (decoder_index == -1)
-                ? first_decoder
-                : decoders[decoder_index];
+        void *current = get_current_decoder();
 
         ma_format format = 0;
         ma_uint32 channels = 0;

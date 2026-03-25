@@ -249,7 +249,6 @@ typedef struct
         UIState uiState;
         UISettings uiSettings;
 
-        pthread_mutex_t data_source_mutex;
         pthread_mutex_t switch_mutex;
 } AppState;
 

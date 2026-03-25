@@ -259,6 +259,7 @@ void load_waiting_music(void)
                         try_load_next();
 
                 if (is_EOF_reached()) {
+                        set_EOF_handled();
                         prepare_next_song();
                         switch_decoder();
                 }
@@ -317,8 +318,6 @@ void kew_shutdown()
         set_default_text_color();
 
         pthread_mutex_destroy(&(state->switch_mutex));
-
-        pthread_mutex_destroy(&(state->data_source_mutex));
 
         free_visuals();
 
@@ -714,7 +713,6 @@ void init_state(void)
         ps->notifyPlaying = false;
         ps->notifySeek = false;
 
-        pthread_mutex_init(&(state->data_source_mutex), NULL);
         pthread_mutex_init(&(state->switch_mutex), NULL);
 
         set_unshuffled_playlist(NULL);

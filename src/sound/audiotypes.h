@@ -31,15 +31,15 @@ struct sound_system {
         void *decoder;
         ma_device *device;
 
-        bool decode_thread_active; // FIXME should be atomic
+        bool audio_thread_priority_set;
         int replay_gain_check_first; // 0 = track, 1 = album, 2 = disabled
+        float gain_linear;
 
         ma_uint32 channels;
         ma_uint32 sample_rate;
         ma_format format;
 
         ma_uint64 currentPCMFrame;
-        ma_uint64 totalFrames;
 
         ma_uint32 avg_bit_rate;
 
@@ -52,12 +52,12 @@ struct sound_system {
 #ifndef __cplusplus
         atomic_llong track_frames_sent;
         atomic_llong track_end_frame;
-        atomic_bool buffer_ready;
         atomic_bool end_of_list_reached;
         atomic_bool decode_thread_running;
         atomic_bool decode_finished;
         atomic_bool pending_switch;
         atomic_bool switch_files;
+        atomic_bool buffer_ready;
         atomic_bool using_song_slot_A;
 #endif
 

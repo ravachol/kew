@@ -518,11 +518,12 @@ int enqueue_children(FileSystemEntry *child,
                         if (child->is_enqueued == 1)
                                 has_enqueued = 1;
                 } else if (!child->is_enqueued) {
-                        if (*first_enqueued_entry == NULL)
-                                *first_enqueued_entry = child;
-
                         if (!(path_ends_with(child->full_path, "m3u") ||
                               path_ends_with(child->full_path, "m3u8"))) {
+
+                                if (*first_enqueued_entry == NULL)
+                                        *first_enqueued_entry = child;
+
                                 enqueue_song(child);
                                 has_enqueued = 1;
                         }
