@@ -1009,6 +1009,15 @@ FileSystemEntry *find_corresponding_entry(FileSystemEntry *tmp,
         return find_corresponding_entry(tmp->next, full_path);
 }
 
+bool is_m3u_file(FileSystemEntry *entry)
+{
+        if (entry == NULL || entry->full_path == NULL || entry->is_directory)
+                return false;
+
+        return path_ends_with(entry->full_path, "m3u") ||
+               path_ends_with(entry->full_path, "m3u8");
+}
+
 void copy_is_enqueued(FileSystemEntry *library, FileSystemEntry *tmp)
 {
         if (library == NULL)

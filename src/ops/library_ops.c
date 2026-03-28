@@ -443,7 +443,7 @@ void set_childrens_queued_status_on_parents(FileSystemEntry *parent, bool wanted
         FileSystemEntry *ch = parent->children;
 
         while (ch != NULL) {
-                if (ch->is_enqueued) {
+                if (ch->is_enqueued && !is_m3u_file(ch)) {
                         is_enqueued = true;
                         break;
                 }
@@ -497,10 +497,18 @@ void dequeue_song(FileSystemEntry *child)
 void dequeue_children(FileSystemEntry *parent)
 {
         FileSystemEntry *child = parent->children;
+        FileSystemEntry *library = get_library();
 
         while (child != NULL) {
-                if (child->is_directory && child->children != NULL) {
-                        dequeue_children(child);
+                if (child->is_directory) {
+                        if (child->children != NULL) {
+                                dequeue_children(child);
+                        }
+                } else if (is_m3u_file(child)) {
+                        if (child->is_enqueued) {
+                                dequeue_m3u(child->full_path, library);
+                                child->is_enqueued = 0;
+                        }
                 } else {
                         dequeue_song(child);
                 }
@@ -522,22 +530,22 @@ int enqueue_children(FileSystemEntry *child,
         FileSystemEntry *parent = child->parent;
 
         while (child != NULL) {
-                if (child->is_directory && child->children != NULL) {
-                        child->is_enqueued = enqueue_children(child->children, first_enqueued_entry);
+                if (child->is_directory) {
+                        if (child->children != NULL) {
+                                child->is_enqueued = enqueue_children(child->children, first_enqueued_entry);
 
-                        if (child->is_enqueued == 1)
-                                has_enqueued = 1;
-                } else if (!child->is_enqueued) {
-                        if (!(path_ends_with(child->full_path, "m3u") ||
-                              path_ends_with(child->full_path, "m3u8"))) {
+                                if (child->is_enqueued == 1)
+                                        has_enqueued = 1;
+                        }
+                } else if (!is_m3u_file(child)) {
+                        if (!child->is_enqueued) {
 
                                 if (*first_enqueued_entry == NULL)
                                         *first_enqueued_entry = child;
 
                                 enqueue_song(child);
-                                has_enqueued = 1;
                         }
-                } else if (child->is_directory == 0 && child->is_enqueued) {
+
                         has_enqueued = 1;
                 }
 
@@ -578,8 +586,7 @@ bool has_dequeued_children(FileSystemEntry *parent)
         bool isDequeued = false;
         while (child != NULL) {
                 if (!child->is_enqueued) {
-                        if ((child->is_directory != 1 && !(path_ends_with(child->full_path, "m3u") ||
-                                                           path_ends_with(child->full_path, "m3u8"))) ||
+                        if ((!child->is_directory && !is_m3u_file(child)) ||
                             has_dequeued_children(child))
                                 isDequeued = true;
                 }
@@ -638,6 +645,8 @@ void enqueue_m3u(const char *filepath, FileSystemEntry *library,
 {
         PlayList *unshuffled_playlist = get_unshuffled_playlist();
         PlayList *playlist = get_playlist();
+
+        bool root_was_enqueued = library->is_enqueued;
 
         GError *error = NULL;
         gchar *contents;
@@ -712,6 +721,9 @@ void enqueue_m3u(const char *filepath, FileSystemEntry *library,
 
                 g_free(normalized);
         }
+
+        if (!root_was_enqueued)
+                library->is_enqueued = false;
 
         g_free(directory);
         g_strfreev(lines);
