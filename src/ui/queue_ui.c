@@ -392,10 +392,7 @@ void view_enqueue(bool play_immediately)
                 }
 
                 // Enqueue / dequeue playlist file (toggle, mirroring directory behaviour)
-                if (!entry->is_directory &&
-                    (path_ends_with(entry->full_path, "m3u") ||
-                     path_ends_with(entry->full_path, "m3u8"))) {
-
+                if (is_m3u_file(entry)) {
                         first_enqueued_node = enqueue_playlist(entry);
                 } else {
                         FileSystemEntry *first_enqueued_entry = enqueue(entry); // Enqueue song
