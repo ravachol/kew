@@ -1891,8 +1891,7 @@ int display_tree(FileSystemEntry *root, int depth, int max_list_size,
                                 printf("└─ ");
 
                                 // Playlist
-                                if (path_ends_with(root->full_path, "m3u") ||
-                                    path_ends_with(root->full_path, "m3u8")) {
+                                if (is_m3u_file(root)) {
                                         printf("♫ ");
                                         max_name_width = max_name_width - 2;
                                 }

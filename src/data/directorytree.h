@@ -217,4 +217,16 @@ int compare_entry_natural(const void *a, const void *b);
 FileSystemEntry *find_corresponding_entry(FileSystemEntry *tmp,
                                           const char *full_path);
 
+/**
+ * Checks if a FileSystemEntry is an M3U playlist file.
+ *
+ * Examines the full_path to determine if the entry has
+ * an .m3u or .m3u8 extension.
+ *
+ * @param entry  Pointer to the FileSystemEntry to check
+ *
+ * @return true if the entry is an M3U file, false otherwise
+ */
+bool is_m3u_file(FileSystemEntry *entry);
+
 #endif

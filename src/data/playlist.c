@@ -727,9 +727,7 @@ void add_enqueued_songs_to_playlist(FileSystemEntry *root, PlayList *playlist)
         if (!root)
                 return;
 
-        if (root->is_enqueued && root->is_directory == 0 &&
-            !(path_ends_with(root->full_path, "m3u") ||
-              path_ends_with(root->full_path, "m3u8"))) {
+        if (root->is_enqueued && root->is_directory == 0 && !is_m3u_file(root)) {
                 Node *node = malloc(sizeof(Node));
                 node->song.file_path = strdup(root->full_path);
                 node->prev = playlist->tail;
