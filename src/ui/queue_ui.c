@@ -226,6 +226,56 @@ FileSystemEntry *enqueue_songs(FileSystemEntry *entry, FileSystemEntry **chosen_
         return first_enqueued_entry;
 }
 
+Node *enqueue_playlist(FileSystemEntry *entry)
+{
+        AppState *state = get_app_state();
+        PlaybackState *ps = get_playback_state();
+        PlayList *playlist = get_playlist();
+        Node *first_enqueued_node = NULL;
+
+        if (should_start_playing()) {
+                Node *last_song = find_selected_entry_by_id(playlist, ps->lastPlayedId);
+                state->uiState.startFromTop = false;
+
+                if (last_song == NULL) {
+                        if (playlist->tail != NULL)
+                                ps->lastPlayedId = playlist->tail->id;
+                        else {
+                                ps->lastPlayedId = -1;
+                                state->uiState.startFromTop = true;
+                        }
+                }
+        }
+
+        pthread_mutex_lock(&(playlist->mutex));
+
+        if (!entry->is_enqueued) {
+                set_next_song(NULL);
+                ps->nextSongNeedsRebuilding = true;
+
+                enqueue_m3u(entry->full_path, get_library(), &first_enqueued_node);
+
+                if (state->uiSettings.shuffle_enabled)
+                        reshuffle_playlist();
+
+                entry->is_enqueued = 1;
+        } else {
+                set_next_song(NULL);
+                ps->nextSongNeedsRebuilding = true;
+
+                dequeue_m3u(entry->full_path, get_library());
+                entry->is_enqueued = 0;
+        }
+
+        reset_list_after_dequeuing_playing_song();
+
+        pthread_mutex_unlock(&(playlist->mutex));
+
+        trigger_refresh();
+
+        return first_enqueued_node;
+}
+
 FileSystemEntry *enqueue(FileSystemEntry *entry)
 {
         AppState *state = get_app_state();
@@ -341,17 +391,9 @@ void view_enqueue(bool play_immediately)
                         return;
                 }
 
-                // Enqueue playlist
-                if (path_ends_with(entry->full_path, "m3u") ||
-                    path_ends_with(entry->full_path, "m3u8")) {
-
-                        if (playlist != NULL) {
-                                first_enqueued_node = read_m3u_file(entry->full_path, playlist);
-                                deep_copy_play_list_onto_list(playlist, &unshuffled_playlist);
-
-                                if (state->uiSettings.shuffle_enabled)
-                                        reshuffle_playlist();
-                        }
+                // Enqueue / dequeue playlist file (toggle, mirroring directory behaviour)
+                if (is_m3u_file(entry)) {
+                        first_enqueued_node = enqueue_playlist(entry);
                 } else {
                         FileSystemEntry *first_enqueued_entry = enqueue(entry); // Enqueue song
                         if (first_enqueued_entry)
