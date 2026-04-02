@@ -187,4 +187,35 @@ bool is_contained_within(FileSystemEntry *entry,
  */
 void update_library_if_changed_detected(bool wait_until_complete);
 
+/**
+ * @brief Enqueue all songs referenced by an M3U playlist file.
+ *
+ * Parses the M3U file and adds one node per path to both the shuffled and
+ * unshuffled playlists, mirroring enqueue_children(). mark_as_enqueued() is
+ * called for each song so the library browser shows the * marker. The M3U
+ * entry itself must be marked by the caller after this function returns.
+ *
+ * @param filepath             Path to the .m3u / .m3u8 file to enqueue.
+ * @param library              Root of the library tree whose enqueued flags
+ *                             should be set.
+ * @param first_enqueued_node  Output: first Node added to the playlist, or
+ *                             NULL if nothing was added.
+ */
+void enqueue_m3u(const char *filepath, FileSystemEntry *library,
+                 Node **first_enqueued_node);
+
+/**
+ * @brief Dequeue all songs referenced by an M3U playlist file.
+ *
+ * Parses the M3U file and removes one node per path from both playlists,
+ * mirroring dequeue_children(). mark_as_dequeued() is called per song so
+ * sibling entries enqueued through other means retain their flags. The M3U
+ * entry itself must be cleared by the caller after this function returns.
+ *
+ * @param filepath Path to the .m3u / .m3u8 file to dequeue.
+ * @param library  Root of the library tree whose enqueued flags should be
+ *                 cleared.
+ */
+void dequeue_m3u(const char *filepath, FileSystemEntry *library);
+
 #endif
