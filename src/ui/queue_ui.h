@@ -80,3 +80,16 @@ FileSystemEntry *enqueue_songs(FileSystemEntry *entry, FileSystemEntry **chosen_
  * @return The first enqueued entry (if any).
  */
 FileSystemEntry *libraryEnqueue(PlayList *playlist);
+
+/**
+ * @brief Toggle enqueue/dequeue for an M3U playlist file entry.
+ *
+ * Mirrors enqueue() for directories: handles the lastPlayedId bookkeeping,
+ * locks the playlist mutex, delegates to enqueue_m3u() or dequeue_m3u(),
+ * calls reset_list_after_dequeuing_playing_song(), and triggers a UI refresh.
+ * The caller is responsible for acting on the returned node (e.g. autoplay).
+ *
+ * @param entry FileSystemEntry for the .m3u / .m3u8 file.
+ * @return First Node added to the playlist, or NULL when dequeuing.
+ */
+Node *enqueue_playlist(FileSystemEntry *entry);

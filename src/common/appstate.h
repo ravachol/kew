@@ -501,4 +501,10 @@ void set_favorites_playlist(PlayList *pl);
 /** @brief Set current song data. */
 void set_current_song_data(SongData *song_data);
 
+/** @brief Get the realpath of the library root if it differs from full_path, otherwise empty string. */
+const char *get_library_real_path_if_diff(void);
+
+/** @brief Set the realpath of the library root if it differs from full_path; pass NULL to clear. */
+void set_library_real_path_if_diff(const char *path);
+
 #endif
