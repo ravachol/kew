@@ -28,6 +28,8 @@ PlayList *favorites_playlist = NULL;
 
 static const char LIBRARY_FILE[] = "library.dat";
 
+static char library_real_path_if_diff[PATH_MAX] = {0};
+
 double pause_seconds = 0.0;
 
 double total_pause_seconds = 0.0;
@@ -208,4 +210,18 @@ void set_song_to_start_from(Node *node)
 void set_try_next_song(Node *node)
 {
         try_next_song = node;
+}
+
+const char *get_library_real_path_if_diff(void)
+{
+        return library_real_path_if_diff;
+}
+
+void set_library_real_path_if_diff(const char *path)
+{
+        if (path == NULL) {
+                library_real_path_if_diff[0] = '\0';
+                return;
+        }
+        c_strcpy(library_real_path_if_diff, path, sizeof(library_real_path_if_diff));
 }
