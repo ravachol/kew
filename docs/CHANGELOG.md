@@ -2,6 +2,16 @@
 
 ## 4.0.0
 
+kew 4.0 brings ASCII visualizations and a redesigned audio module. There's also a discord integration, kew play \<path\> command, support for macOS media keys, AIFF support and more.
+
+kew now has an official Arch Linux package and will soon also be on Android (Termux).
+
+I want to take this opportunity to thank the package managers who showed up out of nowhere and were brave enough to support this project very, very early on, when it was just a piece of shit with some cool ideas. People like Matthias Geiger who maintains the packages for Debian, Ubuntu, Raspberry Pi, Kali and others. Agustin Ballesteros and Matteo Giordano for the two AUR packages. Yuri Victorovich for FreeBSD. Brett Carlock for Alpine Linux and all the others.
+
+Now we also have Robin Candau on Arch Linux helping us. Thank you to you all and thank you also to all the others that I haven't had much contact with but we are very thankful to you as well.
+
+- Ravachol
+
 #### Enhancements
 
 - Chroma ASCII Visualizations.
@@ -13,11 +23,13 @@ Chroma is started from within kew. Just switch to track view and press c to cycl
 
 Thank you @yuri-xyz for helping out with this.
 
-- Discord RPC integration. by @ravachol. Suggested by @Chmosha.
+- Discord RPC integration. by @ravachol and @chrontax. Suggested by @Chmosha.
 
 - kew play \<path\> \<path2\> command. by @Overionised. Suggested by @amigthea.
 
 - Support for macOS media keys. By @Rohyme and @petoem.
+
+- You can now dequeue m3u playlists and they are sorted first. By @feng1st.
 
 - Lyrics page now centers the current lyric once it reaches the center of the screen. Suggested by @flashfire1001. Implemented by @Moksh-Parikh.
 
