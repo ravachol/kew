@@ -616,6 +616,9 @@ void repeat_list(void)
 {
         sound_system_set_end_of_list_reached(sound_sys, false);
         skip_to_numbered_song(1);
+        start_playing(false);
+        PlaybackState *ps = get_playback_state();
+        ps->skipOutOfOrder = false;
 }
 
 void move_song_up(int *chosen_row)
