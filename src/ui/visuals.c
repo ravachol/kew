@@ -491,7 +491,7 @@ void free_visuals(void)
                 fft_output = NULL;
         }
         if (fft_plan != NULL) {
-                fftwf_free(fft_plan);
+                fftwf_destroy_plan(fft_plan);
                 fft_plan = NULL;
         }
 }
