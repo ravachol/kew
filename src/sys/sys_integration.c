@@ -176,36 +176,33 @@ void emit_seeked_signal(double new_position_seconds)
 void emit_boolean_property_changed(const gchar *property_name, gboolean new_value)
 {
 #ifdef USE_DBUS
-        GVariantBuilder changed_properties_builder;
-        g_variant_builder_init(&changed_properties_builder,
-                               G_VARIANT_TYPE("a{sv}"));
+        GVariantBuilder builder;
+        g_variant_builder_init(&builder, G_VARIANT_TYPE("a{sv}"));
 
-        GVariant *value_variant = g_variant_new_boolean(new_value);
-        if (value_variant == NULL) {
-                fprintf(stderr,
-                        "Failed to allocate GVariant for boolean property\n");
-                return;
-        }
+        g_variant_builder_add(&builder,
+                              "{sv}",
+                              property_name,
+                              g_variant_new_boolean(new_value));
 
-        g_variant_builder_add(&changed_properties_builder, "{sv}", property_name,
-                              value_variant);
+        GVariant *signal_variant = g_variant_new("(sa{sv}as)",
+                                                 "org.mpris.MediaPlayer2.Player",
+                                                 &builder,
+                                                 NULL);
 
-        GVariant *signal_variant =
-            g_variant_new("(sa{sv}as)", "org.mpris.MediaPlayer2.Player",
-                          &changed_properties_builder, NULL);
-        if (signal_variant == NULL) {
-                fprintf(stderr, "Failed to allocate GVariant for "
-                                "PropertiesChanged signal\n");
-                g_variant_builder_clear(&changed_properties_builder);
-                return;
-        }
+        // The only way to prevent leak or double free is to explicitly take ownership
+        g_variant_ref_sink(signal_variant);
 
         g_dbus_connection_emit_signal(
-            connection, NULL, "/org/mpris/MediaPlayer2",
-            "org.freedesktop.DBus.Properties", "PropertiesChanged",
-            signal_variant, NULL);
+            connection,
+            NULL,
+            "/org/mpris/MediaPlayer2",
+            "org.freedesktop.DBus.Properties",
+            "PropertiesChanged",
+            signal_variant,
+            NULL);
 
-        g_variant_builder_clear(&changed_properties_builder);
+        g_variant_unref(signal_variant);
+
 #else
         (void)property_name;
         (void)new_value;
