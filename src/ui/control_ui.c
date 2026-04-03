@@ -344,8 +344,6 @@ void toggle_shuffle(void)
         if (state->currentView == PLAYLIST_VIEW ||
             state->currentView == LIBRARY_VIEW)
                 trigger_refresh();
-
-        emit_shuffle_changed();
 }
 
 bool should_refresh_player(void)
