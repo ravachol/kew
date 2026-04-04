@@ -157,6 +157,23 @@ bool mark_as_dequeued(FileSystemEntry *root, char *path)
         return false;
 }
 
+void clear_all_m3u_enqueued_flags(FileSystemEntry *root)
+{
+        if (root == NULL)
+                return;
+
+        if (!root->is_directory && is_m3u_file(root) && root->is_enqueued) {
+                root->is_enqueued = false;
+                return;
+        }
+
+        FileSystemEntry *child = root->children;
+        while (child != NULL) {
+                clear_all_m3u_enqueued_flags(child);
+                child = child->next;
+        }
+}
+
 typedef struct
 {
         char *path;

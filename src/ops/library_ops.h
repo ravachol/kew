@@ -139,6 +139,16 @@ int enqueue_children(FileSystemEntry *child,
 bool mark_as_dequeued(FileSystemEntry *root, char *path);
 
 /**
+ * @brief Clear is_enqueued on all M3U file entries in the library tree.
+ *
+ * Used when clearing the playlist to ensure M3U files lose their
+ * enqueued marker even though they are not playlist nodes.
+ *
+ * @param root Root of the library tree.
+ */
+void clear_all_m3u_enqueued_flags(FileSystemEntry *root);
+
+/**
  * @brief Determine whether an entry has any direct song children.
  *
  * Checks if the given directory contains at least one non-directory child.
