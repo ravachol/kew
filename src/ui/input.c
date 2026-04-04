@@ -644,13 +644,15 @@ static gboolean on_tb_input(GIOChannel *source, GIOCondition cond, gpointer data
 
                 AppState *state = get_app_state();
                 if (state->currentView == SEARCH_VIEW) {
-                        tb_peek_event(&ev, 0);
-                        bool isMouseEvent = handle_mouse_event(&ev, &event);
-
-                        if (!isMouseEvent) {
-                                event = handle_search_event(&ev);
-                                if (event.type == EVENT_NONE)
-                                        event = map_tb_key_to_event(&ev);
+                        // Process all characters in the buffer (e.g. IME commits
+                        // multiple characters at once)
+                        while (tb_peek_event(&ev, 0) == 0) {
+                                bool isMouseEvent = handle_mouse_event(&ev, &event);
+                                if (!isMouseEvent) {
+                                        event = handle_search_event(&ev);
+                                        if (event.type == EVENT_NONE)
+                                                event = map_tb_key_to_event(&ev);
+                                }
                         }
                 } else {
 
