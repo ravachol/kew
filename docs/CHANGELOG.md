@@ -59,6 +59,8 @@ I have never spent so much time on just two functions (the decode loop and audio
 
 - ClearListClearsAll option, which makes backspace clear the whole playlist including the playing song. By @feng1st.
 
+- Non-square cover art is no longer stretched. Suggested by @that_owl. By @rudra-dhamecha.
+
 #### Bug Fixes
 
 - Do not strip the number from a song title if it's connected to an alphanumeric character, like '10th song.flac'. Suggested by @bholroyd.
