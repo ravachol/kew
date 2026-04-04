@@ -47,9 +47,17 @@ Thank you @yuri-xyz for helping out with this.
 
 - Add option to disable the stripping of track numbers from file names in the library: stripTrackNumbers=0. By @episvr.
 
-- Audio subsystem has been reworked and improved structurally, which among other things should make the audio smooth when the computer is under heavy load. Gaming with kew playing should be silky smooth now. Lots of functions were removed/unified, and some issues fixed. This should make the flow of the program easier to understand for other coders as well. by @ravachol.
+- Audio subsystem has been reworked and improved structurally, which among other things should make the audio smooth when the computer is under heavy load.  Lots of functions were removed/unified, and some issues fixed. This should make the flow of the program easier to understand for other coders as well.
+
+These changes were made to reduce the occurence of stuttering:
+- kew now runs as a realtime scheduled app (SCHED_RR), but at a low priority.
+- miniaudio period size increased to 200ms and number of periods to 4.
+- much cleaner decode and audio callback logic with no locks.
+I have never spent so much time on just two functions (the decode loop and audio callback) before in my career. There could still be issues as this is brand new code, but this baseline should be much better to work with.
 
 - Add AIFF support. Suggested by @brikk42. By @ravachol.
+
+- ClearListClearsAll option, which makes backspace clear the whole playlist including the playing song. By @feng1st.
 
 #### Bug Fixes
 
