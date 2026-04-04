@@ -165,6 +165,7 @@ typedef struct
         int titleDelay;           /**< Delay before drawing title in track view (ms). */
         int cacheLibrary;         /**< Whether to cache the music library. */
         bool quitAfterStopping;   /**< Exit application automatically after playback stops. */
+        bool clearListClearsAll;  /**< Whether clearing the playlist also removes the currently playing song. */
         bool hideGlimmeringText;  /**< Disable animated/glimmering bottom row text. */
         time_t last_time_app_ran; /**< Timestamp of last run, used to detect library changes. */
 
@@ -358,6 +359,7 @@ typedef struct
         char hideSideCover[2];
         char hideTimeStatus[2];
         char quitAfterStopping[2];
+        char clearListClearsAll[2];
         char hideGlimmeringText[2];
         char nextView[6];
         char prevView[6];

@@ -584,6 +584,8 @@ void set_default_config(AppSettings *settings)
         c_strcpy(settings->coverAnsi, "0", sizeof(settings->coverAnsi));
         c_strcpy(settings->quitAfterStopping, "0",
                  sizeof(settings->quitAfterStopping));
+        c_strcpy(settings->clearListClearsAll, "0",
+                 sizeof(settings->clearListClearsAll));
         c_strcpy(settings->hideGlimmeringText, "0",
                  sizeof(settings->hideGlimmeringText));
         c_strcpy(settings->mouseEnabled, "1", sizeof(settings->mouseEnabled));
@@ -1134,6 +1136,10 @@ void construct_app_settings(AppSettings *settings, KeyValuePair *pairs, int coun
                 } else if (strcmp(lowercase_key, "quitonstop") == 0) {
                         snprintf(settings->quitAfterStopping,
                                  sizeof(settings->quitAfterStopping), "%s",
+                                 pair->value);
+                } else if (strcmp(lowercase_key, "clearlistclearsall") == 0) {
+                        snprintf(settings->clearListClearsAll,
+                                 sizeof(settings->clearListClearsAll), "%s",
                                  pair->value);
                 } else if (strcmp(lowercase_key, "hideglimmeringtext") == 0) {
                         snprintf(settings->hideGlimmeringText,
@@ -1836,6 +1842,12 @@ void set_config(AppSettings *settings, UISettings *ui)
                                sizeof(settings->quitAfterStopping))
                     : c_strcpy(settings->quitAfterStopping, "0",
                                sizeof(settings->quitAfterStopping));
+        if (settings->clearListClearsAll[0] == '\0')
+                ui->clearListClearsAll
+                    ? c_strcpy(settings->clearListClearsAll, "1",
+                               sizeof(settings->clearListClearsAll))
+                    : c_strcpy(settings->clearListClearsAll, "0",
+                               sizeof(settings->clearListClearsAll));
         if (settings->hideGlimmeringText[0] == '\0')
                 ui->hideGlimmeringText
                     ? c_strcpy(settings->hideGlimmeringText, "1",
@@ -1928,6 +1940,10 @@ void set_config(AppSettings *settings, UISettings *ui)
         fprintf(file, "# Same as '--quitonstop' flag, exits after playing the "
                       "whole playlist.\n");
         fprintf(file, "quitOnStop=%s\n\n", settings->quitAfterStopping);
+
+        fprintf(file, "# Whether clearing the playlist also removes the "
+                      "currently playing song.\n");
+        fprintf(file, "clearListClearsAll=%s\n\n", settings->clearListClearsAll);
 
         fprintf(file, "# Glimmering text on the bottom row.\n");
         fprintf(file, "hideGlimmeringText=%s\n\n",

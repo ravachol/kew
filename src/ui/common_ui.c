@@ -128,6 +128,7 @@ void transfer_settings_to_ui(void)
         ui->hideTimeStatus = (settings->hideTimeStatus[0] == '1');
         ui->discordRPCEnabled = (settings->discordRPCEnabled[0] == '1');
         ui->quitAfterStopping = (settings->quitAfterStopping[0] == '1');
+        ui->clearListClearsAll = (settings->clearListClearsAll[0] == '1');
         ui->hideGlimmeringText = (settings->hideGlimmeringText[0] == '1');
         ui->mouseEnabled = (settings->mouseEnabled[0] == '1');
         ui->shuffle_enabled = (settings->shuffle_enabled[0] == '1');
