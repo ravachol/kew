@@ -34,6 +34,7 @@
 * Rioprastyo17
 * Robertson D. Torress @Welpyes
 * Rowan Shi @rowanxshi
+* @rudra-dhamecha
 * Rui Chen @chenrui333 <rui@chenrui.dev>
 * Ruoyu Zhong @ZhongRuoyu <zhongruoyu@outlook.com>
 * Ryouji @soryu-ryouji <helloryouji@outlook.com>
