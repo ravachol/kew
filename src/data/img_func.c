@@ -371,14 +371,61 @@ convert_image(const void *pixels, gint pix_width, gint pix_height,
         chafa_image_set_frame(image, frame);
 
         placement = chafa_placement_new(image, 1);
-        chafa_placement_set_tuck(placement, CHAFA_TUCK_STRETCH);
-        chafa_placement_set_halign(placement, CHAFA_ALIGN_START);
-        chafa_placement_set_valign(placement, CHAFA_ALIGN_START);
+        chafa_placement_set_tuck(placement, CHAFA_TUCK_FIT);
+        chafa_placement_set_halign(placement, CHAFA_ALIGN_CENTER);
+        chafa_placement_set_valign(placement, CHAFA_ALIGN_CENTER);
         chafa_canvas_set_placement(canvas, placement);
 
         printable = chafa_canvas_print(canvas, NULL);
 
         /* Clean up and return */
+
+        chafa_placement_unref(placement);
+        chafa_image_unref(image);
+        chafa_frame_unref(frame);
+        chafa_canvas_unref(canvas);
+        chafa_canvas_config_unref(config);
+        chafa_symbol_map_unref(symbol_map);
+        chafa_term_info_unref(term_info);
+        canvas = NULL;
+        config = NULL;
+        symbol_map = NULL;
+        term_info = NULL;
+
+        return printable;
+#elif CHAFA_VERSION_CUR_STABLE >= G_ENCODE_VERSION(1, 14)
+
+        ChafaFrame *frame;
+        ChafaImage *image;
+        ChafaPlacement *placement;
+
+        detect_terminal(&term_info, &mode, &pixel_mode);
+
+        symbol_map = chafa_symbol_map_new();
+        chafa_symbol_map_add_by_tags(symbol_map, CHAFA_SYMBOL_TAG_BLOCK);
+
+        config = chafa_canvas_config_new();
+        chafa_canvas_config_set_canvas_mode(config, mode);
+        chafa_canvas_config_set_pixel_mode(config, pixel_mode);
+        chafa_canvas_config_set_geometry(config, width_cells, height_cells);
+        chafa_canvas_config_set_symbol_map(config, symbol_map);
+
+        if (cell_width > 0 && cell_height > 0)
+                chafa_canvas_config_set_cell_geometry(config, cell_width, cell_height);
+
+        canvas = chafa_canvas_new(config);
+        frame = chafa_frame_new_borrow((gpointer)pixels, pixel_type, pix_width,
+                                         pix_height, pix_rowstride);
+        image = chafa_image_new();
+        chafa_image_set_frame(image, frame);
+
+        placement = chafa_placement_new(image, 1);
+        chafa_placement_set_tuck(placement, CHAFA_TUCK_FIT);
+        chafa_placement_set_halign(placement, CHAFA_ALIGN_CENTER);
+        chafa_placement_set_valign(placement, CHAFA_ALIGN_CENTER);
+        chafa_canvas_set_placement(canvas, placement);
+
+        printable = chafa_canvas_print(canvas, term_info);
 
         chafa_placement_unref(placement);
         chafa_image_unref(image);
@@ -639,19 +686,62 @@ int convert_to_ascii(int row, int col, const char *filepath, unsigned int height
                 return -1;
         }
 
-        PixelData *data;
-        if (corrected_width != (unsigned)rwidth || height != (unsigned)rheight) {
-                // 3 * uint8 for RGB!
-                unsigned char *new_data = malloc(3 * sizeof(unsigned char) * corrected_width * height);
-                image_resize_uint8_srgb(
-                    read_data, rwidth, rheight,
-                    new_data, corrected_width, height, 3);
+        float scale_w = (float)corrected_width / (float)rwidth;
+        float scale_h = (float)height / (float)rheight;
+        float scale = scale_w < scale_h ? scale_w : scale_h;
+        int fit_w = (int)(rwidth * scale + 0.5f);
+        int fit_h = (int)(rheight * scale + 0.5f);
+        if (fit_w < 1)
+                fit_w = 1;
+        if (fit_h < 1)
+                fit_h = 1;
+        if (fit_w > (int)corrected_width)
+                fit_w = (int)corrected_width;
+        if (fit_h > (int)height)
+                fit_h = (int)height;
 
+        unsigned char *composed =
+            calloc((size_t)3 * corrected_width * height, 1);
+        if (composed == NULL) {
                 image_free(read_data);
-                data = (PixelData *)new_data;
-        } else {
-                data = (PixelData *)read_data;
+                return -1;
         }
+
+        unsigned char *fit_pixels = read_data;
+        gboolean did_resize = FALSE;
+        if (fit_w != rwidth || fit_h != rheight) {
+                fit_pixels = malloc((size_t)3 * fit_w * fit_h);
+                if (fit_pixels == NULL) {
+                        image_free(read_data);
+                        free(composed);
+                        return -1;
+                }
+                image_resize_uint8_srgb(read_data, rwidth, rheight, fit_pixels,
+                                        fit_w, fit_h, 3);
+                image_free(read_data);
+                did_resize = TRUE;
+        }
+
+        int off_x = ((int)corrected_width - fit_w) / 2;
+        int off_y = ((int)height - fit_h) / 2;
+        for (int y = 0; y < fit_h; y++) {
+                for (int x = 0; x < fit_w; x++) {
+                        size_t dst =
+                            (size_t)((off_y + y) * (int)corrected_width +
+                                     (off_x + x)) *
+                            3;
+                        size_t src = ((size_t)y * (size_t)fit_w + (size_t)x) * 3;
+                        composed[dst + 0] = fit_pixels[src + 0];
+                        composed[dst + 1] = fit_pixels[src + 1];
+                        composed[dst + 2] = fit_pixels[src + 2];
+                }
+        }
+        if (did_resize)
+                free(fit_pixels);
+        else
+                image_free(fit_pixels);
+
+        PixelData *data = (PixelData *)composed;
 
         // Calculate indentation to center the image
         if (centered)
