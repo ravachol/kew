@@ -96,6 +96,18 @@ Node *find_selected_entry(PlayList *playlist, int row)
         return NULL;
 }
 
+void stop_and_clear_current_song(void)
+{
+        Node *current = get_current_song();
+        if (current == NULL)
+                return;
+
+        sound_system_stop(sound_sys);
+        emit_string_property_changed("PlaybackStatus", "Stopped");
+        sound_system_clear_current_track(sound_sys);
+        clear_current_song();
+}
+
 void remove_currently_playing_song(void)
 {
         Node *current = get_current_song();
@@ -264,6 +276,12 @@ void dequeue_all_except_playing_song(void)
         PlayList *playlist = get_playlist();
         AppState *state = get_app_state();
 
+        // If option is enabled, stop playback so clearAll becomes true.
+        if (state->uiSettings.clearListClearsAll) {
+                stop_and_clear_current_song();
+                current = NULL;
+        }
+
         // Do we need to clear the entire playlist?
         if (current == NULL) {
                 clearAll = true;
@@ -304,6 +322,7 @@ void dequeue_all_except_playing_song(void)
                         next_in_playlist = next_in_playlist->next;
                 }
         }
+        clear_all_m3u_enqueued_flags(get_library());
         pthread_mutex_unlock(&(playlist->mutex));
 
         PlaybackState *ps = get_playback_state();
@@ -312,7 +331,8 @@ void dequeue_all_except_playing_song(void)
 
         // Only refresh the screen if it makes sense to do so
         if (state->currentView == PLAYLIST_VIEW ||
-            state->currentView == LIBRARY_VIEW) {
+            state->currentView == LIBRARY_VIEW ||
+            state->uiSettings.clearListClearsAll) {
                 trigger_refresh();
         }
 }

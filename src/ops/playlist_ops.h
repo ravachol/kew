@@ -120,6 +120,13 @@ void handle_remove(int chosen_row);
 void skip_to_numbered_song(int song_number);
 
 /**
+ * @brief Stop playback and clear the current song pointer.
+ *
+ * Stops the audio device, resets the decoder, and clears current_song.
+ */
+void stop_and_clear_current_song(void);
+
+/**
  * @brief Remove the currently playing song from the playlist.
  *
  * Stops playback, clears current track state, updates internal flags,
