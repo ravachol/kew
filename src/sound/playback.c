@@ -306,5 +306,6 @@ void clear_current_track(void)
                 ma_device_stop(&device);
         }
 
+        stop_decode_thread();
         reset_decoders();
 }
