@@ -86,6 +86,8 @@ These changes were made to reduce the occurence of stuttering:
 
 - Fixed segfault sometimes when pressing u for update. Found by @petoem. By @petoem.
 
+- Fix timestamp calculation in embedded lyrics. Found by @LeahTheSlug. By @ravachol.
+
 #### Special Thanks
 
 Special thanks to @petoem who has been very active. Also @LeahTheSlug and @Overionised.
