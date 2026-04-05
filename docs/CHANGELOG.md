@@ -53,7 +53,6 @@ These changes were made to reduce the occurence of stuttering:
 - kew now runs as a realtime scheduled app (SCHED_RR), but at a low priority.
 - miniaudio period size increased to 200ms and number of periods to 4.
 - much cleaner decode and audio callback logic with no locks.
-I have never spent so much time on just two functions (the decode loop and audio callback) before in my career. There could still be issues as this is brand new code, but this baseline should be much better to work with.
 
 - Add AIFF support. Suggested by @brikk42. By @ravachol.
 

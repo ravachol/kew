@@ -26,7 +26,7 @@
 
 #include "utils/utils.h"
 
-static bool enqueueing = false;
+atomic_bool enqueueing = false;
 
 void determine_song_and_notify(void)
 {
@@ -342,10 +342,9 @@ Node *pick_random_node(Node *first)
 
 void view_enqueue(bool play_immediately)
 {
-        if (enqueueing)
-                return;
-
-        enqueueing = true;
+        if (atomic_exchange(&enqueueing, true)) {
+                return; // already true → bail
+        }
 
         AppState *state = get_app_state();
         PlayList *playlist = get_playlist();
@@ -385,9 +384,8 @@ void view_enqueue(bool play_immediately)
                         entry = state->uiState.currentSearchEntry;
                 }
 
-                if (entry == NULL)
-                {
-                        enqueueing = false;
+                if (entry == NULL) {
+                        atomic_store(&enqueueing, false);
                         return;
                 }
 
@@ -420,5 +418,5 @@ void view_enqueue(bool play_immediately)
                 emit_boolean_property_changed("can_go_next", couldGoNext);
         }
 
-        enqueueing = false;
+        atomic_store(&enqueueing, false);
 }
