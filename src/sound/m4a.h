@@ -706,7 +706,7 @@ MA_API ma_result m4a_decoder_init_file(
 
                 unsigned char objectType = decoder_config[0];
                 if (objectType == 5 || objectType >= 29) {
-                        // FIXME log error set_error_message("File is encoded with HE-AAC which is not supported");
+                        fprintf(stderr, "File is encoded with HE-AAC which is not supported.\n");
                         free(frameData);
                         free(decoder_config);
                         fclose(fp);
@@ -720,7 +720,7 @@ MA_API ma_result m4a_decoder_init_file(
 
                 int initResult = NeAACDecInit2(pM4a->hDecoder, (unsigned char *)decoder_config, decoder_config_size, &sample_rate, &channels);
                 if (initResult < 0) {
-                        // FIXME log error printf("Error initializing decoder. Code: %d\n", initResult);
+                        fprintf(stderr, "Error initializing decoder. Code: %d\n", initResult);
                         free(frameData);
                         free(decoder_config);
                         NeAACDecClose(pM4a->hDecoder);
@@ -732,7 +732,7 @@ MA_API ma_result m4a_decoder_init_file(
 
                 // Check if the sample_rate and channels are correctly initialized
                 if (sample_rate == 0 || channels == 0) {
-                        // FIXME log error printf("Error: Invalid sample rate or channel count.\n");
+                        fprintf(stderr, "Error: Invalid sample rate or channel count.\n");
                         free(frameData);
                         NeAACDecClose(pM4a->hDecoder);
                         fclose(fp);
@@ -802,7 +802,7 @@ MA_API ma_result m4a_decoder_init_file(
 
                 if (is_alac(fp, alac_dsi, &alac_dsi_size)) {
                         // This is an alac file and is currently unsupported.
-                        // FIXME log error set_error_message("M4a files that use the ALAC encoder are not supported.");
+                        fprintf(stderr, "M4a files that use the ALAC encoder are not supported.");
                         return MA_ERROR;
                 } else // AAC
                 {
@@ -824,7 +824,7 @@ MA_API ma_result m4a_decoder_init_file(
                                 uint8_t object_type = (decoder_config[0] >> 3) & 0x1F;
 
                                 if (object_type == 5 || object_type == 29) {
-                                        // FIXME log error set_error_message("Unsupported AAC object type: (HE-AAC or PS)");
+                                         fprintf(stderr, "Unsupported AAC object type: (HE-AAC or PS)");
                                         return MA_ERROR;
                                 }
                         }
@@ -1052,7 +1052,7 @@ MA_API ma_result m4a_decoder_read_pcm_frames(
                         free(sample_data); // Free the sample data buffer
 
                         if (pM4a->frameInfo.error > 0) {
-                                // FIXME log error set_error_message("Decoding Error: could be mislabeled and unsupported HE-AAC or PS file");
+                                fprintf(stderr, "Decoding Error: could be mislabeled and unsupported HE-AAC or PS file");
                                 // Error in decoding, skip to the next frame.
                                 continue;
                         }
