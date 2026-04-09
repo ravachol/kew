@@ -1023,6 +1023,8 @@ void *song_data_reader_thread(void *arg)
         PlaybackState *ps = (PlaybackState *)arg;
         LoaderData *loader_data = get_loader_data();
 
+        pthread_mutex_lock(&(loader_data->mutex));
+
         char filepath[PATH_MAX];
         c_strcpy(filepath, loader_data->file_path, sizeof(filepath));
 
@@ -1049,6 +1051,8 @@ void *song_data_reader_thread(void *arg)
         int result = assign_loaded_data();
 
         loader_data->loadInSlotA = !loader_data->loadInSlotA;
+
+        pthread_mutex_unlock(&(loader_data->mutex));
 
         if (result < 0)
                 songdata->hasErrors = true;
