@@ -80,8 +80,6 @@ void unload_song_data(SongData **songdata)
                 return;
         }
 
-        pthread_mutex_lock(&(loader_data.mutex));
-
         SongData *data = *songdata;
 
         if (data->cover != NULL) {
@@ -109,8 +107,6 @@ void unload_song_data(SongData **songdata)
 
         free(*songdata);
         *songdata = NULL;
-
-        pthread_mutex_unlock(&(loader_data.mutex));
 }
 
 void song_loader_unload_song_A(void)
