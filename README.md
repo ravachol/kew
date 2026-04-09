@@ -5,7 +5,7 @@
 <br>
 
 <div align="center">
-  <a href="https://jenova7.bandcamp.com/album/lost-sci-fi-movie-themes">
+  <a href="https://jenova7.bandcamp.com/album/dusted-jazz-vol-3">
     <img src="images/chroma.gif" alt="Screenshot">
   </a>
   <br>
