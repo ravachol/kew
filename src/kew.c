@@ -102,11 +102,11 @@ void update_player(void)
         AppState *state = get_app_state();
         UIState *uis = &(state->uiState);
         struct winsize ws;
-        ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws);
-
-        if (ws && (ws.ws_col != state->uiState.windowSize.ws_col || ws.ws_row != state->uiState.windowSize.ws_row)) {
-                uis->resizeFlag = 1;
-                state->uiState.windowSize = ws;
+        if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws) != -1) {
+                if (ws.ws_col != state->uiState.windowSize.ws_col || ws.ws_row != state->uiState.windowSize.ws_row) {
+                        uis->resizeFlag = 1;
+                        state->uiState.windowSize = ws;
+                }
         }
 
         if (uis->resizeFlag) {
