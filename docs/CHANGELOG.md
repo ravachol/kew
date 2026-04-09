@@ -637,6 +637,8 @@ Now with internet radio, mouse support and ability to move songs around in the p
 
 - Fix cursor sometimes not being in the right place when switching m4a files. Found by @LeahTheSlug. By @ravachol. Thanks to @rudra-dhamecha for help.
 
+- Fix holding enter on track view causes skipping. Found by @LeahTheSlug. By @ravachol.
+
 #### Special Thanks To These Sponsors:
 
 - @SpaceCheeseWizard
