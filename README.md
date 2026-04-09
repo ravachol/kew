@@ -6,12 +6,9 @@
 
 <div align="center">
   <a href="https://jenova7.bandcamp.com/album/lost-sci-fi-movie-themes">
-    <img src="images/kew.gif" alt="Screenshot">
+    <img src="images/chroma.gif" alt="Screenshot">
   </a>
   <br>
-  Screenshot showing <a href="https://jenova7.bandcamp.com/album/lost-sci-fi-movie-themes">
-    Jenova 7: Lost Sci-Fi Movie Themes
-  </a>.
 </div>
 <br><br>
 
@@ -202,13 +199,6 @@ https://github.com/yuri-xyz/chroma
 Enable and cycle through them by pressing <kbd>c</kbd> in track view.
 
 Disable by pressing <kbd>b</kbd>.
-
-<div align="center">
-  <a href="https://jenova7.bandcamp.com/album/lost-sci-fi-movie-themes">
-    <img src="images/chroma.gif" alt="Chroma">
-  </a>
-</div>
-<br><br>
 
 This works by kew being fed frames from Chroma and does not add bloat to kew.
 
