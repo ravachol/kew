@@ -824,7 +824,7 @@ MA_API ma_result m4a_decoder_init_file(
                                 uint8_t object_type = (decoder_config[0] >> 3) & 0x1F;
 
                                 if (object_type == 5 || object_type == 29) {
-                                         fprintf(stderr, "Unsupported AAC object type: (HE-AAC or PS)");
+                                        fprintf(stderr, "Unsupported AAC object type: (HE-AAC or PS)");
                                         return MA_ERROR;
                                 }
                         }
@@ -862,6 +862,7 @@ MA_API ma_result m4a_decoder_init_file(
                         // Initialize other fields
                         leftoverSampleCount = 0;
                         pM4a->cursor = 0;
+                        fseek(pM4a->file, 0, SEEK_SET);
 
                         return MA_SUCCESS;
                 }
@@ -1035,7 +1036,20 @@ MA_API ma_result m4a_decoder_read_pcm_frames(
                                 break;
                         }
 
-                        // Read the sample data directly from the file
+                        if (sample_offset < 0) {
+                                result = MA_ERROR;
+                                break;
+                        }
+
+                        if (pM4a->cursor != (ma_uint64)sample_offset) {
+                                if (file_on_seek(pM4a->file, sample_offset, ma_seek_origin_start) != MA_SUCCESS) {
+                                        fprintf(stderr, "Failed to seek to sample_offset %lld\n", sample_offset);
+                                        result = MA_ERROR;
+                                        break;
+                                }
+                                pM4a->cursor = sample_offset; // update position tracker
+                        }
+
                         size_t bytes_read = 0;
 
                         if (file_on_read(pM4a->file, sample_data, frame_bytes, &bytes_read) != MA_SUCCESS || bytes_read != frame_bytes) {
@@ -1052,8 +1066,9 @@ MA_API ma_result m4a_decoder_read_pcm_frames(
                         free(sample_data); // Free the sample data buffer
 
                         if (pM4a->frameInfo.error > 0) {
-                                fprintf(stderr, "Decoding Error: could be mislabeled and unsupported HE-AAC or PS file");
+                                fprintf(stderr, "Decoding Error %d: %s\n", pM4a->frameInfo.error, NeAACDecGetErrorMessage(pM4a->frameInfo.error));
                                 // Error in decoding, skip to the next frame.
+
                                 continue;
                         }
 

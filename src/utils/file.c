@@ -439,6 +439,7 @@ void generate_temp_file_path(char *file_path, const char *prefix, const char *su
         random_string[6] = '\0';
 
         int written = snprintf(file_path, PATH_MAX, "%s/%s%.6s%s", dir_path, prefix, random_string, suffix);
+        file_path[PATH_MAX - 1] = '\0';
         if (written < 0 || written >= PATH_MAX) {
                 file_path[0] = '\0';
         }

@@ -76,12 +76,13 @@ void unload_lyrics(SongData *songdata)
 
 void unload_song_data(SongData **songdata)
 {
-        if (*songdata == NULL)
+        if (*songdata == NULL || (*songdata)->magic == 0) {
                 return;
-
-        SongData *data = *songdata;
+        }
 
         pthread_mutex_lock(&(loader_data.mutex));
+
+        SongData *data = *songdata;
 
         if (data->cover != NULL) {
                 stbi_image_free(data->cover);
@@ -91,6 +92,7 @@ void unload_song_data(SongData **songdata)
         if (exists_in_cache(tmpCache, data->cover_art_path) &&
             is_in_temp_dir(data->cover_art_path)) {
                 delete_file(data->cover_art_path);
+                data->cover_art_path[0] = '\0';
         }
 
         unload_lyrics(data);

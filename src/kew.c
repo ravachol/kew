@@ -104,7 +104,7 @@ void update_player(void)
         struct winsize ws;
         ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws);
 
-        if (ws.ws_col != state->uiState.windowSize.ws_col || ws.ws_row != state->uiState.windowSize.ws_row) {
+        if (ws && (ws.ws_col != state->uiState.windowSize.ws_col || ws.ws_row != state->uiState.windowSize.ws_row)) {
                 uis->resizeFlag = 1;
                 state->uiState.windowSize = ws;
         }
