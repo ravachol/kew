@@ -412,7 +412,7 @@ static gboolean should_throttle(struct Event *event)
         case EVENT_ENQUEUE:
         case EVENT_ENQUEUEANDPLAY:
                 delta = now - last_page_event_time;
-                if (delta < 200 * 1000)
+                if (delta < 100 * 1000)
                         return TRUE;
                 last_page_event_time = now;
                 break;
