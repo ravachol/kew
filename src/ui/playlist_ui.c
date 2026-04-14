@@ -323,6 +323,11 @@ int display_playlist(int row, int col, PlayList *list, int max_list_size,
 void set_end_of_list_reached(void)
 {
         AppState *state = get_app_state();
+        PlaybackState *ps = get_playback_state();
+
+        ps->skipping = false;
+        ps->skipOutOfOrder = false;
+
         sound_system_set_end_of_list_reached(sound_sys, true);
         start_playing(true);
 

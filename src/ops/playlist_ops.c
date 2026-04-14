@@ -569,7 +569,6 @@ retry:
 
 void skip_to_numbered_song(int song_number)
 {
-        PlayList *unshuffled_playlist = get_unshuffled_playlist();
         PlayList *playlist = get_playlist();
         PlaybackState *ps = get_playback_state();
 
@@ -589,7 +588,7 @@ void skip_to_numbered_song(int song_number)
         ps->songLoading = true;
         ps->forceSkip = false;
 
-        set_current_song(get_song_by_number(unshuffled_playlist, song_number));
+        set_current_song(get_song_by_number(playlist, song_number));
 
         sound_system_stop(sound_sys);
 
