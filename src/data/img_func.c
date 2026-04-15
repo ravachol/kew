@@ -688,9 +688,9 @@ int convert_to_ascii(int row, int col, const char *filepath, unsigned int height
 
         float scale_w = (float)corrected_width / (float)rwidth;
         float scale_h = (float)height / (float)rheight;
-        float scale = scale_w < scale_h ? scale_w : scale_h;
-        int fit_w = (int)(rwidth * scale + 0.5f);
-        int fit_h = (int)(rheight * scale + 0.5f);
+        
+        int fit_w = (int)(rwidth * scale_w + 0.5f);
+        int fit_h = (int)(rheight * scale_h + 0.5f);
         if (fit_w < 1)
                 fit_w = 1;
         if (fit_h < 1)
