@@ -1940,8 +1940,6 @@ void set_config(AppSettings *settings, UISettings *ui)
         fprintf(file, "hideTimeStatus=%s\n", settings->hideTimeStatus);
         fprintf(file, "hideFooter=%s\n", settings->hideFooter);
         fprintf(file, "hideSideCover=%s\n\n", settings->hideSideCover);
-        fprintf(file, "chromaPath=%s\n\n", settings->chromaPath);
-        fprintf(file, "chromaDevice=%s\n\n", settings->chromaDevice);
 
         fprintf(file, "# Delay when drawing title in track view, set to 0 to "
                       "have no delay.\n");
@@ -2002,6 +2000,10 @@ void set_config(AppSettings *settings, UISettings *ui)
 
         fprintf(file, "\n[discord]\n\n");
         fprintf(file, "discordRPCEnabled=%s\n\n”", settings->discordRPCEnabled);
+
+         fprintf(file, "\n[chroma]\n\n");
+        fprintf(file, "chromaPath=%s\n", settings->chromaPath);
+        fprintf(file, "chromaDevice=%s\n\n", settings->chromaDevice);
 
         fprintf(file, "\n[visualizer]\n\n");
         fprintf(file, "visualizerEnabled=%s\n", settings->visualizerEnabled);
