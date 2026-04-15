@@ -384,6 +384,7 @@ AppSettings init_settings(void)
         get_config(&settings, &(state->uiSettings));
         get_prefs(&settings, &(state->uiSettings));
 
+
         return settings;
 }
 
@@ -685,6 +686,7 @@ void remove_printable_key_binding(char *value)
         }
 }
 
+
 void remove_special_key_binding(uint16_t value)
 {
         for (size_t i = 0; i < keybinding_count; i++) {
@@ -888,6 +890,12 @@ void construct_app_settings(AppSettings *settings, KeyValuePair *pairs, int coun
                 } else if (strcmp(lowercase_key, "chromapreset") == 0) {
                         snprintf(settings->chromaPreset, sizeof(settings->chromaPreset), "%s",
                                  pair->value);
+                } else if (strcmp(lowercase_key, "chromapath") == 0) {
+                        snprintf(settings->chromaPath, sizeof(settings->chromaPath), "%s",
+                                         pair->value);
+                } else if (strcmp(lowercase_key, "chromadevice") == 0) {
+                        snprintf(settings->chromaDevice, sizeof(settings->chromaDevice), "%s",
+                                         pair->value);
                 } else if (strcmp(lowercase_key, "coverenabled") == 0) {
                         snprintf(settings->coverEnabled,
                                  sizeof(settings->coverEnabled), "%s",
@@ -1932,6 +1940,8 @@ void set_config(AppSettings *settings, UISettings *ui)
         fprintf(file, "hideTimeStatus=%s\n", settings->hideTimeStatus);
         fprintf(file, "hideFooter=%s\n", settings->hideFooter);
         fprintf(file, "hideSideCover=%s\n\n", settings->hideSideCover);
+        fprintf(file, "chromaPath=%s\n\n", settings->chromaPath);
+        fprintf(file, "chromaDevice=%s\n\n", settings->chromaDevice);
 
         fprintf(file, "# Delay when drawing title in track view, set to 0 to "
                       "have no delay.\n");

@@ -6,7 +6,7 @@
  */
 
 #include "chroma.h"
-
+#include "common/appstate.h"
 #include "common/common.h"
 
 #include "data/img_func.h"
@@ -56,6 +56,9 @@ void chroma_set_next_preset(int height)
 
         if (g_viz.preset == 25)
                 g_viz.preset = 0;
+
+        AppState *state = get_app_state();
+        state->uiSettings.chromaPreset = g_viz.preset;
 
         chroma_stop();
         chroma_start(height);
@@ -108,6 +111,8 @@ static void *chroma_thread(void *arg)
 
         g_viz.frame[0] = '\0';
 
+        AppSettings *settings = get_app_settings();
+
         while (g_viz.running) {
 
                 pthread_mutex_lock(&g_viz.lock);
@@ -115,20 +120,41 @@ static void *chroma_thread(void *arg)
                 g_viz.width = calc_chroma_width(height);
                 pthread_mutex_unlock(&g_viz.lock);
 
-                char cmd[256];
-                int n = snprintf(cmd, sizeof(cmd),
-                                 "chroma --stream %dx%d --preset %d --bass-influence 1.0", g_viz.width, g_viz.height, g_viz.preset);
+                char cmd[512];
+                int n;
+
+                if(settings->chromaPath[0] == '\0'){
+                        if(settings->chromaDevice[0] == '\0')
+                                n = snprintf(cmd, sizeof(cmd),
+                                        "chroma --stream %dx%d --preset %d --bass-influence 1.0", g_viz.width, g_viz.height, g_viz.preset);
+                        else
+                                n = snprintf(cmd, sizeof(cmd),
+                                        "chroma --stream %dx%d --preset %d --bass-influence 1.0  --audio-device \"%s\"", g_viz.width, g_viz.height, g_viz.preset, settings->chromaDevice);
+                } else{
+                        if(settings->chromaDevice[0] == '\0')
+                                n = snprintf(cmd, sizeof(cmd),
+                                        "chroma --stream %dx%d -c \"%s\"", g_viz.width, g_viz.height, settings->chromaPath);
+                        else
+                               n = snprintf(cmd, sizeof(cmd),
+                                        "chroma --stream %dx%d -c \"%s\" --audio-device \"%s\"", g_viz.width, g_viz.height, settings->chromaPath, settings->chromaDevice);
+                }
+
+
                 //"chroma --stream %dx%d --fps 30", g_viz.width, g_viz.height);
+
+                //n = snprintf(cmd, sizeof(cmd),
+                  //      "chroma --stream %dx%d --audio-device PipeWire\\ Sound\\ Server -c %s ", g_viz.width, g_viz.height, settings->chromaPath);
+
 
                 if (n < 0 || n >= (int)sizeof(cmd)) {
                         // Truncated or error; skip this iteration
-                        usleep(100000);
+                        usleep(1000);
                         continue;
                 }
 
                 FILE *fp = popen(cmd, "r");
                 if (!fp) {
-                        usleep(100000);
+                        usleep(1000);
                         continue;
                 }
 
@@ -137,7 +163,7 @@ static void *chroma_thread(void *arg)
 
                 if (!buf) {
                         pclose(fp);
-                        usleep(100000);
+                        usleep(1000);
                         continue;
                 }
 

@@ -145,6 +145,9 @@ void transfer_settings_to_ui(void)
         ui->coverAnsi = (settings->coverAnsi[0] == '1');
         ui->shuffle_enabled = (settings->shuffle_enabled[0] == '1');
 
+        snprintf(ui->chromaPath, sizeof(ui->chromaPath), "%s", settings->chromaPath);
+        snprintf(ui->chromaDevice, sizeof(ui->chromaDevice), "%s", settings->chromaDevice);
+
         int tmp_num_bytes =
             get_bytes_in_first_char(settings->progressBarElapsedEvenChar);
         if (tmp_num_bytes != 0)
