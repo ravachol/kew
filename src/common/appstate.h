@@ -193,6 +193,8 @@ typedef struct
         PixelData kewColorRGB;       /**< Primary application accent RGB color. */
 
         int chromaPreset;                     /**< Preset index for chroma-based coloring. */
+        char chromaPath[PATH_MAX];
+        char chromaDevice[PATH_MAX];
         bool stripTrackNumbers;               /**< Remove track numbers from displayed titles. */
         bool visualizations_instead_of_cover; /**< Show visualizer instead of album cover. */
 } UISettings;
@@ -385,6 +387,8 @@ typedef struct
         char showLyricsPage[6];
         char stripTrackNumbers[2];
         char chromaPreset[6];
+        char chromaPath[PATH_MAX];
+        char chromaDevice[PATH_MAX];
 } AppSettings;
 
 /**
