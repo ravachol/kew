@@ -585,7 +585,7 @@ void set_default_config(AppSettings *settings)
         c_strcpy(settings->coverAnsi, "0", sizeof(settings->coverAnsi));
         c_strcpy(settings->quitAfterStopping, "0",
                  sizeof(settings->quitAfterStopping));
-        c_strcpy(settings->clearListClearsAll, "0",
+        c_strcpy(settings->clearListClearsAll, "1",
                  sizeof(settings->clearListClearsAll));
         c_strcpy(settings->hideGlimmeringText, "0",
                  sizeof(settings->hideGlimmeringText));
