@@ -1,6 +1,8 @@
 CC ?= gcc
 CXX ?= g++
 PKG_CONFIG ?= pkg-config
+SYMBOLS ?= 0
+STRIP ?= 0
 
 # To enable debugging, run:
 # make DEBUG=1
@@ -21,6 +23,12 @@ ifneq ($(wildcard /data/data/com.termux/files/usr),)
   # Termux environment
   COMMONFLAGS += -D__ANDROID__
   IS_ANDROID := 1
+endif
+
+ifeq ($(SYMBOLS),1)
+    SYMBOL_FLAGS := -g
+else
+    SYMBOL_FLAGS :=
 endif
 
 # Default USE_DBUS to auto-detect if not set by user
@@ -105,14 +113,14 @@ PKG_LDFLAGS = $(shell $(PKG_CONFIG) --libs $(PKG_LIBS))
 COMMONFLAGS = $(LOCAL_INC) $(PKG_CFLAGS)
 
 ifeq ($(DEBUG), 1)
-    COMMONFLAGS += -g -DDEBUG
+    COMMONFLAGS += $(SYMBOL_FLAGS) -DDEBUG
 else ifeq ($(DEBUG), 2)
-    COMMONFLAGS += -g -DDEBUG -fsanitize=address,undefined \
+    COMMONFLAGS += $(SYMBOL_FLAGS) -DDEBUG -fsanitize=address,undefined \
           -fno-omit-frame-pointer \
           -fno-optimize-sibling-calls
     LDFLAGS += -fsanitize=address,undefined
 else
-    COMMONFLAGS += -O2 -fstack-protector-strong -Wformat -ffunction-sections -fdata-sections -Werror=format-security -D_FORTIFY_SOURCE=2
+    COMMONFLAGS += $(SYMBOL_FLAGS) -O2 -fstack-protector-strong -Wformat -ffunction-sections -fdata-sections -Werror=format-security -D_FORTIFY_SOURCE=2
 endif
 
 ifneq ($(strip $(KEW_VERSION)),)
@@ -145,14 +153,14 @@ LDFLAGS += -logg -lz
 ifeq ($(UNAME_S), Linux)
   CFLAGS += -fPIE -fstack-clash-protection
   CXXFLAGS += -fPIE -fstack-clash-protection
-  LDFLAGS += -pie -Wl,-z,relro -Wl,-z,now
+  LDFLAGS += -pie -Wl,-z,relro -Wl,-z,now -fPIE
   ifneq (,$(filter $(ARCH), x86_64 i386))
         CFLAGS += -fcf-protection
         CXXFLAGS += -fcf-protection
   endif
-  ifeq ($(DEBUG), 0)
+  ifeq ($(STRIP),1)
         LDFLAGS += -s
-endif
+  endif
 else ifeq ($(UNAME_S), Darwin)
   LIBS += -framework CoreAudio -framework CoreFoundation
   ifeq ($(USE_MACOS_MEDIA), 1)
