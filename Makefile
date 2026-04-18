@@ -112,7 +112,7 @@ else ifeq ($(DEBUG), 2)
           -fno-optimize-sibling-calls
     LDFLAGS += -fsanitize=address,undefined
 else
-    COMMONFLAGS += -Os -fstack-protector-strong -Wformat -ffunction-sections -fdata-sections -Wno-format-security -D_FORTIFY_SOURCE=2
+    COMMONFLAGS += -O2 -fstack-protector-strong -Wformat -ffunction-sections -fdata-sections -Werror=format-security -D_FORTIFY_SOURCE=2
 endif
 
 ifneq ($(strip $(KEW_VERSION)),)
