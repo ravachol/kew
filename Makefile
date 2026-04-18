@@ -145,7 +145,7 @@ LDFLAGS += -logg -lz
 ifeq ($(UNAME_S), Linux)
   CFLAGS += -fPIE -fstack-clash-protection
   CXXFLAGS += -fPIE -fstack-clash-protection
-  LDFLAGS += -pie -Wl,-z,relro
+  LDFLAGS += -pie -Wl,-z,relro -Wl,-z,now
   ifneq (,$(filter $(ARCH), x86_64 i386))
         CFLAGS += -fcf-protection
         CXXFLAGS += -fcf-protection
