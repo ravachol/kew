@@ -113,8 +113,10 @@ PKG_LDFLAGS = $(shell $(PKG_CONFIG) --libs $(PKG_LIBS))
 COMMONFLAGS = $(LOCAL_INC) $(PKG_CFLAGS)
 
 ifeq ($(DEBUG), 1)
+    SYMBOL_FLAGS := -g
     COMMONFLAGS += $(SYMBOL_FLAGS) -DDEBUG
 else ifeq ($(DEBUG), 2)
+    SYMBOL_FLAGS := -g
     COMMONFLAGS += $(SYMBOL_FLAGS) -DDEBUG -fsanitize=address,undefined \
           -fno-omit-frame-pointer \
           -fno-optimize-sibling-calls
