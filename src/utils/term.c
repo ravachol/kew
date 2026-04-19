@@ -365,7 +365,7 @@ int str_calculate_display_width(const char *str)
         for (gunichar c = g_utf8_get_char(str); c; str = g_utf8_next_char(str), c = g_utf8_get_char(str)) {
                 if (g_unichar_iszerowidth(c)) {
                         continue;
-                } else if (g_unichar_iswide(c) || g_unichar_iswide_cjk(c)) {
+                } else if (g_unichar_iswide(c)) {
                         width += 2;
                 } else {
                         width += 1;
@@ -382,7 +382,7 @@ void str_truncate_display_width(const char *str, char *dst, int max_width)
                 int char_width = 0;
                 if (g_unichar_iszerowidth(c)) {
                         continue;
-                } else if (g_unichar_iswide(c) || g_unichar_iswide_cjk(c)) {
+                } else if (g_unichar_iswide(c)) {
                         char_width = 2;
                 } else {
                         char_width = 1;

@@ -195,6 +195,7 @@ typedef struct
         char chromaDevice[PATH_MAX];
         bool stripTrackNumbers;               /**< Remove track numbers from displayed titles. */
         bool visualizations_instead_of_cover; /**< Show visualizer instead of album cover. */
+        bool showFoldersInPlaylist;           /**< Group playlist tracks by folder. */
 } UISettings;
 
 /**
@@ -387,6 +388,7 @@ typedef struct
         char chromaPreset[6];
         char chromaPath[PATH_MAX];
         char chromaDevice[PATH_MAX];
+        char showFoldersInPlaylist[2];
 } AppSettings;
 
 /**
