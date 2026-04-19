@@ -1186,6 +1186,10 @@ int show_key_bindings(SongData *songdata)
                get_binding_string(EVENT_EXPORTPLAYLIST, false));
         CHECK_LIST_LIMIT();
         printf("\033[%d;%dH", ++num_printed_rows, indentation + 1);
+        printf(_(" · Show Folders in Playlist: %s (on/off)"),
+               get_binding_string(EVENT_TOGGLEFOLDERDISPLAY, false));
+        CHECK_LIST_LIMIT();
+        printf("\033[%d;%dH", ++num_printed_rows, indentation + 1);
         printf(_(" · Add Song To 'kew favorites.m3u': %s (run with 'kew .')"),
                get_binding_string(EVENT_ADDTOFAVORITESPLAYLIST, false));
         num_printed_rows += 2;
