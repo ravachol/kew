@@ -301,11 +301,5 @@ void set_skip_to_next(bool value)
 
 void clear_current_track(void)
 {
-        if (ma_device_is_started(&device)) {
-                // Stop the device (which stops playback)
-                ma_device_stop(&device);
-        }
-
-        stop_decode_thread();
-        reset_decoders();
+        cleanup_playback_device();
 }
