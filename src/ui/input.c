@@ -359,6 +359,9 @@ void handle_event(struct Event *event)
         case EVENT_SORTLIBRARY:
                 sort_library();
                 break;
+        case EVENT_TOGGLEFOLDERDISPLAY:
+                toggle_folder_display();
+                break;
 
         default:
                 state->uiState.isFastForwarding = false;
