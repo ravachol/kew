@@ -545,6 +545,9 @@ bool handle_mouse_event(struct tb_event *ev, struct Event *event)
 
                         gint64 newPosUs = (gint64)(dragged_position_seconds * G_USEC_PER_SEC);
                         set_position(newPosUs, get_current_song_duration());
+
+                        event->type = EVENT_SEEK;
+
                         return true;
                 }
         }
@@ -662,6 +665,11 @@ static gboolean on_tb_input(GIOChannel *source, GIOCondition cond, gpointer data
                                 if (isMouseEvent || map_tb_key_to_event(&ev).type != EVENT_NONE) {
                                         last_ev = ev;
                                         found_event = true;
+                                }
+
+                                if (event.type == EVENT_SEEK)
+                                {
+                                        return TRUE;
                                 }
                         }
 

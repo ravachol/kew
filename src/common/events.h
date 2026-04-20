@@ -31,6 +31,7 @@ enum EventType {
         EVENT_CYCLECOLORMODE,
         EVENT_SCROLLDOWN,
         EVENT_SCROLLUP,
+        EVENT_SEEK,
         EVENT_SEEKBACK,
         EVENT_SEEKFORWARD,
         EVENT_SHOWLIBRARY,
