@@ -8,6 +8,7 @@
 
 #include "control_ui.h"
 
+#include "ops/playlist_ops.h"
 #include "sound/sound.h"
 #include "ui/chroma.h"
 #include "ui/player_ui.h"
@@ -283,6 +284,11 @@ void toggle_pause()
 {
         if (is_stopped()) {
                 view_enqueue(false);
+        } else if (is_paused() && get_current_song() == NULL) {
+                PlayList *playlist = get_playlist();
+                playlist_play(playlist);
+
+                ops_toggle_pause();
         } else {
                 ops_toggle_pause();
         }
