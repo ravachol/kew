@@ -9,13 +9,11 @@
 #ifndef FILE_H
 #define FILE_H
 
+#include "common/path_max.h"
+
 #include <stdbool.h>
 
 #define __USE_GNU
-
-#ifndef PATH_MAX
-#define PATH_MAX 4096
-#endif
 
 #define MUSIC_FILE_EXTENSIONS "(m4a|aac|mp3|ogg|flac|wav|aiff|opus|webm)$"
 

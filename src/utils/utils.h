@@ -9,6 +9,8 @@
 #ifndef UTILS_H
 #define UTILS_H
 
+#include "common/path_max.h"
+
 #include <glib.h>
 #include <regex.h>
 
@@ -17,10 +19,6 @@
 #endif
 #ifndef __USE_POSIX
 #define __USE_POSIX
-#endif
-
-#ifndef PATH_MAX
-#define PATH_MAX 4096
 #endif
 
 #define STRIP_TRACK_NUMBER "^([[:space:][:punct:]]*)([[:digit:]]+)([-.][[:digit:]]+)?([[:space:]]*[-.,][[:space:]]*|[[:space:]]+)"
