@@ -10,13 +10,12 @@
 
 #include "cache.h"
 
+#include "common/path_max.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#ifndef PATH_MAX
-#define PATH_MAX 4096
-#endif
 
 Cache *create_cache()
 {

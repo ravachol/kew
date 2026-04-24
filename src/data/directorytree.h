@@ -10,12 +10,11 @@
 #ifndef DIRECTORYTREE_H
 #define DIRECTORYTREE_H
 
+#include "common/path_max.h"
+
 #include <dirent.h>
 #include <stdbool.h>
 
-#ifndef PATH_MAX
-#define PATH_MAX 4096
-#endif
 
 #ifndef FILE_SYSTEM_ENTRY
 #define FILE_SYSTEM_ENTRY
