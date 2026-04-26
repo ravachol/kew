@@ -15,6 +15,8 @@
 
 #include "utils/img_utils.h"
 
+#include "common/path_max.h"
+
 #include "stdio.h"
 #include <gio/gio.h>
 #include <glib.h>
@@ -25,10 +27,6 @@
 #include <sys/param.h>
 
 #define _(STRING) gettext(STRING)
-
-#ifndef PATH_MAX
-#define PATH_MAX 4096
-#endif
 
 #ifndef G_USEC_PER_SEC
 #define G_USEC_PER_SEC 1000000
