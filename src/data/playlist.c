@@ -722,30 +722,59 @@ void load_favorites_playlist(const char *directory, PlayList **favorites_playlis
         set_favorites_playlist(*favorites_playlist);
 }
 
+void insert_at_position(PlayList *playlist, Node *node, int position)
+{
+    if (position <= 1 || !playlist->head) {
+        // Insert at head
+        node->next = playlist->head;
+        node->prev = NULL;
+
+        if (playlist->head)
+            playlist->head->prev = node;
+        else
+            playlist->tail = node;
+
+        playlist->head = node;
+        return;
+    }
+
+    Node *current = playlist->head;
+    int index = 1;
+
+    while (current->next && index < position - 1) {
+        current = current->next;
+        index++;
+    }
+
+    node->next = current->next;
+    node->prev = current;
+
+    if (current->next)
+        current->next->prev = node;
+    else
+        playlist->tail = node;
+
+    current->next = node;
+}
+
 void add_enqueued_songs_to_playlist(FileSystemEntry *root, PlayList *playlist)
 {
-        if (!root)
-                return;
+    if (!root)
+        return;
 
-        if (root->is_enqueued && root->is_directory == 0 && !is_m3u_file(root)) {
-                Node *node = malloc(sizeof(Node));
-                node->song.file_path = strdup(root->full_path);
-                node->prev = playlist->tail;
-                node->next = NULL;
-                node->id = root->id;
-                node->song.duration = 0.0;
+    if (root->is_enqueued > 0 && root->is_directory == 0 && !is_m3u_file(root)) {
+        Node *node = malloc(sizeof(Node));
+        node->song.file_path = strdup(root->full_path);
+        node->id = root->id;
+        node->song.duration = 0.0;
+        node->prev = node->next = NULL;
 
-                if (playlist->tail)
-                        playlist->tail->next = node;
-                else
-                        playlist->head = node;
+        insert_at_position(playlist, node, root->is_enqueued);
+        playlist->count++;
+    }
 
-                playlist->tail = node;
-                playlist->count++;
-        }
-
-        for (FileSystemEntry *child = root->children; child; child = child->next)
-                add_enqueued_songs_to_playlist(child, playlist);
+    for (FileSystemEntry *child = root->children; child; child = child->next)
+        add_enqueued_songs_to_playlist(child, playlist);
 }
 
 void save_named_playlist(const char *directory, const char *playlist_name,
