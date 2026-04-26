@@ -6,6 +6,8 @@
  * Acts as the central visual component of the terminal player.
  */
 
+#define _XOPEN_SOURCE 700
+
 #include "player_ui.h"
 
 #include "common/events.h"
@@ -1843,8 +1845,8 @@ int display_tree(FileSystemEntry *root, int depth, int max_list_size,
 
                                         size_t copy_bytes = sizeof(dir_name);
                                         snprintf(dir_name,
-                                                copy_bytes,
-                                                "%s", _("─ MUSIC LIBRARY ─"));
+                                                 copy_bytes,
+                                                 "%s", _("─ MUSIC LIBRARY ─"));
                                 } else {
                                         str_truncate_display_width(root->name, dir_name, max_name_width - extra_indent);
                                 }
@@ -2175,17 +2177,41 @@ int calc_visualizer_width()
 
 void print_at(int row, int indent, const char *text, int max_width)
 {
-        char buffer[1024];
-        size_t len = strlen(text);
+    char buffer[1024];
+    size_t i = 0, out = 0;
+    int width = 0;
 
-        if (len > (size_t)max_width)
-                len = max_width;
+    mbstate_t state;
+    memset(&state, 0, sizeof(state));
 
-        // Safe copy of exactly len bytes
-        memcpy(buffer, text, len);
-        buffer[len] = '\0';
+    while (text[i]) {
+        wchar_t wc;
+        size_t len = mbrtowc(&wc, text + i, MB_CUR_MAX, &state);
 
-        printf("\033[%d;%dH%s", row, indent, buffer);
+        if (len == (size_t)-1 || len == (size_t)-2)
+            break;
+
+        int w = wcwidth(wc);
+        if (w < 0 || wc == L'\t' || wc == L'\n') {
+            i += len;
+            continue;
+        }
+
+        if (width + w > max_width)
+            break;
+
+        if (out + len >= sizeof(buffer))
+            break;
+
+        memcpy(buffer + out, text + i, len);
+        i += len;
+        out += len;
+        width += w;
+    }
+
+    buffer[out] = '\0';
+
+    printf("\033[%d;%dH%s", row, indent, buffer);
 }
 
 void print_lyrics_page(UISettings *ui, int row, int col, double seconds, SongData *songdata, int height)
