@@ -1029,7 +1029,7 @@ static bool parseTimedLyricsFromTagLines(const TagLib::StringList &lines, Lyrics
         if (!lyrics->lines)
                 return false;
 
-        static const double fracDivisors[] = {1.0, 10.0, 100.0, 1000.0, 10000.0};
+        static const double fracDivisors[] = {1.0, 10.0, 100.0, 1000.0, 10000.0, 100000.0, 1000000.0, 10000000.0};
 
         for (const auto &line : lines) {
                 std::string text = line.toCString(true);
@@ -1050,7 +1050,7 @@ static bool parseTimedLyricsFromTagLines(const TagLib::StringList &lines, Lyrics
                         }
 
                         int fracLen = (int)strlen(fracStr);
-                        double frac = atoi(fracStr) / fracDivisors[fracLen < 5 ? fracLen : 4];
+                        double frac = atoi(fracStr) / fracDivisors[fracLen];
 
                         char *start = lyricText;
                         while (isspace((unsigned char)*start))
