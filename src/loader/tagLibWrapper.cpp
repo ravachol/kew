@@ -1029,15 +1029,18 @@ static bool parseTimedLyricsFromTagLines(const TagLib::StringList &lines, Lyrics
         if (!lyrics->lines)
                 return false;
 
+        static const double fracDivisors[] = {1.0, 10.0, 100.0, 1000.0, 10000.0};
+
         for (const auto &line : lines) {
                 std::string text = line.toCString(true);
                 if (text.empty() || text[0] != '[')
                         continue;
 
-                int min = 0, sec = 0, cs = 0;
+                int min = 0, sec = 0;
+                char fracStr[8] = {0};
                 char lyricText[512] = {0};
 
-                if (sscanf(text.c_str(), "[%d:%d.%d]%511[^\r\n]", &min, &sec, &cs, lyricText) == 4) {
+                if (sscanf(text.c_str(), "[%d:%d.%7[0-9]]%511[^\r\n]", &min, &sec, fracStr, lyricText) == 4) {
                         if (lyrics->count == capacity) {
                                 capacity *= 2;
                                 LyricsLine *newLines = (LyricsLine *)realloc(lyrics->lines, sizeof(LyricsLine) * capacity);
@@ -1046,6 +1049,9 @@ static bool parseTimedLyricsFromTagLines(const TagLib::StringList &lines, Lyrics
                                 lyrics->lines = newLines;
                         }
 
+                        int fracLen = (int)strlen(fracStr);
+                        double frac = atoi(fracStr) / fracDivisors[fracLen < 5 ? fracLen : 4];
+
                         char *start = lyricText;
                         while (isspace((unsigned char)*start))
                                 start++;
@@ -1053,7 +1059,7 @@ static bool parseTimedLyricsFromTagLines(const TagLib::StringList &lines, Lyrics
                         while (end > start && isspace((unsigned char)*(end - 1)))
                                 *(--end) = '\0';
 
-                        lyrics->lines[lyrics->count].timestamp = min * 60.0 + sec + cs / 100.0;
+                        lyrics->lines[lyrics->count].timestamp = min * 60.0 + sec + frac;
                         lyrics->lines[lyrics->count].text = strdup(start);
                         if (!lyrics->lines[lyrics->count].text)
                                 return false;
