@@ -39,6 +39,8 @@ kew, which handles setting non-blocking mode itself.
 #define _DEFAULT_SOURCE
 #endif
 
+#include "common/path_max.h"
+
 #include <fcntl.h>
 #include <limits.h>
 #include <stdarg.h>
@@ -55,11 +57,7 @@ kew, which handles setting non-blocking mode itself.
 #include <unistd.h>
 #include <wchar.h>
 
-#ifdef PATH_MAX
 #define TB_PATH_MAX PATH_MAX
-#else
-#define TB_PATH_MAX 4096
-#endif
 
 #ifdef __cplusplus
 extern "C" {
