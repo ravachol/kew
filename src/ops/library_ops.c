@@ -551,7 +551,7 @@ int enqueue_children(FileSystemEntry *child,
                         if (child->children != NULL) {
                                 child->is_enqueued = enqueue_children(child->children, first_enqueued_entry);
 
-                                if (child->is_enqueued == 1)
+                                if (child->is_enqueued >= 1)
                                         has_enqueued = 1;
                         }
                 } else if (!is_m3u_file(child)) {

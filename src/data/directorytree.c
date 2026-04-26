@@ -83,7 +83,7 @@ static void collect_entries(FileSystemEntry *node, EntryArray *arr)
                 collect_entries(child, arr);
 }
 
-int write_tree_to_binary(FileSystemEntry *root, const char *filename)
+int write_tree_to_binary(FileSystemEntry *root, const char *filename, PlayList *playlist)
 {
         if (!root || !filename)
                 return -1;
@@ -140,6 +140,25 @@ int write_tree_to_binary(FileSystemEntry *root, const char *filename)
                         d->name_offset = (uint32_t)offset;
                         strcpy(&string_table[offset], n->name);
                         offset += strlen(n->name) + 1;
+
+                        if (playlist->head && n->is_enqueued)
+                        {
+                                Node *node = playlist->head;
+
+                                int count = 0;
+
+                                while (node != NULL)
+                                {
+                                        count++;
+
+                                        if (strcmp(node->song.file_path, n->full_path) == 0)
+                                        {
+                                                d->is_enqueued = count;
+                                        }
+
+                                        node = node->next;
+                                }
+                        }
                 } else {
                         d->name_offset = UINT32_MAX; // fallback if name is NULL
                 }
@@ -774,9 +793,13 @@ FileSystemEntry *read_tree_from_binary(
                 n->parent_id = d->parent_id;
                 n->is_directory = d->is_directory;
                 if (set_enqueued_status)
+                {
+                        if (d->is_enqueued > 0)
+                                printf("test");
                         n->is_enqueued = d->is_enqueued;
-                else
+                } else
                         n->is_enqueued = 0;
+
                 if (d->name_offset == UINT32_MAX)
                         n->name = strdup(""); // empty name
                 else

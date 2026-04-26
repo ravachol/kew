@@ -14,6 +14,7 @@
 #define __USE_XOPEN_EXTENDED
 #endif
 
+#include "playlist_type.h"
 #include "directorytree.h"
 
 #include <pthread.h>
@@ -21,31 +22,7 @@
 
 #define MAX_FILES 50000
 
-#ifndef PLAYLIST_STRUCT
-#define PLAYLIST_STRUCT
 
-typedef struct
-{
-        char *file_path;
-        double duration;
-} SongInfo;
-
-typedef struct Node {
-        int id;
-        SongInfo song;
-        struct Node *next;
-        struct Node *prev;
-} Node;
-
-typedef struct
-{
-        Node *head;
-        Node *tail;
-        int count;
-        pthread_mutex_t mutex;
-} PlayList;
-
-#endif
 
 /**
  * @brief Clears the currently selected song.
