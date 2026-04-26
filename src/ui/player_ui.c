@@ -2620,11 +2620,12 @@ void show_help(void)
 void save_library(void)
 {
         FileSystemEntry *library = get_library();
+        PlayList *playlist = get_playlist();
         char *filepath = get_library_file_path();
 
         reset_sort_library();
 
-        write_tree_to_binary(library, filepath);
+        write_tree_to_binary(library, filepath, playlist);
 
         free(filepath);
 }
