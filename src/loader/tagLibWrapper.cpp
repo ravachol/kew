@@ -1053,7 +1053,7 @@ static bool parseTimedLyricsFromTagLines(const TagLib::StringList &lines, Lyrics
                         while (end > start && isspace((unsigned char)*(end - 1)))
                                 *(--end) = '\0';
 
-                        lyrics->lines[lyrics->count].timestamp = min * 60.0 + sec + cs / 1000.0;
+                        lyrics->lines[lyrics->count].timestamp = min * 60.0 + sec + cs / 100.0;
                         lyrics->lines[lyrics->count].text = strdup(start);
                         if (!lyrics->lines[lyrics->count].text)
                                 return false;
