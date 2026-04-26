@@ -70,8 +70,15 @@ static int loadTimedLyrics(FILE *file, Lyrics *lyrics)
                                 if (lyrics->count == capacity) {
                                         capacity *= 2;
                                         LyricsLine *newLines = (LyricsLine *)realloc(lyrics->lines, sizeof(LyricsLine) * capacity);
-                                        if (!newLines)
+
+                                        if (!newLines) {
+                                                for (size_t i = 0; i < lyrics->count; i++)
+                                                        free(lyrics->lines[i].text);
+                                                free(lyrics->lines);
+                                                lyrics->lines = NULL;
                                                 return 0;
+                                        }
+
                                         lyrics->lines = newLines;
                                 }
 
@@ -84,8 +91,14 @@ static int loadTimedLyrics(FILE *file, Lyrics *lyrics)
 
                                 lyrics->lines[lyrics->count].timestamp = min * 60.0 + sec + frac;
                                 lyrics->lines[lyrics->count].text = strdup(start);
-                                if (!lyrics->lines[lyrics->count].text)
+
+                                if (!lyrics->lines[lyrics->count].text) {
+                                        for (size_t i = 0; i < lyrics->count; i++)
+                                                free(lyrics->lines[i].text);
+                                        free(lyrics->lines);
+                                        lyrics->lines = NULL;
                                         return 0;
+                                }
 
                                 lyrics->count++;
                         }
