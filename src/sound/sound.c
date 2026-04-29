@@ -285,8 +285,10 @@ void set_decode_thread_priority(pthread_t thread)
                 fprintf(stderr, "setpriority returned: %d (errno: %s)\n", ret, strerror(errno));
         }
 #elif defined(__APPLE__)
+        (void)thread;
         pthread_set_qos_class_self_np(QOS_CLASS_USER_INTERACTIVE, 0);
 #elif defined(__ANDROID__)
+        (void)thread;
         setpriority(PRIO_PROCESS, 0, -8);
 #endif
 }
