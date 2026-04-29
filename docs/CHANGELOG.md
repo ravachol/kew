@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 4.0.0
+## 4.0.0 LOVE IS GONNA SAVE US EDITION
 
 kew 4.0 brings ASCII visualizations and a redesigned audio module. There's also a discord integration, kew play \<path\> command, support for macOS media keys, AIFF support and more.
 
@@ -10,9 +10,21 @@ I want to take this opportunity to thank the package managers who showed up out 
 
 Now we also have Robin Candau on Arch Linux helping us. Thank you to you all and thank you also to all the others that I haven't had much contact with but we are very thankful to you as well.
 
+Check out the Chroma Demo here: https://www.youtube.com/watch?v=Ql5ZKeaX2MQ. Benny Benassi is not affiliated with us.
+
 - Ravachol
 
 #### Enhancements
+
+- The audio subsystem has been reworked and improved structurally, which among other things should make the audio smooth when the computer is under heavy load.  Lots of functions were removed/unified, and some issues fixed. This should make the flow of the program easier to understand for other coders as well. Please help us by reporting any issues with audio.
+
+Everything to do with playing audio is now behind a facade: https://codeberg.org/ravachol/kew/src/branch/main/images/kew_architecture.png.
+
+These changes were made to reduce the occurence of stuttering:
+- kew now runs as a realtime scheduled app (SCHED_RR), but at a low priority.
+- miniaudio period size increased to 200ms and number of periods to 4.
+- much cleaner decode and audio callback logic with no locks.
+
 
 - Chroma ASCII Visualizations.
 
@@ -46,13 +58,6 @@ Thank you @yuri-xyz for helping out with this.
 - Hide time status (elapsed seconds, song length and so on) option, hideTimeStatus=1. By @ravachol. Suggested By: Found a guy on reddit (u/haikuosextremist) who had this hidden in his kew.
 
 - Add option to disable the stripping of track numbers from file names in the library: stripTrackNumbers=0. By @episvr.
-
-- Audio subsystem has been reworked and improved structurally, which among other things should make the audio smooth when the computer is under heavy load.  Lots of functions were removed/unified, and some issues fixed. This should make the flow of the program easier to understand for other coders as well.
-
-These changes were made to reduce the occurence of stuttering:
-- kew now runs as a realtime scheduled app (SCHED_RR), but at a low priority.
-- miniaudio period size increased to 200ms and number of periods to 4.
-- much cleaner decode and audio callback logic with no locks.
 
 - Add AIFF support. Suggested by @brikk42. By @ravachol.
 
@@ -88,9 +93,13 @@ These changes were made to reduce the occurence of stuttering:
 
 - Fix timestamp calculation in embedded lyrics. Found by @LeahTheSlug. By @ravachol.
 
+- Fix playlist not loading in correct order on startup. By @ravachol
+
+- Fix chinese lyrics characters not printed correctly. Found by @2863189117. By @ravachol.
+
 #### Special Thanks
 
-Special thanks to @petoem who has been very active. Also @LeahTheSlug and @Overionised.
+Special thanks to @LeahTheSlug and @petoem who have helped a great deal, and are now advisor and technical advisor respectively.
 
 ## 3.7.3
 
