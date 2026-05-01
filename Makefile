@@ -21,7 +21,6 @@ KEW_VERSION ?= $(shell git describe --tags --dirty --always)
   # Check if we're in Termux environment
 ifneq ($(wildcard /data/data/com.termux/files/usr),)
   # Termux environment
-  COMMONFLAGS += -D__ANDROID__
   IS_ANDROID := 1
 endif
 
