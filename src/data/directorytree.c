@@ -794,8 +794,6 @@ FileSystemEntry *read_tree_from_binary(
                 n->is_directory = d->is_directory;
                 if (set_enqueued_status)
                 {
-                        if (d->is_enqueued > 0)
-                                printf("test");
                         n->is_enqueued = d->is_enqueued;
                 } else
                         n->is_enqueued = 0;
