@@ -192,11 +192,18 @@ Try the theme editor (by @bholroyd): [https://bholroyd.github.io/Kew-tip/](https
 
 ## Visulizations / Chroma
 
-Starting with kew 4.0, you can add visualizations to kew by installing Chroma:
+Starting with kew 4.0, you can add visualizations to kew by installing Chroma, an app by another developer.
 
-https://github.com/yuri-xyz/chroma
+Apparently the developer broke the interface with kew in a recent commit, so you'll need to install a specific commit to get it to work:
 
-Enable and cycle through them by pressing <kbd>c</kbd> in track view.
+How to install Chroma:
+
+git clone https://github.com/yuri-xyz/chroma.git
+cd chroma
+git checkout 0d2fd5151b0c9df19b0122f82ed65f65dd03cb79
+cargo install --path . --features audio
+
+Enable and cycle through the visualizations by pressing <kbd>c</kbd> in track view.
 
 Disable by pressing <kbd>b</kbd>.
 
