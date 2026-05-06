@@ -199,8 +199,11 @@ Apparently the developer broke the interface with kew in a recent commit, so you
 How to install Chroma:
 
 git clone https://github.com/yuri-xyz/chroma.git
+
 cd chroma
+
 git checkout 0d2fd5151b0c9df19b0122f82ed65f65dd03cb79
+
 cargo install --path . --features audio
 
 Enable and cycle through the visualizations by pressing <kbd>c</kbd> in track view.
