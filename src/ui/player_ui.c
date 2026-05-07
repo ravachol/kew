@@ -1187,7 +1187,7 @@ int show_key_bindings(SongData *songdata)
                get_binding_string(EVENT_EXPORTPLAYLIST, false));
         CHECK_LIST_LIMIT();
         printf("\033[%d;%dH", ++num_printed_rows, indentation + 1);
-        printf(_(" · Show Folders in Playlist: %s (on/off)"),
+        printf(_(" · Show Folders in Playlist: %s"),
                get_binding_string(EVENT_TOGGLEFOLDERDISPLAY, false));
         CHECK_LIST_LIMIT();
         printf("\033[%d;%dH", ++num_printed_rows, indentation + 1);
