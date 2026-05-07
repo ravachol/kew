@@ -82,6 +82,7 @@ static int max_lib_list_size = 0;
 static int chosen_row = 0;               // The row that is chosen in playlist view
 static int chosen_lib_row = 0;           // The row that is chosen in library view
 static int chosen_search_result_row = 0; // The row that is chosen in search view
+static int chosen_lyrics_row = 0;        // The top row when scrolling on lyrics page
 static int lib_iter = 0;
 static int lib_song_iter = 0;
 static int lib_row_count = 0;
@@ -1364,6 +1365,8 @@ void scroll_next(void)
                         chosen_search_result_row++;
                         trigger_refresh();
                 }
+        } else if (state->currentView == TRACK_VIEW && state->uiState.showLyricsPage) {
+                chosen_lyrics_row++;
         }
 }
 
@@ -1384,6 +1387,8 @@ void scroll_prev(void)
                 chosen_search_result_row =
                     (chosen_search_result_row > 0) ? chosen_search_result_row : 0;
                 trigger_refresh();
+        } else if (state->currentView == TRACK_VIEW && state->uiState.showLyricsPage) {
+                chosen_lyrics_row--;
         }
 }
 
@@ -2177,41 +2182,41 @@ int calc_visualizer_width()
 
 void print_at(int row, int indent, const char *text, int max_width)
 {
-    char buffer[1024];
-    size_t i = 0, out = 0;
-    int width = 0;
+        char buffer[1024];
+        size_t i = 0, out = 0;
+        int width = 0;
 
-    mbstate_t state;
-    memset(&state, 0, sizeof(state));
+        mbstate_t state;
+        memset(&state, 0, sizeof(state));
 
-    while (text[i]) {
-        wchar_t wc;
-        size_t len = mbrtowc(&wc, text + i, MB_CUR_MAX, &state);
+        while (text[i]) {
+                wchar_t wc;
+                size_t len = mbrtowc(&wc, text + i, MB_CUR_MAX, &state);
 
-        if (len == (size_t)-1 || len == (size_t)-2)
-            break;
+                if (len == (size_t)-1 || len == (size_t)-2)
+                        break;
 
-        int w = wcwidth(wc);
-        if (w < 0 || wc == L'\t' || wc == L'\n') {
-            i += len;
-            continue;
+                int w = wcwidth(wc);
+                if (w < 0 || wc == L'\t' || wc == L'\n') {
+                        i += len;
+                        continue;
+                }
+
+                if (width + w > max_width)
+                        break;
+
+                if (out + len >= sizeof(buffer))
+                        break;
+
+                memcpy(buffer + out, text + i, len);
+                i += len;
+                out += len;
+                width += w;
         }
 
-        if (width + w > max_width)
-            break;
+        buffer[out] = '\0';
 
-        if (out + len >= sizeof(buffer))
-            break;
-
-        memcpy(buffer + out, text + i, len);
-        i += len;
-        out += len;
-        width += w;
-    }
-
-    buffer[out] = '\0';
-
-    printf("\033[%d;%dH%s", row, indent, buffer);
+        printf("\033[%d;%dH%s", row, indent, buffer);
 }
 
 void print_lyrics_page(UISettings *ui, int row, int col, double seconds, SongData *songdata, int height)
@@ -2242,6 +2247,17 @@ void print_lyrics_page(UISettings *ui, int row, int col, double seconds, SongDat
                 if (highlight > height / 2) {
                         // text scrolls and highlighted line stays in the middle
                         offset = highlight - (height / 2);
+                }
+        } else {
+                if (height < (int)lyrics->count) {
+                        if (chosen_lyrics_row < 0) {
+                                offset = 0;
+                        } else if (chosen_lyrics_row > (int)lyrics->count - height) {
+                                offset = (int)lyrics->count - height;
+                        } else {
+                                offset = chosen_lyrics_row;
+                        }
+                        chosen_lyrics_row = offset;
                 }
         }
 
@@ -2701,6 +2717,8 @@ void refresh_player()
 
                 if (state->uiSettings.discordRPCEnabled)
                         notify_discord_update(get_current_song_data(), get_elapsed_seconds(), get_current_song_duration());
+
+                chosen_lyrics_row = 0;
         }
 
         if (ps->notifySeek) {
