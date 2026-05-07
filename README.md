@@ -194,7 +194,7 @@ Try the theme editor (by @bholroyd): [https://bholroyd.github.io/Kew-tip/](https
 
 Starting with kew 4.0, you can add visualizations to kew by installing Chroma, an app by another developer.
 
-Apparently the developer broke the interface with kew in a recent commit, so you'll need to install a specific commit to get it to work:
+You'll need to install a specific commit, which is the latest one that works.
 
 How to install Chroma:
 
