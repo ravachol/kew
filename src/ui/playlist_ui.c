@@ -74,6 +74,55 @@ static void get_folder_basename(const char *file_path, char *out, int out_size)
         out[len] = '\0';
 }
 
+/**
+ * @brief Render a folder header with a separator row when the folder changes.
+ *
+ * If folder display is enabled and node belongs to a different folder than
+ * prev_node, prints an empty separator row followed by the folder name and
+ * advances num_printed_rows by 2. Does nothing when the setting is off, the
+ * folder is unchanged, the folder name is empty, or there isn't room left in
+ * the view.
+ */
+static void render_folder_header_if_changed(int row, int col,
+                                            int *num_printed_rows,
+                                            int max_list_size, int term_width,
+                                            int indent, Node *node,
+                                            Node *prev_node, UISettings *ui)
+{
+        if (!ui->showFoldersInPlaylist || node == NULL)
+                return;
+
+        if (prev_node != NULL &&
+            same_folder(node->song.file_path, prev_node->song.file_path))
+                return;
+
+        char folder_name[NAME_MAX];
+        get_folder_basename(node->song.file_path, folder_name,
+                            sizeof(folder_name));
+        if (folder_name[0] == '\0')
+                return;
+
+        if (*num_printed_rows + 2 > max_list_size)
+                return;
+
+        int max_folder_width = term_width - indent - 3;
+        if (max_folder_width > 0)
+                str_truncate_display_width(folder_name, folder_name,
+                                           max_folder_width);
+
+        apply_color(ui->colorMode, ui->theme.header, ui->color);
+
+        printf("\033[%d;%dH", row + *num_printed_rows, col);
+        clear_rest_of_line();
+        printf("\033[%d;%dH", row + *num_printed_rows + 1, col);
+        clear_rest_of_line();
+        printf("   %s", folder_name);
+
+        reset_color();
+
+        *num_printed_rows += 2;
+}
+
 Node *determine_start_node(Node *head, int *found_at, int list_size)
 {
         if (found_at == NULL) {
@@ -161,9 +210,6 @@ int display_playlist_items(int row, int col, Node *start_node, int start_iter, i
                 return 0;
         }
 
-        AppState *state = get_app_state();
-        bool show_folders = state->uiSettings.showFoldersInPlaylist;
-        char folder_name[NAME_MAX];
         Node *prev_node = (node != NULL) ? node->prev : NULL;
 
         for (int i = start_iter; node != NULL && num_printed_rows < max_list_size;
@@ -182,42 +228,12 @@ int display_playlist_items(int row, int col, Node *start_node, int start_iter, i
                 prepare_playlist_string(node, buffer, NAME_MAX);
 
                 if (buffer[0] != '\0') {
-                        // Show folder header when folder changes
-                        if (show_folders && num_printed_rows < max_list_size) {
-                                bool need_header = false;
-                                if (prev_node == NULL) {
-                                        need_header = true;
-                                } else if (!same_folder(
-                                               node->song.file_path,
-                                               prev_node->song.file_path)) {
-                                        need_header = true;
-                                }
+                        render_folder_header_if_changed(
+                            row, col, &num_printed_rows, max_list_size,
+                            term_width, indent, node, prev_node, ui);
 
-                                if (need_header) {
-                                        get_folder_basename(node->song.file_path,
-                                                            folder_name,
-                                                            sizeof(folder_name));
-                                        if (folder_name[0] != '\0') {
-                                                apply_color(ui->colorMode,
-                                                            ui->theme.header,
-                                                            ui->color);
-
-                                                int max_folder_width = term_width - indent - 3;
-                                                if (max_folder_width > 0)
-                                                        str_truncate_display_width(folder_name, folder_name, max_folder_width);
-
-                                                printf("\033[%d;%dH",
-                                                       row + num_printed_rows, col);
-                                                clear_rest_of_line();
-                                                printf("   %s", folder_name);
-                                                reset_color();
-                                                num_printed_rows++;
-
-                                                if (num_printed_rows >= max_list_size)
-                                                        break;
-                                        }
-                                }
-                        }
+                        if (num_printed_rows >= max_list_size)
+                                break;
 
                         if (!(rgbRowNum.r == default_color &&
                               rgbRowNum.g == default_color &&
@@ -374,24 +390,25 @@ void move_start_node_into_position(int found_at, Node **start_node)
         }
 }
 
-static int count_folder_headers(Node *start_node, int start, int end)
+// Each folder change in view consumes 2 visual rows (separator + header).
+static int count_extra_header_rows(Node *start_node, int start, int end)
 {
         if (start_node == NULL || start >= end)
                 return 0;
 
-        int headers = 0;
+        int extra = 0;
         Node *node = start_node;
         Node *prev = node->prev;
 
         for (int i = start; i < end && node != NULL; i++) {
                 if (prev == NULL ||
                     !same_folder(node->song.file_path, prev->song.file_path))
-                        headers++;
+                        extra += 2;
                 prev = node;
                 node = node->next;
         }
 
-        return headers;
+        return extra;
 }
 
 int display_playlist(int row, int col, PlayList *list, int max_list_size,
@@ -423,9 +440,9 @@ int display_playlist(int row, int col, PlayList *list, int max_list_size,
             *chosen_song >= start_iter) {
                 int half = max_list_size / 2;
                 int songs_to_chosen = *chosen_song - start_iter + 1;
-                int headers = count_folder_headers(start_node, start_iter,
+                int extra = count_extra_header_rows(start_node, start_iter,
                                                     *chosen_song + 1);
-                int visual_pos = songs_to_chosen + headers - 1;
+                int visual_pos = songs_to_chosen + extra - 1;
 
                 if (visual_pos > half) {
                         // Find the node at chosen_song
@@ -443,7 +460,7 @@ int display_playlist(int row, int col, PlayList *list, int max_list_size,
                                 if (n->prev == NULL ||
                                     !same_folder(n->song.file_path,
                                                  n->prev->song.file_path))
-                                        va++;
+                                        va += 2;
 
                                 // Walk backward counting visual rows
                                 while (n->prev != NULL && va < half) {
@@ -457,7 +474,7 @@ int display_playlist(int row, int col, PlayList *list, int max_list_size,
                                             !same_folder(
                                                 n->song.file_path,
                                                 n->prev->song.file_path))
-                                                va++;
+                                                va += 2;
                                 }
 
                                 start_iter = si;
