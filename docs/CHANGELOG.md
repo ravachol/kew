@@ -1,5 +1,17 @@
 # CHANGELOG
 
+## 4.1.0
+
+#### Enhancements
+
+- Optionally show folder names (album names) in the playlist. By @hnatt. Suggested by @itsdeadguy.
+- Scrolling lyrics on lyrics page (press m) By @petoem. Suggested by @kewIT.
+
+#### Bugfixes
+
+There are no bugs. It's an illusion.
+
+
 ## 4.0.0 LOVE IS GONNA SAVE US EDITION
 
 kew 4.0 brings ASCII visualizations and a redesigned audio module. There's also a discord integration, kew play \<path\> command, support for macOS media keys, AIFF support and more.
