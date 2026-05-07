@@ -294,6 +294,17 @@ void toggle_pause()
         }
 }
 
+void toggle_folder_display(void)
+{
+        AppState *state = get_app_state();
+        AppSettings *settings = get_app_settings();
+        state->uiSettings.showFoldersInPlaylist = !state->uiSettings.showFoldersInPlaylist;
+        c_strcpy(settings->showFoldersInPlaylist,
+                 state->uiSettings.showFoldersInPlaylist ? "1" : "0",
+                 sizeof(settings->showFoldersInPlaylist));
+        trigger_refresh();
+}
+
 void toggle_notifications(void)
 {
         AppState *state = get_app_state();
