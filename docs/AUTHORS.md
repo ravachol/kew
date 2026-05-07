@@ -10,6 +10,7 @@
 
 ## Contributors (in alphabetical order)
 
+* 2863189117
 * Alex Hart @hartalex <alex_codeberg@hart.gg>
 * Chromium-3-Oxide <Chromium3Oxide@protonmail.com>
 * @chrontax
@@ -19,9 +20,12 @@
 * @episvr
 * @feng1st
 * Hans Petter Jansson @hpjansson <hpj@hpjansson.org>
+* @hartalex
 * @hiruocha
+* @hnatt Hnat Kubov
 * @hypercunx
 * @Kolby11
+* @ilx159
 * Joey Schaff @jaoheah / @jaoh (codeberg) <jschaff@proton.me>
 * John Lakeman @j-lakeman <le0324tb@anonaddy.me>
 * @noiamnote
