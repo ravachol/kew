@@ -81,6 +81,7 @@ TBKeyBinding key_bindings[MAX_KEY_BINDINGS] = {
     {0, 'a', 0, EVENT_SEEKBACK, ""},
     {0, 'd', 0, EVENT_SEEKFORWARD, ""},
     {0, 'o', 0, EVENT_SORTLIBRARY, ""},
+    {0, '_', 0, EVENT_TOGGLEFOLDERDISPLAY, ""},
     {0, 'm', 0, EVENT_SHOWLYRICSPAGE, ""},
     {0, 's', TB_MOD_SHIFT, EVENT_STOP, ""},
 
@@ -465,6 +466,7 @@ static const EventMap event_map[] = {
     {"cycleThemes", EVENT_CYCLETHEMES},
     {"toggleNotifications", EVENT_TOGGLENOTIFICATIONS},
     {"showLyricsPage", EVENT_SHOWLYRICSPAGE},
+    {"toggleFolderDisplay", EVENT_TOGGLEFOLDERDISPLAY},
     {NULL, EVENT_NONE} // Sentinel
 };
 
@@ -1069,6 +1071,10 @@ void construct_app_settings(AppSettings *settings, KeyValuePair *pairs, int coun
                 } else if (strcmp(lowercase_key, "repeatstate") == 0) {
                         snprintf(settings->repeatState,
                                  sizeof(settings->repeatState), "%s",
+                                 pair->value);
+                } else if (strcmp(lowercase_key, "showfoldersinplaylist") == 0) {
+                        snprintf(settings->showFoldersInPlaylist,
+                                 sizeof(settings->showFoldersInPlaylist), "%s",
                                  pair->value);
                 } else if (strcmp(lowercase_key, "shuffleenabled") == 0) {
                         snprintf(settings->shuffle_enabled,
@@ -1708,6 +1714,12 @@ void set_prefs(AppSettings *settings, UISettings *ui)
                                                sizeof(settings->shuffle_enabled));
         }
 
+        ui->showFoldersInPlaylist
+            ? c_strcpy(settings->showFoldersInPlaylist, "1",
+                        sizeof(settings->showFoldersInPlaylist))
+            : c_strcpy(settings->showFoldersInPlaylist, "0",
+                        sizeof(settings->showFoldersInPlaylist));
+
         if (settings->visualizer_color_type[0] == '\0')
                 snprintf(settings->visualizer_color_type,
                          sizeof(settings->visualizer_color_type), "%d",
@@ -1726,6 +1738,7 @@ void set_prefs(AppSettings *settings, UISettings *ui)
                 fprintf(file, "shuffleEnabled=%s\n\n", settings->shuffle_enabled);
         }
 
+        fprintf(file, "showFoldersInPlaylist=%s\n\n", settings->showFoldersInPlaylist);
         fprintf(file, "lastVolume=%s\n\n", settings->lastVolume);
         fprintf(file, "[track cover]\n\n");
         fprintf(file, "coverAnsi=%s\n\n", settings->coverAnsi);
@@ -1882,6 +1895,12 @@ void set_config(AppSettings *settings, UISettings *ui)
                             : c_strcpy(settings->shuffle_enabled, "0",
                                        sizeof(settings->shuffle_enabled));
 
+        ui->showFoldersInPlaylist
+            ? c_strcpy(settings->showFoldersInPlaylist, "1",
+                        sizeof(settings->showFoldersInPlaylist))
+            : c_strcpy(settings->showFoldersInPlaylist, "0",
+                        sizeof(settings->showFoldersInPlaylist));
+
         if (settings->visualizer_bar_width[0] == '\0')
                 snprintf(settings->visualizer_bar_width,
                          sizeof(settings->visualizer_bar_width), "%d",
@@ -1968,6 +1987,7 @@ void set_config(AppSettings *settings, UISettings *ui)
 
         fprintf(file, "repeatState=%s\n\n", settings->repeatState);
         fprintf(file, "shuffleEnabled=%s\n\n", settings->shuffle_enabled);
+        fprintf(file, "showFoldersInPlaylist=%s\n\n", settings->showFoldersInPlaylist);
 
         fprintf(file, "# Set the window title to the title of the currently "
                       "playing track\n");
