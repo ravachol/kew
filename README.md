@@ -51,7 +51,9 @@ Please open new issues and pull requests there.
 Install through your package manager or homebrew (macOS). If you can't find it on your distro, or you want the bleeding edge, follow the [Manual Installation Instructions](docs/MANUAL-INSTALL-INSTRUCTIONS.md).
 
 For NixOS, there is an official package but also a [Nix Flake](flake.nix) that tracks the latest commit.
+
 For Artix Linux it's in the [Artist repository](https://wiki.artixlinux.org/Main/Repositories#artist_repository).
+
 For Fedora there is an [unofficial RPM](https://copr.fedorainfracloud.org/coprs/fed500/kew).
 
 ## Usage
