@@ -16,10 +16,12 @@
 #include "track_manager.h"
 
 #include "data/directorytree.h"
+#include "loader/tagLibWrapper.h"
 
 #include "utils/file.h"
 #include "utils/utils.h"
 
+#include <stdio.h>
 #include <glib.h>
 #include <sys/stat.h>
 #include <sys/time.h>
@@ -536,6 +538,64 @@ void dequeue_children(FileSystemEntry *parent)
         set_childrens_queued_status_on_parents(parent, false);
 }
 
+int compare_tracks_from_pointer(const void* trackA, const void* trackB) {
+    FileSystemEntry* track1 = *(FileSystemEntry**)trackA;
+    FileSystemEntry* track2 = *(FileSystemEntry**)trackB;
+
+    return track1->track_number - track2->track_number;
+}
+
+int enqueue_album(FileSystemEntry *firstChild, FileSystemEntry** first_enqueued)
+{
+        int has_enqueued = 0;
+        if (firstChild == NULL)
+            return has_enqueued;
+
+        FileSystemEntry *entry = firstChild;
+        int numberOfEntries = 0, numberOfDiscs = 1;
+        numberOfDiscs = pullDiscNumber(firstChild->full_path, true);
+
+        FileSystemEntry*** discArray = calloc(numberOfDiscs, sizeof(FileSystemEntry **));
+        for (int i = 0; i < numberOfDiscs; i++) {
+            discArray[i] = calloc(MAX_SORT_SIZE / numberOfDiscs, sizeof(FileSystemEntry *));
+        }
+
+        int* counterArray = calloc(numberOfDiscs, sizeof(int));
+        
+        while (entry != NULL && numberOfEntries < MAX_SORT_SIZE) {
+                if (!entry->is_directory && is_music_file(entry->name)) {
+                    int track_disc_number = pullDiscNumber(entry->full_path, false);
+
+                    discArray[track_disc_number - 1][counterArray[track_disc_number - 1]] = entry;
+                    discArray[track_disc_number - 1][counterArray[track_disc_number - 1]]->track_number = pullTrackNumber(entry->full_path);
+                    counterArray[track_disc_number - 1]++;
+                    numberOfEntries++;
+                }
+                entry = entry->next;
+        }
+
+        for (int i = 0; i < numberOfDiscs; i++) {
+            qsort(discArray[i], counterArray[i], sizeof(FileSystemEntry *), compare_tracks_from_pointer);
+        }
+
+        if (*first_enqueued == NULL) {
+            *first_enqueued = discArray[0][0];
+        }
+
+        for (int i = 0; i < numberOfDiscs; i++) {
+            for (int j = 0; j < counterArray[i]; j++) {
+                enqueue_song(discArray[i][j]);
+            }
+            free(discArray[i]);
+        }
+        free(discArray);
+        free(counterArray);
+
+
+        has_enqueued = 1;
+        return has_enqueued;
+}
+
 int enqueue_children(FileSystemEntry *child,
                      FileSystemEntry **first_enqueued_entry)
 {
@@ -561,6 +621,40 @@ int enqueue_children(FileSystemEntry *child,
                                         *first_enqueued_entry = child;
 
                                 enqueue_song(child);
+                        }
+
+                        has_enqueued = 1;
+                }
+
+                child = child->next;
+        }
+
+        set_childrens_queued_status_on_parents(parent, true);
+
+        return has_enqueued;
+}
+
+int enqueue_children_sorted(FileSystemEntry *child,
+                     FileSystemEntry **first_enqueued_entry)
+{
+        int has_enqueued = 0;
+
+        if (!child)
+                return has_enqueued;
+
+        FileSystemEntry *parent = child->parent;
+
+        while (child != NULL) {
+                if (child->is_directory) {
+                        if (child->children != NULL) {
+                                child->is_enqueued = enqueue_children_sorted(child->children, first_enqueued_entry);
+
+                                if (child->is_enqueued >= 1)
+                                        has_enqueued = 1;
+                        }
+                } else if (!is_m3u_file(child)) {
+                        if (!child->is_enqueued) {
+                                enqueue_album(child, first_enqueued_entry);
                         }
 
                         has_enqueued = 1;
