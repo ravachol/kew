@@ -1172,3 +1172,21 @@ void sort_file_system_tree(FileSystemEntry *root,
                 child = child->next;
         }
 }
+
+unsigned long count_music_files_in_directory(FileSystemEntry *directory) {
+    unsigned long file_count = 0;
+    FileSystemEntry* child = directory->children;
+
+    while (child != NULL) {
+        if (child->is_directory && child->children != NULL) {
+            file_count += count_music_files_in_directory(child);
+        }
+        else if (is_music_file(child->name)) {
+            file_count++;
+        }
+        child = child->next;
+    }
+
+    return file_count;
+}
+

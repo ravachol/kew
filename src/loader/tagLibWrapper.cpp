@@ -1349,6 +1349,66 @@ static bool loadLyricsFromUSLTTag(TagLib::ID3v2::Tag *id3v2Tag,
         return true;
 }
 
+uint32_t pullDiscNumber(const char *filepath, bool max)
+{
+    TagLib::MPEG::File file(filepath);
+
+    if (!file.isValid())
+        return 1;
+
+    TagLib::ID3v2::Tag *tag = file.ID3v2Tag();
+    if (!tag)
+        return 1;
+
+    TagLib::ID3v2::FrameList frames = tag->frameListMap()["TPOS"];
+
+    if (frames.isEmpty())
+        return 1;
+
+    auto *frame = dynamic_cast<TagLib::ID3v2::TextIdentificationFrame *>(frames.front());
+    if (!frame)
+        return 1;
+
+    TagLib::String str = frame->toString();
+    std::string raw = str.to8Bit(true);
+    char *delimiter;
+    uint32_t disc_number = strtoul(raw.c_str(), &delimiter, 10);
+    if (max) {
+        if (*(delimiter + 1) != '\0' &&
+            *(delimiter + 1) >= '0' &&
+            *(delimiter + 1) <= '9')
+        {
+            disc_number = strtoul(delimiter + 1, NULL, 10);
+        }
+    }
+
+    return disc_number;
+}
+
+uint32_t pullTrackNumber(const char *input_file) {
+        // Use TagLib's FileRef for generic file parsing.
+        TagLib::FileRef f(input_file);
+        if (f.isNull() || !f.file()) {
+                fprintf(stderr,
+                        "FileRef is null or file could not be opened: "
+                        "'%s'\n",
+                        input_file);
+
+                return -1;
+        }
+
+        const TagLib::Tag *tag = f.tag();
+        if (!tag) {
+                fprintf(stderr, "Tag is null for file '%s'\n",
+                        input_file);
+                return -2;
+        }
+
+        uint32_t trackNumber = tag->track();
+
+        return trackNumber;
+}
+
 int extractTags(const char *input_file, TagSettings *tag_settings,
                 double *duration, const char *coverFilePath, Lyrics **lyrics)
 {
@@ -1383,7 +1443,6 @@ int extractTags(const char *input_file, TagSettings *tag_settings,
                         input_file);
                 return -2;
         }
-
         // Copy the title
         c_strcpy(tag_settings->title, tag->title().toCString(true),
                  sizeof(tag_settings->title) - 1);

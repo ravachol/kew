@@ -1,3 +1,4 @@
+#include "directorytree.h"
 #define _XOPEN_SOURCE 700
 #define __USE_XOPEN_EXTENDED 1
 
@@ -17,6 +18,7 @@
 
 #include "utils/file.h"
 #include "utils/utils.h"
+#include "loader/tagLibWrapper.h"
 
 #include <glib.h>
 #include <limits.h>
@@ -322,6 +324,7 @@ void build_playlist_recursive(const char *directory_path,
         expand_path(directory_path, expanded_path);
 
         int res = is_directory(expanded_path);
+
         if (res != 1 && res != -1 && directory_path != NULL) {
                 Node *node = NULL;
 
@@ -1050,7 +1053,12 @@ int contains_music_files(FileSystemEntry *entry)
         return 0;
 }
 
-void add_album_to_play_list(PlayList *list, FileSystemEntry *album, int playlist_max)
+int compare_tracks(const void* trackA, const void* trackB) {
+    return ((FileSystemEntry*)trackA)->track_number - ((FileSystemEntry*)trackB)->track_number;
+}
+
+
+void add_album_to_play_list_unsorted(PlayList *list, FileSystemEntry *album, int playlist_max)
 {
         FileSystemEntry *entry = album->children;
 
@@ -1059,6 +1067,27 @@ void add_album_to_play_list(PlayList *list, FileSystemEntry *album, int playlist
                         add_song_to_play_list(list, entry->full_path, playlist_max);
                 }
                 entry = entry->next;
+        }
+}
+
+void add_album_to_play_list(PlayList *list, FileSystemEntry *album, int playlist_max)
+{
+        FileSystemEntry *entry = album->children;
+        FileSystemEntry entriesList[playlist_max];
+        int numberOfEntries = 0;
+
+        while (entry != NULL && list->count < playlist_max) {
+                if (!entry->is_directory && is_music_file(entry->name)) {
+                    entriesList[numberOfEntries] = *entry;
+                    entriesList[numberOfEntries].track_number = pullTrackNumber(entry->full_path);
+                }
+                entry = entry->next;
+                numberOfEntries++;
+        }
+        qsort(entriesList, numberOfEntries, sizeof(FileSystemEntry), compare_tracks);
+
+        for (int i = 0; i < numberOfEntries; i++) {
+            add_song_to_play_list(list, entriesList[i].full_path, playlist_max);
         }
 }
 
@@ -1121,13 +1150,26 @@ void add_shuffled_albums_to_play_list(FileSystemEntry *root, PlayList *list,
         size_t maxAlbums = 2000;
         FileSystemEntry *albums[maxAlbums];
         size_t albumCount = 0;
+        bool sort = true;
+        unsigned long file_count = count_music_files_in_directory(root);
+        if (file_count > MAX_SORT_SIZE) {
+
+            sort = false;
+        }
 
         collect_albums(root, albums, &albumCount);
 
         shuffle_entries(albums, albumCount);
 
-        for (size_t i = 0; i < albumCount && list->count < playlist_max; i++) {
-                add_album_to_play_list(list, albums[i], playlist_max);
+        if (sort) {
+            for (size_t i = 0; i < albumCount && list->count < playlist_max; i++) {
+                    add_album_to_play_list(list, albums[i], playlist_max);
+            }
+        }
+        else {
+            for (size_t i = 0; i < albumCount && list->count < playlist_max; i++) {
+                    add_album_to_play_list_unsorted(list, albums[i], playlist_max);
+            }
         }
 }
 

@@ -111,6 +111,19 @@ void dequeue_children(FileSystemEntry *parent);
 void set_childrens_queued_status_on_parents(FileSystemEntry *parent, bool wanted_status);
 
 /**
+ * @brief Enqueues all music file siblings of a file in order according to track number
+ *
+ * Walks along the list of siblings and checks they are music files, then adds them to an array
+ * Array is then sorted and enqueued
+ *
+ * @param firstChild pointer to first file in album
+ *
+ * @return 1 if album wasn't NULL
+ */
+int enqueue_album(FileSystemEntry *firstChild,
+                  FileSystemEntry **first_enqueued);
+
+/**
  * @brief Recursively enqueue all songs under a directory.
  *
  * Traverses the subtree starting at the given entry and enqueues all
@@ -123,6 +136,21 @@ void set_childrens_queued_status_on_parents(FileSystemEntry *parent, bool wanted
  * @return 1 if at least one entry was enqueued, 0 otherwise.
  */
 int enqueue_children(FileSystemEntry *child,
+                     FileSystemEntry **first_enqueued_entry);
+
+/**
+ * @brief Recursively enqueue all songs under a directory, sorted by album and track number.
+ *
+ * Traverses the subtree starting at the given entry and enqueues
+ * albums when a leaf is reached, using enqueue_album()
+ *
+ * @param child Root of the subtree to enqueue.
+ * @param first_enqueued_entry Output parameter that receives the first
+ *                             enqueued FileSystemEntry, if any.
+ *
+ * @return 1 if at least one entry was enqueued, 0 otherwise.
+ */
+int enqueue_children_sorted(FileSystemEntry *child,
                      FileSystemEntry **first_enqueued_entry);
 
 /**
