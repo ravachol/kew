@@ -26,6 +26,7 @@ typedef struct FileSystemEntry {
         int is_directory;
         int is_enqueued;
         int parent_id;
+        int track_number;
         struct FileSystemEntry *parent;
         struct FileSystemEntry *children;
         struct FileSystemEntry *next;      // For siblings (next node in the same directory)
@@ -37,6 +38,8 @@ typedef struct FileSystemEntry {
 #define SLOWLOADING_CALLBACK
 typedef void (*SlowloadingCallback)(void);
 #endif
+
+#define MAX_SORT_SIZE 256
 
 /**
  * Creates a directory tree starting at the given path.
@@ -241,5 +244,15 @@ bool is_m3u(const char *filename);
  * @return true if the entry is an M3U file, false otherwise
  */
 bool is_m3u_file(const FileSystemEntry *entry);
+
+/**
+ * Counts the number of music files in a directory
+ * Walks down the directory's child subtree and checks if the files are music files
+ *
+ * @param directory Pointer to the FileSystemEntry to the directory root
+ *
+ * @return the number of music files in the directory and it's subdirectories
+ */
+unsigned long count_music_files_in_directory(FileSystemEntry *directory);
 
 #endif
