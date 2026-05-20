@@ -10,6 +10,7 @@
 
 #include "common_ui.h"
 
+#include "render_ui.h"
 #include "visuals.h"
 
 #include "common/appstate.h"
@@ -364,16 +365,18 @@ char *get_inbetween_char(float prev, float next)
 void print_spectrum(int row, int col, UISettings *ui, int height, int num_bars,
                     int visualizer_width, float *magnitudes)
 {
-        PixelData color = {0, 0, 0};
+        PixelData color = {0, 0, 0, 255};
 
         if (ui->colorMode == COLOR_MODE_ALBUM) {
                 color.r = ui->color.r;
                 color.g = ui->color.g;
                 color.b = ui->color.b;
+                color.a = ui->color.a;
         } else if (ui->colorMode == COLOR_MODE_THEME && ui->theme.trackview_visualizer.type == COLOR_TYPE_RGB) {
                 color.r = ui->theme.trackview_visualizer.rgb.r;
                 color.g = ui->theme.trackview_visualizer.rgb.g;
                 color.b = ui->theme.trackview_visualizer.rgb.b;
+                color.a = ui->theme.trackview_visualizer.rgb.a;
         }
 
         int visualizer_color_type = ui->visualizer_color_type;
@@ -420,7 +423,7 @@ void print_spectrum(int row, int col, UISettings *ui, int height, int num_bars,
                                 tmp = (PixelData){
                                     color.r / 2, color.g / 2,
                                     color.b /
-                                        2}; // Make colors half as bright before
+                                        2, 255}; // Make colors half as bright before
                                             // increasing brightness
                                 tmp = increase_luminosity(
                                     tmp, round(magnitudes[i] * 10 * 4));
@@ -496,14 +499,132 @@ void free_visuals(void)
         }
 }
 
-void draw_spectrum_visualizer(sound_system_t *system, int row, int col, int height, int width)
+void draw_spectrum_to_buf(const Model *model, DrawBuffer *buf, int row, int col,
+                          int height, int num_bars, int visualizer_width,
+                          float *magnitudes)
+{
+    // Resolve base color
+    PixelData color = {0, 0, 0, 255};
+    const UISettings *ui = &model->state.settings;
+
+    if (ui->colorMode == COLOR_MODE_ALBUM) {
+        color = ui->color;
+    } else if (ui->colorMode == COLOR_MODE_THEME &&
+               ui->theme.trackview_visualizer.type == COLOR_TYPE_RGB) {
+        color = ui->theme.trackview_visualizer.rgb;
+    }
+
+    int  visualizer_color_type = ui->visualizer_color_type;
+    bool brailleMode           = ui->visualizerBrailleMode;
+    bool is_playing            = (sound_system_get_state(sound_sys) == SOUND_STATE_PLAYING);
+
+    // Clear if not playing
+    if (!is_playing || model->is_paused || model->is_stopped) {
+        CellStyle blank = cell_style_plain();
+        for (int j = 0; j < height; j++)
+            draw_buffer_set_string_truncated(buf, row + j, col,
+                                             "", visualizer_width, blank);
+        return;
+    }
+
+    // Draw each color
+    for (int j = height; j > 0; j--) {
+        int draw_row = row + height - j;
+
+        // Row color
+        PixelData row_color = color;
+
+        if (color.r != 0 || color.g != 0 || color.b != 0) {
+            switch (visualizer_color_type) {
+                case 0:
+                    row_color = increase_luminosity_for_height(color, height, j, false);
+                    break;
+                case 2:
+                    row_color = increase_luminosity_for_height(color, height, j, true);
+                    break;
+                case 3:
+                    row_color = get_gradient_color(color, j, height, 1, 0.6f);
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        CellStyle row_style;
+        if (ui->colorMode == COLOR_MODE_ALBUM ||
+            ui->theme.trackview_visualizer.type == COLOR_TYPE_RGB)
+            row_style = cell_style_fg(row_color);
+        else
+            row_style = cell_style_from_color(ui->colorMode,
+                                              ui->theme.trackview_visualizer,
+                                              row_color);
+
+        // Draw each bar in this row
+        int draw_col = col;
+
+        for (int i = 0; i < num_bars; i++) {
+
+            // Per-bar color override for color type 1
+            CellStyle bar_style = row_style;
+            if (ui->colorMode != COLOR_MODE_DEFAULT && visualizer_color_type == 1) {
+                PixelData tmp = { color.r / 2, color.g / 2, color.b / 2, 255 };
+                tmp = increase_luminosity(tmp, (int)round(magnitudes[i] * 10 * 4));
+                bar_style = cell_style_fg(tmp);
+            }
+
+            bool wide_bar = (visualizer_bar_mode == 1 ||
+                            (visualizer_bar_mode == 2 &&
+                             visualizer_width > max_thin_bars_in_auto_mode));
+
+            // Braille left-side character
+            if (brailleMode) {
+                const char *left_ch = " ";
+                if (i == 0) {
+                    left_ch = " ";
+                } else if (magnitudes[i - 1] >= j) {
+                    left_ch = get_upward_motion_char(10, brailleMode);
+                } else if (magnitudes[i - 1] + 1 >= j) {
+                    left_ch = get_inbetween_char(magnitudes[i - 1], magnitudes[i]);
+                }
+                draw_buffer_set_string(buf, draw_row, draw_col, left_ch, bar_style);
+                draw_col++;
+            } else {
+                // non-braille spacer
+                draw_buffer_set_string(buf, draw_row, draw_col, " ", bar_style);
+                draw_col++;
+            }
+
+            // Bar character
+            const char *bar_ch;
+            if (magnitudes[i] >= j) {
+                bar_ch = get_upward_motion_char(10, brailleMode);
+            } else if (magnitudes[i] + 1 >= j) {
+                int first_decimal = (int)(fmod(magnitudes[i] * 10, 10));
+                bar_ch = get_upward_motion_char(first_decimal, brailleMode);
+            } else {
+                bar_ch = " ";
+            }
+
+            draw_buffer_set_string(buf, draw_row, draw_col, bar_ch, bar_style);
+            draw_col++;
+
+            // Wide bar second character
+            if (wide_bar) {
+                draw_buffer_set_string(buf, draw_row, draw_col, bar_ch, bar_style);
+                draw_col++;
+            }
+        }
+    }
+}
+
+void draw_spectrum_visualizer_to_buf(const Model *model, DrawBuffer *buf, sound_system_t *system, int row, int col, int height, int width)
 {
         AppState *state = get_app_state();
         sound_s = system;
 
-        int num_bars = state->uiState.num_progress_bars;
-        int visualizer_width = state->uiState.num_progress_bars;
-        visualizer_bar_mode = state->uiSettings.visualizer_bar_mode;
+        int num_bars = width / 2;
+        int visualizer_width = num_bars;
+        visualizer_bar_mode = state->settings.visualizer_bar_mode;
 
         int bar_width = 2;
 
@@ -519,9 +640,7 @@ void draw_spectrum_visualizer(sound_system_t *system, int row, int col, int heig
 
         // Center the visualizer
         int extra_cols = width - (num_bars * bar_width);
-        col += extra_cols / 2;
-
-        height -= 1;
+        col += (extra_cols / 2) - 1;
 
         if (height <= 0 || num_bars <= 0) {
                 return;
@@ -570,6 +689,6 @@ void draw_spectrum_visualizer(sound_system_t *system, int row, int col, int heig
         calc_magnitudes(height, num_bars, sound_system_get_audio_buffer(sound_s), bit_depth, fft_input,
                         fft_output, fft_size, magnitudes, fft_plan, display_magnitudes);
 
-        print_spectrum(row, col, &(state->uiSettings), height, num_bars,
+        draw_spectrum_to_buf(model, buf, row, col, height, num_bars,
                        visualizer_width, display_magnitudes);
 }

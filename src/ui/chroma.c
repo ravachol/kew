@@ -58,7 +58,7 @@ void chroma_set_next_preset(int height)
                 g_viz.preset = 0;
 
         AppState *state = get_app_state();
-        state->uiSettings.chromaPreset = g_viz.preset;
+        state->settings.chromaPreset = g_viz.preset;
 
         chroma_stop();
         chroma_start(height);
@@ -67,7 +67,6 @@ void chroma_set_next_preset(int height)
 int calc_chroma_width(int height)
 {
         TermSize ts;
-        tty_init();
 
         get_tty_size(&ts);
 

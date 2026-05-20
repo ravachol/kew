@@ -11,6 +11,7 @@
 #define DIRECTORYTREE_H
 
 #include "playlist_type.h"
+
 #include "common/path_max.h"
 
 #include <dirent.h>
@@ -48,6 +49,7 @@ typedef void (*SlowloadingCallback)(void);
  * builds a tree of FileSystemEntry structures. Empty directories
  * are removed from the resulting tree.
  *
+ * @param model
  * @param start_path  The root path from which to build the tree
  * @param num_entries Output parameter that receives the number of
  *                    directory entries found (after cleanup)
@@ -55,6 +57,7 @@ typedef void (*SlowloadingCallback)(void);
  * @return Pointer to the root FileSystemEntry on success,
  *         or NULL on failure
  */
+
 FileSystemEntry *create_directory_tree(const char *start_path, int *num_entries);
 
 /**

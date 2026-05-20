@@ -265,15 +265,6 @@ void save_favorites_playlist(const char *directory,
                              PlayList *favorites_playlist);
 
 /**
- * @brief Creates a deep copy of a playlist.
- *
- * @param original_list Playlist to copy.
- *
- * @return Newly allocated deep copy, or NULL on failure.
- */
-PlayList *deep_copy_playlist(const PlayList *original_list);
-
-/**
  * @brief Copies the contents of one playlist into another.
  *
  * @param original_list Source playlist.
@@ -281,7 +272,7 @@ PlayList *deep_copy_playlist(const PlayList *original_list);
  *
  * @note Existing contents of destination are cleared.
  */
-void deep_copy_play_list_onto_list(const PlayList *original_list,
+void deep_copy_list(const PlayList *original_list,
                                    PlayList **new_list);
 
 /**

@@ -164,7 +164,7 @@ bool get_is_long_name(void);
  * @param num The button or event number representing the mouse action.
  * @return The corresponding `EventType` value.
  */
-enum EventType get_mouse_action(int num);
+enum MsgType get_mouse_action(int num);
 
 /**
  * @brief Increases the luminosity of a pixel by a fixed amount.
@@ -221,5 +221,42 @@ PixelData decrease_luminosity_pct(PixelData base, float pct);
  * @return The calculated `PixelData` for the gradient color.
  */
 PixelData get_gradient_color(PixelData base_color, int row, int max_list_size, int start_gradient, float min_pct);
+
+//FIXME documentation
+
+const char *get_lyrics_line(const Lyrics *lyrics, double elapsed_seconds);
+
+// Advance one UTF-8 codepoint, return it. *bytes_consumed is set to the
+// number of bytes eaten. Returns 0xFFFD on invalid sequences.
+uint32_t utf8_next(const char *s, int *bytes_consumed);
+
+int codepoint_display_width(uint32_t cp);
+
+// Write a UTF-8 string into the buffer at (row, col), stopping at
+// max_width display columns. Remaining columns up to max_width are
+// filled with spaces. Clips if row/col is outside the buffer.
+void draw_buffer_set_string_truncated(DrawBuffer *buf,
+                                      int row, int col,
+                                      const char *str,
+                                      int max_width,
+                                      CellStyle style);
+
+void draw_buffer_set_cell(DrawBuffer *buf,
+                          int row,
+                          int col,
+                          uint32_t cp,
+                          CellStyle style);
+
+void draw_buffer_set_string(DrawBuffer *buf, int row, int col,
+                            const char *str, CellStyle style);
+
+
+CellStyle cell_style_plain(void);
+
+CellStyle cell_style_fg(PixelData color);
+
+CellStyle cell_style_from_color(ColorMode mode, ColorValue theme, PixelData color);
+
+int get_footer_text(char *restrict text, size_t size);
 
 #endif

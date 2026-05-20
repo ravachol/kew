@@ -661,8 +661,6 @@ FileSystemEntry *create_directory_tree(const char *start_path, int *num_entries)
 {
         FileSystemEntry *root = create_entry("root", 1, NULL);
 
-        set_library(root);
-
         set_full_path(root, start_path, "");
 
         *num_entries = read_directory(start_path, root);
@@ -792,6 +790,7 @@ FileSystemEntry *read_tree_from_binary(
                 n->id = d->id;
                 n->parent_id = d->parent_id;
                 n->is_directory = d->is_directory;
+
                 if (set_enqueued_status)
                 {
                         n->is_enqueued = d->is_enqueued;
@@ -802,6 +801,7 @@ FileSystemEntry *read_tree_from_binary(
                         n->name = strdup(""); // empty name
                 else
                         n->name = strdup(string_table + d->name_offset);
+
                 n->parent = n->children = n->next = n->lastChild = NULL;
                 n->full_path = NULL;
 
